@@ -87,7 +87,7 @@ SetShellVarContext all
   CreateShortCut "$SMPROGRAMS\DOSBox-${VER_MAYOR}.${VER_MINOR}\Extras\Video\Video instructions.lnk" "$INSTDIR\Video Codec\Video Instructions.txt"
 ;change outpath so the working directory gets set to zmbv
 SetOutPath "$INSTDIR\Video Codec"
-  ; Shortcut creation depends on wether we are 9x of NT
+  ; Shortcut creation depends on whether we are 9x of NT
   ClearErrors
   ReadRegStr $R0 HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
   IfErrors we_9x we_nt

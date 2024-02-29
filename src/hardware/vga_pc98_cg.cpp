@@ -86,7 +86,7 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
         case 0xA5:
             /* From documentation:
              *
-             *    bit [7:6] = Dont care
+             *    bit [7:6] = Don't care
              *    bit [5]   = L/R
              *    bit [4]   = 0
              *    bit [3:0] = C3-C0
@@ -113,7 +113,7 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
                    // I'm also guessing that this RAM is not involved with the single-wide
                    // character set, which is why writes to 0x0056/0x0057 are redirected to
                    // 0x8056/0x8057. Without this hack, Touhou Project 2 will overwrite
-                   // the letter 'W' when loading it's font data (Level 1 will show "Eastern  ind"
+                   // the letter 'W' when loading its font data (Level 1 will show "Eastern  ind"
                    // instead of "Eastern Wind" for the music title as a result).
                    //
                    // On real hardware it seems, attempts to write anywhere outside 0xxx56/0xxx57

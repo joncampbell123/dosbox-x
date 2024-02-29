@@ -2259,7 +2259,7 @@ void HARDWARE_Destroy(Section * sec) {
 void HARDWARE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("HARDWARE_Init: initializing");
 
-	/* TODO: Hardware init. We moved capture init to it's own function. */
+	/* TODO: Hardware init. We moved capture init to its own function. */
 	AddExitFunction(AddExitFunctionFuncPair(HARDWARE_Destroy),true);
 }
 

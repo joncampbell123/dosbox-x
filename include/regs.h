@@ -51,7 +51,7 @@
 
 struct Segment {
 	uint16_t val;
-	PhysPt phys;							/* The phyiscal address start in emulated machine */
+	PhysPt phys;							/* The physical address start in emulated machine */
 	PhysPt limit;
 };
 

@@ -124,7 +124,7 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *
 	uint8_t *comdata;
 	uint8_t index;
 
-	/* Copy save the pointer in the vector and save it's index */
+	/* Copy save the pointer in the vector and save its index */
 	if (internal_progs.size()>255) E_Exit("PROGRAMS_MakeFile program size too large (%d)",static_cast<int>(internal_progs.size()));
 
 	index = (uint8_t)internal_progs.size();
@@ -207,8 +207,8 @@ void Program::ChangeToLongCmd() {
 	 * can only be given on the shell ( so no int 21 4b) 
 	 * Securemode part is disabled as each of the internal command has already
 	 * protection for it. (and it breaks games like cdman)
-	 * it is also done for long arguments to as it is convient (as the total commandline can be longer then 127 characters.
-	 * imgmount with lot's of parameters
+	 * it is also done for long arguments too as it is convenient (as the total commandline can be longer than 127 characters.
+	 * imgmount with lots of parameters
 	 * Length of arguments can be ~120. but switch when above 100 to be sure
 	 */
 
@@ -1419,7 +1419,7 @@ void CONFIG::Run(void) {
 				if (!strcasecmp(pvars[0].c_str(), "config"))
 					WriteOut("set\ninstall\ninstallhigh\ndevice\ndevicehigh\n");
 			} else {
-				// find the property by it's name
+				// find the property by its name
 				size_t i = 0;
 				while (true) {
 					Property *p = psec->Get_prop((int)(i++));
@@ -1457,7 +1457,7 @@ void CONFIG::Run(void) {
 							p->Get_help(),propvalues.c_str(),
 							p->Get_Default_Value().ToString().c_str(),
 							p->GetValue().ToString().c_str());
-						// print 'changability'
+						// print 'changeability'
 						if (p->getChange()==Property::Changeable::OnlyAtStart) {
 							WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_NOCHANGE"));
 						}

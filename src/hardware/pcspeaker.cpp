@@ -686,7 +686,7 @@ static void PCSPEAKER_CallBack(Bitu len) {
 
         /* hack: some indexes come out at 1.001, fix that for the next round.
          *       this is a consequence of DOSBox-X allowing the CPU cycles
-         *       count use to overrun slightly for accuracy. if we DONT fix
+         *       count use to overrun slightly for accuracy. if we DON'T fix
          *       this the delay queue will get stuck and PC speaker output
          *       will stop. */
         for (Bitu i=0;i < spkr.used;i++) {

@@ -310,7 +310,7 @@ static PageHandler *MEM_SlowPath(Bitu page) {
     }
 
     /* if nothing matched, assign default handler to MEM handler slot.
-     * if one device responded, assign it's handler to the MEM handler slot.
+     * if one device responded, assign its handler to the MEM handler slot.
      * if more than one responded, then do not update the MEM handler slot. */
 //    assert(iolen >= 1 && iolen <= 4);
 //    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
@@ -337,7 +337,7 @@ void MEM_FreeHandler(Bitu phys_page,Bitu page_range) {
 void MEM_CalloutObject::InvalidateCachedHandlers(void) {
     Bitu p;
 
-    /* for both the base page, as well as it's aliases, revert the pages back to "slow path" */
+    /* for both the base page, as well as its aliases, revert the pages back to "slow path" */
     for (p=m_base;p < memory.handler_pages;p += alias_mask+1)
         MEM_InvalidateCachedHandler(p,range_mask+1);
 }
@@ -454,7 +454,7 @@ void MEM_CalloutObject::Uninstall() {
  *
  * this allows us to maintain ready-made MEM callout objects to return quickly rather
  * than write more complicated code where the caller has to make an MEM_CalloutObject
- * and then call install and we have to add it's pointer to a list/vector/whatever.
+ * and then call install and we have to add its pointer to a list/vector/whatever.
  * It also avoids problems where if we have to resize the vector, the pointers become
  * invalid, because callers have only handles and they have to put all the pointers
  * back in order for us to resize the vector. */
@@ -1744,7 +1744,7 @@ void Init_AddressLimitAndGateMask() {
     /* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++
        ((1UL << 32UL) - 1UL) == 0, which is WRONG.
        But I'll never get back the 4 days I wasted chasing it down, trying to
-       figure out why DOSBox was getting stuck reopening it's own CON file handle. */
+       figure out why DOSBox was getting stuck reopening its own CON file handle. */
     memory.mem_alias_pagemask = (uint32_t)
         (((((uint64_t)1) << (uint64_t)memory.address_bits) - (uint64_t)1) >> (uint64_t)12);
 

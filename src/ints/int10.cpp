@@ -1234,7 +1234,7 @@ static void INT10_Seg40Init(void) {
 	// Should be zero for PCjr (which defines it as function key), and Tandy (which does not define it),
 	// and MDA/Hercules/CGA (which also does not define this byte).
 	//
-	// Furthermore, some games such as "Road Runner" by Mindscape use that byte as part of it's
+	// Furthermore, some games such as "Road Runner" by Mindscape use that byte as part of its
 	// detection routines to differentiate between CGA, EGA, and Tandy. For the game to work properly
 	// in Tandy emulation, this byte must be zero.
 	if (IS_EGAVGA_ARCH) {
@@ -1788,7 +1788,7 @@ void INT10_Startup(Section *sec) {
             call_10=CALLBACK_Allocate();
             CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
             RealSetVec(0x10,CALLBACK_RealPointer(call_10));
-            //Init the 0x40 segment and init the datastructures in the the video rom area
+            //Init the 0x40 segment and init the datastructures in the video rom area
             INT10_SetupRomMemory();
             INT10_Seg40Init();
             INT10_SetupBasicVideoParameterTable();

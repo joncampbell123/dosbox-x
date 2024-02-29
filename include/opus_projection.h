@@ -405,7 +405,7 @@ OPUS_EXPORT OPUS_WARN_UNUSED_RESULT OpusProjectionDecoder *opus_projection_decod
 ) OPUS_ARG_NONNULL(5);
 
 
-/** Intialize a previously allocated projection decoder state object.
+/** Initialize a previously allocated projection decoder state object.
   * The memory pointed to by \a st must be at least the size returned by
   * opus_projection_decoder_get_size().
   * This is intended for applications which use their own allocator instead of

@@ -15,7 +15,7 @@ Notes:  This shader does scaling with a weighted linear filter for adjustable
 	sharpness on the x and y axes based on the algorithm by Inigo Quilez here:
 	http://http://www.iquilezles.org/www/articles/texture/texture.htm
 	but modified to be somewhat sharper.  Then a scanline effect that varies
-	based on pixel brighness is applied along with a monochrome aperture mask.
+	based on pixel brightness is applied along with a monochrome aperture mask.
 	This shader runs at 60fps on the Raspberry Pi 3 hardware at 2mpix/s
 	resolutions (1920x1080 or 1600x1200).
 */
@@ -186,7 +186,7 @@ uniform COMPAT_PRECISION float MASK_FADE;
 	the default	hardware implementation will be used, otherwise the custom
 	implementations below will be used instead.
 
-	These custom implemenations rely on the `rubyTextureSize` uniform variable.
+	These custom implementations rely on the `rubyTextureSize` uniform variable.
 	The code could calculate the texture size from the sampler using the
 	textureSize() GLSL function, but this would require a minimum of GLSL
 	version 130, which may prevent the shader from working on older systems.

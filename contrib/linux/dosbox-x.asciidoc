@@ -18,7 +18,7 @@ Options are listed below. Depending on the option, one or more may be specified.
 The optional _FILE_ argument should be a DOS executable or a directory.
 If it is a DOS executable (.com .exe .bat), the program will run automatically.
 If it is a directory, the directory specified will be mounted as the C:\ drive.
-If the DOS executable requires parameters, enclose the command and it's parameters in quotes.
+If the DOS executable requires parameters, enclose the command and its parameters in quotes.
 
 For an introduction type _INTRO_ inside dosbox-x.
 

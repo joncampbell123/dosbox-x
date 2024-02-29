@@ -30,8 +30,8 @@ float scaling   : SCALING = 1.1;
 
 const float mx = 0.325;      // start smoothing wt.
 const float k = -0.250;      // wt. decrease factor
-const float max_w = 0.25;    // max filter weigth
-const float min_w = 0.00;    // min filter weigth
+const float max_w = 0.25;    // max filter weight
+const float min_w = 0.00;    // min filter weight
 const float lum_add = 0.25;  // effects smoothing
 
 

@@ -240,7 +240,7 @@ public:
 	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 	virtual uint8_t GetBiosType(void);
 	virtual void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize);
-	// Parition and format the ramdrive
+	// Partition and format the ramdrive
 	virtual uint8_t Format();
 
 	// Create a hard drive image of a specified size; automatically select c/h/s

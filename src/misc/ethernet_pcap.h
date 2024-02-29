@@ -36,7 +36,7 @@
  * This backend uses a physical Ethernet device. All types of traffic
  * such as IPX, TCP, NetBIOS work over this interface.
  * This requires libpcap or WinPcap to be installed and your selected
- * network interface to support promiscious operation.
+ * network interface to support promiscuous operation.
  */
 class PcapEthernetConnection : public EthernetConnection {
 	public:

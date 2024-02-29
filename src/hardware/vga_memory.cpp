@@ -2192,7 +2192,7 @@ public:
 		{
 			addr -= 0xb8000;
 			PhysPt phys_page = addr >> 12;
-			//test for a unaliged bank, then replicate 2x16kb
+			//test for a unaligned bank, then replicate 2x16kb
 			if (vga.tandy.mem_bank & 1) 
 				phys_page&=0x03;
 			return ( phys_page * 4096 ) + ( addr & 0x0FFF );
@@ -2306,7 +2306,7 @@ public:
 		if( vga.mode!=M_AMSTRAD )
 		{
 			phys_page-=0xb8;
-			//test for a unaliged bank, then replicate 2x16kb
+			//test for a unaligned bank, then replicate 2x16kb
 			if (vga.tandy.mem_bank & 1) 
 				phys_page&=0x03;
 			return vga.tandy.mem_base + (phys_page * 4096);
@@ -2747,7 +2747,7 @@ void VGA_SetupHandlers(void) {
 		 * so that they can write to the linear address just as if a 386SX where that mapping existed.
 		 * This is basically the same idea as "just under the BIOS at top of CPU addressable RAM"
 		 * so if memalias is more than 24 bits map it to (1 << memalias) - 1MB to be consistent
-		 * because that address will map to whereever PEGC's LFB is even if, say, running on a 486SX
+		 * because that address will map to wherever PEGC's LFB is even if, say, running on a 486SX
 		 * with 26 address pins. */
 		if (MEM_get_address_bits() > 24) {
 			Bitu page = ((Bitu)1 << (Bitu)(MEM_get_address_bits() - 12/*pages not bytes*/)) - (Bitu)0x100/*1MB in pages*/;

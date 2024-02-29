@@ -151,7 +151,7 @@ void Intel8255::writeControl(const uint8_t data) {
             portCWriteMask &= ~((mode & 0x10) ? 0x38 : 0xC8);
         }
 
-        /* according to PC-98 hardware it seems changing a port to input makes the latch forget it's contents */
+        /* according to PC-98 hardware it seems changing a port to input makes the latch forget its contents */
         latchOutPortA &= ~portAWriteMask;
         latchOutPortB &= ~portBWriteMask;
         latchOutPortC &= ~portCWriteMask;

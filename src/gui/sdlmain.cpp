@@ -469,7 +469,7 @@ void WindowsTaskbarUpdatePreviewRegion(void) {
 
         /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
                 behavior where the "client area" is the area below the menu bar and inside the frame,
-                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
+                ITaskbarList3's idea of the "client area" is the area inside the frame INCLUDING
                 the menu bar. Why? */
         if (GetMenu(GetHWND()) != NULL) {
             MENUBARINFO mb;
@@ -499,7 +499,7 @@ void WindowsTaskbarResetPreviewRegion(void) {
 
         /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
                 behavior where the "client area" is the area below the menu bar and inside the frame,
-                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
+                ITaskbarList3's idea of the "client area" is the area inside the frame INCLUDING
                 the menu bar. Why? */
         if (GetMenu(GetHWND()) != NULL) {
             MENUBARINFO mb;
@@ -900,7 +900,7 @@ Bitu GUI_JoystickCount(void) {
 }
 
 #if !defined(MACOSX)
-/* TODO: should move to it's own file ================================================ */
+/* TODO: should move to its own file ================================================ */
 static unsigned char logo[32*32*4]= {
 #include "dosbox_logo.h"
 };
@@ -9195,7 +9195,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
           Drop root privileges after they are no longer needed, which is a good
           practice if the executable is setuid root.
           dropPrivilegesTemp() is called by PARPORTS::PARPORTS() after
-          contructing CDirectLPT instances, but only if the constant
+          constructing CDirectLPT instances, but only if the constant
           HAS_CDIRECTLPT is non-zero. dropPrivileges() should be called
           regardless (if initPassthroughIO() is used anywhere else).
         */

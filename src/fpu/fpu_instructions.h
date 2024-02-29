@@ -211,7 +211,7 @@ static void FPU_FBLD(PhysPt addr,Bitu store_to) {
 	uint64_t base = 1;
 	for(uint8_t i = 0;i < 9;i++){
 		in = mem_readb(addr + i);
-		val += ( (in&0xf) * base); //in&0xf shouldn't be higher then 9
+		val += ( (in&0xf) * base); //in&0xf shouldn't be higher than 9
 		base *= 10;
 		val += ((( in>>4)&0xf) * base);
 		base *= 10;

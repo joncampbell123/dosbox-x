@@ -151,7 +151,7 @@ imageDiskMemory::imageDiskMemory(imageDisk* underlyingImage) : imageDisk(ID_MEMO
 	init(diskParams, true, underlyingImage);
 }
 
-// Internal initialization code to create a image of a specified geometry
+// Internal initialization code to create an image of a specified geometry
 void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* underlyingImage) {
 	//initialize internal variables in case we fail out
 	this->total_sectors = 0;

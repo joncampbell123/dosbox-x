@@ -53,7 +53,7 @@ The game compatibility should be identical to 0.74.
   - Modify movie recording code so that the movies aren't corrupt when
     you exit dosbox without stopping the movie.
   - Change RGB3x scaler to look more pretty.
-  - Improve initial register values compatility of the GUS.
+  - Improve initial register values compatibility of the GUS.
   - Added autodetection for Gameblaster. (games can find it now)
   - Change render preferences a bit to be more compatible with Windows 7.
   - Add DOS fixes to terminate program. (fixes Fortune Teller) 
@@ -164,7 +164,7 @@ The game compatibility should be identical to 0.74.
     activity.
   - Fix various mscdex and cdrom detection schemes.
   - Added Coremidi support on Mac OS X.
-  - Improve support for DOS devices when used to detect the existance
+  - Improve support for DOS devices when used to detect the existence
     of directories in various ways.
   - Add IRQ 2 emulation on VRET. (ega only)
   - Added video parameter table and video state functionality.
@@ -174,7 +174,7 @@ The game compatibility should be identical to 0.74.
   - Fix mixer 16bit direct transfers on bigendian hosts.
   
 0.72
-  - Fixed unitialized variable in joystick. (Fixes crashes on Vista and
+  - Fixed uninitialized variable in joystick. (Fixes crashes on Vista and
     Mac OS X)
   - Some bugfixes and speedups to the 64 bit recompiling core.
   - Fixed sign flag on soundblaster dma transfers (Space Quest 6 intro)
@@ -315,7 +315,7 @@ The game compatibility should be identical to 0.74.
   - Add IPX functions needed by netbios.
   - Make ports take emulated time.
   - Tabcompletion is now aware of the CD command.
-  - Add suppport for the dac pel mask.
+  - Add support for the dac pel mask.
   - Fixes to hercules emulation, better detection and bank switching.
   - Fixes to tandy emulation, 640x200x16 mode and different sizes bank.  
   - EGA/VGA memory changes detection for faster rendering.
@@ -348,7 +348,7 @@ The game compatibility should be identical to 0.74.
   - Fixed a bug in the mixer code, that muted the music in certain games.
   - Added an assembly fpu core.
   - Made the shell more flexible for batch files.
-  - Check for unaligned memory acces fixes hangups on ARM processors.
+  - Check for unaligned memory access fixes hangups on ARM processors.
   - Some 64 bit fixes.
   - Added code to change configuration at runtime.
   - Improved ADPCM emulation.
@@ -360,7 +360,7 @@ The game compatibility should be identical to 0.74.
   - Fixed a lot of things in the boot code. Most booters work now.
   - Lots of improvements to the IPX emulation.
   - Rewritten modem emulation. Should work with more games.
-  - Improvements to the dos memory managment routines.
+  - Improvements to the dos memory management routines.
   - Add UMB (upper memory blocks) support.
   - Emulate the pause key.
   - Improve Composite CGA mode emulation.
@@ -472,7 +472,7 @@ The game compatibility should be identical to 0.74.
   - Added a keymapper.
   - Added basic IPX emulation.
   - Added cdrom iso support and floppy images support.
-  - Added the possibity to boot another dos version.
+  - Added the possibility to boot another dos version.
   - Added Serial passthrough support (win32 only).
   - Added the possibility to pause dosbox.
   - Changed OpenGL so that it is initialized only when used.
@@ -532,7 +532,7 @@ The game compatibility should be identical to 0.74.
   - Added another way to switch to protected mode. (Thanks Morten Eriksen!)
   - Fixed some odd badly documented behaviour with PSP/DTA
   - Added some warnings on opening of readonly files in writemode(DOS default).
-  - Many shell enhanchements
+  - Many shell enhancements
   - Fixed a win32 specific bug dealing with filenames starting with a "."
   - Fixed some bugs with the directory structure: not found/can't save errors
 
@@ -571,7 +571,7 @@ The game compatibility should be identical to 0.74.
 0.58
   - fixed date and time issues with fcbs
   - added more commands to the internal Shell
-  - corrected config system when a old configfile was used
+  - corrected config system when an old configfile was used
   - fixed cga put and get pixel
   - fixed some vga register getting reset to wrong values
   - improved support for foreign keyboards
@@ -607,12 +607,12 @@ The game compatibility should be identical to 0.74.
   - added partial support for int10:01 set cursortype
   - fixed most of the problems/bugs with character input.
   - fixed allocationinfo call.(darksun series)
-  - improved dos support for non-existant functions
+  - improved dos support for non-existent functions
   - Split screen support
   - prefix 66 67 support
   - rewrote timingscheme so 1000 hz timers don't cause problems anymore
   - update adlib emulation
-  - fixed some isues with the mouse (double clicks and visible when it shouldn't be)
+  - fixed some issues with the mouse (double clicks and visible when it shouldn't be)
   - improved mouse behaviour (mickey/pixel rate) and detection routines.
   - basic ansi.sys support
   - Disney sound system emulation 
@@ -653,7 +653,7 @@ The game compatibility should be identical to 0.74.
   - Rewrote most of the fcb calls to use normal dos calls.
   
 0.55
-  - fixed the errors/warnings in prefix_66.h and prefix_66_of.h (decimal too large becomming unsigned).
+  - fixed the errors/warnings in prefix_66.h and prefix_66_of.h (decimal too large becoming unsigned).
   - fixed compilation error on FreeBSD when #disable_joystick was defined
   - int10_writechar has been updated to move the cursor position.
   - changed the basedir routines to use the current working dir instead of argv[0]. This will fix and brake things :)
@@ -678,12 +678,12 @@ The game compatibility should be identical to 0.74.
   - changed dma 
   - improved dma streams from emm memory
   - added some cga videomodes
-  - added more funtions to the keyboard handler
+  - added more functions to the keyboard handler
 
 0.50: 
       -added F3 to repeat the last typed command.
       -made it possible to change the shellmessages(dosshell). so 
-      you can costumize it.(dosbox.lang)
+      you can customize it.(dosbox.lang)
       -changed cpu core.
       -Fixed a lot of errors with the keyboard: shift-f1 and 
       alt-f1 now works.

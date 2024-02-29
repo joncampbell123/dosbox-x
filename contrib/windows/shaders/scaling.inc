@@ -31,7 +31,7 @@ matrix WorldViewProjection		: WORLDVIEWPROJECTION;		// world * view * projection
 // Source Texture Definition for Scaler Effects
 //
 
-// Image Dimentions 
+// Image Dimensions 
 float2 SourceDims : SOURCEDIMS = 256.0F;
 
 // Size of one Texel
@@ -145,7 +145,7 @@ sampler	OutputSelectSampler = sampler_state
 
 //
 // A Simple Texture that can do a modulo (or frac) by a lookup, rather than by 
-// using a arithmetic instruction. Not entirely accurate
+// using an arithmetic instruction. Not entirely accurate
 //
 texture ModuloTexture
 < 

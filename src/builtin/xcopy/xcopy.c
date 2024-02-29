@@ -609,7 +609,7 @@ void build_name(char *dest,
 
 
 /*-------------------------------------------------------------------------*/
-/* Searchs through the source directory (and its subdirectories) and calls */
+/* Searches through the source directory (and its subdirectories) and calls */
 /* function "xcopy_file" for every found file.                             */
 /*-------------------------------------------------------------------------*/
 void xcopy_files(const char *src_pathname,
@@ -755,7 +755,7 @@ void xcopy_file(const char *src_filename,
   }
 
   /* check source file for read permission */
-  /* (only usefull under an OS with the ability to deny read access) */
+  /* (only useful under an OS with the ability to deny read access) */
   if (access(src_filename, R_OK) != 0) {
     printf("%s - %s\n", catgets(cat, 1, 22, "Read access denied"), src_filename);
     if (switch_continue) {

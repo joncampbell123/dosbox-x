@@ -185,7 +185,7 @@ public:
 	// CSerial requests an update of the input lines
 	virtual void updateMSR()=0;
 
-	// Control lines from prepherial to serial port
+	// Control lines from peripheral to serial port
 	bool getDTR();
 	bool getRTS();
 
@@ -199,7 +199,7 @@ public:
 	void setCD(bool value);
 	void setCTS(bool value);
 
-	// From serial port to prepherial
+	// From serial port to peripheral
 	// set output lines
 	virtual void setRTSDTR(bool rts, bool dtr)=0;
 	virtual void setRTS(bool val)=0;
@@ -225,7 +225,7 @@ public:
 	Bitu Read_MSR();
 	Bitu Read_SPR();
 	
-	// If a byte comes from loopback or prepherial, put it in here.
+	// If a byte comes from loopback or peripheral, put it in here.
 	void receiveByte(uint8_t data);
 	void receiveByteEx(uint8_t data, uint8_t error);
 
@@ -239,7 +239,7 @@ public:
 	// When done sending, notify here
 	void ByteTransmitted();
 
-	// Transmit byte to prepherial
+	// Transmit byte to peripheral
 	virtual void transmitByte(uint8_t val, bool first)=0;
 
 	// switch break state to the passed value

@@ -2210,7 +2210,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			return;
 		}
 
-		RootDirSectors = 0; /* FAT32 root directory has it's own allocation chain, instead of a fixed location */
+		RootDirSectors = 0; /* FAT32 root directory has its own allocation chain, instead of a fixed location */
 		DataSectors = (Bitu)BPB.v.BPB_TotSec32 - ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v32.BPB_FATSz32) + (Bitu)RootDirSectors);
 		CountOfClusters = DataSectors / BPB.v.BPB_SecPerClus;
 		firstDataSector = ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v32.BPB_FATSz32) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
@@ -2398,7 +2398,7 @@ void fatDrive::SetBPB(const FAT_BootSector::bpb_union_t &bpb) {
 	uint32_t DataSectors;
 
 	if (BPB.is_fat32()) {
-		RootDirSectors = 0; /* FAT32 root directory has it's own allocation chain, instead of a fixed location */
+		RootDirSectors = 0; /* FAT32 root directory has its own allocation chain, instead of a fixed location */
 		DataSectors = (Bitu)BPB.v.BPB_TotSec32 - ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v32.BPB_FATSz32) + (Bitu)RootDirSectors);
 		CountOfClusters = DataSectors / BPB.v.BPB_SecPerClus;
 		firstDataSector = ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v32.BPB_FATSz32) + (Bitu)RootDirSectors) + (Bitu)partSectOff;

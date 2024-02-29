@@ -28,7 +28,7 @@ extern "C" {
  * The definition of the used algorithm.
  *
  * This is not used anywhere in the generated code, but it may be used by the
- * application code to call algoritm-specific code, is desired.
+ * application code to call algorithm-specific code, is desired.
  *****************************************************************************/
 #define CRC_ALGO_TABLE_DRIVEN 1
 

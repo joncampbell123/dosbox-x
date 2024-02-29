@@ -906,7 +906,7 @@ void CSerial::Write_reserved (uint8_t data, uint8_t address) {
 }
 
 /*****************************************************************************/
-/* MCR Access: returns cirquit state as boolean.                            **/
+/* MCR Access: returns circuit state as boolean.                            **/
 /*****************************************************************************/
 bool CSerial::getDTR () {
 	if(loopback) return false;

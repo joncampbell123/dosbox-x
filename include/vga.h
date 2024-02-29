@@ -380,11 +380,11 @@ typedef struct {
 		uint8_t			evf;				// [15:15] EVF Enable Vertical Filtering
 
 		// (MM81EC Stream FIFO and RAS Controls)
-		uint8_t			fifo_alloc_ps;		// Interpretation of [4:0], where 5 bits are number of slots alloted to secondary stream.
+		uint8_t			fifo_alloc_ps;		// Interpretation of [4:0], where 5 bits are number of slots allotted to secondary stream.
 											// N = secondary stream slots	 This value is set to 24 - N
 		uint8_t			fifo_alloc_ss;		// Interpretation of [4:0], set to N (up to 24)
-		uint8_t			fifo_ss_threshhold;	// Threshhold at which FIFO refill of secondary stream is triggered (low water point). Must be <= alloc_ss
-		uint8_t			fifo_ps_threshhold;	// Threshhold at which FIFO refill of primary stream is triggered (low water point). Must be <= alloc_ps
+		uint8_t			fifo_ss_threshhold;	// Threshold at which FIFO refill of secondary stream is triggered (low water point). Must be <= alloc_ss
+		uint8_t			fifo_ps_threshhold;	// Threshold at which FIFO refill of primary stream is triggered (low water point). Must be <= alloc_ps
 		uint8_t			ras_rl;				// [15:15] RL RAS Low Time Control
 		uint8_t			ras_rp;				// [16:16] RP RAS Pre-Charge Control
 		uint8_t			edo_wsctl;			// [18:18] EDO Memory Wait State Control

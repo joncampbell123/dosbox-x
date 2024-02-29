@@ -920,7 +920,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    style &= ~STYLE_BOLD;
 			    updateFont();
 			    break;
-		    case 0x47: // Select dobule-strike printing (ESC G)
+		    case 0x47: // Select double-strike printing (ESC G)
 			    style |= STYLE_DOUBLESTRIKE;
 			    break;
 		    case 0x48: // Cancel double-strike printing (ESC H)
@@ -2102,7 +2102,7 @@ void CPrinter::outputPage()
 			return;
 		}
 
-		/* First try to alloacte the png structures */
+		/* First try to allocate the png structures */
 		png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		if (!png_ptr) return;
 		info_ptr = png_create_info_struct(png_ptr);

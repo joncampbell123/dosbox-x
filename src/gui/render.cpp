@@ -827,7 +827,7 @@ forcenormal:
     render.scale.blocks = render.src.width / SCALER_BLOCKSIZE;
     render.scale.lastBlock = render.src.width % SCALER_BLOCKSIZE;
     render.scale.inHeight = render.src.height;
-    /* Reset the palette change detection to it's initial value */
+    /* Reset the palette change detection to its initial value */
     render.pal.first= 0;
     render.pal.last = 255;
     render.pal.changed = false;

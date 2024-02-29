@@ -58,7 +58,7 @@ void INT10_SetSinglePaletteRegister(uint8_t reg,uint8_t val) {
 			break;
 		case M_TANDY4: {
 			if (CurMode->mode!=0x0a) {
-				// Palette values are kept constand by the BIOS.
+				// Palette values are kept constant by the BIOS.
 				// The four colors are mapped to special palette values by hardware.
 				// 3D8/3D9 registers influence this mapping. We need to figure out
 				// which entry is used for the requested color.

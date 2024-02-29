@@ -52,7 +52,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 /* [doc] windows_WAVEFORMATEX
  *
  * Packed portable representation of the Microsoft Windows WAVEFORMATEX
- * structure. This is the most common format because it can accomodate
+ * structure. This is the most common format because it can accommodate
  * almost every non-PCM WAVE codec. WAVEFORMATEXTENSIBLE builds on this
  * for additional codecs that don't have a 16-bit wFormatTag registered.
  */

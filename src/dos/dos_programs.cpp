@@ -1685,7 +1685,7 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end);
 PageHandler &Get_ROM_page_handler(void);
 
 // Normal BIOS is in the BIOS memory area
-// ITF is in it's own buffer, served by mem_itf_rom
+// ITF is in its own buffer, served by mem_itf_rom
 void PC98_BIOS_Bank_Switch(void) {
     if (PC98_BANK_Select == 0x00) {
         MEM_RegisterHandler(0xF8,&mem_itf_rom,0x8);
@@ -2557,7 +2557,7 @@ public:
             extern const char* RunningProgram;
 
             if (max_seg < 0x0800) {
-                /* TODO: For the adventerous, add a configuration option or command line switch to "BOOT"
+                /* TODO: For the adventurous, add a configuration option or command line switch to "BOOT"
                  *       that allows us to boot the guest OS anyway in a manner that is non-standard. */
                 if (!quiet) WriteOut("32KB of RAM is required to boot a guest OS\n");
                 return;
@@ -6581,7 +6581,7 @@ class IMGMOUNT : public Program {
 				sizes[3]/*cylinders*/ = (Bitu)((uint64_t)sectors / (uint64_t)sizes[2]/*heads*/ / (uint64_t)sizes[1]/*sectors/track*/);
 
 				if (IS_PC98_ARCH) {
-					/* TODO: PC-98 has it's own issues with a 4096-cylinder limit */
+					/* TODO: PC-98 has its own issues with a 4096-cylinder limit */
 				}
 				else {
 					/* INT 13h mapping, deal with 1024-cyl limit */

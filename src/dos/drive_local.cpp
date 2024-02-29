@@ -2706,7 +2706,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
                 }
                 Sleep(25);																// If failed, wait 25 millisecs
             }
-        else if (::UnlockFile(hFile, pos, 0, size, 0))									// This is a somewhat permanet condition!
+        else if (::UnlockFile(hFile, pos, 0, size, 0))									// This is a somewhat permanent condition!
             return true;
         DOS_SetError((uint16_t)GetLastError());
         return false;

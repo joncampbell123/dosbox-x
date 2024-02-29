@@ -156,7 +156,7 @@ extern DECLSPEC int SDLCALL TTF_FontFaceIsFixedWidth(const TTF_Font *font);
 extern DECLSPEC char * SDLCALL TTF_FontFaceFamilyName(const TTF_Font *font);
 extern DECLSPEC char * SDLCALL TTF_FontFaceStyleName(const TTF_Font *font);
 
-/* Check wether a glyph is provided by the font or not */
+/* Check whether a glyph is provided by the font or not */
 extern DECLSPEC int SDLCALL TTF_GlyphIsProvided(const TTF_Font *font, Uint16 ch);
 
 /* Get the metrics (dimensions) of a glyph

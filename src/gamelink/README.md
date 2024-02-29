@@ -201,6 +201,6 @@ Developer Information
 
 To write your own client, look at `src/gamelink/gamelink.cpp` to get an idea
 how data is transmitted back and forth via one mutex and one shared memory
-segment. `src/gamelink/gamelink.h` contains defititions of the structs that
+segment. `src/gamelink/gamelink.h` contains definitions of the structs that
 make up the shared memory. Access to that memory is only permitted while
 holding the mutex.

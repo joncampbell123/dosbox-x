@@ -21,7 +21,7 @@
 // some configuring defines that specify the capabilities of this architecture
 // or aspects of the recompiling
 
-// protect FC_ADDR over function calls if necessaray
+// protect FC_ADDR over function calls if necessary
 // #define DRC_PROTECT_ADDR_REG
 
 // try to use non-flags generating functions if possible

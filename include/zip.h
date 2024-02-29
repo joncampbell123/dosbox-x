@@ -126,7 +126,7 @@ extern zipFile ZEXPORT zipOpen64 OF((const void *pathname, int append));
 
 /* Note : there is no delete function into a zipfile.
    If you want delete file into a zipfile, you must open a zipfile, and create another
-   Of couse, you can use RAW reading and writing to copy the file you did not want delte
+   Of course, you can use RAW reading and writing to copy the file you did not want delete
 */
 
 extern zipFile ZEXPORT zipOpen2 OF((const char *pathname,
@@ -336,7 +336,7 @@ extern int ZEXPORT zipRemoveExtraInfoBlock OF((char* pData, int* dataLen, short 
 /*
   zipRemoveExtraInfoBlock -  Added by Mathias Svensson
 
-  Remove extra information block from a extra information data for the local file header or central directory header
+  Remove extra information block from an extra information data for the local file header or central directory header
 
   It is needed to remove ZIP64 extra information blocks when before data is written if using RAW mode.
 

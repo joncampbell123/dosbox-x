@@ -457,7 +457,7 @@ private:
 	#pragma pack(1)
 	#endif
 	struct sPSP {
-		uint8_t	exit[2];			/* CP/M-like exit poimt */
+		uint8_t	exit[2];			/* CP/M-like exit point */
 		uint16_t	next_seg;			/* Segment of first byte beyond memory allocated or program */
 		uint8_t	fill_1;				/* single char fill */
 		uint8_t	far_call;			/* far call opcode */
@@ -467,7 +467,7 @@ private:
 		RealPt	int_24;				/* Critical Error Address */
 		uint16_t	psp_parent;			/* Parent PSP Segment */
 		uint8_t	files[20];			/* File Table - 0xff is unused */
-		uint16_t	environment;		/* Segment of evironment table */
+		uint16_t	environment;		/* Segment of environment table */
 		RealPt	stack;				/* SS:SP Save point for int 0x21 calls */
 		uint16_t	max_files;			/* Maximum open files */
 		RealPt	file_table;			/* Pointer to File Table PSP:0x18 */
@@ -476,7 +476,7 @@ private:
 		uint8_t truename_flag;
 		uint16_t nn_flags;
 		uint16_t dos_version;
-		uint8_t	fill_2[14];			/* Lot's of unused stuff i can't care aboue */
+		uint8_t	fill_2[14];			/* Lot's of unused stuff i can't care about */
 		uint8_t	service[3];			/* INT 0x21 Service call int 0x21;retf; */
 		uint8_t	fill_3[9];			/* This has some blocks with FCB info */
 		uint8_t	fcb1[16];			/* first FCB */
@@ -1013,7 +1013,7 @@ const std::map<std::string, int> country_code_map {
 	{"tt443",  COUNTRYNO::Russia         }, // Tatarstan Typewriter
 	{"ua",     COUNTRYNO::Ukraine        }, // 101-key
 	{"uk",     COUNTRYNO::United_Kingdom }, // Standard
-	{"uk168",  COUNTRYNO::United_Kingdom }, // Allternate
+	{"uk168",  COUNTRYNO::United_Kingdom }, // Alternate
 	{"ur",     COUNTRYNO::Ukraine        }, // 101-key
 	{"ur465",  COUNTRYNO::Ukraine        }, // 101-key
 	{"ur1996", COUNTRYNO::Ukraine        }, // 101-key

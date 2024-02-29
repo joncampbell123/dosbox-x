@@ -102,7 +102,7 @@ namespace DBOPL {
 
 //How much to subtract from the base value for the final attenuation
 static const uint8_t KslCreateTable[16] = {
-	//0 will always be be lower than 7 * 8
+	//0 will always be lower than 7 * 8
 	64, 32, 24, 19, 
 	16, 12, 11, 10, 
 	 8,  6,  5,  4,
@@ -142,7 +142,7 @@ static uint16_t SinTable[ 512 ];
 
 #if ( DBOPL_WAVE > WAVE_HANDLER )
 //Layout of the waveform table in 512 entry intervals
-//With overlapping waves we reduce the table to half it's size
+//With overlapping waves we reduce the table to half its size
 
 //	|    |//\\|____|WAV7|//__|/\  |____|/\/\|
 //	|\\//|    |    |WAV7|    |  \/|    |    |
@@ -509,7 +509,7 @@ void Operator::Write80( const Chip* chip, uint8_t val ) {
 void Operator::WriteE0( const Chip* chip, uint8_t val ) {
 	if ( !(regE0 ^ val) ) 
 		return;
-	//in opl3 mode you can always selet 7 waveforms regardless of waveformselect
+	//in opl3 mode you can always select 7 waveforms regardless of waveformselect
 	const uint8_t waveForm = val & ( ( 0x3 & chip->waveFormMask ) | (0x7 & chip->opl3Active ) );
 	regE0 = val;
 #if ( DBOPL_WAVE == WAVE_HANDLER )
@@ -895,7 +895,7 @@ Channel* Channel::BlockTemplate( Chip* chip, uint32_t samples, int32_t* output )
 	default:
 		break;
 	}
-	//Init the operators with the the current vibrato and tremolo values
+	//Init the operators with the current vibrato and tremolo values
 	Op( 0 )->Prepare( chip );
 	Op( 1 )->Prepare( chip );
 	if ( mode > sm4Start ) {
@@ -1011,7 +1011,7 @@ Chip::Chip( bool _opl3Mode ) : opl3Mode( _opl3Mode ) {
 	vibratoShift = ( VibratoTable[ vibratoIndex >> 2] & 7) + vibratoStrength; 
 	tremoloValue = TremoloTable[ tremoloIndex ] >> tremoloStrength;
 
-	//Check hom many samples there can be done before the value changes
+	//Check how many samples there can be done before the value changes
 	uint32_t todo = LFO_MAX - lfoCounter;
 	uint32_t count = (todo + lfoAdd - 1) / lfoAdd;
 	if ( count > samples ) {
@@ -1022,7 +1022,7 @@ Chip::Chip( bool _opl3Mode ) : opl3Mode( _opl3Mode ) {
 		lfoCounter &= (LFO_MAX - 1);
 		//Maximum of 7 vibrato value * 4
 		vibratoIndex = ( vibratoIndex + 1 ) & 31;
-		//Clip tremolo to the the table size
+		//Clip tremolo to the table size
 		if ( tremoloIndex + 1 < TREMOLO_TABLE  )
 			++tremoloIndex;
 		else

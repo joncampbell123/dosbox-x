@@ -85,7 +85,7 @@ extern "C" {
 #define SS_NO_ASPI                  0xE3        // No ASPI managers resident
 #define SS_FAILED_INIT              0xE4        // ASPI for windows failed init
 #define SS_ASPI_IS_BUSY             0xE5        // No resources available to execute cmd
-#define SS_BUFFER_TO_BIG            0xE6        // Buffer size to big to handle!
+#define SS_BUFFER_TO_BIG            0xE6        // Buffer size too big to handle!
 #define SS_MISMATCHED_COMPONENTS    0xE7        // The DLLs/EXEs of ASPI don't version check
 #define SS_NO_ADAPTERS              0xE8        // No host adapters to manage
 #define SS_INSUFFICIENT_RESOURCES   0xE9        // Couldn't allocate resources needed to init
@@ -101,7 +101,7 @@ extern "C" {
 #define HASTAT_DO_DU                0x12        // Data overrun data underrun
 #define HASTAT_BUS_FREE             0x13        // Unexpected bus free
 #define HASTAT_PHASE_ERR            0x14        // Target bus phase sequence                                                                                                                            // failure
-#define HASTAT_TIMEOUT              0x09        // Timed out while SRB was                                                                                                                                      waiting to beprocessed.
+#define HASTAT_TIMEOUT              0x09        // Timed out while SRB was                                                                                                                                      waiting to be processed.
 #define HASTAT_COMMAND_TIMEOUT      0x0B        // Adapter timed out processing SRB.
 #define HASTAT_MESSAGE_REJECT       0x0D        // While processing SRB, the                                                                                                                            // adapter received a MESSAGE
 #define HASTAT_BUS_RESET            0x0E        // A bus reset was detected.
@@ -262,7 +262,7 @@ typedef struct                                  // Offset
 SRB_GetSetTimeouts, *PSRB_GetSetTimeouts, FAR *LPSRB_GetSetTimeouts;
 
 //*****************************************************************************
-//          %%% ASPIBUFF - Structure For Controllng I/O Buffers %%%
+//          %%% ASPIBUFF - Structure For Controlling I/O Buffers %%%
 //*****************************************************************************
 
 typedef struct tag_ASPI32BUFF                   // Offset

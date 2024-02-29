@@ -84,7 +84,7 @@
 // R1  - summer resistor
 // Rq  - resistor array controlling resonance (4 resistors)
 // R   - NMOS FET voltage controlled resistor controlling cutoff frequency
-// Rs  - shunt resitor
+// Rs  - shunt resistor
 // C   - capacitor
 // 
 // 
