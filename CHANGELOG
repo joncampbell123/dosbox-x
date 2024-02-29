@@ -1,5 +1,5 @@
 Next:
-  - Add "empty drive" CD-RIM image type "IMGMOUNT e: -t iso -empty" as a way
+  - Add "empty drive" CD-RIM image type "IMGMOUNT e: empty -t iso" as a way
     to emulate an empty CD-ROM drive with no disc in the drive. (joncampbell123).
   - Add "empty drive" floppy image type "IMGMOUNT 0 empty -t floppy -fs none"
     as a way to emulate a floppy drive with no disk in the drive. (joncampbell123).
