@@ -300,13 +300,18 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		cdrom[numDrives] = new CDROM_Interface_Image((uint8_t)numDrives);
 		break;
 	case 0x02:	// fake cdrom interface (directories)
-		cdrom[numDrives] = new CDROM_Interface_Fake;
-		if (!strcmp(physicalPath,"empty")) {
-		}
-		else {
-			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting directory as cdrom: %s",physicalPath);
-			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: You won't have full MSCDEX support !");
-			result = 5;
+		{
+			CDROM_Interface_Fake *fake = new CDROM_Interface_Fake;
+			cdrom[numDrives] = fake;
+			assert(fake->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE);
+			if (!strcmp(physicalPath,"empty")) {
+				fake->isEmpty = true;
+			}
+			else {
+				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting directory as cdrom: %s",physicalPath);
+				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: You won't have full MSCDEX support !");
+				result = 5;
+			}
 		}
 		break;
 	default	:	// weird result

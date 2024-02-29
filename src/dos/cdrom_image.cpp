@@ -470,6 +470,7 @@ CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player;
 CDROM_Interface_Image::CDROM_Interface_Image(uint8_t subUnit)
 		      :subUnit(subUnit)
 {
+	class_id = ID_IMAGE;
 	images[subUnit] = this;
 	if (refCount == 0) {
 		if (player.channel == NULL) {

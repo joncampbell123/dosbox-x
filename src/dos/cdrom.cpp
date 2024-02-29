@@ -262,7 +262,7 @@ bool CDROM_Interface_Fake :: GetAudioStatus(bool& playing, bool& pause) {
 }
 
 bool CDROM_Interface_Fake :: GetMediaTrayStatus(bool& mediaPresent, bool& mediaChanged, bool& trayOpen) {
-	mediaPresent = true;
+	mediaPresent = !isEmpty;
 	mediaChanged = false;
 	trayOpen     = false;
 	return true;

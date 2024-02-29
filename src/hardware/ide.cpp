@@ -464,6 +464,16 @@ bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
 		}
 	}
 
+	/* if the CD-ROM drive has mounted the empty drive, then ALWAYS return Medium Not Present */
+	CDROM_Interface *cdrom = getMSCDEXDrive();
+	if (cdrom) {
+		if (cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
+			set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Medium Not Present */
+//			LOG_MSG("ATAPI: Medium Not Ready");
+			return false;
+		}
+	}
+
 	switch (loading_mode) {
 		case LOAD_NO_DISC:
 		case LOAD_INSERT_CD:
@@ -1183,9 +1193,16 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
                 }
                 else {
-                    LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
-                        (unsigned long)TransferLength,(unsigned long)LBA);
-                    set_sense(/*SK=*/0x03,/*ASC=*/0x11); /* Medium Error: Unrecovered Read Error */
+                    if (cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
+                        set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Not Ready: Medium Not Present */
+                        LOG_MSG("ATAPI: Rejecting read %lu sectors at %lu as Medium Not Present\n",
+                            (unsigned long)TransferLength,(unsigned long)LBA);
+                    }
+                    else {
+                        set_sense(/*SK=*/0x03,/*ASC=*/0x11); /* Medium Error: Unrecovered Read Error */
+                        LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
+                            (unsigned long)TransferLength,(unsigned long)LBA);
+                    }
                     feature = 0xF4; /* abort sense=0xF */
                     count = 0x03; /* no more transfer */
                     sector_total = 0;/*nothing to transfer */
@@ -1257,9 +1274,16 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
                 }
                 else {
-                    LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
-                        (unsigned long)TransferLength,(unsigned long)LBA);
-                    set_sense(/*SK=*/0x03,/*ASC=*/0x11); /* Medium Error: Unrecovered Read Error */
+                    if (cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
+                        set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Not Ready: Medium Not Present */
+                        LOG_MSG("ATAPI: Rejecting read %lu sectors at %lu as Medium Not Present\n",
+                            (unsigned long)TransferLength,(unsigned long)LBA);
+                    }
+                    else {
+                        set_sense(/*SK=*/0x03,/*ASC=*/0x11); /* Medium Error: Unrecovered Read Error */
+                        LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
+                            (unsigned long)TransferLength,(unsigned long)LBA);
+                    }
                     feature = 0xF4; /* abort sense=0xF */
                     count = 0x03; /* no more transfer */
                     sector_total = 0;/*nothing to transfer */
