@@ -96,6 +96,12 @@ extern int CDROM_GetMountType(const char* path, int forceCD);
 class CDROM_Interface
 {
 public:
+	enum INTERFACE_TYPE {
+		ID_BASE=0,
+		ID_FAKE,
+		ID_IMAGE
+	};
+
 //	CDROM_Interface						(void);
 	virtual ~CDROM_Interface			(void) {};
 
@@ -143,6 +149,8 @@ public:
 
     //! \brief TODO?
 	virtual void	InitNewMedia		(void) {};
+
+	INTERFACE_TYPE class_id = ID_BASE;
 };	
 
 //! \brief CD-ROM interface to SDL 1.x CD-ROM support
@@ -206,6 +214,10 @@ public:
 	bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
 
 	bool	LoadUnloadMedia		(bool /*unload*/) { return true; };
+
+	CDROM_Interface_Fake() { class_id = ID_FAKE; }
+
+	bool	isEmpty = false;
 };	
 
 //! \brief Image CD-ROM interface
