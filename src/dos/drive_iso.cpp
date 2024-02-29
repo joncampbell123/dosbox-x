@@ -999,11 +999,10 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
             if (value == "1" || value == "") enable_udf = true; // "-o udf" or "-o udf=1"
             else if (value == "0") enable_udf = false;
 	}
-        else if (name == "empty") {
-            empty_drive = true;
-	    fileName = "empty";
-        }
     }
+
+    if (!strcmp(fileName,"empty"))
+        empty_drive = true;
 
     if (!CDROM_Interface_Image::images_init) {
         CDROM_Interface_Image::images_init = true;
@@ -2358,6 +2357,7 @@ void isoDrive :: EmptyCache(void) {
 			return;
 		}
 	}
+	if (dos_kernel_disabled) return;
 	enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
 	enable_rock_ridge = dos.version.major >= 7 || uselfn;
 	enable_joliet = dos.version.major >= 7 || uselfn;
@@ -2365,10 +2365,10 @@ void isoDrive :: EmptyCache(void) {
 	//this->fileName[0]  = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
 	//this->discLabel[0] = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
 	nextFreeDirIterator = 0;
-    size_t numberOfDirIterators = sizeof(dirIterators) / sizeof(dirIterators[0]);
-    for(std::size_t i = 0; i < numberOfDirIterators; ++i) {
-        dirIterators[i] = isoDrive::DirIterator{};
-    }
+	size_t numberOfDirIterators = sizeof(dirIterators) / sizeof(dirIterators[0]);
+	for(std::size_t i = 0; i < numberOfDirIterators; ++i) {
+		dirIterators[i] = isoDrive::DirIterator{};
+	}
 	memset(sectorHashEntries, 0, sizeof(sectorHashEntries));
 	memset(&rootEntry, 0, sizeof(isoDirEntry));
 	//safe_strncpy(this->fileName, fileName, CROSS_LEN); /* deleted to fix issue #3848. Revert this if there are any flaws */
