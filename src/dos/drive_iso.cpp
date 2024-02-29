@@ -1018,9 +1018,7 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 	memset(&rootEntry, 0, sizeof(isoDirEntry));
 	
 	safe_strncpy(this->fileName, fileName, CROSS_LEN);
-	LOG_MSG("UPD");
 	error = UpdateMscdex(driveLetter, fileName, subUnit);
-	LOG_MSG("Error %u",error);
 
 	if (!error) {
 		if (empty_drive) {
