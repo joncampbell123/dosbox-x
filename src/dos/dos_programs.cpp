@@ -4994,6 +4994,7 @@ class IMGMOUNT : public Program {
 			//initialize more variables
 			unsigned long el_torito_floppy_base=~0UL;
 			unsigned char el_torito_floppy_type=0xFF;
+			bool empty_drive = false;
 			bool ide_slave = false;
 			signed char ide_index = -1;
 			char el_torito_cd_drive = 0;
@@ -5003,6 +5004,9 @@ class IMGMOUNT : public Program {
 			uint8_t tdr = 0;
 			std::string bdisk;
 			int bdisk_number=-1;
+
+			if (cmd->FindExist("-empty",true))
+				empty_drive = true;
 
 			//this code simply sets default type to "floppy" if mounting at A: or B: --- nothing else
 			// get first parameter - which is probably the drive letter to mount at (A-Z or A:-Z:) - and check it if is A or B or A: or B:
@@ -5191,6 +5195,16 @@ class IMGMOUNT : public Program {
 					return;
 				}
 			}
+			else if (empty_drive) {
+				if (paths.size() != 0) {
+					WriteOut("Image list cannot be specified with -empty");
+					return;
+				}
+				if (fstype != "none") {
+					WriteOut("-empty must be combined with -fs none");
+					return;
+				}
+			}
 			else {
 				if (paths.size() == 0) {
 					if (strcasecmp(temp_line.c_str(), "-u")&&!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
@@ -5265,7 +5279,10 @@ class IMGMOUNT : public Program {
 					}
 				}
 
-				if (el_torito != "") {
+				if (empty_drive) {
+					newImage = new imageDiskEmptyDrive();
+				}
+				else if (el_torito != "") {
 					newImage = new imageDiskElToritoFloppy((unsigned char)el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 				}
 				else if (type == "ram") {
@@ -5281,6 +5298,10 @@ class IMGMOUNT : public Program {
 				}
 				else if (!newImage->hardDrive && (driveIndex >= 2)) {
 					WriteOut("Cannot mount floppy in hard drive position.\n");
+				}
+				else if (empty_drive) {
+    					if (AttachToBiosByIndex(newImage, (unsigned char)driveIndex)) {
+					}
 				}
 				else {
 					if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
