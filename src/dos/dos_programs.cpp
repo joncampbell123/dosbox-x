@@ -5178,7 +5178,7 @@ class IMGMOUNT : public Program {
 			}
 
 			// find all file parameters, assuming that all option parameters have been removed
-			bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram" || bdisk != "");
+			bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram" || bdisk != "", empty_drive);
 
 			// some generic checks
 			if (el_torito != "") {
@@ -5436,14 +5436,14 @@ class IMGMOUNT : public Program {
 			}
 			return true;
 		}
-		bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
+		bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef, bool empty_drive) {
 			char drive=commandLine[0];
 			bool nocont=false;
 			int num = 0;
 			while (!nocont&&cmd->FindCommand((unsigned int)(paths.size() + 1 - num), commandLine)) {
 				bool usedef=false;
 				if (!cmd->FindCommand((unsigned int)(paths.size() + 2 - num), commandLine) || !commandLine.size()) {
-					if (!nodef && !paths.size()) {
+					if (!nodef && !empty_drive && !paths.size()) {
 						commandLine="IMGMAKE.IMG";
 						usedef=true;
 					}
