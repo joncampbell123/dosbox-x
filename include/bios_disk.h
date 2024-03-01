@@ -60,6 +60,7 @@ class imageDisk {
 		virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
 		virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 
+		virtual void UpdateFloppyType(void);
 		virtual void Set_Reserved_Cylinders(Bitu resCyl);
 		virtual uint32_t Get_Reserved_Cylinders();
 		virtual void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize);
