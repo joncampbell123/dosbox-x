@@ -3636,6 +3636,7 @@ imageDiskEmptyDrive::imageDiskEmptyDrive() : imageDisk(ID_EMPTY_DRIVE) {
 	heads = 2;
 	cylinders = 80;
 	sectors = 18;
+	diskSizeK = 1440;
 }
 
 imageDiskEmptyDrive::~imageDiskEmptyDrive() {

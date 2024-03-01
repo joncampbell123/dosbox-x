@@ -6468,7 +6468,16 @@ class IMGMOUNT : public Program {
 			sizes[3] = sizesOriginal[3];
 
 			if (!strcmp(fileName,"empty")) {
-				return new imageDiskEmptyDrive();
+				imageDiskEmptyDrive *emd = new imageDiskEmptyDrive();
+				if (sizes[0] != 0 && sizes[1] != 0 && sizes[2] != 0 && sizes[3] != 0) {
+					emd->sector_size = sizes[0];
+					emd->sectors = sizes[1];
+					emd->heads = sizes[2];
+					emd->cylinders = sizes[3];
+					emd->diskSizeK = ((sizes[0]*sizes[1]*sizes[2]*sizes[3])+512)/1024;
+				}
+				LOG_MSG("Mounted empty C/H/S/sz %u/%u/%u/%u %uKB",emd->cylinders,emd->heads,emd->sectors,emd->sector_size,emd->diskSizeK);
+				return emd;
 			}
 
 			//check for VHD files
