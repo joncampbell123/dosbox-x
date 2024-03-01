@@ -1,5 +1,5 @@
 ﻿#define MyAppName "DOSBox-X"
-#define MyAppVersion "2023.10.06"
+#define MyAppVersion "2024.03.01"
 #define MyAppBit "(32/64bit for Windows)"
 #define MyAppPublisher "joncampbell123 [DOSBox-X Team]"
 #define MyAppURL "https://dosbox-x.com/"
