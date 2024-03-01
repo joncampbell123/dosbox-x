@@ -1431,6 +1431,20 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, ui
     floppytype = 0;
 }
 
+
+void imageDisk::UpdateFloppyType(void) {
+	uint8_t i=0;
+
+	while (DiskGeometryList[i].ksize!=0x0) {
+		if ((DiskGeometryList[i].ksize==diskSizeK) || (DiskGeometryList[i].ksize+1==diskSizeK)) {
+			floppytype = i;
+			LOG_MSG("Updating floppy type to %u BIOS type 0x%02x",floppytype,GetBiosType());
+			break;
+		}
+		i++;
+	}
+}
+
 imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((uint64_t)imgSizeK * 1024) {
     if (imgName != NULL)
         diskname = imgName;

@@ -6475,6 +6475,7 @@ class IMGMOUNT : public Program {
 					emd->heads = sizes[2];
 					emd->cylinders = sizes[3];
 					emd->diskSizeK = ((sizes[0]*sizes[1]*sizes[2]*sizes[3])+512)/1024;
+					emd->UpdateFloppyType();
 				}
 				LOG_MSG("Mounted empty C/H/S/sz %u/%u/%u/%u %uKB",emd->cylinders,emd->heads,emd->sectors,emd->sector_size,emd->diskSizeK);
 				return emd;
