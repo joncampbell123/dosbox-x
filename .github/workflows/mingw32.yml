@@ -41,7 +41,7 @@ jobs:
           sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw32\')/" PKGBUILD
           MINGW_ARCH=MINGW32 makepkg-mingw -sCLf --noconfirm
           ls -lg
-          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
+          # pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Update build info
         shell: bash
         run: |
