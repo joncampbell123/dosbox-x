@@ -26,7 +26,7 @@ Before doing this, you probably want to make sure all files for the release are 
     ```markdown
     ---
     slug: "<insert version number>"
-    date: "<insert release date of version, in MMMM D, YYYY format>"
+    date: "<insert release date of version>"
     ---
     ```
 3. Extract the release notes from `CHANGELOG` or write your own, make sure it's in Markdown format, then append it to the file

@@ -61,8 +61,8 @@ content:
         label: Date
         type: date
         required: true
-        options:
-          format: MMMM D, YYYY
+        #options:
+        #  format: MMMM D, YYYY
       - name: body
         label: Body
         description: Usually just the change log.
