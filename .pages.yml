@@ -27,12 +27,14 @@ content:
       - name: macos_arm_file
         label: macOS ARM build filename
         type: string
-      - name: macos_special_file
-        label: macOS High Sierra special build filename
-        type: string
 
       - name: dos_hx_file
         label: HX-DOS build filename
+        type: string
+
+      # Presently obsolete flavors
+      - name: macos_special_file
+        label: macOS High Sierra special build filename
         type: string
       - name: dos_loadlin_file
         label: DOS LOADLIN build filename

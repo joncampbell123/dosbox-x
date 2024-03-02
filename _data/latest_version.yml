@@ -1,5 +1,6 @@
 version: 2024.03.01
 git_tag: dosbox-x-v2024.03.01
+windows_setup_file: null
 winXP_setup_file: dosbox-x-winXP-2024.03.01-setup.exe
 macos_intel_file: dosbox-x-macosx-x86_64-20240301163105.zip
 macos_arm_file: dosbox-x-macosx-arm64-20240301150043.zip
