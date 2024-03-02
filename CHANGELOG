@@ -1,3 +1,6 @@
+Next:
+  - 
+
 2024.03.01
   - If an empty CD-ROM drive is attached to IDE emulation, return "Medium Not
     Present" instead of a read error, when asked to read. (joncampbell123).
