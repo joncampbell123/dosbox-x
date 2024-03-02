@@ -10,7 +10,7 @@ jobs:
   macOS_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
-      contents: read  # for actions/checkout to fetch code
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: macos-12
     steps:
