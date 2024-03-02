@@ -14,11 +14,8 @@ content:
         type: string
         required: true
 
-      - name: win32_setup_file
-        label: Windows 32-bit setup filename
-        type: string
-      - name: win64_setup_file
-        label: Windows 64-bit setup filename
+      - name: windows_setup_file
+        label: Windows setup filename
         type: string
       - name: winXP_setup_file
         label: Windows XP special setup filename

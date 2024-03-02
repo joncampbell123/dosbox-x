@@ -6,8 +6,7 @@
 version: 2023.10.06
 git_tag: dosbox-x-v2023.10.06
 
-win32_setup_file: null
-win64_setup_file: dosbox-x-windows-2023.10.06-setup.exe
+windows_setup_file: dosbox-x-windows-2023.10.06-setup.exe
 winXP_setup_file: dosbox-x-winXP-2023.10.06-setup.exe
 
 macos_intel_file: dosbox-x-macosx-x86_64-20231006231157.zip

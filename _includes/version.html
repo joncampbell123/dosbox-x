@@ -22,10 +22,16 @@
 <h4>Windows version:</h4>
 <h5 class="subtitle-mute">(Windows XP and later versions supported)</h5>
 <h5>
-  32/64-bit Setup {% include version_file.html version=version name="winXP_setup_file" display_name=" ReactOS/XP+ " %}
+  {%- assign xp_build_display_name =  -%}
+  {%- unless version.windows_setup_file -%} {%- comment -%} 2024.03.01 bug {%- endcomment -%}
+  {% include version_file.html version=version name="winXP_setup_file" display_name="32/64-bit Setup" %}
+  {%- else -%}
+  32/64-bit Setup
+  {% include version_file.html version=version name="winXP_setup_file" display_name=" ReactOS/XP+ " %}
   |
-  {% include version_file.html version=version name="win64_setup_file" display_name=" Vista+" %}
+  {% include version_file.html version=version name="windows_setup_file" display_name=" Vista+" %}
   <sup>(Recommended)</sup>
+  {%- endunless -%}
 </h5>
 <h5>
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#windows-packages-installer-or-portable">More options including portable packages</a>

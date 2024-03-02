@@ -96,6 +96,6 @@ exclude:
   - update-wiki
 
   # Pages CMS config
-  .pages.yml
+  - .pages.yml
 
   - CONTRIBUTING.md
