@@ -294,7 +294,7 @@ Some examples:</p>
 <p>Some parts of the installation can take a considerable amount of time.
 You may be able to speed this up considerably (depending on the host CPU) by using the DOSBox-X Turbo mode, which can be enabled from the drop-down menu bar by selecting "CPU" followed by "Turbo (Fast Forward)".
 This turbo mode is not like the old Turbo button on retro PCs, but functions more like a fast-forward, and therefore should not be used when interacting with the guest OS.
-Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the moment a key is pressed, to prevent spurious keypresses to be registered causing undesirable effects.</p>
+The turbo mode is automatically disabled the moment a key is pressed, to prevent spurious keypresses to be registered causing undesirable effects.</p>
 </li>
 </ul>
 </div>
@@ -686,22 +686,25 @@ SETUP</span></code></pre>
 <p>Updated Video and Audio drivers</p>
 </li>
 <li>
-<p>Microsoft Win32s 1.30c</p>
+<p><a href="https://winworldpc.com/product/win32s/130">Microsoft Win32s 1.30c</a></p>
 </li>
 <li>
-<p>Microsoft Video for Windows 1.1e</p>
+<p><a href="https://winworldpc.com/product/video-for-windows/1x">Microsoft Video for Windows 1.1e</a></p>
 </li>
 <li>
-<p>Microsoft WinG API 1.0</p>
+<p><a href="https://archive.org/details/WING10">Microsoft WinG API 1.0</a></p>
 </li>
 <li>
-<p>Apple QuickTime 2.1.2</p>
+<p><a href="https://winworldpc.com/product/quicktime/2x">Apple QuickTime 2.1.2</a></p>
 </li>
 <li>
-<p>Adobe Acrobat Reader 3.01</p>
+<p><a href="https://winworldpc.com/product/acrobat-reader/3x">Adobe Acrobat Reader 3.01</a></p>
 </li>
 <li>
-<p>Adobe Type Manager 3.02</p>
+<p><a href="https://winworldpc.com/product/adobe-type-manager/3x">Adobe Type Manager 3.02</a></p>
+</li>
+<li>
+<p><a href="https://archive.org/details/adobeps312">Adobe PostScript driver 3.1.2</a></p>
 </li>
 </ul>
 </div>
@@ -720,7 +723,7 @@ SETUP</span></code></pre>
 <div class="title">Note</div>
 </td>
 <td class="content">
-The generic "Super VGA" driver included with Windows 3.1x only works with <code>machine=svga_et4000</code>.
+The generic "Super VGA" driver included with Windows 3.1x only works under DOSBox-X with <code>machine=svga_et4000</code>.
 Regardless, It is recommended to use the default VGA video driver during Windows 3.1x installation, and install a 3rd party SVGA driver afterwards.
 </td>
 </tr>
@@ -1024,7 +1027,7 @@ This can be controlled by the <code>mouse_wheel_key=</code> setting in the <code
 <div class="sect2">
 <h3 id="_vmware_mouse_driver_option_1">VMWare mouse driver - option #1</h3>
 <div class="paragraph">
-<p>DOSBox-X 0.83.24 or later also supports the VMware mouse protocol, and there is a 3rd party <a href="https://github.com/NattyNarwhal/vmwmouse">VMware mouse driver for Windows 3.x</a> written by NattyNarwhal.
+<p>DOSBox-X also supports the VMware mouse protocol, and there is a 3rd party <a href="https://github.com/NattyNarwhal/vmwmouse">VMware mouse driver for Windows 3.x</a> written by NattyNarwhal.
 As such you can install the VMware mouse driver for Windows 3.1x, and you will be able to move the mouse in and out of DOSBox-X seamlessly.</p>
 </div>
 <div class="paragraph">
@@ -1156,7 +1159,7 @@ Most 3rd party drivers only work in combination with specific hardware. The Ontr
 <div class="sect2">
 <h3 id="_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</h3>
 <div class="paragraph">
-<p>Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
+<p>There are two different back-ends to the NE2000 adapter emulation.
 The default back-end is <code>backend=pcap</code>.</p>
 </div>
 <div class="sect3">
@@ -1335,7 +1338,10 @@ Select the "SB16 All MIDI" option from the drop-down menu and press the "Close" 
 </div>
 </div>
 <div class="paragraph">
-<p>Next in Windows 3.1x, select any PostScript printer such as the "QMS ColorScript 100", during printer setup connected to LPT1.</p>
+<p>You can either use the PostScript driver bundled with Windows 3.1x, or alternatively install the newer Adobe PostScript 3.1.2 driver.</p>
+</div>
+<div class="paragraph">
+<p>If using the bundled driver, select any PostScript printer such as the "QMS ColorScript 100", during printer setup connected to LPT1.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1475,19 +1481,18 @@ This way you can launch Windows games from a DOS batch file, or from a DOSBox la
 <div class="ulist">
 <ul>
 <li>
-<p>When booting a guest OS, such an MS-DOS with Windows 3.1x in DOSBox-X, so-called folder mounts are not supported.
-Any folders of the host you mount before starting MS-DOS will <strong>NOT</strong> be available in DOS and Windows 3.1x.
-Only image mounts (HDD, Floppy or CD) using <code>imgmount</code> are possible in combination with booting a guest OS.</p>
+<p>When booting a guest OS, such an MS-DOS with Windows 3.1x in DOSBox-X, so-called folder mounts are only partly supported.
+Only harddisk folder mounts will be available to the guest OS, and this excludes the boot drive as DOSBox-X cannot boot from a folder mount.</p>
 </li>
 <li>
-<p>If you intend at any point to use a Floppy during your usage of Windows 3.1x, you must mount a floppy <strong>before</strong> starting Windows 3.1x.
-You can load a different Floppy, once you started Windows 3.1x this way from the DOSBox-X menus.
-If you don&#8217;t load a floppy before and attach it afterwards, it may appear to work in Windows 3.1x, but it will not work properly, and you get strange errors.</p>
+<p>If you intend at any point to use a diskette during your usage of Windows 3.1x, you must mount a diskette image <strong>before</strong> starting Windows 3.1x.
+You can change the diskette, once you started Windows 3.1x from the DOSBox-X menus.
+But if a diskette drive is not present when starting Windows 3.1x, and you attach it afterwards, it will not work properly, and you get strange errors.</p>
 </li>
 <li>
-<p>If you intend at any point to use a CD during your usage of Windows 3.1x, you must mount a CD <strong>before</strong> starting Windows 3.1x.
-You can load a different CD from the DOSBox-X menus, once you started Windows 3.1x.
-But if a CD is not present when starting Windows 3.1x the drive is simply missing, and you cannot add it without quitting and restarting Windows 3.1x.</p>
+<p>If you intend at any point to use a CD during your usage of Windows 3.1x, you must mount a CD image <strong>before</strong> starting Windows 3.1x.
+You can change the CD, once you started Windows 3.1x from the DOSBox-X menus.
+But if a CD-ROM drive is not present when starting Windows 3.1x the drive is simply missing, and you cannot add it without quitting and restarting Windows 3.1x.</p>
 </li>
 </ul>
 </div>

@@ -95,7 +95,9 @@ BOOT A:</span></code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT 0 empty -fs none -t floppy
+IMGMOUNT C hdd.img -ide 1m
+IMGMOUNT D empty -t iso -ide 2m
 BOOT C:</span></code></pre>
 </div>
 </div>

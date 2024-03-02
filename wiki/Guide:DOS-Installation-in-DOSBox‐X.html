@@ -62,7 +62,7 @@
 <div class="paragraph">
 <p>Before going through this guide, consider if you really need this as the integrated DOS emulation in DOSBox-X is more convenient for typical use-cases.
 Booting real DOS is rarely necessary to run DOS applications and games, or even running Windows version up to Windows 3.11 in DOSBox-X.
-And even if you have an application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X.</p>
+And even if you have an application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X, which is often sufficient.</p>
 </div>
 <div class="paragraph">
 <p>There are three ways to change the DOS version that DOSBox-X reports:</p>
@@ -103,7 +103,7 @@ LFN (Long File Name) support will be enabled when the reported version is set to
 <div class="ulist">
 <ul>
 <li>
-<p>Inability to use the <code>MOUNT</code> command to access directories on the host filesystem (see below for a possible workaround). All storage will have to be in the form of images, and they need to be mounted using <code>IMGMOUNT</code> <strong>before</strong> using the <code>BOOT</code> command to boot regular DOS.</p>
+<p>Inability to use the <code>MOUNT</code> command to access directories on the host filesystem (see below for a possible workaround). All storage will have to be in the form of images, and they need to be mounted using <code>IMGMOUNT</code> <strong>before</strong> using the <code>BOOT</code> command to boot regular DOS. Or alternatively an empty diskette or CD drive needs to be emulated using <code>IMGMOUNT</code>.</p>
 </li>
 <li>
 <p>If you need to access a CD or DVD drive you need to load an IDE/PATA CD/DVD driver and MSCDEX (or equivalent)</p>
@@ -582,7 +582,7 @@ Default: F1</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This is due to a special Master Boot Record (MBR) that IMGMAKE creates.
+<p>This is due to a special Master Boot Record (MBR) that IMGMAKE used to create.
 Images created with <code>IMGMAKE</code> from DOSBox-X 2022.08.0 or later will no longer show this menu.</p>
 </div>
 <div class="paragraph">

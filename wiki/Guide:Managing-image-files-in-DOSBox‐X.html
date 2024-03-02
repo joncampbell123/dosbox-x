@@ -56,6 +56,7 @@
 <li><a href="#_copy_protected_media">Copy protected media</a></li>
 <li><a href="#_mounting_cd_or_dvd_images">Mounting CD or DVD images</a></li>
 <li><a href="#_rock_ridge_joliet_and_udf">Rock Ridge, Joliet and UDF</a></li>
+<li><a href="#_mounting_an_empty_cd_rom_drive">Mounting an empty CD-ROM drive</a></li>
 <li><a href="#_accessing_a_cd_or_dvd_in_real_dos">Accessing a CD or DVD in real DOS</a></li>
 <li><a href="#_mounting_multiple_cd_or_dvd_images">Mounting multiple CD or DVD images</a></li>
 <li><a href="#_mounting_from_the_drive_menu_3">Mounting from the Drive menu</a></li>
@@ -71,6 +72,8 @@
 <li><a href="#_qcow2_support">QCOW2 support</a></li>
 <li><a href="#_vhd_support">VHD support</a></li>
 <li><a href="#_archiving_diskettes">Archiving diskettes</a></li>
+<li><a href="#_fdisk">FDISK</a></li>
+<li><a href="#_format">FORMAT</a></li>
 <li><a href="#_known_limitations">Known limitations</a></li>
 <li><a href="#_outstanding_issues_with_this_page">Outstanding issues with this page</a></li>
 </ul>
@@ -104,7 +107,7 @@
 </td>
 <td class="content">
 Whenever this guide mentions mounting an image file, such as <code>disk.ima</code>, <code>hdd.img</code> or <code>cdrom.iso</code>, those are files on your host filesystem.
-And they may optionally be prefixed with the host path to the file. e.g. <code>disk.ima</code> may become <code>"C:\John Doe\dosroot\disk.ima"</code>.
+And they may optionally be prefixed with the host path to the file. e.g. <code>disk.ima</code> may become <code>"C:\Users\John Doe\dosroot\disk.ima"</code>.
 Also note that if there are any spaces in the host path or filename, you need to enclose it with quotes.
 </td>
 </tr>
@@ -145,6 +148,9 @@ Note that both of these options will only show image mounts, not folder mounts.<
 <ul>
 <li>
 <p>RAW MFM sector image format (typically ending in <code>.ima</code> or <code>.img</code>)</p>
+</li>
+<li>
+<p>IBM XDF (ending in <code>.xdf</code>)</p>
 </li>
 <li>
 <p>Microsoft DMF (typically ending in <code>.dmf</code>)</p>
@@ -189,16 +195,13 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 <p><a href="https://github.com/joncampbell123/dosbox-x/issues/1466">IBM DSKF</a> (<code>.DSK</code>)</p>
 </li>
 <li>
-<p><a href="https://github.com/joncampbell123/dosbox-x/issues/1465">IBM XDF</a> (<code>.XDF</code>)</p>
-</li>
-<li>
 <p><a href="https://github.com/joncampbell123/dosbox-x/issues/711">ImageDisk</a> (<code>.IMD</code>)</p>
 </li>
 <li>
 <p>Interchangeable Preservation Format (<code>.IPF</code>)</p>
 </li>
 <li>
-<p>KryoFlux Stream files (<code>.RAW</code>)</p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/issues/4288">KryoFlux Stream files</a> (<code>.RAW</code>)</p>
 </li>
 <li>
 <p>Teledisk (<code>.TD0</code>)</p>
@@ -229,7 +232,7 @@ While DOSBox-X does not support mounting or booting from diskette images in IBM 
 <div class="title">Note</div>
 </td>
 <td class="content">
-In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create diskette images at any time from the DOSBox-X menu.
+In addition to the below DOSBox-X command line utility, it is possible to create diskette images at any time from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image&#8230;&#8203;".
 This option allows most common floppy disk types to be created, for less common types you need to use the command line utility.
 </td>
@@ -294,7 +297,7 @@ The filename for the disk image is not limited to the DOS 8.3 filename length, b
 <div class="title">Note</div>
 </td>
 <td class="content">
-DOSBox-X has no integrated FORMAT command, so creating diskette images that are not formatted is typically not recommended.
+DOSBox-X does not supply a FORMAT command, so creating diskette images that are not formatted is typically not recommended.
 </td>
 </tr>
 </table>
@@ -471,7 +474,7 @@ The <code>-t floppy</code> parameter is only needed with DOSBox-X when the exten
 </table>
 </div>
 <div class="paragraph">
-<p>A diskette image that is not formatted, or has an unsupported filesystem can be mounted as follows:</p>
+<p>A diskette image that is not formatted, or has an unsupported filesystem can be attached as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -488,6 +491,109 @@ The <code>-t floppy</code> parameter is only needed with DOSBox-X when the exten
 </div>
 <div class="paragraph">
 <p>0 represents drive <code>A:</code> and 1 represents drive <code>B:</code>, but due to the use of drive numbers they cannot be directly accessed from the DOSBox-X integrated DOS. Note that when using drive numbers like 0 and 1 to mount a diskette image the <code>-fs none</code> flag is automatically assumed in DOSBox-X. For vanilla DOSBox, or other forks, the <code>-fs none</code> flag will be required.</p>
+</div>
+<div class="sect3">
+<h4 id="_mounting_an_empty_floppy_disk_drive">Mounting an empty floppy disk drive</h4>
+<div class="paragraph">
+<p>Starting with DOSBox-X 2024.03.01 it is possible to mount an empty floppy drive.
+This is really only if you intend to boot a guest OS, and want to be able to insert a diskette in the drive after booting using the DOSBox-X drop-down menu&#8217;s.</p>
+</div>
+<div class="paragraph">
+<p>When no <code>-size</code> option is specified, a 3.5" 1.44MB drive type is emulated.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount 0 empty -fs none -t floppy</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To emulate an empty 5.25" 1.2MB drive as the first floppy drive:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount 0 empty -fs none -t floppy -size 512,15,2,80</span></code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 66.6668%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Drive type</th>
+<th class="tableblock halign-left valign-top"><code>-size</code> option</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SS/DD 5.25" 160KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">512,8,1,40</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Only really for DOS 1.x backward compatibility</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SS/DD 5.25" 180KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">512,9,1,40</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DS/DD 5.25" 320KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">512,8,2,40</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Only really for DOS 1.x backward compatibility</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DS/DD 5.25" 360KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">512,9,2,40</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Can also R/W 5.25" SS/DD media</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DS/HD 5.25" 1.2MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">512,15,2,80</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Can also R/W all other 5.25" media</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DS/DD 3.5" 720KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">512,9,2,80</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Can also R/W 3.5" SS/DD media</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DS/HD 3.5" 1.44MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">512,18,2,80</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Can also R/W 3.5" SS/DD and DS/DD media</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DS/ED 3.5" 2.88MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">512,36,2,80</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Can also R/W all other 3.5" media</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The two most common and useful drive types to emulate are the 5.25" 1.2MB and the 3.5" 1.44MB varieties as they can each read and write lower capacity variants of the same physical media size.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The current DOSBox-X release seems to have a bug where Win9x will only see the first floppy drive.
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_mounting_from_the_drive_menu">Mounting from the Drive menu</h4>
@@ -988,7 +1094,7 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 <div class="title">Note</div>
 </td>
 <td class="content">
-In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images at any time from the DOSBox-X menu.
+In addition to the below DOSBox-X command line utility, it is possible to create harddisk images at any time from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image…".
 This option allows a few common HDD sizes to be created, for less common types you need to use the command line utility.
 </td>
@@ -996,7 +1102,7 @@ This option allows a few common HDD sizes to be created, for less common types y
 </table>
 </div>
 <div class="paragraph">
-<p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create partitioned and FAT formatted harddisk images in RAW MFM sector image format from the DOSBox-X command prompt.
+<p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create partitioned and FAT formatted harddisk images in either RAW MFM sector image or VHD format from the DOSBox-X command prompt.
 <code>IMGMAKE</code> only creates a single primary DOS partition per harddisk image file.</p>
 </div>
 <div class="sect3">
@@ -1295,8 +1401,8 @@ Set it to 0 for read-only (no free space) and -1 to attempt to use the actual fr
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount C: hdd.img
-imgmount C: disk.ima -t hdd
-imgmount C: disk.ima -t hdd -fs fat</span></code></pre>
+imgmount C: hdd.img -t hdd
+imgmount C: hdd.img -t hdd -fs fat</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1328,6 +1434,18 @@ The <code>-fs fat</code> option should not be needed as the FAT12, FAT16 or FAT3
 <div class="title">Note</div>
 </td>
 <td class="content">
+As of DOSBox-X 2023-10-06, you can specify a wildcard instead of a drive letter (e.g., <code>imgmount *: hdd.img</code>). This will cause DOSBox-X to take the next available drive letter.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
 If a harddisk image has either a "FAT16 LBA" or "FAT32" partition, the mount will fail unless a higher than default reported DOS version is set.
 Those partition types are normally restricted to, respectively, MS-DOS 7.0 (Windows 95) or MS-DOS 7.1 (Windows 95 OSR2/Windows 98) or later, and therefore DOSBox-X does not allow them to be mounted with the default DOS 5.0 version that DOSBox-X reports.
 You can change the reported DOS version in your DOSBox-X config file by for instance setting <code>ver=7.1</code> in the <code>[dos]</code> section. Or alternatively from the DOSBox-X DOS prompt by typing for instance <code>ver set 7.1</code>.
@@ -1343,7 +1461,7 @@ You can change the reported DOS version in your DOSBox-X config file by for inst
 </td>
 <td class="content">
 If a harddisk image has multiple partitions, by default only the first primary partition will be mounted and accessible from the DOSBox-X integrated DOS.
-You can optionally mount a different partition, but only one partition at a time, can be mounted and be accessible from the integrated DOS.
+You can optionally mount a different partition, but only one partition at a time can be mounted and be accessible from the integrated DOS.
 When booting real DOS in DOSBox-X, all partitions will be accessible.
 </td>
 </tr>
@@ -1417,7 +1535,7 @@ DOSBox-X automatically assumes the <code>-fs none</code> flag when a drive numbe
 </tbody>
 </table>
 <div class="paragraph">
-<p>A harddisk image that is not yet partitioned needs additional parameters, such as a template or the size in SHC.</p>
+<p>A harddisk image that is not yet partitioned needs additional parameters, such as a template or the size in SHC geometry.</p>
 </div>
 <div class="paragraph">
 <p>Using the original template it was based on:</p>
@@ -1428,7 +1546,7 @@ DOSBox-X automatically assumes the <code>-fs none</code> flag when a drive numbe
 </div>
 </div>
 <div class="paragraph">
-<p>Or using the original SHC it was based on:</p>
+<p>Or using the original SHC geometry it was based on:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1810,10 +1928,10 @@ If the CD or DVD contains multiple tracks, like DATA and AUDIO (aka redbook audi
 <div class="ulist">
 <ul>
 <li>
-<p>In DOSBox-X 2022.08.00 the IDE emulation was enhanced such that SafeDisc 1 games should work</p>
+<p>In DOSBox-X 2022.08.00 the IDE emulation was enhanced such that <a href="https://en.wikipedia.org/wiki/SafeDisc">SafeDisc</a> V1 games should work</p>
 </li>
 <li>
-<p>In DOSBox-X 2022.09.00 another minor change was introduced to solve one of the issues with SafeDisc 2</p>
+<p>In DOSBox-X 2022.09.00 another minor change was introduced to solve one of the issues with SafeDisc V2</p>
 </li>
 </ul>
 </div>
@@ -1886,6 +2004,18 @@ If the names of your CD/DVD images contain characters of foreign languages such 
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount D: cdrom.iso -o rr=0</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mounting_an_empty_cd_rom_drive">Mounting an empty CD-ROM drive</h3>
+<div class="paragraph">
+<p>Starting with DOSBox-X 2024.03.01 it is possible to mount an empty CD-ROM drive.
+This is useful for when you intend to boot a guest OS, and want to be able to insert a CD-ROM in the drive after booting using the DOSBox-X drop-down menu&#8217;s.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount e -t iso -empty</span></code></pre>
 </div>
 </div>
 </div>
@@ -2299,7 +2429,7 @@ This saves disk space compared to maintaining multiple full installations, and c
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmake hdd.vhd -type vhd -size 2097152</span></code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmake hdd.vhd -t vhd -size 2097152</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2307,7 +2437,7 @@ This saves disk space compared to maintaining multiple full installations, and c
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmake hdd.vhd -type hd -size 2097152</span></code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmake hdd.vhd -t hd -size 2097152</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2382,6 +2512,139 @@ Instead, look for an older second-hand USB floppy drive from a known brand like 
 </div>
 </div>
 <div class="sect1">
+<h2 id="_fdisk">FDISK</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>DOSBox-X does not supply the FDISK utility to partition harddisks. Instead it supplies an <code>IMGMAKE</code> utility which can be used to create HDD image files, including paritioning and formatting them.</p>
+</div>
+<div class="paragraph">
+<p>If however you really want to run the DOS FDISK utility from the DOSBox-X integrated emulated DOS, it is possible as of DOSBox-X 2023.10.06.</p>
+</div>
+<div class="paragraph">
+<p>First create a blank HDD image file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Z:\&gt;IMGMAKE hdd.img -t hd -nofs -size 100
+Creating image file "hdd.img" with 812 cylinders, 4 heads and 63 sectors</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then attach the blank image using the CHS geometry. '2' is a drive number that refers to the first HDD.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Z:\&gt;IMGMOUNT 2 hdd.img -size 512,63,4,812
+Drive number 2 mounted as hdd.img</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now running <code>FDISK</code> from MS-DOS or PC DOS should work, and allow partitions to be created or deleted.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If FDISK return an error "Incorrect DOS version", you must set the DOSBox-X reported DOS version to match the DOS version that FDISK came from.
+e.g., if FDISK.EXE came from MS-DOS 6.22, first run <code>VER SET 6.22</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_format">FORMAT</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>DOSBox-X does not supply the FORMAT utility to format floppies or harddisks. Instead it supplies an <code>IMGMAKE</code> utility which can be used to create Floppy or HDD image files, including formatting them.</p>
+</div>
+<div class="paragraph">
+<p>If however you really want to run the DOS FORMAT utility from the DOSBox-X integrated emulated DOS, it is partly possible as of DOSBox-X 2023.10.06.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+A harddisk image MUST be partitioned before it can be formatted.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Formatting an unformatted floppy disk image is not possible at this time using this method. But it is possible to format a floppy disk that is already formatted.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+It is important to mount the image file on a <strong>drive letter</strong>, as <code>FORMAT</code> cannot deal with drive numbers.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In case of a harddisk, first follow the steps in the FDISK section above to create the image file and partition it.</p>
+</div>
+<div class="paragraph">
+<p>Then attach the image using <code>IMGMOUNT</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+For harddisk images, once the image is partitioned it is no longer necessary to specify the geometry.
+</td>
+</tr>
+</table>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Z:\&gt;IMGMOUNT c hdd.img
+Image geometry auto detection: -size 512,63,4,812
+Drive C is mounted as hdd.img
+Drive not formatted. Format it before accessing the drive.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once the image file is mounted on a drive letter, running <code>FORMAT</code> from MS-DOS or PC DOS should work.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+the '/s' option to transfer system files does not work properly at this time.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_known_limitations">Known limitations</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -2392,7 +2655,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 <p>The only mapping that DOSBox-X still has at that point, is that of drive numbers to the image file.</p>
 </div>
 <div class="paragraph">
-<p>Starting with DOSBox-X 0.83.14, there is limited support for changing the loaded Floppy or CD image from the DOS menu where you will find the options "Change current floppy image&#8230;&#8203;" and "Change current CD image&#8230;&#8203;".</p>
+<p>There is limited support for changing the loaded Floppy or CD image from the DOS menu where you will find the options "Change current floppy image&#8230;&#8203;" and "Change current CD image&#8230;&#8203;".</p>
 </div>
 <div class="paragraph">
 <p>If multiple floppy or CD-ROM images are mounted, you will be asked for each mounted image if you want to change it.</p>
@@ -2403,10 +2666,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 <div class="ulist">
 <ul>
 <li>
-<p>Requires an image to be mounted before you boot a Guest OS, otherwise you will get an error such as "No floppy drive is currently available". In other words, you cannot boot with an empty drive, and then add an image later.</p>
-</li>
-<li>
-<p>You cannot "eject" or unmount an image</p>
+<p>Requires either an image to be mounted before you boot a Guest OS, or an empty drive to be emulated. Otherwise, you will get an error such as "No floppy drive is currently available".</p>
 </li>
 </ul>
 </div>

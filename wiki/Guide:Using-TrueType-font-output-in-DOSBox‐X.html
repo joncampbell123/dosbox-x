@@ -148,13 +148,13 @@ CONFIG -set font=</span></code></pre>
 <p>The above commands will change the TTF font to <code>Consola.ttf</code> and the built-in TrueType font respectively.</p>
 </div>
 <div class="paragraph">
-<p>If you are a speaker of a non-English language, you probably also want to use a TrueType font that contains the characters in your language and set the code page to match your language. There is a <code>CHCP</code> command to view or change the current DOS code page for TTF output. For example, <code>CHCP 857</code> will change the current DOS code page to 857 (Turkish), and it is also recommended using a TrueType font that has all characters of this language, or some characters may not be rendered properly with the specified font. Starting with DOSBox-X version 0.83.16, you can also specify a custom code page file via an optional second parameter of <code>CHCP</code> command (e.g. <code>CHCP 1000 MYCODEPAGE.TXT</code>), or via the <code>customcodepage</code> config option in [dos] section.</p>
+<p>If you are a speaker of a non-English language, you probably also want to use a TrueType font that contains the characters in your language and set the code page to match your language. There is a <code>CHCP</code> command to view or change the current DOS code page for TTF output. For example, <code>CHCP 857</code> will change the current DOS code page to 857 (Turkish), and it is also recommended using a TrueType font that has all characters of this language, or some characters may not be rendered properly with the specified font. You can also specify a custom code page file via an optional second parameter of <code>CHCP</code> command (e.g. <code>CHCP 1000 MYCODEPAGE.TXT</code>), or via the <code>customcodepage</code> config option in [dos] section.</p>
 </div>
 <div class="paragraph">
 <p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Japanese characters will be displayed correctly in this mode. Please look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a> page for more information about this.</p>
 </div>
 <div class="paragraph">
-<p>As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950/951) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Chinese (Simplified or Traditional) or Japanese text-mode DOS applications with DOSBox-X&#8217;s TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the <a href="https://unifoundry.com/unifont/">GNU Unifont</a>, <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a> (which looks very nice and included in the Windows installer), or a TTF/TTC font like <code>simkai.ttf</code> or <code>mingliu.ttc</code> (included in some versions of Windows). See the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support guide page</a> for more information. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the <code>simkai.ttf</code> TTF font:</p>
+<p>DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950/951) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Chinese (Simplified or Traditional) or Japanese text-mode DOS applications with DOSBox-X&#8217;s TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the <a href="https://unifoundry.com/unifont/">GNU Unifont</a>, <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a> (which looks very nice and included in the Windows installer), or a TTF/TTC font like <code>simkai.ttf</code> or <code>mingliu.ttc</code> (included in some versions of Windows). See the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support guide page</a> for more information. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the <code>simkai.ttf</code> TTF font:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -162,7 +162,7 @@ CONFIG -set font=</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>As of DOSBox-X version 0.83.14, the printing feature will use the same TrueType font as the one used by the TTF output by default if the TTF output is currently active, and this includes support for both standard single-byte codepages used by most countries and double-byte codepages as used by CJK languages. Look at the <a href="Guide%3ASetting-up-printing-in-DOSBox‐X">Guide: Setting up printing in DOSBox-X</a> page for more information.</p>
+<p>The printing feature will use the same TrueType font as the one used by the TTF output by default if the TTF output is currently active, and this includes support for both standard single-byte codepages used by most countries and double-byte codepages as used by CJK languages. Look at the <a href="Guide%3ASetting-up-printing-in-DOSBox‐X">Guide: Setting up printing in DOSBox-X</a> page for more information.</p>
 </div>
 </div>
 <div class="sect2">
@@ -302,7 +302,7 @@ CONFIG -set cols=100</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Starting with DOSBox-X version 0.83.24, DOSBox-X will stay with the preset color scheme when switching from another output if there is a leading <code>&#43;</code> sign for the <code>colors</code> setting, e.g. <code>colors=+(0,0,0) …</code></p>
+<p>DOSBox-X will stay with the preset color scheme when switching from another output if there is a leading <code>&#43;</code> sign for the <code>colors</code> setting, e.g. <code>colors=+(0,0,0) …</code></p>
 </div>
 <div class="paragraph">
 <p>The color schemes can also be changed when DOSBox-X is running. There is a <code>SETCOLOR</code> command in DOSBox-X which allows viewing or change the current color scheme. For example, entering <code>SETCOLOR</code> without parameters will display the current color scheme.</p>
@@ -332,7 +332,7 @@ CONFIG -set cols=100</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>(Starting with DOSBox-X version 0.83.19, there is also a menu option <code>Reset TTF color scheme</code> in the <code>TTF options</code> menu group to return the whole color scheme to the default one)</p>
+<p>(There is also a menu option <code>Reset TTF color scheme</code> in the <code>TTF options</code> menu group to return the whole color scheme to the default one)</p>
 </div>
 <div class="paragraph">
 <p>Entering <code>SETCOLOR 7</code> will display the current color value of Color #7.</p>

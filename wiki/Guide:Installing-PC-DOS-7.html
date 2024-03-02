@@ -103,8 +103,8 @@
 <div class="ulist">
 <ul>
 <li>
-<p>XDF image files are easy to recognise as they use the .XDF extension. They are incompatible with DOSBox-X&#8217;s FDD emulation, and cannot be converted to a disk image format that DOSBox-X can handle.
-Original disks in XDF format also cannot be read on a modern PC with a USB diskette drive.</p>
+<p>XDF image files are easy to recognise as they use the .XDF extension. DOSBox-X supports mounting these images directly.
+Original disks in XDF format cannot be read on a modern PC with a USB diskette drive.</p>
 </li>
 <li>
 <p>DSKF image files can be trickier to recognise as they use the same .DSK extension as is sometimes used for regular MFM disk images.
@@ -143,8 +143,56 @@ You can then boot from the diskettes to install PC DOS 2000.</p>
 <h2 id="_creating_a_pc_dos_7_hdd_image">Creating a PC DOS 7 HDD image</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Installing PC DOS 7.0, revision 0 is problematic as it was distributed on XDF diskettes which are not supported by DOSBox-X.
-You would need to install it on a legacy-PC, and then transfer the files manually which is outside the scope of this document.</p>
+<p>The first PC DOS 7.0, revision 0 diskette is a regular 1.44MB bootable disk image, the other disks are in XDF format.
+Both types can be mounted in DOSBox-X, and therefor the installation is similar to PC DOS 6.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If the first disk image is in IBM DSKF format, it first needs to be converted to a regular MFM disk image using <code><a href="https://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe">LOADDSKF.EXE</a></code> or you will not be able to boot from it.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In addition to the below DOSBox-X command line utility, it is possible to create harddisk images from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Assuming your PC DOS 7.0 disk images are in the current working directory, and named as shown below, type the following commands at the DOSBox-X <code>Z:\&gt;</code> prompt.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="console"><span class="go"> IMGMAKE hdd.img -t hd -size 2048
+ IMGMOUNT C hdd.img
+ BOOT DISK1.IMG DISK2.XDF DISK3.XDF DISK4.XDF DISK5.XDF</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system", and you will be back at the DOSBox-X <code>Z:\&gt;</code> prompt.</p>
+</div>
+<div class="paragraph">
+<p>You can now boot these DOS versions directly from the HDD image as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img
+BOOT C:</span></code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -158,7 +206,7 @@ You would need to install it on a legacy-PC, and then transfer the files manuall
 <div class="title">Note</div>
 </td>
 <td class="content">
-In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+In addition to the below DOSBox-X command line utility, it is possible to create harddisk images from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image…​".
 This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
 </td>
@@ -177,18 +225,6 @@ This option allows for various common harddisk types to be created, for less com
 <p>Run the SETUP program on the CD image directly from the DOSBox-X integrated DOS. This is the method we will use below.</p>
 </li>
 </ul>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-This method requires DOSBox-X 0.83.2 or newer.
-</td>
-</tr>
-</table>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -260,7 +296,9 @@ IMGMOUNT A -U</span></code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT 0 empty -fs none -t floppy
+IMGMOUNT C hdd.img -ide 1m
+IMGMOUNT D empty -t iso -ide 2m
 BOOT C:</span></code></pre>
 </div>
 </div>
