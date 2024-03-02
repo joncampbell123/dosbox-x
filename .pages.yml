@@ -26,7 +26,7 @@ content:
       fields: [ slug, date ]
       default:
         search: ''
-        sort: title
+        sort: date
         order: desc
   - name: posts
     label: Blog Posts
