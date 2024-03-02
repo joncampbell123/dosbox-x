@@ -1,0 +1,28 @@
+content:
+  - name: release_notes
+    label: Release Notes
+    path: _release_notes
+    type: collection
+    filename: "{primary}.md"
+    subfolders: false
+    fields:
+      - name: date
+        label: Date
+        type: date
+        required: true
+        options:
+          - format: MMMM DD, YYYY
+  - name: posts
+    label: Blog Posts
+    path: _posts
+    type: collection
+    subfolders: false
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: date
+        label: Date
+        type: date
+        required: true
