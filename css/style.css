@@ -284,10 +284,11 @@ header > :nth-child(2) > :last-child {
   padding-bottom: 0;
 }
 
-@media (max-width: 320px) {
+@media (max-width: 480px) {
   header {
     flex-direction: column;
-    gap: 15px;
+    align-items: flex-start;
+    gap: 1em;
   }
   header > :nth-child(1) {
     flex-basis: 90px;
