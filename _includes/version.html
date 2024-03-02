@@ -23,7 +23,7 @@
 <h5 class="subtitle-mute">(Windows XP and later versions supported)</h5>
 <h5>
   {%- assign xp_build_display_name =  -%}
-  {%- unless version.windows_setup_file -%} {%- comment -%} 2024.03.01 bug {%- endcomment -%}
+  {%- unless version.windows_setup_file and version.windows_setup_file != empty -%} {%- comment -%} 2024.03.01 bug {%- endcomment -%}
   {% include version_file.html version=version name="winXP_setup_file" display_name="32/64-bit Setup" %}
   {%- else -%}
   32/64-bit Setup
