@@ -23,7 +23,7 @@ content:
           format: MMMM DD, YYYY
     view:
       primary: slug
-      fields: [ primary, date ]
+      fields: [ slug, date ]
       default:
         search: ''
         sort: title
