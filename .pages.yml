@@ -96,3 +96,7 @@ content:
         label: Body
         type: rich-text
         required: true
+
+media:
+  input: images
+  output: "{{ '/images/' | relative_url }}"
