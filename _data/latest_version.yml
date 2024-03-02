@@ -1,17 +1,6 @@
-# Change this file to update the version info on index.html
-# every release.
-
-# Release date and secondary version label is retrieved from
-# the release note of the version
-version: 2023.10.06
-git_tag: dosbox-x-v2023.10.06
-
-windows_setup_file: dosbox-x-windows-2023.10.06-setup.exe
-winXP_setup_file: dosbox-x-winXP-2023.10.06-setup.exe
-
-macos_intel_file: dosbox-x-macosx-x86_64-20231006231157.zip
-macos_arm_file: dosbox-x-macosx-arm64-20231006231203.zip
-macos_special_file: null
-
-dos_hx_file: dosbox-x-mingw-hx-dos-20231007055223.zip 
-dos_loadlin_file: null
+version: 2024.03.01
+git_tag: dosbox-x-v2024.03.01
+winXP_setup_file: dosbox-x-winXP-2024.03.01-setup.exe
+macos_intel_file: dosbox-x-macosx-x86_64-20240301163105.zip
+macos_arm_file: dosbox-x-macosx-arm64-20240301150043.zip
+dos_hx_file: dosbox-x-mingw-hx-dos-20240301225703.zip
