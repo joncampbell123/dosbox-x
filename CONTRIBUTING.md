@@ -1,6 +1,6 @@
 ## Setting up the dev environment (extremely brief version)
 
-This is a [Jekyll](https://jekyllrb.com/) site. If you want to develop it, I recommend to install the site's dependencies with [Bundler](https://bundler.io) assuming that you have Ruby installed:
+This is a [Jekyll](https://jekyllrb.com/) site. If you want to develop it, I recommend to install the site's dependencies with [Bundler](https://bundler.io), assuming that you have Ruby 3.1 installed:
 ```sh
 $ bundle install
 ```

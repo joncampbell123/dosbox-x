@@ -9,6 +9,11 @@ source "https://rubygems.org"
 # Happy Jekylling!
 
 gem "github-pages", "~> 231", group: :jekyll_plugins
+# github-pages v231 requires Ruby v3.0+ which doesn't come with webricks
+# Jekyll v4.3+ hard requires webricks but apparently not Jekyll v3.9
+# What a mess
+gem "webrick", "~> 1.8"
+
 # If you have any plugins, put them here!
 group :jekyll_plugins do
   gem "jekyll-compose", "~> 0.12"
