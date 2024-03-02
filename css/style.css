@@ -260,7 +260,7 @@ header > :nth-child(1) {
   text-align: center;
   flex-basis: 200px;
 }
-header > :nth-child(1) > img {
+header > :nth-child(1) #dosbox-x-logo {
   width: 5.625em;
   height: auto;
   margin: auto;
@@ -470,4 +470,9 @@ footer p {
 footer a {
   color: #F2F2F2;
   text-decoration: underline;
+}
+
+a:has(#dosbox-x-logo) {
+  display: block;
+  color: unset;
 }

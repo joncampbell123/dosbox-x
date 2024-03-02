@@ -8,7 +8,9 @@
 {%- endif -%}
 
 <div>
-    <img id="dosbox-x-logo" class="img-no-styling" src="{{ '/images/dosbox-x-logo.svg' | relative_url }}" title="DOSBox-X" alt="DOSBox-X logo" />
+    <a href="{{ main_page | relative_url }}">
+        <img id="dosbox-x-logo" class="img-no-styling" src="{{ '/images/dosbox-x-logo.svg' | relative_url }}" title="DOSBox-X" alt="DOSBox-X logo" />
+    </a>
 </div>
 <div>
     <h1 id="project_title"><a href="{{ main_page | relative_url }}" title="{{ title | escape }} main page">{{ title | escape }}</a></h1>
