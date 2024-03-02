@@ -6,7 +6,7 @@ $ bundle install
 ```
 
 Then you can utilize the Jekyll CLI to preview your changes to the site locally and live:
-```
+```sh
 $ bundle exec jekyll serve
 ```
 

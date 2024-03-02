@@ -8,12 +8,10 @@ source "https://rubygems.org"
 # This will help ensure the proper Jekyll version is running.
 # Happy Jekylling!
 
-# gem "jekyll", "~> 4.2.2"
-gem "github-pages", "~> 227", group: :jekyll_plugins
+gem "github-pages", "~> 231", group: :jekyll_plugins
 # If you have any plugins, put them here!
 group :jekyll_plugins do
-  #gem "jekyll-feed", "~> 0.12"
-  gem "jekyll-compose", "~> 0.12.0"
+  gem "jekyll-compose", "~> 0.12"
 end
 
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem
@@ -32,4 +30,4 @@ gem "http_parser.rb", "~> 0.6.0", :platforms => [:jruby]
 
 # Dependencies for docs
 gem "asciidoctor", "~> 2.0"
-gem "rouge", "~> 3.26"
+gem "rouge", "~> 3.30"
