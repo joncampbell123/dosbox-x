@@ -6,12 +6,28 @@ content:
     filename: "{primary}.md"
     subfolders: false
     fields:
+      - name: slug
+        label: Version
+        type: string
+        required: true
+      - name: version_secondary
+        label: Secondary Version
+        type: string
+        required: false
+        description: For specific versions that has both a 0.xx.x string and a YYYY.MM.x string.
       - name: date
         label: Date
         type: date
         required: true
         options:
           format: MMMM DD, YYYY
+    view:
+      primary: slug
+      fields: [ primary, date ]
+      default:
+        search: ''
+        sort: title
+        order: date
   - name: posts
     label: Blog Posts
     path: _posts
