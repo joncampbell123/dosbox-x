@@ -15,42 +15,50 @@ title: DOSBox-X Development Builds
     </noscript>
 </section>
 
+{%- assign repo = "joncampbell123/dosbox-x" -%}
+{% capture workflows_list -%}
+windows-installers | 32/64-bit installers and builds for Vista+
+vsbuild_xp | 32/64-bit installers and builds for Windows XP+
+vsbuild32 | 32-bit Visual Studio portable builds (for Vista+/ARM)
+vsbuild64 | 64-bit Visual Studio portable builds (for Vista+/ARM)
+mingw32 | 32-bit MinGW (for 7+) and MinGW-lowend (for XP+, W9x/NT4+) portable builds
+mingw64 | 64-bit MinGW portable builds (for 7+)
+linux | Linux (x86_64) builds
+macos | macOS (x86_64) builds
+hxdos | HX-DOS (x86) build
+{%- endcapture -%}
+
+{%- assign workflows_list_entries = workflows_list | split: "
+" -%}
+
 <section class="align-center">
-    <table id="builds" class="align-center">
+    <table id="builds" data-repo="{{ repo }}" class="align-center">
         <tr>
             <th>Download link</th>
             <th>Commit</th>
             <th>Date</th>
         </tr>
+        {%- for workflows_list_entry in workflows_list_entries -%}
+        {%- assign workflow = workflows_list_entry | split: " | " -%}
+        <tr id="build-{{ workflow[0] }}" data-workflow="{{ workflow[0] }}" data-description="{{ workflow[1] }}">
+            <td class="build-link">
+                <div class="build-loading-name">
+                    <a href="https://github.com/{{ repo }}/actions/workflows/{{ workflow[0] }}.yml?query=event%3Apush+is%3Asuccess+branch%3Amaster">
+                        {{ workflow[1] }}
+                    </a>
+                </div>
+            </td>
+            <td class="build-commit">-</td>
+            <td class="build-date">-</td>
+        </tr>
+        {%- endfor -%}
     </table>
 </section>
 
-<script type="text/javascript" src="js/devel_builds.js"></script>
-<template id="build-template">
-    <tr>
-        <td class="build-link">
-            <span class="build-loading-name"></span>
-            <br />
-            <span class="build-loading-status">
-                <img src="images/dots.svg" class="img-no-styling devel-builds-dots" />
-            </span>
-        </td>
-        <td class="build-commit">-</td>
-        <td class="build-date">-</td>
-    </tr>
+<template id="build-loading-status-template">
+    <div class="build-loading-status">
+        <img src="images/dots.svg" class="img-no-styling devel-builds-dots" />
+    </div>
 </template>
 
-<script type="text/javascript">
-    const REPO = "joncampbell123/dosbox-x";
-    document.addEventListener("DOMContentLoaded", () => {
-        add_ci_build_entry(REPO, "windows-installers", "32/64-bit installers and builds for Vista+");
-        add_ci_build_entry(REPO, "vsbuild_xp", "32/64-bit installers and builds for Windows XP+");
-        add_ci_build_entry(REPO, "vsbuild32", "32-bit Visual Studio portable builds (for Vista+/ARM)");
-        add_ci_build_entry(REPO, "vsbuild64", "64-bit Visual Studio portable builds (for Vista+/ARM)");
-        add_ci_build_entry(REPO, "mingw32", "32-bit MinGW (for 7+) and MinGW-lowend (for XP+, W9x/NT4+) portable builds");
-        add_ci_build_entry(REPO, "mingw64", "64-bit MinGW portable builds (for 7+)");
-        add_ci_build_entry(REPO, "linux", "Linux (x86_64) builds");
-        add_ci_build_entry(REPO, "macos", "macOS (x86_64) builds");
-        add_ci_build_entry(REPO, "hxdos", "HX-DOS (x86) build");
-    });
-</script>
+<script type="text/javascript" src="js/devel_builds.js"></script>
