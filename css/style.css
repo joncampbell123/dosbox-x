@@ -475,3 +475,8 @@ footer a {
   color: #F2F2F2;
   text-decoration: underline;
 }
+
+sup {
+  vertical-align: super;
+  font-size: smaller;
+}
