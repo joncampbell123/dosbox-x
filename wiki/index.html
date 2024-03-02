@@ -28,8 +28,9 @@ layout: null
         </p>
     </nav>
     <main>
-        <iframe src="./Home.html" name="bottom" title="Wiki contents" width="100%" height="100%"></iframe>
+        <iframe src="./Home.html" name="bottom" title="Wiki contents" sandbox="allow-same-origin allow-scripts" width="100%" height="100%"></iframe>
     </main>
+    <script src="{{ '/js/wiki_fake_spa.js' | relative_url }}"></script>
 </body>
 
 </html>
