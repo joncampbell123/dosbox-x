@@ -67,6 +67,7 @@ content:
         label: Body
         description: Usually just the change log.
         type: rich-text
+        required: true
     view:
       primary: slug
       fields: [ slug, date ]
@@ -94,3 +95,4 @@ content:
       - name: body
         label: Body
         type: rich-text
+        required: true
