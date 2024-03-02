@@ -27,17 +27,14 @@ function changeBottomUrl(e) {
     if (what.href != bottomLocation.href && whatMutated.href != bottomLocation.href) bottomLocation.replace(what);
 }
 
-function addEventListeners() {
-    contentFrame.contentWindow.addEventListener("popstate", changeHash);
-    contentFrame.contentWindow.addEventListener("hashchange", changeHash);
-}
 if (location.hash) {
     changeBottomUrl();
 }
 window.addEventListener("hashchange", changeBottomUrl);
 contentFrame.addEventListener("load", () => {
-    if (!!contentFrame.contentDocument) {
-        addEventListeners();
+    if (contentFrame.contentDocument) {
+        contentFrame.contentWindow.addEventListener("popstate", changeHash);
+        contentFrame.contentWindow.addEventListener("hashchange", changeHash);
         changeHash();
     }
 });
