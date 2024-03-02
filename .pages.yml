@@ -99,4 +99,4 @@ content:
 
 media:
   input: images
-  output: "{{ '/images/' | relative_url }}"
+  output: "{{ '/images' | relative_url }}"
