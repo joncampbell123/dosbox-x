@@ -23,6 +23,7 @@ content:
           format: MMMM DD, YYYY
       - name: body
         label: Body
+        description: Usually just the change log.
         type: rich-text
     view:
       primary: slug
