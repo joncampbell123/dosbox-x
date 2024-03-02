@@ -3,24 +3,24 @@ layout: default
 ---
 
 <main id="main_content" class="align-center">
-    <h1>DOSBox-X {{ page.slug | escape }}{%- if page.version_secondary %} ({{ page.version_secondary }}){%- endif %} Release Notes</h1>
+    <article>
+        <h1>DOSBox-X {{ page.slug | escape }}{%- if page.version_secondary %} ({{ page.version_secondary }}){%- endif %} Release Notes</h1>
 
-    <section>
-        <h3 class="release-date">
-            Release Date: <span class="release-date-text">{{ page.date | date: site.release_date_format }}</span>
-        </h3>
+        <section>
+            <h3 class="release-date">
+                Release Date: <span class="release-date-text">{{ page.date | date: site.release_date_format }}</span>
+            </h3>
 
-        <p>Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
-        <p>Also, make sure to check out our <a href="{{ '/wiki' | relative_url }}">Wiki guide</a>.</p>
-    </section>
+            <p>Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="{{ '/wiki' | relative_url }}">Wiki guide</a>.</p>
+        </section>
 
-    <section>
-        <h2>New in This Version</h2>
+        <section>
+            <h2>New in This Version</h2>
 
-        <article>
             {{ content }}
-        </article>
-    </section>
+        </section>
+    </article>
 
     <section>
         <table width="100%" class="align-center">

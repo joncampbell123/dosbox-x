@@ -3,11 +3,11 @@ layout: default
 ---
 
 <main id="main_content" class="align-center">
-    {%- unless layout.disable_title -%}
-    <h1>{{ page.title | escape }}</h1>
-    {%- endunless -%}
-
     <article>
+        {%- unless layout.disable_title -%}
+        <h1>{{ page.title | escape }}</h1>
+        {%- endunless -%}
+
         {{ content }}
     </article>
 </main>
