@@ -98,15 +98,12 @@ async function populate_workflow_entry(builds, build_entry) {
     }
 
     // Setup row contents
-    let build_link = document.createElement("a");
-    build_link.setAttribute("href", run.html_url);
-    build_link.textContent = description;
-    build_entry.querySelector(".build-link")
-        .replaceChildren(build_link);
+    build_entry.querySelector(".build-loading-status").remove();
+    build_entry.querySelector("a").href = run.html_url;
 
     let build_commit = run.head_commit.id;
     let build_commit_link = document.createElement("a");
-    build_commit_link.setAttribute("href", `https://github.com/${repo}/commit/${build_commit}`);
+    build_commit_link.href = `https://github.com/${repo}/commit/${build_commit}`;
     build_commit_link.textContent = build_commit.substring(0, 7);
     build_entry.querySelector(".build-commit")
         .replaceChildren(build_commit_link);
