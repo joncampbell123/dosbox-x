@@ -25,6 +25,7 @@ Before doing this, you probably want to make sure all files for the release are 
 2. Add a front matter like below to the start of the file, then append a new line after it
     ```markdown
     ---
+    slug: "<insert version number>"
     date: "<insert release date of version>"
     ---
     ```
