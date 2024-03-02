@@ -10,6 +10,8 @@
   * in devel-build.html
 */
 
+"use strict";
+
 function report_error(msg, err, show_alert=false, show_trace=false) {
     let stack = err ? "\n" + (err instanceof Error ? err.stack : err) : "";
     if (err)
