@@ -258,7 +258,7 @@ header > * {
 
 header > :nth-child(1) {
   text-align: center;
-  flex-basis: 200px;
+  flex-basis: 12.5em;
 }
 header > :nth-child(1) a:has(#dosbox-x-logo) {
   display: block;
