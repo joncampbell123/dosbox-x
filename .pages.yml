@@ -23,6 +23,7 @@ content:
           format: MMMM DD, YYYY
       - name: body
         label: Body
+        type: rich-text
     view:
       primary: slug
       fields: [ slug, date ]
@@ -48,3 +49,4 @@ content:
           time: true
       - name: body
         label: Body
+        type: rich-text
