@@ -27,7 +27,7 @@ content:
       default:
         search: ''
         sort: title
-        order: date
+        order: desc
   - name: posts
     label: Blog Posts
     path: _posts
