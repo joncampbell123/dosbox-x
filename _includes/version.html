@@ -24,8 +24,8 @@
 <h5>
   32/64-bit Setup {% include version_file.html version=version name="winXP_setup_file" display_name=" ReactOS/XP+ " %}
   |
-  {% include version_file.html version=version name="win64_setup_file" display_name=" Vista+" %}
-  {%- unless version.win32_setup_file and version.win64_setup_file -%}<abbr title="Recommended at the moment">*</abbr>{%- endunless -%}
+  <strong>{% include version_file.html version=version name="win64_setup_file" display_name=" Vista+" %}</strong>
+  <sup>(Recommended)</sup>
 </h5>
 <h5>
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#windows-packages-installer-or-portable">More options including portable packages</a>
