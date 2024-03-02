@@ -46,6 +46,7 @@ bundle exec asciidoctor \
   -a linkcss -a copycss \
   -a reproducible \
   -a source-highlighter=rouge \
+  -a nofooter \
   -a docinfo=shared -a docinfodir=docinfo \
   $tempdir/*.asciidoc
 rm $tempdir/*.asciidoc
