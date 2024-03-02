@@ -1,4 +1,46 @@
 content:
+
+  - name: latest_version
+    label: Latest Version Data
+    path: _data/latest_version.yml
+    type: file
+    fields:
+      - name: version
+        label: Version
+        type: string
+        required: true
+      - name: git_tag
+        label: Git Tag
+        type: string
+        required: true
+
+      - name: win32_setup_file
+        label: Windows 32-bit setup filename
+        type: string
+      - name: win64_setup_file
+        label: Windows 64-bit setup filename
+        type: string
+      - name: winXP_setup_file
+        label: Windows XP special setup filename
+        type: string
+
+      - name: macos_intel_file
+        label: macOS Intel build filename
+        type: string
+      - name: macos_arm_file
+        label: macOS ARM build filename
+        type: string
+      - name: macos_special_file
+        label: macOS High Sierra special build filename
+        type: string
+
+      - name: dos_hx_file
+        label: HX-DOS build filename
+        type: string
+      - name: dos_loadlin_file
+        label: DOS LOADLIN build filename
+        type: string
+
   - name: release_notes
     label: Release Notes
     path: _release_notes
@@ -32,6 +74,7 @@ content:
       default:
         sort: date
         order: desc
+
   - name: posts
     label: Blog Posts
     path: _posts
