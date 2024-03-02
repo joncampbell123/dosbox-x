@@ -24,8 +24,8 @@ content:
     view:
       primary: slug
       fields: [ slug, date ]
+      sort: [ date, slug ]
       default:
-        search: ''
         sort: date
         order: desc
   - name: posts
@@ -42,3 +42,5 @@ content:
         label: Date
         type: date
         required: true
+        options:
+          time: true
