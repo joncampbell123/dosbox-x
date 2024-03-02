@@ -21,6 +21,8 @@ content:
         required: true
         options:
           format: MMMM DD, YYYY
+      - name: body
+        label: Body
     view:
       primary: slug
       fields: [ slug, date ]
@@ -44,3 +46,5 @@ content:
         required: true
         options:
           time: true
+      - name: body
+        label: Body
