@@ -20,9 +20,8 @@
 <img src="{{ '/images/msdos_logo.png' | relative_url }}" title="MS-DOS" alt="MS-DOS" width="50" height="50" />
 
 <h4>Windows version:</h4>
-<h5 class="subtitle-mute">(Windows XP and later versions supported)</h5>
+<h5 class="subtitle-mute">(Windows 9x/NT4 and later versions supported)</h5>
 <h5>
-  {%- assign xp_build_display_name =  -%}
   {%- unless version.windows_setup_file and version.windows_setup_file != empty -%} {%- comment -%} 2024.03.01 bug {%- endcomment -%}
   {% include version_file.html version=version name="winXP_setup_file" display_name="32/64-bit Setup" %}
   {%- else -%}
@@ -32,6 +31,10 @@
   {% include version_file.html version=version name="windows_setup_file" display_name=" Vista+" %}
   <sup>(Recommended)</sup>
   {%- endunless -%}
+</h5>
+<h5>
+  32-bit Portable
+  {% include version_file.html version=version name="win9x_file" display_name=" 9x/NT4+" %}
 </h5>
 <h5>
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#windows-packages-installer-or-portable">More options including portable packages</a>

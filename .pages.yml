@@ -20,6 +20,9 @@ content:
       - name: winXP_setup_file
         label: Windows XP special setup filename
         type: string
+      - name: win9x_file
+        label: Windows 9x/NT4 special build filename
+        type: string
 
       - name: macos_intel_file
         label: macOS Intel build filename
