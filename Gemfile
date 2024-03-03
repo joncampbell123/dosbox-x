@@ -33,6 +33,8 @@ gem "wdm", "~> 0.1.1", :platforms => [:mingw, :x64_mingw, :mswin]
 # do not have a Java counterpart.
 gem "http_parser.rb", "~> 0.6.0", :platforms => [:jruby]
 
-# Dependencies for docs
-gem "asciidoctor", "~> 2.0"
-gem "rouge", "~> 3.30"
+# Dependencies for wiki
+group :wiki do
+  gem "asciidoctor", "~> 2.0"
+  gem "rouge", "~> 3.30"
+end
