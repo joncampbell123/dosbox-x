@@ -22,8 +22,10 @@
             url.hash = relUrl;
             history.pushState({}, "", url);
         }
-        if (frame.contentDocument.title.trim())
-            document.title = frame.contentDocument.title + " - DOSBox-X Wiki";
+        document.title = decodeURIComponent(
+            bottomLocation.pathname.substring(contentDir.length)
+            .replace(/(?:.html)?(?:\/)?$/, "")
+        ).replaceAll("-", " ") + " - DOSBox-X Wiki";
     }
     function changeBottomUrl() {
         let bottomLocation = frame.contentWindow.location;
