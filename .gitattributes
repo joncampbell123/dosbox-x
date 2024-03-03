@@ -1,4 +1,5 @@
 wiki/*.html linguist-generated=true
+wiki/*.css linguist-generated=true
 wiki/index.html linguist-generated=false
 wiki/guides.html linguist-generated=false
-wiki/*.css linguist-generated=true
+wiki/docinfo linguist-generated=false
