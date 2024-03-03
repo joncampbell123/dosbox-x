@@ -412,22 +412,23 @@ table.align-left > tbody > tr > td {
   box-shadow: 0 0 5px rgba(0,0,0,.5);
   vertical-align: middle;
 }
-.home-links > tbody > tr > td > * {
+.home-links > tbody > tr > td * {
   color: #fff;
   font-weight: 700;
   text-align: center;
-  vertical-align: middle;
 }
 .home-links > tbody > tr > td > a {
-  display: inline-block;
+  display: flex;
   height: 100%;
   padding: 0.5em 1em;
+  gap: 0.5em;
+  flex-wrap: wrap;
+  justify-content: center;
 }
-.home-links > tbody > tr > td > img {
+.home-links > tbody > tr > td > a img {
   height: 1.5em;
   width: auto;
-  margin: 0;
-  margin-right: 0.75em;
+  padding: 0;
 }
 
 .home-links > tbody > tr > td:has(#linkwiki) {
@@ -438,8 +439,6 @@ table.align-left > tbody > tr > td {
 }
 .home-links > tbody > tr > td:has(#linkproject) {
   background-color: #0090ff;
-  display: flex;
-  align-items: center;
 }
 
 h4.release-date {

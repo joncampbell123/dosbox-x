@@ -25,5 +25,5 @@ DOSBox-X maintains a [Wiki system](wiki/){:target="_blank"} (see also [guide pag
 
 |  |   |  |
 ---|---|---
-[View Wiki Guide](wiki/){:#linkwiki target="_blank"} | [View Issue Tracker](https://github.com/joncampbell123/dosbox-x/issues){:#linktracker target="_blank"} | [View Project on GitHub](https://github.com/joncampbell123/dosbox-x){:#linkproject target="_blank"}![octocat icon](images/blacktocat.png){:.img-no-styling align="center" width="24px"}
+[View Wiki Guide](wiki/){:#linkwiki target="_blank"} | [View Issue Tracker](https://github.com/joncampbell123/dosbox-x/issues){:#linktracker target="_blank"} | [<span>View Project on GitHub</span>![octocat icon](images/blacktocat.png){:.img-no-styling align="center"}](https://github.com/joncampbell123/dosbox-x){:#linkproject target="_blank"}
 {:.home-links}
