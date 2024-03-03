@@ -39,6 +39,8 @@
 
     if (location.hash)
         changeBottomUrl();
+    else
+        frame.contentWindow.location.href = "./Home";
     window.addEventListener("hashchange", changeBottomUrl);
     frame.addEventListener("load", () => {
         if (!frame.contentDocument)
