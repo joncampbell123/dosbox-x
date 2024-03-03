@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="generator" content="Asciidoctor 2.0.21">
 <title>Installing Microsoft Windows Millennium Edition in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <link rel="stylesheet" href="./asciidoctor.css">
@@ -240,7 +240,7 @@ Larger values may be possible with tweaks but are not covered here.
 <h2 id="_dynamic_vs_normal_core">Dynamic vs Normal core</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Starting with DOSBox-X 0.83.10 the dynamic_x86 core, which should perform much better, has been sufficiently enhanced that it can now be used for most use-cases with Windows ME.</p>
+<p>The dynamic_x86 core, which should perform much better, has been sufficiently enhanced that it can now be used for most use-cases with Windows ME.</p>
 </div>
 <div class="paragraph">
 <p>However, for now we still recommend that you do the installation of Windows ME using <code>core=normal</code> until issue <a href="https://github.com/joncampbell123/dosbox-x/issues/2215">#2215</a> is resolved.</p>
@@ -311,7 +311,7 @@ This will cause some audio distortion on Windows ME startup, if you have the Win
 <div class="title">Note</div>
 </td>
 <td class="content">
-In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
+In addition to the below DOSBox-X command line utility, it is possible to create harddisk images from the DOSBox-X menu.
 Go to the "DOS" menu and select "Create blank disk image…".
 This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
 </td>
@@ -392,15 +392,8 @@ This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, wil
 </div>
 <div class="sect2">
 <h3 id="_requirements">Requirements</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>DOSBox-X 0.83.12 or later, these instructions will NOT work with other DOSBox forks.</p>
-</li>
-<li>
-<p>Windows ME <strong>OEM Full</strong> edition CD-ROM image (named "WinME.iso" in the example below).</p>
-</li>
-</ul>
+<div class="paragraph">
+<p>A Windows ME <strong>OEM Full</strong> edition CD-ROM image (named "WinME.iso" in the example below).</p>
 </div>
 <div class="paragraph">
 <p>Getting this image file is outside the scope of this guide.</p>
@@ -505,15 +498,8 @@ The \WIN9X\OLS sub-directory can however be skipped which will save roughly 42MB
 </div>
 <div class="sect2">
 <h3 id="_requirements_2">Requirements</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>DOSBox-X 0.83.12 or later, these instructions will NOT work with other DOSBox forks.</p>
-</li>
-<li>
-<p>Windows ME CD-ROM image (named "WinME.iso" in the example below).</p>
-</li>
-</ul>
+<div class="paragraph">
+<p>A Windows ME CD-ROM image (named "WinME.iso" in the example below).</p>
 </div>
 <div class="paragraph">
 <p>Getting this image file is outside the scope of this guide.</p>
@@ -608,13 +594,28 @@ The actual steps will not be covered in this guide, but are pretty self-explanat
 </div>
 <div class="paragraph">
 <p>Now edit your <code>winme.conf</code> config file.
-At the end of the file, in the [autoexec] section, add the following two lines:</p>
+At the end of the file, in the [autoexec] section, add the following lines:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT 0 empty -fs none -t floppy
+IMGMOUNT 1 empty -fs none -t floppy -size 512,15,2,80
+IMGMOUNT C hdd.img -ide 1m
+IMGMOUNT D empty -t iso -ide 2m
 BOOT C:</span></code></pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The current DOSBox-X release seems to have a bug where WinME will only see the first floppy drive.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>Save the config file, and at the command-prompt of your host PC you can type the below command to continue with the next phase of the installation process.
@@ -659,7 +660,7 @@ This is also the command you use, after the installation is finished, to start W
 <p>Install Microsoft Visual C++ 2005 runtime</p>
 </li>
 <li>
-<p>Update to Microsoft Internet Explorer 6.0 (rarely needed)</p>
+<p>Update to <a href="https://winworldpc.com/product/internet-explorer/ie-6">Microsoft Internet Explorer 6.0</a> (rarely needed)</p>
 </li>
 <li>
 <p>Update to Microsoft DirectX 9.0c</p>
@@ -668,16 +669,19 @@ This is also the command you use, after the installation is finished, to start W
 <p>Install Microsoft Windows Installer 2.0</p>
 </li>
 <li>
-<p>Install Microsoft WinG 1.0 (needed by just a few games, and those games typically include it)</p>
+<p>Install <a href="https://archive.org/details/WING10">Microsoft WinG API 1.0</a> (needed by just a few games, and those games typically include it)</p>
 </li>
 <li>
-<p>Install Microsoft GDI+ redistributable</p>
+<p>Install Microsoft GDI+ re-distributable</p>
 </li>
 <li>
 <p>Install Adobe Acrobat Reader 6.0</p>
 </li>
 <li>
 <p>Install/Update to Adobe Flash Player 9.0.47.0</p>
+</li>
+<li>
+<p>Install <a href="https://archive.org/details/winsteng">Adobe PostScript driver 4.2.6</a></p>
 </li>
 <li>
 <p>Install Apple QuickTime 6.5.2</p>
@@ -690,15 +694,23 @@ This is also the command you use, after the installation is finished, to start W
 <h2 id="_mounting_cd_or_diskette_images">Mounting CD or Diskette images</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X supports mounting CD and diskette (floppy) images, and making those available to an OS booted in DOSBox-X.
-But only if the image files are specified before starting real DOS or Windows 9x.
-The option to load image files from the menu bar becomes unavailable the moment you boot DOS or Win9x in DOSBox-X.</p>
+<p>DOSBox-X supports mounting CD and diskette (floppy) images, and making those available to an OS booted in DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>This is a known limitation that hopefully will be resolved in the near future.</p>
+<p>To do so, an empty diskette or CD drive needs to be attached before booting a guest OS such as Windows ME, or diskette or CD images need to be attached (which will automatically cause an appropriate drive type to be emulated).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Disks can be changed after booting a guest OS from the drop-down menus under "DOS" &#8594; "Change current floppy image&#8230;&#8203;"</p>
+</li>
+<li>
+<p>CDs can be changed after booting a guest OS from the drop-down menus under "DOS" &#8594; "Change current CD image&#8230;&#8203;"</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>For now, you can work around it, by specifying multiple image files with the IMGMOUNT command as such:</p>
+<p>For example, to specifying multiple image files with the IMGMOUNT command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -707,7 +719,7 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can then swap between disk images with the swap option from the menu.</p>
+<p>You can then swap between disk images with the "DOS" &#8594; "Swap floppy drive" or "Swap CD drive" option from the drop-down menus, or using the hot-key.</p>
 </div>
 </div>
 </div>
@@ -720,7 +732,7 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso</span></code></pre>
 <div class="sect2">
 <h3 id="_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</h3>
 <div class="paragraph">
-<p>Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
+<p>There are two different back-ends to the NE2000 adapter emulation.
 The default is <code>backend=auto</code>, which implies <code>backend=slirp</code> if SLIRP support is available, otherwise <code>backend=pcap</code> is implied if PCAP support is available.</p>
 </div>
 <div class="sect3">
@@ -1114,7 +1126,10 @@ If you don&#8217;t see this option listed, click on the "view all Control Panel 
 </div>
 </div>
 <div class="paragraph">
-<p>Next in Windows ME, select any PostScript printer such as the "QMS ColorScript 100 Model 30", during printer setup connected to LPT1.</p>
+<p>You can either use the PostScript driver bundled with Windows ME, or alternatively install the newer Adobe PostScript 4.2.6 driver.</p>
+</div>
+<div class="paragraph">
+<p>If using the bundled driver, select any PostScript printer such as the "QMS ColorScript 100 Model 30", during printer setup connected to LPT1.</p>
 </div>
 <div class="paragraph">
 <p>When you print, a .prt file in your <code>captures=</code> directory will be created, which despite the extension, is actually a PostScript file.</p>
@@ -1193,14 +1208,20 @@ After the update it will show a date of 4-29-1999.</p>
 <div class="sect2">
 <h3 id="_glide_pass_through">Glide pass-through</h3>
 <div class="paragraph">
-<p>DOSBox-X supports glide pass-through with Windows ME.
-There are however a few points you need to be aware of.</p>
+<p>Glide pass-through is an optional DOSBox-X feature, and not required to use a 3dfx Voodoo game with Windows ME.
+It can provide better performance, but can also be rather tricky to get working properly. As such it is not recommended for most users.</p>
+</div>
+<div class="paragraph">
+<p>If you decide to try this method, first ensure the game works without glide pass-through using the standard 3dfx Voodoo emulation.</p>
+</div>
+<div class="paragraph">
+<p>There are a few points you need to be aware of.</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
 <p>The DOSBox-X and glide-wrapper installed on the host need to be the same architecture.
-So, if you&#8217;re using a 64bit DOSBox-X, you need to use a 64-bit glide-wrapper.</p>
+So, if you&#8217;re using a 64bit DOSBox-X, you need to use a matching 64-bit glide-wrapper.</p>
 </li>
 <li>
 <p>The Linux SDL2 DOSBox-X does not work with OpenGlide, this is a limitation of OpenGlide (see OpenGlide issue <a href="https://github.com/voyageur/openglide/issues/20">#20</a>).
@@ -1218,7 +1239,7 @@ The work-around is to use the SDL1 DOSBox-X instead.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You will also need a specially patched <a href="https://www.vogons.org/download/file.php?id=102360">GLIDE2X.DLL</a> which you can place in either the <code>C:\Windows\System</code> directory of Windows ME, or in the game directory.
+<p>You will also need a specially patched <a href="https://www.vogons.org/download/file.php?id=102360">GLIDE2X.DLL</a> file which you can place in either the <code>C:\Windows\System</code> directory of Windows ME, or in the game directory.
 But be aware that some games come with their own GLIDE2X.DLL, which typically gets installed in the game directory.
 If so, you will have to remove this DLL file for glide pass-through to work.</p>
 </div>
@@ -1316,11 +1337,14 @@ If the total space of files + 250MiB does not exceed 2GiB, it will convert it in
 <div class="ulist">
 <ul>
 <li>
-<p>If you intend at any point to use a Floppy or CD during your usage of Windows ME, you must attach a floppy and/or CD image <strong>before</strong> starting Windows ME.
-You can load a different CD or Floppy image, once you booted Windows ME, but if a floppy or CD is not present when starting Windows ME the drive is simply missing, and you cannot add it without rebooting the guest OS.</p>
+<p>If you intend at any point to use a Floppy or CD during your usage of Windows ME, you must attach either a floppy and/or CD image <strong>before</strong> starting Windows ME, or an empty floppy or CD-ROM drive.
+If a floppy or CD drive is not present when starting Windows ME the drive is simply missing, and you cannot add it without rebooting the guest OS.</p>
 </li>
 <li>
 <p>When mounting a CD-ROM image using <code>imgmount</code>, before booting Windows ME, you may have to specify the IDE device to attach it to for it to work properly in Windows ME. e.g. <code>imgmount d game_cd.iso -ide 2m</code> to make the CD-ROM drive appear as the master device on the secondary IDE controller.</p>
+</li>
+<li>
+<p>If animated mouse cursors don&#8217;t work, the most likely cause is that for some reason it does not work if the HDD is in "compatibility mode". <a href="https://kb.iu.edu/d/adkl" class="bare">https://kb.iu.edu/d/adkl</a></p>
 </li>
 </ul>
 </div>
@@ -1359,10 +1383,6 @@ You can load a different CD or Floppy image, once you booted Windows ME, but if 
 </ul>
 </div>
 </div>
-</div>
-</div>
-<div id="footer">
-<div id="footer-text">
 </div>
 </div>
 <script src="./docinfo/copy-to-clipboard.js"></script>

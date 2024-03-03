@@ -1,0 +1,104 @@
+content:
+
+  - name: latest_version
+    label: Latest Version Data
+    path: _data/latest_version.yml
+    type: file
+    fields:
+      - name: version
+        label: Version
+        type: string
+        required: true
+      - name: git_tag
+        label: Git Tag
+        type: string
+        required: true
+
+      - name: windows_setup_file
+        label: Windows setup filename
+        type: string
+      - name: winXP_setup_file
+        label: Windows XP special setup filename
+        type: string
+      - name: win9x_file
+        label: Windows 9x/NT4 special build filename
+        type: string
+
+      - name: macos_intel_file
+        label: macOS Intel build filename
+        type: string
+      - name: macos_arm_file
+        label: macOS ARM build filename
+        type: string
+
+      - name: dos_hx_file
+        label: HX-DOS build filename
+        type: string
+
+      # Presently obsolete flavors
+      - name: macos_special_file
+        label: macOS High Sierra special build filename
+        type: string
+      - name: dos_loadlin_file
+        label: DOS LOADLIN build filename
+        type: string
+
+  - name: release_notes
+    label: Release Notes
+    path: _release_notes
+    type: collection
+    filename: "{primary}.md"
+    subfolders: false
+    fields:
+      - name: slug
+        label: Version
+        type: string
+        required: true
+      - name: version_secondary
+        label: Secondary Version
+        type: string
+        required: false
+        description: For specific versions that has both a 0.xx.x string and a YYYY.MM.x string.
+      - name: date
+        label: Date
+        type: date
+        required: true
+        options:
+          format: MMMM D, YYYY
+      - name: body
+        label: Body
+        description: Usually just the change log.
+        type: rich-text
+        required: true
+    view:
+      primary: slug
+      fields: [ slug, date ]
+      sort: [ date, slug ]
+      default:
+        sort: date
+        order: desc
+
+  - name: posts
+    label: Blog Posts
+    path: _posts
+    type: collection
+    subfolders: false
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: date
+        label: Date
+        type: date
+        required: true
+        options:
+          time: true
+      - name: body
+        label: Body
+        type: rich-text
+        required: true
+
+media:
+  input: images
+  output: "{{ '/images' | relative_url }}"

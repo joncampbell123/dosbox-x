@@ -3,15 +3,17 @@ layout: default
 blog: true
 ---
 
-<main id="main_content" class="align-center">
-    <h1>{{ page.title | escape }}</h1>
-    <p>
-        <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished" class="subtitle-mute">
-            {{ page.date | date: site.blog.date_format }}
-        </time>
-    </p>
-
+<main id="main_content">
     <article>
+        <div class="align-center">
+            <h1>{{ page.title | escape }}</h1>
+            <p>
+                <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished" class="subtitle-mute">
+                    {{ page.date | date: site.blog.date_format }}
+                </time>
+            </p>
+        </div>
+
         {{ content }}
     </article>
 </main>

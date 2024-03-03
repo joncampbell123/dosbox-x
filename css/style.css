@@ -212,7 +212,6 @@ hr {
   margin-bottom: 5px;
   border: none;
   background: url('../images/bg_hr.png') repeat-x center;
-  border-bottom: 1px solid #8c8b8b;
 }
 
 table {
@@ -258,9 +257,12 @@ header > * {
 
 header > :nth-child(1) {
   text-align: center;
-  flex-basis: 200px;
+  flex-basis: 12.5em;
 }
-header > :nth-child(1) > img {
+header > :nth-child(1) a:has(#dosbox-x-logo) {
+  display: block;
+}
+header > :nth-child(1) #dosbox-x-logo {
   width: 5.625em;
   height: auto;
   margin: auto;
@@ -281,10 +283,11 @@ header > :nth-child(2) > :last-child {
   padding-bottom: 0;
 }
 
-@media (max-width: 320px) {
+@media (max-width: 480px) {
   header {
     flex-direction: column;
-    gap: 15px;
+    align-items: flex-start;
+    gap: 1em;
   }
   header > :nth-child(1) {
     flex-basis: 90px;
@@ -394,27 +397,38 @@ table.align-left > tbody > tr > td {
 
 .home-links {
   border: none;
-  margin: 0;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
+  margin-block: 1em;
   border-collapse: separate;
-  border-spacing: 10px 0;
+  border-spacing: 0.625em 0;
 }
 .home-links > thead {
   display: none;
 }
 .home-links > tbody > tr > td {
-  height: 100%;
+  padding: 0;
   border: 0;
   border-radius: 2px;
   box-shadow: 0 0 5px rgba(0,0,0,.5);
-  padding: 10px 15px;
-  text-align: center;
+  vertical-align: middle;
 }
-.home-links > tbody > tr > td > * {
+.home-links > tbody > tr > td * {
   color: #fff;
   font-weight: 700;
-  vertical-align: middle;
+  text-align: center;
+}
+.home-links > tbody > tr > td > a {
+  display: flex;
+  height: 100%;
+  padding: 0.5em 1em;
+  gap: 0.5em;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.home-links > tbody > tr > td > a img {
+  height: 1.5em;
+  width: auto;
+  padding: 0;
 }
 
 .home-links > tbody > tr > td:has(#linkwiki) {
@@ -425,7 +439,6 @@ table.align-left > tbody > tr > td {
 }
 .home-links > tbody > tr > td:has(#linkproject) {
   background-color: #0090ff;
-  white-space: pre-wrap;
 }
 
 h4.release-date {
@@ -470,4 +483,9 @@ footer p {
 footer a {
   color: #F2F2F2;
   text-decoration: underline;
+}
+
+sup {
+  vertical-align: super;
+  font-size: smaller;
 }

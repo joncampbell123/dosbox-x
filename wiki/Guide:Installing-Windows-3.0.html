@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="generator" content="Asciidoctor 2.0.21">
 <title>Installing Microsoft Windows 3.0 in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <link rel="stylesheet" href="./asciidoctor.css">
@@ -250,7 +250,7 @@ Instead, this guide will have some install guidance and hints and tips not cover
 <p>Some parts of the installation can take a considerable amount of time.
 You may be able to speed this up considerably (depending on the host CPU) by using the DOSBox-X Turbo mode, which can be enabled from the drop-down menu bar by selecting "CPU" followed by "Turbo (Fast Forward)".
 This turbo mode is not like the old Turbo button on retro PCs, but functions more like a fast-forward, and therefore should not be used when interacting with the guest OS.
-Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the moment a key is pressed, to prevent spurious keypresses to be registered causing undesirable effects.</p>
+The turbo mode is automatically disabled the moment a key is pressed, to prevent spurious keypresses to be registered causing undesirable effects.</p>
 </li>
 <li>
 <p>Unless noted otherwise, Windows 3.1 drivers are not backward compatible with Windows 3.0.</p>
@@ -842,7 +842,7 @@ This can be controlled by the <code>mouse_wheel_key=</code> setting in the <code
 <div class="sect2">
 <h3 id="_vmware_mouse_driver">VMWare mouse driver</h3>
 <div class="paragraph">
-<p>DOSBox-X 0.83.24 or later also supports the VMware mouse protocol.
+<p>DOSBox-X also supports the VMware mouse protocol.
 There is a 4rd party Windows 3.0 mouse driver <a href="https://git.javispedro.com/cgit/vbados.git/about/">VBMOUSE.DRV</a> by @javispedro, including support for the scroll wheel.</p>
 </div>
 <div class="paragraph">
@@ -1098,27 +1098,22 @@ This way you can launch Windows games from a DOS batch file, or from a DOSBox la
 <div class="ulist">
 <ul>
 <li>
-<p>When booting a guest OS, such an MS-DOS with Windows 3.0 in DOSBox-X, so-called folder mounts are not supported.
-Any folders of the host you mount before starting MS-DOS will <strong>NOT</strong> be available in DOS and Windows 3.0.
-Only image mounts (HDD, Floppy or CD) using <code>imgmount</code> are possible in combination with booting a guest OS.</p>
+<p>When booting a guest OS, such an MS-DOS with Windows 3.0 in DOSBox-X, so-called folder mounts are only partly supported.
+Only harddisk folder mounts will be available to the guest OS, and this excludes the boot drive as DOSBox-X cannot boot from a folder mount.</p>
 </li>
 <li>
-<p>If you intend at any point to use a Floppy during your usage of Windows 3.0, you must mount a floppy <strong>before</strong> starting Windows 3.0.
-You can load a different Floppy, once you started Windows 3.0 this way from the DOSBox-X menus.
-If you don&#8217;t load a floppy before and attach it afterwards, it may appear to work in Windows 3.0, but it will not work properly, and you get strange errors.</p>
+<p>If you intend at any point to use a diskette during your usage of Windows 3.0, you must mount a diskette image <strong>before</strong> starting Windows 3.0.
+You can change the diskette, once you started Windows 3.0 from the DOSBox-X menus.
+But if a diskette drive is not present when starting Windows 3.0, and you attach it afterwards, it will not work properly, and you get strange errors.</p>
 </li>
 <li>
-<p>If you intend at any point to use a CD during your usage of Windows 3.0, you must mount a CD <strong>before</strong> starting Windows 3.0.
-You can load a different CD from the DOSBox-X menus, once you started Windows 3.0.
-But if a CD is not present when starting Windows 3.0 the drive is simply missing, and you cannot add it without quitting and restarting Windows 3.0.</p>
+<p>If you intend at any point to use a CD during your usage of Windows 3.0, you must mount a CD image <strong>before</strong> starting Windows 3.0.
+You can change the CD, once you started Windows 3.0 from the DOSBox-X menus.
+But if a CD-ROM drive is not present when starting Windows 3.0 the drive is simply missing, and you cannot add it without quitting and restarting Windows 3.0.</p>
 </li>
 </ul>
 </div>
 </div>
-</div>
-</div>
-<div id="footer">
-<div id="footer-text">
 </div>
 </div>
 <script src="./docinfo/copy-to-clipboard.js"></script>

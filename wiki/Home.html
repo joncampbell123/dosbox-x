@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="generator" content="Asciidoctor 2.0.21">
 <title>Introduction</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <link rel="stylesheet" href="./asciidoctor.css">
@@ -134,7 +134,7 @@
 <p>DOSBox-X features a graphical configuration tool so that you can use its built-in GUI interface to modify its settings easily. A configuration file can be generated or updated by the configuration tool, or with the built-in CONFIG command (which can be found on the internal Z: drive when you run DOSBox-X). Some users may prefer the config file to contain modified config options only (in such case other options will use the default values), and/or remove all comments in the config file; they can create such a config file using a command like <code>config -mod -norem -wcp [filename.conf]</code> inside DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>Starting with DOSBox-X version 0.83.13, DOSBox-X may also prompt for a directory if the config file dosbox-x.conf (or dosbox.conf) is not found in the current directory, and the <code>-conf</code> (or <code>-defaultconf</code>/<code>-defaultdir</code>/<code>-fastlaunch</code>) option is not specified. You can select a folder that will become the working directory for DOSBox-X. You may customize this via the <code>working directory option</code> and <code>working directory default</code> options in the [dosbox] section of the global config file (i.e. the DOSBox-X config file in the user configuration directory or the directory where the DOSBox-X executable is located).</p>
+<p>DOSBox-X may also prompt for a directory if the config file dosbox-x.conf (or dosbox.conf) is not found in the current directory, and the <code>-conf</code> (or <code>-defaultconf</code>/<code>-defaultdir</code>/<code>-fastlaunch</code>) option is not specified. You can select a folder that will become the working directory for DOSBox-X. You may customize this via the <code>working directory option</code> and <code>working directory default</code> options in the [dosbox] section of the global config file (i.e. the DOSBox-X config file in the user configuration directory or the directory where the DOSBox-X executable is located).</p>
 </div>
 </div>
 </div>
@@ -541,7 +541,7 @@ press the X key on your keyboard.</p>
 <li>
 <p><strong>How can I save and load a state in DOSBox-X?</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports the save and load state feature including save slot support (10 save slots in each page, for a total of 100 save slots). Under the "Capture" menu you will see menu items including "Save state", "Load state", "Select save slot" menu options and a "Save/load options" menu group. Select a save slot you want to save to, and click "Save state", then the current state will be saved to the computer. When you want to load the state you can just click "Load state" from the menu; but if you want to select a different save slot to load, you need to select that save slot before loading the state (or pre-set one using the “saveslot” option in [dosbox] section of the config file). DOSBox-X by default will check for things like program name and memory size to make sure they match, and if they do not DOSBox-X will display a warning. These checks can be bypassed by enabling the "Force load state mode" menu toggle before you try to load the state. DOSBox-X also asks for a save remark by default when saving a state, which can be disabled by enabling the “No remark when saving state” menu toggle. Moreover, you can use your own save file(s) instead of the built-in save slots, which can also be specified using the “savefile” option in [dosbox] section of the config file. Starting from version 0.83.11 there is also a feature to automatically save states in the specified time interval.</p>
+<p>DOSBox-X supports the save and load state feature including save slot support (10 save slots in each page, for a total of 100 save slots). Under the "Capture" menu you will see menu items including "Save state", "Load state", "Select save slot" menu options and a "Save/load options" menu group. Select a save slot you want to save to, and click "Save state", then the current state will be saved to the computer. When you want to load the state you can just click "Load state" from the menu; but if you want to select a different save slot to load, you need to select that save slot before loading the state (or pre-set one using the “saveslot” option in [dosbox] section of the config file). DOSBox-X by default will check for things like program name and memory size to make sure they match, and if they do not DOSBox-X will display a warning. These checks can be bypassed by enabling the "Force load state mode" menu toggle before you try to load the state. DOSBox-X also asks for a save remark by default when saving a state, which can be disabled by enabling the “No remark when saving state” menu toggle. Moreover, you can use your own save file(s) instead of the built-in save slots, which can also be specified using the “savefile” option in [dosbox] section of the config file. There is also a feature to automatically save states in the specified time interval.</p>
 </div>
 </li>
 <li>
@@ -629,10 +629,6 @@ press the X key on your keyboard.</p>
 <p>If you want to launch DOSBox-X to run some DOS command(s) and then exit automatically without showing the DOSBox-X window at all, you can start DOSBox-X with the command-line option <code>-silent</code> to achieve this result (the command will usually return almost instantaneously). If you intend to run text-mode applications that do a lot of automated operations (e.g. compilation and various types of compression/decompression) in such case, you probably want to use <code>-silent</code> in combination with config option <code>output=ttf</code> (perhaps also <code>blinkc=false</code> and <code>ptsize=9</code> in [ttf] section) to have much better performance.</p>
 </div>
 </div>
-</div>
-</div>
-<div id="footer">
-<div id="footer-text">
 </div>
 </div>
 <script src="./docinfo/copy-to-clipboard.js"></script>

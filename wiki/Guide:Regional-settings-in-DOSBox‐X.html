@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="generator" content="Asciidoctor 2.0.21">
 <title>Regional settings in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <link rel="stylesheet" href="./asciidoctor.css">
@@ -316,7 +316,7 @@ DOSBox-X will accept any other country code not listed above, but in that case w
 <div class="sect2">
 <h3 id="_using_language_files_for_customized_or_translated_display_messages">Using language files for customized or translated display messages</h3>
 <div class="paragraph">
-<p>DOSBox-X by defaults displays messages in English. It is possible to change the messages displayed by DOSBox-X with the use of language files, which can either be encoded in the DOS code page or in UTF-8 as of DOSBox-X version 0.83.14.</p>
+<p>DOSBox-X by defaults displays messages in English. It is possible to change the messages displayed by DOSBox-X with the use of language files, which can either be encoded in the DOS code page or in UTF-8.</p>
 </div>
 <div class="paragraph">
 <p>If you already have a DOSBox-X language file available, you can specify its filename in DOSBox-X&#8217;s config file (dosbox-x.conf by default) in the [dosbox] section in order to activate it. There is a <code>language=</code> setting which allows you to enter the name of the language file. For example, suppose the language file is located at C:\message.txt, then you can specify the following for use with DOSBox-X:</p>
@@ -831,7 +831,7 @@ Below is a list of keyboard layouts that can be used in DOSBox-X.</p>
 <div class="title">Note</div>
 </td>
 <td class="content">
-Starting with DOSBox 0.83.24, for using layouts marked with <strong>*</strong> the ten ega.cpx files (from FreeDOS) in <code>Z:\CPI</code> will be used. See also the "Support for external keyboard files" section below for more information about this.
+For using layouts marked with <strong>*</strong> the ten ega.cpx files (from FreeDOS) in <code>Z:\CPI</code> will be used. See also the "Support for external keyboard files" section below for more information about this.
 </td>
 </tr>
 </table>
@@ -856,7 +856,7 @@ As such a choice may have to be made between support for those box drawing chara
 <div class="paragraph">
 <p>There is also a <code>CHCP</code> (CHange CodePage) command to view the current DOS code page, and for the TrueType font (TTF) output it also allows you to change the current DOS code page.
 For example, <code>CHCP 857</code> will change the current DOS code page to 857 (Turkish) when using the TrueType font output.
-As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for the TTF output, which allow Chinese/Japanese/Korean characters to be displayed correctly.
+DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for the TTF output, which allow Chinese/Japanese/Korean characters to be displayed correctly.
 Moreover, it is recommended to specify a TrueType font that has all characters of the language to be used so that these characters will be rendered correctly with the specified font.
 More information about the TrueType font output is available from the <a href="Guide%3AUsing-TrueType-font-output-in-DOSBox‐X">Using TrueType font output in DOSBox‐X</a> guide page.
 More information about CJK language support can be found in the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support in DOSBox‐X</a> guide page.</p>
@@ -870,18 +870,6 @@ There is an option which will force the use of U.S. keyboard layout in PC-98 mod
 </div>
 <div class="sect2">
 <h3 id="_support_for_the_euro_symbol">Support for the Euro symbol</h3>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-The information in this section applies to DOSBox-X 0.83.4 and later only. It may not work in previous versions of DOSBox-X.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>The Euro symbol (€) is the currency symbol introduced by the European Monetary and Currency Union, and began its use on January 1, 1999.
 Because the Euro symbol was introduced after Windows 95 was released to the public, most DOS versions (including all versions of MS-DOS and PC DOS up to 7.0) do not support this symbol.
@@ -984,20 +972,8 @@ For example, for the file <code>UZ.KL</code> (keyboard layout for Uzbekistan) yo
 </div>
 <div class="sect2">
 <h3 id="_use_of_scancodes_for_your_keyboard_layout">Use of scancodes for your keyboard layout</h3>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-The information in this section applies to DOSBox-X 0.83.4 and later only. Previous versions of DOSBox-X did not support the <code>usescancodes=auto</code> config setting.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
-<p>DOSBox-X supports both SDL1 and SDL2 versions, using the cross-platform SDL 1.2 and SDL 2.0 libraries respectively.
+<p>DOSBox-X provides both SDL1 and SDL2 versions, using the cross-platform SDL 1.2 and SDL 2.0 libraries respectively.
 Since SDL is responsible for input handling in DOSBox-X, there are some differences between the SDL1 binary and the SDL2 binary in regard to the keyboard layout support of DOSBox-X.</p>
 </div>
 <div class="paragraph">
@@ -1005,18 +981,13 @@ Since SDL is responsible for input handling in DOSBox-X, there are some differen
 As such when using the SDL1 version, DOSBox-X will automatically decide whether to use scancodes with the default <code>usescancodes=auto</code> config setting, which should work around most keyboard layout problems with non-US keyboards.</p>
 </div>
 <div class="paragraph">
-<p>On the other hand, you can override this by changing the setting <code>usescancodes</code> to either <code>true</code> or <code>false</code>.
-The <code>false</code> setting was the default setting before DOSBox-X 0.83.4, which worked well for US keyboard layout, but the keys could be messed up for non-US keyboards when you are using the SDL1 version. So it is recommended to leave this setting to <code>auto</code> for the SDL1 binary.</p>
+<p>On the other hand, you can override this by changing the setting <code>usescancodes</code> to either <code>true</code> or <code>false</code>.</p>
 </div>
 <div class="paragraph">
 <p>When using the SDL2 binary, scancodes are not needed when using non-US keyboard layouts in DOSBox-X (this setting has no effect in the SDL2 version).</p>
 </div>
 </div>
 </div>
-</div>
-</div>
-<div id="footer">
-<div id="footer-text">
 </div>
 </div>
 <script src="./docinfo/copy-to-clipboard.js"></script>

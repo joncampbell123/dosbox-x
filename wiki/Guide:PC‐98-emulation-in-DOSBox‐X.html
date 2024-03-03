@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="generator" content="Asciidoctor 2.0.21">
 <title>PC-98 emulation in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <link rel="stylesheet" href="./asciidoctor.css">
@@ -39,7 +39,7 @@
 <p>Since DOSBox-X aims to be complete DOS emulation package, it officially supports the emulations of the Japanese PC-98 system, which used MS-DOS with modifications to support the PC-98 BIOS and Japanese characters. The NEC PC-9800, also known as the PC-98, were a family of computers made by NEC and sold in Japan throughout 1982 to 2000. Most of the PC-98 software are games, but there are also non-gaming PC-98 applications such as the PC-98 version of Windows 3.1 released by Microsoft. While these were originally designed for the Japanese market, international users who are influenced by the Japanese culture may also want to check this out. For example, earlier Touhou games are PC-98 games, which are well-supported by DOSBox-X&#8217;s PC-98 system.</p>
 </div>
 <div class="paragraph">
-<p>As of DOSBox-X version 0.83.15, DOSBox-X also supports native DOS/V services and JEGA (AX) emulations so that you can also run programs or games designed for them in these modes. You can activate these modes with the appropriate config options. See the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support guide page</a> for more information.</p>
+<p>DOSBox-X also supports native DOS/V services and JEGA (AX) emulations so that you can also run programs or games designed for them in these modes. You can activate these modes with the appropriate config options. See the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support guide page</a> for more information.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -61,7 +61,7 @@
 <div class="sect2">
 <h3 id="_pc_98_font_and_accessory_files">PC-98 font and accessory files</h3>
 <div class="paragraph">
-<p>You can start DOSBox-X in PC-98 mode without any additional files apart from the DOSBox-X executable itself. Note, however, that in order for DOSBox-X to display Japanese characters (Kana, Kanji, etc.) correctly you may need to supply a font file. This becomes optional starting with DOSBox-X version 0.83.15 (the internal Japanese DOS/V font will be used if no other font found, unless the TrueType font output is used, see below), but it is still recommended using a font file specifically designed for PC-98. You can either use the original PC-98 <code>FONT.ROM</code> ROM file, or use the free alternative <code>FREECG98.BMP</code> included with DOSBox-X. Put the <code>FREECG98.BMP</code> file or the original PC-98 <code>FONT.ROM</code> file in the DOSBox-X directory, then DOSBox-X will render Japanese texts in the PC-98 mode using this font (if both <code>FREECG98.BMP</code> and <code>FONT.ROM</code> files are found in the directory then the latter will be used):</p>
+<p>You can start DOSBox-X in PC-98 mode without any additional files apart from the DOSBox-X executable itself. Note, however, that in order for DOSBox-X to display Japanese characters (Kana, Kanji, etc.) correctly you may need to supply a font file. While optional (the internal Japanese DOS/V font will be used if no other font found, unless the TrueType font output is used, see below), it is still recommended using a font file specifically designed for PC-98. You can either use the original PC-98 <code>FONT.ROM</code> ROM file, or use the free alternative <code>FREECG98.BMP</code> included with DOSBox-X. Put the <code>FREECG98.BMP</code> file or the original PC-98 <code>FONT.ROM</code> file in the DOSBox-X directory, then DOSBox-X will render Japanese texts in the PC-98 mode using this font (if both <code>FREECG98.BMP</code> and <code>FONT.ROM</code> files are found in the directory then the latter will be used):</p>
 </div>
 <div class="ulist">
 <ul>
@@ -279,7 +279,7 @@
 </ul>
 </div>
 <div class="paragraph">
-<p>You may not need to change most config options for PC-98 mode, although you may want to take a look at the last one <code>pc-98 anex86 font</code> if you want to specify a different font for PC-98, and/or <code>pc-98 force ibm keyboard layout</code> if you are not a Japanese user. As of DOSBox-X version 0.83.15, DOSBox-X will decide whether to use the Japanese keyboard layout or the U.S. keyboard layout for the PC-98 emulation based on its detection of user&#8217;s keyboard layout by default, but for earlier versions DOSBox-X always defaulted to the Japanese keyboard layout since PC-98 system was originally designed for the Japanese market, and users outside Japan who want to use the PC-98 system may want to change the setting to the default U.S. keyboard layout instead, which can be done by setting <code>pc-98 force ibm keyboard layout</code> to <code>true</code>, or it may be enabled via the <code>Use US keyboard layout</code> menu option in the "PC-98 options" menu group. With this enabled you will be able to use DOSBox-X&#8217;s PC-98 system more easily with the standard U.S. keyboard layout.</p>
+<p>You may not need to change most config options for PC-98 mode, although you may want to take a look at the last one <code>pc-98 anex86 font</code> if you want to specify a different font for PC-98, and/or <code>pc-98 force ibm keyboard layout</code> if you are not a Japanese user. DOSBox-X will decide whether to use the Japanese keyboard layout or the U.S. keyboard layout for the PC-98 emulation based on its detection of user&#8217;s keyboard layout by default, but for earlier versions DOSBox-X always defaulted to the Japanese keyboard layout since PC-98 system was originally designed for the Japanese market, and users outside Japan who want to use the PC-98 system may want to change the setting to the default U.S. keyboard layout instead, which can be done by setting <code>pc-98 force ibm keyboard layout</code> to <code>true</code>, or it may be enabled via the <code>Use US keyboard layout</code> menu option in the "PC-98 options" menu group. With this enabled you will be able to use DOSBox-X&#8217;s PC-98 system more easily with the standard U.S. keyboard layout.</p>
 </div>
 </div>
 <div class="sect2">
@@ -359,10 +359,6 @@ BOOT C:</span></code></pre>
 </ul>
 </div>
 </div>
-</div>
-</div>
-<div id="footer">
-<div id="footer-text">
 </div>
 </div>
 <script src="./docinfo/copy-to-clipboard.js"></script>

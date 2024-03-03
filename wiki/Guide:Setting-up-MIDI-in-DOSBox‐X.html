@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="generator" content="Asciidoctor 2.0.21">
 <title>Setting up MIDI in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <link rel="stylesheet" href="./asciidoctor.css">
@@ -70,7 +70,7 @@ In addition, it is possible to use an external MIDI synthesizer, either real or 
 <div class="title">Note</div>
 </td>
 <td class="content">
-As of DOSBox-X version 0.83.6, the DOSMID program is included in DOSBox-X and will appear on the virtual Z: drive, which can be used to playback MIDI/RMI/MUS audio files.
+The DOSMID program is included in DOSBox-X and will appear on the virtual Z: drive, which can be used to playback MIDI/RMI/MUS audio files.
 </td>
 </tr>
 </table>
@@ -968,7 +968,7 @@ mididevice=fluidsynth</pre>
 <div class="sect2">
 <h3 id="_windows_setup">Windows Setup</h3>
 <div class="paragraph">
-<p>FluidSynth support is included in both Visual Studio and MinGW builds by default in DOSBox-X version 0.83.7 and later. You can add the following lines to your DOSBox-X config file.</p>
+<p>FluidSynth support is included in both Visual Studio and MinGW builds by default. You can add the following lines to your DOSBox-X config file.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1372,7 +1372,7 @@ Note that the amount of signal sent to the chorus module depends on the "chorus 
 <div class="sectionbody">
 <div class="paragraph">
 <p>TiMidity&#43;&#43; is a MIDI software synthesis, primarily for Linux.
-You should consider using FluidSynth instead.
+It is no longer actively maintained, and you should consider using FluidSynth instead.
 But if you want to try TiMidity&#43;&#43;, install the timidity&#43;&#43; package with your package manager, and also install a SoundFont like FluidR3_GM.</p>
 </div>
 <div class="paragraph">
@@ -1419,7 +1419,7 @@ sudo systemctl start timidity</span></code></pre>
 </div>
 <div class="paragraph">
 <p>Alternatively it is also possible to connect to TiMidity&#43;&#43; over ALSA as follows.
-First locate the ALSA MIDI device that got assigned to TiMidity&#43;&#43; using <code>aconnect -i</code> (in the Linux terminal) or <code>mixer /listmidi alsa</code> (in the command line of DOSBox-X 0.83.12 or later). Then use the following config options:</p>
+First locate the ALSA MIDI device that got assigned to TiMidity&#43;&#43; using <code>aconnect -i</code> (in the Linux terminal) or <code>mixer /listmidi alsa</code> (in the command line of DOSBox-X). Then use the following config options:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1435,11 +1435,11 @@ First locate the ALSA MIDI device that got assigned to TiMidity&#43;&#43; using 
 <div class="sectionbody">
 <div class="paragraph">
 <p>ALSA is the low-level Linux sound system.
-You can use ALSA if you have a real MIDI sequencer, or a sound card with MIDI support.
-You can optionally also use ALSA with a separate software sequencer that creates a ALSA MIDI interface, such as TiMidity&#43;&#43; or Munt.</p>
+You can use ALSA if you have a real MIDI sequencer, or a sound card with General MIDI support.
+You can optionally also use ALSA with a separate software sequencer that creates a ALSA MIDI interface, such as <a href="https://timidity.sourceforge.net/">TiMidity&#43;&#43;</a>, <a href="https://munt.sourceforge.net/">Munt</a> or <a href="https://github.com/skjelten/emusc">EmuSC</a>.</p>
 </div>
 <div class="paragraph">
-<p>In DOSBox-X 0.83.12 or later you can use DOSBox-X’s built-in MIXER command to find which "device" is your MIDI output, e.g.</p>
+<p>You can use DOSBox-X’s built-in MIXER command to find which "device" is your MIDI output, e.g.</p>
 </div>
 <div class="paragraph">
 <p><code>mixer /listmidi alsa</code></p>
@@ -1448,7 +1448,7 @@ You can optionally also use ALSA with a separate software sequencer that creates
 <p>Alternatively, you can use the command <code>aconnect -i</code> in the Linux terminal to find which "device" is your MIDI output.</p>
 </div>
 <div class="paragraph">
-<p>Once you get the device ID (e.g. 128:0) you can then add it to the <code>midiconfig=</code> line.
+<p>Once you get the device ID (typically 128:0 for the first MIDI device) you can then add it to the <code>midiconfig=</code> line.
 E.g.</p>
 </div>
 <div class="listingblock">
@@ -1466,7 +1466,7 @@ E.g.</p>
 <div class="paragraph">
 <p>OSS is an older low-level sound system for Unix and Linux.
 It should not be used if you have ALSA.
-You can use OSS if you have a real MIDI sequencer, or a sound card with MIDI support.</p>
+You can use OSS if you have a real MIDI sequencer, or a sound card with General MIDI support.</p>
 </div>
 <div class="paragraph">
 <p>TBD.</p>
@@ -1501,10 +1501,6 @@ On a modern Windows system, there are no configuration options either.</p>
 <p>macOS TBD. Help needed.</p>
 </div>
 </div>
-</div>
-</div>
-<div id="footer">
-<div id="footer-text">
 </div>
 </div>
 <script src="./docinfo/copy-to-clipboard.js"></script>

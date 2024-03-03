@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="generator" content="Asciidoctor 2.0.21">
 <title>Setting up printing in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <link rel="stylesheet" href="./asciidoctor.css">
@@ -81,7 +81,7 @@ They are used to configure the virtual parallel ports provided inside DOSBox-X.<
 <div class="title">Note</div>
 </td>
 <td class="content">
-Starting with DOSBox-X v0.83.20 it is possible to modify parallel port settings directly from the DOSBox-X DOS prompt with either the <code>parallel</code> or <code>config -set parallel</code> commands.
+It is possible to modify parallel port settings directly from the DOSBox-X DOS prompt with either the <code>parallel</code> or <code>config -set parallel</code> commands.
 Any settings you modify this way are however lost when you restart DOSBox-X.
 </td>
 </tr>
@@ -487,7 +487,7 @@ Epson itself suggested in some of their literature to look for printers in the f
 <div class="title">Note</div>
 </td>
 <td class="content">
-Starting with DOSBox-X v0.83.21 it is possible to modify emulated printer settings directly from the DOSBox-X DOS prompt with the <code>config -set printer</code> commands.
+It is possible to modify emulated printer settings directly from the DOSBox-X DOS prompt with the <code>config -set printer</code> commands.
 Any settings you modify this way are however lost when you restart DOSBox-X.
 </td>
 </tr>
@@ -848,8 +848,8 @@ BMP will create larger files, due to lack of compression, while the image qualit
 <p>Create a PostScript output file, and supports multi-page documents with the <code>multipage=</code> option.</p>
 </div>
 <div class="paragraph">
-<p>This is typically the best option for Linux and macOS hosts, as PostScript is supported by default.
-For Windows hosts it requires installing a <a href="https://www.ghostscript.com/">PostScript viewer</a>.</p>
+<p>This is typically the best option for Linux and macOS hosts (prior to Ventura), as PostScript is supported by default.
+For Windows, and newer macOS hosts it requires installing a <a href="https://www.ghostscript.com/">PostScript viewer</a>.</p>
 </div>
 <div class="paragraph">
 <p>This format can easily be converted to PDF.</p>
@@ -1064,7 +1064,7 @@ If the printout gets split over multiple files, increase this value.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The emulated printer requires TrueType fonts in order to be able to print text.
-If you use the TrueType font output, then the TTF font that is currently active on the screen will automatically be used for printing as well if the <code>ttf.printfont</code> option (in [render] section) is enabled (default) as of DOSBox-X version 0.83.14.</p>
+If you use the TrueType font output, then the TTF font that is currently active on the screen will automatically be used for printing as well if the <code>ttf.printfont</code> option (in [render] section) is enabled (default).</p>
 </div>
 <div class="paragraph">
 <p>If no TTF font can be found then DOSBox-X will print with the internal (default) TTF font as used by the TrueType font output.</p>
@@ -1530,6 +1530,19 @@ The output is saved to a file on the host, to the directory specified with the <
 <div class="paragraph">
 <p>Similar to the Linux example above, but here the macOS Preview application is used to open the PostScript file, from where it can be viewed and printed.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Support for PostScript was removed from the macOS Preview application in the macOS Ventura (13) release.
+It is still possible to drag a PostScript file to the printer icon in macOS Ventura, but this support was also removed in macOS Sonoma (14).
+</td>
+</tr>
+</table>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
@@ -1541,10 +1554,6 @@ The output is saved to a file on the host, to the directory specified with the <
 </div>
 </div>
 </div>
-</div>
-</div>
-<div id="footer">
-<div id="footer-text">
 </div>
 </div>
 <script src="./docinfo/copy-to-clipboard.js"></script>
