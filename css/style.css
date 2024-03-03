@@ -421,7 +421,7 @@ table.align-left > tbody > tr > td {
 .home-links > tbody > tr > td > a {
   display: inline-block;
   height: 100%;
-  margin: 0.5em 1em;
+  padding: 0.5em 1em;
 }
 .home-links > tbody > tr > td > img {
   height: 1.5em;
