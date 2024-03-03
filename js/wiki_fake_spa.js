@@ -14,12 +14,16 @@
         let bottomLocation = frame.contentWindow.location;
         if (bottomLocation.host != location.host || !bottomLocation.pathname.startsWith(contentDir))
             return;
-        let relUrl = "#" + bottomLocation.pathname.substring(contentDir.length) + bottomLocation.search + bottomLocation.hash;
-        if (decodeURI(location.hash) != relUrl) {
+        let relUrl = "#" + encodeURIComponent(decodeURIComponent(
+            bottomLocation.pathname.substring(contentDir.length) + bottomLocation.search + bottomLocation.hash
+        ));
+        if (location.hash != relUrl) {
             const url = new URL(location);
             url.hash = relUrl;
             history.pushState({}, "", url);
         }
+        if (frame.contentDocument.title.trim())
+            document.title = frame.contentDocument.title + " - DOSBox-X Wiki";
     }
     function changeBottomUrl() {
         let bottomLocation = frame.contentWindow.location;
