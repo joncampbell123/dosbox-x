@@ -10,7 +10,7 @@ Then you can utilize the Jekyll CLI to preview your changes to the site locally 
 $ bundle exec jekyll serve
 ```
 
-## Adding Markdown content
+## Adding content that will be used by Jekyll
 
 If you feel fancy you can use [Pages CMS](https://pagescms.org/) to deal with all this
 
