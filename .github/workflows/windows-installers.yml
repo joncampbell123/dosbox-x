@@ -149,11 +149,18 @@ jobs:
         with:
           name: dosbox-x-vsbuild-ARM32_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
-      - name: Cache Visual Studio builds
+      - name: Cache Visual Studio builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-${{ github.sha }}
+      - name: Cache Visual Studio builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: vs-r-${{ github.sha }}
   MinGW32_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
@@ -172,7 +179,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
+          install: git mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-libslirp
       - name: Update build info
         shell: bash
         run: |
@@ -202,11 +209,18 @@ jobs:
           strip -s $top/src/dosbox-x.exe
           cp $top/src/dosbox-x.exe $top/package/dosbox-x_MinGWx86_SDL2.exe
           cp $top/src/dosbox-x.exe $top/mingw-x86-bin/dosbox-x_MinGWx86_SDL2.exe
-      - name: Cache MinGW x86 builds
+      - name: Cache MinGW x86 builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/mingw-x86-bin
           key: mingw-x86-bin-${{ github.sha }}
+      - name: Cache MinGW x86 builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: mingw-x86-bin-r-${{ github.sha }}
   MinGW64_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
@@ -255,11 +269,18 @@ jobs:
           strip -s $top/src/dosbox-x.exe
           cp $top/src/dosbox-x.exe $top/package/dosbox-x_MinGWx64_SDL2.exe
           cp $top/src/dosbox-x.exe $top/mingw-x64-bin/dosbox-x_MinGWx64_SDL2.exe
-      - name: Cache MinGW x64 builds
+      - name: Cache MinGW x64 builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/mingw-x64-bin
           key: mingw-x64-bin-${{ github.sha }}
+      - name: Cache MinGW x64 builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: mingw-x64-bin-r-${{ github.sha }}
   Build_Windows_Installer:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
@@ -273,21 +294,42 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - name: Restore MinGW x86 builds
+      - name: Restore MinGW x86 builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/mingw-x86-bin
           key: mingw-x86-bin-${{ github.sha }}
-      - name: Restore MinGW x64 builds
+      - name: Restore MinGW x64 builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/mingw-x64-bin
           key: mingw-x64-bin-${{ github.sha }}
-      - name: Restore Visual Studio builds
+      - name: Restore Visual Studio builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-${{ github.sha }}
+      - name: Restore MinGW x86 builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/mingw-x86-bin
+          key: mingw-x86-bin-r-${{ github.sha }}
+      - name: Restore MinGW x64 builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/mingw-x64-bin
+          key: mingw-x64-bin-r-${{ github.sha }}
+      - name: Restore Visual Studio builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: vs-r-${{ github.sha }}
       - name: Package MinGW builds
         run: |
           set +e
@@ -356,7 +398,8 @@ jobs:
         with:
           files: |
             contrib/windows/installer/dosbox-x-windows*.exe
-      - name: Clean cache
+      - name: Clean cache (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         run: |
           gh extension install actions/gh-actions-cache
           ## need permission? disable the following lines if error occurs when deleting cache
@@ -364,6 +407,18 @@ jobs:
           gh actions-cache delete mingw-x86-bin-${{ github.sha }} --confirm
           gh actions-cache delete mingw-x64-bin-${{ github.sha }} --confirm
           gh actions-cache delete vs-${{ github.sha }} --confirm
+          gh actions-cache list
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Clean cache (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          gh extension install actions/gh-actions-cache
+          ## need permission? disable the following lines if error occurs when deleting cache
+          set +e
+          gh actions-cache delete mingw-x86-bin-r-${{ github.sha }} --confirm
+          gh actions-cache delete mingw-x64-bin-r-${{ github.sha }} --confirm
+          gh actions-cache delete vs-r-${{ github.sha }} --confirm
           gh actions-cache list
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
