@@ -26,22 +26,24 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils mingw-w64-i686-glib2
+          install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils mingw-w64-i686-libslirp
       - name: Install libslirp
+        if: false
         run: |
+          # Run this job when MinGW drops 32-bit library support (Other libraries can be built as well)
           top=`pwd`
           mkdir pkg
           cd pkg
           git clone https://github.com/msys2/MINGW-packages.git
           pwd
           cd MINGW-packages
-          ls -lg
+          #ls -lg
           cd mingw-w64-libslirp
-          ls -lg
+          #ls -lg
           sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw32\')/" PKGBUILD
           MINGW_ARCH=MINGW32 makepkg-mingw -sCLf --noconfirm
-          ls -lg
-          # pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
+          #ls -lg
+          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Update build info
         shell: bash
         run: |
