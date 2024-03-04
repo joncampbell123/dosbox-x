@@ -110,11 +110,18 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dosbox-x-vsbuild-XP-${{ env.timestamp }}.zip
-      - name: Cache Visual Studio builds
+      - name: Cache Visual Studio builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/vs-bin
-          key: vs-bin-${{ github.sha }}
+          key: vs-xp-bin-${{ github.sha }}
+      - name: Cache Visual Studio builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: vs-xp-bin-r-${{ github.sha }}
   MinGW32_lowend_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
@@ -174,11 +181,18 @@ jobs:
           ./build-mingw
           strip -s src/dosbox-x.exe
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL1.exe
-      - name: Cache MinGW32 lowend builds
+      - name: Cache MinGW32 lowend builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/mingw-bin
-          key: mingw-bin-${{ github.sha }}
+          key: mingw-xp-bin-${{ github.sha }}
+      - name: Cache MinGW32 lowend builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/mingw-bin
+          key: mingw-xp-bin-r-${{ github.sha }}
   build-XP-installer:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
@@ -192,16 +206,30 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - name: Restore Visual Studio builds
+      - name: Restore Visual Studio builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/vs-bin
-          key: vs-bin-${{ github.sha }}
-      - name: Restore MinGW builds
+          key: vs-xp-bin-${{ github.sha }}
+      - name: Restore Visual Studio builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: vs-xp-bin-r-${{ github.sha }}
+      - name: Restore MinGW builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/mingw-bin
-          key: mingw-bin-${{ github.sha }}
+          key: mingw-xp-bin-${{ github.sha }}
+      - name: Restore MinGW builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/mingw-bin
+          key: mingw-xp-bin-r-${{ github.sha }}
       - name: Prepare files
         shell: bash
         run: |
@@ -226,13 +254,25 @@ jobs:
         with:
           files: |
             contrib/windows/installer/dosbox-x-winXP-*.exe
-      - name: Clean cache
+      - name: Clean cache (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         run: |
           gh extension install actions/gh-actions-cache
           ## need permission? disable the following lines if error occurs when deleting cache
           set +e
-          gh actions-cache delete mingw-bin-${{ github.sha }} --confirm
-          gh actions-cache delete vs-bin-${{ github.sha }} --confirm
+          gh actions-cache delete mingw-xp-bin-${{ github.sha }} --confirm
+          gh actions-cache delete vs-xp-bin-${{ github.sha }} --confirm
+          gh actions-cache list
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Clean cache (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          gh extension install actions/gh-actions-cache
+          ## need permission? disable the following lines if error occurs when deleting cache
+          set +e
+          gh actions-cache delete mingw-xp-bin-r-${{ github.sha }} --confirm
+          gh actions-cache delete vs-xp-bin-r-${{ github.sha }} --confirm
           gh actions-cache list
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
