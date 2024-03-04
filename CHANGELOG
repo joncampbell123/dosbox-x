@@ -1,5 +1,8 @@
 Next:
-  - 
+  - Restore libslirp support for 32-bit MinGW CI builds which was temporarily
+    dropped in 2024.03.01 release. Also since MinGW plans to gradually phase
+    out 32-bit support, added code to manually build on our own. (maron2000)
+  -
 
 2024.03.01
   - If an empty CD-ROM drive is attached to IDE emulation, return "Medium Not
