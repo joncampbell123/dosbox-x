@@ -4441,6 +4441,9 @@ void DOSBOX_SetupConfigSections(void) {
             "overall amount of extended memory available to the DOS game depending on whether it expects large contiguous chunks\n"
             "of extended memory.");
 
+    Phex = secprop->Add_hex("ems frame",Property::Changeable::OnlyAtStart,0); /* <- Allow (to a limited extent) to control the location of the page frame */
+    Phex->Set_help("Segment of the EMS page frame, if set. C000, D000, or E000");
+
     Pbool = secprop->Add_bool("umb",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable UMB support.");
     Pbool->SetBasic(true);

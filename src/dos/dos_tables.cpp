@@ -30,6 +30,7 @@
 extern int maxfcb;
 extern bool gbk, chinasea;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
+extern uint16_t desired_ems_segment;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
@@ -94,38 +95,48 @@ bool DOS_User_Wants_UMBs() {
     return section->Get_bool("umb");
 }
 
+bool EMS_Active(void);
+void Update_Get_Desired_Segment(void);
+
 void DOS_GetMemory_Choose() {
 	if (DOS_PRIVATE_SEGMENT == 0) {
-        /* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
-        /* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
-        DOS_PRIVATE_SEGMENT=(uint16_t)VGA_BIOS_SEG_END;
-        DOS_PRIVATE_SEGMENT_END= (uint16_t)(DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size);
+		/* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
+		/* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
+		DOS_PRIVATE_SEGMENT=(uint16_t)VGA_BIOS_SEG_END;
 
-        if (IS_PC98_ARCH) {
-            bool PC98_FM_SoundBios_Enabled(void);
+		if (desired_ems_segment == 0) Update_Get_Desired_Segment();
 
-            /* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
-             * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
-            unsigned int limit = 0xD000;
+		if (DOS_PRIVATE_SEGMENT == desired_ems_segment) {
+			DOS_PRIVATE_SEGMENT += 0x1000; // FIXME
+		}
 
-            if (PC98_FM_SoundBios_Enabled()) {
-                // TODO: What about sound BIOSes larger than 16KB?
-                if (limit > 0xCC00)
-                    limit = 0xCC00;
-            }
+		DOS_PRIVATE_SEGMENT_END= (uint16_t)(DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size);
 
-            if (DOS_User_Wants_UMBs()) {
-                // leave room for UMBs, things are cramped a bit in PC-98 mode
-                if (limit > 0xC600)
-                    limit = 0xC600;
-            }
+		if (IS_PC98_ARCH && (desired_ems_segment == 0xD000)) {
+			bool PC98_FM_SoundBios_Enabled(void);
 
-            if (DOS_PRIVATE_SEGMENT_END > limit)
-                DOS_PRIVATE_SEGMENT_END = limit;
+			/* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
+			 * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
+			unsigned int limit = 0xD000;
 
-            if (DOS_PRIVATE_SEGMENT >= DOS_PRIVATE_SEGMENT_END)
-                E_Exit("Insufficient room in upper memory area for private area");
-        }
+			if (PC98_FM_SoundBios_Enabled()) {
+				// TODO: What about sound BIOSes larger than 16KB?
+				if (limit > 0xCC00)
+					limit = 0xCC00;
+			}
+
+			if (DOS_User_Wants_UMBs()) {
+				// leave room for UMBs, things are cramped a bit in PC-98 mode
+				if (limit > 0xC600)
+					limit = 0xC600;
+			}
+
+			if (DOS_PRIVATE_SEGMENT_END > limit)
+				DOS_PRIVATE_SEGMENT_END = limit;
+
+			if (DOS_PRIVATE_SEGMENT >= DOS_PRIVATE_SEGMENT_END)
+				E_Exit("Insufficient room in upper memory area for private area");
+		}
 
 		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
 			memset(GetMemBase()+((Bitu)DOS_PRIVATE_SEGMENT<<4u),0x00,(Bitu)(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4u);

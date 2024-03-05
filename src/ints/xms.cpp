@@ -155,6 +155,7 @@ Bitu XMS_GetEnabledA20(void) {
 static RealPt xms_callback;
 static bool umb_available = false;
 static bool umb_init = false;
+uint16_t desired_ems_segment = 0;
 
 static XMS_Block xms_handles[XMS_HANDLES_MAX];
 
@@ -694,6 +695,22 @@ void RemoveUMBBlock() {
 	}
 }
 
+void Update_Get_Desired_Segment(void) {
+	const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+
+	desired_ems_segment=section->Get_hex("ems frame");
+
+	if (IS_PC98_ARCH && (desired_ems_segment == 0xC000 || desired_ems_segment == 0xD000)) {
+		/* ok */
+	}
+	else if (!IS_PC98_ARCH && (desired_ems_segment == 0xE000)) {
+		/* ok */
+	}
+	else {
+		desired_ems_segment = IS_PC98_ARCH ? 0xD000 : 0xE000;
+	}
+}
+
 class XMS: public Module_base {
 private:
 	CALLBACK_HandlerObject callbackhandler;
@@ -778,11 +795,15 @@ public:
 		first_umb_seg=section->Get_hex("umb start");
 		first_umb_size=section->Get_hex("umb end");
 
-        /* This code will mess up the MCB chain in PCjr mode if umb=true */
-        if (umb_available && machine == MCH_PCJR) {
-            LOG(LOG_MISC,LOG_DEBUG)("UMB emulation is incompatible with PCjr emulation, disabling UMBs");
-            umb_available = false;
-        }
+		Update_Get_Desired_Segment();
+
+		/* This code will mess up the MCB chain in PCjr mode if umb=true */
+		if (umb_available && machine == MCH_PCJR) {
+			LOG(LOG_MISC,LOG_DEBUG)("UMB emulation is incompatible with PCjr emulation, disabling UMBs");
+			umb_available = false;
+		}
+
+		LOG(LOG_MISC,LOG_DEBUG)("Desired EMS segment 0x%04x",desired_ems_segment);
 
 		DOS_GetMemory_Choose();
 
@@ -812,9 +833,9 @@ public:
 
             /* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
              * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
-            unsigned int limit = 0xCFFF;
+            unsigned int limit = (desired_ems_segment == 0xC000) ? 0xDFFF : 0xCFFF;
 
-            if (PC98_FM_SoundBios_Enabled()) {
+            if (PC98_FM_SoundBios_Enabled() && desired_ems_segment == 0xD000) {
                 // TODO: What about sound BIOSes larger than 16KB?
                 if (limit > 0xCBFF)
                     limit = 0xCBFF;
@@ -843,7 +864,7 @@ public:
         /* 2017/12/24 I just noticed that the EMS page frame will conflict with UMB on standard configuration.
          * In IBM PC mode the EMS page frame is at E000:0000.
          * In PC-98 mode the EMS page frame is at D000:0000. */
-        if (ems_available && first_umb_size >= GetEMSPageFrameSegment()) {
+        if (ems_available && first_umb_size >= GetEMSPageFrameSegment() && first_umb_seg < GetEMSPageFrameSegment()) {
             assert(GetEMSPageFrameSegment() >= 0xA000);
             LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame at 0x%04x, truncating region",(unsigned int)GetEMSPageFrameSegment());
             first_umb_size = (uint16_t)(GetEMSPageFrameSegment() - 1);

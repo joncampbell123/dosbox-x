@@ -1,4 +1,9 @@
 Next:
+  - Add dosbox.conf option to direct the EMS page frame segment, in a limited
+    fashion, though only effective for PC-98 mode. PC-98 segment is still
+    0xD000 by default, but apparently there are games that require the EMS
+    page frame to exist at 0xC000. For these games, you can now set under the
+    [dos] section "ems frame=C000". (joncampbell123)
   - Restore libslirp support for 32-bit MinGW CI builds which was temporarily
     dropped in 2024.03.01 release. Also since MinGW plans to gradually phase
     out 32-bit support, added code to manually build on our own. (maron2000)
