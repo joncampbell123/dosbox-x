@@ -8,13 +8,13 @@
 
     let contentDir = location.pathname;
     contentDir = contentDir.substring(0, contentDir.lastIndexOf("/") + 1);
-    let contentDirUrl = location.protocol + "//" + location.host + contentDir;
 
     function changeHash() {
         let bottomLocation = frame.contentWindow.location;
         if (bottomLocation.host != location.host || !bottomLocation.pathname.startsWith(contentDir))
             return;
-        let relUrl = "#" + encodeURIComponent(decodeURIComponent(
+        // FIXME: Is this even correct?
+        let relUrl = "#" + encodeURI(decodeURIComponent(
             bottomLocation.pathname.substring(contentDir.length) + bottomLocation.search + bottomLocation.hash
         ));
         if (location.hash != relUrl) {
@@ -29,8 +29,9 @@
     }
     function changeBottomUrl() {
         let bottomLocation = frame.contentWindow.location;
-        let dest = location.hash.substring(1);
-        let destUrl = new URL(dest, contentDirUrl), destUrlWithHtmlExt = new URL(dest, contentDirUrl);
+        let dest = contentDir + location.hash.substring(1);
+        let serverRoot = location.protocol + "//" + location.host;
+        let destUrl = new URL(dest, serverRoot), destUrlWithHtmlExt = destUrl;
         if (!dest.includes("/") && !destUrlWithHtmlExt.pathname.endsWith(".html"))
             destUrlWithHtmlExt.pathname += ".html";
         if (destUrl.href != bottomLocation.href && destUrlWithHtmlExt.href != bottomLocation.href)
