@@ -1,4 +1,8 @@
 Next:
+  - Add --load-seg option to BOOT in case any PC-98 game boot floppy expects
+    to be loaded somewhere other than the default. PC-98 game "Private School
+    Adventure" will crash if loaded to segment 0x1FC0 but runs fine if booted
+    with --load-seg 0x0FC0 instead. (joncampbell123)
   - Add dosbox.conf option to direct the EMS page frame segment, in a limited
     fashion, though only effective for PC-98 mode. PC-98 segment is still
     0xD000 by default, but apparently there are games that require the EMS

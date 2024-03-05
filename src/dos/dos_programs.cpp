@@ -1903,6 +1903,7 @@ public:
     /*! \brief      Program entry point, when the command is run
      */
     void Run(void) {
+        std::string tmp;
         std::string bios;
         std::string boothax_str;
         bool pc98_640x200 = true;
@@ -1911,6 +1912,7 @@ public:
         bool swaponedrive = false;
         bool convertro = false;
         bool force = false;
+        int loadseg_user = -1;
         int convimg = -1;
         int quiet = 0;
 
@@ -1953,6 +1955,10 @@ public:
 
         if (cmd->FindString("-bios",bios,true))
             bios_boot = true;
+
+        cmd->FindString("-load-seg",tmp,true);
+        if (!tmp.empty())
+            loadseg_user = strtoul(tmp.c_str(),NULL,0);
 
         cmd->FindString("-boothax",boothax_str,true);
 
@@ -2342,7 +2348,10 @@ public:
         }
 
         /* NTS: Load address is 128KB - sector size */
-        load_seg=IS_PC98_ARCH ? (0x2000 - (bootsize/16U)) : 0x07C0;
+        if (loadseg_user > 0) /* Some PC-98 games have floppy boot code that suggests the boot segment isn't always 0x1FC0 like PC-9821 hardware does? */
+            load_seg=(unsigned int)loadseg_user;
+        else
+            load_seg=IS_PC98_ARCH ? (0x2000 - (bootsize/16U)) : 0x07C0;
 
         if (!has_read) {
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea) != 0) {
