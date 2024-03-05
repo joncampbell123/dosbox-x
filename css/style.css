@@ -455,14 +455,17 @@ html:has(.wiki-index-html),
   background-color: #F8F8F7;
   text-align: center;
 }
+.wiki-index-html main {
+  position: relative;
+}
 .wiki-index-html main > iframe {
   display: block;
 }
 #wiki-try-reloading {
-  position: fixed;
-  text-align: center; vertical-align: middle;
+  position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
+  text-align: center; vertical-align: middle;
   z-index: -1;
   color: #555; opacity: 0.8;
 }
