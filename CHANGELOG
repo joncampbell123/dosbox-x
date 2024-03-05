@@ -4,10 +4,11 @@ Next:
     0xD000 by default, but apparently there are games that require the EMS
     page frame to exist at 0xC000. For these games, you can now set under the
     [dos] section "ems frame=C000". (joncampbell123)
-  - Restore libslirp support for 32-bit MinGW CI builds which was temporarily
+  - Restored libslirp support for 32-bit MinGW CI builds which was temporarily
     dropped in 2024.03.01 release. Also since MinGW plans to gradually phase
     out 32-bit support, added code to manually build on our own. (maron2000)
-  - Fix build errors of Windows installers (maron2000) 
+  - Fixed build errors of Windows installers (maron2000) 
+  - Fixed compile error of speexdsp/fftwrap.c on gcc-14 (maron2000)
 
 2024.03.01
   - If an empty CD-ROM drive is attached to IDE emulation, return "Medium Not
