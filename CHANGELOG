@@ -1,4 +1,13 @@
 Next:
+  - Windows 95 S3 driver behavior suggests that S3 16-color VESA modes
+    0x202 to 0x208 are NOT planar modes, but packed modes. Change modes to
+    M_PACKED4 and update modelist building to allow that range even if the
+    dosbox.conf is configured not to list 4bpp packed VESA modes. This fixes
+    Windows 95 S3 driver 16-color modes 800x600, 1024x768, 1280x1024.
+    Noted: Windows 95 is the last version of Windows to support 4bpp packed.
+           Windows 98 and higher refuses to support it and the Display settings
+           will not allow you to select any 16-color mode other than the stock
+           VGA 640x480 16-color planar mode. (joncampbell123)
   - Add --load-seg option to BOOT in case any PC-98 game boot floppy expects
     to be loaded somewhere other than the default. PC-98 game "Private School
     Adventure" will crash if loaded to segment 0x1FC0 but runs fine if booted
