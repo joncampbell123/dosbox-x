@@ -209,14 +209,25 @@ VideoModeBlock ModeList_VGA[]={
 { 0x192  ,M_LIN32  ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,525 ,40 ,480 ,_UNUSUAL_MODE },
 
 // S3 specific modes (OEM modes). See also [http://www.ctyme.com/intr/rb-0275.htm]
+// NTS: The 4bpp modes are PACKED not PLANAR. The Windows 95 S3 driver expects the 4bpp modes to provide
+//      a PACKED structure and M_LIN4 will result in an incorrect display. It is impossible to test these
+//      with Windows 98 and higher because the Display settings in Windows 98 REFUSES to let you select
+//      any 16-color mode other than 640x480 even if the driver allows it (this was also when Microsoft
+//      made it impossible to select monochrome display modes that Windows 95 once allowed i.e. 640x400
+//      monochrome 2-color mode).
+//
+//      These modes are needed for the Windows 95 driver and are provided regardless of the dosbox.conf
+//      "allow 4bpp packed vesa modes" option.
+//
+// FIXME: These don't work with the S3 Windows 3.1 drivers though.
 { 0x201  ,M_LIN8	,640 ,480, 80,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _VGA_PIXEL_DOUBLE },
-{ 0x202  ,M_LIN4	,800 ,600,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0	},
+{ 0x202  ,M_PACKED4	,800 ,600,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0	},
 { 0x203  ,M_LIN8	,800 ,600,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0	}, // Line Wars II, S3 accelerated 800x600
-{ 0x204  ,M_LIN4	,1024,768,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
+{ 0x204  ,M_PACKED4	,1024,768,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
 { 0x205  ,M_LIN8	,1024,768,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
-{ 0x206  ,M_LIN4	,1280,960,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1024,160,960 ,0	}, // TODO VERIFY THIS
+{ 0x206  ,M_PACKED4	,1280,960,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1024,160,960 ,0	}, // TODO VERIFY THIS
 { 0x207  ,M_LIN8	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,182 ,948 ,144,864 ,0	},
-{ 0x208  ,M_LIN4	,1280,1024,160,64,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1066,160,1024,0	},
+{ 0x208  ,M_PACKED4	,1280,1024,160,64,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1066,160,1024,0	},
 { 0x209  ,M_LIN15	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,364 ,948 ,288,864 ,0	},
 { 0x20A  ,M_LIN16	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,364 ,948 ,288,864 ,0	},
 { 0x20B  ,M_LIN32	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,182 ,948 ,144,864 ,0	},
@@ -2292,7 +2303,7 @@ Bitu VideoModeMemSize(Bitu mode) {
 
 	switch(vmodeBlock->type) {
     case M_PACKED4:
-		if (mode >= 0x100 && !allow_vesa_4bpp_packed) return ~0ul;
+		if (mode >= 0x100 && !(mode >= 0x202 && mode <= 0x208)/*S3 Windows 95 driver needs these*/ && !allow_vesa_4bpp_packed) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight/2;
 	case M_LIN4:
 		if (mode >= 0x100 && !allow_vesa_4bpp) return ~0ul;

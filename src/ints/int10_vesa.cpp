@@ -294,7 +294,7 @@ foundit:
 
 	switch (mblock->type) {
 	case M_PACKED4:
-		if (!allow_vesa_4bpp_packed) return VESA_FAIL;//TODO: New option to disable
+		if (!allow_vesa_4bpp_packed && !(ModeList_VGA[i].mode >= 0x202 && ModeList_VGA[i].mode <= 0x208)) return VESA_FAIL;//TODO: New option to disable
 		pageSize = mblock->sheight * mblock->swidth/2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)((((mblock->swidth+15U)/8U)&(~1U))*4)); /* NTS: 4bpp requires even value due to VGA registers, round up */
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
@@ -904,6 +904,7 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
                         (ModeList_VGA[i].special & _USER_MODIFIED) ||
                         (ModeList_VGA[i].swidth <= SCALER_MAXWIDTH && ModeList_VGA[i].sheight <= SCALER_MAXHEIGHT);
                     bool allow_res = allow1 && allow2 && allow3 && allow4 && allow5;
+		    bool allow_s3_packed4 = (ModeList_VGA[i].mode >= 0x202 && ModeList_VGA[i].mode <= 0x208);
 
                     switch (ModeList_VGA[i].type) {
                         case M_LIN32:	canuse_mode=allow_vesa_32bpp && allow_res; break;
@@ -912,7 +913,7 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
                         case M_LIN15:	canuse_mode=allow_vesa_15bpp && allow_res; break;
                         case M_LIN8:	canuse_mode=allow_vesa_8bpp && allow_res; break;
                         case M_LIN4:	canuse_mode=allow_vesa_4bpp && allow_res; break;
-                        case M_PACKED4:	canuse_mode=allow_vesa_4bpp_packed && allow_res; break;
+                        case M_PACKED4:	canuse_mode=(allow_vesa_4bpp_packed || allow_s3_packed4) && allow_res; break;
                         case M_TEXT:	canuse_mode=allow_vesa_tty && allow_res; break;
                         default:	break;
                     }
