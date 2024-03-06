@@ -161,7 +161,7 @@ static scancode_tbl scan_to_scanascii[MAX_SCAN_CODE + 1] = {
       };
 
 static scancode_tbl scan_to_scanascii_pc98[0x80] = {
-    //normal,  shift,   CTRL, GRPH, Kana, Kana+shift
+    //normal,  shift,   CTRL,   GRPH, Kana, Kana+shift
     { 0x001b, 0x001b, 0x0016, 0x001b, 0x001b, 0x001b }, /* 00 escape */
     { 0x0131, 0x0121,   none,   none, 0x01c7, 0x01c7 }, /* 01 1! */
     { 0x0232, 0x0222,   none,   none, 0x02cc, 0x02cc }, /* 02 2" */
@@ -178,7 +178,7 @@ static scancode_tbl scan_to_scanascii_pc98[0x80] = {
     { 0x0d5c, 0x0d7c, 0x0d1c, 0x0df1, 0x0db0, 0x0db0 }, /* 0d \| */
     { 0x0e08, 0x0e08, 0x0e08, 0x0e08, 0x0e08, 0x0e08 }, /* 0e backspace */
     { 0x0f09, 0x0f09, 0x0f09, 0x0f09, 0x0f09, 0x0f09 }, /* 0f tab */
-    //normal, shift,CTRL, GRPH, Kana, Kana+shift
+    //normal,  shift,   CTRL,   GRPH, Kana, Kana+shift
     { 0x1071, 0x1051, 0x1011, 0x109c, 0x10c0, 0x10c0 }, /* 10 Q */
     { 0x1177, 0x1157, 0x1117, 0x119d, 0x11c3, 0x11c3 }, /* 11 W */
     { 0x1265, 0x1245, 0x1205, 0x12e4, 0x12b2, 0x12a8 }, /* 12 E */
@@ -1100,56 +1100,51 @@ static Bitu IRQ1_Handler_PC98(void) {
                     switch (sc_8251) {
                     case 0x02:  // pc98_force_ibm_layout
                         if (shift) add_key(scan_add + '@');
-                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        else add_key(scan_add + '2');
                         break;
                     case 0x06:  // pc98_force_ibm_layout
                         if (shift) add_key(scan_add + '^');
-                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        else add_key(scan_add + '6');
                         break;
                     case 0x07:  // pc98_force_ibm_layout
                         if (shift) add_key(scan_add + '&');
-                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        else add_key(scan_add + '7');
                         break;
                     case 0x08:  // pc98_force_ibm_layout
                         if (shift) add_key(scan_add + '*');
-                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        else add_key(scan_add + '8');
                         break;
                     case 0x09:  // pc98_force_ibm_layout
                         if (shift) add_key(scan_add + '(');
-                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        else add_key(scan_add + '9');
                         break;
                     case 0x0A:  // pc98_force_ibm_layout
                         if (shift) add_key(scan_add + ')');
-                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        else add_key(scan_add + '0');
                         break;
                     case 0x0B:  // pc98_force_ibm_layout
                         if (shift) add_key(scan_add + '_');
-                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        else add_key(scan_add + '-');
                         break;
                     case 0x0C:  // pc98_force_ibm_layout
                         if (shift) add_key(scan_add + '+');
                         else add_key(scan_add + '=');
                         break;
-                    case 0x1A: // pc98_force_ibm_layout
-                        if (!modflags){
+                    case 0x1A: // pc98_force_ibm_layout  key for '@'(0x1a) is reused in PC-98 mode
+                        if (shift) add_key(scan_add + '~');
+                        else if (!modflags){
                             add_key(scan_add + '`');
-                            break;
                         }
                         break;
                     case 0x26: // pc98_force_ibm_layout
                         if (shift) add_key(scan_add + ':'); // Shift - semicolon = ':'
-                        else add_key(scan_to_scanascii_pc98[sc_8251].normal);
+                        else add_key(scan_add + ';');
                         break;
                     case 0x27: // pc98_force_ibm_layout
                         // quote key
-                        if (shift) {
-                            add_key(scan_add + '\"');
-                            break;
-                        }
-                        else {
-                            add_key(scan_add + '\'');
-                            break;
-                        }
+                        if (shift) add_key(scan_add + '\"');
+                        else add_key(scan_add + '\'');
+                        break;
                     default:
                         if (shift){
                             if (scan_to_scanascii_pc98[sc_8251].shift) add_key(scan_to_scanascii_pc98[sc_8251].shift);
