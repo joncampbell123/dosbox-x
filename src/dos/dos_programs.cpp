@@ -9088,7 +9088,7 @@ void Add_VFiles(bool usecp) {
     if(!IS_PC98_ARCH)
         VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
 
-    VFILE_RegisterBuiltinFileBlob(bfb_EGA18_CPX, "/CPI/");
+    VFILE_RegisterBuiltinFileBlob(bfb_EGA18_CPI, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA17_CPX, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA16_CPX, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA15_CPX, "/CPI/");

@@ -93,7 +93,7 @@ extern struct BuiltinFileBlob bfb_EGA14_CPX;
 extern struct BuiltinFileBlob bfb_EGA15_CPX;
 extern struct BuiltinFileBlob bfb_EGA16_CPX;
 extern struct BuiltinFileBlob bfb_EGA17_CPX;
-extern struct BuiltinFileBlob bfb_EGA18_CPX;
+extern struct BuiltinFileBlob bfb_EGA18_CPI;
 extern struct BuiltinFileBlob bfb_KEYBOARD_SYS;
 extern struct BuiltinFileBlob bfb_KEYBRD2_SYS;
 extern struct BuiltinFileBlob bfb_KEYBRD3_SYS;
