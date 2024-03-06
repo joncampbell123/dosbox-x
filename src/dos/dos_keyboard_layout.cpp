@@ -851,7 +851,7 @@ void initcodepagefont() {
 				cpi_buf_size = get_builtin_codepage(bfb_EGA17_CPX);
 				break;
 			case 856:	case 3846:	case 3848:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPX);
+				cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPI);
 				break;
             default:
                     return;
@@ -993,7 +993,8 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 	if (tempfile==NULL) {
 		// check if built-in codepage is available
 		// reference: https://gitlab.com/FreeDOS/base/cpidos/-/blob/master/DOC/CPIDOS/CODEPAGE.TXT
-		switch (codepage_id) {
+        upxfound = true;
+        switch (codepage_id) {
 			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
 				cpi_buf_size = get_builtin_codepage(bfb_EGA_CPX);
 				break;
@@ -1046,14 +1047,16 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 				cpi_buf_size = get_builtin_codepage(bfb_EGA17_CPX);
 				break;
 			case 856:	case 3846:	case 3848:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPX);
-				break;
+                cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPI);
+                upxfound = false; // EGA18.CPI is not compressed
+                break;
 			default: 
 				return KEYB_INVALIDCPFILE;
 		}
-		upxfound=true;
-		found_at_pos=0x29;
-		size_of_cpxdata=cpi_buf_size;
+		if(upxfound){
+		    found_at_pos=0x29;
+		    size_of_cpxdata=cpi_buf_size;
+        }
 	} else {
 		uint32_t dr=(uint32_t)fread(cpi_buf, sizeof(uint8_t), 5, tempfile);
 		// check if file is valid
