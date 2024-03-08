@@ -1285,12 +1285,13 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(char *cuefile) {
 
 bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 {
-	// If we're going to support CUE vs CCD vs anything else then this function must
-	// reject any file who's file extension is not .CUE
+	// reject any file which are not a CUE sheet, GOG is so smart that they set several different extensions so that we can't assume .cue only.
+    // Known extensions at the moment are: .cue, .ins, .dat, .inst (not sure it is an exhaustive list)
 	{
 		char *s = strrchr(cuefile,'.');
 		if (!s) return false;
-		if (strcasecmp(s,".cue")) return false;
+		if (!strcasecmp(s,".ccd") || !strcasecmp(s, ".chd") || !strcasecmp(s, ".iso") || !strcasecmp(s, ".img")
+            || !strcasecmp(s, ".mds") || !strcasecmp(s, ".mdf") || !strcasecmp(s, ".bin")) return false;
 	}
 
 	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
