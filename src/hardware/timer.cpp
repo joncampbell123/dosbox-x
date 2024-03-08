@@ -276,7 +276,7 @@ struct PIT_Block {
                         ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
                     }
 
-                    if (mode == 0) {
+                    if (mode == 0 || mode == 4) {
                         if (index > delay)
                             ret.cycle = 1;
                     }
@@ -514,7 +514,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 		case 3:
 			p->write_latch = val & 0xff;
 			p->write_state = 0;
-			if (p->mode == 0) counter_latch(counter,false);
+			if (p->mode == 0 || p->mode == 4) counter_latch(counter,false);
 			break;
 		case 1:
 			p->write_latch = val & 0xff;
@@ -551,7 +551,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 			p->set_next_counter(p->write_latch);
 		}
 
-		if (p->new_mode || p->mode == 0) {
+		if (p->new_mode || p->mode == 0 || p->mode == 4) {
 			p->reset_count_at(PIC_FullIndex());
 			p->latch_next_counter();
 
@@ -577,7 +577,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 				return;
 			}
 
-			if (p->mode == 0) {
+			if (p->mode == 0 || p->mode == 4) {
 				/* Mode 0 is the only mode NOT to wait for the current counter to finish if you write another counter value
 				 * according to the Intel 8254 datasheet.
 				 *
@@ -628,7 +628,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 		 * low immediately (no clock pulse required)
 		 * 2) Writing the second byte allows the new count to
 		 * be loaded on the next CLK pulse. */
-		if (p->mode == 0) {
+		if (p->mode == 0 || p->mode == 4) {
 			if (counter == 0) {
 				PIC_RemoveEvents(PIT0_Event);
 				PIC_DeActivateIRQ(0);

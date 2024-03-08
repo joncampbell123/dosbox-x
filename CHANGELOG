@@ -1,4 +1,10 @@
 Next:
+  - Add support for PIT timer 0 mode 4. Linux kernel 6.1.29 compiled in
+    "tickless" mode uses mode 4 instead of mode 0 as a delay timeout. Prior
+    to this fix, the Linux kernel would switch into tickless mode and then
+    nothing would happen because IRQ 0 would never fire again. See also Linux
+    kernel source code, drivers/clocksource/i8253.c function pit_set_oneshot()
+    to see what I mean. (joncampbell123)
   - Windows 95 S3 driver behavior suggests that S3 16-color VESA modes
     0x202 to 0x208 are NOT planar modes, but packed modes. Change modes to
     M_PACKED4 and update modelist building to allow that range even if the
