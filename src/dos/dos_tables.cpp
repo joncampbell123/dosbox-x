@@ -395,7 +395,12 @@ void DOS_SetupTables(void) {
 
 	/* Create a fake DPB */
 	dos.tables.dpb=DOS_GetMemory(((DOS_DRIVES*dos.tables.dpb_size)+15u)/16u,"dos.tables.dpb");
-    dos.tables.mediaid_offset=0x17;	//Media ID offset in DPB (MS-DOS 4.x-6.x)
+
+	if (dos.version.major >= 4)
+		dos.tables.mediaid_offset=0x17;	//Media ID offset in DPB (MS-DOS 4.x-6.x)
+	else
+		dos.tables.mediaid_offset=0x16;	//Media ID offset in DPB (MS-DOS 1.x-3.x)
+
 	dos.tables.mediaid=RealMake(dos.tables.dpb,dos.tables.mediaid_offset);
 	for (i=0;i<DOS_DRIVES;i++) {
         real_writeb(dos.tables.dpb,i*dos.tables.dpb_size,(uint8_t)i);             // drive number
@@ -403,15 +408,15 @@ void DOS_SetupTables(void) {
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+2,0x0200);     // bytes per sector
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+6,0x0001);     // reserved sectors at the beginning of the drive
         mem_writew(Real2Phys(dos.tables.mediaid)+i*dos.tables.dpb_size,0u);
-        real_writew(dos.tables.dpb,i*dos.tables.dpb_size+0x1F,0xFFFF);      // number of free clusters or 0xFFFF if unknown
+        real_writew(dos.tables.dpb,i*dos.tables.dpb_size+(dos.version.major>=4?0x1F:0x1E),0xFFFF);      // number of free clusters or 0xFFFF if unknown
 
         // next DPB pointer
         if ((i+1) < DOS_DRIVES)
-            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,RealMake(dos.tables.dpb,(i+1)*dos.tables.dpb_size));
+            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+(dos.version.major>=4?0x19:0x18),RealMake(dos.tables.dpb,(i+1)*dos.tables.dpb_size));
         else
-            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,0xFFFFFFFF); // ED4.EXE (provided by Yksoft1) expects this, or else loops forever
+            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+(dos.version.major>=4?0x19:0x18),0xFFFFFFFF); // ED4.EXE (provided by Yksoft1) expects this, or else loops forever
 	}
-    dos_infoblock.SetFirstDPB(RealMake(dos.tables.dpb,0));
+	dos_infoblock.SetFirstDPB(RealMake(dos.tables.dpb,0));
 
 	/* Create Device command packet area */
 	dos.dcp = DOS_GetMemory(3, "External device command packet");
