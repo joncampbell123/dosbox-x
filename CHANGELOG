@@ -1,4 +1,16 @@
 Next:
+  - DOS: Move version parsing farther up, so that the initial DOS version
+    can affect memory layout and tables as needed. (joncampbell123)
+  - DOS DPB and FAT driver: If the DOS version is 4.0 or higher, write a
+    DOS 4.0+ compatible DPB structure (as DOSBox-X already has been doing
+    since forking from DOSBox). If the DOS version is lower than 4.0,
+    write an MS-DOS 3.30 compatible DPB structure. This allows Popful Mail
+    to run without getting into an infinite loop scanning the DPB linked list
+    when [dos] section ver=3 30 (MS-DOS 3.30), aside from the fact that the
+    game will also run without this change if you set ver=4 0 since the game
+    appears to be aware of the change in structure between MS-DOS 3.30 and
+    MS-DOS 4.0, though for whatever reason the game refuses to run on
+    MS-DOS 5.0 or higher. (joncampbell123).
   - IDE: Silently ignore SET FEATURES command 0x03. Any negative response
     to feature 0x03 causes the Linux kernel to reject the IDE device.
     (joncampbell123)

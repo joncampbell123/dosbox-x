@@ -4027,6 +4027,24 @@ public:
 	DOS(Section* configuration):Module_base(configuration){
         const Section_prop* section = static_cast<Section_prop*>(configuration);
 
+	dos.version.major = 5;
+	dos.version.minor = 0;
+        const char *ver = section->Get_string("ver");
+		if (*ver) {
+			if (set_ver((char *)ver)) {
+				/* warn about unusual version numbers */
+				if (dos.version.major >= 10 && dos.version.major <= 30) {
+					LOG_MSG("WARNING, DOS version %u.%u: the major version is set to a "
+						"range that may cause some DOS programs to think they are "
+						"running from within an OS/2 DOS box.",
+						dos.version.major, dos.version.minor);
+				}
+				else if (dos.version.major == 0 || dos.version.major > 8 || dos.version.minor > 90)
+					LOG_MSG("WARNING: DOS version %u.%u is unusual, may confuse DOS programs",
+						dos.version.major, dos.version.minor);
+			}
+		}
+
         ::disk_data_rate = section->Get_int("hard drive data rate limit");
         ::floppy_data_rate = section->Get_int("floppy drive data rate limit");
         if (::disk_data_rate < 0) {
@@ -4567,8 +4585,6 @@ public:
         if (!strcasecmp(keepstr, "true")||!strcasecmp(keepstr, "1")) keep_private_area_on_boot = 1;
         else if (!strcasecmp(keepstr, "false")||!strcasecmp(keepstr, "0")) keep_private_area_on_boot = 0;
         else keep_private_area_on_boot = addovl;
-		dos.version.major=5;
-		dos.version.minor=0;
 		dos.direct_output=false;
 		dos.internal_output=false;
 
@@ -4589,21 +4605,6 @@ public:
         mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
         force_conversion=false;
 
-        const char *ver = section->Get_string("ver");
-		if (*ver) {
-			if (set_ver((char *)ver)) {
-				/* warn about unusual version numbers */
-				if (dos.version.major >= 10 && dos.version.major <= 30) {
-					LOG_MSG("WARNING, DOS version %u.%u: the major version is set to a "
-						"range that may cause some DOS programs to think they are "
-						"running from within an OS/2 DOS box.",
-						dos.version.major, dos.version.minor);
-				}
-				else if (dos.version.major == 0 || dos.version.major > 8 || dos.version.minor > 90)
-					LOG_MSG("WARNING: DOS version %u.%u is unusual, may confuse DOS programs",
-						dos.version.major, dos.version.minor);
-			}
-		}
         force_conversion=true;
         dos_ver_menu(true);
         mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
