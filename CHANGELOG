@@ -1,4 +1,7 @@
 Next:
+  - IDE: Silently ignore SET FEATURES command 0x03. Any negative response
+    to feature 0x03 causes the Linux kernel to reject the IDE device.
+    (joncampbell123)
   - Add support for PIT timer 0 mode 4. Linux kernel 6.1.29 compiled in
     "tickless" mode uses mode 4 instead of mode 0 as a delay timeout. Prior
     to this fix, the Linux kernel would switch into tickless mode and then

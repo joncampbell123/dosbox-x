@@ -4088,7 +4088,8 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
             break;
         case 0xEF: /* SET FEATURES */
             if (feature == 0x66/*Disable reverting to power on defaults*/ ||
-                feature == 0xCC/*Enable reverting to power on defaults*/) {
+                feature == 0xCC/*Enable reverting to power on defaults*/ ||
+                feature == 0x03/*Set transfer mode according to sector count register (required by Linux kernel)*/) {
                 /* ignore */
                 status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
                 state = IDE_DEV_READY;
@@ -4297,7 +4298,8 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             break;
         case 0xEF: /* SET FEATURES */
             if (feature == 0x66/*Disable reverting to power on defaults*/ ||
-                feature == 0xCC/*Enable reverting to power on defaults*/) {
+                feature == 0xCC/*Enable reverting to power on defaults*/ ||
+                feature == 0x03/*Set transfer mode according to sector count register (required by Linux kernel)*/) {
                 /* ignore */
                 status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
                 state = IDE_DEV_READY;
