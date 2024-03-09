@@ -488,7 +488,7 @@ section:has(footer) {
 }
 footer {
   text-align: center;
-  padding: 0 0.5em;
+  padding: 0.5em;
 }
 
 footer p {
