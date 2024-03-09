@@ -22,6 +22,8 @@
         let relUrl = "#" + encodeURI(decodeURIComponent(
             strippedPathname + bottomLocation.search + bottomLocation.hash
         ));
+        // We can't go by the actual page title because they usually just contain the text of the top
+        // header
         document.title = decodeURIComponent(strippedPathname).replaceAll("-", " ") + " - DOSBox-X Wiki";
         if (location.hash != relUrl) {
             const url = new URL(location);
