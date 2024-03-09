@@ -508,7 +508,7 @@ sup {
 .version-sidebar {
   letter-spacing: -0.25px;
 }
-.version-sidebar h4, .version-sidebar h4 * {
+.version-sidebar h4:has(img), .version-sidebar h4:has(img) * {
   vertical-align: middle;
 }
 .version-sidebar h4 img {
