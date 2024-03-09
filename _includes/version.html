@@ -13,89 +13,87 @@
 <h4><a href="{{ release_note.url | relative_url }}">DOSBox-X {{ version.version }}{%- if version.version_secondary %} ({{ version.version_secondary }}){%- endif %} Release Notes</a></h4>
 {%- endif -%}
 
-<h4>Supported Platforms:</h4>
-<img src="{{ '/images/windows_logo.png' | relative_url }}" title="Windows" alt="Windows" width="50" height="50" />&nbsp;
-<img src="{{ '/images/linux_logo.png' | relative_url }}" title="Linux" alt="Linux" width="50" height="50" />&nbsp;
-<img src="{{ '/images/macos_logo.png' | relative_url }}" title="macOS" alt="macOS" width="50" height="50" />&nbsp;
-<img src="{{ '/images/msdos_logo.png' | relative_url }}" title="MS-DOS" alt="MS-DOS" width="50" height="50" />
-
-<h4>Windows version:</h4>
-<h5 class="subtitle-mute">(Windows 9x/NT4 and later versions supported)</h5>
-<h5>
-  {%- unless version.windows_setup_file and version.windows_setup_file != empty -%} {%- comment -%} 2024.03.01 bug {%- endcomment -%}
-  {% include version_file.html version=version name="winXP_setup_file" display_name="32/64-bit Setup" %}
-  {%- else -%}
-  32/64-bit Setup
-  {% include version_file.html version=version name="winXP_setup_file" display_name=" ReactOS/XP+ " %}
+<h4>
+  <img src="{{ '/images/windows_logo.png' | relative_url }}" alt="Windows logo" width="32" height="32" class="img-no-styling" /> Windows version
+</h4>
+<p class="subtitle-mute">(Windows 9x/NT4 and later versions supported)</p>
+<p>
+  32/64-bit Setup:
+  {% include version_file.html version=version name="winXP_setup_file" display_name="ReactOS/XP+ " %}
   |
-  {% include version_file.html version=version name="windows_setup_file" display_name=" Vista+" %}
-  <sup>(Recommended)</sup>
-  {%- endunless -%}
-</h5>
-<h5>
-  32-bit Portable
+  {% include version_file.html version=version name="windows_setup_file" display_name="Vista+" %}
+  {% if version.windows_setup_file %}<sup>(Recommended)</sup>{% endif %}
+</p>
+<p>
+  32-bit Portable:
   {% include version_file.html version=version name="win9x_file" display_name=" 9x/NT4+" %}
-</h5>
-<h5>
+</p>
+<p>
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#windows-packages-installer-or-portable">More options including other portable packages</a>
-</h5>
+</p>
 
-<h4>Linux version:</h4>
-<h5 class="subtitle-mute">(Linux distros and Raspberry Pi supported)</h5>
-<h5>
+<h4>
+  <img src="{{ '/images/linux_logo.png' | relative_url }}" alt="Linux logo" width="32" height="32" class="img-no-styling" /> Linux version
+</h4>
+<p class="subtitle-mute">(Linux distros and Raspberry Pi supported)</p>
+<p>
   <a href="https://flathub.org/apps/details/com.dosbox_x.DOSBox-X">Flatpak on Flathub</a>
   |
   <a href="https://copr.fedorainfracloud.org/coprs/rob72/DOSBox-X/">RPM on Fedora Copr</a>
-</h5>
+</p>
 
-<h4>macOS version:</h4>
-<h5 class="subtitle-mute">(Intel-based and ARM-based Macs supported)</h5>
-<h5>
+<h4>
+  <img src="{{ '/images/macos_logo.png' | relative_url }}" alt="macOS logo" width="32" height="32" class="img-no-styling" /> macOS version
+</h4>
+<p class="subtitle-mute">(Intel-based and ARM-based Macs supported)</p>
+<p>
   {% include version_file.html version=version name="macos_intel_file" display_name="Intel-based Mac" %}
   |
   {% include version_file.html version=version name="macos_arm_file" display_name="ARM-based Mac" %}
-</h5>
-<h5>
+</p>
+<p>
   {%- if version.macos_special_file -%}
   {% include version_file.html version=version name="macos_special_file" display_name="Builds for macOS 10.13+" %}
   |
   {%- endif -%}
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#macos-packages-portable">More info</a>
-</h5>
+</p>
 
-<h4>DOS version:</h4>
-<h5 class="subtitle-mute">(Yes, you can emulate another DOS system within DOS itself)</h5>
-<h5>
+<h4>
+  <img src="{{ '/images/msdos_logo.png' | relative_url }}" alt="MS-DOS logo" width="32" height="32" class="img-no-styling" /> DOS version
+</h4>
+<p class="subtitle-mute">(Yes, you can emulate another DOS system within DOS itself)</p>
+<p>
   {% include version_file.html version=version name="dos_hx_file" display_name="HX-DOS package" %}
   {%- if version.dos_loadlin_file -%}
   |
   {% include version_file.html version=version name="dos_loadlin_file" display_name="LOADLIN package" %}
   {%- endif -%}
-</h5>
-<h5>
+</p>
+<p>
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#dos-packages-portable">More info</a>
-</h5>
+</p>
 
-<h4>Source code:</h4>
-<h5 class="subtitle-mute">(Latest code also available from the GitHub repository)</h5>
-<h5>
+<h4>Source code</h4>
+<p class="subtitle-mute">(Latest code also available from the GitHub repository)</p>
+<p>
   <a href="https://github.com/joncampbell123/dosbox-x/archive/refs/tags/{{ version.git_tag }}.zip">In zip format</a>
   |
   <a href="https://github.com/joncampbell123/dosbox-x/archive/refs/tags/{{ version.git_tag }}.tar.gz">In tar.gz format</a>
-</h5>
-<h5><a href="https://github.com/joncampbell123/dosbox-x/blob/master/BUILD.md">Source code building instructions</a></h5>
+</p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/BUILD.md">Source code building instructions</a></p>
 
-<h4>More options and informations:</h4>
-<h5><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md">Other packages and install instructions</a></h5>
-<h5><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/releases">Archive of all releases and change logs</a></h5>
-<h5><a target="_blank" href="{{ '/devel-build.html' | relative_url }}">Development (preview/testing) builds</a></h5>
+<h4>More options and information</h4>
+<p><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md">Other packages and install instructions</a></p>
+<p><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/releases">Archive of all releases and change logs</a></p>
+<p><a target="_blank" href="{{ '/devel-build.html' | relative_url }}">Development (preview/testing) builds</a></p>
 
-<h4>General information on project:</h4>
-<h5><a href="{{ '/about.html' | relative_url }}">About the DOSBox-X project</a></h5>
-<h5><a href="https://github.com/joncampbell123/dosbox-x/blob/master/README.md">View README</a></h5>
-<h5><a href="https://github.com/joncampbell123/dosbox-x/blob/master/CONTRIBUTING.md">Contributing Guidelines</a></h5>
+<h4>General information on project</h4>
+<p><a href="{{ '/about.html' | relative_url }}">About the DOSBox-X project</a></p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/README.md">View README</a></p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/CONTRIBUTING.md">Contributing Guidelines</a></p>
 
-<h4>Have any issues, questions or suggestions?</h4>
-<h5><a href="https://github.com/joncampbell123/dosbox-x/issues">Go to Issue Tracker</a></h5>
-<h5><a href="https://github.com/joncampbell123/dosbox-x/pulls">View or send Pull Requests</a></h5>
-<h5><a href="{{ '/wiki' | relative_url }}">View User Guides on the Wiki</a></h5>
+<h4>Any issues, questions or suggestions?</h4>
+<p><a href="https://github.com/joncampbell123/dosbox-x/issues">Go to Issue Tracker</a></p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/pulls">View or send Pull Requests</a></p>
+<p><a href="{{ '/wiki' | relative_url }}">View User Guides on the Wiki</a></p>

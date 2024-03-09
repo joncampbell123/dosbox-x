@@ -13,26 +13,16 @@ layout: null
 
 <body class="wiki-index-html">
     <nav>
-        <p><strong>Welcome to the DOSBox-X Wiki!</strong></p>
-        <p>
-            <strong>
-                <a href="./Home.html" target="bottom">Wiki welcome page</a> &nbsp;
-                <a href="./guides.html" target="bottom">List of Wiki guide pages</a> &nbsp;
-                <a href="{{ '/' | relative_url }}">DOSBox-X project homepage</a> &nbsp;
-                <a href="https://github.com/joncampbell123/dosbox-x/issues">DOSBox-X issue tracker</a>
-            </strong>
-        </p>
-        <p>
-            Hint: To locate specific information on any Wiki page, you can use Ctrl+F (Command+F on a Mac) to
-            search for text in your browser.
-        </p>
+        <span><a href="{{ '/' | relative_url }}">Go back to site home page</a></span>&nbsp;
+        <span><a href="./Home" target="bottom">Wiki home page</a> | <a href="./List-of-Guide-Pages" target="bottom">List of guide pages</a></span>
+        <span>&nbsp;</span>
     </nav>
     <main>
         <span id="wiki-try-reloading">If the contents don't load, try reloading the page.</span>
-        <noscript><iframe name="bottom" src="./Home" title="Wiki contents" sandbox="allow-same-origin allow-scripts allow-top-navigation" width="100%" height="100%"></iframe></noscript>
+        <noscript><iframe name="bottom" src="./Home" title="Wiki contents" sandbox="allow-same-origin allow-scripts" width="100%" height="100%"></iframe></noscript>
     </main>
     <template id="empty-iframe">
-        <iframe name="bottom" title="Wiki contents" sandbox="allow-same-origin allow-scripts allow-top-navigation" width="100%" height="100%"></iframe>
+        <iframe name="bottom" title="Wiki contents" sandbox="allow-same-origin allow-scripts" width="100%" height="100%"></iframe>
     </template>
     <script type="text/javascript" src="{{ '/js/wiki_fake_spa.js' | relative_url }}"></script>
 </body>
