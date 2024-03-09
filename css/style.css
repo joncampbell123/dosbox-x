@@ -507,9 +507,11 @@ sup {
   font-weight: bold;
   letter-spacing: -0.25px;
 }
+.version-sidebar h4, .version-sidebar h4 * {
+  vertical-align: middle;
+}
 .version-sidebar h4 img {
   display: inline-block;
-  vertical-align: middle;
   width: 2em; height: auto;
   margin: 0.25em; margin-left: 0;
 }
