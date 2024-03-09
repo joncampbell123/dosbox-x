@@ -1,7 +1,6 @@
 wiki/*.html linguist-generated=true
 wiki/*.css linguist-generated=true
 wiki/index.html linguist-generated=false
-wiki/guides.html linguist-generated=false
 wiki/docinfo linguist-generated=false
 doxygen linguist-generated=true
 *-compat.html linguist-generated=true

@@ -15,8 +15,9 @@ localbak="`pwd`"
 tempdir="`mktemp -d`"
 destdir="`realpath $1`"
 srcdir="`realpath $2`"
+# TODO: sync list to actual wiki repo
 spfiles="$destdir/index.html
-$destdir/guides.asciidoc
+$destdir/List-of-Guide-Pages.asciidoc
 $destdir/docinfo"
 
 function cleanup {
@@ -50,7 +51,7 @@ bundle exec asciidoctor \
   -a nofooter \
   -a docinfo=shared -a docinfodir=docinfo \
   $tempdir/*.asciidoc
-rm $tempdir/!(guides).asciidoc
+rm $tempdir/!(List-of-Guide-Pages).asciidoc
 
 echo "Copying files over"
 rm -r $destdir
