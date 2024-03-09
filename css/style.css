@@ -302,7 +302,7 @@ hr.content-sep {
 }
 
 #main_content {
-  margin: 1em auto;
+  margin: 0 auto;
   width: 90%;
   max-width: 62.5em;
 }
@@ -336,11 +336,10 @@ table.align-left > tbody > tr > td {
   margin-block: 0.3125em;
 }
 
-.index-flex {
-  margin: 0 !important;
-  margin-bottom: 15px !important;
-  width: 100% !important;
-  max-width: 100% !important;
+#main_content.index-flex {
+  margin: 0;
+  width: 100%; max-width: 100%;
+  overflow: hidden;
   display: flex;
   justify-content: space-between;
   text-align: left;
@@ -483,10 +482,13 @@ html:has(.wiki-index-html),
   margin: auto;
 }
 
-footer {
+section:has(footer) {
+  margin-top: 0.8em;
   background: #000066;
+}
+footer {
   text-align: center;
-  padding: 5px 10px;
+  padding: 0 0.5em;
 }
 
 footer p {
@@ -504,7 +506,6 @@ sup {
 }
 
 .version-sidebar {
-  font-weight: bold;
   letter-spacing: -0.25px;
 }
 .version-sidebar h4, .version-sidebar h4 * {
