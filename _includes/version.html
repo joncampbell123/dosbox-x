@@ -18,15 +18,11 @@
 </h4>
 <p class="subtitle-mute">(Windows 9x/NT4 and later versions supported)</p>
 <p>
-  {%- unless version.windows_setup_file and version.windows_setup_file != empty -%} {%- comment -%} 2024.03.01 bug {%- endcomment -%}
-  {% include version_file.html version=version name="winXP_setup_file" display_name="32/64-bit Setup" %}
-  {%- else -%}
   32/64-bit Setup:
   {% include version_file.html version=version name="winXP_setup_file" display_name="ReactOS/XP+ " %}
   |
   {% include version_file.html version=version name="windows_setup_file" display_name="Vista+" %}
-  <sup>(Recommended)</sup>
-  {%- endunless -%}
+  {% if version.windows_setup_file %}<sup>(Recommended)</sup>{% endif %}
 </p>
 <p>
   32-bit Portable:
