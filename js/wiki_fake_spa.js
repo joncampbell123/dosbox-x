@@ -5,7 +5,7 @@
     let frame = document.querySelector("main").appendChild(document.querySelector("#empty-iframe").content.querySelector("iframe"));
 
     if (localStorage && localStorage.getItem("wiki_fake_spa_opt_out")) {
-        frame.contentWindow.location.href = "./Home";
+        window.open("./Home", frame.name);
         return;
     }
 
@@ -43,7 +43,7 @@
             destUrlWithHtmlExt.pathname += ".html";
         try {
             if (destUrl.href != bottomLocation.href && destUrlWithHtmlExt.href != bottomLocation.href)
-                bottomLocation.replace(destUrl);
+                window.open(destUrl, frame.name);
         } catch (err) {
             console.error(`Could not navigate to ${dest}.`, err);
             return false;
@@ -52,7 +52,7 @@
     }
 
     if (!location.hash || !changeBottomUrl())
-        frame.contentWindow.location.href = "./Home";
+        window.open("./Home", frame.name);
     window.addEventListener("hashchange", changeBottomUrl);
     frame.addEventListener("load", () => {
         if (!frame.contentDocument)
@@ -60,5 +60,12 @@
         document.querySelector("#wiki-try-reloading").style.opacity = "0.25";
         changeHash();
         frame.contentWindow.addEventListener("popstate", changeHash);
+        frame.contentWindow.navigation.addEventListener("navigate", (e) => {
+            const url = new URL(e.destination.url);
+            if (url.host != location.host || !url.pathname.startsWith(contentDir)) {
+                e.preventDefault();
+                window.open(url, "_blank");
+            }
+        });
     });
 })();
