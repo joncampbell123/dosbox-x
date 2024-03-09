@@ -15,7 +15,7 @@ tempdir="`mktemp -d`"
 destdir="`realpath $1`"
 srcdir="`realpath $2`"
 spfiles="$destdir/index.html
-$destdir/guides.html
+$destdir/guides.adoc
 $destdir/docinfo"
 
 function cleanup {
@@ -49,7 +49,7 @@ bundle exec asciidoctor \
   -a nofooter \
   -a docinfo=shared -a docinfodir=docinfo \
   $tempdir/*.asciidoc
-rm $tempdir/*.asciidoc
+rm $tempdir/!(guides).asciidoc
 
 echo "Copying files over"
 rm -r $destdir
