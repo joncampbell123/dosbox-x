@@ -55,17 +55,18 @@
         window.open("./Home", frame.name);
     window.addEventListener("hashchange", changeBottomUrl);
     frame.addEventListener("load", () => {
+        document.querySelector("#wiki-try-reloading").style.opacity = "0.25";
         if (!frame.contentDocument)
             return;
-        document.querySelector("#wiki-try-reloading").style.opacity = "0.25";
         changeHash();
         frame.contentWindow.addEventListener("popstate", changeHash);
-        frame.contentWindow.navigation.addEventListener("navigate", (e) => {
-            const url = new URL(e.destination.url);
-            if (url.host != location.host || !url.pathname.startsWith(contentDir)) {
-                e.preventDefault();
-                window.open(url, "_blank");
-            }
-        });
+        if (frame.contentWindow.navigation)
+            frame.contentWindow.navigation.addEventListener("navigate", (e) => {
+                const url = new URL(e.destination.url);
+                if (url.host != location.host || !url.pathname.startsWith(contentDir)) {
+                    e.preventDefault();
+                    window.open(url, "_blank");
+                }
+            });
     });
 })();
