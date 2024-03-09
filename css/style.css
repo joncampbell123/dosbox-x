@@ -344,7 +344,7 @@ table.align-left > tbody > tr > td {
   display: flex;
   justify-content: space-between;
   text-align: left;
-  padding: 0 0.5em;
+  padding: 0 0.8em;
   gap: 0.5em;
 }
 .index-flex > :nth-child(1) {
