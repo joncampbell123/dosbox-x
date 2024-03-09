@@ -6613,7 +6613,9 @@ class IMGMOUNT : public Program {
 			/* auto-fill: head/cylinder count */
 			if (sizes[3]/*cylinders*/ == 0 && sizes[2]/*heads*/ == 0) {
 				sizes[2] = 16; /* typical hard drive, unless a very old drive */
-				sizes[3]/*cylinders*/ = (Bitu)((uint64_t)sectors / (uint64_t)sizes[2]/*heads*/ / (uint64_t)sizes[1]/*sectors/track*/);
+				sizes[3]/*cylinders*/ =
+					(Bitu)(((uint64_t)sectors + ((uint64_t)sizes[2]/*heads*/ * (uint64_t)sizes[1]/*sectors/track*/) - (uint64_t)1u) /
+					((uint64_t)sizes[2]/*heads*/ * (uint64_t)sizes[1]/*sectors/track*/));
 
 				if (IS_PC98_ARCH) {
 					/* TODO: PC-98 has its own issues with a 4096-cylinder limit */
@@ -6628,7 +6630,9 @@ class IMGMOUNT : public Program {
 						if (sizes[2] >= 256) sizes[2] = 255;
 
 						/* and recompute cylinders */
-						sizes[3]/*cylinders*/ = (Bitu)((uint64_t)sectors / (uint64_t)sizes[2]/*heads*/ / (uint64_t)sizes[1]/*sectors/track*/);
+						sizes[3]/*cylinders*/ =
+							(Bitu)(((uint64_t)sectors + ((uint64_t)sizes[2]/*heads*/ * (uint64_t)sizes[1]/*sectors/track*/) - (uint64_t)1u) /
+							((uint64_t)sizes[2]/*heads*/ * (uint64_t)sizes[1]/*sectors/track*/));
 					}
 				}
 			}

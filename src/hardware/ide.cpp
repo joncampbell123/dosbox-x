@@ -240,7 +240,7 @@ public:
     virtual bool increment_current_address(Bitu count=1);
 public:
     Bitu multiple_sector_max,multiple_sector_count;
-    Bitu heads,sects,cyls,headshr,progress_count;
+    Bitu heads,sects,cyls,progress_count;
     Bitu phys_heads,phys_sects,phys_cyls;
     unsigned char sector[512 * 128] = {};
     Bitu sector_i,sector_total;
@@ -2594,7 +2594,6 @@ IDEATADevice::IDEATADevice(IDEController *c,unsigned char disk_index,bool _slave
     : IDEDevice(c,_slave), id_serial("8086"), id_firmware_rev("8086"), id_model("DOSBox-X IDE disk"), bios_disk_index(disk_index) {
     sector_i = sector_total = 0;
 
-    headshr = 0;
     type = IDE_TYPE_HDD;
     multiple_sector_max = sizeof(sector) / 512;
     multiple_sector_count = 1;
@@ -2634,67 +2633,53 @@ void IDEATAPICDROMDevice::update_from_cdrom() {
 }
 
 void IDEATADevice::update_from_biosdisk() {
-    imageDisk *dsk = getBIOSdisk();
-    if (dsk == NULL) {
-        LOG_MSG("WARNING: IDE update from BIOS disk failed, disk not available\n");
-        return;
-    }
+	imageDisk *dsk = getBIOSdisk();
+	if (dsk == NULL) {
+		LOG_MSG("WARNING: IDE update from BIOS disk failed, disk not available\n");
+		return;
+	}
 
-    headshr = 0;
-    geo_translate = false;
-    cyls = dsk->cylinders;
-    heads = dsk->heads;
-    sects = dsk->sectors;
+	geo_translate = false;
+	cyls = dsk->cylinders;
+	heads = dsk->heads;
+	sects = dsk->sectors;
 
-    /* One additional correction: The disk image is probably using BIOS-style geometry
-       translation (such as C/H/S 1024/64/63) which is impossible given that the IDE
-       standard only allows up to 16 heads. So we have to translate the geometry. */
-    while (heads > 16 && (heads & 1) == 0) {
-        cyls <<= 1U;
-        heads >>= 1U;
-        headshr++;
-    }
+	if (heads > 16) {
+		geo_translate = true;
 
-    /* If we can't divide the heads down, then pick a LBA-like mapping that is good enough.
-     * Note that if what we pick does not evenly map to the INT 13h geometry, and the partition
-     * contained within is not an LBA type FAT16/FAT32 partition, then Windows 95's IDE driver
-     * will ignore this device and fall back to using INT 13h. For user convenience we will
-     * print a warning to reminder the user of exactly that. */
-    if (heads > 16) {
-        unsigned long tmp;
+		/* One additional correction: The disk image is probably using BIOS-style geometry
+		   translation (such as C/H/S 1024/64/63) which is impossible given that the IDE
+		   standard only allows up to 16 heads. So we have to translate the geometry. */
+		while (heads > 16 && (heads & 1) == 0)
+			heads >>= 1U;
 
-        geo_translate = true;
+		/* If we can't divide the heads down, then pick a LBA-like mapping that is good enough.
+		 * Note that if what we pick does not evenly map to the INT 13h geometry, and the partition
+		 * contained within is not an LBA type FAT16/FAT32 partition, then Windows 95's IDE driver
+		 * will ignore this device and fall back to using INT 13h. For user convenience we will
+		 * print a warning to reminder the user of exactly that. */
+		if (heads > 16) {
+			sects = 63;
+			heads = 16;
+		}
 
-        tmp = heads * cyls * sects;
-        sects = 63;
-        heads = 16;
-        cyls = (tmp + ((63 * 16) - 1)) / (63 * 16);
-        LOG_MSG("WARNING: Unable to reduce heads to 16 and below\n");
-        LOG_MSG("If at all possible, please consider using INT 13h geometry with a head\n");
-        LOG_MSG("count that is easier to map to the BIOS, like 240 heads or 128 heads/track.\n");
-        LOG_MSG("Some OSes, such as Windows 95, will not enable their 32-bit IDE driver if\n");
-        LOG_MSG("a clean mapping does not exist between IDE and BIOS geometry.\n");
-        LOG_MSG("Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u (non-straightforward mapping)\n",
-            (unsigned int)dsk->cylinders,
-            (unsigned int)dsk->heads,
-            (unsigned int)dsk->sectors,
-            (unsigned int)cyls,
-            (unsigned int)heads,
-            (unsigned int)sects);
-    }
-    else {
-        LOG_MSG("Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u\n",
-            (unsigned int)dsk->cylinders,
-            (unsigned int)dsk->heads,
-            (unsigned int)dsk->sectors,
-            (unsigned int)cyls,
-            (unsigned int)heads,
-            (unsigned int)sects);
-    }
+		{
+			uint64_t tmp = ((uint64_t)dsk->diskSizeK << (uint64_t)10) / (uint64_t)dsk->sector_size;
+			cyls = (tmp + (uint64_t)(sects * heads) - (uint64_t)1) / ((uint64_t)(sects * heads));
+		}
 
-    phys_heads = heads;
-    phys_sects = sects;
-    phys_cyls = cyls;
+		LOG_MSG("Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u\n",
+			(unsigned int)dsk->cylinders,
+			(unsigned int)dsk->heads,
+			(unsigned int)dsk->sectors,
+			(unsigned int)cyls,
+			(unsigned int)heads,
+			(unsigned int)sects);
+	}
+
+	phys_heads = heads;
+	phys_sects = sects;
+	phys_cyls = cyls;
 }
 
 void IDE_Auto(signed char &index,bool &slave) {
@@ -3197,7 +3182,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
                     }
 
                     /* translate BIOS INT 13h geometry to IDE geometry */
-                    if (ata->headshr != 0 || ata->geo_translate) {
+                    if (ata->geo_translate) {
                         unsigned long lba;
 
                         if (dsk == NULL) return;
