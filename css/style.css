@@ -62,7 +62,7 @@ body.wiki-index-html {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  margin: 0.8rem 0;
+  margin-block: 0.8rem;
   font-weight: 600;
   color: #222222;
   font-family: 'Lucida Grande', 'Calibri', Helvetica, Arial, sans-serif;
@@ -498,7 +498,8 @@ sup {
   letter-spacing: -0.25px;
 }
 .version-sidebar h4 img {
+  display: inline-block;
   vertical-align: middle;
   width: 2em; height: auto;
-  margin-right: 0.25em;
+  margin: 0.25em; margin-left: 0;
 }
