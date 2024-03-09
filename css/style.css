@@ -62,7 +62,7 @@ body.wiki-index-html {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  margin-block: 0.8rem;
+  margin: 0.8rem 0;
   font-weight: 600;
   color: #222222;
   font-family: 'Lucida Grande', 'Calibri', Helvetica, Arial, sans-serif;
@@ -343,10 +343,9 @@ table.align-left > tbody > tr > td {
   max-width: 100% !important;
   display: flex;
   justify-content: space-between;
-}
-.index-flex > * {
-  padding: 0 10px;
   text-align: left;
+  padding: 0 0.5em;
+  gap: 0.5em;
 }
 .index-flex > :nth-child(1) {
   order: 2;
@@ -359,7 +358,6 @@ table.align-left > tbody > tr > td {
 @media (max-width: 720px) {
   .index-flex {
     flex-direction: column;
-    gap: 0.5em;
   }
   .index-flex > :nth-child(1) {
     order: 1;
@@ -493,4 +491,14 @@ footer a {
 sup {
   vertical-align: super;
   font-size: smaller;
+}
+
+.version-sidebar {
+  font-weight: bold;
+  letter-spacing: -0.25px;
+}
+.version-sidebar h4 img {
+  vertical-align: middle;
+  width: 2em; height: auto;
+  margin-right: 0.25em;
 }
