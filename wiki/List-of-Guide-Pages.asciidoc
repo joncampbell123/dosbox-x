@@ -16,59 +16,59 @@ Lists and explains all the internal and external commands that DOSBox-X provides
 === link:DOSBox‐X’s-Command‐Line-Options[DOSBox-X's Command-Line Options]
 Lists and explains all the command-line options that DOSBox-X supports.
 
-=== link:Guide:DOS-Installation-in-DOSBox‐X[Guide: MS-DOS or PC DOS in DOSBox-X]
+=== link:Guide%3ADOS-Installation-in-DOSBox‐X[Guide: MS-DOS or PC DOS in DOSBox-X]
 Explains how to boot MS-DOS and PC DOS versions in DOSBox-X, including creating hard disk images.
 
-=== link:Guide:Microsoft-Windows-in-DOSBox‐X[Guide: Microsoft Windows in DOSBox-X]
+=== link:Guide%3AMicrosoft-Windows-in-DOSBox‐X[Guide: Microsoft Windows in DOSBox-X]
 Explains how to install and run Microsoft Windows 1.x/2.0/3.x and 9x/ME in DOSBox-X.
 
-=== link:Guide:DOS-games-in-DOSBox‐X[Guide: DOS games in DOSBox-X]
+=== link:Guide%3ADOS-games-in-DOSBox‐X[Guide: DOS games in DOSBox-X]
 Explains how to setup and play DOS games in DOSBox-X.
 
-=== link:Guide:DOS-demoscene-software-in-DOSBox‐X[Guide: DOS demoscene software in DOSBox-X]
+=== link:Guide%3ADOS-demoscene-software-in-DOSBox‐X[Guide: DOS demoscene software in DOSBox-X]
 Explains how to use DOSBox-X with DOS software from the demoscene.
 
-=== link:Guide:Video-card-support-in-DOSBox‐X[Guide: Selecting a video adapter in DOSBox-X]
+=== link:Guide%3AVideo-card-support-in-DOSBox‐X[Guide: Selecting a video adapter in DOSBox-X]
 Explains about the different video modes as supported in DOSBox-X.
 
-=== link:Guide:Sound-card-support-in-DOSBox‐X[Guide: Selecting an audio option in DOSBox-X]
+=== link:Guide%3ASound-card-support-in-DOSBox‐X[Guide: Selecting an audio option in DOSBox-X]
 Explains about the different audio options supported in DOSBox-X.
 
-=== link:Guide:PC‐98-emulation-in-DOSBox‐X[Guide: PC-98 emulation in DOSBox-X]
+=== link:Guide%3APC‐98-emulation-in-DOSBox‐X[Guide: PC-98 emulation in DOSBox-X]
 Explains DOSBox-X's PC-98 system and how to use it to run PC-98 games or applications in DOSBox-X.
 
-=== link:Guide:Using-TrueType-font-output-in-DOSBox‐X.html[Guide: Using TrueType font output in DOSBox-X]
+=== link:Guide%3AUsing-TrueType-font-output-in-DOSBox‐X.html[Guide: Using TrueType font output in DOSBox-X]
 Explains DOSBox-X’s TrueType font (TTF) output, which is very useful for text-mode DOS applications.
 
-=== link:Guide:Managing-image-files-in-DOSBox‐X[Guide: Managing image files in DOSBox-X]
+=== link:Guide%3AManaging-image-files-in-DOSBox‐X[Guide: Managing image files in DOSBox-X]
 Explains how to make and use floppy, hard disk, and optical disc images in DOSBox-X.
 
-=== link:Guide:Clipboard-support-in-DOSBox‐X[Guide: Clipboard support in DOSBox-X]
+=== link:Guide%3AClipboard-support-in-DOSBox‐X[Guide: Clipboard support in DOSBox-X]
 Explains the different ways to copy to and paste from the Windows clipboard in DOSBox-X.
 
-=== link:Guide:CPU-settings-in-DOSBox‐X[Guide: CPU settings in DOSBox-X]
+=== link:Guide%3ACPU-settings-in-DOSBox‐X[Guide: CPU settings in DOSBox-X]
 Explains the CPU emulation and different CPU types in DOSBox-X.
 
-=== link:Guide:Regional-settings-in-DOSBox‐X[Guide: Regional settings in DOSBox-X]
+=== link:Guide%3ARegional-settings-in-DOSBox‐X[Guide: Regional settings in DOSBox-X]
 Explains how to customize DOSBox-X's regional settings and international support, such as display languages and keyboard layouts.
 
-=== link:Guide:East-Asian-language-support-in-DOSBox‐X[Guide: East Asian language support in DOSBox‐X]
+=== link:Guide%3AEast-Asian-language-support-in-DOSBox‐X[Guide: East Asian language support in DOSBox‐X]
 Explains DOSBox-X&#8217;s support for East Asian (Chinese, Japanese, Korean) languages and systems.
 
-=== link:Guide:Setting-up-joysticks-in-DOSBox‐X[Guide: Setting up joysticks in DOSBox-X]
+=== link:Guide%3ASetting-up-joysticks-in-DOSBox‐X[Guide: Setting up joysticks in DOSBox-X]
 Explains the different Joystick configuration options in DOSBox-X.
 
-=== link:Guide:Mouse-support-in-DOSBox‐X[Guide: Mouse support in DOSBox-X]
+=== link:Guide%3AMouse-support-in-DOSBox‐X[Guide: Mouse support in DOSBox-X]
 Explains DOSBox-X’s mouse emulation options.
 
-=== link:Guide:Setting-up-3dfx-Voodoo-in-DOSBox‐X[Guide: Setting up 3dfx Voodoo in DOSBox-X]
+=== link:Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox‐X[Guide: Setting up 3dfx Voodoo in DOSBox-X]
 Explains the emulation of 3dfx Voodoo, using either the Voodoo hardware emulation or the Glide API passthrough.
 
-=== link:Guide:Setting-up-MIDI-in-DOSBox‐X[Guide: Setting up MIDI in DOSBox-X]
+=== link:Guide%3ASetting-up-MIDI-in-DOSBox‐X[Guide: Setting up MIDI in DOSBox-X]
 Explains how to set up and use DOSBox-X's MIDI feature, such as General MIDI and Roland MT-32 emulations.
 
-=== link:Guide:Setting-up-printing-in-DOSBox‐X[Guide: Setting up printing in DOSBox-X]
+=== link:Guide%3ASetting-up-printing-in-DOSBox‐X[Guide: Setting up printing in DOSBox-X]
 Explains how to use DOSBox-X's printing feature, either to a real or a virtual printer (e.g. print to PNG or PS).
 
-=== link:Guide:Setting-up-networking-in-DOSBox‐X[Guide: Setting up networking in DOSBox-X]
+=== link:Guide%3ASetting-up-networking-in-DOSBox‐X[Guide: Setting up networking in DOSBox-X]
 Explains how to set up and use the network with the emulated Novell NE2000 network adapter.
