@@ -57,6 +57,7 @@
     frame.addEventListener("load", () => {
         if (!frame.contentDocument)
             return;
+        document.querySelector("#wiki-try-reloading").style.opacity = "0.25";
         changeHash();
         frame.contentWindow.addEventListener("popstate", changeHash);
     });
