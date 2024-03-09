@@ -62,7 +62,7 @@ body.wiki-index-html {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  margin: 10px 0;
+  margin-block: 0.8rem;
   font-weight: 600;
   color: #222222;
   font-family: 'Lucida Grande', 'Calibri', Helvetica, Arial, sans-serif;
@@ -97,7 +97,7 @@ h6 {
 }
 
 p {
-  margin-block: 15px;
+  margin-block: 0.625em;
 }
 
 a {
@@ -216,7 +216,7 @@ hr {
 
 table {
   border: 1px solid #373737;
-  margin-bottom: 20px;
+  margin-bottom: 1.25em;
   text-align: left;
 }
 
@@ -245,7 +245,7 @@ header {
   background: -o-linear-gradient(top, #373737, #333399);
   background: linear-gradient(to bottom, #373737, #333399);
   margin: 0;
-  padding: 20px 0;
+  padding: 1.25em 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -284,6 +284,10 @@ header > :nth-child(2) > :last-child {
   padding-bottom: 0;
 }
 
+#project_tagline {
+  font-size: 1.5em;
+  font-weight: 300;
+}
 @media (max-width: 560px) {
   #project_tagline {
     display: none;
@@ -297,12 +301,8 @@ hr.content-sep {
   background: #111;
 }
 
-#project_tagline {
-  font-weight: 300;
-}
-
 #main_content {
-  margin: 0 auto;
+  margin: 1em auto;
   width: 90%;
   max-width: 62.5em;
 }
@@ -329,13 +329,11 @@ table.align-left > tbody > tr > td {
 
 #main_header {
   text-align: center;
-  padding: 0 5px;
-  margin-bottom: 10px;
+  margin-bottom: 0.625em;
 }
 #main_header p {
   font-size: 1.125em;
-  margin: 0;
-  margin-bottom: 5px;
+  margin-block: 0.3125em;
 }
 
 .index-flex {
@@ -361,10 +359,10 @@ table.align-left > tbody > tr > td {
 @media (max-width: 720px) {
   .index-flex {
     flex-direction: column;
+    gap: 0.5em;
   }
   .index-flex > :nth-child(1) {
     order: 1;
-    margin-bottom: 10px;
   }
   .index-flex > :nth-child(2) {
     order: 2;
