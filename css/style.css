@@ -449,8 +449,18 @@ html:has(.wiki-index-html),
 }
 .wiki-index-html nav {
   background-color: #F8F8F7;
-  text-align: center;
+  padding: 0.5em 1em;
+  font-weight: bold;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-around;
 }
+.wiki-index-html nav > span {
+  display: inline-block;
+  flex-basis: calc(100% / 3);
+}
+.wiki-index-html nav > span:nth-child(1) { text-align: left; }
+.wiki-index-html nav > span:nth-child(2) { text-align: center; }
 .wiki-index-html main {
   position: relative;
 }
