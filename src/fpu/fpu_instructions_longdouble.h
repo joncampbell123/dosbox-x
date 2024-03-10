@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2021  The DOSBox Team
+ *  Copyright (C) 2002-2024  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,31 +16,18 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <cfenv> /* for std::feholdexcept */
 #include <math.h> /* for isinf, etc */
 #include "cpu/lazyflags.h"
 
-#ifdef __GNUC__
-# if defined(__MINGW32__) || (defined(MACOSX) && !defined(__arm64__))
-#  include "fpu_control_x86.h"
-# elif defined(ANDROID) || defined(__ANDROID__) || (defined(MACOSX) && defined(__arm64__)) || defined(EMSCRIPTEN) || defined(__powerpc__) || defined(__loongarch__)
-/* ? */
-#  define _FPU_SETCW(x) /* dummy */
-# else
-#  include <fpu_control.h>
-# endif
-static inline void FPU_SyncCW(void) {
-    uint16_t tmp = fpu.cw | 0x80 | 0x3F; // HACK: Disable all FPU exceptions until DOSBox-X can catch and reflect FPU exceptions to the guest
-    _FPU_SETCW(tmp);
-}
-#else
-static inline void FPU_SyncCW(void) {
-    /* nothing */
-}
-#endif
-
 static void FPU_FINIT(void) {
+	fenv_t buf;
+
 	fpu.cw.init();
-    FPU_SyncCW();
+
+	// HACK: Disable all FPU exceptions until DOSBox-X can catch and reflect FPU exceptions to the guest
+	std::feholdexcept(&buf);
+
     fpu.sw.init();
 	fpu.tags[0] = TAG_Empty;
 	fpu.tags[1] = TAG_Empty;
