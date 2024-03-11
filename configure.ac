@@ -632,7 +632,7 @@ case "$host_cpu" in
     ;;
    loongarch64*)
     AC_DEFINE(C_TARGETCPU,LOONGARCH64)
-    AC_MSG_RESULT(Loongson 3A5000+)
+    AC_MSG_RESULT(LoongArch)
     c_targetcpu="loongarch64"
     c_unalignedmemory=yes
     ;;
