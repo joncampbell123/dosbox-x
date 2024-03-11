@@ -112,7 +112,7 @@ jobs:
           name: dosbox-x-vsbuild-win64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dosbox-x-vsbuild-win64-${{ env.timestamp }}.zip
@@ -213,7 +213,7 @@ jobs:
           name: dosbox-x-vsbuild-arm64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dosbox-x-vsbuild-arm64-${{ env.timestamp }}.zip
