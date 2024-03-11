@@ -83,6 +83,12 @@ MY_CPU_LE_UNALIGN means that CPU is LITTLE ENDIAN and CPU supports unaligned mem
 #endif
 
 
+#if  defined(__loongarch_lp64)
+  #define MY_CPU_NAME "loongarch64"
+  #define MY_CPU_64BIT
+#endif
+
+
 #if  defined(__ppc64__) \
   || defined(__powerpc64__)
   #ifdef __ILP32__

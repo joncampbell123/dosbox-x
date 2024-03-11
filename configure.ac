@@ -630,6 +630,12 @@ case "$host_cpu" in
     c_targetcpu="m68k"
     c_unalignedmemory=yes
     ;;
+   loongarch64*)
+    AC_DEFINE(C_TARGETCPU,LOONGARCH64)
+    AC_MSG_RESULT(LoongArch)
+    c_targetcpu="loongarch64"
+    c_unalignedmemory=yes
+    ;;
    armv7*)
     AC_DEFINE(C_TARGETCPU,ARMV7LE)
     AC_MSG_RESULT(ARMv7 Little Endian)
@@ -868,6 +874,10 @@ if test x$enable_mt32 = xyes ; then
       AC_DEFINE(C_MT32,1)
       ;;
     aarch64)
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(C_MT32,1)
+      ;;
+    loongarch64)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
       ;;
