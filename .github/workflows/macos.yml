@@ -74,7 +74,7 @@ jobs:
           name: dosbox-x-macosx-x86_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/dosbox-x-macosx-x86_64-${{ env.timestamp }}.zip
       - name: Upload release package
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dosbox-x-macosx-x86_64-${{ env.timestamp }}.zip
