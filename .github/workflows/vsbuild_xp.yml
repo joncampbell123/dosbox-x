@@ -106,7 +106,7 @@ jobs:
           name: dosbox-x-vsbuild-XP-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dosbox-x-vsbuild-XP-${{ env.timestamp }}.zip
@@ -249,7 +249,7 @@ jobs:
           name: dosbox-x-winXP-${{ env.timestamp }}-setup.exe
           path: contrib/windows/installer/dosbox-x-winXP-*.exe
       - name: Upload XP build installer release version
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
