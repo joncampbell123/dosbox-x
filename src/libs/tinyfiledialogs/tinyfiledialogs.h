@@ -1,10 +1,13 @@
-/* SPDX-License-Identifier: ZLIB
-Copyright (c) 2014 - 2023 Guillaume Vareille http://ysengrin.com
+/* SPDX-License-Identifier: Zlib
+Copyright (c) 2014 - 2024 Guillaume Vareille http://ysengrin.com
+	 ____________________________________________________________________
+	|                                                                    |
+	| 100% compatible C C++  ->  You can rename tinfiledialogs.c as .cpp |
+	|____________________________________________________________________|
 
-If you are using a C++ compiler to compile tinyfiledialogs.c (maybe renamed with an extension ".cpp")
-then comment out << extern "C" >> bellow in this header file)
+********* TINY FILE DIALOGS OFFICIAL WEBSITE IS ON SOURCEFORGE *********
   _________
- /         \ tinyfiledialogs.h v3.13.3 [Jul 2, 2023]
+ /         \ tinyfiledialogs.h v3.17.4 [Fev 10, 2024]
  |tiny file| Unique header file created [November 9, 2014]
  | dialogs |
  \____  ___/ http://tinyfiledialogs.sourceforge.net
@@ -20,9 +23,9 @@ then comment out << extern "C" >> bellow in this header file)
 | |                                                                            | |
 | | on windows:                                                                | |
 | |  - for UTF-16, use the wchar_t functions at the bottom of the header file  | |
-| |  - _wfopen() requires wchar_t                                              | |
 | |                                                                            | |
-| |  - but fopen() expects MBCS (not UTF-8)                                    | |
+| |  - _wfopen() requires wchar_t                                              | |
+| |  - fopen() uses char but expects ASCII or MBCS (not UTF-8)                 | |
 | |  - if you want char to be MBCS: set tinyfd_winUtf8 to 0                    | |
 | |                                                                            | |
 | |  - alternatively, tinyfiledialogs provides                                 | |
@@ -47,14 +50,19 @@ appreciated but is not required.
 2. Altered source versions must be plainly marked as such, and must not be
 misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
+
+     __________________________________________
+    |  ______________________________________  |
+    | |                                      | |
+    | | DO NOT USE USER INPUT IN THE DIALOGS | |
+    | |______________________________________| |
+    |__________________________________________|
 */
 
 #ifndef TINYFILEDIALOGS_H
 #define TINYFILEDIALOGS_H
 
 #ifdef	__cplusplus
-/* if tinydialogs.c is compiled as C++ code rather than C code, you may need to comment this out
-				and the corresponding closing bracket near the end of this file. */
 extern "C" {
 #endif
 
@@ -87,7 +95,6 @@ int tinyfd_setGlobalInt(char const * aIntVariableName, int aValue); /* returns -
    aIntVariableName : "tinyfd_verbose" "tinyfd_silent" "tinyfd_allowCursesDialogs"
 				      "tinyfd_forceConsole" "tinyfd_assumeGraphicDisplay" "tinyfd_winUtf8"
 **************/
-
 
 extern char tinyfd_version[8]; /* contains tinyfd current version number */
 extern char tinyfd_needs[]; /* info about requirements */
@@ -146,7 +153,7 @@ char * tinyfd_inputBox(
 
 char * tinyfd_saveFileDialog(
 	char const * aTitle , /* NULL or "" */
-	char const * aDefaultPathAndFile , /* NULL or "" */
+	char const * aDefaultPathAndOrFile , /* NULL or "" , ends with / to set only a directory */
 	int aNumOfFilterPatterns , /* 0  (1 in the following example) */
 	char const * const * aFilterPatterns , /* NULL or char const * lFilterPatterns[1]={"*.txt"} */
 	char const * aSingleFilterDescription ) ; /* NULL or "text files" */
@@ -154,7 +161,7 @@ char * tinyfd_saveFileDialog(
 
 char * tinyfd_openFileDialog(
 	char const * aTitle, /* NULL or "" */
-	char const * aDefaultPathAndFile, /* NULL or "" */
+	char const * aDefaultPathAndOrFile, /* NULL or "" , ends with / to set only a directory */
 	int aNumOfFilterPatterns , /* 0 (2 in the following example) */
 	char const * const * aFilterPatterns, /* NULL or char const * lFilterPatterns[2]={"*.png","*.jpg"}; */
 	char const * aSingleFilterDescription, /* NULL or "image files" */
@@ -206,7 +213,7 @@ wchar_t * tinyfd_inputBoxW(
 /* windows only - utf-16 version */
 wchar_t * tinyfd_saveFileDialogW(
 	wchar_t const * aTitle, /* NULL or L"" */
-	wchar_t const * aDefaultPathAndFile, /* NULL or L"" */
+	wchar_t const * aDefaultPathAndOrFile, /* NULL or L"" , ends with / to set only a directory */
 	int aNumOfFilterPatterns, /* 0 (1 in the following example) */
 	wchar_t const * const * aFilterPatterns, /* NULL or wchar_t const * lFilterPatterns[1]={L"*.txt"} */
 	wchar_t const * aSingleFilterDescription); /* NULL or L"text files" */
@@ -215,7 +222,7 @@ wchar_t * tinyfd_saveFileDialogW(
 /* windows only - utf-16 version */
 wchar_t * tinyfd_openFileDialogW(
 	wchar_t const * aTitle, /* NULL or L"" */
-	wchar_t const * aDefaultPathAndFile, /* NULL or L"" */
+	wchar_t const * aDefaultPathAndOrFile, /* NULL or L"" , ends with / to set only a directory */
 	int aNumOfFilterPatterns , /* 0 (2 in the following example) */
 	wchar_t const * const * aFilterPatterns, /* NULL or wchar_t const * lFilterPatterns[2]={L"*.png","*.jpg"} */
 	wchar_t const * aSingleFilterDescription, /* NULL or L"image files" */
