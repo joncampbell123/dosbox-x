@@ -47,6 +47,9 @@ Next:
   - Fixed DOSBox-X freezed when codepages regarding EGA18.CPX were set (maron2000)
   - Fixed CUE sheets of GOG games were rejected. Still requires "-t iso" or 
     "-t cdrom" option for uncommon file extensions except ".CUE". (maron2000)
+  - Added "*.ccd" in file open dialog (maron2000)
+  - Added CI builds for ARM mac (maron2000)
+  - Bump tinyfiledialogs to ver 3.17.4 (maron2000)
 
 2024.03.01
   - If an empty CD-ROM drive is attached to IDE emulation, return "Medium Not
