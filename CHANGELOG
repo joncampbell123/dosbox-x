@@ -43,6 +43,10 @@ Next:
     out 32-bit support, added code to manually build on our own. (maron2000)
   - Fixed build errors of Windows installers (maron2000) 
   - Fixed compile error of speexdsp/fftwrap.c on gcc-14 (maron2000)
+  - PC-98: Fixed US keyboard support for tilde (Shift+grave) key (maron2000)
+  - Fixed DOSBox-X freezed when codepages regarding EGA18.CPX were set (maron2000)
+  - Fixed CUE sheets of GOG games were rejected. Still requires "-t iso" or 
+    "-t cdrom" option for uncommon file extensions except ".CUE". (maron2000)
 
 2024.03.01
   - If an empty CD-ROM drive is attached to IDE emulation, return "Medium Not
