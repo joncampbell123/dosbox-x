@@ -45,6 +45,103 @@
 #include "../gamelink/gamelink.h"
 #endif // C_GAMELINK
 
+// ACPI memory region allocation.
+// Most ACPI BIOSes actually use some region at top of memory, but the
+// design of DOSBox-X doesn't make that possible, so the ACPI tables are
+// written to a high memory region just below the top 4GB region and the
+// RSD PTR in the legacy BIOS region (0xE0000-0xFFFFF) will point at that.
+// A memory address is chosen, which must be maintained once tables are
+// generated because tables point at each other by physical memory address.
+// A fixed size region is chosen within which the tables are written.
+//
+// NTS: ACPI didn't happen until the Pentium era when it became quite rare
+//      for CPUs to have less than 32 address bits. No 26-bit 486SX limits
+//      here. For this reason, ACPI is not supported unless all 32 address
+//      bits are enabled.
+bool ACPI_enabled = false;
+bool acpi_mem_setup = false;
+uint32_t ACPI_BASE=0;
+uint32_t ACPI_REGION_SIZE=0; // power of 2
+uint32_t ACPI_version=0;
+unsigned char *ACPI_buffer=NULL;
+size_t ACPI_buffer_size=0;
+
+class ACPIPageHandler : public PageHandler {
+	public:
+		ACPIPageHandler() : PageHandler(PFLAG_NOCODE) {}
+		ACPIPageHandler(Bitu flags) : PageHandler(flags) {}
+		uint8_t readb(PhysPt addr) {
+			if (ACPI_buffer != NULL) {
+				const PhysPt rel = addr - ACPI_BASE;
+				if (rel < ACPI_buffer_size) return ACPI_buffer[rel];
+			}
+
+			return 0xFF;
+		}
+		void writeb(PhysPt addr,uint8_t val){
+			LOG(LOG_CPU,LOG_ERROR)("Write %x to acpi at %x",(int)val,(int)addr);
+		}
+		void writew(PhysPt addr,uint16_t val){
+			LOG(LOG_CPU,LOG_ERROR)("Write %x to acpi at %x",(int)val,(int)addr);
+		}
+		void writed(PhysPt addr,uint32_t val){
+			LOG(LOG_CPU,LOG_ERROR)("Write %x to acpi at %x",(int)val,(int)addr);
+		}
+};
+
+static ACPIPageHandler acpi_mem_handler;
+
+PageHandler* acpi_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+	(void)co;//UNUSED
+	(void)phys_page;//UNUSED
+
+	if (ACPI_buffer != NULL && ACPI_REGION_SIZE != 0 && phys_page >= (ACPI_BASE/4096) && phys_page < ((ACPI_BASE+ACPI_REGION_SIZE)/4096))
+		return &acpi_mem_handler;
+
+	return NULL;
+}
+
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
+
+void ACPI_mem_enable(const bool enable) {
+	if (enable && !acpi_mem_setup) {
+		if (ACPI_BASE != 0 && ACPI_REGION_SIZE != 0) {
+			MEM_SetPageHandler( ACPI_BASE/4096, ACPI_REGION_SIZE/4096, &acpi_mem_handler );
+			acpi_mem_setup = true;
+			PAGING_ClearTLB();
+		}
+	}
+	else if (!enable && acpi_mem_setup) {
+		if (ACPI_BASE != 0 && ACPI_REGION_SIZE != 0) {
+			MEM_ResetPageHandler_Unmapped( ACPI_BASE/4096, ACPI_REGION_SIZE/4096 );
+			acpi_mem_setup = false;
+			PAGING_ClearTLB();
+		}
+	}
+}
+
+void ACPI_free() {
+	if (ACPI_buffer != NULL) {
+		delete[] ACPI_buffer;
+		ACPI_buffer = NULL;
+	}
+	ACPI_buffer_size = 0;
+}
+
+bool ACPI_init() {
+	if (ACPI_buffer == NULL) {
+		if (ACPI_REGION_SIZE == 0 || ACPI_REGION_SIZE > (8ul << 20ull))
+			return false;
+
+		ACPI_buffer_size = ACPI_REGION_SIZE;
+		ACPI_buffer = new unsigned char [ACPI_buffer_size];
+		if (ACPI_buffer == NULL)
+			return false;
+	}
+
+	return (ACPI_buffer != NULL);
+}
+
 static MEM_Callout_t lfb_mem_cb = MEM_Callout_t_none;
 static MEM_Callout_t lfb_mmio_cb = MEM_Callout_t_none;
 
@@ -156,7 +253,7 @@ public:
 
 class RAMPageHandler : public PageHandler {
 public:
-    RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
+    RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
     RAMPageHandler(Bitu flags) : PageHandler(flags) {}
     HostPt GetHostReadPt(Bitu phys_page) {
         if (!a20_fast_changeable || (phys_page & (~0xFul/*64KB*/)) == 0x100ul/*@1MB*/)
@@ -1770,6 +1867,7 @@ void ShutDownRAM(Section * sec) {
 #endif
         MemBase = NULL;
     }
+    ACPI_free();
 }
 
 void MEM_InitCallouts(void) {

@@ -325,6 +325,17 @@ public:
     size_t              alloc_sz = 0;
 };
 
+extern bool ACPI_enabled;
+extern uint32_t ACPI_BASE;
+extern uint32_t ACPI_REGION_SIZE; // power of 2
+extern uint32_t ACPI_version;
+extern unsigned char *ACPI_buffer;
+extern size_t ACPI_buffer_size;
+
+void ACPI_mem_enable(const bool enable);
+void ACPI_free();
+bool ACPI_init();
+
 /* abc = ASCII letters of the alphabet
  * defg = hexadecimal digits */
 #define ISAPNP_ID(a,b,c,d,e,f,g) \
