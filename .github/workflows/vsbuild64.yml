@@ -22,7 +22,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v4
-      - uses: microsoft/setup-msbuild@v1.3
+      - uses: microsoft/setup-msbuild@v2
       - name: Prepare Visual Studio Win64
         shell: bash
         run: |
@@ -132,7 +132,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v4
-      - uses: microsoft/setup-msbuild@v1.3
+      - uses: microsoft/setup-msbuild@v2
       - name: Prepare Visual Studio ARM64
         shell: bash
         run: |
