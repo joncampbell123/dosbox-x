@@ -7970,6 +7970,13 @@ private:
 # endif
 #endif
 
+	ACPI_mem_enable(false);
+	ACPI_REGION_SIZE = 0;
+	ACPI_BASE = 0;
+	ACPI_enabled = false;
+	ACPI_version = 0;
+	ACPI_free();
+
         /* If we're here because of a JMP to F000:FFF0 from a DOS program, then
          * an actual reset is needed to prevent reentrancy problems with the DOS
          * kernel shell. The WINNT.EXE install program for Windows NT/2000/XP
@@ -7977,17 +7984,37 @@ private:
         if (!dos_kernel_disabled && first_shell != NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("BIOS POST: JMP to F000:FFF0 detected, initiating proper reset");
 		throw int(9);
-        }
+	}
 
-        {
-            Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-            int val = section->Get_int("reboot delay");
+	{
+		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+		int val = section->Get_int("reboot delay");
 
-            if (val < 0)
-                val = IS_PC98_ARCH ? 1000 : 500;
+		if (val < 0)
+			val = IS_PC98_ARCH ? 1000 : 500;
 
-            reset_post_delay = (unsigned int)val;
-        }
+		reset_post_delay = (unsigned int)val;
+
+		/* Read the ACPI setting and decide on a ACPI region to use */
+		{
+			std::string s = section->Get_string("acpi");
+
+			if (IS_PC98_ARCH) {
+				/* do not enable ACPI, PC-98 does not have it */
+			}
+			else if (MEM_get_address_bits() < 32) {
+				/* I doubt any 486DX systems with less than 32 address bits has ACPI */
+			}
+			else if (s == "1.0") {
+				ACPI_version = 0x100;
+				ACPI_REGION_SIZE = (256u << 10u); // 256KB
+			}
+			else if (s == "1.0b") {
+				ACPI_version = 0x10B;
+				ACPI_REGION_SIZE = (256u << 10u); // 256KB
+			}
+		}
+	}
 
         if (bios_post_counter != 0 && reset_post_delay != 0) {
             /* reboot delay, in case the guest OS/application had something to day before hitting the "reset" signal */
@@ -8260,6 +8287,19 @@ private:
         adapter_scan_start = 0xC0000;
         bios_has_exec_vga_bios = false;
         LOG(LOG_MISC,LOG_DEBUG)("BIOS: executing POST routine");
+
+	if (ACPI_REGION_SIZE != 0) {
+		// place it just below the mirror of the BIOS at FFFF0000
+		ACPI_BASE = 0xFFFF0000 - ACPI_REGION_SIZE;
+
+		LOG(LOG_MISC,LOG_DEBUG)("ACPI: Setting up version %u.%02x at 0x%lx-0x%lx",
+				ACPI_version>>8,ACPI_version&0xFF,
+				(unsigned long)ACPI_BASE,(unsigned long)(ACPI_BASE+ACPI_REGION_SIZE-1lu));
+
+		ACPI_init();
+		ACPI_mem_enable(true);
+		memset(ACPI_buffer,0,ACPI_buffer_size);
+	}
 
         // TODO: Anything we can test in the CPU here?
 
