@@ -7955,6 +7955,215 @@ static int bios_post_counter = 0;
 extern void BIOSKEY_PC98_Write_Tables(void);
 extern Bitu PC98_AVSDRV_PCM_Handler(void);
 
+static unsigned int acpiptr2ofs(unsigned char *w) {
+	return w - ACPI_buffer;
+}
+
+static PhysPt acpiofs2phys(unsigned int o) {
+	return ACPI_BASE + o;
+}
+
+class ACPISysDescTableWriter {
+public:
+	ACPISysDescTableWriter();
+	~ACPISysDescTableWriter(void);
+public:
+	ACPISysDescTableWriter &begin(unsigned char *w,unsigned char *f,size_t n_tablesize=36);
+	ACPISysDescTableWriter &setRev(const unsigned char rev);
+	ACPISysDescTableWriter &setOemID(const char *id);
+	ACPISysDescTableWriter &setSig(const char *sig);
+	ACPISysDescTableWriter &setOemTableID(const char *id);
+	ACPISysDescTableWriter &setOemRev(const uint32_t rev);
+	ACPISysDescTableWriter &setCreatorID(const uint32_t id);
+	ACPISysDescTableWriter &setCreatorRev(const uint32_t rev);
+	ACPISysDescTableWriter &expandto(size_t sz);
+	unsigned char* getptr(size_t ofs=0,size_t sz=1);
+	size_t get_tablesize(void) const;
+	unsigned char* finish(void);
+private:
+	size_t				tablesize = 0;
+	unsigned char*			base = NULL;
+	unsigned char*			f = NULL;
+};
+
+size_t ACPISysDescTableWriter::get_tablesize(void) const {
+	return tablesize;
+}
+
+ACPISysDescTableWriter::ACPISysDescTableWriter() {
+}
+
+ACPISysDescTableWriter::~ACPISysDescTableWriter(void) {
+	if (tablesize != 0) LOG(LOG_MISC,LOG_ERROR)("ACPI table writer destructor called without completing a table");
+}
+
+ACPISysDescTableWriter &ACPISysDescTableWriter::begin(unsigned char *n_w,unsigned char *n_f,size_t n_tablesize) {
+	if (tablesize != 0) LOG(LOG_MISC,LOG_ERROR)("ACPI table writer asked to begin a table without completing the last table");
+	base = n_w;
+	f = n_f;
+	tablesize = n_tablesize;
+	assert(tablesize >= 36);
+	assert((base+tablesize) <= f);
+	assert(base != NULL);
+	assert(f != NULL);
+	assert(base < f);
+
+	memset(base,0,36);
+	memcpy(base+10,"DOSBOX",6); // OEM ID
+	memcpy(base+16,"DOSBox-X",8); // OEM Table ID
+	host_writed(base+24,1); // OEM revision
+	memcpy(base+28,"DBOX",4); // Creator ID
+	host_writed(base+32,1); // Creator revision
+
+	return *this;
+}
+
+ACPISysDescTableWriter &ACPISysDescTableWriter::setRev(const unsigned char rev) {
+	assert(base != NULL);
+	assert(tablesize >= 36);
+	base[8] = rev;
+	return *this;
+}
+
+ACPISysDescTableWriter &ACPISysDescTableWriter::setOemID(const char *id) {
+	assert(id != NULL);
+	assert(base != NULL);
+	assert(tablesize >= 36);
+	unsigned char *wp = base+10;
+	for (unsigned int i=0;i < 6;i++) {
+		if (*id != 0)
+			*wp++ = (unsigned char)(*id++);
+		else
+			*wp++ = ' ';
+	}
+	return *this;
+}
+
+ACPISysDescTableWriter &ACPISysDescTableWriter::setSig(const char *sig) {
+	assert(sig != NULL);
+	assert(base != NULL);
+	assert(tablesize >= 36);
+	unsigned char *wp = base;
+	for (unsigned int i=0;i < 4;i++) {
+		if (*sig != 0)
+			*wp++ = (unsigned char)(*sig++);
+		else
+			*wp++ = ' ';
+	}
+	return *this;
+}
+
+ACPISysDescTableWriter &ACPISysDescTableWriter::setOemTableID(const char *id) {
+	assert(id != NULL);
+	assert(base != NULL);
+	assert(tablesize >= 36);
+	unsigned char *wp = base+16;
+	for (unsigned int i=0;i < 8;i++) {
+		if (*id != 0)
+			*wp++ = (unsigned char)(*id++);
+		else
+			*wp++ = ' ';
+	}
+	return *this;
+}
+
+ACPISysDescTableWriter &ACPISysDescTableWriter::setOemRev(const uint32_t rev) {
+	assert(base != NULL);
+	assert(tablesize >= 36);
+	host_writed(base+24,rev);
+	return *this;
+}
+
+ACPISysDescTableWriter &ACPISysDescTableWriter::setCreatorID(const uint32_t id) {
+	assert(base != NULL);
+	assert(tablesize >= 36);
+	host_writed(base+28,id);
+	return *this;
+}
+
+ACPISysDescTableWriter &ACPISysDescTableWriter::setCreatorRev(const uint32_t rev) {
+	assert(base != NULL);
+	assert(tablesize >= 36);
+	host_writed(base+32,rev);
+	return *this;
+}
+
+ACPISysDescTableWriter &ACPISysDescTableWriter::expandto(size_t sz) {
+	assert(base != NULL);
+	assert((base+sz) <= f);
+	if (tablesize < sz) tablesize = sz;
+	return *this;
+}
+
+unsigned char* ACPISysDescTableWriter::getptr(size_t ofs,size_t sz) {
+	assert(base != NULL);
+	assert((base+ofs) < f);
+	if (tablesize < (ofs+sz)) tablesize = ofs+sz;
+	return base+ofs;
+}
+
+unsigned char *ACPISysDescTableWriter::finish(void) {
+	if (base != NULL) {
+		unsigned char *ret = base;
+
+		assert((base+tablesize) <= f);
+		assert(tablesize >= 36);
+
+		/* update length field */
+		host_writed(base+4,tablesize);
+
+		/* update checksum field */
+		unsigned int i,c;
+		base[9] = 0;
+		c = 0; for (i=0;i < tablesize;i++) c += base[i];
+		base[9] = (0 - c) & 0xFFu;
+
+		base = f = NULL;
+		tablesize = 0;
+		return ret;
+	}
+
+	return NULL;
+}
+
+void BuildACPITable(void) {
+	uint32_t rsdt_reserved = 16384;
+	unsigned char *w,*f;
+	unsigned int i,c;
+
+	if (ACPI_buffer == NULL || ACPI_buffer_size < 32768) return;
+	w = ACPI_buffer;
+	f = ACPI_buffer+ACPI_buffer_size-rsdt_reserved;
+
+	/* RSDT starts at last 16KB of ACPI buffer because it needs to build up a list of other tables */
+	unsigned char *rsdt = f - rsdt_reserved;
+
+	/* RSD PTR is written to the legacy BIOS region, on a 16-byte boundary */
+	Bitu rsdptr = ROMBIOS_GetMemory(20,"ACPI BIOS Root System Description Pointer",/*paragraph align*/16);
+	if (rsdptr == 0) E_Exit("ACPI BIOS RSD PTR alloc fail");
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI: RSD PTR at 0x%lx",(unsigned long)rsdptr);
+
+	phys_writes(rsdptr +  0,"RSD PTR ",8); // Signature
+	phys_writeb(rsdptr +  8,0); // Checksum (fill in later)
+	phys_writes(rsdptr +  9,"DOSBOX",6); // OEMID
+	phys_writeb(rsdptr + 15,0); // Reserved must be zero
+	phys_writed(rsdptr + 16,acpiofs2phys( acpiptr2ofs( rsdt ) )); // RSDT physical address
+	c=0; for (i=0;i < 20;i++) c += phys_readb(rsdptr+i);
+	phys_writeb(rsdptr +  8,(0u - c)&0xFF); // Checksum
+
+	/* RSDT */
+	ACPISysDescTableWriter rsdt_tw;
+	rsdt_tw.begin(rsdt,f).setSig("RSDT").setRev(1);
+	unsigned int rsdt_tw_ofs = 36;
+	// leave open for adding one DWORD per table to the end as we go... this is why RSDT is written to the END of the ACPI region.
+
+	// TODO
+
+	/* Finish RSDT */
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI: RDST at 0x%lx len 0x%lx",(unsigned long)acpiofs2phys( acpiptr2ofs( rsdt ) ),(unsigned long)rsdt_tw.get_tablesize());
+	rsdt_tw.finish();
+}
+
 class BIOS:public Module_base{
 private:
     static Bitu cb_bios_post__func(void) {
@@ -8293,10 +8502,11 @@ private:
 		ACPI_BASE = 0xFFFF0000 - ACPI_REGION_SIZE;
 
 		LOG(LOG_MISC,LOG_DEBUG)("ACPI: Setting up version %u.%02x at 0x%lx-0x%lx",
-				ACPI_version>>8,ACPI_version&0xFF,
-				(unsigned long)ACPI_BASE,(unsigned long)(ACPI_BASE+ACPI_REGION_SIZE-1lu));
+			ACPI_version>>8,ACPI_version&0xFF,
+			(unsigned long)ACPI_BASE,(unsigned long)(ACPI_BASE+ACPI_REGION_SIZE-1lu));
 
 		ACPI_init();
+		ACPI_enabled = true;
 		ACPI_mem_enable(true);
 		memset(ACPI_buffer,0,ACPI_buffer_size);
 	}
@@ -9196,6 +9406,8 @@ private:
                 LOG_MSG("xxxx");
             }
         }
+
+	if (ACPI_enabled) BuildACPITable();
 
         CPU_STI();
 
