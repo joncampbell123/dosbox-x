@@ -253,7 +253,7 @@ public:
 
 class RAMPageHandler : public PageHandler {
 public:
-    RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
+    RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
     RAMPageHandler(Bitu flags) : PageHandler(flags) {}
     HostPt GetHostReadPt(Bitu phys_page) {
         if (!a20_fast_changeable || (phys_page & (~0xFul/*64KB*/)) == 0x100ul/*@1MB*/)
