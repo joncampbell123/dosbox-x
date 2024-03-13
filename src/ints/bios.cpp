@@ -75,6 +75,12 @@ extern bool PS1AudioCard;
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+unsigned char ACPI_ENABLE_CMD = 0xA1;
+unsigned char ACPI_DISABLE_CMD = 0xA0;
+unsigned int ACPI_PM1A_EVT_BLK = 0x820;
+unsigned int ACPI_PM1A_CNT_BLK = 0x830;
+unsigned int ACPI_PM_TMR_BLK = 0x840;
+
 std::string ibm_rom_basic;
 size_t ibm_rom_basic_size = 0;
 uint32_t ibm_rom_basic_base = 0;
@@ -8008,7 +8014,7 @@ ACPISysDescTableWriter &ACPISysDescTableWriter::begin(unsigned char *n_w,unsigne
 	assert(f != NULL);
 	assert(base < f);
 
-	memset(base,0,36);
+	memset(base,0,tablesize);
 	memcpy(base+10,"DOSBOX",6); // OEM ID
 	memcpy(base+16,"DOSBox-X",8); // OEM Table ID
 	host_writed(base+24,1); // OEM revision
@@ -8097,7 +8103,7 @@ ACPISysDescTableWriter &ACPISysDescTableWriter::expandto(size_t sz) {
 
 unsigned char* ACPISysDescTableWriter::getptr(size_t ofs,size_t sz) {
 	assert(base != NULL);
-	assert((base+ofs) < f);
+	assert((base+ofs+sz) <= f);
 	if (tablesize < (ofs+sz)) tablesize = ofs+sz;
 	return base+ofs;
 }
@@ -8136,7 +8142,7 @@ void BuildACPITable(void) {
 	f = ACPI_buffer+ACPI_buffer_size-rsdt_reserved;
 
 	/* RSDT starts at last 16KB of ACPI buffer because it needs to build up a list of other tables */
-	unsigned char *rsdt = f - rsdt_reserved;
+	unsigned char *rsdt = f;
 
 	/* RSD PTR is written to the legacy BIOS region, on a 16-byte boundary */
 	Bitu rsdptr = ROMBIOS_GetMemory(20,"ACPI BIOS Root System Description Pointer",/*paragraph align*/16);
@@ -8153,11 +8159,37 @@ void BuildACPITable(void) {
 
 	/* RSDT */
 	ACPISysDescTableWriter rsdt_tw;
-	rsdt_tw.begin(rsdt,f).setSig("RSDT").setRev(1);
+	rsdt_tw.begin(rsdt,ACPI_buffer+ACPI_buffer_size).setSig("RSDT").setRev(1);
 	unsigned int rsdt_tw_ofs = 36;
 	// leave open for adding one DWORD per table to the end as we go... this is why RSDT is written to the END of the ACPI region.
 
-	// TODO
+	{
+		ACPISysDescTableWriter facp;
+		const PhysPt facp_offset = acpiofs2phys( acpiptr2ofs( w ) );
+
+		host_writed(rsdt_tw.getptr(rsdt_tw_ofs,4),(uint32_t)facp_offset);
+		rsdt_tw_ofs += 4;
+
+		facp.begin(w,f,116).setSig("FACP").setRev(1);
+		// TODO: FIRMWARE_CTRL (FACS)
+		// TODO: DSDT
+		w[44] = 0; // dual PIC PC-AT type implementation
+		host_writew(w+46,ACPI_IRQ); // SCI_INT
+		host_writed(w+48,ACPI_SMI_CMD); // SCI_CMD (I/O port)
+		w[52] = ACPI_ENABLE_CMD; // what the guest writes to SMI_CMD to disable SMI ownership from BIOS during bootup
+		w[53] = ACPI_DISABLE_CMD; // what the guest writes to SMI_CMD to re-enable SMI ownership to BIOS
+		// TODO: S4BIOS_REQ
+		host_writed(w+56,ACPI_PM1A_EVT_BLK); // PM1a_EVT_BLK event register block
+		host_writed(w+64,ACPI_PM1A_CNT_BLK); // PM1a_CNT_BLK control register block
+		host_writed(w+76,ACPI_PM_TMR_BLK); // PM_TMR_BLK power management timer control register block
+		w[88] = 4; // PM1_EVT_LEN
+		w[89] = 1; // PM1_CNT_LEN
+		w[90] = 1; // PM2_CNT_LEN
+		w[91] = 4; // PM_TM_LEN
+		host_writed(w+112,(1u << 0u)/*WBINVD*/);
+		LOG(LOG_MISC,LOG_DEBUG)("ACPI: FACP at 0x%lx len 0x%lx",(unsigned long)facp_offset,(unsigned long)facp.get_tablesize());
+		w = facp.finish();
+	}
 
 	/* Finish RSDT */
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI: RDST at 0x%lx len 0x%lx",(unsigned long)acpiofs2phys( acpiptr2ofs( rsdt ) ),(unsigned long)rsdt_tw.get_tablesize());
@@ -8222,6 +8254,12 @@ private:
 				ACPI_version = 0x10B;
 				ACPI_REGION_SIZE = (256u << 10u); // 256KB
 			}
+		}
+
+		/* TODO: Read from dosbox.conf */
+		if (ACPI_version != 0) {
+			ACPI_IRQ = 9;
+			ACPI_SMI_CMD = 0x4FE;
 		}
 	}
 

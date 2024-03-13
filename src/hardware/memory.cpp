@@ -65,6 +65,8 @@ uint32_t ACPI_REGION_SIZE=0; // power of 2
 uint32_t ACPI_version=0;
 unsigned char *ACPI_buffer=NULL;
 size_t ACPI_buffer_size=0;
+int ACPI_IRQ=-1;
+unsigned int ACPI_SMI_CMD=0;
 
 class ACPIPageHandler : public PageHandler {
 	public:

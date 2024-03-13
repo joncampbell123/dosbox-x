@@ -331,6 +331,8 @@ extern uint32_t ACPI_REGION_SIZE; // power of 2
 extern uint32_t ACPI_version;
 extern unsigned char *ACPI_buffer;
 extern size_t ACPI_buffer_size;
+extern int ACPI_IRQ;
+extern unsigned int ACPI_SMI_CMD;
 
 void ACPI_mem_enable(const bool enable);
 void ACPI_free();
