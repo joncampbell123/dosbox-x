@@ -91,6 +91,7 @@
 					if (CPU_LMSW((uint16_t)limit)) RUNEXCEPTION();
 					break;
 				case 0x07:										/* INVLPG */
+					if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 					PAGING_ClearTLB();
 					break;

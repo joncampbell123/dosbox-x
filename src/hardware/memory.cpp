@@ -73,6 +73,7 @@ class ACPIPageHandler : public PageHandler {
 		ACPIPageHandler() : PageHandler(PFLAG_NOCODE) {}
 		ACPIPageHandler(Bitu flags) : PageHandler(flags) {}
 		uint8_t readb(PhysPt addr) {
+			addr = PAGING_GetPhysicalAddress(addr);
 			if (ACPI_buffer != NULL) {
 				const PhysPt rel = addr - ACPI_BASE;
 				if (rel < ACPI_buffer_size) return ACPI_buffer[rel];
