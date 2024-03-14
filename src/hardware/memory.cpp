@@ -70,25 +70,23 @@ unsigned int ACPI_SMI_CMD=0;
 
 class ACPIPageHandler : public PageHandler {
 	public:
-		ACPIPageHandler() : PageHandler(PFLAG_NOCODE) {}
+		ACPIPageHandler() : PageHandler(PFLAG_NOCODE|PFLAG_READABLE|PFLAG_WRITEABLE) {}
 		ACPIPageHandler(Bitu flags) : PageHandler(flags) {}
-		uint8_t readb(PhysPt addr) {
-			addr = PAGING_GetPhysicalAddress(addr);
-			if (ACPI_buffer != NULL) {
-				const PhysPt rel = addr - ACPI_BASE;
-				if (rel < ACPI_buffer_size) return ACPI_buffer[rel];
-			}
-
-			return 0xFF;
+		HostPt GetHostReadPt(Bitu phys_page) {
+			assert(ACPI_buffer != NULL);
+			assert(ACPI_buffer_size >= 4096);
+			phys_page -= (ACPI_BASE >> 12);
+			phys_page &= (ACPI_REGION_SIZE >> 12) - 1;
+			if (phys_page >= (ACPI_buffer_size >> 12)) phys_page = (ACPI_buffer_size >> 12) - 1;
+			return ACPI_buffer + (phys_page << 12);
 		}
-		void writeb(PhysPt addr,uint8_t val){
-			LOG(LOG_CPU,LOG_ERROR)("Write %x to acpi at %x",(int)val,(int)addr);
-		}
-		void writew(PhysPt addr,uint16_t val){
-			LOG(LOG_CPU,LOG_ERROR)("Write %x to acpi at %x",(int)val,(int)addr);
-		}
-		void writed(PhysPt addr,uint32_t val){
-			LOG(LOG_CPU,LOG_ERROR)("Write %x to acpi at %x",(int)val,(int)addr);
+		HostPt GetHostWritePt(Bitu phys_page) {
+			assert(ACPI_buffer != NULL);
+			assert(ACPI_buffer_size >= 4096);
+			phys_page -= (ACPI_BASE >> 12);
+			phys_page &= (ACPI_REGION_SIZE >> 12) - 1;
+			if (phys_page >= (ACPI_buffer_size >> 12)) phys_page = (ACPI_buffer_size >> 12) - 1;
+			return ACPI_buffer + (phys_page << 12);
 		}
 };
 
