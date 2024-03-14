@@ -78,8 +78,8 @@ extern bool PS1AudioCard;
 unsigned char ACPI_ENABLE_CMD = 0xA1;
 unsigned char ACPI_DISABLE_CMD = 0xA0;
 unsigned int ACPI_PM1A_EVT_BLK = 0x820;
-unsigned int ACPI_PM1A_CNT_BLK = 0x830;
-unsigned int ACPI_PM_TMR_BLK = 0x840;
+unsigned int ACPI_PM1A_CNT_BLK = 0x824;
+unsigned int ACPI_PM_TMR_BLK = 0x830;
 
 std::string ibm_rom_basic;
 size_t ibm_rom_basic_size = 0;
@@ -8183,8 +8183,8 @@ void BuildACPITable(void) {
 		host_writed(w+64,ACPI_PM1A_CNT_BLK); // PM1a_CNT_BLK control register block
 		host_writed(w+76,ACPI_PM_TMR_BLK); // PM_TMR_BLK power management timer control register block
 		w[88] = 4; // PM1_EVT_LEN
-		w[89] = 1; // PM1_CNT_LEN
-		w[90] = 1; // PM2_CNT_LEN
+		w[89] = 2; // PM1_CNT_LEN
+		w[90] = 0; // PM2_CNT_LEN
 		w[91] = 4; // PM_TM_LEN
 		host_writed(w+112,(1u << 0u)/*WBINVD*/);
 		LOG(LOG_MISC,LOG_DEBUG)("ACPI: FACP at 0x%lx len 0x%lx",(unsigned long)facp_offset,(unsigned long)facp.get_tablesize());
