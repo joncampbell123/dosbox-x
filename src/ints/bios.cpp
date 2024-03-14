@@ -8110,7 +8110,7 @@ unsigned char* ACPISysDescTableWriter::getptr(size_t ofs,size_t sz) {
 
 unsigned char *ACPISysDescTableWriter::finish(void) {
 	if (base != NULL) {
-		unsigned char *ret = base;
+		unsigned char *ret = base + tablesize;
 
 		assert((base+tablesize) <= f);
 		assert(tablesize >= 36);
@@ -8163,6 +8163,31 @@ void BuildACPITable(void) {
 	unsigned int rsdt_tw_ofs = 36;
 	// leave open for adding one DWORD per table to the end as we go... this is why RSDT is written to the END of the ACPI region.
 
+	/* FACP, which does not have a checksum and does not follow the normal format */
+	unsigned char *facs = w;
+	size_t facs_size = 64;
+	w += facs_size;
+	{
+		assert(w <= f);
+		memset(facs,0,facs_size);
+		memcpy(facs+0x00,"FACS",4);
+		host_writed(facs+0x04,facs_size);
+		host_writed(facs+0x08,0x12345678UL); // hardware signature
+		host_writed(facs+0x0C,0); // firmware waking vector
+		host_writed(facs+0x10,0); // global lock
+		host_writed(facs+0x14,0); // S4BIOS_REQ not supported
+		LOG(LOG_MISC,LOG_DEBUG)("ACPI: FACS at 0x%lx len 0x%lx",(unsigned long)acpiofs2phys( acpiptr2ofs( facs ) ),(unsigned long)facs_size);
+	}
+
+	unsigned char *dsdt_base = w;
+	{
+		ACPISysDescTableWriter dsdt;
+
+		dsdt.begin(w,f).setSig("DSDT").setRev(1);
+		LOG(LOG_MISC,LOG_DEBUG)("ACPI: DSDT at 0x%lx len 0x%lx",(unsigned long)acpiofs2phys( acpiptr2ofs( dsdt_base ) ),(unsigned long)dsdt.get_tablesize());
+		w = dsdt.finish();
+	}
+
 	{
 		ACPISysDescTableWriter facp;
 		const PhysPt facp_offset = acpiofs2phys( acpiptr2ofs( w ) );
@@ -8171,8 +8196,8 @@ void BuildACPITable(void) {
 		rsdt_tw_ofs += 4;
 
 		facp.begin(w,f,116).setSig("FACP").setRev(1);
-		// TODO: FIRMWARE_CTRL (FACS)
-		// TODO: DSDT
+		host_writed(w+36,acpiofs2phys( acpiptr2ofs( facs ) ) ); // FIRMWARE_CTRL (FACS table)
+		host_writed(w+40,acpiofs2phys( acpiptr2ofs( dsdt_base ) ) ); // DSDT
 		w[44] = 0; // dual PIC PC-AT type implementation
 		host_writew(w+46,ACPI_IRQ); // SCI_INT
 		host_writed(w+48,ACPI_SMI_CMD); // SCI_CMD (I/O port)
