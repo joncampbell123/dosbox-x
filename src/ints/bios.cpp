@@ -8196,7 +8196,7 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &FieldOpEnd(void);
 		ACPIAMLWriter &ScopeOp(const char *name,const unsigned int pred_size);
 		ACPIAMLWriter &ScopeOpEnd(void);
-		ACPIAMLWriter &PackageOp(const char *name,const unsigned int pred_size);
+		ACPIAMLWriter &PackageOp(const unsigned int pred_size);
 		ACPIAMLWriter &PackageOpEnd(void);
 		ACPIAMLWriter &ZeroOp(void);
 		ACPIAMLWriter &OneOp(void);
@@ -8299,7 +8299,7 @@ ACPIAMLWriter &ACPIAMLWriter::ScopeOpEnd(void) {
 	return *this;
 }
 
-ACPIAMLWriter &ACPIAMLWriter::PackageOp(const char *name,const unsigned int pred_size) {
+ACPIAMLWriter &ACPIAMLWriter::PackageOp(const unsigned int pred_size) {
 	*w++ = 0x12;
 	BeginPkg(pred_size);
 	*w++ = 0x00; // placeholder for element count
@@ -8507,12 +8507,16 @@ void BuildACPITable(void) {
 		aml.ScopeOp("_SB",ACPIAMLWriter::MaxPkgSize);
 		aml.NameOp("TST1").DwordOp(0xABCDEF);
 		/* Package ABCD */
-		aml.PackageOp("ABCD",ACPIAMLWriter::MaxPkgSize);
+		aml.NameOp("ABCD").PackageOp(ACPIAMLWriter::MaxPkgSize);
 		/* Package contents. YOU MUST COUNT ELEMENTS MANUALLY */
 		aml.DwordOp(0xABCDEF).CountElement();
 		aml.DwordOp(0x1234).CountElement();
 		aml.ZeroOp().CountElement();
 		aml.OneOp().CountElement();
+		aml.PackageOp(ACPIAMLWriter::MaxPkgSize);
+		aml.StringOp("Hello world");
+		aml.DwordOp(0xABCD1234);
+		aml.PackageOpEnd();
 		/* Package end */
 		aml.PackageOpEnd();
 		/* end scope */
