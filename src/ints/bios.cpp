@@ -8176,6 +8176,7 @@ class ACPIAMLWriter {
 		struct pkg_t {
 			unsigned char*	pkg_len = NULL;
 			unsigned char*	pkg_data = NULL;
+			unsigned int	element_count = 0;
 		};
 		std::stack<pkg_t> pkg_stack;
 	public:
@@ -8195,6 +8196,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &FieldOpEnd(void);
 		ACPIAMLWriter &ScopeOp(const char *name,const unsigned int pred_size);
 		ACPIAMLWriter &ScopeOpEnd(void);
+		ACPIAMLWriter &PackageOp(const char *name,const unsigned int pred_size);
+		ACPIAMLWriter &PackageOpEnd(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8203,6 +8206,7 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &Name(const char *name);
 		ACPIAMLWriter &BeginPkg(const unsigned int pred_length=MaxPkgSize);
 		ACPIAMLWriter &EndPkg(void);
+		ACPIAMLWriter &CountElement(void);
 	private:
 		unsigned char*		w=NULL,*f=NULL;
 };
@@ -8283,13 +8287,32 @@ ACPIAMLWriter &ACPIAMLWriter::ScopeOpEnd(void) {
 	return *this;
 }
 
+ACPIAMLWriter &ACPIAMLWriter::PackageOp(const char *name,const unsigned int pred_size) {
+	*w++ = 0x12;
+	BeginPkg(pred_size);
+	*w++ = 0x00; // placeholder for element count
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::PackageOpEnd(void) {
+	assert(!pkg_stack.empty());
+
+	pkg_t &ent = pkg_stack.top();
+
+	if (ent.element_count > 255u) E_Exit("ACPI AML writer too many elements in package");
+	*ent.pkg_data = ent.element_count; /* element count follows PkgLength */
+
+	EndPkg();
+	return *this;
+}
+
 ACPIAMLWriter &ACPIAMLWriter::PkgLength(const unsigned int len,const unsigned int minlen) {
 	return PkgLength(len,w,minlen);
 }
 
 ACPIAMLWriter &ACPIAMLWriter::PkgLength(const unsigned int len,unsigned char* &wp,const unsigned int minlen) {
 	if (len >= 0x10000000 || minlen > 4) {
-		E_Exit("ACPI XML writer PkgLength value too large");
+		E_Exit("ACPI AML writer PkgLength value too large");
 	}
 	else if (len >= 0x100000 || minlen >= 4) {
 		*wp++ = (unsigned char)( len        & 0x0F) | 0xC0;
@@ -8350,6 +8373,12 @@ ACPIAMLWriter &ACPIAMLWriter::EndPkg(void) {
 	PkgLength(len,ent.pkg_len,lflen);
 	if (ent.pkg_len != ent.pkg_data) E_Exit("ACPI AML writer length update exceeds pkglength field");
 	pkg_stack.pop();
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::CountElement(void) {
+	if (pkg_stack.empty()) E_Exit("ACPI AML writer counting elements not supported unless within package");
+	pkg_stack.top().element_count++;
 	return *this;
 }
 
@@ -8465,6 +8494,14 @@ void BuildACPITable(void) {
 		/* Scope */
 		aml.ScopeOp("_SB",ACPIAMLWriter::MaxPkgSize);
 		aml.NameOp("TST1").DwordOp(0xABCDEF);
+		/* Package ABCD */
+		aml.PackageOp("ABCD",ACPIAMLWriter::MaxPkgSize);
+		/* Package contents. YOU MUST COUNT ELEMENTS MANUALLY */
+		aml.DwordOp(0xABCDEF).CountElement();
+		aml.DwordOp(0x1234).CountElement();
+		/* Package end */
+		aml.PackageOpEnd();
+		/* end scope */
 		aml.ScopeOpEnd();
 
 		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
