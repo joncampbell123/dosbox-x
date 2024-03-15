@@ -8198,6 +8198,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &ScopeOpEnd(void);
 		ACPIAMLWriter &PackageOp(const char *name,const unsigned int pred_size);
 		ACPIAMLWriter &PackageOpEnd(void);
+		ACPIAMLWriter &ZeroOp(void);
+		ACPIAMLWriter &OneOp(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8210,6 +8212,16 @@ class ACPIAMLWriter {
 	private:
 		unsigned char*		w=NULL,*f=NULL;
 };
+
+ACPIAMLWriter &ACPIAMLWriter::ZeroOp(void) {
+	*w++ = 0x00;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::OneOp(void) {
+	*w++ = 0x01;
+	return *this;
+}
 
 ACPIAMLWriter &ACPIAMLWriter::NameOp(const char *name) {
 	*w++ = 0x08; // NameOp
@@ -8499,6 +8511,8 @@ void BuildACPITable(void) {
 		/* Package contents. YOU MUST COUNT ELEMENTS MANUALLY */
 		aml.DwordOp(0xABCDEF).CountElement();
 		aml.DwordOp(0x1234).CountElement();
+		aml.ZeroOp().CountElement();
+		aml.OneOp().CountElement();
 		/* Package end */
 		aml.PackageOpEnd();
 		/* end scope */
