@@ -8193,6 +8193,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &OpRegionOp(const char *name,const ACPIRegionSpace regionspace);
 		ACPIAMLWriter &FieldOp(const char *name,const unsigned int pred_size,const unsigned int fieldflag);
 		ACPIAMLWriter &FieldOpEnd(void);
+		ACPIAMLWriter &ScopeOp(const char *name,const unsigned int pred_size);
+		ACPIAMLWriter &ScopeOpEnd(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8265,6 +8267,18 @@ ACPIAMLWriter &ACPIAMLWriter::FieldOp(const char *name,const unsigned int pred_s
 }
 
 ACPIAMLWriter &ACPIAMLWriter::FieldOpEnd(void) {
+	EndPkg();
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::ScopeOp(const char *name,const unsigned int pred_size) {
+	*w++ = 0x10;
+	BeginPkg(pred_size);
+	Name(name);
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::ScopeOpEnd(void) {
 	EndPkg();
 	return *this;
 }
@@ -8448,6 +8462,10 @@ void BuildACPITable(void) {
 		aml.FieldOpElement("",5+8);
 		aml.FieldOpElement("AF04",8);
 		aml.FieldOpEnd();
+		/* Scope */
+		aml.ScopeOp("_SB",ACPIAMLWriter::MaxPkgSize);
+		aml.NameOp("TST1").DwordOp(0xABCDEF);
+		aml.ScopeOpEnd();
 
 		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
 		assert(aml.writeptr() <= f);
