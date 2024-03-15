@@ -8132,34 +8132,72 @@ unsigned char *ACPISysDescTableWriter::finish(void) {
 	return NULL;
 }
 
-void ACPIAML1_NameOp(unsigned char* &aml,const char *name) {
-	*aml++ = 0x08; // NameOp
+class ACPIAMLWriter {
+	public:
+		ACPIAMLWriter();
+		~ACPIAMLWriter();
+	public:
+		unsigned char* writeptr(void) const;
+		void begin(unsigned char *n_w,unsigned char *n_f);
+	public:
+		ACPIAMLWriter &NameOp(const char *name);
+		ACPIAMLWriter &ByteOp(const unsigned char v);
+		ACPIAMLWriter &WordOp(const unsigned int v);
+		ACPIAMLWriter &DwordOp(const unsigned long v);
+		ACPIAMLWriter &StringOp(const char *str);
+	private:
+		unsigned char*		w=NULL,*f=NULL;
+};
+
+ACPIAMLWriter &ACPIAMLWriter::NameOp(const char *name) {
+	*w++ = 0x08; // NameOp
 	for (unsigned int i=0;i < 4;i++) {
-		if (*name) *aml++ = *name++;
-		else *aml++ = '_';
+		if (*name) *w++ = *name++;
+		else *w++ = '_';
 	}
+
+	return *this;
 }
 
-void ACPIAML1_ByteOp(unsigned char* &aml,const unsigned char b) {
-	*aml++ = 0x0A; // ByteOp
-	*aml++ = b;
+ACPIAMLWriter &ACPIAMLWriter::ByteOp(const unsigned char v) {
+	*w++ = 0x0A; // ByteOp
+	*w++ = v;
+	return *this;
 }
 
-void ACPIAML1_WordOp(unsigned char* &aml,const unsigned int w) {
-	*aml++ = 0x0B; // WordOp
-	host_writew(aml,w); aml += 2;
+ACPIAMLWriter &ACPIAMLWriter::WordOp(const unsigned int v) {
+	*w++ = 0x0B; // WordOp
+	host_writew(w,v); w += 2;
+	return *this;
 }
 
-void ACPIAML1_DwordOp(unsigned char* &aml,const unsigned long w) {
-	*aml++ = 0x0C; // DwordOp
-	host_writed(aml,w); aml += 4;
+ACPIAMLWriter &ACPIAMLWriter::DwordOp(const unsigned long v) {
+	*w++ = 0x0C; // DwordOp
+	host_writed(w,v); w += 4;
+	return *this;
 }
 
-void ACPIAML1_StringOp(unsigned char* &aml,const char *str) {
+ACPIAMLWriter &ACPIAMLWriter::StringOp(const char *str) {
 	/* WARNING: Strings are only supposed to have ASCII 0x01-0x7F */
-	*aml++ = 0x0D; // StringOp
-	while (*str != 0) *aml++ = *str++;
-	*aml++ = 0x00;
+	*w++ = 0x0D; // StringOp
+	while (*str != 0) *w++ = *str++;
+	*w++ = 0x00;
+	return *this;
+}
+
+ACPIAMLWriter::ACPIAMLWriter() {
+}
+
+ACPIAMLWriter::~ACPIAMLWriter() {
+}
+
+unsigned char* ACPIAMLWriter::writeptr(void) const {
+	return w;
+}
+
+void ACPIAMLWriter::begin(unsigned char *n_w,unsigned char *n_f) {
+	w = n_w;
+	f = n_f;
 }
 
 void BuildACPITable(void) {
@@ -8212,45 +8250,40 @@ void BuildACPITable(void) {
 	unsigned char *dsdt_base = w;
 	{
 		ACPISysDescTableWriter dsdt;
+		ACPIAMLWriter aml;
 
 		dsdt.begin(w,f).setSig("DSDT").setRev(1);
-		{
-			/* "w" is unchanged during this block and therefore serves as base of DSDT table */
-			unsigned char *aml = w + dsdt.get_tablesize(); // from start of table
+		aml.begin(dsdt.getptr()+dsdt.get_tablesize(),f);
 
-			/* WARNING: To simplify this code, you are responsible for writing the AML in the syntax required.
-			 *          See the ACPI BIOS specification for more details.
-			 *
-			 * For reference:
-			 *
-			 * Name := [LeadNameChar NameChar NameChar NameChar] |
-			 *         [LeadNameChar NameChar NameChar '_'] |
-			 *         [LeadNameChar NameChar '_' '_'] |
-			 *         [LeadNameChar '_' '_' '_']
-			 *
-			 * DefName := NameOp Name DataTerm
-			 *     NameOp => 0x08
-			 *     Data := DataTerm [DataTerm ...]
-			 *     DataTerm := DataItem | DefPackage
-			 *     DataItem := DefBuffer | DefNum | DefString
-			 *
-			 *     How to write: ACPIAML1_NameOp(Name) followed by the necessary functions to write the buffer, string, etc. for the name. */
-			/* Name(TST1,0xAB) */
-			ACPIAML1_NameOp(/*&*/aml,"TST1");
-			ACPIAML1_ByteOp(/*&*/aml,0xAB);
-			/* Name(TST2,0x1234) */
-			ACPIAML1_NameOp(/*&*/aml,"TST2");
-			ACPIAML1_WordOp(/*&*/aml,0x1234);
-			/* Name(TST3,0x12345678) */
-			ACPIAML1_NameOp(/*&*/aml,"TST3");
-			ACPIAML1_DwordOp(/*&*/aml,0x12345678);
-			/* Name(TST4,"Hello ACPI BIOS") */
-			ACPIAML1_NameOp(/*&*/aml,"TST4");
-			ACPIAML1_StringOp(/*&*/aml,"Hello ACPI BIOS");
+		/* WARNING: To simplify this code, you are responsible for writing the AML in the syntax required.
+		 *          See the ACPI BIOS specification for more details.
+		 *
+		 * For reference:
+		 *
+		 * Name := [LeadNameChar NameChar NameChar NameChar] |
+		 *         [LeadNameChar NameChar NameChar '_'] |
+		 *         [LeadNameChar NameChar '_' '_'] |
+		 *         [LeadNameChar '_' '_' '_']
+		 *
+		 * DefName := NameOp Name DataTerm
+		 *     NameOp => 0x08
+		 *     Data := DataTerm [DataTerm ...]
+		 *     DataTerm := DataItem | DefPackage
+		 *     DataItem := DefBuffer | DefNum | DefString
+		 *
+		 *     How to write: ACPIAML1_NameOp(Name) followed by the necessary functions to write the buffer, string, etc. for the name. */
+		/* Name(TST1,0xAB) */
+		aml.NameOp("TST1").ByteOp(0xAB);
+		/* Name(TST2,0x1234) */
+		aml.NameOp("TST2").WordOp(0x1234);
+		/* Name(TST3,0x12345678) */
+		aml.NameOp("TST3").DwordOp(0x12345678);
+		/* Name(TST4,"Hello ACPI BIOS") */
+		aml.NameOp("TST4").StringOp("Hello ACPI BIOS");
 
-			assert(aml <= f);
-			dsdt.expandto((size_t)(aml - w)); /* "w" still hasn't changed yet */
-		}
+		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
+		assert(aml.writeptr() <= f);
+		dsdt.expandto((size_t)(aml.writeptr() - dsdt.getptr()));
 		LOG(LOG_MISC,LOG_DEBUG)("ACPI: DSDT at 0x%lx len 0x%lx",(unsigned long)acpiofs2phys( acpiptr2ofs( dsdt_base ) ),(unsigned long)dsdt.get_tablesize());
 		w = dsdt.finish();
 	}
