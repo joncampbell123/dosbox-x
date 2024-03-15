@@ -8132,6 +8132,14 @@ unsigned char *ACPISysDescTableWriter::finish(void) {
 	return NULL;
 }
 
+enum class ACPIRegionSpace {
+	SystemMemory=0,
+	SystemIO=1,
+	PCIConfig=2,
+	EmbeddedControl=3,
+	SMBus=4
+};
+
 class ACPIAMLWriter {
 	public:
 		ACPIAMLWriter();
@@ -8145,12 +8153,20 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &WordOp(const unsigned int v);
 		ACPIAMLWriter &DwordOp(const unsigned long v);
 		ACPIAMLWriter &StringOp(const char *str);
+		ACPIAMLWriter &OpRegionOp(const char *name,const ACPIRegionSpace regionspace);
+	public:
+		ACPIAMLWriter &Name(const char *name);
 	private:
 		unsigned char*		w=NULL,*f=NULL;
 };
 
 ACPIAMLWriter &ACPIAMLWriter::NameOp(const char *name) {
 	*w++ = 0x08; // NameOp
+	Name(name);
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::Name(const char *name) {
 	for (unsigned int i=0;i < 4;i++) {
 		if (*name) *w++ = *name++;
 		else *w++ = '_';
@@ -8182,6 +8198,15 @@ ACPIAMLWriter &ACPIAMLWriter::StringOp(const char *str) {
 	*w++ = 0x0D; // StringOp
 	while (*str != 0) *w++ = *str++;
 	*w++ = 0x00;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::OpRegionOp(const char *name,const ACPIRegionSpace regionspace) {
+	*w++ = 0x5B;
+	*w++ = 0x80;
+	Name(name);
+	*w++ = (unsigned char)regionspace;
+	// and then the caller must write the RegionAddress and RegionLength
 	return *this;
 }
 
@@ -8280,6 +8305,10 @@ void BuildACPITable(void) {
 		aml.NameOp("TST3").DwordOp(0x12345678);
 		/* Name(TST4,"Hello ACPI BIOS") */
 		aml.NameOp("TST4").StringOp("Hello ACPI BIOS");
+		/* OperationRegion(ABC,SystemMemory,0xAABB0000,0x4100) */
+		aml.OpRegionOp("ABC",ACPIRegionSpace::SystemMemory).DwordOp(0xAABB0000).WordOp(0x4100);
+		/* OperationRegion(ABC2,SystemIO,0x880,0x18) */
+		aml.OpRegionOp("ABC2",ACPIRegionSpace::SystemIO).WordOp(0x880).WordOp(0x18);
 
 		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
 		assert(aml.writeptr() <= f);
