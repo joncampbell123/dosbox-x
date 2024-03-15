@@ -8140,7 +8140,44 @@ enum class ACPIRegionSpace {
 	SMBus=4
 };
 
+namespace ACPIFieldFlag {
+	namespace AccessType {
+		enum {
+			AnyAcc=0,
+			ByteAcc=1,
+			WordAcc=2,
+			DwordAcc=3,
+			BlockAcc=4,
+			SMBSendRevAcc=5,
+			SMBQuickAcc=6
+		};
+	}
+	namespace LockRule {
+		enum {
+			NoLock=(0 << 4),
+			Lock=(1 << 4)
+		};
+	}
+	namespace UpdateRule {
+		enum {
+			Preserve=(0 << 5),
+			WriteAsOnes=(1 << 5),
+			WriteAsZeros=(2 << 5)
+		};
+	}
+}
+
+#include <stack>
+
 class ACPIAMLWriter {
+	public:
+		static constexpr unsigned int MaxPkgSize = 0xFFFFFFFu;
+	public:
+		struct pkg_t {
+			unsigned char*	pkg_len = NULL;
+			unsigned char*	pkg_data = NULL;
+		};
+		std::stack<pkg_t> pkg_stack;
 	public:
 		ACPIAMLWriter();
 		~ACPIAMLWriter();
@@ -8154,8 +8191,14 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &DwordOp(const unsigned long v);
 		ACPIAMLWriter &StringOp(const char *str);
 		ACPIAMLWriter &OpRegionOp(const char *name,const ACPIRegionSpace regionspace);
+		ACPIAMLWriter &FieldOp(const char *name,const unsigned int pred_size,const unsigned int fieldflag);
+		ACPIAMLWriter &FieldOpEnd(void);
+	public:// ONLY for writing fields!
+		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
 		ACPIAMLWriter &Name(const char *name);
+		ACPIAMLWriter &BeginPkg(const unsigned int pred_length=MaxPkgSize);
+		ACPIAMLWriter &EndPkg(void);
 	private:
 		unsigned char*		w=NULL,*f=NULL;
 };
@@ -8207,6 +8250,125 @@ ACPIAMLWriter &ACPIAMLWriter::OpRegionOp(const char *name,const ACPIRegionSpace 
 	Name(name);
 	*w++ = (unsigned char)regionspace;
 	// and then the caller must write the RegionAddress and RegionLength
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::FieldOp(const char *name,const unsigned int pred_size,const unsigned int fieldflag) {
+	*w++ = 0x5B;
+	*w++ = 0x81;
+	BeginPkg(pred_size);
+	Name(name);
+	*w++ = fieldflag;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::FieldOpEnd(void) {
+	EndPkg();
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::FieldOpElement(const char *name,const unsigned int bits) {
+	if (*name != 0)
+		Name(name);
+	else
+		*w++ = 0;
+
+	if (bits >= 0x10000000) {
+		E_Exit("ACPI XML writer FieldOpElement value too large");
+	}
+	else if (bits >= 0x100000) {
+		*w++ = (unsigned char)( bits        & 0x0F) | 0xC0;
+		*w++ = (unsigned char)((bits >>  4) & 0xFF);
+		*w++ = (unsigned char)((bits >> 12) & 0xFF);
+		*w++ = (unsigned char)((bits >> 20) & 0xFF);
+	}
+	else if (bits >= 0x1000) {
+		*w++ = (unsigned char)( bits        & 0x0F) | 0x80;
+		*w++ = (unsigned char)((bits >>  4) & 0xFF);
+		*w++ = (unsigned char)((bits >> 12) & 0xFF);
+	}
+	else if (bits >= 0x40) {
+		*w++ = (unsigned char)( bits        & 0x0F) | 0x40;
+		*w++ = (unsigned char)((bits >>  4) & 0xFF);
+	}
+	else {
+		*w++ = (unsigned char)bits;
+	}
+
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::BeginPkg(const unsigned int pred_length) {
+	pkg_t ent;
+
+	/* WARNING: Specify a size large enough. Once written, it cannot be extended if
+	 *          needed. By default, this code writes an overlarge field to make sure
+	 *          it can always update */
+
+	if (pkg_stack.size() >= 32) E_Exit("ACPI AML writer BeginPkg too much recursion");
+
+	ent.pkg_len = w;
+	if (pred_length >= 0x10000000) {
+		E_Exit("ACPI XML writer BeginPkg predicted length too large");
+	}
+	else if (pred_length >= 0x100000) {
+		*w++ = 0;
+		*w++ = 0;
+		*w++ = 0;
+		*w++ = 0;
+	}
+	else if (pred_length >= 0x1000) {
+		*w++ = 0;
+		*w++ = 0;
+		*w++ = 0;
+	}
+	else if (pred_length >= 0x40) {
+		*w++ = 0;
+		*w++ = 0;
+	}
+	else {
+		*w++ = 0;
+	}
+	ent.pkg_data = w;
+
+	pkg_stack.push(std::move(ent));
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::EndPkg(void) {
+	if (pkg_stack.empty()) E_Exit("ACPI AML writer EndPkg with empty stack");
+
+	pkg_t &ent = pkg_stack.top();
+
+	unsigned char *lf = ent.pkg_len;
+	unsigned long len = (unsigned long)(w - ent.pkg_len);
+	unsigned int lflen = (unsigned int)(ent.pkg_data - ent.pkg_len);
+
+	if (lflen == 4) {
+		*lf++ = (unsigned char)( len        & 0x0F) | 0xC0;
+		*lf++ = (unsigned char)((len >>  4) & 0xFF);
+		*lf++ = (unsigned char)((len >> 12) & 0xFF);
+		*lf++ = (unsigned char)((len >> 20) & 0xFF);
+	}
+	else if (lflen == 3) {
+		*lf++ = (unsigned char)( len        & 0x0F) | 0x80;
+		*lf++ = (unsigned char)((len >>  4) & 0xFF);
+		*lf++ = (unsigned char)((len >> 12) & 0xFF);
+	}
+	else if (lflen == 2) {
+		*lf++ = (unsigned char)( len        & 0x0F) | 0x40;
+		*lf++ = (unsigned char)((len >>  4) & 0xFF);
+	}
+	else if (lflen == 1) {
+		*lf++ = (unsigned char)len;
+	}
+	else {
+		E_Exit("ACPI XML writer length field write");
+	}
+
+	if (lf > ent.pkg_data) E_Exit("ACPI AML writer length update exceeds pkglength field");
+
+	pkg_stack.pop();
 	return *this;
 }
 
@@ -8309,6 +8471,16 @@ void BuildACPITable(void) {
 		aml.OpRegionOp("ABC",ACPIRegionSpace::SystemMemory).DwordOp(0xAABB0000).WordOp(0x4100);
 		/* OperationRegion(ABC2,SystemIO,0x880,0x18) */
 		aml.OpRegionOp("ABC2",ACPIRegionSpace::SystemIO).WordOp(0x880).WordOp(0x18);
+		/* Field(ABC2,AnyAcc,Lock,Preserve) which also calls BeginPkg(), FieldOpEnd calls EndPkg(). Use only Field writing functions! */
+		aml.FieldOp("ABC2",ACPIAMLWriter::MaxPkgSize,ACPIFieldFlag::AccessType::AnyAcc|ACPIFieldFlag::LockRule::Lock|ACPIFieldFlag::UpdateRule::Preserve);
+		aml.FieldOpElement("AF00",1);
+		aml.FieldOpElement("AF01",3);
+		aml.FieldOpElement("",2);
+		aml.FieldOpElement("AF02",2);
+		aml.FieldOpElement("AF03",3);
+		aml.FieldOpElement("",5+8);
+		aml.FieldOpElement("AF04",8);
+		aml.FieldOpEnd();
 
 		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
 		assert(aml.writeptr() <= f);
