@@ -8196,6 +8196,8 @@ class ACPIAMLWriter {
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
+		ACPIAMLWriter &PkgLength(const unsigned int len,unsigned char* &wp,const unsigned int minlen=1);
+		ACPIAMLWriter &PkgLength(const unsigned int len,const unsigned int minlen=1);
 		ACPIAMLWriter &Name(const char *name);
 		ACPIAMLWriter &BeginPkg(const unsigned int pred_length=MaxPkgSize);
 		ACPIAMLWriter &EndPkg(void);
@@ -8267,34 +8269,43 @@ ACPIAMLWriter &ACPIAMLWriter::FieldOpEnd(void) {
 	return *this;
 }
 
+ACPIAMLWriter &ACPIAMLWriter::PkgLength(const unsigned int len,const unsigned int minlen) {
+	return PkgLength(len,w,minlen);
+}
+
+ACPIAMLWriter &ACPIAMLWriter::PkgLength(const unsigned int len,unsigned char* &wp,const unsigned int minlen) {
+	if (len >= 0x10000000 || minlen > 4) {
+		E_Exit("ACPI XML writer PkgLength value too large");
+	}
+	else if (len >= 0x100000 || minlen >= 4) {
+		*wp++ = (unsigned char)( len        & 0x0F) | 0xC0;
+		*wp++ = (unsigned char)((len >>  4) & 0xFF);
+		*wp++ = (unsigned char)((len >> 12) & 0xFF);
+		*wp++ = (unsigned char)((len >> 20) & 0xFF);
+	}
+	else if (len >= 0x1000 || minlen >= 3) {
+		*wp++ = (unsigned char)( len        & 0x0F) | 0x80;
+		*wp++ = (unsigned char)((len >>  4) & 0xFF);
+		*wp++ = (unsigned char)((len >> 12) & 0xFF);
+	}
+	else if (len >= 0x40 || minlen >= 2) {
+		*wp++ = (unsigned char)( len        & 0x0F) | 0x40;
+		*wp++ = (unsigned char)((len >>  4) & 0xFF);
+	}
+	else {
+		*wp++ = (unsigned char)len;
+	}
+
+	return *this;
+}
+
 ACPIAMLWriter &ACPIAMLWriter::FieldOpElement(const char *name,const unsigned int bits) {
 	if (*name != 0)
 		Name(name);
 	else
 		*w++ = 0;
 
-	if (bits >= 0x10000000) {
-		E_Exit("ACPI XML writer FieldOpElement value too large");
-	}
-	else if (bits >= 0x100000) {
-		*w++ = (unsigned char)( bits        & 0x0F) | 0xC0;
-		*w++ = (unsigned char)((bits >>  4) & 0xFF);
-		*w++ = (unsigned char)((bits >> 12) & 0xFF);
-		*w++ = (unsigned char)((bits >> 20) & 0xFF);
-	}
-	else if (bits >= 0x1000) {
-		*w++ = (unsigned char)( bits        & 0x0F) | 0x80;
-		*w++ = (unsigned char)((bits >>  4) & 0xFF);
-		*w++ = (unsigned char)((bits >> 12) & 0xFF);
-	}
-	else if (bits >= 0x40) {
-		*w++ = (unsigned char)( bits        & 0x0F) | 0x40;
-		*w++ = (unsigned char)((bits >>  4) & 0xFF);
-	}
-	else {
-		*w++ = (unsigned char)bits;
-	}
-
+	PkgLength(bits);
 	return *this;
 }
 
@@ -8308,27 +8319,7 @@ ACPIAMLWriter &ACPIAMLWriter::BeginPkg(const unsigned int pred_length) {
 	if (pkg_stack.size() >= 32) E_Exit("ACPI AML writer BeginPkg too much recursion");
 
 	ent.pkg_len = w;
-	if (pred_length >= 0x10000000) {
-		E_Exit("ACPI XML writer BeginPkg predicted length too large");
-	}
-	else if (pred_length >= 0x100000) {
-		*w++ = 0;
-		*w++ = 0;
-		*w++ = 0;
-		*w++ = 0;
-	}
-	else if (pred_length >= 0x1000) {
-		*w++ = 0;
-		*w++ = 0;
-		*w++ = 0;
-	}
-	else if (pred_length >= 0x40) {
-		*w++ = 0;
-		*w++ = 0;
-	}
-	else {
-		*w++ = 0;
-	}
+	PkgLength(MaxPkgSize);//placeholder
 	ent.pkg_data = w;
 
 	pkg_stack.push(std::move(ent));
@@ -8340,34 +8331,10 @@ ACPIAMLWriter &ACPIAMLWriter::EndPkg(void) {
 
 	pkg_t &ent = pkg_stack.top();
 
-	unsigned char *lf = ent.pkg_len;
-	unsigned long len = (unsigned long)(w - ent.pkg_len);
-	unsigned int lflen = (unsigned int)(ent.pkg_data - ent.pkg_len);
-
-	if (lflen == 4) {
-		*lf++ = (unsigned char)( len        & 0x0F) | 0xC0;
-		*lf++ = (unsigned char)((len >>  4) & 0xFF);
-		*lf++ = (unsigned char)((len >> 12) & 0xFF);
-		*lf++ = (unsigned char)((len >> 20) & 0xFF);
-	}
-	else if (lflen == 3) {
-		*lf++ = (unsigned char)( len        & 0x0F) | 0x80;
-		*lf++ = (unsigned char)((len >>  4) & 0xFF);
-		*lf++ = (unsigned char)((len >> 12) & 0xFF);
-	}
-	else if (lflen == 2) {
-		*lf++ = (unsigned char)( len        & 0x0F) | 0x40;
-		*lf++ = (unsigned char)((len >>  4) & 0xFF);
-	}
-	else if (lflen == 1) {
-		*lf++ = (unsigned char)len;
-	}
-	else {
-		E_Exit("ACPI XML writer length field write");
-	}
-
-	if (lf > ent.pkg_data) E_Exit("ACPI AML writer length update exceeds pkglength field");
-
+	const unsigned long len = (unsigned long)(w - ent.pkg_len);
+	const unsigned int lflen = (unsigned int)(ent.pkg_data - ent.pkg_len);
+	PkgLength(len,ent.pkg_len,lflen);
+	if (ent.pkg_len != ent.pkg_data) E_Exit("ACPI AML writer length update exceeds pkglength field");
 	pkg_stack.pop();
 	return *this;
 }
