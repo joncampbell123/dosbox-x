@@ -8201,6 +8201,7 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &ZeroOp(void);
 		ACPIAMLWriter &OneOp(void);
 		ACPIAMLWriter &AliasOp(const char *what,const char *to_what);
+		ACPIAMLWriter &BufferOp(const unsigned char *data,const size_t datalen);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8221,6 +8222,23 @@ ACPIAMLWriter &ACPIAMLWriter::ZeroOp(void) {
 
 ACPIAMLWriter &ACPIAMLWriter::OneOp(void) {
 	*w++ = 0x01;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::BufferOp(const unsigned char *data,const size_t datalen) {
+	/* Notice this OP was obviously invented by the Department of Redundant Redundancy somewhere deep within Microsoft.
+	 * This op stores both a PkgLength containing the overall buffer data and then the first bytes are a ByteOp encoding the length of the buffer.
+	 * So basically it stores the length twice. What? Why? */
+	*w++ = 0x11;
+	BeginPkg(datalen+8/*Byte/Word/DwordOp*/);
+	if (datalen >= 0x10000) DwordOp(datalen);
+	else if (datalen >= 0x100) WordOp(datalen);
+	else ByteOp(datalen);
+	if (datalen > 0) {
+		memcpy(w,data,datalen);
+		w += datalen;
+	}
+	EndPkg();
 	return *this;
 }
 
@@ -8531,6 +8549,10 @@ void BuildACPITable(void) {
 		aml.AliasOp("TST1","ATS1");
 		aml.AliasOp("TST2","ATS2");
 		aml.AliasOp("TST3","ATS3");
+		{
+			static const unsigned char dept_of_redundant_redundancy[] = {0x11,0x22,0x33,0xAA,0xBB,0xCC};
+			aml.NameOp("DORR").BufferOp(dept_of_redundant_redundancy,sizeof(dept_of_redundant_redundancy));
+		}
 		aml.ScopeOpEnd();
 
 		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
