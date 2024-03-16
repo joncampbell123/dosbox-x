@@ -8200,6 +8200,7 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &PackageOpEnd(void);
 		ACPIAMLWriter &ZeroOp(void);
 		ACPIAMLWriter &OneOp(void);
+		ACPIAMLWriter &AliasOp(const char *what,const char *to_what);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8220,6 +8221,13 @@ ACPIAMLWriter &ACPIAMLWriter::ZeroOp(void) {
 
 ACPIAMLWriter &ACPIAMLWriter::OneOp(void) {
 	*w++ = 0x01;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::AliasOp(const char *what,const char *to_what) {
+	*w++ = 0x06;
+	Name(what);
+	Name(to_what);
 	return *this;
 }
 
@@ -8520,6 +8528,9 @@ void BuildACPITable(void) {
 		/* Package end */
 		aml.PackageOpEnd();
 		/* end scope */
+		aml.AliasOp("TST1","ATS1");
+		aml.AliasOp("TST2","ATS2");
+		aml.AliasOp("TST3","ATS3");
 		aml.ScopeOpEnd();
 
 		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
