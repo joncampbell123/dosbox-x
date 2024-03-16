@@ -8202,6 +8202,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &OneOp(void);
 		ACPIAMLWriter &AliasOp(const char *what,const char *to_what);
 		ACPIAMLWriter &BufferOp(const unsigned char *data,const size_t datalen);
+		ACPIAMLWriter &DeviceOp(const char *name,const unsigned int pred_size);
+		ACPIAMLWriter &DeviceOpEnd(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8296,6 +8298,19 @@ ACPIAMLWriter &ACPIAMLWriter::OpRegionOp(const char *name,const ACPIRegionSpace 
 	Name(name);
 	*w++ = (unsigned char)regionspace;
 	// and then the caller must write the RegionAddress and RegionLength
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::DeviceOp(const char *name,const unsigned int pred_size) {
+	*w++ = 0x5B;
+	*w++ = 0x82;
+	BeginPkg(pred_size);
+	Name(name);
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::DeviceOpEnd(void) {
+	EndPkg();
 	return *this;
 }
 
@@ -8553,6 +8568,9 @@ void BuildACPITable(void) {
 			static const unsigned char dept_of_redundant_redundancy[] = {0x11,0x22,0x33,0xAA,0xBB,0xCC};
 			aml.NameOp("DORR").BufferOp(dept_of_redundant_redundancy,sizeof(dept_of_redundant_redundancy));
 		}
+		aml.DeviceOp("PCI0",ACPIAMLWriter::MaxPkgSize);
+		aml.NameOp("DUH").DwordOp(0xABCD1234);
+		aml.DeviceOpEnd();
 		aml.ScopeOpEnd();
 
 		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
