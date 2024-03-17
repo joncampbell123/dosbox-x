@@ -8405,6 +8405,7 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &LAndOp(void);
 		ACPIAMLWriter &AndOp(void);
 		ACPIAMLWriter &ArgOp(const unsigned int arg); /* Arg0 through Arg6 */
+		ACPIAMLWriter &LocalOp(const unsigned int l); /* Local0 through Local7 */
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8417,6 +8418,15 @@ class ACPIAMLWriter {
 	private:
 		unsigned char*		w=NULL,*f=NULL;
 };
+
+ACPIAMLWriter &ACPIAMLWriter::LocalOp(const unsigned int l) {
+	if (l <= 7)
+		*w++ = 0x60 + l; /* 0x60..0x67 -> Local0..Local7 */
+	else
+		E_Exit("ACPI AML writer LocalOp out of range");
+
+	return *this;
+}
 
 ACPIAMLWriter &ACPIAMLWriter::ArgOp(const unsigned int arg) {
 	if (arg <= 6)
@@ -8864,8 +8874,8 @@ void BuildACPITable(void) {
 			aml.IfOp().LAndOp().Name("DUH").Name("NDUH"); /* if (DUH && NDUH) { */
 				aml.ReturnOp().DwordOp(77); /* return 77; */
 			aml.IfOpEnd(); /* } (/if) */
-			aml.AndOp().Name("DUH").DwordOp(0x40103).ArgOp(0); /* Arg0 = DUH & 0x40103 (NTS: ACPI 1.x limitation) */
-			aml.IfOp().ArgOp(0); /* if (Arg0) { */
+			aml.AndOp().Name("DUH").DwordOp(0x40103).LocalOp(0); /* Local0 = DUH & 0x40103 (NTS: ACPI 1.x limitation) */
+			aml.IfOp().LocalOp(0); /* if (Local0) { */
 				aml.ReturnOp().DwordOp(77); /* return 79; */
 			aml.IfOpEnd(); /* } (/if) */
 		aml.ElseOpEnd(); /* } (/else) */
