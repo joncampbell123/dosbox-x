@@ -8391,8 +8391,10 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &MethodOp(const char *name,const unsigned int pred_size,const unsigned int methodflags);
 		ACPIAMLWriter &MethodOpEnd(void);
 		ACPIAMLWriter &ReturnOp(void);
-		ACPIAMLWriter &IfOp(const unsigned int methodflags);
+		ACPIAMLWriter &IfOp(const unsigned int pred_size);
 		ACPIAMLWriter &IfOpEnd(void);
+		ACPIAMLWriter &ElseOp(const unsigned int pred_size);
+		ACPIAMLWriter &ElseOpEnd(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8452,6 +8454,17 @@ ACPIAMLWriter &ACPIAMLWriter::IfOp(const unsigned int pred_size) {
 }
 
 ACPIAMLWriter &ACPIAMLWriter::IfOpEnd(void) {
+	EndPkg();
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::ElseOp(const unsigned int pred_size) {
+	*w++ = 0xA1;
+	BeginPkg(pred_size);
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::ElseOpEnd(void) {
 	EndPkg();
 	return *this;
 }
@@ -8788,8 +8801,11 @@ void BuildACPITable(void) {
 		}
 		aml.DeviceOp("PCI0",ACPIAMLWriter::MaxPkgSize);
 		aml.NameOp("DUH").DwordOp(0xABCD1234);
+		aml.NameOp("NDUH").ZeroOp();
 		aml.MethodOp("KICK",ACPIAMLWriter::MaxPkgSize,ACPIMethodFlags::ArgCount(2)|ACPIMethodFlags::Serialized);
 		aml.IfOp(ACPIAMLWriter::MaxPkgSize).Name("DUH").ReturnOp().DwordOp(3).IfOpEnd(); /* if (DUH) { return 3; } */
+		aml.ElseOp(ACPIAMLWriter::MaxPkgSize).IfOp(ACPIAMLWriter::MaxPkgSize).Name("NDUH").ReturnOp().OneOp().ElseOpEnd(); /* else if (NDUH) { return 1; } */
+		aml.ElseOp(ACPIAMLWriter::MaxPkgSize).ReturnOp().ZeroOp().ElseOpEnd(); /* else { return 0; } */
 		aml.MethodOpEnd();
 		aml.DeviceOpEnd();
 		aml.ScopeOpEnd();
