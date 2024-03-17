@@ -8391,6 +8391,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &MethodOp(const char *name,const unsigned int pred_size,const unsigned int methodflags);
 		ACPIAMLWriter &MethodOpEnd(void);
 		ACPIAMLWriter &ReturnOp(void);
+		ACPIAMLWriter &IfOp(const unsigned int methodflags);
+		ACPIAMLWriter &IfOpEnd(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8440,6 +8442,17 @@ ACPIAMLWriter &ACPIAMLWriter::AliasOp(const char *what,const char *to_what) {
 
 ACPIAMLWriter &ACPIAMLWriter::ReturnOp(void) {
 	*w++ = 0xA4;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::IfOp(const unsigned int pred_size) {
+	*w++ = 0xA0;
+	BeginPkg(pred_size);
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::IfOpEnd(void) {
+	EndPkg();
 	return *this;
 }
 
@@ -8776,7 +8789,7 @@ void BuildACPITable(void) {
 		aml.DeviceOp("PCI0",ACPIAMLWriter::MaxPkgSize);
 		aml.NameOp("DUH").DwordOp(0xABCD1234);
 		aml.MethodOp("KICK",ACPIAMLWriter::MaxPkgSize,ACPIMethodFlags::ArgCount(2)|ACPIMethodFlags::Serialized);
-		aml.ReturnOp().DwordOp(3);
+		aml.IfOp(ACPIAMLWriter::MaxPkgSize).Name("DUH").ReturnOp().DwordOp(3).IfOpEnd(); /* if (DUH) { return 3; } */
 		aml.MethodOpEnd();
 		aml.DeviceOpEnd();
 		aml.ScopeOpEnd();
