@@ -8403,6 +8403,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &LNotEqualOp(void);
 		ACPIAMLWriter &LNotOp(void);
 		ACPIAMLWriter &LAndOp(void);
+		ACPIAMLWriter &AndOp(void);
+		ACPIAMLWriter &ArgOp(const unsigned int arg); /* Arg0 through Arg6 */
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8415,6 +8417,15 @@ class ACPIAMLWriter {
 	private:
 		unsigned char*		w=NULL,*f=NULL;
 };
+
+ACPIAMLWriter &ACPIAMLWriter::ArgOp(const unsigned int arg) {
+	if (arg <= 6)
+		*w++ = 0x68 + arg; /* 0x68..0x6E -> Arg0..Arg6 */
+	else
+		E_Exit("ACPI AML writer ArgOp out of range");
+
+	return *this;
+}
 
 ACPIAMLWriter &ACPIAMLWriter::ZeroOp(void) {
 	*w++ = 0x00;
@@ -8437,9 +8448,15 @@ ACPIAMLWriter &ACPIAMLWriter::LNotOp(void) {
 	return *this;
 }
 
-/* LAndOp Operand1 Operand2 */
+/* LAndOp Operand1 Operand2 == Operand1 && Operand2 */
 ACPIAMLWriter &ACPIAMLWriter::LAndOp(void) {
 	*w++ = 0x90;
+	return *this;
+}
+
+/* AndOp Operand1 Operand2 Target -> Target = Operand1 & Operand2 */
+ACPIAMLWriter &ACPIAMLWriter::AndOp(void) {
+	*w++ = 0x7B;
 	return *this;
 }
 
@@ -8846,6 +8863,10 @@ void BuildACPITable(void) {
 		aml.ElseOp(); /* else { */
 			aml.IfOp().LAndOp().Name("DUH").Name("NDUH"); /* if (DUH && NDUH) { */
 				aml.ReturnOp().DwordOp(77); /* return 77; */
+			aml.IfOpEnd(); /* } (/if) */
+			aml.AndOp().Name("DUH").DwordOp(0x40103).ArgOp(0); /* Arg0 = DUH & 0x40103 (NTS: ACPI 1.x limitation) */
+			aml.IfOp().ArgOp(0); /* if (Arg0) { */
+				aml.ReturnOp().DwordOp(77); /* return 79; */
 			aml.IfOpEnd(); /* } (/if) */
 		aml.ElseOpEnd(); /* } (/else) */
 
