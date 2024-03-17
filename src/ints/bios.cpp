@@ -8400,6 +8400,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &ElseOp(const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &ElseOpEnd(void);
 		ACPIAMLWriter &LEqualOp(void);
+		ACPIAMLWriter &LNotEqualOp(void);
+		ACPIAMLWriter &LNotOp(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8426,6 +8428,22 @@ ACPIAMLWriter &ACPIAMLWriter::OneOp(void) {
 /* LEqual Operand1 Operand2 */
 ACPIAMLWriter &ACPIAMLWriter::LEqualOp(void) {
 	*w++ = 0x93;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::LNotOp(void) {
+	*w++ = 0x92;
+	return *this;
+}
+
+/* This makes sense if you think of an AML interpreter as something which encounters a LNotOp()
+ * and then runs the interpreter to parse the following token(s) to evaluate an int so it can
+ * do a logical NOT on the result of the evaluation. In other words this isn't like x86 assembly
+ * which you follow instruction by instruction but more like how you parse and evaluate expressions
+ * such as "4+5*3" properly. */
+ACPIAMLWriter &ACPIAMLWriter::LNotEqualOp(void) {
+	LNotOp();
+	LEqualOp();
 	return *this;
 }
 
@@ -8816,6 +8834,7 @@ void BuildACPITable(void) {
 		aml.MethodOp("KICK",ACPIAMLWriter::MaxPkgSize,ACPIMethodFlags::ArgCount(2)|ACPIMethodFlags::Serialized);
 		aml.IfOp().LEqualOp().Name("DUH").DwordOp(0xABCD1234).ReturnOp().DwordOp(6).IfOpEnd();
 		aml.IfOp().Name("DUH").ReturnOp().DwordOp(3).IfOpEnd(); /* if (DUH) { return 3; } */
+		aml.ElseOp().IfOp().LNotEqualOp().Name("NDUH").DwordOp(52).ReturnOp().DwordOp(666).IfOpEnd();
 		aml.ElseOp().IfOp().Name("NDUH").ReturnOp().OneOp().ElseOpEnd(); /* else if (NDUH) { return 1; } */
 		aml.ElseOp().ReturnOp().ZeroOp().ElseOpEnd(); /* else { return 0; } */
 		aml.MethodOpEnd();
