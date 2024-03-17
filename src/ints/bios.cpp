@@ -8407,6 +8407,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &AndOp(void);
 		ACPIAMLWriter &ArgOp(const unsigned int arg); /* Arg0 through Arg6 */
 		ACPIAMLWriter &LocalOp(const unsigned int l); /* Local0 through Local7 */
+		ACPIAMLWriter &StoreOp(void);
+		ACPIAMLWriter &OrOp(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8419,6 +8421,12 @@ class ACPIAMLWriter {
 	private:
 		unsigned char*		w=NULL,*f=NULL;
 };
+
+/* StoreOp Operand Supername: Store Operand into Supername */
+ACPIAMLWriter &ACPIAMLWriter::StoreOp(void) {
+	*w++ = 0x70;
+	return *this;
+}
 
 ACPIAMLWriter &ACPIAMLWriter::LocalOp(const unsigned int l) {
 	if (l <= 7)
@@ -8487,6 +8495,11 @@ ACPIAMLWriter &ACPIAMLWriter::LAndOp(void) {
 /* AndOp Operand1 Operand2 Target -> Target = Operand1 & Operand2 */
 ACPIAMLWriter &ACPIAMLWriter::AndOp(void) {
 	*w++ = 0x7B;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::OrOp(void) {
+	*w++ = 0x7D;
 	return *this;
 }
 
@@ -8887,6 +8900,10 @@ void BuildACPITable(void) {
 		aml.NameOp("NDUH").ZeroOp();
 		/* method KICK */
 		aml.MethodOp("KICK",ACPIAMLWriter::MaxPkgSize,ACPIMethodFlags::ArgCount(2)|ACPIMethodFlags::Serialized);
+		aml.StoreOp().DwordOp(0x12345678).LocalOp(0); /* Local0 = 0x12345678 */
+		aml.AndOp().LocalOp(0).DwordOp(0xF0F0F0F0).LocalOp(0); /* Local0 &= 0xF0F0F0F0 (literally: Op1 = Local0 Op2 = 0xF0F0F0F0 Target = Local0) */
+		aml.StoreOp()./*(*/AndOp().LocalOp(0).DwordOp(0xFF00FF00).NothingOp()/*)*/.LocalOp(1); /* Local1 = Local0 & 0xFF00FF00 */
+		aml.StoreOp()./*(*/OrOp()./*(*/AndOp().LocalOp(0).DwordOp(0xCECECECE).NothingOp()/*)*/.DwordOp(0x03030303).NothingOp()/*)*/.LocalOp(2); /* Local2 = (Local0 & 0xFF00FF00) | 0x03030303 */
 		aml.IfOp().LEqualOp().Name("DUH").DwordOp(0xABCD1234); /* if (DUH == 0xABCD1234) { */
 			aml.ReturnOp().DwordOp(6); /* return 6; */
 		aml.IfOpEnd(); /* } (/if) */
