@@ -74,6 +74,7 @@ public:
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false);
 	virtual bool FindNext(DOS_DTA & dta);
 	virtual bool SetFileAttr(const char * name,uint16_t attr);
+    virtual bool GetDiskSize64(uint64_t * _disk_size64);
 	virtual bool GetFileAttr(const char * name,uint16_t * attr);
 	virtual bool GetFileAttrEx(char* name, struct stat *status);
 	std::string GetHostName(const char * name);

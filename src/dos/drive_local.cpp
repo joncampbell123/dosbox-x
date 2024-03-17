@@ -2241,6 +2241,14 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 
 }
 
+bool localDrive::GetDiskSize64(uint64_t * _disk_size64) { 
+#ifdef WIN32
+    return GetDiskFreeSpaceEx(basedir, (PULARGE_INTEGER) _disk_size64, NULL, NULL); // fills lpFreeBytesAvailableToCaller
+#else
+    return false;
+#endif
+}
+
 #if !defined(WIN32)
 #include <sys/statvfs.h>
 #endif
