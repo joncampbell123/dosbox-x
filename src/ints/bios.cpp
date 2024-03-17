@@ -3434,6 +3434,173 @@ static const uint8_t pc98_katakana6x8_font[] = {
 	0x20,0x10,0x40,0x20,0x00,0x00,0x00,0x00,0x00,0x20,0x50,0x20,0x00,0x00,0x00,0x00
 };
 
+unsigned char byte_reverse(unsigned char c);
+
+static void PC98_INT18_DrawShape(void)
+{
+	PhysPt ucw;
+	uint8_t type, dir;
+	uint16_t x1, y1;
+	uint16_t ead, dad;
+	uint16_t dc, d, d2, dm;
+
+	ucw = SegPhys(ds) + reg_bx;
+	type = mem_readb(ucw + 0x28);
+	dir = mem_readb(ucw + 0x03);
+	x1 = mem_readw(ucw + 0x08);
+	y1 = mem_readw(ucw + 0x0a);
+	if((reg_ch & 0xc0) == 0x40) {
+		y1 += 200;
+	}
+	ead = (y1 * 40) + (x1 >> 4);
+	dad = x1 % 16;
+	// line pattern
+	pc98_gdc[GDC_SLAVE].set_textw(((uint16_t)byte_reverse(mem_readb(ucw + 0x20)) << 8) | byte_reverse(mem_readb(ucw + 0x21)));
+	if(type == 0x04) {
+		// arc
+		dc = mem_readw(ucw + 0x0c);
+		d = mem_readw(ucw + 0x1c) - 1;
+		d2 = d >> 1;
+		dm = mem_readw(ucw + 0x1a);
+		if((reg_ch & 0x30) == 0x30) {
+			uint8_t plane = mem_readb(ucw + 0x00);
+			uint32_t offset = 0x4000;
+			for(uint8_t bit = 1 ; bit <= 4 ; bit <<= 1) {
+				pc98_gdc[GDC_SLAVE].set_mode((plane & bit) ? 0x03 : 0x02);
+				pc98_gdc[GDC_SLAVE].set_vectw(0x20, dir, dc, d, d2, 0x3fff, dm);
+				pc98_gdc[GDC_SLAVE].set_csrw(offset + ead, dad);
+				pc98_gdc[GDC_SLAVE].exec(0x6c);
+				offset += 0x4000;
+			}
+		} else {
+			pc98_gdc[GDC_SLAVE].set_mode(mem_readb(ucw + 0x02));
+			pc98_gdc[GDC_SLAVE].set_vectw(0x20, dir, dc, d, d2, 0x3fff, dm);
+			pc98_gdc[GDC_SLAVE].set_csrw(0x4000 + ((reg_ch & 0x30) << 10) + ead, dad);
+			pc98_gdc[GDC_SLAVE].exec(0x6c);
+		}
+	} else {
+		uint16_t x2, y2, temp;
+		x2 = mem_readw(ucw + 0x16);
+		y2 = mem_readw(ucw + 0x18);
+		if(type == 0x01) {
+			// line
+			if((reg_ch & 0x30) == 0x30) {
+				uint8_t plane = mem_readb(ucw + 0x00);
+				uint32_t offset = 0x4000;
+				for(uint8_t bit = 1 ; bit <= 4 ; bit <<= 1) {
+					pc98_gdc[GDC_SLAVE].set_mode((plane & bit) ? 0x03 : 0x02);
+					pc98_gdc[GDC_SLAVE].set_vectl(x1, y1, x2, y2);
+					pc98_gdc[GDC_SLAVE].set_csrw(offset + ead, dad);
+					pc98_gdc[GDC_SLAVE].exec(0x6c);
+					offset += 0x4000;
+				}
+			} else {
+				pc98_gdc[GDC_SLAVE].set_mode(mem_readb(ucw + 0x02));
+				pc98_gdc[GDC_SLAVE].set_vectl(x1, y1, x2, y2);
+				pc98_gdc[GDC_SLAVE].set_csrw(0x4000 + ((reg_ch & 0x30) << 10) + ead, dad);
+				pc98_gdc[GDC_SLAVE].exec(0x6c);
+			}
+		} else if(type == 0x02) {
+			// box
+			uint16_t dx, dy;
+			if(x1 > x2) {
+				temp = x2; x2 = x1; x1 = temp;
+			}
+			if(y1 > y2) {
+				temp = y2; y2 = y1; y1 = temp;
+			}
+			dx = x2 - x1;
+			dy = y2 - y1;
+			switch(dir & 3) {
+			case 0:
+				d = dy;
+				d2 = dx;
+				break;
+			case 1:
+				d2 = dx + dy;
+				d2 >>= 1;
+				d = dx - dy;
+				d = (d >> 1) & 0x3fff;
+				break;
+			case 2:
+				d = dx;
+				d2 = dy;
+				break;
+			case 3:
+				d2 = dx + dy;
+				d2 >>= 1;
+				d = dy - dx;
+				d = (d >> 1) & 0x3fff;
+				break;
+			}
+			if((reg_ch & 0x30) == 0x30) {
+				uint8_t plane = mem_readb(ucw + 0x00);
+				uint32_t offset = 0x4000;
+				for(uint8_t bit = 1 ; bit <= 4 ; bit <<= 1) {
+					pc98_gdc[GDC_SLAVE].set_mode((plane & bit) ? 0x03 : 0x02);
+					pc98_gdc[GDC_SLAVE].set_vectw(0x40, dir, 3, d, d2, 0xffff, d);
+					pc98_gdc[GDC_SLAVE].set_csrw(offset + ead, dad);
+					pc98_gdc[GDC_SLAVE].exec(0x6c);
+					offset += 0x4000;
+				}
+			} else {
+				pc98_gdc[GDC_SLAVE].set_mode(mem_readb(ucw + 0x02));
+				pc98_gdc[GDC_SLAVE].set_vectw(0x40, dir, 3, d, d2, 0xffff, d);
+				pc98_gdc[GDC_SLAVE].set_csrw(0x4000 + ((reg_ch & 0x30) << 10) + ead, dad);
+				pc98_gdc[GDC_SLAVE].exec(0x6c);
+			}
+		}
+	}
+}
+
+static void PC98_INT18_DrawText(void)
+{
+	PhysPt ucw;
+	uint8_t dir;
+	uint8_t tile[8];
+    uint16_t len;
+	uint16_t x1, y1;
+	uint16_t ead, dad;
+	uint16_t dc, d;
+
+	ucw = SegPhys(ds) + reg_bx;
+	for(uint8_t i = 0 ; i < 8 ; i++) {
+		tile[i] = byte_reverse(mem_readb(ucw + 0x20 + i));
+	}
+	pc98_gdc[GDC_SLAVE].set_textw(tile, 8);
+	len = mem_readw(ucw + 0x0c);
+	if(len > 0) {
+		d = len;
+		dc = (mem_readw(ucw + 0x1e) - 1) & 0x3fff;
+	} else {
+		d = 8;
+		dc = 7;
+	}
+	dir = mem_readb(ucw + 0x03);
+	x1 = mem_readw(ucw + 0x08);
+	y1 = mem_readw(ucw + 0x0a);
+	if((reg_ch & 0xc0) == 0x40) {
+		y1 += 200;
+	}
+	ead = (y1 * 40) + (x1 >> 4);
+	dad = x1 % 16;
+	if((reg_ch & 0x30) == 0x30) {
+		uint8_t plane = mem_readb(ucw + 0x00);
+		uint32_t offset = 0x4000;
+		for(uint8_t bit = 1 ; bit <= 4 ; bit <<= 1) {
+			pc98_gdc[GDC_SLAVE].set_mode((plane & bit) ? 0x03 : 0x02);
+			pc98_gdc[GDC_SLAVE].set_vectw(0x10, dir, dc, d, 0, 0, 0);
+			pc98_gdc[GDC_SLAVE].set_csrw(offset + ead, dad);
+			pc98_gdc[GDC_SLAVE].exec(0x68);
+			offset += 0x4000;
+		}
+	} else {
+		pc98_gdc[GDC_SLAVE].set_mode(mem_readb(ucw + 0x02));
+		pc98_gdc[GDC_SLAVE].set_vectw(0x10, dir, dc, d, 0, 0, 0);
+		pc98_gdc[GDC_SLAVE].set_csrw(0x4000 + ((reg_ch & 0x30) << 10) + ead, dad);
+       	pc98_gdc[GDC_SLAVE].exec(0x68);
+	}
+}
 
 /* TODO: The text and graphics code that talks to the GDC will need to be converted
  *       to CPU I/O read and write calls. I think the reason Windows 3.1's 16-color
@@ -4131,6 +4298,13 @@ static Bitu INT18_PC98_Handler(void) {
                 LOG_MSG("PC-98 INT 18 AH=43h CX=0x%04X DS=0x%04X", reg_cx, SegValue(ds));
                 break;
             }
+        case 0x47:	// Line, Box
+        case 0x48:	// Arc
+            PC98_INT18_DrawShape();
+            break;
+        case 0x49:	// Text
+            PC98_INT18_DrawText();
+            break;
         case 0x4D:  // 256-color enable
             if (reg_ch == 1) {
                 void pc98_port6A_command_write(unsigned char b);
