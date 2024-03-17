@@ -8402,6 +8402,7 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &LEqualOp(void);
 		ACPIAMLWriter &LNotEqualOp(void);
 		ACPIAMLWriter &LNotOp(void);
+		ACPIAMLWriter &LAndOp(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8433,6 +8434,12 @@ ACPIAMLWriter &ACPIAMLWriter::LEqualOp(void) {
 
 ACPIAMLWriter &ACPIAMLWriter::LNotOp(void) {
 	*w++ = 0x92;
+	return *this;
+}
+
+/* LAndOp Operand1 Operand2 */
+ACPIAMLWriter &ACPIAMLWriter::LAndOp(void) {
+	*w++ = 0x90;
 	return *this;
 }
 
@@ -8820,7 +8827,6 @@ void BuildACPITable(void) {
 		aml.PackageOpEnd();
 		/* Package end */
 		aml.PackageOpEnd();
-		/* end scope */
 		aml.AliasOp("TST1","ATS1");
 		aml.AliasOp("TST2","ATS2");
 		aml.AliasOp("TST3","ATS3");
@@ -8828,18 +8834,43 @@ void BuildACPITable(void) {
 			static const unsigned char dept_of_redundant_redundancy[] = {0x11,0x22,0x33,0xAA,0xBB,0xCC};
 			aml.NameOp("DORR").BufferOp(dept_of_redundant_redundancy,sizeof(dept_of_redundant_redundancy));
 		}
+		/* device PCI0 */
 		aml.DeviceOp("PCI0");
 		aml.NameOp("DUH").DwordOp(0xABCD1234);
 		aml.NameOp("NDUH").ZeroOp();
+		/* method KICK */
 		aml.MethodOp("KICK",ACPIAMLWriter::MaxPkgSize,ACPIMethodFlags::ArgCount(2)|ACPIMethodFlags::Serialized);
-		aml.IfOp().LEqualOp().Name("DUH").DwordOp(0xABCD1234).ReturnOp().DwordOp(6).IfOpEnd();
-		aml.IfOp().Name("DUH").ReturnOp().DwordOp(3).IfOpEnd(); /* if (DUH) { return 3; } */
-		aml.ElseOp().IfOp().LNotEqualOp().Name("NDUH").DwordOp(52).ReturnOp().DwordOp(666).IfOpEnd();
-		aml.ElseOp().IfOp().Name("NDUH").ReturnOp().OneOp().ElseOpEnd(); /* else if (NDUH) { return 1; } */
-		aml.ElseOp().ReturnOp().ZeroOp().ElseOpEnd(); /* else { return 0; } */
+		aml.IfOp().LEqualOp().Name("DUH").DwordOp(0xABCD1234); /* if (DUH == 0xABCD1234) { */
+			aml.ReturnOp().DwordOp(6); /* return 6; */
+		aml.IfOpEnd(); /* } (/if) */
+		aml.ElseOp(); /* else { */
+			aml.IfOp().LAndOp().Name("DUH").DwordOp(0x40103); /* if (DUH & 0x40103) { */
+				aml.ReturnOp().DwordOp(77); /* return 77; */
+			aml.IfOpEnd(); /* } (/if) */
+		aml.ElseOpEnd(); /* } (/else) */
+
+		aml.IfOp().Name("DUH"); /* if (DUH) { */
+			aml.ReturnOp().DwordOp(3); /* return 3; */
+		aml.IfOpEnd(); /* } (/if) */
+		aml.ElseOp(); /* else { */
+			aml.IfOp().Name("NDUH"); /* if (NDUH) { */
+				aml.ReturnOp().OneOp(); /* return 1; */
+			aml.IfOpEnd(); /* } (/if) */
+			aml.ElseOp(); /* else { */
+				aml.IfOp().LNotEqualOp().Name("NDUH").DwordOp(52); /* if (NDUH != 52) { */
+					aml.ReturnOp().DwordOp(666); /* return 666; */
+				aml.IfOpEnd(); /* } (/if) */
+				aml.ElseOp(); /* else { */
+					aml.ReturnOp().ZeroOp(); /* return 0; */
+				aml.ElseOpEnd(); /* } (/else) */
+			aml.ElseOpEnd(); /* } (/else) */
+		aml.ElseOpEnd(); /* } (/else) */
 		aml.MethodOpEnd();
+		/* end method */
 		aml.DeviceOpEnd();
+		/* end device */
 		aml.ScopeOpEnd();
+		/* end scope */
 
 		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
 		assert(aml.writeptr() <= f);
