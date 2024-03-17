@@ -9044,6 +9044,10 @@ private:
 			else if (MEM_get_address_bits() < 32) {
 				/* I doubt any 486DX systems with less than 32 address bits has ACPI */
 			}
+			else if (CPU_ArchitectureType < CPU_ARCHTYPE_386) {
+				/* Your 286 does not have ACPI and it never will.
+				 * Your 386 as well, but the 386 is 32-bit and the user might change it to 486 or higher later though, so we'll allow that */
+			}
 			else if (s == "1.0") {
 				ACPI_version = 0x100;
 				ACPI_REGION_SIZE = (256u << 10u); // 256KB
