@@ -8844,7 +8844,7 @@ void BuildACPITable(void) {
 			aml.ReturnOp().DwordOp(6); /* return 6; */
 		aml.IfOpEnd(); /* } (/if) */
 		aml.ElseOp(); /* else { */
-			aml.IfOp().LAndOp().Name("DUH").DwordOp(0x40103); /* if (DUH & 0x40103) { */
+			aml.IfOp().LAndOp().Name("DUH").Name("NDUH"); /* if (DUH && NDUH) { */
 				aml.ReturnOp().DwordOp(77); /* return 77; */
 			aml.IfOpEnd(); /* } (/if) */
 		aml.ElseOpEnd(); /* } (/else) */
