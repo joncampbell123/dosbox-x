@@ -153,6 +153,16 @@ void PC98_GDC_state::vectw(unsigned char bi) {
     }
 }
 
+void PC98_GDC_state::set_vectw(uint8_t ope, uint8_t dir, uint16_t dc, uint16_t d, uint16_t d2, uint16_t d1, uint16_t dm) {
+	draw.ope = ope;
+	draw.dir = dir;
+	draw.dc = dc;
+	draw.d = d;
+	draw.d2 = d2;
+	draw.d1 = d1;
+	draw.dm = dm;
+}
+
 void PC98_GDC_state::prepare(void) {
     draw.pattern = ((uint16_t)draw.tx[1] << 8) | draw.tx[0];
     draw.x = (uint16_t)(((draw.ead & 0x3fff) % 40) << 4) + draw.dad;
