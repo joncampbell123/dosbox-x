@@ -8386,6 +8386,7 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &ScopeOpEnd(void);
 		ACPIAMLWriter &PackageOp(const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &PackageOpEnd(void);
+		ACPIAMLWriter &NothingOp(void);
 		ACPIAMLWriter &ZeroOp(void);
 		ACPIAMLWriter &OneOp(void);
 		ACPIAMLWriter &AliasOp(const char *what,const char *to_what);
@@ -8434,6 +8435,25 @@ ACPIAMLWriter &ACPIAMLWriter::ArgOp(const unsigned int arg) {
 	else
 		E_Exit("ACPI AML writer ArgOp out of range");
 
+	return *this;
+}
+
+/* Binary operators like And and Xor are Operand1 Operand2 Target, and the return value
+ * of the operator is the result. What the ACPI specification is very unclear about, but
+ * hints at from a sample bit of ASL concerning PowerResource(), is that if you just
+ * want to evaluate the operator and do not care to store the result anywhere you can just
+ * set Target to Zero.
+ *
+ * This example doesn't make sense unless you consider that this is how you encode "Nothing"
+ * in the example on that page in spec 1.0b:
+ *
+ * Method(_STA) {
+ *   Return (Xor (GIO.IDEI, One, Zero)) // inverse of isolation
+ * }
+ *
+ * See what they did there? */
+ACPIAMLWriter &ACPIAMLWriter::NothingOp(void) {
+	ZeroOp();
 	return *this;
 }
 
@@ -8874,8 +8894,7 @@ void BuildACPITable(void) {
 			aml.IfOp().LAndOp().Name("DUH").Name("NDUH"); /* if (DUH && NDUH) { */
 				aml.ReturnOp().DwordOp(77); /* return 77; */
 			aml.IfOpEnd(); /* } (/if) */
-			aml.AndOp().Name("DUH").DwordOp(0x40103).LocalOp(0); /* Local0 = DUH & 0x40103 (NTS: ACPI 1.x limitation) */
-			aml.IfOp().LocalOp(0); /* if (Local0) { */
+			aml.IfOp().AndOp().Name("DUH").DwordOp(0x40103).NothingOp(); /* if (DUH & 0x40103) {    (note AndOp Op1 Op2 Target == "DUH" 0x40103 Nothing) */
 				aml.ReturnOp().DwordOp(77); /* return 79; */
 			aml.IfOpEnd(); /* } (/if) */
 		aml.ElseOpEnd(); /* } (/else) */
