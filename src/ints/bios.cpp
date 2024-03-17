@@ -8399,6 +8399,7 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &IfOpEnd(void);
 		ACPIAMLWriter &ElseOp(const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &ElseOpEnd(void);
+		ACPIAMLWriter &LEqualOp(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8419,6 +8420,12 @@ ACPIAMLWriter &ACPIAMLWriter::ZeroOp(void) {
 
 ACPIAMLWriter &ACPIAMLWriter::OneOp(void) {
 	*w++ = 0x01;
+	return *this;
+}
+
+/* LEqual Operand1 Operand2 */
+ACPIAMLWriter &ACPIAMLWriter::LEqualOp(void) {
+	*w++ = 0x93;
 	return *this;
 }
 
@@ -8807,6 +8814,7 @@ void BuildACPITable(void) {
 		aml.NameOp("DUH").DwordOp(0xABCD1234);
 		aml.NameOp("NDUH").ZeroOp();
 		aml.MethodOp("KICK",ACPIAMLWriter::MaxPkgSize,ACPIMethodFlags::ArgCount(2)|ACPIMethodFlags::Serialized);
+		aml.IfOp().LEqualOp().Name("DUH").DwordOp(0xABCD1234).ReturnOp().DwordOp(6).IfOpEnd();
 		aml.IfOp().Name("DUH").ReturnOp().DwordOp(3).IfOpEnd(); /* if (DUH) { return 3; } */
 		aml.ElseOp().IfOp().Name("NDUH").ReturnOp().OneOp().ElseOpEnd(); /* else if (NDUH) { return 1; } */
 		aml.ElseOp().ReturnOp().ZeroOp().ElseOpEnd(); /* else { return 0; } */
