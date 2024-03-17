@@ -8353,6 +8353,10 @@ namespace ACPIFieldFlag {
 
 #include <stack>
 
+/* ACPI AML (ACPI Machine Language) writer.
+ * See also ACPI Specification 1.0b [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/BIOS/ACPI%2c%20Advanced%20Configuration%20and%20Power%20Interface/Advanced%20Configuration%20and%20Power%20Interface%20Specification%20%281999%2d02%2d02%29%20v1%2e0b%2epdf].
+ *
+ * WARNING: The 1.0 specification [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/BIOS/ACPI%2c%20Advanced%20Configuration%20and%20Power%20Interface/Advanced%20Configuration%20and%20Power%20Interface%20Specification%20%281996%2d12%2d22%29%20v1%2e0%2epdf] seems to have some mistakes in a few opcodes in how they are defined, which probably means if your BIOS is from 1996-1998 it might have those few erroneous AML opcodes. */
 class ACPIAMLWriter {
 	public:
 		static constexpr unsigned int MaxPkgSize = 0xFFFFFFFu;
