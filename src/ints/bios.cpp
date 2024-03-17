@@ -8378,22 +8378,22 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &OpRegionOp(const char *name,const ACPIRegionSpace regionspace);
 		ACPIAMLWriter &FieldOp(const char *name,const unsigned int pred_size,const unsigned int fieldflag);
 		ACPIAMLWriter &FieldOpEnd(void);
-		ACPIAMLWriter &ScopeOp(const char *name,const unsigned int pred_size);
+		ACPIAMLWriter &ScopeOp(const char *name,const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &ScopeOpEnd(void);
-		ACPIAMLWriter &PackageOp(const unsigned int pred_size);
+		ACPIAMLWriter &PackageOp(const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &PackageOpEnd(void);
 		ACPIAMLWriter &ZeroOp(void);
 		ACPIAMLWriter &OneOp(void);
 		ACPIAMLWriter &AliasOp(const char *what,const char *to_what);
 		ACPIAMLWriter &BufferOp(const unsigned char *data,const size_t datalen);
-		ACPIAMLWriter &DeviceOp(const char *name,const unsigned int pred_size);
+		ACPIAMLWriter &DeviceOp(const char *name,const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &DeviceOpEnd(void);
 		ACPIAMLWriter &MethodOp(const char *name,const unsigned int pred_size,const unsigned int methodflags);
 		ACPIAMLWriter &MethodOpEnd(void);
 		ACPIAMLWriter &ReturnOp(void);
-		ACPIAMLWriter &IfOp(const unsigned int pred_size);
+		ACPIAMLWriter &IfOp(const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &IfOpEnd(void);
-		ACPIAMLWriter &ElseOp(const unsigned int pred_size);
+		ACPIAMLWriter &ElseOp(const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &ElseOpEnd(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
@@ -8776,16 +8776,16 @@ void BuildACPITable(void) {
 		aml.FieldOpElement("AF04",8);
 		aml.FieldOpEnd();
 		/* Scope */
-		aml.ScopeOp("_SB",ACPIAMLWriter::MaxPkgSize);
+		aml.ScopeOp("_SB");
 		aml.NameOp("TST1").DwordOp(0xABCDEF);
 		/* Package ABCD */
-		aml.NameOp("ABCD").PackageOp(ACPIAMLWriter::MaxPkgSize);
+		aml.NameOp("ABCD").PackageOp();
 		/* Package contents. YOU MUST COUNT ELEMENTS MANUALLY */
 		aml.DwordOp(0xABCDEF).CountElement();
 		aml.DwordOp(0x1234).CountElement();
 		aml.ZeroOp().CountElement();
 		aml.OneOp().CountElement();
-		aml.PackageOp(ACPIAMLWriter::MaxPkgSize);
+		aml.PackageOp();
 		aml.StringOp("Hello world");
 		aml.DwordOp(0xABCD1234);
 		aml.PackageOpEnd();
@@ -8799,13 +8799,13 @@ void BuildACPITable(void) {
 			static const unsigned char dept_of_redundant_redundancy[] = {0x11,0x22,0x33,0xAA,0xBB,0xCC};
 			aml.NameOp("DORR").BufferOp(dept_of_redundant_redundancy,sizeof(dept_of_redundant_redundancy));
 		}
-		aml.DeviceOp("PCI0",ACPIAMLWriter::MaxPkgSize);
+		aml.DeviceOp("PCI0");
 		aml.NameOp("DUH").DwordOp(0xABCD1234);
 		aml.NameOp("NDUH").ZeroOp();
 		aml.MethodOp("KICK",ACPIAMLWriter::MaxPkgSize,ACPIMethodFlags::ArgCount(2)|ACPIMethodFlags::Serialized);
-		aml.IfOp(ACPIAMLWriter::MaxPkgSize).Name("DUH").ReturnOp().DwordOp(3).IfOpEnd(); /* if (DUH) { return 3; } */
-		aml.ElseOp(ACPIAMLWriter::MaxPkgSize).IfOp(ACPIAMLWriter::MaxPkgSize).Name("NDUH").ReturnOp().OneOp().ElseOpEnd(); /* else if (NDUH) { return 1; } */
-		aml.ElseOp(ACPIAMLWriter::MaxPkgSize).ReturnOp().ZeroOp().ElseOpEnd(); /* else { return 0; } */
+		aml.IfOp().Name("DUH").ReturnOp().DwordOp(3).IfOpEnd(); /* if (DUH) { return 3; } */
+		aml.ElseOp().IfOp().Name("NDUH").ReturnOp().OneOp().ElseOpEnd(); /* else if (NDUH) { return 1; } */
+		aml.ElseOp().ReturnOp().ZeroOp().ElseOpEnd(); /* else { return 0; } */
 		aml.MethodOpEnd();
 		aml.DeviceOpEnd();
 		aml.ScopeOpEnd();
