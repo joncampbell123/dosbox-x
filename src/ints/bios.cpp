@@ -8408,7 +8408,9 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &ArgOp(const unsigned int arg); /* Arg0 through Arg6 */
 		ACPIAMLWriter &LocalOp(const unsigned int l); /* Local0 through Local7 */
 		ACPIAMLWriter &StoreOp(void);
+		ACPIAMLWriter &NOrOp(void);
 		ACPIAMLWriter &OrOp(void);
+		ACPIAMLWriter &NAndOp(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8492,12 +8494,25 @@ ACPIAMLWriter &ACPIAMLWriter::LAndOp(void) {
 	return *this;
 }
 
+/* NAndOp Operand1 Operand2 Target -> Target = Operand1 & Operand2 */
+ACPIAMLWriter &ACPIAMLWriter::NAndOp(void) {
+	*w++ = 0x7C;
+	return *this;
+}
+
 /* AndOp Operand1 Operand2 Target -> Target = Operand1 & Operand2 */
 ACPIAMLWriter &ACPIAMLWriter::AndOp(void) {
 	*w++ = 0x7B;
 	return *this;
 }
 
+/* NOrOp Operand1 Operand2 Target -> Target = Operand1 & Operand2 */
+ACPIAMLWriter &ACPIAMLWriter::NOrOp(void) {
+	*w++ = 0x7E;
+	return *this;
+}
+
+/* OrOp Operand1 Operand2 Target -> Target = Operand1 & Operand2 */
 ACPIAMLWriter &ACPIAMLWriter::OrOp(void) {
 	*w++ = 0x7D;
 	return *this;
