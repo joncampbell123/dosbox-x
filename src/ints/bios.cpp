@@ -8314,6 +8314,16 @@ enum class ACPIRegionSpace {
 	SMBus=4
 };
 
+namespace ACPIMethodFlags {
+	static constexpr unsigned char ArgCount(const unsigned c) {
+		return c&3u;
+	}
+	enum {
+		NotSerialized=(0 << 3),
+		Serialized=(1 << 3)
+	};
+};
+
 namespace ACPIFieldFlag {
 	namespace AccessType {
 		enum {
@@ -8378,6 +8388,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &BufferOp(const unsigned char *data,const size_t datalen);
 		ACPIAMLWriter &DeviceOp(const char *name,const unsigned int pred_size);
 		ACPIAMLWriter &DeviceOpEnd(void);
+		ACPIAMLWriter &MethodOp(const char *name,const unsigned int pred_size,const unsigned int methodflags);
+		ACPIAMLWriter &MethodOpEnd(void);
 	public:// ONLY for writing fields!
 		ACPIAMLWriter &FieldOpElement(const char *name,const unsigned int bits);
 	public:
@@ -8484,6 +8496,19 @@ ACPIAMLWriter &ACPIAMLWriter::DeviceOp(const char *name,const unsigned int pred_
 }
 
 ACPIAMLWriter &ACPIAMLWriter::DeviceOpEnd(void) {
+	EndPkg();
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::MethodOp(const char *name,const unsigned int pred_size,const unsigned int methodflags) {
+	*w++ = 0x14;
+	BeginPkg(pred_size);
+	Name(name);
+	*w++ = (unsigned char)methodflags;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::MethodOpEnd(void) {
 	EndPkg();
 	return *this;
 }
@@ -8744,6 +8769,8 @@ void BuildACPITable(void) {
 		}
 		aml.DeviceOp("PCI0",ACPIAMLWriter::MaxPkgSize);
 		aml.NameOp("DUH").DwordOp(0xABCD1234);
+		aml.MethodOp("KICK",ACPIAMLWriter::MaxPkgSize,ACPIMethodFlags::ArgCount(2)|ACPIMethodFlags::Serialized);
+		aml.MethodOpEnd();
 		aml.DeviceOpEnd();
 		aml.ScopeOpEnd();
 
