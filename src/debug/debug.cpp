@@ -515,7 +515,7 @@ std::vector<CDebugVar*> CDebugVar::varList;
 bool mustCompleteInstruction = false;
 bool skipFirstInstruction = false;
 
-enum EBreakpoint { BKPNT_UNKNOWN, BKPNT_PHYSICAL, BKPNT_INTERRUPT, BKPNT_MEMORY, BKPNT_MEMORY_PROT, BKPNT_MEMORY_LINEAR };
+enum EBreakpoint { BKPNT_UNKNOWN, BKPNT_PHYSICAL, BKPNT_INTERRUPT, BKPNT_MEMORY, BKPNT_MEMORY_PROT, BKPNT_MEMORY_LINEAR, BKPNT_MEMORY_FREEZE };
 
 #define BPINT_ALL 0x100
 
@@ -723,7 +723,7 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 #if C_HEAVY_DEBUG
 		// Memory breakpoint support
 		else if (bp->IsActive()) {
-			if ((bp->GetType()==BKPNT_MEMORY) || (bp->GetType()==BKPNT_MEMORY_PROT) || (bp->GetType()==BKPNT_MEMORY_LINEAR)) {
+			if ((bp->GetType()==BKPNT_MEMORY) || (bp->GetType()==BKPNT_MEMORY_PROT) || (bp->GetType()==BKPNT_MEMORY_LINEAR) || (bp->GetType()==BKPNT_MEMORY_FREEZE)) {
 				// Watch Protected Mode Memoryonly in pmode
 				if (bp->GetType()==BKPNT_MEMORY_PROT) {
 					// Check if pmode is active
@@ -741,6 +741,10 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 				if (mem_readb_checked((PhysPt)address,&value)) return false;
 				if (bp->GetValue() != value) {
 					// Yup, memory value changed
+                    if (bp->GetType()==BKPNT_MEMORY_FREEZE){
+                        mem_writeb_checked((PhysPt)address,bp->GetValue());
+                        return false;
+                    }
 					DEBUG_ShowMsg("DEBUG: Memory breakpoint %s: %04X:%04X - %02X -> %02X\n",(bp->GetType()==BKPNT_MEMORY_PROT)?"(Prot)":"",bp->GetSegment(),bp->GetOffset(),bp->GetValue(),value);
 					bp->SetValue(value);
 					return true;
@@ -887,6 +891,8 @@ void CBreakpoint::ShowList(void)
 			DEBUG_ShowMsg("%02X. BPPM %04X:%08X (%02X)\n",nr,bp->GetSegment(),bp->GetOffset(),bp->GetValue());
 		} else if (bp->GetType()==BKPNT_MEMORY_LINEAR ) {
 			DEBUG_ShowMsg("%02X. BPLM %08X (%02X)\n",nr,bp->GetOffset(),bp->GetValue());
+        } else if (bp->GetType()==BKPNT_MEMORY_FREEZE ) {
+	        DEBUG_ShowMsg("%02X. FM %08X (%02X)\n",nr,bp->GetOffset(),bp->GetValue());
 		}
 		nr++;
 	}
@@ -2184,6 +2190,21 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("-------------------------------------------------------------------------\n");
 		CBreakpoint::ShowList();
         DEBUG_EndPagedContent();
+		return true;
+	}
+    
+    if (command == "FM") { // Freeze memory value at address
+		uint16_t seg = (uint16_t)GetHexValue(found,found);found++; // skip ":"
+		uint32_t ofs = GetHexValue(found,found);
+        uint8_t value;
+		CBreakpoint* bp = CBreakpoint::AddMemBreakpoint(seg,ofs);
+        Bitu address = (Bitu)GetAddress(bp->GetSegment(),bp->GetOffset());
+		mem_readb_checked((PhysPt)address,&value);
+        if (bp){ 
+            bp->SetType(BKPNT_MEMORY_FREEZE);
+            bp->SetValue(value);
+        }
+		DEBUG_ShowMsg("DEBUG: Set memory freeze at %04X:%04X with value: %02X\n",seg,ofs,value);
 		return true;
 	}
 
@@ -3581,6 +3602,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("SR [reg] [value]          - Set register value. Multiple pairs allowed.\n");
 		DEBUG_ShowMsg("SM [seg]:[off] [val] [.]..- Set memory with following values.\n");
 		DEBUG_ShowMsg("SMV [addr] [val] [.]..    - Set memory with following values at linear (virtual) address.\n");
+        DEBUG_ShowMsg("FM [seg]:[off]            - Freeze memory value at address.\n");
 		DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
 		DEBUG_ShowMsg("IV [seg]:[off] [name]     - Create var name for memory address.\n");
 		DEBUG_ShowMsg("SV [filename]             - Save var list in file.\n");
