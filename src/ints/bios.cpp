@@ -77,6 +77,7 @@ extern bool PS1AudioCard;
 
 unsigned char ACPI_ENABLE_CMD = 0xA1;
 unsigned char ACPI_DISABLE_CMD = 0xA0;
+unsigned int ACPI_IO_BASE = 0x820;
 unsigned int ACPI_PM1A_EVT_BLK = 0x820;
 unsigned int ACPI_PM1A_CNT_BLK = 0x824;
 unsigned int ACPI_PM_TMR_BLK = 0x830;
@@ -188,6 +189,125 @@ RegionAllocTracking             rombios_alloc;
 
 Bitu                        rombios_minimum_location = 0xF0000; /* minimum segment allowed */
 Bitu                        rombios_minimum_size = 0x10000;
+
+static bool ACPI_SCI_EN = false;
+static bool ACPI_BM_RLD = false;
+
+static IO_Callout_t acpi_iocallout = IO_Callout_t_none;
+
+static unsigned int ACPI_PM1_Enable = 0;
+static unsigned int ACPI_PM1_Status = 0;
+static constexpr unsigned int ACPI_PM1_Enable_TMR_EN = (1u << 0u);
+static constexpr unsigned int ACPI_PM1_Enable_GBL_EN = (1u << 5u);
+static constexpr unsigned int ACPI_PM1_Enable_PWRBTN_EN = (1u << 8u);
+static constexpr unsigned int ACPI_PM1_Enable_SLPBTN_EN = (1u << 9u);
+static constexpr unsigned int ACPI_PM1_Enable_RTC_EN = (1u << 10u);
+
+unsigned int ACPI_buffer_global_lock = 0;
+
+unsigned long ACPI_FACS_GlobalLockValue(void) {
+	if (ACPI_buffer && ACPI_buffer_global_lock != 0)
+		return host_readd(ACPI_buffer+ACPI_buffer_global_lock);
+
+	return 0;
+}
+
+/* Triggered by GBL_RLS bit */
+static void ACPI_OnGuestGlobalRelease(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI GBL_RLS event. Global lock = %lx",ACPI_FACS_GlobalLockValue());
+}
+
+static void acpi_cb_port_smi_cmd_w(Bitu port,Bitu val,Bitu iolen) {
+	/* 8-bit SMI_CMD port */
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI SMI_CMD %x",(unsigned int)val);
+
+	if (val == ACPI_ENABLE_CMD) {
+		if (!ACPI_SCI_EN) {
+			LOG(LOG_MISC,LOG_DEBUG)("Guest enabled ACPI");
+			ACPI_SCI_EN = true;
+		}
+	}
+	else if (val == ACPI_DISABLE_CMD) {
+		if (ACPI_SCI_EN) {
+			LOG(LOG_MISC,LOG_DEBUG)("Guest disabled ACPI");
+			ACPI_SCI_EN = false;
+		}
+	}
+}
+
+static Bitu acpi_cb_port_cnt_blk_r(Bitu port,Bitu /*iolen*/) {
+	/* 16-bit register (PM1_CNT_LEN == 2) */
+	Bitu ret = 0;
+	if (ACPI_SCI_EN) ret |= (1u << 0u);
+	if (ACPI_BM_RLD) ret |= (1u << 1u);
+	/* GBL_RLS is write only */
+	/* TODO: bits 3-8 are "reserved by the ACPI driver"? So are they writeable then? */
+	/* TODO: SLP_TYPx */
+	/* SLP_EN is write-only */
+
+	ret >>= (Bitu)((port & 1u) * 8u);
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI_PM1_CNT_BLK read port %x ret %x",(unsigned int)port,(unsigned int)ret);
+	return ret;
+}
+
+static void acpi_cb_port_cnt_blk_w(Bitu port,Bitu val,Bitu iolen) {
+	/* 16-bit register (PM1_CNT_LEN == 2) */
+	const unsigned int pmask = ((1u << (unsigned int)iolen) - 1u) << ((unsigned int)port & 1u);/*which bits are actually updated*/
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI_PM1_CNT_BLK write port %x val %x iolen %x pmask %x",(unsigned int)port,(unsigned int)val,(unsigned int)iolen,pmask);
+
+	if (pmask & 1) {
+		/* BIOS controls SCI_EN and therefore guest cannot change it */
+		ACPI_BM_RLD = !!(val & (1u << 1u));
+		/* GLB_RLS is write only and triggers an SMI interrupt to pass execution to the BIOS, usually to indicate a release of the global lock and set of pending bit */
+		if (val & (1u << 2u)/*GBL_RLS*/) ACPI_OnGuestGlobalRelease();
+	}
+	/* TODO: bits 3-8 are "reserved by the ACPI driver"? So are they writeable then? */
+	/* TODO: SLP_TYPx */
+	/* SLP_EN is write-only */
+}
+
+static IO_ReadHandler* acpi_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) {
+	(void)co;
+	(void)iolen;
+
+	if ((port & (~3u)) == ACPI_PM1A_EVT_BLK) {
+		LOG(LOG_MISC,LOG_DEBUG)("read ACPI_PM1A_EVT_BLK port=0x%x iolen=%u",(unsigned int)port,(unsigned int)iolen);
+	}
+	else if ((port & (~1u)) == ACPI_PM1A_CNT_BLK)
+		return acpi_cb_port_cnt_blk_r;
+	else if ((port & (~3u)) == ACPI_SMI_CMD) {
+		LOG(LOG_MISC,LOG_DEBUG)("read ACPI_SMI_CMD port=0x%x iolen=%u",(unsigned int)port,(unsigned int)iolen);
+	}
+	else if ((port & (~3u)) == ACPI_PM_TMR_BLK) {
+		LOG(LOG_MISC,LOG_DEBUG)("read ACPI_PM_TMR_BLK port=0x%x iolen=%u",(unsigned int)port,(unsigned int)iolen);
+	}
+	else {
+		LOG(LOG_MISC,LOG_DEBUG)("read ACPI_??? port=0x%x iolen=%u",(unsigned int)port,(unsigned int)iolen);
+	}
+
+	return NULL;
+}
+
+static IO_WriteHandler* acpi_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen) {
+	(void)co;
+	(void)iolen;
+
+	if ((port & (~3u)) == ACPI_PM1A_EVT_BLK) {
+		LOG(LOG_MISC,LOG_DEBUG)("write ACPI_PM1A_EVT_BLK port=0x%x iolen=%u",(unsigned int)port,(unsigned int)iolen);
+	}
+	else if ((port & (~1u)) == ACPI_PM1A_CNT_BLK)
+		return acpi_cb_port_cnt_blk_w;
+	else if ((port & (~3u)) == ACPI_SMI_CMD)
+		return acpi_cb_port_smi_cmd_w;
+	else if ((port & (~3u)) == ACPI_PM_TMR_BLK) {
+		LOG(LOG_MISC,LOG_DEBUG)("write ACPI_PM_TMR_BLK port=0x%x iolen=%u",(unsigned int)port,(unsigned int)iolen);
+	}
+	else {
+		LOG(LOG_MISC,LOG_DEBUG)("write ACPI_??? port=0x%x iolen=%u",(unsigned int)port,(unsigned int)iolen);
+	}
+
+	return NULL;
+}
 
 bool MEM_map_ROM_physmem(Bitu start,Bitu end);
 bool MEM_unmap_physmem(Bitu start,Bitu end);
@@ -8834,6 +8954,7 @@ void BuildACPITable(void) {
 		host_writed(facs+0x04,facs_size);
 		host_writed(facs+0x08,0x12345678UL); // hardware signature
 		host_writed(facs+0x0C,0); // firmware waking vector
+		ACPI_buffer_global_lock = acpiptr2ofs(facs+0x10);
 		host_writed(facs+0x10,0); // global lock
 		host_writed(facs+0x14,0); // S4BIOS_REQ not supported
 		LOG(LOG_MISC,LOG_DEBUG)("ACPI: FACS at 0x%lx len 0x%lx",(unsigned long)acpiofs2phys( acpiptr2ofs( facs ) ),(unsigned long)facs_size);
@@ -9015,6 +9136,10 @@ private:
 	ACPI_enabled = false;
 	ACPI_version = 0;
 	ACPI_free();
+	ACPI_SCI_EN = false;
+	ACPI_BM_RLD = false;
+	ACPI_PM1_Status = 0;
+	ACPI_PM1_Enable = 0;
 
         /* If we're here because of a JMP to F000:FFF0 from a DOS program, then
          * an actual reset is needed to prevent reentrancy problems with the DOS
@@ -9061,7 +9186,8 @@ private:
 		/* TODO: Read from dosbox.conf */
 		if (ACPI_version != 0) {
 			ACPI_IRQ = 9;
-			ACPI_SMI_CMD = 0x4FE;
+			ACPI_IO_BASE = 0x820;
+			ACPI_SMI_CMD = 0x828;
 		}
 	}
 
@@ -9381,6 +9507,11 @@ private:
         if (isapnp_biosstruct_base != 0) {
             ROMBIOS_FreeMemory(isapnp_biosstruct_base);
             isapnp_biosstruct_base = 0;
+        }
+
+        if (acpi_iocallout != IO_Callout_t_none) {
+            IO_FreeCallout(acpi_iocallout);
+            acpi_iocallout = IO_Callout_t_none;
         }
 
         if (BOCHS_PORT_E9) {
@@ -10247,7 +10378,21 @@ private:
             }
         }
 
-	if (ACPI_enabled) BuildACPITable();
+	if (ACPI_enabled) {
+		if (acpi_iocallout == IO_Callout_t_none)
+			acpi_iocallout = IO_AllocateCallout(IO_TYPE_MB);
+		if (acpi_iocallout == IO_Callout_t_none)
+			E_Exit("Failed to get ACPI IO callout handle");
+
+		{
+			IO_CalloutObject *obj = IO_GetCallout(acpi_iocallout);
+			if (obj == NULL) E_Exit("Failed to get ACPI IO callout");
+			obj->Install(ACPI_IO_BASE,IOMASK_Combine(IOMASK_FULL,IOMASK_Range(0x20)),acpi_cb_port_r,acpi_cb_port_w);
+			IO_PutCallout(obj);
+		}
+
+		BuildACPITable();
+	}
 
         CPU_STI();
 
@@ -11568,6 +11713,11 @@ public:
          * and if allowed to do its thing in a 32-bit guest OS like WinNT, will trigger
          * a page fault. */
         CPU_Snap_Back_To_Real_Mode();
+
+        if (acpi_iocallout != IO_Callout_t_none) {
+            IO_FreeCallout(acpi_iocallout);
+            acpi_iocallout = IO_Callout_t_none;
+        }
 
         if (BOCHS_PORT_E9) {
             delete BOCHS_PORT_E9;
