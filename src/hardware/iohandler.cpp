@@ -187,8 +187,7 @@ static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
     Bitu ret = ~0ul;
 
     /* check motherboard devices */
-    if ((port & 0xFF00) == 0x0000 || IS_PC98_ARCH) /* motherboard-level I/O */
-        match = IO_Motherboard_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
+    match = IO_Motherboard_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
 
     if (match == 0) {
         /* first PCI bus device, then ISA.
@@ -249,8 +248,7 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
     unsigned int porti;
 
     /* check motherboard devices */
-    if ((port & 0xFF00) == 0x0000 || IS_PC98_ARCH) /* motherboard-level I/O */
-        match = IO_Motherboard_Callout_Write(/*&*/f,port,val,iolen);
+    match = IO_Motherboard_Callout_Write(/*&*/f,port,val,iolen);
 
     if (match == 0) {
         /* first PCI bus device, then ISA.
