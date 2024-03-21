@@ -4995,7 +4995,7 @@ public:
 	{}
 
 private:
-	virtual void getBytes(std::ostream& stream)
+	void getBytes(std::ostream& stream) override
 	{
 
 		//******************************************
@@ -5011,7 +5011,7 @@ private:
 		POD_Save_Sdlmain(stream);
 	}
 
-	virtual void setBytes(std::istream& stream)
+	void setBytes(std::istream& stream) override
 	{
 
 		//******************************************

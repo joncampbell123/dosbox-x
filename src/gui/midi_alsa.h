@@ -118,13 +118,13 @@ private:
 	}
 public:
 	MidiHandler_alsa() : MidiHandler() {};
-	const char* GetName(void) { return "alsa"; }
-	void PlaySysex(uint8_t * sysex,Bitu len) {
+	const char* GetName(void) override { return "alsa"; }
+	void PlaySysex(uint8_t * sysex,Bitu len) override {
 		snd_seq_ev_set_sysex(&ev, len, sysex);
 		send_event(1);
 	}
 
-	void PlayMsg(uint8_t * msg) {
+	void PlayMsg(uint8_t * msg) override {
 		ev.type = SND_SEQ_EVENT_OSS;
 
 		ev.data.raw32.d[0] = msg[0];
@@ -171,12 +171,12 @@ public:
 		}
 	}	
 
-	void Close(void) {
+	void Close(void) override {
 		if (seq_handle)
 			snd_seq_close(seq_handle);
 	}
 
-	bool Open(const char * conf) {
+	bool Open(const char * conf) override {
 		char var[10];
 		unsigned int caps;
 		bool defaultport = true; //try 17:0. Seems to be default nowadays
@@ -240,7 +240,7 @@ public:
 		return true;
 	}
 
-    void ListAll(Program* base) {
+    void ListAll(Program* base) override {
 #if __cplusplus <= 201103L // C++11 compliant code not tested
         auto print_port = [base, this](snd_seq_client_info_t *client_info, snd_seq_port_info_t *port_info) {
             const auto* addr = snd_seq_port_info_get_addr(port_info);

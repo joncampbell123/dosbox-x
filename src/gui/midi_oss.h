@@ -26,8 +26,8 @@ private:
 	bool isOpen;
 public:
 	MidiHandler_oss() : MidiHandler(),isOpen(false) {};
-	const char * GetName(void) { return "oss";};
-	bool Open(const char * conf) {
+	const char * GetName(void) override { return "oss";};
+	bool Open(const char * conf) override {
 		char devname[512];
 		if (conf && conf[0]) safe_strncpy(devname,conf,512);
 		else strcpy(devname,"/dev/sequencer");
@@ -41,11 +41,11 @@ public:
 		if (device<0) return false;
 		return true;
 	};
-	void Close(void) {
+	void Close(void) override {
 		if (!isOpen) return;
 		if (device>0) close(device);
 	};
-	void PlayMsg(uint8_t * msg) {
+	void PlayMsg(uint8_t * msg) override {
 		uint8_t buf[128];Bitu pos=0;
 		Bitu len=MIDI_evt_len[*msg];
 		for (;len>0;len--) {
@@ -60,7 +60,7 @@ public:
             LOG(LOG_IO, LOG_ERROR) ("Writing error in PlayMsg\n");
         }
 	};
-	void PlaySysex(uint8_t * sysex,Bitu len) {
+	void PlaySysex(uint8_t * sysex,Bitu len) override {
 		uint8_t buf[SYSEX_SIZE*4];Bitu pos=0;
 		for (;len>0;len--) {
 			buf[pos++] = SEQ_MIDIPUTC;

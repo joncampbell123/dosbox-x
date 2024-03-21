@@ -144,7 +144,7 @@ Bitu DEBUG_EnableDebugger(void);
 
 class MOUSE : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void MOUSE::Run(void) {
@@ -1043,7 +1043,7 @@ public:
         dos.dta(save_dta);
     }
 
-    void Run(void) {
+    void Run(void) override {
         DOS_Drive *newdrive = NULL;
         std::string label;
         std::string umount;
@@ -1623,7 +1623,7 @@ void GUI_Run(bool pressed);
 
 class CFGTOOL : public Program {
 public:
-    void Run(void) {
+    void Run(void) override {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
 			WriteOut("Starts DOSBox-X's graphical configuration tool.\n\nCFGTOOL\n\nNote: You can also use CONFIG command for command-line configurations.\n");
             return;
@@ -1659,19 +1659,19 @@ class PC98ITFPageHandler : public PageHandler {
 public:
     PC98ITFPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_HASROM) {}
     PC98ITFPageHandler(Bitu flags) : PageHandler(flags) {}
-    HostPt GetHostReadPt(Bitu phys_page) {
+    HostPt GetHostReadPt(Bitu phys_page) override {
         return PC98_ITF_ROM+(phys_page&0x7)*MEM_PAGESIZE;
     }
-    HostPt GetHostWritePt(Bitu phys_page) {
+    HostPt GetHostWritePt(Bitu phys_page) override {
         return PC98_ITF_ROM+(phys_page&0x7)*MEM_PAGESIZE;
     }
-    void writeb(PhysPt addr,uint8_t val){
+    void writeb(PhysPt addr,uint8_t val) override {
         LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
-    void writew(PhysPt addr,uint16_t val){
+    void writew(PhysPt addr,uint16_t val) override {
         LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
-    void writed(PhysPt addr,uint32_t val){
+    void writed(PhysPt addr,uint32_t val) override {
         LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
 };
@@ -1902,7 +1902,7 @@ public:
    
     /*! \brief      Program entry point, when the command is run
      */
-    void Run(void) {
+    void Run(void) override {
         std::string tmp;
         std::string bios;
         std::string boothax_str;
@@ -2879,7 +2879,7 @@ void runBoot(const char *str) {
 
 class LOADROM : public Program {
 public:
-    void Run(void) {
+    void Run(void) override {
 		if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
 			WriteOut(MSG_Get("PROGRAM_LOADROM_HELP"));
 			return;
@@ -3254,7 +3254,7 @@ restart_int:
     }
 #endif
 
-    void Run(void) {
+    void Run(void) override {
         std::string disktype;
         std::string src;
         std::string filename;
@@ -4194,7 +4194,7 @@ void IMGSWAP_ProgramStart(Program** make)
 
 class LOADFIX : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 bool XMS_Active(void);
@@ -4370,7 +4370,7 @@ static void LOADFIX_ProgramStart(Program * * make) {
 
 class RESCAN : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void RESCAN::Run(void)
@@ -4561,7 +4561,7 @@ public:
         return true;
     }
 
-    void Run(void) {
+    void Run(void) override {
 		if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
 			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]\n");
 			return;
@@ -4962,7 +4962,7 @@ class IMGMOUNT : public Program {
 			if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 			dos.dta(save_dta);
 		}
-		void Run(void) {
+		void Run(void) override {
 			//Hack To allow long commandlines
 			ChangeToLongCmd();
 			/* In secure mode don't allow people to change imgmount points. 
@@ -6665,7 +6665,7 @@ const char* DOS_GetLoadedLayout(void);
 
 class KEYB : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void KEYB::Run(void) {
@@ -6789,7 +6789,7 @@ static void KEYB_ProgramStart(Program * * make) {
 
 class MODE : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintStatus() {
         WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n", COLS, LINES);
@@ -7098,7 +7098,7 @@ void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms,
 
 class AUTOTYPE : public Program {
 public:
-	void Run();
+	void Run() override;
 
 private:
 	void PrintUsage();
@@ -7288,7 +7288,7 @@ void AUTOTYPE_ProgramStart(Program **make)
 
 class ADDKEY : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -7321,7 +7321,7 @@ static void ADDKEY_ProgramStart(Program * * make) {
 
 class LS : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void LS::Run()
@@ -7340,7 +7340,7 @@ static void LS_ProgramStart(Program * * make) {
 
 class CHOICE : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void CHOICE::Run()
@@ -7361,7 +7361,7 @@ void CHOICE_ProgramStart(Program **make)
 
 class COUNTRY : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void COUNTRY::Run()
@@ -7379,7 +7379,7 @@ static void COUNTRY_ProgramStart(Program * * make) {
 #ifdef C_ICONV
 class UTF8 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -7459,7 +7459,7 @@ static void UTF8_ProgramStart(Program * * make) {
 
 class UTF16 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -7566,7 +7566,7 @@ static void UTF16_ProgramStart(Program * * make) {
 
 class VTEXT : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -7595,7 +7595,7 @@ static void VTEXT_ProgramStart(Program * * make) {
 
 class DCGA : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void DCGA::Run()
@@ -7612,7 +7612,7 @@ static void DCGA_ProgramStart(Program * * make) {
 
 class TEXT80X25 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void TEXT80X25::Run()
@@ -7632,7 +7632,7 @@ static void TEXT80X25_ProgramStart(Program * * make) {
 
 class TEXT80X43 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void TEXT80X43::Run()
@@ -7652,7 +7652,7 @@ static void TEXT80X43_ProgramStart(Program * * make) {
 
 class TEXT80X50 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void TEXT80X50::Run()
@@ -7672,7 +7672,7 @@ static void TEXT80X50_ProgramStart(Program * * make) {
 
 class TEXT80X60 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void TEXT80X60::Run()
@@ -7692,7 +7692,7 @@ static void TEXT80X60_ProgramStart(Program * * make) {
 
 class TEXT132X25 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void TEXT132X25::Run()
@@ -7712,7 +7712,7 @@ static void TEXT132X25_ProgramStart(Program * * make) {
 
 class TEXT132X43 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void TEXT132X43::Run()
@@ -7732,7 +7732,7 @@ static void TEXT132X43_ProgramStart(Program * * make) {
 
 class TEXT132X50 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void TEXT132X50::Run()
@@ -7752,7 +7752,7 @@ static void TEXT132X50_ProgramStart(Program * * make) {
 
 class TEXT132X60 : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void TEXT132X60::Run()
@@ -7772,7 +7772,7 @@ static void TEXT132X60_ProgramStart(Program * * make) {
 
 class HELP : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 };
 
 void HELP::Run()
@@ -7791,7 +7791,7 @@ static void HELP_ProgramStart(Program * * make) {
 
 class DELTREE : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -7829,7 +7829,7 @@ static void DELTREE_ProgramStart(Program * * make) {
 
 class TREE : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -7863,7 +7863,7 @@ static void TREE_ProgramStart(Program * * make) {
 
 class TITLE : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -7903,7 +7903,7 @@ static void TITLE_ProgramStart(Program * * make) {
 
 class VHDMAKE : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
     const char* vhdTypes[5] = { "", "", "Fixed", "Dynamic", "Differencing" };
     uint64_t ssizetou64(const char* s_size);
@@ -8133,7 +8133,7 @@ static void VHDMAKE_ProgramStart(Program * * make) {
 
 class COLOR : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -8272,7 +8272,7 @@ void resetFontSize();
 bool get_pal = false;
 class SETCOLOR : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -8412,7 +8412,7 @@ static void SETCOLOR_ProgramStart(Program * * make) {
 extern Bitu int2fdbg_hook_callback;
 class INT2FDBG : public Program {
 public:
-    void Run(void);
+    void Run(void) override;
 private:
 	void PrintUsage() {
         constexpr const char *msg =
@@ -8473,7 +8473,7 @@ void EndStartProcess() {
 const char * TranslateHostPath(const char * arg, bool next = false);
 class START : public Program {
 public:
-    void Run() {
+    void Run() override {
         if(control->SecureMode()) {
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
@@ -8792,7 +8792,7 @@ class FLAGSAVE : public Program
 {
 public:
 
-    void Run(void)
+    void Run(void) override
     {
         std::string file_to_flag;
         int i, lf;

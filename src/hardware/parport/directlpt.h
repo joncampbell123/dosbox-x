@@ -31,17 +31,17 @@ public:
 
 	bool InstallationSuccessful;        // check after constructing. If
 private:                                // something was wrong, delete it right away.
-	virtual bool Putchar(uint8_t);
+	bool Putchar(uint8_t) override;
 
-	virtual Bitu Read_PR();
-	virtual Bitu Read_COM();
-	virtual Bitu Read_SR();
+	Bitu Read_PR() override;
+	Bitu Read_COM() override;
+	Bitu Read_SR() override;
 
-	virtual void Write_PR(Bitu);
-	virtual void Write_CON(Bitu);
-	virtual void Write_IOSEL(Bitu);
+	void Write_PR(Bitu) override;
+	void Write_CON(Bitu) override;
+	void Write_IOSEL(Bitu) override;
 
-	virtual void handleUpperEvent(uint16_t type);
+	void handleUpperEvent(uint16_t type) override;
 
 	uint16_t realbaseaddress;
 	uint16_t ecraddress;

@@ -593,7 +593,7 @@ class CONFIG : public Program {
 public:
     /*! \brief      Program entry point, when the command is run
      */
-	void Run(void);
+	void Run(void) override;
 private:
 	void restart(const char* useconfig);
 	

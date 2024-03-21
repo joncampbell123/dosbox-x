@@ -866,22 +866,22 @@ public:
 		Window(parent,x,y,w,h) {}
 
     /// Mouse was moved while a button was pressed. Returns true if event was handled.
-	virtual bool mouseDragged(int x, int y, MouseButton button);
+	bool mouseDragged(int x, int y, MouseButton button) override;
 	/// Mouse was pressed. Returns true if event was handled.
-	virtual bool mouseDown(int x, int y, MouseButton button);
+	bool mouseDown(int x, int y, MouseButton button) override;
 	/// Mouse was released. Returns true if event was handled.
-	virtual bool mouseUp(int x, int y, MouseButton button);
+	bool mouseUp(int x, int y, MouseButton button) override;
 
 	/// Mouse was moved. Returns true if event was handled.
-	virtual bool mouseMoved(int x, int y);
+	bool mouseMoved(int x, int y) override;
 	/// Mouse was clicked. Returns true if event was handled.
 	/** Clicking means pressing and releasing the mouse button while not moving it. */
-	virtual bool mouseClicked(int x, int y, MouseButton button);
+	bool mouseClicked(int x, int y, MouseButton button) override;
 	/// Mouse was double-clicked. Returns true if event was handled.
-	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
+	bool mouseDoubleClicked(int x, int y, MouseButton button) override;
 
 	/// Key was pressed. Returns true if event was handled.
-	virtual bool keyDown(const Key &key);
+	bool keyDown(const Key &key) override;
 
 	virtual void getVScrollInfo(vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarArrowInBox(Drawable &dscroll,const int x,const int y,const int w,const int h,bool downArrow,bool disabled) const;
@@ -890,11 +890,11 @@ public:
 	virtual void paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const;
 	virtual void paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const;
 	virtual void paintScrollBar3DInset(Drawable &dscroll, int x, int y, int w, int h) const;
-	virtual void paintAll(Drawable &d) const;
+	void paintAll(Drawable &d) const override;
 
-	virtual void onTabbing(const int msg);
+	void onTabbing(const int msg) override;
 
-	virtual void resize(int w, int h);
+	void resize(int w, int h) override;
 
     virtual void enableScrollBars(bool hs,bool vs);
     virtual void enableBorder(bool en);
@@ -915,8 +915,8 @@ public:
              *  than 500 days. If you want callbacks to be called again, return the
              *  delay in ticks relative to the scheduled time of this
              *  callback (which may be earlier than now() ). Otherwise return 0. */
-            virtual Ticks timerExpired(Ticks time);
-            virtual ~DragTimer_Callback() {}
+            Ticks timerExpired(Ticks time) override;
+            ~DragTimer_Callback() {}
         public:
             WindowInWindow *wnd = NULL;
     };
@@ -987,19 +987,19 @@ public:
 	template <typename STR> void setClipboard(const STR s) { this->setClipboard(String(s)); }
 
 	/// Set clipboard content.
-	virtual void setClipboard(const String &s) { clipboard = s; }
+	void setClipboard(const String &s) override { clipboard = s; }
 
 	/// Get clipboard content.
-	virtual const String& getClipboard() { return clipboard; }
+	const String& getClipboard() override { return clipboard; }
 
 	/// Do nothing.
-	virtual void resize(int w, int h);
+	void resize(int w, int h) override;
 
 	/// Do nothing.
-	virtual void move(int x, int y);
+	void move(int x, int y) override;
 
 	/// Screen has always focus.
-	virtual bool hasFocus() const { return true; }
+	bool hasFocus() const override { return true; }
 
 	/// Update the given surface with this screen's content, fully honouring the alpha channel.
 	/** \p ticks can be set to a different value depending on how much time has passed. Timing
@@ -1009,7 +1009,7 @@ public:
 	Ticks update(void *surface, Ticks ticks = 1);
 
 	/// Default: clear screen.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 };
 
 
@@ -1021,14 +1021,14 @@ public:
 class ScreenRGB32le : public Screen {
 protected:
 	/// Map a single RGB triple (8 bit each) to a native pixel value.
-	virtual void rgbToSurface(RGB color, void **pixel) { RGB **p = (RGB **)pixel; **p = color; (*p)++; };
+	void rgbToSurface(RGB color, void **pixel) override { RGB **p = (RGB **)pixel; **p = color; (*p)++; };
 
 	/// Map a single surface pixel to an RGB value.
-	virtual RGB surfaceToRGB(void *pixel) { return *(RGB*)pixel; };
+	RGB surfaceToRGB(void *pixel) override { return *(RGB*)pixel; };
 public:
 	ScreenRGB32le(Size width, Size height) : Screen(width,height) {};
 
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 };
 
 
@@ -1050,10 +1050,10 @@ public:
 class ScreenSDL : public Screen {
 protected:
 	/// not used.
-	virtual void rgbToSurface(RGB color, void **pixel) { (void)color; (void)pixel; };
+	void rgbToSurface(RGB color, void **pixel) override { (void)color; (void)pixel; };
 
 	/// not used.
-	virtual RGB surfaceToRGB(void *pixel) { (void)pixel; return 0; };
+	RGB surfaceToRGB(void *pixel) override { (void)pixel; return 0; };
 
 	/// The SDL surface being drawn to.
 	SDL_Surface *surface;
@@ -1090,7 +1090,7 @@ public:
 	SDL_Surface *getSurface() { return surface; }
 
 	/// Overridden: makes background transparent by default.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Use this to update the SDL surface. The screen must not be locked.
 	Ticks update(Ticks ticks);
@@ -1491,7 +1491,7 @@ protected:
 	/// Draw character to a drawable at the current position.
 	/** \p d's current position is advanced to the position of the next character.
 	 *  The y coordinate is located at the baseline before and after the call. */
-	virtual void drawChar(Drawable *d, const Char c) const;
+	void drawChar(Drawable *d, const Char c) const override;
 
 public:
 	/// Constructor.
@@ -1505,22 +1505,22 @@ public:
 		const unsigned char *const* char_position = NULL,
 		const SpecialChar *special = NULL);
 
-	virtual ~BitmapFont();
+	~BitmapFont();
 
 	/// Retrieve total height of font in pixels.
-	virtual int getHeight() const { return height; };
+	int getHeight() const override { return height; };
 
 	/// Retrieve the ascent, i.e. the number of pixels above the base line.
-	virtual int getAscent() const { return ascent; };
+	int getAscent() const override { return ascent; };
 
 	/// Retrieve width of a character.
-	virtual int getWidth(Char c = 'M') const { return (widths != NULL?widths[c]:width); };
+	int getWidth(Char c = 'M') const override { return (widths != NULL?widths[c]:width); };
 
 	/// Convert a character to an equivalent SpecialChar. See Font::toSpecial(Char c)
-	virtual SpecialChar toSpecial(Char c) const { return (special != NULL?special[c]:Font::toSpecial(c)); }
+	SpecialChar toSpecial(Char c) const override { return (special != NULL?special[c]:Font::toSpecial(c)); }
 
 	/// Convert a character to an equivalent character. See Font::fromSpecial(SpecialChar c).
-	virtual Char fromSpecial(SpecialChar c) const { if (special == NULL) return Font::fromSpecial(c); Char i = 0; while(special[i] != c) i++; return i; }
+	Char fromSpecial(SpecialChar c) const override { if (special == NULL) return Font::fromSpecial(c); Char i = 0; while(special[i] != c) i++; return i; }
 
 };
 
@@ -1596,13 +1596,13 @@ protected:
 		Window(parent,x,y,w,h), border_left(bl), border_top(bt), border_right(br), border_bottom(bb) {}
 
 public:
-	virtual void paintAll(Drawable &d) const;
-	virtual bool mouseMoved(int x, int y);
-	virtual bool mouseDown(int x, int y, MouseButton button);
-	virtual bool mouseDragged(int x, int y, MouseButton button);
-	virtual bool mouseUp(int x, int y, MouseButton button);
-	virtual int getScreenX() const { return Window::getScreenX()+border_left; }
-	virtual int getScreenY() const { return Window::getScreenY()+border_top; }
+	void paintAll(Drawable &d) const override;
+	bool mouseMoved(int x, int y) override;
+	bool mouseDown(int x, int y, MouseButton button) override;
+	bool mouseDragged(int x, int y, MouseButton button) override;
+	bool mouseUp(int x, int y, MouseButton button) override;
+	int getScreenX() const override { return Window::getScreenX()+border_left; }
+	int getScreenY() const override { return Window::getScreenY()+border_top; }
 };
 
 /// A text label
@@ -1649,7 +1649,7 @@ public:
 	RGB getColor() { return color; }
 
 	/// Calculate label size. Parameters are ignored.
-	virtual void resize(int w = -1, int h = -1) {
+	void resize(int w = -1, int h = -1) override {
         (void)h;//UNUSED
 		if (w == -1) w = (interpret?getWidth():0);
 		else interpret = (w != 0);
@@ -1661,12 +1661,12 @@ public:
 	}
 
 	/// Returns \c true if this window has currently the keyboard focus.
-	virtual bool hasFocus() const { return allow_focus && Window::hasFocus(); }
+	bool hasFocus() const override { return allow_focus && Window::hasFocus(); }
 
 	/// Paint label
-	virtual void paint(Drawable &d) const { d.setColor(color); d.drawText(0, font->getAscent(), text, interpret, 0); if (hasFocus()) d.drawDotRect(0,0,width-1,height-1); }
+	void paint(Drawable &d) const override { d.setColor(color); d.drawText(0, font->getAscent(), text, interpret, 0); if (hasFocus()) d.drawDotRect(0,0,width-1,height-1); }
 
-	virtual bool raise() { return false; }
+	bool raise() override { return false; }
 };
 
 
@@ -1740,7 +1740,7 @@ public:
 	}
 
 	/// Paint input.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Clear selected area.
 	void clearSelection() {
@@ -1776,16 +1776,16 @@ public:
 	const String& getText() { return text; };
 
 	/// Handle text input.
-	virtual bool keyDown(const Key &key);
+	bool keyDown(const Key &key) override;
 
 	/// Handle mouse input.
-	virtual bool mouseDown(int x, int y, MouseButton button);
+	bool mouseDown(int x, int y, MouseButton button) override;
 
 	/// Handle mouse input.
-	virtual bool mouseDragged(int x, int y, MouseButton button);
+	bool mouseDragged(int x, int y, MouseButton button) override;
 
 	/// Timer callback function
-	virtual Ticks timerExpired(Ticks time)
+	Ticks timerExpired(Ticks time) override
 	{ (void)time; blink = !blink; setDirty(); return 30; }
 
 	/// Move the cursor to the end of the text field
@@ -1843,7 +1843,7 @@ public:
 	}
 
 	/// Menu callback function
-	virtual void actionExecuted(ActionEventSource *src, const String &item) {
+	void actionExecuted(ActionEventSource *src, const String &item) override {
         (void)src;
 		if (item == String(MSG_Get("CLOSE"))) close();
 	}
@@ -1854,10 +1854,10 @@ public:
 	/// Remove a window event handler.
 	void removeCloseHandler(ToplevelWindow_Callback *handler) { closehandlers.remove(handler); }
 
-	virtual void paint(Drawable &d) const;
-	virtual bool mouseDown(int x, int y, MouseButton button);
-	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
-	virtual bool mouseUp(int x, int y, MouseButton button) {
+	void paint(Drawable &d) const override;
+	bool mouseDown(int x, int y, MouseButton button) override;
+	bool mouseDoubleClicked(int x, int y, MouseButton button) override;
+	bool mouseUp(int x, int y, MouseButton button) override {
 		if (button == Left && dragx >= 0 && dragy >= 0) {
 			dragx = dragy = -1;
 			return true;
@@ -1865,7 +1865,7 @@ public:
 		BorderedWindow::mouseUp(x,y,button);
 		return true;
 	}
-	virtual bool mouseDragged(int x, int y, MouseButton button) {
+	bool mouseDragged(int x, int y, MouseButton button) override {
 		if (button == Left && dragx >= 0 && dragy >= 0) {
 			move(x-dragx+this->x,y-dragy+this->y);
 			return true;
@@ -1873,13 +1873,13 @@ public:
 		BorderedWindow::mouseDragged(x,y,button);
 		return true;
 	}
-	virtual bool mouseMoved(int x, int y) {
+	bool mouseMoved(int x, int y) override {
 		BorderedWindow::mouseMoved(x,y);
 		return true;
 	}
 
 	/// Put window on top of all other windows without changing their relative order
-	virtual bool raise() {
+	bool raise() override {
 		Window *last = parent->children.back();
 		parent->children.remove(this);
 		parent->children.push_back(this);
@@ -1935,7 +1935,7 @@ protected:
 
 public:
 	/// Handle automatic hiding
-	virtual void focusChanged(bool gained) {
+	void focusChanged(bool gained) override {
 		Window::focusChanged(gained);
 		if (isVisible() && !gained) {
 			if (realparent->hasFocus()) raise();
@@ -1944,13 +1944,13 @@ public:
 	}
 
 	/// Handle automatic delete
-	void windowClosed(ToplevelWindow *win) {
+	void windowClosed(ToplevelWindow *win) override {
         (void)win;
 		delete this;
 	}
 
 	/// No-op
-	bool windowClosing(ToplevelWindow *win) { (void)win; return true; }
+	bool windowClosing(ToplevelWindow *win) override { (void)win; return true; }
 
 	/// Create a transient window with given position and size
 	/** \a parent is the logical parent. The true parent object is
@@ -1980,13 +1980,13 @@ public:
 		dynamic_cast<ToplevelWindow *>(last2)->removeCloseHandler(this);
 	 }
 
-	virtual void move(int x, int y) { relx = x; rely = y;
+	void move(int x, int y) override { relx = x; rely = y;
 		Window::move(x+realparent->getScreenX(),y+realparent->getScreenY()); }
-	virtual int getX() const { return x-realparent->getScreenX(); }
-	virtual int getY() const { return y-realparent->getScreenY(); }
-	virtual void setVisible(bool v) { if (v) raise(); Window::setVisible(v); }
-	virtual void windowMoved(Window *src, int x, int y) { (void)src; (void)x; (void)y; move(relx,rely); }
-    virtual bool mouseDownOutside(MouseButton button) {
+	int getX() const override { return x-realparent->getScreenX(); }
+	int getY() const override { return y-realparent->getScreenY(); }
+	void setVisible(bool v) override { if (v) raise(); Window::setVisible(v); }
+	void windowMoved(Window *src, int x, int y) override { (void)src; (void)x; (void)y; move(relx,rely); }
+    bool mouseDownOutside(MouseButton button) override {
         (void)button;
 
         if (visible) {
@@ -1998,7 +1998,7 @@ public:
     }
 
 	/// Put window on top of all other windows without changing their relative order
-	virtual bool raise() {
+	bool raise() override {
 		Window *last = parent->children.back();
 		parent->children.remove(this);
 		parent->children.push_back(this);
@@ -2155,10 +2155,10 @@ public:
 	}
 
 	/// Paint button.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Highlight current item.
-	virtual bool mouseMoved(int x, int y)  {
+	bool mouseMoved(int x, int y) override {
         if (visible) {
             firstMouseUp = false;
     		selectItem(x,y);
@@ -2168,7 +2168,7 @@ public:
         return false;
 	}
 
-    void mouseMovedOutside(void) {
+    void mouseMovedOutside(void) override {
         if (visible && selected >= 0) {
             firstMouseUp = false;
             selected = -1;
@@ -2177,7 +2177,7 @@ public:
     }
 
 	/// Highlight current item.
-	virtual bool mouseDragged(int x, int y, MouseButton button)  {
+	bool mouseDragged(int x, int y, MouseButton button) override {
         (void)button;//UNUSED	
 
         if (visible) {
@@ -2191,7 +2191,7 @@ public:
         return false;
 	}
 
-	virtual bool mouseDown(int x, int y, MouseButton button)  {
+	bool mouseDown(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)x;//UNUSED
         (void)y;//UNUSED
@@ -2202,7 +2202,7 @@ public:
         return false;
     }
 
-	virtual bool mouseDownOutside(MouseButton button) {
+	bool mouseDownOutside(MouseButton button) override {
         (void)button;//UNUSED
 
         if (visible) {
@@ -2215,7 +2215,7 @@ public:
     }
 
 	/// Possibly select item.
-	virtual bool mouseUp(int x, int y, MouseButton button)  {
+	bool mouseUp(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
 
         if (visible) {
@@ -2230,7 +2230,7 @@ public:
     }
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key) {
+	bool keyDown(const Key &key) override {
         if (visible) {
             if (key.special == Key::Up) {
                 if (selected == 0)
@@ -2270,7 +2270,7 @@ public:
 		resize(getPreferredWidth(),getPreferredHeight());
 	}
 
-	virtual void setVisible(bool v) {
+	void setVisible(bool v) override {
         if (!visible && v)
             firstMouseUp = true;
 
@@ -2327,10 +2327,10 @@ public:
 	template <typename T> Button(Window *parent, int x, int y, const T text, int w = -1, int h = -1);
 
 	/// Paint button.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Press button.
-	virtual bool mouseDown(int x, int y, MouseButton button) {
+	bool mouseDown(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)x;//UNUSED
         (void)y;//UNUSED
@@ -2343,7 +2343,7 @@ public:
 	}
 
 	/// Release button.
-	virtual bool mouseUp(int x, int y, MouseButton button)  {
+	bool mouseUp(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)x;//UNUSED
         (void)y;//UNUSED
@@ -2356,7 +2356,7 @@ public:
 	}
 
 	/// Handle mouse activation.
-	virtual bool mouseClicked(int x, int y, MouseButton button) {
+	bool mouseClicked(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)x;//UNUSED
         (void)y;//UNUSED
@@ -2369,10 +2369,10 @@ public:
 	}
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key);
+	bool keyDown(const Key &key) override;
 
 	/// Handle keyboard input.
-	virtual bool keyUp(const Key &key);
+	bool keyUp(const Key &key) override;
 
 };
 
@@ -2414,10 +2414,10 @@ public:
 	template <typename STR> void removeItem(int index, const STR name) { menus[(unsigned int)index]->removeItem(name); }
 
 	/// Paint menubar.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Open menu.
-	virtual bool mouseDown(int x, int y, MouseButton button) {
+	bool mouseDown(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)y;//UNUSED
 		int oldselected = selected;
@@ -2431,7 +2431,7 @@ public:
 	}
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key) {
+	bool keyDown(const Key &key) override {
         if (key.special == Key::Tab)
             return false;
 
@@ -2439,14 +2439,14 @@ public:
     }
 
     /// Handle keyboard input.
-    virtual bool keyUp(const Key &key) {
+    bool keyUp(const Key &key) override {
         if (key.special == Key::Tab)
             return false;
 
         return true;
     }
 
-	virtual void actionExecuted(ActionEventSource *src, const String &arg) {
+	void actionExecuted(ActionEventSource *src, const String &arg) override {
 		std::list<ActionEventSource_Callback*>::iterator i = actionHandlers.begin();
 		bool end = (i == actionHandlers.end());
 		while (!end) {
@@ -2476,7 +2476,7 @@ public:
 	template <typename T> Checkbox(Window *parent, int x, int y, const T text, int w = -1, int h = -1);
 
 	/// Paint checkbox.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Change checkbox state.
 	virtual void setChecked(bool checked) { this->checked = checked; }
@@ -2485,7 +2485,7 @@ public:
 	virtual bool isChecked() { return checked; }
 
 	/// Press checkbox.
-	virtual bool mouseDown(int x, int y, MouseButton button) {
+	bool mouseDown(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)x;//UNUSED
         (void)y;//UNUSED	
@@ -2494,7 +2494,7 @@ public:
 	}
 
 	/// Release checkbox.
-	virtual bool mouseUp(int x, int y, MouseButton button)  {
+	bool mouseUp(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)x;//UNUSED
         (void)y;//UNUSED	
@@ -2503,10 +2503,10 @@ public:
 	}
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key);
+	bool keyDown(const Key &key) override;
 
 	/// Handle keyboard input.
-	virtual bool keyUp(const Key &key);
+	bool keyUp(const Key &key) override;
 
 	/// Execute handlers.
 	virtual void execute() {
@@ -2536,7 +2536,7 @@ public:
 	template <typename T> Radiobox(Frame *parent, int x, int y, const T text, int w = -1, int h = -1);
 
 	/// Paint radio box.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Change radio box state.
 	virtual void setChecked(bool checked) { this->checked = checked; }
@@ -2545,7 +2545,7 @@ public:
 	virtual bool isChecked() { return checked; }
 
 	/// Press radio box.
-	virtual bool mouseDown(int x, int y, MouseButton button) {
+	bool mouseDown(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)x;//UNUSED
         (void)y;//UNUSED
@@ -2554,7 +2554,7 @@ public:
 	}
 
 	/// Release checkbox.
-	virtual bool mouseUp(int x, int y, MouseButton button)  {
+	bool mouseUp(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)x;//UNUSED
         (void)y;//UNUSED
@@ -2563,10 +2563,10 @@ public:
 	}
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key);
+	bool keyDown(const Key &key) override;
 
 	/// Handle keyboard input.
-	virtual bool keyUp(const Key &key);
+	bool keyUp(const Key &key) override;
 };
 
 /// A rectangular 3D sunken frame
@@ -2583,7 +2583,7 @@ protected:
 	String label;
 
 	/// Execute handlers.
-	virtual void actionExecuted(ActionEventSource *src, const String &arg) {
+	void actionExecuted(ActionEventSource *src, const String &arg) override {
         // HACK: Attempting to cast a String to void causes "forming reference to void" errors when building with GCC 4.7
         (void)arg.size();//UNUSED
 		for (std::list<Window *>::iterator i = children.begin(); i != children.end(); ++i) {
@@ -2603,7 +2603,7 @@ public:
 		ActionEventSource(text), selected(0), label(text) { }
 
 	/// Paint frame.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 };
 
@@ -2659,12 +2659,12 @@ public:
 		resize(width, sfh+close->getHeight()+border_bottom+border_top+5);
 	}
 
-	virtual bool keyDown(const GUI::Key &key) {
+	bool keyDown(const GUI::Key &key) override {
         if (GUI::ToplevelWindow::keyDown(key)) return true;
         return false;
     }
 
-	virtual bool keyUp(const GUI::Key &key) {
+	bool keyUp(const GUI::Key &key) override {
         if (GUI::ToplevelWindow::keyUp(key)) return true;
 
         if (key.special == GUI::Key::Escape) {
@@ -2730,12 +2730,12 @@ public:
 		resize(width, sfh+close->getHeight()+border_bottom+border_top+5);
 	}
 
-	virtual bool keyDown(const GUI::Key &key) {
+	bool keyDown(const GUI::Key &key) override {
         if (GUI::ToplevelWindow::keyDown(key)) return true;
         return false;
     }
 
-	virtual bool keyUp(const GUI::Key &key) {
+	bool keyUp(const GUI::Key &key) override {
         if (GUI::ToplevelWindow::keyUp(key)) return true;
 
         if (key.special == GUI::Key::Escape) {

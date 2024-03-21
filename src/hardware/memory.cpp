@@ -72,7 +72,7 @@ class ACPIPageHandler : public PageHandler {
 	public:
 		ACPIPageHandler() : PageHandler(PFLAG_NOCODE|PFLAG_READABLE|PFLAG_WRITEABLE) {}
 		ACPIPageHandler(Bitu flags) : PageHandler(flags) {}
-		HostPt GetHostReadPt(Bitu phys_page) {
+		HostPt GetHostReadPt(Bitu phys_page) override {
 			assert(ACPI_buffer != NULL);
 			assert(ACPI_buffer_size >= 4096);
 			phys_page -= (ACPI_BASE >> 12);
@@ -80,7 +80,7 @@ class ACPIPageHandler : public PageHandler {
 			if (phys_page >= (ACPI_buffer_size >> 12)) phys_page = (ACPI_buffer_size >> 12) - 1;
 			return ACPI_buffer + (phys_page << 12);
 		}
-		HostPt GetHostWritePt(Bitu phys_page) {
+		HostPt GetHostWritePt(Bitu phys_page) override {
 			assert(ACPI_buffer != NULL);
 			assert(ACPI_buffer_size >= 4096);
 			phys_page -= (ACPI_BASE >> 12);
@@ -211,11 +211,11 @@ HostPt MemBase = NULL;
 class UnmappedPageHandler : public PageHandler {
 public:
     UnmappedPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    uint8_t readb(PhysPt addr) {
+    uint8_t readb(PhysPt addr) override {
         (void)addr;//UNUSED
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,uint8_t val) {
+    void writeb(PhysPt addr,uint8_t val) override {
         (void)addr;//UNUSED
         (void)val;//UNUSED
     }
@@ -224,7 +224,7 @@ public:
 class IllegalPageHandler : public PageHandler {
 public:
     IllegalPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    uint8_t readb(PhysPt addr) {
+    uint8_t readb(PhysPt addr) override {
         (void)addr;
 #if C_DEBUG
         LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
@@ -237,7 +237,7 @@ public:
 #endif
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,uint8_t val) {
+    void writeb(PhysPt addr,uint8_t val) override {
         (void)addr;//UNUSED
         (void)val;//UNUSED
 #if C_DEBUG
@@ -256,13 +256,13 @@ class RAMPageHandler : public PageHandler {
 public:
     RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
     RAMPageHandler(Bitu flags) : PageHandler(flags) {}
-    HostPt GetHostReadPt(Bitu phys_page) {
+    HostPt GetHostReadPt(Bitu phys_page) override {
         if (!a20_fast_changeable || (phys_page & (~0xFul/*64KB*/)) == 0x100ul/*@1MB*/)
             return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
 
         return MemBase+phys_page*MEM_PAGESIZE;
     }
-    HostPt GetHostWritePt(Bitu phys_page) {
+    HostPt GetHostWritePt(Bitu phys_page) override {
         if (!a20_fast_changeable || (phys_page & (~0xFul/*64KB*/)) == 0x100ul/*@1MB*/)
             return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
 
@@ -275,10 +275,10 @@ public:
     ROMAliasPageHandler() {
         flags=PFLAG_READABLE|PFLAG_HASROM;
     }
-    HostPt GetHostReadPt(Bitu phys_page) {
+    HostPt GetHostReadPt(Bitu phys_page) override {
         return MemBase+((phys_page&0xF)+0xF0)*MEM_PAGESIZE;
     }
-    HostPt GetHostWritePt(Bitu phys_page) {
+    HostPt GetHostWritePt(Bitu phys_page) override {
         return MemBase+((phys_page&0xF)+0xF0)*MEM_PAGESIZE;
     }
 };
@@ -288,19 +288,19 @@ public:
     ROMPageHandler() {
         flags=PFLAG_READABLE|PFLAG_HASROM;
     }
-    void writeb(PhysPt addr,uint8_t val){
+    void writeb(PhysPt addr,uint8_t val) override {
         if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
             { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
         else
             LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
-    void writew(PhysPt addr,uint16_t val){
+    void writew(PhysPt addr,uint16_t val) override {
         if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
             { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
         else
             LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
-    void writed(PhysPt addr,uint32_t val){
+    void writed(PhysPt addr,uint32_t val) override {
         if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
             { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
         else
@@ -1719,7 +1719,7 @@ HostPt GetMemBase(void) { return MemBase; }
 class REDOS : public Program {
 public:
     /*! \brief      Program entry point, when the command is run */
-    void Run(void) {
+    void Run(void) override {
 		if (cmd->FindExist("/?", false) || cmd->FindExist("-?", false)) {
 			WriteOut("Reboots the kernel of DOSBox-X's emulated DOS.\n\nRE-DOS\n");
 			return;
@@ -1739,7 +1739,7 @@ void REDOS_ProgramStart(Program * * make) {
 class A20GATE : public Program {
 public:
     /*! \brief      Program entry point, when the command is run */
-    void Run(void) {
+    void Run(void) override {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
             WriteOut("Turns on/off or changes the A20 gate mode.\n\n");
             WriteOut("A20GATE [ON | OFF | SET [off | off_fake | on | on_fake | mask | fast]]\n\n"
@@ -2275,7 +2275,7 @@ public:
 	{}
 
 private:
-	virtual void getBytes(std::ostream& stream)
+	void getBytes(std::ostream& stream) override
 	{
 		uint8_t pagehandler_idx[0x40000];
 		unsigned int size_table;
@@ -2321,7 +2321,7 @@ private:
 		WRITE_POD( &pagehandler_idx, pagehandler_idx );
 	}
 
-	virtual void setBytes(std::istream& stream)
+	void setBytes(std::istream& stream) override
 	{
 		uint8_t pagehandler_idx[0x40000];
 		void *old_ptrs[4];

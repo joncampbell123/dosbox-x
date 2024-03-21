@@ -134,11 +134,11 @@ private:
 public:
 	MidiHandler_synth() : MidiHandler(),isOpen(false) {};
 
-	const char * GetName(void) {
+	const char * GetName(void) override {
 		return "synth";
 	};
 
-	bool Open(const char *conf) {
+	bool Open(const char *conf) override {
 		if (isOpen) return false;
 
 		std::string sf = "";
@@ -230,7 +230,7 @@ public:
 		return true;
 	};
 
-	void Close(void) {
+	void Close(void) override {
 		if (!isOpen) return;
 
 		synthchan->Enable(false);
@@ -244,16 +244,16 @@ public:
 		isOpen = false;
 	};
 
-	void PlayMsg(uint8_t *msg) {
+	void PlayMsg(uint8_t *msg) override {
 		synthchan->Enable(true);
 		PlayEvent(msg, MIDI_evt_len[*msg]);
 	};
 
-	void PlaySysex(uint8_t *sysex, Bitu len) {
+	void PlaySysex(uint8_t *sysex, Bitu len) override {
 		PlayEvent(sysex, len);
 	};
 
-	void ListAll(Program* base) {
+	void ListAll(Program* base) override {
 		base->WriteOut("  %s\n",fsinfo.c_str());
 	}
 
@@ -271,12 +271,12 @@ private:
 	fluid_audio_driver_t* adriver;
 public:
 	MidiHandler_fluidsynth() : MidiHandler() {};
-	const char* GetName(void) { return "fluidsynth"; }
-	void PlaySysex(uint8_t * sysex, Bitu len) {
+	const char* GetName(void) override { return "fluidsynth"; }
+	void PlaySysex(uint8_t * sysex, Bitu len) override {
 		fluid_synth_sysex(synth, (char*)sysex, (int)len, NULL, NULL, NULL, 0);
 	}
 
-	void PlayMsg(uint8_t * msg) {
+	void PlayMsg(uint8_t * msg) override {
 		unsigned char chanID = msg[0] & 0x0F;
 		switch (msg[0] & 0xF0) {
 		case 0x80:
@@ -305,7 +305,7 @@ public:
 		}
 	}
 
-	void Close(void) {
+	void Close(void) override {
 		if (soundfont_id >= 0) {
 			fluid_synth_sfunload(synth, soundfont_id, 0);
 		}
@@ -314,7 +314,7 @@ public:
 		delete_fluid_settings(settings);
 	}
 
-	bool Open(const char * conf) {
+	bool Open(const char * conf) override {
 		(void)conf;
 
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
@@ -447,7 +447,7 @@ public:
 		return true;
 	}
 
-	void ListAll(Program* base) {
+	void ListAll(Program* base) override {
 		base->WriteOut("  %s\n",fsinfo.c_str());
 	}
 };

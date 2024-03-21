@@ -2644,7 +2644,7 @@ public:
 	{}
 
 private:
-	virtual void getBytes(std::ostream& stream)
+	void getBytes(std::ostream& stream) override
 	{
 		uint8_t screenMask_idx, cursorMask_idx;
 
@@ -2689,7 +2689,7 @@ private:
 		WRITE_POD( &cursorMask_idx, cursorMask_idx );
 	}
 
-	virtual void setBytes(std::istream& stream)
+	void setBytes(std::istream& stream) override
 	{
 		uint8_t screenMask_idx, cursorMask_idx;
 

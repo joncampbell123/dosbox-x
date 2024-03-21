@@ -106,13 +106,13 @@ public:
 	// ringModulated should be set to false for the structures with mixing or stereo output
 	// ringModulated should be set to true for the structures with ring modulation
 	// mixed is used for the structures with ring modulation and indicates whether the master partial output is mixed to the ring modulator output
-	void init(const bool ringModulated, const bool mixed);
+	void init(const bool ringModulated, const bool mixed) override;
 
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
+	void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) override;
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
-	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped);
+	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) override;
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
 	void generateNextSample(const PairType master, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
@@ -121,7 +121,7 @@ public:
 	float nextOutSample();
 
 	// Deactivate the WG engine
-	void deactivate(const PairType master);
+	void deactivate(const PairType master) override;
 
 	// Return active state of the WG engine
 	bool isActive(const PairType master) const;

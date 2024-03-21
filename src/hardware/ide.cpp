@@ -222,8 +222,8 @@ public:
 class IDEATADevice:public IDEDevice {
 public:
     IDEATADevice(IDEController *c,unsigned char disk_index,bool _slave);
-    virtual ~IDEATADevice();
-    virtual void writecommand(uint8_t cmd);
+    ~IDEATADevice();
+    void writecommand(uint8_t cmd) override;
 public:
     std::string id_serial;
     std::string id_firmware_rev;
@@ -231,8 +231,8 @@ public:
     unsigned char bios_disk_index;
     imageDisk *getBIOSdisk();
     void update_from_biosdisk();
-    virtual Bitu data_read(Bitu iolen); /* read from 1F0h data port from IDE device */
-    virtual void data_write(Bitu v,Bitu iolen);/* write to 1F0h data port to IDE device */
+    virtual Bitu data_read(Bitu iolen) override; /* read from 1F0h data port from IDE device */
+    virtual void data_write(Bitu v,Bitu iolen) override;/* write to 1F0h data port to IDE device */
     virtual void generate_identify_device();
     virtual void prepare_read(Bitu offset,Bitu size);
     virtual void prepare_write(Bitu offset,Bitu size);
@@ -259,8 +259,8 @@ enum {
 class IDEATAPICDROMDevice:public IDEDevice {
 public:
     IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave);
-    virtual ~IDEATAPICDROMDevice();
-    virtual void writecommand(uint8_t cmd);
+    ~IDEATAPICDROMDevice();
+    void writecommand(uint8_t cmd) override;
 public:
     std::string id_serial;
     std::string id_firmware_rev;
@@ -269,8 +269,8 @@ public:
     Bitu sector_transfer_limit = 16;
     CDROM_Interface *getMSCDEXDrive();
     void update_from_cdrom();
-    virtual Bitu data_read(Bitu iolen); /* read from 1F0h data port from IDE device */
-    virtual void data_write(Bitu v,Bitu iolen);/* write to 1F0h data port to IDE device */
+    Bitu data_read(Bitu iolen) override; /* read from 1F0h data port from IDE device */
+    void data_write(Bitu v,Bitu iolen) override; /* write to 1F0h data port to IDE device */
     virtual void generate_identify_device();
     virtual void generate_mmc_inquiry();
     virtual void prepare_read(Bitu offset,Bitu size);

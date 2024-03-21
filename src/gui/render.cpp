@@ -1455,7 +1455,7 @@ public:
 	SerializeRender() : SerializeGlobalPOD("Render") {}
 
 private:
-	virtual void getBytes(std::ostream& stream)
+	void getBytes(std::ostream& stream) override
 	{
 		// - pure data
         SerializeGlobalPOD::getBytes(stream);
@@ -1469,7 +1469,7 @@ private:
 		WRITE_POD( &render.scale, render.scale );
 	}
 
-	virtual void setBytes(std::istream& stream)
+	void setBytes(std::istream& stream) override
 	{
 		// - pure data
         SerializeGlobalPOD::setBytes(stream);

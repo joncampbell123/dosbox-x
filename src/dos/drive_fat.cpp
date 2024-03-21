@@ -230,14 +230,14 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 class fatFile : public DOS_File {
         public:
                 fatFile(const char* name, uint32_t startCluster, uint32_t fileLen, fatDrive *useDrive);
-                bool Read(uint8_t * data,uint16_t * size);
-                bool Write(const uint8_t * data,uint16_t * size);
-                bool Seek(uint32_t * pos,uint32_t type);
-                bool Close();
-                uint16_t GetInformation(void);
-                void Flush(void);
-                bool UpdateDateTimeFromHost(void);   
-                uint32_t GetSeekPos(void);
+                bool Read(uint8_t * data,uint16_t * size) override;
+                bool Write(const uint8_t * data,uint16_t * size) override;
+                bool Seek(uint32_t * pos,uint32_t type) override;
+                bool Close() override;
+                uint16_t GetInformation(void) override;
+                void Flush(void) override;
+                bool UpdateDateTimeFromHost(void) override;
+                uint32_t GetSeekPos(void) override;
                 uint32_t firstCluster;
                 uint32_t seekpos = 0;
                 uint32_t filelength;

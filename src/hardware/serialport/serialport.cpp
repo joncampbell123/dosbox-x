@@ -1476,7 +1476,7 @@ static const char *serialTypes[SERIAL_TYPE_COUNT] = {
 
 class SERIAL : public Program {
 public:
-	void Run();
+	void Run() override;
 private:
 	void showPort(int port);
 };

@@ -243,7 +243,7 @@ public:
         close();
     }
 public:
-    virtual int _do_convert(void) {
+    int _do_convert(void) override {
         if (context != NULL) {
             dstT *i_dst = pclass::dst_ptr;
             const srcT *i_src = pclass::src_ptr;

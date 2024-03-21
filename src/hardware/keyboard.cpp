@@ -1823,7 +1823,7 @@ public:
     /* TODO: Writes to Port A should go to printer emulation */
     /* TODO: Writes to bit 7, Port C should go to printer emulation (strobe pin) */
     /* port B is input */
-    virtual uint8_t inPortB(void) const {
+    uint8_t inPortB(void) const override {
         return      0x80 +                                                          /* bits [7:6]   10 = other model */
                     ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x20 : 0x00) +    /* bit  [5:5]   1 = 8MHz  0 = 5/10MHz */
                     0x10 +                                                          /* bit  [4:4]   1 = LCD plasma display usage cond. not used */
@@ -1913,7 +1913,7 @@ public:
     }
 public:
     /* port A is input */
-    virtual uint8_t inPortA(void) const {
+    uint8_t inPortA(void) const override {
         /* TODO: Improve this! What do the various 2-1 to 2-8 switches do?
          *       It might help to look at the BIOS setup menus of 1990s PC-98 systems
          *       that offer toggling virtual versions of these DIP switches to see
@@ -1924,12 +1924,12 @@ public:
         return 0x63 | (gdc_5mhz_mode_initial ? 0x00 : 0x80); // taken from a PC-9821 Lt2
     }
     /* port B is input */
-    virtual uint8_t inPortB(void) const {
+    uint8_t inPortB(void) const override {
         /* TODO: Improve this! */
         return 0xF9; // taken from a PC-9821 Lt2
     }
     /* port C is output (both halves) */
-    virtual void outPortC(const uint8_t mask) {
+    void outPortC(const uint8_t mask) override {
         if (mask & 0x80) /* Shutdown flag 0 */
             PC98_SHUT0 = !!(latchOutPortC & 0x80);
 
@@ -2373,7 +2373,7 @@ public:
     }
 public:
     /* port A is input */
-    virtual uint8_t inPortA(void) const {
+    uint8_t inPortA(void) const override {
         uint8_t bs;
         Bitu r;
 
@@ -2408,17 +2408,17 @@ public:
         return r;
     }
     /* port B is input */
-    virtual uint8_t inPortB(void) const {
+    uint8_t inPortB(void) const override {
         /* TODO */
         return 0x00;
     }
     /* port C is input[3:0] and output[7:4] */
-    virtual uint8_t inPortC(void) const {
+    uint8_t inPortC(void) const override {
         /* TODO */
         return 0x00;
     }
     /* port C is input[3:0] and output[7:4] */
-    virtual void outPortC(const uint8_t mask) {
+    void outPortC(const uint8_t mask) override {
         if (!enable_pc98_bus_mouse)
             return;
 

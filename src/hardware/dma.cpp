@@ -854,7 +854,7 @@ namespace
 		{}
 
 	private:
-		virtual void getBytes(std::ostream& stream)
+		void getBytes(std::ostream& stream) override
 		{
 			SerializeGlobalPOD::getBytes(stream);
 
@@ -875,7 +875,7 @@ namespace
 			WRITE_POD( &ems_board_mapping, ems_board_mapping );
 		}
 
-		virtual void setBytes(std::istream& stream)
+		void setBytes(std::istream& stream) override
 		{
 			SerializeGlobalPOD::setBytes(stream);
 

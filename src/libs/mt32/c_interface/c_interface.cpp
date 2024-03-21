@@ -169,7 +169,7 @@ private:
 		return delegate.v0->getVersionID(delegate) < versionID;
 	}
 
-	void printDebug(const char *fmt, va_list list) {
+	void printDebug(const char *fmt, va_list list) override {
 		if (delegate.v0->printDebug == NULL) {
 			ReportHandler::printDebug(fmt, list);
 		} else {
@@ -177,7 +177,7 @@ private:
 		}
 	}
 
-	void onErrorControlROM() {
+	void onErrorControlROM() override {
 		if (delegate.v0->onErrorControlROM == NULL) {
 			ReportHandler::onErrorControlROM();
 		} else {
@@ -185,7 +185,7 @@ private:
 		}
 	}
 
-	void onErrorPCMROM() {
+	void onErrorPCMROM() override {
 		if (delegate.v0->onErrorPCMROM == NULL) {
 			ReportHandler::onErrorPCMROM();
 		} else {
@@ -193,7 +193,7 @@ private:
 		}
 	}
 
-	void showLCDMessage(const char *message) {
+	void showLCDMessage(const char *message) override {
 		if (delegate.v0->showLCDMessage == NULL) {
 			ReportHandler::showLCDMessage(message);
 		} else {
@@ -201,7 +201,7 @@ private:
 		}
 	}
 
-	void onMIDIMessagePlayed() {
+	void onMIDIMessagePlayed() override {
 		if (delegate.v0->onMIDIMessagePlayed == NULL) {
 			ReportHandler::onMIDIMessagePlayed();
 		} else {
@@ -209,14 +209,14 @@ private:
 		}
 	}
 
-	bool onMIDIQueueOverflow() {
+	bool onMIDIQueueOverflow() override {
 		if (delegate.v0->onMIDIQueueOverflow == NULL) {
 			return ReportHandler::onMIDIQueueOverflow();
 		}
 		return delegate.v0->onMIDIQueueOverflow(instanceData) != MT32EMU_BOOL_FALSE;
 	}
 
-	void onMIDISystemRealtime(Bit8u systemRealtime) {
+	void onMIDISystemRealtime(Bit8u systemRealtime) override {
 		if (delegate.v0->onMIDISystemRealtime == NULL) {
 			ReportHandler::onMIDISystemRealtime(systemRealtime);
 		} else {
@@ -224,7 +224,7 @@ private:
 		}
 	}
 
-	void onDeviceReset() {
+	void onDeviceReset() override {
 		if (delegate.v0->onDeviceReset == NULL) {
 			ReportHandler::onDeviceReset();
 		} else {
@@ -232,7 +232,7 @@ private:
 		}
 	}
 
-	void onDeviceReconfig() {
+	void onDeviceReconfig() override {
 		if (delegate.v0->onDeviceReconfig == NULL) {
 			ReportHandler::onDeviceReconfig();
 		} else {
@@ -240,7 +240,7 @@ private:
 		}
 	}
 
-	void onNewReverbMode(Bit8u mode) {
+	void onNewReverbMode(Bit8u mode) override {
 		if (delegate.v0->onNewReverbMode == NULL) {
 			ReportHandler::onNewReverbMode(mode);
 		} else {
@@ -248,7 +248,7 @@ private:
 		}
 	}
 
-	void onNewReverbTime(Bit8u time) {
+	void onNewReverbTime(Bit8u time) override {
 		if (delegate.v0->onNewReverbTime == NULL) {
 			ReportHandler::onNewReverbTime(time);
 		} else {
@@ -256,7 +256,7 @@ private:
 		}
 	}
 
-	void onNewReverbLevel(Bit8u level) {
+	void onNewReverbLevel(Bit8u level) override {
 		if (delegate.v0->onNewReverbLevel == NULL) {
 			ReportHandler::onNewReverbLevel(level);
 		} else {
@@ -264,7 +264,7 @@ private:
 		}
 	}
 
-	void onPolyStateChanged(Bit8u partNum) {
+	void onPolyStateChanged(Bit8u partNum) override {
 		if (delegate.v0->onPolyStateChanged == NULL) {
 			ReportHandler::onPolyStateChanged(partNum);
 		} else {
@@ -272,7 +272,7 @@ private:
 		}
 	}
 
-	void onProgramChanged(Bit8u partNum, const char *soundGroupName, const char *patchName) {
+	void onProgramChanged(Bit8u partNum, const char *soundGroupName, const char *patchName) override {
 		if (delegate.v0->onProgramChanged == NULL) {
 			ReportHandler::onProgramChanged(partNum, soundGroupName, patchName);
 		} else {
@@ -280,7 +280,7 @@ private:
 		}
 	}
 
-	void onLCDStateUpdated() {
+	void onLCDStateUpdated() override {
 		if (isVersionLess(MT32EMU_REPORT_HANDLER_VERSION_1) || delegate.v1->onLCDStateUpdated == NULL) {
 			ReportHandler2::onLCDStateUpdated();
 		} else {
@@ -288,7 +288,7 @@ private:
 		}
 	}
 
-	void onMidiMessageLEDStateUpdated(bool ledState) {
+	void onMidiMessageLEDStateUpdated(bool ledState) override {
 		if (isVersionLess(MT32EMU_REPORT_HANDLER_VERSION_1) || delegate.v1->onMidiMessageLEDStateUpdated == NULL) {
 			ReportHandler2::onMidiMessageLEDStateUpdated(ledState);
 		} else {
@@ -307,7 +307,7 @@ protected:
 	void *instanceData;
 
 private:
-	void handleShortMessage(const Bit32u message) {
+	void handleShortMessage(const Bit32u message) override {
 		if (delegate.v0->handleShortMessage == NULL) {
 			DefaultMidiStreamParser::handleShortMessage(message);
 		} else {
@@ -315,7 +315,7 @@ private:
 		}
 	}
 
-	void handleSysex(const Bit8u *stream, const Bit32u length) {
+	void handleSysex(const Bit8u *stream, const Bit32u length) override {
 		if (delegate.v0->handleSysex == NULL) {
 			DefaultMidiStreamParser::handleSysex(stream, length);
 		} else {
@@ -323,7 +323,7 @@ private:
 		}
 	}
 
-	void handleSystemRealtimeMessage(const Bit8u realtime) {
+	void handleSystemRealtimeMessage(const Bit8u realtime) override {
 		if (delegate.v0->handleSystemRealtimeMessage == NULL) {
 			DefaultMidiStreamParser::handleSystemRealtimeMessage(realtime);
 		} else {

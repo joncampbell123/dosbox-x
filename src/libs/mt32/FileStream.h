@@ -30,10 +30,10 @@ class FileStream : public AbstractFile {
 public:
 	MT32EMU_EXPORT FileStream();
 	MT32EMU_EXPORT ~FileStream();
-	MT32EMU_EXPORT size_t getSize();
-	MT32EMU_EXPORT const Bit8u *getData();
+	MT32EMU_EXPORT size_t getSize() override;
+	MT32EMU_EXPORT const Bit8u *getData() override;
 	MT32EMU_EXPORT bool open(const char *filename);
-	MT32EMU_EXPORT void close();
+	MT32EMU_EXPORT void close() override;
 
 private:
 	std::ifstream &ifsp;

@@ -12836,7 +12836,7 @@ public:
 		m_timer.timerEvent(val);
 	}
 
-	~MusicFeatureCard() override
+	~MusicFeatureCard()
 	{
 		keep_running = false;
 		SDL_WaitThread(m_mainThread, nullptr);

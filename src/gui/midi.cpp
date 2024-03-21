@@ -712,7 +712,7 @@ public:
     {}
 
 private:
-    virtual void getBytes(std::ostream& stream)
+    void getBytes(std::ostream& stream) override
     {
 				if( !test ) return;
 
@@ -755,7 +755,7 @@ private:
 				}
     }
 
-    virtual void setBytes(std::istream& stream)
+    void setBytes(std::istream& stream) override
     {
 				if( !test ) return;
 
