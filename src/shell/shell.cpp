@@ -411,7 +411,6 @@ public:
                 return false;
 		}
 		if (curpos > str.size()) curpos = str.size();
-		else if (curpos < 0) curpos = 0;
 		return true;
 	}
 	bool Close() override { return true; }
