@@ -1111,14 +1111,13 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(char *cuefile) {
 	long leadOutLBA = -1;
 	ImageCCDEntry entry;
 	tracks.clear();
-	bool success;
 	int mode=NONE;
 	int shift = 0;
 	int currPregap = 0;
 	int totalPregap = 0;
 	int prestart = -1;
 	int Version=0;
-	int Sessions=0;
+	//int Sessions=0;
 	int TocEntries=0;
 	bool isCloneCD=false;
 	int currentEntry = -1;
@@ -1210,8 +1209,10 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(char *cuefile) {
 				case DISC:
 					if (name == "TocEntries")
 						TocEntries = strtol(value.c_str(),NULL,0);
+					#if 0
 					else if (name == "Sessions")
 						Sessions = strtol(value.c_str(),NULL,0);
+					#endif
 					break;
 				case ENTRY:
 					if (name == "Session")
