@@ -845,7 +845,6 @@ bool dos_hdd_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 
-    Section_prop * section = static_cast<Section_prop *>(control->GetSection("dos"));
     if (disk_data_rate == 0) {
         if (pcibus_enable)
             disk_data_rate = 8333333; /* Probably an average IDE data rate for mid 1990s PCI IDE controllers in PIO mode */
@@ -863,7 +862,6 @@ bool dos_floppy_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 
-    Section_prop * section = static_cast<Section_prop *>(control->GetSection("dos"));
     if(floppy_data_rate == 0)
         floppy_data_rate = 22400; // 175 kbps
     else
