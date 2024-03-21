@@ -173,10 +173,10 @@ private:
 
 };
 
-class localFile : public DOS_File {
+class LocalFile : public DOS_File {
 public:
-	localFile();
-	localFile(const char* _name, FILE * handle);
+	LocalFile();
+	LocalFile(const char* _name, FILE * handle);
 	bool Read(uint8_t * data,uint16_t * size);
 	bool Write(const uint8_t * data,uint16_t * size);
 	bool Seek(uint32_t * pos,uint32_t type);

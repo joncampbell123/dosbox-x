@@ -1364,7 +1364,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 	}
 
 	/* Make the 16 bit device information */
-	*file=new localFile(name,hand);
+	*file=new LocalFile(name,hand);
 	(*file)->flags=OPEN_READWRITE;
 
 	return true;
@@ -1493,7 +1493,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 
 	//Flush the buffer of handles for the same file. (Betrayal in Antara)
 	uint8_t i,drive=DOS_DRIVES;
-	localFile *lfp;
+	LocalFile *lfp;
 	for (i=0;i<DOS_DRIVES;i++) {
 		if (Drives[i]==this) {
 			drive=i;
@@ -1503,7 +1503,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
     if(!dos_kernel_disabled)
         for(i = 0; i < DOS_FILES; i++) {
             if(Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive() == drive && Files[i]->IsName(name)) {
-                lfp = dynamic_cast<localFile*>(Files[i]);
+                lfp = dynamic_cast<LocalFile*>(Files[i]);
                 if(lfp) lfp->Flush();
             }
         }
@@ -1564,7 +1564,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 		return false;
 	}
 
-	*file=new localFile(name,hand);
+	*file=new LocalFile(name,hand);
 	(*file)->flags=flags;  //for the inheritance flag and maybe check for others.
 //	(*file)->SetFileName(host_name);
 	return true;
@@ -2576,7 +2576,7 @@ localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sec
 
 
 //TODO Maybe use fflush, but that seemed to fuck up in visual c
-bool localFile::Read(uint8_t * data,uint16_t * size) {
+bool LocalFile::Read(uint8_t * data,uint16_t * size) {
 	if ((this->flags & 0xf) == OPEN_WRITE) {	// check if file opened in write-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
@@ -2618,7 +2618,7 @@ bool localFile::Read(uint8_t * data,uint16_t * size) {
 	return true;
 }
 
-bool localFile::Write(const uint8_t * data,uint16_t * size) {
+bool LocalFile::Write(const uint8_t * data,uint16_t * size) {
 	uint32_t lastflags = this->flags & 0xf;
 	if (lastflags == OPEN_READ || lastflags == OPEN_READ_NO_MOD) {	// check if file opened in read-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -2689,7 +2689,7 @@ bool toLock(int fd, bool is_lock, uint32_t pos, uint16_t size) {
 
 // ert, 20100711: Locking extensions
 // Wengier, 20201230: All platforms
-bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
+bool LocalFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 #if defined(WIN32)
     static bool lockWarn = true;
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
@@ -2780,7 +2780,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 }
 
 extern const char* RunningProgram;
-bool localFile::Seek(uint32_t * pos,uint32_t type) {
+bool LocalFile::Seek(uint32_t * pos,uint32_t type) {
 	int seektype;
 	switch (type) {
 	case DOS_SEEK_SET:seektype=SEEK_SET;break;
@@ -2826,7 +2826,7 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	return true;
 }
 
-bool localFile::Close() {
+bool LocalFile::Close() {
     if (!newtime && fhandle && last_action == WRITE) UpdateLocalDateTime();
 	if (newtime && fhandle) {
         // force STDIO to flush buffers on this file handle, or else fclose() will write buffered data
@@ -2886,20 +2886,20 @@ bool localFile::Close() {
 	return true;
 }
 
-uint16_t localFile::GetInformation(void) {
+uint16_t LocalFile::GetInformation(void) {
 	return read_only_medium ? DeviceInfoFlags::NotWritten : 0;
 }
 
 
-uint32_t localFile::GetSeekPos() {
+uint32_t LocalFile::GetSeekPos() {
 	return file_access_tries>0?(uint32_t)lseek(fileno(fhandle),0,SEEK_CUR):(uint32_t)ftell( fhandle );
 }
 
-localFile::localFile() {}
+LocalFile::LocalFile() {}
 
-localFile::localFile(const char* _name, FILE* handle) : fhandle(handle) {
+LocalFile::LocalFile(const char* _name, FILE* handle) : fhandle(handle) {
 	open=true;
-	localFile::UpdateDateTimeFromHost();
+	LocalFile::UpdateDateTimeFromHost();
 
 	attr=DOS_ATTR_ARCHIVE;
 	last_action=NONE;
@@ -2908,11 +2908,11 @@ localFile::localFile(const char* _name, FILE* handle) : fhandle(handle) {
 	SetName(_name);
 }
 
-void localFile::FlagReadOnlyMedium(void) {
+void LocalFile::FlagReadOnlyMedium(void) {
 	read_only_medium = true;
 }
 
-bool localFile::UpdateDateTimeFromHost(void) {
+bool LocalFile::UpdateDateTimeFromHost(void) {
 	if(!open) return false;
 	struct stat temp_stat;
 	fstat(fileno(fhandle),&temp_stat);
@@ -2926,7 +2926,7 @@ bool localFile::UpdateDateTimeFromHost(void) {
 	return true;
 }
 
-bool localFile::UpdateLocalDateTime(void) {
+bool LocalFile::UpdateLocalDateTime(void) {
     time_t timet = ::time(NULL);
     struct tm *tm = localtime(&timet);
     tm->tm_isdst = -1;
@@ -2961,7 +2961,7 @@ bool localFile::UpdateLocalDateTime(void) {
 }
 
 
-void localFile::Flush(void) {
+void LocalFile::Flush(void) {
 #if defined(WIN32)
     if (file_access_tries>0) return;
 #endif
@@ -3008,7 +3008,7 @@ bool cdromDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 		return false;
 	}
 	bool retcode = localDrive::FileOpen(file,name,flags);
-	if(retcode) (dynamic_cast<localFile*>(*file))->FlagReadOnlyMedium();
+	if(retcode) (dynamic_cast<LocalFile*>(*file))->FlagReadOnlyMedium();
 	return retcode;
 }
 

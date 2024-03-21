@@ -2557,7 +2557,7 @@ void POD_Load_DOS_Files( std::istream& stream )
 			} else {
 				//Alien carnage ->pop data for invalid file from stream
 				if (dummy == NULL) {
-					dummy = new localFile();
+					dummy = new LocalFile();
 				}
 				dummy->LoadState(stream, true);
 			};
