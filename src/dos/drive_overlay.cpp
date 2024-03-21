@@ -323,7 +323,7 @@ public:
 		overlay_active = false;
 		if (logoverlay) LOG_MSG("constructing OverlayFile: %s",name);
 	}
-	bool Write(const uint8_t * data,uint16_t * size) {
+	bool Write(const uint8_t * data,uint16_t * size) override {
 		uint32_t f = flags&0xf;
 		if (!overlay_active && (f == OPEN_READWRITE || f == OPEN_WRITE)) {
 			if (logoverlay) LOG_MSG("write detected, switching file for %s",GetName());

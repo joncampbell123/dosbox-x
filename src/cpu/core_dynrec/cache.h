@@ -143,7 +143,7 @@ public:
 	}
 
 	// the following functions will clean all cache blocks that are invalid now due to the write
-	void writeb(PhysPt addr,uint8_t val){
+	void writeb(PhysPt addr,uint8_t val) override {
 		addr&=4095;
 		if (host_readb(hostmem+addr)==val) return;
 		host_writeb(hostmem+addr,val);
@@ -164,7 +164,7 @@ public:
             invalidation_map[addr]++;
 		InvalidateRange(addr,addr);
 	}
-	void writew(PhysPt addr,uint16_t val){
+	void writew(PhysPt addr,uint16_t val) override {
 		addr&=4095;
 		if (host_readw(hostmem+addr)==val) return;
 		host_writew(hostmem+addr,val);
@@ -190,7 +190,7 @@ public:
 #endif
 		InvalidateRange(addr,addr+(Bitu)1);
 	}
-	void writed(PhysPt addr,uint32_t val){
+	void writed(PhysPt addr,uint32_t val) override {
 		addr&=4095;
 		if (host_readd(hostmem+addr)==val) return;
 		host_writed(hostmem+addr,val);
@@ -216,7 +216,7 @@ public:
 #endif
 		InvalidateRange(addr,addr+(Bitu)3);
 	}
-	bool writeb_checked(PhysPt addr,uint8_t val) {
+	bool writeb_checked(PhysPt addr,uint8_t val) override {
 		addr&=4095;
 		if (host_readb(hostmem+addr)==val) return false;
 		// see if there's code where we are writing to
@@ -245,7 +245,7 @@ public:
 		host_writeb(hostmem+addr,val);
 		return false;
 	}
-	bool writew_checked(PhysPt addr,uint16_t val) {
+	bool writew_checked(PhysPt addr,uint16_t val) override {
 		addr&=4095;
 		if (host_readw(hostmem+addr)==val) return false;
 		// see if there's code where we are writing to
@@ -278,7 +278,7 @@ public:
 		host_writew(hostmem+addr,val);
 		return false;
 	}
-	bool writed_checked(PhysPt addr,uint32_t val) {
+	bool writed_checked(PhysPt addr,uint32_t val) override {
 		addr&=4095;
 		if (host_readd(hostmem+addr)==val) return false;
 		// see if there's code where we are writing to
@@ -401,11 +401,11 @@ public:
 		return 0;	// none found
 	}
 
-	HostPt GetHostReadPt(Bitu phys_page) { 
+	HostPt GetHostReadPt(Bitu phys_page) override {
 		hostmem=old_pagehandler->GetHostReadPt(phys_page);
 		return hostmem;
 	}
-	HostPt GetHostWritePt(Bitu phys_page) { 
+	HostPt GetHostWritePt(Bitu phys_page) override {
 		return GetHostReadPt( phys_page );
 	}
 public:

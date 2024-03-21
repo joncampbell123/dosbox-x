@@ -225,11 +225,11 @@ public:
         return midiHandler_mt32;
     }
 
-	const char *GetName(void) {
+	const char *GetName(void) override {
 		return "mt32";
 	}
 
-    bool Open(const char *conf) {
+    bool Open(const char *conf) override {
         (void)conf;//UNUSED
         service = new MT32Emu::Service();
         uint32_t version = service->getLibraryVersionInt();
@@ -346,7 +346,7 @@ public:
         return true;
 	}
 
-	void Close(void) {
+	void Close(void) override {
         if (!open) return;
         chan->Enable(false);
         if (renderInThread) {
@@ -371,7 +371,7 @@ public:
         open = false;
 	}
 
-	void PlayMsg(uint8_t *msg) {
+	void PlayMsg(uint8_t *msg) override {
         if (renderInThread) {
             service->playMsgAt(SDL_SwapLE32(*(uint32_t *)msg), getMidiEventTimestamp());
         } else {
@@ -379,7 +379,7 @@ public:
         }
 	}
 
-	void PlaySysex(uint8_t *sysex, Bitu len) {
+	void PlaySysex(uint8_t *sysex, Bitu len) override {
         if (renderInThread) {
             service->playSysexAt(sysex, (MT32Emu::uint32_t)len, getMidiEventTimestamp());
         } else {
@@ -387,7 +387,7 @@ public:
         }
 	}
 
-	void ListAll(Program* base) {
+	void ListAll(Program* base) override {
 		base->WriteOut("  %s\n",mt32info.c_str());
 	}
 };

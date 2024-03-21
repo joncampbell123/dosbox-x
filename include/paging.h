@@ -499,7 +499,7 @@ extern bool dosbox_allow_nonrecursive_page_fault;	/* when set, do nonrecursive m
 
 class GuestPageFaultException : public std::exception {
 public:
-	virtual const char *what() const throw() {
+	const char *what() const throw() override {
 		return "Guest page fault exception";
 	}
 	GuestPageFaultException(PhysPt n_lin_addr, Bitu n_page_addr, Bitu n_faultcode) : lin_addr(n_lin_addr), page_addr(n_page_addr), faultcode(n_faultcode) {
@@ -512,7 +512,7 @@ public:
 
 class GuestGenFaultException : public std::exception {
 public:
-	virtual const char *what() const throw() {
+	virtual const char *what() const throw() override {
 		return "Guest general protection fault exception";
 	}
 	GuestGenFaultException() {

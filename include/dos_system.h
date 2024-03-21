@@ -120,11 +120,11 @@ public:
 	}
 	DOS_Device():DOS_File() {};
 	virtual ~DOS_Device() {};
-	virtual bool	Read(uint8_t * data,uint16_t * size);
-	virtual bool	Write(const uint8_t * data,uint16_t * size);
-	virtual bool	Seek(uint32_t * pos,uint32_t type);
-	virtual bool	Close();
-	virtual uint16_t	GetInformation(void);
+	bool	Read(uint8_t * data,uint16_t * size) override;
+	bool	Write(const uint8_t * data,uint16_t * size) override;
+	bool	Seek(uint32_t * pos,uint32_t type) override;
+	bool	Close() override;
+	uint16_t	GetInformation(void) override;
 	virtual void	SetInformation(uint16_t info);
 	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
 	virtual bool	WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
@@ -158,14 +158,14 @@ public:
         return *this;
     }
 
-    virtual bool	Read(uint8_t* data, uint16_t* size);
-    virtual bool	Write(const uint8_t* data, uint16_t* size);
-    virtual bool	Seek(uint32_t* pos, uint32_t type);
-    virtual bool	Close();
-    virtual uint16_t	GetInformation(void);
-    virtual bool	ReadFromControlChannel(PhysPt bufptr, uint16_t size, uint16_t* retcode);
-    virtual bool	WriteToControlChannel(PhysPt bufptr, uint16_t size, uint16_t* retcode);
-    virtual uint8_t	GetStatus(bool input_flag);
+    bool	Read(uint8_t* data, uint16_t* size) override;
+    bool	Write(const uint8_t* data, uint16_t* size) override;
+    bool	Seek(uint32_t* pos, uint32_t type) override;
+    bool	Close() override;
+    uint16_t	GetInformation(void) override;
+    bool	ReadFromControlChannel(PhysPt bufptr, uint16_t size, uint16_t* retcode) override;
+    bool	WriteToControlChannel(PhysPt bufptr, uint16_t size, uint16_t* retcode) override;
+    uint8_t	GetStatus(bool input_flag) override;
     bool CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off);
     uint16_t CallDeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size);
 private:
@@ -177,17 +177,17 @@ class LocalFile : public DOS_File {
 public:
 	LocalFile();
 	LocalFile(const char* _name, FILE * handle);
-	bool Read(uint8_t * data,uint16_t * size);
-	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(uint32_t * pos,uint32_t type);
-	bool Close();
-	bool LockFile(uint8_t mode, uint32_t pos, uint16_t size);
-	uint16_t GetInformation(void);
-	bool UpdateDateTimeFromHost(void);
+	bool Read(uint8_t * data,uint16_t * size) override;
+	bool Write(const uint8_t * data,uint16_t * size) override;
+	bool Seek(uint32_t * pos,uint32_t type) override;
+	bool Close() override;
+	bool LockFile(uint8_t mode, uint32_t pos, uint16_t size) override;
+	uint16_t GetInformation(void) override;
+	bool UpdateDateTimeFromHost(void) override;
 	bool UpdateLocalDateTime(void);
 	void FlagReadOnlyMedium(void);
-	void Flush(void);
-	uint32_t GetSeekPos(void);
+	void Flush(void) override;
+	uint32_t GetSeekPos(void) override;
 	FILE * fhandle;
 private:
 	bool read_only_medium = false;

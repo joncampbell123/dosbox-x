@@ -70,22 +70,22 @@ uint8_t DefaultANSIAttr() {
 class device_CON : public DOS_Device {
 public:
 	device_CON();
-	bool Read(uint8_t * data,uint16_t * size);
-	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(uint32_t * pos,uint32_t type);
-	bool Close();
+	bool Read(uint8_t * data,uint16_t * size) override;
+	bool Write(const uint8_t * data,uint16_t * size) override;
+	bool Seek(uint32_t * pos,uint32_t type) override;
+	bool Close() override;
 	uint8_t GetAnsiAttr(void) {
 		return ansi.attr;
 	}
 	void SetAnsiAttr(uint8_t attr) {
 		ansi.attr = attr;
 	}
-	uint16_t GetInformation(void);
-	void SetInformation(uint16_t info) {
+	uint16_t GetInformation(void) override;
+	void SetInformation(uint16_t info) override {
 		binary = info & DeviceInfoFlags::Binary;
 	}
-	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
-	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
     bool ANSI_SYS_installed();
 	void ClearKeyMap() {
 		key_map.clear();

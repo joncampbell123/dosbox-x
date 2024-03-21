@@ -233,28 +233,28 @@ static void DOS_CheckOpenExtDevice(const char *name) {
 class device_NUL : public DOS_Device {
 public:
 	device_NUL() { SetName("NUL"); };
-	virtual bool Read(uint8_t * data,uint16_t * size) {
+	bool Read(uint8_t * data,uint16_t * size) override {
         (void)data; // UNUSED
 		*size = 0; //Return success and no data read.
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
 		return true;
 	}
-	virtual bool Write(const uint8_t * data,uint16_t * size) {
+	bool Write(const uint8_t * data,uint16_t * size) override {
         (void)data; // UNUSED
         (void)size; // UNUSED
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
 		return true;
 	}
-	virtual bool Seek(uint32_t * pos,uint32_t type) {
+	bool Seek(uint32_t * pos,uint32_t type) override {
         (void)type;
         (void)pos;
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:SEEK",GetName());
 		return true;
 	}
-	virtual bool Close() { return true; }
-	virtual uint16_t GetInformation(void) { return DeviceInfoFlags::Device | DeviceInfoFlags::Nul; }
-	virtual bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
-	virtual bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool Close() override { return true; }
+	uint16_t GetInformation(void) override { return DeviceInfoFlags::Device | DeviceInfoFlags::Nul; }
+	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
 };
 
 class device_PRN : public DOS_Device {
@@ -262,13 +262,13 @@ public:
 	device_PRN() {
 		SetName("PRN");
 	}
-	bool Read(uint8_t * data,uint16_t * size) {
+	bool Read(uint8_t * data,uint16_t * size) override {
         (void)data; // UNUSED
         (void)size; // UNUSED
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
-	bool Write(const uint8_t * data,uint16_t * size) {
+	bool Write(const uint8_t * data,uint16_t * size) override {
 		for(int i = 0; i < 9; i++) {
 			// look up a parallel port
 			if(parallelPortObjects[i] != NULL) {
@@ -281,15 +281,15 @@ public:
 		}
 		return false;
 	}
-	bool Seek(uint32_t * pos,uint32_t type) {
+	bool Seek(uint32_t * pos,uint32_t type) override {
         (void)type; // UNUSED
 		*pos = 0;
 		return true;
 	}
-	uint16_t GetInformation(void) {
+	uint16_t GetInformation(void) override {
 		return DeviceInfoFlags::Device | DeviceInfoFlags::Binary;
 	}
-	bool Close() {
+	bool Close() override {
 		return false;
 	}
 };
@@ -509,7 +509,7 @@ public:
 		strcpy(tmpAscii, "#clip$.asc");
 		strcpy(tmpUnicode, "#clip$.txt");
 	}
-	virtual bool Read(uint8_t * data,uint16_t * size) {
+	bool Read(uint8_t * data,uint16_t * size) override {
 		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
 			*size = 0;
 			return true;
@@ -530,7 +530,7 @@ public:
 		}
 		return true;
 	}
-	virtual bool Write(const uint8_t * data,uint16_t * size) {
+	bool Write(const uint8_t * data,uint16_t * size) override {
 		if(control->SecureMode()||!(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
@@ -564,7 +564,7 @@ public:
 			}
 		return true;
 	}
-	virtual bool Seek(uint32_t * pos,uint32_t type) {
+	bool Seek(uint32_t * pos,uint32_t type) override {
 		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
 			*pos = 0;
 			return true;
@@ -602,7 +602,7 @@ public:
 		fPointer = newPos;
 		return true;
 	}
-	virtual bool Close() {
+	bool Close() override {
 		if(control->SecureMode()||dos_clipboard_device_access<2)
 			return false;
 		clipSize = 0;																	// Reset clipboard read
@@ -616,7 +616,7 @@ public:
 		CommitData();
 		return true;
 	}
-	uint16_t GetInformation(void) {
+	uint16_t GetInformation(void) override {
 		return DeviceInfoFlags::Device | DeviceInfoFlags::EofOnInput | DeviceInfoFlags::Binary;
 	}
 };

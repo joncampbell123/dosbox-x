@@ -108,10 +108,10 @@ public:
 	void resetTimestamp();
 
 protected:
-	void handleShortMessage(const Bit32u message);
-	void handleSysex(const Bit8u *stream, const Bit32u length);
-	void handleSystemRealtimeMessage(const Bit8u realtime);
-	void printDebug(const char *debugMessage);
+	void handleShortMessage(const Bit32u message) override;
+	void handleSysex(const Bit8u *stream, const Bit32u length) override;
+	void handleSystemRealtimeMessage(const Bit8u realtime) override;
+	void printDebug(const char *debugMessage) override;
 
 private:
 	Synth &synth;

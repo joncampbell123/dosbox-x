@@ -489,7 +489,7 @@ static const char *parallelTypes[PARALLEL_TYPE_COUNT] = {
 
 class PARALLEL : public Program {
 	public:
-		void Run();
+		void Run() override;
 	private:
 		void showPort(int port);
 };

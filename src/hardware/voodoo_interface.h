@@ -45,12 +45,12 @@ public:
 	~Voodoo_PageHandler() {
 	}
 
-	uint8_t readb(PhysPt addr);
-	void writeb(PhysPt addr,uint8_t val);
-	uint16_t readw(PhysPt addr);
-	void writew(PhysPt addr,uint16_t val);
-	uint32_t readd(PhysPt addr);
-	void writed(PhysPt addr,uint32_t val);
+	uint8_t readb(PhysPt addr) override;
+	void writeb(PhysPt addr,uint8_t val) override;
+	uint16_t readw(PhysPt addr) override;
+	void writew(PhysPt addr,uint16_t val) override;
+	uint32_t readd(PhysPt addr) override;
+	void writed(PhysPt addr,uint32_t val) override;
 };
 
 

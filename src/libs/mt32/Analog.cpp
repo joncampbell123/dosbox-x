@@ -127,7 +127,7 @@ public:
 template <class SampleEx>
 class NullLowPassFilter : public AbstractLowPassFilter<SampleEx> {
 public:
-	SampleEx process(const SampleEx sample) {
+	SampleEx process(const SampleEx sample) override {
 		return sample;
 	}
 };
@@ -150,7 +150,7 @@ public:
 		Synth::muteSampleBuffer(ringBuffer, COARSE_LPF_DELAY_LINE_LENGTH);
 	}
 
-	SampleEx process(const SampleEx inSample) {
+	SampleEx process(const SampleEx inSample) override {
 		static const unsigned int DELAY_LINE_MASK = COARSE_LPF_DELAY_LINE_LENGTH - 1;
 
 		SampleEx sample = lpfTaps[COARSE_LPF_DELAY_LINE_LENGTH] * ringBuffer[ringBufferPosition];
@@ -179,12 +179,12 @@ private:
 
 public:
 	AccurateLowPassFilter(const bool oldMT32AnalogLPF, const bool oversample);
-	FloatSample process(const FloatSample sample);
-	IntSampleEx process(const IntSampleEx sample);
-	bool hasNextSample() const;
-	unsigned int getOutputSampleRate() const;
-	unsigned int estimateInSampleCount(const unsigned int outSamples) const;
-	void addPositionIncrement(const unsigned int positionIncrement);
+	FloatSample process(const FloatSample sample) override;
+	IntSampleEx process(const IntSampleEx sample) override;
+	bool hasNextSample() const override;
+	unsigned int getOutputSampleRate() const override;
+	unsigned int estimateInSampleCount(const unsigned int outSamples) const override;
+	void addPositionIncrement(const unsigned int positionIncrement) override;
 };
 
 static inline IntSampleEx normaliseSample(const IntSampleEx sample) {
@@ -223,19 +223,19 @@ public:
 		delete &rightChannelLPF;
 	}
 
-	unsigned int getOutputSampleRate() const {
+	unsigned int getOutputSampleRate() const override {
 		return leftChannelLPF.getOutputSampleRate();
 	}
 
-	Bit32u getDACStreamsLength(const Bit32u outputLength) const {
+	Bit32u getDACStreamsLength(const Bit32u outputLength) const override {
 		return leftChannelLPF.estimateInSampleCount(outputLength);
 	}
 
-	void setSynthOutputGain(const float synthGain);
-	void setReverbOutputGain(const float reverbGain, const bool mt32ReverbCompatibilityMode);
+	void setSynthOutputGain(const float synthGain) override;
+	void setReverbOutputGain(const float reverbGain, const bool mt32ReverbCompatibilityMode) override;
 
-	bool process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, Bit32u outLength);
-	bool process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, Bit32u outLength);
+	bool process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, Bit32u outLength) override;
+	bool process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, Bit32u outLength) override;
 
 	template <class Sample>
 	void produceOutput(Sample *outStream, const Sample *nonReverbLeft, const Sample *nonReverbRight, const Sample *reverbDryLeft, const Sample *reverbDryRight, const Sample *reverbWetLeft, const Sample *reverbWetRight, Bit32u outLength) {

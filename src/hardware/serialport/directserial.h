@@ -35,15 +35,15 @@ public:
 	CDirectSerial(Bitu id, CommandLine* cmd);
 	~CDirectSerial();
 
-	void updatePortConfig(uint16_t divider, uint8_t lcr);
-	void updateMSR();
-	void transmitByte(uint8_t val, bool first);
-	void setBreak(bool value);
+	void updatePortConfig(uint16_t divider, uint8_t lcr) override;
+	void updateMSR() override;
+	void transmitByte(uint8_t val, bool first) override;
+	void setBreak(bool value) override;
 	
-	void setRTSDTR(bool rts, bool dtr);
-	void setRTS(bool val);
-	void setDTR(bool val);
-	void handleUpperEvent(uint16_t type);
+	void setRTSDTR(bool rts, bool dtr) override;
+	void setRTS(bool val) override;
+	void setDTR(bool val) override;
+	void handleUpperEvent(uint16_t type) override;
 
 private:
 	COMPORT comport;

@@ -3516,10 +3516,10 @@ class ViBRA_PnP : public ISAPnPDevice {
 
             end_write_res();        // END
         }
-        void select_logical_device(Bitu val) {
+        void select_logical_device(Bitu val) override {
             logical_device = val;
         }
-        uint8_t read(Bitu addr) {
+        uint8_t read(Bitu addr) override {
             uint8_t ret = 0xFF;
             if (logical_device == 0) {
                 switch (addr) {
@@ -3555,7 +3555,7 @@ class ViBRA_PnP : public ISAPnPDevice {
 
             return ret;
         }
-        void write(Bitu addr,Bitu val) {
+        void write(Bitu addr,Bitu val) override {
             if (logical_device == 0) {
                 switch (addr) {
                     case 0x30:  /* activate range */

@@ -527,8 +527,8 @@ public:
 		return true;
 	}
 
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
+	void SaveState( std::ostream& stream ) override;
+	void LoadState( std::istream& stream ) override;
 
 private:
 	PhysPt ldt_base;

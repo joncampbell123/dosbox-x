@@ -1228,7 +1228,7 @@ public:
     {}
 
 private:
-    virtual void getBytes(std::ostream& stream)
+    void getBytes(std::ostream& stream) override
     {
 				uint16_t pic_free_idx, pic_next_idx;
 				uint16_t pic_next_ptr[PIC_QUEUESIZE];
@@ -1331,7 +1331,7 @@ private:
 				//test->saveState(stream);
 		}
 
-    virtual void setBytes(std::istream& stream)
+    void setBytes(std::istream& stream) override
     {
 				uint16_t free_idx, next_idx;
 				uint16_t ticker_size;

@@ -1402,19 +1402,19 @@ static bool MSCDEX_ValidDevName(const char *s) {
 class device_MSCDEX : public DOS_Device {
 public:
 	device_MSCDEX(const char *devname) { SetName(MSCDEX_ValidDevName(devname) ? devname : "MSCD001"); }
-	bool Read (uint8_t * /*data*/,uint16_t * /*size*/) { return false;}
-	bool Write(const uint8_t * /*data*/,uint16_t * /*size*/) { 
+	bool Read (uint8_t * /*data*/,uint16_t * /*size*/) override { return false;}
+	bool Write(const uint8_t * /*data*/,uint16_t * /*size*/) override {
 		LOG(LOG_ALL,LOG_NORMAL)("Write to mscdex device");	
 		return false;
 	}
-	bool Seek(uint32_t * /*pos*/,uint32_t /*type*/){return false;}
-	bool Close(){return false;}
-	uint16_t GetInformation(void)
+	bool Seek(uint32_t * /*pos*/,uint32_t /*type*/) override {return false;}
+	bool Close() override {return false;}
+	uint16_t GetInformation(void) override
 	{
 		return DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport | DeviceInfoFlags::OpenCloseSupport;
 	}
-	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
-	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
+	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override;
+	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override;
 // private:
 //  uint8_t cache;
 };

@@ -3376,12 +3376,12 @@ public:
 	~Weitek_PageHandler() {
 	}
 
-	uint8_t readb(PhysPt addr);
-	void writeb(PhysPt addr,uint8_t val);
-	uint16_t readw(PhysPt addr);
-	void writew(PhysPt addr,uint16_t val);
-	uint32_t readd(PhysPt addr);
-	void writed(PhysPt addr,uint32_t val);
+	uint8_t readb(PhysPt addr) override;
+	void writeb(PhysPt addr,uint8_t val) override;
+	uint16_t readw(PhysPt addr) override;
+	void writew(PhysPt addr,uint16_t val) override;
+	uint32_t readd(PhysPt addr) override;
+	void writed(PhysPt addr,uint32_t val) override;
 };
 
 uint8_t Weitek_PageHandler::readb(PhysPt addr) {
@@ -3581,7 +3581,7 @@ public:
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
         menu_update_dynamic();
 	}
-	bool Change_Config(Section* newconfig){
+	bool Change_Config(Section* newconfig) override {
 		const Section_prop * section=static_cast<Section_prop *>(newconfig);
 		CPU_AutoDetermineMode=CPU_AUTODETERMINE_NONE;
 		//CPU_CycleLeft=0;//needed ?
@@ -4710,7 +4710,7 @@ SerializeCPU() : SerializeGlobalPOD("CPU")
 {}
 
 private:
-virtual void getBytes(std::ostream& stream)
+void getBytes(std::ostream& stream) override
 {
     uint16_t decoder_idx;
 
@@ -4766,7 +4766,7 @@ virtual void getBytes(std::ostream& stream)
 	POD_Save_CPU_Paging(stream);
 }
 
-virtual void setBytes(std::istream& stream)
+void setBytes(std::istream& stream) override
 {
     uint16_t decoder_idx;
     uint16_t decoder_old;

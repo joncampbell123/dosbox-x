@@ -92,14 +92,14 @@ static char *normalize(char * name, const char *basedir) {
 class physfsFile : public DOS_File {
 public:
 	physfsFile(const char* name, PHYSFS_file * handle,uint16_t devinfo, const char* physname, bool write);
-	bool Read(uint8_t * data,uint16_t * size);
-	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(uint32_t * pos,uint32_t type);
+	bool Read(uint8_t * data,uint16_t * size) override;
+	bool Write(const uint8_t * data,uint16_t * size) override;
+	bool Seek(uint32_t * pos,uint32_t type) override;
 	bool prepareRead();
 	bool prepareWrite();
-	bool Close();
-	uint16_t GetInformation(void);
-	bool UpdateDateTimeFromHost(void);
+	bool Close() override;
+	uint16_t GetInformation(void) override;
+	bool UpdateDateTimeFromHost(void) override;
 private:
 	PHYSFS_file * fhandle;
 	enum { READ,WRITE } last_action;

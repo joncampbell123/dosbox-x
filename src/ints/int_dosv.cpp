@@ -2416,7 +2416,7 @@ public:
 		flags = PFLAG_HASROM;
 		bank = 0;
 	}
-	uint8_t readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) override {
 		uint16_t code;
 		Bitu offset;
 		if(bank == 0) {
@@ -2446,7 +2446,7 @@ public:
 		}
 		return 0;
 	}
-	uint16_t readw(PhysPt addr) {
+	uint16_t readw(PhysPt addr) override {
 		uint16_t code;
 		Bitu offset;
 		if(bank == 0) {
@@ -2476,21 +2476,21 @@ public:
 		}
 		return 0;
 	}
-	uint32_t readd(PhysPt addr) {
+	uint32_t readd(PhysPt addr) override {
         (void)addr;
 		return 0;
 	}
-	void writeb(PhysPt addr,uint8_t val){
+	void writeb(PhysPt addr,uint8_t val) override {
         (void)addr;
 		if((val & 0x80) && val != 0xff) {
 			bank = val & 0x7f;
 		}
 	}
-	void writew(PhysPt addr,uint16_t val){
+	void writew(PhysPt addr,uint16_t val) override {
         (void)addr;
         (void)val;
 	}
-	void writed(PhysPt addr,uint32_t val){
+	void writed(PhysPt addr,uint32_t val) override {
         (void)addr;
         (void)val;
 	}

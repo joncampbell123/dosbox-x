@@ -2454,7 +2454,7 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes);
 /* ====================== VESAMOED.COM ====================== */
 class VESAMOED : public Program {
 public:
-	void Run(void) {
+	void Run(void) override {
         size_t array_i = 0;
         std::string arg,tmp;
 		bool got_opt=false;
