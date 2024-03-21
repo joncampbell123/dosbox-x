@@ -5893,8 +5893,6 @@ class IMGMOUNT : public Program {
 			std::vector<DOS_Drive*> imgDisks;
 			std::vector<std::string>::size_type i;
 			std::vector<DOS_Drive*>::size_type ct;
-			FILE *diskfiles[MAX_SWAPPABLE_DISKS];
-			for (i = 0; i < MAX_SWAPPABLE_DISKS; i++) diskfiles[i]=NULL;
 
 			for (i = 0; i < paths.size(); i++) {
 				const char* errorMessage = NULL;
@@ -6049,7 +6047,6 @@ class IMGMOUNT : public Program {
 							errorMessage = ver_msg;
 						}
 					} else {
-						diskfiles[i]=fdrive->loadedDisk->diskimg;
 						if ((vhdImage&&ro)||roflag) fdrive->readonly=true;
 					}
 					unformatted = fdrive->unformatted;
@@ -6342,7 +6339,7 @@ class IMGMOUNT : public Program {
 			uint8_t starthead = 0; // start head of partition
 			uint8_t startsect = 0; // start sector of partition
 			uint16_t startcyl = 0; // start cylinder of partition
-			uint8_t ptype = 0;     // Partition Type
+			//uint8_t ptype = 0;     // Partition Type
 			uint16_t endcyl = 0;   // end cylinder of partition
 			uint8_t heads = 0;     // heads in partition
 			uint8_t sectors = 0;   // sectors per track in partition
@@ -6353,7 +6350,7 @@ class IMGMOUNT : public Program {
 				startsect = (buf[0x1f0] & 0x3fu) - 1u;
 				startcyl = (unsigned char)buf[0x1f1] | (unsigned int)((buf[0x1f0] & 0xc0) << 2u);
 				endcyl = (unsigned char)buf[0x1f5] | (unsigned int)((buf[0x1f4] & 0xc0) << 2u);
-				ptype = buf[0x1f2];
+				//ptype = buf[0x1f2];
 				heads = buf[0x1f3] + 1u;
 				sectors = buf[0x1f4] & 0x3fu;
 			} else if (pe1_size != 0) {                     // DOS 3.3+ partition table, starting at 0x1BE
@@ -6361,7 +6358,7 @@ class IMGMOUNT : public Program {
 				startsect = (buf[0x1c0] & 0x3fu) - 1u;
 				startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
 				endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
-				ptype = buf[0x1c2];
+				//ptype = buf[0x1c2];
 				heads = buf[0x1c3] + 1u;
 				sectors = buf[0x1c4] & 0x3fu;
 			}
