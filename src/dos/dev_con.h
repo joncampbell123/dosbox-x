@@ -1079,7 +1079,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
 		return true;
 	}
     Bitu i;
-    uint8_t col,row,page;
+    uint8_t col,page;
 
     INT10_SetCurMode();
 
