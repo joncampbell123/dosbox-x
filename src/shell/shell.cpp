@@ -1098,7 +1098,7 @@ public:
         if (!control->auto_bat_additional.empty()) {
             std::string cmd = "@echo off\n";
 
-            int ind=0;
+            decltype(control->auto_bat_additional)::size_type ind = 0;
             for (auto & str : control->auto_bat_additional) {
                 if (!control->opt_prerun) cmd += "\n";
                 if (!strncmp(str.c_str(), "@mount c: ", 10)) {
