@@ -460,6 +460,8 @@ public:
 
 class DescriptorTable {
 public:
+    virtual ~DescriptorTable() noexcept = default;
+
     PhysPt  GetBase         (void) const    { return table_base;    }
     Bitu    GetLimit        (void) const    { return table_limit;   }
     void    SetBase         (PhysPt _base)  { table_base = _base;   }
