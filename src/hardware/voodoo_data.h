@@ -1088,12 +1088,15 @@ INLINE UINT32 compute_raster_hash(const raster_info *info)
 #define DITHER_RB(val,dith)	((((val) << 1) - ((val) >> 4) + ((val) >> 7) + (dith)) >> 1)
 #define DITHER_G(val,dith)	((((val) << 2) - ((val) >> 4) + ((val) >> 6) + (dith)) >> 2)
 
-#define DECLARE_DITHER_POINTERS 												\
-	const UINT8 *dither_lookup = NULL;											\
-	const UINT8 *dither4 = NULL;												\
-	const UINT8 *dither = NULL													\
+#define DECLARE_DITHER_POINTERS_ \
+	const UINT8 *dither_lookup = NULL; \
+	const UINT8 *dither4 = NULL
 
-#define COMPUTE_DITHER_POINTERS(FBZMODE, YY)									\
+#define DECLARE_DITHER_POINTERS \
+	DECLARE_DITHER_POINTERS_; \
+	const UINT8 *dither = NULL
+
+#define COMPUTE_DITHER_POINTERS_(FBZMODE, YY, d1_, d2_) \
 do																				\
 {																				\
 	/* compute the dithering pointers */										\
@@ -1102,17 +1105,24 @@ do																				\
 		dither4 = &dither_matrix_4x4[((YY) & 3) * 4];							\
 		if (FBZMODE_DITHER_TYPE(FBZMODE) == 0)									\
 		{																		\
-			dither = dither4;													\
+			d1_ \
 			dither_lookup = &dither4_lookup[(YY & 3) << 11];					\
 		}																		\
 		else																	\
 		{																		\
-			dither = &dither_matrix_2x2[((YY) & 3) * 4];						\
+			d2_ \
 			dither_lookup = &dither2_lookup[(YY & 3) << 11];					\
 		}																		\
 	}																			\
 }																				\
 while (0)
+
+#define COMPUTE_DITHER_POINTERS(FBZMODE, YY) \
+	COMPUTE_DITHER_POINTERS_( \
+		FBZMODE, \
+		YY, \
+		dither = dither4;, \
+		dither = &dither_matrix_2x2[((YY) & 3) * 4];)
 
 #define APPLY_DITHER(FBZMODE, XX, DITHER_LOOKUP, RR, GG, BB)					\
 do																				\
