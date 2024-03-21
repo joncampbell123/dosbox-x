@@ -1099,32 +1099,32 @@ public:
         if (!control->auto_bat_additional.empty()) {
             std::string cmd = "@echo off\n";
 
-            for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
+            for (auto & str : control->auto_bat_additional) {
                 if (!control->opt_prerun) cmd += "\n";
-                if (!strncmp(control->auto_bat_additional[i].c_str(), "@mount c: ", 10)) {
-                    cmd += control->auto_bat_additional[i]+"\n";
+                if (!strncmp(str.c_str(), "@mount c: ", 10)) {
+                    cmd += str+"\n";
                     cmd += "@config -get lastmount>nul\n";
                     cmd += "@if not '%CONFIG%'=='' %CONFIG%";
                 } else {
                     std::string batname;
-                    //LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
+                    //LOG_MSG("auto_bat_additional %s\n", str.c_str());
 
-                    std::replace(control->auto_bat_additional[i].begin(),control->auto_bat_additional[i].end(),'/','\\');
+                    std::replace(str.begin(),str.end(),'/','\\');
                     size_t pos = std::string::npos;
                     bool lead = false;
-                    for (unsigned int j=0; j<control->auto_bat_additional[i].size(); j++) {
+                    for (unsigned int j=0; j<str.size(); j++) {
                         if (lead) lead = false;
-                        else if ((IS_PC98_ARCH && shiftjis_lead_byte(control->auto_bat_additional[i][j])) || (isDBCSCP() && isKanji1(control->auto_bat_additional[i][j]))) lead = true;
-                        else if (control->auto_bat_additional[i][j]=='\\') pos = j;
+                        else if ((IS_PC98_ARCH && shiftjis_lead_byte(str[j])) || (isDBCSCP() && isKanji1(str[j]))) lead = true;
+                        else if (str[j]=='\\') pos = j;
                     }
                     if(pos == std::string::npos) {  //Only a filename, mount current directory
-                        batname = control->auto_bat_additional[i];
+                        batname = str;
                         cmd += "@mount c: . -nl -q\n";
                     } else { //Parse the path of .BAT file
-                        std::string batpath = control->auto_bat_additional[i].substr(0,pos+1);
+                        std::string batpath = str.substr(0,pos+1);
                         if (batpath==".\\") batpath=".";
                         else if (batpath=="..\\") batpath="..";
-                        batname = control->auto_bat_additional[i].substr(pos+1);
+                        batname = str.substr(pos+1);
                         cmd += "@mount c: \"" + batpath + "\" -nl -q\n";
                     }
                     std::string opt = control->opt_o.size() > ind && control->opt_o[ind].size() ? " "+control->opt_o[ind] : "";
