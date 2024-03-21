@@ -1496,7 +1496,6 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 	if (!is_udf) return 0;
 
 	UDFTagId ctag;
-	uint8_t* buffer = NULL;
 	unsigned char dirent[4096];
 	DirIterator& dirIterator = dirIterators[dirIteratorHandle];
 
