@@ -387,6 +387,7 @@ AC_CHECK_CXXFLAGS([ -Wsign-promo ])
 AC_CHECK_CXXFLAGS([ -Wconversion-null ])
 #AC_CHECK_CXXFLAGS([ -Woverloaded-virtual ])    NOT TOO USEFUL
 AC_CHECK_CXXFLAGS([ -Wsuggest-override ])
+AC_CHECK_CXXFLAGS([ -Wnon-virtual-dtor ])
 AC_CHECK_CXXFLAGS([ -Wno-deprecated-declarations ])
 
 dnl Let GCC 7.3.x know that the "fall through" switch cases in this codebase

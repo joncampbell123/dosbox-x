@@ -331,6 +331,7 @@ public:
     //initialization: register relevant components on program startup
     struct Component
     {
+        virtual ~Component() noexcept = default;
         virtual void getBytes(std::ostream& stream) = 0;
         virtual void setBytes(std::istream& stream) = 0;
     };
