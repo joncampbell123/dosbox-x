@@ -2180,7 +2180,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 	/* simple case: no pipeline */
 	if (!LFBMODE_ENABLE_PIXEL_PIPELINE(v->reg[lfbMode].u))
 	{
-		DECLARE_DITHER_POINTERS;
+		DECLARE_DITHER_POINTERS_;
 		UINT32 bufoffs;
 
 		if (LOG_LFB) LOG(LOG_VOODOO,LOG_WARN)("VOODOO.LFB:write raw mode %X (%d,%d) = %08X & %08X\n", LFBMODE_WRITE_FORMAT(v->reg[lfbMode].u), x, y, data, mem_mask);
@@ -2194,7 +2194,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 		bufoffs = scry * v->fbi.rowpixels + x;
 
 		/* compute dithering */
-		COMPUTE_DITHER_POINTERS(v->reg[fbzMode].u, y);
+		COMPUTE_DITHER_POINTERS_(v->reg[fbzMode].u, y,,);
 
 		/* loop over up to two pixels */
 		for (pix = 0; mask; pix++)
@@ -3143,8 +3143,8 @@ void fastfill(voodoo_state *v)
 		/* determine the dither pattern */
 		for (y = 0; y < 4; y++)
 		{
-			DECLARE_DITHER_POINTERS;
-			COMPUTE_DITHER_POINTERS(v->reg[fbzMode].u, y);
+			DECLARE_DITHER_POINTERS_;
+			COMPUTE_DITHER_POINTERS_(v->reg[fbzMode].u, y,,);
 			for (x = 0; x < 4; x++)
 			{
 				int r = v->reg[color1].rgb.r;
