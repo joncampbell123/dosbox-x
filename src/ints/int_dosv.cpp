@@ -418,7 +418,10 @@ bool readPCF(FILE *file, int height) {
   uint16_t lastCol   = read_int16(file);
   uint16_t firstRow  = read_int16(file);
   uint16_t lastRow   = read_int16(file);
-  uint16_t defaultCh = read_int16(file);
+  // uint16_t defaultCh = read_int16(file);
+  fseek(file, 2L, SEEK_CUR);
+  read_bytes += 2L;
+
   if (!(firstCol <= lastCol) || !(firstRow <= lastRow)) {delete[] bitmaps;return false;}
   int nEncodings = (lastCol - firstCol + 1) * (lastRow - firstRow + 1);
   uint16_t *encodings;
