@@ -50,6 +50,11 @@ Next:
   - Added "*.ccd" in file open dialog (maron2000)
   - Added CI builds for ARM mac (maron2000)
   - Bump tinyfiledialogs to ver 3.17.4 (maron2000)
+  - Obtain geometry info of non-standard sized floppy from BPB (maron2000)
+  - PC-98: Implemented int 18h ah=47h,48h,49h (nanshiki)
+  - Added breakpoint type "Freeze memory" (Enmet)
+  - Implemented seeking in MSCDEX
+    (Imported from dosbox-staging/dosbox-staging#3516 authored by weirddan455)
 
 2024.03.01
   - If an empty CD-ROM drive is attached to IDE emulation, return "Medium Not
