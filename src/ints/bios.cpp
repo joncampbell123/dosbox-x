@@ -254,6 +254,7 @@ static void acpi_cb_port_cnt_blk_w(Bitu port,Bitu val,Bitu iolen) {
 	/* 16-bit register (PM1_CNT_LEN == 2) */
 	const unsigned int pmask = ((1u << (unsigned int)iolen) - 1u) << ((unsigned int)port & 1u);/*which bits are actually updated*/
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI_PM1_CNT_BLK write port %x val %x iolen %x pmask %x",(unsigned int)port,(unsigned int)val,(unsigned int)iolen,pmask);
+	val <<= (Bitu)((port & 1u) * 8u);
 
 	if (pmask & 1) {
 		/* BIOS controls SCI_EN and therefore guest cannot change it */
