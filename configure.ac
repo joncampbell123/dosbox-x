@@ -123,8 +123,8 @@ AC_CHECK_HEADERS([sys/socket.h  netinet/in.h pwd.h], [], [],
 #endif
 ])
 
-dnl C++11 is mandatory in this codebase.
-dnl C++14 is optional at this time, will eventually become mandatory.
+dnl C++11 is deprecated in this codebase.
+dnl C++14 is recommended at this time, will eventually become mandatory.
 
 dnl AC_CHECK_CXXFLAGS will prepend gnu++11 to CXXFLAGS if supported, for us.
 OLDCFLAGS="$CFLAGS"
@@ -157,7 +157,7 @@ dnl Allow devs to force compile as C++11 as long as this code supports C++11 as 
 AC_ARG_ENABLE(force-cxx11,AC_HELP_STRING([--enable-force-cxx11],[Force compile as C++11]),force_cxx11=yes)
 
 if test x$warn_cpp11 = x1; then
-    AC_MSG_WARN([ Your compiler does not support C++14. Currently it is optional. At some point in the future, it will be required ])
+    AC_MSG_WARN([ Your compiler does not support C++14. Currently it is recommended. At some point in the future, it will be required ])
     CFLAGS="$CFLAGS -std=gnu11";
     CXXFLAGS="$CXXFLAGS -std=gnu++11";
 elif test x$force_cxx11 = xyes; then
