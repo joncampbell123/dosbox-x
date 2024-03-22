@@ -1438,6 +1438,7 @@ static_assert(sizeof(ChannelMaskInfo) == 2, "ChannelMaskInfo needs to be 2 in si
 template <typename DataType>
 class DataChangedConsumer {
 public:
+	virtual ~DataChangedConsumer() noexcept = default;
 	virtual void valueChanged(DataType oldValue, DataType newValue) = 0;
 };
 
@@ -1456,6 +1457,7 @@ protected:
 
 public:
 	DataProvider()              = default;
+	virtual ~DataProvider() noexcept = default;
 	virtual DataType getValue() = 0;
 	void notifyOnChange(DataChangedConsumer<DataType>* dataConsumer)
 	{
@@ -1510,6 +1512,7 @@ private:
 
 public:
 	InputPin() = default;
+	virtual ~InputPin() noexcept = default;
 	explicit InputPin(std::string name) : m_name(std::move(name)) {}
 	std::string getName()
 	{
@@ -12836,7 +12839,7 @@ public:
 		m_timer.timerEvent(val);
 	}
 
-	~MusicFeatureCard() override
+	~MusicFeatureCard()
 	{
 		keep_running = false;
 		SDL_WaitThread(m_mainThread, nullptr);

@@ -880,7 +880,6 @@ static void gen_sop_word_imm(ShiftOps op,bool dword,DynReg * dr1,uint8_t imm) {
 		IllegalOption("gen_sop_word_imm");
 	}
 	dr1->flags|=DYNFLG_CHANGED;
-nochange:
 	i.setrm(dst).Emit8(tmp);
 }
 

@@ -134,10 +134,10 @@ class imageDisk {
 
 class imageDiskEmptyDrive : public imageDisk {
 public:
-	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
+	uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0) override;
+	uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0) override;
+	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
+	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
 
 	imageDiskEmptyDrive();
 	virtual ~imageDiskEmptyDrive();
@@ -145,10 +145,10 @@ public:
 
 class imageDiskD88 : public imageDisk {
 public:
-	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
+	uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0) override;
+	uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0) override;
+	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
+	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
 
 	imageDiskD88(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
 	virtual ~imageDiskD88();
@@ -183,10 +183,10 @@ public:
 
 class imageDiskNFD : public imageDisk {
 public:
-	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
+	uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0) override;
+	uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0) override;
+	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
+	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
 
 	imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk, unsigned int revision);
 	virtual ~imageDiskNFD();
@@ -212,10 +212,10 @@ public:
 
 class imageDiskVFD : public imageDisk {
 public:
-	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
+	uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0) override;
+	uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0) override;
+	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
+	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
 
 	imageDiskVFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
 	virtual ~imageDiskVFD();
@@ -249,10 +249,10 @@ public:
 
 class imageDiskMemory : public imageDisk {
 public:
-	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
-	virtual uint8_t GetBiosType(void);
-	virtual void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize);
+	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
+	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
+	uint8_t GetBiosType(void) override;
+	void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) override;
 	// Partition and format the ramdrive
 	virtual uint8_t Format();
 
@@ -345,8 +345,8 @@ public:
         std::string diskname;
     };
     VHDTypes vhdType = VHD_TYPE_NONE;
-	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
+	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
+	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk);
 	static VHDTypes GetVHDType(const char* fileName);
 	VHDTypes GetVHDType(void) const;
@@ -423,7 +423,7 @@ class imageDiskElToritoFloppy : public imageDisk {
 public:
     /* Read_Sector and Write_Sector take care of geometry translation for us,
      * then call the absolute versions. So, we override the absolute versions only */
-    virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) {
+    uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override {
         unsigned char buffer[2048];
 
         bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
@@ -437,7 +437,7 @@ public:
         memcpy(data,buffer+((sectnum&3)*512),512);
         return 0x00;
     }
-    virtual uint8_t Write_AbsoluteSector(uint32_t sectnum,const void * data) {
+    uint8_t Write_AbsoluteSector(uint32_t sectnum,const void * data) override {
         (void)sectnum;//UNUSED
         (void)data;//UNUSED
         return 0x05; /* fail, read only */

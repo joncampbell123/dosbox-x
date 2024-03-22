@@ -460,6 +460,8 @@ public:
 
 class DescriptorTable {
 public:
+    virtual ~DescriptorTable() noexcept = default;
+
     PhysPt  GetBase         (void) const    { return table_base;    }
     Bitu    GetLimit        (void) const    { return table_limit;   }
     void    SetBase         (PhysPt _base)  { table_base = _base;   }
@@ -527,8 +529,8 @@ public:
 		return true;
 	}
 
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
+	void SaveState( std::ostream& stream ) override;
+	void LoadState( std::istream& stream ) override;
 
 private:
 	PhysPt ldt_base;

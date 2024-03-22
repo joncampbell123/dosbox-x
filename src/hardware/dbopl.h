@@ -250,12 +250,12 @@ struct Chip {
 
 struct Handler : public Adlib::Handler {
 	DBOPL::Chip chip;
-	virtual uint32_t WriteAddr( uint32_t port, uint8_t val );
-	virtual void WriteReg( uint32_t addr, uint8_t val );
-	virtual void Generate( MixerChannel* chan, Bitu samples );
-	virtual void Init( Bitu rate );
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
+	uint32_t WriteAddr( uint32_t port, uint8_t val ) override;
+	void WriteReg( uint32_t addr, uint8_t val ) override;
+	void Generate( MixerChannel* chan, Bitu samples ) override;
+	void Init( Bitu rate ) override;
+	void SaveState( std::ostream& stream ) override;
+	void LoadState( std::istream& stream ) override;
 
 	Handler(bool opl3Mode) : chip(opl3Mode) {
 	}

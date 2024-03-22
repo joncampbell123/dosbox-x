@@ -122,11 +122,11 @@ public:
 	
 	QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, const char *imgName, uint32_t imgSizeK, uint32_t sectorSizeBytes, bool isHardDisk);
 
-	virtual ~QCow2Disk();
+	~QCow2Disk();
 	
-	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void* data);
+	uint8_t Read_AbsoluteSector(uint32_t sectnum, void* data) override;
 
-	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void* data);
+	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void* data) override;
 
 private:
 

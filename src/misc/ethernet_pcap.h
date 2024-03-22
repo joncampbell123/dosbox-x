@@ -42,9 +42,9 @@ class PcapEthernetConnection : public EthernetConnection {
 	public:
 		PcapEthernetConnection();
 		~PcapEthernetConnection();
-		bool Initialize(Section* config);
-		void SendPacket(const uint8_t* packet, int len);
-		void GetPackets(std::function<void(const uint8_t*, int)> callback);
+		bool Initialize(Section* config) override;
+		void SendPacket(const uint8_t* packet, int len) override;
+		void GetPackets(std::function<void(const uint8_t*, int)> callback) override;
 
 	private:
 		pcap_t* adhandle = 0; /*!< The pcap handle used for this device */

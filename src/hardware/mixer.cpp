@@ -1011,7 +1011,7 @@ public:
         if (!w) vol1=vol0;
     }
 
-    void Run(void) {
+    void Run(void) override {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
 			WriteOut("Displays or changes the current sound mixer volumes.\n\n"
                     "MIXER [/GUI|/NOSHOW] [/LISTMIDI [handler]] [channel volume]\n\n"
@@ -1332,7 +1332,7 @@ public:
 	{}
 
 private:
-	virtual void getBytes(std::ostream& stream)
+	void getBytes(std::ostream& stream) override
 	{
 
 		//*************************************************
@@ -1351,7 +1351,7 @@ private:
 		POD_Save_Tandy_Sound(stream);
 	}
 
-	virtual void setBytes(std::istream& stream)
+	void setBytes(std::istream& stream) override
 	{
 
 		//*************************************************

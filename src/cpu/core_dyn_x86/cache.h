@@ -108,7 +108,7 @@ public:
 		}
 		return is_current_block;
 	}
-	void writeb(PhysPt addr,uint8_t val){
+	void writeb(PhysPt addr,uint8_t val) override {
 		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return;
 		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("wb:non-readable code page found that is no ROM page");
@@ -128,7 +128,7 @@ public:
 		invalidation_map[addr]++;
 		InvalidateRange(addr,addr);
 	}
-	void writew(PhysPt addr,uint16_t val){
+	void writew(PhysPt addr,uint16_t val) override {
 		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return;
 		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("ww:non-readable code page found that is no ROM page");
@@ -148,7 +148,7 @@ public:
 		(*(uint16_t*)&invalidation_map[addr])+=0x101;
 		InvalidateRange(addr,addr+1);
 	}
-	void writed(PhysPt addr,uint32_t val){
+	void writed(PhysPt addr,uint32_t val) override {
 		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return;
 		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("wd:non-readable code page found that is no ROM page");
@@ -168,7 +168,7 @@ public:
 		(*(uint32_t*)&invalidation_map[addr])+=0x1010101;
 		InvalidateRange(addr,addr+3);
 	}
-	bool writeb_checked(PhysPt addr,uint8_t val) {
+	bool writeb_checked(PhysPt addr,uint8_t val) override {
 		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return false;
 		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("cb:non-readable code page found that is no ROM page");
@@ -194,7 +194,7 @@ public:
 		host_writeb(hostmem+addr,val);
 		return false;
 	}
-	bool writew_checked(PhysPt addr,uint16_t val) {
+	bool writew_checked(PhysPt addr,uint16_t val) override {
 		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return false;
 		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("cw:non-readable code page found that is no ROM page");
@@ -220,7 +220,7 @@ public:
 		host_writew(hostmem+addr,val);
 		return false;
 	}
-	bool writed_checked(PhysPt addr,uint32_t val) {
+	bool writed_checked(PhysPt addr,uint32_t val) override {
 		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return false;
 		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("cd:non-readable code page found that is no ROM page");
@@ -319,11 +319,11 @@ public:
 		}
 		return 0;
 	}
-	HostPt GetHostReadPt(Bitu phys_page) { 
+	HostPt GetHostReadPt(Bitu phys_page) override {
 		hostmem=old_pagehandler->GetHostReadPt(phys_page);
 		return hostmem;
 	}
-	HostPt GetHostWritePt(Bitu phys_page) { 
+	HostPt GetHostWritePt(Bitu phys_page) override {
 		return GetHostReadPt( phys_page );
 	}
 public:

@@ -1752,12 +1752,11 @@ ESFM_process_feedback(esfm_chip *chip)
 		uint32 basefreq, phase_offset;
 		uint3 block;
 		uint10 f_num;
-		int32_t wave_out, wave_last;
+		int32_t wave_out;
 		int32_t phase_feedback;
-		uint32_t iter_counter;
 		uint3 waveform;
 		uint3 mod_in_shift;
-		uint32_t phase, phase_acc;
+		uint32_t phase_acc;
 		uint10 eg_output;
 
 		if (slot->mod_in_level && (chip->native_mode || (slot->in.mod_input == &slot->in.feedback_buf)))
@@ -1845,6 +1844,8 @@ ESFM_process_feedback(esfm_chip *chip)
 				: "cc", "ax", "bx", "cx", "dx", "r8", "r9", "r10", "r11"
 			);
 #elif defined(__GNUC__) && defined(__i386__)
+			uint32_t iter_counter;
+			int32_t wave_last;
 			asm (
 				"movzbl  %b[wave], %%eax             \n\t"
 				"shll    $11, %%eax                  \n\t"
@@ -1965,12 +1966,12 @@ ESFM_process_feedback(esfm_chip *chip)
 			);
 #else
 			wave_out = 0;
-			wave_last = 0;
-			for (iter_counter = 0; iter_counter < 29; iter_counter++)
+			int32_t wave_last = 0;
+			for (uint32_t iter_counter = 0; iter_counter < 29; iter_counter++)
 			{
 				phase_feedback = (wave_out + wave_last) >> 2;
 				wave_last = wave_out;
-				phase = phase_feedback >> mod_in_shift;
+				uint32_t phase = phase_feedback >> mod_in_shift;
 				phase += phase_acc >> 9;
 				wave_out = ESFM_envelope_wavegen(waveform, phase, eg_output);
 				phase_acc += phase_offset;

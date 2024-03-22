@@ -844,12 +844,12 @@ unsigned int isoDrive::UDFextent_read(struct UDFextents &ex,unsigned char *buf,s
 class isoFile : public DOS_File {
 public:
     isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, uint32_t offset);
-	bool Read(uint8_t *data, uint16_t *size);
-	bool Write(const uint8_t *data, uint16_t *size);
-	bool Seek(uint32_t *pos, uint32_t type);
-	bool Close();
-	uint16_t GetInformation(void);
-	uint32_t GetSeekPos(void);
+	bool Read(uint8_t *data, uint16_t *size) override;
+	bool Write(const uint8_t *data, uint16_t *size) override;
+	bool Seek(uint32_t *pos, uint32_t type) override;
+	bool Close() override;
+	uint16_t GetInformation(void) override;
+	uint32_t GetSeekPos(void) override;
 public:
 	UDFextents udffext;
 	bool udf = false;
@@ -1496,7 +1496,6 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 	if (!is_udf) return 0;
 
 	UDFTagId ctag;
-	uint8_t* buffer = NULL;
 	unsigned char dirent[4096];
 	DirIterator& dirIterator = dirIterators[dirIteratorHandle];
 

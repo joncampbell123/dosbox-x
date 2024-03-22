@@ -5621,7 +5621,7 @@ public:
 	{}
 
 private:
-	virtual void getBytes(std::ostream& stream)
+	void getBytes(std::ostream& stream) override
 	{
 		SerializeGlobalPOD::getBytes(stream);
 
@@ -5663,7 +5663,7 @@ private:
 		POD_Save_DOS_Tables(stream);
 	}
 
-	virtual void setBytes(std::istream& stream)
+	void setBytes(std::istream& stream) override
 	{
 		SerializeGlobalPOD::setBytes(stream);
 

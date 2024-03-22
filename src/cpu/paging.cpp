@@ -388,41 +388,41 @@ private:
 	}
 public:
 	PageFoilHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr) {(void)addr;read();return 0;}
-	uint16_t readw(PhysPt addr) {(void)addr;read();return 0;}
-	uint32_t readd(PhysPt addr) {(void)addr;read();return 0;}
+	uint8_t readb(PhysPt addr) override {(void)addr;read();return 0;}
+	uint16_t readw(PhysPt addr) override {(void)addr;read();return 0;}
+	uint32_t readd(PhysPt addr) override {(void)addr;read();return 0;}
 
-    void writeb(PhysPt addr,uint8_t val) {
+    void writeb(PhysPt addr,uint8_t val) override {
         work(addr);
         // execute the write:
         // no need to care about mpl because we won't be entered
         // if write isn't allowed
         mem_writeb(addr,val);
     }
-    void writew(PhysPt addr,uint16_t val) {
+    void writew(PhysPt addr,uint16_t val) override {
         work(addr);
         mem_writew(addr,val);
     }
-    void writed(PhysPt addr,uint32_t val) {
+    void writed(PhysPt addr,uint32_t val) override {
         work(addr);
         mem_writed(addr,val);
     }
 
-    bool readb_checked(PhysPt addr, uint8_t * val) {(void)addr;(void)val;read();return true;}
-    bool readw_checked(PhysPt addr, uint16_t * val) {(void)addr;(void)val;read();return true;}
-    bool readd_checked(PhysPt addr, uint32_t * val) {(void)addr;(void)val;read();return true;}
+    bool readb_checked(PhysPt addr, uint8_t * val) override {(void)addr;(void)val;read();return true;}
+    bool readw_checked(PhysPt addr, uint16_t * val) override {(void)addr;(void)val;read();return true;}
+    bool readd_checked(PhysPt addr, uint32_t * val) override {(void)addr;(void)val;read();return true;}
 
-    bool writeb_checked(PhysPt addr,uint8_t val) {
+    bool writeb_checked(PhysPt addr,uint8_t val) override {
         work(addr);
         mem_writeb(addr,val);
         return false;
     }
-    bool writew_checked(PhysPt addr,uint16_t val) {
+    bool writew_checked(PhysPt addr,uint16_t val) override {
         work(addr);
         mem_writew(addr,val);
         return false;
     }
-    bool writed_checked(PhysPt addr,uint32_t val) {
+    bool writed_checked(PhysPt addr,uint32_t val) override {
         work(addr);
         mem_writed(addr,val);
         return false;
@@ -539,13 +539,13 @@ private:
 
 public:
 	ExceptionPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) override {
 		if (!cpu.mpl) return readb_through(addr);
 			
 		Exception(addr, false, false);
 		return mem_readb(addr); // read the updated page (unlikely to happen?)
 				}
-	uint16_t readw(PhysPt addr) {
+	uint16_t readw(PhysPt addr) override {
 		// access type is supervisor mode (temporary)
 		// we are always allowed to read in superuser mode
 		// so get the handler and address and read it
@@ -554,13 +554,13 @@ public:
 		Exception(addr, false, false);
 		return mem_readw(addr);
 			}
-	uint32_t readd(PhysPt addr) {
+	uint32_t readd(PhysPt addr) override {
 		if (!cpu.mpl) return readd_through(addr);
 
 		Exception(addr, false, false);
 		return mem_readd(addr);
 		}
-	void writeb(PhysPt addr,uint8_t val) {
+	void writeb(PhysPt addr,uint8_t val) override {
 		if (!cpu.mpl) {
 			writeb_through(addr, val);
 			return;
@@ -568,7 +568,7 @@ public:
 		Exception(addr, true, false);
 		mem_writeb(addr, val);
 			}
-	void writew(PhysPt addr,uint16_t val) {
+	void writew(PhysPt addr,uint16_t val) override {
 		if (!cpu.mpl) {
 			// TODO Exception on a KR-page?
 			writew_through(addr, val);
@@ -584,7 +584,7 @@ public:
 		Exception(addr, true, false);
 		mem_writew(addr, val);
 	}
-	void writed(PhysPt addr,uint32_t val) {
+	void writed(PhysPt addr,uint32_t val) override {
 		if (!cpu.mpl) {
 			writed_through(addr, val);
 			return;
@@ -593,27 +593,27 @@ public:
 		mem_writed(addr, val);
 	}
 	// returning true means an exception was triggered for these _checked functions
-	bool readb_checked(PhysPt addr, uint8_t * val) {
+	bool readb_checked(PhysPt addr, uint8_t * val) override {
         (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
 	}
-	bool readw_checked(PhysPt addr, uint16_t * val) {
+	bool readw_checked(PhysPt addr, uint16_t * val) override {
         (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
 			}
-	bool readd_checked(PhysPt addr, uint32_t * val) {
+	bool readd_checked(PhysPt addr, uint32_t * val) override {
         (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
 		}
-	bool writeb_checked(PhysPt addr,uint8_t val) {
+	bool writeb_checked(PhysPt addr,uint8_t val) override {
         (void)val;//UNUSED
 		Exception(addr, true, true);
 		return true;
 	}
-	bool writew_checked(PhysPt addr,uint16_t val) {
+	bool writew_checked(PhysPt addr,uint16_t val) override {
 		if (hack_check(addr)) {
 			LOG_MSG("Page attributes modified without clear");
 			PAGING_ClearTLB();
@@ -623,7 +623,7 @@ public:
 		Exception(addr, true, true);
 		return true;
 	}
-	bool writed_checked(PhysPt addr,uint32_t val) {
+	bool writed_checked(PhysPt addr,uint32_t val) override {
         (void)val;//UNUSED
 		Exception(addr, true, true);
 		return true;
@@ -698,57 +698,57 @@ static INLINE bool InitPage_CheckUseraccess(Bitu u1,Bitu u2) {
 class NewInitPageHandler : public PageHandler {
 public:
 	NewInitPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) override {
 		InitPage(addr, false, false);
 		return mem_readb(addr);
 	}
-	uint16_t readw(PhysPt addr) {
+	uint16_t readw(PhysPt addr) override {
 		InitPage(addr, false, false);
 		return mem_readw(addr);
 	}
-	uint32_t readd(PhysPt addr) {
+	uint32_t readd(PhysPt addr) override {
 		InitPage(addr, false, false);
 		return mem_readd(addr);
 	}
-	void writeb(PhysPt addr,uint8_t val) {
+	void writeb(PhysPt addr,uint8_t val) override {
 		InitPage(addr, true, false);
 		mem_writeb(addr,val);
 	}
-	void writew(PhysPt addr,uint16_t val) {
+	void writew(PhysPt addr,uint16_t val) override {
 		InitPage(addr, true, false);
 		mem_writew(addr,val);
 	}
-	void writed(PhysPt addr,uint32_t val) {
+	void writed(PhysPt addr,uint32_t val) override {
 		InitPage(addr, true, false);
 		mem_writed(addr,val);
 	}
 
-	bool readb_checked(PhysPt addr, uint8_t * val) {
+	bool readb_checked(PhysPt addr, uint8_t * val) override {
 		if (InitPage(addr, false, true)) return true;
 		*val=mem_readb(addr);
 			return false;
 		}
-	bool readw_checked(PhysPt addr, uint16_t * val) {
+	bool readw_checked(PhysPt addr, uint16_t * val) override {
 		if (InitPage(addr, false, true)) return true;
 		*val=mem_readw(addr);
 		return false;
 	}
-	bool readd_checked(PhysPt addr, uint32_t * val) {
+	bool readd_checked(PhysPt addr, uint32_t * val) override {
 		if (InitPage(addr, false, true)) return true;
 		*val=mem_readd(addr);
 			return false;
 		}
-	bool writeb_checked(PhysPt addr,uint8_t val) {
+	bool writeb_checked(PhysPt addr,uint8_t val) override {
 		if (InitPage(addr, true, true)) return true;
 		mem_writeb(addr,val);
 		return false;
 	}
-	bool writew_checked(PhysPt addr,uint16_t val) {
+	bool writew_checked(PhysPt addr,uint16_t val) override {
 		if (InitPage(addr, true, true)) return true;
 		mem_writew(addr,val);
 			return false;
 		}
-	bool writed_checked(PhysPt addr,uint32_t val) {
+	bool writed_checked(PhysPt addr,uint32_t val) override {
 		if (InitPage(addr, true, true)) return true;
 		mem_writed(addr,val);
 		return false;
@@ -1284,19 +1284,19 @@ public:
 	InitPageUserROHandler() {
 		flags=PFLAG_INIT|PFLAG_NOCODE;
 	}
-	void writeb(PhysPt addr,uint8_t val) {
+	void writeb(PhysPt addr,uint8_t val) override {
 		InitPage(addr,true,false);
 		host_writeb(get_tlb_read(addr)+addr,(uint8_t)(val&0xff));
 	}
-	void writew(PhysPt addr,uint16_t val) {
+	void writew(PhysPt addr,uint16_t val) override {
 		InitPage(addr,true,false);
 		host_writew(get_tlb_read(addr)+addr,(uint16_t)(val&0xffff));
 	}
-	void writed(PhysPt addr,uint32_t val) {
+	void writed(PhysPt addr,uint32_t val) override {
 		InitPage(addr,true,false);
 		host_writed(get_tlb_read(addr)+addr,(uint32_t)val);
 	}
-	bool writeb_checked(PhysPt addr,uint8_t val) {
+	bool writeb_checked(PhysPt addr,uint8_t val) override {
 		Bitu writecode=InitPageCheckOnly(addr,(uint8_t)(val&0xff));
 		if (writecode) {
 			HostPt tlb_addr;
@@ -1307,7 +1307,7 @@ public:
 		}
 		return true;
 	}
-	bool writew_checked(PhysPt addr,uint16_t val) {
+	bool writew_checked(PhysPt addr,uint16_t val) override {
 		Bitu writecode=InitPageCheckOnly(addr,(uint16_t)(val&0xffff));
 		if (writecode) {
 			HostPt tlb_addr;
@@ -1318,7 +1318,7 @@ public:
 		}
 		return true;
 	}
-	bool writed_checked(PhysPt addr,uint32_t val) {
+	bool writed_checked(PhysPt addr,uint32_t val) override {
 		Bitu writecode=InitPageCheckOnly(addr,(uint32_t)val);
 		if (writecode) {
 			HostPt tlb_addr;

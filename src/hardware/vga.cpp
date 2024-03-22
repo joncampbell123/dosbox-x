@@ -601,7 +601,7 @@ static void resetSize(Bitu /*val*/) {
 
 class VFRCRATE : public Program {
 public:
-    void Run(void) {
+    void Run(void) override {
         if (cmd->FindExist("/?", false)) {
 			WriteOut("Locks or unlocks the video refresh rate.\n\n");
 			WriteOut("VFRCRATE [SET [OFF|PAL|NTSC|rate]\n");
@@ -643,7 +643,7 @@ class CGASNOW : public Program {
 public:
     /*! \brief      Program entry point, when the command is run
      */
-    void Run(void) {
+    void Run(void) override {
         if (cmd->FindExist("/?", false)) {
 			WriteOut("Turns CGA snow emulation on or off.\n\n");
 			WriteOut("CGASNOW [ON|OFF]\n");
@@ -2116,7 +2116,7 @@ public:
 	{}
 
 private:
-	virtual void getBytes(std::ostream& stream)
+	void getBytes(std::ostream& stream) override
 	{
 		uint32_t tandy_drawbase_idx, tandy_membase_idx;
 
@@ -2234,7 +2234,7 @@ private:
 		POD_Save_VGA_XGA(stream);
 	}
 
-	virtual void setBytes(std::istream& stream)
+	void setBytes(std::istream& stream) override
 	{
 		uint32_t tandy_drawbase_idx, tandy_membase_idx;
 

@@ -654,7 +654,7 @@ struct fatFromDOSDrive
 			}
 
 			struct SumInfo { uint64_t used_bytes; const StringToPointerHashMap<void>* filter; };
-			static void SumFileSize(const char* path, bool is_dir, uint32_t size, uint16_t, uint16_t, uint8_t, Bitu data)
+			static void SumFileSize(const char* path, bool /*is_dir*/, uint32_t size, uint16_t, uint16_t, uint8_t, Bitu data)
 			{
 				if (!((SumInfo*)data)->filter || !((SumInfo*)data)->filter->Get(path))
 					((SumInfo*)data)->used_bytes += (size + (32*1024-1)) / (32*1024) * (32*1024); // count as 32 kb clusters

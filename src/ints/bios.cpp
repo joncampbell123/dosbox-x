@@ -217,7 +217,7 @@ static void ACPI_OnGuestGlobalRelease(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI GBL_RLS event. Global lock = %lx",ACPI_FACS_GlobalLockValue());
 }
 
-static void acpi_cb_port_smi_cmd_w(Bitu port,Bitu val,Bitu iolen) {
+static void acpi_cb_port_smi_cmd_w(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	/* 8-bit SMI_CMD port */
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI SMI_CMD %x",(unsigned int)val);
 
@@ -5997,7 +5997,7 @@ static Bitu INT11_Handler(void) {
 #define DOSBOX_CLOCKSYNC 0
 #endif
 
-uint32_t BIOS_HostTimeSync(uint32_t ticks) {
+uint32_t BIOS_HostTimeSync(uint32_t /*ticks*/) {
 #if 0//DISABLED TEMPORARILY
     uint32_t milli = 0;
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
@@ -8861,7 +8861,7 @@ ACPIAMLWriter &ACPIAMLWriter::FieldOpElement(const char *name,const unsigned int
 	return *this;
 }
 
-ACPIAMLWriter &ACPIAMLWriter::BeginPkg(const unsigned int pred_length) {
+ACPIAMLWriter &ACPIAMLWriter::BeginPkg(const unsigned int /*pred_length*/) {
 	pkg_t ent;
 
 	/* WARNING: Specify a size large enough. Once written, it cannot be extended if
