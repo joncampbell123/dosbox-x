@@ -128,7 +128,8 @@ public:
 	bool		LoadUnloadMedia		(uint8_t subUnit, bool unload);
 	bool		ResumeAudio			(uint8_t subUnit);
 	bool		GetMediaStatus		(uint8_t subUnit, bool& media, bool& changed, bool& trayOpen);
-
+    bool        Seek                (uint8_t subUnit, uint32_t sector);
+ 
 	PhysPt		GetDefaultBuffer	(void);
 	PhysPt		GetTempBuffer		(void);
 
@@ -505,6 +506,21 @@ bool CMscdex::PlayAudioMSF(uint8_t subUnit, uint32_t start, uint32_t length) {
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,sector,length);
 }
 
+bool CMscdex::Seek(uint8_t subUnit, uint32_t sector)
+{
+    if(subUnit >= numDrives) {
+        return false;
+    }
+    dinfo[subUnit].lastResult = cdrom[subUnit]->StopAudio();
+    if(dinfo[subUnit].lastResult) {
+        dinfo[subUnit].audioPlay = false;
+        dinfo[subUnit].audioPaused = false;
+        dinfo[subUnit].audioStart = sector;
+        dinfo[subUnit].audioEnd = 0;
+    }
+    return dinfo[subUnit].lastResult;
+}
+
 bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
@@ -795,7 +811,11 @@ bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, 
 
 bool CMscdex::GetCurrentPos(uint8_t subUnit, TMSF& pos) {
 	if (subUnit>=numDrives) return false;
-	TMSF rel;
+    if(!dinfo[subUnit].audioPlay) {
+        FRAMES_TO_MSF((dinfo[subUnit].audioStart + REDBOOK_FRAME_PADDING), &pos.min, &pos.sec, &pos.fr);
+        return true;
+    }
+    TMSF rel;
 	uint8_t attr,track,index;
 	dinfo[subUnit].lastResult = GetQChannelData(subUnit, attr, track, index, rel, pos);
     if(!dinfo[subUnit].lastResult) pos.fr = pos.min = pos.sec = 0;
@@ -952,8 +972,8 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
         uint8_t addr_mode = mem_readb(buffer + 1);
         if(addr_mode == 0) { // HSG
             uint32_t frames = MSF_TO_FRAMES(pos.min, pos.sec, pos.fr);
-            if(frames < 150) MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid position %d:%d:%d", pos.min, pos.sec, pos.fr);
-            else frames -= 150;
+            if(frames < REDBOOK_FRAME_PADDING) MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid position %d:%d:%d", pos.min, pos.sec, pos.fr);
+            else frames -= REDBOOK_FRAME_PADDING;
             mem_writed(buffer + 2, frames);
         }
         else if(addr_mode == 1) { // Red Book
@@ -1230,6 +1250,26 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
         break;
     }
     case 0x83:      /* SEEK */
+    {
+        uint32_t start = mem_readd(curReqheaderPtr + 0x14);
+        if(mem_readb(curReqheaderPtr + 0x0D)) { //Redbook if non-zero
+            TMSF msf = {};
+            msf.min = (start >> 16) & 0xFF;
+            msf.sec = (start >> 8) & 0xFF;
+            msf.fr = (start >> 0) & 0xFF;
+            start = MSF_TO_FRAMES(msf.min, msf.sec, msf.fr);
+            if(start < REDBOOK_FRAME_PADDING) {
+                MSCDEX_LOG("MSCDEX: Seek: invalid position %d:%d:%d", msf.min, msf.sec, msf.fr);
+                start = 0;
+            }
+            else {
+                start -= REDBOOK_FRAME_PADDING;
+            }
+        }
+        mscdex->Seek(subUnit, start);
+        break;
+    }
+
         break;
     case 0x84:      /* PLAY AUDIO */
     {

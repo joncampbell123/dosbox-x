@@ -52,12 +52,17 @@
 	*(M) = value;							\
 }
 #define MSF_TO_FRAMES(M, S, F)	((M)*60*CD_FPS+(S)*CD_FPS+(F))
+
 #include "../../vs/sdl/src/cdrom/compat_SDL_cdrom.h"
 #endif /* C_SDL2 */
 
 #define RAW_SECTOR_SIZE		2352
 #define COOKED_SECTOR_SIZE	2048
 #define AUDIO_DECODE_BUFFER_SIZE 16512
+
+#define REDBOOK_FRAME_PADDING 150u  // The relationship between High Sierra sectors and Redbook
+                                    // frames is described by the equation:
+                                    // Sector = Minute * 60 * 75 + Second * 75 + Frame - 150
 
 enum { CDROM_USE_SDL, CDROM_USE_ASPI, CDROM_USE_IOCTL_DIO, CDROM_USE_IOCTL_DX, CDROM_USE_IOCTL_MCI };
 
