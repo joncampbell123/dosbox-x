@@ -1818,6 +1818,7 @@ void diskio_delay(Bits value/*bytes*/, int type = -1);
 
 /* For El Torito "No emulation" INT 13 services */
 unsigned char INT13_ElTorito_NoEmuDriveNumber = 0;
+signed char INT13_ElTorito_IDEInterface = -1; /* (controller * 2) + (is_slave?1:0) */
 char INT13_ElTorito_NoEmuCDROMDrive = 0;
 
 bool GetMSCDEXDrive(unsigned char drive_letter, CDROM_Interface **_cdrom);
@@ -2381,6 +2382,45 @@ static Bitu INT13_DiskHandler(void) {
         reg_ah = 0x00;
         CALLBACK_SCF(false);
         } break;
+    case 0x4B: /* Terminate disk emulation or get emulation status */
+        /* NTS: Windows XP CD-ROM boot requires this call to work or else setup cannot find it's own files. */
+        if (reg_dl == 0x7F || (INT13_ElTorito_NoEmuDriveNumber != 0 && INT13_ElTorito_NoEmuDriveNumber == reg_dl)) {
+            if (reg_al <= 1) {
+                PhysPt p = (SegValue(ds) << 4) + reg_si;
+                phys_writeb(p + 0x00,0x13);
+                phys_writeb(p + 0x01,(0/*no emulation*/) + ((INT13_ElTorito_IDEInterface >= 0) ? 0x40 : 0));
+                phys_writeb(p + 0x02,INT13_ElTorito_NoEmuDriveNumber);
+                if (INT13_ElTorito_IDEInterface >= 0) {
+                        phys_writeb(p + 0x03,(unsigned char)(INT13_ElTorito_IDEInterface >> 1)); /* which IDE controller */
+                        phys_writew(p + 0x08,INT13_ElTorito_IDEInterface & 1);/* bit 0: IDE master/slave */
+                }
+                else {
+                        phys_writeb(p + 0x03,0);
+                        phys_writew(p + 0x08,0);
+                }
+                phys_writed(p + 0x04,0);
+                phys_writew(p + 0x0A,0);
+                phys_writew(p + 0x0C,0);
+                phys_writew(p + 0x0E,0);
+                phys_writeb(p + 0x10,0);
+                phys_writeb(p + 0x11,0);
+                phys_writeb(p + 0x12,0);
+                reg_ah = 0x00;
+                CALLBACK_SCF(false);
+                break;
+            }
+            else {
+                reg_ah=0xff;
+                CALLBACK_SCF(true);
+                return CBRET_NONE;
+            }
+        }
+        else {
+            reg_ah=0xff;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+        break;
     default:
         LOG(LOG_BIOS,LOG_ERROR)("INT13: Function %x called on drive %x (dos drive %d)", (int)reg_ah, (int)reg_dl, (int)drivenum);
         reg_ah=0xff;

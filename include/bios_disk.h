@@ -565,6 +565,7 @@ void LogPrintPartitionTable(const std::vector<_PC98RawPartition> &parts);
 void LogPrintPartitionTable(const std::vector<partTable::partentry_t> &parts);
 
 extern unsigned char INT13_ElTorito_NoEmuDriveNumber;
+extern signed char INT13_ElTorito_IDEInterface;
 extern char INT13_ElTorito_NoEmuCDROMDrive;
 
 #endif

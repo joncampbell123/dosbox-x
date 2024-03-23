@@ -353,6 +353,26 @@ const char* master_slave[] = { "Master", "Slave" };
 
 static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
+int IDE_MatchCDROMDrive(char drv) {
+	for (unsigned int c=0;c < MAX_IDE_CONTROLLERS;c++) {
+		IDEController *cnt = idecontroller[c];
+		if (cnt != NULL) {
+			for (unsigned int d=0;d < 2;d++) {
+				IDEDevice *dev = cnt->device[d];
+				if (dev != NULL) {
+					if (dev->type == IDE_TYPE_CDROM) {
+						IDEATAPICDROMDevice *atapi = reinterpret_cast<IDEATAPICDROMDevice*>(dev);
+						if (atapi->drive_index == (unsigned char)(drv - 'A'))
+							return (c * 2) + d;
+					}
+				}
+			}
+		}
+	}
+
+	return -1;
+}
+
 static void IDE_DelayedCommand(Bitu pk/*which IDE device*/);
 static IDEController* GetIDEController(Bitu idx);
 
