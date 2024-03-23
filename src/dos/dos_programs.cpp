@@ -58,6 +58,7 @@
 #include "menu.h"
 #include "render.h"
 #include "mouse.h"
+#include "eltorito.h"
 #include "../ints/int10.h"
 #include "../output/output_opengl.h"
 #include "paging.h"
@@ -4701,47 +4702,8 @@ quit:
     }
 };
 
-bool ElTorito_ChecksumRecord(unsigned char *entry/*32 bytes*/) {
-    unsigned int chk=0,i;
-
-    for (i=0;i < 16;i++) {
-        unsigned int word = ((unsigned int)entry[0]) + ((unsigned int)entry[1] << 8);
-        chk += word;
-        entry += 2;
-    }
-    chk &= 0xFFFF;
-    return (chk == 0);
-}
-
 static void INTRO_ProgramStart(Program * * make) {
     *make=new INTRO;
-}
-
-bool ElTorito_ScanForBootRecord(CDROM_Interface *drv,unsigned long &boot_record,unsigned long &el_torito_base) {
-    unsigned char buffer[2048];
-    unsigned int sec;
-
-    for (sec=16;sec < 32;sec++) {
-        if (!drv->ReadSectorsHost(buffer,false,sec,1))
-            break;
-
-        /* stop at terminating volume record */
-        if (buffer[0] == 0xFF) break;
-
-        /* match boot record and whether it conforms to El Torito */
-        if (buffer[0] == 0x00 && memcmp(buffer+1,"CD001",5) == 0 && buffer[6] == 0x01 &&
-            memcmp(buffer+7,"EL TORITO SPECIFICATION\0\0\0\0\0\0\0\0\0",32) == 0) {
-            boot_record = sec;
-            el_torito_base = (unsigned long)buffer[71] +
-                    ((unsigned long)buffer[72] << 8UL) +
-                    ((unsigned long)buffer[73] << 16UL) +
-                    ((unsigned long)buffer[74] << 24UL);
-
-            return true;
-        }
-    }
-
-    return false;
 }
 
 imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj) {
