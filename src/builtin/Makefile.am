@@ -32,9 +32,18 @@ libbuiltin_a_SOURCES = \
 	format_exe.cpp \
 	chkdsk_exe.cpp \
 	textutil.cpp \
+	emsmagic.cpp \
+	shutdown.cpp \
+	glide2x.cpp \
+	mpxplay.cpp \
 	sys_com.cpp \
+	ne2000.cpp \
 	28_com.cpp \
 	50_com.cpp \
 	25_com.cpp \
-	4dos.cpp
+	cdplay.cpp \
+	dosmid.cpp \
+	eval.cpp \
+	4dos.cpp \
+	zip.cpp
 
