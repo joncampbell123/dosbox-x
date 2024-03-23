@@ -217,6 +217,26 @@ static void ACPI_OnGuestGlobalRelease(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI GBL_RLS event. Global lock = %lx",ACPI_FACS_GlobalLockValue());
 }
 
+bool ACPI_GuestEnabled(void) {
+	return ACPI_SCI_EN;
+}
+
+static void ACPI_SCI_Check(void) {
+	if (ACPI_SCI_EN) {
+		if (ACPI_PM1_Status & ACPI_PM1_Enable) {
+			LOG(LOG_MISC,LOG_DEBUG)("ACPI SCI interrupt");
+			PIC_ActivateIRQ(ACPI_IRQ);
+		}
+	}
+}
+
+void ACPI_PowerButtonEvent(void) {
+	if (ACPI_SCI_EN) {
+		ACPI_PM1_Status |= ACPI_PM1_Enable_PWRBTN_EN;
+		ACPI_SCI_Check();
+	}
+}
+
 static void acpi_cb_port_smi_cmd_w(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	/* 8-bit SMI_CMD port */
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI SMI_CMD %x",(unsigned int)val);
@@ -225,6 +245,7 @@ static void acpi_cb_port_smi_cmd_w(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		if (!ACPI_SCI_EN) {
 			LOG(LOG_MISC,LOG_DEBUG)("Guest enabled ACPI");
 			ACPI_SCI_EN = true;
+			ACPI_SCI_Check();
 		}
 	}
 	else if (val == ACPI_DISABLE_CMD) {
@@ -273,6 +294,7 @@ static void acpi_cb_port_evtst_blk_w(Bitu port,Bitu val,Bitu iolen) {
 	/* 16-bit register (PM1_EVT_LEN/2 == 2) */
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI_PM1_EVT_BLK(status) write port %x val %x iolen %x",(unsigned int)port,(unsigned int)val,(unsigned int)iolen);
 	ACPI_PM1_Status &= (~val);
+	ACPI_SCI_Check();
 }
 
 static Bitu acpi_cb_port_evten_blk_r(Bitu port,Bitu /*iolen*/) {
@@ -286,6 +308,7 @@ static void acpi_cb_port_evten_blk_w(Bitu port,Bitu val,Bitu iolen) {
 	/* 16-bit register (PM1_EVT_LEN/2 == 2) */
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI_PM1_EVT_BLK(enable) write port %x val %x iolen %x",(unsigned int)port,(unsigned int)val,(unsigned int)iolen);
 	ACPI_PM1_Enable = val;
+	ACPI_SCI_Check();
 }
 
 static IO_ReadHandler* acpi_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) {
@@ -396,6 +419,9 @@ static Bitu APM_SuspendedLoopFunc(void) {
 bool PowerManagementEnabledButton() {
 	if (IS_PC98_ARCH) /* power management not yet known or implemented */
 		return false;
+
+	if (ACPI_GuestEnabled())
+		ACPI_PowerButtonEvent();
 
 	if (apm_realmode_connected) /* guest has connected to the APM BIOS */
 		return true;
