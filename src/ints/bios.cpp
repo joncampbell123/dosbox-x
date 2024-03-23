@@ -9172,6 +9172,9 @@ private:
 # endif
 #endif
 
+	INT13_ElTorito_NoEmuDriveNumber = 0;
+	INT13_ElTorito_NoEmuCDROMDrive = 0;
+
 	ACPI_mem_enable(false);
 	ACPI_REGION_SIZE = 0;
 	ACPI_BASE = 0;

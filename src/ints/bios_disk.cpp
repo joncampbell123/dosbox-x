@@ -1816,9 +1816,16 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba);
 
 void diskio_delay(Bits value/*bytes*/, int type = -1);
 
+/* For El Torito "No emulation" INT 13 services */
+unsigned char INT13_ElTorito_NoEmuDriveNumber = 0;
+char INT13_ElTorito_NoEmuCDROMDrive = 0;
+
+bool GetMSCDEXDrive(unsigned char drive_letter, CDROM_Interface **_cdrom);
+
+
 static Bitu INT13_DiskHandler(void) {
     uint16_t segat, bufptr;
-    uint8_t sectbuf[512];
+    uint8_t sectbuf[2048/*CD-ROM support*/];
     uint8_t  drivenum;
     Bitu  i,t;
     last_drive = reg_dl;
@@ -2215,6 +2222,37 @@ static Bitu INT13_DiskHandler(void) {
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
+        if (INT13_ElTorito_NoEmuDriveNumber != 0 && INT13_ElTorito_NoEmuDriveNumber == reg_dl) {
+                CDROM_Interface *src_drive = NULL;
+                if (!GetMSCDEXDrive(INT13_ElTorito_NoEmuCDROMDrive - 'A', &src_drive)) {
+                        reg_ah = 0x01;
+                        CALLBACK_SCF(true);
+                        return CBRET_NONE;
+                }
+
+                segat = dap.seg;
+                bufptr = dap.off;
+                for(i=0;i<dap.num;i++) {
+			static_assert( sizeof(sectbuf) >= 2048, "not big enough" );
+			diskio_delay(512);
+			if (killRead || !src_drive->ReadSectorsHost(sectbuf, false, dap.sector+i, 1)) {
+				// TODO: According to RBIL this should update the number of blocks field to what was successfully transferred
+				LOG_MSG("Error in CDROM read");
+				killRead = false;
+				reg_ah = 0x04;
+				CALLBACK_SCF(true);
+				return CBRET_NONE;
+			}
+
+			for(t=0;t<2048;t++) {
+                                real_writeb(segat,bufptr,sectbuf[t]);
+                                bufptr++;
+                        }
+                }
+                reg_ah = 0x00;
+                CALLBACK_SCF(false);
+                return CBRET_NONE;
+        }
 
         if (!any_images) {
             // Inherit the Earth cdrom (uses it as disk test)
@@ -2243,6 +2281,7 @@ static Bitu INT13_DiskHandler(void) {
             IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl,dap.sector+i);
 
             if((last_status != 0x00) || killRead) {
+                // TODO: According to RBIL this should update the number of blocks field to what was successfully transferred
                 LOG_MSG("Error in disk read");
                 killRead = false;
                 reg_ah = 0x04;

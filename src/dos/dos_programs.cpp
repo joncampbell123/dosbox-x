@@ -2321,6 +2321,10 @@ public:
                 for(i=0;i<2048;i++) real_writeb((uint16_t)load_seg, (uint16_t)i+(s*2048), entries[i]);
             }
 
+            /* signal INT 13h to emulate a CD-ROM drive El Torito "no emulation" style */
+            INT13_ElTorito_NoEmuDriveNumber = 0x90;
+            INT13_ElTorito_NoEmuCDROMDrive = el_torito_cd_drive;
+
             SegSet16(cs, load_seg);
             SegSet16(ds, 0);
             SegSet16(es, 0);
@@ -2333,7 +2337,8 @@ public:
             reg_ecx = 0;
             reg_ebp = 0;
             reg_eax = 0;
-            reg_edx = 0;
+            /* ISOLINUX clearly assumes DL at entry contains the drive number and at no point from entry to INT 13h does it change the contents of DX */
+            reg_edx = INT13_ElTorito_NoEmuDriveNumber;
 #ifdef __WIN32__
             // let menu know it boots
             menu.boot=true;
