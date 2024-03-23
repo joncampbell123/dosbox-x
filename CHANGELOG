@@ -1,4 +1,10 @@
 Next:
+  - The BOOT command now supports El Torito "no emulation" booting from a
+    CD-ROM drive, which is needed to boot install CDs for Windows XP, Linux,
+    etc. or Linux-based live CDs. Note that at this time, BOOT only supports
+    "no emulation" and IMGMOUNT only supports "floppy emulation" (joncampbell123).
+  - INT 13h extensions: If a read was interrupted by an error, update the
+    block transfer count so the caller knows (joncampbell123).
   - DOS: Move version parsing farther up, so that the initial DOS version
     can affect memory layout and tables as needed. (joncampbell123)
   - DOS DPB and FAT driver: If the DOS version is 4.0 or higher, write a
