@@ -525,14 +525,15 @@ bool CDROM_Interface_Image::GetAudioTracks(int& stTrack, int& end, TMSF& leadOut
 	end = (int)(tracks.size() - 1);
 	FRAMES_TO_MSF(tracks[tracks.size() - 1].start + 150, &leadOut.min, &leadOut.sec, &leadOut.fr);
 
-	//#ifdef DEBUG
-	LOG_MSG("CDROM: GetAudioTracks, stTrack=%d, end=%d, leadOut.min=%d, leadOut.sec=%d, leadOut.fr=%d",
-	  stTrack,
-	  end,
+	#ifdef DEBUG
+	LOG_MSG("%s CDROM: GetAudioTracks, stTrack=%d, end=%d, leadOut.min=%d, leadOut.sec=%d, leadOut.fr=%d",
+      get_time(),
+      stTrack,
+      end,
 	  leadOut.min,
 	  leadOut.sec,
 	  leadOut.fr);
-	//#endif
+	#endif
 
 	return true;
 }
