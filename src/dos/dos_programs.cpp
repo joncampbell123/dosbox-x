@@ -1907,6 +1907,8 @@ public:
         std::string tmp;
         std::string bios;
         std::string boothax_str;
+        std::string el_torito_mode="noemu";
+        std::string el_torito;
         bool pc98_640x200 = true;
         bool pc98_show_graphics = false;
         bool bios_boot = false;
@@ -1926,6 +1928,23 @@ public:
 
         if (cmd->FindExist("-swap-one-drive",true))
             swaponedrive = true;
+
+        //look for -el-torito parameter and remove it from the command line.
+        //This is copy-pasta to be consistent with the IMGMOUNT command which accepts this as either -el-torito or -bootcd.
+        //But with one important difference: Unlike IMGMOUNT which only supports bootable floppy emulation, this version lets
+        //you specify any other mode, though at this time, only "no emulation" mode is supported. You specify it as a =suffix
+        //i.e. -el-torito d:=noemu. No emulation mode is default, the IMGMOUNT --el-torito is still recommended for booting
+        //floppy emulation at this time.
+        cmd->FindString("-el-torito",el_torito,true);
+        if(el_torito == "") cmd->FindString("-bootcd", el_torito, true);
+
+        if (!el_torito.empty()) {
+            size_t o = el_torito.find_last_of('=');
+            if (o != std::string::npos && (o+1) < el_torito.length()) {
+                el_torito_mode = el_torito.substr(o+1);
+                el_torito = el_torito.substr(0,o);
+            }
+        }
 
         // debugging options
         if (cmd->FindExist("-pc98-640x200",true))
@@ -2085,11 +2104,14 @@ public:
          *    SS:SP = ???
          *
          * PC-98:
-         *    CS:IP = 1FE0:0000     Load = 1FE0:0000
+         *    CS:IP = 1FC0:0000     Load = 1FC0:0000
          *    SS:SP = 0030:00D8
+         *
+         * Reportedly PC-98 will load to 1FE0:0000 when booting the 1.44MB format (512 bytes per sector).
+         * Note that 0x1FC0:0000 leaves enough room for the 1024 bytes per sector format of PC-98.
          */
         Bitu stack_seg=IS_PC98_ARCH ? 0x0030 : 0x7000;
-        Bitu load_seg;//=IS_PC98_ARCH ? 0x1FE0 : 0x07C0;
+        Bitu load_seg;//=IS_PC98_ARCH ? 0x1FC0 : 0x07C0;
 
         if (MEM_TotalPages() > 0x9C)
             max_seg = 0x9C00;
@@ -2098,6 +2120,232 @@ public:
 
         if ((stack_seg+0x20) > max_seg)
             stack_seg = max_seg - 0x20;
+
+        /* if booting El Torito, the drive specified must be a CD-ROM drive */
+        if (!el_torito.empty()) {
+            //get el-torito floppy from cdrom mounted at drive letter el_torito_cd_drive
+            char el_torito_cd_drive = toupper(el_torito[0]);
+            if (el_torito_cd_drive < 'A' || el_torito_cd_drive > 'Z') {
+                printError();
+                return;
+            }
+
+            if (IS_PC98_ARCH) {
+                /* PC-98 doesn't have a bootable CD-ROM specification... does it?
+                 * By the time that became common the NEC basically switched to
+                 * making IBM PC-AT compatible Windows 95 systems anyway. */
+                printError();
+                return;
+            }
+
+            drive = 0;
+            if (!cmd->GetCount()) {
+                drive = 'A' + (dos_kernel_disabled?26:DOS_GetDefaultDrive());
+            }
+            else if (cmd->GetCount() == 1) {
+                cmd->FindCommand(1, temp_line);
+                if (temp_line.length()==2&&toupper(temp_line[0])>='A'&&toupper(temp_line[0])<='Z'&&temp_line[1]==':') {
+                    drive = toupper(temp_line[0]);
+               }
+            }
+            else {
+                printError();
+                return;
+            }
+
+            /* must be valid drive letter, C to Z */
+            if (!isalpha(el_torito_cd_drive) || el_torito_cd_drive < 'C') {
+                WriteOut("El Torito emulation requires a proper CD-ROM drive letter\n");
+                return;
+            }
+
+            /* drive must not exist (as a hard drive) */
+            if (imageDiskList[el_torito_cd_drive - 'A'] != NULL) {
+                WriteOut("El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+                return;
+            }
+
+            bool GetMSCDEXDrive(unsigned char drive_letter, CDROM_Interface **_cdrom);
+
+            /* get the CD-ROM drive */
+            CDROM_Interface *src_drive = NULL;
+            if (!GetMSCDEXDrive(el_torito_cd_drive - 'A', &src_drive)) {
+                WriteOut("El Torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+                return;
+            }
+
+            /* "No emulation" boot is the only mode supported at this time.
+             * For floppy emulation boot, use IMGMOUNT and then boot the emulated floppy drive. */
+            if (el_torito_mode != "noemu") {
+                WriteOut("Unsupported boot mode");
+                return;
+            }
+
+            unsigned char entries[2048], *entry, ent_num = 0;
+            int header_platform = -1, header_count = 0;
+            bool header_final = false;
+            int header_more = -1;
+
+            /* Okay. Step #1: Scan the volume descriptors for the Boot Record. */
+            unsigned long el_torito_base = 0, boot_record_sector = 0, el_torito_rba = (~0ul), el_torito_load_segment = 0, el_torito_sectors = 0/*VIRTUAL SECTORS*/;
+	    unsigned char el_torito_mediatype = 0;
+            if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
+                WriteOut("El Torito CD-ROM boot record not found\n");
+                return;
+            }
+
+	    LOG_MSG("El Torito looking for mode '%s'",el_torito_mode.c_str());
+            LOG_MSG("El Torito emulation: Found ISO 9660 Boot Record in sector %lu, pointing to sector %lu\n",
+                boot_record_sector, el_torito_base);
+
+            /* Step #2: Parse the records. Each one is 32 bytes long */
+            if (!src_drive->ReadSectorsHost(entries, false, el_torito_base, 1)) {
+                WriteOut("El Torito entries unreadable\n");
+                return;
+            }
+
+            /* for more information about what this loop is doing, read:
+             * http://download.intel.com/support/motherboards/desktop/sb/specscdrom.pdf
+             */
+            for (ent_num = 0; ent_num < (2048 / 0x20); ent_num++) {
+                    entry = entries + (ent_num * 0x20);
+
+                    if (memcmp(entry, "\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0", 32) == 0)
+                            break;
+
+                    if (entry[0] == 0x01/*header*/) {
+                            if (!ElTorito_ChecksumRecord(entry)) {
+                                    LOG_MSG("Warning: El Torito checksum error in header(0x01) entry\n");
+                                    continue;
+                            }
+
+                            if (header_count != 0) {
+                                    LOG_MSG("Warning: El Torito has more than one Header/validation entry\n");
+                                    continue;
+                            }
+
+                            if (header_final) {
+                                    LOG_MSG("Warning: El Torito has an additional header past the final header\n");
+                                    continue;
+                            }
+
+                            header_more = -1;
+                            header_platform = entry[1];
+                            LOG_MSG("El Torito entry: first header platform=0x%02x\n", header_platform);
+                            header_count++;
+                    }
+                    else if (entry[0] == 0x90/*header, more follows*/ || entry[0] == 0x91/*final header*/) {
+                            if (header_final) {
+                                    LOG_MSG("Warning: El Torito has an additional header past the final header\n");
+                                    continue;
+                            }
+
+                            header_final = (entry[0] == 0x91);
+                            header_more = (int)(((unsigned int)entry[2]) + (((unsigned int)entry[3]) << 8u));
+                            header_platform = entry[1];
+                            LOG_MSG("El Torito entry: first header platform=0x%02x more=%u final=%u\n", header_platform, header_more, header_final);
+                            header_count++;
+                    }
+                    else {
+                            if (header_more == 0) {
+                                    LOG_MSG("El Torito entry: Non-header entry count expired, ignoring record 0x%02x\n", entry[0]);
+                                    continue;
+                            }
+                            else if (header_more > 0) {
+                                    header_more--;
+                            }
+
+                            if (entry[0] == 0x44) {
+                                    LOG_MSG("El Torito entry: ignoring extension record\n");
+                            }
+                            else if (entry[0] == 0x00/*non-bootable*/) {
+                                    LOG_MSG("El Torito entry: ignoring non-bootable record\n");
+                            }
+                            else if (entry[0] == 0x88/*bootable*/) {
+                                    if (header_platform == 0x00/*x86*/) {
+                                            unsigned char mediatype = entry[1] & 0xF;
+                                            unsigned short load_segment = ((unsigned int)entry[2]) + (((unsigned int)entry[3]) << 8);
+                                            unsigned char system_type = entry[4];
+                                            unsigned short sector_count = ((unsigned int)entry[6]) + (((unsigned int)entry[7]) << 8);
+                                            unsigned long load_rba = ((unsigned int)entry[8]) + (((unsigned int)entry[9]) << 8) +
+                                                    (((unsigned int)entry[10]) << 16) + (((unsigned int)entry[11]) << 24);
+
+                                            LOG_MSG("El Torito entry: bootable x86 record mediatype=%u load_segment=0x%04x "
+                                                            "system_type=0x%02x sector_count=%u load_rba=%lu\n",
+                                                            mediatype, load_segment, system_type, sector_count, load_rba);
+
+					    /* already chose one, ignore */
+					    if (el_torito_rba != ~0UL)
+						    continue;
+
+                                            if ((mediatype == 0 && el_torito_mode == "noemu")) {
+                                                    el_torito_rba = load_rba;
+                                                    el_torito_mediatype = mediatype;
+                                                    el_torito_load_segment = (load_segment != 0) ? load_segment : 0x7C0;
+                                                    el_torito_sectors = sector_count; /* VIRTUAL EMULATED sectors not CD-ROM SECTORS */
+                                            }
+                                    }
+                                    else {
+                                            LOG_MSG("El Torito entry: ignoring bootable non-x86 (platform_id=0x%02x) record\n", header_platform);
+                                    }
+                            }
+                            else {
+                                    LOG_MSG("El Torito entry: ignoring unknown record ID %02x\n", entry[0]);
+                            }
+                    }
+            }
+
+            if (el_torito_rba == (~0ul) || el_torito_sectors == 0) {
+                    WriteOut("Unable to locate bootable section\n");
+                    return;
+            }
+
+            LOG_MSG("Using: rba=%lu virt-sectors=%lu load=0x%lx mediatype=%u",
+                    (unsigned long)el_torito_rba,
+                    (unsigned long)el_torito_sectors,
+                    (unsigned long)el_torito_load_segment,
+                    el_torito_mediatype);
+
+	    load_seg = el_torito_load_segment;
+
+            /* round up to CD-ROM sectors and read */
+            unsigned int bootcdsect = (el_torito_sectors + 3u) / 4u; /* 4 512-byte sectors per CD-ROM sector */
+            if (bootcdsect == 0) bootcdsect = 1;
+
+            for (unsigned int s=0;s < bootcdsect;s++) {
+                if (!src_drive->ReadSectorsHost(entries, false, el_torito_rba+s, 1)) {
+                    WriteOut("El Torito boot sector unreadable\n");
+                    return;
+                }
+
+                for(i=0;i<2048;i++) real_writeb((uint16_t)load_seg, (uint16_t)i+(s*2048), entries[i]);
+            }
+
+            SegSet16(cs, load_seg);
+            SegSet16(ds, 0);
+            SegSet16(es, 0);
+            reg_ip = 0;
+            reg_ebx = 0;
+            reg_esp = 0x100;
+            /* set up stack at a safe place */
+            SegSet16(ss, (uint16_t)stack_seg);
+            reg_esi = 0;
+            reg_ecx = 0;
+            reg_ebp = 0;
+            reg_eax = 0;
+            reg_edx = 0;
+#ifdef __WIN32__
+            // let menu know it boots
+            menu.boot=true;
+#endif
+            bootguest=false;
+            bootdrive=drive-65;
+
+            /* forcibly exit the shell, the DOS kernel, and anything else by throwing an exception */
+            throw int(2);
+
+            return;
+        }
 
         if(!cmd->GetCount()) {
             uint8_t drv = dos_kernel_disabled?26:DOS_GetDefaultDrive();
@@ -2656,12 +2904,7 @@ public:
                 }
             }
 
-            if (IS_PC98_ARCH) {
-                for(i=0;i<bootsize;i++) real_writeb((uint16_t)load_seg, (uint16_t)i, bootarea.rawdata[i]);
-            }
-            else {
-                for(i=0;i<bootsize;i++) real_writeb(0, (uint16_t)((load_seg<<4) + i), bootarea.rawdata[i]);
-            }
+            for(i=0;i<bootsize;i++) real_writeb((uint16_t)load_seg, (uint16_t)i, bootarea.rawdata[i]);
 
             /* debug */
             LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
@@ -5631,7 +5874,8 @@ class IMGMOUNT : public Program {
 			}
 
 			/* FIXME: We only support the floppy emulation mode at this time.
-			 *        "Superfloppy" or hard disk emulation modes are not yet implemented */
+			 *        "Superfloppy" or hard disk emulation modes are not yet implemented.
+			 *        This mode will never support "no emulation" boot. */
 			if (type != "floppy") {
 				WriteOut("El Torito emulation must be used with -t floppy at this time\n");
 				return false;
