@@ -509,7 +509,20 @@ bool CDROM_Interface_Image::SetDevice(char* path, int forceCD)
 		uint16_t size = (uint16_t)strlen(buf);
 		DOS_WriteFile(STDOUT, (uint8_t*)buf, &size);
 	}
-	return result;
+
+    int datatracks=0, audiotracks=0;
+    for(const auto& track : tracks) {
+        if(track.attr == 0x40) {
+            datatracks++;
+        }
+        else if(track.attr == 0) {
+            audiotracks++;
+        }
+    }
+    LOG_MSG("CDROM: Image loaded No. of data tracks=%d, audio tracks=%d",
+        datatracks, audiotracks-1
+        );
+    return result;
 }
 
 bool CDROM_Interface_Image::GetUPC(unsigned char& attr, char* upc)
