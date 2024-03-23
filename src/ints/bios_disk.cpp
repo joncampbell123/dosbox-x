@@ -2233,18 +2233,18 @@ static Bitu INT13_DiskHandler(void) {
                 segat = dap.seg;
                 bufptr = dap.off;
                 for(i=0;i<dap.num;i++) {
-			static_assert( sizeof(sectbuf) >= 2048, "not big enough" );
-			diskio_delay(512);
-			if (killRead || !src_drive->ReadSectorsHost(sectbuf, false, dap.sector+i, 1)) {
-				// TODO: According to RBIL this should update the number of blocks field to what was successfully transferred
-				LOG_MSG("Error in CDROM read");
-				killRead = false;
-				reg_ah = 0x04;
-				CALLBACK_SCF(true);
-				return CBRET_NONE;
-			}
+                        static_assert( sizeof(sectbuf) >= 2048, "not big enough" );
+                        diskio_delay(512);
+                        if (killRead || !src_drive->ReadSectorsHost(sectbuf, false, dap.sector+i, 1)) {
+                                real_writew(SegValue(ds),reg_si+2,i); // According to RBIL this should update the number of blocks field to what was successfully transferred
+                                LOG_MSG("Error in CDROM read");
+                                killRead = false;
+                                reg_ah = 0x04;
+                                CALLBACK_SCF(true);
+                                return CBRET_NONE;
+                        }
 
-			for(t=0;t<2048;t++) {
+                        for(t=0;t<2048;t++) {
                                 real_writeb(segat,bufptr,sectbuf[t]);
                                 bufptr++;
                         }
@@ -2281,7 +2281,7 @@ static Bitu INT13_DiskHandler(void) {
             IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl,dap.sector+i);
 
             if((last_status != 0x00) || killRead) {
-                // TODO: According to RBIL this should update the number of blocks field to what was successfully transferred
+                real_writew(SegValue(ds),reg_si+2,i); // According to RBIL this should update the number of blocks field to what was successfully transferred
                 LOG_MSG("Error in disk read");
                 killRead = false;
                 reg_ah = 0x04;
