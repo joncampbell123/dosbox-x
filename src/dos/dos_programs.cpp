@@ -1732,6 +1732,8 @@ void pc98_43d_write(Bitu port,Bitu val,Bitu iolen) {
     }
 }
 
+int IDE_MatchCDROMDrive(char drv);
+
 #if defined(WIN32)
 #include <fcntl.h>
 #else
@@ -2322,8 +2324,16 @@ public:
             }
 
             /* signal INT 13h to emulate a CD-ROM drive El Torito "no emulation" style */
+            INT13_ElTorito_IDEInterface = -1;
             INT13_ElTorito_NoEmuDriveNumber = 0x90;
             INT13_ElTorito_NoEmuCDROMDrive = el_torito_cd_drive;
+
+            /* this is required if INT 13h extensions are to correctly report what IDE controller the drive is connected to and master/slave */
+            {
+                int x = IDE_MatchCDROMDrive(el_torito_cd_drive);
+                if (x >= 0) INT13_ElTorito_IDEInterface = (char)x;
+                LOG_MSG("CD-ROM drive IDE interface number %d",INT13_ElTorito_IDEInterface);
+            }
 
             SegSet16(cs, load_seg);
             SegSet16(ds, 0);
