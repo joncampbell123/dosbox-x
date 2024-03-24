@@ -1823,6 +1823,12 @@ void IDEATADevice::io_completion() {
             PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,pk);
             break;
+        case 0xEC: /* IDENTIFY */
+            feature = 0;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            state = IDE_DEV_READY;
+            allow_writing = true;
+            break;
         default: /* most commands: signal drive ready, return to ready state */
             /* NTS: Some MS-DOS CD-ROM drivers will loop endlessly if we never set "drive seek complete"
                     because they like to hit the device with DEVICE RESET (08h) whether or not it's
@@ -3930,6 +3936,19 @@ void IDEDevice::host_reset_complete() {
     asleep = false;
     allow_writing = true;
     state = IDE_DEV_READY;
+
+    /* device passed, according to ATA standard regarding result of diagnostics test. */
+    /* NTS: The Linux kernel WILL NOT talk to this IDE emulation unless we signal success through
+     *      the feature/error register. If we don't respond this way, then according to the
+     *      source code, it considers what we provide a possibly phantom drive. See Linux kernel
+     *      6.1.29 drivers/ata/libata-sff.c, functions ata_sff_softreset, ata_sff_dev_classify.
+     *      Another side effect of failing to set feature is that the Linux kernel will talk to
+     *      our hard drive emulation though with a warning about diagnostics failure, but will
+     *      then completely ignore any ATAPI CD-ROM emulation we provide.
+     *
+     *      Windows XP never issues a reset or DIAGNOSTIC to the drive and doesn't care, apparently. */
+    feature = 0x01;
+
     status = IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
 }
 

@@ -1,4 +1,12 @@
 Next:
+  - IDE: Make sure to set feature/error register to 0x01 when the guest
+    soft or hard resets the IDE devices through the controller. The Linux
+    kernel uses a soft/hard reset on startup to detect PATA devices and
+    if it does not see the correct value after reset, it will either ignore
+    the device or complain about dianostic failure and cautiously talk to
+    the primary IDE hard drive while ignoring any ATAPI CD-ROM emulation.
+    This allows the Linux kernel to boot and see the CD-ROM drive. (joncampbell123).
+  - IDE: Do not clear registers unnecessarily when finishing IDENTIFY DEVICE.
   - The BOOT command now supports El Torito "no emulation" booting from a
     CD-ROM drive, which is needed to boot install CDs for Windows XP, Linux,
     etc. or Linux-based live CDs. Note that at this time, BOOT only supports
