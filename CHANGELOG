@@ -1,4 +1,10 @@
 Next:
+  - PIT timer: Fix restart_counter(), the delay computation was completely
+    backwards. This is particularly important where it concerns programs
+    that use the PIT to detect the rate at which the Pentium time stamp
+    (RDTSC) advances as the previous code caused wildly inaccurate measurements
+    and bad timing (GRUB bootloader, the Microsoft CD-ROM boot "press a key
+    to boot from CD" message). (joncampbell123).
   - IDE: Make sure to set feature/error register to 0x01 when the guest
     soft or hard resets the IDE devices through the controller. The Linux
     kernel uses a soft/hard reset on startup to detect PATA devices and
