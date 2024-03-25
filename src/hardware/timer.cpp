@@ -122,10 +122,8 @@ struct PIT_Block {
     void restart_counter_at(pic_tickindex_t t,uint16_t counter) {
         pic_tickindex_t c_delay;
 
-        if (counter == 0)
-            c_delay = ((pic_tickindex_t)(1000ull * 0x10000)) / PIT_TICK_RATE;
-        else
-            c_delay = ((pic_tickindex_t)(1000ull * counter)) / PIT_TICK_RATE;
+        /* NTS: Remember, the counter counts DOWN, not up, so the delay is how long it takes to get there */
+        c_delay = ((pic_tickindex_t)(1000ull * (0x10000u - counter))) / PIT_TICK_RATE;
 
         start = (t - c_delay);
     }
@@ -185,6 +183,7 @@ struct PIT_Block {
                 case 0:     /* Interrupt on Terminal Count */
                 case 4:     /* Software Triggered Strobe */
                     restart_counter_at(now,last_counter.counter);
+                    update_output_from_counter(read_counter());
                     break;
                 case 1:     /* Hardware Triggered one-shot */
                     /* output goes LOW when triggered, returns HIGH when counter expires */
