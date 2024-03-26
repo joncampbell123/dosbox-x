@@ -5,7 +5,7 @@
 #include "../src/builtin/cdplay.h"
 #include "../src/builtin/dosmid.h"
 #include "../src/builtin/mpxplay.h"
-#include "../src/builtin/ne2000.h"
+#include "../src/builtin/ne2000bin.h"
 #include "../src/builtin/glide2x.h"
 #include "../src/builtin/emsmagic.h"
 #include "../src/builtin/shutdown.h"
