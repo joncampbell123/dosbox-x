@@ -1,4 +1,12 @@
 Next:
+  - INT 33 mouse emulation: Add dosbox.conf options to force a specific
+    coordinate system for the DOS game with respect to host/guest mouse
+    cursor integration (getting the DOS cursor to match the host cursor
+    within the window). Add dosbox.conf option where additional adjustments
+    are available. The maximum x/y and max-adjust options are ideal for
+    Lemmings 2, which uses INT 33h in a way that confuses the automatic
+    range detection code used to synchronize cursor position and therefore
+    needs this option, and the first Lemmings as well. (joncampbell123).
   - PIT timer: Fix restart_counter(), the delay computation was completely
     backwards. This is particularly important where it concerns programs
     that use the PIT to detect the rate at which the Pentium time stamp
