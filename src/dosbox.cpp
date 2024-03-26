@@ -4564,6 +4564,22 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable INT 33H for mouse support.");
     Pbool->SetBasic(true);
 
+    Pint = secprop->Add_int("int33 max x", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("For guest to host cursor integration with DOS games, assume the maximum reported X coordinate has this value, if this is nonzero.\n"
+                   "Use this option if the automatic range detection fails to work correctly with the DOS game and the cursor doesn't match the host cursor position.\n"
+                   "- Lemmings 2: Use X=640 Y=400");
+
+    Pint = secprop->Add_int("int33 max y", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("For guest to host cursor integration with DOS games, assume the maximum reported Y coordinate has this value, if this is nonzero.\n"
+                   "Use this option if the automatic range detection fails to work correctly with the DOS game and the cursor doesn't match the host cursor position.\n"
+                   "- See the max X setting for a list of games");
+
+    Pstring = secprop->Add_string("int33 xy adjust",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("A list of adjustments to INT 33h position adjustments to help align the guest cursor to the host. name=value, comma separated\n"
+                      "x=spec, y=spec\n"
+                      "spec:   <number>    position adjust, can be positive or negative\n"
+                      "        max-excess  if game sets maximum larger than int33 max x/y, adjust the position forward by the difference");
+
     Pint = secprop->Add_int("mouse report rate",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Mouse reporting rate, or 0 for auto. This affects how often mouse events are reported to the guest through the mouse interrupt.\n"
 		    "Some games including CyClone need a lower reporting rate to function correctly. Auto mode allows the guest to change the report rate through the PS/2 mouse emulation.\n"

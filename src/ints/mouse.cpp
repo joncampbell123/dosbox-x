@@ -47,6 +47,10 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
+static bool adjust_x_max_excess = false,adjust_y_max_excess = false;
+static unsigned int assume_max_x = 0,assume_max_y = 0;
+static int adjust_x = 0,adjust_y = 0;
+
 #define VMWARE_PORT         0x5658u        // communication port
 #define VMWARE_PORTHB       0x5659u        // communication port, high bandwidth
 static Bitu PortRead(Bitu port, Bitu iolen);
@@ -895,6 +899,29 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
         mouse.x       = x1 * mouse.max_screen_x;
         mouse.y       = y1 * mouse.max_screen_y;
 
+	/* Cursor adjustment to help in-game cursor match host:
+	 *
+	 * x=[-]adjustment     i.e. x=5 or x=-8
+	 * y=[-]adjustment     i.e. y=8 or y=-10 */
+        mouse.x += adjust_x;
+        mouse.y += adjust_y;
+	/* When used with int33 max x/y:
+	 * max-excess can be specified to state that if the game set the maximum
+	 * past the dosbox.conf max value, that the x/y coordinates are adjusted
+	 * by the difference, for use with games that make use of the min/max
+	 * constraint per screen and offset the min/max by some offset (Lemmings 2).
+	 *
+	 * x=max-excess
+	 * y=max-excess */
+        if (adjust_x_max_excess) {
+            if (mouse.max_x > (int)assume_max_x)
+                mouse.x += (mouse.max_x - assume_max_x);
+        }
+        if (adjust_y_max_excess) {
+            if (mouse.max_y > (int)assume_max_y)
+                mouse.y += (mouse.max_y - assume_max_y);
+        }
+
         if (mouse.x < mouse.min_x)
             mouse.x = mouse.min_x;
         if (mouse.y < mouse.min_y)
@@ -1455,8 +1482,15 @@ void Mouse_AfterNewVideoMode(bool setmode) {
     mouse.cursorType = 0;
     mouse.enabled=true;
 
-    mouse.max_screen_x = mouse.max_x;
-    mouse.max_screen_y = mouse.max_y;
+    if (assume_max_x > 0)
+        mouse.max_screen_x = assume_max_x;
+    else
+        mouse.max_screen_x = mouse.max_x;
+
+    if (assume_max_y > 0)
+        mouse.max_screen_y = assume_max_y;
+    else
+        mouse.max_screen_y = mouse.max_y;
 }
 
 //Much too empty, Mouse_NewVideoMode contains stuff that should be in here
@@ -1650,7 +1684,7 @@ static Bitu INT33_Handler(void) {
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
             if (mouse.first_range_setx || mouse.buttons == 0) {
-                if (mouse.min_x == 0 && mouse.max_x > 0) {
+                if (mouse.min_x == 0 && mouse.max_x > 0 && assume_max_x == 0) {
                     // most games redefine the range so they can use a saner range matching the screen
                     int16_t nval = mouse.max_x;
 
@@ -1719,7 +1753,7 @@ static Bitu INT33_Handler(void) {
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
             if (mouse.first_range_sety || mouse.buttons == 0) {
-                if (mouse.min_y == 0 && mouse.max_y > 0) {
+                if (mouse.min_y == 0 && mouse.max_y > 0 && assume_max_y == 0) {
                     // most games redefine the range so they can use a saner range matching the screen
                     int16_t nval = mouse.max_y;
 
@@ -2315,6 +2349,49 @@ void MOUSE_Startup(Section *sec) {
 
     user_mouse_report_rate=section->Get_int("mouse report rate");
     UpdateMouseReportRate();
+
+    assume_max_x=section->Get_int("int33 max x");
+    assume_max_y=section->Get_int("int33 max y");
+
+    {
+        const char *s = section->Get_string("int33 xy adjust");
+        while (*s != 0) {
+            if (*s == ' ') {
+                s++;
+            }
+            else {
+                const char *base = s;
+                while (*s != 0 && *s != ',' && *s != '=') s++;
+                std::string name = std::string(base,(size_t)(s-base)),value;
+                if (*s == '=') {
+                    s++;
+                    base = s;
+                    while (*s != 0 && *s != ',') s++;
+                    value = std::string(base,(size_t)(s-base));
+                }
+                if (*s == ',') s++;
+
+                if (name == "x") {
+                    const char *v = value.c_str();
+                    if (isdigit(*v) || (*v == '-' && isdigit(v[1]))) {
+                        adjust_x = atoi(v);
+                    }
+                    else if (!strcmp(v,"max-excess")) {
+                        adjust_x_max_excess = true;
+                    }
+                }
+                else if (name == "y") {
+                    const char *v = value.c_str();
+                    if (isdigit(*v) || (*v == '-' && isdigit(v[1]))) {
+                        adjust_y = atoi(v);
+                    }
+                    else if (!strcmp(v,"max-excess")) {
+                        adjust_y_max_excess = true;
+                    }
+                }
+            }
+        }
+    }
 
     en_int33_hide_if_intsub=section->Get_bool("int33 hide host cursor if interrupt subroutine");
 
