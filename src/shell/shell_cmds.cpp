@@ -2599,17 +2599,21 @@ void DOS_Shell::CMD_COPY(char * args) {
 							int drive=strlen(nameTarget)>1&&(nameTarget[1]==':'||nameTarget[2]==':')?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
                             if(drive >= 0 && Drives[drive]) {
                                 uint16_t bytes_sector; uint8_t sectors_cluster; uint16_t total_clusters; uint16_t free_clusters;
-                                uint32_t bytes32, sectors32, clusters32, free32;
-                                bool no_free_space = false;
+                                uint32_t bytes32 = 0, sectors32 = 0, clusters32 = 0, free32 = 0;
+                                bool no_free_space = true;
                                 rsize = true;
                                 freec = 0;
                                 if(dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) {
                                     Drives[drive]->AllocationInfo32(&bytes32, &sectors32, &clusters32, &free32);
                                     no_free_space = (uint64_t)bytes32 * (uint64_t)sectors32 * (uint64_t)free32 < size ? true : false;
+                                    //LOG_MSG("drive=%u, no_free_space = %d bytes32=%u, sectors32=%u, free32 =%u, free_space=%u, size=%u",
+                                    //  drive, no_free_space ? 1 : 0, bytes32, sectors32, free32, bytes32*sectors32*free32, size);
                                 }
-                                else {
+                                if(bytes32 == 0 || sectors32 == 0 || dos.version.major < 7 || (dos.version.major == 7 && dos.version.minor < 10)) {
                                     Drives[drive]->AllocationInfo(&bytes_sector, &sectors_cluster, &total_clusters, &free_clusters);
                                     no_free_space = (Bitu)bytes_sector* (Bitu)sectors_cluster* (Bitu)(freec ? freec : free_clusters) < size ? true : false;
+                                    //LOG_MSG("no_free_space = %d bytes=%u, sectors=%u, free =%u, free_space=%u, size=%u",
+                                    // no_free_space ? 1 : 0, bytes_sector, sectors_cluster, freec, bytes_sector*sectors_cluster*free_clusters, size);
                                 }
                                 rsize = false;
 								if (no_free_space) {
