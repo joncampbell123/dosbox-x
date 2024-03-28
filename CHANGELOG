@@ -1,4 +1,7 @@
 Next:
+  - Suddenly Mac OS 14 and XCode consider the "id" and "int" datatypes
+    different and assigning or returning one to the other is now a compiler
+    error. Add typecast to enable compile on latest XCode. (joncampbell123)
   - INT 33 mouse emulation: Add dosbox.conf options to force a specific
     coordinate system for the DOS game with respect to host/guest mouse
     cursor integration (getting the DOS cursor to match the host cursor
