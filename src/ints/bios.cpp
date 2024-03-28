@@ -8484,7 +8484,7 @@ namespace ACPIMethodFlags {
 		NotSerialized=(0 << 3),
 		Serialized=(1 << 3)
 	};
-};
+}
 
 namespace ACPIFieldFlag {
 	namespace AccessType {
@@ -8512,6 +8512,199 @@ namespace ACPIFieldFlag {
 		};
 	}
 }
+
+enum class ACPIAMLOpcode:unsigned char {
+	ZeroOp = 0x00, // ACPI 1.0+
+	OneOp = 0x01, // ACPI 1.0+
+
+	AliasOp = 0x06, // ACPI 1.0+
+
+	NameOp = 0x08, // ACPI 1.0+
+
+	BytePrefix = 0x0A, // ACPI 1.0+
+	WordPrefix = 0x0B, // ACPI 1.0+
+	DwordPrefix = 0x0C, // ACPI 1.0+
+	StringPrefix = 0x0D, // ACPI 1.0+
+	QWordPrefix = 0x0E, // ACPI 2.0+
+
+	ScopeOp = 0x10, // ACPI 1.0+
+	BufferOP = 0x11, // ACPI 1.0+
+	PackageOp = 0x12, // ACPI 1.0+
+	VarPackageOp = 0x13, // ACPI 2.0+
+	MethodOp = 0x14, // ACPI 1.0+
+	ExternalOp = 0x15, // ACPI 6.0+
+
+	DualNamePrefix = 0x2E, // ACPI 1.0+
+	MultiNamePrefix = 0x2F, // ACPI 1.0+
+
+	NameCharA = 0x41, // ACPI 1.0b+
+	NameCharB = 0x42, // ACPI 1.0b+
+	NameCharC = 0x43, // ACPI 1.0b+
+	NameCharD = 0x44, // ACPI 1.0b+
+	NameCharE = 0x45, // ACPI 1.0b+
+	NameCharF = 0x46, // ACPI 1.0b+
+	NameCharG = 0x47, // ACPI 1.0b+
+	NameCharH = 0x48, // ACPI 1.0b+
+	NameCharI = 0x49, // ACPI 1.0b+
+	NameCharJ = 0x4A, // ACPI 1.0b+
+	NameCharK = 0x4B, // ACPI 1.0b+
+	NameCharL = 0x4C, // ACPI 1.0b+
+	NameCharM = 0x4D, // ACPI 1.0b+
+	NameCharN = 0x4E, // ACPI 1.0b+
+	NameCharO = 0x4F, // ACPI 1.0b+
+	NameCharP = 0x50, // ACPI 1.0b+
+	NameCharQ = 0x51, // ACPI 1.0b+
+	NameCharR = 0x52, // ACPI 1.0b+
+	NameCharS = 0x53, // ACPI 1.0b+
+	NameCharT = 0x54, // ACPI 1.0b+
+	NameCharU = 0x55, // ACPI 1.0b+
+	NameCharV = 0x56, // ACPI 1.0b+
+	NameCharW = 0x57, // ACPI 1.0b+
+	NameCharX = 0x58, // ACPI 1.0b+
+	NameCharY = 0x59, // ACPI 1.0b+
+	NameCharZ = 0x5A, // ACPI 1.0b+
+
+	ExtendedOperatorPrefix = 0x5B, // ACPI 1.0+
+	RootNamePrefix = 0x5C, // ACPI 1.0+
+
+	ParentNamePrefix = 0x5E, // ACPI 1.0+
+	NameChar_ = 0x5F, // ACPI 2.0+
+
+	Local0 = 0x60, // ACPI 1.0+
+	Local1 = 0x61, // ACPI 1.0+
+	Local2 = 0x62, // ACPI 1.0+
+	Local3 = 0x63, // ACPI 1.0+
+	Local4 = 0x64, // ACPI 1.0+
+	Local5 = 0x65, // ACPI 1.0+
+	Local6 = 0x66, // ACPI 1.0+
+	Local7 = 0x67, // ACPI 1.0+
+	Arg0 = 0x68, // ACPI 1.0+
+	Arg1 = 0x69, // ACPI 1.0+
+	Arg2 = 0x6A, // ACPI 1.0+
+	Arg3 = 0x6B, // ACPI 1.0+
+	Arg4 = 0x6C, // ACPI 1.0+
+	Arg5 = 0x6D, // ACPI 1.0+
+	Arg6 = 0x6E, // ACPI 1.0+
+
+	StoreOp = 0x70, // ACPI 1.0+
+	RefOfOp = 0x71, // ACPI 1.0+
+	AddOp = 0x72, // ACPI 1.0+
+	ConcatOp = 0x73, // ACPI 1.0+
+	SubtractOp = 0x74, // ACPI 1.0+
+	IncrementOp = 0x75, // ACPI 1.0+
+	DecrementOp = 0x76, // ACPI 1.0+
+	MultiplyOp = 0x77, // ACPI 1.0+
+	DivideOp = 0x78, // ACPI 1.0+
+	ShiftLeftOp = 0x79, // ACPI 1.0+
+	ShiftRightOp = 0x7A, // ACPI 1.0+
+	AndOp = 0x7B, // ACPI 1.0+
+	NAndOp = 0x7C, // ACPI 1.0+
+	OrOp = 0x7D, // ACPI 1.0+
+	NOrOp = 0x7E, // ACPI 1.0+
+	XOrOp = 0x7F, // ACPI 1.0+
+	NotOp = 0x80, // ACPI 1.0+
+	FindSetLeftBitOp = 0x81, // ACPI 1.0+
+	FindSetRightBitOp = 0x82, // ACPI 1.0+
+	DerefOfOp = 0x83, // ACPI 2.0+
+	ConcatResOp = 0x84, // ACPI 2.0+
+	ModOp = 0x85, // ACPI 2.0+
+	NotifyOp = 0x86, // ACPI 1.0+
+	SizeOfOp = 0x87, // ACPI 1.0+
+	IndexOp = 0x88, // ACPI 1.0+
+	MatchOp = 0x89, // ACPI 1.0+
+	DWordFieldOp = 0x8A, // ACPI 1.0+
+	CreateDWordFieldOp = 0x8A, // ACPI 1.0b+
+	WordFieldOp = 0x8B, // ACPI 1.0+
+	CreateWordFieldOp = 0x8B, // ACPI 1.0b+
+	ByteFieldOp = 0x8C, // ACPI 1.0+
+	CreateByteFieldOp = 0x8C, // ACPI 1.0b+
+	BitFieldOp = 0x8D, // ACPI 1.0+
+	CreateBitFieldOp = 0x8D, // ACPI 1.0b+
+	ObjTypeOp = 0x8E, // ACPI 1.0+
+	CreateQWordField = 0x8F, // ACPI 2.0+
+	LAndOp = 0x90, // ACPI 1.0+
+	LOrOp = 0x91, // ACPI 1.0+
+	LNotOp = 0x92, // ACPI 1.0+
+	LEQOp = 0x93, // ACPI 1.0+
+	LEqualOp = 0x93, // ACPI 1.0b+ same as LEQOp obviously to make opcode name clearer
+/*	LNotEQOp = 0x93 0x92 */ // ACPI 1.0, seems to be an error in the documentation as that is LEqualOp LNotOp which doesn't make sense
+/*	LNotEqualOp = 0x92 0x93 */ // ACPI 1.0b+, correction of opcode and to make opcode name clearer. Literally LNotOp LEqualOp
+	LGOp = 0x94, // ACPI 1.0+
+	LGreaterOp = 0x94, // ACPI 1.0b+ same as LGOp obviously to make opcode name clearer
+/*	LLEQOp = 0x94 0x92 */ // ACPI 1.0, seems to be an error in the documentation as that is LEqualOp LNotOp which doesn't make sense
+/*	LLessEqualOp = 0x92 0x94 */ // ACPI 1.0b+, correction of opcode and to make opcode name clearer. Literally LNotOp LGreaterOp
+	LLOp = 0x95, // ACPI 1.0+
+	LLessOp = 0x95, // ACPI 1.0b+ same as LLOp obviously to make opcode name clearer
+/*	LGEQOp = 0x95 0x92 */ // ACPI 1.0, seems to be an error in the documentation as that is LEqualOp LNotOp which doesn't make sense
+/*	LGreaterEqualOp = 0x95 0x92 */
+	// ^ ACPI 1.0b+, um... they kept the same mistake, but does make opcode name clearer, but the definition does correctly say LNotOp LLessOp.
+	// ^ Um... in fact ACPI 2.0 keeps the mistake and the corrected definition! They didn't fix THAT error until ACPI 3.0!
+	// ^ Would mistakes like this have anything to do with the Linux kernel reportedly not wanting to support any ACPI BIOS made before the year 2000?
+/*	LGreaterEqualOp = 0x92 0x95 */ // ACPI 3.0+ corrected byte pattern. Literally LNotOp LLessOp
+	BuffOp = 0x96, // ACPI 2.0+
+	ToBufferOp = 0x96, // ACPI 2.0a+, correction of opcode and to make opcode name clearer
+	DecStrOp = 0x97, // ACPI 2.0+
+	ToDecimalStringOp = 0x97, // ACPI 2.0a+, correction of opcode and to make opcode name clearer
+	HexStrOp = 0x98, // ACPI 2.0+
+	ToHexStringOp = 0x98, // ACPI 2.0a+, correction of opcode and to make opcode name clearer
+	IntOp = 0x99, // ACPI 2.0+
+	ToIntegerOp = 0x99, // ACPI 2.0a+, correction of opcode and to make opcode name clearer
+
+	StringOp = 0x9C, // ACPI 2.0+
+	ToStringOp = 0x9C, // ACPI 2.0a+, correction of opcode and to make opcode name clearer
+	CopyOp = 0x9D, // ACPI 2.0+
+	CopyObjectOp = 0x9D, // ACPI 2.0a+, correction of opcode and to make opcode name clearer
+	MidOp = 0x9E, // ACPI 2.0+
+	ContinueOp = 0x9F, // ACPI 2.0+
+	IfOp = 0xA0, // ACPI 1.0+
+	ElseOp = 0xA1, // ACPI 1.0+
+	WhileOp = 0xA2, // ACPI 1.0+
+	NoOp = 0xA3, // ACPI 1.0+
+	ReturnOp = 0xA4, // ACPI 1.0+
+	BreakOp = 0xA5, // ACPI 1.0+
+
+	BreakPointOp = 0xCC, // ACPI 1.0+
+
+	OnesOp = 0xFF // ACPI 1.0+
+};
+
+enum class ACPIAMLOpcodeEOP5B:unsigned char {
+	/*0x5B*/MutexOp = 0x01, // ACPI 1.0+
+	/*0x5B*/EventOp = 0x02, // ACPI 1.0+
+
+	/*0x5B*/ShiftRightBitOp = 0x10, // ACPI 1.0 only, disappeared 1.0b
+	/*0x5B*/ShiftLeftBitOp = 0x11, // ACPI 1.0 only, disappeared 1.0b
+	/*0x5B*/CondRefOp = 0x12, // ACPI 1.0+
+	/*0x5B*/CreateFieldOp = 0x13, // ACPI 1.0+
+
+	/*0x5B*/LocalTableOp = 0x1F, // ACPI 2.0+
+	/*0x5B*/LoadOp = 0x20, // ACPI 1.0+
+	/*0x5B*/StallOp = 0x21, // ACPI 1.0+
+	/*0x5B*/SleepOp = 0x22, // ACPI 1.0+
+	/*0x5B*/AcquireOp = 0x23, // ACPI 1.0+
+	/*0x5B*/SignalOp = 0x24, // ACPI 1.0+
+	/*0x5B*/WaitOp = 0x25, // ACPI 1.0+
+	/*0x5B*/ResetOp = 0x26, // ACPI 1.0+
+	/*0x5B*/ReleaseOp = 0x27, // ACPI 1.0+
+	/*0x5B*/FromBCDOp = 0x28, // ACPI 1.0+
+	/*0x5B*/ToBCD = 0x29, // ACPI 1.0+
+	/*0x5B*/UnloadOp = 0x2A, // ACPI 1.0+
+
+	/*0x5B*/RevisionOp = 0x30, // ACPI 1.0b+
+	/*0x5B*/DebugOp = 0x31, // ACPI 1.0+
+	/*0x5B*/FatalOp = 0x32, // ACPI 1.0+
+	/*0x5B*/TimerOp = 0x33, // ACPI 3.0+
+
+	/*0x5B*/OpRegionOp = 0x80, // ACPI 1.0+
+	/*0x5B*/FieldOp = 0x81, // ACPI 1.0+
+	/*0x5B*/DeviceOp = 0x82, // ACPI 1.0+
+	/*0x5B*/ProcessorOp = 0x83, // ACPI 1.0+
+	/*0x5B*/PowerResOp = 0x84, // ACPI 1.0+
+	/*0x5B*/ThermalZoneOp = 0x85, // ACPI 1.0+
+	/*0x5B*/IndexFieldOp = 0x86, // ACPI 1.0+
+	/*0x5B*/BankFieldOp = 0x87, // ACPI 1.0+
+	/*0x5B*/DataRegionOp = 0x88 // ACPI 2.0+
+};
 
 #include <stack>
 
