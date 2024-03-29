@@ -176,6 +176,23 @@ public:
 			snd_seq_close(seq_handle);
 	}
 
+	void log_list_alsa_seqclient(void) {
+		snd_seq_client_info_t *sscit = NULL;
+		int status;
+
+		if (snd_seq_client_info_malloc(&sscit) >= 0) {
+			if ((status=snd_seq_get_any_client_info(seq_handle,0,sscit)) >= 0) {
+				do {
+					const int id = snd_seq_client_info_get_client(sscit);
+					const char *name = snd_seq_client_info_get_name(sscit);
+					const int ports = snd_seq_client_info_get_num_ports(sscit);
+					LOG_MSG("ALSA seq enum: id=%d name=\"%s\" ports=%d",id,name,ports);
+				} while ((status=snd_seq_query_next_client(seq_handle,sscit)) >= 0);
+			}
+			snd_seq_client_info_free(sscit);
+		}
+	}
+
 	bool Open(const char * conf) override {
 		char var[10];
 		unsigned int caps;
@@ -200,7 +217,13 @@ public:
 			LOG(LOG_MISC,LOG_WARN)("ALSA:Can't open sequencer");
 			return false;
 		}
-	
+
+		// Not many people know how to get the magic numbers needed for this ALSA output to send MIDI
+		// to a hardware device (hint: modprobe snd-seq-midi and then aconnect -l) so to assist users,
+		// enumerate all ALSA sequencer clients (these are client numbers) and list them in the log file.
+		// In the same way NE2000 emulation lists all pcap interfaces for your reference.
+		log_list_alsa_seqclient();
+
 		my_client = snd_seq_client_id(seq_handle);
 		snd_seq_set_client_name(seq_handle, "DOSBOX-X");
 		snd_seq_set_client_group(seq_handle, "input");

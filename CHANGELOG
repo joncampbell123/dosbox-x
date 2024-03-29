@@ -1,4 +1,8 @@
 Next:
+  - Linux ALSA MIDI output: Add code to list and enumerate the MIDI sequencer
+    devices available so the user can use it to determine what magic numbers
+    to put into the midiconfig setting, especially if the user wants to send
+    MIDI to an external synthesizer. (joncampbell123).
   - Suddenly Mac OS 14 and XCode consider the "id" and "int" datatypes
     different and assigning or returning one to the other is now a compiler
     error. Add typecast to enable compile on latest XCode. (joncampbell123)
