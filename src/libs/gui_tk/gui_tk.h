@@ -2602,7 +2602,7 @@ public:
 		(void)y;//UNUSED
 
 		if (button == Left) {
-			checked = !checked;
+			checked = true;
 			execute();
 			return true;
 		}
