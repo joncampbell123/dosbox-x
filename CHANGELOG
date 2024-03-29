@@ -1,4 +1,8 @@
 Next:
+  - Update Configuration GUI to use radio buttons for selection, meaning the
+    circular buttons that resemble those in Windows, not the check boxes.
+    The GUI toolkit had them all along, the Configuration GUI was using
+    check boxes for that for some reason. (joncampbell123).
   - Linux ALSA MIDI output: Any attempt to send RESET or other Fx commands
     to the ALSA library causes a segfault. This is a strange segfault in
     the ALSA library. Work around it by not sending those messages at all,
