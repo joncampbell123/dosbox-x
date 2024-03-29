@@ -987,27 +987,27 @@ bool Window::mouseDownOutside(MouseButton button) {
 bool Window::mouseDown(int x, int y, MouseButton button)
 {
 	std::list<Window *>::reverse_iterator i = children.rbegin();
-    bool handled = false;
-    bool doraise = !(button == GUI::WheelUp || button == GUI::WheelDown); /* do not raise if the scroll wheel */
+	bool handled = false;
+	bool doraise = !(button == GUI::WheelUp || button == GUI::WheelDown); /* do not raise if the scroll wheel */
 	Window *last = NULL;
 
 	while (i != children.rend()) {
 		Window *w = *i;
 
 		if (w->visible && x >= w->x && x < (w->x+w->width) && y >= w->y && y < (w->y+w->height)) {
-            if (handled) {
-                mouseChild = NULL;
-                return true;
-            }
+			if (handled) {
+				mouseChild = NULL;
+				return true;
+			}
 			mouseChild = last = w;
 			if (w->mouseDown(x-w->x, y-w->y, button)) {
-                if (doraise) w->raise();
+				if (doraise) w->raise();
 				return true;
 			}
 		}
-        else if (w->transient) {
-            handled |= w->mouseDownOutside(button);
-        }
+		else if (w->transient) {
+			handled |= w->mouseDownOutside(button);
+		}
 
 		++i;
 	}
@@ -1440,17 +1440,19 @@ void Checkbox::paint(Drawable &d) const
 	d.drawLine(2,(height/2)+5,14,(height/2)+5);
 	d.drawLine(14,(height/2)-7,14,(height/2)+5);
 
-	d.setColor(Color::EditableBackground);
-	d.fillRect(4,(height/2)-5,9,9);
+	if (!pressed) {
+		d.setColor(Color::EditableBackground);
+		d.fillRect(4,(height/2)-5,9,9);
+	}
 
 	d.setColor(Color::Border);
 	d.drawLine(3,(height/2)-6,12,(height/2)-6);
 	d.drawLine(3,(height/2)-6,3,(height/2)+4);
 
-    if (hasFocus()) {
-        d.setColor(Color::Black);
-        d.drawDotRect(1,(height/2)-8,14,14);
-    }
+	if (hasFocus()) {
+		d.setColor(Color::Black);
+		d.drawDotRect(1,(height/2)-8,14,14);
+	}
 
 	if (checked) {
 		d.setColor(Color::Text);

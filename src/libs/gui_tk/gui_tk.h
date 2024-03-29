@@ -2331,10 +2331,10 @@ public:
 
 	/// Press button.
 	bool mouseDown(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-	
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
 		if (button == Left) {
 			border_left = 7; border_right = 5; border_top = 7; border_bottom = 3;
 			pressed = true;
@@ -2344,10 +2344,10 @@ public:
 
 	/// Release button.
 	bool mouseUp(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-	
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
 		if (button == Left) {
 			border_left = 6; border_right = 6; border_top = 5; border_bottom = 5;
 			pressed = false;
@@ -2357,10 +2357,10 @@ public:
 
 	/// Handle mouse activation.
 	bool mouseClicked(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-	
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
 		if (button == Left) {
 			executeAction();
 			return true;
@@ -2466,10 +2466,11 @@ class Checkbox : public BorderedWindow, public ActionEventSource {
 protected:
 	/// \c true, if checkbox is currently selected.
 	bool checked;
+	bool pressed;
 
 public:
 	/// Create a checkbox with given position and size
-	Checkbox(Window *parent, int x, int y, int w, int h) : BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource("GUI::Checkbox"), checked(0) {}
+	Checkbox(Window *parent, int x, int y, int w, int h) : BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource("GUI::Checkbox"), checked(0), pressed(0) {}
 
 	/// Create a checkbox with text label.
 	/** If a size is specified, text is centered. Otherwise, checkbox size is adjusted for the text. */
@@ -2486,20 +2487,44 @@ public:
 
 	/// Press checkbox.
 	bool mouseDown(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED	
-		checked = !checked;
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED	
+
+		if (button == Left) {
+			pressed = true;
+		}
+
 		return true;
 	}
 
 	/// Release checkbox.
 	bool mouseUp(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED	
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
+		if (button == Left) {
+			pressed = false;
+		}
+
 		execute();
 		return true;
+	}
+
+	/// Handle mouse activation.
+	bool mouseClicked(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
+		if (button == Left) {
+			checked = !checked;
+			executeAction();
+			return true;
+		}
+
+		return false;
 	}
 
 	/// Handle keyboard input.
@@ -2784,7 +2809,7 @@ template <typename STR> Button::Button(Window *parent, int x, int y, const STR t
 }
 
 template <typename STR> Checkbox::Checkbox(Window *parent, int x, int y, const STR text, int w, int h) :
-	BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource(text), checked(0)
+	BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource(text), checked(0), pressed(0)
 {
 	Label *l = new Label(this,0,0,text);
 	if (width < 0) resize(l->getWidth()+border_left+border_right+4,height);
