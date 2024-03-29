@@ -1,4 +1,9 @@
 Next:
+  - Linux ALSA MIDI output: Any attempt to send RESET or other Fx commands
+    to the ALSA library causes a segfault. This is a strange segfault in
+    the ALSA library. Work around it by not sending those messages at all,
+    which means those messages do not get sent but DOSBox-X should stop
+    crashing with ALSA MIDI output now. (joncampbell123).
   - Linux ALSA MIDI output: Add code to list and enumerate the MIDI sequencer
     devices available so the user can use it to determine what magic numbers
     to put into the midiconfig setting, especially if the user wants to send
