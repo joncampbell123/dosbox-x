@@ -168,6 +168,8 @@ public:
 			//Maybe filter out FC as it leads for at least one user to crash, but the entire midi stream has not yet been checked.
 			LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %02X %02X %02X", msg[0],msg[1],msg[2]);
 			send_event(1);
+#else
+			LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %02X %02X %02X (ignored)", msg[0],msg[1],msg[2]);
 #endif
 			break;
 		}
