@@ -2508,7 +2508,6 @@ public:
 			pressed = false;
 		}
 
-		execute();
 		return true;
 	}
 
@@ -2520,7 +2519,7 @@ public:
 
 		if (button == Left) {
 			checked = !checked;
-			executeAction();
+			execute();
 			return true;
 		}
 
@@ -2551,14 +2550,15 @@ class Radiobox : public BorderedWindow, public ActionEventSource {
 protected:
 	/// \c true, if radio box is currently selected.
 	bool checked;
+	bool pressed;
 
 public:
 	/// Create a radio box with given position and size
-	Radiobox(Frame *parent, int x, int y, int w, int h);
+	Radiobox(Window *parent, int x, int y, int w, int h);
 
 	/// Create a radio box with text label.
 	/** If a size is specified, text is centered. Otherwise, checkbox size is adjusted for the text. */
-	template <typename T> Radiobox(Frame *parent, int x, int y, const T text, int w = -1, int h = -1);
+	template <typename T> Radiobox(Window *parent, int x, int y, const T text, int w = -1, int h = -1);
 
 	/// Paint radio box.
 	void paint(Drawable &d) const override;
@@ -2569,22 +2569,45 @@ public:
 	/// Get radio box state.
 	virtual bool isChecked() { return checked; }
 
-	/// Press radio box.
+	/// Press radiobox.
 	bool mouseDown(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-        checked = true;
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED	
+
+		if (button == Left) {
+			pressed = true;
+		}
+
 		return true;
 	}
 
-	/// Release checkbox.
+	/// Release radiobox.
 	bool mouseUp(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-		executeAction();
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
+		if (button == Left) {
+			pressed = false;
+		}
+
 		return true;
+	}
+
+	/// Handle mouse activation.
+	bool mouseClicked(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
+		if (button == Left) {
+			checked = !checked;
+			execute();
+			return true;
+		}
+
+		return false;
 	}
 
 	/// Handle keyboard input.
@@ -2592,6 +2615,13 @@ public:
 
 	/// Handle keyboard input.
 	bool keyUp(const Key &key) override;
+
+	/// Execute handlers.
+	virtual void execute() {
+		String arg(name);
+		if (!checked) arg.insert(arg.begin(),'!');
+		executeAction(arg);
+	}
 };
 
 /// A rectangular 3D sunken frame
@@ -2818,15 +2848,14 @@ template <typename STR> Checkbox::Checkbox(Window *parent, int x, int y, const S
 		(height-border_top-border_bottom-l->getHeight())/2);
 }
 
-template <typename STR> Radiobox::Radiobox(Frame *parent, int x, int y, const STR text, int w, int h) :
-	BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource(text), checked(0)
+template <typename STR> Radiobox::Radiobox(Window *parent, int x, int y, const STR text, int w, int h) :
+	BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource(text), checked(0), pressed(0)
 {
 	Label *l = new Label(this,0,0,text);
 	if (width < 0) resize(l->getWidth()+border_left+border_right+4,height);
 	if (height < 0) resize(width,l->getHeight()+border_top+border_bottom+4);
 	l->move((width-border_left-border_right-l->getWidth())/2,
 		(height-border_top-border_bottom-l->getHeight())/2);
-	addActionHandler(parent);
 }
 
 }

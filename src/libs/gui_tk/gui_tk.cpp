@@ -1465,9 +1465,8 @@ void Checkbox::paint(Drawable &d) const
 	}
 }
 
-Radiobox::Radiobox(Frame *parent, int x, int y, int w, int h) : BorderedWindow(static_cast<Window *>(parent),x,y,w,h,16,0,0,0), ActionEventSource("GUI::Radiobox"), checked(0)
+Radiobox::Radiobox(Window *parent, int x, int y, int w, int h) : BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource("GUI::Radiobox"), checked(0), pressed(0)
 {
-	 addActionHandler(parent);
 }
 
 bool Radiobox::keyDown(const Key &key)
@@ -1517,7 +1516,7 @@ void Radiobox::paint(Drawable &d) const
 	d.drawLine(3,(height/2)-1,3,(height/2)+2);
 	d.drawLine(4,(height/2)-3,4,(height/2)+3);
 
-	d.setColor(Color::EditableBackground);
+	d.setColor(pressed ? Color::Background3D : Color::EditableBackground); // do not omit this draw, doing so makes the radio button look a little crappy
 	d.fillRect(5,(height/2)-2,6,6);
 	d.fillRect(4,(height/2)-1,8,4);
 	d.fillRect(6,(height/2)-3,4,8);
