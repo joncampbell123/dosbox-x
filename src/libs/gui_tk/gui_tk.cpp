@@ -1521,6 +1521,11 @@ void Radiobox::paint(Drawable &d) const
 	d.fillRect(4,(height/2)-1,8,4);
 	d.fillRect(6,(height/2)-3,4,8);
 
+	if (hasFocus()) {
+		d.setColor(Color::Black);
+		d.drawDotRect(1,(height/2)-6,13,13);
+	}
+
 	if (checked) {
 		d.setColor(Color::Text);
 		d.fillRect(6,(height/2),4,2);
