@@ -186,7 +186,16 @@ public:
 					const int id = snd_seq_client_info_get_client(sscit);
 					const char *name = snd_seq_client_info_get_name(sscit);
 					const int ports = snd_seq_client_info_get_num_ports(sscit);
-					LOG_MSG("ALSA seq enum: id=%d name=\"%s\" ports=%d",id,name,ports);
+
+					const char *ct_str = "?";
+					const snd_seq_client_type_t ct = snd_seq_client_info_get_type(sscit);
+					switch (ct) {
+						case SND_SEQ_KERNEL_CLIENT:	ct_str = "kernel"; break;
+						case SND_SEQ_USER_CLIENT:	ct_str = "user"; break;
+						default:			break;
+					};
+
+					LOG_MSG("ALSA seq enum: id=%d name=\"%s\" ports=%d type=\"%s\"",id,name,ports,ct_str);
 				} while ((status=snd_seq_query_next_client(seq_handle,sscit)) >= 0);
 			}
 			snd_seq_client_info_free(sscit);
