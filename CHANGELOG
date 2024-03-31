@@ -99,6 +99,10 @@ Next:
   - Added breakpoint type "Freeze memory" (Enmet)
   - Implemented seeking in MSCDEX
     (Imported from dosbox-staging/dosbox-staging#3516 authored by weirddan455)
+  - Fixed built-in COPY command failed to obtain free space when reported DOS 
+    version is set to 7.1 (maron2000)
+  - Fixed some file extensions in tbe filter list were ignored in the file open
+    dialogs (maron2000)
 
 2024.03.01
   - If an empty CD-ROM drive is attached to IDE emulation, return "Medium Not
