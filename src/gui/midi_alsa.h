@@ -164,9 +164,42 @@ public:
 			}
 			break;
 		default:
-			snd_seq_ev_set_fixed(&ev);
-			LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %02X %02X %02X", msg[0],msg[1],msg[2]);
-			send_event(1);
+			switch (msg[0]) {
+				case 0xF8:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_CLOCK;
+					send_event(1);
+					break;
+				case 0xFA:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_START;
+					send_event(1);
+					break;
+				case 0xFB:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_CONTINUE;
+					send_event(1);
+					break;
+				case 0xFC:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_STOP;
+					send_event(1);
+					break;
+				case 0xFE:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_SENSING;
+					send_event(1);
+					break;
+				case 0xFF:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_RESET;
+					send_event(1);
+					break;
+				default:
+					LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %02X %02X %02X", msg[0],msg[1],msg[2]);
+					send_event(1);
+					break;
+			}
 			break;
 		}
 	}	
