@@ -164,13 +164,9 @@ public:
 			}
 			break;
 		default:
-#if 0 // DISABLED: This is causing a segfault in ALSA libasound. For whatever reason, snd_seq_event_output() segfaults if you try to send OSS or RESET events.
-			//Maybe filter out FC as it leads for at least one user to crash, but the entire midi stream has not yet been checked.
+			snd_seq_ev_set_fixed(&ev);
 			LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %02X %02X %02X", msg[0],msg[1],msg[2]);
 			send_event(1);
-#else
-			LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %02X %02X %02X (ignored)", msg[0],msg[1],msg[2]);
-#endif
 			break;
 		}
 	}	
