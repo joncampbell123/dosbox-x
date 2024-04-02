@@ -1262,7 +1262,9 @@ bool getSwapRequest(void) {
 }
 
 void swapInDrive(int drive, unsigned int position=0) {
-    if (drive>1||swapInDisksSpecificDrive!=drive) return;
+#if 0  /* FIX_ME: Disabled to swap CD by IMGSWAP command (Issue #4932). Revert this if any regression occurs */
+    //if (drive>1||swapInDisksSpecificDrive!=drive) return;
+#endif
     if (position<1) swapPosition++;
     else swapPosition=position-1;
     if(diskSwap[swapPosition] == NULL) swapPosition = 0;
