@@ -970,20 +970,17 @@ uint64_t imageDiskVHD::scanMBR(uint8_t* mbr, Bitu sizes[], uint64_t disksize) {
         LOG_MSG("Invalid MBR, no signature");
         return 0;
     }
-#if 0 // exclude this check due to NTFS (or other valid type)
-    //search for the first DOS partition
+    //search for the first non-empty partition
     for(part = mbr + 0x1BE; part < mbr + 0x1FE; part += 16) {
         uint8_t partType = *((uint8_t*)(part + 4));
-        if(partType != 1 && partType != 4 && partType != 6 && partType != 7 &&
-            partType != 11 && partType != 12 && partType != 14) continue;
+        if(partType == 0) continue;
         partFound = true;
         break;
     }
     if(!partFound) {
-        LOG_MSG("No DOS partition in MBR");
+        LOG_MSG("No partition in use in MBR");
         return 0;
     }
-#endif
     //partition end
     h = (unsigned)*(part + 5);
     s = (unsigned)*(part + 6) & 0x3F;
