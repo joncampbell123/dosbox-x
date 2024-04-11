@@ -1,4 +1,7 @@
 Next:
+  - Fix complexity test code to determine when Odd/Even mode is enabled
+    in all cases and to resolve a problem with garbled scrolling text
+    in the "Vectorballs" part of "Unreal" (joncampbell123).
   - M_EGA display mode now applies CRTC BYTE/WORD/DWORD shift to display
     start address, same as M_VGA, to ensure correct display when demos
     and games set the CRTC to non-BYTE modes. This fixes page flipping
