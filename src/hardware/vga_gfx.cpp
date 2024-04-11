@@ -40,6 +40,8 @@ static Bitu read_p3ce(Bitu port,Bitu iolen) {
 	return gfx(index);
 }
 
+unsigned int VGA_ComplexityCheck_ODDEVEN(void);
+
 static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 	unsigned int cmplx = 0;
 
@@ -108,8 +110,9 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 5: /* Mode Register */
 		if ((gfx(mode) ^ val) & 0xf0) {
-		gfx(mode)=(uint8_t)val;
+			gfx(mode)=(uint8_t)val;
 			VGA_DetermineMode();
+			cmplx |= VGA_ComplexityCheck_ODDEVEN();
 		} else gfx(mode)=(uint8_t)val;
 		vga.config.write_mode=(uint8_t)val & 3;
 		vga.config.read_mode=((uint8_t)val >> 3) & 1;
@@ -162,6 +165,7 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 			gfx(miscellaneous)=(uint8_t)val;
 			VGA_DetermineMode();
 		} else gfx(miscellaneous)=(uint8_t)val;
+		VGA_ComplexityCheck_ODDEVEN();
 		VGA_SetupHandlers();
 		/*
 			0	Indicates Graphics Mode if set, Alphanumeric mode else.

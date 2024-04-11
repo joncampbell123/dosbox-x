@@ -90,6 +90,55 @@ void write_p3c4(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 void VGA_SequReset(bool reset);
 void VGA_Screenstate(bool enabled);
 
+unsigned int VGA_ComplexityCheck_MAP_MASK(void) {
+	return vga.complexity.setf(VGACMPLX_MAP_MASK,(vga.seq.map_mask & 0xF) != 0xF && vga.config.chained); // if any bitplane is masked off and chained mode
+}
+
+unsigned int VGA_ComplexityCheck_ODDEVEN(void) {
+	bool unusual = false;
+
+	/* Ignore odd/even mode for 256-color mode if enabled (by default).
+	 * It is a bug to enable odd/even in 256-color mode and most SVGA chipsets appear to
+	 * completely ignore the bit in that situation (which is probably how the programmer
+	 * of a specific demo did not catch the bug in their tweakmode). */
+	if (non_cga_ignore_oddeven_engage && (vga.mode == M_VGA || vga.mode == M_LIN8)) {
+		/* ignore */
+	}
+	else {
+		/* NTS: Sequencer memory mode bit 2: Odd/even mode is SET when the bit is CLEARED, meaning that bit 2 is an
+		 *      Odd/Even DISABLE bit, not an ENABLE bit. Some documentation including the WHATVGA documentation got it backwards.
+		 *      When set, even addresses go to bitplane 0+2, odd addresses go to bitplane 1+3. Note this bit doesn't affect
+		 *      the byte offset in planar video memory that is accessed when the CPU reads/writes video RAM.
+		 *
+		 *      Graphics controller misc graphics register bit 2: Odd/even mode is SET when the bit is SET. This bit
+		 *      says to REPLACE bit 0 with a "higher order bit" and the odd map is selected.
+		 *
+		 *      (wait, is that how EGA cards do the 640x350 4-color mode when you only have 64KB of video RAM?) */
+		unusual = ((vga.seq.memory_mode & 4) == 0) || ((vga.gfx.miscellaneous & 2) != 0);
+
+		/* NOTE: DOSBox-X treats the CGA modes as just another variant of EGA 16-color mode (M_EGA) because that's how
+		 *       real EGA/VGA hardware handles them too. The only difference from the standard EGA mode is that in the
+		 *       CGA modes the additional bitplanes are disabled and not rendered, and the 320x200 4-color mode sets
+		 *       an additional bit that instructs the planar mode to read 2-bit pixel values from bitplane 0 instead of
+		 *       1-bit pixel values as normal. Since odd/even mode is enabled, alternate bytes of bitplane 0 and 1 are read.
+		 *       What is normally hidden by the disabled bitplanes is that the 2-bit pixel mode also reads an additional
+		 *       2 bits from bitplane 2 or bitplane 2 and 3 to produce a 4-bit (16-color value) which is hardly used
+		 *       except for one known test case that sets up a 16-color 640x200 tweakmode for machine=ega in which the
+		 *       display is two 2-bit/pixel bitplanes instead of four 1-bit/pixel bitplanes.
+		 *
+		 *       CGA modes 4/5 (320x200 4-color) are run with odd/even mode enabled and therefore need the slower I/O path to
+		 *       function correctly.
+		 *
+		 *       EGA/VGA also use the Odd/Even mode for alphanumeric text mode for CGA compatibility reasons and because
+		 *       it allows the hardware to then map the character data to bitplane 0 and attribute data to bitplane 1
+		 *       while providing the illusion of those even/odd bytes for DOS programs written against CGA/MDA hardware.
+		 *
+		 *       Only the slow memory I/O handler can correctly map odd/even mode. */
+	}
+
+	return vga.complexity.setf(VGACMPLX_ODDEVEN,unusual);
+}
+
 void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 	unsigned int cmplx = 0;
 
@@ -131,7 +180,7 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 		seq(map_mask)=val & 15;
 		vga.config.full_map_mask=FillTable[val & 15];
 		vga.config.full_not_map_mask=~vga.config.full_map_mask;
-		cmplx |= vga.complexity.setf(VGACMPLX_MAP_MASK,(vga.seq.map_mask & 0xF) != 0xF && vga.config.chained); // if any bitplane is masked off and chained mode
+		cmplx |= VGA_ComplexityCheck_MAP_MASK();
 		if (cmplx != 0) VGA_SetupHandlers();
 		/*
 			0  Enable writes to plane 0 if set
@@ -171,14 +220,12 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 		*/
 		seq(memory_mode)=(uint8_t)val;
 		cmplx |= vga.complexity.setf(VGACMPLX_NON_EXTENDED,(val & 2) == 0 && !vga_ignore_extended_memory_bit); // only 64kb on the adapter?
-		cmplx |= vga.complexity.setf(VGACMPLX_ODDEVEN,
-			((val & 1) != 0 && (val & 4) != 0) /* Alphanumeric mode without Odd/Even mode */ ||
-			((val & 1) == 0 && (val & 4) == 0 && !non_cga_ignore_oddeven_engage) /* Graphics mode with Odd/Even mode */); // NTS: Odd/Even mode is set by CLEARING the bit!
+		cmplx |= VGA_ComplexityCheck_ODDEVEN();
 		if (IS_VGA_ARCH) {
 			/* Changing this means changing the VGA Memory Read/Write Handler */
 			if (val&0x08) vga.config.chained=true;
 			else vga.config.chained=false;
-			cmplx |= vga.complexity.setf(VGACMPLX_MAP_MASK,(vga.seq.map_mask & 0xF) != 0xF && vga.config.chained); // if any bitplane is masked off and chained mode
+			cmplx |= VGA_ComplexityCheck_MAP_MASK();
 			VGA_SetupHandlers();
 		}
 		else if (cmplx != 0) {

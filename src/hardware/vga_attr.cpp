@@ -52,6 +52,8 @@ EGAMonitorMode egaMonitorMode(void) {
 	return currentMonitorMode;
 }
 
+unsigned int VGA_ComplexityCheck_ODDEVEN(void);
+
 void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m) {
 	// palette bit assignment:
 	// bit | pin | EGA        | CGA       | monochrome
@@ -188,6 +190,8 @@ Bitu read_p3c0(Bitu /*port*/,Bitu /*iolen*/) {
 bool J3_IsCga4Dcga();
 
 void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
+	unsigned int cmplx = 0;
+
 	if (!vga.internal.attrindex) {
 		/* Render on Demand problem:
 		 *
@@ -272,8 +276,10 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 					   if (difference & 0x08)
 						   VGA_SetBlinking(val & 0x8);
 
-					   if (difference & 0x41)
+					   if (difference & 0x41) {
 						   VGA_DetermineMode();
+						   cmplx |= VGA_ComplexityCheck_ODDEVEN();
+					   }
 					   if ((difference & 0x40) && (vga.mode == M_VGA)) // 8BIT changes in 256-color mode must be handled
 						   VGA_StartResize(50);
 
@@ -289,6 +295,9 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 								   vga.config.pel_panning=(uint8_t)pan_reg;
 						   }
 					   }
+
+					   if (cmplx != 0) VGA_SetupHandlers();
+
 					   /*
 					      0	Graphics mode if set, Alphanumeric mode else.
 					      1	Monochrome mode if set, color mode else.
