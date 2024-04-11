@@ -5892,6 +5892,13 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 			vga.draw.byte_panning_shift = 4u;
 			vga.draw.address += vga.draw.bytes_skip;
 			vga.draw.address *= vga.draw.byte_panning_shift;
+
+			/* Even in EGA/VGA 16-color modes, where the CRTC is normally in BYTE mode, there are demos that
+			 * switch the CRTC to other non-BYTE modes:
+			 *
+			 * - "Unreal" by Future Crew, "Vectorballs", CRTC WORD mode */
+			vga.draw.linear_mask = 0x3ffffu;
+			vga.draw.address *= (Bitu)1u << (Bitu)vga.config.addr_shift; /* NTS: Remember the bizarre 4 x 4 mode most SVGA chipsets do */
 			break;
 		case M_VGA:
 			/* TODO: Various SVGA chipsets have a bit to enable/disable 256KB wrapping */
