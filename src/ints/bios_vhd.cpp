@@ -127,13 +127,20 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
         uint8_t buf[512];
         if(fseeko64(file, 0, SEEK_SET)) { fclose(file); return INVALID_DATA; }
         if(fread(&buf, sizeof(uint8_t), 512, file) != 512) { fclose(file); return INVALID_DATA; }
+        //detect real DOS geometry (MBR, BPB or default X-255-63)
         imageDiskVHD::scanMBR(buf, sizes, footer.currentSize);
         vhd->cylinders = sizes[3];
         vhd->heads = sizes[2];
         vhd->sectors = sizes[1];
         vhd->fixedDisk = new imageDisk(file, fileName, vhd->cylinders, vhd->heads, vhd->sectors, 512, true);
+        //now possible FAT geometry can be detected (in Windows 11, those two can differ!)
+        vhd->DetectGeometry(sizes);
+        vhd->cylinders = sizes[3];
+        vhd->heads = sizes[2];
+        vhd->sectors = sizes[1];
+        vhd->fixedDisk = new imageDisk(file, fileName, vhd->cylinders, vhd->heads, vhd->sectors, 512, true);
         *disk = vhd;
-		return !readOnly && roflag ? UNSUPPORTED_WRITE : OPEN_SUCCESS;
+        return !readOnly && roflag ? UNSUPPORTED_WRITE : OPEN_SUCCESS;
 	}
 
 	//if not dynamic or differencing, fail
