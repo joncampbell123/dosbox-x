@@ -1,4 +1,11 @@
 Next:
+  - Keyboard controller (IBM PC): Cancel the IRQ signal upon reading I/O
+    port 60h. The reason for the IRQ, the pending data, was just read, so
+    now there is no point in keeping the IRQ signal up. This fixes Escape
+    key problems with "Cronologia" by Cascada that causes part 3 "Time"
+    to immediately exit and continue to the credits. Part 1 and 2 are not
+    affected by the pending IRQ because those parts mask IRQ 1 and poll
+    the keyboard controller directly. (joncampbell123).
   - Fix complexity test code to determine when Odd/Even mode is enabled
     in all cases and to resolve a problem with garbled scrolling text
     in the "Vectorballs" part of "Unreal" (joncampbell123).
