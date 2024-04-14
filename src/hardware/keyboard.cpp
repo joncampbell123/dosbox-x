@@ -363,6 +363,17 @@ void KEYBOARD_SetLEDs(uint8_t bits) {
 static Bitu read_p60(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
+
+    /* Reading port 60h should clear the IRQ signal. */
+    /* NOTES: "Cronologia" by Cascada (1991) polls the keyboard I/O ports directory for part 1 and 2,
+     *        but part 3 installs a keyboard ISR. That ISR assumes that if IRQ 1 happens, there is valid
+     *        data in port 60h, it does not poll port 61h to determine if data is available. If the last
+     *        scan code was a key-up scancode event for the Escape key, then when part 3 enables the IRQ,
+     *        if this code had not cleared the signal, the ISR will be immediately called and the demo
+     *        will immediately act as if you hit the escape key and exit right away. */
+    PIC_DeActivateIRQ(12);
+    PIC_DeActivateIRQ(1);
+
     keyb.p60changed=false;
     keyb.auxchanged=false;
     if (!keyb.scheduled && keyb.used) {
