@@ -1,4 +1,7 @@
 Next:
+  - Debugger UI now shows PIC_FullIndex() and whether or not the CPU is
+    in the HLT state. Single stepping does not do anything when the CPU is
+    in the HLT state, so at least let the user know (joncampbell123).
   - Keyboard controller (IBM PC): Cancel the IRQ signal upon reading I/O
     port 60h. The reason for the IRQ, the pending data, was just read, so
     now there is no point in keeping the IRQ signal up. This fixes Escape
