@@ -92,10 +92,6 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	}
 	//check that uniqueId matches
 	if (matchUniqueId && memcmp(matchUniqueId, footer.uniqueId, 16)) { fclose(file); return INVALID_MATCH; }
-	//calculate disk size
-    // WRONG! Max pseudo-CHS is 65535*16*255 or ~127GB, but a VHD can reach 2040GB!
-	//uint64_t calcDiskSize = (uint64_t)footer.geometry.cylinders * (uint64_t)footer.geometry.heads * (uint64_t)footer.geometry.sectors * (uint64_t)512;
-    //if (!calcDiskSize) { fclose(file); return INVALID_DATA; }
 
     //set up imageDiskVHD here
     imageDiskVHD* vhd = new imageDiskVHD();
@@ -107,7 +103,6 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
     vhd->heads = footer.geometry.heads;
     vhd->sectors = footer.geometry.sectors;
     vhd->sector_size = 512;
-    //vhd->diskSizeK = calcDiskSize / 1024;
     vhd->diskSizeK = footer.currentSize / 1024;
     vhd->diskimg = file;
     vhd->diskname = fileName;
@@ -118,7 +113,6 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
     //if fixed image, store a plain imageDisk also
 	if (footer.diskType == VHD_TYPE_FIXED) {
 		//make sure that the image size is at least as big as the geometry
-		//if (calcDiskSize > footerPosition) {
 		if (footer.currentSize > footerPosition) {
 			fclose(file);
 			return INVALID_DATA;
@@ -128,13 +122,11 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
         if(fseeko64(file, 0, SEEK_SET)) { fclose(file); return INVALID_DATA; }
         if(fread(&buf, sizeof(uint8_t), 512, file) != 512) { fclose(file); return INVALID_DATA; }
         //detect real DOS geometry (MBR, BPB or default X-255-63)
-        imageDiskVHD::scanMBR(buf, sizes, footer.currentSize);
-        vhd->cylinders = sizes[3];
-        vhd->heads = sizes[2];
-        vhd->sectors = sizes[1];
-        vhd->fixedDisk = new imageDisk(file, fileName, vhd->cylinders, vhd->heads, vhd->sectors, 512, true);
-        //now possible FAT geometry can be detected (in Windows 11, those two can differ!)
-        vhd->DetectGeometry(sizes);
+        uint64_t lba = imageDiskVHD::scanMBR(buf, sizes, footer.currentSize);
+        //load boot sector
+        if(fseeko64(file, lba, SEEK_SET)) { fclose(file); return INVALID_DATA; }
+        if(fread(&buf, sizeof(uint8_t), 512, file) != 512) { fclose(file); return INVALID_DATA; }
+        imageDiskVHD::DetectGeometry(buf, sizes, footer.currentSize);
         vhd->cylinders = sizes[3];
         vhd->heads = sizes[2];
         vhd->sectors = sizes[1];
@@ -201,7 +193,6 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 		+ 7) / 8) /* convert to bytes and round up to nearest byte; 4096/8 = 512 bytes required */
 		+ 511) / 512); /* convert to sectors and round up to nearest sector; 512/512 = 1 sector */
 	//check that the BAT is large enough for the disk
-	//uint32_t tablesRequired = (uint32_t)((calcDiskSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
 	uint32_t tablesRequired = (uint32_t)((footer.currentSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
 	if (dynHeader.maxTableEntries < tablesRequired) { delete vhd; return INVALID_DATA; }
 	//check that the BAT is contained within the file
@@ -810,7 +801,6 @@ uint32_t imageDiskVHD::ConvertFixed(const char* filename) {
     footer.SetDefaults();
     footer.dataOffset = 0xFFFFFFFFFFFFFFFF;
     footer.originalSize = footer.currentSize = size;
-    //c = size / 512 / (h * s);
     footer.geometry.cylinders = (uint16_t)c;
     footer.geometry.heads = (uint8_t)h;
     footer.geometry.sectors = (uint8_t)s;
@@ -933,14 +923,20 @@ void imageDiskVHD::DetectGeometry(Bitu sizes[]) {
     //load and check MBR
     Read_AbsoluteSector(0, buf);
     uint64_t lba = scanMBR(buf, sizes, footer.currentSize);
-    if(lba < 512 || lba > (footer.currentSize - 512)) {
+    if(lba < 512 || lba >(footer.currentSize - 512)) {
         LOG_MSG("Bad CHS partition start in MBR");
         lba = 0;
     }
 
-    if (lba) {
+    if(lba) {
         //load FAT boot sector and scan BPB
         Read_AbsoluteSector(lba / 512, buf);
+        DetectGeometry(buf, sizes, footer.currentSize);
+    }
+}
+
+void imageDiskVHD::DetectGeometry(uint8_t* buf, Bitu sizes[], uint64_t currentSize) {
+        //scan BPB
         uint16_t s2 = *((uint16_t*)(buf + 0x18));
         uint16_t h2 = *((uint16_t*)(buf + 0x1A));
         if(!s2 || !h2 || s2 > 63 || h2 > 255) {
@@ -950,9 +946,8 @@ void imageDiskVHD::DetectGeometry(Bitu sizes[]) {
             sizes[0] = 512;
             sizes[1] = s2;
             sizes[2] = h2;
-            sizes[3] = footer.currentSize / 512 / s2 / h2;
+            sizes[3] = currentSize / 512 / s2 / h2;
         }
-    }
 }
 
 //scans a MBR and returns
