@@ -1116,6 +1116,8 @@ void DrawRegistersUpdateOld(void) {
 	oldcpucpl=cpu.cpl;
 }
 
+bool CPU_IsHLTed(void);
+
 static void DrawRegisters(void) {
 	if (dbg.win_main == NULL || dbg.win_reg == NULL)
 		return;
@@ -1191,7 +1193,7 @@ static void DrawRegisters(void) {
 	} else {
 		mvwprintw(dbg.win_reg,0,76,"Real");
 		mvwprintw(dbg.win_reg,2,62,"NOPG");
-    }
+	}
 
 	// Selector info, if available
 	if ((cpu.pmode) && curSelectorName[0]) {
@@ -1202,7 +1204,13 @@ static void DrawRegisters(void) {
 	}
 
 	wattrset(dbg.win_reg,0);
-	mvwprintw(dbg.win_reg,3,60,"%u       ",cycle_count);
+
+	mvwprintw(dbg.win_reg,3,60,"cc=%-8u ",cycle_count);
+	if (CPU_IsHLTed()) mvwprintw(dbg.win_reg,3,73,"HLT ");
+	else mvwprintw(dbg.win_reg,3,73,"RUN ");
+
+	mvwprintw(dbg.win_reg,4,60,"pfi=%-6.9f ",(double)PIC_FullIndex());
+
 	wrefresh(dbg.win_reg);
 }
 
@@ -3894,6 +3902,7 @@ extern "C" INPUT_RECORD * _pdcurses_hax_inputrecord(void);
 
 int32_t DEBUG_Run(int32_t amount,bool quickexit) {
 	skipFirstInstruction = true;
+	CPU_CycleLeft += CPU_Cycles - amount;
 	CPU_Cycles = amount;
 	int32_t ret = (int32_t)(*cpudecoder)();
 	if (quickexit) SetCodeWinStart();

@@ -3148,6 +3148,10 @@ Bits HLT_Decode(void) {
 	return 0;
 }
 
+bool CPU_IsHLTed(void) {
+	return (cpudecoder == &HLT_Decode);
+}
+
 void CPU_HLT(uint32_t oldeip) {
 	/* Since cpu.hlt.old_decoder assigns the current decoder to old, and relies on restoring
 	 * it back when finished, setting cpudecoder to HLT_Decode while already HLT_Decode effectively
