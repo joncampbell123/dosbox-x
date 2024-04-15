@@ -1,4 +1,6 @@
 Next:
+  - Sound Blaster: Fix bug where "force autoinit" prevented Sound Blaster
+    playback from working at all, fix for "Jump" by Public NMI (joncampbell123).
   - Debugger UI now shows PIC_FullIndex() and whether or not the CPU is
     in the HLT state. Single stepping does not do anything when the CPU is
     in the HLT state, so at least let the user know (joncampbell123).
