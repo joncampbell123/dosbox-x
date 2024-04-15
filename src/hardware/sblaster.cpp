@@ -1300,10 +1300,12 @@ static unsigned int DSP_RateLimitedFinalSB16Freq_New(unsigned int freq) {
 }
 
 static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed) {
+    /* this must be processed BEFORE forcing auto-init because the non-autoinit case provides the DSP transfer block size (fix for "Jump" by Public NMI) */
+    if (!autoinit) sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+(unsigned int)(sb.dsp.in.data[1] << 8u);
+
     if (sb.dma.force_autoinit)
         autoinit = true;
 
-    if (!autoinit) sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+(unsigned int)(sb.dsp.in.data[1] << 8u);
     sb.dma.autoinit=autoinit;
     sb.dsp.highspeed=hispeed;
     sb.dma.sign=sign;
