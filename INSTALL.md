@@ -1,13 +1,18 @@
 DOSBox-X Installation and Released Packages
 ===========================================
 
-DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goal of being a complete DOS emulation package. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
+DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goal of being a complete DOS emulation package. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (Win9x, NT4, XP or later), Linux (with X11), macOS (10.15 or later) and pure DOS.
 
-For the latest version of DOSBox-X, pre-compiled Windows binaries (both 32-bit and 64-bit), Linux Flatpak and RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for real DOS environments) are officially available, as well as the Windows installers and source code packages. You will find the current DOSBox-X version in the [DOSBox-X homepage](https://dosbox-x.com/), and DOSBox-X versions released so far (ZIP or Flatpak/RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
+Pre-compiled binaries for Windows, Linux, macOS, and DOS as well as the source code are officially available.
+Links to the current version can be found in the [DOSBox-X homepage](https://dosbox-x.com/), and all released versions along with their change logs can be found in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
 
-For most packages there are both SDL1 and SDL2 builds of DOSBox-X, and most features are the same for both builds. While SDL1 builds may be the default one to use, you may want to try SDL2 builds if you want certain features specific to SDL2 builds (such as the raw mouse input option) or you encounter specific issue(s) with SDL1 builds (such as incorrect keys in some international keyboard layouts).
+**Binaries are automatically built upon release by github system, however, sometimes fails to upload. If you find a file for a particular platform not available, try the [Development(Nightly) build](https://dosbox-x.com/devel-build.html) instead.** You need to sign in to github in order to download those builds.
 
 Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://dosbox-x.com/wiki) for usage information.
+
+## SDL1 and SDL2 builds
+
+For most packages there are both SDL1 and SDL2 builds, and most features are the same for both builds. While SDL1 builds may be the default one to use, you may want to try SDL2 builds if you want certain features specific to SDL2 builds (such as the raw mouse input option, touchscreen support) or you encounter specific issue(s) with SDL1 builds (such as incorrect keys in some international keyboard layouts).
 
 ## Packages for Supported Platforms
 
@@ -19,21 +24,22 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 
 ## Windows Packages (Installer or Portable)
 
-You probably want to use the Windows installer packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. Windows installers are available from the [DOSBox-X homepage](https://dosbox-x.com/).
+**It is recommended to use the Windows installer found in the [DOSBox-X homepage](https://dosbox-x.com/) for the ease and more complete installations, especially for new and non-expert users.**
+
+The installer allows you to specify the install folder and the default build to run (VS/MinGW, 32/64-bit, SDL1/SDL2, and Intel/ARM). You can also choose to install all available builds. A quick start guide is also included in the package, and shell context menus can be added for a fast launch of DOSBox-X from the Windows Explorer.
+
+The Visual Studio builds are the default Windows builds to use. On the other hand, MinGW builds of DOSBox-X support the Slirp backend for the NE2000 networking but won't run on Windows XP/Vista. You may also want to use one of the MinGW builds if you encounter specific problem(s) with the Visual Studio builds (such as floating point precision issues). 
 
 If you see the message ```Windows Defender SmartScreen prevented an unrecognized app from starting``` when running an installer, you can solve it by clicking the link "More info" in the dialog and then "Run anyway".
 
-You can easily upgrade from a previous version of DOSBox-X to the new version with the Windows installer. The Windows installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made. When you select this (recommended), the config file will include all options of the latest DOSBox-X version and also will keep all the changes already done previously by the user.
+You can also easily upgrade DOSBox-X to the new version with the Windows installer. The installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made.
 
-Apart from the Windows installers, you can find seven zip packages (six before 0.84.1) for each DOSBox-X version for the Windows platform in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019 (Win32, Win64, ARM32, ARM64 respectively), MinGW (Win32, Win32-lowend, Win64 respectively). Look for zip files starting with "dosbox-x-vsbuild-" and "dosbox-x-mingw-win" in the Releases page.
+Apart from the Windows installers, you can also find portable zip files starting with `dosbox-x-vsbuild-` and `dosbox-x-mingw-win` in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page as an alternative way to install DOSBox-X. In the zip file you will find `Release` and `Release SDL2` folders, which correspond to SDL1 and SDL2 respectively.  
 
-The Visual Studio builds are the default Windows builds to use. On the other hand, standard MinGW builds of DOSBox-X support the Slirp backend for the NE2000 networking but won't run on Windows XP/Vista. You may also want to use one of the MinGW builds if you encounter specific problem(s) with the Visual Studio builds (such as floating point precision issues). All builds include the debugger.
-* If you need Windows XP support, you can use either the Visual Studio XP builds (but not the standard Visual Studio builds) or the 32-bit MinGW low-end builds (but not the standard MinGW builds). Those work in ReactOS as well, but support is considered experimental.
-* If you need Windows Vista support, you can use either Visual Studio builds or the 32-bit MinGW low-end builds (but not the standard MinGW builds).
-
-In addition, while DOSBox-X provides both SDL1 and SDL2 versions and the former is the default version, the SDL2 version may be preferred over the SDL1 version for certain features (particularly related to input handling) such as better international keyboard support.
-
-If you prefer to use one of the portable packages, please select the zip package you want to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32 (x86), Win64 (x64), ARM32 and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are the standard MinGW SDL1 build (mingw), the standard MinGW SDL2 build (mingw-sdl2), and the 32-bit MinGW lowend SDL1 and SDL2 builds (mingw-lowend and mingw-lowend-sdl2 respectively). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. **It is recommended to use the Windows installers for more complete installations.**
+* Windows XP users must use the XP compatible installer with "XP" in the file name, which includes Visual Studio XP builds and the 32-bit MinGW low-end builds. You also need to install the [DirectX runtime](https://www.microsoft.com/en-us/download/details.aspx?id=8109) or DOSBox-X will complain you're missing `XInput9_1_0.dll`. XP compatible builds works in ReactOS as well, but support is considered experimental.
+* Windows Vista users can use the standard (non-XP) installer. While Visual Studio builds work well, MinGW dropped support for XP/Vista, so install the 32-bit low-end builds from the XP compatible installer if you prefer MinGW builds.
+* Windows 9x/NT4 users should use the MinGW lowend 9x builds (32-bit SDL1 only). 
+* Modern Windows users (7 and after) should use the standard (non-XP, non-lowend) builds but may try the non-standard builds if you prefer, although officially not supported.
 
 ## Linux Packages (Flatpak and more)
 DOSBox-X is available packaged in the below formats. 
@@ -119,7 +125,7 @@ programs provided in the Z: drive.
 
 If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. The official macOS packages for the latest DOSBox-X version are available from the [DOSBox-X homepage](https://dosbox-x.com/).
 
-The macOS package requires 64-bit Intel or ARM-based macOS operating system. It should run natively on the recent versions of macOS such as macOS Monterey (12), Big Sur (11), and Catalina (10.15). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file. While the SDL1 version is the default version, the SDL2 version may be preferred over the SDL1 version for certain features (particularly related to input handling) such as touchscreen input support. You can select either SDL1 or SDL2 version according to your preference, or just run the SDL1 version if you are not sure.
+The macOS package requires 64-bit Intel or ARM-based macOS operating system. It should run natively on the recent versions of macOS (Catalina (10.15) and later). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file.
 
 There are two ways to run DOSBox-X in macOS, either from the Finder or from the command-line (Terminal):
 
@@ -129,19 +135,10 @@ There are two ways to run DOSBox-X in macOS, either from the Finder or from the 
 
 If you see the message ```"dosbox-x" is damaged and can't be opened``` when trying to run DOSBox-X, you should be able to solve the problem by running the following command once in the Terminal and you are in the directory in which the macOS zip package is extracted (where you can find two folders including ```dosbox-x``` and ```dosbox-x-sdl2```):
 
-``xattr -cr dosbox-x/dosbox-x.app dosbox-x-sdl2/dosbox-x.app``
-
-As of DOSBox-X version 0.83.16, the regular macOS builds listed above will run on macOS Catalina (10.15) or later; they include features such as Slirp, FluidSynth and FFmpeg by default and bundle dylib libraries needed for such features.
-
-If you have an older macOS version such as macOS High Sierra (10.13) and Mojave (10.14), or you use a newer macOS version but do not need any additional features provided by external libraries such as libslirp or libfluidsynth, you can use the alternative macOS builds below instead, which include both SDL1 and SDL2 versions of the DOSBox-X (named ``dosbox-x-sdl1`` and ``dosbox-x-sdl2`` respectively in the package). These "high-sierra" builds are intended for "low-end" systems with no need for external libraries to run them in your macOS. Latest such build is [2022.09.0 (0.84.3)](https://github.com/joncampbell123/dosbox-x/releases/tag/dosbox-x-v0.84.3).
-
-If you see the message ```"dosbox-x" is damaged and can't be opened``` when trying to run the above builds, you should be able to solve the problem by executing the following command (once) in the Terminal and you are in the directory in which the zip package is extracted (where you can find two files including ```dosbox-x-sdl1``` and ```dosbox-x-sdl2```):
-
 ``xattr -cr .``
 
-Then you should be able to run the binary ``dosbox-x-sdl1`` or ``dosbox-x-sdl2`` normally.
-
-macOS versions earlier than 10.12 (Sierra) are not officially supported. If you use an old version such as OS X Lion (10.7) or OS X Yosemite (10.10), then you may try to build and run DOSBox-X yourself with the help of [MacPorts](https://www.macports.org/). Furthermore, you may not see official macOS packages for some DOSBox-X versions. For example, no official macOS package is available for DOSBox-X version 0.83.1.
+macOS versions earlier than 10.14 (Mojave) are no longer supported. Lowend builds named `DOSBox-X-macos-(version)-high-sierra.zip` were available up to [2022.09.0 (0.84.3)](https://github.com/joncampbell123/dosbox-x/releases/tag/dosbox-x-v0.84.3) for 10.12 (Sierra) and after.
+Binaries for macOS versions earlier than 10.12 (Sierra) have not been provided. You may try to build yourself with the help of [MacPorts](https://www.macports.org/). 
 
 ## DOS Packages (Portable)
 
