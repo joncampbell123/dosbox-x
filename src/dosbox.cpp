@@ -4229,6 +4229,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable XMS support.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("resized free memory block becomes allocated",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, and the DOS application resizes a freed memory block, that block will be marked as allocated to that program.\n"
+		    "MS-DOS behaves in this manner, apparently.");
+
     Pint = secprop->Add_int("xms handles",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Number of XMS handles available for the DOS environment, or 0 to use a reasonable default");
     Pint->SetBasic(true);
