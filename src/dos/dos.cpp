@@ -140,6 +140,7 @@ bool enable_dbcs_tables = true;
 bool enable_share_exe = true;
 bool enable_filenamechar = true;
 bool shell_keyboard_flush = true;
+bool freed_mcb_allocate_on_resize = true;
 bool enable_network_redirector = true;
 bool force_conversion = false;
 bool hidenonrep = true;
@@ -4110,6 +4111,7 @@ public:
 #endif
 
         dos_sda_size = section->Get_int("dos sda size");
+        freed_mcb_allocate_on_resize = section->Get_bool("resized free memory block becomes allocated");
         shell_keyboard_flush = section->Get_bool("command shell flush keyboard buffer");
 		enable_network_redirector = section->Get_bool("network redirector");
 		enable_dbcs_tables = section->Get_bool("dbcs");
