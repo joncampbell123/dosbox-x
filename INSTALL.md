@@ -28,7 +28,7 @@ For most packages there are both SDL1 and SDL2 builds, and most features are the
 
 The installer allows you to specify the install folder and the default build to run (VS/MinGW, 32/64-bit, SDL1/SDL2, and Intel/ARM). You can also choose to install all available builds. A quick start guide is also included in the package, and shell context menus can be added for a fast launch of DOSBox-X from the Windows Explorer.
 
-The Visual Studio builds are the default Windows builds to use. On the other hand, MinGW builds of DOSBox-X support the Slirp backend for the NE2000 networking but won't run on Windows XP/Vista. You may also want to use one of the MinGW builds if you encounter specific problem(s) with the Visual Studio builds (such as floating point precision issues). 
+The Visual Studio (VS) builds are the default Windows builds to use. On the other hand, MinGW builds support the Slirp backend for the NE2000 networking but won't run on Windows XP/Vista. You may also want to use one of the MinGW builds if you encounter specific problem(s) with the Visual Studio builds (such as floating point precision issues). 
 
 If you see the message ```Windows Defender SmartScreen prevented an unrecognized app from starting``` when running an installer, you can solve it by clicking the link "More info" in the dialog and then "Run anyway".
 
@@ -36,7 +36,9 @@ You can also easily upgrade DOSBox-X to the new version with the Windows install
 
 Apart from the Windows installers, you can also find portable zip files starting with `dosbox-x-vsbuild-` and `dosbox-x-mingw-win` in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page as an alternative way to install DOSBox-X. In the zip file you will find `Release` and `Release SDL2` folders, which correspond to SDL1 and SDL2 respectively.  
 
-* Windows XP users must use the XP compatible installer with "XP" in the file name, which includes Visual Studio XP builds and the 32-bit MinGW low-end builds. You also need to install the [DirectX runtime](https://www.microsoft.com/en-us/download/details.aspx?id=8109) or DOSBox-X will complain you're missing `XInput9_1_0.dll`. XP compatible builds works in ReactOS as well, but support is considered experimental.
+Regarding Joystick support, the *SDL1 builds requires XInput compatible devices*. If your joystick is not Xinput compatible, you may want to try the SDL2 builds or DirectInput to XInput wrappers such as [Xoutput](https://github.com/csutorasa/XOutput) or [Xbox 360 contoller emulator](https://www.x360ce.com/).
+
+* Windows XP users must use the XP compatible installer with "XP" in the file name, which includes Visual Studio XP builds and the 32-bit MinGW low-end builds. Note that not all features are available in the MinGW low-end builds, currently Slirp support is known to be missing. You also need to install the [DirectX runtime](https://www.microsoft.com/en-us/download/details.aspx?id=8109) or DOSBox-X will complain you're missing `XInput9_1_0.dll`. XP compatible builds works in ReactOS as well, but support is considered experimental.
 * Windows Vista users can use the standard (non-XP) installer. While Visual Studio builds work well, MinGW dropped support for XP/Vista, so install the 32-bit low-end builds from the XP compatible installer if you prefer MinGW builds.
 * Windows 9x/NT4 users should use the MinGW lowend 9x builds (32-bit SDL1 only). 
 * Modern Windows users (7 and after) should use the standard (non-XP, non-lowend) builds but may try the non-standard builds if you prefer, although officially not supported.
@@ -123,9 +125,9 @@ programs provided in the Z: drive.
 
 ## macOS Packages (Portable)
 
-If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. The official macOS packages for the latest DOSBox-X version are available from the [DOSBox-X homepage](https://dosbox-x.com/).
+Portable packages for the macOS (64-bit) platform are also available from the [DOSBox-X homepage](https://dosbox-x.com/).
 
-The macOS package requires 64-bit Intel or ARM-based macOS operating system. It should run natively on the recent versions of macOS (Catalina (10.15) and later). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file.
+The macOS package requires recent 64-bit Intel or ARM-based macOS (Catalina (10.15) and later). Both SDL1 and SDL2 binaries (in .app format) are provided in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file.
 
 There are two ways to run DOSBox-X in macOS, either from the Finder or from the command-line (Terminal):
 
@@ -137,7 +139,7 @@ If you see the message ```"dosbox-x" is damaged and can't be opened``` when tryi
 
 ``xattr -cr .``
 
-macOS versions earlier than 10.14 (Mojave) are no longer supported. Lowend builds named `DOSBox-X-macos-(version)-high-sierra.zip` were available up to [2022.09.0 (0.84.3)](https://github.com/joncampbell123/dosbox-x/releases/tag/dosbox-x-v0.84.3) for 10.12 (Sierra) and after.
+Packages for macOS versions 10.14 (Mojave) and earlier are no longer provided. Low-end builds named `DOSBox-X-macos-(version)-high-sierra.zip` were available up to [2022.09.0 (0.84.3)](https://github.com/joncampbell123/dosbox-x/releases/tag/dosbox-x-v0.84.3) for 10.12 (Sierra) and after.
 Binaries for macOS versions earlier than 10.12 (Sierra) have not been provided. You may try to build yourself with the help of [MacPorts](https://www.macports.org/). 
 
 ## DOS Packages (Portable)
