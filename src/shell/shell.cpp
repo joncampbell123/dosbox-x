@@ -891,7 +891,8 @@ void DOS_Shell::Prepare(void) {
                     } else if (control->opt_langcp && !name && (layout.empty() || layout=="auto"))
                         SetKEYBCP();
                 }
-                if (lastmsgcp && lastmsgcp != dos.loaded_codepage) SwitchLanguage(lastmsgcp, dos.loaded_codepage, true);
+                //if (lastmsgcp && lastmsgcp != dos.loaded_codepage) SwitchLanguage(lastmsgcp, dos.loaded_codepage, true);
+                if (msgcodepage && msgcodepage != dos.loaded_codepage) SwitchLanguage(dos.loaded_codepage, msgcodepage, true);
             }
 			if (country>0&&!control->opt_noconfig) {
 				countryNo = country;
