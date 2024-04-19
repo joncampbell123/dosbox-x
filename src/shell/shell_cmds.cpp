@@ -2089,21 +2089,29 @@ void DOS_Shell::CMD_DIR(char * args) {
 		if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
 		uint8_t drive=dta.GetSearchDrive();
 		uint64_t free_space=1024u*1024u*100u;
-		if (Drives[drive]) {
-			uint32_t bytes_sector32;uint32_t sectors_cluster32;uint32_t total_clusters32;uint32_t free_clusters32;
-			if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) &&
-				Drives[drive]->AllocationInfo32(&bytes_sector32,&sectors_cluster32,&total_clusters32,&free_clusters32)) { /* FAT32 aware extended API */
-				freec=0;
-				free_space=(uint64_t)bytes_sector32 * (Bitu)sectors_cluster32 * (Bitu)free_clusters32;
-			} else {
-				uint16_t bytes_sector;uint8_t sectors_cluster;uint16_t total_clusters;uint16_t free_clusters;
-				rsize=true;
-				freec=0;
-				Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
-				free_space=(uint64_t)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters);
-				rsize=false;
-			}
-		}
+
+        if(Drives[drive]) {
+            uint32_t bytes_sector32; uint32_t sectors_cluster32; uint32_t total_clusters32; uint32_t free_clusters32;
+            uint64_t total_clusters64; uint64_t free_clusters64;
+            // Since this is the *internal* shell, we want use maximum available query capability at first
+            if(Drives[drive]->AllocationInfo64(&bytes_sector32, &sectors_cluster32, &total_clusters64, &free_clusters64)) {
+                freec = 0;
+                free_space = (uint64_t)bytes_sector32 * (Bitu)sectors_cluster32 * (Bitu)free_clusters64;
+            }
+            else if((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) &&
+                Drives[drive]->AllocationInfo32(&bytes_sector32, &sectors_cluster32, &total_clusters32, &free_clusters32)) { /* FAT32 aware extended API */
+                freec = 0;
+                free_space = (uint64_t)bytes_sector32 * (Bitu)sectors_cluster32 * (Bitu)free_clusters32;
+            }
+            else {
+                uint16_t bytes_sector; uint8_t sectors_cluster; uint16_t total_clusters; uint16_t free_clusters;
+                rsize = true;
+                freec = 0;
+                Drives[drive]->AllocationInfo(&bytes_sector, &sectors_cluster, &total_clusters, &free_clusters);
+                free_space = (uint64_t)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec ? freec : free_clusters);
+                rsize = false;
+            }
+        }
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 		if (Network_IsNetworkResource(args)) {
 			std::string str = MSG_Get("SHELL_CMD_DIR_BYTES_FREE");
