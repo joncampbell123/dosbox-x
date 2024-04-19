@@ -2917,6 +2917,14 @@ void CPU_VERW(Bitu selector) {
 	SETFLAGBIT(ZF,true);
 }
 
+/* This is called by the XMS emulation to set up Flat Real Mode, at least for segment registers DS and ES */
+void XMS_InitFlatRealMode(void) {
+	if (!cpu.pmode && !(reg_flags & FLAG_VM)) {
+		Segs.limit[ds] = 0xFFFFFFFFul;
+		Segs.limit[es] = 0xFFFFFFFFul;
+	}
+}
+
 bool CPU_SetSegGeneral(SegNames seg,uint16_t value) {
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		Segs.val[seg]=value;
