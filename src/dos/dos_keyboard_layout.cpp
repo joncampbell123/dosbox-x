@@ -49,9 +49,12 @@ void DOSBox_SetSysMenu(void);
 bool OpenGL_using(void), isDBCSCP(void);
 void change_output(int output), UpdateSDLDrawTexture();
 void SwitchLanguage(int oldcp, int newcp, bool confirm);
+Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 void MSG_Init(), JFONT_Init(), runRescan(const char *str);
 extern int tryconvertcp, toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 extern bool jfont_init;
+extern int msgcodepage;
+
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
 	char fullname[DOS_PATHLENGTH];
@@ -1735,9 +1738,12 @@ public:
                     UpdateSDLDrawTexture();
 #endif
             }
-            SwitchLanguage(cpbak, dos.loaded_codepage, false);
         }
-	}
+        if(msgcodepage) {
+            SwitchLanguage(dos.loaded_codepage, msgcodepage, false);
+            DOS_ChangeCodepage(msgcodepage, "auto");
+        }
+    }
 
 	~DOS_KeyboardLayout(){
 		if ((dos.loaded_codepage!=GetDefaultCP()) && (CurMode->type==M_TEXT)) {
