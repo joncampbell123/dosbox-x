@@ -33,6 +33,7 @@
 #define DOS_PATHLENGTH 255u
 #define DOS_TEMPSIZE 1024u
 #define DOSERR_FUNCTION_NUMBER_INVALID 1
+
 void DOS_SetError(uint16_t code);
 
 enum {
@@ -314,8 +315,9 @@ public:
 	virtual HANDLE CreateOpenFile(char const* const name)=0;
 #endif
 	virtual bool Rename(const char * oldname,const char * newname)=0;
-	virtual bool AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters)=0;
-	virtual bool AllocationInfo32(uint32_t * _bytes_sector,uint32_t * _sectors_cluster,uint32_t * _total_clusters,uint32_t * _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
+    virtual bool AllocationInfo(uint16_t* _bytes_sector, uint8_t* _sectors_cluster, uint16_t* _total_clusters, uint16_t* _free_clusters) = 0;
+    virtual bool AllocationInfo32(uint32_t * _bytes_sector,uint32_t * _sectors_cluster,uint32_t * _total_clusters,uint32_t * _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
+    virtual bool AllocationInfo64(uint32_t* _bytes_sector, uint32_t* _sectors_cluster, uint64_t* _total_clusters, uint64_t* _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
 	virtual bool FileExists(const char* name)=0;
 	virtual bool FileStat(const char* name, FileStat_Block * const stat_block)=0;
 	virtual uint8_t GetMediaByte(void)=0;

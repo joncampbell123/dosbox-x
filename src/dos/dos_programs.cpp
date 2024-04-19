@@ -1175,7 +1175,7 @@ public:
                     // freesize in kb
                     sprintf(teststr,"512,1,2880,%d",freesize*1024/(512*1)>2880?2880:freesize*1024/(512*1));
                 } else {
-					if (freesize>1919) freesize=1919;
+					//if (freesize>1919) freesize=1919;
 					uint16_t numc=type=="cdrom"?1:32;
                     uint32_t total_size_cyl=32765;
 					uint32_t tmp=(uint32_t)freesize*1024*1024/(type=="cdrom"?2048*1:512*32);
