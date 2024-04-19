@@ -95,6 +95,9 @@ bool xms_hma_exists = true;
 bool xms_hma_application_has_control = false;
 bool xms_hma_alloc_non_dos_kernel_control = true;
 
+bool xms_memmove_flatrealmode = false;
+bool xms_init_flatrealmode = false;
+
 struct XMS_Block {
 	Bitu	size;
 	MemHandle mem;
@@ -249,12 +252,14 @@ Bitu XMS_FreeMemory(Bitu handle) {
 	return 0;
 }
 
+void XMS_InitFlatRealMode(void);
+
 Bitu XMS_MoveMemory(PhysPt bpt) {
 	/* Read the block with mem_read's */
 	Bitu length=mem_readd(bpt+offsetof(XMS_MemMove,length));
 
-    /* "Length must be even" --Microsoft XMS Spec 3.0 */
-    if (length & 1u) return XMS_INVALID_LENGTH;
+	/* "Length must be even" --Microsoft XMS Spec 3.0 */
+	if (length & 1u) return XMS_INVALID_LENGTH;
 
 	Bitu src_handle=mem_readw(bpt+offsetof(XMS_MemMove,src_handle));
 	union {
@@ -279,9 +284,9 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 	} else {
 		srcpt=Real2Phys(src.realpt);
 
-        /* Microsoft TEST.C considers it an error to allow real mode pointers + length to
-         * extend past the end of the 8086-accessible conventional memory area. */
-        if ((srcpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
+		/* Microsoft TEST.C considers it an error to allow real mode pointers + length to
+		 * extend past the end of the 8086-accessible conventional memory area. */
+		if ((srcpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
 	}
 	if (dest_handle) {
 		if (InvalidHandle(dest_handle)) {
@@ -297,28 +302,36 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 	} else {
 		destpt=Real2Phys(dest.realpt);
 
-        /* Microsoft TEST.C considers it an error to allow real mode pointers + length to
-         * extend past the end of the 8086-accessible conventional memory area. */
-        if ((destpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
+		/* Microsoft TEST.C considers it an error to allow real mode pointers + length to
+		 * extend past the end of the 8086-accessible conventional memory area. */
+		if ((destpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
 	}
 //	LOG_MSG("XMS move src %X dest %X length %X",srcpt,destpt,length);
 
-    /* we must enable the A20 gate during this copy.
-     * DOSBox-X masks the A20 line and this will only cause corruption otherwise. */
+	/* we must enable the A20 gate during this copy.
+	 * DOSBox-X masks the A20 line and this will only cause corruption otherwise. */
 
-    if (length != 0) {
-        bool a20_was_enabled = XMS_GetEnabledA20();
+	if (length != 0) {
+		bool a20_was_enabled = XMS_GetEnabledA20();
 
-        xms_local_enable_count++;
-        XMS_EnableA20(true);
+		xms_local_enable_count++;
+		XMS_EnableA20(true);
 
-        mem_memcpy(destpt,srcpt,length);
+		// HIMEM.SYS on 386 and higher is said to use "flat real mode" to copy extended memory.
+		// That means if a program calls this function, it implicitly sets up flat real mode.
+		// It seems some demoscene stuff in the 1992-1994 timeframe assume this case.
+		if (xms_memmove_flatrealmode) {
+			LOG(LOG_MISC,LOG_DEBUG)("XMS: Memory move/copy is enabling flat real mode");
+			XMS_InitFlatRealMode();
+		}
 
-        xms_local_enable_count--;
-        if (!a20_was_enabled) XMS_EnableA20(false);
-    }
+		mem_memcpy(destpt,srcpt,length);
 
-    return 0;
+		xms_local_enable_count--;
+		if (!a20_was_enabled) XMS_EnableA20(false);
+	}
+
+	return 0;
 }
 
 Bitu XMS_LockMemory(Bitu handle, uint32_t& address) {
@@ -719,20 +732,25 @@ public:
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		umb_available=false;
 
-        xms_global_enable = false;
-        xms_local_enable_count = 0;
+		xms_global_enable = false;
+		xms_local_enable_count = 0;
+		xms_memmove_flatrealmode = false;
+		xms_init_flatrealmode = false;
 
 		if (!section->Get_bool("xms")) return;
 
-        XMS_HANDLES = (unsigned int)(section->Get_int("xms handles"));
-        if (XMS_HANDLES == 0)
-            XMS_HANDLES = XMS_HANDLES_DEFAULT;
-        else if (XMS_HANDLES < XMS_HANDLES_MIN)
-            XMS_HANDLES = XMS_HANDLES_MIN;
-        else if (XMS_HANDLES > XMS_HANDLES_MAX)
-            XMS_HANDLES = XMS_HANDLES_MAX;
+		xms_memmove_flatrealmode = section->Get_bool("xms memmove causes flat real mode");
+		xms_init_flatrealmode = section->Get_bool("xms init causes flat real mode");
 
-        LOG_MSG("XMS: %u handles allocated for use by the DOS environment",XMS_HANDLES);
+		XMS_HANDLES = (unsigned int)(section->Get_int("xms handles"));
+		if (XMS_HANDLES == 0)
+			XMS_HANDLES = XMS_HANDLES_DEFAULT;
+		else if (XMS_HANDLES < XMS_HANDLES_MIN)
+			XMS_HANDLES = XMS_HANDLES_MIN;
+		else if (XMS_HANDLES > XMS_HANDLES_MAX)
+			XMS_HANDLES = XMS_HANDLES_MAX;
+
+		LOG_MSG("XMS: %u handles allocated for use by the DOS environment",XMS_HANDLES);
 
 		/* NTS: Disable XMS emulation if CPU type is less than a 286, because extended memory did not
 		 *      exist until the CPU had enough address lines to read past the 1MB mark.
@@ -895,8 +913,13 @@ public:
 		DOS_BuildUMBChain(umb_available&&dos_umb,ems_available);
 		umb_init = true;
 
-        /* CP/M compat will break unless a copy of the JMP instruction is mirrored in HMA */
-        DOS_Write_HMA_CPM_jmp();
+		if (xms_init_flatrealmode) {
+			LOG(LOG_MISC,LOG_DEBUG)("XMS: Initialization is enabling flat real mode");
+			XMS_InitFlatRealMode();
+		}
+
+		/* CP/M compat will break unless a copy of the JMP instruction is mirrored in HMA */
+		DOS_Write_HMA_CPM_jmp();
 	}
 
 	~XMS(){
@@ -945,7 +968,7 @@ bool XMS_Active(void) {
 }
 
 void XMS_Startup(Section *sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating XMS emulation");
 		test = new XMS(control->GetSection("dos"));

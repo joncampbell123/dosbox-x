@@ -4229,6 +4229,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable XMS support.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("xms memmove causes flat real mode",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, any call to XMS to move/copy memory sets up flat real mode for segment registers DS and ES.");
+
+    Pbool = secprop->Add_bool("xms init causes flat real mode",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, when the DOS kernel initializes XMS it will switch on flat real mode for segment registers DS and ES if appropriate.");
+
     Pbool = secprop->Add_bool("resized free memory block becomes allocated",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, and the DOS application resizes a freed memory block, that block will be marked as allocated to that program.\n"
 		    "MS-DOS behaves in this manner, apparently.");
