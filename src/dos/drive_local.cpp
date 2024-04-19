@@ -2272,7 +2272,7 @@ bool localDrive::AllocationInfo64(uint32_t* _bytes_sector, uint32_t* _sectors_cl
             diskToQuery = drive ? root : NULL;
 
         res = GetDiskFreeSpace(diskToQuery, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
-        ULARGE_INTEGER FreeBytesAvailableToCaller, TotalNumberOfBytes, TotalNumberOfFreeBytes;
+        ULARGE_INTEGER FreeBytesAvailableToCaller, TotalNumberOfBytes;
         GetDiskFreeSpaceEx(diskToQuery, &FreeBytesAvailableToCaller, &TotalNumberOfBytes, NULL);
         qwTotalClusters = TotalNumberOfBytes.QuadPart / (dwSectPerClust * dwBytesPerSect);
         qwFreeClusters = FreeBytesAvailableToCaller.QuadPart / (dwSectPerClust * dwBytesPerSect);
@@ -2283,7 +2283,7 @@ bool localDrive::AllocationInfo64(uint32_t* _bytes_sector, uint32_t* _sectors_cl
         *_free_clusters = qwFreeClusters;
 
         if(res) {
-            Bit64u total = qwTotalClusters * dwSectPerClust;
+            Bitu total = qwTotalClusters * dwSectPerClust;
             int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1))))), ratio2 = ratio * dwBytesPerSect / 512;
             if(rsize) {
                 totalc = qwTotalClusters * dwSectPerClust / ratio;
@@ -2368,23 +2368,33 @@ bool localDrive::AllocationInfo64(uint32_t* _bytes_sector, uint32_t* _sectors_cl
     return true;
  }
 
-bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters) {
-	*_bytes_sector=allocation.bytes_sector;
+bool localDrive::AllocationInfo(uint16_t * _bytes_sector, uint8_t * _sectors_cluster, uint16_t * _total_clusters, uint16_t * _free_clusters) {
+    *_bytes_sector=allocation.bytes_sector;
 	*_sectors_cluster=allocation.sectors_cluster;
 	*_total_clusters=allocation.total_clusters;
 	*_free_clusters=allocation.free_clusters;
 	if ((!allocation.total_clusters && !allocation.free_clusters) || freesizecap) {
 		bool res=false;
 #if defined(WIN32)
-		long unsigned int dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
+		DWORD dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
+        uint64_t qwFreeClusters, qwTotalClusters;
 		uint8_t drive=strlen(basedir)>1&&basedir[1]==':'?toupper(basedir[0])-'A'+1:0;
 		if (drive>26) drive=0;
 		char root[4]="A:\\";
 		root[0]='A'+drive-1;
-        if (basedir[0]=='\\' && basedir[1]=='\\')
+        if(basedir[0] == '\\' && basedir[1] == '\\') {
             res = GetDiskFreeSpace(basedir, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
-        else
-            res = GetDiskFreeSpace(drive?root:NULL, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
+            ULARGE_INTEGER FreeBytesAvailableToCaller, TotalNumberOfBytes, TotalNumberOfFreeBytes;
+            GetDiskFreeSpaceEx(basedir, &FreeBytesAvailableToCaller, &TotalNumberOfBytes, NULL);
+            qwTotalClusters = TotalNumberOfBytes.QuadPart / (dwSectPerClust* dwBytesPerSect);
+        }
+        else {
+            res = GetDiskFreeSpace(drive ? root : NULL, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
+            ULARGE_INTEGER FreeBytesAvailableToCaller, TotalNumberOfBytes, TotalNumberOfFreeBytes;
+            GetDiskFreeSpaceEx(drive ? root : NULL, &FreeBytesAvailableToCaller, &TotalNumberOfBytes, NULL);
+            qwTotalClusters = TotalNumberOfBytes.QuadPart / (dwSectPerClust * dwBytesPerSect);
+            qwFreeClusters = FreeBytesAvailableToCaller.QuadPart / (dwSectPerClust * dwBytesPerSect);
+        }
 		if (res) {
 			unsigned long total = dwTotalClusters * dwSectPerClust;
 			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1))))), ratio2 = ratio * dwBytesPerSect / 512;
@@ -2393,11 +2403,11 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
 			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio2);
 			*_free_clusters = dwFreeClusters ? (total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio2)) : 0;
 			if (rsize) {
-				totalc=dwTotalClusters * dwSectPerClust / ratio;
-				freec=dwFreeClusters * dwSectPerClust / ratio;
+                totalc = dwTotalClusters * dwSectPerClust / ratio;
+                freec = dwFreeClusters * dwSectPerClust / ratio;
 			}
 #else
-        struct statvfs stat;
+		struct statvfs stat;
 		res = statvfs(basedir, &stat) == 0;
 		if (res) {
 			int ratio = stat.f_blocks / 65536, tmp=ratio;
