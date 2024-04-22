@@ -104,11 +104,16 @@ Source: "..\..\fonts\wqy_1?pt.bdf"; DestDir: "{app}"; Flags: ignoreversion; Comp
 Source: "..\..\fonts\Nouveau_IBM.ttf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\fonts\SarasaGothicFixed.ttf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\de\de_DE.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\de\de_pc98.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\en\en_US.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\es\es_ES.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\fr\fr_FR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\hu\hu_HU.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\it\it_IT.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\ja\ja_JP.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\ko\ko_KR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\nl\nl_NL.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\ru\ru_RU.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\tr\tr_TR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\zh\zh_CN.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\zh\zh_TW.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
