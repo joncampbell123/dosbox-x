@@ -84,6 +84,7 @@ public:
 #endif
 	bool Rename(const char * oldname,const char * newname) override;
 	bool AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters) override;
+    bool AllocationInfo64(uint32_t* _bytes_sector, uint32_t* _sectors_cluster, uint64_t* _total_clusters, uint64_t* _free_clusters) override;
 	bool FileExists(const char* name) override;
 	bool FileStat(const char* name, FileStat_Block * const stat_block) override;
 	uint8_t GetMediaByte(void) override;
