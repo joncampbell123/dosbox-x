@@ -1,4 +1,11 @@
 Next:
+  - Local DOS drive support: On Windows, if the guest is attempting to
+    create a hidden file, make sure to call the right APIs to create a
+    hidden file on the host. Not only is this needed to create a hidden
+    file, but if the guest tries to create a hidden file and the file
+    already exists as a hidden file, the file creation needs to succeed.
+    Fix for "Facts of Life" by Witan because the demo creates a hidden
+    WITAN.92 every time it is run (joncampbell123).
   - XMS: Add dosbox.conf option to XMS driver to switch on flat real mode
     when a) the XMS driver initializes and/or b) when the XMS driver is
     called on to move/copy memory. (joncampbell123).
