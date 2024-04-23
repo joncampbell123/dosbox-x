@@ -1303,6 +1303,9 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
     const char* temp_name = dirCache.GetExpandName(newname); // Can only be used until a new drive_cache action is performed
 	/* Test if file exists (so we need to truncate it). don't add to dirCache then */
 	bool existing_file=false;
+#   // Windows: If the file to create already exists and is hidden OR we're being asked to create a hidden file,
+    //          then CreateFile() MUST be used or Windows might deny access.
+    bool special_attributes=false;
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
@@ -1322,12 +1325,23 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		existing_file=true;
 	}
 
+#if defined(WIN32)
+    if(attributes & 2) { /* attempting to create a hidden file */
+        /* The CreateFileW path MUST be used to correctly specify the file attribute.
+           Else, a file intended to be hidden will be fully visible, or even worse,
+           an attempt to create a hidden file when the file already exists as a hidden file will fail.
+
+           Fix for "Facts of Life" by Witan, which always creates hidden file WITAN.92 */
+        special_attributes = true;
+    }
+#endif
+
     FILE * hand;
-    if (enable_share_exe && !existing_file) {
+    if (enable_share_exe && (!existing_file || special_attributes)) {
 #if defined(WIN32)
         int attribs = FILE_ATTRIBUTE_NORMAL;
         if (attributes&3) attribs = attributes&3;
-        HANDLE handle = CreateFileW(host_name, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, attribs, NULL);
+        HANDLE handle = CreateFileW(host_name, GENERIC_READ|GENERIC_WRITE, enable_share_exe?(FILE_SHARE_READ|FILE_SHARE_WRITE):0, NULL, CREATE_ALWAYS, attribs, NULL);
         if (handle == INVALID_HANDLE_VALUE) return false;
         int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
         if (nHandle == -1) {CloseHandle(handle);return false;}
