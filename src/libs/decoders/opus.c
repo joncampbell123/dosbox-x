@@ -209,7 +209,7 @@ static opus_int64 RWops_opus_tell(void* stream)
 } /* RWops_opus_tell */
 
 
-// Populate the opus callback object (in perscribed order), with our callback functions.
+// Populate the opus callback object (in prescribed order), with our callback functions.
 static const OpusFileCallbacks RWops_opus_callbacks =
 {
 	RWops_opus_read,
@@ -299,8 +299,8 @@ static __inline__ void output_opus_info(const OggOpusFile* of, const OpusHead* o
 /*
  * Opus Open
  * =========
- *  - Creates a new opus file object by using our our callback structure for all IO operations.
- *  - We also intialize and allocate memory for fields in the opus_t decode structure.
+ *  - Creates a new opus file object by using our callback structure for all IO operations.
+ *  - We also initialize and allocate memory for fields in the opus_t decode structure.
  *  - SDL expects a returns of 1 on success
  */
 static Sint32 opus_open(Sound_Sample* sample, const char* ext)
@@ -339,7 +339,7 @@ static Sint32 opus_open(Sound_Sample* sample, const char* ext)
 	    && getenv("SDL_DONT_RESAMPLE") == NULL){
 
 		// Opus resamples all inputs to 48kHz. By default (if env-var SDL_DONT_RESAMPLE doesn't exist)
-		// we resample to the desired rate so the recieving SDL_sound application doesn't have to.
+		// we resample to the desired rate so the receiving SDL_sound application doesn't have to.
 		// This avoids breaking applications that don't expect 48kHz audio and also gives us
 		// quality-control by using the speex resampler, which has a noise floor of -140 dB, which
 		// is ~40dB lower than the -96dB offered by 16-bit CD-quality audio.
@@ -437,7 +437,7 @@ static Uint32 opus_read(Sound_Sample* sample)
 	const Uint16 requested_output_size = internal->buffer_size / sizeof(opus_int16);
 	const Uint16 derived_consumption_size = (requested_output_size * d->rate_ratio) + 0.5;
 
-	// Three scenarios in order of probabilty:
+	// Three scenarios in order of probability:
 	//
 	// 1. consume: resample (if needed) a chunk from our decoded queue
 	//             sufficient to fill the requested buffer.
@@ -445,7 +445,7 @@ static Uint32 opus_read(Sound_Sample* sample)
 	//             If the decoder has hit the end-of-file, drain any
 	//             remaining decoded data before setting the EOF flag.
 	//
-	// 2. decode:  decode chunks unil our buffer is full or we hit EOF.
+	// 2. decode:  decode chunks until our buffer is full or we hit EOF.
 	//
 	// 3. wrap:    we've decoded and consumed to edge of our buffer
 	//             so wrap any remaining decoded samples back around.
@@ -486,7 +486,7 @@ static Uint32 opus_read(Sound_Sample* sample)
 				SDL_memcpy(output_buffer, d->buffer + d->consumed, actual_output_size * sizeof(opus_int16));
 			}
 
-			// bump our comsumption count and absolute pcm position
+			// bump our consumption count and absolute pcm position
 			d->consumed += actual_consumed_size;
 			d->of_pcm += actual_consumed_size;
 
@@ -653,7 +653,7 @@ static Sint32 opus_seek(Sound_Sample* sample, const Uint32 ms)
 				        hours, minutes, seconds, desired_pcm));
 
 				// reset our sample flags and let the read function re-apply
-				// sample flags as it hits them from our our offset
+				// sample flags as it hits them from our offset
 				if (op_seekable(d->of))
 					sample->flags = SOUND_SAMPLEFLAG_CANSEEK;
 

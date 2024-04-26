@@ -46,7 +46,7 @@
  *       4. What happens if this code is updated to use a new fast-seek file
  *          format, but an old fast-seek file exists?
  *
- *          The seek-table file is versioned (see SEEK_TABLE_IDENTIFIER befow),
+ *          The seek-table file is versioned (see SEEK_TABLE_IDENTIFIER below),
  *          therefore, if the format and version is updated, then the seek-table
  *          will be regenerated.
 

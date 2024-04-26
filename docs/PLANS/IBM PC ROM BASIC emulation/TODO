@@ -4,7 +4,7 @@
 - Also use the PC XT to study the various entry points, besides the obvious INT 19h.
   How is BASICA.COM triggering it, for example? I noticed a straight INT 19h triggers
   it in a way that "SYSTEM" does not work and you cannot return to DOS.
-- The Ralph Brown interrupt list vaugely references a whole range of interrupts as
+- The Ralph Brown interrupt list vaguely references a whole range of interrupts as
   related to ROM BASIC. How are they related? Do you call them? Or are they pointers?
 - Add code to DOSBox-X where, given a BIN image of the PC XT's ROM BIOS, it can boot
   into ROM BASIC from the DOSBox shell.

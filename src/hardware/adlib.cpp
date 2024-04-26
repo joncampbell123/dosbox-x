@@ -802,7 +802,7 @@ public:
 
 			//if ( passed > 0 ) LOG_MSG( "Delay %d", passed ) ;
 
-			// If we passed more than 30 seconds since the last command, we'll restart the the capture
+			// If we passed more than 30 seconds since the last command, we'll restart the capture
 			if ( passed > 30000 ) {
 				CloseFile();
 				goto skipWrite;

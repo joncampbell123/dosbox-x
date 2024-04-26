@@ -6,7 +6,7 @@
   in Bochs and VirtualBox
 - Add code to emulate or fake other settings you can change through it.
 - Add setting in dosbox.conf that allows user to enable/disable this emulation.
-  The setting should be disabled by default, since this emulation is irrelevent
+  The setting should be disabled by default, since this emulation is irrelevant
   to DOS gaming but potentially useful for running Windows 3.1/95 (because I
   can then code up a simple linear framebuffer that uses the interface to do
   modesetting!). Don't code the setting as a boolean, code it as a multivalue

@@ -4085,7 +4085,7 @@ restart_int:
             }
             while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
             sbuf[0x0d]=(uint8_t)sectors_per_cluster;
-            // TODO small floppys have 2 sectors per cluster?
+            // TODO small floppies have 2 sectors per cluster?
             // reserved sectors
             host_writew(&sbuf[0x0e],reserved_sectors);
             // Number of FATs

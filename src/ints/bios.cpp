@@ -4853,7 +4853,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 FDC_WAIT_TIMER_HACK();
             }
 
-            /* Prevent reading 1.44MB floppyies using 1.2MB read commands and vice versa.
+            /* Prevent reading 1.44MB floppies using 1.2MB read commands and vice versa.
              * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
              *        when Drive A: (the first floppy) is a 1.44MB drive or not and fails
              *        because it only attempts it using 1.2MB format read commands. */
@@ -4932,7 +4932,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 FDC_WAIT_TIMER_HACK();
             }
 
-            /* Prevent reading 1.44MB floppyies using 1.2MB read commands and vice versa.
+            /* Prevent reading 1.44MB floppies using 1.2MB read commands and vice versa.
              * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
              *        when Drive A: (the first floppy) is a 1.44MB drive or not and fails
              *        because it only attempts it using 1.2MB format read commands. */
@@ -11486,7 +11486,7 @@ public:
                     isa_memory_hole_15mb = false;
             }
 
-            // FIXME: Erm, well this couldv'e been named better. It refers to the amount of conventional memory
+            // FIXME: Erm, well this could've been named better. It refers to the amount of conventional memory
             //        made available to the operating system below 1MB, which is usually DOS.
             dos_conventional_limit = (unsigned int)section->Get_int("dos mem limit");
 
