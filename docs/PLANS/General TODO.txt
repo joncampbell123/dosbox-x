@@ -57,13 +57,13 @@ Some plans for future DOSBox-X developments
 
   - Instead of statically assigning I/O and memory handlers, all handlers are
     initialized to a lookup function.
-  - The DOSBox motherboard emulator at this point would also maintain it's own
+  - The DOSBox motherboard emulator at this point would also maintain its own
     setup of a system bus hierarchy (system resources and RAM vs forwarding to
     the ISA bus, or a PCI-based system that forwards to PCI which can forward
     via PCI-ISA bridge to ISA, etc.).
   - When the lookup function is called, the function goes through the "slow"
     path where it asks the motherboard what function to call, and the
-    motherboard returns a function pointer according to it's designation of
+    motherboard returns a function pointer according to its designation of
     routing, which is then written into the I/O handler. In other words, once
     an I/O port has been accessed, further access is a direct call to the
     I/O callback.
@@ -81,9 +81,9 @@ Some plans for future DOSBox-X developments
     Sound Blaster ISA PnP emulation will no longer emit a warning when
     Windows or any DOS program attempts to reprogram the base address.
     It would also allow DOS or Windows to change, relocate, enable/disable
-    PCI resources. The only performance penalty is that everytime a mapping
+    PCI resources. The only performance penalty is that every time a mapping
     changes, the emulator has to invalidate all I/O and memory callbacks
-    to allow the "slow" path to do it's work again.
+    to allow the "slow" path to do its work again.
   - The reason we don't do bus lookup every time is one of performance.
     DOSBox-X already has an array of IO handlers and memory page handlers,
     so why not make use of it as a cache for callbacks once the slow path
@@ -93,14 +93,14 @@ Some plans for future DOSBox-X developments
 * Motherboard & BIOS oriented system construction
   - Rather than the one way the DOSBox kernel does it, the user could instead
     specify that DOSBox-X emulate a particular motherboard with a particular
-    BIOS. The code could then construct I/O and memory mangement to emulate
+    BIOS. The code could then construct I/O and memory management to emulate
     the known chipsets on that board.
 
     Example: If instructed to, it would emulate the system board on an old
     laptop of mine with a Chips & Tech 386 AT ASIC, or it could emulate an
     old AST motherboard and instruct PIC emulation to act like a Unicorn
     Microelectronics UM8259A-2. The default of course would carefully
-    mimic for backwards compatability the DOSBox mainline "motherboard" and
+    mimic for backwards compatibility the DOSBox mainline "motherboard" and
     "bios" configuration.
 
   - Such construction may include (if on original hardware), VGA emulation
@@ -110,7 +110,7 @@ Some plans for future DOSBox-X developments
 * CD audio
 
   - Refactor the code to ensure we feed out CD audio in a way the guest
-    can track it's time accurately.
+    can track its time accurately.
   - IDE/ATAPI emulation needs to support the mode select or whatever commands
     used by DOS programs to change CD audio volume.
 
@@ -152,7 +152,7 @@ Some plans for future DOSBox-X developments
     keyboard and port 0x92 methods well.
   - So what exotic method are older demos using the clear the screen anyway?
     Can you figure it out? Their failure to clear the screen properly is
-    causing graphic anomolies during certain parts.
+    causing graphic anomalies during certain parts.
   - Memory and I/O resource management code. Rather than just pick regions
     of memory and I/O space, the emulation code should have a way to mark
     that such and such region has been taken for e.g. "VGA BIOS" and
@@ -164,7 +164,7 @@ Some plans for future DOSBox-X developments
   - Peripherals should assign themselves to a bus if possible. Sound Blaster
     emulation for example would register itself to the I/O ports on the
     ISA bus. Voodoo 3dfx emulation would register itself to the PCI bus.
-  - Support not just for declaring an ISA bus and it's frequency, but also
+  - Support not just for declaring an ISA bus and its frequency, but also
     for ISA devices that you would declare "attached" to the bus (same with
     PCI). Instead of DOSBox's design where peripherals are static and only
     one at a time is possible, we would allow you to declare peripherals

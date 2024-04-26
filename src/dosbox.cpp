@@ -4718,7 +4718,7 @@ void DOSBOX_SetupConfigSections(void) {
         "If you have multiple DOSBox-Xes running on the same network,\n"
         "this has to be changed for each. AC:DE:48 is an address range reserved for\n"
         "private use, so modify the last three number blocks, e.g. AC:DE:48:88:99:AB.\n"
-        "Default setting is 'random' which randomly choses a MAC address.");
+        "Default setting is 'random' which randomly chooses a MAC address.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "auto");

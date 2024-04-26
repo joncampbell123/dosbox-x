@@ -3126,7 +3126,7 @@ static void GUI_ShutDown(Section * /*sec*/) {
 static void SetPriority(PRIORITY_LEVELS level) {
 
 #if C_SET_PRIORITY
-// Do nothing if priorties are not the same and not root, else the highest
+// Do nothing if priorities are not the same and not root, else the highest
 // priority can not be set as users can only lower priority (not restore it)
 
     if((sdl.priority.focus != sdl.priority.nofocus ) &&
