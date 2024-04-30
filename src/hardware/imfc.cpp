@@ -6,7 +6,7 @@
  *  Copyright (C) 2017-2020  Loris Chiocca
  *    - Authored the IBM Music Feature card (IMFC) emulator, as follows:
  *    - Reverse-engineered the IMF's Z80 ROM and tested against hardware.
- *    - Used IDA Pro (licensed) to help structure and anonotate the assembly.
+ *    - Used IDA Pro (licensed) to help structure and annotate the assembly.
  *    - Ported the assembly to C++ (without IDA Pro's assembly-to-C module).
  *    - Integrated the results into a working DOSBox 0.74.3 patch.
  *    - Used the GPL v2+ Virtual FB-01 project for FB-01 emulation (below).
@@ -17,7 +17,7 @@
  *
  *  Copyright (C) 1997-1999  Jarek Burczynski <s0246@priv4.onet.pl>
  *    - Authored the YM-2151 emulator in MAME, which is used in the Virtual
- *      FB-01 project and dervices sources here.
+ *      FB-01 project and devices sources here.
  *
  *  ---
  *
@@ -604,7 +604,7 @@ struct MidiFlowPath {
 	// reports from the music card will reflect its programmed state.
 	uint8_t System_To_MidiOut;
 	// This is the path from MIDI IN to the sound processor. This path is set
-	// so that the music card can be controlled by an external MIDI devince.
+	// so that the music card can be controlled by an external MIDI device.
 	uint8_t MidiIn_To_SP;
 	// This is the route from the system to the sound processor. This path
 	// is set so that the music card can be controlled by the processor. Note:
@@ -7133,7 +7133,7 @@ private:
 		// m_bufferFromMidiInState.setDataAdded();
 		if (m_bufferFromMidiInState.getIndexForNextWriteByte() ==
 		    m_bufferFromMidiInState.getLastReadByteIndex()) {
-			// oops... we just wrote into the data that hans't
+			// oops... we just wrote into the data that hasn't
 			// already been read :(
 			resetMidiInBuffersAndPorts();
 			m_bufferFromMidiInState.setOverflowErrorFlag();

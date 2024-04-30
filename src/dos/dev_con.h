@@ -1176,7 +1176,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                         ClearAnsi();
                     }
                     else {
-                        LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc",data[count]); /*prob () */
+                        LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after an esc",data[count]); /*prob () */
                         ClearAnsi();
                     }
                     break;
@@ -1185,7 +1185,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                         ansi.pc98rparen = true;
                     }
                     else {
-                        LOG(LOG_IOCTL, LOG_NORMAL)("ANSI: unknown char %c after a esc", data[count]); /*prob () */
+                        LOG(LOG_IOCTL, LOG_NORMAL)("ANSI: unknown char %c after an esc", data[count]); /*prob () */
                         ClearAnsi();
                     }
                     break;
@@ -1205,7 +1205,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                 case '7': /* save cursor pos + attr TODO */
                 case '8': /* restore this TODO */
                 default:
-                    LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc",data[count]); /*prob () */
+                    LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after an esc",data[count]); /*prob () */
                     ClearAnsi();
                     break;
             }

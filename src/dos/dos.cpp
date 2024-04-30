@@ -3719,7 +3719,7 @@ static Bitu DOS_29Handler(void)
 		case 'D':/* scrolling DOWN*/
 		case 'M':/* scrolling UP*/
 		default:
-			LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc", reg_al); /*prob () */
+			LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after an esc", reg_al); /*prob () */
 			ClearAnsi29h();
 			break;
 		}

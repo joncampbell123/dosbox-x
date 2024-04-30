@@ -1235,7 +1235,7 @@ bool DOSBoxMenu::nsMenuInit(void) {
             item.nsAppendMenu(nsMenu);
         }
 
-        /* release our handle on the nsMenus. Mac OS X will keep them alive with it's
+        /* release our handle on the nsMenus. Mac OS X will keep them alive with its
            reference until the menu is destroyed at which point all items and submenus
            will be automatically destroyed */
         for (auto &id : master_list) {

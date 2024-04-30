@@ -1129,7 +1129,7 @@ static bool swapping_requested;
 
 void CMOS_SetRegister(Bitu regNr, uint8_t val); //For setting equipment word
 
-/* 2 floppys and 2 harddrives, max */
+/* 2 floppies and 2 harddrives, max */
 bool imageDiskChange[MAX_DISK_IMAGES]={false};
 imageDisk *imageDiskList[MAX_DISK_IMAGES]={NULL};
 imageDisk *diskSwap[MAX_SWAPPABLE_DISKS]={NULL};
@@ -2385,7 +2385,7 @@ static Bitu INT13_DiskHandler(void) {
         CALLBACK_SCF(false);
         } break;
     case 0x4B: /* Terminate disk emulation or get emulation status */
-        /* NTS: Windows XP CD-ROM boot requires this call to work or else setup cannot find it's own files. */
+        /* NTS: Windows XP CD-ROM boot requires this call to work or else setup cannot find its own files. */
         if (reg_dl == 0x7F || (INT13_ElTorito_NoEmuDriveNumber != 0 && INT13_ElTorito_NoEmuDriveNumber == reg_dl)) {
             if (reg_al <= 1) {
                 PhysPt p = (SegValue(ds) << 4) + reg_si;
