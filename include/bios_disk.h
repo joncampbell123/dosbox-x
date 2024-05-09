@@ -416,7 +416,7 @@ private:
 	uint32_t currentBlock = 0xFFFFFFFF;
     bool currentBlockAllocated = false;
 	uint32_t currentBlockSectorOffset = 0;
-	uint8_t* currentBlockDirtyMap = 0;
+	uint8_t* currentBlockDirtyMap = nullptr;
 };
 
 /* C++ class implementing El Torito floppy emulation */

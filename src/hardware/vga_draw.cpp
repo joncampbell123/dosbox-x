@@ -5560,7 +5560,7 @@ void WriteARawImage(rawscreenshot &rawimg,rawscreenshot &rawpal,const char *ext)
 		}
 	}
 	/* Finish writing */
-	png_write_end(png_ptr, 0);
+	png_write_end(png_ptr, nullptr);
 	/* If a second palette was provided, write it */
 	if (rawpal.image_palette2 != NULL) png_write_chunk(png_ptr, (png_const_bytep)("rPAL"), rawpal.image_palette2, rawpal.image_palette2_size*3);
 	/*Destroy PNG structs*/

@@ -198,7 +198,7 @@ bool physfsDrive::FileStat(const char* name, FileStat_Block * const stat_block) 
     time_t mytime = statbuf.modtime;
 	/* Convert the stat to a FileStat */
 	struct tm *time;
-	if((time=localtime(&mytime))!=0) {
+	if((time=localtime(&mytime))!=nullptr) {
 		stat_block->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 		stat_block->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 	} else {
@@ -658,7 +658,7 @@ again:
 	find_size=(uint32_t)PHYSFS_fileLength(lfull_name);
     time_t mytime = statbuf.modtime;
 	struct tm *time;
-	if((time=localtime(&mytime))!=0){
+	if((time=localtime(&mytime))!=nullptr){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 	} else {
@@ -829,7 +829,7 @@ bool physfsFile::Close() {
 	// only close if one reference left
 	if (refCtr==1) {
 		PHYSFS_close(fhandle);
-		fhandle = 0;
+		fhandle = nullptr;
 		open = false;
 	};
 	return true;
@@ -848,7 +848,7 @@ physfsFile::physfsFile(const char* _name, PHYSFS_file * handle,uint16_t devinfo,
     time_t mytime = statbuf.modtime;
 	/* Convert the stat to a FileStat */
 	struct tm *time;
-	if((time=localtime(&mytime))!=0) {
+	if((time=localtime(&mytime))!=nullptr) {
 		this->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 		this->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 	} else {
@@ -860,7 +860,7 @@ physfsFile::physfsFile(const char* _name, PHYSFS_file * handle,uint16_t devinfo,
 	last_action=(write?WRITE:READ);
 
 	open=true;
-	name=0;
+	name=nullptr;
 	SetName(_name);
 }
 
@@ -871,7 +871,7 @@ bool physfsFile::UpdateDateTimeFromHost(void) {
     time_t mytime = statbuf.modtime;
 	/* Convert the stat to a FileStat */
 	struct tm *time;
-	if((time=localtime(&mytime))!=0) {
+	if((time=localtime(&mytime))!=nullptr) {
 		this->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 		this->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 	} else {

@@ -1260,92 +1260,92 @@ void DOSBOX_SetupConfigSections(void) {
     Prop_multival_remain* Pmulti_remain;
 
     // Some frequently used option sets
-    const char* vsyncrate[] = { "%u", 0 };
-    const char* force[] = { "", "forced", "prompt", 0 };
-    const char* cyclest[] = { "auto","fixed","max","%u",0 };
-    const char* mputypes[] = { "intelligent", "uart", "none", 0 };
-    const char* vsyncmode[] = { "off", "on" ,"force", "host", 0 };
-    const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", 0 };
-    const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
-    const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", 0};
-    const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", 0}; // Future work: Tandy(?) and USB
-    const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
-    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "pentium_ii", "pentium_iii", "experimental", 0};
-    const char* rates[] = {  "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", 0 };
-    const char* pcrates[] = {  "65536", "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", 0 };
+    const char* vsyncrate[] = { "%u", nullptr };
+    const char* force[] = { "", "forced", "prompt", nullptr };
+    const char* cyclest[] = { "auto","fixed","max","%u", nullptr };
+    const char* mputypes[] = { "intelligent", "uart", "none", nullptr };
+    const char* vsyncmode[] = { "off", "on" ,"force", "host", nullptr };
+    const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", nullptr };
+    const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", nullptr };
+    const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", nullptr };
+    const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", nullptr }; // Future work: Tandy(?) and USB
+    const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",nullptr};
+    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "pentium_ii", "pentium_iii", "experimental", nullptr };
+    const char* rates[] = {  "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", nullptr };
+    const char* pcrates[] = {  "65536", "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", nullptr };
 #if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
-    const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "fluidsynth", "timidity", "none", 0};
+    const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "fluidsynth", "timidity", "none", nullptr };
 #else
-    const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
+    const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "timidity", "none", nullptr }; // FIXME: add some way to offer the actually available choices.
 #endif
-    const char* apmpowerbuttonevent[] = { "suspend", "standby", 0 };
-    const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
-    const char* driveletters[] = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0};
-    const char *mt32models[] = {"cm32l", "mt32", "auto",0};
-    const char *mt32partials[] = {"8", "9", "32", "255", "256",0};
-    const char *mt32DACModes[] = {"0", "1", "2", "3",0};
-    const char *mt32reverbModes[] = {"0", "1", "2", "3", "auto",0};
-    const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
-    const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
-    const char* gustypes[] = { "classic", "classic37", "max", "interwave", 0 };
-    const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "ess1688", "reveal_sc400", "none", 0 };
-    const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "opl3gold", "none", "hardware", "hardwaregb", "esfm", 0};
-    const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", 0 };
-    const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
-    const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
-    const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", "cn", "tw", 0 };
-    const char* j3100_settings[] = { "off", "on", "auto", "manual", "0", "1", "2", 0 };
-    const char* j3100_types[] = { "default", "gt", "sgt", "gx", "gl", "sl", "sgx", "ss", "gs", "sx", "sxb", "sxw", "sxp", "ez", "zs", "zx", 0 };
-    const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
-    const char* guspantables[] = { "old", "accurate", "default", 0 };
-    const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
-    const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
-//    const char* joydeadzone[] = { "0.26", 0 };
-//    const char* joyresponse[] = { "1.0", 0 };
-    const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", "210", "230", "250", 0 };
+    const char* apmpowerbuttonevent[] = { "suspend", "standby", nullptr };
+    const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", nullptr };
+    const char* driveletters[] = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", nullptr };
+    const char *mt32models[] = {"cm32l", "mt32", "auto", nullptr};
+    const char *mt32partials[] = {"8", "9", "32", "255", "256", nullptr};
+    const char *mt32DACModes[] = {"0", "1", "2", "3", nullptr};
+    const char *mt32reverbModes[] = {"0", "1", "2", "3", "auto", nullptr};
+    const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7", nullptr};
+    const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7", nullptr};
+    const char* gustypes[] = { "classic", "classic37", "max", "interwave", nullptr };
+    const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "ess1688", "reveal_sc400", "none", nullptr };
+    const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "opl3gold", "none", "hardware", "hardwaregb", "esfm", nullptr };
+    const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", nullptr };
+    const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", nullptr };
+    const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", nullptr };
+    const char* dosv_settings[] = { "off", "jp", "ko", "chs", "cht", "cn", "tw", nullptr };
+    const char* j3100_settings[] = { "off", "on", "auto", "manual", "0", "1", "2", nullptr };
+    const char* j3100_types[] = { "default", "gt", "sgt", "gx", "gl", "sl", "sgx", "ss", "gs", "sx", "sxb", "sxw", "sxp", "ez", "zs", "zx", nullptr };
+    const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", nullptr };
+    const char* guspantables[] = { "old", "accurate", "default", nullptr };
+    const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", nullptr };
+    const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none", nullptr};
+//    const char* joydeadzone[] = { "0.26", nullptr };
+//    const char* joyresponse[] = { "1.0", nullptr };
+    const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", "210", "230", "250", nullptr };
     const char* mpubases[] = {
         "0",                                                                                    /* Auto */
         "300", "310", "320", "330", "332", "334", "336", "340", "360",                          /* IBM PC */
         "c0d0","c8d0","d0d0","d8d0","e0d0","e8d0","f0d0","f8d0",                                /* NEC PC-98 MPU98 */
         "80d2","80d4","80d6","80d8","80da","80dc","80de",                                       /* NEC PC-98 SB16 */
-        0 };
+        nullptr };
     const char* ios[] = {
         "220", "240", "260", "280", "2a0", "2c0", "2e0",            /* IBM PC      (base+port i.e. 220h base, 22Ch is DSP) */
         "d2",  "d4",  "d6",  "d8",  "da",  "dc",  "de",             /* NEC PC-98   (base+(port << 8) i.e. 00D2h base, 2CD2h is DSP) */
-        0 };
-    const char* ems_settings[] = { "true", "emsboard", "emm386", "false", "1", "0", 0};
-    const char* lfn_settings[] = { "true", "false", "1", "0", "auto", "autostart", 0};
-    const char* fat32setver_settings[] = { "ask", "auto", "manual", 0};
-    const char* quit_settings[] = { "true", "false", "1", "0", "auto", "autofile", 0};
-    const char* autofix_settings[] = { "true", "false", "1", "0", "both", "a20fix", "loadfix", "none", 0};
-    const char* color_themes[] = { "default", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", 0};
-    const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
-    const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", "0", "-1", 0 };
-    const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
-    const char* dmassb[] = { "1", "5", "0", "3", "6", "7", "-1", 0 };
-    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", "opl3duoboard", "retrowave_opl3", "esfmu", 0 };
-    const char *qualityno[] = { "0", "1", "2", "3", 0 };
-    const char* tandys[] = { "auto", "on", "off", 0};
-    const char* ps1opt[] = { "on", "off", 0};
-    const char* numopt[] = { "on", "off", "", 0};
-    const char* freesizeopt[] = {"true", "false", "fixed", "relative", "cap", "2", "1", "0", 0};
-    const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
-    const char* truefalsequietopts[] = { "true", "false", "1", "0", "quiet", 0 };
-    const char* pc98fmboards[] = { "auto", "off", "false", "board14", "board26k", "board86", "board86c", 0};
-    const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
-    const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
-    const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
-    const char* fpu_settings[] = { "true", "false", "1", "0", "auto", "8087", "287", "387", 0};
-    const char* sb_recording_sources[] = { "silence", "hiss", "1khz tone", 0};
+        nullptr };
+    const char* ems_settings[] = { "true", "emsboard", "emm386", "false", "1", "0", nullptr };
+    const char* lfn_settings[] = { "true", "false", "1", "0", "auto", "autostart", nullptr };
+    const char* fat32setver_settings[] = { "ask", "auto", "manual", nullptr };
+    const char* quit_settings[] = { "true", "false", "1", "0", "auto", "autofile", nullptr };
+    const char* autofix_settings[] = { "true", "false", "1", "0", "both", "a20fix", "loadfix", "none", nullptr };
+    const char* color_themes[] = { "default", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", nullptr };
+    const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", nullptr };
+    const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", "0", "-1", nullptr };
+    const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", nullptr };
+    const char* dmassb[] = { "1", "5", "0", "3", "6", "7", "-1", nullptr };
+    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", "opl3duoboard", "retrowave_opl3", "esfmu", nullptr };
+    const char *qualityno[] = { "0", "1", "2", "3", nullptr };
+    const char* tandys[] = { "auto", "on", "off", nullptr };
+    const char* ps1opt[] = { "on", "off", nullptr };
+    const char* numopt[] = { "on", "off", "", nullptr };
+    const char* freesizeopt[] = {"true", "false", "fixed", "relative", "cap", "2", "1", "0", nullptr };
+    const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", nullptr };
+    const char* truefalsequietopts[] = { "true", "false", "1", "0", "quiet", nullptr };
+    const char* pc98fmboards[] = { "auto", "off", "false", "board14", "board26k", "board86", "board86c", nullptr };
+    const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", nullptr };
+    const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", nullptr };
+    const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", nullptr };
+    const char* fpu_settings[] = { "true", "false", "1", "0", "auto", "8087", "287", "387", nullptr };
+    const char* sb_recording_sources[] = { "silence", "hiss", "1khz tone", nullptr };
 
     const char* hostkeys[] = {
-        "ctrlalt", "ctrlshift", "altshift", "mapper", 0 };
+        "ctrlalt", "ctrlshift", "altshift", "mapper", nullptr };
 
     const char* sendkeys[] = {
-        "winlogo", "winmenu", "alttab", "ctrlesc", "ctrlbreak", "ctrlaltdel", 0 };
+        "winlogo", "winmenu", "alttab", "ctrlesc", "ctrlbreak", "ctrlaltdel", nullptr };
 
     const char* irqhandler[] = {
-        "", "simple", "cooperative_2nd", 0 };
+        "", "simple", "cooperative_2nd", nullptr };
 
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
@@ -1380,19 +1380,19 @@ void DOSBOX_SetupConfigSections(void) {
 	"svga_ati_mach32",
 	"svga_ati_mach64",
 	"fm_towns", // STUB
-        0 };
+        nullptr };
 
     const char* backendopts[] = {
         "pcap", "slirp", "nothing", "auto", "none",
-        0 };
+        nullptr };
 
     const char* workdiropts[] = {
         "autoprompt", "config", "custom", "default", "force", "noprompt", "program", "prompt", "userconfig",
-        0 };
+        nullptr };
 
     const char* resolveopts[] = {
         "true", "false", "dosvar", "tilde", "1", "0",
-        0 };
+        nullptr };
 
     const char* switchoutputs[] = {
         "auto", "surface",
@@ -1400,7 +1400,7 @@ void DOSBOX_SetupConfigSections(void) {
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
         "direct3d",
-        0 };
+        nullptr };
 
     const char* scalers[] = {
         "none", "normal2x", "normal3x", "normal4x", "normal5x",
@@ -1414,7 +1414,7 @@ void DOSBOX_SetupConfigSections(void) {
 #if C_XBRZ
         "xbrz", "xbrz_bilinear",
 #endif
-        0 };
+        nullptr };
 
     const char* cores[] = { "auto",
 #if (C_DYNAMIC_X86)
@@ -1423,7 +1423,7 @@ void DOSBOX_SetupConfigSections(void) {
 #if (C_DYNREC)
         "dynamic", "dynamic_rec",
 #endif
-        "normal", "full", "simple", 0 };
+        "normal", "full", "simple", nullptr };
 
     const char* voodoo_settings[] = {
         "false",
@@ -1432,7 +1432,7 @@ void DOSBOX_SetupConfigSections(void) {
         "opengl",
 #endif
         "auto",
-        0
+        nullptr
     };
 
 #if defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__)) && !defined(EMSCRIPTEN)
@@ -2087,10 +2087,10 @@ void DOSBOX_SetupConfigSections(void) {
             "Append 'bright' for a brighter look.");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("color",Property::Changeable::Always,"green");
-    const char* monochrome_pal_colors[]={"green","amber","gray","white",0};
+    const char* monochrome_pal_colors[]={"green","amber","gray","white",nullptr};
     Pstring->Set_values(monochrome_pal_colors);
     Pstring = Pmulti->GetSection()->Add_string("bright",Property::Changeable::Always,"");
-    const char* bright[] = { "", "bright", 0 };
+    const char* bright[] = { "", "bright", nullptr };
     Pstring->Set_values(bright);
 
     secprop=control->AddSection_prop("pc98",&Null_Init);
@@ -2318,13 +2318,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("del",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Maps the undefined del symbol (0x7F) to the next character (0x80) for the Japanese DOS/V and other Japanese mode emulations.");
 
-	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
+	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", nullptr };
 	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
 	Pstring->Set_values(fepcontrol_settings);
 	Pstring->Set_help("FEP control API for the DOS/V emulation.");
     Pstring->SetBasic(true);
 
-	const char* vtext_settings[] = { "xga", "xga24", "sxga", "sxga24", "svga", 0};
+	const char* vtext_settings[] = { "xga", "xga24", "sxga", "sxga24", "svga", nullptr };
 	Pstring = secprop->Add_path("vtext1",Property::Changeable::WhenIdle,"svga");
 	Pstring->Set_values(vtext_settings);
 	Pstring->Set_help("V-text screen mode 1 for the DOS/V emulation. Enter command \"VTEXT 1\" for this mode. Note that XGA/SXGA mode is only supported by the svga_s3trio and svga_et4000 machine types.");
@@ -3132,7 +3132,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 	//Phex = secprop->Add_hex("grport",Property::Changeable::WhenIdle,0x600);
 	//Phex->Set_help("I/O port to use for host communication.");
-    const char *lfb[] = {"full","full_noaux","read","read_noaux","write","write_noaux","none",0};
+    const char *lfb[] = {"full","full_noaux","read","read_noaux","write","write_noaux","none",nullptr};
 	Pstring = secprop->Add_string("lfb",Property::Changeable::WhenIdle,"full_noaux");
 	Pstring->Set_values(lfb);
 	Pstring->Set_help("Enable LFB access for Glide. OpenGlide does not support locking aux buffer, please use _noaux modes.");
@@ -3234,7 +3234,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("mt32.thread",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("MT-32 rendering in separate thread");
 
-    const char *mt32chunk[] = {"2", "3", "16", "99", "100",0};
+    const char *mt32chunk[] = {"2", "3", "16", "99", "100", nullptr };
     Pint = secprop->Add_int("mt32.chunk",Property::Changeable::WhenIdle,16);
     Pint->Set_values(mt32chunk);
     Pint->SetMinMax(2,100);
@@ -3242,7 +3242,7 @@ void DOSBOX_SetupConfigSections(void) {
         "Increasing this value reduces rendering overhead which may improve performance but also increases audio lag.\n"
         "Valid for rendering in separate thread only.");
 
-    const char *mt32prebuffer[] = {"3", "4", "32", "199", "200",0};
+    const char *mt32prebuffer[] = {"3", "4", "32", "199", "200", nullptr };
     Pint = secprop->Add_int("mt32.prebuffer",Property::Changeable::WhenIdle,32);
     Pint->Set_values(mt32prebuffer);
     Pint->SetMinMax(3,200);
@@ -3281,7 +3281,7 @@ void DOSBOX_SetupConfigSections(void) {
         "Bit order at DAC (where each number represents the original LA32 output bit number):\n"
         "15 13 12 11 10 09 08 07 06 05 04 03 02 01 00 14");
 
-    const char *mt32analogModes[] = {"0", "1", "2", "3",0};
+    const char *mt32analogModes[] = {"0", "1", "2", "3", nullptr };
     Pint = secprop->Add_int("mt32.analog",Property::Changeable::WhenIdle,2);
     Pint->Set_values(mt32analogModes);
     Pint->Set_help("MT-32 analogue output emulation mode\n"
@@ -3326,7 +3326,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of MT-32 emulation.");
 
-    const char *mt32srcQuality[] = {"0", "1", "2", "3",0};
+    const char *mt32srcQuality[] = {"0", "1", "2", "3", nullptr };
     Pint = secprop->Add_int("mt32.src.quality", Property::Changeable::WhenIdle, 2);
     Pint->Set_values(mt32srcQuality);
     Pint->Set_help("MT-32 sample rate conversion quality\n"
@@ -3346,7 +3346,7 @@ void DOSBOX_SetupConfigSections(void) {
          "Default is false.");
 
 #if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
-	const char *fluiddrivers[] = {"pulseaudio", "alsa", "oss", "coreaudio", "dsound", "portaudio", "sndman", "jack", "file", "default",0};
+	const char *fluiddrivers[] = {"pulseaudio", "alsa", "oss", "coreaudio", "dsound", "portaudio", "sndman", "jack", "file", "default", nullptr };
 	Pstring = secprop->Add_string("fluid.driver",Property::Changeable::WhenIdle,"default");
 	Pstring->Set_values(fluiddrivers);
 	Pstring->Set_help("Driver to use with Fluidsynth, not needed under Windows. Available drivers depend on what Fluidsynth was compiled with.");
@@ -3374,12 +3374,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("fluid.periodsize",Property::Changeable::WhenIdle,"default");
 	Pstring->Set_help("Fluidsynth period size, or default.");
 
-	const char *fluidreverb[] = {"no", "yes",0};
+	const char *fluidreverb[] = {"no", "yes", nullptr };
 	Pstring = secprop->Add_string("fluid.reverb",Property::Changeable::WhenIdle,"yes");
 	Pstring->Set_values(fluidreverb);
 	Pstring->Set_help("Fluidsynth use reverb.");
 
-	const char *fluidchorus[] = {"no", "yes",0};
+	const char *fluidchorus[] = {"no", "yes", nullptr };
 	Pstring = secprop->Add_string("fluid.chorus",Property::Changeable::WhenIdle,"yes");
 	Pstring->Set_values(fluidchorus);
 	Pstring->Set_help("Fluidsynth use chorus.");
@@ -3408,7 +3408,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("fluid.chorus.depth",Property::Changeable::WhenIdle,"8.0");
 	Pstring->Set_help("Fluidsynth chorus depth.");
 
-	const char *fluidchorustypes[] = {"0", "1",0};
+	const char *fluidchorustypes[] = {"0", "1", nullptr };
 	Pint = secprop->Add_int("fluid.chorus.type",Property::Changeable::WhenIdle,0);
 	Pint->Set_values(fluidchorustypes);
 	Pint->Set_help("Fluidsynth chorus type. 0 is sine wave, 1 is triangle wave.");

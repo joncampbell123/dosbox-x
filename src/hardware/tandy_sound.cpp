@@ -65,8 +65,8 @@ static struct {
 	} dac;
 } tandy;
 
-static sn76496_device device_sn76496(machine_config(), 0, 0, SOUND_CLOCK );
-static ncr8496_device device_ncr8496(machine_config(), 0, 0, SOUND_CLOCK);
+static sn76496_device device_sn76496(machine_config(), nullptr, nullptr, SOUND_CLOCK );
+static ncr8496_device device_ncr8496(machine_config(), nullptr, nullptr, SOUND_CLOCK);
 
 static sn76496_base_device* activeDevice = &device_ncr8496;
 #define device (*activeDevice)
@@ -101,7 +101,7 @@ static void SN76496Update(Bitu length) {
 	int16_t* outputs = buffer;
 
 	device_sound_interface::sound_stream stream;
-	static_cast<device_sound_interface&>(device).sound_stream_update(stream, 0, &outputs, (int)length);
+	static_cast<device_sound_interface&>(device).sound_stream_update(stream, nullptr, &outputs, (int)length);
 	tandy.chan->AddSamples_m16(length, buffer);
 }
 

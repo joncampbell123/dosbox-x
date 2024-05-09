@@ -1139,7 +1139,7 @@ void BlankDisplay(void) {
         LOG_MSG("FIXME: BlankDisplay() not implemented for OpenGL mode");
     }
     else {
-        SDL_FillRect(sdl.surface,0,0);
+        SDL_FillRect(sdl.surface, nullptr, 0);
 #if defined(C_SDL2)
         SDL_UpdateWindowSurface(sdl.window);
 #else
@@ -1495,15 +1495,15 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
     if (sdl.renderer) {
         SDL_DestroyRenderer(sdl.renderer);
-        sdl.renderer=0;
+        sdl.renderer = nullptr;
     }
     if (sdl.texture.pixelFormat) {
         SDL_FreeFormat(sdl.texture.pixelFormat);
-        sdl.texture.pixelFormat = 0;
+        sdl.texture.pixelFormat = nullptr;
     }
     if (sdl.texture.texture) {
         SDL_DestroyTexture(sdl.texture.texture);
-        sdl.texture.texture=0;
+        sdl.texture.texture = nullptr;
     }
     sdl.window_desired_width = width;
     sdl.window_desired_height = height;
@@ -1524,7 +1524,7 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 #if C_OPENGL
     if (sdl_opengl.context) {
         SDL_GL_DeleteContext(sdl_opengl.context);
-        sdl_opengl.context=0;
+        sdl_opengl.context = nullptr;
     }
 #endif
 
@@ -1807,11 +1807,11 @@ void GFX_LogSDLState(void)
 
 void GFX_TearDown(void) {
     if (sdl.updating)
-        GFX_EndUpdate( 0 );
+        GFX_EndUpdate(nullptr);
 
     if (sdl.blit.surface) {
         SDL_FreeSurface(sdl.blit.surface);
-        sdl.blit.surface=0;
+        sdl.blit.surface = nullptr;
     }
 }
 
@@ -1881,7 +1881,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     bool diff = width != sdl.draw.width || height != sdl.draw.height;
 
     if (sdl.updating)
-        GFX_EndUpdate( 0 );
+        GFX_EndUpdate(nullptr);
 
     sdl.must_redraw_all = true;
 
@@ -1913,7 +1913,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     if (sdl.blit.surface) {
         SDL_FreeSurface(sdl.blit.surface);
-        sdl.blit.surface=0;
+        sdl.blit.surface = nullptr;
     }
 
     switch (sdl.desktop.want_type) {
@@ -3073,7 +3073,7 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
 
 void GFX_Stop() {
     if (sdl.updating)
-        GFX_EndUpdate( 0 );
+        GFX_EndUpdate(nullptr);
     sdl.active=false;
 }
 
@@ -6319,7 +6319,7 @@ void SDL_SetupConfigSection() {
         "gamelink",
 #endif
         "ddraw", "direct3d",
-        0 };
+        nullptr };
 
     Pint = sdl_sec->Add_int("display", Property::Changeable::Always, 0);
     Pint->Set_help("Specify a screen/display number to use for a multi-screen setup (0 = default).");
@@ -6361,7 +6361,7 @@ void SDL_SetupConfigSection() {
     Pstring->Set_values(unlocks);
     Pstring->SetBasic(true);
 
-	const char* clipboardbutton[] = { "none", "middle", "right", "arrows", 0};
+	const char* clipboardbutton[] = { "none", "middle", "right", "arrows", nullptr };
 	Pstring = sdl_sec->Add_string("clip_mouse_button",Property::Changeable::Always, "right");
 	Pstring->Set_values(clipboardbutton);
 	Pstring->Set_help("Select the mouse button or use arrow keys for the shared clipboard copy/paste function.\n"
@@ -6370,14 +6370,14 @@ void SDL_SetupConfigSection() {
 		"For \"arrows\", press Home key (or Fn+Shift+Left on Mac laptops) to start selection, and End key (or Fn+Shift+Right on Mac laptops) to end selection.");
     Pstring->SetBasic(true);
 
-	const char* clipboardmodifier[] = { "none", "ctrl", "lctrl", "rctrl", "alt", "lalt", "ralt", "shift", "lshift", "rshift", "ctrlalt", "ctrlshift", "altshift", "lctrlalt", "lctrlshift", "laltshift", "rctrlalt", "rctrlshift", "raltshift", 0};
+	const char* clipboardmodifier[] = { "none", "ctrl", "lctrl", "rctrl", "alt", "lalt", "ralt", "shift", "lshift", "rshift", "ctrlalt", "ctrlshift", "altshift", "lctrlalt", "lctrlshift", "laltshift", "rctrlalt", "rctrlshift", "raltshift", nullptr };
 	Pstring = sdl_sec->Add_string("clip_key_modifier",Property::Changeable::Always, "shift");
 	Pstring->Set_values(clipboardmodifier);
 	Pstring->Set_help("Change the keyboard modifier for the shared clipboard copy/paste function using a mouse button or arrow keys.\n"
 		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
     Pstring->SetBasic(true);
 
-	const char* truefalsedefaultopt[] = { "true", "false", "1", "0", "default", 0};
+	const char* truefalsedefaultopt[] = { "true", "false", "1", "0", "default", nullptr };
 	Pstring = sdl_sec->Add_string("clip_paste_bios",Property::Changeable::WhenIdle, "default");
 	Pstring->Set_values(truefalsedefaultopt);
 	Pstring->Set_help("Specify whether to use BIOS keyboard functions for the clipboard pasting instead of the keystroke method.\n"
@@ -6442,11 +6442,11 @@ void SDL_SetupConfigSection() {
                      "  pause is only valid for the second entry.");
     Pmulti->SetBasic(true);
 
-    const char* actt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
+    const char* actt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", nullptr };
     Pstring = Pmulti->GetSection()->Add_string("active",Property::Changeable::Always,"higher");
     Pstring->Set_values(actt);
 
-    const char* inactt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
+    const char* inactt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", nullptr };
     Pstring = Pmulti->GetSection()->Add_string("inactive",Property::Changeable::Always,"normal");
     Pstring->Set_values(inactt);
 
@@ -6463,7 +6463,7 @@ void SDL_SetupConfigSection() {
     Pbool = sdl_sec->Add_bool("forcesquarecorner", Property::Changeable::OnlyAtStart, true);
     Pbool->Set_help("If set, DOSBox-X will force square corners (instead of round corners) for the DOSBox-X window when running in Windows 11.");
 
-	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
+	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", nullptr };
     Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Avoid usage of symkeys, in favor of scancodes. Might not work on all operating systems.\n"

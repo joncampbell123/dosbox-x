@@ -1142,7 +1142,7 @@ bool Config::ParseConfigFile(char const * const configfilename) {
 					}
 				}
             } catch(const char* message) {
-                message=0;
+                message = nullptr;
                 //EXIT with message
             }
             break;

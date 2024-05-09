@@ -722,7 +722,7 @@ void OUTPUT_SURFACE_EndUpdate(const uint16_t *changedLines)
         if (SDL_MUSTLOCK(sdl.surface)) {
             if (sdl.blit.surface) {
                 SDL_UnlockSurface(sdl.blit.surface);
-                int Blit = SDL_BlitSurface(sdl.blit.surface, 0, sdl.surface, &sdl.clip);
+                int Blit = SDL_BlitSurface(sdl.blit.surface, nullptr, sdl.surface, &sdl.clip);
                 LOG(LOG_MISC, LOG_WARN)("BlitSurface returned %d", Blit);
             }
             else {

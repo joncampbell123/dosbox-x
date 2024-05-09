@@ -6271,20 +6271,20 @@ static Bitu INT17_Handler(void) {
 
     switch(reg_ah) {
     case 0x00:      // PRINTER: Write Character
-        if(parallelPortObjects[reg_dx]!=0) {
+        if(parallelPortObjects[reg_dx]) {
             if(parallelPortObjects[reg_dx]->Putchar(reg_al))
                 reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
             else reg_ah=1;
         }
         break;
     case 0x01:      // PRINTER: Initialize port
-        if(parallelPortObjects[reg_dx]!= 0) {
+        if(parallelPortObjects[reg_dx]) {
             parallelPortObjects[reg_dx]->initialize();
             reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
         }
         break;
     case 0x02:      // PRINTER: Get Status
-        if(parallelPortObjects[reg_dx] != 0)
+        if(parallelPortObjects[reg_dx])
             reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
         //LOG_MSG("printer status: %x",reg_ah);
         break;

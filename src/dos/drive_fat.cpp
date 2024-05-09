@@ -1416,7 +1416,7 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 }
 
 fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options) {
-	if (sourceLoadedDisk == 0) {
+	if (!sourceLoadedDisk) {
 		created_successfully = false;
 		return;
 	}

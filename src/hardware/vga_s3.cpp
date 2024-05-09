@@ -691,12 +691,12 @@ void SVGA_Setup_S3Trio(void) {
     svga.read_p3d5 = &SVGA_S3_ReadCRTC;
     svga.write_p3c5 = &SVGA_S3_WriteSEQ;
     svga.read_p3c5 = &SVGA_S3_ReadSEQ;
-    svga.write_p3c0 = 0; /* no S3-specific functionality */
-    svga.read_p3c1 = 0; /* no S3-specific functionality */
+    svga.write_p3c0 = nullptr; /* no S3-specific functionality */
+    svga.read_p3c1 = nullptr; /* no S3-specific functionality */
 
-    svga.set_video_mode = 0; /* implemented in core */
-    svga.determine_mode = 0; /* implemented in core */
-    svga.set_clock = 0; /* implemented in core */
+    svga.set_video_mode = nullptr; /* implemented in core */
+    svga.determine_mode = nullptr; /* implemented in core */
+    svga.set_clock = nullptr; /* implemented in core */
     svga.get_clock = &SVGA_S3_GetClock;
     svga.hardware_cursor_active = &SVGA_S3_HWCursorActive;
     svga.accepts_mode = &SVGA_S3_AcceptsMode;

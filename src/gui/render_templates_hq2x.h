@@ -91,7 +91,7 @@ inline void conc2d(Hq2x,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
 	(void)conc2d(Hq2x,SBPP);
 # endif
 
-	if (_RGBtoYUV == 0) conc2d(InitLUTs,SBPP)();
+	if (!_RGBtoYUV) conc2d(InitLUTs,SBPP)();
 
 	uint32_t pattern = 0;
 	const uint32_t YUV4 = RGBtoYUV(C4);

@@ -47,7 +47,7 @@ class PcapEthernetConnection : public EthernetConnection {
 		void GetPackets(std::function<void(const uint8_t*, int)> callback) override;
 
 	private:
-		pcap_t* adhandle = 0; /*!< The pcap handle used for this device */
+		pcap_t* adhandle = nullptr; /*!< The pcap handle used for this device */
 };
 
 #endif

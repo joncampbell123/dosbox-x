@@ -522,25 +522,25 @@ static int SDL_SYS_CDPlay(SDL_CD *cdrom, int start, int length)
 /* Pause play */
 static int SDL_SYS_CDPause(SDL_CD *cdrom)
 {
-	return(SDL_SYS_CDioctl(cdrom->id, CDROMPAUSE, 0));
+	return(SDL_SYS_CDioctl(cdrom->id, CDROMPAUSE, NULL));
 }
 
 /* Resume play */
 static int SDL_SYS_CDResume(SDL_CD *cdrom)
 {
-	return(SDL_SYS_CDioctl(cdrom->id, CDROMRESUME, 0));
+	return(SDL_SYS_CDioctl(cdrom->id, CDROMRESUME, NULL));
 }
 
 /* Stop play */
 static int SDL_SYS_CDStop(SDL_CD *cdrom)
 {
-	return(SDL_SYS_CDioctl(cdrom->id, CDROMSTOP, 0));
+	return(SDL_SYS_CDioctl(cdrom->id, CDROMSTOP, NULL));
 }
 
 /* Eject the CD-ROM */
 static int SDL_SYS_CDEject(SDL_CD *cdrom)
 {
-	return(SDL_SYS_CDioctl(cdrom->id, CDROMEJECT, 0));
+	return(SDL_SYS_CDioctl(cdrom->id, CDROMEJECT, NULL));
 }
 
 /* Close the CD-ROM handle */

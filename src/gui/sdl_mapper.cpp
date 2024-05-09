@@ -552,7 +552,7 @@ public:
         list=_list;
         _list->push_back(this);
         mods=flags=0;
-        event=0;
+        event = nullptr;
         active=holding=false;
         type = _type;
         value = 0;
@@ -1538,7 +1538,7 @@ public:
     }
     virtual ~CKeyBindGroup() { delete[] lists; }
     CBind * CreateConfigBind(char *& buf) override {
-        if (strncasecmp(buf,configname,strlen(configname))) return 0;
+        if (strncasecmp(buf,configname,strlen(configname))) return nullptr;
         StripWord(buf);char * num=StripWord(buf);
         Bitu code=(Bitu)ConvDecWord(num);
 #if defined(C_SDL2)
@@ -1553,7 +1553,7 @@ public:
         return bind;
     }
     CBind * CreateEventBind(SDL_Event * event) override {
-        if (event->type!=SDL_KEYDOWN) return 0;
+        if (event->type!=SDL_KEYDOWN) return nullptr;
 #if defined(C_SDL2)
         SDL_Scancode key = event->key.keysym.scancode;
 #if defined(WIN32)
@@ -1871,10 +1871,10 @@ public:
     }
 
     CBind * CreateConfigBind(char *& buf) override {
-        if (is_dummy) return 0;
-        if (strncasecmp(configname,buf,strlen(configname))) return 0;
+        if (is_dummy) return nullptr;
+        if (strncasecmp(configname,buf,strlen(configname))) return nullptr;
         StripWord(buf);char * type=StripWord(buf);
-        CBind * bind=0;
+        CBind * bind = nullptr;
         if (!strcasecmp(type,"axis")) {
             Bitu ax=(Bitu)ConvDecWord(StripWord(buf));
             bool pos=ConvDecWord(StripWord(buf)) > 0;
@@ -1891,25 +1891,25 @@ public:
     }
     CBind * CreateEventBind(SDL_Event * event) override {
         if (event->type==SDL_JOYAXISMOTION) {
-            if ((unsigned int)event->jaxis.which!=(unsigned int)stick) return 0;
+            if ((unsigned int)event->jaxis.which!=(unsigned int)stick) return nullptr;
 #if defined (REDUCE_JOYSTICK_POLLING)
-            if (event->jaxis.axis>=axes) return 0;
+            if (event->jaxis.axis>=axes) return nullptr;
 #endif
-            if (abs(event->jaxis.value)<25000) return 0;
+            if (abs(event->jaxis.value)<25000) return nullptr;
             return CreateAxisBind(event->jaxis.axis,event->jaxis.value>0);
         } else if (event->type==SDL_JOYBUTTONDOWN) {
-            if ((unsigned int)event->jbutton.which!=(unsigned int)stick) return 0;
+            if ((unsigned int)event->jbutton.which!=(unsigned int)stick) return nullptr;
 #if defined (REDUCE_JOYSTICK_POLLING)
             return CreateButtonBind(event->jbutton.button%button_wrap);
 #else
             return CreateButtonBind(event->jbutton.button);
 #endif
         } else if (event->type==SDL_JOYHATMOTION) {
-            if ((unsigned int)event->jhat.which!=(unsigned int)stick) return 0;
-            if (event->jhat.value==0) return 0;
-            if (event->jhat.value>(SDL_HAT_UP|SDL_HAT_RIGHT|SDL_HAT_DOWN|SDL_HAT_LEFT)) return 0;
+            if ((unsigned int)event->jhat.which!=(unsigned int)stick) return nullptr;
+            if (event->jhat.value==0) return nullptr;
+            if (event->jhat.value>(SDL_HAT_UP|SDL_HAT_RIGHT|SDL_HAT_DOWN|SDL_HAT_LEFT)) return nullptr;
             return CreateHatBind(event->jhat.hat,event->jhat.value);
-        } else return 0;
+        } else return nullptr;
     }
 
     bool CheckEvent(SDL_Event * event) override {
@@ -2818,7 +2818,7 @@ public:
         switch (type) {
         case BB_Add: 
             mapper.addbind=true;
-            SetActiveBind(0);
+            SetActiveBind(nullptr);
             change_action_text(MSG_Get("PRESS_JOYSTICK_KEY"),CLR_RED);
             break;
         case BB_Del:
@@ -2830,7 +2830,7 @@ public:
                     mapper.abindit=mapper.aevent->bindlist.begin();
             }
             if (mapper.abindit!=mapper.aevent->bindlist.end()) SetActiveBind(*(mapper.abindit));
-            else SetActiveBind(0);
+            else SetActiveBind(nullptr);
             RedrawMapperBindButton(mapper.aevent);
             break;
         case BB_Next:
@@ -3856,13 +3856,13 @@ static void SetActiveEvent(CEvent * event) {
     if (!event) {
         change_action_text(MSG_Get("SELECT_EVENT"),CLR_WHITE);
         bind_but.add->Enable(false);
-        SetActiveBind(0);
+        SetActiveBind(nullptr);
     } else {
         change_action_text(MSG_Get("SELECT_DIFFERENT_EVENT"),CLR_WHITE);
         mapper.abindit=event->bindlist.begin();
         if (mapper.abindit!=event->bindlist.end()) {
             SetActiveBind(*(mapper.abindit));
-        } else SetActiveBind(0);
+        } else SetActiveBind(nullptr);
         bind_but.add->Enable(true);
     }
 
@@ -3877,7 +3877,7 @@ extern void GFX_UpdateDisplayDimensions(int width, int height);
 
 static void DrawButtons(void) {
 #if defined(C_SDL2)
-    SDL_FillRect(mapper.draw_surface,0,0);
+    SDL_FillRect(mapper.draw_surface, nullptr, 0);
 #else
     SDL_FillRect(mapper.surface,0,CLR_BLACK);
     SDL_LockSurface(mapper.surface);
@@ -4541,7 +4541,7 @@ static struct {
     {"caret", SDLK_CARET },
     {"atsign", SDLK_AT },
 #endif
-    {0,0}
+    {nullptr, 0}
 };
 #else
 
@@ -5344,7 +5344,7 @@ void MAPPER_RunInternal() {
     }
 
     /* Be sure that there is no update in progress */
-    GFX_EndUpdate( 0 );
+    GFX_EndUpdate(nullptr);
 #if defined(C_SDL2)
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(false);
@@ -5391,7 +5391,7 @@ void MAPPER_RunInternal() {
     /* Go in the event loop */
     mapper.exit=false;  
     mapper.redraw=true;
-    SetActiveEvent(0);
+    SetActiveEvent(nullptr);
 #if defined (REDUCE_JOYSTICK_POLLING)
     SDL_JoystickEventState(SDL_ENABLE);
 #endif

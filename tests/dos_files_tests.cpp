@@ -98,7 +98,7 @@ TEST_F(DOS_FilesTest, DOS_MakeName_Drive_Index_Set_On_Failure)
 {
 	for (int i=0;i<DOS_DRIVES-1;i++) {
 		if (Drives[i]) DriveManager::UnmountDrive(i);
-		Drives[i]=0;
+		Drives[i] = nullptr;
 	}
 	uint8_t drive_result;
 	char fullname_result[DOS_PATHLENGTH];

@@ -179,7 +179,7 @@ char* VFILE_Generate_SFN(const char *name, unsigned int onpos) {
         if (!found) return sfn;
 		k++;
 	}
-	return 0;
+	return nullptr;
 }
 
 void VFILE_Shutdown(void) {
@@ -378,7 +378,7 @@ uint16_t Virtual_File::GetInformation(void) {
 
 Virtual_Drive::Virtual_Drive() {
 	strcpy(info,"Internal Virtual Drive");
-	for (int i=0; i<256; i++) {lfn_id[i] = 0;lfn_search[i] = 0;}
+	for (int i=0; i<256; i++) {lfn_id[i] = 0;lfn_search[i] = nullptr;}
     const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = section->Get_string("drive z hide files");
     if (parent_dir == NULL) parent_dir = new VFILE_Block;
@@ -570,7 +570,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 		}
 	if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
 		lfn_id[lfn_filefind_handle]=0;
-		lfn_search[lfn_filefind_handle]=0;
+		lfn_search[lfn_filefind_handle]=nullptr;
 	}
 	DOS_SetError(DOSERR_NO_MORE_FILES);
 	return false;
