@@ -190,7 +190,7 @@ static int create_mutex( const char* p_name )
 #else // MACOSX
 		LOG_MSG( "GAMELINK: Might need to manually tidy up in /dev/shm (or reboot system)." );
 #endif // MACOSX
-		g_mutex_handle = 0;
+		g_mutex_handle = nullptr;
 	}
     else
     {
@@ -294,7 +294,7 @@ static int create_shared_memory()
 
 		// map to a pointer.
 		g_p_shared_memory = reinterpret_cast< GameLink::sSharedMemoryMap_R4* >(
-			mmap( 0, memory_map_size, PROT_READ | PROT_WRITE, MAP_SHARED, g_mmap_handle, 0 )
+			mmap(nullptr, memory_map_size, PROT_READ | PROT_WRITE, MAP_SHARED, g_mmap_handle, 0)
 		);
 
 		if ( g_p_shared_memory == MAP_FAILED )
@@ -415,7 +415,7 @@ uint8_t* GameLink::AllocRAM( const uint32_t size )
 	{
 		destroy_mutex( GAMELINK_MUTEX_NAME );
 		// failed.
-		return 0;
+		return nullptr;
 	}
 
 	// Initialise

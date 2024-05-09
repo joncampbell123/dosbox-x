@@ -166,7 +166,7 @@ CMscdex::CMscdex(const char *_name) {
 	assert(_name != NULL);
 	assert(strlen(_name) <= 8);
 	memset(dinfo,0,sizeof(dinfo));
-	for (uint32_t i=0; i<MSCDEX_MAX_DRIVES; i++) cdrom[i] = 0;
+	for (uint32_t i=0; i<MSCDEX_MAX_DRIVES; i++) cdrom[i] = nullptr;
 	name = new char[strlen(_name)+1];
 	strcpy(name,_name);
 }
@@ -176,7 +176,7 @@ CMscdex::~CMscdex(void) {
 	defaultBufSeg = 0;
 	for (uint16_t i=0; i<GetNumDrives(); i++) {
 		delete cdrom[i];
-		cdrom[i] = 0;
+		cdrom[i] = nullptr;
 	}
 	delete[] name;
 }
@@ -215,7 +215,7 @@ int CMscdex::RemoveDrive(uint16_t _drive)
 	if (idx==0) {
 		for (uint16_t i=0; i<GetNumDrives(); i++) {
 			if (i == MSCDEX_MAX_DRIVES-1) {
-				cdrom[i] = 0;
+				cdrom[i] = nullptr;
 				memset(&dinfo[i],0,sizeof(TDriveInfo));
 			} else {
 				dinfo[i] = dinfo[i+1];
@@ -223,7 +223,7 @@ int CMscdex::RemoveDrive(uint16_t _drive)
 			}
 		}
 	} else {
-		cdrom[idx] = 0;
+		cdrom[idx] = nullptr;
 		memset(&dinfo[idx],0,sizeof(TDriveInfo));
 	}
 	numDrives--;
@@ -935,7 +935,7 @@ bool CMscdex::GetChannelControl(uint8_t subUnit, TCtrl& ctrl) {
 	return true;
 }
 
-static CMscdex* mscdex = 0;
+static CMscdex* mscdex = nullptr;
 static PhysPt curReqheaderPtr = 0;
 
 bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
@@ -1632,7 +1632,7 @@ void POD_Load_DOS_Mscdex( std::istream& stream )
             mscdex->numDrives=dnum;
             for (uint16_t i=dnum; i<mscdex->GetNumDrives(); i++) {
                 delete mscdex->cdrom[i];
-                mscdex->cdrom[i] = 0;
+                mscdex->cdrom[i] = nullptr;
             }
         }
 		for (uint8_t drive_unit=0; drive_unit<dnum; drive_unit++) {

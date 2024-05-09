@@ -95,7 +95,7 @@ device_LPT::~device_LPT() {
 
 static void Parallel_EventHandler(Bitu val) {
 	Bitu serclassid=val&0xf;
-	if(parallelPortObjects[serclassid]!=0)
+	if (parallelPortObjects[serclassid])
 		parallelPortObjects[serclassid]->handleEvent((uint16_t)(val>>4ul));
 }
 
@@ -119,7 +119,7 @@ static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
 		 *      EPP ports assign ports 3-4 with possible vendor extensions in 5-6, while ECP assigns
 		 *      ports 0x400-0x402 relative to base and leave 3-7 undefined. */
 		// 0x3bc is a valid port
-		if(parallel_baseaddr[i]==(port&0xfffc) && parallelPortObjects[i]!=0) {
+		if(parallel_baseaddr[i]==(port&0xfffc) && parallelPortObjects[i]) {
 			Bitu retval=0xff;
 			switch (port & 0x3) {
 				case 0:
@@ -150,7 +150,7 @@ static void PARALLEL_Write (Bitu port, Bitu val, Bitu) {
 		 *      EPP ports assign ports 3-4 with possible vendor extensions in 5-6, while ECP assigns
 		 *      ports 0x400-0x402 relative to base and leave 3-7 undefined. */
 		// 0x3bc is a valid port
-		if(parallel_baseaddr[i]==(port&0xfffc) && parallelPortObjects[i]!=0) {
+		if(parallel_baseaddr[i]==(port&0xfffc) && parallelPortObjects[i]) {
 #if PARALLEL_DEBUG
 			const char* const dbgtext[]={"DAT","IOS","CON","???"};
 			parallelPortObjects[i]->log_par(parallelPortObjects[i]->dbg_cregs,
@@ -362,8 +362,8 @@ class PARPORTS:public Module_base {
 			// iterate through all 3 lpt ports
 			for (Bitu i = 0; i < 9; i++) {
 				pname[8] = '1' + (char)i;
-				CommandLine cmd(0,section->Get_string(pname));
-				CommandLine tmp(0,section->Get_string(pname), CommandLine::either, true);
+				CommandLine cmd(nullptr, section->Get_string(pname));
+				CommandLine tmp(nullptr, section->Get_string(pname), CommandLine::either, true);
 
 				std::string str;
 				bool squote = false;
@@ -393,7 +393,7 @@ class PARPORTS:public Module_base {
 						cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
 					} else {
 						delete cdlpt;
-						parallelPortObjects[i]=0;
+						parallelPortObjects[i] = nullptr;
 					}
 				} else
 #endif
@@ -406,7 +406,7 @@ class PARPORTS:public Module_base {
 							cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
 						} else {
 							delete cflpt;
-							parallelPortObjects[i]=0;
+							parallelPortObjects[i] = nullptr;
 						}
 					} else
 #if C_PRINTER
@@ -426,14 +426,14 @@ class PARPORTS:public Module_base {
 							{
 								LOG_MSG("Error: printer is not enabled.");
 								delete cprd;
-								parallelPortObjects[i] = 0;
+								parallelPortObjects[i] = nullptr;
 							}
 						} else
 #endif
 							if(str=="disabled") {
-								parallelPortObjects[i] = 0;
+								parallelPortObjects[i] = nullptr;
 							} else if (str == "disney") {
-								parallelPortObjects[i] = 0;
+								parallelPortObjects[i] = nullptr;
 								if (!DISNEY_HasInit()) {
 									LOG_MSG("LPT%d: User explicitly assigned Disney Sound Source to this port",(int)i+1);
 									DISNEY_Init(parallel_baseaddr[i]);
@@ -444,7 +444,7 @@ class PARPORTS:public Module_base {
 								}
 							} else {
 								LOG_MSG ("Invalid type for LPT%d.",(int)i + 1);
-								parallelPortObjects[i] = 0;
+								parallelPortObjects[i] = nullptr;
 							}
 			} // for lpt 1-9
 #if HAS_CDIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
@@ -464,7 +464,7 @@ class PARPORTS:public Module_base {
 			for (Bitu i = 0; i < 9; i++) {
 				if (parallelPortObjects[i]) {
 					delete parallelPortObjects[i];
-					parallelPortObjects[i] = 0;
+					parallelPortObjects[i] = nullptr;
 				}
 			}
 #if C_PRINTER
@@ -601,7 +601,7 @@ void PARALLEL::Run()
 				curpsp.CloseFile(name);
 			}
 			delete parallelPortObjects[port-1];
-			parallelPortObjects[port-1] = 0;
+			parallelPortObjects[port - 1] = nullptr;
 #if C_PRINTER
 		} else if (mode==PARALLEL_TYPE_PRINTER&&testParallelPortsBaseclass->printer_used) {
 			WriteOut("Printer is already assigned to a different port.\n");
@@ -622,7 +622,7 @@ void PARALLEL::Run()
 		// Recreate the port with the new mode.
 		switch (mode) {
 			case PARALLEL_TYPE_DISABLED:
-				parallelPortObjects[port-1] = 0;
+				parallelPortObjects[port - 1] = nullptr;
 				break;
 #if HAS_CDIRECTLPT
 			case PARALLEL_TYPE_REALLPT:

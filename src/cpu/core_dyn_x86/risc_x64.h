@@ -229,7 +229,7 @@ opcode& opcode::setea(int rbase, int rscale, Bitu scale, Bits off) {
 class GenReg {
 public:
 	GenReg(uint8_t _index) : index(_index) {
-		notusable=false;dynreg=0;
+		notusable=false;dynreg=nullptr;
 	}
 	DynReg  * dynreg;
 	Bitu last_used;			//Keeps track of last assigned regs 
@@ -258,14 +258,14 @@ public:
 			Save();
 		}
 		dynreg->flags&=~(DYNFLG_CHANGED|DYNFLG_ACTIVE);
-		dynreg->genreg=0;dynreg=0;
+		dynreg->genreg=nullptr;dynreg=nullptr;
 	}
 	void Clear(void) {
 		if (!dynreg) return;
 		if (dynreg->flags&DYNFLG_CHANGED) {
 			Save();
 		}
-		dynreg->genreg=0;dynreg=0;
+		dynreg->genreg=nullptr;dynreg=nullptr;
 	}
 };
 
@@ -400,7 +400,7 @@ static void ForceDynReg(GenReg * genreg,DynReg * dynreg) {
 		if (genreg->dynreg) genreg->Clear();
 		// mov dst32, src32
 		opcode(genreg->index).setrm(dynreg->genreg->index).Emit8(0x8B);
-		dynreg->genreg->dynreg=0;
+		dynreg->genreg->dynreg=nullptr;
 		dynreg->genreg=genreg;
 		genreg->dynreg=dynreg;
 	} else genreg->Load(dynreg);
@@ -422,7 +422,7 @@ static void gen_setupreg(DynReg * dnew,DynReg * dsetup) {
 	/* Not the same genreg must be wrong */
 	if (dnew->genreg) {
 		/* Check if the genreg i'm changing is actually linked to me */
-		if (dnew->genreg->dynreg==dnew) dnew->genreg->dynreg=0;
+		if (dnew->genreg->dynreg==dnew) dnew->genreg->dynreg=nullptr;
 	}
 	dnew->genreg=dsetup->genreg;
 	if (dnew->genreg) dnew->genreg->dynreg=dnew;
@@ -500,7 +500,7 @@ static void gen_reinit(void) {
 	x64gen.last_used=0;
 	x64gen.flagsactive=false;
 	for (Bitu i=0;i<X64_REGS;i++) {
-		x64gen.regs[i]->dynreg=0;
+		x64gen.regs[i]->dynreg=nullptr;
 	}
 }
 
@@ -919,7 +919,7 @@ static void gen_dop_word_imm_mem(DualOps op,bool dword,DynReg * dr1,void* data) 
 	if ((int32_t)addr==addr || (int32_t)rbpdiff==rbpdiff || ripdiff < 0x7FFFFFE0ll)
 		i = opcode(FindDynReg(dr1,dword && op==DOP_MOV)->index,dword).setabsaddr(data);
 	else if (dword && op==DOP_MOV) {
-		if (dr1->genreg) dr1->genreg->dynreg=0;
+		if (dr1->genreg) dr1->genreg->dynreg=nullptr;
 		x64gen.regs[X64_REG_RAX]->Load(dr1,true);
 		if ((uint32_t)addr == (Bitu)addr) {
 			cache_addb(0x67);
@@ -1130,7 +1130,7 @@ static void gen_call_function(void * func,const char* ops,...) {
 		GenReg * genret;
 		if (rettype == 'd') {
 			genret=x64gen.regs[X64_REG_RAX];
-			if (dynret->genreg) dynret->genreg->dynreg=0;
+			if (dynret->genreg) dynret->genreg->dynreg=nullptr;
 			genret->Load(dynret,true);
 		} else {
 			opcode op(0); // src=eax/ax/al/ah
@@ -1199,7 +1199,7 @@ static void gen_fill_branch_long(uint8_t * data,uint8_t * from=cache.pos) {
 	*(uint32_t*)data=(uint32_t)(from-data-4);
 }
 
-static uint8_t * gen_create_jump(uint8_t * to=0) {
+static uint8_t * gen_create_jump(uint8_t * to=nullptr) {
 	/* First free all registers */
 	cache_addb(0xe9);
 	cache_addd((uint32_t)(to-(cache.pos+4)));

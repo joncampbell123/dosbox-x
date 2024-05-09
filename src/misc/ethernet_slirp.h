@@ -95,9 +95,9 @@ class SlirpEthernetConnection : public EthernetConnection {
 
 		Slirp* slirp = nullptr; /*!< Handle to libslirp */
 		SlirpConfig config = { 0 }; /*!< Configuration passed to libslirp */
-		SlirpCb slirp_callbacks = { 0 }; /*!< Callbacks used by libslirp */
+		SlirpCb slirp_callbacks = { nullptr }; /*!< Callbacks used by libslirp */
 		std::list<struct slirp_timer*> timers; /*!< Stored timers */
-                
+
 		/** The GetPacket callback
 		 * When libslirp has a new packet for us it calls ReceivePacket,
 		 * but the EthernetConnection interface requires users to poll

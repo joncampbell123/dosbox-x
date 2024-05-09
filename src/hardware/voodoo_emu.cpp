@@ -3659,7 +3659,7 @@ static raster_info *find_rasterizer(voodoo_state *v, int texcount)
 	curinfo.display = 0;
 	curinfo.polys = 0;
 	curinfo.hits = 0;
-	curinfo.next = 0;
+	curinfo.next = nullptr;
 	curinfo.shader_ready = false;
 
 	return add_rasterizer(v, &curinfo);

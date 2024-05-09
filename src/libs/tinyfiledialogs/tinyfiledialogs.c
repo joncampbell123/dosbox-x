@@ -3378,9 +3378,9 @@ static int * getMajorMinorPatch( char const * aExecutable )
 		lTmp = (char *) getVersion(aExecutable);
 		lArray[0] = atoi( strtok(lTmp," ,.-") ) ;
 		/* printf("lArray0 %d\n", lArray[0]); */
-		lArray[1] = atoi( strtok(0," ,.-") ) ;
+		lArray[1] = atoi( strtok(NULL," ,.-") ) ;
 		/* printf("lArray1 %d\n", lArray[1]); */
-		lArray[2] = atoi( strtok(0," ,.-") ) ;
+		lArray[2] = atoi( strtok(NULL," ,.-") ) ;
 		/* printf("lArray2 %d\n", lArray[2]); */
 
 		if ( !lArray[0] && !lArray[1] && !lArray[2] ) return NULL;
@@ -3465,10 +3465,10 @@ int isDialogVersionBetter09b(void)
 		strcpy(lBuff,lVersion);
 		lMajor = atoi( strtok(lVersion," ,.-") ) ;
 		/*printf("lMajor %d\n", lMajor);*/
-		lMinorP = strtok(0," ,.-abcdefghijklmnopqrstuvxyz");
+		lMinorP = strtok(NULL," ,.-abcdefghijklmnopqrstuvxyz");
 		lMinor = atoi( lMinorP ) ;
 		/*printf("lMinor %d\n", lMinor );*/
-		lDate = atoi( strtok(0," ,.-") ) ;
+		lDate = atoi( strtok(NULL," ,.-") ) ;
 		if (lDate<0) lDate = - lDate;
 		/*printf("lDate %d\n", lDate);*/
 		lLetter = lMinorP + strlen(lMinorP) ;

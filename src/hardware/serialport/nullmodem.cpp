@@ -33,8 +33,8 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	Bitu temptcpport=23;
 	memset(&telClient, 0, sizeof(telClient));
 	InstallationSuccessful = false;
-	serversocket = 0;
-	clientsocket = 0;
+	serversocket = nullptr;
+	clientsocket = nullptr;
 	serverport = 0;
 	clientport = 0;
 
@@ -163,7 +163,7 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	setCTS(dtrrespect||transparent);
 	setDSR(dtrrespect||transparent);
 	setRI(false);
-	setCD(clientsocket != 0); // CD on if connection established
+	setCD(!!clientsocket); // CD on if connection established
 }
 
 CNullModem::~CNullModem() {
@@ -214,7 +214,7 @@ bool CNullModem::ClientConnect(NETClientSocket *newsocket) {
 	if (!clientsocket->isopen) {
 		LOG_MSG("Serial%d: Connection failed.",(int)COMNUMBER);
 		delete clientsocket;
-		clientsocket=0;
+		clientsocket = nullptr;
 		setCD(false);
 		return false;
 	}
@@ -267,7 +267,7 @@ bool CNullModem::ServerConnect() {
 	
 	// we don't accept further connections
 	delete serversocket;
-	serversocket=0;
+	serversocket = nullptr;
 
 	// transmit the line status
 	setRTSDTR(getRTS(), getDTR());
@@ -281,14 +281,14 @@ void CNullModem::Disconnect() {
 	// it was disconnected; free the socket and restart the server socket
 	LOG_MSG("Serial%d: Disconnected.",(int)COMNUMBER);
 	delete clientsocket;
-	clientsocket=0;
+	clientsocket = nullptr;
 	setDSR(false);
 	setCTS(false);
 	setCD(false);
 	
 	if (serverport) {
 		serversocket = NETServerSocket::NETServerFactory(socketType,serverport);
-		if (serversocket->isopen) 
+		if (serversocket->isopen)
 			setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
 		else delete serversocket;
 	} else if (dtrrespect) {

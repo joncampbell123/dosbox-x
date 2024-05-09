@@ -1074,7 +1074,7 @@ MixerChannel* MixerObject::Install(MIXER_Handler handler,Bitu freq,const char * 
         return MIXER_AddChannel(handler,freq,name);
     } else {
         E_Exit("already added mixer channel.");
-        return 0; //Compiler happy
+        return nullptr; //Compiler happy
     }
 }
 
@@ -1188,7 +1188,7 @@ void MIXER_Init() {
     /* Initialize the internal stuff */
     mixer.prebuffer_samples=0;
     mixer.prebuffer_wait=true;
-    mixer.channels=0;
+    mixer.channels = nullptr;
     mixer.pos=0;
     mixer.done=0;
     memset(mixer.work,0,sizeof(mixer.work));

@@ -767,7 +767,7 @@ void FloppyController::on_fdc_in_command() {
 					}
 
 					/* DMA transfer */
-					dma->Register_Callback(0);
+					dma->Register_Callback(nullptr);
 					if (dma->Read(sector_size_bytes,sector) != sector_size_bytes) {
                         LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA read failed");
                         fail = true;
@@ -889,7 +889,7 @@ void FloppyController::on_fdc_in_command() {
 					}
 
 					/* DMA transfer */
-					dma->Register_Callback(0);
+					dma->Register_Callback(nullptr);
 					if (dma->Write(sector_size_bytes,sector) != sector_size_bytes) {
                         LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA write failed during read");
                         fail = true;

@@ -282,7 +282,7 @@ void Voodoo_Initialize(Bits emulation_type, Bits card_type, bool max_voodoomem) 
 			break;
 	}
 
-	voodoo_pagehandler = new Voodoo_PageHandler(0);
+	voodoo_pagehandler = new Voodoo_PageHandler(nullptr);
 
 	v = new voodoo_state;
 	v->ogl = false;

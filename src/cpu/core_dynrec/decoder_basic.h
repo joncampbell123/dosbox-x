@@ -149,7 +149,7 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
 		}
 		if (handler->flags & PFLAG_NOCODE) {
 			LOG_MSG("DYNREC:Can't run code in this page");
-			cph=0;
+			cph=nullptr;
 			return false;
 		}
 	} 
@@ -158,7 +158,7 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
 	// find the physical page that the linear page is mapped to
 	if (!PAGING_MakePhysPage(phys_page)) {
 		LOG_MSG("DYNREC:Can't find physpage");
-		cph=0;
+		cph=nullptr;
 		return false;
 	}
 	// find a free CodePage
@@ -179,7 +179,7 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
         cache.free_pages = cache.free_pages->next;
         // adjust previous and next page pointer
         cpagehandler->prev = cache.last_page;
-        cpagehandler->next = 0;
+        cpagehandler->next = nullptr;
         if (cache.last_page) cache.last_page->next = cpagehandler;
         cache.last_page = cpagehandler;
         if (!cache.used_pages) cache.used_pages = cpagehandler;

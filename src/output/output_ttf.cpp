@@ -559,13 +559,13 @@ int setTTFCodePage() {
 
 void GFX_SelectFontByPoints(int ptsize) {
 	bool initCP = true;
-	if (ttf.SDL_font != 0) {
+	if (ttf.SDL_font) {
 		TTF_CloseFont(ttf.SDL_font);
 		initCP = false;
 	}
-	if (ttf.SDL_fontb != 0) TTF_CloseFont(ttf.SDL_fontb);
-	if (ttf.SDL_fonti != 0) TTF_CloseFont(ttf.SDL_fonti);
-	if (ttf.SDL_fontbi != 0) TTF_CloseFont(ttf.SDL_fontbi);
+	if (ttf.SDL_fontb) TTF_CloseFont(ttf.SDL_fontb);
+	if (ttf.SDL_fonti) TTF_CloseFont(ttf.SDL_fonti);
+	if (ttf.SDL_fontbi) TTF_CloseFont(ttf.SDL_fontbi);
 	SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFont, (int)ttfSize);
 	ttf.SDL_font = TTF_OpenFontRW(rwfont, 1, ptsize);
     if (ttfSizeb>0) {
@@ -989,8 +989,8 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
         }
     }
     if (showbold && (colorFG == wpFG+8 || (wpType == 1 && (wpVersion < 1 || wpVersion > 5 ) && colorFG == 3 && (colorBG&15) == (wpBG > -1 ? wpBG : 1)))) {
-        if (ttf.SDL_fontbi != 0 || !(style&TTF_STYLE_ITALIC) || wpType == 4) style |= TTF_STYLE_BOLD;
-        if ((ttf.SDL_fontbi != 0 && (style&TTF_STYLE_ITALIC)) || (ttf.SDL_fontb != 0 && !(style&TTF_STYLE_ITALIC)) || wpType == 4) colorFG = wpFG;
+        if (ttf.SDL_fontbi || !(style&TTF_STYLE_ITALIC) || wpType == 4) style |= TTF_STYLE_BOLD;
+        if ((ttf.SDL_fontbi && (style&TTF_STYLE_ITALIC)) || (ttf.SDL_fontb && !(style&TTF_STYLE_ITALIC)) || wpType == 4) colorFG = wpFG;
     }
     if (style)
         TTF_SetFontStyle(ttf.SDL_font, style);

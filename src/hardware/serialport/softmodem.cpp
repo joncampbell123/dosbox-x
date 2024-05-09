@@ -129,9 +129,9 @@ CSerialModem::CSerialModem(Bitu id, CommandLine* cmd):CSerial(id, cmd) {
 
 	// Initialize the sockets and setup the listening port
 	listenport = 23;
-	waitingclientsocket=0;
-	clientsocket = 0;
-	serversocket = 0;
+	waitingclientsocket = nullptr;
+	clientsocket = nullptr;
+	serversocket = nullptr;
 	getBituSubstring("listenport:", &listenport, cmd);
 	
 	// TODO: Fix dialtones if requested
@@ -280,7 +280,7 @@ bool CSerialModem::Dial(const char *host) {
 	clientsocket = NETClientSocket::NETClientFactory(socketType, destination, port);
 	if(!clientsocket->isopen) {
 		delete clientsocket;
-		clientsocket=0;
+		clientsocket = nullptr;
 		LOG_MSG("Failed to connect.");
 		SendRes(ResNOCARRIER);
 		EnterIdleState();
@@ -294,7 +294,7 @@ bool CSerialModem::Dial(const char *host) {
 void CSerialModem::AcceptIncomingCall(void) {
 	if(waitingclientsocket) {
 		clientsocket=waitingclientsocket;
-		waitingclientsocket=0;
+		waitingclientsocket = nullptr;
 		EnterConnectedState();
 	} else {
 		EnterIdleState();
@@ -329,7 +329,7 @@ void CSerialModem::Reset(){
 	dtrmode = 2;
 	if(clientsocket) {
 		delete clientsocket;
-		clientsocket = 0;
+		clientsocket = nullptr;
 	}
 	memset(&reg,0,sizeof(reg));
 	reg[MREG_AUTOANSWER_COUNT] = 0;	// no autoanswer
@@ -357,12 +357,12 @@ void CSerialModem::EnterIdleState(void){
 
 	if(clientsocket) {
 		delete clientsocket;
-		clientsocket=0;
+		clientsocket = nullptr;
 	}
 
 	if(waitingclientsocket) {	// clear current incoming socket
 		delete waitingclientsocket;
-		waitingclientsocket = 0;
+		waitingclientsocket = nullptr;
 	}
 	// get rid of everything
 	if(serversocket) {
@@ -376,13 +376,13 @@ void CSerialModem::EnterIdleState(void){
                                 static_cast<uint32_t>(COMNUMBER), socketType ? "ENet" : "TCP",
                                 static_cast<uint32_t>(listenport));
 			delete serversocket;
-			serversocket = 0;
+			serversocket = nullptr;
 		} else
                     LOG_MSG("Serial%u: Modem listening on %s port %u...",
 		            static_cast<uint32_t>(COMNUMBER), socketType ? "ENet" : "TCP",
 			        static_cast<uint32_t>(listenport));
 	}
-	waitingclientsocket = 0;
+	waitingclientsocket = nullptr;
 
 	commandmode = true;
 	CSerial::setCD(false);
@@ -396,7 +396,7 @@ void CSerialModem::EnterConnectedState(void) {
 	if(serversocket) {
 		// we don't accept further calls
 		delete serversocket;
-		serversocket = 0;
+		serversocket = nullptr;
 	}
 	SendRes(ResCONNECT);
 	commandmode = false;

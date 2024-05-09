@@ -59,7 +59,7 @@ static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
 	char fullname[DOS_PATHLENGTH];
 
-	localDrive* ldp=0;
+	localDrive* ldp=nullptr;
 	// try to build dos name
 	if (DOS_MakeName(name,fullname,&drive)) {
 		try {
@@ -168,7 +168,7 @@ void keyboard_layout::read_keyboard_file(int32_t specific_layout) {
 
 static uint32_t read_kcl_file(const char* kcl_file_name, const char* layout_id, bool first_id_only) {
 	FILE* tempfile = OpenDosboxFile(kcl_file_name);
-	if (tempfile==0) return 0;
+	if (!tempfile) return 0;
 
 	static uint8_t rbuf[8192];
 

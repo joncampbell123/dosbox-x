@@ -49,7 +49,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	MockDOS_Shell shell;
 	bool append[2] = {false, false};
 	char line[CROSS_LEN];
-	char * in = 0, * out = 0, * err = 0, * toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 
 	strcpy(line, "echo hello!");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
@@ -61,7 +61,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], false);
 	EXPECT_EQ(append[1], false);
 
-	in = 0; out = 0; err = 0; toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	strcpy(line, "echo test>test.txt");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, "echo test");
@@ -72,7 +72,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], false);
 	EXPECT_EQ(append[1], false);
 
-	in = 0; out = 0; err= 0; toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	strcpy(line, "sort<test.txt");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, "sort");
@@ -83,7 +83,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], false);
 	EXPECT_EQ(append[1], false);
 
-	in = 0; out = 0; err= 0; toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	strcpy(line, "less<in.txt>out.txt");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, "less");
@@ -94,7 +94,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], false);
 	EXPECT_EQ(append[1], false);
 
-	in = 0; out = 0; err= 0; toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	strcpy(line, "more<file.txt|sort");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, "more");
@@ -105,7 +105,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], false);
 	EXPECT_EQ(append[1], false);
 
-	in = 0; out = 0; err= 0; toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	strcpy(line, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa<in.txt>>out.txt");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
@@ -116,8 +116,8 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], true);
 	EXPECT_EQ(append[1], false);
 
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	append[0] = false;
-	in = 0; out = 0; err= 0; toc = 0;
 	strcpy(line, "");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, "");
@@ -128,7 +128,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], false);
 	EXPECT_EQ(append[1], false);
 
-	in = 0; out = 0; err= 0; toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	strcpy(line, " echo  test < in.txt > out.txt ");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, " echo  test   ");
@@ -139,7 +139,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], false);
 	EXPECT_EQ(append[1], false);
 
-	in = 0; out = 0; err= 0; toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	strcpy(line, "dir || more");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, "dir ");
@@ -150,7 +150,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], false);
 	EXPECT_EQ(append[1], false);
 
-	in = 0; out = 0; err= 0; toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	strcpy(line, "dir *.bat << in.txt >> out.txt");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, "dir *.bat  in.txt ");
@@ -161,7 +161,7 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_EQ(append[0], false);
 	EXPECT_EQ(append[1], false);
 
-	in = 0; out = 0; err= 0; toc = 0;
+	char * in = nullptr, * out = nullptr, * err = nullptr; * toc = nullptr;
 	strcpy(line, "echo test>out1.txt>>out2.txt");
 	shell.GetRedirection(line, &in, &out, &err, &toc, append);
 	EXPECT_STREQ(line, "echo test");

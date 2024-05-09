@@ -1721,7 +1721,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 				// NTS: This emulation does not use the second DMA channel... yet... which is why we do not bother
 				//      unregistering and reregistering the second DMA channel.
 
-				GetDMAChannel(myGUS.dma1)->Register_Callback(0); // FIXME: On DMA conflict this could mean kicking other devices off!
+				GetDMAChannel(myGUS.dma1)->Register_Callback(nullptr); // FIXME: On DMA conflict this could mean kicking other devices off!
 
 				// NTS: Contrary to an earlier commit, DMA channel 0 is not a valid choice
 				if (dmatable[val & 0x7] != 0)

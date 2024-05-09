@@ -1023,7 +1023,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
                  if( opt_exclude_path )
                  {
                      const char *tmpptr;
-                     const char *lastslash = 0;
+                     const char * lastslash = nullptr;
                      for( tmpptr = savefilenameinzip; *tmpptr; tmpptr++)
                      {
                          if( *tmpptr == '\\' || *tmpptr == '/')

@@ -340,7 +340,7 @@ struct Handler : public Adlib::Handler {
 		}
 	}
 	void Init(Bitu rate) override {
-		chip = ym3812_init(0, OPL2_INTERNAL_FREQ, (uint32_t)rate);
+		chip = ym3812_init(nullptr, OPL2_INTERNAL_FREQ, (uint32_t)rate);
 	}
 	void SaveState( std::ostream& stream ) override {
     	const char pod_name[32] = "MAMEOPL2";
@@ -415,7 +415,7 @@ struct Handler : public Adlib::Handler {
 		}
 	}
 	void Init(Bitu rate) override {
-		chip = ymf262_init(0, OPL3_INTERNAL_FREQ, (int)rate);
+		chip = ymf262_init(nullptr, OPL3_INTERNAL_FREQ, (int)rate);
 	}
 	void SaveState( std::ostream& stream ) override {
     	const char pod_name[32] = "MAMEOPL3";
@@ -775,7 +775,7 @@ class Capture {
 			fseek( handle, 0, SEEK_SET );
 			fwrite( &header, 1, sizeof( header ), handle );
 			fclose( handle );
-			handle = 0;
+			handle = nullptr;
 		}
 	}
 public:
@@ -850,7 +850,7 @@ skipWrite:
 	}
 	Capture( RegisterCache* _cache ) {
 		cache = _cache;
-		handle = 0;
+		handle = nullptr;
 		bufUsed = 0;
         startTicks = 0;
         lastTicks = 0;
@@ -1252,7 +1252,7 @@ void Module::Init( Mode m ) {
 
 
 
-static Adlib::Module* module = 0;
+static Adlib::Module * module = nullptr;
 
 static void OPL_CallBack(Bitu len) {
 	module->handler->Generate( module->mixerChan, len );
@@ -1339,7 +1339,7 @@ void OPL_SaveRawEvent(bool pressed) {
 	/* Check for previously opened wave file */
 	if ( module->capture ) {
 		delete module->capture;
-		module->capture = 0;
+		module->capture = nullptr;
 		LOG_MSG("Stopped Raw OPL capturing.");
 		if (show_recorded_filename && pathopl.size()) systemmessagebox("Recording completed",("Saved Raw OPL output to the file:\n\n"+pathopl).c_str(),"ok", "info", 1);
 	} else {
@@ -1384,8 +1384,8 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	ctrl.index = 0;
 	ctrl.lvol = 0xff;
 	ctrl.rvol = 0xff;
-	handler = 0;
-	capture = 0;
+	handler = nullptr;
+	capture = nullptr;
 	esfm_nativemode = false;
 
 	Section_prop * section=static_cast<Section_prop *>(configuration);
@@ -1572,7 +1572,7 @@ void OPL_Init(Section* sec,OPL_Mode oplmode) {
 void OPL_ShutDown(Section* sec){
     (void)sec;//UNUSED
 	delete module;
-	module = 0;
+	module = nullptr;
 }
 
 // savestate support

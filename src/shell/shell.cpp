@@ -85,7 +85,7 @@ bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
  * remove things from the environment */
-DOS_Shell * first_shell = 0; 
+DOS_Shell * first_shell = nullptr;
 
 static Bitu shellstop_handler(void) {
 	return CBRET_STOP;
@@ -275,7 +275,7 @@ DOS_Shell::DOS_Shell():Program(){
 	echo=true;
 	exit=false;
 	perm = false;
-	bf=0;
+	bf = nullptr;
 	call=false;
 	exec=false;
 	lfnfor = uselfn;
@@ -443,11 +443,11 @@ void DOS_Shell::ParseLine(char * line) {
 	line = trim(line);
 
 	/* Do redirection and pipe checks */
-	
-	char * in  = 0;
-	char * out = 0;
-	char * err = 0;
-	char * toc = 0;
+
+	char * in  = nullptr;
+	char * out = nullptr;
+	char * err = nullptr;
+	char * toc = nullptr;
 
 	uint16_t dummy,dummy2;
 	uint32_t bigdummy = 0;
@@ -470,7 +470,7 @@ void DOS_Shell::ParseLine(char * line) {
 			DOS_OpenFile(in,OPEN_READ,&dummy);	//Open new stdin
 		} else {
 			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File open error - %s\n"), in);
-			in = 0;
+			in = nullptr;
 			return;
 		}
 	}
@@ -1333,7 +1333,7 @@ static void AUTOEXEC_ShutDown(Section * sec) {
 	}
     if (first_shell != NULL) {
 		delete first_shell;
-		first_shell = 0;//Make clear that it shouldn't be used anymore
+		first_shell = nullptr;//Make clear that it shouldn't be used anymore
     }
     if (call_shellstop != 0) {
         CALLBACK_DeAllocate(call_shellstop);
@@ -2006,7 +2006,7 @@ void SHELL_Run() {
 	try {
 		first_shell->Run();
 		delete first_shell;
-		first_shell = 0;//Make clear that it shouldn't be used anymore
+		first_shell = nullptr;//Make clear that it shouldn't be used anymore
 		prepared = false;
 		dos_shell_running_program = false;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
@@ -2015,7 +2015,7 @@ void SHELL_Run() {
 	}
 	catch (...) {
 		delete first_shell;
-		first_shell = 0;//Make clear that it shouldn't be used anymore
+		first_shell = nullptr;//Make clear that it shouldn't be used anymore
 		prepared = false;
 		dos_shell_running_program = false;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU

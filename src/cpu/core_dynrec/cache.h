@@ -374,7 +374,7 @@ public:
 		else cache.last_page=prev;
 		next=cache.free_pages;
 		cache.free_pages=this;
-		prev=0;
+		prev=nullptr;
 	}
 	void ClearRelease(void) {
 		// clear out all cache blocks in this page
@@ -384,7 +384,7 @@ public:
 			while (block==NULL)
 				block=*++map;
 			CacheBlockDynRec * nextblock=block->hash.next;
-			block->page.handler=0;			// no need, full clear
+			block->page.handler=nullptr;			// no need, full clear
 			block->Clear();
 			block=nextblock;
 		}
@@ -398,7 +398,7 @@ public:
 			if (block->page.start==start) return block;	// found
 			block=block->hash.next;
 		}
-		return 0;	// none found
+		return nullptr;	// none found
 	}
 
 	HostPt GetHostReadPt(Bitu phys_page) override {
@@ -440,7 +440,7 @@ static CacheBlockDynRec * cache_getblock(void) {
         E_Exit("Ran out of CacheBlocks");
     else {
         cache.block.free = ret->cache.next;
-        ret->cache.next = 0;
+        ret->cache.next = nullptr;
     }
 	return ret;
 }
@@ -449,11 +449,11 @@ void CacheBlockDynRec::Clear(void) {
 	// check if this is not a cross page block
 	if (hash.index) for (Bitu ind=0;ind<2;ind++) {
 		CacheBlockDynRec * fromlink=link[ind].from;
-		link[ind].from=0;
+		link[ind].from=nullptr;
 		while (fromlink) {
 			CacheBlockDynRec * nextlink=fromlink->link[ind].next;
 			// clear the next-link and let the block point to the standard linkcode
-			fromlink->link[ind].next=0;
+			fromlink->link[ind].next=nullptr;
 			fromlink->link[ind].to=&link_blocks[ind];
 
 			fromlink=nextlink;
@@ -475,14 +475,14 @@ void CacheBlockDynRec::Clear(void) {
 		cache_addunusedblock(this);
 	if (crossblock) {
 		// clear out the crossblock (in the page before) as well
-		crossblock->crossblock=0;
+		crossblock->crossblock=nullptr;
 		crossblock->Clear();
-		crossblock=0;
+		crossblock=nullptr;
 	}
 	if (page.handler) {
 		// clear out the code page handler
 		page.handler->DelCacheBlock(this);
-		page.handler=0;
+		page.handler=nullptr;
 	}
 	if (cache.wmapmask){
 		free(cache.wmapmask);
@@ -525,10 +525,10 @@ static void cache_closeblock(void) {
 	// links point to the default linking code
 	block->link[0].to=&link_blocks[0];
 	block->link[1].to=&link_blocks[1];
-	block->link[0].from=0;
-	block->link[1].from=0;
-	block->link[0].next=0;
-	block->link[1].next=0;
+	block->link[0].from=nullptr;
+	block->link[1].from=nullptr;
+	block->link[0].next=nullptr;
+	block->link[1].next=nullptr;
 	// close the block with correct alignment
 	Bitu written=(Bitu)(cache.pos-block->cache.start);
 	if (written>block->cache.size) {
@@ -651,7 +651,7 @@ static void cache_reset(void) {
 		block->cache.start=&cache_code[0];
 		block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 		block->cache.size=CACHE_TOTAL;
-		block->cache.next=0;								//Last block in the list
+		block->cache.next=nullptr;								//Last block in the list
 
 		/* Setup the default blocks for block linkage returns */
 		cache.pos=&cache_code_link_blocks[0];
@@ -662,9 +662,9 @@ static void cache_reset(void) {
 		link_blocks[1].cache.start=cache.pos;
 		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		dyn_return(BR_Link2,false);
-		cache.free_pages=0;
-		cache.last_page=0;
-		cache.used_pages=0;
+		cache.free_pages=nullptr;
+		cache.last_page=nullptr;
+		cache.used_pages=nullptr;
 		/* Setup the code pages */
 		for (Bitu i=0;i<CACHE_PAGES;i++) {
 			CodePageHandlerDynRec * newpage=new CodePageHandlerDynRec();
@@ -710,7 +710,7 @@ static void cache_init(bool enable) {
 			block->cache.start=&cache_code[0];
 			block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 			block->cache.size=CACHE_TOTAL;
-			block->cache.next=0;						// last block in the list
+			block->cache.next=nullptr;						// last block in the list
 		}
 		// setup the default blocks for block linkage returns
 		cache.pos=&cache_code_link_blocks[0];
@@ -729,9 +729,9 @@ static void cache_init(bool enable) {
 //		link_blocks[1].cache.start=cache.pos;
 		dyn_run_code();
 
-		cache.free_pages=0;
-		cache.last_page=0;
-		cache.used_pages=0;
+		cache.free_pages=nullptr;
+		cache.last_page=nullptr;
+		cache.used_pages=nullptr;
 		// setup the code pages
 		for (i=0;i<CACHE_PAGES;i++) {
 			CodePageHandlerDynRec * newpage=new CodePageHandlerDynRec();

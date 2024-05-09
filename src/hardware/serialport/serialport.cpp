@@ -101,7 +101,10 @@ device_COM::~device_COM() {
 }
 
 // COM1 - COM9 objects
-CSerial* serialports[9] ={0,0,0,0,0,0,0,0,0};
+CSerial * serialports[9] = {
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr
+};
 uint16_t serial_baseaddr[9] = {0,0,0,0,0,0,0,0,0};
 bool serialMouseEmulated = false;
 
@@ -117,7 +120,7 @@ static Bitu SERIAL_Read (Bitu port, Bitu iolen) {
             break;
         }
     if (i==10) return 0xff;
-	if(serialports[i]==0) return 0xff;
+	if (!serialports[i]) return 0xff;
 
 	switch (index) {
 		case RHR_OFFSET:
@@ -168,8 +171,8 @@ static void SERIAL_Write (Bitu port, Bitu val, Bitu) {
             break;
         }
     if (i==10) return;
-	if(serialports[i]==0) return;
-	
+	if (!serialports[i]) return;
+
 #if SERIAL_DEBUG
 		const char* const dbgtext[]={"THR","IER","FCR",
 			"LCR","MCR","!LSR","MSR","SPR","DLL","DLM"};
@@ -247,7 +250,7 @@ void CSerial::changeLineProperties() {
 
 static void Serial_EventHandler(Bitu val) {
 	Bitu serclassid=val&0xf;
-	if(serialports[serclassid]!=0)
+	if(serialports[serclassid])
 		serialports[serclassid]->handleEvent((uint16_t)(val>>4));
 }
 
@@ -1149,9 +1152,9 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
 
 	if(dbg_serialtraffic|dbg_modemcontrol|dbg_register|dbg_interrupt|dbg_aux)
 		debugfp=OpenCaptureFile("serlog",".serlog.txt");
-	else debugfp=0;
+	else debugfp = nullptr;
 
-	if(debugfp == 0) {
+	if (!debugfp) {
 		dbg_serialtraffic= 
 		dbg_modemcontrol= 
 		dbg_register=
@@ -1358,8 +1361,8 @@ public:
 			s_property[6] = '1' + i;
 			Prop_multival* p = section->Get_multival(s_property);
 			std::string type = p->GetSection()->Get_string("type");
-			CommandLine cmd(0,p->GetSection()->Get_string("parameters"));
-			CommandLine tmp(0,p->GetSection()->Get_string("parameters"), CommandLine::either, true);
+			CommandLine cmd(nullptr, p->GetSection()->Get_string("parameters"));
+			CommandLine tmp(nullptr, p->GetSection()->Get_string("parameters"), CommandLine::either, true);
 			double multiplier = 1;
 			std::string str;
 			bool squote = false;
@@ -1449,7 +1452,7 @@ public:
 		for (Bitu i = 0; i < 9; i++)
 			if (serialports[i]) {
 				delete serialports[i];
-				serialports[i] = 0;
+				serialports[i] = nullptr;
 			}
 #if C_MODEM
 		MODEM_ClearPhonebook();

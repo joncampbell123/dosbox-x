@@ -56,7 +56,7 @@ bool logBuffSuppressConsoleNeedUpdate = false;
 int debuggerrun = 0;
 int log_dev_con = 0;
 
-_LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
+_LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{nullptr,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
 #if C_DEBUG
@@ -899,7 +899,7 @@ void LOG::Init() {
 	}
 	else {
 		LOG_MSG("Logging: No logfile was given. All further logging will be discarded.");
-		debuglog=0;
+		debuglog=nullptr;
 	}
 	if (control->opt_nolog && !control->opt_test) {
 		// If the user says no log, that means NO LOGGING AT ALL. [https://github.com/joncampbell123/dosbox-x/issues/4405]
@@ -1000,7 +1000,7 @@ void LOG::SetupConfigSection(void) {
 		"fatal",
 		"never",		/* <- this means NEVER EVER log anything */
 
-		0};
+		nullptr};
 
 	/* Register the log section */
 	Section_prop * sect=control->AddSection_prop("log",Null_Init);
@@ -1026,7 +1026,7 @@ void LOG::SetupConfigSection(void) {
     Pbool = sect->Add_bool("fileio",Property::Changeable::Always,false);
     Pbool->Set_help("Log file I/O through INT 21h");
 
-	const char* debuggerrunopt[] = { "debugger", "normal", "watch", 0};
+	const char* debuggerrunopt[] = { "debugger", "normal", "watch", nullptr };
 	Pstring = sect->Add_string("debuggerrun",Property::Changeable::OnlyAtStart,"debugger");
 	Pstring->Set_help("The run mode when the DOSBox-X Debugger starts.");
 	Pstring->Set_values(debuggerrunopt);

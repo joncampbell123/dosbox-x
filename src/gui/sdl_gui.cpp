@@ -234,7 +234,7 @@ extern const char* RunningProgram;
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
 
-    GFX_EndUpdate(0);
+    GFX_EndUpdate(nullptr);
     GFX_SetTitle(-1,-1,-1,true);
     if(!screen) { //Coming from DOSBox. Clean up the keyboard buffer.
         KEYBOARD_ClrBuffer();//Clear buffer
@@ -308,7 +308,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
     if (sw_draw > 0 && sh_draw > 0) {
         screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
-        SDL_FillRect(screenshot,0,0);
+        SDL_FillRect(screenshot, nullptr, 0);
 
         unsigned int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift;
 
@@ -327,7 +327,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         }
 
         background = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
-        SDL_FillRect(background,0,0);
+        SDL_FillRect(background, nullptr, 0);
         for (int y = 0; y < sh_draw; y++) {
             uint32_t *bg = (uint32_t*)((unsigned int)(y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
             for (int x = 0; x < sw_draw; x++) {
@@ -3340,7 +3340,7 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
         if (background)
             SDL_BlitSurface(background, NULL, sdlscreen, NULL);
         else
-            SDL_FillRect(sdlscreen,0,0);
+            SDL_FillRect(sdlscreen, nullptr, 0);
 
         screen->update(screen->getTime());
 
@@ -3603,7 +3603,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         if (background)
             SDL_BlitSurface(background, NULL, sdlscreen, NULL);
         else
-            SDL_FillRect(sdlscreen,0,0);
+            SDL_FillRect(sdlscreen, nullptr, 0);
 
         screen->update(4);
 #if defined(C_SDL2)
@@ -3666,7 +3666,7 @@ void GUI_Shortcut(int select) {
 #if defined(USE_TTF)
     if (ttf.inUse && !confres) {
         ttf_switch_off();
-        GFX_EndUpdate(0);
+        GFX_EndUpdate(nullptr);
         switchttf = true;
         PIC_AddEvent(RunCfgTool, 100);
     } else
@@ -3681,7 +3681,7 @@ void GUI_Run(bool pressed) {
 #if defined(USE_TTF)
     if (ttf.inUse) {
         ttf_switch_off();
-        GFX_EndUpdate(0);
+        GFX_EndUpdate(nullptr);
         switchttf = true;
         PIC_AddEvent(RunCfgTool, 100);
     } else

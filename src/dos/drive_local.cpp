@@ -1211,11 +1211,11 @@ void drivezRegister(std::string const& path, std::string const& dir, bool usecp)
 #else
             localtime
 #endif
-            (&temp_stat.st_mtime))!=0) {
+            (&temp_stat.st_mtime))!=nullptr) {
                 fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
                 fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
             }
-            VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
+            VFILE_Register(name.substr(0, name.size()-1).c_str(), nullptr, 0, dir.c_str());
             fztime = fzdate = 0;
             drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name, usecp);
             continue;
@@ -1245,7 +1245,7 @@ void drivezRegister(std::string const& path, std::string const& dir, bool usecp)
         f_data = NULL;
         if (f != NULL) {
             res=fstat(fileno(f),&temp_stat);
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=nullptr) {
                 fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
                 fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
             }
@@ -1869,7 +1869,7 @@ again:
 #else
     localtime
 #endif
-    (&stat_block.st_mtime))!=0){
+    (&stat_block.st_mtime))!=nullptr){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 	} else {
@@ -2535,7 +2535,7 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 #else
     localtime
 #endif
-    (&temp_stat.st_mtime))!=0) {
+    (&temp_stat.st_mtime))!=nullptr) {
 		stat_block->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 		stat_block->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 	}
@@ -3012,7 +3012,7 @@ bool LocalFile::Close() {
 	// only close if one reference left
 	if (refCtr==1) {
 		if(fhandle) fclose(fhandle); 
-		fhandle = 0;
+		fhandle = nullptr;
 		open = false;
 	}
 
@@ -3037,7 +3037,7 @@ LocalFile::LocalFile(const char* _name, FILE* handle) : fhandle(handle) {
 	attr=DOS_ATTR_ARCHIVE;
 	last_action=NONE;
 
-	name=0;
+	name=nullptr;
 	SetName(_name);
 }
 
@@ -3050,7 +3050,7 @@ bool LocalFile::UpdateDateTimeFromHost(void) {
 	struct stat temp_stat;
 	fstat(fileno(fhandle),&temp_stat);
     const struct tm* ltime;
-	if((ltime=localtime(&temp_stat.st_mtime))!=0) {
+	if((ltime=localtime(&temp_stat.st_mtime))!=nullptr) {
 		time=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
 		date=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
 	} else {

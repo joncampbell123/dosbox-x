@@ -613,7 +613,7 @@ Operator::Operator() {
 	reg60 = 0;
 	reg80 = 0;
 	regE0 = 0;
-    waveBase = 0;
+    waveBase = nullptr;
     waveMask = 0;
     waveStart = 0;
     vibrato = 0;
@@ -978,7 +978,7 @@ Channel* Channel::BlockTemplate( Chip* chip, uint32_t samples, int32_t* output )
 	case sm3Percussion:
 		return( this + 3 );
 	}
-	return 0;
+	return nullptr;
 }
 
 /*

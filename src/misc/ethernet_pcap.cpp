@@ -47,7 +47,7 @@ void (*PacketFreealldevs)(pcap_if_t *) = 0;
 pcap_t* (*PacketOpen)(char const *,int,int,int,struct pcap_rmtauth *,char *) = 0;
 int (*PacketNextEx)(pcap_t *, struct pcap_pkthdr **, const u_char **) = 0;
 int (*PacketFindALlDevsEx)(char *, struct pcap_rmtauth *, pcap_if_t **, char *) = 0;
-char* (*PacketGetError)(pcap_t *) = 0;
+char* (*PacketGetError)(pcap_t *) = nullptr;
 
 char pcap_src_if_string[] = PCAP_SRC_IF_STRING;
 

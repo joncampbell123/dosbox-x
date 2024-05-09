@@ -61,7 +61,7 @@ uint8_t MIDI_evt_len[256] = {
   0,2,3,2, 0,0,1,0, 1,0,1,1, 1,0,1,0   // 0xf0
 };
 
-MidiHandler * handler_list = 0;
+MidiHandler * handler_list = nullptr;
 
 MidiHandler::MidiHandler(){
 	next = handler_list;
@@ -661,7 +661,7 @@ public:
 		}
 		if(midi.available) midi.handler->Close();
 		midi.available = false;
-		midi.handler = 0;
+		midi.handler = nullptr;
 	}
 };
 

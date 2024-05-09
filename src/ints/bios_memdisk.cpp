@@ -109,12 +109,12 @@ imageDiskMemory::imageDiskMemory(uint32_t imgSizeK) : imageDisk(ID_MEMORY) {
 	diskParams.rootentries = 512;
 	diskParams.biosval = 0;
 	diskParams.sectcluster = 1;
-	init(diskParams, true, 0);
+	init(diskParams, true, nullptr);
 }
 
 // Create a floppy image of a specified geometry
 imageDiskMemory::imageDiskMemory(const diskGeo& floppyGeometry) : imageDisk(ID_MEMORY) {
-	init(floppyGeometry, false, 0);
+	init(floppyGeometry, false, nullptr);
 }
 
 // Create a hard drive image of a specified geometry
@@ -130,7 +130,7 @@ imageDiskMemory::imageDiskMemory(uint16_t cylinders, uint16_t heads, uint16_t se
 	diskParams.rootentries = 512;
 	diskParams.biosval = 0;
 	diskParams.sectcluster = 1;
-	init(diskParams, true, 0);
+	init(diskParams, true, nullptr);
 }
 
 // Create a copy-on-write memory image of an existing image
@@ -229,7 +229,7 @@ imageDiskMemory::~imageDiskMemory() {
 	//release the memory map
 	free(ChunkMap);
 	//reset internal variables
-	ChunkMap = 0;
+	ChunkMap = nullptr;
 	total_sectors = 0;
 	active = false;
 }
@@ -266,7 +266,7 @@ uint8_t imageDiskMemory::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	datalocation = ChunkMap[chunknum];
 
 	//if the chunk has not yet been allocated, return underlying image if any, or else zeros
-	if (datalocation == 0) {
+	if (!datalocation) {
 		if (this->underlyingImage) {
 			return this->underlyingImage->Read_AbsoluteSector(sectnum, data);
 		}

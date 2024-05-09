@@ -266,7 +266,7 @@ Bits CPU_Core_Dynrec_Run(void) {
 			if (DEBUG_HeavyIsBreakpoint()) return (Bits)debugCallback;
 		#endif
 
-		CodePageHandlerDynRec * chandler=0;
+		CodePageHandlerDynRec * chandler=nullptr;
 		// see if the current page is present and contains code
 		if (GCC_UNLIKELY(MakeCodePage(ip_point,chandler))) {
 			// page not present, throw the exception
@@ -305,7 +305,7 @@ Bits CPU_Core_Dynrec_Run(void) {
 		}
 
 run_block:
-		cache.block.running=0;
+		cache.block.running=nullptr;
 		// now we're ready to run the dynamic code block
 //		BlockReturnDynRec ret=((BlockReturnDynRec (*)(void))(block->cache.start))();
 		BlockReturnDynRec ret=core_dynrec.runcode(block->cache.xstart);

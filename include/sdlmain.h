@@ -102,7 +102,7 @@ struct SDL_Block {
         uint32_t bpp = 0;
         Bitu flags = 0;
         double scalex = 0, scaley = 0;
-        GFX_CallBack_t callback = 0;
+        GFX_CallBack_t callback = nullptr;
     } draw;
     bool wait_on_error = false;
     struct {

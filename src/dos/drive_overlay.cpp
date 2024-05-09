@@ -722,7 +722,7 @@ bool Overlay_Drive::Sync_leading_dirs(const char* dos_filename){
 	if (!lastdir) return true; 
 	
 	const char* leaddir = dos_filename;
-	while ( (leaddir=strchr_dbcs((char *)leaddir,'\\')) != 0) {
+	while ((leaddir=strchr_dbcs((char *)leaddir,'\\'))) {
 		char dirname[CROSS_LEN] = {0};
 		strncpy(dirname,dos_filename,leaddir-dos_filename);
 
@@ -1129,7 +1129,7 @@ again:
 #else
     localtime
 #endif
-    (&stat_block.st_mtime))!=0){
+    (&stat_block.st_mtime))!=nullptr){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 	} else {
@@ -2080,7 +2080,7 @@ bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 #else
     localtime
 #endif
-    (&temp_stat.st_mtime))!=0) {
+    (&temp_stat.st_mtime))!=nullptr) {
 		stat_block->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 		stat_block->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 	} else {

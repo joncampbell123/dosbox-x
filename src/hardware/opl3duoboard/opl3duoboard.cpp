@@ -15,7 +15,7 @@ Opl3DuoBoard::Opl3DuoBoard() {
 void Opl3DuoBoard::connect(const char* port) {
 	printf("OPL3 Duo! Board: Connecting to port %s... \n", port);
 
-	comport = 0;
+	comport = nullptr;
 	if (SERIAL_open(port, &comport)) {
 		SERIAL_setCommParameters(comport, 115200, 'n', SERIAL_1STOP, 8);
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))

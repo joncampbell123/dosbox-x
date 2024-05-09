@@ -101,8 +101,8 @@ ECBClass::ECBClass(uint16_t segment, uint16_t offset) {
 	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 
 	ECBAddr = RealMake(segment, offset);
-	databuffer = 0;
-	
+	databuffer = nullptr;
+
 #ifdef IPX_DEBUGMSG
 	SerialNumber = ECBSerialNumber;
 	ECBSerialNumber++;
@@ -137,7 +137,7 @@ ECBClass::ECBClass(uint16_t segment, uint16_t offset) {
 }
 void ECBClass::writeDataBuffer(uint8_t* buffer, uint16_t length) {
 	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
-	if(databuffer!=0) delete [] databuffer;
+	if (databuffer) delete[] databuffer;
 	databuffer = new uint8_t[length];
 	memcpy(databuffer,buffer,length);
 	buflen=length;
@@ -279,7 +279,7 @@ ECBClass::~ECBClass() {
 			if(nextECB != NULL) nextECB->prevECB = prevECB;
 		}
 	}
-	if(databuffer!=0) delete [] databuffer;
+	if (databuffer) delete[] databuffer;
 }
 
 
@@ -333,7 +333,7 @@ static void DumpAllSockets(void) {
 	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 
 	LOG(LOG_MISC,LOG_DEBUG)("IPX: Dumping all active sockets");
-	while(tmpECB!=0) {
+	while (tmpECB) {
 		tmp2ECB = tmpECB->nextECB;
 		tmpECB->setCompletionFlag(COMP_CANCELLED);
 		tmpECB->setInUseFlag(USEFLAG_AVAILABLE);
@@ -364,7 +364,7 @@ static void CloseSocket(void) {
 	--socketCount;
 	
 	// delete all ECBs of that socket
-	while(tmpECB!=0) {
+	while (tmpECB) {
 		tmp2ECB = tmpECB->nextECB;
 		if(tmpECB->getSocket()==sockNum) {
 			tmpECB->setCompletionFlag(COMP_CANCELLED);
@@ -399,7 +399,7 @@ static void IPX_AES_EventHandler(Bitu param)
 	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	ECBClass* tmpECB = ECBList;
 	ECBClass* tmp2ECB;
-	while(tmpECB!=0) {
+	while (tmpECB) {
 		tmp2ECB = tmpECB->nextECB;
 		if(tmpECB->iuflag==USEFLAG_AESCOUNT && param==(Bitu)tmpECB->ECBAddr) {
 			tmpECB->setCompletionFlag(COMP_SUCCESS);

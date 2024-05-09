@@ -1964,7 +1964,7 @@ static FM_OPL *OPLCreate(device_t *device, uint32_t clock, uint32_t rate, int ty
 	FM_OPL *OPL;
 	int state_size;
 
-	if (FM_OPL::LockTable(device) == -1) return 0;
+	if (FM_OPL::LockTable(device) == -1) return nullptr;
 
 	/* calculate OPL state size */
 	state_size  = sizeof(FM_OPL);

@@ -5063,7 +5063,7 @@ void DOS_Int21_7143(char *name1, const char *name2) {
 					if (DOS_GetFileAttrEx(name1, &status)) {
 						const struct tm * ltime;
 						time_t ttime=reg_bl==0x04?status.st_mtime:reg_bl==0x06?status.st_atime:status.st_ctime;
-						if ((ltime=localtime(&ttime))!=0) {
+						if ((ltime=localtime(&ttime))!=nullptr) {
 							reg_cx=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
 							reg_di=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
 						}
@@ -5345,7 +5345,7 @@ void DOS_Int21_71a1(const char *name1, const char *name2) {
 		if (entry>0&&entry!=0xff) psp.SetFileHandle(entry,0xff);
 		if (entry>0&&Files[handle]->RemoveRef()<=0) {
 			delete Files[handle];
-			Files[handle]=0;
+			Files[handle]=nullptr;
 		}
 		reg_ax=0;
 		CALLBACK_SCF(false);

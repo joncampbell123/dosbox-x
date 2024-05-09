@@ -28,7 +28,7 @@ struct GLIDE_Block
     bool * fullscreen;
     uint16_t width, height;
     class GLIDE_PageHandler * lfb_pagehandler;
-    GLIDE_Block():enabled(false),fullscreen(0),width(0),height(0),lfb_pagehandler((GLIDE_PageHandler*)0) { }
+    GLIDE_Block():enabled(false),fullscreen(nullptr),width(0),height(0),lfb_pagehandler((GLIDE_PageHandler*)0) { }
 };
 extern GLIDE_Block glide;
 extern void GLIDE_ResetScreen(bool update=false);

@@ -337,7 +337,7 @@ bool RENDER_StartUpdate(void) {
     render.scale.inLine = 0;
     render.scale.outLine = 0;
     render.scale.cacheRead = (uint8_t*)&scalerSourceCache;
-    render.scale.outWrite = 0;
+    render.scale.outWrite = nullptr;
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
     Scaler_ChangedLineIndex = 0;
@@ -369,7 +369,7 @@ bool RENDER_StartUpdate(void) {
 
 static void RENDER_Halt( void ) {
     RENDER_DrawLine = RENDER_EmptyLineHandler;
-    GFX_EndUpdate( 0 );
+    GFX_EndUpdate(nullptr);
     render.updating=false;
     render.active=false;
 }
@@ -432,7 +432,7 @@ void RENDER_EndUpdate( bool abort ) {
 #endif
         // Force output to update the screen even if nothing changed...
         // works only with Direct3D output (GFX_StartUpdate() was probably not even called)
-        if (RENDER_GetForceUpdate()) GFX_EndUpdate( 0 );
+        if (RENDER_GetForceUpdate()) GFX_EndUpdate(nullptr);
     }
     render.frameskip.index = (render.frameskip.index + 1) & (RENDER_SKIP_CACHE - 1);
     render.updating=false;
@@ -486,7 +486,7 @@ void RENDER_Reset( void ) {
     
     Bitu gfx_flags, xscale, yscale;
     ScalerSimpleBlock_t     *simpleBlock = &ScaleNormal1x;
-    ScalerComplexBlock_t    *complexBlock = 0;
+    ScalerComplexBlock_t    *complexBlock = nullptr;
     gfx_scalew = 1;
     gfx_scaleh = 1;
 
@@ -623,7 +623,7 @@ void RENDER_Reset( void ) {
     }
     if( simpleBlock == NULL && complexBlock == NULL ) {
 forcenormal:
-        complexBlock = 0;
+        complexBlock = nullptr;
         if(scalerOpGray==render.scale.op){
           simpleBlock = &ScaleGrayNormal;
         }else{
@@ -775,7 +775,7 @@ forcenormal:
         } else
 #endif
         {
-            render.scale.complexHandler = 0;
+            render.scale.complexHandler = nullptr;
             lineBlock = &simpleBlock->Linear;
         }
     } else {
@@ -786,7 +786,7 @@ forcenormal:
         } else
 #endif
         {
-            render.scale.complexHandler = 0;
+            render.scale.complexHandler = nullptr;
             lineBlock = &simpleBlock->Random;
         }
     }
@@ -799,19 +799,19 @@ forcenormal:
         break;
     case 15:
         render.scale.lineHandler = (*lineBlock)[1][render.scale.outMode];
-        render.scale.linePalHandler = 0;
+        render.scale.linePalHandler = nullptr;
         render.scale.inMode = scalerMode15;
         render.scale.cachePitch = render.src.width * 2;
         break;
     case 16:
         render.scale.lineHandler = (*lineBlock)[2][render.scale.outMode];
-        render.scale.linePalHandler = 0;
+        render.scale.linePalHandler = nullptr;
         render.scale.inMode = scalerMode16;
         render.scale.cachePitch = render.src.width * 2;
         break;
     case 32:
         render.scale.lineHandler = (*lineBlock)[3][render.scale.outMode];
-        render.scale.linePalHandler = 0;
+        render.scale.linePalHandler = nullptr;
         render.scale.inMode = scalerMode32;
         render.scale.cachePitch = render.src.width * 4;
         break;
@@ -834,7 +834,7 @@ forcenormal:
     memset(render.pal.modified, 0, sizeof(render.pal.modified));
     //Finish this frame using a copy only handler
     RENDER_DrawLine = RENDER_FinishLineHandler;
-    render.scale.outWrite = 0;
+    render.scale.outWrite = nullptr;
     /* Signal the next frame to first reinit the cache */
     render.scale.clearCache = true;
 
@@ -865,7 +865,7 @@ void RENDER_CallBack( GFX_CallBackFunctions_t function ) {
         render.scale.clearCache = true;
         return;
     } else if ( function == GFX_CallBackReset) {
-        GFX_EndUpdate( 0 ); 
+        GFX_EndUpdate(nullptr);
         RENDER_Reset();
     } else {
         E_Exit("Unhandled GFX_CallBackReset %d", function );

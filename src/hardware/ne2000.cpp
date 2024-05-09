@@ -1672,10 +1672,10 @@ public:
 	}
 	
 	~NE2K() {
-		if(ethernet != 0) delete ethernet;
-		ethernet=0;
-		if(theNE2kDevice != 0) delete theNE2kDevice;
-		theNE2kDevice=0;
+		if (ethernet) delete ethernet;
+		ethernet = nullptr;
+		if (theNE2kDevice) delete theNE2kDevice;
+		theNE2kDevice = nullptr;
 		TIMER_DelTickHandler(NE2000_Poller);
 		PIC_RemoveEvents(NE2000_TX_Event);
 		if (addne2k) VFILE_Remove("NE2000.COM","SYSTEM");

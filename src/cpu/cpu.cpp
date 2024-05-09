@@ -3422,7 +3422,7 @@ void Weitek_PageHandler::writed(PhysPt addr,uint32_t val) {
 	LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
-Weitek_PageHandler weitek_pagehandler(0);
+Weitek_PageHandler weitek_pagehandler(nullptr);
 
 PageHandler* weitek_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
     (void)co; // UNUSED
@@ -3630,7 +3630,7 @@ public:
 		Prop_multival* p = section->Get_multival("cycles");
 		std::string type = p->GetSection()->Get_string("type");
 		std::string str ;
-		CommandLine cmd(0,p->GetSection()->Get_string("parameters"));
+		CommandLine cmd(nullptr,p->GetSection()->Get_string("parameters"));
 		if (type=="max") {
 			RDTSC_rebase();
 			CPU_CycleMax=0;
@@ -4312,7 +4312,7 @@ CPU_Decoder* CPU_IndexDecoderType(uint16_t decoder_idx)
 	case 102: return &CPU_Core_Dynrec_Trap_Run;
 #endif
     case 200: return &HLT_Decode;
-    default: return 0;
+    default: return nullptr;
     }
 }
 

@@ -264,7 +264,7 @@ static const char* UnmountHelper(char umount) {
         }
         if (image && !partitionMount) DetachFromBios(image);
         if (cdrom) IDE_CDROM_Detach(i_drive);
-        Drives[i_drive] = 0;
+        Drives[i_drive] = nullptr;
         DOS_EnableDriveMenu(i_drive+'A');
         mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)i_drive*dos.tables.dpb_size,0);
         if (i_drive == DOS_GetDefaultDrive())
@@ -962,7 +962,7 @@ public:
             }
             /* remap drives */
             Drives[i_newz] = Drives[ZDRIVE_NUM];
-            Drives[ZDRIVE_NUM] = 0;
+            Drives[ZDRIVE_NUM] = nullptr;
             DOS_EnableDriveMenu(i_newz + 'A');
             DOS_EnableDriveMenu(ZDRIVE_NUM + 'A');
             if (!first_shell) return; //Should not be possible
@@ -1550,7 +1550,7 @@ public:
                               WriteOut("Existing overlay has been replaced with new overlay.\n");
                           }
                           delete Drives[drive-'A'];
-                          Drives[drive-'A'] = 0;
+                          Drives[drive-'A'] = nullptr;
                       }
                   } else { 
                       if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_ERROR"));
@@ -1820,7 +1820,7 @@ private:
         uint8_t drive;
         char fullname[DOS_PATHLENGTH];
 
-        localDrive* ldp=0;
+        localDrive* ldp=nullptr;
 		bool readonly=wpcolon&&strlen(filename)>1&&filename[0]==':';
         if (!DOS_MakeName(readonly?filename+1:filename,fullname,&drive)) return NULL;
 
@@ -3151,7 +3151,7 @@ public:
 
         uint8_t drive;
         char fullname[DOS_PATHLENGTH];
-        localDrive* ldp=0;
+        localDrive* ldp=nullptr;
         if (!DOS_MakeName(temp_line.c_str(),fullname,&drive)) return;
 
         try {
@@ -3232,7 +3232,7 @@ public:
 
         uint8_t drive;
         char fullname[DOS_PATHLENGTH];
-        localDrive* ldp = 0;
+        localDrive* ldp = nullptr;
         if (!DOS_MakeName(temp_line.c_str(), fullname, &drive)) return;
 
         try {
@@ -6687,7 +6687,7 @@ class IMGMOUNT : public Program {
 
 		imageDisk* MountImageNone(const char* fileName, FILE* file, const Bitu sizesOriginal[], const int reserved_cylinders, bool roflag) {
 			bool assumeHardDisk = false;
-			imageDisk* newImage = 0;
+			imageDisk* newImage = nullptr;
 			Bitu sizes[4];
 			sizes[0] = sizesOriginal[0];
 			sizes[1] = sizesOriginal[1];
@@ -6754,7 +6754,7 @@ class IMGMOUNT : public Program {
 				uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
 				if ((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
 					WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
-					return 0;
+					return nullptr;
 				}
 				sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0];
 				imagesize = (uint32_t)(qcow2_header.size / 1024L);
@@ -9121,13 +9121,13 @@ static void FLAGSAVE_ProgramStart(Program** make)
 }
 
 void Add_VFiles(bool usecp) {
-    VFILE_Register("TEXTUTIL", 0, 0, "/");
-    VFILE_Register("SYSTEM", 0, 0, "/");
-    VFILE_Register("DEBUG", 0, 0, "/");
-    VFILE_Register("DOS", 0, 0, "/");
-    VFILE_Register("CPI", 0, 0, "/");
-    VFILE_Register("BIN", 0, 0, "/");
-    VFILE_Register("4DOS", 0, 0, "/");
+    VFILE_Register("TEXTUTIL", nullptr, 0, "/");
+    VFILE_Register("SYSTEM", nullptr, 0, "/");
+    VFILE_Register("DEBUG", nullptr, 0, "/");
+    VFILE_Register("DOS", nullptr, 0, "/");
+    VFILE_Register("CPI", nullptr, 0, "/");
+    VFILE_Register("BIN", nullptr, 0, "/");
+    VFILE_Register("4DOS", nullptr, 0, "/");
 
     std::string dirname="drivez";
     std::string path = ".";

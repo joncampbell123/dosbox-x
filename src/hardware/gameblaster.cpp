@@ -77,12 +77,12 @@ static void CMS_CallBack(Bitu len) {
 		int16_t work[2][BUFFER_SIZE];
 		int16_t* buffers[2] = { work[0], work[1] };
 		device_sound_interface::sound_stream stream;
-		device[0]->sound_stream_update(stream, 0, buffers, (int)len);
+		device[0]->sound_stream_update(stream, nullptr, buffers, (int)len);
 		for (Bitu i = 0; i < len; i++) {
 			result[i][0] = work[0][i];
 			result[i][1] = work[1][i];
 		}
-		device[1]->sound_stream_update(stream, 0, buffers, (int)len);
+		device[1]->sound_stream_update(stream, nullptr, buffers, (int)len);
 		for (Bitu i = 0; i < len; i++) {
 			result[i][0] += work[0][i];
 			result[i][1] += work[1][i];
@@ -142,12 +142,12 @@ public:
 
 		/* Register the Mixer CallBack */
 		cms_chan = MixerChan.Install(CMS_CallBack,sampleRate,"CMS");
-	
+
 		lastWriteTicks = (uint32_t)PIC_Ticks;
 
 		machine_config config;
-		device[0] = new saa1099_device(config, "", 0, MASTER_CLOCK);
-		device[1] = new saa1099_device(config, "", 0, MASTER_CLOCK);
+		device[0] = new saa1099_device(config, "", nullptr, MASTER_CLOCK);
+		device[1] = new saa1099_device(config, "", nullptr, MASTER_CLOCK);
 
 		// Necessary for correct pitch, reevaluate if MAME sound source is updated.
 		device[0]->sample_rate = sampleRate;
@@ -158,7 +158,7 @@ public:
 	}
 
 	~CMS() {
-		cms_chan = 0;
+		cms_chan = nullptr;
 		delete device[0];
 		delete device[1];
 	}
