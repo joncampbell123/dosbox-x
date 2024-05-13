@@ -1438,7 +1438,7 @@ void InitFontHandle()
 		if(!font_window) {
 			font_window = XCreateSimpleWindow(font_display, DefaultRootWindow(font_display), 0, 0, 32, 32, 0, BlackPixel(font_display, DefaultScreen(font_display)), WhitePixel(font_display, DefaultScreen(font_display)));
 			font_pixmap = XCreatePixmap(font_display, font_window, 32, 32, DefaultDepth(font_display, 0));
-			font_gc = XCreateGC(font_display, font_pixmap, 0, 0);
+			font_gc = XCreateGC(font_display, font_pixmap, 0, nullptr);
 		}
 	}
 #endif

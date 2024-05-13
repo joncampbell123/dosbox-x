@@ -595,8 +595,8 @@ void DEBUG_PICMask(int irq,bool mask) {
 
 static void AddEntry(PICEntry * entry) {
     PICEntry * find_entry=pic_queue.next_entry;
-    if (GCC_UNLIKELY(find_entry ==0)) {
-        entry->next=0;
+    if (GCC_UNLIKELY(!find_entry)) {
+        entry->next = nullptr;
         pic_queue.next_entry=entry;
     } else if (find_entry->index>entry->index) {
         pic_queue.next_entry=entry;
@@ -651,8 +651,7 @@ void PIC_AddEvent(PIC_EventHandler handler,pic_tickindex_t delay,Bitu val) {
 
 void PIC_RemoveSpecificEvents(PIC_EventHandler handler, Bitu val) {
     PICEntry * entry=pic_queue.next_entry;
-    PICEntry * prev_entry;
-    prev_entry = 0;
+    PICEntry * prev_entry = nullptr;
     while (entry) {
         if (GCC_UNLIKELY((entry->pic_event == handler)) && (entry->value == val)) {
             if (prev_entry) {
@@ -676,8 +675,7 @@ void PIC_RemoveSpecificEvents(PIC_EventHandler handler, Bitu val) {
 
 void PIC_RemoveEvents(PIC_EventHandler handler) {
     PICEntry * entry=pic_queue.next_entry;
-    PICEntry * prev_entry;
-    prev_entry=0;
+    PICEntry * prev_entry = nullptr;
     while (entry) {
         if (GCC_UNLIKELY(entry->pic_event==handler)) {
             if (prev_entry) {
@@ -782,7 +780,7 @@ struct TickerBlock {
     TickerBlock * next;
 };
 
-static TickerBlock * firstticker=0;
+static TickerBlock * firstticker = nullptr;
 
 void TIMER_ShutdownTickHandlers() {
     unsigned int leftovers = 0;
@@ -1026,11 +1024,11 @@ void Init_PIC() {
         pic_queue.entries[i].next=&pic_queue.entries[i+1];
 
         // savestate compatibility
-        pic_queue.entries[i].pic_event = 0;
+        pic_queue.entries[i].pic_event = nullptr;
     }
-    pic_queue.entries[PIC_QUEUESIZE-1].next=0;
+    pic_queue.entries[PIC_QUEUESIZE-1].next = nullptr;
     pic_queue.free_entry=&pic_queue.entries[0];
-    pic_queue.next_entry=0;
+    pic_queue.next_entry = nullptr;
 
     AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));

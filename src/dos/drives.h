@@ -1178,7 +1178,7 @@ public:
 	Bits UnMount(void) override;
 	char const* GetLabel(void) override;
 private:
-	VFILE_Block* search_file = 0;
+	VFILE_Block* search_file = nullptr;
 };
 
 class Overlay_Drive: public localDrive {

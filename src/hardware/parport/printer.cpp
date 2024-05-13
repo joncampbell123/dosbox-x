@@ -538,7 +538,7 @@ void CPrinter::updateFont()
 		matrix.xy = (FT_Fixed)(0.20 * 0x10000L);
 		matrix.yx = 0;
 		matrix.yy = 0x10000L;
-		FT_Set_Transform(curFont, &matrix, 0);
+		FT_Set_Transform(curFont, &matrix, nullptr);
 	}
 }
 

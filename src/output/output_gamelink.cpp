@@ -168,13 +168,13 @@ Bitu OUTPUT_GAMELINK_SetSize()
 
     if (sdl.desktop.fullscreen) GFX_ForceFullscreenExit();
 
-    sdl.surface = 0;
+    sdl.surface = nullptr;
     sdl.clip.w = sdl.draw.width;
     sdl.clip.h = sdl.draw.height;
     sdl.clip.x = 0;
     sdl.clip.y = 0;
 
-    if (sdl.gamelink.framebuf == 0 ) {
+    if (!sdl.gamelink.framebuf) {
         sdl.gamelink.framebuf = malloc(SCALER_MAXWIDTH * SCALER_MAXHEIGHT * 4);   // 32 bit color frame buffer
     }
     sdl.gamelink.pitch = sdl.draw.width*4;

@@ -705,7 +705,7 @@ private:
 	MixerObject MixerChan;
 public:
 	PCSPEAKER(Section* configuration):Module_base(configuration){
-		spkr.chan=0;
+		spkr.chan = nullptr;
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		if(!section->Get_bool("pcspeaker")||control->opt_silent) return;
 		spkr.pit_output_enabled = 0;

@@ -35,7 +35,7 @@
 CDirectSerial::CDirectSerial (Bitu id, CommandLine* cmd)
 					:CSerial (id, cmd) {
 	InstallationSuccessful = false;
-	comport = 0;
+	comport = nullptr;
 
 	rx_retry = 0;
     rx_retry_max = 0;

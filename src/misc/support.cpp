@@ -224,7 +224,7 @@ char * ScanCMDRemain(char * cmd) {
 		while ( *scan && !isspace(*reinterpret_cast<unsigned char*>(scan)) ) scan++;
 		*scan=0;
 		return found;
-	} else return 0; 
+	} else return nullptr;
 }
 
 char * StripWord(char *&line) {

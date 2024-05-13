@@ -276,42 +276,42 @@ static char const * op386map1[256] = {
 static char const *second[] = {
 /* 0 */
   "%g5",              "%g6",             "lar %Gv,%Ew",    "lsl %Gv,%Ew",
-  0,                  "[loadall]",       "clts",           "[loadall]",
-  "invd",             "wbinvd",          0,                "UD2",
-  0,                  0,                 0,                0,
+  nullptr,            "[loadall]",       "clts",           "[loadall]",
+  "invd",             "wbinvd",          nullptr,          "UD2",
+  nullptr,            nullptr,           nullptr,          nullptr,
 /* 1 */
   "%x0",              "%x0",             "%x0",            "%x0",
   "%x0",              "%x0",             "%x0",            "%x0",
-  "%g=",              0,                 0,                0,
-  0,                  0,                 0,                0,
+  "%g=",              nullptr,           nullptr,          nullptr,
+  nullptr,            nullptr,           nullptr,          nullptr,
 /* 2 */
   "mov %Rd,%Cd",      "mov %Rd,%Dd",     "mov %Cd,%Rd",    "mov %Dd,%Rd",
-  "mov %Rd,%Td",      0,                 "mov %Td,%Rd",    0,
+  "mov %Rd,%Td",      nullptr,           "mov %Td,%Rd",    nullptr,
   "%x0",              "%x0",             "%x0",            "%x0",
   "%x0",              "%x0",             "%x0",            "%x0",
 /* 3 */
-  "wrmsr",            "rdtsc",           "rdmsr",          0,
-  "sysenter",         "sysexit",         0,                0,
-  0,                  0,                 0,                0,
-  0,                  0,                 0,                0,
+  "wrmsr",            "rdtsc",           "rdmsr",          nullptr,
+  "sysenter",         "sysexit",         nullptr,          nullptr,
+  nullptr,            nullptr,           nullptr,          nullptr,
+  nullptr,            nullptr,           nullptr,          nullptr,
 /* 4 */
   "cmovo %Gv,%Ev",    "cmovno %Gv,%Ev",  "cmovc %Gv,%Ev",  "cmovnc %Gv,%Ev",
   "cmovz %Gv,%Ev",    "cmovnz %Gv,%Ev",  "cmovbe %Gv,%Ev", "cmovnbe %Gv,%Ev",
   "cmovs %Gv,%Ev",    "cmovns %Gv,%Ev",  "cmovp %Gv,%Ev",  "cmovnp %Gv,%Ev",
   "cmovl %Gv,%Ev",    "cmovge %Gv,%Ev",  "cmovle %Gv,%Ev", "cmovg %Gv,%Ev",
 /* 5 */
-  "%x0", "%x0", "%x0", "%x0", "%x0", "%x0", "%x0", "%x0",
-  "%x0", "%x0", 0,     0,     "%x0", "%x0", "%x0", "%x0",
+  "%x0", "%x0", "%x0",   "%x0",   "%x0", "%x0", "%x0", "%x0",
+  "%x0", "%x0", nullptr, nullptr, "%x0", "%x0", "%x0", "%x0",
 /* 6 */
   "punpcklbw %GM,%EM","punpcklwd %GM,%EM","punpckldq %GM,%EM","packsswb %GM,%EM",
   "pcmpgtb %GM,%EM",  "pcmpgtw %GM,%EM", "pcmpgtd %GM,%EM","packuswb %GM,%EM",
   "punpckhbw %GM,%EM","punpckhwd %GM,%EM","punpckhdq %GM,%EM","packssdw %GM,%EM",
-  0,                  0,                 "movd %GM,%Ed",   "movq %GM,%EM",
+  nullptr,            nullptr,           "movd %GM,%Ed",   "movq %GM,%EM",
 /* 7 */
   "pshufw %GM,%EM,%Ib","%g;",            "%g:",            "%g9",
   "pcmpeqb %GM,%EM",  "pcmpeqw %GM,%EM", "pcmpeqd %GM,%EM","emms",
-  0,                  0,                 0,                0,
-  0,                  0,                 "movd %Ed,%GM",   "movq %EM,%GM",
+  nullptr,            nullptr,           nullptr,          nullptr,
+  nullptr,            nullptr,           "movd %Ed,%GM",   "movq %EM,%GM",
 /* 8 */
   "jo %Jv",           "jno %Jv",         "jb %Jv",         "jnb %Jv",
   "jz %Jv",           "jnz %Jv",         "jbe %Jv",        "ja %Jv",
@@ -324,177 +324,179 @@ static char const *second[] = {
   "setl %Eb",         "setge %Eb",       "setle %Eb",      "setg %Eb",
 /* a */
   "push fs",          "pop fs",          "cpuid",          "bt %Ev,%Gv",
-  "shld %Ev,%Gv,%Ib", "shld %Ev,%Gv,cl", 0,                0,
-  "push gs",          "pop gs",          0,                "bts %Ev,%Gv",
+  "shld %Ev,%Gv,%Ib", "shld %Ev,%Gv,cl", nullptr,          nullptr,
+  "push gs",          "pop gs",          nullptr,          "bts %Ev,%Gv",
   "shrd %Ev,%Gv,%Ib", "shrd %Ev,%Gv,cl", "%g<",            "imul %Gv,%Ev",
 /* b */
   "cmpxchg %Eb,%Gb",  "cmpxchg %Ev,%Gv", "lss %Mp",        "btr %Ev,%Gv",
   "lfs %Mp",          "lgs %Mp",         "movzx %Gv,%Eb",  "movzx %Gv,%Ew",
-  0,                  0,                 "%g7 %Ev,%Ib",    "btc %Ev,%Gv",
+  nullptr,            nullptr,           "%g7 %Ev,%Ib",    "btc %Ev,%Gv",
   "bsf %Gv,%Ev",      "bsr %Gv,%Ev",     "movsx %Gv,%Eb",  "movsx %Gv,%Ew",
 /* c */
-  "xadd %Eb,%Gb",     "xadd %Ev,%Gv",    "%x0",            0,
+  "xadd %Eb,%Gb",     "xadd %Ev,%Gv",    "%x0",            nullptr,
   "%x0",              "%x0",             "%x0",            "%g8",
   "bswap eax",        "bswap ecx",       "bswap edx",      "bswap ebx",
   "bswap esp",        "bswap ebp",       "bswap esi",      "bswap edi",
 /* d */
-  0,                  "psrlw %GM,%EM",   "psrld %GM,%EM",  "psrlq %GM,%EM",
-  "paddq %GM,%EM",    "pmullw %GM,%EM",  0,                "%x0",
+  nullptr,            "psrlw %GM,%EM",   "psrld %GM,%EM",  "psrlq %GM,%EM",
+  "paddq %GM,%EM",    "pmullw %GM,%EM",  nullptr,          "%x0",
   "psubusb %GM,%EM",  "psubusw %GM,%EM", "%x0",            "%x0",
   "paddusb %GM,%EM",  "paddusw %GM,%EM", "%x0",            "pandn %GM,%EM",
 /* e */
   "%x0",              "psraw %GM,%EM",   "psrad %GM,%EM",  "%x0",
-  "%x0",              "%x0",             0,                "%x0",
+  "%x0",              "%x0",             nullptr,          "%x0",
   "%x0",              "%x0",             "%x0",            "%x0",
   "%x0",              "%x0",             "%x0",            "%x0",
 /* f */
-  0,                  "psllw %GM,%EM",   "pslld %GM,%EM",  "psllq %GM,%EM",
-  0,                  "pmaddwd %GM,%EM", "%x0",            "%x0",
-  "psubb %GM,%EM",    "psubw %GM,%EM",   "psubd %GM,%EM",  0,
-  "paddb %GM,%EM",    "paddw %GM,%EM",   "paddd %GM,%EM",  0
+  nullptr,            "psllw %GM,%EM",   "pslld %GM,%EM",  "psllq %GM,%EM",
+  nullptr,            "pmaddwd %GM,%EM", "%x0",            "%x0",
+  "psubb %GM,%EM",    "psubw %GM,%EM",   "psubd %GM,%EM",  nullptr,
+  "paddb %GM,%EM",    "paddw %GM,%EM",   "paddd %GM,%EM",  nullptr
 };
 
+#define NULLPTRS { nullptr, nullptr, nullptr, nullptr }
 static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instructions, then within NP, 66, F2, F3 */
 /* group 0 */
   {
-    /* 0x00 */ { 0,0,0,0 }, /* 0x01 */ { 0,0,0,0 }, /* 0x02 */ { 0,0,0,0 }, /* 0x03 */ { 0,0,0,0 },
-    /* 0x04 */ { 0,0,0,0 }, /* 0x05 */ { 0,0,0,0 }, /* 0x06 */ { 0,0,0,0 }, /* 0x07 */ { 0,0,0,0 },
-    /* 0x08 */ { 0,0,0,0 }, /* 0x09 */ { 0,0,0,0 }, /* 0x0A */ { 0,0,0,0 }, /* 0x0B */ { 0,0,0,0 },
-    /* 0x0C */ { 0,0,0,0 }, /* 0x0D */ { 0,0,0,0 }, /* 0x0E */ { 0,0,0,0 }, /* 0x0F */ { 0,0,0,0 },
+    /* 0x00 */ NULLPTRS, /* 0x01 */ NULLPTRS, /* 0x02 */ NULLPTRS, /* 0x03 */ NULLPTRS,
+    /* 0x04 */ NULLPTRS, /* 0x05 */ NULLPTRS, /* 0x06 */ NULLPTRS, /* 0x07 */ NULLPTRS,
+    /* 0x08 */ NULLPTRS, /* 0x09 */ NULLPTRS, /* 0x0A */ NULLPTRS, /* 0x0B */ NULLPTRS,
+    /* 0x0C */ NULLPTRS, /* 0x0D */ NULLPTRS, /* 0x0E */ NULLPTRS, /* 0x0F */ NULLPTRS,
 
     /* 0x10 */ { "movups %GX,%EX", "movupd %GX,%EX", "movsd %GX,%EX", "movss %GX,%EX" },
     /* 0x11 */ { "movups %EX,%GX", "movupd %EX,%GX", "movsd %EX,%GX", "movss %EX,%GX" },
-    /* 0x12 */ { "movlps %GX,%EX", 0,0,0 }, // FIXME: The design of this disassembler does not allow changing opcode name based on r/m = memory or r/m = reg
-    /* 0x13 */ { "movlps %EX,%GX", 0,0,0 },
-    /* 0x14 */ { "unpcklps %GX,%EX", 0,0,0 },
-    /* 0x15 */ { "unpckhps %GX,%EX", 0,0,0 },
-    /* 0x16 */ { "movhps %GX,%EX", 0,0,0 }, // FIXME: The design of this disassembler does not allow changing opcode name based on r/m = memory or r/m = reg
-    /* 0x17 */ { "movhps %EX,%GX", 0,0,0 },
-    /* 0x18 */ { 0,0,0,0 }, /* 0x19 */ { 0,0,0,0 }, /* 0x1A */ { 0,0,0,0 }, /* 0x1B */ { 0,0,0,0 },
-    /* 0x1C */ { 0,0,0,0 }, /* 0x1D */ { 0,0,0,0 }, /* 0x1E */ { 0,0,0,0 }, /* 0x1F */ { 0,0,0,0 },
+    /* 0x12 */ { "movlps %GX,%EX", nullptr, nullptr, nullptr }, // FIXME: The design of this disassembler does not allow changing opcode name based on r/m = memory or r/m = reg
+    /* 0x13 */ { "movlps %EX,%GX", nullptr, nullptr, nullptr },
+    /* 0x14 */ { "unpcklps %GX,%EX", nullptr, nullptr, nullptr },
+    /* 0x15 */ { "unpckhps %GX,%EX", nullptr, nullptr, nullptr },
+    /* 0x16 */ { "movhps %GX,%EX", nullptr, nullptr, nullptr }, // FIXME: The design of this disassembler does not allow changing opcode name based on r/m = memory or r/m = reg
+    /* 0x17 */ { "movhps %EX,%GX", nullptr, nullptr, nullptr },
+    /* 0x18 */ NULLPTRS, /* 0x19 */ NULLPTRS, /* 0x1A */ NULLPTRS, /* 0x1B */ NULLPTRS,
+    /* 0x1C */ NULLPTRS, /* 0x1D */ NULLPTRS, /* 0x1E */ NULLPTRS, /* 0x1F */ NULLPTRS,
 
-    /* 0x20 */ { 0,0,0,0 }, /* 0x21 */ { 0,0,0,0 }, /* 0x22 */ { 0,0,0,0 }, /* 0x23 */ { 0,0,0,0 },
-    /* 0x24 */ { 0,0,0,0 }, /* 0x25 */ { 0,0,0,0 }, /* 0x26 */ { 0,0,0,0 }, /* 0x27 */ { 0,0,0,0 },
-    /* 0x28 */ { "movaps %GX,%EX", "movapd %GX,%EX", 0, 0 },
-    /* 0x29 */ { "movaps %EX,%GX", "movapd %EX,%GX", 0, 0 },
-    /* 0x2A */ { "cvtpi2ps %GX,%EM", 0, 0, "cvtsi2ss %GX,%Ed" },
-    /* 0x2B */ { "movntps %EX,%GX", 0,0,0 },
-    /* 0x2C */ { "cvttps2pi %GM,%EX", 0, 0, "cvttss2si %Gd,%EX" },
-    /* 0x2D */ { "cvtps2pi %GM,%EX", 0, 0, "cvtss2si %Gd,%EX" },
-    /* 0x2E */ { "ucomiss %GX,%EX", 0,0,0 },
-    /* 0x2F */ { "comiss %GX,%EX", 0,0,0 },
+    /* 0x20 */ NULLPTRS, /* 0x21 */ NULLPTRS, /* 0x22 */ NULLPTRS, /* 0x23 */ NULLPTRS,
+    /* 0x24 */ NULLPTRS, /* 0x25 */ NULLPTRS, /* 0x26 */ NULLPTRS, /* 0x27 */ NULLPTRS,
+    /* 0x28 */ { "movaps %GX,%EX", "movapd %GX,%EX", nullptr, nullptr },
+    /* 0x29 */ { "movaps %EX,%GX", "movapd %EX,%GX", nullptr, nullptr },
+    /* 0x2A */ { "cvtpi2ps %GX,%EM", nullptr, nullptr, "cvtsi2ss %GX,%Ed" },
+    /* 0x2B */ { "movntps %EX,%GX", nullptr, nullptr, nullptr },
+    /* 0x2C */ { "cvttps2pi %GM,%EX", nullptr, nullptr, "cvttss2si %Gd,%EX" },
+    /* 0x2D */ { "cvtps2pi %GM,%EX", nullptr, nullptr, "cvtss2si %Gd,%EX" },
+    /* 0x2E */ { "ucomiss %GX,%EX", nullptr, nullptr, nullptr },
+    /* 0x2F */ { "comiss %GX,%EX", nullptr, nullptr, nullptr },
 
-    /* 0x30 */ { 0,0,0,0 }, /* 0x31 */ { 0,0,0,0 }, /* 0x32 */ { 0,0,0,0 }, /* 0x33 */ { 0,0,0,0 },
-    /* 0x34 */ { 0,0,0,0 }, /* 0x35 */ { 0,0,0,0 }, /* 0x36 */ { 0,0,0,0 }, /* 0x37 */ { 0,0,0,0 },
-    /* 0x38 */ { 0,0,0,0 }, /* 0x39 */ { 0,0,0,0 }, /* 0x3A */ { 0,0,0,0 }, /* 0x3B */ { 0,0,0,0 },
-    /* 0x3C */ { 0,0,0,0 }, /* 0x3D */ { 0,0,0,0 }, /* 0x3E */ { 0,0,0,0 }, /* 0x3F */ { 0,0,0,0 },
+    /* 0x30 */ NULLPTRS, /* 0x31 */ NULLPTRS, /* 0x32 */ NULLPTRS, /* 0x33 */ NULLPTRS,
+    /* 0x34 */ NULLPTRS, /* 0x35 */ NULLPTRS, /* 0x36 */ NULLPTRS, /* 0x37 */ NULLPTRS,
+    /* 0x38 */ NULLPTRS, /* 0x39 */ NULLPTRS, /* 0x3A */ NULLPTRS, /* 0x3B */ NULLPTRS,
+    /* 0x3C */ NULLPTRS, /* 0x3D */ NULLPTRS, /* 0x3E */ NULLPTRS, /* 0x3F */ NULLPTRS,
 
-    /* 0x40 */ { 0,0,0,0 }, /* 0x41 */ { 0,0,0,0 }, /* 0x42 */ { 0,0,0,0 }, /* 0x43 */ { 0,0,0,0 },
-    /* 0x44 */ { 0,0,0,0 }, /* 0x45 */ { 0,0,0,0 }, /* 0x46 */ { 0,0,0,0 }, /* 0x47 */ { 0,0,0,0 },
-    /* 0x48 */ { 0,0,0,0 }, /* 0x49 */ { 0,0,0,0 }, /* 0x4A */ { 0,0,0,0 }, /* 0x4B */ { 0,0,0,0 },
-    /* 0x4C */ { 0,0,0,0 }, /* 0x4D */ { 0,0,0,0 }, /* 0x4E */ { 0,0,0,0 }, /* 0x4F */ { 0,0,0,0 },
+    /* 0x40 */ NULLPTRS, /* 0x41 */ NULLPTRS, /* 0x42 */ NULLPTRS, /* 0x43 */ NULLPTRS,
+    /* 0x44 */ NULLPTRS, /* 0x45 */ NULLPTRS, /* 0x46 */ NULLPTRS, /* 0x47 */ NULLPTRS,
+    /* 0x48 */ NULLPTRS, /* 0x49 */ NULLPTRS, /* 0x4A */ NULLPTRS, /* 0x4B */ NULLPTRS,
+    /* 0x4C */ NULLPTRS, /* 0x4D */ NULLPTRS, /* 0x4E */ NULLPTRS, /* 0x4F */ NULLPTRS,
 
-    /* 0x50 */ { "movmskps %Gd,%EX", 0,0,0 },
+    /* 0x50 */ { "movmskps %Gd,%EX", nullptr, nullptr, nullptr },
     /* 0x51 */ { "sqrtps %GX,%EX", "sqrtpd %GX,%EX", "sqrtsd %GX,%EX", "sqrtss %GX,%EX" },
-    /* 0x52 */ { "rqsrtps %GX,%EX", 0,0, "rsqrtss %GX,%EX" },
-    /* 0x53 */ { "rcpps %GX,%EX", 0,0, "rcpss %GX,%EX" },
-    /* 0x54 */ { "andps %GX,%EX", "andpd %GX,%EX", 0,0 },
-    /* 0x55 */ { "andnps %GX,%EX", "andnpd %GX,%EX", 0,0 },
-    /* 0x56 */ { "orps %GX,%EX", "orpd %GX,%EX", 0,0 },
-    /* 0x57 */ { "xorps %GX,%EX", "xorpd %GX,%EX", 0,0 },
+    /* 0x52 */ { "rqsrtps %GX,%EX", nullptr, nullptr, "rsqrtss %GX,%EX" },
+    /* 0x53 */ { "rcpps %GX,%EX", nullptr, nullptr, "rcpss %GX,%EX" },
+    /* 0x54 */ { "andps %GX,%EX", "andpd %GX,%EX", nullptr, nullptr },
+    /* 0x55 */ { "andnps %GX,%EX", "andnpd %GX,%EX", nullptr, nullptr },
+    /* 0x56 */ { "orps %GX,%EX", "orpd %GX,%EX", nullptr, nullptr },
+    /* 0x57 */ { "xorps %GX,%EX", "xorpd %GX,%EX", nullptr, nullptr },
     /* 0x58 */ { "addps %GX,%EX", "addpd %GX,%EX", "addsd %GX,%EX", "addss %GX,%EX" },
     /* 0x59 */ { "mulps %GX,%EX", "mulpd %GX,%EX", "mulsd %GX,%EX", "mulss %GX,%EX" },
-    /* 0x5A */ { 0,0,0,0 },
-    /* 0x5B */ { 0,0,0,0 },
+    /* 0x5A */ NULLPTRS,
+    /* 0x5B */ NULLPTRS,
     /* 0x5C */ { "subps %GX,%EX", "subpd %GX,%EX", "subsd %GX,%EX", "subss %GX,%EX" },
     /* 0x5D */ { "minps %GX,%EX", "minpd %GX,%EX", "minsd %GX,%EX", "minss %GX,%EX" },
     /* 0x5E */ { "divps %GX,%EX", "divpd %GX,%EX", "divsd %GX,%EX", "divss %GX,%EX" },
     /* 0x5F */ { "maxps %GX,%EX", "maxpd %GX,%EX", "maxsd %GX,%EX", "maxss %GX,%EX" },
 
-    /* 0x60 */ { 0,0,0,0 }, /* 0x61 */ { 0,0,0,0 }, /* 0x62 */ { 0,0,0,0 }, /* 0x63 */ { 0,0,0,0 },
-    /* 0x64 */ { 0,0,0,0 }, /* 0x65 */ { 0,0,0,0 }, /* 0x66 */ { 0,0,0,0 }, /* 0x67 */ { 0,0,0,0 },
-    /* 0x68 */ { 0,0,0,0 }, /* 0x69 */ { 0,0,0,0 }, /* 0x6A */ { 0,0,0,0 }, /* 0x6B */ { 0,0,0,0 },
-    /* 0x6C */ { 0,0,0,0 }, /* 0x6D */ { 0,0,0,0 }, /* 0x6E */ { 0,0,0,0 }, /* 0x6F */ { 0,0,0,0 },
+    /* 0x60 */ NULLPTRS, /* 0x61 */ NULLPTRS, /* 0x62 */ NULLPTRS, /* 0x63 */ NULLPTRS,
+    /* 0x64 */ NULLPTRS, /* 0x65 */ NULLPTRS, /* 0x66 */ NULLPTRS, /* 0x67 */ NULLPTRS,
+    /* 0x68 */ NULLPTRS, /* 0x69 */ NULLPTRS, /* 0x6A */ NULLPTRS, /* 0x6B */ NULLPTRS,
+    /* 0x6C */ NULLPTRS, /* 0x6D */ NULLPTRS, /* 0x6E */ NULLPTRS, /* 0x6F */ NULLPTRS,
 
-    /* 0x70 */ { 0,0,0,0 }, /* 0x71 */ { 0,0,0,0 }, /* 0x72 */ { 0,0,0,0 }, /* 0x73 */ { 0,0,0,0 },
-    /* 0x74 */ { 0,0,0,0 }, /* 0x75 */ { 0,0,0,0 }, /* 0x76 */ { 0,0,0,0 }, /* 0x77 */ { 0,0,0,0 },
-    /* 0x78 */ { 0,0,0,0 }, /* 0x79 */ { 0,0,0,0 }, /* 0x7A */ { 0,0,0,0 }, /* 0x7B */ { 0,0,0,0 },
-    /* 0x7C */ { 0,0,0,0 }, /* 0x7D */ { 0,0,0,0 }, /* 0x7E */ { 0,0,0,0 }, /* 0x7F */ { 0,0,0,0 },
+    /* 0x70 */ NULLPTRS, /* 0x71 */ NULLPTRS, /* 0x72 */ NULLPTRS, /* 0x73 */ NULLPTRS,
+    /* 0x74 */ NULLPTRS, /* 0x75 */ NULLPTRS, /* 0x76 */ NULLPTRS, /* 0x77 */ NULLPTRS,
+    /* 0x78 */ NULLPTRS, /* 0x79 */ NULLPTRS, /* 0x7A */ NULLPTRS, /* 0x7B */ NULLPTRS,
+    /* 0x7C */ NULLPTRS, /* 0x7D */ NULLPTRS, /* 0x7E */ NULLPTRS, /* 0x7F */ NULLPTRS,
 
-    /* 0x80 */ { 0,0,0,0 }, /* 0x81 */ { 0,0,0,0 }, /* 0x82 */ { 0,0,0,0 }, /* 0x83 */ { 0,0,0,0 },
-    /* 0x84 */ { 0,0,0,0 }, /* 0x85 */ { 0,0,0,0 }, /* 0x86 */ { 0,0,0,0 }, /* 0x87 */ { 0,0,0,0 },
-    /* 0x88 */ { 0,0,0,0 }, /* 0x89 */ { 0,0,0,0 }, /* 0x8A */ { 0,0,0,0 }, /* 0x8B */ { 0,0,0,0 },
-    /* 0x8C */ { 0,0,0,0 }, /* 0x8D */ { 0,0,0,0 }, /* 0x8E */ { 0,0,0,0 }, /* 0x8F */ { 0,0,0,0 },
+    /* 0x80 */ NULLPTRS, /* 0x81 */ NULLPTRS, /* 0x82 */ NULLPTRS, /* 0x83 */ NULLPTRS,
+    /* 0x84 */ NULLPTRS, /* 0x85 */ NULLPTRS, /* 0x86 */ NULLPTRS, /* 0x87 */ NULLPTRS,
+    /* 0x88 */ NULLPTRS, /* 0x89 */ NULLPTRS, /* 0x8A */ NULLPTRS, /* 0x8B */ NULLPTRS,
+    /* 0x8C */ NULLPTRS, /* 0x8D */ NULLPTRS, /* 0x8E */ NULLPTRS, /* 0x8F */ NULLPTRS,
 
-    /* 0x90 */ { 0,0,0,0 }, /* 0x91 */ { 0,0,0,0 }, /* 0x92 */ { 0,0,0,0 }, /* 0x93 */ { 0,0,0,0 },
-    /* 0x94 */ { 0,0,0,0 }, /* 0x95 */ { 0,0,0,0 }, /* 0x96 */ { 0,0,0,0 }, /* 0x97 */ { 0,0,0,0 },
-    /* 0x98 */ { 0,0,0,0 }, /* 0x99 */ { 0,0,0,0 }, /* 0x9A */ { 0,0,0,0 }, /* 0x9B */ { 0,0,0,0 },
-    /* 0x9C */ { 0,0,0,0 }, /* 0x9D */ { 0,0,0,0 }, /* 0x9E */ { 0,0,0,0 }, /* 0x9F */ { 0,0,0,0 },
+    /* 0x90 */ NULLPTRS, /* 0x91 */ NULLPTRS, /* 0x92 */ NULLPTRS, /* 0x93 */ NULLPTRS,
+    /* 0x94 */ NULLPTRS, /* 0x95 */ NULLPTRS, /* 0x96 */ NULLPTRS, /* 0x97 */ NULLPTRS,
+    /* 0x98 */ NULLPTRS, /* 0x99 */ NULLPTRS, /* 0x9A */ NULLPTRS, /* 0x9B */ NULLPTRS,
+    /* 0x9C */ NULLPTRS, /* 0x9D */ NULLPTRS, /* 0x9E */ NULLPTRS, /* 0x9F */ NULLPTRS,
 
-    /* 0xA0 */ { 0,0,0,0 }, /* 0xA1 */ { 0,0,0,0 }, /* 0xA2 */ { 0,0,0,0 }, /* 0xA3 */ { 0,0,0,0 },
-    /* 0xA4 */ { 0,0,0,0 }, /* 0xA5 */ { 0,0,0,0 }, /* 0xA6 */ { 0,0,0,0 }, /* 0xA7 */ { 0,0,0,0 },
-    /* 0xA8 */ { 0,0,0,0 }, /* 0xA9 */ { 0,0,0,0 }, /* 0xAA */ { 0,0,0,0 }, /* 0xAB */ { 0,0,0,0 },
-    /* 0xAC */ { 0,0,0,0 }, /* 0xAD */ { 0,0,0,0 }, /* 0xAE */ { 0,0,0,0 }, /* 0xAF */ { 0,0,0,0 },
+    /* 0xA0 */ NULLPTRS, /* 0xA1 */ NULLPTRS, /* 0xA2 */ NULLPTRS, /* 0xA3 */ NULLPTRS,
+    /* 0xA4 */ NULLPTRS, /* 0xA5 */ NULLPTRS, /* 0xA6 */ NULLPTRS, /* 0xA7 */ NULLPTRS,
+    /* 0xA8 */ NULLPTRS, /* 0xA9 */ NULLPTRS, /* 0xAA */ NULLPTRS, /* 0xAB */ NULLPTRS,
+    /* 0xAC */ NULLPTRS, /* 0xAD */ NULLPTRS, /* 0xAE */ NULLPTRS, /* 0xAF */ NULLPTRS,
 
-    /* 0xB0 */ { 0,0,0,0 }, /* 0xB1 */ { 0,0,0,0 }, /* 0xB2 */ { 0,0,0,0 }, /* 0xB3 */ { 0,0,0,0 },
-    /* 0xB4 */ { 0,0,0,0 }, /* 0xB5 */ { 0,0,0,0 }, /* 0xB6 */ { 0,0,0,0 }, /* 0xB7 */ { 0,0,0,0 },
-    /* 0xB8 */ { 0,0,0,0 }, /* 0xB9 */ { 0,0,0,0 }, /* 0xBA */ { 0,0,0,0 }, /* 0xBB */ { 0,0,0,0 },
-    /* 0xBC */ { 0,0,0,0 }, /* 0xBD */ { 0,0,0,0 }, /* 0xBE */ { 0,0,0,0 }, /* 0xBF */ { 0,0,0,0 },
+    /* 0xB0 */ NULLPTRS, /* 0xB1 */ NULLPTRS, /* 0xB2 */ NULLPTRS, /* 0xB3 */ NULLPTRS,
+    /* 0xB4 */ NULLPTRS, /* 0xB5 */ NULLPTRS, /* 0xB6 */ NULLPTRS, /* 0xB7 */ NULLPTRS,
+    /* 0xB8 */ NULLPTRS, /* 0xB9 */ NULLPTRS, /* 0xBA */ NULLPTRS, /* 0xBB */ NULLPTRS,
+    /* 0xBC */ NULLPTRS, /* 0xBD */ NULLPTRS, /* 0xBE */ NULLPTRS, /* 0xBF */ NULLPTRS,
 
-    /* 0xC0 */ { 0,0,0,0 },
-    /* 0xC1 */ { 0,0,0,0 },
+    /* 0xC0 */ NULLPTRS,
+    /* 0xC1 */ NULLPTRS,
     /* 0xC2 */ { "cmpps %GX,%EX,%Ib", "cmppd %GX,%EX,%Ib", "cmpsd %GX,%EX,%Ib", "cmpss %GX,%EX,%Ib" }, // FIXME: The immediate byte specifies a comparison operator
-    /* 0xC3 */ { 0,0,0,0 },
-    /* 0xC4 */ { "pinsrw %GM,%Ed,%Ib", "pinsrw %GX,%Ed,%Ib", 0, 0 },
-    /* 0xC5 */ { "pextrw %Ed,%GM,%Ib", "pextrw %Ed,%GX,%Ib", 0, 0 },
-    /* 0xC6 */ { "shufps %GX,%EX,%Ib", "shufpd %GX,%EX,%Ib", 0, 0 },
-    /* 0xC7 */ { 0,0,0,0 },
-    /* 0xC8 */ { 0,0,0,0 }, /* 0xC9 */ { 0,0,0,0 }, /* 0xCA */ { 0,0,0,0 }, /* 0xCB */ { 0,0,0,0 },
-    /* 0xCC */ { 0,0,0,0 }, /* 0xCD */ { 0,0,0,0 }, /* 0xCE */ { 0,0,0,0 }, /* 0xCF */ { 0,0,0,0 },
+    /* 0xC3 */ NULLPTRS,
+    /* 0xC4 */ { "pinsrw %GM,%Ed,%Ib", "pinsrw %GX,%Ed,%Ib", nullptr, nullptr },
+    /* 0xC5 */ { "pextrw %Ed,%GM,%Ib", "pextrw %Ed,%GX,%Ib", nullptr, nullptr },
+    /* 0xC6 */ { "shufps %GX,%EX,%Ib", "shufpd %GX,%EX,%Ib", nullptr, nullptr },
+    /* 0xC7 */ NULLPTRS,
+    /* 0xC8 */ NULLPTRS, /* 0xC9 */ NULLPTRS, /* 0xCA */ NULLPTRS, /* 0xCB */ NULLPTRS,
+    /* 0xCC */ NULLPTRS, /* 0xCD */ NULLPTRS, /* 0xCE */ NULLPTRS, /* 0xCF */ NULLPTRS,
 
-    /* 0xD0 */ { 0,0,0,0 },
-    /* 0xD1 */ { 0,0,0,0 },
-    /* 0xD2 */ { 0,0,0,0 },
-    /* 0xD3 */ { 0,0,0,0 },
-    /* 0xD4 */ { 0,0,0,0 },
-    /* 0xD5 */ { 0,0,0,0 },
-    /* 0xD6 */ { 0,0,0,0 },
-    /* 0xD7 */ { "pmovmskb %Gd,%EM", "pmovmskb %Gd,%EX", 0, 0 },
-    /* 0xD8 */ { 0,0,0,0 },
-    /* 0xD9 */ { 0,0,0,0 },
-    /* 0xDA */ { "pminub %GM,%EM", "pminub %GX,%EX", 0, 0 },
-    /* 0xDB */ { "pand %GM,%EM", "pand %GX,%EX", 0, 0 },
-    /* 0xDC */ { 0,0,0,0 },
-    /* 0xDD */ { 0,0,0,0 },
-    /* 0xDE */ { "pmaxub %GM,%EM", "pmaxub %GX,%EX", 0, 0 },
-    /* 0xDF */ { 0,0,0,0 },
+    /* 0xD0 */ NULLPTRS,
+    /* 0xD1 */ NULLPTRS,
+    /* 0xD2 */ NULLPTRS,
+    /* 0xD3 */ NULLPTRS,
+    /* 0xD4 */ NULLPTRS,
+    /* 0xD5 */ NULLPTRS,
+    /* 0xD6 */ NULLPTRS,
+    /* 0xD7 */ { "pmovmskb %Gd,%EM", "pmovmskb %Gd,%EX", nullptr, nullptr },
+    /* 0xD8 */ NULLPTRS,
+    /* 0xD9 */ NULLPTRS,
+    /* 0xDA */ { "pminub %GM,%EM", "pminub %GX,%EX", nullptr, nullptr },
+    /* 0xDB */ { "pand %GM,%EM", "pand %GX,%EX", nullptr, nullptr },
+    /* 0xDC */ NULLPTRS,
+    /* 0xDD */ NULLPTRS,
+    /* 0xDE */ { "pmaxub %GM,%EM", "pmaxub %GX,%EX", nullptr, nullptr },
+    /* 0xDF */ NULLPTRS,
 
-    /* 0xE0 */ { "pavgb %GM,%EM", "pavgb %GX,%EX", 0, 0 },
-    /* 0xE1 */ { 0,0,0,0 },
-    /* 0xE2 */ { 0,0,0,0 },
-    /* 0xE3 */ { "pavgw %GM,%EM", "pavgw %GX,%EX", 0, 0 },
-    /* 0xE4 */ { "pmulhuw %GM,%EM", "pmulhuw %GX,%EX", 0, 0 },
-    /* 0xE5 */ { "pmulhw %GM,%EM", "pmulhw %GX,%EX", 0, 0 },
-    /* 0xE6 */ { 0,0,0,0 },
-    /* 0xE7 */ { "movntq %EM,%GM", "movntdq %EX,%GX", 0, 0 },
-    /* 0xE8 */ { "psubsb %GM,%EM", "psubsb %GX,%EX", 0, 0 },
-    /* 0xE9 */ { "psubsw %GM,%EM", "psubsw %GX,%EX", 0, 0 },
-    /* 0xEA */ { "pminsw %GM,%EM", "pminsw %GX,%EX", 0, 0 },
-    /* 0xEB */ { "por %GM,%EM", "por %GX,%EX", 0, 0 },
-    /* 0xEC */ { "paddsb %GM,%EM", "paddsb %GX,%EX", 0, 0 },
-    /* 0xED */ { "paddsw %GM,%EM", "paddsw %GX,%EX", 0, 0 },
-    /* 0xEE */ { "pmaxsw %GM,%EM", "pmaxsw %GX,%EX", 0, 0 },
-    /* 0xEF */ { "pxor %GM,%EM", "pxor %GX,%EX", 0, 0 },
+    /* 0xE0 */ { "pavgb %GM,%EM", "pavgb %GX,%EX", nullptr, nullptr },
+    /* 0xE1 */ NULLPTRS,
+    /* 0xE2 */ NULLPTRS,
+    /* 0xE3 */ { "pavgw %GM,%EM", "pavgw %GX,%EX", nullptr, nullptr },
+    /* 0xE4 */ { "pmulhuw %GM,%EM", "pmulhuw %GX,%EX", nullptr, nullptr },
+    /* 0xE5 */ { "pmulhw %GM,%EM", "pmulhw %GX,%EX", nullptr, nullptr },
+    /* 0xE6 */ NULLPTRS,
+    /* 0xE7 */ { "movntq %EM,%GM", "movntdq %EX,%GX", nullptr, nullptr },
+    /* 0xE8 */ { "psubsb %GM,%EM", "psubsb %GX,%EX", nullptr, nullptr },
+    /* 0xE9 */ { "psubsw %GM,%EM", "psubsw %GX,%EX", nullptr, nullptr },
+    /* 0xEA */ { "pminsw %GM,%EM", "pminsw %GX,%EX", nullptr, nullptr },
+    /* 0xEB */ { "por %GM,%EM", "por %GX,%EX", nullptr, nullptr },
+    /* 0xEC */ { "paddsb %GM,%EM", "paddsb %GX,%EX", nullptr, nullptr },
+    /* 0xED */ { "paddsw %GM,%EM", "paddsw %GX,%EX", nullptr, nullptr },
+    /* 0xEE */ { "pmaxsw %GM,%EM", "pmaxsw %GX,%EX", nullptr, nullptr },
+    /* 0xEF */ { "pxor %GM,%EM", "pxor %GX,%EX", nullptr, nullptr },
 
-    /* 0xF0 */ { 0,0,0,0 }, /* 0xF1 */ { 0,0,0,0 }, /* 0xF2 */ { 0,0,0,0 }, /* 0xF3 */ { 0,0,0,0 },
-    /* 0xF4 */ { 0,0,0,0 },
-    /* 0xF5 */ { 0,0,0,0 },
-    /* 0xF6 */ { "psadbw %GM,%EM", "psadbw %GX,%EX", 0, 0 },
-    /* 0xF7 */ { "maskmovq %GM,%EM", "maskmovdqu %GX,%EX", 0, 0 },
-    /* 0xF8 */ { 0,0,0,0 }, /* 0xF9 */ { 0,0,0,0 }, /* 0xFA */ { 0,0,0,0 }, /* 0xFB */ { 0,0,0,0 },
-    /* 0xFC */ { 0,0,0,0 }, /* 0xFD */ { 0,0,0,0 }, /* 0xFE */ { 0,0,0,0 }, /* 0xFF */ { 0,0,0,0 }
+    /* 0xF0 */ NULLPTRS, /* 0xF1 */ NULLPTRS, /* 0xF2 */ NULLPTRS, /* 0xF3 */ NULLPTRS,
+    /* 0xF4 */ NULLPTRS,
+    /* 0xF5 */ NULLPTRS,
+    /* 0xF6 */ { "psadbw %GM,%EM", "psadbw %GX,%EX", nullptr, nullptr },
+    /* 0xF7 */ { "maskmovq %GM,%EM", "maskmovdqu %GX,%EX", nullptr, nullptr },
+    /* 0xF8 */ NULLPTRS, /* 0xF9 */ NULLPTRS, /* 0xFA */ NULLPTRS, /* 0xFB */ NULLPTRS,
+    /* 0xFC */ NULLPTRS, /* 0xFD */ NULLPTRS, /* 0xFE */ NULLPTRS, /* 0xFF */ NULLPTRS
   }
 };
+#undef NULLPTRS
 
 static char const *groups[][8] = {   /* group 0 is group 3 for %Ev set */
 /* 0 */
@@ -507,56 +509,61 @@ static char const *groups[][8] = {   /* group 0 is group 3 for %Ev set */
   { "test %Eq,%Iq",   "test %Eq,%Iq",    "not %Ec",        "neg %Ec",
     "mul %Ec",        "imul %Ec",        "div %Ec",        "idiv %Ec"      },
 /* 3 */
-  { "inc %Eb",        "dec %Eb",         0,                0,
-    0,                0,                 0,                "callback %Iw"  },
+  { "inc %Eb",        "dec %Eb",         nullptr,          nullptr,
+    nullptr,          nullptr,           nullptr,          "callback %Iw"  },
 /* 4 */
   { "inc %Ev",        "dec %Ev",         "call %Kn%Ev",    "call %Kf%Ep",
-    "jmp %Kn%Ev",     "jmp %Kf%Ep",      "push %Ev",       0               },
+    "jmp %Kn%Ev",     "jmp %Kf%Ep",      "push %Ev",       nullptr         },
 /* 5 */
   { "sldt %Ew",       "str %Ew",         "lldt %Ew",       "ltr %Ew",
-    "verr %Ew",       "verw %Ew",        0,                0               },
+    "verr %Ew",       "verw %Ew",        nullptr,          nullptr         },
 /* 6 */
   { "sgdt %Ms",       "sidt %Ms",        "lgdt %Ms",       "lidt %Ms",
-    "smsw %Ew",       0,                 "lmsw %Ew",       "invlpg"        },
+    "smsw %Ew",       nullptr,           "lmsw %Ew",       "invlpg"        },
 /* 7 */
-  { 0,                0,                 0,                0,
+  { nullptr,          nullptr,           nullptr,          nullptr,
     "bt",             "bts",             "btr",            "btc"           },
 /* 8 */
-  { 0,                "cmpxchg8b %EQ",   0,                0,
-    0,                0,                 0,                0               },
+  { nullptr,          "cmpxchg8b %EQ",   nullptr,          nullptr,
+    nullptr,          nullptr,           nullptr,          nullptr         },
 /* 9 */
-  { 0,                0,                 "psrlq %EM,%Ib",  0,
-    0,                0,                 "psllq %EM,%Ib",  0               },
+  { nullptr,          nullptr,           "psrlq %EM,%Ib",  nullptr,
+    nullptr,          nullptr,           "psllq %EM,%Ib",  nullptr         },
 /* : (NTS: this is '0'+10 in ASCII) */
-  { 0,                0,                 "psrld %EM,%Ib",  0,
-    "psrad %EM,%Ib",  0,                 "pslld %EM,%Ib",  0               },
+  { nullptr,          nullptr,           "psrld %EM,%Ib",  nullptr,
+    "psrad %EM,%Ib",  nullptr,           "pslld %EM,%Ib",  nullptr         },
 /* ; (NTS: this is '0'+11 in ASCII) */
-  { 0,                0,                 "psrlw %EM,%Ib",  0,
-    "psraw %EM,%Ib",  0,                 "psllw %EM,%Ib",  0               },
+  { nullptr,          nullptr,           "psrlw %EM,%Ib",  nullptr,
+    "psraw %EM,%Ib",  nullptr,           "psllw %EM,%Ib",  nullptr         },
 /* < (NTS: this is '0'+12 in ASCII) */
   { "fxsave %EM",     "fxrstor %EM",     "ldmxcsr %EM",    "stmxcsr %EM",
-    0,                0,                 0,                "sfence"        },
+    nullptr,          nullptr,           nullptr,          "sfence"        },
 /* = (NTS: this is '0'+13 in ASCII) */
   { "prefetchnta %EM","prefetch0 %EM",   "prefetch1 %EM",  "prefetch2 %EM",
-    0,                0,                 0,                0               }
+    nullptr,          nullptr,           nullptr,          nullptr         }
 };
 
 /* zero here means invalid.  If first entry starts with '*', use st(i) */
 /* no assumed %EFs here.  Indexed by RM(modrm())                       */
-static char const *f0[]     = { 0, 0, 0, 0, 0, 0, 0, 0};
+static char const *f0[]     = { nullptr, nullptr, nullptr, nullptr,
+                                nullptr, nullptr, nullptr, nullptr,};
 static char const *fop_8[]  = { "*fld st,%GF" };
 static char const *fop_9[]  = { "*fxch st,%GF" };
-static char const *fop_10[] = { "fnop", 0, 0, 0, 0, 0, 0, 0 };
+static char const *fop_10[] = { "fnop", nullptr, nullptr, nullptr,
+                                nullptr, nullptr, nullptr, nullptr };
 static char const *fop_11[] = { "*fstp st,%GF" };
-static char const *fop_12[] = { "fchs", "fabs", 0, 0, "ftst", "fxam", 0, 0 };
+static char const *fop_12[] = { "fchs", "fabs", nullptr, nullptr,
+                                "ftst", "fxam", nullptr, nullptr };
 static char const *fop_13[] = { "fld1", "fldl2t", "fldl2e", "fldpi",
-                   "fldlg2", "fldln2", "fldz", 0 };
+                                "fldlg2", "fldln2", "fldz", nullptr };
 static char const *fop_14[] = { "f2xm1", "fyl2x", "fptan", "fpatan",
-                   "fxtract", "fprem1", "fdecstp", "fincstp" };
+                                "fxtract", "fprem1", "fdecstp", "fincstp" };
 static char const *fop_15[] = { "fprem", "fyl2xp1", "fsqrt", "fsincos",
-                   "frndint", "fscale", "fsin", "fcos" };
-static char const *fop_21[] = { 0, "fucompp", 0, 0, 0, 0, 0, 0 };
-static char const *fop_28[] = { "[fneni]", "[fndisi]", "fclex", "finit", "[fnsetpm]", "[frstpm]", 0, 0 };
+                                "frndint", "fscale", "fsin", "fcos" };
+static char const *fop_21[] = { nullptr, "fucompp", nullptr, nullptr,
+                                nullptr, nullptr, nullptr, nullptr };
+static char const *fop_28[] = { "[fneni]", "[fndisi]", "fclex", "finit",
+                                "[fnsetpm]", "[frstpm]", nullptr, nullptr };
 static char const* fop_29[] = { "*fucomi %GF" };
 static char const* fop_30[] = { "*fcomi %GF" };
 static char const *fop_32[] = { "*fadd %GF,st" };
@@ -576,7 +583,8 @@ static char const *fop_45[] = { "*fucomp %GF" };
 static char const *fop_48[] = { "*faddp %GF,st" };
 static char const *fop_49[] = { "*fmulp %GF,st" };
 static char const *fop_50[] = { "*fcomp %GF,st" };
-static char const *fop_51[] = { 0, "fcompp", 0, 0, 0, 0, 0, 0 };
+static char const *fop_51[] = { nullptr, "fcompp", nullptr, nullptr,
+                                nullptr, nullptr, nullptr, nullptr };
 static char const *fop_52[] = { "*fsubrp %GF,st" };
 static char const *fop_53[] = { "*fsubp %GF,st" };
 static char const *fop_54[] = { "*fdivrp %GF,st" };
@@ -585,12 +593,13 @@ static char const *fop_56[] = { "*ffreep %GF" };
 static char const *fop_57[] = { "*fxch %GF" };
 static char const *fop_58[] = { "*fstp %GF" };
 static char const *fop_59[] = { "*fstp %GF" };
-static char const *fop_60[] = { "fstsw ax", 0, 0, 0, 0, 0, 0, 0 };
+static char const *fop_60[] = { "fstsw ax", nullptr, nullptr, nullptr,
+                                nullptr, nullptr, nullptr, nullptr };
 static char const* fop_61[] = { "*fucomip %GF" };
 static char const* fop_62[] = { "*fcomip %GF" };
 
 static char const **fspecial[] = { /* 0=use st(i), 1=undefined 0 in fop_* means undefined */
-  0, 0, 0, 0, 0, 0, 0, 0,
+  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
   fop_8, fop_9, fop_10, fop_11, fop_12, fop_13, fop_14, fop_15,
   f0, f0, f0, f0, f0, fop_21, f0, f0,
   f0, f0, f0, f0, fop_28, fop_29, fop_30, f0,
@@ -603,16 +612,16 @@ static char const **fspecial[] = { /* 0=use st(i), 1=undefined 0 in fop_* means 
 static const char *floatops[] = { /* assumed " %EF" at end of each.  mod != 3 only */
 /*00*/ "fadd", "fmul", "fcom", "fcomp",
        "fsub", "fsubr", "fdiv", "fdivr",
-/*08*/ "fld", 0, "fst", "fstp",
+/*08*/ "fld", nullptr, "fst", "fstp",
        "fldenv", "fldcw", "fstenv", "fstcw",
 /*16*/ "fiadd", "fimul", "ficom", "ficomp",
        "fisub", "fisubr", "fidiv", "fidivr",
 /*24*/ "fild", "fisttp", "fist", "fistp",
-       0, "fldt", 0, "fstpt",
+       nullptr, "fldt", nullptr, "fstpt",
 /*32*/ "faddq", "fmulq", "fcomq", "fcompq",
        "fsubq", "fsubrq", "fdivq", "fdivrq",
 /*40*/ "fldq", "fisttpq", "fstq", "fstpq",
-       "frstor", 0, "fsave", "fstsw",
+       "frstor", nullptr, "fsave", "fstsw",
 /*48*/ "fiaddw", "fimulw", "ficomw", "ficompw",
        "fisubw", "fisubrw", "fidivw", "fidivrw",
 /*56*/ "fildw", "fisttpw", "fistw", "fistpw",
@@ -1276,7 +1285,7 @@ static void ua_str(char const *str)
 {
   char c;
 
-  if (str == 0) {
+  if (!str) {
     invalid_opcode = 1;
     uprintf("?");
     return;

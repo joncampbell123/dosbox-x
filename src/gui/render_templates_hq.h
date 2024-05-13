@@ -27,7 +27,7 @@
 #ifndef RENDER_TEMPLATES_HQNX_TABLE_H
 #define RENDER_TEMPLATES_HQNX_TABLE_H
 
-static uint32_t *_RGBtoYUV = 0;
+static uint32_t *_RGBtoYUV = nullptr;
 static inline bool diffYUV(uint32_t yuv1, uint32_t yuv2)
 {
 	static const uint32_t Ymask = 0x00FF0000;

@@ -1805,7 +1805,7 @@ std::string MSCDEX_Output(int num) {
     case 4: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Too many CDRom-drives (max: 5). MSCDEX Installation failed";
     case 5: return MSCDEX_MSG + "Mounted subdirectory: limited support.";
     case 6: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Unknown error";
-    default: return 0;
+    default: return {};
     }
 }
 

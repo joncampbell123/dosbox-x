@@ -26,8 +26,8 @@
 SID2::SID2()
 {
   // Initialize pointers.
-  sample = 0;
-  fir = 0;
+  sample = nullptr;
+  fir = nullptr;
 
   voice[0].set_sync_source(&voice[2]);
   voice[1].set_sync_source(&voice[0]);
@@ -479,8 +479,8 @@ bool SID2::set_sampling_parameters(double clock_freq, sampling_method method,
   {
     delete[] sample;
     delete[] fir;
-    sample = 0;
-    fir = 0;
+    sample = nullptr;
+    fir = nullptr;
     return true;
   }
 

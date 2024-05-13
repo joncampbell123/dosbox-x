@@ -682,7 +682,7 @@ DOS_File& DOS_File::operator= (const DOS_File& orig) {
         drive = orig.drive;
         newtime = orig.newtime;
         if (name) {
-            delete[] name; name = 0;
+            delete[] name; name = nullptr;
         }
         if (orig.name) {
             name = new char[strlen(orig.name) + 1]; strcpy(name, orig.name);
@@ -743,7 +743,7 @@ uint8_t DOS_FindDevice(char const * name) {
 						return index;
 					} else {
 						delete Devices[index];
-						Devices[index] = 0;
+						Devices[index] = nullptr;
 						break;
 					}
 				}
@@ -821,7 +821,7 @@ void DOS_DelDevice(DOS_Device * dev) {
 			if (!strcmp(Devices[i]->name, dev->name)) {
 //				LOG_MSG("DOS_DelDevice() %s (%p)",dev->name,(void*)dev);
 				delete Devices[i];
-				Devices[i] = 0;
+				Devices[i] = nullptr;
 				return;
 			}
 		}

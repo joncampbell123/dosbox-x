@@ -91,7 +91,7 @@ uint8_t CALLBACK_Allocate(void) {
 	for (uint8_t i=1;(i<CB_MAX);i++) {
 		if (CallBack_Handlers[i]==&illegal_handler) {
 			if (CallBack_Description[i] != NULL) LOG_MSG("CALLBACK_Allocate() warning: empty slot still has description string!\n");
-			CallBack_Handlers[i]=0;
+			CallBack_Handlers[i]=nullptr;
 			return i;
 		}
 	}
@@ -273,7 +273,7 @@ void CALLBACK_SIF(bool const val) { CALLBACK_SET_FLAG<FLAG_IF>(val); }
 
 void CALLBACK_SetDescription(Bitu nr, const char* descr) {
 	if (CallBack_Description[nr]) delete[] CallBack_Description[nr];
-	CallBack_Description[nr] = 0;
+	CallBack_Description[nr] = nullptr;
 
 	if (descr != NULL) {
 		CallBack_Description[nr] = new char[strlen(descr)+1];
@@ -282,7 +282,7 @@ void CALLBACK_SetDescription(Bitu nr, const char* descr) {
 }
 
 const char* CALLBACK_GetDescription(Bitu nr) {
-	if (nr>=CB_MAX) return 0;
+	if (nr>=CB_MAX) return nullptr;
 	return CallBack_Description[nr];
 }
 
@@ -820,7 +820,7 @@ void CALLBACK_HandlerObject::Uninstall(){
 		//Do nothing. Merely DeAllocate the callback
 	} else E_Exit("what kind of callback is this!");
 	if(CallBack_Description[m_callback]) delete [] CallBack_Description[m_callback];
-	CallBack_Description[m_callback] = 0;
+	CallBack_Description[m_callback] = nullptr;
 	CALLBACK_DeAllocate(m_callback);
 	installed=false;
 }

@@ -1488,7 +1488,7 @@ static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
     if (event==DMA_UNMASKED) {
         uint8_t val = sb.e2.valadd;
         DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
-        chan->Register_Callback(0);
+        chan->Register_Callback(nullptr);
         chan->Write(1,&val);
     }
 }
@@ -1500,7 +1500,7 @@ static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
         static const char *string = "\x01\x02\x04\x08\x10\x20\x40\x80"; /* Confirmed response via DMA from actual Reveal SC400 card */
         DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
         LOG(LOG_SB,LOG_DEBUG)("SC400 returning DMA test pattern on DMA channel=%u",sb.hw.dma8);
-        chan->Register_Callback(0);
+        chan->Register_Callback(nullptr);
         chan->Write(8,(uint8_t*)string);
         chan->Clear_Request();
         if (!chan->tcount) LOG(LOG_SB,LOG_DEBUG)("SC400 warning: DMA did not reach terminal count");
@@ -1516,7 +1516,7 @@ static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
         ch->Write(1,&val);
     }
     SB_RaiseIRQ(SB_IRQ_8);
-    ch->Register_Callback(0);
+    ch->Register_Callback(nullptr);
 }
 
 static void DSP_ChangeRate(Bitu freq) {

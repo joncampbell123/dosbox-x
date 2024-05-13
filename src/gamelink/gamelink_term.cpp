@@ -197,7 +197,7 @@ static void proc_mech( Buffer* cmd, uint16_t payload )
 
 void GameLink::InitTerminal()
 {
-	g_p_outbuf = 0;
+	g_p_outbuf = nullptr;
 }
 
 void GameLink::ExecTerminalMech( Buffer* p_procbuf )

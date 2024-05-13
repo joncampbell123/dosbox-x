@@ -119,7 +119,7 @@ SHELL_Cmd cmd_list[]={
 // Advanced commands specific to DOSBox-X
 //{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\BIN\ADDKEY.COM) instead of shell command
 {	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
-{0,0,0,0}
+{ nullptr, 0, nullptr, nullptr }
 };
 
 const char *GetCmdName(int i) {
@@ -2477,7 +2477,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 		size_t pathTargetLen = strlen(pathTarget);
 		
 		// See if we have to substitute filename or extension
-		char *ext = 0;
+		char * ext = nullptr;
 		size_t replacementOffset = 0;
 		if (pathTarget[pathTargetLen-1]!='\\') { 
 				// only if it's not a directory
@@ -2519,7 +2519,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 					*ext = 0;
 				} else if (ext[-1]) {
 					// we don't substitute anything, clear up
-					ext = 0;
+					ext = nullptr;
 				}
 			}
 		}
@@ -3271,7 +3271,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		strcpy(mountstring,"MOUNT ");
 		StripSpaces(args);
 		std::string arg;
-		CommandLine command(0,args);
+		CommandLine command(nullptr, args);
 		if (!command.GetCount()) {
 			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
 			uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
@@ -3335,8 +3335,8 @@ void DOS_Shell::CMD_SUBST(char * args) {
         else strcpy(dir,arg.c_str());
         if (!DOS_MakeName(dir,fulldir,&drive)) throw 3;
 	
-		localDrive* ldp=0;
-		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 4;
+		localDrive * const ldp = dynamic_cast<localDrive*>(Drives[drive]);
+		if (!ldp) throw 4;
 		char newname[CROSS_LEN];   
 		strcpy(newname, ldp->basedir);	   
 		strcat(newname,fulldir);
@@ -4207,10 +4207,9 @@ void DOS_Shell::CMD_ALIAS(char* args) {
         }
     } else {
         char alias_name[256] = { 0 };
-        char* cmd = 0;
         for (unsigned int offset = 0; *args && offset < sizeof(alias_name)-1; ++offset, ++args) {
             if (*args == '=') {
-                cmd = trim(alias_name);
+                char * const cmd = trim(alias_name);
                 ++args;
                 args = trim(args);
                 size_t args_len = strlen(args);
@@ -4243,10 +4242,9 @@ void DOS_Shell::CMD_ASSOC(char* args) {
         }
     } else {
         char assoc_name[256] = { 0 };
-        char* cmd = 0;
         for (unsigned int offset = 0; *args && offset < sizeof(assoc_name)-1; ++offset, ++args) {
             if (*args == '=') {
-                cmd = trim(assoc_name);
+                char * const cmd = trim(assoc_name);
                 if (!*cmd || cmd[0] != '.') {
                     WriteOut(MSG_Get("SHELL_INVALID_PARAMETER"), cmd);
                     break;

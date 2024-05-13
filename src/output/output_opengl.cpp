@@ -349,7 +349,7 @@ void OUTPUT_OPENGL_Select( GLKind kind )
     if (sdl.window) {
         if(sdl_opengl.context) {
             SDL_GL_DeleteContext(sdl_opengl.context);
-            sdl_opengl.context=0;
+            sdl_opengl.context = nullptr;
         }
         sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
         sdl.surface = SDL_GetWindowSurface(sdl.window);
@@ -391,7 +391,7 @@ void OUTPUT_OPENGL_Select( GLKind kind )
             glUniform2f && glUniform1i && glUseProgram && glVertexAttribPointer);
         if (sdl_opengl.use_shader) initgl = 2;
         sdl_opengl.buffer=0;
-        sdl_opengl.framebuf=0;
+        sdl_opengl.framebuf = nullptr;
         sdl_opengl.texture=0;
         sdl_opengl.displaylist=0;
         glGetIntegerv (GL_MAX_TEXTURE_SIZE, &sdl_opengl.max_texsize);
@@ -509,7 +509,7 @@ void UpdateSDLDrawTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int)SDLDrawGenFontTextureWidth, (int)SDLDrawGenFontTextureHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int)SDLDrawGenFontTextureWidth, (int)SDLDrawGenFontTextureHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, nullptr);
 
     /* load the font */
     {
@@ -551,7 +551,7 @@ void UpdateSDLDrawDBCSTexture(Bitu code) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int)SDLDrawGenFontTextureWidth, (int)SDLDrawGenFontTextureHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int)SDLDrawGenFontTextureWidth, (int)SDLDrawGenFontTextureHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, nullptr);
 
     /* load the font */
     {
@@ -799,7 +799,7 @@ Bitu OUTPUT_OPENGL_SetSize()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interp );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interp );
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, nullptr);
 
     // NTS: I'm told that nVidia hardware seems to triple buffer despite our
     //      request to double buffer (according to @pixelmusement), therefore
@@ -999,7 +999,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
 #else
                     GL_UNSIGNED_INT_8_8_8_8_REV,
 #endif
-                    0);
+                    nullptr);
                 glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
             }
             else

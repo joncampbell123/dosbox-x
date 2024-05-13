@@ -1360,8 +1360,7 @@ continue_1:
 
 	/*always disallow files without extension from being executed. */
 	/*only internal commands can be run this way and they never get in this handler */
-	if(extension == 0)
-	{
+	if (!extension) {
 		//Check if the result will fit in the parameters. Else abort
 		if(strlen(fullname) >( DOS_PATHLENGTH - 1) ) return false;
         char temp_name[DOS_PATHLENGTH + 4];
@@ -1573,7 +1572,7 @@ bool DOS_Shell::hasExecutableExtension(const char* name) {
 
 char * DOS_Shell::Which(char * name) {
 	size_t name_len = strlen(name);
-	if(name_len >= DOS_PATHLENGTH) return 0;
+	if(name_len >= DOS_PATHLENGTH) return nullptr;
 
 	/* Parse through the Path to find the correct entry */
 	/* Check if name is already ok but just misses an extension */
@@ -1604,11 +1603,11 @@ char * DOS_Shell::Which(char * name) {
 
 	/* No Path in filename look through path environment string */
 	char path[DOS_PATHLENGTH];std::string temp;
-	if (!GetEnvStr("PATH",temp)) return 0;
+	if (!GetEnvStr("PATH",temp)) return nullptr;
 	const char * pathenv=temp.c_str();
-	if (!pathenv) return 0;
+	if (!pathenv) return nullptr;
 	pathenv = strchr(pathenv,'=');
-	if (!pathenv) return 0;
+	if (!pathenv) return nullptr;
 	pathenv++;
 	while (*pathenv) {
 		/* remove ; and ;; at the beginning. (and from the second entry etc) */
@@ -1672,5 +1671,5 @@ char * DOS_Shell::Which(char * name) {
 			}
 		}
 	}
-	return 0;
+	return nullptr;
 }

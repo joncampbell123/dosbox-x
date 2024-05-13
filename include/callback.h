@@ -102,7 +102,7 @@ public:
 	void Uninstall();
 
 	//Only allocate a callback number
-	void Allocate(CallBack_Handler handler,const char* description=0);
+	void Allocate(CallBack_Handler handler,const char* description=nullptr);
 	uint16_t Get_callback() {
 		return (uint16_t)m_callback;
 	}

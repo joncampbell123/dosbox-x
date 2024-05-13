@@ -50,7 +50,7 @@
 */
 
 imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool readOnly, imageDisk** disk) {
-	return Open(fileName, readOnly, disk, 0);
+	return Open(fileName, readOnly, disk, nullptr);
 }
 
 FILE * fopen_lock(const char * fname, const char * mode, bool &readonly);
@@ -160,11 +160,11 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 				//load the platform data, if there is any
 				uint64_t dataOffset = dynHeader.parentLocatorEntry[i].platformDataOffset;
 				uint32_t dataLength = dynHeader.parentLocatorEntry[i].platformDataLength;
-				uint8_t* buffer = 0;
+				uint8_t * buffer = nullptr;
 				if (dataOffset && dataLength && ((uint64_t)dataOffset + dataLength) <= footerPosition) {
 					if (fseeko64(file, (off_t)dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
 					buffer = (uint8_t*)malloc(dataLength + 2);
-					if (buffer == 0) { delete vhd; return INVALID_DATA; }
+					if (!buffer) { delete vhd; return INVALID_DATA; }
 					if (fread(buffer, sizeof(uint8_t), dataLength, file) != dataLength) { free(buffer); delete vhd; return INVALID_DATA; }
 					buffer[dataLength] = 0; //append null character, just in case
 					buffer[dataLength + 1] = 0; //two bytes, because this might be UTF-16
@@ -182,7 +182,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 			}
 		}
 		//check and see if we were successful in opening a file
-		if (vhd->parentDisk == 0) { delete vhd; return ERROR_OPENING_PARENT; }
+		if (!vhd->parentDisk) { delete vhd; return ERROR_OPENING_PARENT; }
 	}
 
 	//calculate sectors per block
@@ -204,12 +204,12 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	vhd->blockMapSize = blockMapSectors * 512;
 	vhd->sectorsPerBlock = sectorsPerBlock;
 	vhd->currentBlockDirtyMap = (uint8_t*)malloc(vhd->blockMapSize);
-	if (vhd->currentBlockDirtyMap == 0) { delete vhd; return INVALID_DATA; }
+	if (!vhd->currentBlockDirtyMap) { delete vhd; return INVALID_DATA; }
 
 	//try loading the first block
-	if (!vhd->loadBlock(0)) { 
-		delete vhd; 
-		return INVALID_DATA; 
+	if (!vhd->loadBlock(0)) {
+		delete vhd;
+		return INVALID_DATA;
 	}
 
     //detect real DOS geometry (MBR, BPB or default X-255-63)
@@ -461,15 +461,15 @@ bool imageDiskVHD::loadBlock(const uint32_t blockNumber) {
 imageDiskVHD::~imageDiskVHD() {
 	if (currentBlockDirtyMap) {
 		free(currentBlockDirtyMap);
-		currentBlockDirtyMap = 0;
+		currentBlockDirtyMap = nullptr;
 	}
 	if (parentDisk) {
 		parentDisk->Release();
-		parentDisk = 0;
+		parentDisk = nullptr;
 	}
     if(fixedDisk) {
         delete fixedDisk;
-        fixedDisk = 0;
+        fixedDisk = nullptr;
     }
 }
 

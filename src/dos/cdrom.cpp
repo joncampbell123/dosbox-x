@@ -60,7 +60,7 @@ CDROM_Interface_SDL::CDROM_Interface_SDL(void) {
 CDROM_Interface_SDL::~CDROM_Interface_SDL(void) {
 	CDROM_Interface_SDL::StopAudio();
 	SDL_CDClose(cd);
-	cd		= 0;
+	cd		= nullptr;
 }
 
 bool CDROM_Interface_SDL::SetDevice(char* path, int forceCD) { 

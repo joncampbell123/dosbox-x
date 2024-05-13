@@ -290,7 +290,7 @@ void LoadMessageFile(const char * fname) {
     bool res=true;
     int cp=dos.loaded_codepage;
     if (!dos.loaded_codepage) res=InitCodePage();
-	while(fgets(linein, LINE_IN_MAXLEN+1024, mfile)!=0) {
+	while(fgets(linein, LINE_IN_MAXLEN+1024, mfile)) {
 		/* Parse the read line */
 		/* First remove characters 10 and 13 from the line */
 		char * parser=linein;

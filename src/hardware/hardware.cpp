@@ -543,7 +543,7 @@ std::string GetCaptureFilePath(const char * type,const char * ext) {
 		dir=open_directory(capturedir.c_str());
 		if(!dir) {
 			LOG_MSG("Can't open dir %s for capturing %s",capturedir.c_str(),type);
-			return 0;
+			return {};
 		}
 	}
 	strcpy(file_start,RunningProgram);
@@ -574,7 +574,7 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
     if (!strcmp(type, "Parallel Port Stream")) pathprt = "";
 	if(capturedir.empty()) {
 		LOG_MSG("Please specify a capture directory");
-		return 0;
+		return nullptr;
 	}
 
 	Bitu last=0;
@@ -588,7 +588,7 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
 		dir=open_directory(capturedir.c_str());
 		if(!dir) {
 			LOG_MSG("Can't open dir %s for capturing %s",capturedir.c_str(),type);
-			return 0;
+			return nullptr;
 		}
 	}
 	strcpy(file_start,RunningProgram);
@@ -962,7 +962,7 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 			png_write_row(png_ptr, (png_bytep)rowPointer);
 		}
 		/* Finish writing */
-		png_write_end(png_ptr, 0);
+		png_write_end(png_ptr, nullptr);
 		/*Destroy PNG structs*/
 		png_destroy_write_struct(&png_ptr, &info_ptr);
 		/*close file*/
@@ -2050,7 +2050,7 @@ void CAPTURE_MidiEvent(bool pressed) {
 		fwrite(&size,1,4,capture.midi.handle);
 		fclose(capture.midi.handle);
 		if (show_recorded_filename && pathmid.size()) systemmessagebox("Recording completed",("Saved MIDI output to the file:\n\n"+pathmid).c_str(),"ok", "info", 1);
-		capture.midi.handle=0;
+		capture.midi.handle = nullptr;
 		CaptureState &= ~((unsigned int)CAPTURE_MIDI);
 		mainMenu.get_item("mapper_caprawmidi").check(false).refresh_item(mainMenu);
 		return;
@@ -2061,7 +2061,7 @@ void CAPTURE_MidiEvent(bool pressed) {
 		LOG_MSG("Preparing for raw midi capture, will start with first data.");
 		capture.midi.used=0;
 		capture.midi.done=0;
-		capture.midi.handle=0;
+		capture.midi.handle = nullptr;
 	} else {
 		LOG_MSG("Stopped capturing raw midi before any data arrived.");
 	}
