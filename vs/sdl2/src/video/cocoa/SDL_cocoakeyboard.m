@@ -45,7 +45,7 @@
     [super drawRect:dirtyRect];
     size = [_text size];
     [[NSColor whiteColor] set];
-    NSRectFill(dirtyRect);
+    NSRectFill(self.bounds);
     [_text drawInRect:CGRectMake(0, 0, size.width, size.height)];
 }
 @end
