@@ -74,6 +74,11 @@ void DOS_GetMemory_reset() {
 	dos_memseg = 0;
 }
 
+void DOS_FreeTableMemory()
+{
+    dos_memseg = DOS_PRIVATE_SEGMENT;
+}
+
 void DOS_GetMemory_reinit() {
     DOS_GetMemory_unmapped = false;
     DOS_GetMemory_reset();

@@ -4715,6 +4715,7 @@ public:
 		DOS_ShutdownFiles();
 		void DOS_ShutdownDevices(void);
 		DOS_ShutdownDevices();
+        DOS_FreeTableMemory();
 		RealSetVec(0x30,int30);
 		RealSetVec(0x31,int31);
 	}
