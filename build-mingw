@@ -29,6 +29,7 @@ sed -i 's/^#define ENABLE_IM_EVENT 1$/\/\/#define ENABLE_IM_EVENT 1/g' vs/sdl/in
 
 # prefer to compile against our own copy of SDL 1.x
 echo "Compiling our internal SDL 1.x"
+cp vs/sdl/build-dosbox.sh vs/sdl/build-dosbox.bak
 sed -i 's/^make -j3/sed -i '"'"'s\/\^CFLAGS\.\*\/CFLAGS = -g -O2 -Wno-error=incompatible-pointer-types\/g'"'"' \.\/Makefile\nmake -j3/g' vs/sdl/build-dosbox.sh
 (cd vs/sdl && ./build-dosbox.sh) || exit 1
 
@@ -38,6 +39,9 @@ echo "Compiling our internal SDLnet 1.x"
 
 sed -i 's/^\/\/#define ENABLE_IM_EVENT 1$/#define ENABLE_IM_EVENT 1/g' vs/sdl/include/SDL_platform.h
 (cd vs/sdl && ./build-dosbox.sh) || exit 1
+rm vs/sdl/build-dosbox.sh
+mv vs/sdl/build-dosbox.bak vs/sdl/build-dosbox.sh
+chmod +x vs/sdl/build-dosbox.sh
 
 # NTS: MinGW provides zlib for us
 if false; then
