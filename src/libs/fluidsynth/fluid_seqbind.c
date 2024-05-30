@@ -51,6 +51,7 @@ typedef struct _fluid_seqbind_t fluid_seqbind_t;
 
 int fluid_seqbind_timer_callback(void* data, unsigned int msec);
 void fluid_seq_fluidsynth_callback(unsigned int time, fluid_event_t* event, fluid_sequencer_t* seq, void* data);
+void fluid_event_key_pressure(fluid_event_t* evt, int channel, short key, short val);
 
 /* Proper cleanup of the seqbind struct. */
 void 
