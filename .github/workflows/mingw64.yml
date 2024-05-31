@@ -26,7 +26,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-libslirp mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake
+          install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake
       - name: Update build info
         shell: bash
         run: |
