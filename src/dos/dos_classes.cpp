@@ -126,7 +126,7 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	sSave(sDIB,nulString[6],(uint8_t)0x20);
 	sSave(sDIB,nulString[7],(uint8_t)0x20);
 
-#if 0
+#if 1 // FIXME: The new code imported from DOSBox Staging is causing Windows 3.1 to crash on exit, so this old code remains active until that can be fixed
     /* Create a fake SFT, so programs think there are 100 file handles */
 	uint16_t sftOffset=offsetof(sDIB,firstFileTable)+0xa2;
 	sSave(sDIB,firstFileTable,RealMake(segment,sftOffset));
@@ -134,7 +134,7 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	real_writew(segment,sftOffset+0x04,DOS_FILES/2);	//File Table supports DOS_FILES/2 files
 	real_writed(segment+0x26,0x00,0xffffffff);		//Last File Table
 	real_writew(segment+0x26,0x04,DOS_FILES-DOS_FILES/2);	//File Table supports DOS_FILES/2 files
-#endif
+#else
     /* Imported from dosbox-staging/dosbox-staging#3680 */
     constexpr int FakeHandles = 100;
 
@@ -162,6 +162,7 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 
     real_writed(second_sft_segment, NextTableOffset, EndPointer);
     real_writew(second_sft_segment, NumberOfFilesOffset, FakeHandles);
+#endif
 }
 
 void DOS_InfoBlock::SetFirstMCB(uint16_t _firstmcb) {
