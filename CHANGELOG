@@ -1,4 +1,6 @@
 Next:
+  - DOS kernel: Interrupt handler IRET was accidentally placed within
+    the SFT table, move it up to resolve the conflict. (joncampbell123).
   - Local DOS drive support: On Windows, if the guest is attempting to
     create a hidden file, make sure to call the right APIs to create a
     hidden file on the host. Not only is this needed to create a hidden

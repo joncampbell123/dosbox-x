@@ -581,7 +581,7 @@ void DOS_SetupMemory(void) {
 
 	assert(DOS_IHSEG != 0);
 	ihseg = DOS_IHSEG;
-	ihofs = 0xF4;
+	ihofs = 0xCC; /* 0xF4 conflics with SFT */
 
 	real_writeb(ihseg,ihofs,(uint8_t)0xCF);		//An IRET Instruction
 	if (machine != MCH_PCJR) RealSetVec(0x02,RealMake(ihseg,ihofs)); //BioMenace (segment<0x8000). Else, taken by BIOS NMI interrupt
