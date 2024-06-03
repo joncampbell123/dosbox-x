@@ -126,7 +126,6 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	sSave(sDIB,nulString[6],(uint8_t)0x20);
 	sSave(sDIB,nulString[7],(uint8_t)0x20);
 
-#if 1
 	/* Create a fake SFT, so programs think there are 100 file handles.
 	 * NTS: The INFO block is only given 0x20 paragraphs (0x200 = 512 bytes) which is only enough for a 5-entry SFT table,
 	 *      however that's what MS-DOS does anyway. For any value of FILES you specify, the first SFT is 5 entries and the
@@ -167,36 +166,6 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	for (unsigned int i=0;i < (SftHeaderSize+(SftEntrySize*(DOS_FILES-5)));i++) real_writeb(tbl2_seg,i,0);
 	real_writed(tbl2_seg,0x00,0xFFFFFFFFu);
 	real_writew(tbl2_seg,0x04,DOS_FILES-5);
-
-#else
-    /* Imported from dosbox-staging/dosbox-staging#3680 */
-    constexpr int FakeHandles = 100;
-
-    constexpr uint32_t EndPointer = 0xffffffff;
-    constexpr uint16_t NextTableOffset = 0x0;
-    constexpr uint16_t NumberOfFilesOffset = 0x04;
-
-    // We only need to actually allocate enough space for 16 handles
-    // This is the maximum that will get written to by DOS_MultiplexFunctions() in dos_misc.cpp
-    constexpr int BytesPerPage = 16;
-    constexpr int TotalBytes = SftHeaderSize + (SftEntrySize * SftNumEntries);
-    constexpr int NumPages = (TotalBytes / BytesPerPage) + (TotalBytes % BytesPerPage > 0 ? 1 : 0);
-
-    const uint16_t first_sft_segment = DOS_GetMemory(NumPages);
-    const RealPt first_sft_addr = RealMake(first_sft_segment, 0);
-    SSET_DWORD(sDIB, firstFileTable, first_sft_addr);
-
-    // Windows for Workgroups requires a 2nd linked SFT table
-    // This one only needs to allocate the header
-    const uint16_t second_sft_segment = DOS_GetMemory(1);
-    const RealPt second_sft_addr = RealMake(second_sft_segment, 0);
-
-    real_writed(first_sft_segment, NextTableOffset, second_sft_addr);
-    real_writew(first_sft_segment, NumberOfFilesOffset, FakeHandles);
-
-    real_writed(second_sft_segment, NextTableOffset, EndPointer);
-    real_writew(second_sft_segment, NumberOfFilesOffset, FakeHandles);
-#endif
 }
 
 void DOS_InfoBlock::SetFirstMCB(uint16_t _firstmcb) {
