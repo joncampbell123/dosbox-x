@@ -4313,11 +4313,9 @@ public:
 
 	/* DOS_INFOBLOCK_SEG contains the entire List of Lists, though the INT 21h call returns seg:offset with offset nonzero */
 	/* NTS: DOS_GetMemory() allocation sizes are in PARAGRAPHS (16-byte units) not bytes */
-	/* NTS: DOS_INFOBLOCK_SEG must be 0x20 paragraphs, CONDRV_SEG 0x08 paragraphs, and CONSTRING_SEG 0x0A paragraphs.
-	 *      The total combined size of INFOBLOCK+CONDRV+CONSTRING must be 0x32 paragraphs.
-	 *      SDA_SEG must be located at INFOBLOCK_SEG+0x32, so that the current PSP segment parameter is exactly at
-	 *      memory location INFOBLOCK_SEG:0x330. The reason for this has to do with Microsoft "Genuine MS-DOS detection"
-	 *      code in QuickBasic 7.1 and other programs designed to thwart DR-DOS at the time.
+	/* NTS: DOS_INFOBLOCK_SEG must be 0x32 paragraphs. SDA_SEG must be located at INFOBLOCK_SEG+0x32, so that the current PSP
+	 *      segment parameter is exactly at memory location INFOBLOCK_SEG:0x330. The reason for this has to do with Microsoft
+	 *      "Genuine MS-DOS detection" code in QuickBasic 7.1 and other programs designed to thwart DR-DOS at the time.
 	 *
 	 *      This is probably why DOSBox SVN hardcoded segments in the first place.
 	 *
@@ -4328,8 +4326,6 @@ public:
 	 *      [https://www.os2museum.com/wp/about-that-warranty/]
 	 *      [https://github.com/joncampbell123/dosbox-x/issues/3626]
 	 */
-
-	// FIXME: 0x32 paragraphs (0x320 bytes) might not be enough for the second half of the SFT table placed at segment +0x26:0!
 	DOS_INFOBLOCK_SEG = DOS_GetMemory(0x32,"DOS_INFOBLOCK_SEG");		// was 0x80  0x32 = 0x20(INFOBLOCK) + 0x08(old CONDRV_SEG) + 0x0A(CONSTRING_SEG)
 	DOS_SDA_SEG = DOS_GetMemory(DOS_SDA_SEG_SIZE>>4,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
 	DOS_SDA_OFS = 0;
