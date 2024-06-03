@@ -1,4 +1,9 @@
 Next:
+  - DOS kernel: Put the CON driver somewhere else because allowing it
+    to overlap the SFT is messy. Fix SFT generation to match the way that
+    MS-DOS 5.0 does it where the first table is always 5 entries and the
+    second table is always N - 5 entries. Cleanup the DOS memory allocation
+    a bit. So far, Windows 3.1 doesn't have a problem with it. (joncampbell123).
   - DOS kernel: Interrupt handler IRET was accidentally placed within
     the SFT table, move it up to resolve the conflict. (joncampbell123).
   - Local DOS drive support: On Windows, if the guest is attempting to

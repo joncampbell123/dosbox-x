@@ -127,13 +127,26 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	sSave(sDIB,nulString[7],(uint8_t)0x20);
 
 #if 1 // FIXME: The new code imported from DOSBox Staging is causing Windows 3.1 to crash on exit, so this old code remains active until that can be fixed
-    /* Create a fake SFT, so programs think there are 100 file handles */
-	uint16_t sftOffset=offsetof(sDIB,firstFileTable)+0xa2;
+	/* Create a fake SFT, so programs think there are 100 file handles.
+	 * NTS: The INFO block is only given 0x20 paragraphs (0x200 = 512 bytes) which is only enough for a 5-entry SFT table,
+	 *      however that's what MS-DOS does anyway. For any value of FILES you specify, the first SFT is 5 entries and the
+	 *      second table is N - 5 entries. Maybe this is why MS-DOS doesn't let you specify a number below, I think, 6? in
+	 *      FILES= under CONFIG.SYS.
+	 *
+	 *      The table must be 5, or else it extends into other DOS kernel structures and memory corruption might happen. */
+	if (DOS_FILES < 6) E_Exit("[dos] files= setting is too small");
+
+	uint16_t sftOffset=0xCC; /* this offset is fixed according to MS-DOS 5.0, MS-DOS 6.22, Windows 95, etc. */
 	sSave(sDIB,firstFileTable,RealMake(segment,sftOffset));
 	real_writed(segment,sftOffset+0x00,RealMake(segment+0x26,0));	//Next File Table
-	real_writew(segment,sftOffset+0x04,DOS_FILES/2);	//File Table supports DOS_FILES/2 files
-	real_writed(segment+0x26,0x00,0xffffffff);		//Last File Table
-	real_writew(segment+0x26,0x04,DOS_FILES-DOS_FILES/2);	//File Table supports DOS_FILES/2 files
+	real_writew(segment,sftOffset+0x04,5);				//File Table supports 5 files
+
+	if ((sftOffset+SftHeaderSize+(5*SftEntrySize)) > 0x200) E_Exit("Primary SFT is too big");
+
+	// FIXME: This must be segment+0x26 (DOS_CONSTRING_SEG-2) because some magic "CON" strings must be written there
+	//        to make Windows 3.1 happy.
+	real_writed(segment+0x26,0x00,0xffffffff);			//Last File Table
+	real_writew(segment+0x26,0x04,DOS_FILES-5);			//File Table supports DOS_FILES-5 files
 #else
     /* Imported from dosbox-staging/dosbox-staging#3680 */
     constexpr int FakeHandles = 100;
