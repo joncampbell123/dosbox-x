@@ -147,6 +147,13 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	//        to make Windows 3.1 happy.
 	real_writed(segment+0x26,0x00,0xffffffff);			//Last File Table
 	real_writew(segment+0x26,0x04,DOS_FILES-5);			//File Table supports DOS_FILES-5 files
+
+	/* Some weird files >20 detection routine */
+	/* Possibly obsolete when SFT is properly handled */
+	real_writed(segment+0x28,0x0a,0x204e4f43);
+	real_writed(segment+0x28,0x1a,0x204e4f43);
+	real_writed(segment+0x28,0x2a,0x204e4f43);
+
 #else
     /* Imported from dosbox-staging/dosbox-staging#3680 */
     constexpr int FakeHandles = 100;

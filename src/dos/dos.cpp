@@ -228,7 +228,6 @@ void DOS_HMA_CLAIMED(uint16_t bytes) {
 
 uint16_t DOS_INFOBLOCK_SEG=0x80;	// sysvars (list of lists)
 uint16_t DOS_CONDRV_SEG=0xa0;
-uint16_t DOS_CONSTRING_SEG=0xa8;
 uint16_t DOS_SDA_SEG=0xb2;		// dos swappable area
 uint16_t DOS_SDA_SEG_SIZE=0x560;  // WordPerfect 5.1 consideration (emendelson)
 uint16_t DOS_SDA_OFS=0;
@@ -4332,7 +4331,6 @@ public:
 
 	// FIXME: 0x32 paragraphs (0x320 bytes) might not be enough for the second half of the SFT table placed at segment +0x26:0!
 	DOS_INFOBLOCK_SEG = DOS_GetMemory(0x32,"DOS_INFOBLOCK_SEG");		// was 0x80  0x32 = 0x20(INFOBLOCK) + 0x08(old CONDRV_SEG) + 0x0A(CONSTRING_SEG)
-	DOS_CONSTRING_SEG = DOS_INFOBLOCK_SEG + 0x28;				// was 0xA8
 	DOS_SDA_SEG = DOS_GetMemory(DOS_SDA_SEG_SIZE>>4,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
 	DOS_SDA_OFS = 0;
 
@@ -4344,7 +4342,6 @@ public:
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   IHSEG:        seg 0x%04x",DOS_IHSEG);
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   infoblock:    seg 0x%04x",DOS_INFOBLOCK_SEG);
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   condrv:       seg 0x%04x",DOS_CONDRV_SEG);
-		LOG(LOG_DOSMISC,LOG_DEBUG)("   constring:    seg 0x%04x",DOS_CONSTRING_SEG);
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   SDA:          seg 0x%04x:0x%04x %u bytes",DOS_SDA_SEG,DOS_SDA_OFS,DOS_SDA_SEG_SIZE);
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   CDS:          seg 0x%04x",DOS_CDS_SEG);
 		LOG(LOG_DOSMISC,LOG_DEBUG)("[private segment @ this point 0x%04x-0x%04x mem=0x%04lx]",
