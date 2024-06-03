@@ -143,16 +143,23 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 
 	if ((sftOffset+SftHeaderSize+(5*SftEntrySize)) > 0x200) E_Exit("Primary SFT is too big");
 
+	/* Windows 3.1 appears to REP SCAS for "CON" in the SFT tables and it will claim that your
+	 * version of MS-DOS is unsupported if it doesn't see it 3 times in the SFT. Why 3?
+	 * Well, think about it: CON for STDIN, CON for STDOUT, and CON for STDERR. Of course, right?
+	 *
+	 * Anyway Windows 3.1 doesn't appear to care exactly where "CON" appears, only that it appears 3 times,
+	 * so this code writes it out in a manner matching real MS-DOS and according to the Ralph Brown Interrupt List
+	 * concerning MS-DOS 4.0 to MS-DOS 6.0. Write out the other default handles for good measure. */
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*0)+0x20,0x204e4f43); // CON
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*1)+0x20,0x204e4f43); // CON
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*2)+0x20,0x204e4f43); // CON
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*3)+0x20,0x20585541); // AUX
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*4)+0x20,0x204e5250); // PRN
+
 	// FIXME: This must be segment+0x26 (DOS_CONSTRING_SEG-2) because some magic "CON" strings must be written there
 	//        to make Windows 3.1 happy.
 	real_writed(segment+0x26,0x00,0xffffffff);			//Last File Table
 	real_writew(segment+0x26,0x04,DOS_FILES-5);			//File Table supports DOS_FILES-5 files
-
-	/* Some weird files >20 detection routine */
-	/* Possibly obsolete when SFT is properly handled */
-	real_writed(segment+0x28,0x0a,0x204e4f43);
-	real_writed(segment+0x28,0x1a,0x204e4f43);
-	real_writed(segment+0x28,0x2a,0x204e4f43);
 
 #else
     /* Imported from dosbox-staging/dosbox-staging#3680 */

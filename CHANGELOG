@@ -1,4 +1,8 @@
 Next:
+  - DOS kernel: Move the magic "CON" strings into the first SFT and
+    mimic the 5 default open file handles that every DOS process starts
+    with: CON CON CON AUX PRN. Windows 3.1 is still happy with it, which
+    is good. (joncampbell123).
   - DOS kernel: Put the CON driver somewhere else because allowing it
     to overlap the SFT is messy. Fix SFT generation to match the way that
     MS-DOS 5.0 does it where the first table is always 5 entries and the
