@@ -282,12 +282,6 @@ void DOS_SetupTables(void) {
 	/* create SDA */
 	DOS_SDA(DOS_SDA_SEG,0).Init();
 
-	/* Some weird files >20 detection routine */
-	/* Possibly obsolete when SFT is properly handled */
-	real_writed(DOS_CONSTRING_SEG,0x0a,0x204e4f43);
-	real_writed(DOS_CONSTRING_SEG,0x1a,0x204e4f43);
-	real_writed(DOS_CONSTRING_SEG,0x2a,0x204e4f43);
-
 	/* create a CON device driver */
 	if(IS_DOSV) {
 		seg = DOS_GetMemory(2, "device $IBMADSP");
