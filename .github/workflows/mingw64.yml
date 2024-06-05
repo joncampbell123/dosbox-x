@@ -26,7 +26,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake
+          install: git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake mingw-w64-x86_64-libslirp
       - name: Update build info
         shell: bash
         run: |
@@ -42,7 +42,6 @@ jobs:
       - name: Build MinGW64 SDL1
         run: |
           top=`pwd`
-          ln -s $top/build-scripts/mingw/lowend-bin/make.exe /usr/bin/make.exe
           ./build-mingw
           strip -s $top/src/dosbox-x.exe
       - name: Package MinGW64 SDL1
