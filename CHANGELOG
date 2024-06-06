@@ -1,4 +1,7 @@
 Next:
+  - Correct BIOS data area value that holds the "EGA switches" to reflect
+    200-line EGA "emulation" when machine=ega200. Value 0x08 instead of 0x09.
+    (joncampbell123).
   - Correct mode parameters for CGA 640x200 2-color mode when using
     machine=ega200 so that it displays correctly. (joncampbell123)
   - DOS kernel: Remove fixed hacks for SFT and dynamically allocate the
