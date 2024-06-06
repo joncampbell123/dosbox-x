@@ -3901,6 +3901,7 @@ static void GUI_StartUp() {
     transparency = 0;
     SetWindowTransparency(section->Get_int("transparency"));
     UpdateWindowDimensions();
+    ApplyPreventCap();
 }
 
 void Mouse_AutoLock(bool enable) {
@@ -6572,6 +6573,7 @@ static void show_warning(char const * const message) {
     SDL_Flip(sdl.surface);
 #endif
     SDL_Delay(12000);
+    ApplyPreventCap();
 }
 
 static void launcheditor(std::string edit) {

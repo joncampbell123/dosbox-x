@@ -589,6 +589,7 @@ retry:
     mainMenu.setRedraw();
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
 #endif
+    ApplyPreventCap();
 
     return retFlags;
 }

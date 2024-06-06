@@ -231,7 +231,8 @@ Bitu OUTPUT_TTF_SetSize() {
     mainMenu.setRedraw();
 #endif
 
-	AdjustIMEFontSize();
+    AdjustIMEFontSize();
+    ApplyPreventCap();
 
     return GFX_CAN_32 | GFX_SCALING;
 }
