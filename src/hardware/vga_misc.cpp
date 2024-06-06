@@ -159,6 +159,8 @@ static Bitu read_p3c8(Bitu port,Bitu iolen) {
 	return 0x10;
 }
 
+extern bool ega200;
+
 static Bitu read_p3c2(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
@@ -168,14 +170,9 @@ static Bitu read_p3c2(Bitu port,Bitu iolen) {
 	else if (IS_VGA_ARCH) retval = 0x60;
 
 	if(IS_EGAVGA_ARCH) {
-		switch((vga.misc_output>>2)&3) {
-			case 0:
-			case 3:
-				retval |= 0x10; // 0110 switch positions
-				break;
-			default:
-				break;
-		}
+		uint8_t setting = ~((!IS_VGA_ARCH && ega200)?0x08:0x09)/*bits are inverted*/;
+		const uint8_t bit = (vga.misc_output>>2)&3;
+		if (setting & (1 << bit)) retval |= 0x10;
 	}
 
 	if (vga.draw.vret_triggered) retval |= 0x80;
