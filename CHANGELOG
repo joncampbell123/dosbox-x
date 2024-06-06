@@ -1,4 +1,6 @@
 Next:
+  - Correct mode parameters for CGA 640x200 2-color mode when using
+    machine=ega200 so that it displays correctly. (joncampbell123)
   - DOS kernel: Remove fixed hacks for SFT and dynamically allocate the
     second SFT table for the last N - 5 file handles. Add code to zero
     SFT table memory to ensure that random data doesn't cause issues.
