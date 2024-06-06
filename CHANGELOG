@@ -1,6 +1,8 @@
 Next:
+  - Correct EGA switch readback from port 3C2h to reflect a value of 0x8
+    instead of 0x9 when machine=ega200 (joncampbell123).
   - Correct BIOS data area value that holds the "EGA switches" to reflect
-    200-line EGA "emulation" when machine=ega200. Value 0x08 instead of 0x09.
+    200-line EGA "emulation" when machine=ega200. Value 0x08 instead of 0x09
     (joncampbell123).
   - Correct mode parameters for CGA 640x200 2-color mode when using
     machine=ega200 so that it displays correctly. (joncampbell123)
