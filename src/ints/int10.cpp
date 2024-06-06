@@ -39,6 +39,7 @@ static bool warned_ff=false;
 extern bool enable_vga_8bit_dac;
 extern bool vga_8bit_dac;
 extern bool wpExtChar;
+extern bool ega200;
 extern int wpType;
 
 uint16_t GetTextSeg();
@@ -1240,7 +1241,7 @@ static void INT10_Seg40Init(void) {
 	if (IS_EGAVGA_ARCH) {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x60);
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
-		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,(!IS_VGA_ARCH && ega200)?0xF8:0xF9);
 		// Set the pointer to video save pointer table
 		real_writed(BIOSMEM_SEG, BIOSMEM_VS_POINTER, int10.rom.video_save_pointers);
 	}
