@@ -305,6 +305,7 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     mainMenu.setRedraw();
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
 #endif
+    ApplyPreventCap();
 
     return retFlags;
 }

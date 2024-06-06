@@ -1790,6 +1790,7 @@ void voodoo_ogl_reset_videomode(void) {
         ShowWindow(GetHWND(), SW_MAXIMIZE);
 #endif
     }
+    ApplyPreventCap();
 
     v->ogl_dimchange = true;
 

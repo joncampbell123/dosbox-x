@@ -498,6 +498,7 @@ void GLIDE_ResetScreen(bool update)
         sdl.surface = SDL_SetVideoMode(glide.width,glide.height,0,(glide.fullscreen[0]?SDL_FULLSCREEN:0)|SDL_ANYFORMAT);
 #endif
 	}
+    ApplyPreventCap();
 }
 
 void GLIDE_DisableScreen(void)

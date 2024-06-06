@@ -5383,6 +5383,7 @@ void MAPPER_RunInternal() {
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mapperMenu);
 #endif
+    ApplyPreventCap();
 
 #if defined(MACOSX)
     macosx_reload_touchbar();

@@ -309,9 +309,9 @@ retry:
     *      commented out. I guess not calling GFX_SetSize()
     *      with a 0x0 widthxheight helps! */
     //    sdl.gfx_force_redraw_count = 2;
-
     UpdateWindowDimensions();
     GFX_LogSDLState();
+    ApplyPreventCap();
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.screenWidth = (size_t)(sdl.surface->w);
@@ -416,6 +416,7 @@ void OUTPUT_OPENGL_Select( GLKind kind )
 #endif
         //LOG_MSG("OpenGL extension: pixel_buffer_object %d",sdl_opengl.pixel_buffer_object);
 	} /* OPENGL is requested end */
+    ApplyPreventCap();
 }
 
 Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags)
