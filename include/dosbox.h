@@ -295,6 +295,18 @@ static inline constexpr bytecount_t _tebibytes(const bytecount_t x) {
     return x << bytecount_t(40u);
 }
 
+enum {
+	PREVCAP_NONE=0,
+	PREVCAP_BLANK,
+	PREVCAP_INVISIBLE
+};
+
+extern unsigned int preventcap;
+
+bool CheckPreventCap(void);
+void ApplyPreventCap(void);
+void ApplyPreventCapMenu(void);
+
 #endif /* DOSBOX_DOSBOX_H */
 
 #ifndef SAVE_STATE_H_INCLUDED

@@ -91,6 +91,70 @@
 
 #include <list>
 
+unsigned int preventcap = PREVCAP_NONE;
+
+#ifndef WDA_NONE
+# define WDA_NONE 0x00
+#endif
+
+#ifndef WDA_MONITOR
+# define WDA_MONITOR 0x01
+#endif
+
+#ifndef WDA_EXCLUDEFROMCAPTURE /* NTS: Notice this is a bit field of both Windows 7 WDA_MONITOR and Windows 10 EXCLUDEFROMCAPTURE */
+# define WDA_EXCLUDEFROMCAPTURE 0x11
+#endif
+
+void ApplyPreventCapMenu(void);
+
+void ApplyPreventCap(void) {
+#ifdef WIN32
+	HANDLE *usr = GetModuleHandle("USER32.DLL");
+	if (usr) {
+		BOOL (WINAPI *__SetWindowDisplayAffinity)(HWND hWnd,DWORD dwAffinity) =
+			(BOOL (WINAPI*)(HWND,DWORD))GetProcAddress(usr,"SetWindowDisplayAffinity");
+
+		if (__SetWindowDisplayAffinity) {
+			HWND hwnd = GetHWND();
+			DWORD aff = 0;
+
+			switch (preventcap) {
+				case PREVCAP_BLANK: aff = WDA_MONITOR; break;
+				case PREVCAP_INVISIBLE: aff = WDA_EXCLUDEFROMCAPTURE; break;
+			}
+
+			if (!__SetWindowDisplayAffinity(hwnd,aff)) LOG(LOG_MISC,LOG_DEBUG)("WARNING: SetWindowDisplayAffinity(hwnd,0x%x) failed",(unsigned int)aff);
+		}
+	}
+#endif
+}
+
+bool CheckPreventCap(void) {
+	unsigned int nv = PREVCAP_NONE;
+	bool changed = false;
+
+	Section_prop *video_section = static_cast<Section_prop *>(control->GetSection("video"));
+	assert(video_section != NULL);
+
+	{
+		const char *s = video_section->Get_string("prevent capture");
+
+		if (!strcmp(s,"blank"))
+			nv = PREVCAP_BLANK;
+		else if (!strcmp(s,"invisible"))
+			nv = PREVCAP_INVISIBLE;
+		else
+			nv = PREVCAP_NONE;
+	}
+
+	if (preventcap != nv) {
+		preventcap = nv;
+		changed = true;
+	}
+
+	return changed;
+}
+
 /*===================================TODO: Move to its own file==============================*/
 #if defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__))
 bool sse2_available = false;
@@ -1382,6 +1446,10 @@ void DOSBOX_SetupConfigSections(void) {
 	"fm_towns", // STUB
         nullptr };
 
+    const char* prevent_capture_opts[] = {
+        "", "none", "blank", "invisible",
+        nullptr };
+
     const char* backendopts[] = {
         "pcap", "slirp", "nothing", "auto", "none",
         nullptr };
@@ -2370,6 +2438,17 @@ void DOSBOX_SetupConfigSections(void) {
             "If your game is not sensitive to VGA RAM I/O speed, then turning on this option\n"
             "will do nothing but cause a significant drop in frame rate which is probably not\n"
             "what you want. Recommended values -1, 0 to 2000.");
+
+    // NOTE: This will be revised as I test the DOSLIB code against more VGA/SVGA hardware!
+    Pstring = secprop->Add_string("prevent capture",Property::Changeable::WhenIdle,"");
+    Pstring->Set_values(prevent_capture_opts);
+    Pstring->Set_help(
+            "This option allows you to prevent capture of the DOSBox window, if an API is provided by the system to do so.\n"
+	    "empty or none: the window is normal and it can be screen captured.\n"
+	    "blank: notify the system so that if a screenshot is attempted, the window appears blank.\n"
+	    "invisible: notify the system not to include the DOSBox window in screen capture.\n"
+	    "\n"
+	    "This option may be useful if you would like to prevent your DOS gaming from appearing in the Windows 11 Recall feature");
 
     Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,-1);
     Pint->SetMinMax(-1,16);

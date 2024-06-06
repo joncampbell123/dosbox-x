@@ -8730,6 +8730,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         qz_set_match_monitor_cb();
 #endif
 
+	CheckPreventCap();
+	LOG_MSG("Prevent capture: %u",preventcap);
+
         /* -- SDL init */
         if (SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_NOPARACHUTE) >= 0)
             sdl.inited = true;
@@ -8964,6 +8967,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
+	ApplyPreventCapMenu();
 
         /* If PCjr emulation, map cartridge ROM */
         if (machine == MCH_PCJR)
