@@ -1,4 +1,8 @@
 Next:
+  - Add dosbox.conf and menu option to control whether the DOSBox-X window
+    can be seen in screen captures in Windows 7/8/10/11. Windows 11 "Recall"
+    is very concerning and users might not want their DOS gaming to be
+    part of it's memory. (joncampbell123).
   - Correct EGA switch readback from port 3C2h to reflect a value of 0x8
     instead of 0x9 when machine=ega200 (joncampbell123).
   - Correct BIOS data area value that holds the "EGA switches" to reflect
