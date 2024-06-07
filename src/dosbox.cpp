@@ -109,7 +109,7 @@ void ApplyPreventCapMenu(void);
 
 void ApplyPreventCap(void) {
 #ifdef WIN32
-	HANDLE *usr = GetModuleHandle("USER32.DLL");
+	HMODULE usr = (HMODULE)GetModuleHandle("USER32.DLL");
 	if (usr) {
 		BOOL (WINAPI *__SetWindowDisplayAffinity)(HWND hWnd,DWORD dwAffinity) =
 			(BOOL (WINAPI*)(HWND,DWORD))GetProcAddress(usr,"SetWindowDisplayAffinity");
