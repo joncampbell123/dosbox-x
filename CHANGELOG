@@ -1,4 +1,5 @@
 Next:
+  - Update caption control feature to use equivalent APIs on Mac OS. (joncampbell123)
   - Add dosbox.conf and menu option to control whether the DOSBox-X window
     can be seen in screen captures in Windows 7/8/10/11. Windows 11 "Recall"
     is very concerning and users might not want their DOS gaming to be

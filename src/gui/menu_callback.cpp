@@ -1974,7 +1974,7 @@ void aspect_ratio_menu() {
 }
 
 void ApplyPreventCapMenu(void) {
-#if defined(WIN32)
+#if defined(WIN32) || defined(MACOSX)
     mainMenu.get_item("prevcap_none").check(preventcap == PREVCAP_NONE).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("prevcap_blank").check(preventcap == PREVCAP_BLANK).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("prevcap_invisible").check(preventcap == PREVCAP_INVISIBLE).enable(true).refresh_item(mainMenu);
@@ -1982,7 +1982,7 @@ void ApplyPreventCapMenu(void) {
 }
 
 bool preventcapture_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-#if defined(WIN32)
+#if defined(WIN32) || defined(MACOSX)
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
     if (!strcmp(mname, "prevcap_none")) {
@@ -3174,7 +3174,7 @@ void AllocCallback1() {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_set").set_text("Set ratio").
                     set_callback_function(aspect_ratio_edit_menu_callback);
             }
-#if defined(WIN32)
+#if defined(WIN32) || defined(MACOSX)
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPreventCaptureMenu");
                 item.set_text("Screen capture control");

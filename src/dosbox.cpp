@@ -107,7 +107,14 @@ unsigned int preventcap = PREVCAP_NONE;
 
 void ApplyPreventCapMenu(void);
 
+#if defined(MACOSX)
+void MacOSEnableWindowCapture(unsigned int enable);
+#endif
+
 void ApplyPreventCap(void) {
+#if defined(MACOSX)
+    MacOSEnableWindowCapture(preventcap == PREVCAP_NONE);
+#endif
 #ifdef WIN32
 	HMODULE usr = (HMODULE)GetModuleHandle("USER32.DLL");
 	if (usr) {
