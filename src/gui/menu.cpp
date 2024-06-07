@@ -520,7 +520,7 @@ static const char *def_menu_video_pc98[] =
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] =
 {
-#if defined(WIN32)
+#if defined(WIN32) || defined(MACOSX)
     "VideoPreventCaptureMenu",
 #endif
     "VideoRatioMenu",
@@ -1612,7 +1612,7 @@ void ConstructMenu(void) {
     /* video ratio menu */
     ConstructSubMenu(mainMenu.get_item("VideoRatioMenu").get_master_id(), def_menu_video_ratio);
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(MACOSX)
     /* video prevent capture menu */
     ConstructSubMenu(mainMenu.get_item("VideoPreventCaptureMenu").get_master_id(), def_menu_video_preventcapture);
 #endif
