@@ -1,4 +1,7 @@
 Next:
+  - Remove unnecessary and useless Win32 fcntl() on some memory typecast
+    to int which is causing a segfault whenever a ZIP file is mounted
+    as a drive with an overlay filesystem atop it. (joncampbell123)
   - Update caption control feature to use equivalent APIs on Mac OS. (joncampbell123)
   - Add dosbox.conf and menu option to control whether the DOSBox-X window
     can be seen in screen captures in Windows 7/8/10/11. Windows 11 "Recall"
