@@ -111,19 +111,31 @@ void ApplyPreventCap(void) {
 #ifdef WIN32
 	HMODULE usr = (HMODULE)GetModuleHandle("USER32.DLL");
 	if (usr) {
-		BOOL (WINAPI *__SetWindowDisplayAffinity)(HWND hWnd,DWORD dwAffinity) =
-			(BOOL (WINAPI*)(HWND,DWORD))GetProcAddress(usr,"SetWindowDisplayAffinity");
+		BOOL (WINAPI *__GetWindowDisplayAffinity)(HWND hWnd,DWORD *pdwAffinity) =
+			(BOOL (WINAPI*)(HWND, DWORD*))GetProcAddress(usr,"GetWindowDisplayAffinity");
+        BOOL (WINAPI * __SetWindowDisplayAffinity)(HWND hWnd, DWORD dwAffinity) =
+            (BOOL (WINAPI*)(HWND, DWORD))GetProcAddress(usr, "SetWindowDisplayAffinity");
 
-		if (__SetWindowDisplayAffinity) {
+        if(__GetWindowDisplayAffinity && __SetWindowDisplayAffinity) {
 			HWND hwnd = GetHWND();
-			DWORD aff = 0;
+			DWORD paff = 0,naff = 0;
 
-			switch (preventcap) {
-				case PREVCAP_BLANK: aff = WDA_MONITOR; break;
-				case PREVCAP_INVISIBLE: aff = WDA_EXCLUDEFROMCAPTURE; break;
-			}
+            __GetWindowDisplayAffinity(hwnd, &paff);
 
-			if (!__SetWindowDisplayAffinity(hwnd,aff)) LOG(LOG_MISC,LOG_DEBUG)("WARNING: SetWindowDisplayAffinity(hwnd,0x%x) failed",(unsigned int)aff);
+            switch(preventcap) {
+                case PREVCAP_BLANK: naff = WDA_MONITOR; break;
+                case PREVCAP_INVISIBLE: naff = WDA_EXCLUDEFROMCAPTURE; break;
+            }
+
+            /* NTS: Changing from blank to invisible or the other way around doesn't do anything in Windows 11.
+                    It can only be done by removing the exclusion then applying the new one. */
+            const DWORD chkaff = WDA_MONITOR | WDA_EXCLUDEFROMCAPTURE;
+            if(naff != 0 && (paff & chkaff) != (naff & chkaff)) {
+                LOG(LOG_MISC, LOG_DEBUG)("Clearing existing affinity to apply new affinity");
+                paff = 0; __SetWindowDisplayAffinity(hwnd, paff);
+            }
+
+			if (!__SetWindowDisplayAffinity(hwnd,naff)) LOG(LOG_MISC,LOG_DEBUG)("WARNING: SetWindowDisplayAffinity(hwnd,0x%x) failed",(unsigned int)naff);
 		}
 	}
 #endif
