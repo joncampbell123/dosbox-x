@@ -817,9 +817,6 @@ bool physfsFile::prepareWrite() {
 		//LOG_MSG("noCOW",pname,PHYSFS_tell(fhandle));
 		PHYSFS_close(fhandle);
 		fhandle = PHYSFS_openAppend(pname);
-#ifndef WIN32
-		fcntl(**(int**)fhandle->opaque,F_SETFL,0);
-#endif
 		PHYSFS_seek(fhandle, pos);
 	}
 	return true;
