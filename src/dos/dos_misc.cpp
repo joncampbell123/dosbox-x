@@ -146,9 +146,31 @@ static bool DOS_MultiplexFunctions(void) {
 		if(reg_bx <= DOS_FILES) CALLBACK_SCF(false);
 		else CALLBACK_SCF(true);
 		if (reg_bx<16) {
+			/* Assume the first table is valid */
 			RealPt sftrealpt=mem_readd(Real2Phys(dos_infoblock.GetPointer())+4);
 			PhysPt sftptr=Real2Phys(sftrealpt);
-			uint32_t sftofs = SftHeaderSize + reg_bx*SftEntrySize;
+
+			/* The SFT table is not one monolithic table, but is split across
+			 * smaller table "pieces" connected by a linked list */
+			unsigned int rel_entry = reg_bx;
+
+			while (1) {
+				/* DWORD +0 <next link or 0xFFFFFFFF>
+				 * WORD  +4 <number of entries in table> */
+				uint16_t tblsize = mem_readw(sftptr+4);
+
+				if (rel_entry < tblsize) break;
+
+				rel_entry -= tblsize;
+				sftrealpt = mem_readd(sftptr);
+				if (sftrealpt == 0 || (sftrealpt & 0xFFFF) == 0xFFFF/*According to RBIL, confirmed in MS-DOS: only the offset is checked for 0xFFFF to end the list*/) {
+					CALLBACK_SCF(true);
+					return true;
+				}
+				sftptr=Real2Phys(sftrealpt);
+			}
+
+			uint32_t sftofs = SftHeaderSize + rel_entry*SftEntrySize;
 
 			if (Files[reg_bx]) mem_writeb(sftptr+sftofs, (uint8_t)(Files[reg_bx]->refCtr));
 			else mem_writeb(sftptr+sftofs,0);
