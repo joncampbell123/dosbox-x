@@ -1,4 +1,9 @@
 Next:
+  - The DOSBox clipboard API (via INT 2Fh) is now disabled by default, because
+    some programs use it's presence to detect whether they are running under
+    Windows. This fixes a program where Norton Desktop 1.0 does not use it's
+    "graphical" text UI elements because it thinks it's running within a
+    Windows DOS box. (joncampbell123).
   - Remove unnecessary and useless Win32 fcntl() on some memory typecast
     to int which is causing a segfault whenever a ZIP file is mounted
     as a drive with an overlay filesystem atop it. (joncampbell123)

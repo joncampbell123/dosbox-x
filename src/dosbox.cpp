@@ -4783,8 +4783,9 @@ void DOSBOX_SetupConfigSections(void) {
 			"It has no effect if \"dos clipboard device enable\" is disabled, and it is deactivated if the secure mode is enabled.");
     Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("dos clipboard api",Property::Changeable::WhenIdle, true);
-    Pbool->Set_help("If set, DOS APIs for communications with the Windows clipboard will be enabled for shared clipboard communications.");
+    Pbool = secprop->Add_bool("dos clipboard api",Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("If set, DOS APIs for communications with the Windows clipboard will be enabled for shared clipboard communications.\n"
+		    "Caution: Enabling this API may cause some programs to think they are running under Windows");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("dos idle api",Property::Changeable::OnlyAtStart,true);
