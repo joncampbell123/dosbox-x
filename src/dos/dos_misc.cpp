@@ -140,6 +140,7 @@ static bool DOS_MultiplexFunctions(void) {
         }
         return true;
 	case 0x1216:	/* GET ADDRESS OF SYSTEM FILE TABLE ENTRY */
+		/* Apparently used by Dunkle Schatten 2 for whatever reason */
 		// reg_bx is a system file table entry, should coincide with
 		// the file handle so just use that
 		LOG(LOG_DOSMISC,LOG_ERROR)("Some BAD filetable call used bx=%X",reg_bx);
@@ -153,6 +154,9 @@ static bool DOS_MultiplexFunctions(void) {
 			/* The SFT table is not one monolithic table, but is split across
 			 * smaller table "pieces" connected by a linked list */
 			unsigned int rel_entry = reg_bx;
+
+//DEBUG
+//			LOG_MSG("handle=%u rel=%u initsft=%08x",reg_bx,rel_entry,(unsigned int)sftrealpt);
 
 			while (1) {
 				/* DWORD +0 <next link or 0xFFFFFFFF>
@@ -168,9 +172,15 @@ static bool DOS_MultiplexFunctions(void) {
 					return true;
 				}
 				sftptr=Real2Phys(sftrealpt);
+
+//DEBUG
+//				LOG_MSG("handle=%u rel=%u nextsft=%08x",reg_bx,rel_entry,(unsigned int)sftrealpt);
 			}
 
 			uint32_t sftofs = SftHeaderSize + rel_entry*SftEntrySize;
+
+//DEBUG
+//			LOG_MSG("handle=%u rel=%u finalsft=%08x",reg_bx,rel_entry,(unsigned int)sftrealpt);
 
 			if (Files[reg_bx]) mem_writeb(sftptr+sftofs, (uint8_t)(Files[reg_bx]->refCtr));
 			else mem_writeb(sftptr+sftofs,0);
