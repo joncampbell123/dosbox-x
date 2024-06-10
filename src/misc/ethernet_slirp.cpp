@@ -56,7 +56,13 @@ int inet_pton_win(int af, const char* src, void* dst)
  * object. This is done by passing our SlirpEthernetConnection as user data.
  */
 
-ssize_t slirp_receive_packet(const void* buf, size_t len, void* opaque)
+// libslirp >= 4.8.0 defines slirp_ssize_t but will break compatibility with older versions
+#ifdef _WIN32
+SSIZE_T 
+#else
+ssize_t 
+#endif
+slirp_receive_packet(const void* buf, size_t len, void* opaque)
 {
 	SlirpEthernetConnection* conn = (SlirpEthernetConnection*)opaque;
 	conn->ReceivePacket((const uint8_t*)buf, len);
