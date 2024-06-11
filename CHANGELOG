@@ -178,6 +178,9 @@ Next:
   - Fixed issue that IMGSWAP command did not work for CD drives. (maron2000)
   - Fixed loaded language file unexpectedly changes on launch. (maron2000)
   - Added missing language file in Windows standard & XP installers. (maron2000)
+  - Fixed a bug in IME character display on macOS Sonoma (nanshiki)
+  - Fixed build errors of SDL1 code when built with gcc-14 (maron2000)
+  - Fixed static link errors of libslirp >= 4.8.0 (maron2000)
 
 2024.03.01
   - If an empty CD-ROM drive is attached to IDE emulation, return "Medium Not
