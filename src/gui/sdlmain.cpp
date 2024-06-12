@@ -8745,7 +8745,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif //defined (C_SDL2)
 #if defined(__MINGW32__) && defined(C_DEBUG)
         LOG_MSG("EXPERIMENTAL: Debugger enabled for MinGW build, DOSBox-X crashes depending on the terminal software you use. Launching from command prompt (cmd.exe) is recommended.");
-        LOG_MSG("NOTICE: libslirp support disabled due to a bug in recent libslirp release");
 #endif
         /* -- -- decide whether to show menu in GUI */
         if (control->opt_nogui || menu.compatible)
