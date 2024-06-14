@@ -5897,7 +5897,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 			 * switch the CRTC to other non-BYTE modes:
 			 *
 			 * - "Unreal" by Future Crew, "Vectorballs", CRTC WORD mode */
-			vga.draw.linear_mask = 0x3ffffu;
+			vga.draw.linear_mask = 0x3ffffu & vga.mem.memmask; /* NTS: We allow EGA with less than 256KB! */
 			vga.draw.address *= (Bitu)1u << (Bitu)vga.config.addr_shift; /* NTS: Remember the bizarre 4 x 4 mode most SVGA chipsets do */
 			break;
 		case M_VGA:
