@@ -1,4 +1,6 @@
 Next:
+  - Fix memory buffer overrun with machine=ega that can occur with
+    640x350 mode and less than 256KB of video RAM. (joncampbell123).
   - The DOSBox clipboard API (via INT 2Fh) is now disabled by default, because
     some programs use it's presence to detect whether they are running under
     Windows. This fixes a program where Norton Desktop 1.0 does not use it's
