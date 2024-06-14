@@ -1,4 +1,7 @@
 Next:
+  - Fix BIOS screen to use CGA 640x200 2-color mode if machine=ega with
+    less than 128KB of video ram, or machine=ega200, instead of showing
+    a garbled 640x350 display. (joncampbell123).
   - Fix memory buffer overrun with machine=ega that can occur with
     640x350 mode and less than 256KB of video RAM. (joncampbell123).
   - The DOSBox clipboard API (via INT 2Fh) is now disabled by default, because

@@ -75,6 +75,8 @@ extern bool PS1AudioCard;
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+extern bool ega200;
+
 unsigned char ACPI_ENABLE_CMD = 0xA1;
 unsigned char ACPI_DISABLE_CMD = 0xA0;
 unsigned int ACPI_IO_BASE = 0x820;
@@ -10775,9 +10777,10 @@ startfunction:
             CALLBACK_RunRealInt(0x10);
             DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
-        else if (machine == MCH_EGA && !textsplash) {
+        else if (machine == MCH_EGA && !textsplash && !ega200 && vga.mem.memsize >= (128*1024)) { /* not ega200 and at least 128KB of VRAM */
             rowheight = 14;
-            reg_eax = 16;       // 640x350 16-color
+            reg_eax = 16; // 640x350 16-color
+
             CALLBACK_RunRealInt(0x10);
 
             // color correction: change Dark Puke Yellow to brown
@@ -10789,7 +10792,7 @@ startfunction:
 
             DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
-        else if ((machine == MCH_CGA || machine == MCH_MCGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) && !textsplash) {
+        else if ((machine == MCH_CGA || machine == MCH_EGA || machine == MCH_MCGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) && !textsplash) {
             rowheight = 8;
             reg_eax = 6;        // 640x200 2-color
             CALLBACK_RunRealInt(0x10);
