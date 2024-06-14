@@ -16,7 +16,7 @@ The four major operating systems and platforms of DOSBox-X are:
 
 1. Windows 11, 10, 8, 7, Vista and XP for 32-bit and 64-bit x86/x64 and ARM
 
-2. Linux (with X11) 64-bit x86/x64, and on a Raspberry Pi 3/4
+2. Linux (with X11) 64-bit x86/x64, and on a Raspberry Pi 3/4/5
 
 3. macOS (Mac OS X) recent version, 64-bit Intel, ARM-based, and Universal
 
@@ -194,6 +194,18 @@ Then run the following commands:
 ```
 
 After a successful compile, the RPM can be found in the releases directory.
+
+## To compile DOSBox-X in Raspberry Pi:
+
+The official Raspberry PI website has an article including build instructions from source.  
+https://www.raspberrypi.com/news/read-floppy-disks-and-cd-roms-with-raspberry-pi-5-magpimonday/
+```
+sudo apt install libtool autogen autoconf automake libncurses-dev gcc g++ make libncurses-dev nasm libsdl-net1.2-dev libsdl2-net-dev libpcap-dev libslirp-dev fluidsynth libfluidsynth-dev libavformat-dev libavcodec-dev libavcodec-extra libswscale-dev libfreetype-dev libxkbfile-dev libxrandr-dev 
+git clone https://github.com/joncampbell123/dosbox-x.git
+cd dosbox-x
+./build-debug
+```
+If you have audio problems, you may want to try the SDL2 build using `./build-debug-sdl2` script.
 
 Compiling the source code using Visual Studio (Windows)
 -------------------------------------------------------
