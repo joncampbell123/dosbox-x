@@ -1053,6 +1053,65 @@ template <const unsigned int card,typename templine_type_t> static uint8_t * EGA
         return NULL;
 }
 
+template <const unsigned int card,typename templine_type_t> static uint8_t * EGA_Planar_Common_LineOddEven(uint8_t *dst,Bitu vidstart, Bitu line) {
+    if (vga.crtc.maximum_scan_line & 0x80) line >>= 1u; /* CGA modes (and 200-line EGA) have the VGA doublescan bit set. We need to compensate to properly map lines. */
+    uint8_t *vram = vga.draw.linear_base + ((line & vga.tandy.line_mask) << (2+vga.tandy.line_shift));
+    Bitu vidmask = vga.tandy.line_mask ? ((vga.tandy.addr_mask << 2) | 3) : vga.draw.linear_mask;
+    templine_type_t* temps = (templine_type_t*)dst;
+    Bitu count = vga.draw.blocks + ((vga.draw.panning + 7u) >> 3u);
+    Bitu i = 0;
+
+    /* This code assumes addr_shift != 0 */
+
+    /* Odd/even wraparound */
+    if (vidstart & (vidmask + 1u)) vidstart += 4u;
+
+    /* All EGA/VGA modes obey the MEM13 bits and other bits present in the hardware that
+     * exist purely for CGA backwards compatibility. CGA graphics modes are just EGA planar
+     * modes with fewer bitplanes enabled, and for 4-color mode, an odd bit in the graphics
+     * controller that tells the hardware to make 2-bit groups of the 1-bit pixels in the
+     * bitplanes. That's it.
+     *
+     * Also, Prehistorik likes to abuse the CGA memory mapping in the difficulty select
+     * screen (text with a rapidly panning repeating background) when starting a game.
+     *
+     * Also, even though it is rarely used, EGA/VGA do have another bit that enables a
+     * 4-way interleave that was obviously added with Hercules graphics mode in mind. */
+
+    while (count > 0u) {
+        uint32_t t1,t2,r;
+
+	r = *((uint32_t*)(&vram[ vidstart & vidmask ]));
+
+	t1 = t2 = r;
+        t1 = (t1 >> 4) & 0x0f0f0f0f;
+        t2 &= 0x0f0f0f0f;
+        EGA_Planar_Common_Block<card,templine_type_t>(temps+i,t1,t2);
+        i += 8;
+
+	r = (r >> 8) + (r << 24);
+
+	t1 = t2 = r;
+        t1 = (t1 >> 4) & 0x0f0f0f0f;
+        t2 &= 0x0f0f0f0f;
+        EGA_Planar_Common_Block<card,templine_type_t>(temps+i,t1,t2);
+        i += 8;
+
+        vidstart += (uintptr_t)4 << (uintptr_t)vga.config.addr_shift;
+        if ((vidstart & vidmask & (~4u)) == 0) vidstart ^= 4u;
+        count--;
+    }
+
+    if (card != MCH_RAW_SNAPSHOT)
+        return dst + (vga.draw.panning*sizeof(templine_type_t));
+    else
+        return NULL;
+}
+
+static uint8_t * EGA_Draw_VGA_Planar_Xlat8_LineOddEven(Bitu vidstart, Bitu line) {
+    return EGA_Planar_Common_LineOddEven<MCH_EGA,uint8_t>(TempLine,vidstart,line);
+}
+
 static uint8_t * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu line) {
     return EGA_Planar_Common_Line<MCH_EGA,uint8_t>(TempLine,vidstart,line);
 }
@@ -7211,6 +7270,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 				if (vga.gfx.mode & 0x20) {
 					VGA_DrawLine = EGA_Draw_2BPP_Line_as_EGA;
 					VGA_DrawRawLine = VGA_RawDraw_2BPP_Line_as_VGA;
+				}
+				else if (vga.config.addr_shift >= 1/*word mode*/ && vga.seq.clocking_mode & 0x04/*load every other clock cycle*/) {
+					VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_LineOddEven;
+					VGA_DrawRawLine = VGA_RawDraw_VGA_Planar_Xlat32_Line;//TODO
+					vga.draw.blocks = (width+1u)>>1u;
 				}
 				else {
 					VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_Line;
