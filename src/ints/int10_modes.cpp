@@ -1435,12 +1435,8 @@ bool INT10_SetVideoMode(uint16_t mode) {
 			break;
 		case M_LIN4:
 		case M_EGA:
-			if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350) {
-				seq_data[2]|=0x5;			//Enable bitplanes 0 and 2 for writing
-			}
-			else {
-				seq_data[2]|=0xf;			//Enable all planes for writing
-			}
+			// All must be enabled even for EGA 640x350 4-color mode in order for bitplanes 2-3 to chain alongside bitplanes 0-1
+			seq_data[2]|=0xf;				//Enable all planes for writing
 			break;
 		case M_LIN8:						//Seems to have the same reg layout from testing
 		case M_LIN15:
