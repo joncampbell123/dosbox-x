@@ -480,7 +480,7 @@ VideoModeBlock ModeList_EGA_200[]={
 /* NTS: I will *NOT* set the double scanline flag for 200 line modes.
  *      The modes listed here are intended to reflect the actual raster sent to the EGA monitor,
  *      not what you think looks better. EGA as far as I know, is either sent a 200-line mode,
- *      or a 350-line mode. There is no VGA-line 200 to 400 line doubling. */
+ *      or a 350-line mode. There is no VGA-like 200 to 400 line doubling. */
 VideoModeBlock ModeList_EGA[]={
 /* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
 { 0x000  ,M_TEXT   ,320 ,350 ,40 ,25 ,8 ,14 ,8 ,0xB8000 ,0x0800 ,50  ,366 ,40 ,350 ,_EGA_HALF_CLOCK	},
@@ -1435,7 +1435,12 @@ bool INT10_SetVideoMode(uint16_t mode) {
 			break;
 		case M_LIN4:
 		case M_EGA:
-			seq_data[2]|=0xf;				//Enable all planes for writing
+			if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350) {
+				seq_data[2]|=0x5;			//Enable bitplanes 0 and 2 for writing
+			}
+			else {
+				seq_data[2]|=0xf;			//Enable all planes for writing
+			}
 			break;
 		case M_LIN8:						//Seems to have the same reg layout from testing
 		case M_LIN15:
@@ -1674,7 +1679,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 			break;
 		case M_EGA:
 			if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350)
-				offset = CurMode->hdispend/4;
+				offset = CurMode->hdispend/8; /* = 0x14, See EGA BIOS listing for entry 10h 16K mode [https://ibmmuseum.com/Adapters/Video/EGA/IBM_EGA_Manual.pdf] */
 			else
 				offset = CurMode->hdispend/2;
 			break;
@@ -1841,7 +1846,10 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	}
 	uint8_t att_data[ATT_REGS];
 	memset(att_data,0,ATT_REGS);
-	att_data[0x12]=0xf;				//Always have all color planes enabled
+	if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350 && CurMode->type == M_EGA)
+		att_data[0x12]=0x5;				//Bitplanes 0 and 2 only
+	else
+		att_data[0x12]=0xf;				//Always have all color planes enabled
 	/* Program Attribute Controller */
 	switch (CurMode->type) {
 		case M_EGA:
@@ -1896,6 +1904,17 @@ att_text16:
 				for (i=1; i<8; i++) {
 					att_data[i]=0x08;
 					att_data[i+8]=0x18;
+				}
+			} else if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350 && CurMode->type == M_EGA) {
+				for (i=0;i < 16;i += 8) {
+					att_data[i+0]=0x00;
+					att_data[i+1]=0x01;
+					att_data[i+2]=0x00;
+					att_data[i+3]=0x00;
+					att_data[i+4]=0x04;
+					att_data[i+5]=0x07;
+					att_data[i+6]=0x00;
+					att_data[i+7]=0x00;
 				}
 			} else {
 				for (uint8_t ct=0;ct<8;ct++) {
