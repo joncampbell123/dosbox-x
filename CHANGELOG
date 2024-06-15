@@ -1,4 +1,10 @@
 Next:
+  - Corrected register values and video rendering of machine=EGA 640x350
+    mode when emulating 64KB of RAM. This should fix rendering and display
+    issues with EGA 640x350 4-color emulation. Also corrected INT 10h
+    character printing functions to filter the color attribute value for
+    640x350 4-color mode so the DOS prompt does not have alternating
+    colors, in the same manner the real IBM EGA BIOS does. (joncampbell123).
   - Fix BIOS screen to use CGA 640x200 2-color mode if machine=ega with
     less than 128KB of video ram, or machine=ega200, instead of showing
     a garbled 640x350 display. (joncampbell123).
