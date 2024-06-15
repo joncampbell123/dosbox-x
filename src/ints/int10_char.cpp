@@ -453,7 +453,14 @@ static void TANDY16_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base
     }
 }
 
+static uint8_t EGA4ColorRemap(const uint8_t a) {
+	const uint8_t x = a & 0x5;
+	return x | (x << 1u);
+}
+
 static void EGA16_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base,uint8_t attr) {
+    /* EGA 640x350 4-color needs bits 0+1 and 2+3 ORed together as the IBM EGA BIOS does [https://ibmmuseum.com/Adapters/Video/EGA/IBM_EGA_Manual.pdf] */
+    if (machine == MCH_EGA && vga.mem.memsize < (128*1024) && CurMode->sheight==350) attr=EGA4ColorRemap(attr);
     /* Set Bitmask / Color / Full Set Reset */
     IO_Write(0x3ce,0x8);IO_Write(0x3cf,0xff);
     IO_Write(0x3ce,0x0);IO_Write(0x3cf,attr);
@@ -1698,6 +1705,7 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
         page=0;
         break;
     case M_EGA:
+        if (machine == MCH_EGA && vga.mem.memsize < (128*1024) && CurMode->sheight==350) attr=EGA4ColorRemap(attr);
         /* enable all planes for EGA modes (Ultima 1 colour bug) */
         /* might be put into INT10_PutPixel but different vga bios
            implementations have different opinions about this */
