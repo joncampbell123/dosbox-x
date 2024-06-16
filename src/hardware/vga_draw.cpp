@@ -6475,13 +6475,7 @@ void VGA_CheckScanLength(void) {
 	switch (vga.mode) {
 		case M_EGA:
 		case M_LIN4:
-			if ((machine==MCH_EGA)&&(vga.crtc.mode_control&0x8))
-				vga.draw.address_add=vga.config.scan_len*16; // TODO
-			else
-				vga.draw.address_add=vga.config.scan_len*(8u<<(unsigned int)vga.config.addr_shift);
-
-			if (IS_EGA_ARCH && (vga.seq.clocking_mode&4))
-				vga.draw.address_add*=2;
+			vga.draw.address_add=vga.config.scan_len*(8u<<(unsigned int)vga.config.addr_shift);
 			break;
 		case M_PACKED4:
 			vga.draw.address_add=vga.config.scan_len*8;
@@ -7271,7 +7265,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 					VGA_DrawLine = EGA_Draw_2BPP_Line_as_EGA;
 					VGA_DrawRawLine = VGA_RawDraw_2BPP_Line_as_VGA;
 				}
-				else if (vga.config.addr_shift >= 1/*word mode*/ && vga.seq.clocking_mode & 0x04/*load every other clock cycle*/) {
+				else if (vga.config.addr_shift >= 1/*word mode*/ && (vga.seq.clocking_mode & 0x04/*load every other clock cycle*/) &&
+					(vga.crtc.mode_control & 0x08/*increase memory address every other character clock*/)) {
 					VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_LineOddEven;
 					VGA_DrawRawLine = VGA_RawDraw_VGA_Planar_Xlat32_Line;//TODO
 					vga.draw.blocks = (width+1u)>>1u;
