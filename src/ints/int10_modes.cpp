@@ -1237,6 +1237,26 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 	return true;
 }
 
+extern bool int10_vp_use_always;
+extern bool int10_vp_use_auto;
+
+static bool ShouldUseVPT(void) {
+	if (int10_vp_use_always)
+		return true;
+	if (!int10_vp_use_auto)
+		return false;
+
+	/* If the VPT points into ROM, no.
+	 * Otherwise a DOS program wants to override it, yes. */
+	RealPt r_vsopt = real_readd(BIOSMEM_SEG,0xA8);
+	if (r_vsopt != 0) {
+		RealPt r_vpt = real_readd(RealSeg(r_vsopt),RealOff(r_vsopt));
+		if (RealSeg(r_vpt) < 0xC000) return true;
+	}
+
+	return false;
+}
+
 bool unmask_irq0_on_int10_setmode = true;
 bool INT10_SetVideoMode(uint16_t mode) {
 	if (CurMode&&CurMode->mode==7&&!IS_PC98_ARCH) {
@@ -1291,7 +1311,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	 *       or auto, which means only use if the pointer in the Video Save/Override
 	 *       Pointer Table is not pointing to ROM (because something in the guest intends
 	 *       to override parameters) */
-	if (IS_EGAVGA_ARCH && mode <= 0x13/*standard EGA/VGA modes only*/) {
+	if (IS_EGAVGA_ARCH && mode <= 0x13/*standard EGA/VGA modes only*/ && ShouldUseVPT()) {
 		RealPt r_vpt = 0;
 		RealPt r_vsopt = real_readd(BIOSMEM_SEG,0xA8);
 		if (r_vsopt != 0) r_vpt = real_readd(RealSeg(r_vsopt),RealOff(r_vsopt));

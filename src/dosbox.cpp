@@ -91,6 +91,9 @@
 
 #include <list>
 
+bool int10_vp_use_always = false;
+bool int10_vp_use_auto = true;
+
 unsigned int preventcap = PREVCAP_NONE;
 
 #ifndef WDA_NONE
@@ -967,6 +970,23 @@ void Init_VGABIOS() {
         VGA_BIOS_use_rom = false;
     }
 
+    {
+        const char *s = video_section->Get_string("int 10h use video parameter table");
+
+        if (!strcmp(s,"true") || !strcmp(s,"1")) {
+            int10_vp_use_always = true;
+            int10_vp_use_auto = false;
+        }
+        else if (!strcmp(s,"false") || !strcmp(s,"0")) {
+            int10_vp_use_always = false;
+            int10_vp_use_auto = false;
+        }
+        else {
+            int10_vp_use_always = false;
+            int10_vp_use_auto = true;
+        }
+    }
+
     int size_override = video_section->Get_int("vga bios size override");
     if (size_override > 0) VGA_BIOS_Size_override = ((Bitu)size_override+0x7FFU)&(~0xFFFU);
 
@@ -1420,6 +1440,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", nullptr };
     const char* fpu_settings[] = { "true", "false", "1", "0", "auto", "8087", "287", "387", nullptr };
     const char* sb_recording_sources[] = { "silence", "hiss", "1khz tone", nullptr };
+    const char* int10usevp[] = { "auto", "true", "false", "1", "0", nullptr };
 
     const char* hostkeys[] = {
         "ctrlalt", "ctrlshift", "altshift", "mapper", nullptr };
@@ -2449,6 +2470,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Specifies the text color in J-3100 mode. If not specified, the colors will be those of the display type corresponding to the model specified in j3100type.");
 
     secprop=control->AddSection_prop("video",&Null_Init);
+
+    Pstring = secprop->Add_string("int 10h use video parameter table",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(int10usevp);
+    Pstring->Set_help("If set, INT 10h will use the video parameter table for standard EGA/VGA modes.\n"
+		      "If not set, internal modesetting will be used, same as DOSBox and most forks do.\n"
+		      "If auto, the video parameter table will be used if any DOS program redirects the table (usually to override mode setting parameters)");
+
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,1000000);
     Pint->Set_help( "VGA Memory I/O delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"
