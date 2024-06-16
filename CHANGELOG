@@ -1,4 +1,12 @@
 Next:
+  - INT 10h, if instructed, will now use the video parameter table to set
+    standard VGA modes instead of internal logic. (joncampbell123).
+  - Removed erroneous VGA display compensation code for certain EGA/VGA
+    registers that really only caused incorrect display of the EGA 640x350
+    4-color mode. (joncampbell123).
+  - Corrected EGA and VGA video parameter tables by copying the parameters
+    from actual IBM EGA VGA ROM BIOS images. They should be 100% correct
+    now. (joncampbell123).
   - Corrected register values and video rendering of machine=EGA 640x350
     mode when emulating 64KB of RAM. This should fix rendering and display
     issues with EGA 640x350 4-color emulation. Also corrected INT 10h
