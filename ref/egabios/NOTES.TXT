@@ -1,0 +1,1 @@
+Video Parameter table at 0x717-0xCD6 inclusive. (first byte past table is 0xCD7).
