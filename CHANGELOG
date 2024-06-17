@@ -1,4 +1,5 @@
 Next:
+  - Do not enable XMS emulation if system memory size is 1MB or less. (joncampbell123)
   - DOS drive cache: When listing a directory, defer the filename sort until
     the entire list is built. This improves directory listing performance
     in directories with many files. (joncampbell123).
