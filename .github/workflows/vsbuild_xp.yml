@@ -12,7 +12,7 @@ jobs:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: write # for actions/checkout to fetch code and softprops/action-gh-release
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: windows-2019
+    runs-on: windows-latest
     defaults:
       run:
         shell: pwsh
@@ -23,6 +23,20 @@ jobs:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v4
       - uses: microsoft/setup-msbuild@v2
+      - name: Install v141 build tools
+        run: |
+          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+          $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          $componentsToAdd= @(
+            "Microsoft.VisualStudio.Component.VC.v141.x86.x64"
+            "Microsoft.VisualStudio.Component.VC.v141.MFC"
+            "Microsoft.VisualStudio.Component.WinXP"
+          )
+          [string]$workloadArgs = $componentsToAdd | ForEach-Object {" --add " +  $_}
+          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
+          # should be run twice
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
       - name: Prepare Visual Studio build for WinXP
         shell: bash
         run: |
