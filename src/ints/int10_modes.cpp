@@ -1325,10 +1325,15 @@ bool INT10_SetVideoMode(uint16_t mode) {
 			/* map video mode to table */
 			switch (mode) {
 				case 0: case 1: case 2: case 3: /* text mode */
-					if (IS_VGA_ARCH || (IS_EGA_ARCH && !ega200)) vptp += (mode + 0x13) * 0x40; /* high res text */
-					else vptp += mode * 0x40; /* CGA emulation text */
+					if (IS_VGA_ARCH) vptp += ((mode & 2) ? 0x18 : 0x17) * 0x40; /* high res text VGA (0/1 and 2/3 are the same) */
+					else if (IS_EGA_ARCH && !ega200) vptp += (mode + 0x13) * 0x40; /* high res text EGA */
+					else vptp += mode * 0x40; /* low res text CGA */
 					break;
-				case 4: case 5: case 6: case 7: /* CGA graphics, 80x25 mono, the unused modes, EGA 320x200 and 640x200 16-color */
+				case 7: /* 80x25 mono text mode */
+					if (IS_VGA_ARCH) vptp += 0x19 * 0x40;
+					else vptp += 0x07 * 0x40;
+					break;
+				case 4: case 5: case 6: /* CGA graphics, the unused modes, EGA 320x200 and 640x200 16-color */
 				case 8: case 9: case 10:case 11:
 				case 12:case 13:case 14:
 					vptp += mode * 0x40;
