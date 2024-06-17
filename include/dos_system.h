@@ -270,7 +270,7 @@ private:
 	CFileInfo*	FindDirInfo		(const char* path, char* expandedPath);
 	bool		RemoveSpaces		(char* str);
 	bool		OpenDir			(CFileInfo* dir, const char* expand, uint16_t& id);
-    char*       CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory);
+    char*       CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory, bool skipSort=false);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
 	uint16_t		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
