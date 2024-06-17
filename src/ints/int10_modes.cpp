@@ -1307,10 +1307,6 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	bool vptable = false;
 	PhysPt vptp = 0;
 
-	/* TODO: Make this a dosbox.conf option to control whether to always use, never use,
-	 *       or auto, which means only use if the pointer in the Video Save/Override
-	 *       Pointer Table is not pointing to ROM (because something in the guest intends
-	 *       to override parameters) */
 	if (IS_EGAVGA_ARCH && mode <= 0x13/*standard EGA/VGA modes only*/ && ShouldUseVPT()) {
 		RealPt r_vpt = 0;
 		RealPt r_vsopt = real_readd(BIOSMEM_SEG,0xA8);
