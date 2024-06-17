@@ -770,6 +770,15 @@ public:
 			return;
 		}
 
+		/* NTS: Disable XMS emulation if the memsize setting is 1MB or less. In that case there is nothing
+		 *      that counts as "extended memory" and therefore no reason to emulate XMS services. */
+		/* TODO: Add option to *force* XMS emulation, overriding this lockout, if you really want to emulate
+		 *       HIMEM.SYS loaded and active on a DOS configuration with only 256KB of memory. */
+		if (MEM_TotalPages() < 0x100) {
+			LOG_MSG("Configured memory size is 1MB or less, disabling XMS");
+			return;
+		}
+
 		xms_init = true;
 
 		xms_hma_exists = section->Get_bool("hma");
