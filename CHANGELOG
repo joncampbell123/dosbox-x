@@ -1,4 +1,7 @@
 Next:
+  - DOS drive cache: When listing a directory, defer the filename sort until
+    the entire list is built. This improves directory listing performance
+    in directories with many files. (joncampbell123).
   - INT 10h, if instructed, will now use the video parameter table to set
     standard VGA modes instead of internal logic. (joncampbell123).
   - Removed erroneous VGA display compensation code for certain EGA/VGA

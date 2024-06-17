@@ -824,7 +824,7 @@ bool DOS_Drive_Cache::OpenDir(CFileInfo* dir, const char* expand, uint16_t& id) 
     return false;
 }
 
-char* DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char* sname, bool is_directory) {
+char* DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char* sname, bool is_directory, bool skipSort) {
     CFileInfo* info = new CFileInfo;
     strcpy(info->shortname, sname);
 	strcpy(info->orgname, name);
@@ -835,7 +835,7 @@ char* DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char*
     if (sname[0]==0) CreateShortName(dir, info);
 
     // keep list sorted (so GetLongName works correctly, used by CreateShortName in this routine)
-    if (dir->fileList.size()>0) {
+    if (dir->fileList.size()>0 && !skipSort) {
         if (!(strcmp(info->shortname,dir->fileList.back()->shortname)<0)) {
             // append at end of list
             dir->fileList.push_back(info);
@@ -891,11 +891,14 @@ bool DOS_Drive_Cache::ReadDir(uint16_t id, char* &result, char * &lresult) {
         char dir_name[CROSS_LEN], dir_sname[DOS_NAMELENGTH+1];
         bool is_directory;
         if (drive->read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
-            CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory);
+            CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory, /*skip search*/true);
             while (drive->read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
-                CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory);
+                CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory, /*skip search*/true);
             }
         }
+
+        // Insertion skipped sorting, now sort in one go, which should be faster when faced with many files
+        std::sort(dirSearch[id]->fileList.begin(), dirSearch[id]->fileList.end(), SortByName);
 
         // close dir
         drive->closedir(dirp);
