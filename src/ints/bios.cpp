@@ -11388,11 +11388,13 @@ startfunction:
 
         // TODO: If instructed to boot a guest OS...
 
-        /* wipe out the stack so it's not there to interfere with the system */
-        reg_esp = 0;
+        /* wipe out the stack so it's not there to interfere with the system, point it at top of memory or top of segment */
+        reg_esp = std::min((unsigned int)((MEM_TotalPages() << 12) - 0x600 - 4),0xFFFCu);
         reg_eip = 0;
         CPU_SetSegGeneral(cs, 0x60);
         CPU_SetSegGeneral(ss, 0x60);
+
+        LOG(LOG_MISC,LOG_DEBUG)("BIOS boot SS:SP %04x:%04x",(unsigned int)0x60,(unsigned int)reg_esp);
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 		if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {

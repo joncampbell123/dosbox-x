@@ -1,4 +1,7 @@
 Next:
+  - Fix bug where DOS kernel crashes on startup because of the initial
+    stack pointer set by BIOS startup that points past available memory
+    when memsize is 64KB or less. (joncampbell123).
   - If minimum mcb free is not set and memory size is less than 256KB,
     automatically set minimum mcb free to minimum mcb segment, in order
     to release more available memory within the limited space (joncampbell123).
