@@ -855,24 +855,24 @@ public:
 			umb_available = false;
 		}
 
-        if (IS_PC98_ARCH) {
-            bool PC98_FM_SoundBios_Enabled(void);
+		if (IS_PC98_ARCH) {
+			bool PC98_FM_SoundBios_Enabled(void);
 
-            /* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
-             * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
-            unsigned int limit = (desired_ems_segment == 0xC000) ? 0xDFFF : 0xCFFF;
+			/* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
+			 * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
+			unsigned int limit = (desired_ems_segment == 0xC000) ? 0xDFFF : 0xCFFF;
 
-            if (PC98_FM_SoundBios_Enabled() && desired_ems_segment == 0xD000) {
-                // TODO: What about sound BIOSes larger than 16KB?
-                if (limit > 0xCBFF)
-                    limit = 0xCBFF;
-            }
+			if (PC98_FM_SoundBios_Enabled() && desired_ems_segment == 0xD000) {
+				// TODO: What about sound BIOSes larger than 16KB?
+				if (limit > 0xCBFF)
+					limit = 0xCBFF;
+			}
 
-            if (first_umb_seg > limit)
-                first_umb_seg = limit;
-            if (first_umb_size > limit)
-                first_umb_size = limit;
-        }
+			if (first_umb_seg > limit)
+				first_umb_seg = limit;
+			if (first_umb_size > limit)
+				first_umb_size = limit;
+		}
 
 		if (first_umb_size >= (rombios_minimum_location>>4)) {
 			/* we can ask the BIOS code to trim back the region, assuming it hasn't allocated anything there yet */
@@ -884,24 +884,24 @@ public:
 			first_umb_size = ((unsigned int)rombios_minimum_location>>4u)-1u;
 		}
 
-        Bitu GetEMSPageFrameSegment(void);
+		Bitu GetEMSPageFrameSegment(void);
 
-        bool ems_available = GetEMSType(section)>0;
+		bool ems_available = GetEMSType(section)>0;
 
-        /* 2017/12/24 I just noticed that the EMS page frame will conflict with UMB on standard configuration.
-         * In IBM PC mode the EMS page frame is at E000:0000.
-         * In PC-98 mode the EMS page frame is at D000:0000. */
-        if (ems_available && first_umb_size >= GetEMSPageFrameSegment() && first_umb_seg < GetEMSPageFrameSegment()) {
-            assert(GetEMSPageFrameSegment() >= 0xA000);
-            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame at 0x%04x, truncating region",(unsigned int)GetEMSPageFrameSegment());
-            first_umb_size = (uint16_t)(GetEMSPageFrameSegment() - 1);
-        }
-        /* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
-        /* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */
-        if (IS_PC98_ARCH && first_umb_size >= 0xE000) {
-            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps PC-98 EGC 4th graphics bitplane, truncating region");
-            first_umb_size = 0xDFFF;
-        }
+		/* 2017/12/24 I just noticed that the EMS page frame will conflict with UMB on standard configuration.
+		 * In IBM PC mode the EMS page frame is at E000:0000.
+		 * In PC-98 mode the EMS page frame is at D000:0000. */
+		if (ems_available && first_umb_size >= GetEMSPageFrameSegment() && first_umb_seg < GetEMSPageFrameSegment()) {
+			assert(GetEMSPageFrameSegment() >= 0xA000);
+			LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame at 0x%04x, truncating region",(unsigned int)GetEMSPageFrameSegment());
+			first_umb_size = (uint16_t)(GetEMSPageFrameSegment() - 1);
+		}
+		/* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
+		/* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */
+		if (IS_PC98_ARCH && first_umb_size >= 0xE000) {
+			LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps PC-98 EGC 4th graphics bitplane, truncating region");
+			first_umb_size = 0xDFFF;
+		}
 		if (first_umb_size < first_umb_seg) {
 			LOG(LOG_MISC,LOG_NORMAL)("UMB end segment below UMB start. I'll just assume you mean to disable UMBs then.");
 			first_umb_size = first_umb_seg - 1;
