@@ -5112,11 +5112,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("dos",Property::Changeable::OnlyAtStart,"high, umb");
 	Pstring->Set_help("Reports whether DOS occupies HMA and allocates UMB memory (if available).");
     Pstring->SetBasic(true);
-    Pint = secprop->Add_int("fcbs",Property::Changeable::OnlyAtStart,100);
-    Pint->Set_help("Number of FCB handles available to DOS programs (1-255).");
+    Pint = secprop->Add_int("fcbs",Property::Changeable::OnlyAtStart,0);
+    Pint->Set_help("Number of FCB handles available to DOS programs (1-255). Set to 0 to automatically use a reasonable default.");
     Pint->SetBasic(true);
-    Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,200);
-    Pint->Set_help("Number of file handles available to DOS programs (8-255).");
+    Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,0);
+    Pint->Set_help("Number of file handles available to DOS programs (8-255). Set to 0 to automatically use a reasonable default.");
     Pint->SetBasic(true);
     Pstring = secprop->Add_string("country",Property::Changeable::OnlyAtStart,"");
     Pstring->Set_help("Country code for date/time/decimal formats and optionally code page for TTF output and language files.");
