@@ -4516,10 +4516,18 @@ public:
          *      This should be looked into. In the meantime, setting the MCB
          *      start segment before or after 0x800 helps to resolve these issues.
          *      It also puts DOSBox-X at parity with main DOSBox SVN behavior. */
-        if (minimum_mcb_free == 0)
-            minimum_mcb_free = IS_PC98_ARCH ? 0x800 : 0x700;
-        else if (minimum_mcb_free < minimum_mcb_segment)
+	/* NTS: If the user is trying to emulate a DOS machine with smaller than
+	 *      256KB amounts of memory, then minimum mcb free needs to be much
+	 *      smaller to make room and allow for it */
+        if (minimum_mcb_free == 0) {
+            if (MEM_TotalPages() < 0x40/*256KB*/)
+                minimum_mcb_free = minimum_mcb_segment;
+            else
+                minimum_mcb_free = IS_PC98_ARCH ? 0x800 : 0x700;
+        }
+        else if (minimum_mcb_free < minimum_mcb_segment) {
             minimum_mcb_free = minimum_mcb_segment;
+        }
 
         LOG(LOG_DOSMISC,LOG_DEBUG)("   min free:     seg 0x%04x",minimum_mcb_free);
 
