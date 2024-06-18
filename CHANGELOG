@@ -1,4 +1,6 @@
 Next:
+  - DOS kernel will allocate from segment 0x60 instead of 0x70 if the
+    memory size is less than 64KB. (joncampbell123).
   - files= and fcbs= default value now automatically scales according to
     available conventional memory (640KB or lower) in order for memsize 64KB
     or lower to free up or memory and run properly. (joncampbell123).
