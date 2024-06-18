@@ -1811,7 +1811,15 @@ void SHELL_Init() {
     else
         tmp = 0x1A + (2048/16);
     total_sz = tmp;
-	if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
+
+    // Use normal MCB allocation unless memsize is 4KB
+    if (MEM_TotalPages() > 1) {
+        if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
+    }
+    else {
+        psp_seg = DOS_GetMemory(tmp,"COMMAND.COM main body and PSP");
+    }
+
     LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
 
     DOS_SetMemAllocStrategy(savedMemAllocStrategy);
