@@ -1765,6 +1765,10 @@ void SHELL_Init() {
 	uint16_t env_seg;//=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
 	uint16_t stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
     uint16_t tmp,total_sz;
+    bool tiny_memory_mode = false;
+
+    // below a certain memory size, alter memory arrangement and allocation to minimize memory
+    if (MEM_TotalPages() < 0x8) tiny_memory_mode = true;
 
     // decide shell env size
     if (dosbox_shell_env_size == 0) {
@@ -1802,7 +1806,10 @@ void SHELL_Init() {
     LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
 
     // COMMAND.COM main binary (including PSP and stack)
-    tmp = 0x1A + (2048/16);
+    if (tiny_memory_mode)
+        tmp = 0x13 + (1536/16);
+    else
+        tmp = 0x1A + (2048/16);
     total_sz = tmp;
 	if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
     LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
@@ -1826,12 +1833,21 @@ void SHELL_Init() {
     }
 
     // set the stack at 0x1A
-    stack_seg = psp_seg + 0x1A;
+    if (tiny_memory_mode)
+        stack_seg = psp_seg + 0x13;
+    else
+        stack_seg = psp_seg + 0x1A;
     LOG_MSG("COMMAND.COM stack:                0x%04x",stack_seg);
 
     // set the stack pointer
 	SegSet16(ss,stack_seg);
-	reg_sp=2046;
+
+    if (tiny_memory_mode)
+        reg_sp=1534;
+    else
+        reg_sp=2046;
+
+    LOG(LOG_MISC,LOG_DEBUG)("Shell init SS:SP %04x:%04x",(unsigned int)stack_seg,(unsigned int)reg_sp);
 
 	/* Set up int 24 and psp (Telarium games) */
 	real_writeb(psp_seg+16+1,0,0xea);		/* far jmp */
