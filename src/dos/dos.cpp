@@ -4064,11 +4064,17 @@ public:
 		Section_prop *config_section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (config_section != NULL && !control->opt_noconfig && !control->opt_securemode && !control->SecureMode()) {
 			DOS_FILES = (unsigned int)config_section->Get_int("files");
-			if (DOS_FILES==0) DOS_FILES=200;
+			if (DOS_FILES==0) {
+				const unsigned int sz = std::min((unsigned int)MEM_TotalPages(),0xA0u);
+				DOS_FILES=5u + ((200u - 5u) * sz) / 0xA0u;
+			}
 			if (DOS_FILES<8) DOS_FILES=8;
 			else if (DOS_FILES>255) DOS_FILES=255;
 			maxfcb = (int)config_section->Get_int("fcbs");
-			if (maxfcb==0) maxfcb=100;
+			if (maxfcb==0) {
+				const unsigned int sz = std::min((unsigned int)MEM_TotalPages(),0xA0u);
+				maxfcb=5u + ((100u - 5u) * sz) / 0xA0u;
+			}
 			if (maxfcb<1) maxfcb=1;
 			else if (maxfcb>255) maxfcb=255;
 			char *dosopt = (char *)config_section->Get_string("dos"), *r=strchr(dosopt, ',');
@@ -4099,6 +4105,7 @@ public:
 				SetNumLock();
 #endif
 		}
+		LOG(LOG_MISC,LOG_DEBUG)("files=%u fcbs=%u",(unsigned int)DOS_FILES,(unsigned int)maxfcb);
         char *r;
 #if defined(WIN32)
         unsigned int cp = GetACP();

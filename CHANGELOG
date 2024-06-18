@@ -1,4 +1,9 @@
 Next:
+  - files= and fcbs= default value now automatically scales according to
+    available conventional memory (640KB or lower) in order for memsize 64KB
+    or lower to free up or memory and run properly. (joncampbell123).
+  - dosbox.conf files= and fcbs= settings have been changed to allow
+    "0" as a value to mean choose a reasonable default. (joncampbell123).
   - Fix bug where DOS kernel crashes on startup because of the initial
     stack pointer set by BIOS startup that points past available memory
     when memsize is 64KB or less. (joncampbell123).
