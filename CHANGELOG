@@ -1,4 +1,6 @@
 Next:
+  - DOS kernel will always allocate kernel memory from private UMB area
+    if memory size < 16KB, in order to continue to work (joncampbell123).
   - DOS kernel will allocate from segment 0x60 instead of 0x70 if the
     memory size is less than 64KB. (joncampbell123).
   - files= and fcbs= default value now automatically scales according to
