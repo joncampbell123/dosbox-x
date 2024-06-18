@@ -1,4 +1,6 @@
 Next:
+  - If memsize is 4KB, place the COMMAND.COM PSP segment in the private
+    UMB area instead of the normal MCB allocation chain (joncampbell123).
   - DOS kernel will always allocate kernel memory from private UMB area
     if memory size < 16KB, in order to continue to work (joncampbell123).
   - DOS kernel will allocate from segment 0x60 instead of 0x70 if the
