@@ -1767,10 +1767,19 @@ void SHELL_Init() {
     uint16_t tmp,total_sz;
 
     // decide shell env size
-    if (dosbox_shell_env_size == 0)
-        dosbox_shell_env_size = (0x158u - (0x118u + 19u)) << 4u; /* equivalent to mainline DOSBox */
-    else
+    if (dosbox_shell_env_size == 0) {
+        if (MEM_TotalPages() >= 0x10/*64KB or more*/)
+            dosbox_shell_env_size = (0x158u - (0x118u + 19u)) << 4u; /* equivalent to DOSBox SVN */
+        else if (MEM_TotalPages() >= 0x8/*32KB or more*/)
+            dosbox_shell_env_size = 384;
+        else if (MEM_TotalPages() >= 0x4/*16KB or more*/)
+            dosbox_shell_env_size = 256;
+        else
+            dosbox_shell_env_size = 144;
+    }
+    else {
         dosbox_shell_env_size = (dosbox_shell_env_size+15u)&(~15u); /* round up to paragraph */
+    }
 
     LOG_MSG("COMMAND.COM env size:             %u bytes",dosbox_shell_env_size);
 
