@@ -4045,28 +4045,30 @@ public:
 			}
 		}
 
-        ::disk_data_rate = section->Get_int("hard drive data rate limit");
-        ::floppy_data_rate = section->Get_int("floppy drive data rate limit");
-        if (::disk_data_rate < 0) {
-            if (pcibus_enable)
-                ::disk_data_rate = 8333333; /* Probably an average IDE data rate for mid 1990s PCI IDE controllers in PIO mode */
-            else
-                ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
-        }
-        if(::floppy_data_rate < 0) {
-            ::floppy_data_rate = 22400; // 175 kbps
-        }
-        std::string prefix = section->Get_string("special operation file prefix");
-        if (prefix.size()) prefix_local = prefix + prefix_local.substr(3), prefix_overlay = prefix + prefix_overlay.substr(3);
+		::disk_data_rate = section->Get_int("hard drive data rate limit");
+		::floppy_data_rate = section->Get_int("floppy drive data rate limit");
+		if (::disk_data_rate < 0) {
+			if (pcibus_enable)
+				::disk_data_rate = 8333333; /* Probably an average IDE data rate for mid 1990s PCI IDE controllers in PIO mode */
+			else
+				::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
+		}
+		if(::floppy_data_rate < 0) {
+			::floppy_data_rate = 22400; // 175 kbps
+		}
+		std::string prefix = section->Get_string("special operation file prefix");
+		if (prefix.size()) prefix_local = prefix + prefix_local.substr(3), prefix_overlay = prefix + prefix_overlay.substr(3);
 
 		maxfcb=100;
 		DOS_FILES=200;
 		Section_prop *config_section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (config_section != NULL && !control->opt_noconfig && !control->opt_securemode && !control->SecureMode()) {
 			DOS_FILES = (unsigned int)config_section->Get_int("files");
+			if (DOS_FILES==0) DOS_FILES=200;
 			if (DOS_FILES<8) DOS_FILES=8;
 			else if (DOS_FILES>255) DOS_FILES=255;
 			maxfcb = (int)config_section->Get_int("fcbs");
+			if (maxfcb==0) maxfcb=100;
 			if (maxfcb<1) maxfcb=1;
 			else if (maxfcb>255) maxfcb=255;
 			char *dosopt = (char *)config_section->Get_string("dos"), *r=strchr(dosopt, ',');
