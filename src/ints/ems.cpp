@@ -1701,6 +1701,20 @@ public:
 			ENABLE_V86_STARTUP=false;
 		}
 
+		/* TODO: Even in "board" mode EMS emulation is highly dependent on having extended memory to map!
+		 *       If we truly wanted to emulate an EMS board, we'd allocate our own private memory and
+		 *       just map parts of it into the EMS page frame, which would allow emulation to work even
+		 *       if XMS is disabled and/or less than 1MB conventional memory is configured! */
+		if (ems_type == EMS_BOARD) {
+			if (MEM_TotalPages() <= 0x110) {
+				// FIXME: Board emulation should allocate it's own memory and map it into the EMS page frame like a device would,
+				//        not use extended memory!
+				LOG_MSG("EMS: EMS board mode as implemented still requires extended memory to work (we'll fix this someday).");
+				LOG_MSG("At least 1MB of memory must be configured for EMS emulation to work.");
+				LOG_MSG("Because of this limitation, EMS emulation will run as if no memory available.");
+			}
+		}
+
 		oshandle_memsize_16kb = (unsigned int)section->Get_int("ems system handle memory size");
 		/* convert KB to 16KB pages */
 		oshandle_memsize_16kb = (oshandle_memsize_16kb+15u)/16u;
