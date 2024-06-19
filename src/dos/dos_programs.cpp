@@ -9296,6 +9296,8 @@ void Add_VFiles(bool usecp) {
     /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
     if(!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
         VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
+    else if(IS_PC98_ARCH || CPU_ArchitectureType < CPU_ARCHTYPE_80186)
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE_PC98, "/DOS/");
 
     VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
     /* DSXMENU.EXE */
