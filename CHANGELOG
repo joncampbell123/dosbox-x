@@ -1,4 +1,8 @@
 Next:
+  - Fix IMGMOUNT, when mounting FAT disk images, to provide the DPB the
+    actual media id byte instead of assuming 0xF8 or 0xF0. INT AH=1Ch
+    should now report the proper media id byte for any floppy format,
+    instead of always reporting 0xF0 (1.44MB floppy). (joncampbell123).
   - Allow BOOT to load and execute the boot sector of a guest OS even if
     memory size is too small (in IBM PC emulation, less than 32KB of RAM).
     MS-DOS 1.x of course will crash if you try that because of the

@@ -6111,6 +6111,7 @@ class IMGMOUNT : public Program {
 			}
 
 			bool imgsizedetect = isHardDrive && sizes[0] == 0;
+			int mediaid = -1;
 
 			std::vector<DOS_Drive*> imgDisks;
 			std::vector<std::string>::size_type i;
@@ -6269,6 +6270,7 @@ class IMGMOUNT : public Program {
 							errorMessage = ver_msg;
 						}
 					} else {
+						if (imgDisks.size() == 1) mediaid = (int)((unsigned char)fdrive->GetMediaByte());
 						if ((vhdImage&&ro)||roflag) fdrive->readonly=true;
 					}
 					unformatted = fdrive->unformatted;
@@ -6282,7 +6284,7 @@ class IMGMOUNT : public Program {
 				}
 			}
 
-			AddToDriveManager(drive, imgDisks, isHardDrive ? 0xF8 : 0xF0);
+			AddToDriveManager(drive, imgDisks, (mediaid >= 0xF0) ? mediaid : (isHardDrive ? 0xF8 : 0xF0));
 			DOS_EnableDriveMenu(drive);
 
 			std::string tmp(wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].substr(1):paths[0]);
