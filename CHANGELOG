@@ -1,4 +1,9 @@
 Next:
+  - Allow BOOT to load and execute the boot sector of a guest OS even if
+    memory size is too small (in IBM PC emulation, less than 32KB of RAM).
+    MS-DOS 1.x of course will crash if you try that because of the
+    assumptions made in the boot sector, but it's there if you are feeling
+    adventurous or are in an experimental mood (joncampbell123).
   - If memsize is 4KB, place the COMMAND.COM PSP segment in the private
     UMB area instead of the normal MCB allocation chain (joncampbell123).
   - DOS kernel will always allocate kernel memory from private UMB area
