@@ -2612,10 +2612,16 @@ public:
         }
 
         /* NTS: Load address is 128KB - sector size */
-        if (loadseg_user > 0) /* Some PC-98 games have floppy boot code that suggests the boot segment isn't always 0x1FC0 like PC-9821 hardware does? */
+        if (loadseg_user > 0) { /* Some PC-98 games have floppy boot code that suggests the boot segment isn't always 0x1FC0 like PC-9821 hardware does? */
             load_seg=(unsigned int)loadseg_user;
-        else
-            load_seg=IS_PC98_ARCH ? (0x2000 - (bootsize/16U)) : 0x07C0;
+        }
+        else {
+            unsigned int max_seg = std::min((unsigned int)(MEM_TotalPages()*(4096u/16u)/*pages to paragraphs*/),0xC000u);
+            if (IS_PC98_ARCH)
+                load_seg=std::min(max_seg,0x2000u/*128KB mark*/) - (bootsize/16U); /* normally 0x1FC0 (1024 byte/sector) or 0x1FE0 (512 byte/sector) */
+            else
+                load_seg=std::min(max_seg,0x800u/*32KB mark*/) - 0x40u/*1KB*/; /* normally 0x07C0 */
+        }
 
         if (!has_read) {
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea) != 0) {
@@ -2829,12 +2835,7 @@ public:
         } else {
             extern const char* RunningProgram;
 
-            if (max_seg < 0x0800) {
-                /* TODO: For the adventurous, add a configuration option or command line switch to "BOOT"
-                 *       that allows us to boot the guest OS anyway in a manner that is non-standard. */
-                if (!quiet) WriteOut("32KB of RAM is required to boot a guest OS\n");
-                return;
-            }
+            if (max_seg < (IS_PC98_ARCH?0x2000:0x0800)) LOG(LOG_MISC,LOG_WARN)("Booting a guest OS with too small amount of RAM may not work correctly");
 
             /* Other versions of MS-DOS/PC-DOS have their own requirements about memory:
              *    - IBM PC-DOS 1.0/1.1: not too picky, will boot with as little as 32KB even though
