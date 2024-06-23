@@ -5654,8 +5654,20 @@ pic_tickindex_t VGA_PITSync_delay(void) {
 	return et;
 }
 
+#if C_DEBUG
+extern bool DEBUG_HaltOnRetrace;
+Bitu DEBUG_EnableDebugger(void);
+#endif
+
 static void VGA_VerticalTimer(Bitu /*val*/) {
 	double current_time = PIC_GetCurrentEventTime();
+
+#if C_DEBUG
+	if (DEBUG_HaltOnRetrace) {
+		DEBUG_EnableDebugger();
+		DEBUG_HaltOnRetrace = false;
+	}
+#endif
 
 	dbg_event_maxscan = false;
 	dbg_event_scanstep = false;
