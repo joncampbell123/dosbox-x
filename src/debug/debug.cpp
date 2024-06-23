@@ -3908,6 +3908,20 @@ void win_code_ui_up(int count) {
 extern "C" INPUT_RECORD * _pdcurses_hax_inputrecord(void);
 #endif
 
+/* NTS: DOSBox SVN and almost (or all?) forks of DOSBox
+ *      zero CPU_Cycles and CPU_CyclesLeft, which is a
+ *      perfectly fine way to enter the debugger, but
+ *      a side effect of this is that emulator time is
+ *      effectively jumped forward to the start of the
+ *      next 1ms tick. If you're debugging time-dependent
+ *      code this has the effect of code that magically
+ *      works when you debug it but crashes normally, or
+ *      code that magically breaks when you debug it but
+ *      runs fine otherwise.
+ *
+ *      See include/pic.h for how these variables affect
+ *      emulator time used everywhere else in this code,
+ *      specifically PIC_TickIndex() and PIC_FullIndex(). */
 int32_t DEBUG_Run(int32_t amount,bool quickexit) {
 	skipFirstInstruction = true;
 	CPU_CycleLeft += CPU_Cycles - amount;
