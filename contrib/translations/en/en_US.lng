@@ -548,8 +548,8 @@ e.g. %s
 
 Some other usage examples of MOUNT:
 
-←[32;1mMOUNT←[0m                             - list all mounted drives
-←[32;1mMOUNT -cd←[0m                         - list all local CD drives
+←[32;1mMOUNT←[0m                            - list all mounted drives
+←[32;1mMOUNT -cd←[0m                        - list all local CD drives
 ←[32;1mMOUNT d %s←[0m            - mount the D: drive to the directory
 ←[32;1mMOUNT c %s -t cdrom←[0m      - mount the C: drive as a CD-ROM drive
 ←[32;1mMOUNT c %s -ro←[0m           - mount the C: drive in read-only mode
@@ -558,7 +558,7 @@ Some other usage examples of MOUNT:
 ←[32;1mMOUNT c %s -freesize 128←[0m - mount C: with 128MB free disk space
 ←[32;1mMOUNT c %s -u←[0m            - force mount C: drive even if it's mounted
 ←[32;1mMOUNT c %s -t overlay←[0m  - mount C: with overlay directory on top
-←[32;1mMOUNT c -u←[0m                        - unmount the C: drive
+←[32;1mMOUNT c -u←[0m                       - unmount the C: drive
 
 .
 :PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
@@ -638,14 +638,14 @@ LOADFIX -f [-xms] [-ems]
   -ems        Allocates memory from EMS rather than conventional memory
   -{ram}      Specifies the amount of memory to allocate in KB
               Defaults to 64KB for conventional memory; 1MB for XMS/EMS memory
-  -a          Auto-allocates enough conventional memory to fill the lowest 64KB
+  -a          Auto allocates enough memory to fill the lowest 64KB memory
   -f (or -d)  Frees previously allocated memory
   {program}   Runs the specified program
   {options}   Program options (if any)
 
 Examples:
   ←[32;1mLOADFIX game.exe←[0m     Allocates 64KB of conventional memory and runs game.exe
-  ←[32;1mLOADFIX -a←[0m           Auto-allocates the first 64KB of conventional memory
+  ←[32;1mLOADFIX -a←[0m           Auto-allocates enough memory conventional memory
   ←[32;1mLOADFIX -128←[0m         Allocates 128KB of conventional memory
   ←[32;1mLOADFIX -xms←[0m         Allocates 1MB of XMS memory
   ←[32;1mLOADFIX -f←[0m           Frees allocated conventional memory
@@ -921,6 +921,10 @@ Examples:
 Unable to boot off of drive %c.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Floppy image(s) already mounted.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 Opening image file: %s
 
@@ -937,6 +941,9 @@ Available PCjr cartridge commandos:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 No PCjr cartridge commandos found
+.
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
 .
 :PROGRAM_LOADROM_HELP
 Loads the specified ROM image file for video BIOS or IBM BASIC.
@@ -1017,10 +1024,6 @@ Must specify drive number (0 to %d) to mount image at (0,1=fda,fdb;2,3=hda,hdb).
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
 Could not load image file.
 Check that the path is correct and the image is accessible.
-
-.
-:PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-Dynamic VHD files are not supported.
 
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
@@ -1115,8 +1118,8 @@ Some usage examples of IMGMOUNT:
 
   ←[32;1mIMGMOUNT←[0m                       - list mounted FAT/ISO drives & drive numbers
   ←[32;1mIMGMOUNT C←[0m                     - mount hard disk image ←[33;1mIMGMAKE.IMG←[0m as C:
-  ←[32;1mIMGMOUNT C c:\image.img←[0m        - mount hard disk image c:\image.img as C:
-  ←[32;1mIMGMOUNT D c:\files\game.iso←[0m   - mount CD image c:\files\game.iso as D:
+  ←[32;1mIMGMOUNT C ~/image.img←[0m         - mount hard disk image ~/image.img as C:
+  ←[32;1mIMGMOUNT D ~/files/game.iso←[0m    - mount CD image ~/files/game.iso as D:
   ←[32;1mIMGMOUNT D cdaudio.cue←[0m         - mount cue file of a cue/bin pair as CD drive
   ←[32;1mIMGMOUNT 0 dos.ima←[0m             - mount floppy image dos.ima as drive number 0
                                    (←[33;1mBOOT A:←[0m will boot from drive if bootable)
@@ -1135,7 +1138,7 @@ Some usage examples of IMGMOUNT:
 :PROGRAM_IMGMAKE_SYNTAX
 Creates floppy or hard disk images.
 Usage: ←[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]←[0m
-  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #]←[0m
+  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force]←[0m
   file: Image file to create (or ←[33;1mIMGMAKE.IMG←[0m if not set) - ←[31;1mpath on the host←[0m
   -t: Type of image.
     ←[33;1mFloppy disk templates←[0m (names resolve to floppy sizes in KB or fd=fd_1440):
@@ -1144,18 +1147,17 @@ Usage: ←[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc]
      hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image
      hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image
      hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)
-    ←[33;1mCustom hard disk images:←[0m hd (requires -size or -chs)
-  -size: Size of a custom hard disk image in MB.
+    ←[33;1mCustom hard disk images:←[0m hd vhd (requires -size or -chs)
+  -size: Size of a custom hard disk image in MB (vhd: up to 2088960).
   -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).
   -nofs: Add this parameter if a blank image should be created.
   -force: Force to overwrite the existing image file.
   -bat: Create a .bat file with the IMGMOUNT command required for this image.
+  -chs / -lba: Use partition code for FAT filesystem for C/H/S or LBA geometry.
   -fat: FAT filesystem type (12, 16, or 32).
   -spc: Sectors per cluster override. Must be a power of 2.
   -fatcopies: Override number of FAT table copies.
   -rootdir: Size of root directory in entries. Ignored for FAT32.
-  -source: drive letter - if specified the image is read from a floppy disk.
-  -retries: how often to retry when attempting to read a bad floppy disk(1-99).
   ←[32;1m-examples: Show some usage examples.←[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
@@ -1164,21 +1166,11 @@ Some usage examples of IMGMAKE:
   ←[32;1mIMGMAKE -t fd←[0m                   - create a 1.44MB floppy image ←[33;1mIMGMAKE.IMG←[0m
   ←[32;1mIMGMAKE -t fd_1440 -force←[0m       - force to create a floppy image ←[33;1mIMGMAKE.IMG←[0m
   ←[32;1mIMGMAKE dos.img -t fd_2880←[0m      - create a 2.88MB floppy image named dos.img
-  ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m      - create a 50MB HDD image c:\disk.img
-  ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m     - create a 520MB blank HDD image
-  ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m  - create a 2GB FAT32 HDD image
-  ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - create a HDD image of specified CHS
-  ←[32;1mIMGMAKE c:\disk.img -source a←[0m           - read image from physical drive A:
-
-.
-:PROGRAM_IMGMAKE_FLREAD
-Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes
-
-
-.
-:PROGRAM_IMGMAKE_FLREAD2
-%s =good, %s =good after retries, ! =CRC error, x =sector not found, ? =unknown
-
+  ←[32;1mIMGMAKE new.vhd -t vhd -size 520←[0m- create a 520MB Dynamic VHD named new.vhd
+  ←[32;1mIMGMAKE ~/disk.img -t hd -size 50←[0m       - create a 50MB HDD image ~/disk.img
+  ←[32;1mIMGMAKE ~/disk.img -t hd_520 -nofs←[0m      - create a 520MB blank HDD image
+  ←[32;1mIMGMAKE ~/disk.img -t hd_2gig -fat 32←[0m   - create a 2GB FAT32 HDD image
+  ←[32;1mIMGMAKE ~/disk.img -t hd -chs 130,2,17←[0m  - create a HDD image of specified CHS
 
 .
 :PROGRAM_IMGMAKE_FILE_EXISTS
@@ -1201,6 +1193,10 @@ Creating image file "%s" with %u cylinders, %u heads and %u sectors
 
 
 Unable to read floppy.
+.
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
+
 .
 :PROGRAM_KEYB_INFO
 Codepage %i has been loaded
@@ -1248,6 +1244,37 @@ No layout in %s for codepage %i
 :PROGRAM_KEYB_INVCPFILE
 None or invalid codepage file for layout %s
 
+
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
 
 .
 :PROGRAM_MODE_USAGE
@@ -1303,13 +1330,12 @@ Couldn't query info for "%s".
 
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS
-with %d/%d blocks allocated.
+ with %d/%d blocks allocated.
 
 .
 :PROGRAM_VHDMAKE_INFO
 VHD "%s" type is %s.
 Its virtual size is %.02f MB
-
 .
 :PROGRAM_VHDMAKE_CANTMERGE
 %s is not a Differencing disk, can't merge!
@@ -1321,7 +1347,6 @@ Its virtual size is %.02f MB
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
 Couldn't remove snapshot "%s", you'll have to do it yourself!
-
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
 Snapshot VHD merged and deleted.
@@ -1329,9 +1354,10 @@ Snapshot VHD merged and deleted.
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
 Failure while merging, aborted!
+
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
-Parent "%s" contents could be corrupted!
+ Parent "%s" contents could be corrupted!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_WIN
@@ -1345,8 +1371,8 @@ Use a path relative to differencing image file!
 
 .
 :PROGRAM_VHDMAKE_HELP
-Creates Dynamic or Differencing VHD images, or converts raw images
-into Fixed VHD.
+Creates Dynamic or Differencing VHD images, converts raw images into Fixed VHD,
+shows information about VHD images and merges them.
 ←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
 ←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
 ←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
@@ -1366,6 +1392,7 @@ When creating a Dynamic VHD, its size must range from 3 MB to 2040 GB.
 The Dynamic VHD created is not partitioned nor formatted: to directly mount to
 a drive letter with ←[34;1mIMGMOUNT←[0m, please consider using ←[34;1mIMGMAKE←[0m instead.
 A merged snapshot VHD is automatically deleted if merge is successful.
+
 .
 :SHELL_CMD_TREE_ERROR
 No subdirectories exist
@@ -1515,6 +1542,12 @@ Unable to create directory - %s
 Invalid path, not directory, or directory not empty - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 Unable to rename - %s
 
@@ -1530,6 +1563,9 @@ Unable to set attributes: %s
 :SHELL_CMD_DEL_ERROR
 Unable to delete - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 All files in directory will be deleted!
@@ -1651,6 +1687,10 @@ Insufficient disk space - %s
 Copy error - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 The currently mounted local drives are:
 
@@ -1683,6 +1723,9 @@ DOS/V V-text is currently enabled.
 DOS/V V-text is currently disabled.
 
 .
+:SHELL_ALLFILES_CHAR
+a
+.
 :SHELL_STARTUP_TITLE
 Welcome to DOSBox-X !
 .
@@ -1697,7 +1740,7 @@ You could also complete various tasks through the ←[33mdrop-down menus←[37m.
 ←[32mExample←[37m: Try select ←[33mTrueType font←[37m or ←[33mOpenGL perfect←[37m output option.
 .
 :SHELL_STARTUP_TEXT2_PC98
-To launch the ←[33mConfiguration Tool←[37m, use ←[31mhost+C←[37m. Host key is ←[32mF11←[37m.    
+To launch the ←[33mConfiguration Tool←[37m, use ←[31mhost+C←[37m. Host key is ←[32mF12←[37m.    
 To activate the ←[33mMapper Editor←[37m for key assignments, use ←[31mhost+M←[37m.    
 To switch between windowed and full-screen mode, use ←[31mhost+F←[37m.      
 To adjust the emulated CPU speed, use ←[31mhost+Plus←[37m and ←[31mhost+Minus←[37m.   
@@ -1724,9 +1767,9 @@ You can also complete various tasks in DOSBox-X through the ←[33mdrop-down men
 ←[36mUseful default shortcuts:                                                   ←[37m
 .
 :SHELL_STARTUP_TEXT2
-- switch between windowed and full-screen mode with key combination ←[31mF11 ←[37m+ ←[31mF←[37m ←[37m
-- launch ←[33mConfiguration Tool←[37m using ←[31mF11 ←[37m+ ←[31mC←[37m←[37m, and ←[33mMapper Editor←[37m using ←[31mF11 ←[37m+ ←[31mM←[37m  ←[37m
-- increase or decrease the emulation speed with ←[31mF11 ←[37m+ ←[31mPlus←[37m←[37m or ←[31mF11 ←[37m+ ←[31mMinus←[37m   ←[37m
+- switch between windowed and full-screen mode with key combination ←[31mF12 ←[37m+ ←[31mF←[37m ←[37m
+- launch ←[33mConfiguration Tool←[37m using ←[31mF12 ←[37m+ ←[31mC←[37m←[37m, and ←[33mMapper Editor←[37m using ←[31mF12 ←[37m+ ←[31mM←[37m  ←[37m
+- increase or decrease the emulation speed with ←[31mF12 ←[37m+ ←[31mPlus←[37m←[37m or ←[31mF12 ←[37m+ ←[31mMinus←[37m   ←[37m
 .
 :SHELL_STARTUP_DOSV
 ←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
@@ -2324,10 +2367,10 @@ Runs program with video or audio capture.
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
-DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [/O|/-O] [command] [options]
 
 It will start video or audio capture, run program, and then automatically stop capture when the program exits.
-/V for video, /A for audio, /M multi-track audio and /O for OPL FM (DROv2 format).
+ /V for video, /A for audio, /M multi-track audio and /O for OPL FM (DROv2 format)
 .
 :SHELL_CMD_DEBUGBOX_HELP
 Runs program and breaks into debugger at entry point.
@@ -2367,12 +2410,6 @@ Quit from DOSBox-X
 .
 :MENU:mapper_capmouse
 Capture mouse
-.
-:MENU:mapper_fastedit
-Quick edit: copy on select and paste text
-.
-:MENU:mapper_copyall
-Copy all text on the DOS screen
 .
 :MENU:mapper_paste
 Pasting from the clipboard
@@ -2707,9 +2744,6 @@ OpenGL perfect
 :MENU:output_ttf
 TrueType font
 .
-:MENU:output_gamelink
-Game Link
-.
 :MENU:doublescan
 Doublescan
 .
@@ -2892,9 +2926,6 @@ Internal Voodoo card
 .
 :MENU:3dfx_glide
 Glide passthrough
-.
-:MENU:load_d3d_shader
-Select Direct3D pixel shader...
 .
 :MENU:load_glsl_shader
 Select OpenGL (GLSL) shader...
@@ -3085,9 +3116,6 @@ Go to last page
 :MENU:DriveMenu
 Drive
 .
-:MENU:drive_mountauto
-Auto-mount Windows drive
-.
 :MENU:drive_mounthd
 Mount folder as hard drive
 .
@@ -3151,14 +3179,14 @@ DOSBox-X support
 :MENU:help_nic
 List network interfaces
 .
-:MENU:help_prt
-List printer devices
-.
 :MENU:help_about
 About DOSBox-X
 .
 :MENU:show_console
 Show logging console
+.
+:MENU:clear_console
+Clear logging console
 .
 :MENU:disable_logging
 Disable logging output
@@ -3183,6 +3211,9 @@ Debugger option: Run normal
 .
 :MENU:debugger_runwatch
 Debugger option: Run watch
+.
+:MENU:video_debug_overlay
+Video debug overlay
 .
 :MENU:HelpCommandMenu
 DOS commands
@@ -3265,11 +3296,17 @@ Record MIDI output
 :MENU:mapper_caprawopl
 Record FM (OPL) output
 .
+:MENU:mapper_capnetrf
+Record network traffic
+.
 :MENU:mapper_video
 Record video to AVI
 .
 :MENU:mapper_scrshot
 Take screenshot
+.
+:MENU:mapper_rawscrshot
+Take raw screenshot
 .
 :MENU:mapper_volup
 Increase volume
@@ -3397,18 +3434,6 @@ Load language file...
 :MENU:auto_lock_mouse
 Autolock mouse
 .
-:MENU:clipboard_right
-Via right mouse button
-.
-:MENU:clipboard_middle
-Via middle mouse button
-.
-:MENU:clipboard_arrows
-Via arrow keys (Home=start, End=end)
-.
-:MENU:screen_to_clipboard
-Copy all text on the DOS screen
-.
 :MENU:clipboard_device
 Enable DOS clipboard device access
 .
@@ -3520,11 +3545,11 @@ Show IDE disk or CD status
 :MENU:pc98_use_uskb
 Use US keyboard layout
 .
+:MAPPER:capnetrf
+Record Network traffic
+.
 :MAPPER:caprawopl
 Record FM/OPL output
-.
-:MAPPER:copyall
-Copy to clipboard
 .
 :MAPPER:cycauto
 Toggle auto cycles
@@ -3537,9 +3562,6 @@ Decrease TTF size
 .
 :MAPPER:dynamic
 CPU: dynamic core
-.
-:MAPPER:fastedit
-Quick edit mode
 .
 :MAPPER:full
 CPU: full core
@@ -3576,6 +3598,9 @@ Quick launch program
 .
 :MAPPER:reboot
 Reboot DOS system
+.
+:MAPPER:recmtwave
+Record to multi-track AVI
 .
 :MAPPER:rescanall
 Rescan drives
