@@ -1,4 +1,12 @@
 Next:
+  - Fixed debugger mapper shortcut bug where entering the debugger
+    completes the 1 ms "tick" early, effectively jumping emulator time
+    up to start of the next ms. This might explain the mysterious cases
+    where a program always fails to work unless you are debugging it.
+    (joncampbell123).
+  - Added debugger command "VRT" which resumes running the guest until
+    vertical retrace. Added for programmers who wish to write something
+    to screen and then see it show up. (joncampbell123).
   - Fix IMGMOUNT, when mounting FAT disk images, to provide the DPB the
     actual media id byte instead of assuming 0xF8 or 0xF0. INT AH=1Ch
     should now report the proper media id byte for any floppy format,
