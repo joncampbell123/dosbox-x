@@ -6458,6 +6458,7 @@ bool IsDebuggerActive(void);
 void VGA_DebugRedraw(void) {
 #if C_DEBUG
 	if (IsDebuggerActive()) {
+		VGA_RenderOnDemandComplete();
 		RENDER_EndUpdate(true);
 		vga.draw.lines_done = vga.draw.lines_total;
 		PIC_RemoveEvents(VGA_Other_VertInterrupt);
@@ -6466,7 +6467,6 @@ void VGA_DebugRedraw(void) {
 		PIC_RemoveEvents(VGA_DisplayStartLatch);
 		VGA_DisplayStartLatch(0);
 		VGA_VerticalTimer(0);
-		VGA_RenderOnDemandComplete();
 	}
 #endif
 }
