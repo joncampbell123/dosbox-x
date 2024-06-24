@@ -1,4 +1,6 @@
 Next:
+  - Fix "VRD" debugger command bug that didn't properly render out the
+    rest of the VGA display frame. (joncampbell123).
   - Fixed debugger mapper shortcut bug where entering the debugger
     completes the 1 ms "tick" early, effectively jumping emulator time
     up to start of the next ms. This might explain the mysterious cases
