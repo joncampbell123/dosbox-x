@@ -1208,9 +1208,9 @@ inline void OPL3_Generate4Ch(opl3_chip *chip, int16_t *buf4)
     chip->timer++;
 
     chip->eg_add = 0;
-    if (chip->eg_timer)
+    if (chip->eg_state)
     {
-        while (shift < 36 && ((chip->eg_timer >> shift) & 1) == 0)
+        while (shift < 13 && ((chip->eg_timer >> shift) & 1) == 0)
         {
             shift++;
         }
