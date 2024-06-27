@@ -1058,7 +1058,6 @@ void CycleMonoCGABright(bool pressed) {
 void HercBlend(bool pressed) {
 	if (!pressed) return;
 	vga.herc.blend = !vga.herc.blend;
-	LOG_MSG("Hercules blend %u",vga.herc.blend);
 	VGA_SetupDrawing(0);
 }
 
