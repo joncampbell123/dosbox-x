@@ -473,6 +473,8 @@ static uint8_t * VGA_Draw_1BPP_Line(Bitu vidstart, Bitu line) {
 	return VGA_Draw_1BPP_Line_Common<MCH_CGA,uint8_t>(TempLine,vidstart,line);
 }
 
+extern uint32_t HercBlend_2_Table[16];
+
 static uint8_t * VGA_Draw_1BPP_Blend_Line(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     uint32_t *draw = (uint32_t *)TempLine;
@@ -481,8 +483,8 @@ static uint8_t * VGA_Draw_1BPP_Blend_Line(Bitu vidstart, Bitu line) {
         Bitu val1 = base[vidstart & (8 * 1024 -1)];
         Bitu val2 = (val1 >> 1) + carry;
         carry = (val1 & 1) << 7;
-        *draw++=CGA_2_Table[val1 >> 4] + CGA_2_Table[val2 >> 4];
-        *draw++=CGA_2_Table[val1 & 0xf] + CGA_2_Table[val2 & 0xf];
+        *draw++=HercBlend_2_Table[val1 >> 4] + HercBlend_2_Table[val2 >> 4];
+        *draw++=HercBlend_2_Table[val1 & 0xf] + HercBlend_2_Table[val2 & 0xf];
     }
     return TempLine;
 }

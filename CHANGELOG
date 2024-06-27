@@ -1,4 +1,7 @@
 Next:
+  - Hercules/MDA and InColor integration broke the Hercules blend mode
+    render, fix the render so that adjacent lit pixels are brighter
+    again. (joncampbell123).
   - Fix "VRD" debugger command bug that didn't properly render out the
     rest of the VGA display frame. (joncampbell123).
   - Fixed debugger mapper shortcut bug where entering the debugger

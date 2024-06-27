@@ -342,6 +342,7 @@ void vsync_poll_debug_notify() {
         vga_3da_polled = true;
 }
 
+uint32_t HercBlend_2_Table[16];
 uint32_t CGA_2_Table[16];
 uint32_t CGA_4_Table[256];
 uint32_t CGA_4_HiRes_Table[256];
@@ -1216,6 +1217,22 @@ void VGA_Reset(Section*) {
         /* Generate tables */
         VGA_SetCGA2Table(0,1);
         VGA_SetCGA4Table(0,1,2,3);
+
+        if (machine == MCH_HERC || machine == MCH_MDA) {
+            /* alternate table for blend mode, expect mapping 0=black 1-7=gray 8=black 9-f=white
+             * for use with blend code that reads this table and sums the output with a delayed version of the same */
+            const uint8_t total[2] = {0x0,0x05}; /* blending will yield {0,5,10} which is sufficient to recreate the effect */
+            for (Bitu i=0;i<16u;i++) {
+                HercBlend_2_Table[i]=
+#ifdef WORDS_BIGENDIAN
+                    ((Bitu)total[(i >> 0u) & 1u] << 0u  ) | ((Bitu)total[(i >> 1u) & 1u] << 8u  ) |
+                    ((Bitu)total[(i >> 2u) & 1u] << 16u ) | ((Bitu)total[(i >> 3u) & 1u] << 24u );
+#else 
+                    ((Bitu)total[(i >> 3u) & 1u] << 0u  ) | ((Bitu)total[(i >> 2u) & 1u] << 8u  ) |
+                    ((Bitu)total[(i >> 1u) & 1u] << 16u ) | ((Bitu)total[(i >> 0u) & 1u] << 24u );
+#endif
+            }
+        }
     }
 
     Section_prop * section2=static_cast<Section_prop *>(control->GetSection("vsync"));
