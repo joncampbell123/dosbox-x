@@ -2350,7 +2350,7 @@ public:
 };
 
 void InColorLoadLatch(const VGA_Latch &latch) {
-	const uint32_t nochangemask = FillTable[vga.herc.latchprotect&0xFu];
+	const uint32_t nochangemask = vga.herc.latchprotect * 0x01010101u; /* i.e. 0x5A -> 0x5A5A5A5A */
 	vga.herc.latch = (vga.herc.latch & nochangemask) + (latch.d & (~nochangemask));
 }
 
@@ -2425,14 +2425,23 @@ public:
 class HERC_InColor_Graphics_Handler : public PageHandler {
 public:
 	uint8_t readHandler(PhysPt start) {
-		/* TODO: Load hardware latch? */
-		/* TODO: Which bitplane does it read? */
 		const uint8_t idcmask = vga.herc.dont_care ^ 0xFu;
 		uint32_t t1,t2,tmp;
 		uint8_t result = 0;
 		VGA_Latch latch;
 
-		t1 = t2 = latch.d = ((uint32_t*)vga.mem.linear)[start];
+		/* In the PC & PS/2 Video Systems book, there is a helpful diagram of how
+		 * a read on Hercules InColor cards works. It suggests that the card loads
+		 * the latch from video memory, excluding changes to the bits according
+		 * to the Latch Protect, and then the color compare is made against the
+		 * latch, not the raw data read from video memory.
+		 *
+		 * NTS: The diagram says that the dont care mask is ORed against both pixel
+		 *      values and compared. We AND the values. Same difference, I think. */
+		latch.d = ((uint32_t*)vga.mem.linear)[start];
+		InColorLoadLatch(latch);
+
+		t1 = t2 = vga.herc.latch;
 		t1 = (t1 >> 4) & 0x0f0f0f0f;
 		t2 &= 0x0f0f0f0f;
 
@@ -2451,8 +2460,6 @@ public:
 
 		for (unsigned int c=0;c < 4;c++)
 			{ result |= (((tmp&idcmask) == (vga.herc.bgcolor&idcmask))?1u:0u) << (3-c); tmp >>= 8u; }
-
-		InColorLoadLatch(latch);
 
 		return result ^ vga.herc.maskpolarity;
 	}

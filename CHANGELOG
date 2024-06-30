@@ -1,4 +1,7 @@
 Next:
+  - Correct Hercules InColor memory emulation. Read and write planar
+    behavior was incorrect due to a misunderstanding of available
+    documentation. (joncampbell123).
   - Hercules/MDA and InColor integration broke the Hercules blend mode
     render, fix the render so that adjacent lit pixels are brighter
     again. (joncampbell123).

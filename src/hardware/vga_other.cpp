@@ -211,7 +211,7 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		}
 	case 0x1B:	/* Hercules InColor */
 		if (hercCard == HERC_InColor) {
-			vga.herc.latchprotect = (uint8_t)(val & 0xFu);
+			vga.herc.latchprotect = (uint8_t)val;
 			break;
 		}
 		else {
