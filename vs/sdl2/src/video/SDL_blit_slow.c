@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -54,9 +54,9 @@ void SDL_Blit_Slow(SDL_BlitInfo *info)
     Uint32 srcR, srcG, srcB, srcA;
     Uint32 dstpixel;
     Uint32 dstR, dstG, dstB, dstA;
-    int srcy, srcx;
-    Uint32 posy, posx;
-    int incy, incx;
+    Uint64 srcy, srcx;
+    Uint64 posy, posx;
+    Uint64 incy, incx;
     SDL_PixelFormat *src_fmt = info->src_fmt;
     SDL_PixelFormat *dst_fmt = info->dst_fmt;
     int srcbpp = src_fmt->BytesPerPixel;
@@ -69,8 +69,8 @@ void SDL_Blit_Slow(SDL_BlitInfo *info)
     srcfmt_val = detect_format(src_fmt);
     dstfmt_val = detect_format(dst_fmt);
 
-    incy = (info->src_h << 16) / info->dst_h;
-    incx = (info->src_w << 16) / info->dst_w;
+    incy = ((Uint64)info->src_h << 16) / info->dst_h;
+    incx = ((Uint64)info->src_w << 16) / info->dst_w;
     posy = incy / 2; /* start at the middle of pixel */
 
     while (info->dst_h--) {
@@ -106,15 +106,20 @@ void SDL_Blit_Slow(SDL_BlitInfo *info)
                     continue;
                 }
             }
-            if (FORMAT_HAS_ALPHA(dstfmt_val)) {
-                DISEMBLE_RGBA(dst, dstbpp, dst_fmt, dstpixel, dstR, dstG, dstB, dstA);
-            } else if (FORMAT_HAS_NO_ALPHA(dstfmt_val)) {
-                DISEMBLE_RGB(dst, dstbpp, dst_fmt, dstpixel, dstR, dstG, dstB);
-                dstA = 0xFF;
+            if ((flags & (SDL_COPY_BLEND | SDL_COPY_ADD | SDL_COPY_MOD | SDL_COPY_MUL))) {
+                if (FORMAT_HAS_ALPHA(dstfmt_val)) {
+                    DISEMBLE_RGBA(dst, dstbpp, dst_fmt, dstpixel, dstR, dstG, dstB, dstA);
+                } else if (FORMAT_HAS_NO_ALPHA(dstfmt_val)) {
+                    DISEMBLE_RGB(dst, dstbpp, dst_fmt, dstpixel, dstR, dstG, dstB);
+                    dstA = 0xFF;
+                } else {
+                    /* SDL_PIXELFORMAT_ARGB2101010 */
+                    dstpixel = *((Uint32 *) (dst));
+                    RGBA_FROM_ARGB2101010(dstpixel, dstR, dstG, dstB, dstA);
+                }
             } else {
-                /* SDL_PIXELFORMAT_ARGB2101010 */
-                dstpixel = *((Uint32 *)(dst));
-                RGBA_FROM_ARGB2101010(dstpixel, dstR, dstG, dstB, dstA);
+                /* don't care */
+                dstR = dstG = dstB = dstA = 0;
             }
 
             if (flags & SDL_COPY_MODULATE_COLOR) {

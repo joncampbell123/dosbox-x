@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -77,7 +77,7 @@ ref class SDL_WinRTApp sealed : public Windows::ApplicationModel::Core::IFramewo
 
 #if NTDDI_VERSION >= NTDDI_WIN10
     void OnBackButtonPressed(Platform::Object ^ sender, Windows::UI::Core::BackRequestedEventArgs ^ args);
-#elif WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#elif SDL_WINAPI_FAMILY_PHONE
     void OnBackButtonPressed(Platform::Object ^ sender, Windows::Phone::UI::Input::BackPressedEventArgs ^ args);
 #endif
 

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WINDOWS
+#ifdef SDL_VIDEO_DRIVER_WINDOWS
 
 #include "SDL_loadso.h"
 #include "SDL_windowsvideo.h"
@@ -29,7 +29,7 @@
 
 /* WGL implementation of SDL OpenGL support */
 
-#if SDL_VIDEO_OPENGL_WGL
+#ifdef SDL_VIDEO_OPENGL_WGL
 #include "SDL_opengl.h"
 
 #define DEFAULT_OPENGL "OPENGL32.DLL"
@@ -97,7 +97,7 @@ typedef HGLRC(APIENTRYP PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC,
                                                            const int
                                                                *attribList);
 
-#if __XBOXONE__ || __XBOXSERIES__
+#if defined(__XBOXONE__) || defined(__XBOXSERIES__)
 #define GetDC(hwnd)          (HDC) hwnd
 #define ReleaseDC(hwnd, hdc) 1
 #define SwapBuffers          _this->gl_data->wglSwapBuffers
@@ -145,7 +145,7 @@ int WIN_GL_LoadLibrary(_THIS, const char *path)
         SDL_LoadFunction(handle, "wglShareLists");
     /* *INDENT-ON* */ /* clang-format on */
 
-#if __XBOXONE__ || __XBOXSERIES__
+#if defined(__XBOXONE__) || defined(__XBOXSERIES__)
     _this->gl_data->wglSwapBuffers = (BOOL(WINAPI *)(HDC))
         SDL_LoadFunction(handle, "wglSwapBuffers");
     _this->gl_data->wglDescribePixelFormat = (int(WINAPI *)(HDC, int, UINT, LPPIXELFORMATDESCRIPTOR))
@@ -162,7 +162,7 @@ int WIN_GL_LoadLibrary(_THIS, const char *path)
         !_this->gl_data->wglCreateContext ||
         !_this->gl_data->wglDeleteContext ||
         !_this->gl_data->wglMakeCurrent
-#if __XBOXONE__ || __XBOXSERIES__
+#if defined(__XBOXONE__) || defined(__XBOXSERIES__)
         || !_this->gl_data->wglSwapBuffers ||
         !_this->gl_data->wglDescribePixelFormat ||
         !_this->gl_data->wglChoosePixelFormat ||
@@ -220,7 +220,7 @@ void *WIN_GL_GetProcAddress(_THIS, const char *proc)
 
     /* This is to pick up extensions */
     func = _this->gl_data->wglGetProcAddress(proc);
-    if (func == NULL) {
+    if (!func) {
         /* This is probably a normal GL function */
         func = GetProcAddress(_this->gl_config.dll_handle, proc);
     }
@@ -383,7 +383,7 @@ static SDL_bool HasExtension(const char *extension, const char *extensions)
         return SDL_FALSE;
     }
 
-    if (extensions == NULL) {
+    if (!extensions) {
         return SDL_FALSE;
     }
 
@@ -395,7 +395,7 @@ static SDL_bool HasExtension(const char *extension, const char *extensions)
 
     for (;;) {
         where = SDL_strstr(start, extension);
-        if (where == NULL) {
+        if (!where) {
             break;
         }
 
@@ -527,6 +527,9 @@ static int WIN_GL_ChoosePixelFormatARB(_THIS, int *iAttribs, float *fAttribs)
     int pixel_format = 0;
     unsigned int matching;
 
+    int qAttrib = WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB;
+    int srgb = 0;
+
     hwnd =
         CreateWindow(SDL_Appname, SDL_Appname, (WS_POPUP | WS_DISABLED), 0, 0,
                      10, 10, NULL, NULL, SDL_Instance, NULL);
@@ -546,6 +549,10 @@ static int WIN_GL_ChoosePixelFormatARB(_THIS, int *iAttribs, float *fAttribs)
             _this->gl_data->wglChoosePixelFormatARB(hdc, iAttribs, fAttribs,
                                                     1, &pixel_format,
                                                     &matching);
+
+            /* Check whether we actually got an SRGB capable buffer */
+            _this->gl_data->wglGetPixelFormatAttribivARB(hdc, pixel_format, 0, 1, &qAttrib, &srgb);
+            _this->gl_config.framebuffer_srgb_capable = srgb;
         }
 
         _this->gl_data->wglMakeCurrent(hdc, NULL);
@@ -702,7 +709,7 @@ SDL_GLContext WIN_GL_CreateContext(_THIS, SDL_Window *window)
     HGLRC context, share_context;
 
     if (_this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_ES && WIN_GL_UseEGL(_this)) {
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_EGL
         /* Switch to EGL based functions */
         WIN_GL_UnloadLibrary(_this);
         _this->GL_LoadLibrary = WIN_GLES_LoadLibrary;
@@ -835,9 +842,9 @@ int WIN_GL_MakeCurrent(_THIS, SDL_Window *window, SDL_GLContext context)
        NULL, against spec. Since hdc is _supposed_ to be ignored if context
        is NULL, we either use the current GL window, or do nothing if we
        already have no current context. */
-    if (window == NULL) {
+    if (!window) {
         window = SDL_GL_GetCurrentWindow();
-        if (window == NULL) {
+        if (!window) {
             SDL_assert(SDL_GL_GetCurrentContext() == NULL);
             return 0; /* already done. */
         }

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WINDOWS && !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
+#if defined(SDL_VIDEO_DRIVER_WINDOWS) && !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
 
 #include "SDL_windowsvideo.h"
 #include "SDL_hints.h"
@@ -32,8 +32,6 @@
 #include <oleauto.h>
 
 #ifndef SDL_DISABLE_WINDOWS_IME
-static Uint32 end_ticks = 0;  // added for DOSBox-X
-static SDL_bool ime_incompos; // added for DOSBox-X
 static void IME_Init(SDL_VideoData *videodata, HWND hwnd);
 static void IME_Enable(SDL_VideoData *videodata, HWND hwnd);
 static void IME_Disable(SDL_VideoData *videodata, HWND hwnd);
@@ -168,18 +166,6 @@ void WIN_QuitKeyboard(_THIS)
 #endif /* !SDL_DISABLE_WINDOWS_IME */
 }
 
-#if 1 // Added for DOSBox-X
-SDL_bool SDL_IM_Composition(int more) {
-    (void)more;
-#ifndef SDL_DISABLE_WINDOWS_IME
-#define IME_END_CR_WAIT 50
-    return ime_incompos || end_ticks && (GetTickCount() - end_ticks < IME_END_CR_WAIT) ? SDL_TRUE : SDL_FALSE;
-#else
-    return SDL_FALSE;
-#endif
-}
-#endif
-
 void WIN_ResetDeadKeys()
 {
     /*
@@ -253,7 +239,7 @@ void WIN_SetTextInputRect(_THIS, const SDL_Rect *rect)
     SDL_VideoData *videodata = (SDL_VideoData *)_this->driverdata;
     HIMC himc = 0;
 
-    if (rect == NULL) {
+    if (!rect) {
         SDL_InvalidParamError("rect");
         return;
     }
@@ -263,7 +249,6 @@ void WIN_SetTextInputRect(_THIS, const SDL_Rect *rect)
 
     himc = ImmGetContext(videodata->ime_hwnd_current);
     if (himc) {
-        /* //reverted for DOSBox-X
         COMPOSITIONFORM cof;
         CANDIDATEFORM caf;
 
@@ -285,12 +270,7 @@ void WIN_SetTextInputRect(_THIS, const SDL_Rect *rect)
         caf.rcArea.top = videodata->ime_rect.y;
         caf.rcArea.bottom = (LONG)videodata->ime_rect.y + videodata->ime_rect.h;
         ImmSetCandidateWindow(himc, &caf);
-        */
-        COMPOSITIONFORM cf;
-        cf.ptCurrentPos.x = videodata->ime_rect.x;
-        cf.ptCurrentPos.y = videodata->ime_rect.y;
-        cf.dwStyle = CFS_FORCE_POSITION;
-        ImmSetCompositionWindow(himc, &cf);
+
         ImmReleaseContext(videodata->ime_hwnd_current, himc);
     }
 #endif /* !SDL_DISABLE_WINDOWS_IME */
@@ -435,14 +415,11 @@ static void IME_Init(SDL_VideoData *videodata, HWND hwnd)
     videodata->ime_available = SDL_TRUE;
     IME_UpdateInputLocale(videodata);
     IME_SetupAPI(videodata);
-    // Disabled because the candidate window will not be displayed. (for DOSBox-X)
-    /*
     if (WIN_ShouldShowNativeUI()) {
         videodata->ime_uiless = SDL_FALSE;
     } else {
         videodata->ime_uiless = UILess_SetupSinks(videodata);
     }
-    */
     IME_UpdateInputLocale(videodata);
     IME_Disable(videodata, hwnd);
 }
@@ -721,7 +698,7 @@ static void IME_SetupAPI(SDL_VideoData *videodata)
     }
 
     hime = SDL_LoadObject(ime_file);
-    if (hime == NULL) {
+    if (!hime) {
         return;
     }
 
@@ -804,7 +781,7 @@ static void IME_GetCompositionString(SDL_VideoData *videodata, HIMC himc, DWORD 
 
     length = ImmGetCompositionStringW(himc, string, NULL, 0);
     if (length > 0 && videodata->ime_composition_length < length) {
-        if (videodata->ime_composition != NULL) {
+        if (videodata->ime_composition) {
             SDL_free(videodata->ime_composition);
         }
 
@@ -996,11 +973,11 @@ static int IME_ShowCandidateList(SDL_VideoData *videodata)
 
     videodata->ime_candcount = 0;
     candidates = SDL_realloc(videodata->ime_candidates, MAX_CANDSIZE);
-    if (candidates != NULL) {
+    if (candidates) {
         videodata->ime_candidates = (WCHAR *)candidates;
     }
 
-    if (videodata->ime_candidates == NULL) {
+    if (!videodata->ime_candidates) {
         return -1;
     }
 
@@ -1041,37 +1018,17 @@ SDL_bool IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, S
     case WM_INPUTLANGCHANGE:
         IME_InputLangChanged(videodata);
         break;
-#if 1 // added for DOSBox-X
-    case WM_IME_CHAR:
-        if(wParam == 0x20) {
-            // enable IME input space
-            PostMessage(hwnd, WM_KEYDOWN, 0x20, 0x390001);
-        }
-        else if(wParam == 0x3000) {
-            // input Zenkaku space
-            videodata->ime_composition[0] = 0x3000;
-            videodata->ime_composition[1] = 0;
-            IME_SendEditingEvent(videodata);
-            IME_SendInputEvent(videodata);
-        }
-        trap = SDL_TRUE;
-        break;
-#endif
     case WM_IME_SETCONTEXT:
-        // Disabled because the string being converted will not be displayed. (for DOSBox-X)
-        /*
         if (videodata->ime_uiless) {
             *lParam = 0;
         }
-        */
         break;
     case WM_IME_STARTCOMPOSITION:
         videodata->ime_suppress_endcomposition_event = SDL_FALSE;
-        ime_incompos = 1;  /* added for DOSBox-X */
-        //trap = SDL_TRUE; /* disabled for DOSBox-X */
+        trap = SDL_TRUE;
         break;
     case WM_IME_COMPOSITION:
-        //trap = SDL_TRUE; /* disabled for DOSBox-X */
+        trap = SDL_TRUE;
         himc = ImmGetContext(hwnd);
         if (*lParam & GCS_RESULTSTR) {
             videodata->ime_suppress_endcomposition_event = SDL_TRUE;
@@ -1090,7 +1047,6 @@ SDL_bool IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, S
         ImmReleaseContext(hwnd, himc);
         break;
     case WM_IME_ENDCOMPOSITION:
-        ime_incompos = 0; /* added for DOSBox-X */
         videodata->ime_uicontext = 0;
         videodata->ime_composition[0] = 0;
         videodata->ime_readingstring[0] = 0;
@@ -1235,7 +1191,7 @@ TSFSink_Release(TSFSink *sink)
 
 STDMETHODIMP UIElementSink_QueryInterface(TSFSink *sink, REFIID riid, PVOID *ppv)
 {
-    if (ppv == NULL) {
+    if (!ppv) {
         return E_INVALIDARG;
     }
 
@@ -1272,7 +1228,7 @@ STDMETHODIMP UIElementSink_BeginUIElement(TSFSink *sink, DWORD dwUIElementId, BO
     ITfReadingInformationUIElement *preading = 0;
     ITfCandidateListUIElement *pcandlist = 0;
     SDL_VideoData *videodata = (SDL_VideoData *)sink->data;
-    if (element == NULL) {
+    if (!element) {
         return E_INVALIDARG;
     }
 
@@ -1297,7 +1253,7 @@ STDMETHODIMP UIElementSink_UpdateUIElement(TSFSink *sink, DWORD dwUIElementId)
     ITfReadingInformationUIElement *preading = 0;
     ITfCandidateListUIElement *pcandlist = 0;
     SDL_VideoData *videodata = (SDL_VideoData *)sink->data;
-    if (element == NULL) {
+    if (!element) {
         return E_INVALIDARG;
     }
 
@@ -1323,7 +1279,7 @@ STDMETHODIMP UIElementSink_EndUIElement(TSFSink *sink, DWORD dwUIElementId)
     ITfReadingInformationUIElement *preading = 0;
     ITfCandidateListUIElement *pcandlist = 0;
     SDL_VideoData *videodata = (SDL_VideoData *)sink->data;
-    if (element == NULL) {
+    if (!element) {
         return E_INVALIDARG;
     }
 
@@ -1345,7 +1301,7 @@ STDMETHODIMP UIElementSink_EndUIElement(TSFSink *sink, DWORD dwUIElementId)
 
 STDMETHODIMP IPPASink_QueryInterface(TSFSink *sink, REFIID riid, PVOID *ppv)
 {
-    if (ppv == NULL) {
+    if (!ppv) {
         return E_INVALIDARG;
     }
 
@@ -1365,9 +1321,9 @@ STDMETHODIMP IPPASink_QueryInterface(TSFSink *sink, REFIID riid, PVOID *ppv)
 
 STDMETHODIMP IPPASink_OnActivated(TSFSink *sink, DWORD dwProfileType, LANGID langid, REFCLSID clsid, REFGUID catid, REFGUID guidProfile, HKL hkl, DWORD dwFlags)
 {
-    static const GUID TF_PROFILE_DAYI = { 0x037B2C25, 0x480C, 0x4D7F, { 0xB0, 0x27, 0xD6, 0xCA, 0x6B, 0x69, 0x78, 0x8A } };
+    static const GUID SDL_TF_PROFILE_DAYI = { 0x037B2C25, 0x480C, 0x4D7F, { 0xB0, 0x27, 0xD6, 0xCA, 0x6B, 0x69, 0x78, 0x8A } };
     SDL_VideoData *videodata = (SDL_VideoData *)sink->data;
-    videodata->ime_candlistindexbase = WIN_IsEqualGUID(&TF_PROFILE_DAYI, guidProfile) ? 0 : 1;
+    videodata->ime_candlistindexbase = WIN_IsEqualGUID(&SDL_TF_PROFILE_DAYI, guidProfile) ? 0 : 1;
     if (WIN_IsEqualIID(catid, &GUID_TFCAT_TIP_KEYBOARD) && (dwFlags & TF_IPSINK_FLAG_ACTIVE)) {
         IME_InputLangChanged((SDL_VideoData *)sink->data);
     }

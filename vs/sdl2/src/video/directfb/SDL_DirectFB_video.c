@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_DIRECTFB
+#ifdef SDL_VIDEO_DRIVER_DIRECTFB
 
 /*
  * #include "SDL_DirectFB_keyboard.h"
@@ -65,7 +65,8 @@ static SDL_VideoDevice *DirectFB_CreateDevice(void);
 
 VideoBootStrap DirectFB_bootstrap = {
     "directfb", "DirectFB",
-    DirectFB_CreateDevice
+    DirectFB_CreateDevice,
+    NULL /* no ShowMessageBox implementation */
 };
 
 static const DirectFBSurfaceDrawingFlagsNames(drawing_flags);
@@ -118,7 +119,7 @@ static SDL_VideoDevice *DirectFB_CreateDevice(void)
 
     /* !!! FIXME: implement SetWindowBordered */
 
-#if SDL_DIRECTFB_OPENGL
+#ifdef SDL_DIRECTFB_OPENGL
     device->GL_LoadLibrary = DirectFB_GL_LoadLibrary;
     device->GL_GetProcAddress = DirectFB_GL_GetProcAddress;
     device->GL_MakeCurrent = DirectFB_GL_MakeCurrent;
@@ -136,7 +137,7 @@ static SDL_VideoDevice *DirectFB_CreateDevice(void)
     device->shape_driver.SetWindowShape = DirectFB_SetWindowShape;
     device->shape_driver.ResizeWindowShape = DirectFB_ResizeWindowShape;
 
-#if SDL_VIDEO_VULKAN
+#ifdef SDL_VIDEO_VULKAN
     device->Vulkan_LoadLibrary = DirectFB_Vulkan_LoadLibrary;
     device->Vulkan_UnloadLibrary = DirectFB_Vulkan_UnloadLibrary;
     device->Vulkan_GetInstanceExtensions = DirectFB_Vulkan_GetInstanceExtensions;
@@ -262,7 +263,7 @@ static int DirectFB_VideoInit(_THIS)
 
     DirectFB_InitModes(_this);
 
-#if SDL_DIRECTFB_OPENGL
+#ifdef SDL_DIRECTFB_OPENGL
     DirectFB_GL_Initialize(_this);
 #endif
 
@@ -290,7 +291,7 @@ static void DirectFB_VideoQuit(_THIS)
     SDL_DFB_RELEASE(devdata->events);
     SDL_DFB_RELEASE(devdata->dfb);
 
-#if SDL_DIRECTFB_OPENGL
+#ifdef SDL_DIRECTFB_OPENGL
     DirectFB_GL_Shutdown(_this);
 #endif
 

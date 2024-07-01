@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_OS2
+#ifdef SDL_AUDIO_DRIVER_OS2
 
 /* Allow access to a raw mixing buffer */
 
@@ -43,7 +43,7 @@ static ULONG _getEnvULong(const char *name, ULONG ulMax, ULONG ulDefault)
     char*   end;
     char*   envval = SDL_getenv(name);
 
-    if (envval == NULL)
+    if (!envval)
         return ulDefault;
 
     ulValue = SDL_strtoul(envval, &end, 10);
@@ -351,7 +351,7 @@ static void OS2_CloseDevice(_THIS)
 
     debug_os2("Enter");
 
-    if (pAData == NULL)
+    if (!pAData)
         return;
 
     pAData->ulState = 2;
@@ -429,7 +429,7 @@ static int OS2_OpenDevice(_THIS, const char *devname)
     }
 
     pAData = (SDL_PrivateAudioData *) SDL_calloc(1, sizeof(struct SDL_PrivateAudioData));
-    if (pAData == NULL)
+    if (!pAData)
         return SDL_OutOfMemory();
     _this->hidden = pAData;
 

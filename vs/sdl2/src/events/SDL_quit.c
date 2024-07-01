@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -85,7 +85,7 @@ static void SDL_EventSignal_Init(const int sig)
         action.sa_handler = SDL_HandleSIG;
         sigaction(sig, &action, NULL);
     }
-#elif HAVE_SIGNAL_H
+#elif defined(HAVE_SIGNAL_H)
     void (*ohandler)(int) = signal(sig, SDL_HandleSIG);
     if (ohandler != SIG_DFL) {
         signal(sig, ohandler);
@@ -102,7 +102,7 @@ static void SDL_EventSignal_Quit(const int sig)
         action.sa_handler = SIG_DFL;
         sigaction(sig, &action, NULL);
     }
-#elif HAVE_SIGNAL_H
+#elif defined(HAVE_SIGNAL_H)
     void (*ohandler)(int) = signal(sig, SIG_DFL);
     if (ohandler != SDL_HandleSIG) {
         signal(sig, ohandler);

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_X11
+#ifdef SDL_VIDEO_DRIVER_X11
 
 #include "SDL_x11video.h"
 #include "SDL_x11xinput2.h"
@@ -29,10 +29,10 @@
 
 #define MAX_AXIS 16
 
-#if SDL_VIDEO_DRIVER_X11_XINPUT2
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2
 static int xinput2_initialized = 0;
 
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
 static int xinput2_multitouch_supported = 0;
 #endif
 
@@ -74,7 +74,7 @@ static SDL_bool xinput2_version_atleast(const int version, const int wantmajor, 
     return version >= ((wantmajor * 1000) + wantminor);
 }
 
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
 static SDL_Window *xinput2_get_sdlwindow(SDL_VideoData *videodata, Window window)
 {
     int i;
@@ -112,7 +112,7 @@ static void xinput2_normalize_touch_coordinates(SDL_Window *window, double in_x,
 
 void X11_InitXinput2(_THIS)
 {
-#if SDL_VIDEO_DRIVER_X11_XINPUT2
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2
     SDL_VideoData *data = (SDL_VideoData *)_this->driverdata;
 
     int version = 0;
@@ -142,7 +142,7 @@ void X11_InitXinput2(_THIS)
 
     xinput2_initialized = 1;
 
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH /* Multitouch needs XInput 2.2 */
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH /* Multitouch needs XInput 2.2 */
     xinput2_multitouch_supported = xinput2_version_atleast(version, 2, 2);
 #endif
 
@@ -155,7 +155,7 @@ void X11_InitXinput2(_THIS)
     XISetMask(mask, XI_RawButtonPress);
     XISetMask(mask, XI_RawButtonRelease);
 
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
     /* Enable raw touch events if supported */
     if (X11_Xinput2IsMultitouchSupported()) {
         XISetMask(mask, XI_RawTouchBegin);
@@ -181,17 +181,17 @@ void X11_InitXinput2(_THIS)
 #endif
 }
 
-#if SDL_VIDEO_DRIVER_X11_XINPUT2
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2
 /* xi2 device went away? take it out of the list. */
 static void xinput2_remove_device_info(SDL_VideoData *videodata, const int device_id)
 {
     SDL_XInput2DeviceInfo *prev = NULL;
     SDL_XInput2DeviceInfo *devinfo;
 
-    for (devinfo = videodata->mouse_device_info; devinfo != NULL; devinfo = devinfo->next) {
+    for (devinfo = videodata->mouse_device_info; devinfo; devinfo = devinfo->next) {
         if (devinfo->device_id == device_id) {
             SDL_assert((devinfo == videodata->mouse_device_info) == (prev == NULL));
-            if (prev == NULL) {
+            if (!prev) {
                 videodata->mouse_device_info = devinfo->next;
             } else {
                 prev->next = devinfo->next;
@@ -212,10 +212,10 @@ static SDL_XInput2DeviceInfo *xinput2_get_device_info(SDL_VideoData *videodata, 
     int axis = 0;
     int i;
 
-    for (devinfo = videodata->mouse_device_info; devinfo != NULL; devinfo = devinfo->next) {
+    for (devinfo = videodata->mouse_device_info; devinfo; devinfo = devinfo->next) {
         if (devinfo->device_id == device_id) {
             SDL_assert((devinfo == videodata->mouse_device_info) == (prev == NULL));
-            if (prev != NULL) { /* move this to the front of the list, assuming we'll get more from this one. */
+            if (prev) { /* move this to the front of the list, assuming we'll get more from this one. */
                 prev->next = devinfo->next;
                 devinfo->next = videodata->mouse_device_info;
                 videodata->mouse_device_info = devinfo;
@@ -227,13 +227,13 @@ static SDL_XInput2DeviceInfo *xinput2_get_device_info(SDL_VideoData *videodata, 
 
     /* don't know about this device yet, query and cache it. */
     devinfo = (SDL_XInput2DeviceInfo *)SDL_calloc(1, sizeof(SDL_XInput2DeviceInfo));
-    if (devinfo == NULL) {
+    if (!devinfo) {
         SDL_OutOfMemory();
         return NULL;
     }
 
     xidevinfo = X11_XIQueryDevice(videodata->display, device_id, &i);
-    if (xidevinfo == NULL) {
+    if (!xidevinfo) {
         SDL_free(devinfo);
         return NULL;
     }
@@ -266,7 +266,7 @@ static SDL_XInput2DeviceInfo *xinput2_get_device_info(SDL_VideoData *videodata, 
 
 int X11_HandleXinput2Event(SDL_VideoData *videodata, XGenericEventCookie *cookie)
 {
-#if SDL_VIDEO_DRIVER_X11_XINPUT2
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2
     if (cookie->extension != xinput2_opcode) {
         return 0;
     }
@@ -287,7 +287,7 @@ int X11_HandleXinput2Event(SDL_VideoData *videodata, XGenericEventCookie *cookie
         }
 
         devinfo = xinput2_get_device_info(videodata, rawev->deviceid);
-        if (devinfo == NULL) {
+        if (!devinfo) {
             return 0; /* oh well. */
         }
 
@@ -321,7 +321,7 @@ int X11_HandleXinput2Event(SDL_VideoData *videodata, XGenericEventCookie *cookie
 
     case XI_RawButtonPress:
     case XI_RawButtonRelease:
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
     case XI_RawTouchBegin:
     case XI_RawTouchUpdate:
     case XI_RawTouchEnd:
@@ -329,13 +329,15 @@ int X11_HandleXinput2Event(SDL_VideoData *videodata, XGenericEventCookie *cookie
         videodata->global_mouse_changed = SDL_TRUE;
         break;
 
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
         /* With multitouch, register to receive XI_Motion (which desctivates MotionNotify),
          * so that we can distinguish real mouse motions from synthetic one.  */
     case XI_Motion:
     {
         const XIDeviceEvent *xev = (const XIDeviceEvent *)cookie->data;
         int pointer_emulated = (xev->flags & XIPointerEmulated);
+
+        videodata->global_mouse_changed = SDL_TRUE;
 
         if (!pointer_emulated) {
             SDL_Mouse *mouse = SDL_GetMouse();
@@ -385,7 +387,7 @@ int X11_HandleXinput2Event(SDL_VideoData *videodata, XGenericEventCookie *cookie
 
 void X11_InitXinput2Multitouch(_THIS)
 {
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
     SDL_VideoData *data = (SDL_VideoData *)_this->driverdata;
     XIDeviceInfo *info;
     int ndevices, i, j;
@@ -425,7 +427,7 @@ void X11_InitXinput2Multitouch(_THIS)
 
 void X11_Xinput2SelectTouch(_THIS, SDL_Window *window)
 {
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
     SDL_VideoData *data = NULL;
     XIEventMask eventmask;
     unsigned char mask[4] = { 0, 0, 0, 0 };
@@ -453,7 +455,7 @@ void X11_Xinput2SelectTouch(_THIS, SDL_Window *window)
 
 int X11_Xinput2IsInitialized()
 {
-#if SDL_VIDEO_DRIVER_X11_XINPUT2
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2
     return xinput2_initialized;
 #else
     return 0;
@@ -462,7 +464,7 @@ int X11_Xinput2IsInitialized()
 
 int X11_Xinput2IsMultitouchSupported()
 {
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
     return xinput2_initialized && xinput2_multitouch_supported;
 #else
     return 0;
@@ -471,7 +473,7 @@ int X11_Xinput2IsMultitouchSupported()
 
 void X11_Xinput2GrabTouch(_THIS, SDL_Window *window)
 {
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
     SDL_WindowData *data = (SDL_WindowData *)window->driverdata;
     Display *display = data->videodata->display;
 
@@ -501,7 +503,7 @@ void X11_Xinput2GrabTouch(_THIS, SDL_Window *window)
 
 void X11_Xinput2UngrabTouch(_THIS, SDL_Window *window)
 {
-#if SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH
     SDL_WindowData *data = (SDL_WindowData *)window->driverdata;
     Display *display = data->videodata->display;
 

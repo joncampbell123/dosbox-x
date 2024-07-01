@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -78,7 +78,9 @@ static SDL_bool HIDAPI_DriverGameCube_IsSupportedDevice(SDL_HIDAPI_Device *devic
         /* Nintendo Co., Ltd.  Wii U GameCube Controller Adapter */
         return SDL_TRUE;
     }
-    if (vendor_id == USB_VENDOR_DRAGONRISE && product_id == USB_PRODUCT_EVORETRO_GAMECUBE_ADAPTER) {
+    if (vendor_id == USB_VENDOR_DRAGONRISE &&
+        (product_id == USB_PRODUCT_EVORETRO_GAMECUBE_ADAPTER1 ||
+         product_id == USB_PRODUCT_EVORETRO_GAMECUBE_ADAPTER2)) {
         /* EVORETRO GameCube Controller Adapter */
         return SDL_TRUE;
     }
@@ -140,7 +142,7 @@ static SDL_bool HIDAPI_DriverGameCube_InitDevice(SDL_HIDAPI_Device *device)
 #endif
 
     ctx = (SDL_DriverGameCube_Context *)SDL_calloc(1, sizeof(*ctx));
-    if (ctx == NULL) {
+    if (!ctx) {
         SDL_OutOfMemory();
         return SDL_FALSE;
     }
@@ -249,7 +251,7 @@ static void HIDAPI_DriverGameCube_HandleJoystickPacket(SDL_HIDAPI_Device *device
     }
 
     joystick = SDL_JoystickFromInstanceID(ctx->joysticks[i]);
-    if (joystick == NULL) {
+    if (!joystick) {
         /* Hasn't been opened yet, skip */
         return;
     }
@@ -288,8 +290,8 @@ static void HIDAPI_DriverGameCube_HandleJoystickPacket(SDL_HIDAPI_Device *device
         joystick,                                                                                                                                                                  \
         axis, axis_value);
     READ_AXIS(3, SDL_CONTROLLER_AXIS_LEFTX, 0)
-    READ_AXIS(4, SDL_CONTROLLER_AXIS_LEFTY, 0)
-    READ_AXIS(6, SDL_CONTROLLER_AXIS_RIGHTX, 1)
+    READ_AXIS(4, SDL_CONTROLLER_AXIS_LEFTY, 1)
+    READ_AXIS(6, SDL_CONTROLLER_AXIS_RIGHTX, 0)
     READ_AXIS(5, SDL_CONTROLLER_AXIS_RIGHTY, 1)
     READ_AXIS(7, SDL_CONTROLLER_AXIS_TRIGGERLEFT, 0)
     READ_AXIS(8, SDL_CONTROLLER_AXIS_TRIGGERRIGHT, 0)
@@ -323,7 +325,7 @@ static void HIDAPI_DriverGameCube_HandleNintendoPacket(SDL_HIDAPI_Device *device
             joystick = SDL_JoystickFromInstanceID(ctx->joysticks[i]);
 
             /* Hasn't been opened yet, skip */
-            if (joystick == NULL) {
+            if (!joystick) {
                 continue;
             }
         } else {
@@ -340,8 +342,8 @@ static void HIDAPI_DriverGameCube_HandleNintendoPacket(SDL_HIDAPI_Device *device
         RemapButton(ctx, button),      \
         (curSlot[off] & flag) ? SDL_PRESSED : SDL_RELEASED);
         READ_BUTTON(1, 0x01, 0) /* A */
-        READ_BUTTON(1, 0x04, 1) /* B */
-        READ_BUTTON(1, 0x02, 2) /* X */
+        READ_BUTTON(1, 0x02, 1) /* B */
+        READ_BUTTON(1, 0x04, 2) /* X */
         READ_BUTTON(1, 0x08, 3) /* Y */
         READ_BUTTON(1, 0x10, 4) /* DPAD_LEFT */
         READ_BUTTON(1, 0x20, 5) /* DPAD_RIGHT */
@@ -385,7 +387,7 @@ static SDL_bool HIDAPI_DriverGameCube_UpdateDevice(SDL_HIDAPI_Device *device)
     /* Read input packet */
     while ((size = SDL_hid_read_timeout(device->dev, packet, sizeof(packet), 0)) > 0) {
 #ifdef DEBUG_GAMECUBE_PROTOCOL
-        // HIDAPI_DumpPacket("Nintendo GameCube packet: size = %d", packet, size);
+        HIDAPI_DumpPacket("Nintendo GameCube packet: size = %d", packet, size);
 #endif
         if (ctx->pc_mode) {
             HIDAPI_DriverGameCube_HandleJoystickPacket(device, ctx, packet, size);

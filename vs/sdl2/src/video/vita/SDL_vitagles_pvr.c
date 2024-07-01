@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_VITA && SDL_VIDEO_VITA_PVR
+#if defined(SDL_VIDEO_DRIVER_VITA) && defined(SDL_VIDEO_VITA_PVR)
 #include <stdlib.h>
 #include <string.h>
 #include <psp2/kernel/modulemgr.h>
@@ -42,9 +42,9 @@ int VITA_GLES_LoadLibrary(_THIS, const char *path)
     char *default_path = "app0:module";
     char target_path[MAX_PATH];
 
-    if (skip_init == NULL) { // we don't care about actual value
+    if (!skip_init) { // we don't care about actual value
 
-        if (override != NULL) {
+        if (override) {
             default_path = override;
         }
 

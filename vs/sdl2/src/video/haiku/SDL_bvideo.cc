@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 #include "../../SDL_internal.h"
 #include "../../main/haiku/SDL_BApp.h"
 
-#if SDL_VIDEO_DRIVER_HAIKU
+#ifdef SDL_VIDEO_DRIVER_HAIKU
 
 #include "SDL_BWin.h"
 #include <Url.h>
@@ -39,6 +39,7 @@ extern "C" {
 #include "SDL_bmodes.h"
 #include "SDL_bframebuffer.h"
 #include "SDL_bevents.h"
+#include "SDL_bmessagebox.h"
 
 static SDL_INLINE SDL_BWin *_ToBeWin(SDL_Window *window) {
     return (SDL_BWin *)(window->driverdata);
@@ -104,7 +105,7 @@ static SDL_VideoDevice * HAIKU_CreateDevice(void)
     device->shape_driver.SetWindowShape = NULL;
     device->shape_driver.ResizeWindowShape = NULL;
 
-#if SDL_VIDEO_OPENGL
+#ifdef SDL_VIDEO_OPENGL
     device->GL_LoadLibrary = HAIKU_GL_LoadLibrary;
     device->GL_GetProcAddress = HAIKU_GL_GetProcAddress;
     device->GL_UnloadLibrary = HAIKU_GL_UnloadLibrary;
@@ -131,7 +132,8 @@ static SDL_VideoDevice * HAIKU_CreateDevice(void)
 
 VideoBootStrap HAIKU_bootstrap = {
     "haiku", "Haiku graphics",
-    HAIKU_CreateDevice
+    HAIKU_CreateDevice,
+    HAIKU_ShowMessageBox
 };
 
 void HAIKU_DeleteDevice(SDL_VideoDevice * device)
@@ -193,7 +195,7 @@ static SDL_Cursor * HAIKU_CreateCursor(SDL_Surface * surface, int hot_x, int hot
     SDL_Surface *converted;
 
     converted = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ARGB8888, 0);
-    if (converted == NULL) {
+    if (!converted) {
         return NULL;
     }
 
@@ -215,7 +217,7 @@ static int HAIKU_ShowCursor(SDL_Cursor *cursor)
 {
 	SDL_Mouse *mouse = SDL_GetMouse();
 
-	if (mouse == NULL) {
+	if (!mouse) {
 		return 0;
 	}
 
@@ -234,7 +236,7 @@ static int HAIKU_ShowCursor(SDL_Cursor *cursor)
 static int HAIKU_SetRelativeMouseMode(SDL_bool enabled)
 {
     SDL_Window *window = SDL_GetMouseFocus();
-    if (window == NULL) {
+    if (!window) {
       return 0;
     }
 
@@ -254,7 +256,7 @@ static int HAIKU_SetRelativeMouseMode(SDL_bool enabled)
 static void HAIKU_MouseInit(_THIS)
 {
 	SDL_Mouse *mouse = SDL_GetMouse();
-	if (mouse == NULL) {
+	if (!mouse) {
 		return;
 	}
 	mouse->CreateCursor = HAIKU_CreateCursor;
@@ -281,7 +283,7 @@ int HAIKU_VideoInit(_THIS)
 
     HAIKU_MouseInit(_this);
 
-#if SDL_VIDEO_OPENGL
+#ifdef SDL_VIDEO_OPENGL
         /* testgl application doesn't load library, just tries to load symbols */
         /* is it correct? if so we have to load library here */
     HAIKU_GL_LoadLibrary(_this, NULL);

@@ -16,6 +16,7 @@ extern SDLTest_TestSuiteReference guidTestSuite;
 extern SDLTest_TestSuiteReference hintsTestSuite;
 extern SDLTest_TestSuiteReference joystickTestSuite;
 extern SDLTest_TestSuiteReference keyboardTestSuite;
+extern SDLTest_TestSuiteReference logTestSuite;
 extern SDLTest_TestSuiteReference mainTestSuite;
 extern SDLTest_TestSuiteReference mathTestSuite;
 extern SDLTest_TestSuiteReference mouseTestSuite;
@@ -26,6 +27,7 @@ extern SDLTest_TestSuiteReference renderTestSuite;
 extern SDLTest_TestSuiteReference rwopsTestSuite;
 extern SDLTest_TestSuiteReference sdltestTestSuite;
 extern SDLTest_TestSuiteReference stdlibTestSuite;
+extern SDLTest_TestSuiteReference subsystemsTestSuite;
 extern SDLTest_TestSuiteReference surfaceTestSuite;
 extern SDLTest_TestSuiteReference syswmTestSuite;
 extern SDLTest_TestSuiteReference timerTestSuite;
@@ -40,6 +42,7 @@ SDLTest_TestSuiteReference *testSuites[] = {
     &hintsTestSuite,
     &joystickTestSuite,
     &keyboardTestSuite,
+    &logTestSuite,
     &mainTestSuite,
     &mathTestSuite,
     &mouseTestSuite,
@@ -54,6 +57,7 @@ SDLTest_TestSuiteReference *testSuites[] = {
     &syswmTestSuite,
     &timerTestSuite,
     &videoTestSuite,
+    &subsystemsTestSuite, /* run last, not interfere with other test enviroment */
     NULL
 };
 

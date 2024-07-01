@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WAYLAND
+#ifdef SDL_VIDEO_DRIVER_WAYLAND
 
 #include "../SDL_sysvideo.h"
 #include "SDL_waylandvideo.h"
@@ -32,7 +32,7 @@ int Wayland_InitKeyboard(_THIS)
 {
 #ifdef SDL_USE_IME
     SDL_VideoData *driverdata = _this->driverdata;
-    if (driverdata->text_input_manager == NULL) {
+    if (!driverdata->text_input_manager) {
         SDL_IME_Init();
     }
 #endif
@@ -45,7 +45,7 @@ void Wayland_QuitKeyboard(_THIS)
 {
 #ifdef SDL_USE_IME
     SDL_VideoData *driverdata = _this->driverdata;
-    if (driverdata->text_input_manager == NULL) {
+    if (!driverdata->text_input_manager) {
         SDL_IME_Quit();
     }
 #endif
@@ -57,7 +57,7 @@ void Wayland_StartTextInput(_THIS)
 
     if (driverdata->text_input_manager) {
         struct SDL_WaylandInput *input = driverdata->input;
-        if (input != NULL && input->text_input) {
+        if (input && input->text_input) {
             const SDL_Rect *rect = &input->text_input->cursor_rect;
 
             /* Don't re-enable if we're already enabled. */
@@ -98,7 +98,7 @@ void Wayland_StopTextInput(_THIS)
 
     if (driverdata->text_input_manager) {
         struct SDL_WaylandInput *input = driverdata->input;
-        if (input != NULL && input->text_input) {
+        if (input && input->text_input) {
             zwp_text_input_v3_disable(input->text_input->text_input);
             zwp_text_input_v3_commit(input->text_input->text_input);
             input->text_input->is_enabled = SDL_FALSE;
@@ -116,14 +116,14 @@ void Wayland_SetTextInputRect(_THIS, const SDL_Rect *rect)
 {
     SDL_VideoData *driverdata = _this->driverdata;
 
-    if (rect == NULL) {
+    if (!rect) {
         SDL_InvalidParamError("rect");
         return;
     }
 
     if (driverdata->text_input_manager) {
         struct SDL_WaylandInput *input = driverdata->input;
-        if (input != NULL && input->text_input) {
+        if (input && input->text_input) {
             if (!SDL_RectEquals(rect, &input->text_input->cursor_rect)) {
                 SDL_copyp(&input->text_input->cursor_rect, rect);
                 zwp_text_input_v3_set_cursor_rectangle(input->text_input->text_input,

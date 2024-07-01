@@ -52,6 +52,42 @@ void SDLCALL _audio_testCallback(void *userdata, Uint8 *stream, int len)
     _audio_testCallbackLength += len;
 }
 
+#if defined(__linux__)
+/* Linux builds can include many audio drivers, but some are very
+ * obscure and typically unsupported on modern systems. They will
+ * be skipped in tests that run against all included drivers, as
+ * they are basically guaranteed to fail.
+ */
+static SDL_bool DriverIsProblematic(const char *driver)
+{
+    static const char *driverList[] = {
+        /* Omnipresent in Linux builds, but deprecated since 2002,
+        * very rarely used on Linux nowadays, and is almost certainly
+        * guaranteed to fail.
+         */
+        "dsp",
+
+        /* OpenBSD sound API. Can be used on Linux, but very rare. */
+        "sndio",
+
+        /* Always fails on initialization and/or opening a device.
+         * Does anyone or anything actually use this?
+         */
+        "nas"
+    };
+
+    int i;
+
+    for (i = 0; i < SDL_arraysize(driverList); ++i) {
+        if (SDL_strcmp(driver, driverList[i]) == 0) {
+            return SDL_TRUE;
+        }
+    }
+
+    return SDL_FALSE;
+}
+#endif
+
 /* Test case functions */
 
 /**
@@ -83,20 +119,43 @@ int audio_initQuitAudio()
     int result;
     int i, iMax;
     const char *audioDriver;
+    const char *hint = SDL_GetHint(SDL_HINT_AUDIODRIVER);
 
     /* Stop SDL audio subsystem */
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
     SDLTest_AssertPass("Call to SDL_QuitSubSystem(SDL_INIT_AUDIO)");
 
-    /* Loop over all available audio drivers */
-    iMax = SDL_GetNumAudioDrivers();
-    SDLTest_AssertPass("Call to SDL_GetNumAudioDrivers()");
-    SDLTest_AssertCheck(iMax > 0, "Validate number of audio drivers; expected: >0 got: %d", iMax);
+    /* Was a specific driver requested? */
+    audioDriver = SDL_GetHint(SDL_HINT_AUDIODRIVER);
+
+    if (audioDriver == NULL) {
+        /* Loop over all available audio drivers */
+        iMax = SDL_GetNumAudioDrivers();
+        SDLTest_AssertPass("Call to SDL_GetNumAudioDrivers()");
+        SDLTest_AssertCheck(iMax > 0, "Validate number of audio drivers; expected: >0 got: %d", iMax);
+    } else {
+        /* A specific driver was requested for testing */
+        iMax = 1;
+    }
     for (i = 0; i < iMax; i++) {
-        audioDriver = SDL_GetAudioDriver(i);
-        SDLTest_AssertPass("Call to SDL_GetAudioDriver(%d)", i);
-        SDLTest_Assert(audioDriver != NULL, "Audio driver name is not NULL");
-        SDLTest_AssertCheck(audioDriver[0] != '\0', "Audio driver name is not empty; got: %s", audioDriver); /* NOLINT(clang-analyzer-core.NullDereference): Checked for NULL above */
+        if (audioDriver == NULL) {
+            audioDriver = SDL_GetAudioDriver(i);
+            SDLTest_AssertPass("Call to SDL_GetAudioDriver(%d)", i);
+            SDLTest_Assert(audioDriver != NULL, "Audio driver name is not NULL");
+            SDLTest_AssertCheck(audioDriver[0] != '\0', "Audio driver name is not empty; got: %s", audioDriver); /* NOLINT(clang-analyzer-core.NullDereference): Checked for NULL above */
+
+#if defined(__linux__)
+            if (DriverIsProblematic(audioDriver)) {
+                SDLTest_Log("Audio driver '%s' flagged as problematic: skipping init/quit test (set SDL_AUDIODRIVER=%s to force)", audioDriver, audioDriver);
+                audioDriver = NULL;
+                continue;
+            }
+#endif
+        }
+
+        if (hint && SDL_strcmp(audioDriver, hint) != 0) {
+            continue;
+        }
 
         /* Call Init */
         result = SDL_AudioInit(audioDriver);
@@ -106,6 +165,8 @@ int audio_initQuitAudio()
         /* Call Quit */
         SDL_AudioQuit();
         SDLTest_AssertPass("Call to SDL_AudioQuit()");
+
+        audioDriver = NULL;
     }
 
     /* NULL driver specification */
@@ -140,20 +201,43 @@ int audio_initOpenCloseQuitAudio()
     int i, iMax, j, k;
     const char *audioDriver;
     SDL_AudioSpec desired;
+    const char *hint = SDL_GetHint(SDL_HINT_AUDIODRIVER);
 
     /* Stop SDL audio subsystem */
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
     SDLTest_AssertPass("Call to SDL_QuitSubSystem(SDL_INIT_AUDIO)");
 
-    /* Loop over all available audio drivers */
-    iMax = SDL_GetNumAudioDrivers();
-    SDLTest_AssertPass("Call to SDL_GetNumAudioDrivers()");
-    SDLTest_AssertCheck(iMax > 0, "Validate number of audio drivers; expected: >0 got: %d", iMax);
+    /* Was a specific driver requested? */
+    audioDriver = SDL_GetHint(SDL_HINT_AUDIODRIVER);
+
+    if (audioDriver == NULL) {
+        /* Loop over all available audio drivers */
+        iMax = SDL_GetNumAudioDrivers();
+        SDLTest_AssertPass("Call to SDL_GetNumAudioDrivers()");
+        SDLTest_AssertCheck(iMax > 0, "Validate number of audio drivers; expected: >0 got: %d", iMax);
+    } else {
+        /* A specific driver was requested for testing */
+        iMax = 1;
+    }
     for (i = 0; i < iMax; i++) {
-        audioDriver = SDL_GetAudioDriver(i);
-        SDLTest_AssertPass("Call to SDL_GetAudioDriver(%d)", i);
-        SDLTest_Assert(audioDriver != NULL, "Audio driver name is not NULL");
-        SDLTest_AssertCheck(audioDriver[0] != '\0', "Audio driver name is not empty; got: %s", audioDriver); /* NOLINT(clang-analyzer-core.NullDereference): Checked for NULL above */
+        if (audioDriver == NULL) {
+            audioDriver = SDL_GetAudioDriver(i);
+            SDLTest_AssertPass("Call to SDL_GetAudioDriver(%d)", i);
+            SDLTest_Assert(audioDriver != NULL, "Audio driver name is not NULL");
+            SDLTest_AssertCheck(audioDriver[0] != '\0', "Audio driver name is not empty; got: %s", audioDriver); /* NOLINT(clang-analyzer-core.NullDereference): Checked for NULL above */
+
+#if defined(__linux__)
+            if (DriverIsProblematic(audioDriver)) {
+                SDLTest_Log("Audio driver '%s' flagged as problematic: skipping device open/close test (set SDL_AUDIODRIVER=%s to force)", audioDriver, audioDriver);
+                audioDriver = NULL;
+                continue;
+            }
+#endif
+        }
+
+        if (hint && SDL_strcmp(audioDriver, hint) != 0) {
+            continue;
+        }
 
         /* Change specs */
         for (j = 0; j < 2; j++) {
@@ -162,6 +246,17 @@ int audio_initOpenCloseQuitAudio()
             result = SDL_AudioInit(audioDriver);
             SDLTest_AssertPass("Call to SDL_AudioInit('%s')", audioDriver);
             SDLTest_AssertCheck(result == 0, "Validate result value; expected: 0 got: %d", result);
+
+            /* Check for output devices */
+            result = SDL_GetNumAudioDevices(SDL_FALSE);
+            SDLTest_AssertPass("Call to SDL_GetNumAudioDevices(SDL_FALSE)");
+            SDLTest_AssertCheck(result >= 0, "Validate result value; expected: >=0 got: %d", result);
+            if (result <= 0) {
+                SDLTest_Log("No output devices for '%s': skipping device open/close test", audioDriver);
+                SDL_AudioQuit();
+                SDLTest_AssertPass("Call to SDL_AudioQuit()");
+                break;
+            }
 
             /* Set spec */
             SDL_memset(&desired, 0, sizeof(desired));
@@ -207,7 +302,10 @@ int audio_initOpenCloseQuitAudio()
             }
 
         } /* spec loop */
-    }     /* driver loop */
+
+        audioDriver = NULL;
+
+    } /* driver loop */
 
     /* Restart audio again */
     _audioSetUp(NULL);
@@ -229,20 +327,43 @@ int audio_pauseUnpauseAudio()
     int originalCounter;
     const char *audioDriver;
     SDL_AudioSpec desired;
+    const char *hint = SDL_GetHint(SDL_HINT_AUDIODRIVER);
 
     /* Stop SDL audio subsystem */
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
     SDLTest_AssertPass("Call to SDL_QuitSubSystem(SDL_INIT_AUDIO)");
 
-    /* Loop over all available audio drivers */
-    iMax = SDL_GetNumAudioDrivers();
-    SDLTest_AssertPass("Call to SDL_GetNumAudioDrivers()");
-    SDLTest_AssertCheck(iMax > 0, "Validate number of audio drivers; expected: >0 got: %d", iMax);
+    /* Was a specific driver requested? */
+    audioDriver = SDL_GetHint(SDL_HINT_AUDIODRIVER);
+
+    if (audioDriver == NULL) {
+        /* Loop over all available audio drivers */
+        iMax = SDL_GetNumAudioDrivers();
+        SDLTest_AssertPass("Call to SDL_GetNumAudioDrivers()");
+        SDLTest_AssertCheck(iMax > 0, "Validate number of audio drivers; expected: >0 got: %d", iMax);
+    } else {
+        /* A specific driver was requested for testing */
+        iMax = 1;
+    }
     for (i = 0; i < iMax; i++) {
-        audioDriver = SDL_GetAudioDriver(i);
-        SDLTest_AssertPass("Call to SDL_GetAudioDriver(%d)", i);
-        SDLTest_Assert(audioDriver != NULL, "Audio driver name is not NULL");
-        SDLTest_AssertCheck(audioDriver[0] != '\0', "Audio driver name is not empty; got: %s", audioDriver); /* NOLINT(clang-analyzer-core.NullDereference): Checked for NULL above */
+        if (audioDriver == NULL) {
+            audioDriver = SDL_GetAudioDriver(i);
+            SDLTest_AssertPass("Call to SDL_GetAudioDriver(%d)", i);
+            SDLTest_Assert(audioDriver != NULL, "Audio driver name is not NULL");
+            SDLTest_AssertCheck(audioDriver[0] != '\0', "Audio driver name is not empty; got: %s", audioDriver); /* NOLINT(clang-analyzer-core.NullDereference): Checked for NULL above */
+
+#if defined(__linux__)
+            if (DriverIsProblematic(audioDriver)) {
+                SDLTest_Log("Audio driver '%s' flagged as problematic: skipping pause/unpause test (set SDL_AUDIODRIVER=%s to force)", audioDriver, audioDriver);
+                audioDriver = NULL;
+                continue;
+            }
+#endif
+        }
+
+        if (hint && SDL_strcmp(audioDriver, hint) != 0) {
+            continue;
+        }
 
         /* Change specs */
         for (j = 0; j < 2; j++) {
@@ -251,6 +372,16 @@ int audio_pauseUnpauseAudio()
             result = SDL_AudioInit(audioDriver);
             SDLTest_AssertPass("Call to SDL_AudioInit('%s')", audioDriver);
             SDLTest_AssertCheck(result == 0, "Validate result value; expected: 0 got: %d", result);
+
+            result = SDL_GetNumAudioDevices(SDL_FALSE);
+            SDLTest_AssertPass("Call to SDL_GetNumAudioDevices(SDL_FALSE)");
+            SDLTest_AssertCheck(result >= 0, "Validate result value; expected: >=0 got: %d", result);
+            if (result <= 0) {
+                SDLTest_Log("No output devices for '%s': skipping pause/unpause test", audioDriver);
+                SDL_AudioQuit();
+                SDLTest_AssertPass("Call to SDL_AudioQuit()");
+                break;
+            }
 
             /* Set spec */
             SDL_memset(&desired, 0, sizeof(desired));
@@ -326,7 +457,10 @@ int audio_pauseUnpauseAudio()
             SDLTest_AssertPass("Call to SDL_AudioQuit()");
 
         } /* spec loop */
-    }     /* driver loop */
+
+        audioDriver = NULL;
+
+    } /* driver loop */
 
     /* Restart audio again */
     _audioSetUp(NULL);
@@ -1025,8 +1159,8 @@ int audio_resampleLoss()
     SDLTest_AssertPass("Test resampling of %i s %i Hz %f phase sine wave from sampling rate of %i Hz to %i Hz",
                        spec->time, spec->freq, spec->phase, spec->rate_in, spec->rate_out);
 
-    ret = SDL_BuildAudioCVT(&cvt, AUDIO_F32, 1, spec->rate_in, AUDIO_F32, 1, spec->rate_out);
-    SDLTest_AssertPass("Call to SDL_BuildAudioCVT(&cvt, AUDIO_F32, 1, %i, AUDIO_F32, 1, %i)", spec->rate_in, spec->rate_out);
+    ret = SDL_BuildAudioCVT(&cvt, AUDIO_F32SYS, 1, spec->rate_in, AUDIO_F32SYS, 1, spec->rate_out);
+    SDLTest_AssertPass("Call to SDL_BuildAudioCVT(&cvt, AUDIO_F32SYS, 1, %i, AUDIO_F32SYS, 1, %i)", spec->rate_in, spec->rate_out);
     SDLTest_AssertCheck(ret == 1, "Expected SDL_BuildAudioCVT to succeed and conversion to be needed.");
     if (ret != 1) {
       return TEST_ABORTED;

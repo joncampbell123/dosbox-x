@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_THREAD_WINDOWS
+#ifdef SDL_THREAD_WINDOWS
 
 /**
  * Semaphore functions using the Win32 API
@@ -68,14 +68,8 @@ static SDL_sem_impl_t SDL_sem_impl_active = { 0 };
 /* APIs not available on WinPhone 8.1 */
 /* https://www.microsoft.com/en-us/download/details.aspx?id=47328 */
 
-#if (HAVE_WINAPIFAMILY_H) && defined(WINAPI_FAMILY_PHONE_APP)
-#define SDL_WINAPI_FAMILY_PHONE (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)
-#else
-#define SDL_WINAPI_FAMILY_PHONE 0
-#endif
-
 #if !SDL_WINAPI_FAMILY_PHONE
-#if __WINRT__
+#ifdef __WINRT__
 /* Functions are guaranteed to be available */
 #define pWaitOnAddress       WaitOnAddress
 #define pWakeByAddressSingle WakeByAddressSingle
@@ -97,7 +91,7 @@ static SDL_sem *SDL_CreateSemaphore_atom(Uint32 initial_value)
     SDL_sem_atom *sem;
 
     sem = (SDL_sem_atom *)SDL_malloc(sizeof(*sem));
-    if (sem != NULL) {
+    if (sem) {
         sem->count = initial_value;
     } else {
         SDL_OutOfMemory();
@@ -107,7 +101,7 @@ static SDL_sem *SDL_CreateSemaphore_atom(Uint32 initial_value)
 
 static void SDL_DestroySemaphore_atom(SDL_sem *sem)
 {
-    if (sem != NULL) {
+    if (sem) {
         SDL_free(sem);
     }
 }
@@ -117,7 +111,7 @@ static int SDL_SemTryWait_atom(SDL_sem *_sem)
     SDL_sem_atom *sem = (SDL_sem_atom *)_sem;
     LONG count;
 
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 
@@ -138,7 +132,7 @@ static int SDL_SemWait_atom(SDL_sem *_sem)
     SDL_sem_atom *sem = (SDL_sem_atom *)_sem;
     LONG count;
 
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 
@@ -169,7 +163,7 @@ static int SDL_SemWaitTimeout_atom(SDL_sem *_sem, Uint32 timeout)
         return SDL_SemWait_atom(_sem);
     }
 
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 
@@ -211,7 +205,7 @@ static Uint32 SDL_SemValue_atom(SDL_sem *_sem)
 {
     SDL_sem_atom *sem = (SDL_sem_atom *)_sem;
 
-    if (sem == NULL) {
+    if (!sem) {
         SDL_InvalidParamError("sem");
         return 0;
     }
@@ -223,7 +217,7 @@ static int SDL_SemPost_atom(SDL_sem *_sem)
 {
     SDL_sem_atom *sem = (SDL_sem_atom *)_sem;
 
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 
@@ -261,9 +255,9 @@ static SDL_sem *SDL_CreateSemaphore_kern(Uint32 initial_value)
 
     /* Allocate sem memory */
     sem = (SDL_sem_kern *)SDL_malloc(sizeof(*sem));
-    if (sem != NULL) {
+    if (sem) {
         /* Create the semaphore, with max value 32K */
-#if __WINRT__
+#ifdef __WINRT__
         sem->id = CreateSemaphoreEx(NULL, initial_value, 32 * 1024, NULL, 0, SEMAPHORE_ALL_ACCESS);
 #else
         sem->id = CreateSemaphore(NULL, initial_value, 32 * 1024, NULL);
@@ -284,7 +278,7 @@ static SDL_sem *SDL_CreateSemaphore_kern(Uint32 initial_value)
 static void SDL_DestroySemaphore_kern(SDL_sem *_sem)
 {
     SDL_sem_kern *sem = (SDL_sem_kern *)_sem;
-    if (sem != NULL) {
+    if (sem) {
         if (sem->id) {
             CloseHandle(sem->id);
             sem->id = 0;
@@ -299,7 +293,7 @@ static int SDL_SemWaitTimeout_kern(SDL_sem *_sem, Uint32 timeout)
     int retval;
     DWORD dwMilliseconds;
 
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 
@@ -337,7 +331,7 @@ static int SDL_SemWait_kern(SDL_sem *sem)
 static Uint32 SDL_SemValue_kern(SDL_sem *_sem)
 {
     SDL_sem_kern *sem = (SDL_sem_kern *)_sem;
-    if (sem == NULL) {
+    if (!sem) {
         SDL_InvalidParamError("sem");
         return 0;
     }
@@ -347,7 +341,7 @@ static Uint32 SDL_SemValue_kern(SDL_sem *_sem)
 static int SDL_SemPost_kern(SDL_sem *_sem)
 {
     SDL_sem_kern *sem = (SDL_sem_kern *)_sem;
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
     /* Increase the counter in the first place, because
@@ -379,13 +373,13 @@ static const SDL_sem_impl_t SDL_sem_impl_kern = {
 
 SDL_sem *SDL_CreateSemaphore(Uint32 initial_value)
 {
-    if (SDL_sem_impl_active.Create == NULL) {
+    if (!SDL_sem_impl_active.Create) {
         /* Default to fallback implementation */
         const SDL_sem_impl_t *impl = &SDL_sem_impl_kern;
 
 #if !SDL_WINAPI_FAMILY_PHONE
         if (!SDL_GetHintBoolean(SDL_HINT_WINDOWS_FORCE_SEMAPHORE_KERNEL, SDL_FALSE)) {
-#if __WINRT__
+#ifdef __WINRT__
             /* Link statically on this platform */
             impl = &SDL_sem_impl_atom;
 #else

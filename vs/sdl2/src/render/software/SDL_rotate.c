@@ -30,7 +30,7 @@ Andreas Schiffler -- aschiffler at ferzkopp dot net
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_RENDER_SW && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_SW
 
 #if defined(__WIN32__) || defined(__GDK__)
 #include "../../core/windows/SDL_windows.h"
@@ -500,7 +500,7 @@ SDL_Surface *SDLgfx_rotateSurface(SDL_Surface *src, double angle, int smooth, in
     double sangleinv, cangleinv;
 
     /* Sanity check */
-    if (src == NULL) {
+    if (!src) {
         return NULL;
     }
 
@@ -524,7 +524,7 @@ SDL_Surface *SDLgfx_rotateSurface(SDL_Surface *src, double angle, int smooth, in
     if (is8bit) {
         /* Target surface is 8 bit */
         rz_dst = SDL_CreateRGBSurfaceWithFormat(0, rect_dest->w, rect_dest->h + GUARD_ROWS, 8, src->format->format);
-        if (rz_dst != NULL) {
+        if (rz_dst) {
             if (src->format->palette) {
                 for (i = 0; i < src->format->palette->ncolors; i++) {
                     rz_dst->format->palette->colors[i] = src->format->palette->colors[i];
@@ -540,7 +540,7 @@ SDL_Surface *SDLgfx_rotateSurface(SDL_Surface *src, double angle, int smooth, in
     }
 
     /* Check target */
-    if (rz_dst == NULL) {
+    if (!rz_dst) {
         return NULL;
     }
 
@@ -617,4 +617,4 @@ SDL_Surface *SDLgfx_rotateSurface(SDL_Surface *src, double angle, int smooth, in
     return rz_dst;
 }
 
-#endif /* SDL_VIDEO_RENDER_SW && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_SW */

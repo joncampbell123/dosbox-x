@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if (defined(__WIN32__) || defined(__GDK__)) && HAVE_MMDEVICEAPI_H
+#if (defined(__WIN32__) || defined(__GDK__)) && defined(HAVE_MMDEVICEAPI_H)
 
 #include "SDL_windows.h"
 #include "SDL_immdevice.h"
@@ -136,7 +136,7 @@ static void SDL_IMMDevice_Add(const SDL_bool iscapture, const char *devname, WAV
     }
 
     devidlist = (DevIdList *)SDL_malloc(sizeof(*devidlist));
-    if (devidlist == NULL) {
+    if (!devidlist) {
         return; /* oh well. */
     }
 
@@ -364,7 +364,7 @@ int SDL_IMMDevice_Get(LPCWSTR devid, IMMDevice **device, SDL_bool iscapture)
     SDL_assert(device != NULL);
 
     while (SDL_TRUE) {
-        if (devid == NULL) {
+        if (!devid) {
             const EDataFlow dataflow = iscapture ? eCapture : eRender;
             ret = IMMDeviceEnumerator_GetDefaultAudioEndpoint(enumerator, dataflow, SDL_IMMDevice_role, device);
         } else {
@@ -443,7 +443,7 @@ static void EnumerateEndpointsForFlow(const SDL_bool iscapture)
     }
 
     items = (EndpointItem *)SDL_calloc(total, sizeof(EndpointItem));
-    if (items == NULL) {
+    if (!items) {
         return; /* oh well. */
     }
 
@@ -500,7 +500,7 @@ int SDL_IMMDevice_GetDefaultAudioInfo(char **name, SDL_AudioSpec *spec, int isca
         return WIN_SetErrorFromHRESULT("WASAPI can't find default audio endpoint", ret);
     }
 
-    if (name == NULL) {
+    if (!name) {
         name = &filler;
     }
 

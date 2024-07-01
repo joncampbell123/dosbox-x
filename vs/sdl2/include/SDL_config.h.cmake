@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -49,7 +49,7 @@
 
 /* Comment this if you want to build without any C library requirements */
 #cmakedefine HAVE_LIBC 1
-#if HAVE_LIBC
+#ifdef HAVE_LIBC
 
 /* Useful headers */
 #cmakedefine STDC_HEADERS 1
@@ -190,6 +190,8 @@
 #cmakedefine HAVE_FOPEN64 1
 #cmakedefine HAVE_FSEEKO 1
 #cmakedefine HAVE_FSEEKO64 1
+#cmakedefine HAVE_MEMFD_CREATE 1
+#cmakedefine HAVE_POSIX_FALLOCATE 1
 #cmakedefine HAVE_SIGACTION 1
 #cmakedefine HAVE_SA_SIGACTION 1
 #cmakedefine HAVE_SETJMP 1
@@ -200,6 +202,7 @@
 #cmakedefine HAVE_GETPAGESIZE 1
 #cmakedefine HAVE_MPROTECT 1
 #cmakedefine HAVE_ICONV 1
+#cmakedefine SDL_USE_LIBICONV 1
 #cmakedefine HAVE_PTHREAD_SETNAME_NP 1
 #cmakedefine HAVE_PTHREAD_SET_NAME_NP 1
 #cmakedefine HAVE_SEM_TIMEDWAIT 1
@@ -240,7 +243,7 @@
 
 #cmakedefine HAVE_LIBUDEV_H 1
 #cmakedefine HAVE_LIBSAMPLERATE_H 1
-#cmakedefine HAVE_LIBDECOR_H  1
+#cmakedefine HAVE_LIBDECOR_H 1
 
 #cmakedefine HAVE_D3D_H @HAVE_D3D_H@
 #cmakedefine HAVE_D3D11_H @HAVE_D3D11_H@
@@ -259,8 +262,7 @@
 #cmakedefine HAVE_ROAPI_H @HAVE_ROAPI_H@
 #cmakedefine HAVE_SHELLSCALINGAPI_H @HAVE_SHELLSCALINGAPI_H@
 
-#cmakedefine HAVE_XINPUT_GAMEPAD_EX @HAVE_XINPUT_GAMEPAD_EX@
-#cmakedefine HAVE_XINPUT_STATE_EX @HAVE_XINPUT_STATE_EX@
+#cmakedefine USE_POSIX_SPAWN @USE_POSIX_SPAWN@
 
 /* SDL internal assertion support */
 #if @SDL_DEFAULT_ASSERT_LEVEL_CONFIGURED@
@@ -525,7 +527,7 @@
 #cmakedefine SDL_ARM_NEON_BLITTERS @SDL_ARM_NEON_BLITTERS@
 
 /* Whether SDL_DYNAMIC_API needs dlopen */
-#cmakedefine DYNAPI_NEEDS_DLOPEN  @DYNAPI_NEEDS_DLOPEN@
+#cmakedefine DYNAPI_NEEDS_DLOPEN @DYNAPI_NEEDS_DLOPEN@
 
 /* Enable dynamic libsamplerate support */
 #cmakedefine SDL_LIBSAMPLERATE_DYNAMIC @SDL_LIBSAMPLERATE_DYNAMIC@

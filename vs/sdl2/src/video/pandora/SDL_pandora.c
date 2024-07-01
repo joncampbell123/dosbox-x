@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_PANDORA
+#ifdef SDL_VIDEO_DRIVER_PANDORA
 
 /* SDL internals */
 #include "../SDL_sysvideo.h"
@@ -41,43 +41,30 @@
 static NativeWindowType hNativeWnd = 0; /* A handle to the window we will create. */
 #endif
 
-static int PND_available(void)
-{
-    return 1;
-}
-
 static void PND_destroy(SDL_VideoDevice * device)
 {
-    if (device->driverdata != NULL) {
+    if (device->driverdata) {
         SDL_free(device->driverdata);
         device->driverdata = NULL;
     }
     SDL_free(device);
 }
 
-static SDL_VideoDevice *PND_create()
+static SDL_VideoDevice *PND_create(void)
 {
     SDL_VideoDevice *device;
     SDL_VideoData *phdata;
-    int status;
-
-    /* Check if pandora could be initialized */
-    status = PND_available();
-    if (status == 0) {
-        /* PND could not be used */
-        return NULL;
-    }
 
     /* Initialize SDL_VideoDevice structure */
     device = (SDL_VideoDevice *) SDL_calloc(1, sizeof(SDL_VideoDevice));
-    if (device == NULL) {
+    if (!device) {
         SDL_OutOfMemory();
         return NULL;
     }
 
     /* Initialize internal Pandora specific data */
     phdata = (SDL_VideoData *) SDL_calloc(1, sizeof(SDL_VideoData));
-    if (phdata == NULL) {
+    if (!phdata) {
         SDL_OutOfMemory();
         SDL_free(device);
         return NULL;
@@ -139,8 +126,8 @@ VideoBootStrap PND_bootstrap = {
     "pandora",
     "SDL Pandora Video Driver",
 #endif
-    PND_available,
-    PND_create
+    PND_create,
+    NULL /* no ShowMessageBox implementation */
 };
 
 /*****************************************************************************/
@@ -196,7 +183,7 @@ int PND_createwindow(_THIS, SDL_Window * window)
 
     /* Allocate window internal data */
     wdata = (SDL_WindowData *) SDL_calloc(1, sizeof(SDL_WindowData));
-    if (wdata == NULL) {
+    if (!wdata) {
         return SDL_OutOfMemory();
     }
 
@@ -297,15 +284,15 @@ SDL_bool PND_getwindowwminfo(_THIS, SDL_Window * window, struct SDL_SysWMinfo *i
 int PND_gl_loadlibrary(_THIS, const char *path)
 {
     /* Check if OpenGL ES library is specified for GF driver */
-    if (path == NULL) {
+    if (!path) {
         path = SDL_getenv("SDL_OPENGL_LIBRARY");
-        if (path == NULL) {
+        if (!path) {
             path = SDL_getenv("SDL_OPENGLES_LIBRARY");
         }
     }
 
     /* Check if default library loading requested */
-    if (path == NULL) {
+    if (!path) {
         /* Already linked with GF library which provides egl* subset of  */
         /* functions, use Common profile of OpenGL ES library by default */
 #ifdef WIZ_GLES_LITE
@@ -336,7 +323,7 @@ void *PND_gl_getprocaddres(_THIS, const char *proc)
 
     /* Try to get function address through the egl interface */
     function_address = eglGetProcAddress(proc);
-    if (function_address != NULL) {
+    if (function_address) {
         return function_address;
     }
 
@@ -344,7 +331,7 @@ void *PND_gl_getprocaddres(_THIS, const char *proc)
     if (_this->gl_config.dll_handle) {
         function_address =
             SDL_LoadFunction(_this->gl_config.dll_handle, proc);
-        if (function_address != NULL) {
+        if (function_address) {
             return function_address;
         }
     }
@@ -586,16 +573,16 @@ SDL_GLContext PND_gl_createcontext(_THIS, SDL_Window * window)
     }
 
 #ifdef WIZ_GLES_LITE
-    if( !hNativeWnd ) {
-    hNativeWnd = (NativeWindowType)SDL_malloc(16*1024);
-
-    if(!hNativeWnd)
-        printf( "Error: Wiz framebuffer allocatation failed\n" );
-    else
-        printf( "SDL: Wiz framebuffer allocated: %X\n", hNativeWnd );
+    if (!hNativeWnd) {
+        hNativeWnd = (NativeWindowType)SDL_malloc(16*1024);
+        if (!hNativeWnd) {
+            printf("Error: Wiz framebuffer allocatation failed\n");
+        } else {
+            printf("SDL: Wiz framebuffer allocated: %X\n", hNativeWnd);
+        }
     }
     else {
-        printf( "SDL: Wiz framebuffer already allocated: %X\n", hNativeWnd );
+        printf("SDL: Wiz framebuffer already allocated: %X\n", hNativeWnd);
     }
 
     wdata->gles_surface =
@@ -683,7 +670,7 @@ int PND_gl_makecurrent(_THIS, SDL_Window * window, SDL_GLContext context)
         return SDL_SetError("PND: GF initialization failed, no OpenGL ES support");
     }
 
-    if ((window == NULL) && (context == NULL)) {
+    if ((!window) && (!context)) {
         status =
             eglMakeCurrent(phdata->egl_display, EGL_NO_SURFACE,
                            EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -787,11 +774,10 @@ void PND_gl_deletecontext(_THIS, SDL_GLContext context)
     }
 
 #ifdef WIZ_GLES_LITE
-    if( hNativeWnd != 0 )
-    {
+    if (hNativeWnd != 0) {
       SDL_free(hNativeWnd);
       hNativeWnd = 0;
-      printf( "SDL: Wiz framebuffer released\n" );
+      printf("SDL: Wiz framebuffer released\n");
     }
 #endif
 

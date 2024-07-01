@@ -1,12 +1,12 @@
-# Open Watcom makefile to build SDL2.dll for Win32
+# Open Watcom makefile to build SDL2.dll for Win32:
 # wmake -f Makefile.w32
 #
 # To error out upon warnings: wmake -f Makefile.w32 ENABLE_WERROR=1
 
 LIBNAME = SDL2
 MAJOR_VERSION = 2
-MINOR_VERSION = 28
-MICRO_VERSION = 2
+MINOR_VERSION = 30
+MICRO_VERSION = 4
 VERSION = $(MAJOR_VERSION).$(MINOR_VERSION).$(MICRO_VERSION)
 
 LIBHOME = .
@@ -60,7 +60,7 @@ SRCS+= SDL_events.c SDL_quit.c SDL_keyboard.c SDL_mouse.c SDL_windowevents.c &
        SDL_clipboardevents.c SDL_dropevents.c SDL_displayevents.c SDL_gesture.c &
        SDL_sensor.c SDL_touch.c
 SRCS+= SDL_haptic.c SDL_hidapi.c SDL_gamecontroller.c SDL_joystick.c controller_type.c
-SRCS+= SDL_render.c yuv_rgb.c SDL_yuv.c SDL_yuv_sw.c SDL_blendfillrect.c &
+SRCS+= SDL_render.c yuv_rgb_sse.c yuv_rgb_std.c SDL_yuv.c SDL_yuv_sw.c SDL_blendfillrect.c &
        SDL_blendline.c SDL_blendpoint.c SDL_drawline.c SDL_drawpoint.c &
        SDL_render_sw.c SDL_rotate.c SDL_triangle.c
 SRCS+= SDL_blit.c SDL_blit_0.c SDL_blit_1.c SDL_blit_A.c SDL_blit_auto.c &
@@ -73,7 +73,7 @@ SRCS+= SDL_systimer.c
 SRCS+= SDL_sysloadso.c
 SRCS+= SDL_sysfilesystem.c
 SRCS+= SDL_syshaptic.c SDL_sysjoystick.c SDL_virtualjoystick.c
-SRCS+= SDL_hidapijoystick.c SDL_hidapi_rumble.c SDL_hidapi_combined.c SDL_hidapi_gamecube.c SDL_hidapi_luna.c SDL_hidapi_ps3.c SDL_hidapi_ps4.c SDL_hidapi_ps5.c SDL_hidapi_shield.c SDL_hidapi_stadia.c SDL_hidapi_switch.c SDL_hidapi_wii.c SDL_hidapi_xbox360.c SDL_hidapi_xbox360w.c SDL_hidapi_xboxone.c SDL_hidapi_steam.c
+SRCS+= SDL_hidapijoystick.c SDL_hidapi_rumble.c SDL_hidapi_combined.c SDL_hidapi_gamecube.c SDL_hidapi_luna.c SDL_hidapi_ps3.c SDL_hidapi_ps4.c SDL_hidapi_ps5.c SDL_hidapi_shield.c SDL_hidapi_stadia.c SDL_hidapi_switch.c SDL_hidapi_wii.c SDL_hidapi_xbox360.c SDL_hidapi_xbox360w.c SDL_hidapi_xboxone.c SDL_hidapi_steam.c SDL_hidapi_steamdeck.c
 SRCS+= SDL_dummyaudio.c SDL_diskaudio.c
 SRCS+= SDL_nullvideo.c SDL_nullframebuffer.c SDL_nullevents.c
 SRCS+= SDL_dummysensor.c
@@ -93,7 +93,7 @@ SRCS+= SDL_render_gl.c SDL_shaders_gl.c
 SRCS+= SDL_render_gles2.c SDL_shaders_gles2.c
 SRCS+= SDL_windowssensor.c
 SRCS+= SDL_syscond_cv.c
-SRCS+= SDL_windowsclipboard.c SDL_windowsevents.c SDL_windowsframebuffer.c SDL_windowskeyboard.c SDL_windowsmessagebox.c SDL_windowsmodes.c SDL_windowsmouse.c SDL_windowsopengl.c SDL_windowsopengles.c SDL_windowsshape.c SDL_windowsvideo.c SDL_windowsvulkan.c SDL_windowswindow.c
+SRCS+= SDL_windowsclipboard.c SDL_windowsevents.c SDL_windowsframebuffer.c SDL_windowskeyboard.c SDL_windowsmessagebox.c SDL_windowsmodes.c SDL_windowsmouse.c SDL_windowsopengl.c SDL_windowsopengles.c SDL_windowsshape.c SDL_windowsvideo.c SDL_windowsvulkan.c SDL_windowswindow.c SDL_steam_virtual_gamepad.c
 
 SRCS+= SDL_dynapi.c
 
@@ -146,6 +146,9 @@ SDL_RLEaccel.obj: SDL_RLEaccel.c
     wcc386 $(CFLAGS_DLL) -wcd=201 -fo=$^@ $<
 SDL_malloc.obj: SDL_malloc.c
     wcc386 $(CFLAGS_DLL) -wcd=201 -fo=$^@ $<
+
+yuv_rgb_sse.obj: yuv_rgb_sse.c
+    wcc386 $(CFLAGS_DLL) -wcd=202 -fo=$^@ $<
 
 # SDL2libm
 MSRCS= e_atan2.c e_exp.c e_fmod.c e_log10.c e_log.c e_pow.c e_rem_pio2.c e_sqrt.c &

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_OS2
+#ifdef SDL_VIDEO_DRIVER_OS2
 
 /* Display a OS/2 message box */
 
@@ -206,9 +206,9 @@ static HWND _makeDlg(const SDL_MessageBoxData *messageboxdata)
     ULONG               cSDLBtnData = messageboxdata->numbuttons;
 
     PSZ                 pszTitle = OS2_UTF8ToSys(messageboxdata->title);
-    ULONG               cbTitle  = (pszTitle == NULL)? 1 : (SDL_strlen(pszTitle) + 1);
+    ULONG               cbTitle  = (!pszTitle)? 1 : (SDL_strlen(pszTitle) + 1);
     PSZ                 pszText  = OS2_UTF8ToSys(messageboxdata->message);
-    ULONG               cbText   = (pszText  == NULL)? 1 : (SDL_strlen(pszText) + 1);
+    ULONG               cbText   = (!pszText)? 1 : (SDL_strlen(pszText) + 1);
 
     PDLGTEMPLATE        pTemplate;
     ULONG               cbTemplate;
@@ -219,7 +219,7 @@ static HWND _makeDlg(const SDL_MessageBoxData *messageboxdata)
     ULONG               cbBtnText;
     HWND                hwnd;
 
-    const SDL_MessageBoxColor* pSDLColors = (messageboxdata->colorScheme == NULL)?
+    const SDL_MessageBoxColor* pSDLColors = (!messageboxdata->colorScheme)?
                                        NULL : messageboxdata->colorScheme->colors;
     const SDL_MessageBoxColor* pSDLColor;
 
@@ -237,11 +237,11 @@ static HWND _makeDlg(const SDL_MessageBoxData *messageboxdata)
     /* Button items datas - text for buttons. */
     for (ulIdx = 0; ulIdx < cSDLBtnData; ulIdx++) {
         pszBtnText = (PSZ)pSDLBtnData[ulIdx].text;
-        cbTemplate += (pszBtnText == NULL)? 1 : (SDL_strlen(pszBtnText) + 1);
+        cbTemplate += (!pszBtnText)? 1 : (SDL_strlen(pszBtnText) + 1);
     }
 
     /* Presentation parameter space. */
-    if (pSDLColors != NULL) {
+    if (pSDLColors) {
         cbTemplate += 26 /* PP for frame.       */ +
                       26 /* PP for static text. */ +
                      (48 * cSDLBtnData); /* PP for buttons. */
@@ -284,14 +284,14 @@ static HWND _makeDlg(const SDL_MessageBoxData *messageboxdata)
     }
     pcDlgData += pDlgItem->cchText;
 
-    pDlgItem->flStyle = WS_GROUP | WS_VISIBLE | WS_CLIPSIBLINGS | 
+    pDlgItem->flStyle = WS_GROUP | WS_VISIBLE | WS_CLIPSIBLINGS |
                         FS_DLGBORDER | WS_SAVEBITS;
     pDlgItem->x  = 100;
     pDlgItem->y  = 100;
     pDlgItem->cx = 175;
     pDlgItem->cy = 65;
     pDlgItem->id = DID_OK; /* An ID value? */
-    if (pSDLColors == NULL)
+    if (!pSDLColors)
         pDlgItem->offPresParams = 0;
     else {
         /* Presentation parameter for the frame - dialog colors. */
@@ -346,7 +346,7 @@ static HWND _makeDlg(const SDL_MessageBoxData *messageboxdata)
     pDlgItem->cy = 62;  /* It will be used. */
 
     pDlgItem->id = IDD_TEXT_MESSAGE;      /* an ID value */
-    if (pSDLColors == NULL)
+    if (!pSDLColors)
         pDlgItem->offPresParams = 0;
     else {
         /* Presentation parameter for the static text - dialog colors. */
@@ -407,7 +407,7 @@ static HWND _makeDlg(const SDL_MessageBoxData *messageboxdata)
         pDlgItem->offClassName = (USHORT)WC_BUTTON;
 
         pszBtnText = OS2_UTF8ToSys(pSDLBtnData[ulIdx].text);
-        cbBtnText = (pszBtnText == NULL)? 1 : (SDL_strlen(pszBtnText) + 1);
+        cbBtnText = (!pszBtnText)? 1 : (SDL_strlen(pszBtnText) + 1);
         pDlgItem->cchText = cbBtnText;
         pDlgItem->offText = pcDlgData - (PCHAR)pTemplate; /* Offset to the text. */
         /* Copy text for the button into the dialog template. */
@@ -435,7 +435,7 @@ static HWND _makeDlg(const SDL_MessageBoxData *messageboxdata)
         pDlgItem->cy = 15;
 
         pDlgItem->id = IDD_PB_FIRST + ulIdx;  /* an ID value */
-        if (pSDLColors == NULL)
+        if (!pSDLColors)
             pDlgItem->offPresParams = 0;
         else {
             /* Presentation parameter for the button - dialog colors. */
@@ -473,7 +473,7 @@ static HWND _makeDlg(const SDL_MessageBoxData *messageboxdata)
 
     /* Create the dialog from template. */
     stDlgData.cb = sizeof(MSGBOXDLGDATA);
-    stDlgData.hwndUnder = (messageboxdata->window != NULL && messageboxdata->window->driverdata != NULL)?
+    stDlgData.hwndUnder = (messageboxdata->window && messageboxdata->window->driverdata)?
                             ((WINDATA *)messageboxdata->window->driverdata)->hwnd : HWND_DESKTOP;
 
     hwnd = WinCreateDlg(HWND_DESKTOP, /* Parent is desktop. */

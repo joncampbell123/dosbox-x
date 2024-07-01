@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if HAVE_SIGNAL_H
+#ifdef HAVE_SIGNAL_H
 #include <signal.h>
 #endif
 
@@ -96,7 +96,7 @@ iteration()
             int index = e.adevice.which;
             int iscapture = e.adevice.iscapture;
             const char *name = SDL_GetAudioDeviceName(index, iscapture);
-            if (name != NULL) {
+            if (name) {
                 SDL_Log("New %s audio device at index %u: %s\n", devtypestr(iscapture), (unsigned int)index, name);
             } else {
                 SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Got new %s device at index %u, but failed to get the name: %s\n",
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 
     filename = GetResourceFilename(argc > 1 ? argv[1] : NULL, "sample.wav");
 
-    if (filename == NULL) {
+    if (!filename) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s\n", SDL_GetError());
         quit(1);
     }
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
         quit(1);
     }
 
-#if HAVE_SIGNAL_H
+#ifdef HAVE_SIGNAL_H
     /* Set the signals */
 #ifdef SIGHUP
     (void)signal(SIGHUP, poked);

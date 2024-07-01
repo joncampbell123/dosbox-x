@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -149,9 +149,12 @@ static int SDL_UpperSoftStretch(SDL_Surface *src, const SDL_Rect *srcrect,
 
 #define BILINEAR___START                                                              \
     int i;                                                                            \
-    int fp_sum_h, fp_step_h, left_pad_h, right_pad_h;                                 \
-    int fp_sum_w, fp_step_w, left_pad_w, right_pad_w;                                 \
-    int fp_sum_w_init, left_pad_w_init, right_pad_w_init, dst_gap, middle_init;       \
+    Sint64 fp_sum_h;                                                                  \
+    int fp_step_h, left_pad_h, right_pad_h;                                           \
+    Sint64 fp_sum_w;                                                                  \
+    int fp_step_w, left_pad_w, right_pad_w;                                           \
+    Sint64 fp_sum_w_init;                                                             \
+    int left_pad_w_init, right_pad_w_init, dst_gap, middle_init;                      \
     get_scaler_datas(src_h, dst_h, &fp_sum_h, &fp_step_h, &left_pad_h, &right_pad_h); \
     get_scaler_datas(src_w, dst_w, &fp_sum_w, &fp_step_w, &left_pad_w, &right_pad_w); \
     fp_sum_w_init = fp_sum_w + left_pad_w * fp_step_w;                                \
@@ -163,7 +166,8 @@ static int SDL_UpperSoftStretch(SDL_Surface *src, const SDL_Rect *srcrect,
 #define BILINEAR___HEIGHT                                              \
     int index_h, frac_h0, frac_h1, middle;                             \
     const Uint32 *src_h0, *src_h1;                                     \
-    int no_padding, incr_h0, incr_h1;                                  \
+    int no_padding;                                                    \
+    Uint64 incr_h0, incr_h1;                                           \
                                                                        \
     no_padding = !(i < left_pad_h || i > dst_h - 1 - right_pad_h);     \
     index_h = SRC_INDEX(fp_sum_h);                                     \
@@ -172,7 +176,7 @@ static int SDL_UpperSoftStretch(SDL_Surface *src, const SDL_Rect *srcrect,
     index_h = no_padding ? index_h : (i < left_pad_h ? 0 : src_h - 1); \
     frac_h0 = no_padding ? frac_h0 : 0;                                \
     incr_h1 = no_padding ? src_pitch : 0;                              \
-    incr_h0 = index_h * src_pitch;                                     \
+    incr_h0 = (Uint64)index_h * src_pitch;                             \
                                                                        \
     src_h0 = (const Uint32 *)((const Uint8 *)src + incr_h0);           \
     src_h1 = (const Uint32 *)((const Uint8 *)src_h0 + incr_h1);        \
@@ -193,12 +197,12 @@ static int SDL_UpperSoftStretch(SDL_Surface *src, const SDL_Rect *srcrect,
 // OK with clang 12.0.0 / Xcode
 __attribute__((noinline))
 #endif
-static void get_scaler_datas(int src_nb, int dst_nb, int *fp_start, int *fp_step, int *left_pad, int *right_pad)
+static void get_scaler_datas(int src_nb, int dst_nb, Sint64 *fp_start, int *fp_step, int *left_pad, int *right_pad)
 {
 
     int step = FIXED_POINT(src_nb) / (dst_nb); /* source step in fixed point */
     int x0 = FP_ONE / 2;                       /* dst first pixel center at 0.5 in fixed point */
-    int fp_sum;
+    Sint64 fp_sum;
     int i;
 #if 0
     /* scale to source coordinates */
@@ -334,7 +338,7 @@ static int scale_mat(const Uint32 *src, int src_w, int src_h, int src_pitch,
 }
 
 #if defined(__SSE2__)
-#define HAVE_SSE2_INTRINSICS 1
+#define HAVE_SSE2_INTRINSICS
 #endif
 
 #if defined(__ARM_NEON)
@@ -532,7 +536,7 @@ static int scale_mat_SSE(const Uint32 *src, int src_w, int src_h, int src_pitch,
 
 #if defined(HAVE_NEON_INTRINSICS)
 
-static SDL_INLINE int hasNEON()
+static SDL_INLINE int hasNEON(void)
 {
     static int val = -1;
     if (val != -1) {
@@ -824,16 +828,16 @@ int SDL_LowerSoftStretchLinear(SDL_Surface *s, const SDL_Rect *srcrect,
     return ret;
 }
 
-#define SDL_SCALE_NEAREST__START       \
-    int i;                             \
-    Uint32 posy, incy;                 \
-    Uint32 posx, incx;                 \
-    int dst_gap;                       \
-    int srcy, n;                       \
-    const Uint32 *src_h0;              \
-    incy = (src_h << 16) / dst_h;      \
-    incx = (src_w << 16) / dst_w;      \
-    dst_gap = dst_pitch - bpp * dst_w; \
+#define SDL_SCALE_NEAREST__START          \
+    int i;                                \
+    Uint64 posy, incy;                    \
+    Uint64 posx, incx;                    \
+    Uint64 srcy, srcx;                    \
+    int dst_gap, n;                       \
+    const Uint32 *src_h0;                 \
+    incy = ((Uint64)src_h << 16) / dst_h; \
+    incx = ((Uint64)src_w << 16) / dst_w; \
+    dst_gap = dst_pitch - bpp * dst_w;    \
     posy = incy / 2;
 
 #define SDL_SCALE_NEAREST__HEIGHT                                         \
@@ -852,7 +856,7 @@ static int scale_mat_nearest_1(const Uint32 *src_ptr, int src_w, int src_h, int 
         SDL_SCALE_NEAREST__HEIGHT
         while (n--) {
             const Uint8 *src;
-            int srcx = bpp * (posx >> 16);
+            srcx = bpp * (posx >> 16);
             posx += incx;
             src = (const Uint8 *)src_h0 + srcx;
             *(Uint8 *)dst = *src;
@@ -872,7 +876,7 @@ static int scale_mat_nearest_2(const Uint32 *src_ptr, int src_w, int src_h, int 
         SDL_SCALE_NEAREST__HEIGHT
         while (n--) {
             const Uint16 *src;
-            int srcx = bpp * (posx >> 16);
+            srcx = bpp * (posx >> 16);
             posx += incx;
             src = (const Uint16 *)((const Uint8 *)src_h0 + srcx);
             *(Uint16 *)dst = *src;
@@ -892,7 +896,7 @@ static int scale_mat_nearest_3(const Uint32 *src_ptr, int src_w, int src_h, int 
         SDL_SCALE_NEAREST__HEIGHT
         while (n--) {
             const Uint8 *src;
-            int srcx = bpp * (posx >> 16);
+            srcx = bpp * (posx >> 16);
             posx += incx;
             src = (const Uint8 *)src_h0 + srcx;
             ((Uint8 *)dst)[0] = src[0];
@@ -914,7 +918,7 @@ static int scale_mat_nearest_4(const Uint32 *src_ptr, int src_w, int src_h, int 
         SDL_SCALE_NEAREST__HEIGHT
         while (n--) {
             const Uint32 *src;
-            int srcx = bpp * (posx >> 16);
+            srcx = bpp * (posx >> 16);
             posx += incx;
             src = (const Uint32 *)((const Uint8 *)src_h0 + srcx);
             *dst = *src;

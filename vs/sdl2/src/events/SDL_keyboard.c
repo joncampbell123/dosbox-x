@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -768,7 +768,7 @@ void SDL_SetKeyboardFocus(SDL_Window *window)
 {
     SDL_Keyboard *keyboard = &SDL_keyboard;
 
-    if (keyboard->focus && window == NULL) {
+    if (keyboard->focus && !window) {
         /* We won't get anymore keyboard messages, so reset keyboard state */
         SDL_ResetKeyboard();
     }
@@ -1183,7 +1183,7 @@ const char *SDL_GetScancodeName(SDL_Scancode scancode)
     }
 
     name = SDL_scancode_names[scancode];
-    if (name != NULL) {
+    if (name) {
         return name;
     }
 
@@ -1194,7 +1194,7 @@ SDL_Scancode SDL_GetScancodeFromName(const char *name)
 {
     int i;
 
-    if (name == NULL || !*name) {
+    if (!name || !*name) {
         SDL_InvalidParamError("name");
         return SDL_SCANCODE_UNKNOWN;
     }
@@ -1254,7 +1254,7 @@ SDL_Keycode SDL_GetKeyFromName(const char *name)
     SDL_Keycode key;
 
     /* Check input */
-    if (name == NULL) {
+    if (!name) {
         return SDLK_UNKNOWN;
     }
 

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
     cvt.len = len;
     cvt.buf = (Uint8 *)SDL_malloc((size_t)len * cvt.len_mult);
-    if (cvt.buf == NULL) {
+    if (!cvt.buf) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory.\n");
         SDL_FreeWAV(data);
         SDL_Quit();
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 
     /* write out a WAV header... */
     io = SDL_RWFromFile(argv[2], "wb");
-    if (io == NULL) {
+    if (!io) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "fopen('%s') failed: %s\n", argv[2], SDL_GetError());
         SDL_free(cvt.buf);
         SDL_FreeWAV(data);

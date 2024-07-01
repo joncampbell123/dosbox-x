@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_HAIKU && SDL_VIDEO_OPENGL
+#if defined(SDL_VIDEO_DRIVER_HAIKU) && defined(SDL_VIDEO_OPENGL)
 
 #include "SDL_bopengl.h"
 
@@ -65,7 +65,7 @@ int HAIKU_GL_LoadLibrary(_THIS, const char *path)
 
 void *HAIKU_GL_GetProcAddress(_THIS, const char *proc)
 {
-    if (_this->gl_config.dll_handle != NULL) {
+    if (_this->gl_config.dll_handle) {
         void *location = NULL;
         status_t err;
         if ((err =
@@ -92,8 +92,8 @@ int HAIKU_GL_SwapWindow(_THIS, SDL_Window * window) {
 int HAIKU_GL_MakeCurrent(_THIS, SDL_Window * window, SDL_GLContext context) {
     BGLView* glView = (BGLView*)context;
     // printf("HAIKU_GL_MakeCurrent(%llx), win = %llx, thread = %d\n", (uint64)context, (uint64)window, find_thread(NULL));
-    if (glView != NULL) {
-        if ((glView->Window() == NULL) || (window == NULL) || (_ToBeWin(window)->GetGLView() != glView)) {
+    if (glView) {
+        if ((glView->Window() == NULL) || (!window) || (_ToBeWin(window)->GetGLView() != glView)) {
             return SDL_SetError("MakeCurrent failed");
         }
     }
@@ -146,7 +146,7 @@ void HAIKU_GL_DeleteContext(_THIS, SDL_GLContext context) {
     // printf("HAIKU_GL_DeleteContext(%llx), thread = %d\n", (uint64)context, find_thread(NULL));
     BGLView* glView = (BGLView*)context;
     SDL_BWin *bwin = (SDL_BWin*)glView->Window();
-    if (bwin == NULL) {
+    if (!bwin) {
         delete glView;
     } else {
         bwin->RemoveGLView();

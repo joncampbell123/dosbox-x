@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
     window = SDL_CreateWindow("CheckKeys Test",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               640, 480, 0);
-    if (window == NULL) {
+    if (!window) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create 640x480 window: %s\n",
                      SDL_GetError());
         quit(2);
@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
     renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_RenderPresent(renderer);
 
-#if __IPHONEOS__
+#ifdef __IPHONEOS__
     /* Creating the context creates the view, which we need to show keyboard */
     SDL_GL_CreateContext(window);
 #endif

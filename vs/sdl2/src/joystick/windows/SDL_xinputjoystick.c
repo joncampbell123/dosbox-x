@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 
 #include "../SDL_sysjoystick.h"
 
-#if SDL_JOYSTICK_XINPUT
+#ifdef SDL_JOYSTICK_XINPUT
 
 #include "SDL_hints.h"
 #include "SDL_timer.h"
@@ -40,7 +40,6 @@ extern "C" {
  * Internal stuff.
  */
 static SDL_bool s_bXInputEnabled = SDL_TRUE;
-static char *s_arrXInputDevicePath[XUSER_MAX_COUNT];
 
 static SDL_bool SDL_XInputUseOldJoystickMapping()
 {
@@ -116,119 +115,48 @@ static const char *GetXInputName(const Uint8 userid, BYTE SubType)
     return name;
 }
 
-/* We can't really tell what device is being used for XInput, but we can guess
-   and we'll be correct for the case where only one device is connected.
- */
-static void GuessXInputDevice(Uint8 userid, Uint16 *pVID, Uint16 *pPID, Uint16 *pVersion)
+static SDL_bool GetXInputDeviceInfo(Uint8 userid, Uint16 *pVID, Uint16 *pPID, Uint16 *pVersion)
 {
-#if !defined(__WINRT__) && !defined(__XBOXONE__) && !defined(__XBOXSERIES__) /* TODO: remove this ifndef __WINRT__ block, but only after integrating with UWP/WinRT's HID API */
-    PRAWINPUTDEVICELIST devices = NULL;
-    UINT i, j, device_count = 0;
+    SDL_XINPUT_CAPABILITIES_EX capabilities;
 
-    if ((GetRawInputDeviceList(NULL, &device_count, sizeof(RAWINPUTDEVICELIST)) == -1) || (!device_count)) {
-        return; /* oh well. */
+    if (!XINPUTGETCAPABILITIESEX || XINPUTGETCAPABILITIESEX(1, userid, 0, &capabilities) != ERROR_SUCCESS) {
+        return SDL_FALSE;
     }
 
-    devices = (PRAWINPUTDEVICELIST)SDL_malloc(sizeof(RAWINPUTDEVICELIST) * device_count);
-    if (devices == NULL) {
-        return;
+    /* Fixup for Wireless Xbox 360 Controller */
+    if (capabilities.ProductId == 0 && capabilities.Capabilities.Flags & XINPUT_CAPS_WIRELESS) {
+        capabilities.VendorId = USB_VENDOR_MICROSOFT;
+        capabilities.ProductId = USB_PRODUCT_XBOX360_XUSB_CONTROLLER;
     }
 
-    if (GetRawInputDeviceList(devices, &device_count, sizeof(RAWINPUTDEVICELIST)) == -1) {
-        SDL_free(devices);
-        return; /* oh well. */
+    if (pVID) {
+        *pVID = capabilities.VendorId;
     }
-
-    /* First see if we have a cached entry for this index */
-    if (s_arrXInputDevicePath[userid]) {
-        for (i = 0; i < device_count; i++) {
-            RID_DEVICE_INFO rdi;
-            char devName[128];
-            UINT rdiSize = sizeof(rdi);
-            UINT nameSize = SDL_arraysize(devName);
-
-            rdi.cbSize = sizeof(rdi);
-            if (devices[i].dwType == RIM_TYPEHID &&
-                GetRawInputDeviceInfoA(devices[i].hDevice, RIDI_DEVICEINFO, &rdi, &rdiSize) != (UINT)-1 &&
-                GetRawInputDeviceInfoA(devices[i].hDevice, RIDI_DEVICENAME, devName, &nameSize) != (UINT)-1) {
-                if (SDL_strcmp(devName, s_arrXInputDevicePath[userid]) == 0) {
-                    *pVID = (Uint16)rdi.hid.dwVendorId;
-                    *pPID = (Uint16)rdi.hid.dwProductId;
-                    *pVersion = (Uint16)rdi.hid.dwVersionNumber;
-                    SDL_free(devices);
-                    return;
-                }
-            }
-        }
+    if (pPID) {
+        *pPID = capabilities.ProductId;
     }
-
-    for (i = 0; i < device_count; i++) {
-        RID_DEVICE_INFO rdi;
-        char devName[MAX_PATH];
-        UINT rdiSize = sizeof(rdi);
-        UINT nameSize = SDL_arraysize(devName);
-
-        rdi.cbSize = sizeof(rdi);
-        if (devices[i].dwType == RIM_TYPEHID &&
-            GetRawInputDeviceInfoA(devices[i].hDevice, RIDI_DEVICEINFO, &rdi, &rdiSize) != (UINT)-1 &&
-            GetRawInputDeviceInfoA(devices[i].hDevice, RIDI_DEVICENAME, devName, &nameSize) != (UINT)-1) {
-#ifdef DEBUG_JOYSTICK
-            SDL_Log("Raw input device: VID = 0x%x, PID = 0x%x, %s\n", rdi.hid.dwVendorId, rdi.hid.dwProductId, devName);
-#endif
-            if (SDL_strstr(devName, "IG_") != NULL) {
-                SDL_bool found = SDL_FALSE;
-                for (j = 0; j < SDL_arraysize(s_arrXInputDevicePath); ++j) {
-                    if (!s_arrXInputDevicePath[j]) {
-                        continue;
-                    }
-                    if (SDL_strcmp(devName, s_arrXInputDevicePath[j]) == 0) {
-                        found = SDL_TRUE;
-                        break;
-                    }
-                }
-                if (found) {
-                    /* We already have this device in our XInput device list */
-                    continue;
-                }
-
-                /* We don't actually know if this is the right device for this
-                 * userid, but we'll record it so we'll at least be consistent
-                 * when the raw device list changes.
-                 */
-                if (rdi.hid.dwVendorId == USB_VENDOR_VALVE &&
-                    rdi.hid.dwProductId == USB_PRODUCT_STEAM_VIRTUAL_GAMEPAD) {
-                    /* Steam encodes the real device in the path */
-                    int realVID = rdi.hid.dwVendorId;
-                    int realPID = rdi.hid.dwProductId;
-                    (void)SDL_sscanf(devName, "\\\\.\\pipe\\HID#VID_045E&PID_028E&IG_00#%x&%x&", &realVID, &realPID);
-                    *pVID = (Uint16)realVID;
-                    *pPID = (Uint16)realPID;
-                    *pVersion = 0;
-                } else {
-                    *pVID = (Uint16)rdi.hid.dwVendorId;
-                    *pPID = (Uint16)rdi.hid.dwProductId;
-                    *pVersion = (Uint16)rdi.hid.dwVersionNumber;
-                }
-                if (s_arrXInputDevicePath[userid]) {
-                    SDL_free(s_arrXInputDevicePath[userid]);
-                }
-                s_arrXInputDevicePath[userid] = SDL_strdup(devName);
-                SDL_free(devices);
-                return;
-            }
-        }
+    if (pVersion) {
+        *pVersion = capabilities.ProductVersion;
     }
-    SDL_free(devices);
-#endif /* !__WINRT__ */
+    return SDL_TRUE;
+}
 
-    /* The device wasn't in the raw HID device list, it's probably Bluetooth */
-    *pVID = 0x045e; /* Microsoft */
-    *pPID = 0x02fd; /* XBox One S Bluetooth */
-    *pVersion = 0;
+int SDL_XINPUT_GetSteamVirtualGamepadSlot(Uint8 userid)
+{
+    SDL_XINPUT_CAPABILITIES_EX capabilities;
+
+    if (XINPUTGETCAPABILITIESEX &&
+        XINPUTGETCAPABILITIESEX(1, userid, 0, &capabilities) == ERROR_SUCCESS &&
+        capabilities.VendorId == USB_VENDOR_VALVE &&
+        capabilities.ProductId == USB_PRODUCT_STEAM_VIRTUAL_GAMEPAD) {
+        return (int)capabilities.unk2;
+    }
+    return -1;
 }
 
 static void AddXInputDevice(Uint8 userid, BYTE SubType, JoyStick_DeviceData **pContext)
 {
+    const char *name = NULL;
     Uint16 vendor = 0;
     Uint16 product = 0;
     Uint16 version = 0;
@@ -276,21 +204,21 @@ static void AddXInputDevice(Uint8 userid, BYTE SubType, JoyStick_DeviceData **pC
     }
 
     pNewJoystick = (JoyStick_DeviceData *)SDL_calloc(1, sizeof(JoyStick_DeviceData));
-    if (pNewJoystick == NULL) {
+    if (!pNewJoystick) {
         return; /* better luck next time? */
     }
 
+    name = GetXInputName(userid, SubType);
+    GetXInputDeviceInfo(userid, &vendor, &product, &version);
     pNewJoystick->bXInputDevice = SDL_TRUE;
-    pNewJoystick->joystickname = SDL_CreateJoystickName(vendor, product, NULL, GetXInputName(userid, SubType));
+    pNewJoystick->joystickname = SDL_CreateJoystickName(vendor, product, NULL, name);
     if (!pNewJoystick->joystickname) {
         SDL_free(pNewJoystick);
         return; /* better luck next time? */
     }
     (void)SDL_snprintf(pNewJoystick->path, sizeof(pNewJoystick->path), "XInput#%d", userid);
     if (!SDL_XInputUseOldJoystickMapping()) {
-        GuessXInputDevice(userid, &vendor, &product, &version);
-
-        pNewJoystick->guid = SDL_CreateJoystickGUID(SDL_HARDWARE_BUS_USB, vendor, product, version, pNewJoystick->joystickname, 'x', SubType);
+        pNewJoystick->guid = SDL_CreateJoystickGUID(SDL_HARDWARE_BUS_USB, vendor, product, version, NULL, name, 'x', SubType);
     }
     pNewJoystick->SubType = SubType;
     pNewJoystick->XInputUserId = userid;
@@ -302,7 +230,7 @@ static void AddXInputDevice(Uint8 userid, BYTE SubType, JoyStick_DeviceData **pC
 
 #ifdef SDL_JOYSTICK_HIDAPI
     /* Since we're guessing about the VID/PID, use a hard-coded VID/PID to represent XInput */
-    if (HIDAPI_IsDevicePresent(USB_VENDOR_MICROSOFT, USB_PRODUCT_XBOX_ONE_XINPUT_CONTROLLER, version, pNewJoystick->joystickname)) {
+    if (HIDAPI_IsDevicePresent(USB_VENDOR_MICROSOFT, USB_PRODUCT_XBOX360_XUSB_CONTROLLER, version, pNewJoystick->joystickname)) {
         /* The HIDAPI driver is taking care of this device */
         SDL_free(pNewJoystick);
         return;
@@ -320,14 +248,6 @@ static void AddXInputDevice(Uint8 userid, BYTE SubType, JoyStick_DeviceData **pC
     WINDOWS_AddJoystickDevice(pNewJoystick);
 }
 
-static void DelXInputDevice(Uint8 userid)
-{
-    if (s_arrXInputDevicePath[userid]) {
-        SDL_free(s_arrXInputDevicePath[userid]);
-        s_arrXInputDevicePath[userid] = NULL;
-    }
-}
-
 void SDL_XINPUT_JoystickDetect(JoyStick_DeviceData **pContext)
 {
     int iuserid;
@@ -341,21 +261,7 @@ void SDL_XINPUT_JoystickDetect(JoyStick_DeviceData **pContext)
         const Uint8 userid = (Uint8)iuserid;
         XINPUT_CAPABILITIES capabilities;
         if (XINPUTGETCAPABILITIES(userid, XINPUT_FLAG_GAMEPAD, &capabilities) == ERROR_SUCCESS) {
-            /* Adding a new device, must handle all removes first, or GuessXInputDevice goes terribly wrong (returns
-              a product/vendor ID that is not even attached to the system) when we get a remove and add on the same tick
-              (e.g. when disconnecting a device and the OS reassigns which userid an already-attached controller is)
-            */
-            int iuserid2;
-            for (iuserid2 = iuserid - 1; iuserid2 >= 0; iuserid2--) {
-                const Uint8 userid2 = (Uint8)iuserid2;
-                XINPUT_CAPABILITIES capabilities2;
-                if (XINPUTGETCAPABILITIES(userid2, XINPUT_FLAG_GAMEPAD, &capabilities2) != ERROR_SUCCESS) {
-                    DelXInputDevice(userid2);
-                }
-            }
             AddXInputDevice(userid, capabilities.SubType, pContext);
-        } else {
-            DelXInputDevice(userid);
         }
     }
 }
@@ -422,7 +328,7 @@ static void UpdateXInputJoystickBatteryInformation(SDL_Joystick *joystick, XINPU
     }
 }
 
-static void UpdateXInputJoystickState_OLD(SDL_Joystick *joystick, XINPUT_STATE_EX *pXInputState, XINPUT_BATTERY_INFORMATION_EX *pBatteryInformation)
+static void UpdateXInputJoystickState_OLD(SDL_Joystick *joystick, XINPUT_STATE *pXInputState, XINPUT_BATTERY_INFORMATION_EX *pBatteryInformation)
 {
     static WORD s_XInputButtons[] = {
         XINPUT_GAMEPAD_DPAD_UP, XINPUT_GAMEPAD_DPAD_DOWN, XINPUT_GAMEPAD_DPAD_LEFT, XINPUT_GAMEPAD_DPAD_RIGHT,
@@ -448,7 +354,7 @@ static void UpdateXInputJoystickState_OLD(SDL_Joystick *joystick, XINPUT_STATE_E
     UpdateXInputJoystickBatteryInformation(joystick, pBatteryInformation);
 }
 
-static void UpdateXInputJoystickState(SDL_Joystick *joystick, XINPUT_STATE_EX *pXInputState, XINPUT_BATTERY_INFORMATION_EX *pBatteryInformation)
+static void UpdateXInputJoystickState(SDL_Joystick *joystick, XINPUT_STATE *pXInputState, XINPUT_BATTERY_INFORMATION_EX *pBatteryInformation)
 {
     static WORD s_XInputButtons[] = {
         XINPUT_GAMEPAD_A, XINPUT_GAMEPAD_B, XINPUT_GAMEPAD_X, XINPUT_GAMEPAD_Y,
@@ -462,13 +368,9 @@ static void UpdateXInputJoystickState(SDL_Joystick *joystick, XINPUT_STATE_EX *p
 
     SDL_PrivateJoystickAxis(joystick, 0, pXInputState->Gamepad.sThumbLX);
     SDL_PrivateJoystickAxis(joystick, 1, ~pXInputState->Gamepad.sThumbLY);
-    //SDL_PrivateJoystickAxis(joystick, 2, ((int)pXInputState->Gamepad.bLeftTrigger * 257) - 32768);
-    //SDL_PrivateJoystickAxis(joystick, 3, pXInputState->Gamepad.sThumbRX);
-    //SDL_PrivateJoystickAxis(joystick, 4, ~pXInputState->Gamepad.sThumbRY);
-    // Fixes for DOSBox-X
-    SDL_PrivateJoystickAxis(joystick, 2, pXInputState->Gamepad.sThumbRX);
-    SDL_PrivateJoystickAxis(joystick, 3, ~pXInputState->Gamepad.sThumbRY);
-    SDL_PrivateJoystickAxis(joystick, 4, ((int)pXInputState->Gamepad.bLeftTrigger * 257) - 32768);
+    SDL_PrivateJoystickAxis(joystick, 2, ((int)pXInputState->Gamepad.bLeftTrigger * 257) - 32768);
+    SDL_PrivateJoystickAxis(joystick, 3, pXInputState->Gamepad.sThumbRX);
+    SDL_PrivateJoystickAxis(joystick, 4, ~pXInputState->Gamepad.sThumbRY);
     SDL_PrivateJoystickAxis(joystick, 5, ((int)pXInputState->Gamepad.bRightTrigger * 257) - 32768);
 
     for (button = 0; button < (Uint8)SDL_arraysize(s_XInputButtons); ++button) {
@@ -516,7 +418,7 @@ Uint32 SDL_XINPUT_JoystickGetCapabilities(SDL_Joystick *joystick)
 void SDL_XINPUT_JoystickUpdate(SDL_Joystick *joystick)
 {
     HRESULT result;
-    XINPUT_STATE_EX XInputState;
+    XINPUT_STATE XInputState;
     XINPUT_BATTERY_INFORMATION_EX XBatteryInformation;
 
     if (!XINPUTGETSTATE) {

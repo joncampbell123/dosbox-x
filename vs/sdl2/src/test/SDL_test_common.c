@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -72,7 +72,7 @@ SDLTest_CommonState *SDLTest_CommonCreateState(char **argv, Uint32 flags)
     }
 
     state = (SDLTest_CommonState *)SDL_calloc(1, sizeof(*state));
-    if (state == NULL) {
+    if (!state) {
         SDL_OutOfMemory();
         return NULL;
     }
@@ -134,6 +134,7 @@ int SDLTest_CommonArg(SDLTest_CommonState *state, int index)
             return -1;
         }
         state->videodriver = argv[index];
+        SDL_SetHint(SDL_HINT_VIDEODRIVER, state->videodriver);
         return 2;
     }
     if (SDL_strcasecmp(argv[index], "--renderer") == 0) {
@@ -591,7 +592,7 @@ void SDLTest_CommonLogUsage(SDLTest_CommonState *state, const char *argv0, const
 static const char *BuildCommonUsageString(char **pstr, const char **strlist, const int numitems, const char **strlist2, const int numitems2)
 {
     char *str = *pstr;
-    if (str == NULL) {
+    if (!str) {
         size_t len = SDL_strlen("[--trackmem]") + 2;
         int i;
         for (i = 0; i < numitems; i++) {
@@ -603,7 +604,7 @@ static const char *BuildCommonUsageString(char **pstr, const char **strlist, con
             }
         }
         str = (char *)SDL_calloc(1, len);
-        if (str == NULL) {
+        if (!str) {
             return ""; /* oh well. */
         }
         SDL_strlcat(str, "[--trackmem] ", len);
@@ -802,6 +803,82 @@ static void SDLTest_PrintWindowFlags(char *text, size_t maxlen, Uint32 flags)
     }
 }
 
+static void SDLTest_PrintModStateFlag(char *text, size_t maxlen, SDL_Keymod flag)
+{
+    switch (flag) {
+    case KMOD_LSHIFT:
+        SDL_snprintfcat(text, maxlen, "LSHIFT");
+        break;
+    case KMOD_RSHIFT:
+        SDL_snprintfcat(text, maxlen, "RSHIFT");
+        break;
+    case KMOD_LCTRL:
+        SDL_snprintfcat(text, maxlen, "LCTRL");
+        break;
+    case KMOD_RCTRL:
+        SDL_snprintfcat(text, maxlen, "RCTRL");
+        break;
+    case KMOD_LALT:
+        SDL_snprintfcat(text, maxlen, "LALT");
+        break;
+    case KMOD_RALT:
+        SDL_snprintfcat(text, maxlen, "RALT");
+        break;
+    case KMOD_LGUI:
+        SDL_snprintfcat(text, maxlen, "LGUI");
+        break;
+    case KMOD_RGUI:
+        SDL_snprintfcat(text, maxlen, "RGUI");
+        break;
+    case KMOD_NUM:
+        SDL_snprintfcat(text, maxlen, "NUM");
+        break;
+    case KMOD_CAPS:
+        SDL_snprintfcat(text, maxlen, "CAPS");
+        break;
+    case KMOD_MODE:
+        SDL_snprintfcat(text, maxlen, "MODE");
+        break;
+    case KMOD_SCROLL:
+        SDL_snprintfcat(text, maxlen, "SCROLL");
+        break;
+    default:
+        SDL_snprintfcat(text, maxlen, "0x%8.8x", (unsigned int) flag);
+        break;
+    }
+}
+
+static void SDLTest_PrintModState(char *text, size_t maxlen, SDL_Keymod keymod)
+{
+    const SDL_Keymod kmod_flags[] = {
+        KMOD_LSHIFT,
+        KMOD_RSHIFT,
+        KMOD_LCTRL,
+        KMOD_RCTRL,
+        KMOD_LALT,
+        KMOD_RALT,
+        KMOD_LGUI,
+        KMOD_RGUI,
+        KMOD_NUM,
+        KMOD_CAPS,
+        KMOD_MODE,
+        KMOD_SCROLL
+    };
+
+    int i;
+    int count = 0;
+    for (i = 0; i < SDL_arraysize(kmod_flags); ++i) {
+        const SDL_Keymod flag = kmod_flags[i];
+        if ((keymod & flag) == flag) {
+            if (count > 0) {
+                SDL_snprintfcat(text, maxlen, " | ");
+            }
+            SDLTest_PrintModStateFlag(text, maxlen, flag);
+            ++count;
+        }
+    }
+}
+
 static void SDLTest_PrintButtonMask(char *text, size_t maxlen, Uint32 flags)
 {
     int i;
@@ -850,6 +927,12 @@ static void SDLTest_PrintPixelFormat(char *text, size_t maxlen, Uint32 format)
         break;
     case SDL_PIXELFORMAT_INDEX1MSB:
         SDL_snprintfcat(text, maxlen, "Index1MSB");
+        break;
+    case SDL_PIXELFORMAT_INDEX2LSB:
+        SDL_snprintfcat(text, maxlen, "Index2LSB");
+        break;
+    case SDL_PIXELFORMAT_INDEX2MSB:
+        SDL_snprintfcat(text, maxlen, "Index2MSB");
         break;
     case SDL_PIXELFORMAT_INDEX4LSB:
         SDL_snprintfcat(text, maxlen, "Index4LSB");
@@ -991,7 +1074,7 @@ static SDL_Surface *SDLTest_LoadIcon(const char *file)
 
     /* Load the icon surface */
     icon = SDL_LoadBMP(file);
-    if (icon == NULL) {
+    if (!icon) {
         SDL_Log("Couldn't load %s: %s\n", file, SDL_GetError());
         return NULL;
     }
@@ -1120,7 +1203,7 @@ SDL_bool SDLTest_CommonInit(SDLTest_CommonState *state)
             SDL_DisplayMode mode;
             int bpp;
             Uint32 Rmask, Gmask, Bmask, Amask;
-#if SDL_VIDEO_DRIVER_WINDOWS
+#ifdef SDL_VIDEO_DRIVER_WINDOWS
             int adapterIndex = 0;
             int outputIndex = 0;
 #endif
@@ -1183,7 +1266,7 @@ SDL_bool SDLTest_CommonInit(SDLTest_CommonState *state)
                     }
                 }
 
-#if SDL_VIDEO_DRIVER_WINDOWS && !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
+#if defined(SDL_VIDEO_DRIVER_WINDOWS) && !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
                 /* Print the D3D9 adapter index */
                 adapterIndex = SDL_Direct3D9GetAdapterIndex(i);
                 SDL_Log("D3D9 Adapter Index: %d", adapterIndex);
@@ -1511,11 +1594,10 @@ static void SDLTest_PrintEvent(SDL_Event *event)
             SDL_Log("SDL EVENT: Window %" SDL_PRIu32 " restored", event->window.windowID);
             break;
         case SDL_WINDOWEVENT_ENTER:
-            SDL_Log("SDL EVENT: Mouse entered window %" SDL_PRIu32 "",
-                    event->window.windowID);
+            SDL_Log("SDL EVENT: Mouse entered window %" SDL_PRIu32, event->window.windowID);
             break;
         case SDL_WINDOWEVENT_LEAVE:
-            SDL_Log("SDL EVENT: Mouse left window %" SDL_PRIu32 "", event->window.windowID);
+            SDL_Log("SDL EVENT: Mouse left window %" SDL_PRIu32, event->window.windowID);
             break;
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             SDL_Log("SDL EVENT: Window %" SDL_PRIu32 " gained keyboard focus",
@@ -1538,7 +1620,7 @@ static void SDLTest_PrintEvent(SDL_Event *event)
             SDL_Log("SDL EVENT: Window %" SDL_PRIu32 " ICC profile changed", event->window.windowID);
             break;
         case SDL_WINDOWEVENT_DISPLAY_CHANGED:
-            SDL_Log("SDL EVENT: Window %" SDL_PRIu32 " display changed to %" SDL_PRIs32 "", event->window.windowID, event->window.data1);
+            SDL_Log("SDL EVENT: Window %" SDL_PRIu32 " display changed to %" SDL_PRIs32, event->window.windowID, event->window.data1);
             break;
         default:
             SDL_Log("SDL EVENT: Window %" SDL_PRIu32 " got unknown event 0x%4.4x",
@@ -1547,19 +1629,23 @@ static void SDLTest_PrintEvent(SDL_Event *event)
         }
         break;
     case SDL_KEYDOWN:
-        SDL_Log("SDL EVENT: Keyboard: key pressed  in window %" SDL_PRIu32 ": scancode 0x%08X = %s, keycode 0x%08" SDL_PRIX32 " = %s",
+    case SDL_KEYUP: {
+        char modstr[64];
+        if (event->key.keysym.mod) {
+            modstr[0] = '\0';
+            SDLTest_PrintModState(modstr, sizeof (modstr), event->key.keysym.mod);
+        } else {
+            SDL_strlcpy(modstr, "NONE", sizeof (modstr));
+        }
+        SDL_Log("SDL EVENT: Keyboard: key %s in window %" SDL_PRIu32 ": scancode 0x%08X = %s, keycode 0x%08" SDL_PRIX32 " = %s, mods = %s",
+                (event->type == SDL_KEYDOWN) ? "pressed" : "released",
                 event->key.windowID,
                 event->key.keysym.scancode,
                 SDL_GetScancodeName(event->key.keysym.scancode),
-                event->key.keysym.sym, SDL_GetKeyName(event->key.keysym.sym));
+                event->key.keysym.sym, SDL_GetKeyName(event->key.keysym.sym),
+                modstr);
         break;
-    case SDL_KEYUP:
-        SDL_Log("SDL EVENT: Keyboard: key released in window %" SDL_PRIu32 ": scancode 0x%08X = %s, keycode 0x%08" SDL_PRIX32 " = %s",
-                event->key.windowID,
-                event->key.keysym.scancode,
-                SDL_GetScancodeName(event->key.keysym.scancode),
-                event->key.keysym.sym, SDL_GetKeyName(event->key.keysym.sym));
-        break;
+    }
     case SDL_TEXTEDITING:
         SDL_Log("SDL EVENT: Keyboard: text editing \"%s\" in window %" SDL_PRIu32,
                 event->edit.text, event->edit.windowID);
@@ -1756,7 +1842,7 @@ static void SDLTest_ScreenShot(SDL_Renderer *renderer)
     SDL_Rect viewport;
     SDL_Surface *surface;
 
-    if (renderer == NULL) {
+    if (!renderer) {
         return;
     }
 
@@ -1768,7 +1854,7 @@ static void SDLTest_ScreenShot(SDL_Renderer *renderer)
                                    0x000000FF, 0x0000FF00, 0x00FF0000,
 #endif
                                    0x00000000);
-    if (surface == NULL) {
+    if (!surface) {
         SDL_Log("Couldn't create surface: %s\n", SDL_GetError());
         return;
     }
@@ -1792,7 +1878,7 @@ static void FullscreenTo(int index, int windowId)
     Uint32 flags;
     struct SDL_Rect rect = { 0, 0, 0, 0 };
     SDL_Window *window = SDL_GetWindowFromID(windowId);
-    if (window == NULL) {
+    if (!window) {
         return;
     }
 
@@ -2391,6 +2477,19 @@ void SDLTest_CommonDrawWindowInfo(SDL_Renderer *renderer, SDL_Window *window, in
     flags = SDL_GetGlobalMouseState(&x, &y);
     (void)SDL_snprintf(text, sizeof(text), "SDL_GetGlobalMouseState: %d,%d ", x, y);
     SDLTest_PrintButtonMask(text, sizeof(text), flags);
+    SDLTest_DrawString(renderer, 0, textY, text);
+    textY += lineHeight;
+
+    /* Keyboard */
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDLTest_DrawString(renderer, 0, textY, "-- Keyboard --");
+    textY += lineHeight;
+
+    SDL_SetRenderDrawColor(renderer, 170, 170, 170, 255);
+
+    (void)SDL_snprintf(text, sizeof(text), "SDL_GetModState: ");
+    SDLTest_PrintModState(text, sizeof(text), SDL_GetModState());
     SDLTest_DrawString(renderer, 0, textY, text);
     textY += lineHeight;
 

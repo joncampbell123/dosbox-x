@@ -95,7 +95,7 @@ installedtestsmetadir = $(datadir)/installed-tests/SDL2
 
 generatetestmeta:
 	rm -f *.test
-	set -e; for exe in $(noninteractive) $(needs_audio) $(needs_display); do \
+	set -e; for exe in $(TESTS); do \
 		sed \
 			-e 's#@installedtestsdir@#$(installedtestsdir)#g' \
 			-e "s#@exe@#$$exe#g" \
@@ -141,6 +141,7 @@ testautomation$(EXE): $(srcdir)/testautomation.c \
 		      $(srcdir)/testautomation_hints.c \
 		      $(srcdir)/testautomation_joystick.c \
 		      $(srcdir)/testautomation_keyboard.c \
+		      $(srcdir)/testautomation_log.c \
 		      $(srcdir)/testautomation_main.c \
 		      $(srcdir)/testautomation_math.c \
 		      $(srcdir)/testautomation_mouse.c \
@@ -151,6 +152,7 @@ testautomation$(EXE): $(srcdir)/testautomation.c \
 		      $(srcdir)/testautomation_rwops.c \
 		      $(srcdir)/testautomation_sdltest.c \
 		      $(srcdir)/testautomation_stdlib.c \
+		      $(srcdir)/testautomation_subsystems.c \
 		      $(srcdir)/testautomation_surface.c \
 		      $(srcdir)/testautomation_syswm.c \
 		      $(srcdir)/testautomation_timer.c \
@@ -385,8 +387,12 @@ distclean: clean
 	rm -f config.status config.cache config.log
 	rm -rf $(srcdir)/autom4te*
 
-noninteractive = \
+TESTS = \
 	testatomic$(EXE) \
+	testaudioinfo$(EXE) \
+	testautomation$(EXE) \
+	testbounds$(EXE) \
+	testdisplayinfo$(EXE) \
 	testerror$(EXE) \
 	testevdev$(EXE) \
 	testfilesystem$(EXE) \
@@ -395,22 +401,11 @@ noninteractive = \
 	testplatform$(EXE) \
 	testpower$(EXE) \
 	testqsort$(EXE) \
+	testsurround$(EXE) \
 	testthread$(EXE) \
 	testtimer$(EXE) \
 	testver$(EXE) \
 	$(NULL)
-
-needs_audio = \
-	testaudioinfo$(EXE) \
-	testsurround$(EXE) \
-	$(NULL)
-
-needs_display = \
-	testbounds$(EXE) \
-	testdisplayinfo$(EXE) \
-	$(NULL)
-
-TESTS = $(noninteractive) $(needs_audio) $(needs_display)
 
 check:
 	@set -e; \

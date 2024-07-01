@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -84,7 +84,7 @@ static void SDL_TrackAllocation(void *mem, size_t size)
         return;
     }
     entry = (SDL_tracked_allocation *)SDL_malloc_orig(sizeof(*entry));
-    if (entry == NULL) {
+    if (!entry) {
         return;
     }
     entry->mem = mem;
@@ -184,7 +184,7 @@ static void *SDLCALL SDLTest_TrackedRealloc(void *ptr, size_t size)
 
 static void SDLCALL SDLTest_TrackedFree(void *ptr)
 {
-    if (ptr == NULL) {
+    if (!ptr) {
         return;
     }
 

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -42,6 +42,7 @@ SDL_KMSDRM_SYM(void,drmModeFreeConnector,(drmModeConnectorPtr ptr))
 SDL_KMSDRM_SYM(void,drmModeFreeEncoder,(drmModeEncoderPtr ptr))
 SDL_KMSDRM_SYM(int,drmGetCap,(int fd, uint64_t capability, uint64_t *value))
 SDL_KMSDRM_SYM(int,drmSetMaster,(int fd))
+SDL_KMSDRM_SYM(int,drmDropMaster,(int fd))
 SDL_KMSDRM_SYM(int,drmAuthMagic,(int fd, drm_magic_t magic))
 SDL_KMSDRM_SYM(drmModeResPtr,drmModeGetResources,(int fd))
 SDL_KMSDRM_SYM(int,drmModeAddFB,(int fd, uint32_t width, uint32_t height, uint8_t depth,
@@ -62,7 +63,7 @@ SDL_KMSDRM_SYM(int,drmModeSetCrtc,(int fd, uint32_t crtcId, uint32_t bufferId,
 SDL_KMSDRM_SYM(int,drmModeCrtcGetGamma,(int fd, uint32_t crtc_id, uint32_t size,
                                         uint16_t *red, uint16_t *green, uint16_t *blue))
 SDL_KMSDRM_SYM(int,drmModeCrtcSetGamma,(int fd, uint32_t crtc_id, uint32_t size,
-                                        uint16_t *red, uint16_t *green, uint16_t *blue))
+                                        const uint16_t *red, const uint16_t *green, const uint16_t *blue))
 SDL_KMSDRM_SYM(int,drmModeSetCursor,(int fd, uint32_t crtcId, uint32_t bo_handle,
                                      uint32_t width, uint32_t height))
 SDL_KMSDRM_SYM(int,drmModeSetCursor2,(int fd, uint32_t crtcId, uint32_t bo_handle,

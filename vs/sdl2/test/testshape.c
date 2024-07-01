@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
     num_pictures = argc - 1;
     pictures = (LoadedPicture *)SDL_malloc(sizeof(LoadedPicture) * num_pictures);
-    if (pictures == NULL) {
+    if (!pictures) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not allocate memory.");
         exit(1);
     }
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
                                     SHAPED_WINDOW_DIMENSION, SHAPED_WINDOW_DIMENSION,
                                     0);
     SDL_SetWindowPosition(window, SHAPED_WINDOW_X, SHAPED_WINDOW_Y);
-    if (window == NULL) {
+    if (!window) {
         for (i = 0; i < num_pictures; i++) {
             SDL_FreeSurface(pictures[i].surface);
         }
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
         exit(-4);
     }
     renderer = SDL_CreateRenderer(window, -1, 0);
-    if (renderer == NULL) {
+    if (!renderer) {
         SDL_DestroyWindow(window);
         for (i = 0; i < num_pictures; i++) {
             SDL_FreeSurface(pictures[i].surface);

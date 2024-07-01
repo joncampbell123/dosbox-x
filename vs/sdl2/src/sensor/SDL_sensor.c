@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,7 @@
 #include "SDL_events.h"
 #include "SDL_syssensor.h"
 
-#if !SDL_EVENTS_DISABLED
+#ifndef SDL_EVENTS_DISABLED
 #include "../events/SDL_events_c.h"
 #endif
 
@@ -75,7 +75,7 @@ int SDL_SensorInit(void)
         SDL_sensor_lock = SDL_CreateMutex();
     }
 
-#if !SDL_EVENTS_DISABLED
+#ifndef SDL_EVENTS_DISABLED
     if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0) {
         return -1;
     }
@@ -108,7 +108,7 @@ int SDL_NumSensors(void)
  * Return the next available sensor instance ID
  * This may be called by drivers from multiple threads, unprotected by any locks
  */
-SDL_SensorID SDL_GetNextSensorInstanceID()
+SDL_SensorID SDL_GetNextSensorInstanceID(void)
 {
     return SDL_AtomicIncRef(&SDL_next_sensor_instance_id);
 }
@@ -237,7 +237,7 @@ SDL_Sensor *SDL_SensorOpen(int device_index)
 
     /* Create and initialize the sensor */
     sensor = (SDL_Sensor *)SDL_calloc(sizeof(*sensor), 1);
-    if (sensor == NULL) {
+    if (!sensor) {
         SDL_OutOfMemory();
         SDL_UnlockSensors();
         return NULL;
@@ -297,7 +297,7 @@ static int SDL_PrivateSensorValid(SDL_Sensor *sensor)
 {
     int valid;
 
-    if (sensor == NULL) {
+    if (!sensor) {
         SDL_SetError("Sensor hasn't been opened yet");
         valid = 0;
     } else {
@@ -454,7 +454,7 @@ void SDL_SensorQuit(void)
 
     SDL_UnlockSensors();
 
-#if !SDL_EVENTS_DISABLED
+#ifndef SDL_EVENTS_DISABLED
     SDL_QuitSubSystem(SDL_INIT_EVENTS);
 #endif
 
@@ -479,7 +479,7 @@ int SDL_PrivateSensorUpdate(SDL_Sensor *sensor, Uint64 timestamp_us, float *data
 
     /* Post the event, if desired */
     posted = 0;
-#if !SDL_EVENTS_DISABLED
+#ifndef SDL_EVENTS_DISABLED
     if (SDL_GetEventState(SDL_SENSORUPDATE) == SDL_ENABLE) {
         SDL_Event event;
         event.type = SDL_SENSORUPDATE;

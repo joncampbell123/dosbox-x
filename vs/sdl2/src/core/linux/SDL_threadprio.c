@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,7 +26,7 @@
 #include "SDL_stdinc.h"
 #include "SDL_thread.h"
 
-#if !SDL_THREADS_DISABLED
+#ifndef SDL_THREADS_DISABLED
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <pthread.h>
@@ -44,7 +44,7 @@
 
 #include "SDL_dbus.h"
 
-#if SDL_USE_LIBDBUS
+#ifdef SDL_USE_LIBDBUS
 #include <sched.h>
 
 /* d-bus queries to org.freedesktop.RealtimeKit1. */
@@ -116,19 +116,19 @@ static void rtkit_initialize()
     dbus_conn = get_rtkit_dbus_connection();
 
     /* Try getting minimum nice level: this is often greater than PRIO_MIN (-20). */
-    if (dbus_conn == NULL || !SDL_DBus_QueryPropertyOnConnection(dbus_conn, rtkit_dbus_node, rtkit_dbus_path, rtkit_dbus_interface, "MinNiceLevel",
+    if (!dbus_conn || !SDL_DBus_QueryPropertyOnConnection(dbus_conn, rtkit_dbus_node, rtkit_dbus_path, rtkit_dbus_interface, "MinNiceLevel",
                                                                  DBUS_TYPE_INT32, &rtkit_min_nice_level)) {
         rtkit_min_nice_level = -20;
     }
 
     /* Try getting maximum realtime priority: this can be less than the POSIX default (99). */
-    if (dbus_conn == NULL || !SDL_DBus_QueryPropertyOnConnection(dbus_conn, rtkit_dbus_node, rtkit_dbus_path, rtkit_dbus_interface, "MaxRealtimePriority",
+    if (!dbus_conn || !SDL_DBus_QueryPropertyOnConnection(dbus_conn, rtkit_dbus_node, rtkit_dbus_path, rtkit_dbus_interface, "MaxRealtimePriority",
                                                                  DBUS_TYPE_INT32, &rtkit_max_realtime_priority)) {
         rtkit_max_realtime_priority = 99;
     }
 
     /* Try getting maximum rttime allowed by rtkit: exceeding this value will result in SIGKILL */
-    if (dbus_conn == NULL || !SDL_DBus_QueryPropertyOnConnection(dbus_conn, rtkit_dbus_node, rtkit_dbus_path, rtkit_dbus_interface, "RTTimeUSecMax",
+    if (!dbus_conn || !SDL_DBus_QueryPropertyOnConnection(dbus_conn, rtkit_dbus_node, rtkit_dbus_path, rtkit_dbus_interface, "RTTimeUSecMax",
                                                                  DBUS_TYPE_INT64, &rtkit_max_rttime_usec)) {
         rtkit_max_rttime_usec = 200000;
     }
@@ -207,7 +207,7 @@ static SDL_bool rtkit_setpriority_nice(pid_t thread, int nice_level)
         nice = rtkit_min_nice_level;
     }
 
-    if (dbus_conn == NULL || !SDL_DBus_CallMethodOnConnection(dbus_conn,
+    if (!dbus_conn || !SDL_DBus_CallMethodOnConnection(dbus_conn,
                                                               rtkit_dbus_node, rtkit_dbus_path, rtkit_dbus_interface, "MakeThreadHighPriorityWithPID",
                                                               DBUS_TYPE_UINT64, &pid, DBUS_TYPE_UINT64, &tid, DBUS_TYPE_INT32, &nice, DBUS_TYPE_INVALID,
                                                               DBUS_TYPE_INVALID)) {
@@ -238,7 +238,7 @@ static SDL_bool rtkit_setpriority_realtime(pid_t thread, int rt_priority)
     // go through to determine whether it really needs to fail or not.
     rtkit_initialize_realtime_thread();
 
-    if (dbus_conn == NULL || !SDL_DBus_CallMethodOnConnection(dbus_conn,
+    if (!dbus_conn || !SDL_DBus_CallMethodOnConnection(dbus_conn,
                                                               rtkit_dbus_node, rtkit_dbus_path, rtkit_dbus_interface, "MakeThreadRealtimeWithPID",
                                                               DBUS_TYPE_UINT64, &pid, DBUS_TYPE_UINT64, &tid, DBUS_TYPE_UINT32, &priority, DBUS_TYPE_INVALID,
                                                               DBUS_TYPE_INVALID)) {
@@ -256,14 +256,14 @@ static SDL_bool rtkit_setpriority_realtime(pid_t thread, int rt_priority)
 /* this is a public symbol, so it has to exist even if threads are disabled. */
 int SDL_LinuxSetThreadPriority(Sint64 threadID, int priority)
 {
-#if SDL_THREADS_DISABLED
+#ifdef SDL_THREADS_DISABLED
     return SDL_Unsupported();
 #else
     if (setpriority(PRIO_PROCESS, (id_t)threadID, priority) == 0) {
         return 0;
     }
 
-#if SDL_USE_LIBDBUS
+#ifdef SDL_USE_LIBDBUS
     /* Note that this fails you most likely:
          * Have your process's scheduler incorrectly configured.
            See the requirements at:
@@ -288,7 +288,7 @@ int SDL_LinuxSetThreadPriority(Sint64 threadID, int priority)
 /* this is a public symbol, so it has to exist even if threads are disabled. */
 int SDL_LinuxSetThreadPriorityAndPolicy(Sint64 threadID, int sdlPriority, int schedPolicy)
 {
-#if SDL_THREADS_DISABLED
+#ifdef SDL_THREADS_DISABLED
     return SDL_Unsupported();
 #else
     int osPriority;
@@ -319,7 +319,7 @@ int SDL_LinuxSetThreadPriorityAndPolicy(Sint64 threadID, int sdlPriority, int sc
         }
     }
 
-#if SDL_USE_LIBDBUS
+#ifdef SDL_USE_LIBDBUS
     /* Note that this fails you most likely:
      * Have your process's scheduler incorrectly configured.
        See the requirements at:

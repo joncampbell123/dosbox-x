@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -99,8 +99,10 @@ typedef unsigned int uintptr_t;
 #define HAVE_D3D11_H 1
 #define HAVE_ROAPI_H 1
 #endif
-#if defined(WDK_NTDDI_VERSION) && WDK_NTDDI_VERSION > 0x0A000008 /* 10.0.19041.0 */
+#if defined(__has_include)
+#if __has_include(<d3d12.h>) && __has_include(<d3d12sdklayers.h>)
 #define HAVE_D3D12_H 1
+#endif
 #endif
 #if defined(_WIN32_MAXVER) && _WIN32_MAXVER >= 0x0603  /* Windows 8.1 SDK */
 #define HAVE_SHELLSCALINGAPI_H 1
@@ -297,9 +299,6 @@ typedef unsigned int uintptr_t;
 #define SDL_VIDEO_RENDER_D3D12  1
 #endif
 
-#if defined(__WIN32__) && (defined(__arm__) || defined(__arm64__) || defined(_M_ARM) || defined(_M_ARM64))
-#define NO_OPENGL /* Don't enable for DOSBox-X on Windows ARM */
-#else
 /* Enable OpenGL support */
 #ifndef SDL_VIDEO_OPENGL
 #define SDL_VIDEO_OPENGL    1
@@ -318,7 +317,6 @@ typedef unsigned int uintptr_t;
 #endif
 #ifndef SDL_VIDEO_OPENGL_EGL
 #define SDL_VIDEO_OPENGL_EGL    1
-#endif
 #endif
 
 /* Enable Vulkan support */

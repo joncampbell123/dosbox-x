@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_THREAD_WINDOWS
+#ifdef SDL_THREAD_WINDOWS
 
 /* Win32 thread management routines for SDL */
 
@@ -49,7 +49,7 @@ static DWORD RunThread(void *data)
     SDL_Thread *thread = (SDL_Thread *)data;
     pfnSDL_CurrentEndThread pfnEndThread = (pfnSDL_CurrentEndThread)thread->endfunc;
     SDL_RunThread(thread);
-    if (pfnEndThread != NULL) {
+    if (pfnEndThread) {
         pfnEndThread(0);
     }
     return 0;
@@ -98,7 +98,7 @@ int SDL_SYS_CreateThread(SDL_Thread *thread)
                                       RunThreadViaCreateThread,
                                       thread, flags, &threadid);
     }
-    if (thread->handle == NULL) {
+    if (!thread->handle) {
         return SDL_SetError("Not enough resources to create thread");
     }
     return 0;
@@ -118,7 +118,7 @@ typedef HRESULT(WINAPI *pfnSetThreadDescription)(HANDLE, PCWSTR);
 
 void SDL_SYS_SetupThread(const char *name)
 {
-    if (name != NULL) {
+    if (name) {
 #ifndef __WINRT__ /* !!! FIXME: There's no LoadLibrary() in WinRT; don't know if SetThreadDescription is available there at all at the moment. */
         static pfnSetThreadDescription pSetThreadDescription = NULL;
         static HMODULE kernel32 = NULL;
@@ -130,7 +130,7 @@ void SDL_SYS_SetupThread(const char *name)
             }
         }
 
-        if (pSetThreadDescription != NULL) {
+        if (pSetThreadDescription) {
             WCHAR *strw = WIN_UTF8ToStringW(name);
             if (strw) {
                 pSetThreadDescription(GetCurrentThread(), strw);

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_X11
+#ifdef SDL_VIDEO_DRIVER_X11
 
 #include <limits.h> /* For INT_MAX */
 
@@ -132,10 +132,7 @@ static int SetSelectionText(_THIS, const char *text, Atom selection_type)
                         X11_GetSDLCutBufferClipboardInternalFormat(display, SDL_X11_CLIPBOARD_MIME_TYPE_STRING), 8, PropModeReplace,
                         (const unsigned char *)text, SDL_strlen(text));
 
-    if (X11_XGetSelectionOwner(display, selection_type) != window) {
-        X11_XSetSelectionOwner(display, selection_type, window, CurrentTime);
-    }
-
+    X11_XSetSelectionOwner(display, selection_type, window, CurrentTime);
     return 0;
 }
 
@@ -209,7 +206,7 @@ static char *GetSlectionText(_THIS, Atom selection_type)
         X11_XFree(src);
     }
 
-    if (text == NULL) {
+    if (!text) {
         text = SDL_strdup("");
     }
 

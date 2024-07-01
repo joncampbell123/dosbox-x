@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_OFFSCREEN
+#ifdef SDL_VIDEO_DRIVER_OFFSCREEN
 
 #include "../SDL_sysvideo.h"
 #include "../SDL_egl_c.h"
@@ -31,7 +31,7 @@ int OFFSCREEN_CreateWindow(_THIS, SDL_Window *window)
 {
     OFFSCREEN_Window *offscreen_window = SDL_calloc(1, sizeof(OFFSCREEN_Window));
 
-    if (offscreen_window == NULL) {
+    if (!offscreen_window) {
         return SDL_OutOfMemory();
     }
 
@@ -47,7 +47,7 @@ int OFFSCREEN_CreateWindow(_THIS, SDL_Window *window)
 
     offscreen_window->sdl_window = window;
 
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_EGL
     if (window->flags & SDL_WINDOW_OPENGL) {
 
         if (!_this->egl_data) {
@@ -73,7 +73,7 @@ void OFFSCREEN_DestroyWindow(_THIS, SDL_Window *window)
     OFFSCREEN_Window *offscreen_window = window->driverdata;
 
     if (offscreen_window) {
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_EGL
         SDL_EGL_DestroySurface(_this, offscreen_window->egl_surface);
 #endif
         SDL_free(offscreen_window);

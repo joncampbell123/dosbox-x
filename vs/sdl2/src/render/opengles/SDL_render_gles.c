@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_RENDER_OGL_ES && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_OGL_ES
 
 #include "SDL_hints.h"
 #include "../../video/SDL_sysvideo.h" /* For SDL_GL_SwapWindowWithResult */
@@ -150,11 +150,11 @@ static int GLES_SetError(const char *prefix, GLenum result)
 
 static int GLES_LoadFunctions(GLES_RenderData *data)
 {
-#if SDL_VIDEO_DRIVER_UIKIT
+#ifdef SDL_VIDEO_DRIVER_UIKIT
 #define __SDL_NOGETPROCADDR__
-#elif SDL_VIDEO_DRIVER_ANDROID
+#elif defined(SDL_VIDEO_DRIVER_ANDROID)
 #define __SDL_NOGETPROCADDR__
-#elif SDL_VIDEO_DRIVER_PANDORA
+#elif defined(SDL_VIDEO_DRIVER_PANDORA)
 #define __SDL_NOGETPROCADDR__
 #endif
 
@@ -187,7 +187,7 @@ static GLES_FBOList *GLES_GetFBO(GLES_RenderData *data, Uint32 w, Uint32 h)
     while ((result) && ((result->w != w) || (result->h != h))) {
         result = result->next;
     }
-    if (result == NULL) {
+    if (!result) {
         result = SDL_malloc(sizeof(GLES_FBOList));
         result->w = w;
         result->h = h;
@@ -322,7 +322,7 @@ static int GLES_CreateTexture(SDL_Renderer *renderer, SDL_Texture *texture)
     GLES_ActivateRenderer(renderer);
 
     switch (texture->format) {
-    case SDL_PIXELFORMAT_ABGR8888:
+    case SDL_PIXELFORMAT_RGBA32:
         internalFormat = GL_RGBA;
         format = GL_RGBA;
         type = GL_UNSIGNED_BYTE;
@@ -332,7 +332,7 @@ static int GLES_CreateTexture(SDL_Renderer *renderer, SDL_Texture *texture)
     }
 
     data = (GLES_TextureData *)SDL_calloc(1, sizeof(*data));
-    if (data == NULL) {
+    if (!data) {
         return SDL_OutOfMemory();
     }
 
@@ -424,7 +424,7 @@ static int GLES_UpdateTexture(SDL_Renderer *renderer, SDL_Texture *texture,
     src = (Uint8 *)pixels;
     if (pitch != srcPitch) {
         blob = (Uint8 *)SDL_malloc(srcPitch * rect->h);
-        if (blob == NULL) {
+        if (!blob) {
             return SDL_OutOfMemory();
         }
         src = blob;
@@ -510,7 +510,7 @@ static int GLES_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
 
     data->drawstate.viewport_dirty = SDL_TRUE;
 
-    if (texture == NULL) {
+    if (!texture) {
         data->glBindFramebufferOES(GL_FRAMEBUFFER_OES, data->window_framebuffer);
         return 0;
     }
@@ -537,7 +537,7 @@ static int GLES_QueueDrawPoints(SDL_Renderer *renderer, SDL_RenderCommand *cmd, 
     GLfloat *verts = (GLfloat *)SDL_AllocateRenderVertices(renderer, count * 2 * sizeof(GLfloat), 0, &cmd->data.draw.first);
     int i;
 
-    if (verts == NULL) {
+    if (!verts) {
         return -1;
     }
 
@@ -557,7 +557,7 @@ static int GLES_QueueDrawLines(SDL_Renderer *renderer, SDL_RenderCommand *cmd, c
     const size_t vertlen = (sizeof(GLfloat) * 2) * count;
     GLfloat *verts = (GLfloat *)SDL_AllocateRenderVertices(renderer, vertlen, 0, &cmd->data.draw.first);
 
-    if (verts == NULL) {
+    if (!verts) {
         return -1;
     }
     cmd->data.draw.count = count;
@@ -602,7 +602,7 @@ static int GLES_QueueGeometry(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SD
     int sz = 2 + 4 + (texture ? 2 : 0);
 
     verts = (GLfloat *)SDL_AllocateRenderVertices(renderer, count * sz * sizeof(GLfloat), 0, &cmd->data.draw.first);
-    if (verts == NULL) {
+    if (!verts) {
         return -1;
     }
 
@@ -900,7 +900,7 @@ static int GLES_RenderReadPixels(SDL_Renderer *renderer, const SDL_Rect *rect,
                                  Uint32 pixel_format, void *pixels, int pitch)
 {
     GLES_RenderData *data = (GLES_RenderData *)renderer->driverdata;
-    Uint32 temp_format = renderer->target ? renderer->target->format : SDL_PIXELFORMAT_ABGR8888;
+    Uint32 temp_format = renderer->target ? renderer->target->format : SDL_PIXELFORMAT_RGBA32;
     void *temp_pixels;
     int temp_pitch;
     Uint8 *src, *dst, *tmp;
@@ -911,7 +911,7 @@ static int GLES_RenderReadPixels(SDL_Renderer *renderer, const SDL_Rect *rect,
 
     temp_pitch = rect->w * SDL_BYTESPERPIXEL(temp_format);
     temp_pixels = SDL_malloc(rect->h * temp_pitch);
-    if (temp_pixels == NULL) {
+    if (!temp_pixels) {
         return SDL_OutOfMemory();
     }
 
@@ -970,7 +970,7 @@ static void GLES_DestroyTexture(SDL_Renderer *renderer, SDL_Texture *texture)
         renderdata->drawstate.target = NULL;
     }
 
-    if (data == NULL) {
+    if (!data) {
         return;
     }
     if (data->texture) {
@@ -1046,7 +1046,7 @@ static int GLES_SetVSync(SDL_Renderer *renderer, const int vsync)
     if (retval != 0) {
         return retval;
     }
-    if (SDL_GL_GetSwapInterval() > 0) {
+    if (SDL_GL_GetSwapInterval() != 0) {
         renderer->info.flags |= SDL_RENDERER_PRESENTVSYNC;
     } else {
         renderer->info.flags &= ~SDL_RENDERER_PRESENTVSYNC;
@@ -1082,13 +1082,13 @@ static SDL_Renderer *GLES_CreateRenderer(SDL_Window *window, Uint32 flags)
     }
 
     renderer = (SDL_Renderer *)SDL_calloc(1, sizeof(*renderer));
-    if (renderer == NULL) {
+    if (!renderer) {
         SDL_OutOfMemory();
         goto error;
     }
 
     data = (GLES_RenderData *)SDL_calloc(1, sizeof(*data));
-    if (data == NULL) {
+    if (!data) {
         GLES_DestroyRenderer(renderer);
         SDL_OutOfMemory();
         goto error;
@@ -1141,7 +1141,7 @@ static SDL_Renderer *GLES_CreateRenderer(SDL_Window *window, Uint32 flags)
     } else {
         SDL_GL_SetSwapInterval(0);
     }
-    if (SDL_GL_GetSwapInterval() > 0) {
+    if (SDL_GL_GetSwapInterval() != 0) {
         renderer->info.flags |= SDL_RENDERER_PRESENTVSYNC;
     }
 
@@ -1210,11 +1210,11 @@ SDL_RenderDriver GLES_RenderDriver = {
     { "opengles",
       (SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
       1,
-      { SDL_PIXELFORMAT_ABGR8888 },
+      { SDL_PIXELFORMAT_RGBA32 },
       0,
       0 }
 };
 
-#endif /* SDL_VIDEO_RENDER_OGL_ES && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_OGL_ES */
 
 /* vi: set ts=4 sw=4 expandtab: */

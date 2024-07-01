@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WINDOWS
+#ifdef SDL_VIDEO_DRIVER_WINDOWS
 
 #include "SDL_windowsvideo.h"
 #include "SDL_windowsshape.h"
@@ -43,7 +43,7 @@
 #include <windowsx.h>
 
 /* For WM_TABLET_QUERYSYSTEMGESTURESTATUS et. al. */
-#if HAVE_TPCSHRD_H
+#ifdef HAVE_TPCSHRD_H
 #include <tpcshrd.h>
 #endif /* HAVE_TPCSHRD_H */
 
@@ -99,6 +99,9 @@
 #ifndef WM_GETDPISCALEDSIZE
 #define WM_GETDPISCALEDSIZE 0x02E4
 #endif
+#ifndef TOUCHEVENTF_PEN
+#define TOUCHEVENTF_PEN 0x0040
+#endif
 
 #ifndef IS_HIGH_SURROGATE
 #define IS_HIGH_SURROGATE(x) (((x) >= 0xd800) && ((x) <= 0xdbff))
@@ -108,6 +111,10 @@
 #endif
 #ifndef IS_SURROGATE_PAIR
 #define IS_SURROGATE_PAIR(h, l) (IS_HIGH_SURROGATE(h) && IS_LOW_SURROGATE(l))
+#endif
+
+#ifndef USER_TIMER_MINIMUM
+#define USER_TIMER_MINIMUM 0x0000000A
 #endif
 
 static SDL_Scancode VKeytoScancodeFallback(WPARAM vkey)
@@ -121,6 +128,10 @@ static SDL_Scancode VKeytoScancodeFallback(WPARAM vkey)
         return SDL_SCANCODE_RIGHT;
     case VK_DOWN:
         return SDL_SCANCODE_DOWN;
+    case VK_CONTROL:
+        return SDL_SCANCODE_LCTRL;
+    case VK_V:
+        return SDL_SCANCODE_V;
 
     default:
         return SDL_SCANCODE_UNKNOWN;
@@ -130,6 +141,11 @@ static SDL_Scancode VKeytoScancodeFallback(WPARAM vkey)
 static SDL_Scancode VKeytoScancode(WPARAM vkey)
 {
     switch (vkey) {
+    case VK_BACK:
+        return SDL_SCANCODE_BACKSPACE;
+    case VK_CAPITAL:
+        return SDL_SCANCODE_CAPSLOCK;
+
     case VK_MODECHANGE:
         return SDL_SCANCODE_MODE;
     case VK_SELECT:
@@ -185,7 +201,7 @@ static SDL_Scancode VKeytoScancode(WPARAM vkey)
     case VK_BROWSER_HOME:
         return SDL_SCANCODE_AC_HOME;
     case VK_VOLUME_MUTE:
-        return SDL_SCANCODE_AUDIOMUTE;
+        return SDL_SCANCODE_MUTE;
     case VK_VOLUME_DOWN:
         return SDL_SCANCODE_VOLUMEDOWN;
     case VK_VOLUME_UP:
@@ -364,7 +380,7 @@ static void WIN_CheckWParamMouseButtons(WPARAM wParam, SDL_WindowData *data, SDL
     }
 }
 
-static void WIN_CheckRawMouseButtons(ULONG rawButtons, SDL_WindowData *data, SDL_MouseID mouseID)
+static void WIN_CheckRawMouseButtons(HANDLE hDevice, ULONG rawButtons, SDL_WindowData *data, SDL_MouseID mouseID)
 {
     // Add a flag to distinguish raw mouse buttons from wParam above
     rawButtons |= 0x8000000;
@@ -372,6 +388,10 @@ static void WIN_CheckRawMouseButtons(ULONG rawButtons, SDL_WindowData *data, SDL
     if (rawButtons != data->mouse_button_flags) {
         Uint32 mouseFlags = SDL_GetMouseState(NULL, NULL);
         SDL_bool swapButtons = GetSystemMetrics(SM_SWAPBUTTON) != 0;
+        if (swapButtons && hDevice == NULL) {
+            /* Touchpad, already has buttons swapped */
+            swapButtons = SDL_FALSE;
+        }
         if (rawButtons & RI_MOUSE_BUTTON_1_DOWN) {
             WIN_CheckWParamMouseButton((rawButtons & RI_MOUSE_BUTTON_1_DOWN), mouseFlags, swapButtons, data, SDL_BUTTON_LEFT, mouseID);
         }
@@ -496,7 +516,7 @@ static void WIN_UpdateFocus(SDL_Window *window, SDL_bool expect_focus)
         SDL_ToggleModState(KMOD_CAPS, (GetKeyState(VK_CAPITAL) & 0x0001) ? SDL_TRUE : SDL_FALSE);
         SDL_ToggleModState(KMOD_NUM, (GetKeyState(VK_NUMLOCK) & 0x0001) ? SDL_TRUE : SDL_FALSE);
         SDL_ToggleModState(KMOD_SCROLL, (GetKeyState(VK_SCROLL) & 0x0001) ? SDL_TRUE : SDL_FALSE);
- 
+
         WIN_UpdateWindowICCProfile(data->window, SDL_TRUE);
     } else {
         RECT rect;
@@ -572,7 +592,7 @@ typedef enum
     SDL_MOUSE_EVENT_SOURCE_PEN,
 } SDL_MOUSE_EVENT_SOURCE;
 
-static SDL_MOUSE_EVENT_SOURCE GetMouseMessageSource()
+static SDL_MOUSE_EVENT_SOURCE GetMouseMessageSource(void)
 {
     LPARAM extrainfo = GetMessageExtraInfo();
     /* Mouse data (ignoring synthetic mouse events generated for touchscreens) */
@@ -617,6 +637,10 @@ WIN_KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
     if (nCode < 0 || nCode != HC_ACTION) {
         return CallNextHookEx(NULL, nCode, wParam, lParam);
+    }
+    if (hookData->scanCode == 0x21d) {
+	    // Skip fake LCtrl when RAlt is pressed
+	    return 1;
     }
 
     switch (hookData->vkCode) {
@@ -672,9 +696,43 @@ WIN_KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 #endif /*!defined(__XBOXONE__) && !defined(__XBOXSERIES__)*/
 
+
+// Return 1 if spruious LCtrl is pressed
+// LCtrl is sent when RAltGR is pressed
+int skip_bad_lcrtl(WPARAM wParam, LPARAM lParam)
+{
+    MSG next_msg;
+    DWORD msg_time;
+    if (wParam != VK_CONTROL) {
+        return 0;
+    }
+    // Is this an extended key (i.e. right key)?
+    if (lParam & 0x01000000)
+                return 0;
+
+    // Here is a trick: "Alt Gr" sends LCTRL, then RALT. We only
+    // want the RALT message, so we try to see if the next message
+    // is a RALT message. In that case, this is a false LCTRL!
+    msg_time = GetMessageTime();
+    if (PeekMessage(&next_msg, NULL, 0, 0, PM_NOREMOVE)) {
+        if (next_msg.message == WM_KEYDOWN ||
+            next_msg.message == WM_SYSKEYDOWN) {
+            if (next_msg.wParam == VK_MENU &&
+                (next_msg.lParam & 0x01000000) &&
+                next_msg.time == msg_time) {
+                // Next message is a RALT down message, which
+                // means that this is NOT a proper LCTRL message!
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 LRESULT CALLBACK
 WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    static SDL_bool s_ModalMoveResizeLoop;
     SDL_WindowData *data;
     LRESULT returnCode = -1;
 
@@ -694,12 +752,12 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     /* Get the window data for the window */
     data = WIN_GetWindowDataFromHWND(hwnd);
 #if !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
-    if (data == NULL) {
+    if (!data) {
         /* Fallback */
         data = (SDL_WindowData *)GetProp(hwnd, TEXT("SDL_WindowData"));
     }
 #endif
-    if (data == NULL) {
+    if (!data) {
         return CallWindowProc(DefWindowProc, hwnd, msg, wParam, lParam);
     }
 
@@ -845,7 +903,7 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             SDL_MouseID mouseID;
             RAWMOUSE *rawmouse;
             if (SDL_GetNumTouchDevices() > 0 &&
-                (GetMouseMessageSource() == SDL_MOUSE_EVENT_SOURCE_TOUCH || (GetMessageExtraInfo() & 0x82) == 0x82)) {
+                (GetMouseMessageSource() == SDL_MOUSE_EVENT_SOURCE_TOUCH || (GetMessageExtraInfo() & 0x80) == 0x80)) {
                 break;
             }
             /* We do all of our mouse state checking against mouse ID 0
@@ -929,7 +987,7 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 data->last_raw_mouse_position.x = x;
                 data->last_raw_mouse_position.y = y;
             }
-            WIN_CheckRawMouseButtons(rawmouse->usButtonFlags, data, mouseID);
+            WIN_CheckRawMouseButtons(inp.header.hDevice, rawmouse->usButtonFlags, data, mouseID);
         }
     } break;
 
@@ -988,6 +1046,11 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         SDL_Scancode code = WindowsScanCodeToSDLScanCode(lParam, wParam);
         const Uint8 *keyboardState = SDL_GetKeyboardState(NULL);
 
+        if (skip_bad_lcrtl(wParam, lParam)) {
+            returnCode = 0;
+            break;
+        }
+
         /* Detect relevant keyboard shortcuts */
         if (keyboardState[SDL_SCANCODE_LALT] == SDL_PRESSED || keyboardState[SDL_SCANCODE_RALT] == SDL_PRESSED) {
             /* ALT+F4: Close window */
@@ -996,8 +1059,7 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
 
-            //if (code != SDL_SCANCODE_UNKNOWN) {
-            if(wParam != VK_PROCESSKEY && code != SDL_SCANCODE_UNKNOWN) { //Changed for DOSBox-X
+        if (code != SDL_SCANCODE_UNKNOWN) {
             SDL_SendKeyboardKey(SDL_PRESSED, code);
         }
     }
@@ -1010,6 +1072,11 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         SDL_Scancode code = WindowsScanCodeToSDLScanCode(lParam, wParam);
         const Uint8 *keyboardState = SDL_GetKeyboardState(NULL);
+
+        if (skip_bad_lcrtl(wParam, lParam)) {
+            returnCode = 0;
+            break;
+        }
 
         if (code != SDL_SCANCODE_UNKNOWN) {
             if (code == SDL_SCANCODE_PRINTSCREEN &&
@@ -1254,6 +1321,27 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
     } break;
 
+    case WM_ENTERSIZEMOVE:
+    case WM_ENTERMENULOOP:
+    {
+        SetTimer(hwnd, (UINT_PTR)&s_ModalMoveResizeLoop, USER_TIMER_MINIMUM, NULL);
+    } break;
+
+    case WM_TIMER:
+    {
+        if (wParam == (UINT_PTR)&s_ModalMoveResizeLoop) {
+            // Send an expose event so the application can redraw
+            SDL_SendWindowEvent(data->window, SDL_WINDOWEVENT_EXPOSED, 0, 0);
+            return 0;
+        }
+    } break;
+
+    case WM_EXITSIZEMOVE:
+    case WM_EXITMENULOOP:
+    {
+        KillTimer(hwnd, (UINT_PTR)&s_ModalMoveResizeLoop);
+    } break;
+
     case WM_SIZE:
     {
         switch (wParam) {
@@ -1371,7 +1459,7 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     /* TODO: Can we use GetRawInputDeviceInfo and HID info to
                        determine if this is a direct or indirect touch device?
                      */
-                    if (SDL_AddTouch(touchId, SDL_TOUCH_DEVICE_DIRECT, "") < 0) {
+                    if (SDL_AddTouch(touchId, SDL_TOUCH_DEVICE_DIRECT, (input->dwFlags & TOUCHEVENTF_PEN) == TOUCHEVENTF_PEN ? "pen" : "touch") < 0) {
                         continue;
                     }
 
@@ -1397,7 +1485,7 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         break;
 
-#if HAVE_TPCSHRD_H
+#ifdef HAVE_TPCSHRD_H
 
     case WM_TABLET_QUERYSYSTEMGESTURESTATUS:
         /* See https://msdn.microsoft.com/en-us/library/windows/desktop/bb969148(v=vs.85).aspx .
@@ -1770,8 +1858,19 @@ void SDL_SetWindowsMessageHook(SDL_WindowsMessageHook callback, void *userdata)
 
 int WIN_WaitEventTimeout(_THIS, int timeout)
 {
-    MSG msg;
     if (g_WindowsEnableMessageLoop) {
+#if !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
+        DWORD dwMilliseconds, ret;
+        dwMilliseconds = timeout < 0 ? INFINITE : (DWORD)timeout;
+        ret = MsgWaitForMultipleObjects(0, NULL, FALSE, dwMilliseconds, QS_ALLINPUT);
+        if (ret == WAIT_OBJECT_0) {
+            return 1;
+        } else {
+            return 0;
+        }
+#else
+        /* MsgWaitForMultipleObjects is desktop-only. */
+        MSG msg;
         BOOL message_result;
         UINT_PTR timer_id = 0;
         if (timeout > 0) {
@@ -1784,7 +1883,7 @@ int WIN_WaitEventTimeout(_THIS, int timeout)
             message_result = GetMessage(&msg, 0, 0, 0);
         }
         if (message_result) {
-            if (msg.message == WM_TIMER && msg.hwnd == NULL && msg.wParam == timer_id) {
+            if (msg.message == WM_TIMER && !msg.hwnd && msg.wParam == timer_id) {
                 return 0;
             }
             if (g_WindowsMessageHook) {
@@ -1797,6 +1896,7 @@ int WIN_WaitEventTimeout(_THIS, int timeout)
         } else {
             return 0;
         }
+#endif /*!defined(__XBOXONE__) && !defined(__XBOXSERIES__)*/
     } else {
         /* Fail the wait so the caller falls back to polling */
         return -1;
@@ -1873,7 +1973,7 @@ void WIN_PumpEvents(_THIS)
        not grabbing the keyboard. Note: If we *are* grabbing the keyboard, GetKeyState()
        will return inaccurate results for VK_LWIN and VK_RWIN but we don't need it anyway. */
     focusWindow = SDL_GetKeyboardFocus();
-    if (focusWindow == NULL || !(focusWindow->flags & SDL_WINDOW_KEYBOARD_GRABBED)) {
+    if (!focusWindow || !(focusWindow->flags & SDL_WINDOW_KEYBOARD_GRABBED)) {
         if ((keystate[SDL_SCANCODE_LGUI] == SDL_PRESSED) && !(GetKeyState(VK_LWIN) & 0x8000)) {
             SDL_SendKeyboardKey(SDL_RELEASED, SDL_SCANCODE_LGUI);
         }
@@ -1913,13 +2013,26 @@ static void WIN_CleanRegisterApp(WNDCLASSEX wcex)
     SDL_Appname = NULL;
 }
 
+static BOOL CALLBACK WIN_ResourceNameCallback(HMODULE hModule, LPCTSTR lpType, LPTSTR lpName, LONG_PTR lParam)
+{
+    WNDCLASSEX *wcex = (WNDCLASSEX *)lParam;
+
+    (void)lpType; /* We already know that the resource type is RT_GROUP_ICON. */
+
+    /* We leave hIconSm as NULL as it will allow Windows to automatically
+       choose the appropriate small icon size to suit the current DPI. */
+    wcex->hIcon = LoadIcon(hModule, lpName);
+
+    /* Do not bother enumerating any more. */
+    return FALSE;
+}
+
 /* Register the class for this application */
 int SDL_RegisterApp(const char *name, Uint32 style, void *hInst)
 {
     WNDCLASSEX wcex;
 #if !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
     const char *hint;
-    TCHAR path[MAX_PATH];
 #endif
 
     /* Only do this once... */
@@ -1927,8 +2040,8 @@ int SDL_RegisterApp(const char *name, Uint32 style, void *hInst)
         ++app_registered;
         return 0;
     }
-    SDL_assert(SDL_Appname == NULL);
-    if (name == NULL) {
+    SDL_assert(!SDL_Appname);
+    if (!name) {
         name = "SDL_app";
 #if defined(CS_BYTEALIGNCLIENT) || defined(CS_OWNDC)
         style = (CS_BYTEALIGNCLIENT | CS_OWNDC);
@@ -1962,9 +2075,8 @@ int SDL_RegisterApp(const char *name, Uint32 style, void *hInst)
             wcex.hIconSm = LoadIcon(SDL_Instance, MAKEINTRESOURCE(SDL_atoi(hint)));
         }
     } else {
-        /* Use the first icon as a default icon, like in the Explorer */
-        GetModuleFileName(SDL_Instance, path, MAX_PATH);
-        ExtractIconEx(path, 0, &wcex.hIcon, &wcex.hIconSm, 1);
+        /* Use the first icon as a default icon, like in the Explorer. */
+        EnumResourceNames(SDL_Instance, RT_GROUP_ICON, WIN_ResourceNameCallback, (LONG_PTR)&wcex);
     }
 #endif /*!defined(__XBOXONE__) && !defined(__XBOXSERIES__)*/
 

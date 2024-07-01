@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_X11
+#ifdef SDL_VIDEO_DRIVER_X11
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -102,7 +102,7 @@ static void X11_ReadProperty(SDL_x11Prop *p, Display *disp, Window w, Atom prop)
     int bytes_fetch = 0;
 
     do {
-        if (ret != NULL) {
+        if (ret) {
             X11_XFree(ret);
         }
         X11_XGetWindowProperty(disp, w, prop, 0, bytes_fetch, False, AnyPropertyType, &type, &fmt, &count, &bytes_left, &ret);
@@ -224,7 +224,7 @@ static int X11_URIDecode(char *buf, int len)
 {
     int ri, wi, di;
     char decode = '\0';
-    if (buf == NULL || len < 0) {
+    if (!buf || len < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -300,7 +300,7 @@ static char *X11_URIToLocal(char *uri)
     /* got a hostname? */
     if (!local && uri[0] == '/' && uri[2] != '/') {
         char *hostname_end = SDL_strchr(uri + 1, '/');
-        if (hostname_end != NULL) {
+        if (hostname_end) {
             char hostname[257];
             if (gethostname(hostname, 255) == 0) {
                 hostname[256] = '\0';
@@ -324,7 +324,7 @@ static char *X11_URIToLocal(char *uri)
     return file;
 }
 
-#if SDL_VIDEO_DRIVER_X11_SUPPORTS_GENERIC_EVENTS
+#ifdef SDL_VIDEO_DRIVER_X11_SUPPORTS_GENERIC_EVENTS
 static void X11_HandleGenericEvent(SDL_VideoData *videodata, XEvent *xev)
 {
     /* event is a union, so cookie == &event, but this is type safe. */
@@ -756,7 +756,7 @@ static int XLookupStringAsUTF8(XKeyEvent *event_struct, char *buffer_return, int
 {
     int result = X11_XLookupString(event_struct, buffer_return, bytes_buffer, keysym_return, status_in_out);
     if (IsHighLatin1(buffer_return, result)) {
-        char *utf8_text = SDL_iconv_string("UTF-8", "ISO-8859-1", buffer_return, result);
+        char *utf8_text = SDL_iconv_string("UTF-8", "ISO-8859-1", buffer_return, result + 1);
         if (utf8_text) {
             SDL_strlcpy(buffer_return, utf8_text, bytes_buffer);
             SDL_free(utf8_text);
@@ -841,14 +841,14 @@ static void X11_DispatchEvent(_THIS, XEvent *xevent)
         return;
     }
 
-#if SDL_VIDEO_DRIVER_X11_SUPPORTS_GENERIC_EVENTS
+#ifdef SDL_VIDEO_DRIVER_X11_SUPPORTS_GENERIC_EVENTS
     if (xevent->type == GenericEvent) {
         X11_HandleGenericEvent(videodata, xevent);
         return;
     }
 #endif
 
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
     if (videodata->xrandr_event_base && (xevent->type == (videodata->xrandr_event_base + RRNotify))) {
         X11_HandleXRandREvent(_this, xevent);
     }
@@ -869,6 +869,27 @@ static void X11_DispatchEvent(_THIS, XEvent *xevent)
            xevent->type, xevent->xany.display, xevent->xany.window);
 #endif
 
+#ifdef SDL_VIDEO_DRIVER_X11_XFIXES
+    if (SDL_X11_HAVE_XFIXES &&
+            xevent->type == X11_GetXFixesSelectionNotifyEvent()) {
+        XFixesSelectionNotifyEvent *ev = (XFixesSelectionNotifyEvent *) xevent;
+
+        /* !!! FIXME: cache atoms */
+        Atom XA_CLIPBOARD = X11_XInternAtom(display, "CLIPBOARD", 0);
+
+#ifdef DEBUG_XEVENTS
+        printf("window CLIPBOARD: XFixesSelectionNotify (selection = %s)\n",
+                X11_XGetAtomName(display, ev->selection));
+#endif
+
+        if (ev->selection == XA_PRIMARY ||
+                (XA_CLIPBOARD != None && ev->selection == XA_CLIPBOARD)) {
+            SDL_SendClipboardUpdate();
+            return;
+        }
+    }
+#endif /* SDL_VIDEO_DRIVER_X11_XFIXES */
+
     if ((videodata->clipboard_window != None) &&
         (videodata->clipboard_window == xevent->xany.window)) {
         X11_HandleClipboardEvent(_this, xevent);
@@ -885,7 +906,7 @@ static void X11_DispatchEvent(_THIS, XEvent *xevent)
             }
         }
     }
-    if (data == NULL) {
+    if (!data) {
         /* The window for KeymapNotify, etc events is 0 */
         if (xevent->type == KeymapNotify) {
 #ifdef DEBUG_XEVENTS
@@ -960,7 +981,7 @@ static void X11_DispatchEvent(_THIS, XEvent *xevent)
         mouse->last_x = xevent->xcrossing.x;
         mouse->last_y = xevent->xcrossing.y;
 
-#if SDL_VIDEO_DRIVER_X11_XFIXES
+#ifdef SDL_VIDEO_DRIVER_X11_XFIXES
         {
             /* Only create the barriers if we have input focus */
             SDL_WindowData *windowdata = (SDL_WindowData *)data->window->driverdata;
@@ -1072,7 +1093,7 @@ static void X11_DispatchEvent(_THIS, XEvent *xevent)
             data->pending_focus_time = SDL_GetTicks() + PENDING_FOCUS_TIME;
         }
 
-#if SDL_VIDEO_DRIVER_X11_XFIXES
+#ifdef SDL_VIDEO_DRIVER_X11_XFIXES
         /* Disable confinement if it is activated. */
         if (data->pointer_barrier_active == SDL_TRUE) {
             X11_ConfineCursorWithFlags(_this, data->window, NULL, X11_BARRIER_HANDLED_BY_EVENT);
@@ -1159,7 +1180,7 @@ static void X11_DispatchEvent(_THIS, XEvent *xevent)
             X11_DispatchUnmapNotify(data);
         }
 
-#if SDL_VIDEO_DRIVER_X11_XFIXES
+#ifdef SDL_VIDEO_DRIVER_X11_XFIXES
         /* Disable confinement if the window gets hidden. */
         if (data->pointer_barrier_active == SDL_TRUE) {
             X11_ConfineCursorWithFlags(_this, data->window, NULL, X11_BARRIER_HANDLED_BY_EVENT);
@@ -1175,7 +1196,7 @@ static void X11_DispatchEvent(_THIS, XEvent *xevent)
 #endif
         X11_DispatchMapNotify(data);
 
-#if SDL_VIDEO_DRIVER_X11_XFIXES
+#ifdef SDL_VIDEO_DRIVER_X11_XFIXES
         /* Enable confinement if it was activated. */
         if (data->pointer_barrier_active == SDL_TRUE) {
             X11_ConfineCursorWithFlags(_this, data->window, &data->barrier_rect, X11_BARRIER_HANDLED_BY_EVENT);
@@ -1549,7 +1570,7 @@ static void X11_DispatchEvent(_THIS, XEvent *xevent)
                 char *name = X11_XGetAtomName(display, target);
                 if (name) {
                     char *token = SDL_strtokr((char *)p.data, "\r\n", &saveptr);
-                    while (token != NULL) {
+                    while (token) {
                         if (SDL_strcmp("text/plain", name) == 0) {
                             SDL_SendDropText(data->window, token);
                         } else if (SDL_strcmp("text/uri-list", name) == 0) {
@@ -1717,7 +1738,7 @@ void X11_PumpEvents(_THIS)
             SDL_TICKS_PASSED(now, data->screensaver_activity + 30000)) {
             X11_XResetScreenSaver(data->display);
 
-#if SDL_USE_LIBDBUS
+#ifdef SDL_USE_LIBDBUS
             SDL_DBus_ScreensaverTickle();
 #endif
 
@@ -1753,13 +1774,13 @@ void X11_PumpEvents(_THIS)
 
 void X11_SuspendScreenSaver(_THIS)
 {
-#if SDL_VIDEO_DRIVER_X11_XSCRNSAVER
+#ifdef SDL_VIDEO_DRIVER_X11_XSCRNSAVER
     SDL_VideoData *data = (SDL_VideoData *)_this->driverdata;
     int dummy;
     int major_version, minor_version;
 #endif /* SDL_VIDEO_DRIVER_X11_XSCRNSAVER */
 
-#if SDL_USE_LIBDBUS
+#ifdef SDL_USE_LIBDBUS
     if (SDL_DBus_ScreensaverInhibit(_this->suspend_screensaver)) {
         return;
     }
@@ -1769,7 +1790,7 @@ void X11_SuspendScreenSaver(_THIS)
     }
 #endif
 
-#if SDL_VIDEO_DRIVER_X11_XSCRNSAVER
+#ifdef SDL_VIDEO_DRIVER_X11_XSCRNSAVER
     if (SDL_X11_HAVE_XSS) {
         /* X11_XScreenSaverSuspend was introduced in MIT-SCREEN-SAVER 1.1 */
         if (!X11_XScreenSaverQueryExtension(data->display, &dummy, &dummy) ||

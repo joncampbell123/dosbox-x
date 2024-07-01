@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_THREAD_OS2
+#ifdef SDL_THREAD_OS2
 
 /* Thread management routines for SDL */
 
@@ -45,7 +45,7 @@ static void RunThread(void *data)
     SDL_Thread *thread = (SDL_Thread *) data;
     pfnSDL_CurrentEndThread pfnEndThread = (pfnSDL_CurrentEndThread) thread->endfunc;
 
-    if (ppSDLTLSData != NULL)
+    if (ppSDLTLSData)
         *ppSDLTLSData = NULL;
 
     SDL_RunThread(thread);

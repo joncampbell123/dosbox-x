@@ -13,13 +13,13 @@ supported, but you can use the "android-project-ant" directory as a template.
 Requirements
 ================================================================================
 
-Android SDK (version 31 or later)
+Android SDK (version 34 or later)
 https://developer.android.com/sdk/index.html
 
 Android NDK r15c or later
 https://developer.android.com/tools/sdk/ndk/index.html
 
-Minimum API level supported by SDL: 16 (Android 4.1)
+Minimum API level supported by SDL: 19 (Android 4.4)
 
 
 How the port works
@@ -72,7 +72,7 @@ done in the build directory for the app!
 For more complex projects, follow these instructions:
 
 1. Get the source code for SDL and copy the 'android-project' directory located at SDL/android-project to a suitable location. Also make sure to rename it to your project name (In these examples: YOURPROJECT).
-   
+
    (The 'android-project' directory can basically be seen as a sort of starting point for the android-port of your project. It contains the glue code between the Android Java 'frontend' and the SDL code 'backend'. It also contains some standard behaviour, like how events should be handled, which you will be able to change.)
 
 2. Move or [symlink](https://en.wikipedia.org/wiki/Symbolic_link) the SDL directory into the "YOURPROJECT/app/jni" directory
@@ -431,13 +431,13 @@ The Tegra Graphics Debugger is available from NVidia here:
 https://developer.nvidia.com/tegra-graphics-debugger
 
 
-Why is API level 16 the minimum required?
+Why is API level 19 the minimum required?
 ================================================================================
 
-The latest NDK toolchain doesn't support targeting earlier than API level 16.
-As of this writing, according to https://developer.android.com/about/dashboards/index.html
-about 99% of the Android devices accessing Google Play support API level 16 or
-higher (January 2018).
+The latest NDK toolchain doesn't support targeting earlier than API level 19.
+As of this writing, according to https://www.composables.com/tools/distribution-chart
+about 99.7% of the Android devices accessing Google Play support API level 19 or
+higher (August 2023).
 
 
 A note regarding the use of the "dirty rectangles" rendering technique

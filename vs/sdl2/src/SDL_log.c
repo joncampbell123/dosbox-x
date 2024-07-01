@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -28,10 +28,11 @@
 
 #include "SDL_error.h"
 #include "SDL_log.h"
+#include "SDL_hints.h"
 #include "SDL_mutex.h"
 #include "SDL_log_c.h"
 
-#if HAVE_STDIO_H
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
 
@@ -44,10 +45,7 @@
 /* The size of the stack buffer to use for rendering log messages. */
 #define SDL_MAX_LOG_MESSAGE_STACK 256
 
-#define DEFAULT_PRIORITY             SDL_LOG_PRIORITY_CRITICAL
-#define DEFAULT_ASSERT_PRIORITY      SDL_LOG_PRIORITY_WARN
-#define DEFAULT_APPLICATION_PRIORITY SDL_LOG_PRIORITY_INFO
-#define DEFAULT_TEST_PRIORITY        SDL_LOG_PRIORITY_VERBOSE
+#define DEFAULT_CATEGORY -1
 
 typedef struct SDL_LogLevel
 {
@@ -60,15 +58,14 @@ typedef struct SDL_LogLevel
 static void SDLCALL SDL_LogOutput(void *userdata, int category, SDL_LogPriority priority, const char *message);
 
 static SDL_LogLevel *SDL_loglevels;
-static SDL_LogPriority SDL_default_priority = DEFAULT_PRIORITY;
-static SDL_LogPriority SDL_assert_priority = DEFAULT_ASSERT_PRIORITY;
-static SDL_LogPriority SDL_application_priority = DEFAULT_APPLICATION_PRIORITY;
-static SDL_LogPriority SDL_test_priority = DEFAULT_TEST_PRIORITY;
+static SDL_bool SDL_forced_priority = SDL_FALSE;
+static SDL_LogPriority SDL_forced_priority_level;
 static SDL_LogOutputFunction SDL_log_function = SDL_LogOutput;
 static void *SDL_log_userdata = NULL;
 static SDL_mutex *log_function_mutex = NULL;
 
-static const char *SDL_priority_prefixes[SDL_NUM_LOG_PRIORITIES] = {
+/* If this list changes, update the documentation for SDL_HINT_LOGGING */
+static const char *SDL_priority_prefixes[] = {
     NULL,
     "VERBOSE",
     "DEBUG",
@@ -77,8 +74,9 @@ static const char *SDL_priority_prefixes[SDL_NUM_LOG_PRIORITIES] = {
     "ERROR",
     "CRITICAL"
 };
+SDL_COMPILE_TIME_ASSERT(priority_prefixes, SDL_arraysize(SDL_priority_prefixes) == SDL_NUM_LOG_PRIORITIES);
 
-#ifdef __ANDROID__
+/* If this list changes, update the documentation for SDL_HINT_LOGGING */
 static const char *SDL_category_prefixes[] = {
     "APP",
     "ERROR",
@@ -90,9 +88,9 @@ static const char *SDL_category_prefixes[] = {
     "INPUT",
     "TEST"
 };
+SDL_COMPILE_TIME_ASSERT(category_prefixes, SDL_arraysize(SDL_category_prefixes) == SDL_LOG_CATEGORY_RESERVED1);
 
-SDL_COMPILE_TIME_ASSERT(category_prefixes_enum, SDL_TABLESIZE(SDL_category_prefixes) == SDL_LOG_CATEGORY_RESERVED1);
-
+#ifdef __ANDROID__
 static int SDL_android_priority[SDL_NUM_LOG_PRIORITIES] = {
     ANDROID_LOG_UNKNOWN,
     ANDROID_LOG_VERBOSE,
@@ -106,7 +104,7 @@ static int SDL_android_priority[SDL_NUM_LOG_PRIORITIES] = {
 
 void SDL_LogInit(void)
 {
-    if (log_function_mutex == NULL) {
+    if (!log_function_mutex) {
         /* if this fails we'll try to continue without it. */
         log_function_mutex = SDL_CreateMutex();
     }
@@ -128,9 +126,9 @@ void SDL_LogSetAllPriority(SDL_LogPriority priority)
     for (entry = SDL_loglevels; entry; entry = entry->next) {
         entry->priority = priority;
     }
-    SDL_default_priority = priority;
-    SDL_assert_priority = priority;
-    SDL_application_priority = priority;
+
+    SDL_forced_priority = SDL_TRUE;
+    SDL_forced_priority_level = priority;
 }
 
 void SDL_LogSetPriority(int category, SDL_LogPriority priority)
@@ -154,6 +152,122 @@ void SDL_LogSetPriority(int category, SDL_LogPriority priority)
     }
 }
 
+static SDL_bool SDL_ParseLogCategory(const char *string, size_t length, int *category)
+{
+    int i;
+
+    if (SDL_isdigit(*string)) {
+        *category = SDL_atoi(string);
+        return SDL_TRUE;
+    }
+
+    if (*string == '*') {
+        *category = DEFAULT_CATEGORY;
+        return SDL_TRUE;
+    }
+
+    for (i = 0; i < SDL_arraysize(SDL_category_prefixes); ++i) {
+        if (SDL_strncasecmp(string, SDL_category_prefixes[i], length) == 0) {
+            *category = i;
+            return SDL_TRUE;
+        }
+    }
+    return SDL_FALSE;
+}
+
+static SDL_bool SDL_ParseLogPriority(const char *string, size_t length, SDL_LogPriority *priority)
+{
+    int i;
+
+    if (SDL_isdigit(*string)) {
+        i = SDL_atoi(string);
+        if (i == 0) {
+            /* 0 has a special meaning of "disable this category" */
+            *priority = SDL_NUM_LOG_PRIORITIES;
+            return SDL_TRUE;
+        }
+        if (i >= SDL_LOG_PRIORITY_VERBOSE && i < SDL_NUM_LOG_PRIORITIES) {
+            *priority = (SDL_LogPriority)i;
+            return SDL_TRUE;
+        }
+        return SDL_FALSE;
+    }
+
+    if (SDL_strncasecmp(string, "quiet", length) == 0) {
+        *priority = SDL_NUM_LOG_PRIORITIES;
+        return SDL_TRUE;
+    }
+
+    for (i = SDL_LOG_PRIORITY_VERBOSE; i < SDL_NUM_LOG_PRIORITIES; ++i) {
+        if (SDL_strncasecmp(string, SDL_priority_prefixes[i], length) == 0) {
+            *priority = (SDL_LogPriority)i;
+            return SDL_TRUE;
+        }
+    }
+    return SDL_FALSE;
+}
+
+static SDL_bool SDL_ParseLogCategoryPriority(const char *hint, int category, SDL_LogPriority *priority)
+{
+    const char *name, *next;
+    int current_category;
+
+    if (category == DEFAULT_CATEGORY && SDL_strchr(hint, '=') == NULL) {
+        return SDL_ParseLogPriority(hint, SDL_strlen(hint), priority);
+    }
+
+    for (name = hint; name; name = next) {
+        const char *sep = SDL_strchr(name, '=');
+        if (!sep) {
+            break;
+        }
+        next = SDL_strchr(sep, ',');
+        if (next) {
+            ++next;
+        }
+
+        if (SDL_ParseLogCategory(name, (sep - name), &current_category)) {
+            if (current_category == category) {
+                const char *value = sep + 1;
+                size_t len;
+                if (next) {
+                    len = (next - value - 1);
+                } else {
+                    len = SDL_strlen(value);
+                }
+                return SDL_ParseLogPriority(value, len, priority);
+            }
+        }
+    }
+    return SDL_FALSE;
+}
+
+static SDL_LogPriority SDL_GetDefaultLogPriority(int category)
+{
+    const char *hint = SDL_GetHint(SDL_HINT_LOGGING);
+    if (hint) {
+        SDL_LogPriority priority;
+
+        if (SDL_ParseLogCategoryPriority(hint, category, &priority)) {
+            return priority;
+        }
+        if (SDL_ParseLogCategoryPriority(hint, DEFAULT_CATEGORY, &priority)) {
+            return priority;
+        }
+    }
+
+    switch (category) {
+    case SDL_LOG_CATEGORY_APPLICATION:
+        return SDL_LOG_PRIORITY_INFO;
+    case SDL_LOG_CATEGORY_ASSERT:
+        return SDL_LOG_PRIORITY_WARN;
+    case SDL_LOG_CATEGORY_TEST:
+        return SDL_LOG_PRIORITY_VERBOSE;
+    default:
+        return SDL_LOG_PRIORITY_ERROR;
+    }
+}
+
 SDL_LogPriority SDL_LogGetPriority(int category)
 {
     SDL_LogLevel *entry;
@@ -164,15 +278,11 @@ SDL_LogPriority SDL_LogGetPriority(int category)
         }
     }
 
-    if (category == SDL_LOG_CATEGORY_TEST) {
-        return SDL_test_priority;
-    } else if (category == SDL_LOG_CATEGORY_APPLICATION) {
-        return SDL_application_priority;
-    } else if (category == SDL_LOG_CATEGORY_ASSERT) {
-        return SDL_assert_priority;
-    } else {
-        return SDL_default_priority;
+    if (SDL_forced_priority) {
+        return SDL_forced_priority_level;
     }
+
+    return SDL_GetDefaultLogPriority(category);
 }
 
 void SDL_LogResetPriorities(void)
@@ -184,11 +294,7 @@ void SDL_LogResetPriorities(void)
         SDL_loglevels = entry->next;
         SDL_free(entry);
     }
-
-    SDL_default_priority = DEFAULT_PRIORITY;
-    SDL_assert_priority = DEFAULT_ASSERT_PRIORITY;
-    SDL_application_priority = DEFAULT_APPLICATION_PRIORITY;
-    SDL_test_priority = DEFAULT_TEST_PRIORITY;
+    SDL_forced_priority = SDL_FALSE;
 }
 
 void SDL_Log(SDL_PRINTF_FORMAT_STRING const char *fmt, ...)
@@ -299,7 +405,7 @@ void SDL_LogMessageV(int category, SDL_LogPriority priority, const char *fmt, va
         return;
     }
 
-    if (log_function_mutex == NULL) {
+    if (!log_function_mutex) {
         /* this mutex creation can race if you log from two threads at startup. You should have called SDL_Init first! */
         log_function_mutex = SDL_CreateMutex();
     }
@@ -317,7 +423,7 @@ void SDL_LogMessageV(int category, SDL_LogPriority priority, const char *fmt, va
     if (len >= sizeof(stack_buf) && SDL_size_add_overflow(len, 1, &len_plus_term) == 0) {
         /* Allocate exactly what we need, including the zero-terminator */
         message = (char *)SDL_malloc(len_plus_term);
-        if (message == NULL) {
+        if (!message) {
             return;
         }
         va_copy(aq, ap);
@@ -453,7 +559,7 @@ static void SDLCALL SDL_LogOutput(void *userdata, int category, SDL_LogPriority 
     {
         FILE *pFile;
         pFile = fopen("SDL_Log.txt", "a");
-        if (pFile != NULL) {
+        if (pFile) {
             (void)fprintf(pFile, "%s: %s\n", SDL_priority_prefixes[priority], message);
             (void)fclose(pFile);
         }
@@ -462,7 +568,7 @@ static void SDLCALL SDL_LogOutput(void *userdata, int category, SDL_LogPriority 
     {
         FILE *pFile;
         pFile = fopen("ux0:/data/SDL_Log.txt", "a");
-        if (pFile != NULL) {
+        if (pFile) {
             (void)fprintf(pFile, "%s: %s\n", SDL_priority_prefixes[priority], message);
             (void)fclose(pFile);
         }
@@ -471,16 +577,16 @@ static void SDLCALL SDL_LogOutput(void *userdata, int category, SDL_LogPriority 
     {
         FILE *pFile;
         pFile = fopen("sdmc:/3ds/SDL_Log.txt", "a");
-        if (pFile != NULL) {
+        if (pFile) {
             (void)fprintf(pFile, "%s: %s\n", SDL_priority_prefixes[priority], message);
             (void)fclose(pFile);
         }
     }
 #endif
-#if HAVE_STDIO_H && \
+#if defined(HAVE_STDIO_H) && \
     !(defined(__APPLE__) && (defined(SDL_VIDEO_DRIVER_COCOA) || defined(SDL_VIDEO_DRIVER_UIKIT)))
     fprintf(stderr, "%s: %s\n", SDL_priority_prefixes[priority], message);
-#if __NACL__
+#ifdef __NACL__
     fflush(stderr);
 #endif
 #endif

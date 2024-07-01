@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -29,7 +29,7 @@ int SDL_SendDisplayEvent(SDL_VideoDisplay *display, Uint8 displayevent, int data
 {
     int posted;
 
-    if (display == NULL) {
+    if (!display) {
         return 0;
     }
     switch (displayevent) {

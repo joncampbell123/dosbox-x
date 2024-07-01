@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -128,6 +128,7 @@ typedef struct
     SDL_HIDAPI_Device *device;
     SDL_Joystick *joystick;
     SDL_bool is_dongle;
+    SDL_bool is_nacon_dongle;
     SDL_bool official_controller;
     SDL_bool sensors_supported;
     SDL_bool lightbar_supported;
@@ -243,7 +244,7 @@ static SDL_bool HIDAPI_DriverPS4_InitDevice(SDL_HIDAPI_Device *device)
     SDL_JoystickType joystick_type = SDL_JOYSTICK_TYPE_GAMECONTROLLER;
 
     ctx = (SDL_DriverPS4_Context *)SDL_calloc(1, sizeof(*ctx));
-    if (ctx == NULL) {
+    if (!ctx) {
         SDL_OutOfMemory();
         return SDL_FALSE;
     }
@@ -401,8 +402,14 @@ static SDL_bool HIDAPI_DriverPS4_InitDevice(SDL_HIDAPI_Device *device)
     }
     ctx->effects_supported = (ctx->lightbar_supported || ctx->vibration_supported);
 
+    if (device->vendor_id == USB_VENDOR_NACON_ALT &&
+        device->product_id == USB_PRODUCT_NACON_REVOLUTION_5_PRO_PS4_WIRELESS) {
+        ctx->is_nacon_dongle = SDL_TRUE;
+    }
+
     if (device->vendor_id == USB_VENDOR_PDP &&
-        device->product_id == USB_PRODUCT_VICTRIX_FS_PRO_V2) {
+        (device->product_id == USB_PRODUCT_VICTRIX_FS_PRO ||
+         device->product_id == USB_PRODUCT_VICTRIX_FS_PRO_V2)) {
         /* The Victrix FS Pro V2 reports that it has lightbar support,
          * but it doesn't respond to the effects packet, and will hang
          * on reboot if we send it.
@@ -425,7 +432,7 @@ static SDL_bool HIDAPI_DriverPS4_InitDevice(SDL_HIDAPI_Device *device)
     } else {
         HIDAPI_DisconnectBluetoothDevice(device->serial);
     }
-    if (ctx->is_dongle && serial[0] == '\0') {
+    if ((ctx->is_dongle || ctx->is_nacon_dongle) && serial[0] == '\0') {
         /* Not yet connected */
         return SDL_TRUE;
     }
@@ -677,10 +684,14 @@ static void HIDAPI_DriverPS4_TickleBluetooth(SDL_HIDAPI_Device *device)
             SDL_HIDAPI_SendRumbleAndUnlock(device, data, sizeof(data));
         }
     } else {
+#if 0 /* The 8BitDo Zero 2 has perfect emulation of a PS4 controllers, except it
+       * only sends reports when the state changes, so we can't disconnect here.
+       */
         /* We can't even send an invalid effects packet, or it will put the controller in enhanced mode */
         if (device->num_joysticks > 0) {
             HIDAPI_JoystickDisconnected(device, device->joysticks[0]);
         }
+#endif
     }
 }
 
@@ -1080,6 +1091,21 @@ static SDL_bool HIDAPI_DriverPS4_IsPacketValid(SDL_DriverPS4_Context *ctx, Uint8
             return SDL_TRUE;
         }
 
+        if (ctx->is_nacon_dongle && size >= (1 + sizeof(PS4StatePacket_t))) {
+            /* The report timestamp doesn't change when the controller isn't connected */
+            PS4StatePacket_t *packet = (PS4StatePacket_t *)&data[1];
+            if (SDL_memcmp(packet->rgucTimestamp, ctx->last_state.rgucTimestamp, sizeof(packet->rgucTimestamp)) == 0) {
+                return SDL_FALSE;
+            }
+            if (ctx->last_state.rgucAccelX[0] == 0 && ctx->last_state.rgucAccelX[1] == 0 &&
+                ctx->last_state.rgucAccelY[0] == 0 && ctx->last_state.rgucAccelY[1] == 0 &&
+                ctx->last_state.rgucAccelZ[0] == 0 && ctx->last_state.rgucAccelZ[1] == 0) {
+                /* We don't have any state to compare yet, go ahead and copy it */
+                SDL_memcpy(&ctx->last_state, &data[1], sizeof(PS4StatePacket_t));
+                return SDL_FALSE;
+            }
+        }
+
         /* In the case of a DS4 USB dongle, bit[2] of byte 31 indicates if a DS4 is actually connected (indicated by '0').
          * For non-dongle, this bit is always 0 (connected).
          * This is usually the ID over USB, but the DS4v2 that started shipping with the PS4 Slim will also send this
@@ -1144,7 +1170,7 @@ static SDL_bool HIDAPI_DriverPS4_UpdateDevice(SDL_HIDAPI_Device *device)
         ++packet_count;
         ctx->last_packet = now;
 
-        if (joystick == NULL) {
+        if (!joystick) {
             continue;
         }
 
@@ -1192,7 +1218,7 @@ static SDL_bool HIDAPI_DriverPS4_UpdateDevice(SDL_HIDAPI_Device *device)
         }
     }
 
-    if (ctx->is_dongle) {
+    if (ctx->is_dongle || ctx->is_nacon_dongle) {
         if (packet_count == 0) {
             if (device->num_joysticks > 0) {
                 /* Check to see if it looks like the device disconnected */
@@ -1214,7 +1240,7 @@ static SDL_bool HIDAPI_DriverPS4_UpdateDevice(SDL_HIDAPI_Device *device)
         }
     }
 
-    if (size < 0 && device->num_joysticks > 0) {
+    if (packet_count == 0 && size < 0 && device->num_joysticks > 0) {
         /* Read error, device is disconnected */
         HIDAPI_JoystickDisconnected(device, device->joysticks[0]);
     }
