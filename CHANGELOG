@@ -222,12 +222,16 @@ Next:
   - Restored libslirp support for 32-bit MinGW CI builds which was temporarily
     dropped in 2024.03.01 release. Also since MinGW plans to gradually phase
     out 32-bit support, added code to manually build on our own. (maron2000)
-  - Fixed build errors of Windows installers (maron2000) 
+  - Fixed build errors of Windows installers. Windows Vista support for standard
+    installer is dropped to fix this issue. Vista users can either use the XP
+    installer or portable builds instead. (maron2000) 
   - Fixed compile error of speexdsp/fftwrap.c on gcc-14 (maron2000)
   - PC-98: Fixed US keyboard support for tilde (Shift+grave) key (maron2000)
   - Fixed DOSBox-X freezed when codepages regarding EGA18.CPX were set (maron2000)
   - Fixed CUE sheets of GOG games were rejected. Still requires "-t iso" or 
     "-t cdrom" option for uncommon file extensions except ".CUE". (maron2000)
+  - Added loongarch64 support (donmor)
+  - Disable FP exceptions in a portable way (xry111, donmor)
   - Added "*.ccd" in file open dialog (maron2000)
   - Added CI builds for ARM mac (maron2000)
   - Bump tinyfiledialogs to ver 3.17.4 (maron2000)
@@ -240,12 +244,16 @@ Next:
     version is set to 7.1 (maron2000)
   - Fixed some file extensions in the filter list were ignored in the file open
     dialogs (maron2000)
+  - Fixed mounting a non-FAT VHD image (maxpat78)
+  - Fixed VHD geometry detection (maxpat78)
   - Fixed issue that IMGSWAP command did not work for CD drives. (maron2000)
   - Fixed loaded language file unexpectedly changes on launch. (maron2000)
+  - Fixed reported size issues in builtin DIR command (maxpat78)
   - Added missing language file in Windows standard & XP installers. (maron2000)
   - Fixed a bug in IME character display on macOS Sonoma (nanshiki)
   - Fixed build errors of SDL1 code when built with gcc-14 (maron2000)
   - Fixed static link errors of libslirp >= 4.8.0 (maron2000)
+  - PC-98: Added MEM command for PC-98 mode (maron2000)
 
 2024.03.01
   - If an empty CD-ROM drive is attached to IDE emulation, return "Medium Not
