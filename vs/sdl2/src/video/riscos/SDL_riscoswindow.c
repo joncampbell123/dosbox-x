@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_RISCOS
+#ifdef SDL_VIDEO_DRIVER_RISCOS
 
 #include "SDL_version.h"
 #include "SDL_syswm.h"
@@ -36,7 +36,7 @@ int RISCOS_CreateWindow(_THIS, SDL_Window *window)
     SDL_WindowData *driverdata;
 
     driverdata = (SDL_WindowData *)SDL_calloc(1, sizeof(*driverdata));
-    if (driverdata == NULL) {
+    if (!driverdata) {
         return SDL_OutOfMemory();
     }
     driverdata->window = window;
@@ -54,7 +54,7 @@ void RISCOS_DestroyWindow(_THIS, SDL_Window *window)
 {
     SDL_WindowData *driverdata = (SDL_WindowData *)window->driverdata;
 
-    if (driverdata == NULL) {
+    if (!driverdata) {
         return;
     }
 

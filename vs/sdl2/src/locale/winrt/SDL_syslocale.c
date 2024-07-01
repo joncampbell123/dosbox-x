@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -33,7 +33,7 @@ void SDL_SYS_GetPreferredLocales(char *buf, size_t buflen)
     int ret = 0;
 
     /* !!! FIXME: do we not have GetUserPreferredUILanguages on WinPhone or UWP? */
-#if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#if SDL_WINAPI_FAMILY_PHONE
     ret = GetLocaleInfoEx(LOCALE_NAME_SYSTEM_DEFAULT, LOCALE_SNAME, wbuffer, SDL_arraysize(wbuffer));
 #else
     ret = GetSystemDefaultLocaleName(wbuffer, SDL_arraysize(wbuffer));

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_UIKIT
+#ifdef SDL_VIDEO_DRIVER_UIKIT
 
 #include "SDL_hints.h"
 #include "SDL_mouse.h"
@@ -114,14 +114,6 @@ static int SetupWindowData(_THIS, SDL_Window *window, UIWindow *uiwindow, SDL_bo
 
 #if !TARGET_OS_TV
     if (displaydata.uiscreen == [UIScreen mainScreen]) {
-        /* SDL_CreateWindow sets the window w&h to the display's bounds if the
-         * fullscreen flag is set. But the display bounds orientation might not
-         * match what we want, and GetSupportedOrientations call below uses the
-         * window w&h. They're overridden below anyway, so we'll just set them
-         * to the requested size for the purposes of determining orientation. */
-        window->w = window->windowed.w;
-        window->h = window->windowed.h;
-
         NSUInteger orients = UIKit_GetSupportedOrientations(window);
         BOOL supportsLandscape = (orients & UIInterfaceOrientationMaskLandscape) != 0;
         BOOL supportsPortrait = (orients & (UIInterfaceOrientationMaskPortrait|UIInterfaceOrientationMaskPortraitUpsideDown)) != 0;
@@ -392,7 +384,7 @@ SDL_bool UIKit_GetWindowWMInfo(_THIS, SDL_Window * window, SDL_SysWMinfo * info)
 
             /* These struct members were added in SDL 2.0.4. */
             if (versionnum >= SDL_VERSIONNUM(2,0,4)) {
-#if SDL_VIDEO_OPENGL_ES || SDL_VIDEO_OPENGL_ES2
+#if defined(SDL_VIDEO_OPENGL_ES) || defined(SDL_VIDEO_OPENGL_ES2)
                 if ([data.viewcontroller.view isKindOfClass:[SDL_uikitopenglview class]]) {
                     SDL_uikitopenglview *glview = (SDL_uikitopenglview *)data.viewcontroller.view;
                     info->info.uikit.framebuffer = glview.drawableFramebuffer;
@@ -459,10 +451,10 @@ NSUInteger UIKit_GetSupportedOrientations(SDL_Window * window)
         }
 
         if (orientationMask == 0) {
-            if (window->w >= window->h) {
+            if (window->windowed.w >= window->windowed.h) {
                 orientationMask |= UIInterfaceOrientationMaskLandscape;
             }
-            if (window->h >= window->w) {
+            if (window->windowed.h >= window->windowed.w) {
                 orientationMask |= (UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown);
             }
         }

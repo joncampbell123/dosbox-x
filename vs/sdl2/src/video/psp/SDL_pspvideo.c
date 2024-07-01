@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_PSP
+#ifdef SDL_VIDEO_DRIVER_PSP
 
 /* SDL internals */
 #include "../SDL_sysvideo.h"
@@ -46,7 +46,7 @@ static void PSP_Destroy(SDL_VideoDevice *device)
 {
     /*    SDL_VideoData *phdata = (SDL_VideoData *) device->driverdata; */
 
-    if (device->driverdata != NULL) {
+    if (device->driverdata) {
         device->driverdata = NULL;
     }
 }
@@ -59,21 +59,21 @@ static SDL_VideoDevice *PSP_Create()
 
     /* Initialize SDL_VideoDevice structure */
     device = (SDL_VideoDevice *)SDL_calloc(1, sizeof(SDL_VideoDevice));
-    if (device == NULL) {
+    if (!device) {
         SDL_OutOfMemory();
         return NULL;
     }
 
     /* Initialize internal PSP specific data */
     phdata = (SDL_VideoData *)SDL_calloc(1, sizeof(SDL_VideoData));
-    if (phdata == NULL) {
+    if (!phdata) {
         SDL_OutOfMemory();
         SDL_free(device);
         return NULL;
     }
 
     gldata = (SDL_GLDriverData *)SDL_calloc(1, sizeof(SDL_GLDriverData));
-    if (gldata == NULL) {
+    if (!gldata) {
         SDL_OutOfMemory();
         SDL_free(device);
         SDL_free(phdata);
@@ -134,7 +134,8 @@ static SDL_VideoDevice *PSP_Create()
 VideoBootStrap PSP_bootstrap = {
     "PSP",
     "PSP Video Driver",
-    PSP_Create
+    PSP_Create,
+    NULL /* no ShowMessageBox implementation */
 };
 
 /*****************************************************************************/
@@ -144,6 +145,10 @@ int PSP_VideoInit(_THIS)
 {
     SDL_VideoDisplay display;
     SDL_DisplayMode current_mode;
+
+    if (PSP_EventInit(_this) == -1) {
+        return -1;  /* error string would already be set */
+    }
 
     SDL_zero(current_mode);
 
@@ -169,11 +174,13 @@ int PSP_VideoInit(_THIS)
     SDL_AddDisplayMode(&display, &current_mode);
 
     SDL_AddVideoDisplay(&display, SDL_FALSE);
-    return 1;
+
+    return 0;
 }
 
 void PSP_VideoQuit(_THIS)
 {
+    PSP_EventQuit(_this);
 }
 
 void PSP_GetDisplayModes(_THIS, SDL_VideoDisplay *display)
@@ -202,7 +209,7 @@ int PSP_CreateWindow(_THIS, SDL_Window *window)
 
     /* Allocate window internal data */
     wdata = (SDL_WindowData *)SDL_calloc(1, sizeof(SDL_WindowData));
-    if (wdata == NULL) {
+    if (!wdata) {
         return SDL_OutOfMemory();
     }
 

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_NGAGE
+#ifdef SDL_VIDEO_DRIVER_NGAGE
 
 #include "../SDL_sysvideo.h"
 
@@ -36,7 +36,7 @@ int NGAGE_CreateWindow(_THIS, SDL_Window *window)
 {
     NGAGE_Window *ngage_window = (NGAGE_Window *)SDL_calloc(1, sizeof(NGAGE_Window));
 
-    if (ngage_window == NULL) {
+    if (!ngage_window) {
         return SDL_OutOfMemory();
     }
 

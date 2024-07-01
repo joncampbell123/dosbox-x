@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -94,7 +94,7 @@ static inline struct qt_extended_surface *qt_surface_extension_get_extended_surf
 
     id = wl_proxy_create((struct wl_proxy *)qt_surface_extension,
                          &qt_extended_surface_interface);
-    if (id == NULL)
+    if (!id)
         return NULL;
 
     WAYLAND_wl_proxy_marshal((struct wl_proxy *)qt_surface_extension,

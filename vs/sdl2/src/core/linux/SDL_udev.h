@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@
 #ifndef SDL_udev_h_
 #define SDL_udev_h_
 
-#if HAVE_LIBUDEV_H && HAVE_LINUX_INPUT_H
+#if defined(HAVE_LIBUDEV_H) && defined(HAVE_LINUX_INPUT_H)
 
 #ifndef SDL_USE_LIBUDEV
 #define SDL_USE_LIBUDEV 1
@@ -103,7 +103,7 @@ extern void SDL_UDEV_UnloadLibrary(void);
 extern int SDL_UDEV_LoadLibrary(void);
 extern void SDL_UDEV_Poll(void);
 extern void SDL_UDEV_Scan(void);
-extern SDL_bool SDL_UDEV_GetProductInfo(const char *device_path, Uint16 *vendor, Uint16 *product, Uint16 *version);
+extern SDL_bool SDL_UDEV_GetProductInfo(const char *device_path, Uint16 *vendor, Uint16 *product, Uint16 *version, int *class);
 extern int SDL_UDEV_AddCallback(SDL_UDEV_Callback cb);
 extern void SDL_UDEV_DelCallback(SDL_UDEV_Callback cb);
 extern const SDL_UDEV_Symbols *SDL_UDEV_GetUdevSyms(void);

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -233,12 +233,12 @@ static void SDL_FillRect4(Uint8 *pixels, int pitch, Uint32 color, int w, int h)
  */
 int SDL_FillRect(SDL_Surface *dst, const SDL_Rect *rect, Uint32 color)
 {
-    if (dst == NULL) {
+    if (!dst) {
         return SDL_InvalidParamError("SDL_FillRect(): dst");
     }
 
     /* If 'rect' == NULL, then fill the whole surface */
-    if (rect == NULL) {
+    if (!rect) {
         rect = &dst->clip_rect;
         /* Don't attempt to fill if the surface's clip_rect is empty */
         if (SDL_RectEmpty(rect)) {
@@ -249,7 +249,7 @@ int SDL_FillRect(SDL_Surface *dst, const SDL_Rect *rect, Uint32 color)
     return SDL_FillRects(dst, rect, 1, color);
 }
 
-#if SDL_ARM_NEON_BLITTERS
+#ifdef SDL_ARM_NEON_BLITTERS
 void FillRect8ARMNEONAsm(int32_t w, int32_t h, uint8_t *dst, int32_t dst_stride, uint8_t src);
 void FillRect16ARMNEONAsm(int32_t w, int32_t h, uint16_t *dst, int32_t dst_stride, uint16_t src);
 void FillRect32ARMNEONAsm(int32_t w, int32_t h, uint32_t *dst, int32_t dst_stride, uint32_t src);
@@ -273,7 +273,7 @@ static void fill_32_neon(Uint8 *pixels, int pitch, Uint32 color, int w, int h)
 }
 #endif
 
-#if SDL_ARM_SIMD_BLITTERS
+#ifdef SDL_ARM_SIMD_BLITTERS
 void FillRect8ARMSIMDAsm(int32_t w, int32_t h, uint8_t *dst, int32_t dst_stride, uint8_t src);
 void FillRect16ARMSIMDAsm(int32_t w, int32_t h, uint16_t *dst, int32_t dst_stride, uint16_t src);
 void FillRect32ARMSIMDAsm(int32_t w, int32_t h, uint32_t *dst, int32_t dst_stride, uint32_t src);
@@ -306,7 +306,7 @@ int SDL_FillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
     void (*fill_function)(Uint8 * pixels, int pitch, Uint32 color, int w, int h) = NULL;
     int i;
 
-    if (dst == NULL) {
+    if (!dst) {
         return SDL_InvalidParamError("SDL_FillRects(): dst");
     }
 
@@ -320,7 +320,7 @@ int SDL_FillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
         return SDL_SetError("SDL_FillRects(): You must lock the surface");
     }
 
-    if (rects == NULL) {
+    if (!rects) {
         return SDL_InvalidParamError("SDL_FillRects(): rects");
     }
 
@@ -341,8 +341,8 @@ int SDL_FillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
         return SDL_SetError("SDL_FillRects(): Unsupported surface format");
     }
 
-#if SDL_ARM_NEON_BLITTERS
-    if (SDL_HasNEON() && dst->format->BytesPerPixel != 3 && fill_function == NULL) {
+#ifdef SDL_ARM_NEON_BLITTERS
+    if (SDL_HasNEON() && dst->format->BytesPerPixel != 3 && !fill_function) {
         switch (dst->format->BytesPerPixel) {
         case 1:
             fill_function = fill_8_neon;
@@ -356,8 +356,8 @@ int SDL_FillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
         }
     }
 #endif
-#if SDL_ARM_SIMD_BLITTERS
-    if (SDL_HasARMSIMD() && dst->format->BytesPerPixel != 3 && fill_function == NULL) {
+#ifdef SDL_ARM_SIMD_BLITTERS
+    if (SDL_HasARMSIMD() && dst->format->BytesPerPixel != 3 && !fill_function) {
         switch (dst->format->BytesPerPixel) {
         case 1:
             fill_function = fill_8_simd;
@@ -372,7 +372,7 @@ int SDL_FillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
     }
 #endif
 
-    if (fill_function == NULL) {
+    if (!fill_function) {
         switch (dst->format->BytesPerPixel) {
         case 1:
         {

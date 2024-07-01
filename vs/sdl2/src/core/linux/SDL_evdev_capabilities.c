@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
   Copyright (C) 2020 Collabora Ltd.
 
   This software is provided 'as-is', without any express or implied
@@ -23,7 +23,7 @@
 
 #include "SDL_evdev_capabilities.h"
 
-#if HAVE_LINUX_INPUT_H
+#ifdef HAVE_LINUX_INPUT_H
 
 /* missing defines in older Linux kernel headers */
 #ifndef BTN_TRIGGER_HAPPY

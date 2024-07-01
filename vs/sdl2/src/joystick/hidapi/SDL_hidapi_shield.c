@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -118,7 +118,7 @@ static SDL_bool HIDAPI_DriverShield_InitDevice(SDL_HIDAPI_Device *device)
     SDL_DriverShield_Context *ctx;
 
     ctx = (SDL_DriverShield_Context *)SDL_calloc(1, sizeof(*ctx));
-    if (ctx == NULL) {
+    if (!ctx) {
         SDL_OutOfMemory();
         return SDL_FALSE;
     }
@@ -489,7 +489,7 @@ static SDL_bool HIDAPI_DriverShield_UpdateDevice(SDL_HIDAPI_Device *device)
         /* Byte 0 is HID report ID */
         switch (data[0]) {
         case k_ShieldReportIdControllerState:
-            if (joystick == NULL) {
+            if (!joystick) {
                 break;
             }
             if (size == 16) {
@@ -499,7 +499,7 @@ static SDL_bool HIDAPI_DriverShield_UpdateDevice(SDL_HIDAPI_Device *device)
             }
             break;
         case k_ShieldReportIdControllerTouch:
-            if (joystick == NULL) {
+            if (!joystick) {
                 break;
             }
             HIDAPI_DriverShield_HandleTouchPacketV103(joystick, ctx, data, size);

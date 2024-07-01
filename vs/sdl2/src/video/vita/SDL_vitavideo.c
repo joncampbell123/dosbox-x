@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_VITA
+#ifdef SDL_VIDEO_DRIVER_VITA
 
 /* SDL internals */
 #include "../SDL_sysvideo.h"
@@ -39,6 +39,7 @@
 #include "SDL_vitakeyboard.h"
 #include "SDL_vitamouse_c.h"
 #include "SDL_vitaframebuffer.h"
+#include "SDL_vitamessagebox.h"
 
 #if defined(SDL_VIDEO_VITA_PIB)
 #include "SDL_vitagles_c.h"
@@ -71,27 +72,27 @@ static SDL_VideoDevice *VITA_Create()
 {
     SDL_VideoDevice *device;
     SDL_VideoData *phdata;
-#if SDL_VIDEO_VITA_PIB
+#ifdef SDL_VIDEO_VITA_PIB
     SDL_GLDriverData *gldata;
 #endif
     /* Initialize SDL_VideoDevice structure */
     device = (SDL_VideoDevice *)SDL_calloc(1, sizeof(SDL_VideoDevice));
-    if (device == NULL) {
+    if (!device) {
         SDL_OutOfMemory();
         return NULL;
     }
 
     /* Initialize internal VITA specific data */
     phdata = (SDL_VideoData *)SDL_calloc(1, sizeof(SDL_VideoData));
-    if (phdata == NULL) {
+    if (!phdata) {
         SDL_OutOfMemory();
         SDL_free(device);
         return NULL;
     }
-#if SDL_VIDEO_VITA_PIB
+#ifdef SDL_VIDEO_VITA_PIB
 
     gldata = (SDL_GLDriverData *)SDL_calloc(1, sizeof(SDL_GLDriverData));
-    if (gldata == NULL) {
+    if (!gldata) {
         SDL_OutOfMemory();
         SDL_free(device);
         SDL_free(phdata);
@@ -175,7 +176,8 @@ static SDL_VideoDevice *VITA_Create()
 VideoBootStrap VITA_bootstrap = {
     "VITA",
     "VITA Video Driver",
-    VITA_Create
+    VITA_Create,
+    VITA_ShowMessageBox
 };
 
 /*****************************************************************************/
@@ -258,7 +260,7 @@ int VITA_CreateWindow(_THIS, SDL_Window *window)
 
     /* Allocate window internal data */
     wdata = (SDL_WindowData *)SDL_calloc(1, sizeof(SDL_WindowData));
-    if (wdata == NULL) {
+    if (!wdata) {
         return SDL_OutOfMemory();
     }
 
@@ -266,7 +268,7 @@ int VITA_CreateWindow(_THIS, SDL_Window *window)
     window->driverdata = wdata;
 
     // Vita can only have one window
-    if (Vita_Window != NULL) {
+    if (Vita_Window) {
         return SDL_SetError("Only one window supported");
     }
 

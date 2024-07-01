@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 #include "../../SDL_internal.h"
 
 #ifndef SDL_POWER_DISABLED
-#if SDL_POWER_LINUX
+#ifdef SDL_POWER_LINUX
 
 #include <stdio.h>
 #include <unistd.h>
@@ -46,7 +46,7 @@ static int open_power_file(const char *base, const char *node, const char *key)
     int fd;
     const size_t pathlen = SDL_strlen(base) + SDL_strlen(node) + SDL_strlen(key) + 3;
     char *path = SDL_stack_alloc(char, pathlen);
-    if (path == NULL) {
+    if (!path) {
         return -1; /* oh well. */
     }
 
@@ -242,7 +242,7 @@ SDL_bool SDL_GetPowerInfo_Linux_proc_acpi(SDL_PowerState *state, int *seconds, i
     *state = SDL_POWERSTATE_UNKNOWN;
 
     dirp = opendir(proc_acpi_battery_path);
-    if (dirp == NULL) {
+    if (!dirp) {
         return SDL_FALSE; /* can't use this interface. */
     } else {
         while ((dent = readdir(dirp)) != NULL) {
@@ -254,7 +254,7 @@ SDL_bool SDL_GetPowerInfo_Linux_proc_acpi(SDL_PowerState *state, int *seconds, i
     }
 
     dirp = opendir(proc_acpi_ac_adapter_path);
-    if (dirp == NULL) {
+    if (!dirp) {
         return SDL_FALSE; /* can't use this interface. */
     } else {
         while ((dent = readdir(dirp)) != NULL) {
@@ -425,7 +425,7 @@ SDL_bool SDL_GetPowerInfo_Linux_sys_class_power_supply(SDL_PowerState *state, in
     DIR *dirp;
 
     dirp = opendir(base);
-    if (dirp == NULL) {
+    if (!dirp) {
         return SDL_FALSE;
     }
 
@@ -521,7 +521,7 @@ SDL_bool SDL_GetPowerInfo_Linux_sys_class_power_supply(SDL_PowerState *state, in
 }
 
 /* d-bus queries to org.freedesktop.UPower. */
-#if SDL_USE_LIBDBUS
+#ifdef SDL_USE_LIBDBUS
 #define UPOWER_DBUS_NODE             "org.freedesktop.UPower"
 #define UPOWER_DBUS_PATH             "/org/freedesktop/UPower"
 #define UPOWER_DBUS_INTERFACE        "org.freedesktop.UPower"
@@ -562,9 +562,17 @@ static void check_upower_device(DBusConnection *conn, const char *path, SDL_Powe
             st = SDL_POWERSTATE_UNKNOWN; /* uh oh */
         } else if (ui32 == 1) {          /* 1 == charging */
             st = SDL_POWERSTATE_CHARGING;
-        } else if ((ui32 == 2) || (ui32 == 3)) { /* 2 == discharging, 3 == empty. */
+        } else if ((ui32 == 2) || (ui32 == 3) || (ui32 == 6)) {
+            /* 2 == discharging;
+             * 3 == empty;
+             * 6 == "pending discharge" which GNOME interprets as equivalent
+             * to discharging */
             st = SDL_POWERSTATE_ON_BATTERY;
-        } else if (ui32 == 4) { /* 4 == full */
+        } else if ((ui32 == 4) || (ui32 == 5)) {
+            /* 4 == full;
+             * 5 == "pending charge" which GNOME shows as "Not charging",
+             * used when a battery is configured to stop charging at a
+             * lower than 100% threshold */
             st = SDL_POWERSTATE_CHARGED;
         } else {
             st = SDL_POWERSTATE_UNKNOWN; /* uh oh */
@@ -611,12 +619,12 @@ SDL_bool SDL_GetPowerInfo_Linux_org_freedesktop_upower(SDL_PowerState *state, in
 {
     SDL_bool retval = SDL_FALSE;
 
-#if SDL_USE_LIBDBUS
+#ifdef SDL_USE_LIBDBUS
     SDL_DBusContext *dbus = SDL_DBus_GetContext();
     char **paths = NULL;
     int i, numpaths = 0;
 
-    if (dbus == NULL || !SDL_DBus_CallMethodOnConnection(dbus->system_conn, UPOWER_DBUS_NODE, UPOWER_DBUS_PATH, UPOWER_DBUS_INTERFACE, "EnumerateDevices",
+    if (!dbus || !SDL_DBus_CallMethodOnConnection(dbus->system_conn, UPOWER_DBUS_NODE, UPOWER_DBUS_PATH, UPOWER_DBUS_INTERFACE, "EnumerateDevices",
                                                          DBUS_TYPE_INVALID,
                                                          DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &paths, &numpaths, DBUS_TYPE_INVALID)) {
         return SDL_FALSE; /* try a different approach than UPower. */

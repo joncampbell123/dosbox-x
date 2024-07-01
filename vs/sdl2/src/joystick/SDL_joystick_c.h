@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -34,6 +34,7 @@ extern "C" {
 #endif
 
 struct _SDL_JoystickDriver;
+struct SDL_SteamVirtualGamepadInfo;
 extern char SDL_joystick_magic;
 
 /* Initialization and shutdown functions */
@@ -70,7 +71,7 @@ extern int SDL_JoystickGetDeviceIndexFromInstanceID(SDL_JoystickID instance_id);
 extern char *SDL_CreateJoystickName(Uint16 vendor, Uint16 product, const char *vendor_name, const char *product_name);
 
 /* Function to create a GUID for a joystick based on the VID/PID and name */
-extern SDL_JoystickGUID SDL_CreateJoystickGUID(Uint16 bus, Uint16 vendor, Uint16 product, Uint16 version, const char *name, Uint8 driver_signature, Uint8 driver_data);
+extern SDL_JoystickGUID SDL_CreateJoystickGUID(Uint16 bus, Uint16 vendor, Uint16 product, Uint16 version, const char *vendor_name, const char *product_name, Uint8 driver_signature, Uint8 driver_data);
 
 /* Function to create a GUID for a joystick based on the name, with no VID/PID information */
 extern SDL_JoystickGUID SDL_CreateJoystickGUIDForName(const char *name);
@@ -90,6 +91,9 @@ extern void SDL_SetJoystickGUIDCRC(SDL_JoystickGUID *guid, Uint16 crc);
 /* Function to return the type of a controller */
 extern SDL_GameControllerType SDL_GetJoystickGameControllerTypeFromVIDPID(Uint16 vendor, Uint16 product, const char *name, SDL_bool forUI);
 extern SDL_GameControllerType SDL_GetJoystickGameControllerTypeFromGUID(SDL_JoystickGUID guid, const char *name);
+
+/* Function to return whether a joystick GUID uses the version field */
+extern SDL_bool SDL_JoystickGUIDUsesVersion(SDL_JoystickGUID guid);
 
 /* Function to return whether a joystick is an Xbox One controller */
 extern SDL_bool SDL_IsJoystickXboxOne(Uint16 vendor_id, Uint16 product_id);
@@ -122,6 +126,9 @@ extern SDL_bool SDL_IsJoystickNintendoSwitchJoyConPair(Uint16 vendor_id, Uint16 
 /* Function to return whether a joystick is a Steam Controller */
 extern SDL_bool SDL_IsJoystickSteamController(Uint16 vendor_id, Uint16 product_id);
 
+/* Function to return whether a joystick is a Steam Deck */
+extern SDL_bool SDL_IsJoystickSteamDeck(Uint16 vendor_id, Uint16 product_id);
+
 /* Function to return whether a joystick guid comes from the XInput driver */
 extern SDL_bool SDL_IsJoystickXInput(SDL_JoystickGUID guid);
 
@@ -130,6 +137,9 @@ extern SDL_bool SDL_IsJoystickWGI(SDL_JoystickGUID guid);
 
 /* Function to return whether a joystick guid comes from the HIDAPI driver */
 extern SDL_bool SDL_IsJoystickHIDAPI(SDL_JoystickGUID guid);
+
+/* Function to return whether a joystick guid comes from the MFI driver */
+extern SDL_bool SDL_IsJoystickMFI(SDL_JoystickGUID guid);
 
 /* Function to return whether a joystick guid comes from the RAWINPUT driver */
 extern SDL_bool SDL_IsJoystickRAWINPUT(SDL_JoystickGUID guid);
@@ -170,21 +180,27 @@ extern int SDL_PrivateJoystickSensor(SDL_Joystick *joystick,
 extern void SDL_PrivateJoystickBatteryLevel(SDL_Joystick *joystick,
                                             SDL_JoystickPowerLevel ePowerLevel);
 
+/* Function to get the Steam virtual gamepad info for a joystick */
+extern const struct SDL_SteamVirtualGamepadInfo *SDL_GetJoystickInstanceVirtualGamepadInfo(SDL_JoystickID instance_id);
+
 /* Internal sanity checking functions */
 extern SDL_bool SDL_PrivateJoystickValid(SDL_Joystick *joystick);
 
 typedef enum
 {
-    EMappingKind_None = 0,
-    EMappingKind_Button = 1,
-    EMappingKind_Axis = 2,
-    EMappingKind_Hat = 3
+    EMappingKind_None,
+    EMappingKind_Button,
+    EMappingKind_Axis,
+    EMappingKind_Hat,
 } EMappingKind;
 
 typedef struct _SDL_InputMapping
 {
     EMappingKind kind;
     Uint8 target;
+    SDL_bool axis_reversed;
+    SDL_bool half_axis_positive;
+    SDL_bool half_axis_negative;
 } SDL_InputMapping;
 
 typedef struct _SDL_GamepadMapping
@@ -215,11 +231,39 @@ typedef struct _SDL_GamepadMapping
     SDL_InputMapping righty;
     SDL_InputMapping lefttrigger;
     SDL_InputMapping righttrigger;
+    SDL_InputMapping touchpad;
 } SDL_GamepadMapping;
 
 /* Function to get autodetected gamepad controller mapping from the driver */
 extern SDL_bool SDL_PrivateJoystickGetAutoGamepadMapping(int device_index,
                                                          SDL_GamepadMapping *out);
+
+
+typedef struct
+{
+    const char *included_hint_name;
+    int num_included_entries;
+    int max_included_entries;
+    Uint32 *included_entries;
+
+    const char *excluded_hint_name;
+    int num_excluded_entries;
+    int max_excluded_entries;
+    Uint32 *excluded_entries;
+
+    int num_initial_entries;
+    Uint32 *initial_entries;
+
+    SDL_bool initialized;
+} SDL_vidpid_list;
+
+extern void SDL_LoadVIDPIDList(SDL_vidpid_list *list);
+extern void SDL_LoadVIDPIDListFromHints(SDL_vidpid_list *list, const char *included_list, const char *excluded_list);
+extern SDL_bool SDL_VIDPIDInList(Uint16 vendor_id, Uint16 product_id, const SDL_vidpid_list *list);
+extern void SDL_FreeVIDPIDList(SDL_vidpid_list *list);
+
+/* This is in SDL_gamecontroller.c */
+extern SDL_GameControllerType SDL_GetGameControllerTypeFromString(const char *str);
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus

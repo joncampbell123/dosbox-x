@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_PSP
+#ifdef SDL_AUDIO_DRIVER_PSP
 
 #include <stdio.h>
 #include <string.h>
@@ -52,7 +52,7 @@ static int PSPAUDIO_OpenDevice(_THIS, const char *devname)
 
     this->hidden = (struct SDL_PrivateAudioData *)
         SDL_malloc(sizeof(*this->hidden));
-    if (this->hidden == NULL) {
+    if (!this->hidden) {
         return SDL_OutOfMemory();
     }
     SDL_zerop(this->hidden);
@@ -108,7 +108,7 @@ static int PSPAUDIO_OpenDevice(_THIS, const char *devname)
        64, so spec->size should be a multiple of 64 as well. */
     mixlen = this->spec.size * NUM_BUFFERS;
     this->hidden->rawbuf = (Uint8 *)memalign(64, mixlen);
-    if (this->hidden->rawbuf == NULL) {
+    if (!this->hidden->rawbuf) {
         return SDL_SetError("Couldn't allocate mixing buffer");
     }
 
@@ -156,7 +156,7 @@ static void PSPAUDIO_CloseDevice(_THIS)
         this->hidden->channel = -1;
     }
 
-    if (this->hidden->rawbuf != NULL) {
+    if (this->hidden->rawbuf) {
         free(this->hidden->rawbuf);
         this->hidden->rawbuf = NULL;
     }

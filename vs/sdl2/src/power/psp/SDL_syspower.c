@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 #include "../../SDL_internal.h"
 
 #ifndef SDL_POWER_DISABLED
-#if SDL_POWER_PSP
+#ifdef SDL_POWER_PSP
 
 #include "SDL_power.h"
 #include <psppower.h>

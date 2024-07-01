@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@
 #include "SDL_render.h"
 #include "SDL_system.h"
 
-#if SDL_VIDEO_RENDER_D3D11 && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_D3D11
 
 #define COBJMACROS
 #include "../../core/windows/SDL_windows.h"
@@ -385,7 +385,7 @@ static ID3D11BlendState *D3D11_CreateBlendState(SDL_Renderer *renderer, SDL_Blen
     }
 
     blendModes = (D3D11_BlendMode *)SDL_realloc(data->blendModes, (data->blendModesCount + 1) * sizeof(*blendModes));
-    if (blendModes == NULL) {
+    if (!blendModes) {
         SAFE_RELEASE(blendState);
         SDL_OutOfMemory();
         return NULL;
@@ -442,7 +442,7 @@ static HRESULT D3D11_CreateDeviceResources(SDL_Renderer *renderer)
     }
 
     CreateDXGIFactoryFunc = (PFN_CREATE_DXGI_FACTORY)SDL_LoadFunction(data->hDXGIMod, "CreateDXGIFactory");
-    if (CreateDXGIFactoryFunc == NULL) {
+    if (!CreateDXGIFactoryFunc) {
         result = E_FAIL;
         goto done;
     }
@@ -740,7 +740,7 @@ static HRESULT D3D11_CreateSwapChain(SDL_Renderer *renderer, int w, int h)
     D3D11_RenderData *data = (D3D11_RenderData *)renderer->driverdata;
 #ifdef __WINRT__
     IUnknown *coreWindow = D3D11_GetCoreWindowFromSDLRenderer(renderer);
-    const BOOL usingXAML = (coreWindow == NULL);
+    const BOOL usingXAML = (!coreWindow);
 #else
     IUnknown *coreWindow = NULL;
     const BOOL usingXAML = FALSE;
@@ -758,7 +758,7 @@ static HRESULT D3D11_CreateSwapChain(SDL_Renderer *renderer, int w, int h)
     swapChainDesc.SampleDesc.Quality = 0;
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.BufferCount = 2; /* Use double-buffering to minimize latency. */
-#if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#if SDL_WINAPI_FAMILY_PHONE
     swapChainDesc.Scaling = DXGI_SCALING_STRETCH;        /* On phone, only stretch and aspect-ratio stretch scaling are allowed. */
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; /* On phone, no swap effects are supported. */
     /* TODO, WinRT: see if Win 8.x DXGI_SWAP_CHAIN_DESC1 settings are available on Windows Phone 8.1, and if there's any advantage to having them on */
@@ -907,7 +907,7 @@ static HRESULT D3D11_CreateWindowSizeDependentResources(SDL_Renderer *renderer)
 
     if (data->swapChain) {
         /* IDXGISwapChain::ResizeBuffers is not available on Windows Phone 8. */
-#if !defined(__WINRT__) || (WINAPI_FAMILY != WINAPI_FAMILY_PHONE_APP)
+#if !defined(__WINRT__) || !SDL_WINAPI_FAMILY_PHONE
         /* If the swap chain already exists, resize it. */
         result = IDXGISwapChain_ResizeBuffers(data->swapChain,
                                               0,
@@ -929,12 +929,12 @@ static HRESULT D3D11_CreateWindowSizeDependentResources(SDL_Renderer *renderer)
 #endif
     } else {
         result = D3D11_CreateSwapChain(renderer, w, h);
-        if (FAILED(result) || data->swapChain == NULL) {
+        if (FAILED(result) || !data->swapChain) {
             goto done;
         }
     }
 
-#if WINAPI_FAMILY != WINAPI_FAMILY_PHONE_APP
+#if !SDL_WINAPI_FAMILY_PHONE
     /* Set the proper rotation for the swap chain.
      *
      * To note, the call for this, IDXGISwapChain1::SetRotation, is not necessary
@@ -1071,7 +1071,7 @@ static int D3D11_CreateTexture(SDL_Renderer *renderer, SDL_Texture *texture)
     }
 
     textureData = (D3D11_TextureData *)SDL_calloc(1, sizeof(*textureData));
-    if (textureData == NULL) {
+    if (!textureData) {
         SDL_OutOfMemory();
         return -1;
     }
@@ -1232,7 +1232,7 @@ static void D3D11_DestroyTexture(SDL_Renderer *renderer,
 {
     D3D11_TextureData *data = (D3D11_TextureData *)texture->driverdata;
 
-    if (data == NULL) {
+    if (!data) {
         return;
     }
 
@@ -1339,7 +1339,7 @@ static int D3D11_UpdateTexture(SDL_Renderer *renderer, SDL_Texture *texture,
     D3D11_RenderData *rendererData = (D3D11_RenderData *)renderer->driverdata;
     D3D11_TextureData *textureData = (D3D11_TextureData *)texture->driverdata;
 
-    if (textureData == NULL) {
+    if (!textureData) {
         return SDL_SetError("Texture is not currently available");
     }
 
@@ -1384,7 +1384,7 @@ static int D3D11_UpdateTextureYUV(SDL_Renderer *renderer, SDL_Texture *texture,
     D3D11_RenderData *rendererData = (D3D11_RenderData *)renderer->driverdata;
     D3D11_TextureData *textureData = (D3D11_TextureData *)texture->driverdata;
 
-    if (textureData == NULL) {
+    if (!textureData) {
         return SDL_SetError("Texture is not currently available");
     }
 
@@ -1408,7 +1408,7 @@ static int D3D11_UpdateTextureNV(SDL_Renderer *renderer, SDL_Texture *texture,
     D3D11_RenderData *rendererData = (D3D11_RenderData *)renderer->driverdata;
     D3D11_TextureData *textureData = (D3D11_TextureData *)texture->driverdata;
 
-    if (textureData == NULL) {
+    if (!textureData) {
         return SDL_SetError("Texture is not currently available");
     }
 
@@ -1432,7 +1432,7 @@ static int D3D11_LockTexture(SDL_Renderer *renderer, SDL_Texture *texture,
     D3D11_TEXTURE2D_DESC stagingTextureDesc;
     D3D11_MAPPED_SUBRESOURCE textureMemory;
 
-    if (textureData == NULL) {
+    if (!textureData) {
         return SDL_SetError("Texture is not currently available");
     }
 #if SDL_HAVE_YUV
@@ -1511,7 +1511,7 @@ static void D3D11_UnlockTexture(SDL_Renderer *renderer, SDL_Texture *texture)
     D3D11_RenderData *rendererData = (D3D11_RenderData *)renderer->driverdata;
     D3D11_TextureData *textureData = (D3D11_TextureData *)texture->driverdata;
 
-    if (textureData == NULL) {
+    if (!textureData) {
         return;
     }
 #if SDL_HAVE_YUV
@@ -1547,7 +1547,7 @@ static void D3D11_SetTextureScaleMode(SDL_Renderer *renderer, SDL_Texture *textu
 {
     D3D11_TextureData *textureData = (D3D11_TextureData *)texture->driverdata;
 
-    if (textureData == NULL) {
+    if (!textureData) {
         return;
     }
 
@@ -1559,7 +1559,7 @@ static int D3D11_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
     D3D11_RenderData *rendererData = (D3D11_RenderData *)renderer->driverdata;
     D3D11_TextureData *textureData = NULL;
 
-    if (texture == NULL) {
+    if (!texture) {
         rendererData->currentOffscreenRenderTargetView = NULL;
         return 0;
     }
@@ -1590,7 +1590,7 @@ static int D3D11_QueueDrawPoints(SDL_Renderer *renderer, SDL_RenderCommand *cmd,
     color.b = cmd->data.draw.b;
     color.a = cmd->data.draw.a;
 
-    if (verts == NULL) {
+    if (!verts) {
         return -1;
     }
 
@@ -1617,7 +1617,7 @@ static int D3D11_QueueGeometry(SDL_Renderer *renderer, SDL_RenderCommand *cmd, S
     int count = indices ? num_indices : num_vertices;
     VertexPositionColor *verts = (VertexPositionColor *)SDL_AllocateRenderVertices(renderer, count * sizeof(VertexPositionColor), 0, &cmd->data.draw.first);
 
-    if (verts == NULL) {
+    if (!verts) {
         return -1;
     }
 
@@ -1842,6 +1842,19 @@ static int D3D11_SetDrawState(SDL_Renderer *renderer, const SDL_RenderCommand *c
     ID3D11BlendState *blendState = NULL;
     SDL_bool updateSubresource = SDL_FALSE;
 
+    if (numShaderResources > 0) {
+        shaderResource = shaderResources[0];
+    } else {
+        shaderResource = NULL;
+    }
+
+    /* Make sure the render target isn't bound to a shader */
+    if (shaderResource != rendererData->currentShaderResource) {
+        ID3D11ShaderResourceView *pNullResource = NULL;
+        ID3D11DeviceContext_PSSetShaderResources(rendererData->d3dContext, 0, 1, &pNullResource);
+        rendererData->currentShaderResource = NULL;
+    }
+
     if (renderTargetView != rendererData->currentRenderTargetView) {
         ID3D11DeviceContext_OMSetRenderTargets(rendererData->d3dContext,
                                                1,
@@ -1889,9 +1902,9 @@ static int D3D11_SetDrawState(SDL_Renderer *renderer, const SDL_RenderCommand *c
                 break;
             }
         }
-        if (blendState == NULL) {
+        if (!blendState) {
             blendState = D3D11_CreateBlendState(renderer, blendMode);
-            if (blendState == NULL) {
+            if (!blendState) {
                 return -1;
             }
         }
@@ -1904,11 +1917,6 @@ static int D3D11_SetDrawState(SDL_Renderer *renderer, const SDL_RenderCommand *c
     if (shader != rendererData->currentShader) {
         ID3D11DeviceContext_PSSetShader(rendererData->d3dContext, shader, NULL, 0);
         rendererData->currentShader = shader;
-    }
-    if (numShaderResources > 0) {
-        shaderResource = shaderResources[0];
-    } else {
-        shaderResource = NULL;
     }
     if (shaderResource != rendererData->currentShaderResource) {
         ID3D11DeviceContext_PSSetShaderResources(rendererData->d3dContext, 0, numShaderResources, shaderResources);
@@ -2039,6 +2047,7 @@ static int D3D11_RunCommandQueue(SDL_Renderer *renderer, SDL_RenderCommand *cmd,
             if (SDL_memcmp(viewport, &cmd->data.viewport.rect, sizeof(cmd->data.viewport.rect)) != 0) {
                 SDL_copyp(viewport, &cmd->data.viewport.rect);
                 rendererData->viewportDirty = SDL_TRUE;
+                rendererData->cliprectDirty = SDL_TRUE;
             }
             break;
         }
@@ -2144,13 +2153,13 @@ static int D3D11_RenderReadPixels(SDL_Renderer *renderer, const SDL_Rect *rect,
     D3D11_MAPPED_SUBRESOURCE textureMemory;
 
     renderTargetView = D3D11_GetCurrentRenderTargetView(renderer);
-    if (renderTargetView == NULL) {
+    if (!renderTargetView) {
         SDL_SetError("%s, ID3D11DeviceContext::OMGetRenderTargets failed", __FUNCTION__);
         goto done;
     }
 
     ID3D11View_GetResource(renderTargetView, (ID3D11Resource **)&backBuffer);
-    if (backBuffer == NULL) {
+    if (!backBuffer) {
         SDL_SetError("%s, ID3D11View::GetResource failed", __FUNCTION__);
         goto done;
     }
@@ -2237,7 +2246,7 @@ static int D3D11_RenderPresent(SDL_Renderer *renderer)
 
     SDL_zero(parameters);
 
-#if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#if SDL_WINAPI_FAMILY_PHONE
     syncInterval = 1;
     presentFlags = 0;
     result = IDXGISwapChain_Present(data->swapChain, syncInterval, presentFlags);
@@ -2285,7 +2294,7 @@ static int D3D11_RenderPresent(SDL_Renderer *renderer)
     return 0;
 }
 
-#if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#if SDL_WINAPI_FAMILY_PHONE
 /* no-op. */
 #else
 static int D3D11_SetVSync(SDL_Renderer *renderer, const int vsync)
@@ -2305,13 +2314,13 @@ SDL_Renderer *D3D11_CreateRenderer(SDL_Window *window, Uint32 flags)
     D3D11_RenderData *data;
 
     renderer = (SDL_Renderer *)SDL_calloc(1, sizeof(*renderer));
-    if (renderer == NULL) {
+    if (!renderer) {
         SDL_OutOfMemory();
         return NULL;
     }
 
     data = (D3D11_RenderData *)SDL_calloc(1, sizeof(*data));
-    if (data == NULL) {
+    if (!data) {
         SDL_free(renderer);
         SDL_OutOfMemory();
         return NULL;
@@ -2348,7 +2357,7 @@ SDL_Renderer *D3D11_CreateRenderer(SDL_Window *window, Uint32 flags)
     renderer->info.flags = (SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
     renderer->driverdata = data;
 
-#if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#if SDL_WINAPI_FAMILY_PHONE
     /* VSync is required in Windows Phone, at least for Win Phone 8.0 and 8.1.
      * Failure to use it seems to either result in:
      *
@@ -2407,7 +2416,7 @@ SDL_RenderDriver D3D11_RenderDriver = {
     }
 };
 
-#endif /* SDL_VIDEO_RENDER_D3D11 && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_D3D11 */
 
 #if defined(__WIN32__) || defined(__WINGDK__)
 /* This function needs to always exist on Windows, for the Dynamic API. */
@@ -2415,7 +2424,7 @@ ID3D11Device *SDL_RenderGetD3D11Device(SDL_Renderer *renderer)
 {
     ID3D11Device *device = NULL;
 
-#if SDL_VIDEO_RENDER_D3D11 && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_D3D11
     D3D11_RenderData *data = (D3D11_RenderData *)renderer->driverdata;
 
     /* Make sure that this is a D3D renderer */
@@ -2428,7 +2437,7 @@ ID3D11Device *SDL_RenderGetD3D11Device(SDL_Renderer *renderer)
     if (device) {
         ID3D11Device_AddRef(device);
     }
-#endif /* SDL_VIDEO_RENDER_D3D11 && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_D3D11 */
 
     return device;
 }

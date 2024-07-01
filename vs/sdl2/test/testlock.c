@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     SDL_AtomicSet(&doterminate, 0);
 
     mutex = SDL_CreateMutex();
-    if (mutex == NULL) {
+    if (!mutex) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
         exit(1);
     }

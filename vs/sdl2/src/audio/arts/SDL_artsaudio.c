@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_ARTS
+#ifdef SDL_AUDIO_DRIVER_ARTS
 
 /* Allow access to a raw mixing buffer */
 
@@ -88,7 +88,7 @@ static struct
 
 static void UnloadARTSLibrary()
 {
-    if (arts_handle != NULL) {
+    if (arts_handle) {
         SDL_UnloadObject(arts_handle);
         arts_handle = NULL;
     }
@@ -98,9 +98,9 @@ static int LoadARTSLibrary(void)
 {
     int i, retval = -1;
 
-    if (arts_handle == NULL) {
+    if (!arts_handle) {
         arts_handle = SDL_LoadObject(arts_library);
-        if (arts_handle != NULL) {
+        if (arts_handle) {
             retval = 0;
             for (i = 0; i < SDL_arraysize(arts_functions); ++i) {
                 *arts_functions[i].func =
@@ -214,7 +214,7 @@ static int ARTS_OpenDevice(_THIS, const char *devname)
 
     /* Initialize all variables that we clean on shutdown */
     this->hidden = (struct SDL_PrivateAudioData *)SDL_malloc(sizeof(*this->hidden));
-    if (this->hidden == NULL) {
+    if (!this->hidden) {
         return SDL_OutOfMemory();
     }
     SDL_zerop(this->hidden);
@@ -281,7 +281,7 @@ static int ARTS_OpenDevice(_THIS, const char *devname)
     /* Allocate mixing buffer */
     this->hidden->mixlen = this->spec.size;
     this->hidden->mixbuf = (Uint8 *) SDL_malloc(this->hidden->mixlen);
-    if (this->hidden->mixbuf == NULL) {
+    if (!this->hidden->mixbuf) {
         return SDL_OutOfMemory();
     }
     SDL_memset(this->hidden->mixbuf, this->spec.silence, this->spec.size);
@@ -300,12 +300,12 @@ static void ARTS_Deinitialize(void)
 }
 
 
-static SDL_bool ARTS_Init(SDL_AudioDriverImpl * impl)
+static SDL_bool ARTS_Init(SDL_AudioDriverImpl *impl)
 {
     if (LoadARTSLibrary() < 0) {
         return SDL_FALSE;
     } else {
-        if (SDL_NAME(arts_init) () != NULL) {
+        if (SDL_NAME(arts_init) () != 0) {
             UnloadARTSLibrary();
             SDL_SetError("ARTS: arts_init failed (no audio server?)");
             return SDL_FALSE;

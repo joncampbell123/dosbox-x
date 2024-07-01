@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_DSOUND
+#ifdef SDL_AUDIO_DRIVER_DSOUND
 
 /* Allow access to a raw mixing buffer */
 
@@ -30,7 +30,7 @@
 #include "../SDL_audio_c.h"
 #include "SDL_directsound.h"
 #include <mmreg.h>
-#if HAVE_MMDEVICEAPI_H
+#ifdef HAVE_MMDEVICEAPI_H
 #include "../../core/windows/SDL_immdevice.h"
 #endif /* HAVE_MMDEVICEAPI_H */
 
@@ -39,7 +39,7 @@
 #endif
 
 /* For Vista+, we can enumerate DSound devices with IMMDevice */
-#if HAVE_MMDEVICEAPI_H
+#ifdef HAVE_MMDEVICEAPI_H
 static SDL_bool SupportsIMMDevice = SDL_FALSE;
 #endif /* HAVE_MMDEVICEAPI_H */
 
@@ -64,7 +64,7 @@ static void DSOUND_Unload(void)
     pDirectSoundCaptureCreate8 = NULL;
     pDirectSoundCaptureEnumerateW = NULL;
 
-    if (DSoundDLL != NULL) {
+    if (DSoundDLL) {
         SDL_UnloadObject(DSoundDLL);
         DSoundDLL = NULL;
     }
@@ -77,7 +77,7 @@ static int DSOUND_Load(void)
     DSOUND_Unload();
 
     DSoundDLL = SDL_LoadObject("DSOUND.DLL");
-    if (DSoundDLL == NULL) {
+    if (!DSoundDLL) {
         SDL_SetError("DirectSound: failed to load DSOUND.DLL");
     } else {
 /* Now make sure we have DirectX 8 or better... */
@@ -159,7 +159,7 @@ static void DSOUND_FreeDeviceHandle(void *handle)
 
 static int DSOUND_GetDefaultAudioInfo(char **name, SDL_AudioSpec *spec, int iscapture)
 {
-#if HAVE_MMDEVICEAPI_H
+#ifdef HAVE_MMDEVICEAPI_H
     if (SupportsIMMDevice) {
         return SDL_IMMDevice_GetDefaultAudioInfo(name, spec, iscapture);
     }
@@ -172,7 +172,7 @@ static BOOL CALLBACK FindAllDevs(LPGUID guid, LPCWSTR desc, LPCWSTR module, LPVO
     const int iscapture = (int)((size_t)data);
     if (guid != NULL) { /* skip default device */
         char *str = WIN_LookupAudioDeviceName(desc, guid);
-        if (str != NULL) {
+        if (str) {
             LPGUID cpyguid = (LPGUID)SDL_malloc(sizeof(GUID));
             SDL_memcpy(cpyguid, guid, sizeof(GUID));
 
@@ -189,14 +189,14 @@ static BOOL CALLBACK FindAllDevs(LPGUID guid, LPCWSTR desc, LPCWSTR module, LPVO
 
 static void DSOUND_DetectDevices(void)
 {
-#if HAVE_MMDEVICEAPI_H
+#ifdef HAVE_MMDEVICEAPI_H
     if (SupportsIMMDevice) {
         SDL_IMMDevice_EnumerateEndpoints(SDL_TRUE);
     } else {
 #endif /* HAVE_MMDEVICEAPI_H */
         pDirectSoundCaptureEnumerateW(FindAllDevs, (void *)((size_t)1));
         pDirectSoundEnumerateW(FindAllDevs, (void *)((size_t)0));
-#if HAVE_MMDEVICEAPI_H
+#ifdef HAVE_MMDEVICEAPI_H
     }
 #endif /* HAVE_MMDEVICEAPI_H*/
 }
@@ -379,18 +379,18 @@ static void DSOUND_FlushCapture(_THIS)
 
 static void DSOUND_CloseDevice(_THIS)
 {
-    if (this->hidden->mixbuf != NULL) {
+    if (this->hidden->mixbuf) {
         IDirectSoundBuffer_Stop(this->hidden->mixbuf);
         IDirectSoundBuffer_Release(this->hidden->mixbuf);
     }
-    if (this->hidden->sound != NULL) {
+    if (this->hidden->sound) {
         IDirectSound_Release(this->hidden->sound);
     }
-    if (this->hidden->capturebuf != NULL) {
+    if (this->hidden->capturebuf) {
         IDirectSoundCaptureBuffer_Stop(this->hidden->capturebuf);
         IDirectSoundCaptureBuffer_Release(this->hidden->capturebuf);
     }
-    if (this->hidden->capture != NULL) {
+    if (this->hidden->capture) {
         IDirectSoundCapture_Release(this->hidden->capture);
     }
     SDL_free(this->hidden);
@@ -493,7 +493,7 @@ static int DSOUND_OpenDevice(_THIS, const char *devname)
 
     /* Initialize all variables that we clean on shutdown */
     this->hidden = (struct SDL_PrivateAudioData *)SDL_malloc(sizeof(*this->hidden));
-    if (this->hidden == NULL) {
+    if (!this->hidden) {
         return SDL_OutOfMemory();
     }
     SDL_zerop(this->hidden);
@@ -612,7 +612,7 @@ static int DSOUND_OpenDevice(_THIS, const char *devname)
 
 static void DSOUND_Deinitialize(void)
 {
-#if HAVE_MMDEVICEAPI_H
+#ifdef HAVE_MMDEVICEAPI_H
     if (SupportsIMMDevice) {
         SDL_IMMDevice_Quit();
         SupportsIMMDevice = SDL_FALSE;
@@ -627,7 +627,7 @@ static SDL_bool DSOUND_Init(SDL_AudioDriverImpl *impl)
         return SDL_FALSE;
     }
 
-#if HAVE_MMDEVICEAPI_H
+#ifdef HAVE_MMDEVICEAPI_H
     SupportsIMMDevice = !(SDL_IMMDevice_Init() < 0);
 #endif /* HAVE_MMDEVICEAPI_H */
 

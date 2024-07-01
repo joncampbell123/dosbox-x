@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,7 +26,7 @@
    The code in SDL_wasapi.c is used by both standard Windows and WinRT builds
    to deal with audio and calls into these functions. */
 
-#if SDL_AUDIO_DRIVER_WASAPI && !defined(__WINRT__)
+#if defined(SDL_AUDIO_DRIVER_WASAPI) && !defined(__WINRT__)
 
 #include "../../core/windows/SDL_windows.h"
 #include "../../core/windows/SDL_immdevice.h"

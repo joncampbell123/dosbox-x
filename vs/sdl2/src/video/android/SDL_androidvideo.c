@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_ANDROID
+#ifdef SDL_VIDEO_DRIVER_ANDROID
 
 /* Android SDL video driver implementation */
 
@@ -41,6 +41,7 @@
 #include "SDL_androidtouch.h"
 #include "SDL_androidwindow.h"
 #include "SDL_androidvulkan.h"
+#include "SDL_androidmessagebox.h"
 
 #define ANDROID_VID_DRIVER_NAME "Android"
 
@@ -88,13 +89,13 @@ static SDL_VideoDevice *Android_CreateDevice(void)
 
     /* Initialize all variables that we clean on shutdown */
     device = (SDL_VideoDevice *)SDL_calloc(1, sizeof(SDL_VideoDevice));
-    if (device == NULL) {
+    if (!device) {
         SDL_OutOfMemory();
         return NULL;
     }
 
     data = (SDL_VideoData *)SDL_calloc(1, sizeof(SDL_VideoData));
-    if (data == NULL) {
+    if (!data) {
         SDL_OutOfMemory();
         SDL_free(device);
         return NULL;
@@ -125,7 +126,7 @@ static SDL_VideoDevice *Android_CreateDevice(void)
     device->free = Android_DeleteDevice;
 
     /* GL pointers */
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_EGL
     device->GL_LoadLibrary = Android_GLES_LoadLibrary;
     device->GL_GetProcAddress = Android_GLES_GetProcAddress;
     device->GL_UnloadLibrary = Android_GLES_UnloadLibrary;
@@ -137,7 +138,7 @@ static SDL_VideoDevice *Android_CreateDevice(void)
     device->GL_DeleteContext = Android_GLES_DeleteContext;
 #endif
 
-#if SDL_VIDEO_VULKAN
+#ifdef SDL_VIDEO_VULKAN
     device->Vulkan_LoadLibrary = Android_Vulkan_LoadLibrary;
     device->Vulkan_UnloadLibrary = Android_Vulkan_UnloadLibrary;
     device->Vulkan_GetInstanceExtensions = Android_Vulkan_GetInstanceExtensions;
@@ -148,12 +149,12 @@ static SDL_VideoDevice *Android_CreateDevice(void)
     device->SuspendScreenSaver = Android_SuspendScreenSaver;
 
     /* Text input */
-    device->StartTextInput = Android_StartTextInput;
-    device->StopTextInput = Android_StopTextInput;
     device->SetTextInputRect = Android_SetTextInputRect;
 
     /* Screen keyboard */
     device->HasScreenKeyboardSupport = Android_HasScreenKeyboardSupport;
+    device->ShowScreenKeyboard = Android_ShowScreenKeyboard;
+    device->HideScreenKeyboard = Android_HideScreenKeyboard;
     device->IsScreenKeyboardShown = Android_IsScreenKeyboardShown;
 
     /* Clipboard */
@@ -166,7 +167,8 @@ static SDL_VideoDevice *Android_CreateDevice(void)
 
 VideoBootStrap Android_bootstrap = {
     ANDROID_VID_DRIVER_NAME, "SDL Android video driver",
-    Android_CreateDevice
+    Android_CreateDevice,
+    Android_ShowMessageBox
 };
 
 int Android_VideoInit(_THIS)

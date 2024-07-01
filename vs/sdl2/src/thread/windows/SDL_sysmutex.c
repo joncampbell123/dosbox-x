@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_THREAD_WINDOWS
+#ifdef SDL_THREAD_WINDOWS
 
 /**
  * Mutex functions using the Win32 API
@@ -42,7 +42,7 @@ SDL_mutex_impl_t SDL_mutex_impl_active = { 0 };
  * Implementation based on Slim Reader/Writer (SRW) Locks for Win 7 and newer.
  */
 
-#if __WINRT__
+#ifdef __WINRT__
 /* Functions are guaranteed to be available */
 #define pReleaseSRWLockExclusive    ReleaseSRWLockExclusive
 #define pAcquireSRWLockExclusive    AcquireSRWLockExclusive
@@ -62,7 +62,7 @@ static SDL_mutex *SDL_CreateMutex_srw(void)
 
     /* Relies on SRWLOCK_INIT == 0. */
     mutex = (SDL_mutex_srw *)SDL_calloc(1, sizeof(*mutex));
-    if (mutex == NULL) {
+    if (!mutex) {
         SDL_OutOfMemory();
     }
 
@@ -153,10 +153,10 @@ static SDL_mutex *SDL_CreateMutex_cs(void)
 
     /* Allocate mutex memory */
     mutex = (SDL_mutex_cs *)SDL_malloc(sizeof(*mutex));
-    if (mutex != NULL) {
+    if (mutex) {
         /* Initialize */
         /* On SMP systems, a non-zero spin count generally helps performance */
-#if __WINRT__
+#ifdef __WINRT__
         InitializeCriticalSectionEx(&mutex->cs, 2000, 0);
 #else
         InitializeCriticalSectionAndSpinCount(&mutex->cs, 2000);
@@ -221,12 +221,12 @@ static const SDL_mutex_impl_t SDL_mutex_impl_cs = {
 
 SDL_mutex *SDL_CreateMutex(void)
 {
-    if (SDL_mutex_impl_active.Create == NULL) {
+    if (!SDL_mutex_impl_active.Create) {
         /* Default to fallback implementation */
         const SDL_mutex_impl_t *impl = &SDL_mutex_impl_cs;
 
         if (!SDL_GetHintBoolean(SDL_HINT_WINDOWS_FORCE_MUTEX_CRITICAL_SECTIONS, SDL_FALSE)) {
-#if __WINRT__
+#ifdef __WINRT__
             /* Link statically on this platform */
             impl = &SDL_mutex_impl_srw;
 #else
@@ -260,7 +260,7 @@ void SDL_DestroyMutex(SDL_mutex *mutex)
 
 int SDL_LockMutex(SDL_mutex *mutex)
 {
-    if (mutex == NULL) {
+    if (!mutex) {
         return 0;
     }
 
@@ -269,7 +269,7 @@ int SDL_LockMutex(SDL_mutex *mutex)
 
 int SDL_TryLockMutex(SDL_mutex *mutex)
 {
-    if (mutex == NULL) {
+    if (!mutex) {
         return 0;
     }
 
@@ -278,7 +278,7 @@ int SDL_TryLockMutex(SDL_mutex *mutex)
 
 int SDL_UnlockMutex(SDL_mutex *mutex)
 {
-    if (mutex == NULL) {
+    if (!mutex) {
         return 0;
     }
 

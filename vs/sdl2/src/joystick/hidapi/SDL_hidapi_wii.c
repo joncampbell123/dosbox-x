@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -236,7 +236,7 @@ static SDL_bool ReadInputSync(SDL_DriverWii_Context *ctx, EWiiInputReportIDs exp
     int nRead = 0;
     while ((nRead = ReadInput(ctx)) != -1) {
         if (nRead > 0) {
-            if (ctx->m_rgucReadBuffer[0] == expectedID && (isMine == NULL || isMine(ctx->m_rgucReadBuffer))) {
+            if (ctx->m_rgucReadBuffer[0] == expectedID && (!isMine || isMine(ctx->m_rgucReadBuffer))) {
                 return SDL_TRUE;
             }
         } else {
@@ -733,7 +733,7 @@ static SDL_bool HIDAPI_DriverWii_InitDevice(SDL_HIDAPI_Device *device)
     SDL_DriverWii_Context *ctx;
 
     ctx = (SDL_DriverWii_Context *)SDL_calloc(1, sizeof(*ctx));
-    if (ctx == NULL) {
+    if (!ctx) {
         SDL_OutOfMemory();
         return SDL_FALSE;
     }

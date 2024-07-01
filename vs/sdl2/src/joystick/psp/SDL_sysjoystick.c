@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_JOYSTICK_PSP
+#ifdef SDL_JOYSTICK_PSP
 
 /* This is the PSP implementation of the SDL joystick API */
 #include <pspctrl.h>
@@ -124,6 +124,11 @@ static const char *PSP_JoystickGetDevicePath(int index)
     return NULL;
 }
 
+static int PSP_JoystickGetDeviceSteamVirtualGamepadSlot(int device_index)
+{
+    return -1;
+}
+
 static int PSP_JoystickGetDevicePlayerIndex(int device_index)
 {
     return -1;
@@ -205,7 +210,9 @@ static void PSP_JoystickUpdate(SDL_Joystick *joystick)
     static enum PspCtrlButtons old_buttons = 0;
     static unsigned char old_x = 0, old_y = 0;
 
-    sceCtrlReadBufferPositive(&pad, 1);
+    if (sceCtrlPeekBufferPositive(&pad, 1) <= 0) {
+        return;
+    }
     buttons = pad.Buttons;
     x = pad.Lx;
     y = pad.Ly;
@@ -255,6 +262,7 @@ SDL_JoystickDriver SDL_PSP_JoystickDriver = {
     PSP_JoystickDetect,
     PSP_JoystickGetDeviceName,
     PSP_JoystickGetDevicePath,
+    PSP_JoystickGetDeviceSteamVirtualGamepadSlot,
     PSP_JoystickGetDevicePlayerIndex,
     PSP_JoystickSetDevicePlayerIndex,
     PSP_JoystickGetDeviceGUID,

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WINDOWS && SDL_VIDEO_OPENGL_EGL && !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
+#if defined(SDL_VIDEO_DRIVER_WINDOWS) && defined(SDL_VIDEO_OPENGL_EGL) && !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
 
 #include "SDL_windowsvideo.h"
 #include "SDL_windowsopengles.h"
@@ -34,7 +34,7 @@ int WIN_GLES_LoadLibrary(_THIS, const char *path)
 
     /* If the profile requested is not GL ES, switch over to WIN_GL functions  */
     if (_this->gl_config.profile_mask != SDL_GL_CONTEXT_PROFILE_ES) {
-#if SDL_VIDEO_OPENGL_WGL
+#ifdef SDL_VIDEO_OPENGL_WGL
         WIN_GLES_UnloadLibrary(_this);
         _this->GL_LoadLibrary = WIN_GL_LoadLibrary;
         _this->GL_GetProcAddress = WIN_GL_GetProcAddress;
@@ -51,7 +51,7 @@ int WIN_GLES_LoadLibrary(_THIS, const char *path)
 #endif
     }
 
-    if (_this->egl_data == NULL) {
+    if (!_this->egl_data) {
         return SDL_EGL_LoadLibrary(_this, NULL, EGL_DEFAULT_DISPLAY, 0);
     }
 
@@ -63,7 +63,7 @@ SDL_GLContext WIN_GLES_CreateContext(_THIS, SDL_Window *window)
     SDL_GLContext context;
     SDL_WindowData *data = (SDL_WindowData *)window->driverdata;
 
-#if SDL_VIDEO_OPENGL_WGL
+#ifdef SDL_VIDEO_OPENGL_WGL
     if (_this->gl_config.profile_mask != SDL_GL_CONTEXT_PROFILE_ES) {
         /* Switch to WGL based functions */
         WIN_GLES_UnloadLibrary(_this);
@@ -106,7 +106,7 @@ int WIN_GLES_SetupWindow(_THIS, SDL_Window *window)
     SDL_Window *current_win = SDL_GL_GetCurrentWindow();
     SDL_GLContext current_ctx = SDL_GL_GetCurrentContext();
 
-    if (_this->egl_data == NULL) {
+    if (!_this->egl_data) {
 /* !!! FIXME: commenting out this assertion is (I think) incorrect; figure out why driver_loaded is wrong for ANGLE instead. --ryan. */
 #if 0 /* When hint SDL_HINT_OPENGL_ES_DRIVER is set to "1" (e.g. for ANGLE support), _this->gl_config.driver_loaded can be 1, while the below lines function. */
         SDL_assert(!_this->gl_config.driver_loaded);

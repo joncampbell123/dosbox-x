@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -99,7 +99,7 @@ static void touch_handle_touch(void *data,
     /* FIXME: This should be the window the given wayland surface is associated
      * with, but how do we get the wayland surface? */
     window = SDL_GetMouseFocus();
-    if (window == NULL) {
+    if (!window) {
         window = SDL_GetKeyboardFocus();
     }
 

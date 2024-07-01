@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -28,7 +28,7 @@
 int SDL_SetError(SDL_PRINTF_FORMAT_STRING const char *fmt, ...)
 {
     /* Ignore call if invalid format pointer was passed */
-    if (fmt != NULL) {
+    if (fmt) {
         va_list ap;
         int result;
         SDL_error *error = SDL_GetErrBuf();

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@
 #ifndef SDL_x11xfixes_h_
 #define SDL_x11xfixes_h_
 
-#if SDL_VIDEO_DRIVER_X11_XFIXES
+#ifdef SDL_VIDEO_DRIVER_X11_XFIXES
 
 #define X11_BARRIER_HANDLED_BY_EVENT 1
 
@@ -33,7 +33,7 @@ extern int X11_XfixesIsInitialized(void);
 extern void X11_SetWindowMouseRect(_THIS, SDL_Window *window);
 extern int X11_ConfineCursorWithFlags(_THIS, SDL_Window *window, const SDL_Rect *rect, int flags);
 extern void X11_DestroyPointerBarrier(_THIS, SDL_Window *window);
-
+extern int X11_GetXFixesSelectionNotifyEvent(void);
 #endif /* SDL_VIDEO_DRIVER_X11_XFIXES */
 
 #endif /* SDL_x11xfixes_h_ */

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
   Copyright (C) 2018-2019 EXL <exlmotodev@gmail.com>
 
   This software is provided 'as-is', without any express or implied
@@ -25,7 +25,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_HAIKU
+#ifdef SDL_VIDEO_DRIVER_HAIKU
 
 #ifdef __cplusplus
 extern "C" {

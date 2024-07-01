@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #endif
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_NGAGE
+#ifdef SDL_VIDEO_DRIVER_NGAGE
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,14 +106,14 @@ static SDL_VideoDevice *NGAGE_CreateDevice(void)
 
     /* Initialize all variables that we clean on shutdown */
     device = (SDL_VideoDevice *)SDL_calloc(1, sizeof(SDL_VideoDevice));
-    if (device == NULL) {
+    if (!device) {
         SDL_OutOfMemory();
         return 0;
     }
 
     /* Initialize internal N-Gage specific data */
     phdata = (SDL_VideoData *)SDL_calloc(1, sizeof(SDL_VideoData));
-    if (phdata == NULL) {
+    if (!phdata) {
         SDL_OutOfMemory();
         SDL_free(device);
         return 0;
@@ -141,7 +141,8 @@ static SDL_VideoDevice *NGAGE_CreateDevice(void)
 
 VideoBootStrap NGAGE_bootstrap = {
     NGAGEVID_DRIVER_NAME, "SDL ngage video driver",
-    NGAGE_CreateDevice
+    NGAGE_CreateDevice,
+    NULL /* no ShowMessageBox implementation */
 };
 
 int NGAGE_VideoInit(_THIS)

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 
 #include "../SDL_vulkan_internal.h"
 
-#if SDL_VIDEO_VULKAN && SDL_VIDEO_DRIVER_X11
+#if defined(SDL_VIDEO_VULKAN) && defined(SDL_VIDEO_DRIVER_X11)
 
 /*typedef struct xcb_connection_t xcb_connection_t;*/
 typedef xcb_connection_t *(*PFN_XGetXCBConnection)(Display *dpy);

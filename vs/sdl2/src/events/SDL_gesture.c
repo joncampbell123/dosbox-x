@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -61,7 +61,7 @@ typedef struct
 typedef struct
 {
     SDL_FloatPoint path[DOLLARNPOINTS];
-    unsigned long hash;
+    Sint64 hash;
 } SDL_DollarTemplate;
 
 typedef struct
@@ -110,7 +110,7 @@ int SDL_RecordGesture(SDL_TouchID touchId)
     return touchId < 0;
 }
 
-void SDL_GestureQuit()
+void SDL_GestureQuit(void)
 {
     SDL_free(SDL_gestureTouch);
     SDL_gestureTouch = NULL;
@@ -129,7 +129,7 @@ static unsigned long SDL_HashDollar(SDL_FloatPoint *points)
 
 static int SaveTemplate(SDL_DollarTemplate *templ, SDL_RWops *dst)
 {
-    if (dst == NULL) {
+    if (!dst) {
         return 0;
     }
 
@@ -200,7 +200,7 @@ static int SDL_AddDollarGesture_one(SDL_GestureTouch *inTouch, SDL_FloatPoint *p
         (SDL_DollarTemplate *)SDL_realloc(inTouch->dollarTemplate,
                                           (index + 1) *
                                               sizeof(SDL_DollarTemplate));
-    if (dollarTemplate == NULL) {
+    if (!dollarTemplate) {
         return SDL_OutOfMemory();
     }
     inTouch->dollarTemplate = dollarTemplate;
@@ -217,7 +217,7 @@ static int SDL_AddDollarGesture(SDL_GestureTouch *inTouch, SDL_FloatPoint *path)
 {
     int index = -1;
     int i = 0;
-    if (inTouch == NULL) {
+    if (!inTouch) {
         if (SDL_numGestureTouches == 0) {
             return SDL_SetError("no gesture touch devices registered");
         }
@@ -238,7 +238,7 @@ int SDL_LoadDollarTemplates(SDL_TouchID touchId, SDL_RWops *src)
 {
     int i, loaded = 0;
     SDL_GestureTouch *touch = NULL;
-    if (src == NULL) {
+    if (!src) {
         return 0;
     }
     if (touchId >= 0) {
@@ -247,7 +247,7 @@ int SDL_LoadDollarTemplates(SDL_TouchID touchId, SDL_RWops *src)
                 touch = &SDL_gestureTouch[i];
             }
         }
-        if (touch == NULL) {
+        if (!touch) {
             return SDL_SetError("given touch id not found");
         }
     }
@@ -475,7 +475,7 @@ int SDL_GestureAddTouch(SDL_TouchID touchId)
                                                                      (SDL_numGestureTouches + 1) *
                                                                          sizeof(SDL_GestureTouch));
 
-    if (gestureTouch == NULL) {
+    if (!gestureTouch) {
         return SDL_OutOfMemory();
     }
 
@@ -589,7 +589,7 @@ void SDL_GestureProcessEvent(SDL_Event *event)
         SDL_GestureTouch *inTouch = SDL_GetGestureTouch(event->tfinger.touchId);
 
         /* Shouldn't be possible */
-        if (inTouch == NULL) {
+        if (!inTouch) {
             return;
         }
 
@@ -630,7 +630,7 @@ void SDL_GestureProcessEvent(SDL_Event *event)
                                         &bestTempl, inTouch);
                 if (bestTempl >= 0) {
                     /* Send Event */
-                    unsigned long gestureId = inTouch->dollarTemplate[bestTempl].hash;
+                    Sint64 gestureId = inTouch->dollarTemplate[bestTempl].hash;
                     SDL_SendGestureDollar(inTouch, gestureId, error);
                     /* printf ("%s\n",);("Dollar error: %f\n",error); */
                 }

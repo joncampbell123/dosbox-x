@@ -24,6 +24,7 @@ static const ControllerDescription_t arrControllers[] = {
 	{ MAKE_CONTROLLER_ID( 0x0079, 0x1844 ), k_eControllerType_PS3Controller, NULL },	// From SDL
 	{ MAKE_CONTROLLER_ID( 0x044f, 0xb315 ), k_eControllerType_PS3Controller, NULL },	// Firestorm Dual Analog 3
 	{ MAKE_CONTROLLER_ID( 0x044f, 0xd007 ), k_eControllerType_PS3Controller, NULL },	// Thrustmaster wireless 3-1
+	{ MAKE_CONTROLLER_ID( 0x046d, 0xcad1 ), k_eControllerType_PS3Controller, NULL },	// Logitech Chillstream
 	//{ MAKE_CONTROLLER_ID( 0x046d, 0xc24f ), k_eControllerType_PS3Controller, NULL },	// Logitech G29 (PS3)
 	{ MAKE_CONTROLLER_ID( 0x054c, 0x0268 ), k_eControllerType_PS3Controller, NULL },	// Sony PS3 Controller
 	{ MAKE_CONTROLLER_ID( 0x056e, 0x200f ), k_eControllerType_PS3Controller, NULL },	// From SDL
@@ -44,7 +45,6 @@ static const ControllerDescription_t arrControllers[] = {
 	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x0109 ), k_eControllerType_PS3Controller, NULL },	// PDP Versus Fighting Pad
 	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x011e ), k_eControllerType_PS3Controller, NULL },	// Rock Candy PS4
 	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x0128 ), k_eControllerType_PS3Controller, NULL },	// Rock Candy PS3
-	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x0203 ), k_eControllerType_PS3Controller, NULL },	// Victrix Pro FS (PS4 peripheral but no trackpad/lightbar)
 	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x0214 ), k_eControllerType_PS3Controller, NULL },	// afterglow ps3
 	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x1314 ), k_eControllerType_PS3Controller, NULL },	// PDP Afterglow Wireless PS3 controller
 	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x6302 ), k_eControllerType_PS3Controller, NULL },	// From SDL
@@ -96,7 +96,9 @@ static const ControllerDescription_t arrControllers[] = {
 	{ MAKE_CONTROLLER_ID( 0x0c12, 0x0ef6 ), k_eControllerType_PS4Controller, NULL },	// Hitbox Arcade Stick
 	{ MAKE_CONTROLLER_ID( 0x0c12, 0x1cf6 ), k_eControllerType_PS4Controller, NULL },	// EMIO PS4 Elite Controller
 	{ MAKE_CONTROLLER_ID( 0x0c12, 0x1e10 ), k_eControllerType_PS4Controller, NULL },	// P4 Wired Gamepad generic knock off - lightbar but not trackpad or gyro
-	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x0207 ), k_eControllerType_PS4Controller, NULL },	// Victrix Pro Fightstick w/ Touchpad for PS4
+	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x0203 ), k_eControllerType_PS4Controller, NULL },	// Victrix Pro FS (PS4 peripheral but no trackpad/lightbar)
+	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x0207 ), k_eControllerType_PS4Controller, NULL },	// Victrix Pro FS V2 w/ Touchpad for PS4
+	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x020a ), k_eControllerType_PS4Controller, NULL },	// Victrix Pro FS PS4/PS5 (PS4 mode)
 	{ MAKE_CONTROLLER_ID( 0x0f0d, 0x0055 ), k_eControllerType_PS4Controller, NULL },	// HORIPAD 4 FPS
 	{ MAKE_CONTROLLER_ID( 0x0f0d, 0x005e ), k_eControllerType_PS4Controller, NULL },	// HORI Fighting Commander 4 PS4
 	{ MAKE_CONTROLLER_ID( 0x0f0d, 0x0066 ), k_eControllerType_PS4Controller, NULL },	// HORIPAD 4 FPS Plus
@@ -140,6 +142,8 @@ static const ControllerDescription_t arrControllers[] = {
 	{ MAKE_CONTROLLER_ID( 0x2c22, 0x2303 ), k_eControllerType_XInputPS4Controller, NULL },	// Qanba Obsidian Arcade Joystick
 	{ MAKE_CONTROLLER_ID( 0x2c22, 0x2500 ), k_eControllerType_PS4Controller, NULL },	// Qanba Dragon
 	{ MAKE_CONTROLLER_ID( 0x2c22, 0x2503 ), k_eControllerType_XInputPS4Controller, NULL },	// Qanba Dragon Arcade Joystick
+	{ MAKE_CONTROLLER_ID( 0x3285, 0x0d16 ), k_eControllerType_PS4Controller, NULL },	// NACON Revolution 5 Pro (PS4 mode with dongle)
+	{ MAKE_CONTROLLER_ID( 0x3285, 0x0d17 ), k_eControllerType_PS4Controller, NULL },	// NACON Revolution 5 Pro (PS4 mode wired)
 	{ MAKE_CONTROLLER_ID( 0x7545, 0x0104 ), k_eControllerType_PS4Controller, NULL },	// Armor 3 or Level Up Cobra - At least one variant has gyro
     { MAKE_CONTROLLER_ID (0x9886, 0x0024 ), k_eControllerType_XInputPS4Controller, NULL },  // Astro C40 in Xbox 360 mode
 	{ MAKE_CONTROLLER_ID( 0x9886, 0x0025 ), k_eControllerType_PS4Controller, NULL },	// Astro C40
@@ -148,10 +152,15 @@ static const ControllerDescription_t arrControllers[] = {
 
 	{ MAKE_CONTROLLER_ID( 0x054c, 0x0ce6 ), k_eControllerType_PS5Controller, NULL },	// Sony DualSense Controller
 	{ MAKE_CONTROLLER_ID( 0x054c, 0x0df2 ), k_eControllerType_PS5Controller, NULL },	// Sony DualSense Edge Controller
+	{ MAKE_CONTROLLER_ID( 0x054c, 0x0e5f ), k_eControllerType_PS5Controller, NULL },	// Access Controller for PS5
+	{ MAKE_CONTROLLER_ID( 0x0e6f, 0x0209 ), k_eControllerType_PS5Controller, NULL },	// Victrix Pro FS PS4/PS5 (PS5 mode)
 	{ MAKE_CONTROLLER_ID( 0x0f0d, 0x0163 ), k_eControllerType_PS5Controller, NULL },	// HORI Fighting Commander OCTA
 	{ MAKE_CONTROLLER_ID( 0x0f0d, 0x0184 ), k_eControllerType_PS5Controller, NULL },	// Hori Fighting Stick α
 	{ MAKE_CONTROLLER_ID( 0x1532, 0x100b ), k_eControllerType_PS5Controller, NULL },	// Razer Wolverine V2 Pro (Wired)
 	{ MAKE_CONTROLLER_ID( 0x1532, 0x100c ), k_eControllerType_PS5Controller, NULL },	// Razer Wolverine V2 Pro (Wireless)
+	{ MAKE_CONTROLLER_ID( 0x1532, 0x1012 ), k_eControllerType_PS5Controller, NULL },	// Razer Kitsune
+	{ MAKE_CONTROLLER_ID( 0x3285, 0x0d18 ), k_eControllerType_PS5Controller, NULL },	// NACON Revolution 5 Pro (PS5 mode with dongle)
+	{ MAKE_CONTROLLER_ID( 0x3285, 0x0d19 ), k_eControllerType_PS5Controller, NULL },	// NACON Revolution 5 Pro (PS5 mode wired)
 	{ MAKE_CONTROLLER_ID( 0x358a, 0x0104 ), k_eControllerType_PS5Controller, NULL },	// Backbone One PlayStation Edition for iOS
 
 	{ MAKE_CONTROLLER_ID( 0x0079, 0x0006 ), k_eControllerType_UnknownNonSteamController, NULL },	// DragonRise Generic USB PCB, sometimes configured as a PC Twin Shock Controller - looks like a DS3 but the face buttons are 1-4 instead of symbols
@@ -163,7 +172,7 @@ static const ControllerDescription_t arrControllers[] = {
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x028f ), k_eControllerType_XBox360Controller, "Xbox 360 Controller" },	// Microsoft X-Box 360 pad v2
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x0291 ), k_eControllerType_XBox360Controller, "Xbox 360 Wireless Controller" },	// Xbox 360 Wireless Receiver (XBOX)
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x02a0 ), k_eControllerType_XBox360Controller, NULL },	// Microsoft X-Box 360 Big Button IR
-	{ MAKE_CONTROLLER_ID( 0x045e, 0x02a1 ), k_eControllerType_XBox360Controller, NULL },	// Microsoft X-Box 360 Wireless Controller with XUSB driver on Windows
+	{ MAKE_CONTROLLER_ID( 0x045e, 0x02a1 ), k_eControllerType_XBox360Controller, "Xbox 360 Wireless Controller" },	// Xbox 360 Wireless Controller with XUSB driver on Windows
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x02a9 ), k_eControllerType_XBox360Controller, "Xbox 360 Wireless Controller" },	// Xbox 360 Wireless Receiver (third party knockoff)
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x0719 ), k_eControllerType_XBox360Controller, "Xbox 360 Wireless Controller" },	// Xbox 360 Wireless Receiver
 	{ MAKE_CONTROLLER_ID( 0x046d, 0xc21d ), k_eControllerType_XBox360Controller, NULL },	// Logitech Gamepad F310
@@ -294,6 +303,7 @@ static const ControllerDescription_t arrControllers[] = {
 	{ MAKE_CONTROLLER_ID( 0x24c6, 0xfafd ), k_eControllerType_XBox360Controller, NULL },	// Afterglow Gamepad 3
 	{ MAKE_CONTROLLER_ID( 0x24c6, 0xfafe ), k_eControllerType_XBox360Controller, NULL },	// Rock Candy Gamepad for Xbox 360
 
+	{ MAKE_CONTROLLER_ID( 0x03f0, 0x0495 ), k_eControllerType_XBoxOneController, NULL },	// HP HyperX Clutch Gladiate
 	{ MAKE_CONTROLLER_ID( 0x044f, 0xd012 ), k_eControllerType_XBoxOneController, NULL },	// ThrustMaster eSwap PRO Controller Xbox
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x02d1 ), k_eControllerType_XBoxOneController, "Xbox One Controller" },	// Microsoft X-Box One pad
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x02dd ), k_eControllerType_XBoxOneController, "Xbox One Controller" },	// Microsoft X-Box One pad (Firmware 2015)
@@ -301,7 +311,7 @@ static const ControllerDescription_t arrControllers[] = {
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x02e3 ), k_eControllerType_XBoxOneController, "Xbox One Elite Controller" },	// Microsoft X-Box One Elite pad
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x02ea ), k_eControllerType_XBoxOneController, "Xbox One S Controller" },	// Microsoft X-Box One S pad
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x02fd ), k_eControllerType_XBoxOneController, "Xbox One S Controller" },	// Microsoft X-Box One S pad (Bluetooth)
-	{ MAKE_CONTROLLER_ID( 0x045e, 0x02ff ), k_eControllerType_XBoxOneController, NULL },	// Microsoft X-Box One controller with XBOXGIP driver on Windows
+	{ MAKE_CONTROLLER_ID( 0x045e, 0x02ff ), k_eControllerType_XBoxOneController, "Xbox One Controller" },	// Microsoft X-Box One controller with XBOXGIP driver on Windows
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x0b00 ), k_eControllerType_XBoxOneController, "Xbox One Elite 2 Controller" },	// Microsoft X-Box One Elite Series 2 pad
 //	{ MAKE_CONTROLLER_ID( 0x045e, 0x0b02 ), k_eControllerType_XBoxOneController, "Xbox One Elite 2 Controller" },	// The virtual keyboard generated by XboxGip drivers for Xbox One Controllers (see https://github.com/libsdl-org/SDL/pull/5121 for details)
 	{ MAKE_CONTROLLER_ID( 0x045e, 0x0b05 ), k_eControllerType_XBoxOneController, "Xbox One Elite 2 Controller" },	// Microsoft X-Box One Elite Series 2 pad (Bluetooth)
@@ -585,7 +595,9 @@ static const ControllerDescription_t arrControllers[] = {
 	{ MAKE_CONTROLLER_ID( 0x28de, 0x1102 ), k_eControllerType_SteamController, NULL },	// Valve wired Steam Controller (D0G)
 	{ MAKE_CONTROLLER_ID( 0x28de, 0x1105 ), k_eControllerType_SteamController, NULL },	// Valve Bluetooth Steam Controller (D0G)
 	{ MAKE_CONTROLLER_ID( 0x28de, 0x1106 ), k_eControllerType_SteamController, NULL },	// Valve Bluetooth Steam Controller (D0G)
+	{ MAKE_CONTROLLER_ID( 0x28de, 0x11ff ), k_eControllerType_UnknownNonSteamController, NULL },	// Steam Virtual Gamepad
 	{ MAKE_CONTROLLER_ID( 0x28de, 0x1142 ), k_eControllerType_SteamController, NULL },	// Valve wireless Steam Controller
 	{ MAKE_CONTROLLER_ID( 0x28de, 0x1201 ), k_eControllerType_SteamControllerV2, NULL },	// Valve wired Steam Controller (HEADCRAB)
 	{ MAKE_CONTROLLER_ID( 0x28de, 0x1202 ), k_eControllerType_SteamControllerV2, NULL },	// Valve Bluetooth Steam Controller (HEADCRAB)
+	{ MAKE_CONTROLLER_ID( 0x28de, 0x1205 ), k_eControllerType_SteamDeck, NULL },	// Valve Steam Deck Builtin Controller
 };

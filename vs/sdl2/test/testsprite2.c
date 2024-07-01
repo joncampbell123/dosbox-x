@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -392,22 +392,30 @@ void MoveSprites(SDL_Renderer *renderer, SDL_Texture *sprite)
     SDL_RenderPresent(renderer);
 }
 
-void loop()
+static void MoveAllSprites()
 {
-    Uint32 now;
     int i;
-    SDL_Event event;
 
-    /* Check for events */
-    while (SDL_PollEvent(&event)) {
-        SDLTest_CommonEvent(state, &event, &done);
-    }
     for (i = 0; i < state->num_windows; ++i) {
         if (state->windows[i] == NULL) {
             continue;
         }
         MoveSprites(state->renderers[i], sprites[i]);
     }
+}
+
+void loop()
+{
+    Uint32 now;
+    SDL_Event event;
+
+    /* Check for events */
+    while (SDL_PollEvent(&event)) {
+        SDLTest_CommonEvent(state, &event, &done);
+    }
+
+    MoveAllSprites();
+
 #ifdef __EMSCRIPTEN__
     if (done) {
         emscripten_cancel_main_loop();
@@ -426,6 +434,14 @@ void loop()
     }
 }
 
+static int SDLCALL ExposeEventWatcher(void *userdata, SDL_Event *event)
+{
+    if (event->type == SDL_WINDOWEVENT && event->window.event == SDL_WINDOWEVENT_EXPOSED) {
+        MoveAllSprites();
+    }
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     int i;
@@ -437,7 +453,7 @@ int main(int argc, char *argv[])
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
-    if (state == NULL) {
+    if (!state) {
         return 1;
     }
 
@@ -525,7 +541,7 @@ int main(int argc, char *argv[])
     /* Create the windows, initialize the renderers, and load the textures */
     sprites =
         (SDL_Texture **)SDL_malloc(state->num_windows * sizeof(*sprites));
-    if (sprites == NULL) {
+    if (!sprites) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory!\n");
         quit(2);
     }
@@ -541,7 +557,7 @@ int main(int argc, char *argv[])
     /* Allocate memory for the sprite info */
     positions = (SDL_Rect *)SDL_malloc(num_sprites * sizeof(SDL_Rect));
     velocities = (SDL_Rect *)SDL_malloc(num_sprites * sizeof(SDL_Rect));
-    if (positions == NULL || velocities == NULL) {
+    if (!positions || !velocities) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory!\n");
         quit(2);
     }
@@ -567,6 +583,9 @@ int main(int argc, char *argv[])
             velocities[i].y = SDLTest_RandomIntegerInRange(-MAX_SPEED, MAX_SPEED);
         }
     }
+
+    /* Add an event watcher to redraw from within modal window resize/move loops */
+    SDL_AddEventWatch(ExposeEventWatcher, NULL);
 
     /* Main render loop */
     frames = 0;

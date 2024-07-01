@@ -16,6 +16,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
  */
 #include "SDL.h"
 
+#include <stdlib.h>
+
 #ifndef SDL_HAPTIC_DISABLED
 
 static SDL_Haptic *haptic;
@@ -69,7 +71,7 @@ int main(int argc, char **argv)
     SDL_Log("%d Haptic devices detected.\n", SDL_NumHaptics());
     if (SDL_NumHaptics() > 0) {
         /* We'll just use index or the first force feedback device found */
-        if (name == NULL) {
+        if (!name) {
             i = (index != -1) ? index : 0;
         }
         /* Try to find matching device */
@@ -88,7 +90,7 @@ int main(int argc, char **argv)
         }
 
         haptic = SDL_HapticOpen(i);
-        if (haptic == NULL) {
+        if (!haptic) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create the haptic device: %s\n",
                          SDL_GetError());
             return 1;
@@ -279,7 +281,7 @@ int main(int argc, char **argv)
     }
 
     /* Quit */
-    if (haptic != NULL) {
+    if (haptic) {
         SDL_HapticClose(haptic);
     }
     SDL_Quit();

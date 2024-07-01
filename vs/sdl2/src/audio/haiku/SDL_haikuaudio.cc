@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_HAIKU
+#ifdef SDL_AUDIO_DRIVER_HAIKU
 
 /* Allow access to the audio stream on Haiku */
 
@@ -59,7 +59,7 @@ static void FillSound(void *device, void *stream, size_t len,
     } else {
         SDL_assert(audio->spec.size == len);
 
-        if (audio->stream == NULL) {  /* no conversion necessary. */
+        if (!audio->stream) {  /* no conversion necessary. */
             callback(audio->callbackspec.userdata, (Uint8 *) stream, len);
         } else {  /* streaming/converting */
             const int stream_len = audio->callbackspec.size;

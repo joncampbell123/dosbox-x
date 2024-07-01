@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,7 +26,7 @@
 #include "SDL_thread.h"
 #include "SDL_systhread_c.h"
 
-#if SDL_THREADS_DISABLED
+#ifdef SDL_THREADS_DISABLED
 
 SDL_sem *SDL_CreateSemaphore(Uint32 initial_value)
 {
@@ -78,7 +78,7 @@ SDL_sem *SDL_CreateSemaphore(Uint32 initial_value)
     SDL_sem *sem;
 
     sem = (SDL_sem *)SDL_malloc(sizeof(*sem));
-    if (sem == NULL) {
+    if (!sem) {
         SDL_OutOfMemory();
         return NULL;
     }
@@ -120,7 +120,7 @@ int SDL_SemTryWait(SDL_sem *sem)
 {
     int retval;
 
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 
@@ -139,7 +139,7 @@ int SDL_SemWaitTimeout(SDL_sem *sem, Uint32 timeout)
 {
     int retval;
 
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 
@@ -184,7 +184,7 @@ Uint32 SDL_SemValue(SDL_sem *sem)
 
 int SDL_SemPost(SDL_sem *sem)
 {
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 

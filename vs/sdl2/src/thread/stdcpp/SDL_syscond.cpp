@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -57,7 +57,7 @@ SDL_CreateCond(void)
 extern "C" void
 SDL_DestroyCond(SDL_cond *cond)
 {
-    if (cond != NULL) {
+    if (cond) {
         delete cond;
     }
 }
@@ -66,7 +66,7 @@ SDL_DestroyCond(SDL_cond *cond)
 extern "C" int
 SDL_CondSignal(SDL_cond *cond)
 {
-    if (cond == NULL) {
+    if (!cond) {
         return SDL_InvalidParamError("cond");
     }
 
@@ -78,7 +78,7 @@ SDL_CondSignal(SDL_cond *cond)
 extern "C" int
 SDL_CondBroadcast(SDL_cond *cond)
 {
-    if (cond == NULL) {
+    if (!cond) {
         return SDL_InvalidParamError("cond");
     }
 

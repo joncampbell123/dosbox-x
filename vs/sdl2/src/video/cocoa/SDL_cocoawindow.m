@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_COCOA
+#ifdef SDL_VIDEO_DRIVER_COCOA
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
 # error SDL for Mac OS X must be built with a 10.7 SDK or above.
@@ -260,7 +260,7 @@ static void ConvertNSRect(NSScreen *screen, BOOL fullscreen, NSRect *r)
 static void ScheduleContextUpdates(SDL_WindowData *data)
 {
     /* We still support OpenGL as long as Apple offers it, deprecated or not, so disable deprecation warnings about it. */
-    #if SDL_VIDEO_OPENGL
+    #ifdef SDL_VIDEO_OPENGL
 
     #ifdef __clang__
     #pragma clang diagnostic push
@@ -458,6 +458,17 @@ static void Cocoa_UpdateClipCursor(SDL_Window * window)
             }
         }
     }
+}
+
+static NSCursor *Cocoa_GetDesiredCursor(void)
+{
+    SDL_Mouse *mouse = SDL_GetMouse();
+
+    if (mouse->cursor_shown && mouse->cur_cursor && !mouse->relative_mode) {
+        return (__bridge NSCursor *)mouse->cur_cursor->driverdata;
+    }
+
+    return [NSCursor invisibleCursor];
 }
 
 
@@ -1323,6 +1334,7 @@ static int Cocoa_SendMouseButtonClicks(SDL_Mouse * mouse, NSEvent *theEvent, SDL
     NSPoint point;
     int x, y;
     SDL_Window *window;
+    NSView *contentView;
 
     if (!mouse) {
         return;
@@ -1330,6 +1342,17 @@ static int Cocoa_SendMouseButtonClicks(SDL_Mouse * mouse, NSEvent *theEvent, SDL
 
     mouseID = mouse->mouseID;
     window = _data.window;
+    contentView = _data.sdlContentView;
+    point = [theEvent locationInWindow];
+
+    if ([contentView mouse:[contentView convertPoint:point fromView:nil] inRect:[contentView bounds]] &&
+        [NSCursor currentCursor] != Cocoa_GetDesiredCursor()) {
+        // The wrong cursor is on screen, fix it. This fixes an macOS bug that is only known to
+        // occur in fullscreen windows on the built-in displays of newer MacBooks with camera
+        // notches. When the mouse is moved near the top of such a window (within about 44 units)
+        // and then moved back down, the cursor rects aren't respected.
+        [_data.nswindow invalidateCursorRectsForView:contentView];
+    }
 
     if ([self processHitTest:theEvent]) {
         SDL_SendWindowEvent(window, SDL_WINDOWEVENT_HIT_TEST, 0, 0);
@@ -1340,7 +1363,6 @@ static int Cocoa_SendMouseButtonClicks(SDL_Mouse * mouse, NSEvent *theEvent, SDL
         return;
     }
 
-    point = [theEvent locationInWindow];
     x = (int)point.x;
     y = (int)(window->h - point.y);
 
@@ -1590,17 +1612,9 @@ static int Cocoa_SendMouseButtonClicks(SDL_Mouse * mouse, NSEvent *theEvent, SDL
 
 - (void)resetCursorRects
 {
-    SDL_Mouse *mouse;
     [super resetCursorRects];
-    mouse = SDL_GetMouse();
-
-    if (mouse->cursor_shown && mouse->cur_cursor && !mouse->relative_mode) {
-        [self addCursorRect:[self bounds]
-                     cursor:(__bridge NSCursor *)mouse->cur_cursor->driverdata];
-    } else {
-        [self addCursorRect:[self bounds]
-                     cursor:[NSCursor invisibleCursor]];
-    }
+    [self addCursorRect:[self bounds]
+                 cursor:Cocoa_GetDesiredCursor()];
 }
 
 - (BOOL)acceptsFirstMouse:(NSEvent *)theEvent
@@ -1788,8 +1802,8 @@ int Cocoa_CreateWindow(_THIS, SDL_Window * window)
     #pragma clang diagnostic pop
     #endif
 
-#if SDL_VIDEO_OPENGL_ES2
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_ES2
+#ifdef SDL_VIDEO_OPENGL_EGL
     if ((window->flags & SDL_WINDOW_OPENGL) &&
         _this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_ES) {
         [contentView setWantsLayer:TRUE];
@@ -1807,9 +1821,9 @@ int Cocoa_CreateWindow(_THIS, SDL_Window * window)
     }
 
     /* The rest of this macro mess is for OpenGL or OpenGL ES windows */
-#if SDL_VIDEO_OPENGL_ES2
+#ifdef SDL_VIDEO_OPENGL_ES2
     if (_this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_ES) {
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_EGL
         if (Cocoa_GLES_SetupWindow(_this, window) < 0) {
             Cocoa_DestroyWindow(_this, window);
             return -1;
@@ -2344,7 +2358,7 @@ void Cocoa_DestroyWindow(_THIS, SDL_Window * window)
             [data.nswindow close];
         }
 
-        #if SDL_VIDEO_OPENGL
+        #ifdef SDL_VIDEO_OPENGL
 
         contexts = [data.nscontexts copy];
         for (SDLOpenGLContext *context in contexts) {

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_NACL
+#ifdef SDL_AUDIO_DRIVER_NACL
 
 #include "SDL_naclaudio.h"
 
@@ -62,7 +62,7 @@ static void nacl_audio_callback(void* stream, uint32_t buffer_size, PP_TimeDelta
     } else {
         SDL_assert(_this->spec.size == len);
 
-        if (_this->stream == NULL) {  /* no conversion necessary. */
+        if (!_this->stream) {  /* no conversion necessary. */
             callback(_this->callbackspec.userdata, stream, len);
         } else {  /* streaming/converting */
             const int stream_len = _this->callbackspec.size;
@@ -103,7 +103,7 @@ static int NACLAUDIO_OpenDevice(_THIS, const char *devname)
     const PPB_AudioConfig *ppb_audiocfg = PSInterfaceAudioConfig();
 
     private = (SDL_PrivateAudioData *)SDL_calloc(1, sizeof(*private));
-    if (private == NULL) {
+    if (!private) {
         return SDL_OutOfMemory();
     }
 

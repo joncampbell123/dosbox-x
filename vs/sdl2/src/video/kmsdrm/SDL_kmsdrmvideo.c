@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_KMSDRM
+#ifdef SDL_VIDEO_DRIVER_KMSDRM
 
 /* SDL internals */
 #include "../SDL_sysvideo.h"
@@ -77,6 +77,7 @@ static int get_driindex(void)
     int devindex = -1;
     DIR *folder;
     const char *hint;
+    struct dirent *res;
 
     hint = SDL_GetHint(SDL_HINT_KMSDRM_DEVICE_INDEX);
     if (hint && *hint) {
@@ -89,14 +90,14 @@ static int get_driindex(void)
 
     SDL_strlcpy(device, kmsdrm_dri_path, sizeof(device));
     folder = opendir(device);
-    if (folder == NULL) {
+    if (!folder) {
         SDL_SetError("Failed to open directory '%s'", device);
         return -ENOENT;
     }
 
     SDL_strlcpy(device + kmsdrm_dri_pathsize, kmsdrm_dri_devname,
                 sizeof(device) - kmsdrm_dri_devnamesize);
-    for (struct dirent *res; (res = readdir(folder));) {
+    while((res = readdir(folder)) != NULL) {
         if (SDL_memcmp(res->d_name, kmsdrm_dri_devname,
                        kmsdrm_dri_devnamesize) == 0) {
             SDL_strlcpy(device + kmsdrm_dri_pathsize + kmsdrm_dri_devnamesize,
@@ -127,7 +128,7 @@ static int get_driindex(void)
                                     KMSDRM_drmModeGetConnector(
                                         drm_fd, resources->connectors[i]);
 
-                                if (conn == NULL) {
+                                if (!conn) {
                                     continue;
                                 }
 
@@ -241,13 +242,13 @@ static SDL_VideoDevice *KMSDRM_CreateDevice(void)
     }
 
     device = (SDL_VideoDevice *)SDL_calloc(1, sizeof(SDL_VideoDevice));
-    if (device == NULL) {
+    if (!device) {
         SDL_OutOfMemory();
         return NULL;
     }
 
     viddata = (SDL_VideoData *)SDL_calloc(1, sizeof(SDL_VideoData));
-    if (viddata == NULL) {
+    if (!viddata) {
         SDL_OutOfMemory();
         goto cleanup;
     }
@@ -290,7 +291,7 @@ static SDL_VideoDevice *KMSDRM_CreateDevice(void)
     device->GL_DeleteContext = KMSDRM_GLES_DeleteContext;
     device->GL_DefaultProfileConfig = KMSDRM_GLES_DefaultProfileConfig;
 
-#if SDL_VIDEO_VULKAN
+#ifdef SDL_VIDEO_VULKAN
     device->Vulkan_LoadLibrary = KMSDRM_Vulkan_LoadLibrary;
     device->Vulkan_UnloadLibrary = KMSDRM_Vulkan_UnloadLibrary;
     device->Vulkan_GetInstanceExtensions = KMSDRM_Vulkan_GetInstanceExtensions;
@@ -315,7 +316,8 @@ cleanup:
 VideoBootStrap KMSDRM_bootstrap = {
     "KMSDRM",
     "KMS/DRM Video Driver",
-    KMSDRM_CreateDevice
+    KMSDRM_CreateDevice,
+    NULL /* no ShowMessageBox implementation */
 };
 
 static void KMSDRM_FBDestroyCallback(struct gbm_bo *bo, void *data)
@@ -348,7 +350,7 @@ KMSDRM_FBInfo *KMSDRM_FBFromBO(_THIS, struct gbm_bo *bo)
        when the backing buffer is destroyed */
     fb_info = (KMSDRM_FBInfo *)SDL_calloc(1, sizeof(KMSDRM_FBInfo));
 
-    if (fb_info == NULL) {
+    if (!fb_info) {
         SDL_OutOfMemory();
         return NULL;
     }
@@ -677,7 +679,7 @@ static void KMSDRM_AddDisplay(_THIS, drmModeConnector *connector, drmModeRes *re
 
     /* Reserve memory for the new display's driverdata. */
     dispdata = (SDL_DisplayData *)SDL_calloc(1, sizeof(SDL_DisplayData));
-    if (dispdata == NULL) {
+    if (!dispdata) {
         ret = SDL_OutOfMemory();
         goto cleanup;
     }
@@ -698,7 +700,7 @@ static void KMSDRM_AddDisplay(_THIS, drmModeConnector *connector, drmModeRes *re
     for (i = 0; i < resources->count_encoders; i++) {
         encoder = KMSDRM_drmModeGetEncoder(viddata->drm_fd, resources->encoders[i]);
 
-        if (encoder == NULL) {
+        if (!encoder) {
             continue;
         }
 
@@ -710,13 +712,13 @@ static void KMSDRM_AddDisplay(_THIS, drmModeConnector *connector, drmModeRes *re
         encoder = NULL;
     }
 
-    if (encoder == NULL) {
+    if (!encoder) {
         /* No encoder was connected, find the first supported one */
         for (i = 0; i < resources->count_encoders; i++) {
             encoder = KMSDRM_drmModeGetEncoder(viddata->drm_fd,
                                                resources->encoders[i]);
 
-            if (encoder == NULL) {
+            if (!encoder) {
                 continue;
             }
 
@@ -735,7 +737,7 @@ static void KMSDRM_AddDisplay(_THIS, drmModeConnector *connector, drmModeRes *re
         }
     }
 
-    if (encoder == NULL) {
+    if (!encoder) {
         ret = SDL_SetError("No connected encoder found for connector.");
         goto cleanup;
     }
@@ -745,7 +747,7 @@ static void KMSDRM_AddDisplay(_THIS, drmModeConnector *connector, drmModeRes *re
 
     /* If no CRTC was connected to the encoder, find the first CRTC
        that is supported by the encoder, and use that. */
-    if (crtc == NULL) {
+    if (!crtc) {
         for (i = 0; i < resources->count_crtcs; i++) {
             if (encoder->possible_crtcs & (1 << i)) {
                 encoder->crtc_id = resources->crtcs[i];
@@ -755,7 +757,7 @@ static void KMSDRM_AddDisplay(_THIS, drmModeConnector *connector, drmModeRes *re
         }
     }
 
-    if (crtc == NULL) {
+    if (!crtc) {
         ret = SDL_SetError("No CRTC found for connector.");
         goto cleanup;
     }
@@ -840,7 +842,7 @@ static void KMSDRM_AddDisplay(_THIS, drmModeConnector *connector, drmModeRes *re
        There's no problem with it being still incomplete. */
     modedata = SDL_calloc(1, sizeof(SDL_DisplayModeData));
 
-    if (modedata == NULL) {
+    if (!modedata) {
         ret = SDL_OutOfMemory();
         goto cleanup;
     }
@@ -910,7 +912,7 @@ static int KMSDRM_InitDisplays(_THIS)
 
     /* Get all of the available connectors / devices / crtcs */
     resources = KMSDRM_drmModeGetResources(viddata->drm_fd);
-    if (resources == NULL) {
+    if (!resources) {
         ret = SDL_SetError("drmModeGetResources(%d) failed", viddata->drm_fd);
         goto cleanup;
     }
@@ -921,7 +923,7 @@ static int KMSDRM_InitDisplays(_THIS)
         drmModeConnector *connector = KMSDRM_drmModeGetConnector(viddata->drm_fd,
                                                                  resources->connectors[i]);
 
-        if (connector == NULL) {
+        if (!connector) {
             continue;
         }
 
@@ -1206,6 +1208,38 @@ cleanup:
     return ret;
 }
 
+#ifdef SDL_INPUT_LINUXEV
+static void KMSDRM_ReleaseVT(void *userdata)
+{
+    SDL_VideoDevice *_this = (SDL_VideoDevice *)userdata;
+    SDL_VideoData *viddata = _this->driverdata;
+    int i;
+
+    for (i = 0; i < viddata->num_windows; i++) {
+        SDL_Window *window = viddata->windows[i];
+        if (!(window->flags & SDL_WINDOW_VULKAN)) {
+            KMSDRM_DestroySurfaces(_this, window);
+        }
+    }
+    KMSDRM_drmDropMaster(viddata->drm_fd);
+}
+
+static void KMSDRM_AcquireVT(void *userdata)
+{
+    SDL_VideoDevice *_this = (SDL_VideoDevice *)userdata;
+    SDL_VideoData *viddata = _this->driverdata;
+    int i;
+
+    KMSDRM_drmSetMaster(viddata->drm_fd);
+    for (i = 0; i < viddata->num_windows; i++) {
+        SDL_Window *window = viddata->windows[i];
+        if (!(window->flags & SDL_WINDOW_VULKAN)) {
+            KMSDRM_CreateSurfaces(_this, window);
+        }
+    }
+}
+#endif /* defined SDL_INPUT_LINUXEV */
+
 int KMSDRM_VideoInit(_THIS)
 {
     int ret = 0;
@@ -1226,6 +1260,7 @@ int KMSDRM_VideoInit(_THIS)
 
 #ifdef SDL_INPUT_LINUXEV
     SDL_EVDEV_Init();
+    SDL_EVDEV_SetVTSwitchCallbacks(KMSDRM_ReleaseVT, _this, KMSDRM_AcquireVT, _this);
 #elif defined(SDL_INPUT_WSCONS)
     SDL_WSCONS_Init();
 #endif
@@ -1244,6 +1279,7 @@ void KMSDRM_VideoQuit(_THIS)
     KMSDRM_DeinitDisplays(_this);
 
 #ifdef SDL_INPUT_LINUXEV
+    SDL_EVDEV_SetVTSwitchCallbacks(NULL, NULL, NULL, NULL);
     SDL_EVDEV_Quit();
 #elif defined(SDL_INPUT_WSCONS)
     SDL_WSCONS_Quit();
@@ -1300,7 +1336,7 @@ int KMSDRM_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mod
         return 0;
     }
 
-    if (modedata == NULL) {
+    if (!modedata) {
         return SDL_SetError("Mode doesn't have an associated index");
     }
 
@@ -1323,7 +1359,7 @@ void KMSDRM_DestroyWindow(_THIS, SDL_Window *window)
     SDL_bool is_vulkan = window->flags & SDL_WINDOW_VULKAN; /* Is this a VK window? */
     unsigned int i, j;
 
-    if (windata == NULL) {
+    if (!windata) {
         return;
     }
 
@@ -1407,7 +1443,7 @@ int KMSDRM_CreateWindow(_THIS, SDL_Window *window)
 
     /* Allocate window internal data */
     windata = (SDL_WindowData *)SDL_calloc(1, sizeof(SDL_WindowData));
-    if (windata == NULL) {
+    if (!windata) {
         return SDL_OutOfMemory();
     }
 
@@ -1548,7 +1584,7 @@ int KMSDRM_SetWindowGammaRamp(_THIS, SDL_Window * window, const Uint16 * ramp)
     SDL_VideoDisplay *disp = SDL_GetDisplayForWindow(window);
     SDL_DisplayData* dispdata = (SDL_DisplayData*)disp->driverdata;
     Uint16* tempRamp = SDL_calloc(3 * sizeof(Uint16), 256);
-    if (tempRamp == NULL)
+    if (!tempRamp)
     {
         return SDL_OutOfMemory();
     }

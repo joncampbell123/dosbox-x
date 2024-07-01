@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WINRT
+#ifdef SDL_VIDEO_DRIVER_WINRT
 
 /* Windows includes */
 #include <roapi.h>
@@ -116,7 +116,7 @@ static void WINRT_HandleGameBarIsInputRedirected_MainThread()
         return;
     }
     gameBar = WINRT_GetGameBar();
-    if (gameBar == NULL) {
+    if (!gameBar) {
         /* Shouldn't happen, but just in case... */
         return;
     }
@@ -167,11 +167,11 @@ void WINRT_QuitGameBar(_THIS)
 {
     SDL_VideoData *driverdata;
     IGameBarStatics_ *gameBar;
-    if (_this == NULL || _this->driverdata == NULL) {
+    if (!_this || !_this->driverdata) {
         return;
     }
     gameBar = WINRT_GetGameBar();
-    if (gameBar == NULL) {
+    if (!gameBar) {
         return;
     }
     driverdata = (SDL_VideoData *)_this->driverdata;

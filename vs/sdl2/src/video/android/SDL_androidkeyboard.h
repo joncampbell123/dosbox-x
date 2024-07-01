@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,10 +26,10 @@ extern int Android_OnKeyDown(int keycode);
 extern int Android_OnKeyUp(int keycode);
 
 extern SDL_bool Android_HasScreenKeyboardSupport(_THIS);
+extern void Android_ShowScreenKeyboard(_THIS, SDL_Window *window);
+extern void Android_HideScreenKeyboard(_THIS, SDL_Window *window);
+extern void Android_RestoreScreenKeyboardOnResume(_THIS, SDL_Window *window);
 extern SDL_bool Android_IsScreenKeyboardShown(_THIS, SDL_Window *window);
-
-extern void Android_StartTextInput(_THIS);
-extern void Android_StopTextInput(_THIS);
 extern void Android_SetTextInputRect(_THIS, const SDL_Rect *rect);
 
 /* vi: set ts=4 sw=4 expandtab: */

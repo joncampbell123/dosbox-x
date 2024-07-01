@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -234,7 +234,8 @@ static void RunEpicTest()
     v = SDL_AtomicGet(&good);
     SDL_Log("Atomic %d Non-Atomic %d\n", v, bad);
     SDL_assert(v == Expect);
-    SDL_assert(bad != Expect);
+    /* We can't guarantee that bad != Expect, this would happen on a single core system, for example. */
+    /*SDL_assert(bad != Expect);*/
 }
 
 /* End atomic operation test */

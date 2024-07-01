@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WAYLAND && SDL_VIDEO_OPENGL_EGL
+#if defined(SDL_VIDEO_DRIVER_WAYLAND) && defined(SDL_VIDEO_OPENGL_EGL)
 
 #include "SDL_timer.h"
 #include "../../core/unix/SDL_poll.h"
@@ -125,8 +125,8 @@ int Wayland_GLES_SwapWindow(_THIS, SDL_Window *window)
         SDL_VideoData *videodata = (SDL_VideoData *)_this->driverdata;
         struct wl_display *display = videodata->display;
         SDL_VideoDisplay *sdldisplay = SDL_GetDisplayForWindow(window);
-        /* ~10 frames (or 1 sec), so we'll progress even if throttled to zero. */
-        const Uint32 max_wait = SDL_GetTicks() + (sdldisplay->current_mode.refresh_rate ? (10000 / sdldisplay->current_mode.refresh_rate) : 1000);
+        /* 1/3 speed (or 20hz), so we'll progress even if throttled to zero. */
+        const Uint32 max_wait = SDL_GetTicks() + (sdldisplay && sdldisplay->current_mode.refresh_rate ? (3000 / sdldisplay->current_mode.refresh_rate) : 50);
         while (SDL_AtomicGet(&data->swap_interval_ready) == 0) {
             Uint32 now;
 

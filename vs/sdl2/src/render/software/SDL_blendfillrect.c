@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_RENDER_SW && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_SW
 
 #include "SDL_draw.h"
 #include "SDL_blendfillrect.h"
@@ -211,7 +211,7 @@ int SDL_BlendFillRect(SDL_Surface *dst, const SDL_Rect *rect,
 {
     SDL_Rect clipped;
 
-    if (dst == NULL) {
+    if (!dst) {
         return SDL_InvalidParamError("SDL_BlendFillRect(): dst");
     }
 
@@ -281,7 +281,7 @@ int SDL_BlendFillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
                 SDL_BlendMode blendMode, Uint8 r, Uint8 g, Uint8 b, Uint8 a) = NULL;
     int status = 0;
 
-    if (dst == NULL) {
+    if (!dst) {
         return SDL_InvalidParamError("SDL_BlendFillRects(): dst");
     }
 
@@ -325,7 +325,7 @@ int SDL_BlendFillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
         break;
     }
 
-    if (func == NULL) {
+    if (!func) {
         if (!dst->format->Amask) {
             func = SDL_BlendFillRect_RGB;
         } else {
@@ -343,6 +343,6 @@ int SDL_BlendFillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
     return status;
 }
 
-#endif /* SDL_VIDEO_RENDER_SW && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_SW */
 
 /* vi: set ts=4 sw=4 expandtab: */

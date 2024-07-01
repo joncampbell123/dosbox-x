@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_WASAPI
+#ifdef SDL_AUDIO_DRIVER_WASAPI
 
 #include "../../core/windows/SDL_windows.h"
 #include "../../core/windows/SDL_immdevice.h"
@@ -114,7 +114,7 @@ static int UpdateAudioStream(_THIS, const SDL_AudioSpec *oldspec)
     /* make sure our scratch buffer can cover the new device spec. */
     if (this->spec.size > this->work_buffer_len) {
         Uint8 *ptr = (Uint8 *)SDL_realloc(this->work_buffer, this->spec.size);
-        if (ptr == NULL) {
+        if (!ptr) {
             return SDL_OutOfMemory();
         }
         this->work_buffer = ptr;
@@ -172,13 +172,18 @@ static SDL_bool RecoverWasapiIfLost(_THIS)
     return lost ? RecoverWasapiDevice(this) : SDL_TRUE;
 }
 
+static void WASAPI_WaitDevice(_THIS);
+
 static Uint8 *WASAPI_GetDeviceBuf(_THIS)
 {
     /* get an endpoint buffer from WASAPI. */
     BYTE *buffer = NULL;
 
     while (RecoverWasapiIfLost(this) && this->hidden->render) {
-        if (!WasapiFailed(this, IAudioRenderClient_GetBuffer(this->hidden->render, this->spec.samples, &buffer))) {
+        const HRESULT ret = IAudioRenderClient_GetBuffer(this->hidden->render, this->spec.samples, &buffer);
+        if (ret == AUDCLNT_E_BUFFER_TOO_LARGE) {
+            WASAPI_WaitDevice(this);  /* see if we can wait on the buffer to drain some more first... */
+        } else if (!WasapiFailed(this, ret)) {
             return (Uint8 *)buffer;
         }
         SDL_assert(buffer == NULL);
@@ -189,7 +194,7 @@ static Uint8 *WASAPI_GetDeviceBuf(_THIS)
 
 static void WASAPI_PlayDevice(_THIS)
 {
-    if (this->hidden->render != NULL) { /* definitely activated? */
+    if (this->hidden->render) { /* definitely activated? */
         /* WasapiFailed() will mark the device for reacquisition or removal elsewhere. */
         WasapiFailed(this, IAudioRenderClient_ReleaseBuffer(this->hidden->render, this->spec.samples, 0));
     }
@@ -415,7 +420,7 @@ int WASAPI_PrepDevice(_THIS, const SDL_bool updatestream)
     this->hidden->event = CreateEventW(NULL, 0, 0, NULL);
 #endif
 
-    if (this->hidden->event == NULL) {
+    if (!this->hidden->event) {
         return WIN_SetError("WASAPI can't create an event handle");
     }
 
@@ -486,6 +491,11 @@ int WASAPI_PrepDevice(_THIS, const SDL_bool updatestream)
         this->spec.samples = (Uint16)SDL_ceilf(period_frames);
     }
 
+    /* regardless of what we calculated for the period size, clamp it to the expected hardware buffer size. */
+    if (this->spec.samples > bufsize) {
+        this->spec.samples = bufsize;
+    }
+
     /* Update the fragment size as size in bytes */
     SDL_CalculateAudioSpec(&this->spec);
 
@@ -537,7 +547,7 @@ static int WASAPI_OpenDevice(_THIS, const char *devname)
 
     /* Initialize all variables that we clean on shutdown */
     this->hidden = (struct SDL_PrivateAudioData *) SDL_malloc(sizeof(*this->hidden));
-    if (this->hidden == NULL) {
+    if (!this->hidden) {
         return SDL_OutOfMemory();
     }
     SDL_zerop(this->hidden);

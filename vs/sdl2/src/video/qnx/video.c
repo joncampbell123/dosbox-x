@@ -74,7 +74,7 @@ static int createWindow(_THIS, SDL_Window *window)
     int             usage;
 
     impl = SDL_calloc(1, sizeof(*impl));
-    if (impl == NULL) {
+    if (!impl) {
         return -1;
     }
 
@@ -311,7 +311,7 @@ static SDL_VideoDevice *createDevice(int devindex)
     SDL_VideoDevice *device;
 
     device = (SDL_VideoDevice *)SDL_calloc(1, sizeof(SDL_VideoDevice));
-    if (device == NULL) {
+    if (!device) {
         return NULL;
     }
 
@@ -342,5 +342,6 @@ static SDL_VideoDevice *createDevice(int devindex)
 
 VideoBootStrap QNX_bootstrap = {
     "qnx", "QNX Screen",
-    createDevice
+    createDevice,
+    NULL /* no ShowMessageBox implementation */
 };

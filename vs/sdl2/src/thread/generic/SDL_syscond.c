@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -34,7 +34,7 @@
  * will be chosen at runtime), the function names need to be
  * suffixed
  */
-#if !SDL_THREAD_GENERIC_COND_SUFFIX
+#ifndef SDL_THREAD_GENERIC_COND_SUFFIX
 #define SDL_CreateCond_generic      SDL_CreateCond
 #define SDL_DestroyCond_generic     SDL_DestroyCond
 #define SDL_CondSignal_generic      SDL_CondSignal
@@ -95,7 +95,7 @@ void SDL_DestroyCond_generic(SDL_cond *_cond)
 int SDL_CondSignal_generic(SDL_cond *_cond)
 {
     SDL_cond_generic *cond = (SDL_cond_generic *)_cond;
-    if (cond == NULL) {
+    if (!cond) {
         return SDL_InvalidParamError("cond");
     }
 
@@ -119,7 +119,7 @@ int SDL_CondSignal_generic(SDL_cond *_cond)
 int SDL_CondBroadcast_generic(SDL_cond *_cond)
 {
     SDL_cond_generic *cond = (SDL_cond_generic *)_cond;
-    if (cond == NULL) {
+    if (!cond) {
         return SDL_InvalidParamError("cond");
     }
 
@@ -175,7 +175,7 @@ int SDL_CondWaitTimeout_generic(SDL_cond *_cond, SDL_mutex *mutex, Uint32 ms)
     SDL_cond_generic *cond = (SDL_cond_generic *)_cond;
     int retval;
 
-    if (cond == NULL) {
+    if (!cond) {
         return SDL_InvalidParamError("cond");
     }
 

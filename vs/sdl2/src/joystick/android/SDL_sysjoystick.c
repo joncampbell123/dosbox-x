@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -320,7 +320,7 @@ int Android_AddJoystick(int device_id, const char *name, const char *desc, int v
         }
     }
 
-    if (JoystickByDeviceId(device_id) != NULL || name == NULL) {
+    if (JoystickByDeviceId(device_id) != NULL || !name) {
         goto done;
     }
 
@@ -344,7 +344,7 @@ int Android_AddJoystick(int device_id, const char *name, const char *desc, int v
         nhats = 0;
     }
 
-    guid = SDL_CreateJoystickGUID(SDL_HARDWARE_BUS_BLUETOOTH, vendor_id, product_id, 0, desc, 0, 0);
+    guid = SDL_CreateJoystickGUID(SDL_HARDWARE_BUS_BLUETOOTH, vendor_id, product_id, 0, NULL, desc, 0, 0);
 
     /* Update the GUID with capability bits */
     {
@@ -354,7 +354,7 @@ int Android_AddJoystick(int device_id, const char *name, const char *desc, int v
     }
 
     item = (SDL_joylist_item *)SDL_malloc(sizeof(SDL_joylist_item));
-    if (item == NULL) {
+    if (!item) {
         goto done;
     }
 
@@ -362,7 +362,7 @@ int Android_AddJoystick(int device_id, const char *name, const char *desc, int v
     item->guid = guid;
     item->device_id = device_id;
     item->name = SDL_CreateJoystickName(vendor_id, product_id, NULL, name);
-    if (item->name == NULL) {
+    if (!item->name) {
         SDL_free(item);
         goto done;
     }
@@ -381,7 +381,7 @@ int Android_AddJoystick(int device_id, const char *name, const char *desc, int v
     item->nhats = nhats;
     item->nballs = nballs;
     item->device_instance = SDL_GetNextJoystickInstanceID();
-    if (SDL_joylist_tail == NULL) {
+    if (!SDL_joylist_tail) {
         SDL_joylist = SDL_joylist_tail = item;
     } else {
         SDL_joylist_tail->next = item;
@@ -414,7 +414,7 @@ int Android_RemoveJoystick(int device_id)
     SDL_LockJoysticks();
 
     /* Don't call JoystickByDeviceId here or there'll be an infinite loop! */
-    while (item != NULL) {
+    while (item) {
         if (item->device_id == device_id) {
             break;
         }
@@ -422,7 +422,7 @@ int Android_RemoveJoystick(int device_id)
         item = item->next;
     }
 
-    if (item == NULL) {
+    if (!item) {
         goto done;
     }
 
@@ -430,7 +430,7 @@ int Android_RemoveJoystick(int device_id)
         item->joystick->hwdata = NULL;
     }
 
-    if (prev != NULL) {
+    if (prev) {
         prev->next = item->next;
     } else {
         SDL_assert(SDL_joylist == item);
@@ -512,7 +512,7 @@ static SDL_joylist_item *JoystickByDeviceId(int device_id)
 {
     SDL_joylist_item *item = SDL_joylist;
 
-    while (item != NULL) {
+    while (item) {
         if (item->device_id == device_id) {
             return item;
         }
@@ -522,7 +522,7 @@ static SDL_joylist_item *JoystickByDeviceId(int device_id)
     /* Joystick not found, try adding it */
     ANDROID_JoystickDetect();
 
-    while (item != NULL) {
+    while (item) {
         if (item->device_id == device_id) {
             return item;
         }
@@ -540,6 +540,11 @@ static const char *ANDROID_JoystickGetDeviceName(int device_index)
 static const char *ANDROID_JoystickGetDevicePath(int device_index)
 {
     return NULL;
+}
+
+static int ANDROID_JoystickGetDeviceSteamVirtualGamepadSlot(int device_index)
+{
+    return -1;
 }
 
 static int ANDROID_JoystickGetDevicePlayerIndex(int device_index)
@@ -565,11 +570,11 @@ static int ANDROID_JoystickOpen(SDL_Joystick *joystick, int device_index)
 {
     SDL_joylist_item *item = JoystickByDevIndex(device_index);
 
-    if (item == NULL) {
+    if (!item) {
         return SDL_SetError("No such device");
     }
 
-    if (item->joystick != NULL) {
+    if (item->joystick) {
         return SDL_SetError("Joystick already opened");
     }
 
@@ -618,7 +623,7 @@ static void ANDROID_JoystickUpdate(SDL_Joystick *joystick)
 {
     SDL_joylist_item *item = (SDL_joylist_item *)joystick->hwdata;
 
-    if (item == NULL) {
+    if (!item) {
         return;
     }
 
@@ -682,6 +687,7 @@ SDL_JoystickDriver SDL_ANDROID_JoystickDriver = {
     ANDROID_JoystickDetect,
     ANDROID_JoystickGetDeviceName,
     ANDROID_JoystickGetDevicePath,
+    ANDROID_JoystickGetDeviceSteamVirtualGamepadSlot,
     ANDROID_JoystickGetDevicePlayerIndex,
     ANDROID_JoystickSetDevicePlayerIndex,
     ANDROID_JoystickGetDeviceGUID,

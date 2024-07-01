@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_DIRECTFB
+#ifdef SDL_VIDEO_DRIVER_DIRECTFB
 
 #include "SDL_DirectFB_video.h"
 #include "SDL_DirectFB_window.h"
@@ -79,13 +79,13 @@ static void LoadFont(_THIS, SDL_Window * window)
     SDL_DFB_DEVICEDATA(_this);
     SDL_DFB_WINDOWDATA(window);
 
-    if (windata->font != NULL) {
+    if (windata->font) {
         SDL_DFB_RELEASE(windata->font);
         windata->font = NULL;
         SDL_DFB_CHECK(windata->window_surface->SetFont(windata->window_surface, windata->font));
     }
 
-    if (windata->theme.font != NULL)
+    if (windata->theme.font)
     {
         DFBFontDescription fdesc;
 
@@ -317,7 +317,7 @@ int DirectFB_WM_ProcessEvent(_THIS, SDL_Window * window, DFBWindowEvent * evt)
                 SDL_FALLTHROUGH;
             default:
                 windata->wm_grab = pos;
-                if (grabbed_window != NULL)
+                if (grabbed_window)
                     DirectFB_SetWindowMouseGrab(_this, grabbed_window, SDL_FALSE);
                 DirectFB_SetWindowMouseGrab(_this, window, SDL_TRUE);
                 windata->wm_lastx = evt->cx;
@@ -350,7 +350,7 @@ int DirectFB_WM_ProcessEvent(_THIS, SDL_Window * window, DFBWindowEvent * evt)
                 }
             }
             DirectFB_SetWindowMouseGrab(_this, window, SDL_FALSE);
-            if (grabbed_window != NULL)
+            if (grabbed_window)
                 DirectFB_SetWindowMouseGrab(_this, grabbed_window, SDL_TRUE);
             windata->wm_grab = WM_POS_NONE;
             return 1;

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_RENDER_D3D11 && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_D3D11
 
 #include "SDL_syswm.h"
 #include "../../video/winrt/SDL_winrtvideo_cpp.h"
@@ -46,7 +46,7 @@ extern "C" void *
 D3D11_GetCoreWindowFromSDLRenderer(SDL_Renderer *renderer)
 {
     SDL_Window *sdlWindow = renderer->window;
-    if (renderer->window == NULL) {
+    if (!renderer->window) {
         return NULL;
     }
 
@@ -83,7 +83,7 @@ D3D11_GetCurrentRotation()
 
     switch (currentOrientation) {
 
-#if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#if SDL_WINAPI_FAMILY_PHONE
     /* Windows Phone rotations */
     case DisplayOrientations::Landscape:
         return DXGI_MODE_ROTATION_ROTATE90;
@@ -103,12 +103,12 @@ D3D11_GetCurrentRotation()
         return DXGI_MODE_ROTATION_ROTATE180;
     case DisplayOrientations::PortraitFlipped:
         return DXGI_MODE_ROTATION_ROTATE90;
-#endif /* WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP */
+#endif /* SDL_WINAPI_FAMILY_PHONE */
     }
 
     return DXGI_MODE_ROTATION_IDENTITY;
 }
 
-#endif /* SDL_VIDEO_RENDER_D3D11 && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_D3D11 */
 
 /* vi: set ts=4 sw=4 expandtab: */

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -37,7 +37,6 @@ static SDL_joylist_item *JoystickByIndex(int index);
 static SDL_joylist_item *SDL_joylist = NULL;
 static SDL_joylist_item *SDL_joylist_tail = NULL;
 static int numjoysticks = 0;
-static int instance_counter = 0;
 
 static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData)
 {
@@ -50,7 +49,7 @@ static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamep
     }
 
     item = (SDL_joylist_item *)SDL_malloc(sizeof(SDL_joylist_item));
-    if (item == NULL) {
+    if (!item) {
         return 1;
     }
 
@@ -58,13 +57,13 @@ static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamep
     item->index = gamepadEvent->index;
 
     item->name = SDL_CreateJoystickName(0, 0, NULL, gamepadEvent->id);
-    if (item->name == NULL) {
+    if (!item->name) {
         SDL_free(item);
         return 1;
     }
 
     item->mapping = SDL_strdup(gamepadEvent->mapping);
-    if (item->mapping == NULL) {
+    if (!item->mapping) {
         SDL_free(item->name);
         SDL_free(item);
         return 1;
@@ -72,7 +71,7 @@ static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamep
 
     item->naxes = gamepadEvent->numAxes;
     item->nbuttons = gamepadEvent->numButtons;
-    item->device_instance = instance_counter++;
+    item->device_instance = SDL_GetNextJoystickInstanceID();
 
     item->timestamp = gamepadEvent->timestamp;
 
@@ -85,7 +84,7 @@ static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamep
         item->digitalButton[i] = gamepadEvent->digitalButton[i];
     }
 
-    if (SDL_joylist_tail == NULL) {
+    if (!SDL_joylist_tail) {
         SDL_joylist = SDL_joylist_tail = item;
     } else {
         SDL_joylist_tail->next = item;
@@ -112,7 +111,7 @@ static EM_BOOL Emscripten_JoyStickDisconnected(int eventType, const EmscriptenGa
     SDL_joylist_item *item = SDL_joylist;
     SDL_joylist_item *prev = NULL;
 
-    while (item != NULL) {
+    while (item) {
         if (item->index == gamepadEvent->index) {
             break;
         }
@@ -120,7 +119,7 @@ static EM_BOOL Emscripten_JoyStickDisconnected(int eventType, const EmscriptenGa
         item = item->next;
     }
 
-    if (item == NULL) {
+    if (!item) {
         return 1;
     }
 
@@ -128,7 +127,7 @@ static EM_BOOL Emscripten_JoyStickDisconnected(int eventType, const EmscriptenGa
         item->joystick->hwdata = NULL;
     }
 
-    if (prev != NULL) {
+    if (prev) {
         prev->next = item->next;
     } else {
         SDL_assert(SDL_joylist == item);
@@ -168,7 +167,6 @@ static void EMSCRIPTEN_JoystickQuit(void)
     SDL_joylist = SDL_joylist_tail = NULL;
 
     numjoysticks = 0;
-    instance_counter = 0;
 
     emscripten_set_gamepadconnected_callback(NULL, 0, NULL);
     emscripten_set_gamepaddisconnected_callback(NULL, 0, NULL);
@@ -247,7 +245,7 @@ static SDL_joylist_item *JoystickByIndex(int index)
         return NULL;
     }
 
-    while (item != NULL) {
+    while (item) {
         if (item->index == index) {
             break;
         }
@@ -276,6 +274,11 @@ static const char *EMSCRIPTEN_JoystickGetDevicePath(int device_index)
     return NULL;
 }
 
+static int EMSCRIPTEN_JoystickGetDeviceSteamVirtualGamepadSlot(int device_index)
+{
+    return -1;
+}
+
 static int EMSCRIPTEN_JoystickGetDevicePlayerIndex(int device_index)
 {
     return -1;
@@ -299,11 +302,11 @@ static int EMSCRIPTEN_JoystickOpen(SDL_Joystick *joystick, int device_index)
 {
     SDL_joylist_item *item = JoystickByDeviceIndex(device_index);
 
-    if (item == NULL) {
+    if (!item) {
         return SDL_SetError("No such device");
     }
 
-    if (item->joystick != NULL) {
+    if (item->joystick) {
         return SDL_SetError("Joystick already opened");
     }
 
@@ -423,6 +426,7 @@ SDL_JoystickDriver SDL_EMSCRIPTEN_JoystickDriver = {
     EMSCRIPTEN_JoystickDetect,
     EMSCRIPTEN_JoystickGetDeviceName,
     EMSCRIPTEN_JoystickGetDevicePath,
+    EMSCRIPTEN_JoystickGetDeviceSteamVirtualGamepadSlot,
     EMSCRIPTEN_JoystickGetDevicePlayerIndex,
     EMSCRIPTEN_JoystickSetDevicePlayerIndex,
     EMSCRIPTEN_JoystickGetDeviceGUID,

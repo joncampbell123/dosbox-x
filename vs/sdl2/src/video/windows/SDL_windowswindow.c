@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WINDOWS
+#ifdef SDL_VIDEO_DRIVER_WINDOWS
 
 #include "../../core/windows/SDL_windows.h"
 
@@ -179,7 +179,7 @@ static void WIN_AdjustWindowRectWithStyle(SDL_Window *window, DWORD style, BOOL 
 
             mon = MonitorFromRect(&screen_rect, MONITOR_DEFAULTTONEAREST);
 
-            if (videodata != NULL) {
+            if (videodata) {
                 /* GetDpiForMonitor docs promise to return the same hdpi / vdpi */
                 if (videodata->GetDpiForMonitor(mon, MDT_EFFECTIVE_DPI, &frame_dpi, &unused) != S_OK) {
                     frame_dpi = 96;
@@ -300,7 +300,7 @@ static int SetupWindowData(_THIS, SDL_Window *window, HWND hwnd, HWND parent, SD
 
     /* Allocate the window data */
     data = (SDL_WindowData *)SDL_calloc(1, sizeof(*data));
-    if (data == NULL) {
+    if (!data) {
         return SDL_OutOfMemory();
     }
     data->window = window;
@@ -477,7 +477,7 @@ static void CleanupWindowData(_THIS, SDL_Window *window)
             }
         } else {
             /* Restore any original event handler... */
-            if (data->wndproc != NULL) {
+            if (data->wndproc) {
 #ifdef GWLP_WNDPROC
                 SetWindowLongPtr(data->hwnd, GWLP_WNDPROC,
                                  (LONG_PTR)data->wndproc);
@@ -537,13 +537,13 @@ int WIN_CreateWindow(_THIS, SDL_Window *window)
     }
 
     /* The rest of this macro mess is for OpenGL or OpenGL ES windows */
-#if SDL_VIDEO_OPENGL_ES2
+#ifdef SDL_VIDEO_OPENGL_ES2
     if (_this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_ES
-#if SDL_VIDEO_OPENGL_WGL
+#ifdef SDL_VIDEO_OPENGL_WGL
         && (!_this->gl_data || WIN_GL_UseEGL(_this))
 #endif /* SDL_VIDEO_OPENGL_WGL */
     ) {
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_EGL
         if (WIN_GLES_SetupWindow(_this, window) < 0) {
             WIN_DestroyWindow(_this, window);
             return -1;
@@ -555,7 +555,7 @@ int WIN_CreateWindow(_THIS, SDL_Window *window)
     }
 #endif /* SDL_VIDEO_OPENGL_ES2 */
 
-#if SDL_VIDEO_OPENGL_WGL
+#ifdef SDL_VIDEO_OPENGL_WGL
     if (WIN_GL_SetupWindow(_this, window) < 0) {
         WIN_DestroyWindow(_this, window);
         return -1;
@@ -596,7 +596,7 @@ int WIN_CreateWindowFrom(_THIS, SDL_Window *window, const void *data)
         return -1;
     }
 
-#if SDL_VIDEO_OPENGL_WGL
+#ifdef SDL_VIDEO_OPENGL_WGL
     {
         const char *hint = SDL_GetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT);
         if (hint) {
@@ -607,7 +607,7 @@ int WIN_CreateWindowFrom(_THIS, SDL_Window *window, const void *data)
             (void)SDL_sscanf(hint, "%p", (void **)&otherWindow);
 
             /* Do some error checking on the pointer */
-            if (otherWindow != NULL && otherWindow->magic == &_this->window_magic) {
+            if (otherWindow && otherWindow->magic == &_this->window_magic) {
                 /* If the otherWindow has SDL_WINDOW_OPENGL set, set it for the new window as well */
                 if (otherWindow->flags & SDL_WINDOW_OPENGL) {
                     window->flags |= SDL_WINDOW_OPENGL;
@@ -1058,7 +1058,7 @@ void *WIN_GetWindowICCProfile(_THIS, SDL_Window *window, size_t *size)
     filename_utf8 = WIN_StringToUTF8(data->ICMFileName);
     if (filename_utf8) {
         iccProfileData = SDL_LoadFile(filename_utf8, size);
-        if (iccProfileData == NULL) {
+        if (!iccProfileData) {
             SDL_SetError("Could not open ICC profile");
         }
         SDL_free(filename_utf8);
@@ -1224,7 +1224,7 @@ int SDL_HelperWindowCreate(void)
                                       CW_USEDEFAULT, CW_USEDEFAULT,
                                       CW_USEDEFAULT, HWND_MESSAGE, NULL,
                                       hInstance, NULL);
-    if (SDL_HelperWindow == NULL) {
+    if (!SDL_HelperWindow) {
         UnregisterClass(SDL_HelperWindowClassName, hInstance);
         return WIN_SetError("Unable to create Helper Window");
     }
@@ -1263,7 +1263,7 @@ void WIN_OnWindowEnter(_THIS, SDL_Window *window)
 {
     SDL_WindowData *data = (SDL_WindowData *)window->driverdata;
 
-    if (data == NULL || !data->hwnd) {
+    if (!data || !data->hwnd) {
         /* The window wasn't fully initialized */
         return;
     }
@@ -1271,6 +1271,13 @@ void WIN_OnWindowEnter(_THIS, SDL_Window *window)
     if (window->flags & SDL_WINDOW_ALWAYS_ON_TOP) {
         WIN_SetWindowPositionInternal(_this, window, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
     }
+}
+
+static BOOL GetClientScreenRect(HWND hwnd, RECT *rect)
+{
+    return GetClientRect(hwnd, rect) &&             /* RECT( left , top , right , bottom )   */
+           ClientToScreen(hwnd, (LPPOINT)rect) &&   /* POINT( left , top )                    */
+           ClientToScreen(hwnd, (LPPOINT)rect + 1); /*             POINT( right , bottom )   */
 }
 
 void WIN_UpdateClipCursor(SDL_Window *window)
@@ -1293,7 +1300,7 @@ void WIN_UpdateClipCursor(SDL_Window *window)
          (window->mouse_rect.w > 0 && window->mouse_rect.h > 0)) &&
         (window->flags & SDL_WINDOW_INPUT_FOCUS)) {
         if (mouse->relative_mode && !mouse->relative_mode_warp && data->mouse_relative_mode_center) {
-            if (GetWindowRect(data->hwnd, &rect)) {
+            if (GetClientScreenRect(data->hwnd, &rect)) {
                 /* WIN_WarpCursor() jitters by +1, and remote desktop warp wobble is +/- 1 */
                 LONG remote_desktop_adjustment = GetSystemMetrics(SM_REMOTESESSION) ? 2 : 0;
                 LONG cx, cy;
@@ -1314,9 +1321,7 @@ void WIN_UpdateClipCursor(SDL_Window *window)
                 }
             }
         } else {
-            if (GetClientRect(data->hwnd, &rect)) {
-                ClientToScreen(data->hwnd, (LPPOINT)&rect);
-                ClientToScreen(data->hwnd, (LPPOINT)&rect + 1);
+            if (GetClientScreenRect(data->hwnd, &rect)) {
                 if (window->mouse_rect.w > 0 && window->mouse_rect.h > 0) {
                     SDL_Rect mouse_rect_win_client;
                     RECT mouse_rect, intersection;

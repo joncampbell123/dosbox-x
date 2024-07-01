@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_OPENSLES
+#ifdef SDL_AUDIO_DRIVER_OPENSLES
 
 /* For more discussion of low latency audio on Android, see this:
    https://googlesamples.github.io/android-audio-high-performance/guides/opensl_es.html
@@ -320,7 +320,7 @@ static int openslES_CreatePCMRecorder(_THIS)
 
     /* Create the sound buffers */
     audiodata->mixbuff = (Uint8 *)SDL_malloc(NUM_BUFFERS * this->spec.size);
-    if (audiodata->mixbuff == NULL) {
+    if (!audiodata->mixbuff) {
         LOGE("mixbuffer allocate - out of memory");
         goto failed;
     }
@@ -566,7 +566,7 @@ static int openslES_CreatePCMPlayer(_THIS)
 
     /* Create the sound buffers */
     audiodata->mixbuff = (Uint8 *)SDL_malloc(NUM_BUFFERS * this->spec.size);
-    if (audiodata->mixbuff == NULL) {
+    if (!audiodata->mixbuff) {
         LOGE("mixbuffer allocate - out of memory");
         goto failed;
     }
@@ -591,7 +591,7 @@ failed:
 static int openslES_OpenDevice(_THIS, const char *devname)
 {
     this->hidden = (struct SDL_PrivateAudioData *)SDL_calloc(1, sizeof(*this->hidden));
-    if (this->hidden == NULL) {
+    if (!this->hidden) {
         return SDL_OutOfMemory();
     }
 

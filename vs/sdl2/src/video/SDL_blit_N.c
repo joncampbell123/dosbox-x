@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -48,7 +48,7 @@ enum blit_features
     BLIT_FEATURE_HAS_ARM_SIMD = 8
 };
 
-#if SDL_ALTIVEC_BLITTERS
+#ifdef SDL_ALTIVEC_BLITTERS
 #ifdef HAVE_ALTIVEC_H
 #include <altivec.h>
 #endif
@@ -903,7 +903,7 @@ static enum blit_features GetBlitFeatures(void)
     return features;
 }
 
-#if __MWERKS__
+#ifdef __MWERKS__
 #pragma altivec_model off
 #endif
 #else
@@ -911,7 +911,7 @@ static enum blit_features GetBlitFeatures(void)
 #define GetBlitFeatures() ((SDL_HasMMX() ? BLIT_FEATURE_HAS_MMX : 0) | (SDL_HasARMSIMD() ? BLIT_FEATURE_HAS_ARM_SIMD : 0))
 #endif
 
-#if SDL_ARM_SIMD_BLITTERS
+#ifdef SDL_ARM_SIMD_BLITTERS
 void Blit_BGR888_RGB888ARMSIMDAsm(int32_t w, int32_t h, uint32_t *dst, int32_t dst_stride, uint32_t *src, int32_t src_stride);
 
 static void Blit_BGR888_RGB888ARMSIMD(SDL_BlitInfo *info)
@@ -977,7 +977,7 @@ static void Blit_RGB888_index8(SDL_BlitInfo *info)
     dstskip = info->dst_skip;
     map = info->table;
 
-    if (map == NULL) {
+    if (!map) {
         while (height--) {
 #ifdef USE_DUFFS_LOOP
             /* *INDENT-OFF* */ /* clang-format off */
@@ -1091,7 +1091,7 @@ static void Blit_RGB101010_index8(SDL_BlitInfo *info)
     dstskip = info->dst_skip;
     map = info->table;
 
-    if (map == NULL) {
+    if (!map) {
         while (height--) {
 #ifdef USE_DUFFS_LOOP
             /* *INDENT-OFF* */ /* clang-format off */
@@ -2115,7 +2115,7 @@ static void BlitNto1(SDL_BlitInfo *info)
     srcfmt = info->src_fmt;
     srcbpp = srcfmt->BytesPerPixel;
 
-    if (map == NULL) {
+    if (!map) {
         while (height--) {
 #ifdef USE_DUFFS_LOOP
             /* *INDENT-OFF* */ /* clang-format off */
@@ -2513,7 +2513,7 @@ static void BlitNto1Key(SDL_BlitInfo *info)
     srcbpp = srcfmt->BytesPerPixel;
     ckey &= rgbmask;
 
-    if (palmap == NULL) {
+    if (!palmap) {
         while (height--) {
             /* *INDENT-OFF* */ /* clang-format off */
             DUFFS_LOOP(
@@ -3221,14 +3221,14 @@ static const struct blit_table normal_blit_1[] = {
 };
 
 static const struct blit_table normal_blit_2[] = {
-#if SDL_ALTIVEC_BLITTERS
+#ifdef SDL_ALTIVEC_BLITTERS
     /* has-altivec */
     { 0x0000F800, 0x000007E0, 0x0000001F, 4, 0x00000000, 0x00000000, 0x00000000,
       BLIT_FEATURE_HAS_ALTIVEC, Blit_RGB565_32Altivec, NO_ALPHA | COPY_ALPHA | SET_ALPHA },
     { 0x00007C00, 0x000003E0, 0x0000001F, 4, 0x00000000, 0x00000000, 0x00000000,
       BLIT_FEATURE_HAS_ALTIVEC, Blit_RGB555_32Altivec, NO_ALPHA | COPY_ALPHA | SET_ALPHA },
 #endif
-#if SDL_ARM_SIMD_BLITTERS
+#ifdef SDL_ARM_SIMD_BLITTERS
     { 0x00000F00, 0x000000F0, 0x0000000F, 4, 0x00FF0000, 0x0000FF00, 0x000000FF,
       BLIT_FEATURE_HAS_ARM_SIMD, Blit_RGB444_RGB888ARMSIMD, NO_ALPHA | COPY_ALPHA },
 #endif
@@ -3288,7 +3288,7 @@ static const struct blit_table normal_blit_3[] = {
 };
 
 static const struct blit_table normal_blit_4[] = {
-#if SDL_ALTIVEC_BLITTERS
+#ifdef SDL_ALTIVEC_BLITTERS
     /* has-altivec | dont-use-prefetch */
     { 0x00000000, 0x00000000, 0x00000000, 4, 0x00000000, 0x00000000, 0x00000000,
       BLIT_FEATURE_HAS_ALTIVEC | BLIT_FEATURE_ALTIVEC_DONT_USE_PREFETCH, ConvertAltivec32to32_noprefetch, NO_ALPHA | COPY_ALPHA | SET_ALPHA },
@@ -3299,7 +3299,7 @@ static const struct blit_table normal_blit_4[] = {
     { 0x00000000, 0x00000000, 0x00000000, 2, 0x0000F800, 0x000007E0, 0x0000001F,
       BLIT_FEATURE_HAS_ALTIVEC, Blit_RGB888_RGB565Altivec, NO_ALPHA },
 #endif
-#if SDL_ARM_SIMD_BLITTERS
+#ifdef SDL_ARM_SIMD_BLITTERS
     { 0x000000FF, 0x0000FF00, 0x00FF0000, 4, 0x00FF0000, 0x0000FF00, 0x000000FF,
       BLIT_FEATURE_HAS_ARM_SIMD, Blit_BGR888_RGB888ARMSIMD, NO_ALPHA | COPY_ALPHA },
 #endif
@@ -3437,7 +3437,7 @@ SDL_BlitFunc SDL_CalculateBlitN(SDL_Surface *surface)
         } else if (dstfmt->BytesPerPixel == 1) {
             return BlitNto1Key;
         } else {
-#if SDL_ALTIVEC_BLITTERS
+#ifdef SDL_ALTIVEC_BLITTERS
             if ((srcfmt->BytesPerPixel == 4) && (dstfmt->BytesPerPixel == 4) && SDL_HasAltiVec()) {
                 return Blit32to32KeyAltivec;
             } else

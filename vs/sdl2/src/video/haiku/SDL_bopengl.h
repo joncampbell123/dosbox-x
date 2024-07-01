@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 #ifndef SDL_BOPENGL_H
 #define SDL_BOPENGL_H
 
-#if SDL_VIDEO_DRIVER_HAIKU && SDL_VIDEO_OPENGL
+#if defined(SDL_VIDEO_DRIVER_HAIKU) && defined(SDL_VIDEO_OPENGL)
 
 #ifdef __cplusplus
 extern "C" {

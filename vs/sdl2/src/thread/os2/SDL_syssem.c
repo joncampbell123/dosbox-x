@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_THREAD_OS2
+#ifdef SDL_THREAD_OS2
 
 /* An implementation of semaphores for OS/2 */
 
@@ -44,7 +44,7 @@ SDL_sem *SDL_CreateSemaphore(Uint32 initial_value)
     ULONG ulRC;
     SDL_sem *pSDLSem = SDL_malloc(sizeof(SDL_sem));
 
-    if (pSDLSem == NULL) {
+    if (!pSDLSem) {
         SDL_OutOfMemory();
         return NULL;
     }
@@ -85,7 +85,7 @@ int SDL_SemWaitTimeout(SDL_sem * sem, Uint32 timeout)
     ULONG ulTimeout;
     ULONG cPost;
 
-    if (sem == NULL)
+    if (!sem)
         return SDL_InvalidParamError("sem");
 
     if (timeout != SEM_INDEFINITE_WAIT)
@@ -140,7 +140,7 @@ Uint32 SDL_SemValue(SDL_sem * sem)
 {
     ULONG ulRC;
 
-    if (sem == NULL) {
+    if (!sem) {
         SDL_InvalidParamError("sem");
         return 0;
     }
@@ -159,7 +159,7 @@ int SDL_SemPost(SDL_sem * sem)
 {
     ULONG ulRC;
 
-    if (sem == NULL)
+    if (!sem)
         return SDL_InvalidParamError("sem");
 
     ulRC = DosRequestMutexSem(sem->hMtx, SEM_INDEFINITE_WAIT);

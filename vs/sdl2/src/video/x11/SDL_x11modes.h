@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -37,14 +37,14 @@ typedef struct
 
     SDL_bool use_xrandr;
 
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
     RROutput xrandr_output;
 #endif
 } SDL_DisplayData;
 
 typedef struct
 {
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
     RRMode xrandr_mode;
 #else
     int unused; /* just so struct isn't empty. */
@@ -65,7 +65,7 @@ extern int X11_GetDisplayBounds(_THIS, SDL_VideoDisplay *sdl_display, SDL_Rect *
 extern int X11_GetDisplayUsableBounds(_THIS, SDL_VideoDisplay *sdl_display, SDL_Rect *rect);
 extern int X11_GetDisplayDPI(_THIS, SDL_VideoDisplay *sdl_display, float *ddpi, float *hdpi, float *vdpi);
 
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
 extern void X11_HandleXRandREvent(_THIS, const XEvent *xevent);
 #endif
 

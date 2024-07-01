@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_RENDER_OGL && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_OGL
 
 #include "SDL_stdinc.h"
 #include "SDL_opengl.h"
@@ -497,7 +497,7 @@ GL_ShaderContext *GL_CreateShaderContext(void)
     int i;
 
     ctx = (GL_ShaderContext *)SDL_calloc(1, sizeof(*ctx));
-    if (ctx == NULL) {
+    if (!ctx) {
         return NULL;
     }
 
@@ -577,6 +577,6 @@ void GL_DestroyShaderContext(GL_ShaderContext *ctx)
     SDL_free(ctx);
 }
 
-#endif /* SDL_VIDEO_RENDER_OGL && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_OGL */
 
 /* vi: set ts=4 sw=4 expandtab: */

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -54,7 +54,7 @@ void SDL_DestroyCond(SDL_cond *cond)
 /* Restart one of the threads that are waiting on the condition variable */
 int SDL_CondSignal(SDL_cond *cond)
 {
-    if (cond == NULL) {
+    if (!cond) {
         return SDL_InvalidParamError("cond");
     }
 
@@ -65,7 +65,7 @@ int SDL_CondSignal(SDL_cond *cond)
 /* Restart all threads that are waiting on the condition variable */
 int SDL_CondBroadcast(SDL_cond *cond)
 {
-    if (cond == NULL) {
+    if (!cond) {
         return SDL_InvalidParamError("cond");
     }
 
@@ -98,10 +98,10 @@ int SDL_CondWaitTimeout(SDL_cond *cond, SDL_mutex *mutex, Uint32 ms)
 {
     Result res;
 
-    if (cond == NULL) {
+    if (!cond) {
         return SDL_InvalidParamError("cond");
     }
-    if (mutex == NULL) {
+    if (!mutex) {
         return SDL_InvalidParamError("mutex");
     }
 

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_EMSCRIPTEN
+#ifdef SDL_VIDEO_DRIVER_EMSCRIPTEN
 
 #include "SDL_emscriptenvideo.h"
 #include "SDL_emscriptenframebuffer.h"
@@ -46,7 +46,7 @@ int Emscripten_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format
     SDL_GetWindowSizeInPixels(window, &w, &h);
 
     surface = SDL_CreateRGBSurface(0, w, h, bpp, Rmask, Gmask, Bmask, Amask);
-    if (surface == NULL) {
+    if (!surface) {
         return -1;
     }
 
@@ -64,7 +64,7 @@ int Emscripten_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect
 
     SDL_WindowData *data = (SDL_WindowData *)window->driverdata;
     surface = data->surface;
-    if (surface == NULL) {
+    if (!surface) {
         return SDL_SetError("Couldn't find framebuffer surface for window");
     }
 

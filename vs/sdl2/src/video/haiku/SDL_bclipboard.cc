@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_HAIKU
+#ifdef SDL_VIDEO_DRIVER_HAIKU
 
 /* BWindow based clipboard implementation */
 
@@ -65,7 +65,7 @@ char *HAIKU_GetClipboardText(_THIS) {
         be_clipboard->Unlock();
     } 
     
-    if (text == NULL) {
+    if (!text) {
         result = SDL_strdup("");
     } else {
         /* Copy the data and pass on to SDL */

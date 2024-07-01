@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_RPI
+#ifdef SDL_VIDEO_DRIVER_RPI
 
 /* References
  * http://elinux.org/RPi_VideoCore_APIs
@@ -77,14 +77,14 @@ static SDL_VideoDevice *RPI_Create()
 
     /* Initialize SDL_VideoDevice structure */
     device = (SDL_VideoDevice *)SDL_calloc(1, sizeof(SDL_VideoDevice));
-    if (device == NULL) {
+    if (!device) {
         SDL_OutOfMemory();
         return NULL;
     }
 
     /* Initialize internal data */
     phdata = (SDL_VideoData *)SDL_calloc(1, sizeof(SDL_VideoData));
-    if (phdata == NULL) {
+    if (!phdata) {
         SDL_OutOfMemory();
         SDL_free(device);
         return NULL;
@@ -138,7 +138,8 @@ static SDL_VideoDevice *RPI_Create()
 VideoBootStrap RPI_bootstrap = {
     "RPI",
     "RPI Video Driver",
-    RPI_Create
+    RPI_Create,
+    NULL /* no ShowMessageBox implementation */
 };
 
 /*****************************************************************************/
@@ -179,7 +180,7 @@ static void AddDispManXDisplay(const int display_id)
 
     /* Allocate display internal data */
     data = (SDL_DisplayData *)SDL_calloc(1, sizeof(SDL_DisplayData));
-    if (data == NULL) {
+    if (!data) {
         vc_dispmanx_display_close(handle);
         return; /* oh well */
     }
@@ -256,7 +257,7 @@ int RPI_CreateWindow(_THIS, SDL_Window *window)
 
     /* Allocate window internal data */
     wdata = (SDL_WindowData *)SDL_calloc(1, sizeof(SDL_WindowData));
-    if (wdata == NULL) {
+    if (!wdata) {
         return SDL_OutOfMemory();
     }
     display = SDL_GetDisplayForWindow(window);
@@ -350,7 +351,7 @@ void RPI_DestroyWindow(_THIS, SDL_Window *window)
             SDL_DestroyMutex(data->vsync_cond_mutex);
         }
 
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_EGL
         if (data->egl_surface != EGL_NO_SURFACE) {
             SDL_EGL_DestroySurface(_this, data->egl_surface);
         }

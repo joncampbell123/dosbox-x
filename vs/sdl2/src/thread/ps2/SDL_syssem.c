@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,13 +20,13 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_THREAD_PS2
+#ifdef SDL_THREAD_PS2
 
 /* Semaphore functions for the PS2. */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <timer_alarm.h>
+#include <kernel_util.h>
 
 #include "SDL_error.h"
 #include "SDL_thread.h"
@@ -38,11 +38,6 @@ struct SDL_semaphore
     s32 semid;
 };
 
-static void usercb(struct timer_alarm_t *alarm, void *arg)
-{
-    iReleaseWaitThread((int)arg);
-}
-
 /* Create a semaphore */
 SDL_sem *SDL_CreateSemaphore(Uint32 initial_value)
 {
@@ -50,7 +45,7 @@ SDL_sem *SDL_CreateSemaphore(Uint32 initial_value)
     ee_sema_t sema;
 
     sem = (SDL_sem *)SDL_malloc(sizeof(*sem));
-    if (sem != NULL) {
+    if (sem) {
         /* TODO: Figure out the limit on the maximum value. */
         sema.init_count = initial_value;
         sema.max_count = 255;
@@ -72,7 +67,7 @@ SDL_sem *SDL_CreateSemaphore(Uint32 initial_value)
 /* Free the semaphore */
 void SDL_DestroySemaphore(SDL_sem *sem)
 {
-    if (sem != NULL) {
+    if (sem) {
         if (sem->semid > 0) {
             DeleteSema(sem->semid);
             sem->semid = 0;
@@ -85,10 +80,10 @@ void SDL_DestroySemaphore(SDL_sem *sem)
 int SDL_SemWaitTimeout(SDL_sem *sem, Uint32 timeout)
 {
     int ret;
-    struct timer_alarm_t alarm;
-    InitializeTimerAlarm(&alarm);
+    u64 timeout_usec;
+    u64 *timeout_ptr;
 
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 
@@ -99,12 +94,14 @@ int SDL_SemWaitTimeout(SDL_sem *sem, Uint32 timeout)
         return 0;
     }
 
+    timeout_ptr = NULL;
+
     if (timeout != SDL_MUTEX_MAXWAIT) {
-        SetTimerAlarm(&alarm, MSec2TimerBusClock(timeout), &usercb, (void *)GetThreadId());
+        timeout_usec = timeout * 1000;
+        timeout_ptr = &timeout_usec;
     }
 
-    ret = WaitSema(sem->semid);
-    StopTimerAlarm(&alarm);
+    ret = WaitSemaEx(sem->semid, 1, timeout_ptr);
 
     if (ret < 0) {
         return SDL_MUTEX_TIMEDOUT;
@@ -127,7 +124,7 @@ Uint32 SDL_SemValue(SDL_sem *sem)
 {
     ee_sema_t info;
 
-    if (sem == NULL) {
+    if (!sem) {
         SDL_InvalidParamError("sem");
         return 0;
     }
@@ -143,7 +140,7 @@ int SDL_SemPost(SDL_sem *sem)
 {
     int res;
 
-    if (sem == NULL) {
+    if (!sem) {
         return SDL_InvalidParamError("sem");
     }
 

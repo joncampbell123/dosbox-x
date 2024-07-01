@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_PSP
+#ifdef SDL_VIDEO_DRIVER_PSP
 
 /* Being a null driver, there's no event stream. We just define stubs for
    most of the API. */
@@ -237,7 +237,7 @@ void PSP_InitOSKeymap(_THIS)
 #endif
 }
 
-void PSP_EventInit(_THIS)
+int PSP_EventInit(_THIS)
 {
 #ifdef PSPIRKEYB
     int outputmode = PSP_IRKBD_OUTPUT_MODE_SCANCODE;
@@ -251,14 +251,13 @@ void PSP_EventInit(_THIS)
 #endif
     /* Start thread to read data */
     if ((event_sem = SDL_CreateSemaphore(1)) == NULL) {
-        SDL_SetError("Can't create input semaphore");
-        return;
+        return SDL_SetError("Can't create input semaphore");
     }
     running = 1;
     if ((thread = SDL_CreateThreadInternal(EventUpdate, "PSPInputThread", 4096, NULL)) == NULL) {
-        SDL_SetError("Can't create input thread");
-        return;
+        return SDL_SetError("Can't create input thread");
     }
+    return 0;
 }
 
 void PSP_EventQuit(_THIS)

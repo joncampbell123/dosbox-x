@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -76,7 +76,7 @@ static int _createUconvObj(const char *code, UconvObject *uobj)
     const unsigned char *ch =
          (const unsigned char *)code;
 
-    if (code == NULL)
+    if (!code)
         uc_code[0] = 0;
     else {
         for (i = 0; i < MAX_CP_NAME_LEN; i++) {
@@ -119,10 +119,10 @@ iconv_t _System os2_iconv_open(const char* tocode, const char* fromcode)
     int rc;
     iuconv_obj *iuobj;
 
-    if (tocode == NULL) {
+    if (!tocode) {
         tocode = "";
     }
-    if (fromcode == NULL) {
+    if (!fromcode) {
         fromcode = "";
     }
 
@@ -169,7 +169,7 @@ size_t _System os2_iconv(iconv_t cd,
     int rc;
     size_t ret = (size_t)(-1);
 
-    if (uo_tocode == NULL && uo_fromcode == NULL) {
+    if (!uo_tocode && !uo_fromcode) {
         uc_buf_len = SDL_min(*inbytesleft, *outbytesleft);
         SDL_memcpy(*outbuf, *inbuf, uc_buf_len);
         *inbytesleft -= uc_buf_len;

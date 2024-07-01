@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_RISCOS
+#ifdef SDL_VIDEO_DRIVER_RISCOS
 
 #include "../SDL_sysvideo.h"
 #include "SDL_riscosframebuffer_c.h"
@@ -80,7 +80,7 @@ int RISCOS_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format, vo
     regs.r[5] = h;
     regs.r[6] = sprite_mode;
     error = _kernel_swi(OS_SpriteOp, &regs, &regs);
-    if (error != NULL) {
+    if (error) {
         SDL_free(driverdata->fb_area);
         return SDL_SetError("Unable to create sprite: %s (%i)", error->errmess, error->errnum);
     }
@@ -106,7 +106,7 @@ int RISCOS_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect *re
     regs.r[6] = 0;
     regs.r[7] = 0;
     error = _kernel_swi(OS_SpriteOp, &regs, &regs);
-    if (error != NULL) {
+    if (error) {
         return SDL_SetError("OS_SpriteOp 52 failed: %s (%i)", error->errmess, error->errnum);
     }
 

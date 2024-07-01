@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -896,3 +896,5 @@
 #define SDL_GDKSuspendComplete SDL_GDKSuspendComplete_REAL
 #define SDL_HasWindowSurface SDL_HasWindowSurface_REAL
 #define SDL_DestroyWindowSurface SDL_DestroyWindowSurface_REAL
+#define SDL_GDKGetDefaultUser SDL_GDKGetDefaultUser_REAL
+#define SDL_GameControllerGetSteamHandle SDL_GameControllerGetSteamHandle_REAL

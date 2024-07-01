@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -56,7 +56,7 @@ char *SDL_GetBasePath(void)
 
     const size_t len = SDL_strlen(str);
     char *retval = (char *) SDL_malloc(len + 2);
-    if (retval == NULL) {
+    if (!retval) {
         SDL_OutOfMemory();
         return NULL;
     }
@@ -75,11 +75,11 @@ char *SDL_GetPrefPath(const char *org, const char *app)
     const char *append = "/config/settings/";
     size_t len = SDL_strlen(home);
 
-    if (app == NULL) {
+    if (!app) {
         SDL_InvalidParamError("app");
         return NULL;
     }
-    if (org == NULL) {
+    if (!org) {
         org = "";
     }
 
@@ -88,7 +88,7 @@ char *SDL_GetPrefPath(const char *org, const char *app)
     }
     len += SDL_strlen(append) + SDL_strlen(org) + SDL_strlen(app) + 3;
     char *retval = (char *) SDL_malloc(len);
-    if (retval == NULL) {
+    if (!retval) {
         SDL_OutOfMemory();
     } else {
         if (*org) {

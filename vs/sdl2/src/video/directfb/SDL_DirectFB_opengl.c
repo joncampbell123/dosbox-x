@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,11 +20,11 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_DIRECTFB
+#ifdef SDL_VIDEO_DRIVER_DIRECTFB
 
 #include "SDL_DirectFB_video.h"
 
-#if SDL_DIRECTFB_OPENGL
+#ifdef SDL_DIRECTFB_OPENGL
 
 #include "SDL_DirectFB_opengl.h"
 #include "SDL_DirectFB_window.h"
@@ -33,7 +33,7 @@
 #include "SDL_loadso.h"
 #endif
 
-#if SDL_DIRECTFB_OPENGL
+#ifdef SDL_DIRECTFB_OPENGL
 
 struct SDL_GLDriverData
 {
@@ -113,15 +113,15 @@ int DirectFB_GL_LoadLibrary(_THIS, const char *path)
     }
 
 
-    if (path == NULL) {
+    if (!path) {
         path = SDL_getenv("SDL_OPENGL_LIBRARY");
-        if (path == NULL) {
+        if (!path) {
             path = "libGL.so.1";
         }
     }
 
     handle = GL_LoadObject(path);
-    if (handle == NULL) {
+    if (!handle) {
         SDL_DFB_ERR("Library not found: %s\n", path);
         /* SDL_LoadObject() will call SDL_SetError() for us. */
         return -1;
@@ -210,7 +210,7 @@ int DirectFB_GL_MakeCurrent(_THIS, SDL_Window * window, SDL_GLContext context)
 
     }
 
-    if (ctx != NULL) {
+    if (ctx) {
         SDL_DFB_CHECKERR(ctx->context->Lock(ctx->context));
         ctx->is_locked = 1;
     }
@@ -242,7 +242,7 @@ int DirectFB_GL_SwapWindow(_THIS, SDL_Window * window)
         devdata->glFlush();
 #endif
 
-    for (p = _this->gl_data->firstgl; p != NULL; p = p->next)
+    for (p = _this->gl_data->firstgl; p; p = p->next)
         if (p->sdl_window == window && p->is_locked)
         {
             SDL_DFB_CHECKERR(p->context->Unlock(p->context));
@@ -278,7 +278,7 @@ void DirectFB_GL_FreeWindowContexts(_THIS, SDL_Window * window)
 {
     DirectFB_GLContext *p;
 
-    for (p = _this->gl_data->firstgl; p != NULL; p = p->next)
+    for (p = _this->gl_data->firstgl; p; p = p->next)
         if (p->sdl_window == window)
         {
             if (p->is_locked)
@@ -291,7 +291,7 @@ void DirectFB_GL_ReAllocWindowContexts(_THIS, SDL_Window * window)
 {
     DirectFB_GLContext *p;
 
-    for (p = _this->gl_data->firstgl; p != NULL; p = p->next)
+    for (p = _this->gl_data->firstgl; p; p = p->next)
         if (p->sdl_window == window)
         {
             SDL_DFB_WINDOWDATA(window);
@@ -306,7 +306,7 @@ void DirectFB_GL_DestroyWindowContexts(_THIS, SDL_Window * window)
 {
     DirectFB_GLContext *p;
 
-    for (p = _this->gl_data->firstgl; p != NULL; p = p->next)
+    for (p = _this->gl_data->firstgl; p; p = p->next)
         if (p->sdl_window == window)
             DirectFB_GL_DeleteContext(_this, p);
 }

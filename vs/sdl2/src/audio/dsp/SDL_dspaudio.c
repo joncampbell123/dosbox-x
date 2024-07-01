@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_OSS
+#ifdef SDL_AUDIO_DRIVER_OSS
 
 /* Allow access to a raw mixing buffer */
 
@@ -67,9 +67,9 @@ static int DSP_OpenDevice(_THIS, const char *devname)
 
     /* We don't care what the devname is...we'll try to open anything. */
     /*  ...but default to first name in the list... */
-    if (devname == NULL) {
+    if (!devname) {
         devname = SDL_GetAudioDeviceName(0, iscapture);
-        if (devname == NULL) {
+        if (!devname) {
             return SDL_SetError("No such audio device");
         }
     }
@@ -86,7 +86,7 @@ static int DSP_OpenDevice(_THIS, const char *devname)
 
     /* Initialize all variables that we clean on shutdown */
     this->hidden = (struct SDL_PrivateAudioData *) SDL_malloc(sizeof(*this->hidden));
-    if (this->hidden == NULL) {
+    if (!this->hidden) {
         return SDL_OutOfMemory();
     }
     SDL_zerop(this->hidden);
@@ -228,7 +228,7 @@ static int DSP_OpenDevice(_THIS, const char *devname)
     if (!iscapture) {
         this->hidden->mixlen = this->spec.size;
         this->hidden->mixbuf = (Uint8 *)SDL_malloc(this->hidden->mixlen);
-        if (this->hidden->mixbuf == NULL) {
+        if (!this->hidden->mixbuf) {
             return SDL_OutOfMemory();
         }
         SDL_memset(this->hidden->mixbuf, this->spec.silence, this->spec.size);

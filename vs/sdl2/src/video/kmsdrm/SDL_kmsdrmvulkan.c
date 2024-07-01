@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,7 +26,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_VULKAN && SDL_VIDEO_DRIVER_KMSDRM
+#if defined(SDL_VIDEO_VULKAN) && defined(SDL_VIDEO_DRIVER_KMSDRM)
 
 #include "SDL_kmsdrmvideo.h"
 #include "SDL_kmsdrmdyn.h"
@@ -56,10 +56,10 @@ int KMSDRM_Vulkan_LoadLibrary(_THIS, const char *path)
     }
 
     /* Load the Vulkan library */
-    if (path == NULL) {
+    if (!path) {
         path = SDL_getenv("SDL_VULKAN_LIBRARY");
     }
-    if (path == NULL) {
+    if (!path) {
         path = DEFAULT_VULKAN;
     }
 
@@ -93,7 +93,7 @@ int KMSDRM_Vulkan_LoadLibrary(_THIS, const char *path)
             _this->vulkan_config.vkEnumerateInstanceExtensionProperties,
         &extensionCount);
 
-    if (extensions == NULL) {
+    if (!extensions) {
         goto fail;
     }
 

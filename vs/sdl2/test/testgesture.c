@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -131,7 +131,7 @@ DrawScreen(SDL_Window *window)
     SDL_Surface *screen = SDL_GetWindowSurface(window);
     int i;
 
-    if (screen == NULL) {
+    if (!screen) {
         return;
     }
 
@@ -251,7 +251,7 @@ loop(void)
             break;
 
         case SDL_DOLLARRECORD:
-            SDL_Log("Recorded gesture: %" SDL_PRIs64 "", event.dgesture.gestureId);
+            SDL_Log("Recorded gesture: %" SDL_PRIs64, event.dgesture.gestureId);
             break;
         }
     }
@@ -272,7 +272,7 @@ loop(void)
 int main(int argc, char *argv[])
 {
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
-    if (state == NULL) {
+    if (!state) {
         return 1;
     }
 
