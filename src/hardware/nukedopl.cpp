@@ -462,7 +462,7 @@ static void OPL3_EnvelopeCalc(opl3_slot *slot)
         }
         else
         {
-            shift = (rate_hi & 0x03) + eg_incstep[rate_lo][slot->chip->timer & 0x03u];
+            shift = (rate_hi & 0x03) + eg_incstep[rate_lo][slot->chip->eg_timer_lo];
             if (shift & 0x04)
             {
                 shift = 0x03;
@@ -1207,10 +1207,9 @@ inline void OPL3_Generate4Ch(opl3_chip *chip, int16_t *buf4)
 
     chip->timer++;
 
-    chip->eg_add = 0;
-    if (chip->eg_timer)
+    if (chip->eg_state)
     {
-        while (shift < 36 && ((chip->eg_timer >> shift) & 1) == 0)
+        while (shift < 13 && ((chip->eg_timer >> shift) & 1) == 0)
         {
             shift++;
         }
@@ -1222,6 +1221,7 @@ inline void OPL3_Generate4Ch(opl3_chip *chip, int16_t *buf4)
         {
             chip->eg_add = shift + 1;
         }
+	chip->eg_timer_lo = (uint8_t)(chip->eg_timer & 0x3u);
     }
 
     if (chip->eg_timerrem || chip->eg_state)
