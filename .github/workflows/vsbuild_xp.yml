@@ -244,6 +244,12 @@ jobs:
         with:
           path: ${{ github.workspace }}/mingw-bin
           key: mingw-xp-bin-r-${{ github.sha }}
+      - name: Update release version
+        if: startsWith(github.ref, 'refs/tags/') 
+        shell: bash
+        run: |
+          DOSBOX_X_RELEASE=`gh release list -L1 | grep -o "....-..-.." | head -n 1 | sed -e "s/-/./g"`
+          sed -i "s/^#define MyAppVersion.*/#define MyAppVersion \"$DOSBOX_X_RELEASE\"/" contrib/windows/installer/DOSBox-X-setupXP.iss
       - name: Prepare files
         shell: bash
         run: |
