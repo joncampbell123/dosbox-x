@@ -119,6 +119,7 @@ struct _opl3_chip {
     uint8_t eg_timerrem;
     uint8_t eg_state;
     uint8_t eg_add;
+    uint8_t eg_timer_lo;
     uint8_t newm;
     uint8_t nts;
     uint8_t rhy;
