@@ -219,7 +219,7 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/save@v4
         with:
-          path: ${{ github.workspace }}/vs-bin
+          path: ${{ github.workspace }}/mingw-x86-bin
           key: mingw-x86-bin-r-${{ github.sha }}
   MinGW64_CI_build:
     permissions:
@@ -278,7 +278,7 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/save@v4
         with:
-          path: ${{ github.workspace }}/vs-bin
+          path: ${{ github.workspace }}/mingw-x64-bin/
           key: mingw-x64-bin-r-${{ github.sha }}
   Build_Windows_Installer:
     permissions:
