@@ -1,4 +1,4 @@
-Next:
+2024.07.01
   - Correct Hercules InColor memory emulation. Read and write planar
     behavior was incorrect due to a misunderstanding of available
     documentation. (joncampbell123).
