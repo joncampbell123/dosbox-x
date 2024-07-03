@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -43,6 +43,7 @@ typedef struct JoyStick_DeviceData
     Uint8 XInputUserId;
     DIDEVICEINSTANCE dxdevice;
     char path[MAX_PATH];
+    int steam_virtual_gamepad_slot;
     struct JoyStick_DeviceData *pNext;
 } JoyStick_DeviceData;
 
@@ -72,10 +73,11 @@ struct joystick_hwdata
 {
     SDL_JoystickGUID guid;
 
-#if SDL_JOYSTICK_DINPUT
+#ifdef SDL_JOYSTICK_DINPUT
     LPDIRECTINPUTDEVICE8 InputDevice;
     DIDEVCAPS Capabilities;
     SDL_bool buffered;
+    SDL_bool first_update;
     input_t Inputs[MAX_INPUTS];
     int NumInputs;
     int NumSliders;
@@ -90,7 +92,7 @@ struct joystick_hwdata
     DWORD dwPacketNumber;
 };
 
-#if SDL_JOYSTICK_DINPUT
+#ifdef SDL_JOYSTICK_DINPUT
 extern const DIDATAFORMAT SDL_c_dfDIJoystick2;
 #endif
 

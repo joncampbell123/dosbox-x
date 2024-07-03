@@ -53,12 +53,13 @@ TASRCS = testautomation.c &
 	testautomation_audio.c testautomation_clipboard.c &
 	testautomation_events.c testautomation_guid.c &
 	testautomation_hints.c testautomation_joystick.c &
-	testautomation_keyboard.c testautomation_main.c &
-	testautomation_math.c testautomation_mouse.c &
-	testautomation_pixels.c testautomation_platform.c &
-	testautomation_rect.c testautomation_render.c &
-	testautomation_rwops.c testautomation_sdltest.c &
-	testautomation_stdlib.c testautomation_surface.c &
+	testautomation_keyboard.c testautomation_log.c &
+	testautomation_main.c testautomation_math.c &
+	testautomation_mouse.c testautomation_pixels.c &
+	testautomation_platform.c testautomation_rect.c &
+	testautomation_render.c testautomation_rwops.c &
+	testautomation_sdltest.c testautomation_stdlib.c &
+	testautomation_subsystems.c testautomation_surface.c &
 	testautomation_syswm.c testautomation_timer.c &
 	testautomation_video.c
 
@@ -68,8 +69,6 @@ TAOBJS = $(TASRCS:.c=.obj)
 TNOBJS = $(TNSRCS:.c=.obj)
 
 all: testutils.lib $(TARGETS)
-
-.c: ../src/test
 
 .obj.exe:
   wlink SYS $(SYSTEM) libpath $(LIBPATH) lib {$(LIBS)} op q op el file {$<} name $@
@@ -81,6 +80,9 @@ all: testutils.lib $(TARGETS)
 testvulkan.obj: testvulkan.c
   # new vulkan headers result in lots of W202 warnings
   wcc386 $(CFLAGS) -wcd=202 -fo=$^@ $<
+
+testautomation_stdlib.obj: testautomation_stdlib.c
+  wcc386 $(CFLAGS) -wcd=201 -fo=$^@ $<
 
 testautomation.exe: $(TAOBJS)
   wlink SYS $(SYSTEM) libpath $(LIBPATH) lib {$(LIBS)} op q op el file {$<} name $@
@@ -106,14 +108,14 @@ testutils.lib: testutils.obj
 check: .SYMBOLIC $(TESTS)
   @set SDL_AUDIODRIVER=dummy
   @set SDL_VIDEODRIVER=dummy
-  @copy "../SDL2.dll" .
+  @copy ..\SDL2.dll .
   @for %exe in ($(TESTS)) do %exe
 
 check-quick: .SYMBOLIC $(TESTS)
   @set SDL_TESTS_QUICK=1
   @set SDL_AUDIODRIVER=dummy
   @set SDL_VIDEODRIVER=dummy
-  @copy "../SDL2.dll" .
+  @copy ..\SDL2.dll .
   @for %exe in ($(TESTS)) do %exe
 
 clean: .SYMBOLIC

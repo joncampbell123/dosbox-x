@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #ifndef SDL_syscond_generic_h_
 #define SDL_syscond_generic_h_
 
-#if SDL_THREAD_GENERIC_COND_SUFFIX
+#ifdef SDL_THREAD_GENERIC_COND_SUFFIX
 
 SDL_cond *SDL_CreateCond_generic(void);
 void SDL_DestroyCond_generic(SDL_cond *cond);

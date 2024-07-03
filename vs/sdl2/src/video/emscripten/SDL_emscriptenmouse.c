@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_EMSCRIPTEN
+#ifdef SDL_VIDEO_DRIVER_EMSCRIPTEN
 
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
@@ -31,6 +31,15 @@
 
 #include "../../events/SDL_mouse_c.h"
 
+/* older Emscriptens don't have this, but we need to for wasm64 compatibility. */
+#ifndef MAIN_THREAD_EM_ASM_PTR
+    #ifdef __wasm64__
+        #error You need to upgrade your Emscripten compiler to support wasm64
+    #else
+        #define MAIN_THREAD_EM_ASM_PTR MAIN_THREAD_EM_ASM_INT
+    #endif
+#endif
+
 static SDL_Cursor *Emscripten_CreateCursorFromString(const char *cursor_str, SDL_bool is_custom)
 {
     SDL_Cursor *cursor;
@@ -39,7 +48,7 @@ static SDL_Cursor *Emscripten_CreateCursorFromString(const char *cursor_str, SDL
     cursor = SDL_calloc(1, sizeof(SDL_Cursor));
     if (cursor) {
         curdata = (Emscripten_CursorData *)SDL_calloc(1, sizeof(*curdata));
-        if (curdata == NULL) {
+        if (!curdata) {
             SDL_OutOfMemory();
             SDL_free(cursor);
             return NULL;
@@ -60,6 +69,8 @@ static SDL_Cursor *Emscripten_CreateDefaultCursor()
     return Emscripten_CreateCursorFromString("default", SDL_FALSE);
 }
 
+EM_JS_DEPS(sdlmouse, "$stringToUTF8,$UTF8ToString");
+
 static SDL_Cursor *Emscripten_CreateCursor(SDL_Surface *surface, int hot_x, int hot_y)
 {
     const char *cursor_url = NULL;
@@ -67,12 +78,12 @@ static SDL_Cursor *Emscripten_CreateCursor(SDL_Surface *surface, int hot_x, int 
 
     conv_surf = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ABGR8888, 0);
 
-    if (conv_surf == NULL) {
+    if (!conv_surf) {
         return NULL;
     }
 
     /* *INDENT-OFF* */ /* clang-format off */
-    cursor_url = (const char *)MAIN_THREAD_EM_ASM_INT({
+    cursor_url = (const char *)MAIN_THREAD_EM_ASM_PTR({
         var w = $0;
         var h = $1;
         var hot_x = $2;
@@ -130,49 +141,7 @@ static SDL_Cursor *Emscripten_CreateCursor(SDL_Surface *surface, int hot_x, int 
 
 static SDL_Cursor *Emscripten_CreateSystemCursor(SDL_SystemCursor id)
 {
-    const char *cursor_name = NULL;
-
-    switch (id) {
-    case SDL_SYSTEM_CURSOR_ARROW:
-        cursor_name = "default";
-        break;
-    case SDL_SYSTEM_CURSOR_IBEAM:
-        cursor_name = "text";
-        break;
-    case SDL_SYSTEM_CURSOR_WAIT:
-        cursor_name = "wait";
-        break;
-    case SDL_SYSTEM_CURSOR_CROSSHAIR:
-        cursor_name = "crosshair";
-        break;
-    case SDL_SYSTEM_CURSOR_WAITARROW:
-        cursor_name = "progress";
-        break;
-    case SDL_SYSTEM_CURSOR_SIZENWSE:
-        cursor_name = "nwse-resize";
-        break;
-    case SDL_SYSTEM_CURSOR_SIZENESW:
-        cursor_name = "nesw-resize";
-        break;
-    case SDL_SYSTEM_CURSOR_SIZEWE:
-        cursor_name = "ew-resize";
-        break;
-    case SDL_SYSTEM_CURSOR_SIZENS:
-        cursor_name = "ns-resize";
-        break;
-    case SDL_SYSTEM_CURSOR_SIZEALL:
-        cursor_name = "move";
-        break;
-    case SDL_SYSTEM_CURSOR_NO:
-        cursor_name = "not-allowed";
-        break;
-    case SDL_SYSTEM_CURSOR_HAND:
-        cursor_name = "pointer";
-        break;
-    default:
-        SDL_assert(0);
-        return NULL;
-    }
+    const char *cursor_name = SDL_GetCSSCursorName(id, NULL);
 
     return Emscripten_CreateCursorFromString(cursor_name, SDL_FALSE);
 }
@@ -183,7 +152,7 @@ static void Emscripten_FreeCursor(SDL_Cursor *cursor)
     if (cursor) {
         curdata = (Emscripten_CursorData *)cursor->driverdata;
 
-        if (curdata != NULL) {
+        if (curdata) {
             if (curdata->is_custom) {
                 SDL_free((char *)curdata->system_cursor);
             }
@@ -236,7 +205,7 @@ static int Emscripten_SetRelativeMouseMode(SDL_bool enabled)
     /* TODO: pointer lock isn't actually enabled yet */
     if (enabled) {
         window = SDL_GetMouseFocus();
-        if (window == NULL) {
+        if (!window) {
             return -1;
         }
 

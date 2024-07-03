@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_EMSCRIPTEN
+#ifdef SDL_VIDEO_DRIVER_EMSCRIPTEN
 
 #include <emscripten/html5.h>
 #include <emscripten/dom_pk_codes.h>
@@ -964,7 +964,7 @@ void Emscripten_RegisterEventHandlers(SDL_WindowData *data)
 
     /* Keyboard events are awkward */
     keyElement = SDL_GetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT);
-    if (keyElement == NULL) {
+    if (!keyElement) {
         keyElement = EMSCRIPTEN_EVENT_TARGET_WINDOW;
     }
 
@@ -1007,7 +1007,7 @@ void Emscripten_UnregisterEventHandlers(SDL_WindowData *data)
     emscripten_set_pointerlockchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, NULL, 0, NULL);
 
     target = SDL_GetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT);
-    if (target == NULL) {
+    if (!target) {
         target = EMSCRIPTEN_EVENT_TARGET_WINDOW;
     }
 

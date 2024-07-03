@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_EGL
 #include "../SDL_egl_c.h"
 #endif
 
@@ -132,7 +132,7 @@ typedef enum
     @property (nonatomic) NSInteger flash_request;
     @property (nonatomic) Cocoa_WindowListener *listener;
     @property (nonatomic) SDL_VideoData *videodata;
-#if SDL_VIDEO_OPENGL_EGL
+#ifdef SDL_VIDEO_OPENGL_EGL
     @property (nonatomic) EGLSurface egl_surface;
 #endif
 @end

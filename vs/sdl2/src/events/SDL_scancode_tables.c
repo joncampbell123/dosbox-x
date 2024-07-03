@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../SDL_internal.h"
 
-#if SDL_INPUT_LINUXEV || SDL_VIDEO_DRIVER_DIRECTFB || SDL_VIDEO_DRIVER_WAYLAND || SDL_VIDEO_DRIVER_X11
+#if defined(SDL_INPUT_LINUXEV) || defined(SDL_VIDEO_DRIVER_DIRECTFB) || defined(SDL_VIDEO_DRIVER_WAYLAND) || defined(SDL_VIDEO_DRIVER_X11)
 
 #include "SDL_scancode_tables_c.h"
 

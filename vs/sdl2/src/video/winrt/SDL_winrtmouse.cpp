@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WINRT
+#ifdef SDL_VIDEO_DRIVER_WINRT
 
 /*
  * Windows includes:
@@ -215,7 +215,7 @@ void WINRT_InitMouse(_THIS)
         - programmatically moveable cursors
     */
 
-#if WINAPI_FAMILY != WINAPI_FAMILY_PHONE_APP
+#if !SDL_WINAPI_FAMILY_PHONE
     // mouse->CreateCursor = WINRT_CreateCursor;
     mouse->CreateSystemCursor = WINRT_CreateSystemCursor;
     mouse->ShowCursor = WINRT_ShowCursor;

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -33,14 +33,9 @@
 
 /*****************************************************************************************************/
 
-#include <stdint.h>
-
 #define bool SDL_bool
 #define true SDL_TRUE
 #define false SDL_FALSE
-
-typedef uint32_t uint32;
-typedef uint64_t uint64;
 
 #include "steam/controller_constants.h"
 #include "steam/controller_structs.h"
@@ -48,14 +43,14 @@ typedef uint64_t uint64;
 typedef struct SteamControllerStateInternal_t
 {
     // Controller Type for this Controller State
-    uint32 eControllerType;
+    Uint32 eControllerType;
 
     // If packet num matches that on your prior call, then the controller state hasn't been changed since
     // your last call and there is no need to process it
-    uint32 unPacketNum;
+    Uint32 unPacketNum;
 
     // bit flags for each of the buttons
-    uint64 ulButtons;
+    Uint64 ulButtons;
 
     // Left pad coordinates
     short sLeftPadX;
@@ -977,7 +972,7 @@ static SDL_bool HIDAPI_DriverSteam_InitDevice(SDL_HIDAPI_Device *device)
     SDL_DriverSteam_Context *ctx;
 
     ctx = (SDL_DriverSteam_Context *)SDL_calloc(1, sizeof(*ctx));
-    if (ctx == NULL) {
+    if (!ctx) {
         SDL_OutOfMemory();
         return SDL_FALSE;
     }
@@ -1074,9 +1069,9 @@ static int HIDAPI_DriverSteam_SetSensorsEnabled(SDL_HIDAPI_Device *device, SDL_J
     SDL_memset(buf, 0, 65);
     buf[1] = ID_SET_SETTINGS_VALUES;
     if (enabled) {
-        ADD_SETTING(SETTING_GYRO_MODE, 0x18 /* SETTING_GYRO_SEND_RAW_ACCEL | SETTING_GYRO_MODE_SEND_RAW_GYRO */);
+        ADD_SETTING(SETTING_IMU_MODE, SETTING_GYRO_MODE_SEND_RAW_ACCEL | SETTING_GYRO_MODE_SEND_RAW_GYRO);
     } else {
-        ADD_SETTING(SETTING_GYRO_MODE, 0x00 /* SETTING_GYRO_MODE_OFF */);
+        ADD_SETTING(SETTING_IMU_MODE, SETTING_GYRO_MODE_OFF);
     }
     buf[2] = nSettings * 3;
     if (SetFeatureReport(device->dev, buf, 3 + nSettings * 3) < 0) {
@@ -1109,7 +1104,7 @@ static SDL_bool HIDAPI_DriverSteam_UpdateDevice(SDL_HIDAPI_Device *device)
             break;
         }
 
-        if (joystick == NULL) {
+        if (!joystick) {
             continue;
         }
 

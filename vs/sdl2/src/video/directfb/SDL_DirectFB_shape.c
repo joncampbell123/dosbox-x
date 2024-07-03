@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_DIRECTFB
+#ifdef SDL_VIDEO_DRIVER_DIRECTFB
 
 #include "SDL_DirectFB_video.h"
 #include "SDL_DirectFB_shape.h"
@@ -76,7 +76,7 @@ int DirectFB_ResizeWindowShape(SDL_Window* window)
 int DirectFB_SetWindowShape(SDL_WindowShaper *shaper,SDL_Surface *shape,SDL_WindowShapeMode *shape_mode)
 {
 
-    if(shaper == NULL || shape == NULL || shaper->driverdata == NULL)
+    if(!shaper || !shape || !shaper->driverdata)
         return -1;
     if(shape->format->Amask == 0 && SDL_SHAPEMODEALPHA(shape_mode->mode))
         return -2;

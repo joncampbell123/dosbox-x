@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@
 #include "SDL_mouse.h"
 #include "SDL_waylandvideo.h"
 
-#if SDL_VIDEO_DRIVER_WAYLAND
+#ifdef SDL_VIDEO_DRIVER_WAYLAND
 
 extern void Wayland_InitMouse(void);
 extern void Wayland_FiniMouse(SDL_VideoData *data);

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -40,11 +40,11 @@ static GL_Context ctx;
 
 static int LoadContext(GL_Context *data)
 {
-#if SDL_VIDEO_DRIVER_UIKIT
+#ifdef SDL_VIDEO_DRIVER_UIKIT
 #define __SDL_NOGETPROCADDR__
-#elif SDL_VIDEO_DRIVER_ANDROID
+#elif defined(SDL_VIDEO_DRIVER_ANDROID)
 #define __SDL_NOGETPROCADDR__
-#elif SDL_VIDEO_DRIVER_PANDORA
+#elif defined(SDL_VIDEO_DRIVER_PANDORA)
 #define __SDL_NOGETPROCADDR__
 #endif
 
@@ -205,6 +205,11 @@ Render()
     ctx.glRotatef(5.0, 1.0, 1.0, 1.0);
 }
 
+static void LogSwapInterval(void)
+{
+    SDL_Log("Swap Interval : %d\n", SDL_GL_GetSwapInterval());
+}
+
 int main(int argc, char *argv[])
 {
     int fsaa, accel;
@@ -226,7 +231,7 @@ int main(int argc, char *argv[])
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
-    if (state == NULL) {
+    if (!state) {
         return 1;
     }
     for (i = 1; i < argc;) {
@@ -300,7 +305,9 @@ int main(int argc, char *argv[])
 
     SDL_GetCurrentDisplayMode(0, &mode);
     SDL_Log("Screen BPP    : %" SDL_PRIu32 "\n", SDL_BITSPERPIXEL(mode.format));
-    SDL_Log("Swap Interval : %d\n", SDL_GL_GetSwapInterval());
+
+    LogSwapInterval();
+
     SDL_GetWindowSize(state->windows[0], &dw, &dh);
     SDL_Log("Window Size   : %d,%d\n", dw, dh);
     SDL_GL_GetDrawableSize(state->windows[0], &dw, &dh);
@@ -408,6 +415,7 @@ int main(int argc, char *argv[])
             SDL_GL_MakeCurrent(state->windows[i], context);
             if (update_swap_interval) {
                 SDL_GL_SetSwapInterval(swap_interval);
+                LogSwapInterval();
             }
             SDL_GL_GetDrawableSize(state->windows[i], &w, &h);
             ctx.glViewport(0, 0, w, h);

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -30,7 +30,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_QSA
+#ifdef SDL_AUDIO_DRIVER_QSA
 
 #include <errno.h>
 #include <unistd.h>
@@ -232,7 +232,8 @@ static Uint8 *QSA_GetDeviceBuf(_THIS)
 
 static void QSA_CloseDevice(_THIS)
 {
-    if (this->hidden->audio_handle != NULL) {
+    if (this->hidden->audio_handle) {
+#if _NTO_VERSION < 710
         if (!this->iscapture) {
             /* Finish playing available samples */
             snd_pcm_plugin_flush(this->hidden->audio_handle,
@@ -242,6 +243,7 @@ static void QSA_CloseDevice(_THIS)
             snd_pcm_plugin_flush(this->hidden->audio_handle,
                                  SND_PCM_CHANNEL_CAPTURE);
         }
+#endif
         snd_pcm_close(this->hidden->audio_handle);
     }
 
@@ -265,14 +267,14 @@ static int QSA_OpenDevice(_THIS, const char *devname)
                                                    (sizeof
                                                     (struct
                                                      SDL_PrivateAudioData)));
-    if (this->hidden == NULL) {
+    if (!this->hidden) {
         return SDL_OutOfMemory();
     }
 
     /* Initialize channel transfer parameters to default */
     QSA_InitAudioParams(&cparams);
 
-    if (device != NULL) {
+    if (device) {
         /* Open requested audio device */
         this->hidden->deviceno = device->deviceno;
         this->hidden->cardno = device->cardno;
@@ -385,7 +387,7 @@ static int QSA_OpenDevice(_THIS, const char *devname)
      */
     this->hidden->pcm_buf =
         (Uint8 *) SDL_malloc(this->hidden->pcm_len);
-    if (this->hidden->pcm_buf == NULL) {
+    if (!this->hidden->pcm_buf) {
         return SDL_OutOfMemory();
     }
     SDL_memset(this->hidden->pcm_buf, this->spec.silence,

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_X11
+#ifdef SDL_VIDEO_DRIVER_X11
 
 #include "SDL.h"
 #include "SDL_x11video.h"
@@ -84,7 +84,7 @@ typedef struct SDL_MessageBoxDataX11
     Display *display;
     int screen;
     Window window;
-#if SDL_VIDEO_DRIVER_X11_XDBE
+#ifdef SDL_VIDEO_DRIVER_X11_XDBE
     XdbeBackBuffer buf;
     SDL_bool xdbe; /* Whether Xdbe is present or not */
 #endif
@@ -191,15 +191,15 @@ static int X11_MessageBoxInit(SDL_MessageBoxDataX11 *data, const SDL_MessageBoxD
         int num_missing = 0;
         data->font_set = X11_XCreateFontSet(data->display, g_MessageBoxFont,
                                             &missing, &num_missing, NULL);
-        if (missing != NULL) {
+        if (missing) {
             X11_XFreeStringList(missing);
         }
-        if (data->font_set == NULL) {
+        if (!data->font_set) {
             return SDL_SetError("Couldn't load font %s", g_MessageBoxFont);
         }
     } else {
         data->font_struct = X11_XLoadQueryFont(data->display, g_MessageBoxFontLatin1);
-        if (data->font_struct == NULL) {
+        if (!data->font_struct) {
             return SDL_SetError("Couldn't load font %s", g_MessageBoxFontLatin1);
         }
     }
@@ -240,12 +240,12 @@ static int X11_MessageBoxInitPositions(SDL_MessageBoxDataX11 *data)
     const SDL_MessageBoxData *messageboxdata = data->messageboxdata;
 
     /* Go over text and break linefeeds into separate lines. */
-    if (messageboxdata != NULL && messageboxdata->message[0]) {
+    if (messageboxdata && messageboxdata->message[0]) {
         const char *text = messageboxdata->message;
         const int linecount = CountLinesOfText(text);
         TextLineData *plinedata = (TextLineData *)SDL_malloc(sizeof(TextLineData) * linecount);
 
-        if (plinedata == NULL) {
+        if (!plinedata) {
             return SDL_OutOfMemory();
         }
 
@@ -273,7 +273,7 @@ static int X11_MessageBoxInitPositions(SDL_MessageBoxDataX11 *data)
             text += length + 1;
 
             /* Break if there are no more linefeeds. */
-            if (lf == NULL) {
+            if (!lf) {
                 break;
             }
         }
@@ -362,17 +362,17 @@ static int X11_MessageBoxInitPositions(SDL_MessageBoxDataX11 *data)
 /* Free SDL_MessageBoxData data. */
 static void X11_MessageBoxShutdown(SDL_MessageBoxDataX11 *data)
 {
-    if (data->font_set != NULL) {
+    if (data->font_set) {
         X11_XFreeFontSet(data->display, data->font_set);
         data->font_set = NULL;
     }
 
-    if (data->font_struct != NULL) {
+    if (data->font_struct) {
         X11_XFreeFont(data->display, data->font_struct);
         data->font_struct = NULL;
     }
 
-#if SDL_VIDEO_DRIVER_X11_XDBE
+#ifdef SDL_VIDEO_DRIVER_X11_XDBE
     if (SDL_X11_HAVE_XDBE && data->xdbe) {
         X11_XdbeDeallocateBackBufferName(data->display, data->buf);
     }
@@ -499,7 +499,7 @@ static int X11_MessageBoxCreateWindow(SDL_MessageBoxDataX11 *data)
 
     X11_XMapRaised(display, data->window);
 
-#if SDL_VIDEO_DRIVER_X11_XDBE
+#ifdef SDL_VIDEO_DRIVER_X11_XDBE
     /* Initialise a back buffer for double buffering */
     if (SDL_X11_HAVE_XDBE) {
         int xdbe_major, xdbe_minor;
@@ -522,7 +522,7 @@ static void X11_MessageBoxDraw(SDL_MessageBoxDataX11 *data, GC ctx)
     Drawable window = data->window;
     Display *display = data->display;
 
-#if SDL_VIDEO_DRIVER_X11_XDBE
+#ifdef SDL_VIDEO_DRIVER_X11_XDBE
     if (SDL_X11_HAVE_XDBE && data->xdbe) {
         window = data->buf;
         X11_XdbeBeginIdiom(data->display);
@@ -577,7 +577,7 @@ static void X11_MessageBoxDraw(SDL_MessageBoxDataX11 *data, GC ctx)
         }
     }
 
-#if SDL_VIDEO_DRIVER_X11_XDBE
+#ifdef SDL_VIDEO_DRIVER_X11_XDBE
     if (SDL_X11_HAVE_XDBE && data->xdbe) {
         XdbeSwapInfo swap_info;
         swap_info.swap_window = data->window;
@@ -762,9 +762,9 @@ static int X11_ShowMessageBoxImpl(const SDL_MessageBoxData *messageboxdata, int 
 
 #if SDL_SET_LOCALE
     origlocale = setlocale(LC_ALL, NULL);
-    if (origlocale != NULL) {
+    if (origlocale) {
         origlocale = SDL_strdup(origlocale);
-        if (origlocale == NULL) {
+        if (!origlocale) {
             return SDL_OutOfMemory();
         }
         (void)setlocale(LC_ALL, "");

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WINDOWS && !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
+#if defined(SDL_VIDEO_DRIVER_WINDOWS) && !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
 
 #include "SDL_windowsvideo.h"
 #include "SDL_hints.h"
@@ -40,6 +40,18 @@ static void IME_Disable(SDL_VideoData *videodata, HWND hwnd);
 static void IME_Quit(SDL_VideoData *videodata);
 static SDL_bool IME_IsTextInputShown(SDL_VideoData *videodata);
 #endif /* !SDL_DISABLE_WINDOWS_IME */
+
+#if 1 // Added for DOSBox-X
+SDL_bool SDL_IM_Composition(int more) {
+    (void)more;
+#ifndef SDL_DISABLE_WINDOWS_IME
+#define IME_END_CR_WAIT 50
+    return ime_incompos || end_ticks && (GetTickCount() - end_ticks < IME_END_CR_WAIT) ? SDL_TRUE : SDL_FALSE;
+#else
+    return SDL_FALSE;
+#endif
+}
+#endif
 
 #ifndef MAPVK_VK_TO_VSC
 #define MAPVK_VK_TO_VSC 0
@@ -168,18 +180,6 @@ void WIN_QuitKeyboard(_THIS)
 #endif /* !SDL_DISABLE_WINDOWS_IME */
 }
 
-#if 1 // Added for DOSBox-X
-SDL_bool SDL_IM_Composition(int more) {
-    (void)more;
-#ifndef SDL_DISABLE_WINDOWS_IME
-#define IME_END_CR_WAIT 50
-    return ime_incompos || end_ticks && (GetTickCount() - end_ticks < IME_END_CR_WAIT) ? SDL_TRUE : SDL_FALSE;
-#else
-    return SDL_FALSE;
-#endif
-}
-#endif
-
 void WIN_ResetDeadKeys()
 {
     /*
@@ -253,7 +253,7 @@ void WIN_SetTextInputRect(_THIS, const SDL_Rect *rect)
     SDL_VideoData *videodata = (SDL_VideoData *)_this->driverdata;
     HIMC himc = 0;
 
-    if (rect == NULL) {
+    if (!rect) {
         SDL_InvalidParamError("rect");
         return;
     }
@@ -266,22 +266,6 @@ void WIN_SetTextInputRect(_THIS, const SDL_Rect *rect)
         /* //reverted for DOSBox-X
         COMPOSITIONFORM cof;
         CANDIDATEFORM caf;
-
-        cof.dwStyle = CFS_RECT;
-        cof.ptCurrentPos.x = videodata->ime_rect.x;
-        cof.ptCurrentPos.y = videodata->ime_rect.y;
-        cof.rcArea.left = videodata->ime_rect.x;
-        cof.rcArea.right = (LONG)videodata->ime_rect.x + videodata->ime_rect.w;
-        cof.rcArea.top = videodata->ime_rect.y;
-        cof.rcArea.bottom = (LONG)videodata->ime_rect.y + videodata->ime_rect.h;
-        ImmSetCompositionWindow(himc, &cof);
-
-        caf.dwIndex = 0;
-        caf.dwStyle = CFS_EXCLUDE;
-        caf.ptCurrentPos.x = videodata->ime_rect.x;
-        caf.ptCurrentPos.y = videodata->ime_rect.y;
-        caf.rcArea.left = videodata->ime_rect.x;
-        caf.rcArea.right = (LONG)videodata->ime_rect.x + videodata->ime_rect.w;
         caf.rcArea.top = videodata->ime_rect.y;
         caf.rcArea.bottom = (LONG)videodata->ime_rect.y + videodata->ime_rect.h;
         ImmSetCandidateWindow(himc, &caf);
@@ -291,6 +275,7 @@ void WIN_SetTextInputRect(_THIS, const SDL_Rect *rect)
         cf.ptCurrentPos.y = videodata->ime_rect.y;
         cf.dwStyle = CFS_FORCE_POSITION;
         ImmSetCompositionWindow(himc, &cf);
+
         ImmReleaseContext(videodata->ime_hwnd_current, himc);
     }
 #endif /* !SDL_DISABLE_WINDOWS_IME */
@@ -721,7 +706,7 @@ static void IME_SetupAPI(SDL_VideoData *videodata)
     }
 
     hime = SDL_LoadObject(ime_file);
-    if (hime == NULL) {
+    if (!hime) {
         return;
     }
 
@@ -804,7 +789,7 @@ static void IME_GetCompositionString(SDL_VideoData *videodata, HIMC himc, DWORD 
 
     length = ImmGetCompositionStringW(himc, string, NULL, 0);
     if (length > 0 && videodata->ime_composition_length < length) {
-        if (videodata->ime_composition != NULL) {
+        if (videodata->ime_composition) {
             SDL_free(videodata->ime_composition);
         }
 
@@ -996,11 +981,11 @@ static int IME_ShowCandidateList(SDL_VideoData *videodata)
 
     videodata->ime_candcount = 0;
     candidates = SDL_realloc(videodata->ime_candidates, MAX_CANDSIZE);
-    if (candidates != NULL) {
+    if (candidates) {
         videodata->ime_candidates = (WCHAR *)candidates;
     }
 
-    if (videodata->ime_candidates == NULL) {
+    if (!videodata->ime_candidates) {
         return -1;
     }
 
@@ -1063,8 +1048,8 @@ SDL_bool IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, S
         if (videodata->ime_uiless) {
             *lParam = 0;
         }
-        */
         break;
+        */
     case WM_IME_STARTCOMPOSITION:
         videodata->ime_suppress_endcomposition_event = SDL_FALSE;
         ime_incompos = 1;  /* added for DOSBox-X */
@@ -1235,7 +1220,7 @@ TSFSink_Release(TSFSink *sink)
 
 STDMETHODIMP UIElementSink_QueryInterface(TSFSink *sink, REFIID riid, PVOID *ppv)
 {
-    if (ppv == NULL) {
+    if (!ppv) {
         return E_INVALIDARG;
     }
 
@@ -1272,7 +1257,7 @@ STDMETHODIMP UIElementSink_BeginUIElement(TSFSink *sink, DWORD dwUIElementId, BO
     ITfReadingInformationUIElement *preading = 0;
     ITfCandidateListUIElement *pcandlist = 0;
     SDL_VideoData *videodata = (SDL_VideoData *)sink->data;
-    if (element == NULL) {
+    if (!element) {
         return E_INVALIDARG;
     }
 
@@ -1297,7 +1282,7 @@ STDMETHODIMP UIElementSink_UpdateUIElement(TSFSink *sink, DWORD dwUIElementId)
     ITfReadingInformationUIElement *preading = 0;
     ITfCandidateListUIElement *pcandlist = 0;
     SDL_VideoData *videodata = (SDL_VideoData *)sink->data;
-    if (element == NULL) {
+    if (!element) {
         return E_INVALIDARG;
     }
 
@@ -1323,7 +1308,7 @@ STDMETHODIMP UIElementSink_EndUIElement(TSFSink *sink, DWORD dwUIElementId)
     ITfReadingInformationUIElement *preading = 0;
     ITfCandidateListUIElement *pcandlist = 0;
     SDL_VideoData *videodata = (SDL_VideoData *)sink->data;
-    if (element == NULL) {
+    if (!element) {
         return E_INVALIDARG;
     }
 
@@ -1345,7 +1330,7 @@ STDMETHODIMP UIElementSink_EndUIElement(TSFSink *sink, DWORD dwUIElementId)
 
 STDMETHODIMP IPPASink_QueryInterface(TSFSink *sink, REFIID riid, PVOID *ppv)
 {
-    if (ppv == NULL) {
+    if (!ppv) {
         return E_INVALIDARG;
     }
 
@@ -1365,9 +1350,9 @@ STDMETHODIMP IPPASink_QueryInterface(TSFSink *sink, REFIID riid, PVOID *ppv)
 
 STDMETHODIMP IPPASink_OnActivated(TSFSink *sink, DWORD dwProfileType, LANGID langid, REFCLSID clsid, REFGUID catid, REFGUID guidProfile, HKL hkl, DWORD dwFlags)
 {
-    static const GUID TF_PROFILE_DAYI = { 0x037B2C25, 0x480C, 0x4D7F, { 0xB0, 0x27, 0xD6, 0xCA, 0x6B, 0x69, 0x78, 0x8A } };
+    static const GUID SDL_TF_PROFILE_DAYI = { 0x037B2C25, 0x480C, 0x4D7F, { 0xB0, 0x27, 0xD6, 0xCA, 0x6B, 0x69, 0x78, 0x8A } };
     SDL_VideoData *videodata = (SDL_VideoData *)sink->data;
-    videodata->ime_candlistindexbase = WIN_IsEqualGUID(&TF_PROFILE_DAYI, guidProfile) ? 0 : 1;
+    videodata->ime_candlistindexbase = WIN_IsEqualGUID(&SDL_TF_PROFILE_DAYI, guidProfile) ? 0 : 1;
     if (WIN_IsEqualIID(catid, &GUID_TFCAT_TIP_KEYBOARD) && (dwFlags & TF_IPSINK_FLAG_ACTIVE)) {
         IME_InputLangChanged((SDL_VideoData *)sink->data);
     }

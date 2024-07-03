@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_RENDER_D3D11 && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_D3D11
 
 #include "SDL_stdinc.h"
 
@@ -58,7 +58,7 @@
 
      hexdump -v -e '6/4 "0x%08.8x, " "\n"' <FILE>
   */
-#if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#if SDL_WINAPI_FAMILY_PHONE
 #define D3D11_USE_SHADER_MODEL_4_0_level_9_3
 #else
 #define D3D11_USE_SHADER_MODEL_4_0_level_9_1
@@ -1949,6 +1949,6 @@ int D3D11_CreatePixelShader(ID3D11Device1 *d3dDevice, D3D11_Shader shader, ID3D1
     return 0;
 }
 
-#endif /* SDL_VIDEO_RENDER_D3D11 && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_D3D11 */
 
 /* vi: set ts=4 sw=4 expandtab: */

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_OFFSCREEN
+#ifdef SDL_VIDEO_DRIVER_OFFSCREEN
 
 #include "../SDL_sysvideo.h"
 #include "SDL_offscreenframebuffer_c.h"
@@ -39,7 +39,7 @@ int SDL_OFFSCREEN_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *for
     /* Create a new one */
     SDL_GetWindowSizeInPixels(window, &w, &h);
     surface = SDL_CreateRGBSurfaceWithFormat(0, w, h, 0, surface_format);
-    if (surface == NULL) {
+    if (!surface) {
         return -1;
     }
 
@@ -58,7 +58,7 @@ int SDL_OFFSCREEN_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_R
     SDL_Surface *surface;
 
     surface = (SDL_Surface *)SDL_GetWindowData(window, OFFSCREEN_SURFACE);
-    if (surface == NULL) {
+    if (!surface) {
         return SDL_SetError("Couldn't find offscreen surface for window");
     }
 

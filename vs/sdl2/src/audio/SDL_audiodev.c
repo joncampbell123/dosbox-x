@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 
 /* Get the name of the audio device we use for output */
 
-#if SDL_AUDIO_DRIVER_NETBSD || SDL_AUDIO_DRIVER_OSS || SDL_AUDIO_DRIVER_SUNAUDIO
+#if defined(SDL_AUDIO_DRIVER_NETBSD) || defined(SDL_AUDIO_DRIVER_OSS) || defined(SDL_AUDIO_DRIVER_SUNAUDIO)
 
 #include <fcntl.h>
 #include <sys/types.h>
@@ -81,16 +81,16 @@ static void SDL_EnumUnixAudioDevices_Internal(const int iscapture, const int cla
     const char *audiodev;
     char audiopath[1024];
 
-    if (test == NULL) {
+    if (!test) {
         test = test_stub;
     }
 
     /* Figure out what our audio device is */
     audiodev = SDL_getenv("SDL_PATH_DSP");
-    if (audiodev == NULL) {
+    if (!audiodev) {
         audiodev = SDL_getenv("AUDIODEV");
     }
-    if (audiodev == NULL) {
+    if (!audiodev) {
         if (classic) {
             audiodev = _PATH_DEV_AUDIO;
         } else {

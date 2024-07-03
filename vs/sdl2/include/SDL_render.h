@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -42,7 +42,7 @@
  *  of the many good 3D engines.
  *
  *  These functions must be called from the main thread.
- *  See this bug for details: http://bugzilla.libsdl.org/show_bug.cgi?id=1995
+ *  See this bug for details: https://github.com/libsdl-org/SDL/issues/986
  */
 
 #ifndef SDL_render_h_
@@ -1890,7 +1890,7 @@ extern DECLSPEC void *SDLCALL SDL_RenderGetMetalLayer(SDL_Renderer * renderer);
  * Note that as of SDL 2.0.18, this will return NULL if Metal refuses to give
  * SDL a drawable to render to, which might happen if the window is
  * hidden/minimized/offscreen. This doesn't apply to command encoders for
- * render targets, just the window's backbacker. Check your return values!
+ * render targets, just the window's backbuffer. Check your return values!
  *
  * \param renderer The renderer to query
  * \returns an `id<MTLRenderCommandEncoder>` on success, or NULL if the

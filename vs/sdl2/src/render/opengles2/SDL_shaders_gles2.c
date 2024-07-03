@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_RENDER_OGL_ES2 && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_OGL_ES2
 
 #include "SDL_hints.h"
 #include "SDL_video.h"
@@ -380,7 +380,7 @@ const char *GLES2_GetShaderInclude(GLES2_ShaderIncludeType type)
     }
 }
 
-GLES2_ShaderIncludeType GLES2_GetTexCoordPrecisionEnumFromHint()
+GLES2_ShaderIncludeType GLES2_GetTexCoordPrecisionEnumFromHint(void)
 {
     const char *texcoord_hint = SDL_GetHint("SDL_RENDER_OPENGLES2_TEXCOORD_PRECISION");
     GLES2_ShaderIncludeType value = GLES2_SHADER_FRAGMENT_INCLUDE_BEST_TEXCOORD_PRECISION;
@@ -444,6 +444,6 @@ const char *GLES2_GetShader(GLES2_ShaderType type)
     }
 }
 
-#endif /* SDL_VIDEO_RENDER_OGL_ES2 && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_OGL_ES2 */
 
 /* vi: set ts=4 sw=4 expandtab: */

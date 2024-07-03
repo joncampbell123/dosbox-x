@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -123,6 +123,86 @@
    - blitting and conversion functions */
 #ifndef SDL_HAVE_YUV
 #define SDL_HAVE_YUV !SDL_LEAN_AND_MEAN
+#endif
+
+#ifndef SDL_RENDER_DISABLED
+/* define the not defined ones as 0 */
+#ifndef SDL_VIDEO_RENDER_D3D
+#define SDL_VIDEO_RENDER_D3D 0
+#endif
+#ifndef SDL_VIDEO_RENDER_D3D11
+#define SDL_VIDEO_RENDER_D3D11 0
+#endif
+#ifndef SDL_VIDEO_RENDER_D3D12
+#define SDL_VIDEO_RENDER_D3D12 0
+#endif
+#ifndef SDL_VIDEO_RENDER_METAL
+#define SDL_VIDEO_RENDER_METAL 0
+#endif
+#ifndef SDL_VIDEO_RENDER_OGL
+#define SDL_VIDEO_RENDER_OGL  0
+#endif
+#ifndef SDL_VIDEO_RENDER_OGL_ES
+#define SDL_VIDEO_RENDER_OGL_ES 0
+#endif
+#ifndef SDL_VIDEO_RENDER_OGL_ES2
+#define SDL_VIDEO_RENDER_OGL_ES2 0
+#endif
+#ifndef SDL_VIDEO_RENDER_DIRECTFB
+#define SDL_VIDEO_RENDER_DIRECTFB 0
+#endif
+#ifndef SDL_VIDEO_RENDER_PS2
+#define SDL_VIDEO_RENDER_PS2 0
+#endif
+#ifndef SDL_VIDEO_RENDER_PSP
+#define SDL_VIDEO_RENDER_PSP 0
+#endif
+#ifndef SDL_VIDEO_RENDER_VITA_GXM
+#define SDL_VIDEO_RENDER_VITA_GXM 0
+#endif
+#else /* define all as 0 */
+#undef SDL_VIDEO_RENDER_SW
+#define SDL_VIDEO_RENDER_SW 0
+#undef SDL_VIDEO_RENDER_D3D
+#define SDL_VIDEO_RENDER_D3D 0
+#undef SDL_VIDEO_RENDER_D3D11
+#define SDL_VIDEO_RENDER_D3D11 0
+#undef SDL_VIDEO_RENDER_D3D12
+#define SDL_VIDEO_RENDER_D3D12 0
+#undef SDL_VIDEO_RENDER_METAL
+#define SDL_VIDEO_RENDER_METAL 0
+#undef SDL_VIDEO_RENDER_OGL
+#define SDL_VIDEO_RENDER_OGL  0
+#undef SDL_VIDEO_RENDER_OGL_ES
+#define SDL_VIDEO_RENDER_OGL_ES 0
+#undef SDL_VIDEO_RENDER_OGL_ES2
+#define SDL_VIDEO_RENDER_OGL_ES2 0
+#undef SDL_VIDEO_RENDER_DIRECTFB
+#define SDL_VIDEO_RENDER_DIRECTFB 0
+#undef SDL_VIDEO_RENDER_PS2
+#define SDL_VIDEO_RENDER_PS2 0
+#undef SDL_VIDEO_RENDER_PSP
+#define SDL_VIDEO_RENDER_PSP 0
+#undef SDL_VIDEO_RENDER_VITA_GXM
+#define SDL_VIDEO_RENDER_VITA_GXM 0
+#endif /* SDL_RENDER_DISABLED */
+
+#define SDL_HAS_RENDER_DRIVER \
+       (SDL_VIDEO_RENDER_SW       | \
+        SDL_VIDEO_RENDER_D3D      | \
+        SDL_VIDEO_RENDER_D3D11    | \
+        SDL_VIDEO_RENDER_D3D12    | \
+        SDL_VIDEO_RENDER_METAL    | \
+        SDL_VIDEO_RENDER_OGL      | \
+        SDL_VIDEO_RENDER_OGL_ES   | \
+        SDL_VIDEO_RENDER_OGL_ES2  | \
+        SDL_VIDEO_RENDER_DIRECTFB | \
+        SDL_VIDEO_RENDER_PS2      | \
+        SDL_VIDEO_RENDER_PSP      | \
+        SDL_VIDEO_RENDER_VITA_GXM)
+
+#if !defined(SDL_RENDER_DISABLED) && !SDL_HAS_RENDER_DRIVER
+#error SDL_RENDER enabled without any backend drivers.
 #endif
 
 #include "SDL_assert.h"

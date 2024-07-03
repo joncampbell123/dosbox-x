@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -45,7 +45,7 @@ char *SDL_GetPrefPath(const char *org, const char *app)
     if (path) {
         size_t pathlen = SDL_strlen(path) + 2;
         char *fullpath = (char *)SDL_malloc(pathlen);
-        if (fullpath == NULL) {
+        if (!fullpath) {
             SDL_OutOfMemory();
             return NULL;
         }

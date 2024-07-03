@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -100,6 +100,11 @@ extern "C"
     static const char *HAIKU_JoystickGetDevicePath(int device_index)
     {
         return SDL_joyport[device_index];
+    }
+
+    static int HAIKU_JoystickGetDeviceSteamVirtualGamepadSlot(int device_index)
+    {
+        return -1;
     }
 
     static int HAIKU_JoystickGetDevicePlayerIndex(int device_index)
@@ -299,6 +304,7 @@ extern "C"
         HAIKU_JoystickDetect,
         HAIKU_JoystickGetDeviceName,
         HAIKU_JoystickGetDevicePath,
+        HAIKU_JoystickGetDeviceSteamVirtualGamepadSlot,
         HAIKU_JoystickGetDevicePlayerIndex,
         HAIKU_JoystickSetDevicePlayerIndex,
         HAIKU_JoystickGetDeviceGUID,

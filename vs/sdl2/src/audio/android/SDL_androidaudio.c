@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_AUDIO_DRIVER_ANDROID
+#ifdef SDL_AUDIO_DRIVER_ANDROID
 
 /* Output audio to Android */
 
@@ -51,7 +51,7 @@ static int ANDROIDAUDIO_OpenDevice(_THIS, const char *devname)
     }
 
     this->hidden = (struct SDL_PrivateAudioData *)SDL_calloc(1, sizeof(*this->hidden));
-    if (this->hidden == NULL) {
+    if (!this->hidden) {
         return SDL_OutOfMemory();
     }
 
@@ -71,7 +71,7 @@ static int ANDROIDAUDIO_OpenDevice(_THIS, const char *devname)
 
     {
         int audio_device_id = 0;
-        if (devname != NULL) {
+        if (devname) {
             audio_device_id = SDL_atoi(devname);
         }
         if (Android_JNI_OpenAudioDevice(iscapture, audio_device_id, &this->spec) < 0) {
@@ -148,29 +148,12 @@ AudioBootStrap ANDROIDAUDIO_bootstrap = {
 void ANDROIDAUDIO_PauseDevices(void)
 {
     /* TODO: Handle multiple devices? */
-    struct SDL_PrivateAudioData *private;
-    if (audioDevice != NULL && audioDevice->hidden != NULL) {
-        private = (struct SDL_PrivateAudioData *)audioDevice->hidden;
-        if (SDL_AtomicGet(&audioDevice->paused)) {
-            /* The device is already paused, leave it alone */
-            private->resume = SDL_FALSE;
-        } else {
-            SDL_LockMutex(audioDevice->mixer_lock);
-            SDL_AtomicSet(&audioDevice->paused, 1);
-            private->resume = SDL_TRUE;
-        }
+    if (audioDevice && audioDevice->hidden) {
+        SDL_LockMutex(audioDevice->mixer_lock);
     }
 
-    if (captureDevice != NULL && captureDevice->hidden != NULL) {
-        private = (struct SDL_PrivateAudioData *)captureDevice->hidden;
-        if (SDL_AtomicGet(&captureDevice->paused)) {
-            /* The device is already paused, leave it alone */
-            private->resume = SDL_FALSE;
-        } else {
-            SDL_LockMutex(captureDevice->mixer_lock);
-            SDL_AtomicSet(&captureDevice->paused, 1);
-            private->resume = SDL_TRUE;
-        }
+    if (captureDevice && captureDevice->hidden) {
+        SDL_LockMutex(captureDevice->mixer_lock);
     }
 }
 
@@ -178,23 +161,12 @@ void ANDROIDAUDIO_PauseDevices(void)
 void ANDROIDAUDIO_ResumeDevices(void)
 {
     /* TODO: Handle multiple devices? */
-    struct SDL_PrivateAudioData *private;
-    if (audioDevice != NULL && audioDevice->hidden != NULL) {
-        private = (struct SDL_PrivateAudioData *)audioDevice->hidden;
-        if (private->resume) {
-            SDL_AtomicSet(&audioDevice->paused, 0);
-            private->resume = SDL_FALSE;
-            SDL_UnlockMutex(audioDevice->mixer_lock);
-        }
+    if (audioDevice && audioDevice->hidden) {
+        SDL_UnlockMutex(audioDevice->mixer_lock);
     }
 
-    if (captureDevice != NULL && captureDevice->hidden != NULL) {
-        private = (struct SDL_PrivateAudioData *)captureDevice->hidden;
-        if (private->resume) {
-            SDL_AtomicSet(&captureDevice->paused, 0);
-            private->resume = SDL_FALSE;
-            SDL_UnlockMutex(captureDevice->mixer_lock);
-        }
+    if (captureDevice && captureDevice->hidden) {
+        SDL_UnlockMutex(captureDevice->mixer_lock);
     }
 }
 

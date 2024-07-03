@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_DUMMY
+#ifdef SDL_VIDEO_DRIVER_DUMMY
 
 #include "../SDL_sysvideo.h"
 #include "SDL_nullframebuffer_c.h"
@@ -39,7 +39,7 @@ int SDL_DUMMY_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format,
     /* Create a new one */
     SDL_GetWindowSizeInPixels(window, &w, &h);
     surface = SDL_CreateRGBSurfaceWithFormat(0, w, h, 0, surface_format);
-    if (surface == NULL) {
+    if (!surface) {
         return -1;
     }
 
@@ -57,7 +57,7 @@ int SDL_DUMMY_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect 
     SDL_Surface *surface;
 
     surface = (SDL_Surface *)SDL_GetWindowData(window, DUMMY_SURFACE);
-    if (surface == NULL) {
+    if (!surface) {
         return SDL_SetError("Couldn't find dummy surface for window");
     }
 

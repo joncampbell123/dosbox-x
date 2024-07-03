@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@ extern "C" {
  */
 struct haptic_hwdata
 {
-#if SDL_HAPTIC_DINPUT
+#ifdef SDL_HAPTIC_DINPUT
     LPDIRECTINPUTDEVICE8 device;
 #endif
     DWORD axes[3];        /* Axes to use. */
@@ -54,14 +54,14 @@ struct haptic_hwdata
 /*
  * Haptic system effect data.
  */
-#if SDL_HAPTIC_DINPUT || SDL_HAPTIC_XINPUT
+#if defined(SDL_HAPTIC_DINPUT) || defined(SDL_HAPTIC_XINPUT)
 struct haptic_hweffect
 {
-#if SDL_HAPTIC_DINPUT
+#ifdef SDL_HAPTIC_DINPUT
     DIEFFECT effect;
     LPDIRECTINPUTEFFECT ref;
 #endif
-#if SDL_HAPTIC_XINPUT
+#ifdef SDL_HAPTIC_XINPUT
     XINPUT_VIBRATION vibration;
 #endif
 };
@@ -74,7 +74,7 @@ typedef struct SDL_hapticlist_item
 {
     char *name;
     SDL_Haptic *haptic;
-#if SDL_HAPTIC_DINPUT
+#ifdef SDL_HAPTIC_DINPUT
     DIDEVICEINSTANCE instance;
     DIDEVCAPS capabilities;
 #endif

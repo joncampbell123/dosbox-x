@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -53,7 +53,7 @@
 #define SDL_DYNAMIC_API 0
 #elif defined(SDL_BUILDING_WINRT) && SDL_BUILDING_WINRT /* probably not useful on WinRT, given current .dll loading restrictions */
 #define SDL_DYNAMIC_API 0
-#elif defined(__PS2__) && __PS2__
+#elif defined(__PS2__)
 #define SDL_DYNAMIC_API 0
 #elif defined(__PSP__) && __PSP__
 #define SDL_DYNAMIC_API 0

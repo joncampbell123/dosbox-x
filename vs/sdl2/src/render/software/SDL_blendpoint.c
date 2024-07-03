@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_RENDER_SW && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_SW
 
 #include "SDL_draw.h"
 #include "SDL_blendpoint.h"
@@ -209,7 +209,7 @@ static int SDL_BlendPoint_RGBA(SDL_Surface *dst, int x, int y, SDL_BlendMode ble
 int SDL_BlendPoint(SDL_Surface *dst, int x, int y, SDL_BlendMode blendMode, Uint8 r,
                    Uint8 g, Uint8 b, Uint8 a)
 {
-    if (dst == NULL) {
+    if (!dst) {
         return SDL_InvalidParamError("SDL_BlendPoint(): dst");
     }
 
@@ -277,7 +277,7 @@ int SDL_BlendPoints(SDL_Surface *dst, const SDL_Point *points, int count,
                 SDL_BlendMode blendMode, Uint8 r, Uint8 g, Uint8 b, Uint8 a) = NULL;
     int status = 0;
 
-    if (dst == NULL) {
+    if (!dst) {
         return SDL_InvalidParamError("SDL_BlendPoints(): dst");
     }
 
@@ -323,7 +323,7 @@ int SDL_BlendPoints(SDL_Surface *dst, const SDL_Point *points, int count,
         break;
     }
 
-    if (func == NULL) {
+    if (!func) {
         if (!dst->format->Amask) {
             func = SDL_BlendPoint_RGB;
         } else {
@@ -348,6 +348,6 @@ int SDL_BlendPoints(SDL_Surface *dst, const SDL_Point *points, int count,
     return status;
 }
 
-#endif /* SDL_VIDEO_RENDER_SW && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_SW */
 
 /* vi: set ts=4 sw=4 expandtab: */

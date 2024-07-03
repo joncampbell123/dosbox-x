@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -135,7 +135,7 @@ static SDL_bool HIDAPI_DriverXbox360W_InitDevice(SDL_HIDAPI_Device *device)
     HIDAPI_SetDeviceName(device, "Xbox 360 Wireless Controller");
 
     ctx = (SDL_DriverXbox360W_Context *)SDL_calloc(1, sizeof(*ctx));
-    if (ctx == NULL) {
+    if (!ctx) {
         SDL_OutOfMemory();
         return SDL_FALSE;
     }
@@ -162,7 +162,7 @@ static void HIDAPI_DriverXbox360W_SetDevicePlayerIndex(SDL_HIDAPI_Device *device
 {
     SDL_DriverXbox360W_Context *ctx = (SDL_DriverXbox360W_Context *)device->context;
 
-    if (ctx == NULL) {
+    if (!ctx) {
         return;
     }
 

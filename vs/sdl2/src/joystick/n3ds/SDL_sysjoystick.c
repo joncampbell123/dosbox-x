@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -37,13 +37,23 @@
   This correction is applied to axis values
   so they fit better in SDL's value range.
 */
-#define CORRECT_AXIS_X(X) ((X * SDL_JOYSTICK_AXIS_MAX) / 160)
+static inline int Correct_Axis_X(int X) {
+    if (X > 160) {
+        return SDL_JOYSTICK_AXIS_MAX;
+    }
+    else if (X < -160) {
+        return -SDL_JOYSTICK_AXIS_MAX;
+    }
+    return (X * SDL_JOYSTICK_AXIS_MAX) / 160;
+}
 
 /*
   The Y axis needs to be flipped because SDL's "up"
   is reversed compared to libctru's "up"
 */
-#define CORRECT_AXIS_Y(Y) CORRECT_AXIS_X(-Y)
+static inline int Correct_Axis_Y(int Y) {
+    return Correct_Axis_X(-Y);
+}
 
 SDL_FORCE_INLINE void UpdateN3DSPressedButtons(SDL_Joystick *joystick);
 SDL_FORCE_INLINE void UpdateN3DSReleasedButtons(SDL_Joystick *joystick);
@@ -143,12 +153,12 @@ UpdateN3DSCircle(SDL_Joystick *joystick)
     if (previous_state.dx != current_state.dx) {
         SDL_PrivateJoystickAxis(joystick,
                                 0,
-                                CORRECT_AXIS_X(current_state.dx));
+                                Correct_Axis_X(current_state.dx));
     }
     if (previous_state.dy != current_state.dy) {
         SDL_PrivateJoystickAxis(joystick,
                                 1,
-                                CORRECT_AXIS_Y(current_state.dy));
+                                Correct_Axis_Y(current_state.dy));
     }
     previous_state = current_state;
 }
@@ -162,12 +172,12 @@ UpdateN3DSCStick(SDL_Joystick *joystick)
     if (previous_state.dx != current_state.dx) {
         SDL_PrivateJoystickAxis(joystick,
                                 2,
-                                CORRECT_AXIS_X(current_state.dx));
+                                Correct_Axis_X(current_state.dx));
     }
     if (previous_state.dy != current_state.dy) {
         SDL_PrivateJoystickAxis(joystick,
                                 3,
-                                CORRECT_AXIS_Y(current_state.dy));
+                                Correct_Axis_Y(current_state.dy));
     }
     previous_state = current_state;
 }
@@ -224,6 +234,11 @@ static const char *N3DS_JoystickGetDevicePath(int device_index)
     return NULL;
 }
 
+static int N3DS_JoystickGetDeviceSteamVirtualGamepadSlot(int device_index)
+{
+    return -1;
+}
+
 static int N3DS_JoystickGetDevicePlayerIndex(int device_index)
 {
     return -1;
@@ -264,6 +279,7 @@ SDL_JoystickDriver SDL_N3DS_JoystickDriver = {
     .Detect = N3DS_JoystickDetect,
     .GetDeviceName = N3DS_JoystickGetDeviceName,
     .GetDevicePath = N3DS_JoystickGetDevicePath,
+    .GetDeviceSteamVirtualGamepadSlot = N3DS_JoystickGetDeviceSteamVirtualGamepadSlot,
     .GetDevicePlayerIndex = N3DS_JoystickGetDevicePlayerIndex,
     .SetDevicePlayerIndex = N3DS_JoystickSetDevicePlayerIndex,
     .GetDeviceGUID = N3DS_JoystickGetDeviceGUID,

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_X11
+#ifdef SDL_VIDEO_DRIVER_X11
 
 #include "SDL_hints.h"
 #include "SDL_x11video.h"
@@ -144,7 +144,7 @@ Uint32 X11_GetPixelFormatFromVisualInfo(Display *display, XVisualInfo *vinfo)
     return SDL_PIXELFORMAT_UNKNOWN;
 }
 
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
 static SDL_bool CheckXRandR(Display *display, int *major, int *minor)
 {
     /* Default the extension not available */
@@ -323,7 +323,7 @@ static int X11_AddXRandRDisplay(_THIS, Display *dpy, int screen, RROutput output
     }
 
     output_info = X11_XRRGetOutputInfo(dpy, res, outputid);
-    if (output_info == NULL || !output_info->crtc || output_info->connection == RR_Disconnected) {
+    if (!output_info || !output_info->crtc || output_info->connection == RR_Disconnected) {
         X11_XRRFreeOutputInfo(output_info);
         return 0; /* ignore this one. */
     }
@@ -335,7 +335,7 @@ static int X11_AddXRandRDisplay(_THIS, Display *dpy, int screen, RROutput output
     X11_XRRFreeOutputInfo(output_info);
 
     crtc = X11_XRRGetCrtcInfo(dpy, res, output_crtc);
-    if (crtc == NULL) {
+    if (!crtc) {
         return 0; /* oh well, ignore it. */
     }
 
@@ -351,12 +351,12 @@ static int X11_AddXRandRDisplay(_THIS, Display *dpy, int screen, RROutput output
     X11_XRRFreeCrtcInfo(crtc);
 
     displaydata = (SDL_DisplayData *)SDL_calloc(1, sizeof(*displaydata));
-    if (displaydata == NULL) {
+    if (!displaydata) {
         return SDL_OutOfMemory();
     }
 
     modedata = (SDL_DisplayModeData *)SDL_calloc(1, sizeof(SDL_DisplayModeData));
-    if (modedata == NULL) {
+    if (!modedata) {
         SDL_free(displaydata);
         return SDL_OutOfMemory();
     }
@@ -413,11 +413,11 @@ static void X11_HandleXRandROutputChange(_THIS, const XRROutputChangeNotifyEvent
     SDL_assert((displayidx == -1) == (display == NULL));
 
     if (ev->connection == RR_Disconnected) { /* output is going away */
-        if (display != NULL) {
+        if (display) {
             SDL_DelVideoDisplay(displayidx);
         }
     } else if (ev->connection == RR_Connected) { /* output is coming online */
-        if (display != NULL) {
+        if (display) {
             /* !!! FIXME: update rotation or current mode of existing display? */
         } else {
             Display *dpy = ev->display;
@@ -425,7 +425,7 @@ static void X11_HandleXRandROutputChange(_THIS, const XRROutputChangeNotifyEvent
             XVisualInfo vinfo;
             if (get_visualinfo(dpy, screen, &vinfo) == 0) {
                 XRRScreenResources *res = X11_XRRGetScreenResourcesCurrent(dpy, RootWindow(dpy, screen));
-                if (res == NULL || res->noutput == 0) {
+                if (!res || res->noutput == 0) {
                     if (res) {
                         X11_XRRFreeScreenResources(res);
                     }
@@ -481,13 +481,13 @@ static int X11_InitModes_XRandR(_THIS)
             }
 
             res = X11_XRRGetScreenResourcesCurrent(dpy, RootWindow(dpy, screen));
-            if (res == NULL || res->noutput == 0) {
+            if (!res || res->noutput == 0) {
                 if (res) {
                     X11_XRRFreeScreenResources(res);
                 }
 
                 res = X11_XRRGetScreenResources(dpy, RootWindow(dpy, screen));
-                if (res == NULL) {
+                if (!res) {
                     continue;
                 }
             }
@@ -525,7 +525,7 @@ static int GetXftDPI(Display *dpy)
 
     xdefault_resource = X11_XGetDefault(dpy, "Xft", "dpi");
 
-    if (xdefault_resource == NULL) {
+    if (!xdefault_resource) {
         return 0;
     }
 
@@ -578,12 +578,12 @@ static int X11_InitModes_StdXlib(_THIS)
     mode.refresh_rate = 0; /* don't know it, sorry. */
 
     displaydata = (SDL_DisplayData *)SDL_calloc(1, sizeof(*displaydata));
-    if (displaydata == NULL) {
+    if (!displaydata) {
         return SDL_OutOfMemory();
     }
 
     modedata = (SDL_DisplayModeData *)SDL_calloc(1, sizeof(SDL_DisplayModeData));
-    if (modedata == NULL) {
+    if (!modedata) {
         SDL_free(displaydata);
         return SDL_OutOfMemory();
     }
@@ -637,7 +637,7 @@ int X11_InitModes(_THIS)
     /* XRandR is the One True Modern Way to do this on X11. If this
        fails, we just won't report any display modes except the current
        desktop size. */
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
     {
         SDL_VideoData *data = (SDL_VideoData *)_this->driverdata;
         int xrandr_major, xrandr_minor;
@@ -668,7 +668,7 @@ void X11_GetDisplayModes(_THIS, SDL_VideoDisplay *sdl_display)
     mode.format = sdl_display->current_mode.format;
     mode.driverdata = NULL;
 
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
     if (data->use_xrandr) {
         Display *display = ((SDL_VideoData *)_this->driverdata)->display;
         XRRScreenResources *res;
@@ -683,7 +683,7 @@ void X11_GetDisplayModes(_THIS, SDL_VideoDisplay *sdl_display)
             if (output_info && output_info->connection != RR_Disconnected) {
                 for (i = 0; i < output_info->nmode; ++i) {
                     modedata = (SDL_DisplayModeData *)SDL_calloc(1, sizeof(SDL_DisplayModeData));
-                    if (modedata == NULL) {
+                    if (!modedata) {
                         continue;
                     }
                     mode.driverdata = modedata;
@@ -716,7 +716,7 @@ void X11_GetDisplayModes(_THIS, SDL_VideoDisplay *sdl_display)
     }
 }
 
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
 /* This catches an error from XRRSetScreenSize, as a workaround for now. */
 /* !!! FIXME: remove this later when we have a better solution. */
 static int (*PreXRRSetScreenSizeErrorHandler)(Display *, XErrorEvent *) = NULL;
@@ -739,7 +739,7 @@ int X11_SetDisplayMode(_THIS, SDL_VideoDisplay *sdl_display, SDL_DisplayMode *mo
 
     viddata->last_mode_change_deadline = SDL_GetTicks() + (PENDING_FOCUS_TIME * 2);
 
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
     if (data->use_xrandr) {
         Display *display = viddata->display;
         SDL_DisplayModeData *modedata = (SDL_DisplayModeData *)mode->driverdata;
@@ -750,18 +750,18 @@ int X11_SetDisplayMode(_THIS, SDL_VideoDisplay *sdl_display, SDL_DisplayMode *mo
         Status status;
 
         res = X11_XRRGetScreenResources(display, RootWindow(display, data->screen));
-        if (res == NULL) {
+        if (!res) {
             return SDL_SetError("Couldn't get XRandR screen resources");
         }
 
         output_info = X11_XRRGetOutputInfo(display, res, data->xrandr_output);
-        if (output_info == NULL || output_info->connection == RR_Disconnected) {
+        if (!output_info || output_info->connection == RR_Disconnected) {
             X11_XRRFreeScreenResources(res);
             return SDL_SetError("Couldn't get XRandR output info");
         }
 
         crtc = X11_XRRGetCrtcInfo(display, res, output_info->crtc);
-        if (crtc == NULL) {
+        if (!crtc) {
             X11_XRRFreeOutputInfo(output_info);
             X11_XRRFreeScreenResources(res);
             return SDL_SetError("Couldn't get XRandR crtc info");

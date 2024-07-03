@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "../../SDL_internal.h"
 
-#if SDL_THREAD_OS2
+#ifdef SDL_THREAD_OS2
 
 #include "../../core/os2/SDL_os2.h"
 
@@ -41,7 +41,7 @@ void SDL_OS2TLSAlloc(void)
 {
     ULONG ulRC;
 
-    if (cTLSAlloc == 0 || ppSDLTLSData == NULL) {
+    if (cTLSAlloc == 0 || !ppSDLTLSData) {
         /* First call - allocate the thread local memory (1 DWORD) */
         ulRC = DosAllocThreadLocalMemory(1, (PULONG *)&ppSDLTLSData);
         if (ulRC != NO_ERROR) {
@@ -59,7 +59,7 @@ void SDL_OS2TLSFree(void)
     if (cTLSAlloc != 0)
         cTLSAlloc--;
 
-    if (cTLSAlloc == 0 && ppSDLTLSData != NULL) {
+    if (cTLSAlloc == 0 && ppSDLTLSData) {
         /* Last call - free the thread local memory */
         ulRC = DosFreeThreadLocalMemory((PULONG)ppSDLTLSData);
         if (ulRC != NO_ERROR) {
@@ -72,7 +72,7 @@ void SDL_OS2TLSFree(void)
 
 SDL_TLSData *SDL_SYS_GetTLSData(void)
 {
-    return (ppSDLTLSData == NULL)? NULL : *ppSDLTLSData;
+    return (!ppSDLTLSData)? NULL : *ppSDLTLSData;
 }
 
 int SDL_SYS_SetTLSData(SDL_TLSData *data)

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 
     filename = GetResourceFilename(argc > 1 ? argv[1] : NULL, "sample.wav");
 
-    if (filename == NULL) {
+    if (!filename) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s\n", SDL_GetError());
         quit(1);
     }
