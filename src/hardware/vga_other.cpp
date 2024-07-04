@@ -29,6 +29,13 @@
 #include "mapper.h"
 #include "control.h"
 
+#include <output/output_ttf.h>
+
+#if defined(USE_TTF)
+void ttf_switch_on(bool ss = true);
+void ttf_switch_off(bool ss = true);
+#endif
+
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
 
@@ -1108,13 +1115,19 @@ static void write_hercules(Bitu port,Bitu val,Bitu /*iolen*/) {
 			// already set
 			if (!(val&0x2)) {
 				vga.herc.mode_control &= ~0x2;
-				VGA_SetMode(M_HERC_TEXT);
+#if defined(USE_TTF)
+                ttf_switch_on(false); // Enable TTF output if output=ttf
+#endif
+                VGA_SetMode(M_HERC_TEXT);
 			}
 		} else {
 			// not set, can only set if protection bit is set
 			if ((val & 0x2) && (vga.herc.enable_bits & 0x1)) {
 				vga.herc.mode_control |= 0x2;
-				VGA_SetMode(M_HERC_GFX);
+#if defined(USE_TTF)
+                ttf_switch_off(false); // Disable TTF output when switching to graphics mode
+#endif
+                VGA_SetMode(M_HERC_GFX);
 			}
 		}
 		if (vga.herc.mode_control&0x80) {
