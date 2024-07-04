@@ -1,4 +1,6 @@
-Next
+  - fix off-center and off-screen window after entering the
+    configuration tool while using TTF output mode (aybe).
+  - add menu item for centering window "Video/Center window" (aybe).
   - Fixed update-version-number script to patch all *.iss files, not 
     just the specific one it did before, to ensure future releases have
     correct version numbers. (joncampbell123).
