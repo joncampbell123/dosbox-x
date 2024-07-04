@@ -1,6 +1,7 @@
 NEXT
   - fix off-center and off-screen window after entering the
     configuration tool while using TTF output mode (aybe).
+  - add menu item for centering window "Video/Center window" (aybe).
 2024.07.01
   - Correct Hercules InColor memory emulation. Read and write planar
     behavior was incorrect due to a misunderstanding of available
