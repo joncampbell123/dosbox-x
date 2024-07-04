@@ -1,3 +1,6 @@
+NEXT
+  - add "[dos] automount drive directories" option, this will mount
+    existing drive directories, from C drive to Y drive (aybe).
 2024.07.01
   - Correct Hercules InColor memory emulation. Read and write planar
     behavior was incorrect due to a misunderstanding of available
