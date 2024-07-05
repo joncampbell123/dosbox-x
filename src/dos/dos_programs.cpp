@@ -9335,6 +9335,7 @@ void Add_VFiles(bool usecp) {
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA_CPX, "/CPI/");
 }
 
+#if WIN32
 void Add_Existing_Drive_Directories()
 {
     for(auto drive = 'C'; drive < 'Y'; drive++)
@@ -9356,6 +9357,7 @@ void Add_Existing_Drive_Directories()
         MountHelper(drive, path.c_str(), "LOCAL");
     }
 }
+#endif
 
 void DOS_SetupPrograms(void) {
     /*Add Messages */
@@ -9888,7 +9890,9 @@ void DOS_SetupPrograms(void) {
     /*regular setup*/
     Add_VFiles(false);
 
+#if WIN32
     if (dos_section->Get_bool("automount drive directories")) {
         Add_Existing_Drive_Directories();
     }
+#endif
 }
