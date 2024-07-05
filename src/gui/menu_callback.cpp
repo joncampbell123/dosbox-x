@@ -2071,6 +2071,15 @@ bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
     return true;
 }
 
+bool center_window_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+#if defined(C_SDL2)
+    SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+#endif
+    return true;
+}
+
 bool set_titletext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -3197,6 +3206,11 @@ void AllocCallback1() {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(scaler_menu_opts[i][1]).
                         set_callback_function(scaler_set_menu_callback);
                 }
+
+#if defined(C_SDL2)
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"center_window").set_text("Center window").
+                    set_callback_function(center_window_menu_callback);
+#endif
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"set_titletext").set_text("Set title bar text...").
                     set_callback_function(set_titletext_menu_callback);

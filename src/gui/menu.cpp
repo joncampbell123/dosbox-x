@@ -525,6 +525,9 @@ static const char *def_menu_video[] =
 #endif
     "VideoRatioMenu",
     "mapper_aspratio",
+#if defined(C_SDL2)
+    "center_window",
+#endif
 #if !defined(C_SDL2) && defined(MACOSX)
     "highdpienable",
 #endif
