@@ -4427,7 +4427,8 @@ void DOSBOX_SetupConfigSections(void) {
                       "Files with leading forward slashes (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
 
     Pbool = secprop->Add_bool("automount drive directories",Property::Changeable::OnlyAtStart, false);
-    Pbool->Set_help("If set, DOSBox-X will automatically mount existing drive directories from C drive to Y drive, e.g. \"DriveC\".");
+    Pbool->Set_help("If set, DOSBox-X will automatically mount existing drive directories from C drive to Y drive, e.g. \"DriveC\".\n"
+                    "NOTE: This option is only available under Windows.");
 
     Pbool = secprop->Add_bool("hidenonrepresentable",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, DOSBox-X will hide files on local drives that are non-representative in the current DOS code page.\n"
