@@ -1,3 +1,6 @@
+NEXT
+  - add option "[dos] automount drive directories" for Windows builds,
+    this will mount existing drive directories from C to Y drive (aybe).
   - fix off-center and off-screen window after entering the
     configuration tool while using TTF output mode (aybe).
   - add menu item for centering window "Video/Center window" (aybe).

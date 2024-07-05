@@ -9335,6 +9335,30 @@ void Add_VFiles(bool usecp) {
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA_CPX, "/CPI/");
 }
 
+#if WIN32
+void Add_Existing_Drive_Directories()
+{
+    for(auto drive = 'C'; drive < 'Y'; drive++)
+    {
+        auto name = std::string("drive");
+        auto path = std::string(".");
+
+        name += drive;
+        path += CROSS_FILESPLIT;
+        path += name;
+
+        getdrivezpath(path, name);
+
+        if (path.empty())
+            continue;
+
+        LOG_MSG("Mounting directory 'drive%c' found in DOSBox-X directory as drive %c.\n", static_cast<char>(drive + 32), drive);
+
+        MountHelper(drive, path.c_str(), "LOCAL");
+    }
+}
+#endif
+
 void DOS_SetupPrograms(void) {
     /*Add Messages */
 
@@ -9865,4 +9889,10 @@ void DOS_SetupPrograms(void) {
 
     /*regular setup*/
     Add_VFiles(false);
+
+#if WIN32
+    if (dos_section->Get_bool("automount drive directories")) {
+        Add_Existing_Drive_Directories();
+    }
+#endif
 }
