@@ -19,8 +19,10 @@
 <p class="subtitle-mute">(Windows 9x/NT4 and later versions supported)</p>
 <p>
   32/64-bit Setup:
-  {% include version_file.html version=version name="windows_setup_file" display_name="Win7+ " %}
+<!--  {% include version_file.html version=version name="windows_setup_file" display_name="Win7+ " %}
   {% if version.windows_setup_file %}<sup>(Recommended)</sup>{% endif %}
+--> <!-- disabled due to installer build failed -->
+<a href="https://github.com/joncampbell123/dosbox-x/issues/5086">Win7+ </a>
   |
   {% include version_file.html version=version name="winXP_setup_file" display_name="ReactOS/XP+" %}
 </p>
