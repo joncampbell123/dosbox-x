@@ -13,7 +13,7 @@
 #include "flac.h"
 #define DR_FLAC_IMPLEMENTATION
 #define DR_FLAC_NO_STDIO
-#include "dr_flac.h"
+#include "src/libs/decoders/dr_flac.h"
 
 /***************************************************************************
  *  FLAC DECODER
