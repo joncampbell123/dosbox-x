@@ -3230,8 +3230,21 @@ static uint64_t core_stdio_fsize(core_file *file) {
 	#define core_stdio_fseek_impl fseek
 	#define core_stdio_ftell_impl ftell
 #elif defined(__WIN32__) || defined(_WIN32) || defined(WIN32) || defined(__WIN64__)
-	#define core_stdio_fseek_impl _fseeki64
-	#define core_stdio_ftell_impl _ftelli64
+	#if defined (_MSC_VER)
+		#if (_MSC_VER >= 1400)
+			#define core_stdio_fseek _fseeki64
+			#define core_stdio_ftell_impl _ftelli64
+		#else
+			#define core_stdio_fseek fseek
+			#define core_stdio_ftell_impl ftell
+		#endif
+	#elif defined (__MINGW64_VERSION_MAJOR)
+		#define core_stdio_fseek _fseeki64
+		#define core_stdio_ftell_impl _ftelli64
+	#else
+		#define core_stdio_fseek_impl fseek
+		#define core_stdio_ftell_impl ftell
+	#endif
 #elif defined(_LARGEFILE_SOURCE) && defined(_FILE_OFFSET_BITS) && _FILE_OFFSET_BITS == 64
 	#define core_stdio_fseek_impl fseeko64
 	#define core_stdio_ftell_impl ftello64
