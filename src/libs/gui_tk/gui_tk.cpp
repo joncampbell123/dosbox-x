@@ -1361,8 +1361,79 @@ void BorderedWindow::paintAll(Drawable &d) const
 	}
 }
 
-void Button::paint(Drawable &d) const
+void Button::paint(Drawable& d) const
 {
+    // Windows 3.1 pixel perfect button style
+#define WIN31_STYLE 1
+#define WIN31_STYLE_DEBUG 0
+#if WIN31_STYLE
+#if WIN31_STYLE_DEBUG
+    d.setColor(0xFFFF00FF);
+    d.fillRect(0, 0, width, height);
+#endif
+    // this time we draw exact requested size // TODO adjust other parts
+    const auto w = width;
+    const auto h = height;
+
+    // TODO extract colors as a theme // TODO gather others first
+    constexpr RGB buttonBorder        = 0xFF000000;
+    constexpr RGB buttonFill          = 0xFFC0C7C8;
+    constexpr RGB button3DTopLeft     = 0xFFFFFFFF;
+    constexpr RGB button3DBottomRight = 0xFF87888F;
+    if(hasFocus())
+    {
+        d.setColor(buttonBorder);
+        d.fillRect(0, 1, 2, h - 2);     // L
+        d.fillRect(1, 0, w - 2, 2);     // T
+        d.fillRect(w - 2, 1, 2, h - 2); // R
+        d.fillRect(1, h - 2, w - 2, 2); // B
+
+        if(pressed)
+        {
+            d.setColor(button3DBottomRight);
+            d.drawLine(2, 2, 2, h - 3); // L
+            d.drawLine(3, 2, w - 3, 2); // T
+            d.setColor(buttonFill);
+            d.fillRect(3, 3, w - 5, h - 5);
+        }
+        else
+        {
+            d.setColor(button3DTopLeft);
+            d.drawLine(2, 2, 2, h - 4); // L
+            d.drawLine(3, 2, 3, h - 5); // L
+            d.drawLine(4, 2, w - 4, 2); // T
+            d.drawLine(4, 3, w - 5, 3); // T
+            d.setColor(button3DBottomRight);
+            d.drawLine(w - 4, 3, w - 4, h - 3); // R
+            d.drawLine(w - 3, 2, w - 3, h - 3); // R
+            d.drawLine(3, h - 4, w - 5, h - 4); // B
+            d.drawLine(2, h - 3, w - 5, h - 3); // B
+            d.setColor(buttonFill);
+            d.fillRect(4, 4, w - 8, h - 8);
+        }
+    }
+    else
+    {
+        d.setColor(buttonBorder);
+        d.drawLine(0, 1, 0, h - 2);         // L
+        d.drawLine(1, 0, w - 2, 0);         // T
+        d.drawLine(w - 1, 1, w - 1, h - 2); // R
+        d.drawLine(1, h - 1, w - 2, h - 1); // B
+        d.setColor(button3DTopLeft);
+        d.drawLine(1, 1, 1, h - 3); // L
+        d.drawLine(2, 1, 2, h - 4); // L
+        d.drawLine(3, 1, w - 3, 1); // T
+        d.drawLine(3, 2, w - 4, 2); // T
+        d.setColor(button3DBottomRight);
+        d.drawLine(w - 2, 1, w - 2, h - 2); // R
+        d.drawLine(w - 3, 2, w - 3, h - 2); // R
+        d.drawLine(2, h - 3, w - 4, h - 3); // B
+        d.drawLine(1, h - 2, w - 4, h - 2); // B
+        d.setColor(buttonFill);
+        d.fillRect(3, 3, w - 6, h - 6);
+    }
+ // TODO delete old style once satisfied
+ #else
 	int offset = -1;
 
 	if (hasFocus()) {
@@ -1403,7 +1474,8 @@ void Button::paint(Drawable &d) const
 
 		d.drawLine(width-2-offset,1+offset,width-2-offset,height-2-offset);
 		d.drawLine(1+offset,height-2-offset,width-2-offset,height-2-offset);
-	}
+    }
+#endif
 }
 
 bool Checkbox::keyDown(const Key &key)
