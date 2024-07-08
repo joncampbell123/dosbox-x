@@ -356,7 +356,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -404,7 +404,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
       <WarningLevel>Level3</WarningLevel>
       <AdditionalOptions>/QIfist</AdditionalOptions>
       <SDLCheck>false</SDLCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -454,7 +454,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -542,7 +542,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -589,7 +589,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -677,7 +677,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

@@ -439,3 +439,5 @@ contrib/macos/dosbox-x.plist
 /dosbox-x.conf
 /src/dosbox-x.conf
 
+# visual studio edit and continue temp files
+/vs/enc_temp_folder
