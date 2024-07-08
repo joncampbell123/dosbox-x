@@ -801,7 +801,10 @@ bool Window::keyDown(const Key &key)
 			++i;
 		}
 		if (tab_quit) return false;
-		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+	    // BUG/TODO swapped operands below to fix 'list iterators incompatible'
+	    // occurs in VS debug build when pressing TAB after opening configuration tool
+	    // currently this works but that just sweeps the problem under the rug
+		return toplevel /*prevent TAB escape to another window*/ || (i != e);
 	}
 }
 
