@@ -1423,10 +1423,7 @@ public:
         if ((this->y + this->getHeight()) > parent->getHeight())
             move(this->x,parent->getHeight() - this->getHeight());
 
-        std::string title(section->GetName());
-        sprintf(tmp1, MSG_Get("CONFIGURATION_FOR"), CapName(title).c_str());
-        setTitle(tmp1);
-        title[0] = std::toupper(title[0]);
+        setTitle(CapName(std::string(section->GetName())).c_str());
 
         new GUI::Label(this, 5, button_row_y - 20, MSG_Get("HELP_INFO"));
 
@@ -1597,10 +1594,7 @@ public:
         if (scroll_h > allowed_dialog_y)
             scroll_h = allowed_dialog_y;
 
-        std::string title(section->GetName());
-        sprintf(tmp1, MSG_Get("CONFIGURATION_FOR"), CapName(title).c_str());
-        setTitle(tmp1);
-        title[0] = std::toupper(title[0]);
+        setTitle(CapName(std::string(section->GetName())).c_str());
 
 		char extra_data[4096] = { 0 };
 		const char * extra = const_cast<char*>(section->data.c_str());

@@ -158,7 +158,6 @@ void AddMessages() {
     MSG_Add("HELP_FOR","Help for %s");
     MSG_Add("HELP_INFO", "Click the \"Help\" button below to see detailed help information.");
     MSG_Add("SELECT_VALUE", "Select property value");
-    MSG_Add("CONFIGURATION_FOR","Configuration for %s");
     MSG_Add("CONFIGURATION","Configuration");
     MSG_Add("SETTINGS","Settings");
     MSG_Add("LOGGING_OUTPUT","DOSBox-X logging output");
