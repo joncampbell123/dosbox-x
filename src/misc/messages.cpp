@@ -177,7 +177,6 @@ void AddMessages() {
     MSG_Add("NETWORK_LIST","Network interface list");
     MSG_Add("PRINTER_LIST","Printer device list");
     MSG_Add("INTRODUCTION","Introduction");
-    MSG_Add("CONFIGURE_GROUP", "Choose a settings group to configure:");
     MSG_Add("SHOW_ADVOPT", "Show advanced options");
     MSG_Add("USE_PRIMARYCONFIG", "Use primary config file");
     MSG_Add("USE_PORTABLECONFIG", "Use portable config file");
