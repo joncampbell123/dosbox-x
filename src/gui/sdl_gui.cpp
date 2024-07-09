@@ -849,9 +849,9 @@ public:
         if (title=="4dos"&&!strcmp(prop->propname.c_str(), "rem"))
             input = new GUI::Input(this, 30, 0, 470);
         else {
-            input = new GUI::Input(this, 270, 0, opts?200:230);
+            input = new GUI::Input(this, 260, 0, opts?195:235);
             if (opts) {
-                infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
+                infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
                 infoButton->addActionHandler(this);
             }
         }
@@ -907,9 +907,9 @@ protected:
 public:
     PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 380, 0, opts?90:120);
+        input = new GUI::Input(this, 365, 0, opts?90:130);
         if (opts) {
-            infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
+            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
             infoButton->addActionHandler(this);
         }
         input->setText(stringify((double)prop->GetValue()));
@@ -964,9 +964,9 @@ protected:
 public:
     PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 380, 0, opts?90:120);
+        input = new GUI::Input(this, 365, 0, opts?90:130);
         if (opts) {
-            infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
+            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
             infoButton->addActionHandler(this);
         }
         std::string temps = prop->GetValue().ToString();
@@ -1022,9 +1022,9 @@ protected:
 public:
     PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 380, 0, opts?90:120);
+        input = new GUI::Input(this, 365, 0, opts?90:130);
         if (opts) {
-            infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
+            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
             infoButton->addActionHandler(this);
         }
         //Maybe use ToString() of Value
