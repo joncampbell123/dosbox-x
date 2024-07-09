@@ -355,6 +355,13 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 	   one is actually 24-bit. Without this step there may be some graphics corruption (mainly,
 	   during windows dragging. */
 	switch(XGA_COLOR_MODE) {
+		case M_LIN4:
+			{
+				uint8_t shf = ((memaddr^1u)&1u)*4u;
+				if (GCC_UNLIKELY((memaddr/2) >= vga.mem.memsize)) break;
+				vga.mem.linear[memaddr/2] = (vga.mem.linear[memaddr/2] & (0xF0 >> shf)) + ((c&0xF) << shf);
+			}
+			break;
 		case M_LIN8:
 			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
 			vga.mem.linear[memaddr] = (uint8_t)c;
@@ -374,11 +381,12 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 		default:
 			break;
 	}
-
 }
 
 Bitu XGA_PointMask() {
 	switch(XGA_COLOR_MODE) {
+		case M_LIN4:
+			return 0xFul;
 		case M_LIN8:
 			return 0xFFul;
 		case M_LIN15:
@@ -396,19 +404,23 @@ Bitu XGA_GetPoint(Bitu x, Bitu y) {
 	uint32_t memaddr = (uint32_t)((y * XGA_SCREEN_WIDTH) + x);
 
 	switch(XGA_COLOR_MODE) {
-	case M_LIN8:
-		if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
-		return vga.mem.linear[memaddr];
-	case M_LIN15:
-	case M_LIN16:
-		if (GCC_UNLIKELY(memaddr*2 >= vga.mem.memsize)) break;
-		return ((uint16_t*)(vga.mem.linear))[memaddr];
-	case M_LIN32:
-		if (GCC_UNLIKELY(memaddr*4 >= vga.mem.memsize)) break;
-		return ((uint32_t*)(vga.mem.linear))[memaddr];
-	default:
-		break;
+		case M_LIN4:
+			if (GCC_UNLIKELY((memaddr/2) >= vga.mem.memsize)) break;
+			return (vga.mem.linear[memaddr/2] >> (((memaddr&1)^1)*4)) & 0xF;
+		case M_LIN8:
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return vga.mem.linear[memaddr];
+		case M_LIN15:
+		case M_LIN16:
+			if (GCC_UNLIKELY(memaddr*2 >= vga.mem.memsize)) break;
+			return ((uint16_t*)(vga.mem.linear))[memaddr];
+		case M_LIN32:
+			if (GCC_UNLIKELY(memaddr*4 >= vga.mem.memsize)) break;
+			return ((uint32_t*)(vga.mem.linear))[memaddr];
+		default:
+			break;
 	}
+
 	return 0;
 }
 
@@ -1420,6 +1432,8 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 
 void XGA_SetDualReg(uint32_t& reg, Bitu val) {
 	switch(XGA_COLOR_MODE) {
+	case M_LIN4:
+		reg = (uint8_t)(val&0xf); break;
 	case M_LIN8:
 		reg = (uint8_t)(val&0xff); break;
 	case M_LIN15:
@@ -1441,6 +1455,8 @@ void XGA_SetDualReg(uint32_t& reg, Bitu val) {
 
 Bitu XGA_GetDualReg(uint32_t reg) {
 	switch(XGA_COLOR_MODE) {
+	case M_LIN4:
+		return (uint8_t)(reg&0xf);
 	case M_LIN8:
 		return (uint8_t)(reg&0xff);
 	case M_LIN15: case M_LIN16:
