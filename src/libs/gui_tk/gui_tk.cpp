@@ -58,7 +58,6 @@ int titlebox_y_height = 20;
 int titlebox_sysmenu_width = 20; // includes black divider line
 
 namespace Color {
-	RGB Shadow3D =			0xff808080;
 	RGB Border =			0xff000000;
 	RGB SelectionBackground =	0xff000080;
 	RGB SelectionForeground =	0xffffffff;
@@ -1077,7 +1076,7 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.drawLine(0,height-1,width-1,height-1);
 	d.drawLine(width-1,0,width-1,height-1);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(0,0,width-2,0);
 	d.drawLine(0,0,0,height-2);
 	d.drawLine(0,height-2,width-2,height-2);
@@ -1155,7 +1154,7 @@ void Input::paint(Drawable &d) const
 {
 	d.clear(Color::EditableBackground);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(0,0,width-2,0);
 	d.drawLine(0,0,0,height-2);
 
@@ -1445,7 +1444,7 @@ void Button::paint(Drawable& d) const
 	d.fillRect(2,2,width-4,height-4);
 
 	if (pressed) {
-		d.setColor(Color::Shadow3D);
+		d.setColor(CurrentTheme.Shadow3D);
 
 		d.drawLine(1+offset,1+offset,width-2-offset,1+offset);
 		d.drawLine(1+offset,1+offset,1+offset,height-2-offset);
@@ -1460,7 +1459,7 @@ void Button::paint(Drawable& d) const
 		d.drawLine(2+offset,2+offset,width-4-offset,2+offset);
 		d.drawLine(2+offset,2+offset,2+offset,height-4-offset);
 
-		d.setColor(Color::Shadow3D);
+		d.setColor(CurrentTheme.Shadow3D);
 
 		d.drawLine(2+offset,height-3-offset,width-2-offset,height-3-offset);
 		d.drawLine(width-3-offset,2+offset,width-3-offset,height-2-offset);
@@ -1499,7 +1498,7 @@ void Checkbox::paint(Drawable &d) const
 	d.setColor(CurrentTheme.Background3D);
 	d.fillRect(2,(height/2)-7,14,14);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(2,(height/2)-7,13,(height/2)-7);
 	d.drawLine(2,(height/2)-7,2,(height/2)+5);
 
@@ -1571,7 +1570,7 @@ void Radiobox::paint(Drawable &d) const
 	d.drawLine(12,(height/2)-1,12,(height/2)+2);
 	d.drawLine(11,(height/2)-2,11,(height/2)+4);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(6,(height/2)-5,9,(height/2)-5);
 	d.drawLine(4,(height/2)-4,11,(height/2)-4);
 	d.drawLine(2,(height/2)-1,2,(height/2)+2);
@@ -1608,7 +1607,7 @@ void Menu::paint(Drawable &d) const
 	d.drawLine(0,height-1,width-1,height-1);
 	d.drawLine(width-1,0,width-1,height-1);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(0,0,width-2,0);
 	d.drawLine(0,0,0,height-2);
 	d.drawLine(0,height-2,width-2,height-2);
@@ -1636,7 +1635,7 @@ void Menu::paint(Drawable &d) const
 
 	for (std::vector<String>::const_iterator i = items.begin(); i != items.end(); ++i) {
 		if ((*i).empty()) {
-			d.setColor(Color::Shadow3D);
+			d.setColor(CurrentTheme.Shadow3D);
 			d.drawLine(x+1,y-asc+6,cwidth,y-asc+6);
 			d.setColor(CurrentTheme.Light3D);
 			d.drawLine(x+1,y-asc+7,cwidth,y-asc+7);
@@ -1650,7 +1649,7 @@ void Menu::paint(Drawable &d) const
                     cwidth = colx[coli] - x;
                 }
 
-                d.setColor(Color::Shadow3D);
+                d.setColor(CurrentTheme.Shadow3D);
                 d.drawLine(x-2,2,x-2,this->height-4);
                 d.setColor(CurrentTheme.Light3D);
                 d.drawLine(x-1,2,x-1,this->height-4);
@@ -1676,7 +1675,7 @@ void Menubar::paint(Drawable &d) const
 
 	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(0,height-1,width-1,height-1);
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(0,height-2,width-1,height-2);
 
 	d.gotoXY(7,f->getAscent()+2);
@@ -1722,7 +1721,7 @@ void Frame::paint(Drawable &d) const {
 	const Font *f = Font::getFont("default");
 	const int top = (label.empty()?1:f->getAscent()/2+1);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(1,height-2,1,top);
 	d.drawLine(8,top);
 	d.drawLine((label.empty()?8:f->getWidth(label)+14),top,width-2,top);
@@ -2346,7 +2345,7 @@ bool ScreenSDL::event(SDL_Event &event) {
 
 void WindowInWindow::paintScrollBar3DInset(Drawable &dscroll, int x, int y, int w, int h) const {
     // Windows 3.1 renders the shadow one pixel wide, no highlight
-    dscroll.setColor(Color::Shadow3D);
+    dscroll.setColor(CurrentTheme.Shadow3D);
     dscroll.drawLine(x,y,x+w-1,y);
     dscroll.drawLine(x,y,x,    y+h-1);
 }
@@ -2357,7 +2356,7 @@ void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int
     dscroll.drawLine(x,y,x,    y+h-2);
 
     // Windows 3.1 renders the shadow two pixels wide
-    dscroll.setColor(Color::Shadow3D);
+    dscroll.setColor(CurrentTheme.Shadow3D);
     dscroll.drawLine(x,    y+h-1,x+w-1,y+h-1);
     dscroll.drawLine(x+w-1,y,    x+w-1,y+h-1);
 
@@ -2367,7 +2366,7 @@ void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int
 
 void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const {
     // black border
-    dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+    dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
     dscroll.drawRect(vsl.xleft,vsl.ytop,vsl.thumbwidth-1,vsl.thumbheight-1);
 
     // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
@@ -2376,7 +2375,7 @@ void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vs
 
 void WindowInWindow::paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const {
     /* scroll bar border, background */
-    dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+    dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
     dscroll.drawRect(vsl.scrollthumbRegion.x,  vsl.scrollthumbRegion.y,  vsl.scrollthumbRegion.w-1,vsl.scrollthumbRegion.h-1);
 
     dscroll.setColor(CurrentTheme.Background3D);
@@ -2435,7 +2434,7 @@ void WindowInWindow::paintScrollBarArrowInBox(Drawable &dscroll,const int x,cons
     const int ax = ((w - aw) / 2) + x;
     const int ay = ((h - ah) / 2) + y;
 
-    dscroll.setColor(disabled ? Color::Shadow3D : Color::Black);
+    dscroll.setColor(disabled ? CurrentTheme.Shadow3D : Color::Black);
 
     if (downArrow) {
         dscroll.fillRect(ax+2,ay,3,3);
@@ -2472,7 +2471,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
         if (vscroll)
             w -= (vscroll?vscroll_display_width:0);
 
-        dchild.setColor(Color::Shadow3D);
+        dchild.setColor(CurrentTheme.Shadow3D);
         dchild.drawLine(0,0,w,0);
         dchild.drawLine(0,0,0,h);
 
@@ -2498,7 +2497,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 const int h = vsl.scrollthumbRegion.y + 1; /* want black border of thumb to overlap our black border 1 pixel */
 
                 // black border
-                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+                dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
                 dscroll.drawRect(x,y,w-1,h-1);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
@@ -2520,7 +2519,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 const int h = height - y;
 
                 // black border
-                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
+                dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
                 dscroll.drawRect(x,y,w-1,h-1);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew

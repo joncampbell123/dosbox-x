@@ -715,7 +715,7 @@ public:
         sx += 4;
         ex -= 4;
 
-        d.setColor(GUI::Color::Shadow3D);
+        d.setColor(GUI::CurrentTheme.Shadow3D);
         d.drawDotLine(sx,y,ex,y);
     }
 };
