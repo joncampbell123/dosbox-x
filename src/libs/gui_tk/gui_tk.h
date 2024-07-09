@@ -205,45 +205,6 @@ const RGB YellowMask = RedMask|GreenMask;
 /// 50% grey
 const RGB Grey50 = 0xff808080;
 
-/// Background color for 3D effects. May be customized.
-extern RGB Background3D;
-
-/// Light highlight color for 3D effects. May be customized.
-extern RGB Light3D;
-
-/// Dark highlight color (shadow) for 3D effects. May be customized.
-extern RGB Shadow3D;
-
-/// Generic border color for highlights or similar. May be customized.
-extern RGB Border;
-
-/// Foreground color for regular content (mainly text). May be customized.
-extern RGB Text;
-
-/// Background color for inactive areas. May be customized.
-extern RGB Background;
-
-/// Background color for selected areas. May be customized.
-extern RGB SelectionBackground;
-
-/// Foreground color for selected areas. May be customized.
-extern RGB SelectionForeground;
-
-/// Background color for inputs / application area. May be customized.
-extern RGB EditableBackground;
-
-/// Title bar color for windows. May be customized.
-extern RGB Titlebar;
-
-/// Title bar text color for windows. May be customized.
-extern RGB TitlebarText;
-
-/// Title bar color for windows. May be customized.
-extern RGB TitlebarInactive;
-
-/// Title bar text color for windows. May be customized.
-extern RGB TitlebarInactiveText;
-
 /// Convert separate r, g, b and a values (each 0-255) to an RGB value.
 static inline RGB rgba(unsigned int r, unsigned int g, unsigned int b, unsigned int a=0) {
 	return (((r&255)<<RedShift)|((g&255)<<GreenShift)|((b&255)<<BlueShift)|((a&255)<<AlphaShift));
