@@ -57,13 +57,6 @@ int titlebox_y_height = 20;
 /* width of the system menu */
 int titlebox_sysmenu_width = 20; // includes black divider line
 
-namespace Color {
-	RGB Titlebar =			0xffa4c8f0;
-	RGB TitlebarText =		0xff000000;
-	RGB TitlebarInactive =			0xffffffff;
-	RGB TitlebarInactiveText =		0xff000000;
-}
-
 Theme CurrentTheme = ThemeLight();
 
 std::map<const char *,Font *,Font::ltstr> Font::registry;
@@ -1132,11 +1125,11 @@ void ToplevelWindow::paint(Drawable &d) const
         }
     }
 
-	d.setColor(active ? Color::Titlebar : Color::TitlebarInactive);
+	d.setColor(active ? CurrentTheme.TitleBar : CurrentTheme.TitleBarInactive);
 	d.fillRect(6+titlebox_sysmenu_width,titlebox_y_start+1,width-(6+titlebox_sysmenu_width+6),titlebox_y_height-2);
 
 	const Font *font = Font::getFont("title");
-	d.setColor(active ? Color::TitlebarText : Color::TitlebarInactiveText);
+	d.setColor(active ? CurrentTheme.TitleBarText : CurrentTheme.TitleBarInactiveText);
 	d.setFont(font);
 	d.drawText(31+(width-39-font->getWidth(title))/2,titlebox_y_start+(titlebox_y_height-font->getHeight())/2+font->getAscent(),title,false,0);
 }
