@@ -73,6 +73,8 @@ namespace Color {
 	RGB TitlebarInactiveText =		0xff000000;
 }
 
+Theme CurrentTheme = ThemeLight();
+
 std::map<const char *,Font *,Font::ltstr> Font::registry;
 
 bool ToplevelWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
@@ -1377,14 +1379,9 @@ void Button::paint(Drawable& d) const
     const auto w = width;
     const auto h = height;
 
-    // TODO extract colors as a theme // TODO gather others first
-    constexpr RGB buttonBorder        = 0xFF000000;
-    constexpr RGB buttonFill          = 0xFFC0C7C8;
-    constexpr RGB button3DTopLeft     = 0xFFFFFFFF;
-    constexpr RGB button3DBottomRight = 0xFF87888F;
     if(hasFocus())
     {
-        d.setColor(buttonBorder);
+        d.setColor(CurrentTheme.ButtonBorder);
         d.fillRect(0, 1, 2, h - 2);     // L
         d.fillRect(1, 0, w - 2, 2);     // T
         d.fillRect(w - 2, 1, 2, h - 2); // R
@@ -1392,46 +1389,46 @@ void Button::paint(Drawable& d) const
 
         if(pressed)
         {
-            d.setColor(button3DBottomRight);
+            d.setColor(CurrentTheme.ButtonBevel2);
             d.drawLine(2, 2, 2, h - 3); // L
             d.drawLine(3, 2, w - 3, 2); // T
-            d.setColor(buttonFill);
+            d.setColor(CurrentTheme.ButtonFiller);
             d.fillRect(3, 3, w - 5, h - 5);
         }
         else
         {
-            d.setColor(button3DTopLeft);
+            d.setColor(CurrentTheme.ButtonBevel1);
             d.drawLine(2, 2, 2, h - 4); // L
             d.drawLine(3, 2, 3, h - 5); // L
             d.drawLine(4, 2, w - 4, 2); // T
             d.drawLine(4, 3, w - 5, 3); // T
-            d.setColor(button3DBottomRight);
+            d.setColor(CurrentTheme.ButtonBevel2);
             d.drawLine(w - 4, 3, w - 4, h - 3); // R
             d.drawLine(w - 3, 2, w - 3, h - 3); // R
             d.drawLine(3, h - 4, w - 5, h - 4); // B
             d.drawLine(2, h - 3, w - 5, h - 3); // B
-            d.setColor(buttonFill);
+            d.setColor(CurrentTheme.ButtonFiller);
             d.fillRect(4, 4, w - 8, h - 8);
         }
     }
     else
     {
-        d.setColor(buttonBorder);
+        d.setColor(CurrentTheme.ButtonBorder);
         d.drawLine(0, 1, 0, h - 2);         // L
         d.drawLine(1, 0, w - 2, 0);         // T
         d.drawLine(w - 1, 1, w - 1, h - 2); // R
         d.drawLine(1, h - 1, w - 2, h - 1); // B
-        d.setColor(button3DTopLeft);
+        d.setColor(CurrentTheme.ButtonBevel1);
         d.drawLine(1, 1, 1, h - 3); // L
         d.drawLine(2, 1, 2, h - 4); // L
         d.drawLine(3, 1, w - 3, 1); // T
         d.drawLine(3, 2, w - 4, 2); // T
-        d.setColor(button3DBottomRight);
+        d.setColor(CurrentTheme.ButtonBevel2);
         d.drawLine(w - 2, 1, w - 2, h - 2); // R
         d.drawLine(w - 3, 2, w - 3, h - 2); // R
         d.drawLine(2, h - 3, w - 4, h - 3); // B
         d.drawLine(1, h - 2, w - 4, h - 2); // B
-        d.setColor(buttonFill);
+        d.setColor(CurrentTheme.ButtonFiller);
         d.fillRect(3, 3, w - 6, h - 6);
     }
  // TODO delete old style once satisfied
