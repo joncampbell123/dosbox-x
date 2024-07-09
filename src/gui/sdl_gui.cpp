@@ -3172,8 +3172,8 @@ public:
         advopt->setChecked(section->Get_bool("show advanced options"));
 
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
-        (saveButton = new GUI::Button(this, 310, closerow_y, tmp1, 110, gridbtnheight))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 428, closerow_y, MSG_Get("CLOSE"), 110, gridbtnheight))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 276, closerow_y, tmp1, 130, gridbtnheight))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 408, closerow_y, MSG_Get("CLOSE"), 130, gridbtnheight))->addActionHandler(this);
 
         resize(gridbtnx + (xSpace * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
