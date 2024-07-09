@@ -250,10 +250,13 @@ struct ThemeLight : Theme
 {
     ThemeLight()
     {
+        Background   = 0xFFC0C7C8;
         ButtonFiller = 0xFFC0C7C8;
         ButtonBevel1 = 0xFFFFFFFF;
         ButtonBevel2 = 0xFF87888F;
         FocusColor   = 0xFF87888F;
+        TitleBar     = 0xFF0000A8;
+        TitleBarText = 0xFFFFFFFF;
     }
 };
 
