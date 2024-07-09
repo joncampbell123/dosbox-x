@@ -3776,6 +3776,10 @@ uint8_t imageDiskINT13Drive::Read_Sector(uint32_t head,uint32_t cylinder,uint32_
 		unsigned int s_ebx = reg_ebx;
 		unsigned int s_ecx = reg_ecx;
 		unsigned int s_edx = reg_edx;
+		unsigned int s_esi = reg_esi;
+		unsigned int s_edi = reg_edi;
+		unsigned int s_esp = reg_esp;
+		unsigned int s_ebp = reg_ebp;
 		unsigned int s_es  = SegValue(es);
 		unsigned int s_fl  = reg_flags;
 
@@ -3817,6 +3821,10 @@ again:
 		reg_ebx = s_ebx;
 		reg_ecx = s_ecx;
 		reg_edx = s_edx;
+		reg_esi = s_esi;
+		reg_edi = s_edi;
+		reg_esp = s_esp;
+		reg_ebp = s_ebp;
 		reg_flags = s_fl;
 		CPU_SetSegGeneral(es,s_es);
 
@@ -3896,6 +3904,10 @@ bool imageDiskINT13Drive::detectDiskChange(void) {
 		unsigned int s_ebx = reg_ebx;
 		unsigned int s_ecx = reg_ecx;
 		unsigned int s_edx = reg_edx;
+		unsigned int s_esi = reg_esi;
+		unsigned int s_edi = reg_edi;
+		unsigned int s_esp = reg_esp;
+		unsigned int s_ebp = reg_ebp;
 		unsigned int s_fl  = reg_flags;
 
 		reg_eax = 0x1600/*disk change detect*/;
@@ -3915,6 +3927,10 @@ bool imageDiskINT13Drive::detectDiskChange(void) {
 		reg_ebx = s_ebx;
 		reg_ecx = s_ecx;
 		reg_edx = s_edx;
+		reg_esi = s_esi;
+		reg_edi = s_edi;
+		reg_esp = s_esp;
+		reg_ebp = s_ebp;
 		reg_flags = s_fl;
 
 		busy = false;
