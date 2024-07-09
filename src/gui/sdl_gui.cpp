@@ -1084,9 +1084,9 @@ std::string CapName(std::string name) {
     else if (name=="dosv")
         dispname="DOS/V";
     else if (name=="ttf")
-        dispname="TTF Output";
+        dispname="TrueType";
     else if (name=="vsync")
-        dispname="V-Sync";
+        dispname="VSync";
     else if (name=="4dos")
         dispname="4DOS.INI";
     else if (name=="config")
@@ -1094,9 +1094,9 @@ std::string CapName(std::string name) {
     else if (name=="autoexec")
         dispname="AUTOEXEC.BAT";
     else if (name=="sblaster")
-        dispname="Sound Blaster";
+        dispname="SB";
     else if (name=="speaker")
-        dispname="PC Speaker";
+        dispname="PC speaker";
     else if (name=="serial")
         dispname="Serial";
     else if (name=="parallel")
@@ -1120,9 +1120,9 @@ std::string CapName(std::string name) {
     else if (name=="ide, octernary")
         dispname="IDE #8";
     else if (name=="ethernet, pcap")
-        dispname="Ethernet PCap";
+        dispname="pcap";
     else if (name=="ethernet, slirp")
-        dispname="Ethernet Slirp";
+        dispname="SLiRP";
     else
         dispname[0] = std::toupper(name[0]);
     return dispname;
@@ -1136,9 +1136,9 @@ std::string RestoreName(std::string name) {
         dispname="pc98";
     else if (name=="DOS/V")
         dispname="dosv";
-    else if (name=="TTF Output")
+    else if (name=="TrueType")
         dispname="ttf";
-    else if (name=="V-Sync")
+    else if (name=="VSync")
         dispname="vsync";
     else if (name=="4DOS.INI")
         dispname="4dos";
@@ -1146,9 +1146,9 @@ std::string RestoreName(std::string name) {
         dispname="config";
     else if (name=="AUTOEXEC.BAT")
         dispname="autoexec";
-    else if (name=="Sound Blaster")
+    else if (name=="SB")
         dispname="sblaster";
-    else if (name=="PC Speaker")
+    else if (name=="PC speaker")
         dispname="speaker";
     else if (name=="Serial")
         dispname="serial";
@@ -1172,9 +1172,9 @@ std::string RestoreName(std::string name) {
         dispname="ide, septernary";
     else if (name=="IDE #8")
         dispname="ide, octernary";
-    else if (name=="Ethernet PCap")
+    else if (name=="pcap")
         dispname="ethernet, pcap";
-    else if (name=="Ethernet Slirp")
+    else if (name=="SLiRP")
         dispname="ethernet, slirp";
     return dispname;
 }
