@@ -1,4 +1,8 @@
 NEXT
+  - S3 XGA emulation: Add XGA acceleration for 4bpp packed 16-color
+    SVGA modes. A CAD package has S3 support drivers that use the
+    16-color 4bpp packed modes and expects XGA acceleration to work.
+    (joncampbell123).
   - Add "-o int13" option to IMGMOUNT to direct the FAT driver to do
     all disk I/O through INT 13h instead of directly. This is intended
     for certain demoscene productions that apparently like to make
