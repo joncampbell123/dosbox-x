@@ -277,6 +277,7 @@ struct Theme
     uint32_t Shadow3D               = 0xFF808080;
     uint32_t Border                 = 0xFF000000;
     uint32_t SelectionBackground    = 0xFF000080;
+    uint32_t SelectionForeground    = 0xFFFFFFFF;
 };
 
 // Windows 3.1 theme
