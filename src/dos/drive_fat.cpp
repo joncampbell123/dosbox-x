@@ -3667,6 +3667,11 @@ void fatDrive::clusterChainMemory::clear(void) {
 void fatDrive::checkDiskChange(void) {
 	bool chg = false;
 
+	/* Hack for "Bliss" by DeathStar (1995).
+	 * The demo runs A:\GO.EXE, but the floppy disk doesn't actually exist, it's brought into
+	 * existence by intercepting INT 13h for floppy I/O and then expecting MS-DOS to call INT 13h
+	 * to read it. Furthermore, at some parts of the demo, the INT 13h hook changes the root
+	 * directory and FAT table to make the next "disk" appear, even if the volume label does not. */
 	if (loadedDisk->detectDiskChange() && !BPB.is_fat32()) {
 		LOG_MSG("FAT: disk change\n");
 
