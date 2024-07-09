@@ -58,7 +58,6 @@ int titlebox_y_height = 20;
 int titlebox_sysmenu_width = 20; // includes black divider line
 
 namespace Color {
-	RGB Light3D =			0xfffcfcfc;
 	RGB Shadow3D =			0xff808080;
 	RGB Border =			0xff000000;
 	RGB SelectionBackground =	0xff000080;
@@ -1087,7 +1086,7 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.drawLine(5,titlebox_y_start,width-7,titlebox_y_start);
 	d.drawLine(5,titlebox_y_start,5,titlebox_y_start+titlebox_y_height-2);
 
-	d.setColor(Color::Light3D);
+	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(1,1,width-3,1);
 	d.drawLine(1,1,1,height-3);
 
@@ -1456,7 +1455,7 @@ void Button::paint(Drawable& d) const
 		d.drawLine(1+offset,1+offset,width-3-offset,1+offset);
 		d.drawLine(1+offset,1+offset,1+offset,height-3-offset);
 
-		d.setColor(Color::Light3D);
+		d.setColor(CurrentTheme.Light3D);
 
 		d.drawLine(2+offset,2+offset,width-4-offset,2+offset);
 		d.drawLine(2+offset,2+offset,2+offset,height-4-offset);
@@ -1504,7 +1503,7 @@ void Checkbox::paint(Drawable &d) const
 	d.drawLine(2,(height/2)-7,13,(height/2)-7);
 	d.drawLine(2,(height/2)-7,2,(height/2)+5);
 
-	d.setColor(Color::Light3D);
+	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(2,(height/2)+5,14,(height/2)+5);
 	d.drawLine(14,(height/2)-7,14,(height/2)+5);
 
@@ -1560,7 +1559,7 @@ bool Radiobox::keyUp(const Key &key)
 
 void Radiobox::paint(Drawable &d) const
 {
-	d.setColor(Color::Light3D);
+	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(6,(height/2)+6,9,(height/2)+6);
 	d.drawLine(4,(height/2)+5,11,(height/2)+5);
 	d.drawLine(13,(height/2)-1,13,(height/2)+2);
@@ -1615,7 +1614,7 @@ void Menu::paint(Drawable &d) const
 	d.drawLine(0,height-2,width-2,height-2);
 	d.drawLine(width-2,0,width-2,height-2);
 
-	d.setColor(Color::Light3D);
+	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(1,1,width-3,1);
 	d.drawLine(1,1,1,height-3);
 
@@ -1639,7 +1638,7 @@ void Menu::paint(Drawable &d) const
 		if ((*i).empty()) {
 			d.setColor(Color::Shadow3D);
 			d.drawLine(x+1,y-asc+6,cwidth,y-asc+6);
-			d.setColor(Color::Light3D);
+			d.setColor(CurrentTheme.Light3D);
 			d.drawLine(x+1,y-asc+7,cwidth,y-asc+7);
 			y += 12;
         } else if (*i == "|") {
@@ -1653,7 +1652,7 @@ void Menu::paint(Drawable &d) const
 
                 d.setColor(Color::Shadow3D);
                 d.drawLine(x-2,2,x-2,this->height-4);
-                d.setColor(Color::Light3D);
+                d.setColor(CurrentTheme.Light3D);
                 d.drawLine(x-1,2,x-1,this->height-4);
             }
         } else {
@@ -1675,7 +1674,7 @@ void Menubar::paint(Drawable &d) const
 {
 	const Font *f = Font::getFont("menu");
 
-	d.setColor(Color::Light3D);
+	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(0,height-1,width-1,height-1);
 	d.setColor(Color::Shadow3D);
 	d.drawLine(0,height-2,width-1,height-2);
@@ -1730,7 +1729,7 @@ void Frame::paint(Drawable &d) const {
 	d.drawLine(2,height-3,width-3,height-3);
 	d.drawLine(width-3,top+1);
 	
-	d.setColor(Color::Light3D);
+	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(2,height-3,2,top+1);
 	d.drawLine(8,top+1);
 	d.drawLine((label.empty()?8:f->getWidth(label)+14),top+1,width-3,top+1);
@@ -2353,7 +2352,7 @@ void WindowInWindow::paintScrollBar3DInset(Drawable &dscroll, int x, int y, int 
 }
 
 void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const {
-    dscroll.setColor(Color::Light3D);
+    dscroll.setColor(CurrentTheme.Light3D);
     dscroll.drawLine(x,y,x+w-2,y);
     dscroll.drawLine(x,y,x,    y+h-2);
 
@@ -2391,7 +2390,7 @@ void WindowInWindow::paintScrollBarThumbDragOutline(Drawable &dscroll,const vscr
     int y = (drag_y - vsl.scrollthumbRegion.y) - ((vsl.thumbheight + 2) / 2);
     if (y < 0) y = 0;
     if (y > vsl.thumbtravel) y = vsl.thumbtravel;
-    dscroll.setColor(Color::Light3D);
+    dscroll.setColor(CurrentTheme.Light3D);
     dscroll.drawDotRect(x+vsl.scrollthumbRegion.x,y+vsl.scrollthumbRegion.y,vsl.thumbwidth-1,vsl.thumbheight-1);
 }
 
@@ -2477,7 +2476,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
         dchild.drawLine(0,0,w,0);
         dchild.drawLine(0,0,0,h);
 
-        dchild.setColor(Color::Light3D);
+        dchild.setColor(CurrentTheme.Light3D);
         dchild.drawLine(0,h,w,h);
         dchild.drawLine(w,0,w,h);
     }

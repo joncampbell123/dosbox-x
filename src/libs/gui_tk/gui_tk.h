@@ -273,6 +273,7 @@ struct Theme
     int32_t  FocusPadding           = 2;
     int32_t  FocusPaddingHorizontal = 1;
     uint32_t TextColor              = 0xFF000000;
+    uint32_t Light3D                = 0xFFFCFCFC;
 };
 
 // Windows 3.1 theme
