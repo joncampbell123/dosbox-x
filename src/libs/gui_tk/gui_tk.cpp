@@ -59,6 +59,8 @@ int titlebox_sysmenu_width = 20; // includes black divider line
 
 Theme CurrentTheme = ThemeLight();
 
+ThemeWindows31 DefaultTheme = ThemeWindows31();
+
 std::map<const char *,Font *,Font::ltstr> Font::registry;
 
 bool ToplevelWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
