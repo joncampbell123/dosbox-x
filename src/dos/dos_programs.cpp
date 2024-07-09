@@ -6114,10 +6114,10 @@ class IMGMOUNT : public Program {
 				if ((*i) == "int13") {
 					char buf[32];
 
-					if (drive >= 2)
-						sprintf(buf,"=%u",drive+0x80-2);
+					if (drive >= 'C')
+						sprintf(buf,"=%u",drive+0x80-'C');
 					else
-						sprintf(buf,"=%u",drive);
+						sprintf(buf,"=%u",drive-'A');
 
 					(*i) += buf;
 				}
@@ -6343,6 +6343,13 @@ class IMGMOUNT : public Program {
 							}
 						}
 					}
+				}
+
+				/* now that the image is attached to INT 13h the INT 13 image can use it now */
+				if (image->class_id == imageDisk::ID_INT13) {
+					imageDiskINT13Drive *x = (imageDiskINT13Drive*)image;
+					x->enable_int13 = true;
+					LOG_MSG("INT 13 image enabling calling");
 				}
 			}
 			return true;

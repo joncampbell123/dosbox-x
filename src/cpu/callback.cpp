@@ -691,6 +691,11 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress+0x01,(uint8_t)0xCF);		//An IRET Instruction
 		phys_writew(physAddress+0x02,(uint16_t)0x0ECD);		// int 0e
 		phys_writeb(physAddress+0x04,(uint8_t)0xCF);		//An IRET Instruction
+		// for the image disk support to call
+		phys_writew(physAddress+0x05,(uint16_t)0x13CD);		// int 13
+		phys_writeb(physAddress+0x07,0xFE);
+		phys_writeb(physAddress+0x08,0x38);
+		phys_writew(physAddress+0x09,(uint16_t)call_idle);
 		return (use_cb?9:5);
 	case CB_VESA_WAIT:
 		if (use_cb) E_Exit("VESA wait must not implement a callback handler!");

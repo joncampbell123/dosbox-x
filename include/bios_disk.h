@@ -594,7 +594,9 @@ public:
 	virtual ~imageDiskINT13Drive();
 
 	uint8_t bios_disk = 0;
+	bool enable_int13 = false;
 	imageDisk* subdisk = NULL;
+	bool busy = false;
 };
 
 #endif
