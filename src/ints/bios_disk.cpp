@@ -3748,11 +3748,27 @@ uint8_t imageDiskINT13Drive::Write_Sector(uint32_t head,uint32_t cylinder,uint32
 }
 
 uint8_t imageDiskINT13Drive::Read_AbsoluteSector(uint32_t sectnum, void * data) {
-	return subdisk->Read_AbsoluteSector(sectnum,data);
+	unsigned int c,h,s;
+
+	if (sectors == 0 || heads == 0)
+		return 0x05;
+
+	s = (sectnum % sectors) + 1;
+	h = (sectnum / sectors) % heads;
+	c = (sectnum / sectors / heads);
+	return Read_Sector(h,c,s,data);
 }
 
 uint8_t imageDiskINT13Drive::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
-	return subdisk->Write_AbsoluteSector(sectnum,data);
+	unsigned int c,h,s;
+
+	if (sectors == 0 || heads == 0)
+		return 0x05;
+
+	s = (sectnum % sectors) + 1;
+	h = (sectnum / sectors) % heads;
+	c = (sectnum / sectors / heads);
+	return Write_Sector(h,c,s,data);
 }
 
 void imageDiskINT13Drive::UpdateFloppyType(void) {
