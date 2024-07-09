@@ -58,7 +58,6 @@ int titlebox_y_height = 20;
 int titlebox_sysmenu_width = 20; // includes black divider line
 
 namespace Color {
-	RGB Border =			0xff000000;
 	RGB SelectionBackground =	0xff000080;
 	RGB SelectionForeground =	0xffffffff;
 	RGB EditableBackground =	0xffffffff;
@@ -1072,7 +1071,7 @@ void ToplevelWindow::paint(Drawable &d) const
 	unsigned int mask = (systemMenu->isVisible()?Color::RedMask|Color::GreenMask|Color::BlueMask:0);
 	d.clear(CurrentTheme.Background);
 
-	d.setColor(Color::Border);
+	d.setColor(CurrentTheme.Border);
 	d.drawLine(0,height-1,width-1,height-1);
 	d.drawLine(width-1,0,width-1,height-1);
 
@@ -1108,7 +1107,7 @@ void ToplevelWindow::paint(Drawable &d) const
         d.fillRect(x+1,y+1,w-2,h-2);
     }
 
-	d.setColor(Color::Border);
+	d.setColor(CurrentTheme.Border);
 	d.drawLine(6+titlebox_sysmenu_width-1,titlebox_y_start+1,6+titlebox_sysmenu_width-1,titlebox_y_start+titlebox_y_height-2);
 
     bool active = hasFocus();
@@ -1432,7 +1431,7 @@ void Button::paint(Drawable& d) const
 
 	if (hasFocus()) {
 		offset = 0;
-		d.setColor(Color::Border);
+		d.setColor(CurrentTheme.Border);
 		d.drawLine(0,0,width,0);
 		d.drawLine(0,0,0,height);
 
@@ -1464,7 +1463,7 @@ void Button::paint(Drawable& d) const
 		d.drawLine(2+offset,height-3-offset,width-2-offset,height-3-offset);
 		d.drawLine(width-3-offset,2+offset,width-3-offset,height-2-offset);
 
-		d.setColor(Color::Border);
+		d.setColor(CurrentTheme.Border);
 
 		d.drawLine(width-2-offset,1+offset,width-2-offset,height-2-offset);
 		d.drawLine(1+offset,height-2-offset,width-2-offset,height-2-offset);
@@ -1511,7 +1510,7 @@ void Checkbox::paint(Drawable &d) const
 		d.fillRect(4,(height/2)-5,9,9);
 	}
 
-	d.setColor(Color::Border);
+	d.setColor(CurrentTheme.Border);
 	d.drawLine(3,(height/2)-6,12,(height/2)-6);
 	d.drawLine(3,(height/2)-6,3,(height/2)+4);
 
@@ -1576,7 +1575,7 @@ void Radiobox::paint(Drawable &d) const
 	d.drawLine(2,(height/2)-1,2,(height/2)+2);
 	d.drawLine(3,(height/2)-3,3,(height/2)+4);
 
-	d.setColor(Color::Border);
+	d.setColor(CurrentTheme.Border);
 	d.drawLine(6,(height/2)-4,9,(height/2)-4);
 	d.drawLine(4,(height/2)-3,11,(height/2)-3);
 	d.drawLine(3,(height/2)-1,3,(height/2)+2);
@@ -1603,7 +1602,7 @@ void Menu::paint(Drawable &d) const
 {
 	d.clear(CurrentTheme.Background3D);
 
-	d.setColor(Color::Border);
+	d.setColor(CurrentTheme.Border);
 	d.drawLine(0,height-1,width-1,height-1);
 	d.drawLine(width-1,0,width-1,height-1);
 
