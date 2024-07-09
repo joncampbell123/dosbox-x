@@ -3150,8 +3150,11 @@ public:
         int btnperrow = 4;
         int i = 0;
 
+        const auto xSpace = gridbtnwidth + 2;
+        const auto ySpace = gridbtnheight + 2;
+        
         std::function< std::pair<int,int>(const int) > gridfunc = [&/*access to locals here*/](const int i){
-            return std::pair<int,int>(gridbtnx+(i%btnperrow)*gridbtnwidth, gridbtny+(i/btnperrow)*gridbtnheight);
+            return std::pair<int,int>(gridbtnx+(i%btnperrow)*xSpace, gridbtny+(i/btnperrow)*ySpace);
         };
 
         while ((sec = control->GetSection(i))) {
@@ -3167,13 +3170,13 @@ public:
         }
 
         const auto finalgridpos = gridfunc(i - 1);
-        int closerow_y = finalgridpos.second + 5 + gridbtnheight;
+        int closerow_y = finalgridpos.second + 5 + ySpace;
 
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
         (saveButton = new GUI::Button(this, 158, closerow_y, tmp1, 110))->addActionHandler(this);
         (closeButton = new GUI::Button(this, 276, closerow_y, MSG_Get("CLOSE"), 110))->addActionHandler(this);
 
-        resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
+        resize(gridbtnx + (xSpace * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
 
         bar->resize(getWidth(),bar->getHeight());
