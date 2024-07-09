@@ -279,6 +279,10 @@ struct Theme
     uint32_t SelectionBackground    = 0xFF000080;
     uint32_t SelectionForeground    = 0xFFFFFFFF;
     uint32_t EditableBackground     = 0xFFFFFFFF;
+    uint32_t TitleBar               = 0xFFA4C8F0;
+    uint32_t TitleBarText           = 0xFF000000;
+    uint32_t TitleBarInactive       = 0xFFFFFFFF;
+    uint32_t TitleBarInactiveText   = 0xFF000000;
 };
 
 // Windows 3.1 theme
