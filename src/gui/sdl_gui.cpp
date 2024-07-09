@@ -1097,6 +1097,10 @@ std::string CapName(std::string name) {
         dispname="SB";
     else if (name=="speaker")
         dispname="PC speaker";
+    else if (name=="imfc")
+        dispname="IMFC";
+    else if (name=="innova")
+        dispname="SSI-2001";
     else if (name=="serial")
         dispname="Serial";
     else if (name=="parallel")
@@ -1150,6 +1154,10 @@ std::string RestoreName(std::string name) {
         dispname="sblaster";
     else if (name=="PC speaker")
         dispname="speaker";
+    else if (name=="IMFC")
+        dispname="imfc";
+    else if (name=="SSI-2001")
+        dispname="innova";
     else if (name=="Serial")
         dispname="serial";
     else if (name=="Parallel")
