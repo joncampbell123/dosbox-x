@@ -3713,6 +3713,11 @@ void fatDrive::checkDiskChange(void) {
 		firstDataSector = ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
 		firstRootDirSect = (Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)partSectOff;
 
+		cwdDirCluster = 0;
+
+		memset(fatSectBuffer,0,1024);
+		curFatSect = 0xffffffff;
+
 		LOG_MSG("NEW FAT: data=%llu root=%llu rootdirsect=%lu datasect=%lu",
 			(unsigned long long)firstDataSector,(unsigned long long)firstRootDirSect,
 			(unsigned long)RootDirSectors,(unsigned long)DataSectors);
