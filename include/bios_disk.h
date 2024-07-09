@@ -52,7 +52,8 @@ class imageDisk {
 			ID_VHD,
 			ID_D88,
 			ID_NFD,
-			ID_EMPTY_DRIVE
+			ID_EMPTY_DRIVE,
+			ID_INT13
 		};
 
 		virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
@@ -572,5 +573,28 @@ void LogPrintPartitionTable(const std::vector<partTable::partentry_t> &parts);
 extern unsigned char INT13_ElTorito_NoEmuDriveNumber;
 extern signed char INT13_ElTorito_IDEInterface;
 extern char INT13_ElTorito_NoEmuCDROMDrive;
+
+class imageDiskINT13Drive : public imageDisk {
+public:
+	uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0) override;
+	uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0) override;
+	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
+	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
+
+	void UpdateFloppyType(void) override;
+	void Set_Reserved_Cylinders(Bitu resCyl) override;
+	uint32_t Get_Reserved_Cylinders() override;
+	void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) override;
+	void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize) override;
+	uint8_t GetBiosType(void) override;
+	uint32_t getSectSize(void) override;
+	bool detectDiskChange(void) override;
+
+	imageDiskINT13Drive(imageDisk *sdisk);
+	virtual ~imageDiskINT13Drive();
+
+	uint8_t bios_disk = 0;
+	imageDisk* subdisk = NULL;
+};
 
 #endif

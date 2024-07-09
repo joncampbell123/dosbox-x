@@ -6110,6 +6110,19 @@ class IMGMOUNT : public Program {
 				return false;
 			}
 
+			for (auto i=options.begin();i!=options.end();i++) {
+				if ((*i) == "int13") {
+					char buf[32];
+
+					if (drive >= 2)
+						sprintf(buf,"=%u",drive+0x80-2);
+					else
+						sprintf(buf,"=%u",drive);
+
+					(*i) += buf;
+				}
+			}
+
 			bool imgsizedetect = isHardDrive && sizes[0] == 0;
 			int mediaid = -1;
 
