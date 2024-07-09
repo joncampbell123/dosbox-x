@@ -2336,7 +2336,7 @@ public:
 		(void)y;//UNUSED
 
 		if (button == Left) {
-			border_left = 7; border_right = 5; border_top = 7; border_bottom = 3;
+			border_left = 7; border_right = 7; border_top = 6; border_bottom = 6;
 			pressed = true;
 		}
 		return true;
