@@ -62,7 +62,6 @@ namespace Color {
 	RGB Light3D =			0xfffcfcfc;
 	RGB Shadow3D =			0xff808080;
 	RGB Border =			0xff000000;
-	RGB Text =			0xff000000;
 	RGB Background =		0xffc0c0c0;
 	RGB SelectionBackground =	0xff000080;
 	RGB SelectionForeground =	0xffffffff;
@@ -1167,7 +1166,7 @@ void Input::paint(Drawable &d) const
 	d.drawLine(1,height-2,width-2,height-2);
 	d.drawLine(width-2,1,width-2,height-2);
 
-	d.setColor(Color::Text);
+	d.setColor(CurrentTheme.TextColor);
 	d.drawLine(1,1,width-3,1);
 	d.drawLine(1,1,1,height-3);
 
@@ -1196,7 +1195,7 @@ void Input::paint(Drawable &d) const
 		dr.drawText(sx, sy, text, multi, start, end-start);
 	}
 
-	dr.setColor(Color::Text);
+	dr.setColor(CurrentTheme.TextColor);
 
 	dr.drawText(text, multi, end);
 
@@ -1526,7 +1525,7 @@ void Checkbox::paint(Drawable &d) const
 	}
 
 	if (checked) {
-		d.setColor(Color::Text);
+		d.setColor(CurrentTheme.TextColor);
 		d.drawLine(5,(height/2)-2,7,(height/2)  );
 		d.drawLine(11,(height/2)-4);
 		d.drawLine(5,(height/2)-1,7,(height/2)+1);
@@ -1598,7 +1597,7 @@ void Radiobox::paint(Drawable &d) const
 	}
 
 	if (checked) {
-		d.setColor(Color::Text);
+		d.setColor(CurrentTheme.TextColor);
 		d.fillRect(6,(height/2),4,2);
 		d.fillRect(7,(height/2)-1,2,4);
 	}
@@ -1665,7 +1664,7 @@ void Menu::paint(Drawable &d) const
 				d.fillRect(x,y-asc,cwidth,height);
 				d.setColor(Color::SelectionForeground);
 			} else {
-				d.setColor(Color::Text);
+				d.setColor(CurrentTheme.TextColor);
 			}
 			d.drawText(x+17,y,(*i),false,0);
 			y += height;
@@ -1694,7 +1693,7 @@ void Menubar::paint(Drawable &d) const
 			d.setColor(Color::SelectionForeground);
 			d.gotoXY(d.getX()+7,f->getAscent()+2);
 		} else {
-			d.setColor(Color::Text);
+			d.setColor(CurrentTheme.TextColor);
 		}
 		d.drawText((*i)->getName(),false);
 		d.gotoXY(d.getX()+14,f->getAscent()+2);
@@ -1740,7 +1739,7 @@ void Frame::paint(Drawable &d) const {
 	d.drawLine(2,height-2,width-2,height-2);
 	d.drawLine(width-2,top+1);
 
-	d.setColor(Color::Text);
+	d.setColor(CurrentTheme.TextColor);
 	d.drawText(11,f->getAscent()+1,label,false,0);
 }
 
