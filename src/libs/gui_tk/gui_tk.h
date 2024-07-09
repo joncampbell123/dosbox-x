@@ -270,6 +270,7 @@ struct Theme
     uint32_t FocusColor             = 0xFF000000;
     int32_t  FocusPadding           = 2;
     int32_t  FocusPaddingHorizontal = 1;
+    uint32_t TextColor              = 0xFF000000;
 };
 
 // Windows 3.1 theme
@@ -1655,7 +1656,7 @@ public:
 
 	/// Create a text label with given position, \p text, \p font and \p color.
 	/** If \p width is given, the resulting label is a word-wrapped multiline label */
-	template <typename STR> Label(Window *parent, int x, int y, const STR text, int width = 0, const Font *font = Font::getFont("default"), RGB color = Color::Text) :
+	template <typename STR> Label(Window *parent, int x, int y, const STR text, int width = 0, const Font *font = Font::getFont("default"), RGB color = CurrentTheme.TextColor) :
 		Window(parent, x, y, (width?width:1), 1), font(font), color(color), text(text), interpret(width != 0)
 	{ Label::resize(); tabbable = false; }
 
