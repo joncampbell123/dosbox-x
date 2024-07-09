@@ -85,6 +85,10 @@ class imageDisk {
 		bool hardDrive = false;
 		uint64_t diskSizeK = 0;
 		FILE* diskimg = NULL;
+		bool diskChangeFlag = false;
+
+		/* this is intended only for when the disk can change out from under us while mounted */
+		virtual bool detectDiskChange(void) { const bool r = diskChangeFlag; diskChangeFlag = false; return r; }
 
 	protected:
 		imageDisk(IMAGE_TYPE class_id);
