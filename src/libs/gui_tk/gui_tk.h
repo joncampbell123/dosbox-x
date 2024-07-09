@@ -1648,6 +1648,9 @@ public:
 	/// Retrieve current color
 	RGB getColor() { return color; }
 
+    static constexpr auto FocusInner = 2;          // TODO extract style
+    static constexpr auto FocusColor = 0xFF87888F; // TODO extract style
+
 	/// Calculate label size. Parameters are ignored.
 	void resize(int w = -1, int h = -1) override {
         (void)h;//UNUSED
@@ -1658,13 +1661,24 @@ public:
 		d.drawText(0, font->getAscent(), text, interpret, 0);
 		if (interpret) Window::resize(w, d.getY()-font->getAscent()+font->getHeight());
 		else Window::resize(d.getX(), font->getHeight());
-	}
+
+	    // override non-interpreted so as focus adapts itself better to text
+	    // one depends on the other, that's fundamentally wrong but well ...
+	    // that said, it's pretty darn close to how it looks in Windows 3.11
+        if (interpret == false)
+        {
+            const auto tw = font->getWidth(this->text);
+            const auto th = font->getHeight();
+            constexpr auto px = 1; // font-specific fix
+            Window::resize(tw + FocusInner + px, th + FocusInner);
+        }
+    }
 
 	/// Returns \c true if this window has currently the keyboard focus.
 	bool hasFocus() const override { return allow_focus && Window::hasFocus(); }
 
 	/// Paint label
-	void paint(Drawable &d) const override { d.setColor(color); d.drawText(0, font->getAscent(), text, interpret, 0); if (hasFocus()) d.drawDotRect(0,0,width-1,height-1); }
+	void paint(Drawable &d) const override { d.setColor(color); d.drawText(FocusInner, FocusInner + font->getAscent(), text, interpret, 0); if (hasFocus()) { d.setColor(FocusColor); d.drawDotRect(0,0,width-1,height-1);} }
 
 	bool raise() override { return false; }
 };
