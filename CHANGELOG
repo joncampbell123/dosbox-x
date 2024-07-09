@@ -1,4 +1,10 @@
 NEXT
+  - Add "-o int13" option to IMGMOUNT to direct the FAT driver to do
+    all disk I/O through INT 13h instead of directly. This is intended
+    for certain demoscene productions that apparently like to make
+    files appear out of thin air by intercepting INT 13h floppy disk
+    I/O and then asking MS-DOS to run something from it. Hack for
+    "DS_BLISS" demo. (joncampbell123).
   - add option "[dos] automount drive directories" for Windows builds,
     this will mount existing drive directories from C to Y drive (aybe).
   - fix off-center and off-screen window after entering the

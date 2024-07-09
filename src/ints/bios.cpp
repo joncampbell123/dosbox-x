@@ -9352,6 +9352,8 @@ void BuildACPITable(void) {
 	rsdt_tw.finish();
 }
 
+extern unsigned int INT13Xfer;
+
 class BIOS:public Module_base{
 private:
     static Bitu cb_bios_post__func(void) {
@@ -9370,6 +9372,7 @@ private:
 	INT13_ElTorito_NoEmuDriveNumber = 0;
 	INT13_ElTorito_NoEmuCDROMDrive = 0;
 	INT13_ElTorito_IDEInterface = -1;
+	INT13Xfer = 0;
 
 	ACPI_mem_enable(false);
 	ACPI_REGION_SIZE = 0;
