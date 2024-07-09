@@ -1374,7 +1374,6 @@ void Button::paint(Drawable& d) const
     d.setColor(0xFFFF00FF);
     d.fillRect(0, 0, width, height);
 #endif
-    // this time we draw exact requested size // TODO adjust other parts
     const auto w = width;
     const auto h = height;
 
