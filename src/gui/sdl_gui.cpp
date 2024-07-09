@@ -3137,10 +3137,6 @@ public:
         bar->addItem(2,mainMenu.get_item("help_about").get_text().c_str());
         bar->addActionHandler(this);
 
-        advopt = new GUI::Checkbox(this, 340, 30, MSG_Get("SHOW_ADVOPT"));
-        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-        advopt->setChecked(section->Get_bool("show advanced options"));
-
         Section *sec;
         int gridbtnwidth = 130;
         int gridbtnheight = 26;
@@ -3171,9 +3167,13 @@ public:
         const auto finalgridpos = gridfunc(i - 1);
         int closerow_y = finalgridpos.second + 5 + ySpace;
 
+        advopt = new GUI::Checkbox(this, gridbtnx, closerow_y, MSG_Get("SHOW_ADVOPT"));
+        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        advopt->setChecked(section->Get_bool("show advanced options"));
+
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
-        (saveButton = new GUI::Button(this, 158, closerow_y, tmp1, 110))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 276, closerow_y, MSG_Get("CLOSE"), 110))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 310, closerow_y, tmp1, 110, gridbtnheight))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 428, closerow_y, MSG_Get("CLOSE"), 110, gridbtnheight))->addActionHandler(this);
 
         resize(gridbtnx + (xSpace * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
