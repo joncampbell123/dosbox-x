@@ -2495,6 +2495,8 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, uint16_t attributes
 
 	if (unformatted) return false;
 
+	checkDiskChange();
+
     if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -2598,6 +2600,8 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, uint16_t attributes
 bool fatDrive::FileExists(const char *name) {
 	if (unformatted) return false;
 
+	checkDiskChange();
+
     direntry fileEntry = {};
 	uint32_t dummy1, dummy2;
 	uint16_t save_errorcode = dos.errorcode;
@@ -2608,6 +2612,8 @@ bool fatDrive::FileExists(const char *name) {
 
 bool fatDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 	if (unformatted) return false;
+
+	checkDiskChange();
 
     direntry fileEntry = {};
 	uint32_t dirClust, subEntry;
@@ -2638,6 +2644,8 @@ bool fatDrive::FileStat(const char * /*name*/, FileStat_Block *const /*stat_bloc
 
 bool fatDrive::FileUnlink(const char * name) {
 	if (unformatted) return false;
+
+	checkDiskChange();
 
     if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
@@ -2687,6 +2695,8 @@ bool fatDrive::FileUnlink(const char * name) {
 
 bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool fcb_findfirst) {
 	if (unformatted) return false;
+
+	checkDiskChange();
 
     direntry dummyClust = {};
 
@@ -3050,6 +3060,8 @@ bool fatDrive::FindNext(DOS_DTA &dta) {
 bool fatDrive::SetFileAttr(const char *name, uint16_t attr) {
 	if (unformatted) return false;
 
+	checkDiskChange();
+
     if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -3354,6 +3366,8 @@ void fatDrive::zeroOutCluster(uint32_t clustNumber) {
 bool fatDrive::MakeDir(const char *dir) {
 	if (unformatted) return false;
 
+	checkDiskChange();
+
 	const char *lfn = NULL;
 
     if (readonly) {
@@ -3459,6 +3473,8 @@ bool fatDrive::MakeDir(const char *dir) {
 bool fatDrive::RemoveDir(const char *dir) {
 	if (unformatted) return false;
 
+	checkDiskChange();
+
 	if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
 		return false;
@@ -3529,6 +3545,8 @@ bool fatDrive::RemoveDir(const char *dir) {
 
 bool fatDrive::Rename(const char * oldname, const char * newname) {
 	if (unformatted) return false;
+
+	checkDiskChange();
 
 	const char *lfn = NULL;
 
@@ -3644,5 +3662,60 @@ uint32_t fatDrive::GetHighestClusterNumber(void) {
 void fatDrive::clusterChainMemory::clear(void) {
 	current_cluster_no = 0;
 	current_cluster_index = 0;
+}
+
+void fatDrive::checkDiskChange(void) {
+	bool chg = false;
+
+	if (loadedDisk->detectDiskChange() && !BPB.is_fat32()) {
+		LOG_MSG("FAT: disk change\n");
+
+		FAT_BootSector bootbuffer = {};
+		loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
+
+		void* var = &bootbuffer.bpb.v.BPB_BytsPerSec;
+		bootbuffer.bpb.v.BPB_BytsPerSec = var_read((uint16_t*)var);
+		var = &bootbuffer.bpb.v.BPB_RsvdSecCnt;
+		bootbuffer.bpb.v.BPB_RsvdSecCnt = var_read((uint16_t*)var);
+		var = &bootbuffer.bpb.v.BPB_RootEntCnt;
+		bootbuffer.bpb.v.BPB_RootEntCnt = var_read((uint16_t*)var);
+		var = &bootbuffer.bpb.v.BPB_TotSec16;
+		bootbuffer.bpb.v.BPB_TotSec16 = var_read((uint16_t*)var);
+		var = &bootbuffer.bpb.v.BPB_FATSz16;
+		bootbuffer.bpb.v.BPB_FATSz16 = var_read((uint16_t*)var);
+		var = &bootbuffer.bpb.v.BPB_SecPerTrk;
+		bootbuffer.bpb.v.BPB_SecPerTrk = var_read((uint16_t*)var);
+		var = &bootbuffer.bpb.v.BPB_NumHeads;
+		bootbuffer.bpb.v.BPB_NumHeads = var_read((uint16_t*)var);
+		var = &bootbuffer.bpb.v.BPB_HiddSec;
+		bootbuffer.bpb.v.BPB_HiddSec = var_read((uint32_t*)var);
+		var = &bootbuffer.bpb.v.BPB_TotSec32;
+		bootbuffer.bpb.v.BPB_TotSec32 = var_read((uint32_t*)var);
+		var = &bootbuffer.bpb.v.BPB_VolID;
+		bootbuffer.bpb.v.BPB_VolID = var_read((uint32_t*)var);
+
+		if (BPB.v.BPB_FATSz16 == 0) {
+			LOG_MSG("BPB_FATSz16 == 0 and not FAT32 BPB, not valid");
+			return;
+		}
+
+		uint32_t RootDirSectors;
+		uint32_t DataSectors;
+
+		RootDirSectors = ((BPB.v.BPB_RootEntCnt * 32u) + (BPB.v.BPB_BytsPerSec - 1u)) / BPB.v.BPB_BytsPerSec;
+
+		if (BPB.v.BPB_TotSec16 != 0)
+			DataSectors = (Bitu)BPB.v.BPB_TotSec16 - ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors);
+		else
+			DataSectors = (Bitu)BPB.v.BPB_TotSec32 - ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors);
+
+		CountOfClusters = DataSectors / BPB.v.BPB_SecPerClus;
+		firstDataSector = ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
+		firstRootDirSect = (Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)partSectOff;
+
+		LOG_MSG("NEW FAT: data=%llu root=%llu rootdirsect=%lu datasect=%lu",
+			(unsigned long long)firstDataSector,(unsigned long long)firstRootDirSect,
+			(unsigned long)RootDirSectors,(unsigned long)DataSectors);
+	}
 }
 

@@ -30,6 +30,7 @@
 #include "../dos/drives.h"
 #include "mapper.h"
 #include "ide.h"
+#include "cpu.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -3739,11 +3740,95 @@ imageDiskEmptyDrive::~imageDiskEmptyDrive() {
 
 /////
 
+unsigned int INT13Xfer = 0;
+size_t INT13XferSize = 4096;
+
+static void imageDiskCallINT13(void) {
+	unsigned int rv = CALLBACK_RealPointer(call_int13);
+	Bitu oldIF=GETFLAG(IF);
+	SETFLAGBIT(IF,true);
+	uint16_t oldcs=SegValue(cs);
+	uint32_t oldeip=reg_eip;
+	SegSet16(cs,rv>>16);
+	reg_eip=(rv&0xFFFF)+4+5;
+	DOSBOX_RunMachine();
+	reg_eip=oldeip;
+	SegSet16(cs,oldcs);
+	SETFLAGBIT(IF,oldIF);
+}
+
 uint8_t imageDiskINT13Drive::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
-	return subdisk->Read_Sector(head,cylinder,sector,data,req_sector_size);
+	if (!enable_int13 || busy) return subdisk->Read_Sector(head,cylinder,sector,data,req_sector_size);
+
+	uint8_t ret = 0x05;
+	unsigned int retry = 3;
+
+	if (req_sector_size == 0) req_sector_size = sector_size;
+
+//	LOG_MSG("INT13 read C/H/S %u/%u/%u busy=%u",cylinder,head,sector,busy);
+
+	if (!busy && sector_size == req_sector_size && sector_size <= INT13XferSize) {
+		busy = true;
+
+		if (INT13Xfer == 0) INT13Xfer = DOS_GetMemory(INT13XferSize/16u,"INT 13 transfer buffer");
+
+		unsigned int s_eax = reg_eax;
+		unsigned int s_ebx = reg_ebx;
+		unsigned int s_ecx = reg_ecx;
+		unsigned int s_edx = reg_edx;
+		unsigned int s_es  = SegValue(es);
+		unsigned int s_fl  = reg_flags;
+
+again:
+		reg_eax = 0x200/*read command*/ | 1/*count*/;
+		reg_ebx = 0;
+		reg_ch = cylinder;
+		reg_cl = sector;
+		reg_dh = head;
+		reg_dl = bios_disk;
+		CPU_SetSegGeneral(es,INT13Xfer);
+
+		imageDiskCallINT13();
+
+		if (reg_flags & FLAG_CF) {
+			ret = reg_ah;
+			if (ret == 0) ret = 0x05;
+
+			if (ret == 6/*disk change*/) {
+				diskChangeFlag = true;
+				if (--retry > 0) goto again;
+			}
+		}
+		else {
+			MEM_BlockRead32(INT13Xfer<<4,data,sector_size);
+			data = (void*)((char*)data + sector_size);
+			if ((++sector) >= (sectors + 1)) {
+				assert(sector == (sectors + 1));
+				sector = 1;
+				if ((++head) >= heads) {
+					assert(head == heads);
+					head = 0;
+					cylinder++;
+				}
+			}
+		}
+
+		reg_eax = s_eax;
+		reg_ebx = s_ebx;
+		reg_ecx = s_ecx;
+		reg_edx = s_edx;
+		reg_flags = s_fl;
+		CPU_SetSegGeneral(es,s_es);
+
+		busy = false;
+	}
+
+	return ret;
 }
 
 uint8_t imageDiskINT13Drive::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
+	if (INT13Xfer == 0) INT13Xfer = DOS_GetMemory(INT13XferSize/16u,"INT 13 transfer buffer");
+
 	return subdisk->Write_Sector(head,cylinder,sector,data,req_sector_size);
 }
 
@@ -3804,7 +3889,38 @@ uint32_t imageDiskINT13Drive::getSectSize(void) {
 }
 
 bool imageDiskINT13Drive::detectDiskChange(void) {
-	return subdisk->detectDiskChange();
+	if (enable_int13 && !busy) {
+		busy = true;
+
+		unsigned int s_eax = reg_eax;
+		unsigned int s_ebx = reg_ebx;
+		unsigned int s_ecx = reg_ecx;
+		unsigned int s_edx = reg_edx;
+		unsigned int s_fl  = reg_flags;
+
+		reg_eax = 0x1600/*disk change detect*/;
+		reg_dl = bios_disk;
+		CPU_SetSegGeneral(es,INT13Xfer);
+
+		imageDiskCallINT13();
+
+		if (reg_flags & FLAG_CF) {
+			if (reg_ah == 0x06) {
+				LOG_MSG("INT13 image disk change flag\n");
+				diskChangeFlag = true;
+			}
+		}
+
+		reg_eax = s_eax;
+		reg_ebx = s_ebx;
+		reg_ecx = s_ecx;
+		reg_edx = s_edx;
+		reg_flags = s_fl;
+
+		busy = false;
+	}
+
+	return imageDisk::detectDiskChange();
 }
 
 imageDiskINT13Drive::imageDiskINT13Drive(imageDisk *sdisk) : imageDisk(ID_INT13) {
