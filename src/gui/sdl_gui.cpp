@@ -1098,27 +1098,27 @@ std::string CapName(std::string name) {
     else if (name=="speaker")
         dispname="PC Speaker";
     else if (name=="serial")
-        dispname="Serial Ports";
+        dispname="Serial";
     else if (name=="parallel")
-        dispname="Parallel Ports";
+        dispname="Parallel";
     else if (name=="fdc, primary")
-        dispname="Floppy Port #1";
+        dispname="Floppy";
     else if (name=="ide, primary")
-        dispname="IDE Port #1";
+        dispname="IDE #1";
     else if (name=="ide, secondary")
-        dispname="IDE Port #2";
+        dispname="IDE #2";
     else if (name=="ide, tertiary")
-        dispname="IDE Port #3";
+        dispname="IDE #3";
     else if (name=="ide, quaternary")
-        dispname="IDE Port #4";
+        dispname="IDE #4";
     else if (name=="ide, quinternary")
-        dispname="IDE Port #5";
+        dispname="IDE #5";
     else if (name=="ide, sexternary")
-        dispname="IDE Port #6";
+        dispname="IDE #6";
     else if (name=="ide, septernary")
-        dispname="IDE Port #7";
+        dispname="IDE #7";
     else if (name=="ide, octernary")
-        dispname="IDE Port #8";
+        dispname="IDE #8";
     else if (name=="ethernet, pcap")
         dispname="Ethernet PCap";
     else if (name=="ethernet, slirp")
@@ -1150,27 +1150,27 @@ std::string RestoreName(std::string name) {
         dispname="sblaster";
     else if (name=="PC Speaker")
         dispname="speaker";
-    else if (name=="Serial Ports")
+    else if (name=="Serial")
         dispname="serial";
-    else if (name=="Parallel Ports")
+    else if (name=="Parallel")
         dispname="parallel";
-    else if (name=="Floppy Port #1")
+    else if (name=="Floppy")
         dispname="fdc, primary";
-    else if (name=="IDE Port #1")
+    else if (name=="IDE #1")
         dispname="ide, primary";
-    else if (name=="IDE Port #2")
+    else if (name=="IDE #2")
         dispname="ide, secondary";
-    else if (name=="IDE Port #3")
+    else if (name=="IDE #3")
         dispname="ide, tertiary";
-    else if (name=="IDE Port #4")
+    else if (name=="IDE #4")
         dispname="ide, quaternary";
-    else if (name=="IDE Port #5")
+    else if (name=="IDE #5")
         dispname="ide, quinternary";
-    else if (name=="IDE Port #6")
+    else if (name=="IDE #6")
         dispname="ide, sexternary";
-    else if (name=="IDE Port #7")
+    else if (name=="IDE #7")
         dispname="ide, septernary";
-    else if (name=="IDE Port #8")
+    else if (name=="IDE #8")
         dispname="ide, octernary";
     else if (name=="Ethernet PCap")
         dispname="ethernet, pcap";
