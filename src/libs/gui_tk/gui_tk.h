@@ -260,6 +260,32 @@ static inline unsigned int A(RGB val) { return ((val&Color::AlphaMask)>>Color::A
 
 }
 
+struct Theme
+    // TODO gather others colors
+{
+    uint32_t ButtonBorder           = 0xFF000000;
+    uint32_t ButtonFiller           = 0xFF808080;
+    uint32_t ButtonBevel1           = 0xFFFFFFFF;
+    uint32_t ButtonBevel2           = 0xFFC0C0C0;
+    uint32_t FocusColor             = 0xFF000000;
+    int32_t  FocusPadding           = 2;
+    int32_t  FocusPaddingHorizontal = 1;
+};
+
+// Windows 3.1 theme
+struct ThemeLight : Theme
+{
+    ThemeLight()
+    {
+        ButtonFiller = 0xFFC0C7C8;
+        ButtonBevel1 = 0xFFFFFFFF;
+        ButtonBevel2 = 0xFF87888F;
+        FocusColor   = 0xFF87888F;
+    }
+};
+
+extern Theme CurrentTheme;
+
 /// Identifies a mouse button.
 enum MouseButton { NoButton, Left, Right, Middle, WheelUp, WheelDown, WheelLeft, WheelRight };
 
@@ -1648,9 +1674,6 @@ public:
 	/// Retrieve current color
 	RGB getColor() { return color; }
 
-    static constexpr auto FocusInner = 2;          // TODO extract style
-    static constexpr auto FocusColor = 0xFF87888F; // TODO extract style
-
 	/// Calculate label size. Parameters are ignored.
 	void resize(int w = -1, int h = -1) override {
         (void)h;//UNUSED
@@ -1669,16 +1692,26 @@ public:
         {
             const auto tw = font->getWidth(this->text);
             const auto th = font->getHeight();
-            constexpr auto px = 1; // font-specific fix
-            Window::resize(tw + FocusInner + px, th + FocusInner);
+            Window::resize(tw + CurrentTheme.FocusPadding + CurrentTheme.FocusPaddingHorizontal, th + CurrentTheme.FocusPadding);
         }
     }
 
 	/// Returns \c true if this window has currently the keyboard focus.
 	bool hasFocus() const override { return allow_focus && Window::hasFocus(); }
 
-	/// Paint label
-	void paint(Drawable &d) const override { d.setColor(color); d.drawText(FocusInner, FocusInner + font->getAscent(), text, interpret, 0); if (hasFocus()) { d.setColor(FocusColor); d.drawDotRect(0,0,width-1,height-1);} }
+    /// Paint label
+    void paint(Drawable& d) const override
+    {
+        d.setColor(color);
+
+        d.drawText(CurrentTheme.FocusPadding, CurrentTheme.FocusPadding + font->getAscent(), text, interpret, 0);
+
+        if(hasFocus())
+        {
+            d.setColor(CurrentTheme.FocusColor);
+            d.drawDotRect(0, 0, width - 1, height - 1);
+        }
+    }
 
 	bool raise() override { return false; }
 };
