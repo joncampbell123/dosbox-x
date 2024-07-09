@@ -263,7 +263,8 @@ static inline unsigned int A(RGB val) { return ((val&Color::AlphaMask)>>Color::A
 struct Theme
     // TODO gather others colors
 {
-    uint32_t Background3D           = 0xFFC0C0C0;
+    uint32_t Background             = 0xFFC0C0C0; // TODO this is confusing
+    uint32_t Background3D           = 0xFFC0C0C0; // TODO this is confusing
     uint32_t ButtonBorder           = 0xFF000000;
     uint32_t ButtonFiller           = 0xFF808080;
     uint32_t ButtonBevel1           = 0xFFFFFFFF;
