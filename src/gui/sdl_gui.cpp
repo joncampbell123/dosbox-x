@@ -3144,7 +3144,7 @@ public:
 
         Section *sec;
         int gridbtnwidth = 130;
-        int gridbtnheight = 28;
+        int gridbtnheight = 26;
         int gridbtnx = 12;
         int gridbtny = 50;
         int btnperrow = 4;
