@@ -58,7 +58,6 @@ int titlebox_y_height = 20;
 int titlebox_sysmenu_width = 20; // includes black divider line
 
 namespace Color {
-	RGB SelectionBackground =	0xff000080;
 	RGB SelectionForeground =	0xffffffff;
 	RGB EditableBackground =	0xffffffff;
 	RGB Titlebar =			0xffa4c8f0;
@@ -1179,7 +1178,7 @@ void Input::paint(Drawable &d) const
 	int ex = dr.getX(), ey = dr.getY();
 
 	if (sx != ex || sy != ey) {
-		dr.setColor(Color::SelectionBackground);
+		dr.setColor(CurrentTheme.SelectionBackground);
 		if (sy == ey) dr.fillRect(sx,sy-f->getAscent(),ex-sx,f->getHeight()+1);
 		else {
 			dr.fillRect(sx, sy-f->getAscent(),		width-sx+offset, f->getHeight()	);
@@ -1655,7 +1654,7 @@ void Menu::paint(Drawable &d) const
             }
         } else {
 			if (index == selected && hasFocus()) {
-				d.setColor(Color::SelectionBackground);
+				d.setColor(CurrentTheme.SelectionBackground);
 				d.fillRect(x,y-asc,cwidth,height);
 				d.setColor(Color::SelectionForeground);
 			} else {
@@ -1683,7 +1682,7 @@ void Menubar::paint(Drawable &d) const
 	for (std::vector<Menu*>::const_iterator i = menus.begin(); i != menus.end(); ++i, ++index) {
 		if (index == selected && (*i)->isVisible()) {
 			int w = f->getWidth((*i)->getName());
-			d.setColor(Color::SelectionBackground);
+			d.setColor(CurrentTheme.SelectionBackground);
 			d.fillRect(d.getX()-7,0,w+14,height-2);
 			d.setColor(Color::SelectionForeground);
 			d.gotoXY(d.getX()+7,f->getAscent()+2);
