@@ -3137,7 +3137,6 @@ public:
         bar->addItem(2,mainMenu.get_item("help_about").get_text().c_str());
         bar->addActionHandler(this);
 
-        new GUI::Label(this, 10, 30, MSG_Get("CONFIGURE_GROUP"));
         advopt = new GUI::Checkbox(this, 340, 30, MSG_Get("SHOW_ADVOPT"));
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
         advopt->setChecked(section->Get_bool("show advanced options"));
