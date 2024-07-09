@@ -3141,7 +3141,7 @@ public:
         int gridbtnwidth = 130;
         int gridbtnheight = 26;
         int gridbtnx = 12;
-        int gridbtny = 50;
+        int gridbtny = 25;
         int btnperrow = 4;
         int i = 0;
 
