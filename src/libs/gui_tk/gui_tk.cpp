@@ -58,7 +58,6 @@ int titlebox_y_height = 20;
 int titlebox_sysmenu_width = 20; // includes black divider line
 
 namespace Color {
-	RGB EditableBackground =	0xffffffff;
 	RGB Titlebar =			0xffa4c8f0;
 	RGB TitlebarText =		0xff000000;
 	RGB TitlebarInactive =			0xffffffff;
@@ -1149,7 +1148,7 @@ void Input::posToEnd(void) {
 
 void Input::paint(Drawable &d) const
 {
-	d.clear(Color::EditableBackground);
+	d.clear(CurrentTheme.EditableBackground);
 
 	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(0,0,width-2,0);
@@ -1504,7 +1503,7 @@ void Checkbox::paint(Drawable &d) const
 	d.drawLine(14,(height/2)-7,14,(height/2)+5);
 
 	if (!pressed) {
-		d.setColor(Color::EditableBackground);
+		d.setColor(CurrentTheme.EditableBackground);
 		d.fillRect(4,(height/2)-5,9,9);
 	}
 
@@ -1579,7 +1578,7 @@ void Radiobox::paint(Drawable &d) const
 	d.drawLine(3,(height/2)-1,3,(height/2)+2);
 	d.drawLine(4,(height/2)-3,4,(height/2)+3);
 
-	d.setColor(pressed ? CurrentTheme.Background3D : Color::EditableBackground); // do not omit this draw, doing so makes the radio button look a little crappy
+	d.setColor(pressed ? CurrentTheme.Background3D : CurrentTheme.EditableBackground); // do not omit this draw, doing so makes the radio button look a little crappy
 	d.fillRect(5,(height/2)-2,6,6);
 	d.fillRect(4,(height/2)-1,8,4);
 	d.fillRect(6,(height/2)-3,4,8);
