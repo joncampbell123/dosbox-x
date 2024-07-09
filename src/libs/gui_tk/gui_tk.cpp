@@ -61,7 +61,6 @@ namespace Color {
 	RGB Light3D =			0xfffcfcfc;
 	RGB Shadow3D =			0xff808080;
 	RGB Border =			0xff000000;
-	RGB Background =		0xffc0c0c0;
 	RGB SelectionBackground =	0xff000080;
 	RGB SelectionForeground =	0xffffffff;
 	RGB EditableBackground =	0xffffffff;
@@ -1073,7 +1072,7 @@ bool BorderedWindow::mouseDragged(int x, int y, MouseButton button)
 void ToplevelWindow::paint(Drawable &d) const
 {
 	unsigned int mask = (systemMenu->isVisible()?Color::RedMask|Color::GreenMask|Color::BlueMask:0);
-	d.clear(Color::Background);
+	d.clear(CurrentTheme.Background);
 
 	d.setColor(Color::Border);
 	d.drawLine(0,height-1,width-1,height-1);
