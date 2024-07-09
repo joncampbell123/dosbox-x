@@ -1081,7 +1081,7 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.drawLine(5,titlebox_y_start+titlebox_y_height-1,width-6,titlebox_y_start+titlebox_y_height-1);
 	d.drawLine(width-6,5,width-6,titlebox_y_start+titlebox_y_height-1);
 
-	d.setColor(CurrentTheme.Background3D^mask);
+	d.setColor(CurrentTheme.Background^mask);
 	d.fillRect(6,titlebox_y_start+1,titlebox_sysmenu_width-1,titlebox_y_height-2);
     {
         int y = titlebox_y_start+((titlebox_y_height-4)/2);
@@ -1147,7 +1147,7 @@ void Input::paint(Drawable &d) const
 	d.drawLine(0,0,width-2,0);
 	d.drawLine(0,0,0,height-2);
 
-	d.setColor(CurrentTheme.Background3D);
+	d.setColor(CurrentTheme.Background);
 	d.drawLine(1,height-2,width-2,height-2);
 	d.drawLine(width-2,1,width-2,height-2);
 
@@ -1429,7 +1429,7 @@ void Button::paint(Drawable& d) const
 		d.drawLine(width-1,0,width-1,height);
 	}
 
-	d.setColor(CurrentTheme.Background3D);
+	d.setColor(CurrentTheme.Background);
 	d.fillRect(2,2,width-4,height-4);
 
 	if (pressed) {
@@ -1438,7 +1438,7 @@ void Button::paint(Drawable& d) const
 		d.drawLine(1+offset,1+offset,width-2-offset,1+offset);
 		d.drawLine(1+offset,1+offset,1+offset,height-2-offset);
 	} else {
-		d.setColor(CurrentTheme.Background3D);
+		d.setColor(CurrentTheme.Background);
 
 		d.drawLine(1+offset,1+offset,width-3-offset,1+offset);
 		d.drawLine(1+offset,1+offset,1+offset,height-3-offset);
@@ -1484,7 +1484,7 @@ bool Checkbox::keyUp(const Key &key)
 
 void Checkbox::paint(Drawable &d) const
 {
-	d.setColor(CurrentTheme.Background3D);
+	d.setColor(CurrentTheme.Background);
 	d.fillRect(2,(height/2)-7,14,14);
 
 	d.setColor(CurrentTheme.Shadow3D);
@@ -1553,7 +1553,7 @@ void Radiobox::paint(Drawable &d) const
 	d.drawLine(13,(height/2)-1,13,(height/2)+2);
 	d.drawLine(12,(height/2)-2,12,(height/2)+4);
 
-	d.setColor(CurrentTheme.Background3D);
+	d.setColor(CurrentTheme.Background);
 	d.drawLine(6,(height/2)+5,9,(height/2)+5);
 	d.drawLine(4,(height/2)+4,11,(height/2)+4);
 	d.drawLine(12,(height/2)-1,12,(height/2)+2);
@@ -1571,7 +1571,7 @@ void Radiobox::paint(Drawable &d) const
 	d.drawLine(3,(height/2)-1,3,(height/2)+2);
 	d.drawLine(4,(height/2)-3,4,(height/2)+3);
 
-	d.setColor(pressed ? CurrentTheme.Background3D : CurrentTheme.EditableBackground); // do not omit this draw, doing so makes the radio button look a little crappy
+	d.setColor(pressed ? CurrentTheme.Background : CurrentTheme.EditableBackground); // do not omit this draw, doing so makes the radio button look a little crappy
 	d.fillRect(5,(height/2)-2,6,6);
 	d.fillRect(4,(height/2)-1,8,4);
 	d.fillRect(6,(height/2)-3,4,8);
@@ -1590,7 +1590,7 @@ void Radiobox::paint(Drawable &d) const
 
 void Menu::paint(Drawable &d) const
 {
-	d.clear(CurrentTheme.Background3D);
+	d.clear(CurrentTheme.Background);
 
 	d.setColor(CurrentTheme.Border);
 	d.drawLine(0,height-1,width-1,height-1);
@@ -2367,7 +2367,7 @@ void WindowInWindow::paintScrollBarBackground(Drawable &dscroll,const vscrollbar
     dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
     dscroll.drawRect(vsl.scrollthumbRegion.x,  vsl.scrollthumbRegion.y,  vsl.scrollthumbRegion.w-1,vsl.scrollthumbRegion.h-1);
 
-    dscroll.setColor(CurrentTheme.Background3D);
+    dscroll.setColor(CurrentTheme.Background);
     dscroll.fillRect(vsl.scrollthumbRegion.x+1,vsl.scrollthumbRegion.y+1,vsl.scrollthumbRegion.w-2,vsl.scrollthumbRegion.h-2);
 }
 
