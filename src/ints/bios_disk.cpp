@@ -3737,3 +3737,77 @@ imageDiskEmptyDrive::imageDiskEmptyDrive() : imageDisk(ID_EMPTY_DRIVE) {
 imageDiskEmptyDrive::~imageDiskEmptyDrive() {
 }
 
+/////
+
+uint8_t imageDiskINT13Drive::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
+	return subdisk->Read_Sector(head,cylinder,sector,data,req_sector_size);
+}
+
+uint8_t imageDiskINT13Drive::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
+	return subdisk->Write_Sector(head,cylinder,sector,data,req_sector_size);
+}
+
+uint8_t imageDiskINT13Drive::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+	return subdisk->Read_AbsoluteSector(sectnum,data);
+}
+
+uint8_t imageDiskINT13Drive::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
+	return subdisk->Write_AbsoluteSector(sectnum,data);
+}
+
+void imageDiskINT13Drive::UpdateFloppyType(void) {
+	subdisk->UpdateFloppyType();
+}
+
+void imageDiskINT13Drive::Set_Reserved_Cylinders(Bitu resCyl) {
+	subdisk->Set_Reserved_Cylinders(resCyl);
+}
+
+uint32_t imageDiskINT13Drive::Get_Reserved_Cylinders() {
+	return subdisk->Get_Reserved_Cylinders();
+}
+
+void imageDiskINT13Drive::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) {
+	heads = setHeads;
+	cylinders = setCyl;
+	sectors = setSect;
+	sector_size = setSectSize;
+	return subdisk->Set_Geometry(setHeads,setCyl,setSect,setSectSize);
+}
+
+void imageDiskINT13Drive::Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize) {
+	return subdisk->Get_Geometry(getHeads,getCyl,getSect,getSectSize);
+}
+
+uint8_t imageDiskINT13Drive::GetBiosType(void) {
+	return subdisk->GetBiosType();
+}
+
+uint32_t imageDiskINT13Drive::getSectSize(void) {
+	return subdisk->getSectSize();
+}
+
+bool imageDiskINT13Drive::detectDiskChange(void) {
+	return subdisk->detectDiskChange();
+}
+
+imageDiskINT13Drive::imageDiskINT13Drive(imageDisk *sdisk) : imageDisk(ID_INT13) {
+	subdisk = sdisk;
+	subdisk->Addref();
+
+	drvnum         = subdisk->drvnum;
+	diskname       = subdisk->diskname;
+	active         = subdisk->active;
+	sector_size    = subdisk->sector_size;
+	heads          = subdisk->heads;
+	cylinders      = subdisk->cylinders;
+	sectors        = subdisk->sectors;
+	hardDrive      = subdisk->hardDrive;
+	diskSizeK      = subdisk->diskSizeK;
+	diskChangeFlag = subdisk->diskChangeFlag;
+}
+
+imageDiskINT13Drive::~imageDiskINT13Drive() {
+	subdisk->Release();
+}
+
