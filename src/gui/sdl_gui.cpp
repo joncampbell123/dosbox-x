@@ -1330,9 +1330,22 @@ public:
         Section_prop* sec = dynamic_cast<Section_prop*>(title.substr(0, 4)=="Ide,"?control->GetSection("ide, primary"):section);
         if (sec) {
             std::string msg;
-            Property *p;
-            int i = 0;
-            while ((p = sec->Get_prop(i++))) {
+
+            Property *property;
+            std::vector<Property*> properties;
+            auto propertyIndex = 0;
+            while ((property = sec->Get_prop(propertyIndex++)))
+            {
+                properties.push_back(property);
+            }
+
+            std::sort(properties.begin(), properties.end(),[](const Property* a, const Property* b)
+            {
+                return a->propname < b->propname;
+            });
+
+            for(const auto& p : properties)
+            {
                 std::string help=title=="4dos"&&p->propname=="rem"?"This is the 4DOS.INI file (if you use 4DOS as the command shell).":p->Get_help();
                 if (title!="4dos" && title!="Config" && title!="Autoexec" && !advopt->isChecked() && !p->basic()) continue;
                 std::string propvalues = "";
