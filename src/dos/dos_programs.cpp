@@ -6110,6 +6110,19 @@ class IMGMOUNT : public Program {
 				return false;
 			}
 
+			for (auto i=options.begin();i!=options.end();i++) {
+				if ((*i) == "int13") {
+					char buf[32];
+
+					if (drive >= 'C')
+						sprintf(buf,"=%u",drive+0x80-'C');
+					else
+						sprintf(buf,"=%u",drive-'A');
+
+					(*i) += buf;
+				}
+			}
+
 			bool imgsizedetect = isHardDrive && sizes[0] == 0;
 			int mediaid = -1;
 
@@ -6330,6 +6343,13 @@ class IMGMOUNT : public Program {
 							}
 						}
 					}
+				}
+
+				/* now that the image is attached to INT 13h the INT 13 image can use it now */
+				if (image->class_id == imageDisk::ID_INT13) {
+					imageDiskINT13Drive *x = (imageDiskINT13Drive*)image;
+					x->enable_int13 = true;
+					LOG_MSG("INT 13 image enabling calling");
 				}
 			}
 			return true;
