@@ -69,6 +69,7 @@
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 
+#include <unordered_map>
 #include <output/output_ttf.h>
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
@@ -715,7 +716,7 @@ public:
         sx += 4;
         ex -= 4;
 
-        d.setColor(GUI::Color::Shadow3D);
+        d.setColor(GUI::CurrentTheme.Shadow3D);
         d.drawDotLine(sx,y,ex,y);
     }
 };
@@ -849,9 +850,9 @@ public:
         if (title=="4dos"&&!strcmp(prop->propname.c_str(), "rem"))
             input = new GUI::Input(this, 30, 0, 470);
         else {
-            input = new GUI::Input(this, 270, 0, opts?200:230);
+            input = new GUI::Input(this, 260, 0, opts?195:235);
             if (opts) {
-                infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
+                infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
                 infoButton->addActionHandler(this);
             }
         }
@@ -907,9 +908,9 @@ protected:
 public:
     PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 380, 0, opts?90:120);
+        input = new GUI::Input(this, 365, 0, opts?90:130);
         if (opts) {
-            infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
+            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
             infoButton->addActionHandler(this);
         }
         input->setText(stringify((double)prop->GetValue()));
@@ -964,9 +965,9 @@ protected:
 public:
     PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 380, 0, opts?90:120);
+        input = new GUI::Input(this, 365, 0, opts?90:130);
         if (opts) {
-            infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
+            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
             infoButton->addActionHandler(this);
         }
         std::string temps = prop->GetValue().ToString();
@@ -1022,9 +1023,9 @@ protected:
 public:
     PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 380, 0, opts?90:120);
+        input = new GUI::Input(this, 365, 0, opts?90:130);
         if (opts) {
-            infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
+            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
             infoButton->addActionHandler(this);
         }
         //Maybe use ToString() of Value
@@ -1084,9 +1085,9 @@ std::string CapName(std::string name) {
     else if (name=="dosv")
         dispname="DOS/V";
     else if (name=="ttf")
-        dispname="TTF Output";
+        dispname="TrueType";
     else if (name=="vsync")
-        dispname="V-Sync";
+        dispname="VSync";
     else if (name=="4dos")
         dispname="4DOS.INI";
     else if (name=="config")
@@ -1094,35 +1095,39 @@ std::string CapName(std::string name) {
     else if (name=="autoexec")
         dispname="AUTOEXEC.BAT";
     else if (name=="sblaster")
-        dispname="Sound Blaster";
+        dispname="SB";
     else if (name=="speaker")
         dispname="PC Speaker";
+    else if (name=="imfc")
+        dispname="IMFC";
+    else if (name=="innova")
+        dispname="SSI-2001";
     else if (name=="serial")
-        dispname="Serial Ports";
+        dispname="Serial";
     else if (name=="parallel")
-        dispname="Parallel Ports";
+        dispname="Parallel";
     else if (name=="fdc, primary")
-        dispname="Floppy Port #1";
+        dispname="Floppy";
     else if (name=="ide, primary")
-        dispname="IDE Port #1";
+        dispname="IDE #1";
     else if (name=="ide, secondary")
-        dispname="IDE Port #2";
+        dispname="IDE #2";
     else if (name=="ide, tertiary")
-        dispname="IDE Port #3";
+        dispname="IDE #3";
     else if (name=="ide, quaternary")
-        dispname="IDE Port #4";
+        dispname="IDE #4";
     else if (name=="ide, quinternary")
-        dispname="IDE Port #5";
+        dispname="IDE #5";
     else if (name=="ide, sexternary")
-        dispname="IDE Port #6";
+        dispname="IDE #6";
     else if (name=="ide, septernary")
-        dispname="IDE Port #7";
+        dispname="IDE #7";
     else if (name=="ide, octernary")
-        dispname="IDE Port #8";
+        dispname="IDE #8";
     else if (name=="ethernet, pcap")
-        dispname="Ethernet PCap";
+        dispname="pcap";
     else if (name=="ethernet, slirp")
-        dispname="Ethernet Slirp";
+        dispname="SLiRP";
     else
         dispname[0] = std::toupper(name[0]);
     return dispname;
@@ -1136,9 +1141,9 @@ std::string RestoreName(std::string name) {
         dispname="pc98";
     else if (name=="DOS/V")
         dispname="dosv";
-    else if (name=="TTF Output")
+    else if (name=="TrueType")
         dispname="ttf";
-    else if (name=="V-Sync")
+    else if (name=="VSync")
         dispname="vsync";
     else if (name=="4DOS.INI")
         dispname="4dos";
@@ -1146,35 +1151,39 @@ std::string RestoreName(std::string name) {
         dispname="config";
     else if (name=="AUTOEXEC.BAT")
         dispname="autoexec";
-    else if (name=="Sound Blaster")
+    else if (name=="SB")
         dispname="sblaster";
     else if (name=="PC Speaker")
         dispname="speaker";
-    else if (name=="Serial Ports")
+    else if (name=="IMFC")
+        dispname="imfc";
+    else if (name=="SSI-2001")
+        dispname="innova";
+    else if (name=="Serial")
         dispname="serial";
-    else if (name=="Parallel Ports")
+    else if (name=="Parallel")
         dispname="parallel";
-    else if (name=="Floppy Port #1")
+    else if (name=="Floppy")
         dispname="fdc, primary";
-    else if (name=="IDE Port #1")
+    else if (name=="IDE #1")
         dispname="ide, primary";
-    else if (name=="IDE Port #2")
+    else if (name=="IDE #2")
         dispname="ide, secondary";
-    else if (name=="IDE Port #3")
+    else if (name=="IDE #3")
         dispname="ide, tertiary";
-    else if (name=="IDE Port #4")
+    else if (name=="IDE #4")
         dispname="ide, quaternary";
-    else if (name=="IDE Port #5")
+    else if (name=="IDE #5")
         dispname="ide, quinternary";
-    else if (name=="IDE Port #6")
+    else if (name=="IDE #6")
         dispname="ide, sexternary";
-    else if (name=="IDE Port #7")
+    else if (name=="IDE #7")
         dispname="ide, septernary";
-    else if (name=="IDE Port #8")
+    else if (name=="IDE #8")
         dispname="ide, octernary";
-    else if (name=="Ethernet PCap")
+    else if (name=="pcap")
         dispname="ethernet, pcap";
-    else if (name=="Ethernet Slirp")
+    else if (name=="SLiRP")
         dispname="ethernet, slirp";
     return dispname;
 }
@@ -1321,9 +1330,22 @@ public:
         Section_prop* sec = dynamic_cast<Section_prop*>(title.substr(0, 4)=="Ide,"?control->GetSection("ide, primary"):section);
         if (sec) {
             std::string msg;
-            Property *p;
-            int i = 0;
-            while ((p = sec->Get_prop(i++))) {
+
+            Property *property;
+            std::vector<Property*> properties;
+            auto propertyIndex = 0;
+            while ((property = sec->Get_prop(propertyIndex++)))
+            {
+                properties.push_back(property);
+            }
+
+            std::sort(properties.begin(), properties.end(),[](const Property* a, const Property* b)
+            {
+                return a->propname < b->propname;
+            });
+
+            for(const auto& p : properties)
+            {
                 std::string help=title=="4dos"&&p->propname=="rem"?"This is the 4DOS.INI file (if you use 4DOS as the command shell).":p->Get_help();
                 if (title!="4dos" && title!="Config" && title!="Autoexec" && !advopt->isChecked() && !p->basic()) continue;
                 std::string propvalues = "";
@@ -1379,7 +1401,7 @@ public:
     std::vector<GUI::Char> cfg_sname;
 public:
     SectionEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
-        ToplevelWindow(parent, x, y, 510, 442, ""), section(section) {
+        ToplevelWindow(parent, x, y, 510, 422, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: SectionEditor constructor called with section == NULL\n");
             return;
@@ -1411,7 +1433,7 @@ public:
 
         wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
 
-        int button_row_y = first_row_y + scroll_h + 25;
+        int button_row_y = first_row_y + scroll_h + 5;
         int button_w = 90;
         int button_pad_w = 10;
         int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
@@ -1423,12 +1445,7 @@ public:
         if ((this->y + this->getHeight()) > parent->getHeight())
             move(this->x,parent->getHeight() - this->getHeight());
 
-        std::string title(section->GetName());
-        sprintf(tmp1, MSG_Get("CONFIGURATION_FOR"), CapName(title).c_str());
-        setTitle(tmp1);
-        title[0] = std::toupper(title[0]);
-
-        new GUI::Label(this, 5, button_row_y - 20, MSG_Get("HELP_INFO"));
+        setTitle(CapName(std::string(section->GetName())).c_str());
 
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);
@@ -1436,8 +1453,22 @@ public:
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, MSG_Get("OK"), button_w);
 
         int i = 0, j = 0;
-        Property *prop;
-        while ((prop = section->Get_prop(i))) {
+        Property *property;
+        std::vector<Property*> properties;
+        auto propertyIndex = 0;
+        
+        while ((property = section->Get_prop(propertyIndex++)))
+        {
+            properties.push_back(property);
+        }
+
+        std::sort(properties.begin(), properties.end(),[](const Property* a, const Property* b)
+        {
+            return a->propname < b->propname;
+        });
+        
+        for(const auto & prop : properties)
+        {
             if (!advopt->isChecked() && !prop->basic()) {i++;continue;}
             Prop_bool   *pbool   = dynamic_cast<Prop_bool*>(prop);
             Prop_int    *pint    = dynamic_cast<Prop_int*>(prop);
@@ -1597,10 +1628,7 @@ public:
         if (scroll_h > allowed_dialog_y)
             scroll_h = allowed_dialog_y;
 
-        std::string title(section->GetName());
-        sprintf(tmp1, MSG_Get("CONFIGURATION_FOR"), CapName(title).c_str());
-        setTitle(tmp1);
-        title[0] = std::toupper(title[0]);
+        setTitle(CapName(std::string(section->GetName())).c_str());
 
 		char extra_data[4096] = { 0 };
 		const char * extra = const_cast<char*>(section->data.c_str());
@@ -3137,24 +3165,80 @@ public:
         bar->addItem(2,mainMenu.get_item("help_about").get_text().c_str());
         bar->addActionHandler(this);
 
-        new GUI::Label(this, 10, 30, MSG_Get("CONFIGURE_GROUP"));
-        advopt = new GUI::Checkbox(this, 340, 30, MSG_Get("SHOW_ADVOPT"));
-        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-        advopt->setChecked(section->Get_bool("show advanced options"));
-
-        Section *sec;
         int gridbtnwidth = 130;
-        int gridbtnheight = 28;
+        int gridbtnheight = 26;
         int gridbtnx = 12;
-        int gridbtny = 50;
+        int gridbtny = 25;
         int btnperrow = 4;
         int i = 0;
 
+        const auto xSpace = gridbtnwidth + 2;
+        const auto ySpace = gridbtnheight + 2;
+        
         std::function< std::pair<int,int>(const int) > gridfunc = [&/*access to locals here*/](const int i){
-            return std::pair<int,int>(gridbtnx+(i%btnperrow)*gridbtnwidth, gridbtny+(i/btnperrow)*gridbtnheight);
+            return std::pair<int,int>(gridbtnx+(i%btnperrow)*xSpace, gridbtny+(i/btnperrow)*ySpace);
         };
 
-        while ((sec = control->GetSection(i))) {
+        std::vector<Section*> sections; // sorted by relevance
+
+        // actual sorting
+        {
+            std::vector<std::string> sectionNames = {
+                "log", "dosbox", "render", "sdl",
+                "video", "voodoo", "vsync", "ttf",
+                "dos", "dosv", "pc98", "4dos",
+                "autoexec", "config", "cpu", "speaker",
+                "sblaster", "gus", "midi", "mixer",
+                "innova", "imfc", "joystick", "mapper",
+                "keyboard", "serial", "parallel", "printer",
+                "ipx", "ne2000", "ethernet, pcap", "ethernet, slirp",
+                "ide, primary", "ide, secondary", "ide, tertiary", "ide, quaternary",
+                "ide, quinternary", "ide, sexternary", "ide, septernary", "ide, octernary",
+                "fdc, primary",
+            };
+
+            Section* section;
+
+            auto temp1 = 0;
+
+            while((section = control->GetSection(temp1++)))
+            {
+                sections.push_back(section);
+            }
+
+            std::unordered_map<std::string, int> sectionMap;
+
+            auto temp2 = 0;
+
+            for(const auto& name : sectionNames)
+            {
+                sectionMap[name] = temp2++;
+            }
+
+            std::sort(
+                      sections.begin(), sections.end(),
+                      [&sectionMap](const Section* a, const Section* b)
+                      {
+                          const auto itA = sectionMap.find(a->GetName());
+                          const auto itB = sectionMap.find(b->GetName());
+                          if(itA != sectionMap.end() && itB != sectionMap.end())
+                          {
+                              return itA->second < itB->second;
+                          }
+                          if(itA != sectionMap.end())
+                          {
+                              return true;
+                          }
+                          if(itB != sectionMap.end())
+                          {
+                              return false;
+                          }
+                          return false;
+                      });
+        }
+        
+        for(const auto & sec : sections)
+        {
             if (i != 0 && (i%15) == 0) bar->addItem(1, "|");
             std::string name = sec->GetName();
             std::string title = CapName(name);
@@ -3167,13 +3251,17 @@ public:
         }
 
         const auto finalgridpos = gridfunc(i - 1);
-        int closerow_y = finalgridpos.second + 5 + gridbtnheight;
+        int closerow_y = finalgridpos.second + 5 + ySpace;
+
+        advopt = new GUI::Checkbox(this, gridbtnx, closerow_y, MSG_Get("SHOW_ADVOPT"));
+        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        advopt->setChecked(section->Get_bool("show advanced options"));
 
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
-        (saveButton = new GUI::Button(this, 158, closerow_y, tmp1, 110))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 276, closerow_y, MSG_Get("CLOSE"), 110))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 276, closerow_y, tmp1, 130, gridbtnheight))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 408, closerow_y, MSG_Get("CLOSE"), 130, gridbtnheight))->addActionHandler(this);
 
-        resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
+        resize(gridbtnx + (xSpace * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
 
         bar->resize(getWidth(),bar->getHeight());

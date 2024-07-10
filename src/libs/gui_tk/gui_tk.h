@@ -205,45 +205,6 @@ const RGB YellowMask = RedMask|GreenMask;
 /// 50% grey
 const RGB Grey50 = 0xff808080;
 
-/// Background color for 3D effects. May be customized.
-extern RGB Background3D;
-
-/// Light highlight color for 3D effects. May be customized.
-extern RGB Light3D;
-
-/// Dark highlight color (shadow) for 3D effects. May be customized.
-extern RGB Shadow3D;
-
-/// Generic border color for highlights or similar. May be customized.
-extern RGB Border;
-
-/// Foreground color for regular content (mainly text). May be customized.
-extern RGB Text;
-
-/// Background color for inactive areas. May be customized.
-extern RGB Background;
-
-/// Background color for selected areas. May be customized.
-extern RGB SelectionBackground;
-
-/// Foreground color for selected areas. May be customized.
-extern RGB SelectionForeground;
-
-/// Background color for inputs / application area. May be customized.
-extern RGB EditableBackground;
-
-/// Title bar color for windows. May be customized.
-extern RGB Titlebar;
-
-/// Title bar text color for windows. May be customized.
-extern RGB TitlebarText;
-
-/// Title bar color for windows. May be customized.
-extern RGB TitlebarInactive;
-
-/// Title bar text color for windows. May be customized.
-extern RGB TitlebarInactiveText;
-
 /// Convert separate r, g, b and a values (each 0-255) to an RGB value.
 static inline RGB rgba(unsigned int r, unsigned int g, unsigned int b, unsigned int a=0) {
 	return (((r&255)<<RedShift)|((g&255)<<GreenShift)|((b&255)<<BlueShift)|((a&255)<<AlphaShift));
@@ -259,6 +220,47 @@ static inline unsigned int B(RGB val) { return ((val&Color::BlueMask)>>Color::Bl
 static inline unsigned int A(RGB val) { return ((val&Color::AlphaMask)>>Color::AlphaShift); }
 
 }
+
+struct Theme
+    // TODO gather others colors
+{
+    uint32_t Background             = 0xFFC0C0C0;
+    uint32_t ButtonBorder           = 0xFF000000;
+    uint32_t ButtonFiller           = 0xFF808080;
+    uint32_t ButtonBevel1           = 0xFFFFFFFF;
+    uint32_t ButtonBevel2           = 0xFFC0C0C0;
+    uint32_t FocusColor             = 0xFF000000;
+    int32_t  FocusPadding           = 2;
+    int32_t  FocusPaddingHorizontal = 1;
+    uint32_t TextColor              = 0xFF000000;
+    uint32_t Light3D                = 0xFFFCFCFC;
+    uint32_t Shadow3D               = 0xFF808080;
+    uint32_t Border                 = 0xFF000000;
+    uint32_t SelectionBackground    = 0xFF000080;
+    uint32_t SelectionForeground    = 0xFFFFFFFF;
+    uint32_t EditableBackground     = 0xFFFFFFFF;
+    uint32_t TitleBar               = 0xFFA4C8F0;
+    uint32_t TitleBarText           = 0xFF000000;
+    uint32_t TitleBarInactive       = 0xFFFFFFFF;
+    uint32_t TitleBarInactiveText   = 0xFF000000;
+};
+
+// Windows 3.1 theme
+struct ThemeLight : Theme
+{
+    ThemeLight()
+    {
+        Background   = 0xFFC0C7C8;
+        ButtonFiller = 0xFFC0C7C8;
+        ButtonBevel1 = 0xFFFFFFFF;
+        ButtonBevel2 = 0xFF87888F;
+        FocusColor   = 0xFF87888F;
+        TitleBar     = 0xFF0000A8;
+        TitleBarText = 0xFFFFFFFF;
+    }
+};
+
+extern Theme CurrentTheme;
 
 /// Identifies a mouse button.
 enum MouseButton { NoButton, Left, Right, Middle, WheelUp, WheelDown, WheelLeft, WheelRight };
@@ -741,6 +743,7 @@ public:
 	/// Transient windows by default should disappear.
 	virtual bool mouseDownOutside(MouseButton button);
 
+    virtual bool mouseWheel(int wheel);
 	/// Key was pressed. Returns true if event was handled.
 	virtual bool keyDown(const Key &key);
 	/// Key was released. Returns true if event was handled.
@@ -880,6 +883,7 @@ public:
 	/// Mouse was double-clicked. Returns true if event was handled.
 	bool mouseDoubleClicked(int x, int y, MouseButton button) override;
 
+    bool mouseWheel(int wheel) override;
 	/// Key was pressed. Returns true if event was handled.
 	bool keyDown(const Key &key) override;
 
@@ -1629,7 +1633,7 @@ public:
 
 	/// Create a text label with given position, \p text, \p font and \p color.
 	/** If \p width is given, the resulting label is a word-wrapped multiline label */
-	template <typename STR> Label(Window *parent, int x, int y, const STR text, int width = 0, const Font *font = Font::getFont("default"), RGB color = Color::Text) :
+	template <typename STR> Label(Window *parent, int x, int y, const STR text, int width = 0, const Font *font = Font::getFont("default"), RGB color = CurrentTheme.TextColor) :
 		Window(parent, x, y, (width?width:1), 1), font(font), color(color), text(text), interpret(width != 0)
 	{ Label::resize(); tabbable = false; }
 
@@ -1658,13 +1662,34 @@ public:
 		d.drawText(0, font->getAscent(), text, interpret, 0);
 		if (interpret) Window::resize(w, d.getY()-font->getAscent()+font->getHeight());
 		else Window::resize(d.getX(), font->getHeight());
-	}
+
+	    // override non-interpreted so as focus adapts itself better to text
+	    // one depends on the other, that's fundamentally wrong but well ...
+	    // that said, it's pretty darn close to how it looks in Windows 3.11
+        if (interpret == false)
+        {
+            const auto tw = font->getWidth(this->text);
+            const auto th = font->getHeight();
+            Window::resize(tw + CurrentTheme.FocusPadding + CurrentTheme.FocusPaddingHorizontal, th + CurrentTheme.FocusPadding);
+        }
+    }
 
 	/// Returns \c true if this window has currently the keyboard focus.
 	bool hasFocus() const override { return allow_focus && Window::hasFocus(); }
 
-	/// Paint label
-	void paint(Drawable &d) const override { d.setColor(color); d.drawText(0, font->getAscent(), text, interpret, 0); if (hasFocus()) d.drawDotRect(0,0,width-1,height-1); }
+    /// Paint label
+    void paint(Drawable& d) const override
+    {
+        d.setColor(color);
+
+        d.drawText(CurrentTheme.FocusPadding, CurrentTheme.FocusPadding + font->getAscent(), text, interpret, 0);
+
+        if(hasFocus())
+        {
+            d.setColor(CurrentTheme.FocusColor);
+            d.drawDotRect(0, 0, width - 1, height - 1);
+        }
+    }
 
 	bool raise() override { return false; }
 };
@@ -2336,7 +2361,7 @@ public:
 		(void)y;//UNUSED
 
 		if (button == Left) {
-			border_left = 7; border_right = 5; border_top = 7; border_bottom = 3;
+			border_left = 7; border_right = 5; border_top = 6; border_bottom = 4;
 			pressed = true;
 		}
 		return true;

@@ -156,9 +156,7 @@ void AddMessages() {
     MSG_Add("CONTENT","Content:");
     MSG_Add("EDIT_FOR","Edit %s");
     MSG_Add("HELP_FOR","Help for %s");
-    MSG_Add("HELP_INFO", "Click the \"Help\" button below to see detailed help information.");
     MSG_Add("SELECT_VALUE", "Select property value");
-    MSG_Add("CONFIGURATION_FOR","Configuration for %s");
     MSG_Add("CONFIGURATION","Configuration");
     MSG_Add("SETTINGS","Settings");
     MSG_Add("LOGGING_OUTPUT","DOSBox-X logging output");
@@ -177,7 +175,6 @@ void AddMessages() {
     MSG_Add("NETWORK_LIST","Network interface list");
     MSG_Add("PRINTER_LIST","Printer device list");
     MSG_Add("INTRODUCTION","Introduction");
-    MSG_Add("CONFIGURE_GROUP", "Choose a settings group to configure:");
     MSG_Add("SHOW_ADVOPT", "Show advanced options");
     MSG_Add("USE_PRIMARYCONFIG", "Use primary config file");
     MSG_Add("USE_PORTABLECONFIG", "Use portable config file");
