@@ -521,6 +521,9 @@ public:
 	virtual uint32_t GetFirstClusterOffset(void);
 	virtual uint32_t GetHighestClusterNumber(void);
 
+	void checkDiskChange(void);
+
+	unsigned char bios_disk = 0;
 	bool unformatted = false;
 };
 

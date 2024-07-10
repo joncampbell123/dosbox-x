@@ -35,6 +35,18 @@ extern bool enable_pci_vga;
 extern unsigned int vbe_window_granularity;
 extern unsigned int vbe_window_size;
 
+void S3_UpdateXGAColorMode(void) {
+	switch (vga.s3.reg_50 & S3_XGA_CMASK) {
+		case S3_XGA_32BPP: vga.s3.xga_color_mode = M_LIN32; break;
+		case S3_XGA_16BPP: vga.s3.xga_color_mode = M_LIN16; break;
+		case S3_XGA_8BPP:
+			/* FIXME: 4/8bpp packed is controlled by the advanced function control register (0x4AE8) bit 2 which is not yet emulated here */
+			vga.s3.xga_color_mode = M_LIN8;
+			if ((vga.s3.misc_control_2 >> 4) == 0xF/*hacked 4bpp*/) vga.s3.xga_color_mode = M_LIN4;
+			break;
+	}
+}
+
 void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     switch (reg) {
@@ -170,11 +182,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
         break;
     case 0x50:  // Extended System Control 1
         vga.s3.reg_50 = (uint8_t)val;
-        switch (val & S3_XGA_CMASK) {
-            case S3_XGA_32BPP: vga.s3.xga_color_mode = M_LIN32; break;
-            case S3_XGA_16BPP: vga.s3.xga_color_mode = M_LIN16; break;
-            case S3_XGA_8BPP: vga.s3.xga_color_mode = M_LIN8; break;
-        }
+        S3_UpdateXGAColorMode();
         switch (val & S3_XGA_WMASK) {
             case S3_XGA_1024: vga.s3.xga_screen_width = 1024; break;
             case S3_XGA_1152: vga.s3.xga_screen_width = 1152; break;
@@ -399,6 +407,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                     13  (732/764) 32bit (1 pixel/VCLK)
         */
         vga.s3.misc_control_2=(uint8_t)val;
+        S3_UpdateXGAColorMode();
         VGA_DetermineMode();
         break;
     case 0x69:  /* Extended System Control 3 */
