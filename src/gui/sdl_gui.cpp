@@ -1453,8 +1453,22 @@ public:
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, MSG_Get("OK"), button_w);
 
         int i = 0, j = 0;
-        Property *prop;
-        while ((prop = section->Get_prop(i))) {
+        Property *property;
+        std::vector<Property*> properties;
+        auto propertyIndex = 0;
+        
+        while ((property = section->Get_prop(propertyIndex++)))
+        {
+            properties.push_back(property);
+        }
+
+        std::sort(properties.begin(), properties.end(),[](const Property* a, const Property* b)
+        {
+            return a->propname < b->propname;
+        });
+        
+        for(const auto & prop : properties)
+        {
             if (!advopt->isChecked() && !prop->basic()) {i++;continue;}
             Prop_bool   *pbool   = dynamic_cast<Prop_bool*>(prop);
             Prop_int    *pint    = dynamic_cast<Prop_int*>(prop);
