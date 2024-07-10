@@ -69,6 +69,7 @@
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 
+#include <unordered_map>
 #include <output/output_ttf.h>
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
@@ -3139,7 +3140,6 @@ public:
         bar->addItem(2,mainMenu.get_item("help_about").get_text().c_str());
         bar->addActionHandler(this);
 
-        Section *sec;
         int gridbtnwidth = 130;
         int gridbtnheight = 26;
         int gridbtnx = 12;
@@ -3154,7 +3154,66 @@ public:
             return std::pair<int,int>(gridbtnx+(i%btnperrow)*xSpace, gridbtny+(i/btnperrow)*ySpace);
         };
 
-        while ((sec = control->GetSection(i))) {
+        std::vector<Section*> sections; // sorted by relevance
+
+        // actual sorting
+        {
+            std::vector<std::string> sectionNames = {
+                "log", "dosbox", "render", "sdl",
+                "video", "voodoo", "vsync", "ttf",
+                "dos", "dosv", "pc98", "4dos",
+                "autoexec", "config", "cpu", "speaker",
+                "sblaster", "gus", "midi", "mixer",
+                "innova", "imfc", "joystick", "mapper",
+                "keyboard", "serial", "parallel", "printer",
+                "ipx", "ne2000", "ethernet, pcap", "ethernet, slirp",
+                "ide, primary", "ide, secondary", "ide, tertiary", "ide, quaternary",
+                "ide, quinternary", "ide, sexternary", "ide, septernary", "ide, octernary",
+                "fdc, primary",
+            };
+
+            Section* section;
+
+            auto temp1 = 0;
+
+            while((section = control->GetSection(temp1++)))
+            {
+                sections.push_back(section);
+            }
+
+            std::unordered_map<std::string, int> sectionMap;
+
+            auto temp2 = 0;
+
+            for(const auto& name : sectionNames)
+            {
+                sectionMap[name] = temp2++;
+            }
+
+            std::sort(
+                      sections.begin(), sections.end(),
+                      [&sectionMap](const Section* a, const Section* b)
+                      {
+                          const auto itA = sectionMap.find(a->GetName());
+                          const auto itB = sectionMap.find(b->GetName());
+                          if(itA != sectionMap.end() && itB != sectionMap.end())
+                          {
+                              return itA->second < itB->second;
+                          }
+                          if(itA != sectionMap.end())
+                          {
+                              return true;
+                          }
+                          if(itB != sectionMap.end())
+                          {
+                              return false;
+                          }
+                          return false;
+                      });
+        }
+        
+        for(const auto & sec : sections)
+        {
             if (i != 0 && (i%15) == 0) bar->addItem(1, "|");
             std::string name = sec->GetName();
             std::string title = CapName(name);
