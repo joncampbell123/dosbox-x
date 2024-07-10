@@ -21,6 +21,7 @@ NEXT
   - Updated SDL2 library to 2.30.4 (maron2000)
   - Fixed TTF mode didn't change to graphic mode when machine = Hercules
     (maron2000)
+  - CFGTOOL: more Windows 3.1 styling, general UX/UI improvements (aybe).
 
 2024.07.01
   - Correct Hercules InColor memory emulation. Read and write planar
