@@ -1388,7 +1388,7 @@ public:
     std::vector<GUI::Char> cfg_sname;
 public:
     SectionEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
-        ToplevelWindow(parent, x, y, 510, 442, ""), section(section) {
+        ToplevelWindow(parent, x, y, 510, 422, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: SectionEditor constructor called with section == NULL\n");
             return;
@@ -1420,7 +1420,7 @@ public:
 
         wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
 
-        int button_row_y = first_row_y + scroll_h + 25;
+        int button_row_y = first_row_y + scroll_h + 5;
         int button_w = 90;
         int button_pad_w = 10;
         int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
@@ -1433,8 +1433,6 @@ public:
             move(this->x,parent->getHeight() - this->getHeight());
 
         setTitle(CapName(std::string(section->GetName())).c_str());
-
-        new GUI::Label(this, 5, button_row_y - 20, MSG_Get("HELP_INFO"));
 
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);
