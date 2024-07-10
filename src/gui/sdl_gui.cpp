@@ -1097,7 +1097,7 @@ std::string CapName(std::string name) {
     else if (name=="sblaster")
         dispname="SB";
     else if (name=="speaker")
-        dispname="PC speaker";
+        dispname="PC Speaker";
     else if (name=="imfc")
         dispname="IMFC";
     else if (name=="innova")
@@ -1153,7 +1153,7 @@ std::string RestoreName(std::string name) {
         dispname="autoexec";
     else if (name=="SB")
         dispname="sblaster";
-    else if (name=="PC speaker")
+    else if (name=="PC Speaker")
         dispname="speaker";
     else if (name=="IMFC")
         dispname="imfc";
