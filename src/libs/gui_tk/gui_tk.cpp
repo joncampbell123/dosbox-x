@@ -1024,6 +1024,12 @@ bool Window::mouseDoubleClicked(int x, int y, MouseButton button)
 	return mouseChild->mouseDoubleClicked(x-mouseChild->x, y-mouseChild->y, button);
 }
 
+bool Window::mouseWheel(int wheel)
+{
+	if (mouseChild == NULL) return false;
+	return mouseChild->mouseWheel(wheel);
+}
+
 bool BorderedWindow::mouseDown(int x, int y, MouseButton button)
 {
 	mouseChild = NULL;
@@ -2327,7 +2333,9 @@ bool ScreenSDL::event(SDL_Event &event) {
 		}
 		lastdown = 0;
 		return rc;
-	}
+    case SDL_MOUSEWHEEL:
+        return mouseWheel(event.wheel.y);
+    }
 
 	return false;
 }
@@ -2864,6 +2872,13 @@ bool WindowInWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
     }
 
     return Window::mouseDoubleClicked(x-xadj,y-xadj,button);
+}
+
+bool WindowInWindow::mouseWheel(int wheel)
+{
+    // BUG requires to click at least once in window for it to work
+    scroll_pos_y = min(max(scroll_pos_y - wheel * 15, 0), scroll_pos_h);
+    return Window::mouseWheel(wheel);
 }
 
 void WindowInWindow::resize(int w, int h) {
