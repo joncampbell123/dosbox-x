@@ -2333,8 +2333,10 @@ bool ScreenSDL::event(SDL_Event &event) {
 		}
 		lastdown = 0;
 		return rc;
+#if C_SDL2	    
     case SDL_MOUSEWHEEL:
         return mouseWheel(event.wheel.y);
+#endif
     }
 
 	return false;
