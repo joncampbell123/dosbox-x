@@ -2879,7 +2879,7 @@ bool WindowInWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
 bool WindowInWindow::mouseWheel(int wheel)
 {
     // BUG requires to click at least once in window for it to work
-    scroll_pos_y = min(max(scroll_pos_y - wheel * 15, 0), scroll_pos_h);
+    scroll_pos_y = imin(imax(scroll_pos_y - wheel * 15, 0), scroll_pos_h);
     return Window::mouseWheel(wheel);
 }
 
