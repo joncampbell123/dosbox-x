@@ -156,7 +156,6 @@ void AddMessages() {
     MSG_Add("CONTENT","Content:");
     MSG_Add("EDIT_FOR","Edit %s");
     MSG_Add("HELP_FOR","Help for %s");
-    MSG_Add("HELP_INFO", "Click the \"Help\" button below to see detailed help information.");
     MSG_Add("SELECT_VALUE", "Select property value");
     MSG_Add("CONFIGURATION","Configuration");
     MSG_Add("SETTINGS","Settings");
