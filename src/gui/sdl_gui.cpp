@@ -3268,10 +3268,10 @@ public:
         const auto xSave = gridbtnx + (gridbtnwidth + margin) * 2;
         const auto xExit = gridbtnx + (gridbtnwidth + margin) * 3;
 
-        (saveButton  = new GUI::Button(this, xSave, closerow_y, tmp1, 130, gridbtnheight))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, xExit, closerow_y, MSG_Get("CLOSE"), 130, gridbtnheight))->addActionHandler(this);
+        (saveButton  = new GUI::Button(this, xSave, closerow_y, tmp1, gridbtnwidth, gridbtnheight))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, xExit, closerow_y, MSG_Get("CLOSE"), gridbtnwidth, gridbtnheight))->addActionHandler(this);
 
-        resize(gridbtnx + (xSpace * btnperrow) + 12 + border_left + border_right,
+        resize(gridbtnx + (xSpace * btnperrow) + gridbtnx + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
 
         bar->resize(getWidth(),bar->getHeight());
