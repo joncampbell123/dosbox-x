@@ -2368,7 +2368,7 @@ public:
 		(void)y;//UNUSED
 
 		if (button == Left) {
-			border_left = 7; border_right = 5; border_top = 6; border_bottom = 4;
+			border_left = 7; border_top = 6; border_right = 5; border_bottom = 4;
 			pressed = true;
 		}
 		return true;
@@ -2381,7 +2381,7 @@ public:
 		(void)y;//UNUSED
 
 		if (button == Left) {
-			border_left = 6; border_right = 6; border_top = 5; border_bottom = 5;
+			border_left = 6; border_top = 5; border_right = 6; border_bottom = 5;
 			pressed = false;
 		}
 		return true;
