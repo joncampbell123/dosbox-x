@@ -761,13 +761,15 @@ bool Window::keyDown(const Key &key)
 				if ((*i) != children.back()) children.back()->onTabbing(ONTABBING_REVTABFROMTHIS);
 				(*i)->onTabbing(ONTABBING_REVTABTOTHIS);
 				if ((*i)->raise())
-					break;
+				{
+				    toplevel = true;
+				    break;
+				}
 			}
 
 			++i;
 		}
-		if (tab_quit) return false;
-		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+		return handleTab(tab_quit, i, e);
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
 		--e;
@@ -781,16 +783,15 @@ bool Window::keyDown(const Key &key)
 				if ((*i) != children.back()) children.back()->onTabbing(ONTABBING_TABFROMTHIS);
 				(*i)->onTabbing(ONTABBING_TABTOTHIS);
 				if ((*i)->raise())
-					break;
+				{
+				    toplevel = true;
+				    break;
+				}
 			}
 
 			++i;
 		}
-		if (tab_quit) return false;
-	    // BUG/TODO swapped operands below to fix 'list iterators incompatible'
-	    // occurs in VS debug build when pressing TAB after opening configuration tool
-	    // currently this works but that just sweeps the problem under the rug
-		return toplevel /*prevent TAB escape to another window*/ || (i != e);
+		return handleTab(tab_quit, i, e);
 	}
 }
 
@@ -891,8 +892,7 @@ bool WindowInWindow::keyDown(const Key &key)
 
 			++i;
 		}
-		if (tab_quit) return false;
-		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+		return handleTab(tab_quit, i, e);
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
 		--e;
@@ -907,13 +907,15 @@ bool WindowInWindow::keyDown(const Key &key)
 				(*i)->onTabbing(ONTABBING_TABTOTHIS);
 				if (!tab_quit) scrollToWindow(*i);
 				if ((*i)->raise())
-					break;
+				{
+				    toplevel = true;
+				    break;
+				}
 			}
 
 			++i;
 		}
-		if (tab_quit) return false;
-		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+		return handleTab(tab_quit, i, e);
 	}
 }
 

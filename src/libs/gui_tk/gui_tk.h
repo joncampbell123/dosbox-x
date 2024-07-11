@@ -749,6 +749,12 @@ public:
 	/// Key was released. Returns true if event was handled.
 	virtual bool keyUp(const Key &key);
 
+    template <typename Iterator>
+    bool handleTab(const bool tab_quit, const Iterator& i, const Iterator& e) const
+    {
+        return tab_quit == false && (toplevel /*prevent TAB escape to another window*/ || i != e);
+    }
+
 	/// Put this window on top of all it's siblings. Preserves relative order.
 	/** Returns true if the window accepts the raise request. */
 	virtual bool raise() {
