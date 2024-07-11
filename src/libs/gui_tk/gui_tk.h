@@ -1693,7 +1693,7 @@ public:
         if(hasFocus())
         {
             d.setColor(CurrentTheme.FocusColor);
-            d.drawDotRect(0, 0, width - 1, height - 1);
+            d.drawDotRect(0, 0, width, height);
         }
     }
 
