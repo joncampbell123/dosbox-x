@@ -3176,8 +3176,10 @@ public:
         int btnperrow = 4;
         int i = 0;
 
-        const auto xSpace = gridbtnwidth + 2;
-        const auto ySpace = gridbtnheight + 2;
+        constexpr auto margin = 3;
+        
+        const auto xSpace = gridbtnwidth + margin;
+        const auto ySpace = gridbtnheight + margin;
         
         std::function< std::pair<int,int>(const int) > gridfunc = [&/*access to locals here*/](const int i){
             return std::pair<int,int>(gridbtnx+(i%btnperrow)*xSpace, gridbtny+(i/btnperrow)*ySpace);
