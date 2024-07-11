@@ -2368,7 +2368,7 @@ public:
 		(void)y;//UNUSED
 
 		if (button == Left) {
-			border_left = 7; border_top = 6; border_right = 5; border_bottom = 4;
+			border_left = 7; border_top = 5; border_right = 5; border_bottom = 3;
 			pressed = true;
 		}
 		return true;
@@ -2381,7 +2381,7 @@ public:
 		(void)y;//UNUSED
 
 		if (button == Left) {
-			border_left = 6; border_top = 5; border_right = 6; border_bottom = 5;
+			border_left = 6; border_top = 4; border_right = 6; border_bottom = 4;
 			pressed = false;
 		}
 		return true;
@@ -2859,7 +2859,7 @@ template <typename STR> ToplevelWindow::ToplevelWindow(Screen *parent, int x, in
 }
 
 template <typename STR> Button::Button(Window *parent, int x, int y, const STR text, int w, int h) :
-	BorderedWindow(parent,x,y,w,h,6,5,6,5), ActionEventSource(text), pressed(0)
+	BorderedWindow(parent,x,y,w,h,6,4,6,4), ActionEventSource(text), pressed(0)
 {
 
 	Label *l = new Label(this,0,0,text);
