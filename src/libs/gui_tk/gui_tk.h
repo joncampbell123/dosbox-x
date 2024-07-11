@@ -232,7 +232,7 @@ struct Theme
     uint32_t ButtonHeight           = 23;
     uint32_t ButtonContentHeight    = 15;
     uint32_t FocusColor             = 0xFF000000;
-    int32_t  FocusPaddingHorizontal = 1;
+    int32_t  FocusPaddingHorizontal = 2;
     uint32_t TextColor              = 0xFF000000;
     uint32_t Light3D                = 0xFFFCFCFC;
     uint32_t Shadow3D               = 0xFF808080;
@@ -1676,7 +1676,7 @@ public:
         if (interpret == false)
         {
             const auto tw = font->getWidth(this->text);
-            Window::resize(tw + CurrentTheme.FocusPaddingHorizontal, static_cast<int>(CurrentTheme.ButtonContentHeight));
+            Window::resize(tw + CurrentTheme.FocusPaddingHorizontal * 2, static_cast<int>(CurrentTheme.ButtonContentHeight));
         }
     }
 
