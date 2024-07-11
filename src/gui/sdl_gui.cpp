@@ -1662,7 +1662,7 @@ public:
 			}
 		}
 
-        int height=title=="Config"?100:210;
+        int height=title=="Config"?100:81;
         scroll_h += height + 2; /* border */
 
         wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
