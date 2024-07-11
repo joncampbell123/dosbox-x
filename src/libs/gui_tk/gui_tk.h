@@ -232,7 +232,6 @@ struct Theme
     uint32_t ButtonHeight           = 23;
     uint32_t ButtonContentHeight    = 15;
     uint32_t FocusColor             = 0xFF000000;
-    int32_t  FocusPadding           = 2;
     int32_t  FocusPaddingHorizontal = 1;
     uint32_t TextColor              = 0xFF000000;
     uint32_t Light3D                = 0xFFFCFCFC;
@@ -1677,7 +1676,7 @@ public:
         if (interpret == false)
         {
             const auto tw = font->getWidth(this->text);
-            Window::resize(tw + CurrentTheme.FocusPadding + CurrentTheme.FocusPaddingHorizontal, static_cast<int>(CurrentTheme.ButtonContentHeight) + CurrentTheme.FocusPadding);
+            Window::resize(tw + CurrentTheme.FocusPaddingHorizontal, static_cast<int>(CurrentTheme.ButtonContentHeight));
         }
     }
 
@@ -1689,7 +1688,7 @@ public:
     {
         d.setColor(color);
 
-        d.drawText(CurrentTheme.FocusPadding, CurrentTheme.FocusPadding + font->getAscent(), text, interpret, 0);
+        d.drawText(CurrentTheme.FocusPaddingHorizontal, font->getAscent(), text, interpret, 0);
 
         if(hasFocus())
         {
