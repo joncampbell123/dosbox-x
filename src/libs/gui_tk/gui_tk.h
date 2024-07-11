@@ -1675,8 +1675,12 @@ public:
 	    // that said, it's pretty darn close to how it looks in Windows 3.11
         if (interpret == false)
         {
-            const auto tw = font->getWidth(this->text);
-            Window::resize(tw + CurrentTheme.FocusPaddingHorizontal * 2, static_cast<int>(CurrentTheme.ButtonContentHeight));
+            auto tw = font->getWidth(this->text);
+
+            tw = tw + CurrentTheme.FocusPaddingHorizontal * 2;
+            tw = tw & 1 ? tw : tw + 1;
+
+            Window::resize(tw, static_cast<int>(CurrentTheme.ButtonContentHeight));
         }
     }
 
