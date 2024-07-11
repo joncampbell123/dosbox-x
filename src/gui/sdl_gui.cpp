@@ -3245,7 +3245,6 @@ public:
         
         for(const auto & sec : sections)
         {
-            if (i != 0 && (i%15) == 0) bar->addItem(1, "|");
             if (i != 0 && (i%16) == 0) bar->addItem(1, "|");
             std::string sectionTitle = CapName(std::string(sec->GetName()));
             const auto sz = gridfunc(i);
