@@ -3246,13 +3246,12 @@ public:
         for(const auto & sec : sections)
         {
             if (i != 0 && (i%15) == 0) bar->addItem(1, "|");
-            std::string name = sec->GetName();
-            std::string title = CapName(name);
-            name[0] = std::toupper(name[0]);
+            if (i != 0 && (i%16) == 0) bar->addItem(1, "|");
+            std::string sectionTitle = CapName(std::string(sec->GetName()));
             const auto sz = gridfunc(i);
-            GUI::Button *b = new GUI::Button(this, sz.first, sz.second, title, gridbtnwidth, gridbtnheight);
+            GUI::Button *b = new GUI::Button(this, sz.first, sz.second, sectionTitle, gridbtnwidth, gridbtnheight);
             b->addActionHandler(this);
-            bar->addItem(1, title);
+            bar->addItem(1, sectionTitle);
             i++;
         }
 
