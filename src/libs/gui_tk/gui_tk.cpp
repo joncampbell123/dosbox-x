@@ -358,26 +358,26 @@ void Drawable::drawCircle(int d) {
 
 void Drawable::drawRect(int w, int h)
 {
-	gotoXY(x-lineWidth/2,y);
-	drawLine(x+w+lineWidth-1,y);
-	gotoXY(x-(lineWidth-1)/2,y);
-	drawLine(x,y+h);
-	gotoXY(x+(lineWidth-1)/2,y);
-	drawLine(x-w-lineWidth+1,y);
-	gotoXY(x+lineWidth/2,y);
-	drawLine(x,y-h);
+    gotoXY(x - lineWidth / 2, y);             // tl
+    drawLine(x + (w - 1) + lineWidth - 1, y); // tr
+    gotoXY(x - (lineWidth - 1) / 2, y);       // tl
+    drawLine(x, y + (h - 1));                 // bl
+    gotoXY(x + (lineWidth - 1) / 2, y);       // tl
+    drawLine(x - (w - 1) - lineWidth + 1, y); // tr
+    gotoXY(x + lineWidth / 2, y);             // tl
+    drawLine(x, y - (h - 1));                 // bl
 }
 
 void Drawable::drawDotRect(int w, int h)
 {
-	gotoXY(x-lineWidth/2,y);
-	drawDotLine(x+w+lineWidth-1,y);
-	gotoXY(x-(lineWidth-1)/2,y);
-	drawDotLine(x,y+h);
-	gotoXY(x+(lineWidth-1)/2,y);
-	drawDotLine(x-w-lineWidth+1,y);
-	gotoXY(x+lineWidth/2,y);
-	drawDotLine(x,y-h);
+    gotoXY(x - lineWidth / 2, y);                // tl
+    drawDotLine(x + (w - 1) + lineWidth - 1, y); // tr
+    gotoXY(x - (lineWidth - 1) / 2, y);          // tl
+    drawDotLine(x, y + (h - 1));                 // bl
+    gotoXY(x + (lineWidth - 1) / 2, y);          // tl
+    drawDotLine(x - (w - 1) - lineWidth + 1, y); // tr
+    gotoXY(x + lineWidth / 2, y);                // tl
+    drawDotLine(x, y - (h - 1));                 // bl
 }
 
 void Drawable::fill()
