@@ -229,8 +229,8 @@ struct Theme
     uint32_t ButtonFiller           = 0xFF808080;
     uint32_t ButtonBevel1           = 0xFFFFFFFF;
     uint32_t ButtonBevel2           = 0xFFC0C0C0;
-    uint32_t ButtonHeight           = 23;
-    uint32_t ButtonContentHeight    = 15;
+    uint32_t ButtonHeight           = 23; // must be odd
+    uint32_t ButtonContentHeight    = 15; // must be odd
     uint32_t FocusColor             = 0xFF000000;
     int32_t  FocusPaddingHorizontal = 2;
     uint32_t TextColor              = 0xFF000000;
@@ -1672,7 +1672,7 @@ public:
 
 	    // override non-interpreted so as focus adapts itself better to text
 	    // one depends on the other, that's fundamentally wrong but well ...
-	    // that said, it's pretty darn close to how it looks in Windows 3.11
+	    // this is good but not perfect -> we need accurate width (per char)
         if (interpret == false)
         {
             auto tw = font->getWidth(this->text);
