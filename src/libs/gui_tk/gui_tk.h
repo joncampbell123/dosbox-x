@@ -1692,7 +1692,7 @@ public:
     {
         d.setColor(color);
 
-        d.drawText(CurrentTheme.FocusPaddingHorizontal, font->getAscent(), text, interpret, 0);
+        d.drawText(CurrentTheme.FocusPaddingHorizontal + (width & 1), font->getAscent(), text, interpret, 0);
 
         if(hasFocus())
         {
