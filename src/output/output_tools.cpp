@@ -275,6 +275,11 @@ void change_output(int output) {
     GFX_LogSDLState();
 
     UpdateWindowDimensions();
+
+#ifdef C_SDL2
+    // UX: always center window after changing output
+    SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+#endif
 }
 
 void OutputSettingMenuUpdate(void) {
