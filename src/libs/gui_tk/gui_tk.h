@@ -2354,9 +2354,6 @@ protected:
 	bool pressed;
 
 public:
-	/// Create a button with given position and size
-	Button(Window *parent, int x, int y, int w, int h) : BorderedWindow(parent,x,y,w,h,6,5,6,5), ActionEventSource("GUI::Button"), pressed(0) {}
-
 	/// Create a text button.
 	/** If a size is specified, text is centered. Otherwise, button size is adjusted for the text. */
 	template <typename T> Button(Window *parent, int x, int y, const T text, int w = -1, int h = -1);
