@@ -141,6 +141,10 @@ void                        macosx_reload_touchbar(void);
 
 std::list<std::string> proplist = {};
 GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
+
+// user pick of 'show advanced options' for the session
+bool advOptUser = false;
+
 std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(std::string pvar, std::string inputline, bool quiet), GUI_Run(bool pressed);
@@ -3255,7 +3259,7 @@ public:
 
         advopt = new GUI::Checkbox(this, gridbtnx, closerow_y, MSG_Get("SHOW_ADVOPT"));
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-        advopt->setChecked(section->Get_bool("show advanced options"));
+        advopt->setChecked(section->Get_bool("show advanced options") || advOptUser);
 
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
         (saveButton = new GUI::Button(this, 276, closerow_y, tmp1, 130, gridbtnheight))->addActionHandler(this);
@@ -3287,6 +3291,7 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) override {
+        advOptUser = advopt->isChecked();
         GUI::String sname = RestoreName(arg);
         sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
         Section *sec;
