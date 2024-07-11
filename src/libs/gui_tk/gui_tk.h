@@ -230,6 +230,7 @@ struct Theme
     uint32_t ButtonBevel1           = 0xFFFFFFFF;
     uint32_t ButtonBevel2           = 0xFFC0C0C0;
     uint32_t ButtonHeight           = 23;
+    uint32_t ButtonContentHeight    = 15;
     uint32_t FocusColor             = 0xFF000000;
     int32_t  FocusPadding           = 2;
     int32_t  FocusPaddingHorizontal = 1;
@@ -1676,8 +1677,7 @@ public:
         if (interpret == false)
         {
             const auto tw = font->getWidth(this->text);
-            const auto th = font->getHeight();
-            Window::resize(tw + CurrentTheme.FocusPadding + CurrentTheme.FocusPaddingHorizontal, th + CurrentTheme.FocusPadding);
+            Window::resize(tw + CurrentTheme.FocusPadding + CurrentTheme.FocusPaddingHorizontal, static_cast<int>(CurrentTheme.ButtonContentHeight) + CurrentTheme.FocusPadding);
         }
     }
 
