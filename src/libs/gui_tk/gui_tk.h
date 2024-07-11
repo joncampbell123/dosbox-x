@@ -229,6 +229,7 @@ struct Theme
     uint32_t ButtonFiller           = 0xFF808080;
     uint32_t ButtonBevel1           = 0xFFFFFFFF;
     uint32_t ButtonBevel2           = 0xFFC0C0C0;
+    uint32_t ButtonHeight           = 23;
     uint32_t FocusColor             = 0xFF000000;
     int32_t  FocusPadding           = 2;
     int32_t  FocusPaddingHorizontal = 1;
