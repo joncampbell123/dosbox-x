@@ -3170,7 +3170,7 @@ public:
         bar->addActionHandler(this);
 
         int gridbtnwidth = 130;
-        int gridbtnheight = 26;
+        int gridbtnheight = GUI::CurrentTheme.ButtonHeight;
         int gridbtnx = 12;
         int gridbtny = 25;
         int btnperrow = 4;
