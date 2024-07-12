@@ -1026,10 +1026,32 @@ bool Window::mouseDoubleClicked(int x, int y, MouseButton button)
 	return mouseChild->mouseDoubleClicked(x-mouseChild->x, y-mouseChild->y, button);
 }
 
-bool Window::mouseWheel(int wheel)
+bool Window::mouseWheel(int x, int y, int wheel)
 {
+    for(const auto& win1 : children)
+    {
+        if(win1->toplevel && win1->hasFocus())
+        {
+            for(const auto& win2 : win1->children)
+            {
+                if(dynamic_cast<WindowInWindow*>(win2))
+                {
+                    const auto xMin = win1->x + win2->x;
+                    const auto yMin = win1->y + win2->y;
+                    const auto xMax = xMin + win2->width - 1;
+                    const auto yMax = yMin + win2->height - 1;
+
+                    if(x >= xMin && x <= xMax && y >= yMin && y < yMax)
+                    {
+                        return win2->mouseWheel(x, y, wheel);
+                    }
+                }
+            }
+        }
+    }
+
 	if (mouseChild == NULL) return false;
-	return mouseChild->mouseWheel(wheel);
+	return mouseChild->mouseWheel(x, y, wheel);
 }
 
 bool BorderedWindow::mouseDown(int x, int y, MouseButton button)
@@ -2337,7 +2359,10 @@ bool ScreenSDL::event(SDL_Event &event) {
 		return rc;
 #if C_SDL2	    
     case SDL_MOUSEWHEEL:
-        return mouseWheel(event.wheel.y);
+    {
+        const auto wheel = event.wheel;
+        return mouseWheel(wheel.mouseX / scale, wheel.mouseY / scale, wheel.y);
+    }
 #endif
     }
 
@@ -2878,11 +2903,10 @@ bool WindowInWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
     return Window::mouseDoubleClicked(x-xadj,y-xadj,button);
 }
 
-bool WindowInWindow::mouseWheel(int wheel)
+bool WindowInWindow::mouseWheel(int x, int y, int wheel)
 {
-    // BUG requires to click at least once in window for it to work
     scroll_pos_y = imin(imax(scroll_pos_y - wheel * 15, 0), scroll_pos_h);
-    return Window::mouseWheel(wheel);
+    return Window::mouseWheel(x, y, wheel);
 }
 
 void WindowInWindow::resize(int w, int h) {
