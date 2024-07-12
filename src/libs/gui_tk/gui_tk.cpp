@@ -1030,7 +1030,7 @@ bool Window::mouseWheel(int x, int y, int wheel)
 {
     for(const auto& win1 : children)
     {
-        if(win1->toplevel && win1->hasFocus())
+        if(win1->hasFocus())
         {
             for(const auto& win2 : win1->children)
             {
