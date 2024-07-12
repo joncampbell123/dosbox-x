@@ -1028,7 +1028,7 @@ static Bitu DOS_21Handler(void) {
         real_writew(SegValue(ss), reg_sp - 2, SegValue(es));
     }
 
-    if (reg_ah == 0x06) {
+    if (reg_ah == 0x06 || reg_ah == 0x07) {
         /* does not check CTRL+BREAK. Some DOS programs do not expect to be interrupted with INT 23h if they read */
         /* keyboard input through this and may cause system instability if terminated. This fixes PC-98 text editor
          * VZ.EXE which will leave it's INT 6h handler in memory if interrupted this way, for example. */
