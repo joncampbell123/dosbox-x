@@ -228,7 +228,7 @@ struct SB_INFO {
         uint8_t mic;
         bool stereo;
         bool enabled;
-        bool filtered;
+        bool filter_bypass;
         bool sbpro_stereo; /* Game or OS is attempting SB Pro type stereo */
         uint8_t unhandled[0x48];
         uint8_t ess_id_str[4];
@@ -2616,7 +2616,7 @@ static void CTMIXER_UpdateVolumes(void) {
 }
 
 static void CTMIXER_Reset(void) {
-    sb.mixer.filtered=0; // Creative Documentation: filtered bit 0 by default
+    sb.mixer.filter_bypass=0; // Creative Documentation: filter_bypass bit is 0 by default
     sb.mixer.fm[0]=
     sb.mixer.fm[1]=
     sb.mixer.cda[0]=
@@ -2686,7 +2686,7 @@ void updateSoundBlasterFilter(Bitu rate) {
     }
     else if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) { // Sound Blaster Pro (DSP 3.x). Tested against real hardware (CT1600) by Jonathan C.
         sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
-        if (sb.mixer.filtered/*setting the bit means to bypass the lowpass filter*/)
+        if (sb.mixer.filter_bypass)
             sb.chan->SetLowpassFreq(23000); // max sample rate 46000Hz. slew rate filter does the rest of the filtering for us.
         else
             sb.chan->SetLowpassFreq(3800); // NOT documented by Creative, guess based on listening tests with a CT1600, and documented Input filter freqs
@@ -2789,7 +2789,7 @@ static void CTMIXER_Write(uint8_t val) {
             sb.mixer.stereo=(val & 0x2) > 0;
 
         sb.mixer.sbpro_stereo=(val & 0x2) > 0;
-        sb.mixer.filtered=(val & 0x20) > 0;
+        sb.mixer.filter_bypass=(val & 0x20) > 0; /* filter is ON by default, set the bit to turn OFF the filter */
         DSP_ChangeStereo(sb.mixer.stereo);
         updateSoundBlasterFilter(sb.freq);
 
@@ -3012,7 +3012,7 @@ static uint8_t CTMIXER_Read(void) {
         if (sb.type==SBT_2) return (sb.mixer.dac[0]>>2);
         else return ((sb.mixer.mic >> 2) & (sb.type==SBT_16 ? 7:6));
     case 0x0e:      /* Output/Stereo Select */
-        return 0x11|(sb.mixer.stereo ? 0x02 : 0x00)|(sb.mixer.filtered ? 0x20 : 0x00);
+        return 0x11|(sb.mixer.stereo ? 0x02 : 0x00)|(sb.mixer.filter_bypass ? 0x20 : 0x00);
     case 0x14:      /* Audio 1 Play Volume (ESS 688) */
         if (sb.ess_type != ESS_NONE) return ((sb.mixer.dac[0] << 3) & 0xF0) + (sb.mixer.dac[1] >> 1);
         break;
