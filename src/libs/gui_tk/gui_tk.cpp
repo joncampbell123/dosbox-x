@@ -2393,7 +2393,7 @@ void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int
 void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const {
     // black border
     dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
-    dscroll.drawRect(vsl.xleft,vsl.ytop,vsl.thumbwidth-1,vsl.thumbheight-1);
+    dscroll.drawRect(vsl.xleft,vsl.ytop,vsl.thumbwidth,vsl.thumbheight);
 
     // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
     paintScrollBar3DOutset(dscroll, vsl.xleft+1, vsl.ytop+1, vsl.thumbwidth-2, vsl.thumbheight-2);
@@ -2402,7 +2402,7 @@ void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vs
 void WindowInWindow::paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const {
     /* scroll bar border, background */
     dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
-    dscroll.drawRect(vsl.scrollthumbRegion.x,  vsl.scrollthumbRegion.y,  vsl.scrollthumbRegion.w-1,vsl.scrollthumbRegion.h-1);
+    dscroll.drawRect(vsl.scrollthumbRegion.x,  vsl.scrollthumbRegion.y,  vsl.scrollthumbRegion.w,vsl.scrollthumbRegion.h);
 
     dscroll.setColor(CurrentTheme.Background);
     dscroll.fillRect(vsl.scrollthumbRegion.x+1,vsl.scrollthumbRegion.y+1,vsl.scrollthumbRegion.w-2,vsl.scrollthumbRegion.h-2);
@@ -2524,7 +2524,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
                 // black border
                 dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
-                dscroll.drawRect(x,y,w-1,h-1);
+                dscroll.drawRect(x,y,w,h);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 if (vscroll_uparrowhold && vscroll_uparrowdown)
@@ -2546,7 +2546,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
                 // black border
                 dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
-                dscroll.drawRect(x,y,w-1,h-1);
+                dscroll.drawRect(x,y,w,h);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 if (vscroll_downarrowhold && vscroll_downarrowdown)
