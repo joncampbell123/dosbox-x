@@ -1041,7 +1041,7 @@ bool Window::mouseWheel(int x, int y, int wheel)
                     const auto xMax = xMin + win2->width - 1;
                     const auto yMax = yMin + win2->height - 1;
 
-                    if(x >= xMin && x <= xMax && y >= yMin && y < yMax)
+                    if(x >= xMin && x <= xMax && y >= yMin && y <= yMax)
                     {
                         return win2->mouseWheel(x, y, wheel);
                     }
