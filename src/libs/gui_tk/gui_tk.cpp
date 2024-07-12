@@ -2905,7 +2905,7 @@ bool WindowInWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
 
 bool WindowInWindow::mouseWheel(int x, int y, int wheel)
 {
-    scroll_pos_y = imin(imax(scroll_pos_y - wheel * 15, 0), scroll_pos_h);
+    scroll_pos_y = imin(imax(scroll_pos_y - wheel * 30, 0), scroll_pos_h);
     return Window::mouseWheel(x, y, wheel);
 }
 
