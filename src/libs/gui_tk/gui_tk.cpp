@@ -2358,11 +2358,13 @@ bool ScreenSDL::event(SDL_Event &event) {
 		lastdown = 0;
 		return rc;
 #if C_SDL2	    
+#if WIN32
     case SDL_MOUSEWHEEL:
     {
         const auto wheel = event.wheel;
         return mouseWheel(wheel.mouseX / scale, wheel.mouseY / scale, wheel.y);
     }
+#endif
 #endif
     }
 
