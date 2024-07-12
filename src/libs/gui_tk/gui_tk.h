@@ -744,7 +744,7 @@ public:
 	/// Transient windows by default should disappear.
 	virtual bool mouseDownOutside(MouseButton button);
 
-    virtual bool mouseWheel(int wheel);
+    virtual bool mouseWheel(int x, int y, int wheel);
 	/// Key was pressed. Returns true if event was handled.
 	virtual bool keyDown(const Key &key);
 	/// Key was released. Returns true if event was handled.
@@ -890,7 +890,7 @@ public:
 	/// Mouse was double-clicked. Returns true if event was handled.
 	bool mouseDoubleClicked(int x, int y, MouseButton button) override;
 
-    bool mouseWheel(int wheel) override;
+    bool mouseWheel(int x, int y, int wheel) override;
 	/// Key was pressed. Returns true if event was handled.
 	bool keyDown(const Key &key) override;
 
