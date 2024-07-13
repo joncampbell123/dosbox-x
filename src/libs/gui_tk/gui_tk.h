@@ -244,6 +244,7 @@ struct Theme
     uint32_t TitleBarText           = 0xFF000000;
     uint32_t TitleBarInactive       = 0xFFFFFFFF;
     uint32_t TitleBarInactiveText   = 0xFF000000;
+    uint32_t DefaultSpacing         = 3;
 };
 
 // Windows 3.1 theme
@@ -2356,7 +2357,7 @@ protected:
 public:
 	/// Create a text button.
 	/** If a size is specified, text is centered. Otherwise, button size is adjusted for the text. */
-	template <typename T> Button(Window *parent, int x, int y, const T text, int w = -1, int h = -1);
+	template <typename T> Button(Window *parent, int x, int y, const T text, int w = -1, int h = static_cast<int>(CurrentTheme.ButtonHeight));
 
 	/// Paint button.
 	void paint(Drawable &d) const override;

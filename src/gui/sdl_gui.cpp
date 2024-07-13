@@ -691,9 +691,46 @@ class PropertyEditor : public GUI::Window, public GUI::ActionEventSource_Callbac
 protected:
     Section_prop * section;
     Property *prop;
+
+    static constexpr auto RightMarginWindow    = 10; // TODO find origin, fix
+    static constexpr auto RightMarginBool      = 55; // TODO find origin, fix
+    static constexpr auto RightMarginText      = 40; // TODO find origin, fix
+
+    int GetHostWindowWidth() const
+    {
+        const int width = parent->getParent()->getWidth();
+
+        return width;
+    }
+
+    void SetupUI(const bool opts, GUI::Input*& input, GUI::Button*& infoButton)
+    {
+        const auto windowWidth = GetHostWindowWidth();
+
+        constexpr auto optionsWidth = 42;
+
+        const auto defaultSpacing = static_cast<int>(GUI::CurrentTheme.DefaultSpacing);
+
+        const auto inputWidth = 235 - (opts ? optionsWidth + defaultSpacing : 0);
+
+        const auto optionsPos = windowWidth - optionsWidth - RightMarginText - defaultSpacing;
+
+        const auto inputPos = opts
+                                  ? optionsPos - defaultSpacing - inputWidth
+                                  : windowWidth - RightMarginText - defaultSpacing - inputWidth;
+
+        input = new GUI::Input(this, inputPos, 0, inputWidth, static_cast<int>(GUI::CurrentTheme.ButtonHeight));
+
+        if(opts)
+        {
+            infoButton = new GUI::Button(this, optionsPos, 0, "...", optionsWidth);
+            infoButton->addActionHandler(this);
+        }
+    }
+
 public:
     PropertyEditor(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
-        Window(parent, x, y, 500, 25), section(section), prop(prop) { (void)opts; }
+        Window(parent, x, y, parent->getParent()->getWidth() - RightMarginWindow, 25), section(section), prop(prop) { (void)opts; }
 
     virtual bool prepare(std::string &buffer) = 0;
 
@@ -732,7 +769,8 @@ public:
     PropertyEditorBool(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Checkbox(this, 480, 3, "");
+        constexpr auto inputWidth = 3;
+        input = new GUI::Checkbox(this, GetHostWindowWidth() - inputWidth - RightMarginBool, inputWidth, "");
         input->setChecked(static_cast<bool>(prop->GetValue()));
     }
 
@@ -854,11 +892,7 @@ public:
         if (title=="4dos"&&!strcmp(prop->propname.c_str(), "rem"))
             input = new GUI::Input(this, 30, 0, 470);
         else {
-            input = new GUI::Input(this, 260, 0, opts?195:235);
-            if (opts) {
-                infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
-                infoButton->addActionHandler(this);
-            }
+            SetupUI(opts, input, infoButton);
         }
         std::string temps = prop->GetValue().ToString();
         input->setText(stringify(temps));
@@ -912,11 +946,7 @@ protected:
 public:
     PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 365, 0, opts?90:130);
-        if (opts) {
-            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
-            infoButton->addActionHandler(this);
-        }
+        SetupUI(opts, input, infoButton);
         input->setText(stringify((double)prop->GetValue()));
         label = new GUI::Label(this, 0, 5, prop->propname);
 	scan_tabbing = true;
@@ -969,11 +999,7 @@ protected:
 public:
     PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 365, 0, opts?90:130);
-        if (opts) {
-            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
-            infoButton->addActionHandler(this);
-        }
+        SetupUI(opts, input, infoButton);
         std::string temps = prop->GetValue().ToString();
         input->setText(temps.c_str());
         label = new GUI::Label(this, 0, 5, prop->propname);
@@ -1027,11 +1053,7 @@ protected:
 public:
     PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 365, 0, opts?90:130);
-        if (opts) {
-            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
-            infoButton->addActionHandler(this);
-        }
+        SetupUI(opts, input, infoButton);
         //Maybe use ToString() of Value
         input->setText(stringify(static_cast<int>(prop->GetValue())));
         label = new GUI::Label(this, 0, 5, prop->propname);
@@ -1405,7 +1427,7 @@ public:
     std::vector<GUI::Char> cfg_sname;
 public:
     SectionEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
-        ToplevelWindow(parent, x, y, 510, 422, ""), section(section) {
+        ToplevelWindow(parent, x, y, 0, 0, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: SectionEditor constructor called with section == NULL\n");
             return;
@@ -1414,9 +1436,9 @@ public:
 
         int first_row_y = 5;
         int row_height = 25;
-        int column_width = 500;
-        int button_row_h = 26;
-        int button_row_padding_y = 5 + 5;
+        int column_width = 600;
+        int button_row_h = (int)GUI::CurrentTheme.ButtonHeight;
+        int button_row_padding_y = static_cast<int>(GUI::CurrentTheme.DefaultSpacing);
 
         int num_prop = 0, k=0;
         while (section->Get_prop(num_prop) != NULL) {
