@@ -692,20 +692,44 @@ protected:
     Section_prop * section;
     Property *prop;
 
+    static constexpr auto RightMarginWindow    = 10; // TODO find origin, fix
+    static constexpr auto RightMarginBool      = 55; // TODO find origin, fix
+    static constexpr auto RightMarginText      = 40; // TODO find origin, fix
+    static constexpr auto SpaceBetweenControls = 3;  // TODO put in style
+
+    int GetHostWindowWidth() const
+    {
+        const int width = parent->getParent()->getWidth();
+
+        return width;
+    }
+
     void SetupUI(const bool opts, GUI::Input*& input, GUI::Button*& infoButton)
     {
-        input = new GUI::Input(this, 260, 0, opts ? 190 : 235);
+        const auto windowWidth = GetHostWindowWidth();
+
+        constexpr auto optionsWidth = 42;
+
+        const auto inputWidth = 235 - (opts ? (optionsWidth + SpaceBetweenControls) : 0);
+
+        const auto optionsPos = windowWidth - optionsWidth - RightMarginText - SpaceBetweenControls;
+
+        const auto inputPos = opts
+                                  ? optionsPos - SpaceBetweenControls - inputWidth
+                                  : windowWidth - RightMarginText - SpaceBetweenControls - inputWidth;
+
+        input = new GUI::Input(this, inputPos, 0, inputWidth);
 
         if(opts)
         {
-            infoButton = new GUI::Button(this, 453, 0, "...", 42);
+            infoButton = new GUI::Button(this, optionsPos, 0, "...", optionsWidth);
             infoButton->addActionHandler(this);
         }
     }
 
 public:
     PropertyEditor(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
-        Window(parent, x, y, 500, 25), section(section), prop(prop) { (void)opts; }
+        Window(parent, x, y, parent->getParent()->getWidth() - RightMarginWindow, 25), section(section), prop(prop) { (void)opts; }
 
     virtual bool prepare(std::string &buffer) = 0;
 
@@ -744,7 +768,8 @@ public:
     PropertyEditorBool(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Checkbox(this, 480, 3, "");
+        constexpr auto inputWidth = 3;
+        input = new GUI::Checkbox(this, GetHostWindowWidth() - inputWidth - RightMarginBool, inputWidth, "");
         input->setChecked(static_cast<bool>(prop->GetValue()));
     }
 
@@ -1401,7 +1426,7 @@ public:
     std::vector<GUI::Char> cfg_sname;
 public:
     SectionEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
-        ToplevelWindow(parent, x, y, 510, 422, ""), section(section) {
+        ToplevelWindow(parent, x, y, 0, 0, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: SectionEditor constructor called with section == NULL\n");
             return;
@@ -1410,7 +1435,7 @@ public:
 
         int first_row_y = 5;
         int row_height = 25;
-        int column_width = 500;
+        int column_width = 600;
         int button_row_h = 26;
         int button_row_padding_y = 5 + 5;
 
