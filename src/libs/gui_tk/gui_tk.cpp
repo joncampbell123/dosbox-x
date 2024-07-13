@@ -1090,47 +1090,31 @@ bool BorderedWindow::mouseDragged(int x, int y, MouseButton button)
 
 void ToplevelWindow::paint(Drawable &d) const
 {
-	unsigned int mask = (systemMenu->isVisible()?Color::RedMask|Color::GreenMask|Color::BlueMask:0);
-	d.clear(CurrentTheme.Background);
+    // window frame (outer)
+    d.setColor(DefaultTheme.WindowFrame);
+    d.fillRect(0, 0, width, height);
+    
+    // active border
+    d.setColor(DefaultTheme.ActiveTitleBar);
+    d.fillRect(1, 1, width - 2, height - 2);
 
-	d.setColor(CurrentTheme.Border);
-	d.drawLine(0,height-1,width-1,height-1);
-	d.drawLine(width-1,0,width-1,height-1);
+    // window frame (inner)
+    d.setColor(DefaultTheme.ApplicationWorkspace);
+    d.fillRect(5, 4, width - 10, height - 8);
 
-	d.setColor(CurrentTheme.Shadow3D);
-	d.drawLine(0,0,width-2,0);
-	d.drawLine(0,0,0,height-2);
-	d.drawLine(0,height-2,width-2,height-2);
-	d.drawLine(width-2,0,width-2,height-2);
+    // title bar background
+    d.setColor(DefaultTheme.WindowFrame);
+    d.fillRect(6, 5, width - 6 - 6, 19);
 
-	d.drawLine(5,titlebox_y_start,width-7,titlebox_y_start);
-	d.drawLine(5,titlebox_y_start,5,titlebox_y_start+titlebox_y_height-2);
-
-	d.setColor(CurrentTheme.Light3D);
-	d.drawLine(1,1,width-3,1);
-	d.drawLine(1,1,1,height-3);
-
-	d.drawLine(5,titlebox_y_start+titlebox_y_height-1,width-6,titlebox_y_start+titlebox_y_height-1);
-	d.drawLine(width-6,5,width-6,titlebox_y_start+titlebox_y_height-1);
-
-	d.setColor(CurrentTheme.Background^mask);
-	d.fillRect(6,titlebox_y_start+1,titlebox_sysmenu_width-1,titlebox_y_height-2);
-    {
-        int y = titlebox_y_start+((titlebox_y_height-4)/2);
-        int x = 8;
-        int w = (titlebox_sysmenu_width * 20) / 27;
-        int h = 4;
-
-        d.setColor(Color::Grey50^mask);
-        d.fillRect(x+1,y+1,w,  h);
-        d.setColor(Color::Black^mask);
-        d.fillRect(x,  y,  w,  h);
-        d.setColor(Color::White^mask);
-        d.fillRect(x+1,y+1,w-2,h-2);
-    }
-
-	d.setColor(CurrentTheme.Border);
-	d.drawLine(6+titlebox_sysmenu_width-1,titlebox_y_start+1,6+titlebox_sysmenu_width-1,titlebox_y_start+titlebox_y_height-2);
+    // system menu (hardcoded)
+    d.setColor(0xFFC0C7C8);
+    d.fillRect(6, 5, 18, 18);
+    d.setColor(0xFF87888F);
+    d.fillRect(9, 13, 13, 3);
+    d.setColor(DefaultTheme.WindowFrame);
+    d.fillRect(8, 12, 13, 3);
+    d.setColor(0xFFFFFFFF);
+    d.fillRect(9, 13, 11, 1);
 
     bool active = hasFocus();
 
@@ -1157,13 +1141,15 @@ void ToplevelWindow::paint(Drawable &d) const
         }
     }
 
-	d.setColor(active ? CurrentTheme.TitleBar : CurrentTheme.TitleBarInactive);
-	d.fillRect(6+titlebox_sysmenu_width,titlebox_y_start+1,width-(6+titlebox_sysmenu_width+6),titlebox_y_height-2);
-
-	const Font *font = Font::getFont("title");
-	d.setColor(active ? CurrentTheme.TitleBarText : CurrentTheme.TitleBarInactiveText);
-	d.setFont(font);
-	d.drawText(31+(width-39-font->getWidth(title))/2,titlebox_y_start+(titlebox_y_height-font->getHeight())/2+font->getAscent(),title,false,0);
+    // title
+    d.setColor(active ? DefaultTheme.ActiveTitleBar : DefaultTheme.InactiveTitleBar);
+    d.fillRect(25, 5, width - 25 - 6, 18);
+    const Font* titleFont = Font::getFont("title");
+    const auto titleW = width - (25 + 6);
+    const auto titleX = 25 + (titleW / 2 - titleFont->getWidth(title) / 2);
+    d.setFont(titleFont);
+    d.setColor(active ? DefaultTheme.ActiveTitleBarText : DefaultTheme.InactiveTitleBarText);
+    d.drawText(titleX, 17, title, false, 0);
 }
 
 void Input::posToEnd(void) {
