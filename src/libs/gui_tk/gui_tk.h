@@ -363,7 +363,7 @@ struct ThemeWindows31BlackLeatherJacket : ThemeWindows31
         ActiveBorder         = 0xFF808080;
         InactiveBorder       = 0xFF808080;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFE0E010E0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
@@ -867,7 +867,7 @@ struct ThemeWindows31Tweed : ThemeWindows31
         ActiveBorder         = 0xFF804040;
         InactiveBorder       = 0xFFC0C0C0;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFE0E010E0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
