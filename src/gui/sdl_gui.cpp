@@ -691,6 +691,18 @@ class PropertyEditor : public GUI::Window, public GUI::ActionEventSource_Callbac
 protected:
     Section_prop * section;
     Property *prop;
+
+    void SetupUI(const bool opts, GUI::Input*& input, GUI::Button*& infoButton)
+    {
+        input = new GUI::Input(this, 260, 0, opts ? 195 : 235);
+
+        if(opts)
+        {
+            infoButton = new GUI::Button(this, 460, 0, "...", 35);
+            infoButton->addActionHandler(this);
+        }
+    }
+
 public:
     PropertyEditor(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         Window(parent, x, y, 500, 25), section(section), prop(prop) { (void)opts; }
@@ -854,11 +866,7 @@ public:
         if (title=="4dos"&&!strcmp(prop->propname.c_str(), "rem"))
             input = new GUI::Input(this, 30, 0, 470);
         else {
-            input = new GUI::Input(this, 260, 0, opts?195:235);
-            if (opts) {
-                infoButton=new GUI::Button(this, 460, 0, "...", 35);
-                infoButton->addActionHandler(this);
-            }
+            SetupUI(opts, input, infoButton);
         }
         std::string temps = prop->GetValue().ToString();
         input->setText(stringify(temps));
@@ -912,11 +920,7 @@ protected:
 public:
     PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 365, 0, opts?90:130);
-        if (opts) {
-            infoButton=new GUI::Button(this, 460, 0, "...", 35);
-            infoButton->addActionHandler(this);
-        }
+        SetupUI(opts, input, infoButton);
         input->setText(stringify((double)prop->GetValue()));
         label = new GUI::Label(this, 0, 5, prop->propname);
 	scan_tabbing = true;
@@ -969,11 +973,7 @@ protected:
 public:
     PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 365, 0, opts?90:130);
-        if (opts) {
-            infoButton=new GUI::Button(this, 460, 0, "...", 35);
-            infoButton->addActionHandler(this);
-        }
+        SetupUI(opts, input, infoButton);
         std::string temps = prop->GetValue().ToString();
         input->setText(temps.c_str());
         label = new GUI::Label(this, 0, 5, prop->propname);
@@ -1027,11 +1027,7 @@ protected:
 public:
     PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        input = new GUI::Input(this, 365, 0, opts?90:130);
-        if (opts) {
-            infoButton=new GUI::Button(this, 460, 0, "...", 35);
-            infoButton->addActionHandler(this);
-        }
+        SetupUI(opts, input, infoButton);
         //Maybe use ToString() of Value
         input->setText(stringify(static_cast<int>(prop->GetValue())));
         label = new GUI::Label(this, 0, 5, prop->propname);
