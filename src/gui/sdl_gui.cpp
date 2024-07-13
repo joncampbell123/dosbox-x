@@ -694,11 +694,11 @@ protected:
 
     void SetupUI(const bool opts, GUI::Input*& input, GUI::Button*& infoButton)
     {
-        input = new GUI::Input(this, 260, 0, opts ? 195 : 235);
+        input = new GUI::Input(this, 260, 0, opts ? 190 : 235);
 
         if(opts)
         {
-            infoButton = new GUI::Button(this, 460, 0, "...", 35);
+            infoButton = new GUI::Button(this, 453, 0, "...", 42);
             infoButton->addActionHandler(this);
         }
     }
