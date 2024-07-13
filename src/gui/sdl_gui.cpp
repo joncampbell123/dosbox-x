@@ -695,7 +695,6 @@ protected:
     static constexpr auto RightMarginWindow    = 10; // TODO find origin, fix
     static constexpr auto RightMarginBool      = 55; // TODO find origin, fix
     static constexpr auto RightMarginText      = 40; // TODO find origin, fix
-    static constexpr auto SpaceBetweenControls = 3;  // TODO put in style
 
     int GetHostWindowWidth() const
     {
@@ -710,13 +709,15 @@ protected:
 
         constexpr auto optionsWidth = 42;
 
-        const auto inputWidth = 235 - (opts ? (optionsWidth + SpaceBetweenControls) : 0);
+        const auto defaultSpacing = static_cast<int>(GUI::CurrentTheme.DefaultSpacing);
 
-        const auto optionsPos = windowWidth - optionsWidth - RightMarginText - SpaceBetweenControls;
+        const auto inputWidth = 235 - (opts ? optionsWidth + defaultSpacing : 0);
+
+        const auto optionsPos = windowWidth - optionsWidth - RightMarginText - defaultSpacing;
 
         const auto inputPos = opts
-                                  ? optionsPos - SpaceBetweenControls - inputWidth
-                                  : windowWidth - RightMarginText - SpaceBetweenControls - inputWidth;
+                                  ? optionsPos - defaultSpacing - inputWidth
+                                  : windowWidth - RightMarginText - defaultSpacing - inputWidth;
 
         input = new GUI::Input(this, inputPos, 0, inputWidth);
 
@@ -1436,8 +1437,8 @@ public:
         int first_row_y = 5;
         int row_height = 25;
         int column_width = 600;
-        int button_row_h = 26;
-        int button_row_padding_y = 5 + 5;
+        int button_row_h = (int)GUI::CurrentTheme.ButtonHeight;
+        int button_row_padding_y = static_cast<int>(GUI::CurrentTheme.DefaultSpacing);
 
         int num_prop = 0, k=0;
         while (section->Get_prop(num_prop) != NULL) {
