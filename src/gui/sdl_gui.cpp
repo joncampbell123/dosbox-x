@@ -856,7 +856,7 @@ public:
         else {
             input = new GUI::Input(this, 260, 0, opts?195:235);
             if (opts) {
-                infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
+                infoButton=new GUI::Button(this, 460, 0, "...", 35);
                 infoButton->addActionHandler(this);
             }
         }
@@ -914,7 +914,7 @@ public:
         PropertyEditor(parent, x, y, section, prop, opts) {
         input = new GUI::Input(this, 365, 0, opts?90:130);
         if (opts) {
-            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
+            infoButton=new GUI::Button(this, 460, 0, "...", 35);
             infoButton->addActionHandler(this);
         }
         input->setText(stringify((double)prop->GetValue()));
@@ -971,7 +971,7 @@ public:
         PropertyEditor(parent, x, y, section, prop, opts) {
         input = new GUI::Input(this, 365, 0, opts?90:130);
         if (opts) {
-            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
+            infoButton=new GUI::Button(this, 460, 0, "...", 35);
             infoButton->addActionHandler(this);
         }
         std::string temps = prop->GetValue().ToString();
@@ -1029,7 +1029,7 @@ public:
         PropertyEditor(parent, x, y, section, prop, opts) {
         input = new GUI::Input(this, 365, 0, opts?90:130);
         if (opts) {
-            infoButton=new GUI::Button(this, 460, 0, "...", 35, 24);
+            infoButton=new GUI::Button(this, 460, 0, "...", 35);
             infoButton->addActionHandler(this);
         }
         //Maybe use ToString() of Value
