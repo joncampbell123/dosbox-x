@@ -244,6 +244,7 @@ struct Theme
     uint32_t TitleBarText           = 0xFF000000;
     uint32_t TitleBarInactive       = 0xFFFFFFFF;
     uint32_t TitleBarInactiveText   = 0xFF000000;
+    uint32_t DefaultSpacing         = 3;
 };
 
 // Windows 3.1 theme
