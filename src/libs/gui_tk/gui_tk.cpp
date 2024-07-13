@@ -57,8 +57,10 @@ int titlebox_y_height = 20;
 /* width of the system menu */
 int titlebox_sysmenu_width = 20; // includes black divider line
 
+// OLD theme // BUG OBSOLETE
 Theme CurrentTheme = ThemeLight();
 
+// NEW theme
 ThemeWindows31 DefaultTheme = ThemeWindows31Default();
 
 std::map<const char *,Font *,Font::ltstr> Font::registry;
