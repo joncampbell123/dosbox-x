@@ -1455,7 +1455,6 @@ void ttf_switch_on(bool ss=true) {
 #ifdef C_SDL2
         transparency = 0;
         SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
-        SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #endif
         if (!IS_PC98_ARCH && vga.draw.address_add != ttf.cols * 2) checkcol = ss?2:1;
     }

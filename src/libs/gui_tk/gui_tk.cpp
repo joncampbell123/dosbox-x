@@ -358,26 +358,26 @@ void Drawable::drawCircle(int d) {
 
 void Drawable::drawRect(int w, int h)
 {
-	gotoXY(x-lineWidth/2,y);
-	drawLine(x+w+lineWidth-1,y);
-	gotoXY(x-(lineWidth-1)/2,y);
-	drawLine(x,y+h);
-	gotoXY(x+(lineWidth-1)/2,y);
-	drawLine(x-w-lineWidth+1,y);
-	gotoXY(x+lineWidth/2,y);
-	drawLine(x,y-h);
+    gotoXY(x - lineWidth / 2, y);             // tl
+    drawLine(x + (w - 1) + lineWidth - 1, y); // tr
+    gotoXY(x - (lineWidth - 1) / 2, y);       // tl
+    drawLine(x, y + (h - 1));                 // bl
+    gotoXY(x + (lineWidth - 1) / 2, y);       // tl
+    drawLine(x - (w - 1) - lineWidth + 1, y); // tr
+    gotoXY(x + lineWidth / 2, y);             // tl
+    drawLine(x, y - (h - 1));                 // bl
 }
 
 void Drawable::drawDotRect(int w, int h)
 {
-	gotoXY(x-lineWidth/2,y);
-	drawDotLine(x+w+lineWidth-1,y);
-	gotoXY(x-(lineWidth-1)/2,y);
-	drawDotLine(x,y+h);
-	gotoXY(x+(lineWidth-1)/2,y);
-	drawDotLine(x-w-lineWidth+1,y);
-	gotoXY(x+lineWidth/2,y);
-	drawDotLine(x,y-h);
+    gotoXY(x - lineWidth / 2, y);                // tl
+    drawDotLine(x + (w - 1) + lineWidth - 1, y); // tr
+    gotoXY(x - (lineWidth - 1) / 2, y);          // tl
+    drawDotLine(x, y + (h - 1));                 // bl
+    gotoXY(x + (lineWidth - 1) / 2, y);          // tl
+    drawDotLine(x - (w - 1) - lineWidth + 1, y); // tr
+    gotoXY(x + lineWidth / 2, y);                // tl
+    drawDotLine(x, y - (h - 1));                 // bl
 }
 
 void Drawable::fill()
@@ -761,13 +761,15 @@ bool Window::keyDown(const Key &key)
 				if ((*i) != children.back()) children.back()->onTabbing(ONTABBING_REVTABFROMTHIS);
 				(*i)->onTabbing(ONTABBING_REVTABTOTHIS);
 				if ((*i)->raise())
-					break;
+				{
+				    toplevel = true;
+				    break;
+				}
 			}
 
 			++i;
 		}
-		if (tab_quit) return false;
-		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+		return handleTab(tab_quit, i, e);
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
 		--e;
@@ -781,16 +783,15 @@ bool Window::keyDown(const Key &key)
 				if ((*i) != children.back()) children.back()->onTabbing(ONTABBING_TABFROMTHIS);
 				(*i)->onTabbing(ONTABBING_TABTOTHIS);
 				if ((*i)->raise())
-					break;
+				{
+				    toplevel = true;
+				    break;
+				}
 			}
 
 			++i;
 		}
-		if (tab_quit) return false;
-	    // BUG/TODO swapped operands below to fix 'list iterators incompatible'
-	    // occurs in VS debug build when pressing TAB after opening configuration tool
-	    // currently this works but that just sweeps the problem under the rug
-		return toplevel /*prevent TAB escape to another window*/ || (i != e);
+		return handleTab(tab_quit, i, e);
 	}
 }
 
@@ -891,8 +892,7 @@ bool WindowInWindow::keyDown(const Key &key)
 
 			++i;
 		}
-		if (tab_quit) return false;
-		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+		return handleTab(tab_quit, i, e);
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
 		--e;
@@ -907,13 +907,15 @@ bool WindowInWindow::keyDown(const Key &key)
 				(*i)->onTabbing(ONTABBING_TABTOTHIS);
 				if (!tab_quit) scrollToWindow(*i);
 				if ((*i)->raise())
-					break;
+				{
+				    toplevel = true;
+				    break;
+				}
 			}
 
 			++i;
 		}
-		if (tab_quit) return false;
-		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+		return handleTab(tab_quit, i, e);
 	}
 }
 
@@ -1024,10 +1026,32 @@ bool Window::mouseDoubleClicked(int x, int y, MouseButton button)
 	return mouseChild->mouseDoubleClicked(x-mouseChild->x, y-mouseChild->y, button);
 }
 
-bool Window::mouseWheel(int wheel)
+bool Window::mouseWheel(int x, int y, int wheel)
 {
+    for(const auto& win1 : children)
+    {
+        if(win1->hasFocus())
+        {
+            for(const auto& win2 : win1->children)
+            {
+                if(dynamic_cast<WindowInWindow*>(win2))
+                {
+                    const auto xMin = win1->x + win2->x;
+                    const auto yMin = win1->y + win2->y;
+                    const auto xMax = xMin + win2->width - 1;
+                    const auto yMax = yMin + win2->height - 1;
+
+                    if(x >= xMin && x <= xMax && y >= yMin && y <= yMax)
+                    {
+                        return win2->mouseWheel(x, y, wheel);
+                    }
+                }
+            }
+        }
+    }
+
 	if (mouseChild == NULL) return false;
-	return mouseChild->mouseWheel(wheel);
+	return mouseChild->mouseWheel(x, y, wheel);
 }
 
 bool BorderedWindow::mouseDown(int x, int y, MouseButton button)
@@ -2334,8 +2358,13 @@ bool ScreenSDL::event(SDL_Event &event) {
 		lastdown = 0;
 		return rc;
 #if C_SDL2	    
+#if WIN32
     case SDL_MOUSEWHEEL:
-        return mouseWheel(event.wheel.y);
+    {
+        const auto wheel = event.wheel;
+        return mouseWheel(wheel.mouseX / scale, wheel.mouseY / scale, wheel.y);
+    }
+#endif
 #endif
     }
 
@@ -2366,7 +2395,7 @@ void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int
 void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const {
     // black border
     dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
-    dscroll.drawRect(vsl.xleft,vsl.ytop,vsl.thumbwidth-1,vsl.thumbheight-1);
+    dscroll.drawRect(vsl.xleft,vsl.ytop,vsl.thumbwidth,vsl.thumbheight);
 
     // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
     paintScrollBar3DOutset(dscroll, vsl.xleft+1, vsl.ytop+1, vsl.thumbwidth-2, vsl.thumbheight-2);
@@ -2375,7 +2404,7 @@ void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vs
 void WindowInWindow::paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const {
     /* scroll bar border, background */
     dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
-    dscroll.drawRect(vsl.scrollthumbRegion.x,  vsl.scrollthumbRegion.y,  vsl.scrollthumbRegion.w-1,vsl.scrollthumbRegion.h-1);
+    dscroll.drawRect(vsl.scrollthumbRegion.x,  vsl.scrollthumbRegion.y,  vsl.scrollthumbRegion.w,vsl.scrollthumbRegion.h);
 
     dscroll.setColor(CurrentTheme.Background);
     dscroll.fillRect(vsl.scrollthumbRegion.x+1,vsl.scrollthumbRegion.y+1,vsl.scrollthumbRegion.w-2,vsl.scrollthumbRegion.h-2);
@@ -2497,7 +2526,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
                 // black border
                 dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
-                dscroll.drawRect(x,y,w-1,h-1);
+                dscroll.drawRect(x,y,w,h);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 if (vscroll_uparrowhold && vscroll_uparrowdown)
@@ -2519,7 +2548,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
                 // black border
                 dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
-                dscroll.drawRect(x,y,w-1,h-1);
+                dscroll.drawRect(x,y,w,h);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 if (vscroll_downarrowhold && vscroll_downarrowdown)
@@ -2876,11 +2905,10 @@ bool WindowInWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
     return Window::mouseDoubleClicked(x-xadj,y-xadj,button);
 }
 
-bool WindowInWindow::mouseWheel(int wheel)
+bool WindowInWindow::mouseWheel(int x, int y, int wheel)
 {
-    // BUG requires to click at least once in window for it to work
-    scroll_pos_y = imin(imax(scroll_pos_y - wheel * 15, 0), scroll_pos_h);
-    return Window::mouseWheel(wheel);
+    scroll_pos_y = imin(imax(scroll_pos_y - wheel * 30, 0), scroll_pos_h);
+    return Window::mouseWheel(x, y, wheel);
 }
 
 void WindowInWindow::resize(int w, int h) {

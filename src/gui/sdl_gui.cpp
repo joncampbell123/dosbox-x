@@ -141,6 +141,10 @@ void                        macosx_reload_touchbar(void);
 
 std::list<std::string> proplist = {};
 GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
+
+// user pick of 'show advanced options' for the session
+bool advOptUser = false;
+
 std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(std::string pvar, std::string inputline, bool quiet), GUI_Run(bool pressed);
@@ -1662,7 +1666,7 @@ public:
 			}
 		}
 
-        int height=title=="Config"?100:210;
+        int height=title=="Config"?100:81;
         scroll_h += height + 2; /* border */
 
         wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
@@ -3166,14 +3170,16 @@ public:
         bar->addActionHandler(this);
 
         int gridbtnwidth = 130;
-        int gridbtnheight = 26;
+        int gridbtnheight = GUI::CurrentTheme.ButtonHeight;
         int gridbtnx = 12;
         int gridbtny = 25;
         int btnperrow = 4;
         int i = 0;
 
-        const auto xSpace = gridbtnwidth + 2;
-        const auto ySpace = gridbtnheight + 2;
+        constexpr auto margin = 3;
+        
+        const auto xSpace = gridbtnwidth + margin;
+        const auto ySpace = gridbtnheight + margin;
         
         std::function< std::pair<int,int>(const int) > gridfunc = [&/*access to locals here*/](const int i){
             return std::pair<int,int>(gridbtnx+(i%btnperrow)*xSpace, gridbtny+(i/btnperrow)*ySpace);
@@ -3239,14 +3245,12 @@ public:
         
         for(const auto & sec : sections)
         {
-            if (i != 0 && (i%15) == 0) bar->addItem(1, "|");
-            std::string name = sec->GetName();
-            std::string title = CapName(name);
-            name[0] = std::toupper(name[0]);
+            if (i != 0 && (i%16) == 0) bar->addItem(1, "|");
+            std::string sectionTitle = CapName(std::string(sec->GetName()));
             const auto sz = gridfunc(i);
-            GUI::Button *b = new GUI::Button(this, sz.first, sz.second, title, gridbtnwidth, gridbtnheight);
+            GUI::Button *b = new GUI::Button(this, sz.first, sz.second, sectionTitle, gridbtnwidth, gridbtnheight);
             b->addActionHandler(this);
-            bar->addItem(1, title);
+            bar->addItem(1, sectionTitle);
             i++;
         }
 
@@ -3255,13 +3259,17 @@ public:
 
         advopt = new GUI::Checkbox(this, gridbtnx, closerow_y, MSG_Get("SHOW_ADVOPT"));
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-        advopt->setChecked(section->Get_bool("show advanced options"));
+        advopt->setChecked(section->Get_bool("show advanced options") || advOptUser);
 
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
-        (saveButton = new GUI::Button(this, 276, closerow_y, tmp1, 130, gridbtnheight))->addActionHandler(this);
-        (closeButton = new GUI::Button(this, 408, closerow_y, MSG_Get("CLOSE"), 130, gridbtnheight))->addActionHandler(this);
 
-        resize(gridbtnx + (xSpace * btnperrow) + 12 + border_left + border_right,
+        const auto xSave = gridbtnx + (gridbtnwidth + margin) * 2;
+        const auto xExit = gridbtnx + (gridbtnwidth + margin) * 3;
+
+        (saveButton  = new GUI::Button(this, xSave, closerow_y, tmp1, gridbtnwidth, gridbtnheight))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, xExit, closerow_y, MSG_Get("CLOSE"), gridbtnwidth, gridbtnheight))->addActionHandler(this);
+
+        resize(gridbtnx + (xSpace * btnperrow) + gridbtnx + border_left + border_right,
                closerow_y + closeButton->getHeight() + 8 + border_top + border_bottom);
 
         bar->resize(getWidth(),bar->getHeight());
@@ -3287,6 +3295,7 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) override {
+        advOptUser = advopt->isChecked();
         GUI::String sname = RestoreName(arg);
         sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
         Section *sec;

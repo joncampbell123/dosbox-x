@@ -229,9 +229,10 @@ struct Theme
     uint32_t ButtonFiller           = 0xFF808080;
     uint32_t ButtonBevel1           = 0xFFFFFFFF;
     uint32_t ButtonBevel2           = 0xFFC0C0C0;
+    uint32_t ButtonHeight           = 23; // must be odd
+    uint32_t ButtonContentHeight    = 15; // must be odd
     uint32_t FocusColor             = 0xFF000000;
-    int32_t  FocusPadding           = 2;
-    int32_t  FocusPaddingHorizontal = 1;
+    int32_t  FocusPaddingHorizontal = 2;
     uint32_t TextColor              = 0xFF000000;
     uint32_t Light3D                = 0xFFFCFCFC;
     uint32_t Shadow3D               = 0xFF808080;
@@ -743,11 +744,17 @@ public:
 	/// Transient windows by default should disappear.
 	virtual bool mouseDownOutside(MouseButton button);
 
-    virtual bool mouseWheel(int wheel);
+    virtual bool mouseWheel(int x, int y, int wheel);
 	/// Key was pressed. Returns true if event was handled.
 	virtual bool keyDown(const Key &key);
 	/// Key was released. Returns true if event was handled.
 	virtual bool keyUp(const Key &key);
+
+    template <typename Iterator>
+    bool handleTab(const bool tab_quit, const Iterator& i, const Iterator& e) const
+    {
+        return tab_quit == false && (toplevel /*prevent TAB escape to another window*/ || i != e);
+    }
 
 	/// Put this window on top of all it's siblings. Preserves relative order.
 	/** Returns true if the window accepts the raise request. */
@@ -883,7 +890,7 @@ public:
 	/// Mouse was double-clicked. Returns true if event was handled.
 	bool mouseDoubleClicked(int x, int y, MouseButton button) override;
 
-    bool mouseWheel(int wheel) override;
+    bool mouseWheel(int x, int y, int wheel) override;
 	/// Key was pressed. Returns true if event was handled.
 	bool keyDown(const Key &key) override;
 
@@ -1665,12 +1672,15 @@ public:
 
 	    // override non-interpreted so as focus adapts itself better to text
 	    // one depends on the other, that's fundamentally wrong but well ...
-	    // that said, it's pretty darn close to how it looks in Windows 3.11
+	    // this is good but not perfect -> we need accurate width (per char)
         if (interpret == false)
         {
-            const auto tw = font->getWidth(this->text);
-            const auto th = font->getHeight();
-            Window::resize(tw + CurrentTheme.FocusPadding + CurrentTheme.FocusPaddingHorizontal, th + CurrentTheme.FocusPadding);
+            auto tw = font->getWidth(this->text);
+
+            tw = tw + CurrentTheme.FocusPaddingHorizontal * 2;
+            tw = tw & 1 ? tw : tw + 1;
+
+            Window::resize(tw, static_cast<int>(CurrentTheme.ButtonContentHeight));
         }
     }
 
@@ -1682,12 +1692,12 @@ public:
     {
         d.setColor(color);
 
-        d.drawText(CurrentTheme.FocusPadding, CurrentTheme.FocusPadding + font->getAscent(), text, interpret, 0);
+        d.drawText(CurrentTheme.FocusPaddingHorizontal + (width & 1), font->getAscent(), text, interpret, 0);
 
         if(hasFocus())
         {
             d.setColor(CurrentTheme.FocusColor);
-            d.drawDotRect(0, 0, width - 1, height - 1);
+            d.drawDotRect(0, 0, width, height);
         }
     }
 
@@ -2344,9 +2354,6 @@ protected:
 	bool pressed;
 
 public:
-	/// Create a button with given position and size
-	Button(Window *parent, int x, int y, int w, int h) : BorderedWindow(parent,x,y,w,h,6,5,6,5), ActionEventSource("GUI::Button"), pressed(0) {}
-
 	/// Create a text button.
 	/** If a size is specified, text is centered. Otherwise, button size is adjusted for the text. */
 	template <typename T> Button(Window *parent, int x, int y, const T text, int w = -1, int h = -1);
@@ -2361,7 +2368,7 @@ public:
 		(void)y;//UNUSED
 
 		if (button == Left) {
-			border_left = 7; border_right = 5; border_top = 6; border_bottom = 4;
+			border_left = 7; border_top = 5; border_right = 5; border_bottom = 3;
 			pressed = true;
 		}
 		return true;
@@ -2374,7 +2381,7 @@ public:
 		(void)y;//UNUSED
 
 		if (button == Left) {
-			border_left = 6; border_right = 6; border_top = 5; border_bottom = 5;
+			border_left = 6; border_top = 4; border_right = 6; border_bottom = 4;
 			pressed = false;
 		}
 		return true;
@@ -2852,7 +2859,7 @@ template <typename STR> ToplevelWindow::ToplevelWindow(Screen *parent, int x, in
 }
 
 template <typename STR> Button::Button(Window *parent, int x, int y, const STR text, int w, int h) :
-	BorderedWindow(parent,x,y,w,h,6,5,6,5), ActionEventSource(text), pressed(0)
+	BorderedWindow(parent,x,y,w,h,6,4,6,4), ActionEventSource(text), pressed(0)
 {
 
 	Label *l = new Label(this,0,0,text);
