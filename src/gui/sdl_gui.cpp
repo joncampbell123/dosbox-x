@@ -719,7 +719,7 @@ protected:
                                   ? optionsPos - defaultSpacing - inputWidth
                                   : windowWidth - RightMarginText - defaultSpacing - inputWidth;
 
-        input = new GUI::Input(this, inputPos, 0, inputWidth);
+        input = new GUI::Input(this, inputPos, 0, inputWidth, static_cast<int>(GUI::CurrentTheme.ButtonHeight));
 
         if(opts)
         {
