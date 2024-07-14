@@ -61,7 +61,7 @@ int titlebox_sysmenu_width = 20; // includes black divider line // TODO move to 
 Theme CurrentTheme = ThemeLight();
 
 // NEW theme
-ThemeWindows31 DefaultTheme = ThemeWindows31Default();
+ThemeWindows31 DefaultTheme = ThemeWindows31WindowsDefault();
 
 std::map<const char *,Font *,Font::ltstr> Font::registry;
 
