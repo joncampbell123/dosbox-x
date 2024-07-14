@@ -47,15 +47,15 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 namespace GUI {
 
 /* start <= y < stop, region reserved for top level window title bar */
-int titlebar_y_start = 5;
-int titlebar_y_stop = 25;
+int titlebar_y_start = 5; // TODO move to some theme constants class
+int titlebar_y_stop = 25; // TODO move to some theme constants class
 
 /* region where title bar is drawn */
-int titlebox_y_start = 4;
-int titlebox_y_height = 20;
+int titlebox_y_start = 4;  // TODO move to some theme constants class
+int titlebox_y_height = 20;  // TODO move to some theme constants class
 
 /* width of the system menu */
-int titlebox_sysmenu_width = 20; // includes black divider line
+int titlebox_sysmenu_width = 20; // includes black divider line // TODO move to some theme constants class
 
 // OLD theme // BUG OBSOLETE
 Theme CurrentTheme = ThemeLight();
