@@ -22,7 +22,7 @@ NEXT
   - Fixed TTF mode didn't change to graphic mode when machine = Hercules
     (maron2000)
   - Configuration tool: (aybe)
-    - more Windows 3.1 styling: buttons, colors, focus, layout
+    - more Windows 3.1 look'n'feel (themes w/ host dark mode detection)
     - enhance main window layout, it is now visible in its entirety
     - fix layout issues, off by one in rectangle drawing functions
     - fix 'list iterators incompatible' when pressing the Tab key
