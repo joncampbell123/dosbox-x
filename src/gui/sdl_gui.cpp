@@ -3314,6 +3314,30 @@ public:
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
         advopt->setChecked(section->Get_bool("show advanced options") || advOptUser);
 
+        // apply theme
+        {
+            auto theme = std::string(section->Get_string("configuration tool theme"));
+
+            if(theme.empty())
+            {
+                bool dark = false;
+
+#if defined(WIN32) && !defined(HX_DOS)
+                // ReSharper disable once CppDeclaratorDisambiguatedAsFunction
+                bool HostDarkMode(); // NOLINT(clang-diagnostic-vexing-parse)
+                dark = HostDarkMode();
+#endif
+                TryApplyTheme(
+                              dark
+                                  ? GUI::ThemeWindows31LCDReversedDark::GetName()
+                                  : GUI::ThemeWindows31LCDReversedLight::GetName());
+            }
+            else
+            {
+                TryApplyTheme(theme);
+            }
+        }
+
         strcpy(tmp1, (MSG_Get("SAVE")+std::string("...")).c_str());
 
         const auto xSave = gridbtnx + (gridbtnwidth + margin) * 2;

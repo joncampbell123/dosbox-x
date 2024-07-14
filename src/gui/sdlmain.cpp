@@ -363,6 +363,33 @@ bool UpdateWindows11RoundCorners(HWND hWnd, CornerPreference cornerPreference) {
     }
     return false;
 }
+
+bool HostDarkMode()
+{
+    // https://gist.github.com/rounk-ctrl/b04e5622e30e0d62956870d5c22b7017
+
+    using PFNSHOULDAPPSUSEDARKMODE = bool (WINAPI *)();
+
+    const auto module = ::LoadLibrary("uxtheme.dll");
+
+    if(module)
+    {
+        auto* pfnShouldAppsUseDarkMode = reinterpret_cast<PFNSHOULDAPPSUSEDARKMODE>(
+            GetProcAddress(module, MAKEINTRESOURCEA(132)));
+
+        if(pfnShouldAppsUseDarkMode)
+        {
+            const auto dark = pfnShouldAppsUseDarkMode();
+
+            return dark;
+        }
+
+        FreeLibrary(module);
+    }
+
+    return false;
+}
+
 #endif
 
 #if defined(WIN32)
