@@ -1610,19 +1610,19 @@ void Radiobox::paint(Drawable &d) const
 
 void Menu::paint(Drawable &d) const
 {
-	d.clear(CurrentTheme.Background);
+	d.clear(DefaultTheme.MenuBar);
 
-	d.setColor(CurrentTheme.Border);
+	d.setColor(CurrentTheme.Border); // TODO
 	d.drawLine(0,height-1,width-1,height-1);
 	d.drawLine(width-1,0,width-1,height-1);
 
-	d.setColor(CurrentTheme.Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D); // TODO
 	d.drawLine(0,0,width-2,0);
 	d.drawLine(0,0,0,height-2);
 	d.drawLine(0,height-2,width-2,height-2);
 	d.drawLine(width-2,0,width-2,height-2);
 
-	d.setColor(CurrentTheme.Light3D);
+	d.setColor(CurrentTheme.Light3D); // TODO
 	d.drawLine(1,1,width-3,1);
 	d.drawLine(1,1,1,height-3);
 
@@ -1644,9 +1644,9 @@ void Menu::paint(Drawable &d) const
 
 	for (std::vector<String>::const_iterator i = items.begin(); i != items.end(); ++i) {
 		if ((*i).empty()) {
-			d.setColor(CurrentTheme.Shadow3D);
+			d.setColor(CurrentTheme.Shadow3D); // TODO
 			d.drawLine(x+1,y-asc+6,cwidth,y-asc+6);
-			d.setColor(CurrentTheme.Light3D);
+			d.setColor(CurrentTheme.Light3D); // TODO
 			d.drawLine(x+1,y-asc+7,cwidth,y-asc+7);
 			y += 12;
         } else if (*i == "|") {
@@ -1658,18 +1658,18 @@ void Menu::paint(Drawable &d) const
                     cwidth = colx[coli] - x;
                 }
 
-                d.setColor(CurrentTheme.Shadow3D);
+                d.setColor(CurrentTheme.Shadow3D); // TODO
                 d.drawLine(x-2,2,x-2,this->height-4);
-                d.setColor(CurrentTheme.Light3D);
+                d.setColor(CurrentTheme.Light3D); // TODO
                 d.drawLine(x-1,2,x-1,this->height-4);
             }
         } else {
 			if (index == selected && hasFocus()) {
-				d.setColor(CurrentTheme.SelectionBackground);
+				d.setColor(DefaultTheme.Highlight);
 				d.fillRect(x,y-asc,cwidth,height);
-				d.setColor(CurrentTheme.SelectionForeground);
+				d.setColor(DefaultTheme.HighlightedText);
 			} else {
-				d.setColor(CurrentTheme.TextColor);
+				d.setColor(DefaultTheme.MenuText);
 			}
 			d.drawText(x+17,y,(*i),false,0);
 			y += height;
@@ -1687,18 +1687,20 @@ void Menubar::paint(Drawable &d) const
 	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(0,height-2,width-1,height-2);
 
+    d.setColor(DefaultTheme.MenuBar);
+    d.fillRect(0, 0, width - 12 /*TODO why?*/, 18);
 	d.gotoXY(7,f->getAscent()+2);
 
 	int index = 0;
 	for (std::vector<Menu*>::const_iterator i = menus.begin(); i != menus.end(); ++i, ++index) {
 		if (index == selected && (*i)->isVisible()) {
 			int w = f->getWidth((*i)->getName());
-			d.setColor(CurrentTheme.SelectionBackground);
+			d.setColor(DefaultTheme.Highlight);
 			d.fillRect(d.getX()-7,0,w+14,height-2);
-			d.setColor(CurrentTheme.SelectionForeground);
+			d.setColor(DefaultTheme.HighlightedText);
 			d.gotoXY(d.getX()+7,f->getAscent()+2);
 		} else {
-			d.setColor(CurrentTheme.TextColor);
+			d.setColor(DefaultTheme.MenuText);
 		}
 		d.drawText((*i)->getName(),false);
 		d.gotoXY(d.getX()+14,f->getAscent()+2);
