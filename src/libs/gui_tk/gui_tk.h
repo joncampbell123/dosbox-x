@@ -293,7 +293,7 @@ extern ThemeWindows31 DefaultTheme;
 
 struct ThemeWindows31WindowsDefault : ThemeWindows31
 {
-    static constexpr const char* Name = "Windows Default";
+    static std::string GetName() { return "Windows Default"; };
 
     ThemeWindows31WindowsDefault()
     {
@@ -323,7 +323,7 @@ struct ThemeWindows31WindowsDefault : ThemeWindows31
 
 struct ThemeWindows31Arizona : ThemeWindows31
 {
-    static constexpr const char* Name = "Arizona";
+    static std::string GetName() { return "Arizona"; };
 
     ThemeWindows31Arizona()
     {
@@ -353,7 +353,7 @@ struct ThemeWindows31Arizona : ThemeWindows31
 
 struct ThemeWindows31BlackLeatherJacket : ThemeWindows31
 {
-    static constexpr const char* Name = "Black Leather Jacket";
+    static std::string GetName() { return "Black Leather Jacket"; };
 
     ThemeWindows31BlackLeatherJacket()
     {
@@ -383,7 +383,7 @@ struct ThemeWindows31BlackLeatherJacket : ThemeWindows31
 
 struct ThemeWindows31Bordeaux : ThemeWindows31
 {
-    static constexpr const char* Name = "Bordeaux";
+    static std::string GetName() { return "Bordeaux"; };
 
     ThemeWindows31Bordeaux()
     {
@@ -413,7 +413,7 @@ struct ThemeWindows31Bordeaux : ThemeWindows31
 
 struct ThemeWindows31Cinnamon : ThemeWindows31
 {
-    static constexpr const char* Name = "Cinnamon";
+    static std::string GetName() { return "Cinnamon"; };
 
     ThemeWindows31Cinnamon()
     {
@@ -443,7 +443,7 @@ struct ThemeWindows31Cinnamon : ThemeWindows31
 
 struct ThemeWindows31Designer : ThemeWindows31
 {
-    static constexpr const char* Name = "Designer";
+    static std::string GetName() { return "Designer"; };
 
     ThemeWindows31Designer()
     {
@@ -473,7 +473,7 @@ struct ThemeWindows31Designer : ThemeWindows31
 
 struct ThemeWindows31EmeraldCity : ThemeWindows31
 {
-    static constexpr const char* Name = "Emerald City";
+    static std::string GetName() { return "Emerald City"; };
 
     ThemeWindows31EmeraldCity()
     {
@@ -503,7 +503,7 @@ struct ThemeWindows31EmeraldCity : ThemeWindows31
 
 struct ThemeWindows31Fluorescent : ThemeWindows31
 {
-    static constexpr const char* Name = "Fluorescent";
+    static std::string GetName() { return "Fluorescent"; };
 
     ThemeWindows31Fluorescent()
     {
@@ -533,7 +533,7 @@ struct ThemeWindows31Fluorescent : ThemeWindows31
 
 struct ThemeWindows31HotDogStand : ThemeWindows31
 {
-    static constexpr const char* Name = "HotDog Stand";
+    static std::string GetName() { return "HotDog Stand"; };
 
     ThemeWindows31HotDogStand()
     {
@@ -563,7 +563,7 @@ struct ThemeWindows31HotDogStand : ThemeWindows31
 
 struct ThemeWindows31LCDDefaultScreenSettings : ThemeWindows31
 {
-    static constexpr const char* Name = "LCD Default Screen Settings";
+    static std::string GetName() { return "LCD Default Screen Settings"; };
 
     ThemeWindows31LCDDefaultScreenSettings()
     {
@@ -593,7 +593,7 @@ struct ThemeWindows31LCDDefaultScreenSettings : ThemeWindows31
 
 struct ThemeWindows31LCDReversedDark : ThemeWindows31
 {
-    static constexpr const char* Name = "LCD Reversed - Dark";
+    static std::string GetName() { return "LCD Reversed - Dark"; };
 
     ThemeWindows31LCDReversedDark()
     {
@@ -623,7 +623,7 @@ struct ThemeWindows31LCDReversedDark : ThemeWindows31
 
 struct ThemeWindows31LCDReversedLight : ThemeWindows31
 {
-    static constexpr const char* Name = "LCD Reversed - Light";
+    static std::string GetName() { return "LCD Reversed - Light"; };
 
     ThemeWindows31LCDReversedLight()
     {
@@ -653,7 +653,7 @@ struct ThemeWindows31LCDReversedLight : ThemeWindows31
 
 struct ThemeWindows31Mahogany : ThemeWindows31
 {
-    static constexpr const char* Name = "Mahogany";
+    static std::string GetName() { return "Mahogany"; };
 
     ThemeWindows31Mahogany()
     {
@@ -683,7 +683,7 @@ struct ThemeWindows31Mahogany : ThemeWindows31
 
 struct ThemeWindows31Monochrome : ThemeWindows31
 {
-    static constexpr const char* Name = "Monochrome";
+    static std::string GetName() { return "Monochrome"; };
 
     ThemeWindows31Monochrome()
     {
@@ -713,7 +713,7 @@ struct ThemeWindows31Monochrome : ThemeWindows31
 
 struct ThemeWindows31Ocean : ThemeWindows31
 {
-    static constexpr const char* Name = "Ocean";
+    static std::string GetName() { return "Ocean"; };
 
     ThemeWindows31Ocean()
     {
@@ -743,7 +743,7 @@ struct ThemeWindows31Ocean : ThemeWindows31
 
 struct ThemeWindows31Pastel : ThemeWindows31
 {
-    static constexpr const char* Name = "Pastel";
+    static std::string GetName() { return "Pastel"; };
 
     ThemeWindows31Pastel()
     {
@@ -773,7 +773,7 @@ struct ThemeWindows31Pastel : ThemeWindows31
 
 struct ThemeWindows31Patchwork : ThemeWindows31
 {
-    static constexpr const char* Name = "Patchwork";
+    static std::string GetName() { return "Patchwork"; };
 
     ThemeWindows31Patchwork()
     {
@@ -803,7 +803,7 @@ struct ThemeWindows31Patchwork : ThemeWindows31
 
 struct ThemeWindows31PlasmaPowerSaver : ThemeWindows31
 {
-    static constexpr const char* Name = "Plasma Power Saver";
+    static std::string GetName() { return "Plasma Power Saver"; };
 
     ThemeWindows31PlasmaPowerSaver()
     {
@@ -833,7 +833,7 @@ struct ThemeWindows31PlasmaPowerSaver : ThemeWindows31
 
 struct ThemeWindows31Rugby : ThemeWindows31
 {
-    static constexpr const char* Name = "Rugby";
+    static std::string GetName() { return "Rugby"; };
 
     ThemeWindows31Rugby()
     {
@@ -863,7 +863,7 @@ struct ThemeWindows31Rugby : ThemeWindows31
 
 struct ThemeWindows31TheBlues : ThemeWindows31
 {
-    static constexpr const char* Name = "The Blues";
+    static std::string GetName() { return "The Blues"; };
 
     ThemeWindows31TheBlues()
     {
@@ -893,7 +893,7 @@ struct ThemeWindows31TheBlues : ThemeWindows31
 
 struct ThemeWindows31Tweed : ThemeWindows31
 {
-    static constexpr const char* Name = "Tweed";
+    static std::string GetName() { return "Tweed"; };
 
     ThemeWindows31Tweed()
     {
@@ -923,7 +923,7 @@ struct ThemeWindows31Tweed : ThemeWindows31
 
 struct ThemeWindows31Valentine : ThemeWindows31
 {
-    static constexpr const char* Name = "Valentine";
+    static std::string GetName() { return "Valentine"; };
 
     ThemeWindows31Valentine()
     {
@@ -953,7 +953,7 @@ struct ThemeWindows31Valentine : ThemeWindows31
 
 struct ThemeWindows31Wingtips : ThemeWindows31
 {
-    static constexpr const char* Name = "Wingtips";
+    static std::string GetName() { return "Wingtips"; };
 
     ThemeWindows31Wingtips()
     {
@@ -980,33 +980,6 @@ struct ThemeWindows31Wingtips : ThemeWindows31
         ButtonHighlight      = 0xFFFFFFFF;
     }
 };
-
-// for pre-C++17 Linux/Mac
-// NOLINTBEGIN(readability-redundant-declaration, clang-diagnostic-deprecated-redundant-constexpr-static-def)
-constexpr const char* ThemeWindows31WindowsDefault::Name;
-constexpr const char* ThemeWindows31Arizona::Name;
-constexpr const char* ThemeWindows31BlackLeatherJacket::Name;
-constexpr const char* ThemeWindows31Bordeaux::Name;
-constexpr const char* ThemeWindows31Cinnamon::Name;
-constexpr const char* ThemeWindows31Designer::Name;
-constexpr const char* ThemeWindows31EmeraldCity::Name;
-constexpr const char* ThemeWindows31Fluorescent::Name;
-constexpr const char* ThemeWindows31HotDogStand::Name;
-constexpr const char* ThemeWindows31LCDDefaultScreenSettings::Name;
-constexpr const char* ThemeWindows31LCDReversedDark::Name;
-constexpr const char* ThemeWindows31LCDReversedLight::Name;
-constexpr const char* ThemeWindows31Mahogany::Name;
-constexpr const char* ThemeWindows31Monochrome::Name;
-constexpr const char* ThemeWindows31Ocean::Name;
-constexpr const char* ThemeWindows31Pastel::Name;
-constexpr const char* ThemeWindows31Patchwork::Name;
-constexpr const char* ThemeWindows31PlasmaPowerSaver::Name;
-constexpr const char* ThemeWindows31Rugby::Name;
-constexpr const char* ThemeWindows31TheBlues::Name;
-constexpr const char* ThemeWindows31Tweed::Name;
-constexpr const char* ThemeWindows31Valentine::Name;
-constexpr const char* ThemeWindows31Wingtips::Name;
-// NOLINTEND(readability-redundant-declaration, clang-diagnostic-deprecated-redundant-constexpr-static-def)
     
 /// Identifies a mouse button.
 enum MouseButton { NoButton, Left, Right, Middle, WheelUp, WheelDown, WheelLeft, WheelRight };
