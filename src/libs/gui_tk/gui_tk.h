@@ -264,7 +264,7 @@ struct ThemeLight : Theme
 
 extern Theme CurrentTheme;
 
-struct ThemeWindows31
+struct ThemeWindows31 // TODO reparse cryptic CONTROL32.INI
 {
     uint32_t Desktop;
     uint32_t ApplicationWorkspace;
@@ -339,12 +339,12 @@ struct ThemeWindows31Arizona : ThemeWindows31
         ActiveBorder         = 0xFFFF8040;
         InactiveBorder       = 0xFFC0C0C0;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
         DisabledText         = 0xFF808080;
-        Highlight            = 0xFF008080;
+        Highlight            = 0xFF57A8A8;
         HighlightedText      = 0xFFFFFFFF;
         InactiveTitleBarText = 0xFF000000;
         ButtonHighlight      = 0xFFFFFFFF;
@@ -358,7 +358,7 @@ struct ThemeWindows31BlackLeatherJacket : ThemeWindows31
     ThemeWindows31BlackLeatherJacket()
     {
         Desktop              = 0xFF000000;
-        ApplicationWorkspace = 0xFFC0C0C0;
+        ApplicationWorkspace = 0xFFC0C7C8;
         WindowBackground     = 0xFFFFFFFF;
         WindowText           = 0xFF000000;
         MenuBar              = 0xFFC0C0C0;
@@ -399,12 +399,12 @@ struct ThemeWindows31Bordeaux : ThemeWindows31
         ActiveBorder         = 0xFF8000FF;
         InactiveBorder       = 0xFFC0C0C0;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
         DisabledText         = 0xFF808080;
-        Highlight            = 0xFF800080;
+        Highlight            = 0xFFA857A8;
         HighlightedText      = 0xFFFFFFFF;
         InactiveTitleBarText = 0xFF000000;
         ButtonHighlight      = 0xFFFFFFFF;
@@ -429,12 +429,12 @@ struct ThemeWindows31Cinnamon : ThemeWindows31
         ActiveBorder         = 0xFF800000;
         InactiveBorder       = 0xFFC0C0C0;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
         DisabledText         = 0xFF808080;
-        Highlight            = 0xFF800000;
+        Highlight            = 0xFFA80057;
         HighlightedText      = 0xFFFFFFFF;
         InactiveTitleBarText = 0xFF000000;
         ButtonHighlight      = 0xFFFFFFFF;
@@ -459,12 +459,12 @@ struct ThemeWindows31Designer : ThemeWindows31
         ActiveBorder         = 0xFFC0C0C0;
         InactiveBorder       = 0xFFC0C0C0;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
         DisabledText         = 0xFFC0C0C0;
-        Highlight            = 0xFF008080;
+        Highlight            = 0xFF57A8A8;
         HighlightedText      = 0xFF000000;
         InactiveTitleBarText = 0xFF000000;
         ButtonHighlight      = 0xFFFFFFFF;
@@ -489,12 +489,12 @@ struct ThemeWindows31EmeraldCity : ThemeWindows31
         ActiveBorder         = 0xFF008040;
         InactiveBorder       = 0xFF408080;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
         DisabledText         = 0xFF808080;
-        Highlight            = 0xFF008000;
+        Highlight            = 0xFF00A857;
         HighlightedText      = 0xFFFFFFFF;
         InactiveTitleBarText = 0xFF000000;
         ButtonHighlight      = 0xFFFFFFFF;
@@ -519,7 +519,7 @@ struct ThemeWindows31Fluorescent : ThemeWindows31
         ActiveBorder         = 0xFF80FF00;
         InactiveBorder       = 0xFFC0C0C0;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
@@ -549,7 +549,7 @@ struct ThemeWindows31HotDogStand : ThemeWindows31
         ActiveBorder         = 0xFFFF0000;
         InactiveBorder       = 0xFFFF0000;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
@@ -579,7 +579,7 @@ struct ThemeWindows31LCDDefaultScreenSettings : ThemeWindows31
         ActiveBorder         = 0xFF000080;
         InactiveBorder       = 0xFFC0C0C0;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF80807F;
         ButtonText           = 0xFF000000;
@@ -598,7 +598,7 @@ struct ThemeWindows31LCDReversedDark : ThemeWindows31
     ThemeWindows31LCDReversedDark()
     {
         Desktop              = 0xFF000000;
-        ApplicationWorkspace = 0xFF800000;
+        ApplicationWorkspace = 0xFFA80057;
         WindowBackground     = 0xFF800000;
         WindowText           = 0xFFFFFFFF;
         MenuBar              = 0xFF808000;
@@ -609,12 +609,12 @@ struct ThemeWindows31LCDReversedDark : ThemeWindows31
         ActiveBorder         = 0xFF808000;
         InactiveBorder       = 0xFF000080;
         WindowFrame          = 0xFF000000;
-        MenuText             = 0xFF808000;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF80807F;
         ButtonText           = 0xFF000000;
         DisabledText         = 0xFFC0C0C0;
-        Highlight            = 0xFF000080;
+        Highlight            = 0xFF0000A8;
         HighlightedText      = 0xFFFFFFFF;
         InactiveTitleBarText = 0xFF828282;
         ButtonHighlight      = 0xFFFFFFFF;
@@ -639,12 +639,12 @@ struct ThemeWindows31LCDReversedLight : ThemeWindows31
         ActiveBorder         = 0xFFC0C0C0;
         InactiveBorder       = 0xFFC0C0C0;
         WindowFrame          = 0xFF000080;
-        MenuText             = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF80807F;
         ButtonText           = 0xFF000000;
         DisabledText         = 0xFF408080;
-        Highlight            = 0xFF000080;
+        Highlight            = 0xFF0000A8;
         HighlightedText      = 0xFFFFFFFF;
         InactiveTitleBarText = 0xFF000000;
         ButtonHighlight      = 0xFFFFFFFF;
@@ -819,7 +819,7 @@ struct ThemeWindows31PlasmaPowerSaver : ThemeWindows31
         ActiveBorder         = 0xFF800000;
         InactiveBorder       = 0xFFFFFFFF;
         WindowFrame          = 0xFFC0C0C0;
-        MenuText             = 0xFF0000FF;
+        MenuText             = 0xFF000000;
         ButtonFace           = 0xFFC0C0C0;
         ButtonShadow         = 0xFF808080;
         ButtonText           = 0xFF000000;
