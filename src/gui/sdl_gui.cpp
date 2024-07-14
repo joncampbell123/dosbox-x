@@ -3178,17 +3178,48 @@ public:
         bar->addItem(0,"");
         bar->addItem(0,MSG_Get("CLOSE"));
         bar->addMenu(MSG_Get("SETTINGS"));
+        
+        // theme menu
+        {
+            bar->addMenu("Theme"); // TODO MSG_Get("THEME")
+            bar->addItem(2, GUI::ThemeWindows31Default::Name);
+            bar->addItem(2, "");
+            bar->addItem(2, GUI::ThemeWindows31Arizona::Name);
+            bar->addItem(2, GUI::ThemeWindows31Bordeaux::Name);
+            bar->addItem(2, GUI::ThemeWindows31Cinnamon::Name);
+            bar->addItem(2, GUI::ThemeWindows31Designer::Name);
+            bar->addItem(2, GUI::ThemeWindows31EmeraldCity::Name);
+            bar->addItem(2, GUI::ThemeWindows31Fluorescent::Name);
+            bar->addItem(2, GUI::ThemeWindows31HotDogStand::Name);
+            bar->addItem(2, GUI::ThemeWindows31LCDDefaultScreenSettings::Name);
+            bar->addItem(2, GUI::ThemeWindows31LCDReversedDark::Name);
+            bar->addItem(2, GUI::ThemeWindows31LCDReversedLight::Name);
+            bar->addItem(2, GUI::ThemeWindows31BlackLeatherJacket::Name);
+            bar->addItem(2, "|");
+            bar->addItem(2, GUI::ThemeWindows31Mahogany::Name);
+            bar->addItem(2, GUI::ThemeWindows31Monochrome::Name);
+            bar->addItem(2, GUI::ThemeWindows31Ocean::Name);
+            bar->addItem(2, GUI::ThemeWindows31Pastel::Name);
+            bar->addItem(2, GUI::ThemeWindows31Patchwork::Name);
+            bar->addItem(2, GUI::ThemeWindows31PlasmaPowerSaver::Name);
+            bar->addItem(2, GUI::ThemeWindows31Rugby::Name);
+            bar->addItem(2, GUI::ThemeWindows31TheBlues::Name);
+            bar->addItem(2, GUI::ThemeWindows31Tweed::Name);
+            bar->addItem(2, GUI::ThemeWindows31Valentine::Name);
+            bar->addItem(2, GUI::ThemeWindows31Wingtips::Name);
+        }
+        
         bar->addMenu(mainMenu.get_item("HelpMenu").get_text().c_str());
-        bar->addItem(2,MSG_Get("VISIT_HOMEPAGE"));
-        bar->addItem(2,"");
+        bar->addItem(3,MSG_Get("VISIT_HOMEPAGE"));
+        bar->addItem(3,"");
         if (!dos_kernel_disabled) {
             /* these do not work until shell help text is registered */
-            bar->addItem(2,MSG_Get("GET_STARTED"));
-            bar->addItem(2,MSG_Get("CDROM_SUPPORT"));
-            bar->addItem(2,"");
+            bar->addItem(3,MSG_Get("GET_STARTED"));
+            bar->addItem(3,MSG_Get("CDROM_SUPPORT"));
+            bar->addItem(3,"");
         }
-        bar->addItem(2,MSG_Get("INTRODUCTION"));
-        bar->addItem(2,mainMenu.get_item("help_about").get_text().c_str());
+        bar->addItem(3,MSG_Get("INTRODUCTION"));
+        bar->addItem(3,mainMenu.get_item("help_about").get_text().c_str());
         bar->addActionHandler(this);
 
         int gridbtnwidth = 130;
@@ -3316,8 +3347,59 @@ public:
         return false;
     }
 
+    static void TryApplyTheme(const GUI::String& name)
+    {
+        if(name == GUI::ThemeWindows31Default::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Default();
+        if(name == GUI::ThemeWindows31Arizona::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Arizona();
+        if(name == GUI::ThemeWindows31Bordeaux::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Bordeaux();
+        if(name == GUI::ThemeWindows31Cinnamon::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Cinnamon();
+        if(name == GUI::ThemeWindows31Designer::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Designer();
+        if(name == GUI::ThemeWindows31EmeraldCity::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31EmeraldCity();
+        if(name == GUI::ThemeWindows31Fluorescent::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Fluorescent();
+        if(name == GUI::ThemeWindows31HotDogStand::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31HotDogStand();
+        if(name == GUI::ThemeWindows31LCDDefaultScreenSettings::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31LCDDefaultScreenSettings();
+        if(name == GUI::ThemeWindows31LCDReversedDark::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31LCDReversedDark();
+        if(name == GUI::ThemeWindows31LCDReversedLight::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31LCDReversedLight();
+        if(name == GUI::ThemeWindows31BlackLeatherJacket::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31BlackLeatherJacket();
+        if(name == GUI::ThemeWindows31Mahogany::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Mahogany();
+        if(name == GUI::ThemeWindows31Monochrome::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Monochrome();
+        if(name == GUI::ThemeWindows31Ocean::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Ocean();
+        if(name == GUI::ThemeWindows31Pastel::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Pastel();
+        if(name == GUI::ThemeWindows31Patchwork::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Patchwork();
+        if(name == GUI::ThemeWindows31PlasmaPowerSaver::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31PlasmaPowerSaver();
+        if(name == GUI::ThemeWindows31Rugby::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Rugby();
+        if(name == GUI::ThemeWindows31TheBlues::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31TheBlues();
+        if(name == GUI::ThemeWindows31Tweed::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Tweed();
+        if(name == GUI::ThemeWindows31Valentine::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Valentine();
+        if(name == GUI::ThemeWindows31Wingtips::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31Wingtips();
+    }
+
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) override {
         advOptUser = advopt->isChecked();
+        TryApplyTheme(arg); // TODO MSG_Get("THEME"), save to config
         GUI::String sname = RestoreName(arg);
         sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
         Section *sec;

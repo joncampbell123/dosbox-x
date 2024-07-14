@@ -293,6 +293,8 @@ extern ThemeWindows31 DefaultTheme;
 
 struct ThemeWindows31Default : ThemeWindows31
 {
+    static constexpr const char* Name = "Default";
+
     ThemeWindows31Default()
     {
         Desktop              = 0xFFC0C0C0;
@@ -321,6 +323,8 @@ struct ThemeWindows31Default : ThemeWindows31
 
 struct ThemeWindows31Arizona : ThemeWindows31
 {
+    static constexpr const char* Name = "Arizona";
+
     ThemeWindows31Arizona()
     {
         Desktop              = 0xFF004080;
@@ -349,6 +353,8 @@ struct ThemeWindows31Arizona : ThemeWindows31
 
 struct ThemeWindows31BlackLeatherJacket : ThemeWindows31
 {
+    static constexpr const char* Name = "Black Leather Jacket";
+
     ThemeWindows31BlackLeatherJacket()
     {
         Desktop              = 0xFF000000;
@@ -377,6 +383,8 @@ struct ThemeWindows31BlackLeatherJacket : ThemeWindows31
 
 struct ThemeWindows31Bordeaux : ThemeWindows31
 {
+    static constexpr const char* Name = "Bordeaux";
+
     ThemeWindows31Bordeaux()
     {
         Desktop              = 0xFF800040;
@@ -405,6 +413,8 @@ struct ThemeWindows31Bordeaux : ThemeWindows31
 
 struct ThemeWindows31Cinnamon : ThemeWindows31
 {
+    static constexpr const char* Name = "Cinnamon";
+
     ThemeWindows31Cinnamon()
     {
         Desktop              = 0xFF804040;
@@ -433,6 +443,8 @@ struct ThemeWindows31Cinnamon : ThemeWindows31
 
 struct ThemeWindows31Designer : ThemeWindows31
 {
+    static constexpr const char* Name = "Designer";
+
     ThemeWindows31Designer()
     {
         Desktop              = 0xFF3F7C7C;
@@ -461,6 +473,8 @@ struct ThemeWindows31Designer : ThemeWindows31
 
 struct ThemeWindows31EmeraldCity : ThemeWindows31
 {
+    static constexpr const char* Name = "Emerald City";
+
     ThemeWindows31EmeraldCity()
     {
         Desktop              = 0xFF004040;
@@ -489,6 +503,8 @@ struct ThemeWindows31EmeraldCity : ThemeWindows31
 
 struct ThemeWindows31Fluorescent : ThemeWindows31
 {
+    static constexpr const char* Name = "Fluorescent";
+
     ThemeWindows31Fluorescent()
     {
         Desktop              = 0xFF000000;
@@ -517,6 +533,8 @@ struct ThemeWindows31Fluorescent : ThemeWindows31
 
 struct ThemeWindows31HotDogStand : ThemeWindows31
 {
+    static constexpr const char* Name = "Hot Dog Stand";
+
     ThemeWindows31HotDogStand()
     {
         Desktop              = 0xFFFFFF00;
@@ -545,6 +563,8 @@ struct ThemeWindows31HotDogStand : ThemeWindows31
 
 struct ThemeWindows31LCDDefaultScreenSettings : ThemeWindows31
 {
+    static constexpr const char* Name = "LCD Default Screen Settings";
+
     ThemeWindows31LCDDefaultScreenSettings()
     {
         Desktop              = 0xFF808080;
@@ -573,6 +593,8 @@ struct ThemeWindows31LCDDefaultScreenSettings : ThemeWindows31
 
 struct ThemeWindows31LCDReversedDark : ThemeWindows31
 {
+    static constexpr const char* Name = "LCD Reversed Dark";
+
     ThemeWindows31LCDReversedDark()
     {
         Desktop              = 0xFF000000;
@@ -601,6 +623,8 @@ struct ThemeWindows31LCDReversedDark : ThemeWindows31
 
 struct ThemeWindows31LCDReversedLight : ThemeWindows31
 {
+    static constexpr const char* Name = "LCD Reversed Light";
+
     ThemeWindows31LCDReversedLight()
     {
         Desktop              = 0xFF000080;
@@ -629,6 +653,8 @@ struct ThemeWindows31LCDReversedLight : ThemeWindows31
 
 struct ThemeWindows31Mahogany : ThemeWindows31
 {
+    static constexpr const char* Name = "Mahogany";
+
     ThemeWindows31Mahogany()
     {
         Desktop              = 0xFF404040;
@@ -657,6 +683,8 @@ struct ThemeWindows31Mahogany : ThemeWindows31
 
 struct ThemeWindows31Monochrome : ThemeWindows31
 {
+    static constexpr const char* Name = "Monochrome";
+
     ThemeWindows31Monochrome()
     {
         Desktop              = 0xFFC0C0C0;
@@ -685,6 +713,8 @@ struct ThemeWindows31Monochrome : ThemeWindows31
 
 struct ThemeWindows31Ocean : ThemeWindows31
 {
+    static constexpr const char* Name = "Ocean";
+
     ThemeWindows31Ocean()
     {
         Desktop              = 0xFF008080;
@@ -713,6 +743,8 @@ struct ThemeWindows31Ocean : ThemeWindows31
 
 struct ThemeWindows31Pastel : ThemeWindows31
 {
+    static constexpr const char* Name = "Pastel";
+
     ThemeWindows31Pastel()
     {
         Desktop              = 0xFF82FFC0;
@@ -741,6 +773,8 @@ struct ThemeWindows31Pastel : ThemeWindows31
 
 struct ThemeWindows31Patchwork : ThemeWindows31
 {
+    static constexpr const char* Name = "Patchwork";
+
     ThemeWindows31Patchwork()
     {
         Desktop              = 0xFFBB4495;
@@ -769,6 +803,8 @@ struct ThemeWindows31Patchwork : ThemeWindows31
 
 struct ThemeWindows31PlasmaPowerSaver : ThemeWindows31
 {
+    static constexpr const char* Name = "Plasma Power Saver";
+
     ThemeWindows31PlasmaPowerSaver()
     {
         Desktop              = 0xFF000000;
@@ -797,6 +833,8 @@ struct ThemeWindows31PlasmaPowerSaver : ThemeWindows31
 
 struct ThemeWindows31Rugby : ThemeWindows31
 {
+    static constexpr const char* Name = "Rugby";
+
     ThemeWindows31Rugby()
     {
         Desktop              = 0xFFC0C0C0;
@@ -825,6 +863,8 @@ struct ThemeWindows31Rugby : ThemeWindows31
 
 struct ThemeWindows31TheBlues : ThemeWindows31
 {
+    static constexpr const char* Name = "The Blues";
+
     ThemeWindows31TheBlues()
     {
         Desktop              = 0xFF004080;
@@ -853,6 +893,8 @@ struct ThemeWindows31TheBlues : ThemeWindows31
 
 struct ThemeWindows31Tweed : ThemeWindows31
 {
+    static constexpr const char* Name = "Tweed";
+
     ThemeWindows31Tweed()
     {
         Desktop              = 0xFF9E616A;
@@ -881,6 +923,8 @@ struct ThemeWindows31Tweed : ThemeWindows31
 
 struct ThemeWindows31Valentine : ThemeWindows31
 {
+    static constexpr const char* Name = "Valentine";
+
     ThemeWindows31Valentine()
     {
         Desktop              = 0xFFFF80C0;
@@ -909,6 +953,8 @@ struct ThemeWindows31Valentine : ThemeWindows31
 
 struct ThemeWindows31Wingtips : ThemeWindows31
 {
+    static constexpr const char* Name = "Wingtips";
+
     ThemeWindows31Wingtips()
     {
         Desktop              = 0xFF808040;
