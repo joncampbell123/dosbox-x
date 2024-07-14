@@ -3182,7 +3182,7 @@ public:
         // theme menu
         {
             bar->addMenu("Theme"); // TODO MSG_Get("THEME")
-            bar->addItem(2, GUI::ThemeWindows31Default::Name);
+            bar->addItem(2, GUI::ThemeWindows31WindowsDefault::Name);
             bar->addItem(2, "");
             bar->addItem(2, GUI::ThemeWindows31Arizona::Name);
             bar->addItem(2, GUI::ThemeWindows31Bordeaux::Name);
@@ -3349,8 +3349,8 @@ public:
 
     static void TryApplyTheme(const GUI::String& name)
     {
-        if(name == GUI::ThemeWindows31Default::Name)
-            GUI::DefaultTheme = GUI::ThemeWindows31Default();
+        if(name == GUI::ThemeWindows31WindowsDefault::Name)
+            GUI::DefaultTheme = GUI::ThemeWindows31WindowsDefault();
         if(name == GUI::ThemeWindows31Arizona::Name)
             GUI::DefaultTheme = GUI::ThemeWindows31Arizona();
         if(name == GUI::ThemeWindows31Bordeaux::Name)
