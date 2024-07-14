@@ -264,7 +264,7 @@ struct ThemeLight : Theme
 
 extern Theme CurrentTheme;
 
-struct ThemeWindows31 // TODO reparse cryptic CONTROL32.INI
+struct ThemeWindows31
 {
     uint32_t Desktop;
     uint32_t ApplicationWorkspace;
