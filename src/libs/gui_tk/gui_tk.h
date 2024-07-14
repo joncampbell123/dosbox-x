@@ -981,6 +981,33 @@ struct ThemeWindows31Wingtips : ThemeWindows31
     }
 };
 
+// for pre-C++17 Linux/Mac
+// NOLINTBEGIN(readability-redundant-declaration, clang-diagnostic-deprecated-redundant-constexpr-static-def)
+constexpr const char* ThemeWindows31WindowsDefault::Name;
+constexpr const char* ThemeWindows31Arizona::Name;
+constexpr const char* ThemeWindows31BlackLeatherJacket::Name;
+constexpr const char* ThemeWindows31Bordeaux::Name;
+constexpr const char* ThemeWindows31Cinnamon::Name;
+constexpr const char* ThemeWindows31Designer::Name;
+constexpr const char* ThemeWindows31EmeraldCity::Name;
+constexpr const char* ThemeWindows31Fluorescent::Name;
+constexpr const char* ThemeWindows31HotDogStand::Name;
+constexpr const char* ThemeWindows31LCDDefaultScreenSettings::Name;
+constexpr const char* ThemeWindows31LCDReversedDark::Name;
+constexpr const char* ThemeWindows31LCDReversedLight::Name;
+constexpr const char* ThemeWindows31Mahogany::Name;
+constexpr const char* ThemeWindows31Monochrome::Name;
+constexpr const char* ThemeWindows31Ocean::Name;
+constexpr const char* ThemeWindows31Pastel::Name;
+constexpr const char* ThemeWindows31Patchwork::Name;
+constexpr const char* ThemeWindows31PlasmaPowerSaver::Name;
+constexpr const char* ThemeWindows31Rugby::Name;
+constexpr const char* ThemeWindows31TheBlues::Name;
+constexpr const char* ThemeWindows31Tweed::Name;
+constexpr const char* ThemeWindows31Valentine::Name;
+constexpr const char* ThemeWindows31Wingtips::Name;
+// NOLINTEND(readability-redundant-declaration, clang-diagnostic-deprecated-redundant-constexpr-static-def)
+    
 /// Identifies a mouse button.
 enum MouseButton { NoButton, Left, Right, Middle, WheelUp, WheelDown, WheelLeft, WheelRight };
 
