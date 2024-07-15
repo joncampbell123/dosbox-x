@@ -47,17 +47,21 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 namespace GUI {
 
 /* start <= y < stop, region reserved for top level window title bar */
-int titlebar_y_start = 5;
-int titlebar_y_stop = 25;
+int titlebar_y_start = 5; // TODO move to some theme constants class
+int titlebar_y_stop = 25; // TODO move to some theme constants class
 
 /* region where title bar is drawn */
-int titlebox_y_start = 4;
-int titlebox_y_height = 20;
+int titlebox_y_start = 4;  // TODO move to some theme constants class
+int titlebox_y_height = 20;  // TODO move to some theme constants class
 
 /* width of the system menu */
-int titlebox_sysmenu_width = 20; // includes black divider line
+int titlebox_sysmenu_width = 20; // includes black divider line // TODO move to some theme constants class
 
+// OLD theme // BUG OBSOLETE
 Theme CurrentTheme = ThemeLight();
+
+// NEW theme
+ThemeWindows31 DefaultTheme = ThemeWindows31WindowsDefault();
 
 std::map<const char *,Font *,Font::ltstr> Font::registry;
 
@@ -1088,47 +1092,31 @@ bool BorderedWindow::mouseDragged(int x, int y, MouseButton button)
 
 void ToplevelWindow::paint(Drawable &d) const
 {
-	unsigned int mask = (systemMenu->isVisible()?Color::RedMask|Color::GreenMask|Color::BlueMask:0);
-	d.clear(CurrentTheme.Background);
+    // window frame (outer)
+    d.setColor(DefaultTheme.WindowFrame);
+    d.fillRect(0, 0, width, height);
+    
+    // active border
+    d.setColor(DefaultTheme.ActiveTitleBar);
+    d.fillRect(1, 1, width - 2, height - 2);
 
-	d.setColor(CurrentTheme.Border);
-	d.drawLine(0,height-1,width-1,height-1);
-	d.drawLine(width-1,0,width-1,height-1);
+    // window frame (inner)
+    d.setColor(DefaultTheme.ApplicationWorkspace);
+    d.fillRect(5, 4, width - 10, height - 8);
 
-	d.setColor(CurrentTheme.Shadow3D);
-	d.drawLine(0,0,width-2,0);
-	d.drawLine(0,0,0,height-2);
-	d.drawLine(0,height-2,width-2,height-2);
-	d.drawLine(width-2,0,width-2,height-2);
+    // title bar background
+    d.setColor(DefaultTheme.WindowFrame);
+    d.fillRect(6, 5, width - 6 - 6, 19);
 
-	d.drawLine(5,titlebox_y_start,width-7,titlebox_y_start);
-	d.drawLine(5,titlebox_y_start,5,titlebox_y_start+titlebox_y_height-2);
-
-	d.setColor(CurrentTheme.Light3D);
-	d.drawLine(1,1,width-3,1);
-	d.drawLine(1,1,1,height-3);
-
-	d.drawLine(5,titlebox_y_start+titlebox_y_height-1,width-6,titlebox_y_start+titlebox_y_height-1);
-	d.drawLine(width-6,5,width-6,titlebox_y_start+titlebox_y_height-1);
-
-	d.setColor(CurrentTheme.Background^mask);
-	d.fillRect(6,titlebox_y_start+1,titlebox_sysmenu_width-1,titlebox_y_height-2);
-    {
-        int y = titlebox_y_start+((titlebox_y_height-4)/2);
-        int x = 8;
-        int w = (titlebox_sysmenu_width * 20) / 27;
-        int h = 4;
-
-        d.setColor(Color::Grey50^mask);
-        d.fillRect(x+1,y+1,w,  h);
-        d.setColor(Color::Black^mask);
-        d.fillRect(x,  y,  w,  h);
-        d.setColor(Color::White^mask);
-        d.fillRect(x+1,y+1,w-2,h-2);
-    }
-
-	d.setColor(CurrentTheme.Border);
-	d.drawLine(6+titlebox_sysmenu_width-1,titlebox_y_start+1,6+titlebox_sysmenu_width-1,titlebox_y_start+titlebox_y_height-2);
+    // system menu (hardcoded)
+    d.setColor(0xFFC0C7C8);
+    d.fillRect(6, 5, 18, 18);
+    d.setColor(0xFF87888F);
+    d.fillRect(9, 13, 13, 3);
+    d.setColor(DefaultTheme.WindowFrame);
+    d.fillRect(8, 12, 13, 3);
+    d.setColor(0xFFFFFFFF);
+    d.fillRect(9, 13, 11, 1);
 
     bool active = hasFocus();
 
@@ -1155,13 +1143,15 @@ void ToplevelWindow::paint(Drawable &d) const
         }
     }
 
-	d.setColor(active ? CurrentTheme.TitleBar : CurrentTheme.TitleBarInactive);
-	d.fillRect(6+titlebox_sysmenu_width,titlebox_y_start+1,width-(6+titlebox_sysmenu_width+6),titlebox_y_height-2);
-
-	const Font *font = Font::getFont("title");
-	d.setColor(active ? CurrentTheme.TitleBarText : CurrentTheme.TitleBarInactiveText);
-	d.setFont(font);
-	d.drawText(31+(width-39-font->getWidth(title))/2,titlebox_y_start+(titlebox_y_height-font->getHeight())/2+font->getAscent(),title,false,0);
+    // title
+    d.setColor(active ? DefaultTheme.ActiveTitleBar : DefaultTheme.InactiveTitleBar);
+    d.fillRect(25, 5, width - 25 - 6, 18);
+    const Font* titleFont = Font::getFont("title");
+    const auto titleW = width - (25 + 6);
+    const auto titleX = 25 + (titleW / 2 - titleFont->getWidth(title) / 2);
+    d.setFont(titleFont);
+    d.setColor(active ? DefaultTheme.ActiveTitleBarText : DefaultTheme.InactiveTitleBarText);
+    d.drawText(titleX, 17, title, false, 0);
 }
 
 void Input::posToEnd(void) {
@@ -1620,19 +1610,19 @@ void Radiobox::paint(Drawable &d) const
 
 void Menu::paint(Drawable &d) const
 {
-	d.clear(CurrentTheme.Background);
+	d.clear(DefaultTheme.MenuBar);
 
-	d.setColor(CurrentTheme.Border);
+	d.setColor(CurrentTheme.Border); // TODO
 	d.drawLine(0,height-1,width-1,height-1);
 	d.drawLine(width-1,0,width-1,height-1);
 
-	d.setColor(CurrentTheme.Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D); // TODO
 	d.drawLine(0,0,width-2,0);
 	d.drawLine(0,0,0,height-2);
 	d.drawLine(0,height-2,width-2,height-2);
 	d.drawLine(width-2,0,width-2,height-2);
 
-	d.setColor(CurrentTheme.Light3D);
+	d.setColor(CurrentTheme.Light3D); // TODO
 	d.drawLine(1,1,width-3,1);
 	d.drawLine(1,1,1,height-3);
 
@@ -1654,9 +1644,9 @@ void Menu::paint(Drawable &d) const
 
 	for (std::vector<String>::const_iterator i = items.begin(); i != items.end(); ++i) {
 		if ((*i).empty()) {
-			d.setColor(CurrentTheme.Shadow3D);
+			d.setColor(CurrentTheme.Shadow3D); // TODO
 			d.drawLine(x+1,y-asc+6,cwidth,y-asc+6);
-			d.setColor(CurrentTheme.Light3D);
+			d.setColor(CurrentTheme.Light3D); // TODO
 			d.drawLine(x+1,y-asc+7,cwidth,y-asc+7);
 			y += 12;
         } else if (*i == "|") {
@@ -1668,18 +1658,18 @@ void Menu::paint(Drawable &d) const
                     cwidth = colx[coli] - x;
                 }
 
-                d.setColor(CurrentTheme.Shadow3D);
+                d.setColor(CurrentTheme.Shadow3D); // TODO
                 d.drawLine(x-2,2,x-2,this->height-4);
-                d.setColor(CurrentTheme.Light3D);
+                d.setColor(CurrentTheme.Light3D); // TODO
                 d.drawLine(x-1,2,x-1,this->height-4);
             }
         } else {
 			if (index == selected && hasFocus()) {
-				d.setColor(CurrentTheme.SelectionBackground);
+				d.setColor(DefaultTheme.Highlight);
 				d.fillRect(x,y-asc,cwidth,height);
-				d.setColor(CurrentTheme.SelectionForeground);
+				d.setColor(DefaultTheme.HighlightedText);
 			} else {
-				d.setColor(CurrentTheme.TextColor);
+				d.setColor(DefaultTheme.MenuText);
 			}
 			d.drawText(x+17,y,(*i),false,0);
 			y += height;
@@ -1697,18 +1687,20 @@ void Menubar::paint(Drawable &d) const
 	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(0,height-2,width-1,height-2);
 
+    d.setColor(DefaultTheme.MenuBar);
+    d.fillRect(0, 0, width - 12 /*TODO why?*/, 18);
 	d.gotoXY(7,f->getAscent()+2);
 
 	int index = 0;
 	for (std::vector<Menu*>::const_iterator i = menus.begin(); i != menus.end(); ++i, ++index) {
 		if (index == selected && (*i)->isVisible()) {
 			int w = f->getWidth((*i)->getName());
-			d.setColor(CurrentTheme.SelectionBackground);
+			d.setColor(DefaultTheme.Highlight);
 			d.fillRect(d.getX()-7,0,w+14,height-2);
-			d.setColor(CurrentTheme.SelectionForeground);
+			d.setColor(DefaultTheme.HighlightedText);
 			d.gotoXY(d.getX()+7,f->getAscent()+2);
 		} else {
-			d.setColor(CurrentTheme.TextColor);
+			d.setColor(DefaultTheme.MenuText);
 		}
 		d.drawText((*i)->getName(),false);
 		d.gotoXY(d.getX()+14,f->getAscent()+2);

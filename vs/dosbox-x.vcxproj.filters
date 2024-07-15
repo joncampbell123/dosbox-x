@@ -2614,4 +2614,7 @@
       <Filter>Sources</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="String.natvis" />
+  </ItemGroup>
 </Project>

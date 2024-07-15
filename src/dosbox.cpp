@@ -1422,6 +1422,11 @@ void DOSBOX_SetupConfigSections(void) {
     const char* quit_settings[] = { "true", "false", "1", "0", "auto", "autofile", nullptr };
     const char* autofix_settings[] = { "true", "false", "1", "0", "both", "a20fix", "loadfix", "none", nullptr };
     const char* color_themes[] = { "default", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", nullptr };
+    const char* color_themes_config[] = {
+        "Windows Default", "Arizona", "Black Leather Jacket", "Bordeaux", "Cinnamon", "Designer", "Emerald City",
+        "Fluorescent","HotDog Stand", "LCD Default Screen Settings", "LCD Reversed - Dark", "LCD Reversed - Light",
+        "Mahogany", "Monochrome", "Ocean", "Pastel", "Patchwork", "Plasma Power Saver", "Rugby", "The Blues",
+        "Tweed", "Valentine", "Wingtips", nullptr };
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", nullptr };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", "0", "-1", nullptr };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", nullptr };
@@ -1573,6 +1578,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("bannercolortheme",Property::Changeable::OnlyAtStart,"default");
     Pstring->Set_values(color_themes);
     Pstring->Set_help("You can specify a different background color theme for the welcome banner from the default one.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_path("configuration tool theme", Property::Changeable::WhenIdle, "");
+    Pstring->Set_values(color_themes_config);
+    Pstring->Set_help(
+                      "Theme for the configuration tool.\n"
+                      "If not set, host dark mode setting will be followed.\n");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("dpi aware",Property::Changeable::OnlyAtStart,"auto");

@@ -1927,6 +1927,9 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\libs\xBRZ\xbrz_tools.h" />
     <ClInclude Include="config.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="String.natvis" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

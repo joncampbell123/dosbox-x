@@ -264,6 +264,723 @@ struct ThemeLight : Theme
 
 extern Theme CurrentTheme;
 
+struct ThemeWindows31
+{
+    uint32_t Desktop;
+    uint32_t ApplicationWorkspace;
+    uint32_t WindowBackground;
+    uint32_t WindowText;
+    uint32_t MenuBar;
+    uint32_t ScrollBars;
+    uint32_t ActiveTitleBar;
+    uint32_t InactiveTitleBar;
+    uint32_t ActiveTitleBarText;
+    uint32_t ActiveBorder;
+    uint32_t InactiveBorder;
+    uint32_t WindowFrame;
+    uint32_t MenuText;
+    uint32_t ButtonFace;
+    uint32_t ButtonShadow;
+    uint32_t ButtonText;
+    uint32_t DisabledText;
+    uint32_t Highlight;
+    uint32_t HighlightedText;
+    uint32_t InactiveTitleBarText;
+    uint32_t ButtonHighlight;
+};
+
+extern ThemeWindows31 DefaultTheme;
+
+struct ThemeWindows31WindowsDefault : ThemeWindows31
+{
+    static std::string GetName() { return "Windows Default"; };
+
+    ThemeWindows31WindowsDefault()
+    {
+        Desktop              = 0xFFA0A0A4;
+        ApplicationWorkspace = 0xFFFFFBF0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFFA4C8F0;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFFA4C8F0;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Arizona : ThemeWindows31
+{
+    static std::string GetName() { return "Arizona"; };
+
+    ThemeWindows31Arizona()
+    {
+        Desktop              = 0xFF004080;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF408080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFFF8040;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF008080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31BlackLeatherJacket : ThemeWindows31
+{
+    static std::string GetName() { return "Black Leather Jacket"; };
+
+    ThemeWindows31BlackLeatherJacket()
+    {
+        Desktop              = 0xFF000000;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF400080;
+        InactiveTitleBar     = 0xFF808080;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF808080;
+        InactiveBorder       = 0xFF808080;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFE0E0E0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Bordeaux : ThemeWindows31
+{
+    static std::string GetName() { return "Bordeaux"; };
+
+    ThemeWindows31Bordeaux()
+    {
+        Desktop              = 0xFF800040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF800080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF8000FF;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF800080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Cinnamon : ThemeWindows31
+{
+    static std::string GetName() { return "Cinnamon"; };
+
+    ThemeWindows31Cinnamon()
+    {
+        Desktop              = 0xFF804040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF800000;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF800000;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF800000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Designer : ThemeWindows31
+{
+    static std::string GetName() { return "Designer"; };
+
+    ThemeWindows31Designer()
+    {
+        Desktop              = 0xFF3F7C7C;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF008080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF008080;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31EmeraldCity : ThemeWindows31
+{
+    static std::string GetName() { return "Emerald City"; };
+
+    ThemeWindows31EmeraldCity()
+    {
+        Desktop              = 0xFF004040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF008040;
+        InactiveTitleBar     = 0xFF408080;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF008040;
+        InactiveBorder       = 0xFF408080;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF008000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Fluorescent : ThemeWindows31
+{
+    static std::string GetName() { return "Fluorescent"; };
+
+    ThemeWindows31Fluorescent()
+    {
+        Desktop              = 0xFF000000;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFF00FF00;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFFFF00FF;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFF80FF00;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31HotDogStand : ThemeWindows31
+{
+    static std::string GetName() { return "HotDog Stand"; };
+
+    ThemeWindows31HotDogStand()
+    {
+        Desktop              = 0xFFFFFF00;
+        ApplicationWorkspace = 0xFFFFFF00;
+        WindowBackground     = 0xFFFF0000;
+        WindowText           = 0xFFFFFFFF;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000000;
+        InactiveTitleBar     = 0xFFFF0000;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFFF0000;
+        InactiveBorder       = 0xFFFF0000;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFFFFFFFF;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31LCDDefaultScreenSettings : ThemeWindows31
+{
+    static std::string GetName() { return "LCD Default Screen Settings"; };
+
+    ThemeWindows31LCDDefaultScreenSettings()
+    {
+        Desktop              = 0xFF808080;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFC0C0C0;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF000080;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF80807F;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31LCDReversedDark : ThemeWindows31
+{
+    static std::string GetName() { return "LCD Reversed - Dark"; };
+
+    ThemeWindows31LCDReversedDark()
+    {
+        Desktop              = 0xFF000000;
+        ApplicationWorkspace = 0xFF800000;
+        WindowBackground     = 0xFF800000;
+        WindowText           = 0xFFFFFFFF;
+        MenuBar              = 0xFF808000;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF808000;
+        InactiveTitleBar     = 0xFF000080;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFF808000;
+        InactiveBorder       = 0xFF000080;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFF808000;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF80807F;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF828282;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31LCDReversedLight : ThemeWindows31
+{
+    static std::string GetName() { return "LCD Reversed - Light"; };
+
+    ThemeWindows31LCDReversedLight()
+    {
+        Desktop              = 0xFF000080;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF408080;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000080;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF80807F;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF408080;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Mahogany : ThemeWindows31
+{
+    static std::string GetName() { return "Mahogany"; };
+
+    ThemeWindows31Mahogany()
+    {
+        Desktop              = 0xFF404040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF400000;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF800000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Monochrome : ThemeWindows31
+{
+    static std::string GetName() { return "Monochrome"; };
+
+    ThemeWindows31Monochrome()
+    {
+        Desktop              = 0xFFC0C0C0;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000000;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFF808080;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Ocean : ThemeWindows31
+{
+    static std::string GetName() { return "Ocean"; };
+
+    ThemeWindows31Ocean()
+    {
+        Desktop              = 0xFF008080;
+        ApplicationWorkspace = 0xFF008040;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF004080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF000000;
+        Highlight            = 0xFF008080;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Pastel : ThemeWindows31
+{
+    static std::string GetName() { return "Pastel"; };
+
+    ThemeWindows31Pastel()
+    {
+        Desktop              = 0xFF82FFC0;
+        ApplicationWorkspace = 0xFFFFFF80;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF80FFFF;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFFFF80C0;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFF808080;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF00FFFF;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Patchwork : ThemeWindows31
+{
+    static std::string GetName() { return "Patchwork"; };
+
+    ThemeWindows31Patchwork()
+    {
+        Desktop              = 0xFFBB4495;
+        ApplicationWorkspace = 0xFFFAFBC1;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF80FFFF;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFF4EB164;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF00FFFF;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31PlasmaPowerSaver : ThemeWindows31
+{
+    static std::string GetName() { return "Plasma Power Saver"; };
+
+    ThemeWindows31PlasmaPowerSaver()
+    {
+        Desktop              = 0xFF000000;
+        ApplicationWorkspace = 0xFF0000FF;
+        WindowBackground     = 0xFF000000;
+        WindowText           = 0xFFFFFFFF;
+        MenuBar              = 0xFFFF00FF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFF800000;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFFC0C0C0;
+        ScrollBars           = 0xFF0000FF;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFFFFFFFF;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Rugby : ThemeWindows31
+{
+    static std::string GetName() { return "Rugby"; };
+
+    ThemeWindows31Rugby()
+    {
+        Desktop              = 0xFFC0C0C0;
+        ApplicationWorkspace = 0xFFFFFF80;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000080;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF800000;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31TheBlues : ThemeWindows31
+{
+    static std::string GetName() { return "The Blues"; };
+
+    ThemeWindows31TheBlues()
+    {
+        Desktop              = 0xFF004080;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Tweed : ThemeWindows31
+{
+    static std::string GetName() { return "Tweed"; };
+
+    ThemeWindows31Tweed()
+    {
+        Desktop              = 0xFF9E616A;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF808040;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF804040;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFE0E0E0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF808000;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Valentine : ThemeWindows31
+{
+    static std::string GetName() { return "Valentine"; };
+
+    ThemeWindows31Valentine()
+    {
+        Desktop              = 0xFFFF80C0;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFFFF0080;
+        InactiveTitleBar     = 0xFF800040;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFFF80C0;
+        InactiveBorder       = 0xFFFF80C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFFFF00FF;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFFFFFFFF;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Wingtips : ThemeWindows31
+{
+    static std::string GetName() { return "Wingtips"; };
+
+    ThemeWindows31Wingtips()
+    {
+        Desktop              = 0xFF808040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF808080;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF804000;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFF808080;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF808080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+    
 /// Identifies a mouse button.
 enum MouseButton { NoButton, Left, Right, Middle, WheelUp, WheelDown, WheelLeft, WheelRight };
 
