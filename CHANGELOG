@@ -1,4 +1,14 @@
 NEXT
+  - INT 10 mode list: Add "pitch" parameter. If nonzero, the value
+    (in pixels) is how to program the pixels per scanline when
+    setting the mode.
+  - VESAMOED: Add -pitch option to control the pitch (pixels per
+    scanline). The intent is to work around DOS games that assume
+    nonstandard pixels per scanline by allowing the VESA BIOS mode
+    to use a different one. For example, Line Wars II has an S3
+    acceleration mode that uses 800x600, but for whatever reason,
+    assumes the video mode is 1024 pixels per scanline, and will
+    render garbled graphics if that is not the case. (joncampbell123).
   - S3 emulation: Follow S3 Trio64 documentation and mask the Linear
     Window Position bits according to the size of the memory. You
     can only place it on a multiple of the memory size. This silences
