@@ -119,6 +119,7 @@ struct VideoModeBlock {
 	Bitu	htotal,vtotal;
 	Bitu	hdispend,vdispend;
 	Bitu	special;
+	Bitu	pitch = 0; /* bytes/scanline to use instead of normal calculation */
 	
 };
 extern VideoModeBlock ModeList_VGA[];

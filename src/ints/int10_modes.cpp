@@ -1738,29 +1738,34 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	}
 
 	/* Offset Register */
-	Bitu offset;
+	Bitu offset,ouwidth = (CurMode->pitch != 0) ? CurMode->pitch : CurMode->swidth;
 	switch (CurMode->type) {
 		case M_LIN8:
-			offset = CurMode->swidth/8;
+			offset = ouwidth/8;
 			break;
 		case M_LIN15:
 		case M_LIN16:
-			offset = 2 * CurMode->swidth/8;
+			offset = 2 * ouwidth/8;
 			break;
 		case M_LIN24:
-			offset = 3 * CurMode->swidth/8;
+			offset = 3 * ouwidth/8;
 			break;
 		case M_LIN32:
-			offset = 4 * CurMode->swidth/8;
+			offset = 4 * ouwidth/8;
 			break;
 		case M_EGA:
-			if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350)
+			if (CurMode->pitch != 0)
+				offset = ouwidth/(2*8);
+			else if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350)
 				offset = CurMode->hdispend/4; /* = 0x14, See EGA BIOS listing for entry 10h 16K mode [https://ibmmuseum.com/Adapters/Video/EGA/IBM_EGA_Manual.pdf] */
 			else
 				offset = CurMode->hdispend/2;
 			break;
 		default:
-			offset = CurMode->hdispend/2;
+			if (CurMode->pitch != 0)
+				offset = ouwidth/(2*8);
+			else
+				offset = CurMode->hdispend/2;
 			break;
 	}
 
@@ -2265,7 +2270,8 @@ dac_text16:
 			case M_LIN32: reg_50|=S3_XGA_32BPP; break;
 			default: break;
 		}
-		switch(CurMode->swidth) {
+		unsigned int xgawidth = (CurMode->pitch != 0) ? CurMode->pitch : CurMode->swidth;
+		switch(xgawidth) {
 			case 640:  reg_50|=S3_XGA_640; break;
 			case 800:  reg_50|=S3_XGA_800; break;
 			case 1024: reg_50|=S3_XGA_1024; break;
@@ -2568,12 +2574,19 @@ void INT10_SetJ3ModeCGA4(uint16_t mode)
 Bitu INT10_WriteVESAModeList(Bitu max_modes);
 
 /* ====================== VESAMOED.COM ====================== */
+/* NOTES:
+ *
+ * - Line Wars II: If you use the S3 acceleration mode (800x600)
+ *   use "VESAMOED -mode 0x203 -pitch 1024" to make 800x600 behave
+ *   as the game expects, or else you will get garbled graphics.
+ */
 class VESAMOED : public Program {
 public:
 	void Run(void) override {
         size_t array_i = 0;
         std::string arg,tmp;
 		bool got_opt=false;
+        int pitch = -1;
         int mode = -1;
         int fmt = -1;
         int w = -1,h = -1;
@@ -2625,6 +2638,10 @@ public:
                     WriteOut("Unknown format '%s'\n",tmp.c_str());
                     return;
                 }
+            }
+            else if (arg == "pitch") {
+                cmd->NextOptArgv(/*&*/tmp);
+                pitch = (int)strtoul(tmp.c_str(),NULL,0);
             }
             else if (arg == "w") {
                 cmd->NextOptArgv(/*&*/tmp);
@@ -2740,11 +2757,15 @@ public:
             return;
         }
 
-        if (!modefind && (w > 0 || h > 0 || fmt >= 0 || ch > 0)) {
+        if (!modefind && (w > 0 || h > 0 || fmt >= 0 || ch > 0 || pitch >= 0)) {
             WriteOut("Changing mode 0x%x parameters\n",(unsigned int)ModeList_VGA[array_i].mode);
 
             ModeList_VGA[array_i].special |= _USER_MODIFIED;
 
+	    LOG_MSG("pitch %d",pitch);
+            if (pitch >= 0) {
+                ModeList_VGA[array_i].pitch = (unsigned int)pitch;
+            }
             if (fmt >= 0) {
                 ModeList_VGA[array_i].type = (VGAModes)fmt;
                 /* will require reprogramming width in some cases! */
@@ -2815,24 +2836,25 @@ public:
         /* if the new mode cannot fit in available memory, then mark as disabled */
         {
             unsigned int pitch = 0;
+	    unsigned int cwidth = (ModeList_VGA[array_i].pitch != 0) ? ModeList_VGA[array_i].pitch : ModeList_VGA[array_i].swidth;
 
             switch (ModeList_VGA[array_i].type) {
                 case M_LIN4:
                 case M_PACKED4:
-                    pitch = (unsigned int)(ModeList_VGA[array_i].swidth / 8) * 4u; /* not totally accurate but close enough */
+                    pitch = (unsigned int)(cwidth / 8) * 4u; /* not totally accurate but close enough */
                     break;
                 case M_LIN8:
-                    pitch = (unsigned int)ModeList_VGA[array_i].swidth;
+                    pitch = (unsigned int)cwidth;
                     break;
                 case M_LIN15:
                 case M_LIN16:
-                    pitch = (unsigned int)ModeList_VGA[array_i].swidth * 2u;
+                    pitch = (unsigned int)cwidth * 2u;
                     break;
                 case M_LIN24:
-                    pitch = (unsigned int)ModeList_VGA[array_i].swidth * 3u;
+                    pitch = (unsigned int)cwidth * 3u;
                     break;
                 case M_LIN32:
-                    pitch = (unsigned int)ModeList_VGA[array_i].swidth * 4u;
+                    pitch = (unsigned int)cwidth * 4u;
                     break;
                 default:
                     break;
@@ -2867,6 +2889,8 @@ public:
         WriteOut("  -delete                 Delete video mode\n");
         WriteOut("  -disable                Disable video mode (list but do not allow setting)\n");
         WriteOut("  -enable                 Enable video mode\n");
+	WriteOut("  -pitch <x>              Change display pitch (pixels per scanline).\n");
+	WriteOut("                          A value of zero will restore normal calculation.\n");
     }
 };
 
