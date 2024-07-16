@@ -1,4 +1,11 @@
 NEXT
+  - S3 emulation: Follow S3 Trio64 documentation and mask the Linear
+    Window Position bits according to the size of the memory. You
+    can only place it on a multiple of the memory size. This silences
+    warnings caused by Line Wars II which appears to modify only the
+    upper byte but not the lower when modifying this register, which
+    then leaves 0xA0 in the lower half. That lower half would be
+    ignored for 1MB or larger video memory sizes. (joncampbell123).
   - S3 XGA emulation: Add XGA acceleration for 4bpp packed 16-color
     SVGA modes. A CAD package has S3 support drivers that use the
     16-color 4bpp packed modes and expects XGA acceleration to work.
