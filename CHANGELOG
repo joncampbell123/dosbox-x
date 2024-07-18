@@ -1,4 +1,8 @@
 NEXT
+  - DOS FAT driver: If INT 13h reports disk change, adapt floppy
+    disk geometry to new disk image according to media byte. This
+    allows DS_BLISS to present it's 720K fake floppy even if the
+    user initially mounted a 1.44MB floppy to drive A: (joncampbell123).
   - INT 10 mode list: Add "pitch" parameter. If nonzero, the value
     (in pixels) is how to program the pixels per scanline when
     setting the mode.
