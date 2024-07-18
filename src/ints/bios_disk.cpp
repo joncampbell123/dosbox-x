@@ -3918,7 +3918,7 @@ bool imageDiskINT13Drive::detectDiskChange(void) {
 
 		if (reg_flags & FLAG_CF) {
 			if (reg_ah == 0x06) {
-				LOG_MSG("INT13 image disk change flag\n");
+				LOG(LOG_MISC,LOG_DEBUG)("INT13 image disk change flag");
 				diskChangeFlag = true;
 			}
 		}
