@@ -2293,6 +2293,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 		CountOfClusters = DataSectors / BPB.v.BPB_SecPerClus;
 		firstDataSector = ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
 		firstRootDirSect = (Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)partSectOff;
+
+		LOG(LOG_MISC,LOG_DEBUG)("INIT FAT: data=%llu root=%llu rootdirsect=%lu datasect=%lu",
+			(unsigned long long)firstDataSector,(unsigned long long)firstRootDirSect,
+			(unsigned long)RootDirSectors,(unsigned long)DataSectors);
 	}
 
 	if(CountOfClusters < 4085) {
@@ -3087,6 +3091,8 @@ bool fatDrive::SetFileAttr(const char *name, uint16_t attr) {
 bool fatDrive::GetFileAttr(const char *name, uint16_t *attr) {
 	if (unformatted) return false;
 
+	checkDiskChange();
+
     direntry fileEntry = {};
 	uint32_t dirClust, subEntry;
 
@@ -3673,7 +3679,7 @@ void fatDrive::checkDiskChange(void) {
 	 * to read it. Furthermore, at some parts of the demo, the INT 13h hook changes the root
 	 * directory and FAT table to make the next "disk" appear, even if the volume label does not. */
 	if (loadedDisk->detectDiskChange() && !BPB.is_fat32()) {
-		LOG_MSG("FAT: disk change\n");
+		LOG(LOG_MISC,LOG_DEBUG)("FAT: disk change");
 
 		FAT_BootSector bootbuffer = {};
 		loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
@@ -3699,6 +3705,8 @@ void fatDrive::checkDiskChange(void) {
 		var = &bootbuffer.bpb.v.BPB_VolID;
 		bootbuffer.bpb.v.BPB_VolID = var_read((uint32_t*)var);
 
+		BPB = bootbuffer.bpb;
+
 		if (BPB.v.BPB_FATSz16 == 0) {
 			LOG_MSG("BPB_FATSz16 == 0 and not FAT32 BPB, not valid");
 			return;
@@ -3723,7 +3731,7 @@ void fatDrive::checkDiskChange(void) {
 		memset(fatSectBuffer,0,1024);
 		curFatSect = 0xffffffff;
 
-		LOG_MSG("NEW FAT: data=%llu root=%llu rootdirsect=%lu datasect=%lu",
+		LOG(LOG_MISC,LOG_DEBUG)("NEW FAT: data=%llu root=%llu rootdirsect=%lu datasect=%lu",
 			(unsigned long long)firstDataSector,(unsigned long long)firstRootDirSect,
 			(unsigned long)RootDirSectors,(unsigned long)DataSectors);
 	}

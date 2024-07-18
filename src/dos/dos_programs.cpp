@@ -6349,7 +6349,7 @@ class IMGMOUNT : public Program {
 				if (image->class_id == imageDisk::ID_INT13) {
 					imageDiskINT13Drive *x = (imageDiskINT13Drive*)image;
 					x->enable_int13 = true;
-					LOG_MSG("INT 13 image enabling calling");
+					LOG(LOG_MISC,LOG_DEBUG)("INT 13 image enabling calling");
 				}
 			}
 			return true;
