@@ -3678,7 +3678,7 @@ void fatDrive::checkDiskChange(void) {
 	 * existence by intercepting INT 13h for floppy I/O and then expecting MS-DOS to call INT 13h
 	 * to read it. Furthermore, at some parts of the demo, the INT 13h hook changes the root
 	 * directory and FAT table to make the next "disk" appear, even if the volume label does not. */
-	if (loadedDisk->detectDiskChange() && !BPB.is_fat32()) {
+	if (loadedDisk->detectDiskChange() && !BPB.is_fat32() && partSectOff == 0) {
 		LOG(LOG_MISC,LOG_DEBUG)("FAT: disk change");
 
 		FAT_BootSector bootbuffer = {};
@@ -3710,6 +3710,18 @@ void fatDrive::checkDiskChange(void) {
 		if (BPB.v.BPB_FATSz16 == 0) {
 			LOG_MSG("BPB_FATSz16 == 0 and not FAT32 BPB, not valid");
 			return;
+		}
+
+		/* sometimes as part of INT 13h interception the new image will differ from the format we mounted against (DS_BLISS.EXE) */
+		/* TODO: Add any other format here */
+		if (BPB.v.BPB_Media == 0xF9) {
+			LOG(LOG_MISC,LOG_DEBUG)("NEW FAT: changing floppy geometry to 720k format according to media byte");
+			loadedDisk->Set_Geometry(2/*heads*/,80/*cylinders*/,9/*sectors*/,512/*sector size*/);
+		}
+		else if (BPB.v.BPB_Media == 0xF0) {
+			/* TODO: By the time DOS supported the 1.44MB format the BPB also provided the geometry too */
+			LOG(LOG_MISC,LOG_DEBUG)("NEW FAT: changing floppy geometry to 1.44M format according to media byte");
+			loadedDisk->Set_Geometry(2/*heads*/,80/*cylinders*/,18/*sectors*/,512/*sector size*/);
 		}
 
 		uint32_t RootDirSectors;
