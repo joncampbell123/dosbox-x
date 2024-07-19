@@ -526,6 +526,11 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 }
 #endif
 
+static char filtercapname(char c) {
+	if (c < 32 || c > 126 || c == '.' || c == '<' || c == '>' || c == '[' || c == ']' || c == '\\' || c == '/' || c == ':' || c == '\"' || c == '\'' || c == '?' || c == '*') return '_';
+	return c;
+}
+
 std::string GetCaptureFilePath(const char * type,const char * ext) {
 	if(capturedir.empty()) {
 		LOG_MSG("Please specify a capture directory");
@@ -548,6 +553,7 @@ std::string GetCaptureFilePath(const char * type,const char * ext) {
 	}
 	strcpy(file_start,RunningProgram);
 	lowcase(file_start);
+	for (char *s=(char*)file_start;*s;s++) *s = filtercapname(*s);
 	strcat(file_start,"_");
 	bool is_directory;
     char tempname[CROSS_LEN], sname[15];
@@ -593,6 +599,7 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
 	}
 	strcpy(file_start,RunningProgram);
 	lowcase(file_start);
+	for (char *s=(char*)file_start;*s;s++) *s = filtercapname(*s);
 	strcat(file_start,"_");
 	bool is_directory;
     char tempname[CROSS_LEN], sname[15];
