@@ -1,4 +1,7 @@
 NEXT
+  - When using the running program to name screenshots and such,
+    filter out all invalid characters so that Windows users can
+    take snapshots even if junk characters are there (joncampbell123).
   - DOS FAT driver: If INT 13h reports disk change, adapt floppy
     disk geometry to new disk image according to media byte. This
     allows DS_BLISS to present it's 720K fake floppy even if the
