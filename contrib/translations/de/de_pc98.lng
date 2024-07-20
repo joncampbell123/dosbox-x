@@ -584,7 +584,7 @@ Aktuell eingehaengte Laufwerke:
 
 .
 :PROGRAM_MOUNT_NOT_FORMATTED
-Laufwerk nicht formatiert. Bitte formatiteren,
+Laufwerk nicht formatiert. Bitte formatieren,
 bevor darauf zugegriffen wird.
 
 .
@@ -1024,7 +1024,7 @@ Kann Bootdisk-Datei nicht oeffnen.  Fehlschlag.
 
 .
 :PROGRAM_BOOT_WRITE_PROTECTED
-Image-Datei ist SCHREIBGESCHUeTZT! Starte mit Schreibschutz.
+Image-Datei ist SCHREIBGESCHUETZT! Starte mit Schreibschutz.
 
 .
 :PROGRAM_BOOT_PRINT_ERROR
