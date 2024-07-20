@@ -6,7 +6,7 @@
 Starte von Laufwerk 
 .
 :PROGRAM_IMGMAKE_BADSIZE
-Ungueltige -size oder -chs Argumente.
+Ungültige -size oder -chs Argumente.
 
 .
 :PROGRAM_VHDMAKE_WRITERR
@@ -14,7 +14,7 @@ Konnte neues VHD-Image "%s" nicht schreiben, Abbruch.
 
 .
 :PROGRAM_VHDMAKE_REMOVEERR
-Konnte Datei "%s" nicht loeschen.
+Konnte Datei "%s" nicht löschen.
 
 .
 :PROGRAM_VHDMAKE_RENAME
@@ -27,49 +27,49 @@ Es kann mit ←[34;1mIMGMOUNT←[0m eingehangen werden.
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
-Fehler, konnte Datei "%s" nicht oeffnen.
+Fehler, konnte Datei "%s" nicht öffnen.
 
 .
 :PROGRAM_VHDMAKE_BADSIZE
-Ungültige VHD-Groesse erkannt, Abbruch!
+Ungültige VHD-Größe erkannt, Abbruch!
 
 .
 :PROGRAM_VHDMAKE_FNEEDED
 Ein bereits existierendes VHD-Image kann ohne -f Option
-nicht still ueberschrieben werden!
+nicht still überschrieben werden!
 
 .
 :PROGRAM_VHDMAKE_BADPARENT
-Uebergeordnetes VHD-Image "%s" kann nicht geoeffnet werden, Abbruch!
+Übergeordnetes VHD-Image "%s" kann nicht geöffnet werden, Abbruch!
 
 .
 :PROGRAM_VHDMAKE_NOINFO
-Keine Info für "%s" verfuegbar.
+Keine Info für "%s" verfügbar.
 
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS
- mit %d/%d Bloecken alloziiert.
+ mit %d/%d Blöcken alloziiert.
 
 .
 :PROGRAM_VHDMAKE_INFO
 VHD "%s" Typ ist %s.
-Die virtuelle Groesse ist %.02f MB
+Die virtuelle Größe ist %.02f MB
 .
 :PROGRAM_VHDMAKE_CANTMERGE
 %s ist identisch, breche Zusammenfassung ab!
 
 .
 :PROGRAM_VHDMAKE_MERGEREPORT
-%d Sektoren in %d Bloecken von "%s"
+%d Sektoren in %d Blöcken von "%s"
 zu "%s" zusammengefasst.
 
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
-Konnte Schnappschuss "%s" nicht loeschen.
+Konnte Schnappschuss "%s" nicht löschen.
 Manueller Eingriff erforderlich!
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
-Schnappschuss VHD zusammengefast und geloescht.
+Schnappschuss VHD zusammengefast und gelöscht.
 
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
@@ -77,47 +77,47 @@ Fehler beim Zusammenfassen, Abbruch!
 
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
- Inhalte des Uebergeordneten "%s" koennten beschaedigt werden!
+ Inhalte des Übergeordneten "%s" könnten beschädigt werden!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_WIN
-Warnung: Ein absoluter Pfad zur uebergeordneten Datei
-schraenkt die Portabilitaet zu Windows ein.
+Warnung: Ein absoluter Pfad zur übergeordneten Datei
+schränkt die Portabilität zu Windows ein.
 Ein relativer Pfad sollte bevorzugt werden!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_UX
-FEHLER: Ein absoluter Pfad zur uebergeordneten Datei
-verhindert die Portabilitaet.
+FEHLER: Ein absoluter Pfad zur übergeordneten Datei
+verhindert die Portabilität.
 Ein relativer Pfad sollte bevorzugt werden!
 
 .
 :PROGRAM_VHDMAKE_HELP
 Erstellt dynamische oder partielle VHD-Images, oder konvertiert
-rohe Images zu einer VHD mit fester Groesse.
+rohe Images zu einer VHD mit fester Größe.
 ←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
 ←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
 ←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
- -c | -convert  konvertiert ein rohes HD-Image in ein VHD fester Groesse,
+ -c | -convert  konvertiert ein rohes HD-Image in ein VHD fester Größe,
                 mit dem Namen new.vhd
- -l | -link     erstellt ein partielles VHD new.vhd und verknuepft es mit
-                dem uebergeordneten Image parent.vhd
- -f | -force    erzwingt ein bereits existierendes Image zu ueberschreiben
- -i | -info     zeigt Infos ueber das Image a.vhd
- -m | -merge    fasst delta.vhd mit seinem uebergeordneten Image
+ -l | -link     erstellt ein partielles VHD new.vhd und verknüpft es mit
+                dem übergeordneten Image parent.vhd
+ -f | -force    erzwingt ein bereits existierendes Image zu überschreiben
+ -i | -info     zeigt Infos über das Image a.vhd
+ -m | -merge    fasst delta.vhd mit seinem übergeordneten Image
                 zusammen
  new.vhd        Name des neuen dynamischen VHD-Images
- size           Imagegroesse (eventuell mit Einheit; Standard: Bytes)
+ size           Imagegröße (eventuell mit Einheit; Standard: Bytes)
 Beim Konvertieren eines rohen Images in ein VHD fester Größe sollte es mit
 MBR Schema paritioniert und im FAT-Format formatiert sein.
-Ein dynamisches VHD sollte eine Groesse zwischen 3 MB und 2040 GB besitzen.
+Ein dynamisches VHD sollte eine Größe zwischen 3 MB und 2040 GB besitzen.
 Ein dynamisches VHD ist weder partitioniert noch formatiert: Um es direkt einem
 Buchstaben zuzuordnen, sollte es nicht mit ←[34;1mIMGMOUNT←[0m,
 sondern mit←[34;1mIMGMAKE←[0m eingehangen werden.
 Wird ein Schnappschuss erfolgreich mit einem VHD zusammengefasst,
-so wird der Schnappschuss automatisch geloescht.
+so wird der Schnappschuss automatisch gelöscht.
 
 .
 :PROGRAM_BOOT_IMAGE_MOUNTED
@@ -580,15 +580,17 @@ Laufwerk %c als %s eingehangen
 
 .
 :PROGRAM_MOUNT_STATUS_1
-Aktuell eingehaengte Laufwerke:
+Aktuell eingehängte Laufwerke:
 
 .
 :PROGRAM_MOUNT_NOT_FORMATTED
-Drive not formatted. Format it before accessing the drive.
+Laufwerk nicht formatiert. Bitte formatiteren,
+bevor darauf zugegriffen wird.
 
 .
 :PROGRAM_MOUNT_UNSUPPORTED_EXT
-Unsupported extension %s: Mounted as raw IMG image.
+Nicht unterstützte Erweiterung: %s 
+Als rohes IMG-Image eingehangen.
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
@@ -949,6 +951,7 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 Fuer Infos ueber einfaches Einhaengen, tippe ←[34;1mintro mount←[0m
 Fuer Infos ueber CD-ROM-Support, tippe ←[34;1mintro cdrom←[0m
+Fuer Infos ueber besondere Tasten, tippe ←[34;1mintro special←[0m
 Fuer Infos ueber Allgemeines, tippe ←[34;1mintro usage←[0m
 
 Die neuste Version von DOSBox-X findet man auf der Webseite:←[34;1m
@@ -1021,7 +1024,7 @@ Kann Bootdisk-Datei nicht oeffnen.  Fehlschlag.
 
 .
 :PROGRAM_BOOT_WRITE_PROTECTED
-Image-Datei ist SCHREIBGESCHUETZT! Starte mit Schreibschutz.
+Image-Datei ist SCHREIBGESCHUeTZT! Starte mit Schreibschutz.
 
 .
 :PROGRAM_BOOT_PRINT_ERROR
@@ -1055,6 +1058,10 @@ Beispiele:
 Kann von Laufwerk %c nicht booten.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Disketten-Image(s) bereits eingehangen.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 Oeffne Image-Datei: %s
 
@@ -1071,6 +1078,9 @@ Verfuegbare PCjr-Cartridge-Kommandos:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 Keine PCjr-Cartridge-Kommandos gefunden
+.
+:PROGRAM_BOOT_BOOTING
+Boote von Laufwerk 
 .
 :PROGRAM_LOADROM_HELP
 Laedt die angegebene ROM-Image-Datei fuer Video-BIOS oder IBM BASIC.
@@ -1306,6 +1316,7 @@ Ein paar Beispiele fuer IMGMAKE:
   ←[32;1mIMGMAKE -t fd←[0m                   - erstelle 1.44MB Diskette ←[33;1mIMGMAKE.IMG←[0m
   ←[32;1mIMGMAKE -t fd_1440 -force←[0m       - erstelle und erzwinge Diskette ←[33;1mIMGMAKE.IMG←[0m
   ←[32;1mIMGMAKE dos.img -t fd_2880←[0m      - erstelle 2.88MB Diskette namens dos.img
+  ←[32;1mIMGMAKE new.vhd -t vhd -size 520←[0m- erstelle 520MB Dynamische VHD namens new.vhd
   ←[32;1mIMGMAKE ~/disk.img -t hd -size 50←[0m       - erstelle 50MB HDD-Image ~/disk.img
   ←[32;1mIMGMAKE ~/disk.img -t hd_520 -nofs←[0m      - erstelle 520MB leeres HDD-Image
   ←[32;1mIMGMAKE ~/disk.img -t hd_2gig -fat 32←[0m   - erstelle 2GB FAT32 HDD-Image
@@ -1323,7 +1334,7 @@ In Datei "%s" kann nicht geschrieben werden.
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
 Fuer das Image ist nicht genug Speicher verfuegbar.
-%llu Byte benoetigt.
+%u Byte benoetigt.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
@@ -1334,6 +1345,10 @@ Erstelle Image-Datei "%s" mit %u Zylindern, %u Koepfen und %u Sektoren.
 
 
 Kann Diskette nicht lesen.
+.
+:PROGRAM_IMGMAKE_BADSIZE
+Falsche -size oder -chs Argumente.
+
 .
 :PROGRAM_KEYB_INFO
 Codepage %i geladen
@@ -1383,6 +1398,37 @@ Keine Codepage-Datei fuer Layout %s oder Datei ungueltig
 
 
 .
+:INT21_6523_YESNO_CHARS
+jn
+.
+:PROGRAM_LABEL_HELP
+Erstellt, ändert, oder löscht das Label eines Laufwerks.
+
+LABEL [drive:][label]
+
+  [drive:]○Buchstabe des Laufwerks
+  [label]○Label des Laufwerks
+
+.
+:PROGRAM_LABEL_DELETE
+Label löschen (J/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label zu lang (mehr als 11 Zeichen).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label hat ungültige Zeichen.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Laufwerk %c ist %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Laufwerk %c hat kein Label
+
+.
 :PROGRAM_MODE_USAGE
 Konfiguriert Systemgeraete.
 
@@ -1399,7 +1445,125 @@ Ungueltige(r) Parameter.
 Eine Port-Nummer zwischen 1 und 9 muss angegeben werden.
 
 .
+:PROGRAM_VHDMAKE_WRITERR
+Konnte auf neues VHD-Image "%s" nicht schreiben, Abbruch.
 
+.
+:PROGRAM_VHDMAKE_REMOVEERR
+Konnte Datei "%s" nicht löschen
+
+.
+:PROGRAM_VHDMAKE_RENAME
+Das neu erstellte VHD-Image muss manuell umbenannt werden.
+
+.
+:PROGRAM_VHDMAKE_SUCCESS
+Neues VHD-Image erfolgreich erstellt.
+Es kann mit ←[34;1mIMGMOUNT←[0m eingehangen werden.
+
+.
+:PROGRAM_VHDMAKE_ERROPEN
+Fehler, konnte Image "%s" nicht öffnen.
+
+.
+:PROGRAM_VHDMAKE_BADSIZE
+Ungültige VHD-Größe angegeben, Abbruch!
+
+.
+:PROGRAM_VHDMAKE_FNEEDED
+Ein existierendes VHD-Image kann nicht ohne -f option
+still überschriben werden !
+
+.
+:PROGRAM_VHDMAKE_BADPARENT
+Übergeordnetes VHD-Image "%s" kann nicht
+zum Verknüpfen geöffnet werden, Abbruch!
+
+.
+:PROGRAM_VHDMAKE_NOINFO
+Konnte keine Infos für "%s" abfragen.
+
+.
+:PROGRAM_VHDMAKE_BLOCKSTATS
+ mit %d/%d Blöcken alloziiert.
+
+.
+:PROGRAM_VHDMAKE_INFO
+VHD "%s" Typ ist %s.
+Seine virtuelle Größe beträgt %.02f MB
+.
+:PROGRAM_VHDMAKE_CANTMERGE
+%s ist identisch, kann nicht zusammenfassen!
+
+.
+:PROGRAM_VHDMAKE_MERGEREPORT
+%d Sektoren in %d Blöcken von "%s"
+zu "%s" zusammengefasst.
+
+.
+:PROGRAM_VHDMAKE_MERGENODELETE
+Konnte Schnappschuss "%s" nicht löschen, 
+bitte manuell erledigen!
+.
+:PROGRAM_VHDMAKE_MERGEOKDELETE
+Schnappschuss VHD zusammengefasst und gelöscht.
+
+.
+:PROGRAM_VHDMAKE_MERGEFAILED
+Fehler beim Zusammenfassen, Abbruch!
+
+.
+:PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
+ Inhalte vom übergeordneten "%s" 
+könnten korrumpiert sein!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_WIN
+Warnung: Ein absoluter Pfad zur übergeordneten Datei
+schränkt die Portabilität zu Windows ein.
+Bitte einen relativen Pfad zur Differenz-Image-Datei
+angeben!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_UX
+FEHLER: Ein absoluter Pfad zur übergeordneten Datei
+schränkt die Portabilität ein.
+Bitte einen relativen Pfad zur Differenz-Image-Datei
+angeben!
+
+.
+:PROGRAM_VHDMAKE_HELP
+Erstellt dynamisches oder Differenz-VHD-Image,
+konvertiert rohe Images in fixes VHD,
+zeigt Infos über VHD-Images und fasst sie zusammen.
+←[32;1mVHDMAKE←[0m [-f] new.vhd Größe[BKMGT]
+←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
+←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
+ -c | -convert  konvertiert ein rohes Image zu einr fixen VHD
+                und nennt sie zu new.vhd um
+ -l | -link     erstellt neues Differenz-VHD new.vhd und verknüpft es
+                mit dem übergeordneten Image parent.vhd
+ -f | -force    erzwingt, dass ein existierendes Image
+                überschrieben wird
+ -i | -info     zeigt nützliche Infos über das Image a.vhd
+ -m | -merge    Fasst delta.vhd mit dem übergeordneten Image
+                zusammen
+ new.vhd        Name des neuen dynamischen VHD-Images
+ size           Größe (eventuell mit Einheit,
+                Bytes, wenn keine Angabe)
+Beim Konvertieren eines rohen Images in ein fixes VHD, muss sichergestellt
+sein, dass es mit MBR-Schema im FAT-Format formatiert ist.
+Beim Erstellen eines dynamischen VHDs muss seine Größe
+zwischen 3 MB und 2040 GB liegen.
+Das erstellte dynamische VHD ist weder partitioniert noch formatiert:
+Um es einem Buchstaben zuzuweisen, anstelle von  ←[34;1mIMGMOUNT←[0m
+stattdessen ←[34;1mIMGMAKE←[0m benutzen.
+Der Schnappschuss einer VHD wird automatisch gelöscht,
+wenn das Image erfolgreich zusammengefasst wurde.
+
+.
 :SHELL_CMD_TREE_ERROR
 Keine Unterordner
 
@@ -1549,6 +1713,12 @@ Kann Ordner nicht anlegen - %s
 Ungueltiger Pfad, kein Ordner oder Ordner nicht leer - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Ordner "%s" und alle Unterordner löschen? (J/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Datei "%s" löschen (J/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 Kann nicht umbenennen - %s
 
@@ -1564,6 +1734,9 @@ Kann Attribute nicht aendern: %s
 :SHELL_CMD_DEL_ERROR
 Kann nicht loeschen - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Lösche %s (J/N)?
 .
 :SHELL_CMD_DEL_SURE
 Alle Dateien im Ordner werden geloescht!
@@ -1686,6 +1859,10 @@ Nicht genuegend Speicherplatz - %s
 Fehler beim Kopieren - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+Kann Datei nicht auf sich selbst kopieren♪
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 Diese lokalen Laufwerke sind aktuell eingehaengt:
 
@@ -1717,6 +1894,9 @@ DOS/V V-Text ist momentan aktiviert.
 :SHELL_CMD_VTEXT_OFF
 DOS/V V-Text ist momentan deaktiviert.
 
+.
+:SHELL_ALLFILES_CHAR
+a
 .
 :SHELL_STARTUP_TITLE
 Willkommen zu DOSBox-X !
@@ -2382,6 +2562,11 @@ DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 Hiermit wird eine Video- oder Audio-Aufnahme vorbereitet,
 das Programm gestartet und beim Beenden des Programms die
 Aufnahme automatisch beendet.
+
+ /V für Video
+ /A für Audio
+ /M für Multi-track-Audio
+ /O für OPL FM (DROv2-Format)
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
