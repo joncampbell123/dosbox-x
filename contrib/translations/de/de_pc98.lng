@@ -6,7 +6,7 @@
 Starte von Laufwerk 
 .
 :PROGRAM_IMGMAKE_BADSIZE
-Ungültige -size oder -chs Argumente.
+Ungueltige -size oder -chs Argumente.
 
 .
 :PROGRAM_VHDMAKE_WRITERR
@@ -14,7 +14,7 @@ Konnte neues VHD-Image "%s" nicht schreiben, Abbruch.
 
 .
 :PROGRAM_VHDMAKE_REMOVEERR
-Konnte Datei "%s" nicht löschen.
+Konnte Datei "%s" nicht loeschen.
 
 .
 :PROGRAM_VHDMAKE_RENAME
@@ -27,49 +27,49 @@ Es kann mit ←[34;1mIMGMOUNT←[0m eingehangen werden.
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
-Fehler, konnte Datei "%s" nicht öffnen.
+Fehler, konnte Datei "%s" nicht oeffnen.
 
 .
 :PROGRAM_VHDMAKE_BADSIZE
-Ungültige VHD-Größe erkannt, Abbruch!
+Ungueltige VHD-Groesse erkannt, Abbruch!
 
 .
 :PROGRAM_VHDMAKE_FNEEDED
 Ein bereits existierendes VHD-Image kann ohne -f Option
-nicht still überschrieben werden!
+nicht still ueberschrieben werden!
 
 .
 :PROGRAM_VHDMAKE_BADPARENT
-Übergeordnetes VHD-Image "%s" kann nicht geöffnet werden, Abbruch!
+Uebergeordnetes VHD-Image "%s" kann nicht geoeffnet werden, Abbruch!
 
 .
 :PROGRAM_VHDMAKE_NOINFO
-Keine Info für "%s" verfügbar.
+Keine Info fuer "%s" verfuegbar.
 
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS
- mit %d/%d Blöcken alloziiert.
+ mit %d/%d Bloecken alloziiert.
 
 .
 :PROGRAM_VHDMAKE_INFO
 VHD "%s" Typ ist %s.
-Die virtuelle Größe ist %.02f MB
+Die virtuelle Groesse ist %.02f MB
 .
 :PROGRAM_VHDMAKE_CANTMERGE
 %s ist identisch, breche Zusammenfassung ab!
 
 .
 :PROGRAM_VHDMAKE_MERGEREPORT
-%d Sektoren in %d Blöcken von "%s"
+%d Sektoren in %d Bloecken von "%s"
 zu "%s" zusammengefasst.
 
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
-Konnte Schnappschuss "%s" nicht löschen.
+Konnte Schnappschuss "%s" nicht loeschen.
 Manueller Eingriff erforderlich!
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
-Schnappschuss VHD zusammengefast und gelöscht.
+Schnappschuss VHD zusammengefast und geloescht.
 
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
@@ -77,47 +77,47 @@ Fehler beim Zusammenfassen, Abbruch!
 
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
- Inhalte des Übergeordneten "%s" könnten beschädigt werden!
+ Inhalte des Uebergeordneten "%s" koennten beschaedigt werden!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_WIN
-Warnung: Ein absoluter Pfad zur übergeordneten Datei
-schränkt die Portabilität zu Windows ein.
+Warnung: Ein absoluter Pfad zur uebergeordneten Datei
+schraenkt die Portabilitaet zu Windows ein.
 Ein relativer Pfad sollte bevorzugt werden!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_UX
-FEHLER: Ein absoluter Pfad zur übergeordneten Datei
-verhindert die Portabilität.
+FEHLER: Ein absoluter Pfad zur uebergeordneten Datei
+verhindert die Portabilitaet.
 Ein relativer Pfad sollte bevorzugt werden!
 
 .
 :PROGRAM_VHDMAKE_HELP
 Erstellt dynamische oder partielle VHD-Images, oder konvertiert
-rohe Images zu einer VHD mit fester Größe.
+rohe Images zu einer VHD mit fester Groesse.
 ←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
 ←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
 ←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
- -c | -convert  konvertiert ein rohes HD-Image in ein VHD fester Größe,
+ -c | -convert  konvertiert ein rohes HD-Image in ein VHD fester Groesse,
                 mit dem Namen new.vhd
- -l | -link     erstellt ein partielles VHD new.vhd und verknüpft es mit
-                dem übergeordneten Image parent.vhd
- -f | -force    erzwingt ein bereits existierendes Image zu überschreiben
- -i | -info     zeigt Infos über das Image a.vhd
- -m | -merge    fasst delta.vhd mit seinem übergeordneten Image
+ -l | -link     erstellt ein partielles VHD new.vhd und verknuepft es mit
+                dem uebergeordneten Image parent.vhd
+ -f | -force    erzwingt ein bereits existierendes Image zu ueberschreiben
+ -i | -info     zeigt Infos ueber das Image a.vhd
+ -m | -merge    fasst delta.vhd mit seinem uebergeordneten Image
                 zusammen
  new.vhd        Name des neuen dynamischen VHD-Images
- size           Imagegröße (eventuell mit Einheit; Standard: Bytes)
-Beim Konvertieren eines rohen Images in ein VHD fester Größe sollte es mit
+ size           Imagegroesse (eventuell mit Einheit; Standard: Bytes)
+Beim Konvertieren eines rohen Images in ein VHD fester Groesse sollte es mit
 MBR Schema paritioniert und im FAT-Format formatiert sein.
-Ein dynamisches VHD sollte eine Größe zwischen 3 MB und 2040 GB besitzen.
+Ein dynamisches VHD sollte eine Groesse zwischen 3 MB und 2040 GB besitzen.
 Ein dynamisches VHD ist weder partitioniert noch formatiert: Um es direkt einem
 Buchstaben zuzuordnen, sollte es nicht mit ←[34;1mIMGMOUNT←[0m,
 sondern mit←[34;1mIMGMAKE←[0m eingehangen werden.
 Wird ein Schnappschuss erfolgreich mit einem VHD zusammengefasst,
-so wird der Schnappschuss automatisch gelöscht.
+so wird der Schnappschuss automatisch geloescht.
 
 .
 :PROGRAM_BOOT_IMAGE_MOUNTED
@@ -580,7 +580,7 @@ Laufwerk %c als %s eingehangen
 
 .
 :PROGRAM_MOUNT_STATUS_1
-Aktuell eingehängte Laufwerke:
+Aktuell eingehaengte Laufwerke:
 
 .
 :PROGRAM_MOUNT_NOT_FORMATTED
@@ -589,7 +589,7 @@ bevor darauf zugegriffen wird.
 
 .
 :PROGRAM_MOUNT_UNSUPPORTED_EXT
-Nicht unterstützte Erweiterung: %s 
+Nicht unterstuetzte Erweiterung: %s 
 Als rohes IMG-Image eingehangen.
 
 .
@@ -1402,7 +1402,7 @@ Keine Codepage-Datei fuer Layout %s oder Datei ungueltig
 jn
 .
 :PROGRAM_LABEL_HELP
-Erstellt, ändert, oder löscht das Label eines Laufwerks.
+Erstellt, aendert, oder loescht das Label eines Laufwerks.
 
 LABEL [drive:][label]
 
@@ -1411,14 +1411,14 @@ LABEL [drive:][label]
 
 .
 :PROGRAM_LABEL_DELETE
-Label löschen (J/N)? 
+Label loeschen (J/N)? 
 .
 :PROGRAM_LABEL_TOOLONG
 Label zu lang (mehr als 11 Zeichen).
 
 .
 :PROGRAM_LABEL_BADCHARS
-Label hat ungültige Zeichen.
+Label hat ungueltige Zeichen.
 
 .
 :PROGRAM_LABEL_VOLUMEIS
@@ -1450,7 +1450,7 @@ Konnte auf neues VHD-Image "%s" nicht schreiben, Abbruch.
 
 .
 :PROGRAM_VHDMAKE_REMOVEERR
-Konnte Datei "%s" nicht löschen
+Konnte Datei "%s" nicht loeschen
 
 .
 :PROGRAM_VHDMAKE_RENAME
@@ -1463,50 +1463,50 @@ Es kann mit ←[34;1mIMGMOUNT←[0m eingehangen werden.
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
-Fehler, konnte Image "%s" nicht öffnen.
+Fehler, konnte Image "%s" nicht oeffnen.
 
 .
 :PROGRAM_VHDMAKE_BADSIZE
-Ungültige VHD-Größe angegeben, Abbruch!
+Ungueltige VHD-Groesse angegeben, Abbruch!
 
 .
 :PROGRAM_VHDMAKE_FNEEDED
 Ein existierendes VHD-Image kann nicht ohne -f option
-still überschriben werden !
+still ueberschriben werden !
 
 .
 :PROGRAM_VHDMAKE_BADPARENT
-Übergeordnetes VHD-Image "%s" kann nicht
-zum Verknüpfen geöffnet werden, Abbruch!
+Uebergeordnetes VHD-Image "%s" kann nicht
+zum Verknuepfen geoeffnet werden, Abbruch!
 
 .
 :PROGRAM_VHDMAKE_NOINFO
-Konnte keine Infos für "%s" abfragen.
+Konnte keine Infos fuer "%s" abfragen.
 
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS
- mit %d/%d Blöcken alloziiert.
+ mit %d/%d Bloecken alloziiert.
 
 .
 :PROGRAM_VHDMAKE_INFO
 VHD "%s" Typ ist %s.
-Seine virtuelle Größe beträgt %.02f MB
+Seine virtuelle Groesse betraegt %.02f MB
 .
 :PROGRAM_VHDMAKE_CANTMERGE
 %s ist identisch, kann nicht zusammenfassen!
 
 .
 :PROGRAM_VHDMAKE_MERGEREPORT
-%d Sektoren in %d Blöcken von "%s"
+%d Sektoren in %d Bloecken von "%s"
 zu "%s" zusammengefasst.
 
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
-Konnte Schnappschuss "%s" nicht löschen, 
+Konnte Schnappschuss "%s" nicht loeschen, 
 bitte manuell erledigen!
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
-Schnappschuss VHD zusammengefasst und gelöscht.
+Schnappschuss VHD zusammengefasst und geloescht.
 
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
@@ -1514,20 +1514,20 @@ Fehler beim Zusammenfassen, Abbruch!
 
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
- Inhalte vom übergeordneten "%s" 
-könnten korrumpiert sein!
+ Inhalte vom uebergeordneten "%s" 
+koennten korrumpiert sein!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_WIN
-Warnung: Ein absoluter Pfad zur übergeordneten Datei
-schränkt die Portabilität zu Windows ein.
+Warnung: Ein absoluter Pfad zur uebergeordneten Datei
+schraenkt die Portabilitaet zu Windows ein.
 Bitte einen relativen Pfad zur Differenz-Image-Datei
 angeben!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_UX
-FEHLER: Ein absoluter Pfad zur übergeordneten Datei
-schränkt die Portabilität ein.
+FEHLER: Ein absoluter Pfad zur uebergeordneten Datei
+schraenkt die Portabilitaet ein.
 Bitte einen relativen Pfad zur Differenz-Image-Datei
 angeben!
 
@@ -1535,32 +1535,32 @@ angeben!
 :PROGRAM_VHDMAKE_HELP
 Erstellt dynamisches oder Differenz-VHD-Image,
 konvertiert rohe Images in fixes VHD,
-zeigt Infos über VHD-Images und fasst sie zusammen.
-←[32;1mVHDMAKE←[0m [-f] new.vhd Größe[BKMGT]
+zeigt Infos ueber VHD-Images und fasst sie zusammen.
+←[32;1mVHDMAKE←[0m [-f] new.vhd Groesse[BKMGT]
 ←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
 ←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
  -c | -convert  konvertiert ein rohes Image zu einr fixen VHD
                 und nennt sie zu new.vhd um
- -l | -link     erstellt neues Differenz-VHD new.vhd und verknüpft es
-                mit dem übergeordneten Image parent.vhd
+ -l | -link     erstellt neues Differenz-VHD new.vhd und verknuepft es
+                mit dem uebergeordneten Image parent.vhd
  -f | -force    erzwingt, dass ein existierendes Image
-                überschrieben wird
- -i | -info     zeigt nützliche Infos über das Image a.vhd
- -m | -merge    Fasst delta.vhd mit dem übergeordneten Image
+                ueberschrieben wird
+ -i | -info     zeigt nuetzliche Infos ueber das Image a.vhd
+ -m | -merge    Fasst delta.vhd mit dem uebergeordneten Image
                 zusammen
  new.vhd        Name des neuen dynamischen VHD-Images
- size           Größe (eventuell mit Einheit,
+ size           Groesse (eventuell mit Einheit,
                 Bytes, wenn keine Angabe)
 Beim Konvertieren eines rohen Images in ein fixes VHD, muss sichergestellt
 sein, dass es mit MBR-Schema im FAT-Format formatiert ist.
-Beim Erstellen eines dynamischen VHDs muss seine Größe
+Beim Erstellen eines dynamischen VHDs muss seine Groesse
 zwischen 3 MB und 2040 GB liegen.
 Das erstellte dynamische VHD ist weder partitioniert noch formatiert:
 Um es einem Buchstaben zuzuweisen, anstelle von  ←[34;1mIMGMOUNT←[0m
 stattdessen ←[34;1mIMGMAKE←[0m benutzen.
-Der Schnappschuss einer VHD wird automatisch gelöscht,
+Der Schnappschuss einer VHD wird automatisch geloescht,
 wenn das Image erfolgreich zusammengefasst wurde.
 
 .
@@ -1714,10 +1714,10 @@ Ungueltiger Pfad, kein Ordner oder Ordner nicht leer - %s
 
 .
 :SHELL_CMD_RMDIR_FULLTREE_CONFIRM
-Ordner "%s" und alle Unterordner löschen? (J/N)?
+Ordner "%s" und alle Unterordner loeschen? (J/N)?
 .
 :SHELL_CMD_RMDIR_SINGLE_CONFIRM
-Datei "%s" löschen (J/N)?
+Datei "%s" loeschen (J/N)?
 .
 :SHELL_CMD_RENAME_ERROR
 Kann nicht umbenennen - %s
@@ -1736,7 +1736,7 @@ Kann nicht loeschen - %s
 
 .
 :SHELL_CMD_DEL_CONFIRM
-Lösche %s (J/N)?
+Loesche %s (J/N)?
 .
 :SHELL_CMD_DEL_SURE
 Alle Dateien im Ordner werden geloescht!
@@ -2563,10 +2563,10 @@ Hiermit wird eine Video- oder Audio-Aufnahme vorbereitet,
 das Programm gestartet und beim Beenden des Programms die
 Aufnahme automatisch beendet.
 
- /V für Video
- /A für Audio
- /M für Multi-track-Audio
- /O für OPL FM (DROv2-Format)
+ /V fuer Video
+ /A fuer Audio
+ /M fuer Multi-track-Audio
+ /O fuer OPL FM (DROv2-Format)
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
