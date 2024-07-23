@@ -164,7 +164,7 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who=NULL,Bitu alignment=1,Bitu mus
 extern RegionAllocTracking rombios_alloc;
 
 /* maximum of scancodes handled by keyboard bios routines */
-#define MAX_SCAN_CODE 0x93
+#define MAX_SCAN_CODE 0x7F
 
 /* The Section handling Bios Disk Access */
 //#define BIOS_MAX_DISK 10
