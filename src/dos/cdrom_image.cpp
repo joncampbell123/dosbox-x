@@ -578,7 +578,7 @@ bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& trac
 	attr = tracks[track - 1].attr;
 	index = 1;
 	FRAMES_TO_MSF(player.currFrame + 150, &absPos.min, &absPos.sec, &absPos.fr);
-	FRAMES_TO_MSF(player.currFrame - tracks[track - 1].start + 150, &relPos.min, &relPos.sec, &relPos.fr);
+	FRAMES_TO_MSF(player.currFrame - tracks[track - 1].start, &relPos.min, &relPos.sec, &relPos.fr);
 	if(IS_PC98_ARCH && player.playbackRemaining == 0 && !strcmp(RunningProgram, "ITP")) {
 		// POLICENAUTS
 		// It freeze at the end of the Konami logo or opening.
@@ -599,7 +599,7 @@ bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& trac
 	  absPos.fr);
 	LOG_MSG("%s CDROM: GetAudioSub relative offset (%d), MSF=%d:%d:%d",
       get_time(),
-	  player.currFrame - tracks[track - 1].start + 150,
+	  player.currFrame - tracks[track - 1].start,
 	  relPos.min,
 	  relPos.sec,
 	  relPos.fr);
