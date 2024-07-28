@@ -577,7 +577,7 @@ bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& trac
 	track = (unsigned char)cur_track;
 	attr = tracks[track - 1].attr;
 	index = 1;
-	FRAMES_TO_MSF(player.currFrame + 150, &absPos.min, &absPos.sec, &absPos.fr);
+	FRAMES_TO_MSF(player.currFrame, &absPos.min, &absPos.sec, &absPos.fr);
 	FRAMES_TO_MSF(player.currFrame - tracks[track - 1].start, &relPos.min, &relPos.sec, &relPos.fr);
 	if(IS_PC98_ARCH && player.playbackRemaining == 0 && !strcmp(RunningProgram, "ITP")) {
 		// POLICENAUTS
@@ -593,7 +593,7 @@ bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& trac
 
 	LOG_MSG("%s CDROM: GetAudioSub absolute offset (%d), MSF=%d:%d:%d",
       get_time(),
-	  player.currFrame + 150,
+	  player.currFrame,
 	  absPos.min,
 	  absPos.sec,
 	  absPos.fr);
