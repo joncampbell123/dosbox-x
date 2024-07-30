@@ -9,6 +9,11 @@ if [ "$1" == "32" ]; then
     opt="--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu"
 fi
 
+# Makes Linux use 16-bit wide chars instead of 32-bit
+CFLAGS="${CFLAGS} -fshort-wchar"
+CXXFLAGS="${CXXFLAGS} -fshort-wchar"
+export CCFLAGS CXXFLAGS
+
 # I'm sick and tired of all the churn the three versions of autoconf
 # are causing in this repo. Stop committing the configure scripts
 # and just autoregen.
