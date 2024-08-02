@@ -760,7 +760,7 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
         table_size -= 512;
     }
     //write Parent Locator sectors
-    wchar_t* w_basename = (wchar_t*)malloc(platsize);
+    uint16_t* w_basename = (uint16_t*)malloc(platsize);
     memset(w_basename, 0, platsize);
     for(uint32_t i = 0; i < l_basename; i++)
         //dirty hack to quickly convert ASCII -> UTF-16 *LE* and fix slashes
