@@ -732,7 +732,14 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     uint32_t table_size = (4 * header.maxTableEntries + 511) / 512 * 512;
 
     //Locators - Windows 11 wants at least the relative W2ru locator, or won't mount!
-    uint32_t l_basename = strlen(basename);
+    // we store the absolute pathname to prevent complex depth calculations
+    char absBasePathName[MAX_PATH];
+#if defined (WIN32)
+    _fullpath(absBasePathName, basename, MAX_PATH);
+#else
+    realpath(basename, absBasePathName);
+#endif
+    uint32_t l_basename = strlen(absBasePathName);
     uint32_t platsize = (2 * l_basename + 511) / 512 * 512;
     header.parentLocatorEntry[0].platformCode = 0x57326B75; //W2ku
     header.parentLocatorEntry[0].platformDataLength = 2 * l_basename;
@@ -764,7 +771,7 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     memset(w_basename, 0, platsize);
     for(uint32_t i = 0; i < l_basename; i++)
         //dirty hack to quickly convert ASCII -> UTF-16 *LE* and fix slashes
-        w_basename[i] = SDL_SwapLE16(basename[i]=='/'? (uint16_t)'\\' : (uint16_t)basename[i]);
+        w_basename[i] = SDL_SwapLE16(absBasePathName[i]=='/'? (uint16_t)'\\' : (uint16_t)absBasePathName[i]);
     if (fwrite(w_basename, 1, platsize, vhd) != platsize) STATUS = ERROR_WRITING;
     if (fwrite(w_basename, 1, platsize, vhd) != platsize) STATUS = ERROR_WRITING;
  
