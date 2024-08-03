@@ -733,10 +733,11 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
 
     //Locators - Windows 11 wants at least the relative W2ru locator, or won't mount!
     // we store the absolute pathname to prevent complex depth calculations
-    char absBasePathName[MAX_PATH];
 #if defined (WIN32)
+    char absBasePathName[MAX_PATH];
     _fullpath(absBasePathName, basename, MAX_PATH);
 #else
+    char absBasePathName[PATH_MAX];
     realpath(basename, absBasePathName);
 #endif
     uint32_t l_basename = strlen(absBasePathName);
