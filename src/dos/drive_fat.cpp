@@ -874,7 +874,13 @@ nextfile:
 				while (j < 11 && *s != 0) sectbuf[entryoffset].entryname[j++] = *s++;
 				while (j < 11)            sectbuf[entryoffset].entryname[j++] = ' ';
 			}
-			writeSector(tmpsector,sectbuf);
+            uint16_t ct, cd;
+            time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd, ::time(NULL));
+            sectbuf[entryoffset].modTime = ct;
+            sectbuf[entryoffset].modDate = cd;
+            sectbuf[entryoffset].accessDate = cd;
+
+            writeSector(tmpsector,sectbuf);
 			labelCache.SetLabel(label, false, true);
 			UpdateBootVolumeLabel(label);
 			return;
