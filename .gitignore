@@ -140,3 +140,7 @@ contrib/macos/dosbox-x.plist
 /dosbox-x.conf
 /src/dosbox-x.conf
 
+src/dos/dos_programs.7z
+src/lnkvhd.cpp
+src/mkvhd.cpp
+src/mkvhd.exe

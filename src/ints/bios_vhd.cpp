@@ -49,6 +49,51 @@
 *
 */
 
+// returns the path of "base" in a form relative to "child", where both exist
+char* calc_relative_path(const char* base, const char* child) {
+#ifndef WIN32
+    char abs_base[PATH_MAX];
+    char abs_child[PATH_MAX];
+#else
+    char abs_base[MAX_PATH];
+    char abs_child[MAX_PATH];
+#endif
+    char* p = abs_base, * q = abs_child, * x, * y, * z;
+    uint32_t n = 0;
+
+    if(!base || !child) return 0;
+
+    // retrieves the corresponding absolute paths
+#ifndef WIN32
+    realpath(base, abs_base);
+    realpath(child, abs_child);
+#else
+    _fullpath(abs_base, base, MAX_PATH);
+    _fullpath(abs_child, child, MAX_PATH);
+#endif
+    if(!*abs_base || !*abs_child) return 0;
+
+    // strips common subpath, if any
+    while(*p++ == *q++);
+    p--, q--;
+    x = q;
+    // count slashes
+    while(*x) {
+        if(*x == '/' || *x == '\\') n++;
+        x++;
+    }
+    // allocates space for the resulting string
+    y = (char*)malloc(strlen(q) + n * 3); // n * strlen("..\\")
+    z = y;
+    while(n--) {
+        strcpy(z, "..\\");
+        z += 3;
+    }
+    strcpy(z, p);
+    LOG_MSG("%s is base %s relative to child %s", y, base, child);
+    return y;
+}
+
 imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool readOnly, imageDisk** disk) {
 	return Open(fileName, readOnly, disk, nullptr);
 }
@@ -273,6 +318,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 
 	switch (entry.platformCode) {
 	case 0x57327275:
+		LOG_MSG("TryOpenParent (W2ru) %s", childFileName);
 		//Unicode relative pathname (UTF-16) on Windows
 
 #if defined (WIN32) || defined(OS2)
@@ -295,6 +341,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 		return imageDiskVHD::Open(str.c_str(), true, disk, uniqueId);
 
 	case 0x57326B75:
+		LOG_MSG("TryOpenParent (W2ku) %s", childFileName);
 		//Unicode absolute pathname (UTF-16) on Windows
 
 #if defined (WIN32) || defined(OS2)
@@ -302,7 +349,6 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 #else
 		// Linux
 		// Todo: convert absolute pathname to something applicable for Linux
-		break;
 #endif
 
 		//convert byte order, and UTF-16 to ASCII, and change backslashes to slashes if on Linux
@@ -644,6 +690,7 @@ void imageDiskVHD::SizeToCHS(uint64_t size, uint16_t* c, uint8_t* h, uint8_t* s)
 
 //creates a Dynamic VHD image
 uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
+    LOG_MSG("CreateDynamic filename=\"%s\"", filename);
     uint32_t STATUS = OPEN_SUCCESS;
     if(filename == NULL) return ERROR_OPENING;
     if(size < 3145728 || size > 2190433320960) // 2040GB is the Windows 11 mounter limit
@@ -695,6 +742,7 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
 
 //creates a Differencing VHD image
 uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* basename) {
+    LOG_MSG("CreateDifferencing filename=\"%s\" basename=\"%s\"", filename, basename);
     if(filename == NULL || basename == NULL) return ERROR_OPENING;
     imageDiskVHD* base_vhd;
     if(Open(basename, true, (imageDisk**)&base_vhd) != OPEN_SUCCESS) return ERROR_OPENING_PARENT;
@@ -732,7 +780,6 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     uint32_t table_size = (4 * header.maxTableEntries + 511) / 512 * 512;
 
     //Locators - Windows 11 wants at least the relative W2ru locator, or won't mount!
-    // we store the absolute pathname to prevent complex depth calculations
 #if defined (WIN32)
     char absBasePathName[MAX_PATH];
     _fullpath(absBasePathName, basename, MAX_PATH);
@@ -740,17 +787,22 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     char absBasePathName[PATH_MAX];
     realpath(basename, absBasePathName);
 #endif
-    uint32_t l_basename = strlen(absBasePathName);
-    uint32_t platsize = (2 * l_basename + 511) / 512 * 512;
-    header.parentLocatorEntry[0].platformCode = 0x57326B75; //W2ku
-    header.parentLocatorEntry[0].platformDataLength = 2 * l_basename;
-    header.parentLocatorEntry[0].platformDataSpace = platsize;
+    uint32_t len1 = strlen(absBasePathName);
+    uint32_t plat1 = (2 * len1 + 511) / 512 * 512;
+    header.parentLocatorEntry[0].platformCode = 0x57326B75; //W2ku (absolute)
+    header.parentLocatorEntry[0].platformDataLength = 2 * len1;
+    header.parentLocatorEntry[0].platformDataSpace = plat1;
     header.parentLocatorEntry[0].platformDataOffset = 1536 + table_size;
 
-    header.parentLocatorEntry[1].platformCode = 0x57327275; // W2ru
-    header.parentLocatorEntry[1].platformDataLength = 2 * l_basename;
-    header.parentLocatorEntry[1].platformDataSpace = platsize;
-    header.parentLocatorEntry[1].platformDataOffset = 2048 + table_size;
+    // path of parent relative to child
+    char* relpath = calc_relative_path(basename, filename);
+
+    uint32_t len2 = strlen(relpath);
+    uint32_t plat2 = (2 * len2 + 511) / 512 * 512;
+    header.parentLocatorEntry[1].platformCode = 0x57327275; // W2ru (relative)
+    header.parentLocatorEntry[1].platformDataLength = 2 * len2;
+    header.parentLocatorEntry[1].platformDataSpace = plat2;
+    header.parentLocatorEntry[1].platformDataOffset = header.parentLocatorEntry[0].platformDataOffset + plat1;
 
     //write dynamic Header
     header.checksum = header.CalculateChecksum();
@@ -768,20 +820,27 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
         table_size -= 512;
     }
     //write Parent Locator sectors
-    uint16_t* w_basename = (uint16_t*)malloc(platsize);
-    memset(w_basename, 0, platsize);
-    for(uint32_t i = 0; i < l_basename; i++)
+    uint16_t* w_basename = (uint16_t*)malloc(plat1);
+    memset(w_basename, 0, plat1);
+    for(uint32_t i = 0; i < len1; i++)
         //dirty hack to quickly convert ASCII -> UTF-16 *LE* and fix slashes
-        w_basename[i] = SDL_SwapLE16(absBasePathName[i]=='/'? (uint16_t)'\\' : (uint16_t)absBasePathName[i]);
-    if (fwrite(w_basename, 1, platsize, vhd) != platsize) STATUS = ERROR_WRITING;
-    if (fwrite(w_basename, 1, platsize, vhd) != platsize) STATUS = ERROR_WRITING;
+        w_basename[i] = SDL_SwapLE16(absBasePathName[i] == '/' ? (uint16_t)'\\' : (uint16_t)absBasePathName[i]);
+    if(fwrite(w_basename, 1, plat1, vhd) != plat1) STATUS = ERROR_WRITING;
+
+    w_basename = (uint16_t*)realloc(w_basename, plat2);
+    memset(w_basename, 0, plat2);
+    for(uint32_t i = 0; i < len2; i++)
+        //dirty hack to quickly convert ASCII -> UTF-16 *LE* and fix slashes
+        w_basename[i] = SDL_SwapLE16(relpath[i] == '/' ? (uint16_t)'\\' : (uint16_t)relpath[i]);
+    if(fwrite(w_basename, 1, plat2, vhd) != plat2) STATUS = ERROR_WRITING;
  
     //write footer copy
     if(fwrite(&footer, 1, 512, vhd) != 512) STATUS = ERROR_WRITING;
 
     delete base_vhd;
-    free(w_basename);
     fclose(vhd);
+    free(w_basename);
+    free(relpath);
     return STATUS;
 }
 
