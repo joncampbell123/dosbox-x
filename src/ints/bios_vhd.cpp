@@ -49,7 +49,7 @@
 *
 */
 
-// returns the path of "base" in a form relative to "child", where both exist
+// returns the path of "base" in a form relative to "child"
 char* calc_relative_path(const char* base, const char* child) {
 #ifndef WIN32
     char abs_base[PATH_MAX];
@@ -76,6 +76,8 @@ char* calc_relative_path(const char* base, const char* child) {
     // strips common subpath, if any
     while(*p++ == *q++);
     p--, q--;
+    // returns base if they don't share anything
+    if(!strcmp(p, abs_base)) return strdup(base);
     x = q;
     // count slashes
     while(*x) {
@@ -83,8 +85,12 @@ char* calc_relative_path(const char* base, const char* child) {
         x++;
     }
     // allocates space for the resulting string
-    y = (char*)malloc(strlen(q) + n * 3); // n * strlen("..\\")
+    y = (char*)malloc(strlen(q) + n * 3 + 2); // n * strlen("..\\")
     z = y;
+    if(!n) {
+        strcpy(z, ".\\");
+        z += 2;
+    }
     while(n--) {
         strcpy(z, "..\\");
         z += 3;
