@@ -3639,26 +3639,38 @@ restart_int:
 
         uint8_t mediadesc = 0xF8; // media descriptor byte; also used to differ fd and hd
         uint16_t root_ent = 512; // FAT root directory entries: 512 is for harddisks
+        uint16_t disksize = 0;
+        bool is_fd = false;
         if(disktype=="fd_160") {
             c = 40; h = 1; s = 8; mediadesc = 0xFE; root_ent = 56; // root_ent?
+            disksize = 160; is_fd = true;
         } else if(disktype=="fd_180") {
             c = 40; h = 1; s = 9; mediadesc = 0xFC; root_ent = 56; // root_ent?
+            disksize = 180; is_fd = true;
         } else if(disktype=="fd_200") {
             c = 40; h = 1; s = 10; mediadesc = 0xFC; root_ent = 56; // root_ent?
+            disksize = 200; is_fd = true;
         } else if(disktype=="fd_320") {
             c = 40; h = 2; s = 8; mediadesc = 0xFF; root_ent = 112; // root_ent?
+            disksize = 320; is_fd = true;
         } else if(disktype=="fd_360") {
             c = 40; h = 2; s = 9; mediadesc = 0xFD; root_ent = 112;
+            disksize = 360; is_fd = true;
         } else if(disktype=="fd_400") {
             c = 40; h = 2; s = 10; mediadesc = 0xFD; root_ent = 112; // root_ent?
+            disksize = 400; is_fd = true;
         } else if(disktype=="fd_720") {
             c = 80; h = 2; s = 9; mediadesc = 0xF9; root_ent = 112;
+            disksize = 720; is_fd = true;
         } else if(disktype=="fd_1200") {
             c = 80; h = 2; s = 15; mediadesc = 0xF9; root_ent = 224;
+            disksize = 1200; is_fd = true;
         } else if(disktype=="fd_1440"||disktype=="fd"||disktype=="floppy") {
             c = 80; h = 2; s = 18; mediadesc = 0xF0; root_ent = 224;
+            disksize = 1440; is_fd = true;
         } else if(disktype=="fd_2880") {
             c = 80; h = 2; s = 36; mediadesc = 0xF0; root_ent = 512; // root_ent?
+            disksize = 2880; is_fd = true;
         } else if(disktype=="hd_250") {
             c = 489; h = 16; s = 63;
         } else if(disktype=="hd_520") {
@@ -4090,15 +4102,15 @@ restart_int:
             // reserved sectors
             host_writew(&sbuf[0x0e],reserved_sectors);
             // Number of FATs
-            sbuf[0x10] = fat_copies;
+            sbuf[NumFATs] = fat_copies;
             // Root entries if not FAT32
-            if (FAT < 32) host_writew(&sbuf[0x11],root_ent);
+            if (FAT < 32) host_writew(&sbuf[RootEntCnt],root_ent);
             // sectors (under 32MB) if not FAT32 and less than 65536
-            if (FAT < 32 && vol_sectors < 65536ul) host_writew(&sbuf[0x13],vol_sectors);
+            if (FAT < 32 && vol_sectors < 65536ul) host_writew(&sbuf[TotSec16],vol_sectors);
             // sectors (32MB or larger or FAT32)
             if (FAT >= 32 || vol_sectors >= 65536ul) host_writed(&sbuf[0x20],vol_sectors);
             // media descriptor
-            sbuf[0x15]=mediadesc;
+            sbuf[Media]=mediadesc;
             // sectors per FAT
             // needed entries: (sectors per cluster)
             Bitu sect_per_fat=0;
@@ -4145,60 +4157,90 @@ restart_int:
             }
 
             // sectors per track
-            host_writew(&sbuf[0x18],s);
+            host_writew(&sbuf[SecPerTrk],s);
             // heads
-            host_writew(&sbuf[0x1a],h);
+            host_writew(&sbuf[NumHeads],h);
             // hidden sectors
-            host_writed(&sbuf[0x1c],(uint32_t)bootsect_pos);
+            host_writed(&sbuf[HiddSec],(uint32_t)bootsect_pos);
             /* after 0x24, FAT12/FAT16 and FAT32 diverge in structure */
             if (FAT >= 32) {
-                host_writed(&sbuf[0x24],(uint32_t)sect_per_fat);
+                host_writed(&sbuf[FATSz32],(uint32_t)sect_per_fat);
                 sbuf[0x28] = 0x00; // FAT is mirrored at runtime because that is what DOSBox-X's FAT driver does
                 host_writew(&sbuf[0x2A],0x0000); // FAT32 version 0.0
                 host_writed(&sbuf[0x2C],2); // root directory starting cluster
                 host_writew(&sbuf[0x30],1); // sector number in reserved area of FSINFO structure
                 host_writew(&sbuf[0x32],6); // sector number in reserved area of backup boot sector
                 // BIOS drive
-                if(mediadesc == 0xF8) sbuf[0x40]=0x80;
-                else sbuf[0x40]=0x00;
+                sbuf[DrvNum32] = (mediadesc == 0xF8) ? 0x80 : 0x00;
                 // ext. boot signature
-                sbuf[0x42]=0x29;
+                sbuf[BootSig32] = 0x29;
+                // Volume label
+                sprintf((char*)&sbuf[VolLab32], "NO NAME    ");
                 // volume serial number
                 // let's use the BIOS time (cheap, huh?)
-                host_writed(&sbuf[0x43],mem_readd(BIOS_TIMER));
-                // Volume label
-                sprintf((char*)&sbuf[0x47],"NO NAME    ");
+                host_writed(&sbuf[VolID32], mem_readd(BIOS_TIMER));
                 // file system type
-                sprintf((char*)&sbuf[0x52],"FAT32   ");
+                sprintf((char*)&sbuf[FilSysType32],"FAT32   ");
             }
             else { /* FAT12/FAT16 */
-                // BIOS drive
-                if(mediadesc == 0xF8) sbuf[0x24]=0x80;
-                else sbuf[0x24]=0x00;
                 // ext. boot signature
-                sbuf[0x26]=0x29;
+                sbuf[BootSig] = 0x29;
+                // Volume label
+                sprintf((char*)&sbuf[VolLab], "NO NAME    ");
                 // volume serial number
                 // let's use the BIOS time (cheap, huh?)
-                host_writed(&sbuf[0x27],mem_readd(BIOS_TIMER));
-                // Volume label
-                sprintf((char*)&sbuf[0x2b],"NO NAME    ");
+                host_writed(&sbuf[VolID], mem_readd(BIOS_TIMER));
+                if(is_fd) {
+                    uint8_t index = 0;
+                    while(DiskGeometryList[index].cylcount != 0) {
+                        if(DiskGeometryList[index].ksize == disksize) {
+                            sbuf[Media] = DiskGeometryList[index].mediaid;
+                            host_writew(&sbuf[SecPerTrk],DiskGeometryList[index].secttrack);
+                            host_writew(&sbuf[NumHeads], DiskGeometryList[index].headscyl);
+                            host_writew(&sbuf[BytsPerSec], DiskGeometryList[index].bytespersect);
+                            sbuf[SecPerClus] = DiskGeometryList[index].sectcluster;
+                            host_writew(&sbuf[RootEntCnt], DiskGeometryList[index].rootentries);
+                            /* FIX_ME: FATSz16 for other floppy disk sizes? */
+                            if(disksize == 320) {
+                                host_writew(&sbuf[FATSz16],1);
+                                sect_per_fat = 1;
+                            }
+                            else if(disksize == 360) {
+                                host_writew(&sbuf[FATSz16],2);
+                                sect_per_fat = 2;
+                            }
+                            else if(disksize == 720) {
+                                host_writew(&sbuf[FATSz16],3);
+                                sect_per_fat = 3;
+                            }
+                            else if(disksize == 1200) {
+                                host_writew(&sbuf[FATSz16],7);
+                                sect_per_fat = 7;
+                            }
+                            break;
+                        }
+                        index++;
+                    }
+                }
+                // BIOS drive
+                sbuf[DrvNum] = (mediadesc == 0xF8) ? 0x80 : 0x00;
                 // file system type
-                if (FAT >= 16)  sprintf((char*)&sbuf[0x36],"FAT16   ");
-                else            sprintf((char*)&sbuf[0x36],"FAT12   ");
+                if (FAT >= 16)  sprintf((char*)&sbuf[FilSysType],"FAT16   ");
+                else            sprintf((char*)&sbuf[FilSysType],"FAT12   ");
             }
             // boot sector signature
-            host_writew(&sbuf[0x1fe],0xAA55);
+            host_writew(&sbuf[BootSign],0xAA55);
 
             // if anything should try to boot this partition, add code to print an error message instead of
             // letting the CPU run wild through not executable code.
             if (FAT >= 32) {
                 // the code expects to load a string from a fixed address.
                 // we're relocating it to make room for FAT32 structures so some patching is required.
-                memcpy(sbuf+0x5A,this_is_not_a_bootable_partition+0x3E,0x1FE - 0x5A);
+                memcpy(sbuf+BootCode32,this_is_not_a_bootable_partition+0x3E,BootSign - BootCode32);
                 host_writew(sbuf+0x5D,0x7C77); // 0x7C5D: MOV SI,<stringaddr> we are patching the <stringaddr>
             }
             else {
-                memcpy(sbuf+0x3E,this_is_not_a_bootable_partition+0x3E,0x1FE - 0x3E);
+                memcpy(sbuf+BootCode,this_is_not_a_bootable_partition+0x3E,BootSign - BootCode);
             }
 
             // write the boot sector
