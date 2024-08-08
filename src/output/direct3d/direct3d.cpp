@@ -1083,6 +1083,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
 #endif
 
     psEffect->setinputDim((float)dwWidth, (float)dwHeight);
+    psEffect->setoutputDim((float)dwScaledWidth, (float)dwScaledHeight);
     if(FAILED(psEffect->LoadEffect(shader_translate_directory(pshader).c_str())) || FAILED(psEffect->Validate())) {
 	LOG_MSG("D3D:Pixel shader error:");
 
