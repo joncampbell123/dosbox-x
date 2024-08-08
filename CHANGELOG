@@ -1,4 +1,8 @@
 NEXT
+  - Move the INT 3 default vector to well within the initial 16
+    bytes of the DOS kernel, away from the List of Lists and SFT.
+    The previous placement caused certain versions of Windows 3.2
+    (yes, the Chinese version) to crash on startup. (joncampbell123).
   - When using the running program to name screenshots and such,
     filter out all invalid characters so that Windows users can
     take snapshots even if junk characters are there (joncampbell123).

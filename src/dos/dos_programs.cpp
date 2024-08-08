@@ -8311,15 +8311,8 @@ void VHDMAKE::Run()
         safe_strcpy(basename, temp_line.c_str());
         cmd->FindCommand(2, temp_line);
         safe_strcpy(filename, temp_line.c_str());
-#ifdef WIN32
-        if(basename[1] == ':')
-            WriteOut(MSG_Get("PROGRAM_VHDMAKE_ABSPATH_WIN"));
-#else
-        if(basename[0] == '/') {
-            WriteOut(MSG_Get("PROGRAM_VHDMAKE_ABSPATH_UX"));
-            return;
-        }
-#endif
+        if(basename[1] == ':' || basename[0] == '/')
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_ABSPATH"));
         if(! bOverwrite && _access(filename, 0) == 0) {
             WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
             return;
@@ -9879,8 +9872,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_VHDMAKE_MERGEOKDELETE", "Snapshot VHD merged and deleted.\n");
     MSG_Add("PROGRAM_VHDMAKE_MERGEFAILED", "Failure while merging, aborted!\n");
     MSG_Add("PROGRAM_VHDMAKE_MERGEWARNCORRUPTION", " Parent \"%s\" contents could be corrupted!\n");
-    MSG_Add("PROGRAM_VHDMAKE_ABSPATH_WIN", "Warning: an absolute path to parent limits portability to Windows.\nPlease prefer a path relative to differencing image file!\n");
-    MSG_Add("PROGRAM_VHDMAKE_ABSPATH_UX", "ERROR: an absolute path to parent inhibits portability.\nUse a path relative to differencing image file!\n");
+    MSG_Add("PROGRAM_VHDMAKE_ABSPATH", "Warning: an absolute path to parent prevents portability.\nPlease prefer a path relative to the differencing image file!\n");
     MSG_Add("PROGRAM_VHDMAKE_HELP",
         "Creates Dynamic or Differencing VHD images, converts raw images into Fixed VHD,\n"
         "shows information about VHD images and merges them.\n"
