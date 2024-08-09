@@ -58,7 +58,7 @@ char* calc_relative_path(const char* base, const char* child) {
     char abs_base[MAX_PATH];
     char abs_child[MAX_PATH];
 #endif
-    char* p = abs_base, * q = abs_child, * x, * y, * z;
+    char * p = abs_base, * q = abs_child, * r = abs_base, * x, * y, * z;
     uint32_t n = 0;
 
     if(!base || !child) return 0;
@@ -73,21 +73,25 @@ char* calc_relative_path(const char* base, const char* child) {
 #endif
     if(!*abs_base || !*abs_child) return 0;
 
-    // strips common subpath, if any
-    while(*p++ == *q++);
-    p--, q--;
+    // strips common subpath, if any, and records last base slash
+    while (*p == *q) {
+        if (*p == '/' || *p == '\\') r = p;
+        p++; q++;
+    }
+    // ensures p always points to last path component
+    if (p - r > 1) p = r + 1;
     // returns base if they don't share anything
-    if(!strcmp(p, abs_base)) return strdup(base);
+    if (!strcmp(p, abs_base)) return strdup(base);
     x = q;
-    // count slashes
+    // counts slashes
     while(*x) {
         if(*x == '/' || *x == '\\') n++;
         x++;
     }
-    // allocates space for the resulting string
+    // allocates space for the resulting string and premits any needed ".\" or "..\"
     y = (char*)malloc(strlen(q) + n * 3 + 2); // n * strlen("..\\")
     z = y;
-    if(!n) {
+    if (!n) {
         strcpy(z, ".\\");
         z += 2;
     }
@@ -95,6 +99,7 @@ char* calc_relative_path(const char* base, const char* child) {
         strcpy(z, "..\\");
         z += 3;
     }
+    // finally adds base relative pathname
     strcpy(z, p);
     LOG_MSG("%s is base %s relative to child %s", y, base, child);
     return y;
