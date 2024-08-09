@@ -1099,7 +1099,7 @@ bool saveDiskImage(imageDisk *image, const char *name) {
 
 diskGeo DiskGeometryList[] = {
     { 160,  8, 1, 40, 0, 512,  64, 1, 0xFE},      // IBM PC double density 5.25" single-sided 160KB
-    { 180,  9, 1, 40, 0, 512,  64, 2, 0xFC},      // IBM PC double density 5.25" single-sided 180KB
+    { 180,  9, 1, 40, 0, 512,  64, 1, 0xFC},      // IBM PC double density 5.25" single-sided 180KB
     { 200, 10, 1, 40, 0, 512,  64, 2, 0xFC},      // DEC Rainbow double density 5.25" single-sided 200KB (I think...)
     { 320,  8, 2, 40, 1, 512, 112, 2, 0xFF},      // IBM PC double density 5.25" double-sided 320KB
     { 360,  9, 2, 40, 1, 512, 112, 2, 0xFD},      // IBM PC double density 5.25" double-sided 360KB
