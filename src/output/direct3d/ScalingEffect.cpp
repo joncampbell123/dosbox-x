@@ -29,7 +29,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 ScalingEffect::ScalingEffect(LPDIRECT3DDEVICE9 pd3dDevice) :
     m_scale(0.0f), m_forceupdate(false), m_pd3dDevice(pd3dDevice), m_pEffect(0)
 {
-    m_iDim[0] = m_iDim[1] = 256.0f;	// Some sane default
+    m_iDim[0] = m_iDim[1] = m_oDim[0] = m_oDim[1] = 256.0f;	// Some sane default
     m_strName = "Unnamed";
     KillThis();
 }
@@ -195,6 +195,12 @@ HRESULT ScalingEffect::ParseParameters(LPD3DXEFFECTCOMPILER lpEffectCompiler)
 			return hr;
 		    }
 		}
+        else if(strcmpi(ParamDesc.Semantic, "outputdims") == 0) {
+            if(m_oDim[0] && m_oDim[1] && ((hr = m_pEffect->SetFloatArray(hParam, m_oDim, 2)) != D3D_OK)) {
+            m_strErrors += "Could not set outputdims parameter!";
+            return hr;
+            }
+        }
 	    }
 
 	    else if(ParamDesc.Class == D3DXPC_SCALAR && ParamDesc.Type == D3DXPT_FLOAT) {

@@ -28,6 +28,7 @@ class ScalingEffect
 {
     float				m_scale;
     float				m_iDim[2];
+    float               m_oDim[2];
     BOOL				m_forceupdate;
     LPCSTR				m_strName;
     std::string				m_strErrors;
@@ -73,6 +74,7 @@ public:
     float getScale() { return m_scale; }
     bool getForceUpdate() { return m_forceupdate != FALSE; }
     void setinputDim(float w, float h) { m_iDim[0] = w; m_iDim[1] = h; }
+    void setoutputDim(float w, float h) { m_oDim[0] = w; m_oDim[1] = h; }
 
     // Does it have a preprocess step
     BOOL hasPreprocess() { return m_PreprocessTechnique1EffectHandle!=0; }
