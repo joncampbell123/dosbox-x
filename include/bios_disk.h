@@ -42,6 +42,34 @@ extern diskGeo DiskGeometryList[];
 
 extern const uint8_t freedos_mbr[];
 
+#define BytsPerSec 0x0b /* 2-bytes */
+#define SecPerClus 0x0d /* 1-byte  */
+#define RsvdSecCnt 0x0e /* 2-bytes */
+#define NumFATs    0x10 /* 1-byte  */
+#define RootEntCnt 0x11 /* 2-bytes */
+#define TotSec16   0x13 /* 2-bytes */
+#define Media      0x15 /* 1-byte  */
+#define FATSz16    0x16 /* 2-bytes */
+#define SecPerTrk  0x18 /* 2-bytes */
+#define NumHeads   0x1a /* 2-bytes */
+#define HiddSec    0x1c /* 4-bytes */
+#define TotSec32   0x20 /* 4-bytes */
+#define DrvNum     0x24 /* 1-byte  */
+#define BootSig    0x26 /* 1-byte  */
+#define VolID      0x27 /* 4-bytes */
+#define VolLab     0x2b /* 11-bytes*/
+#define FilSysType 0x36 /* 8-bytes */
+#define BootCode   0x3e 
+#define BootSign   0x1fe /*2-bytes */
+
+#define FATSz32    0x24 /* 4-bytes */
+#define DrvNum32   0x40 /* 1-byte  */
+#define BootSig32  0x42 /* 1-bytes */
+#define VolID32    0x43 /* 4-bytes */
+#define VolLab32   0x47 /* 11-bytes*/
+#define FilSysType32  0x52 /* 8-bytes */
+#define BootCode32 0x5A
+
 class imageDisk {
 	public:
 		enum IMAGE_TYPE {
