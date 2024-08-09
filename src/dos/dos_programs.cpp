@@ -3642,22 +3642,22 @@ restart_int:
         uint16_t disksize = 0;
         bool is_fd = false;
         if(disktype=="fd_160") {
-            c = 40; h = 1; s = 8; mediadesc = 0xFE; root_ent = 56; // root_ent?
+            c = 40; h = 1; s = 8; mediadesc = 0xFE; root_ent = 64;
             disksize = 160; is_fd = true;
         } else if(disktype=="fd_180") {
-            c = 40; h = 1; s = 9; mediadesc = 0xFC; root_ent = 56; // root_ent?
+            c = 40; h = 1; s = 9; mediadesc = 0xFC; root_ent = 64;
             disksize = 180; is_fd = true;
         } else if(disktype=="fd_200") {
-            c = 40; h = 1; s = 10; mediadesc = 0xFC; root_ent = 56; // root_ent?
+            c = 40; h = 1; s = 10; mediadesc = 0xFC; root_ent = 64; // root_ent?
             disksize = 200; is_fd = true;
         } else if(disktype=="fd_320") {
-            c = 40; h = 2; s = 8; mediadesc = 0xFF; root_ent = 112; // root_ent?
+            c = 40; h = 2; s = 8; mediadesc = 0xFF; root_ent = 112;
             disksize = 320; is_fd = true;
         } else if(disktype=="fd_360") {
             c = 40; h = 2; s = 9; mediadesc = 0xFD; root_ent = 112;
             disksize = 360; is_fd = true;
         } else if(disktype=="fd_400") {
-            c = 40; h = 2; s = 10; mediadesc = 0xFD; root_ent = 112; // root_ent?
+            c = 40; h = 2; s = 10; mediadesc = 0xFD; root_ent = 112;
             disksize = 400; is_fd = true;
         } else if(disktype=="fd_720") {
             c = 80; h = 2; s = 9; mediadesc = 0xF9; root_ent = 112;
@@ -3669,7 +3669,7 @@ restart_int:
             c = 80; h = 2; s = 18; mediadesc = 0xF0; root_ent = 224;
             disksize = 1440; is_fd = true;
         } else if(disktype=="fd_2880") {
-            c = 80; h = 2; s = 36; mediadesc = 0xF0; root_ent = 512; // root_ent?
+            c = 80; h = 2; s = 36; mediadesc = 0xF0; root_ent = 240;
             disksize = 2880; is_fd = true;
         } else if(disktype=="hd_250") {
             c = 489; h = 16; s = 63;
@@ -4051,7 +4051,7 @@ restart_int:
                 sprintf((char*)&sbuf[0x03],"MSDOS5.0");
             }
             // bytes per sector: always 512
-            host_writew(&sbuf[0x0b],512);
+            host_writew(&sbuf[BytsPerSec],512);
             // sectors per cluster: 1,2,4,8,16,...
             // NOTES: SCANDISK.EXE will hang if you ask it to check a FAT12 filesystem with 128 sectors/cluster.
             if (sectors_per_cluster == 0) {
@@ -4097,7 +4097,7 @@ restart_int:
                 }
             }
             while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
-            sbuf[0x0d]=(uint8_t)sectors_per_cluster;
+            sbuf[SecPerClus]=(uint8_t)sectors_per_cluster;
             // TODO small floppies have 2 sectors per cluster?
             // reserved sectors
             host_writew(&sbuf[0x0e],reserved_sectors);
@@ -4183,7 +4183,7 @@ restart_int:
                 sprintf((char*)&sbuf[FilSysType32],"FAT32   ");
             }
             else { /* FAT12/FAT16 */
-                // ext. boot signature
+                // BIOS drive
                 sbuf[BootSig] = 0x29;
                 // Volume label
                 sprintf((char*)&sbuf[VolLab], "NO NAME    ");
@@ -4195,17 +4195,18 @@ restart_int:
                     while(DiskGeometryList[index].cylcount != 0) {
                         if(DiskGeometryList[index].ksize == disksize) {
                             sbuf[Media] = DiskGeometryList[index].mediaid;
+                            mediadesc = DiskGeometryList[index].mediaid;
                             host_writew(&sbuf[SecPerTrk],DiskGeometryList[index].secttrack);
                             host_writew(&sbuf[NumHeads], DiskGeometryList[index].headscyl);
                             host_writew(&sbuf[BytsPerSec], DiskGeometryList[index].bytespersect);
                             sbuf[SecPerClus] = DiskGeometryList[index].sectcluster;
                             host_writew(&sbuf[RootEntCnt], DiskGeometryList[index].rootentries);
-                            /* FIX_ME: FATSz16 for other floppy disk sizes? */
-                            if(disksize == 320) {
+                            /* FATSz16 to match FreeDOS FORMAT command https://github.com/FDOS/format/blob/master/floppy.h */
+                            if(disksize == 160 || disksize == 320) {
                                 host_writew(&sbuf[FATSz16],1);
                                 sect_per_fat = 1;
                             }
-                            else if(disksize == 360) {
+                            else if(disksize == 180 || disksize == 200 || disksize == 360 || disksize == 400) {
                                 host_writew(&sbuf[FATSz16],2);
                                 sect_per_fat = 2;
                             }
@@ -4216,6 +4217,9 @@ restart_int:
                             else if(disksize == 1200) {
                                 host_writew(&sbuf[FATSz16],7);
                                 sect_per_fat = 7;
+                            } else { // Explicitly set to 9 for disksize == 1400 || disksize == 2880
+                                host_writew(&sbuf[FATSz16],9);
+                                sect_per_fat = 9;
                             }
                             break;
                         }
