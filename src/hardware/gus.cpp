@@ -790,90 +790,119 @@ static void CheckVoiceIrq(void) {
 }
 
 static uint16_t ExecuteReadRegister(void) {
-	uint8_t tmpreg;
-//	LOG_MSG("Read global reg %x",myGUS.gRegSelect);
-	switch (myGUS.gRegSelect) {
-	case 0x8E:  // read active channel register
-		// NTS: The GUS SDK documents the active channel count as bits 5-0, which is wrong. it's bits 4-0. bits 7-5 are always 1 on real hardware.
-		return ((uint16_t)(0xE0 | (myGUS.ActiveChannelsUser - 1))) << 8;
-	case 0x41: // Dma control register - read acknowledges DMA IRQ
-        if (dma_enable_on_dma_control_polling) {
-            if (!GetDMAChannel(myGUS.dma1)->masked && !(myGUS.DMAControl & 0x01) && !(myGUS.IRQStatus & 0x80)) {
-                LOG(LOG_MISC,LOG_DEBUG)("GUS: As instructed, switching on DMA ENABLE upon polling DMA control register (HACK) as workaround");
-                myGUS.DMAControl |= 0x01;
-                GUS_StartDMA();
-            }
-        }
+	uint8_t tmpreg,effective = myGUS.gRegSelect;
 
-		tmpreg = myGUS.DMAControl & 0xbf;
-		tmpreg |= (myGUS.DMAControl & 0x100) >> 2; /* Bit 6 on read is the DMA terminal count IRQ status */
-		myGUS.DMAControl&=0xff; /* clear TC IRQ status */
-		myGUS.IRQStatus&=0x7f;
-		GUS_CheckIRQ();
-		return (uint16_t)(tmpreg << 8);
-	case 0x42:  // Dma address register
-		return myGUS.dmaAddr;
-	case 0x45:  // Timer control register.  Identical in operation to Adlib's timer
-		return (uint16_t)(myGUS.TimerControl << 8);
-		break;
-	case 0x49:  // Dma sample register
-		tmpreg = myGUS.DMAControl & 0xbf;
-		tmpreg |= (myGUS.DMAControl & 0x100) >> 2; /* Bit 6 on read is the DMA terminal count IRQ status */
-		return (uint16_t)(tmpreg << 8);
-	case 0x4c:  // GUS reset register
-		tmpreg = (GUS_reset_reg & ~0x4) | (myGUS.irqenabled ? 0x4 : 0x0);
-		/* GUS Classic observed behavior: You can read Register 4Ch from both 3X4 and 3X5 and get the same 8-bit contents */
-		return ((uint16_t)(tmpreg << 8) | (uint16_t)tmpreg);
-	case 0x80: // Channel voice control read register
-		if (curchan) return curchan->ReadWaveCtrl() << 8;
-		else return 0x0300;
-	case 0x81:  // Channel frequency control register
-		if(curchan) return (uint16_t)(curchan->WaveFreq);
-		else return 0x0000;
-	case 0x82: // Channel MSB start address register
-		if (curchan) return (uint16_t)(curchan->WaveStart >> 16);
-		else return 0x0000;
-	case 0x83: // Channel LSW start address register
-		if (curchan) return (uint16_t)(curchan->WaveStart);
-		else return 0x0000;
-	case 0x84: // Channel MSB end address register
-		if (curchan) return (uint16_t)(curchan->WaveEnd >> 16);
-		else return 0x0000;
-	case 0x85: // Channel LSW end address register
-		if (curchan) return (uint16_t)(curchan->WaveEnd);
-		else return 0x0000;
+	/* 1997 demo "Out of Control" by Contract GUS support behavior
+	 * suggests that ALL GUS registers here, not just the voice
+	 * registers, have both the register at N and an alias at (N|0x80).
+	 *
+	 * Specificially, this demo initiates GUS reset through register 4Ch
+	 * such that the low 3 bits are set (0x7) and then reads those bits
+	 * back to comfirm the value is 0x7, but it does it by setting the
+	 * register index to CCh (4Ch+80h) instead of 4Ch. GUS detection
+	 * in the demo fails if the readback is not 0x7.
+	 *
+	 * According to official GUS documentation, only the voice registers
+	 * 0x0-0xF should have these 0x80-0x8F readback aliases, which is
+	 * why those registers are often listed as i.e. 0x00 / 0x80,
+	 * 0x01 / 0x81, etc.
+	 *
+	 * TODO: Verify this behavior on real GUS MAX hardware. Does 4Ch
+	 *       have a CCh readback alias? Does any other register have an
+	 *       N|0x80 alias?
+	 *
+	 * TODO: Does the Interwave emulate this behavior or does it enforce
+	 *       registers as documented, and therefore "Out of Control"
+	 *       would not work on the Interwave?
+	 *
+	 * TODO: Make this a dosbox.conf setting, visible only under the
+	 *       "show all settings" mode only of course */
+	if (effective > 0x8F) effective &= 0x7F;
 
-	case 0x89: // Channel volume register
-		if (curchan) return (uint16_t)((curchan->RampVol >> RAMP_FRACT) << 4);
-		else return 0x0000;
-	case 0x8a: // Channel MSB current address register
-		if (curchan) return (uint16_t)(curchan->WaveAddr >> 16);
-		else return 0x0000;
-	case 0x8b: // Channel LSW current address register
-		if (curchan) return (uint16_t)(curchan->WaveAddr);
-		else return 0x0000;
-	case 0x8c: // Channel pan pot register
-        if (curchan) return (uint16_t)(curchan->PanPot << 8);
-        else return 0x0800;
-	case 0x8d: // Channel volume control register
-		if (curchan) return curchan->ReadRampCtrl() << 8;
-		else return 0x0300;
-	case 0x8f: // General channel IRQ status register
-		tmpreg=myGUS.IRQChan|0x20;
-		uint32_t mask;
-		mask=1u << myGUS.IRQChan;
-		if (!(myGUS.RampIRQ & mask)) tmpreg|=0x40;
-		if (!(myGUS.WaveIRQ & mask)) tmpreg|=0x80;
-		myGUS.RampIRQ&=~mask;
-		myGUS.WaveIRQ&=~mask;
-		myGUS.IRQStatus&=0x9f;
-		CheckVoiceIrq();
-		return (uint16_t)(tmpreg << 8);
-	default:
+//	LOG_MSG("Read global reg %x",myGUS.gRegSelect,effective);
+
+	switch (effective) {
+		case 0x8E:  // read active channel register
+			// NTS: The GUS SDK documents the active channel count as bits 5-0, which is wrong. it's bits 4-0. bits 7-5 are always 1 on real hardware.
+			return ((uint16_t)(0xE0 | (myGUS.ActiveChannelsUser - 1))) << 8;
+		case 0x41: // Dma control register - read acknowledges DMA IRQ
+			if (dma_enable_on_dma_control_polling) {
+				if (!GetDMAChannel(myGUS.dma1)->masked && !(myGUS.DMAControl & 0x01) && !(myGUS.IRQStatus & 0x80)) {
+					LOG(LOG_MISC,LOG_DEBUG)("GUS: As instructed, switching on DMA ENABLE upon polling DMA control register (HACK) as workaround");
+					myGUS.DMAControl |= 0x01;
+					GUS_StartDMA();
+				}
+			}
+
+			tmpreg = myGUS.DMAControl & 0xbf;
+			tmpreg |= (myGUS.DMAControl & 0x100) >> 2; /* Bit 6 on read is the DMA terminal count IRQ status */
+			myGUS.DMAControl&=0xff; /* clear TC IRQ status */
+			myGUS.IRQStatus&=0x7f;
+			GUS_CheckIRQ();
+			return (uint16_t)(tmpreg << 8);
+		case 0x42:  // Dma address register
+			return myGUS.dmaAddr;
+		case 0x45:  // Timer control register.  Identical in operation to Adlib's timer
+			return (uint16_t)(myGUS.TimerControl << 8);
+			break;
+		case 0x49:  // Dma sample register
+			tmpreg = myGUS.DMAControl & 0xbf;
+			tmpreg |= (myGUS.DMAControl & 0x100) >> 2; /* Bit 6 on read is the DMA terminal count IRQ status */
+			return (uint16_t)(tmpreg << 8);
+		case 0x4c:  // GUS reset register
+			tmpreg = (GUS_reset_reg & ~0x4) | (myGUS.irqenabled ? 0x4 : 0x0);
+			/* GUS Classic observed behavior: You can read Register 4Ch from both 3X4 and 3X5 and get the same 8-bit contents */
+			return ((uint16_t)(tmpreg << 8) | (uint16_t)tmpreg);
+		case 0x80: // Channel voice control read register
+			if (curchan) return curchan->ReadWaveCtrl() << 8;
+			else return 0x0300;
+		case 0x81:  // Channel frequency control register
+			if(curchan) return (uint16_t)(curchan->WaveFreq);
+			else return 0x0000;
+		case 0x82: // Channel MSB start address register
+			if (curchan) return (uint16_t)(curchan->WaveStart >> 16);
+			else return 0x0000;
+		case 0x83: // Channel LSW start address register
+			if (curchan) return (uint16_t)(curchan->WaveStart);
+			else return 0x0000;
+		case 0x84: // Channel MSB end address register
+			if (curchan) return (uint16_t)(curchan->WaveEnd >> 16);
+			else return 0x0000;
+		case 0x85: // Channel LSW end address register
+			if (curchan) return (uint16_t)(curchan->WaveEnd);
+			else return 0x0000;
+
+		case 0x89: // Channel volume register
+			if (curchan) return (uint16_t)((curchan->RampVol >> RAMP_FRACT) << 4);
+			else return 0x0000;
+		case 0x8a: // Channel MSB current address register
+			if (curchan) return (uint16_t)(curchan->WaveAddr >> 16);
+			else return 0x0000;
+		case 0x8b: // Channel LSW current address register
+			if (curchan) return (uint16_t)(curchan->WaveAddr);
+			else return 0x0000;
+		case 0x8c: // Channel pan pot register
+			if (curchan) return (uint16_t)(curchan->PanPot << 8);
+			else return 0x0800;
+		case 0x8d: // Channel volume control register
+			if (curchan) return curchan->ReadRampCtrl() << 8;
+			else return 0x0300;
+		case 0x8f: // General channel IRQ status register
+			tmpreg=myGUS.IRQChan|0x20;
+			uint32_t mask;
+			mask=1u << myGUS.IRQChan;
+			if (!(myGUS.RampIRQ & mask)) tmpreg|=0x40;
+			if (!(myGUS.WaveIRQ & mask)) tmpreg|=0x80;
+			myGUS.RampIRQ&=~mask;
+			myGUS.WaveIRQ&=~mask;
+			myGUS.IRQStatus&=0x9f;
+			CheckVoiceIrq();
+			return (uint16_t)(tmpreg << 8);
+		default:
 #if LOG_GUS
-		LOG_MSG("Read Register num 0x%x", myGUS.gRegSelect);
+			LOG_MSG("Read Register num 0x%x", myGUS.gRegSelect);
 #endif
-		return myGUS.gRegData;
+			return myGUS.gRegData;
 	}
 }
 
@@ -974,18 +1003,18 @@ static void ExecuteGlobRegister(void) {
 		if(curchan) curchan->WriteRampCtrl((uint16_t)myGUS.gRegData>>8);
 		break;
 	case 0xE:  // Set active channel register
-        /* Hack for "Ice Fever" demoscene production:
-         * If the DAC is active (bit 1 of GUS reset is set), ignore writes to this register.
-         * The demo resets the GUS with 14 channels, then after reset changes it to 16 for some reason.
-         * Without this hack, music will sound slowed down and wrong.
-         * As far as I know, real hardware will accept the change immediately and produce the same
-         * slowed down sound music. --J.C. */
-        if (ignore_active_channel_write_while_active) {
-            if (GUS_reset_reg & 0x02/*DAC enable*/) {
-                LOG_MSG("GUS: Attempt to change active channel count while DAC active rejected");
-                break;
-            }
-        }
+		/* Hack for "Ice Fever" demoscene production:
+		 * If the DAC is active (bit 1 of GUS reset is set), ignore writes to this register.
+		 * The demo resets the GUS with 14 channels, then after reset changes it to 16 for some reason.
+		 * Without this hack, music will sound slowed down and wrong.
+		 * As far as I know, real hardware will accept the change immediately and produce the same
+		 * slowed down sound music. --J.C. */
+		if (ignore_active_channel_write_while_active) {
+			if (GUS_reset_reg & 0x02/*DAC enable*/) {
+				LOG_MSG("GUS: Attempt to change active channel count while DAC active rejected");
+				break;
+			}
+		}
 
 		gus_chan->FillUp();
 		myGUS.gRegSelect = myGUS.gRegData>>8;		//JAZZ Jackrabbit seems to assume this?
@@ -1023,7 +1052,7 @@ static void ExecuteGlobRegister(void) {
 		}
 
 		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
-        myGUS.basefreq = (uint32_t)(0.5 + 1000000.0 / (1.619695497 * (double)(myGUS.ActiveChannels)));
+		myGUS.basefreq = (uint32_t)(0.5 + 1000000.0 / (1.619695497 * (double)(myGUS.ActiveChannels)));
 
 		if (!myGUS.fixed_sample_rate_output)	gus_chan->SetFreq(myGUS.basefreq);
 		else					gus_chan->SetFreq(GUS_RATE);
