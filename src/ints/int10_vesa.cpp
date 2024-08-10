@@ -32,6 +32,7 @@
 #include "bitop.h"
 
 int hack_lfb_yadjust = 0;
+int hack_lfb_xadjust = 0;
 
 int vesa_set_display_vsync_wait = -1;
 bool vesa_bank_switch_window_range_check = true;
@@ -252,6 +253,7 @@ uint8_t VESA_GetSVGAModeInformation(uint16_t mode,uint16_t seg,uint16_t off) {
 	PhysPt buf=PhysMake(seg,off);
 	Bitu pageSize;
 	uint8_t modeAttributes;
+	unsigned int adj = 0;
 	Bitu i=0;
 
 	mode&=0x3fff;	// vbe2 compatible, ignore lfb and keep screen content bits
@@ -298,6 +300,7 @@ foundit:
 	case M_PACKED4:
 		if (!allow_vesa_4bpp_packed && !(ModeList_VGA[i].mode >= 0x202 && ModeList_VGA[i].mode <= 0x208)) return VESA_FAIL;//TODO: New option to disable
 		pageSize = mblock->sheight * cwidth/2;
+		adj = hack_lfb_xadjust / 2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)((((cwidth+15U)/8U)&(~1U))*4)); /* NTS: 4bpp requires even value due to VGA registers, round up */
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
 			var_write(&minfo.NumberOfPlanes,0x1);
@@ -310,6 +313,7 @@ foundit:
 	case M_LIN4:
 		if (!allow_vesa_4bpp) return VESA_FAIL;
 		pageSize = mblock->sheight * (uint16_t)(((cwidth+15U)/8U)&(~1U));
+		adj = hack_lfb_xadjust / 8;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(((cwidth+15U)/8U)&(~1U))); /* NTS: 4bpp requires even value due to VGA registers, round up */
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
 			var_write(&minfo.NumberOfPlanes,0x4);
@@ -321,6 +325,7 @@ foundit:
 	case M_LIN8:
 		if (!allow_vesa_8bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * cwidth;
+		adj = hack_lfb_xadjust;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)cwidth);
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
 			var_write(&minfo.NumberOfPlanes,0x1);
@@ -333,6 +338,7 @@ foundit:
 	case M_LIN15:
 		if (!allow_vesa_15bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * cwidth*2;
+		adj = hack_lfb_xadjust * 2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(cwidth*2));
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
 			var_write(&minfo.NumberOfPlanes,0x1);
@@ -353,6 +359,7 @@ foundit:
 	case M_LIN16:
 		if (!allow_vesa_16bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * cwidth*2;
+		adj = hack_lfb_xadjust * 2;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(cwidth*2));
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
 			var_write(&minfo.NumberOfPlanes,0x1);
@@ -372,6 +379,7 @@ foundit:
 		if (!allow_vesa_24bpp || !allow_res) return VESA_FAIL;
 		if (mode >= 0x120 && !allow_explicit_vesa_24bpp) return VESA_FAIL;
 		pageSize = mblock->sheight * cwidth*3;
+		adj = hack_lfb_xadjust * 3;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(cwidth*3));
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
 			var_write(&minfo.NumberOfPlanes,0x1);
@@ -390,6 +398,7 @@ foundit:
 	case M_LIN32:
 		if (!allow_vesa_32bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * cwidth*4;
+		adj = hack_lfb_xadjust * 4;
 		var_write(&minfo.BytesPerScanLine,(uint16_t)(cwidth*4));
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
 			var_write(&minfo.NumberOfPlanes,0x1);
@@ -409,6 +418,7 @@ foundit:
 		break;
 	case M_TEXT:
 		if (!allow_vesa_tty) return VESA_FAIL;
+		adj = hack_lfb_xadjust / 8;
 		pageSize = 0;
 		var_write(&minfo.BytesPerScanLine, (uint16_t)(mblock->twidth * 2));
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
@@ -494,7 +504,7 @@ foundit:
 		}
 	}
 
-	if (!int10.vesa_nolfb && !int10.vesa_oldvbe) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
+	if (!int10.vesa_nolfb && !int10.vesa_oldvbe) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + adj + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
 
 	MEM_BlockWrite(buf,&minfo,sizeof(MODE_INFO));
 	return VESA_SUCCESS;

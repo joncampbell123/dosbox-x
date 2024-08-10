@@ -2703,6 +2703,12 @@ void DOSBOX_SetupConfigSections(void) {
             "location reported by the VESA BIOS. Set to nonzero for DOS games with sloppy VESA graphics pointer management.\n"
             "    MFX \"Melvindale\" (1996): Set this option to 2 to center the picture properly.");
 
+    Pint = secprop->Add_int("vesa lfb pel scanline adjust",Property::Changeable::WhenIdle,0);
+    Pint->Set_help("If non-zero, the VESA BIOS will report the linear framebuffer offset by this many pixels.\n"
+            "This does not affect the linear framebuffer's location. It only affects the linear framebuffer\n"
+            "location reported by the VESA BIOS. Set to nonzero for DOS games with sloppy VESA graphics pointer management.\n"
+            "    Contract \"Out of Control\" (1997): Set this option to 128 to fix the display.");
+
     /* If set, all VESA BIOS modes map 128KB of video RAM at A0000-BFFFF even though VESA BIOS emulation
      * reports a 64KB window. Some demos like the 1996 Wired report
      * (ftp.scene.org/pub/parties/1995/wired95/misc/e-w95rep.zip) assume they can write past the window

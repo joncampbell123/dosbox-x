@@ -688,6 +688,7 @@ static inline unsigned int int_log2(unsigned int val) {
 
 extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
+extern int hack_lfb_xadjust;
 extern uint8_t GDC_display_plane_wait_for_vsync;
 
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
@@ -935,6 +936,7 @@ void VGA_Reset(Section*) {
     vga_ignore_extended_memory_bit = section->Get_bool("ignore extended memory bit");
     enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
     vga_double_buffered_line_compare = section->Get_bool("double-buffered line compare");
+    hack_lfb_xadjust = section->Get_int("vesa lfb pel scanline adjust");
     hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
     allow_vesa_lowres_modes = section->Get_bool("allow low resolution vesa modes");
     allow_vesa_4bpp_packed = section->Get_bool("allow 4bpp packed vesa modes");
