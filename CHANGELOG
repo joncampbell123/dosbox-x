@@ -5,7 +5,10 @@ NEXT
     of 1997 demo "Out of Control" by Contract, all GUS registers
     have a N and (N+0x80) alias, or at least register 0x4C, and
     you can read them back from either index. Or else the demo
-    fails to detect the GUS. So add this alias. (joncampbell123).
+    fails to detect the GUS. So add this alias, but only if
+    enabled in dosbox.conf. Real hardware testing is required to
+    know if the actual GUS behaves this way and which versions.
+    (joncampbell123).
   - Move the INT 3 default vector to well within the initial 16
     bytes of the DOS kernel, away from the List of Lists and SFT.
     The previous placement caused certain versions of Windows 3.2

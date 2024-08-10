@@ -143,6 +143,7 @@ struct GFGus {
 	bool force_master_irq_enable;
 	bool fixed_sample_rate_output;
 	bool clearTCIfPollingIRQStatus;
+	bool globalread80alias;
 	double lastIRQStatusPollAt;
 	int lastIRQStatusPollRapidCount;
 	// IRQ status register values
@@ -813,11 +814,8 @@ static uint16_t ExecuteReadRegister(void) {
 	 *
 	 * TODO: Does the Interwave emulate this behavior or does it enforce
 	 *       registers as documented, and therefore "Out of Control"
-	 *       would not work on the Interwave?
-	 *
-	 * TODO: Make this a dosbox.conf setting, visible only under the
-	 *       "show all settings" mode only of course */
-	if (effective > 0x8F) effective &= 0x7F;
+	 *       would not work on the Interwave? */
+	if (myGUS.globalread80alias && effective > 0x8F) effective &= 0x7F;
 
 //	LOG_MSG("Read global reg %x",myGUS.gRegSelect,effective);
 
@@ -2342,6 +2340,17 @@ public:
 		myGUS.force_master_irq_enable=section->Get_bool("force master irq enable");
 		if (myGUS.force_master_irq_enable)
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Master IRQ enable will be forced on as instructed");
+
+		{
+			const char *s = section->Get_string("global register read alias");
+
+			if (!strcmp(s,"true") || !strcmp(s,"1"))
+				myGUS.globalread80alias = true;
+			else if (!strcmp(s,"false") || !strcmp(s,"0"))
+				myGUS.globalread80alias = false;
+			else /* auto */
+				myGUS.globalread80alias = false; /* TODO: Test real hardware, which versions of the GUS behave like this? */
+		}
 
 		myGUS.rate=(unsigned int)section->Get_int("gusrate");
 

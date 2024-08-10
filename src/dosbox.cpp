@@ -3803,6 +3803,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
     Pbool->SetBasic(true);
 
+    Pstring = secprop->Add_string("global register read alias", Property::Changeable::WhenIdle, "auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If true, all GUS global registers have a read alias at N and N+0x80.\n"
+                      "If false, only the voice registers 0x0-0xF have a read alias at 0x80-0x8F as officially documented.\n"
+                      "If auto, automatically choose based on other settings such as GUS type.\n"
+                      "This setting may be needed for DOS demoscene entries that assume aliasing behavior such as Out of Control by Contract.");
+    Pstring->SetBasic(true);
+
     Pbool = secprop->Add_bool("autoamp",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, GF1 output will reduce in volume automatically if the sum of all channels exceeds full volume.\n"
                     "If not set, then loud music will clip to full volume just as it would on real hardware.\n"
