@@ -1,4 +1,9 @@
 NEXT
+  - VESA BIOS: Add new option to adjust reported linear framebuffer
+    address by a specific number of pixels. This is needed by
+    "Out of Control" by Contract which for whatever reason,
+    will always draw to the LFB base minus 128 bytes. This option
+    makes it possible to correct the demo graphics. (joncampbell123).
   - Gravis Ultrasound: Officially, registers 0x0-0xF, the voice
     control registers, are documented to have a 0x0-0xF write and
     0x80-0x8F read alias. Unofficially, according to the behavior
