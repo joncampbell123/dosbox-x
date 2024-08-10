@@ -2733,8 +2733,11 @@ void DOS_Shell::CMD_SET(char * args) {
 			char *pcheck = args;
 
 			while (*pcheck != 0 && (*pcheck == ' ' || *pcheck == '\t')) pcheck++;
-			if (*pcheck != 0 && strlen(pcheck) > 3 && (strncasecmp(pcheck,"/p ",3) == 0))
-				E_Exit("Set /P is not supported. Use Choice!"); /* TODO: What is SET /P supposed to do? */
+
+			if (*pcheck != 0 && strlen(pcheck) > 3 && (strncasecmp(pcheck,"/p ",3) == 0)) {
+				WriteOut("Set /P is not supported. Use Choice!"); /* TODO: What is SET /P supposed to do? */
+				return;
+			}
 		}
 
 		/* Most SET commands take the form NAME=VALUE */
@@ -2747,9 +2750,9 @@ void DOS_Shell::CMD_SET(char * args) {
 			/* ASCIIZ snip the args string in two, so that args is C-string name of the variable,
 			 * and "p" is C-string value of the variable */
 			*p++ = 0;
-            std::string vstr = p;
-            bool zdirpath = static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z expand path");
-            if (zdirpath && !strcasecmp(args, "path")) GetExpandedPath(vstr);
+			std::string vstr = p;
+			bool zdirpath = static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z expand path");
+			if (zdirpath && !strcasecmp(args, "path")) GetExpandedPath(vstr);
 			/* No parsing is needed. The command interpreter does the variable substitution for us */
 			if (!SetEnv(args,vstr.c_str())) {
 				/* NTS: If Win95 is any example, the command interpreter expands the variables for us */
