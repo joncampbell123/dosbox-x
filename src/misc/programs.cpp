@@ -497,6 +497,79 @@ void Program::DebugDumpEnv() {
 	}
 }
 
+bool Program::FirstEnv(const char * entry) {
+	PhysPt env_base,env_fence,env_scan,env_first,env_last;
+	bool found = false;
+
+	if (dos_kernel_disabled) {
+		LOG_MSG("BUG: Program::FirstEnv() called with DOS kernel disabled (such as OS boot).\n");
+		return false;
+	}
+
+	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
+		LOG_MSG("Warning: GetEnvCount() was not able to locate the program's environment block\n");
+		return false;
+	}
+
+	std::string bigentry(entry);
+	for (std::string::iterator it = bigentry.begin(); it != bigentry.end(); ++it) *it = toupper(*it);
+
+	env_scan = env_base;
+	while (env_scan < env_fence) {
+		/* "NAME" + "=" + "VALUE" + "\0" */
+		/* end of the block is a NULL string meaning a \0 follows the last string's \0 */
+		if (mem_readb(env_scan) == 0) break; /* normal end of block */
+
+		if (EnvPhys_StrCmp(env_scan,env_fence,bigentry.c_str()) == 0) {
+			found = true;
+			break;
+		}
+
+		if (!EnvPhys_ScanUntilNextString(env_scan,env_fence)) break;
+	}
+
+	if (found) {
+		env_first = env_scan;
+		if (!EnvPhys_ScanUntilNextString(env_scan,env_fence)) return false;
+		env_last = env_scan;
+
+#if 0//DEBUG
+		fprintf(stderr,"Env base=%x fence=%x first=%x last=%x\n",
+			(unsigned int)env_base,  (unsigned int)env_fence,
+			(unsigned int)env_first, (unsigned int)env_last);
+#endif
+
+		assert(env_first <= env_last);
+
+		/* if the variable is already at the beginning, do nothing */
+		if (env_first == env_base) return true;
+
+		{
+			std::vector<uint8_t> tmp;
+			tmp.resize(size_t(env_last-env_first));
+
+			/* save variable */
+			for (size_t i=0;i < tmp.size();i++)
+				tmp[i] = mem_readb(env_first+(PhysPt)i);
+
+			/* shift all variables prior to it forward over the variable, BACKWARDS */
+			const size_t pl = size_t(env_first - env_base);
+			assert((env_first-pl) == env_base);
+			assert((env_last-pl) >= env_base);
+			assert(env_first < env_last);
+			assert(pl != 0);
+			for (size_t i=0;i < pl;i++) mem_writeb(env_last-(i+1), mem_readb(env_first-(i+1)));
+
+			/* put the variable in at the beginning */
+			assert((env_base+tmp.size()) == (env_last-pl));
+			for (size_t i=0;i < tmp.size();i++)
+				mem_writeb(env_base+(PhysPt)i,tmp[i]);
+		}
+	}
+
+	return true;
+}
+
 bool Program::EraseEnv(void) {
 	PhysPt env_base,env_fence;
 	size_t nsl = 0,el = 0,needs;

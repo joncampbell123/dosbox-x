@@ -2733,7 +2733,8 @@ void DOS_Shell::CMD_SET(char * args) {
 		show_all_env,
 		set_env,
 		show_env,
-		erase_env
+		erase_env,
+		first_env
 	};
 
 	op_mode_t op_mode = show_all_env;
@@ -2757,6 +2758,9 @@ void DOS_Shell::CMD_SET(char * args) {
 			else if (sw == "ERASE") { /* DOSBox-X extension: Completely erase the environment block */
 				op_mode = erase_env;
 			}
+			else if (sw == "FIRST") { /* DOSBox-X extension: Move the specified variable to the front of the environment block */
+				op_mode = first_env;
+			}
 			else {
 				WriteOut("Unknown switch /");
 				WriteOut(sw.c_str());
@@ -2768,7 +2772,11 @@ void DOS_Shell::CMD_SET(char * args) {
 		}
 	}
 
-	if (op_mode == show_all_env) {
+	if (op_mode == first_env) {
+		if (*args == 0) return;
+		readnonspc(env_name,args);
+	}
+	else if (op_mode == show_all_env) {
 		if (*args != 0) {
 			/* Most SET commands take the form NAME=VALUE */
 			char *p = strchr(args,'=');
@@ -2813,6 +2821,10 @@ void DOS_Shell::CMD_SET(char * args) {
 		case erase_env:
 			if (!EraseEnv())
 				WriteOut("Unable to erase environment block\n");
+			break;
+		case first_env:
+			if (!FirstEnv(env_name.c_str()))
+				WriteOut("Unable to move environment variable\n");
 			break;
 		default:
 			abort();
