@@ -1,4 +1,7 @@
 NEXT
+  - Add SET /FIRST, a DOSBox-X extension, that takes the specified
+    variable if it exists and moves it to the front of the environment
+    block. (joncampbell123).
   - SET command processing has been cleaned up and streamlined.
     Added /ERASE command line switch to clear the environment
     block (DOSBox-X extension). (joncampbell123).
