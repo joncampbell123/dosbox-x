@@ -2710,55 +2710,105 @@ void DOS_Shell::CMD_COPY(char * args) {
 	Drives[DOS_GetDefaultDrive()]->EmptyCache();
 }
 
+static void skipspc(char* &pcheck) {
+	while (*pcheck != 0 && (*pcheck == ' ' || *pcheck == '\t')) pcheck++;
+}
+
+static void readnonspcu(std::string &s,char* &pcheck) {
+	s.clear();
+	while (*pcheck != 0 && !(*pcheck == ' ' || *pcheck == '\t')) s += toupper( *(pcheck++) );
+}
+
+static void readnonspc(std::string &s,char* &pcheck) {
+	s.clear();
+	while (*pcheck != 0 && !(*pcheck == ' ' || *pcheck == '\t')) s += *(pcheck++);
+}
 
 /* NTS: WARNING, this function modifies the buffer pointed to by char *args */
 void DOS_Shell::CMD_SET(char * args) {
 	HELP("SET");
 	StripSpaces(args);
 
-	std::string line;
-	if (*args == 0) { /* "SET" by itself means to show the environment block */
-		Bitu count = GetEnvCount();
+	enum op_mode_t {
+		show_all_env,
+		set_env,
+		show_env
+	};
 
-		for (Bitu a = 0;a < count;a++) {
-			if (GetEnvNum(a,line))
-				WriteOut("%s\n",line.c_str());			
-		}
+	op_mode_t op_mode = show_all_env;
+	std::string env_name,env_value;
 
-	}
-	else {
-		char *p;
+	const bool zdirpath = static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z expand path");
 
-		{ /* parse arguments at the start */
-			char *pcheck = args;
+	{
+		std::string sw;
 
-			while (*pcheck != 0 && (*pcheck == ' ' || *pcheck == '\t')) pcheck++;
+		/* parse arguments at the start */
+		skipspc(args);
+		while (*args == '/') {
+			args++; /* skip / */
+			readnonspcu(sw,args);
 
-			if (*pcheck != 0 && strlen(pcheck) > 3 && (strncasecmp(pcheck,"/p ",3) == 0)) {
+			if (sw == "P") {
 				WriteOut("Set /P is not supported. Use Choice!"); /* TODO: What is SET /P supposed to do? */
 				return;
 			}
-		}
+			else {
+				WriteOut("Unknown switch /");
+				WriteOut(sw.c_str());
+				WriteOut("\n");
+				return;
+			}
 
-		/* Most SET commands take the form NAME=VALUE */
-		p = strchr(args,'=');
-		if (p == NULL) {
-			/* SET <variable> without assignment prints the variable instead */
-			if (!GetEnvStr(args,line)) WriteOut(MSG_Get("SHELL_CMD_SET_NOT_SET"),args);
-			WriteOut("%s\n",line.c_str());
-		} else {
-			/* ASCIIZ snip the args string in two, so that args is C-string name of the variable,
-			 * and "p" is C-string value of the variable */
-			*p++ = 0;
-			std::string vstr = p;
-			bool zdirpath = static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z expand path");
-			if (zdirpath && !strcasecmp(args, "path")) GetExpandedPath(vstr);
-			/* No parsing is needed. The command interpreter does the variable substitution for us */
-			if (!SetEnv(args,vstr.c_str())) {
-				/* NTS: If Win95 is any example, the command interpreter expands the variables for us */
-				WriteOut(MSG_Get("SHELL_CMD_SET_OUT_OF_SPACE"));
+			skipspc(args);
+		}
+	}
+
+	if (op_mode == show_all_env) {
+		if (*args != 0) {
+			/* Most SET commands take the form NAME=VALUE */
+			char *p = strchr(args,'=');
+			if (p == NULL) {
+				/* SET <variable> without assignment prints the variable instead */
+				op_mode = show_env;
+				readnonspc(env_name,args);
+			} else {
+				/* ASCIIZ snip the args string in two, so that args is C-string name of the variable,
+				 * and "p" is C-string value of the variable */
+				op_mode = set_env;
+				*p++ = 0; env_name = args; env_value = p;
 			}
 		}
+	}
+
+	switch (op_mode) {
+		case show_all_env: {
+			const Bitu count = GetEnvCount();
+			std::string line;
+
+			for (Bitu a = 0;a < count;a++) {
+				if (GetEnvNum(a,line))
+					WriteOut("%s\n",line.c_str());
+			}
+			break; }
+		case show_env:
+			if (GetEnvStr(env_name.c_str(),env_value))
+				WriteOut("%s\n",env_value.c_str());
+			else
+				WriteOut(MSG_Get("SHELL_CMD_SET_NOT_SET"),env_name.c_str());
+			break;
+		case set_env:
+			if (zdirpath && env_name == "path") GetExpandedPath(env_value);
+
+			/* No parsing is needed. The command interpreter does the variable substitution for us */
+			/* NTS: If Win95 is any example, the command interpreter expands the variables for us */
+			if (!SetEnv(env_name.c_str(),env_value.c_str()))
+				WriteOut(MSG_Get("SHELL_CMD_SET_OUT_OF_SPACE"));
+
+			break;
+		default:
+			abort();
+			break;
 	}
 }
 
