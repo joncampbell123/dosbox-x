@@ -102,6 +102,7 @@ public:
 	bool GetEnvNum(Bitu want_num,std::string & result);      //! Return an environment variable by index
 	Bitu GetEnvCount(void);                             //! Return the number of environmental variables
 	bool SetEnv(const char * entry,const char * new_string); //! Set environment variable
+	bool EraseEnv(void);
 	virtual void WriteOut(const char *format, const char * arguments);
 	void WriteOut(const char * format,...);				//! Write to standard output 
 	virtual int WriteOut_NoParsing(const char * format, bool dbcs = false); //! Write to standard output, no parsing

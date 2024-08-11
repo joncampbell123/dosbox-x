@@ -2732,7 +2732,8 @@ void DOS_Shell::CMD_SET(char * args) {
 	enum op_mode_t {
 		show_all_env,
 		set_env,
-		show_env
+		show_env,
+		erase_env
 	};
 
 	op_mode_t op_mode = show_all_env;
@@ -2752,6 +2753,9 @@ void DOS_Shell::CMD_SET(char * args) {
 			if (sw == "P") {
 				WriteOut("Set /P is not supported. Use Choice!"); /* TODO: What is SET /P supposed to do? */
 				return;
+			}
+			else if (sw == "ERASE") { /* DOSBox-X extension: Completely erase the environment block */
+				op_mode = erase_env;
 			}
 			else {
 				WriteOut("Unknown switch /");
@@ -2805,6 +2809,10 @@ void DOS_Shell::CMD_SET(char * args) {
 			if (!SetEnv(env_name.c_str(),env_value.c_str()))
 				WriteOut(MSG_Get("SHELL_CMD_SET_OUT_OF_SPACE"));
 
+			break;
+		case erase_env:
+			if (!EraseEnv())
+				WriteOut("Unable to erase environment block\n");
 			break;
 		default:
 			abort();

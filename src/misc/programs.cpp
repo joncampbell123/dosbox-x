@@ -497,6 +497,26 @@ void Program::DebugDumpEnv() {
 	}
 }
 
+bool Program::EraseEnv(void) {
+	PhysPt env_base,env_fence;
+	size_t nsl = 0,el = 0,needs;
+
+	if (dos_kernel_disabled) {
+		LOG_MSG("BUG: Program::EraseEnv() called with DOS kernel disabled (such as OS boot).\n");
+		return false;
+	}
+
+	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
+		LOG_MSG("Warning: SetEnv() was not able to locate the program's environment block\n");
+		return false;
+	}
+
+	for (PhysPt w=env_base;w < env_fence;w++)
+		mem_writeb(w,0);
+
+	return true;
+}
+
 /* NTS: "entry" string must have already been converted to uppercase */
 bool Program::SetEnv(const char * entry,const char * new_string) {
 	PhysPt env_base,env_fence,env_scan;

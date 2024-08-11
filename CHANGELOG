@@ -1,4 +1,7 @@
 NEXT
+  - SET command processing has been cleaned up and streamlined.
+    Added /ERASE command line switch to clear the environment
+    block (DOSBox-X extension). (joncampbell123).
   - VESA BIOS: Add new option to adjust reported linear framebuffer
     address by a specific number of pixels. This is needed by
     "Out of Control" by Contract which for whatever reason,
