@@ -3876,10 +3876,12 @@ restart_int:
             unsigned int reserved_sectors = 1; /* 1 for the boot sector + BPB. FAT32 will require more */
             unsigned int sectors_per_cluster = 0;
             unsigned int vol_sectors = 0;
-            unsigned int fat_copies = 2; /* number of copies of the FAT. always 2. TODO: Allow the user to specify */
+            unsigned int fat_copies = 2; /* number of copies of the FAT */
             uint32_t fatlimitmin;
             uint32_t fatlimit;
             int FAT = -1;
+            bool spc_changed = false;
+            bool rootent_changed = false;
 
             /* FAT filesystem, user choice */
             if (cmd->FindString("-fat",tmp,true)) {
@@ -3922,6 +3924,7 @@ restart_int:
                     if (setdir) chdir(dirCur);
                     return;
                 }
+                spc_changed = true;
             }
 
             /* Root directory count, user choice.
@@ -3935,6 +3938,7 @@ restart_int:
                     if (setdir) chdir(dirCur);
                     return;
                 }
+                rootent_changed = true;
             }
 
             /* decide partition placement */
@@ -4199,8 +4203,8 @@ restart_int:
                             host_writew(&sbuf[SecPerTrk],DiskGeometryList[index].secttrack);
                             host_writew(&sbuf[NumHeads], DiskGeometryList[index].headscyl);
                             host_writew(&sbuf[BytsPerSec], DiskGeometryList[index].bytespersect);
-                            sbuf[SecPerClus] = DiskGeometryList[index].sectcluster;
-                            host_writew(&sbuf[RootEntCnt], DiskGeometryList[index].rootentries);
+                            sbuf[SecPerClus] = spc_changed ? sectors_per_cluster : DiskGeometryList[index].sectcluster;
+                            host_writew(&sbuf[RootEntCnt], rootent_changed ? root_ent : DiskGeometryList[index].rootentries);
                             /* FATSz16 to match FreeDOS FORMAT command https://github.com/FDOS/format/blob/master/floppy.h */
                             if(disksize == 160 || disksize == 320) {
                                 host_writew(&sbuf[FATSz16],1);
