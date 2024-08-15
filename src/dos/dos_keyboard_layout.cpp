@@ -1505,12 +1505,9 @@ public:
 					wants_dos_codepage = GetDefaultCP();
 					break;
 				case 1033: // US, CP 437
-#if defined(HX_DOS)
                     layoutname = "us";
                     wants_dos_codepage = GetDefaultCP();
                     break;
-#endif
-					return;
 				case 1032: // Greece, CP 869, Alt CP 813
 					layoutname = "gk";
 					break;
@@ -1688,8 +1685,12 @@ public:
 				default:
 					break;
 			}
-#endif
 		}
+        else if(!strncmp(layoutname, "none", 4)) {
+            layoutname = "us";
+            wants_dos_codepage = 437;
+#endif
+        }
 
 		bool extract_codepage = !tocp;
 		if (wants_dos_codepage>0) {
