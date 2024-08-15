@@ -321,7 +321,8 @@ void LoadMessageFile(const char * fname) {
                                 return;
                             }
                             std::string msg = "The specified language file uses code page " + std::to_string(c) + ". Do you want to change to this code page accordingly?";
-                            if (!control->opt_langcp && !uselangcp && c != 437 && GetDefaultCP() == 437 && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)) control->opt_langcp = true;
+                            if (loadlang && !control->opt_langcp && !uselangcp && c != 437 && GetDefaultCP() == 437 && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)) control->opt_langcp = true;
+                            else control->opt_langcp = true;
                             msgcodepage = c;
                             dos.loaded_codepage = c;
                             if (c == 950 && !chinasea) makestdcp950table();
