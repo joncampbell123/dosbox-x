@@ -58,6 +58,8 @@ NEXT
     files appear out of thin air by intercepting INT 13h floppy disk
     I/O and then asking MS-DOS to run something from it. Hack for
     "DS_BLISS" demo. (joncampbell123).
+  - Fixed crash when a language file is loaded on a Windows host with
+    US keyboard (maron2000)
   - Added Added sharp-bilinear Direct3D shader (RibShark)
   - Pass output dimensions to Direct3D shaders (RibShark)
   - Fixed BPB of floppy images made by IMGMAKE command (maron2000)

@@ -5,6 +5,7 @@
 :AUTOEXEC_CONFIGFILE_HELP
 このセクションに記載の行は起動時に実行されます。
 MOUNT したい場合はここに記載できます。
+
 .
 :CONFIGFILE_INTRO
 # これは DOSBox-X %s の設定ファイルです。 (最新のバージョンのDOSBox-Xを使用してください)
@@ -100,11 +101,11 @@ OK
 :HELP_FOR
 %s のヘルプ
 .
-:SELECT_VALUE
-プロパティ値を選択
-.
 :HELP_INFO
 詳細なヘルプについては、[ヘルプ]ボタンをクリックしてください。
+.
+:SELECT_VALUE
+プロパティ値を選択
 .
 :CONFIGURATION_FOR
 %s の設定
@@ -389,12 +390,15 @@ DOSBox-X は以下のコマンドラインパラメータを指定して起動�
 .
 :PROGRAM_CONFIG_MISSINGPARAM
 パラメータが足りません。
+
 .
 :PROGRAM_MOUSE_INSTALL
 PS/2 ポートに接続。
+
 .
 :PROGRAM_MOUSE_VERTICAL
 Y軸反転 有効
+
 .
 :PROGRAM_MOUSE_VERTICAL_BACK
 Y軸反転 無効
@@ -680,6 +684,7 @@ MSCDEX: エラー: 不明なエラー。
 .
 :PROGRAM_RESCAN_SUCCESS
 ドライブキャッシュをクリアしました。
+
 .
 :PROGRAM_INTRO
 [2J[32;1mDOSBox-Xへようこそ![0m, 音声・グラフィックスをサポートするオープンソースな x86 エミュレータです。
@@ -909,12 +914,15 @@ drive: はマウントされているもののうち、起動するドライブ�
 .
 :PROGRAM_BOOT_UNABLE
 %cドライブから起動できません。
+
 .
 :PROGRAM_BOOT_IMAGE_MOUNTED
 フロッピーイメージはすでにマウントされています。
+
 .
 :PROGRAM_BOOT_IMAGE_OPEN
 イメージファイルを開きます: %s
+
 .
 :PROGRAM_BOOT_IMAGE_NOT_OPEN
 イメージを開けません %s
@@ -928,6 +936,9 @@ PCjr カートリッジが見つかりましたが、マシンがPCjrではあ�
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 PCjr cartridge commandos が見つかりません。
+.
+:PROGRAM_BOOT_BOOTING
+ドライブからブートします 
 .
 :PROGRAM_LOADROM_HELP
 ビデオBIOSまたはIBMBASIC用に指定されたROMイメージファイルをロードします。
@@ -1221,10 +1232,10 @@ IMGMAKE の使用例:
 
 使用例:
   [32;1mKEYB[0m          読み込まれたコードページを表示
-  [32;1mKEYB sp[0m       スペイン語(SP)レイアウトを読込み, 適切なコードページを使用
-  [32;1mKEYB sp 850[0m   スペイン語(SP)レイアウトを読込み, コードページ850を使用
-  [32;1mKEYB sp 850 mycp.cpi[0m 上記と同じ, ただしmycp.cpiファイルを使用
-  [32;1mKEYB sp_mod 850[0m      レイアウトをsp_mod.klから読み込み, コードページ850を使用
+  [32;1mKEYB jp[0m       日本語(JP)レイアウトを読込み, 適切なコードページを使用
+  [32;1mKEYB jp 932[0m   日本語(JP)レイアウトを読込み, コードページ932を使用
+  [32;1mKEYB sp 850 mycp.cpi[0m スペイン語(SP)レイアウト, mycp.cpiファイルを使用
+  [32;1mKEYB jp_mod 850[0m      レイアウトをjp_mod.klから読み込み, コードページ850を使用
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1247,6 +1258,37 @@ IMGMAKE の使用例:
 :PROGRAM_KEYB_INVCPFILE
 キーボードファイル %s のためのコードページファイルがないか無効です。
 
+
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+ディスクのボリューム ラベルを作成、変更、または削除します。
+
+LABEL [drive:][label]
+
+  [drive:] ドライブのドライブ文字を指定します。
+  [label]  ボリュームのラベルを指定します。
+
+.
+:PROGRAM_LABEL_DELETE
+ボリュームラベルを削除しますか (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+ラベルが長すぎます (11文字を超過).
+
+.
+:PROGRAM_LABEL_BADCHARS
+ラベルに無効な文字を指定しました。
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+ドライブ %c のボリュームラベルは %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+ドライブ %c にはボリュームラベルがありません。
 
 .
 :PROGRAM_MODE_USAGE
@@ -1510,6 +1552,12 @@ TIME [[/T] [/H] | time]
 パスが無効かディレクトリでないか、ディレクトリが空ではありません - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+ディレクトリ "%s" とサブディレクトリを削除しますか (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+ファイル "%s" を削除しますか(Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 ファイル名を変更できませんでした: %s
 
@@ -1526,12 +1574,15 @@ TIME [[/T] [/H] | time]
 削除できませんでした - %s
 
 .
+:SHELL_CMD_DEL_CONFIRM
+%s を削除しますか (Y/N)?
+.
 :SHELL_CMD_DEL_SURE
 ディレクトリ内のすべてのファイルが削除されます!
 続けますか [Y/N]?
 .
 :SHELL_SYNTAXERROR
-文法のエラー
+文法が違います。
 
 .
 :SHELL_CMD_SET_NOT_SET
@@ -1645,6 +1696,10 @@ DOSBox-X に実際のネットワークドライブ %c へのアクセスを許�
 コピーできません - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+そのファイル自体にコピーすることはできません。
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 現在マウントされているローカルドライブ:
 
@@ -1676,6 +1731,9 @@ DOS/V V-text は現在有効になっています。
 :SHELL_CMD_VTEXT_OFF
 DOS/V V-text は現在無効になっています。
 
+.
+:SHELL_ALLFILES_CHAR
+a
 .
 :SHELL_STARTUP_TITLE
 DOSBox-Xへようこそ !
@@ -2372,11 +2430,11 @@ DOS画面上のテキストをすべてコピー
 :MENU:mapper_pasteend
 クリップボードからの貼り付けを停止
 .
-:MENU:mapper_printtext
-DOS テキスト画面を印刷
-.
 :MENU:mapper_ejectpage
 改ページ送信
+.
+:MENU:mapper_printtext
+DOS テキスト画面を印刷
 .
 :MENU:mapper_pause
 一時停止
@@ -3152,8 +3210,11 @@ DOSBox-X について
 :MENU:show_console
 ログ用コンソールを表示
 .
+:MENU:clear_console
+ログ用コンソールを消去
+.
 :MENU:disable_logging
-ロギング出力を無効にする
+ログ出力を無効にする
 .
 :MENU:wait_on_error
 エラー時にコンソールを停止
@@ -3175,6 +3236,9 @@ DOSBox-X について
 .
 :MENU:debugger_runwatch
 デバッガオプション: Watchを実行
+.
+:MENU:video_debug_overlay
+ビデオ出力デバッグ表示
 .
 :MENU:HelpCommandMenu
 DOS コマンド
@@ -3257,11 +3321,17 @@ MIDI 出力を保存
 :MENU:mapper_caprawopl
 FM (OPL) 出力を保存
 .
+:MENU:mapper_capnetrf
+ネットワーク入出力を記録
+.
 :MENU:mapper_video
 動画を AVI に保存
 .
 :MENU:mapper_scrshot
 スクリーンショット
+.
+:MENU:mapper_rawscrshot
+raw スクリーンショット
 .
 :MENU:mapper_volup
 ボリューム:上
@@ -3592,4 +3662,7 @@ DOSBox-Xを再起動
 .
 :MAPPER:simple
 CPU:簡易コア
+.
+:MAPPER:togmenu
+メニューバー表示切替
 .
