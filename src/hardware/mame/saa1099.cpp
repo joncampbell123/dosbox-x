@@ -155,6 +155,7 @@ saa1099_device::saa1099_device(const machine_config &mconfig, const char *tag, d
 	, m_sync_state(0)
 	, m_selected_reg(0)
 	, m_sample_rate(0.0)
+	, sample_rate(clock / 256)
 {
 	FILL_ARRAY( m_noise_params );
 	FILL_ARRAY( m_env_enable );

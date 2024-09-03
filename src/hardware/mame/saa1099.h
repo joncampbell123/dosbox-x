@@ -53,7 +53,7 @@ public:
 
 	DECLARE_WRITE8_MEMBER( write );
 
-	uint32_t sample_rate = clock() / 256;
+	uint32_t sample_rate;
 
 //protected:
 	// device-level overrides
