@@ -93,6 +93,7 @@ NEXT
     - properties/help: sorted alphabetically, mouse wheel scrollable
     - remove few rendundant labels, adjust names of some others
     - retain 'show advanced options' state throughout session
+  - SVN r4483: Fix compilation in Visual Studio 2008. (Allofich)
 
 2024.07.01
   - Correct Hercules InColor memory emulation. Read and write planar
