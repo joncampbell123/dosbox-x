@@ -1302,7 +1302,7 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 	{
 		char *s = strrchr(cuefile,'.');
 		if (!s) return false;
-		if (!strcasecmp(s,".ccd") || !strcasecmp(s, ".chd") || !strcasecmp(s, ".iso") || !strcasecmp(s, ".img")
+		if (!strcasecmp(s,".ccd") || !strcasecmp(s, ".chd") || !strcasecmp(s, ".iso") || !strcasecmp(s, ".img") || !strcasecmp(s, ".gog")
             || !strcasecmp(s, ".mds") || !strcasecmp(s, ".mdf") || !strcasecmp(s, ".bin")) return false;
 	}
 
