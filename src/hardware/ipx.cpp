@@ -1003,7 +1003,7 @@ public:
 		}
 	}
 
-	void Run(void)
+	void Run(void) override
 	{
 		WriteOut("IPX Tunneling utility for DOSBox-X\n\n");
 		if(!cmd->GetCount()) {

@@ -3221,7 +3221,7 @@ static void LOADROM_ProgramStart(Program * * make) {
 #if C_DEBUG
 class BIOSTEST : public Program {
 public:
-    void Run(void) {
+    void Run(void) override {
         if (!(cmd->FindCommand(1, temp_line))) {
             WriteOut("Must specify BIOS file to load.\n");
             return;
@@ -7196,7 +7196,7 @@ void VFRCRATE_ProgramStart(Program * * make);
 #if defined C_DEBUG
 class NMITEST : public Program {
 public:
-    void Run(void) {
+    void Run(void) override {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
 			WriteOut("Generates a non-maskable interrupt (NMI).\n\nNMITEST\n\nNote: This is a debugging tool to test if the interrupt handler works properly.\n");
             return;
