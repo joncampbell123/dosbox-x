@@ -206,11 +206,7 @@ void AddMessages() {
 void SetKEYBCP() {
     if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
     Bitu return_code;
-    const char* layout_name = DOS_GetLoadedLayout();
-    return_code = DOS_LoadKeyboardLayout("us", 437, "auto");
-    if(strlen(layout_name) == 2) {
-        return_code = DOS_ChangeKeyboardLayout(layout_name, 0);
-    }
+
     if(msgcodepage == 932 || msgcodepage == 936 || msgcodepage == 949 || msgcodepage == 950 || msgcodepage == 951) {
         InitFontHandle();
         JFONT_Init();
