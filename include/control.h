@@ -106,7 +106,7 @@ public:
     bool opt_showrt = false;
     bool opt_nomenu = false;
     bool opt_prerun = false;
-    bool opt_langcp = false;
+    bool opt_langcp = false;  // True if command line option -langcp is specified, always use codepage specified by the language file
     bool opt_debug = false;
     bool opt_nogui = false;
     bool opt_nolog = false;
