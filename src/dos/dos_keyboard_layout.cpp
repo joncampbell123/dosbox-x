@@ -1424,11 +1424,9 @@ Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage) {
 }
 
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile) {
-    keyboard_layout* temp_layout = new keyboard_layout();
     // try to read the layout for the specified codepage
-    Bitu kerrcode = temp_layout->read_codepage_file(codepagefile, codepage);
+    Bitu kerrcode = loaded_layout->read_codepage_file(codepagefile, codepage);
     if(kerrcode) {
-        delete temp_layout;
         return kerrcode;
     }
     // Everything went fine
