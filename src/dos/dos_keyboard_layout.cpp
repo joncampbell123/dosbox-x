@@ -53,7 +53,8 @@ Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 void MSG_Init(), JFONT_Init(), runRescan(const char *str);
 extern int tryconvertcp, toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 extern bool jfont_init;
-extern int msgcodepage;
+extern int32_t msgcodepage;
+bool CheckDBCSCP(int32_t codepage);
 
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
@@ -1392,7 +1393,8 @@ Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const cha
 		return kerrcode;
 	}
 	// Everything went fine, switch to new layout
-	loaded_layout=temp_layout;
+    delete loaded_layout;
+    loaded_layout=temp_layout;
 	return KEYB_NOERROR;
 }
 
@@ -1446,8 +1448,8 @@ public:
 	DOS_KeyboardLayout(Section* configuration):Module_base(configuration){
         const Section_prop* section = static_cast<Section_prop*>(configuration);
 		const char * layoutname=section->Get_string("keyboardlayout");
-		dos.loaded_codepage = GetDefaultCP();	// default codepage already initialized
-        int tocp=!strcmp(layoutname, "jp")||IS_JDOSV?932:(!strcmp(layoutname, "ko")||IS_KDOSV?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")||!strcmp(layoutname, "zht")||IS_TDOSV?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")||!strcmp(layoutname, "zhs")||IS_PDOSV?936:(!strcmp(layoutname, "us")?437:0))));
+		//dos.loaded_codepage = GetDefaultCP();	// default codepage already initialized
+        int32_t tocp=!strcmp(layoutname, "jp")||IS_JDOSV?932:(!strcmp(layoutname, "ko")||IS_KDOSV?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")||!strcmp(layoutname, "zht")||IS_TDOSV?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")||!strcmp(layoutname, "zhs")||IS_PDOSV?936:(!strcmp(layoutname, "us")?437:0))));
 #if defined(WIN32)
 		if (dos.loaded_codepage == 932 && !IS_PC98_ARCH && GetKeyboardType(0) == 7 && !strcmp(layoutname, "auto")) layoutname = "jp106";
 #endif
@@ -1459,7 +1461,7 @@ public:
         DOSBox_SetSysMenu();
 		loaded_layout=new keyboard_layout();
 
-		Bits wants_dos_codepage = -1;
+		int32_t wants_dos_codepage = -1;
 		if (!strncmp(layoutname,"auto",4)) {
 #if defined (WIN32)
 			WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
@@ -1692,7 +1694,7 @@ public:
 
 		bool extract_codepage = !tocp;
 		if (wants_dos_codepage>0) {
-			if ((loaded_layout->read_codepage_file("auto", (int32_t)wants_dos_codepage)) == KEYB_NOERROR) {
+			if ((loaded_layout->read_codepage_file("auto", wants_dos_codepage)) == KEYB_NOERROR) {
 				// preselected codepage was successfully loaded
 				extract_codepage = false;
 			}
@@ -1727,7 +1729,6 @@ public:
 #endif
             {
                 dos.loaded_codepage = tocp;
-                MSG_Init();
                 DOSBox_SetSysMenu();
                 if (!jfont_init && isDBCSCP()) JFONT_Init();
                 SetupDBCSTable();
@@ -1738,9 +1739,10 @@ public:
 #endif
             }
         }
-        if(msgcodepage) {
+        if(isSupportedCP(msgcodepage)) {
             SwitchLanguage(dos.loaded_codepage, msgcodepage, false);
-            DOS_ChangeCodepage(msgcodepage, "auto");
+            if(!CheckDBCSCP(msgcodepage))DOS_ChangeCodepage(msgcodepage, "auto");
+            dos.loaded_codepage = msgcodepage;
         }
     }
 

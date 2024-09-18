@@ -4533,7 +4533,7 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
 		missing = TTF_using() ? setTTFCodePage() : 0;
 #endif
         if (!TTF_using()) initcodepagefont();
-        if (dos.loaded_codepage==437) DOS_LoadKeyboardLayout("us", 437, "auto");
+        if (dos.loaded_codepage==437 && DOS_GetLoadedLayout() == NULL) DOS_LoadKeyboardLayout("us", 437, "auto");
         if (opt==-1) {
             MSG_Init();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU

@@ -39,7 +39,7 @@
 #endif
 using namespace std;
 
-int msgcodepage = 0, lastmsgcp = 0;
+int32_t msgcodepage = 0, lastmsgcp = 0;
 bool morelen = false, inmsg = false, loadlang = false;
 bool uselangcp = false; // True if Language file is loaded via CONFIG -set langcp option. Use codepage specified in the language file 
 bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton), OpenGL_using(void);
@@ -52,6 +52,8 @@ extern const char * RunningProgram;
 Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 Bitu DOS_LoadKeyboardLayout(const char* layoutname, int32_t codepage, const char* codepagefile);
+bool CheckDBCSCP(int32_t codepage);
+void Load_Language(std::string name);
 
 #define LINE_IN_MAXLEN 2048
 
@@ -204,23 +206,26 @@ void AddMessages() {
     MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
 }
 
-void MSG_Init(void);
+// True if specified codepage is a DBCS codepage
+bool CheckDBCSCP(int32_t codepage) {
+    if(codepage == 932 || codepage == 936 || codepage == 949 || codepage == 950 || codepage == 951) {
+        LOG_MSG("CheckDBCSCP: Codepage %d true", codepage);
+        return true;
+    }
+    else return false;
+}
+
 void SetKEYBCP() {
     if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
     Bitu return_code;
-
-    if(msgcodepage == 932 || msgcodepage == 936 || msgcodepage == 949 || msgcodepage == 950 || msgcodepage == 951) {
-        MSG_Init();
+    if(CheckDBCSCP(msgcodepage)) {
+        dos.loaded_codepage = msgcodepage;
+        ShutFontHandle();
         InitFontHandle();
         JFONT_Init();
-        dos.loaded_codepage = msgcodepage;
     }
-    else {
-        return_code = DOS_ChangeCodepage(858, "auto"); /* FIX_ME: Somehow requires to load codepage twice */
-        return_code = DOS_ChangeCodepage(msgcodepage, "auto");
-        if(return_code == KEYB_NOERROR) {
-            dos.loaded_codepage = msgcodepage;
-        }
+    if (!CheckDBCSCP(msgcodepage) && DOS_ChangeCodepage(msgcodepage, "auto") == KEYB_NOERROR){
+        dos.loaded_codepage = msgcodepage;
     }
     runRescan("-A -Q");
 }
@@ -388,12 +393,6 @@ void LoadMessageFile(const char * fname) {
     update_bindbutton_text();
     dos.loaded_codepage=cp;
     if (loadlangcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) {
-        ShutFontHandle();
-        if(msgcodepage == 932 || msgcodepage == 936 || msgcodepage == 949 || msgcodepage == 950 || msgcodepage == 951) {
-            dos.loaded_codepage = msgcodepage;
-            InitFontHandle();
-            JFONT_Init();
-        }
         if (!IS_DOSV && !IS_JEGA_ARCH) {
 #if defined(USE_TTF)
             if (ttf.inUse) toSetCodePage(NULL, msgcodepage, -2); else
