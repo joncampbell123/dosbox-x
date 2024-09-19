@@ -57,7 +57,8 @@ extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
 extern bool halfwidthkana, force_conversion, gbk;
 extern const char* RunningProgram;
-extern int enablelfn, msgcodepage, lastmsgcp;
+extern int enablelfn;
+extern int32_t msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
 bool outcon = true, usecon = true, pipetmpdev = true;
@@ -81,6 +82,8 @@ void SwitchLanguage(int oldcp, int newcp, bool confirm);
 void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error();
+void Load_Language(std::string name);
+bool CheckDBCSCP(int32_t codepage);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -883,7 +886,7 @@ void DOS_Shell::Prepare(void) {
                         else if (IS_TDOSV) newCP=950;
                     }
                     const char* name = DOS_GetLoadedLayout();
-                    if (newCP==932||newCP==936||newCP==949||newCP==950||newCP==951) {
+                    if (CheckDBCSCP(newCP)) {
                         dos.loaded_codepage=newCP;
                         SetupDBCSTable();
                         runRescan("-A -Q");

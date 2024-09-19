@@ -53,7 +53,6 @@ Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 Bitu DOS_LoadKeyboardLayout(const char* layoutname, int32_t codepage, const char* codepagefile);
 bool CheckDBCSCP(int32_t codepage);
-void Load_Language(std::string name);
 
 #define LINE_IN_MAXLEN 2048
 
@@ -219,10 +218,10 @@ void SetKEYBCP() {
     if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
     Bitu return_code;
     if(CheckDBCSCP(msgcodepage)) {
-        dos.loaded_codepage = msgcodepage;
         ShutFontHandle();
         InitFontHandle();
         JFONT_Init();
+        dos.loaded_codepage = msgcodepage;
     }
     if (!CheckDBCSCP(msgcodepage) && DOS_ChangeCodepage(msgcodepage, "auto") == KEYB_NOERROR){
         dos.loaded_codepage = msgcodepage;

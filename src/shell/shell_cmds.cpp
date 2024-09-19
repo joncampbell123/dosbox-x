@@ -140,6 +140,7 @@ extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t w
 extern void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
+bool CheckDBCSCP(int32_t codepage);
 
 /* support functions */
 static char empty_char = 0;
@@ -4599,13 +4600,16 @@ void DOS_Shell::CMD_CHCP(char * args) {
     int32_t cp = dos.loaded_codepage;
     Bitu keyb_error;
     if(n == 1) {
-        if(newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || newCP == 951
+        if(CheckDBCSCP(newCP)
 #if defined(USE_TTF)
             || (ttf.inUse && (newCP >= 1250 && newCP <= 1258))
 #endif
             ) {
             missing = toSetCodePage(this, newCP, -1);
-            if(missing > -1) SwitchLanguage(cp, newCP, true);
+            if(missing > -1) {
+                SwitchLanguage(cp, newCP, true);
+                missing = toSetCodePage(this, newCP, -1);
+            }
             if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
         }
         else {
@@ -4630,13 +4634,14 @@ void DOS_Shell::CMD_CHCP(char * args) {
                 return;
             }
         }
+        Load_Language(layout_name);
         WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
     }
     else if(n == 2 && strlen(buff)) {
+        std::string name = buff + 1;
         if(*buff == ':' && strchr(StripArg(args), ':')) {
-            std::string name = buff + 1;
             if(name.empty() && iter != langcp_map.end()) name = iter->second;
-            if(newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || newCP == 951) {
+            if(CheckDBCSCP(newCP)) {
                 missing = toSetCodePage(this, newCP, -1);
                 if(missing > -1) SwitchLanguage(cp, newCP, true);
                 if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
@@ -4676,7 +4681,10 @@ void DOS_Shell::CMD_CHCP(char * args) {
         if(ttf.inUse) {
             if(isSupportedCP(newCP)) {
                 missing = toSetCodePage(this, newCP, -1);
-                if(missing > -1) SwitchLanguage(cp, newCP, true);
+                if(missing > -1) {
+                    SwitchLanguage(cp, newCP, true);
+                    missing = toSetCodePage(this, newCP, -1);
+                }
                 if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
                 LOG_MSG("CHCP: Loading cpi/cpx files ignored for TTF output");
             }
@@ -4685,6 +4693,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
                 LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
                 return;
             }
+            Load_Language(name);
         }
         else {
 #endif
@@ -4694,7 +4703,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
             FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
             std::string exepath = GetDOSBoxXPath();
             if(!file && exepath.size()) file = fopen((exepath + CROSS_FILESPLIT + cpfile).c_str(), "r");
-            if(file && newCP > 0 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951) {
+            if(file && newCP > 0 && !CheckDBCSCP(newCP)) {
                 altcp = newCP;
                 char line[256], * l = line;
                 while(fgets(line, sizeof(line), file)) {

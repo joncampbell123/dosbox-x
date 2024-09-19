@@ -727,6 +727,7 @@ bool set_ver(char *s), GFX_IsFullscreen(void);
 
 void Load_Language(std::string name) {
     if (control->opt_lang != "") control->opt_lang = name;
+    dos.loaded_codepage = msgcodepage;
     MSG_Init();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU || DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
     mainMenu.unbuild();
@@ -738,12 +739,12 @@ void Load_Language(std::string name) {
 #if defined(USE_TTF)
     if (TTF_using()) resetFontSize();
 #endif
-    if (!uselangcp && !incall) {
-        int oldmsgcp = msgcodepage;
-        msgcodepage = dos.loaded_codepage;
+    //if (!uselangcp && !incall) {
+        //int oldmsgcp = msgcodepage;
+        //dos.loaded_codepage = msgcodepage;
         SetKEYBCP();
-        msgcodepage = oldmsgcp;
-    }
+        //msgcodepage = oldmsgcp;
+    //}
 }
 
 void ApplySetting(std::string pvar, std::string inputline, bool quiet) {

@@ -55,6 +55,7 @@ extern int tryconvertcp, toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 extern bool jfont_init;
 extern int32_t msgcodepage;
 bool CheckDBCSCP(int32_t codepage);
+void Load_Language(std::string name);
 
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
@@ -1747,8 +1748,14 @@ public:
         }
         if(isSupportedCP(msgcodepage)) {
             SwitchLanguage(dos.loaded_codepage, msgcodepage, false);
+#if defined(USE_TTF)
+            if (ttf.inUse)
+                toSetCodePage(NULL, msgcodepage, -1);
+            else
+#endif
             if(!CheckDBCSCP(msgcodepage))DOS_ChangeCodepage(msgcodepage, "auto");
-            dos.loaded_codepage = msgcodepage;
+            Load_Language(layoutname);
+            dos.loaded_codepage=msgcodepage;
         }
     }
 

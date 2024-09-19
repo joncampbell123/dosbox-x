@@ -209,7 +209,6 @@ void DetachFromBios(imageDisk* image) {
 }
 
 void SwitchLanguage(int oldcp, int newcp, bool confirm) {
-    (void)oldcp; //unused
     auto iterold = langcp_map.find(lastmsgcp), iternew = langcp_map.find(newcp);
     std::string langold = iterold != langcp_map.end() ? iterold->second : "", langnew = iternew != langcp_map.end() ? iternew->second : "";
     if (loadlang && langnew.size() && strcasecmp(langold.c_str(), langnew.c_str())) {
