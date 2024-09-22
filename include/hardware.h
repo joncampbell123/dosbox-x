@@ -22,7 +22,7 @@
 
 class Section;
 enum OPL_Mode {
-	OPL_none,OPL_OPL_opl2,OPL_dualopl2,OPL_opl3,OPL_opl3gold,OPL_hardware,OPL_hardwareCMS,OPL_esfm
+	OPL_none,OPL_opl2,OPL_dualopl2,OPL_opl3,OPL_opl3gold,OPL_hardware,OPL_hardwareCMS,OPL_esfm
 };
 #define CAPTURE_WAVE	0x01
 #define CAPTURE_OPL		0x02
