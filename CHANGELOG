@@ -1,4 +1,5 @@
 NEXT
+  - Decouple CMS and OPL emulations from dosbox-staging.
   - Allow the ".inst" extension for CUE sheets. (Allofich)
   - Add SET /FIRST, a DOSBox-X extension, that takes the specified
     variable if it exists and moves it to the front of the environment
