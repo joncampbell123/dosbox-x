@@ -3753,6 +3753,54 @@ private:
             }
         }
 
+bool is_cms_enabled()
+{
+	const auto* sect = static_cast<Section_prop*>(control->GetSection("sblaster"));
+	assert(sect);
+
+	const auto sbtype      = find_sbtype();
+	const bool cms_enabled = [sect, sbtype]() {
+		// Backward compatibility with existing configurations
+		if (sect->Get_string("oplmode") == "cms") {
+			LOG_WARNING("%s: The 'cms' setting for 'oplmode' is deprecated; use 'cms = on' instead.",
+			            CardType());
+			return true;
+		} else {
+			const auto cms_str = sect->Get_string("cms");
+			const auto cms_enabled_opt = parse_bool_setting(cms_str);
+			if (cms_enabled_opt) {
+				return *cms_enabled_opt;
+			} else if (cms_str == "auto") {
+				return sbtype == SBT_1 || sbtype == SBT_GB;
+			}
+			return false;
+		}
+	}();
+
+	switch (sbtype) {
+	case SBT_2: // CMS is optional for Sound Blaster 1 and 2
+	case SBT_1: return cms_enabled;
+	case SBT_GB:
+		if (!cms_enabled) {
+			LOG_WARNING("%s: 'cms' setting is 'off', but is forced to 'auto' on the Game Blaster.",
+			            CardType());
+			auto* sect_updater = static_cast<Section_prop*>(control->GetSection("sblaster"));
+			sect_updater->Get_prop("cms")->SetValue("auto");
+		}
+		return true; // Game Blaster is CMS
+	default: 
+		if (cms_enabled) {
+			LOG_WARNING("%s: 'cms' setting 'on' not supported on this card, forcing 'auto'.",
+			            CardType());
+			auto* sect_updater = static_cast<Section_prop*>(control->GetSection("sblaster"));
+			sect_updater->Get_prop("cms")->SetValue("auto");
+		}
+		return false;
+	}
+
+	return false;
+}
+     
         if (IS_PC98_ARCH) {
             if (opl_mode != OPL_none) {
                 if (opl_mode != OPL_opl3) {
@@ -3929,15 +3977,8 @@ public:
             if (!IS_PC98_ARCH)
                 WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
             break;
-        case OPL_cms:
-            assert(!IS_PC98_ARCH);
-            WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
-            CMS_Init(section);
-            break;
         case OPL_opl2:
             assert(!IS_PC98_ARCH);
-            CMS_Init(section);
-            // fall-through
         case OPL_dualopl2:
             assert(!IS_PC98_ARCH);
             // fall-through
@@ -4227,12 +4268,7 @@ ASP>
         switch (oplmode) {
         case OPL_none:
             break;
-        case OPL_cms:
-            CMS_ShutDown(m_configuration);
-            break;
         case OPL_opl2:
-            CMS_ShutDown(m_configuration);
-            // fall-through
         case OPL_dualopl2:
         case OPL_opl3:
         case OPL_opl3gold:
