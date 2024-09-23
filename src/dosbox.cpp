@@ -1393,7 +1393,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* gustypes[] = { "classic", "classic37", "max", "interwave", nullptr };
     const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "ess1688", "reveal_sc400", "none", nullptr };
     const char* oplmodes[] = { "auto", "cms", "opl2", "dualopl2", "opl3", "opl3gold", "none", "hardware", "hardwaregb", "esfm", nullptr };
-    const char* Set_CMS[] = { "on", "off", "auto"};
+    const char* Set_CMS[] = { "on", "off", "auto", nullptr };
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", nullptr };
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", nullptr };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", nullptr };
