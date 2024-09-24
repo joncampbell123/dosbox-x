@@ -4000,7 +4000,7 @@ public:
             Bitu base = (unsigned int)section->Get_hex("hardwarebase");
             HARDOPL_Init(base, sb.hw.base, isCMSpassthrough);
 #else
-            LOG_MSG("OPL pass-through is disabled. It may not be supported on this operating system.");  
+            LOG_MSG("OPL pass-through is disabled. It may not be supported on this operating system.");
 #endif
            sb.cms = is_cms_enabled();
 		if (cms) {
