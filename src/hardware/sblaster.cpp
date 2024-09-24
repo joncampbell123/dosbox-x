@@ -3988,6 +3988,10 @@ public:
         case OPL_esfm:
             OPL_Init(section,oplmode);
             break;
+		sb.cms = is_cms_enabled();
+		if (cms) {
+			CMS_Init(section);
+		}
         case OPL_hardwareCMS:
             assert(!IS_PC98_ARCH);
 #if HAS_HARDOPL
@@ -4002,10 +4006,6 @@ public:
 #else
             LOG_MSG("OPL pass-through is disabled. It may not be supported on this operating system.");
 #endif
-           sb.cms = is_cms_enabled();
-		if (cms) {
-			CMS_Init(section);
-		} 
             break;
         }
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
