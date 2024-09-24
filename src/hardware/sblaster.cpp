@@ -3718,7 +3718,7 @@ private:
         /* OPL/CMS Init */
         const char * omode=config->Get_string("oplmode");
         if (!strcasecmp(omode,"none")) opl_mode=OPL_none;
-        else if (!strcasecmp(omode,"cms")) opl_mode=OPL_cms;
+        else if (!strcasecmp(omode,"cms")) {} // Skip for backward compatibility with existing configurations
         else if (!strcasecmp(omode,"opl2")) opl_mode=OPL_opl2;
         else if (!strcasecmp(omode,"dualopl2")) opl_mode=OPL_dualopl2;
         else if (!strcasecmp(omode,"opl3")) opl_mode=OPL_opl3;
@@ -3733,7 +3733,8 @@ private:
                 opl_mode=OPL_none;
                 break;
             case SBT_GB:
-                opl_mode=OPL_cms;
+                opl_mode=OPL_none;
+                bool cms;
                 break;
             case SBT_1:
             case SBT_2:
@@ -3999,8 +4000,12 @@ public:
             Bitu base = (unsigned int)section->Get_hex("hardwarebase");
             HARDOPL_Init(base, sb.hw.base, isCMSpassthrough);
 #else
-            LOG_MSG("OPL pass-through is disabled. It may not be supported on this operating system.");
+            LOG_MSG("OPL pass-through is disabled. It may not be supported on this operating system.");  
 #endif
+           sb.cms = is_cms_enabled();
+		if (cms) {
+			CMS_Init(section);
+		} 
             break;
         }
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
@@ -4266,6 +4271,9 @@ ASP>
 
     ~SBLASTER() {
         switch (oplmode) {
+            if (sb.cms) {
+			CMS_ShutDown(m_configuration);
+		}
         case OPL_none:
             break;
         case OPL_opl2:
