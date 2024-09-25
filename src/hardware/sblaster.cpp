@@ -174,6 +174,7 @@ struct SB_INFO {
     bool busy_cycle_always;
     bool ess_playback_mode;
     bool no_filtering;
+    bool cms;
     uint8_t sc400_cfg;
     uint8_t time_constant;
     uint8_t sc400_dsp_major,sc400_dsp_minor;
@@ -3718,7 +3719,7 @@ private:
         /* OPL/CMS Init */
         const char * omode=config->Get_string("oplmode");
         if (!strcasecmp(omode,"none")) opl_mode=OPL_none;
-        else if (!strcasecmp(omode,"cms")) opl_mode=OPL_cms;
+        else if (!strcasecmp(omode,"cms")); // Skip for backward compatibility with existing configurations
         else if (!strcasecmp(omode,"opl2")) opl_mode=OPL_opl2;
         else if (!strcasecmp(omode,"dualopl2")) opl_mode=OPL_dualopl2;
         else if (!strcasecmp(omode,"opl3")) opl_mode=OPL_opl3;
@@ -3730,10 +3731,8 @@ private:
         else {
             switch (type) {
             case SBT_NONE:
-                opl_mode=OPL_none;
-                break;
             case SBT_GB:
-                opl_mode=OPL_cms;
+                opl_mode=OPL_none;
                 break;
             case SBT_1:
             case SBT_2:
@@ -3929,15 +3928,7 @@ public:
             if (!IS_PC98_ARCH)
                 WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
             break;
-        case OPL_cms:
-            assert(!IS_PC98_ARCH);
-            WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
-            CMS_Init(section);
-            break;
         case OPL_opl2:
-            assert(!IS_PC98_ARCH);
-            CMS_Init(section);
-            // fall-through
         case OPL_dualopl2:
             assert(!IS_PC98_ARCH);
             // fall-through
@@ -3962,6 +3953,47 @@ public:
 #endif
             break;
         }
+
+        // Backward compatibility with existing configurations
+        if(section->Get_string("oplmode") == "cms") {
+            LOG(LOG_SB, LOG_WARN)("The 'cms' setting for 'oplmode' is deprecated; use 'cms = on' instead.");
+            sb.cms = true;
+        }
+        else {
+            const auto cms_str = section->Get_string("cms");
+            if(cms_str == "on") {
+                sb.cms = true;
+            }
+            else if(cms_str == "auto") {
+                sb.cms = (sb.type == SBT_1 || sb.type == SBT_GB);
+            }
+            else
+                sb.cms = false;
+        }
+
+        switch(sb.type) {
+        case SBT_1: // CMS is optional for Sound Blaster 1 and 2
+        case SBT_2:;
+        case SBT_GB:
+            if(!sb.cms) {
+                LOG(LOG_SB, LOG_WARN)("'cms' setting is 'off', but is forced to 'auto' on the Game Blaster.");
+                auto* sect_updater = static_cast<Section_prop*>(control->GetSection("sblaster"));
+                sect_updater->Get_prop("cms")->SetValue("auto");
+            }
+            sb.cms = true; // Game Blaster is CMS
+        default:
+            if(sb.cms) {
+                LOG(LOG_SB, LOG_WARN)("'cms' setting 'on' not supported on this card, forcing 'auto'.");
+                auto* sect_updater = static_cast<Section_prop*>(control->GetSection("sblaster"));
+                sect_updater->Get_prop("cms")->SetValue("auto");
+            }
+            sb.cms = false;
+        }
+
+        if(sb.cms) {
+            CMS_Init(section);
+        }
+
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
 
         sb.chan=MixerChan.Install(&SBLASTER_CallBack,22050,"SB");
@@ -4227,12 +4259,7 @@ ASP>
         switch (oplmode) {
         case OPL_none:
             break;
-        case OPL_cms:
-            CMS_ShutDown(m_configuration);
-            break;
         case OPL_opl2:
-            CMS_ShutDown(m_configuration);
-            // fall-through
         case OPL_dualopl2:
         case OPL_opl3:
         case OPL_opl3gold:
@@ -4241,6 +4268,9 @@ ASP>
             break;
         default:
             break;
+        }
+        if(sb.cms) {
+            CMS_ShutDown(m_configuration);
         }
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
         DSP_Reset(); // Stop everything
