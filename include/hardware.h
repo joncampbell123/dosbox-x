@@ -22,7 +22,7 @@
 
 class Section;
 enum OPL_Mode {
-	OPL_none,OPL_cms,OPL_opl2,OPL_dualopl2,OPL_opl3,OPL_opl3gold,OPL_hardware,OPL_hardwareCMS,OPL_esfm
+	OPL_none,OPL_opl2,OPL_dualopl2,OPL_opl3,OPL_opl3gold,OPL_hardware,OPL_hardwareCMS,OPL_esfm
 };
 #define CAPTURE_WAVE	0x01
 #define CAPTURE_OPL		0x02
@@ -36,8 +36,9 @@ enum OPL_Mode {
 extern Bitu CaptureState;
 
 void OPL_Init(Section* sec,OPL_Mode oplmode);
-void CMS_Init(Section* sec);
 void OPL_ShutDown(Section* sec);
+
+void CMS_Init(Section* sec);
 void CMS_ShutDown(Section* sec);
 
 bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma);
