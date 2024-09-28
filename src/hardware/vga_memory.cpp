@@ -1617,6 +1617,7 @@ public:
 };
 
 extern uint16_t a1_font_load_addr;
+extern uint8_t a1_font_char_offset;
 
 /* A4000-A4FFF character generator memory-mapped I/O */
 /* 0xA4000-0xA4FFF is word-sized access to the character generator.
@@ -1639,8 +1640,16 @@ class VGA_PC98_CG_PageHandler : public PageHandler {
 public:
 	VGA_PC98_CG_PageHandler() : PageHandler(PFLAG_NOCODE) {}
 	uint8_t readb(PhysPt addr) override {
-        return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1);
-    }
+		uint8_t high = a1_font_load_addr & 0xff;
+		if((high >= 0x09 && high <= 0x0b) || (high >= 0x0c && high <= 0x0f) || (high >= 0x58 && high <= 0x5f)) {
+			if(addr & 1) {
+				return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF, (a1_font_char_offset & 0x20) ? 0 : 1);
+			} else {
+				return 0;
+			}
+		}
+		return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1);
+	}
 	void writeb(PhysPt addr,uint8_t val) override {
 		if ((a1_font_load_addr & 0x007E) == 0x0056 && (a1_font_load_addr & 0xFF00) != 0x0000)
 			pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,val);
