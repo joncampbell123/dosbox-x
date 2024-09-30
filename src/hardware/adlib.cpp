@@ -1544,7 +1544,6 @@ OPL_Mode Module::oplmode=OPL_none;
 
 std::string getoplmode() {
     if (Adlib::Module::oplmode == OPL_none) return "None";
-    else if (Adlib::Module::oplmode == OPL_cms) return "CMS";
     else if (Adlib::Module::oplmode == OPL_opl2) return "OPL2";
     else if (Adlib::Module::oplmode == OPL_dualopl2) return "Dual OPL2";
     else if (Adlib::Module::oplmode == OPL_opl3) return "OPL3";
