@@ -45,9 +45,9 @@ content:
 
   - name: release_notes
     label: Release Notes
-    path: _release_notes
     type: collection
-    filename: "{primary}.md"
+    path: _release_notes
+    filename: "{fields.slug}.md"
     subfolders: false
     fields:
       - name: slug
