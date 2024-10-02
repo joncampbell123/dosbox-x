@@ -1169,23 +1169,11 @@ It still only supports up to 16 colours on-screen, but out of a pallet of 64 col
 </div>
 </div>
 <div class="paragraph">
-<p>One feature it dropped however, was the composite output support.
-As such, it does not support the CGA artefact colours.</p>
+<p>One feature that was dropped with the introduction of EGA, was the composite output support.
+As such, EGA does not support CGA artefact colours.</p>
 </div>
 <div class="paragraph">
 <p>The vertical refresh of EGA like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-Emulating 64KiB of video memory with EGA is not recommended, as the code for it is experimental and does not properly emulate the memory layout of a 64KiB EGA card.
-</td>
-</tr>
-</table>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1205,7 +1193,7 @@ Some clone EGA cards added extra video modes, typically known as SuperEGA cards.
 <p>DOSBox-X emulates the EGA card with an EGA monitor. But with a real IBM EGA card it is also possible to use an MDA or CGA monitor.</p>
 </div>
 <div class="paragraph">
-<p>Although rare, some software such as the <a href="https://www.os2museum.com/wp/fantasyland-on-vga/">IBM Fantasy Land Demo</a>, which expects a CGA monitor with 200-line text mode and 8x8 font, and will not work properly with a regular EGA monitor with 350-line text mode and 8x14 font.</p>
+<p>Although rare, some software such as the <a href="https://www.os2museum.com/wp/fantasyland-on-vga/">IBM Fantasy Land Demo</a>, which expects a CGA monitor with 200-line text mode and 8x8 font will not work properly with a regular EGA monitor with 350-line text mode and 8x14 font.</p>
 </div>
 <div class="paragraph">
 <p>An EGA adapter attached to a 200-line CGA monitor can be emulated as such:</p>
