@@ -141,7 +141,7 @@
 <p>Note: This functionality is limited to text pasting on the Linux SDL1 build.</p>
 </div>
 <div class="paragraph">
-<p>Copying and pasting text to or from the clipboard is also supported via the DOS APIs in DOSBox-X, so DOS programs that can directly access the Windows 3.x/9x clipboard from a DOS window can also be used to copy and paste text to or from the shared clipboard when running in DOSBox-X. This function may be enabled by default, but can be disabled either by unchecking the option "Enable DOS clipboard API for applications" within the "Shared clipboard functions" menu group, or by setting the config option <code>dos clipboard api</code> to <code>false</code> in the [dos] section of the config file.</p>
+<p>Copying and pasting text to or from the clipboard is also supported via the DOS APIs in DOSBox-X, so DOS programs that can directly access the Windows 3.x/9x clipboard from a DOS window can also be used to copy and paste text to or from the shared clipboard when running in DOSBox-X. This function is disabled by default as of DOSBox-X 2024-07-01, but can be enabled either by checking the option "Enable DOS clipboard API for applications" within the "Shared clipboard functions" menu group, or by setting the config option <code>dos clipboard api</code> to <code>true</code> in the [dos] section of the config file.</p>
 </div>
 <div class="paragraph">
 <p>When DOS clipboard APIs are activated, the <a href="https://www.horstmuc.de/div.htm#wclip">WCLIP</a> tool by Horst Schaeffer for example can be used to access the shared clipboard inside DOSBox-X. Below are some examples of using this program to communicate with the clipboard:</p>

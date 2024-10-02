@@ -35,7 +35,7 @@ content:
         label: HX-DOS build filename
         type: string
 
-      # Presently obsolete flavors
+      # Currently obsolete flavors
       - name: macos_special_file
         label: macOS High Sierra special build filename
         type: string
@@ -45,9 +45,9 @@ content:
 
   - name: release_notes
     label: Release Notes
-    path: _release_notes
     type: collection
-    filename: "{primary}.md"
+    path: _release_notes
+    filename: "{fields.slug}.md"
     subfolders: false
     fields:
       - name: slug
@@ -58,16 +58,16 @@ content:
         label: Secondary Version
         type: string
         required: false
-        description: For specific versions that has both a 0.xx.x string and a YYYY.MM.x string.
+        description: For specific versions that has both a 0.xx.x-style ver num and a YYYY.MM.x-style ver num.
       - name: date
         label: Date
         type: date
         required: true
         options:
-          format: MMMM D, YYYY
+          format: MMMM d, yyyy
       - name: body
         label: Body
-        description: Usually just the change log.
+        description: Usually just the changelog.
         type: rich-text
         required: true
     view:
