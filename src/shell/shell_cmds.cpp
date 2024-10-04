@@ -140,6 +140,7 @@ extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t w
 extern void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
+bool CheckDBCSCP(int32_t codepage);
 
 /* support functions */
 static char empty_char = 0;
@@ -4599,7 +4600,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
     int32_t cp = dos.loaded_codepage;
     Bitu keyb_error;
     if(n == 1) {
-        if(newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || newCP == 951
+        if(CheckDBCSCP(newCP)
 #if defined(USE_TTF)
             || (ttf.inUse && (newCP >= 1250 && newCP <= 1258))
 #endif
@@ -4636,7 +4637,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
         if(*buff == ':' && strchr(StripArg(args), ':')) {
             std::string name = buff + 1;
             if(name.empty() && iter != langcp_map.end()) name = iter->second;
-            if(newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || newCP == 951) {
+            if(CheckDBCSCP(newCP)) {
                 missing = toSetCodePage(this, newCP, -1);
                 if(missing > -1) SwitchLanguage(cp, newCP, true);
                 if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);

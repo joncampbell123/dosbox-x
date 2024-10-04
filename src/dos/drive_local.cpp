@@ -111,7 +111,7 @@ std::string ldir[256];
 static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 host_cnv_char_t *CodePageGuestToHost(const char *s);
-extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), CheckDBCSCP(int32_t codepage);
 extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidthkana, dbcs_sbcs, inmsg, forceswk;
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
@@ -1010,7 +1010,7 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
 host_cnv_char_t *CodePageGuestToHost(const char *s) {
 #if defined(host_cnv_use_wchar)
     uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
-    if (tryconvertcp && !notrycp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
+    if (tryconvertcp && !notrycp && cpbak == 437 && CheckDBCSCP(cp)) {
         dos.loaded_codepage = cp;
         if (CodePageGuestToHostUTF16((uint16_t *)cpcnv_temp,s)) {
             dos.loaded_codepage = cpbak;
@@ -1030,7 +1030,7 @@ host_cnv_char_t *CodePageGuestToHost(const char *s) {
 char *CodePageHostToGuest(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
     uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
-    if (tryconvertcp && !notrycp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
+    if (tryconvertcp && !notrycp && cpbak == 437 && CheckDBCSCP(cp)) {
         dos.loaded_codepage = cp;
         if (CodePageHostToGuestUTF16((char *)cpcnv_temp,(const uint16_t *)s)) {
             dos.loaded_codepage = cpbak;
@@ -1050,7 +1050,7 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
 char *CodePageHostToGuestL(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
     uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
-    if (tryconvertcp && !notrycp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
+    if (tryconvertcp && !notrycp && cpbak == 437 && CheckDBCSCP(cp)) {
         dos.loaded_codepage = cp;
         if (CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(const uint16_t *)s)) {
             dos.loaded_codepage = cpbak;
