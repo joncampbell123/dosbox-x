@@ -52,6 +52,7 @@ extern const char * RunningProgram;
 Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 Bitu DOS_LoadKeyboardLayout(const char* layoutname, int32_t codepage, const char* codepagefile);
+bool CheckDBCSCP(int32_t codepage);
 
 #define LINE_IN_MAXLEN 2048
 
@@ -204,12 +205,21 @@ void AddMessages() {
     MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
 }
 
+// True if specified codepage is a DBCS codepage
+bool CheckDBCSCP(int32_t codepage) {
+    if(codepage == 932 || codepage == 936 || codepage == 949 || codepage == 950 || codepage == 951) {
+        //LOG_MSG("CheckDBCSCP: Codepage %d true", codepage);
+        return true;
+    }
+    else return false;
+}
+
 void MSG_Init(void);
 void SetKEYBCP() {
     if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
     Bitu return_code;
 
-    if(msgcodepage == 932 || msgcodepage == 936 || msgcodepage == 949 || msgcodepage == 950 || msgcodepage == 951) {
+    if(CheckDBCSCP(msgcodepage)) {
         MSG_Init();
         InitFontHandle();
         JFONT_Init();
@@ -389,7 +399,7 @@ void LoadMessageFile(const char * fname) {
     dos.loaded_codepage=cp;
     if (loadlangcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) {
         ShutFontHandle();
-        if(msgcodepage == 932 || msgcodepage == 936 || msgcodepage == 949 || msgcodepage == 950 || msgcodepage == 951) {
+        if(CheckDBCSCP(msgcodepage)) {
             dos.loaded_codepage = msgcodepage;
             InitFontHandle();
             JFONT_Init();
@@ -486,7 +496,7 @@ void MSG_Init() {
                 sprintf(cstr, "%s,%d", countrystr, msgcodepage);
                 SetVal("config", "country", cstr);
                 const char *imestr = section->Get_string("ime");
-                if (tonoime && !strcasecmp(imestr, "auto") && (msgcodepage == 932 || msgcodepage == 936 || msgcodepage == 949 || msgcodepage == 950 || msgcodepage == 951)) {
+                if (tonoime && !strcasecmp(imestr, "auto") && CheckDBCSCP(msgcodepage)) {
                     tonoime = false;
                     enableime = true;
                     SetIME();

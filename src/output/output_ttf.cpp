@@ -125,6 +125,7 @@ bool init_once = false, init_twice = false;
 int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 void AdjustIMEFontSize(void),refreshExtChar(void), initcodepagefont(void), change_output(int output), drawmenu(Bitu val), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool isDBCSCP(void), InitCodePage(void), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+bool CheckDBCSCP(int32_t codepage);
 std::string GetDOSBoxXPath(bool withexe=false);
 
 #if defined(C_SDL2)
@@ -502,14 +503,14 @@ int setTTFMap(bool changecp) {
         uname[0]=0;
         uname[1]=0;
         if (cp == 932 && (halfwidthkana || IS_JEGA_ARCH)) forceswk=true;
-        if (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951) dos.loaded_codepage = 437;
+        if (CheckDBCSCP(cp)) dos.loaded_codepage = 437;
         if (CodePageGuestToHostUTF16(uname,text)) {
             wcTest[i] = uname[1]==0?uname[0]:i;
             if (cp == 932 && lowboxdrawmap.find(i)!=lowboxdrawmap.end() && TTF_GlyphIsProvided(ttf.SDL_font, wcTest[i]))
                 cpMap[i] = wcTest[i];
         }
         forceswk=false;
-        if (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951) dos.loaded_codepage = cp;
+        if (CheckDBCSCP(cp)) dos.loaded_codepage = cp;
     }
     uint16_t unimap;
     int notMapped = 0;
