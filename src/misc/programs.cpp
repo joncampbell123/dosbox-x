@@ -726,7 +726,7 @@ void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGa
 bool set_ver(char *s), GFX_IsFullscreen(void);
 
 void Load_Language(std::string name) {
-    control->opt_lang = name;
+    if(control->opt_lang != "") control->opt_lang = name;
     MSG_Init();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU || DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
     mainMenu.unbuild();

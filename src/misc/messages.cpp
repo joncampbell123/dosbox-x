@@ -397,26 +397,9 @@ void LoadMessageFile(const char * fname) {
     menu_update_autocycle();
     update_bindbutton_text();
     dos.loaded_codepage=cp;
-    if (loadlangcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) {
-        ShutFontHandle();
-        if(CheckDBCSCP(msgcodepage)) {
-            dos.loaded_codepage = msgcodepage;
-            InitFontHandle();
-            JFONT_Init();
-        }
-        if (!IS_DOSV && !IS_JEGA_ARCH) {
-#if defined(USE_TTF)
-            if (ttf.inUse) toSetCodePage(NULL, msgcodepage, -2); else
-#endif
-            {
-                dos.loaded_codepage = msgcodepage;
-                DOSBox_SetSysMenu();
-#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-                if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
-                    UpdateSDLDrawTexture();
-#endif
-            }
-            SetKEYBCP();
+    if (loadlangcp && msgcodepage>0) {
+        if(!IS_DOSV && !IS_JEGA_ARCH) {
+            toSetCodePage(NULL, msgcodepage, -1);
         }
     }
     refreshExtChar();
