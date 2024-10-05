@@ -140,7 +140,9 @@ extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t w
 extern void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
+Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 bool CheckDBCSCP(int32_t codepage);
+static int32_t lastsetcp = 0;
 
 /* support functions */
 static char empty_char = 0;
@@ -4527,14 +4529,16 @@ extern bool jfont_init, isDBCSCP();
 extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
 int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
-    if (isSupportedCP(newCP)) {
-		dos.loaded_codepage = newCP;
+    if((TTF_using() && isSupportedCP(newCP)) || !TTF_using()) {
+        if(!CheckDBCSCP(newCP)) DOS_ChangeCodepage(newCP, "auto");
+        dos.loaded_codepage = newCP;
         int missing = 0;
 #if defined(USE_TTF)
 		missing = TTF_using() ? setTTFCodePage() : 0;
 #endif
         if (!TTF_using()) initcodepagefont();
-        if (dos.loaded_codepage==437) DOS_LoadKeyboardLayout("us", 437, "auto");
+        //if (dos.loaded_codepage==437) DOS_LoadKeyboardLayout("us", 437, "auto");
+        //LOG_MSG("toSetCodePage opt=%d, loadlangnew=%d", opt, loadlangnew?1:0);
         if (opt==-1) {
             MSG_Init();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
@@ -4550,8 +4554,8 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
             ShutFontHandle();
             InitFontHandle();
             JFONT_Init();
+            SetupDBCSTable();
         }
-        SetupDBCSTable();
         runRescan("-A -Q");
 #if defined(USE_TTF)
         if ((opt==-1||opt==-2)&&TTF_using()) {
@@ -4565,6 +4569,10 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
             }
         }
 #endif
+        if(newCP != lastsetcp) {
+            LOG_MSG("Codepage set to %d", newCP);
+            lastsetcp = newCP;
+        }
         return missing;
     } else if (opt<1 && shell) {
        shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), std::to_string(newCP).c_str());
