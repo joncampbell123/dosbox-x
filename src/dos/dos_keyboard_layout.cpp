@@ -48,7 +48,6 @@ int lastcp = 0;
 void DOSBox_SetSysMenu(void);
 bool OpenGL_using(void), isDBCSCP(void);
 void change_output(int output), UpdateSDLDrawTexture();
-void SwitchLanguage(int oldcp, int newcp, bool confirm);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 void MSG_Init(), JFONT_Init(), runRescan(const char *str);
 extern int tryconvertcp, toSetCodePage(DOS_Shell *shell, int newCP, int opt);
@@ -1425,8 +1424,10 @@ Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage) {
 
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile) {
     // try to read the layout for the specified codepage
+    int32_t oldcp = dos.loaded_codepage;
     Bitu kerrcode = loaded_layout->read_codepage_file(codepagefile, codepage);
     if(kerrcode) {
+        loaded_layout->read_codepage_file("auto", oldcp);
         return kerrcode;
     }
     // Everything went fine
@@ -1487,7 +1488,7 @@ public:
 					layoutname = "bg241";
 					break; */
 				case 1028: // Taiwan, CP 950, Alt CP 951
-                    layoutname = "us";
+                    layoutname = "tw";
                     tocp = 950;
                     break;
 				case 1029: // Czech Republic, CP 852, Alt CP 850
@@ -1535,7 +1536,7 @@ public:
                     tocp = 932;
                     break;
 				case 1042: // Korea, CP 949
-                    layoutname = "us";
+                    layoutname = "ko";
                     tocp = 949;
                     break;
 				case 1043: // Netherlands, CP 850, Alt CP 437
@@ -1604,7 +1605,7 @@ public:
 					layoutname = "hy";
 					break; */
 				case 2052: // China, CP 936
-                    layoutname = "us";
+                    layoutname = "cn";
                     tocp = 936;
                     break;
 				case 2055: // Swiss-German, CP 850, Alt CP 437
@@ -1631,7 +1632,7 @@ public:
 					layoutname = "po";
 					break;
 				case 3076: // Hong Kong, CP 950, Alt CP 951
-                    layoutname = "us";
+                    layoutname = "hk";
                     tocp = 950;
                     break;
 				case 3081: // Australia, CP 850, Alt CP 437
