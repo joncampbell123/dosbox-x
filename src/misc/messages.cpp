@@ -335,7 +335,7 @@ void LoadMessageFile(const char * fname) {
                         }
                         else {
                             std::string msg = "The specified language file uses code page " + std::to_string(c) + ". Do you want to change to this code page accordingly?";
-                            if(c != dos.loaded_codepage && (control->opt_langcp || uselangcp || !CHCP_changed || !loadlang || (loadlang && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)))){
+                            if(c != dos.loaded_codepage && (control->opt_langcp || uselangcp || !CHCP_changed || CheckDBCSCP(c) || !loadlang || (loadlang && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)))) {
                                 loadlangcp = true;
                                 msgcodepage = c;
                                 dos.loaded_codepage = c;
