@@ -2810,7 +2810,7 @@ void DOS_Shell::CMD_SET(char * args) {
 				WriteOut(MSG_Get("SHELL_CMD_SET_NOT_SET"),env_name.c_str());
 			break;
 		case set_env:
-			if (zdirpath && env_name == "path") GetExpandedPath(env_value);
+            if(zdirpath && !strcasecmp(env_name.c_str(), "path")) GetExpandedPath(env_value);
 
 			/* No parsing is needed. The command interpreter does the variable substitution for us */
 			/* NTS: If Win95 is any example, the command interpreter expands the variables for us */
