@@ -4648,40 +4648,22 @@ void DOS_Shell::CMD_CHCP(char * args) {
         if(*buff == ':' && strchr(StripArg(args), ':')) {
             std::string name = buff + 1;
             if(name.empty() && iter != langcp_map.end()) name = iter->second;
-            if(CheckDBCSCP(newCP)) {
+            if(!TTF_using() || (TTF_using() && isSupportedCP(newCP))) {
+                CHCP_changed = true;
                 missing = toSetCodePage(this, newCP, -1);
-                if(missing > -1) SwitchLanguage(cp, newCP, true);
                 if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-            }
-#if defined(USE_TTF)
-            else if(ttf.inUse) {
-                if(newCP >= 1250 && newCP <= 1258) {
-                    missing = toSetCodePage(this, newCP, -1);
-                    if(missing > -1) SwitchLanguage(cp, newCP, true);
-                    if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-                }
-                else if(!isSupportedCP(newCP)) {
+                else if(missing < 0) {
                     WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
-                    LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
+                    CHCP_changed = false;
                     return;
                 }
-            }
-#endif
-            else {
-                keyb_error = DOS_ChangeCodepage(newCP, "auto");
-                if(keyb_error == KEYB_NOERROR) {
-                    if(layout_name != NULL) {
-                        keyb_error = DOS_ChangeKeyboardLayout(layout_name, cp);
-                    }
-                }
-                else
-                    WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
             }
             if(name.size() && dos.loaded_codepage == newCP) {
                 SetVal("dosbox", "language", name);
                 Load_Language(name);
             }
             WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+            CHCP_changed = false;
             return;
         }
 #if defined(USE_TTF)
@@ -4706,7 +4688,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
             FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
             std::string exepath = GetDOSBoxXPath();
             if(!file && exepath.size()) file = fopen((exepath + CROSS_FILESPLIT + cpfile).c_str(), "r");
-            if(file && newCP > 0 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951) {
+            if(file && newCP > 0 && !CheckDBCSCP(newCP)) {
                 altcp = newCP;
                 char line[256], * l = line;
                 while(fgets(line, sizeof(line), file)) {
