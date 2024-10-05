@@ -1448,11 +1448,11 @@ public:
         const Section_prop* section = static_cast<Section_prop*>(configuration);
 		const char * layoutname=section->Get_string("keyboardlayout");
 		dos.loaded_codepage = GetDefaultCP();	// default codepage already initialized
-        int tocp=!stricmp(layoutname, "jp")||IS_JDOSV?932:(!stricmp(layoutname, "ko")||IS_KDOSV?949:(!stricmp(layoutname, "tw")||!stricmp(layoutname, "hk")||!stricmp(layoutname, "zht")||IS_TDOSV?950:(!stricmp(layoutname, "cn")||!stricmp(layoutname, "zh")||!stricmp(layoutname, "zhs")||IS_PDOSV?936:(!stricmp(layoutname, "us")?437:0))));
+        int tocp=!strcmp(layoutname, "jp")||IS_JDOSV?932:(!strcmp(layoutname, "ko")||IS_KDOSV?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")||!strcmp(layoutname, "zht")||IS_TDOSV?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")||!strcmp(layoutname, "zhs")||IS_PDOSV?936:(!strcmp(layoutname, "us")?437:0))));
 #if defined(WIN32)
 		if (dos.loaded_codepage == 932 && !IS_PC98_ARCH && GetKeyboardType(0) == 7 && !strcmp(layoutname, "auto")) layoutname = "jp106";
 #endif
-        if (tocp && stricmp(layoutname, "jp106") && stricmp(layoutname, "jp") && stricmp(layoutname, "ko") && stricmp(layoutname, "cn") && stricmp(layoutname, "hk") && stricmp(layoutname, "tw")) layoutname="us";
+        if (tocp && strcmp(layoutname, "jp106") && strcmp(layoutname, "jp") && strcmp(layoutname, "ko") && strcmp(layoutname, "cn") && strcmp(layoutname, "hk") && strcmp(layoutname, "tw")) layoutname="us";
 
 #if defined(USE_TTF)
         if (TTF_using()) setTTFCodePage(); else
@@ -1702,11 +1702,11 @@ public:
 /*		if (strncmp(layoutname,"auto",4) && strncmp(layoutname,"none",4)) {
 			LOG_MSG("Loading DOS keyboard layout %s ...",layoutname);
 		} */
-        if(!stricmp(layoutname, "cn") || !stricmp(layoutname, "hk") || !stricmp(layoutname, "tw") || !stricmp(layoutname, "ko")) {
+        if(!strcmp(layoutname, "cn") || !strcmp(layoutname, "hk") || !strcmp(layoutname, "tw") || !strcmp(layoutname, "ko")) {
             loaded_layout->read_keyboard_file("us", 437);
-            if(!stricmp(layoutname, "cn")) dos.loaded_codepage = 936;
-            if(!stricmp(layoutname, "hk") || !stricmp(layoutname, "tw")) dos.loaded_codepage = 950;
-            if(!stricmp(layoutname, "ko")) dos.loaded_codepage = 949;
+            if(!strcmp(layoutname, "cn")) dos.loaded_codepage = 936;
+            if(!strcmp(layoutname, "hk") || !strcmp(layoutname, "tw")) dos.loaded_codepage = 950;
+            if(!strcmp(layoutname, "ko")) dos.loaded_codepage = 949;
         }
         if (!tocp && loaded_layout->read_keyboard_file(layoutname, dos.loaded_codepage)) {
             if (strncmp(layoutname,"auto",4)) {
@@ -1720,14 +1720,14 @@ public:
 		}
         if (tocp && !IS_PC98_ARCH) {
             uint16_t cpbak = dos.loaded_codepage;
-            if((dos.loaded_codepage == 932 || tocp == 932) && (!stricmp(layoutname, "jp106") || !stricmp(layoutname, "jp"))) loaded_layout->read_keyboard_file(layoutname, 932);
-            if(!stricmp(layoutname, "ko") || !stricmp(layoutname, "cn") || !stricmp(layoutname, "tw") || !stricmp(layoutname, "hk")) {
+            if((dos.loaded_codepage == 932 || tocp == 932) && (!strcmp(layoutname, "jp106") || !strcmp(layoutname, "jp"))) loaded_layout->read_keyboard_file(layoutname, 932);
+            if(!strcmp(layoutname, "ko") || !strcmp(layoutname, "cn") || !strcmp(layoutname, "tw") || !strcmp(layoutname, "hk")) {
                 loaded_layout->read_keyboard_file("us", 437);
                 dos.loaded_codepage = tocp;
             }
 
             if (!TTF_using() || (TTF_using() && isSupportedCP(tocp))){
-                toSetCodePage(NULL, msgcodepage ? msgcodepage : tocp, -2);
+                toSetCodePage(NULL, msgcodepage ? msgcodepage : tocp, msgcodepage ? -1: -2);
                 runRescan("-A -Q");
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                 if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
