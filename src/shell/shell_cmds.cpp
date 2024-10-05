@@ -135,14 +135,15 @@ extern uint16_t countryNo, altcp_to_unicode[256];
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void), Network_IsNetworkResource(const char * filename);
 extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), GFX_GetPreventFullscreen(void), DOS_SetAnsiAttr(uint8_t attr);
 extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-extern void Load_Language(std::string name), SwitchLanguage(int oldcp, int newcp, bool confirm), GetExpandedPath(std::string &path);
+extern void Load_Language(std::string name), GetExpandedPath(std::string &path);
 extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice);
 extern void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
-bool CheckDBCSCP(int32_t codepage);
+bool CheckDBCSCP(int32_t codepage), SwitchLanguage(int oldcp, int newcp, bool confirm);
 static int32_t lastsetcp = 0;
+bool CHCP_changed = false;
 
 /* support functions */
 static char empty_char = 0;
@@ -4530,8 +4531,18 @@ extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, co
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
 int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     if((TTF_using() && isSupportedCP(newCP)) || !TTF_using()) {
-        if(!CheckDBCSCP(newCP)) DOS_ChangeCodepage(newCP, "auto");
-        dos.loaded_codepage = newCP;
+        int32_t oldcp = dos.loaded_codepage;
+        Bitu keyb_error;
+        if (!CheckDBCSCP(newCP)){
+            keyb_error = DOS_ChangeCodepage(newCP, "auto");
+            if (keyb_error != KEYB_NOERROR) {
+                dos.loaded_codepage = oldcp;
+                return -1;
+            }
+        }
+        else {
+            dos.loaded_codepage = newCP;
+        }
         int missing = 0;
 #if defined(USE_TTF)
 		missing = TTF_using() ? setTTFCodePage() : 0;
@@ -4608,37 +4619,29 @@ void DOS_Shell::CMD_CHCP(char * args) {
     int32_t cp = dos.loaded_codepage;
     Bitu keyb_error;
     if(n == 1) {
-        if(CheckDBCSCP(newCP)
-#if defined(USE_TTF)
-            || (ttf.inUse && (newCP >= 1250 && newCP <= 1258))
-#endif
-            ) {
-            missing = toSetCodePage(this, newCP, -1);
-            if(missing > -1) SwitchLanguage(cp, newCP, true);
+        if (!TTF_using() || (TTF_using() && isSupportedCP(newCP))){
+            bool load_language = SwitchLanguage(cp, newCP, true);
+            CHCP_changed = true;
+            missing = toSetCodePage(this, newCP, load_language ? -1: -2);
             if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-        }
-        else {
-#if defined(USE_TTF)
-            if(ttf.inUse && !isSupportedCP(newCP)) {
+            else if(missing < 0) {
                 WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
-                LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
+                CHCP_changed = false;
                 return;
             }
-#endif
-            keyb_error = DOS_ChangeCodepage(newCP, "auto");
-            if(keyb_error == KEYB_NOERROR) {
-                SwitchLanguage(cp, newCP, true);
-/**
-                if(layout_name != NULL) {
-                    keyb_error = DOS_ChangeKeyboardLayout(layout_name, cp);
-                }
-*/
+        }
+        else {
+            if(TTF_using() && !isSupportedCP(newCP)) {
+                WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
+                LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
             }
             else {
                 WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
-                return;
             }
+            CHCP_changed = false;
+            return;
         }
+        CHCP_changed = false;
         WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
     }
     else if(n == 2 && strlen(buff)) {
