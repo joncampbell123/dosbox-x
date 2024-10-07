@@ -1,3 +1,6 @@
+Next
+  - Fixed Z Drive path expansion to be case insensitive (maron2000)
+
 2024.10.01
   - Allow the ".inst" extension for CUE sheets. (Allofich)
   - Add SET /FIRST, a DOSBox-X extension, that takes the specified
@@ -96,6 +99,7 @@
     - retain 'show advanced options' state throughout session
   - SVN r4483: Fix compilation in Visual Studio 2008 (Allofich)
   - DOSBox Staging: Decouple CMS and OPL emulations (Allofich)
+  - Fixed reading NEC specific character font data.(nanshiki)
 
 2024.07.01
   - Correct Hercules InColor memory emulation. Read and write planar
