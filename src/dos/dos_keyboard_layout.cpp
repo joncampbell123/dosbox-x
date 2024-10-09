@@ -1142,7 +1142,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 
 		uint16_t seg=0;
 		uint16_t size=0x1500;
-		if (!DOS_AllocateMemory(&seg,&size)) E_Exit("Not enough free low memory to unpack data");
+        if (!DOS_AllocateMemory(&seg, &size)) E_Exit("Not enough free low memory to unpack data");
 		MEM_BlockWrite(((unsigned int)seg<<4u)+0x100u,cpi_buf,size_of_cpxdata);
 
 		// setup segments
@@ -1704,9 +1704,9 @@ public:
 		} */
         if(!strcmp(layoutname, "cn") || !strcmp(layoutname, "hk") || !strcmp(layoutname, "tw") || !strcmp(layoutname, "ko")) {
             loaded_layout->read_keyboard_file("us", 437);
-            if(!strcmp(layoutname, "cn")) dos.loaded_codepage = 936;
-            if(!strcmp(layoutname, "hk") || !strcmp(layoutname, "tw")) dos.loaded_codepage = 950;
-            if(!strcmp(layoutname, "ko")) dos.loaded_codepage = 949;
+            if(!strcmp(layoutname, "cn")) tocp = 936;
+            if(!strcmp(layoutname, "hk") || !strcmp(layoutname, "tw")) tocp = 950;
+            if(!strcmp(layoutname, "ko")) tocp = 949;
         }
         if (!tocp && loaded_layout->read_keyboard_file(layoutname, dos.loaded_codepage)) {
             if (strncmp(layoutname,"auto",4)) {
@@ -1718,7 +1718,7 @@ public:
 				LOG_MSG("DOS keyboard layout loaded with main language code %s for layout %s",lcode,layoutname);
 			}
 		}
-        if (tocp && !IS_PC98_ARCH) {
+        if ((tocp || msgcodepage) && !IS_PC98_ARCH) {
             uint16_t cpbak = dos.loaded_codepage;
             if((dos.loaded_codepage == 932 || tocp == 932) && (!strcmp(layoutname, "jp106") || !strcmp(layoutname, "jp"))) loaded_layout->read_keyboard_file(layoutname, 932);
             if(!strcmp(layoutname, "ko") || !strcmp(layoutname, "cn") || !strcmp(layoutname, "tw") || !strcmp(layoutname, "hk")) {
