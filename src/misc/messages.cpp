@@ -52,7 +52,9 @@ extern const char * RunningProgram;
 Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 Bitu DOS_LoadKeyboardLayout(const char* layoutname, int32_t codepage, const char* codepagefile);
+const char* DOS_GetLoadedLayout(void);
 bool CheckDBCSCP(int32_t codepage);
+void MSG_Init(void);
 
 #define LINE_IN_MAXLEN 2048
 
@@ -214,7 +216,6 @@ bool CheckDBCSCP(int32_t codepage) {
     else return false;
 }
 
-void MSG_Init(void);
 void SetKEYBCP() {
     if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
     Bitu return_code;
@@ -398,7 +399,8 @@ void LoadMessageFile(const char * fname) {
     update_bindbutton_text();
     dos.loaded_codepage=cp;
     if (loadlangcp && msgcodepage>0) {
-        if(!IS_DOSV && !IS_JEGA_ARCH) {
+        const char* layoutname = DOS_GetLoadedLayout();
+        if(!IS_DOSV && !IS_JEGA_ARCH && layoutname != NULL) {
             toSetCodePage(NULL, msgcodepage, -1);
         }
     }
