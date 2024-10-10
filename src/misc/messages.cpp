@@ -94,7 +94,7 @@ void MSG_Replace(const char * _name, const char* _val) {
 
 bool InitCodePage() {
     if (!dos.loaded_codepage || dos_kernel_disabled || force_conversion) {
-        if (((control->opt_langcp && msgcodepage != dos.loaded_codepage) || uselangcp) && msgcodepage>0 && isSupportedCP(msgcodepage)) {
+        if (((control->opt_langcp && msgcodepage != dos.loaded_codepage) || uselangcp) && msgcodepage>0) {
             dos.loaded_codepage = msgcodepage;
             return true;
         }
@@ -103,10 +103,11 @@ bool InitCodePage() {
             char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
             if (r!=NULL && *(r+1)) {
                 int cp = atoi(trim(r+1));
-                if (cp>0 && isSupportedCP(cp)) {
+                if(cp > 0 && isSupportedCP(cp) && !msgcodepage) {
                     dos.loaded_codepage = cp;
                     return true;
                 }
+                else dos.loaded_codepage = msgcodepage;
             }
         }
         if (msgcodepage>0) {

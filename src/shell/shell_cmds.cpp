@@ -4526,7 +4526,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	return;
 }
 
-extern bool jfont_init, isDBCSCP();
+extern bool jfont_init, finish_prepare, isDBCSCP();
 extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
 int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
@@ -4567,7 +4567,7 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
             JFONT_Init();
             SetupDBCSTable();
         }
-        runRescan("-A -Q");
+        if (finish_prepare) runRescan("-A -Q");
 #if defined(USE_TTF)
         if ((opt==-1||opt==-2)&&TTF_using()) {
             Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
