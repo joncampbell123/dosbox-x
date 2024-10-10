@@ -1728,7 +1728,6 @@ public:
 
             if (!TTF_using() || (TTF_using() && isSupportedCP(tocp))){
                 toSetCodePage(NULL, msgcodepage ? msgcodepage : tocp, msgcodepage ? -1: -2);
-                runRescan("-A -Q");
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                 if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
                     UpdateSDLDrawTexture();

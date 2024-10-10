@@ -685,7 +685,7 @@ const char *ParseMsg(const char *msg) {
 #if defined(USE_TTF)
         && halfwidthkana
 #endif
-        && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
+        && dos.loaded_codepage==932) uselowbox = true;
         force_conversion = false;
         dos.loaded_codepage=cp;
         if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
@@ -816,6 +816,7 @@ void showWelcome(Program *shell) {
     }
 }
 
+bool finish_prepare = false;
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -872,20 +873,19 @@ void DOS_Shell::Prepare(void) {
                     }
                     if((control->opt_langcp && msgcodepage > 0 ) || CheckDBCSCP(msgcodepage)|| msgcodepage == dos.loaded_codepage) newCP = msgcodepage;
                     if (newCP != dos.loaded_codepage && (!TTF_using() || (TTF_using() && isSupportedCP(newCP)))) {
-                        int missing = toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
+                        int missing = toSetCodePage(this, newCP, msgcodepage?-1:control->opt_fastlaunch?1:-2);
                         //WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
                         if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
                         else if (missing < 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), newCP);
                     }
                 }
-                //if (lastmsgcp && lastmsgcp != dos.loaded_codepage) SwitchLanguage(lastmsgcp, dos.loaded_codepage, true);
-                if (msgcodepage && msgcodepage != dos.loaded_codepage) SwitchLanguage(dos.loaded_codepage, msgcodepage, true);
             }
 			if (country>0&&!control->opt_noconfig) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
 			}
-			const char * extra = section->data.c_str();
+            runRescan("-A -Q");
+            const char * extra = section->data.c_str();
 			if (extra&&!control->opt_securemode&&!control->SecureMode()&&!control->opt_noconfig) {
 				std::string vstr;
 				std::istringstream in(extra);
@@ -977,10 +977,12 @@ void DOS_Shell::Prepare(void) {
         internal_program = true;
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
         internal_program = false;
-        unsigned int cp=dos.loaded_codepage;
-        if (!dos.loaded_codepage) InitCodePage();
-        initcodepagefont();
-        dos.loaded_codepage=cp;
+        //unsigned int cp=dos.loaded_codepage;
+        //if (!dos.loaded_codepage) InitCodePage();
+        //initcodepagefont();
+        //dos.loaded_codepage=cp;
+        finish_prepare = true;
+
     }
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
     if (enableime) SetIMPosition();
