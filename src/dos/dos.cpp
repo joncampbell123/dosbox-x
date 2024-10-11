@@ -148,6 +148,7 @@ bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
 bool incall = false;
+bool startnopause = false;
 int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
@@ -903,6 +904,7 @@ void HostAppRun() {
             DWORD temp = (DWORD)SHGetFileInfo(winName,0,NULL,0,SHGFI_EXETYPE);
             if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),0,NULL,0,SHGFI_EXETYPE);
             if (HIWORD(temp)==0 && LOWORD(temp)==0x4550) { // Console applications
+                Section_prop* section = static_cast<Section_prop*>(control->GetSection("dos"));
                 lpExecInfo.cbSize  = sizeof(SHELLEXECUTEINFO);
                 lpExecInfo.fMask=SEE_MASK_DOENVSUBST|SEE_MASK_NOCLOSEPROCESS;
                 lpExecInfo.hwnd = NULL;
@@ -914,7 +916,10 @@ void HostAppRun() {
                 strcat(dir, winName);
                 strcat(dir, " ");
                 strcat(dir, comline);
-                strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
+                strcat(dir, " & echo( & echo The command execution is completed.");
+                startnopause = section->Get_bool("startnopause");
+                if(startnopause) strcat(dir, " \"");
+                else strcat(dir, " & pause\"");
                 lpExecInfo.lpFile = "CMD.EXE";
                 lpExecInfo.lpParameters = dir;
                 ShellExecuteEx(&lpExecInfo);
@@ -948,6 +953,7 @@ void HostAppRun() {
                         char msg[]="(Press Ctrl+C to exit immediately)\r\n";
                         uint16_t s = (uint16_t)strlen(msg);
                         DOS_WriteFile(STDOUT,(uint8_t*)msg,&s);
+                        runRescan(" -A -Q");
                     }
                 }
                 dos.return_code = exitCode&255;
@@ -4149,6 +4155,7 @@ public:
         }
         startcmd = section->Get_bool("startcmd");
         startincon = section->Get_string("startincon");
+        startnopause = section->Get_bool("startnopause");
         const char *dos_clipboard_device_enable = section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "disabled")?0:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:1)));
 		dos_clipboard_device_name = section->Get_string("dos clipboard device name");
