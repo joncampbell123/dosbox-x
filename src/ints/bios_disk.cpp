@@ -41,7 +41,7 @@ extern const uint8_t freedos_mbr[];
 extern int bootdrive, tryconvertcp;
 extern bool int13_disk_change_detect_enable, skipintprog, rsize;
 extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
-extern bool isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
+bool isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c), CheckDBCSCP(int32_t codepage);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
 #define STATIC_ASSERTM(A,B) static_assertion_##A##_##B
@@ -514,7 +514,7 @@ struct fatFromDOSDrive
                         uint16_t uname[4];
 #if defined(WIN32)
                         uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
-                        if (tryconvertcp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951))
+                        if (tryconvertcp && cpbak == 437 && CheckDBCSCP(cp))
                             dos.loaded_codepage = cp;
 #endif
                         for (size_t i=0; i < lfnlen; i++) {

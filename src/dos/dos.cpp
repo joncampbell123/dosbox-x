@@ -90,7 +90,7 @@ bool isDBCSCP();
 uint32_t BIOS_get_PC98_INT_STUB(void);
 uint16_t GetDefaultCP(void);
 void ResolvePath(std::string& in);
-void SwitchLanguage(int oldcp, int newcp, bool confirm);
+bool SwitchLanguage(int oldcp, int newcp, bool confirm);
 void makestdcp950table(), makeseacp951table();
 std::string GetDOSBoxXPath(bool withexe=false);
 extern std::string prefix_local, prefix_overlay;

@@ -114,6 +114,7 @@ void runBoot(const char *str), runMount(const char *str), runImgmount(const char
 void getdrivezpath(std::string &path, std::string const& dirname), drivezRegister(std::string const& path, std::string const& dir, bool usecp), UpdateDefaultPrinterFont(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
+bool CheckDBCSCP(int32_t codepage);
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -206,8 +207,7 @@ void DetachFromBios(imageDisk* image) {
     }
 }
 
-void SwitchLanguage(int oldcp, int newcp, bool confirm) {
-    (void)oldcp; //unused
+bool SwitchLanguage(int oldcp, int newcp, bool confirm) {
     auto iterold = langcp_map.find(lastmsgcp), iternew = langcp_map.find(newcp);
     std::string langold = iterold != langcp_map.end() ? iterold->second : "", langnew = iternew != langcp_map.end() ? iternew->second : "";
     if (loadlang && langnew.size() && strcasecmp(langold.c_str(), langnew.c_str())) {
@@ -215,13 +215,15 @@ void SwitchLanguage(int oldcp, int newcp, bool confirm) {
         if (file) {
             fclose(file);
             std::string msg = "You have changed the active code page to " + std::to_string(newcp) + ". Do you want to load language file " + langnew + " for this code page?";
-            if (!confirm || systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno","question", 2)) {
+            if (!confirm || (CheckDBCSCP(oldcp) && !CheckDBCSCP(newcp)) || systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno","question", 2)) {
                 SetVal("dosbox", "language", langnew);
                 Load_Language(langnew);
                 lastmsgcp = newcp;
+                return true; // Will load language file for the active codepage
             }
         }
     }
+    return false;
 }
 
 extern std::string hidefiles, dosbox_title;

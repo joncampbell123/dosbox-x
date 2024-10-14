@@ -55,7 +55,7 @@ extern bool shell_keyboard_flush;
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
-extern bool halfwidthkana, force_conversion, gbk;
+extern bool halfwidthkana, force_conversion, gbk, uselangcp;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
@@ -77,10 +77,10 @@ void initcodepagefont(void);
 void runMount(const char *str);
 void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
-void SwitchLanguage(int oldcp, int newcp, bool confirm);
+bool SwitchLanguage(int oldcp, int newcp, bool confirm);
 void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error();
+bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error(), CheckDBCSCP(int32_t codepage), TTF_using(void);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -685,7 +685,7 @@ const char *ParseMsg(const char *msg) {
 #if defined(USE_TTF)
         && halfwidthkana
 #endif
-        && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
+        && dos.loaded_codepage==932) uselowbox = true;
         force_conversion = false;
         dos.loaded_codepage=cp;
         if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
@@ -816,6 +816,7 @@ void showWelcome(Program *shell) {
     }
 }
 
+bool finish_prepare = false;
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -862,43 +863,29 @@ void DOS_Shell::Prepare(void) {
 				if (r!=NULL) *r=0;
 				country = atoi(trim(countrystr));
 				int32_t newCP = r==NULL||IS_PC98_ARCH||IS_JEGA_ARCH||IS_DOSV?dos.loaded_codepage:atoi(trim(r+1));
-                if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != newCP)
-                    newCP = msgcodepage;
 				if (r!=NULL) *r=',';
                 if (!IS_PC98_ARCH&&!IS_JEGA_ARCH) {
-#if defined(USE_TTF)
-                    if (ttf.inUse) {
-                        if (newCP) {
-                            int missing = toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
-                            WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
-                            if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-                        }
-                        else if (r!=NULL) WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
-                    } else
-#endif
-                    if (!newCP && IS_DOSV) {
-                        if (IS_JDOSV) newCP=932;
-                        else if (IS_PDOSV) newCP=936;
-                        else if (IS_KDOSV) newCP=949;
-                        else if (IS_TDOSV) newCP=950;
+                    if(!newCP && IS_DOSV) {
+                        if(IS_JDOSV) newCP = 932;
+                        else if(IS_PDOSV) newCP = 936;
+                        else if(IS_KDOSV) newCP = 949;
+                        else if(IS_TDOSV) newCP = 950;
                     }
-                    const char* name = DOS_GetLoadedLayout();
-                    if (newCP==932||newCP==936||newCP==949||newCP==950||newCP==951) {
-                        dos.loaded_codepage=newCP;
-                        SetupDBCSTable();
-                        runRescan("-A -Q");
-                        DOSBox_SetSysMenu();
-                    } else if (control->opt_langcp && !name && (layout.empty() || layout=="auto"))
-                        SetKEYBCP();
+                    if((control->opt_langcp && msgcodepage > 0 ) || CheckDBCSCP(msgcodepage)|| msgcodepage == dos.loaded_codepage) newCP = msgcodepage;
+                    if (newCP != dos.loaded_codepage && (!TTF_using() || (TTF_using() && isSupportedCP(newCP)))) {
+                        int missing = toSetCodePage(this, newCP, msgcodepage?-1:control->opt_fastlaunch?1:-2);
+                        //WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+                        if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+                        else if (missing < 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), newCP);
+                    }
                 }
-                //if (lastmsgcp && lastmsgcp != dos.loaded_codepage) SwitchLanguage(lastmsgcp, dos.loaded_codepage, true);
-                if (msgcodepage && msgcodepage != dos.loaded_codepage) SwitchLanguage(dos.loaded_codepage, msgcodepage, true);
             }
 			if (country>0&&!control->opt_noconfig) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
 			}
-			const char * extra = section->data.c_str();
+            runRescan("-A -Q");
+            const char * extra = section->data.c_str();
 			if (extra&&!control->opt_securemode&&!control->SecureMode()&&!control->opt_noconfig) {
 				std::string vstr;
 				std::istringstream in(extra);
@@ -990,10 +977,12 @@ void DOS_Shell::Prepare(void) {
         internal_program = true;
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
         internal_program = false;
-        unsigned int cp=dos.loaded_codepage;
-        if (!dos.loaded_codepage) InitCodePage();
-        initcodepagefont();
-        dos.loaded_codepage=cp;
+        //unsigned int cp=dos.loaded_codepage;
+        //if (!dos.loaded_codepage) InitCodePage();
+        //initcodepagefont();
+        //dos.loaded_codepage=cp;
+        finish_prepare = true;
+
     }
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
     if (enableime) SetIMPosition();

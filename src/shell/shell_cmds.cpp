@@ -135,11 +135,15 @@ extern uint16_t countryNo, altcp_to_unicode[256];
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void), Network_IsNetworkResource(const char * filename);
 extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), GFX_GetPreventFullscreen(void), DOS_SetAnsiAttr(uint8_t attr);
 extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-extern void Load_Language(std::string name), SwitchLanguage(int oldcp, int newcp, bool confirm), GetExpandedPath(std::string &path);
+extern void Load_Language(std::string name), GetExpandedPath(std::string &path);
 extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice);
 extern void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
+Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
+bool CheckDBCSCP(int32_t codepage), SwitchLanguage(int oldcp, int newcp, bool confirm);
+static int32_t lastsetcp = 0;
+bool CHCP_changed = false;
 
 /* support functions */
 static char empty_char = 0;
@@ -4522,18 +4526,30 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	return;
 }
 
-extern bool jfont_init, isDBCSCP();
+extern bool jfont_init, finish_prepare, isDBCSCP();
 extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
 int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
-    if (isSupportedCP(newCP)) {
-		dos.loaded_codepage = newCP;
+    if((TTF_using() && isSupportedCP(newCP)) || !TTF_using()) {
+        int32_t oldcp = dos.loaded_codepage;
+        Bitu keyb_error;
+        if (!CheckDBCSCP(newCP)){
+            keyb_error = DOS_ChangeCodepage(newCP, "auto");
+            if (keyb_error != KEYB_NOERROR) {
+                dos.loaded_codepage = oldcp;
+                return -1;
+            }
+        }
+        else {
+            dos.loaded_codepage = newCP;
+        }
         int missing = 0;
 #if defined(USE_TTF)
 		missing = TTF_using() ? setTTFCodePage() : 0;
 #endif
         if (!TTF_using()) initcodepagefont();
-        if (dos.loaded_codepage==437) DOS_LoadKeyboardLayout("us", 437, "auto");
+        //if (dos.loaded_codepage==437) DOS_LoadKeyboardLayout("us", 437, "auto");
+        //LOG_MSG("toSetCodePage opt=%d, loadlangnew=%d", opt, loadlangnew?1:0);
         if (opt==-1) {
             MSG_Init();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
@@ -4549,9 +4565,9 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
             ShutFontHandle();
             InitFontHandle();
             JFONT_Init();
+            SetupDBCSTable();
         }
-        SetupDBCSTable();
-        runRescan("-A -Q");
+        if (finish_prepare) runRescan("-A -Q");
 #if defined(USE_TTF)
         if ((opt==-1||opt==-2)&&TTF_using()) {
             Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
@@ -4564,6 +4580,10 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
             }
         }
 #endif
+        if(newCP != lastsetcp) {
+            LOG_MSG("Codepage set to %d", newCP);
+            lastsetcp = newCP;
+        }
         return missing;
     } else if (opt<1 && shell) {
        shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), std::to_string(newCP).c_str());
@@ -4599,77 +4619,51 @@ void DOS_Shell::CMD_CHCP(char * args) {
     int32_t cp = dos.loaded_codepage;
     Bitu keyb_error;
     if(n == 1) {
-        if(newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || newCP == 951
-#if defined(USE_TTF)
-            || (ttf.inUse && (newCP >= 1250 && newCP <= 1258))
-#endif
-            ) {
-            missing = toSetCodePage(this, newCP, -1);
-            if(missing > -1) SwitchLanguage(cp, newCP, true);
+        if (!TTF_using() || (TTF_using() && isSupportedCP(newCP))){
+            bool load_language = SwitchLanguage(cp, newCP, true);
+            CHCP_changed = true;
+            missing = toSetCodePage(this, newCP, load_language ? -1: -2);
             if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-        }
-        else {
-#if defined(USE_TTF)
-            if(ttf.inUse && !isSupportedCP(newCP)) {
+            else if(missing < 0) {
                 WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
-                LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
+                CHCP_changed = false;
                 return;
             }
-#endif
-            keyb_error = DOS_ChangeCodepage(newCP, "auto");
-            if(keyb_error == KEYB_NOERROR) {
-                SwitchLanguage(cp, newCP, true);
-/**
-                if(layout_name != NULL) {
-                    keyb_error = DOS_ChangeKeyboardLayout(layout_name, cp);
-                }
-*/
+        }
+        else {
+            if(TTF_using() && !isSupportedCP(newCP)) {
+                WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
+                LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
             }
             else {
                 WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
-                return;
             }
+            CHCP_changed = false;
+            return;
         }
+        CHCP_changed = false;
         WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
     }
     else if(n == 2 && strlen(buff)) {
         if(*buff == ':' && strchr(StripArg(args), ':')) {
             std::string name = buff + 1;
             if(name.empty() && iter != langcp_map.end()) name = iter->second;
-            if(newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || newCP == 951) {
+            if(!TTF_using() || (TTF_using() && isSupportedCP(newCP))) {
+                CHCP_changed = true;
                 missing = toSetCodePage(this, newCP, -1);
-                if(missing > -1) SwitchLanguage(cp, newCP, true);
                 if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-            }
-#if defined(USE_TTF)
-            else if(ttf.inUse) {
-                if(newCP >= 1250 && newCP <= 1258) {
-                    missing = toSetCodePage(this, newCP, -1);
-                    if(missing > -1) SwitchLanguage(cp, newCP, true);
-                    if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-                }
-                else if(!isSupportedCP(newCP)) {
+                else if(missing < 0) {
                     WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
-                    LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
+                    CHCP_changed = false;
                     return;
                 }
-            }
-#endif
-            else {
-                keyb_error = DOS_ChangeCodepage(newCP, "auto");
-                if(keyb_error == KEYB_NOERROR) {
-                    if(layout_name != NULL) {
-                        keyb_error = DOS_ChangeKeyboardLayout(layout_name, cp);
-                    }
-                }
-                else
-                    WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
             }
             if(name.size() && dos.loaded_codepage == newCP) {
                 SetVal("dosbox", "language", name);
                 Load_Language(name);
             }
             WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+            CHCP_changed = false;
             return;
         }
 #if defined(USE_TTF)
@@ -4694,7 +4688,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
             FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
             std::string exepath = GetDOSBoxXPath();
             if(!file && exepath.size()) file = fopen((exepath + CROSS_FILESPLIT + cpfile).c_str(), "r");
-            if(file && newCP > 0 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951) {
+            if(file && newCP > 0 && !CheckDBCSCP(newCP)) {
                 altcp = newCP;
                 char line[256], * l = line;
                 while(fgets(line, sizeof(line), file)) {
