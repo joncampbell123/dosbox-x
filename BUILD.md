@@ -75,34 +75,29 @@ sudo make install
 sudo make install
 ```
 
-* macOS compile (SDL1)
-  * Build natively for the host architecture
+* macOS
+  * First install the required libraries needed.
+    ```
+     brew install autoconf automake nasm glfw glew fluid-synth libslirp pkg-config
+    ```
+  * Compile natively for the host architecture (SDL1 or SDL2)
     ```
     ./build-macos
     ```
-  * Build a Universal Binary on an Apple Silicon CPU (will *not* work on Intel)
-    ```
-    ./build-macos universal
-    ````
-    You can build an App Bundle from the result of this build with
-    ```
-    make dosbox-x.app
-    ```
-
-* macOS compile (SDL2)
-  * Build natively for the host architecture
     ```
     ./build-macos-sdl2
     ```
-  * Build a Universal Binary on an Apple Silicon CPU (will *not* work on Intel)
+  * _(Optional)_ Add `universal` option to build an Universal Binary on an Apple Silicon CPU (will *not* work on Intel)
+    ```
+    ./build-macos universal
+    ```
     ```
     ./build-macos-sdl2 universal
     ````
-    You can build an App Bundle from the result of this build with
+  * You can build an App Bundle from the result of this build with
     ```
     make dosbox-x.app
     ```
-
 * MinGW compile for Windows 7 or later
   * First install the required libraries needed.  
     Libraries for mingw32(32-bit)
@@ -113,39 +108,28 @@ sudo make install
     ```
     pacman -S git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-libslirp mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake  mingw-w64-x86_64-ncurses
     ```
-  * Compile SDL1 (32-bit or 64-bit)
+  * Compile (SDL1 or SDL2, Common for 32-bit/64-bit builds)
     ```
     ./build-mingw
     ```
-    Compile SDL2 (32-bit or 64-bit)
     ```
     ./build-mingw-sdl2
     ```
-
-* MinGW compile (using MinGW32, not MinGW-w64: see NOTICE below) for lower-end systems including Windows XP or later (SDL1)
+* MinGW compile (using MinGW32, not MinGW-w64: see NOTICE below) for lower-end systems including Windows XP or later (SDL1 or SDL2, 32-bit only)
 ```
 ./build-mingw-lowend
 ```
-
-* MinGW compile (using MinGW32, not MinGW-w64: see NOTICE below) for lower-end systems including Windows XP or later (SDL2)
 ```
 ./build-mingw-lowend-sdl2
 ```
 
-* MinGW compile (using MinGW32, not MinGW-w64: see NOTICE below) on Windows to target the DOS platform (MS-DOS or compatible with HX DOS Extender)
+* MinGW compile (using MinGW32, not MinGW-w64: see NOTICE below) on Windows to target the DOS platform (MS-DOS or compatible with HX DOS Extender, SDL1 only)
 ```
 ./build-mingw-hx-dos
 ```
 
 NOTICE: Use the 32-bit toolchain from the original MinGW project for the lowend and HX-DOS builds, not the MinGW-w64 project.
         Binaries compiled with MinGW-w64 have extra dependencies which are not supported by Windows XP or the HX DOS Extender.
-
-macOS: If you want to make an .app bundle you can run from the Finder, compile the program as instructed then run ``make dosbox-x.app``.
-
-XCode (on macOS, from the Terminal) to target macOS
-```
-./build-debug
-```
 
 ## To compile DOSBox-X in Ubuntu (tested with 20.04 and 20.10):
 
