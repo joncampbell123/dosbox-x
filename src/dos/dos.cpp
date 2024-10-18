@@ -148,6 +148,7 @@ bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
 bool incall = false;
+bool startnopause = false;
 int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
@@ -842,6 +843,7 @@ void HostAppRun() {
     char comline[256], *p=comline;
     char winDirCur[512], winDirNew[512], winName[256], dir[CROSS_LEN+15];
     char *fullname=appname;
+    std::string winPath;
     uint8_t drive;
     if (!DOS_MakeName(fullname, winDirNew, &drive)) return;
     bool net = false;
@@ -891,6 +893,16 @@ void HostAppRun() {
             strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
             strcat(winDirNew, Drives[drive]->curdir);
         }
+        if(!(isalpha(winDirNew[0]) && winDirNew[1] == ':') && winDirNew[0] != '\\') {
+            //LOG_MSG("not a absolute path");
+            winPath = winDirCur + std::string("\\") + std::string(winDirNew);
+            strcpy(winDirNew, winPath.c_str());
+        }
+        if(!(isalpha(winName[0]) && winName[1] == ':') && winName[0] != '\\') {
+            //LOG_MSG("not a absolute path");
+            winPath = winDirCur + std::string("\\") + std::string(winName);
+            strcpy(winName, winPath.c_str());
+        }
         if (SetCurrentDirectory(winDirNew)||net) {
             SHELLEXECUTEINFO lpExecInfo;
             strcpy(comline, appargs);
@@ -903,6 +915,7 @@ void HostAppRun() {
             DWORD temp = (DWORD)SHGetFileInfo(winName,0,NULL,0,SHGFI_EXETYPE);
             if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),0,NULL,0,SHGFI_EXETYPE);
             if (HIWORD(temp)==0 && LOWORD(temp)==0x4550) { // Console applications
+                Section_prop* section = static_cast<Section_prop*>(control->GetSection("dos"));
                 lpExecInfo.cbSize  = sizeof(SHELLEXECUTEINFO);
                 lpExecInfo.fMask=SEE_MASK_DOENVSUBST|SEE_MASK_NOCLOSEPROCESS;
                 lpExecInfo.hwnd = NULL;
@@ -910,11 +923,14 @@ void HostAppRun() {
                 lpExecInfo.lpDirectory = NULL;
                 lpExecInfo.nShow = SW_SHOW;
                 lpExecInfo.hInstApp = (HINSTANCE) SE_ERR_DDEFAIL;
-                strcpy(dir, "/C \"");
+                strcpy(dir, "/C \"\"");
                 strcat(dir, winName);
-                strcat(dir, " ");
+                strcat(dir, "\" ");
                 strcat(dir, comline);
-                strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
+                strcat(dir, " & echo( & echo The command execution is completed.");
+                startnopause = section->Get_bool("startnopause");
+                if(startnopause) strcat(dir, " \"");
+                else strcat(dir, " & pause\"");
                 lpExecInfo.lpFile = "CMD.EXE";
                 lpExecInfo.lpParameters = dir;
                 ShellExecuteEx(&lpExecInfo);
@@ -959,6 +975,7 @@ void HostAppRun() {
                 hret = errno;
             DOS_SetError((uint16_t)hret);
             hret=0;
+            runRescan(" -A -Q");
             return;
         } else if (startquiet) {
             char msg[]="This program cannot be run in DOS mode.\r\n";
@@ -4149,6 +4166,7 @@ public:
         }
         startcmd = section->Get_bool("startcmd");
         startincon = section->Get_string("startincon");
+        startnopause = section->Get_bool("startnopause");
         const char *dos_clipboard_device_enable = section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "disabled")?0:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:1)));
 		dos_clipboard_device_name = section->Get_string("dos clipboard device name");

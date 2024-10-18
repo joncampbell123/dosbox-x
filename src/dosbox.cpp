@@ -4731,6 +4731,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
     Pstring->Set_help("START command will start these commands (separated by space) in a console and wait for a key press before exiting.");
 
+    Pbool = secprop->Add_bool("startnopause", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("If set, DOSBox-X will not pause after host command execution is completed.");
+    Pbool->SetBasic(true);
+
     Pbool = secprop->Add_bool("vmware",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable VMware interface emulation including guest mouse integration (when used along with e.g. VMware mouse driver for Windows 3.x).");
     Pbool->SetBasic(true);
