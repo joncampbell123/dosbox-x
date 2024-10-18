@@ -843,6 +843,7 @@ void HostAppRun() {
     char comline[256], *p=comline;
     char winDirCur[512], winDirNew[512], winName[256], dir[CROSS_LEN+15];
     char *fullname=appname;
+    std::string winPath;
     uint8_t drive;
     if (!DOS_MakeName(fullname, winDirNew, &drive)) return;
     bool net = false;
@@ -891,6 +892,16 @@ void HostAppRun() {
         } else {
             strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
             strcat(winDirNew, Drives[drive]->curdir);
+        }
+        if(!(std::isalpha(winDirNew[0]) && winDirNew[1] == ':') && winDirNew[0] != '\\') {
+            //LOG_MSG("not a absolute path");
+            winPath = winDirCur + std::string("\\") + std::string(winDirNew);
+            strcpy(winDirNew, winPath.c_str());
+        }
+        if(!(std::isalpha(winName[0]) && winName[1] == ':') && winName[0] != '\\') {
+            //LOG_MSG("not a absolute path");
+            winPath = winDirCur + std::string("\\") + std::string(winName);
+            strcpy(winName, winPath.c_str());
         }
         if (SetCurrentDirectory(winDirNew)||net) {
             SHELLEXECUTEINFO lpExecInfo;
