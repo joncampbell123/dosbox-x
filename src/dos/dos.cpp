@@ -912,9 +912,9 @@ void HostAppRun() {
                 lpExecInfo.lpDirectory = NULL;
                 lpExecInfo.nShow = SW_SHOW;
                 lpExecInfo.hInstApp = (HINSTANCE) SE_ERR_DDEFAIL;
-                strcpy(dir, "/C \"");
+                strcpy(dir, "/C \"\"");
                 strcat(dir, winName);
-                strcat(dir, " ");
+                strcat(dir, "\" ");
                 strcat(dir, comline);
                 strcat(dir, " & echo( & echo The command execution is completed.");
                 startnopause = section->Get_bool("startnopause");
@@ -953,7 +953,6 @@ void HostAppRun() {
                         char msg[]="(Press Ctrl+C to exit immediately)\r\n";
                         uint16_t s = (uint16_t)strlen(msg);
                         DOS_WriteFile(STDOUT,(uint8_t*)msg,&s);
-                        runRescan(" -A -Q");
                     }
                 }
                 dos.return_code = exitCode&255;
@@ -965,6 +964,7 @@ void HostAppRun() {
                 hret = errno;
             DOS_SetError((uint16_t)hret);
             hret=0;
+            runRescan(" -A -Q");
             return;
         } else if (startquiet) {
             char msg[]="This program cannot be run in DOS mode.\r\n";
