@@ -893,12 +893,12 @@ void HostAppRun() {
             strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
             strcat(winDirNew, Drives[drive]->curdir);
         }
-        if(!(std::isalpha(winDirNew[0]) && winDirNew[1] == ':') && winDirNew[0] != '\\') {
+        if(!(isalpha(winDirNew[0]) && winDirNew[1] == ':') && winDirNew[0] != '\\') {
             //LOG_MSG("not a absolute path");
             winPath = winDirCur + std::string("\\") + std::string(winDirNew);
             strcpy(winDirNew, winPath.c_str());
         }
-        if(!(std::isalpha(winName[0]) && winName[1] == ':') && winName[0] != '\\') {
+        if(!(isalpha(winName[0]) && winName[1] == ':') && winName[0] != '\\') {
             //LOG_MSG("not a absolute path");
             winPath = winDirCur + std::string("\\") + std::string(winName);
             strcpy(winName, winPath.c_str());
