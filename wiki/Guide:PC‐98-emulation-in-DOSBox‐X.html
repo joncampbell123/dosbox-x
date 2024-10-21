@@ -27,8 +27,10 @@
 <li><a href="#_pc_98_emulation_in_dosbox_x">PC-98 emulation in DOSBox-X</a>
 <ul class="sectlevel2">
 <li><a href="#_start_pc_98_emulation">Start PC-98 emulation</a></li>
-<li><a href="#_pc_98_font_and_accessory_files">PC-98 font and accessory files</a></li>
+<li><a href="#_pc_98_font_rom">PC-98 font ROM</a></li>
+<li><a href="#_pc_98_sound_rom">PC-98 Sound ROM</a></li>
 <li><a href="#_pc_98_config_settings">PC-98 config settings</a></li>
+<li><a href="#_cd_rom_emulation_in_guest_os">CD-ROM emulation in guest OS</a></li>
 <li><a href="#_running_pc_98_games_or_applications">Running PC-98 games or applications</a></li>
 </ul>
 </li>
@@ -59,57 +61,35 @@
 </div>
 </div>
 <div class="sect2">
-<h3 id="_pc_98_font_and_accessory_files">PC-98 font and accessory files</h3>
+<h3 id="_pc_98_font_rom">PC-98 font ROM</h3>
 <div class="paragraph">
-<p>You can start DOSBox-X in PC-98 mode without any additional files apart from the DOSBox-X executable itself. Note, however, that in order for DOSBox-X to display Japanese characters (Kana, Kanji, etc.) correctly you may need to supply a font file. While optional (the internal Japanese DOS/V font will be used if no other font found, unless the TrueType font output is used, see below), it is still recommended using a font file specifically designed for PC-98. You can either use the original PC-98 <code>FONT.ROM</code> ROM file, or use the free alternative <code>FREECG98.BMP</code> included with DOSBox-X. Put the <code>FREECG98.BMP</code> file or the original PC-98 <code>FONT.ROM</code> file in the DOSBox-X directory, then DOSBox-X will render Japanese texts in the PC-98 mode using this font (if both <code>FREECG98.BMP</code> and <code>FONT.ROM</code> files are found in the directory then the latter will be used):</p>
+<p>You can start DOSBox-X in PC-98 mode without any additional files apart from the DOSBox-X executable itself. Note, however, that in order for DOSBox-X to display Japanese characters (Kana, Kanji, etc.) correctly you may need to supply a font file. it is still recommended using a font file specifically designed for PC-98.</p>
+</div>
+<div class="paragraph">
+<p>You have a choice of</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>FREECG98.BMP: <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/FREECG98.BMP?raw=true">Download here</a></p>
+<p>Original PC-98 <code>FONT.ROM</code> ROM file. Put the file in the DOSBox-X directory.</p>
+</li>
+<li>
+<p>Free Anex86-compatible font <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/FREECG98.BMP?raw=true">FREECG98.BMP</a> included with DOSBox-X. Put the file in the DOSBox-X directory. If both <code>FREECG98.BMP</code> and <code>FONT.ROM</code> files are found in the directory then the latter will be used. If both FONT.ROM and FREECG98.BMP are not found in the directory, then DOSBox-X will use internal Japanese font (also used by DOS/V and JEGA systems) and the built-in 8x16 SBCS font pre-generated from FREECG98.BMP. You can also specify a different Anex86-compatible font file with <code>pc-98 anex86 font</code> option in [pc98] section of the DOSBox-X config file.</p>
+</li>
+<li>
+<p>TrueType font (TTF) output option (<code>output=ttf</code>). You will need a Japanese TrueType font. <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/SarasaGothicFixed.ttf?raw=true">SarasaGothicFixed.ttf</a> and <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/UnifontFullMediumMono.ttf?raw=true">UnifontFullMediumMono.ttf</a> font files are included with DOSBox-X.
+Specify the desired Japanese TrueType font with the <code>font</code> config option in [ttf] section for the TTF output.</p>
+</li>
+<li>
+<p>Use the FONTX2 files. Set your desired 8x16 and 16x16 dot files respectively to <code>pc-98 fontx sbcs</code> and <code>pc-98 fontx dbcs</code> options in the [pc98] section. If there is a problem with the compatibility of hankaku characters in the FONTX2 file, set [pc98] <code>pc-98 fontx internal symbol</code> to true to use the internal Japanese built-in font. (This option is available since 2024.03.01 Release)</p>
 </li>
 </ul>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_pc_98_sound_rom">PC-98 Sound ROM</h3>
 <div class="paragraph">
-<p>You can also specify a different Anex98-compatible font file with <code>pc-98 anex86 font</code> option in [pc98] section of the DOSBox-X config file.</p>
-</div>
-<div class="paragraph">
-<p>If you want to use the TrueType font (TTF) output option (i.e. with <code>output=ttf</code>), then you will need a Japanese TrueType font for PC-98 mode. For example, you can use any of the Japanese TrueType fonts from the Migu or M+ P families:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Migu 1M Regular: <a href="https://github.com/chrissimpkins/codeface/blob/master/cjk-fonts/migu1m/migu-1m-regular.ttf?raw=true">Download here</a></p>
-</li>
-<li>
-<p>Migu 2M Regular: <a href="https://github.com/chrissimpkins/codeface/blob/master/cjk-fonts/migu2m/migu-2m-regular.ttf?raw=true">Download here</a></p>
-</li>
-<li>
-<p>M+ P Type-1 Regular: <a href="https://github.com/chrissimpkins/codeface/blob/master/cjk-fonts/mplus1m/mplus-1m-regular.ttf?raw=true">Download here</a></p>
-</li>
-<li>
-<p>M+ P Type-2 Regular: <a href="https://github.com/chrissimpkins/codeface/blob/master/cjk-fonts/mplus2m/mplus-2m-regular.ttf?raw=true">Download here</a></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>The <code>SarasaGothicFixed.ttf</code> and <code>UnifontFullMediumMono.ttf</code> font files are also available in the DOSBox-X repository:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Sarasa-Gothic Fixed: <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/SarasaGothicFixed.ttf?raw=true">Download here</a></p>
-</li>
-<li>
-<p>UnifontFullMediumMono: <a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/fonts/UnifontFullMediumMono.ttf?raw=true">Download here</a></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Specify the desired Japanese TrueType font with the <code>font</code> config option in [ttf] section for the TTF output, and then DOSBox-X will render the PC-98 text screen using this TTF font.</p>
-</div>
-<div class="paragraph">
-<p>Apart from the <code>FONT.ROM</code> ROM image file mentioned above, there is another PC-98 ROM file named <code>SOUND.ROM</code> which is the ROM image of the PC-98 FM board, which may be needed by some PC-98 games to make music and sound effects. Both of these ROM images can be found online.</p>
+<p>There is another PC-98 ROM file named <code>SOUND.ROM</code> which is the ROM image of the PC-98 FM board, which may be needed by some PC-98 games to make music and sound effects.</p>
 </div>
 </div>
 <div class="sect2">
@@ -146,7 +126,39 @@
 <p>Possible values: auto, off, false, board14, board26k, board86, board86c</p>
 </li>
 <li>
-<p>Select the FM music board to emulate in PC-98 mode.</p>
+<p>Select the FM music board to emulate in PC-98 mode. No boards are emulated when <code>off</code> or <code>false</code>. <code>board86c</code>, <code>auto</code> will emulate PC-9801-86+Chibioto(ちびおと), <code>board86</code>: PC-9801-86, <code>board26k</code>: PC-9801-26K and <code>board14</code>: PC-9801-14. <code>board86</code> option should work fine in most cases.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>pc-98 sound bios</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: true, false</p>
+</li>
+<li>
+<p>Set Memory switch 4-3. Try switching this option to true if you hear no sound in some games.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>pc-98 load sound bios rom file</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Possible values: true, false</p>
+</li>
+<li>
+<p>Load <code>SOUND.ROM</code> dumped from actual machine if present. This is strongly recommended.</p>
 </li>
 </ul>
 </div>
@@ -194,7 +206,7 @@
 <p>Possible values: true, false</p>
 </li>
 <li>
-<p>Allow GRCG graphics functions if set, disable if not set.</p>
+<p>Allow GRCG graphics functions if set. Need to be set for games requiring PC-9801VM and later, default value should be fine.</p>
 </li>
 </ul>
 </div>
@@ -210,7 +222,23 @@
 <p>Possible values: true, false</p>
 </li>
 <li>
-<p>Allow EGC graphics functions if set, disable if not set.</p>
+<p>Allow EGC graphics functions if set. Need to be set for games requiring PC-9801VX and later, default value should be fine.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>pc-98 start gdc at 5mhz</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: true, false</p>
+</li>
+<li>
+<p>Set GDC clock to 5MHz if true. A number of games require this option to be false (2.5MHz) while very few games require 5MHz, so leave it false unless you know what you are doing. If you see graphical glitches, you may want to try toggle this option.</p>
 </li>
 </ul>
 </div>
@@ -232,6 +260,22 @@
 </div>
 </li>
 <li>
+<p>pc-98 nec mouse function</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: true, false</p>
+</li>
+<li>
+<p>NEC MOUSE.SYS emulation is enabled if set to true, or else Microsoft MOUSE.COM emulation will be enabled.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
 <p>pc-98 force ibm keyboard layout</p>
 <div class="ulist">
 <ul>
@@ -243,6 +287,22 @@
 </li>
 <li>
 <p>Force to use a default keyboard layout like IBM US-English for PC-98 emulation. Works with PC-98 software using BIOS for keyboard.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>pc-98 force JIS keyboard layout</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: true, false</p>
+</li>
+<li>
+<p>If true, keys for Backtick(`) and Tilde (~) will match those of JP106 keyboard instead of real PC-98 keyboard. Works with PC-98 software using BIOS for keyboard. This option is neglected if <code>pc-98 force ibm keyboard layout</code> option is true.</p>
 </li>
 </ul>
 </div>
@@ -283,6 +343,33 @@
 </div>
 </div>
 <div class="sect2">
+<h3 id="_cd_rom_emulation_in_guest_os">CD-ROM emulation in guest OS</h3>
+<div class="paragraph">
+<p>If you need to boot guest OS and read CD-ROM, you need to load a CD-ROM driver.
+NEC provides several drivers, <code>NECCDC.SYS</code> is recommended among them. (<code>NECCDD.SYS</code> may be used for recent DOSBox-X releases)</p>
+</div>
+<div class="paragraph">
+<p>PC-98 mostly assume IDE slot of CD-ROM to be <code>Secondary-Master</code> (-ide 2m), and the drive letter to be <code>Q:</code>.</p>
+</div>
+<div class="paragraph">
+<p>In <code>CONFIG.SYS</code> set</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">DEVICE=NECCDC.SYS /D:CD_101
+LASTDRIVE=Z</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And in <code>AUTOEXEC.BAT</code> set</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">MSCDEX /D:CD_101 /L:Q</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_running_pc_98_games_or_applications">Running PC-98 games or applications</h3>
 <div class="paragraph">
 <p>Once you are in DOSBox-X&#8217;s PC-98 system, you can start preparing for playing PC-98 games or running PC-98 applications. First you need to mount a drive for use with PC-98 games or applications. The drive can be mounted either from a drive or directory in the host system, or from a disk image. In general mounting drives in PC-98 mode follows the same procedures as in DOSBox-X&#8217;s standard mode, although disk images for PC-98 systems may come with HDI or FDD formats rather than the IMG format which is typically seen in a standard system. In any case you can mount the drives with either MOUNT or IMGMOUNT command as usual, or it can be done from the "Drive" menu.</p>
@@ -292,7 +379,7 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">MOUNT C C:\PC98</span></code></pre>
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C C:\PC98</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -300,7 +387,7 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C D:\PC98.HDI</span></code></pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C D:\PC98.HDI</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -324,9 +411,9 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C TOUHOU1.HDI
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C TOUHOU1.HDI
 C:
-GAME</span></code></pre>
+GAME</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -334,8 +421,8 @@ GAME</span></code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C TOUHOU1.HDI
-BOOT C:</span></code></pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C TOUHOU1.HDI
+BOOT C:</code></pre>
 </div>
 </div>
 </div>
@@ -361,6 +448,10 @@ BOOT C:</span></code></pre>
 </div>
 </div>
 </div>
-<script src="./docinfo/copy-to-clipboard.js"></script>
+<div id="footer">
+<div id="footer-text">
+Last updated 2024-10-21 21:27:11 +0900
+</div>
+</div>
 </body>
 </html>
