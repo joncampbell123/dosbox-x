@@ -1,4 +1,10 @@
 Next
+  - Fixed crashes when changing floppies mounted by drive numbers on
+    a booted guest OS (maron2000)
+  - Fixed launching host programs with white spaces in path (Windows)
+    (maron2000)
+  - Convert paths from relative to absolute when launching host programs
+    in a mounted drive (Windows) (maron2000) 
   - Added an option not to pause after host program execution is 
     completed (maron2000)
   - Fixed corrupted display when loading language files at launch
