@@ -127,18 +127,42 @@ programs provided in the Z: drive.
 
 Portable packages for the macOS (64-bit) platform are also available from the [DOSBox-X homepage](https://dosbox-x.com/).
 
-The macOS package requires recent 64-bit Intel or ARM-based macOS (Catalina (10.15) and later). Both SDL1 and SDL2 binaries (in .app format) are provided in the directories named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file.
+The macOS package requires recent 64-bit Intel or ARM-based macOS (Catalina (10.15) and later). 
+Using the Finder app, go to the folder where the macOS zip package is downloaded, and click the zip package. Then the package will be unzipped and you will see a folder with the same name as the package. 
+Both SDL1 and SDL2 binaries (in .app format) are provided in the folders named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file.
 
-There are two ways to run DOSBox-X in macOS, either from the Finder or from the command-line (Terminal):
+You have a choice of launching DOSBox-X by either from Launchpad, Finder, and Command-line (Terminal).
 
-* From the Finder, go to the directory where the macOS zip package is downloaded, you will see a folder name which is the same as the file name of the downloaded zip package. Inside this folder you will see ```dosbox-x``` (SDL1) and ```dosbox-x-sdl2``` (SDL2). Go to either one and click the program "dosbox-x" to start DOSBox-X. If you see a dialog asking you to select a folder, please select one which will then become your DOSBox-X working directory. You can choose to save this folder after you select one so that the folder selection dialog will no show up again next time, or let DOSBox-X show the folder selection dialog every time you run it from the Finder.
+### Install and launch DOSBox-X from Launchpad
+In either ```dosbox-x``` or ```dosbox-x-sdl2``` folders, you can find an app named ```dosbox-x```. 
+Drag and drop the app to the ```Applications``` folder to install DOSBox-X to Launchpad.
 
-* From the Terminal, go to the directory where the macOS zip package is downloaded, you will see a folder name which is the same as the file name of the downloaded zip package. Starting from this folder, use ```cd``` command to go to the directory where the DOSBox-X executable is located. For SDL1 build, type ```cd dosbox-x/dosbox-x.app/Contents/MacOS```, and for SDL2 build, type ```cd dosbox-x-sdl2/dosbox-x.app/Contents/MacOS```. Run DOSBox-X with ```./dosbox-x``` and you will see the DOSBox-X window.
+### Launch DOSBox-X from Finder application
+Instead of installing DOSBox-X to Launchpad as mentioned above, you can double-click the ```dosbox-x``` app to start DOSBox-X from the Finder application. 
 
-If you see the message ```"dosbox-x" is damaged and can't be opened``` when trying to run DOSBox-X, you should be able to solve the problem by running the following command once in the Terminal and you are in the directory in which the macOS zip package is extracted (where you can find two folders including ```dosbox-x``` and ```dosbox-x-sdl2```):
+### Launch DOSBox-X from command-line (Terminal)
+Starting from the unzipped folder mentioned above, use ```cd``` command to go to the directory where the DOSBox-X executable is located. For SDL1 build, type ```cd dosbox-x/dosbox-x.app/Contents/MacOS```, and for SDL2 build, type ```cd dosbox-x-sdl2/dosbox-x.app/Contents/MacOS```. Run DOSBox-X with ```./dosbox-x``` and you will see the DOSBox-X window.
 
-``xattr -cr .``
+### Initial setting of your working directory
+If you see a dialog asking you to select a folder after you launch DOSBox-X, please select one which will then become your DOSBox-X working directory. You can choose to save this folder after you select one so that the folder selection dialog will no show up again next time, or let DOSBox-X show the folder selection dialog every time you run it.
 
+### Troubleshooting
+#### I get a dialogue stating “The app is not from the Mac App Store”
+
+You need change your settings to allow launching apps from known developers.
+1.Choose Apple menu  > System Settings, then click Privacy & Security  in the sidebar. (You may need to scroll down.)
+2. Go to Security, then click Open.
+3. Click the pop-up menu next to “Allow applications from”, then choose App Store & Known Developers.
+4. You should see a message mentioning launching "DOSBox-X" was blocked. Click ```Open Anyway```.
+5. Enter your login password, then click OK.
+
+#### I get ```"dosbox-x" is damaged and can't be opened``` error
+  
+You should be able to solve the problem by running the following command once in the Terminal.
+1. Using the Terminal app, go to the unzipped folder of the macOS zip package. (You should find two folders ```dosbox-x``` and ```dosbox-x-sdl2```)
+2. Run ``xattr -cr .``
+
+### DOSBox-X for older macOS versions
 Packages for macOS versions 10.14 (Mojave) and earlier are no longer provided. Low-end builds named `DOSBox-X-macos-(version)-high-sierra.zip` were available up to [2022.09.0 (0.84.3)](https://github.com/joncampbell123/dosbox-x/releases/tag/dosbox-x-v0.84.3) for 10.12 (Sierra) and after.
 Binaries for macOS versions earlier than 10.12 (Sierra) have not been provided. You may try to build yourself with the help of [MacPorts](https://www.macports.org/). 
 
