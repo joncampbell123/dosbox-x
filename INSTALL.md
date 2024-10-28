@@ -150,11 +150,11 @@ If you see a dialog asking you to select a folder after you launch DOSBox-X, ple
 #### I get a dialogue stating “The app is not from the Mac App Store”
 
 You need change your settings to allow launching apps from known developers.
-1.Choose Apple menu  > System Settings, then click Privacy & Security  in the sidebar. (You may need to scroll down.)
+1. Choose Apple menu  > System Settings, then click Privacy & Security  in the sidebar. (You may need to scroll down.)
 2. Go to Security, then click Open.
 3. Click the pop-up menu next to “Allow applications from”, then choose App Store & Known Developers.
-4. You should see a message mentioning launching "DOSBox-X" was blocked. Click ```Open Anyway```.
-5. Enter your login password, then click OK.
+5. You should see a message mentioning launching "DOSBox-X" was blocked. Click ```Open Anyway```.
+6. Enter your login password, then click OK.
 
 #### I get ```"dosbox-x" is damaged and can't be opened``` error
   
