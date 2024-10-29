@@ -3809,8 +3809,12 @@ static void GUI_StartUp() {
     posy = -1;
     const char* windowposition = section->Get_string("windowposition");
     LOG_MSG("Configured windowposition: %s", windowposition);
-    if (windowposition && !strcmp(windowposition, "-"))
+    if(windowposition && !strcmp(windowposition, "-"))
+#if defined (WIN32) && !defined(C_SDL2)
+        posx = posy = -1;
+#else
         posx = posy = -2;
+#endif
     else if (windowposition && *windowposition && strcmp(windowposition, ",")) {
         char result[100];
         safe_strncpy(result, windowposition, sizeof(result));
