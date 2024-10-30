@@ -124,10 +124,10 @@ static const char *def_menu__toplevel[] =
     "VideoMenu",
     "SoundMenu",
     "DOSMenu",
+    "DriveMenu",
 #if !defined(C_EMSCRIPTEN)
     "CaptureMenu",
 #endif
-    "DriveMenu",
 #if C_DEBUG
     "DebugMenu",
 #endif
@@ -709,9 +709,9 @@ static const char *def_menu_capture[] =
     "mapper_capnetrf",
     "--",
 #endif
-    "saveoptionmenu",
     "mapper_savestate",
     "mapper_loadstate",
+    "saveoptionmenu",
     "saveslotmenu",
     "autosavecfg",
     "browsesavefile",
@@ -860,7 +860,7 @@ static const char* def_menu_help_debug[] =
 static const char *def_menu_help[] =
 {
     "help_intro",
-    "HelpCommandMenu",
+    "help_about",
 #if !defined(HX_DOS)
     "--",
     "help_homepage",
@@ -880,7 +880,7 @@ static const char *def_menu_help[] =
 #if C_PCAP || C_PRINTER && defined(WIN32) || !C_DEBUG && !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "--",
 #endif
-    "help_about",
+    "HelpCommandMenu",
     NULL
 };
 
