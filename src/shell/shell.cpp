@@ -880,7 +880,7 @@ void DOS_Shell::Prepare(void) {
                     }
                 }
             }
-			if (country>0&&!control->opt_noconfig) {
+            if (country>0&&!control->opt_noconfig) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
 			}
@@ -1139,7 +1139,6 @@ public:
                 }
                 if (control->opt_prerun) cmd += "\n";
             }
-
             autoexec_auto_bat.Install(cmd);
         }
         dos.loaded_codepage = cp;
@@ -1264,7 +1263,12 @@ public:
 #else
 		if (secure) autoexec[i++].Install("z:\\system\\config.com -securemode");
 #endif
-
+#if defined(WIN32)
+        if(TTF_using()) {
+            autoexec[i++].Install("@config -set output=surface");
+            autoexec[i++].Install("@config -set output=ttf");
+        }
+#endif
 		if (addexit) autoexec[i++].Install("exit");
 
 		assert(i <= 17); /* FIXME: autoexec[] should not be fixed size */
