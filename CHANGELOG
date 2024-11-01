@@ -1,4 +1,5 @@
 Next
+  - Fixed build failure with libc++ 19 (@DimitryAndric)
   - Fixed fullscreen mode not responding when launched in TTF mode 
     in Windows (maron2000)
   - Fixed crashes when changing floppies mounted by drive numbers on
