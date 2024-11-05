@@ -2533,6 +2533,7 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     (void)menuitem;//UNUSED
     sdl.mouse.autoenable = !sdl.mouse.autoenable;
     mainMenu.get_item("auto_lock_mouse").check(sdl.mouse.autoenable).refresh_item(mainMenu);
+    Mouse_AutoLock(sdl.mouse.autoenable);
     return true;
 }
 
