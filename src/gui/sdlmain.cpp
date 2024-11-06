@@ -3944,9 +3944,6 @@ void Mouse_AutoLock(bool enable) {
     }
 #endif // C_GAMELINK
 
-    if (sdl.mouse.autolock == enable)
-        return;
-
     sdl.mouse.autolock=enable;
     if (sdl.mouse.autoenable) sdl.mouse.requestlock=enable;
     else {
