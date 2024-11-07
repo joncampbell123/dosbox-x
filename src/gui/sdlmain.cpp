@@ -3944,9 +3944,6 @@ void Mouse_AutoLock(bool enable) {
     }
 #endif // C_GAMELINK
 
-    if (sdl.mouse.autolock == enable)
-        return;
-
     sdl.mouse.autolock=enable;
     if (sdl.mouse.autoenable) sdl.mouse.requestlock=enable;
     else {
@@ -4474,6 +4471,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 #endif
     bool inputToScreen = false;
     bool inMenu = false;
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
+    std::string munlock;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     if (GFX_GetPreventFullscreen()) {
@@ -4999,7 +4998,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
             // Don't pass click to mouse handler
             break;
         }
-        if (((middleunlock == 1 && !sdl.mouse.autoenable) || (middleunlock == 2 && sdl.mouse.autoenable) || middleunlock == 3) && sdl.mouse.autolock && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
+        munlock = section->Get_string("middle_unlock");
+        if (((munlock == "manual" && !sdl.mouse.autoenable) || (munlock == "auto" && sdl.mouse.autoenable) || munlock == "both") && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
             GFX_CaptureMouse();
             break;
         }
