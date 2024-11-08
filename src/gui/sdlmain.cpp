@@ -698,6 +698,8 @@ void UpdateWindowDimensions(Bitu width, Bitu height)
     currentWindowHeight = height;
 }
 
+static Bitu dim_width=0, dim_height=0, dpi_width=0, dpi_height=0;
+
 void PrintScreenSizeInfo(void) {
 #if 1
     const char *method = "?";
@@ -708,10 +710,12 @@ void PrintScreenSizeInfo(void) {
         case METHOD_XRANDR:     method = "XRandR";      break;
         case METHOD_WIN98BASE:  method = "Win98base";   break;
         case METHOD_COREGRAPHICS:method = "CoreGraphics";break;
-        default:                                                        break;
+        default: break;
     }
 
-    LOG_MSG("Screen report: Method '%s' (%.3f x %.3f pixels) at (%.3f x %.3f) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
+    if(dim_width != screen_size_info.screen_dimensions_pixels.width || dim_height != screen_size_info.screen_dimensions_pixels.height
+        || dpi_width != screen_size_info.screen_dpi.width || dpi_height != screen_size_info.screen_dpi.height) {
+        LOG_MSG("Screen report: Method '%s' (%.3f x %.3f pixels) at (%.3f x %.3f) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
             method,
 
             screen_size_info.screen_dimensions_pixels.width,
@@ -728,6 +732,11 @@ void PrintScreenSizeInfo(void) {
 
             screen_size_info.screen_dpi.width,
             screen_size_info.screen_dpi.height);
+            dim_width = screen_size_info.screen_dimensions_pixels.width;
+            dim_height = screen_size_info.screen_dimensions_pixels.height;
+            dpi_width = screen_size_info.screen_dpi.width;
+            dpi_height = screen_size_info.screen_dpi.height;
+        }
 #endif
 }
 
