@@ -1081,7 +1081,7 @@ Section* Config::GetSectionFromProperty(char const * const prop) const{
 
 
 bool Config::ParseConfigFile(char const * const configfilename) {
-    LOG(LOG_MISC,LOG_DEBUG)("Attempting to load config file #%zu from %s",configfiles.size(),configfilename);
+    LOG(LOG_MISC,LOG_DEBUG)("CONFIG: Attempting to load config file #%zu from %s",configfiles.size(),configfilename);
 
     //static bool first_configfile = true;
     ifstream in(configfilename);
@@ -1090,7 +1090,7 @@ bool Config::ParseConfigFile(char const * const configfilename) {
     settings_type = (configfiles.size() == 0)? "primary":"additional";
     configfiles.emplace_back(configfilename);
 
-    LOG(LOG_MISC,LOG_NORMAL)("Loading %s settings from config file %s", settings_type,configfilename);
+    LOG(LOG_MISC,LOG_NORMAL)("CONFIG: Loading %s settings from config file %s", settings_type,configfilename);
 
     //Get directory from configfilename, used with relative paths.
     current_config_dir=configfilename;
