@@ -8106,9 +8106,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
     }
 #endif
-
+    std::string tmp, config_path, res_path, config_combined;
+    /* -- Parse configuration files */
+    Cross::GetPlatformConfigDir(config_path);
+    Cross::GetPlatformResDir(res_path);
+    Cross::GetPlatformConfigName(tmp);
+    config_combined = config_path + tmp;
     {
-        std::string tmp,config_path,res_path,config_combined;
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         {
@@ -8145,16 +8149,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
 
-        /* -- Parse configuration files */
-        Cross::GetPlatformConfigDir(config_path);
-        Cross::GetPlatformResDir(res_path);
-
         /* -- -- first the user config file */
         if (control->opt_userconf || workdirsave>0) {
-            tmp.clear();
-            Cross::GetPlatformConfigDir(config_path);
-            Cross::GetPlatformConfigName(tmp);
-            config_combined = config_path + tmp;
 
             LOG(LOG_MISC,LOG_DEBUG)("Loading config file according to -userconf from %s",config_combined.c_str());
             control->ParseConfigFile(config_combined.c_str());
@@ -8168,10 +8164,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         tsec->HandleInputline("working directory option=autoprompt");
                 }
                 //Try to create the userlevel configfile.
-                tmp.clear();
                 Cross::CreatePlatformConfigDir(config_path);
-                Cross::GetPlatformConfigName(tmp);
-                config_combined = config_path + tmp;
 
                 LOG(LOG_MISC,LOG_DEBUG)("Attempting to write config file according to -userconf, to %s",config_combined.c_str());
                 if (control->PrintConfig(config_combined.c_str())) {
@@ -8225,10 +8218,17 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- -- if none found, use userlevel conf */
         if (!control->configfiles.size()) control->ParseConfigFile((config_path + "dosbox-x.conf").c_str());
         if (!control->configfiles.size()) {
-            tmp.clear();
-            Cross::GetPlatformConfigName(tmp);
-            control->ParseConfigFile((config_path + tmp).c_str());
+            control->ParseConfigFile(config_combined.c_str());
         }
+
+        /* -- -- if none found, create userlevel conf */
+        if(!control->configfiles.size()) {
+            Cross::CreatePlatformConfigDir(config_path);
+            control->PrintConfig(config_combined.c_str());
+            control->ParseConfigFile(config_combined.c_str()); // Load the conf file created above 
+            if(control->configfiles.size()) LOG_MSG("CONFIG: Created and loaded user config file %s", config_combined.c_str());
+        }
+        LOG_MSG("CONFIG: Loaded config file: %s", control->configfiles.front().c_str());
 
         if (control->configfiles.size()) {
             if (control->opt_eraseconf&&control->config_file_list.empty()) {
