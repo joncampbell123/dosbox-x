@@ -471,6 +471,8 @@ std::string RENDER_GetScaler(void) {
     return prop->GetSection()->Get_string("type");
 }
 
+static int aspect_x=0, aspect_y=0;
+
 void RENDER_Reset( void ) {
     Bitu width=render.src.width;
     Bitu height=render.src.height;
@@ -750,7 +752,11 @@ forcenormal:
     sdl.srcAspect.y = aspect_ratio_y>0?aspect_ratio_y:(int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
-    LOG_MSG("Aspect ratio: %u x %u  xToY=%.3f yToX=%.3f",sdl.srcAspect.x,sdl.srcAspect.y,sdl.srcAspect.xToY,sdl.srcAspect.yToX);
+    if(aspect_x != sdl.srcAspect.x || aspect_y != sdl.srcAspect.y) {
+        LOG_MSG("Aspect ratio: %u x %u  xToY=%.3f yToX=%.3f", sdl.srcAspect.x, sdl.srcAspect.y, sdl.srcAspect.xToY, sdl.srcAspect.yToX);
+        aspect_x = sdl.srcAspect.x;
+        aspect_y = sdl.srcAspect.y;
+    }
 /* Setup the scaler variables */
 #if C_OPENGL
     GFX_SetShader(render.shader_src);
