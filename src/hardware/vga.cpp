@@ -768,6 +768,10 @@ void VGA_Reset(Section*) {
         enable_pci_vga = false;
     }
 
+    /* must not overlap system RAM */
+    if (S3_LFB_BASE < (MEM_TotalPages()*4096))
+        S3_LFB_BASE = (MEM_TotalPages()*4096);
+
     if (enable_pci_vga && has_pcibus_enable()) {
         /* must be 32MB aligned (PCI) */
         S3_LFB_BASE +=  0x0FFFFFFUL;
@@ -778,10 +782,6 @@ void VGA_Reset(Section*) {
         S3_LFB_BASE +=  0x7FFFUL;
         S3_LFB_BASE &= ~0xFFFFUL;
     }
-
-    /* must not overlap system RAM */
-    if (S3_LFB_BASE < (MEM_TotalPages()*4096))
-        S3_LFB_BASE = (MEM_TotalPages()*4096);
 
     /* if the constraints we imposed make it impossible to maintain the alignment required for PCI,
      * then just switch off PCI VGA emulation. */
