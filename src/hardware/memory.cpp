@@ -1925,7 +1925,7 @@ void Init_RAM() {
         Bitu maxsz;
 
         if (sizeof(void*) > 4) // 64-bit address space
-            maxsz = (Bitu)(3584ul * 1024ul); // 3.5GB
+            maxsz = (Bitu)(3968ul * 1024ul); // 3.9GB (up to 0xF8000000)
         else
             maxsz = (Bitu)(1024ul * 1024ul); // 1.0GB
 
