@@ -543,10 +543,14 @@ static INLINE void SSE_PEXTRW(uint32_t &d,const MMX_reg &s,const uint8_t i) {
 ////
 
 static INLINE void SSE_SHUFPS(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
-	d.u32[0] = s.u32[(i>>0u)&3u];
-	d.u32[1] = s.u32[(i>>2u)&3u];
-	d.u32[2] = s.u32[(i>>4u)&3u];
-	d.u32[3] = s.u32[(i>>6u)&3u];
+	/* d is reg, s is rm */
+	XMM_Reg tmp;
+
+	tmp.u32[0] = d.u32[(i>>0u)&3u];
+	tmp.u32[1] = d.u32[(i>>2u)&3u];
+	tmp.u32[2] = s.u32[(i>>4u)&3u];
+	tmp.u32[3] = s.u32[(i>>6u)&3u];
+	d = tmp;
 }
 
 ////
