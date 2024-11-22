@@ -1737,7 +1737,8 @@ bool isoDrive::ReadCachedSector(uint8_t** buffer, const uint32_t sector) {
 }
 
 inline bool isoDrive :: readSector(uint8_t *buffer, uint32_t sector) const {
-	return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
+    if(CDROM_Interface_Image::images[subUnit] == nullptr) return false;
+    return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
 }
 
 int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dirIteratorIndex) const {
