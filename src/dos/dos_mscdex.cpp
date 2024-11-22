@@ -430,7 +430,7 @@ void CMscdex::ReplaceDrive(CDROM_Interface* newCdrom, uint8_t subUnit) {
 }
 
 PhysPt CMscdex::GetDefaultBuffer(void) {
-	if (defaultBufSeg==0) {
+	if (defaultBufSeg==0 && !dos_kernel_disabled) {
 		uint16_t size = (2352*2+15)/16;
 		defaultBufSeg = DOS_GetMemory(size,"MSCDEX default buffer");
 	}
@@ -1504,7 +1504,8 @@ uint8_t MSCDEX_GetSubUnit(char driveLetter)
 
 bool MSCDEX_GetVolumeName(uint8_t subUnit, char* name)
 {
-	return mscdex->GetVolumeName(subUnit,name);
+    if(dos_kernel_disabled) return false;
+    return mscdex->GetVolumeName(subUnit,name);
 }
 
 bool MSCDEX_HasMediaChanged(uint8_t subUnit)
