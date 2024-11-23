@@ -1,5 +1,10 @@
 Next
-  - Fixed build failure with libc++ 19 (@DimitryAndric)
+  - Fixed crash when a CD image was loaded to an "empty" drive (maron2000)
+  - Log loaded .conf file (maron2000)
+  - Supress redundant screen reports in log (maron2000)
+  - Fixed mouse capture locking by middle button (maron2000) 
+  - Fixed toggling the menu option "Autolock mouse" did nothing (maron2000)
+  - Fixed build failure with libc++ 19 (DimitryAndric)
   - Fixed fullscreen mode not responding when launched in TTF mode 
     in Windows (maron2000)
   - Fixed crashes when changing floppies mounted by drive numbers on
