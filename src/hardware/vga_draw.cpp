@@ -1119,6 +1119,10 @@ static uint8_t * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu line) {
     return EGA_Planar_Common_Line<MCH_EGA,uint8_t>(TempLine,vidstart,line);
 }
 
+static uint8_t * VGA_Draw_VGA_Planar_Xlat8_LineOddEven(Bitu vidstart, Bitu line) {
+    return EGA_Planar_Common_LineOddEven<MCH_VGA,uint32_t>(TempLine,vidstart,line);
+}
+
 static uint8_t * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu line) {
     return EGA_Planar_Common_Line<MCH_VGA,uint32_t>(TempLine,vidstart,line);
 }
@@ -7309,6 +7313,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 				if (vga.gfx.mode & 0x20) {
 					VGA_DrawLine = VGA_Draw_2BPP_Line_as_VGA;
 					VGA_DrawRawLine = VGA_RawDraw_2BPP_Line_as_VGA;
+				}
+				else if (vga.config.addr_shift >= 1/*word mode*/ && (vga.seq.clocking_mode & 0x04/*load every other clock cycle*/) &&
+					(vga.crtc.mode_control & 0x08/*increase memory address every other character clock*/)) {
+					VGA_DrawLine = VGA_Draw_VGA_Planar_Xlat8_LineOddEven;
+					VGA_DrawRawLine = VGA_RawDraw_VGA_Planar_Xlat32_Line;//TODO
+					vga.draw.blocks = (width+1u)>>1u;
 				}
 				else {
 					VGA_DrawLine = VGA_Draw_VGA_Planar_Xlat32_Line;
