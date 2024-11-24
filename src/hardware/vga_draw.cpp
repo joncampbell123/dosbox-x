@@ -70,6 +70,7 @@ bool enable_supermegazeux_256colortext = false;
 
 extern bool vga_render_on_demand;
 extern signed char vga_render_on_demand_user;
+extern bool vga_ignore_extended_memory_bit;
 
 /* S3 streams processor state.
  * Registers are only loaded into hardware on vertical sync anyway. */
@@ -6080,6 +6081,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		default:
 			break;
 	}
+
+	/* EGA/VGA have a memory mode bit that enables >64KB.
+	 * We have to emulate this bit in order for 640x350x4 EGA mode to work */
+	if (IS_EGAVGA_ARCH && !(vga.seq.memory_mode&2/*Extended Memory*/) && !(vga_ignore_extended_memory_bit && IS_VGA_ARCH))
+		vga.draw.linear_mask &= 0xFFFFu;
 
 	if (IS_EGAVGA_ARCH)
 		vga.draw.planar_mask = vga.draw.linear_mask >> 2;
