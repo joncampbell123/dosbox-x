@@ -1483,7 +1483,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 
 	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
 		seq_data[4]|=0x02;	//More than 64kb
-	else if (IS_EGA_ARCH && CurMode->vdispend==350) {
+	else if (IS_EGA_ARCH && CurMode->vdispend==350 && CurMode->type == M_EGA) {
 		seq_data[4] &= ~0x04; // turn on odd/even
 		seq_data[1] |= 0x04; // half clock
 	}
@@ -1756,7 +1756,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 		case M_EGA:
 			if (CurMode->pitch != 0)
 				offset = ouwidth/(2*8);
-			else if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350)
+			else if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350 && CurMode->type == M_EGA)
 				offset = CurMode->hdispend/4; /* = 0x14, See EGA BIOS listing for entry 10h 16K mode [https://ibmmuseum.com/Adapters/Video/EGA/IBM_EGA_Manual.pdf] */
 			else
 				offset = CurMode->hdispend/2;
@@ -1809,8 +1809,10 @@ bool INT10_SetVideoMode(uint16_t mode) {
 			else
 				mode_control=0xe3;
 
-			if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350)
+			if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350 && CurMode->type == M_EGA) {
 				mode_control &= ~0x40; // word mode
+				mode_control |=  0x08; // increment only every other clock
+			}
 			break;
 		case M_TEXT:
 		case M_VGA:
@@ -1828,12 +1830,12 @@ bool INT10_SetVideoMode(uint16_t mode) {
 			break;
 	}
 
-	if (IS_EGA_ARCH && vga.mem.memsize < 0x20000)
+	if (IS_EGA_ARCH && vga.mem.memsize < 0x20000) {
 		mode_control &= ~0x20; // address wrap bit 13
+	}
 
 	IO_Write(crtc_base, 0x17); IO_Write(crtc_base + 1u, mode_control);
 
-	/* TODO: If vptable, bypass all the above CRTC register settings */
 	if (vptable) {
 		for (unsigned int i=0;i < 0x19;i++) {
 			IO_Write(crtc_base,i);
@@ -1911,7 +1913,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 		break;
 	case M_LIN4:
 	case M_EGA:
-		if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350) {
+		if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350 && CurMode->type == M_EGA) {
 			gfx_data[0x5]|=0x10;		//Odd-Even Mode
 			gfx_data[0x6]|=0x02;		//Odd-Even Mode
 			gfx_data[0x7]=0x5;			/* Color don't care */
