@@ -101,7 +101,7 @@ VideoModeBlock ModeList_VGA[]={
 /* Alias of mode 101 */
 { 0x069  ,M_LIN8   ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0, 0},
 /* Alias of mode 102 */
-{ 0x06A  ,M_LIN4   ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,128 ,663 ,100,600 ,0, 0},
+{ 0x06A  ,M_LIN4   ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0, 0}, // NTS: This is supposed to be the same mode as ox102!
 
 /* Toshiba T3100, J-3100 */
 { 0x074  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,100 ,449 ,80 ,400 ,0, 0},
@@ -687,36 +687,36 @@ static bool SetCurMode(VideoModeBlock modeblock[],uint16_t mode) {
 			i++;
 		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity UNLESS the user changed the mode */
 		else if (modeblock[i].mode >= 0x100 && modeblock[i].mode <= 0x11F &&
-            !(modeblock[i].special & _USER_MODIFIED) &&
+			!(modeblock[i].special & _USER_MODIFIED) &&
 			((modeblock[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
-			(modeblock[i].type == M_LIN24 && vesa12_modes_32bpp))) {
+			 (modeblock[i].type == M_LIN24 && vesa12_modes_32bpp))) {
 			/* ignore */
 			i++;
 		}
-        /* ignore deleted modes */
-        else if (modeblock[i].type == M_ERROR) {
-            /* ignore */
-            i++;
-        }
-	    /* ignore disabled modes */
-        else if (modeblock[i].special & _USER_DISABLED) {
-            /* ignore */
-            i++;
-        }
-        /* ignore modes beyond the render scaler architecture's limits... unless the user created it. We did warn the user! */
-        else if (!(modeblock[i].special & _USER_MODIFIED) &&
-                (modeblock[i].swidth > SCALER_MAXWIDTH || modeblock[i].sheight > SCALER_MAXHEIGHT)) {
-            /* ignore */
-            i++;
-        }
+		/* ignore deleted modes */
+		else if (modeblock[i].type == M_ERROR) {
+			/* ignore */
+			i++;
+		}
+		/* ignore disabled modes */
+		else if (modeblock[i].special & _USER_DISABLED) {
+			/* ignore */
+			i++;
+		}
+		/* ignore modes beyond the render scaler architecture's limits... unless the user created it. We did warn the user! */
+		else if (!(modeblock[i].special & _USER_MODIFIED) &&
+			(modeblock[i].swidth > SCALER_MAXWIDTH || modeblock[i].sheight > SCALER_MAXHEIGHT)) {
+			/* ignore */
+			i++;
+		}
 		else {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
 				CurMode=&modeblock[i];
 #if defined(USE_TTF)
-                if(modeblock[i].type == M_TEXT) ttf_switch_on(false);
-                else ttf_switch_off(false); // Disable TTF output when switching to graphics mode
+				if(modeblock[i].type == M_TEXT) ttf_switch_on(false);
+				else ttf_switch_off(false); // Disable TTF output when switching to graphics mode
 #endif
-                return true;
+				return true;
 			}
 			return false;
 		}
@@ -953,7 +953,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 				LOG(LOG_INT10,LOG_ERROR)("Trying to set illegal mode %X",mode);
 				return false;
 			}
-            break;
+			break;
 		case MCH_MCGA:
 			if (!SetCurMode(ModeList_MCGA,mode)) {
 				LOG(LOG_INT10,LOG_ERROR)("Trying to set illegal mode %X",mode);
@@ -1260,7 +1260,17 @@ static bool ShouldUseVPT(void) {
 bool unmask_irq0_on_int10_setmode = true;
 bool INT10_SetVideoMode(uint16_t mode) {
 	if (CurMode&&CurMode->mode==7&&!IS_PC98_ARCH) {
-		VideoModeBlock *modelist=svgaCard==SVGA_TsengET4K||svgaCard==SVGA_TsengET3K?ModeList_VGA:(svgaCard==SVGA_ParadisePVGA1A?ModeList_VGA_Paradise:(IS_VGA_ARCH?ModeList_VGA:(ega200?ModeList_EGA_200:ModeList_EGA)));
+		VideoModeBlock *modelist;
+
+		if (svgaCard == SVGA_TsengET4K || svgaCard == SVGA_TsengET3K)
+			modelist = ModeList_VGA_Tseng;
+		else if (svgaCard == SVGA_ParadisePVGA1A)
+			modelist = ModeList_VGA_Paradise;
+		else if (IS_VGA_ARCH)
+			modelist = ModeList_VGA;
+		else
+			modelist = ega200 ? ModeList_EGA_200 : ModeList_EGA;
+
 		for (Bitu i = 0; modelist[i].mode != 0xffff; i++) {
 			if (modelist[i].mode == mode) {
 				if (modelist[i].type != M_TEXT) {
@@ -1282,6 +1292,8 @@ bool INT10_SetVideoMode(uint16_t mode) {
 		clearmem=false;
 		mode-=0x80;
 	}
+
+	if (IS_VGA_ARCH && svgaCard == SVGA_None && mode > 0x13) return false; /* Standard VGA does not have anything above 0x13 */
 
 	if (unmask_irq0_on_int10_setmode) {
 		/* setting the video mode unmasks certain IRQs as a matter of course */
@@ -1849,9 +1861,10 @@ bool INT10_SetVideoMode(uint16_t mode) {
 
 	if (svgaCard == SVGA_S3Trio) {
 		/* Setup the correct clock */
-		if (CurMode->mode>=0x100) {
+		if (CurMode->mode>=0x100 || CurMode->mode > 0x13) {
 			if (CurMode->vdispend>480)
 				misc_output|=0xc0;	//480-line sync
+
 			misc_output|=0x0c;		//Select clock 3
 			Bitu clock=CurMode->vtotal*8*CurMode->htotal*70;
 			if(CurMode->type==M_LIN15 || CurMode->type==M_LIN16) clock/=2;
@@ -2175,19 +2188,19 @@ dac_text16:
 			case M_LIN15:
 			case M_LIN16:
 			case M_LIN24:
-		case M_LIN32:
-		case M_PACKED4:
-			// IBM and clones use 248 default colors in the palette for 256-color mode.
-			// The last 8 colors of the palette are only initialized to 0 at BIOS init.
-			// Palette index is left at 0xf8 as on most clones, IBM leaves it at 0x10.
-			for (i=0;i<248;i++) {
-				IO_Write(0x3c9,vga_palette[i][0]);
-				IO_Write(0x3c9,vga_palette[i][1]);
-				IO_Write(0x3c9,vga_palette[i][2]);
-			}
-			break;
-		default:
-			break;
+			case M_LIN32:
+			case M_PACKED4:
+				// IBM and clones use 248 default colors in the palette for 256-color mode.
+				// The last 8 colors of the palette are only initialized to 0 at BIOS init.
+				// Palette index is left at 0xf8 as on most clones, IBM leaves it at 0x10.
+				for (i=0;i<248;i++) {
+					IO_Write(0x3c9,vga_palette[i][0]);
+					IO_Write(0x3c9,vga_palette[i][1]);
+					IO_Write(0x3c9,vga_palette[i][2]);
+				}
+				break;
+			default:
+				break;
 		}
 		if (IS_VGA_ARCH) {
 			/* check if gray scale summing is enabled */
@@ -2409,7 +2422,7 @@ Bitu VideoModeMemSize(Bitu mode) {
 		if (modelist[i].mode==mode) {
 			/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
 			if (modelist[i].mode >= 0x100 && modelist[i].mode <= 0x11F &&
-                !(modelist[i].special & _USER_MODIFIED) &&
+				!(modelist[i].special & _USER_MODIFIED) &&
 				((modelist[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
 				 (modelist[i].type == M_LIN24 && vesa12_modes_32bpp))) {
 				/* ignore */
