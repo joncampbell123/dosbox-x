@@ -713,7 +713,8 @@ void SVGA_Setup_S3Trio(void) {
     if (vga.mem.memsize == 0)
         vga.mem.memsize = 2*1024*1024; // the most common S3 configuration
 
-    // Set CRTC 36 to specify amount of VRAM and PCI
+    // Set CRTC 36 to specify amount of VRAM and PCI.
+    // NTS: Apparently this register can't count beyond 4MB.
     if (vga.mem.memsize < 1024*1024) {
         vga.mem.memsize = 512*1024;
         vga.s3.reg_36 = 0xfa;       // less than 1mb fast page mode
@@ -731,10 +732,10 @@ void SVGA_Setup_S3Trio(void) {
         vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
     } else if (vga.mem.memsize < 16384*1024) {  // 8M
         vga.mem.memsize = 8192*1024;
-        vga.s3.reg_36 = 0x7a;       // 8mb fast page mode
+        vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
     } else {    // HACK: 16MB mode, with value not supported by actual hardware
-        vga.mem.memsize = 16384*1024; // FIXME: This breaks the cursor in Windows 3.1, though Windows 95 has no problem with it
-        vga.s3.reg_36 = 0x7a;       // 8mb fast page mode
+        vga.mem.memsize = 16384*1024;
+        vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
     }
 
     PCI_AddSVGAS3_Device();
