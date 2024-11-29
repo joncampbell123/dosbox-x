@@ -527,17 +527,22 @@ static INLINE void SSE_CMPSS(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
 
 ////
 
-static INLINE void SSE_PINSRW(MMX_reg &d,const uint32_t &s,const uint8_t i) {
-	const uint8_t shf = (i&3u)*16u;
-	const uint64_t mask = (uint64_t)0xFFFF << (uint64_t)shf;
-	d.q = (d.q & (~mask)) | (((uint64_t)(s&0xFFFFu)) << (uint64_t)shf);
+static INLINE void MMX_PINSRW(MMX_reg &d,const uint32_t &s,const uint8_t i) {
+	d.uwa[i&3u] = (uint16_t)s;
+}
+
+static INLINE void SSE_PINSRW(XMM_Reg &d,const uint32_t &s,const uint8_t i) {
+	d.u16[i&7u] = (uint16_t)s;
 }
 
 ////
 
-static INLINE void SSE_PEXTRW(uint32_t &d,const MMX_reg &s,const uint8_t i) {
-	const uint8_t shf = (i&3u)*16u;
-	d = (s.q >> (uint64_t)shf) & (uint64_t)0xFFFFu;
+static INLINE void MMX_PEXTRW(uint32_t &d,const MMX_reg &s,const uint8_t i) {
+	d = s.uwa[i&3u];
+}
+
+static INLINE void SSE_PEXTRW(uint32_t &d,const XMM_Reg &s,const uint8_t i) {
+	d = s.u16[i&7u];
 }
 
 ////
