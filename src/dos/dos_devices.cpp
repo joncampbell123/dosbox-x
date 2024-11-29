@@ -626,6 +626,16 @@ bool DOS_Device::Read(uint8_t * data,uint16_t * size) {
 }
 
 bool DOS_Device::Write(const uint8_t * data,uint16_t * size) {
+	// Enables console capture with VZ editor resident and xscript
+	if(IS_PC98_ARCH && Devices[devnum]->IsName("CON")) {
+		uint16_t keep_ax = reg_ax;
+		for(uint16_t n = 0 ; n < *size ; n++) {
+			reg_al = *data++;
+			CALLBACK_RunRealInt(0x29);
+		}
+		reg_ax = keep_ax;
+		return true;
+	}
 	return Devices[devnum]->Write(data,size);
 }
 

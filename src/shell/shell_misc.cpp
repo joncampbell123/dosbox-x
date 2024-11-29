@@ -452,9 +452,9 @@ void DOS_Shell::InputCommand(char * line) {
     uint16_t cr;
 
 #if defined(USE_TTF)
-	if(IS_DOSV || ttf_dosv) {
+	if(IS_DOSV || IS_PC98_ARCH || ttf_dosv) {
 #else
-	if(IS_DOSV) {
+	if(IS_DOSV || IS_PC98_ARCH) {
 #endif
 		uint16_t int21_seg = mem_readw(0x0086);
 		if(int21_seg != 0xf000) {
