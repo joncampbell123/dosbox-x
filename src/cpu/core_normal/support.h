@@ -594,7 +594,7 @@ static INLINE void SSE_PMOVMSKB(uint32_t &d,const XMM_Reg &s) {
 
 ////
 
-static INLINE void SSE_PMINUB(MMX_reg &d,MMX_reg &s) {
+static INLINE void MMX_PMINUB(MMX_reg &d,MMX_reg &s) {
 #define STEP(i) d.ub.b##i = std::min(d.ub.b##i,s.ub.b##i)
 	STEP(0);
 	STEP(1);
@@ -609,7 +609,7 @@ static INLINE void SSE_PMINUB(MMX_reg &d,MMX_reg &s) {
 
 ////
 
-static INLINE void SSE_PMAXUB(MMX_reg &d,MMX_reg &s) {
+static INLINE void MMX_PMAXUB(MMX_reg &d,MMX_reg &s) {
 #define STEP(i) d.ub.b##i = std::max(d.ub.b##i,s.ub.b##i)
 	STEP(0);
 	STEP(1);
@@ -624,7 +624,7 @@ static INLINE void SSE_PMAXUB(MMX_reg &d,MMX_reg &s) {
 
 ////
 
-static INLINE void SSE_PAVGB(MMX_reg &d,MMX_reg &s) {
+static INLINE void MMX_PAVGB(MMX_reg &d,MMX_reg &s) {
 #define STEP(i) d.ub.b##i = (uint8_t)(((uint16_t)(d.ub.b##i) + (uint16_t)(s.ub.b##i) + 1u) >> 1u)
 	STEP(0);
 	STEP(1);
@@ -639,7 +639,7 @@ static INLINE void SSE_PAVGB(MMX_reg &d,MMX_reg &s) {
 
 ////
 
-static INLINE void SSE_PAVGW(MMX_reg &d,MMX_reg &s) {
+static INLINE void MMX_PAVGW(MMX_reg &d,MMX_reg &s) {
 #define STEP(i) d.uw.w##i = (uint16_t)(((uint32_t)(d.uw.w##i) + (uint32_t)(s.uw.w##i) + 1u) >> 1u)
 	STEP(0);
 	STEP(1);

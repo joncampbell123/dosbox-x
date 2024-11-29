@@ -1944,20 +1944,19 @@
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0xda)												/* SSE instruction group */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
 			GetRM;
-			MMX_reg smmx;
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
 				case MP_NONE:									/* 0F DA PMINUB reg, r/m */
 					if (rm >= 0xc0) {
-						SSE_PMINUB(*reg_mmx[reg],*reg_mmx[rm & 7]);
+						MMX_PMINUB(*reg_mmx[reg],*reg_mmx[rm & 7]);
 					} else {
 						GetEAa;
+						MMX_reg smmx;
 						smmx.q = LoadMq(eaa);
-						SSE_PMINUB(*reg_mmx[reg],smmx);
+						MMX_PMINUB(*reg_mmx[reg],smmx);
 					}
 					break;
 				default:
@@ -1969,20 +1968,19 @@
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0xde)												/* SSE instruction group */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
 			GetRM;
-			MMX_reg smmx;
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
 				case MP_NONE:									/* 0F DE PMAXUB reg, r/m */
 					if (rm >= 0xc0) {
-						SSE_PMAXUB(*reg_mmx[reg],*reg_mmx[rm & 7]);
+						MMX_PMAXUB(*reg_mmx[reg],*reg_mmx[rm & 7]);
 					} else {
 						GetEAa;
+						MMX_reg smmx;
 						smmx.q = LoadMq(eaa);
-						SSE_PMAXUB(*reg_mmx[reg],smmx);
+						MMX_PMAXUB(*reg_mmx[reg],smmx);
 					}
 					break;
 				default:
@@ -1994,20 +1992,19 @@
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0xe0)												/* SSE instruction group */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
 			GetRM;
-			MMX_reg smmx;
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
 				case MP_NONE:									/* 0F E0 PAVGB reg, r/m */
 					if (rm >= 0xc0) {
-						SSE_PAVGB(*reg_mmx[reg],*reg_mmx[rm & 7]);
+						MMX_PAVGB(*reg_mmx[reg],*reg_mmx[rm & 7]);
 					} else {
 						GetEAa;
+						MMX_reg smmx;
 						smmx.q = LoadMq(eaa);
-						SSE_PAVGB(*reg_mmx[reg],smmx);
+						MMX_PAVGB(*reg_mmx[reg],smmx);
 					}
 					break;
 				default:
@@ -2019,20 +2016,19 @@
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0xe3)												/* SSE instruction group */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
 			GetRM;
-			MMX_reg smmx;
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
 				case MP_NONE:									/* 0F E3 PAVGW reg, r/m */
 					if (rm >= 0xc0) {
-						SSE_PAVGW(*reg_mmx[reg],*reg_mmx[rm & 7]);
+						MMX_PAVGW(*reg_mmx[reg],*reg_mmx[rm & 7]);
 					} else {
 						GetEAa;
+						MMX_reg smmx;
 						smmx.q = LoadMq(eaa);
-						SSE_PAVGW(*reg_mmx[reg],smmx);
+						MMX_PAVGW(*reg_mmx[reg],smmx);
 					}
 					break;
 				default:
