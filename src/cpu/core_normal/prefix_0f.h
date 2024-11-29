@@ -2040,20 +2040,31 @@
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0xe4)												/* SSE instruction group */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
 			GetRM;
-			MMX_reg smmx;
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
 				case MP_NONE:									/* 0F E4 PULHUW reg, r/m */
 					if (rm >= 0xc0) {
-						SSE_PMULHUW(*reg_mmx[reg],*reg_mmx[rm & 7]);
+						MMX_PMULHUW(*reg_mmx[reg],*reg_mmx[rm & 7]);
 					} else {
 						GetEAa;
+						MMX_reg smmx;
 						smmx.q = LoadMq(eaa);
-						SSE_PMULHUW(*reg_mmx[reg],smmx);
+						MMX_PMULHUW(*reg_mmx[reg],smmx);
+					}
+					break;
+				case MP_66:									/* 66 0F E4 PULHUW reg, r/m */
+					if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+					if (rm >= 0xc0) {
+						SSE_PMULHUW(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+					} else {
+						GetEAa;
+						XMM_Reg sxmm;
+						sxmm.u64[0] = LoadMq(eaa);
+						sxmm.u64[1] = LoadMq(eaa+8u);
+						SSE_PMULHUW(fpu.xmmreg[reg],sxmm);
 					}
 					break;
 				default:

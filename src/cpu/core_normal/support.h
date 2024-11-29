@@ -650,12 +650,25 @@ static INLINE void MMX_PAVGW(MMX_reg &d,MMX_reg &s) {
 
 ////
 
-static INLINE void SSE_PMULHUW(MMX_reg &d,MMX_reg &s) {
-#define STEP(i) d.uw.w##i = (uint16_t)(((uint32_t)(d.uw.w##i) * (uint32_t)(s.uw.w##i)) >> (uint32_t)16u)
+static INLINE void MMX_PMULHUW(MMX_reg &d,MMX_reg &s) {
+#define STEP(i) d.uwa[i] = (uint16_t)(((uint32_t)(d.uwa[i]) * (uint32_t)(s.uwa[i])) >> (uint32_t)16u)
 	STEP(0);
 	STEP(1);
 	STEP(2);
 	STEP(3);
+#undef STEP
+}
+
+static INLINE void SSE_PMULHUW(XMM_Reg &d,XMM_Reg &s) {
+#define STEP(i) d.u16[i] = (uint16_t)(((uint32_t)(d.u16[i]) * (uint32_t)(s.u16[i])) >> (uint32_t)16u)
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+	STEP(4);
+	STEP(5);
+	STEP(6);
+	STEP(7);
 #undef STEP
 }
 
