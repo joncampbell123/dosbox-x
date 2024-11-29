@@ -1924,11 +1924,16 @@
 
 			switch (last_prefix) {
 				case MP_NONE:									/* 0F D7 PMOVMSKB reg, r/m */
-					if (rm >= 0xc0) {
-						SSE_PMOVMSKB(cpu_regs.regs[reg].dword[0],*reg_mmx[rm & 7]);
-					} else {
+					if (rm >= 0xc0)
+						MMX_PMOVMSKB(cpu_regs.regs[reg].dword[0],*reg_mmx[rm & 7]);
+					else
 						goto illegal_opcode;
-					}
+					break;
+				case MP_66:									/* 66 0F D7 PMOVMSKB reg, r/m */
+					if (rm >= 0xc0)
+						SSE_PMOVMSKB(cpu_regs.regs[reg].dword[0],fpu.xmmreg[rm & 7]);
+					else
+						goto illegal_opcode;
 					break;
 				default:
 					goto illegal_opcode;

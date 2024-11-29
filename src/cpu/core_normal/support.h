@@ -560,7 +560,7 @@ static INLINE void SSE_SHUFPS(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
 
 ////
 
-static INLINE void SSE_PMOVMSKB(uint32_t &d,const MMX_reg &s) {
+static INLINE void MMX_PMOVMSKB(uint32_t &d,const MMX_reg &s) {
 	d =
 		((s.ub.b7 & 0x80u) ? 0x80 : 0x00) |
 		((s.ub.b6 & 0x80u) ? 0x40 : 0x00) |
@@ -570,6 +570,26 @@ static INLINE void SSE_PMOVMSKB(uint32_t &d,const MMX_reg &s) {
 		((s.ub.b2 & 0x80u) ? 0x04 : 0x00) |
 		((s.ub.b1 & 0x80u) ? 0x02 : 0x00) |
 		((s.ub.b0 & 0x80u) ? 0x01 : 0x00);
+}
+
+static INLINE void SSE_PMOVMSKB(uint32_t &d,const XMM_Reg &s) {
+	d =
+		((s.u8[15] & 0x80u) ? 0x8000 : 0x0000) |
+		((s.u8[14] & 0x80u) ? 0x4000 : 0x0000) |
+		((s.u8[13] & 0x80u) ? 0x2000 : 0x0000) |
+		((s.u8[12] & 0x80u) ? 0x1000 : 0x0000) |
+		((s.u8[11] & 0x80u) ? 0x0800 : 0x0000) |
+		((s.u8[10] & 0x80u) ? 0x0400 : 0x0000) |
+		((s.u8[ 9] & 0x80u) ? 0x0200 : 0x0000) |
+		((s.u8[ 8] & 0x80u) ? 0x0100 : 0x0000) |
+		((s.u8[ 7] & 0x80u) ? 0x0080 : 0x0000) |
+		((s.u8[ 6] & 0x80u) ? 0x0040 : 0x0000) |
+		((s.u8[ 5] & 0x80u) ? 0x0020 : 0x0000) |
+		((s.u8[ 4] & 0x80u) ? 0x0010 : 0x0000) |
+		((s.u8[ 3] & 0x80u) ? 0x0008 : 0x0000) |
+		((s.u8[ 2] & 0x80u) ? 0x0004 : 0x0000) |
+		((s.u8[ 1] & 0x80u) ? 0x0002 : 0x0000) |
+		((s.u8[ 0] & 0x80u) ? 0x0001 : 0x0000);
 }
 
 ////
