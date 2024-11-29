@@ -126,8 +126,12 @@ union alignas(8) MMX_reg {
 	} uw;
 	static_assert(sizeof(uw) == 8, "MMX packing error");
 
-	uint16_t uwa[4]; /* for PSHUFW */
+	uint8_t uba[8];
+	uint16_t uwa[4];
+	uint32_t uda[2];
+	static_assert(sizeof(uba) == 8, "MMX packing error");
 	static_assert(sizeof(uwa) == 8, "MMX packing error");
+	static_assert(sizeof(uda) == 8, "MMX packing error");
 	static_assert(offsetof(uw_t,w0) == 0, "MMX packing error");
 	static_assert(offsetof(uw_t,w1) == 2, "MMX packing error");
 	static_assert(offsetof(uw_t,w2) == 4, "MMX packing error");

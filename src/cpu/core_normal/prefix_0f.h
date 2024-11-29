@@ -421,6 +421,8 @@
 			};
 		}
 		break;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0x19) CASE_0F_B(0x1A) CASE_0F_B(0x1B) CASE_0F_B(0x1C) CASE_0F_B(0x1D) CASE_0F_B(0x1E) CASE_0F_B(0x1F)         /* hinting NOPs */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
 		break;
@@ -1770,8 +1772,7 @@
 #endif
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
-	CASE_0F_B(0xc4)												/* SSE instruction group */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+	CASE_0F_B(0xc4)												/* MMX/SSE instruction group */
 		{
 			GetRM;
 			uint8_t imm;
@@ -1780,14 +1781,27 @@
 
 			switch (last_prefix) {
 				case MP_NONE:									/* 0F C4 PINSRW reg, r/m, imm8 */
+					if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
 					if (rm >= 0xc0) {
 						imm = Fetchb();
-						SSE_PINSRW(*reg_mmx[reg],cpu_regs.regs[rm & 7].dword[0],imm);
+						MMX_PINSRW(*reg_mmx[reg],cpu_regs.regs[rm & 7].dword[0],imm);
 					} else {
 						GetEAa;
 						src = LoadMd(eaa);
 						imm = Fetchb();
-						SSE_PINSRW(*reg_mmx[reg],src,imm);
+						MMX_PINSRW(*reg_mmx[reg],src,imm);
+					}
+					break;
+				case MP_66:									/* 66 0F C4 PINSRW reg, r/m, imm8 */
+					if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+					if (rm >= 0xc0) {
+						imm = Fetchb();
+						SSE_PINSRW(fpu.xmmreg[reg],cpu_regs.regs[rm & 7].dword[0],imm);
+					} else {
+						GetEAa;
+						src = LoadMd(eaa);
+						imm = Fetchb();
+						SSE_PINSRW(fpu.xmmreg[reg],src,imm);
 					}
 					break;
 				default:
@@ -1799,7 +1813,6 @@
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0xc5)												/* SSE instruction group */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
 			GetRM;
 			uint8_t imm;
@@ -1809,7 +1822,16 @@
 				case MP_NONE:									/* 0F C5 PEXTRW reg, r/m, imm8 */
 					if (rm >= 0xc0) {
 						imm = Fetchb();
-						SSE_PEXTRW(cpu_regs.regs[reg].dword[0],*reg_mmx[rm & 7],imm);
+						MMX_PEXTRW(cpu_regs.regs[reg].dword[0],*reg_mmx[rm & 7],imm);
+					} else {
+						goto illegal_opcode;
+					}
+					break;
+				case MP_66:									/* 66 0F C5 PEXTRW reg, r/m, imm8 */
+					if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+					if (rm >= 0xc0) {
+						imm = Fetchb();
+						SSE_PEXTRW(cpu_regs.regs[reg].dword[0],fpu.xmmreg[rm & 7],imm);
 					} else {
 						goto illegal_opcode;
 					}
