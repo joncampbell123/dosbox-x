@@ -1222,16 +1222,14 @@
 					dest->uw.w2 = (tmp.uw.w2&0x8000)?0xffff:0;
 					dest->uw.w3 = (tmp.uw.w3&0x8000)?0xffff:0;
 				} else {
-					dest->uw.w0 >>= shift;
-					dest->uw.w1 >>= shift;
-					dest->uw.w2 >>= shift;
-					dest->uw.w3 >>= shift;
-					if (tmp.uw.w0&0x8000) dest->uw.w0 |= (0xffff << (16 - shift));
-					if (tmp.uw.w1&0x8000) dest->uw.w1 |= (0xffff << (16 - shift));
-					if (tmp.uw.w2&0x8000) dest->uw.w2 |= (0xffff << (16 - shift));
-					if (tmp.uw.w3&0x8000) dest->uw.w3 |= (0xffff << (16 - shift));
+					dest->sw.w0 >>= (int16_t)shift;
+					dest->sw.w1 >>= (int16_t)shift;
+					dest->sw.w2 >>= (int16_t)shift;
+					dest->sw.w3 >>= (int16_t)shift;
 				}
 				break;
+			default:
+				goto illegal_opcode;
 		}
 		break;
 	}
@@ -1265,12 +1263,12 @@
 					dest->ud.d0 = (tmp.ud.d0&0x80000000)?0xffffffff:0;
 					dest->ud.d1 = (tmp.ud.d1&0x80000000)?0xffffffff:0;
 				} else {
-					dest->ud.d0 >>= shift;
-					dest->ud.d1 >>= shift;
-					if (tmp.ud.d0&0x80000000) dest->ud.d0 |= (0xffffffff << (32 - shift));
-					if (tmp.ud.d1&0x80000000) dest->ud.d1 |= (0xffffffff << (32 - shift));
+					dest->sd.d0 >>= (int32_t)shift;
+					dest->sd.d1 >>= (int32_t)shift;
 				}
 				break;
+			default:
+				goto illegal_opcode;
 		}
 		break;
 	}
@@ -1278,16 +1276,20 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		GetRM;
+		uint8_t op=(rm>>3)&7;
 		uint8_t shift=(uint8_t)Fetchb();
 		MMX_reg* dest=reg_mmx[rm&7];
-		if (shift > 63) dest->q = 0;
-		else {
-			uint8_t op=rm&0x20;
-			if (op) {
-				dest->q <<= (uint64_t)shift;
-			} else {
-				dest->q >>= (uint64_t)shift;
-			}
+		switch (op) {
+			case 0x06: /*PSLLQ*/
+				if (shift > 63) dest->q = 0;
+				else dest->q <<= (uint64_t)shift;
+				break;
+			case 0x02: /*PSRLQ*/
+				if (shift > 63) dest->q = 0;
+				else dest->q >>= (uint64_t)shift;
+				break;
+			default:
+				goto illegal_opcode;
 		}
 		break;
 	}
@@ -1592,7 +1594,7 @@
 			GetEAa;
 			src.q=LoadMq(eaa);
 		}
-		if (src.ub.b0 > 15) dest->q = 0;
+		if (src.q > 15) dest->q = 0;
 		else {
 			dest->uw.w0 >>= src.ub.b0;
 			dest->uw.w1 >>= src.ub.b0;
@@ -1613,7 +1615,7 @@
 			GetEAa;
 			src.q=LoadMq(eaa);
 		}
-		if (src.ub.b0 > 31) dest->q = 0;
+		if (src.q > 31) dest->q = 0;
 		else {
 			dest->ud.d0 >>= src.ub.b0;
 			dest->ud.d1 >>= src.ub.b0;
@@ -1632,7 +1634,7 @@
 			GetEAa;
 			src.q=LoadMq(eaa);
 		}
-		if (src.ub.b0 > 63) dest->q = 0;
+		if (src.q > 63) dest->q = 0;
 		else dest->q >>= (uint64_t)src.ub.b0;
 		break;
 	}
@@ -1915,7 +1917,7 @@
 			src.q=LoadMq(eaa);
 		}
 		if (!src.q) break;
-		if (src.ub.b0 > 15) {
+		if (src.q > 15) {
 			dest->uw.w0 = (tmp.uw.w0&0x8000)?0xffff:0;
 			dest->uw.w1 = (tmp.uw.w1&0x8000)?0xffff:0;
 			dest->uw.w2 = (tmp.uw.w2&0x8000)?0xffff:0;
@@ -1947,7 +1949,7 @@
 			src.q=LoadMq(eaa);
 		}
 		if (!src.q) break;
-		if (src.ub.b0 > 31) {
+		if (src.q > 31) {
 			dest->ud.d0 = (tmp.ud.d0&0x80000000)?0xffffffff:0;
 			dest->ud.d1 = (tmp.ud.d1&0x80000000)?0xffffffff:0;
 		} else {
@@ -2256,7 +2258,7 @@
 			GetEAa;
 			src.q=LoadMq(eaa);
 		}
-		if (src.ub.b0 > 15) dest->q = 0;
+		if (src.q > 15) dest->q = 0;
 		else {
 			dest->uw.w0 <<= src.ub.b0;
 			dest->uw.w1 <<= src.ub.b0;
@@ -2277,7 +2279,7 @@
 			GetEAa;
 			src.q=LoadMq(eaa);
 		}
-		if (src.ub.b0 > 31) dest->q = 0;
+		if (src.q > 31) dest->q = 0;
 		else {
 			dest->ud.d0 <<= src.ub.b0;
 			dest->ud.d1 <<= src.ub.b0;
@@ -2296,7 +2298,7 @@
 			GetEAa;
 			src.q=LoadMq(eaa);
 		}
-		if (src.ub.b0 > 63) dest->q = 0;
+		if (src.q > 63) dest->q = 0;
 		else dest->q <<= (uint64_t)src.ub.b0;
 		break;
 	}
