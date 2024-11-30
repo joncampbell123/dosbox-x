@@ -222,8 +222,7 @@
 	CASE_0F_MMX(0x18)
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
-		else if (CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW) break; /* hinting NOP */
-		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_PENTIUMIII)
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) break; /* hinting NOP */
 		{
 			GetRM;
 			const unsigned char reg = (rm >> 3) & 7;
