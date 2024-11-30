@@ -1923,14 +1923,10 @@
 			dest->uw.w2 = (tmp.uw.w2&0x8000)?0xffff:0;
 			dest->uw.w3 = (tmp.uw.w3&0x8000)?0xffff:0;
 		} else {
-			dest->uw.w0 >>= src.ub.b0;
-			dest->uw.w1 >>= src.ub.b0;
-			dest->uw.w2 >>= src.ub.b0;
-			dest->uw.w3 >>= src.ub.b0;
-			if (tmp.uw.w0&0x8000) dest->uw.w0 |= (0xffff << (16 - src.ub.b0));
-			if (tmp.uw.w1&0x8000) dest->uw.w1 |= (0xffff << (16 - src.ub.b0));
-			if (tmp.uw.w2&0x8000) dest->uw.w2 |= (0xffff << (16 - src.ub.b0));
-			if (tmp.uw.w3&0x8000) dest->uw.w3 |= (0xffff << (16 - src.ub.b0));
+			dest->sw.w0 >>= (int16_t)src.ub.b0;
+			dest->sw.w1 >>= (int16_t)src.ub.b0;
+			dest->sw.w2 >>= (int16_t)src.ub.b0;
+			dest->sw.w3 >>= (int16_t)src.ub.b0;
 		}
 		break;
 	}
@@ -1953,10 +1949,8 @@
 			dest->ud.d0 = (tmp.ud.d0&0x80000000)?0xffffffff:0;
 			dest->ud.d1 = (tmp.ud.d1&0x80000000)?0xffffffff:0;
 		} else {
-			dest->ud.d0 >>= src.ub.b0;
-			dest->ud.d1 >>= src.ub.b0;
-			if (tmp.ud.d0&0x80000000) dest->ud.d0 |= (0xffffffff << (32 - src.ub.b0));
-			if (tmp.ud.d1&0x80000000) dest->ud.d1 |= (0xffffffff << (32 - src.ub.b0));
+			dest->ud.d0 >>= (int32_t)src.ub.b0;
+			dest->ud.d1 >>= (int32_t)src.ub.b0;
 		}
 		break;
 	}
