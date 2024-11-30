@@ -607,6 +607,27 @@ static INLINE void MMX_PMINUB(MMX_reg &d,MMX_reg &s) {
 #undef STEP
 }
 
+static INLINE void SSE_PMINUB(XMM_Reg &d,XMM_Reg &s) {
+#define STEP(i) d.u8[i] = std::min(d.u8[i],s.u8[i])
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+	STEP(4);
+	STEP(5);
+	STEP(6);
+	STEP(7);
+	STEP(8);
+	STEP(9);
+	STEP(10);
+	STEP(11);
+	STEP(12);
+	STEP(13);
+	STEP(14);
+	STEP(15);
+#undef STEP
+}
+
 ////
 
 static INLINE void MMX_PMAXUB(MMX_reg &d,MMX_reg &s) {
@@ -619,6 +640,27 @@ static INLINE void MMX_PMAXUB(MMX_reg &d,MMX_reg &s) {
 	STEP(5);
 	STEP(6);
 	STEP(7);
+#undef STEP
+}
+
+static INLINE void SSE_PMAXUB(XMM_Reg &d,XMM_Reg &s) {
+#define STEP(i) d.u8[i] = std::max(d.u8[i],s.u8[i])
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+	STEP(4);
+	STEP(5);
+	STEP(6);
+	STEP(7);
+	STEP(8);
+	STEP(9);
+	STEP(10);
+	STEP(11);
+	STEP(12);
+	STEP(13);
+	STEP(14);
+	STEP(15);
 #undef STEP
 }
 
@@ -637,6 +679,27 @@ static INLINE void MMX_PAVGB(MMX_reg &d,MMX_reg &s) {
 #undef STEP
 }
 
+static INLINE void SSE_PAVGB(XMM_Reg &d,XMM_Reg &s) {
+#define STEP(i) d.u8[i] = (uint8_t)(((uint16_t)(d.u8[i]) + (uint16_t)(s.u8[i]) + 1u) >> 1u)
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+	STEP(4);
+	STEP(5);
+	STEP(6);
+	STEP(7);
+	STEP(8);
+	STEP(9);
+	STEP(10);
+	STEP(11);
+	STEP(12);
+	STEP(13);
+	STEP(14);
+	STEP(15);
+#undef STEP
+}
+
 ////
 
 static INLINE void MMX_PAVGW(MMX_reg &d,MMX_reg &s) {
@@ -645,6 +708,19 @@ static INLINE void MMX_PAVGW(MMX_reg &d,MMX_reg &s) {
 	STEP(1);
 	STEP(2);
 	STEP(3);
+#undef STEP
+}
+
+static INLINE void SSE_PAVGW(XMM_Reg &d,XMM_Reg &s) {
+#define STEP(i) d.u16[i] = (uint16_t)(((uint32_t)(d.u16[i]) + (uint32_t)(s.u16[i]) + 1u) >> 1u)
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+	STEP(4);
+	STEP(5);
+	STEP(6);
+	STEP(7);
 #undef STEP
 }
 
@@ -674,7 +750,7 @@ static INLINE void SSE_PMULHUW(XMM_Reg &d,XMM_Reg &s) {
 
 ////
 
-static INLINE void SSE_PMINSW(MMX_reg &d,MMX_reg &s) {
+static INLINE void MMX_PMINSW(MMX_reg &d,MMX_reg &s) {
 #define STEP(i) d.sw.w##i = std::min(d.sw.w##i,s.sw.w##i)
 	STEP(0);
 	STEP(1);
@@ -683,9 +759,22 @@ static INLINE void SSE_PMINSW(MMX_reg &d,MMX_reg &s) {
 #undef STEP
 }
 
+static INLINE void SSE_PMINSW(XMM_Reg &d,XMM_Reg &s) {
+#define STEP(i) d.i16[i] = std::min(d.i16[i],s.i16[i])
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+	STEP(4);
+	STEP(5);
+	STEP(6);
+	STEP(7);
+#undef STEP
+}
+
 ////
 
-static INLINE void SSE_PMAXSW(MMX_reg &d,MMX_reg &s) {
+static INLINE void MMX_PMAXSW(MMX_reg &d,MMX_reg &s) {
 #define STEP(i) d.sw.w##i = std::max(d.sw.w##i,s.sw.w##i)
 	STEP(0);
 	STEP(1);
@@ -694,14 +783,36 @@ static INLINE void SSE_PMAXSW(MMX_reg &d,MMX_reg &s) {
 #undef STEP
 }
 
+static INLINE void SSE_PMAXSW(XMM_Reg &d,XMM_Reg &s) {
+#define STEP(i) d.i16[i] = std::max(d.i16[i],s.i16[i])
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+	STEP(4);
+	STEP(5);
+	STEP(6);
+	STEP(7);
+#undef STEP
+}
+
 ////
 
-static INLINE void SSE_PSADBW(MMX_reg &d,MMX_reg &s) {
+static INLINE void MMX_PSADBW(MMX_reg &d,MMX_reg &s) {
 #define STEP(i) (uint16_t)abs((int16_t)(d.ub.b##i) - (int16_t)(s.ub.b##i))
 	d.uw.w0 = STEP(0) + STEP(1) + STEP(2) + STEP(3) + STEP(4) + STEP(5) + STEP(6) + STEP(7);
 	d.uw.w1 = d.uw.w2 = d.uw.w3 = 0;
 #undef STEP
 }
+
+static INLINE void SSE_PSADBW(XMM_Reg &d,XMM_Reg &s) {
+#define STEP(i) (uint16_t)abs((int16_t)(d.u8[i]) - (int16_t)(s.u8[i]))
+	d.u16[0] = STEP(0) + STEP(1) + STEP(2) + STEP(3) + STEP(4) + STEP(5) + STEP(6) + STEP(7) +
+			STEP(8) + STEP(9) + STEP(10) + STEP(11) + STEP(12) + STEP(13) + STEP(14) + STEP(15);
+	d.u16[1] = d.u16[2] = d.u16[3] = d.u16[4] = d.u16[5] = d.u16[6] = d.u16[7] = 0;
+#undef STEP
+}
+
 #endif // 386+
 
 #define SETcc(cc)							\
