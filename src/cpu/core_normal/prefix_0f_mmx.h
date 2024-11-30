@@ -1382,6 +1382,205 @@
 		}
 		break;
 	}
+	CASE_0F_MMX(0xae)
+	{
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+		{
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (reg) {
+				case 0:
+					if (rm < 0xC0) {							/* 0F AE /0 FXSAVE <m> */
+						GetEAa;
+						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+						CPU_FXSAVE(eaa);
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 1:
+					if (rm < 0xC0) {							/* 0F AE /1 FXRSTOR <m> */
+						GetEAa;
+						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+						CPU_FXRSTOR(eaa);
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 2:
+					if (rm < 0xC0) {							/* 0F AE /2 LDMXCSR <m> */
+						GetEAa;
+						if (!CPU_LDMXCSR(eaa)) EXCEPTION(EXCEPTION_GP);
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 3:
+					if (rm < 0xC0) {							/* 0F AE /3 STMXCSR <m> */
+						GetEAa;
+						if (!CPU_STMXCSR(eaa)) EXCEPTION(EXCEPTION_GP);
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 7:
+					if (rm >= 0xC0) {							/* 0F AE /7 SFENCE <not m> */
+						// DO NOTHING
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+			break;
+		}
+	}
+	CASE_0F_MMX(0xc2)
+	{
+		GetRM;
+		uint8_t cf;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F C2 CMPPS reg, r/m, imm8 */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					/* FIXME: Documentation says these are "reserved", doesn't say it causes a #UD, what really happens? */
+					if ((cf=Fetchb()) > 7) goto illegal_opcode;
+					SSE_CMPPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7],cf);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					/* FIXME: Documentation says these are "reserved", doesn't say it causes a #UD, what really happens? */
+					if ((cf=Fetchb()) > 7) goto illegal_opcode;
+					SSE_CMPPS(fpu.xmmreg[reg],xmmsrc,cf);
+				}
+				break;
+			case MP_F3:									/* F3 0F C2 CMPSS reg, r/m, imm8 */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					/* FIXME: Documentation says these are "reserved", doesn't say it causes a #UD, what really happens? */
+					if ((cf=Fetchb()) > 7) goto illegal_opcode;
+					SSE_CMPSS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7],cf);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u32[0] = LoadMd(eaa);
+					/* FIXME: Documentation says these are "reserved", doesn't say it causes a #UD, what really happens? */
+					if ((cf=Fetchb()) > 7) goto illegal_opcode;
+					SSE_CMPSS(fpu.xmmreg[reg],xmmsrc,cf);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+	CASE_0F_MMX(0xc4)
+	{
+		GetRM;
+		uint8_t imm;
+		uint32_t src;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F C4 PINSRW reg, r/m, imm8 */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					imm = Fetchb();
+					MMX_PINSRW(*reg_mmx[reg],cpu_regs.regs[rm & 7].dword[0],imm);
+				} else {
+					GetEAa;
+					src = LoadMd(eaa);
+					imm = Fetchb();
+					MMX_PINSRW(*reg_mmx[reg],src,imm);
+				}
+				break;
+			case MP_66:									/* 66 0F C4 PINSRW reg, r/m, imm8 */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					imm = Fetchb();
+					SSE_PINSRW(fpu.xmmreg[reg],cpu_regs.regs[rm & 7].dword[0],imm);
+				} else {
+					GetEAa;
+					src = LoadMd(eaa);
+					imm = Fetchb();
+					SSE_PINSRW(fpu.xmmreg[reg],src,imm);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+	CASE_0F_MMX(0xc5)
+	{
+		GetRM;
+		uint8_t imm;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F C5 PEXTRW reg, r/m, imm8 */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					imm = Fetchb();
+					MMX_PEXTRW(cpu_regs.regs[reg].dword[0],*reg_mmx[rm & 7],imm);
+				} else {
+					goto illegal_opcode;
+				}
+				break;
+			case MP_66:									/* 66 0F C5 PEXTRW reg, r/m, imm8 */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					imm = Fetchb();
+					SSE_PEXTRW(cpu_regs.regs[reg].dword[0],fpu.xmmreg[rm & 7],imm);
+				} else {
+					goto illegal_opcode;
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+	CASE_0F_MMX(0xc6)
+	{
+		XMM_Reg xmmsrc;
+		GetRM;
+		uint8_t imm;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F C6 SHUFPS reg, r/m, imm8 */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					imm = Fetchb();
+					SSE_SHUFPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7],imm);
+				} else {
+					GetEAa;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					imm = Fetchb();
+					SSE_SHUFPS(fpu.xmmreg[reg],xmmsrc,imm);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
 	CASE_0F_MMX(0xd1)												/* PSRLW Pq,Qq */
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
