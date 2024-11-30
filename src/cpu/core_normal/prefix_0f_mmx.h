@@ -15,6 +15,9 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+/* NTS: Despite the name of the header, this covers MMX and SSE because the
+ *      opcodes are mixed together by sharing common opcodes separated by
+ *      prefixes repurposed by Intel as a way to expand the opcode space. */
 
 /* State Management */
 	CASE_0F_MMX(0x77)												/* EMMS */
