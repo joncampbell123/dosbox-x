@@ -2158,3 +2158,369 @@
 		break;
 	}
 
+
+
+
+	CASE_0F_MMX(0xd7)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F D7 PMOVMSKB reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0)
+					MMX_PMOVMSKB(cpu_regs.regs[reg].dword[0],*reg_mmx[rm & 7]);
+				else
+					goto illegal_opcode;
+				break;
+			case MP_66:									/* 66 0F D7 PMOVMSKB reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0)
+					SSE_PMOVMSKB(cpu_regs.regs[reg].dword[0],fpu.xmmreg[rm & 7]);
+				else
+					goto illegal_opcode;
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xda)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F DA PMINUB reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					MMX_PMINUB(*reg_mmx[reg],*reg_mmx[rm & 7]);
+				} else {
+					GetEAa;
+					MMX_reg smmx;
+					smmx.q = LoadMq(eaa);
+					MMX_PMINUB(*reg_mmx[reg],smmx);
+				}
+				break;
+			case MP_66:									/* 66 0F DA PMINUB reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE_PMINUB(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg sxmm;
+					sxmm.u64[0] = LoadMq(eaa);
+					sxmm.u64[1] = LoadMq(eaa+8u);
+					SSE_PMINUB(fpu.xmmreg[reg],sxmm);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xde)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F DE PMAXUB reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					MMX_PMAXUB(*reg_mmx[reg],*reg_mmx[rm & 7]);
+				} else {
+					GetEAa;
+					MMX_reg smmx;
+					smmx.q = LoadMq(eaa);
+					MMX_PMAXUB(*reg_mmx[reg],smmx);
+				}
+				break;
+			case MP_66:									/* 66 0F DE PMAXUB reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE_PMAXUB(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg smmx;
+					smmx.u64[0] = LoadMq(eaa);
+					smmx.u64[1] = LoadMq(eaa+8u);
+					SSE_PMAXUB(fpu.xmmreg[reg],smmx);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xe0)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F E0 PAVGB reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					MMX_PAVGB(*reg_mmx[reg],*reg_mmx[rm & 7]);
+				} else {
+					GetEAa;
+					MMX_reg smmx;
+					smmx.q = LoadMq(eaa);
+					MMX_PAVGB(*reg_mmx[reg],smmx);
+				}
+				break;
+			case MP_66:									/* 66 0F E0 PAVGB reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE_PAVGB(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg smmx;
+					smmx.u64[0] = LoadMq(eaa);
+					smmx.u64[1] = LoadMq(eaa+8u);
+					SSE_PAVGB(fpu.xmmreg[reg],smmx);
+				}
+				break;
+
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xe3)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F E3 PAVGW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					MMX_PAVGW(*reg_mmx[reg],*reg_mmx[rm & 7]);
+				} else {
+					GetEAa;
+					MMX_reg smmx;
+					smmx.q = LoadMq(eaa);
+					MMX_PAVGW(*reg_mmx[reg],smmx);
+				}
+				break;
+			case MP_66:									/* 66 0F E3 PAVGW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE_PAVGW(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg smmx;
+					smmx.u64[0] = LoadMq(eaa);
+					smmx.u64[1] = LoadMq(eaa+8u);
+					SSE_PAVGW(fpu.xmmreg[reg],smmx);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xe4)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F E4 PULHUW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					MMX_PMULHUW(*reg_mmx[reg],*reg_mmx[rm & 7]);
+				} else {
+					GetEAa;
+					MMX_reg smmx;
+					smmx.q = LoadMq(eaa);
+					MMX_PMULHUW(*reg_mmx[reg],smmx);
+				}
+				break;
+			case MP_66:									/* 66 0F E4 PULHUW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE_PMULHUW(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg sxmm;
+					sxmm.u64[0] = LoadMq(eaa);
+					sxmm.u64[1] = LoadMq(eaa+8u);
+					SSE_PMULHUW(fpu.xmmreg[reg],sxmm);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xe7)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F E7 MOVNTQ r/m, reg */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					goto illegal_opcode;
+				} else {
+					GetEAa;
+					SaveMq(eaa,(*reg_mmx[reg]).q);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xea)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F EA PMINSW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					MMX_PMINSW(*reg_mmx[reg],*reg_mmx[rm & 7]);
+				} else {
+					GetEAa;
+					MMX_reg smmx;
+					smmx.q = LoadMq(eaa);
+					MMX_PMINSW(*reg_mmx[reg],smmx);
+				}
+				break;
+			case MP_66:									/* 66 0F EA PMINSW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE_PMINSW(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg sxmm;
+					sxmm.u64[0] = LoadMq(eaa);
+					sxmm.u64[1] = LoadMq(eaa+8u);
+					SSE_PMINSW(fpu.xmmreg[reg],sxmm);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xee)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F EE PMAXSW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					MMX_PMAXSW(*reg_mmx[reg],*reg_mmx[rm & 7]);
+				} else {
+					GetEAa;
+					MMX_reg smmx;
+					smmx.q = LoadMq(eaa);
+					MMX_PMAXSW(*reg_mmx[reg],smmx);
+				}
+				break;
+			case MP_66:									/* 66 0F EE PMAXSW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE_PMAXSW(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg sxmm;
+					sxmm.u64[0] = LoadMq(eaa);
+					sxmm.u64[1] = LoadMq(eaa+8u);
+					SSE_PMAXSW(fpu.xmmreg[reg],sxmm);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xf6)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F F6 PSADBW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					MMX_PSADBW(*reg_mmx[reg],*reg_mmx[rm & 7]);
+				} else {
+					GetEAa;
+					MMX_reg smmx;
+					smmx.q = LoadMq(eaa);
+					MMX_PSADBW(*reg_mmx[reg],smmx);
+				}
+				break;
+			case MP_66:									/* 66 0F F6 PSADBW reg, r/m */
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE_PSADBW(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg sxmm;
+					sxmm.u64[0] = LoadMq(eaa);
+					sxmm.u64[1] = LoadMq(eaa+8u);
+					SSE_PSADBW(fpu.xmmreg[reg],sxmm);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+	CASE_0F_MMX(0xf7)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F F7 MASKMOVQ reg, r/m */
+				if (rm >= 0xc0) {
+					/* the MSB of each byte in second operand indicates whether to write the corresponding byte value from the first operand
+					 * i.e. MASKMOVQ mm1,mm2 would selectively write bytes from mm1 according to MSBs of each byte in mm1. The target memory
+					 * location is DS:EDI (DS can be overridden by a segment prefix). */
+					/* On real hardware, this controls the byte enables on the wide data path from the processor.
+					 * We don't have that here, so we have to break up the writes */
+					PhysPt aa = BaseDS + (reg_edi & AddrMaskTable[core.prefixes & PREFIX_ADDR]);
+					const MMX_reg *data = reg_mmx[reg];
+					const MMX_reg *msk = reg_mmx[rm & 7];
+					if (msk->ub.b0 & 0x80) SaveMb(aa+0,data->ub.b0);
+					if (msk->ub.b1 & 0x80) SaveMb(aa+1,data->ub.b1);
+					if (msk->ub.b2 & 0x80) SaveMb(aa+2,data->ub.b2);
+					if (msk->ub.b3 & 0x80) SaveMb(aa+3,data->ub.b3);
+					if (msk->ub.b4 & 0x80) SaveMb(aa+4,data->ub.b4);
+					if (msk->ub.b5 & 0x80) SaveMb(aa+5,data->ub.b5);
+					if (msk->ub.b6 & 0x80) SaveMb(aa+6,data->ub.b6);
+					if (msk->ub.b7 & 0x80) SaveMb(aa+7,data->ub.b7);
+				} else {
+					goto illegal_opcode;
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+
+
