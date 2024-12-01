@@ -17,7 +17,8 @@
  */
 /* NTS: Despite the name of the header, this covers MMX and SSE because the
  *      opcodes are mixed together by sharing common opcodes separated by
- *      prefixes repurposed by Intel as a way to expand the opcode space. */
+ *      prefixes repurposed by Intel as a way to expand the opcode space.
+ *      Yes, really. They're called "mandatory opcodes". */
 
 	CASE_0F_MMX(0x10)
 	{
@@ -912,10 +913,10 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		GetRM;
-		MMX_reg* dest=lookupRMregMM[rm];
+		MMX_reg *dest = lookupRMregMM[rm];
 		MMX_reg src;
 		if (rm>=0xc0) {
-			src.q=reg_mmx[rm&7]->q;
+			src.q = reg_mmx[rm&7]->q;
 		} else {
 			GetEAa;
 			src.q = LoadMq(eaa);
@@ -934,10 +935,10 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		GetRM;
-		MMX_reg* dest=lookupRMregMM[rm];
+		MMX_reg *dest = lookupRMregMM[rm];
 		MMX_reg src;
 		if (rm>=0xc0) {
-			src.q=reg_mmx[rm&7]->q;
+			src.q = reg_mmx[rm&7]->q;
 		} else {
 			GetEAa;
 			src.q = LoadMq(eaa);
@@ -1213,14 +1214,11 @@
 				}
 				break;
 			case 0x04: /*PSRAW*/
-				MMX_reg tmp;
-				if (!shift) break;
-				tmp.q = dest->q;
 				if (shift > 15) {
-					dest->uw.w0 = (tmp.uw.w0&0x8000)?0xffff:0;
-					dest->uw.w1 = (tmp.uw.w1&0x8000)?0xffff:0;
-					dest->uw.w2 = (tmp.uw.w2&0x8000)?0xffff:0;
-					dest->uw.w3 = (tmp.uw.w3&0x8000)?0xffff:0;
+					dest->uw.w0 = (dest->sw.w0<0)?0xffff:0;
+					dest->uw.w1 = (dest->sw.w1<0)?0xffff:0;
+					dest->uw.w2 = (dest->sw.w2<0)?0xffff:0;
+					dest->uw.w3 = (dest->sw.w3<0)?0xffff:0;
 				} else {
 					dest->sw.w0 >>= (int16_t)shift;
 					dest->sw.w1 >>= (int16_t)shift;
@@ -1256,12 +1254,9 @@
 				}
 				break;
 			case 0x04: /*PSRAD*/
-				MMX_reg tmp;
-				if (!shift) break;
-				tmp.q = dest->q;
 				if (shift > 31) { 
-					dest->ud.d0 = (tmp.ud.d0&0x80000000)?0xffffffff:0;
-					dest->ud.d1 = (tmp.ud.d1&0x80000000)?0xffffffff:0;
+					dest->ud.d0 = (dest->sd.d0<0l)?0xffffffff:0;
+					dest->ud.d1 = (dest->sd.d1<0l)?0xffffffff:0;
 				} else {
 					dest->sd.d0 >>= (int32_t)shift;
 					dest->sd.d1 >>= (int32_t)shift;
@@ -1353,6 +1348,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		setFPUTagEmpty();
+		fpu.sw.top = 0;
 		break;
 	}
 	CASE_0F_MMX(0x7e)												/* MOVD Ed,Pq */
@@ -1791,14 +1787,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->ub.b0 = SaturateWordSToByteU((uint16_t)dest->ub.b0+(uint16_t)src.ub.b0);
-		dest->ub.b1 = SaturateWordSToByteU((uint16_t)dest->ub.b1+(uint16_t)src.ub.b1);
-		dest->ub.b2 = SaturateWordSToByteU((uint16_t)dest->ub.b2+(uint16_t)src.ub.b2);
-		dest->ub.b3 = SaturateWordSToByteU((uint16_t)dest->ub.b3+(uint16_t)src.ub.b3);
-		dest->ub.b4 = SaturateWordSToByteU((uint16_t)dest->ub.b4+(uint16_t)src.ub.b4);
-		dest->ub.b5 = SaturateWordSToByteU((uint16_t)dest->ub.b5+(uint16_t)src.ub.b5);
-		dest->ub.b6 = SaturateWordSToByteU((uint16_t)dest->ub.b6+(uint16_t)src.ub.b6);
-		dest->ub.b7 = SaturateWordSToByteU((uint16_t)dest->ub.b7+(uint16_t)src.ub.b7);
+		dest->ub.b0 = SaturateWordSToByteU((int16_t)dest->ub.b0+(int16_t)src.ub.b0);
+		dest->ub.b1 = SaturateWordSToByteU((int16_t)dest->ub.b1+(int16_t)src.ub.b1);
+		dest->ub.b2 = SaturateWordSToByteU((int16_t)dest->ub.b2+(int16_t)src.ub.b2);
+		dest->ub.b3 = SaturateWordSToByteU((int16_t)dest->ub.b3+(int16_t)src.ub.b3);
+		dest->ub.b4 = SaturateWordSToByteU((int16_t)dest->ub.b4+(int16_t)src.ub.b4);
+		dest->ub.b5 = SaturateWordSToByteU((int16_t)dest->ub.b5+(int16_t)src.ub.b5);
+		dest->ub.b6 = SaturateWordSToByteU((int16_t)dest->ub.b6+(int16_t)src.ub.b6);
+		dest->ub.b7 = SaturateWordSToByteU((int16_t)dest->ub.b7+(int16_t)src.ub.b7);
 		break;
 	}
 	CASE_0F_MMX(0xDD)												/* PADDUSW Pq,Qq */
@@ -1813,10 +1809,10 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->uw.w0 = SaturateDwordSToWordU((uint32_t)dest->uw.w0+(uint32_t)src.uw.w0);
-		dest->uw.w1 = SaturateDwordSToWordU((uint32_t)dest->uw.w1+(uint32_t)src.uw.w1);
-		dest->uw.w2 = SaturateDwordSToWordU((uint32_t)dest->uw.w2+(uint32_t)src.uw.w2);
-		dest->uw.w3 = SaturateDwordSToWordU((uint32_t)dest->uw.w3+(uint32_t)src.uw.w3);
+		dest->uw.w0 = SaturateDwordSToWordU((int32_t)dest->uw.w0+(int32_t)src.uw.w0);
+		dest->uw.w1 = SaturateDwordSToWordU((int32_t)dest->uw.w1+(int32_t)src.uw.w1);
+		dest->uw.w2 = SaturateDwordSToWordU((int32_t)dest->uw.w2+(int32_t)src.uw.w2);
+		dest->uw.w3 = SaturateDwordSToWordU((int32_t)dest->uw.w3+(int32_t)src.uw.w3);
 		break;
 	}
 	CASE_0F_MMX(0xde)
@@ -1908,20 +1904,17 @@
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
-		MMX_reg tmp;
-		tmp.q = dest->q;
 		if (rm>=0xc0) {
 			src.q=reg_mmx[rm&7]->q;
 		} else {
 			GetEAa;
 			src.q=LoadMq(eaa);
 		}
-		if (!src.q) break;
 		if (src.q > 15) {
-			dest->uw.w0 = (tmp.uw.w0&0x8000)?0xffff:0;
-			dest->uw.w1 = (tmp.uw.w1&0x8000)?0xffff:0;
-			dest->uw.w2 = (tmp.uw.w2&0x8000)?0xffff:0;
-			dest->uw.w3 = (tmp.uw.w3&0x8000)?0xffff:0;
+			dest->uw.w0 = (dest->sw.w0<0)?0xffff:0;
+			dest->uw.w1 = (dest->sw.w1<0)?0xffff:0;
+			dest->uw.w2 = (dest->sw.w2<0)?0xffff:0;
+			dest->uw.w3 = (dest->sw.w3<0)?0xffff:0;
 		} else {
 			dest->sw.w0 >>= (int16_t)src.ub.b0;
 			dest->sw.w1 >>= (int16_t)src.ub.b0;
@@ -1936,18 +1929,15 @@
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
-		MMX_reg tmp;
-		tmp.q = dest->q;
 		if (rm>=0xc0) {
 			src.q=reg_mmx[rm&7]->q;
 		} else {
 			GetEAa;
 			src.q=LoadMq(eaa);
 		}
-		if (!src.q) break;
 		if (src.q > 31) {
-			dest->ud.d0 = (tmp.ud.d0&0x80000000)?0xffffffff:0;
-			dest->ud.d1 = (tmp.ud.d1&0x80000000)?0xffffffff:0;
+			dest->ud.d0 = (dest->sd.d0<0l)?0xffffffff:0;
+			dest->ud.d1 = (dest->sd.d1<0l)?0xffffffff:0;
 		} else {
 			dest->ud.d0 >>= (int32_t)src.ub.b0;
 			dest->ud.d1 >>= (int32_t)src.ub.b0;
