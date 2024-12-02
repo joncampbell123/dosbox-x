@@ -1,4 +1,27 @@
 Next
+  - Arrange memory device allocation so that it is possible to allocate
+    up to about 3900MB of memory instead of 3500MB. (joncampbell123).
+  - Fix S3 LFB PCI base alignment error if system memory pushes it
+    to a higher address (joncampbell123).
+  - Fix EGA 640x350 4-color mode (when EGA memory size is 64KB) to
+    display correctly. Prior to this fix, 640x350 4-color only worked
+    properly if the INT 10h Video Parameter Table was enabled. (joncampbell123).
+  - Fix S3 VGA memory size reported through register CR36 to cap at 4MB
+    and set the value correctly. This fixes a known issue where setting
+    vmemsize to 8MB caused Windows 98 to report memory size as 2.5MB. (joncampbell123).
+  - Fixed a problem when VZ Editor is resident in PC-98 mode. (nanshiki).
+  - INT 10: SVGA mode 0x6A does not exist on plain VGA hardware. (joncampbell123).
+  - INT 10: Fix mode 0x6A (800x600 4-color SVGA) to use a correct dot
+    clock so that the refresh rate is >= 60Hz instead of 37Hz, and make
+    sure mode 0x6A is a 100% clone of VESA BIOS MODE 0x102. (joncampbell123).
+  - Fix MMX/SSE instruction decoding, correct some mistakes in MMX emulation. (joncampbell123).
+  - IMGMAKE: Add -partofs option to allow control of where the partition
+    begins in the image (joncampbell123).
+  - IMGMAKE: Add -align option so that the FAT filesystem can be arranged
+    for more optimal I/O on devices with larger sectors, such as modern
+    4096-byte/sector drives. (joncampbell123).
+  - IMGMAKE: Add -label option so that the generated FAT filesystem has the
+    specified volume label. (joncampbell123).
   - Fixed crash when a CD image was loaded to an "empty" drive (maron2000)
   - Log loaded .conf file (maron2000)
   - Supress redundant screen reports in log (maron2000)
