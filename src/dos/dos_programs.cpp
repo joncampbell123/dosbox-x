@@ -47,6 +47,7 @@
 #include "dos_system.h"
 #include "dos_inc.h"
 #include "bios.h"
+#include "bitop.h"
 #include "inout.h"
 #include "dma.h"
 #include "bios_disk.h"
@@ -3555,6 +3556,7 @@ restart_int:
         int lbamode = -1;
         uint32_t c, h, s;
         uint64_t size = 0, sectors;
+        uint16_t alignment = 0; // if nonzero, try to align structures to this multiple of K (i.e. 4K sector alignment)
 
         if(control->SecureMode()) {
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
@@ -3564,11 +3566,11 @@ restart_int:
             printHelp();
             return;
         }
-		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
-			resetcolor = true;
-			WriteOut(MSG_Get("PROGRAM_IMGMAKE_EXAMPLE"));
-			return;
-		}
+        if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
+            resetcolor = true;
+            WriteOut(MSG_Get("PROGRAM_IMGMAKE_EXAMPLE"));
+            return;
+        }
 
 /*
         this stuff is too frustrating
@@ -3666,12 +3668,25 @@ restart_int:
             printHelp();
             return;
         }
-		std::transform(disktype.begin(), disktype.end(), disktype.begin(), ::tolower);
+        std::transform(disktype.begin(), disktype.end(), disktype.begin(), ::tolower);
+
+        // alignment
+        if (cmd->FindString("-align",tmp,true)) {
+            const char *s = tmp.c_str();
+            alignment = (uint32_t)strtoul(s,(char**)(&s),0);
+            /* if 'K' follows, convert K to sectors */
+            if (*s == 'K' || *s == 'k') alignment *= (uint32_t)2u;
+
+            if (alignment == (uint32_t)0 || alignment > (uint32_t)2048/*1MB*/) {
+                WriteOut("Invalid alignment");
+                return;
+            }
+        }
 
         uint8_t mediadesc = 0xF8; // media descriptor byte; also used to differ fd and hd
         uint16_t root_ent = 512; // FAT root directory entries: 512 is for harddisks
         uint16_t disksize = 0;   // disk size of floppy images
-        uint32_t sect_per_fat=0; // allowable range: FAT12 1-12, FAT16 16-256, FAT32 512-2,097,152 sectors
+        uint32_t sect_per_fat = 0; // allowable range: FAT12 1-12, FAT16 16-256, FAT32 512-2,097,152 sectors
         uint16_t sectors_per_cluster = 0; // max limit: 128
         bool is_fd = false;
         if(disktype=="fd_160") {
@@ -3766,6 +3781,11 @@ restart_int:
                     return;
                 }
                 sectors = size / 512;
+
+                if (alignment != 0u) {
+                    sectors += (uint64_t)(alignment - 1u);
+                    sectors -= sectors % (uint64_t)alignment;
+                }
 
                 // Now that we finally have the proper size, figure out good CHS values
                 if (size > 0xFFFFFFFFull/*4GB*/) {
@@ -3997,6 +4017,11 @@ restart_int:
                 bootsect_pos = 0;
             }
 
+            if (alignment != 0u) {
+                bootsect_pos += alignment - 1u;
+                bootsect_pos -= bootsect_pos % (int64_t)alignment;
+            }
+
             if (sectors <= (uint64_t)bootsect_pos) {
                 WriteOut("Invalid bootsector position\n");
                 fclose(f);
@@ -4005,6 +4030,16 @@ restart_int:
                 return;
             }
             vol_sectors = sectors - (uint64_t)bootsect_pos;
+
+            if (alignment != 0u) {
+                if ((vol_sectors % alignment) != 0u) {
+                    WriteOut("Sanity check failed: Volume size not aligned\n");
+                    fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
+                    return;
+                }
+            }
 
             /* auto-decide FAT system */
             if (is_fd) FAT = 12;
@@ -4042,6 +4077,11 @@ restart_int:
             /* FAT32 increases reserved area to at least 7. Microsoft likes to use 32 */
             if (FAT >= 32)
                 reserved_sectors = 32;
+
+            if (alignment != 0u) {
+                reserved_sectors += alignment - 1u;
+                reserved_sectors -= reserved_sectors % alignment;
+            }
 
             uint8_t sbuf[512];
             if(mediadesc == 0xF8) {
@@ -4152,6 +4192,19 @@ restart_int:
                     while ((vol_sectors/sectors_per_cluster) >= (tmp_fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
                 }
             }
+
+            /* if alignment is a power of 2, align sectors per cluster to it */
+            if (bitop::ispowerof2(alignment)) {
+                while (sectors_per_cluster < 0x80u && sectors_per_cluster < alignment) sectors_per_cluster <<= 1;
+            }
+
+            /* FAT12/FAT16 size the root directory so that it is aligned, which then aligns the data area following it */
+            if (alignment != 0u && FAT < 32) {
+                const uint32_t t_alignment = alignment * (512u / 32u); /* 512 bytes/sector, 32 bytes per dirent = number of root dirents per sector */
+                root_ent += t_alignment - 1;
+                root_ent -= root_ent % t_alignment;
+            }
+
             while (!is_fd && (vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
             sbuf[SecPerClus]=(uint8_t)sectors_per_cluster;
             // reserved sectors
@@ -4174,7 +4227,29 @@ restart_int:
             if (FAT >= 32)          sect_per_fat = ((clusters*4u)+511u)/512u;
             else if (FAT >= 16)     sect_per_fat = ((clusters*2u)+511u)/512u;
             // Use standard sect_per_fat values for standard floppy images, otherwise it may required to be adjusted
-            else if (!is_fd || (is_fd && (rootent_changed || (fat_copies != 2)))) sect_per_fat = ((((clusters+1u)/2u)*3u)+511u)/512u;
+            else if (!is_fd || sect_per_fat == 0 || (is_fd && (rootent_changed || (fat_copies != 2)))) sect_per_fat = ((((clusters+1u)/2u)*3u)+511u)/512u;
+
+            if (alignment != 0u) {
+                if (alignment % fat_copies) {
+                    sect_per_fat += alignment - 1u;
+                    sect_per_fat -= sect_per_fat % alignment;
+                }
+                else {
+                    const uint32_t t_alignment = alignment / fat_copies; /* we could align sect_per_fat based on ALL copies of the FAT table */
+                    sect_per_fat += t_alignment - 1u;
+                    sect_per_fat -= sect_per_fat % t_alignment;
+                }
+            }
+
+            if (alignment != 0u) {
+                if ((((uint64_t)sect_per_fat * (uint64_t)fat_copies) % (uint64_t)alignment) != 0u) {
+                    WriteOut("Sanity check failed: FAT tables not aligned\n");
+                    fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
+                    return;
+                }
+            }
 
             if (FAT < 32 && sect_per_fat > 256u) {
                 WriteOut("Error: Generated filesystem has more than 256 sectors per FAT and is not FAT32\n");
@@ -4184,10 +4259,24 @@ restart_int:
                 return;
             }
 
+            uint32_t root_ent_sec = 0;
             uint64_t data_area = vol_sectors - reserved_sectors - (sect_per_fat * fat_copies);
-            if (FAT < 32) data_area -= ((root_ent * 32u) + 511u) / 512u;
+            if (FAT < 32) {
+                root_ent_sec = ((root_ent * 32u) + 511u) / 512u;
+                data_area -= root_ent_sec;
+            }
             clusters = data_area / sectors_per_cluster;
             if (FAT < 32) host_writew(&sbuf[FATSz16],(uint16_t)sect_per_fat);
+
+            if (alignment != 0u) {
+                if ((root_ent_sec % alignment) != 0u) {
+                    WriteOut("Sanity check failed: Volume size not aligned\n");
+                    fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
+                    return;
+                }
+            }
 
             /* Too many or to few clusters can foul up FAT12/FAT16/FAT32 detection and cause corruption! */
             if ((clusters+2u) < fatlimitmin) {
@@ -4211,6 +4300,23 @@ restart_int:
                 // sectors (32MB or larger or FAT32)
                 if (adj_vol_sectors >= 65536ul) host_writed(&sbuf[TotSec32],adj_vol_sectors);
                 else host_writed(&sbuf[TotSec32],0);
+            }
+
+            const unsigned long long first_cluster =
+                (unsigned long long)bootsect_pos + reserved_sectors +
+                ((unsigned long long)sect_per_fat * (unsigned long long)fat_copies) +
+                (unsigned long long)root_ent_sec;
+
+            /* do not validate alignment of data area, because some of the fd and hd presets might
+             * violate it, but certainly make sure that the first cluster is aligned */
+            if (alignment != 0u) {
+                if ((first_cluster % (unsigned long long)alignment) != 0ull) {
+                    WriteOut("Sanity check failed: First cluster not aligned\n");
+                    fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
+                    return;
+                }
             }
 
             // sectors per track
