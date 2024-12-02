@@ -9974,6 +9974,7 @@ void DOS_SetupPrograms(void) {
         "  -fat: Type (12, 16, or 32). -fatcopies: FAT table copies.\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
         "  -rootdir: Root directory entries. -partofs: Start of hd partition.\n"
+        "  -align: Align filesystem structures. In sectors, or add 'K' suffix for KB.\n"
 #ifdef WIN32
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
