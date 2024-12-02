@@ -3373,6 +3373,18 @@ const uint8_t freedos_mbr[] = {
 #include <winioctl.h>
 #endif
 
+static void lba2chs3(unsigned char *b3,uint32_t lba,const unsigned int gc,const unsigned int gh,const unsigned int gs) {
+	const unsigned int s = (unsigned int)(lba % (uint32_t)gs) + 1u; lba /= (uint32_t)gs;
+	const unsigned int h = (unsigned int)(lba % (uint32_t)gh);      lba /= (uint32_t)gh;
+	const unsigned int c = (unsigned int) lba;
+
+	(void)gc;
+
+	b3[0] = h;
+	b3[1] = s | ((c >> 8u) << 6u);		/* [7:6] cylinder bits 8-9 [5:0] sector */
+	b3[2] = c;
+}
+
 class IMGMAKE : public Program {
 public:
 #ifdef WIN32
@@ -3897,11 +3909,24 @@ restart_int:
             uint32_t reserved_sectors = 1; /* 1 for the boot sector + BPB. FAT32 will require more */
             uint64_t vol_sectors = 0;
             uint8_t fat_copies = 2; /* number of copies of the FAT */
+            uint32_t partsector = 0;
             uint32_t fatlimitmin;
             uint32_t fatlimit;
             int8_t FAT = -1;
             bool spc_changed = false;
             bool rootent_changed = false;
+
+            /* Partition sector override */
+            if (cmd->FindString("-partofs",tmp,true)) {
+                partsector = atoi(tmp.c_str());
+                if (partsector == 0) {
+                    WriteOut("Invalid -partofs\n");
+                    fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
+                    return;
+                }
+            }
 
             /* FAT filesystem, user choice */
             if (cmd->FindString("-fat",tmp,true)) {
@@ -3963,13 +3988,23 @@ restart_int:
 
             /* decide partition placement */
             if (mediadesc == 0xF8) {
-                bootsect_pos = (int64_t)s;
-                vol_sectors = sectors - bootsect_pos;
+                if (partsector > (uint32_t)0)
+                    bootsect_pos = (int64_t)partsector;
+                else
+                    bootsect_pos = (int64_t)s;
             }
             else {
                 bootsect_pos = 0;
-                vol_sectors = sectors;
             }
+
+            if (sectors <= (uint64_t)bootsect_pos) {
+                WriteOut("Invalid bootsector position\n");
+                fclose(f);
+                unlink(temp_line.c_str());
+                if (setdir) chdir(dirCur);
+                return;
+            }
+            vol_sectors = sectors - (uint64_t)bootsect_pos;
 
             /* auto-decide FAT system */
             if (is_fd) FAT = 12;
@@ -4015,11 +4050,9 @@ restart_int:
                 // active partition
                 sbuf[0x1be]=0x80;
                 // start head - head 0 has the partition table, head 1 first partition
-                sbuf[0x1bf]=1;
                 // start sector with bits 8-9 of start cylinder in bits 6-7
-                sbuf[0x1c0]=1;
                 // start cylinder bits 0-7
-                sbuf[0x1c1]=0;
+                lba2chs3(sbuf+0x1bf,bootsect_pos,c,h,s);
                 // OS indicator
                 if (FAT < 32 && (bootsect_pos+vol_sectors) < 65536) { /* 32MB or smaller */
                     if (FAT >= 16)
@@ -4040,11 +4073,9 @@ restart_int:
                         sbuf[0x1c2]=0x0E; /* FAT12/FAT16 LBA */
                 }
                 // end head (0-based)
-                sbuf[0x1c3]= h-1;
                 // end sector with bits 8-9 of end cylinder (0-based) in bits 6-7
-                sbuf[0x1c4]=s|(((c-1)&0x300)>>2);
                 // end cylinder (0-based) bits 0-7
-                sbuf[0x1c5]=(c-1)&0xFF;
+                lba2chs3(sbuf+0x1c3,bootsect_pos+vol_sectors-1ul,c,h,s);
                 // sectors preceding partition1 (one head)
                 host_writed(&sbuf[0x1c6],(uint32_t)bootsect_pos);
                 // length of partition1, align to chs value
@@ -9840,6 +9871,7 @@ void DOS_SetupPrograms(void) {
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
         "  -fatcopies: Override number of FAT table copies.\n"
         "  -rootdir: Size of root directory in entries. Ignored for FAT32.\n"
+        "  -partofs: Starting sector of a partition.\n"
 #ifdef WIN32
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
