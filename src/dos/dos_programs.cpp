@@ -3548,6 +3548,7 @@ restart_int:
 
     void Run(void) override {
         std::string disktype;
+        std::string label;
         std::string src;
         std::string filename;
         std::string dpath;
@@ -3669,6 +3670,9 @@ restart_int:
             return;
         }
         std::transform(disktype.begin(), disktype.end(), disktype.begin(), ::tolower);
+
+        // filesystem label
+        cmd->FindString("-label",label,true);
 
         // alignment
         if (cmd->FindString("-align",tmp,true)) {
@@ -4391,6 +4395,19 @@ restart_int:
                 memcpy(sbuf+BootCode,this_is_not_a_bootable_partition+0x3E,BootSign - BootCode);
             }
 
+            // write label
+            if (!label.empty()) {
+                const char *s = label.c_str();
+                unsigned int i;
+                char *d;
+
+                if (FAT >= 32) d = (char*)sbuf + VolLab32;
+                else d = (char*)sbuf + VolLab;
+
+                for (i=0;i < 11 && *s;i++) *d++ = *s++;
+                for (   ;i < 11;      i++) *d++ = ' ';
+            }
+
             // write the boot sector
             if(disktype == "vhd") {
                 vhd->Write_AbsoluteSector(bootsect_pos, sbuf);
@@ -4453,6 +4470,36 @@ restart_int:
                 }
                 else {
                     vhd->Write_AbsoluteSector((unsigned long long)bootsect_pos + reserved_sectors + (unsigned long long)sect_per_fat * (unsigned long long)fat, sbuf);
+                }
+            }
+
+            // write label in root directory, as first entry
+            if (!label.empty()) {
+                const char *s = label.c_str();
+                unsigned int i;
+                char *d;
+
+                unsigned long long sec;
+
+                /* FAT12/FAT16: This points at the root directory area.
+                 * FAT32: This points at the root directory only because this code constructed the root directory allocation chain
+                 *        starting at cluster 2, which is the first cluster of the data area. */
+                sec = (unsigned long long)bootsect_pos + reserved_sectors +
+                      ((unsigned long long)sect_per_fat * (unsigned long long)fat_copies);
+
+                memset(sbuf,0,512);
+
+                d = (char*)sbuf;
+                for (i=0;i < 11 && *s;i++) *d++ = *s++;
+                for (   ;i < 11;      i++) *d++ = ' ';
+                sbuf[11] = 0x08; /* volume label */
+
+                if(disktype != "vhd") {
+                    fseeko64(f, (off_t)(sec * 512ull), SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                }
+                else {
+                    vhd->Write_AbsoluteSector(sec, sbuf);
                 }
             }
 
@@ -9972,7 +10019,7 @@ void DOS_SetupPrograms(void) {
         "  -force: Overwrite existing image file. -chs / -lba: Choose C/H/S or LBA.\n"
         "  -bat: Create a .bat file with the IMGMOUNT command required for this image.\n"
         "  -fat: Type (12, 16, or 32). -fatcopies: FAT table copies.\n"
-        "  -spc: Sectors per cluster override. Must be a power of 2.\n"
+        "  -spc: Sectors per cluster (must be power of 2). -label Drive label.\n"
         "  -rootdir: Root directory entries. -partofs: Start of hd partition.\n"
         "  -align: Align filesystem structures. In sectors, or add 'K' suffix for KB.\n"
 #ifdef WIN32
