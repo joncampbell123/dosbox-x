@@ -691,7 +691,7 @@ MSCDEX 錯誤: 未知錯誤.
 [2J[32;1m歡迎使用 DOSBox-X[0m, 支援聲音和影像且開放原始碼的 x86 模擬器.
 DOSBox-X 建立一個 DOS 環境讓您彷彿正在使用原本的 DOS 系統.
 
-[31;1mDOSBox-X 如果遇到錯誤將會在未警告的情況下停止執行或結束![0m
+[31;1mDOSBox-X 如果遇到錯誤將會在未警告的情況下停止運作或結束![0m
 
 
 
@@ -840,7 +840,7 @@ c:\dosgames\[37m 為一個例子. 您可以將其替換為您自己的遊戲目
 :PROGRAM_INTRO_MOUNT_END
 當掛載成功後您可以輸入 [34;1mc:[0m 命令進入您剛掛載的磁碟機 C:.
 輸入 [34;1mdir[0m 命令將顯示其中的內容. [34;1mcd[0m 命令將允許您進入一個目錄 (列出的目錄內容
-中以 [33;1m[][0m 識別). 您可以執行以 [31m.exe .bat[0m 及 [31m.com[0m 結尾的程式及檔案.
+中以 [33;1m[][0m 識別). 您可以執行以 [31m.exe[0m、[31m.bat[0m 及 [31m.com[0m 結尾的程式及檔案.
 
 .
 :PROGRAM_INTRO_CDROM
@@ -1006,7 +1006,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
-必須指定磁碟機編號 (0 至 %d) 來掛載映像檔 (0,1=軟碟a,軟碟b;2,3=硬碟a,硬碟b).
+必須指定磁碟機編號 (0 至 %d) 來掛載映像檔 (0,1=fda,fdb;2,3=hda,hdb).
 
 .
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
@@ -1016,8 +1016,7 @@ BIOSTEST 映像檔
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
 無法獲得映像檔中的磁碟機版面.
-請使用參數 -size 每個磁區的位元組數,每個磁柱的磁區數,每個磁柱的磁頭數,磁柱總數
-指定磁碟機版面.
+請使用參數 -size bps,spc,hpc,cyl 指定磁碟機版面.
 
 .
 :PROGRAM_IMGMOUNT_AUTODET_VALUES
@@ -1133,20 +1132,18 @@ BIOSTEST 映像檔
     [33;1m軟碟範本[0m (列出名稱之數字為磁片的大小 KB 數, 或者 fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
     [33;1m硬碟範本:[0m
-     hd_250: 250MB 映像檔, hd_520: 520MB 映像檔, hd_1gig: 1GB 映像檔
-     hd_2gig: 2GB 映像檔, hd_4gig: 4GB 映像檔, hd_8gig: 8GB 映像檔
-     hd_st251: 40MB 映像檔, hd_st225: 20MB 映像檔 (舊磁碟機版面)
-    [33;1m自訂的硬碟映像:[0m hd vhd (需要 -size 或 -chs)
+     hd_250: 250MB, hd_520: 520MB, hd_1gig: 1GB, hd_2gig: 2GB, hd_4gig: 4GB,
+     hd_8gig: 8GB, hd_st251: 40MB, hd_st225: 20MB (舊磁碟機版面)
+    [33;1m自訂硬碟:[0m hd vhd (需要 -size 或 -chs)
   -size: 自訂硬碟映像的大小 MB 數 (vhd: 上限 2088960).
   -chs: CHS 磁碟版面: 磁柱(1-1023),磁頭(1-255),磁區(1-63).
   -nofs: 如果想建立空白映像檔請加入此參數.
-  -force: 強制覆寫已存在的映像檔.
+  -force: 覆寫已存在的映像檔. -chs / -lba: 選擇 C/H/S 或者 LBA.
   -bat: 建立一個包含 IMGMOUNT 命令的批次檔以掛載此映像檔.
-  -chs / -lba: 對於 FAT 檔案系統, 使用 C/H/S 或 LBA 版面的分割區位址號碼.
-  -fat: FAT 檔案系統類型 (12、16, 或 32).
-  -spc: 強制指定每個磁簇所包含的磁區數. 必須為 2 的冪次方.
-  -fatcopies: 強制指定此數量的 FAT 表格複本.
-  -rootdir: 根目錄下的項目數. FAT32 檔案系統將忽略此參數.
+  -fat: 檔案系統類型 (12、16, 或 32). -fatcopies: FAT 表格複本數.
+  -spc: 每個磁簇所包含的磁區數 (必須為 2 的冪次方). -label 磁碟機標籤.
+  -rootdir: 根目錄下的項目數. -partofs: 硬碟分割區開始位置.
+  -align: 對齊檔案系統結構. 指定磁區數, 或在字尾加上 'K' 對應 KB.
   -source: 軟碟機代號 - 如果指定了此參數, 映像檔將從軟碟機中的磁片讀取.
   -retries: 當試圖從已損壞磁片中讀取時所需的重試次數 (1-99).
   [32;1m-examples: 顯示用法舉例.[0m
@@ -1188,7 +1185,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
-建立了映像檔 "%s" 包含 %u 個磁柱, %u 個磁頭和 %u 個磁區
+建立映像檔 "%s", 包含了 %u 個磁柱、%u 個磁頭和 %u 個磁區
 
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
@@ -1215,7 +1212,7 @@ BIOSTEST 映像檔
   鍵盤配置 ID   要載入的鍵盤檔案 (.kl) 或配置名稱
   字碼頁編號    要載入的字碼頁編號
   字碼頁檔案    包含了指定字碼頁內容的 .cpi/.cpx 檔案
-  (.kl, .cpi/.cpx 檔案必須存在於 DOSBox-X 程式目錄中)
+  (.kl、.cpi/.cpx 檔案必須存在於 DOSBox-X 程式目錄中)
 
 舉例:
   [32;1mKEYB[0m          顯示目前載入的字碼頁.
@@ -1359,17 +1356,12 @@ VHD "%s" 的類型是 %s.
 合併過程失敗, 中止程序!
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
-父磁碟 "%s" 內容可能已毀損!
+父檔案 "%s" 內容可能已毀損!
 
 .
-:PROGRAM_VHDMAKE_ABSPATH_WIN
-警告: 鏈結至父磁碟的絕對路徑在 Windows 上限制了檔案可攜性.
-請優先選擇相對路徑給差異映像檔!
-
-.
-:PROGRAM_VHDMAKE_ABSPATH_UX
-錯誤: 鏈結至父磁碟的絕對路徑禁止了檔案可攜性.
-要使用相對路徑給差異映像檔!
+:PROGRAM_VHDMAKE_ABSPATH
+警告: 鏈結至父檔案的絕對路徑禁止了檔案可攜性.
+請優先使用差異映像檔的相對路徑!
 
 .
 :PROGRAM_VHDMAKE_HELP
@@ -1385,7 +1377,7 @@ VHD "%s" 的類型是 %s.
                 映像檔 parent.vhd
  -f | -force    強制覆寫先前存在的映像檔
  -i | -info     顯示關於 a.vhd 映像檔的實用資訊
- -m | -merge    將差異 delta.vhd 的變化合併到它的父磁碟
+ -m | -merge    將差異 delta.vhd 的變化合併到它的父檔案
  new.vhd        建立新的動態擴充 VHD 映像檔名稱
  size           磁碟大小 (最後面加上大小單位, 位元組 B 隱含在裡面)
 當轉換一個原始磁碟映像到大小固定的 VHD, 這個磁碟映像必須以 MBR 配置分割,
@@ -1626,7 +1618,7 @@ GOTO: 標籤 %s 找不到.
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d 個目錄 %18s 可用位元組
+%5d 個目錄 %18s 位元組可用
 
 .
 :SHELL_CMD_DIR_FILES_LISTED
@@ -2324,7 +2316,7 @@ TRUENAME [/H] 檔案
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
-DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [O|/-O] [command] [options]
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [O|/-O] [命令] [選項]
 
 將開始進行影像或音訊擷取、執行程式, 然後在程式結束時自動停止擷取.
 /V 為影像、/A 為音訊、/M 為多軌音訊, 以及 /O 為 OPL FM (DROv2 格式)
@@ -2618,6 +2610,18 @@ AMD Athlon 600MHz (約 306000 個週期)
 :MENU:video_ratio_set
 設定長寬比
 .
+:MENU:VideoPreventCaptureMenu
+螢幕擷取控制
+.
+:MENU:prevcap_none
+允許
+.
+:MENU:prevcap_blank
+顯示為空白
+.
+:MENU:prevcap_invisible
+隱藏
+.
 :MENU:VideoScalerMenu
 縮放器
 .
@@ -2853,19 +2857,19 @@ TTF 選項
 使用 TTF 顯示加刪除線文字
 .
 :MENU:ttf_wpno
-TTF 文字處理器: 無
+TTF 文書處理器: 無
 .
 :MENU:ttf_wpwp
-TTF 文字處理器: WordPerfect
+TTF 文書處理器: WordPerfect
 .
 :MENU:ttf_wpws
-TTF 文字處理器: WordStar
+TTF 文書處理器: WordStar
 .
 :MENU:ttf_wpxy
-TTF 文字處理器: XyWrite
+TTF 文書處理器: XyWrite
 .
 :MENU:ttf_wpfe
-TTF 文字處理器: FastEdit
+TTF 文書處理器: FastEdit
 .
 :MENU:ttf_blinkc
 顯示 TTF 閃爍游標
@@ -3219,7 +3223,7 @@ DOSBox-X 支援
 偵錯工具選項: 監看執行方式
 .
 :MENU:video_debug_overlay
-重疊影像偵錯畫面
+覆疊影像偵錯介面
 .
 :MENU:HelpCommandMenu
 DOS 命令
@@ -3246,10 +3250,10 @@ DOS 命令
 記錄檔案 I/O
 .
 :MENU:mapper_speedlock
-按住時切換快轉模式
+切換至快轉模式
 .
 :MENU:mapper_speedlock2
-Turbo (快轉模式)
+高速 (快轉模式)
 .
 :MENU:mapper_speednorm
 正常速度
@@ -3462,10 +3466,10 @@ Turbo (快轉模式)
 使用 BIOS 功能進行剪貼簿貼上
 .
 :MENU:sendkey_winlogo
-傳送 LOGO 鍵
+傳送 標誌鍵
 .
 :MENU:sendkey_winmenu
-傳送 MENU 鍵
+傳送 功能表鍵
 .
 :MENU:sendkey_alttab
 傳送 Alt+Tab
@@ -3489,22 +3493,22 @@ Ctrl+Shift
 Alt+Shift
 .
 :MENU:sendkey_mapper_winlogo
-Mapper "傳送特殊鍵": logo key
+對應表 "傳送特殊鍵": 標誌鍵
 .
 :MENU:sendkey_mapper_winmenu
-Mapper "傳送特殊鍵": menu key
+對應表 "傳送特殊鍵": 功能表鍵
 .
 :MENU:sendkey_mapper_alttab
-Mapper "傳送特殊鍵": Alt+Tab
+對應表 "傳送特殊鍵": Alt+Tab
 .
 :MENU:sendkey_mapper_ctrlesc
-Mapper "傳送特殊鍵": Ctrl+Esc
+對應表 "傳送特殊鍵": Ctrl+Esc
 .
 :MENU:sendkey_mapper_ctrlbreak
-Mapper "傳送特殊鍵": Ctrl+Break
+對應表 "傳送特殊鍵": Ctrl+Break
 .
 :MENU:sendkey_mapper_cad
-Mapper "傳送特殊鍵": Ctrl+Alt+Del
+對應表 "傳送特殊鍵": Ctrl+Alt+Del
 .
 :MENU:wheel_none
 不進行轉換
