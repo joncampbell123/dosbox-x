@@ -366,27 +366,9 @@ bool UpdateWindows11RoundCorners(HWND hWnd, CornerPreference cornerPreference) {
 
 bool HostDarkMode()
 {
-    // https://gist.github.com/rounk-ctrl/b04e5622e30e0d62956870d5c22b7017
-
-    using PFNSHOULDAPPSUSEDARKMODE = bool (WINAPI *)();
-
-    const auto module = ::LoadLibrary("uxtheme.dll");
-
-    if(module)
-    {
-        auto* pfnShouldAppsUseDarkMode = reinterpret_cast<PFNSHOULDAPPSUSEDARKMODE>(
-            GetProcAddress(module, MAKEINTRESOURCEA(132)));
-
-        if(pfnShouldAppsUseDarkMode)
-        {
-            const auto dark = pfnShouldAppsUseDarkMode();
-
-            return dark;
-        }
-
-        FreeLibrary(module);
-    }
-
+    // FIXME: This doesn't work on Windows 10 and it crashes on Windows 8 and earlier.
+    //        Seek out official Microsoft documentation on dark theme i.e.
+    //        [https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/ui/apply-windows-themes]
     return false;
 }
 
