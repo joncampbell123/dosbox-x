@@ -22,6 +22,8 @@ Next
     4096-byte/sector drives. (joncampbell123).
   - IMGMAKE: Add -label option so that the generated FAT filesystem has the
     specified volume label. (joncampbell123).
+  - MDA emulation: Fix non-blink attributes 0xF0 and 0xF8 to correctly render
+    bright green background. (joncampbell123).
   - Fixed crash when a CD image was loaded to an "empty" drive (maron2000)
   - Log loaded .conf file (maron2000)
   - Supress redundant screen reports in log (maron2000)
