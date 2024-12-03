@@ -2079,7 +2079,8 @@ template <const unsigned int renderMode,const bool color> static void VGA_TEXT_H
 				bg = fg = 0;
 			} else {
 				if ((attrib&0x77)==0x70) {
-					bg = TXT_BG_Table[0x7];
+					if (attrib&attrmask&0x80) bg = TXT_BG_Table[0xF];
+					else bg = TXT_BG_Table[0x7];
 					if (attrib&0x8) fg = TXT_FG_Table[0x8];
 					else fg = TXT_FG_Table[0x0];
 				} else {
