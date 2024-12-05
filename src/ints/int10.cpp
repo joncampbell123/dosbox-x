@@ -1241,7 +1241,28 @@ static void INT10_Seg40Init(void) {
 	if (IS_EGAVGA_ARCH) {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x60);
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
-		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,(!IS_VGA_ARCH && ega200)?0xF8:0xF9);
+		// NTS: This is direclty from the configuration switches. The bits are inverted,
+		//      1=OFF 0=ON.
+		//
+		//      sw1 sw2 sw3 sw4     sw4321
+		//      ----------------------------------------------------------------------
+		//      ON  ON  ON  ON        0000        Color 40x25 EGA
+		//      OFF ON  ON  ON        0001        Color 80x25 EGA
+		//      ON  OFF ON  ON        0010        Enhanced Display Emulation Mode
+		//      OFF OFF ON  ON        0011        Enhanced Display Hi Res Mode
+		//      ON  ON  OFF ON        0100        Monochrome (CGA is primary 40x25)
+		//      OFF ON  OFF ON        0101        Monochrome (CGA is primary 80x25)
+		//      ON  OFF OFF ON        0110        Color 40x25 EGA (MDA secondary)
+		//      OFF OFF OFF ON        0111        Color 80x25 EGA (MDA secondary)
+		//      ON  ON  ON  OFF       1000        Enhanced Display Emulation Mode (MDA secondary)
+		//      OFF ON  ON  OFF       1001        Enhanced Display Hi Res Mode (MDA secondary)
+		//      ON  OFF ON  OFF       1010        Monochrome (CGA is secondary 40x25)
+		//      OFF OFF ON  OFF       1011        Monochrome (CGA is secondary 80x25)
+		//
+		//      [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/EGA/IBM/IBM%20Enhanced%20Graphics%20Adapter%20%281984%2d08%2d02%29%2epdf]
+		//
+		//      Anything else is not valid.
+		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xFF^((!IS_VGA_ARCH && ega200)?0x8:0x6));
 		// Set the pointer to video save pointer table
 		real_writed(BIOSMEM_SEG, BIOSMEM_VS_POINTER, int10.rom.video_save_pointers);
 	}
