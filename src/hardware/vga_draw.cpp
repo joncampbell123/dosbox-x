@@ -2424,6 +2424,7 @@ struct first_equal {
 };
 
 template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_Combined_Draw_Line(uint8_t *dst,Bitu vidstart,Bitu line) {
+    if (vga.crtc.maximum_scan_line & 0x80) line >>= 1u; /* CGA modes (and 200-line EGA) have the VGA doublescan bit set. We need to compensate to properly map lines. */
     // keep it aligned:
     templine_type_t* draw = (card == MCH_RAW_SNAPSHOT) ? ((templine_type_t*)dst) : (((templine_type_t*)dst) + 16 - vga.draw.panning);
     const uint32_t* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
@@ -2700,7 +2701,7 @@ static uint8_t* EGAVGA_TEXT_Combined_Draw_Line_SuperMegazeux(uint8_t *dst,Bitu v
   }
 }
 	 */
-	uint8_t *row = EGAVGA_TEXT_Combined_Draw_Line<MCH_EGA,uint8_t>(dst,vidstart,line);
+	uint8_t *row = EGAVGA_TEXT_Combined_Draw_Line<MCH_EGA,uint8_t>(dst,vidstart,line); /* internally divides line by 2 if doublescan */
 	uint32_t *row32 = (uint32_t*)row;
 	if (vga.draw.width >= 4) {
 		/* then convert it in place to 8-bit value as two four-bit values and then through the palette.
@@ -7156,15 +7157,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			case M_DCGA:
 			case M_PC98:
 			case M_TEXT:
-				// 2023/04/26: This path M_CGA2 is no longer set for EGA/VGA.
-				// these use line_total internal
-				// doublescanning needs to be emulated by renderer doubleheight
-				// EGA has no doublescanning bit at 0x80
-				if (vga.crtc.maximum_scan_line&0x80) {
-					// vga_draw only needs to draw every second line
-					height /= 2;
-				}
-				break;
 			default:
 				vga.draw.doublescan_effect = vga.draw.doublescan_set;
 
@@ -7174,7 +7166,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 				/* if doublescan=false and line_total is even, then halve the height.
 				 * the VGA raster scan will skip every other line to accommodate that. */
 				/* 2023/04/26 bug fix: Do not divide by 2 unless VGA output! This broke EGA 200-line modes until this fix! */
-				if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0 && IS_VGA_ARCH)
+				if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0 && IS_VGA_ARCH && vga.mode != M_TEXT)
 					height /= 2;
 				else
 					vga.draw.doublescan_effect = true;
