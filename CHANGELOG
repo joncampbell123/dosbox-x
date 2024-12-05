@@ -8,6 +8,8 @@ Next
     Some games force the EGA BIOS to use CGA 200-line text modes by
     modifying those bits and then setting the mode ("After the War").
     (joncampbell123).
+  - INT 10: Fix "load font" functions to correctly recompute video
+    display end for machine=vgaonly and machine=ega. (joncampbell123).
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
