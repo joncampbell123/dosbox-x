@@ -1,4 +1,7 @@
 Next
+  - 
+
+2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
     up to about 3900MB of memory instead of 3500MB. (joncampbell123).
   - Fix S3 LFB PCI base alignment error if system memory pushes it
