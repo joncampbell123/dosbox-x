@@ -1,5 +1,9 @@
 Next
-  - 
+  - Revise VGA doublescan mode, vs bit 7 of the Max scanline register, to
+    correct how VGA doublescans 200-line modes. Revise EGA/VGA text code
+    to divide line by 2 in rendering to match double scanned scanlines,
+    so that the "graphical" text of "After the War" can render properly
+    for machine=vgaonly. (joncampbell123).
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
