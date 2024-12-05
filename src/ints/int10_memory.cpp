@@ -102,9 +102,9 @@ void INT10_LoadFont(PhysPt font,bool reload,uint16_t count,Bitu offset,Bitu map,
 		IO_Write(base+1u,(IO_Read(base+1u) & 0xe0u)|((unsigned int)height-1u));
 		//Vertical display end
 		Bitu rows=CurMode->sheight/height;
-		Bitu vdend=rows*height*((CurMode->sheight==200)?2:1)-1;
+		Bitu vdend=rows*height*((CurMode->sheight==200 && IS_VGA_ARCH)?2:1)-1;
 		IO_Write(base,0x12);
-		IO_Write(base+1u,(uint8_t)vdend);
+		IO_Write(base+1u,(uint8_t)vdend); // FIXME: Does not change overflow bits
 		//Underline location
 		if (CurMode->mode==7) {
 			IO_Write(base,0x14);
