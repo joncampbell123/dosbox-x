@@ -887,7 +887,6 @@ static void FinishSetMode(bool clearmem) {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(uint8_t)(CurMode->theight-1));
 		real_writew(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(uint16_t)CurMode->cheight);
 		real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,(0x60|(clearmem?0:0x80)));
-		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,(!IS_VGA_ARCH && ega200)?0x08:0x09);
 		// this is an index into the dcc table:
 #if C_DEBUG
 		if(IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,DISP2_Active()?0x0c:0x0b);
@@ -1259,6 +1258,23 @@ static bool ShouldUseVPT(void) {
 
 bool unmask_irq0_on_int10_setmode = true;
 bool INT10_SetVideoMode(uint16_t mode) {
+	if (IS_EGA_ARCH) {
+		/* "After The War" forces EGA into 200-line CGA 8x8 text mode by
+		 * modifying the 16-bits at 0x487-0x488 to alter the EGA switches
+		 * and other info. For this trick to work here, we have to check
+		 * those bits every modeset. */
+		uint8_t egasw = (real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES)^0xFF)&0xF;
+		bool newega200 = (egasw == 0 || egasw == 1 || egasw == 2 || egasw == 6 || egasw == 7 || egasw == 8);
+
+		if (ega200 != newega200) {
+			LOG(LOG_MISC,LOG_DEBUG)(
+				"EGA: Guest application changed BIOS DATA AREA EGA switches, %s 200-line EGA modes (sw=0x%x)",
+				newega200?"enabled":"disabled",egasw);
+
+			ega200 = newega200;
+		}
+	}
+
 	if (CurMode&&CurMode->mode==7&&!IS_PC98_ARCH) {
 		VideoModeBlock *modelist;
 
