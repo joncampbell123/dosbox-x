@@ -2043,6 +2043,11 @@ att_text16:
 					att_data[i+6]=0x00;
 					att_data[i+7]=0x00;
 				}
+			} else if (IS_EGAVGA_ARCH && CurMode->sheight == 200) {
+				for (uint8_t ct=0;ct<8;ct++) {
+					att_data[ct]=ct;
+					att_data[ct+8]=ct+0x10;
+				}
 			} else {
 				for (uint8_t ct=0;ct<8;ct++) {
 					att_data[ct]=ct;
@@ -2188,6 +2193,15 @@ att_text16:
 							IO_Write(0x3c9,mtext_palette[i][1]);
 							IO_Write(0x3c9,mtext_palette[i][2]);
 						}
+					}
+					break;
+				}
+				else if (CurMode->sheight == 200) {
+					/* 200-line text modes need the CGA RGBI type palette, same as 200-line EGA 16-color */
+					for (i=0;i<64;i++) {
+						IO_Write(0x3c9,ega_palette[i][0]);
+						IO_Write(0x3c9,ega_palette[i][1]);
+						IO_Write(0x3c9,ega_palette[i][2]);
 					}
 					break;
 				} //FALLTHROUGH!!!!
