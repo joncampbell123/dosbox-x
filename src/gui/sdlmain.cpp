@@ -340,8 +340,10 @@ enum class CornerPreference {
     Round      = 2,
     RoundSmall = 3,
 };
+
+typedef HRESULT(WINAPI* PFNSETWINDOWATTRIBUTE)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+
 bool UpdateWindows11RoundCorners(HWND hWnd, CornerPreference cornerPreference) {
-    typedef HRESULT(WINAPI *PFNSETWINDOWATTRIBUTE)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
     enum DWMWINDOWATTRIBUTE {
         DWMWA_WINDOW_CORNER_PREFERENCE = 33
     };
@@ -364,14 +366,34 @@ bool UpdateWindows11RoundCorners(HWND hWnd, CornerPreference cornerPreference) {
     return false;
 }
 
-bool HostDarkMode()
-{
-    // FIXME: This doesn't work on Windows 10 and it crashes on Windows 8 and earlier.
-    //        Seek out official Microsoft documentation on dark theme i.e.
-    //        [https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/ui/apply-windows-themes]
+# ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#  define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+# endif
+
+bool AllowDarkMode(HWND hwnd,BOOL enable) {
+    HMODULE hDwmApi = ::LoadLibrary("dwmapi.dll");
+    if(hDwmApi) {
+        auto* pfnSetWindowAttribute = reinterpret_cast<PFNSETWINDOWATTRIBUTE>(GetProcAddress(hDwmApi, "DwmSetWindowAttribute"));
+        if(pfnSetWindowAttribute) {
+            // FIXME: Why doesn't this affect the menu bar and dropdown menus from it?
+            // What's the point of a dark title bar when there's this bright white menu below it?
+            HRESULT res = pfnSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &enable, sizeof(enable));
+            return res == S_OK;
+        }
+        ::FreeLibrary(hDwmApi);
+    }
     return false;
 }
 
+bool HostDarkMode()
+{
+    // Uh, hey, Microsoft. Have you ever thought of providing a damn API function to just tell me whether Dark Mode or Light Mode
+    // is active? It could be a BOOL or an enumeration or something. Then you wouldn't have to support random GitHub projects that
+    // have to import unnamed ordinals from UXTHEME.DLL just to figure it out. While you're at it, why not provide a way for a
+    // Win32 program like myself to say "Hey, I want everything in this program to support Dark Mode, instead of having to hack
+    // every single window to try to get it to render Dark Mode".
+    return false;
+}
 #endif
 
 #if defined(WIN32)
@@ -3919,6 +3941,7 @@ static void GUI_StartUp() {
 #if defined(WIN32) && !defined(HX_DOS)
     if (section->Get_bool("forcesquarecorner") && UpdateWindows11RoundCorners(GetHWND(), CornerPreference::DoNotRound))
         LOG_MSG("SDL: Windows 11 round corners will be disabled.");
+    AllowDarkMode(GetHWND(), TRUE);
 #endif
     transparency = 0;
     SetWindowTransparency(section->Get_int("transparency"));
