@@ -10,6 +10,9 @@ Next
     (joncampbell123).
   - INT 10: Fix "load font" functions to correctly recompute video
     display end for machine=vgaonly and machine=ega. (joncampbell123).
+  - INT 10: Like any other 200-line 16-color graphics mode, 200-line
+    VGA text mode needs to program the AC and VGA palette using the
+    CGA RGBI-type palette, not the EGA 64-color type palette. (joncampbell123).
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
