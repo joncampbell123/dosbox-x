@@ -370,20 +370,6 @@ bool UpdateWindows11RoundCorners(HWND hWnd, CornerPreference cornerPreference) {
 #  define DWMWA_USE_IMMERSIVE_DARK_MODE 20
 # endif
 
-bool AllowDarkMode(HWND hwnd,BOOL enable) {
-    HMODULE hDwmApi = ::LoadLibrary("dwmapi.dll");
-    if(hDwmApi) {
-        auto* pfnSetWindowAttribute = reinterpret_cast<PFNSETWINDOWATTRIBUTE>(GetProcAddress(hDwmApi, "DwmSetWindowAttribute"));
-        if(pfnSetWindowAttribute) {
-            // FIXME: Why doesn't this affect the menu bar and dropdown menus from it?
-            // What's the point of a dark title bar when there's this bright white menu below it?
-            HRESULT res = pfnSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &enable, sizeof(enable));
-            return res == S_OK;
-        }
-        ::FreeLibrary(hDwmApi);
-    }
-    return false;
-}
 
 bool HostDarkMode()
 {
@@ -392,6 +378,35 @@ bool HostDarkMode()
     // have to import unnamed ordinals from UXTHEME.DLL just to figure it out. While you're at it, why not provide a way for a
     // Win32 program like myself to say "Hey, I want everything in this program to support Dark Mode, instead of having to hack
     // every single window to try to get it to render Dark Mode".
+    return false;
+}
+
+bool AllowDarkMode(HWND hwnd, BOOL enable) {
+    {
+        // NTS: Contrary to first impressions, DWMWA_USE_IMMERSIVE_DARK_MODE does not match your title bar to the system
+        //      theme. No, that would make sense. Instead, DWMWA_USE_IMMERSIVE_DARK_MODE makes your title bar dark AT ALL TIMES.
+        //      To know if you should set this attribute, you have to detect Dark Mode. And Microsoft doesn't provide a damn API
+        //      to detect API. They do document some roundabout way involving WinRT to read a color and compute whether it is
+        //      dark or light and therefore Dark Mode, but there's no "Is Dark Mode" active API nor any kind of enumeration on
+        //      what mode is active.
+        //
+        //      So, we can enable dark mode for the title bar, but if we're going to enable it to match the system, we have to
+        //      determine if it is active, and that's not available right now because it's too complicated to figure it out. So,
+        //      no dark mode right now.
+        HMODULE hDwmApi = ::LoadLibrary("dwmapi.dll");
+        if(hDwmApi) {
+            auto* pfnSetWindowAttribute = reinterpret_cast<PFNSETWINDOWATTRIBUTE>(GetProcAddress(hDwmApi, "DwmSetWindowAttribute"));
+            if(pfnSetWindowAttribute) {
+                // FIXME: Why doesn't this affect the menu bar and dropdown menus from it?
+                // What's the point of a dark title bar when there's this bright white menu below it?
+                BOOL val = enable && HostDarkMode();
+                HRESULT res = pfnSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &val, sizeof(val));
+                return res == S_OK;
+            }
+            ::FreeLibrary(hDwmApi);
+        }
+    }
+
     return false;
 }
 #endif
