@@ -606,6 +606,7 @@ typedef struct VGA_Memory_t {
     uint32_t    memsize = 0;
     uint32_t    memmask = 0;
     uint32_t    memmask_crtc = 0;       // in CRTC-visible units (depends on byte/word/dword mode)
+    uint32_t    memsize_original = 0;	// memsize prior to rounding up to a power of 2
 } VGA_Memory;
 
 typedef struct {

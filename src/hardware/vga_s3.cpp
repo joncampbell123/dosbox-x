@@ -711,32 +711,41 @@ void SVGA_Setup_S3Trio(void) {
     svga.accepts_mode = &SVGA_S3_AcceptsMode;
 
     if (vga.mem.memsize == 0)
-        vga.mem.memsize = 2*1024*1024; // the most common S3 configuration
+        vga.mem.memsize = vga.mem.memsize_original = 2*1024*1024; // the most common S3 configuration
 
     // Set CRTC 36 to specify amount of VRAM and PCI.
     // NTS: Apparently this register can't count beyond 4MB.
     // The Windows 98 driver appears to read bits [7:5] as 4MB - (x * 512KB),
     // for example x = 2 for 3MB, x = 7 for 512KB. Unusual sizes can be indicated
     // such as x = 3 for 2.5MB which is what older versions of this code did.
-    if (vga.mem.memsize < 1024*1024) {
+    if (vga.mem.memsize_original < 1024*1024) {
         vga.mem.memsize = 512*1024;
         vga.s3.reg_36 = 0xfa;       // less than 1mb fast page mode
-    } else if (vga.mem.memsize < 2048*1024)    {
+    } else if (vga.mem.memsize_original < 2048*1024)    {
         vga.mem.memsize = 1024*1024;
         vga.s3.reg_36 = 0xda;       // 1mb fast page mode
-    } else if (vga.mem.memsize < 3072*1024)    {
+    } else if (vga.mem.memsize_original < 3072*1024)    {
         vga.mem.memsize = 2048*1024;
         vga.s3.reg_36 = 0x9a;       // 2mb fast page mode
-    } else if (vga.mem.memsize < 4096*1024)    {
-        vga.mem.memsize = 3072*1024;
+    } else if (vga.mem.memsize_original < 4096*1024)    {
+        vga.mem.memsize = 4096*1024; // must be power of 2
         vga.s3.reg_36 = 0x5a;       // 3mb fast page mode
-    } else if (vga.mem.memsize < 8192*1024) {  // Trio64 supported only up to 4M
+    } else if (vga.mem.memsize_original < 6144*1024) {
         vga.mem.memsize = 4096*1024;
         vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
-    } else if (vga.mem.memsize < 16384*1024) {  // 8M
+    } else if (vga.mem.memsize_original < 8192*1024) {
+        vga.mem.memsize = 8192*1024; // must be power of 2
+        if (s3Card == S3_Vision964 || s3Card == S3_Vision968) 
+            vga.s3.reg_36 = 0xba;       // 6mb fast page mode
+        else
+            vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
+    } else if (vga.mem.memsize_original < 16384*1024) {
         vga.mem.memsize = 8192*1024;
-        vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
-    } else {    // HACK: 16MB mode, with value not supported by actual hardware
+        if (s3Card == S3_Vision964 || s3Card == S3_Vision968) 
+            vga.s3.reg_36 = 0x7a;       // 8mb fast page mode
+        else
+            vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
+    } else {
         vga.mem.memsize = 16384*1024;
         vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
     }

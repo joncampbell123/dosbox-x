@@ -1101,6 +1101,7 @@ void VGA_Reset(Section*) {
             vga.mem.memsize  = (vga.mem.memsize + 0xFFFu) & (~0xFFFu);
             /* mainline compatible: vmemsize == 0 means 512KB */
             if (vga.mem.memsize == 0) vga.mem.memsize = _KB_bytes(512);
+            vga.mem.memsize_original = vga.mem.memsize;
 
             /* round up to the nearest power of 2 (TODO: Any video hardware that uses non-power-of-2 sizes?).
              * A lot of DOSBox's VGA emulation code assumes power-of-2 VRAM sizes especially when wrapping
@@ -1111,6 +1112,7 @@ void VGA_Reset(Section*) {
             }
         }
         else {
+            vga.mem.memsize_original = 0;
             vga.mem.memsize = 0; /* machine-specific code will choose below */
         }
     }
