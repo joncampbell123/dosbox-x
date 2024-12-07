@@ -10,5 +10,5 @@ This project is about DOS/Windows era emulation and development.
 
 You are welcome to participate as long as it is about DOS/Windows emulation and development.
 
-The maintainer of this project reserves the right to remove posts and conversations from this project that are off-topic, and to ignore and/or ban users who are rude and disruptive to this project and it's users, developers, and contributors.
+The maintainer of this project reserves the right to remove posts and/or conversations from this project that are off-topic, and to ignore and/or ban users who are rude and/or disruptive to this project and it's users, developers, or contributors.
 
