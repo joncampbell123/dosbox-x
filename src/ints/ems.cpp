@@ -869,6 +869,7 @@ static uint8_t MemoryRegion(void) {
     return EMM_NO_ERROR;
 }
 
+void CPU_TSS_ForceBusy(bool busy);
 
 static Bitu INT67_Handler(void) {
 	switch (reg_ah) {
@@ -1186,6 +1187,7 @@ static Bitu INT67_Handler(void) {
 			case 0x0c: {	/* VCPI Switch from V86 to Protected Mode */
 				reg_flags&=(~FLAG_IF);
 				CPU_SetCPL(0);
+				CPU_TSS_ForceBusy(false);//HACK
 
 				/* Read data from ESI (linear address) */
 				uint32_t new_cr3=mem_readd(reg_esi);
@@ -1282,6 +1284,7 @@ static Bitu VCPI_PM_Handler() {
 		mem_writeb(tbaddr, tb&0xfd);
 
 		/* Load descriptor table registers */
+		CPU_TSS_ForceBusy(false);//HACK
 		CPU_LGDT(0xff, (unsigned int)vcpi.private_area+0x0000u);
 		CPU_LIDT(0x7ff, (unsigned int)vcpi.private_area+0x2000u);
 		if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
@@ -1325,6 +1328,58 @@ bool VCPI_trapio_w(uint16_t port,uint32_t data,unsigned int sz) {
 	}
 
 	return false;
+}
+
+/* Windows virtual86 mode enable/disable callback.
+ * If we're emulating VCPI, this is required for Windows to work with it.
+ * Or else, it refuses to run.
+ *
+ * AX = 0 disable virtual 8086 mode, enter real mode
+ * AX = 1 re-enable virtual 8086 mode, from real mode */
+static Bitu WinVM86Ctl() {
+	switch (reg_ax) {
+		case 0:
+			if (cpu.pmode) {
+				reg_flags &= ~FLAG_VM;
+				CPU_SetSegGeneral(cs,SegValue(cs));
+				CPU_SetSegGeneral(ds,SegValue(ds));
+				CPU_SetSegGeneral(es,SegValue(es));
+				CPU_SetSegGeneral(ss,SegValue(ss));
+				CPU_TSS_ForceBusy(false);//HACK
+				CPU_LTR(0);
+				CPU_LLDT(0);
+				CPU_SET_CRX(0, 0);
+				CPU_LGDT(0xffff, 0);
+				CPU_LIDT(0xffff, 0);
+				CPU_SetCPL(0);
+				assert(!cpu.pmode);
+			}
+			LOG_MSG("virtual806 mode disabled");
+			break;
+		case 1:
+			if (!cpu.pmode && ENABLE_V86_STARTUP && ENABLE_VCPI) {
+				CPU_LGDT(0xff, (unsigned int)vcpi.private_area+0x0000);
+				CPU_LIDT(0x7ff, (unsigned int)vcpi.private_area+0x2000);
+				CPU_SET_CRX(0, 1);
+				CPU_TSS_ForceBusy(false);//HACK
+				if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
+				if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
+				CPU_SetSegGeneral(cs,SegValue(cs));
+				CPU_SetSegGeneral(ds,SegValue(ds));
+				CPU_SetSegGeneral(es,SegValue(es));
+				CPU_SetSegGeneral(ss,SegValue(ss));
+				reg_flags |= FLAG_VM;
+				CPU_SetCPL(3);
+				assert(cpu.pmode);
+			}
+			LOG_MSG("virtual806 mode reenabled");
+			break;
+		default:
+			LOG_MSG("virtual806 mode enable/disable: unknown AX=%u",reg_ax);
+			break;
+	};
+
+	return CBRET_NONE;
 }
 
 static Bitu V86_Monitor() {
@@ -1607,9 +1662,16 @@ private:
     DOS_Device* emm_device = NULL;
     unsigned int oshandle_memsize_16kb = 0;
     RealPt /*old4b_pointer,*/old67_pointer = 0/*NULL*/;
-	CALLBACK_HandlerObject call_vdma,call_vcpi,call_v86mon;
+	CALLBACK_HandlerObject call_vdma,call_vcpi,call_v86mon,call_win_vm86_ctl;
 
 public:
+	RealPt Get_EMS_vm86control() {
+		if (ENABLE_V86_STARTUP && ENABLE_VCPI)
+			return call_win_vm86_ctl.Get_RealPointer();
+		else
+			return 0;
+	}
+
 	EMS(Section* configuration):Module_base(configuration) {
 
 		/* Virtual DMA interrupt callback */
@@ -1787,6 +1849,9 @@ public:
 
 			if (!vcpi.enabled) return;
 
+			/* Vm86 mode enable/disable function for Windows */
+			call_win_vm86_ctl.Install(&WinVM86Ctl,CB_RETF,"VM86 mode Windows control");
+
 			/* Install v86-callback that handles interrupts occurring
 			   in v86 mode, including protection fault exceptions */
 			call_v86mon.Install(&V86_Monitor,CB_IRET,"V86 Monitor");
@@ -1826,11 +1891,12 @@ public:
 				vcpi_virtual_a20 = true;
 
 				/* Prepare V86-task */
-				CPU_SET_CRX(0, 1);
 				CPU_LGDT(0xff, (unsigned int)vcpi.private_area+0x0000);
 				CPU_LIDT(0x7ff, (unsigned int)vcpi.private_area+0x2000);
+				CPU_SET_CRX(0, 1);
 				if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
 				if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
+				CPU_TSS_ForceBusy(true);//HACK
 
 				/* TODO: Page tables are usually involved as well. That is the "magic"
 				 * behind EMM386.EXE page frames. */
@@ -1899,10 +1965,14 @@ public:
 		}
 	}
 };
-		
+	
 static EMS* test = NULL;
 extern const char* RunningProgram;
 void CALLBACK_DeAllocate(Bitu in);
+
+RealPt Get_EMS_vm86control() {
+	return (test != NULL) ? test->Get_EMS_vm86control() : 0;
+}
 
 void EMS_DoShutDown() {
     if (!strcmp(RunningProgram, "LOADLIN")) {

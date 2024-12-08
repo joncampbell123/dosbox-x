@@ -29,6 +29,11 @@ Next
     DOS extenders. For the first time, DOS extenders are working with
     the DOSBox-X built-in implementation of VCPI and most DOS games
     run fine now with it. (joncampbell123).
+  - VCPI: Add code to INT 2Fh handler regarding Windows startup/shutdown
+    messages to fill in DS:SI. If EMM386 and VCPI emulation is active
+    and running the DOS machine in virtual 8086 mode, give Windows the
+    proper callback procedure to allow Windows to switch off VCPI vm86
+    mode on startup and turn it back on during shutdown. (joncampbell123).
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
