@@ -13,6 +13,15 @@ Next
   - INT 10: Like any other 200-line 16-color graphics mode, 200-line
     VGA text mode needs to program the AC and VGA palette using the
     CGA RGBI-type palette, not the EGA 64-color type palette. (joncampbell123).
+  - CPU: Disallow clearing PE bit from LMSW by default, always.
+    You can still allow it through dosbox.conf. It turns out that
+    x86 CPUs never allowed you to clear it that way, even from the
+    Pentium up, even though Intel documentation beyond the 386 never
+    mentions it again. This fixes problems with DOS extenders and
+    VCPI, particularly DOS4GW which for some reason with VCPI likes
+    to try to clear the PE bit when switching to VM86 even though
+    it clearly understands it's not supposed to be able to clear it.
+    (joncampbell123).
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
