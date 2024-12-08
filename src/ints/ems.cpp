@@ -1101,18 +1101,18 @@ static Bitu INT67_Handler(void) {
 				}
 				reg_di+=0x400;		// advance pointer by 0x100*4
 				
-				/* Set up three descriptor table entries */
+				/* Set up three descriptor table entries, for the VCPI server, which must be 32-bit! */
 				uint32_t cbseg_low=(CALLBACK_GetBase()&0xffff)<<16;
 				uint32_t cbseg_high=(CALLBACK_GetBase()&0x1f0000)>>16;
 				/* Descriptor 1 (code segment, callback segment) */
 				real_writed(SegValue(ds),reg_si+0x00,0x0000ffff|cbseg_low);
-				real_writed(SegValue(ds),reg_si+0x04,0x00009a00|cbseg_high);
+				real_writed(SegValue(ds),reg_si+0x04,0x00cf9a00|cbseg_high);
 				/* Descriptor 2 (data segment, full access) */
 				real_writed(SegValue(ds),reg_si+0x08,0x0000ffff);
-				real_writed(SegValue(ds),reg_si+0x0c,0x00009200);
+				real_writed(SegValue(ds),reg_si+0x0c,0x00cf9200);
 				/* Descriptor 3 (full access) */
 				real_writed(SegValue(ds),reg_si+0x10,0x0000ffff);
-				real_writed(SegValue(ds),reg_si+0x14,0x00009200);
+				real_writed(SegValue(ds),reg_si+0x14,0x00cf9200);
 
 				reg_ebx=(vcpi.pm_interface&0xffff);
 				reg_ah=EMM_NO_ERROR;
@@ -1779,7 +1779,7 @@ public:
 			LOG(LOG_MISC,LOG_DEBUG)("Enabling VCPI emulation");
 
 			/* Install a callback that handles VCPI-requests in protected mode requests */
-			call_vcpi.Install(&VCPI_PM_Handler,CB_IRETD,"VCPI PM");
+			call_vcpi.Install(&VCPI_PM_Handler,CB_RETF,"VCPI PM");
 			vcpi.pm_interface=(call_vcpi.Get_callback())*CB_SIZE;
 
 			/* Initialize private data area and set up descriptor tables */
