@@ -110,6 +110,7 @@ extern bool i4dos, shellrun, clipboard_dosapi, swapad;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 extern uint16_t seg_win_startup_info;
 void PasteClipboard(bool bPressed);
+RealPt Get_EMS_vm86control();
 
 // INT 2F
 char regpath[CROSS_LEN+1]="C:\\WINDOWS\\SYSTEM.DAT";
@@ -354,6 +355,17 @@ static bool DOS_MultiplexFunctions(void) {
 			real_writew(seg_win_startup_info, 0x04, SegValue(es));
 			SegSet16(es, seg_win_startup_info);
 			reg_bx = 0;
+		}
+
+		/* If EMS emulation is providing VCPI and it is enabled (the system is in vm86 mode),
+		 * provide Windows a callback function to control it */
+		{
+			RealPt p = Get_EMS_vm86control();
+			if (p != 0) {
+				SegSet16(ds,p >> 16u);
+				reg_si = p & 0xFFFFu;
+				LOG_MSG("DEBUG: Providing Windows our VCPI vm86 control entry point 0x%lx",(unsigned long)p);
+			}
 		}
 
 		return false; /* pass it on to other INT 2F handlers */

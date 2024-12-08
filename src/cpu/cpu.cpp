@@ -2431,6 +2431,13 @@ Bitu CPU_STR(void) {
 	return cpu_tss.selector;
 }
 
+void CPU_TSS_ForceBusy(bool busy) {
+	if (cpu_tss.selector != 0) {
+		cpu_tss.desc.SetBusy(busy);
+		cpu_tss.SaveSelector();
+	}
+}
+
 bool CPU_LTR(Bitu selector) {
 	if ((selector & 0xfffc)==0) {
 		cpu_tss.SetSelector(selector);
