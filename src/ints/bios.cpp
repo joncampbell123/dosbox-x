@@ -10650,8 +10650,12 @@ private:
         strcpy(logostr[7], "+---------------------+");
 startfunction:
         int logo_x,logo_y,x=2,y=2;
+
         logo_y = 2;
-        logo_x = 80 - 2 - (224/8);
+        if (machine == MCH_HERC || machine == MCH_MDA)
+            logo_x = 80 - 2 - (224/9);
+        else
+            logo_x = 80 - 2 - (224/8);
 
         if (cpu.pmode) E_Exit("BIOS error: STARTUP function called while in protected/vm86 mode");
 
@@ -10698,27 +10702,6 @@ startfunction:
         }
 
         BIOS_Int10RightJustifiedPrint(x,y,msg);
-        if (machine != MCH_PC98 && textsplash) {
-            Bitu edx = reg_edx;
-            //int oldx = x, oldy = y; UNUSED
-            unsigned int lastline = 7;
-            for (unsigned int i=0; i<=lastline; i++) {
-                for (unsigned int j=0; j<strlen(logostr[i]); j++) {
-                    reg_eax = 0x0200u;
-                    reg_ebx = 0x0000u;
-                    reg_edx = 0x0236u + i*0x100 + j;
-                    CALLBACK_RunRealInt(0x10);
-                    reg_eax = 0x0900u+(i==0&&j==0?0xDA:(i==0&&j==strlen(logostr[0])-1?0xBF:(i==lastline&&j==0?0xC0:(i==lastline&&j==strlen(logostr[lastline])-1?0xD9:(logostr[i][j]=='-'&&(i==0||i==lastline)?0xC4:(logostr[i][j]=='|'?0xB3:logostr[i][j]%0xff))))));
-                    reg_ebx = i!=0&&i!=lastline&&logostr[i][j]!='|'?0x002eu:0x002fu;
-                    reg_ecx = 0x0001u;
-                    CALLBACK_RunRealInt(0x10);
-                }
-            }
-            reg_eax = 0x0200u;
-            reg_ebx = 0x0000u;
-            reg_edx = edx;
-            CALLBACK_RunRealInt(0x10);
-        }
 
         {
             png_bytep rows[1];
@@ -10764,6 +10747,11 @@ startfunction:
                     inpng_size = dosbox224x163_png_len;
                     inpng = dosbox224x163_png;
                 }
+            }
+            else if (machine == MCH_HERC || machine == MCH_MDA) {
+                filename = "dosbox224x163.png";
+                inpng_size = dosbox224x163_png_len;
+                inpng = dosbox224x163_png;
             }
             else {
                 filename = "dosbox224x93.png";
@@ -10818,8 +10806,11 @@ startfunction:
                     rows[0] = row;
 
                     if (palette != 0 && palette_count > 0 && palette_count <= 256 && row != NULL) {
-                        VGA_InitBiosLogo(png_width,png_height,logo_x*8,logo_y*8);
                         textsplash = false;
+                        if (machine == MCH_HERC || machine == MCH_MDA)
+                            VGA_InitBiosLogo(png_width,png_height,logo_x*9,logo_y*8);
+                        else
+                            VGA_InitBiosLogo(png_width,png_height,logo_x*8,logo_y*8);
 
                         {
                             unsigned char tmp[256*3];
@@ -10854,6 +10845,27 @@ startfunction:
                     mem_writeb(0xA2000+bo+1,0xE1);
                 }
             }
+        }
+        if (machine != MCH_PC98 && textsplash) {
+            Bitu edx = reg_edx;
+            //int oldx = x, oldy = y; UNUSED
+            unsigned int lastline = 7;
+            for (unsigned int i=0; i<=lastline; i++) {
+                for (unsigned int j=0; j<strlen(logostr[i]); j++) {
+                    reg_eax = 0x0200u;
+                    reg_ebx = 0x0000u;
+                    reg_edx = 0x0236u + i*0x100 + j;
+                    CALLBACK_RunRealInt(0x10);
+                    reg_eax = 0x0900u+(i==0&&j==0?0xDA:(i==0&&j==strlen(logostr[0])-1?0xBF:(i==lastline&&j==0?0xC0:(i==lastline&&j==strlen(logostr[lastline])-1?0xD9:(logostr[i][j]=='-'&&(i==0||i==lastline)?0xC4:(logostr[i][j]=='|'?0xB3:logostr[i][j]%0xff))))));
+                    reg_ebx = i!=0&&i!=lastline&&logostr[i][j]!='|'?0x002eu:0x002fu;
+                    reg_ecx = 0x0001u;
+                    CALLBACK_RunRealInt(0x10);
+                }
+            }
+            reg_eax = 0x0200u;
+            reg_ebx = 0x0000u;
+            reg_edx = edx;
+            CALLBACK_RunRealInt(0x10);
         }
 
         {
