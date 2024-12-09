@@ -10673,17 +10673,6 @@ startfunction:
             CALLBACK_RunRealInt(0x18);
 
             bios_pc98_posx = x;
-
-            if (textsplash) {
-                unsigned int bo, lastline = 7;
-                for (unsigned int i=0; i<=lastline; i++) {
-                    for (unsigned int j=0; j<strlen(logostr[i]); j++) {
-                        bo = (((unsigned int)(i+2) * 80u) + (unsigned int)(j+0x36)) * 2u;
-                        mem_writew(0xA0000+bo,i==0&&j==0?0x300B:(i==0&&j==strlen(logostr[0])-1?0x340B:(i==lastline&&j==0?0x380B:(i==lastline&&j==strlen(logostr[lastline])-1?0x3C0B:(logostr[i][j]=='-'&&(i==0||i==lastline)?0x240B:(logostr[i][j]=='|'?0x260B:logostr[i][j]%0xff))))));
-                        mem_writeb(0xA2000+bo+1,0xE1);
-                    }
-                }
-            }
         }
         else {
             reg_eax = 3;        // 80x25 text
@@ -10785,6 +10774,7 @@ startfunction:
 
                     if (palette != 0 && palette_count != 0 && palette_count <= 256 && row != NULL) {
                         VGA_InitBiosLogo(png_width,png_height,logo_x*8,logo_y*8);
+                        textsplash = false;
 
                         {
                             unsigned char tmp[256*3];
@@ -10808,6 +10798,17 @@ startfunction:
 
             if (png_context) png_destroy_read_struct(&png_context,&png_info,&png_end);
             if (png_fp) fclose(png_fp);
+        }
+
+        if (machine == MCH_PC98 && textsplash) {
+            unsigned int bo, lastline = 7;
+            for (unsigned int i=0; i<=lastline; i++) {
+                for (unsigned int j=0; j<strlen(logostr[i]); j++) {
+                    bo = (((unsigned int)(i+2) * 80u) + (unsigned int)(j+0x36)) * 2u;
+                    mem_writew(0xA0000+bo,i==0&&j==0?0x300B:(i==0&&j==strlen(logostr[0])-1?0x340B:(i==lastline&&j==0?0x380B:(i==lastline&&j==strlen(logostr[lastline])-1?0x3C0B:(logostr[i][j]=='-'&&(i==0||i==lastline)?0x240B:(logostr[i][j]=='|'?0x260B:logostr[i][j]%0xff))))));
+                    mem_writeb(0xA2000+bo+1,0xE1);
+                }
+            }
         }
 
         {
