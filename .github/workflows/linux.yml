@@ -25,7 +25,7 @@ jobs:
       - name: Build minimal
         run: |
           echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
-          ./build --disable-freetype --disable-libfluidsynth --disable-mt32 --disable-screenshots
+          ./build --disable-freetype --disable-libfluidsynth --disable-mt32
       - name: Install libraries
         run: |
           sudo apt-get update -y
