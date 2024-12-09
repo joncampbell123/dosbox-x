@@ -10715,6 +10715,7 @@ startfunction:
             png_color *palette = NULL;
             int palette_count = 0;
             std::string user_filename;
+            unsigned int rowheight = 8;
             const char *filename = NULL;
             const unsigned char *inpng = NULL;
             size_t inpng_size = 0;
@@ -10731,12 +10732,14 @@ startfunction:
                 filename = "dosbox224x224.png";
                 inpng_size = dosbox224x224_png_len;
                 inpng = dosbox224x224_png;
+                rowheight = 16;
             }
             else if (IS_PC98_ARCH) {
                 if (logo) user_filename = std::string(logo) + "224x186.png";
                 filename = "dosbox224x186.png";
                 inpng_size = dosbox224x186_png_len;
                 inpng = dosbox224x186_png;
+                rowheight = 16;
             }
             else if (IS_EGA_ARCH) {
                 if (ega200) {
@@ -10750,6 +10753,7 @@ startfunction:
                     filename = "dosbox224x163.png";
                     inpng_size = dosbox224x163_png_len;
                     inpng = dosbox224x163_png;
+                    rowheight = 14;
                 }
             }
             else if (machine == MCH_HERC || machine == MCH_MDA) {
@@ -10757,6 +10761,7 @@ startfunction:
                 filename = "dosbox224x163.png";
                 inpng_size = dosbox224x163_png_len;
                 inpng = dosbox224x163_png;
+                rowheight = 14;
             }
             else {
                 if (logo) user_filename = std::string(logo) + "224x93.png";
@@ -10816,9 +10821,9 @@ startfunction:
                     if (palette != 0 && palette_count > 0 && palette_count <= 256 && row != NULL) {
                         textsplash = false;
                         if (machine == MCH_HERC || machine == MCH_MDA)
-                            VGA_InitBiosLogo(png_width,png_height,logo_x*9,logo_y*8);
+                            VGA_InitBiosLogo(png_width,png_height,logo_x*9,logo_y*rowheight);
                         else
-                            VGA_InitBiosLogo(png_width,png_height,logo_x*8,logo_y*8);
+                            VGA_InitBiosLogo(png_width,png_height,logo_x*8,logo_y*rowheight);
 
                         {
                             unsigned char tmp[256*3];
