@@ -48,6 +48,8 @@ Next
     directory. Have fun. Note that this addition requires that you
     compile DOSBox-X with libpng enabled. (joncampbell123).
   - Added dosbox.conf option to specify BIOS logo file. (joncampbell123).
+  - Added dosbox.conf option to specify a text message, up to 3 lines,
+    at the bottom of the screen during BIOS POST screen. (joncampbell123).
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
