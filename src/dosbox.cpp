@@ -1560,8 +1560,14 @@ void DOSBOX_SetupConfigSections(void) {
                       "You can set code page either in the language file or with \"country\" setting in [config] section.");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
+    Pstring = secprop->Add_string("title",Property::Changeable::Always,"");
     Pstring->Set_help("Additional text to place in the title bar of the window.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("logo",Property::Changeable::Always,"");
+    Pstring->Set_help("Location of PNG images to use in place of the DOSBox-X logo at startup.\n"
+                      "This is the path of the base file name. For example logo=subdir\\sets\\007\\logo\n"
+                      "with machine=vgaonly will use subdir\\sets\\007\\logo224x224.png as the logo.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("fastbioslogo",Property::Changeable::OnlyAtStart,false);
