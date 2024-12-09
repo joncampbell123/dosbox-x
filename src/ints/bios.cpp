@@ -10604,6 +10604,7 @@ private:
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
         const Section_prop* section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        const char *logo = section->Get_string("logo");
         bool fastbioslogo=section->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
         if (fastbioslogo && machine != MCH_PC98) {
 #if defined(USE_TTF)
@@ -10713,53 +10714,60 @@ startfunction:
             int png_bit_depth = 0,png_color_type = 0,png_interlace = 0,png_filter = 0,png_compression = 0;
             png_color *palette = NULL;
             int palette_count = 0;
+            std::string user_filename;
             const char *filename = NULL;
             const unsigned char *inpng = NULL;
             size_t inpng_size = 0;
             FILE *png_fp = NULL;
 
             /* If the user wants a custom logo, just put it in the same directory as the .conf file and have at it.
-             * Requirements: The PNG Must be 1/2/4/8bpp with a color palette, not grayscale, not truecolor, and
+             * Requirements: The PNG must be 1/2/4/8bpp with a color palette, not grayscale, not truecolor, and
              * no alpha channel data at all. No interlacing. Must be 224x224 or smaller, and should fit the size
              * indicated in the filename. There are multiple versions, one for each vertical resolution of common
              * CGA/EGA/VGA/etc. modes: 480-line, 400-line, 350-line, and 200-line. All images other than the 480-line
              * one have a non-square pixel aspect ratio. Please take that into consideration. */
-            /* TODO: The user should also be able to point at the PNG files using either/both the local dosbox.conf
-	     *       or global dosbox.conf! */
             if (IS_VGA_ARCH) {
+                if (logo) user_filename = std::string(logo) + "224x224.png";
                 filename = "dosbox224x224.png";
                 inpng_size = dosbox224x224_png_len;
                 inpng = dosbox224x224_png;
             }
             else if (IS_PC98_ARCH) {
+                if (logo) user_filename = std::string(logo) + "224x186.png";
                 filename = "dosbox224x186.png";
                 inpng_size = dosbox224x186_png_len;
                 inpng = dosbox224x186_png;
             }
             else if (IS_EGA_ARCH) {
                 if (ega200) {
+                    if (logo) user_filename = std::string(logo) + "224x93.png";
                     filename = "dosbox224x93.png";
                     inpng_size = dosbox224x93_png_len;
                     inpng = dosbox224x93_png;
                 }
                 else {
+                    if (logo) user_filename = std::string(logo) + "224x163.png";
                     filename = "dosbox224x163.png";
                     inpng_size = dosbox224x163_png_len;
                     inpng = dosbox224x163_png;
                 }
             }
             else if (machine == MCH_HERC || machine == MCH_MDA) {
+                if (logo) user_filename = std::string(logo) + "224x163.png";
                 filename = "dosbox224x163.png";
                 inpng_size = dosbox224x163_png_len;
                 inpng = dosbox224x163_png;
             }
             else {
+                if (logo) user_filename = std::string(logo) + "224x93.png";
                 filename = "dosbox224x93.png";
                 inpng_size = dosbox224x93_png_len;
                 inpng = dosbox224x93_png;
             }
 
-            if (filename != NULL)
+            if (png_fp == NULL && !user_filename.empty())
+                png_fp = fopen(user_filename.c_str(),"rb");
+            if (png_fp == NULL && filename != NULL)
                 png_fp = fopen(filename,"rb");
 
             if (png_fp || inpng) {
