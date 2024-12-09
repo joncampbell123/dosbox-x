@@ -1,0 +1,5 @@
+Notes:
+- Starting with Windows 3.0, the stock EGA/VGA drivers require a 80186 or
+  higher, they do not work on an 8086. This is due to the use of instructions
+  not supported by the 8086.
+
