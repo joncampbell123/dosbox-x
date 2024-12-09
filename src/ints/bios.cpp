@@ -9209,6 +9209,30 @@ void BuildACPITable(void) {
 	rsdt_tw.finish();
 }
 
+#if C_LIBPNG
+# include "dosbox224x93.h"
+# include "dosbox224x163.h"
+# include "dosbox224x186.h"
+# include "dosbox224x224.h"
+
+static const unsigned char *BIOSLOGO_PNG_PTR = NULL;
+static const unsigned char *BIOSLOGO_PNG_FENCE = NULL;
+
+static void BIOSLOGO_PNG_READ(png_structp context,png_bytep buf,size_t count) {
+	(void)context;
+
+	while (count > 0 && BIOSLOGO_PNG_PTR < BIOSLOGO_PNG_FENCE) {
+		*buf++ = *BIOSLOGO_PNG_PTR++;
+		count--;
+	}
+	while (count > 0) {
+		*buf++ = 0;
+		count--;
+	}
+}
+
+#endif
+
 extern unsigned int INT13Xfer;
 
 class BIOS:public Module_base{
@@ -10625,14 +10649,13 @@ private:
         sprintf(logostr[6], "| Version %10s  |", VERSION);
         strcpy(logostr[7], "+---------------------+");
 startfunction:
-        int logo_x,logo_y,x=2,y=2,rowheight=8;
+        int logo_x,logo_y,x=2,y=2;
         logo_y = 2;
         logo_x = 80 - 2 - (224/8);
 
         if (cpu.pmode) E_Exit("BIOS error: STARTUP function called while in protected/vm86 mode");
 
         if (IS_VGA_ARCH) {
-            rowheight = 16;
             reg_eax = 18;       // 640x480 16-color
             CALLBACK_RunRealInt(0x10);
         }
@@ -10708,6 +10731,8 @@ startfunction:
             png_color *palette = NULL;
             int palette_count = 0;
             const char *filename = NULL;
+            const unsigned char *inpng = NULL;
+            size_t inpng_size = 0;
             FILE *png_fp = NULL;
 
             /* If the user wants a custom logo, just put it in the same directory as the .conf file and have at it.
@@ -10718,19 +10743,38 @@ startfunction:
              * one have a non-square pixel aspect ratio. Please take that into consideration. */
             /* TODO: The user should also be able to point at the PNG files using either/both the local dosbox.conf
 	     *       or global dosbox.conf! */
-            if (IS_VGA_ARCH)
+            if (IS_VGA_ARCH) {
                 filename = "dosbox224x224.png";
-            else if (IS_PC98_ARCH)
+                inpng_size = dosbox224x224_png_len;
+                inpng = dosbox224x224_png;
+            }
+            else if (IS_PC98_ARCH) {
                 filename = "dosbox224x186.png";
-            else if (IS_EGA_ARCH)
-                filename = ega200 ? "dosbox224x93.png" : "dosbox224x163.png";
-            else
+                inpng_size = dosbox224x186_png_len;
+                inpng = dosbox224x186_png;
+            }
+            else if (IS_EGA_ARCH) {
+                if (ega200) {
+                    filename = "dosbox224x93.png";
+                    inpng_size = dosbox224x93_png_len;
+                    inpng = dosbox224x93_png;
+                }
+                else {
+                    filename = "dosbox224x163.png";
+                    inpng_size = dosbox224x163_png_len;
+                    inpng = dosbox224x163_png;
+                }
+            }
+            else {
                 filename = "dosbox224x93.png";
+                inpng_size = dosbox224x93_png_len;
+                inpng = dosbox224x93_png;
+            }
 
             if (filename != NULL)
                 png_fp = fopen(filename,"rb");
 
-            if (png_fp) {
+            if (png_fp || inpng) {
                 png_context = png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL/*err*/,NULL/*err fn*/,NULL/*warn fn*/);
                 if (png_context) {
                     png_info = png_create_info_struct(png_context);
@@ -10742,7 +10786,17 @@ startfunction:
 
             if (png_context && png_info) {
                 if (png_fp) {
+                    LOG(LOG_MISC,LOG_DEBUG)("Using external file logo %s",filename);
                     png_init_io(png_context,png_fp);
+                }
+                else if (inpng) {
+                    LOG(LOG_MISC,LOG_DEBUG)("Using built-in logo");
+                    BIOSLOGO_PNG_PTR = inpng;
+                    BIOSLOGO_PNG_FENCE = inpng + inpng_size;
+                    png_set_read_fn(png_context,NULL,BIOSLOGO_PNG_READ);
+                }
+                else {
+                    abort(); /* should not be here */
                 }
 
                 png_read_info(png_context,png_info);
@@ -10763,13 +10817,13 @@ startfunction:
                     row = new unsigned char[png_width + 32];
                     rows[0] = row;
 
-                    if (palette != 0 && palette_count != 0 && palette_count <= 256 && row != NULL) {
+                    if (palette != 0 && palette_count > 0 && palette_count <= 256 && row != NULL) {
                         VGA_InitBiosLogo(png_width,png_height,logo_x*8,logo_y*8);
                         textsplash = false;
 
                         {
                             unsigned char tmp[256*3];
-                            for (unsigned int x=0;x < palette_count;x++) {
+                            for (unsigned int x=0;x < (unsigned int)palette_count;x++) {
                                 tmp[(x*3)+0] = palette[x].red;
                                 tmp[(x*3)+1] = palette[x].green;
                                 tmp[(x*3)+2] = palette[x].blue;
@@ -10872,6 +10926,7 @@ startfunction:
                             case S3_Trio64V:    card = "S3 Trio64V+ SVGA"; break;
                             case S3_ViRGE:      card = "S3 ViRGE SVGA"; break;
                             case S3_ViRGEVX:    card = "S3 ViRGE VX SVGA"; break;
+                            case S3_Generic:    card = "S3"; break;
                         }
                         break;
                     case SVGA_ATI:
@@ -12256,6 +12311,7 @@ void ROMBIOS_Init() {
 			    LOG_MSG("Will load IBM ROM BASIC to %05lx-%05lx",(unsigned long)ibm_rom_basic_base,(unsigned long)(ibm_rom_basic_base+ibm_rom_basic_size-1));
 			    Bitu base = ROMBIOS_GetMemory(ibm_rom_basic_size,"IBM ROM BASIC",1u/*page align*/,ibm_rom_basic_base);
 			    rombios_alloc.setMaxDynamicAllocationAddress(ibm_rom_basic_base - 1);
+			    (void)base;
 
 			    FILE *fp = fopen(ibm_rom_basic.c_str(),"rb");
 			    if (fp != NULL) {
