@@ -10710,6 +10710,14 @@ startfunction:
             const char *filename = NULL;
             FILE *png_fp = NULL;
 
+            /* If the user wants a custom logo, just put it in the same directory as the .conf file and have at it.
+             * Requirements: The PNG Must be 1/2/4/8bpp with a color palette, not grayscale, not truecolor, and
+             * no alpha channel data at all. No interlacing. Must be 224x224 or smaller, and should fit the size
+             * indicated in the filename. There are multiple versions, one for each vertical resolution of common
+             * CGA/EGA/VGA/etc. modes: 480-line, 400-line, 350-line, and 200-line. All images other than the 480-line
+             * one have a non-square pixel aspect ratio. Please take that into consideration. */
+            /* TODO: The user should also be able to point at the PNG files using either/both the local dosbox.conf
+	     *       or global dosbox.conf! */
             if (IS_VGA_ARCH)
                 filename = "dosbox224x224.png";
             else if (IS_PC98_ARCH)
