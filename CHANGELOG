@@ -45,7 +45,8 @@ Next
     perhaps just 16 colors. Much like the Windows 95 LOGO.SYS, you can
     change the logo to your taste by placing specifically named PNG
     files in the same directory as your dosbox.conf or current working
-    directory. Have fun. (joncampbell123).
+    directory. Have fun. Note that this addition requires that you
+    compile DOSBox-X with libpng enabled. (joncampbell123).
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
