@@ -34,6 +34,18 @@ Next
     and running the DOS machine in virtual 8086 mode, give Windows the
     proper callback procedure to allow Windows to switch off VCPI vm86
     mode on startup and turn it back on during shutdown. (joncampbell123).
+  - BIOS "POST" screen: Change BIOS logo to PNG format. To avoid having
+    to render a PNG in roughly 10 different video modes, add code to
+    VGA draw code to allow a BIOS logo "overlay" to be rendered
+    independent of the video mode. Depending on machine type load one
+    of four PNG files from disk or from inside DOSBox-X itself.
+    PNG requirements: 224x224 or smaller, bit depth of 8bpp or less,
+    color palette (not grayscale), no alpha channel, and must not be
+    interlaced. For best compatibility, use less than 64 colors, or
+    perhaps just 16 colors. Much like the Windows 95 LOGO.SYS, you can
+    change the logo to your taste by placing specifically named PNG
+    files in the same directory as your dosbox.conf or current working
+    directory. Have fun. (joncampbell123).
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
