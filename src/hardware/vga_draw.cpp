@@ -3444,6 +3444,116 @@ void VGA_DAC_DeferredUpdateColorPalette();
 void VGA_DebugAddEvent(debugline_event &ev);
 void VGA_DrawDebugLine(uint8_t *line,unsigned int w);
 
+/* BIOS logo overlay */
+struct BIOSlogo_t {
+	unsigned char*		bmp = NULL;
+	unsigned int		x = 0,y = 0;
+	unsigned int		width = 0,height = 0;
+	unsigned char*		palette = NULL; /* 256 colors (NOTE: Except for VGA and PC-98, not all 256 colors available!) */
+	VGA_Line_Handler	DrawLine = NULL;
+
+	BIOSlogo_t() {
+	}
+	~BIOSlogo_t() {
+		free();
+	}
+	void free(void) {
+		if (bmp) delete[] bmp;
+		bmp = NULL;
+		if (palette) delete[] palette;
+		palette = NULL;
+	}
+	void position(unsigned int new_x,unsigned int new_y) {
+		x = new_x;
+		y = new_y;
+	}
+	void allocate(unsigned int w,unsigned int h) {
+		if (bmp == NULL) {
+			if (w == 0 || w > 512 || h == 0 || h > 512) return;
+			bmp = new unsigned char[w*h];
+			height = h;
+			width = w;
+		}
+		if (palette == NULL) {
+			palette = new unsigned char[256*3];
+		}
+	}
+};
+
+static BIOSlogo_t BIOSlogo;
+
+static uint8_t *VGA_DrawLineBiosLogoOverlay(Bitu vidstart, Bitu line) {
+	uint8_t *r = BIOSlogo.DrawLine(vidstart,line);
+
+	/* FIXME: Need to copy scanline if "r" points directly at video memory, which is
+	 *        very unlikely in all standard MDA/CGA/Herc/PCjr/Tandy/EGA/VGA modes,
+	 *        but might happen if the BIOS startup screen were to use SVGA modes,
+	 *        but that isn't going to happen because there isn't any need to. */
+
+	if (BIOSlogo.bmp != NULL && BIOSlogo.palette != NULL) {
+		if (vga.draw.lines_done >= BIOSlogo.y) {
+			const unsigned int rel = vga.draw.lines_done - BIOSlogo.y;
+			if (rel < BIOSlogo.height) {
+				const unsigned char *src = BIOSlogo.bmp + (rel * BIOSlogo.width);
+				if (vga.draw.bpp == 32) {
+					const unsigned int m = BIOSlogo.x + BIOSlogo.width;
+					uint32_t *dst = (uint32_t*)r + BIOSlogo.x;
+					unsigned int x = BIOSlogo.x;
+					while (x < m && x < vga.draw.width) {
+						const unsigned char pixel = *src++;
+						const unsigned char *p = BIOSlogo.palette + (pixel * 3u);
+						*dst++ = (p[0] << GFX_Rshift) + (p[1] << GFX_Gshift) + (p[2] + GFX_Bshift); x++;
+					}
+				}
+				else if (vga.draw.bpp == 8) {
+					const unsigned int m = BIOSlogo.x + BIOSlogo.width;
+					uint8_t *dst = (uint8_t*)r + BIOSlogo.x;
+					unsigned int x = BIOSlogo.x;
+					while (x < m && x < vga.draw.width) {
+						const unsigned char pixel = *src++;
+						*dst++ = (pixel & 0x3Fu) + 0xC0u; x++; /* use the last 64 colors, first 64 used by rendering */
+					}
+				}
+			}
+		}
+	}
+
+	return r;
+}
+
+void BiosLogoHookVGADrawLine(void) {
+	if (VGA_DrawLine != VGA_DrawLineBiosLogoOverlay) {
+		BIOSlogo.DrawLine = VGA_DrawLine;
+		VGA_DrawLine = VGA_DrawLineBiosLogoOverlay;
+	}
+}
+
+bool VGA_InitBiosLogo(unsigned int w,unsigned int h,unsigned int x,unsigned int y) {
+	BIOSlogo.allocate(w,h);
+	BIOSlogo.position(x,y);
+	BiosLogoHookVGADrawLine();
+	return BIOSlogo.bmp != NULL && BIOSlogo.palette;
+}
+
+void VGA_WriteBiosLogoBMP(unsigned int y,unsigned char *scanline,unsigned int w) {
+	if (BIOSlogo.bmp != NULL && y < BIOSlogo.height && w != 0 && w <= BIOSlogo.width)
+		memcpy(BIOSlogo.bmp+(y*BIOSlogo.width),scanline,w);
+}
+
+void VGA_WriteBiosLogoPalette(unsigned int start,unsigned int count,unsigned char *rgb) {
+	if ((start+count) <= 256) {
+		for (unsigned int i=0;i < count;i++) {
+			BIOSlogo.palette[((i+start)*3)+0] = rgb[(i*3)+0];
+			BIOSlogo.palette[((i+start)*3)+1] = rgb[(i*3)+1];
+			BIOSlogo.palette[((i+start)*3)+2] = rgb[(i*3)+2];
+		}
+	}
+}
+
+void VGA_FreeBiosLogo(void) {
+	BIOSlogo.free();
+}
+
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
     unsigned int lines = 0;
     bool skiprender;
@@ -7716,6 +7826,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		 *        What is this code doing to change the palette prior to this point? */
 		VGA_DAC_UpdateColorPalette();
 	}
+
+	if (BIOSlogo.bmp)
+		BiosLogoHookVGADrawLine();
 }
 
 void VGA_KillDrawing(void) {

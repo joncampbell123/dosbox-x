@@ -75,6 +75,11 @@ extern bool PS1AudioCard;
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+bool VGA_InitBiosLogo(unsigned int w,unsigned int h,unsigned int x,unsigned int y);
+void VGA_WriteBiosLogoBMP(unsigned int y,unsigned char *scanline,unsigned int w);
+void VGA_WriteBiosLogoPalette(unsigned int start,unsigned int count,unsigned char *rgb);
+void VGA_FreeBiosLogo(void);
+
 extern bool ega200;
 
 unsigned char ACPI_ENABLE_CMD = 0xA1;
@@ -10717,6 +10722,25 @@ startfunction:
         }
 
         {
+            unsigned char tmp[16*3];
+            unsigned char scanline[224];
+
+            VGA_InitBiosLogo(224,224,logo_x*8,logo_y*8);
+            for (unsigned int x=0;x < 16;x++) {
+                tmp[(x*3)+0] = (x*255u)/15u;
+                tmp[(x*3)+1] = (x*255u)/15u;
+                tmp[(x*3)+2] = (x*255u)/15u;
+            }
+            VGA_WriteBiosLogoPalette(0,16,tmp);
+            for (unsigned int y=0;y < 224;y++) {
+                for (unsigned int x=0;x < 224;x++) {
+                    scanline[x] = (x ^ y) & 0xF;
+                }
+                VGA_WriteBiosLogoBMP(y,scanline,224);
+            }
+        }
+
+        {
             uint64_t sz = (uint64_t)MEM_TotalPages() * (uint64_t)4096;
             char tmp[512];
 
@@ -11107,6 +11131,7 @@ startfunction:
         }
 #endif
 
+        VGA_FreeBiosLogo();
         if (machine == MCH_PC98) {
             reg_eax = 0x4100;   // hide the graphics layer (PC-98)
             CALLBACK_RunRealInt(0x18);
