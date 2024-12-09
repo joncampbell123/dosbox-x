@@ -10636,23 +10636,6 @@ startfunction:
             reg_eax = 18;       // 640x480 16-color
             CALLBACK_RunRealInt(0x10);
         }
-        else if (machine == MCH_EGA) { /* not ega200 and at least 128KB of VRAM */
-            if (vga.mem.memsize >= (128*1024)) {
-                rowheight = 14;
-                reg_eax = 16; // 640x350 16-color
-                CALLBACK_RunRealInt(0x10);
-            }
-            else {
-                rowheight = 8;
-                reg_eax = 14; // 640x200 16-color
-                CALLBACK_RunRealInt(0x10);
-            }
-        }
-        else if (machine == MCH_CGA || machine == MCH_EGA || machine == MCH_MCGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) {
-            rowheight = 8;
-            reg_eax = 6;        // 640x200 2-color
-            CALLBACK_RunRealInt(0x10);
-        }
         else if (machine == MCH_PC98) {
             // clear the graphics layer
             for (unsigned int i=0;i < (80*400);i++) {
@@ -10732,7 +10715,7 @@ startfunction:
             else if (IS_PC98_ARCH)
                 filename = "dosbox224x186.png";
             else if (IS_EGA_ARCH)
-                filename = "dosbox224x163.png";
+                filename = ega200 ? "dosbox224x93.png" : "dosbox224x163.png";
             else
                 filename = "dosbox224x93.png";
 
