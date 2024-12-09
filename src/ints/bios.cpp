@@ -54,6 +54,10 @@ extern bool PS1AudioCard;
 #include <sys/stat.h>
 #include "version_string.h"
 
+#if C_LIBPNG
+#include <png.h>
+#endif
+
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
 //time.h is already included
 #else
@@ -10722,22 +10726,75 @@ startfunction:
         }
 
         {
-            unsigned char tmp[16*3];
-            unsigned char scanline[224];
+            png_bytep rows[1];
+            unsigned char *row = NULL;/*png_width*/
+            png_structp png_context = NULL;
+            png_infop png_info = NULL;
+            png_infop png_end = NULL;
+            png_uint_32 png_width = 0,png_height = 0;
+            int png_bit_depth = 0,png_color_type = 0,png_interlace = 0,png_filter = 0,png_compression = 0;
+            png_color *palette = NULL;
+            int palette_count = 0;
 
-            VGA_InitBiosLogo(224,224,logo_x*8,logo_y*8);
-            for (unsigned int x=0;x < 16;x++) {
-                tmp[(x*3)+0] = (x*255u)/15u;
-                tmp[(x*3)+1] = (x*255u)/15u;
-                tmp[(x*3)+2] = (x*255u)/15u;
-            }
-            VGA_WriteBiosLogoPalette(0,16,tmp);
-            for (unsigned int y=0;y < 224;y++) {
-                for (unsigned int x=0;x < 224;x++) {
-                    scanline[x] = (x ^ y) & 0xF;
+            FILE *png_fp = fopen("dosbox224x224.png","rb");
+            if (png_fp) {
+                png_context = png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL/*err*/,NULL/*err fn*/,NULL/*warn fn*/);
+                if (png_context) {
+                    png_info = png_create_info_struct(png_context);
+                    if (png_info) {
+                        png_set_user_limits(png_context,320,320);
+                    }
                 }
-                VGA_WriteBiosLogoBMP(y,scanline,224);
             }
+
+            if (png_context && png_info) {
+                if (png_fp) {
+                    png_init_io(png_context,png_fp);
+                }
+
+                png_read_info(png_context,png_info);
+                png_get_IHDR(png_context,png_info,&png_width,&png_height,&png_bit_depth,&png_color_type,&png_interlace,&png_compression,&png_filter);
+
+                LOG(LOG_MISC,LOG_DEBUG)("BIOS png image: w=%u h=%u bitdepth=%u ct=%u il=%u compr=%u filt=%u",
+                    png_width,png_height,png_bit_depth,png_color_type,png_interlace,png_compression,png_filter);
+
+                if (png_width != 0 && png_height != 0 && png_bit_depth != 0 && png_bit_depth <= 8 &&
+                    (png_color_type&(PNG_COLOR_MASK_PALETTE|PNG_COLOR_MASK_COLOR)) == (PNG_COLOR_MASK_PALETTE|PNG_COLOR_MASK_COLOR)/*palatted color only*/ &&
+                    png_interlace == 0/*do not support interlacing*/) {
+                    LOG(LOG_MISC,LOG_DEBUG)("PNG accepted");
+                    /* please convert everything to 8bpp for us */
+                    png_set_strip_16(png_context);
+                    png_set_packing(png_context);
+                    png_get_PLTE(png_context,png_info,&palette,&palette_count);
+
+                    row = new unsigned char[png_width + 32];
+                    rows[0] = row;
+
+                    if (palette != 0 && palette_count != 0 && palette_count <= 256 && row != NULL) {
+                        VGA_InitBiosLogo(png_width,png_height,logo_x*8,logo_y*8);
+
+                        {
+                            unsigned char tmp[256*3];
+                            for (unsigned int x=0;x < palette_count;x++) {
+                                tmp[(x*3)+0] = palette[x].red;
+                                tmp[(x*3)+1] = palette[x].green;
+                                tmp[(x*3)+2] = palette[x].blue;
+                            }
+                            VGA_WriteBiosLogoPalette(0,palette_count,tmp);
+                        }
+
+                        for (unsigned int y=0;y < png_height;y++) {
+                            png_read_rows(png_context,rows,NULL,1);
+                            VGA_WriteBiosLogoBMP(y,row,png_width);
+                        }
+                    }
+
+                    delete[] row;
+                }
+            }
+
+            if (png_context) png_destroy_read_struct(&png_context,&png_info,&png_end);
+            if (png_fp) fclose(png_fp);
         }
 
         {

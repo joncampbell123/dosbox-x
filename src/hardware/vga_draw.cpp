@@ -3525,6 +3525,15 @@ void BiosLogoHookVGADrawLine(void) {
 	if (VGA_DrawLine != VGA_DrawLineBiosLogoOverlay) {
 		BIOSlogo.DrawLine = VGA_DrawLine;
 		VGA_DrawLine = VGA_DrawLineBiosLogoOverlay;
+
+		if (vga.draw.bpp == 8) {
+			for (unsigned int i=0;i < 0x40;i++) {
+				RENDER_SetPal(0xC0+i,
+					BIOSlogo.palette[(i*3)+0],
+					BIOSlogo.palette[(i*3)+1],
+					BIOSlogo.palette[(i*3)+2]);
+			}
+		}
 	}
 }
 
