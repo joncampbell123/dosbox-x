@@ -1565,7 +1565,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("logo text",Property::Changeable::Always,"");
-    Pstring->Set_help("Text to place at the bottom of the screen during the startup logo.");
+    Pstring->Set_help("Text to place at the bottom of the screen during the startup logo. Text will line wrap automatically.\n"
+                      "To explicitly break to the next line, put \\n in the string.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("logo",Property::Changeable::Always,"");
