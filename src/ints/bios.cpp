@@ -10604,6 +10604,7 @@ private:
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
         const Section_prop* section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        const char *logo_text = section->Get_string("logo text");
         const char *logo = section->Get_string("logo");
         bool fastbioslogo=section->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
         if (fastbioslogo && machine != MCH_PC98) {
@@ -11047,6 +11048,89 @@ startfunction:
 
         if (ISAPNPBIOS) {
             BIOS_Int10RightJustifiedPrint(x,y,"ISA Plug & Play BIOS active\n");
+        }
+
+        if (*logo_text) {
+            const size_t max_w = 76;
+            const char *s = logo_text;
+            const int saved_y = y;
+            size_t max_h;
+            char tmp[81];
+            int x,y;
+
+            x = 0; /* use it here as index to tmp[] */
+            if (IS_VGA_ARCH) /* VGA 640x480 has 30 lines (480/16) not 25 */
+                max_h = 30;
+            else
+                max_h = 25;
+            y = max_h - 3;
+
+            y--;
+            BIOS_Int10RightJustifiedPrint(x+2,y,"\n"); /* sync cursor */
+
+            while (*s) {
+                bool newline = false;
+
+                assert((size_t)x < max_w);
+                if (isalpha(*s) || isdigit(*s)) {
+                    size_t wi = 1;/*we already know s[0] fits the criteria*/
+                    while (s[wi] != 0 && (isalpha(s[wi]) || isdigit(s[wi]))) wi++;
+
+                    if (wi >= 24) { /* don't let overlong words crowd out the text */
+                        if (((size_t)x+wi) > max_w)
+                            wi = max_w - (size_t)x;
+                    }
+
+                    if (((size_t)x+wi) < max_w) {
+                        memcpy(tmp+x,s,wi);
+                        x += wi;
+                        s += wi;
+                    }
+                    else {
+                        newline = true;
+                    }
+                }
+                else if (*s == ' ') {
+                    if ((size_t)x < max_w) tmp[x++] = *s++;
+
+                    if ((size_t)x == max_w) {
+                        while (*s == ' ') s++;
+                        newline = true;
+                    }
+                }
+                else if (*s == '\\') {
+                    s++;
+                    if (*s == 'n') {
+                        newline = true; /* \n */
+                        s++;
+                    }
+                    else {
+                        s++;
+                    }
+                }
+                else {
+                    tmp[x++] = *s++;
+                }
+
+                assert((size_t)x <= max_w);
+                if ((size_t)x >= max_w || newline) {
+                    tmp[x] = 0;
+                    BIOS_Int10RightJustifiedPrint(x+2,y,tmp);
+                    x = 0;
+                    BIOS_Int10RightJustifiedPrint(x+2,y,"\n"); /* next line, which increments y */
+                    if ((size_t)y >= max_h) break;
+                }
+            }
+
+            if (x != 0 && (size_t)y < max_h) {
+                tmp[x] = 0;
+                BIOS_Int10RightJustifiedPrint(x+2,y,tmp);
+                x = 0;
+                BIOS_Int10RightJustifiedPrint(x+2,y,"\n"); /* next line, which increments y */
+            }
+
+            y = saved_y - 1;
+            BIOS_Int10RightJustifiedPrint(x+2,y,"\n"); /* sync cursor */
         }
 
 #if !defined(C_EMSCRIPTEN)
