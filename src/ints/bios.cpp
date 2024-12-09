@@ -10735,8 +10735,21 @@ startfunction:
             int png_bit_depth = 0,png_color_type = 0,png_interlace = 0,png_filter = 0,png_compression = 0;
             png_color *palette = NULL;
             int palette_count = 0;
+            const char *filename = NULL;
+            FILE *png_fp = NULL;
 
-            FILE *png_fp = fopen("dosbox224x224.png","rb");
+            if (IS_VGA_ARCH)
+                filename = "dosbox224x224.png";
+            else if (IS_PC98_ARCH)
+                filename = "dosbox224x186.png";
+            else if (IS_EGA_ARCH)
+                filename = "dosbox224x163.png";
+            else
+                filename = "dosbox224x93.png";
+
+            if (filename != NULL)
+                png_fp = fopen(filename,"rb");
+
             if (png_fp) {
                 png_context = png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL/*err*/,NULL/*err fn*/,NULL/*warn fn*/);
                 if (png_context) {
