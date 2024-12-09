@@ -7680,158 +7680,6 @@ bool AdapterROM_Read(Bitu address,unsigned long *size) {
     return false;
 }
 
-#include "src/gui/dosbox.vga16.bmp.h"
-#include "src/gui/dosbox.cga640.bmp.h"
-
-void DrawDOSBoxLogoCGA6(unsigned int x,unsigned int y) {
-    const unsigned char *s = dosbox_cga640_bmp;
-    const unsigned char *sf = s + sizeof(dosbox_cga640_bmp);
-    uint32_t width,height;
-    unsigned int dx,dy;
-    uint32_t off;
-    uint32_t sz;
-
-    if (memcmp(s,"BM",2)) return;
-    sz = host_readd(s+2); // size of total bitmap
-    off = host_readd(s+10); // offset of bitmap
-    if ((s+sz) > sf) return;
-    if ((s+14+40) > sf) return;
-
-    sz = host_readd(s+34); // biSize
-    if ((s+off+sz) > sf) return;
-    if (host_readw(s+26) != 1) return; // biBitPlanes
-    if (host_readw(s+28) != 1)  return; // biBitCount
-
-    width = host_readd(s+18);
-    height = host_readd(s+22);
-    if (width > (640-x) || height > (200-y)) return;
-
-    LOG(LOG_MISC,LOG_DEBUG)("Drawing CGA logo (%u x %u)",(int)width,(int)height);
-    for (dy=0;dy < height;dy++) {
-        uint32_t vram  = ((y+dy) >> 1) * 80;
-        vram += ((y+dy) & 1) * 0x2000;
-        vram += (x / 8);
-        s = dosbox_cga640_bmp + off + ((height-(dy+1))*((width+7)/8));
-        for (dx=0;dx < width;dx += 8) {
-            mem_writeb(0xB8000+vram,*s);
-            vram++;
-            s++;
-        }
-    }
-}
-
-/* HACK: Re-use the VGA logo */
-void DrawDOSBoxLogoPC98(unsigned int x,unsigned int y) {
-    const unsigned char *s = dosbox_vga16_bmp;
-    const unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
-    unsigned int bit,dx,dy;
-    uint32_t width,height;
-    unsigned char p[4];
-    unsigned char c;
-    uint32_t off;
-    uint32_t sz;
-
-    if (memcmp(s,"BM",2)) return;
-    sz = host_readd(s+2); // size of total bitmap
-    off = host_readd(s+10); // offset of bitmap
-    if ((s+sz) > sf) return;
-    if ((s+14+40) > sf) return;
-
-    sz = host_readd(s+34); // biSize
-    if ((s+off+sz) > sf) return;
-    if (host_readw(s+26) != 1) return; // biBitPlanes
-    if (host_readw(s+28) != 4)  return; // biBitCount
-
-    width = host_readd(s+18);
-    height = host_readd(s+22);
-    if (width > (640-x) || height > (350-y)) return;
-
-    // EGA/VGA Write Mode 2
-    LOG(LOG_MISC,LOG_DEBUG)("Drawing VGA logo as PC-98 (%u x %u)",(int)width,(int)height);
-    for (dy=0;dy < height;dy++) {
-        uint32_t vram = ((y+dy) * 80) + (x / 8);
-        s = dosbox_vga16_bmp + off + ((height-(dy+1))*((width+1)/2));
-        for (dx=0;dx < width;dx += 8) {
-            p[0] = p[1] = p[2] = p[3] = 0;
-            for (bit=0;bit < 8;) {
-                c = (*s >> 4);
-                p[0] |= ((c >> 0) & 1) << (7 - bit);
-                p[1] |= ((c >> 1) & 1) << (7 - bit);
-                p[2] |= ((c >> 2) & 1) << (7 - bit);
-                p[3] |= ((c >> 3) & 1) << (7 - bit);
-                bit++;
-
-                c = (*s++) & 0xF;
-                p[0] |= ((c >> 0) & 1) << (7 - bit);
-                p[1] |= ((c >> 1) & 1) << (7 - bit);
-                p[2] |= ((c >> 2) & 1) << (7 - bit);
-                p[3] |= ((c >> 3) & 1) << (7 - bit);
-                bit++;
-            }
-
-            mem_writeb(0xA8000+vram,p[0]);
-            mem_writeb(0xB0000+vram,p[1]);
-            mem_writeb(0xB8000+vram,p[2]);
-            mem_writeb(0xE0000+vram,p[3]);
-            vram++;
-        }
-    }
-}
-
-void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
-    const unsigned char *s = dosbox_vga16_bmp;
-    const unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
-    unsigned int bit,dx,dy;
-    uint32_t width,height;
-    uint32_t vram;
-    uint32_t off;
-    uint32_t sz;
-
-    if (memcmp(s,"BM",2)) return;
-    sz = host_readd(s+2); // size of total bitmap
-    off = host_readd(s+10); // offset of bitmap
-    if ((s+sz) > sf) return;
-    if ((s+14+40) > sf) return;
-
-    sz = host_readd(s+34); // biSize
-    if ((s+off+sz) > sf) return;
-    if (host_readw(s+26) != 1) return; // biBitPlanes
-    if (host_readw(s+28) != 4)  return; // biBitCount
-
-    width = host_readd(s+18);
-    height = host_readd(s+22);
-    if (width > (640-x) || height > (350-y)) return;
-
-    // EGA/VGA Write Mode 2
-    LOG(LOG_MISC,LOG_DEBUG)("Drawing VGA logo (%u x %u)",(int)width,(int)height);
-    IO_Write(0x3CE,0x05); // graphics mode
-    IO_Write(0x3CF,0x02); // read=0 write=2 odd/even=0 shift=0 shift256=0
-    IO_Write(0x3CE,0x03); // data rotate
-    IO_Write(0x3CE,0x00); // no rotate, no XOP
-    for (bit=0;bit < 8;bit++) {
-        const unsigned char shf = ((bit & 1) ^ 1) * 4;
-
-        IO_Write(0x3CE,0x08); // bit mask
-        IO_Write(0x3CF,0x80 >> bit);
-
-        for (dy=0;dy < height;dy++) {
-            vram = ((y+dy) * 80) + (x / 8);
-            s = dosbox_vga16_bmp + off + (bit/2) + ((height-(dy+1))*((width+1)/2));
-            for (dx=bit;dx < width;dx += 8) {
-                mem_readb(0xA0000+vram); // load VGA latches
-                mem_writeb(0xA0000+vram,(*s >> shf) & 0xF);
-                vram++;
-                s += 4;
-            }
-        }
-    }
-    // restore write mode 0
-    IO_Write(0x3CE,0x05); // graphics mode
-    IO_Write(0x3CF,0x00); // read=0 write=0 odd/even=0 shift=0 shift256=0
-    IO_Write(0x3CE,0x08); // bit mask
-    IO_Write(0x3CF,0xFF);
-}
-
 static int bios_pc98_posx = 0;
 extern bool tooutttf;
 
@@ -10754,9 +10602,9 @@ private:
                 oldcols = oldlins = 0;
         }
 #endif
-        if (machine == MCH_MDA || machine == MCH_HERC) {
-            textsplash = true;
-        }
+
+	textsplash = true;
+
         char logostr[8][34];
         strcpy(logostr[0], "+---------------------+");
         strcpy(logostr[1], "|     Welcome  To     |");
@@ -10774,33 +10622,27 @@ startfunction:
 
         if (cpu.pmode) E_Exit("BIOS error: STARTUP function called while in protected/vm86 mode");
 
-        if (IS_VGA_ARCH && !textsplash) {
+        if (IS_VGA_ARCH) {
             rowheight = 16;
             reg_eax = 18;       // 640x480 16-color
             CALLBACK_RunRealInt(0x10);
-            DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
-        else if (machine == MCH_EGA && !textsplash && !ega200 && vga.mem.memsize >= (128*1024)) { /* not ega200 and at least 128KB of VRAM */
-            rowheight = 14;
-            reg_eax = 16; // 640x350 16-color
-
-            CALLBACK_RunRealInt(0x10);
-
-            // color correction: change Dark Puke Yellow to brown
-            IO_Read(0x3DA); IO_Read(0x3BA);
-            IO_Write(0x3C0,0x06);
-            IO_Write(0x3C0,0x14); // red=1 green=1 blue=0
-            IO_Read(0x3DA); IO_Read(0x3BA);
-            IO_Write(0x3C0,0x20);
-
-            DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
+        else if (machine == MCH_EGA) { /* not ega200 and at least 128KB of VRAM */
+            if (vga.mem.memsize >= (128*1024)) {
+                rowheight = 14;
+                reg_eax = 16; // 640x350 16-color
+                CALLBACK_RunRealInt(0x10);
+            }
+            else {
+                rowheight = 8;
+                reg_eax = 14; // 640x200 16-color
+                CALLBACK_RunRealInt(0x10);
+            }
         }
-        else if ((machine == MCH_CGA || machine == MCH_EGA || machine == MCH_MCGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) && !textsplash) {
+        else if (machine == MCH_CGA || machine == MCH_EGA || machine == MCH_MCGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) {
             rowheight = 8;
             reg_eax = 6;        // 640x200 2-color
             CALLBACK_RunRealInt(0x10);
-
-            DrawDOSBoxLogoCGA6((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
         else if (machine == MCH_PC98) {
             // clear the graphics layer
@@ -10823,36 +10665,6 @@ startfunction:
 
             bios_pc98_posx = x;
 
-            reg_eax = 0x4200;   // setup 640x400 graphics
-            reg_ecx = 0xC000;
-            CALLBACK_RunRealInt(0x18);
-
-            // enable the 4th bitplane, for 16-color analog graphics mode.
-            // TODO: When we allow the user to emulate only the 8-color BGR digital mode,
-            //       logo drawing should use an alternate drawing method.
-            IO_Write(0x6A,0x01);    // enable 16-color analog mode (this makes the 4th bitplane appear)
-            IO_Write(0x6A,0x04);    // but we don't need the EGC graphics
-            // If we caught a game mid-page flip, set the display and VRAM pages back to zero
-            IO_Write(0xA4,0x00);    // display page 0
-            IO_Write(0xA6,0x00);    // write to page 0
-
-            // program a VGA-like color palette so we can re-use the VGA logo
-            for (unsigned int i=0;i < 16;i++) {
-                unsigned int bias = (i & 8) ? 0x5 : 0x0;
-
-                IO_Write(0xA8,i);   // DAC index
-                if (i != 6) {
-                    IO_Write(0xAA,((i & 2) ? 0xA : 0x0) + bias);    // green
-                    IO_Write(0xAC,((i & 4) ? 0xA : 0x0) + bias);    // red
-                    IO_Write(0xAE,((i & 1) ? 0xA : 0x0) + bias);    // blue
-                }
-                else { // brown #6 instead of puke yellow
-                    IO_Write(0xAA, 0x5 + bias);    // green
-                    IO_Write(0xAC, 0xA + bias);    // red
-                    IO_Write(0xAE, 0x0 + bias);    // blue
-                }
-            }
-
             if (textsplash) {
                 unsigned int bo, lastline = 7;
                 for (unsigned int i=0; i<=lastline; i++) {
@@ -10862,18 +10674,11 @@ startfunction:
                         mem_writeb(0xA2000+bo+1,0xE1);
                     }
                 }
-            } else {
-                if (!control->opt_fastlaunch) DrawDOSBoxLogoPC98((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
-                reg_eax = 0x4000;   // show the graphics layer (PC-98) so we can render the DOSBox-X logo
-                CALLBACK_RunRealInt(0x18);
             }
         }
         else {
             reg_eax = 3;        // 80x25 text
             CALLBACK_RunRealInt(0x10);
-
-            // TODO: For CGA, PCjr, and Tandy, we could render a 4-color CGA version of the same logo.
-            //       And for MDA/Hercules, we could render a monochromatic ASCII art version.
         }
 
 #if defined(USE_TTF)
