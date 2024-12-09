@@ -1564,6 +1564,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Additional text to place in the title bar of the window.");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("logo text",Property::Changeable::Always,"");
+    Pstring->Set_help("Text to place at the bottom of the screen during the startup logo.");
+    Pstring->SetBasic(true);
+
     Pstring = secprop->Add_string("logo",Property::Changeable::Always,"");
     Pstring->Set_help("Location of PNG images to use in place of the DOSBox-X logo at startup.\n"
                       "This is the path of the base file name. For example logo=subdir\\sets\\007\\logo\n"
