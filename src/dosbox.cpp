@@ -4759,6 +4759,13 @@ void DOSBOX_SetupConfigSections(void) {
                       "spec:   <number>    position adjust, can be positive or negative\n"
                       "        max-excess  if game sets maximum larger than int33 max x/y, adjust the position forward by the difference");
 
+    Pint = secprop->Add_int("int33 mickey threshold",Property::Changeable::WhenIdle,1);
+    Pint->Set_help("The smallest amount of mouse motion that will be reported to the guest. Motion below this amount is buffered until the threshold is met.\n"
+                   "Some DOS programs do not properly respond to small mouse movements causing effects like a sluggish cursor or cursor drift.\n"
+                   "Increase this option to the smallest value that achieves natural feeling motion.\n"
+                   "- Ultima Underworld: Use 2");
+    Pint->SetMinMax(1,16);
+
     Pint = secprop->Add_int("mouse report rate",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Mouse reporting rate, or 0 for auto. This affects how often mouse events are reported to the guest through the mouse interrupt.\n"
 		    "Some games including CyClone need a lower reporting rate to function correctly. Auto mode allows the guest to change the report rate through the PS/2 mouse emulation.\n"
