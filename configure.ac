@@ -1098,17 +1098,17 @@ AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
 AC_ARG_ENABLE(screenshots,AC_HELP_STRING([--disable-screenshots],[Disable screenshots and movie recording]),,enable_screenshots=yes)
 AC_MSG_CHECKING([whether screenshots will be enabled])
-if test x$enable_screenshots = xyes; then 
-    if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
+if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
     LIBS="$LIBS -lpng -lz"
     AC_DEFINE(C_LIBPNG,1)
-    AC_DEFINE(C_SSHOT,1)
-    AC_MSG_RESULT([yes])
-  else
-    AC_MSG_RESULT([no, can't find libpng.])
-  fi
+    if test x$enable_screenshots = xyes; then 
+        AC_DEFINE(C_SSHOT,1)
+        AC_MSG_RESULT([yes])
+    else
+        AC_MSG_RESULT([no])
+    fi
 else
-  AC_MSG_RESULT([no])
+    AC_MSG_ERROR([Can't find libpng, install or try building the in-tree code])
 fi
 
 dnl FEATURE: Whether to use libpcap, and enable ethernet pass-through
