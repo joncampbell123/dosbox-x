@@ -50,6 +50,7 @@
 static bool adjust_x_max_excess = false,adjust_y_max_excess = false;
 static unsigned int assume_max_x = 0,assume_max_y = 0;
 static int adjust_x = 0,adjust_y = 0;
+static int mickey_threshold = 0;
 
 #define VMWARE_PORT         0x5658u        // communication port
 #define VMWARE_PORTHB       0x5659u        // communication port, high bandwidth
@@ -210,7 +211,8 @@ static struct {
     float add_x,add_y;
     int16_t min_x,max_x,min_y,max_y;
     int16_t max_screen_x,max_screen_y;
-    float mickey_x,mickey_y;
+    int32_t mickey_x,mickey_y;
+    float mickey_accum_x, mickey_accum_y;
     float x,y;
     float ps2x,ps2y;
     button_event event_queue[QUEUE_SIZE];
@@ -840,12 +842,22 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
         /* PC-98 mouse */
         if (IS_PC98_ARCH) pc98_mouse_movement_apply(xrel,yrel);
 
-        mouse.mickey_x += (dx * mouse.mickeysPerPixel_x);
-        mouse.mickey_y += (dy * mouse.mickeysPerPixel_y);
-        if (mouse.mickey_x >= 32768.0) mouse.mickey_x -= 65536.0;
-        else if (mouse.mickey_x <= -32769.0) mouse.mickey_x += 65536.0;
-        if (mouse.mickey_y >= 32768.0) mouse.mickey_y -= 65536.0;
-        else if (mouse.mickey_y <= -32769.0) mouse.mickey_y += 65536.0;
+        mouse.mickey_accum_x += (dx * mouse.mickeysPerPixel_x);
+        mouse.mickey_accum_y += (dy * mouse.mickeysPerPixel_y);
+
+        if (fabs(mouse.mickey_accum_x) >= mickey_threshold) {
+            mouse.mickey_x += truncf(mouse.mickey_accum_x);
+            mouse.mickey_accum_x -= truncf(mouse.mickey_accum_x);
+        }
+        if (fabs(mouse.mickey_accum_y) >= mickey_threshold) {
+            mouse.mickey_y += truncf(mouse.mickey_accum_y);
+            mouse.mickey_accum_y -= truncf(mouse.mickey_accum_y);
+        }
+
+        if (mouse.mickey_x >= 32768) mouse.mickey_x -= 65536;
+        else if (mouse.mickey_x <= -32769) mouse.mickey_x += 65536;
+        if (mouse.mickey_y >= 32768) mouse.mickey_y -= 65536;
+        else if (mouse.mickey_y <= -32769) mouse.mickey_y += 65536;
     }
 
     if (emulate) {
@@ -1501,6 +1513,8 @@ static void Mouse_Reset(void) {
 
     mouse.mickey_x = 0;
     mouse.mickey_y = 0;
+    mouse.mickey_accum_x = 0;
+    mouse.mickey_accum_y = 0;
 
     mouse.buttons = 0;
 
@@ -2349,6 +2363,8 @@ void MOUSE_Startup(Section *sec) {
 
     user_mouse_report_rate=section->Get_int("mouse report rate");
     UpdateMouseReportRate();
+
+    mickey_threshold = section->Get_int("int33 mickey threshold");
 
     assume_max_x=section->Get_int("int33 max x");
     assume_max_y=section->Get_int("int33 max y");
