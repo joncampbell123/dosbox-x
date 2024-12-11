@@ -1117,10 +1117,8 @@ IMGMOUNTの使用例:
 
   [32;1mIMGMOUNT[0m                      - マウントされた FAT/ISO ドライブとドライブ番
                                   号の一覧表示
-  [32;1mIMGMOUNT C[0m                    - HDDイメージ [33;1mIMGMAKE.IMG[0m をC:ドライブに
-                                  マウント
-  [32;1mIMGMOUNT C c:\image.img[0m       - HDDイメージc:\image.imgをC:ドライブに
-                                  マウント
+  [32;1mIMGMOUNT C[0m                    - HDDイメージ[33;1mIMGMAKE.IMG[0mをC:ドライブにマウント
+  [32;1mIMGMOUNT C c:\image.img[0m       - HDDイメージc:\image.imgをC:ドライブにマウント
   [32;1mIMGMOUNT D c:\files\game.iso[0m  - CD イメージc:\files\game.iso をD:ドライブに
                                   マウント
   [32;1mIMGMOUNT D cdaudio.cue[0m        - cueファイルを用いcue/binファイルをCDドライブ
@@ -1141,41 +1139,41 @@ IMGMOUNTの使用例:
 .
 :PROGRAM_IMGMAKE_SYNTAX
 フロッピーまたはハードディスクイメージを作成します。
-使用法: [34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs][0m
-  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #][0m
+使用法: [32;1mIMGMAKE [37;1mfile [36;1m[-t type] [0m[[-size size] | [-chs geometry]] [-force]
+                     [[-fat 12|16|32] | -nofs] [-source source] [-retries #][0m
   file: 作成するイメージ名 (ない場合は[33;1mIMGMAKE.IMG[0m) - [31;1mホスト上のパス[0m
   -t: イメージのタイプ
-    [33;1mフロッピー用テンプレート[0m (容量を指定するための名前 KB or fd=fd_1440):
+    [33;1mフロッピー用テンプレート[0m (数字は指定するkB容量, fdのみはfd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
     [33;1mハードディスク用テンプレート:[0m
-     hd_250: 250MB イメージ, hd_520: 520MB イメージ, hd_1gig: 1GB イメージ
-     hd_2gig: 2GB イメージ, hd_4gig: 4GB イメージ, hd_8gig: 8GB イメージ
-     hd_st251: 40MB イメージ,hd_st225: 20MB イメージ(古いドライブのジオメトリ)
-    [33;1mカスタムハードディスクイメージ:[0m hd (-size または -chs が必要)
-  -size: カスタムハードディスクイメージのサイズ (MBで指定)
+     hd_250: 250MB, hd_520: 520MB, hd_1gig: 1GB, hd_2gig: 2GB, hd_4gig: 4GB,
+     hd_8gig: 8GB, hd_st251: 40MB, hd_st225: 20MB(古いドライブのジオメトリ)
+    [33;1mカスタムハードディスクイメージ:[0m hd vhd (-size または -chs が必要)
+  -size: カスタムハードディスクイメージのサイズ (MBで指定, vhdは最大2088960)
   -chs: ディスクのジオメトリ シリンダ(1-1023),ヘッド(1-255),セクタ(1-63)
-  -nofs: ブランクなイメージを作成する場合に指定
-  -force: 既存のイメージファイルを強制上書きする
-  -bat: このイメージをIMGMOUNTコマンドでマウントする.bat ファイルを生成する。
-  -fat: FAT ファイルシステムのタイプ (12, 16, or 32).
-  -spc: クラスタあたりのセクタを強制指定。 2のべき乗とすること。
-  -fatcopies: FATテーブル数を強制指定。
-  -rootdir: ルートディレクトリエントリのサイズ (FAT32では無視される)
-  -source: ドライブ文字 - 指定された場合、イメージはフロッピーから読み込まれる
+  -nofs: 空白なイメージを作成する場合に指定
+  -force: 既存のイメージファイルを強制上書きする -lba: LBAを選択
+  -bat: このイメージをIMGMOUNTコマンドでマウントする.bat ファイルを生成する
+  -fat: FAT のタイプ (12, 16, or 32).   -fatcopies: FATテーブル数を強制指定
+  -spc: クラスタあたりのセクタを強制指定(2のべき乗で指定)  -label ラベルの指定
+  -rootdir: ルートディレクトリエントリのサイズ -partofs: HDパーティションの位置
+  -align: セクタのアライメント調整 セクタ数または末尾に'K'をつけてkBで指定
+  -source: ドライブ文字 - 指定された物理フロッピードライブをイメージ化
   -retries: 状態の悪いフロッピーの再読込実施回数(1-99).
   [32;1m-examples: 使用例を表示する[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
 IMGMAKE の使用例:
 
-  [32;1mIMGMAKE -t fd[0m                   - 1.44MB FDイメージを作成 [33;1mIMGMAKE.IMG[0m
-  [32;1mIMGMAKE -t fd_1440 -force[0m       - FDイメージを強制的に作成 [33;1mIMGMAKE.IMG[0m
-  [32;1mIMGMAKE dos.img -t fd_2880[0m      - dos.imgという名の2.88MB FDイメージを作成
-  [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - 50MB HDD イメージを作成 c:\disk.img
+  [32;1mIMGMAKE -t fd[0m                    - 1.44MB FDイメージ[33;1m IMGMAKE.IMG [0mを作成
+  [32;1mIMGMAKE -t fd_1440 -force[0m        - FDイメージ[33;1m IMGMAKE.IMG [0mを強制上書きで作成 
+  [32;1mIMGMAKE dos.img -t fd_2880[0m       - 2.88MB FDイメージ[33;1m dos.img [0mを作成
+  [32;1mIMGMAKE new.vhd -t vhd -size 520[0m - 520MB Dynamic VHDイメージ[33;1m new.vhd [0mを作成
+  [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - 50MB HDD イメージ[33;1mc:\disk.img[0mを作成
   [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - ブランクの520MB HDD イメージを作成
   [32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32[0m  - 2GB FAT32 の HDD イメージを作成
   [32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17[0m - 指定したCHSで HDD イメージを作成
-  [32;1mIMGMAKE c:\disk.img -source a[0m           - イメージを物理ドライブ A:作成
+  [32;1mIMGMAKE c:\disk.img -source a[0m           - 物理FDドライブ A:をイメージ化
 
 .
 :PROGRAM_IMGMAKE_FLREAD
@@ -1203,6 +1201,7 @@ IMGMAKE の使用例:
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
 イメージファイル "%s"を作成しました: シリンダ %u, ヘッド%u, セクタ %u
+
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
 
@@ -1304,7 +1303,7 @@ LABEL [drive:][label]
 
 .
 :PROGRAM_PORT_INVALID_NUMBER
-1〜9のポート番号を指定する必要があります。
+ポート番号は1〜9で指定する必要があります。
 
 .
 :PROGRAM_VHDMAKE_WRITERR
@@ -1341,6 +1340,7 @@ LABEL [drive:][label]
 .
 :PROGRAM_VHDMAKE_NOINFO
 VHDイメージ "%s" の情報が取得できませんでした。
+
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS"
  %d/%d ブロックが使用済みです。
@@ -1348,6 +1348,7 @@ VHDイメージ "%s" の情報が取得できませんでした。
 .
 :PROGRAM_VHDMAKE_INFO
 VHD "%s" 形式は %s、容量は %.02f MB です。
+
 .
 :PROGRAM_VHDMAKE_CANTMERGE
 %s は差分ディスクではないため結合できません。
@@ -1372,18 +1373,14 @@ VHD "%s" 形式は %s、容量は %.02f MB です。
 親VHDイメージ %s の内容が破損する可能性があります!
 
 .
-:PROGRAM_VHDMAKE_ABSPATH_WIN
-注意: 親イメージへの絶対パスの指定はWindowsとの互換性に制約があります。
-差分イメージとの相対パスでの指定を推奨します。
-
-.
-:PROGRAM_VHDMAKE_ABSPATH_UX
-エラー: 親イメージへの絶対パスは互換性の問題で指定できません。
-差分イメージとの相対パスで指定してください。
+:PROGRAM_VHDMAKE_ABSPATH
+注意: 親イメージへの絶対パスはホストOS間の互換性の問題があります。
+可能であれば差分イメージとの相対パスで指定してください。
 
 .
 :PROGRAM_VHDMAKE_HELP
-容量可変・差分VHDイメージの作成、またはrawイメージを容量固定VHDに変換します。
+容量可変・差分VHDイメージの作成、rawイメージを容量固定VHDへ変換、
+VHDイメージの情報の表示とVHDイメージの結合
 [32;1mVHDMAKE[0m [-f] new.vhd size[BKMGT]
 [32;1mVHDMAKE[0m [34;1m-convert[0m raw.hdd new.vhd
 [32;1mVHDMAKE[0m [-f] [34;1m-link[0m parent.vhd new.vhd
@@ -1403,6 +1400,7 @@ raw ディスクイメージを容量固定VHDに変換する場合、MBR形式�
 作成される容量可変VHDイメージは領域確保・フォーマットされていません: [34;1mIMGMOUNT[0m
 でドライブ文字でマウントしたい場合は[34;1mIMGMAKE[0mを使用してください。
 結合に成功したスナップショットVHDは自動的に削除されます。
+
 .
 :SHELL_CMD_TREE_ERROR
 サブディレクトリがありません。
@@ -1645,6 +1643,7 @@ GOTO: ラベル %s が見つかりません。
 :SHELL_EXECUTE_DRIVE_NOT_FOUND
 %c ドライブが存在しません!
 最初に [31mmount[0m して下さい。 (詳細は[1;33mintro[0m または [1;33mintro mount[0mを実行)
+
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_CDROM
 DOSBox-X に実際のCD-ROM %c へのアクセスを許可しますか %c [Y/N]?
@@ -1793,7 +1792,7 @@ DOSBox-Xへようこそ !
 .
 :SHELL_STARTUP_HERC
 [31mCtrl+F7[37m で色を緑・アンバー・白黒を切り替えます。                            
-Use [31mCtrl+F8[37m to toggle horizontal blending (only in graphics mode).          
+[31mCtrl+F8[37m でhorizontal blendingを切り替えます (グラフィックモード時).          
 .
 :SHELL_STARTUP_HEAD3
 [36mDOSBox-X プロジェクト Webサイト:                                            [37m
@@ -1804,7 +1803,7 @@ Use [31mCtrl+F8[37m to toggle horizontal blending (only in graphics mode).
 [32mバグ報告と提案     [37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues      [37m
 .
 :SHELL_STARTUP_LAST
-HAVE FUN WITH DOSBox-X !
+DOSBox-X で楽しんでください!
 .
 :SHELL_CMD_BREAK_HELP
 CTRL+Cの押下チェックの動作を設定・解除します。
@@ -2377,7 +2376,7 @@ DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
 映像・音声のキャプチャを開始してからプログラムを実行し、プログラム終了時に
 キャプチャも終了します。
-
+/V:動画, /A: 音声, /M:　マルチトラック音声 /O: OPL FM (DROv2 format)
 .
 :SHELL_CMD_DEBUGBOX_HELP
 プログラムを実行し、エントリ・ポイントでデバッガに入ります。
@@ -2637,6 +2636,18 @@ Pentium III 866MHz EB (~407000 サイクル)
 :MENU:video_ratio_set
 セット比率
 .
+:MENU:VideoPreventCaptureMenu
+画面キャプチャ制御
+.
+:MENU:prevcap_none
+許可
+.
+:MENU:prevcap_blank
+空白を表示
+.
+:MENU:prevcap_invisible
+不可視にする
+.
 :MENU:VideoScalerMenu
 スケーラ
 .
@@ -2726,6 +2737,9 @@ xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
+.
+:MENU:center_window
+ウィンドウ位置を中央にする
 .
 :MENU:set_titletext
 タイトルバーのテキストを設定する...
@@ -3581,6 +3595,9 @@ IDE ディスク・CD の状態を表示
 .
 :MENU:pc98_use_uskb
 USキーボードレイアウトを使用
+.
+:MAPPER:capnetrf
+ネットワーク通信を記録
 .
 :MAPPER:caprawopl
 FM/OPL 出力を保存
