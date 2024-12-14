@@ -9176,7 +9176,7 @@ void BuildACPITable(void) {
 		w = dsdt.finish();
 	}
 
-	{
+	{ /* Fixed ACPI Description Table (FACP) */
 		ACPISysDescTableWriter facp;
 		const PhysPt facp_offset = acpiofs2phys( acpiptr2ofs( w ) );
 
