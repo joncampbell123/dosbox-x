@@ -8404,6 +8404,9 @@ namespace ACPIMethodFlags {
 
 static constexpr unsigned int ACPIrtIO_16BitDecode = (1u << 0u);
 
+static constexpr unsigned int ACPIrtMR24_Writeable = (1u << 0u);
+static constexpr unsigned int ACPIrtMR32_Writeable = (1u << 0u);
+
 namespace ACPIFieldFlag {
 	namespace AccessType {
 		enum {
@@ -8648,9 +8651,12 @@ class ACPIAMLWriter {
 		void begin(unsigned char *n_w,unsigned char *n_f);
 	public:
 		ACPIAMLWriter &rtDMA(const unsigned char bitmask,const unsigned char flags);
+		ACPIAMLWriter &rtMemRange24(const unsigned int flags,const unsigned int minr,const unsigned int maxr,const unsigned int alignr,const unsigned int rangr);
+		ACPIAMLWriter &rtMemRange32(const unsigned int flags,const unsigned int minr,const unsigned int maxr,const unsigned int alignr,const unsigned int rangr);
 		ACPIAMLWriter &rtIO(const unsigned int flags,const uint16_t minport,const uint16_t maxport,const uint8_t alignment,const uint8_t rlength);
 		ACPIAMLWriter &rtIRQ(const uint16_t bitmask/*bits [15:0] correspond to IRQ 15-0*/,const bool pciStyle=false);
 		ACPIAMLWriter &rtHdrSmall(const unsigned char itemName,const unsigned int length);
+		ACPIAMLWriter &rtHdrLarge(const unsigned char itemName,const unsigned int length);
 		ACPIAMLWriter &rtBegin(void);
 		ACPIAMLWriter &rtEnd(void);
 	public:
@@ -8896,6 +8902,14 @@ ACPIAMLWriter &ACPIAMLWriter::ElseOpEnd(void) {
 	return *this;
 }
 
+ACPIAMLWriter &ACPIAMLWriter::rtHdrLarge(const unsigned char itemName,const unsigned int length) {
+	assert(length <= 65536);
+	assert(itemName < 128);
+	*w++ = 0x80 + itemName;
+	host_writew(w,length); w += 2;
+	return *this;
+}
+
 ACPIAMLWriter &ACPIAMLWriter::rtHdrSmall(const unsigned char itemName,const unsigned int length) {
 	assert(length < 8);
 	assert(itemName < 16);
@@ -8918,6 +8932,26 @@ ACPIAMLWriter &ACPIAMLWriter::rtEnd(void) {
 	else {
 		*w++ = 0;
 	}
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::rtMemRange24(const unsigned int flags,const unsigned int minr,const unsigned int maxr,const unsigned int alignr,const unsigned int rangr) {
+	rtHdrLarge(1/*24-bit memory range format*/,9/*length*/);
+	*w++ = flags;
+	host_writew(w,minr >> 8u); w += 2;
+	host_writew(w,maxr >> 8u); w += 2;
+	host_writew(w,(alignr + 0xFFu) >> 8u); w += 2; /* FIXME: Um... alignment in bytes but everything else multiple of 256 bytes? */
+	host_writew(w,rangr >> 8u); w += 2;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::rtMemRange32(const unsigned int flags,const unsigned int minr,const unsigned int maxr,const unsigned int alignr,const unsigned int rangr) {
+	rtHdrLarge(5/*32-bit memory range format*/,17/*length*/);
+	*w++ = flags;
+	host_writed(w,minr); w += 4;
+	host_writed(w,maxr); w += 4;
+	host_writed(w,alignr); w += 4;
+	host_writed(w,rangr); w += 4;
 	return *this;
 }
 
@@ -9270,6 +9304,19 @@ void BuildACPITable(void) {
 						bitop::bit2mask(7),
 						(3 << 5)/*type F DMA supported*/|
 						(1 << 0)/*preference is 8 or 16-bit */);
+					aml.rtMemRange24(
+						ACPIrtMR24_Writeable,
+						0xA0000,/*min*/
+						0xA0000,/*max*/
+						0x0001,/*align*/
+						0x20000/*range*/);
+					aml.rtMemRange32(
+						ACPIrtMR32_Writeable,
+						0x80000000,/*min*/
+						0x80000000,/*max*/
+						0x00000001,/*align*/
+						0x70000000/*range*/);
+
 					aml.rtEnd();
 				aml.BufferOpEnd();
 			}
