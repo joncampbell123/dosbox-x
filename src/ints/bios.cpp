@@ -8652,10 +8652,12 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &OpRegionOp(const char *name,const ACPIRegionSpace regionspace);
 		ACPIAMLWriter &FieldOp(const char *name,const unsigned int pred_size,const unsigned int fieldflag);
 		ACPIAMLWriter &FieldOpEnd(void);
-		ACPIAMLWriter &ScopeOp(const char *name,const unsigned int pred_size=MaxPkgSize);
+		ACPIAMLWriter &ScopeOp(const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &ScopeOpEnd(void);
 		ACPIAMLWriter &PackageOp(const unsigned int pred_size=MaxPkgSize);
+		ACPIAMLWriter &RootCharScopeOp(void);
 		ACPIAMLWriter &PackageOpEnd(void);
+		ACPIAMLWriter &RootCharOp(void);
 		ACPIAMLWriter &NothingOp(void);
 		ACPIAMLWriter &ZeroOp(void);
 		ACPIAMLWriter &OneOp(void);
@@ -8687,6 +8689,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &PkgLength(const unsigned int len,unsigned char* &wp,const unsigned int minlen=1);
 		ACPIAMLWriter &PkgLength(const unsigned int len,const unsigned int minlen=1);
 		ACPIAMLWriter &Name(const char *name);
+		ACPIAMLWriter &MultiNameOp(void);
+		ACPIAMLWriter &DualNameOp(void);
 		ACPIAMLWriter &BeginPkg(const unsigned int pred_length=MaxPkgSize);
 		ACPIAMLWriter &EndPkg(void);
 		ACPIAMLWriter &CountElement(void);
@@ -8732,6 +8736,17 @@ ACPIAMLWriter &ACPIAMLWriter::ArgOp(const unsigned int arg) {
  * }
  *
  * See what they did there? */
+ACPIAMLWriter &ACPIAMLWriter::RootCharOp(void) {
+	*w++ = '\\';
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::RootCharScopeOp(void) {
+	RootCharOp(); /* this is how iasl encodes for example Scope(\) */
+	ZeroOp();
+	return *this;
+}
+
 ACPIAMLWriter &ACPIAMLWriter::NothingOp(void) {
 	ZeroOp();
 	return *this;
@@ -8865,6 +8880,16 @@ ACPIAMLWriter &ACPIAMLWriter::Name(const char *name) {
 	return *this;
 }
 
+ACPIAMLWriter &ACPIAMLWriter::MultiNameOp(void) {
+	*w++ = 0x2F; // MultiNamePrefix
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::DualNameOp() {
+	*w++ = 0x2E; // DualNamePrefix
+	return *this;
+}
+
 ACPIAMLWriter &ACPIAMLWriter::ByteOp(const unsigned char v) {
 	*w++ = 0x0A; // ByteOp
 	*w++ = v;
@@ -8940,10 +8965,9 @@ ACPIAMLWriter &ACPIAMLWriter::FieldOpEnd(void) {
 	return *this;
 }
 
-ACPIAMLWriter &ACPIAMLWriter::ScopeOp(const char *name,const unsigned int pred_size) {
+ACPIAMLWriter &ACPIAMLWriter::ScopeOp(const unsigned int pred_size) {
 	*w++ = 0x10;
 	BeginPkg(pred_size);
-	Name(name);
 	return *this;
 }
 
@@ -9135,95 +9159,30 @@ void BuildACPITable(void) {
 		 *     DataItem := DefBuffer | DefNum | DefString
 		 *
 		 *     How to write: ACPIAML1_NameOp(Name) followed by the necessary functions to write the buffer, string, etc. for the name. */
-		/* Name(TST1,0xAB) */
-		aml.NameOp("TST1").ByteOp(0xAB);
-		/* Name(TST2,0x1234) */
-		aml.NameOp("TST2").WordOp(0x1234);
-		/* Name(TST3,0x12345678) */
-		aml.NameOp("TST3").DwordOp(0x12345678);
-		/* Name(TST4,"Hello ACPI BIOS") */
-		aml.NameOp("TST4").StringOp("Hello ACPI BIOS");
-		/* OperationRegion(ABC,SystemMemory,0xAABB0000,0x4100) */
-		aml.OpRegionOp("ABC",ACPIRegionSpace::SystemMemory).DwordOp(0xAABB0000).WordOp(0x4100);
-		/* OperationRegion(ABC2,SystemIO,0x880,0x18) */
-		aml.OpRegionOp("ABC2",ACPIRegionSpace::SystemIO).WordOp(0x880).WordOp(0x18);
-		/* Field(ABC2,AnyAcc,Lock,Preserve) which also calls BeginPkg(), FieldOpEnd calls EndPkg(). Use only Field writing functions! */
-		aml.FieldOp("ABC2",ACPIAMLWriter::MaxPkgSize,ACPIFieldFlag::AccessType::AnyAcc|ACPIFieldFlag::LockRule::Lock|ACPIFieldFlag::UpdateRule::Preserve);
-		aml.FieldOpElement("AF00",1);
-		aml.FieldOpElement("AF01",3);
-		aml.FieldOpElement("",2);
-		aml.FieldOpElement("AF02",2);
-		aml.FieldOpElement("AF03",3);
-		aml.FieldOpElement("",5+8);
-		aml.FieldOpElement("AF04",8);
-		aml.FieldOpEnd();
-		/* Scope */
-		aml.ScopeOp("_SB");
-		aml.NameOp("TST1").DwordOp(0xABCDEF);
-		/* Package ABCD */
-		aml.NameOp("ABCD").PackageOp();
-		/* Package contents. YOU MUST COUNT ELEMENTS MANUALLY */
-		aml.DwordOp(0xABCDEF).CountElement();
-		aml.DwordOp(0x1234).CountElement();
-		aml.ZeroOp().CountElement();
-		aml.OneOp().CountElement();
-		aml.PackageOp();
-		aml.StringOp("Hello world").CountElement();
-		aml.DwordOp(0xABCD1234).CountElement();
-		aml.PackageOpEnd().CountElement();
-		/* Package end */
-		aml.PackageOpEnd();
-		aml.AliasOp("TST1","ATS1");
-		aml.AliasOp("TST2","ATS2");
-		aml.AliasOp("TST3","ATS3");
-		{
-			static const unsigned char dept_of_redundant_redundancy[] = {0x11,0x22,0x33,0xAA,0xBB,0xCC};
-			aml.NameOp("DORR").BufferOp(dept_of_redundant_redundancy,sizeof(dept_of_redundant_redundancy));
-		}
-		/* device PCI0 */
-		aml.DeviceOp("PCI0");
-		aml.NameOp("DUH").DwordOp(0xABCD1234);
-		aml.NameOp("NDUH").ZeroOp();
-		/* method KICK */
-		aml.MethodOp("KICK",ACPIAMLWriter::MaxPkgSize,ACPIMethodFlags::ArgCount(2)|ACPIMethodFlags::Serialized);
-		aml.StoreOp().DwordOp(0x12345678).LocalOp(0); /* Local0 = 0x12345678 */
-		aml.AndOp().LocalOp(0).DwordOp(0xF0F0F0F0).LocalOp(0); /* Local0 &= 0xF0F0F0F0 (literally: Op1 = Local0 Op2 = 0xF0F0F0F0 Target = Local0) */
-		aml.StoreOp()./*(*/AndOp().LocalOp(0).DwordOp(0xFF00FF00).NothingOp()/*)*/.LocalOp(1); /* Local1 = Local0 & 0xFF00FF00 */
-		aml.StoreOp()./*(*/OrOp()./*(*/AndOp().LocalOp(0).DwordOp(0xCECECECE).NothingOp()/*)*/.DwordOp(0x03030303).NothingOp()/*)*/.LocalOp(2); /* Local2 = (Local0 & 0xFF00FF00) | 0x03030303 */
-		aml.IfOp().LEqualOp().Name("DUH").DwordOp(0xABCD1234); /* if (DUH == 0xABCD1234) { */
-			aml.ReturnOp().DwordOp(6); /* return 6; */
-		aml.IfOpEnd(); /* } (/if) */
-		aml.ElseOp(); /* else { */
-			aml.IfOp().LAndOp().Name("DUH").Name("NDUH"); /* if (DUH && NDUH) { */
-				aml.ReturnOp().DwordOp(77); /* return 77; */
-			aml.IfOpEnd(); /* } (/if) */
-			aml.IfOp().AndOp().Name("DUH").DwordOp(0x40103).NothingOp(); /* if (DUH & 0x40103) {    (note AndOp Op1 Op2 Target == "DUH" 0x40103 Nothing) */
-				aml.ReturnOp().DwordOp(77); /* return 79; */
-			aml.IfOpEnd(); /* } (/if) */
-		aml.ElseOpEnd(); /* } (/else) */
+		aml.ScopeOp().RootCharScopeOp();/* Scope (\) */
+			aml.OpRegionOp("DBG",ACPIRegionSpace::SystemIO).WordOp(ACPI_DEBUG_IO).ByteOp(0x10);
+			aml.FieldOp("DBG",ACPIAMLWriter::MaxPkgSize,ACPIFieldFlag::AccessType::DwordAcc|ACPIFieldFlag::UpdateRule::WriteAsZeros);
+			aml.FieldOpElement("DBGV",32);
+			aml.FieldOpEnd();
+		aml.ScopeOpEnd(); /* } end of Scope(\) */
 
-		aml.IfOp().Name("DUH"); /* if (DUH) { */
-			aml.ReturnOp().DwordOp(3); /* return 3; */
-		aml.IfOpEnd(); /* } (/if) */
-		aml.ElseOp(); /* else { */
-			aml.IfOp().Name("NDUH"); /* if (NDUH) { */
-				aml.ReturnOp().OneOp(); /* return 1; */
-			aml.IfOpEnd(); /* } (/if) */
-			aml.ElseOp(); /* else { */
-				aml.IfOp().LNotEqualOp().Name("NDUH").DwordOp(52); /* if (NDUH != 52) { */
-					aml.ReturnOp().DwordOp(666); /* return 666; */
-				aml.IfOpEnd(); /* } (/if) */
-				aml.ElseOp(); /* else { */
-					aml.ReturnOp().ZeroOp(); /* return 0; */
-				aml.ElseOpEnd(); /* } (/else) */
-			aml.ElseOpEnd(); /* } (/else) */
-		aml.ElseOpEnd(); /* } (/else) */
-		aml.MethodOpEnd();
-		/* end method */
-		aml.DeviceOpEnd();
-		/* end device */
+		aml.ScopeOp().RootCharOp().Name("_SB");
+			if (pcibus_enable) {
+				aml.DeviceOp("PCI0");
+					aml.NameOp("_HID").DwordOp(ISAPNP_ID('P','N','P',0x00,0x0A,0x00,0x03));
+					aml.NameOp("_ADR").DwordOp(0); /* [31:16] device [15:0] function */
+					aml.NameOp("_UID").DwordOp(0xD05B0C5);
+				aml.DeviceOpEnd();
+			}
+			else {
+				aml.DeviceOp("ISA");
+					aml.NameOp("_HID").DwordOp(ISAPNP_ID('P','N','P',0x00,0x0A,0x00,0x00));
+					aml.NameOp("_ADR").DwordOp(0); /* [31:16] device [15:0] function */
+					aml.NameOp("_UID").DwordOp(0xD05B0C5);
+				aml.DeviceOpEnd();
+
+			}
 		aml.ScopeOpEnd();
-		/* end scope */
 
 		assert(aml.writeptr() >= (dsdt.getptr()+dsdt.get_tablesize()));
 		assert(aml.writeptr() <= f);
