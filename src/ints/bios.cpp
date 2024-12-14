@@ -167,6 +167,34 @@ unsigned int reset_post_delay = 0;
 Bitu call_irq_default = 0;
 uint16_t biosConfigSeg=0;
 
+static constexpr unsigned int ACPI_PMTIMER_CLOCK_RATE = 3579545; /* 3.579545MHz */
+
+pic_tickindex_t ACPI_PMTIMER_BASE_TIME = 0;
+uint32_t ACPI_PMTIMER_BASE_COUNT = 0;
+uint32_t ACPI_PMTIMER_MASK = 0xFFFFFFu; /* 24-bit mode */
+
+uint32_t ACPI_PMTIMER(void) {
+	pic_tickindex_t pt = PIC_FullIndex() - ACPI_PMTIMER_BASE_TIME;
+	uint32_t ct = (uint32_t)((pt * ACPI_PMTIMER_CLOCK_RATE) / 1000.0);
+	return ct;
+}
+
+void ACPI_PMTIMER_Event(Bitu /*val*/);
+void ACPI_PMTIMER_ScheduleNext(void) {
+	const uint32_t now_ct = ACPI_PMTIMER() & ACPI_PMTIMER_MASK;
+	const uint32_t next_delay_ct = (ACPI_PMTIMER_MASK + 1u) - now_ct;
+	const pic_tickindex_t delay = (1000.0 * next_delay_ct) / (pic_tickindex_t)ACPI_PMTIMER_CLOCK_RATE;
+
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI PM TIMER SCHEDULE: now=0x%x next=0x%x delay=%.3f",now_ct,next_delay_ct,(double)delay);
+	PIC_AddEvent(ACPI_PMTIMER_Event,delay);
+}
+
+void ACPI_PMTIMER_CHECK(void) { /* please don't call this often */
+	PIC_RemoveEvents(ACPI_PMTIMER_Event);
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI PM TIMER CHECK");
+	ACPI_PMTIMER_ScheduleNext();
+}
+
 Bitu BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = ~0u;
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0u;       // (RealMake(0xf000,0xfea5))
 Bitu BIOS_DEFAULT_IRQ1_LOCATION = ~0u;       // (RealMake(0xf000,0xe987))
@@ -243,9 +271,20 @@ static void ACPI_SCI_Check(void) {
 
 void ACPI_PowerButtonEvent(void) {
 	if (ACPI_SCI_EN) {
-		ACPI_PM1_Status |= ACPI_PM1_Enable_PWRBTN_EN;
+		if (!(ACPI_PM1_Status & ACPI_PM1_Enable_PWRBTN_EN)) {
+			ACPI_PM1_Status |= ACPI_PM1_Enable_PWRBTN_EN;
+			ACPI_SCI_Check();
+		}
+	}
+}
+
+void ACPI_PMTIMER_Event(Bitu /*val*/) {
+	if (!(ACPI_PM1_Status & ACPI_PM1_Enable_TMR_EN)) {
+		ACPI_PM1_Status |= ACPI_PM1_Enable_TMR_EN;
 		ACPI_SCI_Check();
 	}
+
+	ACPI_PMTIMER_ScheduleNext();
 }
 
 static void acpi_cb_port_smi_cmd_w(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
@@ -256,12 +295,14 @@ static void acpi_cb_port_smi_cmd_w(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		if (!ACPI_SCI_EN) {
 			LOG(LOG_MISC,LOG_DEBUG)("Guest enabled ACPI");
 			ACPI_SCI_EN = true;
+			ACPI_PMTIMER_CHECK();
 			ACPI_SCI_Check();
 		}
 	}
 	else if (val == ACPI_DISABLE_CMD) {
 		if (ACPI_SCI_EN) {
 			LOG(LOG_MISC,LOG_DEBUG)("Guest disabled ACPI");
+			ACPI_PMTIMER_CHECK();
 			ACPI_SCI_EN = false;
 		}
 	}
@@ -315,6 +356,13 @@ static Bitu acpi_cb_port_evten_blk_r(Bitu port,Bitu /*iolen*/) {
 	return ret;
 }
 
+static Bitu acpi_cb_port_tmr_r(Bitu port,Bitu /*iolen*/) {
+	/* 24 or 32-bit TMR_VAL (depends on the mask value and whether our ACPI structures tell the OS it's 32-bit wide) */
+	Bitu ret = (Bitu)ACPI_PMTIMER();
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI_PM_TMR read port %x ret %x",(unsigned int)port,(unsigned int)ret);
+	return ret;
+}
+
 static void acpi_cb_port_evten_blk_w(Bitu port,Bitu val,Bitu iolen) {
 	/* 16-bit register (PM1_EVT_LEN/2 == 2) */
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI_PM1_EVT_BLK(enable) write port %x val %x iolen %x",(unsigned int)port,(unsigned int)val,(unsigned int)iolen);
@@ -333,9 +381,8 @@ static IO_ReadHandler* acpi_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen)
 	else if ((port & (~1u)) == ACPI_PM1A_CNT_BLK && iolen >= 2)
 		return acpi_cb_port_cnt_blk_r;
 	/* The ACPI specification says nothing about reading SMI_CMD so assume that means write only */
-	else if ((port & (~3u)) == ACPI_PM_TMR_BLK) {
-		LOG(LOG_MISC,LOG_DEBUG)("read ACPI_PM_TMR_BLK port=0x%x iolen=%u",(unsigned int)port,(unsigned int)iolen);
-	}
+	else if ((port & (~3u)) == ACPI_PM_TMR_BLK && iolen >= 4)
+		return acpi_cb_port_tmr_r;
 
 	return NULL;
 }
