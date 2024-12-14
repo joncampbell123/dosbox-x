@@ -92,6 +92,8 @@ unsigned int ACPI_IO_BASE = 0x820;
 unsigned int ACPI_PM1A_EVT_BLK = 0x820;
 unsigned int ACPI_PM1A_CNT_BLK = 0x824;
 unsigned int ACPI_PM_TMR_BLK = 0x830;
+/* debug region 0x840-0x84F */
+unsigned int ACPI_DEBUG_IO = 0x840;
 
 std::string ibm_rom_basic;
 size_t ibm_rom_basic_size = 0;
@@ -287,6 +289,11 @@ void ACPI_PMTIMER_Event(Bitu /*val*/) {
 	ACPI_PMTIMER_ScheduleNext();
 }
 
+/* you can't very well write strings with this, but you could write codes */
+static void acpi_cb_port_debug_w(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
+	LOG(LOG_MISC,LOG_DEBUG)("ACPI debug: 0x%x\n",(unsigned int)val);
+}
+
 static void acpi_cb_port_smi_cmd_w(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	/* 8-bit SMI_CMD port */
 	LOG(LOG_MISC,LOG_DEBUG)("ACPI SMI_CMD %x",(unsigned int)val);
@@ -399,6 +406,8 @@ static IO_WriteHandler* acpi_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen
 		return acpi_cb_port_cnt_blk_w;
 	else if ((port & (~3u)) == ACPI_SMI_CMD)
 		return acpi_cb_port_smi_cmd_w;
+	else if (port == ACPI_DEBUG_IO && iolen >= 4)
+		return acpi_cb_port_debug_w;
 	else if ((port & (~3u)) == ACPI_PM_TMR_BLK) {
 		LOG(LOG_MISC,LOG_DEBUG)("write ACPI_PM_TMR_BLK port=0x%x iolen=%u",(unsigned int)port,(unsigned int)iolen);
 	}
