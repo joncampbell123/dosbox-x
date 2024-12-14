@@ -8402,6 +8402,8 @@ namespace ACPIMethodFlags {
 	};
 }
 
+static constexpr unsigned int ACPIrtIO_16BitDecode = (1u << 0u);
+
 namespace ACPIFieldFlag {
 	namespace AccessType {
 		enum {
@@ -8645,6 +8647,8 @@ class ACPIAMLWriter {
 		unsigned char* writeptr(void) const;
 		void begin(unsigned char *n_w,unsigned char *n_f);
 	public:
+		ACPIAMLWriter &rtDMA(const unsigned char bitmask,const unsigned char flags);
+		ACPIAMLWriter &rtIO(const unsigned int flags,const uint16_t minport,const uint16_t maxport,const uint8_t alignment,const uint8_t rlength);
 		ACPIAMLWriter &rtIRQ(const uint16_t bitmask/*bits [15:0] correspond to IRQ 15-0*/,const bool pciStyle=false);
 		ACPIAMLWriter &rtHdrSmall(const unsigned char itemName,const unsigned int length);
 		ACPIAMLWriter &rtBegin(void);
@@ -8914,6 +8918,23 @@ ACPIAMLWriter &ACPIAMLWriter::rtEnd(void) {
 	else {
 		*w++ = 0;
 	}
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::rtDMA(const unsigned char bitmask,const unsigned char flags) {
+	rtHdrSmall(5/*DMA format*/,2/*length*/);
+	*w++ = bitmask;
+	*w++ = flags;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::rtIO(const unsigned int flags,const uint16_t minport,const uint16_t maxport,const uint8_t alignment,const uint8_t rlength) {
+	rtHdrSmall(8/*IO format*/,7/*length*/);
+	*w++ = (unsigned char)flags;
+	host_writew(w,minport); w += 2;
+	host_writew(w,maxport); w += 2;
+	*w++ = alignment;
+	*w++ = rlength;
 	return *this;
 }
 
@@ -9236,6 +9257,19 @@ void BuildACPITable(void) {
 						bitop::bit2mask(10)|bitop::bit2mask(11)|
 						bitop::bit2mask(14)|bitop::bit2mask(15),
 						true/*PCI style*/);
+					aml.rtIO(
+						ACPIrtIO_16BitDecode,
+						0x0000,/*min*/
+						0x0000,/*max*/
+						0x01,/*align*/
+						0xF8/*number of I/O ports req*/);
+					aml.rtDMA(
+						bitop::bit2mask(0)|bitop::bit2mask(1)|
+						bitop::bit2mask(3)|bitop::bit2mask(4)|
+						bitop::bit2mask(5)|bitop::bit2mask(6)|
+						bitop::bit2mask(7),
+						(3 << 5)/*type F DMA supported*/|
+						(1 << 0)/*preference is 8 or 16-bit */);
 					aml.rtEnd();
 				aml.BufferOpEnd();
 			}
