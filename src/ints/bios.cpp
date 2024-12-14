@@ -8647,6 +8647,7 @@ class ACPIAMLWriter {
 	public:
 		ACPIAMLWriter &rtIRQ(const uint16_t bitmask/*bits [15:0] correspond to IRQ 15-0*/,const bool pciStyle=false);
 		ACPIAMLWriter &rtHdrSmall(const unsigned char itemName,const unsigned int length);
+		ACPIAMLWriter &rtBegin(void);
 		ACPIAMLWriter &rtEnd(void);
 	public:
 		ACPIAMLWriter &NameOp(const char *name);
@@ -8704,6 +8705,7 @@ class ACPIAMLWriter {
 	private:
 		unsigned char*		w=NULL,*f=NULL;
 		unsigned char*		buffer_len_pl = NULL;
+		unsigned char*		rt_start = NULL;
 };
 
 /* StoreOp Operand Supername: Store Operand into Supername */
@@ -8891,15 +8893,27 @@ ACPIAMLWriter &ACPIAMLWriter::ElseOpEnd(void) {
 }
 
 ACPIAMLWriter &ACPIAMLWriter::rtHdrSmall(const unsigned char itemName,const unsigned int length) {
-	assert(length > 0 && length < 8);
-	assert(itemName > 0 && itemName < 16);
+	assert(length < 8);
+	assert(itemName < 16);
 	*w++ = (itemName << 3) + length;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::rtBegin(void) {
+	rt_start = w;
 	return *this;
 }
 
 ACPIAMLWriter &ACPIAMLWriter::rtEnd(void) {
 	rtHdrSmall(15/*end tag format*/,1/*length*/);
-	*w++ = 0;
+	if (rt_start != NULL) {
+		unsigned char sum = 0;
+		for (unsigned char *s=rt_start;s < w;s++) sum += *s++;
+		*w++ = 0x100 - sum;
+	}
+	else {
+		*w++ = 0;
+	}
 	return *this;
 }
 
@@ -9217,7 +9231,7 @@ void BuildACPITable(void) {
 					aml.NameOp("_HID").DwordOp(ISAPNP_ID('P','N','P',0x00,0x0A,0x00,0x03));
 					aml.NameOp("_ADR").DwordOp(0); /* [31:16] device [15:0] function */
 					aml.NameOp("_UID").DwordOp(0xD05B0C5);
-				aml.NameOp("_CRS").BufferOp(); /* ResourceTemplate() i.e. resource list */
+				aml.NameOp("_CRS").BufferOp().rtBegin(); /* ResourceTemplate() i.e. resource list */
 					aml.rtIRQ(
 						bitop::bit2mask(10)|bitop::bit2mask(11)|
 						bitop::bit2mask(14)|bitop::bit2mask(15),
