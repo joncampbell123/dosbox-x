@@ -9287,36 +9287,12 @@ void BuildACPITable(void) {
 					aml.NameOp("_ADR").DwordOp(0); /* [31:16] device [15:0] function */
 					aml.NameOp("_UID").DwordOp(0xD05B0C5);
 				aml.NameOp("_CRS").BufferOp().rtBegin(); /* ResourceTemplate() i.e. resource list */
-					aml.rtIRQ(
-						bitop::bit2mask(10)|bitop::bit2mask(11)|
-						bitop::bit2mask(14)|bitop::bit2mask(15),
-						true/*PCI style*/);
 					aml.rtIO(
 						ACPIrtIO_16BitDecode,
-						0x0000,/*min*/
-						0x0000,/*max*/
+						0x0CF8,/*min*/
+						0x0CF8,/*max*/
 						0x01,/*align*/
-						0xF8/*number of I/O ports req*/);
-					aml.rtDMA(
-						bitop::bit2mask(0)|bitop::bit2mask(1)|
-						bitop::bit2mask(3)|bitop::bit2mask(4)|
-						bitop::bit2mask(5)|bitop::bit2mask(6)|
-						bitop::bit2mask(7),
-						(3 << 5)/*type F DMA supported*/|
-						(1 << 0)/*preference is 8 or 16-bit */);
-					aml.rtMemRange24(
-						ACPIrtMR24_Writeable,
-						0xA0000,/*min*/
-						0xA0000,/*max*/
-						0x0001,/*align*/
-						0x20000/*range*/);
-					aml.rtMemRange32(
-						ACPIrtMR32_Writeable,
-						0x80000000,/*min*/
-						0x80000000,/*max*/
-						0x00000001,/*align*/
-						0x70000000/*range*/);
-
+						0x4/*number of I/O ports req*/);
 					aml.rtEnd();
 				aml.BufferOpEnd();
 			}
