@@ -25,6 +25,7 @@
 #include "regs.h"
 #include "timer.h"
 #include "cpu.h"
+#include "bitop.h"
 #include "callback.h"
 #include "inout.h"
 #include "pic.h"
@@ -8644,6 +8645,10 @@ class ACPIAMLWriter {
 		unsigned char* writeptr(void) const;
 		void begin(unsigned char *n_w,unsigned char *n_f);
 	public:
+		ACPIAMLWriter &rtIRQ(const uint16_t bitmask/*bits [15:0] correspond to IRQ 15-0*/,const bool pciStyle=false);
+		ACPIAMLWriter &rtHdrSmall(const unsigned char itemName,const unsigned int length);
+		ACPIAMLWriter &rtEnd(void);
+	public:
 		ACPIAMLWriter &NameOp(const char *name);
 		ACPIAMLWriter &ByteOp(const unsigned char v);
 		ACPIAMLWriter &WordOp(const unsigned int v);
@@ -8662,6 +8667,8 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &ZeroOp(void);
 		ACPIAMLWriter &OneOp(void);
 		ACPIAMLWriter &AliasOp(const char *what,const char *to_what);
+		ACPIAMLWriter &BufferOpEnd(void);
+		ACPIAMLWriter &BufferOp(const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &BufferOp(const unsigned char *data,const size_t datalen);
 		ACPIAMLWriter &DeviceOp(const char *name,const unsigned int pred_size=MaxPkgSize);
 		ACPIAMLWriter &DeviceOpEnd(void);
@@ -8696,6 +8703,7 @@ class ACPIAMLWriter {
 		ACPIAMLWriter &CountElement(void);
 	private:
 		unsigned char*		w=NULL,*f=NULL;
+		unsigned char*		buffer_len_pl = NULL;
 };
 
 /* StoreOp Operand Supername: Store Operand into Supername */
@@ -8831,6 +8839,23 @@ ACPIAMLWriter &ACPIAMLWriter::BufferOp(const unsigned char *data,const size_t da
 	return *this;
 }
 
+ACPIAMLWriter &ACPIAMLWriter::BufferOp(const unsigned int pred_size) {
+	assert(pred_size >= 10);
+	*w++ = 0x11;
+	BeginPkg(pred_size);
+	DwordOp(0); // placeholder
+	buffer_len_pl = w - 4;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::BufferOpEnd(void) {
+	assert(buffer_len_pl != NULL);
+	host_writed(buffer_len_pl,size_t(w - (buffer_len_pl + 4)));
+	buffer_len_pl = NULL;
+	EndPkg();
+	return *this;
+}
+
 ACPIAMLWriter &ACPIAMLWriter::AliasOp(const char *what,const char *to_what) {
 	*w++ = 0x06;
 	Name(what);
@@ -8862,6 +8887,26 @@ ACPIAMLWriter &ACPIAMLWriter::ElseOp(const unsigned int pred_size) {
 
 ACPIAMLWriter &ACPIAMLWriter::ElseOpEnd(void) {
 	EndPkg();
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::rtHdrSmall(const unsigned char itemName,const unsigned int length) {
+	assert(length > 0 && length < 8);
+	assert(itemName > 0 && itemName < 16);
+	*w++ = (itemName << 3) + length;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::rtEnd(void) {
+	rtHdrSmall(15/*end tag format*/,1/*length*/);
+	*w++ = 0;
+	return *this;
+}
+
+ACPIAMLWriter &ACPIAMLWriter::rtIRQ(const uint16_t bitmask,const bool pciStyle) {
+	rtHdrSmall(4/*IRQ format*/,3/*length*/);
+	host_writew(w,bitmask); w += 2;
+	*w++ = pciStyle ? 0x18/*active low level trigger shareable*/ : 0x01/*active high edge trigger*/;
 	return *this;
 }
 
@@ -9172,7 +9217,13 @@ void BuildACPITable(void) {
 					aml.NameOp("_HID").DwordOp(ISAPNP_ID('P','N','P',0x00,0x0A,0x00,0x03));
 					aml.NameOp("_ADR").DwordOp(0); /* [31:16] device [15:0] function */
 					aml.NameOp("_UID").DwordOp(0xD05B0C5);
-				aml.DeviceOpEnd();
+				aml.NameOp("_CRS").BufferOp(); /* ResourceTemplate() i.e. resource list */
+					aml.rtIRQ(
+						bitop::bit2mask(10)|bitop::bit2mask(11)|
+						bitop::bit2mask(14)|bitop::bit2mask(15),
+						true/*PCI style*/);
+					aml.rtEnd();
+				aml.BufferOpEnd();
 			}
 			else {
 				aml.DeviceOp("ISA");
