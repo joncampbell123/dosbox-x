@@ -89,15 +89,16 @@ char* calc_relative_path(const char* base, const char* child) {
         x++;
     }
     // allocates space for the resulting string and premits any needed ".\" or "..\"
-    y = (char*)malloc(strlen(q) + n * 3 + 2); // n * strlen("..\\")
-    z = y;
-    if (!n) {
+    if (n == 0) {
+        z = y = (char *)malloc(strlen(p) + 2 + 1);
         strcpy(z, ".\\");
         z += 2;
-    }
-    while(n--) {
-        strcpy(z, "..\\");
-        z += 3;
+    } else {
+        z = y = (char*)malloc(strlen(p) + n * 3 + 1); // n * strlen("..\\")
+        while(n--) {
+            strcpy(z, "..\\");
+            z += 3;
+        }
     }
     // finally adds base relative pathname
     strcpy(z, p);
