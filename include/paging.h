@@ -290,16 +290,52 @@ struct X86_PageDirEntryBlock{
  *            Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/CPU/80486/Intel/i486%20Microprocessor%20%281989%2d04%29%2epdf]
  *            Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/CPU/Pentium/Pentium%20Processor%20Family%20Developer%27s%20Manual%20%2d%20Volume%203%3a%20Architecture%20and%20Programming%20Manual%20%281995%2d07%29%2epdf] */
 
+struct X86_PageDir4MBEntryBlock{ // PSE=1 and PageDirEntryBlock PS=1
+#ifdef WORDS_BIGENDIAN
+	uint32_t		base22:10;	// [31:22] bits 31:22
+	uint32_t		reserved:1;	// [21:21]
+	uint32_t		base32:8;	// [20:13] bits 39:32 if PSE36
+	uint32_t		pat:1;		// [12:12]
+	uint32_t		avl:3;		// [11: 9]
+	uint32_t		g:1;		// [ 8: 8]
+	uint32_t		ps:1;		// [ 7: 7] PS=1, or else this is just X86_PageDirEntryBlock
+	uint32_t		d:1;		// [ 6: 6]
+	uint32_t		a:1;		// [ 5: 5]
+	uint32_t		pcd:1;		// [ 4: 4]
+	uint32_t		pwt:1;		// [ 3: 3]
+	uint32_t		us:1;		// [ 2: 2] U/S
+	uint32_t		wr:1;		// [ 1: 1] R/W
+	uint32_t		p:1;		// [ 0: 0]
+#else
+	uint32_t		p:1;		// [ 0: 0]
+	uint32_t		wr:1;		// [ 1: 1] R/W
+	uint32_t		us:1;		// [ 2: 2] U/S
+	uint32_t		pwt:1;		// [ 3: 3]
+	uint32_t		pcd:1;		// [ 4: 4]
+	uint32_t		a:1;		// [ 5: 5]
+	uint32_t		d:1;		// [ 6: 6]
+	uint32_t		ps:1;		// [ 7: 7] PS=1, or else this is just X86_PageDirEntryBlock
+	uint32_t		g:1;		// [ 8: 8]
+	uint32_t		avl:3;		// [11: 9]
+	uint32_t		pat:1;		// [12:12]
+	uint32_t		base32:8;	// [20:13] bits 39:32 if PSE36
+	uint32_t		reserved:1;	// [21:21]
+	uint32_t		base22:10;	// [31:22] bits 31:22
+#endif
+} GCC_ATTRIBUTE(packed);
+
 #ifdef _MSC_VER
 #pragma pack ()
 #endif
-
 
 union X86PageEntry {
 	uint32_t load;
 	X86_PageEntryBlock block;
 	X86_PageDirEntryBlock dirblock;
+	X86_PageDir4MBEntryBlock dirblock4mb; // PSE=1 and PS=1
 };
+
+static_assert( sizeof(X86PageEntry) == 4, "oops" );
 
 #if !defined(USE_FULL_TLB)
 typedef struct {
