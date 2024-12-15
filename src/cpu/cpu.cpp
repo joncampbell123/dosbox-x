@@ -77,6 +77,9 @@ bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
 bool do_seg_limits = false;
 
+bool do_pse = false;
+bool enable_pse = false;
+
 bool enable_fpu = true;
 bool enable_msr = true;
 bool enable_syscall = true;
@@ -2608,6 +2611,7 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 		PAGING_SetDirBase(value);
 		break;
 	case 4:
+		if (enable_pse) do_pse = !!(value & 0x10);
 		cpu.cr4=value;
 		break;
 	default:
@@ -3084,6 +3088,7 @@ bool CPU_CPUID(void) {
 				reg_ecx=0;			/* No features */
 				reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW) {
 				reg_eax=0x543;		/* intel pentium mmx (PMMX) */
@@ -3091,6 +3096,7 @@ bool CPU_CPUID(void) {
 				reg_ecx=0;			/* No features */
 				reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
 				reg_eax=0x612;		/* intel pentium pro */
@@ -3098,6 +3104,7 @@ bool CPU_CPUID(void) {
 				reg_ecx=0;			/* No features */
 				reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII) {
 				/* NTS: Most operating systems will not attempt SYSENTER/SYSEXIT unless this returns model 3, stepping 3, or higher. */
@@ -3120,6 +3127,7 @@ bool CPU_CPUID(void) {
 				reg_ecx=0;			/* No features */
 				reg_edx=0x00808011;	/* FPU+TimeStamp/RDTSC */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
@@ -3128,6 +3136,7 @@ bool CPU_CPUID(void) {
 				reg_ecx=0;			/* No features */
 				reg_edx=0x03808011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
@@ -3724,6 +3733,7 @@ public:
 		cpu_rep_max=section->Get_int("interruptible rep string op");
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
+		enable_pse=section->Get_bool("enable pse");
 		enable_syscall=section->Get_bool("enable syscall");
 		enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
 		CPU_CycleUp=section->Get_int("cycleup");
@@ -4074,6 +4084,14 @@ public:
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
 
         if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
+
+	if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) {
+		do_pse = false;
+		cpu.cr4=0;
+	}
+	else {
+		enable_pse = false;
+	}
 
 		menu_update_core();
 		menu_update_cputype();

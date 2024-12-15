@@ -26,6 +26,9 @@
 #include "cpu.h"
 #include "logging.h"
 
+extern bool do_pse;
+extern bool enable_pse;
+
 extern bool dos_kernel_disabled;
 PagingBlock paging;
 
@@ -436,28 +439,41 @@ private:
 		uint32_t phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
 		PageHandler* handler = MEM_GetPageHandler(phys_page);
 		return handler;
-					}
+	}
 
 	bool hack_check(PhysPt addr) {
 		// First Encounters
+		//
 		// They change the page attributes without clearing the TLB.
 		// On a real 486 they get away with it because its TLB has only 32 or so 
 		// elements. The changed page attribs get overwritten and re-read before
 		// the exception happens. Here we have gazillions of TLB entries so the
 		// exception occurs if we don't check for it.
 
-		Bitu old_attirbs = paging.tlb.phys_page[addr>>12] >> 30;
-		X86PageEntry dir_entry, table_entry;
-		
-		dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(addr));
-		if (!dir_entry.block.p) return false;
-		table_entry.load = phys_readd(GetPageTableEntryAddr(addr, dir_entry));
-		if (!table_entry.block.p) return false;
-		Bitu result =
-		translate_array[((dir_entry.load<<1)&0xc) | ((table_entry.load>>1)&0x3)];
-		if (result != old_attirbs) return true;
+		// NTS 2024/12/15: Checking with 7-cpu.com, the Pentium also has 32,
+		// the Pentium II and III has 64. You would need to go to a pretty late
+		// level of CPU to find something that would probably cause this game to
+		// fail from page table laziness. However, to simplify this code, this
+		// check is skipped over if PSE or PAE are enabled because DOS games are
+		// unlikely to use those page table features. --J.C.
+
+		if (!do_pse) {
+			Bitu old_attirbs = paging.tlb.phys_page[addr>>12] >> 30;
+			X86PageEntry dir_entry, table_entry;
+
+			dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(addr));
+			if (!dir_entry.block.p) return false;
+			table_entry.load = phys_readd(GetPageTableEntryAddr(addr, dir_entry));
+			if (!table_entry.block.p) return false;
+
+			const Bitu result =
+				translate_array[((dir_entry.load<<1)&0xc) | ((table_entry.load>>1)&0x3)];
+
+			if (result != old_attirbs) return true;
+		}
+
 		return false;
-				}
+	}
 
 	void Exception(PhysPt addr, bool writing, bool checked) {
 		//PrintPageInfo("XCEPT",addr,writing, checked);
@@ -770,7 +786,8 @@ initpage_retry:
 				dir_entry.load=phys_readd(dirEntryAddr);
 			}
 			else {
-				LOG(LOG_CPU,LOG_WARN)("Page directory access beyond end of memory, page %08x >= %08x",(unsigned int)(dirEntryAddr>>12u),(unsigned int)MEM_TotalPages());
+				LOG(LOG_CPU,LOG_WARN)("Page directory access beyond end of memory, page %08x >= %08x",
+					(unsigned int)(dirEntryAddr>>12u),(unsigned int)MEM_TotalPages());
 				dir_entry.load=0xFFFFFFFF;
 			}
 
@@ -778,17 +795,19 @@ initpage_retry:
 				// table pointer is not present, do a page fault
 				PAGING_NewPageFault(lin_addr, dirEntryAddr, prepare_only,
 					(writing ? 2u : 0u) | (isUser ? 4u : 0u));
-				
+
 				if (prepare_only) return true;
 				else goto initpage_retry; // TODO maybe E_Exit after a few loops
 			}
+
 			PhysPt tableEntryAddr = GetPageTableEntryAddr(lin_addr, dir_entry);
 			// Range check to avoid emulator segfault: phys_readd() reads from MemBase+addr and does NOT range check.
 			if ((tableEntryAddr+4) <= (MEM_TotalPages()<<12u)) {
 				table_entry.load=phys_readd(tableEntryAddr);
 			}
 			else {
-				LOG(LOG_CPU,LOG_WARN)("Page table entry access beyond end of memory, page %08x >= %08x",(unsigned int)(tableEntryAddr>>12u),(unsigned int)MEM_TotalPages());
+				LOG(LOG_CPU,LOG_WARN)("Page table entry access beyond end of memory, page %08x >= %08x",
+						(unsigned int)(tableEntryAddr>>12u),(unsigned int)MEM_TotalPages());
 				table_entry.load=0xFFFFFFFF;
 			}
 
@@ -797,33 +816,33 @@ initpage_retry:
 			if (!dir_entry.block.a) {
 				dir_entry.block.a = 1;		
 				phys_writed(dirEntryAddr, dir_entry.load);
-		}
+			}
 
 			if (!table_entry.block.p) {
 				// physpage pointer is not present, do a page fault
 				PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-					 (writing ? 2u : 0u) | (isUser ? 4u : 0u));
-				
+						(writing ? 2u : 0u) | (isUser ? 4u : 0u));
+
 				if (prepare_only) return true;
 				else goto initpage_retry;
-	}
+			}
 			//PrintPageInfo("INI",lin_addr,writing,prepare_only);
 
 			Bitu result =
 				translate_array[((dir_entry.load<<1)&0xc) | ((table_entry.load>>1)&0x3)];
-			
+
 			// If a page access right exception occurs we shouldn't change a or d
 			// I'd prefer running into the prepared exception handler but we'd need
 			// an additional handler that sets the 'a' bit - idea - foiler read?
 			Bitu ft_index = result | (writing ? 8u : 0u) | (isUser ? 4u : 0u) |
 				(paging.wp ? 16u : 0u);
-			
+
 			if (GCC_UNLIKELY(fault_table[ft_index])) {
 				// exception error code format: 
 				// bit0 - protection violation, bit1 - writing, bit2 - user mode
 				PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-					1u | (writing ? 2u : 0u) | (isUser ? 4u : 0u));
-				
+						1u | (writing ? 2u : 0u) | (isUser ? 4u : 0u));
+
 				if (prepare_only) return true;
 				else goto initpage_retry; // unlikely to happen?
 			}
@@ -835,7 +854,7 @@ initpage_retry:
 
 			// set page accessed
 			table_entry.block.a = 1;
-			
+
 			// update if needed
 			if (table_load != table_entry.load)
 				phys_writed(tableEntryAddr, table_entry.load);
@@ -843,14 +862,14 @@ initpage_retry:
 			// if the page isn't dirty and we are reading we need to map the foiler
 			// (dirty = false)
 			bool dirty = table_entry.block.d? true:false;
-/*
-			LOG_MSG("INIT  %s LIN% 8x PHYS% 5x wr%x ch%x wp%x d%x c%x m%x a%x [%x/%x/%x]",
-				mtr[result], lin_addr, table_entry.block.base,
-				writing, prepare_only, paging.wp,
-				dirty, cpu.cpl, cpu.mpl,
-				((dir_entry.load<<1)&0xc) | ((table_entry.load>>1)&0x3),
-				dirEntryAddr, tableEntryAddr, table_entry.load);
-*/
+			/*
+			   LOG_MSG("INIT  %s LIN% 8x PHYS% 5x wr%x ch%x wp%x d%x c%x m%x a%x [%x/%x/%x]",
+			   mtr[result], lin_addr, table_entry.block.base,
+			   writing, prepare_only, paging.wp,
+			   dirty, cpu.cpl, cpu.mpl,
+			   ((dir_entry.load<<1)&0xc) | ((table_entry.load>>1)&0x3),
+			   dirEntryAddr, tableEntryAddr, table_entry.load);
+			   */
 			// finally install the new page
 			PAGING_LinkPageNew(lin_page, table_entry.block.base, result, dirty);
 
