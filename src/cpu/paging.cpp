@@ -116,7 +116,7 @@ Bits PageFaultCore(void) {
 	if (ret) 
 		return ret;
 	if (!pf_queue.used) E_Exit("PF Core without PF");
-    const PF_Entry* entry = &pf_queue.entries[pf_queue.used - 1];
+	const PF_Entry* entry = &pf_queue.entries[pf_queue.used - 1];
 	X86PageEntry pentry;
 	pentry.load=phys_readd((PhysPt)entry->page_addr);
 	if (pentry.block.p && entry->cs == SegValue(cs) && entry->eip==reg_eip) {
@@ -380,9 +380,10 @@ private:
 		// replace this handler with the real thing
 		if (handler->getFlags() & PFLAG_WRITEABLE)
 			paging.tlb.write[lin_page] = handler->GetHostWritePt(phys_page) - (lin_page << 12);
-		else paging.tlb.write[lin_page]=nullptr;
-		paging.tlb.writehandler[lin_page]=handler;
+		else
+			paging.tlb.write[lin_page]=nullptr;
 
+		paging.tlb.writehandler[lin_page]=handler;
 		return;
 	}
 
@@ -807,7 +808,7 @@ initpage_retry:
 			}
 			else {
 				LOG(LOG_CPU,LOG_WARN)("Page table entry access beyond end of memory, page %08x >= %08x",
-						(unsigned int)(tableEntryAddr>>12u),(unsigned int)MEM_TotalPages());
+					(unsigned int)(tableEntryAddr>>12u),(unsigned int)MEM_TotalPages());
 				table_entry.load=0xFFFFFFFF;
 			}
 
@@ -821,7 +822,7 @@ initpage_retry:
 			if (!table_entry.block.p) {
 				// physpage pointer is not present, do a page fault
 				PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-						(writing ? 2u : 0u) | (isUser ? 4u : 0u));
+					(writing ? 2u : 0u) | (isUser ? 4u : 0u));
 
 				if (prepare_only) return true;
 				else goto initpage_retry;
@@ -841,7 +842,7 @@ initpage_retry:
 				// exception error code format: 
 				// bit0 - protection violation, bit1 - writing, bit2 - user mode
 				PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-						1u | (writing ? 2u : 0u) | (isUser ? 4u : 0u));
+					1u | (writing ? 2u : 0u) | (isUser ? 4u : 0u));
 
 				if (prepare_only) return true;
 				else goto initpage_retry; // unlikely to happen?

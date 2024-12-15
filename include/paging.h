@@ -223,23 +223,24 @@ void MEM_SetPageHandler(Bitu phys_page, Bitu pages, PageHandler * handler);
 #ifdef _MSC_VER
 #pragma pack (1)
 #endif
-struct X86_PageEntryBlock{ // TODO: This is not exactly a page table entry, this is a mismash of both page table and page directory entry
+
+struct X86_PageEntryBlock{ // Page Table Entry, though it keeps the PageEntryBlock name to avoid breaking all this code
 #ifdef WORDS_BIGENDIAN
-	uint32_t		base:20;	// [31:12] PTE+PDE
-	uint32_t		avl:3;		// [11: 9] PTE=[11:9] PDE=[11:8]
-	uint32_t		g:1;		// [ 8: 8] PDE
-	uint32_t		pat:1;		// [ 7: 7] PTE        PDE=PS(PageSize)
-	uint32_t		d:1;		// [ 6: 6] PTE        PDE=AVL
-	uint32_t		a:1;		// [ 5: 5] PTE+PDE
-	uint32_t		pcd:1;		// [ 4: 4] PTE+PDE
-	uint32_t		pwt:1;		// [ 3: 3] PTE+PDE
-	uint32_t		us:1;		// [ 2: 2] PTE+PDE
-	uint32_t		wr:1;		// [ 1: 1] PTE+PDE
-	uint32_t		p:1;		// [ 0: 0] PTE+PDE
+	uint32_t		base:20;	// [31:12]
+	uint32_t		avl:3;		// [11: 8]
+	uint32_t		g:1;		// [ 8: 8]
+	uint32_t		pat:1;		// [ 7: 7]
+	uint32_t		d:1;		// [ 6: 6]
+	uint32_t		a:1;		// [ 5: 5]
+	uint32_t		pcd:1;		// [ 4: 4]
+	uint32_t		pwt:1;		// [ 3: 3]
+	uint32_t		us:1;		// [ 2: 2]
+	uint32_t		wr:1;		// [ 1: 1]
+	uint32_t		p:1;		// [ 0: 0]
 #else
 	uint32_t		p:1;		// [ 0: 0]
-	uint32_t		wr:1;		// [ 1: 1]
-	uint32_t		us:1;		// [ 2: 2]
+	uint32_t		wr:1;		// [ 1: 1] R/W
+	uint32_t		us:1;		// [ 2: 2] U/S
 	uint32_t		pwt:1;		// [ 3: 3]
 	uint32_t		pcd:1;		// [ 4: 4]
 	uint32_t		a:1;		// [ 5: 5]
@@ -250,6 +251,47 @@ struct X86_PageEntryBlock{ // TODO: This is not exactly a page table entry, this
 	uint32_t		base:20;	// [31:12]
 #endif
 } GCC_ATTRIBUTE(packed);
+
+struct X86_PageDirEntryBlock{
+#ifdef WORDS_BIGENDIAN
+	uint32_t		base:20;	// [31:12]
+	uint32_t		avl:3;		// [11: 9]
+	uint32_t		g:1;		// [ 8: 8]
+	uint32_t		ps:1;		// [ 7: 7]
+	uint32_t		avl6:1;		// [ 6: 6]
+	uint32_t		a:1;		// [ 5: 5]
+	uint32_t		pcd:1;		// [ 4: 4]
+	uint32_t		pwt:1;		// [ 3: 3]
+	uint32_t		us:1;		// [ 2: 2]
+	uint32_t		wr:1;		// [ 1: 1]
+	uint32_t		p:1;		// [ 0: 0]
+#else
+	uint32_t		p:1;		// [ 0: 0]
+	uint32_t		wr:1;		// [ 1: 1] R/W
+	uint32_t		us:1;		// [ 2: 2] U/S
+	uint32_t		pwt:1;		// [ 3: 3]
+	uint32_t		pcd:1;		// [ 4: 4]
+	uint32_t		a:1;		// [ 5: 5]
+	uint32_t		avl6:1;		// [ 6: 6] See Note [*1], this bit changed meaning between the 486 and Pentium!
+	uint32_t		ps:1;		// [ 7: 7] Page Size Extension (Pentium), even though Intel didn't document it until later
+	uint32_t		g:1;		// [ 8: 8]
+	uint32_t		avl:3;		// [11: 9]
+	uint32_t		base:20;	// [31:12]
+#endif
+} GCC_ATTRIBUTE(packed);
+/* Note [*1]: The i386 defined just the Page Table Entry to represent the PDE and PTE, because they had the same layout.
+ *
+ *            The i486 lists the PDE and PTE, even though they have the same bit layout.
+ *
+ *            The Pentium however, seems to have decided that bit 6 of the PDE is no longer the "dirty" bit and is redefined as AVL.
+ *            Although, if PSE is enabled and the PDE is the 4MB format, bit 6 is once again a "dirty" but.
+ *
+ *            FIXME: This codebase still always sets the D bit for PDE regardless of CPU type.
+ *
+ *            Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/CPU/80386/Intel/386DX%20Microprocessor%20Programmer%27s%20Reference%20Manual%20%281990%29%2epdf]
+ *            Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/CPU/80486/Intel/i486%20Microprocessor%20%281989%2d04%29%2epdf]
+ *            Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/CPU/Pentium/Pentium%20Processor%20Family%20Developer%27s%20Manual%20%2d%20Volume%203%3a%20Architecture%20and%20Programming%20Manual%20%281995%2d07%29%2epdf] */
+
 #ifdef _MSC_VER
 #pragma pack ()
 #endif
@@ -258,6 +300,7 @@ struct X86_PageEntryBlock{ // TODO: This is not exactly a page table entry, this
 union X86PageEntry {
 	uint32_t load;
 	X86_PageEntryBlock block;
+	X86_PageDirEntryBlock dirblock;
 };
 
 #if !defined(USE_FULL_TLB)
