@@ -227,7 +227,7 @@ static inline PhysPt GetPageDirectoryEntryAddr(PhysPt lin_addr) {
 	return paging.base.addr | ((lin_addr >> 22u) << 2u);
 }
 static inline PhysPt GetPageTableEntryAddr(PhysPt lin_addr, const X86PageEntry& dir_entry) {
-	return ((PhysPt)dir_entry.block.base << (PhysPt)12U) | ((lin_addr >> 10U) & 0xffcu);
+	return ((PhysPt)dir_entry.dirblock.base << (PhysPt)12U) | ((lin_addr >> 10U) & 0xffcu);
 }
 /*
 void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepare_only) {
@@ -244,7 +244,7 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 	bool dirty = false;
 	Bitu ft_index = 0;
 
-	if (dir_entry.block.p) {
+	if (dir_entry.dirblock.p) {
 		tableEntryAddr = GetPageTableEntryAddr(lin_addr, dir_entry);
 		table_entry.load=phys_readd(tableEntryAddr);
 		if (table_entry.block.p) {
@@ -351,7 +351,7 @@ private:
 
 		PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(addr);
 		dir_entry.load=phys_readd(dirEntryAddr);
-		if (!dir_entry.block.p) E_Exit("Undesired situation 1 in page foiler.");
+		if (!dir_entry.dirblock.p) E_Exit("Undesired situation 1 in page foiler.");
 
 		PhysPt tableEntryAddr = GetPageTableEntryAddr(addr, dir_entry);
 		table_entry.load=phys_readd(tableEntryAddr);
@@ -463,7 +463,7 @@ private:
 			X86PageEntry dir_entry, table_entry;
 
 			dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(addr));
-			if (!dir_entry.block.p) return false;
+			if (!dir_entry.dirblock.p) return false;
 			table_entry.load = phys_readd(GetPageTableEntryAddr(addr, dir_entry));
 			if (!table_entry.block.p) return false;
 
@@ -483,7 +483,7 @@ private:
 		if (!checked) {
 			X86PageEntry dir_entry;
 			dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(addr));
-			if (!dir_entry.block.p) E_Exit("Undesired situation 1 in exception handler.");
+			if (!dir_entry.dirblock.p) E_Exit("Undesired situation 1 in exception handler.");
 			
 			// page table entry
 			tableaddr = GetPageTableEntryAddr(addr, dir_entry);
@@ -792,7 +792,7 @@ initpage_retry:
 				dir_entry.load=0xFFFFFFFF;
 			}
 
-			if (!dir_entry.block.p) {
+			if (!dir_entry.dirblock.p) {
 				// table pointer is not present, do a page fault
 				PAGING_NewPageFault(lin_addr, dirEntryAddr, prepare_only,
 					(writing ? 2u : 0u) | (isUser ? 4u : 0u));
@@ -814,8 +814,8 @@ initpage_retry:
 
 			// set page table accessed (IA manual: A is set whenever the entry is 
 			// used in a page translation)
-			if (!dir_entry.block.a) {
-				dir_entry.block.a = 1;		
+			if (!dir_entry.dirblock.a) {
+				dir_entry.dirblock.a = 1;
 				phys_writed(dirEntryAddr, dir_entry.load);
 			}
 
@@ -913,7 +913,7 @@ bool PAGING_MakePhysPage(Bitu & page) {
 		// check the page directory entry for this address
 		X86PageEntry dir_entry;
 		dir_entry.load = phys_readd(GetPageDirectoryEntryAddr((PhysPt)(page<<12)));
-		if (!dir_entry.block.p) return false;
+		if (!dir_entry.dirblock.p) return false;
 		
 		// check the page table entry
 		X86PageEntry tbl_entry;

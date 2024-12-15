@@ -286,8 +286,6 @@ struct X86_PageDirEntryBlock{
  *            The Pentium however, seems to have decided that bit 6 of the PDE is no longer the "dirty" bit and is redefined as AVL.
  *            Although, if PSE is enabled and the PDE is the 4MB format, bit 6 is once again a "dirty" but.
  *
- *            FIXME: This codebase still always sets the D bit for PDE regardless of CPU type.
- *
  *            Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/CPU/80386/Intel/386DX%20Microprocessor%20Programmer%27s%20Reference%20Manual%20%281990%29%2epdf]
  *            Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/CPU/80486/Intel/i486%20Microprocessor%20%281989%2d04%29%2epdf]
  *            Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/CPU/Pentium/Pentium%20Processor%20Family%20Developer%27s%20Manual%20%2d%20Volume%203%3a%20Architecture%20and%20Programming%20Manual%20%281995%2d07%29%2epdf] */
