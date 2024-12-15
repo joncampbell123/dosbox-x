@@ -223,31 +223,31 @@ void MEM_SetPageHandler(Bitu phys_page, Bitu pages, PageHandler * handler);
 #ifdef _MSC_VER
 #pragma pack (1)
 #endif
-struct X86_PageEntryBlock{
+struct X86_PageEntryBlock{ // TODO: This is not exactly a page table entry, this is a mismash of both page table and page directory entry
 #ifdef WORDS_BIGENDIAN
-	uint32_t		base:20;
-	uint32_t		avl:3;
-	uint32_t		g:1;
-	uint32_t		pat:1;
-	uint32_t		d:1;
-	uint32_t		a:1;
-	uint32_t		pcd:1;
-	uint32_t		pwt:1;
-	uint32_t		us:1;
-	uint32_t		wr:1;
-	uint32_t		p:1;
+	uint32_t		base:20;	// [31:12] PTE+PDE
+	uint32_t		avl:3;		// [11: 9] PTE=[11:9] PDE=[11:8]
+	uint32_t		g:1;		// [ 8: 8] PDE
+	uint32_t		pat:1;		// [ 7: 7] PTE        PDE=PS(PageSize)
+	uint32_t		d:1;		// [ 6: 6] PTE        PDE=AVL
+	uint32_t		a:1;		// [ 5: 5] PTE+PDE
+	uint32_t		pcd:1;		// [ 4: 4] PTE+PDE
+	uint32_t		pwt:1;		// [ 3: 3] PTE+PDE
+	uint32_t		us:1;		// [ 2: 2] PTE+PDE
+	uint32_t		wr:1;		// [ 1: 1] PTE+PDE
+	uint32_t		p:1;		// [ 0: 0] PTE+PDE
 #else
-	uint32_t		p:1;
-	uint32_t		wr:1;
-	uint32_t		us:1;
-	uint32_t		pwt:1;
-	uint32_t		pcd:1;
-	uint32_t		a:1;
-	uint32_t		d:1;
-	uint32_t		pat:1;
-	uint32_t		g:1;
-	uint32_t		avl:3;
-	uint32_t		base:20;
+	uint32_t		p:1;		// [ 0: 0]
+	uint32_t		wr:1;		// [ 1: 1]
+	uint32_t		us:1;		// [ 2: 2]
+	uint32_t		pwt:1;		// [ 3: 3]
+	uint32_t		pcd:1;		// [ 4: 4]
+	uint32_t		a:1;		// [ 5: 5]
+	uint32_t		d:1;		// [ 6: 6]
+	uint32_t		pat:1;		// [ 7: 7]
+	uint32_t		g:1;		// [ 8: 8]
+	uint32_t		avl:3;		// [11: 9]
+	uint32_t		base:20;	// [31:12]
 #endif
 } GCC_ATTRIBUTE(packed);
 #ifdef _MSC_VER
