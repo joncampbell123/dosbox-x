@@ -1118,6 +1118,8 @@ void DrawRegistersUpdateOld(void) {
 	oldcpucpl=cpu.cpl;
 }
 
+extern bool do_pse;
+
 bool CPU_IsHLTed(void);
 
 static void DrawRegisters(void) {
@@ -1191,7 +1193,15 @@ static void DrawRegisters(void) {
 		if (reg_flags & FLAG_VM) mvwprintw(dbg.win_reg,0,76,"VM86");
 		else if (cpu.code.big) mvwprintw(dbg.win_reg,0,76,"Pr32");
 		else mvwprintw(dbg.win_reg,0,76,"Pr16");
-		mvwprintw(dbg.win_reg,2,62,paging.enabled ? "PAGE" : "NOPG");
+		if (paging.enabled) {
+			if (do_pse)
+				mvwprintw(dbg.win_reg,2,60,"PAGEPSE");
+			else
+				mvwprintw(dbg.win_reg,2,60,"PAGE");
+		}
+		else {
+			mvwprintw(dbg.win_reg,2,60,"NOPG");
+		}
 	} else {
 		mvwprintw(dbg.win_reg,0,76,"Real");
 		mvwprintw(dbg.win_reg,2,62,"NOPG");
@@ -1555,6 +1565,7 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             else if (something == "CR0") { regval = (uint32_t)cpu.cr0; }
             else if (something == "CR2") { regval = (uint32_t)paging.cr2; }
             else if (something == "CR3") { regval = (uint32_t)paging.cr3; }
+            else if (something == "CR4") { regval = (uint32_t)cpu.cr4; }
             else if (something == "EAX") { regval = reg_eax; }
             else if (something == "EBX") { regval = reg_ebx; }
             else if (something == "ECX") { regval = reg_ecx; }
@@ -4894,49 +4905,49 @@ static void LogIDT(void) {
 void LogPages(char* selname) {
     DEBUG_BeginPagedContent();
 
-	if (paging.enabled) {
-		char out1[512];
-		Bitu sel = GetHexValue(selname,selname);
-		if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
-			for (unsigned int i=0; i<0xfffff; i++) {
-				Bitu table_addr=(paging.base.page<<12u)+(i >> 10u)*(Bitu)4u;
-				X86PageEntry table;
-				table.load=phys_readd((PhysPt)table_addr);
-				if (table.block.p) {
-					X86PageEntry entry;
-                    PhysPt entry_addr=(table.block.base<<12u)+(i & 0x3ffu)* 4u;
-					entry.load=phys_readd(entry_addr);
-					if (entry.block.p) {
-						sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",
-							i,entry.block.base,entry.block.us,table.block.us,
-							entry.block.wr,table.block.wr,entry.block.d,entry.block.a);
-                        DEBUG_ShowMsg("%s",out1);
-					}
-				}
-			}
-		} else {
-			Bitu table_addr=(paging.base.page<<12u)+(sel >> 10u)*4u;
-			X86PageEntry table;
-			table.load=phys_readd((PhysPt)table_addr);
-			if (table.block.p) {
-				X86PageEntry entry;
-				Bitu entry_addr=((Bitu)table.block.base<<12u)+(sel & 0x3ffu)*4u;
-				entry.load=phys_readd((PhysPt)entry_addr);
-				sprintf(out1,"page %05lXxxx -> %04lXxxx  flags [puw] %x:%x::%x:%x::%x:%x",
-					(unsigned long)sel,
-					(unsigned long)entry.block.base,
-					entry.block.p,table.block.p,entry.block.us,table.block.us,entry.block.wr,table.block.wr);
-                DEBUG_ShowMsg("%s",out1);
-			} else {
-				sprintf(out1,"pagetable %03X not present, flags [puw] %x::%x::%x",
-					(int)(sel >> 10),
-					(int)table.block.p,
-					(int)table.block.us,
-					(int)table.block.wr);
-                DEBUG_ShowMsg("%s",out1);
-			}
-		}
-	}
+    if (paging.enabled) {
+	    char out1[512];
+	    Bitu sel = GetHexValue(selname,selname);
+	    if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
+		    for (unsigned int i=0; i<0xfffff; i++) {
+			    Bitu table_addr=(paging.base.page<<12u)+(i >> 10u)*(Bitu)4u;
+			    X86PageEntry table;
+			    table.load=phys_readd((PhysPt)table_addr);
+			    if (table.block.p) {
+				    X86PageEntry entry;
+				    PhysPt entry_addr=(table.block.base<<12u)+(i & 0x3ffu)* 4u;
+				    entry.load=phys_readd(entry_addr);
+				    if (entry.block.p) {
+					    sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",
+							    i,entry.block.base,entry.block.us,table.block.us,
+							    entry.block.wr,table.block.wr,entry.block.d,entry.block.a);
+					    DEBUG_ShowMsg("%s",out1);
+				    }
+			    }
+		    }
+	    } else {
+		    Bitu table_addr=(paging.base.page<<12u)+(sel >> 10u)*4u;
+		    X86PageEntry table;
+		    table.load=phys_readd((PhysPt)table_addr);
+		    if (table.block.p) {
+			    X86PageEntry entry;
+			    Bitu entry_addr=((Bitu)table.block.base<<12u)+(sel & 0x3ffu)*4u;
+			    entry.load=phys_readd((PhysPt)entry_addr);
+			    sprintf(out1,"page %05lXxxx -> %04lXxxx  flags [puw] %x:%x::%x:%x::%x:%x",
+					    (unsigned long)sel,
+					    (unsigned long)entry.block.base,
+					    entry.block.p,table.block.p,entry.block.us,table.block.us,entry.block.wr,table.block.wr);
+			    DEBUG_ShowMsg("%s",out1);
+		    } else {
+			    sprintf(out1,"pagetable %03X not present, flags [puw] %x::%x::%x",
+					    (int)(sel >> 10),
+					    (int)table.block.p,
+					    (int)table.block.us,
+					    (int)table.block.wr);
+			    DEBUG_ShowMsg("%s",out1);
+		    }
+	    }
+    }
 
     DEBUG_EndPagedContent();
 }
