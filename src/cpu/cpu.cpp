@@ -4005,7 +4005,7 @@ public:
 					enable_pse = true;
 					enable_pse_extbits = 4; // 36-bit
 				}
-				else if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) {
+				else if (CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) {
 					enable_pse = true;
 					enable_pse_extbits = 0;
 				}
@@ -4131,7 +4131,7 @@ public:
 
         if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
 
-	if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) {
+	if (CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) {
 		do_pse = false;
 		cpu.cr4 = 0;
 	}
