@@ -990,6 +990,7 @@ static void DMA_DAC_Event(Bitu val) {
     if (!sb.dma.left)
         return;
 
+    const bool psingle_sample = sb.single_sample_dma;
     /* Fix for 1994 Demoscene entry myth_dw: The demo's Sound Blaster Pro initialization will start DMA with
      * count == 1 or 2 (triggering Goldplay mode) but will change the DMA initial counter when it begins
      * normal playback. If goldplay stereo hack is enabled and we do not catch this case, the first 0.5 seconds
@@ -1000,7 +1001,7 @@ static void DMA_DAC_Event(Bitu val) {
     else
         sb.single_sample_dma = 0;
 
-    if (!sb.single_sample_dma) {
+    if (psingle_sample && !sb.single_sample_dma) {
         // WARNING: This assumes Sound Blaster Pro emulation!
         LOG(LOG_SB,LOG_NORMAL)("Goldplay mode unexpectedly switched off, normal DMA playback follows");
         sb.dma_dac_mode = 0;
