@@ -2620,6 +2620,8 @@ void VGA_ChangedBank(void) {
 	VGA_SetupHandlers();
 }
 
+uint32_t MEM_get_address_bits4GB();
+
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages);
 
@@ -2766,7 +2768,7 @@ void VGA_SetupHandlers(void) {
 		 * because that address will map to wherever PEGC's LFB is even if, say, running on a 486SX
 		 * with 26 address pins. */
 		if (MEM_get_address_bits() > 24) {
-			Bitu page = ((Bitu)1 << (Bitu)(MEM_get_address_bits() - 12/*pages not bytes*/)) - (Bitu)0x100/*1MB in pages*/;
+			Bitu page = ((Bitu)1 << (Bitu)(MEM_get_address_bits4GB() - 12/*pages not bytes*/)) - (Bitu)0x100/*1MB in pages*/;
 			if ((pc98_gdc_vramop & (1 << VOPBIT_VGA)) && pc98_pegc_linear_framebuffer_enabled())
 				MEM_SetPageHandler(page, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
 			else
