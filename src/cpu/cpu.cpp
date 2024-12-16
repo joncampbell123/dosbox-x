@@ -3084,6 +3084,7 @@ bool CPU_CPUID(void) {
 				reg_ebx=0;			/* Not Supported */
 				reg_ecx=0;			/* No features */
 				reg_edx=enable_fpu?1:0;	/* FPU */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM) {
 				reg_eax=report_fdiv_bug?0x513:0x517;	/* intel pentium */
 				reg_ebx=0;			/* Not Supported */
