@@ -124,6 +124,7 @@ bool pc98_timestamp5c = true; // port 5ch and 5eh "time stamp/hardware wait"
 uint32_t Keyb_ig_status();
 bool VM_Boot_DOSBox_Kernel();
 uint32_t MEM_get_address_bits();
+uint32_t MEM_get_address_bits4GB();
 Bitu bios_post_parport_count();
 Bitu bios_post_comport_count();
 void pc98_update_cpu_page_ptr(void);
@@ -12510,7 +12511,7 @@ void ROMBIOS_Init() {
     /* and the BIOS alias at the top of memory (TODO: what about 486/Pentium emulation where the BIOS at the 4GB top is different
      * from the BIOS at the legacy 1MB boundary because of shadowing and/or decompressing from ROM at boot? */
     {
-        uint64_t top = (uint64_t)1UL << (uint64_t)MEM_get_address_bits();
+        uint64_t top = (uint64_t)1UL << (uint64_t)MEM_get_address_bits4GB();
         if (top >= ((uint64_t)1UL << (uint64_t)21UL)) { /* 2MB or more */
             unsigned long alias_base,alias_end;
 
