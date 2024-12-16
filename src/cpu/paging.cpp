@@ -28,6 +28,8 @@
 
 extern bool do_pse;
 extern bool enable_pse;
+extern uint8_t enable_pse_extbits;
+extern uint8_t enable_pse_extmask;
 
 extern bool dos_kernel_disabled;
 PagingBlock paging;
