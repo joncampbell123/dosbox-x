@@ -222,7 +222,7 @@ static const uint8_t fault_table[] = {
 };
 
 #define PHYSPAGE_DITRY 0x10000000
-#define PHYSPAGE_ADDR  0x000FFFFF
+#define PHYSPAGE_ADDR  0x00FFFFFF
 
 // helper functions for calculating table entry addresses
 static inline PhysPt GetPageDirectoryEntryAddr(PhysPt lin_addr) {
@@ -1050,21 +1050,12 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 	PageHandler * handler=MEM_GetPageHandler(phys_page);
 	Bitu lin_base=lin_page << 12;
 
-	// FIXME: phys_page is not used here to index anything, why must it be less than TLB_SIZE?
-	//        The only limit that should be imposed is to stay below 30 bits because bits 31 & 30
-	//        are used by this code for other purposes. In order to emulate PSE36 and allow higher
-	//        bits, the phys_page>=TLB_SIZE check needs to be removed. Perhaps instead just
-	//        mask phys_page by PHYSPAGE_ADDR. By the way, if we're going to allow PSE36 to address
-	//        stuff above 4GB, PHYSPAGE_ADDR needs to be changed to allow more than 20 bits.
-	//
-	//        In the meantime, just mask phys_page to stay below TLB_SIZE. The guest will see a
-	//        memory map corresponding to a CPU that can address 36 bits but the motherboard can
-	//        only address 4GB, which is typical of 1990s and early 2000s hardware.
+	//NTS: phys_page is not used to index anything, however it must not use bits 31-30 used for other info. Stay within PHYSPAGE_ADDR.
 	phys_page &= PHYSPAGE_ADDR;
 
 //	LOG_MSG("MAPPG %s",lnm[outcome]);
 	
-	if (GCC_UNLIKELY(lin_page>=TLB_SIZE || phys_page>=TLB_SIZE)) 
+	if (GCC_UNLIKELY(lin_page>=TLB_SIZE))
 		E_Exit("Illegal page");
 	if (GCC_UNLIKELY(paging.links.used>=PAGING_LINKS)) {
 		LOG(LOG_PAGING,LOG_NORMAL)("Not enough paging links, resetting cache");
@@ -1134,19 +1125,10 @@ void PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
 	PageHandler * handler=MEM_GetPageHandler(phys_page);
 	Bitu lin_base=lin_page << 12;
 
-	// FIXME: phys_page is not used here to index anything, why must it be less than TLB_SIZE?
-	//        The only limit that should be imposed is to stay below 30 bits because bits 31 & 30
-	//        are used by this code for other purposes. In order to emulate PSE36 and allow higher
-	//        bits, the phys_page>=TLB_SIZE check needs to be removed. Perhaps instead just
-	//        mask phys_page by PHYSPAGE_ADDR. By the way, if we're going to allow PSE36 to address
-	//        stuff above 4GB, PHYSPAGE_ADDR needs to be changed to allow more than 20 bits.
-	//
-	//        In the meantime, just mask phys_page to stay below TLB_SIZE. The guest will see a
-	//        memory map corresponding to a CPU that can address 36 bits but the motherboard can
-	//        only address 4GB, which is typical of 1990s and early 2000s hardware.
+	//NTS: phys_page is not used to index anything, however it must not use bits 31-30 used for other info. Stay within PHYSPAGE_ADDR.
 	phys_page &= PHYSPAGE_ADDR;
 
-	if (lin_page>=TLB_SIZE || phys_page>=TLB_SIZE)
+	if (lin_page>=TLB_SIZE)
 		return E_Exit("Illegal page");
 
 	if (paging.links.used>=PAGING_LINKS) {
@@ -1331,19 +1313,10 @@ void PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
 	PageHandler * handler=MEM_GetPageHandler(phys_page);
 	Bitu lin_base=lin_page << 12;
 
-	// FIXME: phys_page is not used here to index anything, why must it be less than TLB_SIZE?
-	//        The only limit that should be imposed is to stay below 30 bits because bits 31 & 30
-	//        are used by this code for other purposes. In order to emulate PSE36 and allow higher
-	//        bits, the phys_page>=TLB_SIZE check needs to be removed. Perhaps instead just
-	//        mask phys_page by PHYSPAGE_ADDR. By the way, if we're going to allow PSE36 to address
-	//        stuff above 4GB, PHYSPAGE_ADDR needs to be changed to allow more than 20 bits.
-	//
-	//        In the meantime, just mask phys_page to stay below TLB_SIZE. The guest will see a
-	//        memory map corresponding to a CPU that can address 36 bits but the motherboard can
-	//        only address 4GB, which is typical of 1990s and early 2000s hardware.
+	//NTS: phys_page is not used to index anything, however it must not use bits 31-30 used for other info. Stay within PHYSPAGE_ADDR.
 	phys_page &= PHYSPAGE_ADDR;
 
-	if (lin_page>=(TLB_SIZE*(TLB_BANKS+1)) || phys_page>=(TLB_SIZE*(TLB_BANKS+1))) 
+	if (lin_page>=(TLB_SIZE*(TLB_BANKS+1)))
 		E_Exit("Illegal page");
 
 	if (paging.links.used>=PAGING_LINKS) {
@@ -1367,19 +1340,10 @@ void PAGING_LinkPage_ReadOnly(Bitu lin_page,Bitu phys_page) {
 	PageHandler * handler=MEM_GetPageHandler(phys_page);
 	Bitu lin_base=lin_page << 12;
 
-	// FIXME: phys_page is not used here to index anything, why must it be less than TLB_SIZE?
-	//        The only limit that should be imposed is to stay below 30 bits because bits 31 & 30
-	//        are used by this code for other purposes. In order to emulate PSE36 and allow higher
-	//        bits, the phys_page>=TLB_SIZE check needs to be removed. Perhaps instead just
-	//        mask phys_page by PHYSPAGE_ADDR. By the way, if we're going to allow PSE36 to address
-	//        stuff above 4GB, PHYSPAGE_ADDR needs to be changed to allow more than 20 bits.
-	//
-	//        In the meantime, just mask phys_page to stay below TLB_SIZE. The guest will see a
-	//        memory map corresponding to a CPU that can address 36 bits but the motherboard can
-	//        only address 4GB, which is typical of 1990s and early 2000s hardware.
+	//NTS: phys_page is not used to index anything, however it must not use bits 31-30 used for other info. Stay within PHYSPAGE_ADDR.
 	phys_page &= PHYSPAGE_ADDR;
 
-	if (lin_page>=(TLB_SIZE*(TLB_BANKS+1)) || phys_page>=(TLB_SIZE*(TLB_BANKS+1))) 
+	if (lin_page>=(TLB_SIZE*(TLB_BANKS+1)))
 		E_Exit("Illegal page");
 
 	if (paging.links.used>=PAGING_LINKS) {
