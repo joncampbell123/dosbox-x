@@ -34,6 +34,8 @@ typedef uint32_t              LinearPt;    /* guest linear memory address */
 typedef uint32_t              RealPt;      /* guest real-mode memory address (16:16 -> seg:offset) */
 typedef uint16_t              SegmentVal;  /* guest segment value */
 
+typedef uint64_t              PhysPt64;    /* guest physical memory pointer */
+
 typedef int32_t              MemHandle;
 
 extern HostPt               MemBase;

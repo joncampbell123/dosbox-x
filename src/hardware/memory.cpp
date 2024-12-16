@@ -234,7 +234,7 @@ public:
     uint8_t readb(PhysPt addr) override {
         (void)addr;
 #if C_DEBUG
-        LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
+        LOG_MSG("Warning: Illegal read from %lx (lin=%x), CS:IP %8x:%8x",(unsigned long)PAGING_GetPhysicalAddress64(addr),addr,SegValue(cs),reg_eip);
 #else
         static Bits lcount=0;
         if (lcount<1000) {
@@ -248,7 +248,7 @@ public:
         (void)addr;//UNUSED
         (void)val;//UNUSED
 #if C_DEBUG
-        LOG_MSG("Warning: Illegal write to %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
+        LOG_MSG("Warning: Illegal write to %lx (lin=%x), CS:IP %8x:%8x",(unsigned long)PAGING_GetPhysicalAddress64(addr),addr,SegValue(cs),reg_eip);
 #else
         static Bits lcount=0;
         if (lcount<1000) {

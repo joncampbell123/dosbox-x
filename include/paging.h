@@ -429,6 +429,12 @@ static INLINE PhysPt PAGING_GetPhysicalAddress(const PhysPt linAddr) {
 	return (paging.tlb.phys_page[linAddr>>12]<<12)|(linAddr&0xfff);
 }
 
+//FIXME: #define PHYSPAGE_ADDR  0x00FFFFFF   should be a global constant
+
+static INLINE PhysPt64 PAGING_GetPhysicalAddress64(const PhysPt linAddr) {
+	return ((PhysPt64)(paging.tlb.phys_page[linAddr>>12]&0xFFFFFFul)<<(PhysPt64)12)|(linAddr&0xfff);
+}
+
 #else
 
 void PAGING_InitTLBBank(tlb_entry **bank);
