@@ -79,6 +79,8 @@ bool do_seg_limits = false;
 
 bool do_pse = false;
 bool enable_pse = false;
+uint8_t enable_pse_extbits = 0;
+uint8_t enable_pse_extmask = 0;
 
 bool enable_fpu = true;
 bool enable_msr = true;
@@ -3089,6 +3091,7 @@ bool CPU_CPUID(void) {
 				reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW) {
 				reg_eax=0x543;		/* intel pentium mmx (PMMX) */
@@ -3097,6 +3100,7 @@ bool CPU_CPUID(void) {
 				reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
 				reg_eax=0x612;		/* intel pentium pro */
@@ -3105,6 +3109,7 @@ bool CPU_CPUID(void) {
 				reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII) {
 				/* NTS: Most operating systems will not attempt SYSENTER/SYSEXIT unless this returns model 3, stepping 3, or higher. */
@@ -3128,6 +3133,7 @@ bool CPU_CPUID(void) {
 				reg_edx=0x00808011;	/* FPU+TimeStamp/RDTSC */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
@@ -3137,6 +3143,7 @@ bool CPU_CPUID(void) {
 				reg_edx=0x03808011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
@@ -3728,12 +3735,11 @@ public:
 			CPU_CycleAutoAdjust=false;
 		}
 
-        menu_update_autocycle();
+		menu_update_autocycle();
 
 		cpu_rep_max=section->Get_int("interruptible rep string op");
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
-		enable_pse=section->Get_bool("enable pse");
 		enable_syscall=section->Get_bool("enable syscall");
 		enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
 		CPU_CycleUp=section->Get_int("cycleup");
@@ -3976,6 +3982,46 @@ public:
 			LOG_MSG("CPU warning: 80186 cpu type is experimental at this time");
 		}
 
+		{
+			const char *pse = section->Get_string("enable pse");
+			if (!strcmp(pse,"pse40")) {
+				enable_pse = true;
+				enable_pse_extbits = 8;
+			}
+			else if (!strcmp(pse,"pse36")) {
+				enable_pse = true;
+				enable_pse_extbits = 4;
+			}
+			else if (!strcmp(pse,"pse") || !strcmp(pse,"true")) {
+				enable_pse = true;
+				enable_pse_extbits = 0;
+			}
+			else if (!strcmp(pse,"none") || !strcmp(pse,"false")) {
+				enable_pse = false;
+			}
+			else {
+				/* auto */
+				if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMII) {
+					enable_pse = true;
+					enable_pse_extbits = 4; // 36-bit
+				}
+				else if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) {
+					enable_pse = true;
+					enable_pse_extbits = 0;
+				}
+				else {
+					enable_pse = false;
+				}
+			}
+
+			if (enable_pse_extbits != 0)
+				enable_pse_extmask = (1u << enable_pse_extbits) - 1u;
+			else
+				enable_pse_extmask = 0;
+
+			LOG(LOG_CPU,LOG_DEBUG)("PSE extensions: enabled=%u bits=%u",enable_pse,enable_pse_extbits);
+		}
+
 		/* because of the way the BIOS writes certain entry points, a reboot is required
          * if changing between specific levels of CPU. These entry points will fault the
          * CPU otherwise. */
@@ -4087,7 +4133,7 @@ public:
 
 	if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) {
 		do_pse = false;
-		cpu.cr4=0;
+		cpu.cr4 = 0;
 	}
 	else {
 		enable_pse = false;

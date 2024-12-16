@@ -1457,6 +1457,9 @@ void DOSBOX_SetupConfigSections(void) {
     const char* irqhandler[] = {
         "", "simple", "cooperative_2nd", nullptr };
 
+    const char* pseopts[] = {
+        "auto", "none", "pse", "pse36", "pse40", "true", "false", nullptr };
+
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
         "mda",
@@ -2959,8 +2962,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Allow RDMSR/WRMSR instructions. This option is only meaningful when cputype=pentium.\n"
             "WARNING: Leaving this option enabled while installing Windows 95/98/ME can cause crashes.");
 
-    Pbool = secprop->Add_bool("enable pse",Property::Changeable::Always,false);
-    Pbool->Set_help("Allow PSE (Page Size Extensions) to paging");
+    Pstring = secprop->Add_string("enable pse",Property::Changeable::Always,"auto");
+    Pstring->Set_values(pseopts);
+    Pbool->Set_help("Allow PSE (Page Size Extensions) to paging.\n"
+                    "none=Do not enable PSE\n"
+                    "auto=Controlled by cpu type\n"
+                    "pse=Basic PSE\n"
+                    "pse36=PSE with 36-bit addressing\n"
+                    "pse40=PSE with 40-bit addressing");
 
     Pbool = secprop->Add_bool("enable cmpxchg8b",Property::Changeable::Always,true);
     Pbool->Set_help("Enable Pentium CMPXCHG8B instruction. Enable this explicitly if using software that uses this instruction.\n"
