@@ -206,6 +206,13 @@ uint32_t MEM_get_address_bits() {
     return memory.address_bits;
 }
 
+uint32_t MEM_get_address_bits4GB() { /* some code cannot yet handle values larger than 32 */
+    if (memory.address_bits > 32u)
+        return 32u;
+    else
+        return memory.address_bits;
+}
+
 HostPt MemBase = NULL;
 
 class UnmappedPageHandler : public PageHandler {
@@ -1831,12 +1838,16 @@ void Init_AddressLimitAndGateMask() {
     //       20 for 8086 emulation.
     memory.address_bits=(unsigned int)section->Get_int("memalias");
 
-    if (memory.address_bits == 0)
-        memory.address_bits = 32;
+    if (memory.address_bits == 0) {
+        if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMII)
+            memory.address_bits = 36; /* PSE-36 */
+        else
+            memory.address_bits = 32;
+    }
     else if (memory.address_bits < 20)
         memory.address_bits = 20;
-    else if (memory.address_bits > 32)
-        memory.address_bits = 32;
+    else if (memory.address_bits > 36)
+        memory.address_bits = 36;
 
     // TODO: This should be ...? CPU init? Motherboard init?
     /* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++
