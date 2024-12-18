@@ -4471,10 +4471,36 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 	reg_edx = old_edx;
 }
 
+bool break_sysenter = false;
+bool break_sysexit = false;
+
+Bitu DEBUG_EnableDebugger(void);
+
+bool Toggle_BreakSYSEnter() {
+	break_sysenter = !break_sysenter;
+	return break_sysenter;
+}
+
+bool Toggle_BreakSYSExit() {
+	break_sysexit = !break_sysexit;
+	return break_sysexit;
+}
+
+bool Clear_SYSENTER_Debug() {
+	break_sysenter = false;
+	break_sysexit = false;
+	return true;
+}
+
 /* pentium II fast system call */
+/* NTS: Windows XP does not set MSR 0x175, which means the SYSENTER entry point begins to run with ESP == 0. But it loads ESP right away. */
+/* FIXME: Why does this occasionally cause Windows XP to crash? */
 bool CPU_SYSENTER() {
 	if (!enable_syscall) return false;
 	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
+
+	if (break_sysenter)
+		DEBUG_EnableDebugger();
 
 //	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
 
@@ -4510,9 +4536,13 @@ bool CPU_SYSENTER() {
 	return true;
 }
 
+/* FIXME: Why does this occasionally cause Windows XP to crash? */
 bool CPU_SYSEXIT() {
 	if (!enable_syscall) return false;
 	if (!cpu.pmode || cpu_sep_cs == 0 || cpu.cpl != 0) return false; /* CS != 0 and not real mode, or not ring 0 */
+
+	if (break_sysexit)
+		DEBUG_EnableDebugger();
 
 //	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
 
