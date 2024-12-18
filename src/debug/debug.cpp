@@ -1506,6 +1506,8 @@ void SkipSpace(char*& hex) {
     while (*hex == ' ') hex++;
 }
 
+extern uint32_t cpu_sep_eip;
+
 uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
 {
     uint32_t regval = 0;
@@ -1570,6 +1572,7 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             else if (something == "CR2") { regval = (uint32_t)paging.cr2; }
             else if (something == "CR3") { regval = (uint32_t)paging.cr3; }
             else if (something == "CR4") { regval = (uint32_t)cpu.cr4; }
+            else if (something == "SYSENTER") { regval = (uint32_t)cpu_sep_eip; }
             else if (something == "EAX") { regval = reg_eax; }
             else if (something == "EBX") { regval = reg_ebx; }
             else if (something == "ECX") { regval = reg_ecx; }
