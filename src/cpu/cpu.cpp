@@ -4506,8 +4506,10 @@ bool CPU_SYSENTER() {
 
 	CPU_SetCPL(0);
 
+	FillFlags();
 	SETFLAGBIT(VM,false);
 	SETFLAGBIT(IF,false);
+	SETFLAGBIT(RF,false);
 
 	reg_eip = cpu_sep_eip;
 	reg_esp = cpu_sep_esp;
@@ -4526,8 +4528,8 @@ bool CPU_SYSENTER() {
 	Segs.limit[ss] = 0xFFFFFFFF;
 	Segs.expanddown[ss] = false;
 	cpu.stack.big = true;
-	cpu.stack.mask=0xffffffff;
-	cpu.stack.notmask=0x00000000;
+	cpu.stack.mask = 0xffffffff;
+	cpu.stack.notmask = 0x00000000;
 
 	// DEBUG
 //	DEBUG_EnableDebugger();
@@ -4553,19 +4555,19 @@ bool CPU_SYSEXIT() {
 	/* NTS: Do NOT use SetSegGeneral, SYSENTER is documented to set CS and SS based on what was given to the MSR,
 	 *      but with fixed and very specific descriptor cache values that represent 32-bit flat segments with
 	 *      base == 0 and limit == 4GB. */
-	Segs.val[cs] = (cpu_sep_cs | 3) + 0x10; /* Yes, really. Look it up in Intel's documentation */
+	Segs.val[cs] = (cpu_sep_cs & 0xFFFC) + 0x10 + 3/*RPL*/; /* Yes, really. Look it up in Intel's documentation */
 	Segs.phys[cs] = 0;
 	Segs.limit[cs] = 0xFFFFFFFF;
 	Segs.expanddown[cs] = false;
 	cpu.code.big = true;
 
-	Segs.val[ss] = (cpu_sep_cs | 3) + 0x18; /* Yes, really. Look it up in Intel's documentation */
+	Segs.val[ss] = (cpu_sep_cs & 0xFFFC) + 0x18 + 3/*RPL*/; /* Yes, really. Look it up in Intel's documentation */
 	Segs.phys[ss] = 0;
 	Segs.limit[ss] = 0xFFFFFFFF;
 	Segs.expanddown[ss] = false;
 	cpu.stack.big = true;
-	cpu.stack.mask=0xffffffff;
-	cpu.stack.notmask=0x00000000;
+	cpu.stack.mask = 0xffffffff;
+	cpu.stack.notmask = 0x00000000;
 
 	CPU_SetCPL(3);
 
