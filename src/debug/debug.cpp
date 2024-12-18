@@ -51,6 +51,10 @@ using namespace std;
 #include "keyboard.h"
 #include "control.h"
 
+bool Clear_SYSENTER_Debug();
+bool Toggle_BreakSYSEnter();
+bool Toggle_BreakSYSExit();
+
 /* [https://github.com/joncampbell123/dosbox-x/issues/1264] ncurses non-ASCII keys are outside ASCII range (start at octal 0400 == hex 0x100) */
 static inline int ncurses_aware_toupper(int x) {
 	if (x >= 0x00 && x <= 0xFF) return toupper(x);
@@ -2145,6 +2149,22 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
+	if (command == "BPSYSENTER") {
+		if (Toggle_BreakSYSEnter())
+			DEBUG_ShowMsg("DEBUG: Breakpoint on SYSENTER set\n");
+		else
+			DEBUG_ShowMsg("DEBUG: Breakpoint on SYSENTER cleared\n");
+		return true;
+	}
+
+	if (command == "BPSYSEXIT") {
+		if (Toggle_BreakSYSExit())
+			DEBUG_ShowMsg("DEBUG: Breakpoint on SYSEXIT set\n");
+		else
+			DEBUG_ShowMsg("DEBUG: Breakpoint on SYSEXIT cleared\n");
+		return true;
+	}
+
 	if (command == "BP") { // Add new breakpoint
 		uint16_t seg = (uint16_t)GetHexValue(found,found);found++; // skip ":"
 		uint32_t ofs = GetHexValue(found,found);
@@ -2233,6 +2253,7 @@ bool ParseCommand(char* str) {
 		uint8_t bpNr	= (uint8_t)GetHexValue(found,found); 
 		if ((bpNr==0x00) && (*found=='*')) { // Delete all
 			CBreakpoint::DeleteAll();
+			Clear_SYSENTER_Debug();
 			DEBUG_ShowMsg("DEBUG: Breakpoints deleted.\n");
 		} else {
 			// delete single breakpoint
