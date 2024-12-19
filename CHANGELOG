@@ -1,4 +1,12 @@
 Next
+  - Normal core: Fix STI emulation to enforce the 1-instruction delay
+    by forcing the normal core to execute another instruction right
+    away without providing any opportunity for interrupt processing.
+    This does not break Peret Em Heru, Keen games, and it seems to fix
+    the random BSOD issues with Windows XP and Windows Server 2003
+    when emulating a Pentium II that supports SYSENTER/SYSEXIT. I'm
+    not clear on why this fix prevents them from crashing, but there
+    you go. (joncampbell123).
   - Keyboard emulation: Fix PCjr key delay to match IBM documentation
     stating how long it takes to transmit one scan code, which is
     obviously much slower than normal to accomodate the slow CPU and

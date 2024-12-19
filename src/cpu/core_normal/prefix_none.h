@@ -1412,63 +1412,49 @@
 		SETFLAGBIT(CF,true);
 		break;
 	CASE_B(0xfa)												/* CLI */
-do_cli:	if (CPU_CLI()) RUNEXCEPTION();
+		if (CPU_CLI()) RUNEXCEPTION();
 		break;
 	CASE_B(0xfb)												/* STI */
+		//      It turns out on a 486 that STI+CLI (right next to each other) does not
+		//      trigger the CPU to process interrupts. Like this:
+		//
+		//      STI
+		//      CLI
+		//
+		//      The FM music driver for the PC-98 version of Peret em Heru appears to have
+		//      STI+CLI sequences for some reason in certain subroutines within the FM
+		//      music interrupt handler, which should not be trigger points to process
+		//      interrupts because the FM interrupt is non-reentrant and Peret is also
+		//      calling another entry point to the FM driver from IRQ 2 (vsync). If
+		//      IRQ 2 is processed while the FM interrupt is processing at the STI, the
+		//      stack switch will overwrite the first and the FM interrupt will return
+		//      by stale data and crash.
+		//
+		//      [https://github.com/joncampbell123/dosbox-x/issues/1162]
+		//
+		// NTS: The prior fix that set CPU_Cycles = 4 causes the normal core to get stuck
+		//      and never break out (hanging DOSBox-X) when running PC-98 game Night Slave,
+		//      so that isn't a long-term option.
+		//
+		//      Capping CPU_Cycles = 2 seems to break Commander Keen games because of the
+		//      way the video vsync and wait loop works. It waits for retrace/vsync with
+		//      interrupts disabled, then on vertical retrace, briefly enables interrupts
+		//      to allow them to run by jumping to a STI + JMP short $+2 + CLI sequence.
+		//      Note the code deliberately uses a JMP short delay to avoid STI + CLI and
+		//      make sure interrupts process.
+		//
+		// NTS: New idea: On STI, force the core to execute another instruction immediately.
+		//      If there isn't enough CPU cycles, then break out of the loop. If CLI follows
+		//      immediately, then it will undo the effects of STI without a chance to process
+		//      interrupts.
+		if (CPU_Cycles < 1) {
+			CPU_CycleLeft += CPU_Cycles;
+			CPU_Cycles = 0;
+			goto decode_stop_at_instruction; /* stop, leave instruction pointer at STI and come back later */
+		}
 		if (CPU_STI()) RUNEXCEPTION();
-#if CPU_PIC_CHECK
-		if (GETFLAG(IF) && PIC_IRQCheck) {
-            // NTS: Do not immediately break execution, but set the cycle count to a minimal
-            //      value so that if a CLI follows immediately the interrupt will be ignored.
-            //
-            //      It turns out on a 486 that STI+CLI (right next to each other) does not
-            //      trigger the CPU to process interrupts. Like this:
-            //
-            //      STI
-            //      CLI
-            //
-            //      The FM music driver for the PC-98 version of Peret em Heru appears to have
-            //      STI+CLI sequences for some reason in certain subroutines within the FM
-            //      music interrupt handler, which should not be trigger points to process
-            //      interrupts because the FM interrupt is non-reentrant and Peret is also
-            //      calling another entry point to the FM driver from IRQ 2 (vsync). If
-            //      IRQ 2 is processed while the FM interrupt is processing at the STI, the
-            //      stack switch will overwrite the first and the FM interrupt will return
-            //      by stale data and crash.
-            //
-            //      [https://github.com/joncampbell123/dosbox-x/issues/1162]
-            //
-            // NTS: The prior fix that set CPU_Cycles = 4 causes the normal core to get stuck
-            //      and never break out (hanging DOSBox-X) when running PC-98 game Night Slave,
-            //      so that isn't a long-term option.
-            //
-            //      Capping CPU_Cycles = 2 seems to break Commander Keen games because of the
-            //      way the video vsync and wait loop works. It waits for retrace/vsync with
-            //      interrupts disabled, then on vertical retrace, briefly enables interrupts
-            //      to allow them to run by jumping to a STI + JMP short $+2 + CLI sequence.
-            //      Note the code deliberately uses a JMP short delay to avoid STI + CLI and
-            //      make sure interrupts process.
-            {
-                uint8_t b = FetchPeekb();
-                if (b == 0xFAu) {
-                    /* if the next opcode is CLI, then do CLI right here before the normal core
-                     * has any chance to break and handle interrupts */
-                    FetchDiscardb(); // discard opcode we peeked, and then go execute it
-                    CPU_Cycles--; // we're executing another instruction, which should eat one CPU cycle
-                    goto do_cli;
-                }
-            }
-            // otherwise, break for interrupt handling as normal
-            if (CPU_Cycles > 1) {
-                CPU_CycleLeft += CPU_Cycles - 1;
-                CPU_Cycles = 1;
-            }
-            else {
-                goto decode_end;
-            }
-        }
-#endif
-		break;
+		SAVEIP;
+		continue;
 	CASE_B(0xfc)												/* CLD */
 		SETFLAGBIT(DF,false);
 		cpu.direction=1;

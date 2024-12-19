@@ -304,6 +304,7 @@ prefix_out:
 	return CBRET_NONE;
 decode_end:
 	SAVEIP;
+decode_stop_at_instruction:
 	FillFlags();
 	return CBRET_NONE;
 }
