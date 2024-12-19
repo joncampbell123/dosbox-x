@@ -43,7 +43,7 @@
 
 #define KEYBUFSIZE 32*3
 #define RESETDELAY 400
-#define KEYDELAY 0.300f         //Considering 20-30 khz serial clock and 11 bits/char
+static pic_tickindex_t KEYDELAY=0.300f;         //Considering 20-30 khz serial clock and 11 bits/char
 
 #define AUX 0x100
 
@@ -371,8 +371,10 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
      *        scan code was a key-up scancode event for the Escape key, then when part 3 enables the IRQ,
      *        if this code had not cleared the signal, the ISR will be immediately called and the demo
      *        will immediately act as if you hit the escape key and exit right away. */
-    PIC_DeActivateIRQ(12);
-    PIC_DeActivateIRQ(1);
+    if (machine != MCH_PCJR) {
+        PIC_DeActivateIRQ(12);
+        PIC_DeActivateIRQ(1);
+    }
 
     keyb.p60changed=false;
     keyb.auxchanged=false;
@@ -1429,6 +1431,233 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     pc98_keyboard_send(ret | (!pressed ? 0x80 : 0x00));
 }
 
+/* PCjr scan codes reflect the fact that some "keys" are only
+ * available by holding Fn and pressing a key. For example,
+ * F1 is Fn+1. The scan code for the Fn key is 0x54/0xD4 */
+void KEYBOARD_AddKeyPCjr(KBD_KEYS keytype,bool pressed) {
+    uint8_t ret=0;bool fn=false;
+
+    /* FIXME: This is very incomplete, and mostly copy-paste of AddKey1() so far */
+
+    if (keyb.reset)
+        return;
+
+    switch (keytype) {
+    case KBD_esc:ret=1;break;
+    case KBD_1:ret=2;break;
+    case KBD_2:ret=3;break;
+    case KBD_3:ret=4;break;
+    case KBD_4:ret=5;break;
+    case KBD_5:ret=6;break;
+    case KBD_6:ret=7;break;
+    case KBD_7:ret=8;break;
+    case KBD_8:ret=9;break;
+    case KBD_9:ret=10;break;
+    case KBD_0:ret=11;break;
+
+    case KBD_minus:ret=12;break;
+    case KBD_equals:ret=13;break;
+    case KBD_kpequals:ret=0x59;break; /* According to Battler */
+    case KBD_kpcomma: ret=0x7e;break; /* Keypad comma and ABNT C2 (Brazilian KP period)*/
+    case KBD_backspace:ret=14;break;
+    case KBD_tab:ret=15;break;
+
+    case KBD_q:ret=16;break;
+    case KBD_w:ret=17;break;
+    case KBD_e:ret=18;break;
+    case KBD_r:ret=19;break;
+    case KBD_t:ret=20;break;
+    case KBD_y:ret=21;break;
+    case KBD_u:ret=22;break;
+    case KBD_i:ret=23;break;
+    case KBD_o:ret=24;break;
+    case KBD_p:ret=25;break;
+
+    case KBD_leftbracket:ret=26;break;
+    case KBD_rightbracket:ret=27;break;
+    case KBD_enter:ret=28;break;
+    case KBD_leftctrl:
+        ret=29;
+        keyb.leftctrl_pressed=pressed;
+        break;
+
+    case KBD_a:ret=30;break;
+    case KBD_s:ret=31;break;
+    case KBD_d:ret=32;break;
+    case KBD_f:ret=33;break;
+    case KBD_g:ret=34;break;
+    case KBD_h:ret=35;break;
+    case KBD_j:ret=36;break;
+    case KBD_k:ret=37;break;
+    case KBD_l:ret=38;break;
+
+    case KBD_semicolon:ret=39;break;
+    case KBD_quote:ret=40;break;
+    case KBD_jp_hankaku:ret=41;break;
+    case KBD_grave:ret=41;break;
+    case KBD_leftshift:
+        ret=42;
+        keyb.leftshift_pressed=pressed;
+        break;
+    case KBD_backslash:ret=43;break;
+    case KBD_z:ret=44;break;
+    case KBD_x:ret=45;break;
+    case KBD_c:ret=46;break;
+    case KBD_v:ret=47;break;
+    case KBD_b:ret=48;break;
+    case KBD_n:ret=49;break;
+    case KBD_m:ret=50;break;
+
+    case KBD_comma:ret=51;break;
+    case KBD_period:ret=52;break;
+    case KBD_slash:ret=53;break;
+    case KBD_rightshift:
+        ret=54;
+        keyb.rightshift_pressed=pressed;
+        break;
+    case KBD_kpmultiply:ret=55;break;
+    case KBD_leftalt:
+        ret=56;
+        keyb.leftalt_pressed=pressed;
+        break;
+    case KBD_space:ret=57;break;
+    case KBD_capslock:ret=58;break;
+
+    case KBD_f1:ret=2;fn=true;break; /* Fn+1*/
+    case KBD_f2:ret=3;fn=true;break; /* Fn+2*/
+    case KBD_f3:ret=4;fn=true;break; /* Fn+3*/
+    case KBD_f4:ret=5;fn=true;break; /* Fn+4*/
+    case KBD_f5:ret=6;fn=true;break; /* Fn+5*/
+    case KBD_f6:ret=7;fn=true;break; /* Fn+6*/
+    case KBD_f7:ret=8;fn=true;break; /* Fn+7*/
+    case KBD_f8:ret=9;fn=true;break; /* Fn+8*/
+    case KBD_f9:ret=10;fn=true;break; /* Fn+9*/
+    case KBD_f10:ret=11;fn=true;break; /* Fn+10*/
+
+    case KBD_numlock:ret=69;break;
+    case KBD_scrolllock:ret=70;break;
+
+    case KBD_kp7:ret=71;break;
+    case KBD_kp8:ret=72;break;
+    case KBD_kp9:ret=73;break;
+    case KBD_kpminus:ret=74;break;
+    case KBD_kp4:ret=75;break;
+    case KBD_kp5:ret=76;break;
+    case KBD_kp6:ret=77;break;
+    case KBD_kpplus:ret=78;break;
+    case KBD_kp1:ret=79;break;
+    case KBD_kp2:ret=80;break;
+    case KBD_kp3:ret=81;break;
+    case KBD_kp0:ret=82;break;
+    case KBD_kpperiod:ret=83;break;
+
+    case KBD_extra_lt_gt:ret=86;break;
+
+    //The Extended keys
+
+    case KBD_kpenter:ret=28;break;
+    case KBD_rightctrl:
+        ret=29;
+        keyb.rightctrl_pressed=pressed;
+        break;
+    case KBD_kpdivide:ret=53;break;
+    case KBD_rightalt:
+        ret=56;
+        keyb.rightalt_pressed=pressed;
+        break;
+    case KBD_home:ret=71;break;
+    case KBD_up:ret=72;break;
+    case KBD_pageup:ret=73;break;
+    case KBD_left:ret=75;break;
+    case KBD_right:ret=77;break;
+    case KBD_end:ret=79;break;
+    case KBD_down:ret=80;break;
+    case KBD_pagedown:ret=81;break;
+    case KBD_insert:ret=82;break;
+    case KBD_delete:ret=83;break;
+    case KBD_pause:
+        if (!pressed) {
+            /* keyboards send both make&break codes for this key on
+               key press and nothing on key release */
+            return;
+        }
+        if (!keyb.leftctrl_pressed && !keyb.rightctrl_pressed) {
+            /* neither leftctrl, nor rightctrl pressed -> PAUSE key */
+            KEYBOARD_AddBuffer(0xe1);
+            KEYBOARD_AddBuffer(29);
+            KEYBOARD_AddBuffer(69);
+            KEYBOARD_AddBuffer(0xe1);
+            KEYBOARD_AddBuffer(29|0x80);
+            KEYBOARD_AddBuffer(69|0x80);
+        } else if (!keyb.leftctrl_pressed || !keyb.rightctrl_pressed) {
+            /* exactly one of [leftctrl, rightctrl] is pressed -> Ctrl+BREAK */
+            KEYBOARD_AddBuffer(0xe0);
+            KEYBOARD_AddBuffer(70);
+            KEYBOARD_AddBuffer(0xe0);
+            KEYBOARD_AddBuffer(70|0x80);
+        }
+        /* pressing this key also disables any previous key repeat */
+        keyb.repeat.key=KBD_NONE;
+        keyb.repeat.wait=0;
+        return;
+    case KBD_printscreen:
+        /* NTS: Check previous assertion that the Print Screen sent these bytes in
+         *      one order when pressed and reverse order when released. Or perhaps
+         *      that's only what some keyboards do. --J.C. */
+        if (keyb.leftalt_pressed || keyb.rightalt_pressed) {
+            KEYBOARD_AddBuffer(0x54 | (pressed ? 0 : 0x80));
+        }
+        else if (keyb.leftctrl_pressed || keyb.rightctrl_pressed || keyb.leftshift_pressed || keyb.rightshift_pressed) {
+            KEYBOARD_AddBuffer(0xe0);
+            KEYBOARD_AddBuffer(0x37 | (pressed ? 0 : 0x80));
+        }
+        else {
+            KEYBOARD_AddBuffer(0xe0);
+            KEYBOARD_AddBuffer(0x2a | (pressed ? 0 : 0x80)); /* 0x2a == 42 */
+            KEYBOARD_AddBuffer(0xe0);
+            KEYBOARD_AddBuffer(0x37 | (pressed ? 0 : 0x80)); /* 0x37 == 55 */
+        }
+        /* pressing this key also disables any previous key repeat */
+        keyb.repeat.key = KBD_NONE;
+        keyb.repeat.wait = 0;
+        return;
+    case KBD_lwindows:ret=0x5B;break;
+    case KBD_rwindows:ret=0x5C;break;
+    case KBD_rwinmenu:ret=0x5D;break;
+	case KBD_underscore:ret = 86; break;//for AX layout
+	case KBD_yen:ret = 43; break;//for AX layout
+    case KBD_jp_muhenkan:ret=0x7B;break;
+    case KBD_jp_henkan:ret=0x79;break;
+    case KBD_jp_hiragana:ret=0x70;break;/*also Katakana */
+    case KBD_jp_backslash:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode also ABNT C1(Brazilian /)*/
+    case KBD_jp_yen:ret=0x7d;break;/*JP 106-key: | ¥ (yen) or ー (prolonged sound mark)  <-- WARNING: UTF-8 unicode */
+	case KBD_colon:if (!pc98_force_ibm_layout) {ret = 0x28; break;} /*JP106-key : or * same position with Quote key */
+	case KBD_caret:if (!pc98_force_ibm_layout) {ret = 0x0d; break;} /*JP106-key ^ or ~ same position with Equals key */
+	case KBD_atsign:if (!pc98_force_ibm_layout) {ret = 0x1a; break;} /*JP106-key @ or ` same position with Left-bracket key */
+	default:
+        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (unsigned long)keytype);
+        return;
+    }
+
+    /* Add the actual key in the keyboard queue */
+    if (pressed) {
+        if (keyb.repeat.key == keytype) keyb.repeat.wait = keyb.repeat.rate;
+        else keyb.repeat.wait = keyb.repeat.pause;
+        keyb.repeat.key = keytype;
+	if (fn) KEYBOARD_AddBuffer(0x54);/*Fn*/
+        KEYBOARD_AddBuffer(ret);
+    } else {
+        if (keyb.repeat.key == keytype) {
+            /* repeated key being released */
+            keyb.repeat.key  = KBD_NONE;
+            keyb.repeat.wait = 0;
+        }
+
+        KEYBOARD_AddBuffer(ret+0x80);
+	if (fn) KEYBOARD_AddBuffer(0x54+0x80);/*Fn*/
+    }
+}
+
 void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     uint8_t ret=0,ret2=0;bool extend=false;
 
@@ -1739,6 +1968,9 @@ void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
 
     if (IS_PC98_ARCH) {
         KEYBOARD_PC98_AddKey(keytype,pressed);
+    }
+    else if (machine == MCH_PCJR) {
+        KEYBOARD_AddKeyPCjr(keytype,pressed);
     }
     else if (keyb.cb_xlat) {
         /* emulate typical setup where keyboard generates scan set 2 and controller translates to scan set 1 */
@@ -2656,6 +2888,11 @@ void KEYBOARD_OnReset(Section *sec) {
             LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");
         }
     }
+
+    if (machine == MCH_PCJR) // IBM Personal Computer PCjr Hardware Ref Tech Ref 2-104 Cordless Keyboard
+        KEYDELAY=0.440 * 11; // 440us bit cell times 21 bits (START + DATA(8) + PARITY + 11 STOP)
+    else
+        KEYDELAY=0.300f; //Considering 20-30 khz serial clock and 11 bits/char
 
     TIMER_DelTickHandler(&KEYBOARD_TickHandler);
 
