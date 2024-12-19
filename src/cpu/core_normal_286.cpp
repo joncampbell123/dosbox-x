@@ -223,6 +223,7 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
+decode_stop_at_instruction:
 	FillFlags();
 	return CBRET_NONE;
 /* 8086/286 multiple prefix interrupt bug emulation.

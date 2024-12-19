@@ -283,6 +283,7 @@ restart_opcode:
     }
 #endif
 
+decode_stop_at_instruction:
 	FillFlags();
 	return CBRET_NONE;
 decode_end:
