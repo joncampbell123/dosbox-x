@@ -1,4 +1,21 @@
 Next
+  - Keyboard emulation: Fix PCjr key delay to match IBM documentation
+    stating how long it takes to transmit one scan code, which is
+    obviously much slower than normal to accomodate the slow CPU and
+    the optical nature of the transmission. This is needed in order
+    for emulation to correctly send Fn+key combinations. At normal
+    key delay, the guest will miss scan codes and function keys will
+    not be reliable. (joncampbell123).
+  - Keyboard emulation: The 83-keyboard scan codes work differently on
+    the PCjr keyboard because half of them are only accessible by holding
+    the Fn key. The keyboard only sends the base key scan code and the Fn
+    key scan code and the BIOS is expected to convert that to the normal
+    83-key scan codes expected by DOS software. The problem is some games
+    like "Agent USA" for PCjr are written to directly handle scan codes
+    through IRQ 1 (the fact that PCjr handles keyboard via NMI and reflects
+    to INT 9 is ignored here). Fix this by sending scan codes that emulate
+    holding Fn and pressing the appropriate key. Agent USA expects the
+    user to press F1 by holding Fn and pressing "1". (joncampbell123).
   - Revise VGA doublescan mode, vs bit 7 of the Max scanline register, to
     correct how VGA doublescans 200-line modes. Revise EGA/VGA text code
     to divide line by 2 in rendering to match double scanned scanlines,
