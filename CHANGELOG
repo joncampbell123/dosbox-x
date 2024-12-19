@@ -50,6 +50,10 @@ Next
   - Added dosbox.conf option to specify BIOS logo file. (joncampbell123).
   - Added dosbox.conf option to specify a text message, up to 3 lines,
     at the bottom of the screen during BIOS POST screen. (joncampbell123).
+  - Fix color glitches in EGA, Tandy, Hercules mode on macOS SDL2 build 
+    (output=opengl)(maron2000)
+  - Add int33 mickey threshold option (Fixes Ultima Underworld) (jpernst)
+  - Fix configure.ac (disable-screenshot option) (maron2000) 
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
