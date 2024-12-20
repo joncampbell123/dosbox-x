@@ -1,4 +1,7 @@
 Next
+  - Fix default code page. Instead of assuming 437 at all times, use
+    437 for all IBM PC compatible modes and 932 for PC-98 emulation.
+    (joncampbell123).
   - Normal core: Fix STI emulation to enforce the 1-instruction delay
     by forcing the normal core to execute another instruction right
     away without providing any opportunity for interrupt processing.
