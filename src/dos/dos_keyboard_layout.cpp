@@ -1677,13 +1677,25 @@ public:
                     break;
 			}
 #else // !WIN32
+	    if (IS_PC98_ARCH) {
+            layoutname = "jp";
+            wants_dos_codepage = 932;
+	    }
+	    else {
             layoutname = "us";
             wants_dos_codepage = 437;
+	    }
 #endif
         }
         else if(!strncmp(layoutname, "none", 4)) {
+	    if (IS_PC98_ARCH) {
+            layoutname = "jp";
+            wants_dos_codepage = 932;
+	    }
+	    else {
             layoutname = "us";
             wants_dos_codepage = 437;
+	    }
         }
 
 		bool extract_codepage = !tocp;
