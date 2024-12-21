@@ -1461,7 +1461,11 @@ public:
 		loaded_layout=new keyboard_layout();
 
 		Bits wants_dos_codepage = -1;
-		if (!strncmp(layoutname,"auto",4)) {
+        if(IS_PC98_ARCH) {
+            layoutname = "jp";
+            tocp = 932;
+        }
+        else if(!strncmp(layoutname, "auto", 4)) {
 #if defined (WIN32)
 			WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
 			WORD cur_kb_subID  = 0;
@@ -1677,25 +1681,13 @@ public:
 					break;
 			}
 #else // !WIN32
-			if (IS_PC98_ARCH) {
-				layoutname = "jp";
-				wants_dos_codepage = 932;
-			}
-			else {
-				layoutname = "us";
-				wants_dos_codepage = 437;
-			}
+    		layoutname = "us";
+			wants_dos_codepage = 437;
 #endif
 		}
 		else if(!strncmp(layoutname, "none", 4)) {
-			if (IS_PC98_ARCH) {
-				layoutname = "jp";
-				wants_dos_codepage = 932;
-			}
-			else {
-				layoutname = "us";
-				wants_dos_codepage = 437;
-			}
+			layoutname = "us";
+			wants_dos_codepage = 437;
 		}
 
 		bool extract_codepage = !tocp;
