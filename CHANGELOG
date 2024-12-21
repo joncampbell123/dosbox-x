@@ -1,4 +1,8 @@
 Next
+  - Dynamic x86 core: Reflect STI instruction to normal core so that
+    the 1-instruction delay is correctly emulated. This makes it
+    possible to run Windows XP or Server 2003 with dynamic core and
+    SYSENTER/SYSEXIT emulation without random BSODs (joncampbell123).
   - Fix default code page. Instead of assuming 437 at all times, use
     437 for all IBM PC compatible modes and 932 for PC-98 emulation.
     (joncampbell123).
