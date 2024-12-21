@@ -1208,8 +1208,10 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
     Bitu DEBUG_EnableDebugger(void);
 
     if (type != CPU_INT_SOFTWARE) { /* CPU core already takes care of SW interrupts */
+#if !defined(HX_DOS)
         if (DEBUG_IntBreakpoint((uint8_t)num))
             DEBUG_EnableDebugger();
+#endif
     }
 # endif
     if (type == CPU_INT_SOFTWARE && boothax == BOOTHAX_MSDOS) {
@@ -4499,8 +4501,10 @@ bool CPU_SYSENTER() {
 	if (!enable_syscall) return false;
 	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
 
+#if !defined(HX_DOS)
 	if (break_sysenter)
 		DEBUG_EnableDebugger();
+#endif
 
 //	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
 
@@ -4543,8 +4547,10 @@ bool CPU_SYSEXIT() {
 	if (!enable_syscall) return false;
 	if (!cpu.pmode || cpu_sep_cs == 0 || cpu.cpl != 0) return false; /* CS != 0 and not real mode, or not ring 0 */
 
+#if !defined(HX_DOS)
 	if (break_sysexit)
 		DEBUG_EnableDebugger();
+#endif
 
 //	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
 
