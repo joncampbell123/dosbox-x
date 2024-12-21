@@ -232,8 +232,6 @@ PhysPt DOS_Get_DPB(unsigned int dos_drive) {
 }
 
 void SetupDBCSTable() {
-    if (dos.loaded_codepage==950&&!chinasea) makestdcp950table();
-    else if (dos.loaded_codepage==951&&chinasea) makeseacp951table();
     if (enable_dbcs_tables) {
         if (!dos.tables.dbcs) dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
 
@@ -268,6 +266,8 @@ void SetupDBCSTable() {
     else {
         dos.tables.dbcs=0;
     }
+    if(dos.loaded_codepage == 950 && !chinasea) makestdcp950table();
+    else if(dos.loaded_codepage == 951 && chinasea) makeseacp951table();
 }
 
 uint16_t seg_win_startup_info;
