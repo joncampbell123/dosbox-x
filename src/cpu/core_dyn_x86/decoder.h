@@ -3152,13 +3152,7 @@ restart_prefix:
 			gen_releasereg(DREG(TMPB));
 			break;
 		case 0xfb:		//STI
-			gen_releasereg(DREG(FLAGS));
-			gen_call_function((void *)&CPU_STI,"%Rd",DREG(TMPB));
-			dyn_check_bool_exception(DREG(TMPB));
-			gen_releasereg(DREG(TMPB));
-			dyn_check_irqrequest();
-			if (max_opcodes<=0) max_opcodes=1;		//Allow 1 extra opcode
-			break;
+			goto illegalopcode2; // signal "illegal" opcode so the core reflects to normal core which can then properly do the STI delay
 		case 0xfc:		//CLD
 			gen_protectflags();
 			gen_dop_word_imm(DOP_AND,true,DREG(FLAGS),~FLAG_DF);
@@ -3281,6 +3275,13 @@ illegalopcode:
 	dyn_reduce_cycles();
 	dyn_save_critical_regs();
 	gen_return(BR_Opcode);
+	dyn_closeblock();
+	goto finish_block;
+illegalopcode2:
+	dyn_set_eip_last();
+	dyn_reduce_cycles();
+	dyn_save_critical_regs();
+	gen_return(BR_Opcode2);
 	dyn_closeblock();
 	goto finish_block;
 finish_block:
