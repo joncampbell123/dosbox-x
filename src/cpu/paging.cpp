@@ -964,15 +964,21 @@ bool PAGING_MakePhysPage(Bitu & page) {
 		dir_entry.load = phys_readd(GetPageDirectoryEntryAddr((PhysPt)(page<<12)));
 		if (!dir_entry.dirblock.p) return false;
 
-		if (do_pse && dir_entry.dirblock.ps) E_Exit("PSE and MakePhysPage not yet supported");//TODO
+		if (do_pse && dir_entry.dirblock.ps) {
+			// return it
+			page =	 (dir_entry.dirblock4mb.base22<<10u)|
+				((dir_entry.dirblock4mb.base32&enable_pse_extmask)<<20u)|
+				 (page&0x3FFu);
+		}
+		else {
+			// check the page table entry
+			X86PageEntry tbl_entry;
+			tbl_entry.load = phys_readd(GetPageTableEntryAddr((PhysPt)(page<<12), dir_entry));
+			if (!tbl_entry.block.p) return false;
 
-		// check the page table entry
-		X86PageEntry tbl_entry;
-		tbl_entry.load = phys_readd(GetPageTableEntryAddr((PhysPt)(page<<12), dir_entry));
-		if (!tbl_entry.block.p) return false;
-
-		// return it
-		page = tbl_entry.block.base;
+			// return it
+			page = tbl_entry.block.base;
+		}
 	} else {
 		if (page<LINK_START) page=paging.firstmb[page];
 		//Else keep it the same
