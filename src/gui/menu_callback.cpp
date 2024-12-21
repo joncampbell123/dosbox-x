@@ -957,23 +957,23 @@ bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
     else if (!strcmp(mname, "cpu486-133"))
         cyclemu = 47810;
     else if (!strcmp(mname, "cpu586-60"))
-        cyclemu = 31545;
+        cyclemu = 32090;
     else if (!strcmp(mname, "cpu586-66"))
         cyclemu = 35620;
     else if (!strcmp(mname, "cpu586-75"))
-        cyclemu = 43500;
+        cyclemu = 40072;
     else if (!strcmp(mname, "cpu586-90"))
-        cyclemu = 52000;
+        cyclemu = 48087;
     else if (!strcmp(mname, "cpu586-100"))
-        cyclemu = 60000;
+        cyclemu = 53430;
     else if (!strcmp(mname, "cpu586-120"))
-        cyclemu = 74000;
+        cyclemu = 64180;
     else if (!strcmp(mname, "cpu586-133"))
-        cyclemu = 80000;
+        cyclemu = 71240;
     else if (!strcmp(mname, "cpu586-166"))
-        cyclemu = 97240;
-    else if (!strcmp(mname, "cpuak6-166"))
-        cyclemu = 110000;
+        cyclemu = 95548;
+    else if (!strcmp(mname, "cpu586-200"))
+        cyclemu = 114657;
     else if (!strcmp(mname, "cpuak6-200"))
         cyclemu = 130000;
     else if (!strcmp(mname, "cpuak6-300"))
@@ -1248,7 +1248,7 @@ bool vid_pc98_enable_188user_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::i
 
         mainMenu.get_item("pc98_enable_188user").check(enable_pc98_188usermod).refresh_item(mainMenu);
     }
-    
+
     return true;
 }
 
@@ -1271,7 +1271,7 @@ bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item 
 
             if(!enable_pc98_grcg) { //Also enable GRCG if GRCG is disabled when enabling EGC
                 enable_pc98_grcg = !enable_pc98_grcg;
-                mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00));   
+                mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00));
                 pc98_section->HandleInputline("pc-98 enable grcg=1");
             }
         }
@@ -1281,7 +1281,7 @@ bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item 
         mainMenu.get_item("pc98_enable_egc").check(enable_pc98_egc).refresh_item(mainMenu);
         mainMenu.get_item("pc98_enable_grcg").check(enable_pc98_grcg).refresh_item(mainMenu);
     }
-    
+
     return true;
 }
 
@@ -1305,7 +1305,7 @@ bool vid_pc98_enable_grcg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item
         if ((!enable_pc98_grcg) && enable_pc98_egc) { // Also disable EGC if switching off GRCG
             void gdc_egc_enable_update_vars(void);
             enable_pc98_egc = !enable_pc98_egc;
-            gdc_egc_enable_update_vars();   
+            gdc_egc_enable_update_vars();
             pc98_section->HandleInputline("pc-98 enable egc=0");
         }
 
@@ -1319,7 +1319,7 @@ bool vid_pc98_enable_grcg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item
 bool vid_pc98_enable_analog_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    //NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode? 
+    //NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode?
     extern bool enable_pc98_16color;
     void gdc_16color_enable_update_vars(void);
 
@@ -1342,7 +1342,7 @@ bool vid_pc98_enable_analog_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
 bool vid_pc98_enable_analog256_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    //NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode? 
+    //NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode?
     extern bool enable_pc98_256color;
     void gdc_16color_enable_update_vars(void);
 
@@ -3129,15 +3129,15 @@ void AllocCallback1() {
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-66").set_text("486DX2 66MHz (~23880 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-100").set_text("486DX4 100MHz (~33445 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-133").set_text("486DX5 133MHz (~47810 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-60").set_text("Pentium 60MHz (~31545 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-60").set_text("Pentium 60MHz (~32090 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-66").set_text("Pentium 66MHz (~35620 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-75").set_text("Pentium 75MHz (~43500 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-90").set_text("Pentium 90MHz (~52000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-100").set_text("Pentium 100MHz (~60000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-120").set_text("Pentium 120MHz (~74000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-133").set_text("Pentium 133MHz (~80000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-166").set_text("Pentium 166MHz MMX (~97240 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuak6-166").set_text("AMD K6 166MHz (~110000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-75").set_text("Pentium 75MHz (~40072 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-90").set_text("Pentium 90MHz (~48087 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-100").set_text("Pentium 100MHz (~53430 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-120").set_text("Pentium 120MHz (~64180 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-133").set_text("Pentium 133MHz (~71240 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-166").set_text("Pentium 166MHz MMX (~95548 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-200").set_text("Pentium 200MHz MMX (~114657 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuak6-200").set_text("AMD K6 200MHz (~130000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuak6-300").set_text("AMD K6-2 300MHz (~193000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuath-600").set_text("AMD Athlon 600MHz (~306000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
@@ -3149,7 +3149,7 @@ void AllocCallback1() {
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoFrameskipMenu");
                 item.set_text("Frameskip");
-        
+
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"frameskip_0").set_text("Off").
                     set_callback_function(video_frameskip_common_menu_callback);
 
