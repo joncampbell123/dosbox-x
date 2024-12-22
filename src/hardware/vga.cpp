@@ -708,6 +708,8 @@ bool has_pcibus_enable(void);
 uint32_t MEM_get_address_bits();
 uint32_t GetReportedVideoMemorySize(void);
 
+static uint32_t assigned_lfb = 0;
+
 void VGA_Reset(Section*) {
 //  All non-PC98 video-related config settings are now in the [video] section
 
@@ -749,9 +751,9 @@ void VGA_Reset(Section*) {
         lfb_default = true;
     }
 
-    /* no farther than 32MB below the top */
-    if (S3_LFB_BASE > 0xFE000000UL)
-        S3_LFB_BASE = 0xFE000000UL;
+    /* no farther than 64MB below the top, do not overlap the BIOS */
+    if (S3_LFB_BASE > 0xFC000000UL)
+        S3_LFB_BASE = 0xFC000000UL;
 
     /* if the user WANTS the base address to be PCI misaligned, then turn off PCI VGA emulation */
     if (enable_pci_vga && has_pcibus_enable() && (S3_LFB_BASE & 0x1FFFFFFul)) {
@@ -768,20 +770,25 @@ void VGA_Reset(Section*) {
         enable_pci_vga = false;
     }
 
-    /* must not overlap system RAM */
+    /* must not overlap system RAM or other devices */
     if (S3_LFB_BASE < (MEM_TotalPages()*4096))
         S3_LFB_BASE = (MEM_TotalPages()*4096);
+    if (S3_LFB_BASE < assigned_lfb)
+        S3_LFB_BASE = assigned_lfb;
 
     if (enable_pci_vga && has_pcibus_enable()) {
         /* must be 32MB aligned (PCI) */
-        S3_LFB_BASE +=  0x0FFFFFFUL;
+        S3_LFB_BASE +=  0x1FFFFFFUL;
         S3_LFB_BASE &= ~0x1FFFFFFUL;
     }
     else {
         /* must be 64KB aligned (ISA) */
-        S3_LFB_BASE +=  0x7FFFUL;
+        S3_LFB_BASE +=  0xFFFFUL;
         S3_LFB_BASE &= ~0xFFFFUL;
     }
+
+    /* sanity check */
+    if (S3_LFB_BASE >= 0xFE000000UL) E_Exit("S3 LFB base 0x%lx would overlap BIOS",(unsigned long)S3_LFB_BASE);
 
     /* if the constraints we imposed make it impossible to maintain the alignment required for PCI,
      * then just switch off PCI VGA emulation. */
@@ -1662,6 +1669,12 @@ void VGA_Init() {
     vga.tandy.mem_base = NULL;
     LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA");
     LOG(LOG_MISC,LOG_DEBUG)("Render scaler maximum resolution is %u x %u",SCALER_MAXWIDTH,SCALER_MAXHEIGHT);
+
+    /* the purpose of this is so that, if everything is crammed up at the top to make room for system RAM, the S3 and 3Dfx do not conflict */
+    if (IS_VGA_ARCH && svgaCard != SVGA_None)
+        assigned_lfb = MEM_HardwareAllocate("VGA",32ul << 20ul/*32MB*/);
+    else
+	LOG(LOG_MISC,LOG_DEBUG)("Emulation does not require allocating or assigning any LFB");
 
     VGA_TweakUserVsyncOffset(0.0f);
 

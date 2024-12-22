@@ -30,6 +30,7 @@
 #include "programs.h"
 #include "zipfile.h"
 #include "regs.h"
+#include "bitop.h"
 #ifndef WIN32
 # include <stdlib.h>
 # include <unistd.h>
@@ -200,6 +201,7 @@ static struct MemoryBlock {
     uint32_t mem_alias_pagemask = 0;
     uint32_t mem_alias_pagemask_active = 0;
     uint32_t address_bits = 0;
+    uint32_t hw_next_assign = 0;
 } memory;
 
 uint32_t MEM_get_address_bits() {
@@ -1890,6 +1892,27 @@ void MEM_InitCallouts(void) {
     MEM_callouts[MEM_callouts_index(MEM_TYPE_MB)].resize(64);
 }
 
+uint32_t MEM_HardwareAllocate(const char *name,uint32_t sz) {
+    uint32_t assign = 0;
+
+    if (sz != 0ul && bitop::ispowerof2(sz)) {
+        if (memory.hw_next_assign < 0xFE000000ul) {
+            memory.hw_next_assign += sz - 1ul;
+            memory.hw_next_assign &= ~(sz - 1ul);
+        }
+        if (memory.hw_next_assign < 0xFE000000ul) {
+            assign = memory.hw_next_assign;
+            memory.hw_next_assign += sz;
+            LOG(LOG_MISC,LOG_DEBUG)("Device '%s' assigned address 0x%lx-0x%lx which it may treat as minimum\n",name,(unsigned long)assign,(unsigned long)assign+(unsigned long)sz-1ul);
+        }
+    }
+
+    if (assign == 0)
+        LOG(LOG_MISC,LOG_DEBUG)("Unable to assign device '%s' a physical address of size 0x%lx\n",name,(unsigned long)sz);
+
+    return assign;
+}
+
 void Init_RAM() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
     Bitu i;
@@ -1936,6 +1959,15 @@ void Init_RAM() {
     {
         Bitu maxsz;
 
+        /* Leave 128MB of space at the top for the BIOS, S3 VGA, and Voodoo 3Dfx emulation.
+         * There was a known bug 2024/12/21 where setting the maximum memory size and installing
+         * Windows XP caused problems because XP would try to use the Voodoo 3Dfx MMIO as memory
+         * when enabled at 0xD0000000.
+         *
+         * BIOS: Given the 512KB at the top, including for ACPI structures
+         * PC-98 PEGC framebuffer: 512KB below BIOS
+         * S3 LFB and MMIO: 32MB at 32MB alignment
+         * Voodoo 3Dfx: 16MB at 16MB alignment */
         if (sizeof(void*) > 4) // 64-bit address space
             maxsz = (Bitu)(3968ul * 1024ul); // 3.9GB (up to 0xF8000000)
         else
@@ -1949,6 +1981,8 @@ void Init_RAM() {
         LOG_MSG("Final %lu\n",(unsigned long)memsizekb);
     }
     memory.reported_pages = memory.pages = memsizekb/4;
+    memory.hw_next_assign = memory.pages << 12ul;
+    LOG(LOG_MISC,LOG_DEBUG)("Hardware assignment will begin at 0x%lx",(unsigned long)memory.hw_next_assign);
 
     // FIXME: Hopefully our refactoring will remove the need for this hack
     /* if the config file asks for less than 1MB of memory
