@@ -976,120 +976,120 @@ static void DrawData(void) {
 	uint8_t ch;
 	uint32_t add = dataOfs;
 	uint64_t address;
-    int w,h,y;
+	int w,h,y;
 
 	/* Data win */	
-    getmaxyx(dbg.win_data,h,w);
+	getmaxyx(dbg.win_data,h,w);
 
-    if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) h--;
+	if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) h--;
 
 	for (y=0;y<h;y++) {
 		// Address
-        if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
-            wattrset (dbg.win_data,0);
-            mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
-        }
-        else {
-            wattrset (dbg.win_data,0);
-            mvwprintw (dbg.win_data,y,0,"     %08X ",add);
-        }
+		if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
+			wattrset (dbg.win_data,0);
+			mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
+		}
+		else {
+			wattrset (dbg.win_data,0);
+			mvwprintw (dbg.win_data,y,0,"     %08X ",add);
+		}
 
-        if (dbg.data_view == DBGBlock::DATV_PHYSICAL) {
-            for (int x=0; x<16; x++) {
-                address = add;
+		if (dbg.data_view == DBGBlock::DATV_PHYSICAL) {
+			for (int x=0; x<16; x++) {
+				address = add;
 
-                /* save the original page addr.
-                 * we must hack the phys page tlb to make the hardware handler map 1:1 the page for this call. */
-                PhysPt opg = paging.tlb.phys_page[address>>12];
+				/* save the original page addr.
+				 * we must hack the phys page tlb to make the hardware handler map 1:1 the page for this call. */
+				PhysPt opg = paging.tlb.phys_page[address>>12];
 
-                paging.tlb.phys_page[address>>12] = (uint32_t)(address>>12);
+				paging.tlb.phys_page[address>>12] = (uint32_t)(address>>12);
 
-                PageHandler *ph = MEM_GetPageHandler((Bitu)(address>>12));
+				PageHandler *ph = MEM_GetPageHandler((Bitu)(address>>12));
 
-                if (ph->flags & PFLAG_READABLE)
-	                ch = ph->GetHostReadPt((Bitu)(address>>12))[address&0xFFF];
-                else
-                    ch = ph->readb((PhysPt)address);
+				if (ph->flags & PFLAG_READABLE)
+					ch = ph->GetHostReadPt((Bitu)(address>>12))[address&0xFFF];
+				else
+					ch = ph->readb((PhysPt)address);
 
-                paging.tlb.phys_page[address>>12] = opg;
+				paging.tlb.phys_page[address>>12] = opg;
 
-                wattrset (dbg.win_data,0);
-                mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
-                if(showPrintable) {
-                    if (ch<32 || !isprint(ch)) ch='.';
-                    mvwaddch(dbg.win_data, y, 63 + x, ch);
-                } else {
+				wattrset (dbg.win_data,0);
+				mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
+				if(showPrintable) {
+					if (ch<32 || !isprint(ch)) ch='.';
+					mvwaddch(dbg.win_data, y, 63 + x, ch);
+				} else {
 #ifdef __PDCURSES__
-                    mvwaddrawch(dbg.win_data, y, 63 + x, ch);
+					mvwaddrawch(dbg.win_data, y, 63 + x, ch);
 #else
-                    if(ch < 32) ch = '.';
-                    mvwaddch(dbg.win_data, y, 63 + x, ch);
+					if(ch < 32) ch = '.';
+					mvwaddch(dbg.win_data, y, 63 + x, ch);
 #endif
-                }
+				}
 
-                add++;
-            }
-        }
-        else {
-            for (int x=0; x<16; x++) {
-                if (dbg.data_view == DBGBlock::DATV_SEGMENTED)
-                    address = GetAddress(dataSeg,add);
-                else
-                    address = add;
+				add++;
+			}
+		}
+		else {
+			for (int x=0; x<16; x++) {
+				if (dbg.data_view == DBGBlock::DATV_SEGMENTED)
+					address = GetAddress(dataSeg,add);
+				else
+					address = add;
 
-                if (address != mem_no_address) {
-                    if (!mem_readb_checked((PhysPt)address,&ch)) {
-                        wattrset (dbg.win_data,0);
-                        mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
-                        if(showPrintable) {
-                            if (ch<32 || !isprint(ch)) ch='.';
-                            mvwprintw (dbg.win_data,y,63+x,"%c",ch);
-                        } else mvwaddch(dbg.win_data,y,63+x,ch);
-                    }
-                    else {
-                        wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
-                        mvwprintw (dbg.win_data,y,14+3*x,"pf");
-                        mvwprintw (dbg.win_data,y,63+x,".");
-                    }
-                }
-                else {
-                    wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
-                    mvwprintw (dbg.win_data,y,14+3*x,"na");
-                    mvwprintw (dbg.win_data,y,63+x,".");
-                }
+				if (address != mem_no_address) {
+					if (!mem_readb_checked((PhysPt)address,&ch)) {
+						wattrset (dbg.win_data,0);
+						mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
+						if(showPrintable) {
+							if (ch<32 || !isprint(ch)) ch='.';
+							mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+						} else mvwaddch(dbg.win_data,y,63+x,ch);
+					}
+					else {
+						wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+						mvwprintw (dbg.win_data,y,14+3*x,"pf");
+						mvwprintw (dbg.win_data,y,63+x,".");
+					}
+				}
+				else {
+					wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+					mvwprintw (dbg.win_data,y,14+3*x,"na");
+					mvwprintw (dbg.win_data,y,63+x,".");
+				}
 
-                add++;
-            }
-        }
+				add++;
+			}
+		}
 	}
 
-    if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) {
-        /* one line was set aside for this information */
-        wattrset (dbg.win_data,0);
-        if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
-            address = GetAddress(dataSeg,dataOfs);
-            if (address != mem_no_address)
-                mvwprintw (dbg.win_data,y,0," LIN=%08X ",(unsigned int)address);
-            else
-                mvwprintw (dbg.win_data,y,0," LIN=XXXXXXXX ");
-        }
-        else {
-            address = dataOfs;
-            mvwprintw (dbg.win_data,y,0,"              ");
-        }
+	if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) {
+		/* one line was set aside for this information */
+		wattrset (dbg.win_data,0);
+		if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
+			address = GetAddress(dataSeg,dataOfs);
+			if (address != mem_no_address)
+				mvwprintw (dbg.win_data,y,0," LIN=%08X ",(unsigned int)address);
+			else
+				mvwprintw (dbg.win_data,y,0," LIN=XXXXXXXX ");
+		}
+		else {
+			address = dataOfs;
+			mvwprintw (dbg.win_data,y,0,"              ");
+		}
 
-        if (!mem_readb_checked((PhysPt)address,&ch)) {
-            Bitu naddr = PAGING_GetPhysicalAddress((PhysPt)address);
-            mvwprintw (dbg.win_data,y,14,"PHY=%08X ",(unsigned int)naddr);
-        }
-        else {
-            mvwprintw (dbg.win_data,y,14,"PHY=XXXXXXXX ");
-        }
+		if (!mem_readb_checked((PhysPt)address,&ch)) {
+			Bitu naddr = PAGING_GetPhysicalAddress((PhysPt)address);
+			mvwprintw (dbg.win_data,y,14,"PHY=%08X ",(unsigned int)naddr);
+		}
+		else {
+			mvwprintw (dbg.win_data,y,14,"PHY=XXXXXXXX ");
+		}
 
-        wclrtoeol(dbg.win_data);
+		wclrtoeol(dbg.win_data);
 
-        y++;
-    }
+		y++;
+	}
 
 	wrefresh(dbg.win_data);
 }
