@@ -208,11 +208,13 @@ void CPU_Core8086_Prefetch_reset(void) {
 Bits CPU_Core8086_Prefetch_Run(void) {
 	bool invalidate_pq=false;
 
-    if (CPU_Cycles <= 0)
-	    return CBRET_NONE;
+	if (CPU_Cycles <= 0)
+		return CBRET_NONE;
 
-    pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
-    pq_reload = min(pq_limit,(Bitu)8u);
+	const Bitu init_cycles = CPU_Cycles;
+
+	pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
+	pq_reload = min(pq_limit,(Bitu)8u);
 
 	while (CPU_Cycles-->0) {
 		if (invalidate_pq) {

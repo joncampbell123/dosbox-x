@@ -162,22 +162,24 @@ bool CPU_SYSEXIT();
  *      Because of this, the simple core cannot be used to execute directly
  *      from ROM provided by an adapter since that requires memory I/O callbacks. */
 Bits CPU_Core_Simple_Run(void) {
-    HostPt safety_limit;
+	HostPt safety_limit;
 
-    /* simple core is incompatible with paging */
-    if (paging.enabled)
-        return CPU_Core_Normal_Run();
+	/* simple core is incompatible with paging */
+	if (paging.enabled)
+		return CPU_Core_Normal_Run();
 
-    safety_limit = (HostPt)((size_t)MemBase + ((size_t)MEM_TotalPages() * (size_t)4096) - (size_t)16384); /* safety margin */
+	const Bitu init_cycles = CPU_Cycles;
 
-    LOADIP;
-    if (core.cseip >= safety_limit) /* beyond the safety limit, use the normal core */
-        return CPU_Core_Normal_Run();
+	safety_limit = (HostPt)((size_t)MemBase + ((size_t)MEM_TotalPages() * (size_t)4096) - (size_t)16384); /* safety margin */
 
-    while (CPU_Cycles-->0) {
-        LOADIP;
+	LOADIP;
+	if (core.cseip >= safety_limit) /* beyond the safety limit, use the normal core */
+		return CPU_Core_Normal_Run();
 
-        /* Simple core optimizes for non-paged linear memory access and can break (segfault) if beyond end of memory */
+	while (CPU_Cycles-->0) {
+		LOADIP;
+
+		/* Simple core optimizes for non-paged linear memory access and can break (segfault) if beyond end of memory */
         if (core.cseip >= safety_limit) break;
 
         last_prefix=MP_NONE;

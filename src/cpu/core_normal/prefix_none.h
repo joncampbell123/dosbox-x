@@ -1448,9 +1448,15 @@
 		//      immediately, then it will undo the effects of STI without a chance to process
 		//      interrupts.
 		if (CPU_Cycles < 1) {
-			CPU_CycleLeft += CPU_Cycles;
-			CPU_Cycles = 0;
-			goto decode_stop_at_instruction; /* stop, leave instruction pointer at STI and come back later */
+			if (init_cycles > 1) {
+				CPU_CycleLeft += CPU_Cycles;
+				CPU_Cycles = 0;
+				goto decode_stop_at_instruction; /* stop, leave instruction pointer at STI and come back later */
+			}
+			else {
+				CPU_CycleLeft += CPU_Cycles - 1;
+				CPU_Cycles = 1;
+			}
 		}
 		if (CPU_STI()) RUNEXCEPTION();
 		SAVEIP;
