@@ -248,12 +248,12 @@ public:
 
 	void config_write(uint8_t regnum,Bitu iolen,uint32_t value) override {
 		if (iolen == 1) {
-            const unsigned char mask = config_writemask[regnum];
-            const unsigned char nmask = ~mask;
+			const unsigned char mask = config_writemask[regnum];
+			const unsigned char nmask = ~mask;
 
 			/* configuration write masks apply here as well */
 			config[regnum] =
-                ((unsigned char)value & mask) +
+				((unsigned char)value & mask) +
 				(config[regnum] & nmask);
 
 			switch (regnum) { /* FIXME: I hope I ported this right --J.C. */

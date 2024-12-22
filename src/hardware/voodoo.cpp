@@ -37,6 +37,7 @@
 class VOODOO;
 static VOODOO* voodoo_dev;
 
+static uint32_t assigned_lfb = 0;
 static uint32_t voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
 
 static bool voodoo_pci_enabled = false;
@@ -127,7 +128,10 @@ public:
                 break;
         }
 
-        if (needs_pci_device) PCI_AddSST_Device((Bitu)card_type);
+        if (needs_pci_device) {
+            LOG(LOG_MISC,LOG_DEBUG)("Voodoo 3Dfx LFB at 0x%lx",(unsigned long)voodoo_current_lfb);
+            PCI_AddSST_Device((Bitu)card_type);
+        }
     }
 
     ~VOODOO(){
@@ -197,7 +201,7 @@ void VOODOO_PCI_Enable(bool enable) {
 
 
 void VOODOO_PCI_SetLFB(uint32_t lfbaddr) {
-    lfbaddr &= 0xFFFF0000UL;
+    lfbaddr &= VOODOO_LFB_ALIGNMASK;
 
     if (lfbaddr == voodoo_current_lfb)
         return;
@@ -232,7 +236,18 @@ void VOODOO_Destroy(Section* /*sec*/) {
 void VOODOO_OnPowerOn(Section* /*sec*/) {
     if (voodoo_dev == NULL) {
         voodoo_pci_enabled = true;
-        voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
+
+        voodoo_current_lfb = VOODOO_INITIAL_LFB & VOODOO_LFB_ALIGNMASK;
+
+        /* must not overlap system RAM */
+        if (voodoo_current_lfb < (MEM_TotalPages()*4096))
+            voodoo_current_lfb = (MEM_TotalPages()*4096);
+        if (voodoo_current_lfb < assigned_lfb)
+            voodoo_current_lfb = assigned_lfb;
+
+        voodoo_current_lfb += ~VOODOO_LFB_ALIGNMASK; /* round up */
+        voodoo_current_lfb &= VOODOO_LFB_ALIGNMASK;
+
         voodoo_dev = new VOODOO(control->GetSection("voodoo"));
 
         voodoo_lfb_cb_init();
@@ -241,6 +256,9 @@ void VOODOO_OnPowerOn(Section* /*sec*/) {
 
 void VOODOO_Init() {
     LOG(LOG_MISC,LOG_DEBUG)("Initializing Voodoo/3DFX emulation");
+
+    /* the purpose of this is so that, if everything is crammed up at the top to make room for system RAM, the S3 and 3Dfx do not conflict */
+    assigned_lfb = MEM_HardwareAllocate("Voodoo 3Dfx",16ul << 20ul/*16MB*/);
 
     AddExitFunction(AddExitFunctionFuncPair(VOODOO_Destroy),true);
     AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(VOODOO_OnPowerOn));

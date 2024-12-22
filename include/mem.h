@@ -58,6 +58,8 @@ bool                        MEM_ReAllocatePages(MemHandle & handle,Bitu pages,bo
 MemHandle                   MEM_NextHandle(MemHandle handle);
 MemHandle                   MEM_NextHandleAt(MemHandle handle,Bitu where);
 
+uint32_t                    MEM_HardwareAllocate(const char *name,uint32_t sz);
+
 /* 
     The following six functions are used everywhere in the end so these should be changed for
     Working on big or little endian machines 

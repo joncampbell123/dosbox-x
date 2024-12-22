@@ -9726,7 +9726,7 @@ private:
         bios_has_exec_vga_bios = false;
         LOG(LOG_MISC,LOG_DEBUG)("BIOS: executing POST routine");
 
-	if (ACPI_REGION_SIZE != 0) {
+	if (ACPI_REGION_SIZE != 0 && !IS_PC98_ARCH) {
 		// place it just below the mirror of the BIOS at FFFF0000
 		ACPI_BASE = 0xFFFF0000 - ACPI_REGION_SIZE;
 
