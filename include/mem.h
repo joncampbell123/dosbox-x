@@ -39,6 +39,7 @@ typedef uint64_t              PhysPt64;    /* guest physical memory pointer */
 typedef int32_t              MemHandle;
 
 extern HostPt               MemBase;
+extern size_t               MemSize;
 
 HostPt                      GetMemBase(void);
 bool                        MEM_A20_Enabled(void);
@@ -184,25 +185,59 @@ void phys_writes(PhysPt addr, const char* string, Bitu length);
 
 /* WARNING: These will cause a segfault or out of bounds access IF
  *          addr is beyond the end of memory */
+/* 2024/12/22: Looking across the DOSBox-X codebase, these functions
+ *             aren't used TOO often, and where they are used, some
+ *             code has memory range checks anyway. So it doesn't hurt
+ *             performance very much if at all to just put the range
+ *             check here instead, in order not to segfault if somehow
+ *             the address given is beyond end of system memory. --J.C.
+ *
+ *             There is one more important detail here. These functions
+ *             take only a 32-bit physical address. Which means if more
+ *             than 32 address bits are enabled on the CPU and the OS
+ *             has PSE/PAE page tables enabled, these functions will not
+ *             be able to reach above 4GB. Given how memory will be
+ *             segmented between the 'below 4GB' and 'above 4GB' regions,
+ *             if emulating 4GB or more, that is perfectly fine. S3 XGA
+ *             and ISA DMA emulation will never reach above 4GB anyway.
+ *
+ *             The way the range check is done is ideal for performance,
+ *             yet may fail to work correctly if MemSize is very close
+ *             to zero, low enough that subtraction would cause it to
+ *             wrap back around to the largest possible value. The code,
+ *             when MemBase is a valid pointer, will never set MemSize
+ *             that small. */
 
 static INLINE void phys_writeb(const PhysPt addr,const uint8_t val) {
-    host_writeb(MemBase+addr,val);
+    if (addr < MemSize)
+        host_writeb(MemBase+addr,val);
 }
 static INLINE void phys_writew(const PhysPt addr,const uint16_t val) {
-    host_writew(MemBase+addr,val);
+    if (addr < (MemSize-1u))
+        host_writew(MemBase+addr,val);
 }
 static INLINE void phys_writed(const PhysPt addr,const uint32_t val) {
-    host_writed(MemBase+addr,val);
+    if (addr < (MemSize-3u))
+        host_writed(MemBase+addr,val);
 }
 
 static INLINE uint8_t phys_readb(const PhysPt addr) {
-    return host_readb(MemBase+addr);
+    if (addr < MemSize)
+        return host_readb(MemBase+addr);
+    else
+        return 0xFF;
 }
 static INLINE uint16_t phys_readw(const PhysPt addr) {
-    return host_readw(MemBase+addr);
+    if (addr < (MemSize-1u))
+        return host_readw(MemBase+addr);
+    else
+        return 0xFFFFu;
 }
 static INLINE uint32_t phys_readd(const PhysPt addr) {
-    return host_readd(MemBase+addr);
+    if (addr < (MemSize-3u))
+        return host_readd(MemBase+addr);
+    else
+        return 0xFFFFFFFFu;
 }
 
 /* These don't check for alignment, better be sure it's correct */

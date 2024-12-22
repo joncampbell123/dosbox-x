@@ -215,7 +215,14 @@ uint32_t MEM_get_address_bits4GB() { /* some code cannot yet handle values large
         return memory.address_bits;
 }
 
+/* WARNING: When DOSBox-X enables emulation of more than 4GB of RAM, this MemBase and MemSize will only reflect the memory below 4GB.
+ *          Which means phys_readx/writex(), which are limited to the first 4GB anyway (32-bit addresses), cannot be used to poke at
+ *          memory above 4GB. Instead of extending MemBase and the singular allocation block to 4GB or larger, the memory above 4GB
+ *          is a different block. The reason for this is that the gap that needs to be left open for PCI devices and the ROM BIOS is
+ *          large enough that such an arrangement would lead to the waste of about 64MB of emulator memory, which is significant, while
+ *          the 384KB wasted at the 8086 1MB limit is too small to worry about. */
 HostPt MemBase = NULL;
+size_t MemSize = 0;
 
 class UnmappedPageHandler : public PageHandler {
 public:
@@ -1333,7 +1340,7 @@ void mem_writed(PhysPt address,uint32_t val) {
 }
 
 void phys_writes(PhysPt addr, const char* string, Bitu length) {
-    for(Bitu i = 0; i < length; i++) host_writeb(MemBase+addr+i,(uint8_t)string[i]);
+    for(Bitu i = 0; i < length && (addr+i) < MemSize; i++) host_writeb(MemBase+addr+i,(uint8_t)string[i]);
 }
 
 #include "control.h"
@@ -1882,6 +1889,7 @@ void ShutDownRAM(Section * sec) {
 #endif
         MemBase = NULL;
     }
+    MemSize = 0;
     ACPI_free();
 }
 
@@ -2014,6 +2022,7 @@ void Init_RAM() {
 #else // C_GAMELINK
     MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
 #endif // C_GAMELINK
+    MemSize = size_t(memory.pages*4096);
     if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
     /* Clear the memory, as new doesn't always give zeroed memory
      * (Visual C debug mode). We want zeroed memory though. */
