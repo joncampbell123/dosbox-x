@@ -207,6 +207,13 @@ void phys_writes(PhysPt addr, const char* string, Bitu length);
  *             wrap back around to the largest possible value. The code,
  *             when MemBase is a valid pointer, will never set MemSize
  *             that small. */
+/* NTS: Technically these phys_ functions are misnamed. They don't read/write
+ *      all physically addressable memory and MMIO attached to the CPU. These
+ *      functions can only address system RAM. So perhaps they should be named
+ *      physmem_read/physmem_write instead and a physmmio_read/physmmio_write
+ *      function should be added that addresses the "physical" memory addresses
+ *      accessible to the CPU. That hackery in the debugger to dump by physical
+ *      memory addresse could be a useful guide on how to do that. --J.C. */
 
 static INLINE void phys_writeb(const PhysPt addr,const uint8_t val) {
     if (addr < MemSize)
