@@ -138,7 +138,6 @@ static struct {
     bool scheduled;
     bool p60changed;
     bool auxchanged;
-    bool xt_need_ack;
     bool pending_key_state;
     /* command byte related */
     bool cb_override_inhibit;
@@ -257,7 +256,6 @@ int KEYBOARD_AUX_Active() {
 static void KEYBOARD_SetPort60(uint16_t val) {
     keyb.auxchanged=(val&AUX)>0;
     keyb.p60changed=true;
-    keyb.xt_need_ack=true;
     keyb.p60data=(uint8_t)val;
     if (keyb.auxchanged) {
         if (keyb.cb_irq12) {
@@ -298,6 +296,11 @@ static void KEYBOARD_TransferBuffer(Bitu val) {
     KEYBOARD_SetPort60(keyb.buffer[keyb.pos]);
     if (++keyb.pos>=KEYBUFSIZE) keyb.pos-=KEYBUFSIZE;
     keyb.used--;
+
+    if (machine == MCH_PCJR && keyb.used > 0) {
+        keyb.scheduled=true;
+        PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
+    }
 }
 
 void KEYBOARD_ClrBuffer(void) {
@@ -341,10 +344,8 @@ void KEYBOARD_AddBuffer(uint16_t data) {
     /* Start up an event to start the first IRQ */
     if (!keyb.scheduled) {
         if (machine == MCH_PCJR) {
-            if (!keyb.xt_need_ack) {
-                keyb.scheduled=true;
-                PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
-	    }
+            keyb.scheduled=true;
+            PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
         }
         else {
             if (!keyb.p60changed) {
@@ -737,15 +738,6 @@ static void write_p61(Bitu, Bitu val, Bitu) {
         bool pit_clock_gate_enabled = !!(val & 0x1);
         bool pit_output_enabled = !!(val & 0x2);
         PCSPEAKER_SetType(pit_clock_gate_enabled, pit_output_enabled);
-    }
-    if (machine == MCH_PCJR) {
-        if (!(val&0x80)/*needs to CLEAR the bit*/) {
-            keyb.xt_need_ack=false;
-            if (!keyb.scheduled && keyb.active && keyb.used) {
-                keyb.scheduled=true;
-                PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
-            }
-        }
     }
     port_61_data = val;
 }
@@ -2930,7 +2922,6 @@ void KEYBOARD_Reset() {
     keyb.pending_key_state=false;
     keyb.command=CMD_NONE;
     keyb.aux_command=ACMD_NONE;
-    keyb.xt_need_ack=false;
     keyb.p60changed=false;
     keyb.auxchanged=false;
     keyb.led_state = 0x00;
