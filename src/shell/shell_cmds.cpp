@@ -138,6 +138,7 @@ extern bool systemmessagebox(char const * aTitle, char const * aMessage, char co
 extern void Load_Language(std::string name), GetExpandedPath(std::string &path);
 extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice);
 extern void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
+void clearFontCache(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
@@ -4561,11 +4562,12 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
 #endif
             DOSBox_SetSysMenu();
         }
-        if (isDBCSCP()) {
+        if(isDBCSCP()) {
             ShutFontHandle();
             InitFontHandle();
             JFONT_Init();
             SetupDBCSTable();
+            clearFontCache();
         }
         if (finish_prepare) runRescan("-A -Q");
 #if defined(USE_TTF)

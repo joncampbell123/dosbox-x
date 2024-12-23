@@ -339,9 +339,9 @@ void LoadMessageFile(const char * fname) {
                             std::string msg = "The specified language file uses code page " + std::to_string(c) + ". Do you want to change to this code page accordingly?";
                             if(c != dos.loaded_codepage && (control->opt_langcp || uselangcp || !CHCP_changed || CheckDBCSCP(c) || !loadlang || (loadlang && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)))) {
                                 loadlangcp = true;
-                                if(c == 950 && dos.loaded_codepage == 951) c = 951; // zh_tw defaults to CP950, but CP951 is acceptable as well so keep it
-                                if(c == 951 && dos.loaded_codepage == 950) c = 950; // And vice versa for lang files requiring CP951
-                                msgcodepage = c;
+                                if(c == 950 && dos.loaded_codepage == 951) msgcodepage = 951; // zh_tw defaults to CP950, but CP951 is acceptable as well so keep it
+                                else if(c == 951 && dos.loaded_codepage == 950) msgcodepage = 950; // And vice versa for lang files requiring CP951
+                                else msgcodepage = c;
                                 dos.loaded_codepage = c;
                                 if (c == 950 && !chinasea) makestdcp950table();
                                 if (c == 951 && chinasea) makeseacp951table();
