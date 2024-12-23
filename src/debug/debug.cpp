@@ -4578,7 +4578,7 @@ void DEBUG_Enable_Handler(bool pressed) {
 		showhelp=true;
 		DEBUG_ShowMsg("***| TYPE HELP (+ENTER) TO GET AN OVERVIEW OF ALL COMMANDS |***\n");
 	}
-	KEYBOARD_ClrBuffer();
+	//KEYBOARD_ClrBuffer();
     GFX_SetTitle(-1,-1,-1,false);
     runnormal = false;
     if (debugrunmode==1) ParseCommand("RUN");

@@ -404,55 +404,79 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		return (use_cb?0x13:0x0f);
 	case CB_IRQ1:	// keyboard int9
 		phys_writeb(physAddress+0x00,(uint8_t)0x50);			// push ax
-        if (machine == MCH_PCJR || IS_PC98_ARCH) {
-            /* NTS: NEC PC-98 does not have keyboard input on port 60h, it's a 8251 UART elsewhere.
-             *
-             *      IBM PCjr reads the infrared input on NMI interrupt, which then calls INT 48h to
-             *      translate to IBM PC/XT scan codes before passing AL directly to IRQ1 (INT 9).
-             *      PCjr keyboard handlers, including games made for the PCjr, assume the scan code
-             *      is in AL and do not read the I/O port */
-            phys_writew(physAddress+0x01,(uint16_t)0x9090);		// nop, nop
-        }
-        else {
-            phys_writew(physAddress+0x01,(uint16_t)0x60e4);		// in al, 0x60
-        }
-        if (IS_PC98_ARCH || IS_TANDY_ARCH) {
-            phys_writew(physAddress+0x03,(uint16_t)0x9090);		// nop, nop
-            phys_writeb(physAddress+0x05,(uint8_t)0x90);			// nop
-            phys_writew(physAddress+0x06,(uint16_t)0x9090);		// nop, nop (PC-98 does not have INT 15h keyboard hook)
-        }
-        else {
-            phys_writew(physAddress+0x03,(uint16_t)0x4fb4);		// mov ah, 0x4f
-            phys_writeb(physAddress+0x05,(uint8_t)0xf9);			// stc
-            phys_writew(physAddress+0x06,(uint16_t)0x15cd);		// int 15
-        }
+		if (machine == MCH_PCJR) {
+			/*      IBM PCjr reads the infrared input on NMI interrupt, which then calls INT 48h to
+			 *      translate to IBM PC/XT scan codes before passing AL directly to IRQ1 (INT 9).
+			 *      PCjr keyboard handlers, including games made for the PCjr, assume the scan code
+			 *      is in AL and do not read the I/O port.
+			 *
+			 *      PCjr has an XT style keyboard interface where it is necessary to set, then clear,
+			 *      bit 7 of port 61h to re-enable the keyboard.
+			 *
+			 *      Because we're talking to our own emulation, it is sufficient to just clear bit 7.*/
+			phys_writew(physAddress+0x01,(uint16_t)0x61E4);		// in al, 0x61
+			phys_writew(physAddress+0x03,(uint16_t)0x7F24);		// and al, 0x7F
+			phys_writew(physAddress+0x05,(uint16_t)0x61E6);		// out 0x61, al
+			phys_writew(physAddress+0x07,(uint16_t)0x5058);		// pop ax, push ax
 
-		if (use_cb) {
-            if (IS_PC98_ARCH || IS_TANDY_ARCH)
-                phys_writew(physAddress+0x08,(uint16_t)0x9090);	// nop nop
-            else
-                phys_writew(physAddress+0x08,(uint16_t)0x0473);	// jc skip
+			if (use_cb) {
+				phys_writeb(physAddress+0x09,(uint8_t)0xFE);		//GRP 4
+				phys_writeb(physAddress+0x0a,(uint8_t)0x38);		//Extra Callback instruction
+				phys_writew(physAddress+0x0b,(uint16_t)callback);	//The immediate word
+				physAddress+=4;
+			}
 
-			phys_writeb(physAddress+0x0a,(uint8_t)0xFE);		//GRP 4
-			phys_writeb(physAddress+0x0b,(uint8_t)0x38);		//Extra Callback instruction
-			phys_writew(physAddress+0x0c,(uint16_t)callback);			//The immediate word
-			// jump here to (skip):
-			physAddress+=6;
+			/* It wasn't an interrupt, so there's no need to ack */
+			phys_writeb(physAddress+0x09,(uint8_t)0x58);			// pop ax
+			phys_writeb(physAddress+0x0A,(uint8_t)0xcf);			//An IRET Instruction
+			return (use_cb?0x0f:0x0b);
 		}
-		phys_writeb(physAddress+0x08,(uint8_t)0xfa);			// cli
-		phys_writew(physAddress+0x09,(uint16_t)0x20b0);		// mov al, 0x20
-		phys_writew(physAddress+0x0b,(uint16_t)(IS_PC98_ARCH ? 0x00e6 : 0x20e6));		// out 0x20, al
-		phys_writeb(physAddress+0x0d,(uint8_t)0x58);			// pop ax
-		phys_writeb(physAddress+0x0e,(uint8_t)0xcf);			//An IRET Instruction
-        phys_writeb(physAddress+0x0f,(uint8_t)0xfa);			// cli
-        phys_writew(physAddress+0x10,(uint16_t)0x20b0);		// mov al, 0x20
-        phys_writew(physAddress+0x12,(uint16_t)0x20e6);		// out 0x20, al
-        phys_writeb(physAddress+0x14,(uint8_t)0x55);			// push bp
-        phys_writew(physAddress+0x15,(uint16_t)0x05cd);		// int 5
-        phys_writeb(physAddress+0x17,(uint8_t)0x5d);			// pop bp
-        phys_writeb(physAddress+0x18,(uint8_t)0x58);			// pop ax
-        phys_writeb(physAddress+0x19,(uint8_t)0xcf);			//An IRET Instruction
-        return (use_cb ?0x20:0x1a);
+		else {
+			if (IS_PC98_ARCH) {
+				/* NTS: NEC PC-98 does not have keyboard input on port 60h, it's a 8251 UART elsewhere. */
+				phys_writew(physAddress+0x01,(uint16_t)0x9090);		// nop, nop
+			}
+			else {
+				phys_writew(physAddress+0x01,(uint16_t)0x60e4);		// in al, 0x60
+			}
+			if (IS_PC98_ARCH || IS_TANDY_ARCH) {
+				phys_writew(physAddress+0x03,(uint16_t)0x9090);		// nop, nop
+				phys_writeb(physAddress+0x05,(uint8_t)0x90);		// nop
+				phys_writew(physAddress+0x06,(uint16_t)0x9090);		// nop, nop (PC-98 does not have INT 15h keyboard hook)
+			}
+			else {
+				phys_writew(physAddress+0x03,(uint16_t)0x4fb4);		// mov ah, 0x4f
+				phys_writeb(physAddress+0x05,(uint8_t)0xf9);			// stc
+				phys_writew(physAddress+0x06,(uint16_t)0x15cd);		// int 15
+			}
+
+			if (use_cb) {
+				if (IS_PC98_ARCH || IS_TANDY_ARCH)
+					phys_writew(physAddress+0x08,(uint16_t)0x9090);	// nop nop
+				else
+					phys_writew(physAddress+0x08,(uint16_t)0x0473);	// jc skip
+
+				phys_writeb(physAddress+0x0a,(uint8_t)0xFE);		//GRP 4
+				phys_writeb(physAddress+0x0b,(uint8_t)0x38);		//Extra Callback instruction
+				phys_writew(physAddress+0x0c,(uint16_t)callback);	//The immediate word
+				// jump here to (skip):
+				physAddress+=6;
+			}
+			phys_writeb(physAddress+0x08,(uint8_t)0xfa);			// cli
+			phys_writew(physAddress+0x09,(uint16_t)0x20b0);			// mov al, 0x20
+			phys_writew(physAddress+0x0b,(uint16_t)(IS_PC98_ARCH ? 0x00e6 : 0x20e6)); // out 0x20, al
+			phys_writeb(physAddress+0x0d,(uint8_t)0x58);			// pop ax
+			phys_writeb(physAddress+0x0e,(uint8_t)0xcf);			//An IRET Instruction
+			phys_writeb(physAddress+0x0f,(uint8_t)0xfa);			// cli
+			phys_writew(physAddress+0x10,(uint16_t)0x20b0);			// mov al, 0x20
+			phys_writew(physAddress+0x12,(uint16_t)0x20e6);			// out 0x20, al
+			phys_writeb(physAddress+0x14,(uint8_t)0x55);			// push bp
+			phys_writew(physAddress+0x15,(uint16_t)0x05cd);			// int 5
+			phys_writeb(physAddress+0x17,(uint8_t)0x5d);			// pop bp
+			phys_writeb(physAddress+0x18,(uint8_t)0x58);			// pop ax
+			phys_writeb(physAddress+0x19,(uint8_t)0xcf);			//An IRET Instruction
+			return (use_cb?0x20:0x1a);
+		}
 	case CB_IRQ1_BREAK:	// return from int9, when Ctrl-Break is detected; invokes int 1b
 		phys_writew(physAddress+0x00,(uint16_t)0x1bcd);		// int 1b
 		phys_writeb(physAddress+0x02,(uint8_t)0xfa);		// cli

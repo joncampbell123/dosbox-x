@@ -138,6 +138,7 @@ static struct {
     bool scheduled;
     bool p60changed;
     bool auxchanged;
+    bool xt_need_ack;
     bool pending_key_state;
     /* command byte related */
     bool cb_override_inhibit;
@@ -256,6 +257,7 @@ int KEYBOARD_AUX_Active() {
 static void KEYBOARD_SetPort60(uint16_t val) {
     keyb.auxchanged=(val&AUX)>0;
     keyb.p60changed=true;
+    keyb.xt_need_ack=true;
     keyb.p60data=(uint8_t)val;
     if (keyb.auxchanged) {
         if (keyb.cb_irq12) {
@@ -337,9 +339,19 @@ void KEYBOARD_AddBuffer(uint16_t data) {
     keyb.buffer[start]=data;
     keyb.used++;
     /* Start up an event to start the first IRQ */
-    if (!keyb.scheduled && !keyb.p60changed) {
-        keyb.scheduled=true;
-        PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
+    if (!keyb.scheduled) {
+        if (machine == MCH_PCJR) {
+            if (!keyb.xt_need_ack) {
+                keyb.scheduled=true;
+                PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
+	    }
+        }
+        else {
+            if (!keyb.p60changed) {
+                keyb.scheduled=true;
+                PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
+	    }
+        }
     }
 }
 
@@ -378,7 +390,7 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
 
     keyb.p60changed=false;
     keyb.auxchanged=false;
-    if (!keyb.scheduled && keyb.used) {
+    if (!keyb.scheduled && keyb.used && !(machine == MCH_PCJR)) {
         keyb.scheduled=true;
         PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
     }
@@ -551,6 +563,12 @@ void On_Software_CPU_Reset();
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
+
+    if (machine == MCH_PCJR) {
+        keyb.p60data=(uint8_t)val;
+        return;
+    }
+
     switch (keyb.command) {
     case CMD_NONE:  /* None */
         if (keyb.reset)
@@ -719,6 +737,15 @@ static void write_p61(Bitu, Bitu val, Bitu) {
         bool pit_clock_gate_enabled = !!(val & 0x1);
         bool pit_output_enabled = !!(val & 0x2);
         PCSPEAKER_SetType(pit_clock_gate_enabled, pit_output_enabled);
+    }
+    if (machine == MCH_PCJR) {
+        if (!(val&0x80)/*needs to CLEAR the bit*/) {
+            keyb.xt_need_ack=false;
+            if (!keyb.scheduled && keyb.active && keyb.used) {
+                keyb.scheduled=true;
+                PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
+            }
+        }
     }
     port_61_data = val;
 }
@@ -2903,6 +2930,7 @@ void KEYBOARD_Reset() {
     keyb.pending_key_state=false;
     keyb.command=CMD_NONE;
     keyb.aux_command=ACMD_NONE;
+    keyb.xt_need_ack=false;
     keyb.p60changed=false;
     keyb.auxchanged=false;
     keyb.led_state = 0x00;
