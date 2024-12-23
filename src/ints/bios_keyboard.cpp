@@ -47,7 +47,7 @@
 
 extern Bitu BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION;
 
-static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_irq6 = 0,call_irq_pcjr_nmi = 0;
+static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_irq6 = 0,call_irq_pcjr_nmi = 0,call_int48_pcjr = 0;
 static uint8_t fep_line = 0x01;
 
 /* Nice table from BOCHS i should feel bad for ripping this */
@@ -1172,6 +1172,17 @@ static Bitu PCjr_NMI_Keyboard_Handler(void) {
     return CBRET_NONE;
 }
 
+/* On PCjr the purpose of INT 48h normally is to translate PCjr scan codes to 83-key scan codes
+ * and then call INT 9h with that scan code.
+ *
+ * Some 83-key codes can only be entered by holding Fn and typing another key, and the raw scan
+ * codes reflect that. For compatibility with DOS programs, INT 48h has to translate, for example,
+ * Fn + 1 into the scan code for F1. */
+static Bitu PCjr_INT48_Keyboard_Handler(void) {
+    reg_eip++; /* skip over IRET */
+    return CBRET_NONE;
+}
+
 static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
     return CBRET_NONE;
 }
@@ -1572,6 +1583,10 @@ void BIOS_UnsetupKeyboard(void) {
         CALLBACK_DeAllocate(call_irq_pcjr_nmi);
         call_irq_pcjr_nmi = 0;
     }
+    if (call_int48_pcjr != 0) {
+        CALLBACK_DeAllocate(call_int48_pcjr);
+        call_int48_pcjr = 0;
+    }
     if (call_irq6 != 0) {
         CALLBACK_DeAllocate(call_irq6);
         call_irq6 = 0;
@@ -1602,29 +1617,43 @@ void BIOS_SetupKeyboard(void) {
 
     call_irq1=CALLBACK_Allocate();
     if (machine == MCH_PCJR) { /* PCjr keyboard interrupt connected to NMI */
+        uint32_t a;
+ 
+        /* NMI: Read bits from infared port to decode keyboard scan code. If valid, pass it to INT 48h.
+         * INT 48h: Track Fn key and other state, convert PCjr scan codes to 83-key compatible scan codes, pass it to INT 9h.
+         * INT 9h: Process scan code same as you would on normal IBM PC hardware. */
         call_irq_pcjr_nmi=CALLBACK_Allocate();
-
         CALLBACK_Setup(call_irq_pcjr_nmi,&PCjr_NMI_Keyboard_Handler,CB_IRET,"PCjr NMI Keyboard");
-
-        uint32_t a = CALLBACK_RealPointer(call_irq_pcjr_nmi);
-
+        a = CALLBACK_RealPointer(call_irq_pcjr_nmi);
         RealSetVec(0x02/*NMI*/,a);
-
-        /* TODO: PCjr calls INT 48h to convert PCjr scan codes to IBM PC/XT compatible */
 
 	a = ((a >> 16) << 4) + (a & 0xFFFF);
 	/* a+0 = callback instruction (4 bytes)
-	 * a+4 = iret (1 bytes) */
+	 * a+4 = iret (1 bytes)
+         *
+         * NTS: PCjr NMI doesn't read it from port 60h! But this makes it work in this emulator! */
 	phys_writeb(a+5,0x50);		/* push ax */
 	phys_writeb(a+6,0x1e);		/* push ds */
 	phys_writew(a+7,0xC0C7);	/* mov ax,0x0040    NTS: Do not use PUSH <imm>, that opcode does not exist on the 8086 */
 	phys_writew(a+9,0x0040);	/* <---------' */
 	phys_writew(a+11,0xD88E);	/* mov ds,ax */
 	phys_writew(a+13,0x60E4);	/* in al,60h */
-	phys_writew(a+15,0x09CD);	/* int 9h */
+	phys_writew(a+15,0x48CD);	/* int 48h */
 	phys_writeb(a+17,0x1f);		/* pop ds */
 	phys_writeb(a+18,0x58);		/* pop ax */
 	phys_writew(a+19,0x00EB + ((256-21)<<8)); /* jmp a+0 */
+
+        /* INT 48h. NMI handler protects AX already, no need to PUSH AX/POP AX */
+        call_int48_pcjr=CALLBACK_Allocate();
+        CALLBACK_Setup(call_int48_pcjr,&PCjr_INT48_Keyboard_Handler,CB_IRET,"PCjr INT 48h translation");
+        a = CALLBACK_RealPointer(call_int48_pcjr);
+        RealSetVec(0x48/*translation*/,a);
+
+	a = ((a >> 16) << 4) + (a & 0xFFFF);
+	/* a+0 = callback instruction (4 bytes)
+	 * a+4 = iret (1 bytes) */
+	phys_writew(a+5,0x09CD);	/* int 9 */
+	phys_writeb(a+7,0xCF);	        /* iret */
     }
 
     if (IS_PC98_ARCH) {
