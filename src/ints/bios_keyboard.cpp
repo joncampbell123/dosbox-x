@@ -1208,6 +1208,10 @@ static Bitu PCjr_INT48_Keyboard_Handler(void) {
             case 0x1B: reg_al=0x29|bc; UPDATESHIFT(bc); break;/*Fn+] = ~ which is SHIFT+` */
             case 0x28: reg_al=0x29|bc; CLEARSHIFT(); break;/*Fn+' = ` which is unshifted ` */
             case 0x35: reg_al=0x2B|bc; CLEARSHIFT(); break;/*Fn+/ = \\ which is unshifted \\ */
+            case 0x48: reg_al=0x47|bc; break;/*Fn+Up = Home*/
+            case 0x4B: reg_al=0x49|bc; break;/*Fn+Left = Page Up*/
+            case 0x4D: reg_al=0x51|bc; break;/*Fn+Right = Page Down*/
+            case 0x50: reg_al=0x4F|bc; break;/*Fn+Down = End*/
             default: break;
         }
     }
@@ -1667,21 +1671,21 @@ void BIOS_SetupKeyboard(void) {
         a = CALLBACK_RealPointer(call_irq_pcjr_nmi);
         RealSetVec(0x02/*NMI*/,a);
 
-	a = ((a >> 16) << 4) + (a & 0xFFFF);
-	/* a+0 = callback instruction (4 bytes)
-	 * a+4 = iret (1 bytes)
+        a = ((a >> 16) << 4) + (a & 0xFFFF);
+        /* a+0 = callback instruction (4 bytes)
+         * a+4 = iret (1 bytes)
          *
          * NTS: PCjr NMI doesn't read it from port 60h! But this makes it work in this emulator! */
-	phys_writeb(a+5,0x50);		/* push ax */
-	phys_writeb(a+6,0x1e);		/* push ds */
-	phys_writew(a+7,0xC0C7);	/* mov ax,0x0040    NTS: Do not use PUSH <imm>, that opcode does not exist on the 8086 */
-	phys_writew(a+9,0x0040);	/* <---------' */
-	phys_writew(a+11,0xD88E);	/* mov ds,ax */
-	phys_writew(a+13,0x60E4);	/* in al,60h */
-	phys_writew(a+15,0x48CD);	/* int 48h */
-	phys_writeb(a+17,0x1f);		/* pop ds */
-	phys_writeb(a+18,0x58);		/* pop ax */
-	phys_writew(a+19,0x00EB + ((256-21)<<8)); /* jmp a+0 */
+        phys_writeb(a+5,0x50);		/* push ax */
+        phys_writeb(a+6,0x1e);		/* push ds */
+        phys_writew(a+7,0xC0C7);	/* mov ax,0x0040    NTS: Do not use PUSH <imm>, that opcode does not exist on the 8086 */
+        phys_writew(a+9,0x0040);	/* <---------' */
+        phys_writew(a+11,0xD88E);	/* mov ds,ax */
+        phys_writew(a+13,0x60E4);	/* in al,60h */
+        phys_writew(a+15,0x48CD);	/* int 48h */
+        phys_writeb(a+17,0x1f);		/* pop ds */
+        phys_writeb(a+18,0x58);		/* pop ax */
+        phys_writew(a+19,0x00EB + ((256-21)<<8)); /* jmp a+0 */
 
         /* INT 48h. NMI handler protects AX already, no need to PUSH AX/POP AX */
         call_int48_pcjr=CALLBACK_Allocate();
@@ -1689,11 +1693,11 @@ void BIOS_SetupKeyboard(void) {
         a = CALLBACK_RealPointer(call_int48_pcjr);
         RealSetVec(0x48/*translation*/,a);
 
-	a = ((a >> 16) << 4) + (a & 0xFFFF);
-	/* a+0 = callback instruction (4 bytes)
-	 * a+4 = iret (1 bytes) */
-	phys_writew(a+5,0x09CD);	/* int 9 */
-	phys_writeb(a+7,0xCF);	        /* iret */
+        a = ((a >> 16) << 4) + (a & 0xFFFF);
+        /* a+0 = callback instruction (4 bytes)
+         * a+4 = iret (1 bytes) */
+        phys_writew(a+5,0x09CD);	/* int 9 */
+        phys_writeb(a+7,0xCF);	        /* iret */
     }
 
     if (IS_PC98_ARCH) {
