@@ -1520,7 +1520,7 @@ void KEYBOARD_AddKeyPCjr(KBD_KEYS keytype,bool pressed) {
     case KBD_l:ret=38;break;
     case KBD_semicolon:ret=39;break;
     case KBD_quote:ret=40;break;
-    case KBD_grave:ret=40;fn=true;break;/*Fn+'*/
+    case KBD_grave:ret=(keyb.leftshift_pressed||keyb.rightshift_pressed)?27/*rightbracket*/:40/*quote*/;fn=true;break;/*Fn+'*/
 
     case KBD_leftshift:
         ret=42;
@@ -1537,7 +1537,7 @@ void KEYBOARD_AddKeyPCjr(KBD_KEYS keytype,bool pressed) {
     case KBD_comma:ret=51;break;
     case KBD_period:ret=52;break;
     case KBD_slash:ret=53;break;
-    case KBD_backslash:ret=53;fn=true;break;/*Fn+foward slash*/
+    case KBD_backslash:ret=(keyb.leftshift_pressed||keyb.rightshift_pressed)?26/*leftbracket*/:53/*fwd slash*/;fn=true;break;/*Fn+foward slash*/
     case KBD_rightshift:
         ret=54;
         keyb.rightshift_pressed=pressed;
