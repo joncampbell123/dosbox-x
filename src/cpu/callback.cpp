@@ -414,22 +414,19 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 			 *      bit 7 of port 61h to re-enable the keyboard.
 			 *
 			 *      Because we're talking to our own emulation, it is sufficient to just clear bit 7.*/
-			phys_writew(physAddress+0x01,(uint16_t)0x61E4);		// in al, 0x61
-			phys_writew(physAddress+0x03,(uint16_t)0x7F24);		// and al, 0x7F
-			phys_writew(physAddress+0x05,(uint16_t)0x61E6);		// out 0x61, al
-			phys_writew(physAddress+0x07,(uint16_t)0x5058);		// pop ax, push ax
+			phys_writew(physAddress+0x01,(uint16_t)0x60E4);		// in al, 0x60
 
 			if (use_cb) {
-				phys_writeb(physAddress+0x09,(uint8_t)0xFE);		//GRP 4
-				phys_writeb(physAddress+0x0a,(uint8_t)0x38);		//Extra Callback instruction
-				phys_writew(physAddress+0x0b,(uint16_t)callback);	//The immediate word
+				phys_writeb(physAddress+0x03,(uint8_t)0xFE);		//GRP 4
+				phys_writeb(physAddress+0x04,(uint8_t)0x38);		//Extra Callback instruction
+				phys_writew(physAddress+0x05,(uint16_t)callback);	//The immediate word
 				physAddress+=4;
 			}
 
 			/* It wasn't an interrupt, so there's no need to ack */
-			phys_writeb(physAddress+0x09,(uint8_t)0x58);			// pop ax
-			phys_writeb(physAddress+0x0A,(uint8_t)0xcf);			//An IRET Instruction
-			return (use_cb?0x0f:0x0b);
+			phys_writeb(physAddress+0x03,(uint8_t)0x58);			// pop ax
+			phys_writeb(physAddress+0x04,(uint8_t)0xcf);			//An IRET Instruction
+			return (use_cb?0x09:0x05);
 		}
 		else {
 			if (IS_PC98_ARCH) {

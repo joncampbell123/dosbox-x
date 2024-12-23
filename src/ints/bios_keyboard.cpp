@@ -1179,7 +1179,21 @@ static Bitu PCjr_NMI_Keyboard_Handler(void) {
  * codes reflect that. For compatibility with DOS programs, INT 48h has to translate, for example,
  * Fn + 1 into the scan code for F1. */
 static Bitu PCjr_INT48_Keyboard_Handler(void) {
+    uint8_t pcjr_f = mem_readb(BIOS_KEYBOARD_PCJR_FLAG2);
+
+    switch (reg_al&0x7F) {
+        case 0x54: /* Fn key */
+            if (reg_al&0x80/*release*/) pcjr_f &= ~BIOS_KEYBOARD_PCJR_FLAG2_FN_FLAG;
+            else pcjr_f |= BIOS_KEYBOARD_PCJR_FLAG2_FN_FLAG;
+            goto skip_int9;
+        default: /* AL without translation */
+            break;
+    }
+
     reg_eip++; /* skip over IRET */
+skip_int9: /* if we do not skip IRET, then INT 48h returns without calling INT 9h */
+
+    mem_writeb(BIOS_KEYBOARD_PCJR_FLAG2,pcjr_f);
     return CBRET_NONE;
 }
 
