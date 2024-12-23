@@ -2807,7 +2807,7 @@ void KEYBOARD_OnReset(Section *sec) {
     }
 
     if (machine == MCH_PCJR) // IBM Personal Computer PCjr Hardware Ref Tech Ref 2-104 Cordless Keyboard
-        KEYDELAY=0.440 * 11; // 440us bit cell times 21 bits (START + DATA(8) + PARITY + 11 STOP)
+        KEYDELAY=0.440 * 21; // 440us bit cell times 21 bits (START + DATA(8) + PARITY + 11 STOP)
     else
         KEYDELAY=0.300f; //Considering 20-30 khz serial clock and 11 bits/char
 
