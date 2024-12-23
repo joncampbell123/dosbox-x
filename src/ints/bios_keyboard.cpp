@@ -1180,19 +1180,45 @@ static Bitu PCjr_NMI_Keyboard_Handler(void) {
  * Fn + 1 into the scan code for F1. */
 static Bitu PCjr_INT48_Keyboard_Handler(void) {
     uint8_t pcjr_f = mem_readb(BIOS_KEYBOARD_PCJR_FLAG2);
+    uint8_t flags1 = mem_readb(BIOS_KEYBOARD_FLAGS1);
 
-    switch (reg_al&0x7F) {
-        case 0x54: /* Fn key */
-            if (reg_al&0x80/*release*/) pcjr_f &= ~BIOS_KEYBOARD_PCJR_FLAG2_FN_FLAG;
-            else pcjr_f |= BIOS_KEYBOARD_PCJR_FLAG2_FN_FLAG;
-            goto skip_int9;
-        default: /* AL without translation */
-            break;
+    if ((reg_al&0x7F) == 0x54) {
+        if (reg_al&0x80/*release*/) pcjr_f &= ~BIOS_KEYBOARD_PCJR_FLAG2_FN_FLAG;
+        else pcjr_f |= BIOS_KEYBOARD_PCJR_FLAG2_FN_FLAG;
+        goto skip_int9;
     }
+
+#define UPDATESHIFT(x) if (x) { flags1 &= ~0x3; /*break*/ } else { flags1 |= 0x3; /*make*/ }
+#define CLEARSHIFT() UPDATESHIFT(1/*break*/)
+
+    if (pcjr_f & (BIOS_KEYBOARD_PCJR_FLAG2_FN_FLAG|BIOS_KEYBOARD_PCJR_FLAG2_FN_LOCK)) {
+        const uint8_t bc = reg_al & 0x80;
+        switch (reg_al&0x7F) {
+            case 0x02: reg_al=0x3B|bc; break;/*Fn+1 = F1*/
+            case 0x03: reg_al=0x3C|bc; break;/*Fn+2 = F2*/
+            case 0x04: reg_al=0x3D|bc; break;/*Fn+3 = F3*/
+            case 0x05: reg_al=0x3E|bc; break;/*Fn+4 = F4*/
+            case 0x06: reg_al=0x3F|bc; break;/*Fn+5 = F5*/
+            case 0x07: reg_al=0x40|bc; break;/*Fn+6 = F6*/
+            case 0x08: reg_al=0x41|bc; break;/*Fn+7 = F7*/
+            case 0x09: reg_al=0x42|bc; break;/*Fn+8 = F8*/
+            case 0x0A: reg_al=0x43|bc; break;/*Fn+9 = F9*/
+            case 0x0B: reg_al=0x44|bc; break;/*Fn+10 = F10*/
+            case 0x1A: reg_al=0x2B|bc; UPDATESHIFT(bc); break;/*Fn+[ = | which is SHIFT+\ */
+            case 0x1B: reg_al=0x29|bc; UPDATESHIFT(bc); break;/*Fn+] = ~ which is SHIFT+` */
+            case 0x28: reg_al=0x29|bc; CLEARSHIFT(); break;/*Fn+' = ` which is unshifted ` */
+            case 0x35: reg_al=0x2B|bc; CLEARSHIFT(); break;/*Fn+/ = \\ which is unshifted \\ */
+            default: break;
+        }
+    }
+
+#undef UPDATESHIFT
+#undef CLEARSHIFT
 
     reg_eip++; /* skip over IRET */
 skip_int9: /* if we do not skip IRET, then INT 48h returns without calling INT 9h */
 
+    mem_writeb(BIOS_KEYBOARD_FLAGS1,flags1);
     mem_writeb(BIOS_KEYBOARD_PCJR_FLAG2,pcjr_f);
     return CBRET_NONE;
 }

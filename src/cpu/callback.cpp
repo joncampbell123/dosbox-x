@@ -403,32 +403,24 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress+0x0e,(uint8_t)0xcf);		//An IRET Instruction
 		return (use_cb?0x13:0x0f);
 	case CB_IRQ1:	// keyboard int9
-		phys_writeb(physAddress+0x00,(uint8_t)0x50);			// push ax
 		if (machine == MCH_PCJR) {
 			/*      IBM PCjr reads the infrared input on NMI interrupt, which then calls INT 48h to
 			 *      translate to IBM PC/XT scan codes before passing AL directly to IRQ1 (INT 9).
 			 *      PCjr keyboard handlers, including games made for the PCjr, assume the scan code
-			 *      is in AL and do not read the I/O port.
-			 *
-			 *      PCjr has an XT style keyboard interface where it is necessary to set, then clear,
-			 *      bit 7 of port 61h to re-enable the keyboard.
-			 *
-			 *      Because we're talking to our own emulation, it is sufficient to just clear bit 7.*/
-			phys_writew(physAddress+0x01,(uint16_t)0x60E4);		// in al, 0x60
-
+			 *      is in AL and do not read the I/O port. */
 			if (use_cb) {
-				phys_writeb(physAddress+0x03,(uint8_t)0xFE);		//GRP 4
-				phys_writeb(physAddress+0x04,(uint8_t)0x38);		//Extra Callback instruction
-				phys_writew(physAddress+0x05,(uint16_t)callback);	//The immediate word
+				phys_writeb(physAddress+0x00,(uint8_t)0xFE);		//GRP 4
+				phys_writeb(physAddress+0x01,(uint8_t)0x38);		//Extra Callback instruction
+				phys_writew(physAddress+0x02,(uint16_t)callback);	//The immediate word
 				physAddress+=4;
 			}
 
 			/* It wasn't an interrupt, so there's no need to ack */
-			phys_writeb(physAddress+0x03,(uint8_t)0x58);			// pop ax
-			phys_writeb(physAddress+0x04,(uint8_t)0xcf);			//An IRET Instruction
-			return (use_cb?0x09:0x05);
+			phys_writeb(physAddress+0x00,(uint8_t)0xcf);			//An IRET Instruction
+			return (use_cb?0x05:0x01);
 		}
 		else {
+			phys_writeb(physAddress+0x00,(uint8_t)0x50);			// push ax
 			if (IS_PC98_ARCH) {
 				/* NTS: NEC PC-98 does not have keyboard input on port 60h, it's a 8251 UART elsewhere. */
 				phys_writew(physAddress+0x01,(uint16_t)0x9090);		// nop, nop
