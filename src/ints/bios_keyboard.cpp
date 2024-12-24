@@ -1204,8 +1204,12 @@ static Bitu PCjr_INT48_Keyboard_Handler(void) {
             case 0x09: reg_al=0x42|bc; break;/*Fn+8 = F8*/
             case 0x0A: reg_al=0x43|bc; break;/*Fn+9 = F9*/
             case 0x0B: reg_al=0x44|bc; break;/*Fn+10 = F10*/
+            case 0x10: goto skip_int9;/*Fn+Q = Pause*/
+            case 0x12: goto skip_int9;/*Fn+E = Echo*/
+            case 0x19: goto skip_int9;/*Fn+P = Print Screen*/
             case 0x1A: reg_al=0x2B|bc; UPDATESHIFT(bc); break;/*Fn+[ = | which is SHIFT+\ */
             case 0x1B: reg_al=0x29|bc; UPDATESHIFT(bc); break;/*Fn+] = ~ which is SHIFT+` */
+            case 0x1F: reg_al=0x46|bc; break;/*Fn+S = Scroll lock*/
             case 0x28: reg_al=0x29|bc; CLEARSHIFT(); break;/*Fn+' = ` which is unshifted ` */
             case 0x35: reg_al=0x2B|bc; CLEARSHIFT(); break;/*Fn+/ = \\ which is unshifted \\ */
             case 0x48: reg_al=0x47|bc; break;/*Fn+Up = Home*/
