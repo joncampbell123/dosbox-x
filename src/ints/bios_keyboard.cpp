@@ -1223,6 +1223,7 @@ static Bitu PCjr_INT48_Keyboard_Handler(void) {
 #undef UPDATESHIFT
 #undef CLEARSHIFT
 
+    IO_Write(0x60,reg_al); /* According to the PCjr BIOS listing, INT 48h does "OUT KB_PORT,AL" before calling INT 9h */
     reg_eip++; /* skip over IRET */
 skip_int9: /* if we do not skip IRET, then INT 48h returns without calling INT 9h */
 
