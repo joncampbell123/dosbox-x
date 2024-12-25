@@ -84,6 +84,11 @@ static inline Bitu MEMMASK_Combine(const Bitu a,const Bitu b) {
 //Allow 128 mb of memory to be linked
 #define PAGING_LINKS (128*1024/4)
 
+/* NTS: Despite that all devices respond to these page handlers, all addresses are still linear addresses.
+ *      Devices that need physical memory addresses will need to call PAGING_GetPhysicalAddress() to translate
+ *      linear to physical, or PAGING_GetPhysicalAddress64() if the device supports responding to addresses
+ *      above 4GB. This sounds crazy, but this is one aspect of emulation inherited from DOSBox SVN and I
+ *      don't think it's wise to break code to change it.  */
 class PageHandler {
 public:
 	PageHandler(Bitu flg) : flags(flg) {}
@@ -403,43 +408,43 @@ PageHandler * MEM_GetPageHandler(const Bitu phys_page);
 
 
 /* Unaligned address handlers */
-uint16_t mem_unalignedreadw(const PhysPt address);
-uint32_t mem_unalignedreadd(const PhysPt address);
-void mem_unalignedwritew(const PhysPt address,const uint16_t val);
-void mem_unalignedwrited(const PhysPt address,const uint32_t val);
+uint16_t mem_unalignedreadw(const LinearPt address);
+uint32_t mem_unalignedreadd(const LinearPt address);
+void mem_unalignedwritew(const LinearPt address,const uint16_t val);
+void mem_unalignedwrited(const LinearPt address,const uint32_t val);
 
-bool mem_unalignedreadw_checked(const PhysPt address,uint16_t * const val);
-bool mem_unalignedreadd_checked(const PhysPt address,uint32_t * const val);
-bool mem_unalignedwritew_checked(const PhysPt address,uint16_t const val);
-bool mem_unalignedwrited_checked(const PhysPt address,uint32_t const val);
+bool mem_unalignedreadw_checked(const LinearPt address,uint16_t * const val);
+bool mem_unalignedreadd_checked(const LinearPt address,uint32_t * const val);
+bool mem_unalignedwritew_checked(const LinearPt address,uint16_t const val);
+bool mem_unalignedwrited_checked(const LinearPt address,uint32_t const val);
 
 #if defined(USE_FULL_TLB)
 
-static INLINE HostPt get_tlb_read(const PhysPt address) {
+static INLINE HostPt get_tlb_read(const LinearPt address) {
 	return paging.tlb.read[address>>12];
 }
-static INLINE HostPt get_tlb_write(const PhysPt address) {
+static INLINE HostPt get_tlb_write(const LinearPt address) {
 	return paging.tlb.write[address>>12];
 }
-static INLINE PageHandler* get_tlb_readhandler(const PhysPt address) {
+static INLINE PageHandler* get_tlb_readhandler(const LinearPt address) {
 	return paging.tlb.readhandler[address>>12];
 }
-static INLINE PageHandler* get_tlb_writehandler(const PhysPt address) {
+static INLINE PageHandler* get_tlb_writehandler(const LinearPt address) {
 	return paging.tlb.writehandler[address>>12];
 }
 
 /* Use these helper functions to access linear addresses in readX/writeX functions */
 /* NTS: 12-bit shift 32-bit constant, upper bits get shifted out, therefore no need to bitmask */
-static INLINE PhysPt PAGING_GetPhysicalPage(const PhysPt linePage) {
+static INLINE PhysPt PAGING_GetPhysicalPage(const LinearPt linePage) {
 	return (paging.tlb.phys_page[linePage>>12]<<12);
 }
 
 /* NTS: 12-bit shift 32-bit constant, upper bits get shifted out, therefore no need to bitmask */
-static INLINE PhysPt PAGING_GetPhysicalAddress(const PhysPt linAddr) {
+static INLINE PhysPt PAGING_GetPhysicalAddress(const LinearPt linAddr) {
 	return (paging.tlb.phys_page[linAddr>>12]<<12)|(linAddr&0xfff);
 }
 
-static INLINE PhysPt64 PAGING_GetPhysicalAddress64(const PhysPt linAddr) {
+static INLINE PhysPt64 PAGING_GetPhysicalAddress64(const LinearPt linAddr) {
 	return ((PhysPt64)(paging.tlb.phys_page[linAddr>>12]&PHYSPAGE_ADDR)<<(PhysPt64)12)|(linAddr&0xfff);
 }
 
@@ -447,7 +452,7 @@ static INLINE PhysPt64 PAGING_GetPhysicalAddress64(const PhysPt linAddr) {
 
 void PAGING_InitTLBBank(tlb_entry **bank);
 
-static INLINE tlb_entry *get_tlb_entry(const PhysPt address) {
+static INLINE tlb_entry *get_tlb_entry(const LinearPt address) {
 	const Bitu index=(address >> 12U);
 	if (TLB_BANKS && (index >= TLB_SIZE)) {
 		const Bitu bank=(address >> BANK_SHIFT) - 1U;
@@ -458,26 +463,26 @@ static INLINE tlb_entry *get_tlb_entry(const PhysPt address) {
 	return &paging.tlbh[index];
 }
 
-static INLINE HostPt get_tlb_read(const PhysPt address) {
+static INLINE HostPt get_tlb_read(const LinearPt address) {
 	return get_tlb_entry(address)->read;
 }
-static INLINE HostPt get_tlb_write(const PhysPt address) {
+static INLINE HostPt get_tlb_write(const LinearPt address) {
 	return get_tlb_entry(address)->write;
 }
-static INLINE PageHandler* get_tlb_readhandler(const PhysPt address) {
+static INLINE PageHandler* get_tlb_readhandler(const LinearPt address) {
 	return get_tlb_entry(address)->readhandler;
 }
-static INLINE PageHandler* get_tlb_writehandler(const PhysPt address) {
+static INLINE PageHandler* get_tlb_writehandler(const LinearPt address) {
 	return get_tlb_entry(address)->writehandler;
 }
 
 /* Use these helper functions to access linear addresses in readX/writeX functions */
-static INLINE PhysPt PAGING_GetPhysicalPage(const PhysPt linePage) {
+static INLINE LinearPt PAGING_GetPhysicalPage(const LinearPt linePage) {
 	tlb_entry *entry = get_tlb_entry(linePage);
 	return (entry->phys_page<<12);
 }
 
-static INLINE PhysPt PAGING_GetPhysicalAddress(const PhysPt linAddr) {
+static INLINE LinearPt PAGING_GetPhysicalAddress(const LinearPt linAddr) {
 	tlb_entry *entry = get_tlb_entry(linAddr);
 	return (entry->phys_page<<12)|(linAddr&0xfff);
 }
@@ -485,13 +490,13 @@ static INLINE PhysPt PAGING_GetPhysicalAddress(const PhysPt linAddr) {
 
 /* Special inlined memory reading/writing */
 
-static INLINE uint8_t mem_readb_inline(const PhysPt address) {
+static INLINE uint8_t mem_readb_inline(const LinearPt address) {
 	const HostPt tlb_addr=get_tlb_read(address);
 	if (tlb_addr) return host_readb(tlb_addr+address);
 	else return (uint8_t)(get_tlb_readhandler(address))->readb(address);
 }
 
-static INLINE uint16_t mem_readw_inline(const PhysPt address) {
+static INLINE uint16_t mem_readw_inline(const LinearPt address) {
 	if ((address & 0xfff)<0xfff) {
 		const HostPt tlb_addr=get_tlb_read(address);
 		if (tlb_addr) return host_readw(tlb_addr+address);
@@ -499,7 +504,7 @@ static INLINE uint16_t mem_readw_inline(const PhysPt address) {
 	} else return mem_unalignedreadw(address);
 }
 
-static INLINE uint32_t mem_readd_inline(const PhysPt address) {
+static INLINE uint32_t mem_readd_inline(const LinearPt address) {
 	if ((address & 0xfff)<0xffd) {
 		const HostPt tlb_addr=get_tlb_read(address);
 		if (tlb_addr) return host_readd(tlb_addr+address);
@@ -507,13 +512,13 @@ static INLINE uint32_t mem_readd_inline(const PhysPt address) {
 	} else return mem_unalignedreadd(address);
 }
 
-static INLINE void mem_writeb_inline(const PhysPt address,const uint8_t val) {
+static INLINE void mem_writeb_inline(const LinearPt address,const uint8_t val) {
 	const HostPt tlb_addr=get_tlb_write(address);
 	if (tlb_addr) host_writeb(tlb_addr+address,val);
 	else (get_tlb_writehandler(address))->writeb(address,val);
 }
 
-static INLINE void mem_writew_inline(const PhysPt address,const uint16_t val) {
+static INLINE void mem_writew_inline(const LinearPt address,const uint16_t val) {
 	if ((address & 0xfffu)<0xfffu) {
 		const HostPt tlb_addr=get_tlb_write(address);
 		if (tlb_addr) host_writew(tlb_addr+address,val);
@@ -521,7 +526,7 @@ static INLINE void mem_writew_inline(const PhysPt address,const uint16_t val) {
 	} else mem_unalignedwritew(address,val);
 }
 
-static INLINE void mem_writed_inline(const PhysPt address,const uint32_t val) {
+static INLINE void mem_writed_inline(const LinearPt address,const uint32_t val) {
 	if ((address & 0xfffu)<0xffdu) {
 		const HostPt tlb_addr=get_tlb_write(address);
 		if (tlb_addr) host_writed(tlb_addr+address,val);
@@ -530,7 +535,7 @@ static INLINE void mem_writed_inline(const PhysPt address,const uint32_t val) {
 }
 
 
-static INLINE bool mem_readb_checked(const PhysPt address, uint8_t * const val) {
+static INLINE bool mem_readb_checked(const LinearPt address, uint8_t * const val) {
 	const HostPt tlb_addr=get_tlb_read(address);
 	if (tlb_addr) {
 		*val=host_readb(tlb_addr+address);
@@ -538,7 +543,7 @@ static INLINE bool mem_readb_checked(const PhysPt address, uint8_t * const val) 
 	} else return (get_tlb_readhandler(address))->readb_checked(address, val);
 }
 
-static INLINE bool mem_readw_checked(const PhysPt address, uint16_t * const val) {
+static INLINE bool mem_readw_checked(const LinearPt address, uint16_t * const val) {
 	if ((address & 0xfffu)<0xfffu) {
 		const HostPt tlb_addr=get_tlb_read(address);
 		if (tlb_addr) {
@@ -548,7 +553,7 @@ static INLINE bool mem_readw_checked(const PhysPt address, uint16_t * const val)
 	} else return mem_unalignedreadw_checked(address, val);
 }
 
-static INLINE bool mem_readd_checked(const PhysPt address, uint32_t * const val) {
+static INLINE bool mem_readd_checked(const LinearPt address, uint32_t * const val) {
 	if ((address & 0xfffu)<0xffdu) {
 		const HostPt tlb_addr=get_tlb_read(address);
 		if (tlb_addr) {
@@ -558,7 +563,7 @@ static INLINE bool mem_readd_checked(const PhysPt address, uint32_t * const val)
 	} else return mem_unalignedreadd_checked(address, val);
 }
 
-static INLINE bool mem_writeb_checked(const PhysPt address,const uint8_t val) {
+static INLINE bool mem_writeb_checked(const LinearPt address,const uint8_t val) {
 	const HostPt tlb_addr=get_tlb_write(address);
 	if (tlb_addr) {
 		host_writeb(tlb_addr+address,val);
@@ -566,7 +571,7 @@ static INLINE bool mem_writeb_checked(const PhysPt address,const uint8_t val) {
 	} else return (get_tlb_writehandler(address))->writeb_checked(address,val);
 }
 
-static INLINE bool mem_writew_checked(const PhysPt address,const uint16_t val) {
+static INLINE bool mem_writew_checked(const LinearPt address,const uint16_t val) {
 	if ((address & 0xfffu)<0xfffu) {
 		const HostPt tlb_addr=get_tlb_write(address);
 		if (tlb_addr) {
@@ -576,7 +581,7 @@ static INLINE bool mem_writew_checked(const PhysPt address,const uint16_t val) {
 	} else return mem_unalignedwritew_checked(address,val);
 }
 
-static INLINE bool mem_writed_checked(const PhysPt address,const uint32_t val) {
+static INLINE bool mem_writed_checked(const LinearPt address,const uint32_t val) {
 	if ((address & 0xfffu)<0xffdu) {
 		const HostPt tlb_addr=get_tlb_write(address);
 		if (tlb_addr) {
@@ -593,10 +598,10 @@ public:
 	const char *what() const throw() override {
 		return "Guest page fault exception";
 	}
-	GuestPageFaultException(PhysPt n_lin_addr, Bitu n_page_addr, Bitu n_faultcode) : lin_addr(n_lin_addr), page_addr(n_page_addr), faultcode(n_faultcode) {
+	GuestPageFaultException(LinearPt n_lin_addr, Bitu n_page_addr, Bitu n_faultcode) : lin_addr(n_lin_addr), page_addr(n_page_addr), faultcode(n_faultcode) {
 	}
 public:
-	PhysPt lin_addr;
+	LinearPt lin_addr;
 	Bitu page_addr;
 	Bitu faultcode;
 };

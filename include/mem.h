@@ -25,8 +25,17 @@
 
 #define MEM_PAGESIZE        (4096U)
 
-typedef uint8_t const *       ConstHostPt;        /* host (virtual) memory address aka ptr */
+/* HostPt and ConstHostPt is for holding linear addresses within this emulator i.e. a normal pointer.
+ *
+ * PhysPt is for 32-bit physical memory addresses within the emulation environment.
+ * PhysPt64 is for 64-bit physical memory addresses for code and device/memory emulation that supports addresses above 4GB.
+ * LinearPt is a 32-bit linear memory address from the point of view of the CPU execution context, meaning the linear address
+ *   of the code prior to translation through the page tables to physical addresses.
+ * RealPt is a 32-bit value that holds segment in the upper 16 bits, offset in the lower 16 bits.
+ *
+ * Please do not mix these types up in the code, even if they happen to have the same underlying data types */
 
+typedef uint8_t const *       ConstHostPt;        /* host (virtual) memory address aka ptr */
 typedef uint8_t *             HostPt;             /* host (virtual) memory address aka ptr */
 
 typedef uint32_t              PhysPt;      /* guest physical memory pointer */
@@ -173,13 +182,13 @@ static INLINE uint32_t var_read(uint32_t * var) {
 
 /* The Following six functions are slower but they recognize the paged memory system */
 
-uint8_t  mem_readb(const PhysPt address);
-uint16_t mem_readw(const PhysPt address);
-uint32_t mem_readd(const PhysPt address);
+uint8_t  mem_readb(const LinearPt address);
+uint16_t mem_readw(const LinearPt address);
+uint32_t mem_readd(const LinearPt address);
 
-void mem_writeb(const PhysPt address,const uint8_t val);
-void mem_writew(const PhysPt address,const uint16_t val);
-void mem_writed(const PhysPt address,const uint32_t val);
+void mem_writeb(const LinearPt address,const uint8_t val);
+void mem_writew(const LinearPt address,const uint16_t val);
+void mem_writed(const LinearPt address,const uint32_t val);
 
 void phys_writes(PhysPt addr, const char* string, Bitu length);
 
@@ -249,21 +258,21 @@ static INLINE uint32_t phys_readd(const PhysPt addr) {
 
 /* These don't check for alignment, better be sure it's correct */
 
-void MEM_BlockWrite(PhysPt pt, const void *data, size_t size);
-void MEM_BlockRead(PhysPt pt,void * data,Bitu size);
-void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size);
-void MEM_BlockRead32(PhysPt pt,void * data,Bitu size);
-void MEM_BlockCopy(PhysPt dest,PhysPt src,Bitu size);
-void MEM_StrCopy(PhysPt pt,char * data,Bitu size);
+void MEM_BlockWrite(LinearPt pt, const void *data, size_t size);
+void MEM_BlockRead(LinearPt pt,void * data,Bitu size);
+void MEM_BlockWrite32(LinearPt pt,void * data,Bitu size);
+void MEM_BlockRead32(LinearPt pt,void * data,Bitu size);
+void MEM_BlockCopy(LinearPt dest,LinearPt src,Bitu size);
+void MEM_StrCopy(LinearPt pt,char * data,Bitu size);
 
-void mem_memcpy(PhysPt dest,PhysPt src,Bitu size);
-Bitu mem_strlen(PhysPt pt);
-void mem_strcpy(PhysPt dest,PhysPt src);
+void mem_memcpy(LinearPt dest,LinearPt src,Bitu size);
+Bitu mem_strlen(LinearPt pt);
+void mem_strcpy(LinearPt dest,LinearPt src);
 
 /* The following functions are all shortcuts to the above functions using physical addressing */
 
-static inline constexpr PhysPt PhysMake(const uint16_t seg,const uint16_t off) {
-    return ((PhysPt)seg << 4U) + (PhysPt)off;
+static inline constexpr LinearPt PhysMake(const uint16_t seg,const uint16_t off) {
+    return ((LinearPt)seg << 4U) + (LinearPt)off;
 }
 
 static inline constexpr uint16_t RealSeg(const RealPt pt) {
@@ -274,8 +283,8 @@ static inline constexpr uint16_t RealOff(const RealPt pt) {
     return (uint16_t)(pt & 0xffffu);
 }
 
-static inline constexpr PhysPt Real2Phys(const RealPt pt) {
-    return (((PhysPt)RealSeg(pt) << 4U) + (PhysPt)RealOff(pt));
+static inline constexpr LinearPt Real2Phys(const RealPt pt) {
+    return (((LinearPt)RealSeg(pt) << 4U) + (LinearPt)RealOff(pt));
 }
 
 static inline constexpr RealPt RealMake(const uint16_t seg,const uint16_t off) {
@@ -283,11 +292,11 @@ static inline constexpr RealPt RealMake(const uint16_t seg,const uint16_t off) {
 }
 
 /* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
-static inline constexpr RealPt PhysToReal416(const PhysPt phys) {
+static inline constexpr RealPt PhysToReal416(const LinearPt phys) {
     return RealMake((uint16_t)((phys >> 4U) & 0xF000U),(uint16_t)(phys & 0xFFFFU));
 }
 
-static inline constexpr PhysPt RealVecAddress(const uint8_t vec) {
+static inline constexpr LinearPt RealVecAddress(const uint8_t vec) {
     return ((unsigned int)vec << 2U);
 }
 
@@ -322,7 +331,7 @@ static INLINE void RealSetVec(const uint8_t vec,const RealPt pt) {
 }
 
 static INLINE void RealSetVec(const uint8_t vec,const RealPt pt,RealPt &old) {
-    const PhysPt addr = RealVecAddress(vec);
+    const LinearPt addr = RealVecAddress(vec);
     old = mem_readd(addr);
     mem_writed(addr,pt);
 }
