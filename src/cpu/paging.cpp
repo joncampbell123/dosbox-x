@@ -221,9 +221,6 @@ static const uint8_t fault_table[] = {
 	1,	1,	1,	0,
 };
 
-#define PHYSPAGE_DIRTY 0x10000000
-#define PHYSPAGE_ADDR  0x00FFFFFF
-
 // helper functions for calculating table entry addresses
 static inline PhysPt GetPageDirectoryEntryAddr(PhysPt lin_addr) {
 	return paging.base.addr | ((lin_addr >> 22u) << 2u);
