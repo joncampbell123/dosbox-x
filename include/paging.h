@@ -231,11 +231,11 @@ void MEM_SetPageHandler(Bitu phys_page, Bitu pages, PageHandler * handler);
 
 /* bits 31-30: ACCESS_* contants */
 #define PHYSPAGE_ACCESS_BITS      0xC0000000
-/* bit 28: dirty bit */
-#define PHYSPAGE_DIRTY            0x10000000
-/* bits 27-24: not defined */
-/* bits 23-0: physical page */
-#define PHYSPAGE_ADDR             0x00FFFFFF
+/* bit 29: dirty bit */
+#define PHYSPAGE_DIRTY            0x20000000
+/* bits 28: not defined */
+/* bits 27-0: physical page. 40-bit addresses, that's as far as we can go, and the limits of PSE anyway */
+#define PHYSPAGE_ADDR             0x0FFFFFFF
 
 struct X86_PageEntryBlock{ // Page Table Entry, though it keeps the PageEntryBlock name to avoid breaking all this code
 #ifdef WORDS_BIGENDIAN

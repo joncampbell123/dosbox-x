@@ -1954,7 +1954,7 @@ void DOSBOX_SetupConfigSections(void) {
         "-1 means to use a reasonable default.");
 
     Pint = secprop->Add_int("memalias", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(0,36);
+    Pint->SetMinMax(0,40);
     Pint->Set_help(
         "Memory aliasing emulation, in number of valid address bits.\n"
         "Many 386/486 class motherboards and processors prior to 1995\n"
