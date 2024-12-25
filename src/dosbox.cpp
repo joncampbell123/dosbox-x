@@ -1900,6 +1900,21 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("acpi reserved size", Property::Changeable::WhenIdle,0);
     Pint->Set_help("Amount of memory at top to reserve for ACPI structures and tables. Set to 0 for automatic assignment.");
 
+    // TODO: At some point we are going to REQUIRE the user to set this option to emulate a memsize option beyond
+    //       some threshhold, say, 4GB, or probably less, in order not to grind the system to a halt if insufficient
+    //       RAM is available. Better yet, require this option if it exceeds 50% of the total RAM installed on the system
+    //       (or for Windows, the available RAM allowed by your Windows license limit such as 32-bit Windows only using
+    //       3GB of your 4GB).
+    //
+    //       Normal DOSBox never has to worry about this as most forks limit memsize to 63MB or less, same as DOSBox SVN,
+    //       which is nothing on the typical modern desktop.
+    //
+    //       No tricks! This code will ensure the path is to a FILE, not a directory, block device, or worse.
+    Pstring = secprop->Add_path("memory file",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("If set, guest memory is memory-mapped from a file on disk, rather than allocated from memory.\n"
+                      "This option can help keep DOSBox-X from consuming too much RAM for large values of memsize.");
+    Pstring->SetBasic(true);
+
 #if defined(C_EMSCRIPTEN)
     Pint = secprop->Add_int("memsize", Property::Changeable::OnlyAtStart,4);
 #else
