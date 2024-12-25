@@ -221,7 +221,7 @@ static const uint8_t fault_table[] = {
 	1,	1,	1,	0,
 };
 
-#define PHYSPAGE_DITRY 0x10000000
+#define PHYSPAGE_DIRTY 0x10000000
 #define PHYSPAGE_ADDR  0x00FFFFFF
 
 // helper functions for calculating table entry addresses
@@ -347,7 +347,7 @@ private:
 		uint32_t phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
 			
 		// set the page dirty in the tlb
-		paging.tlb.phys_page[lin_page] |= PHYSPAGE_DITRY;
+		paging.tlb.phys_page[lin_page] |= PHYSPAGE_DIRTY;
 
 		// mark the page table entry dirty
 		X86PageEntry dir_entry, table_entry;
@@ -1060,7 +1060,7 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 	// bit31-30 ACMAP_
 	// bit29	dirty
 	// these bits are shifted off at the places paging.tlb.phys_page is read
-	paging.tlb.phys_page[lin_page]= (uint32_t)(phys_page | (linkmode<< 30) | (dirty? PHYSPAGE_DITRY:0));
+	paging.tlb.phys_page[lin_page]= (uint32_t)(phys_page | (linkmode<< 30) | (dirty? PHYSPAGE_DIRTY:0));
 	switch(outcome) {
 	case ACMAP_RW:
 		// read
@@ -1165,7 +1165,7 @@ void PAGING_SwitchCPL(bool isUser) {
 			Bitu tlb_index = paging.krw_links.entries[i];
 			Bitu phys_page = paging.tlb.phys_page[tlb_index];
 			Bitu lin_base = tlb_index << 12;
-			bool dirty = (phys_page & PHYSPAGE_DITRY)? true:false;
+			bool dirty = (phys_page & PHYSPAGE_DIRTY)? true:false;
 			phys_page &= PHYSPAGE_ADDR;
 			PageHandler* handler = MEM_GetPageHandler(phys_page);
 			
@@ -1226,7 +1226,7 @@ void PAGING_SwitchCPL(bool isUser) {
 			for(Bitu i = 0; i < paging.ur_links.used; i++) {
 				Bitu tlb_index = paging.ur_links.entries[i];
 				Bitu phys_page = paging.tlb.phys_page[tlb_index];
-				bool dirty = (phys_page & PHYSPAGE_DITRY)? true:false;
+				bool dirty = (phys_page & PHYSPAGE_DIRTY)? true:false;
 				phys_page &= PHYSPAGE_ADDR;
 				PageHandler* handler = MEM_GetPageHandler(phys_page);
 
