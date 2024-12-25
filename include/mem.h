@@ -58,6 +58,7 @@ void                        MEM_A20_Enable(bool enabled);
 Bitu                        MEM_FreeTotal(void);           //Free 4 kb pages
 Bitu                        MEM_FreeLargest(void);         //Largest free 4 kb pages block
 Bitu                        MEM_TotalPages(void);          //Total amount of 4 kb pages
+Bitu                        MEM_TotalPagesAt4GB(void);          //Total amount of 4 kb pages starting at 4GB
 Bitu                        MEM_AllocatedPages(MemHandle handle); // amount of allocated pages of handle
 MemHandle                   MEM_AllocatePages(Bitu pages,bool sequence);
 MemHandle                   MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence);

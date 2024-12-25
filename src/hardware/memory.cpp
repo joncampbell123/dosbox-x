@@ -216,6 +216,7 @@ static struct MemoryBlock {
     Bitu pages = 0;
     Bitu handler_pages = 0;
     Bitu reported_pages = 0;
+    Bitu reported_pages_4gb = 0;
     PageHandler * * phandlers = NULL;
     MemHandle * mhandles = NULL;
     struct {
@@ -947,6 +948,10 @@ void MEM_StrCopy(LinearPt pt,char * data,Bitu size) {
 
 Bitu MEM_TotalPages(void) {
     return memory.reported_pages;
+}
+
+Bitu MEM_TotalPagesAt4GB(void) {
+    return memory.reported_pages_4gb;
 }
 
 Bitu MEM_FreeLargest(void) {
@@ -2182,31 +2187,45 @@ void Init_RAM() {
     }
 
     /* Setup the Physical Page Links */
-    Bitu memsizekb = (Bitu)section->Get_int("memsizekb");
+    uint64_t memsizekb4gb = 0;
+    uint64_t memsizekb = (uint64_t)section->Get_int("memsizekb");
     {
-        Bitu memsize = (Bitu)section->Get_int("memsize");
+        uint64_t memsize = (uint64_t)section->Get_int("memsize");
 
         if (memsizekb == 0 && memsize < 1) memsize = 1;
         else if (memsizekb != 0 && (Bits)memsize < 0) memsize = 0;
 
         /* round up memsizekb to 4KB multiple */
-        memsizekb = (memsizekb + 3ul) & (~3ul);
+        memsizekb = (memsizekb + 3ull) & (~3ull);
 
         /* roll memsize into memsizekb, simplify this code */
-        memsizekb += memsize * 1024ul;
+        memsizekb += memsize * (uint64_t)1024ull;
     }
 
     /* we can't have more memory than the memory aliasing allows */
-    if ((memory.mem_alias_pagemask+1) != 0/*32-bit integer overflow avoidance*/ &&
-        (memsizekb/4) > (memory.mem_alias_pagemask+1)) {
-        LOG_MSG("%u-bit memory aliasing limits you to %uKB",
-            (int)memory.address_bits,(int)((memory.mem_alias_pagemask+1)*4));
-        memsizekb = (memory.mem_alias_pagemask+1) * 4;
+    if ((memory.mem_alias_pagemask+1) != 0/*32-bit integer overflow avoidance*/) {
+        uint64_t maxmem;
+
+        if (memory.address_bits >= 30) /* 1GB+ */
+            maxmem = (memory.mem_alias_pagemask+1) - 0x100; /* minus 64MB */
+        else if (memory.address_bits >= 24) /* 16MB+ */
+            maxmem = (memory.mem_alias_pagemask+1) - 0x100; /* minus 1MB */
+        else
+            maxmem = (memory.mem_alias_pagemask+1) - 0x10; /* minus 64KB */
+
+        if ((memsizekb/4) > maxmem) {
+            LOG_MSG("%u-bit memory aliasing limits you to %uKB",
+                (int)memory.address_bits,(int)maxmem*4);
+            if (memory.address_bits <= 32) LOG_MSG("If you are attempting more than 4GB of RAM, you need to set memalias to a value larger than 32");
+            memsizekb = maxmem*4;
+        }
     }
 
-    /* cap at 3.5GB */
     {
-        Bitu maxsz;
+        uint32_t maxsz32 = 0xF8000000ul;
+        uint64_t maxsz;
+
+        static_assert( sizeof(size_t) >= sizeof(void*), "why is size_t smaller than a pointer?" );
 
         /* Leave 128MB of space at the top for the BIOS, S3 VGA, and Voodoo 3Dfx emulation.
          * There was a known bug 2024/12/21 where setting the maximum memory size and installing
@@ -2217,10 +2236,12 @@ void Init_RAM() {
          * PC-98 PEGC framebuffer: 512KB below BIOS
          * S3 LFB and MMIO: 32MB at 32MB alignment
          * Voodoo 3Dfx: 16MB at 16MB alignment */
+        /* 2024/12/25: We now allow 4GB or more of RAM! But, to make it work in this codebase,
+         *             it has to be divided into a region below 4GB and a region above 4GB. */
         if (sizeof(void*) > 4) // 64-bit address space
-            maxsz = (Bitu)(3968ul * 1024ul); // 3.9GB (up to 0xF8000000)
+            maxsz = (uint64_t)(16384ull * 1024ull); // 16GB
         else
-            maxsz = (Bitu)(1024ul * 1024ul); // 1.0GB
+            maxsz = (uint64_t)(1024ull * 1024ull); // 1GB
 
         LOG_MSG("Max %lu sz %lu\n",(unsigned long)maxsz,(unsigned long)memsizekb);
         if (memsizekb > maxsz) {
@@ -2228,7 +2249,22 @@ void Init_RAM() {
             memsizekb = maxsz;
         }
         LOG_MSG("Final %lu\n",(unsigned long)memsizekb);
+
+        /* 4GB or more requires dividing it into below 4GB and above 4GB.
+         * This codebase for the most part is only designed for memory and MMIO
+         * below 4GB (32-bit system limits) */
+        if (memory.address_bits > 32 && memsizekb > (uint64_t)(maxsz32>>10ull)) {
+            memsizekb4gb = memsizekb - (uint64_t)(maxsz32>>10ull);
+            memsizekb = (uint64_t)(maxsz32>>10ull);
+        }
+        else {
+            memsizekb4gb = 0;
+        }
+
+        LOG_MSG("Final arrangement: Below 4GB = %lluKB, Above 4GB = %lluKB\n",
+            (unsigned long long)memsizekb,(unsigned long long)memsizekb4gb);
     }
+    memory.reported_pages_4gb = memsizekb4gb;
     memory.reported_pages = memory.pages = memsizekb/4;
     memory.hw_next_assign = (uint32_t)memory.pages << 12ul;
     LOG(LOG_MISC,LOG_DEBUG)("Hardware assignment will begin at 0x%lx",(unsigned long)memory.hw_next_assign);
