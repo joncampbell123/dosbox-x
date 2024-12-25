@@ -2112,7 +2112,7 @@ bool alloc_mem_file() {
     }
 
     {
-        LONG hi = (LONG)(memory_file_size >> 32ul);
+        LONG hi = (LONG)(memory_file_size >> 32ull);
         if(SetFilePointer(memory_file_fd, (DWORD)memory_file_size, &hi, FILE_BEGIN) != (DWORD)memory_file_size) {
             free_mem_file();
             return false;
@@ -2123,14 +2123,14 @@ bool alloc_mem_file() {
         return false;
     }
 
-    memory_file_map = CreateFileMapping(memory_file_fd, NULL, PAGE_READWRITE, NULL, (DWORD)memory_file_size, NULL);
+    memory_file_map = CreateFileMapping(memory_file_fd, NULL, PAGE_READWRITE, (DWORD)(memory_file_size >> 32ull), (DWORD)memory_file_size, NULL);
     if(memory_file_map == INVALID_HANDLE_VALUE || memory_file_map == 0) {
         const DWORD err = GetLastError();
         free_mem_file();
         return false;
     }
 
-    memory_file_base = MapViewOfFile(memory_file_map, FILE_MAP_ALL_ACCESS, 0, 0, (DWORD)memory_file_size);
+    memory_file_base = MapViewOfFile(memory_file_map, FILE_MAP_ALL_ACCESS, 0, 0, memory_file_size);
     if(memory_file_base == NULL) {
         const DWORD err = GetLastError();
         free_mem_file();
