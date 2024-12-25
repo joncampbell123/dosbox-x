@@ -2110,9 +2110,12 @@ bool alloc_mem_file() {
             LOG_MSG("WARNING: Could not make memory file sparse");
     }
 
-    if(SetFilePointer(memory_file_fd, (DWORD)memory_file_size, NULL, FILE_BEGIN) != (DWORD)memory_file_size) {
-        free_mem_file();
-        return false;
+    {
+        LONG hi = (LONG)(memory_file_size >> 32ul);
+        if(SetFilePointer(memory_file_fd, (DWORD)memory_file_size, &hi, FILE_BEGIN) != (DWORD)memory_file_size) {
+            free_mem_file();
+            return false;
+        }
     }
     if(SetEndOfFile(memory_file_fd) == 0) {
         free_mem_file();
@@ -2133,6 +2136,8 @@ bool alloc_mem_file() {
         return false;
     }
 
+    LOG_MSG("Using memory file '%s' as guest memory", memory_file.c_str());
+    memory_file_already_zero = true;
     return true;
 }
 # else
@@ -2225,7 +2230,7 @@ void Init_RAM() {
         LOG_MSG("Final %lu\n",(unsigned long)memsizekb);
     }
     memory.reported_pages = memory.pages = memsizekb/4;
-    memory.hw_next_assign = memory.pages << 12ul;
+    memory.hw_next_assign = (uint32_t)memory.pages << 12ul;
     LOG(LOG_MISC,LOG_DEBUG)("Hardware assignment will begin at 0x%lx",(unsigned long)memory.hw_next_assign);
 
     // FIXME: Hopefully our refactoring will remove the need for this hack
