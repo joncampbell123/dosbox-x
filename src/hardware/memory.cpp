@@ -1989,7 +1989,7 @@ bool alloc_mem_file() {
 	assert(memory_file_fd < 0);
 	assert(memory_file_base == NULL);
 
-	if (memory_file.empty())
+	if (memory_file.empty() || memory_file_size == 0)
 		return false;
 
 	if (lstat(memory_file.c_str(),&st)) {
@@ -2021,8 +2021,6 @@ bool alloc_mem_file() {
 		free_mem_file();
 		return false;
 	}
-
-	memory_file_size = size_t(memory.pages*4096);
 
 	if (ftruncate(memory_file_fd,0)) {
 		LOG_MSG("Cannot truncate file to zero %s",strerror(errno));
@@ -2069,7 +2067,7 @@ bool alloc_mem_file() {
     assert(memory_file_map == INVALID_HANDLE_VALUE);
     assert(memory_file_base == NULL);
 
-    if(memory_file.empty())
+    if(memory_file.empty() || memory_file_size == 0)
         return false;
 
     DWORD attr, err;
@@ -2094,8 +2092,6 @@ bool alloc_mem_file() {
         free_mem_file();
         return false;
     }
-
-    memory_file_size = size_t(memory.pages * 4096);
 
     if(SetFilePointer(memory_file_fd, 0, 0, FILE_BEGIN) != 0) {
         free_mem_file();
@@ -2264,7 +2260,7 @@ void Init_RAM() {
         LOG_MSG("Final arrangement: Below 4GB = %lluKB, Above 4GB = %lluKB\n",
             (unsigned long long)memsizekb,(unsigned long long)memsizekb4gb);
     }
-    memory.reported_pages_4gb = memsizekb4gb;
+    memory.reported_pages_4gb = memsizekb4gb/4;
     memory.reported_pages = memory.pages = memsizekb/4;
     memory.hw_next_assign = (uint32_t)memory.pages << 12ul;
     LOG(LOG_MISC,LOG_DEBUG)("Hardware assignment will begin at 0x%lx",(unsigned long)memory.hw_next_assign);
@@ -2294,6 +2290,12 @@ void Init_RAM() {
 
     /* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
      * so we then must zero the buffer. */
+    memory_file_size = size_t(memory.pages) * size_t(4096u);
+    if (memory.reported_pages_4gb > 0 && sizeof(void*) > 4) {
+        size_t noff = size_t(0x100000000ul) + (size_t(4096u) * size_t(memory.reported_pages_4gb));
+        if (memory_file_size < noff) memory_file_size = noff;
+    }
+    if (!memory_file.empty()) LOG_MSG("Memory file size will be %lluKB",(unsigned long long)memory_file_size >> 10ull);
     if (alloc_mem_file()) {
         MemBase = (uint8_t*)memory_file_base;
 #if C_GAMELINK
