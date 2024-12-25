@@ -9426,6 +9426,12 @@ private:
 		ent.length = (MEM_TotalPages()-0x100u)*4096u;
 		ent.type = 1;/*Normal RAM*/
 	}
+	if (MEM_TotalPagesAt4GB() > 0) { /* anything above 4GB? */
+		BIOS_E280_entry &ent = E280_table[E280_table_entries++];
+		ent.base = uint64_t(0x100000000ull);
+		ent.length = uint64_t(MEM_TotalPagesAt4GB())*uint64_t(4096ul);
+		ent.type = 1;/*Normal RAM*/
+	}
 
         /* If we're here because of a JMP to F000:FFF0 from a DOS program, then
          * an actual reset is needed to prevent reentrancy problems with the DOS
