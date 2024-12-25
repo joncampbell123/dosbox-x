@@ -35,6 +35,12 @@
 # include <stdlib.h>
 # include <unistd.h>
 # include <stdio.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <fcntl.h>
+# if C_HAVE_MMAP
+#  include <sys/mman.h>
+# endif
 #endif
 
 #include "voodoo.h"
@@ -45,6 +51,27 @@
 #if C_GAMELINK
 #include "../gamelink/gamelink.h"
 #endif // C_GAMELINK
+
+/* memory from file, memory mapping */
+#if C_HAVE_MMAP
+# define DO_MEMORY_FILE
+int			memory_file_fd = -1;
+#endif
+
+std::string		memory_file;
+void*			memory_file_base = NULL;
+size_t			memory_file_size = 0;
+
+// TODO #ifdef WIN32 and not HX_DOS, a Win32 HANDLE to the memory file and a HANDLE to the memory map object.
+// Memory mapping a file in Windows is completely different from Linux/Mac OS/etc.
+//
+// TODO: When above 4GB mapping is available, there will either be two memory mappings or the memory map will
+//       just reflect physical memory layout, not yet decided. If we're able to do sparse files on most systems
+//       the 64MB gap in memory will be empty file space that doesn't take up disk space.
+//
+// TODO: If we're going to allow the memory file as a means for cheat/hack programs to alter guest memory,
+//       then there needs to be an API here to flush modified pages to disk. Or at least provide one so that
+//       when you open the debugger, modified pages are flushed to disk for your analysis.
 
 // ACPI memory region allocation.
 // Most ACPI BIOSes actually use some region at top of memory, but the
@@ -1879,14 +1906,22 @@ void Init_AddressLimitAndGateMask() {
     LOG(LOG_MISC,LOG_DEBUG)("Memory: address_bits=%u alias_pagemask=%lx",(unsigned int)memory.address_bits,(unsigned long)memory.mem_alias_pagemask);
 }
 
+void free_mem_file();
+
 void ShutDownRAM(Section * sec) {
     (void)sec;//UNUSED
     if (MemBase != NULL) {
+        if (memory_file_base) {
+            assert(MemBase == memory_file_base);
+            free_mem_file();
+        }
+        else {
 #if C_GAMELINK
-        GameLink::FreeRAM(MemBase);
+            GameLink::FreeRAM(MemBase);
 #else
-        delete [] MemBase;
+            delete [] MemBase;
 #endif
+        }
         MemBase = NULL;
     }
     MemSize = 0;
@@ -1921,6 +1956,103 @@ uint32_t MEM_HardwareAllocate(const char *name,uint32_t sz) {
     return assign;
 }
 
+#ifdef DO_MEMORY_FILE
+# if C_HAVE_MMAP
+void free_mem_file() {
+	if (memory_file_base) {
+		munmap(memory_file_base,memory_file_size);
+		memory_file_base = NULL;
+	}
+	if (memory_file_fd >= 0) {
+		close(memory_file_fd);
+		memory_file_fd = -1;
+	}
+}
+
+bool alloc_mem_file() {
+	struct stat st;
+
+	assert(memory_file_fd < 0);
+	assert(memory_file_base == NULL);
+
+	if (memory_file.empty())
+		return false;
+
+	if (lstat(memory_file.c_str(),&st)) {
+		if (errno != ENOENT) { /* It's OK if the file doesn't exist yet */
+			LOG_MSG("Cannot stat memory file, %s",strerror(errno));
+			return false;
+		}
+	}
+	else {
+		if (!S_ISREG(st.st_mode)) { /* Must be file! */
+			LOG_MSG("Memory file exists and it is not a file");
+			return false;
+		}
+	}
+
+	memory_file_fd = open(memory_file.c_str(),O_CREAT|O_RDWR,0600);
+	if (memory_file_fd < 0) {
+		LOG_MSG("Cannot open memory file, %s",strerror(errno));
+		return false;
+	}
+
+	if (fstat(memory_file_fd,&st)) {
+		LOG_MSG("Cannot fstat memory file I just opened??? Whut? %s",strerror(errno));
+		free_mem_file();
+		return false;
+	}
+	if (!S_ISREG(st.st_mode)) {
+		E_Exit("I was tricked into opening a non-file as a memory file. Don't do that.");
+		free_mem_file();
+		return false;
+	}
+
+	memory_file_size = size_t(memory.pages*4096);
+
+	/* Extend the file to size. This is a very portable way to do it, including even on MS-DOS and Windows 9x. */
+	if (st.st_size < (off_t)memory_file_size && memory_file_size != 0) {
+		unsigned char c = 0;
+		if (lseek(memory_file_fd,(off_t)(memory_file_size - 1),SEEK_SET) != (off_t)(memory_file_size - 1)) {
+			LOG_MSG("Cannot lseek out to extend the file, %s",strerror(errno));
+			free_mem_file();
+			return false;
+		}
+		if (write(memory_file_fd,&c,1) != 1) {
+			LOG_MSG("Cannot write to extend the file, %s",strerror(errno));
+			free_mem_file();
+			return false;
+		}
+	}
+
+	memory_file_base = mmap(NULL/*no particular address*/,memory_file_size,PROT_READ|PROT_WRITE,MAP_SHARED,memory_file_fd,0/*offset*/);
+	if (memory_file_base == MAP_FAILED) {
+		LOG_MSG("Unable to memory map memory file, %s",strerror(errno));
+		memory_file_base = NULL; /* MAP_FAILED might be some nonzero value, such as on Linux where it is -1 */
+		free_mem_file();
+		return false;
+	}
+
+	LOG_MSG("Using memory file '%s' as guest memory",memory_file.c_str());
+	return true;
+}
+# else
+void free_mem_file() {
+}
+
+bool alloc_mem_file() {
+	return false;
+}
+# endif
+#else
+void free_mem_file() {
+}
+
+bool alloc_mem_file() {
+	return false;
+}
+#endif
+
 void Init_RAM() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
     Bitu i;
@@ -1939,6 +2071,11 @@ void Init_RAM() {
 
     // CHECK: address mask init must have been called!
     assert(memory.mem_alias_pagemask >= 0xFF);
+
+    {
+        const char *str = section->Get_string("memory file");
+        memory_file = str;
+    }
 
     /* Setup the Physical Page Links */
     Bitu memsizekb = (Bitu)section->Get_int("memsizekb");
@@ -2017,15 +2154,32 @@ void Init_RAM() {
 
     /* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
      * so we then must zero the buffer. */
+    if (alloc_mem_file()) {
+        MemBase = (uint8_t*)memory_file_base;
 #if C_GAMELINK
-    MemBase = GameLink::AllocRAM(memory.pages*4096);
+        LOG_MSG("WARNING: Memory file overrides Game Link memory interface\n");
+#endif
+    }
+    else {
+#if C_GAMELINK
+        MemBase = GameLink::AllocRAM(memory.pages*4096);
 #else // C_GAMELINK
-    MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
+        MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
 #endif // C_GAMELINK
+    }
     MemSize = size_t(memory.pages*4096);
     if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
     /* Clear the memory, as new doesn't always give zeroed memory
      * (Visual C debug mode). We want zeroed memory though. */
+    /* TODO: On some systems like Linux, a sparse file reads as zeros wherever a part
+     *       of the file has no allocation on disk. So if the memory mapping truncates
+     *       the file then lseeks it back out, the memory should be zero already.
+     *
+     *       Not sure if an NTFS sparse file on Windows has the same thing.
+     *
+     *       I do know on Windows 98, if you lseek out to extend the file the contents
+     *       of the file will be whatever random data the allocated clusters happend to
+     *       have. Used to recover old data that way, heh. :) */
     memset((void*)MemBase,0,memory.reported_pages*4096);
     /* the rest of "ROM" is for unmapped devices so we need to fill it appropriately */
     if (memory.reported_pages < memory.pages)
