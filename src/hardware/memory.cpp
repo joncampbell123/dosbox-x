@@ -823,6 +823,26 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
     PAGING_ClearTLB();
 }
 
+class Mem4GBPageHandler : public PageHandler {
+	public:
+		Mem4GBPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
+		Mem4GBPageHandler(Bitu flags) : PageHandler(flags) {}
+		HostPt GetHostReadPt(Bitu phys_page) override {
+			assert(memory_file_base != NULL);
+			const size_t ofs = size_t(phys_page) * size_t(4096u);
+			assert(ofs < memory_file_size);
+			return (unsigned char*)memory_file_base + ofs;
+		}
+		HostPt GetHostWritePt(Bitu phys_page) override {
+			assert(memory_file_base != NULL);
+			const size_t ofs = size_t(phys_page) * size_t(4096u);
+			assert(ofs < memory_file_size);
+			return (unsigned char*)memory_file_base + ofs;
+		}
+};
+
+static Mem4GBPageHandler mem4gb_handler;
+
 PageHandler * MEM_GetPageHandler(Bitu phys_page) {
 	phys_page &= memory.mem_alias_pagemask_active;
 	if (glide.enabled && (phys_page>=(GLIDE_LFB>>12)) && (phys_page<(GLIDE_LFB>>12)+GLIDE_PAGES))
@@ -833,6 +853,12 @@ PageHandler * MEM_GetPageHandler(Bitu phys_page) {
 
 		return MEM_SlowPath(phys_page); /* will also fill in phandlers[] if zero or one matches, so the next access is very fast */
 	}
+
+	if (phys_page >= 0x100000ul && phys_page < (0x100000ul+(unsigned long)memory.reported_pages_4gb)) {
+		assert(memory_file_base != NULL);
+		return &mem4gb_handler;
+	}
+
 	return &illegal_page_handler;
 }
 
