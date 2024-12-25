@@ -80,6 +80,17 @@ extern bool PS1AudioCard;
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+struct BIOS_E280_entry {
+	uint64_t	base = 0;
+	uint64_t	length = 0;
+	uint32_t	type = 0;
+	uint32_t	acpi_ext_addr = 0;
+};
+
+#define MAX_E280	16
+static BIOS_E280_entry	E280_table[MAX_E280];
+static unsigned int	E280_table_entries = 0;
+
 bool VGA_InitBiosLogo(unsigned int w,unsigned int h,unsigned int x,unsigned int y);
 void VGA_WriteBiosLogoBMP(unsigned int y,unsigned char *scanline,unsigned int w);
 void VGA_WriteBiosLogoPalette(unsigned int start,unsigned int count,unsigned char *rgb);
@@ -7454,30 +7465,21 @@ static Bitu INT15_Handler(void) {
                          *    0) 0x000000-0x09EFFF       Free memory
                          *    1) 0x0C0000-0x0FFFFF       Reserved
                          *    2) 0x100000-...            Free memory (no ACPI tables) */
-                        if (reg_ebx < 3) {
-                            uint32_t base = 0,len = 0,type = 0;
+                        if (reg_ebx < E280_table_entries) {
+                            BIOS_E280_entry &ent = E280_table[reg_ebx];
                             Bitu seg = SegValue(es);
 
-                            assert((MEM_TotalPages()*4096) >= 0x100000);
-
-                            switch (reg_ebx) {
-                                case 0: base=0x000000; len=0x09F000; type=1; break;
-                                case 1: base=0x0C0000; len=0x040000; type=2; break;
-                                case 2: base=0x100000; len=(MEM_TotalPages()*4096)-0x100000; type=1; break;
-                                default: E_Exit("Despite checks EBX is wrong value"); /* BUG! */
-                            }
-
                             /* write to ES:DI */
-                            real_writed(seg,reg_di+0x00,base);
-                            real_writed(seg,reg_di+0x04,0);
-                            real_writed(seg,reg_di+0x08,len);
-                            real_writed(seg,reg_di+0x0C,0);
-                            real_writed(seg,reg_di+0x10,type);
+                            real_writed(seg,reg_di+0x00,ent.base);
+                            real_writed(seg,reg_di+0x04,(uint32_t)(ent.base >> (uint64_t)32u));
+                            real_writed(seg,reg_di+0x08,ent.length);
+                            real_writed(seg,reg_di+0x0C,(uint32_t)(ent.length >> (uint64_t)32u));
+                            real_writed(seg,reg_di+0x10,ent.type);
                             reg_ecx = 20;
 
                             /* return EBX pointing to next entry. wrap around, as most BIOSes do.
                              * the program is supposed to stop on CF=1 or when we return EBX == 0 */
-                            if (++reg_ebx >= 3) reg_ebx = 0;
+                            if (++reg_ebx >= E280_table_entries) reg_ebx = 0;
                         }
                         else {
                             CALLBACK_SCF(true);
@@ -9403,6 +9405,27 @@ private:
 	ACPI_BM_RLD = false;
 	ACPI_PM1_Status = 0;
 	ACPI_PM1_Enable = 0;
+
+	E280_table_entries = 0;
+
+	{/*Conventional memory*/
+		BIOS_E280_entry &ent = E280_table[E280_table_entries++];
+		ent.base = 0x00000000;
+		ent.length = 0x9F000; /* 640KB minus the EBDA */
+		ent.type = 1;/*Normal RAM*/
+	}
+	{/*Conventional adapter ROM/RAM/BIOS*/
+		BIOS_E280_entry &ent = E280_table[E280_table_entries++];
+		ent.base = 0x000C0000;
+		ent.length = 0x40000;
+		ent.type = 2;/*Reserved*/
+	}
+	if (MEM_TotalPages() > 0x100) { /* more than 1MB of RAM */
+		BIOS_E280_entry &ent = E280_table[E280_table_entries++];
+		ent.base = 0x00100000;
+		ent.length = (MEM_TotalPages()-0x100u)*4096u;
+		ent.type = 1;/*Normal RAM*/
+	}
 
         /* If we're here because of a JMP to F000:FFF0 from a DOS program, then
          * an actual reset is needed to prevent reentrancy problems with the DOS
