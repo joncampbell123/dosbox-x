@@ -337,6 +337,7 @@ void LoadMessageFile(const char * fname) {
                         }
                         else {
                             std::string msg = "The specified language file uses code page " + std::to_string(c) + ". Do you want to change to this code page accordingly?";
+                            if(c == dos.loaded_codepage) msgcodepage = c;
                             if(c != dos.loaded_codepage && (control->opt_langcp || uselangcp || !CHCP_changed || CheckDBCSCP(c) || !loadlang || (loadlang && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)))) {
                                 loadlangcp = true;
                                 if(c == 950 && dos.loaded_codepage == 951) msgcodepage = 951; // zh_tw defaults to CP950, but CP951 is acceptable as well so keep it
@@ -511,7 +512,7 @@ void MSG_Init() {
                 if (lang.size()) LoadMessageFile(lang.c_str());
             }
         }
-	}
+    }
     std::string showdbcsstr = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("showdbcsnodosv");
 #if defined(USE_TTF)
     showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && (loadlang || dbcs_sbcs));
