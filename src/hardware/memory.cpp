@@ -1856,8 +1856,8 @@ void Init_AddressLimitAndGateMask() {
     }
     else if (memory.address_bits < 20)
         memory.address_bits = 20;
-    else if (memory.address_bits > 36)
-        memory.address_bits = 36;
+    else if (memory.address_bits > 40)
+        memory.address_bits = 40;
 
     // TODO: This should be ...? CPU init? Motherboard init?
     /* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++
