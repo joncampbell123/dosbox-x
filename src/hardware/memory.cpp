@@ -2299,10 +2299,15 @@ void Init_RAM() {
     if (alloc_mem_file()) {
         MemBase = (uint8_t*)memory_file_base;
 #if C_GAMELINK
-        LOG_MSG("WARNING: Memory file overrides Game Link memory interface\n");
+        LOG_MSG("WARNING: Memory file overrides Game Link memory interface");
 #endif
     }
     else {
+        if (memory.reported_pages_4gb != 0) {
+            LOG_MSG("Memory above 4GB is not supported if not using a memory file");
+            memory.reported_pages_4gb = 0;
+            memsizekb4gb = 0;
+        }
 #if C_GAMELINK
         MemBase = GameLink::AllocRAM(memory.pages*4096);
 #else // C_GAMELINK
@@ -2313,15 +2318,6 @@ void Init_RAM() {
     if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
     /* Clear the memory, as new doesn't always give zeroed memory
      * (Visual C debug mode). We want zeroed memory though. */
-    /* TODO: On some systems like Linux, a sparse file reads as zeros wherever a part
-     *       of the file has no allocation on disk. So if the memory mapping truncates
-     *       the file then lseeks it back out, the memory should be zero already.
-     *
-     *       Not sure if an NTFS sparse file on Windows has the same thing.
-     *
-     *       I do know on Windows 98, if you lseek out to extend the file the contents
-     *       of the file will be whatever random data the allocated clusters happend to
-     *       have. Used to recover old data that way, heh. :) */
     if (memory_file_base && memory_file_already_zero) {
         LOG_MSG("Host OS should treat memory map as all zeros, skipping memory clear");
     }
