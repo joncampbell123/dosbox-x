@@ -224,6 +224,14 @@ void MEM_SetPageHandler(Bitu phys_page, Bitu pages, PageHandler * handler);
 #pragma pack (1)
 #endif
 
+/* bits 31-30: ACCESS_* contants */
+#define PHYSPAGE_ACCESS_BITS      0xC0000000
+/* bit 28: dirty bit */
+#define PHYSPAGE_DIRTY            0x10000000
+/* bits 27-24: not defined */
+/* bits 23-0: physical page */
+#define PHYSPAGE_ADDR             0x00FFFFFF
+
 struct X86_PageEntryBlock{ // Page Table Entry, though it keeps the PageEntryBlock name to avoid breaking all this code
 #ifdef WORDS_BIGENDIAN
 	uint32_t		base:20;	// [31:12]
@@ -421,18 +429,18 @@ static INLINE PageHandler* get_tlb_writehandler(const PhysPt address) {
 }
 
 /* Use these helper functions to access linear addresses in readX/writeX functions */
+/* NTS: 12-bit shift 32-bit constant, upper bits get shifted out, therefore no need to bitmask */
 static INLINE PhysPt PAGING_GetPhysicalPage(const PhysPt linePage) {
 	return (paging.tlb.phys_page[linePage>>12]<<12);
 }
 
+/* NTS: 12-bit shift 32-bit constant, upper bits get shifted out, therefore no need to bitmask */
 static INLINE PhysPt PAGING_GetPhysicalAddress(const PhysPt linAddr) {
 	return (paging.tlb.phys_page[linAddr>>12]<<12)|(linAddr&0xfff);
 }
 
-//FIXME: #define PHYSPAGE_ADDR  0x00FFFFFF   should be a global constant
-
 static INLINE PhysPt64 PAGING_GetPhysicalAddress64(const PhysPt linAddr) {
-	return ((PhysPt64)(paging.tlb.phys_page[linAddr>>12]&0xFFFFFFul)<<(PhysPt64)12)|(linAddr&0xfff);
+	return ((PhysPt64)(paging.tlb.phys_page[linAddr>>12]&PHYSPAGE_ADDR)<<(PhysPt64)12)|(linAddr&0xfff);
 }
 
 #else
