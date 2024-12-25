@@ -42,6 +42,9 @@
 #  include <sys/mman.h>
 # endif
 #endif
+#ifdef WIN32
+# include <winioctl.h>
+#endif
 
 #include "voodoo.h"
 #include "glidedef.h"
@@ -56,6 +59,11 @@
 #if C_HAVE_MMAP
 # define DO_MEMORY_FILE
 int			memory_file_fd = -1;
+#elif defined(WIN32) && !defined(HX_DOS)
+# define DO_MEMORY_FILE
+# define WIN32_MMAP
+HANDLE      memory_file_fd = INVALID_HANDLE_VALUE;
+HANDLE      memory_file_map = INVALID_HANDLE_VALUE;
 #endif
 
 std::string		memory_file;
@@ -2034,6 +2042,98 @@ bool alloc_mem_file() {
 	LOG_MSG("Using memory file '%s' as guest memory",memory_file.c_str());
 	memory_file_already_zero = true;
 	return true;
+}
+# elif defined(WIN32_MMAP)
+void free_mem_file() {
+    if(memory_file_base != NULL) {
+        if(UnmapViewOfFile(memory_file_base) == 0) E_Exit("Windows refused to unmap the file view");
+        memory_file_base = NULL;
+    }
+    if(memory_file_map != INVALID_HANDLE_VALUE && memory_file_map != 0) {
+        if(CloseHandle(memory_file_map) == 0) E_Exit("Windows refused to close the memory file, err=0x%08x",(unsigned int)GetLastError());
+        memory_file_map = INVALID_HANDLE_VALUE;
+    }
+    if(memory_file_fd != INVALID_HANDLE_VALUE) {
+        if(CloseHandle(memory_file_fd) == 0) E_Exit("Windows refused to close the memory file, err=0x%08x", (unsigned int)GetLastError());
+        memory_file_fd = INVALID_HANDLE_VALUE;
+    }
+}
+
+bool alloc_mem_file() {
+    assert(memory_file_fd == INVALID_HANDLE_VALUE);
+    assert(memory_file_map == INVALID_HANDLE_VALUE);
+    assert(memory_file_base == NULL);
+
+    if(memory_file.empty())
+        return false;
+
+    DWORD attr, err;
+
+    attr = GetFileAttributesA(memory_file.c_str());
+    if(attr == INVALID_FILE_ATTRIBUTES) {
+        err = GetLastError();
+        if(err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND) {
+            /* OK */
+        }
+        else {
+            return false;
+        }
+    }
+    else if(attr & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_DEVICE)) {
+        free_mem_file();
+        return false;
+    }
+
+    memory_file_fd = CreateFile(memory_file.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS, NULL);
+    if(memory_file_fd == INVALID_HANDLE_VALUE) {
+        free_mem_file();
+        return false;
+    }
+
+    memory_file_size = size_t(memory.pages * 4096);
+
+    if(SetFilePointer(memory_file_fd, 0, 0, FILE_BEGIN) != 0) {
+        free_mem_file();
+        return false;
+    }
+    if(SetEndOfFile(memory_file_fd) == 0) {
+        free_mem_file();
+        return false;
+    }
+
+    {
+        FILE_SET_SPARSE_BUFFER sp;
+        DWORD retval;
+
+        sp.SetSparse = TRUE;
+        if(DeviceIoControl(memory_file_fd, FSCTL_SET_SPARSE, &sp, sizeof(sp), NULL, 0, &retval, NULL) == 0)
+            LOG_MSG("WARNING: Could not make memory file sparse");
+    }
+
+    if(SetFilePointer(memory_file_fd, (DWORD)memory_file_size, NULL, FILE_BEGIN) != (DWORD)memory_file_size) {
+        free_mem_file();
+        return false;
+    }
+    if(SetEndOfFile(memory_file_fd) == 0) {
+        free_mem_file();
+        return false;
+    }
+
+    memory_file_map = CreateFileMapping(memory_file_fd, NULL, PAGE_READWRITE, NULL, (DWORD)memory_file_size, NULL);
+    if(memory_file_map == INVALID_HANDLE_VALUE || memory_file_map == 0) {
+        const DWORD err = GetLastError();
+        free_mem_file();
+        return false;
+    }
+
+    memory_file_base = MapViewOfFile(memory_file_map, FILE_MAP_ALL_ACCESS, 0, 0, (DWORD)memory_file_size);
+    if(memory_file_base == NULL) {
+        const DWORD err = GetLastError();
+        free_mem_file();
+        return false;
+    }
+
+    return true;
 }
 # else
 void free_mem_file() {
