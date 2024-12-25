@@ -2235,7 +2235,7 @@ void Init_RAM() {
         /* 2024/12/25: We now allow 4GB or more of RAM! But, to make it work in this codebase,
          *             it has to be divided into a region below 4GB and a region above 4GB. */
         if (sizeof(void*) > 4) // 64-bit address space
-            maxsz = (uint64_t)(16384ull * 1024ull); // 16GB
+            maxsz = (uint64_t)(1048576ull * 1024ull); // 1TB
         else
             maxsz = (uint64_t)(1024ull * 1024ull); // 1GB
 
