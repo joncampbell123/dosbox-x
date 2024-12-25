@@ -821,7 +821,7 @@ void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages) {
     }
 }
 
-Bitu mem_strlen(PhysPt pt) {
+Bitu mem_strlen(LinearPt pt) {
     uint16_t x=0;
     while (x<1024) {
         if (!mem_readb_inline(pt+x)) return x;
@@ -830,24 +830,24 @@ Bitu mem_strlen(PhysPt pt) {
     return 0;       //Hope this doesn't happen
 }
 
-void mem_strcpy(PhysPt dest,PhysPt src) {
+void mem_strcpy(LinearPt dest,LinearPt src) {
     uint8_t r;
     while ( (r = mem_readb(src++)) ) mem_writeb_inline(dest++,r);
     mem_writeb_inline(dest,0);
 }
 
-void mem_memcpy(PhysPt dest,PhysPt src,Bitu size) {
+void mem_memcpy(LinearPt dest,LinearPt src,Bitu size) {
     while (size--) mem_writeb_inline(dest++,mem_readb_inline(src++));
 }
 
-void MEM_BlockRead(PhysPt pt,void * data,Bitu size) {
+void MEM_BlockRead(LinearPt pt,void * data,Bitu size) {
     uint8_t * write=reinterpret_cast<uint8_t *>(data);
     while (size--) {
         *write++=mem_readb_inline(pt++);
     }
 }
 
-void MEM_BlockWrite(PhysPt pt, const void *data, size_t size) {
+void MEM_BlockWrite(LinearPt pt, const void *data, size_t size) {
     const uint8_t* read = static_cast<const uint8_t *>(data);
     if (size==0)
         return;
@@ -874,11 +874,11 @@ void MEM_BlockWrite(PhysPt pt, const void *data, size_t size) {
         const Bitu current = (((pt>>12)+1)<<12) - pt;
         Bitu remainder = size - current;
         MEM_BlockWrite(pt, data, current);
-        MEM_BlockWrite((PhysPt)(pt + current), reinterpret_cast<uint8_t const*>(data) + current, remainder);
+        MEM_BlockWrite((LinearPt)(pt + current), reinterpret_cast<uint8_t const*>(data) + current, remainder);
     }
 }
 
-void MEM_BlockRead32(PhysPt pt,void * data,Bitu size) {
+void MEM_BlockRead32(LinearPt pt,void * data,Bitu size) {
     uint32_t * write=(uint32_t *) data;
     size>>=2;
     while (size--) {
@@ -887,7 +887,7 @@ void MEM_BlockRead32(PhysPt pt,void * data,Bitu size) {
     }
 }
 
-void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size) {
+void MEM_BlockWrite32(LinearPt pt,void * data,Bitu size) {
     uint32_t * read=(uint32_t *) data;
     size>>=2;
     while (size--) {
@@ -896,11 +896,11 @@ void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size) {
     }
 }
 
-void MEM_BlockCopy(PhysPt dest,PhysPt src,Bitu size) {
+void MEM_BlockCopy(LinearPt dest,LinearPt src,Bitu size) {
     mem_memcpy(dest,src,size);
 }
 
-void MEM_StrCopy(PhysPt pt,char * data,Bitu size) {
+void MEM_StrCopy(LinearPt pt,char * data,Bitu size) {
     while (size--) {
         uint8_t r=mem_readb_inline(pt++);
         if (!r) break;
@@ -1243,13 +1243,13 @@ void MEM_A20_Enable(bool enabled) {
 
 
 /* Memory access functions */
-uint16_t mem_unalignedreadw(PhysPt address) {
+uint16_t mem_unalignedreadw(LinearPt address) {
     uint16_t ret = (uint16_t)mem_readb_inline(address);
     ret       |= (uint16_t)mem_readb_inline(address+1u) << 8u;
     return ret;
 }
 
-uint32_t mem_unalignedreadd(PhysPt address) {
+uint32_t mem_unalignedreadd(LinearPt address) {
     uint32_t ret = (uint32_t)mem_readb_inline(address   );
     ret       |= (uint32_t)mem_readb_inline(address+1u) << 8u;
     ret       |= (uint32_t)mem_readb_inline(address+2u) << 16u;
@@ -1258,12 +1258,12 @@ uint32_t mem_unalignedreadd(PhysPt address) {
 }
 
 
-void mem_unalignedwritew(PhysPt address,uint16_t val) {
+void mem_unalignedwritew(LinearPt address,uint16_t val) {
     mem_writeb_inline(address,   (uint8_t)val);val>>=8u;
     mem_writeb_inline(address+1u,(uint8_t)val);
 }
 
-void mem_unalignedwrited(PhysPt address,uint32_t val) {
+void mem_unalignedwrited(LinearPt address,uint32_t val) {
     mem_writeb_inline(address,   (uint8_t)val);val>>=8u;
     mem_writeb_inline(address+1u,(uint8_t)val);val>>=8u;
     mem_writeb_inline(address+2u,(uint8_t)val);val>>=8u;
@@ -1271,7 +1271,7 @@ void mem_unalignedwrited(PhysPt address,uint32_t val) {
 }
 
 
-bool mem_unalignedreadw_checked(PhysPt address, uint16_t * val) {
+bool mem_unalignedreadw_checked(LinearPt address, uint16_t * val) {
     uint8_t rval1,rval2;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
@@ -1279,7 +1279,7 @@ bool mem_unalignedreadw_checked(PhysPt address, uint16_t * val) {
     return false;
 }
 
-bool mem_unalignedreadd_checked(PhysPt address, uint32_t * val) {
+bool mem_unalignedreadd_checked(LinearPt address, uint32_t * val) {
     uint8_t rval1,rval2,rval3,rval4;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
@@ -1289,14 +1289,14 @@ bool mem_unalignedreadd_checked(PhysPt address, uint32_t * val) {
     return false;
 }
 
-bool mem_unalignedwritew_checked(PhysPt address,uint16_t val) {
+bool mem_unalignedwritew_checked(LinearPt address,uint16_t val) {
     if (mem_writeb_checked(address,(uint8_t)(val & 0xff))) return true;
     val>>=8;
     if (mem_writeb_checked(address+1,(uint8_t)(val & 0xff))) return true;
     return false;
 }
 
-bool mem_unalignedwrited_checked(PhysPt address,uint32_t val) {
+bool mem_unalignedwrited_checked(LinearPt address,uint32_t val) {
     if (mem_writeb_checked(address,(uint8_t)(val & 0xff))) return true;
     val>>=8;
     if (mem_writeb_checked(address+1,(uint8_t)(val & 0xff))) return true;
@@ -1307,15 +1307,15 @@ bool mem_unalignedwrited_checked(PhysPt address,uint32_t val) {
     return false;
 }
 
-uint8_t mem_readb(const PhysPt address) {
+uint8_t mem_readb(const LinearPt address) {
     return mem_readb_inline(address);
 }
 
-uint16_t mem_readw(const PhysPt address) {
+uint16_t mem_readw(const LinearPt address) {
     return mem_readw_inline(address);
 }
 
-uint32_t mem_readd(const PhysPt address) {
+uint32_t mem_readd(const LinearPt address) {
     return mem_readd_inline(address);
 }
 
@@ -1324,17 +1324,17 @@ uint32_t mem_readd(const PhysPt address) {
 extern bool warn_on_mem_write;
 extern CPUBlock cpu;
 
-void mem_writeb(PhysPt address,uint8_t val) {
+void mem_writeb(LinearPt address,uint8_t val) {
 //  if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%02x\n",address,val);
     mem_writeb_inline(address,val);
 }
 
-void mem_writew(PhysPt address,uint16_t val) {
+void mem_writew(LinearPt address,uint16_t val) {
 //  if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%04x\n",address,val);
     mem_writew_inline(address,val);
 }
 
-void mem_writed(PhysPt address,uint32_t val) {
+void mem_writed(LinearPt address,uint32_t val) {
 //  if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%08x\n",address,val);
     mem_writed_inline(address,val);
 }

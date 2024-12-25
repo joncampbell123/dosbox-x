@@ -382,20 +382,20 @@ class Descriptor
 public:
 	Descriptor() { saved.fill[0]=saved.fill[1]=0; }
 
-	void Load(PhysPt address);
-	void Save(PhysPt address);
+	void Load(LinearPt address);
+	void Save(LinearPt address);
 
-	PhysPt GetBase (void) const {
+	LinearPt GetBase (void) const {
 		if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
-			return (PhysPt)(
-					((PhysPt)saved.seg.base_24_31 << (PhysPt)24U) |
-					((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
-					(PhysPt)saved.seg.base_0_15);
+			return (LinearPt)(
+					((LinearPt)saved.seg.base_24_31 << (LinearPt)24U) |
+					((LinearPt)saved.seg.base_16_23 << (LinearPt)16U) |
+					(LinearPt)saved.seg.base_0_15);
 		}
 		else {
-			return (PhysPt)(
-					((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
-					(PhysPt)saved.seg.base_0_15);
+			return (LinearPt)(
+					((LinearPt)saved.seg.base_16_23 << (LinearPt)16U) |
+					(LinearPt)saved.seg.base_0_15);
 		}
 	}
     bool GetExpandDown (void) {
@@ -462,15 +462,15 @@ class DescriptorTable {
 public:
     virtual ~DescriptorTable() noexcept = default;
 
-    PhysPt  GetBase         (void) const    { return table_base;    }
+    LinearPt  GetBase         (void) const    { return table_base;    }
     Bitu    GetLimit        (void) const    { return table_limit;   }
-    void    SetBase         (PhysPt _base)  { table_base = _base;   }
+    void    SetBase         (LinearPt _base)  { table_base = _base;   }
     void    SetLimit        (Bitu _limit)   { table_limit= _limit;  }
 
     bool GetDescriptor  (Bitu selector, Descriptor& desc) {
         selector&=~7U;
         if (selector>=table_limit) return false;
-        desc.Load((PhysPt)(table_base+selector));
+        desc.Load((LinearPt)(table_base+selector));
         return true;
     }
 	
@@ -479,7 +479,7 @@ public:
 
 
 protected:
-    PhysPt table_base;
+    LinearPt table_base;
     Bitu table_limit;
 };
 
@@ -489,11 +489,11 @@ public:
 		Bitu address=selector & ~7U;
 		if (selector & 4U) {
 			if (address>=ldt_limit) return false;
-			desc.Load((PhysPt)(ldt_base+address));
+			desc.Load((LinearPt)(ldt_base+address));
 			return true;
 		} else {
 			if (address>=table_limit) return false;
-			desc.Load((PhysPt)(table_base+address));
+			desc.Load((LinearPt)(table_base+address));
 			return true;
 		}
 	}
@@ -501,11 +501,11 @@ public:
 		Bitu address=selector & ~7U;
 		if (selector & 4U) {
 			if (address>=ldt_limit) return false;
-			desc.Save((PhysPt)(ldt_base+address));
+			desc.Save((LinearPt)(ldt_base+address));
 			return true;
 		} else {
 			if (address>=table_limit) return false;
-			desc.Save((PhysPt)(table_base+address));
+			desc.Save((LinearPt)(table_base+address));
 			return true;
 		}
 	} 
@@ -533,7 +533,7 @@ public:
 	void LoadState( std::istream& stream ) override;
 
 private:
-	PhysPt ldt_base;
+	LinearPt ldt_base;
 	Bitu ldt_limit;
 	Bitu ldt_value;
 };
