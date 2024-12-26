@@ -4222,6 +4222,11 @@ void CPU_OnReset(Section* sec) {
 	CPU_Snap_Back_Forget();
 	CPU_SetFlags(0,~0UL);
 
+    do_pse = false;
+    if(CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) {
+        cpu.cr4 = 0;
+    }
+
 	Segs.limit[cs]=0xFFFF;
 	Segs.expanddown[cs]=false;
 	if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
