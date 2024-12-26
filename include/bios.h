@@ -189,6 +189,13 @@ void INT10_ReloadRomFonts();
 
 void BIOS_SetLPTPort (Bitu port, uint16_t baseaddr);
 
+// Is it safe to call mem_read/write as if part of the guest i.e. from the main GUI?
+// If the guest is running in protected mode, NO.
+// If the guest is not running under our own DOS kernel, NO.
+// This is required to avoid problems with helpful code in this project causing BSODs in Windows NT/2000/XP
+// because the BIOS data area addresses are invalid pages in that 32-bit environment!
+bool IsSafeToMemIOOnBehalfOfGuest();
+
 // \brief Synchronizes emulator num lock state with host.
 void BIOS_SynchronizeNumLock();
 

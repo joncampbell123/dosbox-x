@@ -12727,6 +12727,13 @@ void ROMBIOS_Init() {
 //! \brief Updates the state of a lockable key.
 void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed);
 
+bool IsSafeToMemIOOnBehalfOfGuest()
+{
+    if(cpu.pmode) return false; // protected mode (including virtual 8086 mode): NO
+    if(dos_kernel_disabled) return false; // guest OS not running under our own DOS kernel: NO
+    return true;
+}
+
 void BIOS_SynchronizeNumLock()
 {
 #if defined(WIN32)
