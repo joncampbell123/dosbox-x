@@ -1,4 +1,16 @@
 Next
+  - Allow values of memsize to represent 4GB or more of RAM. Up to
+    1TB, if Pentium PSE extensions are enabled, the memalias setting
+    is 40, and "enable pse=pse40" in the conf file. Memalias maximum
+    is now 40, instead of 32. Add code to provide that memory above
+    the 4GB address mark when PSE is in use by the guest OS. Added
+    dosbox.conf option to specify a memory file. When specified, all
+    guest memory is memory-mapped from a file on disk, rather than
+    allocated from host memory or host swap file. To avoid consuming
+    too much RAM on the host, a memory file is REQUIRED to emulate
+    memory at or above 4GB. For best performance with the memory file,
+    make sure the filesystem you place it on supports sparse files,
+    including Linux ext4 and Windows NTFS. (joncampbell123).
   - Fix EGA machine type to determine whether CGA RGBI or EGA RrGgBb
     display is active by vsync polarity, instead of the length of
     htotal. Several online references state that vsync is negative
