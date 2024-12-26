@@ -2979,7 +2979,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("enable pse",Property::Changeable::Always,"auto");
     Pstring->Set_values(pseopts);
-    Pbool->Set_help("Allow PSE (Page Size Extensions) to paging.\n"
+    Pstring->Set_help("Allow PSE (Page Size Extensions) to paging.\n"
                     "none=Do not enable PSE\n"
                     "auto=Controlled by cpu type\n"
                     "pse=Basic PSE\n"
