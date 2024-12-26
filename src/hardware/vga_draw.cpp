@@ -7221,8 +7221,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	// EGA frequency dependent monitor palette
 	else if (machine == MCH_EGA) {
 		if (vga.misc_output & 1) {
-			// EGA card is in color mode
-			if ((1.0f/vga.draw.delay.htotal) > 19.0f) {
+			// EGA card is in color mode if negative vsync polarity.
+			// DOSBox SVN and other forks check htotal which is wrong.
+			if (vga.misc_output & 0x80) {
 				// 64 color EGA mode
 				VGA_ATTR_SetEGAMonitorPalette(EGA);
 			} else {
