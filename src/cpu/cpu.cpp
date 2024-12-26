@@ -3616,9 +3616,16 @@ public:
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_experimental").
             set_text("Experimental").set_callback_function(CpuType_ByName);
 
+        do_pse = false;
+        enable_pse = false;
+
 		CPU::Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
         menu_update_dynamic();
+
+        if(CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) {
+            cpu.cr4 = 0;
+        }
 	}
 	bool Change_Config(Section* newconfig) override {
 		const Section_prop * section=static_cast<Section_prop *>(newconfig);
@@ -4134,13 +4141,10 @@ public:
 
         if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
 
-	if (CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) {
-		do_pse = false;
-		cpu.cr4 = 0;
-	}
-	else {
-		enable_pse = false;
-	}
+        if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) {
+            do_pse = false;
+            enable_pse = false;
+        }
 
 		menu_update_core();
 		menu_update_cputype();
