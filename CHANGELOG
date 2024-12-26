@@ -1,4 +1,10 @@
 Next
+  - Fix EGA machine type to determine whether CGA RGBI or EGA RrGgBb
+    display is active by vsync polarity, instead of the length of
+    htotal. Several online references state that vsync is negative
+    for 350-line modes, including 350-line to an MDA monitor. This
+    also allows the "enhanced" EGA 320x200 modes in Rambo III to display
+    colors correctly. (joncampbell123).
   - Dynamic x86 core: Reflect STI instruction to normal core so that
     the 1-instruction delay is correctly emulated. This makes it
     possible to run Windows XP or Server 2003 with dynamic core and
