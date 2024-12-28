@@ -1912,7 +1912,9 @@ void DOSBOX_SetupConfigSections(void) {
     //       No tricks! This code will ensure the path is to a FILE, not a directory, block device, or worse.
     Pstring = secprop->Add_path("memory file",Property::Changeable::OnlyAtStart,"");
     Pstring->Set_help("If set, guest memory is memory-mapped from a file on disk, rather than allocated from memory.\n"
-                      "This option can help keep DOSBox-X from consuming too much RAM for large values of memsize.");
+                      "This option can help keep DOSBox-X from consuming too much RAM for large values of memsize.\n"
+                      "This option is required to emulate 4GB or more of RAM. The file will be created if it does not exist\n"
+                      "and it does not require any special maintenance or formatting.");
     Pstring->SetBasic(true);
 
 #if defined(C_EMSCRIPTEN)
