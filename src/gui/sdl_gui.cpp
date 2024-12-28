@@ -3330,7 +3330,7 @@ public:
                 TryApplyTheme(
                               dark
                                   ? GUI::ThemeWindows31LCDReversedDark::GetName()
-                                  : GUI::ThemeWindows31LCDReversedLight::GetName());
+                                  : GUI::ThemeWindows31WindowsDefault::GetName());
             }
             else
             {
