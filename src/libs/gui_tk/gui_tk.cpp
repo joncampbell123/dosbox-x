@@ -1613,30 +1613,19 @@ void Menu::paint(Drawable &d) const
 	d.clear(DefaultTheme.MenuBar);
 
 	d.setColor(CurrentTheme.Border); // TODO
-	d.drawLine(0,height-1,width-1,height-1);
-	d.drawLine(width-1,0,width-1,height-1);
-
-	d.setColor(CurrentTheme.Shadow3D); // TODO
-	d.drawLine(0,0,width-2,0);
-	d.drawLine(0,0,0,height-2);
-	d.drawLine(0,height-2,width-2,height-2);
-	d.drawLine(width-2,0,width-2,height-2);
-
-	d.setColor(CurrentTheme.Light3D); // TODO
-	d.drawLine(1,1,width-3,1);
-	d.drawLine(1,1,1,height-3);
+	d.drawRect(0,0,width,height);
 
 	d.setFont(Font::getFont("menu"));
 	const int asc = Font::getFont("menu")->getAscent()+1;
 	const int height = Font::getFont("menu")->getHeight()+2;
-	int x = 3,cwidth = width-3-x;
-	int y = asc+3;
+	int x = 1,cwidth = width-1-x;
+	int y = asc+1;
 	int index = 0;
 	unsigned int coli = 0;
 
 	if (coli < colx.size()) {
 		x = colx[coli++];
-		cwidth = width-3-x;
+		cwidth = width-1-x;
 		if (coli < colx.size()) {
 			cwidth = colx[coli] - x;
 		}
@@ -1644,24 +1633,20 @@ void Menu::paint(Drawable &d) const
 
 	for (std::vector<String>::const_iterator i = items.begin(); i != items.end(); ++i) {
 		if ((*i).empty()) {
-			d.setColor(CurrentTheme.Shadow3D); // TODO
-			d.drawLine(x+1,y-asc+6,cwidth,y-asc+6);
-			d.setColor(CurrentTheme.Light3D); // TODO
-			d.drawLine(x+1,y-asc+7,cwidth,y-asc+7);
-			y += 12;
+			d.setColor(Color::Black); // TODO
+			d.drawLine(x,y-asc+3,cwidth,y-asc+3);
+			y += 3+1+3;
 		} else if (*i == "|") {
-			y = asc+3;
+			y = asc+1;
 			if (coli < colx.size()) {
 				x = colx[coli++];
-				cwidth = width-3-x;
+				cwidth = width-1-x;
 				if (coli < colx.size()) {
 					cwidth = colx[coli] - x;
 				}
 
-				d.setColor(CurrentTheme.Shadow3D); // TODO
-				d.drawLine(x-2,2,x-2,this->height-4);
-				d.setColor(CurrentTheme.Light3D); // TODO
-				d.drawLine(x-1,2,x-1,this->height-4);
+				d.setColor(Color::Black); // TODO
+				d.drawLine(x-1,1,x-1,this->height-2);
 			}
 		} else {
 			if (index == selected && hasFocus()) {
@@ -1671,7 +1656,7 @@ void Menu::paint(Drawable &d) const
 			} else {
 				d.setColor(DefaultTheme.MenuText);
 			}
-			d.drawText(x+17,y,(*i),false,0);
+			d.drawText(x+7,y,(*i),false,0);
 			y += height;
 		}
 		index++;

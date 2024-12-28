@@ -2779,10 +2779,10 @@ protected:
 	/// List of menu items (displayed text)
 	std::vector<String> items;
 
-    /// column support
-    unsigned int rows = 0;
-    unsigned int columns = 0;
-    std::vector<unsigned int> colx;
+	/// column support
+	unsigned int rows = 0;
+	unsigned int columns = 0;
+	std::vector<unsigned int> colx;
 
 	/// Currently selected menu item.
 	/** Can be -1 if no item is currently active. */
@@ -2797,102 +2797,104 @@ protected:
 	/// Selects menu item at position (x,y).
 	/** \a selected is set to -1 if there is no active item at that location. */
 	virtual void selectItem(int x, int y) {
-        unsigned int coli = 0;
-        int xmin,xmax,ypos = 2;
+		unsigned int coli = 0;
+		int xmin,xmax,ypos = 1;
 
 		selected = -1;
 
-        xmin = 0;
-        xmax = width;
-        if (coli < colx.size()) {
-            xmin = colx[coli++];
-            if (coli < colx.size())
-                xmax = colx[coli];
-        }
+		xmin = 0;
+		xmax = width;
+		if (coli < colx.size()) {
+			xmin = colx[coli++];
+			if (coli < colx.size())
+				xmax = colx[coli];
+		}
 
-        // mouse input should select nothing if outside the bounds of this menu
-        if (x < 3 || x >= (width-3) || y < 2 || y >= (height-2)) return;
-        selected = 0;
+		// mouse input should select nothing if outside the bounds of this menu
+		if (x < 1 || x >= (width-1) || y < 1 || y >= (height-1)) return;
+		selected = 0;
 
 		const int fheight = Font::getFont("menu")->getHeight()+2;
 		std::vector<String>::iterator i;
 		for (i = items.begin(); i != items.end(); ++i) {
-            if ((*i).size() > 0) {
-                if (*i == "|") {
-                    ypos = 2;
-                    xmin = xmax = width;
-                    if (coli < colx.size()) {
-                        xmin = colx[coli++];
-                        if (coli < colx.size())
-                            xmax = colx[coli];
-                    }
-                }
-                else {
-                    if (x >= xmin && x < xmax) {
-                        if (y >= ypos && y < (ypos+fheight))
-                            break;
-                    }
+			if ((*i).size() > 0) {
+				if (*i == "|") {
+					ypos = 1;
+					xmin = xmax = width;
+					if (coli < colx.size()) {
+						xmin = colx[coli++];
+						if (coli < colx.size())
+							xmax = colx[coli];
+					}
+				}
+				else {
+					if (x >= xmin && x < xmax) {
+						if (y >= ypos && y < (ypos+fheight))
+							break;
+					}
 
-                    ypos += fheight;
-                }
-            }
-            else {
-                if (x >= xmin && x < xmax) {
-                    if (y >= ypos && y < (ypos+12))
-                        break;
-                }
+					ypos += fheight;
+				}
+			}
+			else {
+				if (x >= xmin && x < xmax) {
+					if (y >= ypos && y < (ypos+3+1+3))
+						break;
+				}
 
-                ypos += 12;
-            }
+				ypos += 3+1+3;
+			}
 
-            selected++;
-        }
+			selected++;
+		}
 
-        if(selected > (int)items.size() - 1)
-            selected = items.size() - 1;
+		if(selected > (int)items.size() - 1)
+			selected = -1;
 
-        if(selected >= 0 && items[(unsigned int)selected].size() == 0) selected = -1;
-    }
+		if(selected >= 0 && items[(unsigned int)selected].size() == 0) selected = -1;
+	}
 
 	virtual Size getPreferredWidth() {
-		Size width = 0,px = 0;
+		Size width = 14,px = 1;
 		const Font *f = Font::getFont("menu");
 		std::vector<String>::iterator i;
-        columns = 1;
-        colx.clear();
-        colx.push_back(3+width);
-        for (i = items.begin(); i != items.end() && y > 0; ++i) {
-            if (*i == "|") {
-                colx.push_back(3+width);
-                columns++;
-                px = width;
-            }
-            else {
-                Size newwidth = (unsigned int)f->getWidth(*i) + px + 33;
-                if (newwidth > width) width = newwidth;
-            }
+		columns = 1;
+		colx.clear();
+		colx.push_back(px);
+		for (i = items.begin(); i != items.end() && y > 0; ++i) {
+			if (*i == "|") {
+				px += 1+width;
+				width = 14;
+
+				colx.push_back(px);
+				columns++;
+			}
+			else {
+				Size newwidth = (unsigned int)f->getWidth(*i) + 14;
+				if (newwidth > width) width = newwidth;
+			}
 		}
-		return width+6;
+		return px+width+1;
 	}
 
 	virtual Size getPreferredHeight() {
 		Size height = 0,py = 0,row = 0;
 		const Size h = (unsigned int)Font::getFont("menu")->getHeight()+2u;
 		std::vector<String>::iterator i;
-        rows = 0;
+		rows = 0;
 		for (i = items.begin(); i != items.end() && y > 0; ++i) {
-            if (*i == "|") {
-                py = 0;
-                row = 0;
-            }
-            else {
-                row++;
-                if (rows < row) rows = row;
-                py += ((*i).size() > 0?h:12);
-                if (height < py) height = py;
-            }
+			if (*i == "|") {
+				py = 0;
+				row = 0;
+			}
+			else {
+				row++;
+				if (rows < row) rows = row;
+				py += ((*i).size() > 0?h:3+1+3);
+				if (height < py) height = py;
+			}
 		}
-		return height+6;
+		return height+2;
 	}
 
 public:
@@ -2912,99 +2914,99 @@ public:
 
 	/// Highlight current item.
 	bool mouseMoved(int x, int y) override {
-        if (visible) {
-            firstMouseUp = false;
-    		selectItem(x,y);
-	    	return true;
-        }
+		if (visible) {
+			firstMouseUp = false;
+			selectItem(x,y);
+			return true;
+		}
 
-        return false;
+		return false;
 	}
 
-    void mouseMovedOutside(void) override {
-        if (visible && selected >= 0) {
-            firstMouseUp = false;
-            selected = -1;
-            setDirty();
-        }
-    }
+	void mouseMovedOutside(void) override {
+		if (visible && selected >= 0) {
+			firstMouseUp = false;
+			selected = -1;
+			setDirty();
+		}
+	}
 
 	/// Highlight current item.
 	bool mouseDragged(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED	
+		(void)button;//UNUSED	
 
-        if (visible) {
-            if (x >= 0 && x < width && y >= 0 && y < height)
-                firstMouseUp = false;
+		if (visible) {
+			if (x >= 0 && x < width && y >= 0 && y < height)
+				firstMouseUp = false;
 
-            selectItem(x,y);
-            return true;
-        }
+			selectItem(x,y);
+			return true;
+		}
 
-        return false;
+		return false;
 	}
 
 	bool mouseDown(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
 
-        if (visible)
-            return true;
+		if (visible)
+			return true;
 
-        return false;
-    }
+		return false;
+	}
 
 	bool mouseDownOutside(MouseButton button) override {
-        (void)button;//UNUSED
+		(void)button;//UNUSED
 
-        if (visible) {
-            setVisible(false);
-            selected = -1;
-            return true;
-        }
+		if (visible) {
+			setVisible(false);
+			selected = -1;
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 	/// Possibly select item.
 	bool mouseUp(int x, int y, MouseButton button) override {
-        (void)button;//UNUSED
+		(void)button;//UNUSED
 
-        if (visible) {
-            selectItem(x,y);
-            if (firstMouseUp) firstMouseUp = false;
-            else setVisible(false);
-            execute();
-            return true;
-        }
+		if (visible) {
+			selectItem(x,y);
+			if (firstMouseUp) firstMouseUp = false;
+			else setVisible(false);
+			execute();
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 	/// Handle keyboard input.
 	bool keyDown(const Key &key) override {
-        if (visible) {
-            if (key.special == Key::Up) {
-                if (selected == 0)
-                    selected = (int)items.size() - 1;
-                else
-                    selected--;
-            }
-            else if (key.special == Key::Down) {
-                if ((size_t)(++selected) == items.size())
-                    selected = 0;
-            }
-            else if (key.special == Key::Enter) { execute(); return true; }
-            else if (key.special == Key::Escape) { setVisible(false); selected = -1; return true; }
-            else return true;
-            if (items[(unsigned int)selected].size() == 0 && items.size() > 1) return keyDown(key);
-            if (selected < 0) selected = (int)(items.size()-1);
-            if (selected >= (int)items.size()) selected = 0;
-            return true;
-        }
+		if (visible) {
+			if (key.special == Key::Up) {
+				if (selected == 0)
+					selected = (int)items.size() - 1;
+				else
+					selected--;
+			}
+			else if (key.special == Key::Down) {
+				if ((size_t)(++selected) == items.size())
+					selected = 0;
+			}
+			else if (key.special == Key::Enter) { execute(); return true; }
+			else if (key.special == Key::Escape) { setVisible(false); selected = -1; return true; }
+			else return true;
+			if (items[(unsigned int)selected].size() == 0 && items.size() > 1) return keyDown(key);
+			if (selected < 0) selected = (int)(items.size()-1);
+			if (selected >= (int)items.size()) selected = 0;
+			return true;
+		}
 
-        return false;
+		return false;
 	}
 
 
@@ -3024,19 +3026,19 @@ public:
 	}
 
 	void setVisible(bool v) override {
-        if (!visible && v)
-            firstMouseUp = true;
+		if (!visible && v)
+			firstMouseUp = true;
 
-        TransientWindow::setVisible(v);
+		TransientWindow::setVisible(v);
 		if (v) {
 			parent->mouseChild = this;
 			raise();
 		}
 
-        // NTS: Do not set selected = -1 here on hide, other code in this C++
-        //      class relies on calling setVisible() then acting on selection.
-        //      Unless of course you want to hunt down random and sporadic
-        //      segfaults. --J.C.
+		// NTS: Do not set selected = -1 here on hide, other code in this C++
+		//      class relies on calling setVisible() then acting on selection.
+		//      Unless of course you want to hunt down random and sporadic
+		//      segfaults. --J.C.
 	}
 
 	/// Execute menu item.
@@ -3044,20 +3046,20 @@ public:
 		if (selected >= 0) {
 			setVisible(false);
 
-            // FIXME: Some action callbacks including the "Close" command in
-            //        the system menu will delete this window object before
-            //        returning to this level in the call stack. Therefore,
-            //        copy selection index and clear it BEFORE calling the
-            //        callbacks.
-            unsigned int sel = (unsigned int)selected;
-            selected = -1;
+			// FIXME: Some action callbacks including the "Close" command in
+			//        the system menu will delete this window object before
+			//        returning to this level in the call stack. Therefore,
+			//        copy selection index and clear it BEFORE calling the
+			//        callbacks.
+			unsigned int sel = (unsigned int)selected;
+			selected = -1;
 
 			executeAction(items[sel]);
 
-            // WARNING: Do not access C++ class methods or variables here,
-            //          the "Close" callback may have deleted this window
-            //          out from under us! It may happen to work but
-            //          understand it becomes a use-after-free bug!
+			// WARNING: Do not access C++ class methods or variables here,
+			//          the "Close" callback may have deleted this window
+			//          out from under us! It may happen to work but
+			//          understand it becomes a use-after-free bug!
 		}
 	}
 };
