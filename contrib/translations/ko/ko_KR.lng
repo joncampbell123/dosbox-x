@@ -923,6 +923,10 @@ drive: 는 탑재된 드라이브 중에서 부팅할 드라이브를 지정합�
 %c 드라이브에서 부팅할 수 없습니다.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Floppy image(s) already mounted.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 이미지 파일을 엽니다: %s
 
@@ -939,6 +943,9 @@ PCjr 카트리지를 찾았지만 기기가 PCjr이 아닙니다.
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 PCjr 카트리지 특공대를 찾을 수 없습니다.
+.
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
 .
 :PROGRAM_LOADROM_HELP
 비디오 BIOS 또는 IBM BASIC용으로 지정된 ROM 이미지 파일을 불러옵니다.
@@ -1209,6 +1216,10 @@ IMGMAKE의 몇 가지 사용 예:
 
 플로피를 읽을 수 없습니다.
 .
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
+
+.
 :PROGRAM_KEYB_INFO
 코드 페이지를 %i로 설정했습니다.
 
@@ -1254,6 +1265,37 @@ IMGMAKE의 몇 가지 사용 예:
 :PROGRAM_KEYB_INVCPFILE
 키보드 파일 %s에 대한 코드 페이지 파일이 없거나 잘못되었습니다.
 
+
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
 
 .
 :PROGRAM_MODE_USAGE
@@ -1521,6 +1563,12 @@ TIME [[/T] [/H] | time]
 경로가 잘못되었거나 디렉토리가 아니거나 디렉토리가 비어 있지 않습니다. - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 파일 이름을 변경할 수 없습니다. %s
 
@@ -1536,6 +1584,9 @@ TIME [[/T] [/H] | time]
 :SHELL_CMD_DEL_ERROR
 삭제할 수 없습니다. - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 디렉토리 안에있는 모든 파일이 삭제됩니다!
@@ -1657,6 +1708,10 @@ DOSBox-X가 실제 기계의 하드 디스크 %c에 로 접근을 허용합니�
 복사할 수 없습니다 - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 현재 탑재된 로컬 드라이브:
 
@@ -1688,6 +1743,9 @@ DOS/V V-text는 현재 활성화되어 있습니다.
 :SHELL_CMD_VTEXT_OFF
 DOS/V V-text는 현재 비활성화되어 있습니다.
 
+.
+:SHELL_ALLFILES_CHAR
+a
 .
 :SHELL_STARTUP_TITLE
 DOSBox-X에오신것을환영합니다 !
@@ -2405,17 +2463,17 @@ DOS 글자 화면 인쇄
 :MENU:mapper_resetsize
 창 크기 초기화
 .
-:MENU:mapper_incsize
-TTF 글꼴 크기: 확대
-.
-:MENU:mapper_decsize
-TTF 글꼴 크기: 축소
-.
 :MENU:mapper_dbcssbcs
 CJK: DBCS/SBCS 모드를 켜기/끄기
 .
 :MENU:mapper_autoboxdraw
 CJK: 테두리 문자를 자동 감지
+.
+:MENU:mapper_incsize
+TTF 글꼴 크기: 확대
+.
+:MENU:mapper_decsize
+TTF 글꼴 크기: 축소
 .
 :MENU:mapper_resetcolor
 TTF 색 구성표를 다시 설정
@@ -2588,6 +2646,18 @@ AMD 애슬론 600MHz (~306000 주기)
 :MENU:video_ratio_set
 비율 설정
 .
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 확대
 .
@@ -2677,6 +2747,9 @@ xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
 xBRZ 이선형
+.
+:MENU:center_window
+Center window
 .
 :MENU:set_titletext
 제목 표시줄 텍스트 설정...
@@ -3161,6 +3234,9 @@ DOSBox-X 정보
 :MENU:show_console
 수행 기록용 콘솔을 표시
 .
+:MENU:clear_console
+Clear logging console
+.
 :MENU:disable_logging
 수행 기록 출력을 사용 안함
 .
@@ -3184,6 +3260,9 @@ DOSBox-X 정보
 .
 :MENU:debugger_runwatch
 디버거 선택사항: 감시를 실행
+.
+:MENU:video_debug_overlay
+Video debug overlay
 .
 :MENU:HelpCommandMenu
 DOS 명령
@@ -3266,11 +3345,17 @@ MIDI 출력을 저장
 :MENU:mapper_caprawopl
 FM (OPL) 출력을 저장
 .
+:MENU:mapper_capnetrf
+Record network traffic
+.
 :MENU:mapper_video
 동영상을 AVI로 저장
 .
 :MENU:mapper_scrshot
 스크린샷을 찍기
+.
+:MENU:mapper_rawscrshot
+Take raw screenshot
 .
 :MENU:mapper_volup
 음량: 올림
@@ -3520,6 +3605,9 @@ IDE 디스크 CD의 상태를 표시
 .
 :MENU:pc98_use_uskb
 미국 키보드 레이아웃 사용
+.
+:MAPPER:capnetrf
+Record Network traffic
 .
 :MAPPER:caprawopl
 FM/OPL 출력 저장
