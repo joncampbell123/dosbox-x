@@ -1915,11 +1915,18 @@ void Init_AddressLimitAndGateMask() {
     memory.address_bits=(unsigned int)section->Get_int("memalias");
 
     if (memory.address_bits == 0) {
-        // FIXME: We cannot automatically set this by CPU type because src/cpu/cpu.cpp Change_Config() has not been called yet!
-        //        That is where the cputype setting is converted into the CPU_ArchitectureType enumeration!
-        //        If that specific code can be moved into it's own function and called earlier than this point, then this
-        //        code can then automatically set 36 bits for Pentium II or higher emulation.
-        memory.address_bits = 32;
+        /* TODO: We don't know the memsize yet. If memsize is 60GB or more, 40 bits, else 36 bits.
+         *       Pentium II/III systems are PSE-36 type PSE extensions.
+         *       For similar reasons for 486, if 60MB or more, 32 bits, else 26 bits.
+         *       For similar reasons for 386, if 14mB or more, 32 bits, else 24 bits. */
+        if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMII)
+            memory.address_bits = 36;
+        else if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
+            memory.address_bits = 32; /* NTS: 26 is also valid for 486SX emulation, 24 for 386SX emulation */
+        else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286)
+            memory.address_bits = 24; /* The 286 cannot address more than 16MB */
+        else
+            memory.address_bits = 20; /* The 8086 cannot address more than 1MB */
     }
     else if (memory.address_bits < 20)
         memory.address_bits = 20;

@@ -1925,7 +1925,11 @@ void DOSBOX_SetupConfigSections(void) {
         "Amount of memory DOSBox-X has in megabytes.\n"
         "This value is best left at its default to avoid problems with some games,\n"
         "although other games and applications may require a higher value.\n"
-        "Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.");
+        "Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.\n"
+        "A memory file is required to emulate a memory size of 4GB or more.\n"
+        "The maximum value allowed is affected by the memalias setting which affects the maximum amount of memory CPU can access as a power of 2.\n"
+        "The maximum value is also affected by the CPU type. See DOSBox-X console and log file for details.\n"
+        "The maximum setting 1048576 represents 1TB and requires at least a Pentium II and PSE-40 emulation.");
     Pint->SetBasic(true);
 
     Pint = secprop->Add_int("memsizekb", Property::Changeable::OnlyAtStart,0);
