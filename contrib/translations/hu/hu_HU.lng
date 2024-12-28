@@ -918,6 +918,10 @@ Példák:
 Nem lehet a(z) %c meghajtóról bootolni.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Floppy image(s) already mounted.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 Lemezkép-fájl megnyitása: %s
 
@@ -934,6 +938,9 @@ Elérhető PCjr kártya parancsok:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 PCjr kártya parancsok nem találhatóak
+.
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
 .
 :PROGRAM_LOADROM_HELP
 A megadott ROM képfájl betöltése video BIOS vagy IBM BASIC aktiválásához.
@@ -1200,6 +1207,9 @@ Képfájl "%s" készítése: %u cilinder, %u fej és %u szektor
 
 Floppy olvasása sikertelen.
 .
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
+.
 :PROGRAM_KEYB_INFO
 A %i kódlap betöltve
 
@@ -1245,6 +1255,36 @@ Nincs billentyűzetkiosztás a(z) %s-ban a(z) %i kódlaphoz.
 :PROGRAM_KEYB_INVCPFILE
 Nem létező/érvényes kódlap fájl a(z) %s billentyűzetkiosztáshoz.
 
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
 
 .
 :PROGRAM_MODE_USAGE
@@ -1513,6 +1553,12 @@ Könyvtár létrehozása sikertelen - %s
 Érvénytelen elérési út, nem könyvtár vagy a könyvtár nem üres - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 Az átnevezés sikertelen - %s
 
@@ -1528,6 +1574,9 @@ Nem beállítható attribútumok: %s
 :SHELL_CMD_DEL_ERROR
 Nem törölhető - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 Minden fájls a könyvtárban törlésre kerül!!!
@@ -1649,6 +1698,10 @@ Nincs elég szabad hely - %s
 Másolási hiba - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 A jelenleg csatolt helyi meghajtók:
 
@@ -1680,6 +1733,9 @@ DOS/V V-text bekapcsolva.
 :SHELL_CMD_VTEXT_OFF
 DOS/V V-text kikapcsolva.
 
+.
+:SHELL_ALLFILES_CHAR
+a
 .
 :SHELL_STARTUP_TITLE
 Üdvözlet a DOSBox-X-ben!
@@ -2580,6 +2636,18 @@ Eredeti arány
 :MENU:video_ratio_set
 Képarány beállítása
 .
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 Skálázó
 .
@@ -2669,6 +2737,9 @@ xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
 xBRZ kettős
+.
+:MENU:center_window
+Center window
 .
 :MENU:set_titletext
 Fejléc szövegének beállítása...
@@ -3153,6 +3224,9 @@ DOSBox-X névjegye
 :MENU:show_console
 Naplózás konzol megjelenítése
 .
+:MENU:clear_console
+Clear logging console
+.
 :MENU:disable_logging
 Naplózási kimenet kikapcsolása
 .
@@ -3176,6 +3250,9 @@ Hibakereső opciól: Normal futtatás
 .
 :MENU:debugger_runwatch
 Hibakereső opciól: Watch futtás
+.
+:MENU:video_debug_overlay
+Video debug overlay
 .
 :MENU:HelpCommandMenu
 DOS parancsok
@@ -3258,11 +3335,17 @@ MIDI kimenet mentése
 :MENU:mapper_caprawopl
 FM (OPL) kimenet mentése
 .
+:MENU:mapper_capnetrf
+Record network traffic
+.
 :MENU:mapper_video
 Videó mentése AVI-ként
 .
 :MENU:mapper_scrshot
 Képernyő mentése (screenshot)
+.
+:MENU:mapper_rawscrshot
+Take raw screenshot
 .
 :MENU:mapper_volup
 Hangerő növelése
@@ -3513,6 +3596,9 @@ IDE lemez vagy CD státusza
 :MENU:pc98_use_uskb
 US billentyűkiosztás
 .
+:MAPPER:capnetrf
+Record Network traffic
+.
 :MAPPER:caprawopl
 FM/OPL kimenet rögzítése
 .
@@ -3569,6 +3655,9 @@ Gyorsindító program
 .
 :MAPPER:reboot
 A DOS újraindítása
+.
+:MAPPER:recmtwave
+Record to multi-track AVI
 .
 :MAPPER:rescanall
 Meghajtók frissítése

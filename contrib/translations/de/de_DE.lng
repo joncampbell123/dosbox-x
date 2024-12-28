@@ -1324,6 +1324,16 @@ Ein paar Beispiele für IMGMAKE:
                                             Geometrie
 
 .
+:PROGRAM_IMGMAKE_FLREAD
+Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes
+
+
+.
+:PROGRAM_IMGMAKE_FLREAD2
+%s =good, %s =good after retries, ! =CRC error, x =sector not found, ? =unknown
+
+
+.
 :PROGRAM_IMGMAKE_FILE_EXISTS
 Datei "%s" existiert bereits. Verwende "-force" zum Überschreiben.
 
@@ -2831,6 +2841,18 @@ Original-Verhältnis
 :MENU:video_ratio_set
 Setze Verhältnis
 .
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 Scaler
 .
@@ -2920,6 +2942,9 @@ xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
+.
+:MENU:center_window
+Center window
 .
 :MENU:set_titletext
 Setze Text in Titelleiste...
@@ -3137,6 +3162,9 @@ Interne Voodoo-Karte
 :MENU:3dfx_glide
 Glide-Passthrough
 .
+:MENU:load_d3d_shader
+Select Direct3D pixel shader...
+.
 :MENU:load_glsl_shader
 Wähle OpenGL (GLSL) Shader...
 .
@@ -3325,6 +3353,9 @@ Zur letzten Seite
 .
 :MENU:DriveMenu
 Laufwerk
+.
+:MENU:drive_mountauto
+Auto-mount Windows drive
 .
 :MENU:drive_mounthd
 Ordner als Festplatte einhängen
