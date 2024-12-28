@@ -2518,6 +2518,8 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 // black border
                 dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
                 dscroll.drawRect(x,y,w,h);
+                dscroll.setColor(CurrentTheme.ButtonFiller); // NTS: Actually, scroll bar buttons are always gray regardless of theme
+                dscroll.fillRect(x+1,y+1,w-2,h-2);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 if (vscroll_uparrowhold && vscroll_uparrowdown)
@@ -2540,6 +2542,8 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 // black border
                 dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
                 dscroll.drawRect(x,y,w,h);
+                dscroll.setColor(CurrentTheme.ButtonFiller); // NTS: Actually, scroll bar buttons are always gray regardless of theme
+                dscroll.fillRect(x+1,y+1,w-2,h-2);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 if (vscroll_downarrowhold && vscroll_downarrowdown)
