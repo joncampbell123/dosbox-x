@@ -2991,7 +2991,7 @@ void DOSBOX_SetupConfigSections(void) {
             "You must enable this option to run Windows ME because portions of the kernel rely on this instruction.");
 
     Pbool = secprop->Add_bool("enable syscall",Property::Changeable::Always,true);
-    Pbool->Set_help("Allow SYSENTER/SYSEXIT instructions. This option is only meaningful when cputype=pentium_ii.\n");
+    Pbool->Set_help("Allow SYSENTER/SYSEXIT instructions. This option is only meaningful when is cputype=pentium_ii or higher.\n");
 
     Pbool = secprop->Add_bool("ignore undefined msr",Property::Changeable::Always,false);
     Pbool->Set_help("Ignore RDMSR/WRMSR on undefined registers. Normally the CPU will fire an Invalid Opcode exception in that case.\n"
