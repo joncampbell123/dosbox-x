@@ -923,6 +923,10 @@ Ejemplos:
 Incapaz de arrancar desde la unidad %c.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Floppy image(s) already mounted.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 Abriendo archivo imagen: %s
 
@@ -939,6 +943,9 @@ Comandos de cartucho PCjr disponibles:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 No se han encontrado comandos de cartucho PCjr
+.
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
 .
 :PROGRAM_LOADROM_HELP
 Carga el archivo de imagen ROM especificado para BIOS de video o IBM BASIC.
@@ -1204,6 +1211,10 @@ Creando archivo imagen "%s" con %u cilindros, %u cabezas y %u sectores
 
 Incapaz de leer disquete.
 .
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
+
+.
 :PROGRAM_KEYB_INFO
 Página de códigos (Codepage) %i cargada
 
@@ -1250,6 +1261,37 @@ No hay layout en %s para el codepage %i
 :PROGRAM_KEYB_INVCPFILE
 No hay archivo de página de código o no es válido para la disposición %s
 
+
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
 
 .
 :PROGRAM_MODE_USAGE
@@ -1513,6 +1555,12 @@ Incapaz de crear directorio - %s
 Ruta no válida, no es un directorio o no está vacío - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 Incapaz de renombrar - %
 
@@ -1528,6 +1576,9 @@ Incapaz de establecer atributos: %s
 :SHELL_CMD_DEL_ERROR
 Incapaz de borrar - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 ¡Todos los archivos del directorio se borraran!
@@ -1649,6 +1700,10 @@ Espacio en disco insuficiente - %s
 Error de copia - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 Las unidades locales actualmente montadas son:
 
@@ -1680,6 +1735,9 @@ DOS/V V-text está habilitado actualmente.
 :SHELL_CMD_VTEXT_OFF
 DOS/V V-text está actualmente deshabilitado.
 
+.
+:SHELL_ALLFILES_CHAR
+a
 .
 :SHELL_STARTUP_TITLE
 Bienvenido a DOSBox-X!
@@ -2270,6 +2328,10 @@ Las páginas de códigos personalizadas son compatibles al proporcionar archivos
 Página de códigos activa (codepage): %d
 
 .
+:SHELL_CMD_CHCP_MISSING
+ASCII characters not defined in TTF font: %d
+
+.
 :SHELL_CMD_CHCP_INVALID
 Número de código de página no válido - %s
 
@@ -2593,6 +2655,18 @@ relación original
 :MENU:video_ratio_set
 Establecer proporción
 .
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 Escalador
 .
@@ -2682,6 +2756,9 @@ xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilineal
+.
+:MENU:center_window
+Center window
 .
 :MENU:set_titletext
 Establecer el texto de la barra de título...
@@ -3166,6 +3243,9 @@ Acerca de DOSBox-X
 :MENU:show_console
 Mostrar consola de registro
 .
+:MENU:clear_console
+Clear logging console
+.
 :MENU:disable_logging
 Deshabilitar la salida de registro
 .
@@ -3189,6 +3269,9 @@ Opción del depurador: Ejecutar normalmente
 .
 :MENU:debugger_runwatch
 Opción del depurador: Ejecutar observador
+.
+:MENU:video_debug_overlay
+Video debug overlay
 .
 :MENU:HelpCommandMenu
 Comandos DOS
@@ -3271,11 +3354,17 @@ Grabar salida MIDI
 :MENU:mapper_caprawopl
 Grabar salida FM (OPL)
 .
+:MENU:mapper_capnetrf
+Record network traffic
+.
 :MENU:mapper_video
 Grabar video en AVI
 .
 :MENU:mapper_scrshot
 Capturar pantalla
+.
+:MENU:mapper_rawscrshot
+Take raw screenshot
 .
 :MENU:mapper_volup
 Subir volumen
@@ -3525,6 +3614,9 @@ Mostrar estado de disco IDE o CD
 .
 :MENU:pc98_use_uskb
 Usar distribución de teclado US
+.
+:MAPPER:capnetrf
+Record Network traffic
 .
 :MAPPER:caprawopl
 Graba salida FM/OPL

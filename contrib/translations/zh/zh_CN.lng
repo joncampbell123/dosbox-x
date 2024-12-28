@@ -909,6 +909,10 @@ leading colon write protect image = true
 无法从驱动器 %c 启动.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Floppy image(s) already mounted.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 正在打开镜像文件: %s
 
@@ -925,6 +929,9 @@ Available PCjr cartridge commandos:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 No PCjr cartridge commandos found
+.
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
 .
 :PROGRAM_LOADROM_HELP
 调用指定的视频 BIOS 或 IBM BASIC ROM 镜像文件.
@@ -1190,6 +1197,10 @@ BIOSTEST 镜像文件
 
 无法读取软盘.
 .
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
+
+.
 :PROGRAM_KEYB_INFO
 代码页 %i 已加载
 
@@ -1235,6 +1246,37 @@ BIOSTEST 镜像文件
 :PROGRAM_KEYB_INVCPFILE
 作为键盘布局 %s 的代码页文件不存在或无效
 
+
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
 
 .
 :PROGRAM_MODE_USAGE
@@ -1502,6 +1544,12 @@ TIME [[/T] [/H] | 时间]
 路径无效,不是目录,或目录非空 - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 无法进行重命名 - %s
 
@@ -1517,6 +1565,9 @@ TIME [[/T] [/H] | 时间]
 :SHELL_CMD_DEL_ERROR
 无法删除 - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 目录下的所有文件将被删除!
@@ -1638,6 +1689,10 @@ PAUSE
 文件拷贝错误 - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 目前已挂载的驱动器为:
 
@@ -1656,6 +1711,10 @@ SUBST 命令只能挂载本地驱动器.
 .
 :SHELL_CMD_SUBST_INVALID_PATH
 指定的驱动器或目录非法.
+
+.
+:SHELL_CMD_SUBST_FAILURE
+SUBST: There is an error in your command line.
 
 .
 :SHELL_CMD_VTEXT_ON
@@ -1697,6 +1756,10 @@ SUBST: 命令行参数错误.
 :SHELL_STARTUP_CGA
 支持 CGA 合成模式. 按 [31mCtrl+F8[37m 键启用或禁用合成输出.                         
 按 [31mCtrl+Shift+[F7/F8][37m 改变色度; 按 [31mCtrl+F7[37m 选择早期/晚期 CGA 型号.          
+.
+:SHELL_STARTUP_CGA_MONO
+Use [31mCtrl+F7[37m to cycle through green, amber, and white monochrome color,      
+and [31mCtrl+F8[37m to change contrast/brightness settings. 
 .
 :SHELL_STARTUP_HERC
 按 [31mCtrl+F7[37m 键在单色间切换： 白色、琥珀色、绿色.                             
@@ -2553,6 +2616,18 @@ AMD Athlon 600MHz (约 306000 周期)
 :MENU:video_ratio_set
 设置长宽比
 .
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 缩放器
 .
@@ -2642,6 +2717,9 @@ xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
+.
+:MENU:center_window
+Center window
 .
 :MENU:set_titletext
 设置标题栏文字...
@@ -3126,6 +3204,9 @@ DOSBox-X 支持
 :MENU:show_console
 显示记录控制台
 .
+:MENU:clear_console
+Clear logging console
+.
 :MENU:disable_logging
 禁用记录输出
 .
@@ -3149,6 +3230,9 @@ DOSBox-X 支持
 .
 :MENU:debugger_runwatch
 调试器选项: 监视运行方式
+.
+:MENU:video_debug_overlay
+Video debug overlay
 .
 :MENU:HelpCommandMenu
 DOS 命令
@@ -3231,11 +3315,17 @@ DOS 命令
 :MENU:mapper_caprawopl
 录制 FM (OPL) 输出
 .
+:MENU:mapper_capnetrf
+Record network traffic
+.
 :MENU:mapper_video
 录制视频到 AVI
 .
 :MENU:mapper_scrshot
 捕获屏幕快照
+.
+:MENU:mapper_rawscrshot
+Take raw screenshot
 .
 :MENU:mapper_volup
 提高音量
@@ -3486,6 +3576,9 @@ Mapper "输入特殊键": Ctrl+Alt+Del
 :MENU:pc98_use_uskb
 使用美式键盘布局
 .
+:MAPPER:capnetrf
+Record Network traffic
+.
 :MAPPER:caprawopl
 录制 FM/OPL 输出
 .
@@ -3525,6 +3618,12 @@ CPU: 正常内核
 :MAPPER:paste
 粘贴剪贴板文字
 .
+:MAPPER:pasteend
+Stop clipboard paste
+.
+:MAPPER:pauseints
+Pause with interrupt
+.
 :MAPPER:prevslot
 上一个存档
 .
@@ -3534,6 +3633,12 @@ CPU: 正常内核
 :MAPPER:quickrun
 快速启动程序
 .
+:MAPPER:reboot
+Reboot DOS system
+.
+:MAPPER:recmtwave
+Record to multi-track AVI
+.
 :MAPPER:rescanall
 刷新驱动器
 .
@@ -3542,6 +3647,9 @@ CPU: 正常内核
 .
 :MAPPER:resetcolor
 重置配色方案
+.
+:MAPPER:showstate
+Display state info
 .
 :MAPPER:simple
 CPU: 简单内核

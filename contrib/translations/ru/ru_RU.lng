@@ -295,6 +295,10 @@ DOSBox-X создает оболочку DOS, которая выглядит к
 Запись файла конфигурации %s
 
 .
+:PROGRAM_LANGUAGE_FILE_WHICH
+Written to language file %s
+
+.
 :PROGRAM_CONFIG_USAGE
 Утилита конфигурации командной строки DOSBox-X. Поддерживаемые опции:
 -wc (или -writeconf) без параметра: Записывает в основной загруженный файл конфигурации.
@@ -908,6 +912,10 @@ DOSBox-X предоставляет эмуляцию CD-ROM на несколь�
 Не удается загрузиться с диска %c.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Floppy image(s) already mounted.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 Открытие файла образа: %s
 
@@ -926,8 +934,9 @@ DOSBox-X предоставляет эмуляцию CD-ROM на несколь�
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 Команды для картриджа PCjr не найдены.
-
 .
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
 :PROGRAM_LOADROM_HELP
 Загружает указанный файл образа ROM для видео BIOS или IBM BASIC.
 
@@ -1190,10 +1199,14 @@ BIOSTEST image_file
 
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
+
+
 Не удалось прочитать гибкий диск.
+.
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
 
 .
-
 :PROGRAM_KEYB_INFO
 Codepage %i была загружена.
 
@@ -1203,7 +1216,6 @@ Codepage %i была загружена.
 Codepage %i была загружена для раскладки %s.
 
 .
-
 :PROGRAM_KEYB_SHOWHELP
 Настроить клавиатуру для конкретного языка.
 
@@ -1221,32 +1233,59 @@ Codepage %i была загружена для раскладки %s.
   ←[32;1mKEYB sp_mod 850←[0m      Загрузить раскладку клавиатуры из sp_mod.kl, используйте кодовую страницу 850.
 
 .
-
 :PROGRAM_KEYB_NOERROR
 Раскладка клавиатуры %s загружена для кодовой страницы %i.
 
 .
-
 :PROGRAM_KEYB_FILENOTFOUND
 Файл клавиатуры %s не найден (или не является допустимым ID).
 
-.
 
+.
 :PROGRAM_KEYB_INVALIDFILE
 Файл клавиатуры %s недопустим.
 
 .
-
 :PROGRAM_KEYB_LAYOUTNOTFOUND
 Нет раскладки в %s для кодовой страницы %i.
 
 .
-
 :PROGRAM_KEYB_INVCPFILE
 Нет файла кодовой страницы или недопустимый файл кодовой страницы для раскладки %s.
 
-.
 
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
+
+.
 :PROGRAM_MODE_USAGE
 Настроить системные устройства.
 
@@ -1575,7 +1614,12 @@ TIME [[/T] [/H] | time]
 Неверный путь, не является каталогом или каталог не пуст - %s
 
 .
-
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 Не удалось переименовать - %s
 
@@ -1595,7 +1639,9 @@ TIME [[/T] [/H] | time]
 Не удалось удалить - %s
 
 .
-
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
+.
 :SHELL_CMD_DEL_SURE
 Все файлы в каталоге будут удалены!
 Вы уверены [Y/N]?
@@ -1656,7 +1702,6 @@ GOTO: Метка %s не найдена.
 Файл %s уже существует.
 
 .
-
 :SHELL_CMD_DIR_INTRO
  Содержимое каталога %s
 
@@ -1751,7 +1796,10 @@ PAUSE
 Ошибка копирования - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
 
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 В настоящее время подключены следующие локальные диски:
 
@@ -1791,7 +1839,9 @@ DOS/V V-text в настоящее время включен.
 DOS/V V-text в настоящее время выключен.
 
 .
-
+:SHELL_ALLFILES_CHAR
+a
+.
 :SHELL_STARTUP_TITLE
 Добро пожаловать в DOSBox-X!
 .
@@ -2731,6 +2781,18 @@ Pentium III 866 МГц EB (~407000 циклов)
 :MENU:video_ratio_set
 Установить соотношение
 .
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 Масштабирование
 .
@@ -2821,6 +2883,9 @@ xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
+.
+:MENU:center_window
+Center window
 .
 :MENU:set_titletext
 Установить текст заголовка...
@@ -3305,6 +3370,9 @@ MPEG-TS + H.264
 :MENU:show_console
 Показать консоль ведения журнала
 .
+:MENU:clear_console
+Clear logging console
+.
 :MENU:disable_logging
 Отключить вывод в журнал
 .
@@ -3328,6 +3396,9 @@ MPEG-TS + H.264
 .
 :MENU:debugger_runwatch
 Опция отладчика: Запустить наблюдение
+.
+:MENU:video_debug_overlay
+Video debug overlay
 .
 :MENU:HelpCommandMenu
 Команды DOS
@@ -3410,11 +3481,17 @@ MPEG-TS + H.264
 :MENU:mapper_caprawopl
 Записать вывод FM (OPL)
 .
+:MENU:mapper_capnetrf
+Record network traffic
+.
 :MENU:mapper_video
 Записать видео в AVI
 .
 :MENU:mapper_scrshot
 Сделать скриншот
+.
+:MENU:mapper_rawscrshot
+Take raw screenshot
 .
 :MENU:mapper_volup
 Увеличить громкость
@@ -3665,6 +3742,9 @@ Alt+Shift
 :MENU:pc98_use_uskb
 Использовать раскладку US клавиатуры
 .
+:MAPPER:capnetrf
+Record Network traffic
+.
 :MAPPER:caprawopl
 Записать вывод FM/OPL
 .
@@ -3722,6 +3802,9 @@ CPU: обычное ядро
 :MAPPER:reboot
 Перезагрузить DOS-систему
 .
+:MAPPER:recmtwave
+Record to multi-track AVI
+.
 :MAPPER:rescanall
 Пересканировать все диски
 .
@@ -3740,12 +3823,3 @@ CPU: простое ядро
 :MAPPER:togmenu
 Переключить панель меню
 .
-
-
-
-
-
-
-
-
-

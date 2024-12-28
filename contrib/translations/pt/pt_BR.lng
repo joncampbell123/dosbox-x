@@ -924,6 +924,10 @@ Exemplos:
 Não foi possível inicializar a partir da unidade %c.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Floppy image(s) already mounted.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 Abrindo arquivo imagem: %s
 
@@ -940,6 +944,9 @@ Comandos disponíveis no cartucho PCjr: %s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 Os comandos do cartucho PCjr não foram encontrados
+.
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
 .
 :PROGRAM_LOADROM_HELP
 Carrega o arquivo de imagem ROM especificado para BIOS de vídeo ou IBM BASIC.
@@ -1207,6 +1214,10 @@ Criando arquivo de imagem "%s" com %u cilindros, %u cabeças e %u setores
 
 Não foi possível ler o disquete.
 .
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
+
+.
 :PROGRAM_KEYB_INFO
 Página de código %i carregada
 
@@ -1254,6 +1265,37 @@ Não existe esquema em %s para a página de código %i
 :PROGRAM_KEYB_INVCPFILE
 Nenhum arquivo de página de código ou é inválido para o esquema %s
 
+
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
 
 .
 :PROGRAM_MODE_USAGE
@@ -1521,6 +1563,12 @@ Não é possível criar a pasta - %s
 Caminho inválida, não é uma pasta ou não está vazia - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 Não é possível renomear - %
 
@@ -1536,6 +1584,9 @@ Não é possível definir atributos: %s
 :SHELL_CMD_DEL_ERROR
 Não é possível excluir - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 Todos os arquivos da pasta serão excluídos!
@@ -1657,6 +1708,10 @@ Espaço em disco insuficiente - %s
 Erro ao copiar: %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 As unidades locais atualmente montadas são:
 
@@ -1688,6 +1743,9 @@ DOS/V V-text está atualmente habilitado.
 :SHELL_CMD_VTEXT_OFF
 DOS/V V-text está atualmente desativado.
 
+.
+:SHELL_ALLFILES_CHAR
+a
 .
 :SHELL_STARTUP_TITLE
 Bem-vindo ao DOSBox-X!
@@ -2610,6 +2668,18 @@ Proporção original
 :MENU:video_ratio_set
 Definir proporção
 .
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 Redimensionador
 .
@@ -2699,6 +2769,9 @@ xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
+.
+:MENU:center_window
+Center window
 .
 :MENU:set_titletext
 Definir texto da barra de título...
@@ -3183,6 +3256,9 @@ Sobre o DOSBox-X
 :MENU:show_console
 Mostrar console de registro
 .
+:MENU:clear_console
+Clear logging console
+.
 :MENU:disable_logging
 Desativar saída de registro
 .
@@ -3206,6 +3282,9 @@ Opção do depurador: Executar normalmente
 .
 :MENU:debugger_runwatch
 Opção do depurador: Executar observador
+.
+:MENU:video_debug_overlay
+Video debug overlay
 .
 :MENU:HelpCommandMenu
 Comandos DOS
@@ -3288,11 +3367,17 @@ Gravar saída MIDI
 :MENU:mapper_caprawopl
 Gravar saída FM (OPL)
 .
+:MENU:mapper_capnetrf
+Record network traffic
+.
 :MENU:mapper_video
 Gravar vídeo em AVI
 .
 :MENU:mapper_scrshot
 Capturar tela
+.
+:MENU:mapper_rawscrshot
+Take raw screenshot
 .
 :MENU:mapper_volup
 Aumentar volume
@@ -3543,6 +3628,9 @@ Mostrar estado de disco IDE ou CD
 :MENU:pc98_use_uskb
 Usar esquema de teclado americano
 .
+:MAPPER:capnetrf
+Record Network traffic
+.
 :MAPPER:caprawopl
 Gravar saída FM/OPL
 .
@@ -3599,6 +3687,9 @@ Lançar prog. rápido
 .
 :MAPPER:reboot
 Reinicia sistema DOS
+.
+:MAPPER:recmtwave
+Record to multi-track AVI
 .
 :MAPPER:rescanall
 Reverificar unidades

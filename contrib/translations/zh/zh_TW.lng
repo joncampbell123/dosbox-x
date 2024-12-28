@@ -1440,11 +1440,11 @@ ECHO 狀態為開.
 ECHO 狀態為關.
 
 .
-:SHELL_INVALID_PARAMETER
+:SHELL_ILLEGAL_SWITCH
 無效的參數 - %s
 
 .
-:SHELL_ILLEGAL_SWITCH
+:SHELL_INVALID_PARAMETER
 無效的參數 - %s
 
 .
@@ -2712,6 +2712,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:center_window
+Center window
+.
 :MENU:set_titletext
 設定標題列文字...
 .
@@ -3582,6 +3585,9 @@ Alt+Shift
 :MAPPER:debugger
 顯示偵錯工具
 .
+:MAPPER:decsize
+Decrease TTF size
+.
 :MAPPER:dynamic
 CPU: 動態核心
 .
@@ -3591,6 +3597,9 @@ CPU: 動態核心
 :MAPPER:full
 CPU: 完全核心
 .
+:MAPPER:incsize
+Increase TTF size
+.
 :MAPPER:loadmap
 載入對應表檔案
 .
@@ -3599,6 +3608,15 @@ CPU: 完全核心
 .
 :MAPPER:normal
 CPU: 一般核心
+.
+:MAPPER:paste
+Paste from clipboard
+.
+:MAPPER:pasteend
+Stop clipboard paste
+.
+:MAPPER:pauseints
+Pause with interrupt
 .
 :MAPPER:prevslot
 上一個儲存欄位
@@ -3612,6 +3630,9 @@ CPU: 一般核心
 :MAPPER:reboot
 重開 DOS 系統
 .
+:MAPPER:recmtwave
+Record to multi-track AVI
+.
 :MAPPER:rescanall
 重新整理磁碟機
 .
@@ -3620,6 +3641,9 @@ CPU: 一般核心
 .
 :MAPPER:resetcolor
 重設色彩配置
+.
+:MAPPER:showstate
+Display state info
 .
 :MAPPER:simple
 CPU: 簡單核心

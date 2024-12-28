@@ -940,6 +940,9 @@ Commandos de cartouches PCjr disponibles:%s
 :PROGRAM_BOOT_CART_NO_CMDS
 Aucun commando de cartouches PCjr trouvé
 .
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
+.
 :PROGRAM_LOADROM_HELP
 Charge le fichier image ROM spécifié pour le BIOS vidéo ou IBM BASIC.
 
@@ -1201,6 +1204,9 @@ Création du fichier image "%s" avec %u cylindres, %u têtes et %u secteurs
 
 Impossible de lire la disquette.
 .
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
+.
 :PROGRAM_KEYB_INFO
 La page de code %i a été chargée
 
@@ -1246,6 +1252,37 @@ Aucune mise en page dans %s pour la page de code %i
 :PROGRAM_KEYB_INVCPFILE
 Fichier de page de code inexistant ou invalide pour la disposition %s
 
+
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
 
 .
 :PROGRAM_MODE_USAGE
@@ -1513,6 +1550,12 @@ Impossible de créer le répertoire - %s
 Chemin non valide, pas de répertoire, ou répertoire non vide - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 Impossible de renommer - %s
 
@@ -1528,6 +1571,9 @@ Impossible de définir les attributs : %s
 :SHELL_CMD_DEL_ERROR
 Impossible de supprimer - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 Tous les fichiers du répertoire seront supprimés !
@@ -1649,6 +1695,10 @@ Espace disque insuffisant - %s
 Erreur de copie - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 Les lecteurs locaux actuellement montés sont :
 
@@ -1680,6 +1730,9 @@ DOS/V V-text est actuellement activé.
 :SHELL_CMD_VTEXT_OFF
 DOS/V V-text est actuellement désactivé.
 
+.
+:SHELL_ALLFILES_CHAR
+a
 .
 :SHELL_STARTUP_TITLE
 Bienvenue sur DOSBox-X !             
@@ -2592,6 +2645,18 @@ rapport d'origine
 :MENU:video_ratio_set
 Définir le rapport
 .
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 Mise à l'échelle
 .
@@ -2681,6 +2746,9 @@ xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
 xBRZ bilinéaire
+.
+:MENU:center_window
+Center window
 .
 :MENU:set_titletext
 Définir le texte de la barre de titre...
@@ -3166,6 +3234,9 @@ A propos de DOSBox-X
 :MENU:show_console
 Afficher la console de journalisation
 .
+:MENU:clear_console
+Clear logging console
+.
 :MENU:disable_logging
 Désactiver la sortie de journalisation
 .
@@ -3189,6 +3260,9 @@ Option débogueur : Exécuter normalement
 .
 :MENU:debugger_runwatch
 Option du débogueur : Exécuter la veille
+.
+:MENU:video_debug_overlay
+Video debug overlay
 .
 :MENU:HelpCommandMenu
 Commandes DOS
@@ -3271,11 +3345,17 @@ Enreg. sortie MIDI
 :MENU:mapper_caprawopl
 Sortie FM (OPL)
 .
+:MENU:mapper_capnetrf
+Record network traffic
+.
 :MENU:mapper_video
 Enreg. vidéo en AVI
 .
 :MENU:mapper_scrshot
 Capture d'écran
+.
+:MENU:mapper_rawscrshot
+Take raw screenshot
 .
 :MENU:mapper_volup
 Monter le volume
@@ -3527,6 +3607,12 @@ Afficher l'état du disque IDE ou du CD
 :MENU:pc98_use_uskb
 Utiliser la disposition clavier US
 .
+:MAPPER:capnetrf
+Record Network traffic
+.
+:MAPPER:caprawopl
+Record FM/OPL output
+.
 :MAPPER:copyall
 Copier presse-papiers
 .
@@ -3566,11 +3652,23 @@ Coller presse-papiers
 :MAPPER:pasteend
 Arrêt presse-papiers
 .
+:MAPPER:pauseints
+Pause with interrupt
+.
+:MAPPER:prevslot
+Previous save slot
+.
+:MAPPER:printtext
+Print text screen
+.
 :MAPPER:quickrun
 Programme de lancement rapide
 .
 :MAPPER:reboot
 Redémarrer le DOS
+.
+:MAPPER:recmtwave
+Record to multi-track AVI
 .
 :MAPPER:rescanall
 Réanalyser lecteurs

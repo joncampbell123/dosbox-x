@@ -2,125 +2,8 @@
 :DOSBOX-X:CODEPAGE:437
 :DOSBOX-X:VERSION:2024.12.04
 :DOSBOX-X:REMARK:
-:PROGRAM_IMGMAKE_BADSIZE
-Argomenti errati per -size o -chs.
-
-.
-:INT21_6523_YESNO_CHARS
-sn
-.
-:PROGRAM_VHDMAKE_WRITERR
-Non posso scrivere sulla nuova immagine VHD "%s", abbandono.
-
-.
-:PROGRAM_VHDMAKE_REMOVEERR
-Non posso cancellare il file "%s"
-
-.
-:PROGRAM_VHDMAKE_RENAME
-Dovrai rinominare manualmente la nuova immagine VHD.
-
-.
-:PROGRAM_VHDMAKE_SUCCESS
-Nuova immagine VHD creata con successo. Puoi montarla con ←[34;1mIMGMOUNT←[0m.
-
-.
-:PROGRAM_VHDMAKE_ERROPEN
-Errore, non posso aprire il file immagine "%s".
-
-.
-:PROGRAM_VHDMAKE_BADSIZE
-Dimensione non consentita per il VHD, abbandono!
-
-.
-:PROGRAM_VHDMAKE_FNEEDED
-Un'immagine VHD preesistente non può essere sovrascritta senza l'opzione -f!
-
-.
-:PROGRAM_VHDMAKE_BADPARENT
-L'immagine VHD madre "%s" non può essere aperta per il collegamento, abbandono!
-
-.
-:PROGRAM_VHDMAKE_NOINFO
-Impossibile ricavare le informazioni da "%s".
-
-.
-:PROGRAM_VHDMAKE_BLOCKSTATS
- con %d su %d blocchi allocati.
-
-.
-:PROGRAM_VHDMAKE_INFO
-Il VHD "%s" è di tipo %s.
-La sua dimensione virtuale è %.02f MB
-.
-:PROGRAM_VHDMAKE_CANTMERGE
-%s non è un VHD differenziale, non si può unire!
-
-.
-:PROGRAM_VHDMAKE_MERGEREPORT
-%d settori in %d blocchi di "%s" uniti in "%s".
-
-.
-:PROGRAM_VHDMAKE_MERGENODELETE
-Impossibile rimuovere lo snapshot "%s", dovrai farlo manualmente!
-.
-:PROGRAM_VHDMAKE_MERGEOKDELETE
-VHD differenziale unito e cancellato.
-
-.
-:PROGRAM_VHDMAKE_MERGEFAILED
-Errore durante l'unione, abbandonata!
-
-.
-:PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
- Il contenuto della VHD madre "%s" potrebbe essere danneggiato!
-
-.
-:PROGRAM_VHDMAKE_ABSPATH_WIN
-Attenzione: un percorso assoluto della VHD madre limita la portabilità a Windows.
-Preferire un percorso relativo per l'immagine differenziale!
-
-.
-:PROGRAM_VHDMAKE_ABSPATH_UX
-ERRORE: un percorso assoluto alla VHD madre impedisce la portabilità.
-Usa un percorso relativo all'immagine differenziale!
-
-.
-:PROGRAM_VHDMAKE_HELP
-Crea immagini VHD dinamiche o differenziali, converte immagini fisse in
-VHD fissi, mostra informazioni sui VHD e li unisce.
-←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
-←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
-←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
-←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
-←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
- -c | -convert  converte un disco in VHD fisso e lo rinomina new.vhd
- -l | -link     crea un VHD differenziale new.vhd e lo collega all'immagine
-                madre parent.vhd preesistente
- -f | -force    forza la sovrascrittura di un'immagine preesistente
- -i | -info     mostra informazioni sull'immagine a.vhd
- -m | -merge    unisce l'immagine differenziale delta.vhd alla madre
- new.vhd        nome della nuova immagine VHD dinamica da creare
- size           dimensione virtuale del disco (con eventuale unità di misura,
-                Byte è implicita)
-L'immagine da convertire in VHD fissa dev'essere partizionata con lo schema
-MBR e formattata con FAT.
-La dimensione di un VHD dinamico può variare da 3 MB a 2040 GB.
-Il VHD dinamico creato non è partizionato né formattato: per montarlo
-e assegnargli direttamente una lettera di unità con ←[34;1mIMGMOUNT←[0m, può
-essere preferibile usare ←[34;1mIMGMAKE←[0m.
-Un VHD differenziale è automaticamente cancellato dopo che l'unione ha avuto
-successo.
-
-.
-:DEBUGCMD
-Comando del Debugger
-.
 :HELP_INFO
 Fai clic sul pulsante "Aiuto" in basso per avere aiuto dettagliato.
-.
-:SELECT_VALUE
-Scegli un valore per la proprietà
 .
 :AUTOEXEC_CONFIGFILE_HELP
 Le righe in questa sezione simulano AUTOEXEC.BAT e sono eseguite all'avvio
@@ -169,6 +52,9 @@ Cancella
 .
 :CLOSE
 Chiudi
+.
+:DEBUGCMD
+Comando del Debugger
 .
 :UPDATE
 Aggiorna
@@ -220,6 +106,9 @@ Edita %s
 .
 :HELP_FOR
 Aiuto su %s
+.
+:SELECT_VALUE
+Scegli un valore per la proprietà
 .
 :CONFIGURATION_FOR
 Configurazione di %s
@@ -1025,9 +914,6 @@ Cambia lo ←[33;1m0←[0m in ←[34;1m-usecd ←[33m0←[0m con il numero del t
 Il disco di avvio non esiste. Abbandono.
 
 .
-:PROGRAM_BOOT_BOOTING
-Avvio dall'unità 
-.
 :PROGRAM_BOOT_NOT_OPEN
 Impossibile aprire il disco di avvio. Abbandono.
 
@@ -1066,6 +952,10 @@ Esempi:
 Impossibile avviare il sistema dall'unità %c.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Le immagini di uno o più floppy sono già montate.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 Apertura dell'immagine disco: %s
 
@@ -1082,6 +972,9 @@ Comandi disponibili per la cartuccia PCjr:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 Non sono stati trovati comandi per la cartuccia PCjr
+.
+:PROGRAM_BOOT_BOOTING
+Avvio dall'unità 
 .
 :PROGRAM_LOADROM_HELP
 Carica il file di immagine ROM indicato come BIOS video o IBM BASIC.
@@ -1349,6 +1242,10 @@ Creazione del file di immagine "%s" con %u Cilindri, %u Testine e %u Settori
 
 Impossibile leggere il floppy.
 .
+:PROGRAM_IMGMAKE_BADSIZE
+Argomenti errati per -size o -chs.
+
+.
 :PROGRAM_KEYB_INFO
 La pagina dei codici %i è stata caricata
 
@@ -1391,6 +1288,37 @@ File di tavola codici inesistente o invalido per la disposizione %s
 
 
 .
+:INT21_6523_YESNO_CHARS
+sn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
+
+.
 :PROGRAM_MODE_USAGE
 Configura dispositivi di sistema.
 
@@ -1405,6 +1333,112 @@ Parametri non validi.
 .
 :PROGRAM_PORT_INVALID_NUMBER
 Si deve indicare un numero di porta da 1 a 9.
+
+.
+:PROGRAM_VHDMAKE_WRITERR
+Non posso scrivere sulla nuova immagine VHD "%s", abbandono.
+
+.
+:PROGRAM_VHDMAKE_REMOVEERR
+Non posso cancellare il file "%s"
+
+.
+:PROGRAM_VHDMAKE_RENAME
+Dovrai rinominare manualmente la nuova immagine VHD.
+
+.
+:PROGRAM_VHDMAKE_SUCCESS
+Nuova immagine VHD creata con successo. Puoi montarla con ←[34;1mIMGMOUNT←[0m.
+
+.
+:PROGRAM_VHDMAKE_ERROPEN
+Errore, non posso aprire il file immagine "%s".
+
+.
+:PROGRAM_VHDMAKE_BADSIZE
+Dimensione non consentita per il VHD, abbandono!
+
+.
+:PROGRAM_VHDMAKE_FNEEDED
+Un'immagine VHD preesistente non può essere sovrascritta senza l'opzione -f!
+
+.
+:PROGRAM_VHDMAKE_BADPARENT
+L'immagine VHD madre "%s" non può essere aperta per il collegamento, abbandono!
+
+.
+:PROGRAM_VHDMAKE_NOINFO
+Impossibile ricavare le informazioni da "%s".
+
+.
+:PROGRAM_VHDMAKE_BLOCKSTATS
+ con %d su %d blocchi allocati.
+
+.
+:PROGRAM_VHDMAKE_INFO
+Il VHD "%s" è di tipo %s.
+La sua dimensione virtuale è %.02f MB
+.
+:PROGRAM_VHDMAKE_CANTMERGE
+%s non è un VHD differenziale, non si può unire!
+
+.
+:PROGRAM_VHDMAKE_MERGEREPORT
+%d settori in %d blocchi di "%s" uniti in "%s".
+
+.
+:PROGRAM_VHDMAKE_MERGENODELETE
+Impossibile rimuovere lo snapshot "%s", dovrai farlo manualmente!
+.
+:PROGRAM_VHDMAKE_MERGEOKDELETE
+VHD differenziale unito e cancellato.
+
+.
+:PROGRAM_VHDMAKE_MERGEFAILED
+Errore durante l'unione, abbandonata!
+
+.
+:PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
+ Il contenuto della VHD madre "%s" potrebbe essere danneggiato!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_WIN
+Attenzione: un percorso assoluto della VHD madre limita la portabilità a Windows.
+Preferire un percorso relativo per l'immagine differenziale!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_UX
+ERRORE: un percorso assoluto alla VHD madre impedisce la portabilità.
+Usa un percorso relativo all'immagine differenziale!
+
+.
+:PROGRAM_VHDMAKE_HELP
+Crea immagini VHD dinamiche o differenziali, converte immagini fisse in
+VHD fissi, mostra informazioni sui VHD e li unisce.
+←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
+←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
+←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
+ -c | -convert  converte un disco in VHD fisso e lo rinomina new.vhd
+ -l | -link     crea un VHD differenziale new.vhd e lo collega all'immagine
+                madre parent.vhd preesistente
+ -f | -force    forza la sovrascrittura di un'immagine preesistente
+ -i | -info     mostra informazioni sull'immagine a.vhd
+ -m | -merge    unisce l'immagine differenziale delta.vhd alla madre
+ new.vhd        nome della nuova immagine VHD dinamica da creare
+ size           dimensione virtuale del disco (con eventuale unità di misura,
+                Byte è implicita)
+L'immagine da convertire in VHD fissa dev'essere partizionata con lo schema
+MBR e formattata con FAT.
+La dimensione di un VHD dinamico può variare da 3 MB a 2040 GB.
+Il VHD dinamico creato non è partizionato né formattato: per montarlo
+e assegnargli direttamente una lettera di unità con ←[34;1mIMGMOUNT←[0m, può
+essere preferibile usare ←[34;1mIMGMAKE←[0m.
+Un VHD differenziale è automaticamente cancellato dopo che l'unione ha avuto
+successo.
+
+.
 
 .
 :SHELL_CMD_TREE_ERROR
@@ -1555,6 +1589,12 @@ Impossibile creare la cartella - %s
 Percorso invalido, non è una cartella o non è vuota - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 Impossibile rinominare - %s
 
@@ -1570,6 +1610,9 @@ Impossibile impostare gli attributi: %s
 :SHELL_CMD_DEL_ERROR
 Impossibile cancellare - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 Tutti i file nella cartella saranno rimossi!
@@ -1691,6 +1734,10 @@ Spazio su disco insufficiente - %s
 Errore di copia - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 Le unità locali attualmente montate sono:
 
@@ -1722,6 +1769,9 @@ DOS/V V-text è abilitato.
 :SHELL_CMD_VTEXT_OFF
 DOS/V V-text è disabilitato.
 
+.
+:SHELL_ALLFILES_CHAR
+a
 .
 :SHELL_STARTUP_TITLE
 Benvenuto in DOSBox-X !
@@ -2259,6 +2309,17 @@ Digita ALIAS senza parametri per vedere la lista degli alias nella forma:
 `ALIAS NOME = VALORE`
 
 .
+:SHELL_CMD_ASSOC_HELP
+Mostra o cambia il comando associato all'estensione dei file.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.est[=comando] ... ]
+
+Digita ASSOC senza parametri per elencare le associazioni correnti.
+Le estensioni devono iniziare con il punto (.); i jolly (* e ?) sono permessi.
+
+.
 :SHELL_CMD_CHCP_HELP
 Mostra o cambia la tavola codici corrente per il DOS.
 
@@ -2358,10 +2419,6 @@ Sono permesse le seguenti opzioni:
   /INIT Inizializza l'interprete.
 
 .
-:PROGRAM_BOOT_IMAGE_MOUNTED
-Le immagini di uno o più floppy sono già montate.
-
-.
 :SHELL_CMD_HISTORY_HELP
 Mostra o cancella lo storico delle righe di comando.
 
@@ -2372,17 +2429,7 @@ HISTORY [/C]
   /C  Cancella lo storico dei comandi.
 
 .
-:SHELL_CMD_ASSOC_HELP
-Mostra o cambia il comando associato all'estensione dei file.
 
-.
-:SHELL_CMD_ASSOC_HELP_LONG
-ASSOC [.est[=comando] ... ]
-
-Digita ASSOC senza parametri per elencare le associazioni correnti.
-Le estensioni devono iniziare con il punto (.); i jolly (* e ?) sono permessi.
-
-.
 :MENU:mapper_reset
 Resetta la macchina virtuale
 .
@@ -2620,6 +2667,18 @@ Originale
 :MENU:video_ratio_set
 Imposta
 .
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 Scaler
 .
@@ -2710,6 +2769,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:center_window
+Center window
+.
 :MENU:set_titletext
 Imposta la barra del titolo...
 .
@@ -2739,6 +2801,9 @@ OpenGL perfect
 .
 :MENU:output_ttf
 TrueType font
+.
+:MENU:output_gamelink
+Game Link
 .
 :MENU:doublescan
 Doublescan
@@ -3600,6 +3665,9 @@ Prossimo slot di salvataggio
 .
 :MAPPER:normal
 CPU: core normale
+.
+:MAPPER:paste
+Paste from clipboard
 .
 :MAPPER:pasteend
 Non incollare più dagli appunti
