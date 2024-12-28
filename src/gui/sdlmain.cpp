@@ -7302,6 +7302,7 @@ void TIMER_Init();
 void CMOS_Init();
 void VGA_Init();
 void CPU_Init();
+void Weitek_Init();
 void ISAPNP_Cfg_Init();
 #if C_FPU
 void FPU_Init();
@@ -9000,6 +9001,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item->set_text("Send special key");
         }
         CPU_Init();
+        Weitek_Init();
 #if C_FPU
         FPU_Init();
 #endif
