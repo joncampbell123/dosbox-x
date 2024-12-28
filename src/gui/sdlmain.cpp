@@ -7300,6 +7300,7 @@ void CMOS_Init();
 void VGA_Init();
 void CPU_Init();
 void Weitek_Init();
+void CPU_PreInit();
 void ISAPNP_Cfg_Init();
 #if C_FPU
 void FPU_Init();
@@ -8965,6 +8966,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         CAPTURE_Init();
         IO_Init();
         HARDWARE_Init();
+        CPU_PreInit();
         Init_AddressLimitAndGateMask(); /* <- need to init address mask so Init_RAM knows the maximum amount of RAM possible */
         Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
         Init_A20_Gate(); // FIXME: Should be handled by motherboard!
