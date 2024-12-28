@@ -3481,6 +3481,40 @@ bool CpuType_ByName(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
 
 static int pcpu_type = -1;
 
+static MEM_Callout_t weitek_lfb_cb = MEM_Callout_t_none;
+static Bitu weitek_lfb = 0xC0000000UL;
+static Bitu weitek_lfb_pages = 0x2000000UL >> 12UL; /* "The coprocessor will respond to memory addresses 0xC0000000-0xC1FFFFFF" */
+
+void Weitek_Init() {
+	// weitek coprocessor emulation?
+	if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
+		const Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+		enable_weitek = dsection->Get_bool("weitek");
+		if (enable_weitek) {
+			LOG_MSG("Weitek coprocessor emulation enabled");
+
+			if (weitek_lfb_cb == MEM_Callout_t_none) {
+				weitek_lfb_cb = MEM_AllocateCallout(MEM_TYPE_MB);
+				if (weitek_lfb_cb == MEM_Callout_t_none) E_Exit("Unable to allocate weitek cb for LFB");
+			}
+
+			{
+				MEM_CalloutObject *cb = MEM_GetCallout(weitek_lfb_cb);
+
+				assert(cb != NULL);
+				cb->Uninstall();
+				cb->Install(weitek_lfb>>12UL,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(weitek_lfb_pages)),weitek_memio_cb);
+
+				MEM_PutCallout(cb);
+			}
+		}
+	}
+	else {
+		enable_weitek = false;
+	}
+}
+
 class CPU: public Module_base {
 private:
 	static bool inited;
@@ -4095,41 +4129,6 @@ public:
 		}
 		else {
 			p3psn.enabled = false;
-		}
-
-		// weitek coprocessor emulation?
-		if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
-			const Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
-
-			enable_weitek = dsection->Get_bool("weitek");
-			if (enable_weitek) {
-				LOG_MSG("Weitek coprocessor emulation enabled");
-
-				static MEM_Callout_t weitek_lfb_cb = MEM_Callout_t_none;
-
-				if (weitek_lfb_cb == MEM_Callout_t_none) {
-					weitek_lfb_cb = MEM_AllocateCallout(MEM_TYPE_MB);
-					if (weitek_lfb_cb == MEM_Callout_t_none) E_Exit("Unable to allocate weitek cb for LFB");
-				}
-
-				{
-					MEM_CalloutObject *cb = MEM_GetCallout(weitek_lfb_cb);
-
-					assert(cb != NULL);
-
-					cb->Uninstall();
-
-					static Bitu weitek_lfb = 0xC0000000UL;
-					static Bitu weitek_lfb_pages = 0x2000000UL >> 12UL; /* "The coprocessor will respond to memory addresses 0xC0000000-0xC1FFFFFF" */
-
-					cb->Install(weitek_lfb>>12UL,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(weitek_lfb_pages)),weitek_memio_cb);
-
-					MEM_PutCallout(cb);
-				}
-			}
-		}
-		else {
-			enable_weitek = false;
 		}
 
 		if (cpu_rep_max < 0) cpu_rep_max = 4;	/* compromise to help emulation speed without too much loss of accuracy */
