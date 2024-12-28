@@ -922,7 +922,7 @@ Kan niet opstarten vanaf station %c.
 
 .
 :PROGRAM_BOOT_IMAGE_MOUNTED
-Floppy image(s) already mounted.
+Imagebestand reeds gekoppeld.
 
 .
 :PROGRAM_BOOT_IMAGE_OPEN
@@ -943,7 +943,7 @@ Beschikbare commando's voor PCjr-cartridges:%s
 Geen PCjr cartridge-commando's gevonden
 .
 :PROGRAM_BOOT_BOOTING
-Booting from drive 
+Opstarten van schijf 
 .
 :PROGRAM_LOADROM_HELP
 Laadt het opgegeven ROM-imagebestand voor video-BIOS of IBM BASIC.
@@ -1209,7 +1209,7 @@ Imagebestand "%s" maken met %u-cilinders, %u-koppen en %u-sectoren
 Kan floppy niet lezen.
 .
 :PROGRAM_IMGMAKE_BADSIZE
-Wrong -size or -chs arguments.
+Verkeerde -size of -chs argumenten.
 
 .
 :PROGRAM_KEYB_INFO
@@ -1260,34 +1260,34 @@ Geen of ongeldig codetabelbestand voor lay-out %s
 
 .
 :INT21_6523_YESNO_CHARS
-yn
+jn
 .
 :PROGRAM_LABEL_HELP
-Creates, changes, or deletes the volume label of a drive.
+Zet, verander of wis het volume label van de schijf.
 
 LABEL [drive:][label]
 
-  [drive:]○Specifies the drive letter
-  [label]○Specifies the volume label
+  [schijf:]○Specificeer de schijf letter
+  [label]○Specificeer het volume label
 
 .
 :PROGRAM_LABEL_DELETE
-Delete the volume label (Y/N)? 
+Wis het volume label (Y/N)? 
 .
 :PROGRAM_LABEL_TOOLONG
-Label is too long (more than 11 characters).
+Label is te lang (meer dan 11 karakters).
 
 .
 :PROGRAM_LABEL_BADCHARS
-Label has invalid characters.
+Label heeft ongeldige karakters.
 
 .
 :PROGRAM_LABEL_VOLUMEIS
-Volume in drive %c is %s
+Volume in station %c is %s
 
 .
 :PROGRAM_LABEL_NOLABEL
-Volume in drive %c has no label
+Volume in station %c heeft geen label
 
 .
 :PROGRAM_MODE_USAGE
@@ -1556,10 +1556,10 @@ Ongeldig pad, geen map of map niet leeg - %s
 
 .
 :SHELL_CMD_RMDIR_FULLTREE_CONFIRM
-Delete directory "%s" and all its subdirectories? (Y/N)?
+Wis map "%s" en alle sub-mappen? (Y/N)?
 .
 :SHELL_CMD_RMDIR_SINGLE_CONFIRM
-Delete file "%s" (Y/N)?
+Wis bestand "%s" (Y/N)?
 .
 :SHELL_CMD_RENAME_ERROR
 Kan naam niet wijzigen - %s
@@ -1578,7 +1578,7 @@ Kan niet verwijderen - %s
 
 .
 :SHELL_CMD_DEL_CONFIRM
-Delete %s (Y/N)?
+Wis %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 Alle bestanden in de map worden verwijderd!
@@ -1701,7 +1701,7 @@ Kopieerfout - %s
 
 .
 :SHELL_CMD_COPY_NOSELF
-File cannot be copied onto itself♪
+Bestand kan niet op zichzelf gekopieerd worden♪
 
 .
 :SHELL_CMD_SUBST_DRIVE_LIST
@@ -2650,16 +2650,16 @@ Originele verhouding
 Verhouding instellen
 .
 :MENU:VideoPreventCaptureMenu
-Screen capture control
+Schermopname-bediening
 .
 :MENU:prevcap_none
-Allow
+Toestaan
 .
 :MENU:prevcap_blank
-Show as blank
+Weergeven als leeg
 .
 :MENU:prevcap_invisible
-Make invisible
+Onzichtbaar maken
 .
 :MENU:VideoScalerMenu
 Schaler
@@ -2752,7 +2752,7 @@ xBRZ
 xBRZ Bilineair
 .
 :MENU:center_window
-Center window
+Centreer venster
 .
 :MENU:set_titletext
 Titelbalktekst instellen...
@@ -3238,7 +3238,7 @@ Over DOSBox-X
 Logboekconsole weergeven
 .
 :MENU:clear_console
-Clear logging console
+Wis logboekconsole
 .
 :MENU:disable_logging
 Logboekuitvoer uitschakelen
@@ -3349,7 +3349,7 @@ MIDI-uitgang opnemen
 FM-uitgang (OPL) opnemen
 .
 :MENU:mapper_capnetrf
-Record network traffic
+Netwerkverkeer opnemen
 .
 :MENU:mapper_video
 Video opnemen als AVI
@@ -3358,7 +3358,7 @@ Video opnemen als AVI
 Schermafdruk maken
 .
 :MENU:mapper_rawscrshot
-Take raw screenshot
+Neem onbewerkte schermafdruk
 .
 :MENU:mapper_volup
 Volume verhogen
@@ -3610,7 +3610,7 @@ Toon IDE schijf of CD status
 Gebruik VS toetsenbordindeling
 .
 :MAPPER:capnetrf
-Record Network traffic
+Netwerkverkeer opnemen
 .
 :MAPPER:caprawopl
 FM/OPL-uitgang opnemen
@@ -3670,7 +3670,7 @@ Snelstartprogramma
 Herstart DOS-systeem
 .
 :MAPPER:recmtwave
-Record to multi-track AVI
+Opnemen op multi-track AVI
 .
 :MAPPER:rescanall
 Schijven opnieuw scannen
