@@ -439,6 +439,10 @@ static INLINE PhysPt PAGING_GetPhysicalPage(const LinearPt linePage) {
 	return (paging.tlb.phys_page[linePage>>12]<<12);
 }
 
+static INLINE PhysPt PAGING_GetPhysicalPageNumber(const LinearPt linePage) {
+	return paging.tlb.phys_page[linePage>>12]&PHYSPAGE_ADDR;
+}
+
 /* NTS: 12-bit shift 32-bit constant, upper bits get shifted out, therefore no need to bitmask */
 static INLINE PhysPt PAGING_GetPhysicalAddress(const LinearPt linAddr) {
 	return (paging.tlb.phys_page[linAddr>>12]<<12)|(linAddr&0xfff);
@@ -614,5 +618,12 @@ public:
 	GuestGenFaultException() {
 	}
 };
+
+uint8_t PageHandler_HostPtReadB(PageHandler *p,PhysPt addr);
+uint16_t PageHandler_HostPtReadW(PageHandler *p,PhysPt addr);
+uint32_t PageHandler_HostPtReadD(PageHandler *p,PhysPt addr);
+void PageHandler_HostPtWriteB(PageHandler *p,PhysPt addr,uint8_t val);
+void PageHandler_HostPtWriteW(PageHandler *p,PhysPt addr,uint16_t val);
+void PageHandler_HostPtWriteD(PageHandler *p,PhysPt addr,uint32_t val);
 
 #endif

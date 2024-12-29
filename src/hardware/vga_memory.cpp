@@ -78,6 +78,7 @@ uint32_t tandy_128kbase = 0x80000;
 
 /* how much delay to add to VGA memory I/O in nanoseconds */
 int vga_memio_delay_ns = 1000;
+bool vga_memio_lfb_delay = false;
 
 void VGAMEM_USEC_read_delay() {
 	if (vga_memio_delay_ns > 0) {
@@ -96,6 +97,36 @@ void VGAMEM_USEC_write_delay() {
 		CPU_IODelayRemoved += delaycyc;
 	}
 }
+
+template <class baseLFBHandler> class VGA_SlowLFBHandler : public baseLFBHandler {
+public:
+	VGA_SlowLFBHandler() : baseLFBHandler(PFLAG_NOCODE) {}
+	void writeb(PhysPt addr,uint8_t val) override {
+		VGAMEM_USEC_write_delay();
+		PageHandler_HostPtWriteB(this,addr,val);
+	}
+	void writew(PhysPt addr,uint16_t val) override {
+		VGAMEM_USEC_write_delay();
+		PageHandler_HostPtWriteW(this,addr,val);
+	}
+	void writed(PhysPt addr,uint32_t val) override {
+		VGAMEM_USEC_write_delay();
+		PageHandler_HostPtWriteD(this,addr,val);
+	}
+
+	uint8_t readb(PhysPt addr) override {
+		VGAMEM_USEC_read_delay();
+		return PageHandler_HostPtReadB(this,addr);
+	}
+	uint16_t readw(PhysPt addr) override {
+		VGAMEM_USEC_read_delay();
+		return PageHandler_HostPtReadW(this,addr);
+	}
+	uint32_t readd(PhysPt addr) override {
+		VGAMEM_USEC_read_delay();
+		return PageHandler_HostPtReadD(this,addr);
+	}
+};
 
 template <class Size>
 static INLINE void hostWrite(HostPt off, Bitu val) {
@@ -2098,6 +2129,7 @@ public:
 class VGA_LFB_Handler : public PageHandler {
 public:
 	VGA_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
+	VGA_LFB_Handler(unsigned int fl) : PageHandler(fl) {}
 	HostPt GetHostReadPt( Bitu phys_page ) override {
 		phys_page -= vga.lfb.page;
 		phys_page &= (vga.mem.memsize >> 12) - 1;
@@ -2569,6 +2601,7 @@ static struct vg {
 	HERC_InColor_Graphics_Handler		herc_incolor_graphics;
 //	VGA_LIN4_Handler			lin4;
 	VGA_LFB_Handler				lfb;
+	VGA_SlowLFBHandler<VGA_LFB_Handler>	lfb_slow;
 	VGA_MMIO_Handler			mmio;
 	VGA_AMS_Handler				ams;
     VGA_PC98_PageHandler        pc98;
@@ -2988,7 +3021,7 @@ void VGA_StartUpdateLFB(void) {
 	else {
 		vga.lfb.page = (unsigned int)(vga.s3.la_window & la_winmsk) << 4u;
 		vga.lfb.addr = (unsigned int)(vga.s3.la_window & la_winmsk) << 16u;
-		vga.lfb.handler = &vgaph.lfb;
+		vga.lfb.handler = vga_memio_lfb_delay ? &vgaph.lfb_slow : &vgaph.lfb;
 		MEM_SetLFB((unsigned int)(vga.s3.la_window & la_winmsk) << 4u,(unsigned int)vga.mem.memsize/4096u, vga.lfb.handler, &vgaph.mmio);
 	}
 }

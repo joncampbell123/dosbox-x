@@ -2412,102 +2412,102 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("dosv",Property::Changeable::OnlyAtStart,"off");
     Pstring->Set_values(dosv_settings);
     Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for use with games or software\n"
-            "originating from East Asia (China, Japan, Korea) that use the double byte character set (DBCS) encodings and DOS/V extensions\n"
-            "to display Japanese (jp), Chinese (chs/cht/cn/tw), or Korean (ko) text. Note that enabling DOS/V replaces 80x25 text mode with\n"
-            "a EGA/VGA graphics mode that emulates text mode to display the characters and may be incompatible with non-Asian software that\n"
-            "assumes direct access to the text mode via segment 0xB800. For a general DOS environment with CJK support please disable DOS/V\n"
-            "emulation and use TrueType font (TTF) output with a CJK code page (932, 936, 949, 950) and TTF font with CJK characters instead.");
+                    "originating from East Asia (China, Japan, Korea) that use the double byte character set (DBCS) encodings and DOS/V extensions\n"
+                    "to display Japanese (jp), Chinese (chs/cht/cn/tw), or Korean (ko) text. Note that enabling DOS/V replaces 80x25 text mode with\n"
+                    "a EGA/VGA graphics mode that emulates text mode to display the characters and may be incompatible with non-Asian software that\n"
+                    "assumes direct access to the text mode via segment 0xB800. For a general DOS environment with CJK support please disable DOS/V\n"
+                    "emulation and use TrueType font (TTF) output with a CJK code page (932, 936, 949, 950) and TTF font with CJK characters instead.");
     Pstring->SetBasic(true);
 
-	Pbool = secprop->Add_bool("getsysfont",Property::Changeable::OnlyAtStart,true);
-	Pbool->Set_help("If enabled, DOSBox-X will try to get and use the system fonts on Windows and Linux platforms for the DOS/V emulation.\n"
+    Pbool = secprop->Add_bool("getsysfont",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If enabled, DOSBox-X will try to get and use the system fonts on Windows and Linux platforms for the DOS/V emulation.\n"
                     "If this cannot be done, then DOSBox-X will try to use the internal Japanese DOS/V font, or you can specify a different font.");
     Pbool->SetBasic(true);
 
-	//For loading FONTX CJK fonts
-	Pstring = secprop->Add_path("fontxsbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
+    //For loading FONTX CJK fonts
+    Pstring = secprop->Add_path("fontxsbcs",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x19) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
                     "Loading the ASC16 and ASCFONT.15 font files (from the UCDOS and ETen Chinese DOS systems) is also supported for the DOS/V mode.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_path("fontxsbcs16",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
+    Pstring = secprop->Add_path("fontxsbcs16",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("FONTX2 file used to rendering SBCS characters (8x16) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
                     "Loading the ASC16 and ASCFONT.15 font files (from the UCDOS and ETen Chinese DOS systems) is also supported for the DOS/V mode.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode (with V-text). If not specified, the default one will be used.\n"
+    Pstring = secprop->Add_path("fontxsbcs24",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("FONTX2 file used to rendering SBCS characters (12x24) in DOS/V mode (with V-text). If not specified, the default one will be used.\n"
                     "Loading the ASC24 and ASCFONT.24? font files (the latter from the ETen Chinese DOS system) is also supported for the DOS/V mode.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or VGA/JEGA mode. If not specified, the default one will be used.\n"
+    Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or VGA/JEGA mode. If not specified, the default one will be used.\n"
                     "Alternatively, you can load a BDF or PCF font file (16x16 or 15x15), such as the free bitmap fonts from WenQuanYi (https://wenq.org/).\n"
                     "For Simplified Chinese DOS/V, loading the HZK16 font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported.\n"
                     "For Traditional Chinese DOS/V, loading the STDFONT.15 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_path("fontxdbcs14",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (14x14) for Configuration Tool or EGA mode. If not specified, the default one will be used.\n"
+    Pstring = secprop->Add_path("fontxdbcs14",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("FONTX2 file used to rendering DBCS characters (14x14) for Configuration Tool or EGA mode. If not specified, the default one will be used.\n"
                     "Alternatively, you can load a BDF or PCF font file (14x14 or 15x15), such as the free bitmap fonts from WenQuanYi (https://wenq.org/).\n"
                     "For Simplified Chinese DOS/V, loading the HZK14 font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported.\n"
                     "For Traditional Chinese DOS/V, loading the STDFONT.15 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (24x24) in DOS/V mode (with V-text and 24-pixel fonts enabled).\n"
+    Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("FONTX2 file used to rendering DBCS characters (24x24) in DOS/V mode (with V-text and 24-pixel fonts enabled).\n"
                     "For Simplified Chinese DOS/V, loading the HZK24? font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported.\n"
                     "For Traditional Chinese DOS/V, loading the STDFONT.24 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_string("showdbcsnodosv",Property::Changeable::WhenIdle,"auto");
+    Pstring = secprop->Add_string("showdbcsnodosv",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
-	Pstring->Set_help("Enables rendering of Chinese/Japanese/Korean characters for DBCS code pages in standard VGA and EGA machine types in non-DOS/V and non-TTF mode.\n"
-                      "DOS/V fonts will be used in such cases, which can be adjusted by the above config options (such as fontxdbcs, fontxdbcs14, and fontxdbcs24).\n"
-                      "Setting to \"auto\" enables Chinese/Japanese/Korean character rendering if a language file is loaded (or with \"autodbcs\" option set) in such cases.");
+    Pstring->Set_help("Enables rendering of Chinese/Japanese/Korean characters for DBCS code pages in standard VGA and EGA machine types in non-DOS/V and non-TTF mode.\n"
+                    "DOS/V fonts will be used in such cases, which can be adjusted by the above config options (such as fontxdbcs, fontxdbcs14, and fontxdbcs24).\n"
+                    "Setting to \"auto\" enables Chinese/Japanese/Korean character rendering if a language file is loaded (or with \"autodbcs\" option set) in such cases.");
     Pstring->SetBasic(true);
 
-	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enables the Japanese yen symbol at 5ch if it is found at 7fh in a custom SBCS font for the Japanese DOS/V or JEGA emulation.");
+    Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Enables the Japanese yen symbol at 5ch if it is found at 7fh in a custom SBCS font for the Japanese DOS/V or JEGA emulation.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("del",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Maps the undefined del symbol (0x7F) to the next character (0x80) for the Japanese DOS/V and other Japanese mode emulations.");
 
-	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", nullptr };
-	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
-	Pstring->Set_values(fepcontrol_settings);
-	Pstring->Set_help("FEP control API for the DOS/V emulation.");
+    const char* fepcontrol_settings[] = { "ias", "mskanji", "both", nullptr };
+    Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
+    Pstring->Set_values(fepcontrol_settings);
+    Pstring->Set_help("FEP control API for the DOS/V emulation.");
     Pstring->SetBasic(true);
 
-	const char* vtext_settings[] = { "xga", "xga24", "sxga", "sxga24", "svga", nullptr };
-	Pstring = secprop->Add_path("vtext1",Property::Changeable::WhenIdle,"svga");
-	Pstring->Set_values(vtext_settings);
-	Pstring->Set_help("V-text screen mode 1 for the DOS/V emulation. Enter command \"VTEXT 1\" for this mode. Note that XGA/SXGA mode is only supported by the svga_s3trio and svga_et4000 machine types.");
+    const char* vtext_settings[] = { "xga", "xga24", "sxga", "sxga24", "svga", nullptr };
+    Pstring = secprop->Add_path("vtext1",Property::Changeable::WhenIdle,"svga");
+    Pstring->Set_values(vtext_settings);
+    Pstring->Set_help("V-text screen mode 1 for the DOS/V emulation. Enter command \"VTEXT 1\" for this mode. Note that XGA/SXGA mode is only supported by the svga_s3trio and svga_et4000 machine types.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_path("vtext2",Property::Changeable::WhenIdle,"xga");
-	Pstring->Set_values(vtext_settings);
-	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation. Enter command \"VTEXT 2\" for this mode. Note that XGA/SXGA mode is only supported by the svga_s3trio and svga_et4000 machine types.");
+    Pstring = secprop->Add_path("vtext2",Property::Changeable::WhenIdle,"xga");
+    Pstring->Set_values(vtext_settings);
+    Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation. Enter command \"VTEXT 2\" for this mode. Note that XGA/SXGA mode is only supported by the svga_s3trio and svga_et4000 machine types.");
     Pstring->SetBasic(true);
 
-	Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enables the 20 pixel font to be used instead of the 24 pixel system font for the Japanese DOS/V emulation (with V-text enabled).");
+    Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Enables the 20 pixel font to be used instead of the 24 pixel system font for the Japanese DOS/V emulation (with V-text enabled).");
     Pbool->SetBasic(true);
 
-	Pstring = secprop->Add_string("j3100",Property::Changeable::OnlyAtStart,"off");
-	Pstring->Set_values(j3100_settings);
-	Pstring->Set_help("With the setting dosv=jp and a non-off value of this option, the Toshiba J-3100 machine will be emulated with DCGA support.\n"
-                    "Setting to \"on\" or \"auto\" starts J-3100 automatically, and with the setting \"manual\" you can enter J-3100 mode with DCGA command.");
+    Pstring = secprop->Add_string("j3100",Property::Changeable::OnlyAtStart,"off");
+    Pstring->Set_values(j3100_settings);
+    Pstring->Set_help("With the setting dosv=jp and a non-off value of this option, the Toshiba J-3100 machine will be emulated with DCGA support.\n"
+                      "Setting to \"on\" or \"auto\" starts J-3100 automatically, and with the setting \"manual\" you can enter J-3100 mode with DCGA command.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_string("j3100type",Property::Changeable::OnlyAtStart,"default");
-	Pstring->Set_values(j3100_types);
-	Pstring->Set_help("Specifies the Toshiba J-3100 machine type if J-3100 mode is enabled. The color palette will be changed with different machine types.");
+    Pstring = secprop->Add_string("j3100type",Property::Changeable::OnlyAtStart,"default");
+    Pstring->Set_values(j3100_types);
+    Pstring->Set_help("Specifies the Toshiba J-3100 machine type if J-3100 mode is enabled. The color palette will be changed with different machine types.");
     Pstring->SetBasic(true);
 
-	Pbool = secprop->Add_bool("j3100colorscroll",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("Specifies that the color display can be used for scrolling, which is currently incompatible with for example the J-3100 version of the SimCity game.\n"
+    Pbool = secprop->Add_bool("j3100colorscroll",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Specifies that the color display can be used for scrolling, which is currently incompatible with for example the J-3100 version of the SimCity game.\n"
                     "The VGA version of the Toshiba Windows 3.1 works fine with the \"false\" value of this setting, whereas its CGA/EGA version requires a \"true\" value for this.");
     Pbool->SetBasic(true);
 
@@ -2533,6 +2533,10 @@ void DOSBOX_SetupConfigSections(void) {
             "If your game is not sensitive to VGA RAM I/O speed, then turning on this option\n"
             "will do nothing but cause a significant drop in frame rate which is probably not\n"
             "what you want. Recommended values -1, 0 to 2000.");
+
+    Pbool = secprop->Add_bool("lfb vmemdelay",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Set this option to true if you need vmemdelay to apply to SVGA and linear framebuffer video modes as well.\n"
+                    "Note that this option may slightly reduce emulator performance with such modes.");
 
     // NOTE: This will be revised as I test the DOSLIB code against more VGA/SVGA hardware!
     Pstring = secprop->Add_string("prevent capture",Property::Changeable::WhenIdle,"");

@@ -1,4 +1,8 @@
 Next
+  - Add option to apply vmemdelay to SVGA and linear framebuffer
+    modes (such as VESA BIOS modes), which reduces emulator performance
+    for those modes, but allows you to emulate slower SVGA cards.
+    (joncampbell123).
   - Add workaround to CPU reset logic that allows it to work correctly
     even with dynamic core. Previously, if the guest reset the system,
     the emulator would crash with an error message about an uncaught
