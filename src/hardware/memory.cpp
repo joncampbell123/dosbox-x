@@ -1587,10 +1587,6 @@ void On_Software_CPU_Reset() {
 
             LOG_MSG("PC-98 reset and continue: RETF to %04x:%04x",SegValue(cs),reg_ip);
 
-            // DEBUG
-//            Bitu DEBUG_EnableDebugger(void);
-  //          DEBUG_EnableDebugger();
-
             /* force execution change (FIXME: Is there a better way to do this?) */
             throw int(4);
             /* does not return */
