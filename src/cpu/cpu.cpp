@@ -2502,6 +2502,7 @@ static bool snap_cpu_snapped=false;
 static uint32_t snap_cpu_saved_cr0;
 static uint32_t snap_cpu_saved_cr2;
 static uint32_t snap_cpu_saved_cr3;
+static uint32_t snap_cpu_saved_cr4;
 
 /* On shutdown, DOSBox needs to snap back to real mode
  * so that it's shutdown code doesn't cause page faults
@@ -2523,10 +2524,13 @@ void CPU_Snap_Back_To_Real_Mode() {
     snap_cpu_saved_cr0 = (uint32_t)cpu.cr0;
     snap_cpu_saved_cr2 = (uint32_t)paging.cr2;
     snap_cpu_saved_cr3 = (uint32_t)paging.cr3;
+    snap_cpu_saved_cr4 = (uint32_t)cpu.cr4;
+    do_pse = false;
 
     CPU_SET_CRX(0,0);	/* force CPU to real mode */
     CPU_SET_CRX(2,0);	/* disable paging */
     CPU_SET_CRX(3,0);	/* clear the page table dir */
+    CPU_SET_CRX(4,0);	/* disable PSE/PAE */
 
     cpu.idt.SetBase(0);         /* or ELSE weird things will happen when INTerrupts are run */
     cpu.idt.SetLimit(1023);
@@ -2540,6 +2544,7 @@ void CPU_Snap_Back_Restore() {
 	CPU_SET_CRX(0,snap_cpu_saved_cr0);
 	CPU_SET_CRX(2,snap_cpu_saved_cr2);
 	CPU_SET_CRX(3,snap_cpu_saved_cr3);
+	CPU_SET_CRX(4,snap_cpu_saved_cr4);
 
 	snap_cpu_snapped = false;
 }
