@@ -1,4 +1,9 @@
 Next
+  - Add workaround to CPU reset logic that allows it to work correctly
+    even with dynamic core. Previously, if the guest reset the system,
+    the emulator would crash with an error message about an uncaught
+    C++ exception because C++ exception handling doesn't work with
+    dynamically generated code. (joncampbell123).
   - Correct CPUID family/model/brand values for cputype=pentium_iii.
     Add CPUID level 2, which returns "processor configuration
     descriptors", and return documented Pentium III values. Apparently
