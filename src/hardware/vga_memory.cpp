@@ -2084,7 +2084,7 @@ public:
 class VGA_PC98_LFB_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_PC98_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
-	VGA_PC98_LFB_Handler(unsigned int fl) : PageHandler(fl) {}
+	VGA_PC98_LFB_Handler(const unsigned int fl) : PageHandler(fl) {}
 	HostPt GetHostReadPt(Bitu phys_page) override {
 		return &vga.mem.linear[(phys_page&0x7F)*4096 + PC98_VRAM_GRAPHICS_OFFSET]; /* 512KB mapping */
 	}
@@ -2096,7 +2096,7 @@ public:
 class VGA_Map_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_Map_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
-	VGA_Map_Handler(unsigned int fl) : PageHandler(fl) {}
+	VGA_Map_Handler(const unsigned int fl) : PageHandler(fl) {}
 	HostPt GetHostReadPt(Bitu phys_page) override {
 		phys_page-=vgapages.base;
 		return &vga.mem.linear[CHECKED3(vga.svga.bank_read_full+phys_page*4096)];
@@ -2131,7 +2131,7 @@ public:
 class VGA_LFB_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
-	VGA_LFB_Handler(unsigned int fl) : PageHandler(fl) {}
+	VGA_LFB_Handler(const unsigned int fl) : PageHandler(fl) {}
 	HostPt GetHostReadPt( Bitu phys_page ) override {
 		phys_page -= vga.lfb.page;
 		phys_page &= (vga.mem.memsize >> 12) - 1;
@@ -2181,9 +2181,10 @@ public:
 	}
 };
 
-class VGA_TANDY_PageHandler : public PageHandler {
+class VGA_TANDY_PageHandler : public PageHandler { // with slow adapter
 public:
 	VGA_TANDY_PageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
+	VGA_TANDY_PageHandler(const unsigned int fl) : PageHandler(fl) {}
 	HostPt GetHostReadPt(Bitu phys_page) override {
 		// Odd banks are limited to 16kB and repeated
 		if (vga.tandy.mem_bank & 1) 
@@ -2198,9 +2199,10 @@ public:
 };
 
 
-class VGA_PCJR_Handler : public PageHandler {
+class VGA_PCJR_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_PCJR_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
+	VGA_PCJR_Handler(const unsigned int fl) : PageHandler(fl) {}
 	HostPt GetHostReadPt(Bitu phys_page) override {
 		phys_page-=0xb8;
 		// The 16kB map area is repeated in the 32kB range
@@ -2365,11 +2367,10 @@ public:
 */
 };
 
-class VGA_HERC_Handler : public PageHandler {
+class VGA_HERC_Handler : public PageHandler { // with slow adapter
 public:
-	VGA_HERC_Handler() {
-		flags=PFLAG_READABLE|PFLAG_WRITEABLE;
-	}
+	VGA_HERC_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
+	VGA_HERC_Handler(const unsigned int fl) : PageHandler(fl) {}
 	HostPt GetHostReadPt(Bitu phys_page) override {
         (void)phys_page;//UNUSED
 		// The 4kB map area is repeated in the 32kB range
@@ -2591,6 +2592,7 @@ static struct vg {
 	VGA_CGATEXT_PageHandler				cgatext;
 	VGA_MCGATEXT_PageHandler			mcgatext;
 	VGA_TANDY_PageHandler				tandy;
+	VGA_SlowLFBHandler<VGA_TANDY_PageHandler>	tandy_slow;
 //	VGA_ChainedEGA_Handler				cega;
 	VGA_ChainedVGA_Handler				cvga;
 	VGA_ChainedVGA_Slow_Handler			cvga_slow;
@@ -2600,7 +2602,9 @@ static struct vg {
 	VGA_UnchainedVGA_Handler			uvga;
 	VGA_UnchainedVGA_Fast_Handler			uvga_fast;
 	VGA_PCJR_Handler				pcjr;
+	VGA_SlowLFBHandler<VGA_PCJR_Handler>		pcjr_slow;
 	VGA_HERC_Handler				herc;
+	VGA_SlowLFBHandler<VGA_HERC_Handler>		herc_slow;
 	HERC_InColor_Mono_Handler			herc_incolor_mono;
 	HERC_InColor_Graphics_Handler			herc_incolor_graphics;
 //	VGA_LIN4_Handler				lin4;
@@ -2689,7 +2693,7 @@ void VGA_SetupHandlers(void) {
 	case MCH_PCJR:
 		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
 		MEM_SetPageHandler( VGA_PAGE_B0, 8, &vgaph.empty );
-		MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.pcjr );
+		MEM_SetPageHandler( VGA_PAGE_B8, 8, vga_memio_lfb_delay ? &vgaph.pcjr_slow : &vgaph.pcjr );
 		goto range_done;
 	case MCH_MDA:
 	case MCH_HERC:
@@ -2707,7 +2711,7 @@ void VGA_SetupHandlers(void) {
 			}
 			else {
 				vgapages.mask=0xfff;
-				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(&vgaph.herc));
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(vga_memio_lfb_delay ? &vgaph.herc_slow : &vgaph.herc));
 			}
 		} else {
 			// With hercules in 32kB mode it leaves a memory hole on 0xb800
@@ -2718,7 +2722,7 @@ void VGA_SetupHandlers(void) {
 			}
 			else {
 				vgapages.mask=0xfff;
-				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(&vgaph.herc));
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(vga_memio_lfb_delay ? &vgaph.herc_slow : &vgaph.herc));
 			}
 			MEM_SetPageHandler(VGA_PAGE_B8,8,&vgaph.empty);
 		}
@@ -2740,7 +2744,7 @@ void VGA_SetupHandlers(void) {
 		} else {
 			vga.tandy.draw_base = TANDY_VIDBASE( vga.tandy.draw_bank * 16 * 1024);
 			vga.tandy.mem_base = TANDY_VIDBASE( vga.tandy.mem_bank * 16 * 1024);
-			MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.tandy );
+			MEM_SetPageHandler( VGA_PAGE_B8, 8, vga_memio_lfb_delay ? &vgaph.tandy_slow : &vgaph.tandy );
 		}
 		goto range_done;
 //		MEM_SetPageHandler(vga.tandy.mem_bank<<2,vga.tandy.is_32k_mode ? 0x08 : 0x04,range_handler);
