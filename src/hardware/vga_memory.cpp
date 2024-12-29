@@ -2081,9 +2081,10 @@ public:
     }
 };
 
-class VGA_PC98_LFB_Handler : public PageHandler {
+class VGA_PC98_LFB_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_PC98_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
+	VGA_PC98_LFB_Handler(unsigned int fl) : PageHandler(fl) {}
 	HostPt GetHostReadPt(Bitu phys_page) override {
 		return &vga.mem.linear[(phys_page&0x7F)*4096 + PC98_VRAM_GRAPHICS_OFFSET]; /* 512KB mapping */
 	}
@@ -2092,9 +2093,10 @@ public:
 	}
 };
 
-class VGA_Map_Handler : public PageHandler {
+class VGA_Map_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_Map_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
+	VGA_Map_Handler(unsigned int fl) : PageHandler(fl) {}
 	HostPt GetHostReadPt(Bitu phys_page) override {
 		phys_page-=vgapages.base;
 		return &vga.mem.linear[CHECKED3(vga.svga.bank_read_full+phys_page*4096)];
@@ -2126,7 +2128,7 @@ public:
 	
 };
 
-class VGA_LFB_Handler : public PageHandler {
+class VGA_LFB_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
 	VGA_LFB_Handler(unsigned int fl) : PageHandler(fl) {}
@@ -2580,38 +2582,40 @@ public:
 };
 
 static struct vg {
-	VGA_PC98_LFB_Handler		map_lfb_pc98;
-	VGA_Map_Handler				map;
-	VGA_Slow_CGA_Handler		slow;
-//	VGA_TEXT_PageHandler		text;
-	VGA_CGATEXT_PageHandler		cgatext;
-	VGA_MCGATEXT_PageHandler	mcgatext;
-	VGA_TANDY_PageHandler		tandy;
-//	VGA_ChainedEGA_Handler		cega;
-	VGA_ChainedVGA_Handler		cvga;
-	VGA_ChainedVGA_Slow_Handler	cvga_slow;
-//	VGA_ET4000_ChainedVGA_Handler		cvga_et4000;
-	VGA_ET4000_ChainedVGA_Slow_Handler	cvga_et4000_slow;
-//	VGA_UnchainedEGA_Handler	uega;
-	VGA_UnchainedVGA_Handler	uvga;
-	VGA_UnchainedVGA_Fast_Handler	uvga_fast;
-	VGA_PCJR_Handler			pcjr;
-	VGA_HERC_Handler			herc;
-	HERC_InColor_Mono_Handler		herc_incolor_mono;
-	HERC_InColor_Graphics_Handler		herc_incolor_graphics;
-//	VGA_LIN4_Handler			lin4;
-	VGA_LFB_Handler				lfb;
-	VGA_SlowLFBHandler<VGA_LFB_Handler>	lfb_slow;
-	VGA_MMIO_Handler			mmio;
-	VGA_AMS_Handler				ams;
-    VGA_PC98_PageHandler        pc98;
-    VGA_PC98_TEXT_PageHandler   pc98_text;
-    VGA_PC98_CG_PageHandler     pc98_cg;
-    VGA_PC98_256MMIO_PageHandler pc98_256mmio;
-    VGA_PC98_256BANK_PageHandler<0> pc98_256bank0;
-    VGA_PC98_256BANK_PageHandler<1> pc98_256bank1;
-    VGA_PC98_256Planar_PageHandler pc98_256planar;
-	VGA_Empty_Handler			empty;
+	VGA_PC98_LFB_Handler				map_lfb_pc98;
+	VGA_SlowLFBHandler<VGA_PC98_LFB_Handler>	map_lfb_pc98_slow;
+	VGA_Map_Handler					map;
+	VGA_SlowLFBHandler<VGA_Map_Handler>		map_slow;
+	VGA_Slow_CGA_Handler				slow;
+//	VGA_TEXT_PageHandler				text;
+	VGA_CGATEXT_PageHandler				cgatext;
+	VGA_MCGATEXT_PageHandler			mcgatext;
+	VGA_TANDY_PageHandler				tandy;
+//	VGA_ChainedEGA_Handler				cega;
+	VGA_ChainedVGA_Handler				cvga;
+	VGA_ChainedVGA_Slow_Handler			cvga_slow;
+//	VGA_ET4000_ChainedVGA_Handler			cvga_et4000;
+	VGA_ET4000_ChainedVGA_Slow_Handler		cvga_et4000_slow;
+//	VGA_UnchainedEGA_Handler			uega;
+	VGA_UnchainedVGA_Handler			uvga;
+	VGA_UnchainedVGA_Fast_Handler			uvga_fast;
+	VGA_PCJR_Handler				pcjr;
+	VGA_HERC_Handler				herc;
+	HERC_InColor_Mono_Handler			herc_incolor_mono;
+	HERC_InColor_Graphics_Handler			herc_incolor_graphics;
+//	VGA_LIN4_Handler				lin4;
+	VGA_LFB_Handler					lfb;
+	VGA_SlowLFBHandler<VGA_LFB_Handler>		lfb_slow;
+	VGA_MMIO_Handler				mmio;
+	VGA_AMS_Handler					ams;
+	VGA_PC98_PageHandler				pc98;
+	VGA_PC98_TEXT_PageHandler			pc98_text;
+	VGA_PC98_CG_PageHandler				pc98_cg;
+	VGA_PC98_256MMIO_PageHandler			pc98_256mmio;
+	VGA_PC98_256BANK_PageHandler<0>			pc98_256bank0;
+	VGA_PC98_256BANK_PageHandler<1>			pc98_256bank1;
+	VGA_PC98_256Planar_PageHandler			pc98_256planar;
+	VGA_Empty_Handler				empty;
 } vgaph;
 
 /* backdoor PC-98 memory I/O interface for GDC drawing code in vga_pc98_gdc_draw.cpp.
@@ -2699,7 +2703,7 @@ void VGA_SetupHandlers(void) {
 			 *      software would actually use. */
 			if (vga.herc.enable_bits & 0x1) { /* allow graphics and enable 0xB1000-0xB7FFF */
 				vgapages.mask=0xffff;
-				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(&vgaph.map));
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map));
 			}
 			else {
 				vgapages.mask=0xfff;
@@ -2710,7 +2714,7 @@ void VGA_SetupHandlers(void) {
 			// and has MDA-compatible address wrapping when graphics are disabled
 			if (vga.herc.enable_bits & 0x1) {
 				vgapages.mask=0x7fff;
-				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(&vgaph.map));
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map));
 			}
 			else {
 				vgapages.mask=0xfff;
@@ -2727,7 +2731,7 @@ void VGA_SetupHandlers(void) {
 		/* Always map 0xa000 - 0xbfff, might overwrite 0xb800 */
 		vgapages.base=VGA_PAGE_A0;
 		vgapages.mask=0x1ffff;
-		MEM_SetPageHandler(VGA_PAGE_A0, 32, &vgaph.map );
+		MEM_SetPageHandler(VGA_PAGE_A0, 32, vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map );
 		if ( vga.tandy.extended_ram & 1 ) {
 			//You seem to be able to also map different 64kb banks, but have to figure that out
 			//This seems to work so far though
@@ -2786,7 +2790,7 @@ void VGA_SetupHandlers(void) {
 			 *  - Switching from 256-color mode immediately unmaps this linear framebuffer.
 			 *  - Switching to 256-color mode will immediately map the linear framebuffer if the enable bit is set in the PEGC MMIO registers */
 			if ((pc98_gdc_vramop & (1 << VOPBIT_VGA)) && pc98_pegc_linear_framebuffer_enabled())
-				MEM_SetPageHandler(0xF00, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
+				MEM_SetPageHandler(0xF00, 512/*kb*/ / 4/*kb*/, vga_memio_lfb_delay ? &vgaph.map_lfb_pc98_slow : &vgaph.map_lfb_pc98 );
 			else
 				MEM_ResetPageHandler_Unmapped(0xF00, 512/*kb*/ / 4/*kb*/);
 		}
@@ -2803,7 +2807,7 @@ void VGA_SetupHandlers(void) {
 		if (MEM_get_address_bits() > 24) {
 			Bitu page = ((Bitu)1 << (Bitu)(MEM_get_address_bits4GB() - 12/*pages not bytes*/)) - (Bitu)0x100/*1MB in pages*/;
 			if ((pc98_gdc_vramop & (1 << VOPBIT_VGA)) && pc98_pegc_linear_framebuffer_enabled())
-				MEM_SetPageHandler(page, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
+				MEM_SetPageHandler(page, 512/*kb*/ / 4/*kb*/, vga_memio_lfb_delay ? &vgaph.map_lfb_pc98_slow : &vgaph.map_lfb_pc98 );
 			else
 				MEM_ResetPageHandler_Unmapped(page, 512/*kb*/ / 4/*kb*/);
 		}
@@ -2824,7 +2828,7 @@ void VGA_SetupHandlers(void) {
 		case M_LIN24:
 		case M_LIN32:
 		case M_PACKED4:
-			newHandler = &vgaph.map;
+			newHandler = vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map;
 			break;
 		case M_TEXT:
 		case M_CGA2:
@@ -2843,7 +2847,7 @@ void VGA_SetupHandlers(void) {
 						 * raster op, data rotate, and bit planar features at all. Therefore VGA memory I/O
 						 * performance can be improved by assigning a simplified handler that omits that logic */
 						if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
-							newHandler = &vgaph.map;
+							newHandler = vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map;
 						else
 							newHandler = &vgaph.cvga;
 					}
@@ -2870,7 +2874,7 @@ void VGA_SetupHandlers(void) {
 					 * emulation this map handler also handles chained 256-color mode
 					 * because of the different way that the memory address is mapped
 					 * to bitplane. */
-					newHandler = &vgaph.map;
+					newHandler = vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map;
 				}
 			} else {
 				if (vga.complexity.flags == 0 && memio_complexity_optimization && (vga.mode == M_EGA || vga.mode == M_VGA))
@@ -2880,7 +2884,7 @@ void VGA_SetupHandlers(void) {
 			}
 			break;
 		case M_AMSTRAD:
-			newHandler = &vgaph.map;
+			newHandler = vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map;
 			break;
 	}
 	// Workaround for ETen Chinese DOS system (e.g. ET24VA)

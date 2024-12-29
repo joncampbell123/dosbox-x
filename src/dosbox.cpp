@@ -2536,6 +2536,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("lfb vmemdelay",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Set this option to true if you need vmemdelay to apply to SVGA and linear framebuffer video modes as well.\n"
+                    "This affects anything in which DOSBox-X emulates as a linear framebuffer including MDA/Hercules and PC-98 LFB.\n"
                     "Note that this option may slightly reduce emulator performance with such modes.");
 
     // NOTE: This will be revised as I test the DOSLIB code against more VGA/SVGA hardware!
