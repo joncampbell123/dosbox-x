@@ -4080,7 +4080,7 @@ public:
 				enable_pse = true;
 				enable_pse_extbits = 4;
 			}
-			else if (!strcmp(pse,"pse") || !strcmp(pse,"true")) {
+			else if (!strcmp(pse,"pse")) {
 				enable_pse = true;
 				enable_pse_extbits = 0;
 			}
@@ -4088,7 +4088,7 @@ public:
 				enable_pse = false;
 			}
 			else {
-				/* auto */
+				/* auto/true */
 				if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMII) {
 					enable_pse = true;
 					enable_pse_extbits = 4; // 36-bit
