@@ -194,6 +194,7 @@ bool                                pc98_crt_mode = false;      // see port 6Ah 
                                                                 // this boolean is the INVERSE of the bit.
 
 extern int                          vga_memio_delay_ns;
+extern bool                         vga_memio_lfb_delay;
 extern bool                         gdc_5mhz_mode;
 extern bool                         gdc_5mhz_mode_initial;
 extern bool                         enable_pc98_egc;
@@ -1038,6 +1039,8 @@ void VGA_Reset(Section*) {
         LOG_MSG("'scanline render on demand' option is enabled. If this option breaks the game or demo effects or display, set the option to false.");
     else if (vga_render_on_demand_user < 0)
         LOG_MSG("The 'scanline render on demand' option is available and may provide a modest boost in video render performance if set to true.");
+
+    vga_memio_lfb_delay = section->Get_bool("lfb vmemdelay");
 
     vga_memio_delay_ns = section->Get_int("vmemdelay");
     if (vga_memio_delay_ns < 0) {

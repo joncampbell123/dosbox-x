@@ -1614,3 +1614,56 @@ void POD_Load_CPU_Paging( std::istream& stream )
 		paging.tlb.writehandler[lcv] = &init_page_handler;
 	}
 }
+
+uint8_t PageHandler_HostPtReadB(PageHandler *p,PhysPt addr) {
+	return p->GetHostReadPt(PAGING_GetPhysicalPageNumber(addr))[addr&0xFFF];
+}
+
+uint16_t PageHandler_HostPtReadW(PageHandler *p,PhysPt addr) {
+	if ((addr&0xFFF) < 0xFFF) {
+		return host_readw(&(p->GetHostReadPt(PAGING_GetPhysicalPageNumber(addr))[addr&0xFFF]));
+	}
+	else {
+		return 	 PageHandler_HostPtReadB(p,addr) +
+			(PageHandler_HostPtReadB(p,addr+PhysPt(1u)) << 8u);
+	}
+}
+
+uint32_t PageHandler_HostPtReadD(PageHandler *p,PhysPt addr) {
+	if ((addr&0xFFF) < 0xFFD) {
+		return host_readd(&(p->GetHostReadPt(PAGING_GetPhysicalPageNumber(addr))[addr&0xFFF]));
+	}
+	else {
+		return 	 PageHandler_HostPtReadB(p,addr) +
+			(PageHandler_HostPtReadB(p,addr+PhysPt(1u)) << 8u) +
+			(PageHandler_HostPtReadB(p,addr+PhysPt(2u)) << 16u) +
+			(PageHandler_HostPtReadB(p,addr+PhysPt(3u)) << 24u);
+	}
+}
+
+void PageHandler_HostPtWriteB(PageHandler *p,PhysPt addr,uint8_t val) {
+	p->GetHostWritePt(PAGING_GetPhysicalPageNumber(addr))[addr&0xFFF] = val;
+}
+
+void PageHandler_HostPtWriteW(PageHandler *p,PhysPt addr,uint16_t val) {
+	if ((addr&0xFFF) < 0xFFF) {
+		host_writew(&(p->GetHostWritePt(PAGING_GetPhysicalPageNumber(addr))[addr&0xFFF]),val);
+	}
+	else {
+		PageHandler_HostPtWriteB(p,addr,            val     &0xFFu);
+		PageHandler_HostPtWriteB(p,addr+PhysPt(1u),(val>>8u)&0xFFu);
+	}
+}
+
+void PageHandler_HostPtWriteD(PageHandler *p,PhysPt addr,uint32_t val) {
+	if ((addr&0xFFF) < 0xFFD) {
+		host_writed(&(p->GetHostWritePt(PAGING_GetPhysicalPageNumber(addr))[addr&0xFFF]),val);
+	}
+	else {
+		PageHandler_HostPtWriteB(p,addr,            val      &0xFFu);
+		PageHandler_HostPtWriteB(p,addr+PhysPt(1u),(val>> 8u)&0xFFu);
+		PageHandler_HostPtWriteB(p,addr+PhysPt(2u),(val>>16u)&0xFFu);
+		PageHandler_HostPtWriteB(p,addr+PhysPt(3u),(val>>24u)&0xFFu);
+	}
+}
+
