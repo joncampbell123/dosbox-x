@@ -3162,6 +3162,45 @@ public:
     }
 };
 
+struct ThemePresetEntry {
+	ThemePresetEntry(const std::string &_name,const GUI::ThemeWindows31 &&_theme,const unsigned int _special=0) : name(_name), theme(_theme), special(_special) {}
+
+	std::string			name;
+	GUI::ThemeWindows31		theme;
+	unsigned int			special;
+
+	static constexpr unsigned int	PREPEND_HLINE = 1u << 0u;
+	static constexpr unsigned int	PREPEND_VLINE = 1u << 1u;
+};
+
+#define ENTRY(x) ThemePresetEntry( GUI::x::GetName(), GUI::x() )
+#define ENTRYS(x,s) ThemePresetEntry( GUI::x::GetName(), GUI::x(), s )
+static const ThemePresetEntry theme_presets[] = {
+	ENTRY(  ThemeWindows31WindowsDefault),
+	ENTRYS( ThemeWindows31Arizona, ThemePresetEntry::PREPEND_HLINE),
+	ENTRY(  ThemeWindows31Bordeaux),
+	ENTRY(  ThemeWindows31Cinnamon),
+	ENTRY(  ThemeWindows31Designer),
+	ENTRY(  ThemeWindows31EmeraldCity),
+	ENTRY(  ThemeWindows31Fluorescent),
+	ENTRY(  ThemeWindows31HotDogStand),
+	ENTRY(  ThemeWindows31LCDDefaultScreenSettings),
+	ENTRY(  ThemeWindows31LCDReversedDark),
+	ENTRY(  ThemeWindows31LCDReversedLight),
+	ENTRY(  ThemeWindows31BlackLeatherJacket),
+	ENTRYS( ThemeWindows31Mahogany, ThemePresetEntry::PREPEND_VLINE),
+	ENTRY(  ThemeWindows31Monochrome),
+	ENTRY(  ThemeWindows31Ocean),
+	ENTRY(  ThemeWindows31Pastel),
+	ENTRY(  ThemeWindows31Patchwork),
+	ENTRY(  ThemeWindows31PlasmaPowerSaver),
+	ENTRY(  ThemeWindows31Rugby),
+	ENTRY(  ThemeWindows31TheBlues),
+	ENTRY(  ThemeWindows31Tweed),
+	ENTRY(  ThemeWindows31Valentine),
+	ENTRY(  ThemeWindows31Wingtips)
+};
+
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *saveButton, *closeButton;
@@ -3180,33 +3219,14 @@ public:
         bar->addMenu(MSG_Get("SETTINGS"));
         
         // theme menu
-        {
-            bar->addMenu("Theme"); // TODO MSG_Get("THEME")
-            bar->addItem(2, GUI::ThemeWindows31WindowsDefault::GetName());
-            bar->addItem(2, "");
-            bar->addItem(2, GUI::ThemeWindows31Arizona::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Bordeaux::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Cinnamon::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Designer::GetName());
-            bar->addItem(2, GUI::ThemeWindows31EmeraldCity::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Fluorescent::GetName());
-            bar->addItem(2, GUI::ThemeWindows31HotDogStand::GetName());
-            bar->addItem(2, GUI::ThemeWindows31LCDDefaultScreenSettings::GetName());
-            bar->addItem(2, GUI::ThemeWindows31LCDReversedDark::GetName());
-            bar->addItem(2, GUI::ThemeWindows31LCDReversedLight::GetName());
-            bar->addItem(2, GUI::ThemeWindows31BlackLeatherJacket::GetName());
-            bar->addItem(2, "|");
-            bar->addItem(2, GUI::ThemeWindows31Mahogany::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Monochrome::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Ocean::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Pastel::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Patchwork::GetName());
-            bar->addItem(2, GUI::ThemeWindows31PlasmaPowerSaver::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Rugby::GetName());
-            bar->addItem(2, GUI::ThemeWindows31TheBlues::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Tweed::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Valentine::GetName());
-            bar->addItem(2, GUI::ThemeWindows31Wingtips::GetName());
+        bar->addMenu("Theme"); // TODO MSG_Get("THEME")
+        for (size_t ti=0;ti < (sizeof(theme_presets)/sizeof(theme_presets[0]));ti++) {
+            if (theme_presets[ti].special & ThemePresetEntry::PREPEND_HLINE)
+                bar->addItem(2, "");
+            if (theme_presets[ti].special & ThemePresetEntry::PREPEND_VLINE)
+                bar->addItem(2, "|");
+
+            bar->addItem(2, theme_presets[ti].name);
         }
         
         bar->addMenu(mainMenu.get_item("HelpMenu").get_text().c_str());
@@ -3373,52 +3393,12 @@ public:
 
     static void TryApplyTheme(const GUI::String& name)
     {
-        if(name == GUI::ThemeWindows31WindowsDefault::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31WindowsDefault();
-        if(name == GUI::ThemeWindows31Arizona::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Arizona();
-        if(name == GUI::ThemeWindows31Bordeaux::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Bordeaux();
-        if(name == GUI::ThemeWindows31Cinnamon::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Cinnamon();
-        if(name == GUI::ThemeWindows31Designer::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Designer();
-        if(name == GUI::ThemeWindows31EmeraldCity::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31EmeraldCity();
-        if(name == GUI::ThemeWindows31Fluorescent::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Fluorescent();
-        if(name == GUI::ThemeWindows31HotDogStand::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31HotDogStand();
-        if(name == GUI::ThemeWindows31LCDDefaultScreenSettings::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31LCDDefaultScreenSettings();
-        if(name == GUI::ThemeWindows31LCDReversedDark::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31LCDReversedDark();
-        if(name == GUI::ThemeWindows31LCDReversedLight::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31LCDReversedLight();
-        if(name == GUI::ThemeWindows31BlackLeatherJacket::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31BlackLeatherJacket();
-        if(name == GUI::ThemeWindows31Mahogany::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Mahogany();
-        if(name == GUI::ThemeWindows31Monochrome::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Monochrome();
-        if(name == GUI::ThemeWindows31Ocean::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Ocean();
-        if(name == GUI::ThemeWindows31Pastel::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Pastel();
-        if(name == GUI::ThemeWindows31Patchwork::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Patchwork();
-        if(name == GUI::ThemeWindows31PlasmaPowerSaver::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31PlasmaPowerSaver();
-        if(name == GUI::ThemeWindows31Rugby::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Rugby();
-        if(name == GUI::ThemeWindows31TheBlues::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31TheBlues();
-        if(name == GUI::ThemeWindows31Tweed::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Tweed();
-        if(name == GUI::ThemeWindows31Valentine::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Valentine();
-        if(name == GUI::ThemeWindows31Wingtips::GetName())
-            GUI::DefaultTheme = GUI::ThemeWindows31Wingtips();
+        for (size_t ti=0;ti < (sizeof(theme_presets)/sizeof(theme_presets[0]));ti++) {
+            if (name == theme_presets[ti].name) {
+                GUI::DefaultTheme = theme_presets[ti].theme;
+                break;
+            }
+        }
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) override {
