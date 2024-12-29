@@ -3391,19 +3391,24 @@ public:
         return false;
     }
 
-    static void TryApplyTheme(const GUI::String& name)
+    static bool TryApplyTheme(const GUI::String& name)
     {
         for (size_t ti=0;ti < (sizeof(theme_presets)/sizeof(theme_presets[0]));ti++) {
             if (name == theme_presets[ti].name) {
                 GUI::DefaultTheme = theme_presets[ti].theme;
-                break;
+                return true;
             }
         }
+
+        return false;
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) override {
         advOptUser = advopt->isChecked();
-        TryApplyTheme(arg); // TODO MSG_Get("THEME"), save to config
+        if (TryApplyTheme(arg)) { // TODO MSG_Get("THEME"), save to config
+            Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+            section->Get_prop("configuration tool theme")->SetValue(arg);
+        }
         GUI::String sname = RestoreName(arg);
         sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
         Section *sec;
