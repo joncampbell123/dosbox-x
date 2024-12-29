@@ -1,4 +1,12 @@
 Next
+  - Correct CPUID family/model/brand values for cputype=pentium_iii.
+    Add CPUID level 2, which returns "processor configuration
+    descriptors", and return documented Pentium III values. Apparently
+    Windows XP really REALLY cares about these configuration
+    descriptors and will hang in-kernel in an infinite loop at bootup
+    without these apparently really important values. This change
+    makes it possible to boot Windows XP with Pentium III emulation.
+    (joncampbell123).
   - Allow values of memsize to represent 4GB or more of RAM. Up to
     1TB, if Pentium PSE extensions are enabled, the memalias setting
     is 40, and "enable pse=pse40" in the conf file. Memalias maximum

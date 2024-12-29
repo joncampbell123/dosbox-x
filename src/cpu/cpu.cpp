@@ -3140,8 +3140,8 @@ bool CPU_CPUID(void) {
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
-				reg_eax=0x673; /* intel pentium III */
-				reg_ebx=0;			/* Not Supported */
+				reg_eax=0x643; /* intel pentium III */
+				reg_ebx=0x0002;			/* brand */
 				reg_ecx=0;			/* No features */
 				reg_edx=0x03808011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
 				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
@@ -3150,6 +3150,23 @@ bool CPU_CPUID(void) {
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
+			}
+			break;
+		case 2: /* Processor Configuration Descriptor(s) */
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII) {
+				/* NTS: Windows XP considers these values SOOOOO IMPORTANT that if we don't return any here
+				 *      the NT kernel will just spin endlessly in an infinite loop with interrupts disabled
+				 *      instead of, you know, booting up. But only if it sees a Pentium III. */
+				reg_eax=0x00004301; /* AL=1 desc 43h */
+				reg_ebx=0x00000000;
+				reg_ecx=0x00000000;
+				reg_edx=0x00000000;
+			}
+			else {
+				reg_eax=0x00000000;
+				reg_ebx=0x00000000;
+				reg_ecx=0x00000000;
+				reg_edx=0x00000000;
 			}
 			break;
 		case 3: /* Processor Serial Number */
