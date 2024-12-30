@@ -3451,6 +3451,8 @@ struct BIOSlogo_t {
 	unsigned int		width = 0,height = 0;
 	unsigned char*		palette = NULL; /* 256 colors (NOTE: Except for VGA and PC-98, not all 256 colors available!) */
 	VGA_Line_Handler	DrawLine = NULL;
+	bool			visible = false;
+	bool			vsync_enable = false;
 
 	BIOSlogo_t() {
 	}
@@ -3462,6 +3464,8 @@ struct BIOSlogo_t {
 		bmp = NULL;
 		if (palette) delete[] palette;
 		palette = NULL;
+		visible = false;
+		vsync_enable = false;
 	}
 	void position(unsigned int new_x,unsigned int new_y) {
 		x = new_x;
@@ -3491,7 +3495,7 @@ static uint8_t *VGA_DrawLineBiosLogoOverlay(Bitu vidstart, Bitu line) {
 	 * causing random garbage on the VGA graphics RAM. As usual, modifying through pointer "r" causes
 	 * corruption. Modifying TempLine, which is basically the same exact memory "r" points to, does not. */
 
-	if (BIOSlogo.bmp != NULL && BIOSlogo.palette != NULL) {
+	if (BIOSlogo.bmp != NULL && BIOSlogo.palette != NULL && BIOSlogo.visible && BIOSlogo.vsync_enable) {
 		if (vga.draw.lines_done >= BIOSlogo.y && r >= TempLine && r < (TempLine+sizeof(TempLine))) {
 			const unsigned int rel = vga.draw.lines_done - BIOSlogo.y;
 			const unsigned int bofs = (unsigned int)(r - TempLine);
@@ -3523,20 +3527,28 @@ static uint8_t *VGA_DrawLineBiosLogoOverlay(Bitu vidstart, Bitu line) {
 	return r;
 }
 
+void VGA_BIOSLogoUpdatePalette(void) {
+	if (vga.draw.bpp == 8) {
+		for (unsigned int i=0;i < 0x40;i++) {
+			RENDER_SetPal(0xC0+i,
+					BIOSlogo.palette[(i*3)+0],
+					BIOSlogo.palette[(i*3)+1],
+					BIOSlogo.palette[(i*3)+2]);
+		}
+	}
+}
+
 void BiosLogoHookVGADrawLine(void) {
 	if (VGA_DrawLine != VGA_DrawLineBiosLogoOverlay) {
 		BIOSlogo.DrawLine = VGA_DrawLine;
 		VGA_DrawLine = VGA_DrawLineBiosLogoOverlay;
-
-		if (vga.draw.bpp == 8) {
-			for (unsigned int i=0;i < 0x40;i++) {
-				RENDER_SetPal(0xC0+i,
-					BIOSlogo.palette[(i*3)+0],
-					BIOSlogo.palette[(i*3)+1],
-					BIOSlogo.palette[(i*3)+2]);
-			}
-		}
+		VGA_BIOSLogoUpdatePalette();
 	}
+}
+
+void VGA_ShowBIOSLogo(void) {
+	VGA_BIOSLogoUpdatePalette();
+	BIOSlogo.visible = true;
 }
 
 bool VGA_InitBiosLogo(unsigned int w,unsigned int h,unsigned int x,unsigned int y) {
@@ -3558,6 +3570,7 @@ void VGA_WriteBiosLogoPalette(unsigned int start,unsigned int count,unsigned cha
 			BIOSlogo.palette[((i+start)*3)+1] = rgb[(i*3)+1];
 			BIOSlogo.palette[((i+start)*3)+2] = rgb[(i*3)+2];
 		}
+		if (BIOSlogo.visible) VGA_BIOSLogoUpdatePalette();
 	}
 }
 
@@ -5798,6 +5811,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		DEBUG_HaltOnRetrace = false;
 	}
 #endif
+
+	if (BIOSlogo.visible) BIOSlogo.vsync_enable = true;
 
 	dbg_event_maxscan = false;
 	dbg_event_scanstep = false;
