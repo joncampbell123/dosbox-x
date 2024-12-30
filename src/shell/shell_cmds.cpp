@@ -144,6 +144,11 @@ FILE *testLoadLangFile(const char *fname);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 bool CheckDBCSCP(int32_t codepage), SwitchLanguage(int oldcp, int newcp, bool confirm);
 void makestdcp950table(), makeseacp951table();
+#if C_OPENGL
+bool OpenGL_using(void);
+#endif
+void UpdateSDLDrawTexture();
+
 static int32_t lastsetcp = 0;
 bool CHCP_changed = false;
 
@@ -4578,7 +4583,7 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
         }
         if (finish_prepare) runRescan("-A -Q");
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        if(OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+        if(OpenGL_using() && control->opt_lang.size())
             UpdateSDLDrawTexture();
 #endif
 #if defined(USE_TTF)
