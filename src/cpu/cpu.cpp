@@ -3213,7 +3213,15 @@ void CPU_SetResetSignal(int x) {
 }
 
 bool CPU_DynamicCoreCannotUseCPPExceptions(void) {
-	return (cpudecoder == &CPU_Core_Dyn_X86_Run || cpudecoder == &CPU_Core_Dynrec_Run);
+#if C_DYNAMIC_X86
+	if (cpudecoder == &CPU_Core_Dyn_X86_Run)
+		return true;
+#endif
+#if C_DYNREC
+	if (cpudecoder == &CPU_Core_Dynrec_Run)
+		return true;
+#endif
+	return false;
 }
 
 Bits HLT_Decode(void) {
