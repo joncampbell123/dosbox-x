@@ -1391,7 +1391,8 @@ Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const cha
 		return kerrcode;
 	}
 	// Everything went fine, switch to new layout
-	loaded_layout=temp_layout;
+    delete loaded_layout;
+    loaded_layout=temp_layout;
 	return KEYB_NOERROR;
 }
 
@@ -1405,7 +1406,7 @@ Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp) {
 			loaded_layout=changed_layout;
 		}
 		return ret_code;
-	} else return 0xff;
+	} else return 0xFF;
 }
 
 
@@ -1418,6 +1419,7 @@ Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage) {
         return kerrcode;
     }
     // Everything went fine, switch to new layout
+    delete loaded_layout;
     loaded_layout = temp_layout;
     return KEYB_NOERROR;
 }
