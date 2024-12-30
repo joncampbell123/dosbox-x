@@ -3485,19 +3485,21 @@ static BIOSlogo_t BIOSlogo;
 static uint8_t *VGA_DrawLineBiosLogoOverlay(Bitu vidstart, Bitu line) {
 	uint8_t *r = BIOSlogo.DrawLine(vidstart,line);
 
-	/* FIXME: Need to copy scanline if "r" points directly at video memory, which is
-	 *        very unlikely in all standard MDA/CGA/Herc/PCjr/Tandy/EGA/VGA modes,
-	 *        but might happen if the BIOS startup screen were to use SVGA modes,
-	 *        but that isn't going to happen because there isn't any need to. */
+	/* Remember my snarky comments below about how somehow drawing on the scaline corrupts video memory
+	 * even if the scanline is a translated copy of the video memory? This applies here to. Why? Who
+	 * the fuck knows. This consideration is needed to avoid the DOSBox-X logo on the BIOS screen from
+	 * causing random garbage on the VGA graphics RAM. As usual, modifying through pointer "r" causes
+	 * corruption. Modifying TempLine, which is basically the same exact memory "r" points to, does not. */
 
 	if (BIOSlogo.bmp != NULL && BIOSlogo.palette != NULL) {
-		if (vga.draw.lines_done >= BIOSlogo.y) {
+		if (vga.draw.lines_done >= BIOSlogo.y && r >= TempLine && r < (TempLine+sizeof(TempLine))) {
 			const unsigned int rel = vga.draw.lines_done - BIOSlogo.y;
+			const unsigned int bofs = (unsigned int)(r - TempLine);
 			if (rel < BIOSlogo.height) {
 				const unsigned char *src = BIOSlogo.bmp + (rel * BIOSlogo.width);
 				if (vga.draw.bpp == 32) {
 					const unsigned int m = BIOSlogo.x + BIOSlogo.width;
-					uint32_t *dst = (uint32_t*)r + BIOSlogo.x;
+					uint32_t *dst = (uint32_t*)(TempLine + bofs) + BIOSlogo.x;
 					unsigned int x = BIOSlogo.x;
 					while (x < m && x < vga.draw.width) {
 						const unsigned char pixel = *src++;
@@ -3507,7 +3509,7 @@ static uint8_t *VGA_DrawLineBiosLogoOverlay(Bitu vidstart, Bitu line) {
 				}
 				else if (vga.draw.bpp == 8) {
 					const unsigned int m = BIOSlogo.x + BIOSlogo.width;
-					uint8_t *dst = (uint8_t*)r + BIOSlogo.x;
+					uint8_t *dst = (uint8_t*)(TempLine + bofs) + BIOSlogo.x;
 					unsigned int x = BIOSlogo.x;
 					while (x < m && x < vga.draw.width) {
 						const unsigned char pixel = *src++;
