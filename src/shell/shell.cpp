@@ -55,7 +55,7 @@ extern bool shell_keyboard_flush;
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
-extern bool halfwidthkana, force_conversion, gbk, uselangcp;
+extern bool halfwidthkana, force_conversion, gbk, uselangcp, chinasea;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
@@ -69,6 +69,8 @@ Bitu call_int23 = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
 const char* DOS_GetLoadedLayout(void);
+Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage), DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);
+Bitu DOS_LoadKeyboardLayout(const char* layoutname, int32_t codepage, const char* codepagefile);
 int Reflect_Menu(void);
 void SetIMPosition(void);
 void SetKEYBCP();
@@ -81,6 +83,7 @@ bool SwitchLanguage(int oldcp, int newcp, bool confirm);
 void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error(), CheckDBCSCP(int32_t codepage), TTF_using(void);
+void makestdcp950table(), makeseacp951table();
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -819,6 +822,12 @@ void showWelcome(Program *shell) {
 bool finish_prepare = false;
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
+        const char* layoutname = DOS_GetLoadedLayout();
+        if(layoutname == NULL) {
+            int32_t cp = dos.loaded_codepage;
+            Bitu keyb_error = DOS_LoadKeyboardLayout("us", 437, "auto");
+            toSetCodePage(NULL, cp, -1);
+        }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         if (section->Get_bool("startbanner")&&!control->opt_fastlaunch)
             showWelcome(this);
@@ -857,33 +866,25 @@ void DOS_Shell::Prepare(void) {
 		if ((section!=NULL&&!control->opt_noconfig)||control->opt_langcp) {
 			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
 			int country = 0;
-			if ((r==NULL || !*(r+1)) && !control->opt_langcp)
+            int32_t newCP = dos.loaded_codepage;
+            if((control->opt_langcp && msgcodepage > 0) || CheckDBCSCP(msgcodepage) || msgcodepage == dos.loaded_codepage) newCP = msgcodepage;
+            if ((r==NULL || !*(r+1)) && !control->opt_langcp)
 				country = atoi(trim(countrystr));
-			else {
+			else if(!msgcodepage){
 				if (r!=NULL) *r=0;
 				country = atoi(trim(countrystr));
-				int32_t newCP = r==NULL||IS_PC98_ARCH||IS_JEGA_ARCH||IS_DOSV?dos.loaded_codepage:atoi(trim(r+1));
+				newCP = r==NULL||IS_PC98_ARCH||IS_JEGA_ARCH||IS_DOSV?dos.loaded_codepage:atoi(trim(r+1));
 				if (r!=NULL) *r=',';
-                if (!IS_PC98_ARCH&&!IS_JEGA_ARCH) {
-                    if(!newCP && IS_DOSV) {
-                        if(IS_JDOSV) newCP = 932;
-                        else if(IS_PDOSV) newCP = 936;
-                        else if(IS_KDOSV) newCP = 949;
-                        else if(IS_TDOSV) newCP = 950;
-                    }
-                    if((control->opt_langcp && msgcodepage > 0 ) || CheckDBCSCP(msgcodepage)|| msgcodepage == dos.loaded_codepage) newCP = msgcodepage;
-                    if (newCP != dos.loaded_codepage && (!TTF_using() || (TTF_using() && isSupportedCP(newCP)))) {
-                        int missing = toSetCodePage(this, newCP, msgcodepage?-1:control->opt_fastlaunch?1:-2);
-                        //WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
-                        if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-                        else if (missing < 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), newCP);
-                    }
-                }
+            }
+            if (newCP != dos.loaded_codepage && (!TTF_using() || (TTF_using() && isSupportedCP(newCP)))) {
+                int missing = toSetCodePage(this, newCP, -1);
             }
             if (country>0&&!control->opt_noconfig) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
 			}
+            if(!chinasea)makestdcp950table();
+            if(chinasea) makeseacp951table();
             runRescan("-A -Q");
             const char * extra = section->data.c_str();
 			if (extra&&!control->opt_securemode&&!control->SecureMode()&&!control->opt_noconfig) {
