@@ -10902,7 +10902,7 @@ startfunction:
                 inpng = dosbox224x224_png;
                 rowheight = 16;
             }
-            else if (IS_PC98_ARCH) {
+            else if (IS_PC98_ARCH || machine == MCH_MCGA) {
                 if (logo) user_filename = std::string(logo) + "224x186.png";
                 filename = "dosbox224x186.png";
                 inpng_size = dosbox224x186_png_len;
