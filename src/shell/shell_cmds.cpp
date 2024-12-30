@@ -128,7 +128,7 @@ const char *GetCmdName(int i) {
 }
 
 extern int enablelfn, lfn_filefind_handle, file_access_tries, lastmsgcp;
-extern bool date_host_forced, usecon, outcon, rsize, autoboxdraw, dbcs_sbcs, sync_time, manualtime, inshell, noassoc, dotype, loadlang;
+extern bool date_host_forced, usecon, outcon, rsize, autoboxdraw, dbcs_sbcs, sync_time, manualtime, inshell, noassoc, dotype, loadlang, chinasea;
 extern unsigned long freec;
 extern uint8_t DOS_GetAnsiAttr(void);
 extern uint16_t countryNo, altcp_to_unicode[256];
@@ -143,6 +143,7 @@ std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 bool CheckDBCSCP(int32_t codepage), SwitchLanguage(int oldcp, int newcp, bool confirm);
+void makestdcp950table(), makeseacp951table();
 static int32_t lastsetcp = 0;
 bool CHCP_changed = false;
 
@@ -4532,25 +4533,29 @@ extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, co
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
 int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     if((TTF_using() && isSupportedCP(newCP)) || !TTF_using()) {
-        int32_t oldcp = dos.loaded_codepage;
+        int32_t oldcp = dos.loaded_codepage, cpbak = newCP;
         Bitu keyb_error;
-        if (!CheckDBCSCP(newCP)){
+        if(IS_PC98_ARCH || IS_JEGA_ARCH) newCP = 932;
+        else if(IS_DOSV) {
+            if(IS_JDOSV) newCP = 932;
+            else if(IS_PDOSV) newCP = 936;
+            else if(IS_KDOSV) newCP = 949;
+            else if(IS_TDOSV) newCP = 950;
+        }
+        else if (!CheckDBCSCP(newCP)){
             keyb_error = DOS_ChangeCodepage(newCP, "auto");
             if (keyb_error != KEYB_NOERROR) {
-                dos.loaded_codepage = oldcp;
+                dos.loaded_codepage = oldcp; 
                 return -1;
             }
         }
-        else {
-            dos.loaded_codepage = newCP;
-        }
+        if(newCP != cpbak) LOG_MSG("SHELL: Invalid codepage %d, set to %d.", cpbak, newCP);
+        dos.loaded_codepage = newCP;
         int missing = 0;
 #if defined(USE_TTF)
 		missing = TTF_using() ? setTTFCodePage() : 0;
 #endif
         if (!TTF_using()) initcodepagefont();
-        //if (dos.loaded_codepage==437) DOS_LoadKeyboardLayout("us", 437, "auto");
-        //LOG_MSG("toSetCodePage opt=%d, loadlangnew=%d", opt, loadlangnew?1:0);
         if (opt==-1) {
             MSG_Init();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
@@ -4568,8 +4573,14 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
             JFONT_Init();
             SetupDBCSTable();
             clearFontCache();
+            if(newCP == 950 && !chinasea) makestdcp950table();
+            if(newCP == 951 && chinasea) makeseacp951table();
         }
         if (finish_prepare) runRescan("-A -Q");
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        if(OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+            UpdateSDLDrawTexture();
+#endif
 #if defined(USE_TTF)
         if ((opt==-1||opt==-2)&&TTF_using()) {
             Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));

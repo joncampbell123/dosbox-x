@@ -108,6 +108,7 @@ bool InitCodePage() {
                     return true;
                 }
                 else dos.loaded_codepage = msgcodepage;
+                return true;
             }
         }
         if (msgcodepage>0) {
@@ -217,6 +218,7 @@ bool CheckDBCSCP(int32_t codepage) {
     else return false;
 }
 
+#if 0
 void SetKEYBCP() {
     if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
     Bitu return_code;
@@ -236,6 +238,7 @@ void SetKEYBCP() {
     }
     runRescan("-A -Q");
 }
+#endif
 
 FILE *testLoadLangFile(const char *fname) {
     std::string config_path, res_path, exepath=GetDOSBoxXPath();
@@ -279,8 +282,7 @@ void LoadMessageFile(const char * fname) {
         //LOG_MSG("Message file %s already loaded.",fname);
         return;
     }
-    strcpy(loaded_fname, fname);
-	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",loaded_fname);
+	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",fname);
 
 	FILE * mfile=testLoadLangFile(fname);
 	/* This should never happen and since other modules depend on this use a normal printf */
@@ -292,6 +294,7 @@ void LoadMessageFile(const char * fname) {
 		control->opt_lang = "";
 		return;
 	}
+    strcpy(loaded_fname, fname);
     langname = langnote = "";
 	char linein[LINE_IN_MAXLEN+1024];
 	char name[LINE_IN_MAXLEN+1024], menu_name[LINE_IN_MAXLEN], mapper_name[LINE_IN_MAXLEN];
@@ -337,7 +340,10 @@ void LoadMessageFile(const char * fname) {
                         }
                         else {
                             std::string msg = "The specified language file uses code page " + std::to_string(c) + ". Do you want to change to this code page accordingly?";
-                            if(c == dos.loaded_codepage) msgcodepage = c;
+                            if(c == dos.loaded_codepage) {
+                                msgcodepage = c;
+                                lastmsgcp = msgcodepage;
+                            }
                             if(c != dos.loaded_codepage && (control->opt_langcp || uselangcp || !CHCP_changed || CheckDBCSCP(c) || !loadlang || (loadlang && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)))) {
                                 loadlangcp = true;
                                 if(c == 950 && dos.loaded_codepage == 951) msgcodepage = 951; // zh_tw defaults to CP950, but CP951 is acceptable as well so keep it
@@ -404,7 +410,7 @@ void LoadMessageFile(const char * fname) {
     dos.loaded_codepage=cp;
     if (loadlangcp && msgcodepage>0) {
         const char* layoutname = DOS_GetLoadedLayout();
-        if(!IS_DOSV && !IS_JEGA_ARCH && layoutname != NULL) {
+        if(!IS_DOSV && !IS_JEGA_ARCH && !IS_PC98_ARCH && layoutname != NULL) {
             toSetCodePage(NULL, msgcodepage, -1);
         }
     }
