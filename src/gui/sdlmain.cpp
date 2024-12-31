@@ -8259,9 +8259,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             control->ParseConfigFile(config_combined.c_str()); // Load the conf file created above 
             if(control->configfiles.size()) LOG_MSG("CONFIG: Created and loaded user config file %s", config_combined.c_str());
         }
-        LOG_MSG("CONFIG: Loaded config file: %s", control->configfiles.front().c_str());
 
         if (control->configfiles.size()) {
+            LOG_MSG("CONFIG: Loaded config file: %s", control->configfiles.front().c_str());
             if (control->opt_eraseconf&&control->config_file_list.empty()) {
                 LOG_MSG("Erase config file: %s\n", control->configfiles.front().c_str());
                 unlink(control->configfiles.front().c_str());
