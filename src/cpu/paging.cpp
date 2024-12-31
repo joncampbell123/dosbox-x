@@ -1082,15 +1082,15 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 		// read
 		if (handler->getFlags() & PFLAG_READABLE) paging.tlb.read[lin_page] = 
 			handler->GetHostReadPt(phys_page)-lin_base;
-	else paging.tlb.read[lin_page]=nullptr;
-	paging.tlb.readhandler[lin_page]=handler;
-		
+		else paging.tlb.read[lin_page]=nullptr;
+		paging.tlb.readhandler[lin_page]=handler;
+
 		// write
 		if (dirty) { // in case it is already dirty we don't need to check
 			if (handler->getFlags() & PFLAG_WRITEABLE) paging.tlb.write[lin_page] = 
 				handler->GetHostWritePt(phys_page)-lin_base;
 			else paging.tlb.write[lin_page]=nullptr;
-	paging.tlb.writehandler[lin_page]=handler;
+			paging.tlb.writehandler[lin_page]=handler;
 		} else {
 			paging.tlb.writehandler[lin_page]= &foiling_handler;
 			paging.tlb.write[lin_page]=nullptr;
@@ -1112,21 +1112,21 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 		paging.tlb.read[lin_page]=nullptr;
 		paging.tlb.write[lin_page]=nullptr;
 		break;
-}
+	}
 
 	switch(linkmode) {
-	case ACCESS_KR:
-		paging.kr_links.entries[paging.kr_links.used++]=(uint32_t)lin_page;
-		break;
-	case ACCESS_KRW:
-		paging.krw_links.entries[paging.krw_links.used++]= (uint32_t)lin_page;
-		break;
-	case ACCESS_UR:
-		paging.ur_links.entries[paging.ur_links.used++]= (uint32_t)lin_page;
-		break;
-	case ACCESS_URW:	// with this access right everything is possible
-						// thus no need to modify it on a us <-> sv switch
-		break;
+		case ACCESS_KR:
+			paging.kr_links.entries[paging.kr_links.used++]=(uint32_t)lin_page;
+			break;
+		case ACCESS_KRW:
+			paging.krw_links.entries[paging.krw_links.used++]= (uint32_t)lin_page;
+			break;
+		case ACCESS_UR:
+			paging.ur_links.entries[paging.ur_links.used++]= (uint32_t)lin_page;
+			break;
+		case ACCESS_URW:	// with this access right everything is possible
+			// thus no need to modify it on a us <-> sv switch
+			break;
 	}
 	paging.links.entries[paging.links.used++]= (uint32_t)lin_page; // "master table"
 }
