@@ -676,6 +676,7 @@ static INLINE void InitPageCheckPresence(PhysPt lin_addr,bool writing,X86PageEnt
 	}
 
 	if (do_pse && table.dirblock.ps) { // 4MB PSE page
+		entry.load=0;
 	}
 	else {
 		Bitu entry_addr=(table.block.base<<12)+t_index*4;
@@ -1444,12 +1445,19 @@ public:
 				table.block.a=1;		//Set access
 				phys_writed((PhysPt)((paging.base.page<<12)+(lin_page >> 10)*4),table.load);
 			}
-			if ((!entry.block.a) || (!entry.block.d)) {
-				entry.block.a=1;	//Set access
-				entry.block.d=1;	//Set dirty
-				phys_writed((table.block.base<<12)+(lin_page & 0x3ff)*4,entry.load);
+			if (do_pse && table.dirblock.ps) { // 4MB PSE page
+				phys_page =	 (table.dirblock4mb.base22<<10u)|
+						((table.dirblock4mb.base32&enable_pse_extmask)<<20u)|
+						 (lin_page&0x3FFu);
 			}
-			phys_page=entry.block.base;
+			else {
+				if ((!entry.block.a) || (!entry.block.d)) {
+					entry.block.a=1;	//Set access
+					entry.block.d=1;	//Set dirty
+					phys_writed((table.block.base<<12)+(lin_page & 0x3ff)*4,entry.load);
+				}
+				phys_page=entry.block.base;
+			}
 			PAGING_LinkPage(lin_page,phys_page);
 		} else {
 			if (lin_page<LINK_START) phys_page=paging.firstmb[lin_page];
@@ -1497,11 +1505,18 @@ public:
 				table.block.a=1;		//Set access
 				phys_writed((PhysPt)((paging.base.page<<12)+(lin_page >> 10)*4),table.load);
 			}
-			if (!entry.block.a) {
-				entry.block.a=1;	//Set access
-				phys_writed((table.block.base<<12)+(lin_page & 0x3ff)*4,entry.load);
+			if (do_pse && table.dirblock.ps) { // 4MB PSE page
+				phys_page =	 (table.dirblock4mb.base22<<10u)|
+						((table.dirblock4mb.base32&enable_pse_extmask)<<20u)|
+						 (lin_page&0x3FFu);
 			}
-			phys_page=entry.block.base;
+			else {
+				if (!entry.block.a) {
+					entry.block.a=1;	//Set access
+					phys_writed((table.block.base<<12)+(lin_page & 0x3ff)*4,entry.load);
+				}
+				phys_page=entry.block.base;
+			}
 		} else {
 			if (lin_page<LINK_START) phys_page=paging.firstmb[lin_page];
 			else phys_page=lin_page;
