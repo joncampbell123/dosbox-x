@@ -126,6 +126,11 @@
     (output=opengl)(maron2000)
   - Add int33 mickey threshold option (Fixes Ultima Underworld) (jpernst)
   - Fix configure.ac (disable-screenshot option) (maron2000) 
+  - Fixed codepage switching when loading language file in Traditional
+    Chinese (maron2000)
+  - Fixed display of some Chinese characters (Traditional Chinese)(maron2000)
+  - Fixed garbled text and menubar on reset (maron2000)
+  - Fixed codepage switching when a language file was loaded (maron2000)
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
