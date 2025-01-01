@@ -3346,6 +3346,8 @@ void Sendkeymapper(bool pressed) {
 
 bool has_GUI_StartUp = false;
 
+void NewUIExperiment(bool pressed);
+
 static void GUI_StartUp() {
     DOSBoxMenu::item *item;
 
@@ -3579,6 +3581,9 @@ static void GUI_StartUp() {
     // Apply raw mouse input setting
     SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, section->Get_bool("raw_mouse_input") ? "0" : "1", SDL_HINT_OVERRIDE);
 #endif
+
+    /* Experiment */
+    MAPPER_AddHandler(NewUIExperiment, MK_nothing, 0, "newuitest", "New UI test", &item);
 
     /* Get some Event handlers */
     MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset DOSBox-X", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */

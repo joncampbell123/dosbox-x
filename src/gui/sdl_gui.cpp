@@ -234,6 +234,37 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     return true;
 }
 
+void NewUIExperiment(bool pressed) {
+	if (!pressed) return;
+
+	GFX_EndUpdate(nullptr);
+	GFX_SetTitle(-1,-1,-1,true);
+	KEYBOARD_ClrBuffer();//Clear buffer
+	GFX_LosingFocus();//Release any keys pressed (buffer gets filled again). (could be in above if, but clearing the mapper input when exiting the mapper is sensible as well
+	SDL_Delay(20);
+
+#if defined(C_SDL2)
+#elif defined(C_HX_DOS)
+#else
+	int dw,dh;
+	void UpdateWindowDimensions(void);
+	UpdateWindowDimensions();
+	dw = (int)currentWindowWidth;
+	dh = (int)currentWindowHeight;
+
+	if (dw < 32) dw = 32;
+	if (dh < 32) dh = 32;
+
+	LOG_MSG("NewGUI %d x %d",dw,dh);
+	SDL_Surface *gui_surface = SDL_SetVideoMode(dw,dh,16,0);
+	if (gui_surface == NULL) E_Exit("Could not initialize video mode for GUI: %s",SDL_GetError());
+#endif
+
+        GFX_Stop();
+        if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
+        GFX_Start();
+}
+
 extern bool toscale;
 extern const char* RunningProgram;
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
