@@ -3582,9 +3582,6 @@ static void GUI_StartUp() {
     SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, section->Get_bool("raw_mouse_input") ? "0" : "1", SDL_HINT_OVERRIDE);
 #endif
 
-    /* Experiment */
-    MAPPER_AddHandler(NewUIExperiment, MK_nothing, 0, "newuitest", "New UI test", &item);
-
     /* Get some Event handlers */
     MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset DOSBox-X", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
     item->set_text("Reset virtual machine");
@@ -3967,6 +3964,9 @@ static void GUI_StartUp() {
     SetWindowTransparency(section->Get_int("transparency"));
     UpdateWindowDimensions();
     ApplyPreventCap();
+
+    /* Experiment -- You're not supposed to play with this yet hence why no binding is assigned by default */
+    MAPPER_AddHandler(NewUIExperiment, MK_nothing, 0, "newuitest", "New UI test", &item);
 }
 
 void Mouse_AutoLock(bool enable) {
