@@ -1,4 +1,4 @@
-Next
+2025.01.01
   - Fix bug that prevented the Configuration GUI from saving to dosbox.conf
     the last Windows 3.1 theme you applied using the dropdown menu.
     (joncampbell123).
