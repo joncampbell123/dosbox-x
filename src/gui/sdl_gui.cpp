@@ -312,6 +312,12 @@ namespace WLGUI {
 		}
 	};
 
+	struct ReferenceCountTracking {
+		int		refcount = 0;
+		int		AddRef(void);
+		int		Release(void); /* which does NOT delete the object when refcount == 0 */
+	};
+
 	static Handle MakeHandle(const HandleType ht,const HandleIndex idx);
 	static HandleIndex GetHandleIndex(const HandleType ht,const Handle h);
 	static unsigned int MaskToWidth(DevicePixel m);
@@ -352,7 +358,7 @@ namespace WLGUI {
 			DevicePixel	ForegroundColor = 0;
 			DevicePixelDescription ColorDescription; /* init by constructor if base, otherwise UNINITIALIZED */
 			ColorspaceType	Colorspace = ColorspaceType::RGB;
-			int		refcount = 0;
+			ReferenceCountTracking ref;
 			Flags		Flags;
 
 			void		(*SetPixel)(Obj &obj,long x,long y,const DevicePixel c) = &SetPixel_stub;
@@ -386,6 +392,9 @@ namespace WLGUI {
 			void ConvertLogicalToDeviceCoordinates(long &x,long &y);
 			void *GetSurfaceRowPtr(long x,long y);
 			static void SetPixel_32bpp(Obj &bobj,long x,long y,const DevicePixel c);
+			static void SetPixel_24bpp(Obj &bobj,long x,long y,const DevicePixel c);
+			static void SetPixel_16bpp(Obj &bobj,long x,long y,const DevicePixel c);
+			static void SetPixel_8bpp(Obj &bobj,long x,long y,const DevicePixel c);
 		};
 
 		Handle CreateSDLSurfaceDC(SDL_Surface *surf);
@@ -488,6 +497,14 @@ namespace WLGUI {
 		return List.size();
 	}
 
+	int ReferenceCountTracking::AddRef(void) {
+		return ++refcount;
+	}
+
+	int ReferenceCountTracking::Release(void) {
+		return --refcount;
+	}
+
 	HandleIndex ResourceList::AllocateHandleIndex(void) {
 		/* scan forward from ListAlloc */
 		const HandleIndex pListAlloc = ListAlloc;
@@ -530,6 +547,7 @@ namespace WLGUI {
 		}
 
 		Obj::~Obj() {
+			if (ref.refcount != 0) LOG_MSG("Object release when refcount != 0 (this=%p)",(void*)this);
 		}
 
 		BkMode Obj::SetBkMode(BkMode x) {
@@ -644,7 +662,14 @@ namespace WLGUI {
 			BackgroundColor = ColorDescription.t.RGB.Make8(0xFF,0xFF,0xFF);
 			ForegroundColor = ColorDescription.t.RGB.Make8(0x00,0x00,0x00);
 
-			SetPixel = SetPixel_32bpp;
+			if (ColorDescription.BytesPerPixel == 4)
+				SetPixel = SetPixel_32bpp;
+			else if (ColorDescription.BytesPerPixel == 3)
+				SetPixel = SetPixel_24bpp;
+			else if (ColorDescription.BytesPerPixel == 2)
+				SetPixel = SetPixel_16bpp;
+			else if (ColorDescription.BytesPerPixel == 1)
+				SetPixel = SetPixel_8bpp;
 		}
 
 		void ObjSDLSurface::ConvertLogicalToDeviceCoordinates(long &x,long &y) {
@@ -672,6 +697,30 @@ namespace WLGUI {
 			obj.ConvertLogicalToDeviceCoordinates(x,y);
 			uint32_t *row = (uint32_t*)obj.GetSurfaceRowPtr(x,y);
 			if (row != NULL) *row = uint32_t(c);
+		}
+
+		void ObjSDLSurface::SetPixel_24bpp(Obj &bobj,long x,long y,const DevicePixel c) {
+			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
+			obj.ConvertLogicalToDeviceCoordinates(x,y);
+			uint8_t *row = (uint8_t*)obj.GetSurfaceRowPtr(x,y);
+			if (row != NULL) { /* this is why 24bpp isn't well supported past the late 1990s, it's awkward to draw sometimes */
+				host_writew(row,uint16_t(c));
+				host_writeb(row+2,uint8_t(c >> DevicePixel(16)));
+			}
+		}
+
+		void ObjSDLSurface::SetPixel_16bpp(Obj &bobj,long x,long y,const DevicePixel c) {
+			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
+			obj.ConvertLogicalToDeviceCoordinates(x,y);
+			uint16_t *row = (uint16_t*)obj.GetSurfaceRowPtr(x,y);
+			if (row != NULL) *row = uint16_t(c);
+		}
+
+		void ObjSDLSurface::SetPixel_8bpp(Obj &bobj,long x,long y,const DevicePixel c) {
+			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
+			obj.ConvertLogicalToDeviceCoordinates(x,y);
+			uint8_t *row = (uint8_t*)obj.GetSurfaceRowPtr(x,y);
+			if (row != NULL) *row = uint8_t(c);
 		}
 
 		Handle CreateSDLSurfaceDC(SDL_Surface *surf) {
