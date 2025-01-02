@@ -319,13 +319,14 @@ namespace WLGUI {
 	static const DevicePixelDescription ColorDescription_DefaultRGB32(const bool withAlpha);
 
 	namespace DC {
-		struct Obj;
-		TypedResourceList<Obj> List;
 
 		enum class ObjType {
 			Base=0, /* you shouldn't use this */
 			SDLSurface=1
 		};
+
+		struct Obj;
+		TypedResourceList<Obj> List;
 
 		/* A bit of polymorphism because like a real Windows DC it can be a display, a printer, etc.
 		 * In this toolkit, it can be a SDL surface, OpenGL texture, etc. Unlike Windows there's
@@ -481,106 +482,21 @@ namespace WLGUI {
 			}
 		};
 
-		Handle CreateSDLSurfaceDC(SDL_Surface *surf) {
-			const size_t idx = List.AllocateHandleIndex();
-			if (idx != InvalidHandleIndex) {
-				List.Set(idx,(Obj*)(new ObjSDLSurface(surf)));
-				return MakeHandle(HandleType::DC,HandleIndex(idx));
-			}
-
-			return InvalidHandleValue;
-		}
-
-		/* for internal use only */
-		Obj* GetObject(const Handle h) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			return List.Get(idx);
-		}
-
-		DevicePixel MakeRGB8(const Handle h,const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a=0xFF) {
-			Obj* obj = GetObject(h);
-			if (obj) return obj->ColorDescription.t.RGB.Make8(r,g,b,a);
-			return DevicePixel(0);
-		}
-
-		void SetPixel(const Handle h,const long x,const long y,const DevicePixel c) {
-			Obj* obj = GetObject(h);
-			if (obj) obj->SetPixel(*obj,x,y,c); /* NTS: call through function pointer */
-		}
-
-		bool GetDeviceColorspace(const Handle h,ColorspaceType &t) {
-			Obj* obj = GetObject(h);
-			if (obj) { t = obj->Colorspace; return true; }
-			return false;
-		}
-
-		bool GetDevicePixelFormat(const Handle h,DevicePixelDescription &d) {
-			Obj* obj = GetObject(h);
-			if (obj) { d = obj->ColorDescription; return true; }
-			return false;
-		}
-
-		BkMode SetBkMode(const Handle h,BkMode x) {
-			Obj* obj = GetObject(h);
-			if (obj) return obj->SetBkMode(x);
-			return BkMode::TRANSPARENT;
-		}
-
-		DevicePixel SetBackgroundColor(const Handle h,const DevicePixel c) {
-			Obj* obj = GetObject(h);
-			if (obj) return obj->SetBackgroundColor(c);
-			return DevicePixel(0);
-		}
-
-		DevicePixel SetForegroundColor(const Handle h,const DevicePixel c) {
-			Obj* obj = GetObject(h);
-			if (obj) return obj->SetForegroundColor(c);
-			return DevicePixel(0);
-		}
-
-		bool SetLogicalOrigin(const Handle h,const long x=0,const long y=0,Point *po=NULL) {
-			Obj* obj = GetObject(h);
-			if (obj) return obj->SetLogicalOrigin(x,y,po);
-			return false;
-		}
-
-		bool SetLogicalExtents(const Handle handle,const long w,const long h,Point *po=NULL) {
-			Obj* obj = GetObject(handle);
-			if (obj) return obj->SetLogicalExtents(w,h,po);
-			return false;
-		}
-
-		bool SetDeviceOrigin(const Handle h,const long x=0,const long y=0,Point *po=NULL) {
-			Obj* obj = GetObject(h);
-			if (obj) return obj->SetDeviceOrigin(x,y,po);
-			return false;
-		}
-
-		bool SetDeviceExtents(const Handle handle,const long w,const long h,Point *po=NULL) {
-			Obj* obj = GetObject(handle);
-			if (obj) return obj->SetDeviceExtents(w,h,po);
-			return false;
-		}
-
-		bool SetArbitraryMapMode(const Handle h,const bool m=false) {
-			Obj* obj = GetObject(h);
-			if (obj) return obj->SetArbitraryMapMode(m);
-			return false;
-		}
-
-		bool Delete(const Handle h) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.Size()) {
-				Obj *obj = List.Get(idx);
-				if (obj != NULL) {
-					List.Set(idx,NULL);
-					delete obj;
-					return true;
-				}
-			}
-
-			return false;
-		}
+		Handle CreateSDLSurfaceDC(SDL_Surface *surf);
+		Obj* GetObject(const Handle h);
+		DevicePixel MakeRGB8(const Handle h,const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a=0xFF);
+		void SetPixel(const Handle h,const long x,const long y,const DevicePixel c);
+		bool GetDeviceColorspace(const Handle h,ColorspaceType &t);
+		bool GetDevicePixelFormat(const Handle h,DevicePixelDescription &d);
+		BkMode SetBkMode(const Handle h,BkMode x);
+		DevicePixel SetBackgroundColor(const Handle h,const DevicePixel c);
+		DevicePixel SetForegroundColor(const Handle h,const DevicePixel c);
+		bool SetLogicalOrigin(const Handle h,const long x=0,const long y=0,Point *po=NULL);
+		bool SetLogicalExtents(const Handle handle,const long w,const long h,Point *po=NULL);
+		bool SetDeviceOrigin(const Handle h,const long x=0,const long y=0,Point *po=NULL);
+		bool SetDeviceExtents(const Handle handle,const long w,const long h,Point *po=NULL);
+		bool SetArbitraryMapMode(const Handle h,const bool m=false);
+		bool Delete(const Handle h);
 	}
 
 }
@@ -696,6 +612,111 @@ namespace WLGUI {
 		}
 
 		return InvalidHandleIndex;
+	}
+
+	namespace DC {
+
+		Handle CreateSDLSurfaceDC(SDL_Surface *surf) {
+			const size_t idx = List.AllocateHandleIndex();
+			if (idx != InvalidHandleIndex) {
+				List.Set(idx,(Obj*)(new ObjSDLSurface(surf)));
+				return MakeHandle(HandleType::DC,HandleIndex(idx));
+			}
+
+			return InvalidHandleValue;
+		}
+
+		/* for internal use only */
+		Obj* GetObject(const Handle h) {
+			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
+			return List.Get(idx);
+		}
+
+		DevicePixel MakeRGB8(const Handle h,const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a) {
+			Obj* obj = GetObject(h);
+			if (obj) return obj->ColorDescription.t.RGB.Make8(r,g,b,a);
+			return DevicePixel(0);
+		}
+
+		void SetPixel(const Handle h,const long x,const long y,const DevicePixel c) {
+			Obj* obj = GetObject(h);
+			if (obj) obj->SetPixel(*obj,x,y,c); /* NTS: call through function pointer */
+		}
+
+		bool GetDeviceColorspace(const Handle h,ColorspaceType &t) {
+			Obj* obj = GetObject(h);
+			if (obj) { t = obj->Colorspace; return true; }
+			return false;
+		}
+
+		bool GetDevicePixelFormat(const Handle h,DevicePixelDescription &d) {
+			Obj* obj = GetObject(h);
+			if (obj) { d = obj->ColorDescription; return true; }
+			return false;
+		}
+
+		BkMode SetBkMode(const Handle h,BkMode x) {
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetBkMode(x);
+			return BkMode::TRANSPARENT;
+		}
+
+		DevicePixel SetBackgroundColor(const Handle h,const DevicePixel c) {
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetBackgroundColor(c);
+			return DevicePixel(0);
+		}
+
+		DevicePixel SetForegroundColor(const Handle h,const DevicePixel c) {
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetForegroundColor(c);
+			return DevicePixel(0);
+		}
+
+		bool SetLogicalOrigin(const Handle h,const long x,const long y,Point *po) {
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetLogicalOrigin(x,y,po);
+			return false;
+		}
+
+		bool SetLogicalExtents(const Handle handle,const long w,const long h,Point *po) {
+			Obj* obj = GetObject(handle);
+			if (obj) return obj->SetLogicalExtents(w,h,po);
+			return false;
+		}
+
+		bool SetDeviceOrigin(const Handle h,const long x,const long y,Point *po) {
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetDeviceOrigin(x,y,po);
+			return false;
+		}
+
+		bool SetDeviceExtents(const Handle handle,const long w,const long h,Point *po) {
+			Obj* obj = GetObject(handle);
+			if (obj) return obj->SetDeviceExtents(w,h,po);
+			return false;
+		}
+
+		bool SetArbitraryMapMode(const Handle h,const bool m) {
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetArbitraryMapMode(m);
+			return false;
+		}
+
+		bool Delete(const Handle h) {
+			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
+			if (idx != InvalidHandleIndex && idx < List.Size()) {
+				Obj *obj = List.Get(idx);
+				if (obj != NULL) {
+					List.Set(idx,NULL);
+					delete obj;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 	}
 
 }
