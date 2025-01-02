@@ -352,11 +352,24 @@ namespace WLGUI {
 		OPAQUE=1
 	};
 
-	namespace DC {
-		struct Obj;
+	template <class Obj> class ResourceList {
+	public:
 		HandleIndex ListAlloc = 0;
 		std::vector<Obj*> List;
 
+		Obj *Get(const HandleIndex i) {
+			if (i < HandleIndex(List.size())) return List[i];
+			return NULL;
+		}
+		void Set(const HandleIndex i,Obj *p) {
+			if (i < HandleIndex(List.size())) {
+				List[i] = p;
+				if (p == NULL) ListAlloc = i;
+			}
+		}
+		size_t Size(void) const {
+			return List.size();
+		}
 		HandleIndex AllocateHandleIndex(void) {
 			/* scan forward from ListAlloc */
 			const HandleIndex pListAlloc = ListAlloc;
@@ -388,6 +401,11 @@ namespace WLGUI {
 
 			return InvalidHandleIndex;
 		}
+	};
+
+	namespace DC {
+		struct Obj;
+		ResourceList<Obj> List;
 
 		enum class ObjType {
 			Base=0, /* you shouldn't use this */
@@ -549,9 +567,9 @@ namespace WLGUI {
 		};
 
 		Handle CreateSDLSurfaceDC(SDL_Surface *surf) {
-			const size_t idx = AllocateHandleIndex();
+			const size_t idx = List.AllocateHandleIndex();
 			if (idx != InvalidHandleIndex) {
-				List[idx] = (Obj*)(new ObjSDLSurface(surf));
+				List.Set(idx,(Obj*)(new ObjSDLSurface(surf)));
 				return MakeHandle(HandleType::DC,HandleIndex(idx));
 			}
 
@@ -561,88 +579,87 @@ namespace WLGUI {
 		/* for internal use only */
 		Obj* GetObject(const Handle h) {
 			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx];
-			return NULL;
+			return List.Get(idx);
 		}
 
 		DevicePixel MakeRGB8(const Handle h,const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a=0xFF) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx]->ColorDescription.t.RGB.Make8(r,g,b,a);
+			Obj* obj = GetObject(h);
+			if (obj) return obj->ColorDescription.t.RGB.Make8(r,g,b,a);
 			return DevicePixel(0);
 		}
 
 		void SetPixel(const Handle h,const long x,const long y,const DevicePixel c) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) List[idx]->SetPixel(*List[idx],x,y,c); /* NTS: call through function pointer */
+			Obj* obj = GetObject(h);
+			if (obj) obj->SetPixel(*obj,x,y,c); /* NTS: call through function pointer */
 		}
 
 		bool GetDeviceColorspace(const Handle h,ColorspaceType &t) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) { t = List[idx]->Colorspace; return true; }
+			Obj* obj = GetObject(h);
+			if (obj) { t = obj->Colorspace; return true; }
 			return false;
 		}
 
 		bool GetDevicePixelFormat(const Handle h,DevicePixelDescription &d) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) { d = List[idx]->ColorDescription; return true; }
+			Obj* obj = GetObject(h);
+			if (obj) { d = obj->ColorDescription; return true; }
 			return false;
 		}
 
 		BkMode SetBkMode(const Handle h,BkMode x) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx]->SetBkMode(x);
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetBkMode(x);
 			return BkMode::TRANSPARENT;
 		}
 
 		DevicePixel SetBackgroundColor(const Handle h,const DevicePixel c) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx]->SetBackgroundColor(c);
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetBackgroundColor(c);
 			return DevicePixel(0);
 		}
 
 		DevicePixel SetForegroundColor(const Handle h,const DevicePixel c) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx]->SetForegroundColor(c);
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetForegroundColor(c);
 			return DevicePixel(0);
 		}
 
 		bool SetLogicalOrigin(const Handle h,const long x=0,const long y=0,Point *po=NULL) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx]->SetLogicalOrigin(x,y,po);
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetLogicalOrigin(x,y,po);
 			return false;
 		}
 
-		bool SetLogicalExtents(const Handle han,const long w,const long h,Point *po=NULL) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,han);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx]->SetLogicalExtents(w,h,po);
+		bool SetLogicalExtents(const Handle handle,const long w,const long h,Point *po=NULL) {
+			Obj* obj = GetObject(handle);
+			if (obj) return obj->SetLogicalExtents(w,h,po);
 			return false;
 		}
 
 		bool SetDeviceOrigin(const Handle h,const long x=0,const long y=0,Point *po=NULL) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx]->SetDeviceOrigin(x,y,po);
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetDeviceOrigin(x,y,po);
 			return false;
 		}
 
-		bool SetDeviceExtents(const Handle han,const long w,const long h,Point *po=NULL) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,han);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx]->SetDeviceExtents(w,h,po);
+		bool SetDeviceExtents(const Handle handle,const long w,const long h,Point *po=NULL) {
+			Obj* obj = GetObject(handle);
+			if (obj) return obj->SetDeviceExtents(w,h,po);
 			return false;
 		}
 
 		bool SetArbitraryMapMode(const Handle h,const bool m=false) {
-			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) return List[idx]->SetArbitraryMapMode(m);
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SetArbitraryMapMode(m);
 			return false;
 		}
 
 		bool Delete(const Handle h) {
 			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.size()) {
-				if (List[idx] != NULL) {
-					delete List[idx];
-					List[idx] = NULL;
-					ListAlloc = idx;
+			if (idx != InvalidHandleIndex && idx < List.Size()) {
+				Obj *obj = List.Get(idx);
+				if (obj != NULL) {
+					List.Set(idx,NULL);
+					delete obj;
 					return true;
 				}
 			}
