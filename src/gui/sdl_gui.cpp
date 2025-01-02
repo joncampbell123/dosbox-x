@@ -241,6 +241,7 @@ namespace WLGUI {
 	typedef size_t HandleIndex;
 	typedef uint32_t DevicePixel;/*pixel value, in target device format i.e. 16bpp rrrrrggggggbbbbb*/
 
+	static constexpr uint32_t Mask24 = uint32_t(0xFFFFFFu);
 	static constexpr Handle InvalidHandleValue = ~Handle(0u);
 	static constexpr HandleIndex InvalidHandleIndex = ~HandleIndex(0u);
 
@@ -361,6 +362,7 @@ namespace WLGUI {
 			ReferenceCountTracking ref;
 			Flags		Flags;
 
+			DevicePixel	(*GetPixel)(Obj &obj,long x,long y) = &GetPixel_stub;
 			void		(*SetPixel)(Obj &obj,long x,long y,const DevicePixel c) = &SetPixel_stub;
 
 			Obj();
@@ -376,6 +378,8 @@ namespace WLGUI {
 			bool SetDeviceExtents(const long w,const long h,Point *po=NULL);
 			bool SetArbitraryMapMode(const bool m=false);
 			virtual void ConvertLogicalToDeviceCoordinates(long &x,long &y);
+
+			static DevicePixel GetPixel_stub(Obj &obj,long x,long y);
 			static void SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c);
 		};
 
@@ -392,10 +396,16 @@ namespace WLGUI {
 
 			void initFromSurface(void);
 			void *GetSurfaceRowPtr(long x,long y);
+
 			static void SetPixel_32bpp(Obj &bobj,long x,long y,const DevicePixel c);
 			static void SetPixel_24bpp(Obj &bobj,long x,long y,const DevicePixel c);
 			static void SetPixel_16bpp(Obj &bobj,long x,long y,const DevicePixel c);
 			static void SetPixel_8bpp(Obj &bobj,long x,long y,const DevicePixel c);
+
+			static DevicePixel GetPixel_32bpp(Obj &bobj,long x,long y);
+			static DevicePixel GetPixel_24bpp(Obj &bobj,long x,long y);
+			static DevicePixel GetPixel_16bpp(Obj &bobj,long x,long y);
+			static DevicePixel GetPixel_8bpp(Obj &bobj,long x,long y);
 		};
 
 		Handle CreateSDLSurfaceDC(SDL_Surface *surf);
@@ -618,6 +628,13 @@ namespace WLGUI {
 			y += originDst.y;
 		}
 
+		DevicePixel Obj::GetPixel_stub(Obj &obj,long x,long y) {
+			(void)obj;
+			(void)x;
+			(void)y;
+			return DevicePixel(0);
+		}
+
 		void Obj::SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c) {
 			(void)obj;
 			(void)x;
@@ -664,14 +681,22 @@ namespace WLGUI {
 			BackgroundColor = ColorDescription.t.RGB.Make8(0xFF,0xFF,0xFF);
 			ForegroundColor = ColorDescription.t.RGB.Make8(0x00,0x00,0x00);
 
-			if (ColorDescription.BytesPerPixel == 4)
+			if (ColorDescription.BytesPerPixel == 4) {
+				GetPixel = GetPixel_32bpp;
 				SetPixel = SetPixel_32bpp;
-			else if (ColorDescription.BytesPerPixel == 3)
+			}
+			else if (ColorDescription.BytesPerPixel == 3) {
+				GetPixel = GetPixel_24bpp;
 				SetPixel = SetPixel_24bpp;
-			else if (ColorDescription.BytesPerPixel == 2)
+			}
+			else if (ColorDescription.BytesPerPixel == 2) {
+				GetPixel = GetPixel_16bpp;
 				SetPixel = SetPixel_16bpp;
-			else if (ColorDescription.BytesPerPixel == 1)
+			}
+			else if (ColorDescription.BytesPerPixel == 1) {
+				GetPixel = GetPixel_8bpp;
 				SetPixel = SetPixel_8bpp;
+			}
 		}
 
 		void ObjSDLSurface::ConvertLogicalToDeviceCoordinates(long &x,long &y) {
@@ -700,13 +725,24 @@ namespace WLGUI {
 			if (row != NULL) *row = uint32_t(c);
 		}
 
+		DevicePixel ObjSDLSurface::GetPixel_32bpp(Obj &bobj,long x,long y) {
+			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
+			uint32_t *row = (uint32_t*)obj.GetSurfaceRowPtr(x,y);
+			if (row != NULL) return DevicePixel(*row);
+			return DevicePixel(0);
+		}
+
 		void ObjSDLSurface::SetPixel_24bpp(Obj &bobj,long x,long y,const DevicePixel c) {
 			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
 			uint8_t *row = (uint8_t*)obj.GetSurfaceRowPtr(x,y);
-			if (row != NULL) { /* this is why 24bpp isn't well supported past the late 1990s, it's awkward to draw sometimes */
-				host_writew(row,uint16_t(c));
-				host_writeb(row+2,uint8_t(c >> DevicePixel(16)));
-			}
+			if (row != NULL) *row = (uint32_t(c) & Mask24) + ((*row) & (~Mask24));
+		}
+
+		DevicePixel ObjSDLSurface::GetPixel_24bpp(Obj &bobj,long x,long y) {
+			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
+			uint32_t *row = (uint32_t*)obj.GetSurfaceRowPtr(x,y);
+			if (row != NULL) return DevicePixel(*row & Mask24);
+			return DevicePixel(0);
 		}
 
 		void ObjSDLSurface::SetPixel_16bpp(Obj &bobj,long x,long y,const DevicePixel c) {
@@ -715,10 +751,24 @@ namespace WLGUI {
 			if (row != NULL) *row = uint16_t(c);
 		}
 
+		DevicePixel ObjSDLSurface::GetPixel_16bpp(Obj &bobj,long x,long y) {
+			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
+			uint16_t *row = (uint16_t*)obj.GetSurfaceRowPtr(x,y);
+			if (row != NULL) return DevicePixel(*row);
+			return DevicePixel(0);
+		}
+
 		void ObjSDLSurface::SetPixel_8bpp(Obj &bobj,long x,long y,const DevicePixel c) {
 			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
 			uint8_t *row = (uint8_t*)obj.GetSurfaceRowPtr(x,y);
 			if (row != NULL) *row = uint8_t(c);
+		}
+
+		DevicePixel ObjSDLSurface::GetPixel_8bpp(Obj &bobj,long x,long y) {
+			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
+			uint8_t *row = (uint8_t*)obj.GetSurfaceRowPtr(x,y);
+			if (row != NULL) return DevicePixel(*row);
+			return DevicePixel(0);
 		}
 
 		Handle CreateSDLSurfaceDC(SDL_Surface *surf) {
@@ -740,6 +790,15 @@ namespace WLGUI {
 		DevicePixel MakeRGB8(const Handle h,const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a) {
 			Obj* obj = GetObject(h);
 			if (obj) return obj->ColorDescription.t.RGB.Make8(r,g,b,a);
+			return DevicePixel(0);
+		}
+
+		DevicePixel GetPixel(const Handle h,long x,long y) {
+			Obj* obj = GetObject(h);
+			if (obj) {
+				obj->ConvertLogicalToDeviceCoordinates(x,y);
+				return obj->GetPixel(*obj,x,y); /* NTS: call through function pointer */
+			}
 			return DevicePixel(0);
 		}
 
@@ -926,6 +985,24 @@ void NewUIExperiment(bool pressed) {
 		WLGUI::DC::SetPixel(gui_surface_dc,x+100,x,WLGUI::DC::MakeRGB8(gui_surface_dc,cx,0, 0 ));
 		WLGUI::DC::SetPixel(gui_surface_dc,x+200,x,WLGUI::DC::MakeRGB8(gui_surface_dc,0, cx,0 ));
 		WLGUI::DC::SetPixel(gui_surface_dc,x+300,x,WLGUI::DC::MakeRGB8(gui_surface_dc,0, 0, cx));
+	}
+	WLGUI::DC::SetArbitraryMapMode(gui_surface_dc,false);
+	WLGUI::DC::SetLogicalOrigin(gui_surface_dc,0,0);
+	WLGUI::DC::SetDeviceOrigin(gui_surface_dc,0,0);
+
+	SDL_UpdateRect(gui_surface, 0, 0, 0, 0);
+	while (SDL_PollEvent(&event));
+	SDL_Delay(1000);
+
+	{
+		const unsigned int sw = dw/4,sh = dh/4;
+		const unsigned int sx = dw - sw,sy = dh - sh;
+		for (unsigned int y=0;y < sx;y++) {
+			for (unsigned int x=0;x < sy;x++) {
+				WLGUI::DC::SetPixel(gui_surface_dc,x,y,
+					WLGUI::DC::GetPixel(gui_surface_dc,sx+(x/4),sy+(y/4)));
+			}
+		}
 	}
 
 	SDL_UpdateRect(gui_surface, 0, 0, 0, 0);
