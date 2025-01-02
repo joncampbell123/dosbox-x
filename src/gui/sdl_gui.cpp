@@ -249,85 +249,34 @@ namespace WLGUI {
 		DC=1
 	};
 
-	static Handle MakeHandle(const HandleType ht,const HandleIndex idx) {
-		return ((Handle)ht << (Handle)24u) + Handle(idx & 0xFFFFFFu);
-	}
+	enum class ColorspaceType {
+		RGB=0
+	};
 
-	static HandleIndex GetHandleIndex(const HandleType ht,const Handle h) {
-		if (ht == HandleType(h >> (Handle)24u))
-			return HandleIndex(h & 0xFFFFFFu);
-		else
-			return InvalidHandleIndex;
-	}
-
-	static unsigned int MaskToWidth(DevicePixel m) {
-		if (m != DevicePixel(0)) {
-			unsigned int count = 0;
-			while ((m & DevicePixel(1)) == DevicePixel(0)) m >>= DevicePixel(1);
-			while (m) { m >>= DevicePixel(1); count++; }
-			return count;
-		}
-
-		return 0;
-	}
-
-	static unsigned int Pixel8ToWidth(const unsigned int v,const unsigned int width) {
-		if (width != 0) {
-			const unsigned int mv = (1u << width) - 1u;
-			return ((v * mv) + 128u) / 255u;
-		}
-		return 0;
-	}
+	enum class BkMode {
+		TRANSPARENT=0,
+		OPAQUE=1
+	};
 
 	struct DevicePixelDescription {
-		union {
-			struct {
-				struct {
+		union t {
+			struct RGB {
+				struct mask {
 					DevicePixel	r,g,b,a;
 				} mask;
-				struct {
+				struct shift {
 					uint8_t		r,g,b,a;
 				} shift;
-				struct {
+				struct width {
 					uint8_t		r,g,b,a;
 				} width;
 
-				DevicePixel Make8(const unsigned int rv,const unsigned int gv,const unsigned int bv,const unsigned int av=0xFF) const {
-					return	(DevicePixel(Pixel8ToWidth(rv,width.r)) << DevicePixel(shift.r)) +
-						(DevicePixel(Pixel8ToWidth(gv,width.g)) << DevicePixel(shift.g)) +
-						(DevicePixel(Pixel8ToWidth(bv,width.b)) << DevicePixel(shift.b)) +
-						(DevicePixel(Pixel8ToWidth(av,width.a)) << DevicePixel(shift.a));
-				}
+				DevicePixel Make8(const unsigned int rv,const unsigned int gv,const unsigned int bv,const unsigned int av=0xFF) const;
 			} RGB;
 		} t;
 		uint8_t		BitsPerPixel;
 		uint8_t		BytesPerPixel;
 	};
-
-	static const DevicePixelDescription ColorDescription_DefaultRGB32(const bool withAlpha) {
-		DevicePixelDescription r;
-
-		r.BitsPerPixel = 32;
-		r.BytesPerPixel = 4;
-
-		r.t.RGB.mask.a = withAlpha ? (0xFFu << 24u) : 0u;
-		r.t.RGB.shift.a = withAlpha ? 24u : 0u;
-		r.t.RGB.width.a = withAlpha ? 8u : 0u;
-
-		r.t.RGB.mask.r = 0xFFu << 16u;
-		r.t.RGB.shift.r = 16u;
-		r.t.RGB.width.r = 8u;
-
-		r.t.RGB.mask.g = 0xFFu << 8u;
-		r.t.RGB.shift.g = 8u;
-		r.t.RGB.width.g = 8u;
-
-		r.t.RGB.mask.b = 0xFFu << 0u;
-		r.t.RGB.shift.b = 0u;
-		r.t.RGB.width.b = 8u;
-
-		return r;
-	}
 
 	struct Dimensions {
 		unsigned int	w,h;
@@ -341,15 +290,6 @@ namespace WLGUI {
 
 		Point() { }
 		Point(const long _x,const long _y) : x(_x), y(_y) { }
-	};
-
-	enum class ColorspaceType {
-		RGB=0
-	};
-
-	enum class BkMode {
-		TRANSPARENT=0,
-		OPAQUE=1
 	};
 
 	template <class Obj> class ResourceList {
@@ -402,6 +342,12 @@ namespace WLGUI {
 			return InvalidHandleIndex;
 		}
 	};
+
+	static Handle MakeHandle(const HandleType ht,const HandleIndex idx);
+	static HandleIndex GetHandleIndex(const HandleType ht,const Handle h);
+	static unsigned int MaskToWidth(DevicePixel m);
+	static unsigned int Pixel8ToWidth(const unsigned int v,const unsigned int width);
+	static const DevicePixelDescription ColorDescription_DefaultRGB32(const bool withAlpha);
 
 	namespace DC {
 		struct Obj;
@@ -666,6 +612,73 @@ namespace WLGUI {
 
 			return false;
 		}
+	}
+
+}
+
+namespace WLGUI {
+
+	static Handle MakeHandle(const HandleType ht,const HandleIndex idx) {
+		return ((Handle)ht << (Handle)24u) + Handle(idx & 0xFFFFFFu);
+	}
+
+	static HandleIndex GetHandleIndex(const HandleType ht,const Handle h) {
+		if (ht == HandleType(h >> (Handle)24u))
+			return HandleIndex(h & 0xFFFFFFu);
+		else
+			return InvalidHandleIndex;
+	}
+
+	static unsigned int MaskToWidth(DevicePixel m) {
+		if (m != DevicePixel(0)) {
+			unsigned int count = 0;
+			while ((m & DevicePixel(1)) == DevicePixel(0)) m >>= DevicePixel(1);
+			while (m) { m >>= DevicePixel(1); count++; }
+			return count;
+		}
+
+		return 0;
+	}
+
+	static unsigned int Pixel8ToWidth(const unsigned int v,const unsigned int width) {
+		if (width != 0) {
+			const unsigned int mv = (1u << width) - 1u;
+			return ((v * mv) + 128u) / 255u;
+		}
+
+		return 0;
+	}
+
+	DevicePixel DevicePixelDescription::t::RGB::Make8(const unsigned int rv,const unsigned int gv,const unsigned int bv,const unsigned int av) const {
+		return	(DevicePixel(Pixel8ToWidth(rv,width.r)) << DevicePixel(shift.r)) +
+			(DevicePixel(Pixel8ToWidth(gv,width.g)) << DevicePixel(shift.g)) +
+			(DevicePixel(Pixel8ToWidth(bv,width.b)) << DevicePixel(shift.b)) +
+			(DevicePixel(Pixel8ToWidth(av,width.a)) << DevicePixel(shift.a));
+	}
+
+	static const DevicePixelDescription ColorDescription_DefaultRGB32(const bool withAlpha) {
+		DevicePixelDescription r;
+
+		r.BitsPerPixel = 32;
+		r.BytesPerPixel = 4;
+
+		r.t.RGB.mask.a = withAlpha ? (0xFFu << 24u) : 0u;
+		r.t.RGB.shift.a = withAlpha ? 24u : 0u;
+		r.t.RGB.width.a = withAlpha ? 8u : 0u;
+
+		r.t.RGB.mask.r = 0xFFu << 16u;
+		r.t.RGB.shift.r = 16u;
+		r.t.RGB.width.r = 8u;
+
+		r.t.RGB.mask.g = 0xFFu << 8u;
+		r.t.RGB.shift.g = 8u;
+		r.t.RGB.width.g = 8u;
+
+		r.t.RGB.mask.b = 0xFFu << 0u;
+		r.t.RGB.shift.b = 0u;
+		r.t.RGB.width.b = 8u;
+
+		return r;
 	}
 
 }
