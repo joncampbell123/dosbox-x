@@ -304,7 +304,7 @@ bool Network_SetFileAttr(char const * const filename, uint16_t attr) {
     t->tm_mon  = ((int)(odate >> 5) & 0x0f) - 1;
     t->tm_year = ((int)(odate >> 9) & 0x7f) + 80;
     ttime=mktime(t);
-    LONGLONG ll = Int32x32To64(ttime, 10000000) + 116444736000000000;
+    LONGLONG ll = (ttime * 10000000LL) + 116444736000000000LL;
     time.dwLowDateTime = (DWORD) ll;
     time.dwHighDateTime = (DWORD) (ll >> 32);
 	if (!SetFileTime(hand, NULL, NULL, &time)) {
