@@ -18,10 +18,27 @@ To change to the drive mounted like above, type "C:". If everything went fine, D
 
 Hint: DOSBox-X supports different video output systems for different purposes. By default it uses the Direct3D output, but if you desire the pixel-perfect scaling feature for improved image quality you may want to select the openglpp output ("OpenGL perfect"). Also, if you use text-mode DOS applications and/or the DOS shell frequently you probably want to select the TrueType font (TTF) output to make the text screen look much better by using scalable TrueType fonts.
 
+Troubleshooting
+===============
+
+- Choosing the appropriate build for your Windows version
+    Modern Windows users (7 and after) should use the standard (non-XP, non-lowend) builds but may try the non-standard builds if you prefer, although officially not supported.
+    Windows 9x/NT4/2000 users should use the MinGW lowend 9x builds (32-bit SDL1 only).
+    Windows XP users must use the XP compatible installer with "XP" in the file name, which includes Visual Studio XP builds and the 32-bit MinGW low-end builds. Note that not all features are available in the MinGW low-end builds, currently Slirp support is known to be missing. You also need to install the DirectX runtime or DOSBox-X will complain you're missing XInput9_1_0.dll. XP compatible builds works in ReactOS as well, but support is considered experimental.
+    Windows Vista users can use the XP installer or standard (non-XP) Visual Studio builds, because standard (non-XP) installer doesn't work in Vista. MinGW dropped support for XP/Vista, so install the 32-bit low-end builds from the XP compatible installer if you prefer MinGW builds.
+
+- Joystick support for SDL1 builds
+    Regarding Joystick support, the SDL1 builds requires XInput compatible devices. If your joystick is not Xinput compatible, you may want to try the SDL2 builds or DirectInput to XInput wrappers such as XOutput or Xbox 360 controller emulator.
+      XOutput: https://github.com/csutorasa/XOutput
+      Xbox 360 controller emulator: https://www.x360ce.com/
+
 Further Information
 ===================
 Please visit the DOSBox-X homepage for the latest information about DOSBox-X:
 https://dosbox-x.com/ or http://dosbox-x.software/
+
+Also, some useful information such as install and build instructions can be found in the official README file
+https://github.com/joncampbell123/dosbox-x?tab=readme-ov-file#
 
 For a complete DOSBox-X user guide, including common ways to configure DOSBox-X and its usage tips, please visit the DOSBox-X Wiki:
 https://dosbox-x.com/wiki
