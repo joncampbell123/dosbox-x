@@ -638,8 +638,8 @@ namespace WLGUI {
 		void ObjSDLSurface::initFromSurface(void) {
 			viewport.w = abs(surface->w);
 			viewport.h = abs(surface->h);
-			scaleSrc = { viewport.w, viewport.h };
-			scaleDst = { viewport.w, viewport.h };
+			scaleSrc = { (long)viewport.w, (long)viewport.h };
+			scaleDst = { (long)viewport.w, (long)viewport.h };
 			ColorDescription.BitsPerPixel = surface->format->BitsPerPixel;
 			ColorDescription.BytesPerPixel = surface->format->BytesPerPixel;
 
