@@ -5076,7 +5076,7 @@ void DOS_Int21_7143(char *name1, const char *name2) {
 						t->tm_mon  = ((int)(reg_di >> 5) & 0x0f) - 1;
 						t->tm_year = ((int)(reg_di >> 9) & 0x7f) + 80;
 						ttime=mktime(t);
-						LONGLONG ll = Int32x32To64(ttime, 10000000) + 116444736000000000 + (reg_bl==0x07?reg_si*100000:0);
+						LONGLONG ll = (ttime * 10000000LL) + 116444736000000000LL + (reg_bl==0x07?reg_si*100000:0);
 						time.dwLowDateTime = (DWORD) ll;
 						time.dwHighDateTime = (DWORD) (ll >> 32);
 						if (!SetFileTime(hFile, reg_bl==0x07?&time:NULL,reg_bl==0x05?&time:NULL,reg_bl==0x03?&time:NULL)) {
