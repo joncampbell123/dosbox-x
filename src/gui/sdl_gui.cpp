@@ -292,54 +292,23 @@ namespace WLGUI {
 		Point(const long _x,const long _y) : x(_x), y(_y) { }
 	};
 
-	template <class Obj> class ResourceList {
+	class ResourceList {
 	public:
 		HandleIndex ListAlloc = 0;
-		std::vector<Obj*> List;
+		std::vector<void*> List;
+		void *GetVoid(const HandleIndex i);
+		void SetVoid(const HandleIndex i,void *p);
+		size_t Size(void) const;
+		HandleIndex AllocateHandleIndex(void);
+	};
 
-		Obj *Get(const HandleIndex i) {
-			if (i < HandleIndex(List.size())) return List[i];
-			return NULL;
+	template <class T> class TypedResourceList : public ResourceList {
+	public:
+		T *Get(const HandleIndex i) {
+			return (T*)GetVoid(i);
 		}
-		void Set(const HandleIndex i,Obj *p) {
-			if (i < HandleIndex(List.size())) {
-				List[i] = p;
-				if (p == NULL) ListAlloc = i;
-			}
-		}
-		size_t Size(void) const {
-			return List.size();
-		}
-		HandleIndex AllocateHandleIndex(void) {
-			/* scan forward from ListAlloc */
-			const HandleIndex pListAlloc = ListAlloc;
-			while (ListAlloc < List.size()) {
-				const HandleIndex index = ListAlloc++;
-				if (List[index] == NULL) return index;
-			}
-
-			ListAlloc = 0; /* No opening, scan again but only up to where the first loop started scanning */
-			while (ListAlloc < List.size() && ListAlloc <= pListAlloc) {
-				const HandleIndex index = ListAlloc++;
-				if (List[index] == NULL) return index;
-			}
-
-			/* Well then, enlarge the list */
-			{
-				const size_t osz = List.size();
-				if (osz >= 1024u) return InvalidHandleIndex; /* but not too much! */
-				ListAlloc = HandleIndex(osz); /* neither of the first two found anything, scan from where we extend the list */
-				List.resize(osz + (osz / 4u) + 64u);
-				for (size_t i=osz;i < List.size();i++) List[i] = NULL;
-			}
-
-			/* one more time */
-			while (ListAlloc < List.size()) {
-				const HandleIndex index = ListAlloc++;
-				if (List[index] == NULL) return index;
-			}
-
-			return InvalidHandleIndex;
+		void Set(const HandleIndex i,T *p) {
+			SetVoid(i,(void*)p);
 		}
 	};
 
@@ -351,7 +320,7 @@ namespace WLGUI {
 
 	namespace DC {
 		struct Obj;
-		ResourceList<Obj> List;
+		TypedResourceList<Obj> List;
 
 		enum class ObjType {
 			Base=0, /* you shouldn't use this */
@@ -679,6 +648,54 @@ namespace WLGUI {
 		r.t.RGB.width.b = 8u;
 
 		return r;
+	}
+
+	void *ResourceList::GetVoid(const HandleIndex i) {
+		if (i < HandleIndex(List.size())) return List[i];
+		return NULL;
+	}
+
+	void ResourceList::SetVoid(const HandleIndex i,void *p) {
+		if (i < HandleIndex(List.size())) {
+			List[i] = p;
+			if (p == NULL) ListAlloc = i;
+		}
+	}
+
+	size_t ResourceList::Size(void) const {
+		return List.size();
+	}
+
+	HandleIndex ResourceList::AllocateHandleIndex(void) {
+		/* scan forward from ListAlloc */
+		const HandleIndex pListAlloc = ListAlloc;
+		while (ListAlloc < List.size()) {
+			const HandleIndex index = ListAlloc++;
+			if (List[index] == NULL) return index;
+		}
+
+		ListAlloc = 0; /* No opening, scan again but only up to where the first loop started scanning */
+		while (ListAlloc < List.size() && ListAlloc <= pListAlloc) {
+			const HandleIndex index = ListAlloc++;
+			if (List[index] == NULL) return index;
+		}
+
+		/* Well then, enlarge the list */
+		{
+			const size_t osz = List.size();
+			if (osz >= 1024u) return InvalidHandleIndex; /* but not too much! */
+			ListAlloc = HandleIndex(osz); /* neither of the first two found anything, scan from where we extend the list */
+			List.resize(osz + (osz / 4u) + 64u);
+			for (size_t i=osz;i < List.size();i++) List[i] = NULL;
+		}
+
+		/* one more time */
+		while (ListAlloc < List.size()) {
+			const HandleIndex index = ListAlloc++;
+			if (List[index] == NULL) return index;
+		}
+
+		return InvalidHandleIndex;
 	}
 
 }
