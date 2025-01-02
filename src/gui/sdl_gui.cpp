@@ -375,7 +375,7 @@ namespace WLGUI {
 			virtual bool SetDeviceOrigin(const long x=0,const long y=0,Point *po=NULL);
 			bool SetDeviceExtents(const long w,const long h,Point *po=NULL);
 			bool SetArbitraryMapMode(const bool m=false);
-			void ConvertLogicalToDeviceCoordinates(long &x,long &y);
+			virtual void ConvertLogicalToDeviceCoordinates(long &x,long &y);
 			static void SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c);
 		};
 
@@ -388,8 +388,9 @@ namespace WLGUI {
 			ObjSDLSurface(SDL_Surface *surf);
 			virtual ~ObjSDLSurface();
 
+			virtual void ConvertLogicalToDeviceCoordinates(long &x,long &y) override;
+
 			void initFromSurface(void);
-			void ConvertLogicalToDeviceCoordinates(long &x,long &y);
 			void *GetSurfaceRowPtr(long x,long y);
 			static void SetPixel_32bpp(Obj &bobj,long x,long y,const DevicePixel c);
 			static void SetPixel_24bpp(Obj &bobj,long x,long y,const DevicePixel c);
@@ -412,6 +413,7 @@ namespace WLGUI {
 		bool SetDeviceExtents(const Handle handle,const long w,const long h,Point *po=NULL);
 		bool SetArbitraryMapMode(const Handle h,const bool m=false);
 		bool Delete(const Handle h);
+
 	}
 
 }
@@ -694,14 +696,12 @@ namespace WLGUI {
 
 		void ObjSDLSurface::SetPixel_32bpp(Obj &bobj,long x,long y,const DevicePixel c) {
 			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
-			obj.ConvertLogicalToDeviceCoordinates(x,y);
 			uint32_t *row = (uint32_t*)obj.GetSurfaceRowPtr(x,y);
 			if (row != NULL) *row = uint32_t(c);
 		}
 
 		void ObjSDLSurface::SetPixel_24bpp(Obj &bobj,long x,long y,const DevicePixel c) {
 			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
-			obj.ConvertLogicalToDeviceCoordinates(x,y);
 			uint8_t *row = (uint8_t*)obj.GetSurfaceRowPtr(x,y);
 			if (row != NULL) { /* this is why 24bpp isn't well supported past the late 1990s, it's awkward to draw sometimes */
 				host_writew(row,uint16_t(c));
@@ -711,14 +711,12 @@ namespace WLGUI {
 
 		void ObjSDLSurface::SetPixel_16bpp(Obj &bobj,long x,long y,const DevicePixel c) {
 			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
-			obj.ConvertLogicalToDeviceCoordinates(x,y);
 			uint16_t *row = (uint16_t*)obj.GetSurfaceRowPtr(x,y);
 			if (row != NULL) *row = uint16_t(c);
 		}
 
 		void ObjSDLSurface::SetPixel_8bpp(Obj &bobj,long x,long y,const DevicePixel c) {
 			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
-			obj.ConvertLogicalToDeviceCoordinates(x,y);
 			uint8_t *row = (uint8_t*)obj.GetSurfaceRowPtr(x,y);
 			if (row != NULL) *row = uint8_t(c);
 		}
@@ -745,9 +743,12 @@ namespace WLGUI {
 			return DevicePixel(0);
 		}
 
-		void SetPixel(const Handle h,const long x,const long y,const DevicePixel c) {
+		void SetPixel(const Handle h,long x,long y,const DevicePixel c) {
 			Obj* obj = GetObject(h);
-			if (obj) obj->SetPixel(*obj,x,y,c); /* NTS: call through function pointer */
+			if (obj) {
+				obj->ConvertLogicalToDeviceCoordinates(x,y);
+				obj->SetPixel(*obj,x,y,c); /* NTS: call through function pointer */
+			}
 		}
 
 		bool GetDeviceColorspace(const Handle h,ColorspaceType &t) {
@@ -1943,7 +1944,7 @@ public:
         cmd->raise();
     }
 
-    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) override {
         (void)b;//UNUSED
         if (arg == MSG_Get("OK")) {
             ParseCommand(cmd->getText());
@@ -1958,7 +1959,7 @@ public:
             close();
     }
 
-    bool keyUp(const GUI::Key &key) {
+    bool keyUp(const GUI::Key &key) override {
         if (GUI::ToplevelWindow::keyUp(key)) return true;
 
         if (key.special == GUI::Key::Enter) {
@@ -1988,7 +1989,7 @@ public:
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     };
 
-    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) override {
         (void)b;//UNUSED
         if (arg == MSG_Get("DEBUGCMD")) {
             logwin = true;
@@ -2021,7 +2022,7 @@ public:
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     };
 
-    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) override {
         (void)b;//UNUSED
         if (arg == MSG_Get("DEBUGCMD")) {
             logwin = false;
