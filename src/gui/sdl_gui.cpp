@@ -254,8 +254,8 @@ namespace WLGUI {
 	};
 
 	enum class BkMode {
-		TRANSPARENT=0,
-		OPAQUE=1
+		Transparent=0,
+		Opaque=1
 	};
 
 	struct DevicePixelDescription {
@@ -533,8 +533,8 @@ namespace WLGUI {
 		}
 
 		BkMode Obj::SetBkMode(BkMode x) {
-			const BkMode prev = (Flags.v & Flags::BKM_OPAQUE) ? BkMode::OPAQUE : BkMode::TRANSPARENT;
-			if (x == BkMode::OPAQUE) Flags.v |= Flags::BKM_OPAQUE;
+			const BkMode prev = (Flags.v & Flags::BKM_OPAQUE) ? BkMode::Opaque : BkMode::Transparent;
+			if (x == BkMode::Opaque) Flags.v |= Flags::BKM_OPAQUE;
 			else Flags.v &= ~Flags::BKM_OPAQUE;
 			return prev;
 		}
@@ -716,7 +716,7 @@ namespace WLGUI {
 		BkMode SetBkMode(const Handle h,BkMode x) {
 			Obj* obj = GetObject(h);
 			if (obj) return obj->SetBkMode(x);
-			return BkMode::TRANSPARENT;
+			return BkMode::Transparent;
 		}
 
 		DevicePixel SetBackgroundColor(const Handle h,const DevicePixel c) {
