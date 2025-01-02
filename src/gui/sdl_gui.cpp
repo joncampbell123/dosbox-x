@@ -336,67 +336,12 @@ namespace WLGUI {
 		 * In most cases you should GetDC and ReleaseDC to draw on your window just like real Windows.
 		 * Don't keep the DC open except to draw. */
 		struct Obj {
-			Obj() : type(ObjType::Base) { ColorDescription_DefaultRGB32(false); }
-			Obj(const ObjType t) : type(t) { }
-			virtual ~Obj() { }
-			virtual BkMode SetBkMode(BkMode x) {
-				const BkMode prev = (Flags.v & Flags::BKM_OPAQUE) ? BkMode::OPAQUE : BkMode::TRANSPARENT;
-				if (x == BkMode::OPAQUE) Flags.v |= Flags::BKM_OPAQUE;
-				else Flags.v &= ~Flags::BKM_OPAQUE;
-				return prev;
-			}
-			virtual DevicePixel MakeRGB8(const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a=0xFF) {
-				/* you must override this if your colorspace is not RGB (but this toolkit will be used where RGB is always used) */
-				return ColorDescription.t.RGB.Make8(r,g,b,a);
-			}
-			virtual DevicePixel SetBackgroundColor(const DevicePixel c) {
-				const DevicePixel prev = BackgroundColor;
-				BackgroundColor = c;
-				return prev;
-			}
-			virtual DevicePixel SetForegroundColor(const DevicePixel c) {
-				const DevicePixel prev = ForegroundColor;
-				ForegroundColor = c;
-				return prev;
-			}
-			virtual bool SetLogicalOrigin(const long x=0,const long y=0,Point *po=NULL) {
-				if (po) *po = originSrc;
-				originSrc = Point(x,y);
-				return true;
-			}
-			bool SetLogicalExtents(const long w,const long h,Point *po=NULL) {
-				if (po) *po = scaleSrc;
-				scaleSrc = Point(w,h);
-				return true;
-			}
-			virtual bool SetDeviceOrigin(const long x=0,const long y=0,Point *po=NULL) {
-				if (po) *po = originDst;
-				originDst = Point(x,y);
-				return true;
-			}
-			bool SetDeviceExtents(const long w,const long h,Point *po=NULL) {
-				if (po) *po = scaleDst;
-				scaleDst = Point(w,h);
-				return true;
-			}
-			bool SetArbitraryMapMode(const bool m=false) {
-				const bool pv = (Flags.v & Flags::COORD_MAP_MODE) != 0;
-				if (m) Flags.v |= Flags::COORD_MAP_MODE;
-				else Flags.v &= ~Flags::COORD_MAP_MODE;
-				return pv;
-			}
-			static void SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c) { (void)obj; (void)x; (void)y; (void)c; }
-			void (*SetPixel)(Obj &obj,long x,long y,const DevicePixel c) = &SetPixel_stub;
-			void ConvertLogicalToDeviceCoordinates(long &x,long &y) {
-				x += originSrc.x;
-				y += originSrc.y;
-				if (Flags.v & Flags::COORD_MAP_MODE) {
-					x = (x * scaleDst.x) / scaleSrc.x;
-					y = (y * scaleDst.y) / scaleSrc.y;
-				}
-				x += originDst.x;
-				y += originDst.y;
-			}
+			struct Flags {
+				static constexpr uint32_t BKM_OPAQUE = uint32_t(1u) << uint32_t(0u); /* background is opaque i.e. text */
+				static constexpr uint32_t COORD_MAP_MODE = uint32_t(1u) << uint32_t(1u); /* coordinate scaling after origin translation */
+				uint32_t v = 0;
+			};
+
 			ObjType		type; /* init by constructor */
 			Dimensions	viewport = {0,0}; /* the viewport in device pixels i.e. SDL surface pixels */
 			Point		originSrc = {0,0}; /* coordinate system origin */
@@ -408,78 +353,39 @@ namespace WLGUI {
 			DevicePixelDescription ColorDescription; /* init by constructor if base, otherwise UNINITIALIZED */
 			ColorspaceType	Colorspace = ColorspaceType::RGB;
 			int		refcount = 0;
-			struct Flags {
-				static constexpr uint32_t BKM_OPAQUE = uint32_t(1u) << uint32_t(0u); /* background is opaque i.e. text */
-				static constexpr uint32_t COORD_MAP_MODE = uint32_t(1u) << uint32_t(1u); /* coordinate scaling after origin translation */
-				uint32_t v = 0;
-			};
 			Flags		Flags;
+
+			void		(*SetPixel)(Obj &obj,long x,long y,const DevicePixel c) = &SetPixel_stub;
+
+			Obj();
+			Obj(const ObjType t);
+			virtual ~Obj();
+			virtual BkMode SetBkMode(BkMode x);
+			virtual DevicePixel MakeRGB8(const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a=0xFF);
+			virtual DevicePixel SetBackgroundColor(const DevicePixel c);
+			virtual DevicePixel SetForegroundColor(const DevicePixel c);
+			virtual bool SetLogicalOrigin(const long x=0,const long y=0,Point *po=NULL);
+			bool SetLogicalExtents(const long w,const long h,Point *po=NULL);
+			virtual bool SetDeviceOrigin(const long x=0,const long y=0,Point *po=NULL);
+			bool SetDeviceExtents(const long w,const long h,Point *po=NULL);
+			bool SetArbitraryMapMode(const bool m=false);
+			void ConvertLogicalToDeviceCoordinates(long &x,long &y);
+			static void SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c);
 		};
 
 		/* SDL surface DC */
 		struct ObjSDLSurface : public Obj {
-			ObjSDLSurface() : Obj(ObjType::SDLSurface) { }
-			ObjSDLSurface(SDL_Surface *surf) : Obj(ObjType::SDLSurface), surface(surf) { initFromSurface(); }
-			virtual ~ObjSDLSurface() { }
 			SDL_Surface*	surface = NULL;
 			Point		viewport_origin = {0,0}; /* in case we do subregions of a surface as "window objects" */
 
-			void initFromSurface(void) {
-				viewport.w = abs(surface->w);
-				viewport.h = abs(surface->h);
-				scaleSrc = { viewport.w, viewport.h };
-				scaleDst = { viewport.w, viewport.h };
-				ColorDescription.BitsPerPixel = surface->format->BitsPerPixel;
-				ColorDescription.BytesPerPixel = surface->format->BytesPerPixel;
+			ObjSDLSurface();
+			ObjSDLSurface(SDL_Surface *surf);
+			virtual ~ObjSDLSurface();
 
-				ColorDescription.t.RGB.mask.r = surface->format->Rmask;
-				ColorDescription.t.RGB.shift.r = surface->format->Rshift;
-				ColorDescription.t.RGB.width.r = MaskToWidth(surface->format->Rmask);
-
-				ColorDescription.t.RGB.mask.g = surface->format->Gmask;
-				ColorDescription.t.RGB.shift.g = surface->format->Gshift;
-				ColorDescription.t.RGB.width.g = MaskToWidth(surface->format->Gmask);
-
-				ColorDescription.t.RGB.mask.b = surface->format->Bmask;
-				ColorDescription.t.RGB.shift.b = surface->format->Bshift;
-				ColorDescription.t.RGB.width.b = MaskToWidth(surface->format->Bmask);
-
-				ColorDescription.t.RGB.mask.a = surface->format->Amask;
-				ColorDescription.t.RGB.shift.a = surface->format->Ashift;
-				ColorDescription.t.RGB.width.a = MaskToWidth(surface->format->Amask);
-
-				BackgroundColor = ColorDescription.t.RGB.Make8(0xFF,0xFF,0xFF);
-				ForegroundColor = ColorDescription.t.RGB.Make8(0x00,0x00,0x00);
-
-				SetPixel = SetPixel_32bpp;
-			}
-
-			void ConvertLogicalToDeviceCoordinates(long &x,long &y) {
-				Obj::ConvertLogicalToDeviceCoordinates(x,y);
-				x += viewport_origin.x;
-				y += viewport_origin.y;
-			}
-
-			/* WARNING: This is not suitable for surfaces less than 8bpp if x != 0 */
-			void *GetSurfaceRowPtr(long x,long y) {
-				/* We trust the viewport has not been corrupted to extend outside the SDL surface! */
-				if (x >= 0l && x < (long)viewport.w && y >= 0l && y < (long)viewport.h) {
-					unsigned char *p = (unsigned char*)(surface->pixels);
-					if (p == NULL) return NULL;
-					return
-						p +
-						((unsigned int)surface->pitch * (unsigned int)y) +
-						((unsigned int)ColorDescription.BytesPerPixel * (unsigned int)x);
-				}
-				return NULL;
-			}
-
-			static void SetPixel_32bpp(Obj &bobj,long x,long y,const DevicePixel c) {
-				ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
-				obj.ConvertLogicalToDeviceCoordinates(x,y);
-				uint32_t *row = (uint32_t*)obj.GetSurfaceRowPtr(x,y);
-				if (row != NULL) *row = uint32_t(c);
-			}
+			void initFromSurface(void);
+			void ConvertLogicalToDeviceCoordinates(long &x,long &y);
+			void *GetSurfaceRowPtr(long x,long y);
+			static void SetPixel_32bpp(Obj &bobj,long x,long y,const DevicePixel c);
 		};
 
 		Handle CreateSDLSurfaceDC(SDL_Surface *surf);
@@ -615,6 +521,158 @@ namespace WLGUI {
 	}
 
 	namespace DC {
+
+		Obj::Obj() : type(ObjType::Base) {
+			ColorDescription_DefaultRGB32(false);
+		}
+
+		Obj::Obj(const ObjType t) : type(t) {
+		}
+
+		Obj::~Obj() {
+		}
+
+		BkMode Obj::SetBkMode(BkMode x) {
+			const BkMode prev = (Flags.v & Flags::BKM_OPAQUE) ? BkMode::OPAQUE : BkMode::TRANSPARENT;
+			if (x == BkMode::OPAQUE) Flags.v |= Flags::BKM_OPAQUE;
+			else Flags.v &= ~Flags::BKM_OPAQUE;
+			return prev;
+		}
+
+		DevicePixel Obj::MakeRGB8(const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a) {
+			/* you must override this if your colorspace is not RGB (but this toolkit will be used where RGB is always used) */
+			return ColorDescription.t.RGB.Make8(r,g,b,a);
+		}
+
+		DevicePixel Obj::SetBackgroundColor(const DevicePixel c) {
+			const DevicePixel prev = BackgroundColor;
+			BackgroundColor = c;
+			return prev;
+		}
+
+		DevicePixel Obj::SetForegroundColor(const DevicePixel c) {
+			const DevicePixel prev = ForegroundColor;
+			ForegroundColor = c;
+			return prev;
+		}
+
+		bool Obj::SetLogicalOrigin(const long x,const long y,Point *po) {
+			if (po) *po = originSrc;
+			originSrc = Point(x,y);
+			return true;
+		}
+
+		bool Obj::SetLogicalExtents(const long w,const long h,Point *po) {
+			if (po) *po = scaleSrc;
+			scaleSrc = Point(w,h);
+			return true;
+		}
+
+		bool Obj::SetDeviceOrigin(const long x,const long y,Point *po) {
+			if (po) *po = originDst;
+			originDst = Point(x,y);
+			return true;
+		}
+
+		bool Obj::SetDeviceExtents(const long w,const long h,Point *po) {
+			if (po) *po = scaleDst;
+			scaleDst = Point(w,h);
+			return true;
+		}
+
+		bool Obj::SetArbitraryMapMode(const bool m) {
+			const bool pv = (Flags.v & Flags::COORD_MAP_MODE) != 0;
+			if (m) Flags.v |= Flags::COORD_MAP_MODE;
+			else Flags.v &= ~Flags::COORD_MAP_MODE;
+			return pv;
+		}
+
+		void Obj::ConvertLogicalToDeviceCoordinates(long &x,long &y) {
+			x += originSrc.x;
+			y += originSrc.y;
+			if (Flags.v & Flags::COORD_MAP_MODE) {
+				x = (x * scaleDst.x) / scaleSrc.x;
+				y = (y * scaleDst.y) / scaleSrc.y;
+			}
+			x += originDst.x;
+			y += originDst.y;
+		}
+
+		void Obj::SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c) {
+			(void)obj;
+			(void)x;
+			(void)y;
+			(void)c;
+		}
+
+		///////////////////////////
+
+		ObjSDLSurface::ObjSDLSurface() : Obj(ObjType::SDLSurface) {
+		}
+
+		ObjSDLSurface::ObjSDLSurface(SDL_Surface *surf) : Obj(ObjType::SDLSurface), surface(surf) {
+			initFromSurface();
+		}
+
+		ObjSDLSurface::~ObjSDLSurface() {
+		}
+
+		void ObjSDLSurface::initFromSurface(void) {
+			viewport.w = abs(surface->w);
+			viewport.h = abs(surface->h);
+			scaleSrc = { viewport.w, viewport.h };
+			scaleDst = { viewport.w, viewport.h };
+			ColorDescription.BitsPerPixel = surface->format->BitsPerPixel;
+			ColorDescription.BytesPerPixel = surface->format->BytesPerPixel;
+
+			ColorDescription.t.RGB.mask.r = surface->format->Rmask;
+			ColorDescription.t.RGB.shift.r = surface->format->Rshift;
+			ColorDescription.t.RGB.width.r = MaskToWidth(surface->format->Rmask);
+
+			ColorDescription.t.RGB.mask.g = surface->format->Gmask;
+			ColorDescription.t.RGB.shift.g = surface->format->Gshift;
+			ColorDescription.t.RGB.width.g = MaskToWidth(surface->format->Gmask);
+
+			ColorDescription.t.RGB.mask.b = surface->format->Bmask;
+			ColorDescription.t.RGB.shift.b = surface->format->Bshift;
+			ColorDescription.t.RGB.width.b = MaskToWidth(surface->format->Bmask);
+
+			ColorDescription.t.RGB.mask.a = surface->format->Amask;
+			ColorDescription.t.RGB.shift.a = surface->format->Ashift;
+			ColorDescription.t.RGB.width.a = MaskToWidth(surface->format->Amask);
+
+			BackgroundColor = ColorDescription.t.RGB.Make8(0xFF,0xFF,0xFF);
+			ForegroundColor = ColorDescription.t.RGB.Make8(0x00,0x00,0x00);
+
+			SetPixel = SetPixel_32bpp;
+		}
+
+		void ObjSDLSurface::ConvertLogicalToDeviceCoordinates(long &x,long &y) {
+			Obj::ConvertLogicalToDeviceCoordinates(x,y);
+			x += viewport_origin.x;
+			y += viewport_origin.y;
+		}
+
+		/* WARNING: This is not suitable for surfaces less than 8bpp if x != 0 */
+		void *ObjSDLSurface::GetSurfaceRowPtr(long x,long y) {
+			/* We trust the viewport has not been corrupted to extend outside the SDL surface! */
+			if (x >= 0l && x < (long)viewport.w && y >= 0l && y < (long)viewport.h) {
+				unsigned char *p = (unsigned char*)(surface->pixels);
+				if (p == NULL) return NULL;
+				return
+					p +
+					((unsigned int)surface->pitch * (unsigned int)y) +
+					((unsigned int)ColorDescription.BytesPerPixel * (unsigned int)x);
+			}
+			return NULL;
+		}
+
+		void ObjSDLSurface::SetPixel_32bpp(Obj &bobj,long x,long y,const DevicePixel c) {
+			ObjSDLSurface &obj = reinterpret_cast<ObjSDLSurface&>(bobj);
+			obj.ConvertLogicalToDeviceCoordinates(x,y);
+			uint32_t *row = (uint32_t*)obj.GetSurfaceRowPtr(x,y);
+			if (row != NULL) *row = uint32_t(c);
+		}
 
 		Handle CreateSDLSurfaceDC(SDL_Surface *surf) {
 			const size_t idx = List.AllocateHandleIndex();
