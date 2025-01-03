@@ -234,6 +234,10 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     return true;
 }
 
+extern uint8_t int10_font_08[256 * 8];
+extern uint8_t int10_font_14[256 * 14];
+extern uint8_t int10_font_16[256 * 16];
+
 /* Windows-Like GUI toolkit (to better emulate the look and feel of Windows 3.1) */
 namespace WLGUI {
 
@@ -247,7 +251,8 @@ namespace WLGUI {
 
 	enum class HandleType {
 		NoType=0, /* FIXME: Why can't I use "None", GCC? Are you reserving identifiers for future Python support or something? */
-		DC=1
+		DC=1,
+		FontHandle=2
 	};
 
 	enum class ColorspaceType {
@@ -325,6 +330,67 @@ namespace WLGUI {
 	static unsigned int Pixel8ToWidth(const unsigned int v,const unsigned int width);
 	static const DevicePixelDescription ColorDescription_DefaultRGB32(const bool withAlpha);
 
+	namespace FontHandle {
+
+		enum class ObjType {
+			Base=0, /* you shouldn't use this */
+			VGAFont=1
+		};
+
+		struct Obj;
+		TypedResourceList<Obj> List;
+
+		struct Bitmap {
+			uint8_t			bpp = 1; /* 1bpp (mono) or 8bpp (grayscale) */
+			uint16_t		pitch = 0,height = 0;
+			const unsigned char*	base = NULL;
+			uint16_t		sx = 0,sy = 0; /* source pixels to draw */
+			uint16_t		dw = 0,dh = 0; /* dimensions of pixels to draw */
+			int16_t			dx = 0,dy = 0; /* dest pixels offset from origin to draw */
+			int16_t			advancex256 = 0; /* advance x in 1/256th of a pixel */
+			uint16_t		cw = 0; /* calculation width, for centering and such */
+		};
+
+		struct Obj {
+			struct Flags {
+				static constexpr uint32_t ANTIALIASED = uint32_t(1u) << uint32_t(0u); /* make anti-aliased TrueType where possible */
+				static constexpr uint32_t TRUETYPE = uint32_t(1u) << uint32_t(1u); /* font is TrueType */
+				static constexpr uint32_t FIXED_PITCH = uint32_t(1u) << uint32_t(2u); /* font is fixed pitch */
+				uint32_t v = 0;
+			};
+
+			Flags		Flags;
+			ObjType		type; /* init by constructor */
+			int16_t		totalHeight = 0; /* font cell (top to bottom) */
+			int16_t		ascentY = 0; /* height from baseline upward */
+			int16_t		internalLeading = 0;
+			int16_t		externalLeading = 0;
+
+			Obj();
+			Obj(const ObjType t);
+			virtual ~Obj();
+
+			virtual signed int GlyphLookup(int32_t uc);
+
+			static constexpr unsigned int GCF_BITMAP = 1u << 0u;
+			virtual bool GetChar(unsigned int glyph,Bitmap &bmp,unsigned int flags=0);
+		};
+
+		/* VGA font */
+		struct ObjVGAFont : public Obj {
+			const unsigned char*		font = (const unsigned char*)NULL;
+			uint16_t			fontheight = 0;
+
+			ObjVGAFont(const unsigned int height);
+			virtual ~ObjVGAFont();
+
+			/* TODO: Callback function to convert unicode -> CP437 */
+			virtual signed int GlyphLookup(int32_t uc) override;
+			virtual bool GetChar(unsigned int glyph,Bitmap &bmp,unsigned int flags) override;
+		};
+
+	}
+
 	namespace DC {
 
 		enum class ObjType {
@@ -360,6 +426,7 @@ namespace WLGUI {
 			DevicePixelDescription ColorDescription; /* init by constructor if base, otherwise UNINITIALIZED */
 			ColorspaceType	Colorspace = ColorspaceType::RGB;
 			ReferenceCountTracking ref;
+			Handle		CurrentFont = InvalidHandleValue;
 			Flags		Flags;
 
 			DevicePixel	(*GetPixel)(Obj &obj,long x,long y) = &GetPixel_stub;
@@ -378,6 +445,7 @@ namespace WLGUI {
 			bool SetDeviceExtents(const long w,const long h,Point *po=NULL);
 			bool SetArbitraryMapMode(const bool m=false);
 			virtual void ConvertLogicalToDeviceCoordinates(long &x,long &y);
+			virtual Handle SelectFont(Handle newValue);
 
 			static DevicePixel GetPixel_stub(Obj &obj,long x,long y);
 			static void SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c);
@@ -388,7 +456,6 @@ namespace WLGUI {
 			SDL_Surface*	surface = NULL;
 			Point		viewport_origin = {0,0}; /* in case we do subregions of a surface as "window objects" */
 
-			ObjSDLSurface();
 			ObjSDLSurface(SDL_Surface *surf);
 			virtual ~ObjSDLSurface();
 
@@ -549,6 +616,107 @@ namespace WLGUI {
 		return InvalidHandleIndex;
 	}
 
+	namespace FontHandle {
+
+		Obj::Obj() : type(ObjType::Base) {
+		}
+
+		Obj::Obj(const ObjType t) : type(t) {
+		}
+
+		Obj::~Obj() {
+		}
+
+		signed int Obj::GlyphLookup(int32_t uc) {
+			(void)uc;
+			return -1;
+		}
+
+		bool Obj::GetChar(unsigned int glyph,Bitmap &bmp,unsigned int flags) {
+			(void)glyph;
+			(void)bmp;
+			(void)flags;
+			return false;
+		}
+
+		/////////////////
+
+		ObjVGAFont::ObjVGAFont(const unsigned int height) : Obj(ObjType::VGAFont) {
+			Flags.v |= Flags::FIXED_PITCH;
+			if (height >= 16) {
+				font = int10_font_16;
+				fontheight = 16;
+			}
+			else if (height >= 14) {
+				font = int10_font_14;
+				fontheight = 14;
+			}
+			else {
+				font = int10_font_08;
+				fontheight = 8;
+			}
+		}
+
+		ObjVGAFont::~ObjVGAFont() {
+		}
+
+		signed int ObjVGAFont::GlyphLookup(int32_t uc) {
+			/* TODO: Map unicode to CP437 since that is what the stock VGA font uses */
+			if (uc >= 0 && uc <= 255)
+				return (int)uc;
+
+			return -1;
+		}
+
+		bool ObjVGAFont::GetChar(unsigned int glyph,Bitmap &bmp,unsigned int flags) {
+			if (glyph < 256) {
+				bmp = Bitmap();
+				bmp.bpp = 1;
+				bmp.pitch = 1;
+				bmp.height = fontheight;
+				bmp.base = font + (glyph * fontheight);
+				bmp.sx = 0;
+				bmp.sy = 0;
+				bmp.dw = 8;
+				bmp.dh = fontheight;
+				bmp.dx = 0;
+				bmp.dy = 0;
+				bmp.advancex256 = 8u << 8u;
+				bmp.cw = 8;
+				(void)flags;
+				return true;
+			}
+
+			return false;
+		}
+
+		//////////////////
+
+		Handle CreateVGAFont(const unsigned int height) {
+			const size_t idx = List.AllocateHandleIndex();
+			if (idx != InvalidHandleIndex) {
+				List.Set(idx,(Obj*)(new ObjVGAFont(height)));
+				return MakeHandle(HandleType::FontHandle,HandleIndex(idx));
+			}
+
+			return InvalidHandleValue;
+		}
+
+		bool Destroy(Handle h) {
+			const HandleIndex idx = GetHandleIndex(HandleType::FontHandle,h);
+			if (idx != InvalidHandleIndex && idx < List.Size()) {
+				Obj *obj = List.Get(idx);
+				if (obj != NULL) {
+					List.Set(idx,NULL);
+					delete obj;
+					return true;
+				}
+			}
+
+			return false;
+		}
+	}
+
 	namespace DC {
 
 		Obj::Obj() : type(ObjType::Base) {
@@ -628,6 +796,12 @@ namespace WLGUI {
 			y += originDst.y;
 		}
 
+		Handle Obj::SelectFont(Handle newValue) {
+			Handle pv = CurrentFont;
+			CurrentFont = newValue;
+			return pv;
+		}
+
 		DevicePixel Obj::GetPixel_stub(Obj &obj,long x,long y) {
 			(void)obj;
 			(void)x;
@@ -643,9 +817,6 @@ namespace WLGUI {
 		}
 
 		///////////////////////////
-
-		ObjSDLSurface::ObjSDLSurface() : Obj(ObjType::SDLSurface) {
-		}
 
 		ObjSDLSurface::ObjSDLSurface(SDL_Surface *surf) : Obj(ObjType::SDLSurface), surface(surf) {
 			initFromSurface();
@@ -919,6 +1090,9 @@ void NewUIExperiment(bool pressed) {
 	WLGUI::Handle gui_surface_dc = WLGUI::DC::CreateSDLSurfaceDC(gui_surface);
 	if (gui_surface_dc == WLGUI::InvalidHandleValue) E_Exit("Cannot create SDL DC");
 
+	WLGUI::Handle VGAFont = WLGUI::FontHandle::CreateVGAFont(16);
+	if (VGAFont == WLGUI::InvalidHandleValue) E_Exit("Cannot create VGA font");
+
 	for (long x=-100;x < 100;x++) {
 		WLGUI::DC::SetPixel(gui_surface_dc,x,   x,WLGUI::DC::MakeRGB8(gui_surface_dc,x+128,x+128,x+128));
 		WLGUI::DC::SetPixel(gui_surface_dc,x+10,x,WLGUI::DC::MakeRGB8(gui_surface_dc,x+128,0,    0    ));
@@ -1011,6 +1185,7 @@ void NewUIExperiment(bool pressed) {
 	SDL_FillRect(gui_surface, nullptr, 0);
 
 	if (!WLGUI::DC::Delete(gui_surface_dc)) E_Exit("Cannot delete SDL DC");
+	if (!WLGUI::FontHandle::Destroy(VGAFont)) E_Exit("Cannot destroy font");
 #endif
 
         GFX_Stop();
