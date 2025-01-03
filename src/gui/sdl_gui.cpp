@@ -446,6 +446,7 @@ namespace WLGUI {
 			bool SetArbitraryMapMode(const bool m=false);
 			virtual void ConvertLogicalToDeviceCoordinates(long &x,long &y);
 			virtual Handle SelectFont(Handle newValue);
+			virtual bool TextOut(long x,long y,const char *str/*TODO UTF-8*/);
 
 			static DevicePixel GetPixel_stub(Obj &obj,long x,long y);
 			static void SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c);
@@ -490,6 +491,8 @@ namespace WLGUI {
 		bool SetDeviceExtents(const Handle handle,const long w,const long h,Point *po=NULL);
 		bool SetArbitraryMapMode(const Handle h,const bool m=false);
 		bool Delete(const Handle h);
+		Handle SelectFont(const Handle DC,const Handle newValue);
+		bool TextOut(const Handle h,long x,long y,const char *str/*TODO UTF-8*/);
 
 	}
 
@@ -499,6 +502,10 @@ namespace WLGUI {
 
 	static Handle MakeHandle(const HandleType ht,const HandleIndex idx) {
 		return ((Handle)ht << (Handle)24u) + Handle(idx & 0xFFFFFFu);
+	}
+
+	static HandleType GetHandleType(const Handle h) {
+		return HandleType(h >> (Handle)24u);
 	}
 
 	static HandleIndex GetHandleIndex(const HandleType ht,const Handle h) {
@@ -797,9 +804,72 @@ namespace WLGUI {
 		}
 
 		Handle Obj::SelectFont(Handle newValue) {
-			Handle pv = CurrentFont;
-			CurrentFont = newValue;
-			return pv;
+			if (GetHandleType(newValue) == HandleType::FontHandle) {
+				Handle pv = CurrentFont;
+				CurrentFont = newValue;
+				return pv;
+			}
+			else if (newValue == InvalidHandleValue) {
+				CurrentFont = newValue;
+			}
+
+			return InvalidHandleValue;
+		}
+
+		bool Obj::TextOut(long x,long y,const char *str) {
+			FontHandle::Obj *fh = FontHandle::List.Get(GetHandleIndex(HandleType::FontHandle,CurrentFont));
+
+			if (fh) {
+				int32_t c;
+				long fx = x << 8l;
+
+				while ((c=(unsigned char)(*str++)/*TODO: Read UTF-8 char*/) != 0) {
+					int glyph = fh->GlyphLookup(c);
+					if (glyph >= 0) {
+						FontHandle::Bitmap bmp;
+						if (fh->GetChar((unsigned int)glyph,bmp)) {
+							x = fx >> 8l;
+							if (bmp.base != NULL) {
+								if (bmp.bpp == 1) {
+									long dx = x + bmp.dx;
+									for (unsigned int subx=0;subx < bmp.dw;subx++) {
+										const unsigned int bsx = bmp.sx + subx;
+										unsigned char msk = 0x80 >> (bsx & 7u);
+										const unsigned char *s =
+											bmp.base +
+											(bmp.sy * bmp.pitch) +
+											(bsx >> 3u);
+
+										long dy = y + bmp.dy;
+										if (Flags.v & Flags::BKM_OPAQUE) {
+											for (unsigned int suby=0;suby < bmp.dh;suby++) {
+												SetPixel(*this,dx,dy,(*s & msk) ? ForegroundColor : BackgroundColor);
+												s += bmp.pitch;
+												dy++;
+											}
+										}
+										else {
+											for (unsigned int suby=0;suby < bmp.dh;suby++) {
+												if (*s & msk) SetPixel(*this,dx,dy,ForegroundColor);
+												s += bmp.pitch;
+												dy++;
+											}
+										}
+
+										dx++;
+									}
+								}
+							}
+
+							fx += bmp.advancex256;
+						}
+					}
+				}
+
+				return true;
+			}
+
+			return false;
 		}
 
 		DevicePixel Obj::GetPixel_stub(Obj &obj,long x,long y) {
@@ -1055,6 +1125,21 @@ namespace WLGUI {
 			return false;
 		}
 
+		Handle SelectFont(const Handle h,const Handle newValue) {
+			Obj* obj = GetObject(h);
+			if (obj) return obj->SelectFont(newValue);
+			return InvalidHandleValue;
+		}
+
+		bool TextOut(const Handle h,long x,long y,const char *str/*TODO UTF-8*/) {
+			Obj* obj = GetObject(h);
+			if (obj) {
+				obj->ConvertLogicalToDeviceCoordinates(x,y);
+				return obj->TextOut(x,y,str);
+			}
+			return false;
+		}
+
 	}
 
 }
@@ -1092,6 +1177,14 @@ void NewUIExperiment(bool pressed) {
 
 	WLGUI::Handle VGAFont = WLGUI::FontHandle::CreateVGAFont(16);
 	if (VGAFont == WLGUI::InvalidHandleValue) E_Exit("Cannot create VGA font");
+
+	WLGUI::DC::SelectFont(gui_surface_dc,VGAFont);
+	WLGUI::DC::SetBkMode(gui_surface_dc,WLGUI::BkMode::Transparent);
+	WLGUI::DC::SetForegroundColor(gui_surface_dc,WLGUI::DC::MakeRGB8(gui_surface_dc,0xFF,0xFF,0xFF));
+	WLGUI::DC::SetBackgroundColor(gui_surface_dc,WLGUI::DC::MakeRGB8(gui_surface_dc,0x00,0x00,0xFF));
+	WLGUI::DC::TextOut(gui_surface_dc,0,0,"Hello!");
+	WLGUI::DC::SetBkMode(gui_surface_dc,WLGUI::BkMode::Opaque);
+	WLGUI::DC::TextOut(gui_surface_dc,0,16,"Hello!");
 
 	for (long x=-100;x < 100;x++) {
 		WLGUI::DC::SetPixel(gui_surface_dc,x,   x,WLGUI::DC::MakeRGB8(gui_surface_dc,x+128,x+128,x+128));
