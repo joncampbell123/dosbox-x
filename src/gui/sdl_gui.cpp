@@ -817,7 +817,7 @@ namespace WLGUI {
 
 			return InvalidHandleValue;
 		}
-				
+
 		bool Obj::DrawTextChar1bpp(long x,long y,FontHandle::Bitmap &bmp) {
 			long dx = x + bmp.dx;
 			for (unsigned int subx=0;subx < bmp.dw;subx++) {
