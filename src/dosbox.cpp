@@ -1981,7 +1981,7 @@ void DOSBOX_SetupConfigSections(void) {
         "Many 386/486 class motherboards and processors prior to 1995\n"
         "suffered from memory aliasing for various technical reasons. If the software you are\n"
         "trying to run assumes aliasing, or otherwise plays cheap tricks with paging,\n"
-        "enabling this option can help. Note that enabling this option can cause slight performance degradation. Set to 0 to disable.\n"
+        "enabling this option can help. Note that enabling this option can cause slight performance degradation.\n"
         "Recommended values when enabled:\n"
         "    0: Pick a value automatically according to cputype.\n"
         "       NOTE: Changing the cputype after initial startup will not change the auto setting i.e.\n"
