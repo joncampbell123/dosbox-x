@@ -1979,9 +1979,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help(
         "Memory aliasing emulation, in number of valid address bits.\n"
         "Many 386/486 class motherboards and processors prior to 1995\n"
-        "suffered from memory aliasing for various technical reasons. If the software you are\n"
-        "trying to run assumes aliasing, or otherwise plays cheap tricks with paging,\n"
-        "enabling this option can help. Note that enabling this option can cause slight performance degradation.\n"
+        "had memory aliases for various technical reasons such as having\n"
+	"less than 32 address bits on the CPU die.\n"
         "Recommended values when enabled:\n"
         "    0: Pick a value automatically according to cputype.\n"
         "       NOTE: Changing the cputype after initial startup will not change the auto setting i.e.\n"
