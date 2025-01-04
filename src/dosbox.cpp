@@ -1987,7 +1987,10 @@ void DOSBOX_SetupConfigSections(void) {
         "       starting with cputype=8086 will use a memalias of 20 even if you later change cputype to 386.\n"
         "    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
         "        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
-        "    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
+        "    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31\n"
+        "    32: 4GB aliasing. This is normal for most 486/Pentium and later systems and is the default for most values of cputype.\n"
+        "    36: 64GB aliasing. Recommended if you are emulating more than 3.5GB of RAM and Pentium Pro/II Page Size Extensions.\n"
+        "    40: 1TB aliasing. Recommended if you are emulating more than 63GB of RAM and Pentium Pro/II Page Size Extensions.");
 
     Pbool = secprop->Add_bool("nocachedir",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, MOUNT commands will mount with -nocachedir (disable directory caching) by default.");
