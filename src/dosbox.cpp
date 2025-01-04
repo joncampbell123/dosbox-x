@@ -1983,6 +1983,9 @@ void DOSBOX_SetupConfigSections(void) {
         "trying to run assumes aliasing, or otherwise plays cheap tricks with paging,\n"
         "enabling this option can help. Note that enabling this option can cause slight performance degradation. Set to 0 to disable.\n"
         "Recommended values when enabled:\n"
+        "    0: Pick a value automatically according to cputype.\n"
+        "       NOTE: Changing the cputype after initial startup will not change the auto setting i.e.\n"
+        "       starting with cputype=8086 will use a memalias of 20 even if you later change cputype to 386.\n"
         "    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
         "        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
         "    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
