@@ -426,7 +426,7 @@ namespace WLGUI {
 			virtual Handle SelectFont(Handle newValue);
 			virtual bool TextOut(long x,long y,const char *str/*TODO UTF-8*/);
 			virtual bool DrawTextChar1bpp(long x,long y,FontHandle::Bitmap &bmp);
-			virtual bool DrawTextChar(long x,long y,FontHandle::Bitmap &bmp);
+			bool DrawTextChar(long x,long y,FontHandle::Bitmap &bmp);
 
 			static DevicePixel GetPixel_stub(Obj &obj,long x,long y);
 			static void SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c);
@@ -801,6 +801,7 @@ namespace WLGUI {
 			return InvalidHandleValue;
 		}
 
+		/* NTS: Override this method if you have a faster more optimized routine for 1bpp bitmap font rendering */
 		bool Obj::DrawTextChar1bpp(long x,long y,FontHandle::Bitmap &bmp) {
 			long dx = x + bmp.dx;
 			for (unsigned int subx=0;subx < bmp.dw;subx++) {
