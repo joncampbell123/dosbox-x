@@ -363,7 +363,9 @@ namespace WLGUI {
 		/* VGA font */
 		struct ObjVGAFont : public Obj {
 			const unsigned char*		font = (const unsigned char*)NULL;
+			unsigned char*			copy = NULL; /* if you ask for larger sizes */
 			uint16_t			fontheight = 0;
+			uint16_t			scale = 1;
 
 			ObjVGAFont(const unsigned int height);
 			virtual ~ObjVGAFont();
@@ -372,6 +374,11 @@ namespace WLGUI {
 			virtual signed int GlyphLookup(int32_t uc) override;
 			virtual bool GetChar(unsigned int glyph,Bitmap &bmp,unsigned int flags) override;
 		};
+
+		Handle CreateVGAFont(const unsigned int height);
+		int GetHeight(const Handle h);
+		int GetAscent(const Handle h);
+		bool Destroy(Handle h);
 
 	}
 
@@ -612,6 +619,8 @@ namespace WLGUI {
 		/////////////////
 
 		ObjVGAFont::ObjVGAFont(const unsigned int height) : Obj(ObjType::VGAFont) {
+			scale = 1; while ((height/scale) >= 24) scale++;
+
 			Flags.v |= Flags::FixedPitch;
 			if (height >= 16) {
 				font = int10_font_16;
@@ -625,9 +634,47 @@ namespace WLGUI {
 				font = int10_font_08;
 				fontheight = 8;
 			}
+
+			if (scale > 1) {
+				copy = new unsigned char[fontheight*256*scale*scale]; /* expand in both dimensions */
+				memset(copy,0,fontheight*256*scale*scale);
+				for (unsigned int y=0;y < (fontheight*256);y++) {
+					unsigned char *d = copy + (y*scale*scale),*ld = d;
+					const unsigned char *s = font + y;
+
+					memset(d,0,scale);
+					d += scale;
+
+					unsigned char smsk = 0x80,dmsk = 0x80;
+					for (unsigned int x=0;x < 8;x++) {
+						for (unsigned int c=0;c < scale;c++) {
+							if (*s & smsk) *ld |= dmsk;
+
+							if ((dmsk >>= 1u) == 0) {
+								dmsk = 0x80;
+								ld++;
+							}
+						}
+
+						smsk >>= 1u;
+					}
+
+					for (unsigned int c=1;c < scale;c++) {
+						memcpy(d,d-scale,scale);
+						d += scale;
+					}
+				}
+
+				fontheight *= scale;
+				font = copy;
+			}
+
+			totalHeight = fontheight;
+			ascentY = fontheight - (2 * scale);
 		}
 
 		ObjVGAFont::~ObjVGAFont() {
+			if (copy) delete[] copy;
 		}
 
 		signed int ObjVGAFont::GlyphLookup(int32_t uc) {
@@ -642,16 +689,16 @@ namespace WLGUI {
 			if (glyph < 256) {
 				bmp = Bitmap();
 				bmp.bpp = 1;
-				bmp.pitch = 1;
+				bmp.pitch = 1 * scale;
 				bmp.height = fontheight;
-				bmp.base = font + (glyph * fontheight);
+				bmp.base = font + (glyph * fontheight * bmp.pitch);
 				bmp.sx = 0;
 				bmp.sy = 0;
-				bmp.dw = 8;
+				bmp.dw = 8 * scale;
 				bmp.dh = fontheight;
 				bmp.dx = 0;
 				bmp.dy = 0;
-				bmp.advancex256 = 8u << 8u;
+				bmp.advancex256 = (8u * scale) << 8u;
 				bmp.cw = 8;
 				(void)flags;
 				return true;
@@ -662,6 +709,12 @@ namespace WLGUI {
 
 		//////////////////
 
+		/* for internal use only */
+		Obj* GetObject(const Handle h) {
+			const HandleIndex idx = GetHandleIndex(HandleType::FontHandle,h);
+			return (Obj*)Resources.Get(idx);
+		}
+
 		Handle CreateVGAFont(const unsigned int height) {
 			const size_t idx = Resources.AllocateHandleIndex();
 			if (idx != InvalidHandleIndex) {
@@ -670,6 +723,18 @@ namespace WLGUI {
 			}
 
 			return InvalidHandleValue;
+		}
+
+		int GetHeight(const Handle h) {
+			Obj* obj = GetObject(h);
+			if (obj) { return obj->totalHeight; }
+			return 0;
+		}
+
+		int GetAscent(const Handle h) {
+			Obj* obj = GetObject(h);
+			if (obj) { return obj->ascentY; }
+			return 0;
 		}
 
 		bool Destroy(Handle h) {
@@ -1055,15 +1120,15 @@ void NewUIExperiment(bool pressed) {
 	WLGUI::Handle gui_surface_dc = WLGUI::DC::CreateSDLSurfaceDC(gui_surface);
 	if (gui_surface_dc == WLGUI::InvalidHandleValue) E_Exit("Cannot create SDL DC");
 
-	WLGUI::Handle VGAFont = WLGUI::FontHandle::CreateVGAFont(16);
+	WLGUI::Handle VGAFont = WLGUI::FontHandle::CreateVGAFont(16*2);
 	if (VGAFont == WLGUI::InvalidHandleValue) E_Exit("Cannot create VGA font");
 
 	WLGUI::DC::SelectFont(gui_surface_dc,VGAFont);
 	WLGUI::DC::SetForegroundColor(gui_surface_dc,WLGUI::DC::MakeRGB8(gui_surface_dc,0xFF,0xFF,0xFF));
 	WLGUI::DC::SetBackgroundColor(gui_surface_dc,WLGUI::DC::MakeRGB8(gui_surface_dc,0x00,0x00,0xFF));
 
-	WLGUI::DC::TextOut(gui_surface_dc,0,0,"Hello!");
-	WLGUI::DC::TextOut(gui_surface_dc,0,16,"Hello!");
+	WLGUI::DC::TextOut(gui_surface_dc,0,0,"Hello,");
+	WLGUI::DC::TextOut(gui_surface_dc,0,WLGUI::FontHandle::GetHeight(VGAFont),"World!");
 
 	for (long x=-100;x < 100;x++) {
 		WLGUI::DC::SetPixel(gui_surface_dc,x,   x,WLGUI::DC::MakeRGB8(gui_surface_dc,x+128,x+128,x+128));
