@@ -1447,20 +1447,17 @@
 		//      If there isn't enough CPU cycles, then break out of the loop. If CLI follows
 		//      immediately, then it will undo the effects of STI without a chance to process
 		//      interrupts.
-		if (CPU_Cycles < 1) {
-			if (init_cycles > 1) {
-				CPU_CycleLeft += CPU_Cycles;
-				CPU_Cycles = 0;
-				goto decode_stop_at_instruction; /* stop, leave instruction pointer at STI and come back later */
-			}
-			else {
-				CPU_CycleLeft += CPU_Cycles - 1;
-				CPU_Cycles = 1;
-			}
-		}
 		if (CPU_STI()) RUNEXCEPTION();
-		SAVEIP;
-		continue;
+		if (GETFLAG(IF) && PIC_IRQCheck) {
+			// FORCE another instruction decode before allowing interrupt processing
+			CPU_CycleLeft += CPU_Cycles - 1;
+			CPU_Cycles = 1;
+			SAVEIP;
+			continue;
+		}
+		else {
+			break;
+		}
 	CASE_B(0xfc)												/* CLD */
 		SETFLAGBIT(DF,false);
 		cpu.direction=1;
