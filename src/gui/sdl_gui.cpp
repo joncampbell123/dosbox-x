@@ -353,9 +353,9 @@ namespace WLGUI {
 
 		struct Obj {
 			struct Flags {
-				static constexpr uint32_t ANTIALIASED = uint32_t(1u) << uint32_t(0u); /* make anti-aliased TrueType where possible */
-				static constexpr uint32_t TRUETYPE = uint32_t(1u) << uint32_t(1u); /* font is TrueType */
-				static constexpr uint32_t FIXED_PITCH = uint32_t(1u) << uint32_t(2u); /* font is fixed pitch */
+				static constexpr uint32_t Antialiased = uint32_t(1u) << uint32_t(0u); /* make anti-aliased TrueType where possible */
+				static constexpr uint32_t TrueType = uint32_t(1u) << uint32_t(1u); /* font is TrueType */
+				static constexpr uint32_t FixedPitch = uint32_t(1u) << uint32_t(2u); /* font is fixed pitch */
 				uint32_t v = 0;
 			};
 
@@ -651,7 +651,7 @@ namespace WLGUI {
 		/////////////////
 
 		ObjVGAFont::ObjVGAFont(const unsigned int height) : Obj(ObjType::VGAFont) {
-			Flags.v |= Flags::FIXED_PITCH;
+			Flags.v |= Flags::FixedPitch;
 			if (height >= 16) {
 				font = int10_font_16;
 				fontheight = 16;
