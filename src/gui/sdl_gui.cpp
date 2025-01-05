@@ -507,6 +507,8 @@ namespace WLGUI {
 	}
 
 	Resource::~Resource() {
+		if (ref.refcount > 0) LOG_MSG("Object release when refcount > 0 (this=%p type=%u ref=%d)",(void*)this,(unsigned int)htype,ref.refcount);
+		else if (ref.refcount < 0) LOG_MSG("Object released too much, refcount < 0 (this=%p type=%u ref=%d)",(void*)this,(unsigned int)htype,ref.refcount);
 	}
 
 	DevicePixel DevicePixelDescription::Make8(const unsigned int rv,const unsigned int gv,const unsigned int bv,const unsigned int av) const {
@@ -683,7 +685,6 @@ namespace WLGUI {
 		}
 
 		Obj::~Obj() {
-			if (ref.refcount != 0) LOG_MSG("Object release when refcount != 0 (this=%p)",(void*)this);
 		}
 
 		DevicePixel Obj::MakeRGB8(const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a) {
