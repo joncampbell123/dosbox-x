@@ -78,7 +78,7 @@ bool Unicode2Ascii(const uint16_t* unicode) {
         memNeeded--;																	// Don't include trailing null
     }
 	for (int i = 0; i < memNeeded; i++)
-		if (clipAscii[i] > 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13 // Space and up, or TAB, CR/LF allowed (others make no sense when pasting)
+		if (clipAscii[i] > 31 || clipAscii[i] == 7 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13 // Space and up, or Bell, TAB, CR/LF allowed (others make no sense when pasting)
             || (dos.loaded_codepage == 932 && (TTF_using() || IS_JEGA_ARCH || showdbcs)
 #if defined(USE_TTF)
             && halfwidthkana
