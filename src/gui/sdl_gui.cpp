@@ -256,23 +256,20 @@ namespace WLGUI {
 	};
 
 	struct DevicePixelDescription {
-		union t {
-			struct RGB {
-				struct mask {
-					DevicePixel	r,g,b,a;
-				} mask;
-				struct shift {
-					uint8_t		r,g,b,a;
-				} shift;
-				struct width {
-					uint8_t		r,g,b,a;
-				} width;
+		struct mask {
+			DevicePixel	r,g,b,a;
+		} mask;
+		struct shift {
+			uint8_t		r,g,b,a;
+		} shift;
+		struct width {
+			uint8_t		r,g,b,a;
+		} width;
 
-				DevicePixel Make8(const unsigned int rv,const unsigned int gv,const unsigned int bv,const unsigned int av=0xFF) const;
-			} RGB;
-		} t;
 		uint8_t		BitsPerPixel;
 		uint8_t		BytesPerPixel; /* 0 if less than 8, use BitsPerPixel */
+
+		DevicePixel	Make8(const unsigned int rv,const unsigned int gv,const unsigned int bv,const unsigned int av=0xFF) const;
 	};
 
 	struct Dimensions {
@@ -514,7 +511,7 @@ namespace WLGUI {
 		return 0;
 	}
 
-	DevicePixel DevicePixelDescription::t::RGB::Make8(const unsigned int rv,const unsigned int gv,const unsigned int bv,const unsigned int av) const {
+	DevicePixel DevicePixelDescription::Make8(const unsigned int rv,const unsigned int gv,const unsigned int bv,const unsigned int av) const {
 		return	(DevicePixel(Pixel8ToWidth(rv,width.r)) << DevicePixel(shift.r)) +
 			(DevicePixel(Pixel8ToWidth(gv,width.g)) << DevicePixel(shift.g)) +
 			(DevicePixel(Pixel8ToWidth(bv,width.b)) << DevicePixel(shift.b)) +
@@ -527,21 +524,21 @@ namespace WLGUI {
 		r.BitsPerPixel = 32;
 		r.BytesPerPixel = 4;
 
-		r.t.RGB.mask.a = withAlpha ? (0xFFu << 24u) : 0u;
-		r.t.RGB.shift.a = withAlpha ? 24u : 0u;
-		r.t.RGB.width.a = withAlpha ? 8u : 0u;
+		r.mask.a = withAlpha ? (0xFFu << 24u) : 0u;
+		r.shift.a = withAlpha ? 24u : 0u;
+		r.width.a = withAlpha ? 8u : 0u;
 
-		r.t.RGB.mask.r = 0xFFu << 16u;
-		r.t.RGB.shift.r = 16u;
-		r.t.RGB.width.r = 8u;
+		r.mask.r = 0xFFu << 16u;
+		r.shift.r = 16u;
+		r.width.r = 8u;
 
-		r.t.RGB.mask.g = 0xFFu << 8u;
-		r.t.RGB.shift.g = 8u;
-		r.t.RGB.width.g = 8u;
+		r.mask.g = 0xFFu << 8u;
+		r.shift.g = 8u;
+		r.width.g = 8u;
 
-		r.t.RGB.mask.b = 0xFFu << 0u;
-		r.t.RGB.shift.b = 0u;
-		r.t.RGB.width.b = 8u;
+		r.mask.b = 0xFFu << 0u;
+		r.shift.b = 0u;
+		r.width.b = 8u;
 
 		return r;
 	}
@@ -718,7 +715,7 @@ namespace WLGUI {
 
 		DevicePixel Obj::MakeRGB8(const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a) {
 			/* you must override this if your colorspace is not RGB (but this toolkit will be used where RGB is always used) */
-			return ColorDescription.t.RGB.Make8(r,g,b,a);
+			return ColorDescription.Make8(r,g,b,a);
 		}
 
 		DevicePixel Obj::SetBackgroundColor(const DevicePixel c) {
@@ -850,24 +847,24 @@ namespace WLGUI {
 			ColorDescription.BitsPerPixel = surface->format->BitsPerPixel;
 			ColorDescription.BytesPerPixel = surface->format->BytesPerPixel;
 
-			ColorDescription.t.RGB.mask.r = surface->format->Rmask;
-			ColorDescription.t.RGB.shift.r = surface->format->Rshift;
-			ColorDescription.t.RGB.width.r = MaskToWidth(surface->format->Rmask);
+			ColorDescription.mask.r = surface->format->Rmask;
+			ColorDescription.shift.r = surface->format->Rshift;
+			ColorDescription.width.r = MaskToWidth(surface->format->Rmask);
 
-			ColorDescription.t.RGB.mask.g = surface->format->Gmask;
-			ColorDescription.t.RGB.shift.g = surface->format->Gshift;
-			ColorDescription.t.RGB.width.g = MaskToWidth(surface->format->Gmask);
+			ColorDescription.mask.g = surface->format->Gmask;
+			ColorDescription.shift.g = surface->format->Gshift;
+			ColorDescription.width.g = MaskToWidth(surface->format->Gmask);
 
-			ColorDescription.t.RGB.mask.b = surface->format->Bmask;
-			ColorDescription.t.RGB.shift.b = surface->format->Bshift;
-			ColorDescription.t.RGB.width.b = MaskToWidth(surface->format->Bmask);
+			ColorDescription.mask.b = surface->format->Bmask;
+			ColorDescription.shift.b = surface->format->Bshift;
+			ColorDescription.width.b = MaskToWidth(surface->format->Bmask);
 
-			ColorDescription.t.RGB.mask.a = surface->format->Amask;
-			ColorDescription.t.RGB.shift.a = surface->format->Ashift;
-			ColorDescription.t.RGB.width.a = MaskToWidth(surface->format->Amask);
+			ColorDescription.mask.a = surface->format->Amask;
+			ColorDescription.shift.a = surface->format->Ashift;
+			ColorDescription.width.a = MaskToWidth(surface->format->Amask);
 
-			BackgroundColor = ColorDescription.t.RGB.Make8(0xFF,0xFF,0xFF);
-			ForegroundColor = ColorDescription.t.RGB.Make8(0x00,0x00,0x00);
+			BackgroundColor = ColorDescription.Make8(0xFF,0xFF,0xFF);
+			ForegroundColor = ColorDescription.Make8(0x00,0x00,0x00);
 
 			if (ColorDescription.BytesPerPixel == 4) {
 				GetPixel = GetPixel_32bpp;
@@ -977,7 +974,7 @@ namespace WLGUI {
 
 		DevicePixel MakeRGB8(const Handle h,const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a) {
 			Obj* obj = GetObject(h);
-			if (obj) return obj->ColorDescription.t.RGB.Make8(r,g,b,a);
+			if (obj) return obj->ColorDescription.Make8(r,g,b,a);
 			return DevicePixel(0);
 		}
 
