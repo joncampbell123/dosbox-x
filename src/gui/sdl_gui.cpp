@@ -305,7 +305,8 @@ namespace WLGUI {
 		HandleIndex ListAlloc = 0;
 		std::vector<Resource*> List;
 		Resource *Get(const HandleIndex i);
-		void Set(const HandleIndex i,Resource *p);
+		bool Set(const HandleIndex i,Resource *p);
+		bool Delete(const HandleIndex i);
 		size_t Size(void) const;
 		HandleIndex AllocateHandleIndex(void);
 	};
@@ -520,11 +521,26 @@ namespace WLGUI {
 		return NULL;
 	}
 
-	void ResourceList::Set(const HandleIndex i,Resource *p) {
+	bool ResourceList::Set(const HandleIndex i,Resource *p) {
 		if (i < HandleIndex(List.size())) {
 			List[i] = p;
-			if (p == NULL) ListAlloc = i;
+			return true;
 		}
+
+		return false;
+	}
+
+	bool ResourceList::Delete(const HandleIndex i) {
+		if (i < HandleIndex(List.size())) {
+			if (List[i] != NULL) {
+				delete List[i];
+				List[i] = NULL;
+				ListAlloc = i;
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	size_t ResourceList::Size(void) const {
@@ -656,15 +672,7 @@ namespace WLGUI {
 
 		bool Destroy(Handle h) {
 			const HandleIndex idx = GetHandleIndex(HandleType::FontHandle,h);
-			if (idx != InvalidHandleIndex && idx < Resources.Size()) {
-				Obj *obj = (Obj*)Resources.Get(idx);
-				if (obj != NULL) {
-					Resources.Set(idx,NULL);
-					delete obj;
-					return true;
-				}
-			}
-
+			if (idx != InvalidHandleIndex) return Resources.Delete(idx);
 			return false;
 		}
 	}
@@ -992,15 +1000,7 @@ namespace WLGUI {
 
 		bool Delete(const Handle h) {
 			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < Resources.Size()) {
-				Obj *obj = (Obj*)Resources.Get(idx);
-				if (obj != NULL) {
-					Resources.Set(idx,NULL);
-					delete obj;
-					return true;
-				}
-			}
-
+			if (idx != InvalidHandleIndex) return Resources.Delete(idx);
 			return false;
 		}
 
