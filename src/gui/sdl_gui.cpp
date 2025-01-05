@@ -286,37 +286,36 @@ namespace WLGUI {
 		Point(const long _x,const long _y) : x(_x), y(_y) { }
 	};
 
-	class ResourceList {
-	public:
-		HandleIndex ListAlloc = 0;
-		std::vector<void*> List;
-		void *GetVoid(const HandleIndex i);
-		void SetVoid(const HandleIndex i,void *p);
-		size_t Size(void) const;
-		HandleIndex AllocateHandleIndex(void);
-	};
-
-	template <class T> class TypedResourceList : public ResourceList {
-	public:
-		T *Get(const HandleIndex i) {
-			return (T*)GetVoid(i);
-		}
-		void Set(const HandleIndex i,T *p) {
-			SetVoid(i,(void*)p);
-		}
-	};
-
 	struct ReferenceCountTracking {
 		int		refcount = 0;
 		int		AddRef(void);
 		int		Release(void); /* which does NOT delete the object when refcount == 0 */
 	};
 
+	struct Resource {
+		ReferenceCountTracking			ref; /* init by count tracking class */
+		HandleType				htype; /* init by Resource constructor */
+
+		Resource(const HandleType init_ht);
+		virtual ~Resource();
+	};
+
+	class ResourceList {
+	public:
+		HandleIndex ListAlloc = 0;
+		std::vector<Resource*> List;
+		Resource *Get(const HandleIndex i);
+		void Set(const HandleIndex i,Resource *p);
+		size_t Size(void) const;
+		HandleIndex AllocateHandleIndex(void);
+	};
+
+	ResourceList Resources;
+
 	static Handle MakeHandle(const HandleType ht,const HandleIndex idx);
 	static HandleIndex GetHandleIndex(const HandleType ht,const Handle h);
 	static unsigned int MaskToWidth(DevicePixel m);
 	static unsigned int Pixel8ToWidth(const unsigned int v,const unsigned int width);
-	static const DevicePixelDescription ColorDescription_DefaultRGB32(const bool withAlpha);
 
 	namespace FontHandle {
 
@@ -324,9 +323,6 @@ namespace WLGUI {
 			Base=0, /* you shouldn't use this */
 			VGAFont=1
 		};
-
-		struct Obj;
-		TypedResourceList<Obj> List;
 
 		struct Bitmap {
 			uint8_t			bpp = 1; /* 1bpp (mono) or 8bpp (grayscale) */
@@ -339,7 +335,7 @@ namespace WLGUI {
 			uint16_t		cw = 0; /* calculation width, for centering and such */
 		};
 
-		struct Obj {
+		struct Obj : public Resource {
 			struct Flags {
 				static constexpr uint32_t Antialiased = uint32_t(1u) << uint32_t(0u); /* make anti-aliased TrueType where possible */
 				static constexpr uint32_t TrueType = uint32_t(1u) << uint32_t(1u); /* font is TrueType */
@@ -354,7 +350,6 @@ namespace WLGUI {
 			int16_t		internalLeading = 0;
 			int16_t		externalLeading = 0;
 
-			Obj();
 			Obj(const ObjType t);
 			virtual ~Obj();
 
@@ -386,9 +381,6 @@ namespace WLGUI {
 			SDLSurface=1
 		};
 
-		struct Obj;
-		TypedResourceList<Obj> List;
-
 		/* A bit of polymorphism because like a real Windows DC it can be a display, a printer, etc.
 		 * In this toolkit, it can be a SDL surface, OpenGL texture, etc. Unlike Windows there's
 		 * no need to worry about partial redraw because this toolkit takes the DWM approach where
@@ -396,7 +388,7 @@ namespace WLGUI {
 		 *
 		 * In most cases you should GetDC and ReleaseDC to draw on your window just like real Windows.
 		 * Don't keep the DC open except to draw. */
-		struct Obj {
+		struct Obj : public Resource {
 			struct Flags {
 				uint32_t v = 0;
 			};
@@ -415,7 +407,6 @@ namespace WLGUI {
 			DevicePixel	(*GetPixel)(Obj &obj,long x,long y) = &GetPixel_stub;
 			void		(*SetPixel)(Obj &obj,long x,long y,const DevicePixel c) = &SetPixel_stub;
 
-			Obj();
 			Obj(const ObjType t);
 			virtual ~Obj();
 			virtual DevicePixel MakeRGB8(const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a=0xFF);
@@ -511,6 +502,12 @@ namespace WLGUI {
 		return 0;
 	}
 
+	Resource::Resource(const HandleType init_ht) : htype(init_ht) {
+	}
+
+	Resource::~Resource() {
+	}
+
 	DevicePixel DevicePixelDescription::Make8(const unsigned int rv,const unsigned int gv,const unsigned int bv,const unsigned int av) const {
 		return	(DevicePixel(Pixel8ToWidth(rv,width.r)) << DevicePixel(shift.r)) +
 			(DevicePixel(Pixel8ToWidth(gv,width.g)) << DevicePixel(shift.g)) +
@@ -518,37 +515,12 @@ namespace WLGUI {
 			(DevicePixel(Pixel8ToWidth(av,width.a)) << DevicePixel(shift.a));
 	}
 
-	static const DevicePixelDescription ColorDescription_DefaultRGB32(const bool withAlpha) {
-		DevicePixelDescription r;
-
-		r.BitsPerPixel = 32;
-		r.BytesPerPixel = 4;
-
-		r.mask.a = withAlpha ? (0xFFu << 24u) : 0u;
-		r.shift.a = withAlpha ? 24u : 0u;
-		r.width.a = withAlpha ? 8u : 0u;
-
-		r.mask.r = 0xFFu << 16u;
-		r.shift.r = 16u;
-		r.width.r = 8u;
-
-		r.mask.g = 0xFFu << 8u;
-		r.shift.g = 8u;
-		r.width.g = 8u;
-
-		r.mask.b = 0xFFu << 0u;
-		r.shift.b = 0u;
-		r.width.b = 8u;
-
-		return r;
-	}
-
-	void *ResourceList::GetVoid(const HandleIndex i) {
+	Resource *ResourceList::Get(const HandleIndex i) {
 		if (i < HandleIndex(List.size())) return List[i];
 		return NULL;
 	}
 
-	void ResourceList::SetVoid(const HandleIndex i,void *p) {
+	void ResourceList::Set(const HandleIndex i,Resource *p) {
 		if (i < HandleIndex(List.size())) {
 			List[i] = p;
 			if (p == NULL) ListAlloc = i;
@@ -601,10 +573,7 @@ namespace WLGUI {
 
 	namespace FontHandle {
 
-		Obj::Obj() : type(ObjType::Base) {
-		}
-
-		Obj::Obj(const ObjType t) : type(t) {
+		Obj::Obj(const ObjType t) : Resource(HandleType::FontHandle), type(t) {
 		}
 
 		Obj::~Obj() {
@@ -676,9 +645,9 @@ namespace WLGUI {
 		//////////////////
 
 		Handle CreateVGAFont(const unsigned int height) {
-			const size_t idx = List.AllocateHandleIndex();
+			const size_t idx = Resources.AllocateHandleIndex();
 			if (idx != InvalidHandleIndex) {
-				List.Set(idx,(Obj*)(new ObjVGAFont(height)));
+				Resources.Set(idx,(Obj*)(new ObjVGAFont(height)));
 				return MakeHandle(HandleType::FontHandle,HandleIndex(idx));
 			}
 
@@ -687,10 +656,10 @@ namespace WLGUI {
 
 		bool Destroy(Handle h) {
 			const HandleIndex idx = GetHandleIndex(HandleType::FontHandle,h);
-			if (idx != InvalidHandleIndex && idx < List.Size()) {
-				Obj *obj = List.Get(idx);
+			if (idx != InvalidHandleIndex && idx < Resources.Size()) {
+				Obj *obj = (Obj*)Resources.Get(idx);
 				if (obj != NULL) {
-					List.Set(idx,NULL);
+					Resources.Set(idx,NULL);
 					delete obj;
 					return true;
 				}
@@ -702,11 +671,7 @@ namespace WLGUI {
 
 	namespace DC {
 
-		Obj::Obj() : type(ObjType::Base) {
-			ColorDescription_DefaultRGB32(false);
-		}
-
-		Obj::Obj(const ObjType t) : type(t) {
+		Obj::Obj(const ObjType t) : Resource(HandleType::DC), type(t) {
 		}
 
 		Obj::~Obj() {
@@ -795,7 +760,7 @@ namespace WLGUI {
 		}
 
 		bool Obj::TextOut(long x,long y,const char *str) {
-			FontHandle::Obj *fh = FontHandle::List.Get(GetHandleIndex(HandleType::FontHandle,CurrentFont));
+			FontHandle::Obj *fh = (FontHandle::Obj*)Resources.Get(GetHandleIndex(HandleType::FontHandle,CurrentFont));
 
 			if (fh) {
 				long fx = x << 8l;
@@ -957,9 +922,9 @@ namespace WLGUI {
 		}
 
 		Handle CreateSDLSurfaceDC(SDL_Surface *surf) {
-			const size_t idx = List.AllocateHandleIndex();
+			const size_t idx = Resources.AllocateHandleIndex();
 			if (idx != InvalidHandleIndex) {
-				List.Set(idx,(Obj*)(new ObjSDLSurface(surf)));
+				Resources.Set(idx,(Obj*)(new ObjSDLSurface(surf)));
 				return MakeHandle(HandleType::DC,HandleIndex(idx));
 			}
 
@@ -969,7 +934,7 @@ namespace WLGUI {
 		/* for internal use only */
 		Obj* GetObject(const Handle h) {
 			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			return List.Get(idx);
+			return (Obj*)Resources.Get(idx);
 		}
 
 		DevicePixel MakeRGB8(const Handle h,const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a) {
@@ -1027,10 +992,10 @@ namespace WLGUI {
 
 		bool Delete(const Handle h) {
 			const HandleIndex idx = GetHandleIndex(HandleType::DC,h);
-			if (idx != InvalidHandleIndex && idx < List.Size()) {
-				Obj *obj = List.Get(idx);
+			if (idx != InvalidHandleIndex && idx < Resources.Size()) {
+				Obj *obj = (Obj*)Resources.Get(idx);
 				if (obj != NULL) {
-					List.Set(idx,NULL);
+					Resources.Set(idx,NULL);
 					delete obj;
 					return true;
 				}
