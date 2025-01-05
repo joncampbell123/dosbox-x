@@ -2286,6 +2286,7 @@ bool localDrive::AllocationInfo64(uint32_t* _bytes_sector, uint32_t* _sectors_cl
             diskToQuery = drive ? root : NULL;
 
         res = GetDiskFreeSpace(diskToQuery, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
+        if(dwSectPerClust * dwBytesPerSect == 0) return false;
         ULARGE_INTEGER FreeBytesAvailableToCaller, TotalNumberOfBytes;
         GetDiskFreeSpaceEx(diskToQuery, &FreeBytesAvailableToCaller, &TotalNumberOfBytes, NULL);
         qwTotalClusters = TotalNumberOfBytes.QuadPart / (dwSectPerClust * dwBytesPerSect);
