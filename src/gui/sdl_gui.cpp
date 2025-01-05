@@ -255,15 +255,6 @@ namespace WLGUI {
 		FontHandle=2
 	};
 
-	enum class ColorspaceType {
-		RGB=0
-	};
-
-	enum class BkMode {
-		Transparent=0,
-		Opaque=1
-	};
-
 	struct DevicePixelDescription {
 		union t {
 			struct RGB {
@@ -281,7 +272,7 @@ namespace WLGUI {
 			} RGB;
 		} t;
 		uint8_t		BitsPerPixel;
-		uint8_t		BytesPerPixel;
+		uint8_t		BytesPerPixel; /* 0 if less than 8, use BitsPerPixel */
 	};
 
 	struct Dimensions {
@@ -410,8 +401,6 @@ namespace WLGUI {
 		 * Don't keep the DC open except to draw. */
 		struct Obj {
 			struct Flags {
-				static constexpr uint32_t BKM_OPAQUE = uint32_t(1u) << uint32_t(0u); /* background is opaque i.e. text */
-				static constexpr uint32_t COORD_MAP_MODE = uint32_t(1u) << uint32_t(1u); /* coordinate scaling after origin translation */
 				uint32_t v = 0;
 			};
 
@@ -419,12 +408,9 @@ namespace WLGUI {
 			Dimensions	viewport = {0,0}; /* the viewport in device pixels i.e. SDL surface pixels */
 			Point		originSrc = {0,0}; /* coordinate system origin */
 			Point		originDst = {0,0}; /* coordinate system origin */
-			Point		scaleSrc = {1,1}; /* source scale */
-			Point		scaleDst = {1,1}; /* dest scale */
 			DevicePixel	BackgroundColor = 0;
 			DevicePixel	ForegroundColor = 0;
 			DevicePixelDescription ColorDescription; /* init by constructor if base, otherwise UNINITIALIZED */
-			ColorspaceType	Colorspace = ColorspaceType::RGB;
 			ReferenceCountTracking ref;
 			Handle		CurrentFont = InvalidHandleValue;
 			Flags		Flags;
@@ -435,15 +421,11 @@ namespace WLGUI {
 			Obj();
 			Obj(const ObjType t);
 			virtual ~Obj();
-			virtual BkMode SetBkMode(BkMode x);
 			virtual DevicePixel MakeRGB8(const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a=0xFF);
 			virtual DevicePixel SetBackgroundColor(const DevicePixel c);
 			virtual DevicePixel SetForegroundColor(const DevicePixel c);
 			virtual bool SetLogicalOrigin(const long x=0,const long y=0,Point *po=NULL);
-			bool SetLogicalExtents(const long w,const long h,Point *po=NULL);
 			virtual bool SetDeviceOrigin(const long x=0,const long y=0,Point *po=NULL);
-			bool SetDeviceExtents(const long w,const long h,Point *po=NULL);
-			bool SetArbitraryMapMode(const bool m=false);
 			virtual void ConvertLogicalToDeviceCoordinates(long &x,long &y);
 			virtual Handle SelectFont(Handle newValue);
 			virtual bool TextOut(long x,long y,const char *str/*TODO UTF-8*/);
@@ -482,16 +464,11 @@ namespace WLGUI {
 		Obj* GetObject(const Handle h);
 		DevicePixel MakeRGB8(const Handle h,const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a=0xFF);
 		void SetPixel(const Handle h,const long x,const long y,const DevicePixel c);
-		bool GetDeviceColorspace(const Handle h,ColorspaceType &t);
 		bool GetDevicePixelFormat(const Handle h,DevicePixelDescription &d);
-		BkMode SetBkMode(const Handle h,BkMode x);
 		DevicePixel SetBackgroundColor(const Handle h,const DevicePixel c);
 		DevicePixel SetForegroundColor(const Handle h,const DevicePixel c);
 		bool SetLogicalOrigin(const Handle h,const long x=0,const long y=0,Point *po=NULL);
-		bool SetLogicalExtents(const Handle handle,const long w,const long h,Point *po=NULL);
 		bool SetDeviceOrigin(const Handle h,const long x=0,const long y=0,Point *po=NULL);
-		bool SetDeviceExtents(const Handle handle,const long w,const long h,Point *po=NULL);
-		bool SetArbitraryMapMode(const Handle h,const bool m=false);
 		bool Delete(const Handle h);
 		Handle SelectFont(const Handle DC,const Handle newValue);
 		bool TextOut(const Handle h,long x,long y,const char *str/*TODO UTF-8*/);
@@ -739,13 +716,6 @@ namespace WLGUI {
 			if (ref.refcount != 0) LOG_MSG("Object release when refcount != 0 (this=%p)",(void*)this);
 		}
 
-		BkMode Obj::SetBkMode(BkMode x) {
-			const BkMode prev = (Flags.v & Flags::BKM_OPAQUE) ? BkMode::Opaque : BkMode::Transparent;
-			if (x == BkMode::Opaque) Flags.v |= Flags::BKM_OPAQUE;
-			else Flags.v &= ~Flags::BKM_OPAQUE;
-			return prev;
-		}
-
 		DevicePixel Obj::MakeRGB8(const unsigned int r,const unsigned int g,const unsigned int b,const unsigned int a) {
 			/* you must override this if your colorspace is not RGB (but this toolkit will be used where RGB is always used) */
 			return ColorDescription.t.RGB.Make8(r,g,b,a);
@@ -769,38 +739,15 @@ namespace WLGUI {
 			return true;
 		}
 
-		bool Obj::SetLogicalExtents(const long w,const long h,Point *po) {
-			if (po) *po = scaleSrc;
-			scaleSrc = Point(w,h);
-			return true;
-		}
-
 		bool Obj::SetDeviceOrigin(const long x,const long y,Point *po) {
 			if (po) *po = originDst;
 			originDst = Point(x,y);
 			return true;
 		}
 
-		bool Obj::SetDeviceExtents(const long w,const long h,Point *po) {
-			if (po) *po = scaleDst;
-			scaleDst = Point(w,h);
-			return true;
-		}
-
-		bool Obj::SetArbitraryMapMode(const bool m) {
-			const bool pv = (Flags.v & Flags::COORD_MAP_MODE) != 0;
-			if (m) Flags.v |= Flags::COORD_MAP_MODE;
-			else Flags.v &= ~Flags::COORD_MAP_MODE;
-			return pv;
-		}
-
 		void Obj::ConvertLogicalToDeviceCoordinates(long &x,long &y) {
 			x += originSrc.x;
 			y += originSrc.y;
-			if (Flags.v & Flags::COORD_MAP_MODE) {
-				x = (x * scaleDst.x) / scaleSrc.x;
-				y = (y * scaleDst.y) / scaleSrc.y;
-			}
 			x += originDst.x;
 			y += originDst.y;
 		}
@@ -829,19 +776,10 @@ namespace WLGUI {
 					(bsx >> 3u);
 
 				long dy = y + bmp.dy;
-				if (Flags.v & Flags::BKM_OPAQUE) {
-					for (unsigned int suby=0;suby < bmp.dh;suby++) {
-						SetPixel(*this,dx,dy,(*s & msk) ? ForegroundColor : BackgroundColor);
-						s += bmp.pitch;
-						dy++;
-					}
-				}
-				else {
-					for (unsigned int suby=0;suby < bmp.dh;suby++) {
-						if (*s & msk) SetPixel(*this,dx,dy,ForegroundColor);
-						s += bmp.pitch;
-						dy++;
-					}
+				for (unsigned int suby=0;suby < bmp.dh;suby++) {
+					if (*s & msk) SetPixel(*this,dx,dy,ForegroundColor);
+					s += bmp.pitch;
+					dy++;
 				}
 
 				dx++;
@@ -909,8 +847,6 @@ namespace WLGUI {
 		void ObjSDLSurface::initFromSurface(void) {
 			viewport.w = abs(surface->w);
 			viewport.h = abs(surface->h);
-			scaleSrc = { (long)viewport.w, (long)viewport.h };
-			scaleDst = { (long)viewport.w, (long)viewport.h };
 			ColorDescription.BitsPerPixel = surface->format->BitsPerPixel;
 			ColorDescription.BytesPerPixel = surface->format->BytesPerPixel;
 
@@ -957,7 +893,7 @@ namespace WLGUI {
 			y += viewport_origin.y;
 		}
 
-		/* WARNING: This is not suitable for surfaces less than 8bpp if x != 0 */
+		/* WARNING: This is not suitable for surfaces less than 8bpp if x != 0 however SDL doesn't support those either */
 		void *ObjSDLSurface::GetSurfaceRowPtr(long x,long y) {
 			/* We trust the viewport has not been corrupted to extend outside the SDL surface! */
 			if (x >= 0l && x < (long)viewport.w && y >= 0l && y < (long)viewport.h) {
@@ -1062,22 +998,10 @@ namespace WLGUI {
 			}
 		}
 
-		bool GetDeviceColorspace(const Handle h,ColorspaceType &t) {
-			Obj* obj = GetObject(h);
-			if (obj) { t = obj->Colorspace; return true; }
-			return false;
-		}
-
 		bool GetDevicePixelFormat(const Handle h,DevicePixelDescription &d) {
 			Obj* obj = GetObject(h);
 			if (obj) { d = obj->ColorDescription; return true; }
 			return false;
-		}
-
-		BkMode SetBkMode(const Handle h,BkMode x) {
-			Obj* obj = GetObject(h);
-			if (obj) return obj->SetBkMode(x);
-			return BkMode::Transparent;
 		}
 
 		DevicePixel SetBackgroundColor(const Handle h,const DevicePixel c) {
@@ -1098,27 +1022,9 @@ namespace WLGUI {
 			return false;
 		}
 
-		bool SetLogicalExtents(const Handle handle,const long w,const long h,Point *po) {
-			Obj* obj = GetObject(handle);
-			if (obj) return obj->SetLogicalExtents(w,h,po);
-			return false;
-		}
-
 		bool SetDeviceOrigin(const Handle h,const long x,const long y,Point *po) {
 			Obj* obj = GetObject(h);
 			if (obj) return obj->SetDeviceOrigin(x,y,po);
-			return false;
-		}
-
-		bool SetDeviceExtents(const Handle handle,const long w,const long h,Point *po) {
-			Obj* obj = GetObject(handle);
-			if (obj) return obj->SetDeviceExtents(w,h,po);
-			return false;
-		}
-
-		bool SetArbitraryMapMode(const Handle h,const bool m) {
-			Obj* obj = GetObject(h);
-			if (obj) return obj->SetArbitraryMapMode(m);
 			return false;
 		}
 
@@ -1193,9 +1099,7 @@ void NewUIExperiment(bool pressed) {
 	WLGUI::DC::SetForegroundColor(gui_surface_dc,WLGUI::DC::MakeRGB8(gui_surface_dc,0xFF,0xFF,0xFF));
 	WLGUI::DC::SetBackgroundColor(gui_surface_dc,WLGUI::DC::MakeRGB8(gui_surface_dc,0x00,0x00,0xFF));
 
-	WLGUI::DC::SetBkMode(gui_surface_dc,WLGUI::BkMode::Transparent);
 	WLGUI::DC::TextOut(gui_surface_dc,0,0,"Hello!");
-	WLGUI::DC::SetBkMode(gui_surface_dc,WLGUI::BkMode::Opaque);
 	WLGUI::DC::TextOut(gui_surface_dc,0,16,"Hello!");
 
 	for (long x=-100;x < 100;x++) {
@@ -1254,9 +1158,6 @@ void NewUIExperiment(bool pressed) {
 	SDL_FillRect(gui_surface, nullptr, 0);
 
 	WLGUI::DC::SetDeviceOrigin(gui_surface_dc,dw/2,dh/2);
-	WLGUI::DC::SetLogicalExtents(gui_surface_dc,5000,5000);
-	WLGUI::DC::SetDeviceExtents(gui_surface_dc,dw/2,dh/2);
-	WLGUI::DC::SetArbitraryMapMode(gui_surface_dc,true);
 
 	for (long x=-4000;x < 4000;x++) {
 		long cx = ((x+4000l)*255l)/8000l;
@@ -1266,12 +1167,9 @@ void NewUIExperiment(bool pressed) {
 		WLGUI::DC::SetPixel(gui_surface_dc,x+300,x,WLGUI::DC::MakeRGB8(gui_surface_dc,0, 0, cx));
 	}
 
-	WLGUI::DC::SetBkMode(gui_surface_dc,WLGUI::BkMode::Transparent);
 	WLGUI::DC::TextOut(gui_surface_dc,0,0,"Hello!");
-	WLGUI::DC::SetBkMode(gui_surface_dc,WLGUI::BkMode::Opaque);
 	WLGUI::DC::TextOut(gui_surface_dc,1000,1000,"Hello!");
 
-	WLGUI::DC::SetArbitraryMapMode(gui_surface_dc,false);
 	WLGUI::DC::SetLogicalOrigin(gui_surface_dc,0,0);
 	WLGUI::DC::SetDeviceOrigin(gui_surface_dc,0,0);
 
