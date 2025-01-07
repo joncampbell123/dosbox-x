@@ -497,6 +497,7 @@ void PasteClipboard(bool bPressed)
     {
 		clipSize=0;
 		bool ret=Unicode2Ascii(szClipboard);
+        if(clipSize == 0){CloseClipboard();return;}
         unsigned long j=0;
         for (size_t i = 0; i < clipSize; ++i) {
             if (clipAscii[i] == 9) j++;
@@ -538,6 +539,7 @@ void PasteClipboard(bool bPressed) {
     {
 		clipSize=0;
 		bool ret=Unicode2Ascii(szClipboard);
+        if(clipSize == 0){CloseClipboard();return;}
         unsigned long j=0;
         for (size_t i = 0; i < clipSize; ++i) {
             if (clipAscii[i] == 9) j++;
