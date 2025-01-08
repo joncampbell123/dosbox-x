@@ -1,3 +1,12 @@
+Next
+  - Fixed a Y2038 bug by replacing Int32x32To64 with regular multiplication.
+    (CookiePLMonster)
+  - Fixed pasting Bell code (0x07) from clipboard was ignored. (maron2000)
+  - Fixed a segfault crash when pasting the content of clipboard is empty 
+    or consists of invalid characters only. (maron2000)
+  - Fixed crash when trying to access MOUNTed empty physical CD/Floppy
+    drives. (maron2000)
+
 2025.01.01
   - Fix bug that prevented the Configuration GUI from saving to dosbox.conf
     the last Windows 3.1 theme you applied using the dropdown menu.
@@ -131,6 +140,7 @@
   - Fixed display of some Chinese characters (Traditional Chinese)(maron2000)
   - Fixed garbled text and menubar on reset (maron2000)
   - Fixed codepage switching when a language file was loaded (maron2000)
+  - sdlmain: Fixed crashing if no config files are found. (skitt)
 
 2024.12.04
   - Arrange memory device allocation so that it is possible to allocate
