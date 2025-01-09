@@ -23,13 +23,14 @@ jobs:
         with:
           node-version: '14'
       - name: Build minimal
+        if: false
         run: |
           echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
           ./build --disable-freetype --disable-libfluidsynth --disable-mt32 --disable-screenshots
       - name: Install libraries
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev
           mkdir src/bin
       - name: Update build info
         shell: bash
@@ -99,7 +100,7 @@ jobs:
       - name: Install libraries
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev
           mkdir src/bin
       - name: Build Linux SDL1
         run: |
