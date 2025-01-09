@@ -2198,7 +2198,8 @@ void DOSBOX_SetupConfigSections(void) {
             "Appending 'prompt' will cause a confirmation message for forcing the scaler.\n"
             "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
             "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.\n"
-            "Scalers should work with most output options, but they are ignored for openglpp and TrueType font outputs.");
+            "Scalers should work with most output options, but they are ignored for openglpp and TrueType font outputs.\n"
+            "If you are using OpenGL/Direct3D output and a shader that requires it, set to hardware_none or hardware2x.");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
     Pstring->Set_values(scalers);
