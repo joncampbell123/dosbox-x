@@ -662,7 +662,7 @@ forcenormal:
 			 *
 			 * A side effect is that all your low res modes will look blurry when scaled up
 			 * by your GPU. If you want a crisper look from the pixel duplication you're used
-			 * too, use the none, normal2x, etc. scalers that are default anyway, OR use a
+			 * to, use the none, normal2x, etc. scalers that are default anyway, OR use a
 			 * shader that processes the video the way you prefer to see it.
 			 *
 			 * For this reason, the only difference in hardware_none, hardware2x, etc. is
