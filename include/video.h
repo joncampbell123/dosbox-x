@@ -48,6 +48,7 @@ struct GFX_PalEntry {
 #define GFX_LOVE_32		0x0080u
 
 #define GFX_RGBONLY		0x0100u
+#define GFX_NORMALSCALE		0x0200u // one of the Normal scalers and therefore should be ignored for hardware scaling
 
 #define GFX_SCALING		0x1000u
 #define GFX_HARDWARE	0x2000u

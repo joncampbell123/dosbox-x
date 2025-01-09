@@ -641,14 +641,44 @@ forcenormal:
 #else
 		goto forcenormal;
 #endif
-		gfx_flags = complexBlock->gfxFlags;
+		gfx_flags = complexBlock->gfxFlags & ~(GFX_NORMALSCALE);
 		xscale = complexBlock->xscale;  
 		yscale = complexBlock->yscale;
 		//      LOG_MSG("Scaler:%s",complexBlock->name);
 	} else {
-		gfx_flags = simpleBlock->gfxFlags;
+		gfx_flags = simpleBlock->gfxFlags & ~(GFX_NORMALSCALE);
 		xscale = simpleBlock->xscale;   
 		yscale = simpleBlock->yscale;
+		if ((simpleBlock->gfxFlags & GFX_NORMALSCALE) && render.scale.hardware) {
+			/* Normal (pixel duplication) scalers should not be used for hardware scaling,
+			 * because the hardware scaling will do all the scaling, AND so that users who
+			 * use CRT scanline emulation shaders can work with the raw pixels and scanlines
+			 * of the source video memory.
+			 *
+			 * This is not related to the "doublescan" option (on by default) that VGA emulation
+			 * uses to emulate the hardware scan line duplication used to ensure that the raster
+			 * to the monitor is 400-line or 480-line nor is it related to the double scan used
+			 * in PC-98 200-line 8/16-color graphics modes to render as a 400-line raster.
+			 *
+			 * A side effect is that all your low res modes will look blurry when scaled up
+			 * by your GPU. If you want a crisper look from the pixel duplication you're used
+			 * too, use the none, normal2x, etc. scalers that are default anyway, OR use a
+			 * shader that processes the video the way you prefer to see it.
+			 *
+			 * For this reason, the only difference in hardware_none, hardware2x, etc. is
+			 * how much to multiply the GFX window scale without duplicating the pixels
+			 * in software using any of the normal scalers INCLUDING the normal scalers
+			 * used to double pixels horizontally and/or vertically for 200-line modes
+			 * or 320-pixel wide modes.
+			 *
+			 * Because of integer scaling, the scale factor is restricted to a multiple of 2
+			 * if the video mode would normally double pixels in one direction only but not
+			 * both, such as CGA 80x25 text or CGA/EGA 640x200 graphics where normal scaler would
+			 * normally only double pixels in the Y direction (height). */
+			simpleBlock = &ScaleNormal1x;
+			xscale = 1;
+			yscale = 1;
+		}
 		//      LOG_MSG("Scaler:%s",simpleBlock->name);
 	}
 	switch (render.src.bpp) {
@@ -700,34 +730,41 @@ forcenormal:
 	Bitu skip = complexBlock ? 1 : 0;
 	if (gfx_flags & GFX_SCALING) {
 		if(render.scale.size == 1 && render.scale.hardware) { //hardware_none
-			if(dblh)
-				gfx_scaleh *= 1;
-			if(dblw)
-				gfx_scalew *= 1;
-		} else if(render.scale.size == 4 && render.scale.hardware) {
+			/* don't scale */
+		} else if(render.scale.size == 2 && render.scale.hardware) {
 			if(dblh)
 				gfx_scaleh *= 2;
 			if(dblw)
 				gfx_scalew *= 2;
-		} else if(render.scale.size == 6 && render.scale.hardware) {
+		} else if(render.scale.size == 3 && render.scale.hardware) {
 			if(dblh && dblw) {
 				gfx_scaleh *= 3; gfx_scalew *= 3;
-			} else if(dblh) {
-				gfx_scaleh *= 2;
-			} else if(dblw)
-				gfx_scalew *= 2;
-		} else if(render.scale.size == 8 && render.scale.hardware) { //hardware4x
+			}
+			else {
+				if(dblh)
+					gfx_scaleh *= 2;
+				if(dblw)
+					gfx_scalew *= 2;
+			}
+		} else if(render.scale.size == 4 && render.scale.hardware) { //hardware4x
+			gfx_scaleh *= 2;
+			gfx_scalew *= 2;
 			if(dblh)
-				gfx_scaleh *= 4;
+				gfx_scaleh *= 2;
 			if(dblw)
-				gfx_scalew *= 4;
-		} else if(render.scale.size == 10 && render.scale.hardware) { //hardware5x
+				gfx_scalew *= 2;
+		} else if(render.scale.size == 5 && render.scale.hardware) { //hardware5x
 			if(dblh && dblw) {
 				gfx_scaleh *= 5; gfx_scalew *= 5;
-			} else if(dblh) {
-				gfx_scaleh *= 4;
-			} else if(dblw)
-				gfx_scalew *= 4;
+			}
+			else{
+				gfx_scaleh *= 2;
+				gfx_scalew *= 2;
+				if(dblh)
+					gfx_scaleh *= 2;
+				if(dblw)
+					gfx_scalew *= 2;
+			}
 		}
 		height = MakeAspectTable(skip, render.src.height, (double)yscale, yscale );
 	} else {
