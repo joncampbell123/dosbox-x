@@ -254,6 +254,7 @@ Bitu OUTPUT_SURFACE_GetBestMode(Bitu flags)
 
     flags &= ~GFX_LOVE_8;       //Disable love for 8bpp modes
                                 /* Check if we can satisfy the depth it loves */
+    flags &= ~GFX_SCALING;      //This output does not scale, and the aspect ratio correction looks like 1990s laptop hardware scaler crap
     if (flags & GFX_LOVE_8) testbpp = 8;
     else if (flags & GFX_LOVE_15) testbpp = 15;
     else if (flags & GFX_LOVE_16) testbpp = 16;
