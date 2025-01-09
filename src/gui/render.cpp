@@ -1217,10 +1217,10 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "gray2x"){ render.scale.op = scalerOpGray; render.scale.size = 2; render.scale.hardware=false; }
 #endif
     else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; }
-    else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; }
-    else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 6; render.scale.hardware=true; }
-    else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 8; render.scale.hardware=true; }
-    else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 10; render.scale.hardware=true; }
+    else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=true; }
+    else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=true; }
+    else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; }
+    else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; render.scale.hardware=true; }
 #if C_XBRZ
     else if (scaler == "xbrz" || scaler == "xbrz_bilinear") { 
         render.scale.op = scalerOpNormal; 
