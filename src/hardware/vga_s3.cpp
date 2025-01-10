@@ -741,13 +741,16 @@ void SVGA_Setup_S3Trio(void) {
             vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
     } else if (vga.mem.memsize_original < 16384*1024) {
         vga.mem.memsize = 8192*1024;
-        if (s3Card == S3_Vision964 || s3Card == S3_Vision968) 
+        if (s3Card == S3_Vision964 || s3Card == S3_Vision968 || s3Card == S3_ViRGEVX)
             vga.s3.reg_36 = 0x7a;       // 8mb fast page mode
         else
             vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
     } else {
         vga.mem.memsize = 16384*1024;
-        vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
+        if (s3Card == S3_ViRGEVX)
+            vga.s3.reg_36 = 0x7a;       // 8mb fast page mode
+        else
+            vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
     }
 
     PCI_AddSVGAS3_Device();
