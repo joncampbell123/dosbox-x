@@ -98,6 +98,7 @@ extern uint16_t first_umb_size;
 
 bool MEM_unmap_physmem(Bitu start,Bitu end);
 bool MEM_map_RAM_physmem(Bitu start,Bitu end);
+bool MEM_map_ROM_physmem(Bitu start,Bitu end);
 
 struct BuiltinFileBlob {
 	const char		*recommended_file_name;
