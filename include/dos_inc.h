@@ -324,6 +324,7 @@ bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks);
 bool DOS_FreeMemory(uint16_t segment);
 void DOS_FreeProcessMemory(uint16_t pspseg);
 uint16_t DOS_GetMemory(uint16_t pages,const char *who=NULL);
+void DOS_Private_UMB_Lock(const bool lock);
 void DOS_FreeTableMemory();
 bool DOS_SetMemAllocStrategy(uint16_t strat);
 uint16_t DOS_GetMemAllocStrategy(void);
