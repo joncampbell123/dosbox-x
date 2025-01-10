@@ -166,18 +166,18 @@ typedef struct {
 	uint8_t alpha;		// unused
 } alt_rgb;
 
-#define _EGA_HALF_CLOCK			0x0001
-#define _DOUBLESCAN			    0x0002  /* CGA/EGA on VGA doublescan (bit 7 of max scanline) */
-#define _VGA_PIXEL_DOUBLE		0x0004
-#define _S3_PIXEL_DOUBLE		0x0008
-#define _REPEAT1			    0x0010  /* VGA doublescan (bit 0 of max scanline) */
-#define _CGA_SYNCDOUBLE			0x0020
-#define _S3_POW2_STRIDE			0x0040  /* Stride must be a power of 2, round up after offset calculation */
-#define _HIGH_DEFINITION        0x0040
-#define _UNUSUAL_MODE           0x0080
-#define _DO_NOT_LIST            0x0100  /* support the mode but do not list in VBE mode enumeration */
-#define _USER_DISABLED          0x4000  /* disabled (cannot set mode) but still listed in modelist */
-#define _USER_MODIFIED          0x8000  /* user modified (through VESAMOED) */
+#define _EGA_HALF_CLOCK                 0x0001
+#define _DOUBLESCAN                     0x0002  /* CGA/EGA on VGA doublescan (bit 7 of max scanline) */
+#define _VGA_PIXEL_DOUBLE               0x0004
+#define _S3_PIXEL_DOUBLE                0x0008
+#define _REPEAT1                        0x0010  /* VGA doublescan (bit 0 of max scanline) */
+#define _CGA_SYNCDOUBLE                 0x0020
+#define _S3_POW2_STRIDE                 0x0040  /* Stride must be a power of 2, round up after offset calculation */
+#define _HIGH_DEFINITION                0x0080
+#define _UNUSUAL_MODE                   0x0100
+#define _DO_NOT_LIST                    0x0200  /* support the mode but do not list in VBE mode enumeration */
+#define _USER_DISABLED                  0x4000  /* disabled (cannot set mode) but still listed in modelist */
+#define _USER_MODIFIED                  0x8000  /* user modified (through VESAMOED) */
 
 extern Int10Data int10;
 
