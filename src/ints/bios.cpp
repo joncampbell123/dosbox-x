@@ -5652,73 +5652,146 @@ static Bitu INTDC_PC98_Handler(void) {
     switch (reg_cl) {
         /* Tracking implementation according to [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20NEC%20PC%2d98/Collections/Undocumented%209801%2c%209821%20Volume%201%20English%20translation/INTDC%2eTXT] */
         case 0x0C: /* CL=0x0C General entry point to read function key state */
-            if (reg_ax == 0xFF) { /* Extended version of the API when AX == 0, DS:DX = data to store to */
-                /* DS:DX contains
-                 *       16*10 bytes, 16 bytes per entry for function keys F1-F10
-                 *       16*5 bytes, 16 bytes per entry for VF1-VF5
-                 *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
-                 *       16*5 bytes, 16 bytes per entry for shift VF1-VF5
-                 *       6*11 bytes, 6 bytes per entry for editor keys
-                 *       16*10 bytes, 16 bytes per entry for function key shortcuts Control+F1 to Control+F10
-                 *       16*5 bytes, 16 bytes per entry for control VF1-VF5
+/*===================================================================================================
+Table            [List of key specification values and corresponding keys]
+                 ------------------------+---------------------------------------------------
+                 Key specification value | Corresponding key
+                 ------------------------+---------------------------------------------------
+                 0000h                   | [f･1] to [f･10], [SHIFT] + [f･1] to [SHIFT] + [f･10],
+                                         | [ROLL UP], [ROLL DOWN], [INS], [DEL], [↑], [←], [→], [↓],
+                                         | [HOME/CLR], [HELP], [SHIFT] + [HOME/CLR]
+                 0001 to 000Ah           | [f･1] to [f･10]
+                 000B to 0014h           | [SHIFT] + [f･1] to [SHIFT] + [f･10]
+                 0015h                   | [ROLL UP]
+                 0016h                   | [ROLL DOWN]
+                 0017h                   | [INS]
+                 0018h                   | [DEL]
+                 0019h                   | [↑]
+                 001Ah                   | [←]
+                 001Bh                   | [→]
+                 001Ch                   | [↓]
+                 001Dh                   | [HOME/CLR](XA keyboard:[CLR])
+                 001Eh                   | [HELP]
+                 001Fh                   | [SHIFT]+[HOME/CLR](XA keyboard:[HOME])
+                 0020-0024h              | [vf･1]-[vf･5]
+                 0025-0029h              | [SHIFT]+[vf･1]-[vf･5]
+                 002A-0033h              | [CTRL]+[f･1]-[f･10]
+                 0034-0038h              | [CTRL]+[vf･1]-[vf･5]
+                 0039h                   | [CTRL]+[XFER]/[NFER] (Undocumented)
+                 003Ah                   | [CTRL]+[XFER]/[NFER],[CTRL]+[f･1]～[f･10]
+                                         | (Undocumented)
+                 00FFh                   | [f･1]〜[f･10],[vf･1]〜[vf･5],
+                                         | [SHIFT]+[f･1]〜[SHIFT]+[f･10],[SHIFT]+[vf･1]〜[vf･5],
+                                         | [ROLL UP],[ROLL DOWN],[INS],[DEL],[↑],[←],[→],[↓],
+                                         | [HOME/CLR],[HELP],[SHIFT]+[HOME/CLR],
+                                         | [CTRL]+[f･1] to [f･10], [CTRL]+[vf･1] to [vf･5]
+                 ------------------------+---------------------------------------------------
+
+                 Table [Supported range of key specification values for each MS-DOS version]
+                 ------------------------+---+---+---+---+---+---+---+---+-----+
+                 Key specification value | MS-DOS version (PS98-XXX)
+                                         |111|121|122|123|125|127|129|011|XA125
+                 ------------------------+---+---+---+---+---+---+---+---+-----+
+                 0000 to 001Fh           | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○
+                 0020 to 0029h           | × | × | × | × | × | × | × | ○ | ○
+                 002A-0033h              | × | × | × | × | ○ | ○ | ○ | ○ | △
+                 0034-0038h              | × | × | × | × | × | × | × | ○ | △
+                 0039h                   | × | × | × | × | × | ○ | ○ | ○ | ×
+                 003Ah                   | × | × | × | × | ○ | ○ | ○ | ○ | ×
+                 00FFh                   | × | × | × | × | × | × | × | ○ | ○
+                 ------------------------+---+---+---+---+---+---+---+---+-----+
+                 * PC-98LT/HA is the same as PS98-127.
+                 * MS-DOS 3.3(all), 5.0, 5.0A is the same as PS98-011.
+                 * For the PS98-XA125 triangle mark, the keys are as follows.
+                   Key values 002B to 0033h specify [CTRL]+[f･1] to [f･9].
+                   Key values 0035 to 0038h specify [CTRL]+[vf･1] to [vf･4].
+===============================================================================================
+                 * NTS: According to a translation table in the MS-DOS kernel, where
+                 *      AX=1h to AX=29h inclusive look up from this 0x29-element table:
                  *
-                 * For whatever reason, the buffer is copied to the DOS buffer +1, meaning that on write it skips the 0x08 byte. */
+                 *      Table starts with AX=1h, ends with AX=29h
+                 *
+                 *                    01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10
+                 *                     |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+                 *      0ADC:00003DE0 01 02 03 04 05 06 07 08 09 0A 10 11 12 13 14 15  ................
+                 *      0ADC:00003DF0 16 17 18 19 1F 20 21 22 23 24 25 26 27 28 29 0B  ..... !"#$%&'().
+                 *      0ADC:00003E00 0C 0D 0E 0F 1A 1B 1C 1D 1E|
+                 *
+                 *      The table is read, then the byte is decremented by one.
+                 *
+                 *      If the result of that is less than 0x1E, it's an index into
+                 *      the 16 byte/entry Fn key table.
+                 *
+                 *      If the result is 0x1E or larger, then (result - 0x1E) is an
+                 *      index into the editor table, 8 bytes/entry.
+                 *
+                 *      Meanings:
+                 *
+                 *                    01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10
+                 *                     |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+                 *      0ADC:00003DE0 01 02 03 04 05 06 07 08 09 0A 10 11 12 13 14 15  ................
+                 *                   | --- Function keys F1-F10 ---| Fn shift F1-F6 -
+                 *      0ADC:00003DF0 16 17 18 19 1F 20 21 22 23 24 25 26 27 28 29 0B  ..... !"#$%&'().
+                 *                   | Sh F7-F10 | ------- EDITOR KEYS -----------| -
+                 *      0ADC:00003E00 0C 0D 0E 0F 1A 1B 1C 1D 1E|
+                 *                   | --------- | ------------ |
+===============================================================================================*/
+            if (reg_ax == 0x00) { /* Read all state, DS:DX = data to store to */
+/*=============================================================================================
+                 DS:DX contains
+
+Table            [Programmable key setting data buffer structure]
+                 (1) Key specification value 0000h
+                 -------+--------------------+--------------------------------------
+                 Offset | Key type           | Size of key setting data
+                 -------+--------------------+--------------------------------------
+                 +0000h | [f･1]              | 16 bytes (15 bytes of key setting data + 00h)
+                 +0010h | [f･2]              | 16 bytes (15 bytes of key setting data + 00h)
+                 +0020h | [f･3]              | 16 bytes (15 bytes of key setting data + 00h)
+                 +0030h | [f･4]              | 16 bytes (15 bytes of key setting data + 00h)
+                 +0040h | [f･5]              | 16 bytes (15 bytes of key setting data + 00h)
+                 +0050h | [f･6]              | 16 bytes (15 bytes of key setting data + 00h)
+                 +0060h | [f･7]              | 16 bytes (15 bytes of key setting data + 00h)
+                 +0070h | [f･8]              | 16 bytes (15 bytes of key setting data + 00h)
+                 +0080h | [f･9]              | 16 bytes (15 bytes of key setting data + 00h)
+                 +0090h | [f･10]             | 16 bytes (15 bytes of key setting data + 00h)
+                 +00A0h | [SHIFT]+[f･1]      | 16 bytes (15 bytes of key setting data + 00h)
+                 +00B0h | [SHIFT]+[f･2]      | 16 bytes (15 bytes of key setting data + 00h)
+                 +00C0h | [SHIFT]+[f･3]      | 16 bytes (15 bytes of key setting data + 00h)
+                 +00D0h | [SHIFT]+[f･4]      | 16 bytes (15 bytes of key setting data + 00h)
+                 +00E0h | [SHIFT]+[f･5]      | 16 bytes (15 bytes of key setting data + 00h)
+                 +00F0h | [SHIFT]+[f･6]      | 16 bytes (15 bytes of key setting data + 00h)
+                 +0100h | [SHIFT]+[f･7]      | 16 bytes (15 bytes of key setting data + 00h)
+                 +0110h | [SHIFT]+[f･8]      | 16 bytes (15 bytes of key setting data + 00h)
+                 +0120h | [SHIFT]+[f･9]      | 16 bytes (15 bytes of key setting data + 00h)
+                 +0130h | [SHIFT]+[f･10]     | 16 bytes (15 bytes of key setting data + 00h)
+                 +0140h | [ROLL UP]          | 6 bytes (5 bytes of key setting data + 00h)
+                 +0146h | [ROLL DOWN]        | 6 bytes (5 bytes of key setting data + 00h)
+                 +014Ch | [INS]              | 6 bytes (5 bytes of key setting data + 00h)
+                 +0152h | [DEL]              | 6 bytes (5 bytes of key setting data + 00h)
+                 +0158h | [↑]                | 6 bytes (5 bytes of key setting data + 00h)
+                 +015Eh | [←]                | 6 bytes (5 bytes of key setting data + 00h)
+                 +0164h | [→]                | 6 bytes (5 bytes of key setting data + 00h)
+                 +016Ah | [↓]                | 6 bytes (5 bytes of key setting data + 00h)
+                 +0170h | [HOME/CLR]         | 6 bytes (5 bytes of key setting data + 00h)
+                 +0176h | [HELP]             | 6 bytes (5 bytes of key setting data + 00h)
+                 +017Ch | [SHIFT]+[HOME/CLR] | 6 bytes (5 bytes of key setting data + 00h)
+                 -------+--------------------+--------------------------------------
+===============================================================================================*/
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
 
                 /* function keys F1-F10 */
                 for (unsigned int f=0;f < 10;f++,ofs += 16)
                     INTDC_STORE_FUNCDEC(ofs,pc98_func_key[f]);
-                /* VF1-VF5 */
-                for (unsigned int f=0;f < 5;f++,ofs += 16)
-                    INTDC_STORE_FUNCDEC(ofs,pc98_vfunc_key[f]);
                 /* function keys Shift+F1 - Shift+F10 */
                 for (unsigned int f=0;f < 10;f++,ofs += 16)
                     INTDC_STORE_FUNCDEC(ofs,pc98_func_key_shortcut[f]);
-                /* VF1-VF5 */
-                for (unsigned int f=0;f < 5;f++,ofs += 16)
-                    INTDC_STORE_FUNCDEC(ofs,pc98_vfunc_key_shortcut[f]);
                 /* editor keys */
                 for (unsigned int f=0;f < 11;f++,ofs += 6)
                     INTDC_STORE_EDITDEC(ofs,pc98_editor_key_escapes[f]);
-                /* function keys Control+F1 - Control+F10 */
-                for (unsigned int f=0;f < 10;f++,ofs += 16)
-                    INTDC_STORE_FUNCDEC(ofs,pc98_func_key_ctrl[f]);
-                /* VF1-VF5 */
-                for (unsigned int f=0;f < 5;f++,ofs += 16)
-                    INTDC_STORE_FUNCDEC(ofs,pc98_vfunc_key_ctrl[f]);
- 
+
                 goto done;
             }
-            /* NTS: According to a translation table in the MS-DOS kernel, where
-             *      AX=1h to AX=29h inclusive look up from this 0x29-element table:
-             *
-             *      Table starts with AX=1h, ends with AX=29h
-             *
-             *                    01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10
-             *                     |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-             *      0ADC:00003DE0 01 02 03 04 05 06 07 08 09 0A 10 11 12 13 14 15  ................
-             *      0ADC:00003DF0 16 17 18 19 1F 20 21 22 23 24 25 26 27 28 29 0B  ..... !"#$%&'().
-             *      0ADC:00003E00 0C 0D 0E 0F 1A 1B 1C 1D 1E|
-             *
-             *      The table is read, then the byte is decremented by one.
-             *
-             *      If the result of that is less than 0x1E, it's an index into
-             *      the 16 byte/entry Fn key table.
-             *
-             *      If the result is 0x1E or larger, then (result - 0x1E) is an
-             *      index into the editor table, 8 bytes/entry.
-             *
-             *      Meanings:
-             *
-             *                    01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10
-             *                     |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-             *      0ADC:00003DE0 01 02 03 04 05 06 07 08 09 0A 10 11 12 13 14 15  ................
-             *                   | --- Function keys F1-F10 ---| Fn shift F1-F6 -
-             *      0ADC:00003DF0 16 17 18 19 1F 20 21 22 23 24 25 26 27 28 29 0B  ..... !"#$%&'().
-             *                   | Sh F7-F10 | ------- EDITOR KEYS -----------| -
-             *      0ADC:00003E00 0C 0D 0E 0F 1A 1B 1C 1D 1E|
-             *                   | --------- | ------------ |
-             */
             else if (reg_ax >= 0x01 && reg_ax <= 0x0A) { /* Read individual function keys, DS:DX = data to store to */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_STORE_FUNCDEC(ofs,pc98_func_key[reg_ax - 0x01]);
@@ -5754,11 +5827,15 @@ static Bitu INTDC_PC98_Handler(void) {
                 INTDC_STORE_FUNCDEC(ofs,pc98_vfunc_key_ctrl[reg_ax - 0x34]);
                 goto done;
             }
-            else if (reg_ax == 0x00) { /* Read all state, DS:DX = data to store to */
+            else if (reg_ax == 0xFF) { /* Extended version of the API when AX == 0, DS:DX = data to store to */
                 /* DS:DX contains
                  *       16*10 bytes, 16 bytes per entry for function keys F1-F10
+                 *       16*5 bytes, 16 bytes per entry for VF1-VF5
                  *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
-                 *       6*11 bytes, 6 bytes per entry of unknown relevance (GUESS: Escapes for other keys like INS, DEL?)
+                 *       16*5 bytes, 16 bytes per entry for shift VF1-VF5
+                 *       6*11 bytes, 6 bytes per entry for editor keys
+                 *       16*10 bytes, 16 bytes per entry for function key shortcuts Control+F1 to Control+F10
+                 *       16*5 bytes, 16 bytes per entry for control VF1-VF5
                  *
                  * For whatever reason, the buffer is copied to the DOS buffer +1, meaning that on write it skips the 0x08 byte. */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
@@ -5766,13 +5843,25 @@ static Bitu INTDC_PC98_Handler(void) {
                 /* function keys F1-F10 */
                 for (unsigned int f=0;f < 10;f++,ofs += 16)
                     INTDC_STORE_FUNCDEC(ofs,pc98_func_key[f]);
+                /* VF1-VF5 */
+                for (unsigned int f=0;f < 5;f++,ofs += 16)
+                    INTDC_STORE_FUNCDEC(ofs,pc98_vfunc_key[f]);
                 /* function keys Shift+F1 - Shift+F10 */
                 for (unsigned int f=0;f < 10;f++,ofs += 16)
                     INTDC_STORE_FUNCDEC(ofs,pc98_func_key_shortcut[f]);
+                /* VF1-VF5 */
+                for (unsigned int f=0;f < 5;f++,ofs += 16)
+                    INTDC_STORE_FUNCDEC(ofs,pc98_vfunc_key_shortcut[f]);
                 /* editor keys */
                 for (unsigned int f=0;f < 11;f++,ofs += 6)
                     INTDC_STORE_EDITDEC(ofs,pc98_editor_key_escapes[f]);
-
+                /* function keys Control+F1 - Control+F10 */
+                for (unsigned int f=0;f < 10;f++,ofs += 16)
+                    INTDC_STORE_FUNCDEC(ofs,pc98_func_key_ctrl[f]);
+                /* VF1-VF5 */
+                for (unsigned int f=0;f < 5;f++,ofs += 16)
+                    INTDC_STORE_FUNCDEC(ofs,pc98_vfunc_key_ctrl[f]);
+ 
                 goto done;
             }
             goto unknown;
@@ -12792,3 +12881,4 @@ void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed)
 
 #endif
 }
+
