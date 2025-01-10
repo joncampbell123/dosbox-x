@@ -3480,6 +3480,7 @@ static Bitu DOS_26Handler(void) {
 	return DOS_26Handler_Actual(false);
 }
 
+bool private_segment_write_protect = false;
 bool enable_collating_uppercase = true;
 bool keep_private_area_on_boot = false;
 bool private_always_from_umb = false;
@@ -4148,6 +4149,7 @@ public:
         minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
 		private_segment_in_umb = section->Get_bool("private area in umb");
+		private_segment_write_protect = section->Get_bool("private area write protect");
 		enable_collating_uppercase = section->Get_bool("collating and uppercase");
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");

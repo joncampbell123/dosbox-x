@@ -31,6 +31,7 @@ extern int maxfcb;
 extern bool gbk, chinasea;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
 extern uint16_t desired_ems_segment;
+extern bool private_segment_write_protect;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
@@ -103,6 +104,20 @@ bool DOS_User_Wants_UMBs() {
 bool EMS_Active(void);
 void Update_Get_Desired_Segment(void);
 
+/* Some DOS games and demoscene stuff has fast and loose VRAM rendering code that can spill
+ * past video RAM into whatever follows in C0000h. If the DOSBox private area is there, then
+ * that sloppiness will corrupt whatever data structures and interrupts we put there and
+ * cause crashes. To prevent that, we allow write-protecting the area (DOSBox-X can still
+ * write to it using phys_writeb). */
+void DOS_Private_UMB_Lock(const bool lock) {
+	if (DOS_PRIVATE_SEGMENT >= 0xA000) {
+		if (lock)
+			MEM_map_ROM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
+		else
+			MEM_map_RAM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
+	}
+}
+
 void DOS_GetMemory_Choose() {
 	if (DOS_PRIVATE_SEGMENT == 0) {
 		/* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
@@ -145,7 +160,11 @@ void DOS_GetMemory_Choose() {
 
 		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
 			memset(GetMemBase()+((Bitu)DOS_PRIVATE_SEGMENT<<4u),0x00,(Bitu)(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4u);
-			MEM_map_RAM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
+
+			if (private_segment_write_protect)
+				MEM_map_ROM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
+			else
+				MEM_map_RAM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
 		}
 
 		LOG(LOG_DOSMISC,LOG_DEBUG)("DOS private segment set to 0x%04x-0x%04x",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
