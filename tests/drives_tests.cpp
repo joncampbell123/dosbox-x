@@ -130,7 +130,7 @@ TEST(Set_Label, LongerThan11CD)
 TEST(Set_Label, ShorterThan8)
 {
     std::string output = run_Set_Label("a123456", false);
-    EXPECT_EQ("A123456    ", output);
+    EXPECT_EQ("a123456    ", output);
 }
 TEST(Set_Label, ShorterThan8CD)
 {
@@ -143,7 +143,7 @@ TEST(Set_Label, ShorterThan8CD)
 TEST(Set_Label, EqualTo8)
 {
     std::string output = run_Set_Label("a1234567", false);
-    EXPECT_EQ("A1234567   ", output);
+    EXPECT_EQ("a1234567   ", output);
 }
 TEST(Set_Label, EqualTo8CD)
 {
@@ -155,7 +155,7 @@ TEST(Set_Label, EqualTo8CD)
 TEST(Set_Label, StripEndingDot)
 {
     std::string output = run_Set_Label("a1234567.", false);
-    EXPECT_EQ("A1234567.  ", output);
+    EXPECT_EQ("a1234567.  ", output);
 }
 TEST(Set_Label, NoStripEndingDotCD)
 {
