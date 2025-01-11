@@ -286,6 +286,15 @@ namespace WLGUI {
 		Point(const long _x,const long _y) : x(_x), y(_y) { }
 	};
 
+	struct Rect {
+		long	left,top,right,bottom;
+
+		Rect() { }
+		Rect(const long _l,const long _t,const long _r,const long _b) : left(_l), top(_t), right(_r), bottom(_b) { }
+		bool isInRect(const long x,const long y) const;
+		bool isEmpty(void) const;
+	};
+
 	struct ReferenceCountTracking {
 		int		refcount = 0;
 		int		AddRef(void);
@@ -398,10 +407,12 @@ namespace WLGUI {
 		 * Don't keep the DC open except to draw. */
 		struct Obj : public Resource {
 			struct Flags {
+				static constexpr uint32_t DC_CLIPRECT = uint32_t(1u) << uint32_t(0u);
 				uint32_t v = 0;
 			};
 
 			ObjType		type; /* init by constructor */
+			Rect		clip = {-1,-1,-1,-1};
 			Dimensions	viewport = {0,0}; /* the viewport in device pixels i.e. SDL surface pixels */
 			Point		originSrc = {0,0}; /* coordinate system origin */
 			Point		originDst = {0,0}; /* coordinate system origin */
@@ -426,7 +437,9 @@ namespace WLGUI {
 			virtual Handle SelectFont(Handle newValue);
 			virtual bool TextOut(long x,long y,const char *str/*TODO UTF-8*/);
 			virtual bool DrawTextChar1bpp(long x,long y,FontHandle::Bitmap &bmp);
+			virtual bool SetClipRegion(const Rect &r);
 			bool DrawTextChar(long x,long y,FontHandle::Bitmap &bmp);
+			virtual bool clipCheck(const long x,const long y);
 
 			static DevicePixel GetPixel_stub(Obj &obj,long x,long y);
 			static void SetPixel_stub(Obj &obj,long x,long y,const DevicePixel c);
@@ -468,6 +481,7 @@ namespace WLGUI {
 		bool Delete(const Handle h);
 		Handle SelectFont(const Handle DC,const Handle newValue);
 		bool TextOut(const Handle h,long x,long y,const char *str/*TODO UTF-8*/);
+		bool SetClipRegion(const Handle h,const Rect &r);
 
 	}
 
@@ -508,6 +522,14 @@ namespace WLGUI {
 		}
 
 		return 0;
+	}
+
+	bool Rect::isEmpty(void) const {
+		return left == -1l && left == right && right == top && top == bottom;
+	}
+
+	bool Rect::isInRect(const long x,const long y) const {
+		return (x >= left && x < right) && (y >= top && y < bottom);
 	}
 
 	Resource::Resource(const HandleType init_ht) : htype(init_ht) {
@@ -801,26 +823,45 @@ namespace WLGUI {
 			return InvalidHandleValue;
 		}
 
+		bool Obj::SetClipRegion(const Rect &r) {
+			if (!r.isEmpty()) {
+				Flags.v |= Flags::DC_CLIPRECT;
+				clip = r;
+			}
+			else {
+				Flags.v &= ~Flags::DC_CLIPRECT;
+			}
+
+			return true;
+		}
+
 		/* NTS: Override this method if you have a faster more optimized routine for 1bpp bitmap font rendering */
 		bool Obj::DrawTextChar1bpp(long x,long y,FontHandle::Bitmap &bmp) {
 			long dx = x + bmp.dx;
 			for (unsigned int subx=0;subx < bmp.dw;subx++) {
 				const unsigned int bsx = bmp.sx + subx;
 				unsigned char msk = 0x80 >> (bsx & 7u);
+				long dy = y + bmp.dy;
 				const unsigned char *s =
 					bmp.base +
 					(bmp.sy * bmp.pitch) +
 					(bsx >> 3u);
 
-				long dy = y + bmp.dy;
 				for (unsigned int suby=0;suby < bmp.dh;suby++) {
-					if (*s & msk) SetPixel(*this,dx,dy,ForegroundColor);
+					if ((*s & msk) && clipCheck(dx,dy)) SetPixel(*this,dx,dy,ForegroundColor);
 					s += bmp.pitch;
 					dy++;
 				}
 
 				dx++;
 			}
+
+			return true;
+		}
+
+		bool Obj::clipCheck(const long x,const long y) {
+			if (Flags.v & Flags::DC_CLIPRECT)
+				return clip.isInRect(x,y);
 
 			return true;
 		}
@@ -1022,7 +1063,7 @@ namespace WLGUI {
 			Obj* obj = GetObject(h);
 			if (obj) {
 				obj->ConvertLogicalToDeviceCoordinates(x,y);
-				return obj->GetPixel(*obj,x,y); /* NTS: call through function pointer */
+				if (obj->clipCheck(x,y)) return obj->GetPixel(*obj,x,y); /* NTS: call through function pointer */
 			}
 			return DevicePixel(0);
 		}
@@ -1031,7 +1072,7 @@ namespace WLGUI {
 			Obj* obj = GetObject(h);
 			if (obj) {
 				obj->ConvertLogicalToDeviceCoordinates(x,y);
-				obj->SetPixel(*obj,x,y,c); /* NTS: call through function pointer */
+				if (obj->clipCheck(x,y)) obj->SetPixel(*obj,x,y,c); /* NTS: call through function pointer */
 			}
 		}
 
@@ -1086,6 +1127,22 @@ namespace WLGUI {
 			return false;
 		}
 
+		bool SetClipRegion(const Handle h,const Rect &r) {
+			Obj* obj = GetObject(h);
+			if (obj) {
+				if (!r.isEmpty()) {
+					Rect cr = r;
+					obj->ConvertLogicalToDeviceCoordinates(cr.left,cr.top);
+					obj->ConvertLogicalToDeviceCoordinates(cr.right,cr.bottom);
+					return obj->SetClipRegion(cr);
+				}
+				else {
+					return obj->SetClipRegion(r);
+				}
+			}
+			return false;
+		}
+
 	}
 
 }
@@ -1120,6 +1177,8 @@ void NewUIExperiment(bool pressed) {
 
 	WLGUI::Handle gui_surface_dc = WLGUI::DC::CreateSDLSurfaceDC(gui_surface);
 	if (gui_surface_dc == WLGUI::InvalidHandleValue) E_Exit("Cannot create SDL DC");
+
+	WLGUI::DC::SetClipRegion(gui_surface_dc,WLGUI::Rect(dw/4,dh/4,(dw*3)/4,(dh*3)/4));
 
 	WLGUI::Handle VGAFont = WLGUI::FontHandle::CreateVGAFont(16*2);
 	if (VGAFont == WLGUI::InvalidHandleValue) E_Exit("Cannot create VGA font");
