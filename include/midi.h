@@ -58,6 +58,7 @@ struct DB_Midi {
 	DB_Midi() {}
 };
 
+extern bool roland_gs_sysex;
 extern DB_Midi midi;
 
 #endif
