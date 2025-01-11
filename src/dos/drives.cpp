@@ -290,54 +290,23 @@ int get_expanded_files(const std::string &path, std::vector<std::string> &paths,
 }
 
 void Set_Label(char const * const input, char * const output, bool cdrom) {
-    /* I don't know what MSCDEX.EXE does but don't put dots in the 11-char volume label for non-CD-ROM drives */
-    if (!cdrom) {
-        Bitu togo     = 11;
-        Bitu vnamePos = 0;
-        Bitu labelPos = 0;
-        char upcasebuf[12] = {0};
-        strncpy(upcasebuf, input, 11);
-        DBCS_upcase(upcasebuf);
+    uint8_t togo = 11;
+    uint8_t vnamePos = 0;
+    uint8_t labelPos = 0;
+    char upcasebuf[12];
+    bool str_end = false; // True if end of string is detected
+    strncpy(upcasebuf, input, 11);
+    //DBCS_upcase(upcasebuf);  /* Another mscdex quirk. Label is not always uppercase. (Daggerfall) */ 
 
-        while (togo > 0) {
-            if (upcasebuf[vnamePos]==0) break;
-            //Another mscdex quirk. Label is not always uppercase. (Daggerfall)
-            output[labelPos] = upcasebuf[vnamePos];
-            labelPos++;
-            vnamePos++;
-            togo--;
-        }
-        output[labelPos] = 0;
-        if((labelPos > 0) && (output[labelPos-1] == '.') && labelPos == 9) output[labelPos-1] = 0;
-        return;
+    while (togo > 0) {
+        if(upcasebuf[vnamePos] == 0) str_end = true;
+        output[labelPos] = !str_end ? upcasebuf[vnamePos] : 0x20; // Pad empty characters with white space (0x20)
+        labelPos++;
+        vnamePos++;
+        togo--;
     }
-
-	Bitu togo     = 8;
-	Bitu vnamePos = 0;
-	Bitu labelPos = 0;
-	bool point    = false;
-
-	//spacepadding the filenamepart to include spaces after the terminating zero is more closely to the specs. (not doing this now)
-	// HELLO\0' '' '
-
-	while (togo > 0) {
-		if (input[vnamePos]==0) break;
-		if (!point && (input[vnamePos]=='.')) {	togo=4; point=true; }
-
-		output[labelPos] = input[vnamePos];
-
-		labelPos++; vnamePos++;
-		togo--;
-		if ((togo==0) && !point) {
-			if (input[vnamePos]=='.') vnamePos++;
-			output[labelPos]='.'; labelPos++; point=true; togo=3;
-		}
-	}
-	output[labelPos]=0;
-
-	//Remove trailing dot. except when on cdrom and filename is exactly 8 (9 including the dot) letters. MSCDEX feature/bug (fifa96 cdrom detection)
-	if((labelPos > 0) && (output[labelPos-1] == '.') && !(cdrom && labelPos ==9))
-		output[labelPos-1] = 0;
+    output[labelPos] = 0;
+    return;
 }
 
 DOS_Drive::DOS_Drive() {

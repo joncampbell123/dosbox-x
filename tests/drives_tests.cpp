@@ -108,34 +108,34 @@ TEST(LWildFileCmp, LFNCompare)
 TEST(Set_Label, Daggerfall)
 {
     std::string output = run_Set_Label("Daggerfall", false);
-    EXPECT_EQ("DAGGERFALL", output);
+    EXPECT_EQ("Daggerfall ", output);
 }
 TEST(Set_Label, DaggerfallCD)
 {
     std::string output = run_Set_Label("Daggerfall", true);
-    EXPECT_EQ("Daggerfa.ll", output);
+    EXPECT_EQ("Daggerfall ", output);
 }
 
 TEST(Set_Label, LongerThan11)
 {
     std::string output = run_Set_Label("a123456789AAA", false);
-    EXPECT_EQ("A123456789A", output);
+    EXPECT_EQ("a123456789A", output);
 }
 TEST(Set_Label, LongerThan11CD)
 {
     std::string output = run_Set_Label("a123456789AAA", true);
-    EXPECT_EQ("a1234567.89A", output);
+    EXPECT_EQ("a123456789A", output);
 }
 
 TEST(Set_Label, ShorterThan8)
 {
     std::string output = run_Set_Label("a123456", false);
-    EXPECT_EQ("A123456", output);
+    EXPECT_EQ("a123456    ", output);
 }
 TEST(Set_Label, ShorterThan8CD)
 {
     std::string output = run_Set_Label("a123456", true);
-    EXPECT_EQ("a123456", output);
+    EXPECT_EQ("a123456    ", output);
 }
 
 // Tests that the CD-ROM version adds a trailing dot when
@@ -143,36 +143,36 @@ TEST(Set_Label, ShorterThan8CD)
 TEST(Set_Label, EqualTo8)
 {
     std::string output = run_Set_Label("a1234567", false);
-    EXPECT_EQ("A1234567", output);
+    EXPECT_EQ("a1234567   ", output);
 }
 TEST(Set_Label, EqualTo8CD)
 {
     std::string output = run_Set_Label("a1234567", true);
-    EXPECT_EQ("a1234567.", output);
+    EXPECT_EQ("a1234567   ", output);
 }
 
 // A test to ensure non-CD-ROM function strips trailing dot
 TEST(Set_Label, StripEndingDot)
 {
     std::string output = run_Set_Label("a1234567.", false);
-    EXPECT_EQ("A1234567", output);
+    EXPECT_EQ("a1234567.  ", output);
 }
 TEST(Set_Label, NoStripEndingDotCD)
 {
     std::string output = run_Set_Label("a1234567.", true);
-    EXPECT_EQ("a1234567.", output);
+    EXPECT_EQ("a1234567.  ", output);
 }
 
 // Just to make sure this function doesn't clean invalid DOS labels
 TEST(Set_Label, InvalidCharsEndingDot)
 {
     std::string output = run_Set_Label("?*':&@(..", false);
-    EXPECT_EQ("?*':&@(.", output);
+    EXPECT_EQ("?*':&@(..  ", output);
 }
 TEST(Set_Label, InvalidCharsEndingDotCD)
 {
     std::string output = run_Set_Label("?*':&@(..", true);
-    EXPECT_EQ("?*':&@(..", output);
+    EXPECT_EQ("?*':&@(..  ", output);
 }
 
 } // namespace
