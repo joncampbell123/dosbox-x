@@ -3374,6 +3374,12 @@ void DOSBOX_SetupConfigSections(void) {
 
     secprop=control->AddSection_prop("midi",&Null_Init,true);//done
 
+    Pbool = secprop->Add_bool("roland gs sysex",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("Listen for and handle some Roland GS System Exclusive messages, such as GS Reset and Master Volume.\n"
+                    "This is needed for PC-98 games that have hanging/stuck MIDI note problems because they rely on these\n"
+                    "messages to reset the synth rather than using standard MIDI commands.");
+    Pbool->SetBasic(false);
+
     Pstring = secprop->Add_string("mpu401",Property::Changeable::WhenIdle,"intelligent");
     Pstring->Set_values(mputypes);
     Pstring->Set_help("Type of MPU-401 to emulate.");
