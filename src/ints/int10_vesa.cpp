@@ -419,10 +419,10 @@ foundit:
 	case M_TEXT:
 		if (!allow_vesa_tty) return VESA_FAIL;
 		adj = hack_lfb_xadjust / 8;
-		pageSize = 0;
+		pageSize = mblock->sheight * cwidth/8;
 		var_write(&minfo.BytesPerScanLine, (uint16_t)(mblock->twidth * 2));
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
-			var_write(&minfo.NumberOfPlanes,0x4);
+			var_write(&minfo.NumberOfPlanes,0x1);
 			var_write(&minfo.BitsPerPixel,4);
 			var_write(&minfo.MemoryModel,0);	// text
 		}
@@ -443,6 +443,7 @@ foundit:
 		modeAttributes &= ~0x1;
 	} else if (pageSize) {
 		pages = (GetReportedVideoMemorySize() / pageSize)-1;
+		if (pages > 254) pages = 254;
 	}
 
 	/* VBE 1.0 allows fields "XResolution" and later to be optional.
