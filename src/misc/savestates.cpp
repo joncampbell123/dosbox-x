@@ -1142,7 +1142,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 
 				/* 2025/01/12: Backwards compat: The old code compressed data to zlib, even though the ZIP support code
 				 *             already applies compression. This is to tell the old code that we did not compress the
-				 *             code (the ZIP support code did though). */
+				 *             data (the ZIP support code did though). */
 				emulatorversion << std::endl << "No compression";
 
 				create_version=true;
