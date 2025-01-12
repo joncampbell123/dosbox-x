@@ -504,7 +504,8 @@ foundit:
 		}
 	}
 
-	if (!int10.vesa_nolfb && !int10.vesa_oldvbe) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + adj + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
+	if (!int10.vesa_nolfb && !int10.vesa_oldvbe && (modeAttributes&0x80)/*ModeAttributes indicates an LFB*/)
+		var_write(&minfo.PhysBasePtr,S3_LFB_BASE + adj + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
 
 	MEM_BlockWrite(buf,&minfo,sizeof(MODE_INFO));
 	return VESA_SUCCESS;
