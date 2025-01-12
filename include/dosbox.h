@@ -361,11 +361,9 @@ private:
         RawBytes() {}
         void set(const std::string& stream);
         std::string get() const; //throw (Error)
-        void compress() const;   //throw (Error)
         bool dataAvailable() const;
     private:
         bool dataExists = false; //determine whether set method (even with empty string) was called
-        mutable bool isCompressed = false; //design for logical not binary const
         mutable std::string bytes; //
     };
 

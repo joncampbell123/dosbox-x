@@ -355,70 +355,13 @@ void SaveState::registerComponent(const std::string& uniqueName, Component& comp
 	components.insert(std::make_pair(uniqueName, CompData(comp)));
 }
 
-namespace Util {
-	std::string compress(const std::string& input) { //throw (SaveState::Error)
-		if (input.empty())
-			return input;
-
-		const uLong bufferSize = ::compressBound((uLong)input.size());
-
-		std::string output;
-		output.resize(bufferSize);
-
-		uLongf actualSize = bufferSize;
-		if (::compress2(reinterpret_cast<Bytef*>(&output[0]), &actualSize,
-					reinterpret_cast<const Bytef*>(input.c_str()), (uLong)input.size(), Z_BEST_SPEED) != Z_OK)
-			throw SaveState::Error("Compression failed!");
-
-		output.resize(actualSize);
-
-		//save size of uncompressed data
-		const size_t uncompressedSize = input.size(); //save size of uncompressed data
-		output.resize(output.size() + sizeof(uncompressedSize)); //won't trigger a reallocation
-		::memcpy(&output[0] + output.size() - sizeof(uncompressedSize), &uncompressedSize, sizeof(uncompressedSize));
-
-		return std::string(&output[0], output.size()); //strip reserved space
-	}
-
-	std::string decompress(const std::string& input) { //throw (SaveState::Error)
-		if (input.empty())
-			return input;
-
-		//retrieve size of uncompressed data
-		size_t uncompressedSize = 0;
-		::memcpy(&uncompressedSize, &input[0] + input.size() - sizeof(uncompressedSize), sizeof(uncompressedSize));
-
-		std::string output;
-		output.resize(uncompressedSize);
-
-		uLongf actualSize = (uLongf)uncompressedSize;
-		if (::uncompress(reinterpret_cast<Bytef*>(&output[0]), &actualSize,
-					reinterpret_cast<const Bytef*>(input.c_str()), (uLong)(input.size() - sizeof(uncompressedSize))) != Z_OK)
-			throw SaveState::Error("Decompression failed!");
-
-		output.resize(actualSize); //should be superfluous!
-
-		return output;
-	}
-}
-
 inline void SaveState::RawBytes::set(const std::string& stream) {
 	bytes = stream;
-	isCompressed = false;
 	dataExists   = true;
 }
 
 inline std::string SaveState::RawBytes::get() const { //throw (Error){
-	if (isCompressed)
-		(Util::decompress(bytes)).swap(bytes);
-	isCompressed = false;
 	return bytes;
-}
-
-inline void SaveState::RawBytes::compress() const { //throw (Error)
-	if (!isCompressed)
-		(Util::compress(bytes)).swap(bytes);
-	isCompressed = true;
 }
 
 inline bool SaveState::RawBytes::dataAvailable() const {
@@ -1120,7 +1063,6 @@ void SaveState::save(size_t slot) { //throw (Error)
 		notifyError("Unsupported memory size for saving states.", false);
 		return;
 	}
-	bool compresssaveparts = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("compresssaveparts");
 	const char *save_remark = "";
 #if !defined(HX_DOS)
 	if (auto_save_state)
@@ -1196,7 +1138,12 @@ void SaveState::save(size_t slot) { //throw (Error)
 				std::string tempname = temp+"DOSBox-X_Version";
 				std::ofstream emulatorversion (tempname.c_str(), std::ofstream::binary);
 				emulatorversion << "DOSBox-X " << VERSION << " (" << SDL_STRING << ")" << std::endl << GetPlatform(true) << std::endl << UPDATED_STR;
-				if (!compresssaveparts) emulatorversion << std::endl << "No compression";
+
+				/* 2025/01/12: Backwards compat: The old code compressed data to zlib, even though the ZIP support code
+				 *             already applies compression. This is to tell the old code that we did not compress the
+				 *             code (the ZIP support code did though). */
+				emulatorversion << std::endl << "No compression";
+
 				create_version=true;
 				emulatorversion.close();
 			}
@@ -1244,7 +1191,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 			std::string realtemp;
 			realtemp = temp + i->first;
 			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
-			outfile << (compresssaveparts?Util::compress(ss.str()):ss.str());
+			outfile << ss.str();
 			//compress all other saved states except position "slot"
 			//const std::vector<RawBytes>& rb = i->second.rawBytes;
 			//std::for_each(rb.begin(), rb.begin() + slot, std::mem_fun_ref(&RawBytes::compress));
@@ -1336,7 +1283,6 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	bool read_title=false;
 	bool read_memorysize=false;
 	bool read_machinetype=false;
-	bool decompressparts=true;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -1399,7 +1345,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			buffer[length]='\0';
 			char *p;
 			if (strstr(buffer, "\nNo compression") != NULL) {
-				decompressparts = false;
+				/* 2025/01/12: Removal of this string is required to match version string below even if now ignored */
 				p=strrchr(buffer, '\n');
 				if (p!=NULL) *p=0;
 			}
@@ -1535,7 +1481,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		fb->open(realtemp.c_str(),std::ios::in | std::ios::binary);
 		std::string str((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
 		std::stringstream mystream;
-		mystream << (decompressparts?Util::decompress(str):str);
+		mystream << str;
 		i->second.comp.setBytes(mystream);
 		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
 			savestatecorrupt(i->first.c_str());
