@@ -9160,13 +9160,15 @@ void START_ProgramStart(Program **make)
 
 #define MAX_FLAGS 512
 char *g_flagged_files[MAX_FLAGS]; //global array to hold flagged files
-int my_minizip(char ** savefile, char ** savefile2, char* savename);
+int my_minizip(bool compress, char ** savefile, char ** savefile2, char* savename=NULL);
 int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, char* savename);
 int flagged_backup(char *zip)
 {
     char zipfile[CROSS_LEN], ziptmp[CROSS_LEN+4];
     int i;
     int ret = 0;
+
+    bool compresssaveparts = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("compresssaveparts");
 
     strcpy(zipfile, zip);
     strcpy(ziptmp, zip);
@@ -9202,7 +9204,7 @@ int flagged_backup(char *zip)
             std::ofstream outfile (ziptmp, std::ofstream::binary);
             outfile << out;
             outfile.close();
-            my_minizip((char**)zipfile, (char**)ziptmp, g_flagged_files[i]);
+            my_minizip(compresssaveparts, (char**)zipfile, (char**)ziptmp, g_flagged_files[i]);
             ret++;
         }
     }

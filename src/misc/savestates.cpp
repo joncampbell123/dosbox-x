@@ -892,7 +892,7 @@ int isLargeFile(const char* filename)
 	return largeFile;
 }
 
-int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
+int my_minizip(bool compress, char ** savefile, char ** savefile2, char* savename=NULL) {
 	int opt_overwrite=0;
 	int opt_compress_level=Z_DEFAULT_COMPRESSION;
 	int opt_exclude_path=savename==NULL?1:0;
@@ -905,7 +905,7 @@ int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
 	const char* password=NULL;
 
 	opt_overwrite = 2;
-	opt_compress_level = 9;
+	opt_compress_level = compress ? 9 : 0;
 
 	size_buf = 16384;
 	buf = malloc(size_buf);
@@ -1063,6 +1063,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 		notifyError("Unsupported memory size for saving states.", false);
 		return;
 	}
+	bool compresssaveparts = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("compresssaveparts");
 	const char *save_remark = "";
 #if !defined(HX_DOS)
 	if (auto_save_state)
@@ -1215,20 +1216,20 @@ void SaveState::save(size_t slot) { //throw (Error)
 
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
 		save2=temp+i->first;
-		my_minizip((char **)save.c_str(), (char **)save2.c_str());
+		my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
 	}
 	save2=temp+"DOSBox-X_Version";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Program_Name";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Memory_Size";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Machine_Type";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Time_Stamp";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Save_Remark";
-	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
 	if (!dos_kernel_disabled) flagged_backup((char *)save.c_str());
 
 delete_all:
