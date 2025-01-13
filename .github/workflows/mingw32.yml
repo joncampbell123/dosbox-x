@@ -122,7 +122,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-win32-${{ env.timestamp }}.zip *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: dosbox-x-mingw-win32-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -245,7 +245,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-win32-lowend-${{ env.timestamp }}.zip *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: dosbox-x-mingw-win32-lowend-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -336,7 +336,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-win32-lowend9x-${{ env.timestamp }}.zip *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: dosbox-x-mingw-win32-lowend9x-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
