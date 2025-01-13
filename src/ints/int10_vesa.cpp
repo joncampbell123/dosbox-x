@@ -543,7 +543,10 @@ uint8_t VESA_SetCPUWindow(uint8_t window,uint16_t address) {
 	 * parameter. */
 	address &= 0xFFu;
 
-	if ((!vesa_bank_switch_window_range_check) || (uint32_t)(address)*vga.svga.bank_size<GetReportedVideoMemorySize()) { /* range check, or silently truncate address depending on dosbox-x.conf setting */
+	Bitu calcmemsize = GetReportedVideoMemorySize();
+	if (CurMode->type == M_LIN4) calcmemsize /= 4u; /* 4bpp planar = 4 bytes per video memory byte */
+
+	if ((!vesa_bank_switch_window_range_check) || (uint32_t)(address)*vga.svga.bank_size<calcmemsize) { /* range check, or silently truncate address depending on dosbox-x.conf setting */
 		IO_Write(0x3d4,0x6a);
 		IO_Write(0x3d5,(uint8_t)address); /* NTS: in vga_s3.cpp this is a 7-bit field, wraparound will occur at address >= 128 but only if emulating a full 64KB bank as normal */
 		return VESA_SUCCESS;
