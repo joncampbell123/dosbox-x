@@ -82,6 +82,7 @@ static bool unmask_irq = false;
 static bool enable_autoamp = false;
 static bool startup_ultrinit = false;
 static bool ignore_active_channel_write_while_active = false;
+static bool warn_out_of_bounds_dram_access = false;
 static bool dma_enable_on_dma_control_polling = false;
 static uint16_t vol16bit[4096];
 static uint32_t pantable[16];
@@ -1567,11 +1568,13 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 
 		return reg16;
 	case 0x307:
-		if((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize) {
+		if (warn_out_of_bounds_dram_access && myGUS.gDramAddr >= myGUS.memsize)
+			LOG(LOG_MISC,LOG_WARN)("GUS: out of bounds DRAM read %x",(unsigned int)myGUS.gDramAddr);
+
+		if((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize)
 			return GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask];
-		} else {
+		else
 			return 0;
-		}
 	case 0x306:
 	case 0x706:
 		if (gus_type >= GUS_MAX)
@@ -1812,8 +1815,12 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		ExecuteGlobRegister();
 		break;
 	case 0x307:
+		if (warn_out_of_bounds_dram_access && myGUS.gDramAddr >= myGUS.memsize)
+			LOG(LOG_MISC,LOG_WARN)("GUS: out of bounds DRAM write %x val %x",(unsigned int)myGUS.gDramAddr,(unsigned int)val & 0xffu);
+
 		if ((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize)
-            GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask] = (uint8_t)val;
+			GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask] = (uint8_t)val;
+
 		break;
 	case 0x306:
 	case 0x706:
@@ -2280,6 +2287,7 @@ public:
         memset(GUSRam,0,1024*1024);
 
         ignore_active_channel_write_while_active = section->Get_bool("ignore channel count while active");
+        warn_out_of_bounds_dram_access = section->Get_bool("warn on out of bounds dram access");
 
         unmask_irq = section->Get_bool("pic unmask irq");
         enable_autoamp = section->Get_bool("autoamp");
