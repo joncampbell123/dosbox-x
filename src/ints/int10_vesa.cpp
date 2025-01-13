@@ -431,12 +431,14 @@ foundit:
 	default:
 		return VESA_FAIL;
 	}
+#if 0
 	if (pageSize & 0xFFFFu) {
 		// It is documented that many applications assume 64k-aligned page sizes
 		// VBETEST is one of them
 		pageSize +=  0xFFFFu;
 		pageSize &= ~0xFFFFu;
 	}
+#endif
 	Bitu pages = 0;
 	if (pageSize > GetReportedVideoMemorySize() || (mblock->special & _USER_DISABLED)) {
 		// mode not supported by current hardware configuration
@@ -635,7 +637,8 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 			pixels_per_offset = 4;
 			break;
 		case M_LIN24:
-			pixels_per_offset = 2;
+			pixels_per_offset = 8;
+			bytes_per_offset = 24;
 			break;
 		case M_LIN32:
 			pixels_per_offset = 2;
@@ -665,7 +668,11 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 			// TODO: Add dosbox-x.conf option to control which behavior is emulated.
 			if (new_offset > max_offset) new_offset = max_offset;
 
-			vga.config.scan_len = new_offset;
+			if (CurMode->type == M_LIN24)
+				vga.config.scan_len = new_offset * 3u;
+			else
+				vga.config.scan_len = new_offset;
+
 			VGA_CheckScanLength();
 			break;
 
@@ -686,7 +693,11 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 			// TODO: Add dosbox-x.conf option to control which behavior is emulated.
 			if (new_offset > max_offset) new_offset = max_offset;
 
-			vga.config.scan_len = new_offset;
+			if (CurMode->type == M_LIN24)
+				vga.config.scan_len = new_offset * 3u;
+			else
+				vga.config.scan_len = new_offset;
+
 			VGA_CheckScanLength();
 			break;
 
@@ -750,7 +761,10 @@ uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait) {
 		panning_factor = 2; // this may be DOSBox specific
 		pixels_per_offset = 4;
 		break;
-	case M_LIN24: // FIXME
+	case M_LIN24:
+		pixels_per_offset = 8;
+		x *= 3;
+		break;
 	case M_LIN32:
 		pixels_per_offset = 2;
 		break;
