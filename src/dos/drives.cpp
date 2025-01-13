@@ -300,7 +300,7 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
 
     while (togo > 0) {
         if(upcasebuf[vnamePos] == 0) str_end = true;
-        output[labelPos] = !str_end ? upcasebuf[vnamePos] : 0x20; // Pad empty characters with white space (0x20)
+        output[labelPos] = !str_end ? upcasebuf[vnamePos] : 0x0; // Pad empty characters with 0x00
         labelPos++;
         vnamePos++;
         togo--;
