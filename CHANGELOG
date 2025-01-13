@@ -1,4 +1,61 @@
 Next
+  - Switch off TTF mode in text modes not working in TTF mode. (maron2000)
+  - Gravis Ultrasound: Add dosbox.conf option that when enabled,
+    prints a warning to the log file every time the guest pokes
+    data into GUS RAM beyond the 1MB supported by the card,
+    in order to better identify errant Demoscene code and/or
+    any bugs in new tracker code currently in development. (joncampbell123)
+  - VGA: Fix buffer overrun that can occur with 4bpp planar
+    16-color modes if the guest writes beyond the first 2MB
+    of video RAM. The planar support code also copies the 3rd
+    bitplane to a font RAM array used in EGA/VGA text mode.
+    This font RAM array is only 512KB, therefore in planar
+    memory space, writes beyond (2MB/4) = 512KB cause corruption
+    of emulator state and possibly crashes. Solve the issue
+    therefore by not copying to font RAM beyond 512KB. (joncampbell123)
+  - VESA BIOS support: Fix VGA draw and bank switching code
+    to ensure that the guest cannot write outside video RAM
+    limits, and fix VBE bank switching code to consider 4bpp
+    planar SVGA modes properly. (joncampbell123)
+  - VESA BIOS support: Fix scan line and page calculations related
+    to 4bpp planar 16-color SVGA modes. (joncampbell123)
+  - VESA BIOS support: Fix 24bpp RGB bugs related to VBE calls
+    that control scan line length and display panning/scrolling.
+    Now VBETEST can test 24bpp panning without potentially giving
+    the user an epileptic seizure, and there are no more overlong
+    scanlines. (joncampbell123)
+  - VESA BIOS support: Correct mode information for SVGA text modes (joncampbell123)
+  - VESA BIOS support: Like real Pentium-era hardware, do not
+    list 4bpp planar 16-color modes as having a linear framebuffer.
+    Most SVGA cards only support planar VGA memory within the
+    standard VGA A0000-BFFFFh region and do not support the same
+    up in the linear framebuffer area. (joncampbell123)
+  - Save state support: Let the option to control whether or not
+    compression is applied, apply to the ZIP compression. If you
+    turn off compression, the ZIP file uses "store" mode instead,
+    otherwise compresses as normal. (joncampbell123)
+  - It turns out that for whatever reason, the savestate code was
+    compressing the state twice. Once by itself, and then again when
+    writing to the ZIP archive. Furthermore, storing the original
+    length at the end of the compressed data using size_t is a big
+    problem. Remove the extra compression/decompression and let the
+    ZIP file support do the compression. Save states from now on
+    will be marked as "No compression" for at least some backwards
+    compatibility. (joncampbell123)
+  - Volume label cleanup and fixes. Do not pad labels with white spaces. (maron2000)
+  - Some NEC PC-98 games that support MIDI through MPU-401 like to use
+    Roland GS-specific SysEx messages to control master volume and
+    reset the MIDI synth, instead of standard messages. These games
+    were known in DOSBox-X to have problems with MIDI stuck notes and
+    hanging notes for this reason. Added code to recognize Roland GS
+    reset SysEx and reissue it as standard MIDI reset, to resolve that.
+    Added code to Fluidsynth MIDI support to recognize the Roland GS
+    master volume SysEx commands and apply it to the output, which
+    allows these games to "fade out" the MIDI properly. PC-98 games
+    should no longer have hanging/stuck MIDI notes (joncampbell123).
+  - Fix VESA BIOS modelist mistake that marked all "high definition"
+    modes as modes to round bytes per line up to a power of 2 (joncampbell123)
+  - Fix memory size register determination for S3 Virge/VX (clbianco)
   - Fixed a Y2038 bug by replacing Int32x32To64 with regular multiplication.
     (CookiePLMonster)
   - Fixed pasting Bell code (0x07) from clipboard was ignored. (maron2000)
