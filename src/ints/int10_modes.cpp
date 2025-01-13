@@ -713,8 +713,8 @@ static bool SetCurMode(VideoModeBlock modeblock[],uint16_t mode) {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
 				CurMode=&modeblock[i];
 #if defined(USE_TTF)
-				if(modeblock[i].type == M_TEXT) ttf_switch_on(false);
-				else ttf_switch_off(false); // Disable TTF output when switching to graphics mode
+                ttf_switch_off(false); // Disable TTF output when switching to graphics mode,
+                                       // however for text mode, temporary switched off and switched on again later to avoid glitches
 #endif
 				return true;
 			}
@@ -866,7 +866,8 @@ static void FinishSetMode(bool clearmem) {
 	/* Setup the BIOS */
 	if (CurMode->mode<128) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)CurMode->mode);
 	else real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)(CurMode->mode-0x98));	//Looks like the s3 bios
-#if defined(USE_TTF)
+#if 0
+//#if defined(USE_TTF)
     if (TTF_using() && CurMode->type==M_TEXT) {
         if (ttf.inUse) {
             ttf.cols = (int)CurMode->twidth;
@@ -919,6 +920,12 @@ static void FinishSetMode(bool clearmem) {
 	int10.text_row = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
 	/* FIXME */
 	VGA_DAC_UpdateColorPalette();
+#if defined(USE_TTF)
+    //LOG_MSG("INT10: type=%d, mode=%d, twidth=%d, theight=%d", CurMode->type, CurMode->mode, CurMode->twidth, CurMode->theight);
+    if(CurMode->type == M_TEXT) { // FIX_ME: Text mode detection when screen mode is not changed via INT 10h function
+        ttf_switch_on(); // TTF mode is switched on in text mode only.
+    }
+#endif
 }
 
 uint8_t TandyGetCRTPage(void) {
