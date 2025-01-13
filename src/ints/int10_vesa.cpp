@@ -431,20 +431,20 @@ foundit:
 	default:
 		return VESA_FAIL;
 	}
-#if 0
 	if (pageSize & 0xFFFFu) {
 		// It is documented that many applications assume 64k-aligned page sizes
 		// VBETEST is one of them
 		pageSize +=  0xFFFFu;
 		pageSize &= ~0xFFFFu;
 	}
-#endif
 	Bitu pages = 0;
-	if (pageSize > GetReportedVideoMemorySize() || (mblock->special & _USER_DISABLED)) {
+	Bitu calcmemsize = GetReportedVideoMemorySize();
+	if (mblock->type == M_LIN4) calcmemsize /= 4u; /* 4bpp planar = 4 bytes per video memory byte */
+	if (pageSize > calcmemsize || (mblock->special & _USER_DISABLED)) {
 		// mode not supported by current hardware configuration
 		modeAttributes &= ~0x1;
 	} else if (pageSize) {
-		pages = (GetReportedVideoMemorySize() / pageSize)-1;
+		pages = (calcmemsize / pageSize) - 1;
 		if (pages > 254) pages = 254;
 	}
 
