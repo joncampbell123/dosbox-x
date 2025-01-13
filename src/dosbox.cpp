@@ -3887,6 +3887,9 @@ void DOSBOX_SetupConfigSections(void) {
                       "This setting may be needed for DOS demoscene entries that assume aliasing behavior such as Out of Control by Contract.");
     Pstring->SetBasic(true);
 
+    Pbool = secprop->Add_bool("warn on out of bounds dram access",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Controls whether attempts to access GUS DRAM beyond the 1MB maximum supported by the card are logged to the log file as a warning.");
+
     Pbool = secprop->Add_bool("autoamp",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, GF1 output will reduce in volume automatically if the sum of all channels exceeds full volume.\n"
                     "If not set, then loud music will clip to full volume just as it would on real hardware.\n"
