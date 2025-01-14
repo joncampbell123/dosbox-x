@@ -57,7 +57,8 @@ class MidiHandler_coreaudio : public MidiHandler {
 private:
 	AUGraph m_auGraph;
 	AudioUnit m_synth;
-        const char *soundfont;
+	const char *soundfont;
+	bool resetVolume = true;
 public:
 	MidiHandler_coreaudio() : m_auGraph(0), m_synth(0) {}
 	const char * GetName(void) { return "coreaudio"; }
@@ -66,6 +67,8 @@ public:
 
 		if (m_auGraph)
 			return false;
+
+		resetVolume = true;
 
 		// Open the Music Device.
 		RequireNoErr(NewAUGraph(&m_auGraph));
@@ -183,11 +186,72 @@ public:
 	}
 
 	void PlayMsg(uint8_t * msg) {
-		MusicDeviceMIDIEvent(m_synth, msg[0], msg[1], msg[2], 0);
+		if (msg[0] == 0xff) {
+			// This is what it takes to stop all notes!
+			MusicDeviceMIDIEvent(m_synth, 0xFF, 0, 0, 0); // MIDI reset
+			for (unsigned int i=0;i < 16;i++) {
+				MusicDeviceMIDIEvent(m_synth, 0xB0+i, 120, 0, 0); // All notes off
+				MusicDeviceMIDIEvent(m_synth, 0xB0+i, 121, 0, 0); // Reset the controllers
+				MusicDeviceMIDIEvent(m_synth, 0xB0+i, 123, 0, 0); // All notes off
+				MusicDeviceMIDIEvent(m_synth, 0xB0+i, 124, 0, 0); // All notes off
+				MusicDeviceMIDIEvent(m_synth, 0xB0+i, 127, 0, 0); // All notes off
+			}
+			MusicDeviceMIDIEvent(m_synth, 0xFF, 0, 0, 0); // MIDI reset
+														  // Also resets volume
+			resetVolume = true;
+		}
+		else {
+			MusicDeviceMIDIEvent(m_synth, msg[0], msg[1], msg[2], 0);
+			if (resetVolume) {
+				resetVolume = false;
+				if (roland_gs_sysex) {
+					SetVolume(127);
+				}
+			}
+		}
 	}	
 
 	void PlaySysex(uint8_t * sysex, Bitu len) {
+		if (roland_gs_sysex) {
+			if (sysex[1] == 0x41/*Roland*/ && sysex[3] == 0x42/*GS*/ && sysex[4] == 0x12/*Send*/ && len >= 9) {
+				const uint32_t addr =
+					((uint32_t)sysex[5] << 16) +
+					((uint32_t)sysex[6] <<  8) +
+					(uint32_t)sysex[7];
+
+				if (addr == 0x400004) { /* MASTER VOLUME */
+					/* Fluidsynth doesn't appear to support this message, so we have to handle it ourself. */
+					SetVolume(sysex[8]);
+					resetVolume = false;
+					return;
+				}
+			}
+		}
+
 		MusicDeviceSysEx(m_synth, sysex, len);
+	}
+
+	void SetVolume(uint8_t vol) {
+		/* Despite the Apple Developer site and their TERRIBLE DOCUMENTATION, I was able to figure out
+		   these magic incantations that make setting the MIDI synthesizer volume possible.
+
+		   If you're going to document kMusicDeviceParam_Volume, document what it means, how you use it,
+		   and even if you figure out that it has something to do with AudioUnitSetParameters, document
+		   what the float value is supposed to mean. For fucks sake, even Microsoft who is traditionally
+		   terrible at documentation has figured out how to document an API! I had to figure out through
+		   trial and error that the float value was a decibel value! */
+		if (vol > 127) vol = 127;
+		Float32 fvol = vol > 0 ? (((Float32)vol - 127.0) / 2.0) : -999999.0; /* The volume value is decibels? Thanks for NOT documenting this Apple! */
+		OSErr err = 0;
+
+		err = AudioUnitSetParameter(
+				m_synth,
+				kMusicDeviceParam_Volume,
+				kAudioUnitScope_Global,
+				0,
+				fvol,
+				0
+				);
 	}
 };
 
