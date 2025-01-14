@@ -32,6 +32,9 @@ private:
 	HMIDIOUT m_out = NULL;
     MIDIHDR m_hdr = {};
 	HANDLE m_event = NULL;
+    bool useMidiVolume = false;
+    bool isMicrosoftSoftSynth = false;
+    bool resetVolume = true;
 	bool isOpen;
 
 #if WIN32_MIDI_PORT_PROTECT
@@ -121,6 +124,16 @@ public:
 				midiOutGetDevCaps(nummer, &mididev, sizeof(MIDIOUTCAPS));
 				LOG_MSG("MIDI:win32 selected %s",mididev.szPname);
 
+                /* If we're not talking to MIDI hardware, but the default Microsoft software synthesizer,
+                   and it supports volume control, we want to use it, because Microsoft's MIDI synth also
+                   does not recognize the Roland GS master volume SysEx either. */
+                if(mididev.dwSupport & MIDICAPS_VOLUME) {
+                    if(mididev.wTechnology == MOD_SWSYNTH) {
+                        isMicrosoftSoftSynth = true;
+                    }
+                }
+
+                resetVolume = true;
 
 #if WIN32_MIDI_PORT_PROTECT
 				if( midi_dll == false || strcmp( mididev.szPname, "Roland VSC" ) != 0 )
@@ -172,6 +185,20 @@ public:
 
 	void PlayMsg(uint8_t * msg) {
 		midiOutShortMsg(m_out, *(uint32_t*)msg);
+
+        /* This must be done AFTER to prevent the notes left hanging from ever becoming audible before reset */
+        if(*msg == 0xFF/*MIDI RESET*/) {
+            midiOutReset(m_out);
+            resetVolume = true;
+        }
+        else {
+            if(resetVolume) {
+                if(isMicrosoftSoftSynth) {
+                    midiOutSetVolume(m_out, 0xFFFF);
+                }
+                resetVolume = false;
+            }
+        }
 	};
 
 	void PlaySysex(uint8_t * sysex,Bitu len) {
@@ -185,6 +212,28 @@ public:
 #if WIN32_MIDI_PORT_PROTECT
 		}
 #endif
+
+        if(roland_gs_sysex) {
+            if(sysex[1] == 0x41/*Roland*/ && sysex[3] == 0x42/*GS*/ && sysex[4] == 0x12/*Send*/ && len >= 9) {
+                const uint32_t addr =
+                    ((uint32_t)sysex[5] << 16) +
+                    ((uint32_t)sysex[6] << 8) +
+                    (uint32_t)sysex[7];
+
+                if(addr == 0x400004) { /* MASTER VOLUME */
+                    if(isMicrosoftSoftSynth) {
+                        /* input: MIDI volume 0-127
+                           output: MIDI volume 0x0000-0xFFFF */
+                        unsigned int mvol = sysex[8];
+                        if(mvol > 127) mvol = 127;
+                        mvol = (mvol * 0xFFFFu) / 127u;
+                        midiOutSetVolume(m_out, mvol);
+                        resetVolume = false;
+                        return;
+                    }
+                }
+            }
+        }
 
 		midiOutUnprepareHeader (m_out, &m_hdr, sizeof (m_hdr));
 
