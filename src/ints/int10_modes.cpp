@@ -1270,7 +1270,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 		 * modifying the 16-bits at 0x487-0x488 to alter the EGA switches
 		 * and other info. For this trick to work here, we have to check
 		 * those bits every modeset. */
-		uint8_t egasw = (real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES)^0xFF)&0xF;
+		uint8_t egasw = real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES)&0xF;
 		bool newega200 = (egasw == 0 || egasw == 1 || egasw == 2 || egasw == 6 || egasw == 7 || egasw == 8);
 
 		if (ega200 != newega200) {
