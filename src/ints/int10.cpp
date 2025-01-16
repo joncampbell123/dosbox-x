@@ -1265,7 +1265,7 @@ static void INT10_Seg40Init(void) {
 		//      [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/EGA/IBM/IBM%20Enhanced%20Graphics%20Adapter%20%281984%2d08%2d02%29%2epdf]
 		//
 		//      Anything else is not valid.
-		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xFF^((!IS_VGA_ARCH && ega200)?0x7:0x9));
+		real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF0 | ((!IS_VGA_ARCH && ega200)?0x7:0x9));
 		// Set the pointer to video save pointer table
 		real_writed(BIOSMEM_SEG, BIOSMEM_VS_POINTER, int10.rom.video_save_pointers);
 	}
