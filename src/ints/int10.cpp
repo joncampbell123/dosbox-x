@@ -545,7 +545,7 @@ graphics_chars:
 				case 0: // 200
 					modeset_ctl &= 0xef;
 					modeset_ctl |= 0x80;
-					video_switches |= 8;	// ega normal/cga emulation
+					video_switches |= 7;	// ega normal/cga emulation
 					break;
 				case 1: // 350
 					modeset_ctl &= 0x6f;
@@ -558,7 +558,7 @@ graphics_chars:
 					break;
 				default:
 					modeset_ctl &= 0xef;
-					video_switches |= 8;	// ega normal/cga emulation
+					video_switches |= 7;	// ega normal/cga emulation
 					break;
 				}
 				real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,modeset_ctl);
