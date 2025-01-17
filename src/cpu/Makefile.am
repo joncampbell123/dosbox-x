@@ -7,6 +7,6 @@ libcpu_a_SOURCES = callback.cpp cpu.cpp flags.cpp modrm.cpp modrm.h instructions
 		   core_dyn_x86.cpp core_dynrec.cpp mmx.cpp core_prefetch_286.cpp core_prefetch_8086.cpp
 
 if !EMSCRIPTEN
-libcpu_a_SOURCES += core_full.cpp core_simple.cpp
+libcpu_a_SOURCES += core_full.cpp core_simple.cpp core_kvm_linux.cpp
 endif
 

@@ -1540,6 +1540,9 @@ void DOSBOX_SetupConfigSections(void) {
 #if (C_DYNREC)
         "dynamic", "dynamic_rec",
 #endif
+#if defined(C_HAVE_LINUX_KVM_X86)
+	"kvm", "kvm_linux",
+#endif
         "normal", "full", "simple", nullptr };
 
     const char* voodoo_settings[] = {

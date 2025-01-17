@@ -243,6 +243,9 @@ void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
 void CPU_Core_Dynrec_Cache_Close(void);
 void CPU_Core_Dynrec_Cache_Reset(void);
 #endif
+#if defined(C_HAVE_LINUX_KVM_X86)
+void CPU_Core_KVM_Init(void);
+#endif
 
 int CPU_IsDynamicCore(void) {
 #if (C_DYNAMIC_X86)
@@ -498,6 +501,12 @@ void menu_update_core(void) {
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
 #endif
+#if defined(C_HAVE_LINUX_KVM_X86)
+    mainMenu.get_item("mapper_kvm").
+        check(cpudecoder == &CPU_Core_KVM_Run).
+        refresh_item(mainMenu);
+#endif
+
     menu_update_dynamic();
 }
 
@@ -3410,6 +3419,17 @@ static void CPU_ToggleSimpleCore(bool pressed) {
 }
 #endif
 
+#if defined(C_HAVE_LINUX_KVM_X86)
+static void CPU_ToggleKVMCore(bool pressed) {
+    if (!pressed) return;
+    Section* sec=control->GetSection("cpu");
+    if(sec) {
+	std::string tmp="core=kvm";
+	sec->HandleInputline(tmp);
+    }
+}
+#endif
+
 static void CPU_ToggleNormalCore(bool pressed) {
     if (!pressed) return;
     Section* sec=control->GetSection("cpu");
@@ -3636,6 +3656,10 @@ public:
 #if (C_DYNREC)
 		CPU_Core_Dynrec_Init();
 #endif
+#if defined(C_HAVE_LINUX_KVM_X86)
+		CPU_Core_KVM_Init();
+#endif
+
 		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_nothing,0,"cycauto","Toggle auto cycles",&item);
 		item->set_text("Auto cycles");
 		item->set_description("Enable automatic cycle count");
@@ -3658,6 +3682,10 @@ public:
 		item->set_text("Simple core");
 		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","CPU: full core",&item);
 		item->set_text("Full core");
+#endif
+#if defined(C_HAVE_LINUX_KVM_X86)
+		MAPPER_AddHandler(CPU_ToggleKVMCore,MK_nothing,0,"kvm","CPU: KVM core",&item);
+		item->set_text("KVM core");
 #endif
 
 		/* these are not mapper shortcuts, and probably should not be mapper shortcuts */
@@ -3879,6 +3907,10 @@ public:
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(false);
 #endif
+#if defined(C_HAVE_LINUX_KVM_X86)
+		} else if (core == "kvm" || core == "kvm_linux") {
+			cpudecoder=&CPU_Core_KVM_Run;
+#endif
 #if (C_DYNREC)
 		} else if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec") {
 			cpudecoder=&CPU_Core_Dynrec_Run;
@@ -4004,6 +4036,14 @@ public:
 		} else if (cputype == "pentium_iii") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMIII;
 		}
+
+#if defined(C_HAVE_LINUX_KVM_X86)
+		if (cpudecoder == &CPU_Core_KVM_Run && CPU_ArchitectureType < CPU_ARCHTYPE_PENTIUM) {
+			strcpy(core_mode,"normal");
+			cpudecoder=&CPU_Core_Normal_Run;
+			LOG_MSG("CPU: KVM core requires at least Pentium emulation");
+		}
+#endif
 
 		cpu_custom_cpuid[0] = 0;
 
@@ -4400,14 +4440,17 @@ uint16_t CPU_FindDecoderType( CPU_Decoder *decoder )
 	else if( cpudecoder == &CPU_Core_Dyn_X86_Run ) decoder_idx = 4;
 #endif
 #if (C_DYNREC)
-else if( cpudecoder == &CPU_Core_Dynrec_Run ) decoder_idx = 5;
+	else if( cpudecoder == &CPU_Core_Dynrec_Run ) decoder_idx = 5;
 #endif
 	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
 #if C_DYNAMIC_X86
 	else if( cpudecoder == &CPU_Core_Dyn_X86_Trap_Run ) decoder_idx = 101;
 #endif
 #if(C_DYNREC)
-else if( cpudecoder == &CPU_Core_Dynrec_Trap_Run ) decoder_idx = 102;
+	else if( cpudecoder == &CPU_Core_Dynrec_Trap_Run ) decoder_idx = 102;
+#endif
+#if defined(C_HAVE_LINUX_KVM_X86)
+	else if( cpudecoder == &CPU_Core_KVM_Run ) decoder_idx = 103;
 #endif
 	else if( cpudecoder == &HLT_Decode ) decoder_idx = 200;
 
@@ -4419,27 +4462,30 @@ else if( cpudecoder == &CPU_Core_Dynrec_Trap_Run ) decoder_idx = 102;
 CPU_Decoder* CPU_IndexDecoderType(uint16_t decoder_idx)
 {
     switch (decoder_idx) {
-    case 0: return &CPU_Core_Normal_Run;
-    case 1: return &CPU_Core_Prefetch_Run;
+	    case 0: return &CPU_Core_Normal_Run;
+	    case 1: return &CPU_Core_Prefetch_Run;
 #if !defined(C_EMSCRIPTEN)
-    case 2: return &CPU_Core_Simple_Run;
-    case 3: return &CPU_Core_Full_Run;
+	    case 2: return &CPU_Core_Simple_Run;
+	    case 3: return &CPU_Core_Full_Run;
 #endif
 #if C_DYNAMIC_X86
-    case 4: return &CPU_Core_Dyn_X86_Run;
+	    case 4: return &CPU_Core_Dyn_X86_Run;
 #endif
 #if (C_DYNREC)
-    case 5: return &CPU_Core_Dynrec_Run;
+	    case 5: return &CPU_Core_Dynrec_Run;
 #endif
-    case 100: return &CPU_Core_Normal_Trap_Run;
+	    case 100: return &CPU_Core_Normal_Trap_Run;
 #if C_DYNAMIC_X86
-    case 101: return &CPU_Core_Dyn_X86_Trap_Run;
+	    case 101: return &CPU_Core_Dyn_X86_Trap_Run;
 #endif
 #if(C_DYNREC)
-	case 102: return &CPU_Core_Dynrec_Trap_Run;
+	    case 102: return &CPU_Core_Dynrec_Trap_Run;
 #endif
-    case 200: return &HLT_Decode;
-    default: return nullptr;
+#if defined(C_HAVE_LINUX_KVM_X86)
+	    case 103: return &CPU_Core_KVM_Run;
+#endif
+	    case 200: return &HLT_Decode;
+	    default: return nullptr;
     }
 }
 
