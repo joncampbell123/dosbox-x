@@ -33,6 +33,10 @@
 #include "clockdomain.h"
 #include "config.h"
 
+#if defined(C_HAVE_LINUX_KVM) && (C_TARGETCPU == X86 || C_TARGETCPU == X86_64)
+# define C_HAVE_LINUX_KVM_X86
+#endif
+
 #if defined(C_ICONV)
 /* good */
 #elif defined(C_ICONV_WIN32)

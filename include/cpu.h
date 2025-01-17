@@ -104,6 +104,11 @@ Bits CPU_Core286_Prefetch_Run(void);
 
 Bits CPU_Core8086_Prefetch_Run(void);
 
+#if defined(C_HAVE_LINUX_KVM_X86)
+Bits CPU_Core_KVM_Run(void);
+Bits CPU_Core_KVM_Trap_Run(void);
+#endif
+
 void CPU_Enable_SkipAutoAdjust(void);
 void CPU_Disable_SkipAutoAdjust(void);
 void CPU_Reset_AutoAdjust(void);
