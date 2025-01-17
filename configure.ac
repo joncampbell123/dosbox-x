@@ -300,6 +300,10 @@ int x=10;if( __builtin_expect ((x==1),0) ) ;
 #switch language back
 AC_LANG_POP(C++)
 
+dnl Check for linux/kvm.h
+AH_TEMPLATE(C_HAVE_LINUX_KVM,[Define to 1 if you have linux/kvm.h and KVM virtualization])
+AC_CHECK_HEADER([linux/kvm.h], [AC_DEFINE(C_HAVE_LINUX_KVM,1)])
+
 dnl Check for mach_vm_remap (Darwin)
 AH_TEMPLATE(C_HAVE_MACH_VM_REMAP,[Define to 1 if you have the mach_vm_remap function])
 AC_CHECK_HEADER([mach/mach.h], [
