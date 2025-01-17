@@ -16,6 +16,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/* NTS: This is a clone of the normal core for now.
+ * 	This will be turned into code to use the KVM virtualization features on Linux x86 and x86_64 systems.
+ * 	There's quite a bit of work needed to get there first, hang tight. */
+
 #include "cpu.h"
 #include "lazyflags.h"
 #include "callback.h"

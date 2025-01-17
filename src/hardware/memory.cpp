@@ -1960,6 +1960,8 @@ void ShutDownRAM(Section * sec) {
         else {
 #if C_GAMELINK
             GameLink::FreeRAM(MemBase);
+#elif C_HAVE_MMAP
+            munmap(MemBase,MemSize);
 #else
             delete [] MemBase;
 #endif
@@ -2338,6 +2340,9 @@ void Init_RAM() {
         }
 #if C_GAMELINK
         MemBase = GameLink::AllocRAM(memory.pages*4096);
+#elif C_HAVE_MMAP
+        MemBase = (uint8_t*)mmap(NULL,memory.pages*4096u,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,0,0);
+        if (MemBase == (uint8_t*)MAP_FAILED) E_Exit("Failed to mmap allocate memory");
 #else // C_GAMELINK
         MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
 #endif // C_GAMELINK
