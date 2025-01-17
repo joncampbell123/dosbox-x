@@ -123,7 +123,7 @@ public:
 			if (nummer < total) {
 				midiOutGetDevCaps(nummer, &mididev, sizeof(MIDIOUTCAPS));
 				LOG_MSG("MIDI:win32 selected %s",mididev.szPname);
-
+#if !defined(HX_DOS)
                 /* If we're not talking to MIDI hardware, but the default Microsoft software synthesizer,
                    and it supports volume control, we want to use it, because Microsoft's MIDI synth also
                    does not recognize the Roland GS master volume SysEx either. */
@@ -132,7 +132,9 @@ public:
                         isMicrosoftSoftSynth = true;
                     }
                 }
-
+#else
+                isMicrosoftSoftSynth = false;
+#endif
                 resetVolume = true;
 
 #if WIN32_MIDI_PORT_PROTECT
