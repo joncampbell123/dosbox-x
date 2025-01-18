@@ -2094,10 +2094,10 @@ class VGA_PC98_LFB_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_PC98_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
 	VGA_PC98_LFB_Handler(const unsigned int fl) : PageHandler(fl) {}
-	HostPt GetHostReadPt(Bitu phys_page) override {
+	HostPt GetHostReadPt(PageNum phys_page) override {
 		return &vga.mem.linear[(phys_page&0x7F)*4096 + PC98_VRAM_GRAPHICS_OFFSET]; /* 512KB mapping */
 	}
-	HostPt GetHostWritePt(Bitu phys_page) override {
+	HostPt GetHostWritePt(PageNum phys_page) override {
 		return &vga.mem.linear[(phys_page&0x7F)*4096 + PC98_VRAM_GRAPHICS_OFFSET]; /* 512KB mapping */
 	}
 };
@@ -2106,11 +2106,11 @@ class VGA_Map_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_Map_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
 	VGA_Map_Handler(const unsigned int fl) : PageHandler(fl) {}
-	HostPt GetHostReadPt(Bitu phys_page) override {
+	HostPt GetHostReadPt(PageNum phys_page) override {
 		phys_page-=vgapages.base;
 		return &vga.mem.linear[CHECKED3(vga.svga.bank_read_full+phys_page*4096)];
 	}
-	HostPt GetHostWritePt(Bitu phys_page) override {
+	HostPt GetHostWritePt(PageNum phys_page) override {
 		phys_page-=vgapages.base;
 		return &vga.mem.linear[CHECKED3(vga.svga.bank_write_full+phys_page*4096)];
 	}
@@ -2141,12 +2141,12 @@ class VGA_LFB_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
 	VGA_LFB_Handler(const unsigned int fl) : PageHandler(fl) {}
-	HostPt GetHostReadPt( Bitu phys_page ) override {
+	HostPt GetHostReadPt( PageNum phys_page ) override {
 		phys_page -= vga.lfb.page;
 		phys_page &= vga.mem.memmask >> 12u;
 		return &vga.mem.linear[CHECKED3(phys_page * 4096)];
 	}
-	HostPt GetHostWritePt( Bitu phys_page ) override {
+	HostPt GetHostWritePt( PageNum phys_page ) override {
 		return GetHostReadPt( phys_page );
 	}
 };
@@ -2194,7 +2194,7 @@ class VGA_TANDY_PageHandler : public PageHandler { // with slow adapter
 public:
 	VGA_TANDY_PageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
 	VGA_TANDY_PageHandler(const unsigned int fl) : PageHandler(fl) {}
-	HostPt GetHostReadPt(Bitu phys_page) override {
+	HostPt GetHostReadPt(PageNum phys_page) override {
 		// Odd banks are limited to 16kB and repeated
 		if (vga.tandy.mem_bank & 1) 
 			phys_page&=0x03;
@@ -2202,7 +2202,7 @@ public:
 			phys_page&=0x07;
 		return vga.tandy.mem_base + (phys_page * 4096);
 	}
-	HostPt GetHostWritePt(Bitu phys_page) override {
+	HostPt GetHostWritePt(PageNum phys_page) override {
 		return GetHostReadPt( phys_page );
 	}
 };
@@ -2212,14 +2212,14 @@ class VGA_PCJR_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_PCJR_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
 	VGA_PCJR_Handler(const unsigned int fl) : PageHandler(fl) {}
-	HostPt GetHostReadPt(Bitu phys_page) override {
+	HostPt GetHostReadPt(PageNum phys_page) override {
 		phys_page-=0xb8;
 		// The 16kB map area is repeated in the 32kB range
 		// On CGA CPU A14 is not decoded so it repeats there too
 		phys_page&=0x03;
 		return vga.tandy.mem_base + (phys_page * 4096);
 	}
-	HostPt GetHostWritePt(Bitu phys_page) override {
+	HostPt GetHostWritePt(PageNum phys_page) override {
 		return GetHostReadPt( phys_page );
 	}
 };
@@ -2355,7 +2355,7 @@ public:
 	}
 
 /*
-	HostPt GetHostReadPt(Bitu phys_page)
+	HostPt GetHostReadPt(PageNum phys_page)
 	{
 		if( vga.mode!=M_AMSTRAD )
 		{
@@ -2370,7 +2370,7 @@ public:
 	}
 */
 /*
-	HostPt GetHostWritePt(Bitu phys_page) {
+	HostPt GetHostWritePt(PageNum phys_page) {
 		return GetHostReadPt( phys_page );
 	}
 */
@@ -2380,12 +2380,12 @@ class VGA_HERC_Handler : public PageHandler { // with slow adapter
 public:
 	VGA_HERC_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
 	VGA_HERC_Handler(const unsigned int fl) : PageHandler(fl) {}
-	HostPt GetHostReadPt(Bitu phys_page) override {
+	HostPt GetHostReadPt(PageNum phys_page) override {
         (void)phys_page;//UNUSED
 		// The 4kB map area is repeated in the 32kB range
 		return &vga.mem.linear[0];
 	}
-	HostPt GetHostWritePt(Bitu phys_page) override {
+	HostPt GetHostWritePt(PageNum phys_page) override {
 		return GetHostReadPt( phys_page );
 	}
 };

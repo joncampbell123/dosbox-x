@@ -319,11 +319,11 @@ public:
 		}
 		return nullptr;
 	}
-	HostPt GetHostReadPt(Bitu phys_page) override {
+	HostPt GetHostReadPt(PageNum phys_page) override {
 		hostmem=old_pagehandler->GetHostReadPt(phys_page);
 		return hostmem;
 	}
-	HostPt GetHostWritePt(Bitu phys_page) override {
+	HostPt GetHostWritePt(PageNum phys_page) override {
 		return GetHostReadPt( phys_page );
 	}
 public:

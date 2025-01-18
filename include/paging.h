@@ -89,8 +89,8 @@ public:
 	virtual void writeb(PhysPt addr,uint8_t val);
 	virtual void writew(PhysPt addr,uint16_t val);
 	virtual void writed(PhysPt addr,uint32_t val);
-	virtual HostPt GetHostReadPt(Bitu phys_page);
-	virtual HostPt GetHostWritePt(Bitu phys_page);
+	virtual HostPt GetHostReadPt(PageNum phys_page);
+	virtual HostPt GetHostWritePt(PageNum phys_page);
 	virtual bool readb_checked(PhysPt addr,uint8_t * val);
 	virtual bool readw_checked(PhysPt addr,uint16_t * val);
 	virtual bool readd_checked(PhysPt addr,uint32_t * val);
