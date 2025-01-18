@@ -998,7 +998,6 @@ Bitu PAGING_GetDirBase(void) {
 	return paging.cr3;
 }
 
-#if defined(USE_FULL_TLB)
 void PAGING_InitTLB(void) {
 	for (Bitu i=0;i<TLB_SIZE;i++) {
 		paging.tlb.read[i]=nullptr;
@@ -1260,119 +1259,6 @@ void PAGING_SwitchCPL(bool isUser) {
 		}
 	}
 }
-
-#else
-
-static INLINE void InitTLBInt(tlb_entry *bank) {
- 	for (Bitu i=0;i<TLB_SIZE;i++) {
-		bank[i].read=0;
-		bank[i].write=0;
-		bank[i].readhandler=&init_page_handler;
-		bank[i].writehandler=&init_page_handler;
- 	}
-}
-
-void PAGING_InitTLBBank(tlb_entry **bank) {
-	*bank = (tlb_entry *)malloc(sizeof(tlb_entry)*TLB_SIZE);
-	if(!*bank) E_Exit("Out of Memory");
-	InitTLBInt(*bank);
-}
-
-void PAGING_InitTLB(void) {
-	InitTLBInt(paging.tlbh);
- 	paging.links.used=0;
-}
-
-void PAGING_ClearTLB(void) {
-	uint32_t * entries=&paging.links.entries[0];
-	for (;paging.links.used>0;paging.links.used--) {
-		Bitu page=*entries++;
-		tlb_entry *entry = get_tlb_entry(page<<12);
-		entry->read=0;
-		entry->write=0;
-		entry->readhandler=&init_page_handler;
-		entry->writehandler=&init_page_handler;
-	}
-	paging.links.used=0;
-}
-
-void PAGING_UnlinkPages(Bitu lin_page,Bitu pages) {
-	for (;pages>0;pages--) {
-		tlb_entry *entry = get_tlb_entry(lin_page<<12);
-		entry->read=0;
-		entry->write=0;
-		entry->readhandler=&init_page_handler;
-		entry->writehandler=&init_page_handler;
-		lin_page++;
-	}
-}
-
-void PAGING_MapPage(Bitu lin_page,Bitu phys_page) {
-	if (lin_page<LINK_START) {
-		paging.firstmb[lin_page]=phys_page;
-		paging.tlbh[lin_page].read=0;
-		paging.tlbh[lin_page].write=0;
-		paging.tlbh[lin_page].readhandler=&init_page_handler;
-		paging.tlbh[lin_page].writehandler=&init_page_handler;
-	} else {
-		PAGING_LinkPage(lin_page,phys_page);
-	}
-}
-
-void PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
-	PageHandler * handler=MEM_GetPageHandler(phys_page);
-	Bitu lin_base=lin_page << 12;
-
-	//NTS: phys_page is not used to index anything, however it must not use bits 31-30 used for other info. Stay within PHYSPAGE_ADDR.
-	phys_page &= PHYSPAGE_ADDR;
-
-	if (lin_page>=(TLB_SIZE*(TLB_BANKS+1)))
-		E_Exit("Illegal page");
-
-	if (paging.links.used>=PAGING_LINKS) {
-		LOG(LOG_PAGING,LOG_NORMAL)("Not enough paging links, resetting cache");
-		PAGING_ClearTLB();
-	}
-
-	tlb_entry *entry = get_tlb_entry(lin_base);
-	entry->phys_page=phys_page;
-	if (handler->getFlags() & PFLAG_READABLE) entry->read=handler->GetHostReadPt(phys_page)-lin_base;
-	else entry->read=0;
-	if (handler->getFlags() & PFLAG_WRITEABLE) entry->write=handler->GetHostWritePt(phys_page)-lin_base;
-	else entry->write=0;
-
- 	paging.links.entries[paging.links.used++]=lin_page;
-	entry->readhandler=handler;
-	entry->writehandler=handler;
-}
-
-void PAGING_LinkPage_ReadOnly(Bitu lin_page,Bitu phys_page) {
-	PageHandler * handler=MEM_GetPageHandler(phys_page);
-	Bitu lin_base=lin_page << 12;
-
-	//NTS: phys_page is not used to index anything, however it must not use bits 31-30 used for other info. Stay within PHYSPAGE_ADDR.
-	phys_page &= PHYSPAGE_ADDR;
-
-	if (lin_page>=(TLB_SIZE*(TLB_BANKS+1)))
-		E_Exit("Illegal page");
-
-	if (paging.links.used>=PAGING_LINKS) {
-		LOG(LOG_PAGING,LOG_NORMAL)("Not enough paging links, resetting cache");
-		PAGING_ClearTLB();
-	}
-
-	tlb_entry *entry = get_tlb_entry(lin_base);
-	entry->phys_page=phys_page;
-	if (handler->getFlags() & PFLAG_READABLE) entry->read=handler->GetHostReadPt(phys_page)-lin_base;
-	else entry->read=0;
-	entry->write=0;
-
- 	paging.links.entries[paging.links.used++]=lin_page;
-	entry->readhandler=handler;
-	entry->writehandler=&init_page_handler_userro;
-}
-
-#endif
 
 #define USERWRITE_PROHIBITED			((cpu.cpl&cpu.mpl)==3)
 class InitPageUserROHandler : public PageHandler {

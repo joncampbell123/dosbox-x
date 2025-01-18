@@ -24,10 +24,6 @@
 
 #include "mem.h"
 
-// disable this to reduce the size of the TLB
-// NOTE: does not work with the dynamic core (dynrec is fine)
-#define USE_FULL_TLB
-
 class PageHandler;
 class MEM_CalloutObject;
 
@@ -58,31 +54,23 @@ static inline Bitu MEMMASK_Combine(const Bitu a,const Bitu b) {
     return a & b;
 }
 
-#define MEM_PAGE_SIZE	(4096)
+#define MEM_PAGE_SIZE		(4096)
 #define XMS_START		(0x110)
-
-#if defined(USE_FULL_TLB)
 #define TLB_SIZE		(1024*1024)
-#else
-#define TLB_SIZE		65536	// This must a power of 2 and greater than LINK_START
-#define BANK_SHIFT		28
-#define BANK_MASK		0xffff // always the same as TLB_SIZE-1?
-#define TLB_BANKS		((1024*1024/TLB_SIZE)-1)
-#endif
 
 #define PFLAG_READABLE		0x1u
 #define PFLAG_WRITEABLE		0x2u
 #define PFLAG_HASROM		0x4u
-#define PFLAG_HASCODE32		0x8u			//Page contains dynamic code
-#define PFLAG_NOCODE		0x10u			//No dynamic code can be generated here
-#define PFLAG_INIT			0x20u			//No dynamic code can be generated here
-#define PFLAG_HASCODE16		0x40u			//Page contains 16-bit dynamic code
+#define PFLAG_HASCODE32		0x8u					//Page contains dynamic code
+#define PFLAG_NOCODE		0x10u					//No dynamic code can be generated here
+#define PFLAG_INIT		0x20u					//No dynamic code can be generated here
+#define PFLAG_HASCODE16		0x40u					//Page contains 16-bit dynamic code
 #define PFLAG_HASCODE		(PFLAG_HASCODE32|PFLAG_HASCODE16)
 
-#define LINK_START	((1024+64)/4)			//Start right after the HMA
+#define LINK_START		((1024+64)/4)				//Start right after the HMA
 
 //Allow 128 mb of memory to be linked
-#define PAGING_LINKS (128*1024/4)
+#define PAGING_LINKS		(128*1024/4)
 
 /* NTS: Despite that all devices respond to these page handlers, all addresses are still linear addresses.
  *      Devices that need physical memory addresses will need to call PAGING_GetPhysicalAddress() to translate
@@ -93,6 +81,8 @@ class PageHandler {
 public:
 	PageHandler(Bitu flg) : flags(flg) {}
 	virtual ~PageHandler(void) { }
+	PageHandler(void) : flags(0) { }
+
 	virtual uint8_t readb(PhysPt addr);
 	virtual uint16_t readw(PhysPt addr);
 	virtual uint32_t readd(PhysPt addr);
@@ -108,19 +98,6 @@ public:
 	virtual bool writew_checked(PhysPt addr,uint16_t val);
 	virtual bool writed_checked(PhysPt addr,uint32_t val);
 
-#if 0//ENABLE IF PORTING ADDITIONAL CODE WRITTEN AGAINST THE OLDER PAGE HANDLER readb/writeb PROTYPE.
-    // DEPRECATED. THIS IS HERE TO MAKE ANY DERIVED CLASS NOT YET UPDATED BLOW UP WITH A COMPILER ERROR.
-    // FIXME: DOES VISUAL STUDIO 2017 HAVE ANY PROBLEMS WITH THIS? CLANG/LLVM?
-	virtual void writeb(PhysPt addr,Bitu val) final = delete;
-	virtual void writew(PhysPt addr,Bitu val) final = delete;
-	virtual void writed(PhysPt addr,Bitu val) final = delete;
-	virtual void writeb_checked(PhysPt addr,Bitu val) final = delete;
-	virtual void writew_checked(PhysPt addr,Bitu val) final = delete;
-	virtual void writed_checked(PhysPt addr,Bitu val) final = delete;
-#endif
-
-    PageHandler(void) : flags(0) { }
-	Bitu flags; 
 	Bitu getFlags() const {
 		return flags;
 	}
@@ -128,6 +105,7 @@ public:
 		flags = flagsNew;
 	}
 
+	Bitu flags;
 private:
 	PageHandler(const PageHandler&);
 
@@ -144,40 +122,40 @@ private:
  *      move on to the next device or mark the I/O port as empty. */
 class MEM_CalloutObject {
 public:
-    MEM_CalloutObject() {};
-    void InvalidateCachedHandlers(void);
+	MEM_CalloutObject() {};
+	void InvalidateCachedHandlers(void);
 	void Install(Bitu page,Bitu pagemask/*MEMMASK_ISA_24BIT, etc.*/,MEM_CalloutHandler *handler);
 	void Uninstall();
 public:
 	bool installed = false;
-    Bitu mem_mask = 0xFFFFFFFF;
-    Bitu range_mask = 0;
-    Bitu alias_mask = 0xFFFFFFFF;
-    unsigned int getcounter = 0;
-    MEM_CalloutHandler *m_handler = NULL;
+	Bitu mem_mask = 0xFFFFFFFF;
+	Bitu range_mask = 0;
+	Bitu alias_mask = 0xFFFFFFFF;
+	unsigned int getcounter = 0;
+	MEM_CalloutHandler *m_handler = NULL;
 	Bitu m_base = 0;
-    bool alloc = false;
+	bool alloc = false;
 public:
-    inline bool MatchPage(const Bitu p) {
-        /* (p & io_mask) == (m_port & io_mask) but this also works.
-         * apparently modern x86 processors are faster at addition/subtraction than bitmasking.
-         * for this to work, m_port must be a multiple of the I/O range. For example, if the I/O
-         * range is 16 ports, then m_port must be a multiple of 16. */
-        return ((p - m_base) & mem_mask) == 0;
-    }
-    inline bool isInstalled(void) {
-        return installed;
-    }
+	inline bool MatchPage(const Bitu p) {
+		/* (p & io_mask) == (m_port & io_mask) but this also works.
+		 * apparently modern x86 processors are faster at addition/subtraction than bitmasking.
+		 * for this to work, m_port must be a multiple of the I/O range. For example, if the I/O
+		 * range is 16 ports, then m_port must be a multiple of 16. */
+		return ((p - m_base) & mem_mask) == 0;
+	}
+	inline bool isInstalled(void) {
+		return installed;
+	}
 };
 
 enum MEM_Type_t {
-    MEM_TYPE_NONE=0,
-    MEM_TYPE_MIN=1,
-    MEM_TYPE_ISA=1,
-    MEM_TYPE_PCI,
-    MEM_TYPE_MB,
+	MEM_TYPE_NONE=0,
+	MEM_TYPE_MIN=1,
+	MEM_TYPE_ISA=1,
+	MEM_TYPE_PCI,
+	MEM_TYPE_MB,
 
-    MEM_TYPE_MAX
+	MEM_TYPE_MAX
 };
 
 void MEM_InitCallouts(void);
@@ -350,16 +328,6 @@ union X86PageEntry {
 
 static_assert( sizeof(X86PageEntry) == 4, "oops" );
 
-#if !defined(USE_FULL_TLB)
-typedef struct {
-	HostPt read;
-	HostPt write;
-	PageHandler * readhandler;
-	PageHandler * writehandler;
-	uint32_t phys_page;
-} tlb_entry;
-#endif
-
 struct PagingBlock {
 	Bitu			cr3;
 	Bitu			cr2;
@@ -368,7 +336,6 @@ struct PagingBlock {
 		Bitu page;
 		PhysPt addr;
 	} base;
-#if defined(USE_FULL_TLB)
 	struct {
 		HostPt read[TLB_SIZE];
 		HostPt write[TLB_SIZE];
@@ -376,10 +343,6 @@ struct PagingBlock {
 		PageHandler * writehandler[TLB_SIZE];
 		uint32_t	phys_page[TLB_SIZE];
 	} tlb;
-#else
-	tlb_entry tlbh[TLB_SIZE];
-	tlb_entry *tlbh_banks[TLB_BANKS];
-#endif
 	struct {
 		Bitu used;
 		uint32_t entries[PAGING_LINKS];
@@ -418,8 +381,6 @@ bool mem_unalignedreadd_checked(const LinearPt address,uint32_t * const val);
 bool mem_unalignedwritew_checked(const LinearPt address,uint16_t const val);
 bool mem_unalignedwrited_checked(const LinearPt address,uint32_t const val);
 
-#if defined(USE_FULL_TLB)
-
 static INLINE HostPt get_tlb_read(const LinearPt address) {
 	return paging.tlb.read[address>>12];
 }
@@ -451,46 +412,6 @@ static INLINE PhysPt PAGING_GetPhysicalAddress(const LinearPt linAddr) {
 static INLINE PhysPt64 PAGING_GetPhysicalAddress64(const LinearPt linAddr) {
 	return ((PhysPt64)(paging.tlb.phys_page[linAddr>>12]&PHYSPAGE_ADDR)<<(PhysPt64)12)|(linAddr&0xfff);
 }
-
-#else
-
-void PAGING_InitTLBBank(tlb_entry **bank);
-
-static INLINE tlb_entry *get_tlb_entry(const LinearPt address) {
-	const Bitu index=(address >> 12U);
-	if (TLB_BANKS && (index >= TLB_SIZE)) {
-		const Bitu bank=(address >> BANK_SHIFT) - 1U;
-		if (!paging.tlbh_banks[bank])
-			PAGING_InitTLBBank(&paging.tlbh_banks[bank]);
-		return &paging.tlbh_banks[bank][index & BANK_MASK];
-	}
-	return &paging.tlbh[index];
-}
-
-static INLINE HostPt get_tlb_read(const LinearPt address) {
-	return get_tlb_entry(address)->read;
-}
-static INLINE HostPt get_tlb_write(const LinearPt address) {
-	return get_tlb_entry(address)->write;
-}
-static INLINE PageHandler* get_tlb_readhandler(const LinearPt address) {
-	return get_tlb_entry(address)->readhandler;
-}
-static INLINE PageHandler* get_tlb_writehandler(const LinearPt address) {
-	return get_tlb_entry(address)->writehandler;
-}
-
-/* Use these helper functions to access linear addresses in readX/writeX functions */
-static INLINE LinearPt PAGING_GetPhysicalPage(const LinearPt linePage) {
-	tlb_entry *entry = get_tlb_entry(linePage);
-	return (entry->phys_page<<12);
-}
-
-static INLINE LinearPt PAGING_GetPhysicalAddress(const LinearPt linAddr) {
-	tlb_entry *entry = get_tlb_entry(linAddr);
-	return (entry->phys_page<<12)|(linAddr&0xfff);
-}
-#endif
 
 /* Special inlined memory reading/writing */
 
