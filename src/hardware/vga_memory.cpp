@@ -99,33 +99,33 @@ void VGAMEM_USEC_write_delay() {
 }
 
 template <class baseLFBHandler> class VGA_SlowLFBHandler : public baseLFBHandler {
-public:
-	VGA_SlowLFBHandler() : baseLFBHandler(PFLAG_NOCODE) {}
-	void writeb(PhysPt addr,uint8_t val) override {
-		VGAMEM_USEC_write_delay();
-		PageHandler_HostPtWriteB(this,addr,val);
-	}
-	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay();
-		PageHandler_HostPtWriteW(this,addr,val);
-	}
-	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay();
-		PageHandler_HostPtWriteD(this,addr,val);
-	}
+	public:
+		VGA_SlowLFBHandler() : baseLFBHandler(PFLAG_NOCODE) {}
+		void writeb(PhysPt addr,uint8_t val) override {
+			VGAMEM_USEC_write_delay();
+			PageHandler_HostPtWriteB(this,addr,val);
+		}
+		void writew(PhysPt addr,uint16_t val) override {
+			VGAMEM_USEC_write_delay();
+			PageHandler_HostPtWriteW(this,addr,val);
+		}
+		void writed(PhysPt addr,uint32_t val) override {
+			VGAMEM_USEC_write_delay();
+			PageHandler_HostPtWriteD(this,addr,val);
+		}
 
-	uint8_t readb(PhysPt addr) override {
-		VGAMEM_USEC_read_delay();
-		return PageHandler_HostPtReadB(this,addr);
-	}
-	uint16_t readw(PhysPt addr) override {
-		VGAMEM_USEC_read_delay();
-		return PageHandler_HostPtReadW(this,addr);
-	}
-	uint32_t readd(PhysPt addr) override {
-		VGAMEM_USEC_read_delay();
-		return PageHandler_HostPtReadD(this,addr);
-	}
+		uint8_t readb(PhysPt addr) override {
+			VGAMEM_USEC_read_delay();
+			return PageHandler_HostPtReadB(this,addr);
+		}
+		uint16_t readw(PhysPt addr) override {
+			VGAMEM_USEC_read_delay();
+			return PageHandler_HostPtReadW(this,addr);
+		}
+		uint32_t readd(PhysPt addr) override {
+			VGAMEM_USEC_read_delay();
+			return PageHandler_HostPtReadD(this,addr);
+		}
 };
 
 template <class Size>
@@ -154,14 +154,14 @@ void VGA_MapMMIO(void);
 //Nice one from DosEmu
 INLINE static uint32_t RasterOp(uint32_t input,uint32_t mask) {
 	switch (vga.config.raster_op) {
-	case 0x00:	/* None */
-		return (input & mask) | (vga.latch.d & ~mask);
-	case 0x01:	/* AND */
-		return (input | ~mask) & vga.latch.d;
-	case 0x02:	/* OR */
-		return (input & mask) | vga.latch.d;
-	case 0x03:	/* XOR */
-		return (input & mask) ^ vga.latch.d;
+		case 0x00:	/* None */
+			return (input & mask) | (vga.latch.d & ~mask);
+		case 0x01:	/* AND */
+			return (input | ~mask) & vga.latch.d;
+		case 0x02:	/* OR */
+			return (input & mask) | vga.latch.d;
+		case 0x03:	/* XOR */
+			return (input & mask) ^ vga.latch.d;
 	}
 	return 0;
 }
@@ -169,106 +169,106 @@ INLINE static uint32_t RasterOp(uint32_t input,uint32_t mask) {
 INLINE static uint32_t ModeOperation(uint8_t val) {
 	uint32_t full;
 	switch (vga.config.write_mode) {
-	case 0x00:
-		// Write Mode 0: In this mode, the host data is first rotated as per the Rotate Count field, then the Enable Set/Reset mechanism selects data from this or the Set/Reset field. Then the selected Logical Operation is performed on the resulting data and the data in the latch register. Then the Bit Mask field is used to select which bits come from the resulting data and which come from the latch register. Finally, only the bit planes enabled by the Memory Plane Write Enable field are written to memory. 
-		val=((val >> vga.config.data_rotate) | (val << (8-vga.config.data_rotate)));
-		full=ExpandTable[val];
-		full=(full & vga.config.full_not_enable_set_reset) | vga.config.full_enable_and_set_reset; 
-		full=RasterOp(full,vga.config.full_bit_mask);
-		break;
-	case 0x01:
-		// Write Mode 1: In this mode, data is transferred directly from the 32 bit latch register to display memory, affected only by the Memory Plane Write Enable field. The host data is not used in this mode. 
-		full=vga.latch.d;
-		break;
-	case 0x02:
-		//Write Mode 2: In this mode, the bits 3-0 of the host data are replicated across all 8 bits of their respective planes. Then the selected Logical Operation is performed on the resulting data and the data in the latch register. Then the Bit Mask field is used to select which bits come from the resulting data and which come from the latch register. Finally, only the bit planes enabled by the Memory Plane Write Enable field are written to memory. 
-		full=RasterOp(FillTable[val&0xF],vga.config.full_bit_mask);
-		break;
-	case 0x03:
-		// Write Mode 3: In this mode, the data in the Set/Reset field is used as if the Enable Set/Reset field were set to 1111b. Then the host data is first rotated as per the Rotate Count field, then logical ANDed with the value of the Bit Mask field. The resulting value is used on the data obtained from the Set/Reset field in the same way that the Bit Mask field would ordinarily be used. to select which bits come from the expansion of the Set/Reset field and which come from the latch register. Finally, only the bit planes enabled by the Memory Plane Write Enable field are written to memory.
-		val=((val >> vga.config.data_rotate) | (val << (8-vga.config.data_rotate)));
-		full=RasterOp(vga.config.full_set_reset,ExpandTable[val] & vga.config.full_bit_mask);
-		break;
-	default:
-		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:Unsupported write mode %d",vga.config.write_mode);
-		full=0;
-		break;
+		case 0x00:
+			// Write Mode 0: In this mode, the host data is first rotated as per the Rotate Count field, then the Enable Set/Reset mechanism selects data from this or the Set/Reset field. Then the selected Logical Operation is performed on the resulting data and the data in the latch register. Then the Bit Mask field is used to select which bits come from the resulting data and which come from the latch register. Finally, only the bit planes enabled by the Memory Plane Write Enable field are written to memory. 
+			val=((val >> vga.config.data_rotate) | (val << (8-vga.config.data_rotate)));
+			full=ExpandTable[val];
+			full=(full & vga.config.full_not_enable_set_reset) | vga.config.full_enable_and_set_reset; 
+			full=RasterOp(full,vga.config.full_bit_mask);
+			break;
+		case 0x01:
+			// Write Mode 1: In this mode, data is transferred directly from the 32 bit latch register to display memory, affected only by the Memory Plane Write Enable field. The host data is not used in this mode. 
+			full=vga.latch.d;
+			break;
+		case 0x02:
+			//Write Mode 2: In this mode, the bits 3-0 of the host data are replicated across all 8 bits of their respective planes. Then the selected Logical Operation is performed on the resulting data and the data in the latch register. Then the Bit Mask field is used to select which bits come from the resulting data and which come from the latch register. Finally, only the bit planes enabled by the Memory Plane Write Enable field are written to memory. 
+			full=RasterOp(FillTable[val&0xF],vga.config.full_bit_mask);
+			break;
+		case 0x03:
+			// Write Mode 3: In this mode, the data in the Set/Reset field is used as if the Enable Set/Reset field were set to 1111b. Then the host data is first rotated as per the Rotate Count field, then logical ANDed with the value of the Bit Mask field. The resulting value is used on the data obtained from the Set/Reset field in the same way that the Bit Mask field would ordinarily be used. to select which bits come from the expansion of the Set/Reset field and which come from the latch register. Finally, only the bit planes enabled by the Memory Plane Write Enable field are written to memory.
+			val=((val >> vga.config.data_rotate) | (val << (8-vga.config.data_rotate)));
+			full=RasterOp(vga.config.full_set_reset,ExpandTable[val] & vga.config.full_bit_mask);
+			break;
+		default:
+			LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:Unsupported write mode %d",vga.config.write_mode);
+			full=0;
+			break;
 	}
 	return full;
 }
 
 bool pc98_pegc_linear_framebuffer_enabled(void) {
-    return !!(pc98_pegc_mmio[0x102] & 1);
+	return !!(pc98_pegc_mmio[0x102] & 1);
 }
 
 // TODO: This code may have to handle 16-bit MMIO reads
 uint8_t pc98_pegc_mmio_read(unsigned int reg) {
-    if (reg >= 0x200)
-        return 0x00;
+	if (reg >= 0x200)
+		return 0x00;
 
-    return pc98_pegc_mmio[reg];
+	return pc98_pegc_mmio[reg];
 }
 
 // TODO: This code may have to handle 16-bit MMIO writes
 void pc98_pegc_mmio_write(unsigned int reg,uint8_t val) {
-    if (reg >= 0x200)
-        return;
+	if (reg >= 0x200)
+		return;
 
-    uint8_t pval = pc98_pegc_mmio[reg];
+	uint8_t pval = pc98_pegc_mmio[reg];
 
-    switch (reg) {
-        case 0x004: // bank 0
-            pc98_pegc_banks[0] = (val & 0xFu) << 15u;
-            pc98_pegc_mmio[reg] = val;
-            break;
-        case 0x005: // unknown (WORD size write seen by bank switched (battle skin) and LFB (DOOM, DOOM2) games)
-            // ignore
-            break;
-        case 0x006: // bank 1
-            pc98_pegc_banks[1] = (val & 0xFu) << 15u;
-            pc98_pegc_mmio[reg] = val;
-            break;
-        case 0x007: // unknown (WORD size write seen by bank switched (battle skin) and LFB (DOOM, DOOM2) games)
-            // ignore
-            break;
-        case 0x100: // 256-color memory access  (0=packed  1=planar)
-            // WE DO NOT SUPPORT 256-planar MEMORY ACCESS AT THIS TIME!
-            // FUTURE SUPPORT IS PLANNED.
-            // ignore
-            if (enable_pc98_256color_planar) {
-                val &= 1;
-                if (val & 1) {
-                    pc98_gdc_vramop |= (1 << VOPBIT_PEGC_PLANAR);
-                    LOG_MSG("PC-98 PEGC warning: Guest application/OS attempted to enable "
-                            "256-color planar mode, which is not yet fully functional");
-                }
-                else {
-                    pc98_gdc_vramop &= ~(1 << VOPBIT_PEGC_PLANAR);
-                }
-            }
-            else {
-                if (val & 1)
-                    LOG_MSG("PC-98 PEGC warning: Guest application/OS attempted to enable "
-                            "256-color planar mode, which is not enabled in your configuration");
- 
-                val = 0;
-            }
-            pc98_pegc_mmio[reg] = val;
-            if ((val^pval)&1/*if bit 0 changed*/)
-                VGA_SetupHandlers();
-            break;
-        case 0x102: // linear framebuffer (at F00000-F7FFFFh) enable/disable
-            val &= 1; // as seen on real hardware: only bit 0 can be changed
-            pc98_pegc_mmio[reg] = val;
-            if ((val^pval)&1/*if bit 0 changed*/)
-                VGA_SetupHandlers();
-            // FIXME: One PC-9821 laptop seems to allow bit 0 and bit 1 to be set.
-            //        What does bit 1 control?
-            break;
-        default:
-            LOG_MSG("PC-98 PEGC warning: Unhandled write to %xh val %xh",reg+0xE0000u,val);
-            break;
-    }
+	switch (reg) {
+		case 0x004: // bank 0
+			pc98_pegc_banks[0] = (val & 0xFu) << 15u;
+			pc98_pegc_mmio[reg] = val;
+			break;
+		case 0x005: // unknown (WORD size write seen by bank switched (battle skin) and LFB (DOOM, DOOM2) games)
+			// ignore
+			break;
+		case 0x006: // bank 1
+			pc98_pegc_banks[1] = (val & 0xFu) << 15u;
+			pc98_pegc_mmio[reg] = val;
+			break;
+		case 0x007: // unknown (WORD size write seen by bank switched (battle skin) and LFB (DOOM, DOOM2) games)
+			// ignore
+			break;
+		case 0x100: // 256-color memory access  (0=packed  1=planar)
+			// WE DO NOT SUPPORT 256-planar MEMORY ACCESS AT THIS TIME!
+			// FUTURE SUPPORT IS PLANNED.
+			// ignore
+			if (enable_pc98_256color_planar) {
+				val &= 1;
+				if (val & 1) {
+					pc98_gdc_vramop |= (1 << VOPBIT_PEGC_PLANAR);
+					LOG_MSG("PC-98 PEGC warning: Guest application/OS attempted to enable "
+							"256-color planar mode, which is not yet fully functional");
+				}
+				else {
+					pc98_gdc_vramop &= ~(1 << VOPBIT_PEGC_PLANAR);
+				}
+			}
+			else {
+				if (val & 1)
+					LOG_MSG("PC-98 PEGC warning: Guest application/OS attempted to enable "
+							"256-color planar mode, which is not enabled in your configuration");
+
+				val = 0;
+			}
+			pc98_pegc_mmio[reg] = val;
+			if ((val^pval)&1/*if bit 0 changed*/)
+				VGA_SetupHandlers();
+			break;
+		case 0x102: // linear framebuffer (at F00000-F7FFFFh) enable/disable
+			val &= 1; // as seen on real hardware: only bit 0 can be changed
+			pc98_pegc_mmio[reg] = val;
+			if ((val^pval)&1/*if bit 0 changed*/)
+				VGA_SetupHandlers();
+			// FIXME: One PC-9821 laptop seems to allow bit 0 and bit 1 to be set.
+			//        What does bit 1 control?
+			break;
+		default:
+			LOG_MSG("PC-98 PEGC warning: Unhandled write to %xh val %xh",reg+0xE0000u,val);
+			break;
+	}
 }
 
 /* Gonna assume that whoever maps vga memory, maps it on 32/64kb boundary */
@@ -283,115 +283,115 @@ static struct {
 } vgapages;
 
 static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsigned char plane) {
-    const unsigned char hobit_n = ((vga.seq.memory_mode&2/*Extended Memory*/) || (vga_ignore_extended_memory_bit && IS_VGA_ARCH)) ? 16u : 14u;
+	const unsigned char hobit_n = ((vga.seq.memory_mode&2/*Extended Memory*/) || (vga_ignore_extended_memory_bit && IS_VGA_ARCH)) ? 16u : 14u;
 
-    /* Sequencer Memory Mode Register (04h)
-     * bits[3:3] = Chain 4 enable
-     * bits[2:2] = Odd/Even Host Memory Write Addressing Disable
-     * bits[1:1] = Extended memory (when EGA cards have > 64KB of RAM)
-     * 
-     * NTS: Real hardware experience says that despite the name, the Odd/Even bit affects reading as well */
-    if (!(vga.seq.memory_mode&4) && !non_cga_ignore_oddeven_engage)/* Odd Even Host Memory Write Addressing Disable (is not set) */
-        plane = (plane & ~1u) + (rawaddr & 1u);
+	/* Sequencer Memory Mode Register (04h)
+	 * bits[3:3] = Chain 4 enable
+	 * bits[2:2] = Odd/Even Host Memory Write Addressing Disable
+	 * bits[1:1] = Extended memory (when EGA cards have > 64KB of RAM)
+	 * 
+	 * NTS: Real hardware experience says that despite the name, the Odd/Even bit affects reading as well */
+	if (!(vga.seq.memory_mode&4) && !non_cga_ignore_oddeven_engage)/* Odd Even Host Memory Write Addressing Disable (is not set) */
+		plane = (plane & ~1u) + (rawaddr & 1u);
 
-    /* Graphics Controller: Miscellaneous Graphics Register register (06h)
-     * bits[3:2] = memory map select
-     * bits[1:1] = Chain Odd/Even Enable
-     * bits[0:0] = Alphanumeric Mode Disable
-     *
-     * http://www.osdever.net/FreeVGA/vga/graphreg.htm
-     *
-     * When enabled, address bit A0 (bit 0) becomes bit 0 of the plane index.
-     * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
-     * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
-    if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
-        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 2u;
-        const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
-        /* 1 << 14 =     0x4000
-         * 1 << 14 - 1 = 0x3FFF
-         * 1 << 14 - 2 = 0x3FFE
-         * The point is to mask upper bit AND the LSB */
-        planeaddr = (planeaddr & mask & (vga.mem.memmask >> 2u)) + hobit;
-    }
-    else {
-        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 1u;
-        planeaddr &= mask & (vga.mem.memmask >> 2u);
-    }
+	/* Graphics Controller: Miscellaneous Graphics Register register (06h)
+	 * bits[3:2] = memory map select
+	 * bits[1:1] = Chain Odd/Even Enable
+	 * bits[0:0] = Alphanumeric Mode Disable
+	 *
+	 * http://www.osdever.net/FreeVGA/vga/graphreg.htm
+	 *
+	 * When enabled, address bit A0 (bit 0) becomes bit 0 of the plane index.
+	 * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
+	 * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
+	if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
+		const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 2u;
+		const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
+		/* 1 << 14 =     0x4000
+		 * 1 << 14 - 1 = 0x3FFF
+		 * 1 << 14 - 2 = 0x3FFE
+		 * The point is to mask upper bit AND the LSB */
+		planeaddr = (planeaddr & mask & (vga.mem.memmask >> 2u)) + hobit;
+	}
+	else {
+		const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 1u;
+		planeaddr &= mask & (vga.mem.memmask >> 2u);
+	}
 
-    vga.latch.d=((uint32_t*)vga.mem.linear)[planeaddr];
-    switch (vga.config.read_mode) {
-        case 0:
-            return (vga.latch.b[plane]);
-        case 1:
-            VGA_Latch templatch;
-            templatch.d=(vga.latch.d & FillTable[vga.config.color_dont_care]) ^ FillTable[vga.config.color_compare & vga.config.color_dont_care];
-            return (uint8_t)~(templatch.b[0] | templatch.b[1] | templatch.b[2] | templatch.b[3]);
-    }
+	vga.latch.d=((uint32_t*)vga.mem.linear)[planeaddr];
+	switch (vga.config.read_mode) {
+		case 0:
+			return (vga.latch.b[plane]);
+		case 1:
+			VGA_Latch templatch;
+			templatch.d=(vga.latch.d & FillTable[vga.config.color_dont_care]) ^ FillTable[vga.config.color_compare & vga.config.color_dont_care];
+			return (uint8_t)~(templatch.b[0] | templatch.b[1] | templatch.b[2] | templatch.b[3]);
+	}
 
-    return 0;
+	return 0;
 }
 
 template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysPt planeaddr,PhysPt rawaddr,uint8_t val) {
-    const unsigned char hobit_n = ((vga.seq.memory_mode&2/*Extended Memory*/) || (vga_ignore_extended_memory_bit && IS_VGA_ARCH)) ? 16u : 14u;
-    uint32_t mask = vga.config.full_map_mask;
+	const unsigned char hobit_n = ((vga.seq.memory_mode&2/*Extended Memory*/) || (vga_ignore_extended_memory_bit && IS_VGA_ARCH)) ? 16u : 14u;
+	uint32_t mask = vga.config.full_map_mask;
 
-    /* Sequencer Memory Mode Register (04h)
-     * bits[3:3] = Chain 4 enable
-     * bits[2:2] = Odd/Even Host Memory Write Addressing Disable
-     * bits[1:1] = Extended memory (when EGA cards have > 64KB of RAM)
-     * 
-     * NTS: Real hardware experience says that despite the name, the Odd/Even bit affects reading as well */
-    if (chained) {
-        if (!(vga.seq.memory_mode&4) && !non_cga_ignore_oddeven_engage)/* Odd Even Host Memory Write Addressing Disable (is not set) */
-            mask &= 0xFF00FFu << ((rawaddr & 1u) * 8u);
-        else
-            mask &= 0xFFu << ((rawaddr & 3u) * 8u);
-    }
-    else {
-        if (!(vga.seq.memory_mode&4) && !non_cga_ignore_oddeven_engage)/* Odd Even Host Memory Write Addressing Disable (is not set) */
-            mask &= 0xFF00FFu << ((rawaddr & 1u) * 8u);
-    }
+	/* Sequencer Memory Mode Register (04h)
+	 * bits[3:3] = Chain 4 enable
+	 * bits[2:2] = Odd/Even Host Memory Write Addressing Disable
+	 * bits[1:1] = Extended memory (when EGA cards have > 64KB of RAM)
+	 * 
+	 * NTS: Real hardware experience says that despite the name, the Odd/Even bit affects reading as well */
+	if (chained) {
+		if (!(vga.seq.memory_mode&4) && !non_cga_ignore_oddeven_engage)/* Odd Even Host Memory Write Addressing Disable (is not set) */
+			mask &= 0xFF00FFu << ((rawaddr & 1u) * 8u);
+		else
+			mask &= 0xFFu << ((rawaddr & 3u) * 8u);
+	}
+	else {
+		if (!(vga.seq.memory_mode&4) && !non_cga_ignore_oddeven_engage)/* Odd Even Host Memory Write Addressing Disable (is not set) */
+			mask &= 0xFF00FFu << ((rawaddr & 1u) * 8u);
+	}
 
-    /* Graphics Controller: Miscellaneous Graphics Register register (06h)
-     * bits[3:2] = memory map select
-     * bits[1:1] = Chain Odd/Even Enable
-     * bits[0:0] = Alphanumeric Mode Disable
-     *
-     * http://www.osdever.net/FreeVGA/vga/graphreg.htm
-     *
-     * When enabled, address bit A0 (bit 0) becomes bit 0 of the plane index.
-     * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
-     * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
-    if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
-        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 2u;
-        const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
-        /* 1 << 14 =     0x4000
-         * 1 << 14 - 1 = 0x3FFF
-         * 1 << 14 - 2 = 0x3FFE
-         * The point is to mask upper bit AND the LSB */
-        planeaddr = (planeaddr & mask & (vga.mem.memmask >> 2u)) + hobit;
-    }
-    else {
-        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 1u;
-        planeaddr &= mask & (vga.mem.memmask >> 2u);
-    }
+	/* Graphics Controller: Miscellaneous Graphics Register register (06h)
+	 * bits[3:2] = memory map select
+	 * bits[1:1] = Chain Odd/Even Enable
+	 * bits[0:0] = Alphanumeric Mode Disable
+	 *
+	 * http://www.osdever.net/FreeVGA/vga/graphreg.htm
+	 *
+	 * When enabled, address bit A0 (bit 0) becomes bit 0 of the plane index.
+	 * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
+	 * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
+	if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
+		const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 2u;
+		const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
+		/* 1 << 14 =     0x4000
+		 * 1 << 14 - 1 = 0x3FFF
+		 * 1 << 14 - 2 = 0x3FFE
+		 * The point is to mask upper bit AND the LSB */
+		planeaddr = (planeaddr & mask & (vga.mem.memmask >> 2u)) + hobit;
+	}
+	else {
+		const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 1u;
+		planeaddr &= mask & (vga.mem.memmask >> 2u);
+	}
 
-    uint32_t data=ModeOperation(val);
-    VGA_Latch pixels;
+	uint32_t data=ModeOperation(val);
+	VGA_Latch pixels;
 
-    pixels.d =((uint32_t*)vga.mem.linear)[planeaddr];
-    pixels.d&=~mask;
-    pixels.d|=(data & mask);
+	pixels.d =((uint32_t*)vga.mem.linear)[planeaddr];
+	pixels.d&=~mask;
+	pixels.d|=(data & mask);
 
-    /* FIXME: A better method (I think) is to have the VGA text drawing code
-     *        directly reference the font data in bitplane #2 instead of
-     *        this hack */
-    if (planeaddr < (512*1024)) {
-        /* 2025/01/12: Range checking is required in order not to overrun the array and corrupt emulator state */
-        vga.draw.font[planeaddr] = pixels.b[2];
-    }
+	/* FIXME: A better method (I think) is to have the VGA text drawing code
+	 *        directly reference the font data in bitplane #2 instead of
+	 *        this hack */
+	if (planeaddr < (512*1024)) {
+		/* 2025/01/12: Range checking is required in order not to overrun the array and corrupt emulator state */
+		vga.draw.font[planeaddr] = pixels.b[2];
+	}
 
-    ((uint32_t*)vga.mem.linear)[planeaddr]=pixels.d;
+	((uint32_t*)vga.mem.linear)[planeaddr]=pixels.d;
 }
 
 // Fast version especially for 256-color mode.
@@ -797,262 +797,262 @@ extern uint16_t pc98_egc_shift_length;
  * probably faster to execute. It makes it hard to make sense
  * of the code though. */
 struct pc98_egc_shifter {
-    pc98_egc_shifter() : decrement(false), remain(0x10), srcbit(0), dstbit(0) { }
+	pc98_egc_shifter() : decrement(false), remain(0x10), srcbit(0), dstbit(0) { }
 
-    void reinit(void) { /* from global vars set by guest */
-        decrement = pc98_egc_shift_descend;
-        remain = pc98_egc_shift_length + 1; /* the register is length - 1 apparently */
-        dstbit = pc98_egc_shift_destbit;
-        srcbit = pc98_egc_shift_srcbit;
-        bufi = bufo = decrement ? (sizeof(buffer) + 3 - (4*4)) : 0;
+	void reinit(void) { /* from global vars set by guest */
+		decrement = pc98_egc_shift_descend;
+		remain = pc98_egc_shift_length + 1; /* the register is length - 1 apparently */
+		dstbit = pc98_egc_shift_destbit;
+		srcbit = pc98_egc_shift_srcbit;
+		bufi = bufo = decrement ? (sizeof(buffer) + 3 - (4*4)) : 0;
 
-        if ((srcbit&7) < (dstbit&7)) {
-            shft8bitr = (dstbit&7) - (srcbit&7);
-            shft8bitl = 8 - shft8bitr;
-        }
-        else if ((srcbit&7) > (dstbit&7)) {
-            shft8bitl = (srcbit&7) - (dstbit&7);
-            shft8bitr = 8 - shft8bitl;
-        }
-        else {
-            shft8bitr = 0;
-            shft8bitl = 0;
-        }
+		if ((srcbit&7) < (dstbit&7)) {
+			shft8bitr = (dstbit&7) - (srcbit&7);
+			shft8bitl = 8 - shft8bitr;
+		}
+		else if ((srcbit&7) > (dstbit&7)) {
+			shft8bitl = (srcbit&7) - (dstbit&7);
+			shft8bitr = 8 - shft8bitl;
+		}
+		else {
+			shft8bitr = 0;
+			shft8bitl = 0;
+		}
 
-        shft8load = 0;
-        o_srcbit = srcbit & 7;
-        o_dstbit = dstbit & 7;
-    }
+		shft8load = 0;
+		o_srcbit = srcbit & 7;
+		o_dstbit = dstbit & 7;
+	}
 
-    bool                decrement;
-    uint16_t            remain;
-    uint16_t            srcbit;
-    uint16_t            dstbit;
-    uint16_t            o_srcbit = 0;
-    uint16_t            o_dstbit = 0;
+	bool                decrement;
+	uint16_t            remain;
+	uint16_t            srcbit;
+	uint16_t            dstbit;
+	uint16_t            o_srcbit = 0;
+	uint16_t            o_dstbit = 0;
 
-    uint8_t             buffer[512] = {}; /* 4096/8 = 512 */
-    uint16_t            bufi = 0, bufo = 0;
+	uint8_t             buffer[512] = {}; /* 4096/8 = 512 */
+	uint16_t            bufi = 0, bufo = 0;
 
-    uint8_t             shft8load = 0;
-    uint8_t             shft8bitr = 0;
-    uint8_t             shft8bitl = 0;
+	uint8_t             shft8load = 0;
+	uint8_t             shft8bitr = 0;
+	uint8_t             shft8bitl = 0;
 
-    std::string debug_status(void) {
-        char tmp[512];
+	std::string debug_status(void) {
+		char tmp[512];
 
-        sprintf(tmp,"decrement=%u remain=%u srcbit=%u dstbit=%u shf8l=%u shf8br=%u shf8bl=%u",
-            decrement?1:0,
-            remain,
-            srcbit,
-            dstbit,
-            shft8load,
-            shft8bitr,
-            shft8bitl);
+		sprintf(tmp,"decrement=%u remain=%u srcbit=%u dstbit=%u shf8l=%u shf8br=%u shf8bl=%u",
+				decrement?1:0,
+				remain,
+				srcbit,
+				dstbit,
+				shft8load,
+				shft8bitr,
+				shft8bitl);
 
-        return std::string(tmp);
-    }
+		return std::string(tmp);
+	}
 
-    template <class AWT> inline void bi(const uint16_t ofs,const AWT val) {
-        size_t ip = (bufi + ofs) & (sizeof(buffer) - 1);
+	template <class AWT> inline void bi(const uint16_t ofs,const AWT val) {
+		size_t ip = (bufi + ofs) & (sizeof(buffer) - 1);
 
-        for (size_t i=0;i < sizeof(AWT);) {
-            buffer[ip] = (uint8_t)(val >> ((AWT)(i * 8U)));
-            if ((++ip) == sizeof(buffer)) ip = 0;
-            i++;
-        }
-    }
+		for (size_t i=0;i < sizeof(AWT);) {
+			buffer[ip] = (uint8_t)(val >> ((AWT)(i * 8U)));
+			if ((++ip) == sizeof(buffer)) ip = 0;
+			i++;
+		}
+	}
 
-    template <class AWT> inline void bi_adv(void) {
-        bufi += pc98_egc_shift_descend ? (sizeof(buffer) - sizeof(AWT)) : sizeof(AWT);
-        bufi &= (sizeof(buffer) - 1);
-    }
+	template <class AWT> inline void bi_adv(void) {
+		bufi += pc98_egc_shift_descend ? (sizeof(buffer) - sizeof(AWT)) : sizeof(AWT);
+		bufi &= (sizeof(buffer) - 1);
+	}
 
-    template <class AWT> inline AWT bo(const uint16_t ofs) {
-        size_t op = (bufo + ofs) & (sizeof(buffer) - 1);
-        AWT ret = 0;
+	template <class AWT> inline AWT bo(const uint16_t ofs) {
+		size_t op = (bufo + ofs) & (sizeof(buffer) - 1);
+		AWT ret = 0;
 
-        for (size_t i=0;i < sizeof(AWT);) {
-            ret += ((AWT)buffer[op]) << ((AWT)(i * 8U));
-            if ((++op) == sizeof(buffer)) op = 0;
-            i++;
-        }
+		for (size_t i=0;i < sizeof(AWT);) {
+			ret += ((AWT)buffer[op]) << ((AWT)(i * 8U));
+			if ((++op) == sizeof(buffer)) op = 0;
+			i++;
+		}
 
-        return ret;
-    }
+		return ret;
+	}
 
-    template <class AWT> inline void bo_adv(void) {
-        bufo += pc98_egc_shift_descend ? (sizeof(buffer) - sizeof(AWT)) : sizeof(AWT);
-        bufo &= (sizeof(buffer) - 1);
-    }
+	template <class AWT> inline void bo_adv(void) {
+		bufo += pc98_egc_shift_descend ? (sizeof(buffer) - sizeof(AWT)) : sizeof(AWT);
+		bufo &= (sizeof(buffer) - 1);
+	}
 
-    template <class AWT> inline void input(const AWT a,const AWT b,const AWT c,const AWT d,uint8_t odd) {
-        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 0,a);
-        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 4,b);
-        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 8,c);
-        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 12,d);
+	template <class AWT> inline void input(const AWT a,const AWT b,const AWT c,const AWT d,uint8_t odd) {
+		bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 0,a);
+		bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 4,b);
+		bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 8,c);
+		bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 12,d);
 
-        if (shft8load <= 16) {
-            bi_adv<AWT>();
+		if (shft8load <= 16) {
+			bi_adv<AWT>();
 
-            if (sizeof(AWT) == 2) {
-                if (srcbit >= 8) bo_adv<uint8_t>();
-                shft8load += (16 - srcbit);
-                srcbit = 0;
-            }
-            else {
-                if (srcbit >= 8)
-                    srcbit -= 8;
-                else {
-                    shft8load += (8 - srcbit);
-                    srcbit = 0;
-                }
-            }
-        }
+			if (sizeof(AWT) == 2) {
+				if (srcbit >= 8) bo_adv<uint8_t>();
+				shft8load += (16 - srcbit);
+				srcbit = 0;
+			}
+			else {
+				if (srcbit >= 8)
+					srcbit -= 8;
+				else {
+					shft8load += (8 - srcbit);
+					srcbit = 0;
+				}
+			}
+		}
 
-        *((AWT*)(pc98_egc_srcmask+odd)) = (AWT)(~0ull);
-    }
+		*((AWT*)(pc98_egc_srcmask+odd)) = (AWT)(~0ull);
+	}
 
-    inline uint8_t dstbit_mask(void) {
-        uint8_t mb;
+	inline uint8_t dstbit_mask(void) {
+		uint8_t mb;
 
-        /* assume remain > 0 */
-        if (remain >= 8)
-            mb = 0xFF;
-        else if (!pc98_egc_shift_descend)
-            mb = 0xFF << (uint8_t)(8 - remain); /* 0x80 0xC0 0xE0 0xF0 ... */
-        else
-            mb = 0xFF >> (uint8_t)(8 - remain); /* 0x01 0x03 0x07 0x0F ... */
+		/* assume remain > 0 */
+		if (remain >= 8)
+			mb = 0xFF;
+		else if (!pc98_egc_shift_descend)
+			mb = 0xFF << (uint8_t)(8 - remain); /* 0x80 0xC0 0xE0 0xF0 ... */
+		else
+			mb = 0xFF >> (uint8_t)(8 - remain); /* 0x01 0x03 0x07 0x0F ... */
 
-        /* assume dstbit < 8 */
-        if (!pc98_egc_shift_descend)
-            return mb >> (uint8_t)dstbit; /* 0xFF 0x7F 0x3F 0x1F ... */
-        else
-            return mb << (uint8_t)dstbit; /* 0xFF 0xFE 0xFC 0xF8 ... */
-    }
+		/* assume dstbit < 8 */
+		if (!pc98_egc_shift_descend)
+			return mb >> (uint8_t)dstbit; /* 0xFF 0x7F 0x3F 0x1F ... */
+		else
+			return mb << (uint8_t)dstbit; /* 0xFF 0xFE 0xFC 0xF8 ... */
+	}
 
-    template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d,uint8_t odd,bool recursive=false) {
-        if (sizeof(AWT) == 2) {
-            if (shft8load < (16 - dstbit)) {
-                *((AWT*)(pc98_egc_srcmask+odd)) = 0;
-                return;
-            }
-            shft8load -= (16 - dstbit);
+	template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d,uint8_t odd,bool recursive=false) {
+		if (sizeof(AWT) == 2) {
+			if (shft8load < (16 - dstbit)) {
+				*((AWT*)(pc98_egc_srcmask+odd)) = 0;
+				return;
+			}
+			shft8load -= (16 - dstbit);
 
-            /* assume odd == false and output is to even byte offset */
-            if (pc98_egc_shift_descend) {
-                output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
-                if (remain != 0) output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],0,true);
-                else pc98_egc_srcmask[0] = 0;
-            }
-            else {
-                output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],0,true);
-                if (remain != 0) output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
-                else pc98_egc_srcmask[1] = 0;
-            }
+			/* assume odd == false and output is to even byte offset */
+			if (pc98_egc_shift_descend) {
+				output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
+				if (remain != 0) output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],0,true);
+				else pc98_egc_srcmask[0] = 0;
+			}
+			else {
+				output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],0,true);
+				if (remain != 0) output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
+				else pc98_egc_srcmask[1] = 0;
+			}
 
-            if (remain == 0)
-                reinit();
+			if (remain == 0)
+				reinit();
 
-            return;
-        }
+			return;
+		}
 
-        if (!recursive) {
-            if (shft8load < (8 - dstbit)) {
-                *((AWT*)(pc98_egc_srcmask+odd)) = 0;
-                return;
-            }
-            shft8load -= (8 - dstbit);
-        }
+		if (!recursive) {
+			if (shft8load < (8 - dstbit)) {
+				*((AWT*)(pc98_egc_srcmask+odd)) = 0;
+				return;
+			}
+			shft8load -= (8 - dstbit);
+		}
 
-        if (dstbit >= 8) {
-            dstbit -= 8;
-            *((AWT*)(pc98_egc_srcmask+odd)) = 0;
-            return;
-        }
+		if (dstbit >= 8) {
+			dstbit -= 8;
+			*((AWT*)(pc98_egc_srcmask+odd)) = 0;
+			return;
+		}
 
-        *((AWT*)(pc98_egc_srcmask+odd)) = dstbit_mask();
+		*((AWT*)(pc98_egc_srcmask+odd)) = dstbit_mask();
 
-        if (dstbit > 0) {
-            const uint8_t bc = 8 - dstbit;
+		if (dstbit > 0) {
+			const uint8_t bc = 8 - dstbit;
 
-            if (remain >= bc)
-                remain -= bc;
-            else
-                remain = 0;
-        }
-        else {
-            if (remain >= 8)
-                remain -= 8;
-            else
-                remain = 0;
-        }
+			if (remain >= bc)
+				remain -= bc;
+			else
+				remain = 0;
+		}
+		else {
+			if (remain >= 8)
+				remain -= 8;
+			else
+				remain = 0;
+		}
 
-        if (o_srcbit < o_dstbit) {
-            if (dstbit != 0) {
-                if (pc98_egc_shift_descend) {
-                    a = bo<AWT>( 0) << shft8bitr;
-                    b = bo<AWT>( 4) << shft8bitr;
-                    c = bo<AWT>( 8) << shft8bitr;
-                    d = bo<AWT>(12) << shft8bitr;
-                }
-                else {
-                    a = bo<AWT>( 0) >> shft8bitr;
-                    b = bo<AWT>( 4) >> shft8bitr;
-                    c = bo<AWT>( 8) >> shft8bitr;
-                    d = bo<AWT>(12) >> shft8bitr;
-                }
+		if (o_srcbit < o_dstbit) {
+			if (dstbit != 0) {
+				if (pc98_egc_shift_descend) {
+					a = bo<AWT>( 0) << shft8bitr;
+					b = bo<AWT>( 4) << shft8bitr;
+					c = bo<AWT>( 8) << shft8bitr;
+					d = bo<AWT>(12) << shft8bitr;
+				}
+				else {
+					a = bo<AWT>( 0) >> shft8bitr;
+					b = bo<AWT>( 4) >> shft8bitr;
+					c = bo<AWT>( 8) >> shft8bitr;
+					d = bo<AWT>(12) >> shft8bitr;
+				}
 
-                dstbit = 0;
-            }
-            else {
-                if (pc98_egc_shift_descend) {
-                    bo_adv<AWT>();
-                    a = (bo<AWT>( 0+1) >> shft8bitl) | (bo<AWT>( 0) << shft8bitr);
-                    b = (bo<AWT>( 4+1) >> shft8bitl) | (bo<AWT>( 4) << shft8bitr);
-                    c = (bo<AWT>( 8+1) >> shft8bitl) | (bo<AWT>( 8) << shft8bitr);
-                    d = (bo<AWT>(12+1) >> shft8bitl) | (bo<AWT>(12) << shft8bitr);
-                }
-                else {
-                    a = (bo<AWT>( 0) << shft8bitl) | (bo<AWT>( 0+1) >> shft8bitr);
-                    b = (bo<AWT>( 4) << shft8bitl) | (bo<AWT>( 4+1) >> shft8bitr);
-                    c = (bo<AWT>( 8) << shft8bitl) | (bo<AWT>( 8+1) >> shft8bitr);
-                    d = (bo<AWT>(12) << shft8bitl) | (bo<AWT>(12+1) >> shft8bitr);
-                    bo_adv<AWT>();
-                }
-            }
-        }
-        else if (o_srcbit > o_dstbit) {
-            dstbit = 0;
+				dstbit = 0;
+			}
+			else {
+				if (pc98_egc_shift_descend) {
+					bo_adv<AWT>();
+					a = (bo<AWT>( 0+1) >> shft8bitl) | (bo<AWT>( 0) << shft8bitr);
+					b = (bo<AWT>( 4+1) >> shft8bitl) | (bo<AWT>( 4) << shft8bitr);
+					c = (bo<AWT>( 8+1) >> shft8bitl) | (bo<AWT>( 8) << shft8bitr);
+					d = (bo<AWT>(12+1) >> shft8bitl) | (bo<AWT>(12) << shft8bitr);
+				}
+				else {
+					a = (bo<AWT>( 0) << shft8bitl) | (bo<AWT>( 0+1) >> shft8bitr);
+					b = (bo<AWT>( 4) << shft8bitl) | (bo<AWT>( 4+1) >> shft8bitr);
+					c = (bo<AWT>( 8) << shft8bitl) | (bo<AWT>( 8+1) >> shft8bitr);
+					d = (bo<AWT>(12) << shft8bitl) | (bo<AWT>(12+1) >> shft8bitr);
+					bo_adv<AWT>();
+				}
+			}
+		}
+		else if (o_srcbit > o_dstbit) {
+			dstbit = 0;
 
-            if (pc98_egc_shift_descend) {
-                bo_adv<AWT>();
-                a = (bo<AWT>( 0+1) >> shft8bitl) | (bo<AWT>( 0) << shft8bitr);
-                b = (bo<AWT>( 4+1) >> shft8bitl) | (bo<AWT>( 4) << shft8bitr);
-                c = (bo<AWT>( 8+1) >> shft8bitl) | (bo<AWT>( 8) << shft8bitr);
-                d = (bo<AWT>(12+1) >> shft8bitl) | (bo<AWT>(12) << shft8bitr);
-            }
-            else {
-                a = (bo<AWT>( 0) << shft8bitl) | (bo<AWT>( 0+1) >> shft8bitr);
-                b = (bo<AWT>( 4) << shft8bitl) | (bo<AWT>( 4+1) >> shft8bitr);
-                c = (bo<AWT>( 8) << shft8bitl) | (bo<AWT>( 8+1) >> shft8bitr);
-                d = (bo<AWT>(12) << shft8bitl) | (bo<AWT>(12+1) >> shft8bitr);
-                bo_adv<AWT>();
-            }
-        }
-        else {
-            dstbit = 0;
+			if (pc98_egc_shift_descend) {
+				bo_adv<AWT>();
+				a = (bo<AWT>( 0+1) >> shft8bitl) | (bo<AWT>( 0) << shft8bitr);
+				b = (bo<AWT>( 4+1) >> shft8bitl) | (bo<AWT>( 4) << shft8bitr);
+				c = (bo<AWT>( 8+1) >> shft8bitl) | (bo<AWT>( 8) << shft8bitr);
+				d = (bo<AWT>(12+1) >> shft8bitl) | (bo<AWT>(12) << shft8bitr);
+			}
+			else {
+				a = (bo<AWT>( 0) << shft8bitl) | (bo<AWT>( 0+1) >> shft8bitr);
+				b = (bo<AWT>( 4) << shft8bitl) | (bo<AWT>( 4+1) >> shft8bitr);
+				c = (bo<AWT>( 8) << shft8bitl) | (bo<AWT>( 8+1) >> shft8bitr);
+				d = (bo<AWT>(12) << shft8bitl) | (bo<AWT>(12+1) >> shft8bitr);
+				bo_adv<AWT>();
+			}
+		}
+		else {
+			dstbit = 0;
 
-            a = bo<AWT>( 0);
-            b = bo<AWT>( 4);
-            c = bo<AWT>( 8);
-            d = bo<AWT>(12);
-            bo_adv<AWT>();
-        }
+			a = bo<AWT>( 0);
+			b = bo<AWT>( 4);
+			c = bo<AWT>( 8);
+			d = bo<AWT>(12);
+			bo_adv<AWT>();
+		}
 
-        if (!recursive && remain == 0)
-            reinit();
-    }
+		if (!recursive && remain == 0)
+			reinit();
+	}
 };
 
 egc_quad pc98_egc_src;
@@ -1064,20 +1064,20 @@ egc_quad pc98_egc_last_vram;
 pc98_egc_shifter pc98_egc_shift;
 
 std::string pc98_egc_shift_debug_status(void) {
-    return pc98_egc_shift.debug_status();
+	return pc98_egc_shift.debug_status();
 }
 
 typedef egc_quad & (*PC98_OPEFN)(uint8_t ope, const PhysPt ad);
 
 void pc98_egc_shift_reinit() {
-    pc98_egc_shift.reinit();
+	pc98_egc_shift.reinit();
 }
 
 template <class AWT> static inline void egc_fetch_planar(egc_quad &dst,const PhysPt vramoff) {
-    dst[0].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0)));
-    dst[1].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1)));
-    dst[2].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2)));
-    dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
+	dst[0].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0)));
+	dst[1].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1)));
+	dst[2].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2)));
+	dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
 }
 
 /* Generic EGC ROP handling according to Neko Project II.
@@ -1221,7 +1221,7 @@ static egc_quad &ope_ff(uint8_t ope, const PhysPt vramoff) {
 static egc_quad &ope_np(uint8_t ope, const PhysPt vramoff) {
 	egc_quad dst;
 
-    egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
+	egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
 
 	pc98_egc_data[0].w = 0;
 	pc98_egc_data[1].w = 0;
@@ -1229,28 +1229,28 @@ static egc_quad &ope_np(uint8_t ope, const PhysPt vramoff) {
 	pc98_egc_data[3].w = 0;
 
 	if (ope & 0x80) {
-        pc98_egc_data[0].w |= (pc98_egc_src[0].w & dst[0].w);
-        pc98_egc_data[1].w |= (pc98_egc_src[1].w & dst[1].w);
-        pc98_egc_data[2].w |= (pc98_egc_src[2].w & dst[2].w);
-        pc98_egc_data[3].w |= (pc98_egc_src[3].w & dst[3].w);
-    }
+		pc98_egc_data[0].w |= (pc98_egc_src[0].w & dst[0].w);
+		pc98_egc_data[1].w |= (pc98_egc_src[1].w & dst[1].w);
+		pc98_egc_data[2].w |= (pc98_egc_src[2].w & dst[2].w);
+		pc98_egc_data[3].w |= (pc98_egc_src[3].w & dst[3].w);
+	}
 	if (ope & 0x20) {
-        pc98_egc_data[0].w |= (pc98_egc_src[0].w & (~dst[0].w));
-        pc98_egc_data[1].w |= (pc98_egc_src[1].w & (~dst[1].w));
-        pc98_egc_data[2].w |= (pc98_egc_src[2].w & (~dst[2].w));
-        pc98_egc_data[3].w |= (pc98_egc_src[3].w & (~dst[3].w));
+		pc98_egc_data[0].w |= (pc98_egc_src[0].w & (~dst[0].w));
+		pc98_egc_data[1].w |= (pc98_egc_src[1].w & (~dst[1].w));
+		pc98_egc_data[2].w |= (pc98_egc_src[2].w & (~dst[2].w));
+		pc98_egc_data[3].w |= (pc98_egc_src[3].w & (~dst[3].w));
 	}
 	if (ope & 0x08) {
-        pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & dst[0].w);
-        pc98_egc_data[1].w |= ((~pc98_egc_src[1].w) & dst[1].w);
-        pc98_egc_data[2].w |= ((~pc98_egc_src[2].w) & dst[2].w);
-        pc98_egc_data[3].w |= ((~pc98_egc_src[3].w) & dst[3].w);
+		pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & dst[0].w);
+		pc98_egc_data[1].w |= ((~pc98_egc_src[1].w) & dst[1].w);
+		pc98_egc_data[2].w |= ((~pc98_egc_src[2].w) & dst[2].w);
+		pc98_egc_data[3].w |= ((~pc98_egc_src[3].w) & dst[3].w);
 	}
 	if (ope & 0x02) {
-        pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & (~dst[0].w));
-        pc98_egc_data[1].w |= ((~pc98_egc_src[1].w) & (~dst[1].w));
-        pc98_egc_data[2].w |= ((~pc98_egc_src[2].w) & (~dst[2].w));
-        pc98_egc_data[3].w |= ((~pc98_egc_src[3].w) & (~dst[3].w));
+		pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & (~dst[0].w));
+		pc98_egc_data[1].w |= ((~pc98_egc_src[1].w) & (~dst[1].w));
+		pc98_egc_data[2].w |= ((~pc98_egc_src[2].w) & (~dst[2].w));
+		pc98_egc_data[3].w |= ((~pc98_egc_src[3].w) & (~dst[3].w));
 	}
 
 	(void)ope;
@@ -1334,9 +1334,9 @@ static egc_quad &ope_nd(uint8_t ope, const PhysPt vramoff) {
 static egc_quad &ope_c0(uint8_t ope, const PhysPt vramoff) {
 	egc_quad dst;
 
-    /* assume: ad is word aligned */
+	/* assume: ad is word aligned */
 
-    egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
+	egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
 
 	pc98_egc_data[0].w = pc98_egc_src[0].w & dst[0].w;
 	pc98_egc_data[1].w = pc98_egc_src[1].w & dst[1].w;
@@ -1357,9 +1357,9 @@ static egc_quad &ope_f0(uint8_t ope, const PhysPt vramoff) {
 static egc_quad &ope_fc(uint8_t ope, const PhysPt vramoff) {
 	egc_quad dst;
 
-    /* assume: ad is word aligned */
+	/* assume: ad is word aligned */
 
-    egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
+	egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
 
 	pc98_egc_data[0].w  =    pc98_egc_src[0].w;
 	pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & dst[0].w);
@@ -1376,7 +1376,7 @@ static egc_quad &ope_fc(uint8_t ope, const PhysPt vramoff) {
 }
 
 static egc_quad &ope_gg(uint8_t ope, const PhysPt vramoff) {
-    egc_quad pat,dst;
+	egc_quad pat,dst;
 
 	switch(pc98_egc_fgc) {
 		case 1:
@@ -1413,7 +1413,7 @@ static egc_quad &ope_gg(uint8_t ope, const PhysPt vramoff) {
 			break;
 	}
 
-    egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
+	egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
 
 	pc98_egc_data[0].w = 0;
 	pc98_egc_data[1].w = 0;
@@ -1507,85 +1507,85 @@ static const PC98_OPEFN pc98_egc_opfn[256] = {
 			ope_xx, ope_xx, ope_nd, ope_xx, ope_fc, ope_xx, ope_xx, ope_ff};
 
 template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT val) {
-    *((uint16_t*)pc98_egc_maskef) = *((uint16_t*)pc98_egc_mask);
+	*((uint16_t*)pc98_egc_maskef) = *((uint16_t*)pc98_egc_mask);
 
-    /* 4A4h
-     * bits [12:11] = light source
-     *    11 = invalid
-     *    10 = write the contents of the palette register
-     *    01 = write the result of the raster operation
-     *    00 = write CPU data
-     *
-     * 4A2h
-     * bits [14:13] = foreground, background color
-     *    11 = invalid
-     *    10 = foreground color
-     *    01 = background color
-     *    00 = pattern register
-     */
-    switch (pc98_egc_lightsource) {
-        case 1: /* 0x0800 */
-            if (pc98_egc_shiftinput) {
-                pc98_egc_shift.input<AWT>(
-                    val,
-                    val,
-                    val,
-                    val,
-                    vramoff&1);
+	/* 4A4h
+	 * bits [12:11] = light source
+	 *    11 = invalid
+	 *    10 = write the contents of the palette register
+	 *    01 = write the result of the raster operation
+	 *    00 = write CPU data
+	 *
+	 * 4A2h
+	 * bits [14:13] = foreground, background color
+	 *    11 = invalid
+	 *    10 = foreground color
+	 *    01 = background color
+	 *    00 = pattern register
+	 */
+	switch (pc98_egc_lightsource) {
+		case 1: /* 0x0800 */
+			if (pc98_egc_shiftinput) {
+				pc98_egc_shift.input<AWT>(
+					val,
+					val,
+					val,
+					val,
+					vramoff&1);
 
-                pc98_egc_shift.output<AWT>(
-                    *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
-                    *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
-                    *((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
-                    *((AWT*)(pc98_egc_src[3].b+(vramoff&1))),
-                    vramoff&1);
-            }
+				pc98_egc_shift.output<AWT>(
+					*((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
+					*((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
+					*((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
+					*((AWT*)(pc98_egc_src[3].b+(vramoff&1))),
+					vramoff&1);
+			}
 
-            *((uint16_t*)pc98_egc_maskef) &= *((uint16_t*)pc98_egc_srcmask);
-            return pc98_egc_opfn[pc98_egc_rop](pc98_egc_rop, vramoff & (~1U));
-        case 2: /* 0x1000 */
-            if (pc98_egc_fgc == 1)
-                return pc98_egc_bgcm;
-            else if (pc98_egc_fgc == 2)
-                return pc98_egc_fgcm;
-	    // TODO: NP2kai source code (Neko Project II KAI) suggests the illegal value 11b (3) returns one foreground and one background color.
-	    //       Ref: https://github.com/AZO234/NP2kai mem/memegc.c line 774 ope_nd and ope_xx. I don't know if any games rely on that, but
-	    //       it might improve emulation accuracy to support it.
+			*((uint16_t*)pc98_egc_maskef) &= *((uint16_t*)pc98_egc_srcmask);
+			return pc98_egc_opfn[pc98_egc_rop](pc98_egc_rop, vramoff & (~1U));
+		case 2: /* 0x1000 */
+			if (pc98_egc_fgc == 1)
+				return pc98_egc_bgcm;
+			else if (pc98_egc_fgc == 2)
+				return pc98_egc_fgcm;
+			// TODO: NP2kai source code (Neko Project II KAI) suggests the illegal value 11b (3) returns one foreground and one background color.
+			//       Ref: https://github.com/AZO234/NP2kai mem/memegc.c line 774 ope_nd and ope_xx. I don't know if any games rely on that, but
+			//       it might improve emulation accuracy to support it.
 
-            if (pc98_egc_shiftinput) {
-                pc98_egc_shift.input<AWT>(
-                    val,
-                    val,
-                    val,
-                    val,
-                    vramoff&1);
+			if (pc98_egc_shiftinput) {
+				pc98_egc_shift.input<AWT>(
+					val,
+					val,
+					val,
+					val,
+					vramoff&1);
 
-                pc98_egc_shift.output<AWT>(
-                    *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
-                    *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
-                    *((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
-                    *((AWT*)(pc98_egc_src[3].b+(vramoff&1))),
-                    vramoff&1);
-            }
- 
-            *((uint16_t*)pc98_egc_maskef) &= *((uint16_t*)pc98_egc_srcmask);
-            return pc98_egc_src;
-        default: {
-            uint16_t tmp = (uint16_t)val;
+				pc98_egc_shift.output<AWT>(
+					*((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
+					*((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
+					*((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
+					*((AWT*)(pc98_egc_src[3].b+(vramoff&1))),
+					vramoff&1);
+			}
 
-            if (sizeof(AWT) < 2) {
-                tmp &= 0xFFU;
-                tmp |= tmp << 8U;
-            }
+			*((uint16_t*)pc98_egc_maskef) &= *((uint16_t*)pc98_egc_srcmask);
+			return pc98_egc_src;
+		default: {
+				 uint16_t tmp = (uint16_t)val;
 
-            pc98_egc_data[0].w = tmp;
-            pc98_egc_data[1].w = tmp;
-            pc98_egc_data[2].w = tmp;
-            pc98_egc_data[3].w = tmp;
-            } break;
-    }
+				 if (sizeof(AWT) < 2) {
+					 tmp &= 0xFFU;
+					 tmp |= tmp << 8U;
+				 }
 
-    return pc98_egc_data;
+				 pc98_egc_data[0].w = tmp;
+				 pc98_egc_data[1].w = tmp;
+				 pc98_egc_data[2].w = tmp;
+				 pc98_egc_data[3].w = tmp;
+			 } break;
+	}
+
+	return pc98_egc_data;
 }
 
 unsigned char pc98_mem_msw_m[8] = {0};
@@ -1632,28 +1632,28 @@ void pc98_mem_msw_write(unsigned char which,unsigned char val) {
  *       Are they repeats of the MSW bytes, some other value, or just 0xFF?
  */
 class VGA_PC98_TEXT_PageHandler : public PageHandler {
-public:
-	VGA_PC98_TEXT_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr) override {
-        addr &= 0x3FFFu;
+	public:
+		VGA_PC98_TEXT_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+		uint8_t readb(PhysPt addr) override {
+			addr = PAGING_GetPhysicalAddress(addr) & 0x3FFFu;
 
-        if (addr >= 0x3FE0u)
-            return pc98_mem_msw((addr >> 2u) & 7u);
-        else if ((addr & 0x2001u) == 0x2001u)
-            return (uint8_t)(~0u); /* Odd bytes of attribute RAM do not exist, apparently */
+			if (addr >= 0x3FE0u)
+				return pc98_mem_msw((addr >> 2u) & 7u);
+			else if ((addr & 0x2001u) == 0x2001u)
+				return (uint8_t)(~0u); /* Odd bytes of attribute RAM do not exist, apparently */
 
-        return VRAM98_TEXT[addr];
-    }
-	void writeb(PhysPt addr,uint8_t val) override {
-        addr &= 0x3FFFu;
+			return VRAM98_TEXT[addr];
+		}
+		void writeb(PhysPt addr,uint8_t val) override {
+			addr = PAGING_GetPhysicalAddress(addr) & 0x3FFFu;
 
-        if (addr >= 0x3FE0u)
-            return pc98_mem_msw_write((addr >> 2u) & 7u,(unsigned char)val);
-        else if ((addr & 0x2001u) == 0x2001u)
-            return;             /* Odd bytes of attribute RAM do not exist, apparently */
+			if (addr >= 0x3FE0u)
+				return pc98_mem_msw_write((addr >> 2u) & 7u,(unsigned char)val);
+			else if ((addr & 0x2001u) == 0x2001u)
+				return;             /* Odd bytes of attribute RAM do not exist, apparently */
 
-        VRAM98_TEXT[addr] = (unsigned char)val;
-    }
+			VRAM98_TEXT[addr] = (unsigned char)val;
+		}
 };
 
 extern uint16_t a1_font_load_addr;
@@ -1677,37 +1677,39 @@ extern uint8_t a1_font_char_offset;
 
 /* according to real hardware, memory address does not affect char offset (port 0xA5) */
 class VGA_PC98_CG_PageHandler : public PageHandler {
-public:
-	VGA_PC98_CG_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr) override {
-		uint8_t high = a1_font_load_addr & 0xff;
-		if((high >= 0x09 && high <= 0x0b) || (high >= 0x0c && high <= 0x0f) || (high >= 0x58 && high <= 0x5f)) {
-			if(addr & 1) {
-				return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF, (a1_font_char_offset & 0x20) ? 0 : 1);
-			} else {
-				return 0;
+	public:
+		VGA_PC98_CG_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+		uint8_t readb(PhysPt addr) override {
+			/* uses the low 12 bits and therefore does not need PAGING_GetPhysicalAddress() */
+			uint8_t high = a1_font_load_addr & 0xff;
+			if((high >= 0x09 && high <= 0x0b) || (high >= 0x0c && high <= 0x0f) || (high >= 0x58 && high <= 0x5f)) {
+				if(addr & 1) {
+					return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF, (a1_font_char_offset & 0x20) ? 0 : 1);
+				} else {
+					return 0;
+				}
 			}
+			return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1);
 		}
-		return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1);
-	}
-	void writeb(PhysPt addr,uint8_t val) override {
-		if ((a1_font_load_addr & 0x007E) == 0x0056 && (a1_font_load_addr & 0xFF00) != 0x0000)
-			pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,val);
-		else
-			LOG_MSG("A4xxx MMIO attempt to write FONT ROM char 0x%x",a1_font_load_addr);
-	}
+		void writeb(PhysPt addr,uint8_t val) override {
+			/* uses the low 12 bits and therefore does not need PAGING_GetPhysicalAddress() */
+			if ((a1_font_load_addr & 0x007E) == 0x0056 && (a1_font_load_addr & 0xFF00) != 0x0000)
+				pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,val);
+			else
+				LOG_MSG("A4xxx MMIO attempt to write FONT ROM char 0x%x",a1_font_load_addr);
+		}
 };
 
 /* 256-color control registers, memory mapped I/O */
 class VGA_PC98_256MMIO_PageHandler : public PageHandler {
-public:
-	VGA_PC98_256MMIO_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr) override {
-        return pc98_pegc_mmio_read(addr & 0x7FFFu);
-    }
-    void writeb(PhysPt addr,uint8_t val) override {
-        pc98_pegc_mmio_write(addr & 0x7FFFu,val);
-    }
+	public:
+		VGA_PC98_256MMIO_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+		uint8_t readb(PhysPt addr) override {
+			return pc98_pegc_mmio_read(PAGING_GetPhysicalAddress(addr) & 0x7FFFu);
+		}
+		void writeb(PhysPt addr,uint8_t val) override {
+			pc98_pegc_mmio_write(PAGING_GetPhysicalAddress(addr) & 0x7FFFu,val);
+		}
 };
 
 // A8000h-B7FFFh is 256-color planar (????)
@@ -1716,64 +1718,64 @@ public:
 // By the way real PEGC hardware seems to prefer WORD (16-bit) sized read/write aligned on WORD boundaries.
 // In fact Windows 3.1's 256-color driver never uses byte-sized read/write in this planar mode.
 class VGA_PC98_256Planar_PageHandler : public PageHandler {
-public:
-	VGA_PC98_256Planar_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr) override {
-        (void)addr;
+	public:
+		VGA_PC98_256Planar_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+		uint8_t readb(PhysPt addr) override {
+			(void)addr;
 
-//        LOG_MSG("PEGC 256-color planar warning: Readb from %lxh",(unsigned long)addr);
-        return (uint8_t)(~0);
-    }
-	void writeb(PhysPt addr,uint8_t val) override {
-        (void)addr;
-        (void)val;
+			// LOG_MSG("PEGC 256-color planar warning: Readb from %lxh",(unsigned long)addr);
+			return (uint8_t)(~0);
+		}
+		void writeb(PhysPt addr,uint8_t val) override {
+			(void)addr;
+			(void)val;
 
-//        LOG_MSG("PEGC 256-color planar warning: Writeb to %lxh val %02xh",(unsigned long)addr,(unsigned int)val);
-    }
-	uint16_t readw(PhysPt addr) override {
-        (void)addr;
+			// LOG_MSG("PEGC 256-color planar warning: Writeb to %lxh val %02xh",(unsigned long)addr,(unsigned int)val);
+		}
+		uint16_t readw(PhysPt addr) override {
+			(void)addr;
 
-//        LOG_MSG("PEGC 256-color planar warning: Readw from %lxh",(unsigned long)addr);
-        return (uint16_t)(~0);
-    }
-	void writew(PhysPt addr,uint16_t val) override {
-        (void)addr;
-        (void)val;
+			// LOG_MSG("PEGC 256-color planar warning: Readw from %lxh",(unsigned long)addr);
+			return (uint16_t)(~0);
+		}
+		void writew(PhysPt addr,uint16_t val) override {
+			(void)addr;
+			(void)val;
 
-//        LOG_MSG("PEGC 256-color planar warning: Writew to %lxh val %04xh",(unsigned long)addr,(unsigned int)val);
-    }
+			// LOG_MSG("PEGC 256-color planar warning: Writew to %lxh val %04xh",(unsigned long)addr,(unsigned int)val);
+		}
 };
 
 // A8000h is bank 0
 // B0000h is bank 1
 template <const unsigned int bank> class VGA_PC98_256BANK_PageHandler : public PageHandler {
-public:
-	VGA_PC98_256BANK_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr) override {
-        return pc98_vram_256bank_from_window(bank)[addr & 0x7FFFu];
-    }
-	void writeb(PhysPt addr,uint8_t val) override {
-        pc98_vram_256bank_from_window(bank)[addr & 0x7FFFu] = val;
-    }
+	public:
+		VGA_PC98_256BANK_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+		uint8_t readb(PhysPt addr) override {
+			return pc98_vram_256bank_from_window(bank)[PAGING_GetPhysicalAddress(addr) & 0x7FFFu];
+		}
+		void writeb(PhysPt addr,uint8_t val) override {
+			pc98_vram_256bank_from_window(bank)[PAGING_GetPhysicalAddress(addr) & 0x7FFFu] = val;
+		}
 };
 
 namespace pc98pgmio {
 
-    template <class AWT> static inline void check_align(const PhysPt addr) {
+	template <class AWT> static inline void check_align(const PhysPt addr) {
 #if 0
-        /* DEBUG: address must be aligned to datatype.
-         *        Code that calls us must enforce that or subdivide
-         *        to a small datatype that can follow this rule. */
-        PhysPt chk = (1UL << (sizeof(AWT) - 1)) - 1;
-        /* uint8_t:  chk = 0
-         * uint16_t: chk = 1
-         * TODO: Do you suppose later generation PC-9821's supported DWORD size bitplane transfers?
-         *       Or did NEC just give up on anything past 16-bit and focus on the SVGA side of things? */
-        assert((addr&chk) == 0);
+		/* DEBUG: address must be aligned to datatype.
+		 *        Code that calls us must enforce that or subdivide
+		 *        to a small datatype that can follow this rule. */
+		PhysPt chk = (1UL << (sizeof(AWT) - 1)) - 1;
+		/* uint8_t:  chk = 0
+		 * uint16_t: chk = 1
+		 * TODO: Do you suppose later generation PC-9821's supported DWORD size bitplane transfers?
+		 *       Or did NEC just give up on anything past 16-bit and focus on the SVGA side of things? */
+		assert((addr&chk) == 0);
 #else
-        (void)addr;
+		(void)addr;
 #endif
-    }
+	}
 
 }
 
@@ -1781,313 +1783,313 @@ class VGA_PC98_PageHandler : public PageHandler {
 public:
 	VGA_PC98_PageHandler() : PageHandler(PFLAG_NOCODE) {}
 
-    template <class AWT> static inline AWT mode8_r(const unsigned int plane,const PhysPt vramoff) {
-        AWT r,b;
+	template <class AWT> static inline AWT mode8_r(const unsigned int plane,const PhysPt vramoff) {
+		AWT r,b;
 
-        b = *((AWT*)(pc98_pgraph_current_cpu_page + vramoff));
-        r = b ^ *((AWT*)pc98_gdc_tiles[plane].b);
+		b = *((AWT*)(pc98_pgraph_current_cpu_page + vramoff));
+		r = b ^ *((AWT*)pc98_gdc_tiles[plane].b);
 
-        return r;
-    }
+		return r;
+	}
 
-    template <class AWT> static inline void mode8_w(const unsigned int plane,const PhysPt vramoff) {
-        AWT tb;
+	template <class AWT> static inline void mode8_w(const unsigned int plane,const PhysPt vramoff) {
+		AWT tb;
 
-        /* Neko Project II code suggests that the first byte is repeated. */
-        if (sizeof(AWT) > 1)
-            tb = pc98_gdc_tiles[plane].b[0] | (pc98_gdc_tiles[plane].b[0] << 8u);
-        else
-            tb = pc98_gdc_tiles[plane].b[0];
+		/* Neko Project II code suggests that the first byte is repeated. */
+		if (sizeof(AWT) > 1)
+			tb = pc98_gdc_tiles[plane].b[0] | (pc98_gdc_tiles[plane].b[0] << 8u);
+		else
+			tb = pc98_gdc_tiles[plane].b[0];
 
-        *((AWT*)(pc98_pgraph_current_cpu_page + vramoff)) = tb;
-    }
+		*((AWT*)(pc98_pgraph_current_cpu_page + vramoff)) = tb;
+	}
 
-    template <class AWT> static inline void modeC_w(const unsigned int plane,const PhysPt vramoff,const AWT mask,const AWT val) {
-        AWT t,tb;
+	template <class AWT> static inline void modeC_w(const unsigned int plane,const PhysPt vramoff,const AWT mask,const AWT val) {
+		AWT t,tb;
 
-        /* Neko Project II code suggests that the first byte is repeated. */
-        if (sizeof(AWT) > 1)
-            tb = pc98_gdc_tiles[plane].b[0] | (pc98_gdc_tiles[plane].b[0] << 8u);
-        else
-            tb = pc98_gdc_tiles[plane].b[0];
+		/* Neko Project II code suggests that the first byte is repeated. */
+		if (sizeof(AWT) > 1)
+			tb = pc98_gdc_tiles[plane].b[0] | (pc98_gdc_tiles[plane].b[0] << 8u);
+		else
+			tb = pc98_gdc_tiles[plane].b[0];
 
-        t  = *((AWT*)(pc98_pgraph_current_cpu_page + vramoff)) & mask;
-        t |= val & tb;
-        *((AWT*)(pc98_pgraph_current_cpu_page + vramoff)) = t;
-    }
+		t  = *((AWT*)(pc98_pgraph_current_cpu_page + vramoff)) & mask;
+		t |= val & tb;
+		*((AWT*)(pc98_pgraph_current_cpu_page + vramoff)) = t;
+	}
 
-    template <class AWT> static inline AWT modeEGC_r(const PhysPt vramoff,const PhysPt fulloff) {
-        /* assume: vramoff is even IF AWT is 16-bit wide */
-        *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0)));
-        *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1)));
-        *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2)));
-        *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
+	template <class AWT> static inline AWT modeEGC_r(const PhysPt vramoff,const PhysPt fulloff) {
+		/* assume: vramoff is even IF AWT is 16-bit wide */
+		*((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0)));
+		*((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1)));
+		*((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2)));
+		*((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
 
-        /* bits [10:10] = read source
-         *    1 = shifter input is CPU write data
-         *    0 = shifter input is VRAM data */
-        /* Neko Project II: if ((egc.ope & 0x0400) == 0) ... */
-        if (!pc98_egc_shiftinput) {
-            pc98_egc_shift.input<AWT>(
-                *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1))),
-                *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1))),
-                *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1))),
-                *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))),
-                vramoff&1);
+		/* bits [10:10] = read source
+		 *    1 = shifter input is CPU write data
+		 *    0 = shifter input is VRAM data */
+		/* Neko Project II: if ((egc.ope & 0x0400) == 0) ... */
+		if (!pc98_egc_shiftinput) {
+			pc98_egc_shift.input<AWT>(
+				*((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1))),
+				*((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1))),
+				*((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1))),
+				*((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))),
+				vramoff&1);
 
-            pc98_egc_shift.output<AWT>(
-                *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
-                *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
-                *((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
-                *((AWT*)(pc98_egc_src[3].b+(vramoff&1))),
-                vramoff&1);
-        }
+			pc98_egc_shift.output<AWT>(
+				*((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
+				*((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
+				*((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
+				*((AWT*)(pc98_egc_src[3].b+(vramoff&1))),
+				vramoff&1);
+		}
 
-        /* 0x4A4:
-         * ...
-         * bits [9:8] = register load (pc98_egc_regload[1:0])
-         *    11 = invalid
-         *    10 = load VRAM data before writing on VRAM write
-         *    01 = load VRAM data into pattern/tile register on VRAM read
-         *    00 = Do not change pattern/tile register
-         * ...
-         *
-         * pc98_egc_regload = (val >> 8) & 3;
-         */
-        /* Neko Project II: if ((egc.ope & 0x0300) == 0x0100) ... */
-        if (pc98_egc_regload & 1) { /* load VRAM data into pattern/tile... (or INVALID) */
-            *((AWT*)(pc98_gdc_tiles[0].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1)));
-            *((AWT*)(pc98_gdc_tiles[1].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1)));
-            *((AWT*)(pc98_gdc_tiles[2].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1)));
-            *((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1)));
-        }
+		/* 0x4A4:
+		 * ...
+		 * bits [9:8] = register load (pc98_egc_regload[1:0])
+		 *    11 = invalid
+		 *    10 = load VRAM data before writing on VRAM write
+		 *    01 = load VRAM data into pattern/tile register on VRAM read
+		 *    00 = Do not change pattern/tile register
+		 * ...
+		 *
+		 * pc98_egc_regload = (val >> 8) & 3;
+		 */
+		/* Neko Project II: if ((egc.ope & 0x0300) == 0x0100) ... */
+		if (pc98_egc_regload & 1) { /* load VRAM data into pattern/tile... (or INVALID) */
+			*((AWT*)(pc98_gdc_tiles[0].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1)));
+			*((AWT*)(pc98_gdc_tiles[1].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1)));
+			*((AWT*)(pc98_gdc_tiles[2].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1)));
+			*((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1)));
+		}
 
-        /* 0x4A4:
-         * bits [13:13] = 0=compare lead plane  1=don't
-         *
-         * bits [10:10] = read source
-         *    1 = shifter input is CPU write data
-         *    0 = shifter input is VRAM data */
-        if (pc98_egc_compare_lead) {
-            if (!pc98_egc_shiftinput)
-                return *((AWT*)(pc98_egc_src[pc98_egc_lead_plane&3].b+(vramoff&1)));
-            else
-                return *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+((pc98_egc_lead_plane&3)*PC98_VRAM_BITPLANE_SIZE)));
-        }
+		/* 0x4A4:
+		 * bits [13:13] = 0=compare lead plane  1=don't
+		 *
+		 * bits [10:10] = read source
+		 *    1 = shifter input is CPU write data
+		 *    0 = shifter input is VRAM data */
+		if (pc98_egc_compare_lead) {
+			if (!pc98_egc_shiftinput)
+				return *((AWT*)(pc98_egc_src[pc98_egc_lead_plane&3].b+(vramoff&1)));
+			else
+				return *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+((pc98_egc_lead_plane&3)*PC98_VRAM_BITPLANE_SIZE)));
+		}
 
-        return *((AWT*)(pc98_pgraph_current_cpu_page+fulloff));
-    }
+		return *((AWT*)(pc98_pgraph_current_cpu_page+fulloff));
+	}
 
-    template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const AWT val) {
-        /* assume: vramoff is even IF AWT is 16-bit wide */
+	template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const AWT val) {
+		/* assume: vramoff is even IF AWT is 16-bit wide */
 
-        /* 0x4A4:
-         * ...
-         * bits [9:8] = register load (pc98_egc_regload[1:0])
-         *    11 = invalid
-         *    10 = load VRAM data before writing on VRAM write
-         *    01 = load VRAM data into pattern/tile register on VRAM read
-         *    00 = Do not change pattern/tile register
-         * ...
-         * pc98_egc_regload = (val >> 8) & 3;
-         */
-        /* Neko Project II: if ((egc.ope & 0x0300) == 0x0200) ... */
-        if (pc98_egc_regload & 2) { /* load VRAM data before writing on VRAM write (or INVALID) */
-            *((AWT*)(pc98_gdc_tiles[0].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0)));
-            *((AWT*)(pc98_gdc_tiles[1].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1)));
-            *((AWT*)(pc98_gdc_tiles[2].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2)));
-            *((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
-        }
+		/* 0x4A4:
+		 * ...
+		 * bits [9:8] = register load (pc98_egc_regload[1:0])
+		 *    11 = invalid
+		 *    10 = load VRAM data before writing on VRAM write
+		 *    01 = load VRAM data into pattern/tile register on VRAM read
+		 *    00 = Do not change pattern/tile register
+		 * ...
+		 * pc98_egc_regload = (val >> 8) & 3;
+		 */
+		/* Neko Project II: if ((egc.ope & 0x0300) == 0x0200) ... */
+		if (pc98_egc_regload & 2) { /* load VRAM data before writing on VRAM write (or INVALID) */
+			*((AWT*)(pc98_gdc_tiles[0].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0)));
+			*((AWT*)(pc98_gdc_tiles[1].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1)));
+			*((AWT*)(pc98_gdc_tiles[2].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2)));
+			*((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
+		}
 
-        egc_quad &ropdata = egc_ope<AWT>(vramoff, val);
+		egc_quad &ropdata = egc_ope<AWT>(vramoff, val);
 
-        const AWT accmask = *((AWT*)(pc98_egc_maskef+(vramoff&1)));
+		const AWT accmask = *((AWT*)(pc98_egc_maskef+(vramoff&1)));
 
-        if (accmask != 0) {
-            if (!(pc98_egc_access & 1)) {
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0))) &= ~accmask;
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0))) |=  accmask & *((AWT*)(ropdata[0].b+(vramoff&1)));
-            }
-            if (!(pc98_egc_access & 2)) {
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1))) &= ~accmask;
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1))) |=  accmask & *((AWT*)(ropdata[1].b+(vramoff&1)));
-            }
-            if (!(pc98_egc_access & 4)) {
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2))) &= ~accmask;
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2))) |=  accmask & *((AWT*)(ropdata[2].b+(vramoff&1)));
-            }
-            if (!(pc98_egc_access & 8)) {
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3))) &= ~accmask;
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3))) |=  accmask & *((AWT*)(ropdata[3].b+(vramoff&1)));
-            }
-        }
-    }
+		if (accmask != 0) {
+			if (!(pc98_egc_access & 1)) {
+				*((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0))) &= ~accmask;
+				*((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0))) |=  accmask & *((AWT*)(ropdata[0].b+(vramoff&1)));
+			}
+			if (!(pc98_egc_access & 2)) {
+				*((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1))) &= ~accmask;
+				*((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1))) |=  accmask & *((AWT*)(ropdata[1].b+(vramoff&1)));
+			}
+			if (!(pc98_egc_access & 4)) {
+				*((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2))) &= ~accmask;
+				*((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2))) |=  accmask & *((AWT*)(ropdata[2].b+(vramoff&1)));
+			}
+			if (!(pc98_egc_access & 8)) {
+				*((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3))) &= ~accmask;
+				*((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3))) |=  accmask & *((AWT*)(ropdata[3].b+(vramoff&1)));
+			}
+		}
+	}
 
-    template <class AWT> AWT readc(PhysPt addr) {
-        pc98pgmio::check_align<AWT>(addr);
+	template <class AWT> AWT readc(PhysPt addr) {
+		pc98pgmio::check_align<AWT>(addr);
 
-        unsigned int plane = ((addr >> 15u) + 3u) & 3u;
-        addr &= 0x7FFF;
+		unsigned int plane = ((addr >> 15u) + 3u) & 3u;
+		addr &= 0x7FFF;
 
-        /* reminder:
-         *
-         * bit 1: VOPBIT_EGC
-         * bit 0: VOPBIT_ACCESS
-         * From GRGC bits:
-         * bit 3: VOPBIT_GRCG  1=GRGC active  0=GRGC invalid  (from bit 7)
-         * bit 2: VOPBIT_GRCG  1=Read/Modify/Write when writing  0=TCR mode at read, TDW mode at write  (from bit 6) */
-        switch (pc98_gdc_vramop & 0xF) {
-            case 0x00:
-            case 0x01:
-            case 0x02:
-            case 0x03:
-            case 0x04:
-            case 0x05:
-            case 0x06:
-            case 0x07:
-            case 0x0C:
-            case 0x0D:
-                return *((AWT*)(pc98_pgraph_current_cpu_page+addr+pc98_pgram_bitplane_offset(plane)));
-            case 0x08: /* TCR/TDW */
-            case 0x09:
-                {
-                    AWT r = 0;
+		/* reminder:
+		 *
+		 * bit 1: VOPBIT_EGC
+		 * bit 0: VOPBIT_ACCESS
+		 * From GRGC bits:
+		 * bit 3: VOPBIT_GRCG  1=GRGC active  0=GRGC invalid  (from bit 7)
+		 * bit 2: VOPBIT_GRCG  1=Read/Modify/Write when writing  0=TCR mode at read, TDW mode at write  (from bit 6) */
+		switch (pc98_gdc_vramop & 0xF) {
+			case 0x00:
+			case 0x01:
+			case 0x02:
+			case 0x03:
+			case 0x04:
+			case 0x05:
+			case 0x06:
+			case 0x07:
+			case 0x0C:
+			case 0x0D:
+				return *((AWT*)(pc98_pgraph_current_cpu_page+addr+pc98_pgram_bitplane_offset(plane)));
+			case 0x08: /* TCR/TDW */
+			case 0x09:
+				{
+					AWT r = 0;
 
-                    /* this reads multiple bitplanes at once */
-                    if (!(pc98_gdc_modereg & 1)) // blue channel
-                        r |= mode8_r<AWT>(/*plane*/0,addr + pc98_pgram_bitplane_offset(0));
+					/* this reads multiple bitplanes at once */
+					if (!(pc98_gdc_modereg & 1)) // blue channel
+						r |= mode8_r<AWT>(/*plane*/0,addr + pc98_pgram_bitplane_offset(0));
 
-                    if (!(pc98_gdc_modereg & 2)) // red channel
-                        r |= mode8_r<AWT>(/*plane*/1,addr + pc98_pgram_bitplane_offset(1));
+					if (!(pc98_gdc_modereg & 2)) // red channel
+						r |= mode8_r<AWT>(/*plane*/1,addr + pc98_pgram_bitplane_offset(1));
 
-                    if (!(pc98_gdc_modereg & 4)) // green channel
-                        r |= mode8_r<AWT>(/*plane*/2,addr + pc98_pgram_bitplane_offset(2));
+					if (!(pc98_gdc_modereg & 4)) // green channel
+						r |= mode8_r<AWT>(/*plane*/2,addr + pc98_pgram_bitplane_offset(2));
 
-                    if (!(pc98_gdc_modereg & 8)) // extended channel
-                        r |= mode8_r<AWT>(/*plane*/3,addr + pc98_pgram_bitplane_offset(3));
+					if (!(pc98_gdc_modereg & 8)) // extended channel
+						r |= mode8_r<AWT>(/*plane*/3,addr + pc98_pgram_bitplane_offset(3));
 
-                    /* NTS: Apparently returning this value correctly really matters to the
-                     *      sprite engine in "Edge", else visual errors occur. */
-                    return ~r;
-                }
-            case 0x0A: /* EGC read */
-            case 0x0B:
-            case 0x0E:
-            case 0x0F:
-                /* this reads multiple bitplanes at once */
-                return modeEGC_r<AWT>(addr,addr);
-            default: /* should not happen */
-                break;
-        }
+					/* NTS: Apparently returning this value correctly really matters to the
+					 *      sprite engine in "Edge", else visual errors occur. */
+					return ~r;
+				}
+			case 0x0A: /* EGC read */
+			case 0x0B:
+			case 0x0E:
+			case 0x0F:
+				/* this reads multiple bitplanes at once */
+				return modeEGC_r<AWT>(addr,addr);
+			default: /* should not happen */
+				break;
+		}
 
 		return (AWT)(~0ull);
 	}
 
 	template <class AWT> void writec(PhysPt addr,AWT val) {
-        pc98pgmio::check_align<AWT>(addr);
+		pc98pgmio::check_align<AWT>(addr);
 
-        unsigned int plane = ((addr >> 15u) + 3u) & 3u;
-        addr &= 0x7FFF;
+		unsigned int plane = ((addr >> 15u) + 3u) & 3u;
+		addr &= 0x7FFF;
 
-        /* reminder:
-         *
-         * bit 1: VOPBIT_EGC
-         * bit 0: VOPBIT_ACCESS
-         * From GRGC bits:
-         * bit 3: VOPBIT_GRCG  1=GRGC active  0=GRGC invalid  (from bit 7)
-         * bit 2: VOPBIT_GRCG  1=Read/Modify/Write when writing  0=TCR mode at read, TDW mode at write  (from bit 6) */
-        switch (pc98_gdc_vramop & 0xF) {
-            case 0x00:
-            case 0x01:
-            case 0x02:
-            case 0x03:
-            case 0x04:
-            case 0x05:
-            case 0x06:
-            case 0x07:
-                *((AWT*)(pc98_pgraph_current_cpu_page+addr+pc98_pgram_bitplane_offset(plane))) = val;
-                break;
-            case 0x08:  /* TCR/TDW write tile data, no masking */
-            case 0x09:
-                {
-                    /* this writes to multiple bitplanes at once.
-                     * notice that the value written has no meaning, only the tile data and memory address. */
-                    if (!(pc98_gdc_modereg & 1)) // blue channel
-                        mode8_w<AWT>(0/*plane*/,addr + pc98_pgram_bitplane_offset(0));
+		/* reminder:
+		 *
+		 * bit 1: VOPBIT_EGC
+		 * bit 0: VOPBIT_ACCESS
+		 * From GRGC bits:
+		 * bit 3: VOPBIT_GRCG  1=GRGC active  0=GRGC invalid  (from bit 7)
+		 * bit 2: VOPBIT_GRCG  1=Read/Modify/Write when writing  0=TCR mode at read, TDW mode at write  (from bit 6) */
+		switch (pc98_gdc_vramop & 0xF) {
+			case 0x00:
+			case 0x01:
+			case 0x02:
+			case 0x03:
+			case 0x04:
+			case 0x05:
+			case 0x06:
+			case 0x07:
+				*((AWT*)(pc98_pgraph_current_cpu_page+addr+pc98_pgram_bitplane_offset(plane))) = val;
+				break;
+			case 0x08:  /* TCR/TDW write tile data, no masking */
+			case 0x09:
+				{
+					/* this writes to multiple bitplanes at once.
+					 * notice that the value written has no meaning, only the tile data and memory address. */
+					if (!(pc98_gdc_modereg & 1)) // blue channel
+						mode8_w<AWT>(0/*plane*/,addr + pc98_pgram_bitplane_offset(0));
 
-                    if (!(pc98_gdc_modereg & 2)) // red channel
-                        mode8_w<AWT>(1/*plane*/,addr + pc98_pgram_bitplane_offset(1));
+					if (!(pc98_gdc_modereg & 2)) // red channel
+						mode8_w<AWT>(1/*plane*/,addr + pc98_pgram_bitplane_offset(1));
 
-                    if (!(pc98_gdc_modereg & 4)) // green channel
-                        mode8_w<AWT>(2/*plane*/,addr + pc98_pgram_bitplane_offset(2));
+					if (!(pc98_gdc_modereg & 4)) // green channel
+						mode8_w<AWT>(2/*plane*/,addr + pc98_pgram_bitplane_offset(2));
 
-                    if (!(pc98_gdc_modereg & 8)) // extended channel
-                        mode8_w<AWT>(3/*plane*/,addr + pc98_pgram_bitplane_offset(3));
-                }
-                break;
-            case 0x0C:  /* read/modify/write from tile with masking */
-            case 0x0D:  /* a lot of PC-98 games seem to rely on this for sprite rendering */
-                {
-                    const AWT mask = ~val;
+					if (!(pc98_gdc_modereg & 8)) // extended channel
+						mode8_w<AWT>(3/*plane*/,addr + pc98_pgram_bitplane_offset(3));
+				}
+				break;
+			case 0x0C:  /* read/modify/write from tile with masking */
+			case 0x0D:  /* a lot of PC-98 games seem to rely on this for sprite rendering */
+				{
+					const AWT mask = ~val;
 
-                    /* this writes to multiple bitplanes at once */
-                    if (!(pc98_gdc_modereg & 1)) // blue channel
-                        modeC_w<AWT>(0/*plane*/,addr + pc98_pgram_bitplane_offset(0),mask,val);
+					/* this writes to multiple bitplanes at once */
+					if (!(pc98_gdc_modereg & 1)) // blue channel
+						modeC_w<AWT>(0/*plane*/,addr + pc98_pgram_bitplane_offset(0),mask,val);
 
-                    if (!(pc98_gdc_modereg & 2)) // red channel
-                        modeC_w<AWT>(1/*plane*/,addr + pc98_pgram_bitplane_offset(1),mask,val);
+					if (!(pc98_gdc_modereg & 2)) // red channel
+						modeC_w<AWT>(1/*plane*/,addr + pc98_pgram_bitplane_offset(1),mask,val);
 
-                    if (!(pc98_gdc_modereg & 4)) // green channel
-                        modeC_w<AWT>(2/*plane*/,addr + pc98_pgram_bitplane_offset(2),mask,val);
+					if (!(pc98_gdc_modereg & 4)) // green channel
+						modeC_w<AWT>(2/*plane*/,addr + pc98_pgram_bitplane_offset(2),mask,val);
 
-                    if (!(pc98_gdc_modereg & 8)) // extended channel
-                        modeC_w<AWT>(3/*plane*/,addr + pc98_pgram_bitplane_offset(3),mask,val);
-                }
-                break;
-            case 0x0A: /* EGC write */
-            case 0x0B:
-            case 0x0E:
-            case 0x0F:
-                /* this reads multiple bitplanes at once */
-                modeEGC_w<AWT>(addr,val);
-                break;
-            default: /* Should not happen */
-                break;
-        }
+					if (!(pc98_gdc_modereg & 8)) // extended channel
+						modeC_w<AWT>(3/*plane*/,addr + pc98_pgram_bitplane_offset(3),mask,val);
+				}
+				break;
+			case 0x0A: /* EGC write */
+			case 0x0B:
+			case 0x0E:
+			case 0x0F:
+				/* this reads multiple bitplanes at once */
+				modeEGC_w<AWT>(addr,val);
+				break;
+			default: /* Should not happen */
+				break;
+		}
 	}
 
-    /* byte-wise */
+	/* byte-wise */
 	uint8_t readb(PhysPt addr) override {
-        VGAMEM_USEC_read_delay();
-        return readc<uint8_t>( PAGING_GetPhysicalAddress(addr) );
-    }
+		VGAMEM_USEC_read_delay();
+		return readc<uint8_t>( PAGING_GetPhysicalAddress(addr) );
+	}
 	void writeb(PhysPt addr,uint8_t val) override {
-        VGAMEM_USEC_write_delay();
-        writec<uint8_t>( PAGING_GetPhysicalAddress(addr), val );
-    }
+		VGAMEM_USEC_write_delay();
+		writec<uint8_t>( PAGING_GetPhysicalAddress(addr), val );
+	}
 
-    /* word-wise.
-     * in the style of the 8086, non-word-aligned I/O is split into byte I/O */
+	/* word-wise.
+	 * in the style of the 8086, non-word-aligned I/O is split into byte I/O */
 	uint16_t readw(PhysPt addr) override {
-        VGAMEM_USEC_read_delay();
-        addr = PAGING_GetPhysicalAddress(addr);
-        if (!(addr & 1)) /* if WORD aligned */
-            return readc<uint16_t>(addr);
-        else {
-            return   (unsigned int)readc<uint8_t>(addr+0U) +
-                    ((unsigned int)readc<uint8_t>(addr+1U) << 8u);
-        }
-    }
+		VGAMEM_USEC_read_delay();
+		addr = PAGING_GetPhysicalAddress(addr);
+		if (!(addr & 1)) /* if WORD aligned */
+			return readc<uint16_t>(addr);
+		else {
+			return   (unsigned int)readc<uint8_t>(addr+0U) +
+				((unsigned int)readc<uint8_t>(addr+1U) << 8u);
+		}
+	}
 	void writew(PhysPt addr,uint16_t val) override {
-        VGAMEM_USEC_write_delay();
-        addr = PAGING_GetPhysicalAddress(addr);
-        if (!(addr & 1)) /* if WORD aligned */
-            writec<uint16_t>(addr,val);
-        else {
-            writec<uint8_t>(addr+0,(uint8_t)val);
-            writec<uint8_t>(addr+1,(uint8_t)(val >> 8U));
-        }
-    }
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr);
+		if (!(addr & 1)) /* if WORD aligned */
+			writec<uint16_t>(addr,val);
+		else {
+			writec<uint8_t>(addr+0,(uint8_t)val);
+			writec<uint8_t>(addr+1,(uint8_t)(val >> 8U));
+		}
+	}
 };
 
 class VGA_PC98_LFB_Handler : public PageHandler { // with slow adapter
@@ -2128,11 +2130,11 @@ public:
 
 	uint8_t readb(PhysPt addr) override {
 		delay();
-		return vga.tandy.mem_base[(addr - 0xb8000) & 0x3FFF];
+		return vga.tandy.mem_base[(PAGING_GetPhysicalAddress(addr) - 0xb8000) & 0x3FFF];
 	}
 	void writeb(PhysPt addr,uint8_t val) override {
 		delay();
-		vga.tandy.mem_base[(addr - 0xb8000) & 0x3FFF] = val;
+		vga.tandy.mem_base[(PAGING_GetPhysicalAddress(addr) - 0xb8000) & 0x3FFF] = val;
 	}
 	
 };
