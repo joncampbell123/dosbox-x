@@ -1007,7 +1007,7 @@ static void DrawData(void) {
 				PageHandler *ph = MEM_GetPageHandler((Bitu)(address>>12));
 
 				if (ph->flags & PFLAG_READABLE)
-					ch = ph->GetHostReadPt((Bitu)(address>>12))[address&0xFFF];
+					ch = ph->GetHostReadPt((PageNum)(address>>12))[address&0xFFF];
 				else
 					ch = ph->readb((PhysPt)address);
 

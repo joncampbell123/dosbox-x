@@ -67,11 +67,11 @@ void PageHandler::writed(PhysPt addr,uint32_t val) {
 	writeb(addr+3,(uint8_t) (val >> 24));
 }
 
-HostPt PageHandler::GetHostReadPt(Bitu /*phys_page*/) {
+HostPt PageHandler::GetHostReadPt(PageNum /*phys_page*/) {
 	return nullptr;
 }
 
-HostPt PageHandler::GetHostWritePt(Bitu /*phys_page*/) {
+HostPt PageHandler::GetHostWritePt(PageNum /*phys_page*/) {
 	return nullptr;
 }
 
@@ -513,18 +513,18 @@ private:
 		PageHandler* handler = MEM_GetPageHandler(phys_page);
 		if (handler->getFlags() & PFLAG_READABLE) {
 			return host_readb(handler->GetHostReadPt(phys_page) + (addr&0xfff));
-			}
+		}
 		else return handler->readb(addr);
-					}
+	}
 	uint16_t readw_through(PhysPt addr) {
 		Bitu lin_page = addr >> 12;
 		uint32_t phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
 		PageHandler* handler = MEM_GetPageHandler(phys_page);
 		if (handler->getFlags() & PFLAG_READABLE) {
 			return host_readw(handler->GetHostReadPt(phys_page) + (addr&0xfff));
-				}
+		}
 		else return handler->readw(addr);
-			}
+	}
 	uint32_t readd_through(PhysPt addr) {
 		Bitu lin_page = addr >> 12;
 		uint32_t phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
@@ -533,7 +533,7 @@ private:
 			return host_readd(handler->GetHostReadPt(phys_page) + (addr&0xfff));
 		}
 		else return handler->readd(addr);
-			}
+	}
 
 	void writeb_through(PhysPt addr, uint8_t val) {
 		Bitu lin_page = addr >> 12;
@@ -543,7 +543,7 @@ private:
 			return host_writeb(handler->GetHostWritePt(phys_page) + (addr&0xfff), val);
 		}
 		else return handler->writeb(addr, val);
-			}
+	}
 
 	void writew_through(PhysPt addr, uint16_t val) {
 		Bitu lin_page = addr >> 12;
@@ -563,7 +563,7 @@ private:
 			return host_writed(handler->GetHostWritePt(phys_page) + (addr&0xfff), val);
 		}
 		else return handler->writed(addr, val);
-			}
+	}
 
 public:
 	ExceptionPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}

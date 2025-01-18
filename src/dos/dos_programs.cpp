@@ -1680,10 +1680,10 @@ class PC98ITFPageHandler : public PageHandler {
 public:
     PC98ITFPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_HASROM) {}
     PC98ITFPageHandler(Bitu flags) : PageHandler(flags) {}
-    HostPt GetHostReadPt(Bitu phys_page) override {
+    HostPt GetHostReadPt(PageNum phys_page) override {
         return PC98_ITF_ROM+(phys_page&0x7)*MEM_PAGESIZE;
     }
-    HostPt GetHostWritePt(Bitu phys_page) override {
+    HostPt GetHostWritePt(PageNum phys_page) override {
         return PC98_ITF_ROM+(phys_page&0x7)*MEM_PAGESIZE;
     }
     void writeb(PhysPt addr,uint8_t val) override {

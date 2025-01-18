@@ -109,7 +109,7 @@ class ACPIPageHandler : public PageHandler {
 	public:
 		ACPIPageHandler() : PageHandler(PFLAG_NOCODE|PFLAG_READABLE|PFLAG_WRITEABLE) {}
 		ACPIPageHandler(Bitu flags) : PageHandler(flags) {}
-		HostPt GetHostReadPt(Bitu phys_page) override {
+		HostPt GetHostReadPt(PageNum phys_page) override {
 			assert(ACPI_buffer != NULL);
 			assert(ACPI_buffer_size >= 4096);
 			phys_page -= (ACPI_BASE >> 12);
@@ -117,7 +117,7 @@ class ACPIPageHandler : public PageHandler {
 			if (phys_page >= (ACPI_buffer_size >> 12)) phys_page = (ACPI_buffer_size >> 12) - 1;
 			return ACPI_buffer + (phys_page << 12);
 		}
-		HostPt GetHostWritePt(Bitu phys_page) override {
+		HostPt GetHostWritePt(PageNum phys_page) override {
 			assert(ACPI_buffer != NULL);
 			assert(ACPI_buffer_size >= 4096);
 			phys_page -= (ACPI_BASE >> 12);
@@ -309,13 +309,13 @@ class RAMPageHandler : public PageHandler {
 public:
     RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
     RAMPageHandler(Bitu flags) : PageHandler(flags) {}
-    HostPt GetHostReadPt(Bitu phys_page) override {
+    HostPt GetHostReadPt(PageNum phys_page) override {
         if (!a20_fast_changeable || (phys_page & (~0xFul/*64KB*/)) == 0x100ul/*@1MB*/)
             return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
 
         return MemBase+phys_page*MEM_PAGESIZE;
     }
-    HostPt GetHostWritePt(Bitu phys_page) override {
+    HostPt GetHostWritePt(PageNum phys_page) override {
         if (!a20_fast_changeable || (phys_page & (~0xFul/*64KB*/)) == 0x100ul/*@1MB*/)
             return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
 
@@ -328,10 +328,10 @@ public:
     ROMAliasPageHandler() {
         flags=PFLAG_READABLE|PFLAG_HASROM;
     }
-    HostPt GetHostReadPt(Bitu phys_page) override {
+    HostPt GetHostReadPt(PageNum phys_page) override {
         return MemBase+((phys_page&0xF)+0xF0)*MEM_PAGESIZE;
     }
-    HostPt GetHostWritePt(Bitu phys_page) override {
+    HostPt GetHostWritePt(PageNum phys_page) override {
         return MemBase+((phys_page&0xF)+0xF0)*MEM_PAGESIZE;
     }
 };
@@ -827,13 +827,13 @@ class Mem4GBPageHandler : public PageHandler {
 	public:
 		Mem4GBPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
 		Mem4GBPageHandler(Bitu flags) : PageHandler(flags) {}
-		HostPt GetHostReadPt(Bitu phys_page) override {
+		HostPt GetHostReadPt(PageNum phys_page) override {
 			assert(memory_file_base != NULL);
 			const size_t ofs = size_t(phys_page) * size_t(4096u);
 			assert(ofs < memory_file_size);
 			return (unsigned char*)memory_file_base + ofs;
 		}
-		HostPt GetHostWritePt(Bitu phys_page) override {
+		HostPt GetHostWritePt(PageNum phys_page) override {
 			assert(memory_file_base != NULL);
 			const size_t ofs = size_t(phys_page) * size_t(4096u);
 			assert(ofs < memory_file_size);
