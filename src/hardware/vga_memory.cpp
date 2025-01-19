@@ -139,7 +139,7 @@ static INLINE void hostWrite(HostPt off, Bitu val) {
 }
 
 template <class Size>
-static INLINE Bitu  hostRead(HostPt off ) {
+static INLINE Bitu hostRead(HostPt off ) {
 	if ( sizeof( Size ) == 1)
 		return host_readb( off );
 	else if ( sizeof( Size ) == 2)
@@ -401,49 +401,65 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
 class VGA_ChainedVGA_Handler : public PageHandler {
 public:
 	VGA_ChainedVGA_Handler() : PageHandler(PFLAG_NOCODE) {}
-	static INLINE PhysPt chain4remap(const PhysPt addr) {
-		return ((addr & ~3u) << 2u) + (addr & 3u);
+	template <typename T> static INLINE bool withinplanes(const PhysPt a) {
+		/* NTS: Comparing against template parameter is optimized down to the line of code matching size of type T with no runtime compare */
+		if (sizeof(T) == 4) return (a & 3u) == 0;
+		if (sizeof(T) == 2) return (a & 1u) == 0;
+		return true;
 	}
-	static INLINE PhysPt lin2mem(const PhysPt addr) {
+	static INLINE PhysPt chain4remap(const PhysPt addr) {
+		/* This is how chained 256-color mode actually works when mapping to planar memory underneath.
+		 * This is why 256-color mode needs the DWORD mode of the CRTC and why switching to BYTE mode
+		 * messes up the display (except on Tseng Labs ET3000/ET4000 cards). */
 		// planar byte offset = addr & ~3u      (discard low 2 bits)
 		// planer index = addr & 3u             (use low 2 bits as plane index)
+		return ((addr & ~3u) << 2u) + (addr & 3u);
+	}
+	static INLINE PhysPt map(const PhysPt addr) {
 		return chain4remap((PAGING_GetPhysicalAddress(addr)&vgapages.mask)+(PhysPt)vga.svga.bank_read_full)&vga.mem.memmask;
 	}
-	uint8_t readb(PhysPt addr ) override {
-		VGAMEM_USEC_read_delay();
-		return vga.mem.linear[lin2mem(addr)];
+	template <typename T=uint8_t> static INLINE T do_read_aligned(const PhysPt a) {
+		return *((T*)(&vga.mem.linear[a]));
 	}
-	uint16_t readw(PhysPt addr ) override {
-		VGAMEM_USEC_read_delay();
-		if ((addr & 1) == 0)
-			return *((uint16_t*)(&vga.mem.linear[lin2mem(addr)]));
+	template <typename T=uint8_t> static INLINE T do_read(const PhysPt a) {
+		if (withinplanes<T>(a)) /* aligned, do a fast typecast read */
+			return do_read_aligned<T>(a);
+		else if (sizeof(T) == 4) /* not aligned, split 32-bit to two 16-bit */
+			return (uint32_t)do_read<uint16_t>(a) + ((uint32_t)do_read<uint16_t>(a+2) << (uint32_t)16u);
+		else if (sizeof(T) == 2) /* not aligned, split 16-bit to two 8-bit */
+			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
 		else
-			return PageHandler::readw(addr);
+			return 0xFF; /* should not happen, byte I/O is always aligned */
 	}
-	uint32_t readd(PhysPt addr ) override {
-		VGAMEM_USEC_read_delay();
-		if ((addr & 3) == 0)
-			return *((uint32_t*)(&vga.mem.linear[lin2mem(addr)]));
-		else
-			return PageHandler::readd(addr);
+	template <typename T=uint8_t> static INLINE void do_write_aligned(const PhysPt a,const T v) {
+			*((T*)(&vga.mem.linear[a])) = v;
 	}
-	void writeb(PhysPt addr, uint8_t val ) override {
-		VGAMEM_USEC_write_delay();
-		vga.mem.linear[lin2mem(addr)] = val;
+	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
+		if (withinplanes<T>(a)) /* aligned, do a fast typecast write */
+			do_write_aligned<T>(a,v);
+		else if (sizeof(T) == 4) /* not aligned, split 32-bit to two 16-bit */
+			{ do_write<uint16_t>(a,uint16_t(v)); do_write<uint16_t>(a+2,uint16_t(v >> (T)16u)); }
+		else if (sizeof(T) == 2) /* not aligned, split 16-bit to two 8-bit */
+			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
+	}
+
+	uint8_t readb(PhysPt addr) override {
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(map(addr));
+	}
+	uint16_t readw(PhysPt addr) override {
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(map(addr));
+	}
+	uint32_t readd(PhysPt addr) override {
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(map(addr));
+	}
+	void writeb(PhysPt addr, uint8_t val) override {
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay();
-		if ((addr & 1) == 0)
-			*((uint16_t*)(&vga.mem.linear[lin2mem(addr)])) = val;
-		else
-			PageHandler::writew(addr,val);
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay();
-		if ((addr & 3) == 0)
-			*((uint32_t*)(&vga.mem.linear[lin2mem(addr)])) = val;
-		else
-			PageHandler::writed(addr,val);
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
 	}
 };
 
