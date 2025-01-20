@@ -404,7 +404,7 @@ public:
 	}
 	template <typename T=uint8_t> static INLINE T do_read(const PhysPt a) {
 		if (withinplanes<T>(a)) /* aligned, do a fast typecast read */
-			return do_read_aligned<T>(a);
+			return do_read_aligned<T>(map(a));
 		else if (sizeof(T) == 4) /* not aligned, split 32-bit to two 16-bit */
 			return (uint32_t)do_read<uint16_t>(a) + ((uint32_t)do_read<uint16_t>(a+2) << (uint32_t)16u);
 		else if (sizeof(T) == 2) /* not aligned, split 16-bit to two 8-bit */
@@ -417,7 +417,7 @@ public:
 	}
 	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
 		if (withinplanes<T>(a)) /* aligned, do a fast typecast write */
-			do_write_aligned<T>(a,v);
+			do_write_aligned<T>(map(a),v);
 		else if (sizeof(T) == 4) /* not aligned, split 32-bit to two 16-bit */
 			{ do_write<uint16_t>(a,uint16_t(v)); do_write<uint16_t>(a+2,uint16_t(v >> (T)16u)); }
 		else if (sizeof(T) == 2) /* not aligned, split 16-bit to two 8-bit */
@@ -425,22 +425,22 @@ public:
 	}
 
 	uint8_t readb(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(addr);
 	}
 	uint16_t readw(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(addr);
 	}
 	uint32_t readd(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(addr);
 	}
 	void writeb(PhysPt addr, uint8_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(addr,val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(addr,val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(addr,val);
 	}
 };
 
@@ -479,7 +479,7 @@ public:
 		else if (sizeof(T) == 2) /* 16-bit to two 8-bit */
 			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
 		else
-			return (T)readHandler8(a);
+			return (T)readHandler8(map(a));
 	}
 	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
 		if (sizeof(T) == 4) /* split 32-bit to two 16-bit */
@@ -487,26 +487,26 @@ public:
 		else if (sizeof(T) == 2) /* split 16-bit to two 8-bit */
 			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
 		else
-			writeHandler8(a,v);
+			writeHandler8(map(a),v);
 	}
 
 	uint8_t readb(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(addr);
 	}
 	uint16_t readw(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(addr);
 	}
 	uint32_t readd(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(addr);
 	}
 	void writeb(PhysPt addr, uint8_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(addr,val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(addr,val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(addr,val);
 	}
 };
 
@@ -534,7 +534,7 @@ public:
 		else if (sizeof(T) == 2) /* 16-bit to two 8-bit */
 			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
 		else
-			return (T)readHandler8(a);
+			return (T)readHandler8(map(a));
 	}
 	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
 		if (sizeof(T) == 4) /* split 32-bit to two 16-bit */
@@ -542,26 +542,26 @@ public:
 		else if (sizeof(T) == 2) /* split 16-bit to two 8-bit */
 			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
 		else
-			writeHandler8(a,v);
+			writeHandler8(map(a),v);
 	}
 
 	uint8_t readb(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(addr);
 	}
 	uint16_t readw(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(addr);
 	}
 	uint32_t readd(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(addr);
 	}
 	void writeb(PhysPt addr, uint8_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(addr,val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(addr,val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(addr,val);
 	}
 };
 
@@ -586,7 +586,7 @@ public:
 		else if (sizeof(T) == 2) /* 16-bit to two 8-bit */
 			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
 		else
-			return (T)readHandler8(a);
+			return (T)readHandler8(map(a));
 	}
 	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
 		if (sizeof(T) == 4) /* split 32-bit to two 16-bit */
@@ -594,26 +594,26 @@ public:
 		else if (sizeof(T) == 2) /* split 16-bit to two 8-bit */
 			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
 		else
-			writeHandler8(a,v);
+			writeHandler8(map(a),v);
 	}
 
 	uint8_t readb(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(addr);
 	}
 	uint16_t readw(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(addr);
 	}
 	uint32_t readd(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(addr);
 	}
 	void writeb(PhysPt addr, uint8_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(addr,val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(addr,val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(addr,val);
 	}
 };
 
@@ -636,17 +636,17 @@ public:
 		else if (sizeof(T) == 2) /* split 16-bit to two 8-bit */
 			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
 		else
-			writeHandler8(a,v);
+			writeHandler8(map(a),v);
 	}
 
 	void writeb(PhysPt addr, uint8_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(addr,val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(addr,val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(addr,val);
 	}
 };
 
@@ -2179,7 +2179,7 @@ public:
 		else if (sizeof(T) == 2) /* not aligned, split 16-bit to two 8-bit */
 			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
 		else
-			return (T)do_read_aligned(a);
+			return (T)do_read_aligned(mapread(a));
 	}
 	template <typename T=uint8_t> static INLINE void do_write_aligned(const PhysPt a,const T v) {
 		const uint8_t plane = (vga.mode==M_AMSTRAD) ? vga.amstrad.write_plane : 0x01; // 0x0F?
@@ -2194,26 +2194,26 @@ public:
 		else if (sizeof(T) == 2) /* not aligned, split 16-bit to two 8-bit */
 			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
 		else
-			do_write_aligned(a,v);
+			do_write_aligned(map(a),v);
 	}
 
 	uint8_t readb(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(mapread(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(addr);
 	}
 	uint16_t readw(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(mapread(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(addr);
 	}
 	uint32_t readd(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(mapread(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(addr);
 	}
 	void writeb(PhysPt addr, uint8_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(addr,val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(addr,val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(addr,val);
 	}
 };
 
@@ -2278,7 +2278,7 @@ public:
 		else if (sizeof(T) == 2) /* 16-bit to two 8-bit */
 			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
 		else
-			return (T)readHandler(a);
+			return (T)readHandler(map(a));
 	}
 	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
 		if (sizeof(T) == 4) /* split 32-bit to two 16-bit */
@@ -2286,26 +2286,26 @@ public:
 		else if (sizeof(T) == 2) /* split 16-bit to two 8-bit */
 			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
 		else
-			writeHandler(a,v);
+			writeHandler(map(a),v);
 	}
 
 	uint8_t readb(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(addr);
 	}
 	uint16_t readw(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(addr);
 	}
 	uint32_t readd(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(addr);
 	}
 	void writeb(PhysPt addr, uint8_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(addr,val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(addr,val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(addr,val);
 	}
 };
 
@@ -2389,7 +2389,7 @@ public:
 		else if (sizeof(T) == 2) /* 16-bit to two 8-bit */
 			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
 		else
-			return (T)readHandler(a);
+			return (T)readHandler(map(a));
 	}
 	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
 		if (sizeof(T) == 4) /* split 32-bit to two 16-bit */
@@ -2397,26 +2397,26 @@ public:
 		else if (sizeof(T) == 2) /* split 16-bit to two 8-bit */
 			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
 		else
-			writeHandler(a,v);
+			writeHandler(map(a),v);
 	}
 
 	uint8_t readb(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(addr);
 	}
 	uint16_t readw(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(addr);
 	}
 	uint32_t readd(PhysPt addr) override {
-		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(map(addr));
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(addr);
 	}
 	void writeb(PhysPt addr, uint8_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(addr,val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(addr,val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(addr,val);
 	}
 };
 
