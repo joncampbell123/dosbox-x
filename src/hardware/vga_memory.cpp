@@ -2273,7 +2273,12 @@ void InColorLoadLatch(const VGA_Latch &latch) {
  *      remain interleaved even as four copies across all four bitplanes. Am I right? */
 class HERC_InColor_Mono_Handler : public PageHandler {
 public:
-	uint8_t readHandler(PhysPt start) {
+	HERC_InColor_Mono_Handler() : PageHandler(PFLAG_NOCODE) {}
+	static INLINE PhysPt map(const PhysPt addr) {
+		return PAGING_GetPhysicalAddress(addr)&vgapages.mask;
+	}
+
+	static INLINE uint8_t readHandler(PhysPt start) {
 		/* TODO: Load hardware latch? */
 		/* TODO: Which bitplane does it read? */
 		VGA_Latch latch;
@@ -2281,63 +2286,57 @@ public:
 		InColorLoadLatch(latch);
 		return latch.b[0];
 	}
-	void writeHandler(PhysPt start, uint8_t val) {
+	static INLINE void writeHandler(PhysPt start, uint8_t val) {
 		((uint32_t*)vga.mem.linear)[start] = ExpandTable[val];
 	}
-public:
-	HERC_InColor_Mono_Handler() : PageHandler(PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr ) override {
-		VGAMEM_USEC_read_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED(addr);
-		return (uint8_t)readHandler( addr );
+
+	/* Your C++ compiler can probably optimize this down to just the optimal calls to based on type T... at least GCC does! */
+	template <typename T=uint8_t> static INLINE T do_read(const PhysPt a) {
+		if (sizeof(T) == 4) /* 32-bit to two 16-bit */
+			return (uint32_t)do_read<uint16_t>(a) + ((uint32_t)do_read<uint16_t>(a+2) << (uint32_t)16u);
+		else if (sizeof(T) == 2) /* 16-bit to two 8-bit */
+			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
+		else
+			return (T)readHandler(a);
 	}
-	uint16_t readw(PhysPt addr ) override {
-		VGAMEM_USEC_read_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED(addr);
-		uint16_t ret = (uint16_t)(readHandler( addr+0 ) << 0 );
-		ret     |= (readHandler( addr+1 ) << 8 );
-		return ret;
+	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
+		if (sizeof(T) == 4) /* split 32-bit to two 16-bit */
+			{ do_write<uint16_t>(a,uint16_t(v)); do_write<uint16_t>(a+2,uint16_t(v >> (T)16u)); }
+		else if (sizeof(T) == 2) /* split 16-bit to two 8-bit */
+			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
+		else
+			writeHandler(a,v);
 	}
-	uint32_t readd(PhysPt addr ) override {
-		VGAMEM_USEC_read_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED(addr);
-		uint32_t ret = (uint32_t)(readHandler( addr+0 ) << 0 );
-		ret     |= (readHandler( addr+1 ) << 8 );
-		ret     |= (readHandler( addr+2 ) << 16 );
-		ret     |= (readHandler( addr+3 ) << 24 );
-		return ret;
+
+	uint8_t readb(PhysPt addr) override {
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(map(addr));
 	}
-	void writeb(PhysPt addr,uint8_t val) override {
-		VGAMEM_USEC_write_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED2(addr);
-		writeHandler(addr+0,val);
+	uint16_t readw(PhysPt addr) override {
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(map(addr));
+	}
+	uint32_t readd(PhysPt addr) override {
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(map(addr));
+	}
+	void writeb(PhysPt addr, uint8_t val) override {
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED2(addr);
-		writeHandler(addr+0,(uint8_t)(val >> 0));
-		writeHandler(addr+1,(uint8_t)(val >> 8));
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED2(addr);
-		writeHandler(addr+0,(uint8_t)(val >> 0));
-		writeHandler(addr+1,(uint8_t)(val >> 8));
-		writeHandler(addr+2,(uint8_t)(val >> 16));
-		writeHandler(addr+3,(uint8_t)(val >> 24));
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
 	}
 };
 
 /* Graphics region of the InColor */
 class HERC_InColor_Graphics_Handler : public PageHandler {
 public:
-	uint8_t readHandler(PhysPt start) {
+	HERC_InColor_Graphics_Handler() : PageHandler(PFLAG_NOCODE) {}
+	static INLINE PhysPt map(const PhysPt addr) {
+		return PAGING_GetPhysicalAddress(addr)&vgapages.mask;
+	}
+
+	static uint8_t readHandler(PhysPt start) {
 		const uint8_t idcmask = vga.herc.dont_care ^ 0xFu;
 		uint32_t t1,t2,tmp;
 		uint8_t result = 0;
@@ -2376,7 +2375,7 @@ public:
 
 		return result ^ vga.herc.maskpolarity;
 	}
-	void writeHandler(PhysPt start, uint8_t val) {
+	static void writeHandler(PhysPt start, uint8_t val) {
 		const uint32_t valmask = ExpandTable[val];
 		const uint32_t nochangemask = FillTable[vga.herc.planemask_protect];
 		const uint32_t bgplane = FillTable[vga.herc.bgcolor];
@@ -2401,53 +2400,42 @@ public:
 
 		((uint32_t*)vga.mem.linear)[start] = (((uint32_t*)vga.mem.linear)[start] & nochangemask) + (pl.d & (~nochangemask));
 	}
-public:
-	HERC_InColor_Graphics_Handler() : PageHandler(PFLAG_NOCODE) {}
-	uint8_t readb(PhysPt addr ) override {
-		VGAMEM_USEC_read_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED(addr);
-		return (uint8_t)readHandler( addr );
+
+	/* Your C++ compiler can probably optimize this down to just the optimal calls to based on type T... at least GCC does! */
+	template <typename T=uint8_t> static INLINE T do_read(const PhysPt a) {
+		if (sizeof(T) == 4) /* 32-bit to two 16-bit */
+			return (uint32_t)do_read<uint16_t>(a) + ((uint32_t)do_read<uint16_t>(a+2) << (uint32_t)16u);
+		else if (sizeof(T) == 2) /* 16-bit to two 8-bit */
+			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
+		else
+			return (T)readHandler(a);
 	}
-	uint16_t readw(PhysPt addr ) override {
-		VGAMEM_USEC_read_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED(addr);
-		uint16_t ret = (uint16_t)(readHandler( addr+0 ) << 0 );
-		ret     |= (readHandler( addr+1 ) << 8 );
-		return ret;
+	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
+		if (sizeof(T) == 4) /* split 32-bit to two 16-bit */
+			{ do_write<uint16_t>(a,uint16_t(v)); do_write<uint16_t>(a+2,uint16_t(v >> (T)16u)); }
+		else if (sizeof(T) == 2) /* split 16-bit to two 8-bit */
+			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
+		else
+			writeHandler(a,v);
 	}
-	uint32_t readd(PhysPt addr ) override {
-		VGAMEM_USEC_read_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED(addr);
-		uint32_t ret = (uint32_t)(readHandler( addr+0 ) << 0 );
-		ret     |= (readHandler( addr+1 ) << 8 );
-		ret     |= (readHandler( addr+2 ) << 16 );
-		ret     |= (readHandler( addr+3 ) << 24 );
-		return ret;
+
+	uint8_t readb(PhysPt addr) override {
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(map(addr));
 	}
-	void writeb(PhysPt addr,uint8_t val) override {
-		VGAMEM_USEC_write_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED2(addr);
-		writeHandler(addr+0,val);
+	uint16_t readw(PhysPt addr) override {
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(map(addr));
+	}
+	uint32_t readd(PhysPt addr) override {
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(map(addr));
+	}
+	void writeb(PhysPt addr, uint8_t val) override {
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
 	}
 	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED2(addr);
-		writeHandler(addr+0,(uint8_t)(val >> 0));
-		writeHandler(addr+1,(uint8_t)(val >> 8));
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
 	}
 	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay();
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-//		addr = CHECKED2(addr);
-		writeHandler(addr+0,(uint8_t)(val >> 0));
-		writeHandler(addr+1,(uint8_t)(val >> 8));
-		writeHandler(addr+2,(uint8_t)(val >> 16));
-		writeHandler(addr+3,(uint8_t)(val >> 24));
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
 	}
 };
 
