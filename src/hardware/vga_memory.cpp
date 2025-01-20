@@ -432,7 +432,7 @@ public:
 			return 0xFF; /* should not happen, byte I/O is always aligned */
 	}
 	template <typename T=uint8_t> static INLINE void do_write_aligned(const PhysPt a,const T v) {
-			*((T*)(&vga.mem.linear[a])) = v;
+		*((T*)(&vga.mem.linear[a])) = v;
 	}
 	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
 		if (withinplanes<T>(a)) /* aligned, do a fast typecast write */
@@ -2172,131 +2172,67 @@ public:
 
 class VGA_AMS_Handler : public PageHandler {
 public:
-	void writeHandler(PhysPt start, uint8_t val) {
-		assert(start < vga.mem.memsize);
-		vga.tandy.mem_base[ start ] = val;
-	}
-	uint8_t readHandler(PhysPt start) {
-		assert(start < vga.mem.memsize);
-		return vga.tandy.mem_base[ start ];
-	}
-
-public:
-	VGA_AMS_Handler() {
-		flags=PFLAG_NOCODE;
-	}
-	inline PhysPt wrAddr( PhysPt addr )
-	{
-		if( vga.mode != M_AMSTRAD )
-		{
-			addr -= 0xb8000;
+	VGA_AMS_Handler() : PageHandler(PFLAG_NOCODE) {}
+	VGA_AMS_Handler(const unsigned int fl) : PageHandler(fl) {}
+	static INLINE PhysPt map(PhysPt addr) {
+		if (vga.mode == M_AMSTRAD) {
+			return PAGING_GetPhysicalAddress(addr) & 0x3fffu;
+		}
+		else {
+			addr = PAGING_GetPhysicalAddress(addr) & 0x7fffu;
 			PhysPt phys_page = addr >> 12;
 			//test for a unaligned bank, then replicate 2x16kb
-			if (vga.tandy.mem_bank & 1) 
-				phys_page&=0x03;
-			return ( phys_page * 4096 ) + ( addr & 0x0FFF );
+			if (vga.tandy.mem_bank & 1) phys_page &= 0x03;
+			return (phys_page * 4096) + (addr & 0xfff);
 		}
-		return ( (PAGING_GetPhysicalAddress(addr) & 0xffff) - 0x8000 ) & ( 16*1024-1 );
+	}
+	static INLINE PhysPt mapread(const PhysPt addr) {
+		return map(addr) + (vga.amstrad.read_plane * 0x4000u);
+	}
+	template <typename T=uint8_t> static INLINE T do_read_aligned(const PhysPt a) {
+		return *((T*)(&vga.tandy.mem_base[a]));
+	}
+	template <typename T=uint8_t> static INLINE T do_read(const PhysPt a) {
+		if (sizeof(T) == 4) /* not aligned, split 32-bit to two 16-bit */
+			return (uint32_t)do_read<uint16_t>(a) + ((uint32_t)do_read<uint16_t>(a+2) << (uint32_t)16u);
+		else if (sizeof(T) == 2) /* not aligned, split 16-bit to two 8-bit */
+			return (uint16_t)do_read<uint8_t>(a) + ((uint16_t)do_read<uint8_t>(a+1) << (uint32_t)8u);
+		else
+			return (T)do_read_aligned(a);
+	}
+	template <typename T=uint8_t> static INLINE void do_write_aligned(const PhysPt a,const T v) {
+		const uint8_t plane = (vga.mode==M_AMSTRAD) ? vga.amstrad.write_plane : 0x01; // 0x0F?
+		if (plane & 0x08) *((T*)(&vga.tandy.mem_base[a+0xC000u])) = v;
+		if (plane & 0x04) *((T*)(&vga.tandy.mem_base[a+0x8000u])) = v;
+		if (plane & 0x02) *((T*)(&vga.tandy.mem_base[a+0x4000u])) = v;
+		if (plane & 0x01) *((T*)(&vga.tandy.mem_base[a        ])) = v;
+	}
+	template <typename T=uint8_t> static INLINE void do_write(const PhysPt a,const T v) {
+		if (sizeof(T) == 4) /* not aligned, split 32-bit to two 16-bit */
+			{ do_write<uint16_t>(a,uint16_t(v)); do_write<uint16_t>(a+2,uint16_t(v >> (T)16u)); }
+		else if (sizeof(T) == 2) /* not aligned, split 16-bit to two 8-bit */
+			{ do_write<uint8_t>(a,uint8_t(v)); do_write<uint8_t>(a+1,uint8_t(v >> (T)8u)); }
+		else
+			do_write_aligned(a,v);
 	}
 
-	void writeb(PhysPt addr,uint8_t val) override {
-		VGAMEM_USEC_write_delay();
-		addr = wrAddr( addr );
-		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
-		if( plane & 0x08 ) writeHandler(addr+49152,(uint8_t)(val >> 0));
-		if( plane & 0x04 ) writeHandler(addr+32768,(uint8_t)(val >> 0));
-		if( plane & 0x02 ) writeHandler(addr+16384,(uint8_t)(val >> 0));
-		if( plane & 0x01 ) writeHandler(addr+0,(uint8_t)(val >> 0));
-	}
-	void writew(PhysPt addr,uint16_t val) override {
-		VGAMEM_USEC_write_delay();
-		addr = wrAddr( addr );
-		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
-		if( plane & 0x01 )
-		{
-			writeHandler(addr+0,(uint8_t)(val >> 0));
-			writeHandler(addr+1,(uint8_t)(val >> 8));
-		}
-		addr += 16384;
-		if( plane & 0x02 )
-		{
-			writeHandler(addr+0,(uint8_t)(val >> 0));
-			writeHandler(addr+1,(uint8_t)(val >> 8));
-		}
-		addr += 16384;
-		if( plane & 0x04 )
-		{
-			writeHandler(addr+0,(uint8_t)(val >> 0));
-			writeHandler(addr+1,(uint8_t)(val >> 8));
-		}
-		addr += 16384;
-		if( plane & 0x08 )
-		{
-			writeHandler(addr+0,(uint8_t)(val >> 0));
-			writeHandler(addr+1,(uint8_t)(val >> 8));
-		}
-
-	}
-	void writed(PhysPt addr,uint32_t val) override {
-		VGAMEM_USEC_write_delay();
-		addr = wrAddr( addr );
-		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
-		if( plane & 0x01 )
-		{
-			writeHandler(addr+0,(uint8_t)(val >> 0));
-			writeHandler(addr+1,(uint8_t)(val >> 8));
-			writeHandler(addr+2,(uint8_t)(val >> 16));
-			writeHandler(addr+3,(uint8_t)(val >> 24));
-		}
-		addr += 16384;
-		if( plane & 0x02 )
-		{
-			writeHandler(addr+0,(uint8_t)(val >> 0));
-			writeHandler(addr+1,(uint8_t)(val >> 8));
-			writeHandler(addr+2,(uint8_t)(val >> 16));
-			writeHandler(addr+3,(uint8_t)(val >> 24));
-		}
-		addr += 16384;
-		if( plane & 0x04 )
-		{
-			writeHandler(addr+0,(uint8_t)(val >> 0));
-			writeHandler(addr+1,(uint8_t)(val >> 8));
-			writeHandler(addr+2,(uint8_t)(val >> 16));
-			writeHandler(addr+3,(uint8_t)(val >> 24));
-		}
-		addr += 16384;
-		if( plane & 0x08 )
-		{
-			writeHandler(addr+0,(uint8_t)(val >> 0));
-			writeHandler(addr+1,(uint8_t)(val >> 8));
-			writeHandler(addr+2,(uint8_t)(val >> 16));
-			writeHandler(addr+3,(uint8_t)(val >> 24));
-		}
-
-	}
 	uint8_t readb(PhysPt addr) override {
-		VGAMEM_USEC_read_delay();
-		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
-		addr &= (64u*1024u-1u);
-		return readHandler(addr);
+		VGAMEM_USEC_read_delay(); return do_read<uint8_t>(mapread(addr));
 	}
 	uint16_t readw(PhysPt addr) override {
-		VGAMEM_USEC_read_delay();
-		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
-		addr &= (64u*1024u-1u);
-		return 
-			(readHandler(addr+0) << 0u) |
-			(readHandler(addr+1) << 8u);
+		VGAMEM_USEC_read_delay(); return do_read<uint16_t>(mapread(addr));
 	}
 	uint32_t readd(PhysPt addr) override {
-		VGAMEM_USEC_read_delay();
-		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
-		addr &= (64u*1024u-1u);
-		return 
-			(uint32_t)(readHandler(addr+0) << 0u)  |
-			(uint32_t)(readHandler(addr+1) << 8u)  |
-			(uint32_t)(readHandler(addr+2) << 16u) |
-			(uint32_t)(readHandler(addr+3) << 24u);
+		VGAMEM_USEC_read_delay(); return do_read<uint32_t>(mapread(addr));
+	}
+	void writeb(PhysPt addr, uint8_t val) override {
+		VGAMEM_USEC_write_delay(); do_write<uint8_t>(map(addr),val);
+	}
+	void writew(PhysPt addr,uint16_t val) override {
+		VGAMEM_USEC_write_delay(); do_write<uint16_t>(map(addr),val);
+	}
+	void writed(PhysPt addr,uint32_t val) override {
+		VGAMEM_USEC_write_delay(); do_write<uint32_t>(map(addr),val);
 	}
 };
 
