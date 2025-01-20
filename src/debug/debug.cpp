@@ -996,23 +996,7 @@ static void DrawData(void) {
 
 		if (dbg.data_view == DBGBlock::DATV_PHYSICAL) {
 			for (int x=0; x<16; x++) {
-				address = add;
-
-				/* save the original page addr.
-				 * we must hack the phys page tlb to make the hardware handler map 1:1 the page for this call. */
-				PhysPt opg = paging.tlb.phys_page[address>>12];
-
-				paging.tlb.phys_page[address>>12] = (uint32_t)(address>>12);
-
-				PageHandler *ph = MEM_GetPageHandler((Bitu)(address>>12));
-
-				if (ph->flags & PFLAG_READABLE)
-					ch = ph->GetHostReadPt((PageNum)(address>>12))[address&0xFFF];
-				else
-					ch = ph->readb((PhysPt)address);
-
-				paging.tlb.phys_page[address>>12] = opg;
-
+				ch = physdev_readb(add);
 				wattrset (dbg.win_data,0);
 				mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
 				if(showPrintable) {
@@ -2142,6 +2126,50 @@ bool ParseCommand(char* str) {
 			}
 			else if (prefix == 'B') {
 				mem_writeb_checked((PhysPt)(ofs+count),value);
+				count++;
+			}
+		}
+
+		if (count > 0)
+			DEBUG_ShowMsg("DEBUG: Memory changed (%u bytes)\n",(unsigned int)count);
+
+		return true;
+	}
+
+	if (command == "SMP") { // Set memory with following values (physical address)
+		uint32_t ofs = GetHexValue(found,found); SkipSpace(found);
+		uint16_t count = 0;
+		bool parsed;
+
+		while (*found) {
+			char prefix = 'B';
+			uint32_t value;
+
+			/* allow d: w: b: prefixes */
+			if ((*found == 'B' || *found == 'W' || *found == 'D') && found[1] == ':') {
+				prefix = *found; found += 2;
+				value = GetHexValue(found,found,&parsed);
+			}
+			else {
+				value = GetHexValue(found,found,&parsed);
+			}
+
+			SkipSpace(found);
+			if (!parsed) {
+				DEBUG_ShowMsg("GetHexValue parse error at %s",found);
+				break;
+			}
+
+			if (prefix == 'D') {
+				physdev_writed((PhysPt)(ofs+count),value);
+				count += 4;
+			}
+			else if (prefix == 'W') {
+				physdev_writew((PhysPt)(ofs+count),value);
+				count += 2;
+			}
+			else if (prefix == 'B') {
+				physdev_writeb((PhysPt)(ofs+count),value);
 				count++;
 			}
 		}

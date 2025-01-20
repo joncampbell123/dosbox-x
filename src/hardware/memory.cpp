@@ -2622,6 +2622,137 @@ Bitu MEM_PageMaskActive(void) {
     return memory.mem_alias_pagemask_active;
 }
 
+// Physical DEVICE access. This is different from phys_readb/phys_writeb because
+// those functions can only access system RAM, and is not affected by any device
+// mappings or page tables.
+
+uint8_t physdev_readb(const PhysPt64 addr) {
+	const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+	PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+	if (ph->flags & PFLAG_READABLE)
+		return *((uint8_t*)(ph->GetHostReadPt(pagenum)+((unsigned int)addr&0xFFFu)));
+
+	/* This hack is necessary because of the weird way that CPU linear addresses
+	 * make their way down to the hardware read/write callbacks */
+	const uint32_t orig = paging.tlb.phys_page[pagenum];
+	paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+	const uint8_t ch = ph->readb((PhysPt)addr); /* WARNING: 4GB wraparound here */
+	paging.tlb.phys_page[pagenum] = orig;
+	return ch;
+}
+
+uint16_t physdev_readw(const PhysPt64 addr) {
+	if (((unsigned int)addr&0xFFFu) <= 0xFFEu) {
+		const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+		PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+		if (ph->flags & PFLAG_READABLE)
+			return *((uint16_t*)(ph->GetHostReadPt(pagenum)+((unsigned int)addr&0xFFFu)));
+
+		/* This hack is necessary because of the weird way that CPU linear addresses
+		 * make their way down to the hardware read/write callbacks */
+		const uint32_t orig = paging.tlb.phys_page[pagenum];
+		paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+		const uint16_t ch = ph->readw((PhysPt)addr); /* WARNING: 4GB wraparound here */
+		paging.tlb.phys_page[pagenum] = orig;
+		return ch;
+	}
+	else {
+		return	 (uint16_t)physdev_readb(addr) +
+			((uint16_t)physdev_readb(addr+1u) << (uint16_t)8u);
+	}
+}
+
+uint32_t physdev_readd(const PhysPt64 addr) {
+	if (((unsigned int)addr&0xFFFu) <= 0xFFCu) {
+		const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+		PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+		if (ph->flags & PFLAG_READABLE)
+			return *((uint32_t*)(ph->GetHostReadPt(pagenum)+((unsigned int)addr&0xFFFu)));
+
+		/* This hack is necessary because of the weird way that CPU linear addresses
+		 * make their way down to the hardware read/write callbacks */
+		const uint32_t orig = paging.tlb.phys_page[pagenum];
+		paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+		const uint32_t ch = ph->readd((PhysPt)addr); /* WARNING: 4GB wraparound here */
+		paging.tlb.phys_page[pagenum] = orig;
+		return ch;
+	}
+	else {
+		return	 (uint32_t)physdev_readb(addr) +
+			((uint32_t)physdev_readb(addr+1u) << (uint32_t)8u) +
+			((uint32_t)physdev_readb(addr+2u) << (uint32_t)16u) +
+			((uint32_t)physdev_readb(addr+3u) << (uint32_t)24u);
+	}
+}
+
+void physdev_writeb(const PhysPt64 addr,const uint8_t val) {
+	const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+	PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+	if (ph->flags & PFLAG_WRITEABLE) {
+		*((uint8_t*)(ph->GetHostReadPt(pagenum)+((unsigned int)addr&0xFFFu))) = val;
+	}
+	else {
+		/* This hack is necessary because of the weird way that CPU linear addresses
+		 * make their way down to the hardware read/write callbacks */
+		const uint32_t orig = paging.tlb.phys_page[pagenum];
+		paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+		ph->writeb((PhysPt)addr,val); /* WARNING: 4GB wraparound here */
+		paging.tlb.phys_page[pagenum] = orig;
+	}
+}
+
+void physdev_writew(const PhysPt64 addr,const uint16_t val) {
+	if (((unsigned int)addr&0xFFFu) <= 0xFFEu) {
+		const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+		PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+		if (ph->flags & PFLAG_WRITEABLE) {
+			*((uint16_t*)(ph->GetHostWritePt(pagenum)+((unsigned int)addr&0xFFFu))) = val;
+		}
+		else {
+			/* This hack is necessary because of the weird way that CPU linear addresses
+			 * make their way down to the hardware read/write callbacks */
+			const uint32_t orig = paging.tlb.phys_page[pagenum];
+			paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+			ph->writew((PhysPt)addr,val); /* WARNING: 4GB wraparound here */
+			paging.tlb.phys_page[pagenum] = orig;
+		}
+	}
+	else {
+		physdev_writeb(addr+0u,val);
+		physdev_writeb(addr+1u,val >> 8u);
+	}
+}
+
+void physdev_writed(const PhysPt64 addr,const uint32_t val) {
+	if (((unsigned int)addr&0xFFFu) <= 0xFFCu) {
+		const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+		PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+		if (ph->flags & PFLAG_WRITEABLE) {
+			*((uint32_t*)(ph->GetHostWritePt(pagenum)+((unsigned int)addr&0xFFFu))) = val;
+		}
+		else {
+			/* This hack is necessary because of the weird way that CPU linear addresses
+			 * make their way down to the hardware read/write callbacks */
+			const uint32_t orig = paging.tlb.phys_page[pagenum];
+			paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+			ph->writed((PhysPt)addr,val); /* WARNING: 4GB wraparound here */
+			paging.tlb.phys_page[pagenum] = orig;
+		}
+	}
+	else {
+		physdev_writeb(addr+0u,val);
+		physdev_writeb(addr+1u,val >> 8u);
+		physdev_writeb(addr+2u,val >> 16u);
+		physdev_writeb(addr+3u,val >> 24u);
+	}
+}
+
 //save state support
 extern void* VGA_PageHandler_Func[16];
 

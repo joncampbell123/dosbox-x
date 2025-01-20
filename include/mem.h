@@ -338,4 +338,11 @@ static INLINE void RealSetVec(const uint8_t vec,const RealPt pt,RealPt &old) {
     mem_writed(addr,pt);
 }
 
+uint8_t physdev_readb(const PhysPt64 addr);
+uint16_t physdev_readw(const PhysPt64 addr);
+uint32_t physdev_readd(const PhysPt64 addr);
+void physdev_writeb(const PhysPt64 addr,const uint8_t val);
+void physdev_writew(const PhysPt64 addr,const uint16_t val);
+void physdev_writed(const PhysPt64 addr,const uint32_t val);
+
 #endif
