@@ -223,6 +223,8 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
+    FillFlags();
+    return CBRET_NONE;
 /* 8086/286 multiple prefix interrupt bug emulation.
  * If an instruction is interrupted, only the last prefix is restarted.
  * See also [https://www.pcjs.org/pubs/pc/reference/intel/8086/] and [https://www.youtube.com/watch?v=6FC-tcwMBnU] */ 

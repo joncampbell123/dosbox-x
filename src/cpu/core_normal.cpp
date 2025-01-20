@@ -209,6 +209,8 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
+    FillFlags();
+    return CBRET_NONE;
 decode_end:
 	SAVEIP;
 	FillFlags();
