@@ -168,8 +168,6 @@ Bits CPU_Core_Simple_Run(void) {
 	if (paging.enabled)
 		return CPU_Core_Normal_Run();
 
-	const Bitu init_cycles = CPU_Cycles;
-
 	safety_limit = (HostPt)((size_t)MemBase + ((size_t)MEM_TotalPages() * (size_t)4096) - (size_t)16384); /* safety margin */
 
 	LOADIP;
@@ -215,9 +213,6 @@ restart_opcode:
         }
         SAVEIP;
     }
-decode_stop_at_instruction:
-    FillFlags();
-    return CBRET_NONE;
 decode_end:
     SAVEIP;
     FillFlags();

@@ -298,6 +298,8 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
     strncpy(upcasebuf, input, 11);
     //DBCS_upcase(upcasebuf);  /* Another mscdex quirk. Label is not always uppercase. (Daggerfall) */ 
 
+    (void)cdrom;
+
     while (togo > 0) {
         if(upcasebuf[vnamePos] == 0) str_end = true;
         output[labelPos] = !str_end ? upcasebuf[vnamePos] : 0x0; // Pad empty characters with 0x00

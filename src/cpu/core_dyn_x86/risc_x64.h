@@ -863,7 +863,7 @@ nochange:
 
 static void gen_sop_word_imm(ShiftOps op,bool dword,DynReg * dr1,uint8_t imm) {
 	uint8_t tmp=0xC1;
-	int dst = FindDynReg(dr1,dword && op==DOP_MOV)->index;
+	int dst = FindDynReg(dr1,dword && (unsigned int)op==(unsigned int)DOP_MOV)->index;
 	opcode i;
 	i.setimm(imm, 1);
 

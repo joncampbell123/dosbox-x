@@ -183,8 +183,6 @@ Bits CPU_Core_Prefetch_Run(void) {
 	if (CPU_Cycles <= 0)
 		return CBRET_NONE;
 
-	const Bitu init_cycles = CPU_Cycles;
-
 	// FIXME: This makes 8086 4-byte prefetch queue impossible to emulate.
 	//        The best way to accomplish this is to have an alternate version
 	//        of this prefetch queue for 286 or lower that fetches in 16-bit
@@ -285,9 +283,6 @@ restart_opcode:
     }
 #endif
 
-decode_stop_at_instruction:
-	FillFlags();
-	return CBRET_NONE;
 decode_end:
 	SAVEIP;
 	FillFlags();

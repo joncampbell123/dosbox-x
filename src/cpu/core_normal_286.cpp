@@ -175,8 +175,6 @@ Bits CPU_Core286_Normal_Run(void) {
 	if (CPU_Cycles <= 0)
 		return CBRET_NONE;
 
-	const Bitu init_cycles = CPU_Cycles;
-
 	while (CPU_Cycles-->0) {
 		LOADIP;
 		core.prefixes=0;
@@ -225,9 +223,6 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
-decode_stop_at_instruction:
-	FillFlags();
-	return CBRET_NONE;
 /* 8086/286 multiple prefix interrupt bug emulation.
  * If an instruction is interrupted, only the last prefix is restarted.
  * See also [https://www.pcjs.org/pubs/pc/reference/intel/8086/] and [https://www.youtube.com/watch?v=6FC-tcwMBnU] */ 
