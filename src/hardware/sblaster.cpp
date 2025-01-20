@@ -3982,6 +3982,7 @@ public:
                 sect_updater->Get_prop("cms")->SetValue("auto");
             }
             sb.cms = true; // Game Blaster is CMS
+            break;
         default:
             if(sb.cms) {
                 LOG(LOG_SB, LOG_WARN)("'cms' setting 'on' not supported on this card, forcing 'auto'.");
