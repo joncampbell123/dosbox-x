@@ -345,4 +345,7 @@ void physdev_writeb(const PhysPt64 addr,const uint8_t val);
 void physdev_writew(const PhysPt64 addr,const uint16_t val);
 void physdev_writed(const PhysPt64 addr,const uint32_t val);
 
+uint32_t MEM_get_address_bits();
+uint32_t MEM_get_address_bits4GB();
+
 #endif

@@ -36,8 +36,6 @@
 #include "zipfile.h"
 #include "src/ints/int10.h"
 
-uint32_t MEM_get_address_bits();
-
 unsigned char pc98_pegc_mmio[0x200] = {0}; /* PC-98 memory-mapped PEGC registers at E0000h */
 uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
 bool enveten = false, TTF_using(void);
@@ -2495,8 +2493,6 @@ void pc98_gdc_vwritew(const uint32_t addr,const uint16_t b) {
 void VGA_ChangedBank(void) {
 	VGA_SetupHandlers();
 }
-
-uint32_t MEM_get_address_bits4GB();
 
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages);

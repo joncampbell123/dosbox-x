@@ -184,7 +184,6 @@ void DOS_AddDays(uint8_t days);
 void DEBUG_BeginPagedContent(void);
 void DEBUG_EndPagedContent(void);
 Bitu MEM_PageMaskActive(void);
-uint32_t MEM_get_address_bits();
 Bitu MEM_TotalPages(void);
 Bitu MEM_PageMask(void);
 
