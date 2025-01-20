@@ -706,7 +706,6 @@ VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
 }
 
 bool has_pcibus_enable(void);
-uint32_t MEM_get_address_bits();
 uint32_t GetReportedVideoMemorySize(void);
 
 static uint32_t assigned_lfb = 0;
