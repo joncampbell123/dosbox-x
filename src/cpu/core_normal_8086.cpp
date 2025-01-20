@@ -185,8 +185,6 @@ Bits CPU_Core8086_Normal_Run(void) {
 	if (CPU_Cycles <= 0)
 		return CBRET_NONE;
 
-	const Bitu init_cycles = CPU_Cycles;
-
 	while (CPU_Cycles-->0) {
 		LOADIP;
 		core.prefixes=0;
@@ -245,7 +243,6 @@ prefix_out:
 	return CBRET_NONE;
 decode_end:
 	SAVEIP;
-decode_stop_at_instruction:
 	FillFlags();
 	return CBRET_NONE;
 }

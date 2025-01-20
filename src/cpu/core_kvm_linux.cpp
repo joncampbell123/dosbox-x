@@ -173,8 +173,6 @@ Bits CPU_Core_KVM_Run(void) {
 	if (CPU_Cycles <= 0)
 		return CBRET_NONE;
 
-	const Bitu init_cycles = CPU_Cycles;
-
 	while (CPU_Cycles-->0) {
 		LOADIP;
 		last_prefix=MP_NONE;
@@ -227,9 +225,6 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
-decode_stop_at_instruction:
-	FillFlags();
-	return CBRET_NONE;
 decode_end:
 	SAVEIP;
 	FillFlags();
