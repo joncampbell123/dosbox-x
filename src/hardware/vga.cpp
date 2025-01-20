@@ -159,20 +159,6 @@
 
 using namespace std;
 
-Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/);
-void pc98_write_9a8(Bitu port,Bitu val,Bitu iolen);
-
-void SVGA_Setup_ATI(void);
-bool VGA_IsCaptureEnabled(void);
-void VGA_UpdateCapturePending(void);
-bool VGA_CaptureHasNextFrame(void);
-void VGA_CaptureStartNextFrame(void);
-void VGA_CaptureMarkError(void);
-bool VGA_CaptureValidateCurrentFrame(void);
-
-extern bool enable_supermegazeux_256colortext;
-extern bool pc98_timestamp5c;
-
 bool                                VGA_PITsync = false;
 
 unsigned int                        vbe_window_granularity = 0;
@@ -192,31 +178,6 @@ signed char                         vga_render_on_demand_user = -1;
 
 bool                                pc98_crt_mode = false;      // see port 6Ah command 40h/41h.
                                                                 // this boolean is the INVERSE of the bit.
-
-extern int                          vga_memio_delay_ns;
-extern bool                         vga_memio_lfb_delay;
-extern bool                         gdc_5mhz_mode;
-extern bool                         gdc_5mhz_mode_initial;
-extern bool                         enable_pc98_egc;
-extern bool                         enable_pc98_grcg;
-extern bool                         enable_pc98_16color;
-extern bool                         enable_pc98_256color;
-extern bool                         enable_pc98_256color_planar;
-extern bool                         enable_pc98_188usermod;
-extern bool                         GDC_vsync_interrupt;
-extern uint8_t                      GDC_display_plane;
-extern bool                         pc98_256kb_boundary;
-extern bool                         want_fm_towns;
-extern bool                         enveten;
-
-extern uint8_t                      pc98_gdc_tile_counter;
-extern uint8_t                      pc98_gdc_modereg;
-extern uint8_t                      pc98_gdc_vramop;
-extern egc_quad                     pc98_gdc_tiles;
-
-extern uint8_t                      pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
-extern uint8_t                      pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
-extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
 
 uint32_t S3_LFB_BASE =              S3_LFB_BASE_DEFAULT;
 
