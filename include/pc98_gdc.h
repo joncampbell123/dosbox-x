@@ -191,3 +191,18 @@ extern struct PC98_GDC_state        pc98_gdc[2];
 extern egc_quad                     pc98_gdc_tiles;
 extern uint8_t                      pc98_gdc_vramop;
 extern uint8_t                      pc98_gdc_modereg;
+
+extern uint8_t                      pc98_gdc_tile_counter;
+extern uint8_t                      pc98_gdc_modereg;
+extern uint8_t                      pc98_gdc_vramop;
+extern egc_quad                     pc98_gdc_tiles;
+
+extern uint8_t                      pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
+extern uint8_t                      pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
+extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
+
+extern bool                         pc98_timestamp5c;
+
+Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/);
+void pc98_write_9a8(Bitu port,Bitu val,Bitu iolen);
+

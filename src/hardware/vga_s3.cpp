@@ -27,14 +27,6 @@
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
 
-void SD3_Reset(bool enable);
-bool has_pcibus_enable(void);
-
-extern bool enable_pci_vga;
-
-extern unsigned int vbe_window_granularity;
-extern unsigned int vbe_window_size;
-
 void S3_UpdateXGAColorMode(void) {
 	switch (vga.s3.reg_50 & S3_XGA_CMASK) {
 		case S3_XGA_32BPP: vga.s3.xga_color_mode = M_LIN32; break;

@@ -795,6 +795,15 @@ void SVGA_Setup_TsengET3K(void);
 void SVGA_Setup_ParadisePVGA1A(void);
 void SVGA_Setup_Driver(void);
 
+void SVGA_Setup_ATI(void);
+bool VGA_IsCaptureEnabled(void);
+void VGA_UpdateCapturePending(void);
+bool VGA_CaptureHasNextFrame(void);
+void VGA_CaptureStartNextFrame(void);
+void VGA_CaptureMarkError(void);
+bool VGA_CaptureValidateCurrentFrame(void);
+void SD3_Reset(bool enable);
+
 // Amount of video memory required for a mode, implemented in int10_modes.cpp
 Bitu VideoModeMemSize(Bitu mode);
 
@@ -830,6 +839,28 @@ extern unsigned char GFX_bpp;
 extern unsigned char *pc98_pgraph_current_display_page;
 /* current CPU page (controlled by A6h) */
 extern unsigned char *pc98_pgraph_current_cpu_page;
+
+extern int                          vga_memio_delay_ns;
+extern bool                         enable_supermegazeux_256colortext;
+extern bool                         vga_memio_lfb_delay;
+extern bool                         gdc_5mhz_mode;
+extern bool                         gdc_5mhz_mode_initial;
+extern bool                         enable_pc98_egc;
+extern bool                         enable_pc98_grcg;
+extern bool                         enable_pc98_16color;
+extern bool                         enable_pc98_256color;
+extern bool                         enable_pc98_256color_planar;
+extern bool                         enable_pc98_188usermod;
+extern bool                         GDC_vsync_interrupt;
+extern uint8_t                      GDC_display_plane;
+extern bool                         pc98_256kb_boundary;
+extern bool                         want_fm_towns;
+extern bool                         enveten;
+
+extern bool enable_pci_vga;
+
+extern unsigned int vbe_window_granularity;
+extern unsigned int vbe_window_size;
 
 /* functions to help cleanup memory map access instead of hardcoding offsets.
  * your C++ compiler should be smart enough to inline these into the body of this function. */
