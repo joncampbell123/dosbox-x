@@ -3346,8 +3346,6 @@ void Sendkeymapper(bool pressed) {
 
 bool has_GUI_StartUp = false;
 
-void NewUIExperiment(bool pressed);
-
 static void GUI_StartUp() {
     DOSBoxMenu::item *item;
 
@@ -3964,9 +3962,6 @@ static void GUI_StartUp() {
     SetWindowTransparency(section->Get_int("transparency"));
     UpdateWindowDimensions();
     ApplyPreventCap();
-
-    /* Experiment -- You're not supposed to play with this yet hence why no binding is assigned by default */
-    MAPPER_AddHandler(NewUIExperiment, MK_nothing, 0, "newuitest", "New UI test", &item);
 }
 
 void Mouse_AutoLock(bool enable) {
