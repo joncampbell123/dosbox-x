@@ -315,18 +315,7 @@ static VGA_RawLine_Handler VGA_DrawRawLine;
 static uint8_t TempLine[SCALER_MAXWIDTH * 4 + 256];
 static float hretrace_fx_avg = 0;
 
-void VGA_MarkCaptureAcquired(void);
-void VGA_MarkCaptureInProgress(bool en);
 void pc98_update_display_page_ptr(void);
-bool VGA_CaptureValidateCurrentFrame(void);
-void VGA_CaptureStartNextFrame(void);
-void VGA_MarkCaptureRetrace(void);
-void VGA_CaptureMarkError(void);
-bool VGA_IsCaptureEnabled(void);
-bool VGA_IsCapturePending(void);
-void VGA_CaptureWriteScanline(const uint8_t *raw);
-void VGA_ProcessScanline(const uint8_t *raw);
-bool VGA_IsCaptureInProgress(void);
 
 static uint8_t * VGA_Draw_AMS_4BPP_Line(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
@@ -3739,9 +3728,6 @@ again:
                 }
             }
 
-            if (VGA_IsCaptureEnabled())
-                VGA_ProcessScanline(data);
-
             RENDER_DrawLine(data);
         }
     }
@@ -3769,10 +3755,6 @@ again:
             PIC_AddEvent(VGA_DrawSingleLine,vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
-
-        if (VGA_IsCaptureEnabled())
-            VGA_ProcessScanline(NULL);
-
         RENDER_EndUpdate(false);
     }
 
@@ -3844,9 +3826,6 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
             uint8_t * data=VGA_DrawLine(address, vga.draw.address_line ); 
             if (video_debug_overlay && vga.draw.width < render.src.width) VGA_DrawDebugLine(data+(vga.draw.width*((vga.draw.bpp+7u)>>3u)),render.src.width-vga.draw.width);
 
-            if (VGA_IsCaptureEnabled())
-                VGA_ProcessScanline(data);
-
             RENDER_DrawLine(data);
         }
     }
@@ -3866,10 +3845,6 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
         PIC_AddEvent(VGA_DrawEGASingleLine,vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
-
-        if (VGA_IsCaptureEnabled())
-            VGA_ProcessScanline(NULL);
-
         RENDER_EndUpdate(false);
     }
 
@@ -3997,112 +3972,6 @@ static void VGA_PanningLatch(Bitu /*val*/) {
     }
 }
 
-extern SDL_Rect                            vga_capture_current_rect;
-extern uint32_t                            vga_capture_current_address;
-extern uint32_t                            vga_capture_write_address;
-
-void VGA_ProcessScanline(const uint8_t *raw) {
-    if (raw == NULL) { // end of the frame
-        if (VGA_IsCaptureInProgress()) {
-            VGA_MarkCaptureInProgress(false);
-            VGA_MarkCaptureAcquired();
-        }
-
-        return;
-    }
-
-    // assume VGA_IsCaptureEnabled()
-    if (!VGA_IsCaptureInProgress()) {
-        if (vga_capture_current_address != (uint32_t)0 && (unsigned int)vga.draw.lines_done == (unsigned int)vga_capture_current_rect.y) { // start
-            VGA_MarkCaptureInProgress(true);
-            VGA_CaptureWriteScanline(raw);
-        }
-    }
-    else {
-        if ((unsigned int)vga.draw.lines_done == ((unsigned int)vga_capture_current_rect.y+vga_capture_current_rect.h)) { // first line past end
-            VGA_MarkCaptureInProgress(false);
-            VGA_MarkCaptureAcquired();
-        }
-        else {
-            VGA_CaptureWriteScanline(raw);
-        }
-    }
-}
-
-extern uint32_t vga_capture_stride;
-
-template <const unsigned int bpp,typename BPPT> uint32_t VGA_CaptureConvertPixel(const BPPT raw) {
-    unsigned char r,g,b;
-
-    /* FIXME: Someday this code will have to deal with 10:10:10 32-bit RGB.
-     * Also the 32bpp case shows how hacky this codebase is with regard to 32bpp color order support */
-    if (bpp == 32) {
-        if (GFX_bpp >= 24) {
-            r = ((uint32_t)raw & GFX_Rmask) >> (uint32_t)GFX_Rshift;
-            g = ((uint32_t)raw & GFX_Gmask) >> (uint32_t)GFX_Gshift;
-            b = ((uint32_t)raw & GFX_Bmask) >> (uint32_t)GFX_Bshift;
-        }
-        else {
-            // hack alt, see vga_dac.cpp
-            return raw;
-        }
-    }
-    else if (bpp == 16) {
-        /* 5:5:5 or 5:6:5 */
-        r = ((uint16_t)raw & (uint16_t)GFX_Rmask) >> (uint16_t)GFX_Rshift;
-        g = ((uint16_t)raw & (uint16_t)GFX_Gmask) >> (uint16_t)GFX_Gshift;
-        b = ((uint16_t)raw & (uint16_t)GFX_Bmask) >> (uint16_t)GFX_Bshift;
-
-        r <<= 3;
-        g <<= (GFX_Gmask == 0x3F ? 2/*5:6:5*/ : 3/*5:5:5*/);
-        b <<= 3;
-    }
-    else if (bpp == 8) {
-        r = render.pal.rgb[raw].red;
-        g = render.pal.rgb[raw].green;
-        b = render.pal.rgb[raw].blue;
-    }
-    else {
-        r = g = b = 0;
-    }
-
-    /* XRGB */
-    return  ((uint32_t)r << (uint32_t)16ul) +
-            ((uint32_t)g << (uint32_t) 8ul) +
-            ((uint32_t)b                  );
-}
-
-template <const unsigned int bpp,typename BPPT> void VGA_CaptureWriteScanlineChecked(const BPPT *raw) {
-    raw += vga_capture_current_rect.x;
-
-    /* output is ALWAYS 32-bit XRGB */
-    for (unsigned int i=0;(int)i < vga_capture_current_rect.w;i++)
-        phys_writed(vga_capture_write_address+(i*4),
-            VGA_CaptureConvertPixel<bpp,BPPT>(raw[i]));
-
-    vga_capture_write_address += vga_capture_stride;
-}
-
-void VGA_CaptureWriteScanline(const uint8_t *raw) {
-    // NTS: phys_writew() will cause a segfault if the address is beyond the end of memory,
-    //      because it computes MemBase+addr
-    PhysPt MemMax = (PhysPt)MEM_TotalPages() * (PhysPt)4096ul;
-
-    if (vga_capture_write_address != (uint32_t)0 &&
-        vga_capture_write_address < 0xFFFF0000ul &&
-        (vga_capture_write_address + (vga_capture_current_rect.w*4ul)) <= MemMax) {
-        switch (vga.draw.bpp) {
-            case 32:    VGA_CaptureWriteScanlineChecked<32>((const uint32_t*)raw); break;
-            case 16:    VGA_CaptureWriteScanlineChecked<16>((const uint16_t*)raw); break;
-            case 15:    VGA_CaptureWriteScanlineChecked<16>((const uint16_t*)raw); break;
-            case 8:     VGA_CaptureWriteScanlineChecked< 8>(raw); break;
-        }
-    }
-    else {
-        VGA_CaptureMarkError();
-    }
-}
-
 /* VGA debug screen */
 struct VGA_debug_screen_func_t {
 	void		(*clear)(unsigned int color);
@@ -4203,12 +4072,6 @@ static const VGA_debug_screen_func_t VGA_debug_screen_funcs32 = {
 };
 
 extern uint8_t int10_font_08[256 * 8];
-
-static int VGA_debug_screen_putc8(int x,int y,unsigned char c,unsigned int color) {
-	VGA_debug_screen_func->bitblt(x,y,8,8,1,int10_font_08 + ((unsigned int)c * 8),color);
-	x += 8;
-	return x;
-}
 
 static int VGA_debug_screen_puts8(int x,int y,const char *msg,unsigned int color) {
 	while (*msg != 0) {
@@ -5829,18 +5692,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	if (vga_render_on_demand)
 		VGA_RenderOnDemandComplete();
 
-	if (VGA_IsCaptureEnabled()) {
-		if (VGA_IsCaptureInProgress()) {
-			VGA_MarkCaptureInProgress(false);
-			VGA_MarkCaptureAcquired();
-		}
-
-		VGA_MarkCaptureRetrace();
-		VGA_CaptureStartNextFrame();
-		if (!VGA_CaptureValidateCurrentFrame())
-			VGA_CaptureMarkError();
-	}
-
 	if (CaptureState & CAPTURE_RAWIMAGE) {
 		if (!rawshot.capturing) {
 			if (VGA_DrawRawLine != NULL) {
@@ -6592,10 +6443,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 				if (vga.draw.mode==EGALINE) PIC_RemoveEvents(VGA_DrawEGASingleLine);
 				else PIC_RemoveEvents(VGA_DrawSingleLine);
 				vga_mode_frames_since_time_base++;
-
-				if (VGA_IsCaptureEnabled())
-					VGA_ProcessScanline(NULL);
-
 				RENDER_EndUpdate(true);
 			}
 			vga.draw.lines_done = 0;
