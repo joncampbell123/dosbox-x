@@ -1,4 +1,6 @@
 
+#include "dos_inc.h"
+
 #define PC98_GDC_FIFO_SIZE      32      /* taken from Neko Project II, but what is it really? */
 #define GDC_COMMAND_BYTE        0x100
 
@@ -203,6 +205,41 @@ extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.m
 
 extern bool                         pc98_timestamp5c;
 
+extern uint8_t                      GDC_display_plane_wait_for_vsync;
+
 Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/);
 void pc98_write_9a8(Bitu port,Bitu val,Bitu iolen);
+
+void gdc_5mhz_mode_update_vars(void);
+void pc98_port6A_command_write(unsigned char b);
+void pc98_wait_write(Bitu port,Bitu val,Bitu iolen);
+void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen);
+void pc98_port68_command_write(unsigned char b);
+Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/);
+void pc98_write_9a0(Bitu port,Bitu val,Bitu iolen);
+Bitu pc98_crtc_read(Bitu port,Bitu iolen);
+Bitu pc98_a1_read(Bitu port,Bitu iolen);
+void pc98_a1_write(Bitu port,Bitu val,Bitu iolen);
+void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen);
+Bitu pc98_gdc_read(Bitu port,Bitu iolen);
+Bitu pc98_egc4a0_read(Bitu port,Bitu iolen);
+void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen);
+Bitu pc98_egc4a0_read_warning(Bitu port,Bitu iolen);
+void pc98_egc4a0_write_warning(Bitu port,Bitu val,Bitu iolen);
+
+extern const UINT8 gdc_defsyncm15[8];
+extern const UINT8 gdc_defsyncs15[8];
+
+extern const UINT8 gdc_defsyncm24[8];
+extern const UINT8 gdc_defsyncs24[8];
+
+extern const UINT8 gdc_defsyncm31[8];
+extern const UINT8 gdc_defsyncs31[8];
+
+extern const UINT8 gdc_defsyncm31_480[8];
+extern const UINT8 gdc_defsyncs31_480[8];
+
+void PC98_Set24KHz(void);
+void PC98_Set31KHz(void);
+void PC98_Set31KHz_480line(void);
 

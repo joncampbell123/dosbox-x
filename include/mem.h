@@ -348,4 +348,6 @@ void physdev_writed(const PhysPt64 addr,const uint32_t val);
 uint32_t MEM_get_address_bits();
 uint32_t MEM_get_address_bits4GB();
 
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
+
 #endif
