@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#define VGA_INTERNAL
 
 #include "dosbox.h"
 #include "inout.h"
@@ -28,8 +29,6 @@ extern bool vga_ignore_extended_memory_bit;
 
 extern bool vga_render_on_demand;
 void VGA_RenderOnDemandUpTo(void);
-
-#define seq(blah) vga.seq.blah
 
 Bitu read_p3c4(Bitu /*port*/,Bitu /*iolen*/) {
 	return seq(index);
