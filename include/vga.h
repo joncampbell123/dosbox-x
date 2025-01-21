@@ -933,6 +933,10 @@ static inline unsigned char *pc98_vram_256bank_from_window(const unsigned int b)
 #define crtc(blah) vga.crtc.blah
 #endif
 
+#define IS_RESET ((vga.seq.reset&0x3)!=0x3)
+#define IS_SCREEN_ON ((vga.seq.clocking_mode&0x20)==0)
+
+bool J3_IsCga4Dcga();
 void UpdateCGAFromSaveState(void);
 void INT10_PC98_CurMode_Relocate(void);
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
