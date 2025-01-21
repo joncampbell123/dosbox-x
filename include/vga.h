@@ -943,6 +943,7 @@ static inline unsigned char *pc98_vram_256bank_from_window(const unsigned int b)
 bool J3_IsCga4Dcga();
 void UpdateCGAFromSaveState(void);
 void INT10_PC98_CurMode_Relocate(void);
+unsigned int VGA_ComplexityCheck_ODDEVEN(void);
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
 uint32_t GetReportedVideoMemorySize(void);
 extern void VGA_TweakUserVsyncOffset(float val);
