@@ -310,12 +310,12 @@ static uint16_t ibmjp_handle;
 static uint16_t avsdrv_handle;
 
 static bool hat_flag[] = {
-//             a      b      c      d      e      f     g      h
-	false, true,  true,  true,  true,  true, false, false, false,
-//      i      j      k      l      m      n     o      p      q
-	false, false, true,  true,  false, true, true,  false, true,
-//      r      s      t      u      v      w     x      y      z
-	true,  false, false, false, true,  true, true,  true,  true
+//             a      b      c      d      e      f      g      h
+	false, true,  true,  true,  true,  true,  false, false, false,
+//      i      j      k      l      m      n      o      p      q
+	false, false, true,  true,  false, true,  true,  false, true,
+//      r      s      t      u      v      w      x      y      z
+	true,  false, false, false, true,  true,  true,  true,  true
 };
 
 bool CheckHat(uint8_t code)
