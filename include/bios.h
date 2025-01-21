@@ -173,6 +173,55 @@
 #define CURSOR_SCAN_LINE_INSERT                                 (0x4)
 #define CURSOR_SCAN_LINE_END                                    (0x7)
 
+// NEC PC-98 BIOS data area
+
+#define BIOS98_FLAG2                                            0x400 /* bit 7: 1=RAM drive function present [6:0]=a lot of other various stuff */
+#define BIOS98_EXTMEM_286                                       0x401 /* extended memory between 0x100000-0xFFFFFF in 128KB units (286+ BIOS) */
+#define BIOS98_SYS_SEL                                          0x402 /* SHIFT/CTRL/GRPH held down, [3:0] = hard disk boot partition selector (Hires) */
+                                                             /* 0x403 ITF ROM work area */
+#define BIOS98_286_RESET_VECTOR                                 0x404 /* uint32_t FAR 16:16, sets SS:SP to this value and RETF */
+                                                             /* 0x408-0x40F various */
+#define BIOS98_KB_SHIFT_CODE_HIRES                              0x408 /* Hi-res shift key redefinition table */
+#define BIOS98_KB_BUFFER_ADR                                    0x410 /* uint32_t FAR 16:16 keyboard buffer address (hires) */
+#define BIOS98_KB_ENTRY_TBL_ADR                                 0x414 /* uint32_t FAR 16:16 key data conversion table (hires) */
+#define BIOS98_KB_INT_ADR                                       0x418 /* uint32_t FAR 16:16 keyboard interrupt table (hires) */
+#define BIOS98_PR_TIME                                          0x41C /* uint16_t printer timeout in 10ms units */
+                                                             /* 0x41E-0x447 various */
+#define BIOS98_CAL_BEEP_TIME                                    0x448 /* uint16_t BEEP duration counter (hires) */
+#define BIOS98_CAL_TONE                                         0x44A /* uint16_t BEEP tone (8253A counter value) */
+#define BIOS98_CAL_USER_OFFSEG                                  0x44C /* uint32_t FAR 16:16 single-event timer timeout callback (hires) */
+#define BIOS98_CRT_FONT                                         0x450 /* uint8_t[2] (port A1h,port A3h) value to output to CG (hires) */
+#define BIOS98_RT_P1                                            0x452 /* (hires) cursor display, text scanline height */
+#define BIOS98_RT_P2                                            0x453 /* (hires) cursor blink, top of cursor */
+#define BIOS98_RT_P3                                            0x454 /* (hires) cursor blink, bottom of cursor */
+                                                             /* 0x455-0x456 various */
+#define BIOS98_IDE_HDD_CAPACITY                                 0x457 /* bit 7=1st IDE 512/256 byte/sect bit 6=2nd IDE 512/256 byte/sec bit 5-3=1st IDE capacity 2-0=2nd IDE capacity 0x00=Does not support IDE 0x3F=supports IDE but no drives */
+#define BIOS98_MODEL_ID                                         0x458 /* bits that identify various models */
+#define BIOS98_CRT_EXT_STS                                      0x459 /* [7:6]=ext attr mode [5:4]=various [3]=hires interlace [2:1]=various [0]=640x480 if set, 640x400 if not */
+#define BIOS98_BIOS_FLAG6                                       0x45A /* either [7:0]=CPU clock or [7:4]=CPU type [3:0]=CPU clock */
+#define BIOS98_BIOS_FLAG7                                       0x45B /* time stamper and port 5Fh wait among other various things */
+                                                             /* 0x45C-0x45F various */
+#define BIOS98_SCSI_PARAMETER_TABLE                             0x460 /* struct { uint8_t various[4]; } scsidev[8]; */
+#define BIOS98_BIOS_FLAG1                                       0x480 /* [7]=SASI/IDE new sense [6]=EGC supported [5:0]=various */
+#define BIOS98_BIOS_FLAG3                                       0x481 /* [6,3]=keyboard ID [5]=EMS page frame B0000h [4]=B0000h status (VRAM/EMS) various */
+#define BIOS98_DISK_EQUIPS                                      0x482 /* [7:0]=SCSI #7-SCSI #0 (matches bit) HDD connected or not */
+#define BIOS98_SCSI_STATUS                                      0x483
+#define BIOS98_BIOS_FLAG4                                       0x484 /* [7:6]=HDD DMA channel [5]=builtin SCSI [4]=builtin SASI [3:0]=CPU speed */
+#define BIOS98_DISK_MOTOR_STOP_COUNTER                          0x485 /* in 100ms units */
+#define BIOS98_CPU386                                           0x486 /* uint16_t DX value after CPU reset, 386 or higher */
+#define BIOS98_RDISK_EQUIP                                      0x488 /* [7:4]=640KB FD unit 3,2,1,0 [3:0]=1MB FD unit 3,2,1,0 is/isn't RAM drive */
+#define BIOS98_RDISK_WORK_JMP                                   0x489 /* uint8_t[5] JMP FAR instruction to BIOS */
+#define BIOS98_RDISK_FLAGS                                      0x48E /* [7]=processing [6:4]=SMM out [3]=FDD processing [2]=RAM drive number [1:0]=I/F mode */
+                                                             /* 0x48F unused */
+#define BIOS98_YET_ANOTHER_BEEP_PITCH                           0x490 /* uint16_t hires beep pitch */
+#define BIOS98_DISK_RESET                                       0x492 /* [7:4]=recalibrate request 640KB unit 3,2,1,0 [3:0]=recalibrate request 1MB unit 3,2,1,0 */
+#define BIOS98_F2HD_MODE                                        0x493 /* [7:4]=640KB FDD unit 3,2,1,0 80/40 cylinders [3:0]=640KB FDD unit 3,2,1,0 double/single sided */
+#define BIOS98_DISK_EQUIP2                                      0x494 /* [7:4]=external FDD unit 3,2,1,0 1MB drive in 640KB mode */
+#define BIOS98_GRAPH_CHG                                        0x495 /* GRCG/EGC mode register setting for use by interrupt handlers like mouse drivers */
+#define BIOS98_GRAPH_TAL                                        0x496 /* uint8_t[4] GRCG tile registers */
+                                                             /* 0x49A-0x4AB various */
+#define BIOS98_XROM_PTR                                         0x49C /* uint32_t FAR 16:16 JMP destination address from INT 1Bh to extended BIOS */
+
 extern Bitu BIOS_DEFAULT_IRQ0_LOCATION;                         // RealMake(0xf000,0xfea5)
 extern Bitu BIOS_DEFAULT_IRQ1_LOCATION;                         // RealMake(0xf000,0xe987)
 extern Bitu BIOS_DEFAULT_IRQ2_LOCATION;                         // RealMake(0xf000,0xff55)
