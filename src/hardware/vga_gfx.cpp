@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#define VGA_INTERNAL
 
 #include "dosbox.h"
 #include "inout.h"
@@ -25,7 +26,6 @@
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
 
-#define gfx(blah) vga.gfx.blah
 static bool index9warned=false;
 
 static void write_p3ce(Bitu port,Bitu val,Bitu iolen) {

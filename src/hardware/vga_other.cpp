@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#define VGA_INTERNAL
 
 #include <string.h>
 #include <math.h>
@@ -38,8 +39,6 @@ void ttf_switch_off(bool ss = true);
 
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
-
-#define crtc(blah) vga.crtc.blah
 
 static Bitu read_cga(Bitu /*port*/,Bitu /*iolen*/);
 static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/);
