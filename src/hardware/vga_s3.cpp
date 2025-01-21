@@ -696,7 +696,7 @@ void SVGA_Setup_S3Trio(void) {
     svga.read_p3c1 = nullptr; /* no S3-specific functionality */
 
     svga.set_video_mode = nullptr; /* implemented in core */
-    svga.determine_mode = nullptr; /* implemented in core */
+    svga.determine_mode = &VGA_DetermineMode_S3;
     svga.set_clock = &SetClock_S3;
     svga.get_clock = &SVGA_S3_GetClock;
     svga.hardware_cursor_active = &SVGA_S3_HWCursorActive;
@@ -746,6 +746,48 @@ void SVGA_Setup_S3Trio(void) {
     }
 
     PCI_AddSVGAS3_Device();
+}
+
+void VGA_DetermineMode_S3(void) {
+	/* Test for VGA output active or direct color modes */
+	switch (vga.s3.misc_control_2 >> 4) {
+		case 0:
+			if (vga.attr.mode_control & 1) { // graphics mode
+				if (IS_VGA_ARCH && ((vga.gfx.mode & 0x40)||(vga.s3.reg_3a&0x10))) {
+					// access above 256k?
+					if (vga.s3.reg_31 & 0x8) VGA_SetMode(M_LIN8);
+					else VGA_SetMode(M_VGA);
+				}
+				// NTS: Also handled by M_EGA case
+				//          else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
+
+				// NTS: Two things here. One is that CGA 2-color mode (and the MCGA 640x480 2-color mode)
+				//      are just EGA planar modes with fewer bitplanes enabled. The planar render mode can
+				//      display them just fine. The other is that checking for 2-color CGA mode entirely by
+				//      whether video RAM is mapped to B8000h is a really lame way to go about it.
+				//
+				//      The only catch here is that a contributor (Wengier, I think?) tied a DOS/V CGA rendering
+				//      mode into M_CGA2 that we need to watch for.
+				//
+				else if (VGA_DetermineMode_IsDCGA()) {
+					VGA_SetMode(M_DCGA);
+				}
+				else {
+					// access above 256k?
+					if (vga.s3.reg_31 & 0x8) VGA_SetMode(M_LIN4);
+					else VGA_SetMode(M_EGA);
+				}
+			} else {
+				VGA_SetMode(M_TEXT);
+			}
+			break;
+		case 1:VGA_SetMode(M_LIN8);break;
+		case 3:VGA_SetMode(M_LIN15);break;
+		case 5:VGA_SetMode(M_LIN16);break;
+		case 7:VGA_SetMode(M_LIN24);break;
+		case 13:VGA_SetMode(M_LIN32);break;
+		case 15:VGA_SetMode(M_PACKED4);break;// hacked
+	}
 }
 
 void SetClock_S3(Bitu which,Bitu target) {

@@ -289,50 +289,38 @@ bool VGA_DetermineMode_IsDCGA(void) {
 	return (vga.gfx.miscellaneous & 0x0c) == 0x0c && J3_IsCga4Dcga();
 }
 
-void VGA_DetermineMode(void) {
-	if (svga.determine_mode) {
-		svga.determine_mode();
-		return;
-	}
-	/* Test for VGA output active or direct color modes */
-	switch (vga.s3.misc_control_2 >> 4) {
-		case 0:
-			if (vga.attr.mode_control & 1) { // graphics mode
-				if (IS_VGA_ARCH && ((vga.gfx.mode & 0x40)||(vga.s3.reg_3a&0x10))) {
-					// access above 256k?
-					if (vga.s3.reg_31 & 0x8) VGA_SetMode(M_LIN8);
-					else VGA_SetMode(M_VGA);
-				}
-				// NTS: Also handled by M_EGA case
-				//          else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
+void VGA_DetermineMode_StandardVGA(void) { /* and EGA, the extra regs are not used for machine=ega */
+	if (vga.attr.mode_control & 1) { // graphics mode
+		if (IS_VGA_ARCH && (vga.gfx.mode & 0x40)) {
+			VGA_SetMode(M_VGA);
+		}
+		// NTS: Also handled by M_EGA case
+		//          else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
 
-				// NTS: Two things here. One is that CGA 2-color mode (and the MCGA 640x480 2-color mode)
-				//      are just EGA planar modes with fewer bitplanes enabled. The planar render mode can
-				//      display them just fine. The other is that checking for 2-color CGA mode entirely by
-				//      whether video RAM is mapped to B8000h is a really lame way to go about it.
-				//
-				//      The only catch here is that a contributor (Wengier, I think?) tied a DOS/V CGA rendering
-				//      mode into M_CGA2 that we need to watch for.
-				//
-				else if (VGA_DetermineMode_IsDCGA()) {
-					VGA_SetMode(M_DCGA);
-				}
-				else {
-					// access above 256k?
-					if (vga.s3.reg_31 & 0x8) VGA_SetMode(M_LIN4);
-					else VGA_SetMode(M_EGA);
-				}
-			} else {
-				VGA_SetMode(M_TEXT);
-			}
-			break;
-		case 1:VGA_SetMode(M_LIN8);break;
-		case 3:VGA_SetMode(M_LIN15);break;
-		case 5:VGA_SetMode(M_LIN16);break;
-		case 7:VGA_SetMode(M_LIN24);break;
-		case 13:VGA_SetMode(M_LIN32);break;
-		case 15:VGA_SetMode(M_PACKED4);break;// hacked
+		// NTS: Two things here. One is that CGA 2-color mode (and the MCGA 640x480 2-color mode)
+		//      are just EGA planar modes with fewer bitplanes enabled. The planar render mode can
+		//      display them just fine. The other is that checking for 2-color CGA mode entirely by
+		//      whether video RAM is mapped to B8000h is a really lame way to go about it.
+		//
+		//      The only catch here is that a contributor (Wengier, I think?) tied a DOS/V CGA rendering
+		//      mode into M_CGA2 that we need to watch for.
+		//
+		else if (VGA_DetermineMode_IsDCGA()) {
+			VGA_SetMode(M_DCGA);
+		}
+		else {
+			VGA_SetMode(M_EGA);
+		}
+	} else {
+		VGA_SetMode(M_TEXT);
 	}
+}
+
+void VGA_DetermineMode(void) {
+	if (svga.determine_mode)
+		svga.determine_mode();
+	else
+		VGA_DetermineMode_StandardVGA();
 }
 
 void VGA_StartResize(Bitu delay /*=50*/) {
@@ -349,10 +337,8 @@ void VGA_StartResize(Bitu delay /*=50*/) {
 }
 
 void VGA_SetClock(Bitu which,Bitu target) {
-	if (svga.set_clock) {
+	if (svga.set_clock)
 		svga.set_clock(which, target);
-		return;
-	}
 }
 
 void VGA_SetCGA2Table(uint8_t val0,uint8_t val1) {
