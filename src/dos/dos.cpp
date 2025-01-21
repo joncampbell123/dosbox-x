@@ -634,9 +634,10 @@ void DOS_PrintCBreak() {
 
 bool DOS_BreakTest(bool print=true) {
 	if (DOS_BreakFlag) {
+		/* NTS: DOS calls are allowed within INT 23h! */
 		bool terminate = true;
 		bool terminint23 = false;
-		Bitu segv,offv;
+		Bitu save_sp = reg_sp;
 
 		/* print ^C on the console */
 		if (print) DOS_PrintCBreak();
@@ -644,65 +645,57 @@ bool DOS_BreakTest(bool print=true) {
 		DOS_BreakFlag = false;
 		DOS_BreakConioFlag = false;
 
-		offv = mem_readw((0x23*4)+0);
-		segv = mem_readw((0x23*4)+2);
-		if (segv != 0) {
-			/* NTS: DOS calls are allowed within INT 23h! */
-			Bitu save_sp = reg_sp;
+		/* set carry flag */
+		reg_flags |= 1;
 
-			/* set carry flag */
-			reg_flags |= 1;
-
-			/* invoke INT 23h */
-			/* NTS: Some DOS programs provide their own INT 23h which then calls INT 21h AH=0x4C
-			 *      inside the handler! Set a flag so that if that happens, the termination
-			 *      handler will throw us an exception to force our way back here after
-			 *      termination completes!
-			 *
-			 *      This fixes: PC Mix compiler PCL.EXE
-			 *
-			 *      2023/09/28: Some basic debugging with MS-DOS 6.22 shows the INT 23h handler
-			 *                  installed by COMMAND.COM does the same thing (INT 21h AH=0x4C)
-			 *                  which is normally still there unless the DOS application itself
-			 *                  replaces the vector.
-			 *
-			 *      FIXME: This is an ugly hack! */
-			try {
-				DOS_BreakINT23InProgress = true;
-				CALLBACK_RunRealInt(0x23);
+		/* invoke INT 23h */
+		/* NTS: Some DOS programs provide their own INT 23h which then calls INT 21h AH=0x4C
+		 *      inside the handler! Set a flag so that if that happens, the termination
+		 *      handler will throw us an exception to force our way back here after
+		 *      termination completes!
+		 *
+		 *      This fixes: PC Mix compiler PCL.EXE
+		 *
+		 *      2023/09/28: Some basic debugging with MS-DOS 6.22 shows the INT 23h handler
+		 *                  installed by COMMAND.COM does the same thing (INT 21h AH=0x4C)
+		 *                  which is normally still there unless the DOS application itself
+		 *                  replaces the vector.
+		 *
+		 *      FIXME: This is an ugly hack! */
+		try {
+			DOS_BreakINT23InProgress = true;
+			CALLBACK_RunRealInt(0x23);
+			DOS_BreakINT23InProgress = false;
+		}
+		catch (int x) {
+			/* 2025/01/20: The throw code used to be int(0) but if that were allowed to bubble up
+			 *             to the main function it would be mistaken as an entirely different
+			 *             signal, so instead use int(9000), a number high enough not to conflict
+			 *             but just low enough to prevent Vegeta from saying his well-known
+			 *             meme-worthy phrase. */
+			if (x == 9000) {
 				DOS_BreakINT23InProgress = false;
+				terminint23 = true;
 			}
-			catch (int x) {
-				if (x == 0) {
-					DOS_BreakINT23InProgress = false;
-					terminint23 = true;
-				}
-				else {
-					LOG_MSG("Unexpected code in INT 23h termination exception\n");
-					abort();
-				}
-			}
-
-			/* if the INT 23h handler did not already terminate itself... */
-			if (!terminint23) {
-				/* if it returned with IRET, or with RETF and CF=0, don't terminate */
-				if (reg_sp == save_sp || (reg_flags & 1) == 0) {
-					terminate = false;
-					LOG_MSG("Note: DOS handler does not wish to terminate\n");
-				}
-				else {
-					/* program does not wish to continue. it used RETF. pop the remaining flags off */
-					LOG_MSG("Note: DOS handler does wish to terminate\n");
-				}
-
-				if (reg_sp != save_sp) reg_sp += 2;
+			else {
+				LOG_MSG("Unexpected code in INT 23h termination exception\n");
+				throw;
 			}
 		}
-		else {
-			/* Old comment: "HACK: DOSBox's shell currently does not assign INT 23h"
-			 * 2023/09/28: The DOSBox command shell now installs a handler, therefore
-			 *             a null vector is now something to warn about. */
-			LOG_MSG("WARNING: INT 23h CTRL+C vector is NULL\n");
+
+		/* if the INT 23h handler did not already terminate itself... */
+		if (!terminint23) {
+			/* if it returned with IRET, or with RETF and CF=0, don't terminate */
+			if (reg_sp == save_sp || (reg_flags & 1) == 0) {
+				terminate = false;
+				LOG_MSG("Note: DOS handler does not wish to terminate\n");
+			}
+			else {
+				/* program does not wish to continue. it used RETF. pop the remaining flags off */
+				LOG_MSG("Note: DOS handler does wish to terminate\n");
+			}
+
+			if (reg_sp != save_sp) reg_sp += 2;
 		}
 
 		if (terminate) {
@@ -1095,7 +1088,7 @@ static Bitu DOS_21Handler(void) {
 			else
                 DOS_Terminate(real_readw(SegValue(ss),reg_sp+2),false,0);
 
-            if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+            if (DOS_BreakINT23InProgress) throw int(9000); /* HACK: Ick */
             dos_program_running = false;
             *appname=0;
             *appargs=0;
@@ -1734,7 +1727,7 @@ static Bitu DOS_21Handler(void) {
 
             DOS_ResizeMemory(dos.psp(),&reg_dx);
             DOS_Terminate(dos.psp(),true,reg_al);
-            if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+            if (DOS_BreakINT23InProgress) throw int(9000); /* HACK: Ick */
             dos_program_running = false;
             *appname=0;
             *appargs=0;
@@ -2341,7 +2334,7 @@ static Bitu DOS_21Handler(void) {
                 dos.return_code = result_errorcode;
                 result_errorcode = 0;
             }
-            if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+            if (DOS_BreakINT23InProgress) throw int(9000); /* HACK: Ick */
 #if defined (WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
             if (winautorun&&reqwin&&*appname&&!control->SecureMode())
                 HostAppRun();
@@ -3208,7 +3201,7 @@ static Bitu DOS_27Handler(void) {
 	uint16_t psp = dos.psp(); //mem_readw(SegPhys(ss)+reg_sp+2);
 	if (DOS_ResizeMemory(psp,&para)) {
 		DOS_Terminate(psp,true,0);
-		if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+		if (DOS_BreakINT23InProgress) throw int(9000); /* HACK: Ick */
 	}
 	return CBRET_NONE;
 }
