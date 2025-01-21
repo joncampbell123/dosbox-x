@@ -28,11 +28,24 @@
 #define BIOS_ADDRESS_LPT1                                       0x408 /* uint16_t */
 #define BIOS_ADDRESS_LPT2                                       0x40a /* uint16_t */
 #define BIOS_ADDRESS_LPT3                                       0x40c /* uint16_t */
-                                                             /* 0x40e is reserved */
+#define BIOS_ADDRESS_LPT4                                       0x40e /* uint16_t (older systems) */
+#define BIOS_EXTENDED_BIOS_DATA_SEGMENT                         0x40e /* uint16_t (newer systems since PS/2) */
 #define BIOS_CONFIGURATION                                      0x410 /* uint16_t */
-                                                             /* 0x412 is reserved */
-#define BIOS_MEMORY_SIZE                                        0x413 /* uint16_t */
-#define BIOS_TRUE_MEMORY_SIZE                                   0x415 /* uint16_t */
+                                                                /* [15:14] = number of LPT devices
+                                                                 * [13:12] = reserved
+                                                                 * [11: 9] = number of serial devices
+                                                                 * [ 8: 8] = reserved
+                                                                 * [ 7: 6] = number of floppy drives minus 1
+                                                                 * [ 5: 4] = initial video mode
+                                                                 *             00b = EGA,VGA,etc
+                                                                 *             01b = 40x25 color text
+                                                                 *             10b = 80x25 color text
+                                                                 *             11b = 80x25 monochrome
+                                                                 */
+                                                             /* 0x412 is reserved (POST flag?) */
+#define BIOS_MEMORY_SIZE                                        0x413 /* uint16_t, in KB, conventional memory */
+#define BIOS_TRUE_MEMORY_SIZE                                   0x415 /* uint16_t, in KB, conventional memory (XT) */
+                                                             /* 0x415 is reserved (AT error code?) */
 
 #define BIOS_KEYBOARD_STATE                                     0x417
 #define BIOS_KEYBOARD_FLAGS1                                    BIOS_KEYBOARD_STATE
@@ -49,64 +62,63 @@
 #define BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED                        (1 << 0)
 #define BIOS_KEYBOARD_FLAGS2_LALT_PRESSED                         (1 << 1)
 #define BIOS_KEYBOARD_FLAGS2_SYSTEMKEY_HELD                       (1 << 2)
-#define BIOS_KEYBOARD_FLAGS2_SUSPENDKEY_TOGGLED                   (1 << 3)
+#define BIOS_KEYBOARD_FLAGS2_SUSPENDKEY_TOGGLED                   (1 << 3) /* pause active */
 #define BIOS_KEYBOARD_FLAGS2_SCROLL_LOCK_PRESSED                  (1 << 4)
 #define BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED                     (1 << 5)
 #define BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED                    (1 << 6)
 #define BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED                       (1 << 7)
 
-#define BIOS_KEYBOARD_TOKEN                                     0x419 /* used for keyboard input with Alt-Number */
+#define BIOS_KEYBOARD_TOKEN                                     0x419 /* Alt+Numpad work area */
 #define BIOS_KEYBOARD_BUFFER_HEAD                               0x41a /* uint16_t */
 #define BIOS_KEYBOARD_BUFFER_TAIL                               0x41c /* uint16_t */
-#define BIOS_KEYBOARD_BUFFER                                    0x41e /* uint16_t[] */
-#define BIOS_DRIVE_ACTIVE                                       0x43e
-#define BIOS_DRIVE_RUNNING                                      0x43f
-#define BIOS_DISK_MOTOR_TIMEOUT                                 0x440
-#define BIOS_DISK_STATUS                                        0x441
-/* #define bios_fdc_result_buffer          (*(unsigned short *) 0x442) */
-#define BIOS_VIDEO_MODE                                         0x449
-#define BIOS_SCREEN_COLUMNS                                     0x44a
-#define BIOS_VIDEO_MEMORY_USED                                  0x44c
-#define BIOS_VIDEO_MEMORY_ADDRESS                               0x44e
-#define BIOS_VIDEO_CURSOR_POS                                   0x450
-
-#define BIOS_CURSOR_SHAPE                                       0x460
-#define BIOS_CURSOR_LAST_LINE                                   0x460
-#define BIOS_CURSOR_FIRST_LINE                                  0x461
-#define BIOS_CURRENT_SCREEN_PAGE                                0x462
-#define BIOS_VIDEO_PORT                                         0x463
-#define BIOS_VDU_CONTROL                                        0x465
-#define BIOS_VDU_COLOR_REGISTER                                 0x466
-                                                             /* 0x467-0x468 is reserved */
+#define BIOS_KEYBOARD_BUFFER                                    0x41e /* uint16_t[16] */
+#define BIOS_DRIVE_ACTIVE                                       0x43e /* Floppy calibration status */
+#define BIOS_DRIVE_RUNNING                                      0x43f /* Floppy motor status */
+#define BIOS_DISK_MOTOR_TIMEOUT                                 0x440 /* Floppy motor timeout */
+#define BIOS_DISK_STATUS                                        0x441 /* Floppy drive status */
+#define BIOS_FLOPPY_CONTROLLER_STAT_CMD_REGS                    0x442 /* uint8_t[7] status/command bytes */
+#define BIOS_VIDEO_MODE                                         0x449 /* Current INT 10h mode */
+#define BIOS_SCREEN_COLUMNS                                     0x44a /* uint16_t */
+#define BIOS_VIDEO_MEMORY_USED                                  0x44c /* uint16_t */
+#define BIOS_VIDEO_MEMORY_ADDRESS                               0x44e /* uint16_t */
+#define BIOS_VIDEO_CURSOR_POS                                   0x450 /* struct { uint8_t col, row } pos[8] */
+#define BIOS_CURSOR_SHAPE                                       0x460 /* uint16_t */
+#define BIOS_CURSOR_LAST_LINE                                   0x460 /* lower uint8_t */
+#define BIOS_CURSOR_FIRST_LINE                                  0x461 /* upper uint8_t */
+#define BIOS_CURRENT_SCREEN_PAGE                                0x462 /* uint8_t */
+#define BIOS_VIDEO_PORT                                         0x463 /* uint16_t */
+#define BIOS_VDU_CONTROL                                        0x465 /* CGA port 3D8h/MDA port 3B8h */
+#define BIOS_VDU_COLOR_REGISTER                                 0x466 /* CGA port 3D9h */
+#define BIOS_POST_RESET_VECTOR                                  0x467 /* uint32_t FAR 16:16 address to jump to after specific 286 reset */
 #define BIOS_LAST_UNEXPECTED_IRQ                                0x46b
-#define BIOS_TIMER                                              0x46c
-#define BIOS_24_HOURS_FLAG                                      0x470
-#define BIOS_CTRL_BREAK_FLAG                                    0x471
-#define BIOS_CTRL_ALT_DEL_FLAG                                  0x472
+#define BIOS_TIMER                                              0x46c /* uint32_t Timer ticks (at 18.2Hz) since midnight */
+#define BIOS_24_HOURS_FLAG                                      0x470 /* nonzero if timer tick rollover past midnight */
+#define BIOS_CTRL_BREAK_FLAG                                    0x471 /* CTRL+Break flag (bit 7=1) */
+#define BIOS_CTRL_ALT_DEL_FLAG                                  0x472 /* uint16_t POST reset flag 1234h=warm boot */
+#define BIOS_FIXED_DISK_LAST_OP_STATUS                          0x474
 #define BIOS_HARDDISK_COUNT                                     0x475
-                                                             /* 0x474, 0x476, 0x477 is reserved */
+#define BIOS_FIXED_DISK_CONTROL_BYTE                            0x476 /* XT only */
+#define BIOS_FIXED_DISK_IO_PORT_OFFSET                          0x477 /* XT only */
 #define BIOS_LPT1_TIMEOUT                                       0x478
 #define BIOS_LPT2_TIMEOUT                                       0x479
 #define BIOS_LPT3_TIMEOUT                                       0x47a
-                                                             /* 0x47b is reserved */
+#define BIOS_LPT4_TIMEOUT                                       0x47b
+#define BIOS_VIRTUAL_DMA_SUPPORT                                0x47b /* set bit 5 to signal, see INT 4Bh */
+#define BIOS_VIRTUAL_DMA_IS_SUPPORTED                             (1 << 5)
 #define BIOS_COM1_TIMEOUT                                       0x47c
 #define BIOS_COM2_TIMEOUT                                       0x47d
 #define BIOS_COM3_TIMEOUT                                       0x47e
 #define BIOS_COM4_TIMEOUT                                       0x47f
-                                                             /* 0x47e is reserved */ //<- why that?
-                                                             /* 0x47f-0x4ff is unknow for me */
-#define BIOS_KEYBOARD_BUFFER_START                              0x480
-#define BIOS_KEYBOARD_BUFFER_END                                0x482
-
+#define BIOS_KEYBOARD_BUFFER_START                              0x480 /* uint16_t */
+#define BIOS_KEYBOARD_BUFFER_END                                0x482 /* uint16_t */
 #define BIOS_ROWS_ON_SCREEN_MINUS_1                             0x484
-#define BIOS_FONT_HEIGHT                                        0x485
+#define BIOS_FONT_HEIGHT                                        0x485 /* uint16_t */
+#define BIOS_VIDEO_INFO_0                                       0x487 /* EGA/VGA control */
+#define BIOS_VIDEO_INFO_1                                       0x488 /* EGA/VGA switches */
+#define BIOS_VIDEO_INFO_2                                       0x489 /* MCGA/VGA control */
+#define BIOS_VIDEO_COMBO                                        0x48a /* MCGA/VGA Display Combination Code */
 
-#define BIOS_VIDEO_INFO_0                                       0x487
-#define BIOS_VIDEO_INFO_1                                       0x488
-#define BIOS_VIDEO_INFO_2                                       0x489
-#define BIOS_VIDEO_COMBO                                        0x48a
-
-#define BIOS_KEYBOARD_PCJR_FLAG2                                0x488 /* KB_FLAG_2 */
+#define BIOS_KEYBOARD_PCJR_FLAG2                                0x488 /* KB_FLAG_2 (PCjr) */
 #define BIOS_KEYBOARD_PCJR_FLAG2_PUTCHAR                          (1 << 0)
 #define BIOS_KEYBOARD_PCJR_FLAG2_INIT_DELAY                       (1 << 1)
 #define BIOS_KEYBOARD_PCJR_FLAG2_HALF_RATE                        (1 << 2)
@@ -115,6 +127,18 @@
 #define BIOS_KEYBOARD_PCJR_FLAG2_FN_PENDING                       (1 << 5)
 #define BIOS_KEYBOARD_PCJR_FLAG2_FN_BREAK                         (1 << 6)
 #define BIOS_KEYBOARD_PCJR_FLAG2_FN_FLAG                          (1 << 7)
+
+#define BIOS_FLOPPY_MEDIA_CONTROL                               0x48b
+#define BIOS_FIXED_DISK_CTRL_STATUS                             0x48c
+#define BIOS_FIXED_DISK_CTRL_ERROR                              0x48d
+#define BIOS_FIXED_DISK_INT_CTRL                                0x48e
+#define BIOS_FLOPPY_CONTROLLER_INFORMATION                      0x48f
+#define BIOS_FLOPPY_DRIVE_0_MEDIA_STATE                         0x490
+#define BIOS_FLOPPY_DRIVE_1_MEDIA_STATE                         0x491
+#define BIOS_FLOPPY_DRIVE_0_MEDIA_STATE_AT_START                0x492
+#define BIOS_FLOPPY_DRIVE_1_MEDIA_STATE_AT_START                0x493
+#define BIOS_FLOPPY_DRIVE_0_CURRENT_TRACK                       0x494
+#define BIOS_FLOPPP_DRIVE_1_CURRENT_TRACK                       0x495
 
 #define BIOS_KEYBOARD_FLAGS3                                    0x496
 #define BIOS_KEYBOARD_FLAGS3_HIDDEN_E1                            (1 << 0)
@@ -136,14 +160,14 @@
 #define BIOS_KEYBOARD_LEDS_MODE                                   (1 << 6)
 #define BIOS_KEYBOARD_LEDS_TRANSMIT_ERROR                         (1 << 7)
 
-#define BIOS_WAIT_FLAG_POINTER                                  0x498
-#define BIOS_WAIT_FLAG_COUNT                                    0x49c                  
+#define BIOS_WAIT_FLAG_POINTER                                  0x498 /* uint32_t FAR 16:16 */
+#define BIOS_WAIT_FLAG_COUNT                                    0x49c /* uint32_t */
 #define BIOS_WAIT_FLAG_ACTIVE                                   0x4a0
 #define BIOS_WAIT_FLAG_TEMP                                     0x4a1
+#define BIOS_LAN_BYTES                                          0x4a1 /* uint8_t[7] */
+#define BIOS_VIDEO_SAVEPTR                                      0x4a8 /* uint32_t FAR 16:16 */
 
 #define BIOS_PRINT_SCREEN_FLAG                                  0x500
-
-#define BIOS_VIDEO_SAVEPTR                                      0x4a8
 
 #define CURSOR_SCAN_LINE_NORMAL                                 (0x6)
 #define CURSOR_SCAN_LINE_INSERT                                 (0x4)
