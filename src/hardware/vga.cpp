@@ -285,6 +285,10 @@ void VGA_SetMode(VGAModes mode) {
 	VGA_StartResize();
 }
 
+bool VGA_DetermineMode_IsDCGA(void) {
+	return (vga.gfx.miscellaneous & 0x0c) == 0x0c && J3_IsCga4Dcga();
+}
+
 void VGA_DetermineMode(void) {
 	if (svga.determine_mode) {
 		svga.determine_mode();
@@ -310,8 +314,9 @@ void VGA_DetermineMode(void) {
 				//      The only catch here is that a contributor (Wengier, I think?) tied a DOS/V CGA rendering
 				//      mode into M_CGA2 that we need to watch for.
 				//
-				else if ((vga.gfx.miscellaneous & 0x0c)==0x0c && J3_IsCga4Dcga()) VGA_SetMode(M_DCGA);
-
+				else if (VGA_DetermineMode_IsDCGA()) {
+					VGA_SetMode(M_DCGA);
+				}
 				else {
 					// access above 256k?
 					if (vga.s3.reg_31 & 0x8) VGA_SetMode(M_LIN4);

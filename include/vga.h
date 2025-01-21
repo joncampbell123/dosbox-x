@@ -807,6 +807,7 @@ void SetClock_S3(Bitu which,Bitu target);
 
 // Amount of video memory required for a mode, implemented in int10_modes.cpp
 Bitu VideoModeMemSize(Bitu mode);
+bool VGA_DetermineMode_IsDCGA(void);
 
 extern uint32_t ExpandTable[256];
 extern uint32_t FillTable[16];
