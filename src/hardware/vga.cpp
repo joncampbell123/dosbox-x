@@ -116,6 +116,8 @@
  *   chained 256-color modes differently.
  */
 
+#define VGA_INTERNAL
+
 #include <assert.h>
 
 #include "dosbox.h"
@@ -130,6 +132,7 @@
 #include "setup.h"
 #include "timer.h"
 #include "mem.h"
+#include "pci_bus.h"
 #include "util_units.h"
 #include "control.h"
 #include "pc98_cg.h"
@@ -159,6 +162,8 @@
 
 using namespace std;
 
+static uint32_t                     assigned_lfb = 0;
+
 bool                                VGA_PITsync = false;
 
 unsigned int                        vbe_window_granularity = 0;
@@ -183,23 +188,8 @@ uint32_t S3_LFB_BASE =              S3_LFB_BASE_DEFAULT;
 
 bool                                enable_pci_vga = true;
 
-SDL_Rect                            vga_capture_rect = {0,0,0,0};
-SDL_Rect                            vga_capture_current_rect = {0,0,0,0};
-uint32_t                            vga_capture_current_address = 0;
-uint32_t                            vga_capture_write_address = 0; // literally the address written
-uint32_t                            vga_capture_address = 0;
-uint32_t                            vga_capture_stride = 0;
-uint32_t                            vga_capture_state = 0;
-
-SDL_Rect &VGA_CaptureRectCurrent(void) {
-    return vga_capture_current_rect;
-}
-
-SDL_Rect &VGA_CaptureRectFromGuest(void) {
-    return vga_capture_rect;
-}
-
 VGA_Type vga;
+JEGA_DATA jega;
 SVGA_Driver svga;
 int enableCGASnow;
 int vesa_modelist_cap = 0;
@@ -252,22 +242,23 @@ bool allow_vesa_8bpp = true;
 bool allow_vesa_4bpp = true;
 bool allow_vesa_tty = true;
 
-void gdc_5mhz_mode_update_vars(void);
-void pc98_port6A_command_write(unsigned char b);
-void pc98_wait_write(Bitu port,Bitu val,Bitu iolen);
-void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen);
-void pc98_port68_command_write(unsigned char b);
-Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/);
-void pc98_write_9a0(Bitu port,Bitu val,Bitu iolen);
-Bitu pc98_crtc_read(Bitu port,Bitu iolen);
-Bitu pc98_a1_read(Bitu port,Bitu iolen);
-void pc98_a1_write(Bitu port,Bitu val,Bitu iolen);
-void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen);
-Bitu pc98_gdc_read(Bitu port,Bitu iolen);
-Bitu pc98_egc4a0_read(Bitu port,Bitu iolen);
-void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen);
-Bitu pc98_egc4a0_read_warning(Bitu port,Bitu iolen);
-void pc98_egc4a0_write_warning(Bitu port,Bitu val,Bitu iolen);
+uint32_t HercBlend_2_Table[16];
+uint32_t CGA_2_Table[16];
+uint32_t CGA_4_Table[256];
+uint32_t CGA_4_HiRes_Table[256];
+uint32_t CGA_4_HiRes_TableNP[256];
+uint32_t CGA_16_Table[256];
+uint32_t TXT_Font_Table[16];
+uint32_t TXT_FG_Table[16];
+uint32_t TXT_BG_Table[16];
+uint32_t ExpandTable[256];
+uint32_t Expand16Table[4][16];
+uint32_t FillTable[16];
+uint32_t ColorTable[16];
+double vga_force_refresh_rate = -1;
+
+uint8_t CGAPal2[2] = {0,0};
+uint8_t CGAPal4[4] = {0,0,0,0};
 
 /* ARTIC (A Relative Time Indication Counter) I/O read.
  * Ports 0x5C and 0x5E.
@@ -303,21 +294,6 @@ void vsync_poll_debug_notify() {
     if (enable_vretrace_poll_debugging_marker)
         vga_3da_polled = true;
 }
-
-uint32_t HercBlend_2_Table[16];
-uint32_t CGA_2_Table[16];
-uint32_t CGA_4_Table[256];
-uint32_t CGA_4_HiRes_Table[256];
-uint32_t CGA_4_HiRes_TableNP[256];
-uint32_t CGA_16_Table[256];
-uint32_t TXT_Font_Table[16];
-uint32_t TXT_FG_Table[16];
-uint32_t TXT_BG_Table[16];
-uint32_t ExpandTable[256];
-uint32_t Expand16Table[4][16];
-uint32_t FillTable[16];
-uint32_t ColorTable[16];
-double vga_force_refresh_rate = -1;
 
 void VGA_SetModeNow(VGAModes mode) {
     if (vga.mode == mode) return;
@@ -458,9 +434,6 @@ void VGA_SetClock(Bitu which,Bitu target) {
     vga.s3.clk[which].n=best.n;
     VGA_StartResize();
 }
-
-uint8_t CGAPal2[2] = {0,0};
-uint8_t CGAPal4[4] = {0,0,0,0};
 
 void VGA_SetCGA2Table(uint8_t val0,uint8_t val1) {
     const uint8_t total[2] = {val0,val1};
@@ -648,13 +621,6 @@ static inline unsigned int int_log2(unsigned int val) {
     return log;
 }
 
-extern bool pcibus_enable;
-extern int hack_lfb_yadjust;
-extern int hack_lfb_xadjust;
-extern uint8_t GDC_display_plane_wait_for_vsync;
-
-void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
-
 VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
     if (!strcasecmp(vsyncmodestr,"off")) return VS_Off;
     else if (!strcasecmp(vsyncmodestr,"on")) return VS_On;
@@ -665,11 +631,6 @@ VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
 
     return VS_Off;
 }
-
-bool has_pcibus_enable(void);
-uint32_t GetReportedVideoMemorySize(void);
-
-static uint32_t assigned_lfb = 0;
 
 void VGA_Reset(Section*) {
 //  All non-PC98 video-related config settings are now in the [video] section
@@ -1249,18 +1210,6 @@ void VGA_Reset(Section*) {
     }
 }
 
-extern void VGA_TweakUserVsyncOffset(float val);
-void INT10_PC98_CurMode_Relocate(void);
-void VGA_UnsetupMisc(void);
-void VGA_UnsetupAttr(void);
-void VGA_UnsetupDAC(void);
-void VGA_UnsetupGFX(void);
-void VGA_UnsetupSEQ(void);
-
-#define gfx(blah) vga.gfx.blah
-#define seq(blah) vga.seq.blah
-#define crtc(blah) vga.crtc.blah
-
 void VGA_OnEnterPC98(Section *sec) {
     (void)sec;//UNUSED
     VGA_UnsetupMisc();
@@ -1391,71 +1340,9 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_StartResize();
 }
 
-void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
-
 void updateGDCpartitions4(bool enable) {
     pc98_allow_4_display_partitions = enable;
     pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
-}
-
-/* source: Neko Project II  GDC SYNC parameters for each mode */
-
-#if 0 // NOT YET USED
-static const UINT8 gdc_defsyncm15[8] = {0x10,0x4e,0x07,0x25,0x0d,0x0f,0xc8,0x94};
-static const UINT8 gdc_defsyncs15[8] = {0x06,0x26,0x03,0x11,0x86,0x0f,0xc8,0x94};
-#endif
-
-static const UINT8 gdc_defsyncm24[8] = {0x10,0x4e,0x07,0x25,0x07,0x07,0x90,0x65};
-static const UINT8 gdc_defsyncs24[8] = {0x06,0x26,0x03,0x11,0x83,0x07,0x90,0x65};
-
-static const UINT8 gdc_defsyncm31[8] = {0x10,0x4e,0x47,0x0c,0x07,0x0d,0x90,0x89};
-static const UINT8 gdc_defsyncs31[8] = {0x06,0x26,0x41,0x0c,0x83,0x0d,0x90,0x89};
-
-static const UINT8 gdc_defsyncm31_480[8] = {0x10,0x4e,0x4b,0x0c,0x03,0x06,0xe0,0x95};
-static const UINT8 gdc_defsyncs31_480[8] = {0x06,0x26,0x41,0x0c,0x83,0x06,0xe0,0x95};
-
-/* ^ NTS: Even in 256-color mode the expectation for Active Display Words is 40, not 80.
- *        Writing 80 when INT 18h is used to invoke 256-color mode isn't a problem but
- *        it does cause erroneous values in debug functions (1280x480 for
- *        "login 256-color paint tool"?). The correct value is 40 according to NP2
- *        source code (in what cases exactly?) and some games that manually set up
- *        640x400 16-color mode AND THEN directly switch to 256-color mode (still 640x400)
- *        expect the ADW to remain 40 ("battle skin panic"). */
-
-void PC98_Set24KHz(void) {
-    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
-    for (unsigned int i=0;i < 8;i++)
-        pc98_gdc[GDC_MASTER].write_fifo_param(gdc_defsyncm24[i]);
-    pc98_gdc[GDC_MASTER].force_fifo_complete();
-
-    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
-    for (unsigned int i=0;i < 8;i++)
-        pc98_gdc[GDC_SLAVE].write_fifo_param(gdc_defsyncs24[i]);
-    pc98_gdc[GDC_SLAVE].force_fifo_complete();
-}
-
-void PC98_Set31KHz(void) {
-    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
-    for (unsigned int i=0;i < 8;i++)
-        pc98_gdc[GDC_MASTER].write_fifo_param(gdc_defsyncm31[i]);
-    pc98_gdc[GDC_MASTER].force_fifo_complete();
-
-    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
-    for (unsigned int i=0;i < 8;i++)
-        pc98_gdc[GDC_SLAVE].write_fifo_param(gdc_defsyncs31[i]);
-    pc98_gdc[GDC_SLAVE].force_fifo_complete();
-}
-
-void PC98_Set31KHz_480line(void) {
-    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
-    for (unsigned int i=0;i < 8;i++)
-        pc98_gdc[GDC_MASTER].write_fifo_param(gdc_defsyncm31_480[i]);
-    pc98_gdc[GDC_MASTER].force_fifo_complete();
-
-    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
-    for (unsigned int i=0;i < 8;i++)
-        pc98_gdc[GDC_SLAVE].write_fifo_param(gdc_defsyncs31_480[i]);
-    pc98_gdc[GDC_SLAVE].force_fifo_complete();
 }
 
 void VGA_OnEnterPC98_phase2(Section *sec) {
@@ -1574,12 +1461,6 @@ void VGA_Destroy(Section*) {
     PC98_FM_Destroy(NULL);
 }
 
-extern uint8_t                     pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
-extern uint8_t                     pc98_pal_digital[8];    /* G R B    0x0..0x7 */
-
-void pc98_update_palette(void);
-void UpdateCGAFromSaveState(void);
-
 bool debugpollvga_pf_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
     (void)xmenu;//UNUSED
     (void)menuitem;//UNUSED
@@ -1695,8 +1576,6 @@ void VGA_Init() {
     AddExitFunction(AddExitFunctionFuncPair(VGA_Destroy));
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
 }
-
-JEGA_DATA jega;
 
 // Store font
 void JEGA_writeFont() {

@@ -819,6 +819,9 @@ extern uint32_t TXT_BG_Table[16];
 extern uint32_t Expand16Table[4][16];
 extern uint32_t Expand16BigTable[0x10000];
 
+extern int hack_lfb_yadjust;
+extern int hack_lfb_xadjust;
+
 void VGA_DAC_UpdateColorPalette();
 
 extern uint32_t GFX_Rmask;
@@ -923,5 +926,22 @@ static inline unsigned char *pc98_vram_256bank_from_window(const unsigned int b)
 }
 
 #define VRAM98_TEXT         ( pc98_vram_text() )
+
+#ifdef VGA_INTERNAL
+#define gfx(blah) vga.gfx.blah
+#define seq(blah) vga.seq.blah
+#define crtc(blah) vga.crtc.blah
+#endif
+
+void UpdateCGAFromSaveState(void);
+void INT10_PC98_CurMode_Relocate(void);
+void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
+uint32_t GetReportedVideoMemorySize(void);
+extern void VGA_TweakUserVsyncOffset(float val);
+void VGA_UnsetupMisc(void);
+void VGA_UnsetupAttr(void);
+void VGA_UnsetupDAC(void);
+void VGA_UnsetupGFX(void);
+void VGA_UnsetupSEQ(void);
 
 #endif

@@ -1005,3 +1005,61 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
     return ~0ul;
 }
 
+/* source: Neko Project II  GDC SYNC parameters for each mode */
+
+const UINT8 gdc_defsyncm15[8] = {0x10,0x4e,0x07,0x25,0x0d,0x0f,0xc8,0x94};
+const UINT8 gdc_defsyncs15[8] = {0x06,0x26,0x03,0x11,0x86,0x0f,0xc8,0x94};
+
+const UINT8 gdc_defsyncm24[8] = {0x10,0x4e,0x07,0x25,0x07,0x07,0x90,0x65};
+const UINT8 gdc_defsyncs24[8] = {0x06,0x26,0x03,0x11,0x83,0x07,0x90,0x65};
+
+const UINT8 gdc_defsyncm31[8] = {0x10,0x4e,0x47,0x0c,0x07,0x0d,0x90,0x89};
+const UINT8 gdc_defsyncs31[8] = {0x06,0x26,0x41,0x0c,0x83,0x0d,0x90,0x89};
+
+const UINT8 gdc_defsyncm31_480[8] = {0x10,0x4e,0x4b,0x0c,0x03,0x06,0xe0,0x95};
+const UINT8 gdc_defsyncs31_480[8] = {0x06,0x26,0x41,0x0c,0x83,0x06,0xe0,0x95};
+
+/* ^ NTS: Even in 256-color mode the expectation for Active Display Words is 40, not 80.
+ *        Writing 80 when INT 18h is used to invoke 256-color mode isn't a problem but
+ *        it does cause erroneous values in debug functions (1280x480 for
+ *        "login 256-color paint tool"?). The correct value is 40 according to NP2
+ *        source code (in what cases exactly?) and some games that manually set up
+ *        640x400 16-color mode AND THEN directly switch to 256-color mode (still 640x400)
+ *        expect the ADW to remain 40 ("battle skin panic"). */
+
+void PC98_Set24KHz(void) {
+    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_MASTER].write_fifo_param(gdc_defsyncm24[i]);
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+
+    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_SLAVE].write_fifo_param(gdc_defsyncs24[i]);
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+}
+
+void PC98_Set31KHz(void) {
+    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_MASTER].write_fifo_param(gdc_defsyncm31[i]);
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+
+    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_SLAVE].write_fifo_param(gdc_defsyncs31[i]);
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+}
+
+void PC98_Set31KHz_480line(void) {
+    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_MASTER].write_fifo_param(gdc_defsyncm31_480[i]);
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+
+    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_SLAVE].write_fifo_param(gdc_defsyncs31_480[i]);
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+}
+
