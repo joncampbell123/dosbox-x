@@ -803,6 +803,7 @@ void VGA_CaptureStartNextFrame(void);
 void VGA_CaptureMarkError(void);
 bool VGA_CaptureValidateCurrentFrame(void);
 void SD3_Reset(bool enable);
+void SetClock_S3(Bitu which,Bitu target);
 
 // Amount of video memory required for a mode, implemented in int10_modes.cpp
 Bitu VideoModeMemSize(Bitu mode);
