@@ -1652,6 +1652,9 @@
     <ClCompile Include="..\src\builtin\ne2000bin.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\pc98_artic.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
