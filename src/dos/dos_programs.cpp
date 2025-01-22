@@ -9518,6 +9518,7 @@ void Add_VFiles(bool usecp) {
 		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_EMSMAGIC_COM, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_DISKCOPY_EXE, "/DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_PRINT_COM, "/DOS/");
 
 		/* It appears the latest EDIT.COM requires a 386, and it does not bother
@@ -9559,7 +9560,6 @@ void Add_VFiles(bool usecp) {
     else if(IS_PC98_ARCH || CPU_ArchitectureType < CPU_ARCHTYPE_80186)
         VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE_PC98, "/DOS/");
 
-    VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
     /* DSXMENU.EXE */
     if(IS_PC98_ARCH)
         VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
