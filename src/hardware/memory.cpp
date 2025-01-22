@@ -1614,6 +1614,20 @@ void On_Software_CPU_Reset() {
         throw int(3);
 }
 
+/* Some PC-98 code uses this register to know if the 16MB "memory hole" is open,
+ * instead pf looking at the BIOS data area. Including homebrew development like KOARMADA.EXE */
+static IO_ReadHandleObject PC98_43B_memspace_ReadHandler;
+static Bitu read_PC98_43B_memspace(Bitu /*port*/,Bitu /*iolen*/) {
+        uint8_t r = 0;
+
+        if (isa_memory_hole_15mb || MEM_TotalPages() <= 0xF00/*15MB or less*/)
+                { /* used by system */ }
+        else
+                r |= 0x04; /* normal memory space */
+
+        return r;
+}
+
 bool allow_port_92_reset = true;
 
 static void write_p92(Bitu port,Bitu val,Bitu iolen) {
@@ -2519,6 +2533,8 @@ void PS2Port92_OnReset(Section *sec) {
             PS2_Port_92h_WriteHandler.Install(0xF2,write_pc98_a20,IO_MB);
             PS2_Port_92h_ReadHandler.Install(0xF2,read_pc98_a20,IO_MB);
         }
+
+        PC98_43B_memspace_ReadHandler.Install(0x43B,read_PC98_43B_memspace,IO_MB);
     }
     else {
         // TODO: this should be handled in a motherboard init routine
