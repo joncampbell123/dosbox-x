@@ -9561,8 +9561,10 @@ void Add_VFiles(bool usecp) {
         VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE_PC98, "/DOS/");
 
     /* DSXMENU.EXE */
-    if(IS_PC98_ARCH)
+    if(IS_PC98_ARCH) {
         VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
+	VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_PC98_EXE, "/BIN/");
+    }
     else {
         VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
         VFILE_RegisterBuiltinFileBlob(bfb_SHUTDOWN_COM, "/BIN/");
