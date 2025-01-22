@@ -930,7 +930,7 @@ initpage_retry:
 	}
 };
 
-bool PAGING_MakePhysPage(Bitu & page) {
+bool PAGING_MakePhysPage(PageNum &page) {
 	// page is the linear address on entry
 	if (paging.enabled) {
 		// check the page directory entry for this address

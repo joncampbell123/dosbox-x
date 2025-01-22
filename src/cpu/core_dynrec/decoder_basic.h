@@ -153,8 +153,8 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
 			return false;
 		}
 	} 
-	Bitu lin_page=lin_addr>>12;
-	Bitu phys_page=lin_page;
+	const PageNum lin_page = PageNum(lin_addr >> 12u);
+	PageNum phys_page = lin_page;
 	// find the physical page that the linear page is mapped to
 	if (!PAGING_MakePhysPage(phys_page)) {
 		LOG_MSG("DYNREC:Can't find physpage");
