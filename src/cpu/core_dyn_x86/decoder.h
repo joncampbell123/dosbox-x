@@ -73,8 +73,8 @@ static struct DynDecodeDynX86 {
 #endif
 } decode;
 
-bool PAGING_ForcePageInit(Bitu lin_addr);
-static bool MakeCodePage(Bitu lin_addr,CodePageHandler * &cph) {
+bool PAGING_ForcePageInit(LinearPt lin_addr);
+static bool MakeCodePage(LinearPt lin_addr,CodePageHandler * &cph) {
 	uint8_t rdval;
 	const Bitu cflag = cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16;
 	//Ensure page contains memory:
