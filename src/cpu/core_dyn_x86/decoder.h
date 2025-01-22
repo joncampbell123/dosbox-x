@@ -103,8 +103,8 @@ static bool MakeCodePage(LinearPt lin_addr,CodePageHandler * &cph) {
 			cph=nullptr;		return false;
 		}
 	} 
-	Bitu lin_page=lin_addr >> 12;
-	Bitu phys_page=lin_page;
+	const PageNum lin_page = PageNum(lin_addr >> 12);
+	PageNum phys_page = lin_page;
 	if (!PAGING_MakePhysPage(phys_page)) {
 		LOG_MSG("DYNX86:Can't find physpage");
 		cph=nullptr;		return false;
