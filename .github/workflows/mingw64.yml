@@ -208,10 +208,10 @@ jobs:
       - name: Upload preview package
         uses: actions/upload-artifact@v4.6.0
         with:
-          name: dosbox-x-mingw-win64-${{ env.timestamp }}
+          name: dosbox-x-UCRT64-experimental-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
         uses: softprops/action-gh-release@v2
         if: 0
         with:
-          files: dosbox-x--win64-${{ env.timestamp }}.zip
+          files: dosbox-x-UCRT64-experimental-${{ env.timestamp }}.zip
