@@ -926,8 +926,12 @@ static Bitu IRQ1_Handler_PC98(void) {
     unsigned char status;
     unsigned int patience = 32;
 
-    status = IO_ReadB(0x43); /* 8251 status */
-    while (status & 2/*RxRDY*/) {
+    /* NTS: CWSDPMI (the PC-98 patched version) has an IRQ 1 interrupt handler that reads the
+     *      keyboard scan code byte ahead of calling this ISR. If we check status first, this
+     *      ISR will never process keyboard input because RxRDY = 0 (CWSDPMI already read it!).
+     *      This suggests that perhaps most PC-98 BIOSes assume a ready data byte on IRQ 1
+     *      and that's how CWSDPMI can get away with doing that (TODO VERIFY THIS ON REAL HARDWARE) */
+    do {
         unsigned char sc_8251 = IO_ReadB(0x41); /* 8251 data */
 
         bool pressed = !(sc_8251 & 0x80);
@@ -1156,7 +1160,7 @@ static Bitu IRQ1_Handler_PC98(void) {
         }
         if (--patience == 0) break; /* in case of stuck 8251 */
         status = IO_ReadB(0x43); /* 8251 status */
-    }
+    } while (status & 2/*RxRDY*/);
 
     return CBRET_NONE;
 }
