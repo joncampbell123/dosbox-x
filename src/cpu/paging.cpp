@@ -445,7 +445,7 @@ private:
 		// unlikely to use those page table features. --J.C.
 
 		if (!do_pse) {
-			Bitu old_attirbs = paging.tlb.phys_page[addr>>12] >> 30;
+			const uint8_t old_attirbs = uint8_t(paging.tlb.phys_page[addr>>12] >> PHYSPAGE_ACCESS_BITS_SHIFT);
 			X86PageEntry dir_entry, table_entry;
 
 			dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(addr));
@@ -453,9 +453,7 @@ private:
 			table_entry.load = phys_readd(GetPageTableEntryAddr(addr, dir_entry));
 			if (!table_entry.block.p) return false;
 
-			const Bitu result =
-				translate_array[((dir_entry.load<<1)&0xc) | ((table_entry.load>>1)&0x3)];
-
+			const uint8_t result = translate_array[dir_entry.accbits<2>()+table_entry.accbits<0>()];
 			if (result != old_attirbs) return true;
 		}
 
@@ -771,20 +769,21 @@ public:
 		return false;
 	}
 	bool InitPage(PhysPt lin_addr, bool writing, bool prepare_only) {
-		Bitu lin_page=lin_addr >> 12;
-		Bitu phys_page;
+		const PageNum lin_page = PageNum(lin_addr >> 12);
+		PageNum phys_page;
+
 		if (paging.enabled) {
 initpage_retry:
 			X86PageEntry dir_entry, table_entry;
-			bool isUser = (((cpu.cpl & cpu.mpl)==3)? true:false);
+			const bool isUser = (((cpu.cpl & cpu.mpl)==3)? true:false);
 
 			// Read the paging stuff, throw not present exceptions if needed
 			// and find out how the page should be mapped
-			PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(lin_addr);
+			const PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(lin_addr);
 			// Range check to avoid emulator segfault: phys_readd() reads from MemBase+addr and does NOT range check.
 			// Needed to avoid segfault when running 1999 demo "Void Main" in a bootable Windows 95 image in pure DOS mode.
 			// 2024/12/22: phys_readx() does range checking now
-			dir_entry.load=phys_readd(dirEntryAddr);
+			dir_entry.load = phys_readd(dirEntryAddr);
 
 			if (!dir_entry.dirblock.p) {
 				// table pointer is not present, do a page fault
@@ -796,11 +795,10 @@ initpage_retry:
 			}
 
 			if (do_pse && dir_entry.dirblock.ps) { // 4MB PSE page
-				Bitu result =
-					translate_array[((dir_entry.load<<1)&0xc) | ((dir_entry.load>>1)&0x3)];
+				const uint8_t result = translate_array[dir_entry.accbits<2>()+dir_entry.accbits<0>()];
 
 				// save load to see if it changed later
-				uint32_t dir_load = dir_entry.load;
+				const uint32_t dir_load = dir_entry.load;
 
 				// if we are writing we can set it right here to save some CPU
 				if (writing) dir_entry.dirblock4mb.d = 1;
@@ -814,7 +812,7 @@ initpage_retry:
 
 				// if the page isn't dirty and we are reading we need to map the foiler
 				// (dirty = false)
-				bool dirty = dir_entry.dirblock4mb.d? true:false;
+				const bool dirty = dir_entry.dirblock4mb.d ? true : false;
 
 				/* LOG_MSG("INITPSE lin=0x%x phys=0x%lx base22=0x%x base32=0x%x",
 					(unsigned int)lin_addr,
@@ -822,17 +820,13 @@ initpage_retry:
 					(unsigned int)dir_entry.dirblock4mb.base22,
 					(unsigned int)dir_entry.dirblock4mb.base32); */
 				// finally install the new page
-				PAGING_LinkPageNew(lin_page,
-					(dir_entry.dirblock4mb.base22<<10u)|
-					((dir_entry.dirblock4mb.base32&enable_pse_extmask)<<20u)|
-					(lin_page&0x3FFu),
-					result, dirty);
+				PAGING_LinkPageNew(lin_page, dir_entry.dirblock4mb.getBase(lin_page), result, dirty);
 			}
 			else {
-				PhysPt tableEntryAddr = GetPageTableEntryAddr(lin_addr, dir_entry);
+				const PhysPt tableEntryAddr = GetPageTableEntryAddr(lin_addr, dir_entry);
 				// Range check to avoid emulator segfault: phys_readd() reads from MemBase+addr and does NOT range check.
 				// 2024/12/22: phys_readx() does range checking now
-				table_entry.load=phys_readd(tableEntryAddr);
+				table_entry.load = phys_readd(tableEntryAddr);
 
 				// set page table accessed (IA manual: A is set whenever the entry is 
 				// used in a page translation)
@@ -851,14 +845,12 @@ initpage_retry:
 				}
 				//PrintPageInfo("INI",lin_addr,writing,prepare_only);
 
-				Bitu result =
-					translate_array[((dir_entry.load<<1)&0xc) | ((table_entry.load>>1)&0x3)];
+				const uint8_t result = translate_array[dir_entry.accbits<2>()+table_entry.accbits<0>()];
 
 				// If a page access right exception occurs we shouldn't change a or d
 				// I'd prefer running into the prepared exception handler but we'd need
 				// an additional handler that sets the 'a' bit - idea - foiler read?
-				Bitu ft_index = result | (writing ? 8u : 0u) | (isUser ? 4u : 0u) |
-					(paging.wp ? 16u : 0u);
+				const uint8_t ft_index = result | (writing ? 8u : 0u) | (isUser ? 4u : 0u) | (paging.wp ? 16u : 0u);
 
 				if (GCC_UNLIKELY(fault_table[ft_index])) {
 					// exception error code format: 
@@ -869,8 +861,9 @@ initpage_retry:
 					if (prepare_only) return true;
 					else goto initpage_retry; // unlikely to happen?
 				}
+
 				// save load to see if it changed later
-				uint32_t table_load = table_entry.load;
+				const uint32_t table_load = table_entry.load;
 
 				// if we are writing we can set it right here to save some CPU
 				if (writing) table_entry.block.d = 1;
@@ -884,7 +877,7 @@ initpage_retry:
 
 				// if the page isn't dirty and we are reading we need to map the foiler
 				// (dirty = false)
-				bool dirty = table_entry.block.d? true:false;
+				const bool dirty = table_entry.block.d? true:false;
 				/*
 				   LOG_MSG("INIT  %s LIN% 8x PHYS% 5x wr%x ch%x wp%x d%x c%x m%x a%x [%x/%x/%x]",
 				   mtr[result], lin_addr, table_entry.block.base,
@@ -898,40 +891,40 @@ initpage_retry:
 			}
 
 		} else { // paging off
-			if (lin_page<LINK_START) phys_page=paging.firstmb[lin_page];
-			else phys_page=lin_page;
+			if (lin_page < LINK_START) phys_page = paging.firstmb[lin_page];
+			else phys_page = lin_page;
 			PAGING_LinkPage(lin_page,phys_page);
 		}
 		return false;
 	}
-	void InitPageForced(Bitu lin_addr) {
-		Bitu lin_page=lin_addr >> 12;
-		Bitu phys_page;
+	void InitPageForced(LinearPt lin_addr) {
+		const PageNum lin_page = PageNum(lin_addr >> 12);
+		PageNum phys_page;
+
 		if (paging.enabled) {
-			X86PageEntry table;
-			X86PageEntry entry;
+			X86PageEntry table, entry;
+
 			InitPageCheckPresence((PhysPt)lin_addr,false,table,entry);
 
 			if (!table.block.a) {
 				table.block.a=1;		//Set access
 				phys_writed((PhysPt)((paging.base.page<<12)+(lin_page >> 10)*4),table.load);
 			}
+
 			if (do_pse && table.dirblock.ps) { // 4MB PSE page
-				phys_page =	 (table.dirblock4mb.base22<<10u)|
-						((table.dirblock4mb.base32&enable_pse_extmask)<<20u)|
-						 (lin_page&0x3FFu);
+				phys_page = table.dirblock4mb.getBase(lin_page);
 			}
 			else {
 				if (!entry.block.a) {
 					entry.block.a=1;					//Set access
 					phys_writed((table.block.base<<12)+(lin_page & 0x3ff)*4,entry.load);
 				}
-				phys_page=entry.block.base;
+				phys_page = entry.block.base;
 			}
 			// maybe use read-only page here if possible
 		} else {
-			if (lin_page<LINK_START) phys_page=paging.firstmb[lin_page];
-			else phys_page=lin_page;
+			if (lin_page < LINK_START) phys_page = paging.firstmb[lin_page];
+			else phys_page = lin_page;
 		}
 		PAGING_LinkPage(lin_page,phys_page);
 	}
@@ -1356,33 +1349,33 @@ public:
 		}
 		return 1;
 	}
-	void InitPageForced(Bitu lin_addr) {
-		Bitu lin_page=lin_addr >> 12;
-		Bitu phys_page;
+	void InitPageForced(LinearPt lin_addr) {
+		const PageNum lin_page = PageNum(lin_addr >> 12);
+		PageNum phys_page;
+
 		if (paging.enabled) {
-			X86PageEntry table;
-			X86PageEntry entry;
+			X86PageEntry table, entry;
+
 			InitPageCheckPresence((PhysPt)lin_addr,true,table,entry);
 
 			if (!table.block.a) {
 				table.block.a=1;		//Set access
 				phys_writed((PhysPt)((paging.base.page<<12)+(lin_page >> 10)*4),table.load);
 			}
+
 			if (do_pse && table.dirblock.ps) { // 4MB PSE page
-				phys_page =	 (table.dirblock4mb.base22<<10u)|
-						((table.dirblock4mb.base32&enable_pse_extmask)<<20u)|
-						 (lin_page&0x3FFu);
+				phys_page = table.dirblock4mb.getBase(lin_page);
 			}
 			else {
 				if (!entry.block.a) {
 					entry.block.a=1;	//Set access
 					phys_writed((table.block.base<<12)+(lin_page & 0x3ff)*4,entry.load);
 				}
-				phys_page=entry.block.base;
+				phys_page = entry.block.base;
 			}
 		} else {
-			if (lin_page<LINK_START) phys_page=paging.firstmb[lin_page];
-			else phys_page=lin_page;
+			if (lin_page < LINK_START) phys_page = paging.firstmb[lin_page];
+			else phys_page = lin_page;
 		}
 		PAGING_LinkPage(lin_page,phys_page);
 	}
@@ -1390,8 +1383,8 @@ public:
 
 static InitPageUserROHandler init_page_handler_userro;
 
-bool PAGING_ForcePageInit(Bitu lin_addr) {
-	PageHandler * handler=get_tlb_readhandler((PhysPt)lin_addr);
+bool PAGING_ForcePageInit(LinearPt lin_addr) {
+	PageHandler * const handler = get_tlb_readhandler((PhysPt)lin_addr);
 	if (handler==&init_page_handler) {
 		init_page_handler.InitPageForced(lin_addr);
 		return true;
