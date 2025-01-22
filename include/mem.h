@@ -72,6 +72,10 @@ MemHandle                   MEM_NextHandleAt(MemHandle handle,Bitu where);
 
 uint32_t                    MEM_HardwareAllocate(const char *name,uint32_t sz);
 
+static constexpr bool build_memlimit_32bit(void) {
+	return sizeof(void*) < 8;
+}
+
 /* 
     The following six functions are used everywhere in the end so these should be changed for
     Working on big or little endian machines 

@@ -23,6 +23,7 @@
 #include <exception>
 
 #include "mem.h"
+#include "bitop.h"
 
 class PageHandler;
 class MEM_CalloutObject;
@@ -207,13 +208,22 @@ void MEM_SetPageHandler(Bitu phys_page, Bitu pages, PageHandler * handler);
 #pragma pack (1)
 #endif
 
+/* Page table TLB. At some point, 64-bit builds will have 64-bit TLB type */
+typedef uint32_t tlbentry_t;
+
+static constexpr size_t tlbentry_bits = bitop::type_bits<tlbentry_t>();
 /* bits 31-30: ACCESS_* contants */
-#define PHYSPAGE_ACCESS_BITS      0xC0000000
+static constexpr tlbentry_t PHYSPAGE_ACCESS_BITS_SHIFT = tlbentry_bits - 2u;
+static constexpr tlbentry_t PHYSPAGE_ACCESS_BITS = bitop::bitcount2masklsb<2u,PHYSPAGE_ACCESS_BITS_SHIFT,tlbentry_t>();
 /* bit 29: dirty bit */
-#define PHYSPAGE_DIRTY            0x20000000
+static constexpr tlbentry_t PHYSPAGE_DIRTY_SHIFT = tlbentry_bits - 3u;
+static constexpr tlbentry_t PHYSPAGE_DIRTY = bitop::bit2mask<PHYSPAGE_DIRTY_SHIFT,tlbentry_t>();
 /* bits 28: not defined */
 /* bits 27-0: physical page. 40-bit addresses, that's as far as we can go, and the limits of PSE anyway */
-#define PHYSPAGE_ADDR             0x0FFFFFFF
+static constexpr tlbentry_t PHYSPAGE_ADDR =
+	build_memlimit_32bit() ?
+		bitop::bitcount2masklsb<20,0,tlbentry_t>() : /* 32-bit builds limited to 1GB no point emulating past 4GB (20+12) = 32 */
+		bitop::bitcount2masklsb<28,0,tlbentry_t>();  /* 64-bit builds allowed up to 1TB (28+12) = 40 */
 
 struct X86_PageEntryBlock{ // Page Table Entry, though it keeps the PageEntryBlock name to avoid breaking all this code
 #ifdef WORDS_BIGENDIAN
@@ -329,38 +339,38 @@ union X86PageEntry {
 static_assert( sizeof(X86PageEntry) == 4, "oops" );
 
 struct PagingBlock {
-	Bitu			cr3;
-	Bitu			cr2;
-	bool wp;
+	uint32_t		cr3;
+	uint32_t		cr2;
 	struct {
-		Bitu page;
+		PageNum page;
 		PhysPt addr;
 	} base;
 	struct {
 		HostPt read[TLB_SIZE];
 		HostPt write[TLB_SIZE];
-		PageHandler * readhandler[TLB_SIZE];
-		PageHandler * writehandler[TLB_SIZE];
-		uint32_t	phys_page[TLB_SIZE];
+		PageHandler *readhandler[TLB_SIZE];
+		PageHandler *writehandler[TLB_SIZE];
+		tlbentry_t phys_page[TLB_SIZE];
 	} tlb;
 	struct {
-		Bitu used;
-		uint32_t entries[PAGING_LINKS];
+		uint32_t used;
+		uint32_t entries[PAGING_LINKS]; /* does not require more than 32 bits */
 	} links;
 	struct {
-		Bitu used;
-		uint32_t entries[PAGING_LINKS];
+		uint32_t used;
+		uint32_t entries[PAGING_LINKS]; /* does not require more than 32 bits */
 	} ur_links;
 	struct {
-		Bitu used;
-		uint32_t entries[PAGING_LINKS];
+		uint32_t used;
+		uint32_t entries[PAGING_LINKS]; /* does not require more than 32 bits */
 	} krw_links;
 	struct {
-		Bitu used;
-		uint32_t entries[PAGING_LINKS];
+		uint32_t used;
+		uint32_t entries[PAGING_LINKS]; /* does not require more than 32 bits */
 	} kr_links; // WP-only
-	uint32_t		firstmb[LINK_START];
+	uint32_t	firstmb[LINK_START]; /* does not use flags and does not reach beyond 1MB, does not need more than 32 bits */
 	bool		enabled;
+	bool		wp;
 };
 
 extern PagingBlock paging; 
