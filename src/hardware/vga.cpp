@@ -1239,7 +1239,7 @@ void VGA_OnEnterPC98(Section *sec) {
 	for (unsigned int i=0;i < 16;i++) VGA_ATTR_SetPalette(i,i);
 	for (unsigned int i=0;i < 16;i++) vga.dac.combine[i] = i;
 
-	vga.mode=M_PC98;
+	VGA_SetMode(M_PC98);
 	assert(vga.mem.memsize >= 0x80000);
 	memset(vga.mem.linear,0,0x80000);
 
