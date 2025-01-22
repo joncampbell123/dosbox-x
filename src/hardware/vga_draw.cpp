@@ -68,6 +68,8 @@ bool dbg_event_color_select = false;
 bool dbg_event_color_plane_enable = false;
 bool enable_supermegazeux_256colortext = false;
 
+static bool is_vga_rendering_on_demand = false;
+
 extern bool vga_render_on_demand;
 extern signed char vga_render_on_demand_user;
 extern bool vga_ignore_extended_memory_bit;
@@ -3751,7 +3753,7 @@ again:
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
-        if (!vga_render_on_demand)
+        if (!is_vga_rendering_on_demand)
             PIC_AddEvent(VGA_DrawSingleLine,vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
@@ -3907,7 +3909,7 @@ void VGA_RenderOnDemandComplete(void) {
 }
 
 static void VGA_VertInterrupt(Bitu /*val*/) {
-    if (vga_render_on_demand)
+    if (is_vga_rendering_on_demand)
         VGA_RenderOnDemandComplete();
 
     if (IS_PC98_ARCH) {
@@ -3925,7 +3927,7 @@ static void VGA_VertInterrupt(Bitu /*val*/) {
 }
 
 static void VGA_Other_VertInterrupt(Bitu val) {
-    if (vga_render_on_demand)
+    if (is_vga_rendering_on_demand)
         VGA_RenderOnDemandComplete();
 
     if (val) PIC_ActivateIRQ(5);
@@ -3933,7 +3935,7 @@ static void VGA_Other_VertInterrupt(Bitu val) {
 }
 
 static void VGA_DisplayStartLatch(Bitu /*val*/) {
-    if (vga_render_on_demand)
+    if (is_vga_rendering_on_demand)
         VGA_RenderOnDemandComplete();
 
     /* hretrace fx support: store the hretrace value at start of picture so we have
@@ -3959,7 +3961,7 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {
-    if (vga_render_on_demand)
+    if (is_vga_rendering_on_demand)
         VGA_RenderOnDemandComplete();
 
     vga.draw.panning = vga.config.pel_panning;
@@ -5689,9 +5691,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		pc98_update_display_page_ptr();
 	}
 
-	if (vga_render_on_demand)
+	if (is_vga_rendering_on_demand)
 		VGA_RenderOnDemandComplete();
 
+	is_vga_rendering_on_demand = vga_render_on_demand;
 	if (CaptureState & CAPTURE_RAWIMAGE) {
 		if (!rawshot.capturing) {
 			if (VGA_DrawRawLine != NULL) {
@@ -6446,7 +6449,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 				RENDER_EndUpdate(true);
 			}
 			vga.draw.lines_done = 0;
-			if (!vga_render_on_demand) {
+			if (!is_vga_rendering_on_demand) {
 				if (vga.draw.mode==EGALINE)
 					PIC_AddEvent(VGA_DrawEGASingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
 				else
@@ -7706,6 +7709,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 }
 
 void VGA_KillDrawing(void) {
+	is_vga_rendering_on_demand = false;
 	PIC_RemoveEvents(VGA_DrawSingleLine);
 	PIC_RemoveEvents(VGA_DrawEGASingleLine);
 }
