@@ -1,4 +1,7 @@
 
+#ifndef DOSBOX_BITOP_H
+#define DOSBOX_BITOP_H
+
 #include <limits.h>
 
 namespace bitop {
@@ -392,3 +395,5 @@ template <typename T=unsigned int> static inline bitseqlengthandpos_ret_t bitseq
 void self_test(void);
 
 }
+
+#endif //DOSBOX_BITOP_H
