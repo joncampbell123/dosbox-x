@@ -222,49 +222,27 @@ static const uint8_t fault_table[] = {
 };
 
 // helper functions for calculating table entry addresses
-static inline PhysPt GetPageDirectoryEntryAddr(PhysPt lin_addr) {
-	return paging.base.addr | ((lin_addr >> 22u) << 2u);
+//
+// Linear addr: 33222222222211111111110000000000
+//              10987654321098765432109876543210
+//
+// didx         DDDDDDDDDD......................
+// dirent_addr  (didx * 4) + (CR3[31:12] << 12)
+// dirent       *((uint32_t*)dirent_addr)
+//
+// tidx         ..........TTTTTTTTTT............
+// tblent_addr  (dirent[31:12] << 12) + (tidx * 4)
+// tblent       *((uint32_t*)tblent_addr)
+//
+// pageoff      ....................OOOOOOOOOOOO
+// physoff      (tblent[31:12] << 12) + pageoff      <- final step
+//
+static inline PhysPt GetPageDirectoryEntryAddr(LinearPt lin_addr) {
+	return PhysPt(paging.base.addr + ((lin_addr >> 20u) & 0xffcu)); /* equiv: ((lin_addr >> 22) & 0x3ff) * 4 */
 }
-static inline PhysPt GetPageTableEntryAddr(PhysPt lin_addr, const X86PageEntry& dir_entry) {
-	return ((PhysPt)dir_entry.dirblock.base << (PhysPt)12U) | ((lin_addr >> 10U) & 0xffcu);
+static inline PhysPt GetPageTableEntryAddr(LinearPt lin_addr, const X86PageEntry& dir_entry) {
+	return PhysPt(dir_entry.dirblock.base << PhysPt(12u)) + PhysPt((lin_addr >> LinearPt(10u)) & 0xffcu); /* equiv: ((lin_addr >> 12) & 0x3ff) * 4 */
 }
-
-/*
-void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepare_only) {
-
-	Bitu lin_page=lin_addr >> 12;
-
-	X86PageEntry dir_entry, table_entry;
-	bool isUser = (((cpu.cpl & cpu.mpl)==3)? true:false);
-
-	PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(lin_addr);
-	PhysPt tableEntryAddr = 0;
-	dir_entry.load=phys_readd(dirEntryAddr);
-	Bitu result = 4;
-	bool dirty = false;
-	Bitu ft_index = 0;
-
-	if (dir_entry.dirblock.p) {
-		tableEntryAddr = GetPageTableEntryAddr(lin_addr, dir_entry);
-		table_entry.load=phys_readd(tableEntryAddr);
-		if (table_entry.block.p) {
-			result =
-				translate_array[((dir_entry.load<<1)&0xc) | ((table_entry.load>>1)&0x3)];
-
-			ft_index = result | (writing? 8:0) | (isUser? 4:0) |
-				(paging.wp? 16:0);
-
-			dirty = table_entry.block.d? true:false;
-		}
-	}
-	LOG_MSG("%s %s LIN% 8x PHYS% 5x wr%x ch%x wp%x d%x c%x m%x f%x a%x [%x/%x/%x]",
-		string, mtr[result], lin_addr, table_entry.block.base,
-		writing, prepare_only, paging.wp,
-		dirty, cpu.cpl, cpu.mpl, fault_table[ft_index],
-		((dir_entry.load<<1)&0xc) | ((table_entry.load>>1)&0x3),
-		dirEntryAddr, tableEntryAddr, table_entry.load);
-}
-*/
 
 bool use_dynamic_core_with_paging = false; /* allow dynamic core even with paging (AT YOUR OWN RISK!!!!) */
 bool auto_determine_dynamic_core_paging = false; /* enable use_dynamic_core_with_paging when paging is enabled */
@@ -284,7 +262,7 @@ void PAGING_PageFault(PhysPt lin_addr,Bitu page_addr,Bitu faultcode) {
 //	LOG_MSG("CS:%04X EIP:%08X SS:%04x SP:%08X",SegValue(cs),reg_eip,SegValue(ss),reg_esp);
 	entry->cs=SegValue(cs);
 	entry->eip=reg_eip;
-	entry->page_addr=page_addr;
+	entry->page_addr=page_addr;/*misnamed: this is the physical memory address of the page table entry to update/check */
 	entry->mpl=cpu.mpl;
 	cpu.mpl=3;
 
@@ -303,6 +281,8 @@ void PAGING_PageFault(PhysPt lin_addr,Bitu page_addr,Bitu faultcode) {
 // PAGING_NewPageFault
 // lin_addr, page_addr: the linear and page address the fault happened at
 // prepare_only: true in case the calling core handles the fault, else the PageFaultCore does
+// NTS: page_addr is misnamed, it is the physical memory address of the page table entry to update/check.
+//      furthermore for 4MB pages it is the page directory entry representing the 4MB page.
 static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_only, Bitu faultcode) {
 	paging.cr2=lin_addr;
 	//LOG_MSG("FAULT q%d, code %x",  pf_queue.used, faultcode);
@@ -340,60 +320,57 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 class PageFoilHandler : public PageHandler {
 private:
 	void work(PhysPt addr) {
-		Bitu lin_page = addr >> 12;
-		uint32_t phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+		const PageNum lin_page = PageNum(addr >> 12u);
+		const PageNum phys_page = PageNum(paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR);
+		X86PageEntry dir_entry, table_entry;
 			
 		// set the page dirty in the tlb
 		paging.tlb.phys_page[lin_page] |= PHYSPAGE_DIRTY;
 
 		// mark the page table entry dirty
-		X86PageEntry dir_entry, table_entry;
-
-		PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(addr);
+		const PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(addr);
 		dir_entry.load = phys_readd(dirEntryAddr);
-		if (!dir_entry.dirblock.p) E_Exit("Undesired situation 1 in page foiler.");
+		if (!dir_entry.dirblock.p) E_Exit("PageFoilHandler unexpected directory entry not present (line %d)",__LINE__);
 
 		if (do_pse && dir_entry.dirblock.ps) {
 			// for debugging...
-			if (((dir_entry.dirblock4mb.base22<<10u)|((dir_entry.dirblock4mb.base32&enable_pse_extmask)<<20u)|(lin_page&0x3FFu)) != phys_page)
-				E_Exit("Undesired situation 3 PSE in page foiler.");
+			if (dir_entry.dirblock4mb.getBase(lin_page) != phys_page)
+				E_Exit("PageFoilHandler unexpected page address changed from TLB copy (line %d)",__LINE__);
 
 			// set the dirty bit
-			dir_entry.block.d=1;
-			phys_writed(dirEntryAddr,dir_entry.load);
+			if (!dir_entry.block.d) {
+				dir_entry.block.d = 1;
+				phys_writed(dirEntryAddr,dir_entry.load);
+			}
 		}
 		else {
-			PhysPt tableEntryAddr = GetPageTableEntryAddr(addr, dir_entry);
-			table_entry.load=phys_readd(tableEntryAddr);
-			if (!table_entry.block.p) E_Exit("Undesired situation 2 in page foiler.");
+			const PhysPt tableEntryAddr = GetPageTableEntryAddr(addr, dir_entry);
+			table_entry.load = phys_readd(tableEntryAddr);
+			if (!table_entry.block.p) E_Exit("PageFoilHandler unexpecteed table entry not present (line %d)",__LINE__);
 
 			// for debugging...
 			if (table_entry.block.base != phys_page)
-				E_Exit("Undesired situation 3 in page foiler.");
-
-			// debug
-//			LOG_MSG("FOIL            LIN% 8x PHYS% 8x [%x/%x/%x] WRP % 8x", addr, phys_page,
-//				dirEntryAddr, tableEntryAddr, table_entry.load, wtest);
+				E_Exit("PageFoilHandler unexpected page address changed from TLB copy (line %d)",__LINE__);
 
 			// this can happen when the same page table is used at two different
 			// page directory entries / linear locations (WfW311)
 			// if (table_entry.block.d) E_Exit("% 8x Already dirty!!",table_entry.load);
 
 			// set the dirty bit
-			table_entry.block.d=1;
-			phys_writed(tableEntryAddr,table_entry.load);
+			if (!table_entry.block.d) {
+				table_entry.block.d = 1;
+				phys_writed(tableEntryAddr,table_entry.load);
+			}
 		}
 
-		PageHandler* handler = MEM_GetPageHandler(phys_page);
-
 		// replace this handler with the real thing
+		PageHandler* const handler = MEM_GetPageHandler(phys_page);
 		if (handler->getFlags() & PFLAG_WRITEABLE)
 			paging.tlb.write[lin_page] = handler->GetHostWritePt(phys_page) - (lin_page << 12);
 		else
 			paging.tlb.write[lin_page] = nullptr;
 
-		paging.tlb.writehandler[lin_page]=handler;
-		return;
+		paging.tlb.writehandler[lin_page] = handler;
 	}
 
 	void read() {
@@ -405,49 +382,49 @@ public:
 	uint16_t readw(PhysPt addr) override {(void)addr;read();return 0;}
 	uint32_t readd(PhysPt addr) override {(void)addr;read();return 0;}
 
-    void writeb(PhysPt addr,uint8_t val) override {
-        work(addr);
-        // execute the write:
-        // no need to care about mpl because we won't be entered
-        // if write isn't allowed
-        mem_writeb(addr,val);
-    }
-    void writew(PhysPt addr,uint16_t val) override {
-        work(addr);
-        mem_writew(addr,val);
-    }
-    void writed(PhysPt addr,uint32_t val) override {
-        work(addr);
-        mem_writed(addr,val);
-    }
+	void writeb(PhysPt addr,uint8_t val) override {
+		work(addr);
+		// execute the write:
+		// no need to care about mpl because we won't be entered
+		// if write isn't allowed
+		mem_writeb(addr,val);
+	}
+	void writew(PhysPt addr,uint16_t val) override {
+		work(addr);
+		mem_writew(addr,val);
+	}
+	void writed(PhysPt addr,uint32_t val) override {
+		work(addr);
+		mem_writed(addr,val);
+	}
 
-    bool readb_checked(PhysPt addr, uint8_t * val) override {(void)addr;(void)val;read();return true;}
-    bool readw_checked(PhysPt addr, uint16_t * val) override {(void)addr;(void)val;read();return true;}
-    bool readd_checked(PhysPt addr, uint32_t * val) override {(void)addr;(void)val;read();return true;}
+	bool readb_checked(PhysPt addr, uint8_t * val) override {(void)addr;(void)val;read();return true;}
+	bool readw_checked(PhysPt addr, uint16_t * val) override {(void)addr;(void)val;read();return true;}
+	bool readd_checked(PhysPt addr, uint32_t * val) override {(void)addr;(void)val;read();return true;}
 
-    bool writeb_checked(PhysPt addr,uint8_t val) override {
-        work(addr);
-        mem_writeb(addr,val);
-        return false;
-    }
-    bool writew_checked(PhysPt addr,uint16_t val) override {
-        work(addr);
-        mem_writew(addr,val);
-        return false;
-    }
-    bool writed_checked(PhysPt addr,uint32_t val) override {
-        work(addr);
-        mem_writed(addr,val);
-        return false;
-    }
+	bool writeb_checked(PhysPt addr,uint8_t val) override {
+		work(addr);
+		mem_writeb(addr,val);
+		return false;
+	}
+	bool writew_checked(PhysPt addr,uint16_t val) override {
+		work(addr);
+		mem_writew(addr,val);
+		return false;
+	}
+	bool writed_checked(PhysPt addr,uint32_t val) override {
+		work(addr);
+		mem_writed(addr,val);
+		return false;
+	}
 };
 
 class ExceptionPageHandler : public PageHandler {
 private:
 	PageHandler* getHandler(PhysPt addr) {
-		Bitu lin_page = addr >> 12;
-		uint32_t phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
-		PageHandler* handler = MEM_GetPageHandler(phys_page);
+		const PageNum lin_page = PageNum(addr >> 12u);
+		const PageNum phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+		PageHandler* const handler = MEM_GetPageHandler(phys_page);
 		return handler;
 	}
 

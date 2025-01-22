@@ -42,6 +42,8 @@ static const Bitu MEMMASK_ISA_20BIT = 0x000000FFU; /* ISA 20-bit decode (20 - 12
 static const Bitu MEMMASK_ISA_24BIT = 0x00000FFFU; /* ISA 24-bit decode (24 - 12 = 12) */
 static const Bitu MEMMASK_FULL      = 0x000FFFFFU; /* full 32-bit decode (32 - 12 = 20) */
 
+extern uint8_t enable_pse_extmask;
+
 /* WARNING: Will only produce a correct result if 'x' is a nonzero power of two.
  * For use with MEMMASK_Combine. 'x' is in units of PAGES not BYTES.
  */
@@ -323,6 +325,11 @@ struct X86_PageDir4MBEntryBlock{ // PSE=1 and PageDirEntryBlock PS=1
 	uint32_t		reserved:1;	// [21:21]
 	uint32_t		base22:10;	// [31:22] bits 31:22
 #endif
+	inline PageNum getBase(const LinearPt lin_page) const {
+		return 	PageNum(base22 << PageNum(10u)) +
+			PageNum((base32 & enable_pse_extmask) << PageNum(20u)) +
+			PageNum(lin_page & 0x3FFu);
+	}
 } GCC_ATTRIBUTE(packed);
 
 #ifdef _MSC_VER
@@ -334,6 +341,13 @@ union X86PageEntry {
 	X86_PageEntryBlock block;
 	X86_PageDirEntryBlock dirblock;
 	X86_PageDir4MBEntryBlock dirblock4mb; // PSE=1 and PS=1
+
+	template <const uint8_t bitpos/*for constant compile time optimization*/> inline uint8_t accbits(void) const {
+		if (bitpos == 0)
+			return (load >> 1u) & 3u; /* ex: (load >> 1u) & 0x3 -> U/S:R/W->[1:0]*/
+		else /* usually 2 */
+			return (load << (bitpos - 1u)) & (3u << bitpos); /* ex: (load << 1u) & 0xc -> U/S:R/W->[3:2]*/
+	}
 };
 
 static_assert( sizeof(X86PageEntry) == 4, "oops" );
