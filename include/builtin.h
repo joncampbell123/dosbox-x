@@ -19,6 +19,7 @@ extern char autoexec_data[AUTOEXEC_SIZE];
 extern struct BuiltinFileBlob bfb_DSXMENU_EXE_PC;		// DSXMENU.EXE
 extern struct BuiltinFileBlob bfb_DSXMENU_EXE_PC98;		// DSXMENU.EXE
 
+extern struct BuiltinFileBlob bfb_CWSDPMI_PC98_EXE;  // CWSDPMI.EXE (PC-98 version)
 extern struct BuiltinFileBlob bfb_CWSDPMI_EXE;  // CWSDPMI.EXE
 extern struct BuiltinFileBlob bfb_DOS32A_EXE;   // DOS32A.EXE
 extern struct BuiltinFileBlob bfb_DOS4GW_EXE;   // DOS4GW.EXE
