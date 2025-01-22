@@ -8125,6 +8125,12 @@ Bitu call_irq0 = 0;
 Bitu call_irq07default = 0;
 Bitu call_irq815default = 0;
 
+
+/* NEC PC-98 detection notes:
+ *  - Documented: No ASCII date at F000:FFF5
+ *  - CWSDPMI (PC-98 patched version): Call INT 10h AH=0F BH=FF. If registers don't change, it's PC-98
+ *  - DJGPP libc, crt1.c (PC-98 patched version): If the WORD at F000:FFF3 (segment part of JMP FAR) is 0xFD80, it's PC-98 */
+
 void write_FFFF_PC98_signature() {
     /* this may overwrite the existing signature.
      * PC-98 systems DO NOT have an ASCII date at F000:FFF5
@@ -8132,8 +8138,11 @@ void write_FFFF_PC98_signature() {
 
     // The farjump at the processor reset entry point (jumps to POST routine)
     phys_writeb(0xffff0,0xEA);                  // FARJMP
-    phys_writew(0xffff1,RealOff(BIOS_DEFAULT_RESET_LOCATION));  // offset
-    phys_writew(0xffff3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));  // segment
+
+    /* Segment value must be 0xFD80 to satisfy PC-98 patched DJGPP check */
+    const uint16_t oseg = RealSeg(BIOS_DEFAULT_RESET_LOCATION);
+    phys_writew(0xffff1,RealOff(BIOS_DEFAULT_RESET_LOCATION)-((0xFD80-oseg)*16));  // offset
+    phys_writew(0xffff3,0xFD80);  // segment
 
     // write nothing (not used)
     for(Bitu i = 0; i < 9; i++) phys_writeb(0xffff5+i,0);
@@ -9547,7 +9556,6 @@ private:
             /* clear out 0x50 segment (TODO: 0x40 too?) */
             for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
 
-            write_FFFF_PC98_signature();
             BIOS_ZeroExtendedSize(false);
 
             if (call_pc98_default_stop == 0)
@@ -11788,6 +11796,8 @@ public:
 	 *       "Pitstop II" uses that as a method to test for PCjr [https://www.vogons.org/viewtopic.php?t=50417] */
 	if (machine == MCH_PCJR)
 		BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(3/*JMP NEAR*/,"BIOS default reset location (JMP, PCjr style)",/*align*/1,0xF0043));
+        else if (IS_PC98_ARCH)
+		BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(5/*JMP NEAR*/,"BIOS default reset location (JMP, PC-98)",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE05B));
 	else
 		BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(3/*JMP NEAR*/,"BIOS default reset location (JMP)",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE05B));
 
@@ -11800,6 +11810,8 @@ public:
         BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE880));
 
         write_FFFF_signature();
+        if (IS_PC98_ARCH)
+            write_FFFF_PC98_signature();
 
         /* Setup all the interrupt handlers the bios controls */
 
@@ -12058,10 +12070,19 @@ public:
             Bitu wo_fence;
 
 	    {
-		    unsigned int delta = (Real2Phys(BIOS_DEFAULT_RESET_CODE_LOCATION) - (Real2Phys(BIOS_DEFAULT_RESET_LOCATION) + 3u)) & 0xFFFFu;
-		    Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
-		    phys_writeb(wo+0,0xE9);/*JMP near*/
-		    phys_writew(wo+1,delta);
+		const Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+		if (IS_PC98_ARCH) {
+			const unsigned int ofs = Real2Phys(BIOS_DEFAULT_RESET_CODE_LOCATION) - 0xF0000u;
+			phys_writeb(wo+0,0xEA);/*JMP far*/
+			phys_writew(wo+1,ofs);
+			phys_writew(wo+3,0xF000);
+		}
+		else {
+			const unsigned int delta = (Real2Phys(BIOS_DEFAULT_RESET_CODE_LOCATION) - (Real2Phys(BIOS_DEFAULT_RESET_LOCATION) + 3u)) & 0xFFFFu;
+			const Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+			phys_writeb(wo+0,0xE9);/*JMP near*/
+			phys_writew(wo+1,delta);
+		}
 	    }
 
             Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_CODE_LOCATION);
