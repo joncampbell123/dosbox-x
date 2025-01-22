@@ -432,12 +432,14 @@ bool ACPI_init();
 #define ISAPNP_TYPE(a,b,c) (a),(b),(c)
 #define ISAPNP_SMALL_TAG(t,l) (((t) << 3) | (l))
 
+/* WARNING: do not wrap type macro parameter in parens i.e. (type), it breaks PNP
+ *          structures and Windows 9x/ME will fail to boot! */
 #define ISAPNP_SYSDEV_HEADER(id,type,ctrl) \
         ( (id)        & 0xFF), \
         (((id) >>  8) & 0xFF), \
         (((id) >> 16) & 0xFF), \
         (((id) >> 24) & 0xFF), \
-          (type), \
+        type, \
         ( (ctrl)       & 0xFF), \
         (((ctrl) >> 8) & 0xFF)
 
