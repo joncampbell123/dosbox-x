@@ -167,6 +167,14 @@ static const uint8_t translate_array[] = {
 	ACCESS_URW		// 11 11
 };
 
+static inline uint8_t page_access_bits(const X86PageEntry &dir_entry, const X86PageEntry &table_entry) {
+	return translate_array[dir_entry.accbits<2>()+table_entry.accbits<0>()];
+}
+
+static inline uint8_t page_access_bits(const X86PageEntry &dir_entry) {
+	return translate_array[dir_entry.accbits<2>()+dir_entry.accbits<0>()];
+}
+
 // This array defines how a page is mapped depending on 
 // page access right, cpl==3, and WP.
 // R = map handler as read, W = map handler as write, E = map exception handler
@@ -453,7 +461,7 @@ private:
 			table_entry.load = phys_readd(GetPageTableEntryAddr(addr, dir_entry));
 			if (!table_entry.block.p) return false;
 
-			const uint8_t result = translate_array[dir_entry.accbits<2>()+table_entry.accbits<0>()];
+			const uint8_t result = page_access_bits(dir_entry, table_entry);
 			if (result != old_attirbs) return true;
 		}
 
@@ -795,7 +803,7 @@ initpage_retry:
 			}
 
 			if (do_pse && dir_entry.dirblock.ps) { // 4MB PSE page
-				const uint8_t result = translate_array[dir_entry.accbits<2>()+dir_entry.accbits<0>()];
+				const uint8_t result = page_access_bits(dir_entry);
 
 				// save load to see if it changed later
 				const uint32_t dir_load = dir_entry.load;
@@ -845,7 +853,7 @@ initpage_retry:
 				}
 				//PrintPageInfo("INI",lin_addr,writing,prepare_only);
 
-				const uint8_t result = translate_array[dir_entry.accbits<2>()+table_entry.accbits<0>()];
+				const uint8_t result = page_access_bits(dir_entry, table_entry);
 
 				// If a page access right exception occurs we shouldn't change a or d
 				// I'd prefer running into the prepared exception handler but we'd need
