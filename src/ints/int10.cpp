@@ -325,6 +325,9 @@ Bitu INT10_Handler(void) {
 #if defined(USE_TTF)
 			if (ttf.inUse && reg_al == 0x12 && (real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x03 || real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x55)) {
 				real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,50-1);
+				Bitu pagesize=50*real_readb(BIOSMEM_SEG,BIOSMEM_NB_COLS)*2;
+				pagesize+=0x100; // bios adds extra on reload
+				real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(uint16_t)pagesize);
 				ttf_reset();
 				break;
 			}
