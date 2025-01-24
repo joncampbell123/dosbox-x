@@ -1356,13 +1356,12 @@ public:
 		}
 		return 1;
 	}
-	void InitPageForced(LinearPt lin_addr) {
+	void InitPageForced(const LinearPt lin_addr) {
 		const PageNum lin_page = PageNum(lin_addr >> 12);
 		PageNum phys_page;
 
 		if (paging.enabled) {
 			X86PageEntry table, entry;
-
 			InitPageCheckPresence((PhysPt)lin_addr,true,table,entry);
 
 			if (!table.block.a) {
