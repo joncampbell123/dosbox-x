@@ -1311,9 +1311,7 @@ public:
 				phys_writed((PhysPt)((paging.base.page<<12)+(lin_page >> 10)*4),table.load);
 			}
 			if (do_pse && table.dirblock.ps) { // 4MB PSE page
-				phys_page =	 (table.dirblock4mb.base22<<10u)|
-						((table.dirblock4mb.base32&enable_pse_extmask)<<20u)|
-						 (lin_page&0x3FFu);
+				phys_page = table.dirblock4mb.getBase(lin_page);
 			}
 			else {
 				if ((!entry.block.a) || (!entry.block.d)) {
