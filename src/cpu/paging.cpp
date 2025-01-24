@@ -1147,7 +1147,7 @@ void PAGING_SwitchCPL(bool isUser) {
 	if (isUser) {
 		// sv -> us: rw -> ee 
 		for(Bitu i = 0; i < paging.krw_links.used; i++) {
-			Bitu tlb_index = paging.krw_links.entries[i];
+			const tlbentry_t tlb_index = paging.krw_links.entries[i];
 			paging.tlb.readhandler[tlb_index] = &exception_handler;
 			paging.tlb.writehandler[tlb_index] = &exception_handler;
 			paging.tlb.read[tlb_index] = nullptr;
@@ -1156,25 +1156,26 @@ void PAGING_SwitchCPL(bool isUser) {
 	} else {
 		// us -> sv: ee -> rw
 		for(Bitu i = 0; i < paging.krw_links.used; i++) {
-			Bitu tlb_index = paging.krw_links.entries[i];
-			Bitu phys_page = paging.tlb.phys_page[tlb_index];
-			Bitu lin_base = tlb_index << 12;
-			bool dirty = (phys_page & PHYSPAGE_DIRTY)? true:false;
-			phys_page &= PHYSPAGE_ADDR;
-			PageHandler* handler = MEM_GetPageHandler(phys_page);
+			const tlbentry_t tlb_index = paging.krw_links.entries[i];
+			const PageNum phys_page = paging.tlb.phys_page[tlb_index] & PHYSPAGE_ADDR;
+			const LinearPt lin_base = LinearPt(tlb_index << 12u);
+			const bool dirty = (phys_page & PHYSPAGE_DIRTY) ? true : false;
+			PageHandler* const handler = MEM_GetPageHandler(phys_page);
 			
 			// map read handler
 			paging.tlb.readhandler[tlb_index] = handler;
 			if (handler->getFlags()&PFLAG_READABLE)
 				paging.tlb.read[tlb_index] = handler->GetHostReadPt(phys_page)-lin_base;
-			else paging.tlb.read[tlb_index] = nullptr;
+			else
+				paging.tlb.read[tlb_index] = nullptr;
 			
 			// map write handler
 			if (dirty) {
 				paging.tlb.writehandler[tlb_index] = handler;
 				if (handler->getFlags()&PFLAG_WRITEABLE)
 					paging.tlb.write[tlb_index] = handler->GetHostWritePt(phys_page)-lin_base;
-				else paging.tlb.write[tlb_index] = nullptr;
+				else
+					paging.tlb.write[tlb_index] = nullptr;
 			} else {
 				paging.tlb.writehandler[tlb_index] = &foiling_handler;
 				paging.tlb.write[tlb_index] = nullptr;
@@ -1188,22 +1189,23 @@ void PAGING_SwitchCPL(bool isUser) {
 		if (isUser) {
 			// sv -> us: re -> ee 
 			for(Bitu i = 0; i < paging.kr_links.used; i++) {
-				Bitu tlb_index = paging.kr_links.entries[i];
+				const tlbentry_t tlb_index = paging.kr_links.entries[i];
 				paging.tlb.readhandler[tlb_index] = &exception_handler;
 				paging.tlb.read[tlb_index] = nullptr;
 			}
 		} else {
 			// us -> sv: ee -> re
 			for(Bitu i = 0; i < paging.kr_links.used; i++) {
-				Bitu tlb_index = paging.kr_links.entries[i];
-				Bitu lin_base = tlb_index << 12;
-				Bitu phys_page = paging.tlb.phys_page[tlb_index] & PHYSPAGE_ADDR;
-				PageHandler* handler = MEM_GetPageHandler(phys_page);
+				const tlbentry_t tlb_index = paging.kr_links.entries[i];
+				const LinearPt lin_base = LinearPt(tlb_index << 12);
+				const PageNum phys_page = paging.tlb.phys_page[tlb_index] & PHYSPAGE_ADDR;
+				PageHandler* const handler = MEM_GetPageHandler(phys_page);
 
 				paging.tlb.readhandler[tlb_index] = handler;
 				if (handler->getFlags()&PFLAG_READABLE)
 					paging.tlb.read[tlb_index] = handler->GetHostReadPt(phys_page)-lin_base;
-				else paging.tlb.read[tlb_index] = nullptr;
+				else
+					paging.tlb.read[tlb_index] = nullptr;
 			}
 		}
 	} else { // WP=0
@@ -1211,25 +1213,25 @@ void PAGING_SwitchCPL(bool isUser) {
 		if (isUser) {
 			// sv -> us: rw -> re 
 			for(Bitu i = 0; i < paging.ur_links.used; i++) {
-				Bitu tlb_index = paging.ur_links.entries[i];
+				const tlbentry_t tlb_index = paging.ur_links.entries[i];
 				paging.tlb.writehandler[tlb_index] = &exception_handler;
 				paging.tlb.write[tlb_index] = nullptr;
 			}
 		} else {
 			// us -> sv: re -> rw
 			for(Bitu i = 0; i < paging.ur_links.used; i++) {
-				Bitu tlb_index = paging.ur_links.entries[i];
-				Bitu phys_page = paging.tlb.phys_page[tlb_index];
-				bool dirty = (phys_page & PHYSPAGE_DIRTY)? true:false;
-				phys_page &= PHYSPAGE_ADDR;
-				PageHandler* handler = MEM_GetPageHandler(phys_page);
+				const tlbentry_t tlb_index = paging.ur_links.entries[i];
+				const PageNum phys_page = paging.tlb.phys_page[tlb_index] & PHYSPAGE_ADDR;
+				const bool dirty = (phys_page & PHYSPAGE_DIRTY) ? true : false;
+				PageHandler* const handler = MEM_GetPageHandler(phys_page);
 
 				if (dirty) {
-					Bitu lin_base = tlb_index << 12;
+					const LinearPt lin_base = LinearPt(tlb_index << 12);
 					paging.tlb.writehandler[tlb_index] = handler;
 					if (handler->getFlags()&PFLAG_WRITEABLE)
 						paging.tlb.write[tlb_index] = handler->GetHostWritePt(phys_page)-lin_base;
-					else paging.tlb.write[tlb_index] = nullptr;
+					else
+						paging.tlb.write[tlb_index] = nullptr;
 				} else {
 					paging.tlb.writehandler[tlb_index] = &foiling_handler;
 					paging.tlb.write[tlb_index] = nullptr;
@@ -1258,7 +1260,7 @@ public:
 		host_writed(get_tlb_read(addr)+addr,(uint32_t)val);
 	}
 	bool writeb_checked(PhysPt addr,uint8_t val) override {
-		Bitu writecode=InitPageCheckOnly(addr,(uint8_t)(val&0xff));
+		const uint8_t writecode = InitPageCheckOnly(addr);
 		if (writecode) {
 			HostPt tlb_addr;
 			if (writecode>1) tlb_addr=get_tlb_read(addr);
@@ -1269,7 +1271,7 @@ public:
 		return true;
 	}
 	bool writew_checked(PhysPt addr,uint16_t val) override {
-		Bitu writecode=InitPageCheckOnly(addr,(uint16_t)(val&0xffff));
+		const uint8_t writecode = InitPageCheckOnly(addr);
 		if (writecode) {
 			HostPt tlb_addr;
 			if (writecode>1) tlb_addr=get_tlb_read(addr);
@@ -1280,7 +1282,7 @@ public:
 		return true;
 	}
 	bool writed_checked(PhysPt addr,uint32_t val) override {
-		Bitu writecode=InitPageCheckOnly(addr,(uint32_t)val);
+		const uint8_t writecode = InitPageCheckOnly(addr);
 		if (writecode) {
 			HostPt tlb_addr;
 			if (writecode>1) tlb_addr=get_tlb_read(addr);
@@ -1293,8 +1295,8 @@ public:
 	bool InitPage(PhysPt lin_addr, bool writing, bool prepare_only) {
 		(void)prepare_only;
 		(void)writing;
-		Bitu lin_page=lin_addr >> 12;
-		Bitu phys_page;
+		const PageNum lin_page = PageNum(lin_addr >> 12);
+		PageNum phys_page;
 		if (paging.enabled) {
 			if (!USERWRITE_PROHIBITED) return true;
 
@@ -1319,24 +1321,22 @@ public:
 					entry.block.d=1;	//Set dirty
 					phys_writed((table.block.base<<12)+(lin_page & 0x3ff)*4,entry.load);
 				}
-				phys_page=entry.block.base;
+				phys_page = entry.block.base;
 			}
 			PAGING_LinkPage(lin_page,phys_page);
 		} else {
-			if (lin_page<LINK_START) phys_page=paging.firstmb[lin_page];
-			else phys_page=lin_page;
+			if (lin_page<LINK_START) phys_page = paging.firstmb[lin_page];
+			else phys_page = lin_page;
 			PAGING_LinkPage(lin_page,phys_page);
 		}
 		return false;
 	}
-	Bitu InitPageCheckOnly(PhysPt lin_addr,uint32_t val) {
-		(void)val;
-		PageNum lin_page = PageNum(lin_addr >> 12);
+	uint8_t InitPageCheckOnly(const PhysPt lin_addr) {
+		const PageNum lin_page = PageNum(lin_addr >> 12);
 		if (paging.enabled) {
 			if (!USERWRITE_PROHIBITED) return 2;
 
-			X86PageEntry table;
-			X86PageEntry entry;
+			X86PageEntry table, entry;
 			if (!InitPageCheckPresence_CheckOnly(lin_addr,true,table,entry)) return 0;
 
 			if (InitPage_CheckUseraccess(entry.block.us,table.block.us) || (((entry.block.wr==0) || (table.block.wr==0)))) {
