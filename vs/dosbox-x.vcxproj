@@ -1097,6 +1097,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\builtin\cdplay.cpp" />
     <ClCompile Include="..\src\builtin\chkdsk_exe.cpp" />
     <ClCompile Include="..\src\builtin\cwsdpmi_exe.cpp" />
+    <ClCompile Include="..\src\builtin\cwsdpmi_exe_pc98.cpp" />
     <ClCompile Include="..\src\builtin\debug_exe.cpp" />
     <ClCompile Include="..\src\builtin\defrag_exe.cpp" />
     <ClCompile Include="..\src\builtin\device_com.cpp" />
