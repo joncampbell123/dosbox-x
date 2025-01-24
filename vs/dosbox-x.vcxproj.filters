@@ -1655,6 +1655,9 @@
     <ClCompile Include="..\src\hardware\pc98_artic.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\builtin\cwsdpmi_exe_pc98.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
