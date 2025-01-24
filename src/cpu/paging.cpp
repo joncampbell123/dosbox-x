@@ -641,7 +641,7 @@ public:
 	}
 };
 
-static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, bool dirty);
+static void PAGING_LinkPageNew(PageNum lin_page, PageNum phys_page, const uint8_t linkmode, bool dirty);
 
 static INLINE void InitPageCheckPresence(PhysPt lin_addr,bool writing,X86PageEntry& table,X86PageEntry& entry) {
 	Bitu lin_page=lin_addr >> 12;
@@ -948,9 +948,7 @@ bool PAGING_MakePhysPage(PageNum &page) {
 
 		if (do_pse && dir_entry.dirblock.ps) {
 			// return it
-			page =	 (dir_entry.dirblock4mb.base22<<10u)|
-				((dir_entry.dirblock4mb.base32&enable_pse_extmask)<<20u)|
-				 (page&0x3FFu);
+			page = dir_entry.dirblock4mb.getBase(page);
 		}
 		else {
 			// check the page table entry
@@ -962,7 +960,7 @@ bool PAGING_MakePhysPage(PageNum &page) {
 			page = tbl_entry.block.base;
 		}
 	} else {
-		if (page<LINK_START) page=paging.firstmb[page];
+		if (page < LINK_START) page = paging.firstmb[page];
 		//Else keep it the same
 	}
 	return true;
@@ -1007,7 +1005,7 @@ void PAGING_ClearTLB(void) {
 	paging.links.used=0;
 }
 
-void PAGING_UnlinkPages(Bitu lin_page,Bitu pages) {
+void PAGING_UnlinkPages(PageNum lin_page,PageNum pages) {
 	for (;pages>0;pages--) {
 		paging.tlb.read[lin_page]=nullptr;
 		paging.tlb.write[lin_page]=nullptr;
@@ -1017,7 +1015,7 @@ void PAGING_UnlinkPages(Bitu lin_page,Bitu pages) {
 	}
 }
 
-void PAGING_MapPage(Bitu lin_page,Bitu phys_page) {
+void PAGING_MapPage(PageNum lin_page,PageNum phys_page) {
 	if (lin_page<LINK_START) {
 		paging.firstmb[lin_page]=(uint32_t)phys_page;
 		paging.tlb.read[lin_page]=nullptr;
@@ -1029,13 +1027,13 @@ void PAGING_MapPage(Bitu lin_page,Bitu phys_page) {
 	}
 }
 
-static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, bool dirty) {
-	Bitu xlat_index = linkmode | (paging.wp? 8:0) | ((cpu.cpl==3)? 4:0);
-	uint8_t outcome = xlat_mapping[xlat_index];
+static void PAGING_LinkPageNew(PageNum lin_page, PageNum phys_page, const uint8_t linkmode, bool dirty) {
+	const uint8_t xlat_index = linkmode | (paging.wp? 8:0) | ((cpu.cpl==3)? 4:0);
+	const uint8_t outcome = xlat_mapping[xlat_index];
 
 	// get the physpage handler we are going to map 
-	PageHandler * handler=MEM_GetPageHandler(phys_page);
-	Bitu lin_base=lin_page << 12;
+	PageHandler * const handler = MEM_GetPageHandler(phys_page);
+	const LinearPt lin_base = LinearPt(lin_page << 12);
 
 	//NTS: phys_page is not used to index anything, however it must not use bits 31-30 used for other info. Stay within PHYSPAGE_ADDR.
 	phys_page &= PHYSPAGE_ADDR;
@@ -1053,20 +1051,22 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 	// bit31-30 ACMAP_
 	// bit29	dirty
 	// these bits are shifted off at the places paging.tlb.phys_page is read
-	paging.tlb.phys_page[lin_page]= (uint32_t)(phys_page | (linkmode<< 30) | (dirty? PHYSPAGE_DIRTY:0));
+	paging.tlb.phys_page[lin_page]= (uint32_t)(phys_page | (linkmode << 30u) | (dirty ? PHYSPAGE_DIRTY : 0));
 	switch(outcome) {
 	case ACMAP_RW:
 		// read
 		if (handler->getFlags() & PFLAG_READABLE) paging.tlb.read[lin_page] = 
 			handler->GetHostReadPt(phys_page)-lin_base;
-		else paging.tlb.read[lin_page]=nullptr;
+		else
+			paging.tlb.read[lin_page]=nullptr;
 		paging.tlb.readhandler[lin_page]=handler;
 
 		// write
 		if (dirty) { // in case it is already dirty we don't need to check
 			if (handler->getFlags() & PFLAG_WRITEABLE) paging.tlb.write[lin_page] = 
 				handler->GetHostWritePt(phys_page)-lin_base;
-			else paging.tlb.write[lin_page]=nullptr;
+			else
+				paging.tlb.write[lin_page]=nullptr;
 			paging.tlb.writehandler[lin_page]=handler;
 		} else {
 			paging.tlb.writehandler[lin_page]= &foiling_handler;
@@ -1077,7 +1077,8 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 		// read
 		if (handler->getFlags() & PFLAG_READABLE) paging.tlb.read[lin_page] = 
 			handler->GetHostReadPt(phys_page)-lin_base;
-		else paging.tlb.read[lin_page]=nullptr;
+		else
+			paging.tlb.read[lin_page]=nullptr;
 		paging.tlb.readhandler[lin_page]=handler;
 		// exception
 		paging.tlb.writehandler[lin_page]= &exception_handler;
@@ -1108,9 +1109,9 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 	paging.links.entries[paging.links.used++]= (uint32_t)lin_page; // "master table"
 }
 
-void PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
-	PageHandler * handler=MEM_GetPageHandler(phys_page);
-	Bitu lin_base=lin_page << 12;
+void PAGING_LinkPage(PageNum lin_page,PageNum phys_page) {
+	PageHandler * const handler = MEM_GetPageHandler(phys_page);
+	const LinearPt lin_base = LinearPt(lin_page << 12);
 
 	//NTS: phys_page is not used to index anything, however it must not use bits 31-30 used for other info. Stay within PHYSPAGE_ADDR.
 	phys_page &= PHYSPAGE_ADDR;
@@ -1332,7 +1333,7 @@ public:
 	}
 	Bitu InitPageCheckOnly(PhysPt lin_addr,uint32_t val) {
 		(void)val;
-		Bitu lin_page=lin_addr >> 12;
+		PageNum lin_page = PageNum(lin_addr >> 12);
 		if (paging.enabled) {
 			if (!USERWRITE_PROHIBITED) return 2;
 
@@ -1350,9 +1351,9 @@ public:
 			}
 			PAGING_LinkPage(lin_page,entry.block.base);
 		} else {
-			Bitu phys_page;
-			if (lin_page<LINK_START) phys_page=paging.firstmb[lin_page];
-			else phys_page=lin_page;
+			PageNum phys_page;
+			if (lin_page<LINK_START) phys_page = paging.firstmb[lin_page];
+			else phys_page = lin_page;
 			PAGING_LinkPage(lin_page,phys_page);
 		}
 		return 1;
