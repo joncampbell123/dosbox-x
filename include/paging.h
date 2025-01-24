@@ -195,11 +195,10 @@ void PAGING_SetDirBase(Bitu cr3);
 void PAGING_InitTLB(void);
 void PAGING_ClearTLB(void);
 
-void PAGING_LinkPage(Bitu lin_page,Bitu phys_page);
-void PAGING_LinkPage_ReadOnly(Bitu lin_page,Bitu phys_page);
-void PAGING_UnlinkPages(Bitu lin_page,Bitu pages);
+void PAGING_LinkPage(PageNum lin_page,PageNum phys_page);
+void PAGING_UnlinkPages(PageNum lin_page,PageNum pages);
 /* This maps the page directly, only use when paging is disabled */
-void PAGING_MapPage(Bitu lin_page,Bitu phys_page);
+void PAGING_MapPage(PageNum lin_page,PageNum phys_page);
 bool PAGING_MakePhysPage(PageNum &page);
 
 void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmiohandler);
