@@ -59,6 +59,7 @@
 #include <cctype>
 #include <functional>
 #include <assert.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #include "SDL_syswm.h"
