@@ -1085,12 +1085,16 @@ bool warn_on_mem_write = false;
 
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)
+    if(!aMessage) aMessage = "";
+    std::string lDialogString(aMessage);
+    std::replace(lDialogString.begin(), lDialogString.end(), '\"', ' ');
+
     bool fs=sdl.desktop.fullscreen;
     if (fs) GFX_SwitchFullScreen();
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     GFX_ReleaseMouse();
-    bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
+    bool ret=tinyfd_messageBox(aTitle, lDialogString.c_str(), aDialogType, aIconType, aDefaultButton);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
