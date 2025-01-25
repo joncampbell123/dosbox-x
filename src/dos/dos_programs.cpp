@@ -718,9 +718,9 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 		temp_str[0]=drive;
 		temp_str[1]=' ';
 		strcat(mountstring,temp_str);
-		if (!multiple) strcat(mountstring,"\"");
+		//if (!multiple) strcat(mountstring,"\"");
 		strcat(mountstring,files.size()?files.c_str():fname.c_str());
-        if(!multiple) strcat(mountstring, "\"");
+        //if(!multiple) strcat(mountstring, "\"");
         if(mountiro[drive - 'A']) strcat(mountstring, " -ro");
         if(boot) {
             strcat(mountstring, " -u");
