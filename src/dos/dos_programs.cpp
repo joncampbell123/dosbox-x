@@ -25,6 +25,7 @@
 #include "dosbox.h"
 #include <stdlib.h>
 #include <string.h>
+#include <regex>
 #include <ctype.h>
 #include <math.h>
 #include <algorithm>
@@ -680,21 +681,15 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
         const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.fdi","*.hdi","*.nfd","*.nhd","*.d88","*.hdm","*.xdf","*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.ccd","*.inst","*.IMA","*.IMG","*.VHD","*.FDI","*.HDI","*.NFD","*.NHD","*.D88","*.HDM","*.XDF","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS","*.CCD","*.INST"};
         const char *lFilterDescription = "Disk/CD image files";
         lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,multiple?1:0);
-        if (lTheOpenFileName) fname = GetNewStr(lTheOpenFileName);
+        if (lTheOpenFileName) fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
         if (multiple&&fname.size()) {
-            files += "\"";
-            for (size_t i=0; i<fname.size(); i++)
-                files += fname[i]=='|'?"\" \"":std::string(1,fname[i]);
-            files += "\" ";
+            files = std::regex_replace(fname, std::regex("\\|"), "\" \"");
         }
         while (multiple&&lTheOpenFileName&&systemmessagebox("Mount image files","Do you want to mount more image file(s)?","yesno", "question", 1)) {
             lTheOpenFileName = tinyfd_openFileDialog(("Select image file(s) for Drive "+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,multiple?1:0);
             if (lTheOpenFileName) {
-                fname = GetNewStr(lTheOpenFileName);
-                files += "\"";
-                for (size_t i=0; i<fname.size(); i++)
-                    files += fname[i]=='|'?"\" \"":std::string(1,fname[i]);
-                files += "\" ";
+                fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
+                files = files + " " + std::regex_replace(fname, std::regex("\\|"), "\" \"");
             }
         }
     }
@@ -756,7 +751,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 			systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
 			return;
         } else if (multiple) {
-			systemmessagebox("Information",("Mounted disk images to Drive "+std::string(1,drive)+(dos.loaded_codepage==437?":\n"+files:".")+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
+            systemmessagebox("Information",("Mounted disk images to Drive "+std::string(1,drive)+(dos.loaded_codepage==437?":\n"+files:".")+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		} else if (lTheOpenFileName) {
 			systemmessagebox("Information",(std::string(arc?"Mounted archive":"Mounted disk image")+" to Drive "+std::string(1,drive)+":\n"+std::string(lTheOpenFileName)+(arc||mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		}
