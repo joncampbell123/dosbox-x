@@ -1,4 +1,9 @@
 Next
+  - Fixed regression of specifying DBCS fontx file was ignored. (maron2000)
+  - Fixed mistakes in adding double quotes to filenames to pass to IMGMOUNT
+    command, and syntax errors in showing a message dialog box. (maron2000)
+  - Fixed bug where bios memSize was not set when using TTF. (maitchison)
+  - Fixed CMS was always disabled regardless of config settings. (xrip)
   - Switch off TTF mode in text modes not working in TTF mode. (maron2000)
   - Gravis Ultrasound: Add dosbox.conf option that when enabled,
     prints a warning to the log file every time the guest pokes
