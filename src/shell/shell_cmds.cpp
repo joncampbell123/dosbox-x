@@ -4577,7 +4577,6 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
             InitFontHandle();
             JFONT_Init();
             SetupDBCSTable();
-            clearFontCache();
             if(newCP == 950 && !chinasea) makestdcp950table();
             if(newCP == 951 && chinasea) makeseacp951table();
         }
