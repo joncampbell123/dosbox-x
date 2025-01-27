@@ -108,6 +108,10 @@ misrepresented as being the original software.
 #endif
 #define LOW_MULTIPLE_FILES 32
 
+#if defined(_WIN32_WINDOWS)
+#define GetConsoleWindow() FALSE
+#endif
+
 char tinyfd_version[8] = "3.19.1";
 
 /******************************************************************************************************/
@@ -717,7 +721,7 @@ static void wipefileW(wchar_t const * aFilename)
 {
 		int i;
 		FILE * lIn;
-#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__)
+#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__) || (defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS==32)) 
 		struct _stat st;
 		if (_wstat(aFilename, &st) == 0)
 #else
@@ -854,7 +858,7 @@ static void RGB2HexW( unsigned char const aRGB[3], wchar_t aoResultHexRGB[8])
 
 static int dirExists(char const * aDirPath)
 {
-#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__)
+#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__) || (defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS==32))
 	struct _stat lInfo;
 #else
 	struct __stat64 lInfo;
@@ -874,7 +878,7 @@ static int dirExists(char const * aDirPath)
 		if (tinyfd_winUtf8)
 		{
 						lTmpWChar = tinyfd_utf8to16(aDirPath);
-#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__)
+#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__)  || (defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS==32))
 			lStatRet = _wstat(lTmpWChar, &lInfo);
 #else
 			lStatRet = _wstat64(lTmpWChar, &lInfo);
@@ -886,7 +890,7 @@ static int dirExists(char const * aDirPath)
 			else
 						return 0;
 		}
-#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__)
+#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__) || (defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS==32))
 		else if (_stat(aDirPath, &lInfo) != 0)
 #else
 		else if (_stat64(aDirPath, &lInfo) != 0)
@@ -901,7 +905,7 @@ static int dirExists(char const * aDirPath)
 
 static int fileExists(char const * aFilePathAndName)
 {
-#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__)
+#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__) || (defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS==32))
 	struct _stat lInfo;
 #else
 	struct __stat64 lInfo;
@@ -918,7 +922,7 @@ static int fileExists(char const * aFilePathAndName)
 		if (tinyfd_winUtf8)
 		{
 						lTmpWChar = tinyfd_utf8to16(aFilePathAndName);
-#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__)
+#if (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64__) && (__MINGW32_MAJOR_VERSION <= 3)) || defined(__BORLANDC__) || defined(__WATCOMC__) || (defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS==32))
 			lStatRet = _wstat(lTmpWChar, &lInfo);
 #else
 			lStatRet = _wstat64(lTmpWChar, &lInfo);
@@ -3412,6 +3416,14 @@ int tfd_isDarwin(void)
 		return lsIsDarwin ;
 }
 
+int tdf_isHaikuOS(void)
+{
+#if defined(__HAIKU__)
+    return 1;
+#else
+    return 0;
+#endif
+}
 
 static int dirExists( char const * aDirPath )
 {
@@ -3774,7 +3786,7 @@ static int whiptailPresent(void)
 static int graphicMode(void)
 {
 		return !( tinyfd_forceConsole && (isTerminalRunning() || terminalName()) )
-						&& ( getenvDISPLAY()
+						&& ( getenvDISPLAY() || tdf_isHaikuOS()
 						|| (tfd_isDarwin() && (!getenv("SSH_TTY") || getenvDISPLAY() ) ) ) ;
 }
 
