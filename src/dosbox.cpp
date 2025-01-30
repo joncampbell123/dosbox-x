@@ -4454,6 +4454,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable XMS support.");
     Pbool->SetBasic(true);
 
+    /* maybe this will stop the endless "it's broken and it only works once you point out LOADFIX -a" bug reports */
+    Pbool = secprop->Add_bool("turn off a20 gate on load if loadfix needed",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If enabled, and loading a program below the 64kb boundary, turn off the A20 gate.\n"
+                    "This can help with any program with startup code that assumes the segment wraparound of the 8086.\n"
+                    "Depending on DOS configuration the A20 gate may be re-enabled later such as calling INT 21h.");
+
     Pbool = secprop->Add_bool("xms memmove causes flat real mode",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, any call to XMS to move/copy memory sets up flat real mode for segment registers DS and ES.");
 
