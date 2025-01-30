@@ -94,6 +94,7 @@ bool SwitchLanguage(int oldcp, int newcp, bool confirm);
 void makestdcp950table(), makeseacp951table();
 std::string GetDOSBoxXPath(bool withexe=false);
 extern std::string prefix_local, prefix_overlay;
+bool a20_off_if_loading_low=true;
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -4143,6 +4144,7 @@ public:
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
 		private_segment_in_umb = section->Get_bool("private area in umb");
 		private_segment_write_protect = section->Get_bool("private area write protect");
+		a20_off_if_loading_low = section->Get_bool("turn off a20 gate on load if loadfix needed");
 		enable_collating_uppercase = section->Get_bool("collating and uppercase");
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");

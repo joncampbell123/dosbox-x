@@ -31,6 +31,12 @@
 #include "menu.h"
 #include "crc32.h"
 
+extern bool xms_init;
+extern bool a20_off_if_loading_low;
+
+Bitu XMS_EnableA20(bool enable);
+Bitu XMS_GetEnabledA20(void);
+
 uint32_t RunningProgramHash[4] = {0,0,0,0};
 uint32_t RunningProgramLoadAddress = 0;
 
@@ -552,6 +558,11 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		RunningProgramHash[1] = checksum_bytes;
 		RunningProgramHash[2] = checksum;
 		RunningProgramHash[3] = 0;
+	}
+
+	if (a20_off_if_loading_low && pspseg < 0x1000 && xms_init && XMS_GetEnabledA20() && !(cpu.cr0 & CR0_PROTECTION)/*not protected/vm86 mode*/) {
+		LOG(LOG_EXEC,LOG_DEBUG)("Program is being loaded below 64KB, disabling A20 gate to try to avoid some common crashes");
+		XMS_EnableA20(false);
 	}
 
 	if (flags==LOAD) {
