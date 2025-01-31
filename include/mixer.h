@@ -20,6 +20,16 @@
 #ifndef DOSBOX_MIXER_H
 #define DOSBOX_MIXER_H
 
+/*
+#ifdef C_SDL2
+#define SDL_LockAudio __DO_NOT_USE__1
+#define SDL_UnlockAudio __DO_NOT_USE__2
+#define SDL_PauseAudio __DO_NOT_USE__3
+#define SDL_CloseAudio __DO_NOT_USE__4
+#define SDL_OpenAudio __DO_NOT_USE__5
+#endif
+*/
+
 typedef void (*MIXER_MixHandler)(uint8_t * sampdate,uint32_t len);
 typedef void (*MIXER_Handler)(Bitu len);
 
