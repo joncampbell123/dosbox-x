@@ -13,6 +13,7 @@
 #include "mapper.h"
 #include "control.h"
 #include "logging.h"
+#include "mixer.h"
 #include "build_timestamp.h"
 #ifdef WIN32
 #include "direct.h"
@@ -34,6 +35,10 @@
 #include "vs/zlib/contrib/minizip/ioapi.c"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
+#endif
+
+#ifdef C_SDL2
+extern SDL_AudioDeviceID SDL2_AudioDevice; /* valid IDs are 2 or higher, 1 for compat, 0 is never a valid ID */
 #endif
 
 extern unsigned int page;
@@ -1056,7 +1061,11 @@ int flagged_restore(char* zip);
 
 void SaveState::save(size_t slot) { //throw (Error)
 	if (slot >= SLOT_COUNT*MAX_PAGE)  return;
-	SDL_PauseAudio(0);
+#ifdef C_SDL2
+        SDL_PauseAudioDevice(SDL2_AudioDevice, 0);
+#else
+        SDL_PauseAudio(0);
+#endif
 	bool save_err=false;
 	if((MEM_TotalPages()*4096/1024/1024)>1024) {
 		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
@@ -1278,7 +1287,11 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		notifyError("Unsupported memory size for loading states.", false);
 		return;
 	}
-	SDL_PauseAudio(0);
+#ifdef C_SDL2
+        SDL_PauseAudioDevice(SDL2_AudioDevice, 0);
+#else
+        SDL_PauseAudio(0);
+#endif
 	extern const char* RunningProgram;
 	bool read_version=false;
 	bool read_title=false;
