@@ -1215,6 +1215,11 @@ void MIXER_Init() {
         mixer.nosound = true;
         LOG(LOG_MISC,LOG_DEBUG)("MIXER:Can't open audio: %s , running in nosound mode.",SDL_GetError());
         TIMER_AddTickHandler(MIXER_Mix);
+    } else if (obtained.format != AUDIO_S16SYS) {
+        mixer.nosound = true;
+        LOG(LOG_MISC,LOG_DEBUG)("MIXER:Failed to get the sample format I wanted.");
+        TIMER_AddTickHandler(MIXER_Mix);
+        SDL_CloseAudio();
     } else {
         if(((Bitu)mixer.freq != (Bitu)obtained.freq) || ((Bitu)mixer.blocksize != (Bitu)obtained.samples))
             LOG(LOG_MISC,LOG_DEBUG)("MIXER:Got different values from SDL: freq %d, blocksize %d",(int)obtained.freq,(int)obtained.samples);
