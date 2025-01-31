@@ -98,6 +98,7 @@ static struct {
     bool            prebuffer_wait;
     Bitu            prebuffer_samples;
     bool            mute;
+    SDL_AudioDeviceID device;
 } mixer;
 
 uint32_t Mixer_MIXQ(void) {
@@ -837,11 +838,11 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
 }
 
 static void MIXER_FillUp(void) {
-    SDL_LockAudio();
+    SDL_LockAudioDevice(mixer.device);
     float index = PIC_TickIndex();
     if (index < 0) index = 0;
     MIXER_MixData((Bitu)((double)index * ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd)));
-    SDL_UnlockAudio();
+    SDL_UnlockAudioDevice(mixer.device);
 }
 
 void MixerChannel::FillUp(void) {
@@ -856,7 +857,7 @@ void MIXER_MixSingle(Bitu /*val*/) {
 static void MIXER_Mix(void) {
     Bitu thr;
 
-    SDL_LockAudio();
+    SDL_LockAudioDevice(mixer.device);
 
     /* render */
     assert((mixer.work_in+mixer.samples_per_ms.w) <= MIXER_BUFSIZE);
@@ -884,7 +885,7 @@ static void MIXER_Mix(void) {
     memset(&mixer.work[mixer.work_in][0],0,sizeof(int32_t)*2*mixer.samples_this_ms.w);
     mixer.samples_rendered_ms.fn = 0;
     mixer.samples_rendered_ms.w = 0;
-    SDL_UnlockAudio();
+    SDL_UnlockAudioDevice(mixer.device);
     MIXER_FillUp();
 }
 
@@ -1207,11 +1208,17 @@ void MIXER_Init() {
     spec.callback=MIXER_CallBack;
     spec.userdata=NULL;
     spec.samples=(Uint16)mixer.blocksize;
+    int allowed_changes = SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE;
+
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
+        LOG(LOG_MISC,LOG_DEBUG)("MIXER:Can't initialize SDL audio: %s , running in nosound mode.",SDL_GetError());
+        mixer.nosound = true;
+    }
 
     if (mixer.nosound) {
         LOG(LOG_MISC,LOG_DEBUG)("MIXER:No Sound Mode Selected.");
         TIMER_AddTickHandler(MIXER_Mix);
-    } else if (SDL_OpenAudio(&spec, &obtained) <0 ) {
+    } else if ((mixer.device = SDL_OpenAudioDevice(NULL, 0, &spec, &obtained, allowed_changes)) == 0 ) {
         mixer.nosound = true;
         LOG(LOG_MISC,LOG_DEBUG)("MIXER:Can't open audio: %s , running in nosound mode.",SDL_GetError());
         TIMER_AddTickHandler(MIXER_Mix);
@@ -1223,7 +1230,7 @@ void MIXER_Init() {
         mixer.blocksize=obtained.samples;
         TIMER_AddTickHandler(MIXER_Mix);
         if (mixer.sampleaccurate) PIC_AddEvent(MIXER_MixSingle,1000.0 / mixer.freq);
-        SDL_PauseAudio(0);
+        SDL_PauseAudioDevice(mixer.device, 0);
     }
     mixer_start_pic_time = PIC_FullIndex();
     mixer_sample_counter = 0;
