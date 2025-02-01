@@ -1,4 +1,54 @@
 Next
+  - Added new experimental dosbox.conf option that turns off the
+    A20 gate automatically if loading a COM/EXE file to a memory
+    location below 64KB. Option is off by default. This is intended
+    for the startup routines of programs that assume 8086 wraparound
+    to prevent them from crashing (joncampbell123).
+  - Fix VGA render-on-demand bug that causes all screen updates to
+    stop working if something changes video state without changing
+    any other attribute (width, height, frame rate, etc.). In
+    PC-98 mode this bug could be triggered by leaving the text
+    layer open while switching off the graphics layer when the
+    graphics layer is in 256-color PEGC mode. Fix for KOARMADA.EXE
+    when exiting back to the DOS prompt. (joncampbell123).
+  - In PC-98 mode, add I/O port 43Bh which guest applications can
+    then read to determine whether the 15MB "memory hole" is open.
+    The guest can use this bit to determine whether the PEGC 256-color
+    framebuffer is available at that location, or whether that is
+    just plain system memory. Added for homebrew PC-9821 project
+    KOARMADA.EXE which uses that bit to determine how to talk to
+    the framebuffer. (joncampbell123).
+  - Fix keyboard ISR in PC-98 mode to assume there is data waiting
+    from the keyboard I/O ports (then check the status for more).
+    The reason is that CWSDPMI.EXE for PC-98 has a keyboard ISR
+    of it's own that reads the scan code first (which clears the
+    "data available" bit) before then passing control to the
+    real-mode keyboard ISR. If our keyboard ISR first checks for
+    status in that case it will never see any keyboard data and
+    keyboard input will never register to the guest while running
+    under CWSDPMI (joncampbell123).
+  - Fix BIOS POST location (F000:FFF0) JMP instruction in PC-98 mode
+    so that the segment value of the JMP instruction matches a
+    specific value that the DJGPP C runtime checks for to detect
+    PC-98. (joncampbell123). 
+  - Stop serving IBM PC-specific CWSDPMI.EXE in NEC PC-98 mode.
+    It happens to work unless any interrupt or exception happens.
+    Instead, provide an alternate common version of CWSDPMI.EXE
+    that was patched to support PC-98 machines when machine=pc98
+    (joncampbell123).
+  - Add support for ucrt64 builds (maron2000)
+  - DOS CTRL+C handling: Remove NULL vector check because built-in
+    COMMAND.COM long ago was fixed to provide a CTRL+C vector. Fix
+    code to use a different value for the C++ exception so that it
+    cannot be confused for any other common signal in the emulator
+    (joncampbell123).
+  - Remove DOSBox Integration Device VGA "self capture",
+    which was never used much anyway, as part of cleanup (joncampbell123).
+  - x86 paging: Remove unused non-"full TLB" code. (joncampbell123).
+  - Use mmap() to allocate system memory if available. This is
+    for future work that may involve something that requires
+    page-aligned allocation, such as KVM support in Linux (joncampbell123).
+  - VGA cleanup, organization (joncampbell123).
   - Fixed regression of specifying DBCS fontx file was ignored. (maron2000)
   - Fixed mistakes in adding double quotes to filenames to pass to IMGMOUNT
     command, and syntax errors in showing a message dialog box. (maron2000)
