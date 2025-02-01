@@ -4,6 +4,7 @@
     location below 64KB. Option is off by default. This is intended
     for the startup routines of programs that assume 8086 wraparound
     to prevent them from crashing (joncampbell123).
+  - Bump tinyfiledialogs to v3.19.1 (maron2000)
   - Fix VGA render-on-demand bug that causes all screen updates to
     stop working if something changes video state without changing
     any other attribute (width, height, frame rate, etc.). In
