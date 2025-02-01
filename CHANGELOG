@@ -1,4 +1,4 @@
-Next
+2025.02.01
   - Added new experimental dosbox.conf option that turns off the
     A20 gate automatically if loading a COM/EXE file to a memory
     location below 64KB. Option is off by default. This is intended
