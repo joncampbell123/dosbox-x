@@ -49,6 +49,10 @@ else
   export LDFLAGS="-L $sdl2_prefix/lib" 
 fi
 
+CFLAGS="${CFLAGS} -g3 -O0 -fno-inline -fno-omit-frame-pointer"
+CXXFLAGS="${CXXFLAGS} -g3 -O0 -fno-inline -fno-omit-frame-pointer"
+export CFLAGS CXXFLAGS
+
 # prefer to compile against our own copy of SDLnet 1.x
 #echo "Compiling our internal SDLnet 1.x"
 #(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
