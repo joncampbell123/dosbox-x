@@ -922,7 +922,7 @@ Questo comando avvia DOSBox-X con un'immagine di floppy o disco rigido.
 Si può usare una sequenza di floppy da scambiare tramite menù.
 unità: specifica l'unità montata da cui avviare.
 Se non è indicata una lettera, l'avvio avverrà dall'unità A:.
-Senza parametri, proverà ad avviare l'unità corrente.
+Senza parametri, proverà ad avviare l'unità attuale.
 Le uniche lettere di unità avviabile sono A, C e D. Per avviare da un
 disco rigido, assicurati che l'immagine sia già stata montata con il
 comando ←[34;1mIMGMOUNT←[0m.
@@ -947,7 +947,7 @@ Impossibile avviare il sistema dall'unità %c.
 
 
 :PROGRAM_BOOT_IMAGE_MOUNTED
-Floppy image(s) already mounted.
+Le immagini floppy sono già montata.
 
 .
 :PROGRAM_BOOT_IMAGE_OPEN
@@ -989,7 +989,7 @@ File ROM troppo grande.
 
 .
 :PROGRAM_LOADROM_INCOMPATIBLE
-Il BIOS video non è supportato dal tipo corrente di macchina.
+Il BIOS video non è supportato dal tipo attuale di macchina.
 
 .
 :PROGRAM_LOADROM_UNRECOGNIZED
@@ -1057,7 +1057,7 @@ Usa il parametro -size bps,spt,tpc,cil per specificare la geometria.
 
 .
 :PROGRAM_IMGMOUNT_AUTODET_VALUES
-Geometria del disco automatica: -size %u,%u,%u,%u
+Geometria disco automatica: -size %u,%u,%u,%u
 
 .
 :PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED
@@ -1235,18 +1235,18 @@ La pagina dei codici %i è stata caricata per la disposizione di tastiera %s
 :PROGRAM_KEYB_SHOWHELP
 Configura una tastiera per una data lingua.
 
-Uso: ← [32; 1MKeyB ← [0M [ID layout tastiera [numero codepage [file codepage]]]
-  ID layout Nome layoiut o file tastiera (.kl) da caricare
-  file codepagefile file .cpi/.cpx incluse specfiche info codepage
+Uso: ← [32; 1MKeyB ← [0M [ID layout tastiera [numero pagina codice [file pagina codice]]]
+  ID layout          Nome layoiut o file tastiera (.kl) da caricare
+  file paginq codice file .cpi/.cpx incluse specifiche info pagina codice
   i file .kl, .cpi/.cpx evono essere copiati nella cartella in cui + presnte
   l'eseguibile doi dosbox-x
 
 Esempi:
-  ←[32;1mKEYB←[0m          Visualizza codepage in uso.
-  ←[32;1mKEYB sp←[0m       Usa la disposizione spagnola (SP) applicando la codepage appropriata.
-  ←[32;1mKEYB sp 850←[0m   Usa la disposizione spagnola (SP) con la codepage 850.
-  ←[32;1mKEYB sp 850 mycp.cpi←[0m Come sopra, ma usa il file mycp.cpi per la codepage.
-  ←[32;1mKEYB sp_mod 850←[0m      Carica layout tastiera da sp_mod.kl, usa codepage 850.
+  ←[32;1mKEYB←[0m          Visualizza pagina codice in uso.
+  ←[32;1mKEYB sp←[0m       Usa la disposizione spagnola (SP) applicando la pagina codice appropriata.
+  ←[32;1mKEYB sp 850←[0m   Usa la disposizione spagnola (SP) con la pagina codice 850.
+  ←[32;1mKEYB sp 850 mycp.cpi←[0m Come sopra, ma usa il file mycp.cpi per la pagina codice.
+  ←[32;1mKEYB sp_mod 850←[0m      Carica layout tastiera da sp_mod.kl, usa pagina codice 850.
 
 
 .
@@ -1274,7 +1274,7 @@ File di tavola codici inesistente o invalido per la disposizione %s
 yn
 .
 :PROGRAM_LABEL_HELP
-Creates, changes, or deletes the volume label of a drive.
+Crea, modifica o elimina l'etichetta del volume di un'unità.
 
 LABEL [drive:][label]
 
@@ -1316,112 +1316,114 @@ Parametri non validi.
 Devi indicare un numero di porta da 1 a 9.
 .
 :PROGRAM_VHDMAKE_WRITERR
-Could not write to new VHD image "%s", aborting.
+Impossibile scrivere alla nuova immagine VHD "%s", annullamento.
 
 .
 :PROGRAM_VHDMAKE_REMOVEERR
-Could not erase file "%s"
+Impossibile cancellare il file "%s"
 
 .
 :PROGRAM_VHDMAKE_RENAME
-You'll have to manually rename the newly created VHD image.
+Dovrai rinominare manualmente l'immagine VHD appena creata.
 
 .
 :PROGRAM_VHDMAKE_SUCCESS
-New VHD image successfully created. You can mount it with ←[34;1mIMGMOUNT←[0m.
+Nuova immagine VHD creata correttamente. Puoi montarla con ←[34;1mIMGMOUNT←[0m.
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
-Error, could not open image file "%s".
+Errore, impossibile aprire il file dell'immagine "%s".
 
 .
 :PROGRAM_VHDMAKE_BADSIZE
-Bad VHD size specified, aborting!
+Dimensione VHD specificata non corretta, interruzione!
 
 .
 :PROGRAM_VHDMAKE_FNEEDED
-A pre-existing VHD image can't be silently overwritten without -f option!
+Un'immagine VHD preesistente non può essere silenziosamente sovrascritta senza l'opzione -f!
 
 .
 :PROGRAM_VHDMAKE_BADPARENT
-The parent VHD image "%s" can't be opened for linking, aborting!
+L'immagine VHD genitore "%s" non può essere aperta per il collegamento, inbterruzione!
 
 .
 :PROGRAM_VHDMAKE_NOINFO
-Couldn't query info for "%s".
+Impossibile ottenere le informazioni da "%s".
 
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS
- with %d/%d blocks allocated.
+ con %d su %d blocchi allocati.
 
 .
 :PROGRAM_VHDMAKE_INFO
-VHD "%s" type is %s.
-Its virtual size is %.02f MB
+Il VHD "%s" è di tipo %s.
+La sua dimensione virtuale è %.02f MB
 .
 :PROGRAM_VHDMAKE_CANTMERGE
-%s is not a Differencing disk, can't merge!
+%s non è un VHD differenziale, non si può unire!
 
 .
 :PROGRAM_VHDMAKE_MERGEREPORT
-%d sectors in %d blocks from "%s" merged into "%s".
+%d settori in %d blocchi di "%s" uniti in "%s".
 
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
-Couldn't remove snapshot "%s", you'll have to do it yourself!
+Impossibile rimuovere lo snapshot "%s", dovrai farlo manualmente!
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
-Snapshot VHD merged and deleted.
+VHD differenziale unito e cancellato.
 
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
-Failure while merging, aborted!
+Errore durante l'unione, annullamento operazione!
 
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
- Parent "%s" contents could be corrupted!
+ Il contenuto della VHD genitore "%s" potrebbe essere danneggiato!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_WIN
-Warning: an absolute path to parent limits portability to Windows.
-Please prefer a path relative to differencing image file!
+Attenzione: un percorso assoluto della VHD madre limita la portabilità in Windows.
+Per l'immagine differenziale preferire un percorso relativo !
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_UX
-ERROR: an absolute path to parent inhibits portability.
-Use a path relative to differencing image file!
+ERRORE: un percorso assoluto alla VHD genitore impedisce la portabilità.
+Usa un percorso relativo all'immagine differenziale!
 
 .
 :PROGRAM_VHDMAKE_HELP
-Creates Dynamic or Differencing VHD images, converts raw images into Fixed VHD,
-shows information about VHD images and merges them.
-←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
+Crea immagini VHD dinamiche o differenziali, converte immagini fisse in
+VHD fisse, visualizza informazioni sui VHD e li unisce.
+←[32;1mVHDMAKE←[0m [-f] dimensione new.vhd[BKMGT]
 ←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
 ←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
- -c | -convert  convert a raw hd image to Fixed VHD, renaming it to new.vhd
- -l | -link     create a new Differencing VHD new.vhd and link it to the
-                pre-existing parent image parent.vhd
- -f | -force    force overwriting a pre-existing image file
- -i | -info     show useful information about a.vhd image
- -m | -merge    merge differencing delta.vhd to its parent
- new.vhd        name of the new Dynamic VHD image to create
- size           disk size (eventually with size unit, Bytes is implicit)
-When converting a raw disk image to Fixed VHD, it has to be partitioned with
-MBR scheme and formatted with FAT format.
-When creating a Dynamic VHD, its size must range from 3 MB to 2040 GB.
-The Dynamic VHD created is not partitioned nor formatted: to directly mount to
-a drive letter with ←[34;1mIMGMOUNT←[0m, please consider using ←[34;1mIMGMAKE←[0m instead.
-A merged snapshot VHD is automatically deleted if merge is successful.
-
+ -c | -convert  converte un disco in VHD fisso e lo rinomina new.vhd
+ -l | -link     crea un VHD differenziale new.vhd e lo collega all'immagine
+                genitore parent.vhd preesistente
+ -f | -force    forza la sovrascrittura di un'immagine preesistente
+ -i | -info     visualizza informazioni sull'immagine a.vhd
+ -m | -merge    unisce l'immagine differenziale delta.vhd alla madre
+ new.vhd        nome della nuova immagine VHD dinamica da creare
+ size           dimensione virtuale del disco (con eventuale unità di misura,
+                byte è implicita)
+L'immagine da convertire in VHD fissa dev'essere partizionata con lo schema
+MBR e formattata con FAT.
+La dimensione di un VHD dinamico può variare da 3 MB a 2040 GB.
+Il VHD dinamico creato non è partizionato né formattato: per montarlo
+e assegnargli direttamente una lettera di unità con ←[34;1mIMGMOUNT←[0m, può
+essere preferibile usare ←[34;1mIMGMAKE←[0m.
+Un VHD differenziale è automaticamente cancellato dopo che l'unione è stata
+completata.
 .
 :SHELL_CMD_TREE_ERROR
 Non ci sono sotto-cartelle
 
 .
 :SHELL_CMD_VOL_TREE
-lista delle cartelle nel PATH per il Volume %s
+Elenco cartelle nel PATH per il volume %s
 
 .
 :SHELL_CMD_VOL_DRIVE
@@ -1450,7 +1452,7 @@ Unità specificata non valida
 :SHELL_CMD_HELP
 Se vuoi un elenco di tutti i comandi interni, digita ←[33;1mHELP /ALL←[0m.
 Puoi trovare vari comandi esterni anche nell'unità Z:
-Una breve lista dei comandi più usati:
+Un breve elenco dei comandi più usati:
 
 .
 :SHELL_CMD_HELP_END1
@@ -1515,7 +1517,7 @@ La data indicata non è corretta.
 3DomLunMarMerGioVenSab
 .
 :SHELL_CMD_DATE_NOW
-Data corrente: 
+Data attuale: 
 .
 :SHELL_CMD_DATE_SETHLP
 Digita 'date %s' per modificare.
@@ -1523,11 +1525,11 @@ Digita 'date %s' per modificare.
 .
 :SHELL_CMD_DATE_HELP_LONG
 DATE [[/T] [/H] [/S] | data]
-  data:       Nuova data da impostare
-  /S:         Rileva sempre data e ora dal sistema ospite
-  /F:         Torna a usare data/ora interna di DOSBox-X (contrario di /S)
-  /T:         Visualizza la sola data
-  /H:         Sincronizza con il sistema ospite
+  data:       nuova data da impostare
+  /S:         rileva sempre data e ora dal sistema ospite
+  /F:         torna a usare data/ora interna di DOSBox-X (contrario di /S)
+  /T:         visualizza la sola data
+  /H:         sincronizza con il sistema ospite
 
 .
 :SHELL_CMD_TIME_HELP
@@ -1547,9 +1549,9 @@ Digita 'time %s' per modificare.
 .
 :SHELL_CMD_TIME_HELP_LONG
 TIME [[/T] [/H] | ora]
-  time:       Nuova ora da impostare
-  /T:         Visualizza l'ora
-  /H:         Sincronizza con il sistema ospite
+  time:       nuova ora da impostare
+  /T:         visualizza l'ora
+  /H:         aincronizza con il sistema ospite
 
 .
 :SHELL_CMD_MKDIR_EXIST
@@ -1565,10 +1567,10 @@ Percorso invalido, non è una cartella o non è vuota - %s
 
 .
 :SHELL_CMD_RMDIR_FULLTREE_CONFIRM
-Delete directory "%s" and all its subdirectories? (Y/N)?
+Vuoi eliminare la cartella "%s" e tutte le sue sottocartelle (S/n)?
 .
 :SHELL_CMD_RMDIR_SINGLE_CONFIRM
-Delete file "%s" (Y/N)?
+Vuoi eliminare il file "%s" (S/N)?
 .
 :SHELL_CMD_RENAME_ERROR
 Impossibile rinominare - %s
@@ -1587,11 +1589,11 @@ Impossibile cancellare - %s
 
 .
 :SHELL_CMD_DEL_CONFIRM
-Delete %s (Y/N)?
+Vuoi eliminare "%s" (S/N)?
 .
 :SHELL_CMD_DEL_SURE
 Tutti i file nella cartella saranno rimossi!
-Sei sicuro? [S/N]
+Vuoi continuare [S/N]?
 .
 :SHELL_SYNTAXERROR
 Errore di sintassi
@@ -1660,16 +1662,16 @@ Devi prima ←[31mmount←[0marla. Digita ←[1;33mintro←[0m o ←[1;33mintro 
 
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_CDROM
-Vuoi dare a DOSBox-X l'accesso alla tua vera unità CD-ROM %c [S/N]?
+Vuoi dare a DOSBox-X l'accesso alla vera unità CD-ROM %c [S/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY
-Vuoi dare a DOSBox-X l'accesso alla tua vera unità floppy %c [S/N]?
+Vuoi dare a DOSBox-X l'accesso alla vera unità floppy %c [S/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
-Vuoi dare a DOSBox-X l'accesso alla tua vera unità rimovibile %c [S/N]?
+Vuoi dare a DOSBox-X l'accesso alla vera unità rimovibile %c [S/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
-Vuoi dare a DOSBox-X l'accesso alla tua vera unità di rete %c [S/N]?
+Vuoi dare a DOSBox-X l'accesso alla vera unità di rete %c [S/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
 Vuoi *davvero* dare a DOSBox-X l'accesso al tuo vero disco rigido %c [S/N]?
@@ -1683,34 +1685,34 @@ Premi un tasto per continuare . . .
 
 .
 :SHELL_CMD_PAUSE_HELP
-Attende la pressione di un tasto per continuare.
+Per continuare attendi la pressione di un tasto.
 
 .
 :SHELL_CMD_PAUSE_HELP_LONG
-PAUSE
+PAUSA
 
 .
 :SHELL_CMD_COPY_FAILURE
-Errore di copia - %s
+Errore copia - %s
 
 .
 :SHELL_CMD_COPY_SUCCESS
-   %d File copiati.
+   %d file copiati.
 
 .
 :SHELL_CMD_COPY_CONFIRM
-Sovrascrivo %s (Sì/No/Tutti)?
+Vuoi sovrascrivere %s (Sì/No/Tutti)?
 .
 :SHELL_CMD_COPY_NOSPACE
 Spazio su disco insufficiente - %s
 
 .
 :SHELL_CMD_COPY_ERROR
-Errore di copia - %s
+Errore copia - %s
 
 .
 :SHELL_CMD_COPY_NOSELF
-File cannot be copied onto itself♪
+Il file non può essere copiato su se stesso 
 
 .
 :SHELL_CMD_SUBST_DRIVE_LIST
@@ -1762,16 +1764,16 @@ Puoi eseguire molte operazioni anche usando i ←[33mmenu←[37m.
 ←[32mEsempio←[37m: Prova a selezionare ←[33mTrueType font←[37m o ←[33mOpenGL perfect←[37m come opzione di output.
 .
 :SHELL_STARTUP_TEXT2_PC98
-To launch the ←[33mConfiguration Tool←[37m, use ←[31mhost+C←[37m. Host key is ←[32mF11←[37m.    
-To activate the ←[33mMapper Editor←[37m for key assignments, use ←[31mhost+M←[37m.    
-To switch between windowed and full-screen mode, use ←[31mhost+F←[37m.      
-To adjust the emulated CPU speed, use ←[31mhost+Plus←[37m and ←[31mhost+Minus←[37m.   
+Per eseguire lo ←[33mstrumento configurazione←[37m, usa ←[31mhost+C←[37m. la chiave host è ←[32mF11←[37m.    
+Per attivare l'←[33meditor mappa tastiera←[37m per l'assegnazione dei tasti, usa ←[31mhost+M←[37m.    
+Per passare da una modalità finestra e schermo intero, usa ←[31mhost+F←[37m.      
+Per regolare la velocità della CPU emulata, usa ←[31mhost+Più←[37m e ←[31mhost+Meno←[37m.   
 .
 :SHELL_STARTUP_INFO_PC98
 ←[36mDOSBox-X è in esecuzione in modalità ←[32mJapanese NEC PC-98←[36m.←[37m     
 .
 :SHELL_STARTUP_TEXT3_PC98
-←[32mHomepage del progetto←[37m: ←[33mhttps://dosbox-x.com/      ←[36mEmulazioni complete di DOS←[37m
+←[32mHomepage progetto←[37m: ←[33mhttps://dosbox-x.com/      ←[36mEmulazioni complete di DOS←[37m
 ←[32mGuide utente su Wiki←[37m:  ←[33mhttps://dosbox-x.com/wiki←[32m  ←[36mDOS, Windows 3.x e 9x     ←[37m
 ←[32mSegnalazioni←[37m:          ←[33mhttps://github.com/joncampbell123/dosbox-x/issues    ←[37m
 .
@@ -1783,7 +1785,7 @@ Digita ←[32mHELP←[37m per l'elenco dei comandi o ←[32mINTRO←[37m per una
 Puoi eseguire molte operazioni anche usando i ←[33mmenu.                         ←[37m
 .
 :SHELL_STARTUP_EXAMPLE
-←[32mEsempio←[37m: Alterna ←[33mTrueType font←[37m o ←[33mOpenGL pixel-perfect←[37m per l'uscita video.   
+←[32mEsempio←[37m: Alterna ←[33mFont TrueTyp←[37m o ←[33mOpenGL pixel-perfect←[37m per l'uscita video.   
 .
 :SHELL_STARTUP_HEAD2
 ←[36mScorciatoie utili:                                                          ←[37m
@@ -1812,7 +1814,7 @@ Usa ←[31mCtrl+F8←[37m per (dis)attivare la sfumatura orizzontale (solo in mo
 ←[36mIl progetto DOSBox-X sul web:                                               ←[37m
 .
 :SHELL_STARTUP_TEXT3
-←[32mHomepage del progetto←[37m: ←[33mhttps://dosbox-x.com/      ←[36mEmulazioni complete di DOS←[37m
+←[32mHomepage progetto←[37m: ←[33mhttps://dosbox-x.com/      ←[36mEmulazioni complete di DOS←[37m
 ←[32mGuide utente su Wiki←[37m:  ←[33mhttps://dosbox-x.com/wiki←[32m  ←[36mDOS, Windows 3.x e 9x     ←[37m
 ←[32mSegnalazioni←[37m:          ←[33mhttps://github.com/joncampbell123/dosbox-x/issues    ←[37m
 .
@@ -1820,7 +1822,7 @@ Usa ←[31mCtrl+F8←[37m per (dis)attivare la sfumatura orizzontale (solo in mo
 BUON DIVERTIMENTO CON DOSBox-X !
 .
 :SHELL_CMD_BREAK_HELP
-Attiva o spegne il controllo esteso di CTRL+C.
+Attiva/disattiva controllo esteso di CTRL+C.
 
 .
 :SHELL_CMD_BREAK_HELP_LONG
@@ -1830,7 +1832,7 @@ Digita BREAK senza parametro per vedere l'impostazione attuale.
 
 .
 :SHELL_CMD_CHDIR_HELP
-Visualizza o cambia la cartella corrente.
+Visualizza/cambia la cartella attuale.
 
 .
 :SHELL_CMD_CHDIR_HELP_LONG
@@ -1841,7 +1843,7 @@ CD [..]
 
   ..   specifica la cartella superiore.
 
-Digita CD unità: per vedere la cartella corrente in quell'unità.
+Digita CD unità: per vedere la cartella attuale in quell'unità.
 Digita CD senza parametri per vedere unità e cartella correnti.
 
 .
@@ -2001,13 +2003,13 @@ Un'etichetta si colloca su una riga a sé, e inizia con duepunti (:).
 
 .
 :SHELL_CMD_HISTORY_HELP
-Displays or clears the command history list.
+Visualizza/azzera la cronologia delle righe di comando.
 
 .
 :SHELL_CMD_HISTORY_HELP_LONG
-HISTORY [/C]
+CRONOLOGIA [/C]
 
-  /C  Clears the command history list.
+  /C  azzera la cronologia dei comandi.
 
 .
 :SHELL_CMD_SHIFT_HELP
@@ -2026,7 +2028,7 @@ Esegue un dato comando per ciascun file di un insieme.
 FOR %%variabile IN (set) DO comando [parametri]
 
   %%variabile  Indica un parametro sostituibile.
-  (set)      Insieme di uno o più file. Si possono usare i jolly.
+  (set)      Insieme di uno o più file. Si possono usare i caratteri jolly.
   comando    Comando da eseguire per ogni file.
   parametri  Parametri eventuali per il comando.
 
@@ -2034,7 +2036,7 @@ In un programma batch, usare %%%%variabile invece di %%variabile.
 
 .
 :SHELL_CMD_LFNFOR_HELP
-Attiva o disattiva i nomi lunghi quando elabora un comando FOR con jolly.
+Attiva/disattiva i nomi lunghi quando elabora un comando FOR con jolly.
 
 .
 :SHELL_CMD_LFNFOR_HELP_LONG
@@ -2071,7 +2073,7 @@ REN [unità:][path][cartella1 | file1] [cartella2 | file2]
 
 Nota che non puoi indicare un'unità o percorso diversi per la destinazione.
 
-I jolly (* e ?) sono permessi per i file. Per esempio, il comando  ←[37;1mREN *.TXT *.BAK←[0m
+I caratteri jolly (* e ?) sono permessi per i file. Per esempio, il comando  ←[37;1mREN *.TXT *.BAK←[0m
 rinomina tutti i file di testo (cambiando estensione da TXT a BAK).
 
 .
@@ -2109,7 +2111,7 @@ L'opzione /Y può essere predefinita nella variabile d'ambiente COPYCMD.
 Questa può essere bypassata con /-Y sulla riga di comando.
 
 Per concatenare più file, indicare un singolo file come destinazione e più
-file come sorgente (usando i jolly o il formato file1+file2+file3).
+file come sorgente (usando i caratteri jolly o il formato file1+file2+file3).
 
 .
 :SHELL_CMD_CALL_HELP
@@ -2200,7 +2202,7 @@ cambia con la cartella specificata.
 :SHELL_CMD_PUSHD_HELP_LONG
 PUSHD [percorso]
 
-percorso      Indica la cartella da rendere corrente.
+percorso      Indica la cartella da rendere attuale.
 
 Digita PUSHD senza parametro per vedere le cartelle memorizzate.
 
@@ -2275,10 +2277,10 @@ Il prompt può contenere normali caratteri e i seguenti codici speciali:
   $G   > (segno maggiore)
   $H   Cancella (cancella il carattere precedente)
   $L   < (segno minore)
-  $N   Unità corrente
+  $N   Unità attuale
   $P   Unità e percorso correnti
   $Q   = (segno uguale)
-  $S     (spazio)
+  $S   (spazio)
   $T   Ora attuale
   $V   Numero di versione del DOS
   $_   A capo
@@ -2292,23 +2294,23 @@ Definisce o mostra gli alias di comando.
 :SHELL_CMD_ALIAS_HELP_LONG
 ALIAS [nome[=valore] ... ]
 
-Digita ALIAS senza parametri per vedere la lista degli alias nella forma:
+Digita ALIAS senza parametri per vedere l'elenco degli alias nella forma:
 `ALIAS NOME = VALORE`
 
 .
 :SHELL_CMD_ASSOC_HELP
-Displays or changes file extension associations.
+Visualizza/modifica le associazioni delle estensione file.
 
 .
 :SHELL_CMD_ASSOC_HELP_LONG
-ASSOC [.ext[=command] ... ]
+ASSOC [.ext[=comando] ... ]
 
-Type ASSOC without parameters to display the current file associations.
-File extensions must start with a dot (.); wildcards (* and ?) are allowed.
+Digita ASSOC senza parametri per visualizzare le associazioni dei file attuali..
+Le estensioni dei file devono iniziare con un punto (.); I caratteri jolly (* e ?) sono ammessi.
 
 .
 :SHELL_CMD_CHCP_HELP
-Visualizza o cambia la tavola codici corrente per il DOS.
+Visualizza o cambia la pagina codici attuale per il DOS.
 
 .
 :SHELL_CMD_CHCP_HELP_LONG
@@ -2339,7 +2341,7 @@ Numero di tavola codici invalido - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
-Visualizza o cambia il paese corrente.
+Visualizza/cambia il paese attuale.
 
 .
 :SHELL_CMD_COUNTRY_HELP_LONG
@@ -2904,10 +2906,10 @@ Cursore TTF lampeggiante
 Orienta il testo da destra a sinistra
 .
 :MENU:ttf_printfont
-Usa il font TTF corrente per stampare
+Per stampare usa il font TTF attuale
 .
 :MENU:ttf_halfwidthkana
-CJK: Consenti Japanese Katakana mezza altezza
+CJK: Consenti uso Japanese Katakana mezza altezza
 .
 :MENU:ttf_extcharset
 CJK: Abilita set caratteri Cinese esteso
