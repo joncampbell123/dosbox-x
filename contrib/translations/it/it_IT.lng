@@ -1525,13 +1525,13 @@ Digita 'date %s' per modificare.
 DATE [[/T] [/H] [/S] | data]
   data:       Nuova data da impostare
   /S:         Rileva sempre data e ora dal sistema ospite
-  /F:         Torna a usare l'orologio interno di DOSBox-X (contrario di /S)
+  /F:         Torna a usare data/ora interna di DOSBox-X (contrario di /S)
   /T:         Visualizza la sola data
   /H:         Sincronizza con il sistema ospite
 
 .
 :SHELL_CMD_TIME_HELP
-Visualizza o imposta l'orologio interno.
+Visualizza/imposta data/ora interno.
 
 .
 :SHELL_CMD_TIME_ERROR
@@ -2639,6 +2639,18 @@ Originale
 :MENU:video_ratio_set
 Imposta
 .
+:MENU:VideoPreventCaptureMenu
+Controllo cattura schermo
+.
+:MENU:prevcap_none
+Consenti
+.
+:MENU:prevcap_blank
+Visualizza come vuoto
+.
+:MENU:prevcap_invisible
+Rendi invisibile
+.
 :MENU:VideoScalerMenu
 Adattamento
 .
@@ -2942,6 +2954,9 @@ Scheda Voodoo interna
 :MENU:3dfx_glide
 Bypassa Glide
 .
+:MENU:load_d3d_shader
+Pixel shader Direct3D...
+.
 :MENU:load_glsl_shader
 Shader OpenGL (GLSL)...
 .
@@ -2955,7 +2970,7 @@ Suono
 Scambia canali stereo
 .
 :MENU:mixer_mute
-Muto
+Audio OFF
 .
 :MENU:mixer_info
 Visualizza mixer volume
@@ -3045,7 +3060,7 @@ Emulazione EMM386
 Disabilita emulazione EMS
 .
 :MENU:DOSDiskRateMenu
-Limita la velocità dei dischi
+Limita velocità dischi
 .
 :MENU:limit_hdd_rate
 Limita velocità dischi fissi
@@ -3194,6 +3209,9 @@ Supporto di DOSBox-X
 :MENU:help_nic
 Elenco schede di rete
 .
+:MENU:help_prt
+Elenco stampanti
+.
 :MENU:help_about
 Info su DOSBox-X
 .
@@ -3219,13 +3237,13 @@ Visualizza registro eventi
 Salva registro eventi con nome...
 .
 :MENU:debugger_rundebug
-Opzione debugger: Esegui debugger
+Opzione debugger: esegui debugger
 .
 :MENU:debugger_runnormal
-Opzione debugger: Esecuzione normale
+Opzione debugger: esecuzione normale
 .
 :MENU:debugger_runwatch
-Opzione debugger: Esegui monitoraggiovista
+Opzione debugger: esegui monitoraggiovista
 .
 :MENU:video_debug_overlay
 Overlay debug video
@@ -3246,7 +3264,7 @@ Test aggiornamento (display vuoto)
 Genera interrupt NMI
 .
 :MENU:debug_int2fhook
-Intercetta chiamate a INT 2Fh
+Intercetta chiamate ad INT 2Fh
 .
 :MENU:debug_logint21
 Registra eventi chiamate a INT 21h
@@ -3318,10 +3336,10 @@ Registra eventi traffico di rete
 Registra video in un file AVI
 .
 :MENU:mapper_scrshot
-Cattura schermata
+Cattura schermo
 .
 :MENU:mapper_rawscrshot
-Cattura schermata RAW
+Cattura RAW schermo
 .
 :MENU:mapper_volup
 Aumenta volume
@@ -3540,7 +3558,7 @@ Sempre in primo piano
 Abilita immagine ad alti DPI
 .
 :MENU:sync_host_datetime
-Sincronizza orologio con il sistema reale
+Sincronizza data/ora con il sistema reale
 .
 :MENU:shell_config_commands
 Configura opzioni come comandi
