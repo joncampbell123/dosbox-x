@@ -2,38 +2,35 @@
 :DOSBOX-X:CODEPAGE:437
 :DOSBOX-X:VERSION:2025.02.01
 :DOSBOX-X:REMARK:
-:HELP_INFO
-Fai clic sul pulsante "Aiuto" in basso per avere aiuto dettagliato.
-.
 :AUTOEXEC_CONFIGFILE_HELP
 Le righe in questa sezione simulano AUTOEXEC.BAT e sono eseguite all'avvio
 dell'emulatore. Può contenere anche comandi MOUNT/IMGMOUNT.
 
 .
 :CONFIGFILE_INTRO
-# Questo è un file di configurazione di DOSBox-X %s. (Si prega di usare la versione più recente di DOSBox-X)
+# Questo è un file di configurazione di DOSBox-X %s (usa la versione più recente di DOSBox-X).
 # Le righe che iniziano con # sono commenti e sono ignorate da DOSBox-X.
 # Sono usate per documentare (brevemente) le varie opzioni.
-# Per elencare TUTTE le opzioni, usare il comando 'config -all' con le opzioni -wc o -writeconf.
+# Per elencare TUTTE le opzioni, usa il comando 'config -all' con le opzioni -wc o -writeconf.
 
 .
 :CONFIG_SUGGESTED_VALUES
 Valori possibili
 .
 :CONFIG_ADVANCED_OPTION
-Opzioni avanzate (vedere la guida completa alla configurazione nel file [dosbox-x.reference.full.conf] per maggiori dettagli)
+Opzioni avanzate (per maggiori info consulta la guida completa alla configurazione nel file [dosbox-x.reference.full.conf])
 .
 :CONFIG_TOOL
-App di configurazione di DOSBox-X
+App configurazione DOSBox-X
 .
 :CONFIG_TOOL_EXIT
-Esci dall'app di configurazione
+Esci dall'app configurazione
 .
 :MAPPER_EDITOR_EXIT
-Esci dall'editore della mappa
+Esci dall'editor mappa
 .
 :SAVE_MAPPER_FILE
-Salva il file di mappa
+Salva file mappa
 .
 :WARNING
 Avviso
@@ -48,22 +45,19 @@ No
 OK
 .
 :CANCEL
-Cancella
+Annulla
 .
 :CLOSE
 Chiudi
 .
 :DEBUGCMD
-Comando del Debugger
-.
-:UPDATE
-Aggiorna
+Inserisci comando debugger
 .
 :ADD
 Aggiungi
 .
 :DEL
-Cancella
+Elimina
 .
 :NEXT
 Avanti
@@ -81,7 +75,7 @@ Cattura
 Salva configurazione
 .
 :SAVE_LANGUAGE
-Salva file di lingua
+Salva file lingua
 .
 :SAVE_RESTART
 Salva e riavvia
@@ -90,7 +84,7 @@ Salva e riavvia
 Incolla appunti
 .
 :APPEND_HISTORY
-Accoda allo storico
+Accoda allo cronologia
 .
 :EXECUTE_NOW
 Esegui ora
@@ -102,13 +96,16 @@ Contenuto aggiuntivo:
 Contenuto:
 .
 :EDIT_FOR
-Edita %s
+Modifica %s
 .
 :HELP_FOR
-Aiuto su %s
+Guida su %s
+.
+:HELP_INFO
+Per visualizzare info dettagliate sulla guida seleziona "Aiuto".
 .
 :SELECT_VALUE
-Scegli un valore per la proprietà
+Seleziona valore proprietà
 .
 :CONFIGURATION_FOR
 Configurazione di %s
@@ -120,13 +117,13 @@ Configurazione
 Impostazioni
 .
 :LOGGING_OUTPUT
-DOSBox-X logging output
+Output registro DOSBox-X
 .
 :CODE_OVERVIEW
-Panoramica del codice
+Panoramica codice
 .
 :VISIT_HOMEPAGE
-Visita la pagina principale
+Visita sito web
 .
 :GET_STARTED
 Come iniziare
@@ -135,28 +132,28 @@ Come iniziare
 Supporto CD-ROM
 .
 :DRIVE_INFORMATION
-Informazioni sull'unità
+Info unità
 .
 :MOUNTED_DRIVE_NUMBER
-Numeri delle unità montate
+Numeri unità montate
 .
 :IDE_CONTROLLER_ASSIGNMENT
-Assegnazione del controller IDE
+Assegnazione controller IDE
 .
 :HELP_COMMAND
-Aiuto sul comando DOS
+Aiuto comando DOS
 .
 :CURRENT_VOLUME
-Mixer del volume
+Mixer volume
 .
 :CURRENT_SBCONFIG
 Configurazione Sound Blaster
 .
 :CURRENT_MIDICONFIG
-Configurazione MIDI corrente
+Configurazione MIDI attuale
 .
 :CREATE_IMAGE
-Crea un'immagine disco vuota
+Crea immagine disco vuota
 .
 :NETWORK_LIST
 Elenco interfacce di rete
@@ -168,34 +165,34 @@ Elenco stampanti
 Introduzione
 .
 :CONFIGURE_GROUP
-Scegli un gruppo di impostazioni:
+Scegli gruppo impostazioni da configurare:
 .
 :SHOW_ADVOPT
 Opzioni avanzate
 .
 :USE_PRIMARYCONFIG
-Usa il file principale
+Usa file principale
 .
 :USE_PORTABLECONFIG
-Usa il file portatile
+Usa file portatile
 .
 :USE_USERCONFIG
-Usa il file utente
+Usa file utente
 .
 :CONFIG_SAVETO
-Immetti il nome del file di configurazione da salvare:
+Inserisci nome file configurazione da salvare:
 .
 :CONFIG_SAVEALL
-Salva tutte le opzioni (anche le avanzate) sul file
+Salva tutte le opzioni (anche le avanzate) nel file
 .
 :LANG_FILENAME
-Nome del file di lingua:
+Nome file lingua:
 .
 :LANG_LANGNAME
-Nome della lingua (opzionale):
+Nome lingua (opzionale):
 .
 :INTRO_MESSAGE
-Benvenuti in DOSBox-X, un emulatore DOS libero e completo.
+Benvenuto in DOSBox-X, un emulatore DOS libero e completo.
 DOSBox-X crea un ambiente DOS simile all'originale.
 Può eseguire persino Windows 3.x e 95/98.
 .
@@ -209,7 +206,7 @@ Tipo
 Etichetta
 .
 :DRIVE_NUMBER
-Numero di unità
+Numero unità
 .
 :DISK_NAME
 Nome disco
@@ -218,7 +215,7 @@ Nome disco
 Posizione IDE
 .
 :SWAP_SLOT
-Slot di scambio
+Slot scambio
 .
 :EMPTY_SLOT
 Slot vuoto
@@ -226,35 +223,29 @@ Slot vuoto
 :SLOT
 Slot
 .
-:PREVIOUS_PAGE
-< Pagina precedente
-.
-:NEXT_PAGE
-    Pagina successiva >
-.
 :SELECT_EVENT
 Scegli un evento da modificare
 .
 :SELECT_DIFFERENT_EVENT
-Scegli un evento diverso o premi Aggiungi/Cancella/Prossimo.
+Seleziona un evento diverso o i pulsanti Aggiungi/Elimina/Successivo.
 .
 :PRESS_JOYSTICK_KEY
 Premi un tasto o pulsante del joystick o muovi il joystick.
 .
 :CAPTURE_ENABLED
-Cattura attiva. Premi ESC per rilasciarla.
+Cattura attiva. Premi 'ESC' per rilasciarla.
 .
 :MAPPER_FILE_SAVED
-File della mappa salvato
+File mappa salvato
 .
 :AUTO_CYCLE_MAX
-Cicli auto [max]
+Cicli automatici [max]
 .
 :AUTO_CYCLE_AUTO
-Cicli auto [auto]
+Cicli automatici [auto]
 .
 :AUTO_CYCLE_OFF
-Cicli auto [off]
+Cicli automatici [off]
 .
 :PROGRAM_CONFIG_PROPERTY_ERROR
 Nessuna sezione o proprietà.
@@ -265,36 +256,36 @@ Non c'è una proprietà %s nella sezione %s.
 
 .
 :PROGRAM_CONFIG_SET_SYNTAX
-La sintassi per l'opzione -set è errata.
+La sintassi dell'opzione -set è errata.
 
 .
 :PROGRAM_CONFIG_NOCONFIGFILE
-Nessun file di configurazione caricato!
+Nessun file configurazione caricato!
 
 .
 :PROGRAM_CONFIG_PRIMARY_CONF
-File di configurazione primario:
+File configurazione primario:
 %s
 
 .
 :PROGRAM_CONFIG_ADDITIONAL_CONF
-File di configurazione aggiuntivi:
+File configurazione aggiuntivi:
 
 .
 :PROGRAM_CONFIG_GLOBAL_CONF
 
-File di configurazione globale:
+File configurazione globale:
 %s
 
 .
 :PROGRAM_CONFIG_CONFDIR
-cartella della configurazione utente di DOSBox-X %s:
+Cartella configurazione utente DOSBox-X %s:
 %s
 
 
 .
 :PROGRAM_CONFIG_WORKDIR
-cartella di lavoro di DOSBox-X:
+Cartella di lavoro DOSBox-X:
 %s
 
 
@@ -315,30 +306,30 @@ Scrittura del file di lingua %s
 :PROGRAM_CONFIG_USAGE
 Utilità a riga di comando per configurare DOSBox-X. Opzioni possibili:
 -wc (o -writeconf) [nomefile]
-scrive sul file di configurazione primario o su nomefile
+salva nel file configurazione primario o su nomefile
 -wl (o -writelang) nomefile
 scrive le attuali traduzioni
 -ln (o -langname)
-mostra (senza argomenti) o specifica il nome della lingua
+visualizza (senza argomenti) o specifica il nome della lingua
 -wcp [nomefile]
-scrive un file nella cartella del programma (dosbox-x.conf o nomefile)
+salva un file nella cartella del programma (dosbox-x.conf o nomefile)
 -wcd
 scrive nel file di configurazione di default nella cartella di
 configurazione
 -all, -mod
-usarle con -wc, -wcp, o -wcd per scrivere TUTTE le opzioni o solo quelle
-modificate
+usare con -wc, -wcp, o -wcd per scrivere TUTTE le opzioni o 
+solo quelle modificate
 -wcboot, -wcpboot, o -wcdboot
-riavvia DOSBox-X dopo aver scritto il file di configurazione
+riavvia DOSBox-X dopo aver salvato il file di configurazione
 -bootconf (o -bc)
-riavvia con il file di configurazione specificato (o quello primario caricato)
+riavvia con il file configurazione specificato (o quello primario caricato)
 -norem
 usarla con -wc, -wcp, o -wcd per escludere i commenti alle opzioni
 -l
 elenca i parametri di configurazione di DOSBox-X
 -h, -help, -? [sections | sezione/proprietà]
-mostra questo aiuto o quello per una sezione o proprietà; con "sections"
-mostra un elenco di sezioni
+visualizza questo aiuto o quello per una sezione o proprietà; con "sections"
+visualizza un elenco di sezioni
 -axclear
 cancella la sezione [autoexec]
 -axadd [riga]
@@ -353,7 +344,7 @@ saranno inattive
 -startmapper
 avvia l'editore della mappa della tastiera di DOSBox-X
 -gui
-avvia l'utilità di configurazione grafica
+avvia l'utilità configurazione grafica
 -get "sezione proprietà"
 ottiene il valore di una data proprietà (anche su %%CONFIG%%)
 -set (-setf per forzare) "sezione proprietà=valore"
@@ -361,7 +352,7 @@ imposta il valore di una proprietà
 
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
-Scopo della proprietà "%s" (nella sezione [%s]):
+Scopo proprietà "%s" (nella sezione [%s]):
 %s
 
 Valori possibili: %s
@@ -370,18 +361,18 @@ Valore attuale: %s
 
 .
 :PROGRAM_CONFIG_HLP_LINEHLP
-Scopo della sezione [%s]:
+Scopo sezione [%s]:
 %s
 Valore attuale:
 %s
 
 .
 :PROGRAM_CONFIG_HLP_NOCHANGE
-Questa proprietà è immodificabile in fase di esecuzione.
+In fase di esecuzione questa proprietà non è modificabile.
 
 .
 :PROGRAM_CONFIG_APPLY_RESTART
-Riavviare subito per applicare le impostazioni? [S/N]
+Vuoi riavviare subito per applicare le impostazioni? [S/N]
 .
 :PROGRAM_CONFIG_HLP_POSINT
 intero positivo
@@ -391,7 +382,7 @@ La sezione [%s] contiene le seguenti proprietà:
 
 .
 :PROGRAM_CONFIG_HLP_SECTLIST
-La configurazione di DOSBox-X contiene le seguenti sezioni:
+La configurazione DOSBox-X contiene le seguenti sezioni:
 
 
 .
@@ -430,7 +421,7 @@ Parametro mancante.
 
 .
 :PROGRAM_MOUSE_INSTALL
-Installato su porta PS/2.
+Installato sulla porta PS/2.
 
 .
 :PROGRAM_MOUSE_VERTICAL
@@ -442,11 +433,11 @@ Disattivata inversione dell'asse Y.
 
 .
 :PROGRAM_MOUSE_UNINSTALL
-Driver scaricato con successo...
+Driver scaricato correttamente...
 
 .
 :PROGRAM_MOUSE_ERROR
-Già installato su porta PS/2.
+Già installato sulla porta PS/2.
 
 .
 :PROGRAM_MOUSE_NOINSTALLED
@@ -454,11 +445,11 @@ Il driver non è installato.
 
 .
 :PROGRAM_MOUSE_HELP
-(Dis)attiva il mouse.
+Attiva/disattiva mouse.
 
 MOUSE [/?] [/U] [/V]
-  /U: Disinstalla
-  /V: Inverti l'asse Y
+  /U: disinstalla
+  /V: inverti l'asse Y
 
 .
 :PROGRAM_MOUNT_CDROMS_FOUND
@@ -486,11 +477,11 @@ Le unità attualmente montate sono:
 
 .
 :PROGRAM_MOUNT_NOT_FORMATTED
-Drive not formatted. Format it before accessing the drive.
+Unità non formattata. Formatta l'unità prima di accedervi.
 
 .
 :PROGRAM_MOUNT_UNSUPPORTED_EXT
-Unsupported extension %s: Mounted as raw IMG image.
+Estensione %s non supportata: montata come immagine IMG grezza.
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
@@ -518,19 +509,19 @@ Le unità attualmente disponibili per lo scambio sono:
 
 .
 :PROGRAM_IMGSWAP_ERROR
-La posizione dev'essere da 1 a %d per questa unità.
+Per questa unità la posizione dev'essere da 1 a %d .
 
 .
 :PROGRAM_MOUNT_ERROR_1
-La cartella %s non esiste.
+La cartella '%s' non esiste.
 
 .
 :PROGRAM_MOUNT_ERROR_2
-%s non è una cartella
+'%s' non è una cartella
 
 .
 :PROGRAM_MOUNT_IMGMOUNT
-Per montare file di immagine disco, usa il comando ←[34;1mIMGMOUNT←[0m , non il comando ←[34;1mMOUNT←[0m .
+Per montare file immagine disco, usa il comando ←[34;1mIMGMOUNT←[0m , non il comando ←[34;1mMOUNT←[0m .
 
 .
 :PROGRAM_MOUNT_ILL_TYPE
@@ -538,7 +529,7 @@ Tipo illegale %s
 
 .
 :PROGRAM_MOUNT_ALREADY_MOUNTED
-L'unità %c è già montata con %s
+L'unità '%c' è già montata con '%s'
 
 .
 :PROGRAM_MOUNT_USAGE
@@ -546,14 +537,15 @@ Monta cartelle o unità del sistema reale come unità di DOSBox-X.
 Uso: ←[34;1m←[32;1mMOUNT←[0m ←[37;1munità←[0m ←[36;1mcartella←[0m [opzione]←[0m
  ←[37;1munità←[0m            lettera di unità dove apparirà l'unità o cartella montata
  ←[36;1mcartella←[0m         cartella o unità reale da montare
- [opzione]        opzioni di montaggio. Sono accettate le seguenti:
- -t               tipo di unità da simulare. Sono accettati i tipi:
+ [opzione]        opzioni montaggio. Valori accetatti: 
+ -t               tipo unità da simulare. Valori accettati: 
                   dir, floppy, cdrom, overlay
                   ('overlay' reindirizza le scritture su un'altra cartella)
  -label [nome]    assegna l'etichetta di volume all'unità (in maiuscolo)
+ -nl              Usa la successiva lettera di unità disponibile se l'unità è montata.
  -ro              monta l'unità per sola lettura
  -pr              indica che il percorso è relativo al file di configurazione
- -cd              genera una lista dei CD-ROM locali per -usecd
+ -cd              genera un elenco dei CD-ROM locali per -usecd
  -usecd [drive #] per l'emulazione hardware, p.e. della riproduzione di audio
  -ioctl           accede all'hardware al più basso livello (con -usecd)
  -aspi            usa il livello ASPI installato (con -usecd)
@@ -563,12 +555,11 @@ Uso: ←[34;1m←[32;1mMOUNT←[0m ←[37;1munità←[0m ←[36;1mcartella←[0m
  -o               considera l'unità come: local, remote
  -q               modo quieto (senza messaggi)
  -u               smonta l'unità
- ←[32;1m-examples        Mostra esempi d'uso.←[0m
+ ←[32;1m-examples        Visualizza esempi d'uso.←[0m
 Digitare MOUNT senza parametri per elencare le unità montate.
-
 .
 :PROGRAM_MOUNT_EXAMPLE
-Esempio base del comando MOUNT:
+Esempio base comando MOUNT:
 
 ←[32;1mMOUNT c %s←[0m
 
@@ -593,35 +584,35 @@ Altri esempi di MOUNT:
 
 .
 :PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
-L'unità %c non è montata.
+L'unità '%c' non è montata.
 
 .
 :PROGRAM_MOUNT_UMOUNT_SUCCESS
-L'unità %c è stata rimossa.
+L'unità '%c' è stata rimossa.
 
 .
 :PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
-L'unità numero %c è stata rimossa.
+L'unità numero '%c' è stata rimossa.
 
 .
 :PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
-Le unità virtuali non possono essere (s)montate.
+Le unità virtuali non possono essere smontate.
 
 .
 :PROGRAM_MOUNT_WARNING_WIN
-ATTENZIONE: montare l'unità C: reale non è consigliabile.
+ATTENZIONE: non è consigliabile montare l'unità C: reale.
 
 .
 :PROGRAM_MOUNT_WARNING_OTHER
-ATTENZIONE: montare la radice / reale non è consigliabile.
+ATTENZIONE: non è consigliabile montare la radice.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-Impossibile montare l'unità PhysFS con il file di archivio.
+Impossibile montare l'unità PhysFS con il file archivio.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
-Si prega di montare una cartella normale prima di aggiungervi un overlay.
+Monta una cartella normale prima di aggiungervi un overlay.
 
 .
 :PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
@@ -632,7 +623,7 @@ L'overlay non è compatibile con l'unità specificata.
 L'overlay dev'essere indicato con lo stesso indirizzamento dell'unità sottostante. Non è permesso mescolare percorsi relativi e assoluti.
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
-La cartella di overlay non può essere la stessa dell'unità sottostante.
+La cartella overlay non può essere la stessa dell'unità sottostante.
 
 .
 :PROGRAM_MOUNT_OVERLAY_ERROR
@@ -640,7 +631,7 @@ Si è verificato un errore nella crezione dell'unità overlay.
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-Montato overlay %s sull'unità %c.
+Montato overlay '%s' nell'unità '%c'.
 
 .
 :PROGRAM_LOADFIX_ALLOC
@@ -656,7 +647,7 @@ Liberata la memoria in uso.
 
 .
 :PROGRAM_LOADFIX_ERROR
-Errore di allocazione della memoria.
+Errore allocazione memoria.
 
 .
 :PROGRAM_LOADFIX_HELP
@@ -672,9 +663,9 @@ LOADFIX -f [-xms] [-ems]
   -a          alloca automaticamente abbastanza memoria da riempire i primi 64KB
   -f (or -d)  libera la memoria allocata in precedenza
   {programma} esegue il programma specificato
-  {opzioni}   opzioni del programma (eventuali)
+  {opzioni}   opzioni programma (eventuali)
 
-sempi:
+Esempi:
   ←[32;1mLOADFIX game.exe←[0m     Alloca 64KB di memoria convenzionale ed esegue game.exe
   ←[32;1mLOADFIX -a←[0m           auto alloca memoria convenzionale a sufficienza per 64KB
   ←[32;1mLOADFIX -128←[0m         alloca 128KB di memoria convenzionale
@@ -687,11 +678,11 @@ MSCDEX installato.
 
 .
 :MSCDEX_ERROR_MULTIPLE_CDROMS
-MSCDEX: Errore: Le lettere di più unità CD-ROM devono essere consecutive.
+MSCDEX: Errore: le lettere di più unità CD-ROM devono essere consecutive.
 
 .
 :MSCDEX_ERROR_NOT_SUPPORTED
-MSCDEX: Errore: Non ancora supportato.
+MSCDEX: Errore: non ancora supportato.
 
 .
 :MSCDEX_ERROR_PATH
@@ -699,19 +690,19 @@ MSCDEX: Il percorso specificato non è un'unità CD-ROM.
 
 .
 :MSCDEX_ERROR_OPEN
-MSCDEX: Errore: File non valido o impossibile aprire.
+MSCDEX: Errore: file non valido o impossibile aprire.
 
 .
 :MSCDEX_TOO_MANY_DRIVES
-MSCDEX: Errore: Troppe unità CD-ROM (max: 5). L'installazione di MSCDEX è fallita.
+MSCDEX: Errore: troppe unità CD-ROM (max: 5). L'installazione di MSCDEX è fallita.
 
 .
 :MSCDEX_LIMITED_SUPPORT
-MSCDEX: Montata sotto-cartella: supporto limitato.
+MSCDEX: Montata sotto cartella: supporto limitato.
 
 .
 :MSCDEX_INVALID_FILEFORMAT
-MSCDEX: Errore: Il file non è un'immagine ISO/CUE o contiene errori.
+MSCDEX: Errore: il file non è un'immagine ISO/CUE o contiene errori.
 
 .
 :MSCDEX_UNKNOWN_ERROR
@@ -719,14 +710,14 @@ MSCDEX: Errore sconosciuto.
 
 .
 :PROGRAM_RESCAN_SUCCESS
-Cache dell'unità azzerata.
+Azzerata cache unità.
 
 .
 :PROGRAM_INTRO
-←[2J←[32;1mBenvenuto in DOSBox-X←[0m, un emulatore x86 open-source con audio e grafica.
+←[2J←[32;1mBenvenuto in DOSBox-X←[0m, un emulatore x86 open source con audio e grafica.
 DOSBox-X ricrea un ambiente di comando che somiglia al vero DOS.
 
-←[31;1mDOSBox-X terminerà senza avvisi in caso di errore!←[0m
+←[31;1mIn caso di errore DOSBox-X terminerà senza avvisi!←[0m
 
 
 
@@ -796,7 +787,7 @@ come unità C:
 ○DOSBox-X terminerà con l'esecuzione dell'applicazione nome.
 
 ←[33;1m  -version←[0m
-○Mostra la versione e termina. Utile per le interfacce.
+○Visualizza la versione e termina. Utile per le interfacce.
 
 ←[33;1m  -fastlaunch←[0m
 ○Abilita il lancio rapido (sopprime logo BIOS e messaggio di benvenuto).
@@ -914,6 +905,9 @@ Cambia lo ←[33;1m0←[0m in ←[34;1m-usecd ←[33m0←[0m con il numero del t
 Il disco di avvio non esiste. Abbandono.
 
 .
+:PROGRAM_BOOT_BOOTING
+Avvio dall'unità 
+.
 :PROGRAM_BOOT_NOT_OPEN
 Impossibile aprire il disco di avvio. Abbandono.
 
@@ -951,9 +945,9 @@ Esempi:
 :PROGRAM_BOOT_UNABLE
 Impossibile avviare il sistema dall'unità %c.
 
-.
+
 :PROGRAM_BOOT_IMAGE_MOUNTED
-Le immagini di uno o più floppy sono già montate.
+Floppy image(s) already mounted.
 
 .
 :PROGRAM_BOOT_IMAGE_OPEN
@@ -972,9 +966,9 @@ Comandi disponibili per la cartuccia PCjr:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 Non sono stati trovati comandi per la cartuccia PCjr
-.
+
 :PROGRAM_BOOT_BOOTING
-Avvio dall'unità 
+Boot dall'unità 
 .
 :PROGRAM_LOADROM_HELP
 Carica il file di immagine ROM indicato come BIOS video o IBM BASIC.
@@ -1055,10 +1049,6 @@ Occorre indicare il numero di unità (da 0 a %d) su cui montare l'immagine (0,1=
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
 Impossibile caricare l'immagine del disco.
 Verifica che il percorso sia corretto e l'immagine accessibile.
-
-.
-:PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-Immagine VHD dinamica non supportata.
 
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
@@ -1146,7 +1136,7 @@ Monta un'immagine di disco floppy, rigido od ottico.
  -o partidx=#        Specifica il numero di partizione del disco rigido da montare come unità.
  -ro                 Monta l'immagine in sola lettura (o premettere ':').
  -u                  Smonta l'unità numero.
- ←[32;1m-examples           Mostra alcuni esempi d'uso.←[0m
+ ←[32;1m-examples           Visualizza alcuni esempi d'uso.←[0m
 .
 :PROGRAM_IMGMOUNT_EXAMPLE
 Alcuni esempi d'uso di IMGMOUNT:
@@ -1179,9 +1169,9 @@ Usa: ←[34;1mIMGMAKE [file] [-t tipo] [[-size dim.] | [-chs geometria]] [-spc] 
     ←[33;1mModelli di disco floppy←[0m (i nomi sottintendono misure in KB o fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
     ←[33;1mModelli di disco rigido:←[0m
-     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image
-     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image
-     hd_st251: 40MB image, hd_st225: 20MB image (geometria di vecchi dischi)
+     hd_250: immagine 250MB, hd_520: immagine 520MB, hd_1gig: immagine 1GB
+     hd_2gig: immagine 2GB, hd_4gig: immagine 4GB, hd_8gig: immagine 8GB
+     hd_st251: immagine 40MB, hd_st225: immagine 20MB (geometria di vecchi dischi)
     ←[33;1mImmagini personalizzate di disco rigido:←[0m hd vhd (richiede -size o -chs)
   -size: dim. in MB di un disco rigido personalizzato (vhd: max. 2088960).
   -chs: geometria del disco in cilindri(1-1023),testine(1-255),settori(1-63).
@@ -1195,7 +1185,7 @@ Usa: ←[34;1mIMGMAKE [file] [-t tipo] [[-size dim.] | [-chs geometria]] [-spc] 
   -rootdir: Voci nella directory radice (ignorato con FAT32).
   -source: lettera di unità - se specificato, l'immagine è letta da un floppy.
   -retries: numero di tentate ripetizioni di lettura di un floppy difettoso (1-99).
-  ←[32;1m-examples: Mostra alcuni esempi.←[0m
+  ←[32;1m-examples: Visualizza alcuni esempi.←[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
 Esempi di uso di IMGMAKE per la creazione di immagini disco:
@@ -1208,17 +1198,6 @@ Esempi di uso di IMGMAKE per la creazione di immagini disco:
   ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m     - crea un disco rigido vuoto da 520MB
   ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m  - crea un disco rigido FAT32 da 2GB
   ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - crea un disco rigido con la geometria CHS indicata
-  ←[32;1mIMGMAKE c:\disk.img -source a←[0m           - legge un'immagine dal floppy fisico A:
-
-.
-:PROGRAM_IMGMAKE_FLREAD
-Geometria del disco: %d Cilindri, %d Testine, %d Settori, %d Kilobyte
-
-
-.
-:PROGRAM_IMGMAKE_FLREAD2
-%s =sano, %s =sano dopo tentativi, ! =errore CRC, x =settore non trovato, ? =ignoto
-
 
 .
 :PROGRAM_IMGMAKE_FILE_EXISTS
@@ -1241,10 +1220,9 @@ Creazione del file di immagine "%s" con %u Cilindri, %u Testine e %u Settori
 
 
 Impossibile leggere il floppy.
-.
-:PROGRAM_IMGMAKE_BADSIZE
-Argomenti errati per -size o -chs.
 
+:PROGRAM_IMGMAKE_BADSIZE
+Errato argomento -size o -chs.
 .
 :PROGRAM_KEYB_INFO
 La pagina dei codici %i è stata caricata
@@ -1257,13 +1235,19 @@ La pagina dei codici %i è stata caricata per la disposizione di tastiera %s
 :PROGRAM_KEYB_SHOWHELP
 Configura una tastiera per una data lingua.
 
-KEYB [keyboard layout ID [codepage number [codepage file]]]
+Uso: ← [32; 1MKeyB ← [0M [ID layout tastiera [numero codepage [file codepage]]]
+  ID layout Nome layoiut o file tastiera (.kl) da caricare
+  file codepagefile file .cpi/.cpx incluse specfiche info codepage
+  i file .kl, .cpi/.cpx evono essere copiati nella cartella in cui + presnte
+  l'eseguibile doi dosbox-x
 
 Esempi:
-  ←[32;1mKEYB←[0m          Mostra la tavola codici in uso.
-  ←[32;1mKEYB sp←[0m       Usa la disposizione spagnola (SP) applicando la tavola codici appropriata.
-  ←[32;1mKEYB sp 850←[0m   Usa la disposizione spagnola (SP) con la tavola codici 850.
-  ←[32;1mKEYB sp 850 mycp.cpi←[0m Come sopra, ma usa il file mycp.cpi per la tavola codici.
+  ←[32;1mKEYB←[0m          Visualizza codepage in uso.
+  ←[32;1mKEYB sp←[0m       Usa la disposizione spagnola (SP) applicando la codepage appropriata.
+  ←[32;1mKEYB sp 850←[0m   Usa la disposizione spagnola (SP) con la codepage 850.
+  ←[32;1mKEYB sp 850 mycp.cpi←[0m Come sopra, ma usa il file mycp.cpi per la codepage.
+  ←[32;1mKEYB sp_mod 850←[0m      Carica layout tastiera da sp_mod.kl, usa codepage 850.
+
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1286,37 +1270,34 @@ Non c'è una disposizione SP nella tavola codici %i
 :PROGRAM_KEYB_INVCPFILE
 File di tavola codici inesistente o invalido per la disposizione %s
 
-
-.
 :INT21_6523_YESNO_CHARS
-sn
+yn
 .
 :PROGRAM_LABEL_HELP
 Creates, changes, or deletes the volume label of a drive.
 
 LABEL [drive:][label]
 
-  [drive:]○Specifies the drive letter
-  [label]○Specifies the volume label
+  [drive:]○Specifica la lettera unità
+  [label]○Specifica l'etichetta volume
 
 .
 :PROGRAM_LABEL_DELETE
-Delete the volume label (Y/N)? 
+Vuoi eliminare l'etichetta volume (S/N)? 
 .
 :PROGRAM_LABEL_TOOLONG
-Label is too long (more than 11 characters).
+L'etichetta è troppo lunga (superiore a 11 caratteri).
 
 .
 :PROGRAM_LABEL_BADCHARS
-Label has invalid characters.
-
+L'etichetta contiene caratteri non validi.
 .
 :PROGRAM_LABEL_VOLUMEIS
-Volume in drive %c is %s
+Il volume nell'unità %c è %s
 
 .
 :PROGRAM_LABEL_NOLABEL
-Volume in drive %c has no label
+Il volume nell'unità %c non ha una etichetta
 
 .
 :PROGRAM_MODE_USAGE
@@ -1332,113 +1313,107 @@ Parametri non validi.
 
 .
 :PROGRAM_PORT_INVALID_NUMBER
-Si deve indicare un numero di porta da 1 a 9.
-
+Devi indicare un numero di porta da 1 a 9.
 .
 :PROGRAM_VHDMAKE_WRITERR
-Non posso scrivere sulla nuova immagine VHD "%s", abbandono.
+Could not write to new VHD image "%s", aborting.
 
 .
 :PROGRAM_VHDMAKE_REMOVEERR
-Non posso cancellare il file "%s"
+Could not erase file "%s"
 
 .
 :PROGRAM_VHDMAKE_RENAME
-Dovrai rinominare manualmente la nuova immagine VHD.
+You'll have to manually rename the newly created VHD image.
 
 .
 :PROGRAM_VHDMAKE_SUCCESS
-Nuova immagine VHD creata con successo. Puoi montarla con ←[34;1mIMGMOUNT←[0m.
+New VHD image successfully created. You can mount it with ←[34;1mIMGMOUNT←[0m.
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
-Errore, non posso aprire il file immagine "%s".
+Error, could not open image file "%s".
 
 .
 :PROGRAM_VHDMAKE_BADSIZE
-Dimensione non consentita per il VHD, abbandono!
+Bad VHD size specified, aborting!
 
 .
 :PROGRAM_VHDMAKE_FNEEDED
-Un'immagine VHD preesistente non può essere sovrascritta senza l'opzione -f!
+A pre-existing VHD image can't be silently overwritten without -f option!
 
 .
 :PROGRAM_VHDMAKE_BADPARENT
-L'immagine VHD madre "%s" non può essere aperta per il collegamento, abbandono!
+The parent VHD image "%s" can't be opened for linking, aborting!
 
 .
 :PROGRAM_VHDMAKE_NOINFO
-Impossibile ricavare le informazioni da "%s".
+Couldn't query info for "%s".
 
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS
- con %d su %d blocchi allocati.
+ with %d/%d blocks allocated.
 
 .
 :PROGRAM_VHDMAKE_INFO
-Il VHD "%s" è di tipo %s.
-La sua dimensione virtuale è %.02f MB
+VHD "%s" type is %s.
+Its virtual size is %.02f MB
 .
 :PROGRAM_VHDMAKE_CANTMERGE
-%s non è un VHD differenziale, non si può unire!
+%s is not a Differencing disk, can't merge!
 
 .
 :PROGRAM_VHDMAKE_MERGEREPORT
-%d settori in %d blocchi di "%s" uniti in "%s".
+%d sectors in %d blocks from "%s" merged into "%s".
 
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
-Impossibile rimuovere lo snapshot "%s", dovrai farlo manualmente!
+Couldn't remove snapshot "%s", you'll have to do it yourself!
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
-VHD differenziale unito e cancellato.
+Snapshot VHD merged and deleted.
 
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
-Errore durante l'unione, abbandonata!
+Failure while merging, aborted!
 
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
- Il contenuto della VHD madre "%s" potrebbe essere danneggiato!
+ Parent "%s" contents could be corrupted!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_WIN
-Attenzione: un percorso assoluto della VHD madre limita la portabilità a Windows.
-Preferire un percorso relativo per l'immagine differenziale!
+Warning: an absolute path to parent limits portability to Windows.
+Please prefer a path relative to differencing image file!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_UX
-ERRORE: un percorso assoluto alla VHD madre impedisce la portabilità.
-Usa un percorso relativo all'immagine differenziale!
+ERROR: an absolute path to parent inhibits portability.
+Use a path relative to differencing image file!
 
 .
 :PROGRAM_VHDMAKE_HELP
-Crea immagini VHD dinamiche o differenziali, converte immagini fisse in
-VHD fissi, mostra informazioni sui VHD e li unisce.
+Creates Dynamic or Differencing VHD images, converts raw images into Fixed VHD,
+shows information about VHD images and merges them.
 ←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
 ←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
 ←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
- -c | -convert  converte un disco in VHD fisso e lo rinomina new.vhd
- -l | -link     crea un VHD differenziale new.vhd e lo collega all'immagine
-                madre parent.vhd preesistente
- -f | -force    forza la sovrascrittura di un'immagine preesistente
- -i | -info     mostra informazioni sull'immagine a.vhd
- -m | -merge    unisce l'immagine differenziale delta.vhd alla madre
- new.vhd        nome della nuova immagine VHD dinamica da creare
- size           dimensione virtuale del disco (con eventuale unità di misura,
-                Byte è implicita)
-L'immagine da convertire in VHD fissa dev'essere partizionata con lo schema
-MBR e formattata con FAT.
-La dimensione di un VHD dinamico può variare da 3 MB a 2040 GB.
-Il VHD dinamico creato non è partizionato né formattato: per montarlo
-e assegnargli direttamente una lettera di unità con ←[34;1mIMGMOUNT←[0m, può
-essere preferibile usare ←[34;1mIMGMAKE←[0m.
-Un VHD differenziale è automaticamente cancellato dopo che l'unione ha avuto
-successo.
-
-.
+ -c | -convert  convert a raw hd image to Fixed VHD, renaming it to new.vhd
+ -l | -link     create a new Differencing VHD new.vhd and link it to the
+                pre-existing parent image parent.vhd
+ -f | -force    force overwriting a pre-existing image file
+ -i | -info     show useful information about a.vhd image
+ -m | -merge    merge differencing delta.vhd to its parent
+ new.vhd        name of the new Dynamic VHD image to create
+ size           disk size (eventually with size unit, Bytes is implicit)
+When converting a raw disk image to Fixed VHD, it has to be partitioned with
+MBR scheme and formatted with FAT format.
+When creating a Dynamic VHD, its size must range from 3 MB to 2040 GB.
+The Dynamic VHD created is not partitioned nor formatted: to directly mount to
+a drive letter with ←[34;1mIMGMOUNT←[0m, please consider using ←[34;1mIMGMAKE←[0m instead.
+A merged snapshot VHD is automatically deleted if merge is successful.
 
 .
 :SHELL_CMD_TREE_ERROR
@@ -1529,7 +1504,7 @@ Per accedere a un'unità montata, cambia unità con un comando tipo ←[31mC:←
 
 .
 :SHELL_CMD_DATE_HELP
-Mostra o cambia la data.
+Visualizza o cambia la data.
 
 .
 :SHELL_CMD_DATE_ERROR
@@ -1551,12 +1526,12 @@ DATE [[/T] [/H] [/S] | data]
   data:       Nuova data da impostare
   /S:         Rileva sempre data e ora dal sistema ospite
   /F:         Torna a usare l'orologio interno di DOSBox-X (contrario di /S)
-  /T:         Mostra la sola data
+  /T:         Visualizza la sola data
   /H:         Sincronizza con il sistema ospite
 
 .
 :SHELL_CMD_TIME_HELP
-Mostra o imposta l'orologio interno.
+Visualizza o imposta l'orologio interno.
 
 .
 :SHELL_CMD_TIME_ERROR
@@ -1573,7 +1548,7 @@ Digita 'time %s' per modificare.
 :SHELL_CMD_TIME_HELP_LONG
 TIME [[/T] [/H] | ora]
   time:       Nuova ora da impostare
-  /T:         Mostra l'ora
+  /T:         Visualizza l'ora
   /H:         Sincronizza con il sistema ospite
 
 .
@@ -1815,7 +1790,7 @@ Puoi eseguire molte operazioni anche usando i ←[33mmenu.                      
 .
 :SHELL_STARTUP_TEXT2
 - cambia tra finestra e schermo intero con i tasti ←[31mF11 ←[37m+ ←[31mF←[37m ←[37m                 
-- lancia il ←[33mConfiguratore←[37m con ←[31mF11 ←[37m+ ←[31mC←[37m←[37m, e l'←[33mEditore della mappa←[37m con ←[31mF11 ←[37m+ ←[31mM←[37m  ←[37m
+- lancia il ←[33mConfiguratore←[37m con ←[31mF11 ←[37m+ ←[31mC←[37m←[37m, e l'←[33mModifica della mappa←[37m con ←[31mF11 ←[37m+ ←[31mM←[37m  ←[37m
 - regola la velocità di emulazione con ←[31mF11 ←[37m+ ←[31m+←[37m←[37m o ←[31mF11 ←[37m+ ←[31m-←[37m   ←[37m                 
 .
 :SHELL_STARTUP_DOSV
@@ -1855,7 +1830,7 @@ Digita BREAK senza parametro per vedere l'impostazione attuale.
 
 .
 :SHELL_CMD_CHDIR_HELP
-Mostra o cambia la cartella corrente.
+Visualizza o cambia la cartella corrente.
 
 .
 :SHELL_CMD_CHDIR_HELP_LONG
@@ -1879,7 +1854,7 @@ CLS
 
 .
 :SHELL_CMD_DIR_HELP
-Mostra un elenco di file e sotto-cartelle in una cartella.
+Visualizza un elenco di file e sotto-cartelle in una cartella.
 
 .
 :SHELL_CMD_DIR_HELP_LONG
@@ -1889,9 +1864,9 @@ DIR [unità:][percorso][nomefile] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S
               Specifica unità, cartelle e/o file da elencare.
   /W          Usa un formato di elenco ampio.
   /B          Usa un formato semplice (senza intestazione né riepilogo).
-  /S          Mostra i file nella cartella specificata e nelle discendenti.
+  /S          Visualizza i file nella cartella specificata e nelle discendenti.
   /P          Pausa dopo ogni schermo di informazione.
-  /A          Mostra i file con gli attributi indicati.
+  /A          Visualizza i file con gli attributi indicati.
   attributes   D  Cartelle                R  File di sola lettura
                H  File nascosti           A  Files pronti per l'archiviazione
                S  File di sistema         -  Prefisso per "non"
@@ -1905,7 +1880,7 @@ Per bypassarla, premettere un - (meno) sulla riga di comando, p.e. /-W.
 
 .
 :SHELL_CMD_ECHO_HELP
-Mostra messaggi, o (dis)attiva l'eco dei comandi.
+Visualizza messaggi, o (dis)attiva l'eco dei comandi.
 
 .
 :SHELL_CMD_ECHO_HELP_LONG
@@ -1924,7 +1899,7 @@ EXIT
 
 .
 :SHELL_CMD_HELP_HELP
-Mostra l'aiuto in linea di DOSBox-X.
+Visualizza l'aiuto in linea di DOSBox-X.
 
 .
 :SHELL_CMD_HELP_HELP_LONG
@@ -1932,7 +1907,7 @@ HELP [/A o /ALL]
 HELP [comando]
 
    /A o /ALL    Elenca tutti i comandi interni.
-   [comando]    Mostra l'aiuto per il comando indicato.
+   [comando]    Visualizza l'aiuto per il comando indicato.
 
 ←[0mP.e., ←[37;1mHELP COPY←[0m o ←[37;1mCOPY /?←[0m mostra l'aiuto per il comando COPY.
 
@@ -1951,7 +1926,7 @@ LS [unità:][percorso][nomefile] [/A] [/L] [/P] [/Z]
   /A     Elenca anche i file nascosti e di sistema.
   /L     Elenca un nome per riga.
   /P     Fa pausa dopo ogni schermo di risultati.
-  /Z     Mostra i nomi brevi anche con il supporto LFN attivo.
+  /Z     Visualizza i nomi brevi anche con il supporto LFN attivo.
 
 .
 :SHELL_CMD_MKDIR_HELP
@@ -1973,7 +1948,7 @@ RD [unità:][percorso]
 
 .
 :SHELL_CMD_SET_HELP
-Mostra o imposta le variabili d'ambiente.
+Visualizza o imposta le variabili d'ambiente.
 
 .
 :SHELL_CMD_SET_HELP_LONG
@@ -2025,6 +2000,16 @@ GOTO etichetta
 Un'etichetta si colloca su una riga a sé, e inizia con duepunti (:).
 
 .
+:SHELL_CMD_HISTORY_HELP
+Displays or clears the command history list.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  Clears the command history list.
+
+.
 :SHELL_CMD_SHIFT_HELP
 Cambia la posizione dei parametri sostituibili in un file batch.
 
@@ -2061,7 +2046,7 @@ Questo comando ha effetto solo se il supporto LFN è attivo.
 
 .
 :SHELL_CMD_TYPE_HELP
-Mostra il contenuto di un file di testo.
+Visualizza il contenuto di un file di testo.
 
 .
 :SHELL_CMD_TYPE_HELP_LONG
@@ -2174,9 +2159,11 @@ CHOICE [/C:scelte] [/N] [/S] testo
   /S           Distingue tra maiuscole e minuscole.
   testo        Testo introduttivo alla scelta.
 
+ERRORLEVEL è impostato su Offset of Key User Pressing In scelte.
+
 .
 :SHELL_CMD_ATTRIB_HELP
-Mostra o cambia attributi ai file.
+Visualizza o cambia attributi ai file.
 
 .
 :SHELL_CMD_ATTRIB_HELP_LONG
@@ -2194,7 +2181,7 @@ ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [unità:][percorso][nomefile] [/S
 
 .
 :SHELL_CMD_PATH_HELP
-Mostra o imposta il percorso di ricerca dei file eseguibili.
+Visualizza o imposta il percorso di ricerca dei file eseguibili.
 
 .
 :SHELL_CMD_PATH_HELP_LONG
@@ -2237,14 +2224,14 @@ Digita VERIFY senza parametro per vedere l'impostazione attuale.
 
 .
 :SHELL_CMD_VER_HELP
-Mostra o imposta la versione di DOS riportata da DOSBox-X.
+Visualizza o imposta la versione di DOS riportata da DOSBox-X.
 
 .
 :SHELL_CMD_VER_HELP_LONG
 VER [/R]
 VER [SET] numero o VER SET [versione revisione]
 
-  /R                 Mostra la versione e la data di DOSBox-X's da Git.
+  /R                 Visualizza la versione e la data di DOSBox-X's da Git.
   [SET] numero       Imposta il numero indicato come versione di DOS riportata.
   SET [major minor]  Imposta la versione di DOS nel formato versione e revisione.
 
@@ -2263,7 +2250,7 @@ La versione di DOS specificata non è corretta.
 
 .
 :SHELL_CMD_VOL_HELP
-Mostra etichetta e numero seriale del disco, se presenti.
+Visualizza etichetta e numero seriale del disco, se presenti.
 
 .
 :SHELL_CMD_VOL_HELP_LONG
@@ -2310,18 +2297,18 @@ Digita ALIAS senza parametri per vedere la lista degli alias nella forma:
 
 .
 :SHELL_CMD_ASSOC_HELP
-Mostra o cambia il comando associato all'estensione dei file.
+Displays or changes file extension associations.
 
 .
 :SHELL_CMD_ASSOC_HELP_LONG
-ASSOC [.est[=comando] ... ]
+ASSOC [.ext[=command] ... ]
 
-Digita ASSOC senza parametri per elencare le associazioni correnti.
-Le estensioni devono iniziare con il punto (.); i jolly (* e ?) sono permessi.
+Type ASSOC without parameters to display the current file associations.
+File extensions must start with a dot (.); wildcards (* and ?) are allowed.
 
 .
 :SHELL_CMD_CHCP_HELP
-Mostra o cambia la tavola codici corrente per il DOS.
+Visualizza o cambia la tavola codici corrente per il DOS.
 
 .
 :SHELL_CMD_CHCP_HELP_LONG
@@ -2335,6 +2322,8 @@ Le tavole codici supportate con l'output TrueType:
 437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
 
 E inoltre le tavole DBCS tra cui 932, 936, 949 e 950.
+
+Le pagine codice personalizzate sono supportate fornendo file pagina codice.
 
 .
 :SHELL_CMD_CHCP_ACTIVE
@@ -2350,7 +2339,7 @@ Numero di tavola codici invalido - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
-Mostra o cambia il paese corrente.
+Visualizza o cambia il paese corrente.
 
 .
 :SHELL_CMD_COUNTRY_HELP_LONG
@@ -2419,40 +2408,23 @@ Sono permesse le seguenti opzioni:
   /INIT Inizializza l'interprete.
 
 .
-:SHELL_CMD_HISTORY_HELP
-Mostra o cancella lo storico delle righe di comando.
-
-.
-:SHELL_CMD_HISTORY_HELP_LONG
-HISTORY [/C]
-
-  /C  Cancella lo storico dei comandi.
-
-.
-
 :MENU:mapper_reset
-Resetta la macchina virtuale
+Ripristina macchina virtuale
 .
 :MENU:mapper_reboot
-Riavvia il sistema emulato
+Riavvia istema emulato
 .
 :MENU:mapper_loadmap
-Carica mappa della tastiera...
+Carica mappa tastiera...
 .
 :MENU:mapper_quickrun
-Avvio rapido di un programma...
+Avvio rapido programma...
 .
 :MENU:mapper_shutdown
 Esci da DOSBox-X
 .
 :MENU:mapper_capmouse
-Cattura il mouse
-.
-:MENU:mapper_fastedit
-Editore rapido: copia alla selezione e incolla il testo
-.
-:MENU:mapper_copyall
-Copia tutto il testo sullo schermo del DOS
+Cattura mouse
 .
 :MENU:mapper_paste
 Incolla dagli appunti
@@ -2461,64 +2433,64 @@ Incolla dagli appunti
 Smetti di incollare gli appunti
 .
 :MENU:mapper_ejectpage
-Invia il comando Form-Feed
+Invia comando Form Feed
 .
 :MENU:mapper_printtext
-Print DOS text screen
+Stampa testo schermo DOS
 .
 :MENU:mapper_pause
-Metti in pausa l'emulazione
+Metti in pausa emulazione
 .
 :MENU:mapper_pauseints
 Metti in pausa con interrupt attivi
 .
 :MENU:mapper_gui
-Strumento di configurazione
+Strumento configurazione
 .
 :MENU:mapper_mapper
-Editore della mappa della tastiera
+Modifica mappa tastiera
 .
 :MENU:mapper_fullscr
-(Dis)attiva schermo intero
+Attiva/disattiva schermo intero
 .
 :MENU:mapper_resetsize
-Ripristina le dimensioni della finestra
+Ripristina dimensioni finestra
 .
 :MENU:mapper_dbcssbcs
-CJK: Switch between DBCS/SBCS modes
+CJK: Switch modo DBCS/SBCS
 .
 :MENU:mapper_autoboxdraw
-CJK: Auto-detect box-drawing characters
+CJK: Rilevamento automatico caratteri disegno riquadro
 .
 :MENU:mapper_incsize
-Aumenta la dimensione del font TTF
+Aumenta dimensione font TTF
 .
 :MENU:mapper_decsize
-Riduci la dimensione del font TTF
+Diminuisci dimensione font TTF
 .
 :MENU:mapper_resetcolor
-Reset TTF color scheme
+Ripristina schema colore TTF
 .
 :MENU:mapper_pwrbutton
-Tasto di alimentazione APM
+Tasto alimentazione APM
 .
 :MENU:mapper_togmenu
-Mostra/nascondi la barra dei menù
+Visualizza/nascondi barra menù
 .
 :MENU:MainMenu
-Principale
+Generale
 .
 :MENU:MainSendKey
-Invia una combinazione di tasti
+Invia combinazione tasti
 .
 :MENU:MainHostKey
-Scegli il tasto Host
+Scegli tasto Host
 .
 :MENU:WheelToArrow
-Movimenti della rotella del mouse
+Movimenti rotella mouse
 .
 :MENU:SharedClipboard
-Funzioni degli appunti condivisi
+Funzioni appunti condivisi
 .
 :MENU:CpuMenu
 CPU
@@ -2530,7 +2502,7 @@ Emulazione CPU
 Tipo CPU
 .
 :MENU:CpuSpeedMenu
-Emula una frequenza di CPU
+Emula frequenza CPU
 .
 :MENU:cpu88-4
 8088 XT 4.77MHz (~240 cicli)
@@ -2605,10 +2577,10 @@ Pentium III 866MHz EB (~407000 cicli)
 Video
 .
 :MENU:VideoFrameskipMenu
-Soppressione fotogrammi
+Salta fotogrammi
 .
 :MENU:frameskip_0
-Disattivata
+OFF
 .
 :MENU:frameskip_1
 1 fotogramma
@@ -2641,7 +2613,7 @@ Disattivata
 10 fotogrammi
 .
 :MENU:VideoRatioMenu
-Rapporto d'aspetto
+Proporzioni video
 .
 :MENU:video_ratio_1_1
 1:1
@@ -2667,20 +2639,8 @@ Originale
 :MENU:video_ratio_set
 Imposta
 .
-:MENU:VideoPreventCaptureMenu
-Screen capture control
-.
-:MENU:prevcap_none
-Allow
-.
-:MENU:prevcap_blank
-Show as blank
-.
-:MENU:prevcap_invisible
-Make invisible
-.
 :MENU:VideoScalerMenu
-Scaler
+Adattamento
 .
 :MENU:scaler_set_none
 Nessuno
@@ -2725,10 +2685,10 @@ TV 2X
 TV 3X
 .
 :MENU:scaler_set_scan2x
-Scan 2X
+Scansione 2X
 .
 :MENU:scaler_set_scan3x
-Scan 3X
+Scansione 3X
 .
 :MENU:scaler_set_rgb2x
 RGB 2X
@@ -2737,10 +2697,10 @@ RGB 2X
 RGB 3X
 .
 :MENU:scaler_set_advmame2x
-Advanced MAME 2X
+2X MAME avanzato
 .
 :MENU:scaler_set_advmame3x
-Advanced MAME 3X
+3X MAME avanzato
 .
 :MENU:scaler_set_hq2x
 HQ 2X
@@ -2749,10 +2709,10 @@ HQ 2X
 HQ 3X
 .
 :MENU:scaler_set_advinterp2x
-Advanced Interpolation 2X
+2X interpolazione avanzata
 .
 :MENU:scaler_set_advinterp3x
-Advanced Interpolation 3X
+3X interpolazione avanzata
 .
 :MENU:scaler_set_2xsai
 2xSai
@@ -2767,25 +2727,22 @@ SuperEagle
 xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
-xBRZ Bilinear
-.
-:MENU:center_window
-Center window
+xBRZ bilineare
 .
 :MENU:set_titletext
-Imposta la barra del titolo...
+Imposta barra titolo...
 .
 :MENU:set_transparency
-Imposta la trasparenza...
+Imposta trasparenza...
 .
 :MENU:refresh_rate
-Refresh rate...
+Frequenza aggiornamento...
 .
 :MENU:VideoOutputMenu
 Uscita video
 .
 :MENU:output_surface
-Surface
+Superficie
 .
 :MENU:output_direct3d
 Direct3D
@@ -2794,43 +2751,40 @@ Direct3D
 OpenGL
 .
 :MENU:output_openglnb
-OpenGL nearest
+OpenGL più vicina
 .
 :MENU:output_openglpp
-OpenGL perfect
+OpenGL perfetta
 .
 :MENU:output_ttf
-TrueType font
-.
-:MENU:output_gamelink
-Game Link
+Font TrueType
 .
 :MENU:doublescan
-Doublescan
+Doppia scansione
 .
 :MENU:VideoVsyncMenu
 V-Sync
 .
 :MENU:vsync_on
-On
+ON
 .
 :MENU:vsync_force
-Force
+Forza
 .
 :MENU:vsync_host
 Host
 .
 :MENU:vsync_off
-Off
+OFF
 .
 :MENU:vsync_set_syncrate
-Set syncrate
+Imposta frequenza sincronizzazione
 .
 :MENU:VideoOverscanMenu
 Overscan
 .
 :MENU:overscan_0
-Off
+OFF
 .
 :MENU:overscan_1
 1
@@ -2863,16 +2817,16 @@ Off
 10
 .
 :MENU:VideoTextmodeMenu
-Text-mode
+Modo testo
 .
 :MENU:clear_screen
-Cancella lo schermo
+Cancella schermo
 .
 :MENU:vga_9widetext
-Abilita font a 9 pixel
+Abilita font 9 pixel
 .
 :MENU:text_background
-Alta intensità: colore di sfondo
+Alta intensità: colore sfondo
 .
 :MENU:text_blinking
 Alta intensità: testo lampeggiante
@@ -2905,34 +2859,34 @@ Schermo: 132 colonne x 60 righe
 Opzioni TTF
 .
 :MENU:ttf_showbold
-Testo grassetto in TTF
+Testo TTF grassetto
 .
 :MENU:ttf_showital
-Testo corsivo in TTF
+Testo TTF corsivo
 .
 :MENU:ttf_showline
-Testo sottolineato in TTF
+Testo TTF sottolineato
 .
 :MENU:ttf_showsout
-Testo barrato in TTF
+Testo TTF barrato
 .
 :MENU:ttf_wpno
-TTF word processor: Nessuno
+Elaboratore testi TTF: Nessuno
 .
 :MENU:ttf_wpwp
-TTF word processor: WordPerfect
+Elaboratore testi TTF: WordPerfect
 .
 :MENU:ttf_wpws
-TTF word processor: WordStar
+Elaboratore testi TTF: WordStar
 .
 :MENU:ttf_wpxy
-TTF word processor: XyWrite
+Elaboratore testi TTF: XyWrite
 .
 :MENU:ttf_wpfe
-TTF word processor: FastEdit
+Elaboratore testi TTF: FastEdit
 .
 :MENU:ttf_blinkc
-Cursore lampeggiante TTF
+Cursore TTF lampeggiante
 .
 :MENU:ttf_right_left
 Orienta il testo da destra a sinistra
@@ -2941,22 +2895,22 @@ Orienta il testo da destra a sinistra
 Usa il font TTF corrente per stampare
 .
 :MENU:ttf_halfwidthkana
-CJK: Allow half-width Japanese Katakana
+CJK: Consenti Japanese Katakana mezza altezza
 .
 :MENU:ttf_extcharset
-CJK: Enable extended Chinese character set
+CJK: Abilita set caratteri Cinese esteso
 .
 :MENU:VideoPC98Menu
 Opzioni PC-98
 .
 :MENU:pc98_5mhz_gdc
-5MHz GDC clock
+Clock 5MHz GDC
 .
 :MENU:pc98_allow_200scanline
-Allow 200-line scanline effect
+Consenti effetto scansione 200 linee
 .
 :MENU:pc98_allow_4partitions
-Allow 4 display partitions in graphics layer
+Consenti nel livello grafico visualizzazione 4 partizioni
 .
 :MENU:pc98_enable_egc
 Attiva EGC
@@ -2968,16 +2922,16 @@ Attiva GRCG
 Attiva schermo analogico
 .
 :MENU:pc98_enable_analog256
-Attiva schermo analogico a 256 colori
+Attiva schermo analogico 256 colori
 .
 :MENU:pc98_enable_188user
-Attiva 188+ user CG cells
+Attiva 188+ celle CG utente
 .
 :MENU:pc98_clear_text
-Cancella il livello testo
+Cancella livello testo
 .
 :MENU:pc98_clear_graphics
-Cancella il livello grafico
+Cancella livello grafico
 .
 :MENU:Video3dfxMenu
 Emulazione 3dfx
@@ -2988,44 +2942,41 @@ Scheda Voodoo interna
 :MENU:3dfx_glide
 Bypassa Glide
 .
-:MENU:load_d3d_shader
-Scegli un pixel shader Direct3D...
-.
 :MENU:load_glsl_shader
-Scegli uno shader OpenGL (GLSL)...
+Shader OpenGL (GLSL)...
 .
 :MENU:load_ttf_font
-Scegli un font TrueType (TTF/OTF)...
+Font TrueType (TTF/OTF)...
 .
 :MENU:SoundMenu
 Suono
 .
 :MENU:mixer_swapstereo
-Scambia i canali stereo
+Scambia canali stereo
 .
 :MENU:mixer_mute
 Muto
 .
 :MENU:mixer_info
-Mostra il mixer del volume
+Visualizza mixer volume
 .
 :MENU:sb_info
-Mostra la configurazione Sound Blaster
+Visualizza configurazione Sound Blaster
 .
 :MENU:midi_info
-Mostra la configurazione MIDI
+Visualizza configurazione MIDI
 .
 :MENU:DOSMenu
 DOS
 .
 :MENU:enable_a20gate
-Abilita il gate A20
+Abilita gate A20
 .
 :MENU:change_currentcd
-Cambia l'attuale immagine di CD...
+Cambia immagine attuale CD...
 .
 :MENU:change_currentfd
-Cambia l'attuale immagine di floppy...
+Cambia immagine attuale floppy...
 .
 :MENU:DOSMouseMenu
 Emulazione mouse
@@ -3034,7 +2985,7 @@ Emulazione mouse
 Emulazione interna
 .
 :MENU:dos_mouse_y_axis_reverse
-Inverti l'asse Y
+Inverti asse Y
 .
 :MENU:dos_mouse_sensitivity
 Sensibilità
@@ -3058,10 +3009,10 @@ Versione DOS comunicata
 Altra
 .
 :MENU:DOSLFNMenu
-Nomi di file lunghi (LFN)
+Nomi file lunghi (LFN)
 .
 :MENU:dos_lfn_auto
-In base alla versione di DOS
+In base alla versione DOS
 .
 :MENU:dos_lfn_enable
 Abilita emulazione LFN
@@ -3070,13 +3021,13 @@ Abilita emulazione LFN
 Disabilita emulazione LFN
 .
 :MENU:DOSPC98Menu
-PC-98 PIT master clock
+PC-98 clock master PIT
 .
 :MENU:dos_pc98_pit_4mhz
-4MHz/8MHz PIT master clock
+4MHz/8MHz clock master PIT
 .
 :MENU:dos_pc98_pit_5mhz
-5MHz/10MHz PIT master clock
+5MHz/10MHz clock master PIT
 .
 :MENU:DOSEMSMenu
 Memoria espansa (EMS)
@@ -3097,31 +3048,31 @@ Disabilita emulazione EMS
 Limita la velocità dei dischi
 .
 :MENU:limit_hdd_rate
-Limita la velocità dei dischi rigidi
+Limita velocità dischi fissi
 .
 :MENU:limit_floppy_rate
-Limita la velocità dei dischi floppy
+Limita velocità dischi floppy
 .
 :MENU:DOSWinMenu
-Applicazioni sul sistema reale
+Applicazioni sistema reale
 .
 :MENU:dos_win_autorun
-Lancia per l'esecuzione su un sistema Windows
+Lancia per esecuzione in un sistema host Windows
 .
 :MENU:dos_win_transpath
-Trasforma i percorsi in percorsi del sistema reale
+Trasforma percorsi in percorsi del sistema reale
 .
 :MENU:dos_win_wait
-Aspetta l'applicazione se possibile
+Aspetta se possibile l'applicazione
 .
 :MENU:dos_win_quiet
-Modo quiete - nessun messaggio di avvio
+Modo silenzioso - nessun messaggio all'avvio
 .
 :MENU:CaptureMenu
 Cattura
 .
 :MENU:CaptureFormatMenu
-Formato di cattura
+Formato cattura
 .
 :MENU:capture_fmt_avi_zmbv
 AVI + ZMBV
@@ -3130,13 +3081,13 @@ AVI + ZMBV
 MPEG-TS + H.264
 .
 :MENU:saveoptionmenu
-Opzioni di salvataggio/caricamento
+Opzioni salvataggio/caricamento
 .
 :MENU:saveslotmenu
-Scegli uno slot di salvataggio
+Scegli slot salvataggio
 .
 :MENU:enable_autosave
-Abilita l'auto-salvataggio dello stato
+Abilita salvataggio automatico stato
 .
 :MENU:noremark_savestate
 Nessun avviso al salvataggio di uno stato
@@ -3145,88 +3096,85 @@ Nessun avviso al salvataggio di uno stato
 Nessun avviso al caricamento di uno stato
 .
 :MENU:removestate
-Rimuovi lo stato nello slot
+Rimuovi stato nello slot
 .
 :MENU:refreshslot
-Aggiorna lo stato mostrato
+Aggiorna stato visualizzato
 .
 :MENU:lastautosaveslot
-Scegli l'ultimo slot di auto salvataggio
+Scegli ultimo slot salvataggio automatico
 .
 :MENU:usesavefile
-Use un file anziché uno slot di salvataggio
+Usa un file anziché uno slot salvataggio
 .
 :MENU:autosavecfg
-Salva automat. la configurazione...
+Salva automaticamente configurazione...
 .
 :MENU:browsesavefile
-Individua un file di salvataggio...
+Seleziona file di salvataggio...
 .
 :MENU:current_page
-Pag. attuale: 1/10
+Pagina attuale: 1/10
 .
 :MENU:prev_page
-Scorsa pag.
+Pagina precedente
 .
 :MENU:next_page
-Prossima pag.
+Pagina successiva
 .
 :MENU:first_page
-Alla prima pag.
+Vai alla prima pagina
 .
 :MENU:last_page
-All'ultima pag.
+Via all'ultima pagina.
 .
 :MENU:DriveMenu
 Unità
 .
-:MENU:drive_mountauto
-Monta automaticamente un'unità di Windows
-.
 :MENU:drive_mounthd
-Monta la cartella come disco rigido
+Monta cartella come disco fisso
 .
 :MENU:drive_mountcd
-Monta la cartella come CD-ROM
+Monta cartella come CD-ROM
 .
 :MENU:drive_mountfd
-Monta la cartella come disco floppy
+Monta cartella come disco floppy
 .
 :MENU:drive_mountfro
-Opzione: monta la cartella in sola lettura
+Opzione: monta cartella in sola lettura
 .
 :MENU:drive_mountarc
-Monta un file archivio (ZIP/7z)
+Monta file archivio (ZIP/7z)
 .
 :MENU:drive_mountimg
-Monta un file immagine di disco o CD
+Monta file immagine disco o CD
 .
 :MENU:drive_mountimgs
-Monta molteplici immagini di CD/dischi
+Monta molteplici immagini disco/CD
 .
 :MENU:drive_mountiro
-Opzione: monta i file immagine in sola lettura
+Opzione: monta file immagine in sola lettura
 .
 :MENU:drive_unmount
 Smonta unità
 .
 :MENU:drive_rescan
-Riscansiona unità
+Ri-scansiona unità
 .
 :MENU:drive_swap
 Cambia disco
 .
 :MENU:drive_info
-Informazioni unità
+Info unità
 .
 :MENU:drive_boot
-Avvia da un'unità
+Avvia da unità
 .
 :MENU:drive_bootimg
-Avvia da un'immagine disco
+Avvia da immagine disco
 .
 :MENU:drive_saveimg
-Save to disk image
+Salva nell'immagine disco
 .
 :MENU:HelpMenu
 Aiuto
@@ -3244,46 +3192,43 @@ Guida Wiki di DOSBox-X
 Supporto di DOSBox-X
 .
 :MENU:help_nic
-Lista delle interfacce di rete
-.
-:MENU:help_prt
-Lista delle stampanti
+Elenco schede di rete
 .
 :MENU:help_about
-Su DOSBox-X
+Info su DOSBox-X
 .
 :MENU:show_console
-Mostra la console
+Visualizza console
 .
 :MENU:clear_console
-Clear logging console
+Azzera registro eventi console
 .
 :MENU:disable_logging
-Disattiva il rapporto
+Disattiva registrazione eventi
 .
 :MENU:wait_on_error
 Console in attesa di errore
 .
 :MENU:show_codetext
-Mostra panoramica del codice
+Visualizza panoramica codice
 .
 :MENU:show_logtext
-Mostra il rapporto
+Visualizza registro eventi
 .
 :MENU:save_logas
-Salva il rapporto con nome...
+Salva registro eventi con nome...
 .
 :MENU:debugger_rundebug
-Opzione Debugger: Esegui debugger
+Opzione debugger: Esegui debugger
 .
 :MENU:debugger_runnormal
-Opzione Debugger: Esecuzione normale
+Opzione debugger: Esecuzione normale
 .
 :MENU:debugger_runwatch
-Opzione Debugger: Esegui vista
+Opzione debugger: Esegui monitoraggiovista
 .
 :MENU:video_debug_overlay
-Video debug overlay
+Overlay debug video
 .
 :MENU:HelpCommandMenu
 Comandi DOS
@@ -3295,25 +3240,25 @@ Debug
 Console
 .
 :MENU:debug_blankrefreshtest
-Test di rinfresco (azzera il video)
+Test aggiornamento (display vuoto)
 .
 :MENU:debug_generatenmi
 Genera interrupt NMI
 .
 :MENU:debug_int2fhook
-Intercetta le chiamate a INT 2Fh
+Intercetta chiamate a INT 2Fh
 .
 :MENU:debug_logint21
-Registra le chiamate a INT 21h
+Registra eventi chiamate a INT 21h
 .
 :MENU:debug_logfileio
-Registra I/O dei file
+Registra eventi I/O file
 .
 :MENU:mapper_speedlock
-Blocco della velocità ON/OFF
+Abilita/disabilità velocità clock
 .
 :MENU:mapper_speedlock2
-Turbo (Avanti veloce)
+Turbo (avanti veloce)
 .
 :MENU:mapper_speednorm
 Velocità normale
@@ -3325,70 +3270,70 @@ Accelera
 Rallenta
 .
 :MENU:mapper_editcycles
-Modifica i cicli
+Modifica cicli
 .
 :MENU:mapper_savestate
-Salva lo stato
+Salva stato
 .
 :MENU:mapper_loadstate
-Carica lo stato
+Carica stato
 .
 :MENU:mapper_showstate
-Mostra informazioni di stato
+Visualizza informazioni di stato
 .
 :MENU:mapper_prevslot
-Seleziona lo slot precedente
+Seleziona slot precedente
 .
 :MENU:mapper_nextslot
-Seleziona il prossimo slot
+Seleziona slot successivo
 .
 :MENU:mapper_decfskip
-Riduci i frame eliminati
+Riduci fotogrammi saltati
 .
 :MENU:mapper_incfskip
-Aumenta i frame eliminati
+Aumenta fotogrammi saltati
 .
 :MENU:mapper_aspratio
-Adatta le proporzioni
+Adatta proporzioni
 .
 :MENU:mapper_fscaler
-Forza lo scaler
+Forza adattamento
 .
 :MENU:mapper_recwave
-Registra l'audio su file WAV
+Registra audio in un file WAV
 .
 :MENU:mapper_recmtwave
-Registra l'audio su file AVI multitraccia
+Registra audio in un file AVI multi traccia
 .
 :MENU:mapper_caprawmidi
-Registra l'uscita audio MIDI
+Registra uscita audio MIDI
 .
 :MENU:mapper_caprawopl
-Registra l'usscita audio FM (OPL)
+Registra uscita audio FM (OPL)
 .
 :MENU:mapper_capnetrf
-Registra traffico di rete
+Registra eventi traffico di rete
 .
 :MENU:mapper_video
-Registra un video su file AVI
+Registra video in un file AVI
 .
 :MENU:mapper_scrshot
-Cattura lo schermo
+Cattura schermata
 .
 :MENU:mapper_rawscrshot
-Take raw screenshot
+Cattura schermata RAW
 .
 :MENU:mapper_volup
-Aumenta il volume
+Aumenta volume
 .
 :MENU:mapper_voldown
-Riduci il volume
+Diminuisci volume
 .
 :MENU:mapper_recvolup
-Aumenta il volume di registrazione
+Aumenta volume registrazione
 .
 :MENU:mapper_recvoldown
-Riduci il volume di registrazione
+Riduci volume registrazione
 .
 :MENU:mapper_sendkey_mapper
 Invia sequenza speciale di tasti
@@ -3430,25 +3375,25 @@ Automatico
 286
 .
 :MENU:cputype_286_prefetch
-286 con Prefetch
+286 con prefetch
 .
 :MENU:cputype_386
 386
 .
 :MENU:cputype_386_prefetch
-386 con Prefetch
+386 con prefetch
 .
 :MENU:cputype_486old
 486 (vecchio)
 .
 :MENU:cputype_486old_prefetch
-486 (vecchio) con Prefetch
+486 (vecchio) con prefetch
 .
 :MENU:cputype_486
 486
 .
 :MENU:cputype_486_prefetch
-486 con Prefetch
+486 con prefetch
 .
 :MENU:cputype_pentium
 Pentium
@@ -3469,10 +3414,10 @@ Pentium III
 Sperimentale
 .
 :MENU:debug_pageflip
-Page flip debug line
+Linea debug ribaltamento pagina
 .
 :MENU:debug_retracepoll
-Retrace poll debug line
+Linea debug ri-tracciamento poll
 .
 :MENU:mapper_swapimg
 Scambia unità floppy
@@ -3481,49 +3426,37 @@ Scambia unità floppy
 Scambia unità CD-ROM
 .
 :MENU:mapper_debugger
-Avvia DOSBox-X Debugger
+Avvia debugger DOSBox-X
 .
 :MENU:mapper_rescanall
-Riscansioni tutte le unità
+Ri-scansiona tutte le unità
 .
 :MENU:hostkey_mapper
-Rimappato
+Definito da mappa
 .
 :MENU:showdetails
-Mostra la frequenza di FPS e RT nella barra del titolo
+Visualizza nella barra del titolo FPS e RT
 .
 :MENU:restartinst
 Riavvia questa istanza di DOSBox-X
 .
 :MENU:restartconf
-Riavvia DOSBox-X con file di configurazione...
+Riavvia DOSBox-X con file configurazione...
 .
 :MENU:loadlang
-Carica file di lingua...
+Carica file lingua...
 .
 :MENU:auto_lock_mouse
-Blocca automaticamente il mouse
-.
-:MENU:clipboard_right
-Tramite tasto destro del mouse
-.
-:MENU:clipboard_middle
-Tramite tasto centrale del mouse
-.
-:MENU:clipboard_arrows
-Tramite i tasti cursore (Home=inizio, Fine=fine)
-.
-:MENU:screen_to_clipboard
-Copia tutto il testo sullo schermo DOS
+Blocca automaticamente mouse
 .
 :MENU:clipboard_device
-Abilita l'accesso al dispositivo per gli appunti DOS
+Abilita accesso al dispositivo per gli appunti DOS
 .
 :MENU:clipboard_dosapi
-Abilita nelle applicazioni le API per gli appunti del DOS
+Abilita nelle applicazioni API per gli appunti del DOS
 .
 :MENU:clipboard_biospaste
-Usa una funzione del BIOS per incollare gli appunti
+Usa funzione BIOS per incollare gli appunti
 .
 :MENU:sendkey_winlogo
 Invia tasto Windows
@@ -3574,25 +3507,25 @@ Mappa "Invia sequenza speciale": CTRL+ALT+CANC
 Non convertire come tasti cursore
 .
 :MENU:wheel_updown
-Converti nei tasti cursore SU/GIU
+Converti nei tasti cursore su/giù
 .
 :MENU:wheel_leftright
-Converti nei tasti cursore SX/DX
+Converti nei tasti cursore sinistra/destra
 .
 :MENU:wheel_pageupdown
-Converti nei tasti PGSU/PGGIU
+Converti nei tasti PgSu/PgGiù
 .
 :MENU:wheel_ctrlupdown
-Converti nei tasti cursore CTRL+SU/GIU
+Converti nei tasti cursore Ctrl+Su/Giù
 .
 :MENU:wheel_ctrlleftright
-Converti nei tasti cursore CTRL+SX/DX
+Converti nei tasti cursore Ctrl+Sinistra/destra
 .
 :MENU:wheel_ctrlpageupdown
-Converti nei tasti CTRL+PGSU/PGGIU
+Converti nei tasti Ctrl+PgSu/PgGiù
 .
 :MENU:wheel_ctrlwz
-Converti nei tasti CTRL+W/Z
+Converti nei tasti Ctrl+W/Ctrl+Z
 .
 :MENU:wheel_guest
 Abilita anche per il sistema emulato
@@ -3607,10 +3540,10 @@ Sempre in primo piano
 Abilita immagine ad alti DPI
 .
 :MENU:sync_host_datetime
-Sincronizza l'orologio con il sistema reale
+Sincronizza orologio con il sistema reale
 .
 :MENU:shell_config_commands
-Configura le opzioni come comandi
+Configura opzioni come comandi
 .
 :MENU:quick_reboot
 Abilita riavvio rapido
@@ -3619,28 +3552,25 @@ Abilita riavvio rapido
 Crea immagine disco vuota...
 .
 :MENU:list_drivenum
-Mostra il numero delle unità montate
+Visualizza numero unità montate
 .
 :MENU:list_ideinfo
-Mostra lo stato dei dischi o CD IDE
+Visualizza stato dischi/CD IDE
 .
 :MENU:pc98_use_uskb
-Usa la tastiera US
+Usa tastiera US
 .
 :MAPPER:capnetrf
-Registra il traffico di rete
+Registra traffico di rete
 .
 :MAPPER:caprawopl
-Registra l'uscita audio FM/OPL
-.
-:MAPPER:copyall
-Copia negli appunti
+Registra uscita audio FM/OPL
 .
 :MAPPER:cycauto
 Cicli automatici ON/OFF
 .
 :MAPPER:debugger
-Mostra il debugger
+Visualizza debugger
 .
 :MAPPER:decsize
 Riduci dimensione font TTF
@@ -3648,26 +3578,23 @@ Riduci dimensione font TTF
 :MAPPER:dynamic
 CPU: core dinamico
 .
-:MAPPER:fastedit
-Modalità editazione rapida
-.
 :MAPPER:full
 CPU: core pieno
 .
 :MAPPER:incsize
-Aumenta dimensione del font TTF
+Aumenta dimensione font TTF
 .
 :MAPPER:loadmap
-Carica file di mappa
+Carica file mappa
 .
 :MAPPER:nextslot
-Prossimo slot di salvataggio
+Slot salvataggio successivo
 .
 :MAPPER:normal
 CPU: core normale
 .
 :MAPPER:paste
-Paste from clipboard
+Incolla dagli appunti
 .
 :MAPPER:pasteend
 Non incollare più dagli appunti
@@ -3676,41 +3603,35 @@ Non incollare più dagli appunti
 Pausa con interrupt attivi
 .
 :MAPPER:prevslot
-Slot di salvataggio precedente
+Slot salvataggio precedente
 .
 :MAPPER:printtext
-Stampa il testo a video
+Stampa testo a video
 .
 :MAPPER:quickrun
-Lancia rapidamente un programma
+Esegui programma
 .
 :MAPPER:reboot
-Riavvia il DOS
+Riavvia sistema DOS
 .
 :MAPPER:recmtwave
-Record to M.T. AVI
-.
-:MAPPER:recvoldown
-Riduci volume registr.
-.
-:MAPPER:recvolup
-Aumenta volume registr.
+Registra in AVI M.T.
 .
 :MAPPER:rescanall
-Riscansiona le unità
+Ri-scansiona unità
 .
 :MAPPER:reset
-Resetta DOSBox-X
+Ripristina DOSBox-X
 .
 :MAPPER:resetcolor
-Resetta lo schema colori
+Ripristina schema colori
 .
 :MAPPER:showstate
-Mostra informazioni sullo stato
+Visualizza info stato
 .
 :MAPPER:simple
 CPU: core singolo
 .
 :MAPPER:togmenu
-Barra dei menù ON/OFF
+Barra menu ON/OFF
 .
