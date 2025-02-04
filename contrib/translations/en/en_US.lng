@@ -101,14 +101,8 @@ Edit %s
 :HELP_FOR
 Help for %s
 .
-:HELP_INFO
-Click the "Help" button below to see detailed help information.
-.
 :SELECT_VALUE
 Select property value
-.
-:CONFIGURATION_FOR
-Configuration for %s
 .
 :CONFIGURATION
 Configuration
@@ -163,9 +157,6 @@ Printer device list
 .
 :INTRODUCTION
 Introduction
-.
-:CONFIGURE_GROUP
-Choose a settings group to configure:
 .
 :SHOW_ADVOPT
 Show advanced options
@@ -548,8 +539,8 @@ e.g. %s
 
 Some other usage examples of MOUNT:
 
-←[32;1mMOUNT←[0m                            - list all mounted drives
-←[32;1mMOUNT -cd←[0m                        - list all local CD drives
+←[32;1mMOUNT←[0m                             - list all mounted drives
+←[32;1mMOUNT -cd←[0m                         - list all local CD drives
 ←[32;1mMOUNT d %s←[0m            - mount the D: drive to the directory
 ←[32;1mMOUNT c %s -t cdrom←[0m      - mount the C: drive as a CD-ROM drive
 ←[32;1mMOUNT c %s -ro←[0m           - mount the C: drive in read-only mode
@@ -558,7 +549,7 @@ Some other usage examples of MOUNT:
 ←[32;1mMOUNT c %s -freesize 128←[0m - mount C: with 128MB free disk space
 ←[32;1mMOUNT c %s -u←[0m            - force mount C: drive even if it's mounted
 ←[32;1mMOUNT c %s -t overlay←[0m  - mount C: with overlay directory on top
-←[32;1mMOUNT c -u←[0m                       - unmount the C: drive
+←[32;1mMOUNT c -u←[0m                        - unmount the C: drive
 
 .
 :PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
@@ -1118,8 +1109,8 @@ Some usage examples of IMGMOUNT:
 
   ←[32;1mIMGMOUNT←[0m                       - list mounted FAT/ISO drives & drive numbers
   ←[32;1mIMGMOUNT C←[0m                     - mount hard disk image ←[33;1mIMGMAKE.IMG←[0m as C:
-  ←[32;1mIMGMOUNT C ~/image.img←[0m         - mount hard disk image ~/image.img as C:
-  ←[32;1mIMGMOUNT D ~/files/game.iso←[0m    - mount CD image ~/files/game.iso as D:
+  ←[32;1mIMGMOUNT C c:\image.img←[0m        - mount hard disk image c:\image.img as C:
+  ←[32;1mIMGMOUNT D c:\files\game.iso←[0m   - mount CD image c:\files\game.iso as D:
   ←[32;1mIMGMOUNT D cdaudio.cue←[0m         - mount cue file of a cue/bin pair as CD drive
   ←[32;1mIMGMOUNT 0 dos.ima←[0m             - mount floppy image dos.ima as drive number 0
                                    (←[33;1mBOOT A:←[0m will boot from drive if bootable)
@@ -1138,26 +1129,26 @@ Some usage examples of IMGMOUNT:
 :PROGRAM_IMGMAKE_SYNTAX
 Creates floppy or hard disk images.
 Usage: ←[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]←[0m
-  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force]←[0m
+  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #]←[0m
   file: Image file to create (or ←[33;1mIMGMAKE.IMG←[0m if not set) - ←[31;1mpath on the host←[0m
   -t: Type of image.
     ←[33;1mFloppy disk templates←[0m (names resolve to floppy sizes in KB or fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
     ←[33;1mHard disk templates:←[0m
-     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image
-     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image
-     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)
-    ←[33;1mCustom hard disk images:←[0m hd vhd (requires -size or -chs)
+     hd_250: 250MB, hd_520: 520MB, hd_1gig: 1GB, hd_2gig: 2GB, hd_4gig: 4GB,
+     hd_8gig: 8GB, hd_st251: 40MB, hd_st225: 20MB (geometry from old drives)
+    ←[33;1mCustom hard disks:←[0m hd vhd (requires -size or -chs)
   -size: Size of a custom hard disk image in MB (vhd: up to 2088960).
   -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).
   -nofs: Add this parameter if a blank image should be created.
-  -force: Force to overwrite the existing image file.
+  -force: Overwrite existing image file. -chs / -lba: Choose C/H/S or LBA.
   -bat: Create a .bat file with the IMGMOUNT command required for this image.
-  -chs / -lba: Use partition code for FAT filesystem for C/H/S or LBA geometry.
-  -fat: FAT filesystem type (12, 16, or 32).
-  -spc: Sectors per cluster override. Must be a power of 2.
-  -fatcopies: Override number of FAT table copies.
-  -rootdir: Size of root directory in entries. Ignored for FAT32.
+  -fat: Type (12, 16, or 32). -fatcopies: FAT table copies.
+  -spc: Sectors per cluster (must be power of 2). -label Drive label.
+  -rootdir: Root directory entries. -partofs: Start of hd partition.
+  -align: Align filesystem structures. In sectors, or add 'K' suffix for KB.
+  -source: drive letter - if specified the image is read from a floppy disk.
+  -retries: how often to retry when attempting to read a bad floppy disk(1-99).
   ←[32;1m-examples: Show some usage examples.←[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
@@ -1167,10 +1158,21 @@ Some usage examples of IMGMAKE:
   ←[32;1mIMGMAKE -t fd_1440 -force←[0m       - force to create a floppy image ←[33;1mIMGMAKE.IMG←[0m
   ←[32;1mIMGMAKE dos.img -t fd_2880←[0m      - create a 2.88MB floppy image named dos.img
   ←[32;1mIMGMAKE new.vhd -t vhd -size 520←[0m- create a 520MB Dynamic VHD named new.vhd
-  ←[32;1mIMGMAKE ~/disk.img -t hd -size 50←[0m       - create a 50MB HDD image ~/disk.img
-  ←[32;1mIMGMAKE ~/disk.img -t hd_520 -nofs←[0m      - create a 520MB blank HDD image
-  ←[32;1mIMGMAKE ~/disk.img -t hd_2gig -fat 32←[0m   - create a 2GB FAT32 HDD image
-  ←[32;1mIMGMAKE ~/disk.img -t hd -chs 130,2,17←[0m  - create a HDD image of specified CHS
+  ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m      - create a 50MB HDD image c:\disk.img
+  ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m     - create a 520MB blank HDD image
+  ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m  - create a 2GB FAT32 HDD image
+  ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - create a HDD image of specified CHS
+  ←[32;1mIMGMAKE c:\disk.img -source a←[0m           - read image from physical drive A:
+
+.
+:PROGRAM_IMGMAKE_FLREAD
+Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes
+
+
+.
+:PROGRAM_IMGMAKE_FLREAD2
+%s =good, %s =good after retries, ! =CRC error, x =sector not found, ? =unknown
+
 
 .
 :PROGRAM_IMGMAKE_FILE_EXISTS
@@ -1360,14 +1362,9 @@ Failure while merging, aborted!
  Parent "%s" contents could be corrupted!
 
 .
-:PROGRAM_VHDMAKE_ABSPATH_WIN
-Warning: an absolute path to parent limits portability to Windows.
-Please prefer a path relative to differencing image file!
-
-.
-:PROGRAM_VHDMAKE_ABSPATH_UX
-ERROR: an absolute path to parent inhibits portability.
-Use a path relative to differencing image file!
+:PROGRAM_VHDMAKE_ABSPATH
+Warning: an absolute path to parent prevents portability.
+Please prefer a path relative to the differencing image file!
 
 .
 :PROGRAM_VHDMAKE_HELP
@@ -1688,7 +1685,8 @@ Copy error - %s
 
 .
 :SHELL_CMD_COPY_NOSELF
-File cannot be copied onto itself♪
+File cannot be copied onto itself
+
 
 .
 :SHELL_CMD_SUBST_DRIVE_LIST
@@ -1740,7 +1738,7 @@ You could also complete various tasks through the ←[33mdrop-down menus←[37m.
 ←[32mExample←[37m: Try select ←[33mTrueType font←[37m or ←[33mOpenGL perfect←[37m output option.
 .
 :SHELL_STARTUP_TEXT2_PC98
-To launch the ←[33mConfiguration Tool←[37m, use ←[31mhost+C←[37m. Host key is ←[32mF12←[37m.    
+To launch the ←[33mConfiguration Tool←[37m, use ←[31mhost+C←[37m. Host key is ←[32mF11←[37m.    
 To activate the ←[33mMapper Editor←[37m for key assignments, use ←[31mhost+M←[37m.    
 To switch between windowed and full-screen mode, use ←[31mhost+F←[37m.      
 To adjust the emulated CPU speed, use ←[31mhost+Plus←[37m and ←[31mhost+Minus←[37m.   
@@ -1767,9 +1765,9 @@ You can also complete various tasks in DOSBox-X through the ←[33mdrop-down men
 ←[36mUseful default shortcuts:                                                   ←[37m
 .
 :SHELL_STARTUP_TEXT2
-- switch between windowed and full-screen mode with key combination ←[31mF12 ←[37m+ ←[31mF←[37m ←[37m
-- launch ←[33mConfiguration Tool←[37m using ←[31mF12 ←[37m+ ←[31mC←[37m←[37m, and ←[33mMapper Editor←[37m using ←[31mF12 ←[37m+ ←[31mM←[37m  ←[37m
-- increase or decrease the emulation speed with ←[31mF12 ←[37m+ ←[31mPlus←[37m←[37m or ←[31mF12 ←[37m+ ←[31mMinus←[37m   ←[37m
+- switch between windowed and full-screen mode with key combination ←[31mF11 ←[37m+ ←[31mF←[37m ←[37m
+- launch ←[33mConfiguration Tool←[37m using ←[31mF11 ←[37m+ ←[31mC←[37m←[37m, and ←[33mMapper Editor←[37m using ←[31mF11 ←[37m+ ←[31mM←[37m  ←[37m
+- increase or decrease the emulation speed with ←[31mF11 ←[37m+ ←[31mPlus←[37m←[37m or ←[31mF11 ←[37m+ ←[31mMinus←[37m   ←[37m
 .
 :SHELL_STARTUP_DOSV
 ←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
@@ -2411,6 +2409,12 @@ Quit from DOSBox-X
 :MENU:mapper_capmouse
 Capture mouse
 .
+:MENU:mapper_fastedit
+Quick edit: copy on select and paste text
+.
+:MENU:mapper_copyall
+Copy all text on the DOS screen
+.
 :MENU:mapper_paste
 Pasting from the clipboard
 .
@@ -2520,31 +2524,31 @@ Emulate CPU speed
 486DX5 133MHz (~47810 cycles)
 .
 :MENU:cpu586-60
-Pentium 60MHz (~31545 cycles)
+Pentium 60MHz (~32090 cycles)
 .
 :MENU:cpu586-66
 Pentium 66MHz (~35620 cycles)
 .
 :MENU:cpu586-75
-Pentium 75MHz (~43500 cycles)
+Pentium 75MHz (~40072 cycles)
 .
 :MENU:cpu586-90
-Pentium 90MHz (~52000 cycles)
+Pentium 90MHz (~48087 cycles)
 .
 :MENU:cpu586-100
-Pentium 100MHz (~60000 cycles)
+Pentium 100MHz (~53430 cycles)
 .
 :MENU:cpu586-120
-Pentium 120MHz (~74000 cycles)
+Pentium 120MHz (~64180 cycles)
 .
 :MENU:cpu586-133
-Pentium 133MHz (~80000 cycles)
+Pentium 133MHz (~71240 cycles)
 .
 :MENU:cpu586-166
-Pentium 166MHz MMX (~97240 cycles)
+Pentium 166MHz MMX (~95548 cycles)
 .
-:MENU:cpuak6-166
-AMD K6 166MHz (~110000 cycles)
+:MENU:cpu586-200
+Pentium 200MHz MMX (~114657 cycles)
 .
 :MENU:cpuak6-200
 AMD K6 200MHz (~130000 cycles)
@@ -2623,6 +2627,18 @@ Original ratio
 .
 :MENU:video_ratio_set
 Set ratio
+.
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
 .
 :MENU:VideoScalerMenu
 Scaler
@@ -2714,6 +2730,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:center_window
+Center window
+.
 :MENU:set_titletext
 Set title bar text...
 .
@@ -2743,6 +2762,9 @@ OpenGL perfect
 .
 :MENU:output_ttf
 TrueType font
+.
+:MENU:output_gamelink
+Game Link
 .
 :MENU:doublescan
 Doublescan
@@ -2926,6 +2948,9 @@ Internal Voodoo card
 .
 :MENU:3dfx_glide
 Glide passthrough
+.
+:MENU:load_d3d_shader
+Select Direct3D pixel shader...
 .
 :MENU:load_glsl_shader
 Select OpenGL (GLSL) shader...
@@ -3116,6 +3141,9 @@ Go to last page
 :MENU:DriveMenu
 Drive
 .
+:MENU:drive_mountauto
+Auto-mount Windows drive
+.
 :MENU:drive_mounthd
 Mount folder as hard drive
 .
@@ -3178,6 +3206,9 @@ DOSBox-X support
 .
 :MENU:help_nic
 List network interfaces
+.
+:MENU:help_prt
+List printer devices
 .
 :MENU:help_about
 About DOSBox-X
@@ -3308,21 +3339,6 @@ Take screenshot
 :MENU:mapper_rawscrshot
 Take raw screenshot
 .
-:MENU:mapper_volup
-Increase volume
-.
-:MENU:mapper_voldown
-Decrease volume
-.
-:MENU:mapper_recvolup
-Increase recording volume
-.
-:MENU:mapper_recvoldown
-Decrease recording volume
-.
-:MENU:mapper_sendkey_mapper
-Send special key
-.
 :MENU:mapper_cycledown
 Decrement cycles
 .
@@ -3398,6 +3414,21 @@ Pentium III
 :MENU:cputype_experimental
 Experimental
 .
+:MENU:mapper_volup
+Increase volume
+.
+:MENU:mapper_voldown
+Decrease volume
+.
+:MENU:mapper_recvolup
+Increase recording volume
+.
+:MENU:mapper_recvoldown
+Decrease recording volume
+.
+:MENU:mapper_sendkey_mapper
+Send special key
+.
 :MENU:debug_pageflip
 Page flip debug line
 .
@@ -3433,6 +3464,18 @@ Load language file...
 .
 :MENU:auto_lock_mouse
 Autolock mouse
+.
+:MENU:clipboard_right
+Via right mouse button
+.
+:MENU:clipboard_middle
+Via middle mouse button
+.
+:MENU:clipboard_arrows
+Via arrow keys (Home=start, End=end)
+.
+:MENU:screen_to_clipboard
+Copy all text on the DOS screen
 .
 :MENU:clipboard_device
 Enable DOS clipboard device access
@@ -3551,6 +3594,9 @@ Record Network traffic
 :MAPPER:caprawopl
 Record FM/OPL output
 .
+:MAPPER:copyall
+Copy to clipboard
+.
 :MAPPER:cycauto
 Toggle auto cycles
 .
@@ -3562,6 +3608,9 @@ Decrease TTF size
 .
 :MAPPER:dynamic
 CPU: dynamic core
+.
+:MAPPER:fastedit
+Quick edit mode
 .
 :MAPPER:full
 CPU: full core
