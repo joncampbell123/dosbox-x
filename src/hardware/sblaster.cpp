@@ -1537,6 +1537,7 @@ Bitu DEBUG_EnableDebugger(void);
 
 #define DSP_SB16_ONLY if (sb.type != SBT_16) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB16",sb.dsp.cmd); break; }
 #define DSP_SB2_ABOVE if (sb.type <= SBT_1) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2 or above",sb.dsp.cmd); break; }
+#define DSP_SB201_ABOVE if (sb.type <= SBT_1 || (sb.type == SBT_2 && sb.subtype == SBST_200)) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2.01 or above",sb.dsp.cmd); break; }
 
 static unsigned int ESS_DMATransferCount() {
     unsigned int r;
@@ -1950,7 +1951,7 @@ static void DSP_DoCommand(void) {
         }
         break;
     case 0x99:  /* Single Cycle 8-Bit DMA High speed DAC */
-        DSP_SB2_ABOVE;
+        DSP_SB201_ABOVE;
         /* fall through */
     case 0x24:  /* Single Cycle 8-Bit DMA ADC */
         sb.dma.recording=true;
@@ -1958,13 +1959,14 @@ static void DSP_DoCommand(void) {
         LOG(LOG_SB,LOG_WARN)("Guest recording audio using SB/SBPro commands");
         break;
     case 0x98:  /* Auto Init 8-bit DMA High Speed */
+        DSP_SB201_ABOVE;
     case 0x2c:  /* Auto Init 8-bit DMA */
         DSP_SB2_ABOVE; /* Note: 0x98 is documented only for DSP ver.2.x and 3.x, not 4.x */
         sb.dma.recording=true;
         DSP_PrepareDMA_Old(DSP_DMA_8,true,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         break;
     case 0x91:  /* Single Cycle 8-Bit DMA High speed DAC */
-        DSP_SB2_ABOVE;
+        DSP_SB201_ABOVE;
         /* fall through */
     case 0x14:  /* Single Cycle 8-Bit DMA DAC */
     case 0x15:  /* Wari hack. Waru uses this one instead of 0x14, but some weird stuff going on there anyway */
@@ -1973,6 +1975,7 @@ static void DSP_DoCommand(void) {
         DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         break;
     case 0x90:  /* Auto Init 8-bit DMA High Speed */
+        DSP_SB201_ABOVE;
     case 0x1c:  /* Auto Init 8-bit DMA */
         DSP_SB2_ABOVE; /* Note: 0x90 is documented only for DSP ver.2.x and 3.x, not 4.x */
         sb.dma.recording=false;
