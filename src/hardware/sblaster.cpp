@@ -98,7 +98,7 @@ bool MIDI_Available(void);
 #define SB_SH_MASK  ((1 << SB_SH)-1)
 
 enum {DSP_S_RESET,DSP_S_RESET_WAIT,DSP_S_NORMAL,DSP_S_HIGHSPEED};
-enum SB_TYPES {SBT_NONE=0,SBT_1=1,SBT_PRO1=2,SBT_2=3,SBT_PRO2=4,SBT_16=6,SBT_GB=7}; /* TODO: Need SB 2.0 vs SB 2.01 */
+enum SB_TYPES {SBT_NONE=0,SBT_GB=1,SBT_1=2,SBT_2=3,SBT_PRO1=4,SBT_PRO2=5,SBT_16=6};
 enum REVEAL_SC_TYPES {RSC_NONE=0,RSC_SC400=1};
 enum SB_IRQS {SB_IRQ_8,SB_IRQ_16,SB_IRQ_MPU};
 enum ESS_TYPES {ESS_NONE=0,ESS_688=1,ESS_1688=2};
@@ -3956,16 +3956,16 @@ public:
         }
 
         // Backward compatibility with existing configurations
-        if(section->Get_string("oplmode") == "cms") {
+        if(!strcmp(section->Get_string("oplmode"),"cms")) {
             LOG(LOG_SB, LOG_WARN)("The 'cms' setting for 'oplmode' is deprecated; use 'cms = on' instead.");
             sb.cms = true;
         }
         else {
-            const auto cms_str = section->Get_string("cms");
-            if(cms_str == "on") {
+            const char *cms_str = section->Get_string("cms");
+            if(!strcmp(cms_str,"on")) {
                 sb.cms = true;
             }
-            else if(cms_str == "auto") {
+            else if(!strcmp(cms_str,"auto")) {
                 sb.cms = (sb.type == SBT_1 || sb.type == SBT_GB);
             }
             else
@@ -3992,7 +3992,7 @@ public:
             sb.cms = false;
         }
 
-        if(sb.cms) {
+        if(sb.cms && !IS_PC98_ARCH) {
             CMS_Init(section);
         }
 
