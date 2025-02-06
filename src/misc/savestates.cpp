@@ -1161,12 +1161,6 @@ void SaveState::save(size_t slot) { //throw (Error)
 	}
 #endif
 	int errclose;
-	bool create_version=false;
-	bool create_title=false;
-	bool create_memorysize=false;
-	bool create_machinetype=false;
-	bool create_timestamp=false;
-	bool create_saveremark=false;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -1263,45 +1257,16 @@ void SaveState::save(size_t slot) { //throw (Error)
 
 		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
 	}
-
-#if 0 // This savestate code is crap. Writing temporary files for each entry, closing and reopening the ZIP for EACH FILE, is completely unnecessary
-	std::ofstream file (save.c_str());
-	file << "";
-	file.close();
-	try {
-		for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
-			std::ostringstream ss;
-			i->second.comp.getBytes(ss);
-
-			//LOG_MSG("Component is %s",i->first.c_str());
-
-			std::string realtemp;
-			realtemp = temp + i->first;
-			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
-			outfile << ss.str();
-			//compress all other saved states except position "slot"
-			outfile.close();
-			ss.clear();
-			if(outfile.fail()) {
-				LOG_MSG("Save failed! - %s", realtemp.c_str());
-				save_err=true;
-				remove(save.c_str());
-				goto delete_all;
-			}
-		}
-	}
-
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
-		save2=temp+i->first;
-		my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
+		zip_fileinfo zi; zipSetCurrentTime(zi);
+		if ((errclose=zipOutOpenFile(zf,i->first.c_str(),zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
+		zip_ostreambuf zos(zf); std::ostream ss(&zos);
+
+		i->second.comp.getBytes(ss);
+
+		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
 	}
 
-delete_all:
-	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
-		save2=temp+i->first;
-		remove(save2.c_str());
-	}
-#endif
 done:
 	if (zf != NULL) {
 		errclose = zipClose(zf,NULL);
