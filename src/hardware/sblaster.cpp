@@ -99,6 +99,7 @@ bool MIDI_Available(void);
 
 enum {DSP_S_RESET,DSP_S_RESET_WAIT,DSP_S_NORMAL,DSP_S_HIGHSPEED};
 enum SB_TYPES {SBT_NONE=0,SBT_GB=1,SBT_1=2,SBT_2=3,SBT_PRO1=4,SBT_PRO2=5,SBT_16=6};
+enum SB_SUBTYPES {SBST_NONE,SBST_100,SBST_105,SBST_200,SBST_201};
 enum REVEAL_SC_TYPES {RSC_NONE=0,RSC_SC400=1};
 enum SB_IRQS {SB_IRQ_8,SB_IRQ_16,SB_IRQ_MPU};
 enum ESS_TYPES {ESS_NONE=0,ESS_688=1,ESS_1688=2};
@@ -182,6 +183,7 @@ struct SB_INFO {
     uint8_t sc400_jumper_status_2;
     DSP_MODES mode;
     SB_TYPES type;
+    SB_SUBTYPES subtype;
     REVEAL_SC_TYPES reveal_sc_type; // Reveal SC400 type
     ESS_TYPES ess_type; // ESS chipset emulation, to be set only if type == SBT_PRO2
     bool ess_extended_mode;
@@ -2221,9 +2223,13 @@ static void DSP_DoCommand(void) {
         DSP_FlushData();
         switch (sb.type) {
         case SBT_1:
-            DSP_AddData(0x1);DSP_AddData(0x05);break;
+            if (sb.subtype == SBST_100) { DSP_AddData(0x1);DSP_AddData(0x0); }
+            else { DSP_AddData(0x1);DSP_AddData(0x5); }
+            break;
         case SBT_2:
-            DSP_AddData(0x2);DSP_AddData(0x1);break;
+            if (sb.subtype == SBST_200) { DSP_AddData(0x2);DSP_AddData(0x0); }
+            else { DSP_AddData(0x2);DSP_AddData(0x1); }
+            break;
         case SBT_PRO1:
             DSP_AddData(0x3);DSP_AddData(0x0);break;
         case SBT_PRO2:
@@ -3665,10 +3671,15 @@ private:
         sb.ess_type = ESS_NONE;
         sb.reveal_sc_type = RSC_NONE;
         sb.ess_extended_mode = false;
+        sb.subtype = SBST_NONE;
         const char * sbtype=config->Get_string("sbtype");
         if (control->opt_silent) type = SBT_NONE;
-        else if (!strcasecmp(sbtype,"sb1")) type=SBT_1;
-        else if (!strcasecmp(sbtype,"sb2")) type=SBT_2;
+        else if (!strcasecmp(sbtype,"sb1.0")) { type=SBT_1; sb.subtype=SBST_100; }
+        else if (!strcasecmp(sbtype,"sb1.5")) { type=SBT_1; sb.subtype=SBST_105; }
+        else if (!strcasecmp(sbtype,"sb1")) { type=SBT_1; sb.subtype=SBST_105; } /* DOSBox SVN compat same as sb1.5 */
+        else if (!strcasecmp(sbtype,"sb2.0")) { type=SBT_2; sb.subtype=SBST_200; }
+        else if (!strcasecmp(sbtype,"sb2.01")) { type=SBT_2; sb.subtype=SBST_201; }
+        else if (!strcasecmp(sbtype,"sb2")) { type=SBT_2; sb.subtype=SBST_201; } /* DOSBox SVN compat same as sb2.01 */
         else if (!strcasecmp(sbtype,"sbpro1")) type=SBT_PRO1;
         else if (!strcasecmp(sbtype,"sbpro2")) type=SBT_PRO2;
         else if (!strcasecmp(sbtype,"sb16vibra")) type=SBT_16;
