@@ -78,6 +78,7 @@ bool OpenGL_using(void), Direct3D_using(void);
 void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), refreshExtChar(void), Add_VFiles(bool usecp), SetAlpha(double alpha), SetWindowTransparency(int trans);
 void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_menu(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
 extern int tryconvertcp, Reflect_Menu(void);
+bool kana_input = false; // true if a half-width kana was typed
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -5805,6 +5806,7 @@ void GFX_Events() {
                                         BIOS_AddKeyToBuffer(0xf000 | buff[no]);
                                         }
                                     } else {
+                                        kana_input = true;
                                         BIOS_AddKeyToBuffer(buff[no]);
                                     }
                                 } else {
