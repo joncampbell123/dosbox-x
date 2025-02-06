@@ -32,6 +32,8 @@
 #include "jfont.h"
 #include "render.h"
 
+extern bool kana_input;
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
@@ -814,6 +816,7 @@ static Bitu IRQ1_Handler(void) {
         uint16_t asciiscan;
         /* Now Handle the releasing of keys and see if they match up for a code */
         /* Handle the actual scancode */
+        if(kana_input) { kana_input = false; goto irq1_end; }
         if (scancode & 0x80) goto irq1_end;
         if (scancode > MAX_SCAN_CODE) goto irq1_end;
         if (flags1 & 0x08) {                    /* Alt is being pressed */
@@ -1027,6 +1030,7 @@ static Bitu IRQ1_Handler_PC98(void) {
         //                  KEY         UNSHIFT SHIFT   CTRL    KANA
         //                  ----------------------------------------
         if (pressed && sc_8251 <= 0x6f) { // skip shift-keys (0x70-0x74)
+            if(kana_input) { kana_input = false; goto pc98irq1_end;}
             if (sc_8251 == 0x60) { // STOP
                 // does not pass it on.
                 // According to Neko Project II source code, STOP invokes INT 6h
@@ -1158,6 +1162,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 }
             }
         }
+pc98irq1_end:
         if (--patience == 0) break; /* in case of stuck 8251 */
         status = IO_ReadB(0x43); /* 8251 status */
     } while (status & 2/*RxRDY*/);

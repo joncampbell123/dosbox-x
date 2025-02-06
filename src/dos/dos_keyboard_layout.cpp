@@ -53,6 +53,7 @@ void MSG_Init(), JFONT_Init(), runRescan(const char *str);
 extern int tryconvertcp, toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 extern bool jfont_init;
 extern int msgcodepage;
+extern bool kana_input;
 
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
@@ -651,8 +652,14 @@ bool keyboard_layout::map_key(Bitu key, uint16_t layouted_key, bool is_command, 
 		}
 
 		// add remapped key to keybuf
-		if (is_keypair) BIOS_AddKeyToBuffer(layouted_key);
-		else BIOS_AddKeyToBuffer((uint16_t)(key<<8) | (layouted_key&0xff));
+        if(is_keypair) {
+            if(kana_input) kana_input = false;
+            else BIOS_AddKeyToBuffer(layouted_key);
+        }
+        else {
+            if(kana_input) kana_input = false;
+            else BIOS_AddKeyToBuffer((uint16_t)(key << 8) | (layouted_key & 0xff));
+        }
 
 		return true;
 	}
