@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <assert.h>
 #include <string>
 #include <cstring>
 #include <fstream>
@@ -40,6 +41,41 @@
 #ifdef C_SDL2
 extern SDL_AudioDeviceID SDL2_AudioDevice; /* valid IDs are 2 or higher, 1 for compat, 0 is never a valid ID */
 #endif
+
+/* std::streambuf for writing to ZIP archive directly.
+ * ZIP archive writer can only write one file at a time, do not
+ * use multiple instances of this C++ class at a time! No seeking,
+ * only sequential output! */
+class zip_ostreambuf : public std::streambuf {
+public:
+	using Base = std::streambuf;
+public:
+	zip_ostreambuf(zipFile &n_zf) : basic_streambuf(), zf(n_zf) { }
+	virtual ~zip_ostreambuf() { }
+public:
+	virtual std::streamsize xsputn(const Base::char_type *s, std::streamsize count) override {
+		assert(zf != NULL);
+
+		const int err = zipWriteInFileInZip(zf, (void*)s, count);
+		if (err != ZIP_OK) {
+			zf_err = err;
+			return 0;
+		}
+
+		return count;
+	}
+public:
+	int close(void) {
+		int err;
+
+		if ((err=zipCloseFileInZip(zf)) != ZIP_OK) return err;
+		if (zf_err != ZIP_OK) return zf_err;
+		return ZIP_OK;
+	}
+private:
+	zipFile zf = NULL;
+	int zf_err = ZIP_OK;
+};
 
 extern unsigned int page;
 extern int autosave_last[10], autosave_count;
@@ -744,6 +780,29 @@ int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, c
 	return ret_value;
 }
 
+void zipSetCurrentTime(zip_fileinfo &zi) {
+	zi.dosDate = 0;
+	zi.internal_fa = 0;
+	zi.external_fa = 0;
+	zi.tmz_date.tm_sec = 0;
+	zi.tmz_date.tm_min = 0;
+	zi.tmz_date.tm_hour = 0;
+	zi.tmz_date.tm_mday = 0;
+	zi.tmz_date.tm_mon = 0;
+	zi.tmz_date.tm_year = 0;
+
+	time_t tm_t = time(NULL);
+	struct tm* filedate = localtime(&tm_t);
+	if (filedate != NULL) {
+		zi.tmz_date.tm_sec  = filedate->tm_sec;
+		zi.tmz_date.tm_min  = filedate->tm_min;
+		zi.tmz_date.tm_hour = filedate->tm_hour;
+		zi.tmz_date.tm_mday = filedate->tm_mday;
+		zi.tmz_date.tm_mon  = filedate->tm_mon;
+		zi.tmz_date.tm_year = filedate->tm_year;
+	}
+}
+
 #ifdef _WIN32
 uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
 {
@@ -1046,6 +1105,17 @@ int my_minizip(bool compress, char ** savefile, char ** savefile2, char* savenam
 int flagged_backup(char *zip);
 int flagged_restore(char* zip);
 
+int zipOutOpenFile(zipFile zf,const char *zfname,zip_fileinfo &zi,const bool compress) {
+	const int opt_compress_level = compress ? 9 : 0;
+
+	return zipOpenNewFileInZip3_64(zf,zfname,&zi,
+		NULL,0,NULL,0,NULL/* comment*/,
+		(opt_compress_level != 0) ? Z_DEFLATED : 0,
+		opt_compress_level,0,
+		-MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
+		NULL/*password*/,0/*crcFile*/,1/*zip64*/);
+}
+
 void SaveState::save(size_t slot) { //throw (Error)
 	if (slot >= SLOT_COUNT*MAX_PAGE)  return;
 #ifdef C_SDL2
@@ -1090,6 +1160,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 		save_remark = new_remark;
 	}
 #endif
+	int errclose;
 	bool create_version=false;
 	bool create_title=false;
 	bool create_memorysize=false;
@@ -1119,7 +1190,81 @@ void SaveState::save(size_t slot) { //throw (Error)
 	slotname << slot+1;
 	temp=path;
 	std::string save=use_save_file&&savefilename.size()?savefilename:temp+slotname.str()+".sav";
-	remove(save.c_str());
+
+	zipFile zf;
+	{
+		const char *global_comment = "DOSBox-X save state";
+		zlib_filefunc64_def ffunc;
+#ifdef USEWIN32IOAPI
+		fill_win32_filefunc64A(&ffunc);
+#else
+		fill_fopen64_filefunc(&ffunc);
+#endif
+		remove(save.c_str());
+		zf = zipOpen2_64(save.c_str(),APPEND_STATUS_CREATE,&global_comment,&ffunc);
+	}
+	if (zf == NULL) { save_err = true; goto done; }
+
+	{
+		zip_fileinfo zi; zipSetCurrentTime(zi);
+		if ((errclose=zipOutOpenFile(zf,"DOSBox-X_Version",zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
+		zip_ostreambuf zos(zf); std::ostream emulatorversion(&zos);
+
+		emulatorversion << "DOSBox-X " << VERSION << " (" << SDL_STRING << ")" << std::endl << GetPlatform(true) << std::endl << UPDATED_STR;
+		/* 2025/01/12: Backwards compat: The old code compressed data to zlib, even though the ZIP support code
+		 *             already applies compression. This is to tell the old code that we did not compress the
+		 *             data (the ZIP support code did though). */
+		emulatorversion << std::endl << "No compression";
+
+		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
+	}
+	{
+		zip_fileinfo zi; zipSetCurrentTime(zi);
+		if ((errclose=zipOutOpenFile(zf,"Program_Name",zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
+		zip_ostreambuf zos(zf); std::ostream programname(&zos);
+
+		programname << RunningProgram;
+
+		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
+	}
+	{
+		zip_fileinfo zi; zipSetCurrentTime(zi);
+		if ((errclose=zipOutOpenFile(zf,"Memory_Size",zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
+		zip_ostreambuf zos(zf); std::ostream memorysize(&zos);
+
+		memorysize << MEM_TotalPages();
+
+		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
+	}
+	{
+		zip_fileinfo zi; zipSetCurrentTime(zi);
+		if ((errclose=zipOutOpenFile(zf,"Machine_Type",zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
+		zip_ostreambuf zos(zf); std::ostream machinetype(&zos);
+
+		machinetype << getType();
+
+		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
+	}
+	{
+		zip_fileinfo zi; zipSetCurrentTime(zi);
+		if ((errclose=zipOutOpenFile(zf,"Time_Stamp",zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
+		zip_ostreambuf zos(zf); std::ostream timestamp(&zos);
+
+		timestamp << getTime(true);
+
+		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
+	}
+	{
+		zip_fileinfo zi; zipSetCurrentTime(zi);
+		if ((errclose=zipOutOpenFile(zf,"Save_Remark",zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
+		zip_ostreambuf zos(zf); std::ostream saveremark(&zos);
+
+		saveremark << std::string(save_remark);
+
+		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
+	}
+
+#if 0 // This savestate code is crap. Writing temporary files for each entry, closing and reopening the ZIP for EACH FILE, is completely unnecessary
 	std::ofstream file (save.c_str());
 	file << "";
 	file.close();
@@ -1129,60 +1274,6 @@ void SaveState::save(size_t slot) { //throw (Error)
 			i->second.comp.getBytes(ss);
 
 			//LOG_MSG("Component is %s",i->first.c_str());
-
-			if(!create_version) {
-				std::string tempname = temp+"DOSBox-X_Version";
-				std::ofstream emulatorversion (tempname.c_str(), std::ofstream::binary);
-				emulatorversion << "DOSBox-X " << VERSION << " (" << SDL_STRING << ")" << std::endl << GetPlatform(true) << std::endl << UPDATED_STR;
-
-				/* 2025/01/12: Backwards compat: The old code compressed data to zlib, even though the ZIP support code
-				 *             already applies compression. This is to tell the old code that we did not compress the
-				 *             data (the ZIP support code did though). */
-				emulatorversion << std::endl << "No compression";
-
-				create_version=true;
-				emulatorversion.close();
-			}
-
-			if(!create_title) {
-				std::string tempname = temp+"Program_Name";
-				std::ofstream programname (tempname.c_str(), std::ofstream::binary);
-				programname << RunningProgram;
-				create_title=true;
-				programname.close();
-			}
-
-			if(!create_memorysize) {
-				std::string tempname = temp+"Memory_Size";
-				std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
-				memorysize << MEM_TotalPages();
-				create_memorysize=true;
-				memorysize.close();
-			}
-
-			if(!create_machinetype) {
-				std::string tempname = temp+"Machine_Type";
-				std::ofstream machinetype (tempname.c_str(), std::ofstream::binary);
-				machinetype << getType();
-				create_machinetype=true;
-				machinetype.close();
-			}
-
-			if(!create_timestamp) {
-				std::string tempname = temp+"Time_Stamp";
-				std::ofstream timestamp (tempname.c_str(), std::ofstream::binary);
-				timestamp << getTime(true);
-				create_timestamp=true;
-				timestamp.close();
-			}
-
-			if(!create_saveremark) {
-				std::string tempname = temp+"Save_Remark";
-				std::ofstream saveremark (tempname.c_str(), std::ofstream::binary);
-				saveremark << std::string(save_remark);
-				create_saveremark=true;
-				saveremark.close();
-			}
 
 			std::string realtemp;
 			realtemp = temp + i->first;
@@ -1199,48 +1290,26 @@ void SaveState::save(size_t slot) { //throw (Error)
 			}
 		}
 	}
-	catch (const std::bad_alloc&) {
-		LOG_MSG("Save failed! Out of Memory!");
-		save_err=true;
-		remove(save.c_str());
-		goto delete_all;
-	}
 
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
 		save2=temp+i->first;
 		my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
 	}
-	save2=temp+"DOSBox-X_Version";
-	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Program_Name";
-	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Memory_Size";
-	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Machine_Type";
-	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Time_Stamp";
-	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
-	save2=temp+"Save_Remark";
-	my_minizip(compresssaveparts, (char **)save.c_str(), (char **)save2.c_str());
-	if (!dos_kernel_disabled) flagged_backup((char *)save.c_str());
 
 delete_all:
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
 		save2=temp+i->first;
 		remove(save2.c_str());
 	}
-	save2=temp+"DOSBox-X_Version";
-	remove(save2.c_str());
-	save2=temp+"Program_Name";
-	remove(save2.c_str());
-	save2=temp+"Memory_Size";
-	remove(save2.c_str());
-	save2=temp+"Machine_Type";
-	remove(save2.c_str());
-	save2=temp+"Time_Stamp";
-	remove(save2.c_str());
-	save2=temp+"Save_Remark";
-	remove(save2.c_str());
+#endif
+done:
+	if (zf != NULL) {
+		errclose = zipClose(zf,NULL);
+		if (errclose != ZIP_OK) save_err = true;
+	}
+
+	if (!dos_kernel_disabled) flagged_backup((char *)save.c_str());
+
 	if (save_err)
 		notifyError("Failed to save the current state.");
 	else
