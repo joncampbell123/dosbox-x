@@ -359,23 +359,10 @@ private:
     SaveState(const SaveState&);
     SaveState& operator=(const SaveState&);
 
-    class RawBytes
-    {
-    public:
-        RawBytes() {}
-        void set(const std::string& stream);
-        std::string get() const; //throw (Error)
-        bool dataAvailable() const;
-    private:
-        bool dataExists = false; //determine whether set method (even with empty string) was called
-        mutable std::string bytes; //
-    };
-
     struct CompData
     {
         CompData(Component& cmp) : comp(cmp) {}
         Component& comp;
-        std::vector<RawBytes> rawBytes = std::vector<RawBytes>(MAX_PAGE * SLOT_COUNT);
     };
 
     typedef std::map<std::string, CompData> CompEntry;

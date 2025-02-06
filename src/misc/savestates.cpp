@@ -360,19 +360,6 @@ void SaveState::registerComponent(const std::string& uniqueName, Component& comp
 	components.insert(std::make_pair(uniqueName, CompData(comp)));
 }
 
-inline void SaveState::RawBytes::set(const std::string& stream) {
-	bytes = stream;
-	dataExists   = true;
-}
-
-inline std::string SaveState::RawBytes::get() const { //throw (Error){
-	return bytes;
-}
-
-inline bool SaveState::RawBytes::dataAvailable() const {
-	return dataExists;
-}
-
 #define CASESENSITIVITY (0)
 #define MAXFILENAME (256)
 
@@ -1140,7 +1127,6 @@ void SaveState::save(size_t slot) { //throw (Error)
 		for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
 			std::ostringstream ss;
 			i->second.comp.getBytes(ss);
-			i->second.rawBytes[slot].set(ss.str());
 
 			//LOG_MSG("Component is %s",i->first.c_str());
 
@@ -1203,9 +1189,6 @@ void SaveState::save(size_t slot) { //throw (Error)
 			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
 			outfile << ss.str();
 			//compress all other saved states except position "slot"
-			//const std::vector<RawBytes>& rb = i->second.rawBytes;
-			//std::for_each(rb.begin(), rb.begin() + slot, std::mem_fun_ref(&RawBytes::compress));
-			//std::for_each(rb.begin() + slot + 1, rb.end(), std::mem_fun_ref(&RawBytes::compress));
 			outfile.close();
 			ss.clear();
 			if(outfile.fail()) {
@@ -1503,9 +1486,6 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			goto delete_all;
 		}
 		//compress all other saved states except position "slot"
-		//const std::vector<RawBytes>& rb = i->second.rawBytes;
-		//std::for_each(rb.begin(), rb.begin() + slot, std::mem_fun_ref(&RawBytes::compress));
-		//std::for_each(rb.begin() + slot + 1, rb.end(), std::mem_fun_ref(&RawBytes::compress));
 		fb->close();
 		mystream.clear();
 		if (!dos_kernel_disabled) flagged_restore((char *)save.c_str());
