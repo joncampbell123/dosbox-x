@@ -5439,8 +5439,8 @@ void PC98_EXTMEMCPY(void) {
 
     Bitu   bytes    = ((reg_cx - 1u) & 0xFFFFu) + 1u; // bytes, except that 0 == 64KB
     PhysPt data     = SegPhys(es)+reg_bx;
-    PhysPt source   = (mem_readd(data+0x12u) & 0x00FFFFFFu) + ((unsigned int)mem_readb(data+0x17u)<<24u);
-    PhysPt dest     = (mem_readd(data+0x1Au) & 0x00FFFFFFu) + ((unsigned int)mem_readb(data+0x1Fu)<<24u);
+    PhysPt source = (mem_readd(data + 0x12u) & 0x00FFFFFFu) + ((unsigned int)mem_readb(data + 0x17u) << 24u) + reg_si;
+    PhysPt dest = (mem_readd(data + 0x1Au) & 0x00FFFFFFu) + ((unsigned int)mem_readb(data + 0x1Fu) << 24u) + reg_di;
 
     LOG_MSG("PC-98 memcpy: src=0x%x dst=0x%x data=0x%x count=0x%x",
         (unsigned int)source,(unsigned int)dest,(unsigned int)data,(unsigned int)bytes);
