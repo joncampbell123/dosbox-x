@@ -1037,7 +1037,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		if ((err=unzLocateFile(zf,"DOSBox-X_Version",1/*case sensitive*/)) != UNZ_OK) { load_err=true; goto done; }
 		if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
 		if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
-		zip_istreambuf zis(zf); std::ifstream check_version;
+		zip_istreambuf zis(zf);
 
 		char buffer[4096];
 		std::streamsize sz = zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[sz] = 0;
@@ -1066,7 +1066,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		if ((err=unzLocateFile(zf,"Program_Name",1/*case sensitive*/)) != UNZ_OK) { load_err=true; goto done; }
 		if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
 		if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
-		zip_istreambuf zis(zf); std::ifstream check_version;
+		zip_istreambuf zis(zf);
 
 		char buffer[4096];
 		size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[length] = 0;
@@ -1098,7 +1098,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		if ((err=unzLocateFile(zf,"Memory_Size",1/*case sensitive*/)) != UNZ_OK) { load_err=true; goto done; }
 		if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
 		if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
-		zip_istreambuf zis(zf); std::ifstream check_version;
+		zip_istreambuf zis(zf);
 
 		char buffer[4096];
 		size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[length] = 0;
@@ -1122,7 +1122,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		if ((err=unzLocateFile(zf,"Machine_Type",1/*case sensitive*/)) != UNZ_OK) { load_err=true; goto done; }
 		if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
 		if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
-		zip_istreambuf zis(zf); std::ifstream check_version;
+		zip_istreambuf zis(zf);
 
 		char buffer[4096];
 		size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[length] = 0;
@@ -1257,58 +1257,54 @@ std::string SaveState::getName(size_t slot, bool nl) const {
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
 	if (check_slot.fail()) return nl?"(Empty state)":"["+std::string(MSG_Get("EMPTY_SLOT"))+"]";
-	my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
-	std::ifstream check_title;
-	int length = 8;
-	std::string tempname = temp+"Program_Name";
-	check_title.open(tempname.c_str(), std::ifstream::in);
-	if (check_title.fail()) {
-		remove(tempname.c_str());
-		return "";
+	check_slot.close();
+
+	unzFile zf;
+	{
+		zlib_filefunc64_def ffunc;
+#ifdef USEWIN32IOAPI
+		fill_win32_filefunc64A(&ffunc);
+#else
+		fill_fopen64_filefunc(&ffunc);
+#endif
+		zf = unzOpen2_64(save.c_str(),&ffunc);
 	}
-	check_title.seekg (0, std::ios::end);
-	length = (int)check_title.tellg();
-	check_title.seekg (0, std::ios::beg);
-	char * const buffer1 = (char*)alloca( (length+1) * sizeof(char));
-	check_title.read (buffer1, length);
-	check_title.close();
-	remove(tempname.c_str());
-	buffer1[length]='\0';
-	std::string ret=nl?"Program: "+(!strlen(buffer1)?"-":std::string(buffer1))+"\n":"[Program: "+std::string(buffer1)+"]";
-	my_miniunz((char **)save.c_str(),"Time_Stamp",temp.c_str());
-	length=18;
-	tempname = temp+"Time_Stamp";
-	check_title.open(tempname.c_str(), std::ifstream::in);
-	if (check_title.fail()) {
-		remove(tempname.c_str());
-		return ret;
+	if (zf == NULL) return "(Error slot)";
+
+	int err;
+	std::string ret;
+	char buffer1[4096];
+	unz_file_info64 file_info;
+
+	if (	(err=unzLocateFile(zf,"Program_Name",1/*case sensitive*/)) == UNZ_OK &&
+		(err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) == UNZ_OK) {
+		if ((err=unzOpenCurrentFile(zf)) == UNZ_OK) {
+			zip_istreambuf zis(zf);
+			size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer1,sizeof(buffer1)-1); buffer1[length] = 0;
+			zis.close();
+			ret += nl?"Program: "+(!strlen(buffer1)?"-":std::string(buffer1))+"\n":"[Program: "+std::string(buffer1)+"]";
+		}
 	}
-	check_title.seekg (0, std::ios::end);
-	length = (int)check_title.tellg();
-	check_title.seekg (0, std::ios::beg);
-	char * const buffer2 = (char*)alloca( (length+1) * sizeof(char));
-	check_title.read (buffer2, length);
-	check_title.close();
-	remove(tempname.c_str());
-	buffer2[length]='\0';
-	if (strlen(buffer2)) ret+=nl?"Timestamp: "+(!strlen(buffer2)?"-":std::string(buffer2))+"\n":" ("+std::string(buffer2);
-	my_miniunz((char **)save.c_str(),"Save_Remark",temp.c_str());
-	length=30;
-	tempname = temp+"Save_Remark";
-	check_title.open(tempname.c_str(), std::ifstream::in);
-	if (check_title.fail()) {
-		remove(tempname.c_str());
-		return ret+(!nl?")":"");
+
+	if (	(err=unzLocateFile(zf,"Time_Stamp",1/*case sensitive*/)) == UNZ_OK &&
+		(err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) == UNZ_OK) {
+		if ((err=unzOpenCurrentFile(zf)) == UNZ_OK) {
+			zip_istreambuf zis(zf);
+			size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer1,sizeof(buffer1)-1); buffer1[length] = 0;
+			zis.close();
+			ret += nl?"Timestamp: "+(!strlen(buffer1)?"-":std::string(buffer1))+"\n":" ("+std::string(buffer1)+")";
+		}
 	}
-	check_title.seekg (0, std::ios::end);
-	length = (int)check_title.tellg();
-	check_title.seekg (0, std::ios::beg);
-	char * const buffer3 = (char*)alloca( (length+1) * sizeof(char));
-	check_title.read (buffer3, length);
-	check_title.close();
-	remove(tempname.c_str());
-	buffer3[length]='\0';
-	if (strlen(buffer3)) ret+=nl?"Remark: "+(!strlen(buffer3)?"-":std::string(buffer3))+"\n":" - "+std::string(buffer3)+")";
-	else if (!nl) ret+=")";
+
+	if (	(err=unzLocateFile(zf,"Save_Remark",1/*case sensitive*/)) == UNZ_OK &&
+		(err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) == UNZ_OK) {
+		if ((err=unzOpenCurrentFile(zf)) == UNZ_OK) {
+			zip_istreambuf zis(zf);
+			size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer1,sizeof(buffer1)-1); buffer1[length] = 0;
+			zis.close();
+			if (length != 0) ret += nl?"Remark: "+(!strlen(buffer1)?"-":std::string(buffer1))+"\n":" - "+std::string(buffer1);
+		}
+	}
+
 	return ret;
 }
