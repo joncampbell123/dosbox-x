@@ -988,11 +988,8 @@ void SaveState::load(size_t slot) const { //throw (Error)
         SDL_PauseAudio(0);
 #endif
 	extern const char* RunningProgram;
-	bool read_version=false;
-	bool read_title=false;
-	bool read_memorysize=false;
-	bool read_machinetype=false;
 	std::string path;
+	int err;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
 		path+=CROSS_FILESPLIT;
@@ -1021,201 +1018,146 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		load_err=true;
 		return;
 	}
+	check_slot.close();
 
-	for (CompEntry::const_iterator i = components.begin(); i != components.end(); ++i) {
-		std::filebuf * fb;
-		std::ifstream ss;
-		std::ifstream check_file;
-		fb = ss.rdbuf();
+	unz_file_info64 file_info;
+	unzFile zf;
+	{
+		zlib_filefunc64_def ffunc;
+#ifdef USEWIN32IOAPI
+		fill_win32_filefunc64A(&ffunc);
+#else
+		fill_fopen64_filefunc(&ffunc);
+#endif
+		zf = unzOpen2_64(save.c_str(),&ffunc);
+	}
+	if (zf == NULL) { load_err=true; goto done; }
 
-		//LOG_MSG("Component is %s",i->first.c_str());
+	{
+		if ((err=unzLocateFile(zf,"DOSBox-X_Version",1/*case sensitive*/)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
+		zip_istreambuf zis(zf); std::ifstream check_version;
 
-		my_miniunz((char **)save.c_str(),i->first.c_str(),temp.c_str());
+		char buffer[4096];
+		std::streamsize sz = zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[sz] = 0;
 
-		if(!read_version) {
-			my_miniunz((char **)save.c_str(),"DOSBox-X_Version",temp.c_str());
-			std::ifstream check_version;
-			int length = 8;
-
-			std::string tempname = temp+"DOSBox-X_Version";
-			check_version.open(tempname.c_str(), std::ifstream::in);
-			if(check_version.fail()) {
-				savestatecorrupt("DOSBox-X_Version");
-				load_err=true;
-				goto delete_all;
-			}
-			check_version.seekg (0, std::ios::end);
-			length = (int)check_version.tellg();
-			check_version.seekg (0, std::ios::beg);
-
-			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
-			check_version.read (buffer, length);
-			check_version.close();
-			buffer[length]='\0';
-			char *p;
-			if (strstr(buffer, "\nNo compression") != NULL) {
-				/* 2025/01/12: Removal of this string is required to match version string below even if now ignored */
-				p=strrchr(buffer, '\n');
-				if (p!=NULL) *p=0;
-			}
-			p=strrchr(buffer, '\n'); /* Remove i.e. "Linux" */
+		char *p;
+		if (strstr(buffer, "\nNo compression") != NULL) {
+			/* 2025/01/12: Removal of this string is required to match version string below even if now ignored */
+			p=strrchr(buffer, '\n');
 			if (p!=NULL) *p=0;
-			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")");
-			if (strcasecmp(buffer,emulatorversion.c_str())) {
-				if(!force_load_state&&!loadstateconfirm(0)) {
-					LOG_MSG("Aborted. Check your DOSBox-X version: %s",buffer);
-					load_err=true;
-					goto delete_all;
-				}
-			}
-			read_version=true;
 		}
-
-		if(!read_title) {
-			my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
-			std::ifstream check_title;
-			int length = 8;
-
-			std::string tempname = temp+"Program_Name";
-			check_title.open(tempname.c_str(), std::ifstream::in);
-			if(check_title.fail()) {
-				savestatecorrupt("Program_Name");
+		p=strrchr(buffer, '\n'); /* Remove i.e. "Linux" */
+		if (p!=NULL) *p=0;
+		std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")");
+		if (strcasecmp(buffer,emulatorversion.c_str())) {
+			if(!force_load_state&&!loadstateconfirm(0)) {
+				LOG_MSG("Aborted. Check your DOSBox-X version: %s",buffer);
 				load_err=true;
-				goto delete_all;
+				goto done;
 			}
-			check_title.seekg (0, std::ios::end);
-			length = (int)check_title.tellg();
-			check_title.seekg (0, std::ios::beg);
-
-			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
-			check_title.read (buffer, length);
-			check_title.close();
-			if (!length||(size_t)length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
-				if(!force_load_state&&!loadstateconfirm(1)) {
-					buffer[length]='\0';
-					LOG_MSG("Aborted. Check your program name: %s",buffer);
-					load_err=true;
-					goto delete_all;
-				}
-				if (length<9) {
-					static char pname[9];
-					if (length) {
-						strncpy(pname,buffer,length);
-						pname[length]=0;
-					} else
-						strcpy(pname, "DOSBOX-X");
-					RunningProgram=pname;
-					void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-					GFX_SetTitle(-1,-1,-1,false);
-				}
-			}
-			read_title=true;
 		}
 
-		if(!read_memorysize) {
-			my_miniunz((char **)save.c_str(),"Memory_Size",temp.c_str());
-			std::fstream check_memorysize;
-			int length = 8;
-
-			std::string tempname = temp+"Memory_Size";
-			check_memorysize.open(tempname.c_str(), std::ifstream::in);
-			if(check_memorysize.fail()) {
-				savestatecorrupt("Memory_Size");
-				load_err=true;
-				goto delete_all;
-			}
-			check_memorysize.seekg (0, std::ios::end);
-			length = (int)check_memorysize.tellg();
-			check_memorysize.seekg (0, std::ios::beg);
-
-			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
-			check_memorysize.read (buffer, length);
-			check_memorysize.close();
-			char str[10];
-			itoa((int)MEM_TotalPages(), str, 10);
-			if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
-				if(!force_load_state&&!loadstateconfirm(2)) {
-					buffer[length]='\0';
-					int size=atoi(buffer)*4096/1024/1024;
-					LOG_MSG("Aborted. Check your memory size: %d MB", size);
-					load_err=true;
-					goto delete_all;
-				}
-			}
-			read_memorysize=true;
-		}
-
-		if(!read_machinetype) {
-			my_miniunz((char **)save.c_str(),"Machine_Type",temp.c_str());
-			std::ifstream check_machinetype;
-			int length = 8;
-
-			std::string tempname = temp+"Machine_Type";
-			check_machinetype.open(tempname.c_str(), std::ifstream::in);
-			if(check_machinetype.fail()) {
-				savestatecorrupt("Machine_Type");
-				load_err=true;
-				goto delete_all;
-			}
-			check_machinetype.seekg (0, std::ios::end);
-			length = (int)check_machinetype.tellg();
-			check_machinetype.seekg (0, std::ios::beg);
-
-			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
-			check_machinetype.read (buffer, length);
-			check_machinetype.close();
-			char str[20];
-			strcpy(str, getType().c_str());
-			if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
-				if(!force_load_state&&!loadstateconfirm(3)) {
-					LOG_MSG("Aborted. Check your machine type: %s",buffer);
-					load_err=true;
-					goto delete_all;
-				}
-			}
-			read_machinetype=true;
-		}
-
-		std::string realtemp;
-		realtemp = temp + i->first;
-		check_file.open(realtemp.c_str(), std::ifstream::in);
-		check_file.close();
-		if(check_file.fail()) {
-			savestatecorrupt(i->first.c_str());
-			load_err=true;
-			goto delete_all;
-		}
-
-		clearline=true;
-		fb->open(realtemp.c_str(),std::ios::in | std::ios::binary);
-		std::string str((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
-		std::stringstream mystream;
-		mystream << str;
-		i->second.comp.setBytes(mystream);
-		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
-			savestatecorrupt(i->first.c_str());
-			load_err=true;
-			goto delete_all;
-		}
-		//compress all other saved states except position "slot"
-		fb->close();
-		mystream.clear();
-		if (!dos_kernel_disabled) flagged_restore((char *)save.c_str());
+		if ((err=zis.close()) != ZIP_OK) { load_err=true; goto done; }
 	}
-delete_all:
-	std::string save2;
+
+	{
+		if ((err=unzLocateFile(zf,"Program_Name",1/*case sensitive*/)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
+		zip_istreambuf zis(zf); std::ifstream check_version;
+
+		char buffer[4096];
+		size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[length] = 0;
+
+		if (!length||(size_t)length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
+			if(!force_load_state&&!loadstateconfirm(1)) {
+				buffer[length]='\0';
+				LOG_MSG("Aborted. Check your program name: %s",buffer);
+				load_err=true;
+				goto done;
+			}
+			if (length<9) {
+				static char pname[9];
+				if (length) {
+					strncpy(pname,buffer,length);
+					pname[length]=0;
+				} else
+					strcpy(pname, "DOSBOX-X");
+				RunningProgram=pname;
+				void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+				GFX_SetTitle(-1,-1,-1,false);
+			}
+		}
+
+		if ((err=zis.close()) != ZIP_OK) { load_err=true; goto done; }
+	}
+
+	{
+		if ((err=unzLocateFile(zf,"Memory_Size",1/*case sensitive*/)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
+		zip_istreambuf zis(zf); std::ifstream check_version;
+
+		char buffer[4096];
+		size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[length] = 0;
+
+		char str[10];
+		itoa((int)MEM_TotalPages(), str, 10);
+		if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
+			if(!force_load_state&&!loadstateconfirm(2)) {
+				buffer[length]='\0';
+				int size=atoi(buffer)*4096/1024/1024;
+				LOG_MSG("Aborted. Check your memory size: %d MB", size);
+				load_err=true;
+				goto done;
+			}
+		}
+
+		if ((err=zis.close()) != ZIP_OK) { load_err=true; goto done; }
+	}
+
+	{
+		if ((err=unzLocateFile(zf,"Machine_Type",1/*case sensitive*/)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
+		zip_istreambuf zis(zf); std::ifstream check_version;
+
+		char buffer[4096];
+		size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[length] = 0;
+
+		char str[20];
+		strcpy(str, getType().c_str());
+		if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
+			if(!force_load_state&&!loadstateconfirm(3)) {
+				LOG_MSG("Aborted. Check your machine type: %s",buffer);
+				load_err=true;
+				goto done;
+			}
+		}
+
+		if ((err=zis.close()) != ZIP_OK) { load_err=true; goto done; }
+	}
+
 	for (CompEntry::const_iterator i = components.begin(); i != components.end(); ++i) {
-		save2=temp+i->first;
-		remove(save2.c_str());
+		if ((err=unzLocateFile(zf,i->first.c_str(),1/*case sensitive*/)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
+		if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
+		zip_istreambuf zis(zf); std::istream ss(&zis);
+
+		i->second.comp.setBytes(ss);
+
+		if ((err=zis.close()) != ZIP_OK) { load_err=true; goto done; }
 	}
-	save2=temp+"DOSBox-X_Version";
-	remove(save2.c_str());
-	save2=temp+"Program_Name";
-	remove(save2.c_str());
-	save2=temp+"Memory_Size";
-	remove(save2.c_str());
-	save2=temp+"Machine_Type";
-	remove(save2.c_str());
+
+done:
+	if (zf != NULL) {
+		err = unzClose(zf);
+		if (err != UNZ_OK) load_err = true;
+	}
+
+	if (!dos_kernel_disabled) flagged_restore((char *)save.c_str());
 	if (!load_err) LOG_MSG("[%s]: Loaded. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
 
