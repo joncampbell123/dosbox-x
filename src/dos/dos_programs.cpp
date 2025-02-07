@@ -121,6 +121,12 @@ std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
 bool CheckDBCSCP(int32_t codepage);
 
+#define MAXU32 0xffffffff
+#include "zip.h"
+#include "unzip.h"
+#include "ioapi.h"
+#include "zipcppstdbuf.h"
+
 #if defined(OS2)
 #define INCL DOSFILEMGR
 #define INCL_DOSERRORS
@@ -8941,6 +8947,9 @@ void EndStartProcess() {
 }
 #endif
 
+void zipSetCurrentTime(zip_fileinfo &zi);
+int zipOutOpenFile(zipFile zf,const char *zfname,zip_fileinfo &zi,const bool compress);
+
 const char * TranslateHostPath(const char * arg, bool next = false);
 class START : public Program {
 public:
@@ -9157,110 +9166,127 @@ void START_ProgramStart(Program **make)
 char *g_flagged_files[MAX_FLAGS]; //global array to hold flagged files
 int flagged_backup(char *zip)
 {
-    char zipfile[CROSS_LEN], ziptmp[CROSS_LEN+4];
-    int i;
-    int ret = 0;
+	unsigned char buffer[4096];
+	char zipfile[CROSS_LEN];
+	int ret = 0;
+	int i;
 
-    bool compresssaveparts = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("compresssaveparts");
+	bool compresssaveparts = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("compresssaveparts");
 
-    strcpy(zipfile, zip);
-    strcpy(ziptmp, zip);
-    if (strstr(zipfile, ".sav")) {
-        strcpy(strstr(zipfile, ".sav"), ".dat");
-        strcpy(strstr(ziptmp, ".sav"), ".tmp");
-    } else
-        strcat(ziptmp, ".tmp");
-    bool first=true;
-    for (i = 0; i < MAX_FLAGS; i++)
-    {
-        if (g_flagged_files[i])
-        {
-            if (first) {
-                first=false;
-                std::ofstream file (zipfile);
-                file << "";
-                file.close();
-            }
-            uint16_t handle = 0;
-            if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES || !DOS_OpenFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
-                LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
-                continue;
-            }
-            uint8_t c;uint16_t n=1;
-            std::string out="";
-            while (n) {
-                DOS_ReadFile(handle,&c,&n);
-                if (n==0) break;
-                out+=std::string(1, c);
-            }
-            DOS_CloseFile(handle);
-            std::ofstream outfile (ziptmp, std::ofstream::binary);
-            outfile << out;
-            outfile.close();
+	strcpy(zipfile, zip);
+	if (strstr(zipfile, ".sav"))
+		strcpy(strstr(zipfile, ".sav"), ".dat");
 
-            // FIXME: No more minizip, move this function into savestate.cpp and use new ofstream code
-            // my_minizip(compresssaveparts, (char**)zipfile, (char**)ziptmp, g_flagged_files[i]);
+	i=0;
+	while (i < MAX_FLAGS && g_flagged_files[i] == NULL) i++;
+	if (i < MAX_FLAGS) {
+		zipFile zf;
+		{
+			const char *global_comment = "DOSBox-X flagged file save state";
+			zlib_filefunc64_def ffunc;
+#ifdef USEWIN32IOAPI
+			fill_win32_filefunc64A(&ffunc);
+#else
+			fill_fopen64_filefunc(&ffunc);
+#endif
+			remove(zipfile);
+			zf = zipOpen2_64(zipfile,APPEND_STATUS_CREATE,&global_comment,&ffunc);
+		}
+		if (zf != NULL) {
+			while (i < MAX_FLAGS) {
+				if (g_flagged_files[i] != NULL) {
+					uint16_t handle = 0;
+					if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES || !DOS_OpenFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
+						LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
+						continue;
+					}
 
-            ret++;
-        }
-    }
-    remove(ziptmp);
-    return ret;
+					zip_fileinfo zi; zipSetCurrentTime(zi);
+					if (zipOutOpenFile(zf,g_flagged_files[i],zi,compresssaveparts) == ZIP_OK) {
+						zip_ostreambuf zos(zf);
+
+						do {
+							uint16_t n = sizeof(buffer);
+							DOS_ReadFile(handle,buffer,&n);
+							if (n == 0) break;
+							if (zos.xsputn((zip_ostreambuf::char_type*)buffer,n) < n) break;
+						} while(1);
+
+						zos.close();
+					}
+
+					DOS_CloseFile(handle);
+				}
+
+				i++;
+			}
+			zipClose(zf,NULL);
+		}
+	}
+
+	return ret;
 }
 
 int flagged_restore(char* zip)
 {
-    char zipfile[MAX_FLAGS], ziptmp[CROSS_LEN+4];
-    int i;
-    int ret = 0;
+	unsigned char buffer[4096];
+	unz_file_info64 file_info;
+	char zipfile[MAX_FLAGS];
+	int ret = 0;
+	int i;
 
-    strcpy(zipfile, zip);
-    strcpy(ziptmp, zip);
-    if (strstr(zipfile, ".sav")) {
-        strcpy(strstr(zipfile, ".sav"), ".dat");
-        strcpy(strstr(ziptmp, ".sav"), ".tmp");
-    } else
-        strcat(ziptmp, ".tmp");
-    for (i = 0; i < MAX_FLAGS; i++)
-    {
-        if (g_flagged_files[i])
-        {
-            if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES) {
-                LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
-                continue;
-            }
-            char savedir[CROSS_LEN], savename[CROSS_LEN];
-            char *p=strrchr(ziptmp, CROSS_FILESPLIT);
-            if (p==NULL) {
-                strcpy(savedir, ".");
-                strcpy(savename, ziptmp);
-            } else {
-                strcpy(savename, p+1);
-                *p=0;
-                strcpy(savedir, ziptmp);
-                *p=CROSS_FILESPLIT;
-            }
-            // No more miniunz, TODO use new code
-            // my_miniunz((char**)zipfile, g_flagged_files[i], savedir, savename);
-            std::ifstream ifs(ziptmp, std::ios::in | std::ios::binary | std::ios::ate);
-            std::ifstream::pos_type fileSize = ifs.tellg();
-            ifs.seekg(0, std::ios::beg);
-            std::vector<char> bytes(fileSize);
-            ifs.read(bytes.data(), fileSize);
-            std::string str(bytes.data(), fileSize);
-            uint16_t handle, size;
-            if (DOS_CreateFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
-                for (uint64_t i=0; i<=ceil(fileSize/UINT16_MAX); i++) {
-                    size=(uint64_t)fileSize-UINT16_MAX*i>UINT16_MAX?UINT16_MAX:(uint16_t)((uint64_t)fileSize-UINT16_MAX*i);
-                    DOS_WriteFile(handle,(uint8_t *)str.substr(i*UINT16_MAX, size).c_str(),&size);
-                }
-                DOS_CloseFile(handle);
-            }
-            ret++;
-        }
-    }
-    remove(ziptmp);
-    return ret;
+	strcpy(zipfile, zip);
+	if (strstr(zipfile, ".sav"))
+		strcpy(strstr(zipfile, ".sav"), ".dat");
+	i=0;
+	while (i < MAX_FLAGS && g_flagged_files[i] == NULL) i++;
+	if (i < MAX_FLAGS) {
+		unzFile zf;
+		{
+			zlib_filefunc64_def ffunc;
+#ifdef USEWIN32IOAPI
+			fill_win32_filefunc64A(&ffunc);
+#else
+			fill_fopen64_filefunc(&ffunc);
+#endif
+			zf = unzOpen2_64(zipfile,&ffunc);
+		}
+		if (zf != NULL) {
+			while (i < MAX_FLAGS) {
+				if (g_flagged_files[i] != NULL) {
+					if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES) {
+						LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
+						continue;
+					}
+
+					if (unzLocateFile(zf,g_flagged_files[i],2/*case insensitive*/) == UNZ_OK &&
+						unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0) == UNZ_OK) {
+						if (unzOpenCurrentFile(zf) == UNZ_OK) {
+							zip_istreambuf zis(zf);
+
+							uint16_t handle=0;
+							if (DOS_CreateFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
+								do {
+									uint16_t n = zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer));
+									if (n == 0) break;
+									DOS_WriteFile(handle,(uint8_t*)buffer,&n);
+									if (n == 0) break;
+								} while (1);
+								DOS_CloseFile(handle);
+							}
+
+							zis.close();
+						}
+					}
+				}
+
+				i++;
+			}
+			unzClose(zf);
+		}
+	}
+
+	return ret;
 }
 
 class FLAGSAVE : public Program
