@@ -1380,10 +1380,10 @@ void SaveState::load(size_t slot) const { //throw (Error)
 				p=strrchr(buffer, '\n');
 				if (p!=NULL) *p=0;
 			}
-			p=strrchr(buffer, '\n');
+			p=strrchr(buffer, '\n'); /* Remove i.e. "Linux" */
 			if (p!=NULL) *p=0;
-			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform(true);
-			if (p==NULL||strcasecmp(buffer,emulatorversion.c_str())) {
+			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")");
+			if (strcasecmp(buffer,emulatorversion.c_str())) {
 				if(!force_load_state&&!loadstateconfirm(0)) {
 					LOG_MSG("Aborted. Check your DOSBox-X version: %s",buffer);
 					load_err=true;
