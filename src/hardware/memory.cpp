@@ -2521,6 +2521,7 @@ void PS2Port92_OnReset(Section *sec) {
     (void)sec;//UNUSED
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
+    PC98_43B_memspace_ReadHandler.Uninstall();
     PS2_Port_92h_WriteHandler2.Uninstall();
     PS2_Port_92h_WriteHandler.Uninstall();
     PS2_Port_92h_ReadHandler.Uninstall();
