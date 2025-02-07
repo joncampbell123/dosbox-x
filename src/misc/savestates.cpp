@@ -34,6 +34,7 @@
 #include "vs/zlib/contrib/minizip/zip.c"
 #include "vs/zlib/contrib/minizip/unzip.c"
 #include "vs/zlib/contrib/minizip/ioapi.c"
+#include "zipcppstdbuf.h"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
@@ -41,41 +42,6 @@
 #ifdef C_SDL2
 extern SDL_AudioDeviceID SDL2_AudioDevice; /* valid IDs are 2 or higher, 1 for compat, 0 is never a valid ID */
 #endif
-
-/* std::streambuf for writing to ZIP archive directly.
- * ZIP archive writer can only write one file at a time, do not
- * use multiple instances of this C++ class at a time! No seeking,
- * only sequential output! */
-class zip_ostreambuf : public std::streambuf {
-public:
-	using Base = std::streambuf;
-public:
-	zip_ostreambuf(zipFile &n_zf) : basic_streambuf(), zf(n_zf) { }
-	virtual ~zip_ostreambuf() { }
-public:
-	virtual std::streamsize xsputn(const Base::char_type *s, std::streamsize count) override {
-		assert(zf != NULL);
-
-		const int err = zipWriteInFileInZip(zf, (void*)s, count);
-		if (err != ZIP_OK) {
-			zf_err = err;
-			return 0;
-		}
-
-		return count;
-	}
-public:
-	int close(void) {
-		int err;
-
-		if ((err=zipCloseFileInZip(zf)) != ZIP_OK) return err;
-		if (zf_err != ZIP_OK) return zf_err;
-		return ZIP_OK;
-	}
-private:
-	zipFile zf = NULL;
-	int zf_err = ZIP_OK;
-};
 
 extern unsigned int page;
 extern int autosave_last[10], autosave_count;
