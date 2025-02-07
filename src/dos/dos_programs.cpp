@@ -9199,7 +9199,10 @@ int flagged_backup(char *zip)
             std::ofstream outfile (ziptmp, std::ofstream::binary);
             outfile << out;
             outfile.close();
-            my_minizip(compresssaveparts, (char**)zipfile, (char**)ziptmp, g_flagged_files[i]);
+
+            // FIXME: No more minizip, move this function into savestate.cpp and use new ofstream code
+            // my_minizip(compresssaveparts, (char**)zipfile, (char**)ziptmp, g_flagged_files[i]);
+
             ret++;
         }
     }
