@@ -9155,8 +9155,6 @@ void START_ProgramStart(Program **make)
 
 #define MAX_FLAGS 512
 char *g_flagged_files[MAX_FLAGS]; //global array to hold flagged files
-int my_minizip(bool compress, char ** savefile, char ** savefile2, char* savename=NULL);
-int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, char* savename);
 int flagged_backup(char *zip)
 {
     char zipfile[CROSS_LEN], ziptmp[CROSS_LEN+4];
@@ -9242,7 +9240,8 @@ int flagged_restore(char* zip)
                 strcpy(savedir, ziptmp);
                 *p=CROSS_FILESPLIT;
             }
-            my_miniunz((char**)zipfile, g_flagged_files[i], savedir, savename);
+            // No more miniunz, TODO use new code
+            // my_miniunz((char**)zipfile, g_flagged_files[i], savedir, savename);
             std::ifstream ifs(ziptmp, std::ios::in | std::ios::binary | std::ios::ate);
             std::ifstream::pos_type fileSize = ifs.tellg();
             ifs.seekg(0, std::ios::beg);
