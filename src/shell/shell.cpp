@@ -988,8 +988,9 @@ void DOS_Shell::Prepare(void) {
         //initcodepagefont();
         //dos.loaded_codepage=cp;
         finish_prepare = true;
+#if defined(USE_TTF)
         if(CurMode->type == M_TEXT) ttf_switch_on(true); // Initialization completed, M_TEXT modes can switch to TTF mode from now on.
-
+#endif
     }
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
     if (enableime) SetIMPosition();
