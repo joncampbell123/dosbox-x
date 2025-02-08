@@ -85,6 +85,11 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error(), CheckDBCSCP(int32_t codepage), TTF_using(void);
 void makestdcp950table(), makeseacp951table();
 
+#if defined(USE_TTF)
+void ttf_switch_on(bool ss = true), ttf_switch_off(bool ss = true);
+#endif
+extern VideoModeBlock* CurMode;
+
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
  * remove things from the environment */
@@ -983,6 +988,7 @@ void DOS_Shell::Prepare(void) {
         //initcodepagefont();
         //dos.loaded_codepage=cp;
         finish_prepare = true;
+        if(CurMode->type == M_TEXT) ttf_switch_on(true); // Initialization completed, M_TEXT modes can switch to TTF mode from now on.
 
     }
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
@@ -1264,12 +1270,14 @@ public:
 #else
 		if (secure) autoexec[i++].Install("z:\\system\\config.com -securemode");
 #endif
-#if defined(WIN32)
-        if(TTF_using()) {
+#if 0
+//#if defined(WIN32) && defined(USE_TTF) /* Workaround for TTF screen initialization */
+        if(static_cast<Section_prop*>(control->GetSection("sdl"))->Get_string("output")=="ttf") {
             autoexec[i++].Install("@config -set output=surface");
             autoexec[i++].Install("@config -set output=ttf");
         }
-#endif
+//#endif /* (WIN32) && (USE_TTF) */
+#endif // 0
 		if (addexit) autoexec[i++].Install("exit");
 
 		assert(i <= 17); /* FIXME: autoexec[] should not be fixed size */

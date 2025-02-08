@@ -59,6 +59,10 @@ extern bool allow_vesa_tty;
 extern bool vga_8bit_dac;
 extern bool blinking;
 extern bool ega200;
+extern bool finish_prepare;
+bool toOutput(const char* what);
+static std::string conf_output;
+
 
 /* This list includes non-explicitly 24bpp modes (in the 0x100-0x11F range) that are available
  * when the VBE1.2 setting indicates they should be 24bpp.
@@ -713,10 +717,11 @@ static bool SetCurMode(VideoModeBlock modeblock[],uint16_t mode) {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
 				CurMode=&modeblock[i];
 #if defined(USE_TTF)
-                ttf_switch_off(false); // Disable TTF output when switching to graphics mode,
-                                       // however for text mode, temporary switched off and switched on again later to avoid glitches
+                conf_output = static_cast<Section_prop*>(control->GetSection("sdl"))->Get_string("output");
+                if(conf_output.empty())conf_output = "default";
+                if(finish_prepare) ttf_switch_off();
 #endif
-				return true;
+                return true;
 			}
 			return false;
 		}
@@ -920,12 +925,6 @@ static void FinishSetMode(bool clearmem) {
 	int10.text_row = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
 	/* FIXME */
 	VGA_DAC_UpdateColorPalette();
-#if defined(USE_TTF)
-    //LOG_MSG("INT10: type=%d, mode=%d, twidth=%d, theight=%d", CurMode->type, CurMode->mode, CurMode->twidth, CurMode->theight);
-    if(CurMode->type == M_TEXT) { // FIX_ME: Text mode detection when screen mode is not changed via INT 10h function
-        ttf_switch_on(); // TTF mode is switched on in text mode only.
-    }
-#endif
 }
 
 uint8_t TandyGetCRTPage(void) {
@@ -2414,17 +2413,24 @@ dac_text16:
 	IO_Read(mono_mode ? 0x3ba : 0x3da);
 
 	/* Load text mode font */
-	if (CurMode->type==M_TEXT) {
-		INT10_ReloadFont();
+    if(CurMode->type == M_TEXT) {
+        INT10_ReloadFont();
+
 #if defined(USE_TTF)
-		if (ttf.inUse)
-			ttf_reset();
-		else
-			ttf_switch_on(false);
-	} else {
-		ttf_switch_off(false);
+        if(ttf.inUse)
+            ttf_reset();
+        else {
+            if(!finish_prepare && conf_output == "ttf") { // Workaround for blank BIOS screen in TTF mode
+                toOutput("surface");
+                toOutput("ttf");
+            }
+            if(finish_prepare) ttf_switch_on(true); // M_TEXT modes can switch to TTF mode is initialization is completed
+            else ttf_switch_off(true); // Workaround for blank BIOS screen in TTF mode
+        }
 #endif
-	}
+    }
+    else ttf_switch_off(true);
+
 	// Enable screen memory access
 	IO_Write(0x3c4,1); IO_Write(0x3c5,seq_data[1] & ~0x20);
 	//LOG_MSG("setmode end");
