@@ -682,7 +682,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
         const char *lFilterPatterns[] = {"*.zip","*.7z","*.ZIP","*.7Z"};
         const char *lFilterDescription = "Archive files (*.zip, *.7z)";
         lTheOpenFileName = tinyfd_openFileDialog(("Select an archive file for Drive "+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,0);
-        if (lTheOpenFileName) fname = GetNewStr(lTheOpenFileName);
+        if (lTheOpenFileName) fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
     } else {
         const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.fdi","*.hdi","*.nfd","*.nhd","*.d88","*.hdm","*.xdf","*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.ccd","*.inst","*.IMA","*.IMG","*.VHD","*.FDI","*.HDI","*.NFD","*.NHD","*.D88","*.HDM","*.XDF","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS","*.CCD","*.INST"};
         const char *lFilterDescription = "Disk/CD image files";
