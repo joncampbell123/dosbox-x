@@ -67,6 +67,7 @@ extern bool force_load_state, force_conversion;
 extern bool pc98_force_ibm_layout, gbk, chinasea;
 extern bool inshell, enable_config_as_shell_commands;
 extern bool switchttf, ttfswitch, switch_output_from_ttf;
+extern bool finish_prepare;
 bool checkmenuwidth = false;
 bool dos_kernel_disabled = true;
 bool winrun=false, use_save_file=false;
@@ -9626,7 +9627,7 @@ fresh_boot:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
-
+        finish_prepare = false;
         if (run_bios) {
             LOG_MSG("Running a custom BIOS");
 
@@ -9853,7 +9854,6 @@ fresh_boot:
          * freed resources. */
         control = NULL; /* any deref past this point and you deserve to segfault */
     }
-
     return saved_opt_test&&testerr?1:0;
 }
 
