@@ -2429,8 +2429,9 @@ dac_text16:
         }
 #endif
     }
+#if defined(USE_TTF)
     else ttf_switch_off(true);
-
+#endif
 	// Enable screen memory access
 	IO_Write(0x3c4,1); IO_Write(0x3c5,seq_data[1] & ~0x20);
 	//LOG_MSG("setmode end");
