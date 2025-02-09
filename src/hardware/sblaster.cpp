@@ -52,6 +52,13 @@
  *
  *     What I'm trying to investigate are the cases where something, like CD-ROM IDE
  *     access, throws that off and causes audible popping and crackling.
+ *
+ *   - Windows 3.1 SB16: Holy Hell, do NOT attempt to play audio at 48KHz or higher!
+ *     There seems to be a serious bug with the Creative SB16 driver where 48KHz playback
+ *     results in garbled audio and soon a driver crash. 44.1KHz or lower is OK.
+ *     Is this some kind of DMA vs timing bug? It also appears to take whatever sample
+ *     rate is given by the Windows application and give it as-is to the DSP. The breaking
+ *     point seems to be 45,100Hz.
  */
 
 #if defined(_MSC_VER)
@@ -3215,8 +3222,10 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
             PIC_DeActivateIRQ(sb.hw.irq);
         }
 
-        if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
+        if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK) {
+            sb.chan->FillUp();
             sb.mode = MODE_DMA;
+        }
 
         extern const char* RunningProgram; // Wengier: Hack for Desert Strike & Jungle Strike
         if (!IS_PC98_ARCH && port>0x220 && port%0x10==0xE && !sb.dsp.out.used && (!strcmp(RunningProgram, "DESERT") || !strcmp(RunningProgram, "JUNGLE"))) {
@@ -3234,8 +3243,10 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
                 PIC_DeActivateIRQ(sb.hw.irq);
             }
 
-            if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
+            if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK) {
+                sb.chan->FillUp();
                 sb.mode = MODE_DMA;
+            }
         }
         break;
     case DSP_WRITE_STATUS:
