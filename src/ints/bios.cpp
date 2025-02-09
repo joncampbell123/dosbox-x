@@ -130,6 +130,8 @@ extern bool en_bios_ps2mouse;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
 extern bool enable_fpu;
+extern bool finish_prepare;
+extern bool is_ttfswitched_on;
 
 bool pc98_timestamp5c = true; // port 5ch and 5eh "time stamp/hardware wait"
 
@@ -152,9 +154,11 @@ void SetIMPosition(void);
 bool isDBCSCP();
 Bitu INT60_Handler(void);
 Bitu INT6F_Handler(void);
+bool toOutput(const char* what);
 #if defined(USE_TTF)
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
 #endif
+std::string conf_output;
 
 /* Rate limit log entries regarding APM AH=05h CPU IDLE because Windows 98's APM driver likes to call it way too much per second */
 pic_tickindex_t APM_log_cpu_idle_next_report = 0;
@@ -3814,7 +3818,19 @@ static Bitu INT18_PC98_Handler(void) {
                 SegValue(es));
     }
 #endif
- 
+#if defined(USE_TTF)
+    if(ttf.inUse)
+        ttf_reset();
+    else {
+        conf_output= static_cast<Section_prop*>(control->GetSection("sdl"))->Get_string("output");
+        if(!finish_prepare && conf_output == "ttf") { // Workaround for blank BIOS screen in TTF mode
+            toOutput("surface");
+            toOutput("ttf");
+            ttf_switch_off(true);
+            is_ttfswitched_on = true;
+        }
+    }
+#endif
     /* NTS: Based on information gleaned from Neko Project II source code including comments which
      *      I've run through GNU iconv to convert from SHIFT-JIS to UTF-8 here in case Google Translate
      *      got anything wrong. */

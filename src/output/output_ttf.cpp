@@ -121,6 +121,8 @@ static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkstate = false;
 bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true, ttfswitch = false, switch_output_from_ttf = false;
 bool init_once = false, init_twice = false;
+extern bool finish_prepare;
+bool is_ttfswitched_on=false;
 
 int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 void AdjustIMEFontSize(void),refreshExtChar(void), initcodepagefont(void), change_output(int output), drawmenu(Bitu val), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -1410,6 +1412,7 @@ void ttf_setlines(int cols, int lins) {
 }
 
 void ttf_switch_on(bool ss=true) {
+    if(!finish_prepare) return;
     if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
         checkcol = 0;
         if (strcmp(RunningProgram, "LOADLIN")) {
@@ -1459,6 +1462,7 @@ void ttf_switch_on(bool ss=true) {
 #endif
         if (!IS_PC98_ARCH && vga.draw.address_add != ttf.cols * 2) checkcol = ss?2:1;
     }
+    is_ttfswitched_on = true;
 }
 
 void ttf_switch_off(bool ss=true) {
@@ -1511,5 +1515,6 @@ void ttf_switch_off(bool ss=true) {
 #endif
         if (Mouse_IsLocked()) GFX_CaptureMouse(true);
     }
+    is_ttfswitched_on = false;
 }
 #endif
