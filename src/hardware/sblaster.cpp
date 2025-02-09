@@ -40,6 +40,20 @@
  *        FIFO anyway, and which cards have it? Would it also be possible to eliminate
  *        the need for sb.dma.min? */
 
+/* Notes:
+ *
+ *   - Windows 95, when using the Creative SB16 drivers, seems to always use a 62ms
+ *     DSP block size, DSP and DMA auto-init, within a 124ms buffer
+ *     (DSP block size 1376 / DMA base count 2751 / sample rate 22050 for example).
+ *
+ *     The calculation seems to be Nhalf = ((sample_rate / 16) & (~3)) * bytes_per_sample
+ *     and N = Nhalf * 2. It appears to round down to a multiple of 4 to correctly handle
+ *     up to 16-bit stereo, of course.
+ *
+ *     What I'm trying to investigate are the cases where something, like CD-ROM IDE
+ *     access, throws that off and causes audible popping and crackling.
+ */
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 # pragma warning(disable:4305) /* truncation from double to float */
@@ -1244,12 +1258,14 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
     }
 
 #if (C_DEBUG)
-    LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s %s freq %d rate %d size %d gold %d",
+    LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s dsp %s dma %s freq %d rate %d dspsize %d dmasize %d gold %d",
         type,
         sb.dma.recording ? "Recording" : "Playback",
         sb.dma.stereo ? "Stereo" : "Mono",
         sb.dma.autoinit ? "Auto-Init" : "Single-Cycle",
+        sb.dma.chan ? (sb.dma.chan->autoinit ? "Auto-Init" : "Single-Cycle") : "n/a",
         (int)freq,(int)sb.dma.rate,(int)sb.dma.total,
+        sb.dma.chan ? (sb.dma.chan->basecnt+1) : 0,
         (int)sb.dma_dac_mode
     );
 #else
