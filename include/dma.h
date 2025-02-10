@@ -24,6 +24,7 @@ enum DMAEvent {
 	DMA_REACHED_TC,
 	DMA_MASKED,
 	DMA_UNMASKED,
+	DMA_READ_COUNTER, /* the guest is reading the counter, which if accuracy is required, means process up to current time */
 //	DMA_TRANSFEREND, this shouldn't really be a signal
 };
 

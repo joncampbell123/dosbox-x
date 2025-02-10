@@ -352,6 +352,7 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 	/* read base address of DMA transfer (1st byte low part, 2nd byte high part) */
 	case 0x0:case 0x2:case 0x4:case 0x6:
 		chan=GetChannel((uint8_t)(reg >> 1));
+		chan->DoCallBack(DMA_READ_COUNTER);
 		flipflop=!flipflop;
 		if (flipflop) {
 			return chan->curraddr & 0xff;
@@ -361,6 +362,7 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 	/* read DMA transfer count (1st byte low part, 2nd byte high part) */
 	case 0x1:case 0x3:case 0x5:case 0x7:
 		chan=GetChannel((uint8_t)(reg >> 1));
+		chan->DoCallBack(DMA_READ_COUNTER);
 		flipflop=!flipflop;
 		if (flipflop) {
 			return chan->currcnt & 0xff;
@@ -371,6 +373,7 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 		ret=0;
 		for (uint8_t ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
+			chan->DoCallBack(DMA_READ_COUNTER);
 			if (chan->tcount) ret |= (Bitu)1U << ct;
 			chan->tcount=false;
 			if (chan->request) ret |= (Bitu)1U << (4U + ct);
