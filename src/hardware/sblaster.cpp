@@ -484,6 +484,9 @@ void sb_update_recording_source_settings() {
 
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
     if (chan!=sb.dma.chan || event==DMA_REACHED_TC) return;
+    else if (event==DMA_READ_COUNTER) {
+        sb.chan->FillUp();
+    }
     else if (event==DMA_MASKED) {
         if (sb.mode==MODE_DMA) {
             //Catch up to current time, but don't generate an IRQ!
