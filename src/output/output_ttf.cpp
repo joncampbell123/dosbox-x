@@ -861,7 +861,7 @@ resize1:
     GFX_SelectFontByPoints(curSize);
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if (!ttf.fullScrn && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width+ttf.offX*2+GetSystemMetrics(SM_CXBORDER)*2)>0) {
-        if (ttf.cols*ttf.width > maxWidth || ttf.lins*ttf.height > maxHeight) E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+        if (ttf.cols*ttf.width > maxWidth || ttf.lins*ttf.height > maxHeight) E_Exit("Cannot accommodate a window for %dx%d", ttf.cols, ttf.lins);
         curSize++;
         goto resize1;
     }
@@ -880,7 +880,7 @@ resize2:
             GFX_SelectFontByPoints(curSize);
             goto resize2;
         }
-        E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+        E_Exit("Cannot accommodate a window for %dx%d", ttf.cols, ttf.lins);
     }
     if (ttf.SDL_font && ttf.width) {
         int widthb, widthm, widthx, width0, width1, width9;

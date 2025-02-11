@@ -2660,7 +2660,7 @@ void GFX_SwitchFullScreen(void)
         if (ttf.fullScrn) {
             sdl.desktop.fullscreen = false;
             //if (lastfontsize>0)
-            //    OUTPUT_TTF_Select(lastfontsize);
+            //    OUTPUT_TTF_Select(lastfontsize); /* certain lastfontsize will crash DOSBox-X */
             //else
                 OUTPUT_TTF_Select(1);
             resetFontSize();
