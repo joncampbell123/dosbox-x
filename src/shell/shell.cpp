@@ -87,6 +87,8 @@ void makestdcp950table(), makeseacp951table();
 
 #if defined(USE_TTF)
 void ttf_switch_on(bool ss = true), ttf_switch_off(bool ss = true);
+void ttf_setlines(int cols, int lins);
+void ttf_reset();
 #endif
 extern VideoModeBlock* CurMode;
 
@@ -863,6 +865,14 @@ void showWelcome(Program *shell) {
 bool finish_prepare = false;
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
+#if defined(USE_TTF)
+        if(CurMode->type == M_TEXT) ttf_switch_on(true); // Initialization completed, M_TEXT modes can switch to TTF mode from now on.
+        if(ttf.inUse) {
+            int cols = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("cols");
+            int lins = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("lins");
+            if(cols || lins) ttf_setlines(cols, lins);
+        }
+#endif
         const char* layoutname = DOS_GetLoadedLayout();
         if(layoutname == NULL) {
             int32_t cp = dos.loaded_codepage;
@@ -870,11 +880,11 @@ void DOS_Shell::Prepare(void) {
             toSetCodePage(NULL, cp, -1);
         }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-        if (section->Get_bool("startbanner")&&!control->opt_fastlaunch)
-            showWelcome(this);
-        else if ((CurMode->type==M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed())
+        if(section->Get_bool("startbanner") && !control->opt_fastlaunch)
+            showWelcome(NULL);
+        else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed())
             WriteOut("\033[2J");
-		if (!countryNo) {
+        if (!countryNo) {
 #if defined(WIN32)
 			char buffer[128];
 #endif
@@ -903,7 +913,7 @@ void DOS_Shell::Prepare(void) {
 		bool zdirpath = section->Get_bool("drive z expand path");
 		std::string layout = section->Get_string("keyboardlayout");
 		strcpy(config_data, "");
-		section = static_cast<Section_prop *>(control->GetSection("config"));
+        section = static_cast<Section_prop *>(control->GetSection("config"));
 		if ((section!=NULL&&!control->opt_noconfig)||control->opt_langcp) {
 			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
 			int country = 0;
@@ -926,7 +936,6 @@ void DOS_Shell::Prepare(void) {
 			}
             if(!chinasea)makestdcp950table();
             if(chinasea) makeseacp951table();
-            runRescan("-A -Q");
             const char * extra = section->data.c_str();
 			if (extra&&!control->opt_securemode&&!control->SecureMode()&&!control->opt_noconfig) {
 				std::string vstr;
@@ -990,6 +999,8 @@ void DOS_Shell::Prepare(void) {
 			strcat(config_data, section->Get_string("rem"));
 			strcat(config_data, "\r\n");
 		}
+        if(dos.loaded_codepage == 932) toSetCodePage(this, 932, -1); // Workaround for corrupted box-drawing characters
+        runRescan("-A -Q");
         internal_program = true;
 		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
 		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
@@ -1024,9 +1035,6 @@ void DOS_Shell::Prepare(void) {
         //initcodepagefont();
         //dos.loaded_codepage=cp;
         finish_prepare = true;
-#if defined(USE_TTF)
-        if(CurMode->type == M_TEXT) ttf_switch_on(true); // Initialization completed, M_TEXT modes can switch to TTF mode from now on.
-#endif
     }
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
     if (enableime) SetIMPosition();
@@ -1315,7 +1323,7 @@ public:
         }
 //#endif /* (WIN32) && (USE_TTF) */
 #endif // 0
-		if (addexit) autoexec[i++].Install("exit");
+        if (addexit) autoexec[i++].Install("exit");
 
 		assert(i <= 17); /* FIXME: autoexec[] should not be fixed size */
 
