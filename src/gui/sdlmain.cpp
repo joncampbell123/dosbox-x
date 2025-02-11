@@ -2659,9 +2659,9 @@ void GFX_SwitchFullScreen(void)
     if (ttf.inUse) {
         if (ttf.fullScrn) {
             sdl.desktop.fullscreen = false;
-            if (lastfontsize>0)
-                OUTPUT_TTF_Select(lastfontsize);
-            else
+            //if (lastfontsize>0)
+            //    OUTPUT_TTF_Select(lastfontsize);
+            //else
                 OUTPUT_TTF_Select(1);
             resetFontSize();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
@@ -2692,6 +2692,8 @@ void GFX_SwitchFullScreen(void)
                 }
                 SDL_SetWindowPosition(sdl.window, bx, by);
             }
+            else if(posx == -2 && posy == -2)
+                SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #endif
             resetreq = true;
             GFX_ResetScreen();
