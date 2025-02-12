@@ -250,7 +250,7 @@ struct PIT_Block {
         //
         // Mode 2: Rate generator
         //
-        //    [new mode]  [begin count]                   [count==0]
+        //    [new mode]  [begin count]                   [count==1]
         // ______________________________________________  __________
         // XXX                                           ||
         // Mode 3: Square wave
@@ -266,14 +266,20 @@ struct PIT_Block {
                 if (new_mode) return false;
                 if (res.cycle != 0u/*index > delay*/) return true;
                 else return false;
+            case 1:
+                if (new_mode) return true;
+                if (res.cycle != 0u/*index > delay*/) return true;
+                else return false;
             case 2:
                 if (new_mode) return true;
-                return res.counter != 0;
+                return res.counter != 1;
             case 3:
                 if (new_mode) return true;
                 return res.cycle == 0;
             case 4:
-                return true;
+            case 5:
+                if (new_mode) return true;
+                return res.counter != 0;
             default:
                 break;
         }
@@ -303,18 +309,22 @@ struct PIT_Block {
                         ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
                     }
 
-                    if (mode == 0 || mode == 4) {
-                        if (index > delay)
-                            ret.cycle = 1;
-                    }
+                    if (index > delay)
+                        ret.cycle = 1;
+                    else
+                        ret.cycle = 0;
                 }
                 break;
             case 5:     /* Hardware Triggered Strobe */
             case 1:     /* Hardware Retriggerable one-shot */
-                if (index > delay) // has timed out
+                if (index > delay) { // has timed out
                     ret.counter = 0xFFFF;
-                else
+                    ret.cycle = 1;
+                }
+                else {
                     ret.counter = (uint16_t)(cntr_cur - (index * (PIT_TICK_RATE / 1000.0)));
+                    ret.cycle = 0;
+                }
                 break;
             case 2:		/* Rate Generator */
                 ret.counter = (uint16_t)(cntr_cur - ((pic_tickfmod(index,delay) / delay) * cntr_cur));
