@@ -233,6 +233,34 @@ struct PIT_Block {
     }
 
     bool get_output_from_counter(const read_counter_result &res) {
+        // Timer: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Timer/8253/8254%20programmable%20interval%20timer%20%281993%2d09%29%2epdf]
+        // PIC: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Interrupt%20controller/8259/8259A%20Programmable%20Interrupt%20Controller%20%288259A%e2%88%958259A%2d2%29%20%281988%2d12%29%2epdf]
+        //
+        // Mode 0: Interrupt on Terminal Count
+        //
+        //    [new mode]  [begin count]                   [count==0]
+        // ___                                             __________
+        // XXX|___________________________________________|
+        //
+        // Mode 1: Hardware triggerable one-shot
+        //
+        //    [new mode]  [begin count]                   [count==0]
+        // _______________                                 __________
+        // XXX            |_______________________________|
+        //
+        // Mode 2: Rate generator
+        //
+        //    [new mode]  [begin count]                   [count==0]
+        // ______________________________________________  __________
+        // XXX                                           ||
+        // Mode 3: Square wave
+        //
+        //    [new mode]  [begin count]   [count=0]       [count==0] counts down by 2
+        // _______________________________                 _________
+        // XXX                            |_______________|
+        //
+        // Mode 4: Software Triggered Interrupt (looks like mode 2) but writing a new counter takes effect right away
+
         switch (mode) {
             case 0:
                 if (new_mode) return false;
