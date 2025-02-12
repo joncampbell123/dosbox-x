@@ -92,9 +92,13 @@ struct PIT_Block {
     }
     void set_active_counter(Bitu new_cntr) {
         assert(new_cntr != 0);
+        if (mode == 2) { assert(new_cntr != 1); }
 
         cntr_cur = new_cntr;
-        delay = ((pic_tickindex_t)(1000ul * cntr_cur)) / PIT_TICK_RATE;
+        if (mode == 2)
+            delay = ((pic_tickindex_t)(1000ul * (cntr_cur-1u))) / PIT_TICK_RATE; /* counts down to ONE, not ZERO */
+        else
+            delay = ((pic_tickindex_t)(1000ul * cntr_cur)) / PIT_TICK_RATE;
 
         /* Make sure the new counter value is returned if read back even if the gate is off!
          * Some games like to constantly reprogram PIT 2 with precise event timey stuff and
@@ -123,7 +127,10 @@ struct PIT_Block {
         pic_tickindex_t c_delay;
 
         /* NTS: Remember, the counter counts DOWN, not up, so the delay is how long it takes to get there */
-        c_delay = ((pic_tickindex_t)(1000ull * (0x10000u - counter))) / PIT_TICK_RATE;
+        if (mode == 2)
+            c_delay = ((pic_tickindex_t)(1000ull * (0xFFFFu - counter))) / PIT_TICK_RATE; /* counts down to ONE, not ZERO */
+        else
+            c_delay = ((pic_tickindex_t)(1000ull * (0x10000u - counter))) / PIT_TICK_RATE;
 
         start = (t - c_delay);
     }
@@ -576,13 +583,13 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 			if (p->bcd == false)
 				p->set_next_counter(0x10000);
 			else
-				p->set_next_counter(9999/*check this*/);
+				p->set_next_counter(10000/*check this*/);
 		}
-		else if (p->write_latch == 1 && p->mode == 3/*square wave, count by 2*/) { /* counter==1 and mode==3 makes a low frequency buzz (Paratrooper) */
+		else if (p->write_latch == 1 && (p->mode == 2/*rate generator*/ || p->mode == 3/*square wave, count by 2*/)) { /* counter==1 and mode==3 makes a low frequency buzz (Paratrooper) */
 			if (p->bcd == false)
 				p->set_next_counter(0x10001);
 			else
-				p->set_next_counter(10000/*check this*/);
+				p->set_next_counter(10001/*check this*/);
 		}
 		else {
 			p->set_next_counter(p->write_latch);
@@ -595,6 +602,12 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 			if (counter == 0) {
 				PIC_RemoveEvents(PIT0_Event);
 				PIC_AddEvent(PIT0_Event,p->delay);
+
+				counter_output(counter);
+				if(pit[counter].output)
+					PIC_ActivateIRQ(0);
+				else
+					PIC_DeActivateIRQ(0);
 			}
 		}
 		else {
@@ -668,7 +681,12 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 		if (p->mode == 0 || p->mode == 4) {
 			if (counter == 0) {
 				PIC_RemoveEvents(PIT0_Event);
-				PIC_DeActivateIRQ(0);
+
+				counter_output(counter);
+				if(pit[counter].output)
+					PIC_ActivateIRQ(0);
+				else
+					PIC_DeActivateIRQ(0);
 			}
 			p->update_count = false;
 		}
@@ -803,11 +821,12 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 
 			if (latch == 0) {
 				PIC_RemoveEvents(PIT0_Event);
-				if((mode != 0)&& (pit[latch].reltime() > pit[latch].delay)) {
+
+				counter_output(latch);
+				if(pit[latch].output)
 					PIC_ActivateIRQ(0);
-				} else {
+				else
 					PIC_DeActivateIRQ(0);
-				}
 			}
 			pit[latch].new_mode = true;
 			if (latch == (IS_PC98_ARCH ? 1 : 2)) {
