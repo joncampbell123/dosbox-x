@@ -41,7 +41,7 @@ const char *DMAActorStr(const DMAActor a) {
 		case DMAA_NONE: return "none";
 		case DMAA_CONTROLLER: return "DMA controller";
 		case DMAA_GUEST: return "DOS guest";
-		case DMAA_REISSUE: return "Reissue";
+		case DMAA_REISSUE: return "reissue";
 		default: break;
 	}
 
