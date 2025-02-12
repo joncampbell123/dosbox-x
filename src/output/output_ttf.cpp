@@ -861,7 +861,7 @@ resize1:
     GFX_SelectFontByPoints(curSize);
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if (!ttf.fullScrn && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width+ttf.offX*2+GetSystemMetrics(SM_CXBORDER)*2)>0) {
-        if (ttf.cols*ttf.width > maxWidth || ttf.lins*ttf.height > maxHeight) E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+        if (ttf.cols*ttf.width > maxWidth || ttf.lins*ttf.height > maxHeight) E_Exit("Cannot accommodate a window for %dx%d", ttf.cols, ttf.lins);
         curSize++;
         goto resize1;
     }
@@ -880,7 +880,7 @@ resize2:
             GFX_SelectFontByPoints(curSize);
             goto resize2;
         }
-        E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+        E_Exit("Cannot accommodate a window for %dx%d", ttf.cols, ttf.lins);
     }
     if (ttf.SDL_font && ttf.width) {
         int widthb, widthm, widthx, width0, width1, width9;
@@ -1412,7 +1412,6 @@ void ttf_setlines(int cols, int lins) {
 }
 
 void ttf_switch_on(bool ss=true) {
-    if(!finish_prepare) return;
     if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
         checkcol = 0;
         if (strcmp(RunningProgram, "LOADLIN")) {
@@ -1432,7 +1431,7 @@ void ttf_switch_on(bool ss=true) {
         bool OpenGL_using(void), gl = OpenGL_using();
 	(void)gl; // unused var warning
 #if defined(WIN32) && !defined(C_SDL2)
-        change_output(0); // call OUTPUT_SURFACE_Select() to initialize output before enabling TTF output on Windows builds
+        //change_output(0); // call OUTPUT_SURFACE_Select() to initialize output before enabling TTF output on Windows builds
 #endif
         change_output(10); // call OUTPUT_TTF_Select()
         SetVal("sdl", "output", "ttf");
