@@ -507,13 +507,13 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
                 if (s) GenerateDMASound(s);
             }
             sb.mode = MODE_DMA_MASKED;
-            LOG(LOG_SB,LOG_NORMAL)("DMA masked, stopping %s, left %d",sb.dma.recording?"input":"output",chan->currcnt);
+            LOG(LOG_SB,LOG_NORMAL)("DMA masked, stopping %s, dsp left %d, dma left %d, by %s",sb.dma.recording?"input":"output",(unsigned int)sb.dma.left,chan->currcnt+1,DMAActorStr(chan->masked_by));
         }
     } else if (event==DMA_UNMASKED) {
         if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
             DSP_ChangeMode(MODE_DMA);
             CheckDMAEnd();
-            LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d block %d",sb.dma.recording?"input":"output",chan->autoinit,chan->basecnt);
+            LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d block %d, by %s",sb.dma.recording?"input":"output",chan->autoinit,chan->basecnt,DMAActorStr(chan->masked_by));
         }
     }
 }

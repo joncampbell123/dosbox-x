@@ -36,6 +36,18 @@
 # define MAX(a,b) std::max(a,b)
 #endif
 
+const char *DMAActorStr(const DMAActor a) {
+	switch (a) {
+		case DMAA_NONE: return "none";
+		case DMAA_CONTROLLER: return "DMA controller";
+		case DMAA_GUEST: return "DOS guest";
+		case DMAA_REISSUE: return "Reissue";
+		default: break;
+	}
+
+	return "?";
+}
+
 bool has_pcibus_enable(void);
 
 DmaController *DmaControllers[2]={NULL};
@@ -307,6 +319,7 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 	case 0xa:		/* Mask Register */
 		if ((val & 0x4)==0) UpdateEMSMapping();
 		chan=GetChannel(val & 3);
+		chan->masked_by = DMAA_GUEST;
 		chan->SetMask((val & 0x4)>0);
 		break;
 	case 0xb:		/* Mode Register */
@@ -323,6 +336,7 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 	case 0xd:		/* Master Clear/Reset */
 		for (uint8_t ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
+			chan->masked_by = DMAA_GUEST;
 			chan->SetMask(true);
 			chan->tcount=false;
 		}
@@ -332,6 +346,7 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		UpdateEMSMapping();
 		for (uint8_t ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
+			chan->masked_by = DMAA_GUEST;
 			chan->SetMask(false);
 		}
 		break;
@@ -339,6 +354,7 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		UpdateEMSMapping();
 		for (uint8_t ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
+			chan->masked_by = DMAA_GUEST;
 			chan->SetMask(val & 1);
 			val>>=1;
 		}
@@ -391,19 +407,20 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 
 DmaChannel::DmaChannel(uint8_t num, bool dma16) {
 	masked = true;
+	masked_by = DMAA_CONTROLLER;
 	callback = NULL;
 	channum = num;
 	DMA16 = dma16 ? 0x1 : 0x0;
-    transfer_mode = 0;
+	transfer_mode = 0;
 
-    if (isadma128k >= 0)
-        Set128KMode(isadma128k > 0); // user's choice
-    else
-        Set128KMode(true); // most hardware seems to implement the 128K case
+	if (isadma128k >= 0)
+		Set128KMode(isadma128k > 0); // user's choice
+	else
+		Set128KMode(true); // most hardware seems to implement the 128K case
 
-    LOG(LOG_DMACONTROL,LOG_DEBUG)("DMA channel %u. DMA16_PAGESHIFT=%u DMA16_ADDRMASK=0x%lx",
-        (unsigned int)channum,(unsigned int)DMA16_PAGESHIFT,(unsigned long)DMA16_ADDRMASK);
-    pagenum = 0;
+	LOG(LOG_DMACONTROL,LOG_DEBUG)("DMA channel %u. DMA16_PAGESHIFT=%u DMA16_ADDRMASK=0x%lx",
+			(unsigned int)channum,(unsigned int)DMA16_PAGESHIFT,(unsigned long)DMA16_ADDRMASK);
+	pagenum = 0;
 	pagebase = 0;
 	baseaddr = 0;
 	curraddr = 0;
@@ -520,6 +537,7 @@ Bitu DmaChannel::Read(Bitu want, uint8_t * buffer) {
                  *      [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/DMA%20controller/8237/8237A%20HIGH%20PERFORMANCE%20PROGRAMMABLE%20DMA%20CONTROLLER%20%288237A%2d5%29%20%281993%2d09%29%2epdf]
                  */
                 masked = true;
+                masked_by = DMAA_CONTROLLER;
                 UpdateEMSMapping();
                 DoCallBack(DMA_MASKED);
                 break;
@@ -631,6 +649,7 @@ Bitu DmaChannel::Write(Bitu want, uint8_t * buffer) {
                  *      [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/DMA%20controller/8237/8237A%20HIGH%20PERFORMANCE%20PROGRAMMABLE%20DMA%20CONTROLLER%20%288237A%2d5%29%20%281993%2d09%29%2epdf]
                  */
                 masked = true;
+                masked_by = DMAA_CONTROLLER;
                 UpdateEMSMapping();
                 DoCallBack(DMA_MASKED);
                 break;
