@@ -513,7 +513,7 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
         if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
             DSP_ChangeMode(MODE_DMA);
             CheckDMAEnd();
-            LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d block %d, by %s",sb.dma.recording?"input":"output",chan->autoinit,chan->basecnt,DMAActorStr(chan->masked_by));
+            LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d dma left %d, by %s dma init count %d",sb.dma.recording?"input":"output",chan->autoinit,chan->currcnt+1,DMAActorStr(chan->masked_by),chan->basecnt+1);
         }
     }
 }
