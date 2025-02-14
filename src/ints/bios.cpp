@@ -3819,15 +3819,13 @@ static Bitu INT18_PC98_Handler(void) {
     }
 #endif
 #if defined(USE_TTF)
-    if(ttf.inUse)
-        ttf_reset();
-    else {
+    if(!finish_prepare){
         conf_output= static_cast<Section_prop*>(control->GetSection("sdl"))->Get_string("output");
-        if(!finish_prepare && conf_output == "ttf") { // Workaround for blank BIOS screen in TTF mode
-            toOutput("surface");
+        if(conf_output == "ttf") { // BIOS screen does not like TTF mode, switch it on later
             toOutput("ttf");
             ttf_switch_off(true);
             is_ttfswitched_on = true;
+            //LOG_MSG("TTF output is temporary switched off");
         }
     }
 #endif
