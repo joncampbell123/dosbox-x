@@ -60,6 +60,7 @@ extern const char* RunningProgram;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
+extern bool is_ttfswitched_on;
 bool outcon = true, usecon = true, pipetmpdev = true;
 bool shellrun = false, prepared = false, testerr = false;
 
@@ -830,7 +831,7 @@ bool finish_prepare = false;
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
 #if defined(USE_TTF)
-        if(CurMode->type == M_TEXT) ttf_switch_on(true); // Initialization completed, M_TEXT modes can switch to TTF mode from now on.
+        if(CurMode->type == M_TEXT || (IS_PC98_ARCH && is_ttfswitched_on)) ttf_switch_on(true); // Initialization completed, M_TEXT modes can switch to TTF mode from now on.
         if(ttf.inUse) {
             int cols = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("cols");
             int lins = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("lins");
