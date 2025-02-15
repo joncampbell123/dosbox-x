@@ -3819,15 +3819,13 @@ static Bitu INT18_PC98_Handler(void) {
     }
 #endif
 #if defined(USE_TTF)
-    if(ttf.inUse)
-        ttf_reset();
-    else {
+    if(!finish_prepare){
         conf_output= static_cast<Section_prop*>(control->GetSection("sdl"))->Get_string("output");
-        if(!finish_prepare && conf_output == "ttf") { // Workaround for blank BIOS screen in TTF mode
-            toOutput("surface");
+        if(conf_output == "ttf") { // BIOS screen does not like TTF mode, switch it on later
             toOutput("ttf");
             ttf_switch_off(true);
             is_ttfswitched_on = true;
+            //LOG_MSG("TTF output is temporary switched off");
         }
     }
 #endif
@@ -10908,6 +10906,25 @@ startfunction:
             CALLBACK_RunRealInt(0x18);
 
             bios_pc98_posx = x;
+
+            reg_eax = 0x4200;   // setup 640x400 graphics
+            reg_ecx = 0xC000;
+            CALLBACK_RunRealInt(0x18);
+
+            IO_Write(0x6A, 0x01);    // enable 16-color analog mode (this makes the 4th bitplane appear)
+            IO_Write(0x6A, 0x04);    // but we don't need the EGC graphics
+            IO_Write(0xA4, 0x00);    // display page 0
+            IO_Write(0xA6, 0x00);    // write to page 0
+
+            // setup palette for TTF mode
+            for(unsigned int i = 0; i < 16; i++) {
+                unsigned int bias = (i & 8) ? 0x5 : 0x0;
+
+                IO_Write(0xA8, i);   // DAC index
+                IO_Write(0xAA, ((i & 2) ? 0xA : 0x0) + bias);    // green
+                IO_Write(0xAC, ((i & 4) ? 0xA : 0x0) + bias);    // red
+                IO_Write(0xAE, ((i & 1) ? 0xA : 0x0) + bias);    // blue
+            }
         }
         else {
             reg_eax = 3;        // 80x25 text
