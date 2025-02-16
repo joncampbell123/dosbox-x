@@ -1200,8 +1200,6 @@ Création du fichier image "%s" avec %u cylindres, %u têtes et %u secteurs
 
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
-
-
 Impossible de lire la disquette.
 .
 :PROGRAM_IMGMAKE_BADSIZE
@@ -1239,7 +1237,6 @@ Disposition de clavier %s chargée pour la page de code %i
 :PROGRAM_KEYB_FILENOTFOUND
 Fichier clavier %s non trouvé (ou pas un ID valide)
 
-
 .
 :PROGRAM_KEYB_INVALIDFILE
 Fichier clavier %s invalide
@@ -1252,10 +1249,9 @@ Aucune mise en page dans %s pour la page de code %i
 :PROGRAM_KEYB_INVCPFILE
 Fichier de page de code inexistant ou invalide pour la disposition %s
 
-
 .
 :INT21_6523_YESNO_CHARS
-yn
+on
 .
 :PROGRAM_LABEL_HELP
 Créé, change ou efface l'étiquette de volume d'un lecteur
@@ -1273,21 +1269,17 @@ Efface l'étiquette du volume (O/N) ?
 :PROGRAM_LABEL_TOOLONG
 L'étiquette est trop longue (plus de 11 caractères)
 
-
 .
 :PROGRAM_LABEL_BADCHARS
 L'étiquette a des caractères invalides
-
 
 .
 :PROGRAM_LABEL_VOLUMEIS
 Le volume dans le lecteur %c est %s
 
-
 .
 :PROGRAM_LABEL_NOLABEL
 Le volume dans le lecteur %c n'a pas d'étiquette
-
 
 .
 :PROGRAM_MODE_USAGE
@@ -1309,41 +1301,33 @@ Doit spécifier un numéro de port entre 1 et 9.
 :PROGRAM_VHDMAKE_WRITERR
 Impossible d'écrire dans la nouvelle image VHD "%s", abandon.
 
-
 .
 :PROGRAM_VHDMAKE_REMOVEERR
 Impossible d'effacer le fichier "%s"
-
 
 .
 :PROGRAM_VHDMAKE_RENAME
 Vous devrez renommmer manuellement l'image VHD nouvellement créée
 
-
 .
 :PROGRAM_VHDMAKE_SUCCESS
 Nouvelle image VHD créée avec succès. You pouvez la monter avec ←[34;1mIMGMOUNT←[0m.
-
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
 Erreur, impossible d'ouvrir le fichier image "%s".
 
-
 .
 :PROGRAM_VHDMAKE_BADSIZE
 Mauvaise taille VHD spécifiée, abandon !
-
 
 .
 :PROGRAM_VHDMAKE_FNEEDED
 Une image VHD pré-existante ne peut pas être silencieusemnt écrasée sans l'option -f !
 
-
 .
 :PROGRAM_VHDMAKE_BADPARENT
 L'image VHD parente "%s" ne peut pas être ouverte pour liaison, abandon !
-
 
 .
 :PROGRAM_VHDMAKE_NOINFO
@@ -1355,65 +1339,66 @@ avec %d/%d blocs alloués.
 
 .
 :PROGRAM_VHDMAKE_INFO
-VHD "%s" type is %s.
-Its virtual size is %.02f MB
+Le type du VHD "%s" est %s.
+Sa taille virtuelle est %.02f Mo
 
 .
 :PROGRAM_VHDMAKE_CANTMERGE
-%s is not a Differencing disk, can't merge!
+% n'est pas un disque de différenciation, impossible de fusionner !
 
 .
 :PROGRAM_VHDMAKE_MERGEREPORT
-%d sectors in %d blocks from "%s" merged into "%s".
+%d secteurs dans %d blocs de "%s" fusionné dans "%s".
 
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
-Couldn't remove snapshot "%s", you'll have to do it yourself!
+Impossible d'enlever l'instantané "%s", vous devez le faire vous-même !
 
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
-Snapshot VHD merged and deleted.
+Instantané VHD fusionné et effacé.
 
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
-Failure while merging, aborted!
+Echec lors de la fusion, abandon !
+
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
-Parent "%s" contents could be corrupted!
+Les contenus du parent "%s" peuvent être corrompus !
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_WIN
-Warning: an absolute path to parent limits portability to Windows.
-Please prefer a path relative to differencing image file!
+Attention : un chemin d'accès absolu au parent limite la portabilité de Windows.
+Veuillez préférer un chemin d'accès relatif à l'image de différenciation !
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_UX
-ERROR: an absolute path to parent inhibits portability.
-Use a path relative to differencing image file!
+ERREUR: un chemin d'accès absolu au parent empêche la portabilité.
+Utilisez un chemin d'accès relatif à l'image de différenciation !
 
 .
 :PROGRAM_VHDMAKE_HELP
-Creates Dynamic or Differencing VHD images, or converts raw images
-into Fixed VHD.
+Crée des images VHD dynamiques ou différentielles, ou convertit 
+des images brutes en VHD fixes.
 ←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
 ←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
 ←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
- -c | -convert  convert a raw hd image to Fixed VHD, renaming it to new.vhd
- -l | -link     create a new Differencing VHD new.vhd and link it to the
-                pre-existing parent image parent.vhd
- -f | -force    force overwriting a pre-existing image file
- -i | -info     show useful information about a.vhd image
- -m | -merge    merge differencing delta.vhd to its parent
- new.vhd        name of the new Dynamic VHD image to create
- size           disk size (eventually with size unit, Bytes is implicit)
-When converting a raw disk image to Fixed VHD, it has to be partitioned with
-MBR scheme and formatted with FAT format.
-When creating a Dynamic VHD, its size must range from 3 MB to 2040 GB.
-The Dynamic VHD created is not partitioned nor formatted: to directly mount to
-a drive letter with ←[34;1mIMGMOUNT←[0m, please consider using ←[34;1mIMGMAKE←[0m instead.
-A merged snapshot VHD is automatically deleted if merge is successful.
+ -c | -convert  convertit une image hd brute en VHD fixe, en la renommant new.vhd
+ -l | -link     créer un nouveau VHD de différenciation new.vhd et le relie
+                à l'image parent préexistante parent.vhd
+ -f | -force    force l'écrasement d'un fichier image préexistant
+ -i | -info     affiche des informations utiles sur une image .vhd
+ -m | -merge    fusionne le fichier delta.vhd avec son parent
+ new.vhd        nom de la nouvelle image dynamique VHD à créer
+ size           taille du disque (éventuellement avec l'unité de taille, octet est implicite)
+Lors de la conversion d'une image de disque brute en VHD fixe, elle doit être partitionnée 
+selon le schéma MBR et formatée au format FAT.
+Lors de la création d'un VHD dynamique, sa taille doit être comprise entre 3 Mo et 2040 Go.
+Le VHD dynamique créé n'est ni partitionné ni formaté : pour monter directement
+une lettre de lecteur avec ←[34;1mIMGMOUNT←[0m, utilisez de ←[34;1mIMGMAKE←[0m à la place.
+Un snapshot VHD fusionné est automatiquement supprimé si la fusion est réussie.
 .
 :SHELL_CMD_TREE_ERROR
 Aucun sous-répertoire n'existe
@@ -1586,11 +1571,11 @@ Impossible de supprimer - %s
 
 .
 :SHELL_CMD_DEL_CONFIRM
-Delete %s (Y/N)?
+Effacer %s (O/N)?
 .
 :SHELL_CMD_DEL_SURE
 Tous les fichiers du répertoire seront supprimés !
-Êtes-vous sûr [Y/N] ?
+Êtes-vous sûr [O/N] ?
 .
 :SHELL_SYNTAXERROR
 Erreur de syntaxe
