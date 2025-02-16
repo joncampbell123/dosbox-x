@@ -1258,31 +1258,36 @@ Fichier de page de code inexistant ou invalide pour la disposition %s
 yn
 .
 :PROGRAM_LABEL_HELP
-Creates, changes, or deletes the volume label of a drive.
+Créé, change ou efface l'étiquette de volume d'un lecteur
 
 LABEL [drive:][label]
 
-  [drive:]○Specifies the drive letter
-  [label]○Specifies the volume label
+  [drive:]○Spécifie la lettre du lecteur
+  [label]○Spécifie l'étiquette du volume
 
 .
 :PROGRAM_LABEL_DELETE
-Delete the volume label (Y/N)? 
+Efface l'étiquette du volume (O/N) ?
+
 .
 :PROGRAM_LABEL_TOOLONG
-Label is too long (more than 11 characters).
+L'étiquette est trop longue (plus de 11 caractères)
+
 
 .
 :PROGRAM_LABEL_BADCHARS
-Label has invalid characters.
+L'étiquette a des caractères invalides
+
 
 .
 :PROGRAM_LABEL_VOLUMEIS
-Volume in drive %c is %s
+Le volume dans le lecteur %c est %s
+
 
 .
 :PROGRAM_LABEL_NOLABEL
-Volume in drive %c has no label
+Le volume dans le lecteur %c n'a pas d'étiquette
+
 
 .
 :PROGRAM_MODE_USAGE
@@ -1302,43 +1307,51 @@ Doit spécifier un numéro de port entre 1 et 9.
 
 .
 :PROGRAM_VHDMAKE_WRITERR
-Could not write to new VHD image "%s", aborting.
+Impossible d'écrire dans la nouvelle image VHD "%s", abandon.
+
 
 .
 :PROGRAM_VHDMAKE_REMOVEERR
-Could not erase file "%s"
+Impossible d'effacer le fichier "%s"
+
 
 .
 :PROGRAM_VHDMAKE_RENAME
-You'll have to manually rename the newly created VHD image.
+Vous devrez renommmer manuellement l'image VHD nouvellement créée
+
 
 .
 :PROGRAM_VHDMAKE_SUCCESS
-New VHD image successfully created. You can mount it with ←[34;1mIMGMOUNT←[0m.
+Nouvelle image VHD créée avec succès. You pouvez la monter avec ←[34;1mIMGMOUNT←[0m.
+
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
-Error, could not open image file "%s".
+Erreur, impossible d'ouvrir le fichier image "%s".
+
 
 .
 :PROGRAM_VHDMAKE_BADSIZE
-Bad VHD size specified, aborting!
+Mauvaise taille VHD spécifiée, abandon !
+
 
 .
 :PROGRAM_VHDMAKE_FNEEDED
-A pre-existing VHD image can't be silently overwritten without -f option!
+Une image VHD pré-existante ne peut pas être silencieusemnt écrasée sans l'option -f !
+
 
 .
 :PROGRAM_VHDMAKE_BADPARENT
-The parent VHD image "%s" can't be opened for linking, aborting!
+L'image VHD parente "%s" ne peut pas être ouverte pour liaison, abandon !
+
 
 .
 :PROGRAM_VHDMAKE_NOINFO
-Couldn't query info for "%s".
+Impossible d'obtenir des informations pour "%s".
 
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS
-with %d/%d blocks allocated.
+avec %d/%d blocs alloués.
 
 .
 :PROGRAM_VHDMAKE_INFO
