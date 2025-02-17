@@ -1,4 +1,12 @@
 Next
+  - Fixed fullscreen mode occasionally switched to windowed mode (maron2000)
+  - Updated French translation (FredBezies)
+  - Fixed blank screen when output=ttf on PC-98 mode (maron2000)
+  - Fixed crash when switching from fullscreen to window mode in TTF output
+    (maron2000)
+  - Fixed mounting zip files with white space in their names failed (maron2000)
+  - Fixed crash on reboot when output=ttf (maron2000)
+  - Fixed blank BIOS screen when output=ttf (maron2000)
   - Fixed direct input of half-width kana (maron2000)
   - Fixed PC-98 INT 1Fh, AH=90h source and destination address (drachen6jp)
   - Fixed unnecessary trailing backslash in path name (maron2000)
