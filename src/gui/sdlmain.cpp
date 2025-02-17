@@ -2707,6 +2707,10 @@ void GFX_SwitchFullScreen(void)
             resetFontSize();
         }
         modeSwitched(sdl.desktop.fullscreen);
+        SetVal("sdl", "fullscreen", sdl.desktop.fullscreen?"true":"false");
+        bool is_showmenu=static_cast<Section_prop *>(control->GetSection("SDL"))->Get_bool("showmenu");
+        if(sdl.desktop.fullscreen || !is_showmenu) DOSBox_NoMenu();
+        else DOSBox_SetMenu();
         return;
     }
 #endif
