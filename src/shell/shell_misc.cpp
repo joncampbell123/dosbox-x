@@ -1264,7 +1264,7 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 
 	const Section_prop* sec = static_cast<Section_prop*>(control->GetSection("dos"));
 	/* check for a drive change */
-	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name) && !control->SecureMode())
+	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name))
 	{
 #ifdef WIN32
 		uint8_t c;uint16_t n;
