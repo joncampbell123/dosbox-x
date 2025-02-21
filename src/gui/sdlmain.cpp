@@ -101,6 +101,7 @@ bool kana_input = false; // true if a half-width kana was typed
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <gtest/gtest.h>
+#include <regex>
 #ifdef WIN32
 # include <signal.h>
 # include <process.h>
@@ -167,6 +168,11 @@ static bool init_output = false;
 #if defined(WIN32)
 #include "resource.h"
 #if !defined(HX_DOS)
+
+std::string extractDateFromFilename(const std::string& filename);
+std::string findLatestConfigFile(const std::string& directory, std::string& latestDate);
+bool copyFile(const std::string& src, const std::string& dest);
+bool versionFileExists(const std::string& directory, const std::string& filename);
 
 BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
     (void)hMon;
@@ -7735,6 +7741,84 @@ void CPU_OnReset(Section* sec);
 void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
 void grGlideShutdown(void);
+
+// Function to extract the date (YYYY.MM.DD) from the filename
+std::string extractDateFromFilename(const std::string& filename) {
+    std::regex datePattern(R"((\d{4}\.\d{2}\.\d{2}))");
+    std::smatch match;
+    if(std::regex_search(filename, match, datePattern)) {
+        return match.str(1);
+    }
+    return "";
+}
+
+// Function to find the .conf file of the latest version in the specified directory
+std::string findLatestConfigFile(const std::string& directory, std::string& latestDate) {
+    std::string latestFile;
+    latestDate = "";
+
+#ifdef _WIN32
+    // Directory reading process for Windows
+    WIN32_FIND_DATA findFileData;
+    HANDLE hFind = FindFirstFile((directory + (directory.back() != '\\'?"\\":"") + "*.conf").c_str(), &findFileData);
+
+    if(hFind == INVALID_HANDLE_VALUE) {
+        //LOG_MSG("Error: The directory '&s' does not exist.\n",directory);
+        return "";
+    }
+
+    do {
+        std::string filename = findFileData.cFileName;
+        std::string date = extractDateFromFilename(filename);
+        if(!date.empty() && date > latestDate) {
+            latestDate = date;
+            latestFile = directory + (directory.back() != '\\' ? "\\" : "") + filename;
+        }
+    } while(FindNextFile(hFind, &findFileData) != 0);
+
+    FindClose(hFind);
+
+#else
+    // Directory reading process for Linux/macOS
+    DIR* dir = opendir(directory.c_str());
+    if(!dir) {
+        //LOG_MSG("Error: The directory '%s' does not exist.\n",directory);
+        return "";
+    }
+
+    struct dirent* entry;
+    while((entry = readdir(dir)) != nullptr) {
+        std::string filename = entry->d_name;
+        if(strrchr(filename.c_str(), '.') != nullptr && strcmp(strrchr(filename.c_str(), '.'), ".conf") == 0) {  // Check for .conf files
+            std::string date = extractDateFromFilename(filename);
+            if(!date.empty() && date > latestDate) {
+                latestDate = date;
+                latestFile = directory + (directory.back() != '/' ? "/" : "") + filename;
+            }
+        }
+    }
+
+    closedir(dir);
+#endif
+
+    return latestFile;
+}
+
+// Function to copy a file
+bool copyFile(const std::string& src, const std::string& dest) {
+    std::ifstream in(src, std::ios::binary);
+    std::ofstream out(dest, std::ios::binary);
+
+    if(!in || !out) {
+        //LOG_MSG("Error: Failed to copy from % s to % s. \n",src, dest);
+        return false;
+    }
+
+    out << in.rdbuf();
+    return true;
+}
+
+
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
     dropPrivilegesTemp();
@@ -7878,6 +7962,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
 
     std::string exepath = GetDOSBoxXPath(true);
+    std::string config_path;
+    Cross::GetPlatformConfigDir(config_path);
 
 #if defined(MACOSX)
     /* The resource system of DOSBox-X relies on being able to locate the Resources subdirectory
@@ -7929,11 +8015,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     struct stat st;
     if (!control->opt_defaultconf && control->config_file_list.empty() && stat("dosbox-x.conf", &st) && stat("dosbox.conf", &st)) {
         /* load the global config file first */
-        std::string tmp,config_path,config_combined;
+        std::string tmp,config_combined;
 
         /* -- Parse configuration files */
-        Cross::GetPlatformConfigDir(config_path);
         Cross::GetPlatformConfigName(tmp);
+        config_combined = config_path + tmp;
+        if(stat(config_combined.c_str(), &st)) { // userconf file for the launched DOSBox-X version not found
+            std::string latestDate;
+            std::string latestConf = findLatestConfigFile(config_path, latestDate);
+            if(!latestConf.empty() && copyFile(latestConf, config_combined)) LOG_MSG("CONFIG: Copied %s to %s as user config file", latestConf.c_str(), config_combined.c_str());
+        }
 
         if (exepath.size()) {
             control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
@@ -7970,8 +8061,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         control->opt_used_defaultdir = true;
         usecfgdir = false;
     } else if (workdiropt == "userconfig") {
-        std::string config_path;
-        Cross::GetPlatformConfigDir(config_path);
         if (config_path.size()) {
             if (chdir(config_path.c_str()) == -1) {
                 LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'userconfig'.");
@@ -8150,9 +8239,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
     }
 #endif
-    std::string tmp, config_path, res_path, config_combined;
+    std::string tmp, res_path, config_combined;
     /* -- Parse configuration files */
-    Cross::GetPlatformConfigDir(config_path);
     Cross::GetPlatformResDir(res_path);
     Cross::GetPlatformConfigName(tmp);
     config_combined = config_path + tmp;
