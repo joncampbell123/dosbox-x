@@ -180,14 +180,11 @@ void Cross::GetPlatformConfigDir(std::string& in) {
 }
 
 void Cross::GetPlatformConfigName(std::string& in) {
-#ifdef WIN32
-#define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
-#elif defined(MACOSX)
-#define DEFAULT_CONFIG_FILE "DOSBox-X " VERSION " Preferences"
-#else /*linux freebsd*/
-#define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
+#if defined(MACOSX)
+    in = "DOSBox-X " + std::string(VERSION) + " Preferences";
+#else
+    in = "dosbox-x-" + std::string(VERSION) + ".conf";
 #endif
-	in = DEFAULT_CONFIG_FILE;
 }
 
 void Cross::CreatePlatformConfigDir(std::string& in) {
