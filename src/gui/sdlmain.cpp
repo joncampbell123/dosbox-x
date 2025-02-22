@@ -172,7 +172,6 @@ static bool init_output = false;
 std::string extractDateFromFilename(const std::string& filename);
 std::string findLatestConfigFile(const std::string& directory, std::string& latestDate);
 bool copyFile(const std::string& src, const std::string& dest);
-bool versionFileExists(const std::string& directory, const std::string& filename);
 
 BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
     (void)hMon;
@@ -7744,17 +7743,25 @@ void grGlideShutdown(void);
 
 // Function to extract the date (YYYY.MM.DD) from the filename
 std::string extractDateFromFilename(const std::string& filename) {
-    std::regex datePattern(R"((\d{4}\.\d{2}\.\d{2}))");
+    // Regular expression to match YYYY.MM.DD and YYYY.M.D formats
+    std::regex datePattern(R"((\d{4})\.(\d{1,2})\.(\d{1,2}))");
     std::smatch match;
+
     if(std::regex_search(filename, match, datePattern)) {
-        return match.str(1);
+        // Ensure two-digit month and day for consistent comparison
+        std::string year = match[1].str();
+        std::string month = (match[2].str().size() == 1) ? "0" + match[2].str() : match[2].str();
+        std::string day = (match[3].str().size() == 1) ? "0" + match[3].str() : match[3].str();
+
+        return year + "." + month + "." + day; // Return as YYYY.MM.DD format
     }
-    return "";
+
+    return ""; // Return empty string if no valid date is found
 }
 
 // Function to find the .conf file of the latest version in the specified directory
 std::string findLatestConfigFile(const std::string& directory, std::string& latestDate) {
-    std::string latestFile;
+    std::string latestFile="";
     latestDate = "";
 
 #ifdef _WIN32
