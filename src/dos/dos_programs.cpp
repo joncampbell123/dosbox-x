@@ -1647,7 +1647,7 @@ class CFGTOOL : public Program {
 public:
     void Run(void) override {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("Starts DOSBox-X's graphical configuration tool.\n\nCFGTOOL\n\nNote: You can also use CONFIG command for command-line configurations.\n");
+			WriteOut(MSG_Get("PROGRAM_CFGTOOL_HELP"));
             return;
 		}
         GUI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
@@ -4874,7 +4874,7 @@ public:
 void RESCAN::Run(void)
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Rescans for changes on mounted drives made on the host by clearing caches.\n\nRESCAN [/A] [/Q]\nRESCAN [drive:] [/Q]\n\n  [/A]\t\tRescan all drives\n  [/Q]\t\tEnable quiet mode\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
+		WriteOut(MSG_Get("PROGRAM_RESCAN_HELP"));
 		return;
 	}
     bool all = false, quiet = false;
@@ -8102,7 +8102,7 @@ public:
 void TEXT80X25::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 80x25 text mode.\n");
+		 WriteOut(MSG_Get("PROGRAM_SET80x25"));
 		return;
 	}
     clear_screen();
@@ -8122,7 +8122,7 @@ public:
 void TEXT80X43::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 80x43 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET80x43"));
 		return;
 	}
     clear_screen();
@@ -8142,7 +8142,7 @@ public:
 void TEXT80X50::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 80x50 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET80x50"));
 		return;
 	}
     clear_screen();
@@ -8162,7 +8162,7 @@ public:
 void TEXT80X60::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 80x60 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET80x60"));
 		return;
 	}
     clear_screen();
@@ -8182,7 +8182,7 @@ public:
 void TEXT132X25::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 132x25 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET132x25"));
 		return;
 	}
     clear_screen();
@@ -8202,7 +8202,7 @@ public:
 void TEXT132X43::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 132x43 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET132x43"));
 		return;
 	}
     clear_screen();
@@ -8222,8 +8222,8 @@ public:
 void TEXT132X50::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 132x50 text mode.\n");
-		return;
+        WriteOut(MSG_Get("PROGRAM_SET132x50"));
+        return;
 	}
     clear_screen();
     setlines("line_132x50");
@@ -8242,8 +8242,8 @@ public:
 void TEXT132X60::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 132x60 text mode.\n");
-		return;
+        WriteOut(MSG_Get("PROGRAM_SET132x60"));
+        return;
 	}
     clear_screen();
     setlines("line_132x60");
@@ -8892,9 +8892,7 @@ public:
     void Run(void) override;
 private:
 	void PrintUsage() {
-        constexpr const char *msg =
-            "Hooks INT 2Fh for debugging purposes.\n\nINT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n\nType INT2FDBG without a parameter to show the current hook status.\n";
-        WriteOut(msg);
+        WriteOut(MSG_Get("PROGRAM_INT2FDBG_HELP"));
 	}
 };
 
@@ -8905,9 +8903,9 @@ void INT2FDBG::Run()
 
     if (!cmd->GetCount()) {
         if (int2fdbg_hook_callback == 0)
-            WriteOut("INT 2Fh hook has not been set.\n");
+            WriteOut(MSG_Get("PROGRAM_INT2FDBG_NOT_SET"));
         else
-            WriteOut("INT 2Fh hook has already been set.\n");
+            WriteOut(MSG_Get("PROGRAM_INT2FDBG_ALREADY"));
         return;
     }
 
@@ -9314,7 +9312,7 @@ public:
                 if (g_flagged_files[i] != NULL)
                     g_flagged_files[i] = NULL;
             }
-            WriteOut("All files unflagged for saving.\n");
+            WriteOut(MSG_Get("PROGRAM_FLAGSAVE_UNFLAGALL"));
             return;
         }
         else if (cmd->GetCount())
@@ -9333,7 +9331,7 @@ public:
                         {
                             if (g_flagged_files[lf] != NULL && !strcasecmp(g_flagged_files[lf], flagfile))
                             {
-                                WriteOut("File %s unflagged for saving.\n", g_flagged_files[lf]);
+                                WriteOut(MSG_Get("PROGRAM_FLAGSAVE_UNFLAGGED"), g_flagged_files[lf]);
                                 free(g_flagged_files[lf]);
                                 g_flagged_files[lf] = NULL;
                                 break;
@@ -9352,7 +9350,7 @@ public:
                             continue;
                         if (!strcasecmp(g_flagged_files[lf], flagfile))
                         {
-                            WriteOut("File already flagged for saving - %s\n", flagfile);
+                            WriteOut(MSG_Get("PROGRAM_FLAGSAVE_FLAGGED"), flagfile);
                             found=true;
                         }
                     }
@@ -9364,12 +9362,12 @@ public:
                     }
                     if (lf == MAX_FLAGS)
                     {
-                        WriteOut("Too many files to flag for saving.\n");
+                        WriteOut(MSG_Get("PROGRAM_FLAGSAVE_TOOMANY"));
                         return;
                     }
                     g_flagged_files[lf] = (char*)malloc(strlen(flagfile) + 1);
                     strcpy(g_flagged_files[lf], flagfile);
-                    WriteOut("File %s flagged for saving\n", g_flagged_files[lf]);
+                    WriteOut(MSG_Get("PROGRAM_FLAGSAVE_SAVED"), g_flagged_files[lf]);
                 } else
                     WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), flagfile);
             }
@@ -9377,7 +9375,7 @@ public:
         }
         else
         {
-            WriteOut("Files flagged for saving:\n");
+            WriteOut(MSG_Get("PROGRAM_FLAGSAVE_LIST"));
             for (i = 0; i < MAX_FLAGS; i++)
             {
                 if (g_flagged_files[i])
@@ -9388,13 +9386,7 @@ public:
     }
     void printHelp()
     {
-        WriteOut( "Marks or flags files to be saved for the save state feature.\n\n"
-                "FLAGSAVE [file(s) [/F] [/R]] [/U]\n\n"
-                "  file(s)     Specifies one or more files to be flagged for saving.\n"
-                "  /F          Forces to flag the file(s) even if they are not found.\n"
-                "  /R          Removes flags from the specified file(s).\n"
-                "  /U          Removes flags from all flagged files.\n\n"
-                "Type FLAGSAVE without a parameter to list flagged files.\n");
+        WriteOut(MSG_Get("PROGRAM_FLAGSAVE_HLP"));
     }
 };
 
@@ -9773,6 +9765,14 @@ void DOS_SetupPrograms(void) {
     MSG_Add("MSCDEX_UNKNOWN_ERROR","MSCDEX: Failure: Unknown error.\n");
 
     MSG_Add("PROGRAM_RESCAN_SUCCESS","Drive cache cleared.\n");
+    MSG_Add("PROGRAM_RESCAN_HELP",
+        "Rescans for changes on mounted drives made on the host by clearing caches.\n\n"
+        "RESCAN [/A] [/Q]\n"
+        "RESCAN [drive:] [/Q]\n\n"
+        "  [/A]\t\tRescan all drives\n"
+        "  [/Q]\t\tEnable quiet mode\n"
+        "  [drive:]\tThe drive to rescan\n\n"
+        "Type RESCAN with no parameters to rescan the current drive.\n");
 
     MSG_Add("PROGRAM_INTRO",
         "\033[2J\033[32;1mWelcome to DOSBox-X\033[0m, an open-source x86 emulator with sound and graphics.\n"
@@ -10162,6 +10162,37 @@ void DOS_SetupPrograms(void) {
         "The Dynamic VHD created is not partitioned nor formatted: to directly mount to\n"
         "a drive letter with \033[34;1mIMGMOUNT\033[0m, please consider using \033[34;1mIMGMAKE\033[0m instead.\n"
         "A merged snapshot VHD is automatically deleted if merge is successful.\n");
+    MSG_Add("PROGRAM_FLAGSAVE_UNFLAGALL","All files unflagged for saving.\n");
+    MSG_Add("PROGRAM_FLAGSAVE_UNFLAGGED","File %s unflagged for saving.\n");
+    MSG_Add("PROGRAM_FLAGSAVE_FLAGGED","File already flagged for saving - %s\n");
+    MSG_Add("PROGRAM_FLAGSAVE_TOOMANY","Too many files to flag for saving.\n");
+    MSG_Add("PROGRAM_FLAGSAVE_SAVED","File %s flagged for saving\n");
+    MSG_Add("PROGRAM_FLAGSAVE_LIST","Files flagged for saving:\n");
+    MSG_Add("PROGRAM_FLAGSAVE_HLP","Marks or flags files to be saved for the save state feature.\n\n"
+             "FLAGSAVE [file(s) [/F] [/R]] [/U]\n\n"
+            "  file(s)     Specifies one or more files to be flagged for saving.\n"
+            "  /F          Forces to flag the file(s) even if they are not found.\n"
+            "  /R          Removes flags from the specified file(s).\n"
+            "  /U          Removes flags from all flagged files.\n\n"
+            "Type FLAGSAVE without a parameter to list flagged files.\n");
+    MSG_Add("PROGRAM_INT2FDBG_NOT_SET","INT 2Fh hook has not been set.\n");
+    MSG_Add("PROGRAM_INT2FDBG_ALREADY","INT 2Fh hook has already been set.\n");
+    MSG_Add("PROGRAM_INT2FDBG_HELP","Hooks INT 2Fh for debugging purposes.\n\n"
+            "INT2FDBG [option]\n  /I      Installs hook\n\n"
+            "It will hook INT 2Fh at the top of the call chain for debugging information.\n\n"
+            "Type INT2FDBG without a parameter to show the current hook status.\n");
+    MSG_Add("PROGRAM_SET80x25","Changes to 80x25 text mode.\n");
+    MSG_Add("PROGRAM_SET80x43","Changes to 80x43 text mode.\n");
+    MSG_Add("PROGRAM_SET80x50","Changes to 80x50 text mode.\n");
+    MSG_Add("PROGRAM_SET80x60","Changes to 80x60 text mode.\n");
+    MSG_Add("PROGRAM_SET132x25","Changes to 132x25 text mode.\n");
+    MSG_Add("PROGRAM_SET132x43","Changes to 132x43 text mode.\n");
+    MSG_Add("PROGRAM_SET132x50","Changes to 132x50 text mode.\n");
+    MSG_Add("PROGRAM_SET132x60","Changes to 132x60 text mode.\n");
+    MSG_Add("PROGRAM_CFGTOOL_HELP",
+            "Starts DOSBox-X's graphical configuration tool.\n\n"
+            "CFGTOOL\n\n"
+            "Note: You can also use CONFIG command for command-line configurations.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");

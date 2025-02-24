@@ -3669,3 +3669,101 @@ CPU: simple core
 :MAPPER:togmenu
 Toggle menu bar
 .
+:PROGRAM_FLAGSAVE_UNFLAGALL
+All files unflagged for saving.
+
+.
+:PROGRAM_FLAGSAVE_UNFLAGGED
+File %s unflagged for saving.
+
+.
+:PROGRAM_FLAGSAVE_FLAGGED
+File already flagged for saving - %s
+
+.
+:PROGRAM_FLAGSAVE_TOOMANY
+Too many files to flag for saving.
+
+.
+:PROGRAM_FLAGSAVE_SAVED
+File %s flagged for saving
+
+.
+:PROGRAM_FLAGSAVE_LIST
+Files flagged for saving:
+.
+:PROGRAM_FLAGSAVE_HLP
+Marks or flags files to be saved for the save state feature.
+
+FLAGSAVE [file(s) [/F] [/R]] [/U]
+
+  file(s)     Specifies one or more files to be flagged for saving.
+  /F          Forces to flag the file(s) even if they are not found.
+  /R          Removes flags from the specified file(s).
+  /U          Removes flags from all flagged files.
+
+Type FLAGSAVE without a parameter to list flagged files.
+
+.
+:PROGRAM_INT2FDBG_NOT_SET
+INT 2Fh hook has not been set.
+
+.
+:PROGRAM_INT2FDBG_ALREADY
+INT 2Fh hook has already been set.
+
+.
+:PROGRAM_INT2FDBG_HELP
+Hooks INT 2Fh for debugging purposes.
+
+INT2FDBG [option]
+  /I      Installs hook
+  
+It will hook INT 2Fh at the top of the call chain for debugging information.
+
+Type INT2FDBG without a parameter to show the current hook status.
+.
+:PROGRAM_SET80x25
+Changes to 80x25 text mode.
+.
+:PROGRAM_SET80x43
+Changes to 80x43 text mode.
+.
+:PROGRAM_SET80x50
+Changes to 80x50 text mode.
+.
+:PROGRAM_SET80x60
+Changes to 80x60 text mode.
+.
+:PROGRAM_SET132x25
+Changes to 132x25 text mode.
+.
+:PROGRAM_SET132x43
+Changes to 132x43 text mode.
+.
+:PROGRAM_SET132x50
+Changes to 132x50 text mode.
+.
+:PROGRAM_SET132x60
+Changes to 132x60 text mode.
+.
+:PROGRAM_RESCAN_HELP
+Rescans for changes on mounted drives made on the host by clearing caches.
+
+RESCAN [/A] [/Q]
+RESCAN [drive:] [/Q]
+
+  [/A]     Rescan all drives
+  [/Q]     Enable quiet mode
+  [drive:] The drive to rescan
+
+Type RESCAN with no parameters to rescan the current drive.
+
+.
+:PROGRAM_CFGTOOL_HELP
+Starts DOSBox-X's graphical configuration tool.
+
+CFGTOOL
+
+Note: You can also use CONFIG command for command-line configurations.
+.
