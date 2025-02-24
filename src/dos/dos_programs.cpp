@@ -9314,7 +9314,7 @@ public:
                 if (g_flagged_files[i] != NULL)
                     g_flagged_files[i] = NULL;
             }
-            WriteOut("All files unflagged for saving.\n");
+            WriteOut(MSG_Get("PROGRAM_FLAGSAVE_UNFLAGALL"));
             return;
         }
         else if (cmd->GetCount())
@@ -9333,7 +9333,7 @@ public:
                         {
                             if (g_flagged_files[lf] != NULL && !strcasecmp(g_flagged_files[lf], flagfile))
                             {
-                                WriteOut("File %s unflagged for saving.\n", g_flagged_files[lf]);
+                                WriteOut(MSG_Get("PROGRAM_FLAGSAVE_UNFLAGGED"), g_flagged_files[lf]);
                                 free(g_flagged_files[lf]);
                                 g_flagged_files[lf] = NULL;
                                 break;
@@ -9352,7 +9352,7 @@ public:
                             continue;
                         if (!strcasecmp(g_flagged_files[lf], flagfile))
                         {
-                            WriteOut("File already flagged for saving - %s\n", flagfile);
+                            WriteOut(MSG_Get("PROGRAM_FLAGSAVE_FLAGGED"), flagfile);
                             found=true;
                         }
                     }
@@ -9364,12 +9364,12 @@ public:
                     }
                     if (lf == MAX_FLAGS)
                     {
-                        WriteOut("Too many files to flag for saving.\n");
+                        WriteOut(MSG_Get("PROGRAM_FLAGSAVE_TOOMANY"));
                         return;
                     }
                     g_flagged_files[lf] = (char*)malloc(strlen(flagfile) + 1);
                     strcpy(g_flagged_files[lf], flagfile);
-                    WriteOut("File %s flagged for saving\n", g_flagged_files[lf]);
+                    WriteOut(MSG_Get("PROGRAM_FLAGSAVE_SAVED"), g_flagged_files[lf]);
                 } else
                     WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), flagfile);
             }
@@ -9377,7 +9377,7 @@ public:
         }
         else
         {
-            WriteOut("Files flagged for saving:\n");
+            WriteOut(MSG_Get("PROGRAM_FLAGSAVE_LIST"));
             for (i = 0; i < MAX_FLAGS; i++)
             {
                 if (g_flagged_files[i])
@@ -9388,13 +9388,7 @@ public:
     }
     void printHelp()
     {
-        WriteOut( "Marks or flags files to be saved for the save state feature.\n\n"
-                "FLAGSAVE [file(s) [/F] [/R]] [/U]\n\n"
-                "  file(s)     Specifies one or more files to be flagged for saving.\n"
-                "  /F          Forces to flag the file(s) even if they are not found.\n"
-                "  /R          Removes flags from the specified file(s).\n"
-                "  /U          Removes flags from all flagged files.\n\n"
-                "Type FLAGSAVE without a parameter to list flagged files.\n");
+        WriteOut(MSG_Get("PROGRAM_FLAGSAVE_HLP"));
     }
 };
 
@@ -10162,6 +10156,19 @@ void DOS_SetupPrograms(void) {
         "The Dynamic VHD created is not partitioned nor formatted: to directly mount to\n"
         "a drive letter with \033[34;1mIMGMOUNT\033[0m, please consider using \033[34;1mIMGMAKE\033[0m instead.\n"
         "A merged snapshot VHD is automatically deleted if merge is successful.\n");
+    MSG_Add("PROGRAM_FLAGSAVE_UNFLAGALL","All files unflagged for saving.\n");
+    MSG_Add("PROGRAM_FLAGSAVE_UNFLAGGED","File %s unflagged for saving.\n");
+    MSG_Add("PROGRAM_FLAGSAVE_FLAGGED","File already flagged for saving - %s\n");
+    MSG_Add("PROGRAM_FLAGSAVE_TOOMANY","Too many files to flag for saving.\n");
+    MSG_Add("PROGRAM_FLAGSAVE_SAVED","File %s flagged for saving\n");
+    MSG_Add("PROGRAM_FLAGSAVE_LIST","Files flagged for saving:\n");
+    MSG_Add("PROGRAM_FLAGSAVE_HLP","Marks or flags files to be saved for the save state feature.\n\n"
+             "FLAGSAVE [file(s) [/F] [/R]] [/U]\n\n"
+            "  file(s)     Specifies one or more files to be flagged for saving.\n"
+            "  /F          Forces to flag the file(s) even if they are not found.\n"
+            "  /R          Removes flags from the specified file(s).\n"
+            "  /U          Removes flags from all flagged files.\n\n"
+            "Type FLAGSAVE without a parameter to list flagged files.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
