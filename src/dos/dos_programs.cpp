@@ -4874,7 +4874,7 @@ public:
 void RESCAN::Run(void)
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Rescans for changes on mounted drives made on the host by clearing caches.\n\nRESCAN [/A] [/Q]\nRESCAN [drive:] [/Q]\n\n  [/A]\t\tRescan all drives\n  [/Q]\t\tEnable quiet mode\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
+		WriteOut(MSG_Get("PROGRAM_RESCAN_HELP"));
 		return;
 	}
     bool all = false, quiet = false;
@@ -9765,6 +9765,14 @@ void DOS_SetupPrograms(void) {
     MSG_Add("MSCDEX_UNKNOWN_ERROR","MSCDEX: Failure: Unknown error.\n");
 
     MSG_Add("PROGRAM_RESCAN_SUCCESS","Drive cache cleared.\n");
+    MSG_Add("PROGRAM_RESCAN_HELP",
+        "Rescans for changes on mounted drives made on the host by clearing caches.\n\n"
+        "RESCAN [/A] [/Q]\n"
+        "RESCAN [drive:] [/Q]\n\n"
+        "  [/A]\t\tRescan all drives\n"
+        "  [/Q]\t\tEnable quiet mode\n"
+        "  [drive:]\tThe drive to rescan\n\n"
+        "Type RESCAN with no parameters to rescan the current drive.\n");
 
     MSG_Add("PROGRAM_INTRO",
         "\033[2J\033[32;1mWelcome to DOSBox-X\033[0m, an open-source x86 emulator with sound and graphics.\n"
