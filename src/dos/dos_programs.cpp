@@ -8102,7 +8102,7 @@ public:
 void TEXT80X25::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 80x25 text mode.\n");
+		 WriteOut(MSG_Get("PROGRAM_SET80x25"));
 		return;
 	}
     clear_screen();
@@ -8122,7 +8122,7 @@ public:
 void TEXT80X43::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 80x43 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET80x43"));
 		return;
 	}
     clear_screen();
@@ -8142,7 +8142,7 @@ public:
 void TEXT80X50::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 80x50 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET80x50"));
 		return;
 	}
     clear_screen();
@@ -8162,7 +8162,7 @@ public:
 void TEXT80X60::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 80x60 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET80x60"));
 		return;
 	}
     clear_screen();
@@ -8182,7 +8182,7 @@ public:
 void TEXT132X25::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 132x25 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET132x25"));
 		return;
 	}
     clear_screen();
@@ -8202,7 +8202,7 @@ public:
 void TEXT132X43::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 132x43 text mode.\n");
+        WriteOut(MSG_Get("PROGRAM_SET132x43"));
 		return;
 	}
     clear_screen();
@@ -8222,8 +8222,8 @@ public:
 void TEXT132X50::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 132x50 text mode.\n");
-		return;
+        WriteOut(MSG_Get("PROGRAM_SET132x50"));
+        return;
 	}
     clear_screen();
     setlines("line_132x50");
@@ -8242,8 +8242,8 @@ public:
 void TEXT132X60::Run()
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		 WriteOut("Changes to 132x60 text mode.\n");
-		return;
+        WriteOut(MSG_Get("PROGRAM_SET132x60"));
+        return;
 	}
     clear_screen();
     setlines("line_132x60");
@@ -8892,7 +8892,7 @@ public:
     void Run(void) override;
 private:
 	void PrintUsage() {
-        WriteOut(MSG_Get("PROGRAM_INT2FDBG_HELP");
+        WriteOut(MSG_Get("PROGRAM_INT2FDBG_HELP"));
 	}
 };
 
@@ -8903,9 +8903,9 @@ void INT2FDBG::Run()
 
     if (!cmd->GetCount()) {
         if (int2fdbg_hook_callback == 0)
-            WriteOut(MSG_Add("PROGRAM_INT2FDBG_NOT_SET"));
+            WriteOut(MSG_Get("PROGRAM_INT2FDBG_NOT_SET"));
         else
-            WriteOut(MSG_Add("PROGRAM_INT2FDBG_ALREADY"));
+            WriteOut(MSG_Get("PROGRAM_INT2FDBG_ALREADY"));
         return;
     }
 
@@ -10173,6 +10173,14 @@ void DOS_SetupPrograms(void) {
             "INT2FDBG [option]\n  /I      Installs hook\n\n"
             "It will hook INT 2Fh at the top of the call chain for debugging information.\n\n"
             "Type INT2FDBG without a parameter to show the current hook status.\n");
+    MSG_Add("PROGRAM_SET80x25","Changes to 80x25 text mode.\n");
+    MSG_Add("PROGRAM_SET80x43","Changes to 80x43 text mode.\n");
+    MSG_Add("PROGRAM_SET80x50","Changes to 80x50 text mode.\n");
+    MSG_Add("PROGRAM_SET80x60","Changes to 80x60 text mode.\n");
+    MSG_Add("PROGRAM_SET132x25","Changes to 132x25 text mode.\n");
+    MSG_Add("PROGRAM_SET132x43","Changes to 132x43 text mode.\n");
+    MSG_Add("PROGRAM_SET132x50","Changes to 132x50 text mode.\n");
+    MSG_Add("PROGRAM_SET132x60","Changes to 132x60 text mode.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
