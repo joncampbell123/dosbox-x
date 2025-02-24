@@ -3760,3 +3760,10 @@ RESCAN [drive:] [/Q]
 Type RESCAN with no parameters to rescan the current drive.
 
 .
+:PROGRAM_CFGTOOL_HELP
+Starts DOSBox-X's graphical configuration tool.
+
+CFGTOOL
+
+Note: You can also use CONFIG command for command-line configurations.
+.

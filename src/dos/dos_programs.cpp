@@ -1647,7 +1647,7 @@ class CFGTOOL : public Program {
 public:
     void Run(void) override {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("Starts DOSBox-X's graphical configuration tool.\n\nCFGTOOL\n\nNote: You can also use CONFIG command for command-line configurations.\n");
+			WriteOut(MSG_Get("PROGRAM_CFGTOOL_HELP"));
             return;
 		}
         GUI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
@@ -10189,6 +10189,10 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_SET132x43","Changes to 132x43 text mode.\n");
     MSG_Add("PROGRAM_SET132x50","Changes to 132x50 text mode.\n");
     MSG_Add("PROGRAM_SET132x60","Changes to 132x60 text mode.\n");
+    MSG_Add("PROGRAM_CFGTOOL_HELP",
+            "Starts DOSBox-X's graphical configuration tool.\n\n"
+            "CFGTOOL\n\n"
+            "Note: You can also use CONFIG command for command-line configurations.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
