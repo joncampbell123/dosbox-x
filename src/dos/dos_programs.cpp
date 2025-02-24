@@ -8892,9 +8892,7 @@ public:
     void Run(void) override;
 private:
 	void PrintUsage() {
-        constexpr const char *msg =
-            "Hooks INT 2Fh for debugging purposes.\n\nINT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n\nType INT2FDBG without a parameter to show the current hook status.\n";
-        WriteOut(msg);
+        WriteOut(MSG_Get("PROGRAM_INT2FDBG_HELP");
 	}
 };
 
@@ -8905,9 +8903,9 @@ void INT2FDBG::Run()
 
     if (!cmd->GetCount()) {
         if (int2fdbg_hook_callback == 0)
-            WriteOut("INT 2Fh hook has not been set.\n");
+            WriteOut(MSG_Add("PROGRAM_INT2FDBG_NOT_SET"));
         else
-            WriteOut("INT 2Fh hook has already been set.\n");
+            WriteOut(MSG_Add("PROGRAM_INT2FDBG_ALREADY"));
         return;
     }
 
@@ -10169,6 +10167,12 @@ void DOS_SetupPrograms(void) {
             "  /R          Removes flags from the specified file(s).\n"
             "  /U          Removes flags from all flagged files.\n\n"
             "Type FLAGSAVE without a parameter to list flagged files.\n");
+    MSG_Add("PROGRAM_INT2FDBG_NOT_SET","INT 2Fh hook has not been set.\n");
+    MSG_Add("PROGRAM_INT2FDBG_ALREADY","INT 2Fh hook has already been set.\n");
+    MSG_Add("PROGRAM_INT2FDBG_HELP","Hooks INT 2Fh for debugging purposes.\n\n"
+            "INT2FDBG [option]\n  /I      Installs hook\n\n"
+            "It will hook INT 2Fh at the top of the call chain for debugging information.\n\n"
+            "Type INT2FDBG without a parameter to show the current hook status.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
