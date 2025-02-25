@@ -5523,7 +5523,7 @@ class IMGMOUNT : public Program {
 				bdisk_number = atoi(bdisk.c_str());
 				if (bdisk_number < 0 || bdisk_number >= MAX_DISK_IMAGES) return;
 				if (imageDiskList[bdisk_number] == NULL) {
-					WriteOut("BIOS disk index does not have an image assigned");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NOT_ASSIGNED"));
 					return;
 				}
 			}
@@ -5784,14 +5784,14 @@ class IMGMOUNT : public Program {
 						}
 					}
 					else {
-						WriteOut("Invalid mount number\n");
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_NUMBER"));
 					}
 				}
 				newImage->Release();
 				return;
 			}
 			else {
-				WriteOut("Invalid fstype\n");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_FSTYPE"));
 				return;
 			}
 
@@ -5804,7 +5804,7 @@ class IMGMOUNT : public Program {
 			const char * scan;
 			if (str_chs.size() != 0) {
 				if (str_size.size() != 0) {
-					WriteOut("Size and chs parameter cannot both be specified\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SIZE_CHS"));
 					return false;
 				}
 				isCHS = true;
@@ -5830,20 +5830,20 @@ class IMGMOUNT : public Program {
 					val = atoi(number);
 					if (val <= 0) {
 						//out of range
-						WriteOut("Invalid size parameter\n");
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 						return false;
 					}
 					sizes[count++] = (unsigned int)val;
 					index = 0;
 					if (count == 4) {
 						//too many commas
-						WriteOut("Invalid size parameter\n");
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 						return false;
 					}
 				}
 				else if (index >= 19) {
 					//number too large (too many characters, anyway)
-					WriteOut("Invalid size parameter\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 					return false;
 				}
 				else {
@@ -5855,14 +5855,14 @@ class IMGMOUNT : public Program {
 			val = atoi(number);
 			if (val <= 0) {
 				//out of range
-				WriteOut("Invalid size parameter\n");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 				return false;
 			}
 			sizes[count++] = (unsigned int)val;
 			if (isCHS) {
 				if (count == 3) sizes[count++] = 512; //set sector size automatically
 				if (count != 4) {
-					WriteOut("Invalid chs parameter\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 					return false;
 				}
 				Bitu temp = sizes[3]; //hold on to sector size temporarily
@@ -5875,7 +5875,7 @@ class IMGMOUNT : public Program {
 			if (!((type == "ram" && count == 1) || count == 4)) {
 				//ram drives require 1 or 4 numbers
 				//other drives require 4 numbers
-				WriteOut("Invalid size parameter\n");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 				return false;
 			}
 			return true;
@@ -6085,11 +6085,11 @@ class IMGMOUNT : public Program {
 					WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS"), letter);
 					return true;
 				}
-				WriteOut("Drive number %d is not mounted.\n", index);
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER"), index);
 				return false;
 			}
 			else {
-				WriteOut("Incorrect IMGMOUNT unmount usage.\n");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_UMOUNT_USAGE"));
 				return false;
 			}
 		}
@@ -6105,13 +6105,13 @@ class IMGMOUNT : public Program {
 
 			/* must be valid drive letter, C to Z */
 			if (!isalpha(el_torito_cd_drive) || el_torito_cd_drive < 'C') {
-				WriteOut("El Torito emulation requires a proper CD-ROM drive letter\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_LETTER"));
 				return false;
 			}
 
 			/* drive must not exist (as a hard drive) */
 			if (imageDiskList[el_torito_cd_drive - 'A'] != NULL) {
-				WriteOut("El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_DRIVE_EXISTS"));
 				return false;
 			}
 
@@ -6120,7 +6120,7 @@ class IMGMOUNT : public Program {
 			/* get the CD-ROM drive */
 			CDROM_Interface *src_drive = NULL;
 			if (!GetMSCDEXDrive(el_torito_cd_drive - 'A', &src_drive)) {
-				WriteOut("El Torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_NOT_CDDRIVE"));
 				return false;
 			}
 
@@ -6128,14 +6128,14 @@ class IMGMOUNT : public Program {
 			 *        "Superfloppy" or hard disk emulation modes are not yet implemented.
 			 *        This mode will never support "no emulation" boot. */
 			if (type != "floppy") {
-				WriteOut("El Torito emulation must be used with -t floppy at this time\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_REQUIRE_FLOPPY"));
 				return false;
 			}
 
 			/* Okay. Step #1: Scan the volume descriptors for the Boot Record. */
 			unsigned long el_torito_base = 0, boot_record_sector = 0;
 			if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
-				WriteOut("El Torito CD-ROM boot record not found\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOT_RECORD"));
 				return false;
 			}
 
@@ -6144,7 +6144,7 @@ class IMGMOUNT : public Program {
 
 			/* Step #2: Parse the records. Each one is 32 bytes long */
 			if (!src_drive->ReadSectorsHost(entries, false, el_torito_base, 1)) {
-				WriteOut("El Torito entries unreadable\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_ENTRY_UNREADABLE"));
 				return false;
 			}
 
@@ -6249,7 +6249,7 @@ class IMGMOUNT : public Program {
 			}
 
 			if (el_torito_floppy_type == 0xFF || el_torito_floppy_base == ~0UL) {
-				WriteOut("El Torito bootable floppy not found\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY"));
 				return false;
 			}
 
@@ -6262,7 +6262,7 @@ class IMGMOUNT : public Program {
 			/* NTS: IBM PC systems: Hard disk partitions must start at C: or higher.
 			 *      PC-98 systems: Any drive letter is valid, A: can be a hard drive. */
 			if ((!IS_PC98_ARCH && driveIndex < 2) || driveIndex >= 26) {
-				WriteOut("Invalid drive letter");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_LETTER"));
 				return false;
 			}
 
@@ -6272,7 +6272,7 @@ class IMGMOUNT : public Program {
 			}
 
 			if (src_bios_disk < 2/*no, don't allow partitions on floppies!*/ || src_bios_disk >= MAX_DISK_IMAGES || imageDiskList[src_bios_disk] == NULL) {
-				WriteOut("BIOS disk index does not have an image assigned");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NOT_ASSIGNED"));
 				return false;
 			}
 
@@ -6282,7 +6282,7 @@ class IMGMOUNT : public Program {
 			 *        associated with it. This is a mess inherited from back when this code forked from DOSBox SVN, because
 			 *        DOSBox SVN makes these hardcoded assumptions. */
 			if (driveIndex < MAX_DISK_IMAGES && imageDiskList[driveIndex] != NULL) {
-				WriteOut("Partitions cannot be mounted in conflict with the standard INT 13h hard disk\nallotment. Choose a different drive letter to mount to.");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CHOOSE_LETTER"));
 				return false;
 			}
 
@@ -6306,7 +6306,7 @@ class IMGMOUNT : public Program {
 			(void)sizes;//UNUSED
 
 			if (driveIndex > 1) {
-				WriteOut("Invalid drive letter");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_LETTER"));
 				return false;
 			}
 
@@ -10197,6 +10197,23 @@ void DOS_SetupPrograms(void) {
             " \033[36;1m[position]\033[0m          Disk position to swap to.\n");
     MSG_Add("PROGRAM_INTRO_HELP",
             "A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]\n");
+    MSG_Add("PROGRAM_IMGMOUNT_NOT_ASSIGNED","BIOS disk index does not have an image assigned");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_NUMBER","Invalid mount number\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_FSTYPE","Invalid fstype\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_SIZE","Invalid size parameter\n");
+    MSG_Add("PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER","Drive number %d is not mounted.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_UMOUNT_USAGE", "Incorrect IMGMOUNT unmount usage.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_LETTER","Invalid drive letter");
+    MSG_Add("PROGRAM_IMGMOUNT_CHOOSE_LETTER",
+            "Partitions cannot be mounted in conflict with the standard INT 13h hard disk\n"
+            "allotment. Choose a different drive letter to mount to.");
+    MSG_Add("PROGRAM_ELTORITO_LETTER","El Torito emulation requires a proper CD-ROM drive letter\n");
+    MSG_Add("PROGRAM_ELTORITO_DRIVE_EXISTS","El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+    MSG_Add("PROGRAM_ELTORITO_NOT_CDDRIVE","El Torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+    MSG_Add("PROGRAM_ELTORITO_REQUIRE_FLOPPY","El Torito emulation must be used with -t floppy at this time\n");
+    MSG_Add("PROGRAM_ELTORITO_NO_BOOT_RECORD","El Torito CD-ROM boot record not found\n");
+    MSG_Add("PROGRAM_ELTORITO_ENTRY_UNREADABLE","El Torito entries unreadable\n");
+    MSG_Add("PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY","El Torito bootable floppy not found\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
