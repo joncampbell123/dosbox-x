@@ -7768,7 +7768,6 @@ std::string findLatestConfigFile(const std::string& directory, std::string& late
     // Directory reading process for Windows
     WIN32_FIND_DATA findFileData;
     HANDLE hFind = FindFirstFile((directory + (directory.back() != '\\'?"\\":"") + "*.conf").c_str(), &findFileData);
-
     if(hFind == INVALID_HANDLE_VALUE) {
         //LOG_MSG("Error: The directory '&s' does not exist.\n",directory);
         return "";
@@ -7789,10 +7788,9 @@ std::string findLatestConfigFile(const std::string& directory, std::string& late
     // Directory reading process for Linux/macOS
     DIR* dir = opendir(directory.c_str());
     if(!dir) {
-        //LOG_MSG("Error: The directory '%s' does not exist.\n",directory);
+        //LOG_MSG("Error: The directory '%s' does not exist.\n",directory.c_str());
         return "";
     }
-
     struct dirent* entry;
     while((entry = readdir(dir)) != nullptr) {
         std::string filename = entry->d_name;
@@ -8020,9 +8018,17 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     std::string workdiropt = "default";
     std::string workdirdef = "";
     struct stat st;
+    std::string tmp,config_combined;
+    Cross::GetPlatformConfigName(tmp);
+    config_combined = config_path + tmp;
+    if(stat(config_combined.c_str(), &st)) { // userconf file for the launched DOSBox-X version not found
+        std::string latestDate;
+        std::string latestConf = findLatestConfigFile(config_path, latestDate);
+        if(!latestConf.empty() && copyFile(latestConf, config_combined)) LOG_MSG("CONFIG: Copied %s to %s as user config file", latestConf.c_str(), config_combined.c_str());
+    }
+    
     if (!control->opt_defaultconf && control->config_file_list.empty() && stat("dosbox-x.conf", &st) && stat("dosbox.conf", &st)) {
         /* load the global config file first */
-        std::string tmp,config_combined;
 
         /* -- Parse configuration files */
         Cross::GetPlatformConfigName(tmp);
@@ -8246,7 +8252,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
     }
 #endif
-    std::string tmp, res_path, config_combined;
+    std::string res_path;
     /* -- Parse configuration files */
     Cross::GetPlatformResDir(res_path);
     Cross::GetPlatformConfigName(tmp);
