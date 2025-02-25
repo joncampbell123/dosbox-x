@@ -5058,7 +5058,7 @@ public:
 
     void Run(void) override {
 		if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]\n");
+			WriteOut(MSG_Get("PROGRAM_INTRO_HELP"));
 			return;
 		}
         uint8_t attr = DOS_GetAnsiAttr();
@@ -10195,6 +10195,8 @@ void DOS_SetupPrograms(void) {
             "\033[32;1mIMGSWAP\033[0m \033[37;1mdrive\033[0m \033[36;1m[position]\033[0m\n"
             " \033[37;1mdrive\033[0m               Drive letter to swap the image.\n"
             " \033[36;1m[position]\033[0m          Disk position to swap to.\n");
+    MSG_Add("PROGRAM_INTRO_HELP",
+            "A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
