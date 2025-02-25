@@ -4625,10 +4625,7 @@ public:
 
         if(cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("?", true)) {
             resetcolor = true;
-            WriteOut("Swaps floppy, hard drive and optical disc images.\n\n"
-                "\033[32;1mIMGSWAP\033[0m \033[37;1mdrive\033[0m \033[36;1m[position]\033[0m\n"
-                " \033[37;1mdrive\033[0m               Drive letter to swap the image.\n"
-                " \033[36;1m[position]\033[0m          Disk position to swap to.\n");
+            WriteOut(MSG_Get("PROGRAM_IMGSWAP_HELP"));
             return;
         }
         if (!cmd->GetCount()) {
@@ -10193,6 +10190,11 @@ void DOS_SetupPrograms(void) {
             "Starts DOSBox-X's graphical configuration tool.\n\n"
             "CFGTOOL\n\n"
             "Note: You can also use CONFIG command for command-line configurations.\n");
+    MSG_Add("PROGRAM_IMGSWAP_HELP",
+            "Swaps floppy, hard drive and optical disc images.\n\n"
+            "\033[32;1mIMGSWAP\033[0m \033[37;1mdrive\033[0m \033[36;1m[position]\033[0m\n"
+            " \033[37;1mdrive\033[0m               Drive letter to swap the image.\n"
+            " \033[36;1m[position]\033[0m          Disk position to swap to.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
