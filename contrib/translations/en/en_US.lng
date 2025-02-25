@@ -3774,3 +3774,8 @@ Swaps floppy, hard drive and optical disc images.
  ←[37;1mdrive←[0m               Drive letter to swap the image.
  ←[36;1m[position]←[0m          Disk position to swap to.
 .
+:PROGRAM_INTRO_HELP
+A full-screen introduction to DOSBox-X.
+
+INTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]
+.
