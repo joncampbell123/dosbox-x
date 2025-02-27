@@ -3686,3 +3686,101 @@ CPU: noyau simple
 :MAPPER:togmenu
 Basculer barre de menu
 .
+:PROGRAM_FLAGSAVE_UNFLAGALL
+Tous les fichiers non signalés pour sauvegarde.
+
+.
+:PROGRAM_FLAGSAVE_UNFLAGGED
+Fichier % non signalé pour sauvegarde.
+
+.
+:PROGRAM_FLAGSAVE_FLAGGED
+Fichier déjà signalé pour sauvegarde - %s
+
+.
+:PROGRAM_FLAGSAVE_TOOMANY
+Trop de fichiers signalés pour la sauvegarde.
+
+.
+:PROGRAM_FLAGSAVE_SAVED
+Ficher %s signalé pour la sauvegarde
+
+.
+:PROGRAM_FLAGSAVE_LIST
+Fichiers signalés pour la sauvegarde :
+.
+:PROGRAM_FLAGSAVE_HLP
+Marque ou signale les fichiers pour la fonctionnalité de sauvegarde de l'état.
+
+FLAGSAVE [file(s) [/F] [/R]] [/U]
+
+  file(s)     Spécifie un ou plusieurs fichiers à signaler pour la sauvegarde.
+  /F          Force à signaler le(s) fichier(s) même si introuvable.
+  /R          Enlève le signalement des fichiers spécifiés.
+  /U          Enlève le signalement de tous les fichiers signalés.
+
+Taper FLAGSAVE sans un paramètre pour lister les fichiers signalés.
+
+.
+:PROGRAM_INT2FDBG_NOT_SET
+Le crochet INT 2Fh n'est pas activé.
+
+.
+:PROGRAM_INT2FDBG_ALREADY
+Le crochet INT 2Fh est déjà activé.
+
+.
+:PROGRAM_INT2FDBG_HELP
+Active INT 2Fh pour des besoins de débogage.
+
+INT2FDBG [option]
+  /I      Installe le crochet
+  
+Il accrochera INT 2Fh au sommet de la chaîne d'appels pour les informations de débogage.
+
+Taper INT2FDBG sans un paramètres pour montrer le status du crochet.
+.
+:PROGRAM_SET80x25
+Change en mode texte 80x25.
+.
+:PROGRAM_SET80x43
+Change en mode texte 80x43.
+.
+:PROGRAM_SET80x50
+Change en mode texte 80x50.
+.
+:PROGRAM_SET80x60
+Change en mode texte 80x60.
+.
+:PROGRAM_SET132x25
+Change en mode texte 132x25.
+.
+:PROGRAM_SET132x43
+Change en mode texte 132x43.
+.
+:PROGRAM_SET132x50
+Change en mode texte 132x50.
+.
+:PROGRAM_SET132x60
+Change en mode texte 132x60.
+.
+:PROGRAM_RESCAN_HELP
+Ré-analyse pour les changements effectués sur les disques montés sur l'hôte en vidant les caches.
+
+RESCAN [/A] [/Q]
+RESCAN [drive:] [/Q]
+
+  [/A]     Ré-analyse tous les disques
+  [/Q]     Active le mode silencieux
+  [drive:] Le lecteur à ré-analyser
+
+Taper RESCAN sans paramètres pour ré-analyser le lecteur courant.
+
+.
+:PROGRAM_CFGTOOL_HELP
+Démarre l'outil de configuration graphique de DOSBox-X.
+
+CFGTOOL
+
+Note: Vous pouvez aussi utiliser la commande CONFIG pour une configuration en ligne de commande.
+.
