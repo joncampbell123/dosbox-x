@@ -1,7 +1,8 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
 :DOSBOX-X:VERSION:2025.02.01
-:DOSBOX-X:REMARK:建議將國家和字碼頁設為 886,950 並搭配中文字型; 或使用 cht 或 tw 中文 DOS/V 模式以直接支援中文顯示和列印
+:DOSBOX-X:REMARK:國家和字碼頁可以設為「886,950」並選擇適合的中文字型來進行中文顯示和列印。
+:DOSBOX-X:REMARK:譯者註：可至 https://github.com/1abcd/dosbox-x/issues/2 下載適用於 PC-98 模式的中文語言。
 :AUTOEXEC_CONFIGFILE_HELP
 區段中的指令行會在啟動時執行.
 您可以在這裡下達 MOUNT 指令.
@@ -136,7 +137,7 @@ DOSBox-X 記錄輸出
 已掛載的磁碟機編號
 .
 :IDE_CONTROLLER_ASSIGNMENT
-IDE 控制器分配狀態
+IDE 控制器的位置分配
 .
 :HELP_COMMAND
 DOS 命令說明
@@ -309,10 +310,10 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 -ln (或 -langname) 顯示 (不加引數時) 或指定語言名稱.
 -wcp [檔名] 將組態檔案寫入程式目錄 (dosbox-x.conf 或指定檔名).
 -wcd 寫入設定目錄中的預設組態檔案.
--all, -mod 與 -wc、-wcp 或 -wcd 一起使用以寫入「所有的」或者修改過的組態選項.
--wcboot、-wcpboot 或 -wcdboot 將在寫入組態檔案後自動重開 DOSBox-X.
+-all, -mod 與 -wc、-wcp、或 -wcd 一起使用以寫入「所有的」或者修改過的組態選項.
+-wcboot、-wcpboot、或 -wcdboot 將在寫入組態檔案後自動重開 DOSBox-X.
 -bootconf (或 -bc) 重開 DOSBox-X 並載入指定的組態檔案 (或已載入的主組態檔案).
--norem 與 -wc、-wcp 或 -wcd 一起使用時不寫入組態檔案的註解.
+-norem 與 -wc、-wcp、或 -wcd 一起使用時不寫入組態檔案的註解.
 -l 列出 DOSBox-X 程式的設定參數.
 -h, -help, -? 顯示本說明; 加上英文單字 "sections" 以顯示區段清單.
 -h, -help, -? 區段 或 屬性 顯示指定區段或屬性的資訊.
@@ -428,7 +429,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_CDROMS_FOUND
-找到的光碟機數: %d
+找到的光碟機數: %d 台
 
 .
 :PROGRAM_MOUNT_STATUS_FORMAT
@@ -440,7 +441,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_RAMDRIVE
-磁碟機 %c 掛載為記憶體磁碟機
+磁碟機 %c 掛載為 RAM 磁碟機
 
 .
 :PROGRAM_MOUNT_STATUS_2
@@ -553,7 +554,7 @@ MOUSE [/?] [/U] [/V]
 [32;1mMOUNT c %s -nocachedir [0m  - 掛載磁碟機 C: 且不使用磁碟機快取
 [32;1mMOUNT c %s -freesize 128[0m - 掛載磁碟機 C: 並報告剩餘磁碟空間為 128MB
 [32;1mMOUNT c %s -u[0m            - 強制掛載磁碟機 C: 即使之前已掛載
-[32;1mMOUNT c %s -t overlay[0m  - 將重疊目錄掛載到磁碟機 C: 上面
+[32;1mMOUNT c %s -t overlay[0m  - 掛載磁碟機 C: 並加上重疊目錄
 [32;1mMOUNT c -u[0m                        - 卸載磁碟機 C:
 
 .
@@ -594,18 +595,18 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_OVERLAY_MIXED_BASE
-指定的重疊目錄需與下方磁碟機所設定的定址方式相同, 不能混合相對路徑和絕對路徑.
+重疊目錄需與原先磁碟機所使用的定址方式相同, 不能混用相對路徑和絕對路徑.
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
-重疊目錄不能與下方磁碟機的目錄相同.
+重疊目錄不能與原先磁碟機的目錄相同.
 
 .
 :PROGRAM_MOUNT_OVERLAY_ERROR
-嘗試掛載重疊目錄到磁碟機上時發生錯誤.
+建立帶有重疊目錄的磁碟機時發生錯誤.
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-重疊目錄 %s 已掛載到磁碟機 %c 上.
+重疊目錄 %s 已被加到磁碟機 %c 上.
 
 .
 :PROGRAM_LOADFIX_ALLOC
@@ -652,7 +653,7 @@ MSCDEX 已安裝.
 
 .
 :MSCDEX_ERROR_MULTIPLE_CDROMS
-MSCDEX 錯誤: 多個光碟機的英文代號應保持連續.
+MSCDEX 錯誤: 多台光碟機的英文代號應保持連續.
 
 .
 :MSCDEX_ERROR_NOT_SUPPORTED
@@ -668,7 +669,7 @@ MSCDEX 錯誤: 無效的檔案或無法開啟檔案.
 
 .
 :MSCDEX_TOO_MANY_DRIVES
-MSCDEX 錯誤: 光碟機數量過多 (最多5個). MSCDEX 安裝失敗.
+MSCDEX 錯誤: 光碟機數量過多 (最多5台). MSCDEX 安裝失敗.
 
 .
 :MSCDEX_LIMITED_SUPPORT
@@ -688,7 +689,7 @@ MSCDEX 錯誤: 未知錯誤.
 
 .
 :PROGRAM_INTRO
-[2J[32;1m歡迎使用 DOSBox-X[0m, 支援聲音和影像且開放原始碼的 x86 模擬器.
+[2J[32;1m歡迎使用 DOSBox-X[0m, 支援聲音和圖像且開放原始碼的 x86 模擬器.
 DOSBox-X 建立一個 DOS 環境讓您彷彿正在使用原本的 DOS 系統.
 
 [31;1mDOSBox-X 如果遇到錯誤將會在未警告的情況下停止運作或結束![0m
@@ -731,7 +732,7 @@ DOSBox-X 建立一個 DOS 環境讓您彷彿正在使用原本的 DOS 系統.
 .
 :PROGRAM_INTRO_MENU_INFO_HELP
 
-[1m   [1m[K怎樣獲得關於 DOSBox-X 的更多資訊.[0m
+[1m   [1m[K如何獲得更多關於 DOSBox-X 的資訊.[0m
 
 .
 :PROGRAM_INTRO_MENU_QUIT_HELP
@@ -814,7 +815,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 [34;1mhttps://dosbox-x.com/[0m 或 [34;1mhttp://dosbox-x.software[0m
 
-關於 DOSBox-X 的更多資訊, 請造訪其 Wiki 系統:
+更多關於 DOSBox-X 的資訊, 請造訪其 Wiki 系統:
 
 [34;1mhttps://dosbox-x.com/wiki[0m
 
@@ -887,7 +888,7 @@ DOSBox-X 提供多程度的光碟機模擬.
 您可以在此命令中使用多個軟碟映像檔, 並可透過選單指令進行切換.
 "磁碟機:" 將從指定的已掛載的磁碟機開機. 如果沒有指定磁碟機代號,
 將預設從磁碟機 A: 開機. 如果沒有指定參數將試著從目前磁碟機開機.
-只支援從以下磁碟機代號開機: A:、C:, 以及 D:. 如果要從硬碟機
+只支援從以下磁碟機代號開機: A:、C:、以及 D:. 如果要從硬碟機
 (C: 或 D:) 開機, 請保證映像檔已用 [34;1mIMGMOUNT[0m 命令掛載.
 
 此命令的語法為如下之一:
@@ -896,8 +897,8 @@ DOSBox-X 提供多程度的光碟機模擬.
 
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L 磁碟機代號][0m
 
-備註: 如果映像檔以冒號 (:) 開頭將以防寫模式開機, 如果以下組態選項已啟用:
-leading colon write protect image = true
+備註: 如果啟用了 "leading colon write protect image" 組態選項,
+      前導字元冒號 (:) 帶頭的映像檔, 將會以防寫模式開機.
 
 舉例:
 
@@ -1082,13 +1083,13 @@ BIOSTEST 映像檔
 [32;1mIMGMOUNT[0m [37;1m磁碟機編號[0m [36;1m檔案[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl 數字]
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [36;1m檔案[0m [-t iso] [-fs iso]
 [32;1mIMGMOUNT[0m [37;1m磁碟機[0m [-t floppy] -bootcd 光碟機代號 (或 -el-torito 光碟機代號)
-[32;1mIMGMOUNT[0m [37;1m磁碟機[0m -t ram -size 大小
+[32;1mIMGMOUNT[0m [37;1m磁碟機[0m -t ram -size 容量大小
 [32;1mIMGMOUNT[0m -u [37;1m磁碟機|磁碟機編號[0m (或 [32;1mIMGMOUNT[0m [37;1m磁碟機|磁碟機編號[0m [36;1m檔案[0m [選項] -u)
  [37;1m磁碟機[0m              映像檔要掛載到的磁碟機代號.
  [37;1m磁碟機編號[0m          要掛載到的磁碟機編號, 其中 0-1 為軟碟機, 2-5 為硬碟機.
  [36;1m檔案[0m                映像檔名稱, 如果未指定將使用 [33;1mIMGMAKE.IMG[0m.
  -t iso              映像類型為光碟 iso 或 cue / bin 映像.
- -t hdd|floppy|ram   映像類型為硬碟 (包括 VHD/HDI 映像)|軟碟|記憶體磁碟機.
+ -t hdd|floppy|ram   映像類型為硬碟 (包括 VHD/HDI 映像)|軟碟|RAM 磁碟機.
  -fs iso             檔案系統為 ISO 9660 (對於 .iso/.cue 檔案已自動假定).
  -fs fat             檔案系統為 FAT - 支援 FAT12、FAT16 及 FAT32.
  -fs none            不要檢測檔案系統 (在提供磁碟機編號時已自動假定).
@@ -1097,7 +1098,7 @@ BIOSTEST 映像檔
  -size size|ss,s,h,c 指定大小 KB 數, 或磁區大小和 CHS 版面.
  -bootcd 光碟機代號  指定載入開機磁片映像所用的光碟機代號.
  -o partidx=數字     指定要掛載為磁碟機的硬碟分割區編號.
- -ro                 以唯讀模式掛載映像檔 (或用 ':' 首碼表示唯讀).
+ -ro                 以唯讀模式掛載映像檔 (或用前導字元 ':' 表示唯讀).
  -u                  卸載磁碟機或磁碟機編號.
  [32;1m-examples           顯示用法舉例.[0m
 .
@@ -1116,7 +1117,7 @@ BIOSTEST 映像檔
                                    磁碟機 A:, 可在選單中用 "切換軟碟映像" 指令
                                    進行切換, 其中 dsk1.img 映像檔為唯讀
   [32;1mIMGMOUNT A -bootcd D[0m           - 從光碟機 D: 中掛載開機磁片映像為磁碟機 A:
-  [32;1mIMGMOUNT C -t ram -size 10000[0m  - 將硬碟機 C: 掛載為 10MB 記憶體磁碟機
+  [32;1mIMGMOUNT C -t ram -size 10000[0m  - 將硬碟機 C: 掛載為 10MB RAM 磁碟機
   [32;1mIMGMOUNT D d.img -o partidx=4[0m  - 將 d.img 的第一個邏輯分割區掛載為磁碟機 D:
   [32;1mIMGMOUNT C disk.img -u[0m         - 強制將硬碟映像檔 disk.img 掛載為磁碟機 C:,
                                    如果之前磁碟機已掛載則將自動卸載
@@ -1136,14 +1137,14 @@ BIOSTEST 映像檔
      hd_8gig: 8GB, hd_st251: 40MB, hd_st225: 20MB (舊磁碟機版面)
     [33;1m自訂硬碟:[0m hd vhd (需要 -size 或 -chs)
   -size: 自訂硬碟映像的大小 MB 數 (vhd: 上限 2088960).
-  -chs: CHS 磁碟版面: 磁柱(1-1023),磁頭(1-255),磁區(1-63).
+  -chs: 磁碟版面, 使用 磁柱(1-1023),磁頭(1-255),磁區(1-63) 定址方式.
   -nofs: 如果想建立空白映像檔請加入此參數.
-  -force: 覆寫已存在的映像檔. -chs / -lba: 選擇 C/H/S 或者 LBA.
+  -force: 強制覆寫已存在的映像檔. -chs / -lba: 選擇 C/H/S 或者 LBA.
   -bat: 建立一個包含 IMGMOUNT 命令的批次檔以掛載此映像檔.
-  -fat: 檔案系統類型 (12、16, 或 32). -fatcopies: FAT 表格複本數.
-  -spc: 每個磁簇所包含的磁區數 (必須為 2 的冪次方). -label 磁碟機標籤.
+  -fat: 檔案系統類型 (12、16、或 32). -fatcopies: 指定 FAT 表格複本數.
+  -spc: 指定每個叢集所包含的磁區數 (必須為 2 的冪次方). -label 磁碟機標籤.
   -rootdir: 根目錄下的項目數. -partofs: 硬碟分割區開始位置.
-  -align: 對齊檔案系統結構. 指定磁區數, 或在字尾加上 'K' 對應 KB.
+  -align: 對齊檔案系統結構. 指定磁區數, 或加上 'K' 尾碼表示 KB.
   -source: 軟碟機代號 - 如果指定了此參數, 映像檔將從軟碟機中的磁片讀取.
   -retries: 當試圖從已損壞磁片中讀取時所需的重試次數 (1-99).
   [32;1m-examples: 顯示用法舉例.[0m
@@ -1151,15 +1152,15 @@ BIOSTEST 映像檔
 :PROGRAM_IMGMAKE_EXAMPLE
 一些關於 IMGMAKE 命令的舉例:
 
-  [32;1mIMGMAKE -t fd[0m                   - 建立 1.44MB 軟碟映像檔 [33;1mIMGMAKE.IMG[0m
-  [32;1mIMGMAKE -t fd_1440 -force[0m       - 強制建立軟碟映像檔 [33;1mIMGMAKE.IMG[0m
-  [32;1mIMGMAKE dos.img -t fd_2880[0m      - 建立 2.88MB 軟碟映像檔 dos.img
-  [32;1mIMGMAKE new.vhd -t vhd -size 520[0m- 建立 520MB 動態擴充的 VHD 檔案 new.vhd
+  [32;1mIMGMAKE -t fd[0m                    - 建立 1.44MB 軟碟映像檔 [33;1mIMGMAKE.IMG[0m
+  [32;1mIMGMAKE -t fd_1440 -force[0m        - 強制建立軟碟映像檔 [33;1mIMGMAKE.IMG[0m
+  [32;1mIMGMAKE dos.img -t fd_2880[0m       - 建立 2.88MB 軟碟映像檔 dos.img
+  [32;1mIMGMAKE new.vhd -t vhd -size 520[0m - 建立 520MB 動態擴充的 VHD 檔案 new.vhd
   [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - 建立 50MB 硬碟映像檔 c:\disk.img
   [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - 建立 520MB 空白硬碟映像檔
   [32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32[0m  - 建立 2GB FAT32 硬碟映像檔
   [32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17[0m - 以指定的 CHS 版面建立硬碟映像檔
-  [32;1mIMGMAKE c:\disk.img -source a[0m           - 從實體磁碟機 A: 中讀取映像
+  [32;1mIMGMAKE c:\disk.img -source a[0m           - 從實體軟碟機 A: 中讀取映像
 
 .
 :PROGRAM_IMGMAKE_FLREAD
@@ -1185,7 +1186,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
-建立映像檔 "%s", 包含了 %u 個磁柱、%u 個磁頭和 %u 個磁區
+建立映像檔 "%s", 包含了 %u 個磁柱、%u 個磁頭、%u 個磁區
 
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
@@ -1278,8 +1279,8 @@ LABEL [磁碟機:][標籤]
 :PROGRAM_MODE_USAGE
 設定系統裝置.
 
-[34;1mMODE[0m 顯示類型           :顯示類型的代碼有 [1mCO80[0m、[1mBW80[0m、[1mCO40[0m、[1mBW40[0m, 或 [1mMONO[0m
-[34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :欄數與列數, c=80 或 132, n=25、43、50, 或 60
+[34;1mMODE[0m 顯示類型           :顯示類型的代碼有 [1mCO80[0m、[1mBW80[0m、[1mCO40[0m、[1mBW40[0m、或 [1mMONO[0m
+[34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :欄數與列數, c=80 或 132, n=25、43、50、或 60
 [34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :鍵盤輸入速率與延遲, r=1-32 (32=最快), d=1-4 (1=最低)
 
 .
@@ -1345,7 +1346,7 @@ VHD "%s" 的類型是 %s.
 
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
-不能移除快照 "%s", 你得必須自己動手移除!
+不能移除快照 "%s", 必須要由您自己動手移除!
 
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
@@ -1360,8 +1361,8 @@ VHD "%s" 的類型是 %s.
 
 .
 :PROGRAM_VHDMAKE_ABSPATH
-警告: 鏈結至父檔案的絕對路徑禁止了檔案可攜性.
-請優先使用差異映像檔的相對路徑!
+警告: 鏈結至父檔案的絕對路徑阻止了檔案可攜性.
+請優先使用差異映像檔之相對路徑!
 
 .
 :PROGRAM_VHDMAKE_HELP
@@ -1532,7 +1533,7 @@ TIME [[/T] [/H] | 時間]
 
 .
 :SHELL_CMD_RMDIR_ERROR
-路徑無效、不是目錄, 或目錄非空 - %s
+路徑無效、不是目錄、或目錄非空 - %s
 
 .
 :SHELL_CMD_RMDIR_FULLTREE_CONFIRM
@@ -1897,7 +1898,7 @@ SET [變數名稱=[字串]]
    變數名稱   指定環境變數名稱.
    字串       指定設定給變數的一系列字元.
 
-* 如果沒有指定字串, 指定的環境變數將被移除.
+＊如果沒有指定字串, 指定的環境變數將被移除.
 
 輸入不含參數的 SET 命令顯示目前環境變數.
 
@@ -2198,14 +2199,14 @@ PROMPT [文字]
   文字    指定新的命令提示字元.
 
 提示字元可以由一般字元和以下特殊代碼組成:
-  $A   & (and 符號)
+  $A   & (and 符號 (ampersand))
   $B   | (直線)
   $C   ( (左括弧)
   $D   目前日期
-  $E   跳脫字元代碼 (美國標準資訊交換碼 (ASCII) 內碼 27)
+  $E   跳脫碼 (美國標準資訊交換碼 (ASCII) 內碼 27)
   $F   ) (右括弧)
   $G   > (大於符號)
-  $H   退位字元 (清除前一個字元)
+  $H   退位字元(BS) (清除前一個字元)
   $L   < (小於符號)
   $N   目前磁碟機
   $P   目前磁碟機和路徑
@@ -2236,7 +2237,7 @@ ALIAS [名稱[=值] ... ]
 ASSOC [.副檔名[=命令] ... ]
 
 輸入不含參數的 ASSOC 命令以顯示目前的檔案關聯性.
-副檔名必須以點(.)開頭; 允許使用萬用字元(*和?).
+副檔名必須以點 (.) 開頭; 允許使用萬用字元 (* 和 ?).
 
 .
 :SHELL_CMD_CHCP_HELP
@@ -2255,7 +2256,7 @@ CHCP nnn[:[語言]]
 
 437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021
 
-以及雙位元組字碼頁, 包括: 932, 936, 949, 950/951
+以及雙位元組字碼頁, 包括: 932、936、949、950/951
 
 通過提供字碼頁檔案來支援自訂的字碼頁.
 
@@ -2343,28 +2344,28 @@ DEBUGBOX [命令] [選項]
 
 .
 :SHELL_STARTUP_HEAD1_PC98
-[36mGetting Started with DOSBox-X:[37m                                    
+[36m輕鬆上手 DOSBox-X:[37m                                                
 .
 :SHELL_STARTUP_TEXT1_PC98
-Type [32mHELP[37m for shell commands, and [32mINTRO[37m for a short introduction. 
-You could also complete various tasks through the [33mdrop-down menus[37m.
+輸入 [32mHELP[37m 命令檢視 DOS 命令清單，輸入 [32mINTRO[37m 命令進入簡短介紹。    
+汝同樣可以透過 DOSBox-X 所帶的[33m下拉式選單[37m來完成各種操作和功能。    
 .
 :SHELL_STARTUP_EXAMPLE_PC98
-[32mExample[37m: Try select [33mTrueType font[37m or [33mOpenGL perfect[37m output option.
+[32m舉例[37m：汝可以試著選擇 [33mTrueType 字型[37m或者 [33mOpenGL perfect[37m 輸出選項。  
 .
 :SHELL_STARTUP_TEXT2_PC98
-To launch the [33mConfiguration Tool[37m, use [31mhost+C[37m. Host key is [32mF11[37m.    
-To activate the [33mMapper Editor[37m for key assignments, use [31mhost+M[37m.    
-To switch between windowed and full-screen mode, use [31mhost+F[37m.      
-To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[37m.   
+啓動[33m組態工具[37m                  使用 [31m主機鍵+C[37m；其中主機鍵是 [32mF11[37m。   
+啓動[33m對應表編輯器[37m（按鍵設定）  使用 [31m主機鍵+M[37m。                     
+切換視窗和全螢幕模式          使用 [31m主機鍵+F[37m。                     
+調整 CPU 模擬速度             使用 [31m主機鍵+加號[37m 與 [31m主機鍵+減號[37m。   
 .
 :SHELL_STARTUP_INFO_PC98
-[36mDOSBox-X is now running in [32mJapanese NEC PC-98[36m emulation mode.[37m     
+[36mDOSBox-X 目前在[32m日本 NEC PC-98[36m 模擬模式下運作。[37m                    
 .
 :SHELL_STARTUP_TEXT3_PC98
-[32mDOSBox-X project [33mhttps://dosbox-x.com/     [36mComplete DOS emulations[37m
-[32mDOSBox-X guide   [33mhttps://dosbox-x.com/wiki[37m [36mDOS, Windows 3.x and 9x[37m
-[32mDOSBox-X support [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
+[32mDOSBox-X 首頁 [33mhttps://dosbox-x.com/        [36mComplete DOS emulations[37m
+[32mDOSBox-X 指南 [33mhttps://dosbox-x.com/wiki   [37m [36mDOS, Windows 3.x and 9x[37m
+[32mDOSBox-X 支援 [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m   
 .
 :SHELL_STARTUP_DOSV
 [32mDOS/V 模式[37m正在執行中。 您亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。 
@@ -2506,31 +2507,31 @@ CPU 類型
 486DX5 133MHz (約 47810 個週期)
 .
 :MENU:cpu586-60
-奔騰 60MHz (約 31545 個週期)
+奔騰 60MHz (約 32090 個週期)
 .
 :MENU:cpu586-66
 奔騰 66MHz (約 35620 個週期)
 .
 :MENU:cpu586-75
-奔騰 75MHz (約 43500 個週期)
+奔騰 75MHz (約 40072 個週期)
 .
 :MENU:cpu586-90
-奔騰 90MHz (約 52000 個週期)
+奔騰 90MHz (約 48087 個週期)
 .
 :MENU:cpu586-100
-奔騰 100MHz (約 60000 個週期)
+奔騰 100MHz (約 53430 個週期)
 .
 :MENU:cpu586-120
-奔騰 120MHz (約 74000 個週期)
+奔騰 120MHz (約 64180 個週期)
 .
 :MENU:cpu586-133
-奔騰 133MHz (約 80000 個週期)
+奔騰 133MHz (約 71240 個週期)
 .
 :MENU:cpu586-166
-奔騰 166MHz MMX (約 97240 個週期)
+奔騰 166MHz MMX (約 95548 個週期)
 .
-:MENU:cpuak6-166
-AMD K6 166MHz (約 110000 個週期)
+:MENU:cpu586-200
+奔騰 200MHz MMX (約 114657 個週期)
 .
 :MENU:cpuak6-200
 AMD K6 200MHz (約 130000 個週期)
@@ -2713,7 +2714,7 @@ xBRZ
 xBRZ Bilinear
 .
 :MENU:center_window
-Center window
+將視窗置中
 .
 :MENU:set_titletext
 設定標題列文字...
@@ -2932,10 +2933,10 @@ PC-98 選項
 Glide 直通
 .
 :MENU:load_d3d_shader
-選擇 Direct3D 像素著色檔案...
+選擇 Direct3D 像素著色器...
 .
 :MENU:load_glsl_shader
-選擇 OpenGL (GLSL) 著色檔案...
+選擇 OpenGL (GLSL) 著色器...
 .
 :MENU:load_ttf_font
 選擇 TrueType 字型 (TTF/OTF)...
@@ -3586,7 +3587,7 @@ Alt+Shift
 顯示偵錯工具
 .
 :MAPPER:decsize
-Decrease TTF size
+縮小 TTF 字型
 .
 :MAPPER:dynamic
 CPU: 動態核心
@@ -3598,7 +3599,7 @@ CPU: 動態核心
 CPU: 完全核心
 .
 :MAPPER:incsize
-Increase TTF size
+放大 TTF 字型
 .
 :MAPPER:loadmap
 載入對應表檔案
@@ -3610,13 +3611,13 @@ Increase TTF size
 CPU: 一般核心
 .
 :MAPPER:paste
-Paste from clipboard
+將剪貼簿內容貼上
 .
 :MAPPER:pasteend
-Stop clipboard paste
+停止將剪貼簿內容貼上
 .
 :MAPPER:pauseints
-Pause with interrupt
+暫停並啟用插斷
 .
 :MAPPER:prevslot
 上一個儲存欄位
@@ -3631,7 +3632,7 @@ Pause with interrupt
 重開 DOS 系統
 .
 :MAPPER:recmtwave
-Record to multi-track AVI
+錄製音訊到多軌 AVI
 .
 :MAPPER:rescanall
 重新整理磁碟機
@@ -3643,11 +3644,109 @@ Record to multi-track AVI
 重設色彩配置
 .
 :MAPPER:showstate
-Display state info
+顯示狀態資訊
 .
 :MAPPER:simple
 CPU: 簡單核心
 .
 :MAPPER:togmenu
 切換選單列顯示
+.
+:PROGRAM_FLAGSAVE_UNFLAGALL
+所有檔案的儲存標記已移除.
+
+.
+:PROGRAM_FLAGSAVE_UNFLAGGED
+檔案 %s 的儲存標記已移除.
+
+.
+:PROGRAM_FLAGSAVE_FLAGGED
+檔案早已加上儲存標記 - %s
+
+.
+:PROGRAM_FLAGSAVE_TOOMANY
+要加上儲存標記的檔案太多.
+
+.
+:PROGRAM_FLAGSAVE_SAVED
+檔案 %s 已加上儲存標記
+
+.
+:PROGRAM_FLAGSAVE_LIST
+檔案已加上儲存標記:
+.
+:PROGRAM_FLAGSAVE_HLP
+替儲存狀態功能把要儲存的檔案加記號或標記出來.
+
+FLAGSAVE [檔案 [/F] [/R]] [/U]
+
+  檔案        指定一個或多個要加上儲存標記的檔案.
+  /F          即使檔案找不到, 也要強制加上標記.
+  /R          移除指定檔案的標記.
+  /U          移除所有被標記檔案的標記.
+
+輸入不含參數的 FLAGSAVE 命令列出被標記的檔案.
+
+.
+:PROGRAM_INT2FDBG_NOT_SET
+INT 2Fh 勾點尚未設定.
+
+.
+:PROGRAM_INT2FDBG_ALREADY
+INT 2Fh 勾點已經設定.
+
+.
+:PROGRAM_INT2FDBG_HELP
+以偵錯為目的攔截 INT 2Fh.
+
+INT2FDBG [選項]
+  /I      安裝勾點
+  
+將在呼叫鏈的最上層攔截 INT 2Fh 來取得偵錯資訊.
+
+輸入不含參數的 INT2FDBG 命令顯示目前的攔截狀態.
+.
+:PROGRAM_SET80x25
+變更為 80x25 文字模式.
+.
+:PROGRAM_SET80x43
+變更為 80x43 文字模式.
+.
+:PROGRAM_SET80x50
+變更為 80x50 文字模式.
+.
+:PROGRAM_SET80x60
+變更為 80x60 文字模式.
+.
+:PROGRAM_SET132x25
+變更為 132x25 文字模式.
+.
+:PROGRAM_SET132x43
+變更為 132x43 文字模式.
+.
+:PROGRAM_SET132x50
+變更為 132x50 文字模式.
+.
+:PROGRAM_SET132x60
+變更為 132x60 文字模式.
+.
+:PROGRAM_RESCAN_HELP
+清除快取, 重新整理已掛載的磁碟機, 以獲得在主機系統上所作的變更.
+
+RESCAN [/A] [/Q]
+RESCAN [磁碟機:] [/Q]
+
+  [/A]      重新整理所有磁碟機
+  [/Q]      啟用安靜模式
+  [磁碟機:] 要重新整理的磁碟機
+
+輸入不含參數的 RESCAN 來重新整理目前磁碟機.
+
+.
+:PROGRAM_CFGTOOL_HELP
+啟動 DOSBox-X 程式的圖形介面組態工具.
+
+CFGTOOL
+
+備註: 您也可以使用 CONFIG 命令以進行命令列介面的組態設定.
 .
