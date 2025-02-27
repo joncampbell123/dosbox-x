@@ -2319,7 +2319,7 @@ public:
             }
 
             if (el_torito_rba == (~0ul) || el_torito_sectors == 0) {
-                    WriteOut("Unable to locate bootable section\n");
+                    WriteOut(MSG_Get("PROGRAM_ELTORITO_BOOTABLE_SECTION"));
                     return;
             }
 
@@ -2337,7 +2337,7 @@ public:
 
             for (unsigned int s=0;s < bootcdsect;s++) {
                 if (!src_drive->ReadSectorsHost(entries, false, el_torito_rba+s, 1)) {
-                    WriteOut("El Torito boot sector unreadable\n");
+                    WriteOut(MSG_Get("PROGRAM_ELTORITO_BOOTSECTOR"));
                     return;
                 }
 
@@ -2513,14 +2513,14 @@ public:
 
         if (!bootbyDrive) {
             if (i == 0) {
-                if (!quiet) WriteOut("No images specified");
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_NOT_SPECIFIED"));
                 return;
             }
 
             if (i > 1) {
                 /* if more than one image is given, then this drive becomes the focus of the swaplist */
                 if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
-                    if (!quiet) WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
+                    if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_SWAP_ALREADY"));
                     return;
                 }
                 else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
@@ -2584,7 +2584,7 @@ public:
         // It depends on the fd_type field of the image.
         if (!force && imageDiskList[drive-65]->class_id == imageDisk::ID_D88) {
             if (reinterpret_cast<imageDiskD88*>(imageDiskList[drive-65])->fd_type_major == imageDiskD88::DISKTYPE_2D) {
-                if (!quiet) WriteOut("The D88 image appears to target PC-88 and cannot be booted.");
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_IS_PC88"));
                 return;
             }
         }
@@ -2593,7 +2593,7 @@ public:
         bootSector bootarea;
 
         if (imageDiskList[drive-65]->getSectSize() > sizeof(bootarea)) {
-            if (!quiet) WriteOut("Bytes/sector too large");
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_BPS_TOOLARGE"));
             return;
         }
 
@@ -2646,7 +2646,7 @@ public:
 
         if (!has_read) {
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea) != 0) {
-                if (!quiet) WriteOut("Error reading drive");
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_DRIVE_READERROR"));
                 return;
             }
         }
@@ -9934,6 +9934,11 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_CART_NO_CMDS", "No PCjr cartridge commandos found");
     MSG_Add("PROGRAM_BOOT_BOOTING", "Booting from drive ");
     MSG_Add("PROGRAM_BOOT_UNSUPPORTED", "Unsupported boot mode");
+    MSG_Add("PROGRAM_BOOT_SWAP_ALREADY","Multiple disk images specified and another drive is already connected to the swap list");
+    MSG_Add("PROGRAM_BOOT_NOT_SPECIFIED","No images specified");
+    MSG_Add("PROGRAM_BOOT_IS_PC88","The D88 image appears to target PC-88 and cannot be booted.");
+    MSG_Add("PROGRAM_BOOT_BPS_TOOLARGE","Bytes/sector too large");
+    MSG_Add("PROGRAM_BOOT_DRIVE_READERROR","Error reading drive");
 
     MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file for video BIOS or IBM BASIC.\n\nLOADROM ROM_file\n");
     MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
@@ -10242,6 +10247,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_ELTORITO_NO_BOOT_RECORD","El Torito CD-ROM boot record not found\n");
     MSG_Add("PROGRAM_ELTORITO_ENTRY_UNREADABLE","El Torito entries unreadable\n");
     MSG_Add("PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY","El Torito bootable floppy not found\n");
+    MSG_Add("PROGRAM_ELTORITO_BOOTABLE_SECTION","Unable to locate bootable section\n");
+    MSG_Add("PROGRAM_ELTORITO_BOOTSECTOR","El Torito boot sector unreadable\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
