@@ -1568,7 +1568,7 @@ public:
                           if (dynamic_cast<Overlay_Drive*>(Drives[drive-'A']) != NULL) { /* Yeah, this relies on RTTI but it's probably worth it */
                               /* Let the user know in case experience with other OSes or emulators leads them to think
                                * that they can "stack" overlays by mounting multiple times. */
-                              WriteOut("Existing overlay has been replaced with new overlay.\n");
+                              WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_REPLACE"));
                           }
                           delete Drives[drive-'A'];
                           Drives[drive-'A'] = nullptr;
@@ -2178,13 +2178,13 @@ public:
 
             /* must be valid drive letter, C to Z */
             if (!isalpha(el_torito_cd_drive) || el_torito_cd_drive < 'C') {
-                WriteOut("El Torito emulation requires a proper CD-ROM drive letter\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_LETTER"));
                 return;
             }
 
             /* drive must not exist (as a hard drive) */
             if (imageDiskList[el_torito_cd_drive - 'A'] != NULL) {
-                WriteOut("El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_DRIVE_EXISTS"));
                 return;
             }
 
@@ -2193,14 +2193,14 @@ public:
             /* get the CD-ROM drive */
             CDROM_Interface *src_drive = NULL;
             if (!GetMSCDEXDrive(el_torito_cd_drive - 'A', &src_drive)) {
-                WriteOut("El Torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_NOT_CDDRIVE"));
                 return;
             }
 
             /* "No emulation" boot is the only mode supported at this time.
              * For floppy emulation boot, use IMGMOUNT and then boot the emulated floppy drive. */
             if (el_torito_mode != "noemu") {
-                WriteOut("Unsupported boot mode");
+                WriteOut(MSG_Get("PROGRAM_BOOT_UNSUPPORTED"));
                 return;
             }
 
@@ -2213,7 +2213,7 @@ public:
             unsigned long el_torito_base = 0, boot_record_sector = 0, el_torito_rba = (~0ul), el_torito_load_segment = 0, el_torito_sectors = 0/*VIRTUAL SECTORS*/;
 	    unsigned char el_torito_mediatype = 0;
             if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
-                WriteOut("El Torito CD-ROM boot record not found\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOT_RECORD"));
                 return;
             }
 
@@ -2223,7 +2223,7 @@ public:
 
             /* Step #2: Parse the records. Each one is 32 bytes long */
             if (!src_drive->ReadSectorsHost(entries, false, el_torito_base, 1)) {
-                WriteOut("El Torito entries unreadable\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_ENTRY_UNREADABLE"));
                 return;
             }
 
@@ -2319,7 +2319,7 @@ public:
             }
 
             if (el_torito_rba == (~0ul) || el_torito_sectors == 0) {
-                    WriteOut("Unable to locate bootable section\n");
+                    WriteOut(MSG_Get("PROGRAM_ELTORITO_BOOTABLE_SECTION"));
                     return;
             }
 
@@ -2337,7 +2337,7 @@ public:
 
             for (unsigned int s=0;s < bootcdsect;s++) {
                 if (!src_drive->ReadSectorsHost(entries, false, el_torito_rba+s, 1)) {
-                    WriteOut("El Torito boot sector unreadable\n");
+                    WriteOut(MSG_Get("PROGRAM_ELTORITO_BOOTSECTOR"));
                     return;
                 }
 
@@ -2513,14 +2513,14 @@ public:
 
         if (!bootbyDrive) {
             if (i == 0) {
-                if (!quiet) WriteOut("No images specified");
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_NOT_SPECIFIED"));
                 return;
             }
 
             if (i > 1) {
                 /* if more than one image is given, then this drive becomes the focus of the swaplist */
                 if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
-                    if (!quiet) WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
+                    if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_SWAP_ALREADY"));
                     return;
                 }
                 else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
@@ -2584,7 +2584,7 @@ public:
         // It depends on the fd_type field of the image.
         if (!force && imageDiskList[drive-65]->class_id == imageDisk::ID_D88) {
             if (reinterpret_cast<imageDiskD88*>(imageDiskList[drive-65])->fd_type_major == imageDiskD88::DISKTYPE_2D) {
-                if (!quiet) WriteOut("The D88 image appears to target PC-88 and cannot be booted.");
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_IS_PC88"));
                 return;
             }
         }
@@ -2593,7 +2593,7 @@ public:
         bootSector bootarea;
 
         if (imageDiskList[drive-65]->getSectSize() > sizeof(bootarea)) {
-            if (!quiet) WriteOut("Bytes/sector too large");
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_BPS_TOOLARGE"));
             return;
         }
 
@@ -2646,7 +2646,7 @@ public:
 
         if (!has_read) {
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea) != 0) {
-                if (!quiet) WriteOut("Error reading drive");
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_DRIVE_READERROR"));
                 return;
             }
         }
@@ -3683,7 +3683,7 @@ restart_int:
             if (*s == 'K' || *s == 'k') alignment *= (uint32_t)2u;
 
             if (alignment == (uint32_t)0 || alignment > (uint32_t)2048/*1MB*/) {
-                WriteOut("Invalid alignment");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_ALIGNMENT"));
                 return;
             }
         }
@@ -3945,7 +3945,7 @@ restart_int:
             if (cmd->FindString("-partofs",tmp,true)) {
                 partsector = atoi(tmp.c_str());
                 if (partsector == 0) {
-                    WriteOut("Invalid -partofs\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_PARTOFS"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -3957,7 +3957,7 @@ restart_int:
             if (cmd->FindString("-fat",tmp,true)) {
                 FAT = atoi(tmp.c_str());
                 if (!(FAT == 12 || FAT == 16 || FAT == 32)) {
-                    WriteOut("Invalid -fat option. Must be 12, 16, or 32\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_FAT"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -3969,7 +3969,7 @@ restart_int:
             if (cmd->FindString("-fatcopies",tmp,true)) {
                 fat_copies = atoi(tmp.c_str());
                 if (fat_copies < 1u || fat_copies > 4u) {
-                    WriteOut("Invalid -fatcopies option\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_FATCOPIES"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -3981,14 +3981,14 @@ restart_int:
             if (cmd->FindString("-spc",tmp,true)) {
                 sectors_per_cluster = atoi(tmp.c_str());
                 if (sectors_per_cluster < 1u || sectors_per_cluster > 128u) {
-                    WriteOut("Invalid -spc option, out of range\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_SPC"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
                     return;
                 }
                 if ((sectors_per_cluster & (sectors_per_cluster - 1u)) != 0u) {
-                    WriteOut("Invalid -spc option, must be a power of 2\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_SPC2"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4002,7 +4002,7 @@ restart_int:
             if (cmd->FindString("-rootdir",tmp,true)) {
                 root_ent = atoi(tmp.c_str());
                 if (root_ent < 1u || root_ent > 4096u) {
-                    WriteOut("Invalid -rootdir option\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_ROOTDIR"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4028,7 +4028,7 @@ restart_int:
             }
 
             if (sectors <= (uint64_t)bootsect_pos) {
-                WriteOut("Invalid bootsector position\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_BOOTSECT"));
                 fclose(f);
                 unlink(temp_line.c_str());
                 if (setdir) chdir(dirCur);
@@ -4038,7 +4038,7 @@ restart_int:
 
             if (alignment != 0u) {
                 if ((vol_sectors % alignment) != 0u) {
-                    WriteOut("Sanity check failed: Volume size not aligned\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_VOLUME_ALIGN"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4248,7 +4248,7 @@ restart_int:
 
             if (alignment != 0u) {
                 if ((((uint64_t)sect_per_fat * (uint64_t)fat_copies) % (uint64_t)alignment) != 0u) {
-                    WriteOut("Sanity check failed: FAT tables not aligned\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_FAT_ALIGN"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4257,7 +4257,7 @@ restart_int:
             }
 
             if (FAT < 32 && sect_per_fat > 256u) {
-                WriteOut("Error: Generated filesystem has more than 256 sectors per FAT and is not FAT32\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_SECTPERFAT"));
                 fclose(f);
                 unlink(temp_line.c_str());
                 if (setdir) chdir(dirCur);
@@ -4275,7 +4275,7 @@ restart_int:
 
             if (alignment != 0u) {
                 if ((root_ent_sec % alignment) != 0u) {
-                    WriteOut("Sanity check failed: Volume size not aligned\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_VOLSIZE"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4285,7 +4285,7 @@ restart_int:
 
             /* Too many or to few clusters can foul up FAT12/FAT16/FAT32 detection and cause corruption! */
             if ((clusters+2u) < fatlimitmin) {
-                WriteOut("Error: Generated filesystem has too few clusters given the parameters\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_CLUSTERS"));
                 fclose(f);
                 unlink(temp_line.c_str());
                 if (setdir) chdir(dirCur);
@@ -4293,8 +4293,7 @@ restart_int:
             }
             if ((clusters+2u) > fatlimit) {
                 clusters = fatlimit-2u;
-                WriteOut("Warning: Cluster count is too high given the volume size. Reporting a\n");
-                WriteOut("         smaller sector count.\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_CLUSTERCOUNT"));
                 /* Well, if the user wants an oversized partition, hack the total sectors fields to make it work */
                 uint32_t adj_vol_sectors =
                     (uint32_t)(reserved_sectors + (sect_per_fat * fat_copies) +
@@ -4316,7 +4315,7 @@ restart_int:
              * violate it, but certainly make sure that the first cluster is aligned */
             if (alignment != 0u) {
                 if ((first_cluster % (unsigned long long)alignment) != 0ull) {
-                    WriteOut("Sanity check failed: First cluster not aligned\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_CLUSTER_ALIGN"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4506,7 +4505,7 @@ restart_int:
 
             // warning
             if ((sectors_per_cluster*512ul) >= 65536ul)
-                WriteOut("WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_CLUSTER_SIZE"));
         }
         // write VHD footer if requested
         if((mediadesc == 0xF8) && disktype != "vhd" && !strcasecmp(extension, ".vhd")) {
@@ -4625,10 +4624,7 @@ public:
 
         if(cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("?", true)) {
             resetcolor = true;
-            WriteOut("Swaps floppy, hard drive and optical disc images.\n\n"
-                "\033[32;1mIMGSWAP\033[0m \033[37;1mdrive\033[0m \033[36;1m[position]\033[0m\n"
-                " \033[37;1mdrive\033[0m               Drive letter to swap the image.\n"
-                " \033[36;1m[position]\033[0m          Disk position to swap to.\n");
+            WriteOut(MSG_Get("PROGRAM_IMGSWAP_HELP"));
             return;
         }
         if (!cmd->GetCount()) {
@@ -4747,7 +4743,7 @@ void LOADFIX::Run(void)
                 if (ems) {
                     for (auto i=LOADFIX_ems_handles.begin();i!=LOADFIX_ems_handles.end();i++) {
                         if (EMM_ReleaseMemory(*i))
-                            WriteOut("XMS handle %u: unable to free",*i);
+                            WriteOut(MSG_Get("PROGRAM_LOADFIX_EMS_FREE"),*i);
                     }
                     LOADFIX_ems_handles.clear();
                     WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
@@ -4755,7 +4751,7 @@ void LOADFIX::Run(void)
                 else if (xms) {
                     for (auto i=LOADFIX_xms_handles.begin();i!=LOADFIX_xms_handles.end();i++) {
                         if (XMS_FreeMemory(*i))
-                            WriteOut("XMS handle %u: unable to free",*i);
+                            WriteOut(MSG_Get("PROGRAM_LOADFIX_XMS_FREE"),*i);
                     }
                     LOADFIX_xms_handles.clear();
                     WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
@@ -4785,15 +4781,15 @@ void LOADFIX::Run(void)
 
             err = EMM_AllocateMemory((uint16_t)(kb/16u)/*16KB pages*/,/*&*/handle,false);
             if (err == 0) {
-                WriteOut("EMS block allocated (%uKB)\n",kb);
+                WriteOut(MSG_Get("PROGRAM_LOADFIX_EMS_ALLOC"),kb);
                 LOADFIX_ems_handles.push_back(handle);
             }
             else {
-                WriteOut("Unable to allocate EMS block\n");
+                WriteOut(MSG_Get("PROGRAM_LOADFIX_EMS_ALLOCERROR"));
             }
         }
         else {
-            WriteOut("EMS not active\n");
+            WriteOut(MSG_Get("PROGRAM_LOADFIX_NOEMS"));
         }
     }
     else if (xms) {
@@ -4803,15 +4799,15 @@ void LOADFIX::Run(void)
 
             err = XMS_AllocateMemory(kb,/*&*/handle);
             if (err == 0) {
-                WriteOut("XMS block allocated (%uKB)\n",kb);
+                WriteOut(MSG_Get("PROGRAM_LOADFIX_XMS_ALLOC"),kb);
                 LOADFIX_xms_handles.push_back(handle);
             }
             else {
-                WriteOut("Unable to allocate XMS block\n");
+                WriteOut(MSG_Get("PROGRAM_LOADFIX_XMS_ALLOCERROR"));
             }
         }
         else {
-            WriteOut("XMS not active\n");
+            WriteOut(MSG_Get("PROGRAM_LOADFIX_NOXMS"));
         }
     }
     else {
@@ -4827,7 +4823,7 @@ void LOADFIX::Run(void)
                 }
                 else {
                     DOS_FreeMemory(segment);
-                    WriteOut("Lowest MCB is above 64KB, nothing allocated\n");
+                    WriteOut(MSG_Get("PROGRAM_LOADFIX_NOALLOC"));
                     return;
                 }
             }
@@ -5061,7 +5057,7 @@ public:
 
     void Run(void) override {
 		if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]\n");
+			WriteOut(MSG_Get("PROGRAM_INTRO_HELP"));
 			return;
 		}
         uint8_t attr = DOS_GetAnsiAttr();
@@ -5526,7 +5522,7 @@ class IMGMOUNT : public Program {
 				bdisk_number = atoi(bdisk.c_str());
 				if (bdisk_number < 0 || bdisk_number >= MAX_DISK_IMAGES) return;
 				if (imageDiskList[bdisk_number] == NULL) {
-					WriteOut("BIOS disk index does not have an image assigned");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NOT_ASSIGNED"));
 					return;
 				}
 			}
@@ -5787,14 +5783,14 @@ class IMGMOUNT : public Program {
 						}
 					}
 					else {
-						WriteOut("Invalid mount number\n");
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_NUMBER"));
 					}
 				}
 				newImage->Release();
 				return;
 			}
 			else {
-				WriteOut("Invalid fstype\n");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_FSTYPE"));
 				return;
 			}
 
@@ -5807,7 +5803,7 @@ class IMGMOUNT : public Program {
 			const char * scan;
 			if (str_chs.size() != 0) {
 				if (str_size.size() != 0) {
-					WriteOut("Size and chs parameter cannot both be specified\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SIZE_CHS"));
 					return false;
 				}
 				isCHS = true;
@@ -5833,20 +5829,20 @@ class IMGMOUNT : public Program {
 					val = atoi(number);
 					if (val <= 0) {
 						//out of range
-						WriteOut("Invalid size parameter\n");
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 						return false;
 					}
 					sizes[count++] = (unsigned int)val;
 					index = 0;
 					if (count == 4) {
 						//too many commas
-						WriteOut("Invalid size parameter\n");
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 						return false;
 					}
 				}
 				else if (index >= 19) {
 					//number too large (too many characters, anyway)
-					WriteOut("Invalid size parameter\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 					return false;
 				}
 				else {
@@ -5858,14 +5854,14 @@ class IMGMOUNT : public Program {
 			val = atoi(number);
 			if (val <= 0) {
 				//out of range
-				WriteOut("Invalid size parameter\n");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 				return false;
 			}
 			sizes[count++] = (unsigned int)val;
 			if (isCHS) {
 				if (count == 3) sizes[count++] = 512; //set sector size automatically
 				if (count != 4) {
-					WriteOut("Invalid chs parameter\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 					return false;
 				}
 				Bitu temp = sizes[3]; //hold on to sector size temporarily
@@ -5878,7 +5874,7 @@ class IMGMOUNT : public Program {
 			if (!((type == "ram" && count == 1) || count == 4)) {
 				//ram drives require 1 or 4 numbers
 				//other drives require 4 numbers
-				WriteOut("Invalid size parameter\n");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SIZE"));
 				return false;
 			}
 			return true;
@@ -6088,11 +6084,11 @@ class IMGMOUNT : public Program {
 					WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS"), letter);
 					return true;
 				}
-				WriteOut("Drive number %d is not mounted.\n", index);
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER"), index);
 				return false;
 			}
 			else {
-				WriteOut("Incorrect IMGMOUNT unmount usage.\n");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_UMOUNT_USAGE"));
 				return false;
 			}
 		}
@@ -6108,13 +6104,13 @@ class IMGMOUNT : public Program {
 
 			/* must be valid drive letter, C to Z */
 			if (!isalpha(el_torito_cd_drive) || el_torito_cd_drive < 'C') {
-				WriteOut("El Torito emulation requires a proper CD-ROM drive letter\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_LETTER"));
 				return false;
 			}
 
 			/* drive must not exist (as a hard drive) */
 			if (imageDiskList[el_torito_cd_drive - 'A'] != NULL) {
-				WriteOut("El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_DRIVE_EXISTS"));
 				return false;
 			}
 
@@ -6123,7 +6119,7 @@ class IMGMOUNT : public Program {
 			/* get the CD-ROM drive */
 			CDROM_Interface *src_drive = NULL;
 			if (!GetMSCDEXDrive(el_torito_cd_drive - 'A', &src_drive)) {
-				WriteOut("El Torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_NOT_CDDRIVE"));
 				return false;
 			}
 
@@ -6131,14 +6127,14 @@ class IMGMOUNT : public Program {
 			 *        "Superfloppy" or hard disk emulation modes are not yet implemented.
 			 *        This mode will never support "no emulation" boot. */
 			if (type != "floppy") {
-				WriteOut("El Torito emulation must be used with -t floppy at this time\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_REQUIRE_FLOPPY"));
 				return false;
 			}
 
 			/* Okay. Step #1: Scan the volume descriptors for the Boot Record. */
 			unsigned long el_torito_base = 0, boot_record_sector = 0;
 			if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
-				WriteOut("El Torito CD-ROM boot record not found\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOT_RECORD"));
 				return false;
 			}
 
@@ -6147,7 +6143,7 @@ class IMGMOUNT : public Program {
 
 			/* Step #2: Parse the records. Each one is 32 bytes long */
 			if (!src_drive->ReadSectorsHost(entries, false, el_torito_base, 1)) {
-				WriteOut("El Torito entries unreadable\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_ENTRY_UNREADABLE"));
 				return false;
 			}
 
@@ -6252,7 +6248,7 @@ class IMGMOUNT : public Program {
 			}
 
 			if (el_torito_floppy_type == 0xFF || el_torito_floppy_base == ~0UL) {
-				WriteOut("El Torito bootable floppy not found\n");
+				WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY"));
 				return false;
 			}
 
@@ -6265,7 +6261,7 @@ class IMGMOUNT : public Program {
 			/* NTS: IBM PC systems: Hard disk partitions must start at C: or higher.
 			 *      PC-98 systems: Any drive letter is valid, A: can be a hard drive. */
 			if ((!IS_PC98_ARCH && driveIndex < 2) || driveIndex >= 26) {
-				WriteOut("Invalid drive letter");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_LETTER"));
 				return false;
 			}
 
@@ -6275,7 +6271,7 @@ class IMGMOUNT : public Program {
 			}
 
 			if (src_bios_disk < 2/*no, don't allow partitions on floppies!*/ || src_bios_disk >= MAX_DISK_IMAGES || imageDiskList[src_bios_disk] == NULL) {
-				WriteOut("BIOS disk index does not have an image assigned");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NOT_ASSIGNED"));
 				return false;
 			}
 
@@ -6285,7 +6281,7 @@ class IMGMOUNT : public Program {
 			 *        associated with it. This is a mess inherited from back when this code forked from DOSBox SVN, because
 			 *        DOSBox SVN makes these hardcoded assumptions. */
 			if (driveIndex < MAX_DISK_IMAGES && imageDiskList[driveIndex] != NULL) {
-				WriteOut("Partitions cannot be mounted in conflict with the standard INT 13h hard disk\nallotment. Choose a different drive letter to mount to.");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CHOOSE_LETTER"));
 				return false;
 			}
 
@@ -6309,7 +6305,7 @@ class IMGMOUNT : public Program {
 			(void)sizes;//UNUSED
 
 			if (driveIndex > 1) {
-				WriteOut("Invalid drive letter");
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_LETTER"));
 				return false;
 			}
 
@@ -9730,11 +9726,22 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE","The overlay directory can not be the same as underlying drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_ERROR","An error occurred when trying to create an overlay drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_STATUS","Overlay %s on drive %c mounted.\n");
+    MSG_Add("PROGRAM_MOUNT_OVERLAY_REPLACE", "Existing overlay has been replaced with new overlay.\n");
 
     MSG_Add("PROGRAM_LOADFIX_ALLOC","%d kb allocated.\n");
     MSG_Add("PROGRAM_LOADFIX_DEALLOC","%d kb freed.\n");
     MSG_Add("PROGRAM_LOADFIX_DEALLOCALL","Used memory freed.\n");
     MSG_Add("PROGRAM_LOADFIX_ERROR","Memory allocation error.\n");
+    MSG_Add("PROGRAM_LOADFIX_EMS_FREE","EMS handle %u: unable to free\n");
+    MSG_Add("PROGRAM_LOADFIX_XMS_FREE","XMS handle %u: unable to free\n");
+    MSG_Add("PROGRAM_LOADFIX_EMS_ALLOC","EMS block allocated (%uKB)\n");
+    MSG_Add("PROGRAM_LOADFIX_EMS_ALLOCERROR","Unable to allocate EMS block\n");
+    MSG_Add("PROGRAM_LOADFIX_NOEMS","EMS not active\n");
+    MSG_Add("PROGRAM_LOADFIX_XMS_ALLOC","XMS block allocated (%uKB)\n");
+    MSG_Add("PROGRAM_LOADFIX_XMS_ALLOCERROR","Unable to allocate XMS block\n");
+    MSG_Add("PROGRAM_LOADFIX_NOXMS","XMS not active\n");
+    MSG_Add("PROGRAM_LOADFIX_NOALLOC","Lowest MCB is above 64KB, nothing allocated\n");
+    
     MSG_Add("PROGRAM_LOADFIX_HELP",
         "Loads a program above the first 64 KB memory by reducing the available memory.\n\n"
         "LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]\n"
@@ -9926,6 +9933,12 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
     MSG_Add("PROGRAM_BOOT_CART_NO_CMDS", "No PCjr cartridge commandos found");
     MSG_Add("PROGRAM_BOOT_BOOTING", "Booting from drive ");
+    MSG_Add("PROGRAM_BOOT_UNSUPPORTED", "Unsupported boot mode");
+    MSG_Add("PROGRAM_BOOT_SWAP_ALREADY","Multiple disk images specified and another drive is already connected to the swap list");
+    MSG_Add("PROGRAM_BOOT_NOT_SPECIFIED","No images specified");
+    MSG_Add("PROGRAM_BOOT_IS_PC88","The D88 image appears to target PC-88 and cannot be booted.");
+    MSG_Add("PROGRAM_BOOT_BPS_TOOLARGE","Bytes/sector too large");
+    MSG_Add("PROGRAM_BOOT_DRIVE_READERROR","Error reading drive");
 
     MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file for video BIOS or IBM BASIC.\n\nLOADROM ROM_file\n");
     MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
@@ -10087,7 +10100,24 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating image file \"%s\" with %u cylinders, %u heads and %u sectors\n");
     MSG_Add("PROGRAM_IMGMAKE_CANT_READ_FLOPPY","\n\nUnable to read floppy.");
     MSG_Add("PROGRAM_IMGMAKE_BADSIZE","Wrong -size or -chs arguments.\n");
+    MSG_Add("PROGRAM_IMGMAKE_ALIGNMENT","Invalid alignment\n");
+    MSG_Add("PROGRAM_IMGMAKE_PARTOFS", "Invalid -partofs\n");
+    MSG_Add("PROGRAM_IMGMAKE_FAT","Invalid -fat option. Must be 12, 16, or 32\n");
+    MSG_Add("PROGRAM_IMGMAKE_FATCOPIES","Invalid -fatcopies option\n");
+    MSG_Add("PROGRAM_IMGMAKE_SPC","Invalid -spc option, out of range\n");
+    MSG_Add("PROGRAM_IMGMAKE_SPC2","Invalid -spc option, must be a power of 2\n");
+    MSG_Add("PROGRAM_IMGMAKE_ROOTDIR","Invalid -rootdir option\n");
+    MSG_Add("PROGRAM_IMGMAKE_BOOTSECT", "Invalid bootsector position\n");
+    MSG_Add("PROGRAM_IMGMAKE_VOLUME_ALIGN", "Sanity check failed: Volume size not aligned\n");
+    MSG_Add("PROGRAM_IMGMAKE_FAT_ALIGN", "Sanity check failed: FAT tables not aligned\n");
+    MSG_Add("PROGRAM_IMGMAKE_SECTPERFAT", "Error: Generated filesystem has more than 256 sectors per FAT and is not FAT32\n");
+    MSG_Add("PROGRAM_IMGMAKE_VOLSIZE","Sanity check failed: Volume size not aligned\n");
+    MSG_Add("PROGRAM_IMGMAKE_CLUSTERS","Error: Generated filesystem has too few clusters given the parameters\n");
 
+    MSG_Add("PROGRAM_IMGMAKE_CLUSTERCOUNT", "Warning: Cluster count is too high given the volume size. Reporting a\n         smaller sector count.\n");
+    MSG_Add("PROGRAM_IMGMAKE_CLUSTER_ALIGN","Sanity check failed: First cluster not aligned\n");
+    MSG_Add("PROGRAM_IMGMAKE_CLUSTER_SIZE","WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
+    
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
     MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n\n"
@@ -10193,6 +10223,32 @@ void DOS_SetupPrograms(void) {
             "Starts DOSBox-X's graphical configuration tool.\n\n"
             "CFGTOOL\n\n"
             "Note: You can also use CONFIG command for command-line configurations.\n");
+    MSG_Add("PROGRAM_IMGSWAP_HELP",
+            "Swaps floppy, hard drive and optical disc images.\n\n"
+            "\033[32;1mIMGSWAP\033[0m \033[37;1mdrive\033[0m \033[36;1m[position]\033[0m\n"
+            " \033[37;1mdrive\033[0m               Drive letter to swap the image.\n"
+            " \033[36;1m[position]\033[0m          Disk position to swap to.\n");
+    MSG_Add("PROGRAM_INTRO_HELP",
+            "A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]\n");
+    MSG_Add("PROGRAM_IMGMOUNT_NOT_ASSIGNED","BIOS disk index does not have an image assigned");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_NUMBER","Invalid mount number\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_FSTYPE","Invalid fstype\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_SIZE","Invalid size parameter\n");
+    MSG_Add("PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER","Drive number %d is not mounted.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_UMOUNT_USAGE", "Incorrect IMGMOUNT unmount usage.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_LETTER","Invalid drive letter");
+    MSG_Add("PROGRAM_IMGMOUNT_CHOOSE_LETTER",
+            "Partitions cannot be mounted in conflict with the standard INT 13h hard disk\n"
+            "allotment. Choose a different drive letter to mount to.");
+    MSG_Add("PROGRAM_ELTORITO_LETTER","El Torito emulation requires a proper CD-ROM drive letter\n");
+    MSG_Add("PROGRAM_ELTORITO_DRIVE_EXISTS","El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+    MSG_Add("PROGRAM_ELTORITO_NOT_CDDRIVE","El Torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+    MSG_Add("PROGRAM_ELTORITO_REQUIRE_FLOPPY","El Torito emulation must be used with -t floppy at this time\n");
+    MSG_Add("PROGRAM_ELTORITO_NO_BOOT_RECORD","El Torito CD-ROM boot record not found\n");
+    MSG_Add("PROGRAM_ELTORITO_ENTRY_UNREADABLE","El Torito entries unreadable\n");
+    MSG_Add("PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY","El Torito bootable floppy not found\n");
+    MSG_Add("PROGRAM_ELTORITO_BOOTABLE_SECTION","Unable to locate bootable section\n");
+    MSG_Add("PROGRAM_ELTORITO_BOOTSECTOR","El Torito boot sector unreadable\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
