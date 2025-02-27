@@ -3825,6 +3825,12 @@ El Torito entries unreadable.
 :PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY
 El Torito bootable floppy not found.
 .
+:PROGRAM_ELTORITO_BOOTABLE_SECTION
+Unable to locate bootable section
+.
+:PROGRAM_ELTORITO_BOOTSECTOR
+El Torito boot sector unreadable
+.
 :PROGRAM_IMGMAKE_ALIGNMENT
 Invalid alignment
 .
@@ -3906,4 +3912,19 @@ XMS not active
 .
 :PROGRAM_LOADFIX_NOALLOC
 Lowest MCB is above 64KB, nothing allocated
+.
+:PROGRAM_BOOT_SWAP_ALREADY
+Multiple disk images specified and another drive is already connected to the swap list
+.
+:PROGRAM_BOOT_NOT_SPECIFIED
+No images specified
+.
+:PROGRAM_BOOT_IS_PC88
+The D88 image appears to target PC-88 and cannot be booted.
+.
+:PROGRAM_BOOT_BPS_TOOLARGE
+Bytes/sector too large
+.
+:PROGRAM_BOOT_DRIVE_READERROR
+Error reading drive
 .
