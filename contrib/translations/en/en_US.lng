@@ -3880,3 +3880,30 @@ Unsupported boot mode
 :PROGRAM_MOUNT_OVERLAY_REPLACE
 Existing overlay has been replaced with new overlay.
 .
+:PROGRAM_LOADFIX_EMS_FREE
+EMS handle %u: unable to free
+.
+:PROGRAM_LOADFIX_XMS_FREE
+XMS handle %u: unable to free
+.
+:PROGRAM_LOADFIX_EMS_ALLOC
+EMS block allocated (%uKB)
+.
+:PROGRAM_LOADFIX_EMS_ALLOCERROR
+Unable to allocate EMS block
+.
+PROGRAM_LOADFIX_NOEMS
+EMS not active
+.
+:PROGRAM_LOADFIX_XMS_ALLOC
+XMS block allocated (%uKB)
+.
+:PROGRAM_LOADFIX_XMS_ALLOCERROR
+Unable to allocate XMS block
+.
+:PROGRAM_LOADFIX_NOXMS
+XMS not active
+.
+:PROGRAM_LOADFIX_NOALLOC
+Lowest MCB is above 64KB, nothing allocated
+.

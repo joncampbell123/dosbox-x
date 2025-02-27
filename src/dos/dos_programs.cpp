@@ -4743,7 +4743,7 @@ void LOADFIX::Run(void)
                 if (ems) {
                     for (auto i=LOADFIX_ems_handles.begin();i!=LOADFIX_ems_handles.end();i++) {
                         if (EMM_ReleaseMemory(*i))
-                            WriteOut("XMS handle %u: unable to free",*i);
+                            WriteOut(MSG_Get("PROGRAM_LOADFIX_EMS_FREE"),*i);
                     }
                     LOADFIX_ems_handles.clear();
                     WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
@@ -4751,7 +4751,7 @@ void LOADFIX::Run(void)
                 else if (xms) {
                     for (auto i=LOADFIX_xms_handles.begin();i!=LOADFIX_xms_handles.end();i++) {
                         if (XMS_FreeMemory(*i))
-                            WriteOut("XMS handle %u: unable to free",*i);
+                            WriteOut(MSG_Get("PROGRAM_LOADFIX_XMS_FREE"),*i);
                     }
                     LOADFIX_xms_handles.clear();
                     WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
@@ -4781,15 +4781,15 @@ void LOADFIX::Run(void)
 
             err = EMM_AllocateMemory((uint16_t)(kb/16u)/*16KB pages*/,/*&*/handle,false);
             if (err == 0) {
-                WriteOut("EMS block allocated (%uKB)\n",kb);
+                WriteOut(MSG_Get("PROGRAM_LOADFIX_EMS_ALLOC"),kb);
                 LOADFIX_ems_handles.push_back(handle);
             }
             else {
-                WriteOut("Unable to allocate EMS block\n");
+                WriteOut(MSG_Get("PROGRAM_LOADFIX_EMS_ALLOCERROR"));
             }
         }
         else {
-            WriteOut("EMS not active\n");
+            WriteOut(MSG_Get("PROGRAM_LOADFIX_NOEMS"));
         }
     }
     else if (xms) {
@@ -4799,15 +4799,15 @@ void LOADFIX::Run(void)
 
             err = XMS_AllocateMemory(kb,/*&*/handle);
             if (err == 0) {
-                WriteOut("XMS block allocated (%uKB)\n",kb);
+                WriteOut(MSG_Get("PROGRAM_LOADFIX_XMS_ALLOC"),kb);
                 LOADFIX_xms_handles.push_back(handle);
             }
             else {
-                WriteOut("Unable to allocate XMS block\n");
+                WriteOut(MSG_Get("PROGRAM_LOADFIX_XMS_ALLOCERROR"));
             }
         }
         else {
-            WriteOut("XMS not active\n");
+            WriteOut(MSG_Get("PROGRAM_LOADFIX_NOXMS"));
         }
     }
     else {
@@ -4823,7 +4823,7 @@ void LOADFIX::Run(void)
                 }
                 else {
                     DOS_FreeMemory(segment);
-                    WriteOut("Lowest MCB is above 64KB, nothing allocated\n");
+                    WriteOut(MSG_Get("PROGRAM_LOADFIX_NOALLOC"));
                     return;
                 }
             }
@@ -9732,6 +9732,16 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADFIX_DEALLOC","%d kb freed.\n");
     MSG_Add("PROGRAM_LOADFIX_DEALLOCALL","Used memory freed.\n");
     MSG_Add("PROGRAM_LOADFIX_ERROR","Memory allocation error.\n");
+    MSG_Add("PROGRAM_LOADFIX_EMS_FREE","EMS handle %u: unable to free\n");
+    MSG_Add("PROGRAM_LOADFIX_XMS_FREE","XMS handle %u: unable to free\n");
+    MSG_Add("PROGRAM_LOADFIX_EMS_ALLOC","EMS block allocated (%uKB)\n");
+    MSG_Add("PROGRAM_LOADFIX_EMS_ALLOCERROR","Unable to allocate EMS block\n");
+    MSG_Add("PROGRAM_LOADFIX_NOEMS","EMS not active\n");
+    MSG_Add("PROGRAM_LOADFIX_XMS_ALLOC","XMS block allocated (%uKB)\n");
+    MSG_Add("PROGRAM_LOADFIX_XMS_ALLOCERROR","Unable to allocate XMS block\n");
+    MSG_Add("PROGRAM_LOADFIX_NOXMS","XMS not active\n");
+    MSG_Add("PROGRAM_LOADFIX_NOALLOC","Lowest MCB is above 64KB, nothing allocated\n");
+    
     MSG_Add("PROGRAM_LOADFIX_HELP",
         "Loads a program above the first 64 KB memory by reducing the available memory.\n\n"
         "LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]\n"
