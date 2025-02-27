@@ -3784,3 +3784,164 @@ CFGTOOL
 
 Note: Vous pouvez aussi utiliser la commande CONFIG pour une configuration en ligne de commande.
 .
+:PROGRAM_IMGSWAP_HELP
+Échange image de disquette, disque dur et de disque optiques.
+
+←[32;1mIMGSWAP←[0m ←[37;1mdrive←[0m ←[36;1m[position]←[0m
+ ←[37;1mdrive←[0m               Lettre du lecteur pour l'échange d'image.
+ ←[36;1m[position]←[0m          Position du disque à échanger.
+.
+:PROGRAM_INTRO_HELP
+Une introduction plein écran à DOSBOX-X.
+
+INTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]
+.
+:PROGRAM_IMGMOUNT_NOT_ASSIGNED
+L'index du disque BIOS n'a pas d'image assignée.
+.
+:PROGRAM_IMGMOUNT_INVALID_NUMBER
+Numéro de montage invalide.
+.
+:PROGRAM_IMGMOUNT_INVALID_FSTYPE
+Type de fichier invalide.
+.
+:PROGRAM_IMGMOUNT_INVALID_SIZE
+Paramètre taille invalide
+.
+:PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER
+Le numéro de lecteur %d n'est pas monté.
+.
+:PROGRAM_IMGMOUNT_UMOUNT_USAGE
+Utilisation incorrect de démontage IMGMOUNT.
+.
+:PROGRAM_IMGMOUNT_INVALID_LETTER
+Lettre lecteur invalide.
+.
+:PROGRAM_IMGMOUNT_CHOOSE_LETTER
+Les partitions ne peuvent pas être montées en conflit avec l'allocation standard 
+du disque dur INT 13h. Choisissez une autre lettre de lecteur pour le montage.
+.
+:PROGRAM_ELTORITO_LETTER
+L'émulation El Torito requière une lettre de lecteur CD-ROM propre.
+.
+:PROGRAM_ELTORITO_DRIVE_EXISTS
+Le lecteur CD-ROM El Torito spécifié existe déjà comme un périphérique non-CD-ROM\n");
+.
+:PROGRAM_ELTORITO_NOT_CDDRIVE
+Le lecteur CD-ROM El Torito spécifié n'est pas un lecteur CD-Rom.
+.
+:PROGRAM_ELTORITO_REQUIRE_FLOPPY
+L'émulation El Torito doit être utlisé avec -t floppy cette fois.
+.
+:PROGRAM_ELTORITO_NO_BOOT_RECORD
+L'enregistrement de démarrage CD-ROM El Torito introuvable.
+.
+:PROGRAM_ELTORITO_ENTRY_UNREADABLE
+Entrées El Torito illisibles.
+.
+:PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY
+Disquette de démarrage El Torito introuvable.
+.
+:PROGRAM_ELTORITO_BOOTABLE_SECTION
+Impossible de localiser la section de démarrage.
+.
+:PROGRAM_ELTORITO_BOOTSECTOR
+Secteur de démarrage El Torito illisible
+.
+:PROGRAM_IMGMAKE_ALIGNMENT
+Alignement invalide
+.
+:PROGRAM_IMGMAKE_PARTOFS
+-partofs invalide
+.
+:PROGRAM_IMGMAKE_FAT
+Option -fat invalide. Doit être 12, 16 ou 32
+.
+:PROGRAM_IMGMAKE_FATCOPIES
+Option -fatcopies invalide
+.
+:PROGRAM_IMGMAKE_SPC
+Option -spc invalide, hors plage
+.
+:PROGRAM_IMGMAKE_SPC2
+Option -spc invalide, doit être un multiple de 2
+.
+:PROGRAM_IMGMAKE_ROOTDIR
+Option -rootdir invalide
+.
+PROGRAM_IMGMAKE_BOOTSECT
+Position du secteur de démarrage invalide
+.
+PROGRAM_IMGMAKE_VOLUME_ALIGN
+Le contrôle de sécurité a échoué : La taille du volume n'est pas alignée
+.
+:PROGRAM_IMGMAKE_FAT_ALIGN
+Le contrôle de sécurité a échoué : les tables FAT ne sont pas alignées
+.
+:PROGRAM_IMGMAKE_SECTPERFAT
+Erreur : Le système de fichiers généré a plus de 256 secteurs par FAT et n'est pas FAT32
+.
+:PROGRAM_IMGMAKE_VOLSIZE
+Le contrôle de sécurité a échoué : Taille du volume non alignée
+.
+:PROGRAM_IMGMAKE_CLUSTERS
+Erreur : Le système de fichiers généré a trop peu de clusters compte tenu des paramètres
+.
+:PROGRAM_IMGMAKE_CLUSTERCOUNT
+Attention : Le compte de cluster est trop haut compte tenu de la taille 
+            du volume. Rapporter un nombre de secteurs plus faible.
+.
+:PROGRAM_IMGMAKE_CLUSTER_ALIGN
+Le contrôle de sécurité a échoué : Le premier cluster n'est pas aligné
+.
+:PROGRAM_IMGMAKE_CLUSTER_SIZE
+ATTENTION : Les tailles de clusters >= 64KB ne sont pas compatibles avec MS-DOS et SCANDISK
+.
+:PROGRAM_BOOT_UNSUPPORTED
+Mode de démarrage non supporté
+.
+:PROGRAM_MOUNT_OVERLAY_REPLACE
+L'overlay existant a été remplacé par un nouveal overlay.
+.
+:PROGRAM_LOADFIX_EMS_FREE
+EMS handle %u: unable to free
+.
+:PROGRAM_LOADFIX_XMS_FREE
+XMS handle %u: unable to free
+.
+:PROGRAM_LOADFIX_EMS_ALLOC
+Bloc EMS alloué (%uKB)
+.
+:PROGRAM_LOADFIX_EMS_ALLOCERROR
+Impossible d'allouer des blocs EMS
+.
+PROGRAM_LOADFIX_NOEMS
+EMS inactif
+.
+:PROGRAM_LOADFIX_XMS_ALLOC
+Bloc XMS alloué (%uKB)
+.
+:PROGRAM_LOADFIX_XMS_ALLOCERROR
+Impossible d'allouer des blocs XMS
+.
+:PROGRAM_LOADFIX_NOXMS
+XMS inactif
+.
+:PROGRAM_LOADFIX_NOALLOC
+Le MCB le plus bas est au déla de 64 Ko, rien n'est alloué
+.
+:PROGRAM_BOOT_SWAP_ALREADY
+Plusieurs images de disque sont spécifiées et un autre lecteur est déjà connecté à la liste d'échange.
+.
+:PROGRAM_BOOT_NOT_SPECIFIED
+Aucune image spécifiée
+.
+:PROGRAM_BOOT_IS_PC88
+L'image D88 cible apparemment le PC-88 et ne peut pas être démarrée.
+.
+:PROGRAM_BOOT_BPS_TOOLARGE
+Octets/secteur trop grand
+.
+:PROGRAM_BOOT_DRIVE_READERROR
+Erreur de lecture du lecteur
+.
