@@ -1568,7 +1568,7 @@ public:
                           if (dynamic_cast<Overlay_Drive*>(Drives[drive-'A']) != NULL) { /* Yeah, this relies on RTTI but it's probably worth it */
                               /* Let the user know in case experience with other OSes or emulators leads them to think
                                * that they can "stack" overlays by mounting multiple times. */
-                              WriteOut("Existing overlay has been replaced with new overlay.\n");
+                              WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_REPLACE"));
                           }
                           delete Drives[drive-'A'];
                           Drives[drive-'A'] = nullptr;
@@ -2178,13 +2178,13 @@ public:
 
             /* must be valid drive letter, C to Z */
             if (!isalpha(el_torito_cd_drive) || el_torito_cd_drive < 'C') {
-                WriteOut("El Torito emulation requires a proper CD-ROM drive letter\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_LETTER"));
                 return;
             }
 
             /* drive must not exist (as a hard drive) */
             if (imageDiskList[el_torito_cd_drive - 'A'] != NULL) {
-                WriteOut("El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_DRIVE_EXISTS"));
                 return;
             }
 
@@ -2193,14 +2193,14 @@ public:
             /* get the CD-ROM drive */
             CDROM_Interface *src_drive = NULL;
             if (!GetMSCDEXDrive(el_torito_cd_drive - 'A', &src_drive)) {
-                WriteOut("El Torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_NOT_CDDRIVE"));
                 return;
             }
 
             /* "No emulation" boot is the only mode supported at this time.
              * For floppy emulation boot, use IMGMOUNT and then boot the emulated floppy drive. */
             if (el_torito_mode != "noemu") {
-                WriteOut("Unsupported boot mode");
+                WriteOut(MSG_Get("PROGRAM_BOOT_UNSUPPORTED"));
                 return;
             }
 
@@ -2213,7 +2213,7 @@ public:
             unsigned long el_torito_base = 0, boot_record_sector = 0, el_torito_rba = (~0ul), el_torito_load_segment = 0, el_torito_sectors = 0/*VIRTUAL SECTORS*/;
 	    unsigned char el_torito_mediatype = 0;
             if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
-                WriteOut("El Torito CD-ROM boot record not found\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOT_RECORD"));
                 return;
             }
 
@@ -2223,7 +2223,7 @@ public:
 
             /* Step #2: Parse the records. Each one is 32 bytes long */
             if (!src_drive->ReadSectorsHost(entries, false, el_torito_base, 1)) {
-                WriteOut("El Torito entries unreadable\n");
+                WriteOut(MSG_Get("PROGRAM_ELTORITO_ENTRY_UNREADABLE"));
                 return;
             }
 
@@ -3683,7 +3683,7 @@ restart_int:
             if (*s == 'K' || *s == 'k') alignment *= (uint32_t)2u;
 
             if (alignment == (uint32_t)0 || alignment > (uint32_t)2048/*1MB*/) {
-                WriteOut("Invalid alignment");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_ALIGNMENT"));
                 return;
             }
         }
@@ -3945,7 +3945,7 @@ restart_int:
             if (cmd->FindString("-partofs",tmp,true)) {
                 partsector = atoi(tmp.c_str());
                 if (partsector == 0) {
-                    WriteOut("Invalid -partofs\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_PARTOFS"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -3957,7 +3957,7 @@ restart_int:
             if (cmd->FindString("-fat",tmp,true)) {
                 FAT = atoi(tmp.c_str());
                 if (!(FAT == 12 || FAT == 16 || FAT == 32)) {
-                    WriteOut("Invalid -fat option. Must be 12, 16, or 32\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_FAT"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -3969,7 +3969,7 @@ restart_int:
             if (cmd->FindString("-fatcopies",tmp,true)) {
                 fat_copies = atoi(tmp.c_str());
                 if (fat_copies < 1u || fat_copies > 4u) {
-                    WriteOut("Invalid -fatcopies option\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_FATCOPIES"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -3981,14 +3981,14 @@ restart_int:
             if (cmd->FindString("-spc",tmp,true)) {
                 sectors_per_cluster = atoi(tmp.c_str());
                 if (sectors_per_cluster < 1u || sectors_per_cluster > 128u) {
-                    WriteOut("Invalid -spc option, out of range\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_SPC"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
                     return;
                 }
                 if ((sectors_per_cluster & (sectors_per_cluster - 1u)) != 0u) {
-                    WriteOut("Invalid -spc option, must be a power of 2\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_SPC2"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4002,7 +4002,7 @@ restart_int:
             if (cmd->FindString("-rootdir",tmp,true)) {
                 root_ent = atoi(tmp.c_str());
                 if (root_ent < 1u || root_ent > 4096u) {
-                    WriteOut("Invalid -rootdir option\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_ROOTDIR"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4028,7 +4028,7 @@ restart_int:
             }
 
             if (sectors <= (uint64_t)bootsect_pos) {
-                WriteOut("Invalid bootsector position\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_BOOTSECT"));
                 fclose(f);
                 unlink(temp_line.c_str());
                 if (setdir) chdir(dirCur);
@@ -4038,7 +4038,7 @@ restart_int:
 
             if (alignment != 0u) {
                 if ((vol_sectors % alignment) != 0u) {
-                    WriteOut("Sanity check failed: Volume size not aligned\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_VOLUME_ALIGN"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4248,7 +4248,7 @@ restart_int:
 
             if (alignment != 0u) {
                 if ((((uint64_t)sect_per_fat * (uint64_t)fat_copies) % (uint64_t)alignment) != 0u) {
-                    WriteOut("Sanity check failed: FAT tables not aligned\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_FAT_ALIGN"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4257,7 +4257,7 @@ restart_int:
             }
 
             if (FAT < 32 && sect_per_fat > 256u) {
-                WriteOut("Error: Generated filesystem has more than 256 sectors per FAT and is not FAT32\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_SECTPERFAT"));
                 fclose(f);
                 unlink(temp_line.c_str());
                 if (setdir) chdir(dirCur);
@@ -4275,7 +4275,7 @@ restart_int:
 
             if (alignment != 0u) {
                 if ((root_ent_sec % alignment) != 0u) {
-                    WriteOut("Sanity check failed: Volume size not aligned\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_VOLSIZE"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4285,7 +4285,7 @@ restart_int:
 
             /* Too many or to few clusters can foul up FAT12/FAT16/FAT32 detection and cause corruption! */
             if ((clusters+2u) < fatlimitmin) {
-                WriteOut("Error: Generated filesystem has too few clusters given the parameters\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_CLUSTERS"));
                 fclose(f);
                 unlink(temp_line.c_str());
                 if (setdir) chdir(dirCur);
@@ -4293,8 +4293,7 @@ restart_int:
             }
             if ((clusters+2u) > fatlimit) {
                 clusters = fatlimit-2u;
-                WriteOut("Warning: Cluster count is too high given the volume size. Reporting a\n");
-                WriteOut("         smaller sector count.\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_CLUSTERCOUNT"));
                 /* Well, if the user wants an oversized partition, hack the total sectors fields to make it work */
                 uint32_t adj_vol_sectors =
                     (uint32_t)(reserved_sectors + (sect_per_fat * fat_copies) +
@@ -4316,7 +4315,7 @@ restart_int:
              * violate it, but certainly make sure that the first cluster is aligned */
             if (alignment != 0u) {
                 if ((first_cluster % (unsigned long long)alignment) != 0ull) {
-                    WriteOut("Sanity check failed: First cluster not aligned\n");
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_CLUSTER_ALIGN"));
                     fclose(f);
                     unlink(temp_line.c_str());
                     if (setdir) chdir(dirCur);
@@ -4506,7 +4505,7 @@ restart_int:
 
             // warning
             if ((sectors_per_cluster*512ul) >= 65536ul)
-                WriteOut("WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_CLUSTER_SIZE"));
         }
         // write VHD footer if requested
         if((mediadesc == 0xF8) && disktype != "vhd" && !strcasecmp(extension, ".vhd")) {
@@ -9727,6 +9726,7 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE","The overlay directory can not be the same as underlying drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_ERROR","An error occurred when trying to create an overlay drive.\n");
 	MSG_Add("PROGRAM_MOUNT_OVERLAY_STATUS","Overlay %s on drive %c mounted.\n");
+    MSG_Add("PROGRAM_MOUNT_OVERLAY_REPLACE", "Existing overlay has been replaced with new overlay.\n");
 
     MSG_Add("PROGRAM_LOADFIX_ALLOC","%d kb allocated.\n");
     MSG_Add("PROGRAM_LOADFIX_DEALLOC","%d kb freed.\n");
@@ -9923,6 +9923,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
     MSG_Add("PROGRAM_BOOT_CART_NO_CMDS", "No PCjr cartridge commandos found");
     MSG_Add("PROGRAM_BOOT_BOOTING", "Booting from drive ");
+    MSG_Add("PROGRAM_BOOT_UNSUPPORTED", "Unsupported boot mode");
 
     MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file for video BIOS or IBM BASIC.\n\nLOADROM ROM_file\n");
     MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
@@ -10084,7 +10085,24 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating image file \"%s\" with %u cylinders, %u heads and %u sectors\n");
     MSG_Add("PROGRAM_IMGMAKE_CANT_READ_FLOPPY","\n\nUnable to read floppy.");
     MSG_Add("PROGRAM_IMGMAKE_BADSIZE","Wrong -size or -chs arguments.\n");
+    MSG_Add("PROGRAM_IMGMAKE_ALIGNMENT","Invalid alignment\n");
+    MSG_Add("PROGRAM_IMGMAKE_PARTOFS", "Invalid -partofs\n");
+    MSG_Add("PROGRAM_IMGMAKE_FAT","Invalid -fat option. Must be 12, 16, or 32\n");
+    MSG_Add("PROGRAM_IMGMAKE_FATCOPIES","Invalid -fatcopies option\n");
+    MSG_Add("PROGRAM_IMGMAKE_SPC","Invalid -spc option, out of range\n");
+    MSG_Add("PROGRAM_IMGMAKE_SPC2","Invalid -spc option, must be a power of 2\n");
+    MSG_Add("PROGRAM_IMGMAKE_ROOTDIR","Invalid -rootdir option\n");
+    MSG_Add("PROGRAM_IMGMAKE_BOOTSECT", "Invalid bootsector position\n");
+    MSG_Add("PROGRAM_IMGMAKE_VOLUME_ALIGN", "Sanity check failed: Volume size not aligned\n");
+    MSG_Add("PROGRAM_IMGMAKE_FAT_ALIGN", "Sanity check failed: FAT tables not aligned\n");
+    MSG_Add("PROGRAM_IMGMAKE_SECTPERFAT", "Error: Generated filesystem has more than 256 sectors per FAT and is not FAT32\n");
+    MSG_Add("PROGRAM_IMGMAKE_VOLSIZE","Sanity check failed: Volume size not aligned\n");
+    MSG_Add("PROGRAM_IMGMAKE_CLUSTERS","Error: Generated filesystem has too few clusters given the parameters\n");
 
+    MSG_Add("PROGRAM_IMGMAKE_CLUSTERCOUNT", "Warning: Cluster count is too high given the volume size. Reporting a\n         smaller sector count.\n");
+    MSG_Add("PROGRAM_IMGMAKE_CLUSTER_ALIGN","Sanity check failed: First cluster not aligned\n");
+    MSG_Add("PROGRAM_IMGMAKE_CLUSTER_SIZE","WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
+    
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
     MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n\n"
