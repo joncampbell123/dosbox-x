@@ -3901,13 +3901,13 @@ ATTENTION : Les tailles de clusters >= 64KB ne sont pas compatibles avec MS-DOS 
 Mode de démarrage non supporté
 .
 :PROGRAM_MOUNT_OVERLAY_REPLACE
-L'overlay existant a été remplacé par un nouveal overlay.
+L'overlay existant a été remplacé par un nouvel overlay.
 .
 :PROGRAM_LOADFIX_EMS_FREE
-EMS handle %u: unable to free
+Poignée EMS %u : impossible de libérer
 .
 :PROGRAM_LOADFIX_XMS_FREE
-XMS handle %u: unable to free
+Poignée XMS %u : impossible de libérer
 .
 :PROGRAM_LOADFIX_EMS_ALLOC
 Bloc EMS alloué (%uKB)
