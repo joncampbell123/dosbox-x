@@ -106,7 +106,7 @@ public:
 	bool EraseEnv(void);
 	virtual void WriteOut(const char *format, const char * arguments);
 	void WriteOut(const char * format,...);				//! Write to standard output 
-	virtual int WriteOut_NoParsing(const char * format, bool dbcs = false); //! Write to standard output, no parsing
+	virtual int WriteOut_NoParsing(const char * format, bool dbcs = true); //! Write to standard output, no parsing
 	void ChangeToLongCmd();                             //! Get command line from shell instead of PSP
 	void DebugDumpEnv();                                //! Dump environment block to log
 	void WriteExitStatus();                             //! Write exit status to CPU register AL for return to MS-DOS
