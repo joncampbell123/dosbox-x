@@ -7272,11 +7272,11 @@ public:
     void Run(void) override;
 private:
 	void PrintStatus() {
-        WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n", COLS, LINES);
+        WriteOut(MSG_Get("PROGRAM_MODE_STATUS"), COLS, LINES);
 #if defined(USE_TTF)
         if(!ttf.inUse)
 #endif
-            WriteOut("\nCode page operation not supported on this device\n");
+            WriteOut(MSG_Get("PROGRAM_MODE_NOTSUPPORTED"));
 	}
     int LINES = 25, COLS = 80;
 };
@@ -7306,7 +7306,7 @@ void MODE::Run(void) {
         if (cmd->FindStringBegin("lines=",temp_line,false)) lines=atoi(temp_line.c_str()); else lines=LINES;
         bool optr=cmd->FindStringBegin("rate=", temp_line,true), optd=cmd->FindStringBegin("delay=",temp_line,true), optc=cmd->FindStringBegin("cols=", temp_line,true), optl=cmd->FindStringBegin("lines=",temp_line,true);
         if ((optr&&!optd)||(optd&&!optr)) {
-            WriteOut("Rate and delay must be specified together\n");
+            WriteOut(MSG_Get("PROGRAM_MODE_RATE_DELAY"));
             return;
         }
         if (cmd->GetCount()>1) goto modeparam;
@@ -10160,6 +10160,11 @@ void DOS_SetupPrograms(void) {
             "\033[34;1mMODE CON COLS=\033[0mc \033[34;1mLINES=\033[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60\n"
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
     MSG_Add("PROGRAM_MODE_INVALID_PARAMETERS","Invalid parameter(s).\n");
+    MSG_Add("PROGRAM_MODE_STATUS",
+            "Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n");
+    MSG_Add("PROGRAM_MODE_NOTSUPPORTED","\nCode page operation not supported on this device\n");
+    MSG_Add("PROGRAM_MODE_RATE_DELAY","Rate and delay must be specified together\n");
+    
     MSG_Add("PROGRAM_PORT_INVALID_NUMBER","Must specify a port number between 1 and 9.\n");
     MSG_Add("PROGRAM_VHDMAKE_WRITERR", "Could not write to new VHD image \"%s\", aborting.\n");
     MSG_Add("PROGRAM_VHDMAKE_REMOVEERR", "Could not erase file \"%s\"\n");
