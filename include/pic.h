@@ -75,6 +75,7 @@ static INLINE pic_tickindex_t PIC_FullIndex(void) {
 
 void PIC_ActivateIRQ(Bitu irq);
 void PIC_DeActivateIRQ(Bitu irq);
+void PIC_EdgeTrigger(Bitu irq,bool set=true);
 
 void PIC_runIRQs(void);
 bool PIC_RunQueue(void);

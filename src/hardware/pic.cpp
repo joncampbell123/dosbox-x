@@ -49,6 +49,8 @@ struct PIC_Controller {
     bool request_issr;
     uint8_t vector_base;
 
+    uint8_t input;      // input signal (directly set by raise/lower irq) used to filter for edge detect
+    uint8_t edge;       // which signals are to be filtered for edge trigger
     uint8_t irr;        // request register
     uint8_t imr;        // mask register
     uint8_t imrr;       // mask register reversed (makes bit tests simpler)
@@ -92,6 +94,7 @@ struct PIC_Controller {
 
     void lower_irq(uint8_t val){
         uint8_t bit = 1 << ( val);
+        input&=~bit;
         if(irr & bit) { //value will change (as it is currently active)
             irr&=~bit;
             if((bit&imrr)&isrr) { //not masked and not in service
@@ -137,6 +140,11 @@ void PIC_Controller::check_for_irq(){
 
 void PIC_Controller::raise_irq(uint8_t val){
     uint8_t bit = 1 << (val);
+
+    // edge detect: only if the signal goes from low to high
+    if (bit&edge&input) return;
+
+    input|=bit;
     if((irr & bit)==0) { //value changed (as it is currently not active)
         irr|=bit;
         if((bit&imrr)&isrr) { //not masked and not in service
@@ -369,6 +377,25 @@ static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     CPU_NMI_gate = (val & 0x80) ? true : false;
     CPU_Check_NMI();
+}
+
+void PIC_EdgeTrigger(Bitu irq,bool set) {
+    if (IS_PC98_ARCH) {
+        if (irq == 7) return;
+    }
+    else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
+        if (irq == 2) irq = 9;
+    }
+    else { /* PC/XT emulation with only master PIC */
+        if (irq == 9) irq = 2;
+        if (irq >= 8) return;
+    }
+
+    Bitu t = irq>7 ? (irq - 8): irq;
+    PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
+
+    if (set) pic->edge |= 1u << (unsigned char)t;
+    else pic->edge &= ~(1u << (unsigned char)t);
 }
 
 /* FIXME: This should be called something else that's true to the ISA bus, like PIC_PulseIRQ, not Activate IRQ.
@@ -939,6 +966,8 @@ void PIC_Reset(Section *sec) {
         pics[i].irr = pics[i].isr = pics[i].imrr = 0;
         pics[i].isrr = pics[i].imr = 0xff;
         pics[i].isr_ignore = 0x00;
+        pics[i].edge = 0x00;
+        pics[i].input = 0x00;
         pics[i].active_irq = 8;
     }
 

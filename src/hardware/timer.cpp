@@ -374,7 +374,10 @@ unsigned long PIT_TICK_RATE = PIT_TICK_RATE_IBM;
 pic_tickindex_t VGA_PITSync_delay(void);
 
 static void PIT0_Event(Bitu /*val*/) {
+	/* HACK: Despite edge trigger, force IRQ */
+	PIC_DeActivateIRQ(0);
 	PIC_ActivateIRQ(0);
+
 	/* NTS: "Days of Thunder" leaves PIT 0 in mode 1 for some reason, which triggers once and then stops. "start" does not advance in that mode.
 	 *      For any non-periodic mode, this code would falsely detect an ever increasing error and act badly. */
 	if (pit[0].mode == 2 || pit[0].mode == 3) {
@@ -468,7 +471,9 @@ static void counter_latch(Bitu counter,bool do_latch=true) {
     }
 
     if (counter == 0/*IRQ 0*/) {
-        if (!p->output)
+        if (p->output)
+            PIC_ActivateIRQ(0);
+        else
             PIC_DeActivateIRQ(0);
     }
 }
@@ -940,6 +945,7 @@ static IO_WriteHandleObject WriteHandler2[4];
 void TIMER_BIOS_INIT_Configure() {
 	PIC_RemoveEvents(PIT0_Event);
 	PIC_DeActivateIRQ(0);
+	PIC_EdgeTrigger(0,true);
 
 	/* Setup Timer 0 */
     pit[0].output = true;
