@@ -3972,3 +3972,43 @@ Error: START cannot launch application to run on your current host system.
 :PROGRAM_START_LAUNCH_ERROR
 Error: START could not launch application.
 .
+:PROGRAM_IMGMOUNT_ELTORITO_NO_FILE
+Do not specify files when mounting floppy drives from El Torito bootable CDs
+.
+:PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE
+Do not specify files when mounting RAM drives
+.
+:PROGRAM_IMGMOUNT_INVALID_SECTORSIZE
+Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.
+.
+:PROGRAM_IMGMOUNT_OPEN_ERROR
+Unable to open '%s'
+.
+:PROGRAM_IMGMOUNT_QCOW2_INVALID
+qcow2 image '%s' is not supported
+.
+:PROGRAM_IMGMOUNT_GEOMETRY_ERROR
+Unable to detect geometry
+.
+:PROGRAM_IMGMOUNT_DOS_VERSION
+Mounting this image file requires a reported DOS version of %u.%u or higher.
+%s
+.
+:PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE
+Floppy size not recognized
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_USED
+Multiple images given and another drive already uses multiple images
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED
+Multiple disk images not supported for that drive
+.
+:PROGRAM_IMGMOUNT_HD_FDPOSITION
+Cannot mount hard drive in floppy position.
+.
+:PROGRAM_IMGMOUNT_FD_HDPOSITION
+Cannot mount floppy in hard drive position.
+.
+:PROGRAM_ELTORITO_ISOMOUNT
+El Torito bootable CD: -fs iso mounting not supported
+.

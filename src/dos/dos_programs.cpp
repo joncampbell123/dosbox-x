@@ -5219,7 +5219,7 @@ imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, cons
         if (dsk == NULL) {
             //create hard drive
             if (forceFloppy) {
-                if (obj!=NULL) obj->WriteOut("Floppy size not recognized\n");
+                if (obj!=NULL) obj->WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE"));
                 return NULL;
             }
 
@@ -5249,7 +5249,7 @@ imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, cons
         if (dsk == NULL) {
             //create hard drive
             if (forceFloppy) {
-                if (obj!=NULL) obj->WriteOut("Floppy size not recognized\n");
+                if (obj!=NULL) obj->WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE"));
                 return NULL;
             }
             dsk = new imageDiskMemory((uint16_t)sizes[3], (uint16_t)sizes[2], (uint16_t)sizes[1], (uint16_t)sizes[0]);
@@ -5643,7 +5643,7 @@ class IMGMOUNT : public Program {
 			// some generic checks
 			if (el_torito != "") {
 				if (paths.size() != 0) {
-					WriteOut("Do not specify files when mounting floppy drives from El Torito bootable CDs\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ELTORITO_NO_FILE"));
 					return;
 				}
 			}
@@ -5651,7 +5651,7 @@ class IMGMOUNT : public Program {
 			}
 			else if (type == "ram") {
 				if (paths.size() != 0) {
-					WriteOut("Do not specify files when mounting RAM drives\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE"));
 					return;
 				}
 			}
@@ -5706,7 +5706,7 @@ class IMGMOUNT : public Program {
 					return;
 				}
 				if (el_torito != "") {
-					WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
+					WriteOut(MSG_Get("PROGRAM_ELTORITO_ISOMOUNT")); /* <- NTS: Will never implement, either */
 					return;
 				}
 				//supports multiple files
@@ -5719,12 +5719,12 @@ class IMGMOUNT : public Program {
 					if (driveIndex <= 1) {
 						if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 &&
 								swapInDisksSpecificDrive != driveIndex) {
-							WriteOut("Multiple images given and another drive already uses multiple images\n");
+							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MULTIPLE_USED"));
 							return;
 						}
 					}
 					else {
-						WriteOut("Multiple disk images not supported for that drive\n");
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED"));
 						return;
 					}
 				}
@@ -5741,10 +5741,10 @@ class IMGMOUNT : public Program {
 				if (newImage == NULL) return;
 				newImage->Addref();
 				if (newImage->hardDrive && (driveIndex < 2)) {
-					WriteOut("Cannot mount hard drive in floppy position.\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HD_FDPOSITION"));
 				}
 				else if (!newImage->hardDrive && (driveIndex >= 2)) {
-					WriteOut("Cannot mount floppy in hard drive position.\n");
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FD_HDPOSITION"));
 				}
 				else {
 					if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
@@ -6439,7 +6439,7 @@ class IMGMOUNT : public Program {
 								const char* fname = ro ? paths[i].c_str() + 1 : paths[i].c_str();
 								FILE* newDisk = fopen_lock(fname, ro ? "rb" : "rb+", ro);
 								if(!newDisk) {
-									if(!qmount) WriteOut("Unable to open '%s'\n", fname);
+									if(!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_OPEN_ERROR"), fname);
 									return false;
 								}
 								QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
@@ -6449,7 +6449,7 @@ class IMGMOUNT : public Program {
 								if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
 									uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
 									if((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
-										WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
+										WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SECTORSIZE"), cluster_size);
 										return false;
 									}
 									// sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; /* unused */
@@ -6466,7 +6466,7 @@ class IMGMOUNT : public Program {
 									newImage->cylinders = sizes[3];   // cylinders
 								}
 								else {
-									WriteOut("qcow2 image '%s' is not supported\n", fname);
+									WriteOut(MSG_Get("PROGRAM_IMGMOUNT_QCOW2_INVALID"), fname);
 									fclose(newDisk);
 									newImage = NULL;
 								}
@@ -6513,7 +6513,7 @@ class IMGMOUNT : public Program {
 						errorMessage = MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
 						if (fdrive->req_ver_major>0) {
 							static char ver_msg[150];
-							sprintf(ver_msg, "Mounting this image file requires a reported DOS version of %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
+							sprintf(ver_msg, MSG_Get("PROGRAM_IMGMOUNT_DOS_VERSION"), fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
 							errorMessage = ver_msg;
 						}
 					} else {
@@ -7005,7 +7005,7 @@ class IMGMOUNT : public Program {
 			const char* fname=readonly?fileName+1:fileName;
 			FILE *newDisk = file==NULL?fopen_lock(fname, readonly||roflag?"rb":"rb+", roflag):file;
 			if (!newDisk) {
-				if (!qmount) WriteOut("Unable to open '%s'\n", fname);
+				if (!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_OPEN_ERROR"), fname);
 				return NULL;
 			}
 
@@ -7015,7 +7015,7 @@ class IMGMOUNT : public Program {
 			if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
 				uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
 				if ((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
-					WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SECTORSIZE"), cluster_size);
 					return nullptr;
 				}
 				sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0];
@@ -9969,7 +9969,32 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMOUNT_MOUNT_NUMBER","Drive number %d mounted as %s\n");
     MSG_Add("PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE", "The image must be on a host, local or network drive.\n");
     MSG_Add("PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES", "Using multiple files is only supported for cue/iso images.\n");
-
+    MSG_Add("PROGRAM_IMGMOUNT_MULTIPLE_USED","Multiple images given and another drive already uses multiple images\n");
+    MSG_Add("PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED","Multiple disk images not supported for that drive\n");
+    MSG_Add("PROGRAM_IMGMOUNT_HD_FDPOSITION","Cannot mount hard drive in floppy position.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_FD_HDPOSITION","Cannot mount floppy in hard drive position.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_NOT_ASSIGNED","BIOS disk index does not have an image assigned");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_NUMBER","Invalid mount number\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_FSTYPE","Invalid fstype\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_SIZE","Invalid size parameter\n");
+    MSG_Add("PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER","Drive number %d is not mounted.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_UMOUNT_USAGE", "Incorrect IMGMOUNT unmount usage.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_LETTER","Invalid drive letter");
+    MSG_Add("PROGRAM_IMGMOUNT_CHOOSE_LETTER",
+            "Partitions cannot be mounted in conflict with the standard INT 13h hard disk\n"
+            "allotment. Choose a different drive letter to mount to.");
+    MSG_Add("PROGRAM_IMGMOUNT_ELTORITO_NO_FILE",
+            "Do not specify files when mounting floppy drives from El Torito bootable CDs\n");
+    MSG_Add("PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE", "Do not specify files when mounting RAM drives\n");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_SECTORSIZE",
+            "Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_OPEN_ERROR","Unable to open '%s'\n");
+    MSG_Add("PROGRAM_IMGMOUNT_QCOW2_INVALID","qcow2 image '%s' is not supported\n");
+    MSG_Add("PROGRAM_IMGMOUNT_GEOMETRY_ERROR", "Unable to detect geometry\n");
+    MSG_Add("PROGRAM_IMGMOUNT_DOS_VERSION",
+            "Mounting this image file requires a reported DOS version of %u.%u or higher.\n%s");
+    MSG_Add("PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE","Floppy size not recognized\n");
+            
     MSG_Add("PROGRAM_IMGMOUNT_HELP",
         "Mounts floppy, hard drive and optical disc images.\n"
         "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mfile\033[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
@@ -10214,16 +10239,6 @@ void DOS_SetupPrograms(void) {
             " \033[36;1m[position]\033[0m          Disk position to swap to.\n");
     MSG_Add("PROGRAM_INTRO_HELP",
             "A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]\n");
-    MSG_Add("PROGRAM_IMGMOUNT_NOT_ASSIGNED","BIOS disk index does not have an image assigned");
-    MSG_Add("PROGRAM_IMGMOUNT_INVALID_NUMBER","Invalid mount number\n");
-    MSG_Add("PROGRAM_IMGMOUNT_INVALID_FSTYPE","Invalid fstype\n");
-    MSG_Add("PROGRAM_IMGMOUNT_INVALID_SIZE","Invalid size parameter\n");
-    MSG_Add("PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER","Drive number %d is not mounted.\n");
-    MSG_Add("PROGRAM_IMGMOUNT_UMOUNT_USAGE", "Incorrect IMGMOUNT unmount usage.\n");
-    MSG_Add("PROGRAM_IMGMOUNT_INVALID_LETTER","Invalid drive letter");
-    MSG_Add("PROGRAM_IMGMOUNT_CHOOSE_LETTER",
-            "Partitions cannot be mounted in conflict with the standard INT 13h hard disk\n"
-            "allotment. Choose a different drive letter to mount to.");
     MSG_Add("PROGRAM_ELTORITO_LETTER","El Torito emulation requires a proper CD-ROM drive letter\n");
     MSG_Add("PROGRAM_ELTORITO_DRIVE_EXISTS","El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
     MSG_Add("PROGRAM_ELTORITO_NOT_CDDRIVE","El Torito CD-ROM drive specified is not actually a CD-ROM drive\n");
@@ -10233,6 +10248,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY","El Torito bootable floppy not found\n");
     MSG_Add("PROGRAM_ELTORITO_BOOTABLE_SECTION","Unable to locate bootable section\n");
     MSG_Add("PROGRAM_ELTORITO_BOOTSECTOR","El Torito boot sector unreadable\n");
+    MSG_Add("PROGRAM_ELTORITO_ISOMOUNT","El Torito bootable CD: -fs iso mounting not supported\n");
+    
     MSG_Add("PROGRAM_START_HELP_WIN",
             "Starts a separate window to run a specified program or command.\n\n"
             "START [+|-|_] command [arguments]\n\n"
