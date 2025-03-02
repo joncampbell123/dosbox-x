@@ -4012,3 +4012,16 @@ Cannot mount floppy in hard drive position.
 :PROGRAM_ELTORITO_ISOMOUNT
 El Torito bootable CD: -fs iso mounting not supported
 .
+:PROGRAM_MODE_STATUS
+Status for device CON:
+----------------------
+Columns=%d
+Lines=%d
+.
+:PROGRAM_MODE_NOTSUPPORTED
+
+Code page operation not supported on this device
+.
+:PROGRAM_MODE_RATE_DELAY
+Rate and delay must be specified together
+.
