@@ -3871,8 +3871,8 @@ Sanity check failed: Volume size not aligned
 Error: Generated filesystem has too few clusters given the parameters
 .
 :PROGRAM_IMGMAKE_CLUSTERCOUNT
-Warning: Cluster count is too high given the volume size. Reporting a
-         smaller sector count.
+Warning: Cluster count is too high given the volume size. 
+         Reporting a smaller sector count.
 .
 :PROGRAM_IMGMAKE_CLUSTER_ALIGN
 Sanity check failed: First cluster not aligned
@@ -3927,4 +3927,48 @@ Bytes/sector too large
 .
 :PROGRAM_BOOT_DRIVE_READERROR
 Error reading drive
+.
+:PROGRAM_START_HELP_WIN
+Starts a separate window to run a specified program or command.
+
+START [+|-|_] command [arguments]
+
+  [+|-|_]: To maximize/minimize/hide the program.
+  The options /MAX, /MIN, /HID are also accepted.
+  command: The command, program or file to start.
+  arguments: Arguments to pass to the application.
+  
+START opens the Windows command prompt automatically to run these commands
+and wait for a key press before exiting (specified by "startincon" option):
+%s
+
+Note: The path specified in this command is the path on the host system.
+.
+:PROGRAM_START_HELP
+Starts a separate window to run a specified program or command.
+
+START /OPEN file
+START command [arguments]
+
+  /OPEN: To open a file or URL with the associated program.
+  file: The file or URL to open with the associated program.
+  command: The command or program to start or run.
+  arguments: Arguments to pass to the application.
+  
+Note: The path specified in this command is the path on the host system.
+.
+:PROGRAM_START_COMPLETED
+The command execution is completed.
+.
+:PROGRAM_START_COMMAND
+Starting %s...
+.
+:PROGRAM_START_CTRLC
+(Press Ctrl+C to exit immediately)
+.
+:PROGRAM_START_HOST_ERROR
+Error: START cannot launch application to run on your current host system.
+.
+:PROGRAM_START_LAUNCH_ERROR
+Error: START could not launch application.
 .

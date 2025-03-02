@@ -9046,7 +9046,9 @@ public:
             strcat(dir, " ");
             if (cmdstr!=NULL) strcat(dir, TranslateHostPath(cmdstr));
             if (!strcasecmp(cmd,"for")) strcat(dir, ")");
-            strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
+            strcat(dir, " & echo( & echo ");
+            strcat(dir, MSG_Get("PROGRAM_START_COMPLETED"));
+            strcat(dir," & pause\"");
             lpExecInfo.lpFile = "CMD.EXE";
             lpExecInfo.lpParameters = dir;
         } else {
@@ -9061,7 +9063,7 @@ public:
             strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
             if (SetCurrentDirectory(winDirNew)) setdir=true;
         }
-        if (!startquiet) WriteOut("Starting %s...\n", cmd);
+        if (!startquiet) WriteOut(MSG_Get("PROGRAM_START_COMMAND"), cmd);
         ShellExecuteEx(&lpExecInfo);
         int ErrorCode = GetLastError();
         if (setdir) SetCurrentDirectory(winDirCur);
@@ -9082,7 +9084,7 @@ public:
                     exitCode=0;
                     break;
                 }
-                if (++count==20000&&ret&&exitCode==STILL_ACTIVE&&!startquiet) WriteOut("(Press Ctrl+C to exit immediately)\n");
+                if (++count==20000&&ret&&exitCode==STILL_ACTIVE&&!startquiet) WriteOut(MSG_Get("PROGRAM_START_CTRLC"));
             } while (ret!=0&&exitCode==STILL_ACTIVE);
             ErrorCode = GetLastError();
             CloseHandle(lpExecInfo.hProcess);
@@ -9095,7 +9097,7 @@ public:
             DOS_SetError(0);
             return;
         }
-        if (!startquiet) WriteOut("Starting %s...\n", cmd);
+        if (!startquiet) WriteOut(MSG_Get("PROGRAM_START_COMMAND"), cmd);
         bool open=false;
         if (!strncasecmp(cmd, "/open ", 5) || !strncasecmp(cmd, "-open ", 6)) {
             open=true;
@@ -9112,11 +9114,11 @@ public:
 #endif
         :"")+std::string(cmd)+(startwait||(strlen(cmd)>2&&!strcmp(cmd+strlen(cmd)-2," &"))?"":" &")).c_str());
 #else
-        WriteOut("Error: START cannot launch application to run on your current host system.\n");
+        WriteOut(MSG_Get("PROGRAM_START_HOST_ERROR"));
         return;
 #endif
         if (ret==-1) {
-            WriteOut("Error: START could not launch application.\n");
+            WriteOut(MSG_Get("PROGRAM_START_LAUNCH_ERROR"));
             return;
         }
         DOS_SetError(ret);
@@ -9125,29 +9127,11 @@ public:
 
 private:
     void PrintUsage() {
-        constexpr const char *msg =
-            "Starts a separate window to run a specified program or command.\n\n"
 #if defined(WIN32)
-            "START [+|-|_] command [arguments]\n\n"
-            "  [+|-|_]: To maximize/minimize/hide the program.\n"
-            "  The options /MAX, /MIN, /HID are also accepted.\n"
-            "  command: The command, program or file to start.\n"
-            "  arguments: Arguments to pass to the application.\n\n"
-            "START opens the Windows command prompt automatically to run these commands\n"
-            "and wait for a key press before exiting (specified by \"startincon\" option):\n%s\n\n"
+        WriteOut(MSG_Get("PROGRAM_START_HELP_WIN"), startincon.c_str());
 #else
-            "START /OPEN file\nSTART command [arguments]\n\n"
-            "  /OPEN: To open a file or URL with the associated program.\n"
-            "  file: The file or URL to open with the associated program.\n"
-            "  command: The command or program to start or run.\n"
-            "  arguments: Arguments to pass to the application.\n\n"
+        WriteOut(MSG_Get("PROGRAM_START_HELP"));
 #endif
-            "Note: The path specified in this command is the path on the host system.\n";
-        WriteOut(msg
-#if defined(WIN32)
-        ,startincon.c_str()
-#endif
-        );
     }
 };
 
@@ -10249,7 +10233,30 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY","El Torito bootable floppy not found\n");
     MSG_Add("PROGRAM_ELTORITO_BOOTABLE_SECTION","Unable to locate bootable section\n");
     MSG_Add("PROGRAM_ELTORITO_BOOTSECTOR","El Torito boot sector unreadable\n");
-
+    MSG_Add("PROGRAM_START_HELP_WIN",
+            "Starts a separate window to run a specified program or command.\n\n"
+            "START [+|-|_] command [arguments]\n\n"
+            "  [+|-|_]: To maximize/minimize/hide the program.\n"
+            "  The options /MAX, /MIN, /HID are also accepted.\n"
+            "  command: The command, program or file to start.\n"
+            "  arguments: Arguments to pass to the application.\n\n"
+            "START opens the Windows command prompt automatically to run these commands\n"
+            "and wait for a key press before exiting (specified by \"startincon\" option):\n%s\n\n"
+            "Note: The path specified in this command is the path on the host system.\n");
+    MSG_Add("PROGRAM_START_HELP",
+            "Starts a separate window to run a specified program or command.\n\n"
+            "START /OPEN file\nSTART command [arguments]\n\n"
+            "  /OPEN: To open a file or URL with the associated program.\n"
+            "  file: The file or URL to open with the associated program.\n"
+            "  command: The command or program to start or run.\n"
+            "  arguments: Arguments to pass to the application.\n\n"
+            "Note: The path specified in this command is the path on the host system.\n");
+    MSG_Add("PROGRAM_START_COMPLETED", "The command execution is completed.");
+    MSG_Add("PROGRAM_START_COMMAND", "Starting %s...\n");
+    MSG_Add("PROGRAM_START_CTRLC", "(Press Ctrl+C to exit immediately)\n");
+    MSG_Add("PROGRAM_START_HOST_ERROR", "Error: START cannot launch application to run on your current host system.\n");
+    MSG_Add("PROGRAM_START_LAUNCH_ERROR", "Error: START could not launch application.\n");
+    
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
 
