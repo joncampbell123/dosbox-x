@@ -7592,22 +7592,8 @@ void AUTOTYPE_ProgramStart(Program **make);
 
 void AUTOTYPE::PrintUsage()
 {
-	constexpr const char *msg =
-	        "Performs scripted keyboard entry into a running DOS program.\n\n"
-	        "AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]\n\n"
-	        "Where:\n"
-	        "  -list:   prints all available button names.\n"
-	        "  -w WAIT: seconds before typing begins. Two second default; max of 30.\n"
-	        "  -p PACE: seconds between each keystroke. Half-second default; max of 10.\n\n"
-	        "  The sequence is comprised of one or more space-separated buttons.\n"
-	        "  Autotyping begins after WAIT seconds, and each button is entered\n"
-	        "  every PACE seconds. The , character inserts an extra PACE delay.\n\n"
-	        "Some examples:\n"
-	        "  \033[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter\033[0m\n"
-	        "  \033[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter\033[0m\n"
-	        "  \033[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter\033[0m\n";
 	resetcolor = true;
-	WriteOut(msg);
+	WriteOut(MSG_Get("PROGRAM_AUTOTYPE_HELP"));
 }
 
 // Prints the key-names for the mapper's currently-bound events.
@@ -7622,8 +7608,7 @@ void AUTOTYPE::PrintKeys()
 
 	// Sanity check to avoid dividing by 0
 	if (!max_length) {
-		WriteOut_NoParsing(
-		        "AUTOTYPE: The mapper has no key bindings\n");
+		WriteOut_NoParsing(MSG_Get("PROGRAM_AUTOTYPE_NO_BINDINGS"));
 		return;
 	}
 
@@ -7697,14 +7682,9 @@ bool AUTOTYPE::ReadDoubleArg(const std::string &name,
 			// Inform them if we had to clamp their value
 			if (fabs(user_value - value) >
 			    std::numeric_limits<double>::epsilon())
-				WriteOut("AUTOTYPE: bounding %s value of %.2f "
-				         "to %.2f\n",
-				         name.c_str(), user_value, value);
-
+				WriteOut(MSG_Get("PROGRAM_AUTOTYPE_CLAMP_VALUE"), name.c_str(), user_value, value);
 		} else { // Otherwise we couldn't parse their value
-			WriteOut("AUTOTYPE: %s value '%s' is not a valid "
-			         "floating point number\n",
-			         name.c_str(), str_value.c_str());
+			WriteOut(MSG_Get("PROGRAM_AUTOTYPE_INVALID_VALUE"), name.c_str(), str_value.c_str());
 		}
 	} else { // Otherwise they haven't passed this flag
 		value = def_value;
@@ -7768,11 +7748,7 @@ public:
     void Run(void) override;
 private:
 	void PrintUsage() {
-        constexpr const char *msg =
-            "Generates artificial keypresses.\n\nADDKEY [pmsec] [key]\n\n"
-            "For example, the command below types \"dir\" followed by ENTER after 1 second:\n\nADDKEY p1000 d i r enter\n\n"
-            "You could also try AUTOTYPE command instead of this command to perform\nscripted keyboard entry into a running DOS program.\n";
-        WriteOut(msg);
+        WriteOut(MSG_Get("PROGRAM_ADDKEY_HELP"));
 	}
 };
 
@@ -10290,7 +10266,31 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_CAPMOUSE_MOUSE", "Mouse ");
     MSG_Add("PROGRAM_CAPMOUSE_CURRENTLY", "is currently ");
     MSG_Add("PROGRAM_CAPMOUSE_CAPTURED", "captured");
-    MSG_Add("PROGRAM_CAPMOUSE_RELEASED", "released");    
+    MSG_Add("PROGRAM_CAPMOUSE_RELEASED", "released");
+    MSG_Add("PROGRAM_AUTOTYPE_HELP",
+            "Performs scripted keyboard entry into a running DOS program.\n\n"
+            "AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]\n\n"
+            "Where:\n"
+            "  -list:   prints all available button names.\n"
+            "  -w WAIT: seconds before typing begins. Two second default; max of 30.\n"
+            "  -p PACE: seconds between each keystroke. Half-second default; max of 10.\n\n"
+            "  The sequence is comprised of one or more space-separated buttons.\n"
+            "  Autotyping begins after WAIT seconds, and each button is entered\n"
+            "  every PACE seconds. The , character inserts an extra PACE delay.\n\n"
+            "Some examples:\n"
+            "  \033[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter\033[0m\n"
+            "  \033[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter\033[0m\n"
+            "  \033[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter\033[0m\n");
+    MSG_Add("PROGRAM_AUTOTYPE_NO_BINDINGS","AUTOTYPE: The mapper has no key bindings\n");
+    MSG_Add("PROGRAM_AUTOTYPE_CLAMP_VALUE", "AUTOTYPE: bounding %s value of %.2f to %.2f\n");
+    MSG_Add("PROGRAM_AUTOTYPE_INVALID_VALUE",
+            "AUTOTYPE: %s value '%s' is not a valid floating point number\n");
+    MSG_Add("PROGRAM_ADDKEY_HELP", "Generates artificial keypresses.\n\n"
+            "ADDKEY [pmsec] [key]\n\n"
+            "For example, the command below types \"dir\" followed by ENTER after 1 second:\n\n"
+            "ADDKEY p1000 d i r enter\n\n"
+            "You could also try AUTOTYPE command instead of this command to perform\n"
+            "scripted keyboard entry into a running DOS program.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
