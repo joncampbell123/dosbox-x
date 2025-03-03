@@ -8712,9 +8712,7 @@ public:
     void Run(void) override;
 private:
 	void PrintUsage() {
-        constexpr const char *msg =
-            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 0 (50,50,50)\n\nChange Color #0 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR 3 +\n\nReturn Color #3 to the preset color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n\nTo change the current background and foreground colors, use COLOR command.\n";
-        WriteOut(msg);
+        WriteOut(MSG_Get("PROGRAM_SETCOLOR_HELP"));
 	}
 };
 
@@ -8751,15 +8749,15 @@ void SETCOLOR::Run()
 		int i=atoi(args);
 		if (!strcasecmp(args,"MONO")) {
 			if (p==NULL)
-				WriteOut("MONO mode status: %s (video mode %d)\n",CurMode->mode==7?"active":CurMode->mode==3?"inactive":"unavailable",CurMode->mode);
+				WriteOut(MSG_Get("PROGRAM_SETCOLOR_STATUS"),CurMode->mode==7? MSG_Get("PROGRAM_SETCOLOR_ACTIVE"):CurMode->mode==3? MSG_Get("PROGRAM_SETCOLOR_INACTIVE"): MSG_Get("PROGRAM_SETCOLOR_UNAVAILABLE"),CurMode->mode);
 			else if (!strcmp(trim(p+1),"+")) {
 				if (CurMode->mode!=7) INT10_SetVideoMode(7);
-				WriteOut(CurMode->mode==7?"MONO mode status => active (video mode 7)\n":"Failed to change MONO mode\n");
+				WriteOut(CurMode->mode==7? MSG_Get("PROGRAM_SETCOLOR_MONO_MODE7"): MSG_Get("PROGRAM_SETCOLOR_MONO_FAIL"));
 			} else if (!strcmp(trim(p+1),"-")) {
 				if (CurMode->mode!=3) INT10_SetVideoMode(3);
-				WriteOut(CurMode->mode==3?"MONO mode status => inactive (video mode 3)\n":"Failed to change MONO mode\n");
+				WriteOut(CurMode->mode==3? MSG_Get("PROGRAM_SETCOLOR_MONO_MODE3"):MSG_Get("PROGRAM_SETCOLOR_MONO_FAIL"));
 			} else
-				WriteOut("Must be + or - for MONO: %s\n",trim(p+1));
+				WriteOut(MSG_Get("PROGRAM_SETCOLOR_MONO_SYNTAX"),trim(p+1));
 		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||(i>0&&i<16)) {
 			if (p==NULL) {
 #if defined(USE_TTF)
@@ -8767,13 +8765,13 @@ void SETCOLOR::Run()
                 altBGR[i].red = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].red:rgbcolors[i].red;
                 altBGR[i].green = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].green:rgbcolors[i].green;
                 altBGR[i].blue = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].blue:rgbcolors[i].blue;
-                WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue);
+                WriteOut(MSG_Get("PROGRAM_SETCOLOR_COLOR"),i,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue);
 #else
-                WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+                WriteOut(MSG_Get("PROGRAM_SETCOLOR_COLOR"),i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
 #endif
             }
 		} else {
-			WriteOut("Invalid color number - %s\n", trim(args));
+			WriteOut(MSG_Get("PROGRAM_SETCOLOR_INVALID_NUMBER"), trim(args));
 			DOS_SetError(DOSERR_DATA_INVALID);
 			return;
 		} if (p!=NULL&&strcasecmp(args,"MONO")) {
@@ -8795,7 +8793,7 @@ void SETCOLOR::Run()
                         sprintf(value,"#%6x",rgbVal[0]);
                         nextRGB = strchr(nextRGB, '#') + 7;
                     } else {
-                        WriteOut("Invalid color value - %s\n",nextRGB);
+                        WriteOut(MSG_Get("PROGRAM_SETCOLOR_INVALID_VALUE"),nextRGB);
                         return;
                     }
                 }
@@ -8807,35 +8805,35 @@ void SETCOLOR::Run()
 			if (!ttf.inUse) {
 #endif
                 if (!IS_VGA_ARCH)
-                    WriteOut("Changing color scheme is not supported for the current video mode.\n");
+                    WriteOut(MSG_Get("PROGRAM_SETCOLOR_NOT_SUPPORTED"));
                 else if (setVGAColor(value, i))
                     //WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
-                    WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue);
+                    WriteOut(MSG_Get("PROGRAM_SETCOLOR_COLOR"),i,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue);
                 else
-                    WriteOut("Invalid color value - %s\n",value);
+                    WriteOut(MSG_Get("PROGRAM_SETCOLOR_INVALID_VALUE"),value);
 #if defined(USE_TTF)
 			} else if (setColors(value,i)) {
                 bool colornul = staycolors || (IS_VGA_ARCH && (altBGR1[i].red > 4 || altBGR1[i].green > 4 || altBGR1[i].blue > 4) && rgbcolors[i].red < 5 && rgbcolors[i].green < 5 && rgbcolors[i].blue < 5);
                 altBGR[i].red = (colornul||(colorChanged&&!IS_VGA_ARCH))?altBGR1[i].red:rgbcolors[i].red;
                 altBGR[i].green = (colornul||(colorChanged&&!IS_VGA_ARCH))?altBGR1[i].green:rgbcolors[i].green;
                 altBGR[i].blue = (colornul||(colorChanged&&!IS_VGA_ARCH))?altBGR1[i].blue:rgbcolors[i].blue;
-				WriteOut("Color %d => (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+				WriteOut(MSG_Get("PROGRAM_SETCOLOR_COLOR"),i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
 				resetFontSize();
 			} else
-				WriteOut("Invalid color value - %s\n",value);
+				WriteOut(MSG_Get("PROGRAM_SETCOLOR_INVALID_VALUE"),value);
 #endif
 			}
 	} else {
-		WriteOut("MONO mode status: %s (video mode %d)\n",CurMode->mode==7?"active":CurMode->mode==3?"inactive":"unavailable",CurMode->mode);
+        WriteOut(MSG_Get("PROGRAM_SETCOLOR_STATUS"), CurMode->mode == 7 ? MSG_Get("PROGRAM_SETCOLOR_ACTIVE") : CurMode->mode == 3 ? MSG_Get("PROGRAM_SETCOLOR_INACTIVE") : MSG_Get("PROGRAM_SETCOLOR_UNAVAILABLE"), CurMode->mode);
 		for (int i = 0; i < 16; i++) {
 #if defined(USE_TTF)
             bool colornul = staycolors || (IS_VGA_ARCH && (altBGR1[i].red > 4 || altBGR1[i].green > 4 || altBGR1[i].blue > 4) && rgbcolors[i].red < 5 && rgbcolors[i].green < 5 && rgbcolors[i].blue < 5);
             altBGR[i].red = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].red:rgbcolors[i].red;
             altBGR[i].green = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].green:rgbcolors[i].green;
             altBGR[i].blue = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].blue:rgbcolors[i].blue;
-			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+			WriteOut(MSG_Get("PROGRAM_SETCOLOR_COLOR"),i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
 #else
-			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+			WriteOut(MSG_Get("PROGRAM_SETCOLOR_COLOR"),i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
 #endif
         }
 	}
@@ -10291,6 +10289,25 @@ void DOS_SetupPrograms(void) {
             "ADDKEY p1000 d i r enter\n\n"
             "You could also try AUTOTYPE command instead of this command to perform\n"
             "scripted keyboard entry into a running DOS program.\n");
+    MSG_Add("PROGRAM_SETCOLOR_HELP", "Views or changes the text-mode color scheme settings.\n\n"
+            "SETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 0 (50,50,50)\n\n"
+            "Change Color #0 to the specified color value\n\n  SETCOLOR 7 -\n\n"
+            "Return Color #7 to the default color value\n\n  SETCOLOR 3 +\n\n"
+            "Return Color #3 to the preset color value\n\n  SETCOLOR MONO\n\n"
+            "Display current MONO mode status\n\n"
+            "To change the current background and foreground colors, use COLOR command.\n");
+    MSG_Add("PROGRAM_SETCOLOR_STATUS","MONO mode status: %s (video mode %d)\n");
+    MSG_Add("PROGRAM_SETCOLOR_ACTIVE","active");
+    MSG_Add("PROGRAM_SETCOLOR_INACTIVE","inactive");
+    MSG_Add("PROGRAM_SETCOLOR_UNAVAILABLE","unavailable");
+    MSG_Add("PROGRAM_SETCOLOR_MONO_MODE7","MONO mode status => active (video mode 7)\n");
+    MSG_Add("PROGRAM_SETCOLOR_MONO_MODE3","MONO mode status => inactive (video mode 3)\n");
+    MSG_Add("PROGRAM_SETCOLOR_MONO_FAIL","Failed to change MONO mode\n");
+    MSG_Add("PROGRAM_SETCOLOR_MONO_SYNTAX","Must be + or - for MONO: %s\n");
+    MSG_Add("PROGRAM_SETCOLOR_COLOR","Color %d: (%d,%d,%d) or #%02x%02x%02x\n");
+    MSG_Add("PROGRAM_SETCOLOR_INVALID_NUMBER","Invalid color number - %s\n");
+    MSG_Add("PROGRAM_SETCOLOR_INVALID_VALUE","Invalid color value - %s\n");
+    MSG_Add("PROGRAM_SETCOLOR_NOT_SUPPORTED","Changing color scheme is not supported for the current video mode.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");

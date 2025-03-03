@@ -4106,9 +4106,9 @@ Where:
   every PACE seconds. The , character inserts an extra PACE delay.
   
 Some examples:
-  \033[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter\033[0m
-  \033[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter\033[0m
-  \033[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter\033[0m
+  ←[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter←[0m
+  ←[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter←[0m
+  ←[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter←[0m
 .
 :PROGRAM_AUTOTYPE_NO_BINDINGS
 AUTOTYPE: The mapper has no key bindings
@@ -4130,4 +4130,61 @@ ADDKEY p1000 d i r enter
 
 You could also try AUTOTYPE command instead of this command to perform
 scripted keyboard entry into a running DOS program.
+.
+:PROGRAM_SETCOLOR_HELP
+Views or changes the text-mode color scheme settings.
+
+SETCOLOR [color# [value]]
+
+For example:
+
+   ←[32;1mSETCOLOR 0 (50,50,50)←[0m
+Change Color #0 to the specified color value
+
+   ←[32;1mSETCOLOR 7 -←[0m
+Return Color #7 to the default color value
+
+   ←[32;1mSETCOLOR 3 +←[0m
+Return Color #3 to the preset color value
+
+   ←[32;1mSETCOLOR MONO←[0m
+Display current MONO mode status
+
+To change the current background and foreground colors, use COLOR command.
+.
+:PROGRAM_SETCOLOR_STATUS
+MONO mode status: %s (video mode %d)
+.
+:PROGRAM_SETCOLOR_ACTIVE
+active
+.
+:PROGRAM_SETCOLOR_INACTIVE
+inactive
+.
+:PROGRAM_SETCOLOR_UNAVAILABLE
+unavailable
+.
+:PROGRAM_SETCOLOR_MONO_MODE7
+MONO mode status => active (video mode 7)
+.
+:PROGRAM_SETCOLOR_MONO_MODE3
+MONO mode status => inactive (video mode 3)
+.
+:PROGRAM_SETCOLOR_MONO_FAIL
+Failed to change MONO mode
+.
+:PROGRAM_SETCOLOR_MONO_SYNTAX
+Must be + or - for MONO: %s
+.
+:PROGRAM_SETCOLOR_COLOR
+Color %d: (%d,%d,%d) or #%02x%02x%02x
+.
+:PROGRAM_SETCOLOR_INVALID_NUMBER
+Invalid color number - %s
+.
+:PROGRAM_SETCOLOR_INVALID_VALUE
+Invalid color value - %s
+.
+:PROGRAM_SETCOLOR_NOT_SUPPORTED
+Changing color scheme is not supported for the current video mode.
 .
