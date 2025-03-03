@@ -4071,3 +4071,23 @@ Note: This is a debugging tool to test if the interrupt handler works properly.
 :PROGRAM_NMITEST_GENERATE_NMI
 Generating a non-maskable interrupt (NMI)...
 .
+:PROGRAM_CAPMOUSE_HELP
+Captures or releases the mouse inside DOSBox-X.
+
+CAPMOUSE [/C|/R]
+
+  /C Capture the mouse
+  /R Release the mouse
+.
+:PROGRAM_CAPMOUSE_MOUSE
+Mouse 
+.
+:PROGRAM_CAPMOUSE_CURRENTLY
+is currently 
+.
+:PROGRAM_CAPMOUSE_CAPTURED
+captured
+.
+:PROGRAM_CAPMOUSE_RELEASED
+released
+.

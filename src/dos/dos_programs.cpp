@@ -7444,10 +7444,7 @@ public:
             break;
         case 0:
         default:
-            WriteOut("Captures or releases the mouse inside DOSBox-X.\n\n");
-            WriteOut("CAPMOUSE [/C|/R]\n");
-            WriteOut("  /C Capture the mouse\n");
-            WriteOut("  /R Release the mouse\n");
+            WriteOut(MSG_Get("PROGRAM_CAPMOUSE_HELP"));
             return;
         }
 
@@ -7456,9 +7453,9 @@ public:
             GFX_CaptureMouse(cap);
         }
         std::string msg;
-        msg.append("Mouse ");
-        if (val==-1) msg.append("is currently ");
-        msg.append(Mouse_IsLocked() ? "captured" : "released");
+        msg.append(MSG_Get("PROGRAM_CAPMOUSE_MOUSE"));
+        if (val==-1) msg.append(MSG_Get("PROGRAM_CAPMOUSE_CURRENTLY"));
+        msg.append(Mouse_IsLocked() ? MSG_Get("PROGRAM_CAPMOUSE_CAPTURED") : MSG_Get("PROGRAM_CAPMOUSE_RELEASED"));
         msg.append(".\n");
         WriteOut(msg.c_str());
     }
@@ -10286,6 +10283,14 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_NMITEST_HELP", "Generates a non-maskable interrupt (NMI).\n\n"
             "NMITEST\n\nNote: This is a debugging tool to test if the interrupt handler works properly.\n");
     MSG_Add("PROGRAM_NMITEST_GENERATE_NMI","Generating a non-maskable interrupt (NMI)...\n");
+    MSG_Add("PROGRAM_CAPMOUSE_HELP","Captures or releases the mouse inside DOSBox-X.\n\n"
+            "CAPMOUSE [/C|/R]\n"
+            "  /C Capture the mouse\n"
+            "  /R Release the mouse\n");
+    MSG_Add("PROGRAM_CAPMOUSE_MOUSE", "Mouse ");
+    MSG_Add("PROGRAM_CAPMOUSE_CURRENTLY", "is currently ");
+    MSG_Add("PROGRAM_CAPMOUSE_CAPTURED", "captured");
+    MSG_Add("PROGRAM_CAPMOUSE_RELEASED", "released");    
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
