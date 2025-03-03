@@ -7403,10 +7403,10 @@ class NMITEST : public Program {
 public:
     void Run(void) override {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("Generates a non-maskable interrupt (NMI).\n\nNMITEST\n\nNote: This is a debugging tool to test if the interrupt handler works properly.\n");
+			WriteOut(MSG_Get("PROGRAM_NMITEST_HELP"));
             return;
 		}
-        WriteOut("Generating a non-maskable interrupt (NMI)...\n");
+        WriteOut(MSG_Get("PROGRAM_NMITEST_GENERATE_NMI"));
         CPU_Raise_NMI();
     }
 };
@@ -8042,9 +8042,7 @@ public:
     void Run(void) override;
 private:
 	void PrintUsage() {
-        constexpr const char *msg =
-            "Changes V-text mode for the DOS/V emulation.\n\nVTEXT [mode]\n\n[mode] can be 0, 1, 2, for no V-text, V-text 1, and V-text 2 respectively.\n\nType VTEXT without a parameter to show the current V-text mode status.\n";
-        WriteOut(msg);
+        WriteOut(MSG_Get("PROGRAM_VTEXT_HELP"));
 	}
 };
 
@@ -10282,7 +10280,13 @@ void DOS_SetupPrograms(void) {
             "Converts UTF-16 text to view in the current code page.\n\n"
             "UTF16 [/BE|/LE] < [drive:][path]filename\ncommand-name | UTF16 [/BE|/LE]\n\n"
             "  /BE  Use UTF-16 Big Endian\n  /LE  Use UTF-16 Little Endian\n");
-    
+    MSG_Add("PROGRAM_VTEXT_HELP", "Changes V-text mode for the DOS/V emulation.\n\n"
+            "VTEXT [mode]\n\n[mode] can be 0, 1, 2, for no V-text, V-text 1, and V-text 2 respectively.\n\n"
+            "Type VTEXT without a parameter to show the current V-text mode status.\n");
+    MSG_Add("PROGRAM_NMITEST_HELP", "Generates a non-maskable interrupt (NMI).\n\n"
+            "NMITEST\n\nNote: This is a debugging tool to test if the interrupt handler works properly.\n");
+    MSG_Add("PROGRAM_NMITEST_GENERATE_NMI","Generating a non-maskable interrupt (NMI)...\n");
+
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
 
