@@ -7862,10 +7862,7 @@ public:
     void Run(void) override;
 private:
 	void PrintUsage() {
-        constexpr const char *msg =
-            "Converts UTF-8 text to view in the current code page.\n\n"
-            "UTF8 < [drive:][path]filename\ncommand-name | UTF8\n";
-        WriteOut(msg);
+        WriteOut(MSG_Get("PROGRAM_UTF8_HELP"));
 	}
 };
 
@@ -7876,7 +7873,7 @@ void UTF8::Run()
 		return;
 	}
     if (usecon) {
-        WriteOut("No input text found.\n");
+        WriteOut(MSG_Get("PROGRAM_UTF8_NO_TEXT"));
         return;
     }
     // int cp=dos.loaded_codepage; /* unused */
@@ -7891,7 +7888,7 @@ void UTF8::Run()
     _Iconv<char,test_char_t> *x = _Iconv<char,test_char_t>::create("UTF-8");
     _Iconv<test_char_t,char> *fx = _Iconv<test_char_t,char>::create(target);
     if (x == NULL || fx == NULL) {
-        WriteOut("Invalid code page for text conversion.\n");
+        WriteOut(MSG_Get("PROGRAM_UTF8_INVALIDCP"));
         return;
     }
     test_string dst;
@@ -7904,7 +7901,7 @@ void UTF8::Run()
         DOS_ReadFile (STDIN,&c,&m);
         if (m) text+=std::string(1, c);
         if (m && first && text.size() == 2 && (((uint8_t)text[0] == 0xFE && (uint8_t)text[1] == 0xFF) || ((uint8_t)text[0] == 0xFF && (uint8_t)text[1] == 0xFE))) {
-            WriteOut("The input text is UTF-16.\n");
+            WriteOut(MSG_Get("PROGRAM_UTF8_NOT_UTF8"));
             break;
         }
         if (m && first && text.size() == 3 && (uint8_t)text[0] == 0xEF && (uint8_t)text[1] == 0xBB && (uint8_t)text[2] == 0xBF) {
@@ -7917,7 +7914,7 @@ void UTF8::Run()
             } else {
                 x->set_src(text.c_str());
                 if ((customcp && dos.loaded_codepage==customcp) || (altcp && dos.loaded_codepage==altcp) || x->string_convert_dest(dst) < 0 || (text.size() && !fx->string_convert(dst).size())) {
-                    WriteOut("An error occurred during text conversion.\n");
+                    WriteOut(MSG_Get("PROGRAM_UTF8_CONVERSION_ERROR"));
                     morelen=false;
                     return;
                 } else
@@ -7942,11 +7939,7 @@ public:
     void Run(void) override;
 private:
 	void PrintUsage() {
-        constexpr const char *msg =
-            "Converts UTF-16 text to view in the current code page.\n\n"
-            "UTF16 [/BE|/LE] < [drive:][path]filename\ncommand-name | UTF16 [/BE|/LE]\n\n"
-            "  /BE  Use UTF-16 Big Endian\n  /LE  Use UTF-16 Little Endian\n";
-        WriteOut(msg);
+        WriteOut(MSG_Get("PROGRAM_UTF16_HELP"));
 	}
 };
 
@@ -7957,7 +7950,7 @@ void UTF16::Run()
 		return;
 	}
     if (usecon) {
-        WriteOut("No input text found.\n");
+        WriteOut(MSG_Get("PROGRAM_UTF8_NO_TEXT"));
         return;
     }
     char target[11] = "CP437";
@@ -7971,7 +7964,7 @@ void UTF16::Run()
     uint8_t buf[3];uint16_t m=2;
     DOS_ReadFile (STDIN,buf,&m);
     if (m<2) {
-        if (m==1) WriteOut("An error occurred during text conversion.\n");
+        if (m==1) WriteOut(MSG_Get("PROGRAM_UTF8_CONVERSION_ERROR"));
         return;
     }
     bool le=true;
@@ -7989,7 +7982,7 @@ void UTF16::Run()
 #endif
     _Iconv<test_char_t,char> *x = _Iconv<test_char_t,char>::create(target);
     if (x == NULL) {
-        WriteOut("Invalid code page for text conversion.\n");
+        WriteOut(MSG_Get("PROGRAM_UTF8_INVALIDCP"));
         return;
     }
     test_char dst;
@@ -8004,7 +7997,7 @@ void UTF16::Run()
         if (!first || (buf[0] == 0xFE && buf[1]== 0xFF) || (buf[0] == 0xFF && buf[1]== 0xFE)) DOS_ReadFile (STDIN,buf,&m);
         first=false;
         if (m==1) {
-            WriteOut("An error occurred during text conversion.\n");
+            WriteOut(MSG_Get("PROGRAM_UTF8_CONVERSION_ERROR"));
             break;
         } else if (m==2) {
             ch=buf[le?1:0]*0x100+buf[le?0:1];
@@ -8021,7 +8014,7 @@ void UTF16::Run()
             } else {
                 x->set_src(wch);
                 if ((customcp && dos.loaded_codepage==customcp) || (altcp && dos.loaded_codepage==altcp) || x->string_convert_dest(dst) < 0 || (c && !dst.size())) {
-                    WriteOut("An error occurred during text conversion.\n");
+                    WriteOut(MSG_Get("PROGRAM_UTF8_CONVERSION_ERROR"));
                     delete[] wch;
                     morelen=false;
                     return;
@@ -10278,6 +10271,17 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_START_CTRLC", "(Press Ctrl+C to exit immediately)\n");
     MSG_Add("PROGRAM_START_HOST_ERROR", "Error: START cannot launch application to run on your current host system.\n");
     MSG_Add("PROGRAM_START_LAUNCH_ERROR", "Error: START could not launch application.\n");
+    MSG_Add("PROGRAM_UTF8_HELP",
+            "Converts UTF-8 text to view in the current code page.\n\n"
+            "UTF8 < [drive:][path]filename\ncommand-name | UTF8\n");
+    MSG_Add("PROGRAM_UTF8_NO_TEXT","No input text found.\n");
+    MSG_Add("PROGRAM_UTF8_INVALIDCP","Invalid code page for text conversion.\n");
+    MSG_Add("PROGRAM_UTF8_NOT_UTF8","The input text is UTF-16.\n");
+    MSG_Add("PROGRAM_UTF8_CONVERSION_ERROR","An error occurred during text conversion.\n");
+    MSG_Add("PROGRAM_UTF16_HELP",
+            "Converts UTF-16 text to view in the current code page.\n\n"
+            "UTF16 [/BE|/LE] < [drive:][path]filename\ncommand-name | UTF16 [/BE|/LE]\n\n"
+            "  /BE  Use UTF-16 Big Endian\n  /LE  Use UTF-16 Little Endian\n");
     
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
