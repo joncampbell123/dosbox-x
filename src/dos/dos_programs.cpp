@@ -2010,7 +2010,7 @@ public:
         else if (boothax_str == "")
             boothax = BOOTHAX_NONE;
         else {
-            if (!quiet) WriteOut("Unknown boothax mode");
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_UNKNOWN_BOOTHAX"));
             return;
         }
 
@@ -2025,7 +2025,7 @@ public:
             uint32_t isz1,isz2;
 
             if (bios.empty()) {
-                if (!quiet) WriteOut("Must specify BIOS image to boot\n");
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_SPECIFY_FILE"));
                 return;
             }
 
@@ -2048,7 +2048,7 @@ public:
             /* load it */
             FILE *romfp = getFSFile(bios.c_str(), &isz1, &isz2);
             if (romfp == NULL) {
-                if (!quiet) WriteOut("Unable to open BIOS image\n");
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_BIOS_OPEN_ERROR"));
                 return;
             }
             Bitu loadsz = (isz2 + 0xFU) & (~0xFU);
@@ -3244,7 +3244,7 @@ class BIOSTEST : public Program {
 public:
     void Run(void) override {
         if (!(cmd->FindCommand(1, temp_line))) {
-            WriteOut("Must specify BIOS file to load.\n");
+            WriteOut(MSG_Get("PROGRAM_BIOSTEST_SPECIFY_FILE"));
             return;
         }
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
@@ -3264,12 +3264,12 @@ public:
 
             FILE* tmpfile = ldp->GetSystemFilePtr(fullname, "rb");
             if (tmpfile == NULL) {
-                WriteOut("Can't open a file");
+                WriteOut(MSG_Get("PROGRAM_BIOSTEST_OPEN_ERROR"));
                 return;
             }
             fseek(tmpfile, 0L, SEEK_END);
             if (ftell(tmpfile) > 64 * 1024) {
-                WriteOut("BIOS File too large");
+                WriteOut(MSG_Get("PROGRAM_BIOSTEST_TOO_LARGE"));
                 fclose(tmpfile);
                 return;
             }
@@ -9885,6 +9885,9 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_IS_PC88","The D88 image appears to target PC-88 and cannot be booted.");
     MSG_Add("PROGRAM_BOOT_BPS_TOOLARGE","Bytes/sector too large");
     MSG_Add("PROGRAM_BOOT_DRIVE_READERROR","Error reading drive");
+    MSG_Add("PROGRAM_BOOT_UNKNOWN_BOOTHAX","Unknown boothax mode");
+    MSG_Add("PROGRAM_BOOT_SPECIFY_FILE","Must specify BIOS image to boot\n");
+    MSG_Add("PROGRAM_BOOT_BIOS_OPEN_ERROR","Unable to open BIOS image\n");
 
     MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file for video BIOS or IBM BASIC.\n\nLOADROM ROM_file\n");
     MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
@@ -9895,7 +9898,9 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADROM_UNRECOGNIZED","ROM file not recognized.\n");
     MSG_Add("PROGRAM_LOADROM_BASIC_LOADED","BASIC ROM loaded.\n");
     MSG_Add("PROGRAM_BIOSTEST_HELP","Boots into a BIOS image for running CPU tester BIOS.\n\nBIOSTEST image_file\n");
-
+    MSG_Add("PROGRAM_BIOSTEST_SPECIFY_FILE","Must specify BIOS file to load.\n");
+    MSG_Add("PROGRAM_BIOSTEST_OPEN_ERROR","Can't open a file");
+    MSG_Add("PROGRAM_BIOSTEST_TOO_LARGE", "BIOS File too large");
     MSG_Add("VHD_ERROR_OPENING", "Could not open the specified VHD file.\n");
     MSG_Add("VHD_INVALID_DATA", "The specified VHD file is corrupt and cannot be opened.\n");
     MSG_Add("VHD_UNSUPPORTED_TYPE", "The specified VHD file is of an unsupported type.\n");
