@@ -4091,3 +4091,43 @@ captured
 :PROGRAM_CAPMOUSE_RELEASED
 released
 .
+:PROGRAM_AUTOTYPE_HELP
+Performs scripted keyboard entry into a running DOS program.
+
+AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
+
+Where:
+  -list:   prints all available button names.
+  -w WAIT: seconds before typing begins. Two second default; max of 30.
+  -p PACE: seconds between each keystroke. Half-second default; max of 10.
+  
+  The sequence is comprised of one or more space-separated buttons.
+  Autotyping begins after WAIT seconds, and each button is entered
+  every PACE seconds. The , character inserts an extra PACE delay.
+  
+Some examples:
+  \033[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter\033[0m
+  \033[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter\033[0m
+  \033[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter\033[0m
+.
+:PROGRAM_AUTOTYPE_NO_BINDINGS
+AUTOTYPE: The mapper has no key bindings
+.
+:PROGRAM_AUTOTYPE_CLAMP_VALUE
+AUTOTYPE: bounding %s value of %.2f to %.2f
+.
+:PROGRAM_AUTOTYPE_INVALID_VALUE
+AUTOTYPE: %s value '%s' is not a valid floating point number
+.
+:PROGRAM_ADDKEY_HELP
+Generates artificial keypresses.
+
+ADDKEY [pmsec] [key]
+
+For example, the command below types "dir" followed by ENTER after 1 second:
+
+ADDKEY p1000 d i r enter
+
+You could also try AUTOTYPE command instead of this command to perform
+scripted keyboard entry into a running DOS program.
+.
