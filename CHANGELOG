@@ -1,4 +1,7 @@
 Next
+  - Fixed glitch of DBCS character at the end of a line (maron2000)
+  - Removed duplicate code mappings of Chinese characters in cp951_uni.h (1abcd)
+  - Enabled changing drives mounted prior to switching to securemode (maron2000)
   - Fixed fullscreen mode occasionally switched to windowed mode (maron2000)
   - Updated French translation (FredBezies)
   - Fixed blank screen when output=ttf on PC-98 mode (maron2000)
