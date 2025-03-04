@@ -3808,7 +3808,7 @@ allotment. Choose a different drive letter to mount to.
 El Torito emulation requires a proper CD-ROM drive letter.
 .
 :PROGRAM_ELTORITO_DRIVE_EXISTS
-El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+El Torito CD-ROM drive specified already exists as a non-CD-ROM device
 .
 :PROGRAM_ELTORITO_NOT_CDDRIVE
 El Torito CD-ROM drive specified is not actually a CD-ROM drive.
@@ -4025,7 +4025,7 @@ Code page operation not supported on this device
 :PROGRAM_MODE_RATE_DELAY
 Rate and delay must be specified together
 .
-:PROGRAM_UTF8_HELP",
+:PROGRAM_UTF8_HELP
 Converts UTF-8 text to view in the current code page.
 
 UTF8 < [drive:][path]filename
