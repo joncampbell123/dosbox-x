@@ -4176,6 +4176,7 @@ Pour changer les couleurs d'arrière et d'avant plan, utilisez la commande COLOR
 .
 :PROGRAM_SETCOLOR_STATUS
 Statut mode MONO : %s (mode vidéo %d)
+
 .
 :PROGRAM_SETCOLOR_ACTIVE
 active
@@ -4200,6 +4201,7 @@ Doit être + ou - pour MONO : %s
 .
 :PROGRAM_SETCOLOR_COLOR
 Couleur %d : (%d,%d,%d) ou #%02x%02x%02x
+
 .
 :PROGRAM_SETCOLOR_INVALID_NUMBER
 Numéro de couleur invalide - %s
