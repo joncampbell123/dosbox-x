@@ -3683,3 +3683,543 @@ CPU:簡易コア
 :MAPPER:togmenu
 メニューバー表示切替
 .
+:PROGRAM_FLAGSAVE_UNFLAGALL
+ファイルをセーブするフラグをすべて解除しました。
+
+.
+:PROGRAM_FLAGSAVE_UNFLAGGED
+ファイル %s をセーブするフラグを解除しました。
+
+.
+:PROGRAM_FLAGSAVE_FLAGGED
+指定したファイルはすでにフラグを設定済みです。 - %s
+
+.
+:PROGRAM_FLAGSAVE_TOOMANY
+フラグを設定するファイルの数が多すぎます。
+
+.
+:PROGRAM_FLAGSAVE_SAVED
+ファイル %s をセーブするフラグを設定しました。
+
+.
+:PROGRAM_FLAGSAVE_LIST
+フラグを設定したファイル:
+.
+:PROGRAM_FLAGSAVE_HLP
+セーブステート機能でセーブするファイルのフラグを設定します。
+
+FLAGSAVE [ファイル] [/F] [/R]] [/U]
+
+  ファイル  セーブするファイルのフラグを設定するファイルを指定 (複数指定可)
+  /F        ファイルが見つからなくても強制的にフラグを設定します。
+  /R        指定したファイルのフラグを解除します。
+  /U        すべてのファイルのフラグを解除します。
+
+パラメータなしで FLAGSAVE を実行すると設定したファイルの一覧を表示します。
+
+.
+:PROGRAM_INT2FDBG_NOT_SET
+INT 2Fh フックは設定されていません。
+
+.
+:PROGRAM_INT2FDBG_ALREADY
+INT 2Fh フックは設定済みです。
+
+.
+:PROGRAM_INT2FDBG_HELP
+デバッグ用途に INT 2Fh をフックします。
+
+INT2FDBG [option]
+  /I      フックを設定する
+  
+デバッグ情報のために、コールチェーンの先頭にINT 2Fhをフックします。
+
+パラメータなしで INT2FDBG を実行すると現在のフックの状態を表示します。
+.
+:PROGRAM_SET80x25
+80x25 テキストモードに切り替えます。
+.
+:PROGRAM_SET80x43
+80x43 テキストモードに切り替えます。
+.
+:PROGRAM_SET80x50
+80x50 テキストモードに切り替えます。
+.
+:PROGRAM_SET80x60
+80x60 テキストモードに切り替えます。
+.
+:PROGRAM_SET132x25
+132x25 テキストモードに切り替えます。
+.
+:PROGRAM_SET132x43
+132x43 テキストモードに切り替えます。
+.
+:PROGRAM_SET132x50
+132x50 テキストモードに切り替えます。
+.
+:PROGRAM_SET132x60
+132x60 テキストモードに切り替えます。
+.
+:PROGRAM_RESCAN_HELP
+再スキャンし、ホストによるマウントされたドライブへの変更をキャッシュします。
+
+RESCAN [/A] [/Q]
+RESCAN [ドライブ:] [/Q]
+
+  [/A]     すべてのドライブを再スキャンします。
+  [/Q]     非表示(Quiet) モードで実行します。
+  [ドライブ:] 再スキャンするドライブ
+
+パラメータなしで RESCAN を実行するとカレントドライブを再スキャンします。
+
+.
+:PROGRAM_CFGTOOL_HELP
+DOSBox-X のグラフィカルな設定ツールを起動します。
+
+CFGTOOL
+
+参考: CONFIG コマンドでコマンドラインからも設定の変更が可能です。
+.
+:PROGRAM_IMGSWAP_HELP
+フロッピー、ハードディスク、光学ドライブのイメージを切り替えます。
+
+[32;1mIMGSWAP[0m [37;1mdrive[0m [36;1m[position][0m
+ [37;1mdrive[0m               イメージを切り替えるドライブ
+ [36;1m[position][0m          切り替えるディスク番号を指定
+.
+:PROGRAM_INTRO_HELP
+フルスクリーン表示で DOSBox-X を紹介します。
+
+INTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]
+.
+:PROGRAM_IMGMOUNT_NOT_ASSIGNED
+BIOS ディスクインデックスにイメージが設定されていません。
+.
+:PROGRAM_IMGMOUNT_INVALID_NUMBER
+無効なマウント番号です。
+.
+:PROGRAM_IMGMOUNT_INVALID_FSTYPE
+無効な fstype です。
+.
+:PROGRAM_IMGMOUNT_INVALID_SIZE
+無効なサイズパラメータです。
+.
+:PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER
+ドライブ番号 %d はマウントされていません。
+.
+:PROGRAM_IMGMOUNT_UMOUNT_USAGE
+無効な IMGMOUNT のアンマウント方法です。
+.
+:PROGRAM_IMGMOUNT_INVALID_LETTER
+無効なドライブ文字です。
+.
+:PROGRAM_IMGMOUNT_CHOOSE_LETTER
+パーティションは、標準INT 13hのハードディスク割り当てと競合してマウントすること
+はできません。別のドライブ文字を選択して下さい。
+.
+:PROGRAM_ELTORITO_LETTER
+El Torito エミュレーションには 適切なCD-ROM ドライブ文字を指定して下さい。
+.
+:PROGRAM_ELTORITO_DRIVE_EXISTS
+指定したEl Torito CD-ROM ドライブはすでに非CD-ROM デバイスに指定されています。
+.
+:PROGRAM_ELTORITO_NOT_CDDRIVE
+指定したEl Torito CD-ROM ドライブは CD-ROM ドライブではありません。
+.
+:PROGRAM_ELTORITO_REQUIRE_FLOPPY
+El Torito エミュレーションには -t floppy を指定する必要があります。
+.
+:PROGRAM_ELTORITO_NO_BOOT_RECORD
+El Torito CD-ROM ブートレコードが見つかりません。
+.
+:PROGRAM_ELTORITO_ENTRY_UNREADABLE
+El Torito エントリが読み取れません。
+.
+:PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY
+El Torito 起動用フロッピーが見つかりません。
+.
+:PROGRAM_ELTORITO_BOOTABLE_SECTION
+ブート可能領域が見つかりませんでした。
+.
+:PROGRAM_ELTORITO_BOOTSECTOR
+El Torito ブートセクタが読み取れません。
+.
+:PROGRAM_IMGMAKE_ALIGNMENT
+無効な alignment オプションです。
+.
+:PROGRAM_IMGMAKE_PARTOFS
+無効な -partofs オプションです。
+.
+:PROGRAM_IMGMAKE_FAT
+無効な -fat オプションです。 12, 16, 32のいずれかを指定して下さい。
+.
+:PROGRAM_IMGMAKE_FATCOPIES
+無効な -fatcopies オプションです。
+.
+:PROGRAM_IMGMAKE_SPC
+無効な -spc オプションです。指定可能な値の範囲外です。
+.
+:PROGRAM_IMGMAKE_SPC2
+無効な -spc オプションです。2の累乗で指定して下さい。
+.
+:PROGRAM_IMGMAKE_ROOTDIR
+無効な -rootdir オプションです。
+.
+PROGRAM_IMGMAKE_BOOTSECT
+ブートセクタの位置が不正です。
+.
+PROGRAM_IMGMAKE_VOLUME_ALIGN
+健全性チェック: ボリュームサイズの位置が不正です。
+.
+:PROGRAM_IMGMAKE_FAT_ALIGN
+健全性チェック: FAT テーブルの位置が不正です。
+.
+:PROGRAM_IMGMAKE_SECTPERFAT
+エラー: 生成されたファイルシステムは 1FAT あたり256セクタ以上ですが FAT32 では
+        ありません。
+.
+:PROGRAM_IMGMAKE_VOLSIZE
+健全性チェック: ボリュームサイズの位置が不正です。
+.
+:PROGRAM_IMGMAKE_CLUSTERS
+エラー: 設定したパラメータに対して、生成されたファイルシステムのクラスタ数が小
+        さすぎます
+.
+:PROGRAM_IMGMAKE_CLUSTERCOUNT
+警告: クラスタ数がボリュームのサイズに対して大きすぎます。
+      より小さいセクタ数を設定します。
+.
+:PROGRAM_IMGMAKE_CLUSTER_ALIGN
+健全性チェック: 第一クラスタの位置が不正です。
+.
+:PROGRAM_IMGMAKE_CLUSTER_SIZE
+警告: クラスタサイズ >= 64KB は MS-DOS と SCANDISK と互換性がありません。
+.
+:PROGRAM_BOOT_UNSUPPORTED
+サポートされていないブートモードです。
+.
+:PROGRAM_MOUNT_OVERLAY_REPLACE
+既存のオーバレイは新しいものに置き換えられました。
+.
+:PROGRAM_LOADFIX_EMS_FREE
+EMS ハンドル %u: 解放できませんでした。
+.
+:PROGRAM_LOADFIX_XMS_FREE
+XMS ハンドル %u: 解放できませんでした。
+.
+:PROGRAM_LOADFIX_EMS_ALLOC
+EMS ブロックを割り当てました (%uKB)
+.
+:PROGRAM_LOADFIX_EMS_ALLOCERROR
+EMS ブロックを割り当てることができませんでした。
+.
+PROGRAM_LOADFIX_NOEMS
+EMS は有効ではありません。
+.
+:PROGRAM_LOADFIX_XMS_ALLOC
+XMS ブロックを割り当てました (%uKB)
+.
+:PROGRAM_LOADFIX_XMS_ALLOCERROR
+XMS ブロックを割り当てることができませんでした。
+.
+:PROGRAM_LOADFIX_NOXMS
+XMS は有効ではありません。
+.
+:PROGRAM_LOADFIX_NOALLOC
+最も低い MCB は 64KBより上のため、メモリを確保しません。
+.
+:PROGRAM_BOOT_SWAP_ALREADY
+複数イメージを指定しましたが、すでに別のドライブで複数イメージを設定しています
+.
+:PROGRAM_BOOT_NOT_SPECIFIED
+イメージを指定して下さい。
+.
+:PROGRAM_BOOT_IS_PC88
+D88 イメージは PC-88 用と思われます。ブートできません。
+.
+:PROGRAM_BOOT_BPS_TOOLARGE
+バイト/セクタ が大きすぎます
+.
+:PROGRAM_BOOT_DRIVE_READERROR
+ドライブを読み込みできませんでした。
+.
+:PROGRAM_START_HELP_WIN
+別ウィンドウで指定したコマンドまたはプログラムを実行します。
+
+START [+|-|_] コマンド [引数]
+
+  [+|-|_]  : プログラムを最大化・最小化・非表示にする。
+             /MAX, /MIN, /HID でも指定可能です。
+  コマンド : 実行するコマンドまたはプログラム
+  引数     : アプリケーションに渡す引数
+  
+START はWindowsコマンドプロンプトから指定したコマンド・プログラムを実行します。
+"startincon"オプションで指定した以下のコマンドは終了後にキー入力を待ちます:
+%s
+
+参考: ファイル・コマンドへのパスはホストシステムのものを指定します。
+.
+:PROGRAM_START_HELP
+別ウィンドウで指定したコマンドまたはプログラムを実行します。
+
+START /OPEN ファイル
+START コマンド [引数]
+
+  /OPEN    : 関連付けされたプログラムで指定したファイル・URLを開きます。
+  ファイル : 関連付けされたプログラムで開くファイル・URL
+  コマンド : 実行するコマンドまたはプログラム
+  引数     : アプリケーションに渡す引数
+  
+参考: ファイル・コマンドへのパスはホストシステムのものを指定します。
+.
+:PROGRAM_START_COMPLETED
+実行したコマンドが終了しました。
+.
+:PROGRAM_START_COMMAND
+%s を起動します...
+.
+:PROGRAM_START_CTRLC
+(すぐに中止する場合は Ctrl+C を押して下さい)
+.
+:PROGRAM_START_HOST_ERROR
+エラー: START は現在のホストシステムではアプリケーションを起動できません。
+.
+:PROGRAM_START_LAUNCH_ERROR
+エラー: START はアプリケーションを起動できませんでした。
+.
+:PROGRAM_IMGMOUNT_ELTORITO_NO_FILE
+El Torito ブートCDをフロッピードライブとしてマウントする場合、ファイルを指定し
+ないで下さい。
+.
+:PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE
+RAM ドライブをマウントする時はファイルを指定しないで下さい。
+.
+:PROGRAM_IMGMOUNT_INVALID_SECTORSIZE
+セクタサイズは 512 バイトより大きく、かつイメージのクラスタサイズ %lu バイトが
+セクタサイズの倍数とする必要があります。
+.
+:PROGRAM_IMGMOUNT_OPEN_ERROR
+ファイルを開くことができませんでした: '%s'
+.
+:PROGRAM_IMGMOUNT_QCOW2_INVALID
+qcow2 イメージ '%s' はサポートされていない形式です。
+.
+:PROGRAM_IMGMOUNT_GEOMETRY_ERROR
+ジオメトリを検出できませんでした。
+.
+:PROGRAM_IMGMOUNT_DOS_VERSION
+このイメージをマウントするためにDOSバージョンを %u.%u 以上にする必要があります
+%s
+.
+:PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE
+フロッピーのサイズを認識できませんでした。
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_USED
+複数イメージを指定しましたが、すでに別のドライブで複数イメージを設定しています
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED
+そのドライブは複数イメージのマウントに対応していません。
+.
+:PROGRAM_IMGMOUNT_HD_FDPOSITION
+ハードディスクはフロッピーの場所にマウントできません。
+.
+:PROGRAM_IMGMOUNT_FD_HDPOSITION
+フロッピーはハードディスクの場所にマウントできません。
+.
+:PROGRAM_ELTORITO_ISOMOUNT
+El Torito ブート CD: -fs iso によるマウントはサポートされていません。
+.
+:PROGRAM_MODE_STATUS
+CON デバイスの状態:
+----------------------
+桁 =%d
+行 =%d
+.
+:PROGRAM_MODE_NOTSUPPORTED
+
+このデバイスではコードページに関する設定はできません。
+.
+:PROGRAM_MODE_RATE_DELAY
+RATE と DELAY は一緒に指定して下さい。
+.
+:PROGRAM_UTF8_HELP
+UTF-8 のテキストを表示できるよう、現在のコードページへ変換します。
+
+UTF8 < [ドライブ:][パス]ファイル名
+コマンド名 | UTF8
+.
+:PROGRAM_UTF8_NO_TEXT
+入力テキストがありません。
+.
+:PROGRAM_UTF8_INVALIDCP
+現在のコードページは変換できません。
+.
+:PROGRAM_UTF8_NOT_UTF8
+入力されたテキストは UTF-16 です。
+.
+:PROGRAM_UTF8_CONVERSION_ERROR
+テキストの変換でエラーがありました。
+.
+:PROGRAM_UTF16_HELP
+UTF-16のテキストを表示できるよう、現在のコードページへ変換します。
+
+UTF16 [/BE|/LE] < [ドライブ:][パス]ファイル名
+コマンド名 | UTF16 [/BE|/LE]
+
+  /BE  UTF-16 ビッグエンディアンを使用
+  /LE  UTF-16 リトルエンディアンを使用
+.
+:PROGRAM_VTEXT_HELP
+DOS/V エミュレーションの V-text モードを表示・変更します。
+
+VTEXT [mode]
+
+  [mode] 設定値: 0, 1, 2  それぞれV-textなし、V-text 1, V-text 2 に該当
+
+パラメータなしで VTEXT を実行すると現在の V-text モードの状態を表示します。
+.
+:PROGRAM_NMITEST_HELP
+マスク不可割り込み(NMI)を生成します。
+
+NMITEST
+
+参考: これは割り込みハンドラが意図通り動作することを確認するデバッグツールです
+.
+:PROGRAM_NMITEST_GENERATE_NMI
+マスク不可割り込み(NMI)を生成します (NMI)...
+.
+:PROGRAM_CAPMOUSE_HELP
+DOSBox-X 内のマウスをキャプチャまたは解放します。
+
+CAPMOUSE [/C|/R]
+
+  /C マウスをキャプチャする
+  /R マウスのキャプチャを解放する
+.
+:PROGRAM_CAPMOUSE_MOUSE
+マウス
+.
+:PROGRAM_CAPMOUSE_CURRENTLY
+は現在 
+.
+:PROGRAM_CAPMOUSE_CAPTURED
+キャプチャされています。
+.
+:PROGRAM_CAPMOUSE_RELEASED
+解放されています。
+.
+:PROGRAM_AUTOTYPE_HELP
+実行中の DOS プログラムにスクリプトに基づきキー入力を実施します。
+
+AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
+
+  -list:   設定可能なボタンの一覧を表示します。
+  -w WAIT: タイプを開始するまでの時間(秒)。デフォルト 2秒、最大 30秒
+  -p PACE: キー入力間の時間(秒)。 デフォルト 0.5秒、最大10秒
+  
+  シーケンスはスペースで区切られた一つ以上のボタンで構成されます。
+  WAIT 秒後にキー入力を開始し、PACE 秒ごとにキーを入力します。
+   , (カンマ)で PACE 秒の遅延を追加します。
+  
+実行例:
+  [32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter[0m
+  [32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter[0m
+  [32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter[0m
+.
+:PROGRAM_AUTOTYPE_NO_BINDINGS
+AUTOTYPE: マッパーに該当する割り当てがありません。
+.
+:PROGRAM_AUTOTYPE_CLAMP_VALUE
+AUTOTYPE: %s の値を %.2f から %.2f へ変更します。
+.
+:PROGRAM_AUTOTYPE_INVALID_VALUE
+AUTOTYPE: %s 値 '%s' は有効な浮動小数ではありません
+.
+:PROGRAM_ADDKEY_HELP
+人工的なキー入力を生成します。
+
+ADDKEY [pmsec] [key]
+
+以下の例では、"dir" コマンドをタイプし、1秒後にエンターキーをタイプします。
+
+ADDKEY p1000 d i r enter
+
+このコマンドの代わりに、AUTOTYPE コマンドで実行中のDOSプログラムにスクリプトに
+よるキー入力を設定することもできます。
+.
+:PROGRAM_SETCOLOR_HELP
+テキストモードの色設定を表示または変更します。
+
+SETCOLOR [color# [value]]
+
+設定例:
+
+   [32;1mSETCOLOR 0 (50,50,50)[0m
+色番号 #0 を設定した値に変更します
+
+   [32;1mSETCOLOR 7 -[0m
+色番号 #7 の設定をデフォルト値に戻します
+
+   [32;1mSETCOLOR 3 +[0m
+色番号 #3 の設定を設定した値に戻します
+
+   [32;1mSETCOLOR MONO[0m
+現在の MONO モードの状態を表示します
+
+文字色・背景色の変更には COLOR コマンドを使って下さい。
+.
+:PROGRAM_SETCOLOR_STATUS
+MONO モード 状態: %s (video mode %d)
+.
+:PROGRAM_SETCOLOR_ACTIVE
+有効
+.
+:PROGRAM_SETCOLOR_INACTIVE
+無効
+.
+:PROGRAM_SETCOLOR_UNAVAILABLE
+設定不可
+.
+:PROGRAM_SETCOLOR_MONO_MODE7
+MONO モード 状態 => 有効 (ビデオモード 7)
+.
+:PROGRAM_SETCOLOR_MONO_MODE3
+MONO モード 状態 => 無効 (ビデオモード 3)
+.
+:PROGRAM_SETCOLOR_MONO_FAIL
+MONO モードへ変更できませんでした。
+.
+:PROGRAM_SETCOLOR_MONO_SYNTAX
+MONOは + または - を指定して下さい: %s
+.
+:PROGRAM_SETCOLOR_COLOR
+色番号 %d: (%d,%d,%d) または #%02x%02x%02x
+.
+:PROGRAM_SETCOLOR_INVALID_NUMBER
+色番号が無効です - %s
+.
+:PROGRAM_SETCOLOR_INVALID_VALUE
+色の値が無効です - %s
+.
+:PROGRAM_SETCOLOR_NOT_SUPPORTED
+現在のビデオモードは色設定の変更ができません。
+.
+:PROGRAM_BOOT_UNKNOWN_BOOTHAX
+不明な boothax モードです。
+.
+:PROGRAM_BOOT_SPECIFY_FILE
+起動する BIOS イメージを指定して下さい。
+.
+:PROGRAM_BOOT_BIOS_OPEN_ERROR
+BIOS イメージを開くことができませんでした。
+.
+:PROGRAM_BIOSTEST_SPECIFY_FILE
+読み込む BIOS ファイルを指定して下さい。
+.
+:PROGRAM_BIOSTEST_OPEN_ERROR
+ファイルが開けません。
+.
+:PROGRAM_BIOSTEST_TOO_LARGE
+BIOS ファイルが大きすぎます。
+.
