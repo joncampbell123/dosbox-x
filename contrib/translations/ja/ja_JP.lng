@@ -4171,6 +4171,7 @@ SETCOLOR [color# [value]]
 .
 :PROGRAM_SETCOLOR_STATUS
 MONO モード 状態: %s (video mode %d)
+
 .
 :PROGRAM_SETCOLOR_ACTIVE
 有効
@@ -4195,6 +4196,7 @@ MONOは + または - を指定して下さい: %s
 .
 :PROGRAM_SETCOLOR_COLOR
 色番号 %d: (%d,%d,%d) または #%02x%02x%02x
+
 .
 :PROGRAM_SETCOLOR_INVALID_NUMBER
 色番号が無効です - %s

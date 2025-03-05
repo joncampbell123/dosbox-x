@@ -4154,6 +4154,7 @@ To change the current background and foreground colors, use COLOR command.
 .
 :PROGRAM_SETCOLOR_STATUS
 MONO mode status: %s (video mode %d)
+
 .
 :PROGRAM_SETCOLOR_ACTIVE
 active
@@ -4178,6 +4179,7 @@ Must be + or - for MONO: %s
 .
 :PROGRAM_SETCOLOR_COLOR
 Color %d: (%d,%d,%d) or #%02x%02x%02x
+
 .
 :PROGRAM_SETCOLOR_INVALID_NUMBER
 Invalid color number - %s
