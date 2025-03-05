@@ -3825,7 +3825,7 @@ du disque dur INT 13h. Choisissez une autre lettre de lecteur pour le montage.
 L'émulation El Torito requière une lettre de lecteur CD-ROM propre.
 .
 :PROGRAM_ELTORITO_DRIVE_EXISTS
-Le lecteur CD-ROM El Torito spécifié existe déjà comme un périphérique non-CD-ROM\n");
+Le lecteur CD-ROM El Torito spécifié existe déjà comme un périphérique non-CD-ROM
 .
 :PROGRAM_ELTORITO_NOT_CDDRIVE
 Le lecteur CD-ROM El Torito spécifié n'est pas un lecteur CD-Rom.
@@ -3944,4 +3944,287 @@ Octets/secteur trop grand
 .
 :PROGRAM_BOOT_DRIVE_READERROR
 Erreur de lecture du lecteur
+.
+:PROGRAM_START_HELP_WIN
+Démarre une fenêtre séparée pour lancer une commande ou un programme spécifié.
+
+START [+|-|_] command [arguments]
+
+  [+|-|_] : Pour maximiser/minimiser/cacher le programme
+  Les options /MAX, /MIN, /HID sont aussi acceptées.
+  command : La commande, programme ou fichier à démarrer.
+  arguments : Arguments à passer à l'application.
+  
+START ouvre le prompt de la fenêtre de commande Windows pour lancer
+ces commandes et attend une pression de touche avant de quitter
+(spécifié par l'option "startincon") : %s
+
+Note : Le chemin d'accès spécifié dans cette commande est le
+chemin d'accès dans le système hôte.
+.
+:PROGRAM_START_HELP
+Démarre une fenêtre séparée pour lancer une commande ou un programme spécifié.
+
+START /OPEN file
+START command [arguments]
+
+  /OPEN : Pour ouvrir le fichier ou l'URL avec le programme associé.
+  file : Le fichier ou l'URL à ouvrir avec le programme associé.
+  command : La commande, programme ou fichier à lancer ou à démarrer.
+  arguments : Arguments à passer à l'application.
+  
+Note : Le chemin d'accès spécifié dans cette commande est le
+chemin d'accès dans le système hôte.
+.
+:PROGRAM_START_COMPLETED
+L'exécution de la commande est complétée.
+.
+:PROGRAM_START_COMMAND
+Démarre %s...
+.
+:PROGRAM_START_CTRLC
+(Pressez Ctrl+C pour quitter immédiatement)
+.
+:PROGRAM_START_HOST_ERROR
+Erreur : START ne peut pas lancer l'application à démarrer sur votre système hôte. 
+.
+:PROGRAM_START_LAUNCH_ERROR
+Erreur : START ne peut pas lancer l'application.
+.
+:PROGRAM_IMGMOUNT_ELTORITO_NO_FILE
+Ne pas spécifier les fichiers quand on monte des lecteurs disquettes depuis
+des CDs démarrable El Torito
+.
+:PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE
+Ne pas spécifier les fichiers quand on monte des lecteurs RAM
+.
+:PROGRAM_IMGMOUNT_INVALID_SECTORSIZE
+La taille du secteur doit être plus grande que 512 octet et
+divise uniformément la taille du cluster d'images de %lu octets.
+.
+:PROGRAM_IMGMOUNT_OPEN_ERROR
+Impossible d'ouvrir '%s'
+.
+:PROGRAM_IMGMOUNT_QCOW2_INVALID
+L'image qcow2 '%s' n'est pas supportée
+.
+:PROGRAM_IMGMOUNT_GEOMETRY_ERROR
+Impossible de détecter la géométrie
+.
+:PROGRAM_IMGMOUNT_DOS_VERSION
+Monter cette image fichier requiert une version rapporté de DOS de %u.%u ou suivant.
+%s
+.
+:PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE
+Taille disquette non reconnue
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_USED
+De multiples images données et un autre lecteur utilise déjà de multiples images
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED
+Les images disques multiples ne sont pas supporté par ce lecteur
+.
+:PROGRAM_IMGMOUNT_HD_FDPOSITION
+Impossible de monter un disque dur dans un emplacement disquette
+.
+:PROGRAM_IMGMOUNT_FD_HDPOSITION
+Impossible de monter une disquette dans un emplacement disque dur
+.
+:PROGRAM_ELTORITO_ISOMOUNT
+CD démarrable El Torito : montage -fs iso n'est pas supporté
+.
+:PROGRAM_MODE_STATUS
+Status pour le dispositif CON:
+------------------------------
+Colonnes=%d
+Lignes=%d
+.
+:PROGRAM_MODE_NOTSUPPORTED
+
+L'opération de page de code n'est pas prise en charge par cet appareil
+.
+:PROGRAM_MODE_RATE_DELAY
+Le débit et le délai doivent être spécifiés ensemble
+.
+:PROGRAM_UTF8_HELP
+Convertit du texte UTF-8 pour voir le code de la page actuelle.
+
+UTF8 < [drive:][path]filename
+command-name | UTF8
+.
+:PROGRAM_UTF8_NO_TEXT
+Aucun texte en entré trouvé.
+.
+:PROGRAM_UTF8_INVALIDCP
+Code page invalide pour la conversion du texte.
+.
+:PROGRAM_UTF8_NOT_UTF8
+Le texte en entrée est en UTF-16.
+.
+:PROGRAM_UTF8_CONVERSION_ERROR
+Une erreur est arrivée durant la conversion du texte.
+.
+:PROGRAM_UTF16_HELP
+Convertit un texte UTF-16 pour voir le code de la page actuelle.
+
+UTF16 [/BE|/LE] < [drive:][path]filename
+command-name | UTF16 [/BE|/LE]
+
+  /BE  Use UTF-16 Big Endian
+  /LE  Use UTF-16 Little Endian
+.
+:PROGRAM_VTEXT_HELP
+Change le mode V-text pour l'émulation DDS/V.
+
+VTEXT [mode]
+
+  [mode] peut-être 0, 1, 2, pour aucun V-text, V-text 1, and V-text 2 respectivement.
+
+Tapez VTEXT sans paramètres pour montrer le statut du mode V-texte courant..
+.
+:PROGRAM_NMITEST_HELP
+Génère une interruption non masquable (NMI).
+
+NMITEST
+
+Note : C'est un outil de débogage pour tester que le gestionnaire d'interruptions
+fonctionne correctement.
+.
+:PROGRAM_NMITEST_GENERATE_NMI
+Génère une interruption non masquable (NMI)...
+.
+:PROGRAM_CAPMOUSE_HELP
+Capture ou libèe la souris dans DOSBox-X.
+
+CAPMOUSE [/C|/R]
+
+  /C Capture la souris
+  /R Libère la souris
+.
+:PROGRAM_CAPMOUSE_MOUSE
+La souris 
+.
+:PROGRAM_CAPMOUSE_CURRENTLY
+est actuelleemnt 
+.
+:PROGRAM_CAPMOUSE_CAPTURED
+capturée
+.
+:PROGRAM_CAPMOUSE_RELEASED
+libérée
+.
+:PROGRAM_AUTOTYPE_HELP
+Lance une entrée scriptée au clavier dans un programme DOS lancé.
+
+AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
+
+Where:
+  -list :   affiche tous les noms de boutons disponibles.
+  -w WAIT : seconds avant que la saisie commence. Deux secondes par défaut; maximum 30.
+  -p PACE : secondes entre chaque frappe. Une demi-seconde par défaut; maximum 10.
+
+  La séquence est composée d'un ou de plusieurs boutons séparés par des espaces.
+  La saisie automatique commence après WAIT secondes, et chaque bouton est entré
+  toutes les PACE secondes. Le caractère , insère un délai PACE supplémentaire.
+    
+Quelques exemples :
+  ←[32;1mAUTOTYPE -w 1 -p 0.3 haut entrée , entrée de droite←[0m
+  ←[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , entrée←[0m
+  ←[32;1mAUTOTYPE -w 1.3 esc entrée , p l a y e r entrée←[0m
+.
+:PROGRAM_AUTOTYPE_NO_BINDINGS
+AUTOTYPE : Le mappeur n'a pas de touche reliée
+.
+:PROGRAM_AUTOTYPE_CLAMP_VALUE
+AUTOTYPE : Délimitation de la valeur %s de %.2f à %.2f
+.
+:PROGRAM_AUTOTYPE_INVALID_VALUE
+AUTOTYPE : la valeur %s '%s' n'est pas un nombre à virgule flottante valide
+.
+:PROGRAM_ADDKEY_HELP
+Génère des pressions de touches artificielles.
+
+ADDKEY [pmsec] [key]
+
+Par exemple, la commande ci-dessous tape "dir" suivi par Entrée après 1 seconde :
+
+ADDKEY p1000 d i r enter
+
+Vous pouvez aussi essayer la commande AUTOTYPE  au lieu d'effectuer
+une entrée clavier scriptée dans un programme DOS en cours d'exécution.
+.
+:PROGRAM_SETCOLOR_HELP
+Affiche ou change les réglages de la palette couleur du mode texte.
+
+SETCOLOR [color# [value]]
+
+Par exemple :
+
+   ←[32;1mSETCOLOR 0 (50,50,50)←[0m
+Change la couleur 0 pour spécifier la valeur de la couleur
+
+   ←[32;1mSETCOLOR 7 -←[0m
+Retourne la couleur 7 comme valeur de couleur par défaut
+
+   ←[32;1mSETCOLOR 3 +←[0m
+Retourne la couleur 3 à la valeur de couleur prédéfinie
+
+   ←[32;1mSETCOLOR MONO←[0m
+Affiche le statut du mode MONO actuel
+
+Pour changer les couleurs d'arrière et d'avant plan, utilisez la commande COLOR.
+.
+:PROGRAM_SETCOLOR_STATUS
+Statut mode MONO : %s (mode vidéo %d)
+.
+:PROGRAM_SETCOLOR_ACTIVE
+active
+.
+:PROGRAM_SETCOLOR_INACTIVE
+inactive
+.
+:PROGRAM_SETCOLOR_UNAVAILABLE
+indisponible
+.
+:PROGRAM_SETCOLOR_MONO_MODE7
+Statut mode MONO => actif (mode vidéo 7)
+.
+:PROGRAM_SETCOLOR_MONO_MODE3
+Statut mode MONO => inactif (mode vidéo 3)
+.
+:PROGRAM_SETCOLOR_MONO_FAIL
+N'a pas changé le mode MONO
+.
+:PROGRAM_SETCOLOR_MONO_SYNTAX
+Doit être + ou - pour MONO : %s
+.
+:PROGRAM_SETCOLOR_COLOR
+Couleur %d : (%d,%d,%d) ou #%02x%02x%02x
+.
+:PROGRAM_SETCOLOR_INVALID_NUMBER
+Numéro de couleur invalide - %s
+.
+:PROGRAM_SETCOLOR_INVALID_VALUE
+Valeur de couleur invalide - %s
+.
+:PROGRAM_SETCOLOR_NOT_SUPPORTED
+Changer la palette de couleur n'est pas supporté par le mode vidéo actuel.
+.
+:PROGRAM_BOOT_UNKNOWN_BOOTHAX
+Mode boothax inconnu
+.
+:PROGRAM_BOOT_SPECIFY_FILE
+Vous devez spécifier l'image BIOS à démarrer
+.
+:PROGRAM_BOOT_BIOS_OPEN_ERROR
+Impossible d'ouvrir l'image BIOS
+.
+:PROGRAM_BIOSTEST_SPECIFY_FILE
+Vous devez spécifier l'image BIOS à charger.
+.
+:PROGRAM_BIOSTEST_OPEN_ERROR
+Impossible d'ouvrir un fichier
+.
+:PROGRAM_BIOSTEST_TOO_LARGE
+Le ficher BIOS est trop gros
 .
