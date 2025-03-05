@@ -3445,9 +3445,9 @@ void makestdcp950table() {
     cp950_to_unicode_raw[64*6+37] = 0x255e;
     cp950_to_unicode_raw[64*6+38] = 0x256a;
     cp950_to_unicode_raw[64*6+39] = 0x2561;
-    cp950_to_unicode_raw[64*7+12] = 0x5341;
+    cp950_to_unicode_raw[64*7+12] = 0x0000; /* 0x5341 is duplicate mapping so replace it with 0x0000 */
     cp950_to_unicode_raw[64*7+13] = 0x5344;
-    cp950_to_unicode_raw[64*7+14] = 0x5345;
+    cp950_to_unicode_raw[64*7+14] = 0x0000; /* 0x5345 is duplicate mapping so replace it with 0x0000 */
     cp950_to_unicode_raw[64*101+21] = 0x5f5d;
     cp950_to_unicode_raw[64*260+58] = 0x256d;
     cp950_to_unicode_raw[64*260+59] = 0x256e;
