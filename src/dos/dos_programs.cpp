@@ -64,7 +64,9 @@
 #include "../ints/int10.h"
 #include "../output/output_opengl.h"
 #include "paging.h"
-#if !defined(HX_DOS)
+#if defined(_MSC_VER)
+#include "../libs/tinyfiledialogs/tinyfiledialogs.h"
+#elif !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
 #if defined(WIN32)
