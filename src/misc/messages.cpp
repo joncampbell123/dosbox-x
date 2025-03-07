@@ -287,7 +287,7 @@ void LoadMessageFile(const char * fname) {
 	FILE * mfile=testLoadLangFile(fname);
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
-		std::string message="Could not load language message file '"+std::string(fname)+"'. The default language will be used.";
+		std::string message="Could not load language message file "+std::string(fname)+". The default language will be used.";
 		systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
 		SetVal("dosbox", "language", "");
 		LOG_MSG("MSG:Cannot load language file: %s",fname);
