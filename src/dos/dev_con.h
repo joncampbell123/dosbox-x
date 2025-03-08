@@ -1079,7 +1079,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
 		return true;
 	}
     Bitu i;
-    uint8_t col,page;
+    uint8_t col,row,page;
 
     INT10_SetCurMode();
 
@@ -1110,6 +1110,19 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                 log_dev_con_str += (char)data[count];
         }
 
+        page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+        col = CURSOR_POS_COL(page);
+        BIOS_NCOLS;
+        if(isDBCSCP() && !dos.direct_output && (col == ncols - 1) && isKanji1(data[count])) { // Consideration of first byte of DBCS characters at the end of line 
+            BIOS_NROWS;
+            row = CURSOR_POS_ROW(page);
+            if(nrows == row + 1) {
+                INT10_ScrollWindow(0, 0, (uint8_t)(nrows - 1), (uint8_t)(ncols - 1), -1, ansi.attr, page);
+                INT10_SetCursorPos(row, 0, page);
+            }
+            else INT10_SetCursorPos(row+1, 0, page);
+        }
+
         if (!ansi.esc){
             if(data[count]=='\033' && ansi.installed) {
                 /*clear the datastructure */
@@ -1120,7 +1133,6 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                 continue;
             } else if(data[count] == '\t' && !dos.direct_output) {
                 /* expand tab if not direct output */
-                page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
                 do {
                     Output(' ');
                     col=CURSOR_POS_COL(page);
@@ -1128,16 +1140,12 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
                 count++;
                 continue;
             } else if (data[count] == 0x1A && IS_PC98_ARCH) {
-                page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-
                 /* it also redraws the function key row */
                 update_pc98_function_row(pc98_function_row_mode,true);
 
                 INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
                 Real_INT10_SetCursorPos(0,0,page);
             } else if (data[count] == 0x1E && IS_PC98_ARCH) {
-                page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-
                 Real_INT10_SetCursorPos(0,0,page);
             } else { 
                 Output(data[count]);
@@ -1631,7 +1639,7 @@ void device_CON::Output(uint8_t chr) {
 			uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 			uint8_t col=CURSOR_POS_COL(page);
 			uint8_t row=CURSOR_POS_ROW(page);
-			BIOS_NCOLS;BIOS_NROWS;
+ 			BIOS_NCOLS;BIOS_NROWS;
 			if (nrows==row+1 && (chr=='\n' || (ncols==col+1 && chr!='\r' && chr!=8 && chr!=7))) {
 				INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,ansi.attr,page);
 				INT10_SetCursorPos(row-1,col,page);
