@@ -239,7 +239,15 @@ void Program::WriteOut(const char * format,...) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
 		last_written_character = (char)(out = (uint8_t)buf[i]);
-		DOS_WriteFile(STDOUT,&out,&s);
+        if(isDBCSCP() && isKanji1(buf[i]) && i + 1 < size && isKanji2(buf[i + 1])) {
+            uint8_t dbchar[3] = { (uint8_t)buf[i], (uint8_t)buf[i + 1],0 };
+            s = 2;
+            DOS_WriteFile(STDOUT, dbchar, &s); // send two bytes if next character is a DBCS character
+            i++;
+            s = 1;
+            continue;
+        }
+        DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
 	if (resetcolor && attr) DOS_SetAnsiAttr(attr);
@@ -255,12 +263,20 @@ void Program::WriteOut(const char *format, const char *arguments) {
 	uint16_t size = (uint16_t)strlen(buf);
 	dos.internal_output=true;
 	for(uint16_t i = 0; i < size;i++) {
-		uint8_t out;uint16_t s=1;
+        uint8_t out; uint16_t s = 1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
 		last_written_character = (char)(out = (uint8_t)buf[i]);
-		DOS_WriteFile(STDOUT,&out,&s);
+        if(isDBCSCP() && isKanji1(buf[i]) && i + 1 < size && isKanji2(buf[i + 1])) {
+            uint8_t dbchar[3] = { (uint8_t)buf[i], (uint8_t)buf[i + 1], 0};
+            s = 2;
+            DOS_WriteFile(STDOUT, dbchar, &s); // send two bytes if next character is a DBCS character
+            i++;
+            s = 1;
+            continue;
+        }
+        DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
 
