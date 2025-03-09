@@ -189,10 +189,10 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 			seq(character_map_select)=(uint8_t)val;
 			uint8_t font1=(val & 0x3) << 1;
 			if (IS_VGA_ARCH) font1|=(val & 0x10) >> 4;
-			vga.draw.font_tables[0]=&vga.draw.font[font1*8*1024];
+			vga.draw.font_tables[0]=vga.mem.linear + (((font1*8*1024) & vga.draw.planar_mask) * 4u/*planar byte to byte offset*/) + 2/*plane*/;
 			uint8_t font2=((val & 0xc) >> 1);
 			if (IS_VGA_ARCH) font2|=(val & 0x20) >> 5;
-			vga.draw.font_tables[1]=&vga.draw.font[font2*8*1024];
+			vga.draw.font_tables[1]=vga.mem.linear + (((font2*8*1024) & vga.draw.planar_mask) * 4u/*planar byte to byte offset*/) + 2/*plane*/;
 		}
 		/*
 			0,1,4  Selects VGA Character Map (0..7) if bit 3 of the character

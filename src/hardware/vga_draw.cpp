@@ -2606,8 +2606,8 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 
             Bitu chr = pixels.b[0];
             Bitu attr = pixels.b[1];
-            // the font pattern
-            Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+            // the font pattern (directly from video RAM)
+            uint16_t font = vga.draw.font_tables[(attr >> 3)&1][((chr<<5)+line)*4];
             Bitu background = attr >> 4u;
             // if blinking is enabled bit7 is not mapped to attributes
             if (vga.draw.blinking) background &= ~0x8u;
