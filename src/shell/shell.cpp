@@ -845,10 +845,7 @@ void DOS_Shell::Prepare(void) {
             toSetCodePage(NULL, cp, -1);
         }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-        if(section->Get_bool("startbanner") && !control->opt_fastlaunch)
-            showWelcome(NULL);
-        else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed())
-            WriteOut("\033[2J");
+        bool startbanner = section->Get_bool("startbanner");
         if (!countryNo) {
 #if defined(WIN32)
 			char buffer[128];
@@ -901,6 +898,12 @@ void DOS_Shell::Prepare(void) {
 			}
             if(!chinasea)makestdcp950table();
             if(chinasea) makeseacp951table();
+            InitCodePage();
+            if(startbanner && !control->opt_fastlaunch)
+                //showWelcome(this);
+                DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
+            else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed())
+                WriteOut("\033[2J");
             const char * extra = section->data.c_str();
 			if (extra&&!control->opt_securemode&&!control->SecureMode()&&!control->opt_noconfig) {
 				std::string vstr;
