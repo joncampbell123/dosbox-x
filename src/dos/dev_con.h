@@ -1113,14 +1113,16 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
         page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
         col = CURSOR_POS_COL(page);
         BIOS_NCOLS;
-        if(isDBCSCP() && !dos.direct_output && (col == ncols - 1) && isKanji1(data[count])) { // Consideration of first byte of DBCS characters at the end of line 
-            BIOS_NROWS;
-            row = CURSOR_POS_ROW(page);
-            if(nrows == row + 1) {
-                INT10_ScrollWindow(0, 0, (uint8_t)(nrows - 1), (uint8_t)(ncols - 1), -1, ansi.attr, page);
-                INT10_SetCursorPos(row, 0, page);
-            }
-            else INT10_SetCursorPos(row+1, 0, page);
+
+        if(isDBCSCP() && !dos.direct_output && (col == ncols - 1)
+            && *size >= count+1 && isKanji1(data[count]) && isKanji2(data[count+1])) { // Consideration of first byte of DBCS characters at the end of line 
+                BIOS_NROWS;
+                row = CURSOR_POS_ROW(page);
+                if(nrows == row + 1) {
+                    INT10_ScrollWindow(0, 0, (uint8_t)(nrows - 1), (uint8_t)(ncols - 1), -1, ansi.attr, page);
+                    INT10_SetCursorPos(row, 0, page);
+                }
+                else INT10_SetCursorPos(row + 1, 0, page);
         }
 
         if (!ansi.esc){
