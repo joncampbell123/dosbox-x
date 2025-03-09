@@ -459,7 +459,7 @@ class VGA_ChainedVGA_Slow_Handler : public PageHandler {
 public:
 	VGA_ChainedVGA_Slow_Handler() : PageHandler(PFLAG_NOCODE) {}
 	static INLINE PhysPt map(const PhysPt addr) {
-		return ((PAGING_GetPhysicalAddress(addr)&vgapages.mask)+(PhysPt)vga.svga.bank_read_full)&vga.mem.memmask;
+		return (PAGING_GetPhysicalAddress(addr)&vgapages.mask)+(PhysPt)vga.svga.bank_read_full; /* masking with vga.mem.memmask not necessary */
 	}
 
 	// planar byte offset = addr & ~3u      (discard low 2 bits)
@@ -514,7 +514,7 @@ class VGA_ET4000_ChainedVGA_Slow_Handler : public PageHandler {
 public:
 	VGA_ET4000_ChainedVGA_Slow_Handler() : PageHandler(PFLAG_NOCODE) {}
 	static INLINE PhysPt map(const PhysPt addr) {
-		return ((PAGING_GetPhysicalAddress(addr)&vgapages.mask)+(PhysPt)vga.svga.bank_read_full)&vga.mem.memmask;
+		return (PAGING_GetPhysicalAddress(addr)&vgapages.mask)+(PhysPt)vga.svga.bank_read_full; /* masking with vga.mem.memmask not necessary */
 	}
 
 	// planar byte offset = addr >> 2       (shift 2 bits to the right)
@@ -569,7 +569,7 @@ class VGA_UnchainedVGA_Handler : public PageHandler {
 public:
 	VGA_UnchainedVGA_Handler() : PageHandler(PFLAG_NOCODE) {}
 	static INLINE PhysPt map(const PhysPt addr) {
-		return ((PAGING_GetPhysicalAddress(addr)&vgapages.mask)+(PhysPt)vga.svga.bank_read_full)&(vga.mem.memmask>>2u);
+		return (PAGING_GetPhysicalAddress(addr)&vgapages.mask)+(PhysPt)vga.svga.bank_read_full; /* masking with vga.mem.memmask>>2 not necessary */
 	}
 
 	static INLINE uint8_t readHandler8(PhysPt addr) {
@@ -624,6 +624,11 @@ public:
 class VGA_UnchainedVGA_Fast_Handler : public VGA_UnchainedVGA_Handler {
 public:
 	VGA_UnchainedVGA_Fast_Handler() : VGA_UnchainedVGA_Handler() {}
+
+	/* must mask for writing because the write handler does array lookup */
+	static INLINE PhysPt map(const PhysPt addr) {
+		return ((PAGING_GetPhysicalAddress(addr)&vgapages.mask)+(PhysPt)vga.svga.bank_read_full)&(vga.mem.memmask>>2u);
+	}
 
 	static INLINE void writeHandler8(PhysPt addr, uint8_t val) {
 		((uint32_t*)vga.mem.linear)[addr] =
