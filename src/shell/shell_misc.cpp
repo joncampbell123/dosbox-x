@@ -53,10 +53,13 @@ extern int lfn_filefind_handle;
 extern bool ctrlbrk, gbk, rtl, dbcs_sbcs;
 extern bool DOS_BreakFlag, DOS_BreakConioFlag;
 extern uint16_t cmd_line_seg;
+uint8_t prompt_col; // Column position after prompt is displayed
+
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
 extern std::map<int, int> pc98boxdrawmap;
+
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
@@ -112,6 +115,7 @@ void DOS_Shell::ShowPrompt(void) {
 		promptstr++;
 	}
     inshell = false;
+    prompt_col = CURSOR_POS_COL(real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE));
 }
 
 static void outc(uint8_t c) {
@@ -596,19 +600,22 @@ void DOS_Shell::InputCommand(char * line) {
             else if (cr == 0x7400) cr = 0x7300;
         }
 #endif
+        bool read_kanji1 = false;
+        uint8_t temp_char = 0;
+        uint8_t page, col;
         switch (cr) {
             case 0x3d00:	/* F3 */
                 if (!l_history.size()) break;
                 it_history = l_history.begin();
                 if (it_history != l_history.end() && it_history->length() > str_len) {
                     const char *reader = &(it_history->c_str())[str_len];
-                    while ((c = (uint8_t)(*reader++))) {
-                        line[str_index ++] = (char)c;
-                        DOS_WriteFile(STDOUT,&c,&n);
+                    while((c = (uint8_t)(*reader++))) {
+                        line[str_index++] = (char)c;
                     }
                     str_len = str_index = (uint16_t)it_history->length();
                     size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                     line[str_len] = 0;
+                    DOS_WriteFile(STDOUT, (const uint8_t *)it_history->c_str(), &str_len);
                 }
                 break;
 
@@ -765,6 +772,13 @@ void DOS_Shell::InputCommand(char * line) {
                     // removes all characters
                     backone(); outc(' '); backone();
                 }
+                page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                col = CURSOR_POS_COL(page);
+                while(col > prompt_col){
+                    backone(); outc(' '); backone();
+                    col = CURSOR_POS_COL(page);
+                }
+
                 strcpy(line, it_history->c_str());
                 len = (uint16_t)it_history->length();
                 str_len = str_index = len;
@@ -799,6 +813,13 @@ void DOS_Shell::InputCommand(char * line) {
                     // removes all characters
                     backone(); outc(' '); backone();
                 }
+                page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                col = CURSOR_POS_COL(page);
+                while(col > prompt_col) {
+                    backone(); outc(' '); backone();
+                    col = CURSOR_POS_COL(page);
+                }
+
                 strcpy(line, it_history->c_str());
                 len = (uint16_t)it_history->length();
                 str_len = str_index = len;
