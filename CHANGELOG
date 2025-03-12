@@ -1,6 +1,9 @@
 Next
   - Fixed glitch of DBCS character at the end of a line (maron2000)
-  - Removed duplicate code mappings of Chinese characters in both cp950_uni.h and cp951_uni.h (1abcd)
+  - Removed two duplicate Chinese character mappings from code page
+    950 and 226 duplicate Chinese character mappings from code page
+    951. This ensures that users can obtain more accurate Big5 and
+    Big5-UAO character mappings when typing with a Chinese IME. (1abcd)
   - Enabled changing drives mounted prior to switching to securemode (maron2000)
   - Enabled some messages to be translated in the translation files (maron2000)
   - Fixed fullscreen mode occasionally switched to windowed mode (maron2000)
