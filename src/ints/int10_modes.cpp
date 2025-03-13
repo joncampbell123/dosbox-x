@@ -1951,7 +1951,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 		if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350 && CurMode->type == M_EGA) {
 			gfx_data[0x5]|=0x10;		//Odd-Even Mode
 			gfx_data[0x6]|=0x02;		//Odd-Even Mode
-			gfx_data[0x7]=0x5;			/* Color don't care */
+			gfx_data[0x7]=0xF;			/* Color don't care */
 		}
 		gfx_data[0x6]|=0x05;		//graphics mode at 0xa000-affff
 		break;
