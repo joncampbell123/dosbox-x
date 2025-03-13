@@ -766,15 +766,32 @@ void DOS_Shell::InputCommand(char * line) {
                             count--;
                         }
                     }
+                    page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                    col = CURSOR_POS_COL(page);
+                    BIOS_NCOLS;
+                    //LOG_MSG("col=%d, str_index=%d, line[str_index] =%x", col, str_index, (line[str_index-1] & 0xFF));
+                    if(col == ncols - 1 && str_index < str_len && isKanji1(line[str_index]) && isKanji2(line[str_index+1])) {
+                        row = CURSOR_POS_ROW(page);
+                        INT10_SetCursorPos(row+1, 0, page);
+                    }
                 } else {
                     if (isDBCSCP()
 #if defined(USE_TTF)
                         &&dbcs_sbcs
 #endif
                         &&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40))) {
-                        outc((uint8_t)line[str_index++]);
+                        if(isKanji1((uint8_t)line[str_index]) && isKanji2((uint8_t)line[str_index + 1])) {
+                            const uint8_t buf[2] = {(uint8_t)line[str_index],(uint8_t)line[str_index + 1]};
+                            uint16_t num = 2;
+                            DOS_WriteFile(STDOUT, buf, &num);
+                            str_index += 2;
+                        }
+                        else {
+                            outc((uint8_t)line[str_index]);
+                            str_index++;
+                        }
                     }
-                    if (str_index < str_len) {
+                    else if (str_index < str_len) {
                         outc((uint8_t)line[str_index++]);
                     }
                 }
