@@ -446,6 +446,7 @@ static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_inde
 }
 
 extern bool isDBCSCP();
+void ReadCharAttr(uint16_t col, uint16_t row, uint8_t page, uint16_t* result);
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
 	Bitu size=CMD_MAXLINE-2; //lastcharacter+0
@@ -602,7 +603,7 @@ void DOS_Shell::InputCommand(char * line) {
 #endif
         bool read_kanji1 = false;
         uint8_t temp_char = 0;
-        uint8_t page, col;
+        uint8_t page, col, row;
         switch (cr) {
             case 0x3d00:	/* F3 */
                 if (!l_history.size()) break;
@@ -639,6 +640,19 @@ void DOS_Shell::InputCommand(char * line) {
                             backone();
                         }
                     }
+                    page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                    col = CURSOR_POS_COL(page);
+                    row = CURSOR_POS_ROW(page);
+                    BIOS_NCOLS; BIOS_NROWS;
+                    uint16_t get_char, get_char2;
+                    ReadCharAttr(col, row, page, &get_char);
+                    //LOG_MSG("1ch=%x, get_char=%x", (line[str_index] & 0xFF), (uint8_t)(get_char & 0xFF));
+                    if((line[str_index] & 0xFF) != (uint8_t)(get_char & 0xFF)) {
+                        ReadCharAttr(col-1, row, page, &get_char2);
+                        if((uint8_t)(get_char2 & 0xFF) == (line[str_index] & 0xFF)) INT10_SetCursorPos(row, col - 1, page);
+                    }
+                    //INT10_ReadCharAttr(&get_char, page);
+                    //LOG_MSG("2ch=%x, get_char=%x", (line[str_index] & 0xFF), (uint8_t)(get_char & 0xFF));
                 } else {
                     if (isDBCSCP()
 #if defined(USE_TTF)
@@ -648,11 +662,45 @@ void DOS_Shell::InputCommand(char * line) {
                         backone();
                         str_index --;
                         MoveCaretBackwards();
+                        page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                        col = CURSOR_POS_COL(page);
+                        row = CURSOR_POS_ROW(page);
+                        BIOS_NCOLS; BIOS_NROWS;
+                        uint16_t get_char, get_char2;
+                        ReadCharAttr(col, row, page, &get_char);
+                        //LOG_MSG("1ch=%x, get_char=%x", (line[str_index] & 0xFF), (uint8_t)(get_char & 0xFF));
+                        if((line[str_index] & 0xFF) != (uint8_t)(get_char & 0xFF)) {
+                            ReadCharAttr(col - 1, row, page, &get_char2);
+                            if((uint8_t)(get_char2 & 0xFF) == (line[str_index] & 0xFF)) INT10_SetCursorPos(row, col - 1, page);
+                        }
+                        uint8_t iskanji = 0;
+                        col = CURSOR_POS_COL(page);
+                        if(col > 0 && str_index > 0) {
+                            for(uint16_t i = 0; i < str_index; i++) {
+                                if(isKanji1(line[i]) && isKanji2(line[i + 1])) {
+                                    if(i + 1 == str_index) iskanji = 2;
+                                    else i++; // skip next character
+                                }
+                            }
+
+                            if(iskanji == 2) {
+                                backone();
+                                str_index--;
+                            }
+                        }
+                        //INT10_ReadCharAttr(&get_char, page);
+                        //col = CURSOR_POS_COL(page);
+                        //row = CURSOR_POS_ROW(page);
+                        //LOG_MSG("2ch=%x, get_char=%x, col=%d, str_index=%d", (line[str_index] & 0xFF), (uint8_t)(get_char & 0xFF), col, str_index);
                     }
-                    if (str_index) {
+                    else if (str_index) {
+                        //uint16_t get_char, get_char2;
                         backone();
                         str_index --;
                         MoveCaretBackwards();
+                        //page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                        //INT10_ReadCharAttr(&get_char, page);
+                        //LOG_MSG("ch=%c, get_char=%c", line[str_index], (uint8_t)(get_char & 0xFF));
                     }
                 }
                 break;
