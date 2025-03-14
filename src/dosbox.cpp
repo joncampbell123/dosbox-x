@@ -2190,6 +2190,10 @@ void DOSBOX_SetupConfigSections(void) {
             "For pixel-perfect scaling (output=openglpp), it is recommended to turn this option off.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("modeswitch",Property::Changeable::Always,true);
+    Pbool->Set_help("Let DOSBox-X determine the resolution of the monitor. ");
+    Pbool->SetBasic(true);
+
     Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
     Pmulti->SetValue("normal2x",/*init*/true);
     Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. Add keyword 'forced', "

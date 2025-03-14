@@ -212,6 +212,7 @@ typedef struct {
 	bool has_split;
 	bool vret_triggered;
 	bool vga_override;
+	bool modeswitch_set;
 	bool doublescan_set;
 	bool doublescan_effect;
 	bool char9_set;
