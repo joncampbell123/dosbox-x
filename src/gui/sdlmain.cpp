@@ -1642,21 +1642,19 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
      * On Android, desktop res is the only way.
      */
     SDL_SetWindowResizable(sdl.window, SDL2_resize_enable ? SDL_TRUE : SDL_FALSE);
+    SDL_WindowFlags flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-    SDL_WindowFlags flags;
-    bool p_modeswitch = vga.draw.modeswitch_set;
-
+#if C_SDL2
 	/*
 	 * When modeswitching _is_ enabled let's go with sane values.
 	 */
-
-	if( p_modeswitch ) {
+	bool p_modeswitch = vga.draw.modeswitch_set;
+	if(p_modeswitch) {
 		flags = SDL_WINDOW_FULLSCREEN;
 		width = sdl.draw.width;
 		height = sdl.draw.height;
-	} else {
-		flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
+#endif
 
     if (GFX_IsFullscreen()) {
         SDL_DisplayMode displayMode;
