@@ -1160,6 +1160,7 @@ void RENDER_OnSectionPropChange(Section *x) {
     Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
 
     bool p_doublescan = vga.draw.doublescan_set;
+//    bool p_modeswitch = vga.draw.modeswitch_set;
     bool p_char9 = vga.draw.char9_set;
     int p_aspect = render.aspect;
 
@@ -1174,15 +1175,17 @@ void RENDER_OnSectionPropChange(Section *x) {
     render.frameskip.max = (Bitu)section->Get_int("frameskip");
 
     vga.draw.doublescan_set=section->Get_bool("doublescan");
+    vga.draw.modeswitch_set=section->Get_bool("modeswitch");
     vga.draw.char9_set=section->Get_bool("char9");
 
     if (render.aspect != p_aspect || vga.draw.doublescan_set != p_doublescan || vga.draw.char9_set != p_char9)
         RENDER_CallBack(GFX_CallBackReset);
-    if (vga.draw.doublescan_set != p_doublescan || vga.draw.char9_set != p_char9)
+    if (vga.draw.doublescan_set != p_doublescan || vga.draw.char9_set != p_char9 )
         VGA_StartResize();
 
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
+    mainMenu.get_item("modeswitch").check(vga.draw.modeswitch_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
 
 #if C_XBRZ
@@ -1358,6 +1361,7 @@ void RENDER_Init() {
     control->GetSection("render")->onpropchange.push_back(&RENDER_OnSectionPropChange);
 
     vga.draw.doublescan_set=section->Get_bool("doublescan");
+    vga.draw.modeswitch_set=section->Get_bool("modeswitch");
     vga.draw.char9_set=section->Get_bool("char9");
 	eurAscii = section->Get_int("euro");
 	if (eurAscii != -1 && (eurAscii < 33 || eurAscii > 255)) {
@@ -1442,6 +1446,7 @@ void RENDER_Init() {
 
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
+    mainMenu.get_item("modeswitch").check(vga.draw.modeswitch_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
 
     RENDER_UpdateFrameskipMenu();
