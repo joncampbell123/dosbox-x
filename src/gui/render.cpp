@@ -1160,7 +1160,6 @@ void RENDER_OnSectionPropChange(Section *x) {
     Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
 
     bool p_doublescan = vga.draw.doublescan_set;
-//    bool p_modeswitch = vga.draw.modeswitch_set;
     bool p_char9 = vga.draw.char9_set;
     int p_aspect = render.aspect;
 
@@ -1178,7 +1177,7 @@ void RENDER_OnSectionPropChange(Section *x) {
     vga.draw.modeswitch_set=section->Get_bool("modeswitch");
     vga.draw.char9_set=section->Get_bool("char9");
 
-    if (render.aspect != p_aspect || vga.draw.doublescan_set != p_doublescan || vga.draw.char9_set != p_char9)
+    if (render.aspect != p_aspect || vga.draw.doublescan_set != p_doublescan || vga.draw.char9_set != p_char9 )
         RENDER_CallBack(GFX_CallBackReset);
     if (vga.draw.doublescan_set != p_doublescan || vga.draw.char9_set != p_char9 )
         VGA_StartResize();
