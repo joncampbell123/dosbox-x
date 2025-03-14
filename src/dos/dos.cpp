@@ -4077,14 +4077,14 @@ public:
 		if (config_section != NULL && !control->opt_noconfig && !control->opt_securemode && !control->SecureMode()) {
 			DOS_FILES = (unsigned int)config_section->Get_int("files");
 			if (DOS_FILES==0) {
-				const unsigned int sz = std::min((unsigned int)MEM_TotalPages(),0xA0u);
+				const unsigned int sz = std::min((unsigned int)MEM_ConventionalPages(),0xA0u);
 				DOS_FILES=5u + ((200u - 5u) * sz) / 0xA0u;
 			}
 			if (DOS_FILES<8) DOS_FILES=8;
 			else if (DOS_FILES>255) DOS_FILES=255;
 			maxfcb = (int)config_section->Get_int("fcbs");
 			if (maxfcb==0) {
-				const unsigned int sz = std::min((unsigned int)MEM_TotalPages(),0xA0u);
+				const unsigned int sz = std::min((unsigned int)MEM_ConventionalPages(),0xA0u);
 				maxfcb=5u + ((100u - 5u) * sz) / 0xA0u;
 			}
 			if (maxfcb<1) maxfcb=1;
@@ -4255,7 +4255,7 @@ public:
 			cpm_compat_mode = CPM_COMPAT_OFF;
 
 		/* If memsize < 16KB then the only way DOS can work properly is to allocate in the UMB private area */
-		if (MEM_TotalPages() < 4) {
+		if (MEM_ConventionalPages() < 4) {
 			if (!private_always_from_umb) {
 				private_always_from_umb = true;
 				LOG(LOG_MISC,LOG_DEBUG)("Memory size < 16KB, allocating all DOS kernel structures in the private upper memory area");
@@ -4306,7 +4306,7 @@ public:
 		if (private_always_from_umb) {
 			DOS_GetMemory_Choose(); /* the pool starts in UMB */
 			if (minimum_mcb_segment == 0)
-				DOS_MEM_START = IS_PC98_ARCH ? 0x80 : (MEM_TotalPages() >= 0x10/*64KB or more*/ ? 0x70 : 0x60); /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
+				DOS_MEM_START = IS_PC98_ARCH ? 0x80 : (MEM_ConventionalPages() >= 0x10/*64KB or more*/ ? 0x70 : 0x60); /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
 			else
 				DOS_MEM_START = minimum_mcb_segment;
 
@@ -4323,7 +4323,7 @@ public:
 		}
 		else {
 			if (minimum_dos_initial_private_segment == 0)
-				DOS_PRIVATE_SEGMENT = IS_PC98_ARCH ? 0x80 : (MEM_TotalPages() >= 0x10/*64KB or more*/ ? 0x70 : 0x60); /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
+				DOS_PRIVATE_SEGMENT = IS_PC98_ARCH ? 0x80 : (MEM_ConventionalPages() >= 0x10/*64KB or more*/ ? 0x70 : 0x60); /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
 			else
 				DOS_PRIVATE_SEGMENT = minimum_dos_initial_private_segment;
 
@@ -4332,10 +4332,10 @@ public:
 			if (DOS_PRIVATE_SEGMENT < 0x80 && IS_PC98_ARCH)
 				LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low for PC-98 emulation!");
 
-			if (MEM_TotalPages() > 0x9C)
+			if (MEM_ConventionalPages() > 0x9C)
 				DOS_PRIVATE_SEGMENT_END = 0x9C00;
 			else
-				DOS_PRIVATE_SEGMENT_END = (uint16_t)((MEM_TotalPages() << (12 - 4)) - 1); /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
+				DOS_PRIVATE_SEGMENT_END = (uint16_t)((MEM_ConventionalPages() << (12 - 4)) - 1); /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
 		}
 
 		LOG(LOG_DOSMISC,LOG_DEBUG)("DOS kernel structures will be allocated from pool 0x%04x-0x%04x",
@@ -4374,7 +4374,7 @@ public:
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   CDS:          seg 0x%04x",DOS_CDS_SEG);
 		LOG(LOG_DOSMISC,LOG_DEBUG)("[private segment @ this point 0x%04x-0x%04x mem=0x%04lx]",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END,
-				(unsigned long)(MEM_TotalPages() << (12 - 4)));
+				(unsigned long)(MEM_ConventionalPages() << (12 - 4)));
 
 		callback[0].Install(DOS_20Handler,CB_IRET,"DOS Int 20");
 		callback[0].Set_RealVec(0x20);
@@ -4502,7 +4502,7 @@ public:
 				DOS_MEM_START += (uint16_t)DOS_PRIVATE_SEGMENT_Size;
 				segend = DOS_MEM_START;
 
-				if (segend >= (MEM_TotalPages() << (12 - 4)))
+				if (segend >= (MEM_ConventionalPages() << (12 - 4)))
 					E_Exit("Insufficient room for private area");
 
 				DOS_PRIVATE_SEGMENT = seg;
@@ -4552,7 +4552,7 @@ public:
 		 *      256KB amounts of memory, then minimum mcb free needs to be much
 		 *      smaller to make room and allow for it */
 		if (minimum_mcb_free == 0) {
-			if (MEM_TotalPages() < 0x40/*256KB*/)
+			if (MEM_ConventionalPages() < 0x40/*256KB*/)
 				minimum_mcb_free = minimum_mcb_segment;
 			else
 				minimum_mcb_free = IS_PC98_ARCH ? 0x800 : 0x700;

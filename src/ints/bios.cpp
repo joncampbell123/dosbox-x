@@ -7768,6 +7768,14 @@ void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
 unsigned int dos_conventional_limit = 0;
 
+Bitu MEM_ConventionalPages(void) {
+    if (dos_conventional_limit == 0) return MEM_TotalPages();
+    unsigned int x = dos_conventional_limit / 4u;
+    if (x == 0) x = 1;
+    if (x > MEM_TotalPages()) x = MEM_TotalPages();
+    return x;
+}
+
 bool AdapterROM_Read(Bitu address,unsigned long *size) {
     unsigned char c[3];
     unsigned int i;
@@ -9833,7 +9841,7 @@ private:
         SegSet16(ss,0x0000);
 
         {
-            Bitu sz = MEM_TotalPages();
+            Bitu sz = MEM_ConventionalPages();
 
             /* The standard BIOS is said to put its stack (at least at OS boot time) 512 bytes past the end of the boot sector
              * meaning that the boot sector loads to 0000:7C00 and the stack is set grow downward from 0000:8000 */
@@ -11690,7 +11698,7 @@ startfunction:
         // TODO: If instructed to boot a guest OS...
 
         /* wipe out the stack so it's not there to interfere with the system, point it at top of memory or top of segment */
-        reg_esp = std::min((unsigned int)((MEM_TotalPages() << 12) - 0x600 - 4),0xFFFCu);
+        reg_esp = std::min((unsigned int)((MEM_ConventionalPages() << 12) - 0x600 - 4),0xFFFCu);
         reg_eip = 0;
         CPU_SetSegGeneral(cs, 0x60);
         CPU_SetSegGeneral(ss, 0x60);

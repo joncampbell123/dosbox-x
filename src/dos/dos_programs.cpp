@@ -2138,10 +2138,10 @@ public:
         Bitu stack_seg=IS_PC98_ARCH ? 0x0030 : 0x7000;
         Bitu load_seg;//=IS_PC98_ARCH ? 0x1FC0 : 0x07C0;
 
-        if (MEM_TotalPages() > 0x9C)
+        if (MEM_ConventionalPages() > 0x9C)
             max_seg = 0x9C00;
         else
-            max_seg = MEM_TotalPages() << (12 - 4);
+            max_seg = MEM_ConventionalPages() << (12 - 4);
 
         if ((stack_seg+0x20) > max_seg)
             stack_seg = max_seg - 0x20;
@@ -2639,7 +2639,7 @@ public:
             load_seg=(unsigned int)loadseg_user;
         }
         else {
-            unsigned int max_seg = std::min((unsigned int)(MEM_TotalPages()*(4096u/16u)/*pages to paragraphs*/),0xC000u);
+            unsigned int max_seg = std::min((unsigned int)(MEM_ConventionalPages()*(4096u/16u)/*pages to paragraphs*/),0xC000u);
             if (IS_PC98_ARCH)
                 load_seg=std::min(max_seg,0x2000u/*128KB mark*/) - (bootsize/16U); /* normally 0x1FC0 (1024 byte/sector) or 0x1FE0 (512 byte/sector) */
             else
