@@ -453,21 +453,24 @@ ESFM_write_reg_native (esfm_chip *chip, uint16_t address, uint8_t data)
 		{
 		case TIMER1_REG:
 			chip->timer_reload[0] = data;
+			chip->timer_counter[0] = data;
 			break;
 		case TIMER2_REG:
 			chip->timer_reload[1] = data;
+			chip->timer_counter[1] = data;
 			break;
 		case TIMER_SETUP_REG:
 			if (data & 0x80)
 			{
+				chip->irq_bit = 0;
 				chip->timer_overflow[0] = 0;
 				chip->timer_overflow[1] = 0;
-				chip->irq_bit = 0;
+				break;
 			}
 			chip->timer_enable[0] = (data & 0x01) != 0;
 			chip->timer_enable[1] = (data & 0x02) != 0;
-			chip->timer_mask[0] = (data & 0x20) != 0;
-			chip->timer_mask[1] = (data & 0x40) != 0;
+			chip->timer_mask[1] = (data & 0x20) != 0;
+			chip->timer_mask[0] = (data & 0x40) != 0;
 			break;
 		case CONFIG_REG:
 			chip->keyscale_mode = (data & 0x40) != 0;
@@ -485,10 +488,14 @@ ESFM_write_reg_native (esfm_chip *chip, uint16_t address, uint8_t data)
 			}
 			break;
 		case TEST_REG:
-			chip->test_bit_eg_halt = (data & 0x01) | ((data & 0x20) != 0);
-			chip->test_bit_distort = (data & 0x02) != 0;
-			chip->test_bit_attenuate = (data & 0x10) != 0;
-			chip->test_bit_phase_stop_reset = (data & 0x40) != 0;
+			chip->test_bit_w0_r5_eg_halt = (data & 0x01) | ((data & 0x20) != 0);
+			chip->test_bit_1_distort = (data & 0x02) != 0;
+			chip->test_bit_2 = (data & 0x04) != 0;
+			chip->test_bit_3 = (data & 0x08) != 0;
+			chip->test_bit_4_attenuate = (data & 0x10) != 0;
+			chip->test_bit_w5_r0 = (data & 0x20) != 0;
+			chip->test_bit_6_phase_stop_reset = (data & 0x40) != 0;
+			chip->test_bit_7 = (data & 0x80) != 0;
 			break;
 		}
 	}
@@ -543,16 +550,16 @@ ESFM_readback_reg_native (esfm_chip *chip, uint16_t address)
 		switch (address & 0x5ff)
 		{
 		case TIMER1_REG:
-			data = chip->timer_reload[0];
+			data = chip->timer_counter[0];
 			break;
 		case TIMER2_REG:
-			data = chip->timer_reload[1];
+			data = chip->timer_counter[1];
 			break;
 		case TIMER_SETUP_REG:
 			data |= chip->timer_enable[0] != 0;
 			data |= (chip->timer_enable[1] != 0) << 1;
-			data |= (chip->timer_mask[0] != 0) << 5;
-			data |= (chip->timer_mask[1] != 0) << 6;
+			data |= (chip->timer_mask[1] != 0) << 5;
+			data |= (chip->timer_mask[0] != 0) << 6;
 			break;
 		case CONFIG_REG:
 			data |= (chip->keyscale_mode != 0) << 6;
@@ -563,11 +570,14 @@ ESFM_readback_reg_native (esfm_chip *chip, uint16_t address)
 			data |= chip->emu_tremolo_deep << 7;
 			break;
 		case TEST_REG:
-			data |= chip->test_bit_eg_halt != 0;
-			data |= (chip->test_bit_distort != 0) << 1;
-			data |= (chip->test_bit_attenuate != 0) << 4;
-			data |= (chip->test_bit_eg_halt != 0) << 5;
-			data |= (chip->test_bit_phase_stop_reset != 0) << 6;
+			data |= chip->test_bit_w5_r0 != 0;
+			data |= (chip->test_bit_1_distort != 0) << 1;
+			data |= (chip->test_bit_2 != 0) << 2;
+			data |= (chip->test_bit_3 != 0) << 3;
+			data |= (chip->test_bit_4_attenuate != 0) << 4;
+			data |= (chip->test_bit_w0_r5_eg_halt != 0) << 5;
+			data |= (chip->test_bit_6_phase_stop_reset != 0) << 6;
+			data |= (chip->test_bit_7 != 0) << 7;
 			break;
 		case FOUROP_CONN_REG:
 			for (i = 0; i < 3; i++)
@@ -577,6 +587,7 @@ ESFM_readback_reg_native (esfm_chip *chip, uint16_t address)
 			}
 			break;
 		case NATIVE_MODE_REG:
+			data |= (chip->emu_newmode != 0);
 			data |= (chip->native_mode != 0) << 7;
 			break;
 		}
@@ -639,9 +650,11 @@ ESFM_write_reg_emu (esfm_chip *chip, uint16_t address, uint8_t data)
 				break;
 			case 0x02:
 				chip->timer_reload[0] = data;
+				chip->timer_counter[0] = data;
 				break;
 			case 0x03:
 				chip->timer_reload[1] = data;
+				chip->timer_counter[1] = data;
 				break;
 			case 0x04:
 				for (i = 0; i < 3; i++)
@@ -677,19 +690,24 @@ ESFM_write_reg_emu (esfm_chip *chip, uint16_t address, uint8_t data)
 				break;
 			case 0x02:
 				chip->timer_reload[0] = data;
+				chip->timer_counter[0] = data;
 				break;
 			case 0x03:
 				chip->timer_reload[1] = data;
+				chip->timer_counter[1] = data;
 				break;
 			case 0x04:
-				chip->timer_enable[0] = data & 0x01;
-				chip->timer_enable[1] = (data & 0x02) != 0;
-				chip->timer_mask[0] = (data & 0x20) != 0;
-				chip->timer_mask[1] = (data & 0x40) != 0;
 				if (data & 0x80)
 				{
 					chip->irq_bit = 0;
+					chip->timer_overflow[0] = 0;
+					chip->timer_overflow[1] = 0;
+					break;
 				}
+				chip->timer_enable[0] = data & 0x01;
+				chip->timer_enable[1] = (data & 0x02) != 0;
+				chip->timer_mask[1] = (data & 0x20) != 0;
+				chip->timer_mask[0] = (data & 0x40) != 0;
 				break;
 			case 0x08:
 				chip->keyscale_mode = (data & 0x40) != 0;
@@ -850,6 +868,7 @@ ESFM_write_port (esfm_chip *chip, uint8_t offset, uint8_t data)
 		case 0:
 			chip->native_mode = 0;
 			ESFM_native_to_emu_switch(chip);
+			// TODO: verify if the address write goes through
 			chip->addr_latch = data;
 			break;
 		case 1:
@@ -886,43 +905,30 @@ uint8_t
 ESFM_read_port (esfm_chip *chip, uint8_t offset)
 {
 	uint8_t data = 0;
-	if (chip->native_mode)
+
+	switch(offset)
 	{
-		switch(offset)
+	case 0:
+		data |= (chip->irq_bit != 0) << 7;
+		data |= (chip->timer_overflow[0] != 0) << 6;
+		data |= (chip->timer_overflow[1] != 0) << 5;
+		break;
+	case 1:
+		if (chip->native_mode)
 		{
-		case 0:
-			// TODO: actually implement timer count, trigger and reset
-			data |= (chip->irq_bit != 0) << 7;
-			data |= (chip->timer_overflow[0] != 0) << 6;
-			data |= (chip->timer_overflow[1] != 0) << 5;
-			break;
-		case 1:
 			data = ESFM_readback_reg_native(chip, chip->addr_latch);
-			break;
-		// TODO: verify what the ESFM chip actually returns when reading
-		// from the other address ports
 		}
-	}
-	else
-	{
-		switch(offset)
+		else
 		{
-		case 0:
-			data |= (chip->irq_bit != 0) << 7;
-			data |= (chip->timer_overflow[0] != 0) << 6;
-			data |= (chip->timer_overflow[1] != 0) << 5;
-			break;
-		case 1:
 			data = 0;
-			break;
-		case 2: case 3:
-			// This matches OPL3 behavior.
-			// TODO: verify what the ESFM chip actually returns when reading
-			// from address ports in emulation mode
-			data = 0xff;
-			break;
 		}
+		break;
+	case 2: case 3:
+		// This matches OPL3 behavior.
+		data = 0xff;
+		break;
 	}
+
 	return data;
 }
 
