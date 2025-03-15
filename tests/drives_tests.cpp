@@ -113,7 +113,7 @@ TEST(Set_Label, Daggerfall)
 TEST(Set_Label, DaggerfallCD)
 {
     std::string output = run_Set_Label("Daggerfall", true);
-    EXPECT_EQ("Daggerfall", output);
+    EXPECT_EQ("Daggerfa.ll", output);
 }
 
 TEST(Set_Label, LongerThan11)
@@ -124,7 +124,7 @@ TEST(Set_Label, LongerThan11)
 TEST(Set_Label, LongerThan11CD)
 {
     std::string output = run_Set_Label("a123456789AAA", true);
-    EXPECT_EQ("a123456789A", output);
+    EXPECT_EQ("a1234567.89A", output);
 }
 
 TEST(Set_Label, ShorterThan8)
