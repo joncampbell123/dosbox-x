@@ -1741,6 +1741,10 @@ ESFM_slot_generate_emu(esfm_slot *slot)
 }
 
 /* ------------------------------------------------------------------------- */
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
 static void
 ESFM_process_feedback(esfm_chip *chip)
 {
@@ -1752,11 +1756,12 @@ ESFM_process_feedback(esfm_chip *chip)
 		uint32 basefreq, phase_offset;
 		uint3 block;
 		uint10 f_num;
-		int32_t wave_out;
+		int32_t wave_out, wave_last;
 		int32_t phase_feedback;
+		uint32_t iter_counter;
 		uint3 waveform;
 		uint3 mod_in_shift;
-		uint32_t phase_acc;
+		uint32_t phase, phase_acc;
 		uint10 eg_output;
 
 		if (slot->mod_in_level && (chip->native_mode || (slot->in.mod_input == &slot->in.feedback_buf)))
@@ -1778,7 +1783,7 @@ ESFM_process_feedback(esfm_chip *chip)
 			eg_output = slot->in.eg_output;
 
 			// ASM optimizaions!
-#if defined(__GNUC__) && defined(__x86_64__)
+#if defined(__GNUC__) && defined(__x86_64__) && !defined(_ESFMU_DISABLE_ASM_OPTIMIZATIONS)
 			asm (
 				"movzbq  %[wave], %%r8               \n\t"
 				"shll    $11, %%r8d                  \n\t"
@@ -1843,13 +1848,14 @@ ESFM_process_feedback(esfm_chip *chip)
 				  [exprom] "m"   (exprom)
 				: "cc", "ax", "bx", "cx", "dx", "r8", "r9", "r10", "r11"
 			);
-#elif defined(__GNUC__) && defined(__i386__)
-			uint32_t iter_counter;
-			int32_t wave_last;
+#elif defined(__GNUC__) && defined(__i386__) && !defined(_ESFMU_DISABLE_ASM_OPTIMIZATIONS)
+			size_t logsinrom_addr = (size_t)logsinrom;
+			size_t exprom_addr = (size_t)exprom;
+
 			asm (
 				"movzbl  %b[wave], %%eax             \n\t"
 				"shll    $11, %%eax                  \n\t"
-				"leal    %[sinrom], %%edi            \n\t"
+				"movl    %[sinrom], %%edi            \n\t"
 				"addl    %%eax, %%edi                \n\t"
 				"shlw    $3, %[eg_out]               \n\t"
 				"xorl    %[out], %[out]              \n\t"
@@ -1884,7 +1890,7 @@ ESFM_process_feedback(esfm_chip *chip)
 				// wave_out = exprom[level & 0xff] >> (level >> 8);
 				"movb    %%ah, %%cl                  \n\t"
 				"movzbl  %%al, %%eax                 \n\t"
-				"leal    %[exprom], %[out]           \n\t"
+				"movl    %[exprom], %[out]           \n\t"
 				"movzwl  (%[out], %%eax, 2), %[out]  \n\t"
 				"shrl    %%cl, %[out]                \n\t"
 				// if (lookup & 0x8000) wave_out = -wave_out;
@@ -1906,12 +1912,12 @@ ESFM_process_feedback(esfm_chip *chip)
 				: [p_off]  "m"   (phase_offset),
 				  [mod_in] "m"   (mod_in_shift),
 				  [wave]   "m"   (waveform),
-				  [sinrom] "m"   (logsinrom),
-				  [exprom] "m"   (exprom),
+				  [sinrom] "m"   (logsinrom_addr),
+				  [exprom] "m"   (exprom_addr),
 				  [i]      "m"   (iter_counter)
 				: "cc", "ax", "bx", "cx", "di"
 			);
-#elif defined(__GNUC__) && defined(__arm__)
+#elif defined(__GNUC__) && defined(__arm__) && !defined(_ESFMU_DISABLE_ASM_OPTIMIZATIONS)
 			asm (
 				"movs    r3, #0                     \n\t"
 				"movs    %[out], #0                 \n\t"
@@ -1966,12 +1972,12 @@ ESFM_process_feedback(esfm_chip *chip)
 			);
 #else
 			wave_out = 0;
-			int32_t wave_last = 0;
-			for (uint32_t iter_counter = 0; iter_counter < 29; iter_counter++)
+			wave_last = 0;
+			for (iter_counter = 0; iter_counter < 29; iter_counter++)
 			{
 				phase_feedback = (wave_out + wave_last) >> 2;
 				wave_last = wave_out;
-				uint32_t phase = phase_feedback >> mod_in_shift;
+				phase = phase_feedback >> mod_in_shift;
 				phase += phase_acc >> 9;
 				wave_out = ESFM_envelope_wavegen(waveform, phase, eg_output);
 				phase_acc += phase_offset;
@@ -2055,10 +2061,13 @@ ESFM_clip_sample(int32 sample)
 	return (int16_t)sample;
 }
 
+#define TIMER1_CONST (0.2517482517482517)
+#define TIMER2_CONST (0.06293706293706293)
 /* ------------------------------------------------------------------------- */
 static void
 ESFM_update_timers(esfm_chip *chip)
-{
+{	
+	int i;
 	// Tremolo
 	if ((chip->global_timer & 0x3f) == 0x3f)
 	{
@@ -2108,6 +2117,28 @@ ESFM_update_timers(esfm_chip *chip)
 		{
 			chip->eg_timer++;
 			chip->eg_timer_overflow = 0;
+		}
+	}
+
+	for (i = 0; i < 2; i++)
+	{
+		if (chip->timer_enable[i])
+		{
+			chip->timer_accumulator[i] += (i == 0) ? TIMER1_CONST : TIMER2_CONST;
+			if (chip->timer_accumulator[i] > 1.0)
+			{
+				chip->timer_accumulator[i] -= 1.0;
+				chip->timer_counter[i]++;
+				if (chip->timer_counter[i] == 0)
+				{
+					if (chip->timer_mask[i] == 0)
+					{
+						chip->irq_bit = true;
+						chip->timer_overflow[i] = true;
+					}
+					chip->timer_counter[i] = chip->timer_reload[i];
+				}
+			}
 		}
 	}
 
