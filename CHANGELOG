@@ -1,5 +1,10 @@
 Next
+  - Bumped ESFMu to ver 1.2.6 (maron2000)
+  - Fixed regression of adding a dot to CD labels when longer than 8 characters,
+    required for games such as Descent 2 CD installer (maron2000)
+  - Added Modeswitch toggle option (DieSkaarj)
   - Fixed glitch of DBCS character at the end of a line (maron2000)
+  - Fixed dialog for showing error of loading language files (maron2000)
   - Removed two and 226 duplicate Chinese character mappings from code
     pages 950 and 951, respectively, ensuring more accurate Big5 and
     Big5-UAO character mappings for Chinese IME users. (1abcd)
