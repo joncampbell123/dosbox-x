@@ -54,6 +54,7 @@ extern bool ctrlbrk, gbk, rtl, dbcs_sbcs;
 extern bool DOS_BreakFlag, DOS_BreakConioFlag;
 extern uint16_t cmd_line_seg;
 uint8_t prompt_col; // Column position after prompt is displayed
+void WriteChar(uint16_t col, uint16_t row, uint8_t page, uint16_t chr, uint8_t attr, bool useattr);
 
 #if defined(USE_TTF)
 extern bool ttf_dosv;
@@ -894,11 +895,11 @@ void DOS_Shell::InputCommand(char * line) {
 
                 break;
             case 0x5300:/* DELETE */
-                if(IS_PC98_ARCH || (isDBCSCP()
+                if(IS_PC98_ARCH
 #if defined(USE_TTF)
                     && dbcs_sbcs
 #endif
-                    && IS_DOS_JAPANESE)) {
+                    ) {
                     if(str_len) {
                         size += DeleteBackspace(true, line, str_index, str_len);
                     }
@@ -911,18 +912,37 @@ void DOS_Shell::InputCommand(char * line) {
 #endif
                         &&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40)))
                         k=2;
-                    for (int i=0; i<k; i++) {
-                        uint16_t a=str_len-str_index-1;
-                        uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index+1]);
-                        DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
-                        outc(' ');backone();
-                        for(Bitu i=str_index;i<(str_len-1u);i++) {
-                            line[i]=line[i+1u];
-                            backone();
+                    //for (int i=0; i<k; i++) {
+                        for(Bitu i = str_index; i < (str_len - k); i++) {
+                            line[i] = line[i + k];
                         }
-                        line[--str_len]=0;
-                        size++;
-                    }
+                        line[str_len - k] = 0;
+                        line[str_len - k + 1] = 0;
+                        line[str_len] = 0;
+                        str_len -= k;
+                        uint16_t a=str_len-str_index;
+                        uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index]);
+                        page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                        BIOS_NCOLS;
+                        col = CURSOR_POS_COL(page);
+                        DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
+                        if(k == 2){
+                            outc(' '); outc(' '); backone(); backone();
+                        }
+                        else {
+                            outc(' '); backone();
+                        }
+                        uint16_t col2 = CURSOR_POS_COL(page); //LOG_MSG("col=%d, a=%d", col,a);
+                        row = CURSOR_POS_ROW(page);
+                        if(col2 >= a) INT10_SetCursorPos(row, col2 - a, page);
+                        else {
+                            uint16_t lines_up = (a - col2 - 1) / ncols + 1;
+                            if(col2 < ncols) for(int i = col2; i < ncols; i++) WriteChar(i, row, page, ' ', 0, false);
+                            if(row >= lines_up) INT10_SetCursorPos(row - lines_up, col, page);
+                            else INT10_SetCursorPos(0, 0, page);
+                        }
+                        size += k;
+                    //}
                 }
                 break;
             case 0x0F00:	/* Shift-Tab */
