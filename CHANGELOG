@@ -1,4 +1,7 @@
 Next
+  - Fixed Host key (F11, F12) handling in Codepage 932 (Japanese Shift-JIS).
+    (maron2000)
+  - Fixed SSE PSADBW to match the Intel SDM. (fuel-pcbox) 
   - Bumped ESFMu to ver 1.2.6 (maron2000)
   - Fixed regression of adding a dot to CD labels when longer than 8 characters,
     required for games such as Descent 2 CD installer (maron2000)
