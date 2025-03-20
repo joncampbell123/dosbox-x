@@ -1075,6 +1075,12 @@ void DOS_Shell::InputCommand(char * line) {
                 DOS_BreakConioFlag = false;
                 break;
             case 0x0d:				/* Don't care, and return */
+            {
+                uint16_t a = str_len - str_index;
+                uint8_t* text = reinterpret_cast<uint8_t*>(&line[str_index]);
+                DOS_WriteFile(STDOUT, text, &a);//goto end of command line
+                str_index = str_len;
+            }
                 if(!echo) { outc('\r'); outc('\n'); }
                 size=0;			//Kill the while loop
                 break;
