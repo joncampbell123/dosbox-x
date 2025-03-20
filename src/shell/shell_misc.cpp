@@ -622,11 +622,11 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4B00:	/* LEFT */
-                if(IS_PC98_ARCH || (isDBCSCP()
+                if(IS_PC98_ARCH
 #if defined(USE_TTF)
                     && dbcs_sbcs
 #endif
-                    && IS_DOS_JAPANESE)) {
+                    ) {
                     if (str_index) {
                         uint16_t count = GetLastCount(line, str_index);
                         uint8_t ch = line[str_index - 1];
@@ -647,13 +647,10 @@ void DOS_Shell::InputCommand(char * line) {
                     BIOS_NCOLS; BIOS_NROWS;
                     uint16_t get_char, get_char2;
                     ReadCharAttr(col, row, page, &get_char);
-                    //LOG_MSG("1ch=%x, get_char=%x", (line[str_index] & 0xFF), (uint8_t)(get_char & 0xFF));
                     if((line[str_index] & 0xFF) != (uint8_t)(get_char & 0xFF)) {
                         ReadCharAttr(col-1, row, page, &get_char2);
                         if((uint8_t)(get_char2 & 0xFF) == (line[str_index] & 0xFF)) INT10_SetCursorPos(row, col - 1, page);
                     }
-                    //INT10_ReadCharAttr(&get_char, page);
-                    //LOG_MSG("2ch=%x, get_char=%x", (line[str_index] & 0xFF), (uint8_t)(get_char & 0xFF));
                 } else {
                     if (isDBCSCP()
 #if defined(USE_TTF)
@@ -669,7 +666,6 @@ void DOS_Shell::InputCommand(char * line) {
                         BIOS_NCOLS; BIOS_NROWS;
                         uint16_t get_char, get_char2;
                         ReadCharAttr(col, row, page, &get_char);
-                        //LOG_MSG("1ch=%x, get_char=%x", (line[str_index] & 0xFF), (uint8_t)(get_char & 0xFF));
                         if((line[str_index] & 0xFF) != (uint8_t)(get_char & 0xFF)) {
                             ReadCharAttr(col - 1, row, page, &get_char2);
                             if((uint8_t)(get_char2 & 0xFF) == (line[str_index] & 0xFF)) INT10_SetCursorPos(row, col - 1, page);
@@ -689,19 +685,11 @@ void DOS_Shell::InputCommand(char * line) {
                                 str_index--;
                             }
                         }
-                        //INT10_ReadCharAttr(&get_char, page);
-                        //col = CURSOR_POS_COL(page);
-                        //row = CURSOR_POS_ROW(page);
-                        //LOG_MSG("2ch=%x, get_char=%x, col=%d, str_index=%d", (line[str_index] & 0xFF), (uint8_t)(get_char & 0xFF), col, str_index);
                     }
                     else if (str_index) {
-                        //uint16_t get_char, get_char2;
                         backone();
                         str_index --;
                         MoveCaretBackwards();
-                        //page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
-                        //INT10_ReadCharAttr(&get_char, page);
-                        //LOG_MSG("ch=%c, get_char=%c", line[str_index], (uint8_t)(get_char & 0xFF));
                     }
                 }
                 break;
@@ -770,7 +758,6 @@ void DOS_Shell::InputCommand(char * line) {
                     page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
                     col = CURSOR_POS_COL(page);
                     BIOS_NCOLS;
-                    //LOG_MSG("col=%d, str_index=%d, line[str_index] =%x", col, str_index, (line[str_index-1] & 0xFF));
                     if(col == ncols - 1 && str_index < str_len && isKanji1(line[str_index]) && isKanji2(line[str_index+1])) {
                         row = CURSOR_POS_ROW(page);
                         INT10_SetCursorPos(row+1, 0, page);
@@ -803,6 +790,12 @@ void DOS_Shell::InputCommand(char * line) {
                     backone();
                     str_index--;
                 }
+                page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                col = CURSOR_POS_COL(page);
+                while(col > prompt_col) {
+                    backone();
+                    col = CURSOR_POS_COL(page);
+                }
                 break;
 
             case 0x5200:    /* INS */
@@ -815,8 +808,11 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4F00:	/* END */
-                while (str_index < str_len) {
-                    outc((uint8_t)line[str_index++]);
+                {
+                    uint16_t a = str_len - str_index;
+                    uint8_t* text = reinterpret_cast<uint8_t*>(&line[str_index]);
+                    DOS_WriteFile(STDOUT, text, &a);//write buffer to screen
+                    str_index = str_len;
                 }
                 break;
 
@@ -912,41 +908,39 @@ void DOS_Shell::InputCommand(char * line) {
 #endif
                         &&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40)))
                         k=2;
-                    //for (int i=0; i<k; i++) {
-                        for(Bitu i = str_index; i < (str_len - k); i++) {
-                            line[i] = line[i + k];
-                        }
-                        line[str_len - k] = 0;
-                        line[str_len - k + 1] = 0;
-                        line[str_len] = 0;
-                        str_len -= k;
-                        uint16_t a=str_len-str_index;
-                        uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index]);
-                        page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
-                        BIOS_NCOLS; BIOS_NROWS;
-                        col = CURSOR_POS_COL(page);
-                        DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
-                        uint16_t col2 = CURSOR_POS_COL(page);
-                        row = CURSOR_POS_ROW(page);
-                        if(k == 2){
-                            outc(' '); outc(' '); backone(); backone();
-                        }
-                        else {
-                            outc(' '); backone();
-                        }
-                        if(col2 >= ncols - (k==2?3:1) && row < nrows) {
-                            for(int i = 0; i <= k; i++) WriteChar(i, row + 1, page, ' ', 0, false);
-                        }
-                        col2 = CURSOR_POS_COL(page); //LOG_MSG("col=%d, a=%d", col,a);
-                        if(col2 >= a) INT10_SetCursorPos(row, col2 - a, page);
-                        else {
-                            uint16_t lines_up = (a - col2 - 1) / ncols + 1;
-                            if(col2 < ncols) for(int i = col2; i < ncols; i++) WriteChar(i, row, page, ' ', 0, false);
-                            if(row >= lines_up) INT10_SetCursorPos(row - lines_up, col, page);
-                            else INT10_SetCursorPos(0, 0, page);
-                        }
-                        size += k;
-                    //}
+                    for(Bitu i = str_index; i < (str_len - k); i++) {
+                        line[i] = line[i + k];
+                    }
+                    line[str_len - k] = 0;
+                    line[str_len - k + 1] = 0;
+                    line[str_len] = 0;
+                    str_len -= k;
+                    uint16_t a=str_len-str_index;
+                    uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index]);
+                    page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                    BIOS_NCOLS; BIOS_NROWS;
+                    col = CURSOR_POS_COL(page);
+                    DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
+                    uint16_t col2 = CURSOR_POS_COL(page);
+                    row = CURSOR_POS_ROW(page);
+                    if(k == 2){
+                        outc(' '); outc(' '); backone(); backone();
+                    }
+                    else {
+                        outc(' '); backone();
+                    }
+                    if(col2 >= ncols - (k==2?3:1) && row < nrows) {
+                        for(int i = 0; i <= k; i++) WriteChar(i, row + 1, page, ' ', 0, false);
+                    }
+                    col2 = CURSOR_POS_COL(page); //LOG_MSG("col=%d, a=%d", col,a);
+                    if(col2 >= a) INT10_SetCursorPos(row, col2 - a, page);
+                    else {
+                        uint16_t lines_up = (a - col2 - 1) / ncols + 1;
+                        if(col2 < ncols) for(int i = col2; i < ncols; i++) WriteChar(i, row, page, ' ', 0, false);
+                        if(row >= lines_up) INT10_SetCursorPos(row - lines_up, col, page);
+                        else INT10_SetCursorPos(0, 0, page);
+                    }
+                    size += k;
                 }
                 break;
             case 0x0F00:	/* Shift-Tab */
@@ -1036,7 +1030,7 @@ void DOS_Shell::InputCommand(char * line) {
                         uint16_t a = str_len - str_index;
                         uint8_t* text = reinterpret_cast<uint8_t*>(&line[str_index]);
                         DOS_WriteFile(STDOUT, text, &a);//write buffer to screen
-                        uint16_t col2 = CURSOR_POS_COL(page); //LOG_MSG("col=%d, a=%d", col,a);
+                        uint16_t col2 = CURSOR_POS_COL(page);
                         row = CURSOR_POS_ROW(page);
                         if(k == 2) {
                             outc(' '); outc(' '); backone(); backone();
@@ -1047,7 +1041,7 @@ void DOS_Shell::InputCommand(char * line) {
                         if(col2 >= ncols - (k == 2 ? 3 : 1) && row < nrows) {
                             for(int i = 0; i <= k; i++) WriteChar(i, row + 1, page, ' ', 0, false);
                         }
-                        col2 = CURSOR_POS_COL(page); //LOG_MSG("col=%d, a=%d", col,a);
+                        col2 = CURSOR_POS_COL(page);
                         if(col2 >= a) INT10_SetCursorPos(row, col2 - a, page);
                         else {
                             uint16_t lines_up = (a - col2 - 1) / ncols + 1;
