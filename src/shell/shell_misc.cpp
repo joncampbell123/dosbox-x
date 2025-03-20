@@ -53,10 +53,14 @@ extern int lfn_filefind_handle;
 extern bool ctrlbrk, gbk, rtl, dbcs_sbcs;
 extern bool DOS_BreakFlag, DOS_BreakConioFlag;
 extern uint16_t cmd_line_seg;
+uint8_t prompt_col; // Column position after prompt is displayed
+void WriteChar(uint16_t col, uint16_t row, uint8_t page, uint16_t chr, uint8_t attr, bool useattr);
+
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
 extern std::map<int, int> pc98boxdrawmap;
+
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
@@ -112,6 +116,7 @@ void DOS_Shell::ShowPrompt(void) {
 		promptstr++;
 	}
     inshell = false;
+    prompt_col = CURSOR_POS_COL(real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE));
 }
 
 static void outc(uint8_t c) {
@@ -442,6 +447,7 @@ static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_inde
 }
 
 extern bool isDBCSCP();
+void ReadCharAttr(uint16_t col, uint16_t row, uint8_t page, uint16_t* result);
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
 	Bitu size=CMD_MAXLINE-2; //lastcharacter+0
@@ -596,28 +602,31 @@ void DOS_Shell::InputCommand(char * line) {
             else if (cr == 0x7400) cr = 0x7300;
         }
 #endif
+        bool read_kanji1 = false;
+        uint8_t temp_char = 0;
+        uint8_t page, col, row;
         switch (cr) {
             case 0x3d00:	/* F3 */
                 if (!l_history.size()) break;
                 it_history = l_history.begin();
                 if (it_history != l_history.end() && it_history->length() > str_len) {
                     const char *reader = &(it_history->c_str())[str_len];
-                    while ((c = (uint8_t)(*reader++))) {
-                        line[str_index ++] = (char)c;
-                        DOS_WriteFile(STDOUT,&c,&n);
+                    while((c = (uint8_t)(*reader++))) {
+                        line[str_index++] = (char)c;
                     }
                     str_len = str_index = (uint16_t)it_history->length();
                     size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                     line[str_len] = 0;
+                    DOS_WriteFile(STDOUT, (const uint8_t *)it_history->c_str(), &str_len);
                 }
                 break;
 
             case 0x4B00:	/* LEFT */
-                if(IS_PC98_ARCH || (isDBCSCP()
+                if(IS_PC98_ARCH
 #if defined(USE_TTF)
                     && dbcs_sbcs
 #endif
-                    && IS_DOS_JAPANESE)) {
+                    ) {
                     if (str_index) {
                         uint16_t count = GetLastCount(line, str_index);
                         uint8_t ch = line[str_index - 1];
@@ -632,6 +641,16 @@ void DOS_Shell::InputCommand(char * line) {
                             backone();
                         }
                     }
+                    page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                    col = CURSOR_POS_COL(page);
+                    row = CURSOR_POS_ROW(page);
+                    BIOS_NCOLS; BIOS_NROWS;
+                    uint16_t get_char, get_char2;
+                    ReadCharAttr(col, row, page, &get_char);
+                    if((line[str_index] & 0xFF) != (uint8_t)(get_char & 0xFF)) {
+                        ReadCharAttr(col-1, row, page, &get_char2);
+                        if((uint8_t)(get_char2 & 0xFF) == (line[str_index] & 0xFF)) INT10_SetCursorPos(row, col - 1, page);
+                    }
                 } else {
                     if (isDBCSCP()
 #if defined(USE_TTF)
@@ -641,8 +660,33 @@ void DOS_Shell::InputCommand(char * line) {
                         backone();
                         str_index --;
                         MoveCaretBackwards();
+                        page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                        col = CURSOR_POS_COL(page);
+                        row = CURSOR_POS_ROW(page);
+                        BIOS_NCOLS; BIOS_NROWS;
+                        uint16_t get_char, get_char2;
+                        ReadCharAttr(col, row, page, &get_char);
+                        if((line[str_index] & 0xFF) != (uint8_t)(get_char & 0xFF)) {
+                            ReadCharAttr(col - 1, row, page, &get_char2);
+                            if((uint8_t)(get_char2 & 0xFF) == (line[str_index] & 0xFF)) INT10_SetCursorPos(row, col - 1, page);
+                        }
+                        uint8_t iskanji = 0;
+                        col = CURSOR_POS_COL(page);
+                        if(col > 0 && str_index > 0) {
+                            for(uint16_t i = 0; i < str_index; i++) {
+                                if(isKanji1(line[i]) && isKanji2(line[i + 1])) {
+                                    if(i + 1 == str_index) iskanji = 2;
+                                    else i++; // skip next character
+                                }
+                            }
+
+                            if(iskanji == 2) {
+                                backone();
+                                str_index--;
+                            }
+                        }
                     }
-                    if (str_index) {
+                    else if (str_index) {
                         backone();
                         str_index --;
                         MoveCaretBackwards();
@@ -711,15 +755,31 @@ void DOS_Shell::InputCommand(char * line) {
                             count--;
                         }
                     }
+                    page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                    col = CURSOR_POS_COL(page);
+                    BIOS_NCOLS;
+                    if(col == ncols - 1 && str_index < str_len && isKanji1(line[str_index]) && isKanji2(line[str_index+1])) {
+                        row = CURSOR_POS_ROW(page);
+                        INT10_SetCursorPos(row+1, 0, page);
+                    }
                 } else {
                     if (isDBCSCP()
 #if defined(USE_TTF)
                         &&dbcs_sbcs
 #endif
                         &&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40))) {
-                        outc((uint8_t)line[str_index++]);
+                        if(isKanji1((uint8_t)line[str_index]) && isKanji2((uint8_t)line[str_index + 1])) {
+                            const uint8_t buf[2] = {(uint8_t)line[str_index],(uint8_t)line[str_index + 1]};
+                            uint16_t num = 2;
+                            DOS_WriteFile(STDOUT, buf, &num);
+                            str_index += 2;
+                        }
+                        else {
+                            outc((uint8_t)line[str_index]);
+                            str_index++;
+                        }
                     }
-                    if (str_index < str_len) {
+                    else if (str_index < str_len) {
                         outc((uint8_t)line[str_index++]);
                     }
                 }
@@ -729,6 +789,12 @@ void DOS_Shell::InputCommand(char * line) {
                 while (str_index) {
                     backone();
                     str_index--;
+                }
+                page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                col = CURSOR_POS_COL(page);
+                while(col > prompt_col) {
+                    backone();
+                    col = CURSOR_POS_COL(page);
                 }
                 break;
 
@@ -742,8 +808,11 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4F00:	/* END */
-                while (str_index < str_len) {
-                    outc((uint8_t)line[str_index++]);
+                {
+                    uint16_t a = str_len - str_index;
+                    uint8_t* text = reinterpret_cast<uint8_t*>(&line[str_index]);
+                    DOS_WriteFile(STDOUT, text, &a);//write buffer to screen
+                    str_index = str_len;
                 }
                 break;
 
@@ -765,6 +834,13 @@ void DOS_Shell::InputCommand(char * line) {
                     // removes all characters
                     backone(); outc(' '); backone();
                 }
+                page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                col = CURSOR_POS_COL(page);
+                while(col > prompt_col){
+                    backone(); outc(' '); backone();
+                    col = CURSOR_POS_COL(page);
+                }
+
                 strcpy(line, it_history->c_str());
                 len = (uint16_t)it_history->length();
                 str_len = str_index = len;
@@ -799,6 +875,13 @@ void DOS_Shell::InputCommand(char * line) {
                     // removes all characters
                     backone(); outc(' '); backone();
                 }
+                page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                col = CURSOR_POS_COL(page);
+                while(col > prompt_col) {
+                    backone(); outc(' '); backone();
+                    col = CURSOR_POS_COL(page);
+                }
+
                 strcpy(line, it_history->c_str());
                 len = (uint16_t)it_history->length();
                 str_len = str_index = len;
@@ -808,11 +891,11 @@ void DOS_Shell::InputCommand(char * line) {
 
                 break;
             case 0x5300:/* DELETE */
-                if(IS_PC98_ARCH || (isDBCSCP()
+                if(IS_PC98_ARCH
 #if defined(USE_TTF)
                     && dbcs_sbcs
 #endif
-                    && IS_DOS_JAPANESE)) {
+                    ) {
                     if(str_len) {
                         size += DeleteBackspace(true, line, str_index, str_len);
                     }
@@ -825,18 +908,39 @@ void DOS_Shell::InputCommand(char * line) {
 #endif
                         &&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40)))
                         k=2;
-                    for (int i=0; i<k; i++) {
-                        uint16_t a=str_len-str_index-1;
-                        uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index+1]);
-                        DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
-                        outc(' ');backone();
-                        for(Bitu i=str_index;i<(str_len-1u);i++) {
-                            line[i]=line[i+1u];
-                            backone();
-                        }
-                        line[--str_len]=0;
-                        size++;
+                    for(Bitu i = str_index; i < (str_len - k); i++) {
+                        line[i] = line[i + k];
                     }
+                    line[str_len - k] = 0;
+                    line[str_len - k + 1] = 0;
+                    line[str_len] = 0;
+                    str_len -= k;
+                    uint16_t a=str_len-str_index;
+                    uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index]);
+                    page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                    BIOS_NCOLS; BIOS_NROWS;
+                    col = CURSOR_POS_COL(page);
+                    DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
+                    uint16_t col2 = CURSOR_POS_COL(page);
+                    row = CURSOR_POS_ROW(page);
+                    if(k == 2){
+                        outc(' '); outc(' '); backone(); backone();
+                    }
+                    else {
+                        outc(' '); backone();
+                    }
+                    if(col2 >= ncols - (k==2?3:1) && row < nrows) {
+                        for(int i = 0; i <= k; i++) WriteChar(i, row + 1, page, ' ', 0, false);
+                    }
+                    col2 = CURSOR_POS_COL(page); //LOG_MSG("col=%d, a=%d", col,a);
+                    if(col2 >= a) INT10_SetCursorPos(row, col2 - a, page);
+                    else {
+                        uint16_t lines_up = (a - col2 - 1) / ncols + 1;
+                        if(col2 < ncols) for(int i = col2; i < ncols; i++) WriteChar(i, row, page, ' ', 0, false);
+                        if(row >= lines_up) INT10_SetCursorPos(row - lines_up, col, page);
+                        else INT10_SetCursorPos(0, 0, page);
+                    }
+                    size += k;
                 }
                 break;
             case 0x0F00:	/* Shift-Tab */
@@ -865,42 +969,97 @@ void DOS_Shell::InputCommand(char * line) {
                 }
                 break;
             case 0x08:				/* BackSpace */
-                if(IS_PC98_ARCH || (isDBCSCP()
+                if(IS_PC98_ARCH
 #if defined(USE_TTF)
                     && dbcs_sbcs
 #endif
-                    && IS_DOS_JAPANESE)) {
+                    ) {
                     if(str_index) {
                         size += DeleteBackspace(false, line, str_index, str_len);
                     }
                 } else {
                     int k=1;
+                    if(str_index == 0)break;
                     if (isDBCSCP()
 #if defined(USE_TTF)
                         &&dbcs_sbcs
 #endif
                         &&str_index>1&&(line[str_index-1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index-1]>=0x40))&&line[str_index-2]<0)
                         k=2;
-                    for (int i=0; i<k; i++)
-                        if (str_index) {
-                            backone();
-                            uint32_t str_remain=(uint32_t)(str_len - str_index);
-                            size++;
-                            if (str_remain) {
-                                memmove(&line[str_index-1],&line[str_index],str_remain);
-                                line[--str_len]=0;
-                                str_index --;
-                                /* Go back to redraw */
-                                for (uint16_t i=str_index; i < str_len; i++)
-                                    outc((uint8_t)line[i]);
-                            } else {
-                                line[--str_index] = '\0';
-                                str_len--;
+                    page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                    BIOS_NCOLS; BIOS_NROWS;
+                    col = CURSOR_POS_COL(page);
+                    row = CURSOR_POS_ROW(page);
+                    if(str_index >= k) {
+                        if(col == 0) {
+                            if(k == 1) {
+                                WriteChar(ncols - 1, row - 1, page, ' ', 0, false);
+                                backone();
                             }
-                            outc(' ');	backone();
-                            // moves the cursor left
-                            while (str_remain--) backone();
+                            else {
+                                uint16_t get_char;
+                                ReadCharAttr(ncols - 1, row - 1, page, &get_char);
+                                WriteChar(ncols - 1, row - 1, page, ' ', 0, false);
+                                WriteChar(ncols - 2, row - 1, page, ' ', 0, false);
+                                backone(); backone();
+                                if((uint8_t)(line[str_index - 1] & 0xFF) != (uint8_t)(get_char & 0xFF)) {
+                                    WriteChar(ncols - 3, row - 1, page, ' ', 0, false);
+                                    backone();
+                                }
+                            }
                         }
+                        else {
+                            WriteChar(col - 1, row, page, ' ', 0, false);
+                            backone();
+                            if(k == 2) {
+                                assert(col >= k);
+                                WriteChar(col - 2, row, page, ' ', 0, false);
+                                backone();
+                            }
+                        }
+                        if(str_index == str_len) {
+                            if(k == 2)line[str_len - 2] = 0;
+                            line[str_len - 1] = 0;
+                            line[str_len] = 0;
+                            str_len -= k;
+                            str_index -= k;
+                            size += k;
+                            break;
+                        }
+                        col = CURSOR_POS_COL(page);
+                        uint16_t a = str_len - str_index;
+                        uint8_t* text = reinterpret_cast<uint8_t*>(&line[str_index]);
+                        DOS_WriteFile(STDOUT, text, &a);//write buffer to screen
+                        uint16_t col2 = CURSOR_POS_COL(page);
+                        row = CURSOR_POS_ROW(page);
+                        if(k == 2) {
+                            outc(' '); outc(' '); backone(); backone();
+                        }
+                        else {
+                            outc(' '); backone();
+                        }
+                        if(col2 >= ncols - (k == 2 ? 3 : 1) && row < nrows) {
+                            for(int i = 0; i <= k; i++) WriteChar(i, row + 1, page, ' ', 0, false);
+                        }
+                        col2 = CURSOR_POS_COL(page);
+                        if(col2 >= a) INT10_SetCursorPos(row, col2 - a, page);
+                        else {
+                            uint16_t lines_up = (a - col2 - 1) / ncols + 1;
+                            if(col2 < ncols) for(int i = col2; i < ncols; i++) WriteChar(i, row, page, ' ', 0, false);
+                            if(row >= lines_up) INT10_SetCursorPos(row - lines_up, col, page);
+                            else INT10_SetCursorPos(0, 0, page);
+                        }
+
+                        for(Bitu i = str_index; i <= str_len; i++) {
+                            line[i-k] = line[i];
+                        }
+                        line[str_len - k] = 0;
+                        line[str_len - k + 1] = 0;
+                        line[str_len] = 0;
+                        str_index -= k;
+                        str_len -= k;
+                        size += k;
+                    }
                 }
                 if (l_completion.size()) l_completion.clear();
                 break;
@@ -916,6 +1075,12 @@ void DOS_Shell::InputCommand(char * line) {
                 DOS_BreakConioFlag = false;
                 break;
             case 0x0d:				/* Don't care, and return */
+            {
+                uint16_t a = str_len - str_index;
+                uint8_t* text = reinterpret_cast<uint8_t*>(&line[str_index]);
+                DOS_WriteFile(STDOUT, text, &a);//goto end of command line
+                str_index = str_len;
+            }
                 if(!echo) { outc('\r'); outc('\n'); }
                 size=0;			//Kill the while loop
                 break;
