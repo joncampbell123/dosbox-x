@@ -1499,7 +1499,7 @@ void Overlay_Drive::add_deleted_file(const char* name,bool create_on_disk) {
 		strcat(tname,temp_name);
 	if (!is_deleted_file(tname)) {
 		deleted_files_in_base.emplace_back(tname);
-		if (create_on_disk) add_special_file_to_disk(tname, "DEL");
+		if (create_on_disk) add_special_file_to_disk(name, "DEL");
 	}
 }
 
