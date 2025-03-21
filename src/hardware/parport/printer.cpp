@@ -2013,6 +2013,16 @@ void CPrinter::outputPage()
 			scaleH = (double)physH / (double)page->h; 
 
 		HDC memHDC = CreateCompatibleDC(printerDC);
+        
+        BITMAPINFO bmi = { 0 };
+        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth = page->w;
+        bmi.bmiHeader.biHeight = -(page->h); // Top-down bitmap
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 32;
+        bmi.bmiHeader.biCompression = BI_RGB;
+
+        uint32_t* pixelBuffer = nullptr;
 		HBITMAP bitmap = CreateCompatibleBitmap(memHDC, page->w, page->h);
 		SelectObject(memHDC, bitmap);
 
@@ -2047,18 +2057,19 @@ void CPrinter::outputPage()
 
 		SDL_Palette* sdlpal = page->format->palette;
 
-		for (uint16_t y = 0; y < page->h; y++)
-		{
-			for (uint16_t x = 0; x < page->w; x++)
-			{
-				uint8_t pixel = *((uint8_t*)page->pixels + x + (y*page->pitch));
-				uint32_t color = 0;
-				color |= sdlpal->colors[pixel].r;
-				color |= ((uint32_t)sdlpal->colors[pixel].g) << 8;
-				color |= ((uint32_t)sdlpal->colors[pixel].b) << 16;
-				SetPixel(memHDC, x, y, color);
-			}
-		}
+        for(uint16_t y = 0; y < page->h; y++)
+        {
+            for(uint16_t x = 0; x < page->w; x++)
+            {
+                uint8_t pixel = *((uint8_t*)page->pixels + x + (y * page->pitch));
+                uint8_t r = sdlpal->colors[pixel].r;
+                uint8_t g = sdlpal->colors[pixel].g;
+                uint8_t b = sdlpal->colors[pixel].b;
+
+                // 32-bit ARGB (0x00bbggrr)
+                pixelBuffer[x + (y * page->w)] = (b << 16) | (g << 8) | r;
+            }
+        }
 
 		SDL_UnlockSurface(page);
 	
