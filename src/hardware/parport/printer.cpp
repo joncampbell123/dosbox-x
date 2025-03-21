@@ -1987,7 +1987,7 @@ void CPrinter::doAction(const char *fname) {
 
 void CPrinter::outputPage() 
 {
-	char fname[200];
+	char fname[512];
 
 	if (strcasecmp(output, "printer") == 0)
 	{
@@ -2012,20 +2012,6 @@ void CPrinter::outputPage()
 	    else 
 			scaleH = (double)physH / (double)page->h; 
 
-		HDC memHDC = CreateCompatibleDC(printerDC);
-        
-        BITMAPINFO bmi = { 0 };
-        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth = page->w;
-        bmi.bmiHeader.biHeight = -(page->h); // Top-down bitmap
-        bmi.bmiHeader.biPlanes = 1;
-        bmi.bmiHeader.biBitCount = 32;
-        bmi.bmiHeader.biCompression = BI_RGB;
-
-        uint32_t* pixelBuffer = nullptr;
-		HBITMAP bitmap = CreateCompatibleBitmap(memHDC, page->w, page->h);
-		SelectObject(memHDC, bitmap);
-
 		// Start new printer job?
 		if (outputHandle == NULL)
 		{
@@ -2039,8 +2025,6 @@ void CPrinter::outputPage()
 
 			if (StartDoc(printerDC, &docinfo)<=0) {
                 LOG_MSG("PRINTER: Cannot start print.");
-                DeleteObject(bitmap);
-                DeleteDC(memHDC);
                 return;
             }
 			multiPageCounter = 1;
@@ -2049,30 +2033,46 @@ void CPrinter::outputPage()
 		if (StartPage(printerDC) < 0)
         {
 			LOG_MSG("PRINTER: Cannot start page.");
-			DeleteObject(bitmap);
-			DeleteDC(memHDC);
 			return;
 		}
-		SDL_LockSurface(page);
 
-		SDL_Palette* sdlpal = page->format->palette;
+        // Create a memory DC for the printer bitmap
+        HDC memHDC = CreateCompatibleDC(printerDC);
 
-        for(uint16_t y = 0; y < page->h; y++)
-        {
-            for(uint16_t x = 0; x < page->w; x++)
-            {
-                uint8_t pixel = *((uint8_t*)page->pixels + x + (y * page->pitch));
-                uint8_t r = sdlpal->colors[pixel].r;
-                uint8_t g = sdlpal->colors[pixel].g;
-                uint8_t b = sdlpal->colors[pixel].b;
+        // Set up a BITMAPINFO for an 8-bit DIBSection (top-down)
+        BITMAPINFO bmi;
+        ZeroMemory(&bmi, sizeof(bmi));
+        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth = page->w;
+        bmi.bmiHeader.biHeight = -((LONG)page->h); // top-down bitmap
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 8;
+        bmi.bmiHeader.biCompression = BI_RGB;
 
-                // 32-bit ARGB (0x00bbggrr)
-                pixelBuffer[x + (y * page->w)] = (b << 16) | (g << 8) | r;
-            }
+        // Fill the color table with the SDL palette (256 colors)
+        SDL_LockSurface(page);
+        SDL_Palette* sdlpal = page->format->palette;
+        for(int i = 0; i < 256; i++) {
+            bmi.bmiColors[i].rgbRed = sdlpal->colors[i].r;
+            bmi.bmiColors[i].rgbGreen = sdlpal->colors[i].g;
+            bmi.bmiColors[i].rgbBlue = sdlpal->colors[i].b;
+            bmi.bmiColors[i].rgbReserved = 0;
         }
 
-		SDL_UnlockSurface(page);
-	
+        // Create the DIBSection and obtain a pointer to the pixel memory
+        void* pBits = NULL;
+        HBITMAP hBitmap = CreateDIBSection(printerDC, &bmi, DIB_RGB_COLORS, &pBits, NULL, 0);
+        HBITMAP hOldBitmap = (HBITMAP)SelectObject(memHDC, hBitmap);
+
+        // Copy the entire 8-bit pixel data from the SDL surface to the DIBSection
+        for(int y = 0; y < page->h; y++) {
+            memcpy((uint8_t*)pBits + y * page->w,
+                (uint8_t*)page->pixels + y * page->pitch,
+                page->w);
+        }
+        SDL_UnlockSurface(page);  
+
+        // Stretch and copy the bitmap from the memory DC to the printer DC, scaling it to the printer's physical dimensions
 		StretchBlt(printerDC, 0, 0, physW, physH, memHDC, 0, 0, page->w, page->h, SRCCOPY);
 
 		EndPage(printerDC);
@@ -2087,7 +2087,8 @@ void CPrinter::outputPage()
 			EndDoc(printerDC);
 			outputHandle = NULL;
 		}
-		DeleteObject(bitmap);
+        SelectObject(memHDC, hOldBitmap);
+		DeleteObject(hBitmap);
 		DeleteDC(memHDC);
 #else
 		LOG_MSG("PRINTER: Direct printing not supported under this OS");
