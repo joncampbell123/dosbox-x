@@ -239,15 +239,19 @@ static INLINE void SSE_MOVLPS(XMM_Reg &d,const XMM_Reg &s) {
 ////
 
 static INLINE void SSE_UNPCKLPS(XMM_Reg &d,const XMM_Reg &s) {
-	d.u32[0] = d.u32[1] = s.u32[0];
-	d.u32[2] = d.u32[3] = s.u32[1];
+	//d.u32[0] = d.u32[0];
+    d.u32[2] = d.u32[1];
+    d.u32[1] = s.u32[0];
+	d.u32[3] = s.u32[1];
 }
 
 ////
 
 static INLINE void SSE_UNPCKHPS(XMM_Reg &d,const XMM_Reg &s) {
-	d.u32[0] = d.u32[1] = s.u32[2];
-	d.u32[2] = d.u32[3] = s.u32[3];
+	d.u32[0] = d.u32[2];
+    d.u32[2] = d.u32[3];
+    d.u32[1] = s.u32[2];
+	d.u32[3] = s.u32[3];
 }
 
 ////
