@@ -1050,6 +1050,9 @@ std::string log_dev_con_str;
 bool logging_con = false;
 bool DOS_BreakTest(bool print);
 void DOS_BreakAction();
+bool read_kanji1 = false;
+uint8_t temp_char = 0;
+void WriteChar(uint16_t col, uint16_t row, uint8_t page, uint16_t chr, uint8_t attr, bool useattr);
 
 bool device_CON::Write(const uint8_t * data,uint16_t * size) {
 	uint16_t count=0;
@@ -1114,15 +1117,32 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
         col = CURSOR_POS_COL(page);
         BIOS_NCOLS;
 
-        if(isDBCSCP() && !dos.direct_output && (col == ncols - 1)
-            && *size >= count+1 && isKanji1(data[count]) && isKanji2(data[count+1])) { // Consideration of first byte of DBCS characters at the end of line 
-                BIOS_NROWS;
-                row = CURSOR_POS_ROW(page);
-                if(nrows == row + 1) {
-                    INT10_ScrollWindow(0, 0, (uint8_t)(nrows - 1), (uint8_t)(ncols - 1), -1, ansi.attr, page);
-                    INT10_SetCursorPos(row, 0, page);
+        if(isDBCSCP() && !dos.direct_output) { // Consideration of first byte of DBCS characters at the end of line 
+            if(!read_kanji1 && isKanji1(data[count])) {
+                read_kanji1 = true;
+                temp_char = data[count];
+                count++;
+                continue;
+            }
+            else if(read_kanji1) {
+                if(col == ncols - 1 && isKanji2(data[count])) {
+                    BIOS_NROWS;
+                    row = CURSOR_POS_ROW(page);
+                    WriteChar(col, row, page, ' ', ansi.attr, true);
+                    if(nrows == row + 1) {
+                        INT10_ScrollWindow(0, 0, (uint8_t)(nrows - 1), (uint8_t)(ncols - 1), -1, ansi.attr, page);
+                        INT10_SetCursorPos(row, 0, page);
+                    }
+                    else INT10_SetCursorPos(row + 1, 0, page);
+                    Output(temp_char);
+                    Output(data[count]);
+                    count++;
+                    read_kanji1 = false;
+                    continue;
                 }
-                else INT10_SetCursorPos(row + 1, 0, page);
+                Output(temp_char);
+                read_kanji1 = false;
+            }
         }
 
         if (!ansi.esc){
