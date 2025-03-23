@@ -1229,6 +1229,7 @@ void DOS_Shell::InputCommand(char * line) {
                     && dbcs_sbcs
 #endif
                     && IS_DOS_JAPANESE)) {
+                    if(dos.loaded_codepage == 932 && isKanji1(cr >> 8) && (cr & 0xFF) == 0) break;
                     bool kanji_flag = false;
                     uint16_t pos = str_index;
                     while(1) {
