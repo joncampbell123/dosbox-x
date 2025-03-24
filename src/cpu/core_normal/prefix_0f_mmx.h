@@ -47,6 +47,9 @@
 					XMM_Reg xmmsrc;
 					xmmsrc.u32[0] = LoadMd(eaa);
 					SSE_MOVSS(fpu.xmmreg[reg],xmmsrc);
+                    fpu.xmmreg[reg].u32[1] = 0;
+                    fpu.xmmreg[reg].u32[2] = 0;
+                    fpu.xmmreg[reg].u32[3] = 0;
 				}
 				break;
 			default:
