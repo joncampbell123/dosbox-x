@@ -1,11 +1,12 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
 :DOSBOX-X:VERSION:2025.02.01
-:DOSBOX-X:REMARK:國家和字碼頁可以設為「886,950」並選擇適合的中文字型來進行中文顯示和列印。
-:DOSBOX-X:REMARK:譯者註：可至 https://github.com/1abcd/dosbox-x/issues/2 下載適用於 PC-98 模式的中文語言。
+:DOSBOX-X:REMARK:設定好中文語言與字型後，就可以直接支援中文顯示和列印。國家和字碼頁選項可以留空，或設為「886,950」、「886,951」。
+:DOSBOX-X:REMARK:譯者註：932 字碼頁的中文語言檔（用於 PC-98、JEGA、DOS/V）可至 https://github.com/1abcd/dosbox-x/issues/2 下載。
 :AUTOEXEC_CONFIGFILE_HELP
 區段中的指令行會在啟動時執行.
 您可以在這裡下達 MOUNT 指令.
+
 .
 :CONFIGFILE_INTRO
 # 這是給 DOSBox-X %s 使用的組態檔案. (請使用最新版 DOSBox-X)
@@ -445,7 +446,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_2
-磁碟機 %c 掛載到 %s
+磁碟機 %c 掛載為 %s
 
 .
 :PROGRAM_MOUNT_STATUS_1
@@ -505,7 +506,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_ALREADY_MOUNTED
-磁碟機 %c 已掛載到 %s
+磁碟機 %c 已掛載為 %s
 
 .
 :PROGRAM_MOUNT_USAGE
@@ -606,7 +607,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-重疊目錄 %s 已被加到磁碟機 %c 上.
+重疊目錄 %s 已掛載加到磁碟機 %c.
 
 .
 :PROGRAM_LOADFIX_ALLOC
@@ -1003,11 +1004,11 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY_DRIVE
-必須指定要掛載的磁碟機代號.
+必須指定要將映像檔掛載到的磁碟機代號.
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
-必須指定磁碟機編號 (0 至 %d) 來掛載映像檔 (0,1=fda,fdb;2,3=hda,hdb).
+必須指定要將映像檔掛載到的磁碟機編號 (0 至 %d) (0,1=fda,fdb;2,3=hda,hdb).
 
 .
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
@@ -2040,7 +2041,8 @@ COPY [/Y | /-Y] 來源檔案 [+來源檔案 [+ ...]] [目的名稱]
   /Y            覆寫現存目的檔案時不進行確認.
   /-Y           覆寫現存目的檔案時進行確認.
 
-選項 /Y 可能會在 COPYCMD 環境變數中預先設定. 可以在命令列中使用 /-Y 選項進行覆蓋.
+選項 /Y 可能會在 COPYCMD 環境變數中預先設定.
+可以在命令列中使用 /-Y 選項進行覆蓋.
 
 要連接檔案, 指定一個目的檔案, 及數個來源檔案
 (使用萬用字元或 檔案1+檔案2+檔案3 格式).
@@ -2354,13 +2356,13 @@ DEBUGBOX [命令] [選項]
 [32m舉例[37m：汝可以試著選擇 [33mTrueType 字型[37m或者 [33mOpenGL perfect[37m 輸出選項。  
 .
 :SHELL_STARTUP_TEXT2_PC98
-啓動[33m組態工具[37m                  使用 [31m主機鍵+C[37m；其中主機鍵是 [32mF11[37m。   
-啓動[33m對應表編輯器[37m（按鍵設定）  使用 [31m主機鍵+M[37m。                     
-切換視窗和全螢幕模式          使用 [31m主機鍵+F[37m。                     
-調整 CPU 模擬速度             使用 [31m主機鍵+加號[37m 與 [31m主機鍵+減號[37m。   
+啓動[33m組態工具[37m                 - 使用 [31m主機鍵+C[37m；其中主機鍵是 [32mF11[37m。  
+啓動[33m對應表編輯器[37m（按鍵設定） - 使用 [31m主機鍵+M[37m。                    
+切換視窗和全螢幕模式         - 使用 [31m主機鍵+F[37m。                    
+調整 CPU 模擬速度            - 使用 [31m主機鍵+加號[37m 與 [31m主機鍵+減號[37m。  
 .
 :SHELL_STARTUP_INFO_PC98
-[36mDOSBox-X 目前在[32m日本 NEC PC-98[36m 模擬模式下運作。[37m                    
+[36mDOSBox-X 正在執行於[32m日本 NEC PC-98[36m 模擬模式。[37m                      
 .
 :SHELL_STARTUP_TEXT3_PC98
 [32mDOSBox-X 首頁 [33mhttps://dosbox-x.com/        [36mComplete DOS emulations[37m
@@ -2368,7 +2370,7 @@ DEBUGBOX [命令] [選項]
 [32mDOSBox-X 支援 [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m   
 .
 :SHELL_STARTUP_DOSV
-[32mDOS/V 模式[37m正在執行中。 您亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。 
+[32mDOS/V 模式[37m正在運作中。汝亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。  
 .
 :SHELL_STARTUP_CGA_MONO
 按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             
@@ -3785,7 +3787,7 @@ BIOS 的磁碟索引沒有已指派的映像檔.
 .
 :PROGRAM_IMGMOUNT_CHOOSE_LETTER
 與標準的 INT 13h 硬碟配額衝突, 分割區無法被掛載.
-選擇不同的磁碟機代號來掛載.
+選擇掛載到不同的磁碟機代號.
 .
 :PROGRAM_ELTORITO_LETTER
 可開機光碟 (El Torito) 模擬需要一個合適的光碟機代號.
@@ -3842,7 +3844,7 @@ PROGRAM_IMGMAKE_VOLUME_ALIGN
 健全性測試失敗: 磁碟區大小未對齊
 .
 :PROGRAM_IMGMAKE_FAT_ALIGN
-健全性測試失敗: FAT 表格數未對齊
+健全性測試失敗: FAT 表格未對齊
 .
 :PROGRAM_IMGMAKE_SECTPERFAT
 錯誤: 產生的檔案系統中的每一個 FAT 佔有的磁區數超過 256 個, 而且檔案系統不是 FAT32
@@ -3879,7 +3881,7 @@ XMS 控制代碼 %u: 無法釋放
 EMS 區塊已配置用量 (%uKB)
 .
 :PROGRAM_LOADFIX_EMS_ALLOCERROR
-無法配置用量到 EMS 區塊
+無法在 EMS 區塊配置用量
 .
 PROGRAM_LOADFIX_NOEMS
 EMS 未作用
@@ -3888,7 +3890,7 @@ EMS 未作用
 XMS 區塊已配置用量 (%uKB)
 .
 :PROGRAM_LOADFIX_XMS_ALLOCERROR
-無法配置用量到 XMS 區塊
+無法在 XMS 區塊配置用量
 .
 :PROGRAM_LOADFIX_NOXMS
 XMS 未作用
@@ -3921,7 +3923,7 @@ START [+|-|_] 命令 [引數]
   命令: 要啟動的命令、程式、或檔案.
   引數: 傳遞給應用程式的引數.
   
-START 自動開啟 Windows 命令提示字元來執行這些命令,
+START 自動開啟 Windows 命令提示字元來執行這些命令時,
 會等待按鍵按下才結束 (由 "startincon" 選項指定):
 %s
 
@@ -4075,7 +4077,7 @@ CAPMOUSE [/C|/R]
 已釋放
 .
 :PROGRAM_AUTOTYPE_HELP
-將指令碼的鍵盤按鈕項目輸入到執行中的 DOS 程式.
+對執行中的 DOS 程式執行指令碼的鍵盤按鈕輸入.
 
 AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
 
@@ -4107,11 +4109,12 @@ AUTOTYPE: %s 的值 '%s' 不是有效的浮點數
 
 ADDKEY [p毫秒] [按鍵]
 
-例如, 下面的命令鍵入 "dir" 接著在 1 秒之後輸入 ENTER:
+例如, 下面的命令鍵入 "dir" 接著在 1 秒之後鍵入 ENTER:
 
 ADDKEY p1000 d i r enter
 
-您也可以嘗試改用 AUTOTYPE 命令, 以執行將指令碼的鍵盤按鈕項目輸入到執行中的 DOS 程式.
+您也可以嘗試改用 AUTOTYPE 命令, 來對執行中的 DOS 程式執行指令碼的鍵盤按鈕輸入.
+
 .
 :PROGRAM_SETCOLOR_HELP
 檢視或變更文字模式的色彩配置設定.
