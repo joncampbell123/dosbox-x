@@ -448,6 +448,8 @@ static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_inde
 
 extern bool isDBCSCP();
 void ReadCharAttr(uint16_t col, uint16_t row, uint8_t page, uint16_t* result);
+bool read_lead_byte = false;
+uint8_t temp_lead_byte;
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
 	Bitu size=CMD_MAXLINE-2; //lastcharacter+0
@@ -1224,11 +1226,11 @@ void DOS_Shell::InputCommand(char * line) {
                 str_len = 0;
                 break;
             default:
-                if(IS_PC98_ARCH || (isDBCSCP()
+                if(IS_PC98_ARCH  
 #if defined(USE_TTF)
                     && dbcs_sbcs
 #endif
-                    && IS_DOS_JAPANESE)) {
+                    ) {
                     if(dos.loaded_codepage == 932 && isKanji1(cr >> 8) && (cr & 0xFF) == 0) break;
                     bool kanji_flag = false;
                     uint16_t pos = str_index;
@@ -1267,30 +1269,96 @@ void DOS_Shell::InputCommand(char * line) {
                         }
                     }
                 } else {
-                    if (cr >= 0x100) break;
-                    if (l_completion.size()) l_completion.clear();
-                    if(str_index < str_len && !INT10_GetInsertState()) { //mem_readb(BIOS_KEYBOARD_FLAGS1)&0x80) dev_con.h ?
-                        outc(' ');//move cursor one to the right.
-                        uint16_t a = str_len - str_index;
-                        uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index]);
-                        DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
-                        backone();//undo the cursor the right.
-                        for(Bitu i=str_len;i>str_index;i--) {
-                            line[i]=line[i-1]; //move internal buffer
-                            backone(); //move cursor back (from write buffer to screen)
+                    if(cr >= 0x100) break;
+                    if(l_completion.size()) l_completion.clear();
+
+                    page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                    if(str_index < str_len) {  // Insert Mode Handling
+                        col = CURSOR_POS_COL(page);
+                        bool delete_lead_byte = false;
+                        if(INT10_GetInsertState()) {
+                            for(uint16_t i = str_len; i > str_index; i--) {
+                                line[i] = line[i - 1];  // Shift buffer to the right
+                            }
+                            line[++str_len] = '\0';  // New buffer end
+                            size--;
                         }
-                        line[++str_len]=0;//new end (as the internal buffer moved one place to the right
-                        size--;
+                        else {
+                            if(isDBCSCP()) {
+                                if(read_lead_byte) {
+                                    if(!isKanji1(line[str_index])) {
+                                        for(uint16_t i = str_len; i > str_index; i--) {
+                                            line[i] = line[i - 1];  // Shift buffer to the right
+                                        }
+                                        line[++str_len] = '\0';  // New buffer end
+                                        size--;
+                                    }
+                                    line[str_index] = temp_lead_byte;
+                                    line[str_index + 1] = (char)(cr & 0xFF);
+                                }
+                                else if(!isKanji1(cr & 0xFF) && isKanji1(line[str_index])) {
+                                    for(uint16_t i = str_index + 1; i < str_len; i++) {
+                                        line[i] = line[i + 1];  // Delete trailing byte of DBCS since leading byte is overwritten
+                                    }
+                                    read_lead_byte = false;
+                                    delete_lead_byte = true;
+                                    line[str_len] = ' ';
+                                    size++;
+                                }
+                                else if(isKanji1(cr & 0xFF)) {
+                                    temp_lead_byte = (char)(cr & 0xFF);
+                                    read_lead_byte = true;
+                                    continue;
+                                }
+                            }
+                            else read_lead_byte = false;
+                        }
+                        if(!read_lead_byte)line[str_index] = (char)(cr & 0xFF);
+                        uint16_t a = str_len - str_index;
+                        uint8_t* text = reinterpret_cast<uint8_t*>(&line[str_index]);
+                        DOS_WriteFile(STDOUT, text, &a);  // Write remaining buffer to screen
+                        str_index++;
+                        if(read_lead_byte) {
+                            str_index++;
+                            col++;
+                            read_lead_byte = false;
+                        }
+                        if(delete_lead_byte) {
+                            line[str_len] = '\0';  // Ensure null-terminated
+                            str_len--;
+                            outc(' '); outc(' '); backone(); backone();
+                        }
+
+                        for(uint16_t i = str_len; i > str_index; i--) {
+                            backone();
+                        }
+                        uint8_t col2 = CURSOR_POS_COL(page);
+                        while(col2 > col+1) {
+                            backone();
+                            col2 = CURSOR_POS_COL(page);
+                        }
+                        break;
                     }
 
-                    line[str_index]=(char)(cr&0xFF);
-                    str_index ++;
-                    if (str_index > str_len){ 
-                        line[str_index] = '\0';
+                    // Insert the new character
+                    line[str_index] = (char)(cr & 0xFF);
+                    str_index++;
+                    if(str_index > str_len) {
+                        line[str_index] = '\0';  // Null-terminate if new end
                         str_len++;
                         size--;
                     }
-                    DOS_WriteFile(STDOUT,&c,&n);
+                    else if(!INT10_GetInsertState()) {
+                        // Overwrite mode: just move to the next position
+                        if(str_index == str_len) {
+                            line[str_index] = '\0';  // Ensure null-terminated
+                            str_len++;
+                            size--;
+                        }
+                    }
+
+                    // Output the inserted character
+                    outc((uint8_t)(cr & 0xFF));
                 }
                 break;
         }
