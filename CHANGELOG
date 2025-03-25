@@ -24,7 +24,7 @@ Next
   - Fixed direct input of half-width kana (maron2000)
   - Fixed PC-98 INT 1Fh, AH=90h source and destination address (drachen6jp)
   - Fixed unnecessary trailing backslash in path name (maron2000)
-  - Fixed SSE MOVSS, UNPCKLPS, UNPCKHPS, and PSADBW instruction
+  - Fixed SSE MOVSS, MOVHPS, UNPCKLPS, UNPCKHPS, and PSADBW instruction
     implementations (fuel-pcbox)
 
 2025.02.01

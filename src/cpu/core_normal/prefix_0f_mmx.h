@@ -215,7 +215,7 @@
 					GetEAa;
 					XMM_Reg xmmdst;
 					SSE_MOVHPS(xmmdst,fpu.xmmreg[reg]);
-					SaveMq(eaa+8,xmmdst.u64[1]); /* modifies only upper 64 bits */
+					SaveMq(eaa,xmmdst.u64[1]); /* modifies only upper 64 bits */
 				}
 				break;
 			default:
