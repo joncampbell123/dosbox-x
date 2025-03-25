@@ -1173,7 +1173,7 @@
 	}
 	CASE_0F_MMX(0x70)												/* PSHUFW Pq,Qq,imm8 */
 	{
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
 		GetRM;
 		uint8_t imm8 = Fetchb();
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -1649,14 +1649,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		uint32_t product0 = (uint32_t)dest->uw.w0 * (uint32_t)src.uw.w0;
-		uint32_t product1 = (uint32_t)dest->uw.w1 * (uint32_t)src.uw.w1;
-		uint32_t product2 = (uint32_t)dest->uw.w2 * (uint32_t)src.uw.w2;
-		uint32_t product3 = (uint32_t)dest->uw.w3 * (uint32_t)src.uw.w3;
-		dest->uw.w0 = (product0 & 0xffff);
-		dest->uw.w1 = (product1 & 0xffff);
-		dest->uw.w2 = (product2 & 0xffff);
-		dest->uw.w3 = (product3 & 0xffff);
+		int32_t product0 = (uint32_t)dest->sw.w0 * (uint32_t)src.sw.w0;
+		int32_t product1 = (uint32_t)dest->sw.w1 * (uint32_t)src.sw.w1;
+		int32_t product2 = (uint32_t)dest->sw.w2 * (uint32_t)src.sw.w2;
+		int32_t product3 = (uint32_t)dest->sw.w3 * (uint32_t)src.sw.w3;
+		dest->sw.w0 = product0;
+		dest->sw.w1 = product1;
+		dest->sw.w2 = product2;
+		dest->sw.w3 = product3;
 		break;
 	}
 	CASE_0F_MMX(0xd7)
