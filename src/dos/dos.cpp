@@ -1097,14 +1097,15 @@ static Bitu DOS_21Handler(void) {
         case 0x01:      /* Read character from STDIN, with echo */
             {   
                 uint8_t c;uint16_t n=1;
-                dos.echo=true;
+                if(dos.version.major == 1) dos.echo=true;
                 DOS_ReadFile(STDIN,&c,&n);
                 if (c == 3) {
                     DOS_BreakAction();
                     if (!DOS_BreakTest()) return CBRET_NONE;
                 }
                 reg_al=c;
-                dos.echo=false;
+                if(dos.version.major > 1) DOS_WriteFile(STDOUT, &c, &n); /* RBIL: Character may be redirected under DOS 2 + */
+                if(dos.version.major == 1) dos.echo=false;
             }
             break;
         case 0x02:      /* Write character to STDOUT */
