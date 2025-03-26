@@ -1053,6 +1053,7 @@ void DOS_BreakAction();
 bool read_kanji1 = false;
 uint8_t temp_char = 0;
 void WriteChar(uint16_t col, uint16_t row, uint8_t page, uint16_t chr, uint8_t attr, bool useattr);
+extern bool dbcs_sbcs;
 
 bool device_CON::Write(const uint8_t * data,uint16_t * size) {
 	uint16_t count=0;
@@ -1117,7 +1118,11 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
         col = CURSOR_POS_COL(page);
         BIOS_NCOLS;
 
-        if(isDBCSCP() && !dos.direct_output) { // Consideration of first byte of DBCS characters at the end of line 
+        if(isDBCSCP() && !dos.direct_output
+#if defined(USE_TTF)
+            && dbcs_sbcs
+#endif
+            ) { // Consideration of first byte of DBCS characters at the end of line 
             if(!read_kanji1 && isKanji1(data[count])) {
                 read_kanji1 = true;
                 temp_char = data[count];
