@@ -1294,7 +1294,13 @@ static Bitu DOS_21Handler(void) {
                     }
                     if (read == free && c != 13) {      // Keyboard buffer full
                         uint8_t bell = 7;
+                        uint8_t page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                        uint8_t col = CURSOR_POS_COL(page);
+                        uint8_t row = CURSOR_POS_ROW(page);
+                        BIOS_NCOLS;
                         DOS_WriteFile(STDOUT, &bell, &n);
+                        if(CURSOR_POS_COL(page) > col)
+                            INT10_SetCursorPos(row, col, page); // stay where we were
                         continue;
                     }
                     DOS_WriteFile(STDOUT,&c,&n);
