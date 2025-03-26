@@ -8570,7 +8570,7 @@ static void VHDMAKE_ProgramStart(Program * * make) {
     *make=new VHDMAKE;
 }
 
-class COLOR : public Program {
+class COLORPGM : public Program {
 public:
     void Run(void) override;
 private:
@@ -8596,7 +8596,7 @@ private:
 	}
 };
 
-void COLOR::Run()
+void COLORPGM::Run()
 {
 	// Hack To allow long commandlines
 	ChangeToLongCmd();
@@ -8661,7 +8661,7 @@ void COLOR::Run()
 }
 
 static void COLOR_ProgramStart(Program * * make) {
-    *make=new COLOR;
+    *make=new COLORPGM;
 }
 
 alt_rgb altBGR[16], altBGR0[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
@@ -10302,7 +10302,7 @@ void DOS_SetupPrograms(void) {
             "Return Color #7 to the default color value\n\n  SETCOLOR 3 +\n\n"
             "Return Color #3 to the preset color value\n\n  SETCOLOR MONO\n\n"
             "Display current MONO mode status\n\n"
-            "To change the current background and foreground colors, use COLOR command.\n");
+            "To change the current background and foreground colors, use COLORPGM command.\n");
     MSG_Add("PROGRAM_SETCOLOR_STATUS","MONO mode status: %s (video mode %d)\n");
     MSG_Add("PROGRAM_SETCOLOR_ACTIVE","active");
     MSG_Add("PROGRAM_SETCOLOR_INACTIVE","inactive");
