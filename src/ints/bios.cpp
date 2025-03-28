@@ -4020,6 +4020,11 @@ static Bitu INT18_PC98_Handler(void) {
             pc98_gdc[GDC_MASTER].param_ram[2] = (400 << 4) & 0xFF;
             pc98_gdc[GDC_MASTER].param_ram[3] = (400 << 4) >> 8;
             break;
+        case 0x10: /* set cursor blink */
+            PC98_show_cursor(false); /* side effect: hides the cursor */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].cursor_blink = !!(reg_al & 1);
+            break;
         case 0x11: /* show cursor */
             PC98_show_cursor(true);
             break;
