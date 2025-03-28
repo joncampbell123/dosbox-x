@@ -1,4 +1,8 @@
 Next
+  - PC-98 mode: Add INT 18h function AH=10h to control cursor blink.
+    Emulate documented side effect in that this call also hides the
+    cursor. The PC-98 port of Lemmings will no longer show a blinking
+    black box in the lower left corner. (joncampbell123)
   - Fixed Host key (F11, F12) handling in Codepage 932 (Japanese Shift-JIS).
     (maron2000)
   - Fixed SSE PSADBW to match the Intel SDM. (fuel-pcbox) 
