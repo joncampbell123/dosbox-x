@@ -122,6 +122,8 @@ void getdrivezpath(std::string &path, std::string const& dirname), drivezRegiste
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
 bool CheckDBCSCP(int32_t codepage);
+void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result);
+void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,bool useattr);
 
 #define MAXU32 0xffffffff
 #include "zip.h"
@@ -8570,6 +8572,13 @@ static void VHDMAKE_ProgramStart(Program * * make) {
     *make=new VHDMAKE;
 }
 
+static int8_t hexToInt(char hex) {
+    if (hex >= '0' && hex <= '9') return hex - '0';
+    if (hex >= 'A' && hex <= 'F') return hex - 'A' + 10;
+    if (hex >= 'a' && hex <= 'f') return hex - 'a' + 10;
+    return -1; // error 
+}
+
 class COLORPGM : public Program {
 public:
     void Run(void) override;
@@ -8614,50 +8623,101 @@ void COLORPGM::Run()
     if (strlen(args)==2) {
         bg=args[0];
         fg=args[1];
-        if (fg=='0'||fg=='8')
-            fgc=30;
-        else if (fg=='1'||fg=='9')
-            fgc=34;
-        else if (fg=='2'||tolower(fg)=='a')
-            fgc=32;
-        else if (fg=='3'||tolower(fg)=='b')
-            fgc=36;
-        else if (fg=='4'||tolower(fg)=='c')
-            fgc=31;
-        else if (fg=='5'||tolower(fg)=='d')
-            fgc=35;
-        else if (fg=='6'||tolower(fg)=='e')
-            fgc=32;
-        else if (fg=='7'||tolower(fg)=='f')
-            fgc=37;
-        else
+        if (fg == bg) {
             back=true;
-        if (bg=='0'||bg=='8')
-            bgc=40;
-        else if (bg=='1'||bg=='9')
-            bgc=44;
-        else if (bg=='2'||tolower(bg)=='a')
-            bgc=42;
-        else if (bg=='3'||tolower(bg)=='b')
-            bgc=46;
-        else if (bg=='4'||tolower(bg)=='c')
-            bgc=41;
-        else if (bg=='5'||tolower(bg)=='d')
-            bgc=45;
-        else if (bg=='6'||tolower(bg)=='e')
-            bgc=42;
-        else if (bg=='7'||tolower(bg)=='f')
-            bgc=47;
-        else
+            dos.return_code = 1; // foreground and background color is same
+        }
+        else {
+            if (fg=='0'||fg=='8')
+                fgc=30;
+            else if (fg=='1'||fg=='9')
+                fgc=34;
+            else if (fg=='2'||tolower(fg)=='a')
+                fgc=32;
+            else if (fg=='3'||tolower(fg)=='b')
+                fgc=36;
+            else if (fg=='4'||tolower(fg)=='c')
+                fgc=31;
+            else if (fg=='5'||tolower(fg)=='d')
+                fgc=35;
+            else if (fg=='6'||tolower(fg)=='e')
+                fgc=32;
+            else if (fg=='7'||tolower(fg)=='f')
+                fgc=37;
+            else
+                back=true;
+            if (bg=='0'||bg=='8')
+                bgc=40;
+            else if (bg=='1'||bg=='9')
+                bgc=44;
+            else if (bg=='2'||tolower(bg)=='a')
+                bgc=42;
+            else if (bg=='3'||tolower(bg)=='b')
+                bgc=46;
+            else if (bg=='4'||tolower(bg)=='c')
+                bgc=41;
+            else if (bg=='5'||tolower(bg)=='d')
+                bgc=45;
+            else if (bg=='6'||tolower(bg)=='e')
+                bgc=42;
+            else if (bg=='7'||tolower(bg)=='f')
+                bgc=47;
+            else
+                back=true;
+        }
+    }
+    else if(strlen(args)==1){ // Set background color to 0 if only one color is specified
+        fg=args[0];
+        bg='0';
+        bgc=40;
+        if (fg == '0') {
             back=true;
-    } else
+            dos.return_code = 1; // foreground and background color is same
+        }
+        else {
+            if(fg=='8')
+                fgc=30;
+            else if (fg=='1'||fg=='9')
+                fgc=34;
+            else if (fg=='2'||tolower(fg)=='a')
+                fgc=32;
+            else if (fg=='3'||tolower(fg)=='b')
+                fgc=36;
+            else if (fg=='4'||tolower(fg)=='c')
+                fgc=31;
+            else if (fg=='5'||tolower(fg)=='d')
+                fgc=35;
+            else if (fg=='6'||tolower(fg)=='e')
+                fgc=32;
+            else if (fg=='7'||tolower(fg)=='f')
+                fgc=37;
+            else
+                back=true;
+        }
+    }
+    else if (strlen(args)==0){ // default is white character on black background
+        bg='0';
+        bgc=40;
+        fg='7';
+        bgc=37;
+    }
+    else
        back=true;
-    if (back)
-        WriteOut("\033[0m");
-    else {
+    if (!back) {
         bool fgl=fg>='0'&&fg<='7', bgl=bg>='0'&&bg<='7';
         WriteOut(("\033["+std::string(fgl||bgl?"0;":"")+std::string(fgl?"":"1;")+std::string(bgl?"":"5;")+std::to_string(fgc)+";"+std::to_string(bgc)+"m").c_str());
+        uint8_t page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+        BIOS_NCOLS; BIOS_NROWS;
+        uint8_t attr = hexToInt(bg) << 4 | hexToInt(fg);
+        for(uint32_t i=0; i < nrows; i++){
+            for(uint32_t j=0; j<ncols; j++){
+                uint16_t get_char;
+                ReadCharAttr(j, i, page, &get_char);
+                WriteChar(j, i, page, get_char & 0xFF, attr, true);
+            }
+        }
     }
+    else if(!dos.return_code) PrintUsage();
 }
 
 static void COLOR_ProgramStart(Program * * make) {
