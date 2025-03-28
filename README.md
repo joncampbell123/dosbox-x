@@ -95,7 +95,7 @@ DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit bu
 
 DOSBox-X is a cross-platform DOS emulator, so all major host operating systems are officially supported, including:
 
-1. Windows (XP or higher), 32-bit and 64-bit
+1. Windows (95/NT4 or higher), 32-bit and 64-bit
 
 2. Linux (with X11), 32-bit and 64-bit
 
