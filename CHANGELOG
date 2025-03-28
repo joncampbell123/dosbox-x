@@ -1,4 +1,5 @@
 Next
+  - Fixed COLOR command to match behavior on Windows (maron2000)
   - Fixed INT21h AH=0a cursor position moved by bell due to keyboard buffer full
     (maron2000)
   - Fixed INT21h AH=01 echo behavior (maron2000)
