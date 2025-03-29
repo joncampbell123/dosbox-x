@@ -1003,30 +1003,28 @@ void DOS_Shell::InputCommand(char * line) {
                     backone();
                     if(bytes == 2 && str_len >= 2) backone();
 
-                    if(str_index < str_len) {
-                        for(uint16_t i = str_index - bytes; i < str_len - bytes; i++) {
-                            line[i] = line[i + bytes];  // Shift buffer to left
-                        }
-                    }
+                    if(str_index < str_len)
+                        memmove(&line[str_index - bytes], &line[str_index], str_len - str_index);  // Shift buffer to left
+
                     line[str_len - 1] = '\0';
                     if(bytes == 2)line[str_len - 2] = '\0';
                     str_len -= bytes;
                     str_index -= bytes;
                     size -= bytes;
-                    if(str_index < str_len) {
-                        for(int i = str_len; i > 0; i--) backone();
 
+                    for(int i = str_len; i > 0; i--) backone();
+                    col = CURSOR_POS_COL(page);
+                    while(col > prompt_col) {
+                        backone();
                         col = CURSOR_POS_COL(page);
-                        while(col > prompt_col) {
-                            backone();
-                            col = CURSOR_POS_COL(page);
-                        }
+                    }
 
-                        uint16_t a = str_len;
-                        uint8_t* text = reinterpret_cast<uint8_t*>(&line[0]);
-                        DOS_WriteFile(STDOUT, text, &a); // Rewrite the command history
-                        outc(' '); outc(' ');  backone(); backone();
+                    uint16_t a = str_len;
+                    uint8_t* text = reinterpret_cast<uint8_t*>(&line[0]);
+                    DOS_WriteFile(STDOUT, text, &a); // Rewrite the command history
+                    outc(' '); outc(' ');  backone(); backone();
 
+                    if(str_index < str_len) {
                         for(int i = str_len; i > 0; i--) backone();
                         col = CURSOR_POS_COL(page);
                         while(col > prompt_col) {
