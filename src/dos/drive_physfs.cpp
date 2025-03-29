@@ -47,6 +47,7 @@
 #include "../libs/physfs/physfs_platform_windows.c"
 #include "../libs/physfs/physfs_platform_winrt.cpp"
 #include "../libs/physfs/physfs_platform_haiku.cpp"
+#include "../libs/physfs/physfs_platform_os2.c"
 #include "../libs/physfs/physfs_unicode.c"
 
 extern int lfn_filefind_handle;
