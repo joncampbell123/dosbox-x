@@ -2995,6 +2995,8 @@ bool LocalFile::Close() {
             extern int errno; 
             LOG_MSG("Set time failed (%s)", strerror(errno));
         }
+#elif defined(OS2)
+        LOG_MSG("File set time TBD");
 #elif !defined(RISCOS) // Linux (TODO: What about Mac OS X/Darwin?)
         // NTS: Do not attempt futime, Linux doesn't have it.
         //      Do not attempt futimes, Linux man pages LIE about having it. It's even there in the freaking header, but not recognized!

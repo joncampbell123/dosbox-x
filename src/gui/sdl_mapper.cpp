@@ -1033,10 +1033,13 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = 
 };
 
 #else // !MACOSX && !Linux
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(OS2)
 // Todo: recheck sdl mapping
 #define SDLK_JP_RO (SDLKey)0x73
 #define SDLK_JP_YEN (SDLKey)0x7d
+#if defined(OS2)
+#define SDLK_KP_COMMA SDLK_COMMA
+#endif
 #endif
 #define MAX_SCANCODES 0xdf
 static SDLKey sdlkey_map[MAX_SCANCODES] = {
