@@ -44,7 +44,7 @@
 #include <stdlib.h>
 #include "zlib.h"
 
-#if defined(__APPLE__) || defined(USE_FILE32API)
+#if defined(__APPLE__) || defined(USE_FILE32API) || defined(OS2)
  #define fopen64 fopen
  #define ftello64 ftell
  #define fseeko64 fseek

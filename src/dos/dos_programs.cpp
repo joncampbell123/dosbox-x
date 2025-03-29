@@ -135,6 +135,9 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
 #define INCL DOSFILEMGR
 #define INCL_DOSERRORS
 #include "os2.h"
+
+typedef char host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
 #endif
 
 #if defined(WIN32)
@@ -10362,7 +10365,7 @@ void DOS_SetupPrograms(void) {
             "Return Color #7 to the default color value\n\n  SETCOLOR 3 +\n\n"
             "Return Color #3 to the preset color value\n\n  SETCOLOR MONO\n\n"
             "Display current MONO mode status\n\n"
-            "To change the current background and foreground colors, use COLORPGM command.\n");
+            "To change the current background and foreground colors, use COLOR command.\n");
     MSG_Add("PROGRAM_SETCOLOR_STATUS","MONO mode status: %s (video mode %d)\n");
     MSG_Add("PROGRAM_SETCOLOR_ACTIVE","active");
     MSG_Add("PROGRAM_SETCOLOR_INACTIVE","inactive");
