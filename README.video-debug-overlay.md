@@ -111,3 +111,17 @@ CS_xx_: Attribute controller color select. _xx_ is two hexadecimal digits. Does 
 # On the right: palette per scanline
 The color palette rendered per scanline on the right is based on CSPAL in case of per-scanline changes to do palette tricks or demoscene tricks, such as showing more than 16 colors in a 16-color mode.
 
+## On the right: Hardware change event tags
+If a change or event that is notable occurs on a scanline, a tag will appear with the top right on that scanline noting that event.
+
+| event                                                                 | tag                     |
+| --------------------------------------------------------------------- | ----------------------- |
+| EGA/VGA line compare match (split screen)                             | SPLIT LNCMP             |
+| Change of Maximum Scan Line register                                  | MXS                     |
+| Change of Offset register                                             | OFS                     |
+| Change of horizontal retrace                                          | HRT                     |
+| Change of color plane enable                                          | CPE                     |
+| Change of color select                                                | CSL                     |
+| Start of a PC-98 display partition _n_ (text)                           | TPART_n_                  |
+| Start of a PC-98 display partition _n_ (graphics)                       | GPART_n_                  |
+
