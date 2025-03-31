@@ -122,6 +122,6 @@ If a change or event that is notable occurs on a scanline, a tag will appear wit
 | Change of horizontal retrace                                          | HRT                     |
 | Change of color plane enable                                          | CPE                     |
 | Change of color select                                                | CSL                     |
-| Start of a PC-98 display partition _n_ (text)                           | TPART_n_                  |
-| Start of a PC-98 display partition _n_ (graphics)                       | GPART_n_                  |
+| Start of a PC-98 display partition *n* (text)                         | TPART*n*                |
+| Start of a PC-98 display partition *n* (graphics)                     | GPART*n*                |
 
