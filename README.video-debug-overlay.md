@@ -17,3 +17,44 @@ That information is used to show at least two things. First, the video palette o
 1. Lemmings: Uses 16-color EGA mode, but uses a color palette change between the game board above and the controls below. At the initial screen of a level, uses a palette change between the "visual" of the level at the top and the descriptive text below.
 2. Tony and Friends in Kellogs Land: Mid-screen palette change to draw "water" level.
 
+## Common mode information (at the top)
+Directly below the DOS screen, the video mode is shown. The first, in green where possible, is the display mode as an M_ constant used in the DOSBox/DOSBox-X source code.
+
+Then, the source video resolution following T (text) or G (graphics), and then ">" followed by the video resolution rasterized to the VGA output. The height of the video resolution for depends on the video mode and hardware. VGA emulation will always rasterize video output to a height of 400 or 480 for standard VGA modes unless changed by the guest.
+
+Then, an at (@) sign followed by the video start address in hexadecimal. This reflects the Start Address register including the extended value beyond standard VGA registers in SVGA emulation. This is followed by "+" and then the Offset register, a value responsible for telling the video hardware how far to skip forward after every character row. The value usually represents character columns of video memory, not bytes. For example in text mode where character and attribute data is paired into 16-bit values, this value represents the number of text character cells, and therefore bytes * 2, per character row.
+
+This format may change as needed for some machine types.
+
+## VGA debug status
+# Bottom of the screen: palette
+RPAL shows the exact contents of the VGA hardware palette, as would be seen through I/O ports 3C7h-3C9h.
+
+EPAL shows the palette in effect for the display mode. The number of colors shown is 256 if 256-color mode. Otherwise it is 16 colors. In CGA/EGA/VGA graphics modes other than 256-color, less than 16 colors may be displayed according to the Color Plane Enable register.
+
+No palette is shown for highcolor/truecolor (15/16/24/32bpp) graphics modes.
+
+A 6 or 8 is shown after RPAL and EPAL to indicate DAC width, the number of bits used to represent the R/G/B values sent to the DAC and out the VGA connector when a color palette is involved. Standard VGA and early SVGA modes use a 6-bit DAC width. Later SVGA hardware allows switching between 6 and 8 bits per RGB. There is a VESA BIOS call to set DAC width, which DOSBox-X does emulate for S3 hardware.
+
+ACPAL shows the color palette according to the Attribute Controller. In modes other than 256-color mode, this is used to map pixels rendered from video memory to the VGA palette. In 256-color mode, but not SVGA, this has an effect on the pixels as if the 8-bit pixel were split into two 4-bit parts and remapped, except for Tseng ET4000 which remaps only partially due to a hardware bug.
+
+The original purpose of the Attribute Controller palette on EGA hardware was to determine how to convert 16-color data to the 6-bit TTL video output on the back of the card. VGA hardware retains this EGA behavior for backwards compatibility, but instead uses it as a 4-bit to 6-bit translation in the process of determining what to look up in the color palette. The BIOS default VGA palette is set up to produce the same colors on the monitor if running a DOS program written originally for the EGA.
+
+CSPAL shows the final palette mapping after other registers including Color Plane Enable, Color Select and DAC PEL mask are considered after the attribute controller palette. This determines the final color map sent to the display.
+
+# Bottom of the screen: VGA register state
+CPE_x_: Color Plane Enable register. _x_ is a hexadecimal digit of the 4-bit value that determines which bitplanes are "enabled" and sent to the display. Applies only to 16-color planar graphics modes. CGA and MCGA graphics modes on EGA/VGA are just variations of 16-color planar graphics with bitplanes disabled to reduce the color depth and other register changes for backwards compatibility. CGA modes use the Mode Control register to direct the CRTC to emulate the two-way interleave of the original hardware. No known effect on text, 256-color mode, and SVGA modes.
+
+HPL_x_: Horizontal PEL panning. _x_ is a hexadecimal digit. This register allows for smooth horizontal panning in VGA modes including 256-color and SVGA modes. If a DOS program is horizontally panning this value will constantly change.
+
+YP_xx_: Y-panning, according to the Preset Row Scan Register. _xx_ is two hexadecimal digits. In text modes, as well as graphics modes with a nonzero Maxmimum Scan Line Register, this allows smooth vertical panning when combined with changing the Start Address registers. If a DOS program is vertically panning this value may constantly change.
+
+PM_xx_: PEL mask, _xx_ is two hexadecimal digits. Before the 8-bit color value is sent to the DAC, it is masked by this value. It is normally FF.
+
+MD_xx_: Attribute controller mode control register. _xx_ is two hexadecimal digits. This register is responsible for controlling whether graphics or text mode is active, whether character clocks are 8 or 9 pixels, whether text mode bit 7 attribute bytes blink or not, whether line compare resets horizontal panning, and is part of the mechanism to enable 256-color mode. See online documentation like FreeVGA for more details.
+
+CS_xx_: Attribute controller color select. _xx_ is two hexadecimal digits. Does not affect 256-color mode, except for Tseng ET4000 due to hardware bug. Can affect bits 4-5 of the color index out of the Attribute Controller, and can provide bits 6-7 for the color index after the 4-to-6 conversion through the Attribute Controller. Though not often used, it may be used for color palette changes and demo effects.
+
+# On the right: palette per scanline
+The color palette rendered per scanline on the right is based on CSPAL in case of per-scanline changes to do palette tricks or demoscene tricks, such as showing more than 16 colors in a 16-color mode.
+
