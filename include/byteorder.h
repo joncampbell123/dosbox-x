@@ -132,7 +132,7 @@
 #define be64toh(x) betoh64(x)
 #define le64toh(x) letoh64(x)
 
-#elif defined(__HAIKU__)
+#elif defined(__HAIKU__) || defined(OS2)
 
 #include <endian.h>
 
