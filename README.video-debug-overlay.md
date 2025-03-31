@@ -27,7 +27,9 @@ Then, an at (@) sign followed by the video start address in hexadecimal. This re
 This format may change as needed for some machine types.
 
 # M_ video modes
-M_CGA2: 640x200 2-color CGA graphics mode. EGA/VGA emulation will never show this value.
+| M_*               | What                                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| M_CGA2            | 640x200 2-color CGA graphics mode. EGA/VGA emulation will never show this value.
 
 M_CGA4: 320x200 4-color CGA graphics mode. EGA/VGA emulation will never show this value.
 
