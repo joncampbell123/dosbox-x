@@ -87,7 +87,7 @@ EPAL shows the palette in effect for the display mode. The number of colors show
 
 No palette is shown for highcolor/truecolor (15/16/24/32bpp) graphics modes.
 
-A 6 or 8 is shown after RPAL and EPAL to indicate DAC width, the number of bits used to represent the R/G/B values sent to the DAC and out the VGA connector when a color palette is involved. Standard VGA and early SVGA modes use a 6-bit DAC width. Later SVGA hardware allows switching between 6 and 8 bits per RGB. There is a VESA BIOS call to set DAC width, which DOSBox-X does emulate for S3 hardware.
+A 6 or 8 is shown after RPAL and EPAL to indicate DAC width, the number of bits used to represent the R/G/B values sent to the DAC and out the VGA connector when a color palette is involved. Standard VGA and early SVGA cards use a 6-bit DAC width. Later SVGA hardware allows switching between 6 and 8 bits per RGB. There is a VESA BIOS call to set DAC width, which DOSBox-X does emulate for S3 hardware.
 
 ACPAL shows the color palette according to the Attribute Controller. In modes other than 256-color mode, this is used to map pixels rendered from video memory to the VGA palette. In 256-color mode, but not SVGA, this has an effect on the pixels as if the 8-bit pixel were split into two 4-bit parts and remapped, except for Tseng ET4000 which remaps only partially due to a hardware bug.
 
