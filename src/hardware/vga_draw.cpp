@@ -5128,8 +5128,7 @@ void VGA_sof_debug_video_info(void) {
 			sprintf(tmp,"RPAL%u:",vga_8bit_dac?8:6);
 			x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
 			VGA_debug_screen_func->rect(x-1,y,x,y+(4*4),dkgray);
-			VGA_debug_screen_func->rect(x-1,y,x+(4*64),y+1,dkgray);
-			VGA_debug_screen_func->rect(x-1,y+(4*4)-1,x+(4*64),y+(4*4),dkgray);
+			VGA_debug_screen_func->rect(x-1,y+(4*4),x+(4*64),y+(4*4)+1,dkgray);
 			for (unsigned int c=0;c < 256;c++) {
 				const int bx = x+((c&63)*4),by = y+((c>>6)*4);
 				const unsigned int color = SDL_MapRGB(
@@ -5138,6 +5137,7 @@ void VGA_sof_debug_video_info(void) {
 					((vga.dac.rgb[c].green << dacshift) & 0xFF),
 					((vga.dac.rgb[c].blue << dacshift) & 0xFF));
 				VGA_debug_screen_func->rect(bx,by+1,bx+3,by+4,color);
+				if ((c&63) == 0) VGA_debug_screen_func->rect(x-1,by,x+(4*64),by+1,dkgray);
 				VGA_debug_screen_func->rect(bx+3,by+1,bx+4,by+4,dkgray);
 			}
 
