@@ -26,6 +26,33 @@ Then, an at (@) sign followed by the video start address in hexadecimal. This re
 
 This format may change as needed for some machine types.
 
+# M_ video modes
+M_CGA2: 640x200 2-color CGA graphics mode. EGA/VGA emulation will never show this value.
+M_CGA4: 320x200 4-color CGA graphics mode. EGA/VGA emulation will never show this value.
+M_EGA: EGA/VGA 16-color planar graphics mode. Not SVGA modes.
+M_EGA (CGA4): EGA/VGA emulation of CGA 320x200 4-color graphics mode.
+M_EGA (CGA2): EGA/VGA emulation of CGA 640x200 2-color graphics mode.
+M_VGA: VGA 256-color graphics mode. Not SVGA modes.
+M_LIN4: SVGA 16-color planar graphics mode. This usually means the 256K memory wraparound is disabled.
+M_LIN8: SVGA 256-color graphics mode. This usually means the 256K memory wraparound is disabled.
+M_LIN15: Highcolor 15bpp graphics mode. 16 bits per pixel, only the low 15 bits are used for 5-bit R/G/B.
+M_LIN16: Highcolor 16bpp graphics mode. 16 bits per pixel. 5-bit Red and Blue, 6-bit Green.
+M_LIN24: Truecolor 24bpp graphics mode. 24 bits per pixel. 8-bit R/G/B. Once used in the 1990s, no longer common since.
+M_LIN32: Truecolor 32bpp graphics mode. 32 bits per pixel. 8-bit R/G/B/X. X is ignored. Very common since the late 1990s.
+M_TEXT: Alphanumeric text mode.
+M_HERC_GFX: Hercules graphics mode.
+M_HERC_TEXT: Hercules/MDA text mode.
+M_CGA16: CGA graphics mode with composite video emulation.
+M_TANDY2: Tandy/PCjr 2-color graphics mode, monochrome.
+M_TANDY4: Tandy/PCjr 4-color graphics mode.
+M_TANDY16: Tandy/PCjr 16-color graphics mode.
+M_TANDY_TEXT: Tandy/PCjr text mode.
+M_AMSTRAD: Amstrad-specific graphics mode.
+M_PC98: Video mode used by NEC PC-98 emulation.
+M_FM_TOWNS: Placeholder mode (stub) for future development.
+M_PACKED4: SVGA packed 4bpp mode (not planar). Somewhat common in the mid 1990s on some SVGA chipsets, not seen since.
+M_DCGA: Olivetti M24 DCGA
+
 ## VGA debug status
 # Bottom of the screen: palette
 RPAL shows the exact contents of the VGA hardware palette, as would be seen through I/O ports 3C7h-3C9h.
