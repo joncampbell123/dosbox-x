@@ -5,7 +5,7 @@
 The video debug overlay is an extension to the video output of DOSBox-X that puts VGA state information on the bottom and right sides of the DOS screen. The information updates constantly so that state changes are immediately visible.
 
 ## Why do the scalers and video mode affect it?
-The video debug overlay is rendered as part of the DOS screen so that, when enabled, it appears in your screen captures and video recordings as well, making it easy to provide screenshots for video debugging purposes, and a video recording where it is possible to analyze the information frame-by-frame in a video editor.
+The video debug overlay is rendered as part of the DOS screen so that, when enabled, it appears in your screen captures and video recordings as well. This makes it easy to provide screenshots for video debugging purposes, and to analyze the information frame-by-frame in a video player or editor.
 
 ## What is provided in the video debug overlay?
 The exact information provided depends entirely on what video hardware is being emulated. Even when registers and state are common across hardware, exact state varies from video type to video type.
