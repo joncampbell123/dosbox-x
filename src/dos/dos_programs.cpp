@@ -8641,7 +8641,7 @@ void COLORPGM::Run()
             else if (fg=='5'||tolower(fg)=='d')
                 fgc=35;
             else if (fg=='6'||tolower(fg)=='e')
-                fgc=32;
+                fgc=33;
             else if (fg=='7'||tolower(fg)=='f')
                 fgc=37;
             else
@@ -8659,7 +8659,7 @@ void COLORPGM::Run()
             else if (bg=='5'||tolower(bg)=='d')
                 bgc=45;
             else if (bg=='6'||tolower(bg)=='e')
-                bgc=42;
+                bgc=43;
             else if (bg=='7'||tolower(bg)=='f')
                 bgc=47;
             else
@@ -8688,7 +8688,7 @@ void COLORPGM::Run()
             else if (fg=='5'||tolower(fg)=='d')
                 fgc=35;
             else if (fg=='6'||tolower(fg)=='e')
-                fgc=32;
+                fgc=33;
             else if (fg=='7'||tolower(fg)=='f')
                 fgc=37;
             else
