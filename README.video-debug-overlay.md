@@ -20,9 +20,13 @@ That information is used to show at least two things. First, the video palette o
 ## Common mode information (at the top)
 Directly below the DOS screen, the video mode is shown. The first, in green where possible, is the display mode as an M_ constant used in the DOSBox/DOSBox-X source code.
 
-Then, the source video resolution following T (text) or G (graphics), and then ">" followed by the video resolution rasterized to the VGA output. The height of the video resolution for depends on the video mode and hardware. VGA emulation will always rasterize video output to a height of 400 or 480 for standard VGA modes unless changed by the guest.
+Then, the source video resolution following T (text) or G (graphics), and then ">" followed by the video resolution rasterized to the VGA output (active display area only). The height of the video resolution for depends on the video mode and hardware. VGA emulation will always rasterize video output to a height of 400 or 480 for standard VGA modes unless changed by the guest.
 
 Then, an at (@) sign followed by the video start address in hexadecimal. This reflects the Start Address register including the extended value beyond standard VGA registers in SVGA emulation. This is followed by "+" and then the Offset register, a value responsible for telling the video hardware how far to skip forward after every character row. The value usually represents character columns of video memory, not bytes. For example in text mode where character and attribute data is paired into 16-bit values, this value represents the number of text character cells, and therefore bytes * 2, per character row.
+
+For EGA/VGA emulation, the offset register value is followed by -B, -W, or -D to indicate whether the CRTC is in byte, word, or DWORD mode. This affects how how far each "step" through video memory goes per character column. For 256-color mode, an additional "ch4" is appended to indicate normal "chained" 256-color more, or "uch" to mean unchained 256-color mode as commonly used by DOS games (byte mode). Nothing is shown for any other case. See common documentation including FreeVGA for more details about CRTC byte/word/dword mode. EGA does not support dword mode.
+
+VGA emulation may show "SMZX" to indicate "Super MegaZeux" 256-color text mode.
 
 This format may change as needed for some machine types.
 
@@ -54,6 +58,26 @@ This format may change as needed for some machine types.
 | M_FM_TOWNS        | Placeholder mode (stub) for future development.                                                                   |
 | M_PACKED4         | SVGA packed 4bpp mode (not planar). Somewhat common in the mid 1990s on some SVGA chipsets, not seen since.       |
 | M_DCGA            | Olivetti M24 DCGA.                                                                                                |
+
+# common descriptions for reference
+| Mode                               | Description                                                                                         |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- |
+| VGA 80x25 text                     | M_TEXT T80x25>720x400 @00000+050-W                                                                  |
+| VGA 80x25 text (8-pixel)           | M_TEXT T80x25>640x400 @00000+050-W                                                                  |
+| VGA 40x25 text                     | M_TEXT T40x25>360x400 @00000+028-W                                                                  |
+| CGA 320x200 4-color                | M_EGA (CGA4) G320x200>320x400 @00000+028-B                                                          |
+| CGA 640x200 2-color                | M_EGA (CGA2) G640x200>640x400 @00000+050-B                                                          |
+| EGA 320x200 16-color               | M_EGA G320x200>320x400 @00000+028-B                                                                 |
+| EGA 640x200 16-color               | M_EGA G640x200>640x400 @00000+050-B                                                                 |
+| EGA 640x350 monochrome             | M_EGA G640x350>640x350 @00000+050-B (shows 8 colors only)                                           |
+| EGA 640x350 color                  | M_EGA G640x350>640x350 @00000+050-B                                                                 |
+| MCGA 640x480 2-color               | M_EGA G640x480>640x480 @00000+050-B                                                                 |
+| VGA 640x480 16-color               | M_EGA G640x480>640x480 @00000+050-B                                                                 |
+| VGA 320x200 256-color              | M_VGA G320x200>320x400 @00000+050-Dch4                                                              |
+| SVGA 640x400 256-color             | M_LIN8 G640x400>640x400 @00000+0A0-Dch4                                                             |
+| SVGA 640x480 256-color             | M_LIN8 G640x480>640x480 @00000+0A0-Dch4                                                             |
+| SVGA 320x200 15bpp                 | M_LIN15 G320x200>320x400 @00000+0A0-D                                                               |
+| SVGA 132x43 text                   | M_TEXT T132x43>1056x688 @00000+084-W                                                                |
 
 ## VGA debug status
 # Bottom of the screen: palette
