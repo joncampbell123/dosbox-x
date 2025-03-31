@@ -8699,7 +8699,7 @@ void COLORPGM::Run()
         bg='0';
         bgc=40;
         fg='7';
-        bgc=37;
+        fgc=37;
     }
     else
        back=true;
