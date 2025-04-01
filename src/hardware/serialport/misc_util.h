@@ -64,8 +64,10 @@
 
 #include <SDL_net.h>
 
-#if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(OS2)
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 #include "enet.h"
+#endif
 #endif
 
 uint32_t Netwrapper_GetCapabilities();
@@ -131,7 +133,8 @@ public:
 
 // --- ENET UDP NET INTERFACE ------------------------------------------------
 
-#if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(OS2)
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 class ENETServerSocket : public NETServerSocket {
 public:
 	ENETServerSocket(uint16_t port);
@@ -175,6 +178,7 @@ private:
 	ENetAddress          address       = {};
 	std::queue<uint8_t>  receiveBuffer = {};
 };
+#endif
 #endif
 
 // --- TCP NET INTERFACE -----------------------------------------------------
