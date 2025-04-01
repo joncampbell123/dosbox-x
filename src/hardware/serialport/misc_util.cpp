@@ -162,7 +162,7 @@ NETServerSocket *NETServerSocket::NETServerFactory(SocketTypesE socketType,
 
 // --- ENet UDP NET INTERFACE ------------------------------------------------
 
-#if !defined(OS2
+#if !defined(OS2)
  #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 class enet_manager_t {
 public:
