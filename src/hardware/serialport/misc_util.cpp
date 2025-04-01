@@ -26,9 +26,11 @@
 /*****************************************************************************/
 // C++ SDLnet wrapper
 
-#if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
-#define ENET_IMPLEMENTATION
-#include "enet.h"
+#if !defined(OS2)
+ #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+  #define ENET_IMPLEMENTATION
+  #include "enet.h"
+ #endif
 #endif
 #include "ipx.h"
 #include "logging.h"
@@ -86,8 +88,10 @@ NETClientSocket *NETClientSocket::NETClientFactory(SocketTypesE socketType,
 	switch (socketType) {
 	case SOCKET_TYPE_TCP: return new TCPClientSocket(destination, port);
 
-#if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(OS2) 
+ #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 	case SOCKET_TYPE_ENET: return new ENETClientSocket(destination, port);
+ #endif
 #endif
 
 	default: return nullptr;
@@ -145,8 +149,10 @@ NETServerSocket *NETServerSocket::NETServerFactory(SocketTypesE socketType,
 	switch (socketType) {
 	case SOCKET_TYPE_TCP: return new TCPServerSocket(port);
 
-#if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(OS2) 
+ #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 	case SOCKET_TYPE_ENET: return new ENETServerSocket(port);
+ #endif
 #endif
 
 	default: return nullptr;
@@ -156,7 +162,8 @@ NETServerSocket *NETServerSocket::NETServerFactory(SocketTypesE socketType,
 
 // --- ENet UDP NET INTERFACE ------------------------------------------------
 
-#if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(OS2
+ #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 class enet_manager_t {
 public:
 	enet_manager_t()
@@ -537,6 +544,7 @@ void ENETClientSocket::updateState()
 	}
 #endif
 }
+#endif
 #endif
 
 // --- TCP NET INTERFACE -----------------------------------------------------
