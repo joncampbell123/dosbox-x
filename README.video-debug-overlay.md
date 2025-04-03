@@ -117,7 +117,7 @@ The color palette rendered per scanline on the right is based on CSPAL in case o
 # Bottom of the screen: palette
 ACPAL shows the color palette according to the Attribute Controller. On EGA hardware this determines how to map the 16 colors to the 6-bit TTL video connector on the back.
 
-MDPAL shows the Attribute Controller color palette according to the Color Plane Enable register. If some bitplanes are hidden by the CPU register, this palette will differ from ACPAL.
+MDPAL shows the Attribute Controller color palette according to the Color Plane Enable register. If some bitplanes are hidden by the CPE register, this palette will differ from ACPAL.
 
 OVC shows the current overscan border register. YPN shows the Row Start register which is used for vertical panning. CPE shows the contents of the Color Plane Enable register. HPEL shows the horizontal PEL panning register.
 
