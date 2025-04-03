@@ -35,6 +35,7 @@
 #ifdef OS2
 # define INCL_DOS
 # define INCL_WIN
+# define INCL_DOSERRORS
 #endif
 
 #if defined(WIN32)
@@ -135,7 +136,7 @@ bool kana_input = false; // true if a half-width kana was typed
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 #if !defined(HX_DOS)
-#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 #include "whereami.c"
 #endif
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
@@ -218,6 +219,11 @@ typedef enum PROCESS_DPI_AWARENESS {
 # endif
 #endif // WIN32
 
+#ifdef OS2
+# include <os2.h>
+#endif
+
+
 #include <sstream>
 
 #include "mapper.h"
@@ -239,7 +245,7 @@ extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
 #endif
 
 # include "SDL_version.h"
-#if !defined(C_SDL2) && !defined(RISCOS)
+#if !defined(C_SDL2) && !defined(RISCOS) && !defined(OS2)
 # ifndef SDL_DOSBOX_X_SPECIAL
 #  warning It is STRONGLY RECOMMENDED to compile the DOSBox-X code using the SDL 1.x library provided in this source repository.
 #  error You can ignore this by commenting out this error, but you will encounter problems if you use the unmodified SDL 1.x library.
@@ -442,6 +448,19 @@ std::string GetDOSBoxXPath(bool withexe=false) {
     char exepath[MAX_PATH];
     GetModuleFileName(NULL, exepath, sizeof(exepath));
     full=std::string(exepath);
+#elif defined(OS2) /* No WAI */
+    char exepath[CCHMAXPATH];
+    PPIB pib;
+    APIRET rc;
+
+    full = std::string("");
+    rc = DosGetInfoBlocks(NULL, &pib);
+    if (rc == NO_ERROR) {
+        rc = DosQueryModuleName(pib->pib_hmte, CCHMAXPATH, (PCHAR)&exepath);
+        if (rc == NO_ERROR) {
+            full = std::string(exepath);
+        }
+    }
 #else
     int length = wai_getExecutablePath(NULL, 0, NULL);
     char *exepath = (char*)malloc(length + 1);
@@ -895,10 +914,6 @@ const char *modifier;
 #if C_SET_PRIORITY
 # include <sys/resource.h>
 # define PRIO_TOTAL             (PRIO_MAX-PRIO_MIN)
-#endif
-
-#ifdef OS2
-# include <os2.h>
 #endif
 
 #if defined(WIN32)

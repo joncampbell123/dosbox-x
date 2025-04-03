@@ -36,6 +36,9 @@
 #include <fcntl.h>
 #include <sys/utime.h>
 #include <sys/locking.h>
+#ifdef OS2
+#include <sys/time.h>
+#endif
 #endif
 #include <sys/stat.h>
 
@@ -2962,26 +2965,26 @@ bool LocalFile::Seek(uint32_t * pos,uint32_t type) {
 
 bool LocalFile::Close() {
     if (!newtime && fhandle && last_action == WRITE) UpdateLocalDateTime();
-	if (newtime && fhandle) {
+    if (newtime && fhandle) {
         // force STDIO to flush buffers on this file handle, or else fclose() will write buffered data
         // and cause mtime to reset back to current time.
         fflush(fhandle);
 
- 		// backport from DOS_PackDate() and DOS_PackTime()
-		struct tm tim = { 0 };
-		tim.tm_sec  = (time&0x1f)*2;
-		tim.tm_min  = (time>>5)&0x3f;
-		tim.tm_hour = (time>>11)&0x1f;
-		tim.tm_mday = date&0x1f;
-		tim.tm_mon  = ((date>>5)&0x0f)-1;
-		tim.tm_year = (date>>9)+1980-1900;
+        // backport from DOS_PackDate() and DOS_PackTime()
+        struct tm tim = { 0 };
+        tim.tm_sec  = (time&0x1f)*2;
+        tim.tm_min  = (time>>5)&0x3f;
+        tim.tm_hour = (time>>11)&0x1f;
+        tim.tm_mday = date&0x1f;
+        tim.tm_mon  = ((date>>5)&0x0f)-1;
+        tim.tm_year = (date>>9)+1980-1900;
         // sanitize the date in case of invalid timestamps (such as 0x0000 date/time fields)
         if (tim.tm_mon < 0) tim.tm_mon = 0;
         if (tim.tm_mday == 0) tim.tm_mday = 1;
-		//  have the C run-time library code compute whether standard time or daylight saving time is in effect.
-		tim.tm_isdst = -1;
-		// serialize time
-		mktime(&tim);
+        //  have the C run-time library code compute whether standard time or daylight saving time is in effect.
+        tim.tm_isdst = -1;
+        // serialize time
+        mktime(&tim);
 
         // change file time by file handle (while we still have it open)
         // so that we do not have to duplicate guest to host filename conversion here.
@@ -2996,7 +2999,13 @@ bool LocalFile::Close() {
             LOG_MSG("Set time failed (%s)", strerror(errno));
         }
 #elif defined(OS2)
-        LOG_MSG("File set time TBD");
+        struct timeval ftsp[2];
+        ftsp[0].tv_sec =  ftsp[1].tv_sec =  mktime(&tim);
+        ftsp[0].tv_usec = ftsp[1].tv_usec = 0;
+        if (futimes(fileno(fhandle), ftsp)) {
+            extern int errno;
+            LOG_MSG("Set time failed (%s)", strerror(errno));
+        }
 #elif !defined(RISCOS) // Linux (TODO: What about Mac OS X/Darwin?)
         // NTS: Do not attempt futime, Linux doesn't have it.
         //      Do not attempt futimes, Linux man pages LIE about having it. It's even there in the freaking header, but not recognized!
@@ -3010,16 +3019,16 @@ bool LocalFile::Close() {
             LOG_MSG("Set time failed (%s)", strerror(errno));
         }
 #endif
-	}
+    }
 
-	// only close if one reference left
-	if (refCtr==1) {
-		if(fhandle) fclose(fhandle); 
-		fhandle = nullptr;
-		open = false;
-	}
+    // only close if one reference left
+    if (refCtr==1) {
+        if(fhandle) fclose(fhandle); 
+        fhandle = nullptr;
+        open = false;
+    }
 
-	return true;
+    return true;
 }
 
 uint16_t LocalFile::GetInformation(void) {
