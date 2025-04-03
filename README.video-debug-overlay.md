@@ -30,6 +30,8 @@ VGA emulation may show "SMZX" to indicate "Super MegaZeux" 256-color text mode.
 
 This format may change as needed for some machine types.
 
+For EGA emulation, the mode information will show "mono", "16c", or "64c" to indicate the mode of the EGA monitor. All EGA modes other than 640x350 use 16c, CGA-style RGBI compatible output, 640x350 uses 64c, which uses all 6 pins to tranmit R, G, and B as two-bit values (4 levels) to select 16 colors from a palette of 64 possible colors.
+
 # M_ video modes
 | M_*               | What                                                                                                              |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------- |
@@ -111,6 +113,17 @@ CS*xx*: Attribute controller color select. *xx* is two hexadecimal digits. Does 
 # On the right: palette per scanline
 The color palette rendered per scanline on the right is based on CSPAL in case of per-scanline changes to do palette tricks or demoscene tricks, such as showing more than 16 colors in a 16-color mode.
 
+## EGA debug status
+# Bottom of the screen: palette
+ACPAL shows the color palette according to the Attribute Controller. On EGA hardware this determines how to map the 16 colors to the 6-bit TTL video connector on the back.
+
+MDPAL shows the Attribute Controller color palette according to the Color Plane Enable register. If some bitplanes are hidden by the CPU register, this palette will differ from ACPAL.
+
+OVC shows the current overscan border register. YPN shows the Row Start register which is used for vertical panning. CPE shows the contents of the Color Plane Enable register. HPEL shows the horizontal PEL panning register.
+
+# On the right: palette per scanline
+The color palette rendered per scanline on the right is based on MDPAL, rendered per scanline. Next to MDPAL is CPE, 4 pixels indicating visually, per scanline, which bitplanes are enabled on the display. Some demo effects may change MDPAL and CSPAL mid-frame.
+
 ## On the right: Hardware change event tags
 If a change or event that is notable occurs on a scanline, a tag will appear with the top right on that scanline noting that event.
 
@@ -122,6 +135,6 @@ If a change or event that is notable occurs on a scanline, a tag will appear wit
 | Change of horizontal retrace                                          | HRT                     |
 | Change of color plane enable                                          | CPE                     |
 | Change of color select                                                | CSL                     |
-| Start of a PC-98 display partition *n* (text)                         | TPART*n*                |
-| Start of a PC-98 display partition *n* (graphics)                     | GPART*n*                |
+| Start of PC-98 display partition *n* (text)                           | TPART*n*                |
+| Start of PC-98 display partition *n* (graphics)                       | GPART*n*                |
 
