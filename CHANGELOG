@@ -1,4 +1,5 @@
 Next
+  - Fixed settings of yellow color in COLOR command (maron2000)
   - Fixed COLOR command to match behavior on Windows (maron2000)
   - Fixed INT21h AH=0a cursor position moved by bell due to keyboard buffer full
     (maron2000)
