@@ -604,8 +604,6 @@ void DOS_Shell::InputCommand(char * line) {
             else if (cr == 0x7400) cr = 0x7300;
         }
 #endif
-        bool read_kanji1 = false;
-        uint8_t temp_char = 0;
         uint8_t page, col, row;
         switch (cr) {
             case 0x3d00:	/* F3 */
@@ -646,7 +644,6 @@ void DOS_Shell::InputCommand(char * line) {
                     page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
                     col = CURSOR_POS_COL(page);
                     row = CURSOR_POS_ROW(page);
-                    BIOS_NCOLS; BIOS_NROWS;
                     uint16_t get_char, get_char2;
                     ReadCharAttr(col, row, page, &get_char);
                     if((line[str_index] & 0xFF) != (uint8_t)(get_char & 0xFF)) {
@@ -665,7 +662,6 @@ void DOS_Shell::InputCommand(char * line) {
                         page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
                         col = CURSOR_POS_COL(page);
                         row = CURSOR_POS_ROW(page);
-                        BIOS_NCOLS; BIOS_NROWS;
                         uint16_t get_char, get_char2;
                         ReadCharAttr(col, row, page, &get_char);
                         if((line[str_index] & 0xFF) != (uint8_t)(get_char & 0xFF)) {
@@ -903,14 +899,14 @@ void DOS_Shell::InputCommand(char * line) {
                     }
                 } else {
                     if(str_index>=str_len) break;
-                    int k=1;
+                    uint8_t k=1;
                     if (isDBCSCP()
 #if defined(USE_TTF)
                         &&dbcs_sbcs
 #endif
                         &&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40)))
                         k=2;
-                    for(Bitu i = str_index; i < (str_len - k); i++) {
+                    for(uint16_t i = str_index; i < (str_len - k); i++) {
                         line[i] = line[i + k];
                     }
                     line[str_len - k] = 0;
@@ -983,7 +979,6 @@ void DOS_Shell::InputCommand(char * line) {
                 else {
                     if(str_index == 0)break;
                     page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
-                    BIOS_NCOLS; BIOS_NROWS;
                     uint8_t bytes = 1; // Previous character is DBCS or SBCS
                     if(isDBCSCP()
 #if defined(USE_TTF)
