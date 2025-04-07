@@ -78,7 +78,7 @@ sudo make install
 * macOS
   * First install the required libraries needed.
     ```
-     brew install autoconf automake nasm glfw glew fluid-synth libslirp pkg-config
+     brew install autoconf automake nasm glfw glew fluid-synth libslirp pkg-config sdl2_net
     ```
   * Compile natively for the host architecture (SDL1 or SDL2)
     ```
