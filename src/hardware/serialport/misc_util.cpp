@@ -27,8 +27,8 @@
 // C++ SDLnet wrapper
 
 #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
-#define ENET_IMPLEMENTATION
-#include "enet.h"
+ #define ENET_IMPLEMENTATION
+ #include "enet.h"
 #endif
 #include "ipx.h"
 #include "logging.h"
