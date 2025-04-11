@@ -143,6 +143,12 @@
 #define main    SDL_main
 #endif
 
+#ifdef __cplusplus
+#define SDL_MAIN_NOEXCEPT noexcept(false) // Added for DOSBox-X
+#else
+#define SDL_MAIN_NOEXCEPT // Added for DOSBox-X
+#endif
+
 #include "begin_code.h"
 #ifdef __cplusplus
 extern "C" {
@@ -152,7 +158,8 @@ extern "C" {
  * The prototype for the application's main() function
  */
 typedef int (*SDL_main_func)(int argc, char *argv[]);
-extern SDLMAIN_DECLSPEC int SDL_main(int argc, char *argv[]);
+// extern SDLMAIN_DECLSPEC int SDL_main(int argc, char *argv[]);
+extern SDLMAIN_DECLSPEC int SDL_main(int argc, char *argv[]) SDL_MAIN_NOEXCEPT; // Changed for DOSBox-X
 
 
 /**
