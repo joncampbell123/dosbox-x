@@ -1023,6 +1023,21 @@ m4_defun_once([_LT_REQUIRED_DARWIN_CHECKS],[
 	rm -f conftest.*
       fi])
 
+    # Feature test to disable chained fixups since it is not
+    # compatible with '-undefined dynamic_lookup'
+    AC_CACHE_CHECK([for -no_fixup_chains linker flag],
+      [lt_cv_support_no_fixup_chains],
+      [ save_LDFLAGS=$LDFLAGS
+        LDFLAGS="$LDFLAGS -Wl,-no_fixup_chains"
+        AC_LINK_IFELSE(
+          [AC_LANG_PROGRAM([],[])],
+          lt_cv_support_no_fixup_chains=yes,
+          lt_cv_support_no_fixup_chains=no
+        )
+        LDFLAGS=$save_LDFLAGS
+      ]
+    )
+
     AC_CACHE_CHECK([for -exported_symbols_list linker flag],
       [lt_cv_ld_exported_symbols_list],
       [lt_cv_ld_exported_symbols_list=no
@@ -1047,7 +1062,7 @@ _LT_EOF
       echo "$RANLIB libconftest.a" >&AS_MESSAGE_LOG_FD
       $RANLIB libconftest.a 2>&AS_MESSAGE_LOG_FD
       cat > conftest.c << _LT_EOF
-int main() { return 0;}
+int main(void) { return 0;}
 _LT_EOF
       echo "$LTCC $LTCFLAGS $LDFLAGS -o conftest conftest.c -Wl,-force_load,./libconftest.a" >&AS_MESSAGE_LOG_FD
       $LTCC $LTCFLAGS $LDFLAGS -o conftest conftest.c -Wl,-force_load,./libconftest.a 2>conftest.err
@@ -1072,7 +1087,12 @@ _LT_EOF
         10.[[012]],*|,*powerpc*-darwin[[5-8]]*)
           _lt_dar_allow_undefined='$wl-flat_namespace $wl-undefined ${wl}suppress' ;;
         *)
-          _lt_dar_allow_undefined='$wl-undefined ${wl}dynamic_lookup' ;;
+          if test yes = "$lt_cv_support_no_fixup_chains"; then
+            _lt_dar_allow_undefined='$wl-undefined ${wl}dynamic_lookup $wl-no_fixup_chains'
+          else
+            _lt_dar_allow_undefined='$wl-undefined ${wl}dynamic_lookup'
+          fi
+        ;;
       esac
     ;;
   esac
@@ -1862,11 +1882,11 @@ else
 /* When -fvisibility=hidden is used, assume the code has been annotated
    correspondingly for the symbols needed.  */
 #if defined __GNUC__ && (((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3)) || (__GNUC__ > 3))
-int fnord () __attribute__((visibility("default")));
+int fnord (void) __attribute__((visibility("default")));
 #endif
 
-int fnord () { return 42; }
-int main ()
+int fnord (void) { return 42; }
+int main (void)
 {
   void *self = dlopen (0, LT_DLGLOBAL|LT_DLLAZY_OR_NOW);
   int status = $lt_dlunknown;
@@ -2547,14 +2567,14 @@ cygwin* | mingw* | windows* | pw32* | cegcc*)
     cygwin*)
       # Cygwin DLLs use 'cyg' prefix rather than 'lib'
       #soname_spec='`echo $libname | sed -e 's/^lib/cyg/'``echo $release | $SED -e 's/[[.]]/-/g'`$versuffix$shared_ext'
-      soname_spec='`echo $libname | sed -e 's/^lib//'`$shared_ext' # SDL customization
+      soname_spec='`echo $libname | sed -e 's/^lib//'`$shared_ext' # SDL customization.
 m4_if([$1], [],[
       sys_lib_search_path_spec="$sys_lib_search_path_spec /usr/lib/w32api"])
       ;;
     mingw* | windows* | cegcc*)
       # MinGW DLLs use traditional 'lib' prefix
       #soname_spec='$libname`echo $release | $SED -e 's/[[.]]/-/g'`$versuffix$shared_ext'
-      soname_spec='`echo $libname | $SED -e 's/^lib//'`$shared_ext' # SDL customization
+      soname_spec='`echo $libname | $SED -e 's/^lib//'`$shared_ext' # SDL customization.
       ;;
     pw32*)
       # pw32 DLLs use 'pw' prefix rather than 'lib'
@@ -3466,7 +3486,7 @@ cygwin*)
   # func_win32_libid is a shell function defined in ltmain.sh
   lt_cv_deplibs_check_method='file_magic ^x86 archive import|^x86 DLL'
   lt_cv_file_magic_cmd='func_win32_libid'
-  lt_cv_deplibs_check_method=pass_all # SDL customization
+  lt_cv_deplibs_check_method=pass_all # SDL customization.
   ;;
 
 mingw* | windows* | pw32*)
@@ -3478,10 +3498,10 @@ mingw* | windows* | pw32*)
     lt_cv_file_magic_cmd='func_win32_libid'
   else
     # Keep this pattern in sync with the one in func_win32_libid.
-    lt_cv_deplibs_check_method='file_magic file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64)'
+    lt_cv_deplibs_check_method='file_magic file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64)'
     lt_cv_file_magic_cmd='$OBJDUMP -f'
   fi
-  lt_cv_deplibs_check_method=pass_all # SDL customization
+  lt_cv_deplibs_check_method=pass_all # SDL customization.
   ;;
 
 cegcc*)
@@ -4052,7 +4072,7 @@ void nm_test_func(void){}
 #ifdef __cplusplus
 }
 #endif
-int main(){nm_test_var='a';nm_test_func();return(0);}
+int main(void){nm_test_var='a';nm_test_func();return(0);}
 _LT_EOF
 
   if AC_TRY_EVAL(ac_compile); then
@@ -6218,7 +6238,7 @@ _LT_TAGVAR(objext, $1)=$objext
 lt_simple_compile_test_code="int some_variable = 0;"
 
 # Code to be used in simple link tests
-lt_simple_link_test_code='int main(){return(0);}'
+lt_simple_link_test_code='int main(void){return(0);}'
 
 _LT_TAG_COMPILER
 # Save the default compiler, since it gets overwritten when the other

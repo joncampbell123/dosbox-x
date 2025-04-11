@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -56,12 +56,12 @@ static BOOL UIKit_ShowMessageBoxAlertController(const SDL_MessageBoxData *messag
     int __block clickedindex = messageboxdata->numbuttons;
     UIWindow *window = nil;
     UIWindow *alertwindow = nil;
+    UIAlertController *alert;
 
     if (![UIAlertController class]) {
         return NO;
     }
 
-    UIAlertController *alert;
     alert = [UIAlertController alertControllerWithTitle:@(messageboxdata->title)
                                                 message:@(messageboxdata->message)
                                          preferredStyle:UIAlertControllerStyleAlert];

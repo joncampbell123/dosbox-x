@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -95,6 +95,9 @@ static int PSP_JoystickInit(void)
         analog_map[i + 128] = calc_bezier_y(t);
         analog_map[127 - i] = -1 * analog_map[i + 128];
     }
+
+    /* Fire off a joystick add event */
+    SDL_PrivateJoystickAdded(0);
 
     return 1;
 }

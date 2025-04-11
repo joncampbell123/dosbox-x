@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -78,7 +78,7 @@ void Draw(DrawState *s)
     SDL_RenderPresent(s->renderer);
 }
 
-void loop()
+void loop(void)
 {
     int i;
     SDL_Event event;

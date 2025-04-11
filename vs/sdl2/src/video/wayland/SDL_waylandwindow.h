@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -29,6 +29,7 @@
 #include "../../events/SDL_touch_c.h"
 
 #include "SDL_waylandvideo.h"
+#include "SDL_waylandshmbuffer.h"
 
 struct SDL_WaylandInput;
 
@@ -89,6 +90,9 @@ typedef struct
     struct xdg_activation_token_v1 *activation_token;
     struct wp_viewport *draw_viewport;
     struct wp_fractional_scale_v1 *fractional_scale;
+    struct xdg_toplevel_icon_v1 *xdg_toplevel_icon_v1;
+
+    struct Wayland_SHMBuffer icon;
 
     /* floating dimensions for restoring from maximized and fullscreen */
     int floating_width, floating_height;
@@ -110,12 +114,15 @@ typedef struct
     int window_width, window_height;
     int system_min_required_width;
     int system_min_required_height;
+    int toplevel_bounds_width;
+    int toplevel_bounds_height;
     SDL_bool needs_resize_event;
     SDL_bool floating_resize_pending;
     SDL_bool was_floating;
     SDL_bool is_fullscreen;
     SDL_bool in_fullscreen_transition;
     Uint32 fullscreen_flags;
+    SDL_bool double_buffer;
 } SDL_WindowData;
 
 extern void Wayland_ShowWindow(_THIS, SDL_Window *window);
@@ -141,11 +148,13 @@ extern int Wayland_SetWindowModalFor(_THIS, SDL_Window *modal_window, SDL_Window
 extern void Wayland_SetWindowTitle(_THIS, SDL_Window *window);
 extern void Wayland_DestroyWindow(_THIS, SDL_Window *window);
 extern void Wayland_SuspendScreenSaver(_THIS);
+extern void Wayland_SetWindowIcon(_THIS, SDL_Window *window, SDL_Surface *icon);
 
 extern SDL_bool
 Wayland_GetWindowWMInfo(_THIS, SDL_Window * window, SDL_SysWMinfo * info);
 extern int Wayland_SetWindowHitTest(SDL_Window *window, SDL_bool enabled);
 extern int Wayland_FlashWindow(_THIS, SDL_Window *window, SDL_FlashOperation operation);
+extern void Wayland_RemoveOutputFromWindow(SDL_WindowData *window, struct wl_output *output);
 
 extern void Wayland_InitWin(SDL_VideoData *data);
 extern void Wayland_QuitWin(SDL_VideoData *data);

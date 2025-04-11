@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -110,7 +110,7 @@ extern SDL_bool SDL_XINPUT_Enabled(void);
 extern SDL_bool SDL_DINPUT_JoystickPresent(Uint16 vendor, Uint16 product, Uint16 version);
 
 
-static SDL_bool SDL_IsXInputDevice(Uint16 vendor, Uint16 product)
+static SDL_bool SDL_IsXInputDevice(Uint16 vendor, Uint16 product, const char* name)
 {
 #if defined(SDL_JOYSTICK_XINPUT) || defined(SDL_JOYSTICK_RAWINPUT)
     PRAWINPUTDEVICELIST raw_devices = NULL;
@@ -124,6 +124,13 @@ static SDL_bool SDL_IsXInputDevice(Uint16 vendor, Uint16 product)
 #endif
     ) {
         return SDL_FALSE;
+    }
+
+    /* Sometimes we'll get a Windows.Gaming.Input callback before the raw input device is even in the list,
+     * so try to do some checks up front to catch these cases. */
+    if (SDL_IsJoystickXboxOne(vendor, product) ||
+        (name && SDL_strncmp(name, "Xbox ", 5) == 0)) {
+        return SDL_TRUE;
     }
 
     /* Go through RAWINPUT (WinXP and later) to find HID devices. */
@@ -216,7 +223,7 @@ static SDL_bool SDL_IsXInputDevice(Uint16 vendor, Uint16 product)
     return SDL_FALSE;
 }
 
-static void WGI_LoadRawGameControllerStatics()
+static void WGI_LoadRawGameControllerStatics(void)
 {
     WindowsCreateStringReference_t WindowsCreateStringReferenceFunc = NULL;
     RoGetActivationFactory_t RoGetActivationFactoryFunc = NULL;
@@ -247,7 +254,7 @@ static void WGI_LoadRawGameControllerStatics()
     }
 }
 
-static void WGI_LoadOtherControllerStatics()
+static void WGI_LoadOtherControllerStatics(void)
 {
     WindowsCreateStringReference_t WindowsCreateStringReferenceFunc = NULL;
     RoGetActivationFactory_t RoGetActivationFactoryFunc = NULL;
@@ -508,7 +515,7 @@ static HRESULT STDMETHODCALLTYPE IEventHandler_CRawGameControllerVtbl_InvokeAdde
             ignore_joystick = SDL_TRUE;
         }
 
-        if (!ignore_joystick && SDL_IsXInputDevice(vendor, product)) {
+        if (!ignore_joystick && SDL_IsXInputDevice(vendor, product, name)) {
             ignore_joystick = SDL_TRUE;
         }
 

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -198,6 +198,11 @@ CGRect UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen)
 {
     SDL_WindowData *data = (__bridge SDL_WindowData *) window->driverdata;
     CGRect frame = screen.bounds;
+#if !TARGET_OS_TV
+    UIInterfaceOrientation orient;
+    BOOL landscape;
+    BOOL fullscreen;
+#endif
 
     /* Use the UIWindow bounds instead of the UIScreen bounds, when possible.
      * The uiwindow bounds may be smaller than the screen bounds when Split View
@@ -215,10 +220,10 @@ CGRect UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen)
      * https://bugzilla.libsdl.org/show_bug.cgi?id=3505
      * https://bugzilla.libsdl.org/show_bug.cgi?id=3465
      * https://forums.developer.apple.com/thread/65337 */
-    UIInterfaceOrientation orient = [UIApplication sharedApplication].statusBarOrientation;
-    BOOL landscape = UIInterfaceOrientationIsLandscape(orient) ||
+    orient = [UIApplication sharedApplication].statusBarOrientation;
+    landscape = UIInterfaceOrientationIsLandscape(orient) ||
                     !(UIKit_GetSupportedOrientations(window) & (UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown));
-    BOOL fullscreen = CGRectEqualToRect(screen.bounds, frame);
+    fullscreen = CGRectEqualToRect(screen.bounds, frame);
 
     /* The orientation flip doesn't make sense when the window is smaller
      * than the screen (iPad Split View, for example). */

@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.0...3.5)
-project(SDL2_test)
+cmake_minimum_required(VERSION 3.0...3.10)
+project(SDL2_test C)
 
 include(CheckCCompilerFlag)
 include(CMakeParseArguments)
@@ -9,8 +9,35 @@ set(SDL_TEST_EXECUTABLES)
 set(SDL_TESTS_NONINTERACTIVE)
 set(SDL_TESTS_NEEDS_RESOURCES)
 
+option(SDLTEST_TRACKMEM "Run tests with --trackmem" OFF)
+
+if(WIN32 AND NOT WINDOWS_STORE)
+    option(SDLTEST_PROCDUMP "Run tests using sdlprocdump for minidump generation" OFF)
+    add_executable(sdlprocdump win32/sdlprocdump.c)
+    if(SDLTEST_PROCDUMP)
+        set(CMAKE_TEST_LAUNCHER "$<TARGET_FILE:sdlprocdump>;--")
+    else()
+        set_property(TARGET sdlprocdump PROPERTY EXCLUDE_FROM_ALL "1")
+    endif()
+endif()
+
+set(SDLTEST_TARGETS )
+
+macro(sdltest_link_librararies)
+    foreach(TARGET ${SDLTEST_TARGETS})
+        target_link_libraries(${TARGET} PRIVATE ${ARGN})
+    endforeach()
+endmacro()
+
+macro(sdltest_add_definitions)
+    foreach(TARGET ${SDLTEST_TARGETS})
+        target_compile_definitions(${TARGET} PRIVATE ${ARGN})
+    endforeach()
+endmacro()
+
 macro(add_sdl_test_executable TARGET)
-    cmake_parse_arguments(AST "NONINTERACTIVE;NEEDS_RESOURCES" "" "" ${ARGN})
+    cmake_parse_arguments(AST "NONINTERACTIVE;NEEDS_RESOURCES;NOTRACKMEM" "" "" ${ARGN})
+    list(APPEND SDLTEST_TARGETS ${TARGET})
     if(ANDROID)
         add_library(${TARGET} SHARED ${AST_UNPARSED_ARGUMENTS})
     else()
@@ -18,6 +45,7 @@ macro(add_sdl_test_executable TARGET)
     endif()
 
     list(APPEND SDL_TEST_EXECUTABLES ${TARGET})
+    set_property(TARGET ${TARGET} PROPERTY SDL_NOTRACKMEM ${AST_NOTRACKMEM})
     if(AST_NONINTERACTIVE)
         list(APPEND SDL_TESTS_NONINTERACTIVE ${TARGET})
     endif()
@@ -69,57 +97,6 @@ if(SDL_INSTALL_TESTS)
     include(GNUInstallDirs)
 endif()
 
-if(N3DS)
-    link_libraries(SDL2::SDL2main)
-endif()
-
-if(PSP)
-    link_libraries(
-        SDL2::SDL2main
-        SDL2::SDL2test
-        SDL2::SDL2-static
-        GL
-        pspvram
-        pspvfpu
-        pspdisplay
-        pspgu
-        pspge
-        pspaudio
-        pspctrl
-        psphprm
-        psppower
-    )
-elseif(PS2)
-    link_libraries(
-        SDL2main
-        SDL2_test
-        SDL2-static
-        patches
-        gskit
-        dmakit
-        ps2_drivers
-    )
-else()
-    link_libraries(SDL2::SDL2test SDL2::SDL2-static)
-endif()
-
-if(WINDOWS)
-    # mingw32 must come before SDL2main to link successfully
-    if(MINGW OR CYGWIN)
-        link_libraries(mingw32)
-    endif()
-
-    # CET support was added in VS 16.7
-    if(MSVC_VERSION GREATER 1926 AND CMAKE_GENERATOR_PLATFORM MATCHES "Win32|x64")
-        link_libraries(-CETCOMPAT)
-    endif()
-
-    # FIXME: Parent directory CMakeLists.txt only sets these for mingw/cygwin,
-    # but we need them for VS as well.
-    link_libraries(SDL2main)
-    add_definitions(-Dmain=SDL_main)
-endif()
-
 # CMake incorrectly detects opengl32.lib being present on MSVC ARM64
 if(NOT MSVC OR NOT CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
     # Prefer GLVND, if present
@@ -154,7 +131,7 @@ add_sdl_test_executable(testdropfile testdropfile.c)
 add_sdl_test_executable(testerror NONINTERACTIVE testerror.c)
 
 if(LINUX)
-    add_sdl_test_executable(testevdev NONINTERACTIVE testevdev.c)
+    add_sdl_test_executable(testevdev NOTRACKMEM NONINTERACTIVE testevdev.c)
 endif()
 
 add_sdl_test_executable(testfile testfile.c)
@@ -165,6 +142,9 @@ add_sdl_test_executable(testgl2 testgl2.c)
 add_sdl_test_executable(testgles testgles.c)
 add_sdl_test_executable(testgles2 testgles2.c)
 add_sdl_test_executable(testgles2_sdf NEEDS_RESOURCES testgles2_sdf.c testutils.c)
+if(APPLE)
+    set_property(TARGET testgles testgles2 testgles2_sdf APPEND PROPERTY COMPILE_DEFINITIONS "GLES_SILENCE_DEPRECATION")
+endif()
 add_sdl_test_executable(testhaptic testhaptic.c)
 add_sdl_test_executable(testhotplug testhotplug.c)
 add_sdl_test_executable(testrumble testrumble.c)
@@ -196,7 +176,7 @@ elseif(WINDOWS)
     add_sdl_test_executable(testnative NEEDS_RESOURCES testnative.c testnativew32.c testutils.c)
 elseif(HAVE_X11)
     add_sdl_test_executable(testnative NEEDS_RESOURCES testnative.c testnativex11.c testutils.c)
-    target_link_libraries(testnative X11)
+    target_link_libraries(testnative PRIVATE X11)
 elseif(OS2)
     add_sdl_test_executable(testnative NEEDS_RESOURCES testnative.c testnativeos2.c testutils.c)
 endif()
@@ -234,6 +214,59 @@ add_sdl_test_executable(controllermap NEEDS_RESOURCES controllermap.c testutils.
 add_sdl_test_executable(testvulkan testvulkan.c)
 add_sdl_test_executable(testoffscreen testoffscreen.c)
 
+if(N3DS)
+    sdltest_link_librararies(SDL2::SDL2main)
+endif()
+
+if(PSP)
+    sdltest_link_librararies(
+        SDL2::SDL2main
+        SDL2::SDL2test
+        SDL2::SDL2-static
+        GL
+        pspvram
+        pspvfpu
+        pspdisplay
+        pspgu
+        pspge
+        pspaudio
+        pspctrl
+        psphprm
+        psppower
+    )
+elseif(PS2)
+    sdltest_link_librararies(
+        SDL2main
+        SDL2_test
+        SDL2-static
+        patches
+        gskit
+        dmakit
+        ps2_drivers
+    )
+elseif(IOS OR TVOS)
+    sdltest_link_librararies(SDL2::SDL2main SDL2::SDL2test SDL2::SDL2-static)
+else()
+    sdltest_link_librararies(SDL2::SDL2test SDL2::SDL2-static)
+endif()
+
+if(WINDOWS)
+    # mingw32 must come before SDL2main to link successfully
+    if(MINGW OR CYGWIN)
+        sdltest_link_librararies(mingw32)
+    endif()
+
+    # CET support was added in VS 16.7
+    if(MSVC_VERSION GREATER 1926 AND CMAKE_GENERATOR_PLATFORM MATCHES "Win32|x64")
+        sdltest_link_librararies(-CETCOMPAT)
+    endif()
+
+    # FIXME: Parent directory CMakeLists.txt only sets these for mingw/cygwin,
+    # but we need them for VS as well.
+    sdltest_link_librararies(SDL2main)
+    sdltest_add_definitions(-Dmain=SDL_main)
+endif()
+
 cmake_push_check_state(RESET)
 
 check_c_compiler_flag(-Wformat-overflow HAVE_WFORMAT_OVERFLOW)
@@ -270,19 +303,19 @@ endif()
 
 if(OPENGL_FOUND)
     if(TARGET OpenGL::GL)
-        target_link_libraries(testshader OpenGL::GL)
-        target_link_libraries(testgl2 OpenGL::GL)
+        target_link_libraries(testshader PRIVATE OpenGL::GL)
+        target_link_libraries(testgl2 PRIVATE OpenGL::GL)
     else()
         if(EMSCRIPTEN AND OPENGL_gl_LIBRARY STREQUAL "nul")
             set(OPENGL_gl_LIBRARY GL)
         endif()
         # emscripten's FindOpenGL.cmake does not create OpenGL::GL
-        target_link_libraries(testshader ${OPENGL_gl_LIBRARY})
-        target_link_libraries(testgl2 ${OPENGL_gl_LIBRARY})
+        target_link_libraries(testshader PRIVATE ${OPENGL_gl_LIBRARY})
+        target_link_libraries(testgl2 PRIVATE ${OPENGL_gl_LIBRARY})
     endif()
 endif()
 if(EMSCRIPTEN)
-    target_link_libraries(testshader -sLEGACY_GL_EMULATION)
+    target_link_libraries(testshader PRIVATE -sLEGACY_GL_EMULATION)
 endif()
 
 file(GLOB RESOURCE_FILES *.bmp *.wav *.hex moose.dat utf8.txt)
@@ -331,47 +364,17 @@ if(PSP)
             ICON_PATH       NULL
             BACKGROUND_PATH NULL
             PREVIEW_PATH    NULL
-        )
-        add_custom_command(
-            TARGET ${APP} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E make_directory
-            $<TARGET_FILE_DIR:${ARG_TARGET}>/sdl-${APP}
-        )
-        add_custom_command(
-            TARGET ${APP} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rename
-            $<TARGET_FILE_DIR:${ARG_TARGET}>/EBOOT.PBP
-            $<TARGET_FILE_DIR:${ARG_TARGET}>/sdl-${APP}/EBOOT.PBP
-        )
-        if(${BUILD_PRX})
-            add_custom_command(
-                TARGET ${APP} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                $<TARGET_FILE_DIR:${ARG_TARGET}>/${APP}
-                $<TARGET_FILE_DIR:${ARG_TARGET}>/sdl-${APP}/${APP}
-            )
-            add_custom_command(
-                TARGET ${APP} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E rename
-                $<TARGET_FILE_DIR:${ARG_TARGET}>/${APP}.prx
-                $<TARGET_FILE_DIR:${ARG_TARGET}>/sdl-${APP}/${APP}.prx
-            )
-        endif()
-        add_custom_command(
-            TARGET ${APP} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E remove
-            $<TARGET_FILE_DIR:${ARG_TARGET}>/PARAM.SFO
+            OUTPUT_DIR      $<TARGET_FILE_DIR:${APP}>/sdl-${APP}
         )
     endforeach()
 endif()
 
 if(N3DS)
-    set(ROMFS_DIR "${CMAKE_CURRENT_BINARY_DIR}/romfs")
-    file(COPY ${RESOURCE_FILES} DESTINATION "${ROMFS_DIR}")
-
     foreach(APP IN LISTS SDL_TEST_EXECUTABLES)
         get_target_property(TARGET_BINARY_DIR ${APP} BINARY_DIR)
+        set(ROMFS_DIR "${TARGET_BINARY_DIR}/sdl-${APP}")
         set(SMDH_FILE "${TARGET_BINARY_DIR}/${APP}.smdh")
+        file(MAKE_DIRECTORY ${ROMFS_DIR})
         ctr_generate_smdh("${SMDH_FILE}"
             NAME "SDL-${APP}"
             DESCRIPTION "SDL2 Test suite"
@@ -428,7 +431,7 @@ add_custom_target(copy-sdl-test-resources
 )
 
 foreach(APP IN LISTS SDL_TESTS_NEEDS_RESOURCES)
-    if(PSP OR PS2)
+    if(PSP OR PS2 OR N3DS)
         foreach(RESOURCE_FILE ${RESOURCE_FILES})
             add_custom_command(TARGET ${APP} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${RESOURCE_FILE} $<TARGET_FILE_DIR:${APP}>/sdl-${APP})
         endforeach()
@@ -470,9 +473,16 @@ set(TESTS_ENVIRONMENT
 )
 
 foreach(TESTCASE ${SDL_TESTS_NONINTERACTIVE})
+    set(command ${TESTCASE})
+    if(SDLTEST_TRACKMEM)
+        get_property(notrackmem TARGET ${TESTCASE} PROPERTY SDL_NOTRACKMEM)
+        if(NOT notrackmem)
+            list(APPEND command --trackmem)
+        endif()
+    endif()
     add_test(
         NAME ${TESTCASE}
-        COMMAND ${TESTCASE}
+        COMMAND ${command}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     set_tests_properties(${TESTCASE}
@@ -480,6 +490,9 @@ foreach(TESTCASE ${SDL_TESTS_NONINTERACTIVE})
             ENVIRONMENT "${TESTS_ENVIRONMENT}"
             TIMEOUT 10
     )
+    if(NOT notrackmem)
+        set_property(TEST ${TESTCASE} PROPERTY FAIL_REGULAR_EXPRESSION "Total: [0-9]+\\.[0-9]+ Kb in [1-9][0-9]* allocations")
+    endif()
     if(SDL_INSTALL_TESTS)
         set(exe ${TESTCASE})
         set(installedtestsdir "${CMAKE_INSTALL_FULL_LIBEXECDIR}/installed-tests/SDL2")

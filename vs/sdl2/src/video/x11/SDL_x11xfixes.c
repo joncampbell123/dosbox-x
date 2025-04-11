@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -74,12 +74,12 @@ void X11_InitXfixes(_THIS)
     xfixes_initialized = 1;
 }
 
-int X11_XfixesIsInitialized()
+int X11_XfixesIsInitialized(void)
 {
     return xfixes_initialized;
 }
 
-int X11_GetXFixesSelectionNotifyEvent()
+int X11_GetXFixesSelectionNotifyEvent(void)
 {
     return xfixes_selection_notify_event;
 }

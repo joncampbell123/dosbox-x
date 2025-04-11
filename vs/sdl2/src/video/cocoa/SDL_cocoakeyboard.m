@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -33,30 +33,11 @@
 /*#define DEBUG_IME NSLog */
 #define DEBUG_IME(...)
 
-#if 1 // inserted for DOSBox-X
-@interface IMETextView : NSView
-@property (nonatomic, copy) NSAttributedString *text;
-@end
-
-@implementation IMETextView
-- (void)drawRect:(NSRect)dirtyRect
-{
-    CGSize size;
-    [super drawRect:dirtyRect];
-    size = [_text size];
-    [[NSColor whiteColor] set];
-    NSRectFill(self.bounds);
-    [_text drawInRect:CGRectMake(0, 0, size.width, size.height)];
-}
-@end
-#endif
-
 @interface SDLTranslatorResponder : NSView <NSTextInputClient> {
     NSString *_markedText;
     NSRange   _markedRange;
     NSRange   _selectedRange;
     SDL_Rect  _inputRect;
-    IMETextView *_markedLabel; // inserted for DOSBox-X
 }
 - (void)doCommandBySelector:(SEL)myselector;
 - (void)setInputRect:(const SDL_Rect *)rect;
@@ -91,8 +72,6 @@
     }
 
     SDL_SendKeyboardText(str);
-    [_markedLabel setHidden:YES];  // inserted for DOSBox-X
-    _markedLabel.text = nil;       // inserted for DOSBox-X
 }
 
 - (void)doCommandBySelector:(SEL)myselector
@@ -118,21 +97,9 @@
     return _selectedRange;
 }
 
-static SDL_bool ime_incompos = 0; // inserted for DOSBox-X
-static long end_ticks = 0;        // inserted for DOSBox-X
-
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange
 {
     if ([aString isKindOfClass:[NSAttributedString class]]) {
-#if 1 // inserted for DOSBox-X
-        CGSize size;
-        [aString addAttribute:NSFontAttributeName value:[NSFont systemFontOfSize:_inputRect.h] range:NSMakeRange(0, [aString length])];
-        _markedLabel.text = aString;
-        size = [aString size];
-        [_markedLabel setFrameSize:size];
-        [_markedLabel setHidden:NO];
-        [_markedLabel setNeedsDisplay:YES];
-#endif
         aString = [aString string];
     }
 
@@ -157,33 +124,10 @@ static long end_ticks = 0;        // inserted for DOSBox-X
 
 - (void)unmarkText
 {
-    //[_markedText release]; // Maybe required for DOSBox-X
-     _markedText = nil;
-    [_markedLabel setHidden:YES]; // inserted for DOSBox-X
+    _markedText = nil;
+
     SDL_SendEditingText("", 0, 0);
 }
-
-#if 1 // inserted for DOSBox-X
-#define IME_END_CR_WAIT 25
-SDL_bool SDL_IM_Composition(int more) {
-    return ime_incompos||(end_ticks&&(TickCount()-end_ticks<IME_END_CR_WAIT*more)) ? SDL_TRUE : SDL_FALSE;
-}
-
-static int GetEnableIME()
-{
-    TISInputSourceRef is = TISCopyCurrentKeyboardInputSource();
-    CFBooleanRef ret = (CFBooleanRef)TISGetInputSourceProperty(is, kTISPropertyInputSourceIsASCIICapable);
-    return CFBooleanGetValue(ret) ? 0 : 1;
-}
-
-- (void)keyboardInputSourceChanged:(NSNotification *)notification
-{
-    if(!GetEnableIME()) {
-        [_markedLabel setHidden:YES];
-        [[NSTextInputContext currentInputContext] discardMarkedText];
-    }
-}
-#endif
 
 - (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
 {
@@ -200,18 +144,6 @@ static int GetEnableIME()
     DEBUG_IME(@"firstRectForCharacterRange: (%d, %d): windowHeight = %g, rect = %@",
             aRange.location, aRange.length, windowHeight,
             NSStringFromRect(rect));
-
-#if 1 // inserted for DOSBox-X
-    if(!_markedLabel) {
-        _markedLabel = [[IMETextView alloc] initWithFrame: NSMakeRect(0.0, 0.0, 0.0, 0.0)];
-        [[[self window] contentView] addSubview:_markedLabel];
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                            selector:@selector(keyboardInputSourceChanged:)
-                                            name:NSTextInputContextKeyboardSelectionDidChangeNotification
-                                            object:nil];
-    }
-    [_markedLabel setFrameOrigin: NSMakePoint(_inputRect.x, windowHeight - _inputRect.y)];
-#endif
 
     rect = [window convertRectToScreen:rect];
 

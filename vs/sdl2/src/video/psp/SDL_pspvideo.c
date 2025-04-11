@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -29,14 +29,133 @@
 #include "SDL_syswm.h"
 #include "SDL_loadso.h"
 #include "SDL_events.h"
+#include "SDL_render.h"
 #include "../../events/SDL_mouse_c.h"
 #include "../../events/SDL_keyboard_c.h"
+#include "../../render/SDL_sysrender.h"
 
 
 /* PSP declarations */
 #include "SDL_pspvideo.h"
 #include "SDL_pspevents_c.h"
 #include "SDL_pspgl_c.h"
+
+#include <psputility.h>
+#include <pspgu.h>
+#include <pspdisplay.h>
+#include <vram.h>
+#include "../../render/psp/SDL_render_psp.h"
+
+#define SDL_WINDOWTEXTUREDATA "_SDL_WindowTextureData"
+
+typedef struct
+{
+    SDL_Renderer *renderer;
+    SDL_Texture *texture;
+    void *pixels;
+    int pitch;
+    int bytes_per_pixel;
+} SDL_WindowTextureData;
+
+int PSP_CreateWindowFramebuffer(SDL_VideoDevice *_this, SDL_Window *window, Uint32 *format, void **pixels, int *pitch)
+{
+    SDL_RendererInfo info;
+    SDL_WindowTextureData *data = SDL_GetWindowData(window, SDL_WINDOWTEXTUREDATA);
+    int i, w, h;
+
+    SDL_GetWindowSizeInPixels(window, &w, &h);
+
+    if (w != PSP_SCREEN_WIDTH) {
+        return SDL_SetError("Unexpected window size");
+    }
+
+    if (!data) {
+        SDL_Renderer *renderer = NULL;
+        for (i = 0; i < SDL_GetNumRenderDrivers(); ++i) {
+            SDL_GetRenderDriverInfo(i, &info);
+            if (SDL_strcmp(info.name, "software") != 0) {
+                renderer = SDL_CreateRenderer(window, i, 0);
+                if (renderer && (SDL_GetRendererInfo(renderer, &info) == 0) && (info.flags & SDL_RENDERER_ACCELERATED)) {
+                    break; /* this will work. */
+                }
+                if (renderer) { /* wasn't accelerated, etc, skip it. */
+                    SDL_DestroyRenderer(renderer);
+                    renderer = NULL;
+                }
+            }
+        }
+        if (!renderer) {
+            return SDL_SetError("No hardware accelerated renderers available");
+        }
+
+        SDL_assert(renderer != NULL); /* should have explicitly checked this above. */
+
+        /* Create the data after we successfully create the renderer (bug #1116) */
+        data = (SDL_WindowTextureData *)SDL_calloc(1, sizeof(*data));
+
+        if (!data) {
+            SDL_DestroyRenderer(renderer);
+            return SDL_OutOfMemory();
+        }
+
+        SDL_SetWindowData(window, SDL_WINDOWTEXTUREDATA, data);
+        data->renderer = renderer;
+    } else {
+        if (SDL_GetRendererInfo(data->renderer, &info) == -1) {
+            return -1;
+        }
+    }
+
+    /* Find the first format without an alpha channel */
+    *format = info.texture_formats[0];
+
+    for (i = 0; i < (int)info.num_texture_formats; ++i) {
+        if (!SDL_ISPIXELFORMAT_FOURCC(info.texture_formats[i]) &&
+            !SDL_ISPIXELFORMAT_ALPHA(info.texture_formats[i])) {
+            *format = info.texture_formats[i];
+            break;
+        }
+    }
+
+    /* get the PSP renderer's "private" data */
+    SDL_PSP_RenderGetProp(data->renderer, SDL_PSP_RENDERPROPS_FRONTBUFFER, &data->pixels);
+
+    /* Create framebuffer data */
+    data->bytes_per_pixel = SDL_BYTESPERPIXEL(*format);
+    /* since we point directly to VRAM's frontbuffer, we have to use
+       the upscaled pitch of 512 width - since PSP requires all textures to be
+       powers of 2. */
+    data->pitch = 512 * data->bytes_per_pixel;
+    *pixels = data->pixels;
+    *pitch = data->pitch;
+
+    /* Make sure we're not double-scaling the viewport */
+    SDL_RenderSetViewport(data->renderer, NULL);
+
+    return 0;
+}
+
+int PSP_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect *rects, int numrects)
+{
+    SDL_WindowTextureData *data;
+    data = SDL_GetWindowData(window, SDL_WINDOWTEXTUREDATA);
+    if (!data || !data->renderer || !window->surface) {
+        return -1;
+    }
+    data->renderer->RenderPresent(data->renderer);
+    SDL_PSP_RenderGetProp(data->renderer, SDL_PSP_RENDERPROPS_BACKBUFFER, &window->surface->pixels);
+    return 0;
+}
+
+void PSP_DestroyWindowFramebuffer(_THIS, SDL_Window *window)
+{
+    SDL_WindowTextureData *data = SDL_GetWindowData(window, SDL_WINDOWTEXTUREDATA);
+    if (!data || !data->renderer) {
+        return;
+    }
+    SDL_DestroyRenderer(data->renderer);
+    data->renderer = NULL;
+}
 
 /* unused
 static SDL_bool PSP_initialized = SDL_FALSE;
@@ -128,14 +247,161 @@ static SDL_VideoDevice *PSP_Create()
 
     device->PumpEvents = PSP_PumpEvents;
 
+    /* backend to use VRAM directly as a framebuffer using
+       SDL_GetWindowSurface() API. */
+    device->checked_texture_framebuffer = 1;
+    device->CreateWindowFramebuffer = PSP_CreateWindowFramebuffer;
+    device->UpdateWindowFramebuffer = PSP_UpdateWindowFramebuffer;
+    device->DestroyWindowFramebuffer = PSP_DestroyWindowFramebuffer;
+
     return device;
+}
+
+static void configure_dialog(pspUtilityMsgDialogParams *dialog, size_t dialog_size)
+{
+	/* clear structure and setup size */
+	SDL_memset(dialog, 0, dialog_size);
+	dialog->base.size = dialog_size;
+
+	/* set language */
+	sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_LANGUAGE, &dialog->base.language);
+
+	/* set X/O swap */
+	sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_UNKNOWN, &dialog->base.buttonSwap);
+
+	/* set thread priorities */
+	/* TODO: understand how these work */
+	dialog->base.soundThread = 0x10;
+	dialog->base.graphicsThread = 0x11;
+	dialog->base.fontThread = 0x12;
+	dialog->base.accessThread = 0x13;
+}
+
+static void *setup_temporal_gu(void *list)
+{
+    // Using GU_PSM_8888 for the framebuffer
+	int bpp = 4;
+	
+	void *doublebuffer = vramalloc(PSP_FRAME_BUFFER_SIZE * bpp * 2);
+    void *backbuffer = doublebuffer;
+    void *frontbuffer = ((uint8_t *)doublebuffer) + PSP_FRAME_BUFFER_SIZE * bpp;
+
+    sceGuInit();
+
+    sceGuStart(GU_DIRECT,list);
+	sceGuDrawBuffer(GU_PSM_8888, vrelptr(frontbuffer), PSP_FRAME_BUFFER_WIDTH);
+    sceGuDispBuffer(PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT, vrelptr(backbuffer), PSP_FRAME_BUFFER_WIDTH);
+
+    sceGuOffset(2048 - (PSP_SCREEN_WIDTH >> 1), 2048 - (PSP_SCREEN_HEIGHT >> 1));
+    sceGuViewport(2048, 2048, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
+
+    sceGuDisable(GU_DEPTH_TEST);
+
+    /* Scissoring */
+    sceGuScissor(0, 0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
+    sceGuEnable(GU_SCISSOR_TEST);
+
+    sceGuFinish();
+    sceGuSync(0,0);
+    
+    sceDisplayWaitVblankStart();
+    sceGuDisplay(GU_TRUE);
+
+	return doublebuffer;
+}
+
+static void term_temporal_gu(void *guBuffer)
+{
+	sceGuTerm();
+	vfree(guBuffer);
+	sceDisplayWaitVblankStart();
+}
+
+int PSP_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonid)
+{
+	unsigned char list[64] __attribute__((aligned(64)));
+	pspUtilityMsgDialogParams dialog;
+	int status;
+	void *guBuffer = NULL;
+
+	/* check if it's possible to use existing video context */
+	if (SDL_GetFocusWindow() == NULL) {
+		guBuffer = setup_temporal_gu(list);
+	}
+
+	/* configure dialog */
+	configure_dialog(&dialog, sizeof(dialog));
+
+	/* setup dialog options for text */
+	dialog.mode = PSP_UTILITY_MSGDIALOG_MODE_TEXT;
+	dialog.options = PSP_UTILITY_MSGDIALOG_OPTION_TEXT;
+
+	/* copy the message in, 512 bytes max */
+	SDL_snprintf(dialog.message, sizeof(dialog.message), "%s\r\n\r\n%s", messageboxdata->title, messageboxdata->message);
+
+	/* too many buttons */
+	if (messageboxdata->numbuttons > 2)
+		return SDL_SetError("messageboxdata->numbuttons valid values are 0, 1, 2");
+
+	/* we only have two options, "yes/no" or "ok" */
+	if (messageboxdata->numbuttons == 2)
+		dialog.options |= PSP_UTILITY_MSGDIALOG_OPTION_YESNO_BUTTONS | PSP_UTILITY_MSGDIALOG_OPTION_DEFAULT_NO;
+
+	/* start dialog */
+	if (sceUtilityMsgDialogInitStart(&dialog) != 0)
+		return SDL_SetError("sceUtilityMsgDialogInitStart() failed for some reason");
+
+	/* loop while the dialog is active */
+	status = PSP_UTILITY_DIALOG_NONE;
+	do
+	{
+		sceGuStart(GU_DIRECT, list);
+		sceGuClearColor(0);
+		sceGuClearDepth(0);
+		sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+		sceGuFinish();
+		sceGuSync(0,0);
+
+		status = sceUtilityMsgDialogGetStatus();
+
+		switch (status)
+		{
+			case PSP_UTILITY_DIALOG_VISIBLE:
+				sceUtilityMsgDialogUpdate(1);
+				break;
+
+			case PSP_UTILITY_DIALOG_QUIT:
+				sceUtilityMsgDialogShutdownStart();
+				break;
+		}
+
+		sceDisplayWaitVblankStart();
+		sceGuSwapBuffers();
+
+	} while (status != PSP_UTILITY_DIALOG_NONE);
+
+	/* cleanup */
+	if (guBuffer)
+	{
+		term_temporal_gu(guBuffer);
+	}
+
+	/* success */
+	if (dialog.buttonPressed == PSP_UTILITY_MSGDIALOG_RESULT_YES)
+		*buttonid = messageboxdata->buttons[0].buttonid;
+	else if (dialog.buttonPressed == PSP_UTILITY_MSGDIALOG_RESULT_NO)
+		*buttonid = messageboxdata->buttons[1].buttonid;
+	else
+		*buttonid = messageboxdata->buttons[0].buttonid;
+
+	return 0;
 }
 
 VideoBootStrap PSP_bootstrap = {
     "PSP",
     "PSP Video Driver",
     PSP_Create,
-    NULL /* no ShowMessageBox implementation */
+    PSP_ShowMessageBox
 };
 
 /*****************************************************************************/
@@ -152,8 +418,8 @@ int PSP_VideoInit(_THIS)
 
     SDL_zero(current_mode);
 
-    current_mode.w = 480;
-    current_mode.h = 272;
+    current_mode.w = PSP_SCREEN_WIDTH;
+    current_mode.h = PSP_SCREEN_HEIGHT;
 
     current_mode.refresh_rate = 60;
     /* 32 bpp for default */
@@ -281,13 +547,79 @@ SDL_bool PSP_GetWindowWMInfo(_THIS, SDL_Window * window, struct SDL_SysWMinfo *i
 #endif
 
 
-/* TO Write Me */
-SDL_bool PSP_HasScreenKeyboardSupport(_THIS)
+
+SDL_bool PSP_HasScreenKeyboardSupport(SDL_VideoDevice *_this)
 {
-    return SDL_FALSE;
+    return SDL_TRUE;
 }
-void PSP_ShowScreenKeyboard(_THIS, SDL_Window *window)
+
+void PSP_ShowScreenKeyboard(SDL_VideoDevice *_this, SDL_Window *window)
 {
+    char list[0x20000] __attribute__((aligned(64)));  // Needed for sceGuStart to work
+    int i;
+    int done = 0;
+    int input_text_length = 32; // SDL_SendKeyboardText supports up to 32 characters per event
+    unsigned short outtext[input_text_length];
+    char text_string[input_text_length];
+
+    SceUtilityOskData data;
+    SceUtilityOskParams params;
+
+    SDL_memset(outtext, 0, input_text_length * sizeof(unsigned short));
+
+    data.language = PSP_UTILITY_OSK_LANGUAGE_DEFAULT;
+    data.lines = 1;
+    data.unk_24 = 1;
+    data.inputtype = PSP_UTILITY_OSK_INPUTTYPE_ALL;
+    data.desc = NULL;
+    data.intext = NULL;
+    data.outtextlength = input_text_length;
+    data.outtextlimit = input_text_length;
+    data.outtext = outtext;
+
+    params.base.size = sizeof(params);
+    sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_LANGUAGE, &params.base.language);
+    sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_UNKNOWN, &params.base.buttonSwap);
+    params.base.graphicsThread = 17;
+    params.base.accessThread = 19;
+    params.base.fontThread = 18;
+    params.base.soundThread = 16;
+    params.datacount = 1;
+    params.data = &data;
+
+    sceUtilityOskInitStart(&params);
+
+    while(!done) {
+        sceGuStart(GU_DIRECT, list);
+        sceGuClearColor(0);
+        sceGuClearDepth(0);
+        sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+        sceGuFinish();
+        sceGuSync(0,0);
+
+        switch(sceUtilityOskGetStatus())
+        {
+            case PSP_UTILITY_DIALOG_VISIBLE:
+                sceUtilityOskUpdate(1);
+                break;
+            case PSP_UTILITY_DIALOG_QUIT:
+                sceUtilityOskShutdownStart();
+                break;
+            case PSP_UTILITY_DIALOG_NONE:
+                done = 1;
+                break;
+            default :
+                break;
+        }
+        sceDisplayWaitVblankStart();
+        sceGuSwapBuffers();
+    }
+
+    // Convert input list to string
+    for (i = 0; i < input_text_length; i++) {
+        text_string[i] = outtext[i];
+    }
+    SDL_SendKeyboardText((const char *) text_string);
 }
 void PSP_HideScreenKeyboard(_THIS, SDL_Window *window)
 {

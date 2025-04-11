@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -688,16 +688,14 @@ static ControllerMapping_t *SDL_CreateMappingForWGIController(SDL_JoystickGUID g
 /*
  * Helper function to scan the mappings database for a controller with the specified GUID
  */
-static ControllerMapping_t *SDL_PrivateMatchControllerMappingForGUID(SDL_JoystickGUID guid, SDL_bool match_crc, SDL_bool match_version)
+static ControllerMapping_t *SDL_PrivateMatchControllerMappingForGUID(SDL_JoystickGUID guid, SDL_bool match_version, SDL_bool exact_match_crc)
 {
-    ControllerMapping_t *mapping;
+    ControllerMapping_t *mapping, *best_match = NULL;
     Uint16 crc = 0;
 
     SDL_AssertJoysticksLocked();
 
-    if (match_crc) {
-        SDL_GetJoystickGUIDInfo(guid, NULL, NULL, NULL, &crc);
-    }
+    SDL_GetJoystickGUIDInfo(guid, NULL, NULL, NULL, &crc);
 
     /* Clear the CRC from the GUID for matching, the mappings never include it in the GUID */
     SDL_SetJoystickGUIDCRC(&guid, 0);
@@ -719,20 +717,27 @@ static ControllerMapping_t *SDL_PrivateMatchControllerMappingForGUID(SDL_Joystic
         }
 
         if (SDL_memcmp(&guid, &mapping_guid, sizeof(guid)) == 0) {
-            Uint16 mapping_crc = 0;
+            const char *crc_string = SDL_strstr(mapping->mapping, SDL_CONTROLLER_CRC_FIELD);
+            if (crc_string) {
+                Uint16 mapping_crc = (Uint16)SDL_strtol(crc_string + SDL_CONTROLLER_CRC_FIELD_SIZE, NULL, 16);
 
-            if (match_crc) {
-                const char *crc_string = SDL_strstr(mapping->mapping, SDL_CONTROLLER_CRC_FIELD);
-                if (crc_string) {
-                    mapping_crc = (Uint16)SDL_strtol(crc_string + SDL_CONTROLLER_CRC_FIELD_SIZE, NULL, 16);
+                if (mapping_crc != crc) {
+                    /* This mapping specified a CRC and they don't match */
+                    continue;
                 }
-            }
-            if (crc == mapping_crc) {
+
+                /* An exact match, including CRC */
                 return mapping;
+            } else if (crc && exact_match_crc) {
+                return NULL;
+            }
+
+            if (!best_match) {
+                best_match = mapping;
             }
         }
     }
-    return NULL;
+    return best_match;
 }
 
 /*
@@ -741,19 +746,8 @@ static ControllerMapping_t *SDL_PrivateMatchControllerMappingForGUID(SDL_Joystic
 static ControllerMapping_t *SDL_PrivateGetControllerMappingForGUID(SDL_JoystickGUID guid, SDL_bool adding_mapping)
 {
     ControllerMapping_t *mapping;
-    Uint16 vendor, product, crc;
 
-    SDL_GetJoystickGUIDInfo(guid, &vendor, &product, NULL, &crc);
-    if (crc) {
-        /* First check for exact CRC matching */
-        mapping = SDL_PrivateMatchControllerMappingForGUID(guid, SDL_TRUE, SDL_TRUE);
-        if (mapping) {
-            return mapping;
-        }
-    }
-
-    /* Now check for a mapping without CRC */
-    mapping = SDL_PrivateMatchControllerMappingForGUID(guid, SDL_FALSE, SDL_TRUE);
+    mapping = SDL_PrivateMatchControllerMappingForGUID(guid, SDL_TRUE, adding_mapping);
     if (mapping) {
         return mapping;
     }
@@ -767,13 +761,6 @@ static ControllerMapping_t *SDL_PrivateGetControllerMappingForGUID(SDL_JoystickG
 
     if (SDL_JoystickGUIDUsesVersion(guid)) {
         /* Try again, ignoring the version */
-        if (crc) {
-            mapping = SDL_PrivateMatchControllerMappingForGUID(guid, SDL_TRUE, SDL_FALSE);
-            if (mapping) {
-                return mapping;
-            }
-        }
-
         mapping = SDL_PrivateMatchControllerMappingForGUID(guid, SDL_FALSE, SDL_FALSE);
         if (mapping) {
             return mapping;
@@ -1391,9 +1378,6 @@ static ControllerMapping_t *SDL_PrivateGetControllerMappingForNameAndGUID(const 
     }
 #endif /* __LINUX__ */
 
-    if (!mapping) {
-        mapping = s_pDefaultMapping;
-    }
     return mapping;
 }
 
@@ -1506,6 +1490,9 @@ static ControllerMapping_t *SDL_PrivateGetControllerMapping(int device_index)
         }
     }
 
+    if (!mapping) {
+        mapping = s_pDefaultMapping;
+    }
     return mapping;
 }
 
@@ -2059,7 +2046,7 @@ SDL_bool SDL_IsGameControllerNameAndGUID(const char *name, SDL_JoystickGUID guid
 
     SDL_LockJoysticks();
     {
-        if (SDL_PrivateGetControllerMappingForNameAndGUID(name, guid) != NULL) {
+        if (s_pDefaultMapping || SDL_PrivateGetControllerMappingForNameAndGUID(name, guid) != NULL) {
             retval = SDL_TRUE;
         } else {
             retval = SDL_FALSE;
@@ -2137,28 +2124,22 @@ SDL_bool SDL_ShouldIgnoreGameController(const char *name, SDL_JoystickGUID guid)
         return SDL_TRUE;
     }
 
-    if (SDL_allowed_controllers.num_included_entries == 0 &&
-        SDL_ignored_controllers.num_included_entries == 0) {
-        return SDL_FALSE;
-    }
-
     SDL_GetJoystickGUIDInfo(guid, &vendor, &product, &version, NULL);
 
-    if (SDL_GetHintBoolean("SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD", SDL_FALSE)) {
-        /* We shouldn't ignore Steam's virtual gamepad since it's using the hints to filter out the real controllers so it can remap input for the virtual controller */
-        /* https://partner.steamgames.com/doc/features/steam_controller/steam_input_gamepad_emulation_bestpractices */
-        SDL_bool bSteamVirtualGamepad = SDL_FALSE;
-#if defined(__LINUX__)
-        bSteamVirtualGamepad = (vendor == USB_VENDOR_VALVE && product == USB_PRODUCT_STEAM_VIRTUAL_GAMEPAD);
-#elif defined(__MACOSX__)
-        bSteamVirtualGamepad = (vendor == USB_VENDOR_MICROSOFT && product == USB_PRODUCT_XBOX360_WIRED_CONTROLLER && version == 1);
-#elif defined(__WIN32__)
-        /* We can't tell on Windows, but Steam will block others in input hooks */
-        bSteamVirtualGamepad = SDL_TRUE;
-#endif
-        if (bSteamVirtualGamepad) {
-            return SDL_FALSE;
-        }
+#ifdef __WIN32__
+    if (SDL_GetHintBoolean("SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD", SDL_FALSE) &&
+        SDL_GetHintBoolean("STEAM_COMPAT_PROTON", SDL_FALSE)) {
+        /* We are launched by Steam and running under Proton
+         * We can't tell whether this controller is a Steam Virtual Gamepad,
+         * so assume that Proton is doing the appropriate filtering of controllers
+         * and anything we see here is fine to use.
+         */
+        return SDL_FALSE;
+    }
+#endif // __WIN32__
+
+    if (SDL_IsJoystickSteamVirtualGamepad(vendor, product, version)) {
+        return !SDL_GetHintBoolean("SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD", SDL_FALSE);
     }
 
     if (SDL_allowed_controllers.num_included_entries > 0) {
@@ -2396,23 +2377,19 @@ Uint8 SDL_GameControllerGetButton(SDL_GameController *gamecontroller, SDL_GameCo
                     if (binding->input.axis.axis_min < binding->input.axis.axis_max) {
                         valid_input_range = (value >= binding->input.axis.axis_min && value <= binding->input.axis.axis_max);
                         if (valid_input_range) {
-                            retval = (value >= threshold) ? SDL_PRESSED : SDL_RELEASED;
-                            break;
+                            retval |= (value >= threshold) ? SDL_PRESSED : SDL_RELEASED;
                         }
                     } else {
                         valid_input_range = (value >= binding->input.axis.axis_max && value <= binding->input.axis.axis_min);
                         if (valid_input_range) {
-                            retval = (value <= threshold) ? SDL_PRESSED : SDL_RELEASED;
-                            break;
+                            retval |= (value <= threshold) ? SDL_PRESSED : SDL_RELEASED;
                         }
                     }
                 } else if (binding->inputType == SDL_CONTROLLER_BINDTYPE_BUTTON) {
-                    retval = SDL_JoystickGetButton(gamecontroller->joystick, binding->input.button);
-                    break;
+                    retval |= SDL_JoystickGetButton(gamecontroller->joystick, binding->input.button);
                 } else if (binding->inputType == SDL_CONTROLLER_BINDTYPE_HAT) {
                     int hat_mask = SDL_JoystickGetHat(gamecontroller->joystick, binding->input.hat.hat);
-                    retval = (hat_mask & binding->input.hat.hat_mask) ? SDL_PRESSED : SDL_RELEASED;
-                    break;
+                    retval |= (hat_mask & binding->input.hat.hat_mask) ? SDL_PRESSED : SDL_RELEASED;
                 }
             }
         }

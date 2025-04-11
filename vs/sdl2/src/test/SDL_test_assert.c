@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -107,7 +107,7 @@ void SDLTest_AssertPass(SDL_PRINTF_FORMAT_STRING const char *assertDescription, 
 /*
  * Resets the assert summary counters to zero.
  */
-void SDLTest_ResetAssertSummary()
+void SDLTest_ResetAssertSummary(void)
 {
     SDLTest_AssertsPassed = 0;
     SDLTest_AssertsFailed = 0;
@@ -117,7 +117,7 @@ void SDLTest_ResetAssertSummary()
  * Logs summary of all assertions (total, pass, fail) since last reset
  * as INFO (failed==0) or ERROR (failed > 0).
  */
-void SDLTest_LogAssertSummary()
+void SDLTest_LogAssertSummary(void)
 {
     int totalAsserts = SDLTest_AssertsPassed + SDLTest_AssertsFailed;
     if (SDLTest_AssertsFailed == 0) {
@@ -130,7 +130,7 @@ void SDLTest_LogAssertSummary()
 /*
  * Converts the current assert state into a test result
  */
-int SDLTest_AssertSummaryToTestResult()
+int SDLTest_AssertSummaryToTestResult(void)
 {
     if (SDLTest_AssertsFailed > 0) {
         return TEST_RESULT_FAILED;
