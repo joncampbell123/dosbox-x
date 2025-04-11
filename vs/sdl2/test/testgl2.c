@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -78,7 +78,7 @@ quit(int rc)
 }
 
 static void
-Render()
+Render(void)
 {
     static float color[8][3] = {
         { 1.0, 1.0, 0.0 },

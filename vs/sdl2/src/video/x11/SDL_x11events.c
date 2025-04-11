@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -676,9 +676,10 @@ static void X11_HandleClipboardEvent(_THIS, const XEvent *xevent)
                                            &overflow, &seln_data) == Success) {
                     if (seln_format != None) {
                         X11_XChangeProperty(display, req->requestor, req->property,
-                                            sevent.xselection.target, seln_format, PropModeReplace,
+                                            req->target, 8, PropModeReplace,
                                             seln_data, nbytes);
                         sevent.xselection.property = req->property;
+                        sevent.xselection.target = req->target;
                         X11_XFree(seln_data);
                         break;
                     } else {

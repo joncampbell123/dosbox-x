@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -42,15 +42,7 @@
 #endif
 
 #if defined(__EMSCRIPTEN__)
-    #include <emscripten.h>
-    /* older Emscriptens don't have this, but we need to for wasm64 compatibility. */
-    #ifndef MAIN_THREAD_EM_ASM_PTR
-        #ifdef __wasm64__
-            #error You need to upgrade your Emscripten compiler to support wasm64
-        #else
-            #define MAIN_THREAD_EM_ASM_PTR MAIN_THREAD_EM_ASM_INT
-        #endif
-    #endif
+#include <emscripten.h>
 #endif
 
 /* The size of the stack buffer to use for rendering assert messages. */
@@ -259,7 +251,7 @@ static SDL_assert_state SDLCALL SDL_PromptAssertion(const SDL_assert_data *data,
         for (;;) {
             SDL_bool okay = SDL_TRUE;
             /* *INDENT-OFF* */ /* clang-format off */
-            char *buf = (char *) MAIN_THREAD_EM_ASM_PTR({
+            int reply = MAIN_THREAD_EM_ASM_INT({
                 var str =
                     UTF8ToString($0) + '\n\n' +
                     'Abort/Retry/Ignore/AlwaysIgnore? [ariA] :';
@@ -267,32 +259,37 @@ static SDL_assert_state SDLCALL SDL_PromptAssertion(const SDL_assert_data *data,
                 if (reply === null) {
                     reply = "i";
                 }
-                return allocate(intArrayFromString(reply), 'i8', ALLOC_NORMAL);
+                return reply.length === 1 ? reply.charCodeAt(0) : -1;
             }, message);
             /* *INDENT-ON* */ /* clang-format on */
 
-            if (SDL_strcmp(buf, "a") == 0) {
+            switch (reply) {
+            case 'a':
                 state = SDL_ASSERTION_ABORT;
 #if 0 /* (currently) no break functionality on Emscripten */
-            } else if (SDL_strcmp(buf, "b") == 0) {
+            case 'b':
                 state = SDL_ASSERTION_BREAK;
+                break;
 #endif
-            } else if (SDL_strcmp(buf, "r") == 0) {
+            case 'r':
                 state = SDL_ASSERTION_RETRY;
-            } else if (SDL_strcmp(buf, "i") == 0) {
+                break;
+            case 'i':
                 state = SDL_ASSERTION_IGNORE;
-            } else if (SDL_strcmp(buf, "A") == 0) {
+                break;
+            case 'A':
                 state = SDL_ASSERTION_ALWAYS_IGNORE;
-            } else {
+                break;
+            default:
                 okay = SDL_FALSE;
+                break;
             }
-            free(buf);
 
             if (okay) {
                 break;
             }
         }
-#elif defined(HAVE_STDIO_H)
+#elif defined(HAVE_STDIO_H) && !defined(__3DS__)
         /* this is a little hacky. */
         for (;;) {
             char buf[32];
@@ -319,6 +316,8 @@ static SDL_assert_state SDLCALL SDL_PromptAssertion(const SDL_assert_data *data,
                 break;
             }
         }
+#else
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Assertion Failed", message, window);
 #endif /* HAVE_STDIO_H */
     }
 

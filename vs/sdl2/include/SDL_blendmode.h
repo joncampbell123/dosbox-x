@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,9 +20,9 @@
 */
 
 /**
- *  \file SDL_blendmode.h
+ * # CategoryBlendmode
  *
- *  Header file declaring the SDL_BlendMode enumeration
+ * Header file declaring the SDL_BlendMode enumeration
  */
 
 #ifndef SDL_blendmode_h_
@@ -35,9 +35,9 @@ extern "C" {
 #endif
 
 /**
- *  \brief The blend mode used in SDL_RenderCopy() and drawing operations.
+ * The blend mode used in SDL_RenderCopy() and drawing operations.
  */
-typedef enum
+typedef enum SDL_BlendMode
 {
     SDL_BLENDMODE_NONE = 0x00000000,     /**< no blending
                                               dstRGBA = srcRGBA */
@@ -60,9 +60,10 @@ typedef enum
 } SDL_BlendMode;
 
 /**
- *  \brief The blend operation used when combining source and destination pixel components
+ * The blend operation used when combining source and destination pixel
+ * components
  */
-typedef enum
+typedef enum SDL_BlendOperation
 {
     SDL_BLENDOPERATION_ADD              = 0x1,  /**< dst + src: supported by all renderers */
     SDL_BLENDOPERATION_SUBTRACT         = 0x2,  /**< src - dst : supported by D3D9, D3D11, OpenGL, OpenGLES */
@@ -72,9 +73,9 @@ typedef enum
 } SDL_BlendOperation;
 
 /**
- *  \brief The normalized factor used to multiply pixel components
+ * The normalized factor used to multiply pixel components
  */
-typedef enum
+typedef enum SDL_BlendFactor
 {
     SDL_BLENDFACTOR_ZERO                = 0x1,  /**< 0, 0, 0, 0 */
     SDL_BLENDFACTOR_ONE                 = 0x2,  /**< 1, 1, 1, 1 */
@@ -158,18 +159,18 @@ typedef enum
  * case.
  *
  * \param srcColorFactor the SDL_BlendFactor applied to the red, green, and
- *                       blue components of the source pixels
+ *                       blue components of the source pixels.
  * \param dstColorFactor the SDL_BlendFactor applied to the red, green, and
- *                       blue components of the destination pixels
+ *                       blue components of the destination pixels.
  * \param colorOperation the SDL_BlendOperation used to combine the red,
  *                       green, and blue components of the source and
- *                       destination pixels
+ *                       destination pixels.
  * \param srcAlphaFactor the SDL_BlendFactor applied to the alpha component of
- *                       the source pixels
+ *                       the source pixels.
  * \param dstAlphaFactor the SDL_BlendFactor applied to the alpha component of
- *                       the destination pixels
+ *                       the destination pixels.
  * \param alphaOperation the SDL_BlendOperation used to combine the alpha
- *                       component of the source and destination pixels
+ *                       component of the source and destination pixels.
  * \returns an SDL_BlendMode that represents the chosen factors and
  *          operations.
  *

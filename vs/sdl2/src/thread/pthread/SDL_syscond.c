@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -114,7 +114,7 @@ int SDL_CondWaitTimeout(SDL_cond *cond, SDL_mutex *mutex, Uint32 ms)
     abstime.tv_sec = delta.tv_sec + (ms / 1000);
     abstime.tv_nsec = (long)(delta.tv_usec + (ms % 1000) * 1000) * 1000;
 #endif
-    if (abstime.tv_nsec > 1000000000) {
+    if (abstime.tv_nsec >= 1000000000) {
         abstime.tv_sec += 1;
         abstime.tv_nsec -= 1000000000;
     }

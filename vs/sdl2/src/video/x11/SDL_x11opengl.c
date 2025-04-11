@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
   Copyright (C) 2021 NVIDIA Corporation
 
   This software is provided 'as-is', without any express or implied
@@ -575,6 +575,7 @@ static int X11_GL_GetAttributes(_THIS, Display *display, int screen, int *attrib
     }
 
     if (_this->gl_config.floatbuffers) {
+        attribs[i++] = GLX_RENDER_TYPE;
         attribs[i++] = GLX_RGBA_FLOAT_TYPE_ARB;
     }
 

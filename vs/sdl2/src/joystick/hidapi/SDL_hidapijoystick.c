@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -197,7 +197,13 @@ SDL_bool HIDAPI_SupportsPlaystationDetection(Uint16 vendor, Uint16 product)
     case USB_VENDOR_SHANWAN_ALT:
         return SDL_TRUE;
     case USB_VENDOR_THRUSTMASTER:
-        return SDL_TRUE;
+        /* Most of these are wheels, don't have the full set of effects, and
+         * at least in the case of the T248 and T300 RS, the hid-tmff2 driver
+         * puts them in a non-standard report mode and they can't be read.
+         *
+         * If these should use the HIDAPI driver, add them to controller_list.h
+         */
+        return SDL_FALSE;
     case USB_VENDOR_ZEROPLUS:
         return SDL_TRUE;
     case 0x7545 /* SZ-MYPOWER */:
@@ -280,6 +286,7 @@ static SDL_GameControllerType SDL_GetJoystickGameControllerProtocol(const char *
             0x044f, /* Thrustmaster */
             0x045e, /* Microsoft */
             0x0738, /* Mad Catz */
+            0x0b05, /* ASUS */
             0x0e6f, /* PDP */
             0x0f0d, /* Hori */
             0x10f5, /* Turtle Beach */
@@ -883,10 +890,8 @@ static SDL_HIDAPI_Device *HIDAPI_AddDevice(const struct SDL_hid_device_info *inf
         return NULL;
     }
     device->magic = &SDL_HIDAPI_device_magic;
-    device->path = SDL_strdup(info->path);
-    if (!device->path) {
-        SDL_free(device);
-        return NULL;
+    if (info->path) {
+        device->path = SDL_strdup(info->path);
     }
     device->seen = SDL_TRUE;
     device->vendor_id = info->vendor_id;
@@ -928,6 +933,7 @@ static SDL_HIDAPI_Device *HIDAPI_AddDevice(const struct SDL_hid_device_info *inf
     device->guid = SDL_CreateJoystickGUID(SDL_HARDWARE_BUS_USB, device->vendor_id, device->product_id, device->version, device->manufacturer_string, device->product_string, 'h', 0);
     device->joystick_type = SDL_JOYSTICK_TYPE_GAMECONTROLLER;
     device->type = SDL_GetJoystickGameControllerProtocol(device->name, device->vendor_id, device->product_id, device->interface_number, device->interface_class, device->interface_subclass, device->interface_protocol);
+    device->steam_virtual_gamepad_slot = -1;
 
     if (num_children > 0) {
         int i;
@@ -1007,7 +1013,7 @@ static void HIDAPI_DelDevice(SDL_HIDAPI_Device *device)
     }
 }
 
-static SDL_bool HIDAPI_CreateCombinedJoyCons()
+static SDL_bool HIDAPI_CreateCombinedJoyCons(void)
 {
     SDL_HIDAPI_Device *device, *combined;
     SDL_HIDAPI_Device *joycons[2] = { NULL, NULL };
@@ -1379,6 +1385,12 @@ static const char *HIDAPI_JoystickGetDevicePath(int device_index)
 
 static int HIDAPI_JoystickGetDeviceSteamVirtualGamepadSlot(int device_index)
 {
+    SDL_HIDAPI_Device *device;
+
+    device = HIDAPI_GetDeviceByIndex(device_index, NULL);
+    if (device) {
+        return device->steam_virtual_gamepad_slot;
+    }
     return -1;
 }
 

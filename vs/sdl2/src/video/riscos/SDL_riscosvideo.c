@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -89,6 +89,9 @@ static SDL_VideoDevice *RISCOS_CreateDevice(void)
     device->DestroyWindowFramebuffer = RISCOS_DestroyWindowFramebuffer;
 
     device->free = RISCOS_DeleteDevice;
+
+    /* TODO: Support windowed mode */
+    device->quirk_flags = VIDEO_DEVICE_QUIRK_FULLSCREEN_ONLY;
 
     return device;
 }

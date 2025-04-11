@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -83,6 +83,10 @@
 #ifndef HWCAP_NEON
 #define HWCAP_NEON (1 << 12)
 #endif
+#endif
+
+#if defined (__FreeBSD__)
+#include <sys/param.h>
 #endif
 
 #if defined(__ANDROID__) && defined(__arm__) && !defined(HAVE_GETAUXVAL)
@@ -891,6 +895,7 @@ static const char *SDL_GetCPUName(void)
 int SDL_GetCPUCacheLineSize(void)
 {
     const char *cpuType = SDL_GetCPUType();
+    int cacheline_size = SDL_CACHELINE_SIZE; /* initial guess */
     int a, b, c, d;
     (void)a;
     (void)b;
@@ -898,14 +903,34 @@ int SDL_GetCPUCacheLineSize(void)
     (void)d;
     if (SDL_strcmp(cpuType, "GenuineIntel") == 0 || SDL_strcmp(cpuType, "CentaurHauls") == 0 || SDL_strcmp(cpuType, "  Shanghai  ") == 0) {
         cpuid(0x00000001, a, b, c, d);
-        return ((b >> 8) & 0xff) * 8;
+        cacheline_size = ((b >> 8) & 0xff) * 8;
     } else if (SDL_strcmp(cpuType, "AuthenticAMD") == 0 || SDL_strcmp(cpuType, "HygonGenuine") == 0) {
         cpuid(0x80000005, a, b, c, d);
-        return c & 0xff;
+        cacheline_size = c & 0xff;
     } else {
-        /* Just make a guess here... */
-        return SDL_CACHELINE_SIZE;
+#if defined(HAVE_SYSCONF) && defined(_SC_LEVEL1_DCACHE_LINESIZE)
+        if ((cacheline_size = sysconf(_SC_LEVEL1_DCACHE_LINESIZE)) > 0) {
+            return cacheline_size;
+        } else {
+            cacheline_size = SDL_CACHELINE_SIZE;
+        }
+#endif
+#if defined(__LINUX__)
+        {
+            FILE *f = fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
+            if (f) {
+                int size;
+                if (fscanf(f, "%d", &size) == 1) {
+                    cacheline_size = size;
+                }
+                fclose(f);
+            }
+        }
+#elif defined(__FreeBSD__) && defined(CACHE_LINE_SIZE)
+        cacheline_size = CACHE_LINE_SIZE;
+#endif
     }
+    return cacheline_size;
 }
 
 static Uint32 SDL_CPUFeatures = 0xFFFFFFFF;
@@ -1239,7 +1264,7 @@ void SDL_SIMDFree(void *ptr)
 
 #include <stdio.h>
 
-int main()
+int main(void)
 {
     printf("CPU count: %d\n", SDL_GetCPUCount());
     printf("CPU type: %s\n", SDL_GetCPUType());

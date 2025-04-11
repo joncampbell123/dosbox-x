@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -59,11 +59,17 @@ extern void SDL_SYS_WaitThread(SDL_Thread *thread);
 /* Mark thread as cleaned up as soon as it exits, without joining. */
 extern void SDL_SYS_DetachThread(SDL_Thread *thread);
 
+/* Initialize the global TLS data */
+extern void SDL_SYS_InitTLSData(void);
+
 /* Get the thread local storage for this thread */
 extern SDL_TLSData *SDL_SYS_GetTLSData(void);
 
 /* Set the thread local storage for this thread */
 extern int SDL_SYS_SetTLSData(SDL_TLSData *data);
+
+/* Quit the global TLS data */
+extern void SDL_SYS_QuitTLSData(void);
 
 /* This is for internal SDL use, so we don't need #ifdefs everywhere. */
 extern SDL_Thread *

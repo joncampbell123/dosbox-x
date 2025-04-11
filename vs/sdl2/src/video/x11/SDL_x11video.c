@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -50,7 +50,7 @@ static int X11_VideoInit(_THIS);
 static void X11_VideoQuit(_THIS);
 
 /* Find out what class name we should use */
-static char *get_classname()
+static char *get_classname(void)
 {
     char *spot;
 #if defined(__LINUX__) || defined(__FREEBSD__)

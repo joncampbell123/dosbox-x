@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -103,7 +103,7 @@ print_modifiers(char **text, size_t *maxlen)
 }
 
 static void
-PrintModifierState()
+PrintModifierState(void)
 {
     char message[512];
     char *spot;
@@ -162,7 +162,7 @@ PrintText(const char *eventtype, const char *text)
     SDL_Log("%s Text (%s): \"%s%s\"\n", eventtype, expanded, *text == '"' ? "\\" : "", text);
 }
 
-void loop()
+void loop(void)
 {
     SDL_Event event;
     /* Check for events */

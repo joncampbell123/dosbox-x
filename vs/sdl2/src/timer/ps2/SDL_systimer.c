@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -34,6 +34,8 @@
 static uint64_t start;
 static SDL_bool ticks_started = SDL_FALSE;
 
+static Uint64 BUSCLK_MS = (kBUSCLK / 1000);
+
 void SDL_TicksInit(void)
 {
     if (ticks_started) {
@@ -58,7 +60,7 @@ Uint64 SDL_GetTicks64(void)
     }
 
     now = GetTimerSystemTime();
-    return (Uint64)((now - start) / (kBUSCLK / CLOCKS_PER_SEC));
+    return (Uint64)((now - start) / BUSCLK_MS);
 }
 
 Uint64 SDL_GetPerformanceCounter(void)

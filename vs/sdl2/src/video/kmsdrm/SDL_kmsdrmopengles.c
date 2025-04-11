@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -194,7 +194,7 @@ int KMSDRM_GLES_SwapWindow(_THIS, SDL_Window *window)
            we have waited here, there won't be a pending pageflip so the
            WaitPageflip at the beginning of this function will be a no-op.
            Just leave it here and don't worry.
-           Run your SDL2 program with "SDL_KMSDRM_DOUBLE_BUFFER=1 <program_name>"
+           Run your SDL2 program with "SDL_VIDEO_DOUBLE_BUFFER=1 <program_name>"
            to enable this. */
         if (windata->double_buffer) {
             if (!KMSDRM_WaitPageflip(_this, windata)) {

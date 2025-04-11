@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -64,6 +64,7 @@
 #include <xkbcommon/xkbcommon-compose.h>
 #include "../../events/imKStoUCS.h"
 #include "../../events/SDL_keysym_to_scancode_c.h"
+#include "cursor-shape-v1-client-protocol.h"
 
 /* Clamp the wl_seat version on older versions of libwayland. */
 #if SDL_WAYLAND_CHECK_VERSION(1, 21, 0)
@@ -178,6 +179,17 @@ static SDL_bool Wayland_SurfaceHasActiveTouches(struct wl_surface *surface)
     return SDL_FALSE;
 }
 
+void Wayland_CreateCursorShapeDevice(struct SDL_WaylandInput *input)
+{
+    SDL_VideoData *viddata = input->display;
+
+    if (viddata->cursor_shape_manager) {
+        if (input->pointer && !input->cursor_shape) {
+            input->cursor_shape = wp_cursor_shape_manager_v1_get_pointer(viddata->cursor_shape_manager, input->pointer);
+        }
+    }
+}
+
 /* Returns SDL_TRUE if a key repeat event was due */
 static SDL_bool keyboard_repeat_handle(SDL_WaylandKeyboardRepeat *repeat_info, uint32_t elapsed)
 {
@@ -248,12 +260,25 @@ static SDL_bool keyboard_repeat_key_is_set(SDL_WaylandKeyboardRepeat *repeat_inf
     return repeat_info->is_initialized && repeat_info->is_key_down && key == repeat_info->key;
 }
 
+static void sync_done_handler(void *data, struct wl_callback *callback, uint32_t callback_data)
+{
+    /* Nothing to do, just destroy the callback */
+    wl_callback_destroy(callback);
+}
+
+static struct wl_callback_listener sync_listener = {
+    sync_done_handler
+};
+
 void Wayland_SendWakeupEvent(_THIS, SDL_Window *window)
 {
     SDL_VideoData *d = _this->driverdata;
 
-    /* TODO: Maybe use a pipe to avoid the compositor roundtrip? */
-    wl_display_sync(d->display);
+    /* Queue a sync event to unblock the event queue fd if it's empty and being waited on.
+     * TODO: Maybe use a pipe to avoid the compositor roundtrip?
+     */
+    struct wl_callback *cb = wl_display_sync(d->display);
+    wl_callback_add_listener(cb, &sync_listener, NULL);
     WAYLAND_wl_display_flush(d->display);
 }
 
@@ -907,6 +932,28 @@ static void touch_handler_frame(void *data, struct wl_touch *touch)
 
 static void touch_handler_cancel(void *data, struct wl_touch *touch)
 {
+	struct SDL_WaylandTouchPoint *tp;
+	while ((tp = touch_points.head)) {
+		wl_fixed_t fx = 0, fy = 0;
+		struct wl_surface *surface = NULL;
+		int id = tp->id;
+
+		touch_del(id, &fx, &fy, &surface);
+
+		if (surface) {
+			SDL_WindowData *window_data = (SDL_WindowData *)wl_surface_get_user_data(surface);
+
+			if (window_data) {
+				const double dblx = wl_fixed_to_double(fx) * window_data->pointer_scale_x;
+				const double dbly = wl_fixed_to_double(fy) * window_data->pointer_scale_y;
+				const float x = dblx / window_data->sdlwindow->w;
+				const float y = dbly / window_data->sdlwindow->h;
+
+				SDL_SendTouch((SDL_TouchID)(intptr_t)touch, (SDL_FingerID)id,
+					      window_data->sdlwindow, SDL_FALSE, x, y, 1.0f);
+			}
+		}
+	}
 }
 
 static const struct wl_touch_listener touch_listener = {
@@ -1293,10 +1340,8 @@ static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
         keyboard_input_get_text(text, input, key, SDL_RELEASED, &handled_by_ime);
     }
 
-    if (!handled_by_ime) {
-        scancode = Wayland_get_scancode_from_key(input, key + 8);
-        SDL_SendKeyboardKey(state == WL_KEYBOARD_KEY_STATE_PRESSED ? SDL_PRESSED : SDL_RELEASED, scancode);
-    }
+    scancode = Wayland_get_scancode_from_key(input, key + 8);
+    SDL_SendKeyboardKey(state == WL_KEYBOARD_KEY_STATE_PRESSED ? SDL_PRESSED : SDL_RELEASED, scancode);
 
     Wayland_data_device_set_serial(input->data_device, serial);
     Wayland_primary_selection_device_set_serial(input->primary_selection_device, serial);
@@ -1395,10 +1440,15 @@ static void seat_handle_capabilities(void *data, struct wl_seat *seat,
         input->pointer = wl_seat_get_pointer(seat);
         SDL_memset(&input->pointer_curr_axis_info, 0, sizeof(input->pointer_curr_axis_info));
         input->display->pointer = input->pointer;
+        Wayland_CreateCursorShapeDevice(input);
         wl_pointer_set_user_data(input->pointer, input);
         wl_pointer_add_listener(input->pointer, &pointer_listener,
                                 input);
     } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && input->pointer) {
+        if (input->cursor_shape) {
+            wp_cursor_shape_device_v1_destroy(input->cursor_shape);
+            input->cursor_shape = NULL;
+        }
         wl_pointer_destroy(input->pointer);
         input->pointer = NULL;
         input->display->pointer = NULL;
@@ -2134,6 +2184,18 @@ void Wayland_add_primary_selection_device_manager(SDL_VideoData *d, uint32_t id,
 
 void Wayland_add_text_input_manager(SDL_VideoData *d, uint32_t id, uint32_t version)
 {
+#ifdef HAVE_FCITX
+    const char *im_module = SDL_getenv("SDL_IM_MODULE");
+    if (im_module && SDL_strcmp(im_module, "fcitx") == 0) {
+        /* Override the Wayland text-input protocol when Fcitx is enabled, like how GTK_IM_MODULE does.
+         *
+         * The Fcitx wiki discourages enabling it under Wayland via SDL_IM_MODULE, so its presence must
+         * be intentional, and this workaround is needed for fixing key repeat detection.
+         */
+        return;
+    }
+#endif
+
     d->text_input_manager = wl_registry_bind(d->registry, id, &zwp_text_input_manager_v3_interface, 1);
 
     if (d->input) {
@@ -2522,6 +2584,9 @@ void Wayland_display_destroy_input(SDL_VideoData *d)
         if (input->primary_selection_device->selection_offer) {
             Wayland_primary_selection_offer_destroy(input->primary_selection_device->selection_offer);
         }
+        if (input->primary_selection_device->primary_selection_device) {
+            zwp_primary_selection_device_v1_destroy(input->primary_selection_device->primary_selection_device);
+        }
         SDL_free(input->primary_selection_device);
     }
 
@@ -2532,6 +2597,10 @@ void Wayland_display_destroy_input(SDL_VideoData *d)
 
     if (input->keyboard) {
         wl_keyboard_destroy(input->keyboard);
+    }
+
+    if (input->cursor_shape) {
+        wp_cursor_shape_device_v1_destroy(input->cursor_shape);
     }
 
     if (input->pointer) {

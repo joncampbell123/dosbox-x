@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -282,13 +282,15 @@ struct SDL_Renderer
     size_t vertex_data_used;
     size_t vertex_data_allocation;
 
+    SDL_bool destroyed;   /* already destroyed by SDL_DestroyWindow; just free this struct in SDL_DestroyRenderer. */
+
     void *driverdata;
 };
 
 /* Define the SDL render driver structure */
 struct SDL_RenderDriver
 {
-    SDL_Renderer *(*CreateRenderer)(SDL_Window *window, Uint32 flags);
+    int (*CreateRenderer)(SDL_Renderer *renderer, SDL_Window *window, Uint32 flags);
 
     /* Info about the renderer capabilities */
     SDL_RendererInfo info;
@@ -323,6 +325,9 @@ extern void *SDL_AllocateRenderVertices(SDL_Renderer *renderer, const size_t num
 
 extern int SDL_PrivateLowerBlitScaled(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect, SDL_ScaleMode scaleMode);
 extern int SDL_PrivateUpperBlitScaled(SDL_Surface *src, const SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect, SDL_ScaleMode scaleMode);
+
+/* Let the video subsystem destroy a renderer without making its pointer invalid. */
+extern void SDL_DestroyRendererWithoutFreeing(SDL_Renderer *renderer);
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -63,6 +63,13 @@ static void SDL_FillRect##bpp##SSE(Uint8 *pixels, int pitch, Uint32 color, int w
     Uint8 *p = NULL; \
  \
     SSE_BEGIN; \
+ \
+    /* If the number of bytes per row is equal to the pitch, treat */ \
+    /* all rows as one long continuous row (for better performance) */ \
+    if ((w) * (bpp) == pitch) { \
+        w = w * h; \
+        h = 1; \
+    } \
  \
     while (h--) { \
         n = w * bpp; \

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -155,6 +155,7 @@ typedef enum
 {
     VIDEO_DEVICE_QUIRK_DISABLE_DISPLAY_MODE_SWITCHING = 0x01,
     VIDEO_DEVICE_QUIRK_DISABLE_UNSET_FULLSCREEN_ON_MINIMIZE = 0x02,
+    VIDEO_DEVICE_QUIRK_FULLSCREEN_ONLY = 0x04,
 } DeviceQuirkFlags;
 
 struct SDL_VideoDevice
@@ -511,6 +512,7 @@ extern void SDL_OnWindowShown(SDL_Window *window);
 extern void SDL_OnWindowHidden(SDL_Window *window);
 extern void SDL_OnWindowMoved(SDL_Window *window);
 extern void SDL_OnWindowResized(SDL_Window *window);
+extern void SDL_OnWindowLiveResizeUpdate(SDL_Window *window);
 extern void SDL_OnWindowMinimized(SDL_Window *window);
 extern void SDL_OnWindowRestored(SDL_Window *window);
 extern void SDL_OnWindowEnter(SDL_Window *window);

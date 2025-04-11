@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -504,7 +504,7 @@ static const SDLTest_SurfaceImage_t SDLTest_imagePrimitives = {
 /**
  * \brief Returns the Primitives test image as SDL_Surface.
  */
-SDL_Surface *SDLTest_ImagePrimitives()
+SDL_Surface *SDLTest_ImagePrimitives(void)
 {
     SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormatFrom(
         (void *)SDLTest_imagePrimitives.pixel_data,

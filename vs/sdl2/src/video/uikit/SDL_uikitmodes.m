@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -34,13 +34,17 @@
 - (instancetype)initWithScreen:(UIScreen*)screen
 {
     if (self = [super init]) {
+        NSDictionary* devices;
+        struct utsname systemInfo;
+        NSString* deviceName;
+        id foundDPI;
         self.uiscreen = screen;
 
         /*
          * A well up to date list of device info can be found here:
          * https://github.com/lmirosevic/GBDeviceInfo/blob/master/GBDeviceInfo/GBDeviceInfo_iOS.m
          */
-        NSDictionary* devices = @{
+        devices = @{
             @"iPhone1,1": @163,
             @"iPhone1,2": @163,
             @"iPhone2,1": @163,
@@ -138,11 +142,10 @@
             @"iPod9,1": @326,
         };
 
-        struct utsname systemInfo;
         uname(&systemInfo);
-        NSString* deviceName =
+        deviceName =
             [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
-        id foundDPI = devices[deviceName];
+        foundDPI = devices[deviceName];
         if (foundDPI) {
             self.screenDPI = (float)[foundDPI integerValue];
         } else {
@@ -296,6 +299,7 @@ int UIKit_AddDisplay(UIScreen *uiscreen, SDL_bool send_event)
     CGSize size = uiscreen.bounds.size;
     SDL_VideoDisplay display;
     SDL_DisplayMode mode;
+    SDL_DisplayData *data;
     SDL_zero(mode);
 
     /* Make sure the width/height are oriented correctly */
@@ -319,7 +323,7 @@ int UIKit_AddDisplay(UIScreen *uiscreen, SDL_bool send_event)
     display.current_mode = mode;
 
     /* Allocate the display data */
-    SDL_DisplayData *data = [[SDL_DisplayData alloc] initWithScreen:uiscreen];
+    data = [[SDL_DisplayData alloc] initWithScreen:uiscreen];
     if (!data) {
         UIKit_FreeDisplayModeData(&display.desktop_mode);
         return SDL_OutOfMemory();
@@ -340,6 +344,7 @@ void UIKit_DelDisplay(UIScreen *uiscreen)
 
         if (data && data.uiscreen == uiscreen) {
             CFRelease(SDL_GetDisplayDriverData(i));
+            SDL_GetDisplay(i)->driverdata = NULL;
             SDL_DelVideoDisplay(i);
             return;
         }
@@ -494,10 +499,11 @@ int UIKit_GetDisplayUsableBounds(_THIS, SDL_VideoDisplay * display, SDL_Rect * r
 
 void UIKit_QuitModes(_THIS)
 {
+    int i, j;
+
     [SDL_DisplayWatch stop];
 
     /* Release Objective-C objects, so higher level doesn't free() them. */
-    int i, j;
     @autoreleasepool {
         for (i = 0; i < _this->num_displays; i++) {
             SDL_VideoDisplay *display = &_this->displays[i];

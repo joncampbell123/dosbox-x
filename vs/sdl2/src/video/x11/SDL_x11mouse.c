@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -30,6 +30,7 @@
 
 /* FIXME: Find a better place to put this... */
 static Cursor x11_empty_cursor = None;
+static SDL_bool x11_cursor_visible = SDL_TRUE;
 
 static Display *GetDisplay(void)
 {
@@ -298,6 +299,8 @@ static int X11_ShowCursor(SDL_Cursor *cursor)
         Display *display = GetDisplay();
         SDL_Window *window;
 
+        x11_cursor_visible = !!cursor;
+
         for (window = video->windows; window; window = window->next) {
             SDL_WindowData *data = (SDL_WindowData *)window->driverdata;
             if (data) {
@@ -317,12 +320,13 @@ static void WarpMouseInternal(Window xwindow, const int x, const int y)
 {
     SDL_VideoData *videodata = (SDL_VideoData *)SDL_GetVideoDevice()->driverdata;
     Display *display = videodata->display;
-    SDL_Mouse *mouse = SDL_GetMouse();
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2
     int deviceid = 0;
+#endif
     SDL_bool warp_hack = SDL_FALSE;
 
     /* XWayland will only warp the cursor if it is hidden, so this workaround is required. */
-    if (videodata->is_xwayland && mouse && mouse->cursor_shown) {
+    if (videodata->is_xwayland && x11_cursor_visible) {
         warp_hack = SDL_TRUE;
     }
 
@@ -490,5 +494,3 @@ void X11_QuitMouse(_THIS)
 }
 
 #endif /* SDL_VIDEO_DRIVER_X11 */
-
-/* vi: set ts=4 sw=4 expandtab: */

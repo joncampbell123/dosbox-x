@@ -102,7 +102,7 @@ int keyboard_getKeyFromName(void *arg)
 /*
  * Local helper to check for the invalid scancode error message
  */
-void _checkInvalidScancodeError()
+void _checkInvalidScancodeError(void)
 {
     const char *expectedError = "Parameter 'scancode' is invalid";
     const char *error;
@@ -127,9 +127,9 @@ int keyboard_getKeyFromScancode(void *arg)
     SDL_Keycode result;
 
     /* Case where input is valid */
-    result = SDL_GetKeyFromScancode(SDL_SCANCODE_A);
+    result = SDL_GetKeyFromScancode(SDL_SCANCODE_SPACE);
     SDLTest_AssertPass("Call to SDL_GetKeyFromScancode(valid)");
-    SDLTest_AssertCheck(result == SDLK_a, "Verify result from call, expected: %i, got: %" SDL_PRIs32, SDLK_a, result);
+    SDLTest_AssertCheck(result == SDLK_SPACE, "Verify result from call, expected: %i, got: %" SDL_PRIs32, SDLK_SPACE, result);
 
     /* Case where input is zero */
     result = SDL_GetKeyFromScancode(0);
@@ -574,7 +574,7 @@ int keyboard_getScancodeFromName(void *arg)
 /*
  * Local helper to check for the invalid scancode error message
  */
-void _checkInvalidNameError()
+void _checkInvalidNameError(void)
 {
     const char *expectedError = "Parameter 'name' is invalid";
     const char *error;

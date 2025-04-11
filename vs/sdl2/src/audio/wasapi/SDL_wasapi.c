@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -109,6 +109,12 @@ static int UpdateAudioStream(_THIS, const SDL_AudioSpec *oldspec)
         if (!this->stream) {
             return -1; /* SDL_NewAudioStream should have called SDL_SetError. */
         }
+    }
+
+    /* if the device sample size changed, make sure we're asking for enough data. */
+    if (this->callbackspec.samples != this->spec.samples) {
+        this->callbackspec.samples = this->spec.samples;
+        SDL_CalculateAudioSpec(&this->callbackspec);
     }
 
     /* make sure our scratch buffer can cover the new device spec. */

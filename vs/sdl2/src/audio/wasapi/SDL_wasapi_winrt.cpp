@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -145,7 +145,7 @@ SDL_WasapiDeviceEventHandler::~SDL_WasapiDeviceEventHandler()
 void SDL_WasapiDeviceEventHandler::OnDeviceAdded(DeviceWatcher ^ sender, DeviceInformation ^ info)
 {
     SDL_assert(sender == this->watcher);
-    char *utf8dev = WIN_StringToUTF8(info->Name->Data());
+    char *utf8dev = WIN_StringToUTF8W(info->Name->Data());
     if (utf8dev) {
         WAVEFORMATEXTENSIBLE fmt;
         Platform::Object ^ obj = info->Properties->Lookup(SDL_PKEY_AudioEngine_DeviceFormat);

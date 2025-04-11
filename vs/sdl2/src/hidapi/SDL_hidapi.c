@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -906,9 +906,9 @@ IsInWhitelist(Uint16 vendor, Uint16 product)
 }
 
 #if defined(HAVE_PLATFORM_BACKEND) || HAVE_DRIVER_BACKEND
-static const SDL_bool use_libusb_whitelist_default = SDL_TRUE;
+ #define use_libusb_whitelist_default  SDL_TRUE
 #else
-static const SDL_bool use_libusb_whitelist_default = SDL_FALSE;
+ #define use_libusb_whitelist_default SDL_FALSE
 #endif /* HAVE_PLATFORM_BACKEND || HAVE_DRIVER_BACKEND */
 static SDL_bool use_libusb_whitelist = use_libusb_whitelist_default;
 

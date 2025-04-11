@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -33,16 +33,14 @@
 
 char *SDL_GetBasePath(void)
 {
-    char *retval;
+    char *retval = NULL;
     size_t len;
     char cwd[FILENAME_MAX];
 
     getcwd(cwd, sizeof(cwd));
-    len = SDL_strlen(cwd) + 1;
+    len = SDL_strlen(cwd) + 2;
     retval = (char *)SDL_malloc(len);
-    if (retval) {
-        SDL_memcpy(retval, cwd, len);
-    }
+    SDL_snprintf(retval, len, "%s/", cwd);
 
     return retval;
 }

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -92,6 +92,7 @@ typedef struct
     SDL_bool relative_mode;
     SDL_bool relative_mode_warp;
     SDL_bool relative_mode_warp_motion;
+    SDL_bool relative_mode_cursor_visible;
     SDL_bool enable_normal_speed_scale;
     float normal_speed_scale;
     SDL_bool enable_relative_speed_scale;

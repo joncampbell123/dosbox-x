@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -93,11 +93,11 @@ static const AudioBootStrap *const bootstrap[] = {
 #ifdef SDL_AUDIO_DRIVER_FUSIONSOUND
     &FUSIONSOUND_bootstrap,
 #endif
-#ifdef SDL_AUDIO_DRIVER_AAUDIO
-    &aaudio_bootstrap,
-#endif
 #ifdef SDL_AUDIO_DRIVER_OPENSLES
     &openslES_bootstrap,
+#endif
+#ifdef SDL_AUDIO_DRIVER_AAUDIO
+    &aaudio_bootstrap,
 #endif
 #ifdef SDL_AUDIO_DRIVER_ANDROID
     &ANDROIDAUDIO_bootstrap,
@@ -700,8 +700,6 @@ static int SDLCALL SDL_RunAudio(void *userdata)
 
     /* Loop, filling the audio buffers */
     while (!SDL_AtomicGet(&device->shutdown)) {
-        data_len = device->callbackspec.size;
-
         /* Fill the current buffer with sound */
         if (!device->stream && SDL_AtomicGet(&device->enabled)) {
             data = current_audio.impl.GetDeviceBuf(device);
@@ -727,6 +725,8 @@ static int SDLCALL SDL_RunAudio(void *userdata)
         if (data == NULL) {
             data = device->work_buffer;
         }
+
+        data_len = device->callbackspec.size;
 
         /* !!! FIXME: this should be LockDevice. */
         SDL_LockMutex(device->mixer_lock);

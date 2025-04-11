@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -318,7 +318,10 @@ static SDL_Scancode WindowsScanCodeToSDLScanCode(LPARAM lParam, WPARAM wParam)
      * value set, however we cannot simply map these in VKeytoScancode() or we will be
      * incorrectly handling the arrow keys on the number pad when NumLock is disabled
      * (which also generate VK_LEFT, VK_RIGHT, etc in that scenario). Instead, we'll only
-     * map them if none of the above special number pad mappings applied. */
+     * map them if none of the above special number pad mappings applied.
+     *
+     * WIN+V (clipboard history feature) can also send Ctrl-V without a scancode value set.
+     */
     if (code == SDL_SCANCODE_UNKNOWN) {
         code = VKeytoScancodeFallback(wParam);
     }
@@ -327,7 +330,7 @@ static SDL_Scancode WindowsScanCodeToSDLScanCode(LPARAM lParam, WPARAM wParam)
 }
 
 #if !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
-static SDL_bool WIN_ShouldIgnoreFocusClick()
+static SDL_bool WIN_ShouldIgnoreFocusClick(void)
 {
     return !SDL_GetHintBoolean(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, SDL_FALSE);
 }
@@ -638,8 +641,9 @@ WIN_KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     if (nCode < 0 || nCode != HC_ACTION) {
         return CallNextHookEx(NULL, nCode, wParam, lParam);
     }
+
     if (hookData->scanCode == 0x21d) {
-	    // Skip fake LCtrl when RAlt is pressed
+	    /* Skip fake LCtrl when RAlt is pressed */
 	    return 1;
     }
 
@@ -697,36 +701,37 @@ WIN_KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 #endif /*!defined(__XBOXONE__) && !defined(__XBOXSERIES__)*/
 
 
-// Return 1 if spruious LCtrl is pressed
-// LCtrl is sent when RAltGR is pressed
-int skip_bad_lcrtl(WPARAM wParam, LPARAM lParam)
+/* Return SDL_TRUE if spurious LCtrl is pressed. LCtrl is sent when RAltGR is pressed. */
+static SDL_bool SkipAltGrLeftControl(WPARAM wParam, LPARAM lParam)
 {
     MSG next_msg;
     DWORD msg_time;
-    if (wParam != VK_CONTROL) {
-        return 0;
-    }
-    // Is this an extended key (i.e. right key)?
-    if (lParam & 0x01000000)
-                return 0;
 
-    // Here is a trick: "Alt Gr" sends LCTRL, then RALT. We only
-    // want the RALT message, so we try to see if the next message
-    // is a RALT message. In that case, this is a false LCTRL!
+    if (wParam != VK_CONTROL) {
+        return SDL_FALSE;
+    }
+
+    /* Is this an extended key (i.e. right key)? */
+    if (lParam & 0x01000000) {
+        return SDL_FALSE;
+    }
+
+#if !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
+    /* Here is a trick: "Alt Gr" sends LCTRL, then RALT. We only
+       want the RALT message, so we try to see if the next message
+       is a RALT message. In that case, this is a false LCTRL! */
     msg_time = GetMessageTime();
     if (PeekMessage(&next_msg, NULL, 0, 0, PM_NOREMOVE)) {
         if (next_msg.message == WM_KEYDOWN ||
             next_msg.message == WM_SYSKEYDOWN) {
-            if (next_msg.wParam == VK_MENU &&
-                (next_msg.lParam & 0x01000000) &&
-                next_msg.time == msg_time) {
-                // Next message is a RALT down message, which
-                // means that this is NOT a proper LCTRL message!
-                return 1;
+            if (next_msg.wParam == VK_MENU && (next_msg.lParam & 0x01000000) && next_msg.time == msg_time) {
+                /* Next message is a RALT down message, which means that this is NOT a proper LCTRL message! */
+                return SDL_TRUE;
             }
         }
     }
-    return 0;
+#endif // !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
+    return SDL_FALSE;
 }
 
 LRESULT CALLBACK
@@ -1046,7 +1051,7 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         SDL_Scancode code = WindowsScanCodeToSDLScanCode(lParam, wParam);
         const Uint8 *keyboardState = SDL_GetKeyboardState(NULL);
 
-        if (skip_bad_lcrtl(wParam, lParam)) {
+        if (SkipAltGrLeftControl(wParam, lParam)) {
             returnCode = 0;
             break;
         }
@@ -1073,7 +1078,7 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         SDL_Scancode code = WindowsScanCodeToSDLScanCode(lParam, wParam);
         const Uint8 *keyboardState = SDL_GetKeyboardState(NULL);
 
-        if (skip_bad_lcrtl(wParam, lParam)) {
+        if (SkipAltGrLeftControl(wParam, lParam)) {
             returnCode = 0;
             break;
         }
@@ -1330,8 +1335,7 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_TIMER:
     {
         if (wParam == (UINT_PTR)&s_ModalMoveResizeLoop) {
-            // Send an expose event so the application can redraw
-            SDL_SendWindowEvent(data->window, SDL_WINDOWEVENT_EXPOSED, 0, 0);
+            SDL_OnWindowLiveResizeUpdate(data->window);
             return 0;
         }
     } break;
@@ -1794,7 +1798,7 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 #if !defined(__XBOXONE__) && !defined(__XBOXSERIES__)
-static void WIN_UpdateClipCursorForWindows()
+static void WIN_UpdateClipCursorForWindows(void)
 {
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
     SDL_Window *window;
@@ -1816,7 +1820,7 @@ static void WIN_UpdateClipCursorForWindows()
     }
 }
 
-static void WIN_UpdateMouseCapture()
+static void WIN_UpdateMouseCapture(void)
 {
     SDL_Window *focusWindow = SDL_GetKeyboardFocus();
 
@@ -2090,7 +2094,7 @@ int SDL_RegisterApp(const char *name, Uint32 style, void *hInst)
 }
 
 /* Unregisters the windowclass registered in SDL_RegisterApp above. */
-void SDL_UnregisterApp()
+void SDL_UnregisterApp(void)
 {
     WNDCLASSEX wcex;
 

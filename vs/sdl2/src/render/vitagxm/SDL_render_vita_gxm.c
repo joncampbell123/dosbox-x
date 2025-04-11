@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -44,7 +44,7 @@
 #include <psp2/sysmodule.h>
 #endif
 
-static SDL_Renderer *VITA_GXM_CreateRenderer(SDL_Window *window, Uint32 flags);
+static int VITA_GXM_CreateRenderer(SDL_Renderer *renderer, SDL_Window *window, Uint32 flags);
 
 static void VITA_GXM_WindowEvent(SDL_Renderer *renderer, const SDL_WindowEvent *event);
 
@@ -211,22 +211,13 @@ static int VITA_GXM_SetVSync(SDL_Renderer *renderer, const int vsync)
     return 0;
 }
 
-SDL_Renderer *VITA_GXM_CreateRenderer(SDL_Window *window, Uint32 flags)
+int VITA_GXM_CreateRenderer(SDL_Renderer *renderer, SDL_Window *window, Uint32 flags)
 {
-    SDL_Renderer *renderer;
     VITA_GXM_RenderData *data;
-
-    renderer = (SDL_Renderer *)SDL_calloc(1, sizeof(*renderer));
-    if (!renderer) {
-        SDL_OutOfMemory();
-        return NULL;
-    }
 
     data = (VITA_GXM_RenderData *)SDL_calloc(1, sizeof(VITA_GXM_RenderData));
     if (!data) {
-        SDL_free(renderer);
-        SDL_OutOfMemory();
-        return NULL;
+        return SDL_OutOfMemory();
     }
 
     renderer->WindowEvent = VITA_GXM_WindowEvent;
@@ -273,11 +264,10 @@ SDL_Renderer *VITA_GXM_CreateRenderer(SDL_Window *window, Uint32 flags)
 
     if (gxm_init(renderer) != 0) {
         SDL_free(data);
-        SDL_free(renderer);
-        return NULL;
+        return -1;
     }
 
-    return renderer;
+    return 0;
 }
 
 static void VITA_GXM_WindowEvent(SDL_Renderer *renderer, const SDL_WindowEvent *event)
@@ -366,6 +356,7 @@ static int VITA_GXM_UpdateTexture(SDL_Renderer *renderer, SDL_Texture *texture,
     length = rect->w * SDL_BYTESPERPIXEL(texture->format);
     if (length == pitch && length == dpitch) {
         SDL_memcpy(dst, pixels, length * rect->h);
+        pixels += pitch * rect->h;
     } else {
         for (row = 0; row < rect->h; ++row) {
             SDL_memcpy(dst, pixels, length);
@@ -393,6 +384,7 @@ static int VITA_GXM_UpdateTexture(SDL_Renderer *renderer, SDL_Texture *texture,
         // U plane
         if (length == uv_src_pitch && length == uv_pitch) {
             SDL_memcpy(Udst, pixels, length * UVrect.h);
+            pixels += uv_src_pitch * UVrect.h;
         } else {
             for (row = 0; row < UVrect.h; ++row) {
                 SDL_memcpy(Udst, pixels, length);
@@ -1222,7 +1214,6 @@ static void VITA_GXM_DestroyRenderer(SDL_Renderer *renderer)
         data->drawing = SDL_FALSE;
         SDL_free(data);
     }
-    SDL_free(renderer);
 }
 
 #endif /* SDL_VIDEO_RENDER_VITA_GXM */

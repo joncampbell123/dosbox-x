@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,9 +26,11 @@
 #include <3ds.h>
 
 #include "../../events/SDL_touch_c.h"
+#include "../SDL_sysvideo.h"
 #include "SDL_n3dstouch.h"
+#include "SDL_n3dsvideo.h"
 
-#define N3DS_TOUCH_ID 0
+#define N3DS_TOUCH_ID 1
 
 /*
   Factors used to convert touchscreen coordinates to
@@ -49,19 +51,25 @@ void N3DS_QuitTouch(void)
     SDL_DelTouch(N3DS_TOUCH_ID);
 }
 
-void N3DS_PollTouch(void)
+void N3DS_PollTouch(_THIS)
 {
+    SDL_VideoData *driverdata = (SDL_VideoData *)_this->driverdata;
     touchPosition touch;
+    SDL_Window *window;
+    SDL_VideoDisplay *display;
     static SDL_bool was_pressed = SDL_FALSE;
     SDL_bool pressed;
     hidTouchRead(&touch);
     pressed = (touch.px != 0 || touch.py != 0);
 
+    display = SDL_GetDisplay(driverdata->touch_display);
+    window = display ? display->fullscreen_window : NULL;
+
     if (pressed != was_pressed) {
         was_pressed = pressed;
         SDL_SendTouch(N3DS_TOUCH_ID,
                       0,
-                      NULL,
+                      window,
                       pressed,
                       touch.px * TOUCHSCREEN_SCALE_X,
                       touch.py * TOUCHSCREEN_SCALE_Y,
@@ -69,7 +77,7 @@ void N3DS_PollTouch(void)
     } else if (pressed) {
         SDL_SendTouchMotion(N3DS_TOUCH_ID,
                             0,
-                            NULL,
+                            window,
                             touch.px * TOUCHSCREEN_SCALE_X,
                             touch.py * TOUCHSCREEN_SCALE_Y,
                             1.0f);

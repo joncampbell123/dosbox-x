@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -32,6 +32,45 @@
 #include <xf86drmMode.h>
 #include <gbm.h>
 #include <EGL/egl.h>
+
+#ifndef DRM_FORMAT_MOD_INVALID
+#define DRM_FORMAT_MOD_INVALID 0x00ffffffffffffffULL
+#endif
+
+#ifndef DRM_MODE_FB_MODIFIERS
+#define DRM_MODE_FB_MODIFIERS	2
+#endif
+
+#ifndef DRM_MODE_PAGE_FLIP_ASYNC
+#define DRM_MODE_PAGE_FLIP_ASYNC    2
+#endif
+
+#ifndef DRM_MODE_OBJECT_CONNECTOR
+#define DRM_MODE_OBJECT_CONNECTOR   0xc0c0c0c0
+#endif
+
+#ifndef DRM_MODE_OBJECT_CRTC
+#define DRM_MODE_OBJECT_CRTC        0xcccccccc
+#endif
+
+#ifndef DRM_CAP_ASYNC_PAGE_FLIP
+#define DRM_CAP_ASYNC_PAGE_FLIP 7
+#endif
+
+#ifndef DRM_CAP_CURSOR_WIDTH
+#define DRM_CAP_CURSOR_WIDTH    8
+#endif
+
+#ifndef DRM_CAP_CURSOR_HEIGHT
+#define DRM_CAP_CURSOR_HEIGHT   9
+#endif
+
+#ifndef GBM_FORMAT_ARGB8888
+#define GBM_FORMAT_ARGB8888  ((uint32_t)('A') | ((uint32_t)('R') << 8) | ((uint32_t)('2') << 16) | ((uint32_t)('4') << 24))
+#define GBM_BO_USE_CURSOR   (1 << 1)
+#define GBM_BO_USE_WRITE    (1 << 3)
+#define GBM_BO_USE_LINEAR   (1 << 4)
+#endif
 
 typedef struct SDL_VideoData
 {

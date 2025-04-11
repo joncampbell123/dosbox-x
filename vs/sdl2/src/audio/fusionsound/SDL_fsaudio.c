@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -77,7 +77,7 @@ static struct
 
 #undef SDL_FS_SYM
 
-static void UnloadFusionSoundLibrary()
+static void UnloadFusionSoundLibrary(void)
 {
     if (fs_handle) {
         SDL_UnloadObject(fs_handle);
@@ -110,7 +110,7 @@ static int LoadFusionSoundLibrary(void)
 
 #else
 
-static void UnloadFusionSoundLibrary()
+static void UnloadFusionSoundLibrary(void)
 {
     return;
 }
