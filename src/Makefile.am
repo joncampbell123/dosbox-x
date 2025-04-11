@@ -15,7 +15,8 @@ res_DATA = \
 	../dosbox-x.reference.conf \
 	../dosbox-x.reference.full.conf \
 	../contrib/fonts/FREECG98.BMP \
-	../contrib/fonts/wqy_1?pt.bdf \
+	../contrib/fonts/wqy_11pt.bdf \
+	../contrib/fonts/wqy_12pt.bdf \
 	../contrib/fonts/Nouveau_IBM.ttf \
 	../contrib/fonts/SarasaGothicFixed.ttf \
 	../CHANGELOG
