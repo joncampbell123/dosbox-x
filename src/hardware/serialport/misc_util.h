@@ -65,6 +65,13 @@
 #include <SDL_net.h>
 
 #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#define WITH_ENET_HEADER
+#endif
+#if defined(OS2)
+#undef WITH_ENET_HEADER
+#endif
+
+#if defined(WITH_ENET_HEADER)
 #include "enet.h"
 #endif
 
@@ -131,7 +138,7 @@ public:
 
 // --- ENET UDP NET INTERFACE ------------------------------------------------
 
-#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if defined(WITH_ENET_HEADER)
 class ENETServerSocket : public NETServerSocket {
 public:
 	ENETServerSocket(uint16_t port);
