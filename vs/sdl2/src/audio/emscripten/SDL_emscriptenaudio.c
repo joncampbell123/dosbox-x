@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -39,6 +39,12 @@ static void FeedAudioDevice(_THIS, const void *buf, const int buflen)
     /* *INDENT-OFF* */ /* clang-format off */
     MAIN_THREAD_EM_ASM({
         var SDL2 = Module['SDL2'];
+        /* Convert incoming buf pointer to a HEAPF32 offset. */
+#ifdef __wasm64__
+        var buf = $0 / 4;
+#else
+        var buf = $0 >>> 2;
+#endif
         var numChannels = SDL2.audio.currentOutputBuffer['numberOfChannels'];
         for (var c = 0; c < numChannels; ++c) {
             var channelData = SDL2.audio.currentOutputBuffer['getChannelData'](c);
@@ -47,7 +53,7 @@ static void FeedAudioDevice(_THIS, const void *buf, const int buflen)
             }
 
             for (var j = 0; j < $1; ++j) {
-                channelData[j] = HEAPF32[$0 + ((j*numChannels + c) << 2) >> 2];  /* !!! FIXME: why are these shifts here? */
+                channelData[j] = HEAPF32[buf + (j*numChannels + c)];
             }
         }
     }, buf, buflen / framelen);
@@ -223,7 +229,7 @@ static int EMSCRIPTENAUDIO_OpenDevice(_THIS, const char *devname)
                 SDL2.audioContext = new webkitAudioContext();
             }
             if (SDL2.audioContext) {
-                if ((typeof navigator.userActivation) === 'undefined') {  // Firefox doesn't have this (as of August 2023), use autoResumeAudioContext instead.
+                if ((typeof navigator.userActivation) === 'undefined') {
                     autoResumeAudioContext(SDL2.audioContext);
                 }
             }
@@ -304,7 +310,7 @@ static int EMSCRIPTENAUDIO_OpenDevice(_THIS, const char *devname)
                     if ((SDL2 === undefined) || (SDL2.capture === undefined)) { return; }
                     audioProcessingEvent.outputBuffer.getChannelData(0).fill(0.0);
                     SDL2.capture.currentCaptureBuffer = audioProcessingEvent.inputBuffer;
-                    dynCall('vi', $2, [$3]);
+                    dynCall('vp', $2, [$3]);
                 };
                 SDL2.capture.mediaStreamNode.connect(SDL2.capture.scriptProcessorNode);
                 SDL2.capture.scriptProcessorNode.connect(SDL2.audioContext.destination);
@@ -320,7 +326,7 @@ static int EMSCRIPTENAUDIO_OpenDevice(_THIS, const char *devname)
             SDL2.capture.silenceBuffer.getChannelData(0).fill(0.0);
             var silence_callback = function() {
                 SDL2.capture.currentCaptureBuffer = SDL2.capture.silenceBuffer;
-                dynCall('vi', $2, [$3]);
+                dynCall('vp', $2, [$3]);
             };
 
             SDL2.capture.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000);
@@ -345,7 +351,7 @@ static int EMSCRIPTENAUDIO_OpenDevice(_THIS, const char *devname)
                     SDL2.audio.silenceBuffer = undefined;
                 }
                 SDL2.audio.currentOutputBuffer = e['outputBuffer'];
-                dynCall('vi', $2, [$3]);
+                dynCall('vp', $2, [$3]);
             };
 
             SDL2.audio.scriptProcessorNode['connect'](SDL2.audioContext['destination']);
@@ -354,7 +360,7 @@ static int EMSCRIPTENAUDIO_OpenDevice(_THIS, const char *devname)
                 SDL2.audio.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate);
                 SDL2.audio.silenceBuffer.getChannelData(0).fill(0.0);
                 var silence_callback = function() {
-                    if ((typeof navigator.userActivation) !== 'undefined') {  // Almost everything modern except Firefox (as of August 2023)
+                    if ((typeof navigator.userActivation) !== 'undefined') {
                         if (navigator.userActivation.hasBeenActive) {
                             SDL2.audioContext.resume();
                         }
@@ -363,7 +369,7 @@ static int EMSCRIPTENAUDIO_OpenDevice(_THIS, const char *devname)
                     // the buffer that gets filled here just gets ignored, so the app can make progress
                     //  and/or avoid flooding audio queues until we can actually play audio.
                     SDL2.audio.currentOutputBuffer = SDL2.audio.silenceBuffer;
-                    dynCall('vi', $2, [$3]);
+                    dynCall('vp', $2, [$3]);
                     SDL2.audio.currentOutputBuffer = undefined;
                 };
 

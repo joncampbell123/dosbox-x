@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -118,6 +118,20 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
                             SDL_HideHomeIndicatorHintChanged,
                             (__bridge void *) self);
 #endif
+
+        /* Enable high refresh rates on iOS
+         * To enable this on phones, you should add the following line to Info.plist:
+         * <key>CADisableMinimumFrameDurationOnPhone</key> <true/>
+         */
+        if (@available(iOS 15.0, tvOS 15.0, *)) {
+            SDL_DisplayMode mode;
+            if (SDL_GetDesktopDisplayMode(0, &mode) == 0 && mode.refresh_rate > 60.0f) {
+                int frame_rate = (int)mode.refresh_rate;
+                displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(doLoop:)];
+                displayLink.preferredFrameRateRange = CAFrameRateRangeMake((frame_rate * 2) / 3, frame_rate, frame_rate);
+                [displayLink addToRunLoop:NSRunLoop.currentRunLoop forMode:NSDefaultRunLoopMode];
+            }
+        }
     }
     return self;
 }
@@ -147,6 +161,9 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
 {
     [self stopAnimation];
 
+    if (interval <= 0) {
+        interval = 1;
+    }
     animationInterval = interval;
     animationCallback = callback;
     animationCallbackParam = callbackParam;
@@ -158,10 +175,14 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
 
 - (void)startAnimation
 {
+#ifdef __IPHONE_10_3
+    SDL_WindowData *data;
+#endif
+
     displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(doLoop:)];
 
 #ifdef __IPHONE_10_3
-    SDL_WindowData *data = (__bridge SDL_WindowData *) window->driverdata;
+    data = (__bridge SDL_WindowData *) window->driverdata;
 
     if ([displayLink respondsToSelector:@selector(preferredFramesPerSecond)]
         && data != nil && data.uiwindow != nil
@@ -187,7 +208,7 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
 - (void)doLoop:(CADisplayLink*)sender
 {
     /* Don't run the game loop while a messagebox is up */
-    if (!UIKit_ShowingMessageBox()) {
+    if (animationCallback && !UIKit_ShowingMessageBox()) {
         /* See the comment in the function definition. */
 #if defined(SDL_VIDEO_OPENGL_ES) || defined(SDL_VIDEO_OPENGL_ES2)
         UIKit_GL_RestoreCurrentContext();
@@ -269,6 +290,7 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
 /* Set ourselves up as a UITextFieldDelegate */
 - (void)initKeyboard
 {
+    NSNotificationCenter *center;
     obligateForBackspace = @"                                                                "; /* 64 space */
     textField = [[SDLUITextField alloc] initWithFrame:CGRectZero];
     textField.delegate = self;
@@ -288,7 +310,7 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
     textField.hidden = YES;
     keyboardVisible = NO;
 
-    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    center = [NSNotificationCenter defaultCenter];
 #if !TARGET_OS_TV
     [center addObserver:self
                selector:@selector(keyboardWillShow:)
@@ -415,6 +437,9 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
 - (void)keyboardWillShow:(NSNotification *)notification
 {
     BOOL shouldStartTextInput = NO;
+#if !TARGET_OS_TV
+    CGRect kbrect;
+#endif
 
     if (!SDL_IsTextInputActive() && !hidingKeyboard && !rotatingOrientation) {
         shouldStartTextInput = YES;
@@ -422,7 +447,7 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
 
     showingKeyboard = YES;
 #if !TARGET_OS_TV
-    CGRect kbrect = [[notification userInfo][UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    kbrect = [[notification userInfo][UIKeyboardFrameEndUserInfoKey] CGRectValue];
 
     /* The keyboard rect is in the coordinate space of the screen/window, but we
      * want its height in the coordinate space of the view. */
@@ -568,12 +593,13 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
 
 static SDL_uikitviewcontroller *GetWindowViewController(SDL_Window * window)
 {
+    SDL_WindowData *data;
     if (!window || !window->driverdata) {
         SDL_SetError("Invalid window");
         return nil;
     }
 
-    SDL_WindowData *data = (__bridge SDL_WindowData *)window->driverdata;
+    data = (__bridge SDL_WindowData *)window->driverdata;
 
     return data.viewcontroller;
 }

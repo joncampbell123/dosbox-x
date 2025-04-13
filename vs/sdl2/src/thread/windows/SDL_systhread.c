@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -159,7 +159,7 @@ void SDL_SYS_SetupThread(const char *name)
             inf.dwFlags = 0;
 
             /* The debugger catches this, renames the thread, continues on. */
-            RaiseException(0x406D1388, 0, sizeof(inf) / sizeof(ULONG), (const ULONG_PTR *)&inf);
+            RaiseException(0x406D1388, 0, sizeof(inf) / sizeof(ULONG_PTR), (const ULONG_PTR *)&inf);
         }
     }
 }

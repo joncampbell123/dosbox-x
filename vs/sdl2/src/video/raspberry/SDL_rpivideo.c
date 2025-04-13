@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -56,7 +56,7 @@ static void RPI_Destroy(SDL_VideoDevice *device)
     SDL_free(device);
 }
 
-static int RPI_GetRefreshRate()
+static int RPI_GetRefreshRate(void)
 {
     TV_DISPLAY_STATE_T tvstate;
     if (vc_tv_get_display_state(&tvstate) == 0) {

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -64,7 +64,7 @@ static struct
 
 #undef SDL_ESD_SYM
 
-static void UnloadESDLibrary()
+static void UnloadESDLibrary(void)
 {
     if (esd_handle) {
         SDL_UnloadObject(esd_handle);
@@ -96,7 +96,7 @@ static int LoadESDLibrary(void)
 
 #else
 
-static void UnloadESDLibrary()
+static void UnloadESDLibrary(void)
 {
     return;
 }

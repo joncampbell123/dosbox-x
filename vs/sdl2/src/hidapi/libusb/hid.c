@@ -519,7 +519,7 @@ static struct usb_string_cache_entry *usb_string_cache = NULL;
 static size_t usb_string_cache_size = 0;
 static size_t usb_string_cache_insert_pos = 0;
 
-static int usb_string_cache_grow()
+static int usb_string_cache_grow(void)
 {
 	struct usb_string_cache_entry *new_cache;
 	size_t allocSize;
@@ -537,7 +537,7 @@ static int usb_string_cache_grow()
 	return 0;
 }
 
-static void usb_string_cache_destroy()
+static void usb_string_cache_destroy(void)
 {
 	size_t i;
 	for (i = 0; i < usb_string_cache_insert_pos; i++) {
@@ -715,6 +715,7 @@ static int is_xboxone(unsigned short vendor_id, const struct libusb_interface_de
 		0x044f, /* Thrustmaster */
 		0x045e, /* Microsoft */
 		0x0738, /* Mad Catz */
+		0x0b05, /* ASUS */
 		0x0e6f, /* PDP */
 		0x0f0d, /* Hori */
         0x10f5, /* Turtle Beach */

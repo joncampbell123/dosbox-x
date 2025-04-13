@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -569,7 +569,7 @@ render_thread_fn(void *render_ctx)
 }
 
 static void
-loop_threaded()
+loop_threaded(void)
 {
     SDL_Event event;
     int i;
@@ -598,7 +598,7 @@ loop_threaded()
 #endif
 
 static void
-loop()
+loop(void)
 {
     SDL_Event event;
     int i;

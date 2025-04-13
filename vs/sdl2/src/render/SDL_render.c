@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -47,10 +47,17 @@ this should probably be removed at some point in the future.  --ryan. */
 
 #define SDL_WINDOWRENDERDATA "_SDL_WindowRenderData"
 
-#define CHECK_RENDERER_MAGIC(renderer, retval)             \
+#define CHECK_RENDERER_MAGIC_BUT_NOT_DESTROYED_FLAG(renderer, retval)             \
     if (!renderer || renderer->magic != &renderer_magic) { \
         SDL_InvalidParamError("renderer");                 \
         return retval;                                     \
+    }
+
+#define CHECK_RENDERER_MAGIC(renderer, retval)             \
+    CHECK_RENDERER_MAGIC_BUT_NOT_DESTROYED_FLAG(renderer, retval); \
+    if (renderer->destroyed) { \
+        SDL_SetError("Renderer's window has been destroyed, can't use further"); \
+        return retval;                                          \
     }
 
 #define CHECK_TEXTURE_MAGIC(texture, retval)            \
@@ -954,6 +961,7 @@ SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, int index, Uint32 flags)
     int n = SDL_GetNumRenderDrivers();
     SDL_bool batching = SDL_TRUE;
     const char *hint;
+    int rc = -1;
 
 #if defined(__ANDROID__)
     Android_ActivityMutex_Lock_Running();
@@ -974,6 +982,14 @@ SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, int index, Uint32 flags)
         goto error;
     }
 
+    renderer = (SDL_Renderer *)SDL_calloc(1, sizeof(*renderer));
+    if (!renderer) {
+        SDL_OutOfMemory();
+        goto error;
+    }
+
+    renderer->magic = &renderer_magic;
+
     hint = SDL_GetHint(SDL_HINT_RENDER_VSYNC);
     if (hint && *hint) {
         if (SDL_GetHintBoolean(SDL_HINT_RENDER_VSYNC, SDL_TRUE)) {
@@ -991,30 +1007,36 @@ SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, int index, Uint32 flags)
 
                 if (SDL_strcasecmp(hint, driver->info.name) == 0) {
                     /* Create a new renderer instance */
-                    renderer = driver->CreateRenderer(window, flags);
-                    if (renderer) {
+                    rc = driver->CreateRenderer(renderer, window, flags);
+                    if (rc == 0) {
                         batching = SDL_FALSE;
+                    } else {
+                        SDL_zerop(renderer);  /* make sure we don't leave function pointers from a previous CreateRenderer() in this struct. */
+                        renderer->magic = &renderer_magic;
                     }
                     break;
                 }
             }
         }
 
-        if (!renderer) {
+        if (rc == -1) {
             for (index = 0; index < n; ++index) {
                 const SDL_RenderDriver *driver = render_drivers[index];
 
                 if ((driver->info.flags & flags) == flags) {
                     /* Create a new renderer instance */
-                    renderer = driver->CreateRenderer(window, flags);
-                    if (renderer) {
+                    rc = driver->CreateRenderer(renderer, window, flags);
+                    if (rc == 0) {
                         /* Yay, we got one! */
                         break;
+                    } else {
+                        SDL_zerop(renderer);  /* make sure we don't leave function pointers from a previous CreateRenderer() in this struct. */
+                        renderer->magic = &renderer_magic;
                     }
                 }
             }
         }
-        if (!renderer) {
+        if (rc == -1) {
             SDL_SetError("Couldn't find matching render driver");
             goto error;
         }
@@ -1025,9 +1047,9 @@ SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, int index, Uint32 flags)
             goto error;
         }
         /* Create a new renderer instance */
-        renderer = render_drivers[index]->CreateRenderer(window, flags);
+        rc = render_drivers[index]->CreateRenderer(renderer, window, flags);
         batching = SDL_FALSE;
-        if (!renderer) {
+        if (rc == -1) {
             goto error;
         }
     }
@@ -1108,6 +1130,7 @@ SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, int index, Uint32 flags)
     return renderer;
 
 error:
+    SDL_free(renderer);
 
 #if defined(__ANDROID__)
     Android_ActivityMutex_Unlock();
@@ -1124,12 +1147,23 @@ SDL_Renderer *SDL_CreateSoftwareRenderer(SDL_Surface *surface)
 {
 #if SDL_VIDEO_RENDER_SW
     SDL_Renderer *renderer;
+    int rc;
 
-    renderer = SW_CreateRendererForSurface(surface);
+    renderer = (SDL_Renderer *)SDL_calloc(1, sizeof(*renderer));
+    if (!renderer) {
+        SDL_OutOfMemory();
+        return NULL;
+    }
 
-    if (renderer) {
+    renderer->magic = &renderer_magic;
+
+    rc = SW_CreateRendererForSurface(renderer, surface);
+
+    if (rc == -1) {
+        SDL_free(renderer);
+        renderer = NULL;
+    } else {
         VerifyDrawQueueFunctions(renderer);
-        renderer->magic = &renderer_magic;
         renderer->target_mutex = SDL_CreateMutex();
         renderer->scale.x = 1.0f;
         renderer->scale.y = 1.0f;
@@ -4318,11 +4352,14 @@ void SDL_DestroyTexture(SDL_Texture *texture)
     SDL_free(texture);
 }
 
-void SDL_DestroyRenderer(SDL_Renderer *renderer)
+void SDL_DestroyRendererWithoutFreeing(SDL_Renderer *renderer)
 {
     SDL_RenderCommand *cmd;
 
-    CHECK_RENDERER_MAGIC(renderer, );
+    SDL_assert(renderer != NULL);
+    SDL_assert(!renderer->destroyed);
+
+    renderer->destroyed = SDL_TRUE;
 
     SDL_DelEventWatch(SDL_RendererEventWatch, renderer);
 
@@ -4357,9 +4394,6 @@ void SDL_DestroyRenderer(SDL_Renderer *renderer)
         SDL_SetWindowData(renderer->window, SDL_WINDOWRENDERDATA, NULL);
     }
 
-    /* It's no longer magical... */
-    renderer->magic = NULL;
-
     /* Free the target mutex */
     SDL_DestroyMutex(renderer->target_mutex);
     renderer->target_mutex = NULL;
@@ -4367,6 +4401,22 @@ void SDL_DestroyRenderer(SDL_Renderer *renderer)
     /* Free the renderer instance */
     renderer->DestroyRenderer(renderer);
 }
+
+void SDL_DestroyRenderer(SDL_Renderer *renderer)
+{
+    CHECK_RENDERER_MAGIC_BUT_NOT_DESTROYED_FLAG(renderer,);
+
+    /* if we've already destroyed the renderer through SDL_DestroyWindow, we just need
+       to free the renderer pointer. This lets apps destroy the window and renderer
+       in either order. */
+    if (!renderer->destroyed) {
+        SDL_DestroyRendererWithoutFreeing(renderer);
+        renderer->magic = NULL;     // It's no longer magical...
+    }
+
+    SDL_free(renderer);
+}
+
 
 int SDL_GL_BindTexture(SDL_Texture *texture, float *texw, float *texh)
 {

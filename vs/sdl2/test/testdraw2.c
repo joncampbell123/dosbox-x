@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -174,7 +174,7 @@ void DrawRects(SDL_Renderer *renderer)
     }
 }
 
-void loop()
+void loop(void)
 {
     Uint32 now;
     int i;

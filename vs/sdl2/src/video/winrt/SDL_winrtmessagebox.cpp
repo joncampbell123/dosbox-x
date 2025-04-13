@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -35,7 +35,7 @@ using namespace Windows::Foundation;
 using namespace Windows::UI::Popups;
 
 static String ^ WINRT_UTF8ToPlatformString(const char *str) {
-    wchar_t *wstr = WIN_UTF8ToString(str);
+    wchar_t *wstr = WIN_UTF8ToStringW(str);
     String ^ rtstr = ref new String(wstr);
     SDL_free(wstr);
     return rtstr;

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -304,7 +304,6 @@ static void D3D11_DestroyRenderer(SDL_Renderer *renderer)
     if (data) {
         SDL_free(data);
     }
-    SDL_free(renderer);
 }
 
 static D3D11_BLEND GetBlendFunc(SDL_BlendFactor factor)
@@ -813,7 +812,12 @@ static HRESULT D3D11_CreateSwapChain(SDL_Renderer *renderer, int w, int h)
 #if defined(__WIN32__) || defined(__WINGDK__)
         SDL_SysWMinfo windowinfo;
         SDL_VERSION(&windowinfo.version);
-        SDL_GetWindowWMInfo(renderer->window, &windowinfo);
+        if (!SDL_GetWindowWMInfo(renderer->window, &windowinfo) ||
+            windowinfo.subsystem != SDL_SYSWM_WINDOWS) {
+            SDL_SetError("Couldn't get window handle");
+            result = E_FAIL;
+            goto done;
+        }
 
         result = IDXGIFactory2_CreateSwapChainForHwnd(data->dxgiFactory,
                                                       (IUnknown *)data->d3dDevice,
@@ -2308,22 +2312,13 @@ static int D3D11_SetVSync(SDL_Renderer *renderer, const int vsync)
 }
 #endif
 
-SDL_Renderer *D3D11_CreateRenderer(SDL_Window *window, Uint32 flags)
+int D3D11_CreateRenderer(SDL_Renderer *renderer, SDL_Window *window, Uint32 flags)
 {
-    SDL_Renderer *renderer;
     D3D11_RenderData *data;
-
-    renderer = (SDL_Renderer *)SDL_calloc(1, sizeof(*renderer));
-    if (!renderer) {
-        SDL_OutOfMemory();
-        return NULL;
-    }
 
     data = (D3D11_RenderData *)SDL_calloc(1, sizeof(*data));
     if (!data) {
-        SDL_free(renderer);
-        SDL_OutOfMemory();
-        return NULL;
+        return SDL_OutOfMemory();
     }
 
     data->identity = MatrixIdentity();
@@ -2385,14 +2380,14 @@ SDL_Renderer *D3D11_CreateRenderer(SDL_Window *window, Uint32 flags)
     /* Initialize Direct3D resources */
     if (FAILED(D3D11_CreateDeviceResources(renderer))) {
         D3D11_DestroyRenderer(renderer);
-        return NULL;
+        return -1;
     }
     if (FAILED(D3D11_CreateWindowSizeDependentResources(renderer))) {
         D3D11_DestroyRenderer(renderer);
-        return NULL;
+        return -1;
     }
 
-    return renderer;
+    return 0;
 }
 
 SDL_RenderDriver D3D11_RenderDriver = {
