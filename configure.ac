@@ -576,6 +576,10 @@ case "$host" in
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
        dnl FEATURE: Whether to support direct serial port pass-through
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
+       dnl If we have SDL2, we need to link the multimedia extensions.
+       if test "x$SDL2_LIBS" != "x"; then
+         LIBS="$LIBS -lmmpm2"
+       fi
        ;;
     *-*-riscos*)
        AC_DEFINE(RISCOS, 1, [Compiling on RISC OS])

@@ -107,7 +107,11 @@ void DOS_Shell::ShowPrompt(void) {
 				WriteOut("%d:%02d:%02d.%02d",reg_ch,reg_cl,reg_dh,reg_dl);
 				break;
 			}
+#if !defined(OS2) || !defined(C_SDL2)
 			case 'V': WriteOut("DOSBox-X version %s. Reported DOS version %d.%d.",VERSION,dos.version.major,dos.version.minor); break;
+#else
+			case 'V': WriteOut("DOSBox-X version %s. Reported DOS version %d.%d.",PACKAGE_VERSION,dos.version.major,dos.version.minor); break;
+#endif
 			case '$': WriteOut("$"); break;
 			case '_': WriteOut("\n"); break;
 			case 'M': break;
