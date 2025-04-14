@@ -111,6 +111,15 @@ class CCheckButton;
 class CBindButton;
 class CModEvent;
 
+#if defined(OS2) && defined(C_SDL2)
+#undef CLR_BLACK
+#undef CLR_WHITE
+#undef CLR_RED
+#undef CLR_BLUE
+#undef CLR_GREEN
+#undef CLR_DARKGREEN
+#endif
+
 enum {
     CLR_BLACK = 0,
     CLR_GREY = 1,
