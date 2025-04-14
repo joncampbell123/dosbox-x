@@ -873,6 +873,8 @@ void xcopy_file(const char *src_filename,
   /* check, if file copying should be simulated */
   if (!switch_listmode) {
     copy_file(src_filename, dest_filename, switch_continue);
+    fileattrib = _chmod(dest_filename, 0);
+    _chmod(dest_filename, 1, fileattrib & FA_ARCH);
 
     if (switch_archive_reset) {
       /* remove archive attribute from source file */
