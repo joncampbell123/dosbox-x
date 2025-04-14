@@ -36,6 +36,7 @@
 # define INCL_DOS
 # define INCL_WIN
 # define INCL_DOSERRORS
+# include <os2.h>
 #endif
 
 #if defined(WIN32)
@@ -218,11 +219,6 @@ typedef enum PROCESS_DPI_AWARENESS {
 #  include <imm.h> // input method editor
 # endif
 #endif // WIN32
-
-#ifdef OS2
-# include <os2.h>
-#endif
-
 
 #include <sstream>
 
