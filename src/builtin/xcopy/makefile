@@ -1,4 +1,4 @@
-# Makefile for XCOPY (using Borland C or Turbo C)
+# Makefile for XCOPY (using Open Watcom or Borland/Turbo C)
 # Based on the CHOICE makefile by Tom Ehlert
 
 # compression (for final executable)
@@ -7,8 +7,8 @@
 # if you dont want to UPX choice
 # if you use upx: --8086 for 8086 compatibility, --best for smallest
 
-UPX=-rem
-#UPX=upx -9
+# UPX=-rem
+UPX=upx --8086 --best
 
 
 # set where build files (including intermediate ones) placed
@@ -29,25 +29,32 @@ RM=del
 # -ms memory model (s=SMALL), -zq quiet mode
 # -fe=xxx executable name (must be last)
 # -o a=relax alias checking s=for size, -zp# 1=byte align
-#CC=wcl
-#CFLAGS=-oas -bt=DOS -zp1 -s -ms -0 -wx -we -zq -fm -fe=$*
+# -k# set stack size, default is 2048 bytes (2KB) but just under 4KB is needed
+# Note: we default to Watcom unless Borland MAKE is used
+CC=wcl
+CFLAGS=-oas -bt=DOS -zp1 -ms -0 -wx -we -zq -fm -k12288 -fe=$*
 # needed for wmake if phony target
-#PHONY=.SYMBOLIC
+PHONY=.SYMBOLIC
 
 ############# TURBO_C ########################
 # -w warn -M create map -f- no floating point -Z register optimize
-# -O jump optimize -k- no standard stack frame -K unsigned char
+# -O jump optimize -k- no standard stack frome -K unsigned char
 # -exxx executable name (name must be part of option in CFLAGS)
 # -mt tiny (default is small -ms)
 # -N stack checking -a- byte alignment  -ln no default libs
 # -lt create .com file -lx no map file ...
 # -v- quiet mode
 # -nPATH to place resulting files
-#CC=bcc
-CC=tcc
+# default stack size is 4KB
+!ifdef __MAKE__  # defined for Borland MAKE but not Watcom WMAKE
+!ifndef BORLAND
+CC=bcc         # default to BCC, use -DBORLAND=TCC for Turbo C/C++
+!else
+CC=$(BORLAND)  # Note: make won't use CC as cmd line define
+!endif
 CFLAGS=-d -v- -w -M -f- -Z -a- -O -k- -K -ln -ms -e$*
 PHONY=
-
+!endif
 
 CFILES=xcopy.c kitten.c prf.c
 
@@ -62,7 +69,7 @@ all: xcopy.exe
 xcopy.exe: $(CFILES) makefile shared.inc kitten.h
 	-$(MKDIR) $(OUTDIR)
 	$(CC) $(CFLAGS) $(CFILES)
-	$(UPX) xcopy.exe
+	-$(UPX) xcopy.exe
 	$(MV) xcopy.exe $(OUTDIR)
 
 
