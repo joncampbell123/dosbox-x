@@ -21,7 +21,7 @@
     - 1.10:  added support for non-default visuals; fixed X pixel-conversion
     - 1.11:  added extra set of parentheses to png_jmpbuf() macro; fixed
               command-line parsing bug
-    - 1.12:  fixed some small X memory leaks (thanks to François Petitjean)
+    - 1.12:  fixed some small X memory leaks (thanks to FranÃ§ois Petitjean)
     - 1.13:  fixed XFreeGC() crash bug (thanks to Patrick Welche)
     - 1.14:  added support for X resources (thanks to Gerhard Niklasch)
     - 2.00:  dual-licensed (added GNU GPL)
@@ -77,7 +77,7 @@
 
       You should have received a copy of the GNU General Public License
       along with this program; if not, write to the Free Software Foundation,
-      Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 USA  USA
+      Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
   ---------------------------------------------------------------------------*/
 
