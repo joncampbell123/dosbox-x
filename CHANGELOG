@@ -1,4 +1,10 @@
 Next
+  - Revise EGA/VGA emulation to treat the CRTC CGA/Hercules
+    CRTC bit remapping as bits to mask out, instead of defining
+    the upper limit of the memory mask. This makes the CGA mode
+    Engine page flipping test work. I initially had reservations
+    about whether or not real hardware did this, but, it would
+    make sense for hardware to do it that way. (joncampbell123)
   - Updated SDL2 library to version 2.32.4 (maron2000)
   - Fixed a build/install error due to using wildcards in Makefile.am, which is
     not supported in GNU Automake. (maron2000)
