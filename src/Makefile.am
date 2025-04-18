@@ -34,6 +34,14 @@ dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuilt
 	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
 		   misc/libmisc.a output/liboutput.a hardware/mame/libmame.a libs/zmbv/libzmbv.a libs/decoders/internal/libopusint.a
 
+if OS2
+dosbox_x_LDADD += os2res.res
+
+.rc.res:
+	wrc $< -i=. -r $@
+	
+endif
+
 if !EMSCRIPTEN
 dosbox_x_LDADD += aviwriter/libaviwriter.a
 endif
@@ -73,7 +81,7 @@ dosbox_x_js_install:
 	sudo cp -v dosbox-x.js dosbox-x.wasm /var/www/html/em/
 endif
 
-EXTRA_DIST = winres.rc ../contrib/icons/dosbox-x.ico
+EXTRA_DIST = winres.rc ../contrib/icons/dosbox-x.ico os2res.rc
 
 # Ensure the macOS universal executables are correctly removed when cleaning
 distclean-local:
