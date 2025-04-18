@@ -1,4 +1,11 @@
 Next
+  - Updated SDL2 library to version 2.32.4 (maron2000)
+  - Fixed a build/install error due to using wildcards in Makefile.am, which is
+    not supported in GNU Automake. (maron2000)
+  - macOS: Install SDL2_net in CI workflow to enable internal modem support on
+    Release and Nightly SDL2 builds. (maron2000)
+  - Fixed buffer size to allocate missing byte for string terminator for 
+    savestate filename to prevent buffer overflow (arifogel)
   - Fixed settings of yellow color in COLOR command (maron2000)
   - Fixed COLOR command to match behavior on Windows (maron2000)
   - Fixed INT21h AH=0a cursor position moved by bell due to keyboard buffer full
