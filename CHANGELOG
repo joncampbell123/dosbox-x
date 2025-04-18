@@ -5,6 +5,8 @@ Next
     Engine page flipping test work. I initially had reservations
     about whether or not real hardware did this, but, it would
     make sense for hardware to do it that way. (joncampbell123)
+  - Updated libpng to version 1.6.47 (maron2000)
+  - Updated XCOPY to version 1.9a (maron2000)
   - Updated SDL2 library to version 2.32.4 (maron2000)
   - Fixed a build/install error due to using wildcards in Makefile.am, which is
     not supported in GNU Automake. (maron2000)
