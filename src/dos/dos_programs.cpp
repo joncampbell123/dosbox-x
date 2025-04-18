@@ -6489,7 +6489,7 @@ class IMGMOUNT : public Program {
 						}
 					}
 					if (!skipDetectGeometry && !DetectGeometry(NULL, paths[i].c_str(), sizes)) {
-						errorMessage = "Unable to detect geometry\n";
+						errorMessage = MSG_Get("PROGRAM_IMGMOUNT_GEOMETRY_ERROR");
 					}
 				}
 
