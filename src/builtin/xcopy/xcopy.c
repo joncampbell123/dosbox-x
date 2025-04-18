@@ -25,9 +25,6 @@
 /* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.                */
 /***************************************************************************/
 
-/* Downloaded original source from the following link and fixed attribute copy   */
-/* https://github.com/FDOS/xcopy/commit/71dd94271057b3a60c6a01d1c3f2c7da856c464c */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -47,7 +44,7 @@ nl_catd cat;            /* message catalog, must be before shared.inc */
 
 #if defined(__TURBOC__) && !defined(__BORLANDC__)
 #define _splitpath fnsplit
-void _fullpath_tc(char * truename, char * rawname, unsigned int namelen)
+void _fullpath(char * truename, char * rawname, unsigned int namelen)
 {
   union REGS regs;
   struct SREGS sregs;
@@ -102,11 +99,18 @@ char switch_archive = 0,
      switch_verify = 0,
      switch_wait = 0,
      bak_verify = 0,
-     switch_keep_attr = 0,
      dest_drive;
 long int switch_date = 0;
 long file_counter = 0;
 int file_found = 0;
+
+
+/*  these are only used by xcopy_files, built up as recurse deeper into
+    into subdirectory to help avoid overflowing stack with each 
+    recursive call */
+char new_src_pathname[MAXPATH];
+char new_dest_pathname[MAXPATH];
+
 
 
 /*-------------------------------------------------------------------------*/
@@ -129,7 +133,7 @@ void xcopy_files(const char *src_pathname,
                  const char *dest_filename);
 void xcopy_file(const char *src_filename,
                 const char *dest_filename);
-unsigned int getDOSVersion(void);
+
 
 /*-------------------------------------------------------------------------*/
 /* MAIN-PROGRAM                                                            */
@@ -149,11 +153,7 @@ int main(int argc, const char **argv) {
        ch;
   int i, length;
   THEDATE dt;
-#ifdef __WATCOMC__
-  struct dostime_t tm;
-#else
-  struct time tm;
-#endif
+  THETIME tm;
 
   cat = catopen ("xcopy", 0);	/* initialize kitten */
 
@@ -207,13 +207,9 @@ int main(int argc, const char **argv) {
         catclose(cat);
         exit(4);
       }
-#ifdef __WATCOMC__
-      memset((void *)&tm, 0, sizeof(struct dostime_t));
-      /* tm.tm_hour = 0; tm.tm_min = 0; tm.tm_sec = 0; tm.tm_hund = 0; */
-#else
-      memset((void *)&tm, 0, sizeof(struct time));
-      /* tm.ti_hour = 0; tm.ti_min = 0; tm.ti_sec = 0; tm.ti_hund = 0; */
-#endif
+      memset((void *)&tm, 0, sizeof(THETIME));
+      /* tm.tm_hour = 0; tm.tm_min = 0; tm.tm_sec = 0; tm.tm_hund = 0; -- __WATCOM__ */
+      /* tm.ti_hour = 0; tm.ti_min = 0; tm.ti_sec = 0; tm.ti_hund = 0; -- all others */
       switch_date = dostounix(&dt, &tm);
     }
     else if (strcmp(tmp_switch, "E") == 0)
@@ -224,8 +220,6 @@ int main(int argc, const char **argv) {
       switch_hidden = -1;
     else if (strcmp(tmp_switch, "I") == 0)
       switch_intodir = -1;
-    else if (strcmp(tmp_switch, "K") == 0)
-      switch_keep_attr = -1;
     else if (strcmp(tmp_switch, "L") == 0)
       switch_listmode = -1;
     else if (strcmp(tmp_switch, "M") == 0)
@@ -267,11 +261,7 @@ int main(int argc, const char **argv) {
     catclose(cat);
     exit(4);
   }
-#if defined(__TURBOC__) && !defined(__BORLANDC__)
-  _fullpath_tc(src_pathname, fileargv[0], MYMAXPATH);
-#else
   _fullpath(src_pathname, fileargv[0], MYMAXPATH);
-#endif  
   if (src_pathname[0] == '\0') {
     printf("%s\n", catgets(cat, 1, 5, "Invalid source drive specification"));
     catclose(cat);
@@ -317,11 +307,7 @@ int main(int argc, const char **argv) {
       catclose(cat);
       exit(4);
     }
-#if defined(__TURBOC__) && !defined(__BORLANDC__)
-    _fullpath_tc(dest_pathname, fileargv[1], MYMAXPATH);
-#else
     _fullpath(dest_pathname, fileargv[1], MYMAXPATH);
-#endif
     if (dest_pathname[0] == '\0') {
       printf("%s\n", catgets(cat, 1, 9, "Invalid destination drive specification"));
       catclose(cat);
@@ -399,6 +385,8 @@ int main(int argc, const char **argv) {
     fflush(stdin);
   }
 
+  strmcpy(new_src_pathname, src_pathname, sizeof(new_src_pathname));
+  strmcpy(new_dest_pathname, dest_pathname, sizeof(new_dest_pathname));
   xcopy_files(src_pathname, src_filename, dest_pathname, dest_filename);
   if (!file_found) {
     printf("%s - %s\n",catgets(cat, 1, 18, "File not found"), src_filename);
@@ -415,7 +403,7 @@ int main(int argc, const char **argv) {
 /* SUB-PROGRAMS                                                            */
 /*-------------------------------------------------------------------------*/
 void print_help(void) {
-  printf("XCOPY v1.5 - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
+  printf("XCOPY v1.9a - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
   	/* VERSION! */
   printf("%s\n\n", catgets(cat, 2, 1, "Copies files and directory trees."));
   printf("%s\n\n", catgets(cat, 2, 2, "XCOPY source [destination] [/switches]"));
@@ -432,32 +420,31 @@ void print_help(void) {
   printf("%s\n", catgets(cat, 2, 13, "  /H           Copies hidden and system files as well as unprotected files."));
   printf("%s\n", catgets(cat, 2, 14, "  /I           If destination does not exist and copying more than one file,"));
   printf("%s\n", catgets(cat, 2, 15, "               assume destination is a directory."));
-  printf("%s\n", catgets(cat, 2, 16, "  /K           Keep attributes. Otherwise only archive attribute is copied."));
-  printf("%s\n", catgets(cat, 2, 17, "  /L           List files without copying them. (simulates copying)"));
-  printf("%s\n", catgets(cat, 2, 18, "  /M           Copies only files with the archive attribute set and turns off"));
+  printf("%s\n", catgets(cat, 2, 16, "  /L           List files without copying them. (simulates copying)"));
+  printf("%s\n", catgets(cat, 2, 17, "  /M           Copies only files with the archive attribute set and turns off"));
+  printf("%s\n", catgets(cat, 2, 18, "               the archive attribute of the source files after copying them."));
 
   if (isatty(1)) {
     printf("-- %s --", catgets(cat, 2, 35, "press enter for more"));
     (void)getchar();
   } /* wait for next page if TTY */
-
-  printf("%s\n", catgets(cat, 2, 19, "               the archive attribute of the source files after copying them."));
-  printf("%s\n", catgets(cat, 2, 20, "  /N           Suppresses prompting to confirm you want to overwrite an"));
-  printf("%s\n", catgets(cat, 2, 21, "               existing destination file and skips these files."));
-  printf("%s\n", catgets(cat, 2, 22, "  /P           Prompts for confirmation before creating each destination file."));
-  printf("%s\n", catgets(cat, 2, 23, "  /Q           Quiet mode, don't show copied filenames."));
-  printf("%s\n", catgets(cat, 2, 24, "  /R           Overwrite read-only files as well as unprotected files."));
-  printf("%s\n", catgets(cat, 2, 25, "  /S           Copies directories and subdirectories except empty ones."));
-  printf("%s\n", catgets(cat, 2, 26, "  /T           Creates directory tree without copying files. Empty directories"));
-  printf("%s\n", catgets(cat, 2, 27, "               will not be copied. To copy them add switch /E."));
-  printf("%s\n", catgets(cat, 2, 28, "  /V           Verifies each new file."));
-  printf("%s\n", catgets(cat, 2, 29, "  /W           Waits for a keypress before beginning."));
-  printf("%s\n", catgets(cat, 2, 30, "  /Y           Suppresses prompting to confirm you want to overwrite an"));
-  printf("%s\n", catgets(cat, 2, 31, "               existing destination file and overwrites these files."));
-  printf("%s\n", catgets(cat, 2, 32, "  /-Y          Causes prompting to confirm you want to overwrite an existing"));
-  printf("%s\n\n", catgets(cat, 2, 33, "               destination file."));
-  printf("%s\n", catgets(cat, 2, 34, "The switch /Y or /N may be preset in the COPYCMD environment variable."));
-  printf("%s\n", catgets(cat, 2, 35, "This may be overridden with /-Y on the command line."));
+      
+  printf("%s\n", catgets(cat, 2, 19, "  /N           Suppresses prompting to confirm you want to overwrite an"));
+  printf("%s\n", catgets(cat, 2, 20, "               existing destination file and skips these files."));
+  printf("%s\n", catgets(cat, 2, 21, "  /P           Prompts for confirmation before creating each destination file."));
+  printf("%s\n", catgets(cat, 2, 22, "  /Q           Quiet mode, don't show copied filenames."));
+  printf("%s\n", catgets(cat, 2, 23, "  /R           Overwrite read-only files as well as unprotected files."));
+  printf("%s\n", catgets(cat, 2, 24, "  /S           Copies directories and subdirectories except empty ones."));
+  printf("%s\n", catgets(cat, 2, 25, "  /T           Creates directory tree without copying files. Empty directories"));
+  printf("%s\n", catgets(cat, 2, 26, "               will not be copied. To copy them add switch /E."));
+  printf("%s\n", catgets(cat, 2, 27, "  /V           Verifies each new file."));
+  printf("%s\n", catgets(cat, 2, 28, "  /W           Waits for a keypress before beginning."));
+  printf("%s\n", catgets(cat, 2, 29, "  /Y           Suppresses prompting to confirm you want to overwrite an"));
+  printf("%s\n", catgets(cat, 2, 30, "               existing destination file and overwrites these files."));
+  printf("%s\n", catgets(cat, 2, 31, "  /-Y          Causes prompting to confirm you want to overwrite an existing"));
+  printf("%s\n\n", catgets(cat, 2, 32, "               destination file."));
+  printf("%s\n", catgets(cat, 2, 33, "The switch /Y or /N may be preset in the COPYCMD environment variable."));
+  printf("%s\n", catgets(cat, 2, 34, "This may be overridden with /-Y on the command line."));
 }
 
 
@@ -609,48 +596,55 @@ void build_name(char *dest,
 
 
 /*-------------------------------------------------------------------------*/
-/* Searches through the source directory (and its subdirectories) and calls */
+/* Searchs through the source directory (and its subdirectories) and calls */
 /* function "xcopy_file" for every found file.                             */
 /*-------------------------------------------------------------------------*/
 void xcopy_files(const char *src_pathname,
                  const char *src_filename,
                  const char *dest_pathname,
                  const char *dest_filename) {
-  char filepattern[MAXPATH],
-       new_src_pathname[MAXPATH],
-       new_dest_pathname[MAXPATH],
-       src_path_filename[MAXPATH],
-       dest_path_filename[MAXPATH],
-       tmp_filename[MAXFILE + MAXEXT],
-       tmp_pathname[MAXPATH];
+  char src_path_filename[MAXPATH],
+       dest_path_filename[MAXPATH];
   struct ffblk fileblock;
   int fileattrib,
       done;
-
+  /* WARNING these path values are overwritten on recursive calls */
+  static char filepattern[MAXPATH],
+       tmp_filename[MAXFILE + MAXEXT],
+       tmp_pathname[MAXPATH];
 
   if (switch_emptydir ||
       switch_subdir ||
       switch_tree) {
+    /* store current path in static variable, append path to it and revert back after copy */
+    char *end_new_src_pathname = new_src_pathname + strlen(new_src_pathname);
+    char *end_new_dest_pathname = new_dest_pathname + strlen(new_dest_pathname);
     /* copy files in subdirectories too */
+    
     strmcpy(filepattern, src_pathname, sizeof(filepattern));
     strmcat(filepattern, "*.*", sizeof(filepattern));
     done = findfirst(filepattern, &fileblock, FA_DIREC);
+
     while (!done) {
       if ((fileblock.ff_attrib & FA_DIREC) != 0 &&
           strcmp(fileblock.ff_name, ".") != 0 &&
           strcmp(fileblock.ff_name, "..") != 0) {
         /* build source pathname */
-        strmcpy(new_src_pathname, src_pathname, sizeof(new_src_pathname));
-        strmcat(new_src_pathname, fileblock.ff_name, sizeof(new_src_pathname));
-        strmcat(new_src_pathname, DIR_SEPARATOR, sizeof(new_src_pathname));
+        /*strmcpy(new_src_pathname, src_pathname, sizeof(new_src_pathname));*/
+        strmcat(end_new_src_pathname, fileblock.ff_name, sizeof(new_src_pathname));
+        strmcat(end_new_src_pathname, DIR_SEPARATOR, sizeof(new_src_pathname));
 
         /* build destination pathname */
-        strmcpy(new_dest_pathname, dest_pathname, sizeof(new_dest_pathname));
-        strmcat(new_dest_pathname, fileblock.ff_name, sizeof(new_dest_pathname));
-        strmcat(new_dest_pathname, DIR_SEPARATOR, sizeof(new_dest_pathname));
+        /*strmcpy(new_dest_pathname, dest_pathname, sizeof(new_dest_pathname));*/
+        strmcat(end_new_dest_pathname, fileblock.ff_name, sizeof(new_dest_pathname));
+        strmcat(end_new_dest_pathname, DIR_SEPARATOR, sizeof(new_dest_pathname));
 
         xcopy_files(new_src_pathname, src_filename,
                     new_dest_pathname, dest_filename);
+        
+
+        *end_new_src_pathname = '\0';
+        *end_new_dest_pathname = '\0';
       }
 
       done = findnext(&fileblock);
@@ -674,7 +668,7 @@ void xcopy_files(const char *src_pathname,
 
   /* check if destination directory must be created */
   if ((!done || switch_emptydir) &&
-      !dir_exists(dest_pathname)) {
+      !dir_exists(dest_pathname) && !switch_listmode) {
     strmcpy(tmp_pathname, dest_pathname, sizeof(tmp_pathname));
     if (make_dir(tmp_pathname) != 0) {
       printf("%s %s\n", catgets(cat, 1, 20, "Unable to create directory"), tmp_pathname);
@@ -714,27 +708,22 @@ void xcopy_files(const char *src_pathname,
   }
 }
 
+
 /*-------------------------------------------------------------------------*/
 /* Checks all dependencies of the source and destination file and calls    */
 /* function "copy_file".                                                   */
 /*-------------------------------------------------------------------------*/
 void xcopy_file(const char *src_filename,
                 const char *dest_filename) {
+  static char msg_prompt[256];
+  static struct stat src_statbuf;
+  static struct stat dest_statbuf;
+  static unsigned long cluster_size; /* in bytes */
+  static unsigned long free_clusters; /* count of clusters */
   int dest_file_exists;
   int fileattrib;
-  struct stat src_statbuf;
-  struct stat dest_statbuf;
-#if defined(__TURBOC__) && !defined(__BORLANDC__)
-  struct diskfree_t disk;
-#else
-  struct dfree disktable;
-#endif
-  unsigned long free_diskspace = -1;
-  unsigned long bsec = 512;
   char ch;
-  char msg_prompt[255];
-  unsigned int dos_version = 0;
-  struct DiskInfo diskinfo;
+
 
   if (switch_prompt) {
     /* ask for confirmation to create file */
@@ -755,7 +744,7 @@ void xcopy_file(const char *src_filename,
   }
 
   /* check source file for read permission */
-  /* (only useful under an OS with the ability to deny read access) */
+  /* (only usefull under an OS with the ability to deny read access) */
   if (access(src_filename, R_OK) != 0) {
     printf("%s - %s\n", catgets(cat, 1, 22, "Read access denied"), src_filename);
     if (switch_continue) {
@@ -771,54 +760,24 @@ void xcopy_file(const char *src_filename,
   stat((char *)src_filename, &src_statbuf);
   dest_file_exists = !stat((char *)dest_filename, &dest_statbuf);
 
-  dos_version = getDOSVersion();
+  /* get amount of free disk space in destination drive (in clusters not bytes) */
+  getdiskfreeclusters(dest_drive, &cluster_size, &free_clusters);
 
-  /* get amount of free disk space in destination drive */
-  if(((dos_version >> 8) > 7) || (((dos_version >> 8) == 7) && ((dos_version & 0xFF) >= 10))){
-      //printf("%d %s", dest_drive, dest_drive);
-      if(!get_extendedDiskInfo(dest_drive, &diskinfo)){
-      	bsec = diskinfo.bytesPerSector;
-      	free_diskspace = diskinfo.availableClusters * diskinfo.sectorsPerCluster;
-      	//printf("free_diskspace=%lu avail_clusters=%lu,sectors_per_cluster=%lu \n", free_diskspace, diskinfo.availableClusters, diskinfo.sectorsPerCluster);
-	  }
-	  else {
-	    goto int21_36h; /* Try the old DOS method if failed */
-	  }
+  /* only copy files newer than requested date */
+  /* -1 =if exists then only copy newer, 0=copy regardless of date, >0 date to compare if newer */
+  if (switch_date > 0) { 
+    /* check, that only files changed on or after the specified date */
+    /* are copied                                                    */
+    if (src_statbuf.st_mtime < switch_date) {
+      return;
+    }
   }
-  else {
-int21_36h:
-#if defined(__TURBOC__) && !defined(__BORLANDC__)
-  	if(_dos_getdiskfree(dest_drive, &disk) != 0) {
-		printf("Failed to obtain free disk space. Aborting\n");
-		exit(39);
-  	}
-  	bsec = disk.bytes_per_sector;
-  	free_diskspace = (unsigned long) disk.avail_clusters * disk.sectors_per_cluster;
-  	//printf("dest_drive=%d,free_diskspace=%lu avail_clusters=%u,sectors_per_cluster=%u \n",dest_drive, free_diskspace, disk.avail_clusters, disk.sectors_per_cluster);
-#else
-	getdfree(dest_drive, &disktable);
-	bsec = disktable.df_bsec;
-	free_diskspace = (unsigned long) disktable.df_avail * disktable.df_sclus;
-	//printf("disktable.df_avail=%d,disktable.df_sclus=%d\n",disktable.df_avail * disktable.df_sclus);
-	//free_diskspace = (unsigned long) disktable.df_avail *
-	//                 (unsigned long) disktable.df_sclus *
-	//                 (unsigned long) disktable.df_bsec;
-#endif
-  }
+
   if (dest_file_exists) {
-    if (switch_date) {
-      if (switch_date < 0) {
-        /* check, that only newer files are copied */
-        if (src_statbuf.st_mtime <= dest_statbuf.st_mtime) {
-          return;
-        }
-      }
-      else {
-        /* check, that only files changed on or after the specified date */
-        /* are copied                                                    */
-        if (src_statbuf.st_mtime < switch_date) {
-          return;
-        }
+    if (switch_date < 0) {
+      /* check, that only newer files are copied */
+      if (src_statbuf.st_mtime <= dest_statbuf.st_mtime) {
+        return;
       }
     }
 
@@ -854,9 +813,11 @@ int21_36h:
     }
 
     /* check free space on destination disk */
-    /* *** was wrong, was: "if (src... > free... - dest...) ..." */
+	/* Note: if existing file is larger than current then always room for new file even if drive is full;
+	         otherwise need to ensure enough free clusters to support additional file size (additional clusters).
+	 */
     if ( (src_statbuf.st_size > dest_statbuf.st_size) &&
-         (((src_statbuf.st_size - dest_statbuf.st_size) / bsec) > free_diskspace) ) {
+         ((((src_statbuf.st_size - dest_statbuf.st_size) + (cluster_size-1))/cluster_size) > free_clusters) ) {
       printf("%s - %s\n", catgets(cat, 1, 23, "Insufficient disk space in destination path"), dest_filename);
       catclose(cat);
       exit(39);
@@ -888,10 +849,11 @@ int21_36h:
   }
   else {
     /* check free space on destination disk */
-    unsigned long st_size_sec = (unsigned long)src_statbuf.st_size / bsec;
-    
-    if (st_size_sec > (unsigned long)free_diskspace) {
-      printf("%lu - %lu\n", st_size_sec, free_diskspace);
+	/* Note: files are stored in clusters, so we check if enough free clusters,
+	   but we do this to avoid overflow of 32bit integers if freespace > 4GB
+	 */
+	
+    if (((src_statbuf.st_size + (cluster_size-1))/cluster_size) > free_clusters) {
       printf("%s - %s\n", catgets(cat, 1, 25, "Insufficient disk space in destination path"), dest_filename);
       catclose(cat);
       exit(39);
@@ -910,7 +872,15 @@ int21_36h:
 
   /* check, if file copying should be simulated */
   if (!switch_listmode) {
-    copy_file(src_filename, dest_filename, switch_continue, switch_keep_attr, switch_archive_reset);
+    copy_file(src_filename, dest_filename, switch_continue);
+    fileattrib = _chmod(dest_filename, 0);
+    _chmod(dest_filename, 1, fileattrib & FA_ARCH);
+
+    if (switch_archive_reset) {
+      /* remove archive attribute from source file */
+      fileattrib = _chmod(src_filename, 0);
+      _chmod(src_filename, 1, fileattrib ^ FA_ARCH);
+    }
   }
 
   file_counter++;
