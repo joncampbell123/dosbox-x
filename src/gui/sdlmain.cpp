@@ -36,6 +36,7 @@
 # define INCL_DOS
 # define INCL_WIN
 # define INCL_DOSERRORS
+# define INCL_WINDIALOGS
 # include <os2.h>
 #endif
 
@@ -7777,6 +7778,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(WIN32) && !defined(HX_DOS)
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 #endif
+
 
     /* -- parse command line arguments */
     if (!DOSBOX_parse_argv()) return 1;
