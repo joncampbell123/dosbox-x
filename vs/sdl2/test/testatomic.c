@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "SDL.h"
+#include "SDL_test.h"
 
 /*
   Absolutely basic tests just to see if we get the expected value
@@ -31,7 +32,7 @@ tf(SDL_bool _tf)
     return f;
 }
 
-static void RunBasicTest()
+static void RunBasicTest(void)
 {
     int value;
     SDL_SpinLock lock = 0;
@@ -130,7 +131,8 @@ static int SDLCALL adder(void *junk)
 static void runAdder(void)
 {
     Uint32 start, end;
-    int T = NThreads;
+    int i;
+    SDL_Thread *threads[NThreads];
 
     start = SDL_GetTicks();
 
@@ -138,12 +140,16 @@ static void runAdder(void)
 
     SDL_AtomicSet(&threadsRunning, NThreads);
 
-    while (T--) {
-        SDL_CreateThread(adder, "Adder", NULL);
+    for (i = 0; i < NThreads; i++) {
+        threads[i] = SDL_CreateThread(adder, "Adder", NULL);
     }
 
     while (SDL_AtomicGet(&threadsRunning) > 0) {
         SDL_SemWait(threadDone);
+    }
+
+    for (i = 0; i < NThreads; i++) {
+        SDL_WaitThread(threads[i], NULL);
     }
 
     SDL_DestroySemaphore(threadDone);
@@ -153,7 +159,7 @@ static void runAdder(void)
     SDL_Log("Finished in %f sec\n", (end - start) / 1000.f);
 }
 
-static void RunEpicTest()
+static void RunEpicTest(void)
 {
     int b;
     atomicValue v;
@@ -699,8 +705,25 @@ static void RunFIFOTest(SDL_bool lock_free)
 
 int main(int argc, char *argv[])
 {
+    SDLTest_CommonState *state;
+
+    state = SDLTest_CommonCreateState(argv, 0);
+    if (!state) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDLTest_CommonCreateState failed: %s\n", SDL_GetError());
+        return 1;
+    }
+
     /* Enable standard application logging */
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
+
+    if (!SDLTest_CommonDefaultArgs(state, argc, argv)) {
+        return 1;
+    }
+
+    if (!SDLTest_CommonInit(state)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        return 1;
+    }
 
     RunBasicTest();
 
@@ -715,6 +738,8 @@ int main(int argc, char *argv[])
     RunFIFOTest(SDL_FALSE);
 #endif
     RunFIFOTest(SDL_TRUE);
+    SDL_Quit();
+    SDLTest_CommonQuit(state);
     return 0;
 }
 

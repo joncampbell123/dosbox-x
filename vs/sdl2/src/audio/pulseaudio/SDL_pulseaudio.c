@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -497,7 +497,7 @@ static void PULSEAUDIO_FlushCapture(_THIS)
 {
     struct SDL_PrivateAudioData *h = this->hidden;
     const void *data = NULL;
-    size_t nbytes = 0;
+    size_t nbytes = 0, buflen = 0;
 
     PULSEAUDIO_pa_threaded_mainloop_lock(pulseaudio_threaded_mainloop);
 
@@ -507,19 +507,19 @@ static void PULSEAUDIO_FlushCapture(_THIS)
         h->capturelen = 0;
     }
 
-    while (SDL_AtomicGet(&this->enabled) && (PULSEAUDIO_pa_stream_readable_size(h->stream) > 0)) {
+    buflen = PULSEAUDIO_pa_stream_readable_size(h->stream);
+    while (SDL_AtomicGet(&this->enabled) && (buflen > 0)) {
         PULSEAUDIO_pa_threaded_mainloop_wait(pulseaudio_threaded_mainloop);
         if ((PULSEAUDIO_pa_context_get_state(pulseaudio_context) != PA_CONTEXT_READY) || (PULSEAUDIO_pa_stream_get_state(h->stream) != PA_STREAM_READY)) {
             /*printf("PULSEAUDIO DEVICE FAILURE IN FLUSHCAPTURE!\n");*/
             SDL_OpenedAudioDeviceDisconnected(this);
             break;
         }
-
-        if (PULSEAUDIO_pa_stream_readable_size(h->stream) > 0) {
-            /* a new fragment is available! Just dump it. */
-            PULSEAUDIO_pa_stream_peek(h->stream, &data, &nbytes);
-            PULSEAUDIO_pa_stream_drop(h->stream); /* drop this fragment. */
-        }
+        /* a fragment of audio present before FlushCapture was call is
+           available! Just drop it. */
+        PULSEAUDIO_pa_stream_peek(h->stream, &data, &nbytes);
+        PULSEAUDIO_pa_stream_drop(h->stream);
+        buflen -= nbytes;
     }
 
     PULSEAUDIO_pa_threaded_mainloop_unlock(pulseaudio_threaded_mainloop);
@@ -885,7 +885,7 @@ static int SDLCALL HotplugThread(void *data)
     return 0;
 }
 
-static void PULSEAUDIO_DetectDevices()
+static void PULSEAUDIO_DetectDevices(void)
 {
     SDL_sem *ready_sem = SDL_CreateSemaphore(0);
 
@@ -897,8 +897,12 @@ static void PULSEAUDIO_DetectDevices()
 
     /* ok, we have a sane list, let's set up hotplug notifications now... */
     SDL_AtomicSet(&pulseaudio_hotplug_thread_active, 1);
-    pulseaudio_hotplug_thread = SDL_CreateThreadInternal(HotplugThread, "PulseHotplug", 256 * 1024, ready_sem);  /* !!! FIXME: this can probably survive in significantly less stack space. */
-    SDL_SemWait(ready_sem);
+    pulseaudio_hotplug_thread = SDL_CreateThreadInternal(HotplugThread, "PulseHotplug", 0, ready_sem);
+    if (pulseaudio_hotplug_thread) {
+        SDL_SemWait(ready_sem);
+    } else {
+        SDL_AtomicSet(&pulseaudio_hotplug_thread_active, 0);  // thread failed to start, we'll go on without hotplug.
+    }
     SDL_DestroySemaphore(ready_sem);
 }
 

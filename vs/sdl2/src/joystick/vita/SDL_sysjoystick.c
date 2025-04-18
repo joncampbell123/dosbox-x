@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -145,12 +145,12 @@ int VITA_JoystickInit(void)
     return SDL_numjoysticks;
 }
 
-int VITA_JoystickGetCount()
+int VITA_JoystickGetCount(void)
 {
     return SDL_numjoysticks;
 }
 
-void VITA_JoystickDetect()
+void VITA_JoystickDetect(void)
 {
 }
 

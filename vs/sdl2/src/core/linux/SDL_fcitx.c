@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -55,7 +55,7 @@ typedef struct _FcitxClient
 
 static FcitxClient fcitx_client;
 
-static char *GetAppName()
+static char *GetAppName(void)
 {
 #if defined(__LINUX__) || defined(__FREEBSD__)
     char *spot;
@@ -368,7 +368,7 @@ static Uint32 Fcitx_ModState(void)
     return fcitx_mods;
 }
 
-SDL_bool SDL_Fcitx_Init()
+SDL_bool SDL_Fcitx_Init(void)
 {
     fcitx_client.dbus = SDL_DBus_GetContext();
 
@@ -380,7 +380,7 @@ SDL_bool SDL_Fcitx_Init()
     return FcitxClientCreateIC(&fcitx_client);
 }
 
-void SDL_Fcitx_Quit()
+void SDL_Fcitx_Quit(void)
 {
     FcitxClientICCallMethod(&fcitx_client, "DestroyIC");
     if (fcitx_client.ic_path) {
@@ -485,7 +485,6 @@ void SDL_Fcitx_PumpEvents(void)
 
     while (dbus->connection_dispatch(conn) == DBUS_DISPATCH_DATA_REMAINS) {
         /* Do nothing, actual work happens in DBus_MessageFilter */
-        usleep(10);
     }
 }
 

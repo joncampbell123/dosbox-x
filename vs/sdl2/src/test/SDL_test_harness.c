@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -339,7 +339,7 @@ static void SDLTest_LogTestSuiteSummary(SDLTest_TestSuiteReference *testSuites)
 #endif
 
 /* Gets a timer value in seconds */
-static float GetClock()
+static float GetClock(void)
 {
     float currentClock = SDL_GetPerformanceCounter() / (float)SDL_GetPerformanceFrequency();
     return currentClock;

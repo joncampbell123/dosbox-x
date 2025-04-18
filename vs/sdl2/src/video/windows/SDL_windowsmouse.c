@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -474,7 +474,7 @@ static void WIN_SetLinearMouseScale(int mouse_speed)
     }
 }
 
-void WIN_UpdateMouseSystemScale()
+void WIN_UpdateMouseSystemScale(void)
 {
     int mouse_speed;
     int params[3] = { 0, 0, 0 };

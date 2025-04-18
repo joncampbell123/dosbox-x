@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -131,7 +131,7 @@ VideoBootStrap DUMMY_evdev_bootstrap = {
     NULL /* no ShowMessageBox implementation */
 };
 void SDL_EVDEV_Init(void);
-void SDL_EVDEV_Poll();
+void SDL_EVDEV_Poll(void);
 void SDL_EVDEV_Quit(void);
 static void DUMMY_EVDEV_Poll(_THIS)
 {

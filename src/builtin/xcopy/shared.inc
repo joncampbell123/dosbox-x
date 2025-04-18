@@ -2,21 +2,6 @@
 #include <string.h>
 #include <io.h>
 
-struct DiskInfo {
-    /* buffer to be filled by INT 21h function 0x7303h */
-    unsigned short size;
-    unsigned short version;
-    unsigned long sectorsPerCluster;
-    unsigned long bytesPerSector;
-    unsigned long availableClusters;
-    unsigned long totalClusters;
-    unsigned long physicalSectorsAvailable;
-    unsigned long totalPhysicalSectors;
-    unsigned long availableAllocationUnits;
-    unsigned long totalAllocationUnits;
-    char reserved[8];
-};
-
 #ifdef __WATCOMC__
 #include <direct.h> /* below: Turbo C dir.h values as comments */
 #define MAXPATH  _MAX_PATH  /* 80 */
@@ -33,6 +18,10 @@ struct DiskInfo {
 #define FA_LABEL  _A_VOLID
 #define FA_DIREC  _A_SUBDIR
 #define FA_ARCH   _A_ARCH
+
+/* following are defined in fcntl.h (here to avoid other conflicts) */
+#define O_RDONLY 0
+#define O_RDWR   2
 
 struct ffblk {
         unsigned short cr_time; /* time of file creation      */
@@ -91,7 +80,8 @@ int getftime(int handle, struct ftime *ftimep)
 {
   union borftime ftm;
   
-  if( _dos_getftime(handle,
+  /* Note: fileno() returns POSIX compatible handle, this may or may not match DOS handle, so convert with os_handle() */
+  if( _dos_getftime(_os_handle(handle),
                     (unsigned *)&ftm.msc_time.date,
                     (unsigned *)&ftm.msc_time.time 
 					) == 0 )
@@ -105,12 +95,42 @@ int setftime(int handle, struct ftime *ftimep)
 {
   union borftime ftm;
   ftm.bc_time = *ftimep;
-  return((_dos_setftime(handle,ftm.msc_time.date,ftm.msc_time.time) == 0) ? 0 : -1);
+  /* Note: fileno() returns POSIX compatible handle, this may or may not match DOS handle, so convert with os_handle() */
+  return((_dos_setftime(_os_handle(handle),ftm.msc_time.date,ftm.msc_time.time) == 0) ? 0 : -1);
+}
+
+int os_setftime(const char *src_filename, const char *dest_filename)
+{
+  int handle;
+  unsigned date, time;
+  int ret;
+  if ((ret = _dos_open(src_filename, O_RDONLY, &handle)) != 0) return ret;
+  if ((ret = _dos_getftime(handle, &date, &time)) != 0) return ret;
+  _dos_close(handle);
+  if ((ret = _dos_open(dest_filename, O_RDWR, &handle)) != 0) return ret;
+  if ((ret = _dos_setftime(handle, date, time)) != 0) return ret;
+  _dos_close(handle);
+  return 0;
 }
 
 
 #else
 #include <dir.h>
+
+/* copy file timestamp */
+int os_setftime(const char *src_filename, const char *dest_filename)
+{
+  FILE *f;
+  struct ftime filetime;
+  if ((f = fopen(src_filename, "r")) == NULL) return 1;
+  if (getftime(fileno(f), &filetime) != 0) return 1;
+  fclose(f);
+  if ((f = fopen(dest_filename, "w")) == NULL) return 1;
+  if (setftime(fileno(f), &filetime) != 0) return 1;
+  fclose(f);
+  return 0;
+}
+
 #endif
 
 #ifdef __WATCOMC__ /* "dosdate_t" instead of Borland style "date" ... */
@@ -123,6 +143,7 @@ int setftime(int handle, struct ftime *ftimep)
 #define ti_minute minute
 #define ti_sec second
 #define ti_hund hsecond
+#define THETIME struct dostime_t
 
 time_t dostounix(THEDATE *date, struct dostime_t *time)
 {
@@ -140,6 +161,7 @@ time_t dostounix(THEDATE *date, struct dostime_t *time)
 }
 #else
 #define THEDATE struct date
+#define THETIME struct time
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -232,6 +254,82 @@ void getdfree(unsigned char drive, struct dfree *dtable)
     dtable->df_sclus = disk.sectors_per_cluster;
 }
 #endif
+
+/*-------------------------------------------------------------------------*/
+/* Gets the free cluster count and clustersize in bytes of disk            */
+/* drive 1=A,2=B,3=C,... error can be NULL if don't care                   */
+/*-------------------------------------------------------------------------*/
+void getdiskfreeclusters(unsigned drive, unsigned long *clustersize, unsigned long *free_clusters)
+{
+  static char rootname[] = "C:\\";
+  static union REGS r;
+  static struct SREGS s;
+  static struct {
+  	unsigned short whatever;
+  	unsigned short version;
+  	unsigned long  sectors_per_cluster; 
+  	unsigned long  bytes_per_sector;
+  	unsigned long  free_clusters;
+  	unsigned long  total_clusters;
+  	unsigned long  available_physical_sectors;
+  	unsigned long  total_physical_sectors;
+  	unsigned long  free_allocation_units; 
+  	unsigned long  total_allocation_units; 
+  	unsigned char  reserved[8];
+  } FAT32_Free_Space;
+
+  if (!drive) _dos_getdrive(&drive);  /* use current drive */
+  /* Note: RBIL carry clear and al==0 also means unimplemented 
+     alternately carry set and ax==undefined (usually unchanged) for unimplemented
+     ecm: RBIL is wrong, CF unchanged al=0 is the typical error return.
+     EDR-DOS returns NC ax=0 so checking for al!=0 here was wrong.
+  */
+  rootname[0] = 'A' + drive - 1;
+  /* printf("Looking at drive [%s]\n", rootname); */
+  r.w.cflag = 1;	/* CY before 21.73 calls! */
+  r.w.ax = 0x7303;
+  s.ds = FP_SEG(rootname);
+  r.w.dx = FP_OFF(rootname);
+  s.es = FP_SEG(&FAT32_Free_Space);
+  r.w.di = FP_OFF(&FAT32_Free_Space);
+  r.w.cx = sizeof(FAT32_Free_Space);
+  intdosx( &r, &r, &s );
+
+  /* see if call supported, if not then fallback to older get disk free API call */  
+  /* Note: from RBIL returning AL=0 (with carry unchanged/clear) means unimplemented,
+     in such cases AH is unchanged, so will AH will still by 0x73, i.e. returning AX=0x7300 
+     EDR kernel returns with AX=0 if successful so error must check AX=7300 instead of just AL for 0
+     FreeDOS kernel returns with AX unchanged, i.e. 0x7303 on success
+     If returns carry set then AX is undefined, but an error.
+     (carry OR (AX == 0x7300)) indicates error, so we check for NOT (carry OR (AX == 0x7300))
+  */
+  if (!(r.w.cflag & 0x01) && (r.w.ax != 0x7300)) /* call available and successfully returned */
+  {
+    /* calculate free space, but handle some overflow cases (or switch to 64bit values) */ 
+    if (clustersize != NULL) *clustersize = FAT32_Free_Space.sectors_per_cluster * FAT32_Free_Space.bytes_per_sector;
+    if (free_clusters != NULL) *free_clusters = FAT32_Free_Space.free_clusters;
+
+    /* total free is cluster size * # of free clusters */
+    #if 0
+    if (clustersize)
+    {
+      /* if (MAX_ULONG / operand1) < operand2 then will overflow (operand1 * operand2 > MAX_ULONG */
+      if ((4294967295ul / clustersize) < FAT32_Free_Space.free_clusters) {
+          freesize = (unsigned long)-1; /* max size */
+      } else {
+          freesize = clustersize * FAT32_Free_Space.free_clusters;
+      }
+    }
+    #endif
+  }
+  else /* ((r.w.cflag & 0x01) || (!r.h.al)) */
+  {
+    static struct dfree disktable;
+    getdfree(drive, &disktable);
+    if (clustersize != NULL) *clustersize = (unsigned long)  disktable.df_bsec * disktable.df_sclus;
+    if (free_clusters != NULL) *free_clusters = disktable.df_avail;
+  }
+}
 
 
 /*-------------------------------------------------------------------------*/
@@ -365,6 +463,35 @@ int datevalid(THEDATE * dt) {
 
 
 /*-------------------------------------------------------------------------*/
+/* Copies argument into buffer until new option or end of string found.    */
+/*-------------------------------------------------------------------------*/
+static char option_buffer[1024];
+static char * get_option(const char **next_argptr, unsigned *count)
+{
+  unsigned int i, tmp_maxlen;
+  const char *src = *next_argptr+1; /* +1 skip past option char (/ or -) */
+  char *dest = option_buffer+*count;
+  int expecting_date = 0; /* flag indicating / may be part of option */
+ 
+  tmp_maxlen = sizeof(option_buffer) - (*count) - 1;
+  i = 0;
+  while ((src[i] != '\0') &&
+         (i < tmp_maxlen) &&
+		 ((!expecting_date && ((src[i] != '-') && (src[i] != '/'))) || expecting_date)) 
+  {
+    dest[i] = src[i];
+	expecting_date |= src[i] == ':';  /* currently only /D:<date> option */
+    i++;
+  }
+  dest[i] = '\0';
+  if (i >= tmp_maxlen) *next_argptr = dest+i; /* ensure points to '\0' */
+  else *next_argptr = src+i;
+  *count += i + 1;
+  return dest;
+}
+
+
+/*-------------------------------------------------------------------------*/
 /* Splits the program arguments into file and switch arguments.            */
 /*-------------------------------------------------------------------------*/
 void classify_args(const int argc,
@@ -375,6 +502,8 @@ void classify_args(const int argc,
                    char **switchargv) {
   int i;
   char *argptr;
+  unsigned count = 0;
+  const char *next_argptr;
 
 
   *fileargc = 0;
@@ -383,8 +512,13 @@ void classify_args(const int argc,
     argptr = (char *)argv[i];
     if (argptr[0] == '/' || argptr[0] == '-') {
       /* first character of parameter is '/' or '-' -> switch argument */
-      switchargv[*switchargc] = argptr + 1;
-      *switchargc = *switchargc + 1;
+      //switchargv[*switchargc] = argptr + 1;
+ 	  next_argptr = argptr;
+	  do {
+        switchargv[*switchargc] = get_option(&next_argptr, &count);
+		/* printf("switcharg[%i]=|%s|\n", *switchargc, switchargv[*switchargc]); */
+        *switchargc = *switchargc + 1;
+	  } while (*next_argptr != '\0');  
     }
     else {
       /* file argument */
@@ -513,17 +647,13 @@ char confirm(const char *msg,
 /*-------------------------------------------------------------------------*/
 void copy_file(const char *src_filename,
                const char *dest_filename,
-               const char return_on_error,
-               const char keep_attrib,
-               const char reset_arch) {
+               const char return_on_error) {
   FILE *src_file,
        *dest_file;
-  char buffer[16384];
+  static char buffer[16384];  /* don't put buffer on stack! */
   unsigned int buffersize;
   int readsize,
       fileattrib;
-  struct ftime filetime;
-
 
   /* open source file */
   src_file = fopen(src_filename, "rb");
@@ -568,62 +698,14 @@ void copy_file(const char *src_filename,
     readsize = fread(buffer, sizeof(char), buffersize, src_file);
   }
 
-  /* copy file timestamp */
-  getftime(fileno(src_file), &filetime);
-  setftime(fileno(dest_file), &filetime);
-
   /* close files */
   fclose(src_file);
   fclose(dest_file);
+  
+  /* update timestamp after completing copy to ensure OS actually sets to original date and not current time */
+  os_setftime(src_filename, dest_filename);
 
   /* copy file attributes */
   fileattrib = _chmod(src_filename, 0);
-  if(!keep_attrib) {
-      fileattrib = fileattrib & FA_ARCH;
-  }
-  if(reset_arch){
-     fileattrib = fileattrib & !FA_ARCH;
-  }
   _chmod(dest_filename, 1, fileattrib);
-}
-
-unsigned int getDOSVersion() {
-    union REGS regs;
-
-    regs.h.ah = 0x30;  // Function code for get DOS version
-    intdos(&regs, &regs);
-
-    // AL register will contain the DOS major version
-    // AH register will contain the DOS minor version
-    if (regs.h.al == 0) {
-        regs.h.al++;
-    }
-    return (regs.h.al << 8) | regs.h.ah;
-}
-
-unsigned int get_extendedDiskInfo (char driveNumber, struct DiskInfo *diskInfo) {
-    union REGS regs;
-    struct SREGS segregs;
-    char driveString[4];
-
-	if(driveNumber < 1 || driveNumber > 26) return 0xFFFF;
-
-    // Set up buffer for result
-    segread(&segregs);  /* Get the segment of DS */
-    regs.x.di = FP_OFF(diskInfo);
-    segregs.es = FP_SEG(diskInfo);
-
-    // Convert drive number to ASCIZ string
-    sprintf(driveString, "%c:\\", 'A' + driveNumber - 1);
-
-    // Set up registers
-    regs.h.ah = 0x73;     /* Function code for get free disk space */
-    regs.h.al = 0x03;     /* Sub-function code for get disk information */
-    regs.x.cx = sizeof(struct DiskInfo);
-    regs.x.dx = FP_OFF(driveString);
-    segregs.ds = FP_SEG(driveString);
-
-    // Perform the interrupt
-    intdosx(&regs, &regs, &segregs);
-	return regs.x.ax;
 }

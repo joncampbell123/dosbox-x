@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,12 +19,12 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
+/* WIKI CATEGORY: BeginCode */
+
 /**
- *  \file begin_code.h
- *
- *  This file sets things up for C dynamic library function definitions,
- *  static inlined functions, and structures aligned at 4-byte alignment.
- *  If you don't like ugly C preprocessor code, don't look at this file. :)
+ * begin_code.h sets things up for C dynamic library function definitions,
+ * static inlined functions, and structures aligned at 4-byte alignment.
+ * If you don't like ugly C preprocessor code, don't look at this file. :)
  */
 
 /* This shouldn't be nested -- included it around code only. */
@@ -37,7 +37,7 @@
 #  if defined(__GNUC__) && (__GNUC__ >= 4)  /* technically, this arrived in gcc 3.1, but oh well. */
 #    define SDL_DEPRECATED __attribute__((deprecated))
 //#  elif defined(_MSC_VER)
-//#    define SDL_DEPRECATED __declspec(deprecated) /* Revert this change due to compile error of SDL_ttf */
+//# define SDL_DEPRECATED __declspec(deprecated) /* Revert this change due to compile error of SDL_ttf */
 #  else
 #    define SDL_DEPRECATED
 #  endif
@@ -172,7 +172,7 @@
     (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202000L)
 #define SDL_FALLTHROUGH [[fallthrough]]
 #else
-#if defined(__has_attribute)
+#if defined(__has_attribute) && !defined(__SUNPRO_C) && !defined(__SUNPRO_CC)
 #define SDL_HAS_FALLTHROUGH __has_attribute(__fallthrough__)
 #else
 #define SDL_HAS_FALLTHROUGH 0

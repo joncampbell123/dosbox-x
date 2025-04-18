@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -40,7 +40,7 @@ static _SDL_IME_ProcessKeyEvent SDL_IME_ProcessKeyEvent_Real = NULL;
 static _SDL_IME_UpdateTextRect SDL_IME_UpdateTextRect_Real = NULL;
 static _SDL_IME_PumpEvents SDL_IME_PumpEvents_Real = NULL;
 
-static void InitIME()
+static void InitIME(void)
 {
     static SDL_bool inited = SDL_FALSE;
 #ifdef HAVE_FCITX
@@ -142,7 +142,7 @@ void SDL_IME_UpdateTextRect(const SDL_Rect *rect)
     }
 }
 
-void SDL_IME_PumpEvents()
+void SDL_IME_PumpEvents(void)
 {
     if (SDL_IME_PumpEvents_Real) {
         SDL_IME_PumpEvents_Real();

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -62,7 +62,9 @@ ticktock(Uint32 interval, void *param)
 static Uint32 SDLCALL
 callback(Uint32 interval, void *param)
 {
-    SDL_Log("Timer %" SDL_PRIu32 " : param = %d\n", interval, (int)(uintptr_t)param);
+    int value = (int)(uintptr_t)param;
+    SDL_assert( value == 1 || value == 2 || value == 3 );
+    SDL_Log("Timer %" SDL_PRIu32 " : param = %d\n", interval, value);
     return interval;
 }
 
@@ -76,16 +78,24 @@ int main(int argc, char *argv[])
     Uint64 start, now;
     SDL_bool run_interactive_tests = SDL_FALSE;
     int return_code = 0;
+    SDLTest_CommonState *state;
+
+    state = SDLTest_CommonCreateState(argv, SDL_INIT_TIMER);
+    if (!state) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDLTest_CommonCreateState failed: %s\n", SDL_GetError());
+        return 1;
+    }
 
     /* Enable standard application logging */
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
     /* Parse commandline */
     for (i = 1; i < argc;) {
-        int consumed = 0;
+        int consumed;
 
+        consumed = SDLTest_CommonArg(state, i);
         if (!consumed) {
-            if (SDL_strcmp(argv[i], "--interactive") == 0) {
+            if (SDL_strcmp("--interactive", argv[i]) == 0) {
                 run_interactive_tests = SDL_TRUE;
                 consumed = 1;
             } else if (desired < 0) {
@@ -98,14 +108,15 @@ int main(int argc, char *argv[])
             }
         }
         if (consumed <= 0) {
-            SDL_Log("Usage: %s [--interactive] [interval]", argv[0]);
-            return 1;
+            static const char *options[] = { "[--interactive]", "[interval]", NULL };
+            SDLTest_CommonLogUsage(state, argv[0], options);
+            exit(1);
         }
 
         i += consumed;
     }
 
-    if (SDL_Init(SDL_INIT_TIMER) < 0) {
+    if (!SDLTest_CommonInit(state)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         return 1;
     }
@@ -201,7 +212,7 @@ int main(int argc, char *argv[])
     if (run_interactive_tests) {
         return_code |= test_sdl_delay_within_bounds();
     }
-    SDL_Quit();
+    SDLTest_CommonQuit(state);
     return return_code;
 }
 

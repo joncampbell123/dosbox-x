@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -507,13 +507,31 @@ int Cocoa_GL_SwapWindow(_THIS, SDL_Window * window)
     return 0;
 }}
 
-void Cocoa_GL_DeleteContext(_THIS, SDL_GLContext context)
-{ @autoreleasepool
+static void DispatchedDeleteContext(SDL_GLContext context)
 {
-    SDLOpenGLContext *nscontext = (__bridge SDLOpenGLContext *)context;
-    [nscontext cleanup];
-    CFRelease(context);
-}}
+    @autoreleasepool {
+        SDLOpenGLContext *nscontext = (__bridge SDLOpenGLContext *)context;
+        [nscontext cleanup];
+        CFRelease(context);
+    }
+}
+
+void Cocoa_GL_DeleteContext(_THIS, SDL_GLContext context)
+{
+    if ([NSThread isMainThread]) {
+        DispatchedDeleteContext(context);
+    } else {
+        if (SDL_opengl_async_dispatch) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+              DispatchedDeleteContext(context);
+            });
+        } else {
+            dispatch_sync(dispatch_get_main_queue(), ^{
+              DispatchedDeleteContext(context);
+            });
+        }
+    }
+}
 
 /* We still support OpenGL as long as Apple offers it, deprecated or not, so disable deprecation warnings about it. */
 #ifdef __clang__

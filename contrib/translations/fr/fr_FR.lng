@@ -4230,3 +4230,67 @@ Impossible d'ouvrir un fichier
 :PROGRAM_BIOSTEST_TOO_LARGE
 Le ficher BIOS est trop gros
 .
+:PROGRAM_DELTREE_HELP
+Supprime un répertoire et tous les sous-répertoires et 
+fichiers qu'il contient.
+
+Pour supprimer un ou plusieurs fichiers et répertoires :
+DELTREE [/Y] [drive:]path [[drive:]path[...]]
+
+  /Y              Supprime la demande de confirmation de la suppression 
+                  du sous-répertoire
+  [drive:]path    Indique le nom du répertoire à supprimer.
+
+Note : utilisez DELTREE avec précaution. Tous les fichiers et sous-répertoires 
+du répertoire spécifié sur seront supprimés.
+
+.
+:PROGRAM_TREE_HELP
+Affiche graphiquement la structure des répertoires d'un lecteur ou 
+d'un chemin d'accès.
+
+TREE [drive:][path] [/F] [/A]
+
+  /F   Affiche les noms des fichiers dans chaque répertoire.
+  /A   Utilise l'ASCII au lieu des caractères étendus.
+
+.
+:PROGRAM_TITLE_HELP
+Définit le titre de la fenêtre de DOSBox-X.
+
+TITLE [string]
+
+  string       Indique le titre de la fenêtre DOSBox-X.
+
+.
+:PROGRAM_COLOR_HELP
+Définit les couleurs d'avant-plan et d'arrière-plan par 
+défaut de la console.
+
+COLOR [attr]
+
+  attr        Indique l'attribut de couleur de la sortie de 
+              la console
+  
+Les attributs de couleur sont spécifiés par DEUX chiffres hexagonaux : 
+le premier correspond à l'arrière-plan et le second à l'avant-plan.
+Chaque chiffre peut prendre l'une des valeurs suivantes :
+
+    0 = Noir        8 = Gris
+    1 = Bleu        9 = Bleu clair
+    2 = Vert        A = Vert clair
+    3 = Aqua        B = Aqua clair
+    4 = Rouge       C = Rouge clair
+    5 = Violet      D = Violet clair
+    6 = Jaune       E = Jaune clair
+    7 = Blanc       F = Blanc brillant
+
+Si aucun argument n'est donné, cette commande rétablit la couleur d'origine.
+
+La commande COLOR attribue la valeur 1 à ERRORLEVEL si l'on tente d'exécuter
+la commande COLOR avec une couleur d'avant-plan et une couleur d'arrière-plan 
+identiques.
+
+Exemple : "COLOR fc" produit du rouge clair sur du blanc brillant.
+
+.
