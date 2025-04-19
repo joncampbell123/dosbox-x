@@ -21,7 +21,7 @@ Copyright (c) 2014 - 2024 Guillaume Vareille http://ysengrin.com
  | the windows only wchar_t UTF-16 prototypes are at the bottom of the header file |
  |_________________________________________________________________________________|
   _________________________________________________________
- |                                                         |
+ |                10                                         |
  | on windows: - since v3.6 char is UTF-8 by default       |
  |             - if you want MBCS set tinyfd_winUtf8 to 0  |
  |             - functions like fopen expect MBCS          |
@@ -172,6 +172,15 @@ char tinyfd_needs[] = "\
 \n   a graphic display\
 \nor dialog.exe (curses console mode  ** Disabled by default **)\
 \nor a console for basic input";
+#elif defined(OS2)
+char tinyfd_needs[] = "\
+ ___________\n\
+/           \\ \n\
+| tiny file |\n\
+|  dialogs  |\n\
+\\_____  ____/\n\
+      \\|\
+\ntiny file dialogs on Windows needs a graphic display";
 #else
 char tinyfd_needs[] = "\
  ___________\n\
@@ -197,7 +206,7 @@ char tinyfd_needs[] = "\
 #pragma warning(disable:4706) /* allows usage of strncpy, strcpy, strcat, sprintf, fopen */
 #endif
 
-
+#if !defined(OS2)
 static int getenvDISPLAY(void)
 {
 		/* return tinyfd_assumeGraphicDisplay || getenv("DISPLAY") || getenv("WAYLAND_DISPLAY") ; */
@@ -386,8 +395,9 @@ static int filenameValid( char const * aFileNameWithoutPath )
 		}
 		return 1 ;
 }
+#endif
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(OS2)
 
 static int fileExists( char const * aFilePathAndName )
 {
@@ -407,7 +417,7 @@ static int fileExists( char const * aFilePathAndName )
 
 #endif
 
-
+#if !defined(OS2)
 static void wipefile(char const * aFilename)
 {
 		int i;
@@ -499,7 +509,7 @@ int tinyfd_setGlobalInt(char const * aIntVariableName, int aValue) /* to be call
 #endif
 		else return -1;
 }
-
+#endif
 
 #ifdef _WIN32
 
@@ -999,6 +1009,7 @@ static int quoteDetectedW(wchar_t const * aString)
 
 #endif /* _WIN32 */
 
+#if !defined(OS2)
 /* source and destination can be the same or ovelap*/
 static char * ensureFilesExist(char * aDestination,
 		char const * aSourcePathsAndNames)
@@ -1044,6 +1055,7 @@ static char * ensureFilesExist(char * aDestination,
 		}
 		return aDestination;
 }
+#endif
 
 #ifdef _WIN32
 
@@ -3396,6 +3408,263 @@ char * tinyfd_colorChooser(
 		if (lPointerInputBox) strcpy(lPointerInputBox, lString); /* restore its previous content to tinyfd_inputBox */
 
 		return lDefaultHexRGB;
+}
+
+#elif defined(OS2)
+#include "os2res.h"
+
+int tinyfd_notifyPopup(
+	char const * aTitle, /* NULL or "" */
+	char const * aMessage, /* NULL or "" may contain \n \t */
+	char const * aIconType) /* "info" "warning" "error" */
+		/* return has only meaning for tinyfd_query */
+{
+	return tinyfd_messageBox(aTitle, aMessage, NULL, aIconType, 0);
+}
+
+int tinyfd_messageBox(
+	char const * aTitle , /* NULL or "" */
+	char const * aMessage , /* NULL or "" may contain \n \t */
+	char const * aDialogType , /* "ok" "okcancel" "yesno" "yesnocancel" */
+	char const * aIconType , /* "info" "warning" "error" "question" */
+	int aDefaultButton ) /* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
+{
+// TODO aDefaultButton cf Windows implementation
+	ULONG style = MB_NOICON;
+	// Build the dialog style
+	if (aDialogType)
+	{
+		if (!strcasecmp(aDialogType, "ok"))
+			style |= MB_OK;
+		else if (!strcasecmp(aDialogType, "okcancel"))
+			style |= MB_OKCANCEL;
+		else if (!strcasecmp(aDialogType, "yesno"))
+			style |= MB_YESNO;
+		else if (!strcasecmp(aDialogType, "yesnocancel"))
+			style |= MB_YESNOCANCEL;
+	}
+	
+	// Build the icon style
+	if (aIconType)
+	{
+		if (!strcasecmp(aIconType, "info"))
+			style |= MB_INFORMATION;
+		else if (!strcasecmp(aIconType, "warning"))
+			style |= MB_WARNING;
+		else if (!strcasecmp(aIconType, "error"))
+			style |= MB_ERROR;
+		else if (!strcasecmp(aIconType, "question"))
+			style |= MB_QUERY;
+	}
+
+	ULONG result = WinMessageBox(HWND_DESKTOP, HWND_DESKTOP, (PCSZ)aMessage, (PCSZ)aTitle, 1, style);
+	if (result == MBID_NO && !strcasecmp("yesnocancel", aDialogType))
+		return 2;
+	else if (result == MBID_OK || result == MBID_YES)
+		return 1;
+	else
+		return 0;
+}
+
+MRESULT EXPENTRY InputBox_Callback(HWND hWnd, ULONG message, MPARAM wParam, MPARAM lParam)
+{
+	int wmID;
+
+	switch (message)
+	{
+		case WM_COMMAND:
+			{
+				wmID = SHORT1FROMMP(wParam);
+				if (wmID == DID_OK || wmID == DID_CANCEL)
+				{
+					PCH entry = NULL;
+					if (wmID == DID_OK) 
+					{
+						HWND hInput = WinWindowFromID(hWnd, IB_INPUT);
+						ULONG len = WinQueryWindowTextLength(hInput) + 1;
+						entry = (PCH)malloc(len);
+						WinQueryWindowText(hInput, len, entry);
+					}
+					WinDismissDlg(hWnd, (ULONG)entry);
+				}
+			}
+			break;
+	
+		case WM_INITDLG:
+			{
+				HWND hInput = WinWindowFromID(hWnd, IB_INPUT);
+				char const **data = (char const **)PVOIDFROMMP(lParam);
+				// Set the dialogs title
+				WinSetWindowText(hWnd, (PSZ)data[0]);
+				WinSetWindowText(WinWindowFromID(hWnd, IB_LABEL), (PSZ)data[1]);
+				if (data[2] != NULL)
+					WinSetWindowText(hInput, (PCSZ)data[2]);
+				else 
+				{} // TODO Password field.
+				WinSetFocus(HWND_DESKTOP, hInput);
+			}
+	
+			return (MRESULT)1;
+	
+		case WM_DESTROY:
+			break;
+	
+		default:
+			/*
+		 	* Any event messages that the dialog procedure has not processed
+		 	* come here and are processed by WinDefDlgProc.
+		 	* This call MUST exist in your dialog procedure.
+		 	*/
+			return WinDefDlgProc(hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
+
+char * tinyfd_inputBox(
+	char const * aTitle , /* NULL or "" */
+	char const * aMessage , /* NULL or "" (\n and \t have no effect) */
+	char const * aDefaultInput )  /* NULL = passwordBox, "" = inputbox */
+		/* returns NULL on cancel */
+{
+printf("inputBox %s\n", aDefaultInput);
+	char const *data[3] = { aTitle, aMessage, aDefaultInput };
+	ULONG result = WinDlgBox(HWND_DESKTOP, WinQueryActiveWindow(HWND_DESKTOP), InputBox_Callback, NULLHANDLE, 100, &data);
+	if (result != DID_ERROR)
+	{
+		return (char*)result;
+	}
+	return NULL;
+}
+
+inline static void setupFILEDLG(
+	PFILEDLG filedlg, 
+	char const * aTitle,
+	int aNumOfFilterPatterns,
+	char const * const * aFilterPatterns,
+	int aAllowMultipleSelects
+) {
+	int i;
+	char *j;
+
+	memset(filedlg, 0, sizeof(FILEDLG));
+	filedlg->cbSize = sizeof(FILEDLG);
+	filedlg->fl = FDS_CENTER;
+	if (aAllowMultipleSelects)
+	{
+		filedlg->fl |= FDS_MULTIPLESEL;
+	}
+	filedlg->pszTitle = (PSZ)aTitle;
+	
+	j = filedlg->szFullFile;
+	for(i = 0; i < aNumOfFilterPatterns; i++)
+	{
+		size_t len = strlen(aFilterPatterns[i]);
+		if (j + len >= filedlg->szFullFile+CCHMAXPATH)
+			break; // Too long for buffer
+
+		strcpy(j, aFilterPatterns[i]);
+		j += len;
+		*j = ';'; // Insert separator
+		j++;
+	}
+	*(j-1) = 0; // End the string
+
+}
+
+char * tinyfd_saveFileDialog(
+	char const * aTitle , /* NULL or "" */
+	char const * aDefaultPathAndOrFile , /* NULL or "" , ends with / to set only a directory */
+	int aNumOfFilterPatterns , /* 0  (1 in the following example) */
+	char const * const * aFilterPatterns , /* NULL or char const * lFilterPatterns[1]={"*.txt"} */
+	char const * aSingleFilterDescription ) /* NULL or "text files" */
+		/* returns NULL on cancel */
+{
+// TODO Refactor file dialogs
+	FILEDLG filedlg;
+	HWND hwndDlg;
+	
+	setupFILEDLG(&filedlg, aTitle, aNumOfFilterPatterns, aFilterPatterns, 0);
+	hwndDlg = WinFileDlg(HWND_DESKTOP, HWND_DESKTOP, &filedlg);
+	if (hwndDlg && filedlg.lReturn == DID_OK)
+	{
+		char *result = (char*)malloc(strlen(filedlg.szFullFile)+1);
+		strcpy(result, filedlg.szFullFile);
+		return result;
+	}
+	return NULL;
+}
+
+char * tinyfd_openFileDialog(
+	char const * aTitle, /* NULL or "" */
+	char const * aDefaultPathAndOrFile, /* NULL or "" , ends with / to set only a directory */
+	int aNumOfFilterPatterns , /* 0 (2 in the following example) */
+	char const * const * aFilterPatterns, /* NULL or char const * lFilterPatterns[2]={"*.png","*.jpg"}; */
+	char const * aSingleFilterDescription, /* NULL or "image files" */
+	int aAllowMultipleSelects ) /* 0 or 1 */
+		/* in case of multiple files, the separator is | */
+		/* returns NULL on cancel */
+{
+// TODO Refactor file dialogs
+	FILEDLG filedlg;
+	HWND hwndDlg;
+	
+	setupFILEDLG(&filedlg, aTitle, aNumOfFilterPatterns, aFilterPatterns, aAllowMultipleSelects);
+	filedlg.fl |= FDS_OPEN_DIALOG;
+	// TODO React to multiple selects
+	hwndDlg = WinFileDlg(HWND_DESKTOP, HWND_DESKTOP, &filedlg);
+	if (hwndDlg && filedlg.lReturn == DID_OK)
+	{
+		// TODO React to multiple selects
+		char *result = (char*)malloc(strlen(filedlg.szFullFile)+1);
+		strcpy(result, filedlg.szFullFile);
+		return result;
+	}
+	return NULL;
+}
+
+char * tinyfd_selectFolderDialog(
+	char const * aTitle, /* NULL or "" */
+	char const * aDefaultPath) /* NULL or "" */
+		/* returns NULL on cancel */
+{
+	return NULL;
+}
+
+char * tinyfd_colorChooser(
+	char const * aTitle, /* NULL or "" */
+	char const * aDefaultHexRGB, /* NULL or "" or "#FF0000" */
+	unsigned char const aDefaultRGB[3] , /* unsigned char lDefaultRGB[3] = { 0 , 128 , 255 }; */
+	unsigned char aoResultRGB[3] ) /* unsigned char lResultRGB[3]; */
+		/* aDefaultRGB is used only if aDefaultHexRGB is absent */
+		/* aDefaultRGB and aoResultRGB can be the same array */
+		/* returns NULL on cancel */
+		/* returns the hexcolor as a string "#FF0000" */
+		/* aoResultRGB also contains the result */
+{
+	char color[8];
+	if (aDefaultHexRGB != NULL)
+	{
+		strcpy(color, aDefaultHexRGB);
+	}
+	else
+	{
+		sprintf(color, "#%02hx%02hx%02hx", aDefaultRGB[0], aDefaultRGB[1], aDefaultRGB[2]);
+	}
+
+	char *result = tinyfd_inputBox(aTitle, "Enter a color in the format '#RRGGBB'", (char*)color);
+	if (result != NULL && result[0] == '#') 
+	{
+		strcpy(color, result);
+		aoResultRGB[2] = (unsigned char)strtoul(color+5, NULL, 16);
+		color[5] = '\0';
+		aoResultRGB[2] = (unsigned char)strtoul(color+3, NULL, 16);
+		color[3] = '\0';
+		aoResultRGB[2] = (unsigned char)strtoul(color+1, NULL, 16);
+	}
+	else
+		return NULL;
+	
+	return result;
 }
 
 

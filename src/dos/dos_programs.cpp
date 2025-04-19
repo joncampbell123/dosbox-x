@@ -64,6 +64,19 @@
 #include "../ints/int10.h"
 #include "../output/output_opengl.h"
 #include "paging.h"
+
+#if defined(OS2)
+#define INCL DOSFILEMGR
+#define INCL_DOSERRORS
+#define INCL_WINWINDOWMGR
+#define INCL_WINDIALOGS
+#define INCL_WINERRORS
+#define INCL_WINSTDFILE
+#include "os2.h"
+
+typedef char host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+#endif
 #if defined(_MSC_VER)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #elif !defined(HX_DOS)
@@ -131,15 +144,6 @@ std::string formatString(const char* format, ...);
 #include "unzip.h"
 #include "ioapi.h"
 #include "zipcppstdbuf.h"
-
-#if defined(OS2)
-#define INCL DOSFILEMGR
-#define INCL_DOSERRORS
-#include "os2.h"
-
-typedef char host_cnv_char_t;
-host_cnv_char_t *CodePageGuestToHost(const char *s);
-#endif
 
 #if defined(WIN32)
 #ifndef S_ISDIR
