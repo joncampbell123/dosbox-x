@@ -4267,3 +4267,122 @@ the COLOR command with a foreground and background color that are the same.
 Example: "COLOR fc" produces light red on bright white.
 
 .
+:PROGRAM_SWITCH_LANG
+You have changed the active code page to %d.
+Do you want to load language file %s for this code page ?
+.
+:PROGRAM_ALREADY_MOUNTED
+Drive %s: is already mounted. Unmount it first, and then try again.
+.
+:PROGRAM_DRIVE_NO_EXIST
+Drive %s: does not exist in the system.
+.
+:PROGRAM_DRIVE_WARN
+Do you really want to give DOSBox-X access to your real %s drive %s ?
+.
+:DRIVE_TYPE_FLOPPY
+floppy
+.
+:DRIVE_TYPE_REMOVABLE
+removable
+.
+:DRIVE_TYPE_NETWORK
+network
+.
+:DRIVE_TYPE_HARD
+hard
+.
+:DRIVE_TYPE_LOCAL
+local
+.
+:DRIVE_TYPE_CDROM
+CD-ROM
+.
+:PROGRAM_CDDRIVE_WARN
+CD drive %s is currently mounted with the image:
+
+%s
+
+Do you want to change the CD image now?
+.
+:PROGRAM_CDMOUNT_ERROR
+Could not mount the selected CD image.
+.
+:ELTORITO_IMAGE
+El Torito floppy image
+.
+:RAM_FLOPPY_IMAGE
+RAM floppy image
+.
+:PROGRAM_FLOPPY_WARN
+Floppy drive %s is currently mounted with the image:
+
+%s
+
+Do you want to change the floppy disk image now?
+.
+:PROGRAM_FLOPPYMOUNT_ERROR
+Could not mount the selected floppy disk image.
+.
+:PROGRAM_MOUNT_MORE_IMAGES
+Do you want to mount more image file(s)?
+.
+:PROGRAM_MOUNT_PATH_TOOLONG
+The path for the file(s) to mount is too long.
+.
+:PROGRAM_BOOT_FAILED
+Drive %s: failed to boot.
+.
+:PROGRAM_MOUNT_FAILED
+Drive %s: failed to mount.
+.
+:PROGRAM_MOUNT_IMAGE
+Mounted %s to Drive %s:
+%s %s
+.
+:ARCHIVE
+archive
+.
+:DISK_IMAGE
+disk image
+.
+:READONLY_MODE
+Read-only mode
+.
+:PROGRAM_MOUNT_SELECT_DRIVE
+Select a drive/directory to mount for Drive %s: as %s
+.
+:PROGRAM_MOUNT_CDROM_SUPPORT
+Mounting a directory as CD-ROM gives an limited support.
+.
+:PROGRAM_MOUNT_NOT_MOUNTED
+Drive %s: is not yet mounted.
+.
+:PROGRAM_PROGRAM_ALREADY
+Another program is already running.
+.
+:PROGRAM_SHELL_ALREADY
+Another shell is currently running.
+.
+:PROGRAM_MOUNT_SUCCESS
+Drive %s is now mounted to:
+%s
+.
+:PROGRAM_WARN_QUICKLAUNCH
+Quick launch automatically mounts drive C in DOSBox-X.
+Drive C has already been mounted. Do you want to continue?
+.
+:PROGRAM_NO_EXECUTABLE
+Executable file not found.
+.
+:PROGRAM_EXEC_FINISHED
+Program has finished execution. Do you want to unmount Drive %s now?
+.
+:PROGRAM_ASK_CHCP
+Drive %c: may require code page %d to be properly accessed.
+
+Do you want to change the current code page to %d now?
+.
+:PROGRAM_CHANGING_CODEPAGE
+Changing code page
+.
