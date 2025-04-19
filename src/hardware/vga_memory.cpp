@@ -1604,27 +1604,7 @@ class VGA_PC98_CG_PageHandler : public PageHandler {
 		uint8_t readb(PhysPt addr) override {
 			/* uses the low 12 bits and therefore does not need PAGING_GetPhysicalAddress() */
 			uint8_t high = a1_font_load_addr & 0xff;
-			if ((a1_font_load_addr & 0x007E) == 0x0056 && (a1_font_load_addr & 0xFF00) != 0x0000) {
-				/* FIXME: Is there something about NEC PC-98 CG hardware where the custom char cells
-				 *        cannot be read as full 16-bit values like the rest of the CG, but can only be
-				 *        raad 8 bits at a time using port 0xA5 to select the half, and if you issue a
-				 *        16-bit read, you get the 8-bit value twice?
-				 *
-				 *        Test case: Planets of Dragon by ASCII. We have to emulate like this or the custom
-				 *        char cells it uploads are shown corrupted.
-				 *
-				 *        For these char cells the game renders using LODSW / SUB AL,AL / STOSW for the first
-				 *        8 bits and then LODSW / SHR AX,8 / STOSW for the second 8 bits. That will render
-				 *        corrupt graphics without this oddball code.
-				 *
-				 *        Question: What does real PC-9821 hardware do? Does later hardware fix this, uh, quirk?
-				 *        The file dates in the HDI image are from 1994.
-				 *
-				 *        The game appaers to write the custom cells, use them in the text layer AND rely on
-				 *        drawing them on the graphics layer. */
-				return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1);
-			}
-			else if ((high >= 0x09 && high <= 0x0b) || (high >= 0x0c && high <= 0x0f) || (high >= 0x58 && high <= 0x5f)) {
+			if ((high >= 0x09 && high <= 0x0b) || (high >= 0x0c && high <= 0x0f) || (high >= 0x56 && high <= 0x5f)) {
 				if(addr & 1)
 					return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF, (a1_font_char_offset & 0x20) ? 0 : 1);
 				else
