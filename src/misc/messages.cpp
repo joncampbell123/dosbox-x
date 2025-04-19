@@ -92,6 +92,33 @@ void MSG_Replace(const char * _name, const char* _val) {
 	Lang.emplace_back(MessageBlock(_name,_val));
 }
 
+std::string formatString(const char* format, ...) {
+    /**
+      * @brief Generates a formatted string using a format specifier and variable arguments.
+      *
+      * @param format A format string (e.g., "File: '%s', Error Code: %d, Language: '%s'.")
+      * @param ...    Values corresponding to format specifiers (e.g., "lang_en.msg", 404, "English").
+      * @return std::string A formatted string.
+      */
+    va_list args;
+    va_start(args, format);
+
+    // Determine required buffer size
+    int size = vsnprintf(nullptr, 0, format, args);
+    va_end(args);
+
+    if(size < 0) {
+        return ""; // Return empty string on error
+    }
+
+    std::vector<char> buffer(size + 1); // Allocate buffer (+1 for null-terminator)
+    va_start(args, format);
+    vsnprintf(buffer.data(), buffer.size(), format, args);
+    va_end(args);
+
+    return std::string(buffer.data());
+}
+
 bool InitCodePage() {
     if (!dos.loaded_codepage || dos_kernel_disabled || force_conversion) {
         if (((control->opt_langcp && msgcodepage != dos.loaded_codepage) || uselangcp) && msgcodepage>0) {
@@ -207,6 +234,8 @@ void AddMessages() {
     MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
     MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
     MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
+    MSG_Add("ERROR", "Error");
+    MSG_Add("INFORMATION", "Information");
 }
 
 // True if specified codepage is a DBCS codepage
