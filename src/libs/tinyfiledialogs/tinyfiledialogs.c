@@ -21,7 +21,7 @@ Copyright (c) 2014 - 2024 Guillaume Vareille http://ysengrin.com
  | the windows only wchar_t UTF-16 prototypes are at the bottom of the header file |
  |_________________________________________________________________________________|
   _________________________________________________________
- |                                                         |
+ |                10                                         |
  | on windows: - since v3.6 char is UTF-8 by default       |
  |             - if you want MBCS set tinyfd_winUtf8 to 0  |
  |             - functions like fopen expect MBCS          |
@@ -206,7 +206,7 @@ char tinyfd_needs[] = "\
 #pragma warning(disable:4706) /* allows usage of strncpy, strcpy, strcat, sprintf, fopen */
 #endif
 
-
+#if !defined(OS2)
 static int getenvDISPLAY(void)
 {
 		/* return tinyfd_assumeGraphicDisplay || getenv("DISPLAY") || getenv("WAYLAND_DISPLAY") ; */
@@ -395,8 +395,9 @@ static int filenameValid( char const * aFileNameWithoutPath )
 		}
 		return 1 ;
 }
+#endif
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(OS2)
 
 static int fileExists( char const * aFilePathAndName )
 {
@@ -416,7 +417,7 @@ static int fileExists( char const * aFilePathAndName )
 
 #endif
 
-
+#if !defined(OS2)
 static void wipefile(char const * aFilename)
 {
 		int i;
@@ -508,7 +509,7 @@ int tinyfd_setGlobalInt(char const * aIntVariableName, int aValue) /* to be call
 #endif
 		else return -1;
 }
-
+#endif
 
 #ifdef _WIN32
 
@@ -1008,6 +1009,7 @@ static int quoteDetectedW(wchar_t const * aString)
 
 #endif /* _WIN32 */
 
+#if !defined(OS2)
 /* source and destination can be the same or ovelap*/
 static char * ensureFilesExist(char * aDestination,
 		char const * aSourcePathsAndNames)
@@ -1053,6 +1055,7 @@ static char * ensureFilesExist(char * aDestination,
 		}
 		return aDestination;
 }
+#endif
 
 #ifdef _WIN32
 
@@ -3408,6 +3411,7 @@ char * tinyfd_colorChooser(
 }
 
 #elif defined(OS2)
+#include "os2res.h"
 
 int tinyfd_notifyPopup(
 	char const * aTitle, /* NULL or "" */
@@ -3464,43 +3468,43 @@ int tinyfd_messageBox(
 
 MRESULT EXPENTRY InputBox_Callback(HWND hWnd, ULONG message, MPARAM wParam, MPARAM lParam)
 {
-	int wmId, wmEvent;
+	int wmID;
 
 	switch (message)
 	{
-		case WM_CONTROL: 
-			{
-				wmId    = SHORT1FROMMP(wParam);
-				wmEvent = SHORT2FROMMP(wParam);
-	
-			}
-			break;
-	
 		case WM_COMMAND:
 			{
-				wmId    = SHORT1FROMMP(wParam);
-				wmEvent = SHORT2FROMMP(wParam);
-	
-				WinDismissDlg(hWnd, wmId == DID_OK);
-	
+				wmID = SHORT1FROMMP(wParam);
+				if (wmID == DID_OK || wmID == DID_CANCEL)
+				{
+					PCH entry = NULL;
+					if (wmID == DID_OK) 
+					{
+						HWND hInput = WinWindowFromID(hWnd, IB_INPUT);
+						ULONG len = WinQueryWindowTextLength(hInput) + 1;
+						entry = (PCH)malloc(len);
+						WinQueryWindowText(hInput, len, entry);
+					}
+					WinDismissDlg(hWnd, (ULONG)entry);
+				}
 			}
 			break;
 	
 		case WM_INITDLG:
 			{
+				HWND hInput = WinWindowFromID(hWnd, IB_INPUT);
+				char const **data = (char const **)PVOIDFROMMP(lParam);
+				// Set the dialogs title
+				WinSetWindowText(hWnd, (PSZ)data[0]);
+				WinSetWindowText(WinWindowFromID(hWnd, IB_LABEL), (PSZ)data[1]);
+				if (data[2] != NULL)
+					WinSetWindowText(hInput, (PCSZ)data[2]);
+				else 
+				{} // TODO Password field.
+				WinSetFocus(HWND_DESKTOP, hInput);
+			}
 	
-				// Fill the commands combobox
-				WinSendMsg(launcher.listCMD, LM_INSERTITEM, MPFROMSHORT(LIT_END), MPFROMP("Select command"));
-	
-				{
-					char buf[128];
-					strcpy(buf, ((launcher_enable + 1) % launcher_enable_count == launcher_enable_never ? "Disable" : "Enable"));
-					strcat(buf, " this Launcher for future use");
-					WinSendMsg(launcher.listCMD, LM_INSERTITEM, MPFROMSHORT(LIT_END), MPFROMP(buf));
-				}
-	
-	
-				return (MRESULT)1;
+			return (MRESULT)1;
 	
 		case WM_DESTROY:
 			break;
@@ -3522,10 +3526,12 @@ char * tinyfd_inputBox(
 	char const * aDefaultInput )  /* NULL = passwordBox, "" = inputbox */
 		/* returns NULL on cancel */
 {
-	ULONG result = WinDlgBox(HWND_DESKTOP, WinQueryActiveWindow(HWND_DESKTOP), InputBox_Callback, NULLHANDLE, 100, NULL);
-	if (result == DID_ERROR)
+printf("inputBox %s\n", aDefaultInput);
+	char const *data[3] = { aTitle, aMessage, aDefaultInput };
+	ULONG result = WinDlgBox(HWND_DESKTOP, WinQueryActiveWindow(HWND_DESKTOP), InputBox_Callback, NULLHANDLE, 100, &data);
+	if (result != DID_ERROR)
 	{
-		printf("hDialog %lx\n",WinGetLastError(0));
+		return (char*)result;
 	}
 	return NULL;
 }
@@ -3635,7 +3641,30 @@ char * tinyfd_colorChooser(
 		/* returns the hexcolor as a string "#FF0000" */
 		/* aoResultRGB also contains the result */
 {
-	return NULL;
+	char color[8];
+	if (aDefaultHexRGB != NULL)
+	{
+		strcpy(color, aDefaultHexRGB);
+	}
+	else
+	{
+		sprintf(color, "#%02hx%02hx%02hx", aDefaultRGB[0], aDefaultRGB[1], aDefaultRGB[2]);
+	}
+
+	char *result = tinyfd_inputBox(aTitle, "Enter a color in the format '#RRGGBB'", (char*)color);
+	if (result != NULL && result[0] == '#') 
+	{
+		strcpy(color, result);
+		aoResultRGB[2] = (unsigned char)strtoul(color+5, NULL, 16);
+		color[5] = '\0';
+		aoResultRGB[2] = (unsigned char)strtoul(color+3, NULL, 16);
+		color[3] = '\0';
+		aoResultRGB[2] = (unsigned char)strtoul(color+1, NULL, 16);
+	}
+	else
+		return NULL;
+	
+	return result;
 }
 
 
