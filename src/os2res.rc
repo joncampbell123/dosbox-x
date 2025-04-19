@@ -1,0 +1,31 @@
+#define INCL_NLS
+#include "os2.h"
+#include "os2res.h"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+
+DLGTEMPLATE INPUTBOX_DLG PRELOAD MOVEABLE DISCARDABLE
+BEGIN
+    DIALOG "tinyfd_inputbox", INPUTBOX_DLG, 272, 59, 155, 85, 
+      WS_VISIBLE | WS_SAVEBITS,
+      FCF_DLGBORDER | FCF_NOBYTEALIGN | FCF_TITLEBAR | FCF_SYSMENU
+    BEGIN
+        CONTROL "Input",                IB_LABEL, 6, 50, 143, 32, WC_STATIC, SS_TEXT |
+                                            DT_LEFT | DT_TOP | DT_WORDBREAK | WS_VISIBLE
+        ENTRYFIELD "",                  IB_INPUT, 6, 23, 143, 8, 
+                                            ES_LEFT | WS_VISIBLE
+        CONTROL "OK",                   DID_OK, 6, 6, 38, 12, WC_BUTTON,
+                                            BS_PUSHBUTTON | BS_DEFAULT |
+                                            WS_TABSTOP | WS_VISIBLE | WS_TABSTOP
+        CONTROL "Cancel",               DID_CANCEL, 49, 6, 38, 12, WC_BUTTON,
+                                            BS_PUSHBUTTON | WS_TABSTOP |
+                                            WS_VISIBLE | WS_TABSTOP
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
