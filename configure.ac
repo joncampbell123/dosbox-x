@@ -371,11 +371,11 @@ fi
 
 dnl Some needed libraries for OS2
 dnl perhaps join this with the other target depended checks. move them upwards
+AM_CONDITIONAL(OS2, test x$host = xi386-pc-os2-emx)
 if test x$host = xi386-pc-os2-emx ; then
     CXXFLAGS="$CXXFLAGS -DOS2 -march=pentium4 -idirafter /@unixroot/usr/include/os2tk45"
     CFLAGS="$CFLAGS -DOS2 -march=pentium4 -idirafter /@unixroot/usr/include/os2tk45"
     LDFLAGS="$LDFLAGS -Zomf -Zhigh-mem -lcx"
-    AM_CONDITIONAL(OS2, true)
 fi
 
 dnl I would like to know of any concerns given by the C++ compiler.
