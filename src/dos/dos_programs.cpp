@@ -561,7 +561,7 @@ void MenuBrowseCDImage(char drive, int num) {
 #if !defined(HX_DOS)
         std::string drive_warn = "CD drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the CD image now?";
         std::string drive_info = std::string(Drives[drive - 'A']->GetInfo() + 9);
-        drive_warn = formatString(MSG_Get("PROGRAM_CDDRIVE_WARN"), (dos_kernel_disabled ? std::to_string(num) : std::string(1, drive) + ":"),drive_info.c_str());
+        drive_warn = formatString(MSG_Get("PROGRAM_CDDRIVE_WARN"), (dos_kernel_disabled ? std::to_string(num) : (std::string(1, drive) + ":").c_str(), drive_info.c_str()));
         if (!systemmessagebox("Change CD Image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
@@ -622,7 +622,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
     if (type==-1 || (Drives[drive-'A'] && !strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9))) {
 #if !defined(HX_DOS)
         std::string image = type==1||(type==-1&&dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[drive-'A'])!=NULL)?MSG_Get("ELTORITO_IMAGE"):(type==2||(type==-1&&dynamic_cast<imageDiskMemory *>(imageDiskList[drive-'A'])!=NULL)?MSG_Get("RAM_FLOPPY_IMAGE"):(type==-1?imageDiskList[drive-'A']->diskname.c_str():Drives[drive-'A']->GetInfo()+9));
-        std::string drive_warn = formatString(MSG_Get("PROGRAM_FLOPPY_WARN"), (type == -1 ? std::string(1, drive - 'A' + '0') : (dos_kernel_disabled ? std::to_string(num) : std::string(1, drive) + ":")), image.c_str());
+        std::string drive_warn = formatString(MSG_Get("PROGRAM_FLOPPY_WARN"), (type == -1 ? std::string(1, drive - 'A' + '0') : (dos_kernel_disabled ? std::to_string(num) : std::string(1, drive) + ":")).c_str(), image.c_str());
         if (!systemmessagebox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
@@ -747,7 +747,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
             bootstr += drive;
             bootstr += ':';
             runBoot(bootstr.c_str());
-            std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), std::string(1, drive));
+            std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
             systemmessagebox(MSG_Get("ERROR"), drive_warn.c_str(), "ok", "error", 1);
             bootstr = "-u ";
             bootstr += drive - 'A' + '0';
@@ -764,7 +764,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
         }
 		chdir( Temp_CurrentDir );
 		if (!Drives[drive - 'A']) {
-			drive_warn= formatString(MSG_Get("PROGRAM_MOUNT_FAILED"), std::string(1, drive));
+			drive_warn= formatString(MSG_Get("PROGRAM_MOUNT_FAILED"), (std::string(1, drive)).c_str());
 			systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 			return;
         } else if (multiple) {
