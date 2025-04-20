@@ -463,13 +463,19 @@ void LoadMessageFile(const char * fname) {
 
 
 bool MSG_Write(const char* location, const char* name) {
-    char temp[4096];
-    FILE* out = fopen(location, "w+t");
-    if(out == NULL) return false; // Failed to open file for writing
+    std::unique_ptr<char[]> temp(new char[4096]);
 
-    if(name != NULL) langname = std::string(name);
-    if(langname != "") fprintf(out, ":DOSBOX-X:LANGUAGE:%s\n", langname.c_str());
-    if(dos.loaded_codepage) fprintf(out, ":DOSBOX-X:CODEPAGE:%d\n", dos.loaded_codepage);
+    FILE* out = fopen(location, "w+t");
+    if(out == nullptr) return false; // Failed to open file for writing
+
+    if(name != nullptr) langname = std::string(name);
+
+    if(!langname.empty())
+        fprintf(out, ":DOSBOX-X:LANGUAGE:%s\n", langname.c_str());
+
+    if(dos.loaded_codepage)
+        fprintf(out, ":DOSBOX-X:CODEPAGE:%d\n", dos.loaded_codepage);
+
     fprintf(out, ":DOSBOX-X:VERSION:%s\n", VERSION);
     fprintf(out, ":DOSBOX-X:REMARK:%s\n", langnote.c_str());
 
@@ -477,42 +483,42 @@ bool MSG_Write(const char* location, const char* name) {
 
     // Output messages in insertion order using LangList
     for(const auto& msg : LangList) {
-        if(!CodePageGuestToHostUTF8(temp, msg.val.c_str()))
-            fprintf(out, ":%s\n%s\n.\n", msg.name.c_str(), msg.val.c_str());
+        const char* out_text = msg.val.c_str();
+        if(!CodePageGuestToHostUTF8(temp.get(), out_text))
+            fprintf(out, ":%s\n%s\n.\n", msg.name.c_str(), out_text);
         else
-            fprintf(out, ":%s\n%s\n.\n", msg.name.c_str(), temp);
+            fprintf(out, ":%s\n%s\n.\n", msg.name.c_str(), temp.get());
     }
 
     // Output menu items (menu filtering conditions remain unchanged)
     std::vector<DOSBoxMenu::item> master_list = mainMenu.get_master_list();
     for(auto& id : master_list) {
-        if(id.is_allocated() &&
-            id.get_type() != DOSBoxMenu::separator_type_id &&
-            id.get_type() != DOSBoxMenu::vseparator_type_id &&
-            !(id.get_name().size() == 5 && id.get_name().substr(0, 4) == "slot") &&
-            !(id.get_name().size() > 9 && id.get_name().substr(0, 8) == "command_") &&
-            !(id.get_name().size() == 6 && id.get_name().substr(0, 5) == "Drive" &&
-                id.get_name().back() >= 'A' && id.get_name().back() <= 'Z') &&
-            !(id.get_name().size() > 9 && id.get_name().substr(0, 6) == "drive_" &&
-                id.get_name()[6] >= 'B' && id.get_name()[6] <= 'Z' && id.get_name()[7] == '_') &&
-            id.get_name() != "mapper_cycauto") {
+        if(!id.is_allocated() || id.get_type() == DOSBoxMenu::separator_type_id ||
+            id.get_type() == DOSBoxMenu::vseparator_type_id ||
+            (id.get_name().size() == 5 && id.get_name().substr(0, 4) == "slot") ||
+            (id.get_name().size() > 9 && id.get_name().substr(0, 8) == "command_") ||
+            (id.get_name().size() == 6 && id.get_name().substr(0, 5) == "Drive" &&
+                id.get_name().back() >= 'A' && id.get_name().back() <= 'Z') ||
+            (id.get_name().size() > 9 && id.get_name().substr(0, 6) == "drive_" &&
+                id.get_name()[6] >= 'B' && id.get_name()[6] <= 'Z' && id.get_name()[7] == '_') ||
+            id.get_name() == "mapper_cycauto")
+            continue;
 
-            std::string text = id.get_text();
-            if(id.get_name() == "hostkey_mapper" || id.get_name() == "clipboard_device") {
-                std::size_t found = text.find(":");
-                if(found != std::string::npos)
-                    text = text.substr(0, found);
-            }
-
-            std::string idname = (id.get_name().size() > 9 && id.get_name().substr(0, 8) == "drive_A_")
-                ? "drive_" + id.get_name().substr(8)
-                : id.get_name();
-
-            if(!CodePageGuestToHostUTF8(temp, text.c_str()))
-                fprintf(out, ":MENU:%s\n%s\n.\n", idname.c_str(), text.c_str());
-            else
-                fprintf(out, ":MENU:%s\n%s\n.\n", idname.c_str(), temp);
+        std::string text = id.get_text();
+        if(id.get_name() == "hostkey_mapper" || id.get_name() == "clipboard_device") {
+            size_t found = text.find(":");
+            if(found != std::string::npos) text = text.substr(0, found);
         }
+
+        std::string idname = (id.get_name().size() > 9 && id.get_name().substr(0, 8) == "drive_A_")
+            ? "drive_" + id.get_name().substr(8)
+            : id.get_name();
+
+        const char* out_text = text.c_str();
+        if(!CodePageGuestToHostUTF8(temp.get(), out_text))
+            fprintf(out, ":MENU:%s\n%s\n.\n", idname.c_str(), out_text);
+        else
+            fprintf(out, ":MENU:%s\n%s\n.\n", idname.c_str(), temp.get());
     }
 
     // Output MAPPER items that differ from mainMenu mappings
@@ -522,16 +528,18 @@ bool MSG_Write(const char* location, const char* name) {
             mainMenu.get_item("mapper_" + it.first).get_text() == it.second)
             continue;
 
-        if(!CodePageGuestToHostUTF8(temp, it.second.c_str()))
-            fprintf(out, ":MAPPER:%s\n%s\n.\n", it.first.c_str(), it.second.c_str());
+        const char* out_text = it.second.c_str();
+        if(!CodePageGuestToHostUTF8(temp.get(), out_text))
+            fprintf(out, ":MAPPER:%s\n%s\n.\n", it.first.c_str(), out_text);
         else
-            fprintf(out, ":MAPPER:%s\n%s\n.\n", it.first.c_str(), temp);
+            fprintf(out, ":MAPPER:%s\n%s\n.\n", it.first.c_str(), temp.get());
     }
 
     morelen = inmsg = false;
     fclose(out);
     return true;
 }
+
 
 void ResolvePath(std::string& in);
 void MSG_Init() {
