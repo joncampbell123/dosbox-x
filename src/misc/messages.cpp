@@ -34,6 +34,7 @@
 #include <map>
 #include <list>
 #include <string>
+#include <memory>
 #include <unordered_map>
 #if defined(__MINGW32__) && !defined(HX_DOS)
 #include <imm.h>
