@@ -4294,3 +4294,127 @@ identiques.
 Exemple : "COLOR fc" produit du rouge clair sur du blanc brillant.
 
 .
+:PROGRAM_SWITCH_LANG
+Vous avez changé le code de page actif en %d.
+Voulez-vous charger le fichier de langage %s pour ce code de page ?
+.
+:PROGRAM_ALREADY_MOUNTED
+Lecteur %s: est déjà monté. Démontez-le d'abord, et ensuite réessayez.
+.
+:PROGRAM_DRIVE_NO_EXIST
+Lecteur %s: n'existe pas dans le système.
+.
+:PROGRAM_DRIVE_WARN
+Voulez-vous vraiment donner à DOSBox-X l'accès à votre lecteur réel %s ?
+.
+:DRIVE_TYPE_FLOPPY
+disquette
+.
+:DRIVE_TYPE_REMOVABLE
+amovible
+.
+:DRIVE_TYPE_NETWORK
+réseau
+.
+:DRIVE_TYPE_HARD
+disque dur
+.
+:DRIVE_TYPE_LOCAL
+local
+.
+:DRIVE_TYPE_CDROM
+CD-ROM
+.
+:PROGRAM_CDDRIVE_WARN
+Lecteur CD %s est actuellement monté avec l'image :
+
+%s
+
+Voulez-vous changer l'image CD maintenant ?
+.
+:PROGRAM_CDMOUNT_ERROR
+Impossible de monter l'image CD sélectionnée.
+.
+:ELTORITO_IMAGE
+image disquette El Torito
+.
+:RAM_FLOPPY_IMAGE
+image disquette RAM
+.
+:PROGRAM_FLOPPY_WARN
+Le lecteur de disquette est actuellement monté avec l'image :
+
+%s
+
+Voulez-vous changer l'image disquette maintenant ?
+.
+:PROGRAM_FLOPPYMOUNT_ERROR
+Impossible de monter l'image disquette sélectionnée.
+.
+:PROGRAM_MOUNT_MORE_IMAGES
+Voulez-vous monter plus de fichier(s) image ?
+.
+:PROGRAM_MOUNT_PATH_TOOLONG
+Le chemin d'accès au(x) fichier(s) à monter est trop long.
+.
+:PROGRAM_BOOT_FAILED
+Lecteur %s: n'a pas pu démarrer.
+.
+:PROGRAM_MOUNT_FAILED
+Lecteur %s: n'a pas pu être monté.
+.
+:PROGRAM_MOUNT_IMAGE
+%s monté sur le lecteur %s:
+%s %s
+.
+:ARCHIVE
+archive
+.
+:DISK_IMAGE
+image disque
+.
+:READONLY_MODE
+Mode lecture seule
+.
+:PROGRAM_MOUNT_SELECT_DRIVE
+Sélectionnez un lecteur/répertoire à monter pour le lecteur %s: 
+en tant que %s
+.
+:PROGRAM_MOUNT_CDROM_SUPPORT
+Le montage d'un répertoire en tant que CD-ROM offre un support limité.
+.
+:PROGRAM_MOUNT_NOT_MOUNTED
+Lecteur %s: n'est pas encore monté
+.
+:PROGRAM_PROGRAM_ALREADY
+Un autre programme est déjà en cours.
+.
+:PROGRAM_SHELL_ALREADY
+Un autre shell est déjà en cours.
+.
+:PROGRAM_MOUNT_SUCCESS
+Lecteur %s est maintenant monté sur :
+%s
+.
+:PROGRAM_WARN_QUICKLAUNCH
+
+Le lancement rapide monte automatiquement le lecteur C dans DOSBox-X.
+Le lecteur C a déjà été monté. Voulez-vous continuer ?
+.
+:PROGRAM_NO_EXECUTABLE
+Fichier exécutable introuvable.
+.
+:PROGRAM_EXEC_FINISHED
+Le programme a terminé son exécution. Voulez-vous démonter le 
+lecteur %s maintenant ?
+.
+:PROGRAM_ASK_CHCP
+Lecteur %c : peut nécessiter la page de code %d pour être 
+correctement accessible.
+
+Voulez-vous changer le code de page actuel en %d maintenant ?
+.
+:PROGRAM_CHANGING_CODEPAGE
+Change le code de page
+
+.
