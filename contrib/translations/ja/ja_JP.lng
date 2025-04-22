@@ -3914,7 +3914,7 @@ EMS ブロックを割り当てました (%uKB)
 :PROGRAM_LOADFIX_EMS_ALLOCERROR
 EMS ブロックを割り当てることができませんでした。
 .
-PROGRAM_LOADFIX_NOEMS
+:PROGRAM_LOADFIX_NOEMS
 EMS は有効ではありません。
 .
 :PROGRAM_LOADFIX_XMS_ALLOC
@@ -4404,4 +4404,7 @@ C ドライブはすでにマウントされていますが、続けますか?
 .
 :PROGRAM_CHANGING_CODEPAGE
 コードページの変更
+.
+:IMAGEMOUNT_CHANGE_DOSVER
+この形式のイメージをマウントするためには DOS バージョンが %s 以上である必要があります。DOS バージョンを %s へ変更してイメージをマウントしますか ?
 .
