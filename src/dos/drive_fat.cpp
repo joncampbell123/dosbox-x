@@ -59,6 +59,7 @@ extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CRO
 extern bool wild_match(const char* haystack, char* needle);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 extern bool dos_kernel_disabled;
+std::string formatString(const char* format, ...);
 
 int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
         for (size_t i=0;i < parts.size();i++) {
@@ -107,7 +108,9 @@ int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,imageDisk
                 }
                 else if (pe.parttype == 0x0E/*FAT16B LBA*/) {
                         if (use_ver_maj < 7 && prompt1) {
-                            if (fat32setver == 1 || (fat32setver == -1 && systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to auto-change the reported DOS version to 7.0 now and mount the disk image?","yesno", "question", 1))) {
+                            std::string dos_ver = "7.0";
+                            std::string drive_warn = formatString(MSG_Get("IMAGEMOUNT_CHANGE_DOSVER"), dos_ver.c_str(), dos_ver.c_str());
+                            if (fat32setver == 1 || (fat32setver == -1 && systemmessagebox("Mounting LBA disk image", drive_warn.c_str(), "yesno", "question", 1))) {
                                 use_ver_maj = dos.version.major = 7;
                                 use_ver_min = dos.version.minor = 0;
                                 dos_ver_menu(false);
@@ -127,7 +130,9 @@ int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,imageDisk
                 }
                 else if (pe.parttype == 0x0B || pe.parttype == 0x0C) { /* FAT32 types */
                         if ((use_ver_maj < 7 || (use_ver_maj == 7 && use_ver_min < 10)) && prompt2) {
-                            if (fat32setver == 1 || (fat32setver == -1 && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to auto-change the reported DOS version to 7.10 now and mount the disk image?","yesno", "question", 1))) {
+                            std::string dos_ver = "7.10";
+                            std::string drive_warn = formatString(MSG_Get("IMAGEMOUNT_CHANGE_DOSVER"), dos_ver.c_str(), dos_ver.c_str());
+                            if (fat32setver == 1 || (fat32setver == -1 && systemmessagebox("Mounting FAT32 disk image",drive_warn.c_str(), "yesno", "question", 1))) {
                                 use_ver_maj = dos.version.major = 7;
                                 use_ver_min = dos.version.minor = 10;
                                 dos_ver_menu(true);

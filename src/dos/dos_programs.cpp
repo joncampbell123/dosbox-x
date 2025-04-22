@@ -10085,6 +10085,8 @@ void DOS_SetupPrograms(void) {
 #endif
         "  \033[32;1m-examples: Show some usage examples.\033[0m"
         );
+    MSG_Add("IMAGEMOUNT_CHANGE_DOSVER", "Mounting this type of disk images requires a reported DOS version of %s or higher.\n"
+        "Do you want to auto - change the reported DOS version to %s now and mount the disk image ? ");
     MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
         "Some usage examples of IMGMAKE:\n\n"
         "  \033[32;1mIMGMAKE -t fd\033[0m                   - create a 1.44MB floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"

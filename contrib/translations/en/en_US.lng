@@ -4386,3 +4386,7 @@ Do you want to change the current code page to %d now?
 :PROGRAM_CHANGING_CODEPAGE
 Changing code page
 .
+:IMAGEMOUNT_CHANGE_DOSVER
+Mounting this type of disk images requires a reported DOS version of %s or higher.
+Do you want to auto - change the reported DOS version to %s now and mount the disk image ?
+.
