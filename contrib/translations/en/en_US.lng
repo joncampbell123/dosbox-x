@@ -4390,3 +4390,30 @@ Changing code page
 Mounting this type of disk images requires a reported DOS version of %s or higher.
 Do you want to auto - change the reported DOS version to %s now and mount the disk image ?
 .
+:MENU_DRIVE_NOTEXIST
+Drive does not exist or is mounted from disk image.
+.
+:MENU_SAVE_IMAGE_FAILED
+Failed to save disk image.
+.
+:MENU_JP_CPONLY
+This function is only available for the Japanese code page (932).
+.
+:MENU_CN_CPONLY
+This function is only available for the Chinese code pages (936 or 950).
+.
+:MENU_GLIDE_ERROR
+Glide passthrough cannot be enabled. Check the Glide wrapper installation.
+.
+:MENU_HIGH_INTENSITY_ERROR
+High intensity is not supported for the current video mode.
+.
+:MENU_SAVE_FILE_ERROR
+Cannot save to the file: %s
+.
+:MENU_INT2F_SUCCESS
+The INT 2Fh hook has been successfully set.
+.
+:MENU_INT2F_ALREADY_SET
+The INT 2Fh hook was already set up.
+.
