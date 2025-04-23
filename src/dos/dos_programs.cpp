@@ -10432,7 +10432,16 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_ASK_CHCP","Drive %c: may require code page %d to be properly accessed.\n\n"
             "Do you want to change the current code page to %d now?\n");
     MSG_Add("PROGRAM_CHANGING_CODEPAGE","Changing code page");
-    
+    MSG_Add("MENU_DRIVE_NOTEXIST", "Drive does not exist or is mounted from disk image.");
+    MSG_Add("MENU_SAVE_IMAGE_FAILED","Failed to save disk image.");
+    MSG_Add("MENU_JP_CPONLY","This function is only available for the Japanese code page (932).");
+    MSG_Add("MENU_CN_CPONLY","This function is only available for the Chinese code pages (936 or 950).");
+    MSG_Add("MENU_GLIDE_ERROR","Glide passthrough cannot be enabled. Check the Glide wrapper installation.");
+    MSG_Add("MENU_HIGH_INTENSITY_ERROR", "High intensity is not supported for the current video mode.");
+    MSG_Add("MENU_SAVE_FILE_ERROR","Cannot save to the file: %s");
+    MSG_Add("MENU_INT2F_SUCCESS","The INT 2Fh hook has been successfully set.");
+    MSG_Add("MENU_INT2F_ALREADY_SET","The INT 2Fh hook was already set up.");
+
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
 
