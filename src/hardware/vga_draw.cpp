@@ -2393,6 +2393,14 @@ bool isDBCSCP() {
     return !IS_PC98_ARCH && (IS_JEGA_ARCH||IS_DOSV||dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950||dos.loaded_codepage==951) && enable_dbcs_tables;
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    bool tfd_isDBCSCP(void) { return isDBCSCP(); }
+#ifdef __cplusplus
+}
+#endif
+
 #if 0//not used
 bool isDBCSLB(uint8_t chr) {
     for (int i=0; i<6; i++) lead[i] = 0;

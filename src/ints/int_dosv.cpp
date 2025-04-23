@@ -160,6 +160,21 @@ bool isKanji2(uint8_t chr) {
         return (chr >= 0x40 && chr <= 0x7e) || (del_flag && chr == 0x7f) || (chr >= 0x80 && chr <= 0xfc);
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    bool tfd_isKanji1(uint8_t chr) {
+        return isKanji1(chr);
+    }
+    bool tfd_isKanji2(uint8_t chr) {
+        return isKanji2(chr);
+    }
+#ifdef __cplusplus
+}
+#endif
+
+
+
 static inline int Hex2Int(const char *p) {
     if (*p <= '9')
         return *p - '0';
