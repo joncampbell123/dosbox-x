@@ -437,37 +437,55 @@ static void wipefile(char const * aFilename)
 		}
 }
 
+#include <stdint.h>
+#include <stdbool.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+    bool tfd_isDBCSCP(void);
+    bool tfd_isKanji1(uint8_t chr);
+    bool tfd_isKanji2(uint8_t chr);
+#ifdef __cplusplus
+}
+#endif
 
 int tfd_quoteDetected(char const * aString)
 {
-	char const * p;
+    if(!aString)
+        return 0;
 
-	if (!aString) return 0;
+    const char* p = aString;
+    bool is_dbcscp = tfd_isDBCSCP();
+    while(*p != '\0')
+    {
+        // Skip if the current character is the second byte of a DBCS character
+        if(is_dbcscp && tfd_isKanji1(*p) && tfd_isKanji2(*(p + 1)))
+        {
+            p += 2; // Skip both bytes of the DBCS character
+            continue;
+        }
 
-	p = aString;
-	if ( strchr(p, '\''))
-	{
-		return 1;
-	}
+        // Check for single-byte quote characters
+        if(*p == '\'' || *p == '\"' || *p == '`')
+        {
+            return 1;
+        }
 
-	if ( strchr(p, '\"'))
-	{
-		return 1;
-	}
+        // Check for '$' followed by '(', '_', or an alphabetic character
+        if(*p == '$')
+        {
+            p++;
+            if(*p == '(' || *p == '_' || isalpha(*p))
+            {
+                return 1;
+            }
+            // If not followed by the specified characters, continue checking
+        }
 
-	if ( strchr(p, '`'))
-	{
-		return 1;
-	}
+        p++;
+    }
 
-	p = aString;
-	while ((p = strchr(p, '$')))
-	{
-		p ++ ;
-		if ( ( * p == '(' ) || ( * p == '_' ) || isalpha( * p) ) return 1 ;
-	}
-
-	return 0;
+    return 0;
 }
 
 
@@ -2870,7 +2888,6 @@ static void writeUtf8( char const * aUtf8String )
 		lTmpWChar = tinyfd_utf8to16(aUtf8String);
 		(void)WriteConsoleW(lConsoleHandle, lTmpWChar, (DWORD) wcslen(lTmpWChar), &lNum, NULL);
 }
-
 
 int tinyfd_messageBox(
 		char const * aTitle, /* NULL or "" */
