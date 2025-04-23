@@ -4435,3 +4435,31 @@ INT 2Fh フックを設定しました。
 :MENU_INT2F_ALREADY_SET
 INT 2Fh フックは設定済みです。
 .
+:QUIT_DISABLED
+現在ここから DOSBox-X を終了できません。
+.
+:QUIT_CONFIRM
+DOSBox-X を終了してよろしいですか?
+.
+:QUIT_GUEST_DISABLED
+ゲストシステムを実行中は DOSBox-X を終了できません。
+.
+:QUIT_GUEST_CONFIRM
+ゲストシステムを実行中です。
+終了してもよろしいですか?
+.
+:QUIT_FILE_OPEN_DISABLED
+ファイルを一つ以上開いているため DOSBox-X を終了できません。
+.
+:QUIT_FILE_OPEN_CONFIRM
+ファイルを一つ以上開いているため、DOSBox-X を終了させることは
+安全ではないかもしれません。
+終了してもよろしいですか?
+.
+:QUIT_PROGRAM_DISABLED
+プログラムまたはゲームの実行中は DOSBox-X を終了できません。
+.
+:QUIT_PROGRAM_CONFIRM
+プログラムまたはゲームを実行中です。
+終了してもよろしいですか?
+.

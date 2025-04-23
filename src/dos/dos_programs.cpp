@@ -10441,6 +10441,15 @@ void DOS_SetupPrograms(void) {
     MSG_Add("MENU_SAVE_FILE_ERROR","Cannot save to the file: %s");
     MSG_Add("MENU_INT2F_SUCCESS","The INT 2Fh hook has been successfully set.");
     MSG_Add("MENU_INT2F_ALREADY_SET","The INT 2Fh hook was already set up.");
+    MSG_Add("QUIT_DISABLED","Quitting from DOSBox-X with this is currently disabled.");
+    MSG_Add("QUIT_CONFIRM","This will quit from DOSBox-X.\nAre you sure?");
+    MSG_Add("QUIT_GUEST_DISABLED","You cannot quit DOSBox-X while running a guest system.");
+    MSG_Add("QUIT_GUEST_CONFIRM", "You are currently running a guest system.\nAre you sure to quit anyway now?");
+    MSG_Add("QUIT_FILE_OPEN_DISABLED","You cannot quit DOSBox-X while one or more files are open.");
+    MSG_Add("QUIT_FILE_OPEN_CONFIRM", "It may be unsafe to quit from DOSBox-X right now\n"
+            "because one or more files are currently open.\nAre you sure to quit anyway now?");
+    MSG_Add("QUIT_PROGRAM_DISABLED","You cannot quit DOSBox-X while running a program or game.");
+    MSG_Add("QUIT_PROGRAM_CONFIRM","You are currently running a program or game.\nAre you sure to quit anyway now?");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
