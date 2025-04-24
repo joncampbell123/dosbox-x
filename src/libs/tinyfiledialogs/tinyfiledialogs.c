@@ -4781,7 +4781,7 @@ int tinyfd_messageBox(
 		lBuff[0]='\0';
 
 				if (tfd_quoteDetected(aTitle)) return tinyfd_messageBox("INVALID TITLE WITH QUOTES", aMessage, aDialogType, aIconType, aDefaultButton);
-				if (tfd_quoteDetected(aMessage)) return tinyfd_messageBox(aTitle, "INVALID MESSAGE WITH QUOTES", aDialogType, aIconType, aDefaultButton);
+				//if (tfd_quoteDetected(aMessage)) return tinyfd_messageBox(aTitle, "INVALID MESSAGE WITH QUOTES", aDialogType, aIconType, aDefaultButton);
 
 		lTitleLen =  aTitle ? strlen(aTitle) : 0 ;
 		lMessageLen =  aMessage ? strlen(aMessage) : 0 ;
