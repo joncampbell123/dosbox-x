@@ -4418,3 +4418,67 @@ Voulez-vous changer le code de page actuel en %d maintenant ?
 Change le code de page
 
 .
+:IMAGEMOUNT_CHANGE_DOSVER
+Monter ce type d'images disque requiert une version rapportée de DOS de %s ou plus récent
+Voulez-vous changer automatiquement la version rapportée de DOS ver %s maintenant et
+monter l'image disque ?
+.
+:MENU_DRIVE_NOTEXIST
+Lecteur inexistant ou est monté depuis une image disque.
+.
+:MENU_SAVE_IMAGE_FAILED
+Échec de la sauvegarde de l'image disque.
+.
+:MENU_JP_CPONLY
+Cette fonction n'est disponible que pour le code de page Japonais (932).
+.
+:MENU_CN_CPONLY
+Cette fonction n'est disponible que pour le code de page Chinois (936 ou 950).
+.
+:MENU_GLIDE_ERROR
+La fonction Glide passthrough ne peut pas être activée. Vérifiez l'installation 
+du wrapper Glide.
+.
+:MENU_HIGH_INTENSITY_ERROR
+La haute intensité n'est pas prise en charge par le mode vidéo actuel.
+.
+:MENU_SAVE_FILE_ERROR
+Impossible de sauver le fichier : %s
+.
+:MENU_INT2F_SUCCESS
+Le crochet INT 2Fh a été activé avec succès.
+.
+:MENU_INT2F_ALREADY_SET
+Le crochet INT 2Fh a déjà été mis en place.
+.
+:QUIT_DISABLED
+La sortie de DOSBox-X par ce biais est actuellement désactivée.
+.
+:QUIT_CONFIRM
+Cela permet de quitter DOSBox-X.\nÊtes-vous sûr ?
+.
+:QUIT_GUEST_DISABLED
+Vous ne pouvez pas quitter DOSBox-X pendant l'exécution 
+d'un système invité.
+.
+:QUIT_GUEST_CONFIRM
+Vous utilisez actuellement un système invité.
+Êtes-vous sûr de quitter de toute façon maintenant ?
+.
+:QUIT_FILE_OPEN_DISABLED
+Vous ne pouvez pas quitter DOSBox-X lorsqu'un ou plusieurs
+fichiers sont ouverts.
+.
+:QUIT_FILE_OPEN_CONFIRM
+Il n'est peut-être pas sûr de quitter DOSBox-X maintenant
+parce qu'un ou plusieurs fichiers sont actuellement ouverts.\n
+Etes-vous sûr de vouloir quitter maintenant ?
+.
+:QUIT_PROGRAM_DISABLED
+Vous ne pouvez pas quitter DOSBox-X pendant l'exécution 
+d'un programme ou d'un jeu.
+.
+:QUIT_PROGRAM_CONFIRM
+Vous êtes en train d'exécuter un programme ou un jeu.
+Êtes-vous sûr de vouloir quitter maintenant ?
+.
