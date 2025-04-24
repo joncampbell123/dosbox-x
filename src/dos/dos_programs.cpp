@@ -563,9 +563,9 @@ void MenuBrowseCDImage(char drive, int num) {
 
     if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "isoDrive ", 9)) {
 #if !defined(HX_DOS)
-        std::string drive_warn = "CD drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the CD image now?";
         std::string drive_info = std::string(Drives[drive - 'A']->GetInfo() + 9);
-        drive_warn = formatString(MSG_Get("PROGRAM_CDDRIVE_WARN"), (dos_kernel_disabled ? std::to_string(num) : (std::string(1, drive) + ":").c_str(), drive_info.c_str()));
+        std::string drive_letter = dos_kernel_disabled ? std::to_string(num) : (std::string(1, drive) + ":");
+        std::string drive_warn = formatString(MSG_Get("PROGRAM_CDDRIVE_WARN"), drive_letter.c_str(), drive_info.c_str());
         if (!systemmessagebox("Change CD Image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
