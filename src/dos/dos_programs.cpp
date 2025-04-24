@@ -786,6 +786,8 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 #endif
 }
 
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) ;
+
 void MenuBrowseFolder(char drive, std::string const& drive_type) {
     std::string str(1, drive);
 	if (Drives[drive-'A']) {
@@ -803,7 +805,15 @@ void MenuBrowseFolder(char drive, std::string const& drive_type) {
     std::string title = formatString(MSG_Get("PROGRAM_MOUNT_SELECT_DRIVE"), str.c_str(),MSG_Get(msg_key.c_str()));
     if(drive_type=="CDROM")
         title += "\n" + std::string(MSG_Get("PROGRAM_MOUNT_CDROM_SUPPORT"));
+#ifdef LINUX
+    size_t aMessageLength = strlen(title.c_str());
+    char *lMessage = (char *)malloc((aMessageLength * 2 + 1) * sizeof(char)); 
+    CodePageGuestToHostUTF8(lMessage, title.c_str()) ;
+    char const * lTheSelectFolderName = tinyfd_selectFolderDialog(lMessage, NULL);
+    free(lMessage);
+#else
     char const * lTheSelectFolderName = tinyfd_selectFolderDialog(title.c_str(), NULL);
+#endif
     if (lTheSelectFolderName) {
         MountHelper(drive,GetNewStr(lTheSelectFolderName).c_str(),drive_type);
         std::string drive_warn = formatString(MSG_Get("PROGRAM_MOUNT_SUCCESS"), std::string(1, drive).c_str(), lTheSelectFolderName);
