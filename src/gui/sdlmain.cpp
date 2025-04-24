@@ -1107,7 +1107,19 @@ std::string replaceNewlineWithEscaped(const std::string& input) {
         if (input[i] == '\\') {
             if(input[i+1] != 'n') output += '\\'; // "\n" needs to be escaped to "\\n" 
         }
-        else {
+        else if (input[i] == '\n'){
+            output += "\\\\n";   // '\n' needs to be replaced to "\\n" 
+            i++;
+        }
+        else if(input[i] == '`'){
+            output += "\\`";  // '`' needs to be replaced to "\\`" 
+            i++;
+        }
+        else if(input[i] == '"'){
+            output += "\\\"";  // '"' needs to be replaced to "\\\"" 
+            i++;
+        }
+        else  {
             output += input[i];
             i++;
         }
