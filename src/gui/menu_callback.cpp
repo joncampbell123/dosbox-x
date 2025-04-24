@@ -97,6 +97,7 @@ size_t GetGameState_Run(void);
 void DBCSSBCS_mapper_shortcut(bool pressed);
 void AutoBoxDraw_mapper_shortcut(bool pressed);
 extern std::string langname, GetDOSBoxXPath(bool withexe=false);
+std::string formatString(const char* format, ...);
 
 void* GetSetSDLValue(int isget, std::string& target, void* setval) {
     if (target == "wait_on_error") {
@@ -467,7 +468,7 @@ bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
         return false;
     if (drive < 0 || drive>=DOS_DRIVES) return false;
     if (!Drives[drive] || dynamic_cast<fatDrive*>(Drives[drive])) {
-        systemmessagebox("Error", "Drive does not exist or is mounted from disk image.", "ok","error", 1);
+        systemmessagebox(MSG_Get("ERROR"), MSG_Get("MENU_DRIVE_NOTEXIST"), "ok","error", 1);
         return false;
     }
 
@@ -486,7 +487,7 @@ bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     for (int i=0; i<MAX_DISK_IMAGES; i++)
         if (imageDiskList[i] && imageDiskList[i]->ffdd && imageDiskList[i]->drvnum == drive) {
-            if (!saveDiskImage(imageDiskList[i], lTheSaveFileName)) systemmessagebox("Error", "Failed to save disk image.", "ok","error", 1);
+            if (!saveDiskImage(imageDiskList[i], lTheSaveFileName)) systemmessagebox(MSG_Get("ERROR"), MSG_Get("MENU_SAVE_IMAGE_FAILED"), "ok","error", 1);
             chdir(Temp_CurrentDir);
             return true;
         }
@@ -494,7 +495,7 @@ bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
     uint32_t freeMB = sec->Get_int("convert fat free space"), timeout = sec->Get_int("convert fat timeout");
     imageDisk *imagedrv = new imageDisk(Drives[drive], drive, freeMB, timeout);
-    if (!saveDiskImage(imagedrv, lTheSaveFileName)) systemmessagebox("Error", "Failed to save disk image.", "ok","error", 1);
+    if (!saveDiskImage(imagedrv, lTheSaveFileName)) systemmessagebox(MSG_Get("ERROR"), MSG_Get("MENU_SAVE_IMAGE_FAILED"), "ok","error", 1);
     if (imagedrv) delete imagedrv;
 
     if(chdir(Temp_CurrentDir) == -1) {
@@ -1644,7 +1645,7 @@ bool ttf_halfwidth_katakana_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     if (!isDBCSCP()||dos.loaded_codepage!=932) {
-        systemmessagebox("Warning", "This function is only available for the Japanese code page (932).", "ok","warning", 1);
+        systemmessagebox("Warning", MSG_Get("MENU_JP_CPONLY"), "ok","warning", 1);
         return true;
     }
     halfwidthkana=!halfwidthkana;
@@ -1659,7 +1660,7 @@ bool ttf_extend_charset_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     if (!isDBCSCP()||(dos.loaded_codepage!=936&&dos.loaded_codepage!=950&&dos.loaded_codepage!=951)) {
-        systemmessagebox("Warning", "This function is only available for the Chinese code pages (936 or 950).", "ok","warning", 1);
+        systemmessagebox("Warning", MSG_Get("MENU_CN_CPONLY"), "ok","warning", 1);
         return true;
     }
     if (dos.loaded_codepage==936) {
@@ -1938,7 +1939,7 @@ bool glide_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
     if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
     else {
         VFILE_Remove("GLIDE2X.OVL","SYSTEM");
-        if (!glideon) systemmessagebox("Warning", "Glide passthrough cannot be enabled. Check the Glide wrapper installation.", "ok","warning", 1);
+        if (!glideon) systemmessagebox("Warning", MSG_Get("MENU_GLIDE_ERROR"), "ok","warning", 1);
     }
     mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
     return true;
@@ -2159,7 +2160,7 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     const char *mname = menuitem->get_name().c_str();
     uint16_t oldax=reg_ax, oldbx=reg_bx;
     if (IS_PC98_ARCH||machine==MCH_CGA||(CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)) {
-        systemmessagebox("Warning", "High intensity is not supported for the current video mode.", "ok","warning", 1);
+        systemmessagebox("Warning", MSG_Get("MENU_HIGH_INTENSITY_ERROR"), "ok","warning", 1);
         return true;
     }
     if (!strcmp(mname, "text_background"))
@@ -2432,7 +2433,8 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     if (lTheSaveFileName==NULL) return false;
 #if C_DEBUG
     bool savetologfile(const char *name);
-    if (!savetologfile(lTheSaveFileName)) systemmessagebox("Warning", ("Cannot save to the file: "+std::string(lTheSaveFileName)).c_str(), "ok","warning", 1);
+    std::string str = formatString(MSG_Get("MENU_SAVE_FILE_ERROR"), lTheSaveFileName);
+    if (!savetologfile(lTheSaveFileName)) systemmessagebox("Warning", str.c_str(), "ok", "warning", 1);
 #endif
     if(chdir(Temp_CurrentDir) == -1) {
         LOG(LOG_GUI, LOG_ERROR)("save_logas_menu_callback failed to change directories.");
@@ -2873,9 +2875,9 @@ bool int2fhook_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const 
     if (int2fdbg_hook_callback == 0) {
         void Int2fhook();
         Int2fhook();
-        systemmessagebox("Success", "The INT 2Fh hook has been successfully set.", "ok","info", 1);
+        systemmessagebox("Success", MSG_Get("MENU_INT2F_SUCCESS"), "ok","info", 1);
     } else
-        systemmessagebox("Warning", "The INT 2Fh hook was already set up.", "ok","warning", 1);
+        systemmessagebox("Warning", MSG_Get("MENU_INT2F_ALREADY_SET"), "ok","warning", 1);
 #endif
 
     return true;

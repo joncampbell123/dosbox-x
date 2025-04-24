@@ -10085,6 +10085,8 @@ void DOS_SetupPrograms(void) {
 #endif
         "  \033[32;1m-examples: Show some usage examples.\033[0m"
         );
+    MSG_Add("IMAGEMOUNT_CHANGE_DOSVER", "Mounting this type of disk images requires a reported DOS version of %s or higher.\n"
+        "Do you want to auto - change the reported DOS version to %s now and mount the disk image ? ");
     MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
         "Some usage examples of IMGMAKE:\n\n"
         "  \033[32;1mIMGMAKE -t fd\033[0m                   - create a 1.44MB floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"
@@ -10430,7 +10432,25 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_ASK_CHCP","Drive %c: may require code page %d to be properly accessed.\n\n"
             "Do you want to change the current code page to %d now?\n");
     MSG_Add("PROGRAM_CHANGING_CODEPAGE","Changing code page");
-    
+    MSG_Add("MENU_DRIVE_NOTEXIST", "Drive does not exist or is mounted from disk image.");
+    MSG_Add("MENU_SAVE_IMAGE_FAILED","Failed to save disk image.");
+    MSG_Add("MENU_JP_CPONLY","This function is only available for the Japanese code page (932).");
+    MSG_Add("MENU_CN_CPONLY","This function is only available for the Chinese code pages (936 or 950).");
+    MSG_Add("MENU_GLIDE_ERROR","Glide passthrough cannot be enabled. Check the Glide wrapper installation.");
+    MSG_Add("MENU_HIGH_INTENSITY_ERROR", "High intensity is not supported for the current video mode.");
+    MSG_Add("MENU_SAVE_FILE_ERROR","Cannot save to the file: %s");
+    MSG_Add("MENU_INT2F_SUCCESS","The INT 2Fh hook has been successfully set.");
+    MSG_Add("MENU_INT2F_ALREADY_SET","The INT 2Fh hook was already set up.");
+    MSG_Add("QUIT_DISABLED","Quitting from DOSBox-X with this is currently disabled.");
+    MSG_Add("QUIT_CONFIRM","This will quit from DOSBox-X.\nAre you sure?");
+    MSG_Add("QUIT_GUEST_DISABLED","You cannot quit DOSBox-X while running a guest system.");
+    MSG_Add("QUIT_GUEST_CONFIRM", "You are currently running a guest system.\nAre you sure to quit anyway now?");
+    MSG_Add("QUIT_FILE_OPEN_DISABLED","You cannot quit DOSBox-X while one or more files are open.");
+    MSG_Add("QUIT_FILE_OPEN_CONFIRM", "It may be unsafe to quit from DOSBox-X right now\n"
+            "because one or more files are currently open.\nAre you sure to quit anyway now?");
+    MSG_Add("QUIT_PROGRAM_DISABLED","You cannot quit DOSBox-X while running a program or game.");
+    MSG_Add("QUIT_PROGRAM_CONFIRM","You are currently running a program or game.\nAre you sure to quit anyway now?");
+
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
 

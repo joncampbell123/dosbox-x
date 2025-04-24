@@ -3914,7 +3914,7 @@ EMS ブロックを割り当てました (%uKB)
 :PROGRAM_LOADFIX_EMS_ALLOCERROR
 EMS ブロックを割り当てることができませんでした。
 .
-PROGRAM_LOADFIX_NOEMS
+:PROGRAM_LOADFIX_NOEMS
 EMS は有効ではありません。
 .
 :PROGRAM_LOADFIX_XMS_ALLOC
@@ -4404,4 +4404,62 @@ C ドライブはすでにマウントされていますが、続けますか?
 .
 :PROGRAM_CHANGING_CODEPAGE
 コードページの変更
+.
+:IMAGEMOUNT_CHANGE_DOSVER
+この形式のイメージをマウントするためには DOS バージョンが %s 以上である必要があります。DOS バージョンを %s へ変更してイメージをマウントしますか ?
+.
+:MENU_DRIVE_NOTEXIST
+ドライブが存在しないか、イメージがマウントされています。
+.
+:MENU_SAVE_IMAGE_FAILED
+ディスク・イメージが保存できませんでした。.
+.
+:MENU_JP_CPONLY
+この機能は日本語のコードページ (932) のみに使われます。
+.
+:MENU_CN_CPONLY
+この機能は中国語のコードページ (936 または 950) のみに使われます。
+.
+:MENU_GLIDE_ERROR
+Glide パススルーを設定できませんでした。Glide ラッパーが正しくインストールされているか確認して下さい。
+.
+:MENU_HIGH_INTENSITY_ERROR
+現在のビデオ・モードでは強調表示はサポートされていません。.
+.
+:MENU_SAVE_FILE_ERROR
+指定のファイルに保存できませんでした: %s
+.
+:MENU_INT2F_SUCCESS
+INT 2Fh フックを設定しました。
+.
+:MENU_INT2F_ALREADY_SET
+INT 2Fh フックは設定済みです。
+.
+:QUIT_DISABLED
+現在ここから DOSBox-X を終了できません。
+.
+:QUIT_CONFIRM
+DOSBox-X を終了してよろしいですか?
+.
+:QUIT_GUEST_DISABLED
+ゲストシステムを実行中は DOSBox-X を終了できません。
+.
+:QUIT_GUEST_CONFIRM
+ゲストシステムを実行中です。
+終了してもよろしいですか?
+.
+:QUIT_FILE_OPEN_DISABLED
+ファイルを一つ以上開いているため DOSBox-X を終了できません。
+.
+:QUIT_FILE_OPEN_CONFIRM
+ファイルを一つ以上開いているため、DOSBox-X を終了させることは
+安全ではないかもしれません。
+終了してもよろしいですか?
+.
+:QUIT_PROGRAM_DISABLED
+プログラムまたはゲームの実行中は DOSBox-X を終了できません。
+.
+:QUIT_PROGRAM_CONFIRM
+プログラムまたはゲームを実行中です。
+終了してもよろしいですか?
 .
