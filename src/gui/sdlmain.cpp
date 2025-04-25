@@ -84,6 +84,11 @@ void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_me
 extern int tryconvertcp, Reflect_Menu(void);
 bool kana_input = false; // true if a half-width kana was typed
 
+#ifndef LINUX
+char* convert_escape_newlines(const char* aMessage);
+char* revert_escape_newlines(const char* aMessage);
+#endif
+
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
 #endif
@@ -1096,6 +1101,85 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 }
 
 bool warn_on_mem_write = false;
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) ;
+
+#ifdef LINUX
+std::string replaceNewlineWithEscaped(const std::string& input) {
+    std::string output;
+    size_t i = 0;
+
+    while (i < input.length()) {
+        if (input[i] == '\\') {
+            if(input[i+1] != 'n') output += '\\'; // "\n" needs to be escaped to "\\n" 
+        }
+        else if (input[i] == '\n'){
+            output += "\\\\n";   // '\n' needs to be replaced to "\\n" 
+            i++;
+        }
+        else if(input[i] == '`'){
+            output += "\\`";  // '`' needs to be replaced to "\\`" 
+            i++;
+        }
+        else if(input[i] == '"'){
+            output += "\\\"";  // '"' needs to be replaced to "\\\"" 
+            i++;
+        }
+        else  {
+            output += input[i];
+            i++;
+        }
+    }
+
+    return output;
+}
+#else
+char* convert_escape_newlines(const char* aMessage) {
+    size_t len = strlen(aMessage);
+    char* lMessage = (char*)malloc(len * 2 + 1); // Allocate memory considering convert to UTF8
+
+    if(!lMessage) return nullptr;
+
+    const char* src = aMessage;
+    char* dst = lMessage;
+
+    while(*src) {
+        if(*src == '\n') {
+            *dst++ = '\\';
+            *dst++ = 'n';
+            src++;
+        }
+        else {
+            *dst++ = *src++;
+        }
+    }
+
+    *dst = '\0'; // Terminate with NULL character
+    return lMessage;
+}
+
+char* revert_escape_newlines(const char* aMessage) {
+    size_t len = strlen(aMessage);
+    char* lMessage = (char*)malloc(len * 2 + 1); // Allocate memory considering convert to UTF8
+
+    if(!lMessage) return nullptr;
+
+    const char* src = aMessage;
+    char* dst = lMessage;
+
+    while(*src) {
+        if(src[0] == '\\' && src[1] == 'n') {
+            *dst++ = '\n';
+            src += 2;
+        }
+        else {
+            *dst++ = *src++;
+        }
+    }
+
+    *dst = '\0'; // Terminate with NULL character
+    return lMessage;
+}
+#endif
 
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)
@@ -1108,7 +1192,26 @@ bool systemmessagebox(char const * aTitle, char const * aMessage, char const * a
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     GFX_ReleaseMouse();
-    bool ret=tinyfd_messageBox(aTitle, lDialogString.c_str(), aDialogType, aIconType, aDefaultButton);
+
+#ifdef LINUX
+    size_t aMessageLength = strlen(aMessage);
+    char* lMessage = (char*)malloc((aMessageLength * 2 + 1) * sizeof(char));  // DBCS may expand to 3 to 4 bytes when converted to UTF-8
+    lDialogString = replaceNewlineWithEscaped(lDialogString); // String may include "\n" which needs to be escaped to "\\n" 
+    CodePageGuestToHostUTF8(lMessage, lDialogString.c_str());
+    bool ret=tinyfd_messageBox(aTitle, lMessage, aDialogType, aIconType, aDefaultButton);
+    free(lMessage);
+#else
+    char* temp_message = convert_escape_newlines(aMessage); //FIX_ME: CodePageGuestToHostUTF8() gives weird results for '\n'
+    size_t max_utf8_len = strlen(temp_message) * 3 + 1;
+    char* lMessage = (char*)malloc(max_utf8_len);
+    if(!isDBCSCP() && temp_message && lMessage) CodePageGuestToHostUTF8(lMessage, temp_message);
+    else strcpy(lMessage, temp_message);
+    free(temp_message);
+    temp_message = revert_escape_newlines(lMessage);        //FIX_ME: CodePageGuestToHostUTF8() gives weird results for '\n'
+    bool ret = tinyfd_messageBox(aTitle, temp_message, aDialogType, aIconType, aDefaultButton);
+    free(temp_message);
+    free(lMessage);
+#endif
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
