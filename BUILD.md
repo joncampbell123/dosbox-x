@@ -25,7 +25,7 @@ The four major operating systems and platforms of DOSBox-X are:
 - [Raspberry Pi](#to-compile-dosbox-x-in-raspberry-pi)
 
 3. macOS (Mac OS X) High Sierra and after, Intel, ARM-based, and Universal
-- [macOS procedures](#compiling-the-source-code-in-macos)
+- [macOS procedures](#compiling-the-source-code-in-macos-high-sierra-and-after)
 
 4. DOS (MS-DOS 5.0+ or compatible)
 - [HX-DOS](#to-compile-dosbox-x-for-dos-with-hx-dos-platform)
