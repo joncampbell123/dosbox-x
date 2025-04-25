@@ -2644,16 +2644,16 @@ rapport d'origine
 Définir le rapport
 .
 :MENU:VideoPreventCaptureMenu
-Screen capture control
+Contrôle de la capture d'écran
 .
 :MENU:prevcap_none
-Allow
+Autoriser
 .
 :MENU:prevcap_blank
-Show as blank
+Afficher comme vide
 .
 :MENU:prevcap_invisible
-Make invisible
+Rendre invisible
 .
 :MENU:VideoScalerMenu
 Mise à l'échelle
@@ -2746,7 +2746,7 @@ xBRZ
 xBRZ bilinéaire
 .
 :MENU:center_window
-Center window
+Centrer la fenêtre
 .
 :MENU:set_titletext
 Définir le texte de la barre de titre...
@@ -2957,7 +2957,7 @@ Effacer la couche de texte
 Effacer la couche graphique
 .
 :MENU:Video3dfxMenu
-émulation 3dfx
+Émulation 3dfx
 .
 :MENU:3dfx_voodoo
 Carte Voodoo interne
@@ -3302,13 +3302,13 @@ Accélérer
 Ralentir
 .
 :MENU:mapper_editcycles
-Choisir nombre sycles
+Choisir nombre de cycles
 .
 :MENU:mapper_savestate
 Sauver état
 .
 :MENU:mapper_loadstate
-Niv. charge
+Charge état
 .
 :MENU:mapper_showstate
 Afficher infos état
@@ -3329,7 +3329,7 @@ Augmenter le frameskip
 Ajuster format image
 .
 :MENU:mapper_fscaler
-Forcer la l'échelle
+Forcer l'échelle
 .
 :MENU:mapper_recwave
 Enreg. audio WAV
@@ -3344,7 +3344,7 @@ Enreg. sortie MIDI
 Sortie FM (OPL)
 .
 :MENU:mapper_capnetrf
-Record network traffic
+Enregistre trafic réseau
 .
 :MENU:mapper_video
 Enreg. vidéo en AVI
@@ -3353,7 +3353,7 @@ Enreg. vidéo en AVI
 Capture d'écran
 .
 :MENU:mapper_rawscrshot
-Take raw screenshot
+Faire une capture d'écran brute
 .
 :MENU:mapper_volup
 Monter le volume
@@ -4094,7 +4094,7 @@ fonctionne correctement.
 Génère une interruption non masquable (NMI)...
 .
 :PROGRAM_CAPMOUSE_HELP
-Capture ou libèe la souris dans DOSBox-X.
+Capture ou libère la souris dans DOSBox-X.
 
 CAPMOUSE [/C|/R]
 
