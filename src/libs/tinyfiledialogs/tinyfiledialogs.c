@@ -2102,13 +2102,13 @@ static int messageBoxWinGui(
 
 		if (aTitle)
 		{
-				if (tinyfd_winUtf8) lTmpWChar = tinyfd_utf8to16(aTitle);
+				if (tinyfd_winUtf8 || !tfd_isDBCSCP()) lTmpWChar = tinyfd_utf8to16(aTitle);
 				else lTmpWChar = tinyfd_mbcsTo16(aTitle);
 				wcscpy(lTitle, lTmpWChar);
 		}
 		if (aMessage)
 		{
-				if (tinyfd_winUtf8) lTmpWChar = tinyfd_utf8to16(aMessage);
+				if (tinyfd_winUtf8 || !tfd_isDBCSCP()) lTmpWChar = tinyfd_utf8to16(aMessage);
 				else lTmpWChar = tinyfd_mbcsTo16(aMessage);
 				lMessage = (wchar_t *) malloc((wcslen(lTmpWChar) + 1)* sizeof(wchar_t));
 				if (lMessage) wcscpy(lMessage, lTmpWChar);
@@ -2900,8 +2900,8 @@ int tinyfd_messageBox(
 		UINT lOriginalCP = 0;
 		UINT lOriginalOutputCP = 0;
 
-		if (tfd_quoteDetected(aTitle)) return tinyfd_messageBox("INVALID TITLE WITH QUOTES", aMessage, aDialogType, aIconType, aDefaultButton);
-		if (tfd_quoteDetected(aMessage)) return tinyfd_messageBox(aTitle, "INVALID MESSAGE WITH QUOTES", aDialogType, aIconType, aDefaultButton);
+		//if (tfd_quoteDetected(aTitle)) return tinyfd_messageBox("INVALID TITLE WITH QUOTES", aMessage, aDialogType, aIconType, aDefaultButton);
+		//if (tfd_quoteDetected(aMessage)) return tinyfd_messageBox(aTitle, "INVALID MESSAGE WITH QUOTES", aDialogType, aIconType, aDefaultButton);
 
 		if ((!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent()))
 				&& (!getenv("SSH_CLIENT") || getenvDISPLAY()))
