@@ -182,6 +182,8 @@ void AddMessages() {
     MSG_Add("MAPPER_EDITOR_EXIT","Exit mapper editor");
     MSG_Add("SAVE_MAPPER_FILE","Save mapper file");
     MSG_Add("WARNING","Warning");
+    MSG_Add("ERROR", "Error");
+    MSG_Add("INFORMATION", "Information");
     MSG_Add("YES","Yes");
     MSG_Add("NO","No");
     MSG_Add("OK","OK");
@@ -249,8 +251,6 @@ void AddMessages() {
     MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
     MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
     MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
-    MSG_Add("ERROR", "Error");
-    MSG_Add("INFORMATION", "Information");
 }
 
 // True if specified codepage is a DBCS codepage
