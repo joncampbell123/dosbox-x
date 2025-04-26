@@ -140,7 +140,6 @@ extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t w
 extern void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 void clearFontCache(void);
 std::string GetDOSBoxXPath(bool withexe=false);
-FILE *testLoadLangFile(const char *fname);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 bool CheckDBCSCP(int32_t codepage), SwitchLanguage(int oldcp, int newcp, bool confirm);
 void makestdcp950table(), makeseacp951table();
