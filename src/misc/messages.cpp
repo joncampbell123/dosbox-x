@@ -36,6 +36,8 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include <fstream>
+#include <iostream>
 #if defined(__MINGW32__) && !defined(HX_DOS)
 #include <imm.h>
 #endif
@@ -316,69 +318,81 @@ FILE* testLoadLangFile(const char* fname) {
 }
 
 
-char loaded_fname[LINE_IN_MAXLEN + 1024];
-void LoadMessageFile(const char * fname) {
-	if (!fname) return;
-	if(*fname=='\0') return;//empty string=no languagefile
-    if (!strcmp(fname, loaded_fname)){
-        //LOG_MSG("Message file %s already loaded.",fname);
+static std::string loaded_fname;
+
+void LoadMessageFile(const char* fname) {
+    if(!fname || *fname == '\0') return;
+
+    if(loaded_fname == fname) {
         return;
     }
-	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",fname);
 
-	FILE * mfile=testLoadLangFile(fname);
-	/* This should never happen and since other modules depend on this use a normal printf */
-	if (!mfile) {
-		std::string message="Could not load language message file "+std::string(fname)+". The default language will be used.";
-		systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
-		SetVal("dosbox", "language", "");
-		LOG_MSG("MSG:Cannot load language file: %s",fname);
-		control->opt_lang = "";
-		return;
-	}
-    strcpy(loaded_fname, fname);
-    langname = langnote = "";
-	char linein[LINE_IN_MAXLEN+1024];
-	char name[LINE_IN_MAXLEN+1024], menu_name[LINE_IN_MAXLEN], mapper_name[LINE_IN_MAXLEN];
-	char string[LINE_IN_MAXLEN*10], temp[4096];
-	/* Start out with empty strings */
-	name[0]=0;string[0]=0;
-	morelen=inmsg=true;
-    bool res=true;
+    LOG(LOG_MISC, LOG_DEBUG)("Loading message file %s", fname);
+
+    FILE* mfile = testLoadLangFile(fname);
+ 
+    if(!mfile) {
+        std::string message = "Could not load language message file " + std::string(fname) + ". The default language will be used.";
+        systemmessagebox("Warning", message.c_str(), "ok", "warning", 1);
+        SetVal("dosbox", "language", "");
+        LOG_MSG("MSG:Cannot load language file: %s", fname);
+        control->opt_lang = "";
+        return;
+    }
+
+    loaded_fname = fname;
+    langname.clear();
+    langnote.clear();
+    std::string linein, name, menu_name, mapper_name, string;
+
+    morelen = inmsg = true;
+    bool res = true;
     bool loadlangcp = false;
-    int cp=dos.loaded_codepage;
-    if (!dos.loaded_codepage) res=InitCodePage();
-	while(fgets(linein, LINE_IN_MAXLEN+1024, mfile)) {
-		/* Parse the read line */
-		/* First remove characters 10 and 13 from the line */
-		char * parser=linein;
-		char * writer=linein;
+    int cp = dos.loaded_codepage;
+    if(!dos.loaded_codepage) res = InitCodePage();
 
-		while (*parser) {
-			if (*parser != 10 && *parser != 13)
-				*writer++ = *parser;
+    const size_t buffer_size = LINE_IN_MAXLEN + 1024;
+    char* buffer = new char[buffer_size];
 
-			parser++;
-		}
-		*writer=0;
-		/* New string name */
-		if (linein[0]==':') {
-            string[0]=0;
-            if (!strncasecmp(linein+1, "DOSBOX-X:", 9)) {
-                char *p = linein+10;
-                char *r = strchr(p, ':');
-                if (*p && r!=NULL && r>p && *(r+1)) {
-                    *r=0;
-                    if (!strcmp(p, "CODEPAGE")) {
-                        int c = atoi(r+1);
+    while(fgets(buffer, buffer_size, mfile)) {
+        linein = buffer;
+        // Remove \r and \n
+        linein.erase(std::remove(linein.begin(), linein.end(), '\r'), linein.end());
+        linein.erase(std::remove(linein.begin(), linein.end(), '\n'), linein.end());
+
+        if(linein.empty()) continue;
+
+        std::string trimmed = linein.substr(1);
+         trim(trimmed);
+
+        if(linein[0] == ':') {
+            string.clear();
+
+            if(!strncasecmp(linein.c_str() + 1, "DOSBOX-X:", 9)) {
+                std::string p = linein.substr(10);
+                size_t colon_pos = p.find(':');
+                if(colon_pos != std::string::npos && colon_pos > 0 && colon_pos + 1 < p.size()) {
+                    std::string key = p.substr(0, colon_pos);
+                    std::string val = p.substr(colon_pos + 1);
+                    if(key == "CODEPAGE") {
+                        int c = std::atoi(val.c_str());
                         if(!isSupportedCP(c)) {
                             LOG_MSG("Language file: Invalid codepage :DOSBOX-X:CODEPAGE:%d", c);
                             loadlangcp = false;
                         }
-                        else if (((IS_PC98_ARCH||IS_JEGA_ARCH) && c!=437 && c!=932 && !systemmessagebox("DOSBox-X language file", "You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.\n\nAre you sure to use the language file for this machine type?", "yesno","question", 2)) || (((IS_JDOSV && c!=932) || (IS_PDOSV && c!=936) || (IS_KDOSV && c!=949) || (IS_TDOSV && c!=950 && c!=951)) && c!=437 && !systemmessagebox("DOSBox-X language file", "You have specified a language file which uses a code page incompatible with the current DOS/V system.\n\nAre you sure to use the language file for this system type?", "yesno","question", 2))) {
-                                fclose(mfile);
-                                dos.loaded_codepage = cp;
-                                return;
+                        else if(((IS_PC98_ARCH || IS_JEGA_ARCH) && c != 437 && c != 932 &&
+                            !systemmessagebox("DOSBox-X language file",
+                                "You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.\n\nAre you sure to use the language file for this machine type?",
+                                "yesno", "question", 2)) ||
+                            (((IS_JDOSV && c != 932) || (IS_PDOSV && c != 936) ||
+                                (IS_KDOSV && c != 949) || (IS_TDOSV && c != 950 && c != 951)) &&
+                                c != 437 &&
+                                !systemmessagebox("DOSBox-X language file",
+                                    "You have specified a language file which uses a code page incompatible with the current DOS/V system.\n\nAre you sure to use the language file for this system type?",
+                                    "yesno", "question", 2))) {
+                            fclose(mfile);
+                            dos.loaded_codepage = cp;
+                            return;
                         }
                         else {
                             std::string msg = "The specified language file uses code page " + std::to_string(c) + ". Do you want to change to this code page accordingly?";
@@ -386,80 +400,97 @@ void LoadMessageFile(const char * fname) {
                                 msgcodepage = c;
                                 lastmsgcp = msgcodepage;
                             }
-                            if(c != dos.loaded_codepage && (control->opt_langcp || uselangcp || !CHCP_changed || CheckDBCSCP(c) || !loadlang || (loadlang && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)))) {
+                            if(c != dos.loaded_codepage && (control->opt_langcp || uselangcp || !CHCP_changed || CheckDBCSCP(c) || !loadlang ||
+                                (loadlang && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)))) {
                                 loadlangcp = true;
-                                if(c == 950 && dos.loaded_codepage == 951) msgcodepage = 951; // zh_tw defaults to CP950, but CP951 is acceptable as well so keep it
+                                if(c == 950 && dos.loaded_codepage == 951) msgcodepage = 951;      // zh_tw defaults to CP950, but CP951 is acceptable as well so keep it
                                 else if(c == 951 && dos.loaded_codepage == 950) msgcodepage = 950; // And vice versa for lang files requiring CP951
                                 else msgcodepage = c;
                                 dos.loaded_codepage = c;
-                                if (c == 950 && !chinasea) makestdcp950table();
-                                if (c == 951 && chinasea) makeseacp951table();
+                                if(c == 950 && !chinasea) makestdcp950table();
+                                if(c == 951 && chinasea) makeseacp951table();
                                 lastmsgcp = c;
                             }
                         }
-                    } else if (!strcmp(p, "LANGUAGE"))
-                        langname = r+1;
-                    else if (!strcmp(p, "REMARK"))
-                        langnote = r+1;
-                    *r=':';
+                    }
+                    else if(key == "LANGUAGE") {
+                        langname = val;
+                    }
+                    else if(key == "REMARK") {
+                        langnote = val;
+                    }
                 }
-            } else if (!strncasecmp(linein+1, "MENU:", 5)&&strlen(linein+6)<LINE_IN_MAXLEN) {
-                *name=0;
-                *mapper_name=0;
-                strcpy(menu_name,linein+6);
-            } else if (!strncasecmp(linein+1, "MAPPER:", 7)&&strlen(linein+8)<LINE_IN_MAXLEN) {
-                *name=0;
-                *menu_name=0;
-                strcpy(mapper_name,linein+8);
-            } else {
-                *menu_name=0;
-                *mapper_name=0;
-                strcpy(name,linein+1);
             }
-		/* End of string marker */
-		} else if (linein[0]=='.'&&!strlen(trim(linein+1))) {
-			/* Replace/Add the string to the internal languagefile */
-			/* Remove last newline (marker is \n.\n) */
-			size_t ll = strlen(string);
-			if(ll && string[ll - 1] == '\n') string[ll - 1] = 0; //Second if should not be needed, but better be safe.
-            if (strlen(name))
-                MSG_Replace(name,string);
-            else if (strlen(menu_name)>6&&!strncmp(menu_name, "drive_", 6))
-                for (char c='A'; c<='Z'; c++) {
-                    std::string mname = "drive_"+std::string(1, c)+(menu_name+5);
-                    if (mainMenu.item_exists(mname)) mainMenu.get_item(mname).set_text(string);
+            else if(!strncasecmp(linein.c_str() + 1, "MENU:", 5) && linein.size() > 6) {
+                name.clear(); mapper_name.clear();
+                menu_name = linein.substr(6);
+            }
+            else if(!strncasecmp(linein.c_str() + 1, "MAPPER:", 7) && linein.size() > 8) {
+                name.clear(); menu_name.clear();
+                mapper_name = linein.substr(8);
+            }
+            else {
+                menu_name.clear(); mapper_name.clear();
+                name = linein.substr(1);
+            }
+
+        }
+        else if(linein[0] == '.' && trimmed.empty()) {
+            if(!string.empty() && string.back() == '\n') string.pop_back();
+
+            if(!name.empty()) {
+                MSG_Replace(name.c_str(), string.c_str());
+            }
+            else if(menu_name.size() > 6 && menu_name.rfind("drive_", 0) == 0) {
+                for(char c = 'A'; c <= 'Z'; ++c) {
+                    std::string mname = "drive_" + std::string(1, c) + menu_name.substr(5);
+                    if(mainMenu.item_exists(mname)) {
+                        mainMenu.get_item(mname).set_text(string);
+                    }
                 }
-            else if (strlen(menu_name)&&mainMenu.item_exists(menu_name)) {
+            }
+            else if(!menu_name.empty() && mainMenu.item_exists(menu_name)) {
                 mainMenu.get_item(menu_name).set_text(string);
-                if (strlen(menu_name)>7&&!strncmp(menu_name, "mapper_", 7)) set_eventbutton_text(menu_name+7, string);
+                if(menu_name.rfind("mapper_", 0) == 0 && menu_name.size() > 7) {
+                    set_eventbutton_text(menu_name.c_str() + 7, string.c_str());
+                }
             }
-            else if (strlen(mapper_name))
-                set_eventbutton_text(mapper_name, string);
-		} else {
-			/* Normal string to be added */
-            if (!CodePageHostToGuestUTF8(temp,linein))
-                strcat(string,linein);
-            else
-                strcat(string,temp);
-			strcat(string,"\n");
-		}
-	}
-	morelen=inmsg=false;
-	fclose(mfile);
+            else if(!mapper_name.empty()) {
+                set_eventbutton_text(mapper_name.c_str(), string.c_str());
+            }
+        }
+        else {
+            size_t temp_size = linein.size() * 3 + 1; // Converting to UTF-8 will expand to max. 3-bytes / character + null terminator
+            std::vector<char> temp(temp_size);
+            if(!CodePageHostToGuestUTF8(temp.data(), linein.c_str())) {
+                string += linein + "\n";
+            }
+            else {
+                string += std::string(temp.data()) + "\n";
+            }
+        }
+    }
+
+    morelen = inmsg = false;
+    delete[] buffer;
+    fclose(mfile);
     menu_update_dynamic();
     menu_update_autocycle();
     update_bindbutton_text();
-    dos.loaded_codepage=cp;
-    if (loadlangcp && msgcodepage>0) {
+    dos.loaded_codepage = cp;
+
+    if(loadlangcp && msgcodepage > 0) {
         const char* layoutname = DOS_GetLoadedLayout();
-        if(!IS_DOSV && !IS_JEGA_ARCH && !IS_PC98_ARCH && layoutname != NULL) {
-            toSetCodePage(NULL, msgcodepage, -1);
+        if(!IS_DOSV && !IS_JEGA_ARCH && !IS_PC98_ARCH && layoutname != nullptr) {
+            toSetCodePage(nullptr, msgcodepage, -1);
         }
     }
+
     refreshExtChar();
-    LOG_MSG("LoadMessageFile: Loaded language file: %s",fname);
+    LOG_MSG("LoadMessageFile: Loaded language file: %s", fname);
     loadlang = true;
 }
+
 
 
 bool MSG_Write(const char* location, const char* name) {
