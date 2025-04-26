@@ -189,8 +189,9 @@ extern bool				sse2_available;
 extern bool				avx2_available;
 #endif
 
-void					MSG_Add(const char*,const char*); //add messages to the internal languagefile
-const char*				MSG_Get(char const *);     //get messages from the internal languagefile
+void                    MSG_Add(const char*,const char*);      // Add messages to the internal languagefile
+const char*             MSG_Get(char const *);                 // Get messages from the internal languagefile
+std::string             formatString(const char* format, ...); // Generates a formatted string using a format specifier and variable arguments.
 
 void					DOSBOX_RunMachine();
 void					DOSBOX_SetLoop(LoopHandler * handler);
