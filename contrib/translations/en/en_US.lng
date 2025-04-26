@@ -4421,7 +4421,8 @@ The INT 2Fh hook was already set up.
 Quitting from DOSBox-X with this is currently disabled.
 .
 :QUIT_CONFIRM
-This will quit from DOSBox-X.\nAre you sure?
+This will quit from DOSBox-X.
+Are you sure?
 .
 :QUIT_GUEST_DISABLED
 You cannot quit DOSBox-X while running a guest system.
@@ -4435,7 +4436,8 @@ You cannot quit DOSBox-X while one or more files are open.
 .
 :QUIT_FILE_OPEN_CONFIRM
 It may be unsafe to quit from DOSBox-X right now
-because one or more files are currently open.\nAre you sure to quit anyway now?
+because one or more files are currently open.
+Are you sure to quit anyway now?
 .
 :QUIT_PROGRAM_DISABLED
 You cannot quit DOSBox-X while running a program or game.
@@ -4443,4 +4445,17 @@ You cannot quit DOSBox-X while running a program or game.
 :QUIT_PROGRAM_CONFIRM
 You are currently running a program or game.
 Are you sure to quit anyway now?
+.
+:LANG_JP_INCOMPATIBLE
+You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.
+
+Are you sure to use the language file for this machine type?
+.
+:LANG_DOSV_INCOMPATIBLE
+You have specified a language file which uses a code page incompatible with the current DOS/V system.
+
+Are you sure to use the language file for this system type?
+.
+:LANG_CHANGE_CP
+The specified language file uses code page %d. Do you want to change to this code page accordingly?.
 .
