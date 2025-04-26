@@ -66,13 +66,12 @@ struct MessageBlock {
     MessageBlock(const char* _name, const char* _val) : name(_name), val(_val) {}
 };
 
-// List to maintain insertion order
-std::list<MessageBlock> LangList;
+std::list<MessageBlock> LangList; // list of translation messages, order maintained in inserted order
 
 // Map for fast lookup
 std::unordered_map<std::string, std::list<MessageBlock>::iterator> LangMap;
 
-void MSG_Add(const char* _name, const char* _val) {
+void MSG_Add(const char* _name, const char* _val) { //add messages to the translation message list
     // If the message already exists, ignore it
     if(LangMap.find(_name) != LangMap.end()) return;
 
@@ -97,7 +96,7 @@ void MSG_Replace(const char* _name, const char* _val) {
     }
 }
 
-const char* MSG_Get(const char* msg) {
+const char* MSG_Get(const char* msg) { // add messages to the translation message list
     auto it = LangMap.find(msg);
 
     if(it != LangMap.end())
