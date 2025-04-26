@@ -262,28 +262,6 @@ bool CheckDBCSCP(int32_t codepage) {
     else return false;
 }
 
-#if 0
-void SetKEYBCP() {
-    if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
-    Bitu return_code;
-
-    if(CheckDBCSCP(msgcodepage)) {
-        MSG_Init();
-        InitFontHandle();
-        JFONT_Init();
-        dos.loaded_codepage = msgcodepage;
-    }
-    else {
-        return_code = DOS_ChangeCodepage(858, "auto"); /* FIX_ME: Somehow requires to load codepage twice */
-        return_code = DOS_ChangeCodepage(msgcodepage, "auto");
-        if(return_code == KEYB_NOERROR) {
-            dos.loaded_codepage = msgcodepage;
-        }
-    }
-    runRescan("-A -Q");
-}
-#endif
-
 FILE* testLoadLangFile(const char* fname) {
     std::string exepath = GetDOSBoxXPath();
     std::string config_path, res_path;
