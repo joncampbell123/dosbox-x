@@ -251,6 +251,12 @@ void AddMessages() {
     MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
     MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
     MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
+    MSG_Add("LANG_LOAD_ERROR", "Could not load language message file %s. The default language will be used.");
+    MSG_Add("LANG_JP_INCOMPATIBLE", "You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.\n\n"
+        "Are you sure to use the language file for this machine type?");
+    MSG_Add("LANG_DOSV_INCOMPATIBLE", "You have specified a language file which uses a code page incompatible with the current DOS/V system.\n\n"
+        "Are you sure to use the language file for this system type?");
+    MSG_Add("LANG_CHANGE_CP", "The specified language file uses code page %d. Do you want to change to this code page accordingly?");
 }
 
 // True if specified codepage is a DBCS codepage
@@ -310,7 +316,7 @@ void LoadMessageFile(const char* fname) {
     FILE* mfile = testLoadLangFile(fname);
  
     if(!mfile) {
-        std::string message = "Could not load language message file " + std::string(fname) + ". The default language will be used.";
+        std::string message = formatString(MSG_Get("LANG_LOAD_ERROR"), fname);
         systemmessagebox("Warning", message.c_str(), "ok", "warning", 1);
         SetVal("dosbox", "language", "");
         LOG_MSG("MSG:Cannot load language file: %s", fname);
@@ -338,7 +344,10 @@ void LoadMessageFile(const char* fname) {
         linein.erase(std::remove(linein.begin(), linein.end(), '\r'), linein.end());
         linein.erase(std::remove(linein.begin(), linein.end(), '\n'), linein.end());
 
-        if(linein.empty()) continue;
+        if(linein.empty()) {
+            string += "\n";
+            continue;
+        }
 
         std::string trimmed = linein.substr(1);
          trim(trimmed);
@@ -360,20 +369,20 @@ void LoadMessageFile(const char* fname) {
                         }
                         else if(((IS_PC98_ARCH || IS_JEGA_ARCH) && c != 437 && c != 932 &&
                             !systemmessagebox("DOSBox-X language file",
-                                "You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.\n\nAre you sure to use the language file for this machine type?",
+                                MSG_Get("LANG_JP_INCOMPATIBLE"),
                                 "yesno", "question", 2)) ||
                             (((IS_JDOSV && c != 932) || (IS_PDOSV && c != 936) ||
                                 (IS_KDOSV && c != 949) || (IS_TDOSV && c != 950 && c != 951)) &&
                                 c != 437 &&
                                 !systemmessagebox("DOSBox-X language file",
-                                    "You have specified a language file which uses a code page incompatible with the current DOS/V system.\n\nAre you sure to use the language file for this system type?",
+                                    MSG_Get("LANG_DOSV_INCOMPATIBLE"),
                                     "yesno", "question", 2))) {
                             fclose(mfile);
                             dos.loaded_codepage = cp;
                             return;
                         }
                         else {
-                            std::string msg = "The specified language file uses code page " + std::to_string(c) + ". Do you want to change to this code page accordingly?";
+                            std::string msg = formatString(MSG_Get("LANG_CHANGE_CP"), c);
                             if(c == dos.loaded_codepage) {
                                 msgcodepage = c;
                                 lastmsgcp = msgcodepage;
