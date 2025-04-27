@@ -3235,7 +3235,7 @@ void AllocCallback1() {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOutputMenu");
                 item.set_text("Output");
 
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_surface").set_text("Surface").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_surface").set_text("Software (Surface)").
                     set_callback_function(output_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_direct3d").set_text("Direct3D").
                     set_callback_function(output_menu_callback);
