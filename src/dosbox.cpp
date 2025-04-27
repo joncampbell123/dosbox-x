@@ -2102,7 +2102,7 @@ void DOSBOX_SetupConfigSections(void) {
         "      'direct3d'/opengl outputs: image is simply scaled to full\n"
         "         window/fullscreen size, possibly resulting in dis-\n"
         "         proportional image\n"
-        "      'surface' output: it does not aspect ratio correction,\n"
+        "      'surface' output: it does no aspect ratio correction,\n"
         "         resulting in disproportional images if VGA mode pixel\n"
         "         ratio is not 4:3 (default)\n"
         "  'true':\n"
