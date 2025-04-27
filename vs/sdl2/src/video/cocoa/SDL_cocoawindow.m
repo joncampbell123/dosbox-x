@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -490,11 +490,14 @@ static NSCursor *Cocoa_GetDesiredCursor(void)
     isMoving = NO;
     isDragAreaRunning = NO;
     pendingWindowWarpX = pendingWindowWarpY = INT_MAX;
+    liveResizeTimer = nil;
 
     center = [NSNotificationCenter defaultCenter];
 
     if ([window delegate] != nil) {
         [center addObserver:self selector:@selector(windowDidExpose:) name:NSWindowDidExposeNotification object:window];
+        [center addObserver:self selector:@selector(windowWillStartLiveResize:) name:NSWindowWillStartLiveResizeNotification object:window];
+        [center addObserver:self selector:@selector(windowDidEndLiveResize:) name:NSWindowDidEndLiveResizeNotification object:window];
         [center addObserver:self selector:@selector(windowDidMove:) name:NSWindowDidMoveNotification object:window];
         [center addObserver:self selector:@selector(windowDidResize:) name:NSWindowDidResizeNotification object:window];
         [center addObserver:self selector:@selector(windowDidMiniaturize:) name:NSWindowDidMiniaturizeNotification object:window];
@@ -628,6 +631,8 @@ static NSCursor *Cocoa_GetDesiredCursor(void)
 
     if ([window delegate] != self) {
         [center removeObserver:self name:NSWindowDidExposeNotification object:window];
+        [center removeObserver:self name:NSWindowWillStartLiveResizeNotification object:window];
+        [center removeObserver:self name:NSWindowDidEndLiveResizeNotification object:window];
         [center removeObserver:self name:NSWindowDidMoveNotification object:window];
         [center removeObserver:self name:NSWindowDidResizeNotification object:window];
         [center removeObserver:self name:NSWindowDidMiniaturizeNotification object:window];
@@ -736,6 +741,36 @@ static NSCursor *Cocoa_GetDesiredCursor(void)
 - (void)windowDidExpose:(NSNotification *)aNotification
 {
     SDL_SendWindowEvent(_data.window, SDL_WINDOWEVENT_EXPOSED, 0, 0);
+}
+
+- (void)onLiveResizeTimerFire:(id)sender
+{
+    SDL_OnWindowLiveResizeUpdate(_data.window);
+}
+
+- (void)windowWillStartLiveResize:(NSNotification *)aNotification
+{
+    // We'll try to maintain 60 FPS during live resizing
+    const NSTimeInterval interval = 1.0 / 60.0;
+
+    NSMethodSignature *invocationSig = [Cocoa_WindowListener
+        instanceMethodSignatureForSelector:@selector(onLiveResizeTimerFire:)];
+    NSInvocation *invocation = [NSInvocation
+        invocationWithMethodSignature:invocationSig];
+    [invocation setTarget:self];
+    [invocation setSelector:@selector(onLiveResizeTimerFire:)];
+
+    liveResizeTimer = [NSTimer scheduledTimerWithTimeInterval:interval
+                                                      invocation:invocation
+                                                      repeats:TRUE];
+
+    [[NSRunLoop currentRunLoop] addTimer:liveResizeTimer forMode:NSRunLoopCommonModes];
+}
+
+- (void)windowDidEndLiveResize:(NSNotification *)aNotification
+{
+    [liveResizeTimer invalidate];
+    liveResizeTimer = nil;
 }
 
 - (void)windowWillMove:(NSNotification *)aNotification
@@ -933,11 +968,13 @@ static NSCursor *Cocoa_GetDesiredCursor(void)
 - (void)windowDidChangeScreen:(NSNotification *)aNotification
 {
     /*printf("WINDOWDIDCHANGESCREEN\n");*/
+#ifdef SDL_VIDEO_OPENGL
     if (_data && _data.nscontexts) {
         for (SDLOpenGLContext *context in _data.nscontexts) {
             [context movedToNewScreen];
         }
     }
+#endif /* SDL_VIDEO_OPENGL */
 }
 
 - (void)windowWillEnterFullScreen:(NSNotification *)aNotification
@@ -2346,7 +2383,10 @@ void Cocoa_DestroyWindow(_THIS, SDL_Window * window)
     SDL_WindowData *data = (SDL_WindowData *) CFBridgingRelease(window->driverdata);
 
     if (data) {
+#ifdef SDL_VIDEO_OPENGL
         NSArray *contexts;
+#endif
+
         if ([data.listener isInFullscreenSpace]) {
             [NSMenu setMenuBarVisible:YES];
         }
@@ -2358,15 +2398,13 @@ void Cocoa_DestroyWindow(_THIS, SDL_Window * window)
             [data.nswindow close];
         }
 
-        #ifdef SDL_VIDEO_OPENGL
-
+#ifdef SDL_VIDEO_OPENGL
         contexts = [data.nscontexts copy];
         for (SDLOpenGLContext *context in contexts) {
             /* Calling setWindow:NULL causes the context to remove itself from the context list. */
             [context setWindow:NULL];
         }
-
-        #endif /* SDL_VIDEO_OPENGL */
+#endif /* SDL_VIDEO_OPENGL */
 
         if (window->shaper) {
             CFBridgingRelease(window->shaper->driverdata);

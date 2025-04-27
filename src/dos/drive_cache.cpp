@@ -156,9 +156,9 @@ void DOS_Drive_Cache::SetBaseDir(const char* baseDir, DOS_Drive *drive) {
 #else // OS2
     //TODO determine whether cdrom or not!
     FSINFO fsinfo;
-    ULONG drivenumber = drive[0];
+    ULONG drivenumber = drives[0];
     if (drivenumber > 26) { // drive letter was lowercase
-        drivenumber = drive[0] - 'a' + 1;
+        drivenumber = drives[0] - 'a' + 1;
     }
     APIRET rc = DosQueryFSInfo(drivenumber, FSIL_VOLSER, &fsinfo, sizeof(FSINFO));
     if (rc == NO_ERROR) {

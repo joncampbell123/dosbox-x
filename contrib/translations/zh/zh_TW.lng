@@ -1,11 +1,12 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
 :DOSBOX-X:VERSION:2025.02.01
-:DOSBOX-X:REMARK:國家和字碼頁可以設為「886,950」並選擇適合的中文字型來進行中文顯示和列印。
-:DOSBOX-X:REMARK:譯者註：可至 https://github.com/1abcd/dosbox-x/issues/2 下載適用於 PC-98 模式的中文語言。
+:DOSBOX-X:REMARK:設定好中文語言與字型後，就可以直接支援中文顯示和列印。國家和字碼頁選項可以留空，或設為「886,950」、「886,951」。
+:DOSBOX-X:REMARK:譯者註：932 字碼頁的中文語言檔（用於 PC-98、JEGA、DOS/V）可至 https://github.com/1abcd/dosbox-x/issues/2 下載。
 :AUTOEXEC_CONFIGFILE_HELP
 區段中的指令行會在啟動時執行.
 您可以在這裡下達 MOUNT 指令.
+
 .
 :CONFIGFILE_INTRO
 # 這是給 DOSBox-X %s 使用的組態檔案. (請使用最新版 DOSBox-X)
@@ -437,7 +438,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_ELTORITO
-磁碟機 %c 掛載為光碟的開機磁片
+磁碟機 %c 掛載為可開機光碟 (El Torito) 的開機磁片
 
 .
 :PROGRAM_MOUNT_STATUS_RAMDRIVE
@@ -445,7 +446,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_2
-磁碟機 %c 掛載到 %s
+磁碟機 %c 掛載為 %s
 
 .
 :PROGRAM_MOUNT_STATUS_1
@@ -505,7 +506,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_ALREADY_MOUNTED
-磁碟機 %c 已掛載到 %s
+磁碟機 %c 已掛載為 %s
 
 .
 :PROGRAM_MOUNT_USAGE
@@ -606,7 +607,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-重疊目錄 %s 已被加到磁碟機 %c 上.
+重疊目錄 %s 已掛載加到磁碟機 %c.
 
 .
 :PROGRAM_LOADFIX_ALLOC
@@ -1003,11 +1004,11 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY_DRIVE
-必須指定要掛載的磁碟機代號.
+必須指定要將映像檔掛載到的磁碟機代號.
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
-必須指定磁碟機編號 (0 至 %d) 來掛載映像檔 (0,1=fda,fdb;2,3=hda,hdb).
+必須指定要將映像檔掛載到的磁碟機編號 (0 至 %d) (0,1=fda,fdb;2,3=hda,hdb).
 
 .
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
@@ -2040,7 +2041,8 @@ COPY [/Y | /-Y] 來源檔案 [+來源檔案 [+ ...]] [目的名稱]
   /Y            覆寫現存目的檔案時不進行確認.
   /-Y           覆寫現存目的檔案時進行確認.
 
-選項 /Y 可能會在 COPYCMD 環境變數中預先設定. 可以在命令列中使用 /-Y 選項進行覆蓋.
+選項 /Y 可能會在 COPYCMD 環境變數中預先設定.
+可以在命令列中使用 /-Y 選項進行覆蓋.
 
 要連接檔案, 指定一個目的檔案, 及數個來源檔案
 (使用萬用字元或 檔案1+檔案2+檔案3 格式).
@@ -2354,13 +2356,13 @@ DEBUGBOX [命令] [選項]
 [32m舉例[37m：汝可以試著選擇 [33mTrueType 字型[37m或者 [33mOpenGL perfect[37m 輸出選項。  
 .
 :SHELL_STARTUP_TEXT2_PC98
-啓動[33m組態工具[37m                  使用 [31m主機鍵+C[37m；其中主機鍵是 [32mF11[37m。   
-啓動[33m對應表編輯器[37m（按鍵設定）  使用 [31m主機鍵+M[37m。                     
-切換視窗和全螢幕模式          使用 [31m主機鍵+F[37m。                     
-調整 CPU 模擬速度             使用 [31m主機鍵+加號[37m 與 [31m主機鍵+減號[37m。   
+啓動[33m組態工具[37m                 - 使用 [31m主機鍵+C[37m；其中主機鍵是 [32mF11[37m。  
+啓動[33m對應表編輯器[37m（按鍵設定） - 使用 [31m主機鍵+M[37m。                    
+切換視窗和全螢幕模式         - 使用 [31m主機鍵+F[37m。                    
+調整 CPU 模擬速度            - 使用 [31m主機鍵+加號[37m 與 [31m主機鍵+減號[37m。  
 .
 :SHELL_STARTUP_INFO_PC98
-[36mDOSBox-X 目前在[32m日本 NEC PC-98[36m 模擬模式下運作。[37m                    
+[36mDOSBox-X 正在執行於[32m日本 NEC PC-98[36m 模擬模式。[37m                      
 .
 :SHELL_STARTUP_TEXT3_PC98
 [32mDOSBox-X 首頁 [33mhttps://dosbox-x.com/        [36mComplete DOS emulations[37m
@@ -2368,7 +2370,7 @@ DEBUGBOX [命令] [選項]
 [32mDOSBox-X 支援 [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m   
 .
 :SHELL_STARTUP_DOSV
-[32mDOS/V 模式[37m正在執行中。 您亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。 
+[32mDOS/V 模式[37m正在運作中。汝亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。  
 .
 :SHELL_STARTUP_CGA_MONO
 按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             
@@ -3740,7 +3742,7 @@ RESCAN [磁碟機:] [/Q]
   [/Q]      啟用安靜模式
   [磁碟機:] 要重新整理的磁碟機
 
-輸入不含參數的 RESCAN 來重新整理目前磁碟機.
+輸入不含參數的 RESCAN 命令來重新整理目前磁碟機.
 
 .
 :PROGRAM_CFGTOOL_HELP
@@ -3749,4 +3751,504 @@ RESCAN [磁碟機:] [/Q]
 CFGTOOL
 
 備註: 您也可以使用 CONFIG 命令以進行命令列介面的組態設定.
+.
+:PROGRAM_IMGSWAP_HELP
+切換軟碟、硬碟與光碟映像.
+
+[32;1mIMGSWAP[0m [37;1m磁碟機[0m [36;1m[位置][0m
+ [37;1m磁碟機[0m              要切換映像的磁碟機代號.
+ [36;1m[位置][0m              要切換到的磁碟位置.
+.
+:PROGRAM_INTRO_HELP
+全螢幕的 DOSBox-X 介紹.
+
+INTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]
+.
+:PROGRAM_IMGMOUNT_NOT_ASSIGNED
+BIOS 的磁碟索引沒有已指派的映像檔.
+.
+:PROGRAM_IMGMOUNT_INVALID_NUMBER
+無效的掛載編號.
+.
+:PROGRAM_IMGMOUNT_INVALID_FSTYPE
+無效的 fstype.
+.
+:PROGRAM_IMGMOUNT_INVALID_SIZE
+無效的大小參數.
+.
+:PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER
+磁碟機編號 %d 沒有被掛載.
+.
+:PROGRAM_IMGMOUNT_UMOUNT_USAGE
+不正確的 IMGMOUNT 卸載用法.
+.
+:PROGRAM_IMGMOUNT_INVALID_LETTER
+無效的磁碟機代號.
+.
+:PROGRAM_IMGMOUNT_CHOOSE_LETTER
+與標準的 INT 13h 硬碟配額衝突, 分割區無法被掛載.
+選擇掛載到不同的磁碟機代號.
+.
+:PROGRAM_ELTORITO_LETTER
+可開機光碟 (El Torito) 模擬需要一個合適的光碟機代號.
+.
+:PROGRAM_ELTORITO_DRIVE_EXISTS
+指定的可開機光碟 (El Torito) 光碟機, 它已經不是作為光碟機裝置存在.
+.
+:PROGRAM_ELTORITO_NOT_CDDRIVE
+指定的可開機光碟 (El Torito) 光碟機, 實際上不是一台光碟機.
+.
+:PROGRAM_ELTORITO_REQUIRE_FLOPPY
+此時可開機光碟 (El Torito) 模擬必須要與 -t floppy 一起使用.
+.
+:PROGRAM_ELTORITO_NO_BOOT_RECORD
+可開機光碟 (El Torito) 的開機紀錄資訊未找到.
+.
+:PROGRAM_ELTORITO_ENTRY_UNREADABLE
+可開機光碟 (El Torito) 的開機項目無法讀取.
+.
+:PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY
+可開機光碟 (El Torito) 的開機磁片未找到.
+.
+:PROGRAM_ELTORITO_BOOTABLE_SECTION
+無法找出開機磁區的位置
+.
+:PROGRAM_ELTORITO_BOOTSECTOR
+可開機光碟 (El Torito) 的開機磁區無法讀取
+.
+:PROGRAM_IMGMAKE_ALIGNMENT
+無效的對齊方式
+.
+:PROGRAM_IMGMAKE_PARTOFS
+無效的 -partofs
+.
+:PROGRAM_IMGMAKE_FAT
+無效的 -fat 選項. 必須為 12、16、或 32
+.
+:PROGRAM_IMGMAKE_FATCOPIES
+無效的 -fatcopies 選項
+.
+:PROGRAM_IMGMAKE_SPC
+無效的 -spc 選項, 超出範圍
+.
+:PROGRAM_IMGMAKE_SPC2
+無效的 -spc 選項, 必須是 2 的冪次方
+.
+:PROGRAM_IMGMAKE_ROOTDIR
+無效的 -rootdir 選項
+.
+PROGRAM_IMGMAKE_BOOTSECT
+無效的開機磁區位置
+.
+PROGRAM_IMGMAKE_VOLUME_ALIGN
+健全性測試失敗: 磁碟區大小未對齊
+.
+:PROGRAM_IMGMAKE_FAT_ALIGN
+健全性測試失敗: FAT 表格未對齊
+.
+:PROGRAM_IMGMAKE_SECTPERFAT
+錯誤: 產生的檔案系統中的每一個 FAT 佔有的磁區數超過 256 個, 而且檔案系統不是 FAT32
+.
+:PROGRAM_IMGMAKE_VOLSIZE
+健全性測試失敗: 磁碟區大小未對齊
+.
+:PROGRAM_IMGMAKE_CLUSTERS
+錯誤: 基於給定的參數, 產生的檔案系統中的叢集數太少
+.
+:PROGRAM_IMGMAKE_CLUSTERCOUNT
+警告: 基於給定的磁碟區大小, 叢集數量太高. 
+      回報一個較小的磁區數量.
+.
+:PROGRAM_IMGMAKE_CLUSTER_ALIGN
+健全性測試失敗: 第一個叢集未對齊
+.
+:PROGRAM_IMGMAKE_CLUSTER_SIZE
+警告: 叢集大小 >= 64KB 跟 MS-DOS 和 SCANDISK 不相容
+.
+:PROGRAM_BOOT_UNSUPPORTED
+不支援的開機模式
+.
+:PROGRAM_MOUNT_OVERLAY_REPLACE
+存在的重疊目錄已經被新的重疊目錄取代.
+.
+:PROGRAM_LOADFIX_EMS_FREE
+EMS 控制代碼 %u: 無法釋放
+.
+:PROGRAM_LOADFIX_XMS_FREE
+XMS 控制代碼 %u: 無法釋放
+.
+:PROGRAM_LOADFIX_EMS_ALLOC
+EMS 區塊已配置用量 (%uKB)
+.
+:PROGRAM_LOADFIX_EMS_ALLOCERROR
+無法在 EMS 區塊配置用量
+.
+PROGRAM_LOADFIX_NOEMS
+EMS 未作用
+.
+:PROGRAM_LOADFIX_XMS_ALLOC
+XMS 區塊已配置用量 (%uKB)
+.
+:PROGRAM_LOADFIX_XMS_ALLOCERROR
+無法在 XMS 區塊配置用量
+.
+:PROGRAM_LOADFIX_NOXMS
+XMS 未作用
+.
+:PROGRAM_LOADFIX_NOALLOC
+最低的 MCB 位址高於 64KB, 無配置用量
+.
+:PROGRAM_BOOT_SWAP_ALREADY
+所指定的多個磁碟映像, 在另一個磁碟機已設定好連接此切換清單   
+.
+:PROGRAM_BOOT_NOT_SPECIFIED
+沒有指定映像檔
+.
+:PROGRAM_BOOT_IS_PC88
+D88 映像檔似乎是用於 PC-88, 不能用它來開機.
+.
+:PROGRAM_BOOT_BPS_TOOLARGE
+位元組/磁區 太大
+.
+:PROGRAM_BOOT_DRIVE_READERROR
+讀取磁碟機發生錯誤
+.
+:PROGRAM_START_HELP_WIN
+啟動個別的視窗以執行指定的程式或命令.
+
+START [+|-|_] 命令 [引數]
+
+  [+|-|_]: 最大化/最小化/隱藏 程式.
+  也接受 /MAX, /MIN, /HID 選項.
+  命令: 要啟動的命令、程式、或檔案.
+  引數: 傳遞給應用程式的引數.
+  
+START 自動開啟 Windows 命令提示字元來執行這些命令時,
+會等待按鍵按下才結束 (由 "startincon" 選項指定):
+%s
+
+備註: 這個命令指定的路徑是主機系統上的路徑.
+.
+:PROGRAM_START_HELP
+啟動個別的視窗以執行指定的程式或命令.
+
+START /OPEN 檔案
+START 命令 [引數]
+
+  /OPEN: 用關聯的程式開啟檔案或網址 (URL).
+  檔案: 要用關聯的程式開啟的檔案或網址 (URL).
+  命令: 要啟動或執行的命令或程式.
+  引數: 傳遞給應用程式的引數.
+  
+備註: 這個命令指定的路徑是主機系統上的路徑.
+.
+:PROGRAM_START_COMPLETED
+命令執行完成.
+.
+:PROGRAM_START_COMMAND
+正在啟動 %s...
+.
+:PROGRAM_START_CTRLC
+(按住 Ctrl+C 立即結束)
+.
+:PROGRAM_START_HOST_ERROR
+錯誤: START 不能啟動應用程式以在您目前的主機系統上執行.
+.
+:PROGRAM_START_LAUNCH_ERROR
+錯誤: START 不能執行應用程式.
+.
+:PROGRAM_IMGMOUNT_ELTORITO_NO_FILE
+當從 El Torito 可開機光碟掛載開機磁片時不要指定檔案.
+.
+:PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE
+當掛載 RAM 磁碟機時不要指定檔案.
+.
+:PROGRAM_IMGMOUNT_INVALID_SECTORSIZE
+磁區大小必須大於 512 位元組, 而且要整除映像的叢集大小 %lu 位元組.
+.
+:PROGRAM_IMGMOUNT_OPEN_ERROR
+不能開啟 '%s'
+.
+:PROGRAM_IMGMOUNT_QCOW2_INVALID
+qcow2 映像 '%s' 不支援
+.
+:PROGRAM_IMGMOUNT_GEOMETRY_ERROR
+無法偵測版面
+.
+:PROGRAM_IMGMOUNT_DOS_VERSION
+掛載這個映像檔需要回報 %u.%u 或更高的 DOS 版本.
+%s
+.
+:PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE
+軟碟大小無法識別
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_USED
+給定的多個映像檔, 已經被另一個磁碟機使用.
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED
+多個磁碟映像不被對應的磁碟機支援
+.
+:PROGRAM_IMGMOUNT_HD_FDPOSITION
+在軟碟機位置不能掛載硬碟機.
+.
+:PROGRAM_IMGMOUNT_FD_HDPOSITION
+在硬碟機位置不能掛載軟碟機.
+.
+:PROGRAM_ELTORITO_ISOMOUNT
+El Torito 可開機光碟: -fs iso 掛載未受支援
+.
+:PROGRAM_MODE_STATUS
+CON 裝置的狀態:
+----------------------
+欄數=%d
+列數=%d
+.
+:PROGRAM_MODE_NOTSUPPORTED
+
+在此裝置上不支援字碼頁的操作
+.
+:PROGRAM_MODE_RATE_DELAY
+鍵盤輸入速率與延遲必須一起指定
+.
+:PROGRAM_UTF8_HELP
+在目前字碼頁轉換與檢視 UTF-8 文字.
+
+UTF8 < [磁碟機:][路徑]檔名
+命令名稱 | UTF8
+.
+:PROGRAM_UTF8_NO_TEXT
+找不到輸入文字.
+.
+:PROGRAM_UTF8_INVALIDCP
+對於文字轉換, 此字碼頁無效.
+.
+:PROGRAM_UTF8_NOT_UTF8
+輸入的文字是 UTF-16.
+.
+:PROGRAM_UTF8_CONVERSION_ERROR
+轉換文字過程發生錯誤.
+.
+:PROGRAM_UTF16_HELP
+在目前字碼頁轉換與檢視 UTF-16 文字.
+
+UTF16 [/BE|/LE] < [磁碟機:][路徑]檔名
+命令名稱 | UTF16 [/BE|/LE]
+
+  /BE  使用 UTF-16 大端序
+  /LE  使用 UTF-16 小端序
+.
+:PROGRAM_VTEXT_HELP
+變更 DOS/V 模擬的 V-text 模式.
+
+VTEXT [模式]
+
+  [模式] 設定值 0、1、2 分別對應 無 V-text、V-text 1、V-text 2.
+
+輸入不含參數的 VTEXT 命令顯示目前的 V-text 模式狀態.
+.
+:PROGRAM_NMITEST_HELP
+產生一個非遮罩式插斷 (NMI).
+
+NMITEST
+
+備註: 這是一個偵錯工具, 測試插斷處理常式是否能正常運作.
+.
+:PROGRAM_NMITEST_GENERATE_NMI
+正在產生一個非遮罩式插斷 (NMI)...
+.
+:PROGRAM_CAPMOUSE_HELP
+在 DOSBox-X 內擷取或釋放滑鼠.
+
+CAPMOUSE [/C|/R]
+
+  /C 擷取滑鼠
+  /R 釋放滑鼠
+.
+:PROGRAM_CAPMOUSE_MOUSE
+滑鼠
+.
+:PROGRAM_CAPMOUSE_CURRENTLY
+目前 
+.
+:PROGRAM_CAPMOUSE_CAPTURED
+已擷取
+.
+:PROGRAM_CAPMOUSE_RELEASED
+已釋放
+.
+:PROGRAM_AUTOTYPE_HELP
+對執行中的 DOS 程式執行指令碼的鍵盤按鈕輸入.
+
+AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
+
+其中:
+  -list:   列出所有可用的按鈕名稱.
+  -w WAIT: 鍵入起始前的秒數. 預設兩秒; 最大 30 秒.
+  -p PACE: 每次按鍵之間的秒數. 預設半秒; 最大 10 秒.
+  
+  序列由一到多個空白分隔的按鈕組成.
+  自動鍵入在 WAIT 秒數之後起始, 於每個 PACE 秒數再將每個按鈕輸入.
+  逗號 (,) 字元額外插入一個 PACE 延遲.
+  
+一些舉例:
+  [32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter[0m
+  [32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter[0m
+  [32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter[0m
+.
+:PROGRAM_AUTOTYPE_NO_BINDINGS
+AUTOTYPE: 對應表中沒有按鍵繫結
+.
+:PROGRAM_AUTOTYPE_CLAMP_VALUE
+AUTOTYPE: 限制 %s 的值從 %.2f 改成 %.2f
+.
+:PROGRAM_AUTOTYPE_INVALID_VALUE
+AUTOTYPE: %s 的值 '%s' 不是有效的浮點數
+.
+:PROGRAM_ADDKEY_HELP
+產生人工的按鍵輸入.
+
+ADDKEY [p毫秒] [按鍵]
+
+例如, 下面的命令鍵入 "dir" 接著在 1 秒之後鍵入 ENTER:
+
+ADDKEY p1000 d i r enter
+
+您也可以嘗試改用 AUTOTYPE 命令, 來對執行中的 DOS 程式執行指令碼的鍵盤按鈕輸入.
+
+.
+:PROGRAM_SETCOLOR_HELP
+檢視或變更文字模式的色彩配置設定.
+
+SETCOLOR [色彩編號 [值]]
+
+舉列:
+
+   [32;1mSETCOLOR 0 (50,50,50)[0m
+變更色彩編號 0 為指定的色彩值
+
+   [32;1mSETCOLOR 7 -[0m
+變更色彩編號 7 為預設的色彩值
+
+   [32;1mSETCOLOR 3 +[0m
+色彩編號 3 改回至先前設定的色彩值
+
+   [32;1mSETCOLOR MONO[0m
+顯示目前的 MONO 模式狀態
+
+要變更目前的背景和前景顏色, 使用 COLOR 命令.
+.
+:PROGRAM_SETCOLOR_STATUS
+MONO 模式狀態: %s (影像模式 %d)
+
+.
+:PROGRAM_SETCOLOR_ACTIVE
+作用中
+.
+:PROGRAM_SETCOLOR_INACTIVE
+無作用
+.
+:PROGRAM_SETCOLOR_UNAVAILABLE
+不能用
+.
+:PROGRAM_SETCOLOR_MONO_MODE7
+MONO 模式狀態 => 作用中 (影像模式 7)
+.
+:PROGRAM_SETCOLOR_MONO_MODE3
+MONO 模式狀態 => 無作用 (影像模式 3)
+.
+:PROGRAM_SETCOLOR_MONO_FAIL
+無法變更 MONO 模式
+.
+:PROGRAM_SETCOLOR_MONO_SYNTAX
+MONO 必須是 + 或 -: %s
+.
+:PROGRAM_SETCOLOR_COLOR
+色彩 %d: (%d,%d,%d) 或是 #%02x%02x%02x
+
+.
+:PROGRAM_SETCOLOR_INVALID_NUMBER
+無效的色彩編號 - %s
+.
+:PROGRAM_SETCOLOR_INVALID_VALUE
+無效的色彩值 - %s
+.
+:PROGRAM_SETCOLOR_NOT_SUPPORTED
+對於目前的影像模式, 不支援變更色彩配置.
+.
+:PROGRAM_BOOT_UNKNOWN_BOOTHAX
+未知的 boothax 模式
+.
+:PROGRAM_BOOT_SPECIFY_FILE
+必須指定 BIOS 映像來開機
+.
+:PROGRAM_BOOT_BIOS_OPEN_ERROR
+不能開啟 BIOS 映像
+.
+:PROGRAM_BIOSTEST_SPECIFY_FILE
+必須指定要載入的 BIOS 檔案.
+.
+:PROGRAM_BIOSTEST_OPEN_ERROR
+不能開啟檔案
+.
+:PROGRAM_BIOSTEST_TOO_LARGE
+BIOS 檔案太大
+.
+:PROGRAM_DELTREE_HELP
+Deletes a directory and all the subdirectories and files in it.
+
+To delete one or more files and directories:
+DELTREE [/Y] [drive:]path [[drive:]path[...]]
+
+  /Y              Suppresses prompting to confirm you want to delete
+                  the subdirectory.
+  [drive:]path    Specifies the name of the directory you want to delete.
+
+Note: Use DELTREE cautiously. Every file and subdirectory within the
+specified directory will be deleted.
+
+.
+:PROGRAM_TREE_HELP
+Graphically displays the directory structure of a drive or path.
+
+TREE [drive:][path] [/F] [/A]
+
+  /F   Displays the names of the files in each directory.
+  /A   Uses ASCII instead of extended characters.
+
+.
+:PROGRAM_TITLE_HELP
+Sets the window title for the DOSBox-X window.
+
+TITLE [string]
+
+  string       Specifies the title for the DOSBox-X window.
+
+.
+:PROGRAM_COLOR_HELP
+Sets the default console foreground and background colors.
+
+COLOR [attr]
+
+  attr        Specifies color attribute of console output
+  
+Color attributes are specified by TWO hex digits -- the first
+corresponds to the background; the second to the foreground.
+Each digit can be any of the following values:
+
+    0 = Black       8 = Gray
+    1 = Blue        9 = Light Blue
+    2 = Green       A = Light Green
+    3 = Aqua        B = Light Aqua
+    4 = Red         C = Light Red
+    5 = Purple      D = Light Purple
+    6 = Yellow      E = Light Yellow
+    7 = White       F = Bright White
+
+If no argument is given, this command restores the original color.
+
+The COLOR command sets ERRORLEVEL to 1 if an attempt is made to execute
+the COLOR command with a foreground and background color that are the same.
+
+Example: "COLOR fc" produces light red on bright white.
+
 .

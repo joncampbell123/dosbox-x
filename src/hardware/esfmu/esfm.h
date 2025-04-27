@@ -215,7 +215,7 @@ struct _esfm_chip
 {
 	esfm_channel channels[18];
 	int32 output_accm[2];
-	uint_fast16_t addr_latch;
+	uint16 addr_latch;
 
 	flag emu_wavesel_enable;
 	flag emu_newmode;
@@ -248,6 +248,7 @@ struct _esfm_chip
 	flag emu_vibrato_deep;
 	flag emu_tremolo_deep;
 
+	double timer_accumulator[2];
 	uint8 timer_reload[2];
 	uint8 timer_counter[2];
 	flag timer_enable[2];
@@ -255,18 +256,27 @@ struct _esfm_chip
 	flag timer_overflow[2];
 	flag irq_bit;
 
-	// Halts the envelope generators from advancing.
-	flag test_bit_eg_halt;
+	// -- Test bits (NOT IMPLEMENTED) --
+	// Halts the envelope generators from advancing. Written on bit 0, read back from bit 5.
+	flag test_bit_w0_r5_eg_halt;
 	/*
 	 * Activates some sort of waveform test mode that amplifies the output volume greatly
 	 * and continuously shifts the waveform table downwards, possibly also outputting the
 	 * waveform's derivative? (it's so weird!)
 	 */
-	flag test_bit_distort;
+	flag test_bit_1_distort;
+	// Seems to do nothing.
+	flag test_bit_2;
+	// Seems to do nothing.
+	flag test_bit_3;
 	// Appears to attenuate the output by about 3 dB.
-	flag test_bit_attenuate;
+	flag test_bit_4_attenuate;
+	// Written on bit 5, read back from bit 0. Seems to do nothing.
+	flag test_bit_w5_r0;
 	// Resets all phase generators and holds them in the reset state while this bit is set.
-	flag test_bit_phase_stop_reset;
+	flag test_bit_6_phase_stop_reset;
+	// Seems to do nothing.
+	flag test_bit_7;
 
 	esfm_write_buf write_buf[ESFM_WRITEBUF_SIZE];
 	size_t write_buf_start;

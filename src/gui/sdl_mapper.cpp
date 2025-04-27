@@ -111,6 +111,15 @@ class CCheckButton;
 class CBindButton;
 class CModEvent;
 
+#if defined(OS2) && defined(C_SDL2)
+#undef CLR_BLACK
+#undef CLR_WHITE
+#undef CLR_RED
+#undef CLR_BLUE
+#undef CLR_GREEN
+#undef CLR_DARKGREEN
+#endif
+
 enum {
     CLR_BLACK = 0,
     CLR_GREY = 1,
@@ -1033,10 +1042,13 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = 
 };
 
 #else // !MACOSX && !Linux
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(OS2)
 // Todo: recheck sdl mapping
 #define SDLK_JP_RO (SDLKey)0x73
 #define SDLK_JP_YEN (SDLKey)0x7d
+#if defined(OS2)
+#define SDLK_KP_COMMA SDLK_COMMA
+#endif
 #endif
 #define MAX_SCANCODES 0xdf
 static SDLKey sdlkey_map[MAX_SCANCODES] = {

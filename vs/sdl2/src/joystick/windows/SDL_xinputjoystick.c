@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -39,9 +39,9 @@ extern "C" {
 /*
  * Internal stuff.
  */
-static SDL_bool s_bXInputEnabled = SDL_TRUE;
+static SDL_bool s_bXInputEnabled = SDL_FALSE;
 
-static SDL_bool SDL_XInputUseOldJoystickMapping()
+static SDL_bool SDL_XInputUseOldJoystickMapping(void)
 {
 #ifdef __WINRT__
     /* TODO: remove this __WINRT__ block, but only after integrating with UWP/WinRT's HID API */
@@ -65,11 +65,13 @@ SDL_bool SDL_XINPUT_Enabled(void)
 
 int SDL_XINPUT_JoystickInit(void)
 {
-    s_bXInputEnabled = SDL_GetHintBoolean(SDL_HINT_XINPUT_ENABLED, SDL_TRUE);
+    SDL_bool enabled = SDL_GetHintBoolean(SDL_HINT_XINPUT_ENABLED, SDL_TRUE);
 
-    if (s_bXInputEnabled && WIN_LoadXInputDLL() < 0) {
-        s_bXInputEnabled = SDL_FALSE; /* oh well. */
+    if (enabled && WIN_LoadXInputDLL() < 0) {
+        enabled = SDL_FALSE; /* oh well. */
     }
+    s_bXInputEnabled = enabled;
+
     return 0;
 }
 
@@ -368,10 +370,10 @@ static void UpdateXInputJoystickState(SDL_Joystick *joystick, XINPUT_STATE *pXIn
 
     SDL_PrivateJoystickAxis(joystick, 0, pXInputState->Gamepad.sThumbLX);
     SDL_PrivateJoystickAxis(joystick, 1, ~pXInputState->Gamepad.sThumbLY);
-    //SDL_PrivateJoystickAxis(joystick, 2, ((int)pXInputState->Gamepad.bLeftTrigger * 257) - 32768);
-    //SDL_PrivateJoystickAxis(joystick, 3, pXInputState->Gamepad.sThumbRX);
-    //SDL_PrivateJoystickAxis(joystick, 4, ~pXInputState->Gamepad.sThumbRY);
-    // Fixes for DOSBox-X
+    // SDL_PrivateJoystickAxis(joystick, 2, ((int)pXInputState->Gamepad.bLeftTrigger * 257) - 32768);
+    // SDL_PrivateJoystickAxis(joystick, 3, pXInputState->Gamepad.sThumbRX);
+    // SDL_PrivateJoystickAxis(joystick, 4, ~pXInputState->Gamepad.sThumbRY);
+    //  Fixes for DOSBox-X
     SDL_PrivateJoystickAxis(joystick, 2, pXInputState->Gamepad.sThumbRX);
     SDL_PrivateJoystickAxis(joystick, 3, ~pXInputState->Gamepad.sThumbRY);
     SDL_PrivateJoystickAxis(joystick, 4, ((int)pXInputState->Gamepad.bLeftTrigger * 257) - 32768);
@@ -462,6 +464,7 @@ void SDL_XINPUT_JoystickClose(SDL_Joystick *joystick)
 void SDL_XINPUT_JoystickQuit(void)
 {
     if (s_bXInputEnabled) {
+        s_bXInputEnabled = SDL_FALSE;
         WIN_UnloadXInputDLL();
     }
 }

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,6 +22,11 @@
 #include "../../SDL_internal.h"
 #include "../SDL_thread_c.h"
 
+void SDL_SYS_InitTLSData(void)
+{
+    SDL_Generic_InitTLSData();
+}
+
 SDL_TLSData *SDL_SYS_GetTLSData(void)
 {
     return SDL_Generic_GetTLSData();
@@ -30,6 +35,11 @@ SDL_TLSData *SDL_SYS_GetTLSData(void)
 int SDL_SYS_SetTLSData(SDL_TLSData *data)
 {
     return SDL_Generic_SetTLSData(data);
+}
+
+void SDL_SYS_QuitTLSData(void)
+{
+    SDL_Generic_QuitTLSData();
 }
 
 /* vi: set ts=4 sw=4 expandtab: */

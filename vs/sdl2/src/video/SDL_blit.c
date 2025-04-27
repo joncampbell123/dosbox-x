@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -103,7 +103,7 @@ static int SDLCALL SDL_SoftBlit(SDL_Surface *src, SDL_Rect *srcrect,
 #ifdef __MACOSX__
 #include <sys/sysctl.h>
 
-static SDL_bool SDL_UseAltivecPrefetch()
+static SDL_bool SDL_UseAltivecPrefetch(void)
 {
     const char key[] = "hw.l3cachesize";
     u_int64_t result = 0;

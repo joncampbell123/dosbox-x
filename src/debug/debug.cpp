@@ -1171,11 +1171,11 @@ static void DrawRegisters(void) {
 	mvwprintw (dbg.win_reg,1,77,"%01X",GETFLAG(TF) ? 1:0);
 
 	SetColor(changed_flags&FLAG_IOPL);
-	mvwprintw (dbg.win_reg,2,72,"%01X",GETFLAG(IOPL)>>12);
+	mvwprintw (dbg.win_reg,2,72,"%01X",(unsigned int)(GETFLAG(IOPL)>>12));
 
 
 	SetColor(cpu.cpl ^ oldcpucpl);
-	mvwprintw (dbg.win_reg,2,78,"%01X",cpu.cpl);
+	mvwprintw (dbg.win_reg,2,78,"%01X",(unsigned int)cpu.cpl);
 
 	if (cpu.pmode) {
 		if (reg_flags & FLAG_VM) mvwprintw(dbg.win_reg,0,76,"VM86");
@@ -1205,7 +1205,7 @@ static void DrawRegisters(void) {
 
 	wattrset(dbg.win_reg,0);
 
-	mvwprintw(dbg.win_reg,3,60,"cc=%-8u ",cycle_count);
+	mvwprintw(dbg.win_reg,3,60,"cc=%-8u ",(unsigned int)cycle_count);
 	if (CPU_IsHLTed()) mvwprintw(dbg.win_reg,3,73,"HLT ");
 	else mvwprintw(dbg.win_reg,3,73,"RUN ");
 
@@ -4609,8 +4609,8 @@ void DEBUG_Enable_Handler(bool pressed) {
 	//KEYBOARD_ClrBuffer();
     GFX_SetTitle(-1,-1,-1,false);
     runnormal = false;
-    if (debugrunmode==1) ParseCommand("RUN");
-    else if (debugrunmode==2) ParseCommand("RUNWATCH");
+    if (debugrunmode==1) {char command[] = "RUN"; ParseCommand(command);}
+    else if (debugrunmode==2) {char command[] = "RUNWATCH"; ParseCommand(command);}
 }
 
 void DEBUG_DrawScreen(void) {
@@ -4749,8 +4749,8 @@ static void LogEMS(void) {
     Bitu GetEMSPageFrameSize(void);
 
     DEBUG_ShowMsg("EMS page frame 0x%08lx-0x%08lx",
-        GetEMSPageFrameSegment()*16UL,
-        (GetEMSPageFrameSegment()*16UL)+GetEMSPageFrameSize()-1UL);
+        (long unsigned int)(GetEMSPageFrameSegment()*16UL),
+        (long unsigned int)((GetEMSPageFrameSegment()*16UL)+GetEMSPageFrameSize()-1UL));
     DEBUG_ShowMsg("Handle Page(p/l) Address");
 
     for (Bitu p=0;p < (GetEMSPageFrameSize() >> 14UL);p++) {
@@ -4772,14 +4772,14 @@ static void LogEMS(void) {
 
             DEBUG_ShowMsg("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
                 (unsigned long)p,(unsigned long)log_page,
-                (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
-                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1,
+                (long unsigned int)((GetEMSPageFrameSegment()*16UL)+(p << 14UL)),
+                (long unsigned int)((GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1),
                 tmp);
         }
         else {
             DEBUG_ShowMsg("--     %4lu/     %08lx-%08lx",(unsigned long)p,
-                (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
-                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1);
+                (long unsigned int)((GetEMSPageFrameSegment()*16UL)+(p << 14UL)),
+                (long unsigned int)((GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1));
         }
     }
 

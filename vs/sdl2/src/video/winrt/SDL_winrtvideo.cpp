@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -321,7 +321,7 @@ static int WINRT_AddDisplaysForOutput(_THIS, IDXGIAdapter1 *dxgiAdapter1, int ou
         WIN_SetErrorFromHRESULT(__FUNCTION__ ", IDXGIOutput::FindClosestMatchingMode failed", hr);
         goto done;
     } else {
-        displayName = WIN_StringToUTF8(dxgiOutputDesc.DeviceName);
+        displayName = WIN_StringToUTF8W(dxgiOutputDesc.DeviceName);
         display.name = displayName;
         WINRT_DXGIModeToSDLDisplayMode(&closestMatch, &display.desktop_mode);
         display.current_mode = display.desktop_mode;

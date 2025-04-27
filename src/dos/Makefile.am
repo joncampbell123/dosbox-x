@@ -13,4 +13,3 @@ if MACOSX
 libdos_a_SOURCES += \
 	../libs/physfs/physfs_platform_apple.mm
 endif
-

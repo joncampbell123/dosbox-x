@@ -47,6 +47,9 @@
 					XMM_Reg xmmsrc;
 					xmmsrc.u32[0] = LoadMd(eaa);
 					SSE_MOVSS(fpu.xmmreg[reg],xmmsrc);
+                    fpu.xmmreg[reg].u32[1] = 0;
+                    fpu.xmmreg[reg].u32[2] = 0;
+                    fpu.xmmreg[reg].u32[3] = 0;
 				}
 				break;
 			default:
@@ -212,7 +215,7 @@
 					GetEAa;
 					XMM_Reg xmmdst;
 					SSE_MOVHPS(xmmdst,fpu.xmmreg[reg]);
-					SaveMq(eaa+8,xmmdst.u64[1]); /* modifies only upper 64 bits */
+					SaveMq(eaa,xmmdst.u64[1]); /* modifies only upper 64 bits */
 				}
 				break;
 			default:
@@ -1170,7 +1173,7 @@
 	}
 	CASE_0F_MMX(0x70)												/* PSHUFW Pq,Qq,imm8 */
 	{
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
 		GetRM;
 		uint8_t imm8 = Fetchb();
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -1646,14 +1649,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		uint32_t product0 = (uint32_t)dest->uw.w0 * (uint32_t)src.uw.w0;
-		uint32_t product1 = (uint32_t)dest->uw.w1 * (uint32_t)src.uw.w1;
-		uint32_t product2 = (uint32_t)dest->uw.w2 * (uint32_t)src.uw.w2;
-		uint32_t product3 = (uint32_t)dest->uw.w3 * (uint32_t)src.uw.w3;
-		dest->uw.w0 = (product0 & 0xffff);
-		dest->uw.w1 = (product1 & 0xffff);
-		dest->uw.w2 = (product2 & 0xffff);
-		dest->uw.w3 = (product3 & 0xffff);
+		int32_t product0 = (uint32_t)dest->sw.w0 * (uint32_t)src.sw.w0;
+		int32_t product1 = (uint32_t)dest->sw.w1 * (uint32_t)src.sw.w1;
+		int32_t product2 = (uint32_t)dest->sw.w2 * (uint32_t)src.sw.w2;
+		int32_t product3 = (uint32_t)dest->sw.w3 * (uint32_t)src.sw.w3;
+		dest->sw.w0 = product0;
+		dest->sw.w1 = product1;
+		dest->sw.w2 = product2;
+		dest->sw.w3 = product3;
 		break;
 	}
 	CASE_0F_MMX(0xd7)
@@ -1695,14 +1698,14 @@
 			src.q = LoadMq(eaa);
 		}
 		result.q = 0;
-		if (dest->ub.b0>src.ub.b0) result.ub.b0 = dest->ub.b0 - src.ub.b0;
-		if (dest->ub.b1>src.ub.b1) result.ub.b1 = dest->ub.b1 - src.ub.b1;
-		if (dest->ub.b2>src.ub.b2) result.ub.b2 = dest->ub.b2 - src.ub.b2;
-		if (dest->ub.b3>src.ub.b3) result.ub.b3 = dest->ub.b3 - src.ub.b3;
-		if (dest->ub.b4>src.ub.b4) result.ub.b4 = dest->ub.b4 - src.ub.b4;
-		if (dest->ub.b5>src.ub.b5) result.ub.b5 = dest->ub.b5 - src.ub.b5;
-		if (dest->ub.b6>src.ub.b6) result.ub.b6 = dest->ub.b6 - src.ub.b6;
-		if (dest->ub.b7>src.ub.b7) result.ub.b7 = dest->ub.b7 - src.ub.b7;
+		result.ub.b0 = SaturateWordSToByteU((int16_t)dest->ub.b0 - (int16_t)src.ub.b0);
+		result.ub.b1 = SaturateWordSToByteU((int16_t)dest->ub.b1 - (int16_t)src.ub.b1);
+		result.ub.b2 = SaturateWordSToByteU((int16_t)dest->ub.b2 - (int16_t)src.ub.b2);
+		result.ub.b3 = SaturateWordSToByteU((int16_t)dest->ub.b3 - (int16_t)src.ub.b3);
+		result.ub.b4 = SaturateWordSToByteU((int16_t)dest->ub.b4 - (int16_t)src.ub.b4);
+		result.ub.b5 = SaturateWordSToByteU((int16_t)dest->ub.b5 - (int16_t)src.ub.b5);
+		result.ub.b6 = SaturateWordSToByteU((int16_t)dest->ub.b6 - (int16_t)src.ub.b6);
+		result.ub.b7 = SaturateWordSToByteU((int16_t)dest->ub.b7 - (int16_t)src.ub.b7);
 		dest->q = result.q;
 		break;
 	}
@@ -1720,10 +1723,10 @@
 			src.q = LoadMq(eaa);
 		}
 		result.q = 0;
-		if (dest->uw.w0>src.uw.w0) result.uw.w0 = dest->uw.w0 - src.uw.w0;
-		if (dest->uw.w1>src.uw.w1) result.uw.w1 = dest->uw.w1 - src.uw.w1;
-		if (dest->uw.w2>src.uw.w2) result.uw.w2 = dest->uw.w2 - src.uw.w2;
-		if (dest->uw.w3>src.uw.w3) result.uw.w3 = dest->uw.w3 - src.uw.w3;
+		result.uw.w0 = SaturateDwordSToWordU((int32_t)dest->uw.w0 - (int32_t)src.uw.w0);
+		result.uw.w1 = SaturateDwordSToWordU((int32_t)dest->uw.w1 - (int32_t)src.uw.w1);
+		result.uw.w2 = SaturateDwordSToWordU((int32_t)dest->uw.w2 - (int32_t)src.uw.w2);
+		result.uw.w3 = SaturateDwordSToWordU((int32_t)dest->uw.w3 - (int32_t)src.uw.w3);
 		dest->q = result.q;
 		break;
 	}
@@ -1984,7 +1987,7 @@
 		const unsigned char reg = (rm >> 3) & 7;
 
 		switch (last_prefix) {
-			case MP_NONE:									/* 0F E4 PULHUW reg, r/m */
+			case MP_NONE:									/* 0F E4 PMULHUW reg, r/m */
 				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
 				if (rm >= 0xc0) {
 					MMX_PMULHUW(*reg_mmx[reg],*reg_mmx[rm & 7]);
@@ -1995,7 +1998,7 @@
 					MMX_PMULHUW(*reg_mmx[reg],smmx);
 				}
 				break;
-			case MP_66:									/* 66 0F E4 PULHUW reg, r/m */
+			case MP_66:									/* 66 0F E4 PMULHUW reg, r/m */
 				if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 				if (rm >= 0xc0) {
 					SSE_PMULHUW(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
@@ -2303,14 +2306,14 @@
 		else {
 			int32_t product0 = (int32_t)dest->sw.w0 * (int32_t)src.sw.w0;
 			int32_t product1 = (int32_t)dest->sw.w1 * (int32_t)src.sw.w1;
-			dest->ud.d0 = (uint32_t)(product0 + product1);
+			dest->sd.d0 = product0 + product1;
 		}
 		if (dest->ud.d1 == 0x80008000 && src.ud.d1 == 0x80008000)
 			dest->ud.d1 = 0x80000000;
 		else {
 			int32_t product2 = (int32_t)dest->sw.w2 * (int32_t)src.sw.w2;
 			int32_t product3 = (int32_t)dest->sw.w3 * (int32_t)src.sw.w3;
-			dest->sd.d1 = (int32_t)(product2 + product3);
+			dest->sd.d1 = product2 + product3;
 		}
 		break;
 	}

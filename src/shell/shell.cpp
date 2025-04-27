@@ -1783,15 +1783,15 @@ void SHELL_Init() {
     bool tiny_memory_mode = false;
 
     // below a certain memory size, alter memory arrangement and allocation to minimize memory
-    if (MEM_TotalPages() < 0x8) tiny_memory_mode = true;
+    if (MEM_ConventionalPages() < 0x8) tiny_memory_mode = true;
 
     // decide shell env size
     if (dosbox_shell_env_size == 0) {
-        if (MEM_TotalPages() >= 0x10/*64KB or more*/)
+        if (MEM_ConventionalPages() >= 0x10/*64KB or more*/)
             dosbox_shell_env_size = (0x158u - (0x118u + 19u)) << 4u; /* equivalent to DOSBox SVN */
-        else if (MEM_TotalPages() >= 0x8/*32KB or more*/)
+        else if (MEM_ConventionalPages() >= 0x8/*32KB or more*/)
             dosbox_shell_env_size = 384;
-        else if (MEM_TotalPages() >= 0x4/*16KB or more*/)
+        else if (MEM_ConventionalPages() >= 0x4/*16KB or more*/)
             dosbox_shell_env_size = 256;
         else
             dosbox_shell_env_size = 144;
@@ -1828,7 +1828,7 @@ void SHELL_Init() {
     total_sz = tmp;
 
     // Use normal MCB allocation unless memsize is 4KB
-    if (MEM_TotalPages() > 1) {
+    if (MEM_ConventionalPages() > 1) {
         if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
     }
     else {

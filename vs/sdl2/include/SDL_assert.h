@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -61,6 +61,8 @@ assert can have unique static variables associated with it.
     #define SDL_TriggerBreakpoint() __asm__ __volatile__ ( "brk #22\n\t" )
 #elif defined(__APPLE__) && defined(__arm__)
     #define SDL_TriggerBreakpoint() __asm__ __volatile__ ( "bkpt #22\n\t" )
+#elif defined(_WIN32) && ((defined(__GNUC__) || defined(__clang__)) && (defined(__arm64__) || defined(__aarch64__)) )
+    #define SDL_TriggerBreakpoint() __asm__ __volatile__ ( "brk #0xF000\n\t" )
 #elif defined(__386__) && defined(__WATCOMC__)
     #define SDL_TriggerBreakpoint() { _asm { int 0x03 } }
 #elif defined(HAVE_SIGNAL_H) && !defined(__WATCOMC__)
@@ -191,8 +193,8 @@ extern DECLSPEC SDL_AssertState SDLCALL SDL_ReportAssertion(SDL_AssertData *,
  * A callback that fires when an SDL assertion fails.
  *
  * \param data a pointer to the SDL_AssertData structure corresponding to the
- *             current assertion
- * \param userdata what was passed as `userdata` to SDL_SetAssertionHandler()
+ *             current assertion.
+ * \param userdata what was passed as `userdata` to SDL_SetAssertionHandler().
  * \returns an SDL_AssertState value indicating how to handle the failure.
  */
 typedef SDL_AssertState (SDLCALL *SDL_AssertionHandler)(
@@ -212,8 +214,8 @@ typedef SDL_AssertState (SDLCALL *SDL_AssertionHandler)(
  * This callback is NOT reset to SDL's internal handler upon SDL_Quit()!
  *
  * \param handler the SDL_AssertionHandler function to call when an assertion
- *                fails or NULL for the default handler
- * \param userdata a pointer that is passed to `handler`
+ *                fails or NULL for the default handler.
+ * \param userdata a pointer that is passed to `handler`.
  *
  * \since This function is available since SDL 2.0.0.
  *
@@ -254,7 +256,7 @@ extern DECLSPEC SDL_AssertionHandler SDLCALL SDL_GetDefaultAssertionHandler(void
  * data, it is safe to pass a NULL pointer to this function to ignore it.
  *
  * \param puserdata pointer which is filled with the "userdata" pointer that
- *                  was passed to SDL_SetAssertionHandler()
+ *                  was passed to SDL_SetAssertionHandler().
  * \returns the SDL_AssertionHandler that is called when an assert triggers.
  *
  * \since This function is available since SDL 2.0.2.

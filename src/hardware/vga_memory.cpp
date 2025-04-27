@@ -1604,13 +1604,13 @@ class VGA_PC98_CG_PageHandler : public PageHandler {
 		uint8_t readb(PhysPt addr) override {
 			/* uses the low 12 bits and therefore does not need PAGING_GetPhysicalAddress() */
 			uint8_t high = a1_font_load_addr & 0xff;
-			if((high >= 0x09 && high <= 0x0b) || (high >= 0x0c && high <= 0x0f) || (high >= 0x58 && high <= 0x5f)) {
-				if(addr & 1) {
+			if ((high >= 0x09 && high <= 0x0b) || (high >= 0x0c && high <= 0x0f) || (high >= 0x56 && high <= 0x5f)) {
+				if(addr & 1)
 					return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF, (a1_font_char_offset & 0x20) ? 0 : 1);
-				} else {
+				else
 					return 0;
-				}
 			}
+
 			return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1);
 		}
 		void writeb(PhysPt addr,uint8_t val) override {

@@ -578,6 +578,7 @@
     <ClInclude Include="..\..\src\sensor\SDL_sensor_c.h" />
     <ClInclude Include="..\..\src\sensor\SDL_syssensor.h" />
     <ClInclude Include="..\..\src\sensor\windows\SDL_windowssensor.h" />
+    <ClInclude Include="..\..\src\stdlib\SDL_vacopy.h" />
     <ClInclude Include="..\..\src\thread\SDL_systhread.h" />
     <ClInclude Include="..\..\src\thread\SDL_thread_c.h" />
     <ClInclude Include="..\..\src\thread\generic\SDL_syscond_c.h" />

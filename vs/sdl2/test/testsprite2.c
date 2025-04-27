@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -392,7 +392,7 @@ void MoveSprites(SDL_Renderer *renderer, SDL_Texture *sprite)
     SDL_RenderPresent(renderer);
 }
 
-static void MoveAllSprites()
+static void MoveAllSprites(void)
 {
     int i;
 
@@ -404,7 +404,7 @@ static void MoveAllSprites()
     }
 }
 
-void loop()
+void loop(void)
 {
     Uint32 now;
     SDL_Event event;

@@ -4020,6 +4020,11 @@ static Bitu INT18_PC98_Handler(void) {
             pc98_gdc[GDC_MASTER].param_ram[2] = (400 << 4) & 0xFF;
             pc98_gdc[GDC_MASTER].param_ram[3] = (400 << 4) >> 8;
             break;
+        case 0x10: /* set cursor blink */
+            PC98_show_cursor(false); /* side effect: hides the cursor */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].cursor_blink = !!(reg_al & 1);
+            break;
         case 0x11: /* show cursor */
             PC98_show_cursor(true);
             break;
@@ -7768,6 +7773,14 @@ void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
 unsigned int dos_conventional_limit = 0;
 
+Bitu MEM_ConventionalPages(void) {
+    if (dos_conventional_limit == 0) return MEM_TotalPages();
+    unsigned int x = dos_conventional_limit / 4u;
+    if (x == 0) x = 1;
+    if (x > MEM_TotalPages()) x = MEM_TotalPages();
+    return x;
+}
+
 bool AdapterROM_Read(Bitu address,unsigned long *size) {
     unsigned char c[3];
     unsigned int i;
@@ -8100,7 +8113,7 @@ void showBIOSSetup(const char* card, int x, int y) {
         BIOS_Int10RightJustifiedPrint(x,y,"              ESC: Exit  Arrows: Select Item  +/-: Change Values              ");
 }
 
-static Bitu ulimit = 0;
+static Bitu mlimit = 0;
 static Bitu t_conv = 0;
 static Bitu t_conv_real = 0;
 static bool bios_first_init=true;
@@ -9833,7 +9846,7 @@ private:
         SegSet16(ss,0x0000);
 
         {
-            Bitu sz = MEM_TotalPages();
+            Bitu sz = MEM_ConventionalPages();
 
             /* The standard BIOS is said to put its stack (at least at OS boot time) 512 bytes past the end of the boot sector
              * meaning that the boot sector loads to 0000:7C00 and the stack is set grow downward from 0000:8000 */
@@ -11690,7 +11703,7 @@ startfunction:
         // TODO: If instructed to boot a guest OS...
 
         /* wipe out the stack so it's not there to interfere with the system, point it at top of memory or top of segment */
-        reg_esp = std::min((unsigned int)((MEM_TotalPages() << 12) - 0x600 - 4),0xFFFCu);
+        reg_esp = std::min((unsigned int)((MEM_ConventionalPages() << 12) - 0x600 - 4),0xFFFCu);
         reg_eip = 0;
         CPU_SetSegGeneral(cs, 0x60);
         CPU_SetSegGeneral(ss, 0x60);
@@ -11861,7 +11874,7 @@ public:
         /* INT 12 Memory Size default at 640 kb */
         callback[2].Install(&INT12_Handler,CB_IRET,"Int 12 Memory");
 
-        ulimit = 640;
+        mlimit = 640;
         t_conv = MEM_TotalPages() << 2; /* convert 4096/byte pages -> 1024/byte KB units */
         /* NTS: Tandy machines, because top of memory shares video memory, need more than 640KB of memory to present 640KB of memory
          *      to DOS. In that case, apparently, that gives 640KB to DOS and 128KB to video memory. 640KB of memory in a Tandy system
@@ -11877,18 +11890,18 @@ public:
          *      hardware in such a system. */
         if (allow_more_than_640kb) {
             if (machine == MCH_CGA)
-                ulimit = 736;       /* 640KB + 96KB = 0x00000-0xB7FFF */
+                mlimit = 736;       /* 640KB + 96KB = 0x00000-0xB7FFF */
             else if (machine == MCH_HERC || machine == MCH_MDA)
-                ulimit = 704;       /* 640KB + 64KB = 0x00000-0xAFFFF */
+                mlimit = 704;       /* 640KB + 64KB = 0x00000-0xAFFFF */
 	    else if (machine == MCH_TANDY)
-                ulimit = 768;       /* 640KB + 128KB = 0x00000-0xBFFFF */
+                mlimit = 768;       /* 640KB + 128KB = 0x00000-0xBFFFF */
 
             /* NTS: Yes, this means Tandy video memory at B8000 overlaps conventional memory, but the
              *      top of conventional memory is stolen as video memory anyway. Tandy documentation
              *      suggests that memory is only installed in multiples of 128KB so there doesn't seem
              *      to be a way to install only 704KB for example. */
 
-            if (t_conv > ulimit) t_conv = ulimit;
+            if (t_conv > mlimit) t_conv = mlimit;
             if (t_conv > 640 && machine != MCH_TANDY) {
                 /* because the memory emulation has already set things up
                  * HOWEVER Tandy emulation has already properly mapped A0000-BFFFF so don't mess with it */
@@ -11937,10 +11950,10 @@ public:
                 LOG(LOG_MISC,LOG_WARN)("Warning: Conventional memory size %uKB in PCjr mode is not a multiple of 32KB, games may not display graphics correctly",(unsigned int)t_conv);
         }
 
-        /* and then unmap RAM between t_conv and ulimit */
-        if (t_conv < ulimit) {
+        /* and then unmap RAM between t_conv and mlimit */
+        if (t_conv < mlimit) {
             Bitu start = (t_conv+3)/4;  /* start = 1KB to page round up */
-            Bitu end = ulimit/4;        /* end = 1KB to page round down */
+            Bitu end = mlimit/4;        /* end = 1KB to page round down */
             if (start < end) MEM_ResetPageHandler_Unmapped(start,end-start);
         }
 
@@ -11966,16 +11979,16 @@ public:
              * is installed! */
             if (t_conv > (640+32)) {
                 if (t_conv > 640) t_conv = 640;
-                if (ulimit > 640) ulimit = 640;
+                if (mlimit > 640) mlimit = 640;
 
                 /* Video memory takes the rest */
                 tandy_128kbase = 0xA0000;
             }
             else {
                 if (t_conv > 640) t_conv = 640;
-                if (ulimit > 640) ulimit = 640;
+                if (mlimit > 640) mlimit = 640;
                 t_conv -= 16;
-                ulimit -= 16;
+                mlimit -= 16;
 
                 /* if 32KB would cross a 128KB boundary, then adjust again or else
                  * things will horribly break between text and graphics modes */
@@ -12004,9 +12017,9 @@ public:
                 if (t_conv > 128) t_conv = 128;
                 t_conv -= 16;
             }
-            if (ulimit <= (128+16)) {
-                if (ulimit > 128) ulimit = 128;
-                ulimit -= 16;
+            if (mlimit <= (128+16)) {
+                if (mlimit > 128) mlimit = 128;
+                mlimit -= 16;
             }
         }
 

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -67,6 +67,14 @@ void PSP_MaximizeWindow(_THIS, SDL_Window *window);
 void PSP_MinimizeWindow(_THIS, SDL_Window *window);
 void PSP_RestoreWindow(_THIS, SDL_Window *window);
 void PSP_DestroyWindow(_THIS, SDL_Window *window);
+
+/* "methods" aka callbacks for SDL_WindowSurface API */
+int PSP_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format,
+ void **pixels, int *pitch);
+int PSP_UpdateWindowFramebuffer(_THIS, SDL_Window *window,
+const SDL_Rect *rects, int numrects);
+void PSP_DestroyWindowFramebuffer(_THIS, SDL_Window *window);
+
 
 /* Window manager function */
 SDL_bool PSP_GetWindowWMInfo(_THIS, SDL_Window * window,

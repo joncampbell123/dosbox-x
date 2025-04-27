@@ -49,7 +49,7 @@
 
       You should have received a copy of the GNU General Public License
       along with this program; if not, write to the Free Software Foundation,
-      Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 USA  USA
+      Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
   ---------------------------------------------------------------------------
 
@@ -146,7 +146,7 @@ int readpng2_init(mainprog_info *mainprog_ptr)
         /* These byte strings were copied from png.h.  If a future version
          * of readpng2.c recognizes more chunks, add them to this list.
          */
-        static PNG_CONST png_byte chunks_to_process[] = {
+        static const png_byte chunks_to_process[] = {
             98,  75,  71,  68, '\0',  /* bKGD */
            103,  65,  77,  65, '\0',  /* gAMA */
            115,  82,  71,  66, '\0',  /* sRGB */

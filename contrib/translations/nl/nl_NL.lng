@@ -93,7 +93,7 @@ Nu uitvoeren
 Extra content:
 .
 :CONTENT
-Content:
+Inhoud:
 .
 :EDIT_FOR
 Bewerk %s
@@ -101,14 +101,8 @@ Bewerk %s
 :HELP_FOR
 Help voor %s
 .
-:HELP_INFO
-Klik op de "Help" knop hieronder om meer hulpinformatie te zien.
-.
 :SELECT_VALUE
 Selecteer eigenschapswaarde
-.
-:CONFIGURATION_FOR
-Configuratie voor %s
 .
 :CONFIGURATION
 Configuratie
@@ -163,9 +157,6 @@ Printerapparaatlijst
 .
 :INTRODUCTION
 Introductie
-.
-:CONFIGURE_GROUP
-Kies een instellingengroep om te configureren:
 .
 :SHOW_ADVOPT
 Toon geavanceerde opties
@@ -455,11 +446,11 @@ De huidige gekoppelde schijven zijn:
 
 .
 :PROGRAM_MOUNT_NOT_FORMATTED
-Drive not formatted. Format it before accessing the drive.
+Schijf niet geformatteerd. Formatteer de schijf voordat u hem gebruikt.
 
 .
 :PROGRAM_MOUNT_UNSUPPORTED_EXT
-Unsupported extension %s: Mounted as raw IMG image.
+Niet-ondersteunde extensie %s: gekoppeld als rauw IMG-bestand.
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
@@ -948,7 +939,7 @@ Opstarten van schijf
 :PROGRAM_LOADROM_HELP
 Laadt het opgegeven ROM-imagebestand voor video-BIOS of IBM BASIC.
 
-LOADROM ROM_file
+LOADROM ROM_bestand
 
 .
 :PROGRAM_LOADROM_SPECIFY_FILE
@@ -978,7 +969,7 @@ BASIC-ROM geladen.
 :PROGRAM_BIOSTEST_HELP
 Start op in een BIOS-image voor het uitvoeren van CPU-tester BIOS.
 
-BIOSTEST image_file
+BIOSTEST image_bestand
 
 .
 :VHD_ERROR_OPENING
@@ -1024,10 +1015,6 @@ Moet het stationsnummer (0 tot %d) specificeren om de image (0,1=fda,fdb;2,3=hda
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
 Kon imagebestand niet laden.
 Controleer of het pad correct is en de image toegankelijk is.
-
-.
-:PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-Dynamische VHD-bestanden worden niet ondersteund.
 
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
@@ -1307,105 +1294,106 @@ Moet een poortnummer tussen 1 en 9 specificeren.
 
 .
 :PROGRAM_VHDMAKE_WRITERR
-Could not write to new VHD image "%s", aborting.
+Kon niet schrijven naar nieuwe VHD-bestand "%s", afgebroken.
 
 .
 :PROGRAM_VHDMAKE_REMOVEERR
-Could not erase file "%s"
+Kon bestand "%s" niet wissen
 
 .
 :PROGRAM_VHDMAKE_RENAME
-You'll have to manually rename the newly created VHD image.
+U moet de nieuw gemaakte VHD-bestand handmatig hernoemen.
 
 .
 :PROGRAM_VHDMAKE_SUCCESS
-New VHD image successfully created. You can mount it with ←[34;1mIMGMOUNT←[0m.
+Nieuwe VHD-bestand succesvol aangemaakt. U kunt deze koppelen met ←[34;1mIMGMOUNT←[0m].
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
-Error, could not open image file "%s".
+Fout, kon image-bestand "%s" niet openen.
 
 .
 :PROGRAM_VHDMAKE_BADSIZE
-Bad VHD size specified, aborting!
+Verkeerde VHD-grootte opgegeven, afgebroken!
 
 .
 :PROGRAM_VHDMAKE_FNEEDED
-A pre-existing VHD image can't be silently overwritten without -f option!
+Een bestaand VHD-abestand kan niet overschreven worden zonder de optie -f!
 
 .
 :PROGRAM_VHDMAKE_BADPARENT
-The parent VHD image "%s" can't be opened for linking, aborting!
+De bovenliggende VHD-bestand "%s" kan niet worden geopend voor
+koppeling, afgebroken!
 
 .
 :PROGRAM_VHDMAKE_NOINFO
-Couldn't query info for "%s".
+Kan informatie voor "%s" niet opvragen.
 
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS
-with %d/%d blocks allocated.
+ met %d/%d blokken toegewezen.
 
 .
 :PROGRAM_VHDMAKE_INFO
 VHD "%s" type is %s.
-Its virtual size is %.02f MB
-
+De virtuele grootte is %.02f MB
 .
 :PROGRAM_VHDMAKE_CANTMERGE
-%s is not a Differencing disk, can't merge!
+%s is geen differentiërende schijf, kan niet samenvoegen!
 
 .
 :PROGRAM_VHDMAKE_MERGEREPORT
-%d sectors in %d blocks from "%s" merged into "%s".
+%d sectoren in %d blokken van "%s" samengevoegd tot "%s".
 
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
-Couldn't remove snapshot "%s", you'll have to do it yourself!
-
+Snapshot "%s" kan niet worden verwijderd. Dit moet u zelf doen!
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
-Snapshot VHD merged and deleted.
+VHD snapshot samengevoegd en verwijderd.
 
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
-Failure while merging, aborted!
+Samenvoegen mislukt, afgebroken!
+
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
-Parent "%s" contents could be corrupted!
+ De inhoud van bovenliggende "%s" kan beschadigd zijn!
 
 .
-:PROGRAM_VHDMAKE_ABSPATH_WIN
-Warning: an absolute path to parent limits portability to Windows.
-Please prefer a path relative to differencing image file!
-
-.
-:PROGRAM_VHDMAKE_ABSPATH_UX
-ERROR: an absolute path to parent inhibits portability.
-Use a path relative to differencing image file!
+:PROGRAM_VHDMAKE_ABSPATH
+Waarschuwing: een absoluut pad naar het bovenliggende bestand verhindert
+portabiliteit. Geef de voorkeur aan een pad dat relatief is aan het
+differentiërende imagebestand!
 
 .
 :PROGRAM_VHDMAKE_HELP
-Creates Dynamic or Differencing VHD images, or converts raw images
-into Fixed VHD.
-←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
-←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
-←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
+Maakt dynamische of differentiërende VHD-bestanden, converteert ruwe images
+naar Fixed VHD, toont informatie over VHD-bestanden en voegt ze samen.
+←[32;1mVHDMAKE←[0m [-f] nieuw.vhd groote[BKMGT]
+←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m ruw.hdd nieuw.vhd
+←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd nieuw.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
 ←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
- -c | -convert  convert a raw hd image to Fixed VHD, renaming it to new.vhd
- -l | -link     create a new Differencing VHD new.vhd and link it to the
-                pre-existing parent image parent.vhd
- -f | -force    force overwriting a pre-existing image file
- -i | -info     show useful information about a.vhd image
- -m | -merge    merge differencing delta.vhd to its parent
- new.vhd        name of the new Dynamic VHD image to create
- size           disk size (eventually with size unit, Bytes is implicit)
-When converting a raw disk image to Fixed VHD, it has to be partitioned with
-MBR scheme and formatted with FAT format.
-When creating a Dynamic VHD, its size must range from 3 MB to 2040 GB.
-The Dynamic VHD created is not partitioned nor formatted: to directly mount to
-a drive letter with ←[34;1mIMGMOUNT←[0m, please consider using ←[34;1mIMGMAKE←[0m instead.
-A merged snapshot VHD is automatically deleted if merge is successful.
+ -c | -convert  een ruw hd-bestand converteren naar Fixed VHD en hernoemen
+ -l | -link     Maak een nieuwe differentiërende VHD bestand en koppel deze aan
+                een reeds bestaande bovenliggende parent.vhd bestand
+ -f | -force    overschrijven van een bestaand bestand forceren
+ -i | -info     toon informatie over een VHD bestand
+ -m | -merge    voeg een differentiërende VHD bestand samen met zijn
+                bovenliggende bestand
+ nieuw.vhd      name van een nieuw Dynamisch VHD bestand om aan te maken
+ groote         schijfgrootte (eventueel met grootte-eenheid, bytes is
+                impliciet)
+Bij het converteren van een ruw schijfkopie naar een Fixed VHD moet deze worden
+gepartitioneerd met het MBR-schema en geformatteerd met het FAT-formaat.
+Dynamische VHD bestanden mogen in grootte variëren van 3 MB tot 2040 GB.
+Een nieuw dynamische VHD is niet gepartitioneerd of geformatteerd. Om de VHD
+direct te koppelen aan een stationsletter met ←[34;1mIMGMOUNT←[0m, kunt u overwegen om
+←[34;1mIMGMAKE←[0m te gebruiken.
+Een samengevoegde snapshot-VHD wordt automatisch verwijderd als de samenvoeging
+succesvol is.
+
 .
 :SHELL_CMD_TREE_ERROR
 Geen mappen aanwezig
@@ -1678,7 +1666,7 @@ Wacht op een toetsaanslag om door te gaan.
 
 .
 :SHELL_CMD_PAUSE_HELP_LONG
-PAUSE
+PAUZE
 
 .
 :SHELL_CMD_COPY_FAILURE
@@ -1965,7 +1953,6 @@ IF [NOT] EXIST bestandsnaam commando
   NOT               Commando wordt alleen uitgevoerd als de conditie
                     ONJUIST is.
 
-
   ERRORLEVEL nummer Commando wordt niet uitgevoerd, als de foutcode van het
                     laatste commando gelijk of hoger is dan het opgegeven
                     nummer.
@@ -2070,7 +2057,7 @@ volgende commando hernoemt alle tekst bestanden: ←[37;1mREN *.TXT *.BAK←[0m
 
 .
 :SHELL_CMD_DELETE_HELP
-Verwijdert een of meer bestanden.
+Verwijdert één of meer bestanden.
 
 .
 :SHELL_CMD_DELETE_HELP_LONG
@@ -2087,7 +2074,7 @@ ERASE [/P] [/F] [/Q] namen
 
 .
 :SHELL_CMD_COPY_HELP
-Kopieert een of meer bestanden.
+Kopieert één of meer bestanden.
 
 .
 :SHELL_CMD_COPY_HELP_LONG
@@ -2418,9 +2405,6 @@ Herstart gastsysteem
 :MENU:mapper_loadmap
 Mapper-bestand laden...
 .
-:MENU:mapper_loadlanguage
-Taalbestand laden...
-.
 :MENU:mapper_quickrun
 Snelstartprogramma...
 .
@@ -2545,31 +2529,31 @@ CPU-snelheid emuleren
 486DX5 133MHz (~47810 cycli)
 .
 :MENU:cpu586-60
-Pentium 60MHz (~31545 cycli)
+Pentium 60MHz (~32090 cycli)
 .
 :MENU:cpu586-66
 Pentium 66MHz (~35620 cycli)
 .
 :MENU:cpu586-75
-Pentium 75MHz (~43500 cycli)
+Pentium 75MHz (~40072 cycli)
 .
 :MENU:cpu586-90
-Pentium 90MHz (~52000 cycli)
+Pentium 90MHz (~48087 cycli)
 .
 :MENU:cpu586-100
-Pentium 100MHz (~60000 cycli)
+Pentium 100MHz (~53430 cycli)
 .
 :MENU:cpu586-120
-Pentium 120MHz (~74000 cycli)
+Pentium 120MHz (~64180 cycli)
 .
 :MENU:cpu586-133
-Pentium 133MHz (~80000 cycli)
+Pentium 133MHz (~71240 cycli)
 .
 :MENU:cpu586-166
-Pentium 166MHz MMX (~97240 cycli)
+Pentium 166MHz MMX (~95548 cycli)
 .
-:MENU:cpuak6-166
-AMD K6 166MHz (~110000 cycli)
+:MENU:cpu586-200
+Pentium 200MHz MMX (~114657 cycli)
 .
 :MENU:cpuak6-200
 AMD K6 200MHz (~130000 cycli)
@@ -2968,7 +2952,7 @@ Grafische laag wissen
 Interne Voodoo kaart
 .
 :MENU:3dfx_glide
-Glide passthrough
+Glide doorgave
 .
 :MENU:load_d3d_shader
 Selecteer Direct3D pixel shader...
@@ -3360,21 +3344,6 @@ Schermafdruk maken
 :MENU:mapper_rawscrshot
 Neem onbewerkte schermafdruk
 .
-:MENU:mapper_volup
-Volume verhogen
-.
-:MENU:mapper_voldown
-Volume verlagen
-.
-:MENU:mapper_recvolup
-Opnamevolume verhogen
-.
-:MENU:mapper_recvoldown
-Opnamevolume verlagen
-.
-:MENU:mapper_sendkey_mapper
-Speciale toets zenden
-.
 :MENU:mapper_cycledown
 Cycli verhogen
 .
@@ -3450,11 +3419,26 @@ Pentium III
 :MENU:cputype_experimental
 Experimenteel
 .
+:MENU:mapper_volup
+Volume verhogen
+.
+:MENU:mapper_voldown
+Volume verlagen
+.
+:MENU:mapper_recvolup
+Opnamevolume verhogen
+.
+:MENU:mapper_recvoldown
+Opnamevolume verlagen
+.
+:MENU:mapper_sendkey_mapper
+Speciale toets zenden
+.
 :MENU:debug_pageflip
-Page flip debug line
+Pagina omdraaien debug-regel
 .
 :MENU:debug_retracepoll
-Retrace poll debug line
+Retrace poll debug-regel
 .
 :MENU:mapper_swapimg
 Diskette verwisselen
@@ -3689,4 +3673,731 @@ CPU: simpele kern
 .
 :MAPPER:togmenu
 Menubalk aan/uit
+.
+:PROGRAM_FLAGSAVE_UNFLAGALL
+Alle bestanden niet meer gemarkeerd voor opslag.
+
+.
+:PROGRAM_FLAGSAVE_UNFLAGGED
+Bestand %s niet meer gemarkeerd voor opslag.
+
+.
+:PROGRAM_FLAGSAVE_FLAGGED
+Bestand al gemarkeerd voor opslaan - %s
+
+.
+:PROGRAM_FLAGSAVE_TOOMANY
+Er zijn teveel bestanden om te markeren voor opslag.
+
+.
+:PROGRAM_FLAGSAVE_SAVED
+Bestand %s gemarkeerd voor opslaan
+
+.
+:PROGRAM_FLAGSAVE_LIST
+Bestanden gemarkeerd om op te slaan:
+.
+:PROGRAM_FLAGSAVE_HLP
+Markeert bestanden die moeten worden opgeslagen voor de "save-state" functie.
+
+FLAGSAVE [bestand(en) [/F] [/R]] [/U]
+
+  bestand(en) Een of meer bestanden om te markeren voor opslag.
+  /F          Forceert het markeren van de bestanden, zelfs als ze niet worden
+              gevonden.
+  /R          Verwijdert markering van de opgegeven bestanden.
+  /U          Verwijdert markering van alle bestanden.
+
+Typ FLAGSAVE zonder parameter om gemarkeerde bestanden weer te geven.
+
+.
+:PROGRAM_INT2FDBG_NOT_SET
+INT 2Fh-haak is niet ingesteld.
+
+.
+:PROGRAM_INT2FDBG_ALREADY
+INT 2Fh-haak is al ingesteld.
+
+.
+:PROGRAM_INT2FDBG_HELP
+Haakt INT 2Fh voor debug doeleinden.
+
+INT2FDBG [option]
+  /I      Installeert haak
+  
+Haakt INT 2Fh bovenaan de oproepketen voor debug informatie.
+
+Typ INT2FDBG zonder parameter om de huidige haak status weer te geven.
+.
+:PROGRAM_SET80x25
+Wijzigingen naar 80x25 tekstmodus.
+.
+:PROGRAM_SET80x43
+Wijzigingen naar 80x43 tekstmodus.
+.
+:PROGRAM_SET80x50
+Wijzigingen naar 80x50 tekstmodus.
+.
+:PROGRAM_SET80x60
+Wijzigingen naar 80x60 tekstmodus.
+.
+:PROGRAM_SET132x25
+Wijzigingen naar 132x25 tekstmodus.
+.
+:PROGRAM_SET132x43
+Wijzigingen naar 132x43 tekstmodus.
+.
+:PROGRAM_SET132x50
+Wijzigingen naar 132x50 tekstmodus.
+.
+:PROGRAM_SET132x60
+Wijzigingen naar 132x60 tekstmodus.
+.
+:PROGRAM_RESCAN_HELP
+Scant voor wijzigingen op gekoppelde schijven op de host door caches te wissen.
+
+RESCAN [/A] [/Q]
+RESCAN [schijf:] [/Q]
+
+  [/A]      Alle schijven opnieuw scannen
+  [/Q]      Stille modus inschakelen
+  [schijf:] De schijf om opnieuw te scannen
+
+Typ RESCAN zonder parameters om de huidige schijf opnieuw te scannen.
+
+.
+:PROGRAM_CFGTOOL_HELP
+Start het grafische configuratiehulpprogramma van DOSBox-X.
+
+CFGTOOL
+
+Opmerking: u kunt de opdracht CONFIG ook gebruiken voor
+           opdrachtregelconfiguraties.
+.
+:PROGRAM_IMGSWAP_HELP
+Verwisselt floppy-, harde schijf- en optische schijfimages.
+
+←[32;1mIMGSWAP←[0m ←[37;1mschijf←[0m ←[36;1m[positie]←[0m
+ ←[37;1mschijf←[0m              Stationsletter om de afbeelding te wisselen.
+ ←[36;1m[positie]←[0m          Schijfpositie waarnaar gewisseld moet worden..
+.
+:PROGRAM_INTRO_HELP
+Een introductie op volledig scherm tot DOSBox-X.
+
+INTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]
+.
+:PROGRAM_IMGMOUNT_NOT_ASSIGNED
+Er is geen image toegewezen aan de BIOS-schijfindex.
+.
+:PROGRAM_IMGMOUNT_INVALID_NUMBER
+Ongeldig koppelnummer.
+.
+:PROGRAM_IMGMOUNT_INVALID_FSTYPE
+Ongeldig fstype.
+.
+:PROGRAM_IMGMOUNT_INVALID_SIZE
+Ongeldige grootteparameter.
+.
+:PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER
+Stationnummer %d is niet gekoppeld.
+.
+:PROGRAM_IMGMOUNT_UMOUNT_USAGE
+Onjuist gebruik van IMGMOUNT-ontkoppeling.
+.
+:PROGRAM_IMGMOUNT_INVALID_LETTER
+Ongeldige stationsletter.
+.
+:PROGRAM_IMGMOUNT_CHOOSE_LETTER
+Partities kunnen niet worden gekoppeld in conflict met de standaard INT 13h
+harde schijftoewijzing. Kies een andere stationsletter om op te koppelen.
+.
+:PROGRAM_ELTORITO_LETTER
+Voor El Torito-emulatie is een juiste CD-ROM-stationsletter vereist.
+.
+:PROGRAM_ELTORITO_DRIVE_EXISTS
+Het opgegeven El Torito CD-ROM-station bestaat al als een niet-CD-ROM-apparaat
+.
+:PROGRAM_ELTORITO_NOT_CDDRIVE
+Het genoemde El Torito CD-ROM-station is in werkelijkheid geen CD-ROM-station.
+.
+:PROGRAM_ELTORITO_REQUIRE_FLOPPY
+El Torito-emulatie moet op dit moment worden gebruikt met -t floppy.
+.
+:PROGRAM_ELTORITO_NO_BOOT_RECORD
+El Torito CD-ROM boot record niet gevonden.
+.
+:PROGRAM_ELTORITO_ENTRY_UNREADABLE
+El Torito-sectie niet leesbaar.
+.
+:PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY
+Geen opstartbare El Torito-floppy gevonden.
+.
+:PROGRAM_ELTORITO_BOOTABLE_SECTION
+Kan opstartbare sectie niet vinden
+.
+:PROGRAM_ELTORITO_BOOTSECTOR
+El Torito opstartsector onleesbaar
+.
+:PROGRAM_IMGMAKE_ALIGNMENT
+Ongeldige uitlijning
+.
+:PROGRAM_IMGMAKE_PARTOFS
+Ongeldige -partofs
+.
+:PROGRAM_IMGMAKE_FAT
+Ongeldige -fat optie. Moet zijn 12, 16, of 32
+.
+:PROGRAM_IMGMAKE_FATCOPIES
+Ongeldige -fatcopies optie
+.
+:PROGRAM_IMGMAKE_SPC
+Ongeldige -spc optie, buiten bereik
+.
+:PROGRAM_IMGMAKE_SPC2
+Ongeldige -spc optie, moet een macht van 2 zijn
+.
+:PROGRAM_IMGMAKE_ROOTDIR
+Ongeldige -rootdir optie
+.
+PROGRAM_IMGMAKE_BOOTSECT
+Ongeldige bootsectorpositie
+.
+PROGRAM_IMGMAKE_VOLUME_ALIGN
+Controle mislukt: volumegrootte niet uitgelijnd
+.
+:PROGRAM_IMGMAKE_FAT_ALIGN
+Controle mislukt: FAT-tabellen niet uitgelijnd
+.
+:PROGRAM_IMGMAKE_SECTPERFAT
+Fout: Gegenereerd FAT bestandssysteem heeft meer dan 256 sectoren en is niet FAT32
+.
+:PROGRAM_IMGMAKE_VOLSIZE
+Controle mislukt: volumegrootte niet uitgelijnd
+.
+:PROGRAM_IMGMAKE_CLUSTERS
+Fout: gegenereerd bestandssysteem heeft te weinig clusters gezien de parameters
+.
+:PROGRAM_IMGMAKE_CLUSTERCOUNT
+Waarschuwing: Het aantal clusters is te hoog gezien de volumegrootte.
+              Er wordt een kleiner aantal sectoren gerapporteerd.
+.
+:PROGRAM_IMGMAKE_CLUSTER_ALIGN
+Controle mislukt: eerste cluster niet uitgelijnd
+.
+:PROGRAM_IMGMAKE_CLUSTER_SIZE
+WAARSCHUWING: Clustergroottes >= 64 KB zijn niet compatibel met MS-DOS en SCANDISK
+.
+:PROGRAM_BOOT_UNSUPPORTED
+Niet-ondersteunde opstartmodus
+.
+:PROGRAM_MOUNT_OVERLAY_REPLACE
+Bestaande overlay is vervangen door nieuwe overlay.
+.
+:PROGRAM_LOADFIX_EMS_FREE
+EMS-handle %u: kan niet worden vrijgemaakt
+.
+:PROGRAM_LOADFIX_XMS_FREE
+XMS-handle %u: kan niet worden vrijgemaakt
+.
+:PROGRAM_LOADFIX_EMS_ALLOC
+EMS-blok toegewezen (%uKB)
+.
+:PROGRAM_LOADFIX_EMS_ALLOCERROR
+Kan EMS-blok niet toewijzen
+.
+PROGRAM_LOADFIX_NOEMS
+EMS niet actief
+.
+:PROGRAM_LOADFIX_XMS_ALLOC
+XMS-blok toegewezen (%uKB)
+.
+:PROGRAM_LOADFIX_XMS_ALLOCERROR
+Kan XMS-blok niet toewijzen
+.
+:PROGRAM_LOADFIX_NOXMS
+XMS niet actief
+.
+:PROGRAM_LOADFIX_NOALLOC
+De laagste MCB is boven de 64 KB, er is niets toegewezen
+.
+:PROGRAM_BOOT_SWAP_ALREADY
+Meerdere schijfkopieën opgegeven en er is al een andere schijf verbonden met de wissellijst
+.
+:PROGRAM_BOOT_NOT_SPECIFIED
+Geen schijfkopieën opgegeven
+.
+:PROGRAM_BOOT_IS_PC88
+Het D88-image bestand lijkt te zijn voor op PC-88 en kan niet worden opgestart.
+.
+:PROGRAM_BOOT_BPS_TOOLARGE
+Bytes/sector te groot
+.
+:PROGRAM_BOOT_DRIVE_READERROR
+Fout bij het lezen van de schijf
+.
+:PROGRAM_START_HELP_WIN
+Start een apart Window om een specifiek programma of commando uit te voeren.
+
+START [+|-|_] commando [argumenten]
+
+  [+|-|_]: Om het programma te maximaliseren/minimaliseren/verbergen.
+  TDe opties /MAX, /MIN, /HID worden ook geaccepteerd.
+  commando: De opdracht, het programma of het bestand dat gestart moet worden.
+  argumenten: Argumenten die aan de applicatie moeten worden doorgegeven.
+  
+START opent automatisch de Windows-opdrachtprompt om deze opdrachten uit te
+voeren en te wachten op een toetsaanslag voordat wordt afgesloten
+(gespecificeerd door de optie "startincon"):
+%s
+
+Let op: het pad dat in deze opdracht wordt opgegeven, is het pad op het
+        hostsysteem.
+.
+:PROGRAM_START_HELP
+Start een apart venster om een specifiek programma of commando uit te voeren.
+
+START /OPEN bestand
+START commando [argumenten]
+
+  /OPEN: Om een ​​bestand of URL te openen met het bijbehorende programma.
+  bestand: Het bestand of URL om te openen met het bijbehorende programma.
+  command: De opdracht of het programma dat gestart of uitgevoerd moet worden.
+  arguments: Argumenten die aan de applicatie moeten worden doorgegeven.
+  
+Let op: het pad dat in deze opdracht wordt opgegeven, is het pad op het
+        hostsysteem.
+.
+:PROGRAM_START_COMPLETED
+De uitvoering van de opdracht is voltooid.
+.
+:PROGRAM_START_COMMAND
+Starten %s...
+.
+:PROGRAM_START_CTRLC
+(Druk op Ctrl+C om onmiddellijk af te sluiten)
+.
+:PROGRAM_START_HOST_ERROR
+Fout: START kan de applicatie niet starten op het hostsysteem.
+.
+:PROGRAM_START_LAUNCH_ERROR
+Fout: START kon de applicatie niet starten.
+.
+:PROGRAM_IMGMOUNT_ELTORITO_NO_FILE
+Geef geen bestanden op bij het koppelen van floppy drives vanaf opstartbare El Torito CD's
+.
+:PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE
+Geef geen bestanden op bij het koppelen van RAM-schijven
+.
+:PROGRAM_IMGMOUNT_INVALID_SECTORSIZE
+De sectorgrootte moet groter zijn dan 512 bytes en de image-clustergrootte van %lu bytes gelijkmatig verdelen.
+.
+:PROGRAM_IMGMOUNT_OPEN_ERROR
+Kan '%s' niet openen
+.
+:PROGRAM_IMGMOUNT_QCOW2_INVALID
+qcow2 bestand '%s' wordt niet ondersteund
+.
+:PROGRAM_IMGMOUNT_GEOMETRY_ERROR
+Kan geometrie niet detecteren
+.
+:PROGRAM_IMGMOUNT_DOS_VERSION
+Voor het koppelen van dit imagebestand is een gerapporteerde DOS-versie van
+%u.%u of hoger vereist.
+%s
+.
+:PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE
+Floppygrootte niet herkend
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_USED
+Meerdere imagebestanden opgegeven en een andere schijf gebruikt al meerdere bestanden
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED
+Meerdere schijfkopieën worden niet ondersteund voor dat station
+.
+:PROGRAM_IMGMOUNT_HD_FDPOSITION
+De harde schijf kan niet in de floppy-positie worden geplaatst.
+.
+:PROGRAM_IMGMOUNT_FD_HDPOSITION
+De floppy kan niet in de harde schijf-positie worden geplaatst.
+.
+:PROGRAM_ELTORITO_ISOMOUNT
+El Torito opstartbare CD: -fs iso koppeling niet ondersteund
+.
+:PROGRAM_MODE_STATUS
+Status voor apparaat CON:
+-------------------------
+Kolommen=%d
+Lijnen=%d
+.
+:PROGRAM_MODE_NOTSUPPORTED
+
+Codepaginabewerking wordt niet ondersteund op dit apparaat
+.
+:PROGRAM_MODE_RATE_DELAY
+Snelheid en vertraging moeten samen worden gespecificeerd
+.
+:PROGRAM_UTF8_HELP
+Converteert UTF-8-tekst zodat deze in de huidige codepagina kan worden weergegeven.
+
+UTF8 < [schijf:][pad]bestand
+opdrachtnaam | UTF8
+.
+:PROGRAM_UTF8_NO_TEXT
+Geen invoertekst gevonden.
+.
+:PROGRAM_UTF8_INVALIDCP
+Ongeldige codepagina voor tekstconversie.
+.
+:PROGRAM_UTF8_NOT_UTF8
+De invoertekst is UTF-16.
+.
+:PROGRAM_UTF8_CONVERSION_ERROR
+Er is een fout opgetreden tijdens de tekstconversie.
+.
+:PROGRAM_UTF16_HELP
+Converteert UTF-16-tekst zodat deze in de huidige codepagina kan worden weergegeven.
+
+UTF16 [/BE|/LE] < [schijf:][pad]bestand
+opdrachtnaam | UTF16 [/BE|/LE]
+
+  /BE  Gebruik UTF-16 Big Endian
+  /LE  Gebruik UTF-16 Little Endian
+.
+:PROGRAM_VTEXT_HELP
+Wijzigt de V-tekstmodus voor DOS/V-emulatie.
+
+VTEXT [modus]
+
+  [modus] kan zijn 0, 1, 2, voor geen V-text,
+          V-text 1, en V-text 2 respectievelijk.
+
+Typ VTEXT zonder parameter om de huidige modus weer te geven.
+.
+:PROGRAM_NMITEST_HELP
+Genereert een niet-maskeerbare interrupt (NMI).
+
+NMITEST
+
+Let op: dit is een debugtool waarmee u kunt testen of de interrupt-handler
+        correct werkt.
+.
+:PROGRAM_NMITEST_GENERATE_NMI
+Genereer een niet-maskeerbare interrupt (NMI)...
+.
+:PROGRAM_CAPMOUSE_HELP
+Legt de muis vast in DOSBox-X of laat deze los.
+
+CAPMOUSE [/C|/R]
+
+  /C Vang de mouse
+  /R Laat de muis los
+.
+:PROGRAM_CAPMOUSE_MOUSE
+Muis 
+.
+:PROGRAM_CAPMOUSE_CURRENTLY
+is momenteel 
+.
+:PROGRAM_CAPMOUSE_CAPTURED
+gevangen
+.
+:PROGRAM_CAPMOUSE_RELEASED
+losgelaten
+.
+:PROGRAM_AUTOTYPE_HELP
+Voert gescripte toetsenbordinvoer uit in een lopend DOS-programma.
+
+AUTOTYPE [-list] [-w WACHT] [-p TEMPO] knop_1 [knop_2 [...]]
+
+Waar:
+  -list:   toont alle beschikbare knopnamen.
+  -w WACHT: seconden voordat het typen begint. Standaard 2; max 30 seconden.
+  -p TEMPO: seconden tussen elke toetsaanslag. Standaard 0.5; maximaal 10.
+  
+  De reeks bestaat uit een of meer door spaties gescheiden knoppen.
+  Automatisch typen begint na WACHT seconden en elke knop wordt elke TEMPO
+  seconden ingedrukt. Het teken , voegt een extra TEMPO-vertraging toe.
+  
+Voorbeelden:
+  ←[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter←[0m
+  ←[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter←[0m
+  ←[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter←[0m
+.
+:PROGRAM_AUTOTYPE_NO_BINDINGS
+AUTOTYPE: De mapper heeft geen toetscombinaties
+.
+:PROGRAM_AUTOTYPE_CLAMP_VALUE
+AUTOTYPE: begrenzing van de %s-waarde van %.2f tot %.2f
+.
+:PROGRAM_AUTOTYPE_INVALID_VALUE
+AUTOTYPE: %s-waarde '%s' is geen geldig drijvendekommagetal
+.
+:PROGRAM_ADDKEY_HELP
+Genereert kunstmatige toetsaanslagen.
+
+ADDKEY [pmsec] [toets]
+
+In het onderstaande commando typt u bijvoorbeeld "dir" gevolgd door ENTER
+na 1 seconde:
+
+ADDKEY p1000 d i r enter
+
+In plaats van deze opdracht kunt u ook de opdracht AUTOTYPE proberen om via een
+script invoer via het toetsenbord uit te voeren in een lopend DOS-programma.
+.
+:PROGRAM_SETCOLOR_HELP
+Bekijkt of wijzigt de kleurenschema-instellingen van de tekstmodus.
+
+SETCOLOR [kleur# [waarde]]
+
+Bijvoorbeeld:
+
+   ←[32;1mSETCOLOR 0 (50,50,50)←[0m
+Verander kleur #0 naar de opgegeven kleurwaarde
+
+   ←[32;1mSETCOLOR 7 -←[0m
+Zet kleur #7 terug naar de standaardkleurwaarde
+
+   ←[32;1mSETCOLOR 3 +←[0m
+Kleur #3 terugzetten naar de vooraf ingestelde kleurwaarde
+
+   ←[32;1mSETCOLOR MONO←[0m
+Weergave van de huidige MONO-modusstatus
+
+Om de huidige achtergrond- en voorgrondkleur te wijzigen, gebruikt u de
+opdracht 'COLOR'.
+.
+:PROGRAM_SETCOLOR_STATUS
+Status MONO-modus: %s (videomodus %d)
+
+.
+:PROGRAM_SETCOLOR_ACTIVE
+actief
+.
+:PROGRAM_SETCOLOR_INACTIVE
+inactief
+.
+:PROGRAM_SETCOLOR_UNAVAILABLE
+onbeschikbaar
+.
+:PROGRAM_SETCOLOR_MONO_MODE7
+MONO-modusstatus => actief (videomodus 7)
+.
+:PROGRAM_SETCOLOR_MONO_MODE3
+MONO-modusstatus => inactief (videomodus 3)
+.
+:PROGRAM_SETCOLOR_MONO_FAIL
+Kan de MONO-modus niet wijzigen
+.
+:PROGRAM_SETCOLOR_MONO_SYNTAX
+Moet + of - zijn voor MONO: %s
+.
+:PROGRAM_SETCOLOR_COLOR
+Kleur %d: (%d,%d,%d) of #%02x%02x%02x
+
+.
+:PROGRAM_SETCOLOR_INVALID_NUMBER
+Ongeldig kleurnummer - %s
+.
+:PROGRAM_SETCOLOR_INVALID_VALUE
+Ongeldige kleurwaarde - %s
+.
+:PROGRAM_SETCOLOR_NOT_SUPPORTED
+Het wijzigen van het kleurenschema wordt niet ondersteund voor de huidige videomodus.
+.
+:PROGRAM_BOOT_UNKNOWN_BOOTHAX
+Onbekende boothax-modus
+.
+:PROGRAM_BOOT_SPECIFY_FILE
+Moet een BIOS-image opgeven om op te starten
+.
+:PROGRAM_BOOT_BIOS_OPEN_ERROR
+BIOS-image kan niet worden geopend
+.
+:PROGRAM_BIOSTEST_SPECIFY_FILE
+Moet een BIOS-bestand opgeven om op te laden.
+.
+:PROGRAM_BIOSTEST_OPEN_ERROR
+Kan een bestand niet openen
+.
+:PROGRAM_BIOSTEST_TOO_LARGE
+BIOS-bestand te groot
+.
+:PROGRAM_DELTREE_HELP
+Verwijdert een map en alle submappen en bestanden daarin.
+
+Om een ​​of meer bestanden en mappen te verwijderen:
+DELTREE [/Y] [schijf:]pad [[schijf:]pad[...]]
+
+  /Y              Onderdrukt de vraag om te bevestigen dat u de submap wilt
+                  verwijderen.
+  [schijf:]pad    De naam van de map die u wilt verwijderen.
+
+Let op: Gebruik DELTREE met de nodige voorzichtigheid. Elk bestand en elke
+        submap in de opgegeven map wordt verwijderd.
+
+.
+:PROGRAM_TREE_HELP
+Toon de directorystructuur van een station of pad weer.
+
+TREE [schijf:][pad] [/F] [/A]
+
+  /F   Geeft de namen van de bestanden in elke map weer.
+  /A   Gebruikt ASCII in plaats van uitgebreide tekens.
+
+.
+:PROGRAM_TITLE_HELP
+Stelt de venstertitel in voor het DOSBox-X-venster.
+
+TITLE [tekenreeks]
+
+  tekenreeks    Geeft de titel voor het DOSBox-X-venster op.
+
+.
+:PROGRAM_COLOR_HELP
+Stelt de standaard voor- en achtergrondkleuren van de console in.
+
+COLOR [attr]
+
+  attr        Specificeert het kleurattribuut van de console-uitvoer
+  
+Kleurkenmerken worden gespecificeerd door TWEE hexadecimale karakters:
+het eerste komt overeen met de achtergrond en het tweede met de voorgrond.
+Elk cijfer kan een van de volgende waarden hebben:
+
+    0 = Zwart       8 = Grijs
+    1 = Blauw       9 = Lichtblauw
+    2 = Groen       A = Lichtgroen
+    3 = Aqua        B = Lichtaqua
+    4 = Rood        C = Lichtrood
+    5 = Paars       D = Lichtpaars
+    6 = Geel        E = Lichtgeel
+    7 = Wit         F = Helderwit
+
+Zonder argument, herstelt deze opdracht de originele kleur.
+
+Met de opdracht COLOR wordt ERRORLEVEL ingesteld op 1 als wordt geprobeerd de
+opdracht COLOR uit te voeren met dezelfde voor- en achtergrondkleur.
+
+Voorbeeld: "COLOR fc" produceert lichtrood op helderwit.
+
+.
+:PROGRAM_SWITCH_LANG
+U hebt de actieve codepagina gewijzigd naar %d.
+Wilt u taalbestand %s voor deze codepagina laden?
+.
+:PROGRAM_ALREADY_MOUNTED
+Schijf %s: is al gekoppeld. Ontkoppel het eerst en probeer het opnieuw.
+.
+:PROGRAM_DRIVE_NO_EXIST
+Schijf %s: bestaat niet in het systeem.
+.
+:PROGRAM_DRIVE_WARN
+Wilt u DOSBox-X echt toegang geven tot uw echte %s schijf %s?
+.
+:DRIVE_TYPE_FLOPPY
+diskette
+.
+:DRIVE_TYPE_REMOVABLE
+verwijderbaar
+.
+:DRIVE_TYPE_NETWORK
+netwerk
+.
+:DRIVE_TYPE_HARD
+hard
+.
+:DRIVE_TYPE_LOCAL
+lokaal
+.
+:DRIVE_TYPE_CDROM
+CD-ROM
+.
+:PROGRAM_CDDRIVE_WARN
+CD-station %s is momenteel gekoppeld met imagebestand:
+
+%s
+
+Wilt u het CD-image nu wijzigen?
+.
+:PROGRAM_CDMOUNT_ERROR
+De geselecteerde CD-image kon niet worden gekoppeld.
+.
+:ELTORITO_IMAGE
+El Torito disketteimage
+.
+:RAM_FLOPPY_IMAGE
+RAM disketteimage
+.
+:PROGRAM_FLOPPY_WARN
+Diskettestation %s is momenteel gekoppeld met image-bestand:
+
+%s
+
+Wilt u de disketteimage nu wijzigen?
+.
+:PROGRAM_FLOPPYMOUNT_ERROR
+Kan de geselecteerde disketteimage niet koppelen.
+.
+:PROGRAM_MOUNT_MORE_IMAGES
+Wilt u meer imagebestanden koppelen?
+.
+:PROGRAM_MOUNT_PATH_TOOLONG
+Het pad voor de te koppelen bestanden is te lang.
+.
+:PROGRAM_BOOT_FAILED
+Station %s: opstarten mislukt.
+.
+:PROGRAM_MOUNT_FAILED
+Station %s: koppelen mislukt.
+.
+:PROGRAM_MOUNT_IMAGE
+%s aan schijf %s gekoppeld:
+%s %s
+.
+:ARCHIVE
+archief
+.
+:DISK_IMAGE
+schijfimage
+.
+:READONLY_MODE
+Alleen-lezen-modus
+.
+:PROGRAM_MOUNT_SELECT_DRIVE
+Selecteer een station/map om te koppelen voor station %s: als %s
+.
+:PROGRAM_MOUNT_CDROM_SUPPORT
+Het koppelen van een directory als CD-ROM biedt beperkte ondersteuning.
+.
+:PROGRAM_MOUNT_NOT_MOUNTED
+Station %s: is nog niet gekoppeld.
+.
+:PROGRAM_PROGRAM_ALREADY
+Er is al een ander programma actief.
+.
+:PROGRAM_SHELL_ALREADY
+Er is momenteel een andere shell actief.
+.
+:PROGRAM_MOUNT_SUCCESS
+Station %s is nu gekoppeld aan:
+%s
+.
+:PROGRAM_WARN_QUICKLAUNCH
+Snel starten koppelt station C automatisch in DOSBox-X.
+Station C is al gekoppeld. Wilt u doorgaan?
+.
+:PROGRAM_NO_EXECUTABLE
+Uitvoerbaar bestand niet gevonden.
+.
+:PROGRAM_EXEC_FINISHED
+Het programma is voltooid. Wilt u station %s nu ontkoppelen?
+.
+:PROGRAM_ASK_CHCP
+Schijf %c: vereist mogelijk codepagina %d om correct toegankelijk te zijn.
+
+Wilt u de huidige codepagina nu wijzigen naar %d?
+.
+:PROGRAM_CHANGING_CODEPAGE
+Codepagina wijzigen
 .

@@ -2287,7 +2287,7 @@ void POD_Save_DOS_Files( std::ostream& stream )
 			//**********************************************
 			//**********************************************
 
-			file_namelen = (uint8_t)strlen( Files[lcv]->name );
+			file_namelen = (uint8_t)( strlen( Files[lcv]->name ) + 1 );
 			file_name = (char *) alloca( file_namelen );
 			strcpy( file_name, Files[lcv]->name );
 

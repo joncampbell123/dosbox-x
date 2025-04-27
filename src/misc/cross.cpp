@@ -16,7 +16,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
 #include "dosbox.h"
 #include "cross.h"
 #include "support.h"
@@ -184,6 +183,8 @@ void Cross::GetPlatformConfigName(std::string& in) {
 #define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
 #elif defined(MACOSX)
 #define DEFAULT_CONFIG_FILE "DOSBox-X " VERSION " Preferences"
+#elif defined(OS2) && defined(C_SDL2)
+#define DEFAULT_CONFIG_FILE "dosbox-x-" PACKAGE_VERSION ".conf"
 #else /*linux freebsd*/
 #define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
 #endif

@@ -239,15 +239,19 @@ static INLINE void SSE_MOVLPS(XMM_Reg &d,const XMM_Reg &s) {
 ////
 
 static INLINE void SSE_UNPCKLPS(XMM_Reg &d,const XMM_Reg &s) {
-	d.u32[0] = d.u32[1] = s.u32[0];
-	d.u32[2] = d.u32[3] = s.u32[1];
+	//d.u32[0] = d.u32[0];
+    d.u32[2] = d.u32[1];
+    d.u32[1] = s.u32[0];
+	d.u32[3] = s.u32[1];
 }
 
 ////
 
 static INLINE void SSE_UNPCKHPS(XMM_Reg &d,const XMM_Reg &s) {
-	d.u32[0] = d.u32[1] = s.u32[2];
-	d.u32[2] = d.u32[3] = s.u32[3];
+	d.u32[0] = d.u32[2];
+    d.u32[2] = d.u32[3];
+    d.u32[1] = s.u32[2];
+	d.u32[3] = s.u32[3];
 }
 
 ////
@@ -807,9 +811,9 @@ static INLINE void MMX_PSADBW(MMX_reg &d,MMX_reg &s) {
 
 static INLINE void SSE_PSADBW(XMM_Reg &d,XMM_Reg &s) {
 #define STEP(i) (uint16_t)abs((int16_t)(d.u8[i]) - (int16_t)(s.u8[i]))
-	d.u16[0] = STEP(0) + STEP(1) + STEP(2) + STEP(3) + STEP(4) + STEP(5) + STEP(6) + STEP(7) +
-			STEP(8) + STEP(9) + STEP(10) + STEP(11) + STEP(12) + STEP(13) + STEP(14) + STEP(15);
-	d.u16[1] = d.u16[2] = d.u16[3] = d.u16[4] = d.u16[5] = d.u16[6] = d.u16[7] = 0;
+	d.u16[0] = STEP(0) + STEP(1) + STEP(2) + STEP(3) + STEP(4) + STEP(5) + STEP(6) + STEP(7);
+    d.u16[4] = STEP(8) + STEP(9) + STEP(10) + STEP(11) + STEP(12) + STEP(13) + STEP(14) + STEP(15);
+	d.u16[1] = d.u16[2] = d.u16[3] = d.u16[5] = d.u16[6] = d.u16[7] = 0;
 #undef STEP
 }
 
