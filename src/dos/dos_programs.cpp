@@ -10460,7 +10460,21 @@ void DOS_SetupPrograms(void) {
             "because one or more files are currently open.\nAre you sure to quit anyway now?");
     MSG_Add("QUIT_PROGRAM_DISABLED","You cannot quit DOSBox-X while running a program or game.");
     MSG_Add("QUIT_PROGRAM_CONFIRM","You are currently running a program or game.\nAre you sure to quit anyway now?");
-
+    MSG_Add("SCALER_LOAD_WARN","This scaler may not work properly or have undesired effect:\n\n%s\n\n"
+            "Do you want to force load the scaler?");
+    MSG_Add("PIXEL_SHADER_WARN","This pixel shader may be unneeded or have undesired effect:\n\n%s\n\n"
+            "Do you want to load the pixel shader anyway?\n\n"
+            "(You may append 'forced' to the pixelshader setting to force load the pixel shader without this message)");
+    MSG_Add("PIXEL_SHADER_LOADED", "Loaded pixel shader - %s");
+    MSG_Add("MAPPEREDITOR_NOT_AVAILABLE","Mapper Editor is not currently available.");
+    MSG_Add("OPL_REC_COMPLETED","Saved Raw OPL output to the file:\n\n%s");
+    MSG_Add("OPL_CAPTURE_FAILED","Cannot capture Raw OPL output because ESFM native mode is being used by the current "
+            "application, which is not supported by the Raw OPL format.");
+    MSG_Add("TTF_DBCS_ONLY","This function is only available for the Chinese/Japanese/Korean code pages.");
+    MSG_Add("SAVE_FAILED","Failed to save the current state.");
+    MSG_Add("SAVE_CORRUPTED","Save state corrupted! Program may not work.");
+    MSG_Add("SAVE_SCREENSHOT","Saved screenshot to the file:\n\n%s");
+    
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
 
