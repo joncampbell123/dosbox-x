@@ -1103,36 +1103,7 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 bool warn_on_mem_write = false;
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) ;
 
-#if defined(LINUX)
-std::string replaceNewlineWithEscaped(const std::string& input) {
-    std::string output;
-    size_t i = 0;
-
-    while (i < input.length()) {
-        if (input[i] == '\\') {
-            if(input[i+1] != 'n') output += '\\'; // "\n" needs to be escaped to "\\n" 
-        }
-        else if (input[i] == '\n'){
-            output += "\\\\n";   // '\n' needs to be replaced to "\\n" 
-            i++;
-        }
-        else if(input[i] == '`'){
-            output += "\\`";  // '`' needs to be replaced to "\\`" 
-            i++;
-        }
-        else if(input[i] == '"'){
-            output += "\\\"";  // '"' needs to be replaced to "\\\"" 
-            i++;
-        }
-        else  {
-            output += input[i];
-            i++;
-        }
-    }
-
-    return output;
-}
-#elif defined(WIN32)
+#if defined(WIN32)
 char* convert_escape_newlines(const char* aMessage) {
     size_t len = strlen(aMessage);
     char* lMessage = (char*)malloc(len * 2 + 1); // Allocate memory considering convert to UTF8
@@ -1198,6 +1169,35 @@ std::string replaceNewlineWithEscaped(const std::string& input) {
             output += input[i];
         }
     }
+    return output;
+}
+#else
+std::string replaceNewlineWithEscaped(const std::string& input) {
+    std::string output;
+    size_t i = 0;
+
+    while(i < input.length()) {
+        if(input[i] == '\\') {
+            if(input[i + 1] != 'n') output += '\\'; // "\n" needs to be escaped to "\\n" 
+        }
+        else if(input[i] == '\n') {
+            output += "\\\\n";   // '\n' needs to be replaced to "\\n" 
+            i++;
+        }
+        else if(input[i] == '`') {
+            output += "\\`";  // '`' needs to be replaced to "\\`" 
+            i++;
+        }
+        else if(input[i] == '"') {
+            output += "\\\"";  // '"' needs to be replaced to "\\\"" 
+            i++;
+        }
+        else {
+            output += input[i];
+            i++;
+        }
+    }
+
     return output;
 }
 #endif
