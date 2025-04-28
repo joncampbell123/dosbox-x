@@ -573,14 +573,14 @@ done:
 	if (!dos_kernel_disabled) flagged_backup((char *)save.c_str());
 
 	if (save_err)
-		notifyError("Failed to save the current state.");
+		notifyError(MSG_Get("SAVE_FAILED"));
 	else
 		LOG_MSG("[%s]: Saved. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
 
 void savestatecorrupt(const char* part) {
 	LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
-	systemmessagebox("Error","Save state corrupted! Program may not work.","ok","error", 1);
+	systemmessagebox("Error", MSG_Get("SAVE_CORRUPTED"),"ok","error", 1);
 }
 
 bool confres=false;

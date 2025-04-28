@@ -511,7 +511,7 @@ void RENDER_Reset( void ) {
 		goto forcenormal;
 
 	if(render.scale.prompt && (!dblh || !dblw) && !((dblh || dblw) && !render.scale.hardware) && scalerOpTV != render.scale.op && scaler != "none" && strncasecmp(scaler.c_str(), "normal", 6) && !render.scale.forced && sdl.desktop.want_type != SCREEN_TTF) {
-		std::string message = "This scaler may not work properly or have undesired effect:\n\n"+scaler+"\n\nDo you want to force load the scaler?";
+		std::string message = formatString(MSG_Get("SCALER_LOAD_WARN"), scaler.c_str());
 		render.scale.forced = systemmessagebox("Loading scaler", message.c_str(), "yesno","question", 1);
 		render.scale.prompt = false;
 	}
