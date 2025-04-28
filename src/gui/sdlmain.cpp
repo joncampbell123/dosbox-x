@@ -1103,7 +1103,7 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 bool warn_on_mem_write = false;
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) ;
 
-#ifdef LINUX
+#if defined(LINUX)
 std::string replaceNewlineWithEscaped(const std::string& input) {
     std::string output;
     size_t i = 0;
@@ -1132,7 +1132,7 @@ std::string replaceNewlineWithEscaped(const std::string& input) {
 
     return output;
 }
-#else
+#elif defined(WIN32)
 char* convert_escape_newlines(const char* aMessage) {
     size_t len = strlen(aMessage);
     char* lMessage = (char*)malloc(len * 2 + 1); // Allocate memory considering convert to UTF8
@@ -1179,27 +1179,54 @@ char* revert_escape_newlines(const char* aMessage) {
     *dst = '\0'; // Terminate with NULL character
     return lMessage;
 }
+#elif defined(MACOSX)
+std::string replaceNewlineWithEscaped(const std::string& input) {
+    std::string output;
+    for (size_t i = 0; i < input.length(); ++i) {
+        if (input[i] == '\'') {  // Close, escape and open
+            output += "'\\''";
+        }
+        else if (input[i] == '\n'){
+            output += "\\n";   // '\n' needs to be replaced to "\\n" 
+            i++;
+        }
+        //else if (input[i] == '\"'){
+        //    output += "\\\"";   // '"' needs to be replaced to "\\\"" 
+        //    i++;
+        //}
+        else {
+            output += input[i];
+        }
+    }
+    return output;
+}
 #endif
 
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)
     if(!aMessage) aMessage = "";
     std::string lDialogString(aMessage);
+    std::string lTitleString(aTitle);
     std::replace(lDialogString.begin(), lDialogString.end(), '\"', ' ');
-
+    std::replace(lTitleString.begin(), lTitleString.end(), '\"', ' ');
     bool fs=sdl.desktop.fullscreen;
     if (fs) GFX_SwitchFullScreen();
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     GFX_ReleaseMouse();
 
-#ifdef LINUX
+#ifndef WIN32
     size_t aMessageLength = strlen(aMessage);
+    size_t aTitleLength = strlen(aTitle);
     char* lMessage = (char*)malloc((aMessageLength * 2 + 1) * sizeof(char));  // DBCS may expand to 3 to 4 bytes when converted to UTF-8
+    char* lTitle = (char*)malloc((aTitleLength * 2 + 1) * sizeof(char));  // DBCS may expand to 3 to 4 bytes when converted to UTF-8
     lDialogString = replaceNewlineWithEscaped(lDialogString); // String may include "\n" which needs to be escaped to "\\n" 
     CodePageGuestToHostUTF8(lMessage, lDialogString.c_str());
-    bool ret=tinyfd_messageBox(aTitle, lMessage, aDialogType, aIconType, aDefaultButton);
+    lTitleString = replaceNewlineWithEscaped(lTitleString); // String may include "\n" which needs to be escaped to "\\n" 
+    CodePageGuestToHostUTF8(lTitle, lTitleString.c_str());
+    bool ret=tinyfd_messageBox(lTitle, lMessage, aDialogType, aIconType, aDefaultButton);
     free(lMessage);
+    free(lTitle);
 #else
     char* temp_message = convert_escape_newlines(aMessage); //FIX_ME: CodePageGuestToHostUTF8() gives weird results for '\n'
     size_t max_utf8_len = strlen(temp_message) * 3 + 1;
