@@ -1337,16 +1337,20 @@ void OPL_SaveRawEvent(bool pressed) {
 
 //	SaveRad();return;
 	/* Check for previously opened wave file */
-	if ( module->capture ) {
+    std::string message;
+    if ( module->capture ) {
 		delete module->capture;
 		module->capture = nullptr;
 		LOG_MSG("Stopped Raw OPL capturing.");
-		if (show_recorded_filename && pathopl.size()) systemmessagebox("Recording completed",("Saved Raw OPL output to the file:\n\n"+pathopl).c_str(),"ok", "info", 1);
+        if(show_recorded_filename && pathopl.size()) {
+            message = formatString(MSG_Get("OPL_REC_COMPLETED"), pathopl.c_str());
+            systemmessagebox("Recording completed", message.c_str(), "ok", "info", 1);
+        }
 	} else {
 		if (module->oplmode == OPL_esfm && module->esfm_nativemode) {
 			LOG_MSG("ERROR: Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.");
 			if (show_recorded_filename) {
-				systemmessagebox("Error", "Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.", "ok", "error", 1);
+                systemmessagebox("Error",MSG_Get("OPL_CAPTURE_FAILED"), "ok", "error", 1);
 			}
 		} else {
 			LOG_MSG("Preparing to capture Raw OPL, will start with first note played.");

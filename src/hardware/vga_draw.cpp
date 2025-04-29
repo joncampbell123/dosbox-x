@@ -5642,6 +5642,7 @@ void WriteARawImage(rawscreenshot &rawimg,rawscreenshot &rawpal,const char *ext)
 	png_destroy_write_struct(&png_ptr, &info_ptr);
 	/*close file*/
 	fclose(fp);
+    std::string message = formatString(MSG_Get("SAVE_SCREENSHOT"), pathscr.c_str());
 	if (show_recorded_filename && pathscr.size()) systemmessagebox("Recording completed",("Saved screenshot to the file:\n\n"+pathscr).c_str(),"ok", "info", 1);
 }
 #endif

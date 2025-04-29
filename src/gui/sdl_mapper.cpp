@@ -5336,7 +5336,7 @@ void MAPPER_RunInternal() {
     /* Sorry, the MAPPER screws up 3Dfx OpenGL emulation.
      * Remove this block when fixed. */
     if (GFX_GetPreventFullscreen()) {
-        systemmessagebox("Mapper Editor","Mapper Editor is not currently available.","ok", "info", 1);
+        systemmessagebox("Mapper Editor", MSG_Get("MAPPEREDITOR_NOT_AVAILABLE"),"ok", "info", 1);
         LOG_MSG("Mapper Editor is not available while 3Dfx OpenGL emulation is running");
         return;
     }

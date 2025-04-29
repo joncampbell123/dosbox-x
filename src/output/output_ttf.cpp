@@ -1345,7 +1345,7 @@ void TTF_DecreaseSize(bool pressed) {
 void DBCSSBCS_mapper_shortcut(bool pressed) {
     if (!pressed) return;
     if (!isDBCSCP()) {
-        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
+        systemmessagebox("Warning", MSG_Get("TTF_DBCS_ONLY"), "ok","warning", 1);
         return;
     }
     dbcs_sbcs=!dbcs_sbcs;
@@ -1357,7 +1357,7 @@ void DBCSSBCS_mapper_shortcut(bool pressed) {
 void AutoBoxDraw_mapper_shortcut(bool pressed) {
     if (!pressed) return;
     if (!isDBCSCP()) {
-        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
+        systemmessagebox("Warning", MSG_Get("TTF_DBCS_ONLY"), "ok","warning", 1);
         return;
     }
     autoboxdraw=!autoboxdraw;
