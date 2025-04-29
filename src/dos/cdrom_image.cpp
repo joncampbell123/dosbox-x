@@ -46,6 +46,12 @@
 #include "logging.h"
 #include "support.h"
 #include "setup.h"
+
+#ifdef __MINGW32__
+#ifndef __MINGW64__
+#pragma push_macro("__inline__")
+#endif
+#endif
 #include "src/libs/decoders/audio_convert.c"
 #include "src/libs/decoders/SDL_sound.c"
 #include "src/libs/decoders/vorbis.c"
@@ -55,6 +61,11 @@
 #include "src/libs/decoders/mp3_seek_table.cpp"
 #include "src/libs/decoders/mp3.cpp"
 #include "src/libs/decoders/dr_flac.h"
+#ifdef __MINGW32__
+#ifndef __MINGW64__
+#pragma pop_macro("__inline__")
+#endif
+#endif
 #include "src/libs/libchdr/chd.h"
 #include "src/libs/libchdr/libchdr_chd.c"
 #include "src/libs/libchdr/libchdr_cdrom.c"
