@@ -1079,14 +1079,14 @@ Meerdere bestanden wordt alleen ondersteund voor cue/iso-imagebestanden.
 
 .
 :PROGRAM_IMGMOUNT_HELP
-Koppeld floppy, harde schijf en optische schijf-images.
-←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
-←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]
-←[32;1mIMGMOUNT←[0m ←[37;1mdriveNum←[0m ←[36;1mfile←[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
-←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-t iso] [-fs iso]
-←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m [-t floppy] -bootcd cdDrive (of -el-torito cdDrive)
-←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m -t ram -size size
-←[32;1mIMGMOUNT←[0m -u ←[37;1mdrive|driveNum←[0m (of ←[32;1mIMGMOUNT←[0m ←[37;1mdrive|driveNum←[0m ←[36;1mfile←[0m [opties] -u)
+Koppelt floppy, harde schijf en optische schijf-images.
+←[32;1mIMGMOUNT←[0m ←[37;1mschijf←[0m ←[36;1mbestand←[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
+←[32;1mIMGMOUNT←[0m ←[37;1mschijf←[0m ←[36;1mbestand←[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]
+←[32;1mIMGMOUNT←[0m ←[37;1mschijfNum←[0m ←[36;1mbestand←[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+←[32;1mIMGMOUNT←[0m ←[37;1mschijf←[0m ←[36;1mbestand←[0m [-t iso] [-fs iso]
+←[32;1mIMGMOUNT←[0m ←[37;1mschijf←[0m [-t floppy] -bootcd cdDrive (of -el-torito cdDrive)
+←[32;1mIMGMOUNT←[0m ←[37;1mschijf←[0m -t ram -size groote
+←[32;1mIMGMOUNT←[0m -u ←[37;1mschijf|schijfNum←[0m (of ←[32;1mIMGMOUNT←[0m ←[37;1mschijf|schijfNum←[0m ←[36;1mbestand←[0m [opties] -u)
  ←[37;1mdrive←[0m               Schijfletter om image te koppelen.
  ←[37;1mdriveNum←[0m            Schijfnummer, waar 0-1 zijn FDDs, 2-5 zijn HDDs.
  ←[36;1mfile←[0m                Imagebestand(en), of ←[33;1mIMGMAKE.IMG←[0m als niet gespecificeerd.
@@ -3703,8 +3703,7 @@ Markeert bestanden die moeten worden opgeslagen voor de "save-state" functie.
 FLAGSAVE [bestand(en) [/F] [/R]] [/U]
 
   bestand(en) Een of meer bestanden om te markeren voor opslag.
-  /F          Forceert het markeren van de bestanden, zelfs als ze niet worden
-              gevonden.
+  /F          Forceer het markeren van bestanden, zelfs indien niet gevonden.
   /R          Verwijdert markering van de opgegeven bestanden.
   /U          Verwijdert markering van alle bestanden.
 
@@ -4001,8 +4000,8 @@ qcow2 bestand '%s' wordt niet ondersteund
 Kan geometrie niet detecteren
 .
 :PROGRAM_IMGMOUNT_DOS_VERSION
-Voor het koppelen van dit imagebestand is een gerapporteerde DOS-versie van
-%u.%u of hoger vereist.
+koppelen van dit imagebestand vereist een gerapporteerde DOS-versie van
+%u.%u of hoger.
 %s
 .
 :PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE
@@ -4078,8 +4077,7 @@ Genereert een niet-maskeerbare interrupt (NMI).
 
 NMITEST
 
-Let op: dit is een debugtool waarmee u kunt testen of de interrupt-handler
-        correct werkt.
+Let op: dit is een debugtool om te testen of de interrupt-handler correct werkt
 .
 :PROGRAM_NMITEST_GENERATE_NMI
 Genereer een niet-maskeerbare interrupt (NMI)...
@@ -4164,8 +4162,8 @@ Kleur #3 terugzetten naar de vooraf ingestelde kleurwaarde
    ←[32;1mSETCOLOR MONO←[0m
 Weergave van de huidige MONO-modusstatus
 
-Om de huidige achtergrond- en voorgrondkleur te wijzigen, gebruikt u de
-opdracht 'COLOR'.
+Gebruik de 'COLOR' opdracht om de huidige achtergrond- of voorgrondkleur te
+wijzigen.
 .
 :PROGRAM_SETCOLOR_STATUS
 Status MONO-modus: %s (videomodus %d)
@@ -4203,19 +4201,19 @@ Ongeldig kleurnummer - %s
 Ongeldige kleurwaarde - %s
 .
 :PROGRAM_SETCOLOR_NOT_SUPPORTED
-Het wijzigen van het kleurenschema wordt niet ondersteund voor de huidige videomodus.
+Wijzigen van het kleurenschema is niet ondersteund voor de huidige videomodus.
 .
 :PROGRAM_BOOT_UNKNOWN_BOOTHAX
 Onbekende boothax-modus
 .
 :PROGRAM_BOOT_SPECIFY_FILE
-Moet een BIOS-image opgeven om op te starten
+Specificeer een BIOS-image bestand om op te starten
 .
 :PROGRAM_BOOT_BIOS_OPEN_ERROR
 BIOS-image kan niet worden geopend
 .
 :PROGRAM_BIOSTEST_SPECIFY_FILE
-Moet een BIOS-bestand opgeven om op te laden.
+Specificeer een BIOS-image bestand om op te laden.
 .
 :PROGRAM_BIOSTEST_OPEN_ERROR
 Kan een bestand niet openen
@@ -4400,4 +4398,82 @@ Wilt u de huidige codepagina nu wijzigen naar %d?
 .
 :PROGRAM_CHANGING_CODEPAGE
 Codepagina wijzigen
+.
+:IMAGEMOUNT_CHANGE_DOSVER
+Voor het koppelen van dit type schijf-image is een gerapporteerde DOS-versie
+van %s of hoger vereist. Wilt u de gerapporteerde DOS-versie automatisch
+wijzigen naar %s en de schijf-image koppelen?
+.
+:MENU_DRIVE_NOTEXIST
+Station bestaat niet of is gekoppeld vanaf een schijf-image.
+.
+:MENU_SAVE_IMAGE_FAILED
+Het opslaan van de schijf-image is mislukt.
+.
+:MENU_JP_CPONLY
+Deze functie is alleen beschikbaar voor de Japanse codepagina (932).
+.
+:MENU_CN_CPONLY
+Deze functie is alleen beschikbaar voor Chinese codepagina's (936 of 950).
+.
+:MENU_GLIDE_ERROR
+Glide-passthrough kan niet worden ingeschakeld. Controleer de installatie van
+de Glide-wrapper.
+.
+:MENU_HIGH_INTENSITY_ERROR
+Hoge intensiteit wordt niet ondersteund voor de huidige videomodus.
+.
+:MENU_SAVE_FILE_ERROR
+Kan niet opslaan naar bestand: %s
+.
+:MENU_INT2F_SUCCESS
+De INT 2Fh-haak is succesvol ingesteld.
+.
+:MENU_INT2F_ALREADY_SET
+De INT 2Fh-haak was al ingesteld.
+.
+:QUIT_DISABLED
+Momenteel is het afsluiten van DOSBox-X hiermee uitgeschakeld.
+.
+:QUIT_CONFIRM
+Dit sluit DOSBox-X af.
+Bent u zeker?
+.
+:QUIT_GUEST_DISABLED
+U kunt DOSBox-X niet afsluiten terwijl u een gastsysteem draait.
+.
+:QUIT_GUEST_CONFIRM
+U gebruikt momenteel een gastsysteem.
+Weet u zeker dat u het nu toch wilt afsluiten?
+.
+:QUIT_FILE_OPEN_DISABLED
+U kunt DOSBox-X niet afsluiten terwijl er één of meer bestanden openstaan.
+.
+:QUIT_FILE_OPEN_CONFIRM
+Het is mogelijk onveilig om DOSBox-X nu af te sluiten,
+omdat er een of meer bestanden geopend zijn.
+Weet u zeker dat u DOSBox-X nu toch wilt afsluiten?
+.
+:QUIT_PROGRAM_DISABLED
+U kunt DOSBox-X niet afsluiten terwijl u een programma of spel draait.
+.
+:QUIT_PROGRAM_CONFIRM
+U voert momenteel een programma of spel uit.
+Weet u zeker dat u nu toch wilt stoppen?
+.
+:LANG_JP_INCOMPATIBLE
+U heeft een taalbestand opgegeven dat een codepagina gebruikt die niet
+compatibel is met het Japanse PC-98- of JEGA/AX-systeem.
+
+Weet u zeker dat u het taalbestand voor dit machinetype wilt gebruiken?
+.
+:LANG_DOSV_INCOMPATIBLE
+U heeft een taalbestand opgegeven dat een codepagina gebruikt die niet
+compatibel is met het huidige DOS/V-systeem.
+
+Weet u zeker dat u het taalbestand voor dit systeemtype wilt gebruiken?
+.
+:LANG_CHANGE_CP
+Het opgegeven taalbestand gebruikt codepagina %d. Wilt u naar deze
+codepagina overschakelen?
 .
