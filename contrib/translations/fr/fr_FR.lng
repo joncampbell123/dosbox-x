@@ -4455,7 +4455,8 @@ Le crochet INT 2Fh a déjà été mis en place.
 La sortie de DOSBox-X par ce biais est actuellement désactivée.
 .
 :QUIT_CONFIRM
-Cela permet de quitter DOSBox-X.\nÊtes-vous sûr ?
+Cela permet de quitter DOSBox-X.
+Êtes-vous sûr ?
 .
 :QUIT_GUEST_DISABLED
 Vous ne pouvez pas quitter DOSBox-X pendant l'exécution 
@@ -4471,7 +4472,7 @@ fichiers sont ouverts.
 .
 :QUIT_FILE_OPEN_CONFIRM
 Il n'est peut-être pas sûr de quitter DOSBox-X maintenant
-parce qu'un ou plusieurs fichiers sont actuellement ouverts.\n
+parce qu'un ou plusieurs fichiers sont actuellement ouverts.
 Etes-vous sûr de vouloir quitter maintenant ?
 .
 :QUIT_PROGRAM_DISABLED
@@ -4481,4 +4482,18 @@ d'un programme ou d'un jeu.
 :QUIT_PROGRAM_CONFIRM
 Vous êtes en train d'exécuter un programme ou un jeu.
 Êtes-vous sûr de vouloir quitter maintenant ?
+.
+.
+:LANG_JP_INCOMPATIBLE
+Vous avez spécifié un fichier de langue qui utilise un code de page incompatible avec le système japonais PC-98 ou JEGA/AX.
+
+Êtes-vous sûr d'utiliser le fichier de langue correspondant à ce type de machine ?
+.
+:LANG_DOSV_INCOMPATIBLE
+Vous avez spécifié un fichier de langue qui utilise un code de page incompatible avec le système DOS/V actuel.
+
+Êtes-vous sûr d'utiliser le fichier de langue pour ce type de système ?
+.
+:LANG_CHANGE_CP
+Le fichier de langue spécifié utilise la page de code %d. Voulez-vous passer à cette page de code en conséquence ?.
 .
