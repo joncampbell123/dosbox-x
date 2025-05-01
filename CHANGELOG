@@ -1,4 +1,7 @@
 Next
+  - Show TURBO status in title bar. (maron2000)
+  - Fixed MinGW32 builds failed using gcc15, due to a conflict in __inline__ 
+    macro. (lazka)
   - Revise EGA/VGA emulation to treat the CRTC CGA/Hercules
     CRTC bit remapping as bits to mask out, instead of defining
     the upper limit of the memory mask. This makes the CGA mode
