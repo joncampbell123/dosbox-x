@@ -1534,11 +1534,14 @@ void DOSBOX_SetupConfigSections(void) {
         nullptr };
 
     const char* cores[] = { "auto",
+#if (C_DYNAMIC_X86) || (C_DYNREC)
+        "dynamic",
+#endif
 #if (C_DYNAMIC_X86)
-        "dynamic", "dynamic_x86", "dynamic_nodhfpu",
+        "dynamic_x86", "dynamic_nodhfpu",
 #endif
 #if (C_DYNREC)
-        "dynamic", "dynamic_rec",
+        "dynamic_rec",
 #endif
         "normal", "full", "simple", nullptr };
 
