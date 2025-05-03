@@ -1,4 +1,4 @@
-Next
+2025.05.03
   - Show TURBO status in title bar. (maron2000)
   - Fixed MinGW32 builds failed using gcc15, due to a conflict in __inline__ 
     macro. (lazka)

@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:2025.02.01
+:DOSBOX-X:VERSION:2025.05.03
 :DOSBOX-X:REMARK:配置完中文语言与字体后，就可以直接支持中文显示和打印。国家和代码页选项可以留空，或设为 “86,936”。
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
