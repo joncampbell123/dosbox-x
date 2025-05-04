@@ -952,7 +952,7 @@ void dosbox_integration_trigger_write() {
 			GFX_ReleaseMouse();
 			break;
 
-		case DOSBOX_ID_CMD_SET_WATCHDOG: /* Set/clear watchdog timer 'WATD' */
+		case DOSBOX_ID_REG_SET_WATCHDOG: /* Set/clear watchdog timer 'WATD' */
 			Watchdog_Timer_Set(dosbox_int_register);
 			break;
 
