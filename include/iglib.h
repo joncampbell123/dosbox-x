@@ -130,6 +130,16 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 # define DOSBOX_ID_SCREENSHOT_STATUS_NOT_ENABLED        (1UL << 30UL)   /* if set, DOSBox has not enabled this register. */
 # define DOSBOX_ID_SCREENSHOT_STATUS_NOT_AVAILABLE      (1UL << 31UL)   /* if set, DOSBox was compiled without screenshot/video support (C_SSHOT not defined) */
 
+#define DOSBOX_ID_REG_DOS_KERNEL_STATUS                 (0x4B6F4400UL)
+#define DOSBOX_ID_REG_DOS_KERNEL_CODEPAGE               (0x4B6F4401UL)
+#define DOSBOX_ID_REG_DOS_KERNEL_COUNTRY                (0x4B6F4402UL)
+#define DOSBOX_ID_REG_DOS_KERNEL_VERSION_MAJOR          (0x4B6F4403UL)
+#define DOSBOX_ID_REG_DOS_KERNEL_VERSION_MINOR          (0x4B6F4404UL)
+#define DOSBOX_ID_REG_DOS_KERNEL_ERROR_CODE             (0x4B6F4405UL)
+#define DOSBOX_ID_REG_DOS_KERNEL_BOOT_DRIVE             (0x4B6F4406UL)
+#define DOSBOX_ID_REG_DOS_KERNEL_CURRENT_DRIVE          (0x4B6F4407UL)
+#define DOSBOX_ID_REG_DOS_KERNEL_LFN_STATUS             (0x4B6F4408UL)
+
 #define DOSBOX_ID_REG_MIXER_QUERY                       (0x5158494DUL)
 
 #define DOSBOX_ID_CMD_SET_WATCHDOG                      (0x57415444UL)

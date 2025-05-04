@@ -783,31 +783,31 @@ void dosbox_integration_trigger_read() {
 				dosbox_int_register |= DOSBOX_ID_REG_RELEASE_MOUSE_CAPTURE_FL_CAPTURED;
 			break;
 
-		case 0x4B6F4400: // DOS kernel status
+		case DOSBOX_ID_REG_DOS_KERNEL_STATUS: // DOS kernel status
 			dosbox_int_register = dos_kernel_disabled ? 0: 1;
 			break;
-		case 0x4B6F4401: // DOS codepage number
+		case DOSBOX_ID_REG_DOS_KERNEL_CODEPAGE: // DOS codepage number
 			dosbox_int_register = dos_kernel_disabled ? 0: dos.loaded_codepage;
 			break;
-		case 0x4B6F4402: // DOS country number
+		case DOSBOX_ID_REG_DOS_KERNEL_COUNTRY: // DOS country number
 			dosbox_int_register = dos_kernel_disabled ? 0: countryNo;
 			break;
-		case 0x4B6F4403: // DOS version major
+		case DOSBOX_ID_REG_DOS_KERNEL_VERSION_MAJOR: // DOS version major
 			dosbox_int_register = dos_kernel_disabled ? 0: dos.version.major;
 			break;
-		case 0x4B6F4404: // DOS version minor
+		case DOSBOX_ID_REG_DOS_KERNEL_VERSION_MINOR: // DOS version minor
 			dosbox_int_register = dos_kernel_disabled ? 0: dos.version.minor;
 			break;
-		case 0x4B6F4405: // DOS error code
+		case DOSBOX_ID_REG_DOS_KERNEL_ERROR_CODE: // DOS error code
 			dosbox_int_register = dos_kernel_disabled ? 0 : dos.errorcode;
 			break;
-		case 0x4B6F4406: // DOS boot drive
+		case DOSBOX_ID_REG_DOS_KERNEL_BOOT_DRIVE: // DOS boot drive
 			dosbox_int_register = bootdrive;
 			break;
-		case 0x4B6F4407: // DOS current drive
+		case DOSBOX_ID_REG_DOS_KERNEL_CURRENT_DRIVE: // DOS current drive
 			dosbox_int_register = dos_kernel_disabled ? 0 : DOS_GetDefaultDrive();
 			break;
-		case 0x4B6F4408: // DOS LFN status
+		case DOSBOX_ID_REG_DOS_KERNEL_LFN_STATUS: // DOS LFN status
 			dosbox_int_register = dos_kernel_disabled || !uselfn ? 0: 1;
 			break;
 
@@ -828,12 +828,6 @@ void dosbox_integration_trigger_read() {
 			if (enable_slave_pic) dosbox_int_register |= 0x200;
 			break;
 
-		case 0x823780: /* ISA DMA injection, single byte/word (read from memory) */
-			break;
-
-		case 0x804200: /* keyboard input injection -- not supposed to read */
-			break;
-
 		case 0x804201: /* keyboard status */
 			dosbox_int_register = Keyb_ig_status();
 			break;
@@ -848,7 +842,7 @@ void dosbox_integration_trigger_read() {
 			break;
 
 		case 0x434D56:
-			{ /* read user mouse cursor position (normalized for Windows 3.x) */
+			{ /* read user mouse cursor position (normalized for Windows 1.x/2.x/3.x/95/98/ME mouse driver interface) */
 				signed long long x = ((signed long long)user_cursor_x << 16LL) / (signed long long)(user_cursor_sw-1);
 				signed long long y = ((signed long long)user_cursor_y << 16LL) / (signed long long)(user_cursor_sh-1);
 				if (x < 0x0000LL) x = 0x0000LL;
@@ -859,8 +853,8 @@ void dosbox_integration_trigger_read() {
 			} break;
 
 		case 0xC54010: /* Screenshot/capture trigger */
-			       /* TODO: This should also be hidden behind an enable switch, so that rogue DOS development
-				*       can't retaliate if the user wants to capture video or screenshots. */
+			       /* TODO: This should be designed so that rogue DOS development cannot abuse this interface
+				*       to prevent the user from recording anything */
 #if (C_SSHOT)
 			dosbox_int_register = 0x00000000; // available
 			if (CaptureState & CAPTURE_IMAGE)
@@ -958,7 +952,7 @@ void dosbox_integration_trigger_write() {
 			GFX_ReleaseMouse();
 			break;
 
-		case 0x57415444: /* Set/clear watchdog timer 'WATD' */
+		case DOSBOX_ID_CMD_SET_WATCHDOG: /* Set/clear watchdog timer 'WATD' */
 			Watchdog_Timer_Set(dosbox_int_register);
 			break;
 
