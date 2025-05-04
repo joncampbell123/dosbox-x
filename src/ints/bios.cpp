@@ -684,14 +684,6 @@ static std::string dosbox_int_debug_out;
 
 uint32_t VGA_QuerySizeIG(void);
 
-uint32_t Mixer_MIXQ(void);
-uint32_t Mixer_MIXC(void);
-void Mixer_MIXC_Write(uint32_t v);
-PhysPt Mixer_MIXWritePos(void);
-void Mixer_MIXWritePos_Write(PhysPt np);
-void Mixer_MIXWriteBegin_Write(PhysPt np);
-void Mixer_MIXWriteEnd_Write(PhysPt np);
-
 /* read triggered, update the regsel */
 void dosbox_integration_trigger_read() {
 	dosbox_int_error = false;
@@ -798,29 +790,6 @@ void dosbox_integration_trigger_read() {
 			break;
 		case 0x4B6F4408: // DOS LFN status
 			dosbox_int_register = dos_kernel_disabled || !uselfn ? 0: 1;
-			break;
-
-		case 0x5158494D: /* query mixer output 'MIXQ' */
-			/* bits [19:0] = sample rate in Hz or 0 if mixer is not mixing AT ALL
-			 * bits [23:20] = number of channels (at this time, always 2 aka stereo)
-			 * bits [29:29] = 1=swap stereo  0=normal
-			 * bits [30:30] = 1=muted  0=not muted
-			 * bits [31:31] = 1=sound  0=nosound */
-			dosbox_int_register = Mixer_MIXQ();
-			break;
-
-		case 0x4358494D: /* query mixer output 'MIXC' */
-			dosbox_int_register = Mixer_MIXC();
-			break;
-
-		case 0x5058494D: /* query mixer output 'MIXP' */
-			dosbox_int_register = Mixer_MIXWritePos();
-			break;
-
-		case 0x4258494D: /* query mixer output 'MIXB' */
-			break;
-
-		case 0x4558494D: /* query mixer output 'MIXE' */
 			break;
 
 		case 0x6845C0: /* query VGA display size */
@@ -968,25 +937,6 @@ void dosbox_integration_trigger_write() {
 		case 0x52434D: /* release mouse capture 'MCR' */
 			void GFX_ReleaseMouse(void);
 			GFX_ReleaseMouse();
-			break;
-
-		case 0x5158494D: /* query mixer output 'MIXQ' */
-			break;
-
-		case 0x4358494D: /* query mixer output 'MIXC' */
-			Mixer_MIXC_Write(dosbox_int_register);
-			break;
-
-		case 0x5058494D: /* query mixer output 'MIXP' */
-			Mixer_MIXWritePos_Write(dosbox_int_register);
-			break;
-
-		case 0x4258494D: /* query mixer output 'MIXB' */
-			Mixer_MIXWriteBegin_Write(dosbox_int_register);
-			break;
-
-		case 0x4558494D: /* query mixer output 'MIXE' */
-			Mixer_MIXWriteEnd_Write(dosbox_int_register);
 			break;
 
 		case 0x57415444: /* Set/clear watchdog timer 'WATD' */
