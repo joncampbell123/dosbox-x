@@ -868,7 +868,7 @@ void dosbox_integration_trigger_read() {
 #endif
 			break;
 
-		case 0xAA55BB66UL: /* interface reset result */
+		case DOSBOX_ID_RESET_INDEX_CODE: /* interface reset result */
 			break;
 
 		default:
@@ -1216,8 +1216,8 @@ static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
 				dosbox_int_regsel_shf = 0;
 				dosbox_int_error = false;
 				dosbox_int_busy = false;
-				dosbox_int_regsel = 0xAA55BB66;
-				dosbox_int_register = 0xD05B0C5;
+				dosbox_int_regsel = DOSBOX_ID_RESET_INDEX_CODE;
+				dosbox_int_register = DOSBOX_ID_RESET_DATA_CODE;
 				LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state saved");
 			}
 			else {
@@ -1252,8 +1252,8 @@ static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
 		case DOSBOX_ID_CMD_RESET_INTERFACE:
 			dosbox_int_busy = false;
 			dosbox_int_error = false;
-			dosbox_int_regsel = 0xAA55BB66;
-			dosbox_int_register = 0xD05B0C5;
+			dosbox_int_regsel = DOSBOX_ID_RESET_INDEX_CODE;
+			dosbox_int_register = DOSBOX_ID_RESET_DATA_CODE;
 			break;
 		default:
 			dosbox_int_error = true;
