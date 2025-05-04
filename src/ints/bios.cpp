@@ -737,7 +737,7 @@ void dosbox_integration_trigger_read() {
 				dosbox_int_register = ver == NULL ? 0 : atoi(ver + 1);
 				break;
 			}
-		case 8: // DOSBox-X platform type
+		case DOSBOX_ID_REG_DOSBOX_PLATFORM_TYPE: // DOSBox-X platform type
 			dosbox_int_register = 0;
 #if defined(HX_DOS)
 			dosbox_int_register = 4;
@@ -764,7 +764,7 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register += 0x100; // SDL1 (modified)
 #endif
 			break;
-		case 9: // DOSBox-X machine type
+		case DOSBOX_ID_REG_DOSBOX_MACHINE_TYPE: // DOSBox-X machine type
 			dosbox_int_register = machine;
 			break;
 
