@@ -926,7 +926,7 @@ void dosbox_integration_trigger_write() {
 			dosbox_int_ver_read = NULL;
 			break;
 
-		case 0xDEB0: /* debug output (to log) */
+		case DOSBOX_ID_REG_DEBUG_OUT: /* debug output (to log) */
 			for (unsigned int b=0;b < 4;b++) {
 				unsigned char c = (unsigned char)(dosbox_int_register >> (b * 8U));
 				if (c == '\n' || dosbox_int_debug_out.length() >= 200) {
@@ -943,7 +943,7 @@ void dosbox_integration_trigger_write() {
 			dosbox_int_register = 0;
 			break;
 
-		case 0xDEB1: /* debug output clear */
+		case DOSBOX_ID_REG_DEBUG_CLEAR: /* debug output clear */
 			dosbox_int_debug_out.clear();
 			break;
 
