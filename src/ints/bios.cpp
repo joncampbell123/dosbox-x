@@ -685,6 +685,7 @@ extern uint16_t countryNo;
 bool bootvm = false, bootfast = false;
 static std::string dosbox_int_debug_out;
 
+uint32_t Mixer_MIXQ(void);
 uint32_t VGA_QuerySizeIG(void);
 
 /* read triggered, update the regsel */
@@ -765,6 +766,15 @@ void dosbox_integration_trigger_read() {
 			break;
 		case 9: // DOSBox-X machine type
 			dosbox_int_register = machine;
+			break;
+
+		case DOSBOX_ID_REG_MIXER_QUERY: /* query mixer output 'MIXQ' */
+			/* bits [19:0] = sample rate in Hz or 0 if mixer is not mixing AT ALL
+			 * bits [23:20] = number of channels (at this time, always 2 aka stereo)
+			 * bits [29:29] = 1=swap stereo  0=normal
+			 * bits [30:30] = 1=muted  0=not muted
+			 * bits [31:31] = 1=sound  0=nosound */
+			dosbox_int_register = Mixer_MIXQ();
 			break;
 
 		case 0x4B6F4400: // DOS kernel status

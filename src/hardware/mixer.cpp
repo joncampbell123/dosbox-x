@@ -104,6 +104,14 @@ static struct {
     bool            mute;
 } mixer;
 
+uint32_t Mixer_MIXQ(void) {
+	return  ((uint32_t)mixer.freq) |
+		((uint32_t)2u/*channels*/ << (uint32_t)20u) |
+		(mixer.swapstereo ?      ((uint32_t)1u << (uint32_t)29u) : 0u) |
+		(mixer.mute       ?      ((uint32_t)1u << (uint32_t)30u) : 0u) |
+		(mixer.nosound    ? 0u : ((uint32_t)1u << (uint32_t)31u));
+}
+
 uint8_t MixTemp[MIXER_BUFSIZE];
 
 inline void MixerChannel::updateSlew(void) {
