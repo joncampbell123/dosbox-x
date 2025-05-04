@@ -22,10 +22,10 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 # define DOSBOX_IDPORT(x)                                (dosbox_id_baseio+(x))
 #endif
 
-#define DOSBOX_ID_INDEX                                 (0U)
-#define DOSBOX_ID_DATA                                  (1U)
-#define DOSBOX_ID_STATUS                                (2U)
-#define DOSBOX_ID_COMMAND                               (2U)
+#define DOSBOX_ID_INDEX                                 (0U) /* R/W */
+#define DOSBOX_ID_DATA                                  (1U) /* R/W */
+#define DOSBOX_ID_STATUS                                (2U) /* R   */
+#define DOSBOX_ID_COMMAND                               (2U) /*   W */
 
 /* bits 7-6: register select byte index
  * bits 5-4: register byte index

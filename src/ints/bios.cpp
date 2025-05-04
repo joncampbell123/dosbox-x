@@ -55,6 +55,9 @@ extern bool PS1AudioCard;
 #include <sys/stat.h>
 #include "version_string.h"
 
+#define DOSBOX_INCLUDE
+#include "iglib.h"
+
 #if C_LIBPNG
 #include <png.h>
 #endif
@@ -1187,17 +1190,17 @@ static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
 	(void)port;
 	(void)iolen;
 	switch (val) {
-		case 0x00: /* reset latch */
+		case DOSBOX_ID_CMD_RESET_LATCH:
 			dosbox_int_register_shf = 0;
 			dosbox_int_regsel_shf = 0;
 			break;
-		case 0x01: /* flush write */
+		case DOSBOX_ID_CMD_FLUSH_WRITE:
 			if (dosbox_int_register_shf != 0) {
 				dosbox_integration_trigger_write();
 				dosbox_int_register_shf = 0;
 			}
 			break;
-		case 0x20: /* push state */
+		case DOSBOX_ID_CMD_PUSH_STATE:
 			if (dosbox_int_push_save_state()) {
 				dosbox_int_register_shf = 0;
 				dosbox_int_regsel_shf = 0;
@@ -1212,7 +1215,7 @@ static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
 				dosbox_int_error = true;
 			}
 			break;
-		case 0x21: /* pop state */
+		case DOSBOX_ID_CMD_POP_STATE:
 			if (dosbox_int_pop_save_state()) {
 				LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state restored");
 			}
@@ -1221,7 +1224,7 @@ static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
 				dosbox_int_error = true;
 			}
 			break;
-		case 0x22: /* discard state */
+		case DOSBOX_ID_CMD_DISCARD_STATE:
 			if (dosbox_int_discard_save_state()) {
 				LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state discarded");
 			}
@@ -1230,13 +1233,13 @@ static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
 				dosbox_int_error = true;
 			}
 			break;
-		case 0x23: /* discard all state */
+		case DOSBOX_ID_CMD_DISCARD_ALL_STATE:
 			while (dosbox_int_discard_save_state());
 			break;
-		case 0xFE: /* clear error */
+		case DOSBOX_ID_CMD_CLEAR_ERROR:
 			dosbox_int_error = false;
 			break;
-		case 0xFF: /* reset interface */
+		case DOSBOX_ID_CMD_RESET_INTERFACE:
 			dosbox_int_busy = false;
 			dosbox_int_error = false;
 			dosbox_int_regsel = 0xAA55BB66;
