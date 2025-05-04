@@ -142,7 +142,7 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 
 #define DOSBOX_ID_REG_MIXER_QUERY                       (0x5158494DUL)
 
-#define DOSBOX_ID_CMD_SET_WATCHDOG                      (0x57415444UL)
+#define DOSBOX_ID_REG_SET_WATCHDOG                      (0x57415444UL)
 
 /* return value of DOSBOX_ID_REG_IDENTIFY */
 #define DOSBOX_ID_IDENTIFICATION                        (0xD05B0740UL)
