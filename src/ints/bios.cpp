@@ -692,12 +692,12 @@ void dosbox_integration_trigger_read() {
 	dosbox_int_error = false;
 
 	switch (dosbox_int_regsel) {
-		case 0: /* Identification */
+		case DOSBOX_ID_REG_IDENTIFY:
 			dosbox_int_register = 0xD05B0740;
 			break;
-		case 1: /* test */
+		case DOSBOX_ID_REG_TEST:
 			break;
-		case 2: /* version string */
+		case DOSBOX_ID_REG_VERSION_STRING:
 			if (dosbox_int_ver_read == NULL)
 				dosbox_int_ver_read = dosbox_int_version;
 
@@ -711,10 +711,10 @@ void dosbox_integration_trigger_read() {
 				dosbox_int_register += ((uint32_t)((unsigned char)(*dosbox_int_ver_read++))) << (uint32_t)(i * 8);
 			}
 			break;
-		case 3: /* version number */
+		case DOSBOX_ID_REG_VERSION_NUMBER:
 			dosbox_int_register = INTDEV_VERSION_MAJOR + (INTDEV_VERSION_MINOR << 8U) + (INTDEV_VERSION_SUB << 16U) + (INTDEV_VERSION_BUMP << 24U);
 			break;
-		case 4: /* current emulator time as 16.16 fixed point */
+		case DOSBOX_ID_REG_READ_EMTIME: /* current emulator time as 16.16 fixed point */
 			dosbox_int_register = (uint32_t)(PIC_FullIndex() * 0x10000);
 			break;
 		case 5: // DOSBox-X version number major (e.g. 2022)
