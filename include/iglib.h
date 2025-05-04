@@ -62,6 +62,8 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 #define DOSBOX_ID_REG_DOSBOX_VERSION_MAJOR              (0x00000005UL)
 #define DOSBOX_ID_REG_DOSBOX_VERSION_MINOR              (0x00000006UL)
 #define DOSBOX_ID_REG_DOSBOX_VERSION_SUB                (0x00000007UL)
+#define DOSBOX_ID_REG_DOSBOX_PLATFORM_TYPE              (0x00000008UL)  /* a code describing the platform, see src/ints/bios.cpp */
+#define DOSBOX_ID_REG_DOSBOX_MACHINE_TYPE               (0x00000009UL)  /* machine type code (MCH_* constant), see include/dosbox.h */
 
 #define DOSBOX_ID_REG_DEBUG_OUT                         (0x0000DEB0UL)
 #define DOSBOX_ID_REG_DEBUG_CLEAR                       (0x0000DEB1UL)
