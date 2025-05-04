@@ -777,6 +777,12 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = Mixer_MIXQ();
 			break;
 
+		case DOSBOX_ID_REG_RELEASE_MOUSE_CAPTURE: /* release mouse capture 'MCR' / mouse capture status */
+			dosbox_int_register = 0;
+			if (sdl.mouse.locked) 
+				dosbox_int_register |= DOSBOX_ID_REG_RELEASE_MOUSE_CAPTURE_FL_CAPTURED;
+			break;
+
 		case 0x4B6F4400: // DOS kernel status
 			dosbox_int_register = dos_kernel_disabled ? 0: 1;
 			break;
@@ -947,7 +953,7 @@ void dosbox_integration_trigger_write() {
 			dosbox_int_debug_out.clear();
 			break;
 
-		case 0x52434D: /* release mouse capture 'MCR' */
+		case DOSBOX_ID_REG_RELEASE_MOUSE_CAPTURE: /* release mouse capture 'MCR' */
 			void GFX_ReleaseMouse(void);
 			GFX_ReleaseMouse();
 			break;
