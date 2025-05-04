@@ -50,10 +50,6 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 #define DOSBOX_ID_CMD_READ_EMTIME                       (0x4UL)
 
 #define DOSBOX_ID_REG_MIXER_QUERY                       (0x5158494DUL)
-#define DOSBOX_ID_REG_MIXER_CONTROL                     (0x4358494DUL)
-#define DOSBOX_ID_REG_MIXER_WRITEPOS                    (0x5058494DUL)
-#define DOSBOX_ID_REG_MIXER_WRITEBEGIN                  (0x4258494DUL)
-#define DOSBOX_ID_REG_MIXER_WRITEEND                    (0x4558494DUL)
 
 #define DOSBOX_ID_RESET_DATA_CODE                       (0xD05B0C5UL)
 
@@ -119,16 +115,6 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 #define DOSBOX_ID_CMD_SET_WATCHDOG                      (0x57415444UL)
 
 #define DOSBOX_ID_CMD_GET_VGA_SIZE                      (0x006845C0UL)
-#define DOSBOX_ID_CMD_GET_VGA_CAPTURE_STATE             (0x006845C1UL)
-#define DOSBOX_ID_CMD_GET_VGA_CAPTURE_ADDR              (0x006845C2UL)
-#define DOSBOX_ID_CMD_GET_VGA_CAPTURE_POS               (0x006845C3UL)
-#define DOSBOX_ID_CMD_GET_VGA_CAPTURE_SIZE              (0x006845C4UL)
-
-#define DOSBOX_ID_CMD_SET_VGA_CAPTURE_STATE             (0x006845C1UL)
-#define DOSBOX_ID_CMD_SET_VGA_CAPTURE_ADDR              (0x006845C2UL)
-#define DOSBOX_ID_CMD_SET_VGA_CAPTURE_POS               (0x006845C3UL)
-#define DOSBOX_ID_CMD_SET_VGA_CAPTURE_SIZE              (0x006845C4UL)
-#define DOSBOX_ID_CMD_SET_VGA_CAPTURE_STRIDE            (0x006845C5UL)
 
 #define DOSBOX_VGA_CAPTURE_PENDING                      (1UL << 0UL)
 #define DOSBOX_VGA_CAPTURE_ACQUIRED                     (1UL << 1UL)
