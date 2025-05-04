@@ -919,10 +919,10 @@ void dosbox_integration_trigger_write() {
 			(unsigned long)dosbox_int_register);
 
 	switch (dosbox_int_regsel) {
-		case 1: /* test */
+		case DOSBOX_ID_REG_TEST:
 			break;
 
-		case 2: /* version string */
+		case DOSBOX_ID_REG_VERSION_STRING:
 			dosbox_int_ver_read = NULL;
 			break;
 
