@@ -610,10 +610,10 @@ static bool dosbox_int_busy = false;
 #define PPCAT_HELPER(A, B, C) A ## . ## B ## . ## C
 #define PPCAT(A, B, C) PPCAT_HELPER(A, B, C)
 
-#define INTDEV_VERSION_BUMP 2
+#define INTDEV_VERSION_BUMP 0
 #define INTDEV_VERSION_MAJOR 1
-#define INTDEV_VERSION_MINOR 0
-#define INTDEV_VERSION_SUB 1
+#define INTDEV_VERSION_MINOR 1
+#define INTDEV_VERSION_SUB 0
 
 static const char *dosbox_int_version = "DOSBox-X integration device v" STRINGIZE(PPCAT(INTDEV_VERSION_MAJOR, INTDEV_VERSION_MINOR, INTDEV_VERSION_SUB));
 static const char *dosbox_int_ver_read = NULL;
