@@ -873,6 +873,27 @@ void dosbox_integration_trigger_read() {
 		case DOSBOX_ID_RESET_INDEX_CODE: /* interface reset result */
 			break;
 
+		case DOSBOX_ID_REG_CPU_CYCLES:
+			if (CPU_CycleMax < 0x80000000)
+				dosbox_int_register = (uint32_t)CPU_CycleMax;
+			else
+				dosbox_int_register = (uint32_t)0x7FFFFFFFUL;
+			break;
+
+		case DOSBOX_ID_REG_CPU_MAX_PERCENT:
+			dosbox_int_register = CPU_CyclePercUsed;
+			break;
+
+		case DOSBOX_ID_REG_CPU_CYCLES_INFO:
+			dosbox_int_register = 0;
+			if (CPU_CycleAutoAdjust)
+			       dosbox_int_register |= DOSBOX_ID_REG_CPU_CYCLES_INFO_MAX;
+			else if (CPU_AutoDetermineMode &CPU_AUTODETERMINE_CYCLES)
+			       dosbox_int_register |= DOSBOX_ID_REG_CPU_CYCLES_INFO_AUTO;
+			else
+			       dosbox_int_register |= DOSBOX_ID_REG_CPU_CYCLES_INFO_FIXED;
+			break;
+
 		default:
 			dosbox_int_register = 0xAA55AA55;
 			dosbox_int_error = true;

@@ -112,6 +112,14 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 
 #define DOSBOX_ID_REG_INJECT_NMI                        (0x00808602UL)
 
+#define DOSBOX_ID_REG_CPU_CYCLES                        (0x55504300UL)  /* fixed cycle count, which may vary if max or auto */
+#define DOSBOX_ID_REG_CPU_MAX_PERCENT                   (0x55504301UL)  /* for max cycles, percentage from 0 to 100 */
+#define DOSBOX_ID_REG_CPU_CYCLES_INFO                   (0x55504302UL)  /* info about cycles, including fixed, auto, max */
+# define DOSBOX_ID_REG_CPU_CYCLES_INFO_MODE_MASK        (0xFUL << 0UL)
+# define DOSBOX_ID_REG_CPU_CYCLES_INFO_FIXED            (1UL << 0UL)
+# define DOSBOX_ID_REG_CPU_CYCLES_INFO_MAX              (2UL << 0UL)
+# define DOSBOX_ID_REG_CPU_CYCLES_INFO_AUTO             (3UL << 0UL)
+
 #define DOSBOX_ID_REG_8237_INJECT_WRITE                 (0x00823700UL)
 #define DOSBOX_ID_REG_8237_INJECT_READ                  (0x00823780UL)
 
