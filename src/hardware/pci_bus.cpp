@@ -346,8 +346,9 @@ static void InitializePCI(void) {
 	PCI_ReadHandler[0].Install(0xcf8,read_pci_addr,IO_MD);
 	// install PCI-register read/write handlers
 	for (Bitu ct=0;ct<4;ct++) {
-		PCI_WriteHandler[1+ct].Install(0xcfc+ct,write_pci,IO_MB);
-		PCI_ReadHandler[1+ct].Install(0xcfc+ct,read_pci,IO_MB);
+		Bitu msk = IO_MB | ((ct & 1) ? 0 : IO_MW) | ((ct & 3) ? 0 : IO_MD);;
+		PCI_WriteHandler[1+ct].Install(0xcfc+ct,write_pci,msk);
+		PCI_ReadHandler[1+ct].Install(0xcfc+ct,read_pci,msk);
 	}
 
 	callback_pci.Install(&PCI_PM_Handler,CB_IRETD,"PCI PM");
