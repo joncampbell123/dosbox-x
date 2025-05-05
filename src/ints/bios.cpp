@@ -809,6 +809,10 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = VGA_QuerySizeIG();
 			break;
 
+		case DOSBOX_ID_CMD_GET_WINDOW_SIZE: /* query window size (so user mouse cursor has meaning) */
+			dosbox_int_register = user_cursor_sw | (user_cursor_sh << 16);
+			break;
+
 		case DOSBOX_ID_REG_8237_INJECT_READ: /* ISA DMA injection, single byte/word (read from memory) */
 			break;
 
