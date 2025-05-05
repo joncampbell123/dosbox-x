@@ -854,7 +854,7 @@ void dosbox_integration_trigger_read() {
 				dosbox_int_register = ((unsigned int)y << 16UL) | (unsigned int)x;
 			} break;
 
-		case 0xC54010: /* Screenshot/capture trigger */
+		case DOSBOX_ID_REG_SCREENSHOT_TRIGGER: /* Screenshot/capture trigger */
 			       /* TODO: This should be designed so that rogue DOS development cannot abuse this interface
 				*       to prevent the user from recording anything */
 #if (C_SSHOT)
@@ -1089,7 +1089,7 @@ void dosbox_integration_trigger_write() {
 			LOG(LOG_MISC,LOG_DEBUG)("Mouse notify mode=%u",mouse_notify_mode);
 			break;
 
-		case 0xC54010: /* Screenshot/capture trigger */
+		case DOSBOX_ID_REG_SCREENSHOT_TRIGGER: /* Screenshot/capture trigger */
 #if (C_SSHOT)
 			void CAPTURE_ScreenShotEvent(bool pressed);
 			void CAPTURE_VideoEvent(bool pressed);
