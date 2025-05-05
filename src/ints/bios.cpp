@@ -777,12 +777,6 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = Mixer_MIXQ();
 			break;
 
-		case DOSBOX_ID_REG_RELEASE_MOUSE_CAPTURE: /* release mouse capture 'MCR' / mouse capture status */
-			dosbox_int_register = 0;
-			if (sdl.mouse.locked) 
-				dosbox_int_register |= DOSBOX_ID_REG_RELEASE_MOUSE_CAPTURE_FL_CAPTURED;
-			break;
-
 		case DOSBOX_ID_REG_DOS_KERNEL_STATUS: // DOS kernel status
 			dosbox_int_register = dos_kernel_disabled ? 0: 1;
 			break;
@@ -811,11 +805,14 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = dos_kernel_disabled || !uselfn ? 0: 1;
 			break;
 
-		case 0x6845C0: /* query VGA display size */
+		case DOSBOX_ID_CMD_GET_VGA_SIZE: /* query VGA display size */
 			dosbox_int_register = VGA_QuerySizeIG();
 			break;
 
-		case 0x825901: /* PIC configuration */
+		case DOSBOX_ID_REG_8237_INJECT_READ: /* ISA DMA injection, single byte/word (read from memory) */
+			break;
+
+		case DOSBOX_ID_REG_8259_PIC_INFO: /* PIC configuration */
 			/* bits [7:0] = cascade interrupt or 0xFF if none
 			 * bit  [8:8] = primary PIC present
 			 * bit  [9:9] = secondary PIC present */
@@ -828,20 +825,21 @@ void dosbox_integration_trigger_read() {
 			if (enable_slave_pic) dosbox_int_register |= 0x200;
 			break;
 
-		case 0x804201: /* keyboard status */
+		case DOSBOX_ID_REG_8042_KB_STATUS: /* keyboard status */
 			dosbox_int_register = Keyb_ig_status();
 			break;
 
-		case 0x434D54: /* read user mouse status */
+		case DOSBOX_ID_REG_USER_MOUSE_STATUS: /* read user mouse status */
 			dosbox_int_register =
-				(user_cursor_locked ? (1UL << 0UL) : 0UL);      /* bit 0 = mouse capture lock */
+				(user_cursor_locked        ? (1UL << 0UL) : 0UL) |    /* bit 0 = mouse capture lock */
+				(sdl.mouse.locked          ? (1UL << 1UL) : 0UL);     /* bit 1 = mouse captured */
 			break;
 
-		case 0x434D55: /* read user mouse cursor position */
+		case DOSBOX_ID_REG_USER_MOUSE_CURSOR: /* read user mouse cursor position */
 			dosbox_int_register = (uint32_t((uint16_t)user_cursor_y & 0xFFFFUL) << 16UL) | uint32_t((uint16_t)user_cursor_x & 0xFFFFUL);
 			break;
 
-		case 0x434D56:
+		case DOSBOX_ID_REG_USER_MOUSE_CURSOR_NORMALIZED:
 			{ /* read user mouse cursor position (normalized for Windows 1.x/2.x/3.x/95/98/ME mouse driver interface) */
 				signed long long x = ((signed long long)user_cursor_x << 16LL) / (signed long long)(user_cursor_sw-1);
 				signed long long y = ((signed long long)user_cursor_y << 16LL) / (signed long long)(user_cursor_sh-1);
@@ -956,7 +954,7 @@ void dosbox_integration_trigger_write() {
 			Watchdog_Timer_Set(dosbox_int_register);
 			break;
 
-		case 0x808602: /* NMI (INT 02h) interrupt injection */
+		case DOSBOX_ID_REG_INJECT_NMI: /* NMI (INT 02h) interrupt injection */
 			{
 				dosbox_int_register_shf = 0;
 				dosbox_int_regsel_shf = 0;
@@ -964,7 +962,7 @@ void dosbox_integration_trigger_write() {
 			}
 			break;
 
-		case 0x825900: /* PIC interrupt injection */
+		case DOSBOX_ID_REG_8259_INJECT_IRQ: /* PIC interrupt injection */
 			{
 				dosbox_int_register_shf = 0;
 				dosbox_int_regsel_shf = 0;
@@ -982,7 +980,7 @@ void dosbox_integration_trigger_write() {
 			}
 			break;
 
-		case 0x823700: /* ISA DMA injection, single byte/word (write to memory) */
+		case DOSBOX_ID_REG_8237_INJECT_WRITE: /* ISA DMA injection, single byte/word (write to memory) */
 			{
 				dosbox_int_register_shf = 0;
 				dosbox_int_regsel_shf = 0;
@@ -1013,7 +1011,7 @@ void dosbox_integration_trigger_write() {
 			}
 			break;
 
-		case 0x823780: /* ISA DMA injection, single byte/word (read from memory) */
+		case DOSBOX_ID_REG_8237_INJECT_READ: /* ISA DMA injection, single byte/word (read from memory) */
 			{
 				dosbox_int_register_shf = 0;
 				dosbox_int_regsel_shf = 0;
@@ -1040,7 +1038,7 @@ void dosbox_integration_trigger_write() {
 			}
 			break;
 
-		case 0x804200: /* keyboard input injection */
+		case DOSBOX_ID_REG_8042_KB_INJECT: /* keyboard input injection */
 			void Mouse_ButtonPressed(uint8_t button);
 			void Mouse_ButtonReleased(uint8_t button);
 			void pc98_keyboard_send(const unsigned char b);
@@ -1080,12 +1078,9 @@ void dosbox_integration_trigger_write() {
 			}
 			break;
 
-		case 0x804201: /* keyboard status do not write */
-			break;
-
 			/* this command is used to enable notification of mouse movement over the windows even if the mouse isn't captured */
-		case 0x434D55: /* read user mouse cursor position */
-		case 0x434D56: /* read user mouse cursor position (normalized for Windows 3.x) */
+		case DOSBOX_ID_REG_USER_MOUSE_CURSOR: /* read user mouse cursor position */
+		case DOSBOX_ID_REG_USER_MOUSE_CURSOR_NORMALIZED: /* read user mouse cursor position (normalized for Windows 3.x) */
 			mouse_notify_mode = dosbox_int_register & 0xFF;
 			LOG(LOG_MISC,LOG_DEBUG)("Mouse notify mode=%u",mouse_notify_mode);
 			break;
