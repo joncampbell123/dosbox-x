@@ -619,6 +619,7 @@ static const char *dosbox_int_version = "DOSBox-X integration device v" STRINGIZ
 static const char *dosbox_int_ver_read = NULL;
 
 struct dosbox_int_saved_state {
+    const char*     dosbox_int_ver_read;
     unsigned char   dosbox_int_register_shf;
     uint32_t        dosbox_int_register;
     unsigned char   dosbox_int_regsel_shf;
@@ -637,42 +638,43 @@ int                                 dosbox_int_saved_sp = -1;
  * with anything userspace is doing (as an alternative to wrapping all access
  * in CLI/STI or PUSHF/CLI/POPF) */
 bool dosbox_int_push_save_state(void) {
+	if (dosbox_int_saved_sp >= (DOSBOX_INT_SAVED_STATE_MAX-1))
+		return false;
 
-    if (dosbox_int_saved_sp >= (DOSBOX_INT_SAVED_STATE_MAX-1))
-        return false;
+	struct dosbox_int_saved_state *ss = &dosbox_int_saved[++dosbox_int_saved_sp];
 
-    struct dosbox_int_saved_state *ss = &dosbox_int_saved[++dosbox_int_saved_sp];
-
-    ss->dosbox_int_register_shf =       dosbox_int_register_shf;
-    ss->dosbox_int_register =           dosbox_int_register;
-    ss->dosbox_int_regsel_shf =         dosbox_int_regsel_shf;
-    ss->dosbox_int_regsel =             dosbox_int_regsel;
-    ss->dosbox_int_error =              dosbox_int_error;
-    ss->dosbox_int_busy =               dosbox_int_busy;
-    return true;
+	ss->dosbox_int_ver_read =           dosbox_int_ver_read;
+	ss->dosbox_int_register_shf =       dosbox_int_register_shf;
+	ss->dosbox_int_register =           dosbox_int_register;
+	ss->dosbox_int_regsel_shf =         dosbox_int_regsel_shf;
+	ss->dosbox_int_regsel =             dosbox_int_regsel;
+	ss->dosbox_int_error =              dosbox_int_error;
+	ss->dosbox_int_busy =               dosbox_int_busy;
+	return true;
 }
 
 bool dosbox_int_pop_save_state(void) {
-    if (dosbox_int_saved_sp < 0)
-        return false;
+	if (dosbox_int_saved_sp < 0)
+		return false;
 
-    struct dosbox_int_saved_state *ss = &dosbox_int_saved[dosbox_int_saved_sp--];
+	struct dosbox_int_saved_state *ss = &dosbox_int_saved[dosbox_int_saved_sp--];
 
-    dosbox_int_register_shf =           ss->dosbox_int_register_shf;
-    dosbox_int_register =               ss->dosbox_int_register;
-    dosbox_int_regsel_shf =             ss->dosbox_int_regsel_shf;
-    dosbox_int_regsel =                 ss->dosbox_int_regsel;
-    dosbox_int_error =                  ss->dosbox_int_error;
-    dosbox_int_busy =                   ss->dosbox_int_busy;
-    return true;
+	dosbox_int_ver_read =               ss->dosbox_int_ver_read;
+	dosbox_int_register_shf =           ss->dosbox_int_register_shf;
+	dosbox_int_register =               ss->dosbox_int_register;
+	dosbox_int_regsel_shf =             ss->dosbox_int_regsel_shf;
+	dosbox_int_regsel =                 ss->dosbox_int_regsel;
+	dosbox_int_error =                  ss->dosbox_int_error;
+	dosbox_int_busy =                   ss->dosbox_int_busy;
+	return true;
 }
 
 bool dosbox_int_discard_save_state(void) {
-    if (dosbox_int_saved_sp < 0)
-        return false;
+	if (dosbox_int_saved_sp < 0)
+		return false;
 
-    dosbox_int_saved_sp--;
-    return true;
+	dosbox_int_saved_sp--;
+	return true;
 }
 
 extern bool user_cursor_locked;
