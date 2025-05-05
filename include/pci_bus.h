@@ -84,7 +84,7 @@ public:
 			/* NTS: If I recall, this virtual function call means that we'll call the
 			 *      C++ subclass's config_read() NOT our own--right? */
 			for (Bitu i=0;i < iolen;i++)
-				v += ((config_read((uint8_t)(regnum+i),1)&0xFF) << ((iolen-i-1)*8));
+				v += ((config_read((uint8_t)(regnum+i),1)&0xFF) << (i*8));
 		}
 
 		return v;
