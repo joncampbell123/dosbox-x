@@ -1148,7 +1148,7 @@ void dosbox_integration_trigger_write() {
 		case DOSBOX_ID_REG_CPU_MAX_PERCENT:
 			ig_cpu_cycles_set |= 2u;
 			ig_cpu_cycles_max_percent = dosbox_int_register;
-			if (ig_cpu_cycles_max_percent == 0) ig_cpu_cycles_max_percent = 1;
+			if (ig_cpu_cycles_max_percent == 0) ig_cpu_cycles_max_percent = 100;
 			if (ig_cpu_cycles_max_percent > 100) ig_cpu_cycles_max_percent = 100;
 			break;
 
@@ -1170,11 +1170,11 @@ void dosbox_integration_trigger_write() {
 				switch (mode) {
 					case DOSBOX_ID_REG_CPU_CYCLES_INFO_MAX:
 						if (ig_cpu_cycles_set & 2)
-							sprintf(setting,"cycles=max %lu",(unsigned long)ig_cpu_cycles_max_percent);
+							sprintf(setting,"cycles=max %lu%%",(unsigned long)ig_cpu_cycles_max_percent);
 						break;
 					case DOSBOX_ID_REG_CPU_CYCLES_INFO_AUTO:
 						if (ig_cpu_cycles_set & 2)
-							sprintf(setting,"cycles=auto %lu",(unsigned long)ig_cpu_cycles_max_percent);
+							sprintf(setting,"cycles=auto %lu%%",(unsigned long)ig_cpu_cycles_max_percent);
 						break;
 					case DOSBOX_ID_REG_CPU_CYCLES_INFO_FIXED:
 						if (ig_cpu_cycles_set & 1)
