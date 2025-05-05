@@ -1141,7 +1141,7 @@ void dosbox_integration_trigger_write() {
 		case DOSBOX_ID_REG_CPU_CYCLES:
 			ig_cpu_cycles_set |= 1u;
 			ig_cpu_cycles_value = dosbox_int_register;
-			if (ig_cpu_cycles_value == 0) ig_cpu_cycles_value = 1;
+			if (ig_cpu_cycles_value == 0) ig_cpu_cycles_value = 3000;
 			if (ig_cpu_cycles_value > 0x7FFFFFFFul) ig_cpu_cycles_value = 0x7FFFFFFFul;
 			break;
 
