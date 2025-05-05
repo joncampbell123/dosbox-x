@@ -1,5 +1,9 @@
 Next version
-  - 
+  - Remove mixer and VGA capture test modes from integration device. Update
+    integration device version number. Convert hardcoded magic constants used
+    in IG into constants in iglib.h which is now shared explicitly with the
+    iglib.h in DOSLIB. Add integration device interface to allow the guest
+    to read and set the CPU cycle count of the emulator. (joncampbell123).
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
