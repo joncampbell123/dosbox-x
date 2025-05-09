@@ -206,7 +206,7 @@ static char *xigmisc_extension_name = XIGMISC_PROTOCOL_NAME;
 /*
  * find_display - locate the display info block
  */
-static int XiGMiscCloseDisplay();
+static int XiGMiscCloseDisplay(Display *, XExtCodes *);
 
 static XExtensionHooks xigmisc_extension_hooks = {
     NULL,                               /* create_gc */
