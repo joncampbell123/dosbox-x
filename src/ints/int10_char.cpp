@@ -1289,6 +1289,20 @@ void INT10_GetCursorPos(uint8_t *row, uint8_t*col, const uint8_t page)
 }
 
 void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
+    // Get the dimensions
+    BIOS_NCOLS;
+    BIOS_NROWS;
+
+    // EGA/VGA: Emulate a VGA BIOS that range-checks at least the row.
+    //          The DOS installer for Elder Scrolla Arena is obviously trying to put something on the last row of
+    //          the display, however it sets the cursor position to row=25. row is 0-based so that would actually put
+    //          it one row beyond the end of the display. This fixes the "Press F1 for"... message at the bottom.
+    // Assume MDA/CGA do not range check because the rows value in the BDA did not exist in the original IBM PC/XT BIOS.
+    if (IS_EGAVGA_ARCH && !IS_PC98_ARCH) {
+        if (nrows && row >= nrows)
+		row = nrows - 1;
+    }
+
     if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
     else if(J3_IsJapanese()) J3_OffCursor();
     if (page>7) LOG(LOG_INT10,LOG_ERROR)("INT10_SetCursorPos page %d",page);
@@ -1305,8 +1319,6 @@ void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
     // Set the hardware cursor
     uint8_t current=IS_PC98_ARCH ? 0 : real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
     if(page==current) {
-        // Get the dimensions
-        BIOS_NCOLS;
         // Calculate the address knowing nbcols nbrows and page num
         // NOTE: BIOSMEM_CURRENT_START counts in colour/flag pairs
         uint16_t address=(ncols*row)+col+(IS_PC98_ARCH ? 0 : (real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START)/2));
