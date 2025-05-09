@@ -1781,77 +1781,78 @@ void INT10_WriteChar(uint16_t chr,uint8_t attr,uint8_t page,uint16_t count,bool 
 }
 
 static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8_t page) {
-    BIOS_NCOLS;BIOS_NROWS;
-    uint8_t cur_row=CURSOR_POS_ROW(page);
-    uint8_t cur_col=CURSOR_POS_COL(page);
-    switch (chr) {
-    case 8:
-        if(cur_col>0) cur_col--;
-        break;
-    case '\r':
-        cur_col=0;
-        break;
-    case '\n':
-//      cur_col=0; //Seems to break an old chess game
-        cur_row++;
-        break;
-    case 7: /* Beep */
-        // Prepare PIT counter 2 for ~900 Hz square wave
-        IO_Write(0x43, 0xb6);
-        IO_Write(0x42, 0x28);
-        IO_Write(0x42, 0x05);
-        // Speaker on
-        IO_Write(0x61, IO_Read(0x61) | 0x3);
-        // Idle for 1/3rd of a second
-        double start;
-        start = PIC_FullIndex();
-        while ((PIC_FullIndex() - start) < 333.0) CALLBACK_Idle();
-        // Speaker off
-        IO_Write(0x61, IO_Read(0x61) & ~0x3);
-        if (CurMode->type==M_TEXT) {
-            uint16_t chat;
-            INT10_ReadCharAttr(&chat,page);
-            if ((uint8_t)(chat>>8)!=7) return;
-        }
-        chr=' ';
-    default:
-		/* Return if the char code is DBCS at the end of the line (for DOS/V) */
-		if (cur_col + 1 == ncols && IS_DOSV && DOSV_CheckCJKVideoMode() && isKanji1(chr) && prevchr == 0) {
-			INT10_TeletypeOutputAttr(' ', attr, useattr, page);
-			cur_row = CURSOR_POS_ROW(page);
-			cur_col = CURSOR_POS_COL(page);
+	BIOS_NCOLS;BIOS_NROWS;
+	uint8_t cur_row=CURSOR_POS_ROW(page);
+	uint8_t cur_col=CURSOR_POS_COL(page);
+	switch (chr) {
+		case 8:
+			if(cur_col>0) cur_col--;
+			break;
+		case '\r':
+			cur_col=0;
+			break;
+		case '\n':
+//			cur_col=0; // Seems to break an old chess game
+//			           // That's absolutely right, \r CR and \n LF, this is why DOS requires \r\n for newline --J.C>
+			cur_row++;
+			break;
+		case 7: /* Beep */
+			// Prepare PIT counter 2 for ~900 Hz square wave
+			IO_Write(0x43, 0xb6);
+			IO_Write(0x42, 0x28);
+			IO_Write(0x42, 0x05);
+			// Speaker on
+			IO_Write(0x61, IO_Read(0x61) | 0x3);
+			// Idle for 1/3rd of a second
+			double start;
+			start = PIC_FullIndex();
+			while ((PIC_FullIndex() - start) < 333.0) CALLBACK_Idle();
+			// Speaker off
+			IO_Write(0x61, IO_Read(0x61) & ~0x3);
+			if (CurMode->type==M_TEXT) {
+				uint16_t chat;
+				INT10_ReadCharAttr(&chat,page);
+				if ((uint8_t)(chat>>8)!=7) return;
+			}
+			return; /* don't do anything else, not even scrollup on last line (fix for Elder Scrolls Arena installer) */
+		default:
+			/* Return if the char code is DBCS at the end of the line (for DOS/V) */
+			if (cur_col + 1 == ncols && IS_DOSV && DOSV_CheckCJKVideoMode() && isKanji1(chr) && prevchr == 0) {
+				INT10_TeletypeOutputAttr(' ', attr, useattr, page);
+				cur_row = CURSOR_POS_ROW(page);
+				cur_col = CURSOR_POS_COL(page);
+			}
+			/* Draw the actual Character */
+			if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+				WriteCharV(cur_col,cur_row,chr,attr,useattr);
+			} else {
+				WriteChar(cur_col,cur_row,page,chr,attr,useattr);
+			}
+			cur_col++;
+	}
+	if(cur_col==ncols) {
+		cur_col=0;
+		cur_row++;
+	}
+	// Do we need to scroll ?
+	if(cur_row==nrows) {
+		//Fill with black on non-text modes
+		uint8_t fill = 0;
+		if (IS_PC98_ARCH && CurMode->type == M_TEXT) {
+			//Fill with the default ANSI attribute on textmode
+			fill = DefaultANSIAttr();
 		}
-        /* Draw the actual Character */
-        if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
-            WriteCharV(cur_col,cur_row,chr,attr,useattr);
-        } else {
-            WriteChar(cur_col,cur_row,page,chr,attr,useattr);
-        }
-        cur_col++;
-    }
-    if(cur_col==ncols) {
-        cur_col=0;
-        cur_row++;
-    }
-    // Do we need to scroll ?
-    if(cur_row==nrows) {
-        //Fill with black on non-text modes
-        uint8_t fill = 0;
-        if (IS_PC98_ARCH && CurMode->type == M_TEXT) {
-            //Fill with the default ANSI attribute on textmode
-            fill = DefaultANSIAttr();
-        }
-        else if (CurMode->type==M_TEXT || DOSV_CheckCJKVideoMode()) {
-            //Fill with attribute at cursor on textmode
-            uint16_t chat;
-            INT10_ReadCharAttr(&chat,page);
-            fill=(uint8_t)(chat>>8);
-        }
-        INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,fill,page);
-        cur_row--;
-    }
-    // Set the cursor for the page
-    INT10_SetCursorPos(cur_row,cur_col,page);
+		else if (CurMode->type==M_TEXT || DOSV_CheckCJKVideoMode()) {
+			//Fill with attribute at cursor on textmode
+			uint16_t chat;
+			INT10_ReadCharAttr(&chat,page);
+			fill=(uint8_t)(chat>>8);
+		}
+		INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,fill,page);
+		cur_row--;
+	}
+	// Set the cursor for the page
+	INT10_SetCursorPos(cur_row,cur_col,page);
 }
 
 void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr) {
