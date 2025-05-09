@@ -47,10 +47,8 @@
 #include "support.h"
 #include "setup.h"
 
-#ifdef __MINGW32__
-#ifndef __MINGW64__
+#if (defined( __MINGW32__) && !defined(__MINGW64__ )) || defined(LINUX)
 #pragma push_macro("__inline__")
-#endif
 #endif
 #include "src/libs/decoders/audio_convert.c"
 #include "src/libs/decoders/SDL_sound.c"
@@ -61,10 +59,8 @@
 #include "src/libs/decoders/mp3_seek_table.cpp"
 #include "src/libs/decoders/mp3.cpp"
 #include "src/libs/decoders/dr_flac.h"
-#ifdef __MINGW32__
-#ifndef __MINGW64__
+#if (defined( __MINGW32__) && !defined(__MINGW64__ )) || defined(LINUX)
 #pragma pop_macro("__inline__")
-#endif
 #endif
 #include "src/libs/libchdr/chd.h"
 #include "src/libs/libchdr/libchdr_chd.c"
