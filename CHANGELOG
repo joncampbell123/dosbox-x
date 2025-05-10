@@ -7,6 +7,14 @@ Next version
   - Fix INT 10h AH=0Eh bug where printing BEL triggered screen scroll up if
     cursor beyond the last line. Fix for the Elder Scrolls Arena installer.
     (joncampbell123).
+  - FAT filesystem driver (for disk images): If Elder Scrolls Arena calls
+    INT 21h to find files named *.65 (such as STATES.65) with an attribute mask
+    of 0xA (VOLUME LABEL | HIDDEN), ignore the VOLUME LABEL bit and scan
+    normally. The 0xA value is leftover from a divide operation used to make
+    the file name and is technically a bug in the game, though that happens
+    to work on real MS-DOS and the DOSBox/DOSBox-X local folder support code
+    anyway. This fix allows Elder Scrolls Arena to run from a mounted disk
+    image. (joncampbell123).
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
