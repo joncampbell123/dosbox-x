@@ -5085,6 +5085,7 @@ extern "C" {
             return (t);
         }
 
+    #ifndef WIN_PTHREADS_TIME_H
         int clock_gettime(int X, struct timespec *tv) {
             LARGE_INTEGER t;
             FILETIME f;
@@ -5122,6 +5123,7 @@ extern "C" {
             tv->tv_nsec = t.QuadPart % 1000000 * 1000;
             return (0);
         }
+    #endif
     #elif __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 	#define CLOCK_REALTIME 0
 	#define CLOCK_MONOTONIC 1
