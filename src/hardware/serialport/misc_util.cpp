@@ -33,15 +33,15 @@
 #undef WITH_ENET_IMPLEMENTATION
 #endif
 
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 #include <Availability.h>
-
 #define STR2(x) #x
 #define STR(x) STR2(x)
+#pragma message("__MAC_OS_X_VERSION_MIN_REQUIRED = " STR(__MAC_OS_X_VERSION_MIN_REQUIRED))
 
-#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 #define CLOCK_REALTIME 0
 #define CLOCK_MONOTONIC 1
-#pragma message("__MAC_OS_X_VERSION_MIN_REQUIRED = " STR(__MAC_OS_X_VERSION_MIN_REQUIRED))
+
 extern "C" {
 	int clock_gettime(int X, struct timespec *tv); /* macOS 10.12+ has clock_gettime() */
 }
