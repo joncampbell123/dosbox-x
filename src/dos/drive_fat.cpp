@@ -2720,7 +2720,7 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool fcb_findfirst) {
 	 * which to us appears as a program searching for files that may also be a volume label and/or hidden (CX=0x000A). */
 	/* TODO: Perhaps this check could be rolled into the _dir && *_dir && dta.GetAttr() == 0x3F check? */
 	bool ignore_volbit = false;
-	if ((dta.GetAttr() & ~(DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM|DOS_ATTR_DIRECTORY|DOS_ATTR_ARCHIVE)) == DOS_ATTR_VOLUME) {
+	if ((dta.GetAttr() & ~(DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM|DOS_ATTR_ARCHIVE)) == DOS_ATTR_VOLUME) {
 		LOG(LOG_MISC,LOG_DEBUG)("FindFirst() ignoring volume label bit because other bits are set (Elder Scrolls Arena fix)");
 		ignore_volbit = true;
 	}
