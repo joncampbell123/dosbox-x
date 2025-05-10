@@ -84,6 +84,10 @@ void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_me
 extern int tryconvertcp, Reflect_Menu(void);
 bool kana_input = false; // true if a half-width kana was typed
 
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+#define IS_OLDMACOS 1 /* FIX_ME: Tested on El Capitan (10.11). If this macro is required for Sierra (10.12), change to 101300 */
+#endif
+
 #ifndef LINUX
 char* convert_escape_newlines(const char* aMessage);
 char* revert_escape_newlines(const char* aMessage);
@@ -152,7 +156,7 @@ char* revert_escape_newlines(const char* aMessage);
 #include "display2.cpp"
 #endif
 
-#if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
 #include "libs/passthroughio/passthroughio.h" // for dropPrivileges()
 #endif
 
@@ -7900,7 +7904,7 @@ void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
 void grGlideShutdown(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
-#if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
     dropPrivilegesTemp();
 #endif
     CommandLine com_line(argc,argv);
@@ -9438,7 +9442,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* The machine just "powered on", and then reset finished */
         if (!VM_PowerOn()) E_Exit("VM failed to power on");
 
-#if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
         /*
           Drop root privileges after they are no longer needed, which is a good
           practice if the executable is setuid root.

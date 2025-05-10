@@ -30,6 +30,50 @@
 
 extern std::string niclist;
 
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+typedef enum {
+    _CLOCK_REALTIME = 0,
+#if !defined(CLOCK_REALTIME)
+#define CLOCK_REALTIME _CLOCK_REALTIME
+#endif
+    _CLOCK_MONOTONIC = 6,
+#if !defined(CLOCK_MONOTONIC)
+#define CLOCK_MONOTONIC _CLOCK_MONOTONIC
+#endif
+#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+    _CLOCK_MONOTONIC_RAW = 4,
+#if !defined(CLOCK_MONOTONIC_RAW)
+#define CLOCK_MONOTONIC_RAW _CLOCK_MONOTONIC_RAW
+#endif
+    _CLOCK_MONOTONIC_RAW_APPROX = 5,
+#if !defined(CLOCK_MONOTONIC_RAW_APPROX)
+#define CLOCK_MONOTONIC_RAW_APPROX _CLOCK_MONOTONIC_RAW_APPROX
+#endif
+    _CLOCK_UPTIME_RAW = 8,
+#if !defined(CLOCK_UPTIME_RAW)
+#define CLOCK_UPTIME_RAW _CLOCK_UPTIME_RAW
+#endif
+    _CLOCK_UPTIME_RAW_APPROX = 9,
+#if !defined(CLOCK_UPTIME_RAW_APPROX)
+#define CLOCK_UPTIME_RAW_APPROX _CLOCK_UPTIME_RAW_APPROX
+#endif
+#endif
+    _CLOCK_PROCESS_CPUTIME_ID = 12,
+#if !defined(CLOCK_PROCESS_CPUTIME_ID)
+#define CLOCK_PROCESS_CPUTIME_ID _CLOCK_PROCESS_CPUTIME_ID
+#endif
+    _CLOCK_THREAD_CPUTIME_ID = 16
+#if !defined(CLOCK_THREAD_CPUTIME_ID)
+#define CLOCK_THREAD_CPUTIME_ID _CLOCK_THREAD_CPUTIME_ID
+#endif
+} clockid_t;
+
+extern "C" {
+/* clock_gettime() only available in macOS 10.12+ (Sierra) */
+int clock_gettime(clockid_t clk_id, struct timespec *tp);
+}
+#endif
+
 #ifdef WIN32
 #if _WIN32_WINNT < 0x600
 /* Very quick Windows XP-compatible inet_pton implementation */
@@ -217,12 +261,14 @@ void SlirpEthernetConnection::ClearPortForwards(const bool is_udp, std::map<int,
 	const auto protocol = is_udp ? "UDP" : "TCP";
 	const in_addr host_addr = {htonl(INADDR_ANY)};
 
-	for (const auto &[host_port, guest_port] : existing_port_forwards)
+	for (const auto &pair : existing_port_forwards) {
+		const auto &host_port = pair.first;
+		const auto &guest_port = pair.second;
 		if (slirp_remove_hostfwd(slirp, is_udp, host_addr, host_port) >= 0)
 			LOG_MSG("SLIRP: Removed old %s port %d:%d forward", protocol, host_port, guest_port);
 		else
 			LOG_MSG("SLIRP: Failed removing old %s port %d:%d forward", protocol, host_port, guest_port);
-
+	}
 	existing_port_forwards.clear();
 }
 

@@ -5482,8 +5482,12 @@ void MAPPER_RunInternal() {
 #endif
     std::string mapper_keybind = mapper_event_keybind_string("host");
     if (mapper_keybind.empty()) mapper_keybind = "unbound";
-    mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
-
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
+     /* Avoid conflict in check() macro */
+     mainMenu.get_item("hostkey_mapper").check2(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
+#else
+     mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
+#endif
 #if defined(USE_TTF)
     if (!TTF_using() || ttf.inUse)
 #endif
