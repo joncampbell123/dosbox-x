@@ -30,6 +30,14 @@
 
 extern std::string niclist;
 
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+#define CLOCK_REALTIME 0
+#define CLOCK_MONOTONIC 1
+extern "C"{
+	int clock_gettime(int X, struct timespec *ts); /* macOS 10.12+ has clock_gettime() */
+}
+#endif
+
 #ifdef WIN32
 #if _WIN32_WINNT < 0x600
 /* Very quick Windows XP-compatible inet_pton implementation */
@@ -217,12 +225,14 @@ void SlirpEthernetConnection::ClearPortForwards(const bool is_udp, std::map<int,
 	const auto protocol = is_udp ? "UDP" : "TCP";
 	const in_addr host_addr = {htonl(INADDR_ANY)};
 
-	for (const auto &[host_port, guest_port] : existing_port_forwards)
+	for (const auto &pair : existing_port_forwards) {
+		const auto &host_port = pair.first;
+		const auto &guest_port = pair.second;
 		if (slirp_remove_hostfwd(slirp, is_udp, host_addr, host_port) >= 0)
 			LOG_MSG("SLIRP: Removed old %s port %d:%d forward", protocol, host_port, guest_port);
 		else
 			LOG_MSG("SLIRP: Failed removing old %s port %d:%d forward", protocol, host_port, guest_port);
-
+	}
 	existing_port_forwards.clear();
 }
 

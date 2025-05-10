@@ -55,6 +55,37 @@ extern bool enable_share_exe, enable_dbcs_tables;
 extern int dos_clipboard_device_access;
 extern const char *dos_clipboard_device_name;
 
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+extern "C" {
+#include <mach/mach_time.h>
+#include <sys/time.h>
+
+#define CLOCK_REALTIME 0
+#define CLOCK_MONOTONIC 1
+
+/* clock_gettime() only available in macOS 10.12+ (Sierra) */
+int clock_gettime(int clk_id, struct timespec *tp) {
+    if (clk_id == CLOCK_REALTIME) {
+        struct timeval now;
+        gettimeofday(&now, NULL);
+        tp->tv_sec = now.tv_sec;
+        tp->tv_nsec = now.tv_usec * 1000;
+        return 0;
+    } else if (clk_id == CLOCK_MONOTONIC) {
+        static mach_timebase_info_data_t info;
+        uint64_t now = mach_absolute_time();
+        if (info.denom == 0)
+            mach_timebase_info(&info);
+        uint64_t ns = now * info.numer / info.denom;
+        tp->tv_sec = ns / 1000000000;
+        tp->tv_nsec = ns % 1000000000;
+        return 0;
+    }
+    return -1;
+}
+}
+#endif
+
 Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
 DOS_Drive * Drives[DOS_DRIVES] = {NULL};

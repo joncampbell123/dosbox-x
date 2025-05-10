@@ -126,6 +126,63 @@ int tryconvertcp = 0;
 bool cpwarn_once = false, ignorespecial = false, notrycp = false;
 std::string prefix_local = ".DBLOCALFILE";
 
+
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
+// futimens() not available in macOS 10.12 (Sierra) and before
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <time.h>
+#include <fcntl.h>
+#include <errno.h>
+
+// POSIX defined constants（not defined in old macOS)
+#define UTIME_NOW  ((1l << 30) - 1l)
+#define UTIME_OMIT ((1l << 30) - 2l)
+
+int futimens (int fd, const struct timespec times[2]) {
+    if (!times) {
+        return futimes(fd, NULL);  // If NULL, update to current time
+    }
+
+    struct timeval tv[2];
+
+    // Retrieve current file timestamps (used for UTIME_OMIT)
+    struct stat st;
+    if (fstat(fd, &st) == -1) {
+        return -1;
+    }
+
+    // Access time
+    if (times[0].tv_nsec == UTIME_NOW) {
+        struct timeval now;
+        if (gettimeofday(&now, NULL) == -1) return -1;
+        tv[0] = now;
+    } else if (times[0].tv_nsec == UTIME_OMIT) {
+        tv[0].tv_sec  = st.st_atimespec.tv_sec;
+        tv[0].tv_usec = st.st_atimespec.tv_nsec / 1000;
+    } else {
+        tv[0].tv_sec  = times[0].tv_sec;
+        tv[0].tv_usec = times[0].tv_nsec / 1000;
+    }
+
+    // Modified time
+    if (times[1].tv_nsec == UTIME_NOW) {
+        struct timeval now;
+        if (gettimeofday(&now, NULL) == -1) return -1;
+        tv[1] = now;
+    } else if (times[1].tv_nsec == UTIME_OMIT) {
+        tv[1].tv_sec  = st.st_mtimespec.tv_sec;
+        tv[1].tv_usec = st.st_mtimespec.tv_nsec / 1000;
+    } else {
+        tv[1].tv_sec  = times[1].tv_sec;
+        tv[1].tv_usec = times[1].tv_nsec / 1000;
+    }
+
+    return futimes(fd, tv);
+}
+#endif
+
 char* GetCrossedName(const char *basedir, const char *dir) {
 	static char crossname[CROSS_LEN];
 	strcpy(crossname, basedir);

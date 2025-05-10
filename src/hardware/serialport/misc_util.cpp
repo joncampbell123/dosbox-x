@@ -33,6 +33,14 @@
 #undef WITH_ENET_IMPLEMENTATION
 #endif
 
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+#define CLOCK_REALTIME 0
+#define CLOCK_MONOTONIC 1
+extern "C" {
+	int clock_gettime(int X, struct timespec *tv); /* macOS 10.12+ has clock_gettime() */
+}
+#endif
+
 #if defined(WITH_ENET_IMPLEMENTATION)
  #define ENET_IMPLEMENTATION
  #include "enet.h"
