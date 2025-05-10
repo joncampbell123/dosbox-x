@@ -60,11 +60,45 @@ extern "C" {
 #include <mach/mach_time.h>
 #include <sys/time.h>
 
-#define CLOCK_REALTIME 0
-#define CLOCK_MONOTONIC 1
+typedef enum {
+    _CLOCK_REALTIME = 0,
+#if !defined(CLOCK_REALTIME)
+#define CLOCK_REALTIME _CLOCK_REALTIME
+#endif
+    _CLOCK_MONOTONIC = 6,
+#if !defined(CLOCK_MONOTONIC)
+#define CLOCK_MONOTONIC _CLOCK_MONOTONIC
+#endif
+#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+    _CLOCK_MONOTONIC_RAW = 4,
+#if !defined(CLOCK_MONOTONIC_RAW)
+#define CLOCK_MONOTONIC_RAW _CLOCK_MONOTONIC_RAW
+#endif
+    _CLOCK_MONOTONIC_RAW_APPROX = 5,
+#if !defined(CLOCK_MONOTONIC_RAW_APPROX)
+#define CLOCK_MONOTONIC_RAW_APPROX _CLOCK_MONOTONIC_RAW_APPROX
+#endif
+    _CLOCK_UPTIME_RAW = 8,
+#if !defined(CLOCK_UPTIME_RAW)
+#define CLOCK_UPTIME_RAW _CLOCK_UPTIME_RAW
+#endif
+    _CLOCK_UPTIME_RAW_APPROX = 9,
+#if !defined(CLOCK_UPTIME_RAW_APPROX)
+#define CLOCK_UPTIME_RAW_APPROX _CLOCK_UPTIME_RAW_APPROX
+#endif
+#endif
+    _CLOCK_PROCESS_CPUTIME_ID = 12,
+#if !defined(CLOCK_PROCESS_CPUTIME_ID)
+#define CLOCK_PROCESS_CPUTIME_ID _CLOCK_PROCESS_CPUTIME_ID
+#endif
+    _CLOCK_THREAD_CPUTIME_ID = 16
+#if !defined(CLOCK_THREAD_CPUTIME_ID)
+#define CLOCK_THREAD_CPUTIME_ID _CLOCK_THREAD_CPUTIME_ID
+#endif
+} clockid_t;
 
 /* clock_gettime() only available in macOS 10.12+ (Sierra) */
-int clock_gettime(int clk_id, struct timespec *tp) {
+int clock_gettime(clockid_t clk_id, struct timespec *tp) {
     if (clk_id == CLOCK_REALTIME) {
         struct timeval now;
         gettimeofday(&now, NULL);
