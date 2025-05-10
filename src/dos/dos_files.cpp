@@ -55,127 +55,57 @@ extern bool enable_share_exe, enable_dbcs_tables;
 extern int dos_clipboard_device_access;
 extern const char *dos_clipboard_device_name;
 
-#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
-#ifdef __cplusplus
-extern "C" {
-#endif
+#if defined(__APPLE__) && defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 
 #include <mach/mach_time.h>
-#include <mach/thread_info.h>
 #include <mach/mach.h>
+#include <mach/thread_info.h>
 #include <sys/time.h>
 #include <errno.h>
 #include <time.h>
 
 typedef enum {
     _CLOCK_REALTIME = 0,
-#ifndef CLOCK_REALTIME
+#if !defined(CLOCK_REALTIME)
 #define CLOCK_REALTIME _CLOCK_REALTIME
 #endif
-
     _CLOCK_MONOTONIC = 6,
-#ifndef CLOCK_MONOTONIC
+#if !defined(CLOCK_MONOTONIC)
 #define CLOCK_MONOTONIC _CLOCK_MONOTONIC
 #endif
-
+#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
     _CLOCK_MONOTONIC_RAW = 4,
-#ifndef CLOCK_MONOTONIC_RAW
+#if !defined(CLOCK_MONOTONIC_RAW)
 #define CLOCK_MONOTONIC_RAW _CLOCK_MONOTONIC_RAW
 #endif
-
     _CLOCK_MONOTONIC_RAW_APPROX = 5,
-#ifndef CLOCK_MONOTONIC_RAW_APPROX
+#if !defined(CLOCK_MONOTONIC_RAW_APPROX)
 #define CLOCK_MONOTONIC_RAW_APPROX _CLOCK_MONOTONIC_RAW_APPROX
 #endif
-
     _CLOCK_UPTIME_RAW = 8,
-#ifndef CLOCK_UPTIME_RAW
+#if !defined(CLOCK_UPTIME_RAW)
 #define CLOCK_UPTIME_RAW _CLOCK_UPTIME_RAW
 #endif
-
     _CLOCK_UPTIME_RAW_APPROX = 9,
-#ifndef CLOCK_UPTIME_RAW_APPROX
+#if !defined(CLOCK_UPTIME_RAW_APPROX)
 #define CLOCK_UPTIME_RAW_APPROX _CLOCK_UPTIME_RAW_APPROX
 #endif
-
+#endif
     _CLOCK_PROCESS_CPUTIME_ID = 12,
-#ifndef CLOCK_PROCESS_CPUTIME_ID
+#if !defined(CLOCK_PROCESS_CPUTIME_ID)
 #define CLOCK_PROCESS_CPUTIME_ID _CLOCK_PROCESS_CPUTIME_ID
 #endif
-
     _CLOCK_THREAD_CPUTIME_ID = 16
-#ifndef CLOCK_THREAD_CPUTIME_ID
+#if !defined(CLOCK_THREAD_CPUTIME_ID)
 #define CLOCK_THREAD_CPUTIME_ID _CLOCK_THREAD_CPUTIME_ID
 #endif
-
 } clockid_t;
 
-static inline int get_mach_time(clockid_t clk_id, struct timespec* tp) {
-    static mach_timebase_info_data_t timebase_info = {0};
-    if (timebase_info.denom == 0)
-        mach_timebase_info(&timebase_info);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    uint64_t t = 0;
-    switch (clk_id) {
-        case CLOCK_MONOTONIC_RAW_APPROX:
-        case CLOCK_UPTIME_RAW_APPROX:
-            t = clock_gettime_nsec_np(clk_id);
-            break;
-        case CLOCK_MONOTONIC:
-        case CLOCK_MONOTONIC_RAW:
-        case CLOCK_UPTIME_RAW:
-            t = mach_absolute_time();
-            t = t * timebase_info.numer / timebase_info.denom;
-            break;
-        default:
-            errno = EINVAL;
-            return -1;
-    }
-
-    tp->tv_sec = t / 1000000000;
-    tp->tv_nsec = t % 1000000000;
-    return 0;
-}
-
-static inline int get_process_cputime(struct timespec* tp) {
-    task_thread_times_info_data_t info;
-    mach_msg_type_number_t count = TASK_THREAD_TIMES_INFO_COUNT;
-    kern_return_t kr = task_info(mach_task_self(), TASK_THREAD_TIMES_INFO,
-                                 (task_info_t)&info, &count);
-    if (kr != KERN_SUCCESS) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    uint64_t total_usec = info.user_time.seconds * 1000000 + info.user_time.microseconds +
-                          info.system_time.seconds * 1000000 + info.system_time.microseconds;
-
-    tp->tv_sec = total_usec / 1000000;
-    tp->tv_nsec = (total_usec % 1000000) * 1000;
-    return 0;
-}
-
-static inline int get_thread_cputime(struct timespec* tp) {
-    thread_basic_info_data_t info;
-    mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
-    thread_act_t thread = mach_thread_self();
-    kern_return_t kr = thread_info(thread, THREAD_BASIC_INFO, (thread_info_t)&info, &count);
-    mach_port_deallocate(mach_task_self(), thread);
-
-    if (kr != KERN_SUCCESS) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    uint64_t total_usec = info.user_time.seconds * 1000000 + info.user_time.microseconds +
-                          info.system_time.seconds * 1000000 + info.system_time.microseconds;
-
-    tp->tv_sec = total_usec / 1000000;
-    tp->tv_nsec = (total_usec % 1000000) * 1000;
-    return 0;
-}
-
-int clock_gettime(clockid_t clk_id, struct timespec *tp) {
+int clock_gettime(clockid_t clk_id, struct timespec* tp) {
     if (!tp) {
         errno = EINVAL;
         return -1;
@@ -189,16 +119,56 @@ int clock_gettime(clockid_t clk_id, struct timespec *tp) {
             tp->tv_nsec = now.tv_usec * 1000;
             return 0;
         }
+
         case CLOCK_MONOTONIC:
         case CLOCK_MONOTONIC_RAW:
         case CLOCK_MONOTONIC_RAW_APPROX:
         case CLOCK_UPTIME_RAW:
-        case CLOCK_UPTIME_RAW_APPROX:
-            return get_mach_time(clk_id, tp);
-        case CLOCK_PROCESS_CPUTIME_ID:
-            return get_process_cputime(tp);
-        case CLOCK_THREAD_CPUTIME_ID:
-            return get_thread_cputime(tp);
+        case CLOCK_UPTIME_RAW_APPROX: {
+            static mach_timebase_info_data_t timebase_info = {0};
+            if (timebase_info.denom == 0)
+                mach_timebase_info(&timebase_info);
+
+            uint64_t time = mach_absolute_time();
+            uint64_t nsec = time * timebase_info.numer / timebase_info.denom;
+            tp->tv_sec = nsec / 1000000000;
+            tp->tv_nsec = nsec % 1000000000;
+            return 0;
+        }
+
+        case CLOCK_PROCESS_CPUTIME_ID: {
+            task_thread_times_info_data_t info;
+            mach_msg_type_number_t count = TASK_THREAD_TIMES_INFO_COUNT;
+            if (task_info(mach_task_self(), TASK_THREAD_TIMES_INFO,
+                          (task_info_t)&info, &count) != KERN_SUCCESS) {
+                errno = EINVAL;
+                return -1;
+            }
+            uint64_t usec = info.user_time.seconds * 1000000 + info.user_time.microseconds +
+                            info.system_time.seconds * 1000000 + info.system_time.microseconds;
+            tp->tv_sec = usec / 1000000;
+            tp->tv_nsec = (usec % 1000000) * 1000;
+            return 0;
+        }
+
+        case CLOCK_THREAD_CPUTIME_ID: {
+            thread_basic_info_data_t info;
+            mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
+            thread_act_t thread = mach_thread_self();
+            kern_return_t kr = thread_info(thread, THREAD_BASIC_INFO,
+                                           (thread_info_t)&info, &count);
+            mach_port_deallocate(mach_task_self(), thread);
+            if (kr != KERN_SUCCESS) {
+                errno = EINVAL;
+                return -1;
+            }
+            uint64_t usec = info.user_time.seconds * 1000000 + info.user_time.microseconds +
+                            info.system_time.seconds * 1000000 + info.system_time.microseconds;
+            tp->tv_sec = usec / 1000000;
+            tp->tv_nsec = (usec % 1000000) * 1000;
+            return 0;
+        }
+
         default:
             errno = EINVAL;
             return -1;
@@ -208,7 +178,9 @@ int clock_gettime(clockid_t clk_id, struct timespec *tp) {
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+
 
 Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
