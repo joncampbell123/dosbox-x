@@ -330,6 +330,18 @@ class DOSBoxMenu {
 
                     return *this;
                 }
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
+                /* A copy of check() required to avoid conflict in macro definition */
+                inline item &check2(const bool f=true) {
+                    if (status.checked != f) {
+                        status.checked  = f;
+                        if (can_check() && has_vis_checked())
+                            status.changed = 1;
+                    }
+
+                    return *this;
+                }
+#endif                
                 inline bool is_checked(void) const {
                     return status.checked;
                 }

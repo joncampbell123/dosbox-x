@@ -5123,6 +5123,12 @@ extern "C" {
             return (0);
         }
     #elif __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+	#define CLOCK_REALTIME 0
+	#define CLOCK_MONOTONIC 1
+	extern "C" {
+		int clock_gettime(int X, struct timespec *tv);
+	}
+	#if 0
         #define CLOCK_MONOTONIC 0
 
         int clock_gettime(int X, struct timespec *ts) {
@@ -5138,6 +5144,7 @@ extern "C" {
 
             return 0;
         }
+	#endif
     #endif
 
     enet_uint32 enet_time_get() {

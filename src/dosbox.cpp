@@ -80,6 +80,16 @@
 #include "keyboard.h"
 #include "clockdomain.h"
 
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+/* FIX_ME: A workaround to avoid build error. Change version to 101300 if error occurs for Sierra (10.12) */
+struct __processor_model {
+  unsigned int __cpu_vendor;
+  unsigned int __cpu_type;
+  unsigned int __cpu_subtype;
+  unsigned int __cpu_features[1];
+} __cpu_model = {0, 0, 0, {0}};
+#endif
+
 #if C_EMSCRIPTEN
 # include <emscripten.h>
 #endif
