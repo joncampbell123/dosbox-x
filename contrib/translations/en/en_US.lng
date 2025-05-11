@@ -4399,8 +4399,8 @@ Failed to save disk image.
 :MENU_JP_CPONLY
 This function is only available for the Japanese code page (932).
 .
-:MENU_CN_CPONLY
-This function is only available for the Chinese code pages (936 or 950).
+:MENU_CH_CPONLY
+This function is only available for the Chinese code pages (936, 950, or 951).
 .
 :MENU_GLIDE_ERROR
 Glide passthrough cannot be enabled. Check the Glide wrapper installation.

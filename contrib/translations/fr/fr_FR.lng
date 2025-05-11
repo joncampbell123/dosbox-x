@@ -4432,8 +4432,8 @@ Lecteur inexistant ou est monté depuis une image disque.
 :MENU_JP_CPONLY
 Cette fonction n'est disponible que pour le code de page Japonais (932).
 .
-:MENU_CN_CPONLY
-Cette fonction n'est disponible que pour le code de page Chinois (936 ou 950).
+:MENU_CH_CPONLY
+Cette fonction n'est disponible que pour le code de page Chinois (936, 950 ou 951).
 .
 :MENU_GLIDE_ERROR
 La fonction Glide passthrough ne peut pas être activée. Vérifiez l'installation 

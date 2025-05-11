@@ -4413,8 +4413,8 @@ Het opslaan van de schijf-image is mislukt.
 :MENU_JP_CPONLY
 Deze functie is alleen beschikbaar voor de Japanse codepagina (932).
 .
-:MENU_CN_CPONLY
-Deze functie is alleen beschikbaar voor Chinese codepagina's (936 of 950).
+:MENU_CH_CPONLY
+Deze functie is alleen beschikbaar voor Chinese codepagina's (936, 950 of 951).
 .
 :MENU_GLIDE_ERROR
 Glide-passthrough kan niet worden ingeschakeld. Controleer de installatie van
