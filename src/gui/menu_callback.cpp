@@ -1660,7 +1660,7 @@ bool ttf_extend_charset_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     if (!isDBCSCP()||(dos.loaded_codepage!=936&&dos.loaded_codepage!=950&&dos.loaded_codepage!=951)) {
-        systemmessagebox("Warning", MSG_Get("MENU_CN_CPONLY"), "ok","warning", 1);
+        systemmessagebox("Warning", MSG_Get("MENU_CH_CPONLY"), "ok","warning", 1);
         return true;
     }
     if (dos.loaded_codepage==936) {
