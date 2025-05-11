@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
-:DOSBOX-X:VERSION:2025.05.03
+:DOSBOX-X:VERSION:2025.02.01
 :DOSBOX-X:REMARK:設定好中文語言與字型後，就可以直接支援中文顯示和列印。國家和字碼頁選項可以留空，或設為「886,950」、「886,951」。譯者註：932 字碼頁的中文語言檔（用於 PC-98、JEGA、DOS/V）可至 https://github.com/1abcd/dosbox-x/issues/2 下載。
 :AUTOEXEC_CONFIGFILE_HELP
 區段中的指令行會在啟動時執行.
@@ -311,7 +311,7 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 -h, -help, -? 區段 或 屬性 顯示指定區段或屬性的資訊.
 -axclear 清除 [autoexec] 區段.
 -axadd [指令行] 新增指令行至 [autoexec] 區段.
--axtype 顯示 [autoexec] 區段中的內容.
+-axtype 列出 [autoexec] 區段中的內容.
 -avistart, -avistop 開始或停止錄製 AVI.
 -securemode 啟用安全模式, 將停用掛載磁碟機等功能.
 -startmapper 啟動 DOSBox-X 的對應表編輯器.
@@ -477,7 +477,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_IMGSWAP_ERROR
-此磁碟機的位置必須在 1 和 %d 之間.
+提供給此磁碟機的位置必須在 1 和 %d 之間.
 
 .
 :PROGRAM_MOUNT_ERROR_1
@@ -510,10 +510,10 @@ MOUSE [/?] [/U] [/V]
                    支援的磁碟機類型有: dir, floppy, cdrom, overlay
                    (其中 'overlay' 將掛載磁碟機的寫入操作重新導向到另一個目錄)
  -label [名稱]     設定磁碟機中的磁碟區標籤名稱 (全部大寫).
- -nl               如果指定的磁碟機已掛載, 自動使用下一個磁碟機代號.
+ -nl               如果指定的磁碟機已被掛載, 自動使用下一個磁碟機代號.
  -ro               以唯讀模式掛載磁碟機.
  -pr               指定路徑為相對於組態檔案所在目錄.
- -cd               顯示包含光碟機編號的本機光碟機清單.
+ -cd               產生包含光碟機編號的本機光碟機清單.
  -usecd [光碟機編號] 支援直接硬體模擬比如 CD 音訊播放.
  -ioctl            使用最低階的硬體存取 (與 -usecd 選項一起使用).
  -aspi             使用已安裝的 ASPI 層 (與 -usecd 選項一起使用).
@@ -540,8 +540,8 @@ MOUSE [/?] [/U] [/V]
 [32;1mMOUNT[0m                             - 列出所有已掛載的磁碟機
 [32;1mMOUNT -cd[0m                         - 列出本機所有光碟機
 [32;1mMOUNT d %s[0m            - 將磁碟機 D: 掛載到指定目錄
-[32;1mMOUNT c %s -t cdrom[0m      - 以光碟機方式將磁碟機 C: 掛載到指定目錄
-[32;1mMOUNT c %s -ro[0m           - 將磁碟機 C: 以唯讀模式掛載
+[32;1mMOUNT c %s -t cdrom[0m      - 用指定目錄將磁碟機 C: 掛載為光碟機
+[32;1mMOUNT c %s -ro[0m           - 以唯讀模式掛載磁碟機 C:
 [32;1mMOUNT c %s -label TEST[0m   - 掛載磁碟機 C: 並給予標籤 TEST
 [32;1mMOUNT c %s -nocachedir [0m  - 掛載磁碟機 C: 且不使用磁碟機快取
 [32;1mMOUNT c %s -freesize 128[0m - 掛載磁碟機 C: 並報告剩餘磁碟空間為 128MB
@@ -575,7 +575,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-無法從此壓縮檔中掛載 PhysFS 磁碟機.
+無法用此壓縮檔掛載 PhysFS 磁碟機.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
@@ -714,7 +714,7 @@ DOSBox-X 建立一個 DOS 環境讓您彷彿正在使用原本的 DOS 系統.
 .
 :PROGRAM_INTRO_MENU_CDROM_HELP
 
-[1m   [1m[K如果在 DOSBox-X 中掛載光碟, 您需要在掛載它們時指定更多的選項.[0m
+[1m   [1m[K如果要在 DOSBox-X 中掛載光碟機, 在掛載時您需要指定更多的選項.[0m
 
 .
 :PROGRAM_INTRO_MENU_USAGE_HELP
@@ -1131,7 +1131,7 @@ BIOSTEST 映像檔
   -size: 自訂硬碟映像的大小 MB 數 (vhd: 上限 2088960).
   -chs: 磁碟版面, 使用 磁柱(1-1023),磁頭(1-255),磁區(1-63) 定址方式.
   -nofs: 如果想建立空白映像檔請加入此參數.
-  -force: 強制覆寫已存在的映像檔. -chs / -lba: 選擇 C/H/S 或者 LBA.
+  -force: 強制覆寫已存在的映像檔. -chs / -lba: 選擇 C/H/S 或者 LBA 定址.
   -bat: 建立一個包含 IMGMOUNT 命令的批次檔以掛載此映像檔.
   -fat: 檔案系統類型 (12、16、或 32). -fatcopies: 指定 FAT 表格複本數.
   -spc: 指定每個叢集所包含的磁區數 (必須為 2 的冪次方). -label 磁碟機標籤.
@@ -1241,7 +1241,7 @@ BIOSTEST 映像檔
 yn
 .
 :PROGRAM_LABEL_HELP
-建立、變更或刪除磁碟機中的磁碟區標籤.
+建立、變更、或刪除磁碟機中的磁碟區標籤.
 
 LABEL [磁碟機:][標籤]
 
@@ -2246,7 +2246,7 @@ CHCP nnn[:[語言]]
   檔案  指定字碼頁檔案.
   語言  指定對應的語言.
 
-在 TrueType 字型輸出方式所支援變更的字碼頁包括:
+用 TrueType 字型輸出方式, 支援變更的字碼頁包括:
 
 437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021
 
@@ -2354,15 +2354,15 @@ DEBUGBOX [命令] [選項]
 調整 CPU 模擬速度            - 使用 [31m主機鍵+加號[37m 與 [31m主機鍵+減號[37m。  
 .
 :SHELL_STARTUP_INFO_PC98
-[36mDOSBox-X 正在執行於[32m日本 NEC PC-98[36m 模擬模式。[37m                      
+[36mDOSBox-X 正在使用[32m日本的 NEC PC-98[36m 模擬模式執行。[37m                  
 .
 :SHELL_STARTUP_TEXT3_PC98
-[32mDOSBox-X 首頁 [33mhttps://dosbox-x.com/        [36mComplete DOS emulations[37m
-[32mDOSBox-X 指南 [33mhttps://dosbox-x.com/wiki   [37m [36mDOS, Windows 3.x and 9x[37m
+[32mDOSBox-X 首頁 [33mhttps://dosbox-x.com/       [36m提供完整的 DOS 環境模擬 [37m
+[32mDOSBox-X 指南 [33mhttps://dosbox-x.com/wiki  [37m [36m包括 DOS、視窗 3.x 和 9x[37m
 [32mDOSBox-X 支援 [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m   
 .
 :SHELL_STARTUP_DOSV
-[32mDOS/V 模式[37m正在運作中。汝亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。  
+[32mDOS/V 模式[37m正在作用中。汝亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。  
 .
 :SHELL_STARTUP_CGA_MONO
 按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             
@@ -4036,7 +4036,7 @@ UTF16 [/BE|/LE] < [磁碟機:][路徑]檔名
 
 VTEXT [模式]
 
-  [模式] 設定值 0、1、2 分別對應 無 V-text、V-text 1、V-text 2.
+  [模式] 設定值為 0、1、2, 分別對應: 無 V-text、V-text 1、V-text 2.
 
 輸入不含參數的 VTEXT 命令顯示目前的 V-text 模式狀態.
 .
@@ -4312,13 +4312,13 @@ RAM 軟碟映像
 被掛載的檔案路徑太長.
 .
 :PROGRAM_BOOT_FAILED
-磁碟機 %s: 開機失敗.
+磁碟機 %s: 無法開機.
 .
 :PROGRAM_MOUNT_FAILED
-磁碟機 %s: 掛載失敗.
+磁碟機 %s: 無法掛載.
 .
 :PROGRAM_MOUNT_IMAGE
-已掛載 %s 到磁碟機 %s:
+已掛載%s到磁碟機 %s:
 %s %s
 .
 :ARCHIVE
@@ -4378,10 +4378,10 @@ C 槽已經被掛載. 您還要繼續嗎?
 無法儲存磁碟映像.
 .
 :MENU_JP_CPONLY
-此功能只適用於日文字碼頁 (932).
+此功能只適用於日文的字碼頁 (932).
 .
-:MENU_CN_CPONLY
-此功能只適用於中文字碼頁 (936 或 950).
+:MENU_CH_CPONLY
+此功能只適用於中文的字碼頁 (936、950、或 951).
 .
 :MENU_GLIDE_ERROR
 不能啟用 Glide 直通. 檢查 Glide wrapper 安裝.
@@ -4438,4 +4438,48 @@ INT 2Fh 勾點早已被設定.
 .
 :LANG_CHANGE_CP
 指定的語言檔案使用字碼頁 %d. 您想要字碼頁也跟著變更嗎?
+.
+:SCALER_LOAD_WARN
+此縮放器可能不能正常運作、或有非預期的效果:
+
+%s
+
+您要強制載入縮放器嗎?
+.
+:PIXEL_SHADER_WARN
+此像素著色器可能非必要、或有非預期的效果:
+
+%s
+
+您仍然要載入像素著色器嗎?
+
+(您可以在 pixelshader 的設定值後方加上 'forced' 來強制載入像素著色器並略過此訊息)
+.
+:PIXEL_SHADER_LOADED
+已載入像素著色器 - %s
+.
+:MAPPEREDITOR_NOT_AVAILABLE
+對應表編輯器目前不能用.
+.
+:OPL_REC_COMPLETED
+Raw OPL 的輸出已存檔:
+
+%s
+.
+:OPL_CAPTURE_FAILED
+目前應用程式正在使用 ESFM 原生模式, 這種模式不被 Raw OPL 格式支援, 所以不能擷取 Raw OPL 的輸出.
+.
+:TTF_DBCS_ONLY
+此功能只適用於中文/日文/韓文的字碼頁.
+.
+:SAVE_FAILED
+無法儲存目前狀態.
+.
+:SAVE_CORRUPTED
+儲存狀態已損壞! 程式可能不能運作.
+.
+:SAVE_SCREENSHOT
+螢幕抓圖已存檔:
+
+%s
 .
