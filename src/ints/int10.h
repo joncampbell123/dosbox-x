@@ -137,7 +137,7 @@ typedef struct {
 		RealPt font_19;
 		RealPt static_state;
 		RealPt video_save_pointers;
-        RealPt video_dynamic_save_area;
+		RealPt video_dynamic_save_area;
 		RealPt video_parameter_table;
 		RealPt video_save_pointer_table;
 		RealPt video_dcc_table;
@@ -150,7 +150,7 @@ typedef struct {
 		uint16_t pmode_interface_start;
 		uint16_t pmode_interface_window;
 		uint16_t pmode_interface_palette;
-        uint16_t vesa_alloc_modes;
+		uint16_t vesa_alloc_modes;
 		uint16_t used;
 	} rom;
 	uint16_t vesa_setmode;
