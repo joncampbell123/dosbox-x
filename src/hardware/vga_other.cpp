@@ -29,6 +29,7 @@
 #include "render.h"
 #include "mapper.h"
 #include "control.h"
+#include "../ints/int10.h"
 
 #include <output/output_ttf.h>
 
@@ -1220,7 +1221,6 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 }
 
 extern int eurAscii;
-extern uint8_t int10_font_08[256 * 8], int10_font_14[256 * 14], int10_font_16[256 * 16], int10_font_16_mcga[256 * 16];
 uint8_t euro_08[8] = {
   0x3c, 0x66, 0xfc, 0x60, 0xf8, 0x66, 0x3c, 0x00,
 };

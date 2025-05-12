@@ -4081,8 +4081,6 @@ static const VGA_debug_screen_func_t VGA_debug_screen_funcs32 = {
 	&VGA_debug_screen_func_bitblt<uint32_t>
 };
 
-extern uint8_t int10_font_08[256 * 8];
-
 static int VGA_debug_screen_puts8(int x,int y,const char *msg,unsigned int color) {
 	while (*msg != 0) {
 		VGA_debug_screen_func->bitblt(x,y,8,8,1,int10_font_08 + (((unsigned int)((unsigned char)(*msg++))) * 8u),color);

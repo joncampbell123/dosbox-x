@@ -40,6 +40,7 @@
 #include "midi.h"
 #include "bios_disk.h"
 #include "../dos/drives.h"
+#include "../ints/int10.h"
 
 #if C_OPENGL
 #include "voodoo.h"
@@ -85,8 +86,6 @@ public:
 protected:
     std::istringstream      lines;
 };
-
-extern uint8_t              int10_font_14[256 * 14], int10_font_14_init[256 * 14];
 
 extern uint32_t             GFX_Rmask;
 extern unsigned char        GFX_Rshift;
@@ -234,10 +233,6 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     running = false;
     return true;
 }
-
-extern uint8_t int10_font_08[256 * 8];
-extern uint8_t int10_font_14[256 * 14];
-extern uint8_t int10_font_16[256 * 16];
 
 extern bool toscale;
 extern const char* RunningProgram;
