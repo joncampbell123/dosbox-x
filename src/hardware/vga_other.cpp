@@ -1220,7 +1220,7 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 }
 
 extern int eurAscii;
-extern uint8_t int10_font_08[256 * 8], int10_font_14[256 * 14], int10_font_16[256 * 16];
+extern uint8_t int10_font_08[256 * 8], int10_font_14[256 * 14], int10_font_16[256 * 16], int10_font_16_mcga[256 * 16];
 uint8_t euro_08[8] = {
   0x3c, 0x66, 0xfc, 0x60, 0xf8, 0x66, 0x3c, 0x00,
 };
@@ -1234,14 +1234,16 @@ uint8_t euro_16[16] = {
 };
 
 void VGA_SetupOther(void) {
-    if (eurAscii>32 && eurAscii<256) {
-        for (int i=eurAscii*8;i<(eurAscii+1)*8;i++)
-            int10_font_08[i]=euro_08[i%8];
-        for (int i=eurAscii*14;i<(eurAscii+1)*14;i++)
-            int10_font_14[i]=euro_14[i%14];
-        for (int i=eurAscii*16;i<(eurAscii+1)*16;i++)
-            int10_font_16[i]=euro_16[i%16];
-    }
+	if (eurAscii>32 && eurAscii<256) {
+		for (int i=eurAscii*8;i<(eurAscii+1)*8;i++)
+			int10_font_08[i]=euro_08[i%8];
+		for (int i=eurAscii*14;i<(eurAscii+1)*14;i++)
+			int10_font_14[i]=euro_14[i%14];
+		for (int i=eurAscii*16;i<(eurAscii+1)*16;i++)
+			int10_font_16[i]=euro_16[i%16];
+		for (int i=eurAscii*16;i<(eurAscii+1)*16;i++)
+			int10_font_16_mcga[i]=euro_16[i%16];
+	}
 	memset( &vga.tandy, 0, sizeof( vga.tandy ));
 	vga.attr.disabled = 0;
 	vga.config.bytes_skip=0;
