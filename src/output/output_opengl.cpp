@@ -15,6 +15,7 @@ extern "C" {
 #include "dosbox.h"
 #include "logging.h"
 #include "menudef.h"
+#include "../ints/int10.h"
 #include <output/output_opengl.h>
 #include <output/output_tools.h>
 #include <output/output_tools_xbrz.h>
@@ -101,7 +102,6 @@ extern bool SDLDrawGenFontTextureInit;
 extern int aspect_ratio_x, aspect_ratio_y;
 extern int initgl, lastcp;
 extern bool font_16_init;
-extern uint8_t int10_font_16[256 * 16], int10_font_16_init[256 * 16];
 
 SDL_OpenGL sdl_opengl = {0};
 

@@ -52,6 +52,7 @@
 #include "render.h"
 #include "setup.h"
 #include "menu.h"
+#include "../ints/int10.h"
 
 #include "SDL_syswm.h"
 #include "sdlmain.h"
@@ -193,7 +194,6 @@ static DOSBoxMenu                               mapperMenu;
 #endif
 
 extern unsigned int                             hostkeyalt, maincp;
-extern uint8_t                                  int10_font_14[256 * 14];
 
 std::map<std::string,std::string>               pending_string_binds;
 
@@ -3749,7 +3749,6 @@ CEvent *get_mapper_event_by_name(const std::string &x) {
 
 unsigned char prvmc = 0;
 extern bool font_14_init, loadlang;
-extern uint8_t int10_font_14_init[256 * 14];
 uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 bool isDBCSCP();
 static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcolor/*=CLR_BLACK*/) {

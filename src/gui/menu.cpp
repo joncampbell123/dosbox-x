@@ -108,8 +108,6 @@ extern "C" void                                     (*SDL1_hax_INITMENU_cb)();
 
 extern bool showdbcs, loadlang;
 extern bool isDBCSCP(), InitCodePage();
-extern uint8_t int10_font_14[256 * 14];
-extern uint8_t int10_font_16[256 * 16];
 extern bool font_14_init, font_16_init;
 uint8_t *GetDbcsFont(Bitu code);
 bool Direct3D_using(void);

@@ -45,6 +45,7 @@
 #include "pc98_gdc_const.h"
 #include "regionalloctracking.h"
 #include "build_timestamp.h"
+#include "int10.h"
 extern bool PS1AudioCard;
 #include "parport.h"
 #include "dma.h"
@@ -3400,8 +3401,6 @@ void PC98_InitDefFuncRow(void) {
         def.set_shortcut("");
     }
 }
-
-#include "int10.h"
 
 void draw_pc98_function_row_elem(unsigned int o, unsigned int co, const struct pc98_func_key_shortcut_def& key) {
     const unsigned char *str = key.shortcut;
@@ -12629,7 +12628,6 @@ void GEN_PowerButton(bool pressed) {
 }
 
 
-extern uint8_t int10_font_08[256 * 8];
 extern uint16_t j3_font_offset;
 
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
