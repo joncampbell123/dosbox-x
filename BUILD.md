@@ -252,6 +252,13 @@ due to requiring parallel Homebrew installations running natively *and* under Ro
   ```
   make dosbox-x.app
   ```
+### _(Experimental)_ Building binaries for old macOS versions (10.12 Sierra and before)
+*Old macOS versions may be built using MacPorts libraries with slightly different procedures.
+```
+  sudo port install autoconf automake nasm glfw glew fluidsynth libslirp libpcap pkgconfig libsdl2_net libpng zlib
+  ./build-macosold
+```
+Use `./build-macosold-sdl2` for SDL2 builds.
 
 ## To compile DOSBox-X for DOS with HX-DOS platform
   * Start a 32-bit toolchain from the original MinGW (not the MinGW-w64 project). 
