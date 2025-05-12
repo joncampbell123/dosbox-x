@@ -468,20 +468,45 @@ void DOS_Shell::ParseLine(char * line) {
 	bool fail=false;
 	char pipetmp[270];
 	uint16_t fattr;
-	if (toc) {
-		initRand();
-		std::string line;
-		if (!GetEnvStr("TEMP",line)&&!GetEnvStr("TMP",line))
-			sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
-		else {
-			std::string::size_type idx = line.find('=');
-			std::string temp=line.substr(idx +1 , std::string::npos);
-			if (DOS_GetFileAttr(temp.c_str(), &fattr) && fattr&DOS_ATTR_DIRECTORY)
-				sprintf(pipetmp, "%s\\pipe%d.tmp", temp.c_str(), rand()%10000);
-			else
-				sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
-		}
-	}
+    if(toc) {
+        // Initialize random number generator
+        initRand();
+
+        // Try to get TEMP or TMP environment variable
+        std::string tempPath;
+        if(!GetEnvStr("TEMP", tempPath) && !GetEnvStr("TMP", tempPath)) {
+            // Fallback: use current drive root as fallback directory (e.g., "C:\")
+            char currentDrive = DOS_GetDefaultDrive() + 'A';
+            tempPath = std::string(1, currentDrive) + ":\\";
+        }
+        else {
+            // Extract directory from environmental variable
+            std::string::size_type idx = tempPath.find('=');
+            if(idx != std::string::npos)
+                tempPath = tempPath.substr(idx + 1);
+        }
+
+        // Ensure the path ends with backslash
+        if(!tempPath.empty() && tempPath.back() != '\\') {
+            tempPath += '\\';
+        }
+
+        // Check if directory is valid
+        uint16_t fattr;
+        if(!(DOS_GetFileAttr(tempPath.c_str(), &fattr) && (fattr & DOS_ATTR_DIRECTORY))) {
+            // Fallback to current drive root again if directory is invalid
+            char currentDrive = DOS_GetDefaultDrive() + 'A';
+            tempPath = std::string(1, currentDrive) + ":\\";
+        }
+
+        // Assign to tempEnv after fixing the path
+        const char* tempEnv = tempPath.c_str();
+
+        // Generate unique pipe file path
+        int pipeid = rand() % 10000;
+        snprintf(pipetmp, sizeof(pipetmp), "%spipe%d.tmp", tempEnv, pipeid);
+    }
+
 	DOS_Device *tmpdev = NULL;
 	if (out||toc) {
 		if (out&&toc)
