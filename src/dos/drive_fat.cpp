@@ -2719,10 +2719,15 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool fcb_findfirst) {
 	/* Elder Scrolls Arena does an 8-bit divide using CL=A and then forgets to clear CL when calling INT 21h AH=4Eh,
 	 * which to us appears as a program searching for files that may also be a volume label and/or hidden (CX=0x000A). */
 	/* TODO: Perhaps this check could be rolled into the _dir && *_dir && dta.GetAttr() == 0x3F check? */
+	/* Elder Scrolls Arena: The load game screen doesn't just open SAVEGAME.00, it does an INT 21h AH=4Eh search for
+	 *                      it with CX=0x007C??? What the fuck? If we don't watch for this, then players running the
+	 *                      game from a image will see their saves, but will not be able to load them ("No save here"). */
 	bool ignore_volbit = false;
-	if ((dta.GetAttr() & ~(DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM|DOS_ATTR_ARCHIVE)) == DOS_ATTR_VOLUME) {
-		LOG(LOG_MISC,LOG_DEBUG)("FindFirst() ignoring volume label bit because other bits are set (Elder Scrolls Arena fix)");
-		ignore_volbit = true;
+	if (dta.GetAttr() & DOS_ATTR_VOLUME) {
+		if (dta.GetAttr() & (0xC0|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM|DOS_ATTR_READ_ONLY)) {
+			LOG(LOG_MISC,LOG_DEBUG)("FindFirst() ignoring volume label bit because other bits are set (Elder Scrolls Arena fix)");
+			ignore_volbit = true;
+		}
 	}
 
 	// volume label searches always affect root directory, no matter the current directory, at least with FCBs
