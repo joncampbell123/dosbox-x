@@ -25,8 +25,11 @@
 #include "pic.h"
 #include "fpu.h"
 
+extern bool do_lds_wraparound;
+
 #define PRE_EXCEPTION { }
 
+#define CPU_OMIT_8086
 #define CPU_CORE CPU_ARCHTYPE_386
 
 extern bool ignore_opcode_63;

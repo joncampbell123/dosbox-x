@@ -26,6 +26,8 @@
 #include "pic.h"
 #include "fpu.h"
 
+extern bool do_lds_wraparound;
+
 using namespace std;
 
 #define PRE_EXCEPTION { }
@@ -33,6 +35,8 @@ using namespace std;
 #define CPU_CORE CPU_ARCHTYPE_386
 
 #define DoString DoString_Prefetch
+
+static uint16_t last_ea86_offset;
 
 extern bool ignore_opcode_63;
 
@@ -199,6 +203,7 @@ Bits CPU_Core_Prefetch_Run(void) {
 		last_prefix=MP_NONE;
 		core.opcode_index=cpu.code.big*(Bitu)0x200u;
 		core.prefixes=cpu.code.big;
+		last_ea86_offset=0;
 		core.ea_table=&EATable[cpu.code.big*256u];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);

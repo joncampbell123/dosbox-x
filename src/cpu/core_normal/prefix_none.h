@@ -934,19 +934,51 @@
 		reg_eip=Pop_16();
 		continue;
 	CASE_W(0xc4)												/* LES */
-		{	
+		{
+			GetEAaNDEF;
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
-			GetEAa;
+#ifndef CPU_OMIT_8086
+			if (do_lds_wraparound && !cpu.code.big/*8086 table is missing latter half for 32-bit!*/) {
+				/* stack underflow 64KB wraparound? [https://github.com/joncampbell123/dosbox-x/issues/5621] */
+				GetEAaN8086; /* 8086 version that also sets last_ea86_offset */
+				if (last_ea86_offset > (0x10000u-4u)) {
+					if (CPU_SetSegGeneral(es,LoadMw(eaa+2-0x10000))) RUNEXCEPTION();
+					*rmrw=LoadMw(eaa);
+					break;
+				}
+			}
+			else {
+				GetEAaN;
+			}
+#else
+			GetEAaN;
+#endif
 			if (CPU_SetSegGeneral(es,LoadMw(eaa+2))) RUNEXCEPTION();
 			*rmrw=LoadMw(eaa);
 			break;
 		}
 	CASE_W(0xc5)												/* LDS */
-		{	
+		{
+			GetEAaNDEF;
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
-			GetEAa;
+#ifndef CPU_OMIT_8086
+			if (do_lds_wraparound && !cpu.code.big/*8086 table is missing latter half for 32-bit!*/) {
+				/* stack underflow 64KB wraparound? [https://github.com/joncampbell123/dosbox-x/issues/5621] */
+				GetEAaN8086; /* 8086 version that also sets last_ea86_offset */
+				if (last_ea86_offset > (0x10000u-4u)) {
+					if (CPU_SetSegGeneral(ds,LoadMw(eaa+2-0x10000))) RUNEXCEPTION();
+					*rmrw=LoadMw(eaa);
+					break;
+				}
+			}
+			else {
+				GetEAaN;
+			}
+#else
+			GetEAaN;
+#endif
 			if (CPU_SetSegGeneral(ds,LoadMw(eaa+2))) RUNEXCEPTION();
 			*rmrw=LoadMw(eaa);
 			break;

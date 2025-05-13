@@ -50,6 +50,8 @@
 #define DYN_PAGE_HASH	(4096>>DYN_HASH_SHIFT)
 #define DYN_LINKS		(16)
 
+extern bool do_lds_wraparound;
+
 //#define DYN_LOG 1 //Turn logging on
 
 #if C_FPU

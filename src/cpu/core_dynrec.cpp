@@ -45,6 +45,8 @@
 #include "lazyflags.h"
 #include "pic.h"
 
+extern bool do_lds_wraparound;
+
 #define CACHE_MAXSIZE	(4096*2)
 #define CACHE_TOTAL		(1024*1024*8)
 #define CACHE_PAGES		(512)
