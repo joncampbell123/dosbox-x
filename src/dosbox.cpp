@@ -2977,6 +2977,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enforce checks for segment limits on 80286 and higher CPU types.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("lds wraparound",Property::Changeable::Always,true);
+    Pbool->Set_help("For LDS/LES instructions, in 16-bit code, check for 64KB wraparound case.");
+    Pbool->SetBasic(true);
+
     Pbool = secprop->Add_bool("double fault",Property::Changeable::Always,true);
     Pbool->Set_help("Emulate double fault exception");
 

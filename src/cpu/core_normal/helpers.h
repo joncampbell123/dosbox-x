@@ -29,6 +29,20 @@
 	PhysPt eaa=EALookupTable[rm]();									\
 	(void)eaa
 
+#define GetEAa8086												\
+	PhysPt eaa=EATable8086[rm]();									\
+	(void)eaa
+
+#define GetEAaNDEF											\
+	PhysPt eaa;											\
+	(void)eaa
+
+#define GetEAaN												\
+	eaa=EALookupTable[rm]();
+
+#define GetEAaN8086												\
+	eaa=EATable8086[rm]();
+
 #define GetRMEAa											\
 	GetRM;													\
 	GetEAa;											

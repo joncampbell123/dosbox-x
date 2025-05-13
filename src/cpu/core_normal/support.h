@@ -838,6 +838,9 @@ typedef PhysPt (*EA_LookupHandler)(void);
 # define EATable EATable8086
 # include "table_ea_8086.h"
 #else
+# ifndef CPU_OMIT_8086
+#  include "table_ea_8086.h"
+# endif
 # include "table_ea.h"
 #endif
 #include "../modrm.h"

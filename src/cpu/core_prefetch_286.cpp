@@ -26,6 +26,8 @@
 #include "pic.h"
 #include "fpu.h"
 
+extern bool do_lds_wraparound;
+
 using namespace std;
 
 #include <algorithm>
@@ -49,6 +51,8 @@ static inline bool _seg_limit_check(void) {
 #define CPU_Core_Prefetch_Trap_Run CPU_Core286_Prefetch_Trap_Run
 
 #define DoString DoString_Prefetch286
+
+static uint16_t last_ea86_offset;
 
 extern bool ignore_opcode_63;
 
@@ -211,6 +215,7 @@ Bits CPU_Core286_Prefetch_Run(void) {
 		LOADIP;
 		core.prefixes=0;
 		core.opcode_index=0;
+		last_ea86_offset=0;
 		core.ea_table=&EATable[0];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);

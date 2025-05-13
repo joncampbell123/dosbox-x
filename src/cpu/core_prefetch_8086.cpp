@@ -26,6 +26,8 @@
 #include "pic.h"
 #include "fpu.h"
 
+extern bool do_lds_wraparound;
+
 using namespace std;
 
 #include <algorithm>

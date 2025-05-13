@@ -119,7 +119,9 @@ static GetEAHandler EATable8086[512]={
 	nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr
 };
 
+#if CPU_CORE <= CPU_ARCHTYPE_8086
 #define GetEADirect(sz)							\
 	PhysPt eaa;								\
-	eaa=BaseDS+Fetchw();				\
+	eaa=BaseDS+Fetchw();
+#endif
 

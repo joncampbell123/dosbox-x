@@ -76,6 +76,7 @@ bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
 bool do_seg_limits = false;
+bool do_lds_wraparound = true;
 
 bool do_pse = false;
 bool enable_pse = false;
@@ -3591,6 +3592,7 @@ public:
 		reg_ebp=0;
 		reg_esp=0;
 
+		do_lds_wraparound = section->Get_bool("lds wraparound");
 		do_seg_limits = section->Get_bool("segment limits");
 	
 		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[cs] = false;
