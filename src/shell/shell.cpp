@@ -515,7 +515,7 @@ void DOS_Shell::ParseLine(char * line) {
 		if(normalstdout) DOS_CloseFile(1);
 		if(!normalstdin && !in) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
 		bool status = true;
-		/* Create if not exist. Open if exist. Both in read/write mode */
+        /* Create if not exist. Open if exist. Both in read/write mode */
 		if(!toc&&append) {
 			if (DOS_GetFileAttr(out, &fattr) && fattr&DOS_ATTR_READ_ONLY) {
 				DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -533,26 +533,36 @@ void DOS_Shell::ParseLine(char * line) {
 			if (toc&&!device&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
 				fail=true;
 			status = device?false:DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
-			if (toc&&(fail||!status)&&!strchr(pipetmp,'\\')) {
+            bool pipetmp_is_zdrive = strncasecmp(pipetmp, "Z:\\", 3) == 0;
+            if (toc&&(fail||!status)&&(!strchr(pipetmp,'\\')|| pipetmp_is_zdrive)) {
                 Overlay_Drive *da = Drives[0] ? (Overlay_Drive *)Drives[0] : NULL, *dc = Drives[2] ? (Overlay_Drive *)Drives[2] : NULL;
-                if ((Drives[0]&&!Drives[0]->readonly&&!(da&&da->ovlreadonly))||(Drives[2]&&!Drives[2]->readonly&&!(dc&&dc->ovlreadonly))) {
+                if (!pipetmp_is_zdrive && ((Drives[0]&&!Drives[0]->readonly&&!(da&&da->ovlreadonly))||(Drives[2]&&!Drives[2]->readonly&&!(dc&&dc->ovlreadonly)))) {
                     int len = (int)strlen(pipetmp);
-                    if (len > 266) {
+                    if(len > 266) {
                         len = 266;
                         pipetmp[len] = 0;
                     }
-                    for (int i = len; i >= 0; i--)
+                    for(int i = len; i >= 0; i--)
                         pipetmp[i + 3] = pipetmp[i];
-                    pipetmp[0] = Drives[2]?'c':'a';
+                    pipetmp[0] = Drives[2] ? 'c' : 'a';
                     pipetmp[1] = ':';
                     pipetmp[2] = '\\';
-                    fail=false;
+                    fail = false;
                 } else if (!tmpdev && pipetmpdev) {
-                    char *p=strchr(pipetmp, '.');
-                    if (p) *p = 0;
-                    tmpdev = new device_TMP(pipetmp);
-                    if (p) *p = '.';
-                    if (tmpdev) {
+                    char* filename_only = strrchr(pipetmp, '\\');
+                    if(!filename_only) filename_only = pipetmp;
+                    else filename_only++;
+                    char tmpname[270];
+                    strncpy(tmpname, filename_only, sizeof(tmpname));
+                    tmpname[sizeof(tmpname) - 1] = 0;
+
+                    char* p = strchr(tmpname, '.');
+                    if(p) *p = 0;
+
+                    tmpdev = new device_TMP(tmpname);
+                    if(p) *p = '.';
+
+                    if(tmpdev) {
                         DOS_AddDevice(tmpdev);
                         fail = false;
                     }
@@ -604,7 +614,18 @@ void DOS_Shell::ParseLine(char * line) {
 		if (out) free(out);
 	}
 	if (toc) {
-		if (!fail&&DOS_OpenFile(pipetmp, OPEN_READ, &dummy))					// Test if file can be opened for reading
+        if(tmpdev != nullptr) {
+            std::string path(pipetmp);
+            size_t lastSlash = path.find_last_of("\\/");
+            if(lastSlash != std::string::npos)
+                path = path.substr(lastSlash + 1);
+            size_t dot = path.find_last_of('.');
+            if(dot != std::string::npos)
+                path = path.substr(0, dot);
+            strncpy(pipetmp, path.c_str(), sizeof(pipetmp) - 1);
+            pipetmp[sizeof(pipetmp) - 1] = '\0';
+        }
+        if (!fail&&DOS_OpenFile(pipetmp, OPEN_READ, &dummy))					// Test if file can be opened for reading
 			{
 			DOS_CloseFile(dummy);
 			if (normalstdin)
