@@ -16,64 +16,62 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-typedef PhysPt (*EA_LookupHandler)(void);
-
 /* The MOD/RM Decoder for EA for this decoder's addressing modes */
-static PhysPt EA_16_00_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_si))); }
-static PhysPt EA_16_01_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_di))); }
-static PhysPt EA_16_02_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_si))); }
-static PhysPt EA_16_03_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_di))); }
-static PhysPt EA_16_04_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_si))); }
-static PhysPt EA_16_05_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_di))); }
-static PhysPt EA_16_06_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(Fetchw())));}
-static PhysPt EA_16_07_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx))); }
+static PhysPt EA86_16_00_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_si))); }
+static PhysPt EA86_16_01_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_di))); }
+static PhysPt EA86_16_02_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_si))); }
+static PhysPt EA86_16_03_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_di))); }
+static PhysPt EA86_16_04_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_si))); }
+static PhysPt EA86_16_05_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_di))); }
+static PhysPt EA86_16_06_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(Fetchw())));}
+static PhysPt EA86_16_07_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx))); }
 
-static PhysPt EA_16_40_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_si+Fetchbs()))); }
-static PhysPt EA_16_41_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_di+Fetchbs()))); }
-static PhysPt EA_16_42_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_si+Fetchbs()))); }
-static PhysPt EA_16_43_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_di+Fetchbs()))); }
-static PhysPt EA_16_44_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_si+Fetchbs()))); }
-static PhysPt EA_16_45_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_di+Fetchbs()))); }
-static PhysPt EA_16_46_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+Fetchbs()))); }
-static PhysPt EA_16_47_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+Fetchbs()))); }
+static PhysPt EA86_16_40_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_si+Fetchbs()))); }
+static PhysPt EA86_16_41_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_di+Fetchbs()))); }
+static PhysPt EA86_16_42_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_si+Fetchbs()))); }
+static PhysPt EA86_16_43_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_di+Fetchbs()))); }
+static PhysPt EA86_16_44_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_si+Fetchbs()))); }
+static PhysPt EA86_16_45_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_di+Fetchbs()))); }
+static PhysPt EA86_16_46_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+Fetchbs()))); }
+static PhysPt EA86_16_47_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+Fetchbs()))); }
 
-static PhysPt EA_16_80_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_si+Fetchws()))); }
-static PhysPt EA_16_81_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_di+Fetchws()))); }
-static PhysPt EA_16_82_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_si+Fetchws()))); }
-static PhysPt EA_16_83_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_di+Fetchws()))); }
-static PhysPt EA_16_84_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_si+Fetchws()))); }
-static PhysPt EA_16_85_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_di+Fetchws()))); }
-static PhysPt EA_16_86_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+Fetchws()))); }
-static PhysPt EA_16_87_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+Fetchws()))); }
+static PhysPt EA86_16_80_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_si+Fetchws()))); }
+static PhysPt EA86_16_81_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_di+Fetchws()))); }
+static PhysPt EA86_16_82_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_si+Fetchws()))); }
+static PhysPt EA86_16_83_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_di+Fetchws()))); }
+static PhysPt EA86_16_84_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_si+Fetchws()))); }
+static PhysPt EA86_16_85_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_di+Fetchws()))); }
+static PhysPt EA86_16_86_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+Fetchws()))); }
+static PhysPt EA86_16_87_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+Fetchws()))); }
 
-static GetEAHandler EATable[512]={
+static GetEAHandler EATable8086[512]={
 /* 00 */
-	EA_16_00_n,EA_16_01_n,EA_16_02_n,EA_16_03_n,EA_16_04_n,EA_16_05_n,EA_16_06_n,EA_16_07_n,
-	EA_16_00_n,EA_16_01_n,EA_16_02_n,EA_16_03_n,EA_16_04_n,EA_16_05_n,EA_16_06_n,EA_16_07_n,
-	EA_16_00_n,EA_16_01_n,EA_16_02_n,EA_16_03_n,EA_16_04_n,EA_16_05_n,EA_16_06_n,EA_16_07_n,
-	EA_16_00_n,EA_16_01_n,EA_16_02_n,EA_16_03_n,EA_16_04_n,EA_16_05_n,EA_16_06_n,EA_16_07_n,
-	EA_16_00_n,EA_16_01_n,EA_16_02_n,EA_16_03_n,EA_16_04_n,EA_16_05_n,EA_16_06_n,EA_16_07_n,
-	EA_16_00_n,EA_16_01_n,EA_16_02_n,EA_16_03_n,EA_16_04_n,EA_16_05_n,EA_16_06_n,EA_16_07_n,
-	EA_16_00_n,EA_16_01_n,EA_16_02_n,EA_16_03_n,EA_16_04_n,EA_16_05_n,EA_16_06_n,EA_16_07_n,
-	EA_16_00_n,EA_16_01_n,EA_16_02_n,EA_16_03_n,EA_16_04_n,EA_16_05_n,EA_16_06_n,EA_16_07_n,
+	EA86_16_00_n,EA86_16_01_n,EA86_16_02_n,EA86_16_03_n,EA86_16_04_n,EA86_16_05_n,EA86_16_06_n,EA86_16_07_n,
+	EA86_16_00_n,EA86_16_01_n,EA86_16_02_n,EA86_16_03_n,EA86_16_04_n,EA86_16_05_n,EA86_16_06_n,EA86_16_07_n,
+	EA86_16_00_n,EA86_16_01_n,EA86_16_02_n,EA86_16_03_n,EA86_16_04_n,EA86_16_05_n,EA86_16_06_n,EA86_16_07_n,
+	EA86_16_00_n,EA86_16_01_n,EA86_16_02_n,EA86_16_03_n,EA86_16_04_n,EA86_16_05_n,EA86_16_06_n,EA86_16_07_n,
+	EA86_16_00_n,EA86_16_01_n,EA86_16_02_n,EA86_16_03_n,EA86_16_04_n,EA86_16_05_n,EA86_16_06_n,EA86_16_07_n,
+	EA86_16_00_n,EA86_16_01_n,EA86_16_02_n,EA86_16_03_n,EA86_16_04_n,EA86_16_05_n,EA86_16_06_n,EA86_16_07_n,
+	EA86_16_00_n,EA86_16_01_n,EA86_16_02_n,EA86_16_03_n,EA86_16_04_n,EA86_16_05_n,EA86_16_06_n,EA86_16_07_n,
+	EA86_16_00_n,EA86_16_01_n,EA86_16_02_n,EA86_16_03_n,EA86_16_04_n,EA86_16_05_n,EA86_16_06_n,EA86_16_07_n,
 /* 01 */
-	EA_16_40_n,EA_16_41_n,EA_16_42_n,EA_16_43_n,EA_16_44_n,EA_16_45_n,EA_16_46_n,EA_16_47_n,
-	EA_16_40_n,EA_16_41_n,EA_16_42_n,EA_16_43_n,EA_16_44_n,EA_16_45_n,EA_16_46_n,EA_16_47_n,
-	EA_16_40_n,EA_16_41_n,EA_16_42_n,EA_16_43_n,EA_16_44_n,EA_16_45_n,EA_16_46_n,EA_16_47_n,
-	EA_16_40_n,EA_16_41_n,EA_16_42_n,EA_16_43_n,EA_16_44_n,EA_16_45_n,EA_16_46_n,EA_16_47_n,
-	EA_16_40_n,EA_16_41_n,EA_16_42_n,EA_16_43_n,EA_16_44_n,EA_16_45_n,EA_16_46_n,EA_16_47_n,
-	EA_16_40_n,EA_16_41_n,EA_16_42_n,EA_16_43_n,EA_16_44_n,EA_16_45_n,EA_16_46_n,EA_16_47_n,
-	EA_16_40_n,EA_16_41_n,EA_16_42_n,EA_16_43_n,EA_16_44_n,EA_16_45_n,EA_16_46_n,EA_16_47_n,
-	EA_16_40_n,EA_16_41_n,EA_16_42_n,EA_16_43_n,EA_16_44_n,EA_16_45_n,EA_16_46_n,EA_16_47_n,
+	EA86_16_40_n,EA86_16_41_n,EA86_16_42_n,EA86_16_43_n,EA86_16_44_n,EA86_16_45_n,EA86_16_46_n,EA86_16_47_n,
+	EA86_16_40_n,EA86_16_41_n,EA86_16_42_n,EA86_16_43_n,EA86_16_44_n,EA86_16_45_n,EA86_16_46_n,EA86_16_47_n,
+	EA86_16_40_n,EA86_16_41_n,EA86_16_42_n,EA86_16_43_n,EA86_16_44_n,EA86_16_45_n,EA86_16_46_n,EA86_16_47_n,
+	EA86_16_40_n,EA86_16_41_n,EA86_16_42_n,EA86_16_43_n,EA86_16_44_n,EA86_16_45_n,EA86_16_46_n,EA86_16_47_n,
+	EA86_16_40_n,EA86_16_41_n,EA86_16_42_n,EA86_16_43_n,EA86_16_44_n,EA86_16_45_n,EA86_16_46_n,EA86_16_47_n,
+	EA86_16_40_n,EA86_16_41_n,EA86_16_42_n,EA86_16_43_n,EA86_16_44_n,EA86_16_45_n,EA86_16_46_n,EA86_16_47_n,
+	EA86_16_40_n,EA86_16_41_n,EA86_16_42_n,EA86_16_43_n,EA86_16_44_n,EA86_16_45_n,EA86_16_46_n,EA86_16_47_n,
+	EA86_16_40_n,EA86_16_41_n,EA86_16_42_n,EA86_16_43_n,EA86_16_44_n,EA86_16_45_n,EA86_16_46_n,EA86_16_47_n,
 /* 10 */
-	EA_16_80_n,EA_16_81_n,EA_16_82_n,EA_16_83_n,EA_16_84_n,EA_16_85_n,EA_16_86_n,EA_16_87_n,
-	EA_16_80_n,EA_16_81_n,EA_16_82_n,EA_16_83_n,EA_16_84_n,EA_16_85_n,EA_16_86_n,EA_16_87_n,
-	EA_16_80_n,EA_16_81_n,EA_16_82_n,EA_16_83_n,EA_16_84_n,EA_16_85_n,EA_16_86_n,EA_16_87_n,
-	EA_16_80_n,EA_16_81_n,EA_16_82_n,EA_16_83_n,EA_16_84_n,EA_16_85_n,EA_16_86_n,EA_16_87_n,
-	EA_16_80_n,EA_16_81_n,EA_16_82_n,EA_16_83_n,EA_16_84_n,EA_16_85_n,EA_16_86_n,EA_16_87_n,
-	EA_16_80_n,EA_16_81_n,EA_16_82_n,EA_16_83_n,EA_16_84_n,EA_16_85_n,EA_16_86_n,EA_16_87_n,
-	EA_16_80_n,EA_16_81_n,EA_16_82_n,EA_16_83_n,EA_16_84_n,EA_16_85_n,EA_16_86_n,EA_16_87_n,
-	EA_16_80_n,EA_16_81_n,EA_16_82_n,EA_16_83_n,EA_16_84_n,EA_16_85_n,EA_16_86_n,EA_16_87_n,
+	EA86_16_80_n,EA86_16_81_n,EA86_16_82_n,EA86_16_83_n,EA86_16_84_n,EA86_16_85_n,EA86_16_86_n,EA86_16_87_n,
+	EA86_16_80_n,EA86_16_81_n,EA86_16_82_n,EA86_16_83_n,EA86_16_84_n,EA86_16_85_n,EA86_16_86_n,EA86_16_87_n,
+	EA86_16_80_n,EA86_16_81_n,EA86_16_82_n,EA86_16_83_n,EA86_16_84_n,EA86_16_85_n,EA86_16_86_n,EA86_16_87_n,
+	EA86_16_80_n,EA86_16_81_n,EA86_16_82_n,EA86_16_83_n,EA86_16_84_n,EA86_16_85_n,EA86_16_86_n,EA86_16_87_n,
+	EA86_16_80_n,EA86_16_81_n,EA86_16_82_n,EA86_16_83_n,EA86_16_84_n,EA86_16_85_n,EA86_16_86_n,EA86_16_87_n,
+	EA86_16_80_n,EA86_16_81_n,EA86_16_82_n,EA86_16_83_n,EA86_16_84_n,EA86_16_85_n,EA86_16_86_n,EA86_16_87_n,
+	EA86_16_80_n,EA86_16_81_n,EA86_16_82_n,EA86_16_83_n,EA86_16_84_n,EA86_16_85_n,EA86_16_86_n,EA86_16_87_n,
+	EA86_16_80_n,EA86_16_81_n,EA86_16_82_n,EA86_16_83_n,EA86_16_84_n,EA86_16_85_n,EA86_16_86_n,EA86_16_87_n,
 /* 11 These are illegal so make em nullptr */
 	nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 	nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
