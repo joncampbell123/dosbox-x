@@ -22,6 +22,12 @@ Next version
     menu instead of being told that the saved game that is clearly there on
     the screen does not exist. What other weird random values of CX attribute
     mask does this game use? (joncampbell123).
+  - PCI bus improvements : Allow device to see full size access (smunaut)
+  - Fix build error of SDL1 version on ArchLinux (possibly gcc-15) (maron2000)
+  - Enable building DOSBox-X on older macOS versions and add instructions
+    (maron2000)
+  - Add code page 951 in dialog box (1abcd)
+  - Fix failure of create/opening a temporary file for piping (maron2000)
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
