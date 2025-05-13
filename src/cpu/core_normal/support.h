@@ -831,8 +831,11 @@ void CPU_FXRSTOR(PhysPt eaa);
 bool CPU_LDMXCSR(PhysPt eaa);
 bool CPU_STMXCSR(PhysPt eaa);
 
+typedef PhysPt (*EA_LookupHandler)(void);
+
 #include "helpers.h"
 #if CPU_CORE <= CPU_ARCHTYPE_8086
+# define EATable EATable8086
 # include "table_ea_8086.h"
 #else
 # include "table_ea.h"
