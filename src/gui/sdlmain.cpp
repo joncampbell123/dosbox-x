@@ -1108,52 +1108,26 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 bool warn_on_mem_write = false;
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) ;
 
-#if defined(WIN32)
-char* convert_escape_newlines(const char* aMessage) {
-    size_t len = strlen(aMessage);
-    char* lMessage = (char*)malloc(len * 2 + 1); // Allocate memory considering convert to UTF8
-
-    if(!lMessage) return nullptr;
-
-    const char* src = aMessage;
-    char* dst = lMessage;
-
-    while(*src) {
-        if(*src == '\n') {
-            *dst++ = '\\';
-            *dst++ = 'n';
-            src++;
-        }
-        else {
-            *dst++ = *src++;
-        }
-    }
-
-    *dst = '\0'; // Terminate with NULL character
-    return lMessage;
+#ifdef WIN32
+#ifdef __cplusplus
+extern "C" {
+#endif
+    int tinyfd_messageBoxW(
+        wchar_t const* aTitle, /* NULL or "" */
+        wchar_t const* aMessage, /* NULL or ""  may contain \n and \t */
+        wchar_t const* aDialogType, /* "ok" "okcancel" "yesno" "yesnocancel" */
+        wchar_t const* aIconType, /* "info" "warning" "error" "question" */
+        int aDefaultButton);
+#ifdef __cplusplus
 }
-
-char* revert_escape_newlines(const char* aMessage) {
-    size_t len = strlen(aMessage);
-    char* lMessage = (char*)malloc(len * 2 + 1); // Allocate memory considering convert to UTF8
-
-    if(!lMessage) return nullptr;
-
-    const char* src = aMessage;
-    char* dst = lMessage;
-
-    while(*src) {
-        if(src[0] == '\\' && src[1] == 'n') {
-            *dst++ = '\n';
-            src += 2;
-        }
-        else {
-            *dst++ = *src++;
+#endif
+bool CodePageGuestToHostUTF16(uint16_t* d/*CROSS_LEN*/, const char* s/*CROSS_LEN*/);
+void SanitizeUTF16Newlines(uint16_t* utf16Message, size_t maxLen) {
+    for(size_t i = 0; i < maxLen && utf16Message[i] != 0; ++i) {
+        if(utf16Message[i] == 0x25D9) {
+            utf16Message[i] = 0x000A;
         }
     }
-
-    *dst = '\0'; // Terminate with NULL character
-    return lMessage;
 }
 #elif defined(MACOSX)
 std::string replaceNewlineWithEscaped(const std::string& input) {
@@ -1209,11 +1183,16 @@ std::string replaceNewlineWithEscaped(const std::string& input) {
 
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)
-    if(!aMessage) aMessage = "";
-    std::string lDialogString(aMessage);
-    std::string lTitleString(aTitle);
-    std::replace(lDialogString.begin(), lDialogString.end(), '\"', ' ');
+    std::string lTitleString = aTitle ? aTitle : "";
+    std::string lDialogString = aMessage ? aMessage : "";
+    std::string lDialogTypeStr = aDialogType ? aDialogType : "ok";
+    std::string lIconTypeStr = aIconType ? aIconType : "info";
+
     std::replace(lTitleString.begin(), lTitleString.end(), '\"', ' ');
+    std::replace(lDialogString.begin(), lDialogString.end(), '\"', ' ');
+    std::replace(lDialogTypeStr.begin(), lDialogTypeStr.end(), '\"', ' ');
+    std::replace(lIconTypeStr.begin(), lIconTypeStr.end(), '\"', ' ');
+
     bool fs=sdl.desktop.fullscreen;
     if (fs) GFX_SwitchFullScreen();
     MAPPER_ReleaseAllKeys();
@@ -1229,25 +1208,46 @@ bool systemmessagebox(char const * aTitle, char const * aMessage, char const * a
     CodePageGuestToHostUTF8(lMessage, lDialogString.c_str());
     lTitleString = replaceNewlineWithEscaped(lTitleString); // String may include "\n" which needs to be escaped to "\\n" 
     CodePageGuestToHostUTF8(lTitle, lTitleString.c_str());
-    bool ret=tinyfd_messageBox(lTitle, lMessage, aDialogType, aIconType, aDefaultButton);
+    bool result=tinyfd_messageBox(lTitle, lMessage, aDialogType, aIconType, aDefaultButton);
     free(lMessage);
     free(lTitle);
 #else
-    char* temp_message = convert_escape_newlines(aMessage); //FIX_ME: CodePageGuestToHostUTF8() gives weird results for '\n'
-    size_t max_utf8_len = strlen(temp_message) * 3 + 1;
-    char* lMessage = (char*)malloc(max_utf8_len);
-    if(!isDBCSCP() && temp_message && lMessage) CodePageGuestToHostUTF8(lMessage, temp_message);
-    else strcpy(lMessage, temp_message);
-    free(temp_message);
-    temp_message = revert_escape_newlines(lMessage);        //FIX_ME: CodePageGuestToHostUTF8() gives weird results for '\n'
-    bool ret = tinyfd_messageBox(aTitle, temp_message, aDialogType, aIconType, aDefaultButton);
-    free(temp_message);
-    free(lMessage);
+    size_t msgLen = lDialogString.length() + 1;
+    size_t titleLen = lTitleString.length() + 1;
+    size_t typeLen = lDialogTypeStr.length() + 1;
+    size_t iconLen = lIconTypeStr.length() + 1;
+
+    uint16_t* utf16Message = (uint16_t*)malloc(msgLen * 2);
+    uint16_t* utf16Title = (uint16_t*)malloc(titleLen * 2);
+    uint16_t* utf16Type = (uint16_t*)malloc(typeLen * 2);
+    uint16_t* utf16Icon = (uint16_t*)malloc(iconLen * 2);
+
+    if(!utf16Message || !utf16Title || !utf16Type || !utf16Icon) {
+        free(utf16Message); free(utf16Title); free(utf16Type); free(utf16Icon);
+        return false;
+    }
+
+    CodePageGuestToHostUTF16(utf16Message, lDialogString.c_str());
+    CodePageGuestToHostUTF16(utf16Title, lTitleString.c_str());
+    CodePageGuestToHostUTF16(utf16Type, lDialogTypeStr.c_str());
+    CodePageGuestToHostUTF16(utf16Icon, lIconTypeStr.c_str());
+
+    SanitizeUTF16Newlines(utf16Message, msgLen);
+    int result = tinyfd_messageBoxW(
+        (wchar_t const*)utf16Title,
+        (wchar_t const*)utf16Message,
+        (wchar_t const*)utf16Type,
+        (wchar_t const*)utf16Icon,
+        aDefaultButton
+    );
+
+    free(utf16Message);
+    free(utf16Title);
 #endif
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-    return ret;
+    return result;
 #else
     return true;
 #endif
