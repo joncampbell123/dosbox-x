@@ -1243,6 +1243,8 @@ bool systemmessagebox(char const * aTitle, char const * aMessage, char const * a
 
     free(utf16Message);
     free(utf16Title);
+    free(utf16Type);
+    free(utf16Icon);
 #endif
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
