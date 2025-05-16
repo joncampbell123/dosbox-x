@@ -179,6 +179,10 @@ union alignas(8) MMX_reg {
 	static_assert(offsetof(uw_t,w0) == 6, "MMX packing error");
 
 
+	uint8_t uba[8];
+	uint16_t uwa[4];
+	uint32_t uda[2];
+
 	struct {
 		uint16_t w3,w2,w1,w0;
 	} sw;
