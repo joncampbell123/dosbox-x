@@ -114,6 +114,17 @@ bool MIDI_Available(void);
 #define DSP_BUFSIZE 64
 #define DSP_DACSIZE 512
 
+#ifndef max
+#define max(a,b) ((a)>(b)?(a):(b))
+#endif
+#ifndef min
+#define min(a,b) ((a)<(b)?(a):(b))
+#endif
+
+#define MIN_ADAPTIVE_STEP_SIZE 0
+#define MAX_ADAPTIVE_STEP_SIZE 32767
+#define DC_OFFSET_FADE 254
+
 //Should be enough for sound generated in millisecond blocks
 #define SB_SH   14
 #define SB_SH_MASK  ((1 << SB_SH)-1)
@@ -294,6 +305,58 @@ static void DMA_DAC_Event(Bitu);
 static void END_DMA_Event(Bitu);
 static void DMA_Silent_Event(Bitu val);
 static void GenerateDMASound(Bitu size);
+
+static INLINE uint8_t decode_ADPCM_4_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
+	Bits samp = sample + scale;
+
+	if ((samp < 0) || (samp > 63)) {
+		LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-4 sample");
+		if(samp < 0 ) samp =  0;
+		if(samp > 63) samp = 63;
+	}
+
+	Bits ref = reference + scaleMap_ADPCM4[samp];
+	if (ref > 0xff) reference = 0xff;
+	else if (ref < 0x00) reference = 0x00;
+	else reference = (uint8_t)(ref&0xff);
+	scale = (scale + adjustMap_ADPCM4[samp]) & 0xff;
+
+	return reference;
+}
+
+INLINE uint8_t decode_ADPCM_3_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
+	Bits samp = sample + scale;
+	if ((samp < 0) || (samp > 39)) {
+		LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-3 sample");
+		if(samp < 0 ) samp =  0;
+		if(samp > 39) samp = 39;
+	}
+
+	Bits ref = reference + scaleMap_ADPCM3[samp];
+	if (ref > 0xff) reference = 0xff;
+	else if (ref < 0x00) reference = 0x00;
+	else reference = (uint8_t)(ref&0xff);
+	scale = (scale + adjustMap_ADPCM3[samp]) & 0xff;
+
+	return reference;
+}
+
+static INLINE uint8_t decode_ADPCM_2_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
+	Bits samp = sample + scale;
+	if ((samp < 0) || (samp > 23)) {
+		LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-2 sample");
+		if(samp < 0 ) samp =  0;
+		if(samp > 23) samp = 23;
+	}
+
+	Bits ref = reference + scaleMap_ADPCM2[samp];
+	if (ref > 0xff) reference = 0xff;
+	else if (ref < 0x00) reference = 0x00;
+	else reference = (uint8_t)(ref&0xff);
+	scale = (scale + adjustMap_ADPCM2[samp]) & 0xff;
+
+	return reference;
+}
 
 struct SB_INFO {
 	Bitu freq;
@@ -673,17 +736,6 @@ struct SB_INFO {
 
 static SB_INFO sb;
 
-#ifndef max
-#define max(a,b) ((a)>(b)?(a):(b))
-#endif
-#ifndef min
-#define min(a,b) ((a)<(b)?(a):(b))
-#endif
-
-#define MIN_ADAPTIVE_STEP_SIZE 0
-#define MAX_ADAPTIVE_STEP_SIZE 32767
-#define DC_OFFSET_FADE 254
-
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 	if (chan!=sb.dma.chan || event==DMA_REACHED_TC) return;
 	else if (event==DMA_READ_COUNTER) {
@@ -718,58 +770,6 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 			LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d dma left %d, by %s dma init count %d",sb.dma.recording?"input":"output",chan->autoinit,chan->currcnt+1,DMAActorStr(chan->masked_by),chan->basecnt+1);
 		}
 	}
-}
-
-static INLINE uint8_t decode_ADPCM_4_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
-	Bits samp = sample + scale;
-
-	if ((samp < 0) || (samp > 63)) {
-		LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-4 sample");
-		if(samp < 0 ) samp =  0;
-		if(samp > 63) samp = 63;
-	}
-
-	Bits ref = reference + scaleMap_ADPCM4[samp];
-	if (ref > 0xff) reference = 0xff;
-	else if (ref < 0x00) reference = 0x00;
-	else reference = (uint8_t)(ref&0xff);
-	scale = (scale + adjustMap_ADPCM4[samp]) & 0xff;
-
-	return reference;
-}
-
-static INLINE uint8_t decode_ADPCM_2_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
-	Bits samp = sample + scale;
-	if ((samp < 0) || (samp > 23)) {
-		LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-2 sample");
-		if(samp < 0 ) samp =  0;
-		if(samp > 23) samp = 23;
-	}
-
-	Bits ref = reference + scaleMap_ADPCM2[samp];
-	if (ref > 0xff) reference = 0xff;
-	else if (ref < 0x00) reference = 0x00;
-	else reference = (uint8_t)(ref&0xff);
-	scale = (scale + adjustMap_ADPCM2[samp]) & 0xff;
-
-	return reference;
-}
-
-INLINE uint8_t decode_ADPCM_3_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
-	Bits samp = sample + scale;
-	if ((samp < 0) || (samp > 39)) {
-		LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-3 sample");
-		if(samp < 0 ) samp =  0;
-		if(samp > 39) samp = 39;
-	}
-
-	Bits ref = reference + scaleMap_ADPCM3[samp];
-	if (ref > 0xff) reference = 0xff;
-	else if (ref < 0x00) reference = 0x00;
-	else reference = (uint8_t)(ref&0xff);
-	scale = (scale + adjustMap_ADPCM3[samp]) & 0xff;
-
-	return reference;
 }
 
 static void GenerateDMASound(Bitu size) {
