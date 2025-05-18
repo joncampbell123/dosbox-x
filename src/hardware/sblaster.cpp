@@ -629,6 +629,46 @@ struct SB_INFO {
 		}
 	}
 
+	void SB_OnEndOfDMA(void) {
+		bool was_irq=false;
+
+		PIC_RemoveEvents(END_DMA_Event);
+		if (ess_type == ESS_NONE && reveal_sc_type == RSC_NONE && dma.mode >= DSP_DMA_16) {
+			was_irq = irq.pending_16bit;
+			SB_RaiseIRQ(SB_IRQ_16);
+		}
+		else {
+			was_irq = irq.pending_8bit;
+			SB_RaiseIRQ(SB_IRQ_8);
+		}
+
+		if (!dma.autoinit) {
+			dsp.highspeed = false;
+			LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
+			mode=MODE_NONE;
+			dma.mode=DSP_DMA_NONE;
+
+			if (ess_playback_mode) {
+				LOG(LOG_SB,LOG_NORMAL)("ESS DMA stop");
+				ESSreg(0xB8) &= ~0x01; // automatically stop DMA (right?)
+				if (dma.chan) dma.chan->Clear_Request();
+			}
+		} else {
+			dma.left=dma.total;
+			if (!dma.left) {
+				LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
+				dsp.highspeed = false;
+				mode=MODE_NONE;
+			}
+			else if (dsp.require_irq_ack && was_irq) {
+				/* Sound Blaster 16 behavior: If you do not acknowledge the IRQ, and the card goes to signal another IRQ, the DSP halts playback.
+				 * This is different from previous cards (and clone hardware) that continue playing whether or not you acknowledge the IRQ. */
+				LOG(LOG_SB,LOG_WARN)("DMA ended when previous IRQ had not yet been acked");
+				mode=MODE_DMA_REQUIRE_IRQ_ACK;
+			}
+		}
+	}
+
 };
 
 static SB_INFO sb;
@@ -730,46 +770,6 @@ INLINE uint8_t decode_ADPCM_3_sample(uint8_t sample,uint8_t & reference,Bits& sc
 	scale = (scale + adjustMap_ADPCM3[samp]) & 0xff;
 
 	return reference;
-}
-
-void SB_OnEndOfDMA(void) {
-	bool was_irq=false;
-
-	PIC_RemoveEvents(END_DMA_Event);
-	if (sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE && sb.dma.mode >= DSP_DMA_16) {
-		was_irq = sb.irq.pending_16bit;
-		sb.SB_RaiseIRQ(SB_IRQ_16);
-	}
-	else {
-		was_irq = sb.irq.pending_8bit;
-		sb.SB_RaiseIRQ(SB_IRQ_8);
-	}
-
-	if (!sb.dma.autoinit) {
-		sb.dsp.highspeed = false;
-		LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
-		sb.mode=MODE_NONE;
-		sb.dma.mode=DSP_DMA_NONE;
-
-		if (sb.ess_playback_mode) {
-			LOG(LOG_SB,LOG_NORMAL)("ESS DMA stop");
-			sb.ESSreg(0xB8) &= ~0x01; // automatically stop DMA (right?)
-			if (sb.dma.chan) sb.dma.chan->Clear_Request();
-		}
-	} else {
-		sb.dma.left=sb.dma.total;
-		if (!sb.dma.left) {
-			LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
-			sb.dsp.highspeed = false;
-			sb.mode=MODE_NONE;
-		}
-		else if (sb.dsp.require_irq_ack && was_irq) {
-			/* Sound Blaster 16 behavior: If you do not acknowledge the IRQ, and the card goes to signal another IRQ, the DSP halts playback.
-			 * This is different from previous cards (and clone hardware) that continue playing whether or not you acknowledge the IRQ. */
-			LOG(LOG_SB,LOG_WARN)("DMA ended when previous IRQ had not yet been acked");
-			sb.mode=MODE_DMA_REQUIRE_IRQ_ACK;
-		}
-	}
 }
 
 static void GenerateDMASound(Bitu size) {
@@ -977,7 +977,7 @@ static void GenerateDMASound(Bitu size) {
 		}
 	}
 	sb.dma.left-=read;
-	if (!sb.dma.left) SB_OnEndOfDMA();
+	if (!sb.dma.left) sb.SB_OnEndOfDMA();
 }
 
 static void DMA_Silent_Event(Bitu val) {
@@ -1105,7 +1105,7 @@ static void DMA_DAC_Event(Bitu val) {
 		sb.dma.left = 0;
 
 	if (!sb.dma.left) {
-		SB_OnEndOfDMA();
+		sb.SB_OnEndOfDMA();
 		if (sb.dma_dac_mode) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
 	}
 	else {
