@@ -277,6 +277,10 @@ struct SB_INFO {
     uint8_t ASP_mode = 0x00;
     unsigned char ESSregs[0x20] = {0}; /* 0xA0-0xBF */
     MixerChannel * chan;
+    unsigned int gen_input_ofs = 0;
+    unsigned long long gen_tone_angle = 0;
+    unsigned int gen_hiss_rand[2] = {0,0};
+    int gen_last_hiss = 0;
 
     unsigned char &ESSreg(uint8_t reg) {
         assert(reg >= 0xA0 && reg <= 0xBF);
@@ -654,42 +658,37 @@ void SB_OnEndOfDMA(void) {
     }
 }
 
-static unsigned int gen_input_ofs = 0;
-static unsigned long long gen_tone_angle = 0;
-static unsigned int gen_hiss_rand[2] = {0,0};
-static int gen_last_hiss = 0;
-
 static void gen_input_reset(void) {
-	gen_input_ofs = 0;
+	sb.gen_input_ofs = 0;
 }
 
 static double gen_1khz_tone(const bool advance) {
 	/* sin() is pretty fast on today's hardware, no lookup table necessary */
-	if (advance) gen_tone_angle++;
-	return sin((gen_tone_angle * M_PI * 1000.0) / sb.dma_dac_srcrate);
+	if (advance) sb.gen_tone_angle++;
+	return sin((sb.gen_tone_angle * M_PI * 1000.0) / sb.dma_dac_srcrate);
 }
 
 static int gen_hiss(unsigned int mask) {
-	if (gen_hiss_rand[0] == 0) gen_hiss_rand[0] = (unsigned int)rand();
-	if (gen_hiss_rand[1] == 0) gen_hiss_rand[1] = (unsigned int)rand();
+	if (sb.gen_hiss_rand[0] == 0) sb.gen_hiss_rand[0] = (unsigned int)rand();
+	if (sb.gen_hiss_rand[1] == 0) sb.gen_hiss_rand[1] = (unsigned int)rand();
 	/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
-	gen_hiss_rand[0] = 36969*(gen_hiss_rand[0] & 0xFFFF) + (gen_hiss_rand[1] >> 16);
-	gen_hiss_rand[1] = 18000*(gen_hiss_rand[1] & 0xFFFF) + (gen_hiss_rand[0] >> 16);
-	const unsigned int v = (gen_hiss_rand[1] << 16) + (gen_hiss_rand[0] & 0xFFFF);
-	const int r = (v - gen_last_hiss) & mask; /* we want a hiss not white noise */
-	gen_last_hiss = v;
+	sb.gen_hiss_rand[0] = 36969*(sb.gen_hiss_rand[0] & 0xFFFF) + (sb.gen_hiss_rand[1] >> 16);
+	sb.gen_hiss_rand[1] = 18000*(sb.gen_hiss_rand[1] & 0xFFFF) + (sb.gen_hiss_rand[0] >> 16);
+	const unsigned int v = (sb.gen_hiss_rand[1] << 16) + (sb.gen_hiss_rand[0] & 0xFFFF);
+	const int r = (v - sb.gen_last_hiss) & mask; /* we want a hiss not white noise */
+	sb.gen_last_hiss = v;
 	return r;
 }
 
 static int gen_noise(unsigned int mask) {
-	if (gen_hiss_rand[0] == 0) gen_hiss_rand[0] = (unsigned int)rand();
-	if (gen_hiss_rand[1] == 0) gen_hiss_rand[1] = (unsigned int)rand();
+	if (sb.gen_hiss_rand[0] == 0) sb.gen_hiss_rand[0] = (unsigned int)rand();
+	if (sb.gen_hiss_rand[1] == 0) sb.gen_hiss_rand[1] = (unsigned int)rand();
 	/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
-	gen_hiss_rand[0] = 36969*(gen_hiss_rand[0] & 0xFFFF) + (gen_hiss_rand[1] >> 16);
-	gen_hiss_rand[1] = 18000*(gen_hiss_rand[1] & 0xFFFF) + (gen_hiss_rand[0] >> 16);
-	const unsigned int v = (gen_hiss_rand[1] << 16) + (gen_hiss_rand[0] & 0xFFFF);
+	sb.gen_hiss_rand[0] = 36969*(sb.gen_hiss_rand[0] & 0xFFFF) + (sb.gen_hiss_rand[1] >> 16);
+	sb.gen_hiss_rand[1] = 18000*(sb.gen_hiss_rand[1] & 0xFFFF) + (sb.gen_hiss_rand[0] >> 16);
+	const unsigned int v = (sb.gen_hiss_rand[1] << 16) + (sb.gen_hiss_rand[0] & 0xFFFF);
 	const int r = v & mask; /* white noise in this case */
-	gen_last_hiss = v;
+	sb.gen_last_hiss = v;
 	return r;
 }
 
@@ -704,9 +703,9 @@ static void gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf) {
 		fill = ((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000);
 		while (dmabytes-- > 0) {
 			*buf16++ = fill;
-			if ((++gen_input_ofs) >= ofsmax) {
+			if ((++sb.gen_input_ofs) >= ofsmax) {
 				fill = ((unsigned int)(gen_1khz_tone(true) * 0x4000) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000);
-				gen_input_ofs = 0;
+				sb.gen_input_ofs = 0;
 			}
 		}
 	}
@@ -714,9 +713,9 @@ static void gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf) {
 		fill = ((((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000)) >> 8u;
 		while (dmabytes-- > 0) {
 			*buf++ = fill;
-			if ((++gen_input_ofs) >= ofsmax) {
+			if ((++sb.gen_input_ofs) >= ofsmax) {
 				fill = ((((unsigned int)(gen_1khz_tone(true) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000)) >> 8u;
-				gen_input_ofs = 0;
+				sb.gen_input_ofs = 0;
 			}
 		}
 	}
