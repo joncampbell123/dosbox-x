@@ -270,6 +270,7 @@ struct SB_INFO {
         uint8_t valadd;
         uint8_t valxor;
     } e2;
+    double last_dma_callback = 0.0f;
     unsigned int recording_source = REC_SILENCE;
     bool listen_to_recording_source = false;
     MixerChannel * chan;
@@ -459,8 +460,6 @@ static INLINE void DSP_FlushData(void) {
     sb.dsp.out.pos=0;
 }
 
-static double last_dma_callback = 0.0f;
-
 /* these are settings that the user would probably like to change on the fly during emulation */
 void sb_update_recording_source_settings() {
 	Section_prop* section = static_cast<Section_prop *>(control->GetSection("sblaster"));
@@ -490,7 +489,7 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
         if (sb.mode==MODE_DMA) {
             //Catch up to current time, but don't generate an IRQ!
             //Fixes problems with later sci games.
-            double t = PIC_FullIndex() - last_dma_callback;
+            double t = PIC_FullIndex() - sb.last_dma_callback;
             Bitu s = static_cast<Bitu>(sb.dma.rate * t / 1000.0f);
             if (s > sb.dma.min) {
                 LOG(LOG_SB,LOG_NORMAL)("limiting amount masked to sb.dma.min");
@@ -777,7 +776,7 @@ static void GenerateDMASound(Bitu size) {
 
 	if (sb.dma_dac_mode) return;
 
-	last_dma_callback = PIC_FullIndex();
+	sb.last_dma_callback = PIC_FullIndex();
 
 	if(sb.dma.autoinit) {
 		if (sb.dma.left <= size) size = sb.dma.left;
@@ -4424,10 +4423,6 @@ void POD_Save_Sblaster( std::ostream& stream )
 
 	// - pure data
 	WRITE_POD( &ASP_regs, ASP_regs );
-	//WRITE_POD( &ASP_init_in_progress, ASP_init_in_progress );
-    WRITE_POD( &last_dma_callback, last_dma_callback );
-
-
 
 	// - reloc ptr
 	WRITE_POD( &dma_idx, dma_idx );
@@ -4476,10 +4471,6 @@ void POD_Load_Sblaster( std::istream& stream )
 
 	// - pure data
 	READ_POD( &ASP_regs, ASP_regs );
-	//READ_POD( &ASP_init_in_progress, ASP_init_in_progress );
-    READ_POD( &last_dma_callback, last_dma_callback );
-
-
 
 	// - reloc ptr
 	READ_POD( &dma_idx, dma_idx );
