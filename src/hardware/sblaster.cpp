@@ -300,8 +300,6 @@ static const uint8_t adjustMap_ADPCM2[24] = {
 };
 
 void updateSoundBlasterFilter(Bitu rate);
-static void DSP_ChangeMode(DSP_MODES mode);
-static void CheckDMAEnd();
 static void DMA_DAC_Event(Bitu);
 static void END_DMA_Event(Bitu);
 static void DMA_Silent_Event(Bitu val);
@@ -940,6 +938,26 @@ struct SB_INFO {
 		if (!dma.left) SB_OnEndOfDMA();
 	}
 
+	void CheckDMAEnd(void) {
+		if (!dma.left) return;
+		if (!speaker && type!=SBT_16 && ess_type==ESS_NONE) {
+			Bitu bigger=(dma.left > dma.min) ? dma.min : dma.left;
+			float delay=(bigger*1000.0f)/dma.rate;
+			PIC_AddEvent(DMA_Silent_Event,delay,bigger);
+			LOG(LOG_SB,LOG_NORMAL)("Silent DMA Transfer scheduling IRQ in %.3f milliseconds",delay);
+		} else if (dma.left<dma.min) {
+			float delay=(dma.left*1000.0f)/dma.rate;
+			LOG(LOG_SB,LOG_NORMAL)("Short transfer scheduling IRQ in %.3f milliseconds",delay);
+			PIC_AddEvent(END_DMA_Event,delay,dma.left);
+		}
+	}
+
+	void DSP_ChangeMode(DSP_MODES new_mode) {
+		if (mode == new_mode) return;
+		else chan->FillUp();
+		mode=new_mode;
+	}
+
 };
 
 static SB_INFO sb;
@@ -973,8 +991,8 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 		}
 	} else if (event==DMA_UNMASKED) {
 		if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
-			DSP_ChangeMode(MODE_DMA);
-			CheckDMAEnd();
+			sb.DSP_ChangeMode(MODE_DMA);
+			sb.CheckDMAEnd();
 			LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d dma left %d, by %s dma init count %d",sb.dma.recording?"input":"output",chan->autoinit,chan->currcnt+1,DMAActorStr(chan->masked_by),chan->basecnt+1);
 		}
 	}
@@ -1113,26 +1131,6 @@ static void DMA_DAC_Event(Bitu val) {
 
 static void END_DMA_Event(Bitu val) {
 	sb.GenerateDMASound(val);
-}
-
-static void CheckDMAEnd(void) {
-	if (!sb.dma.left) return;
-	if (!sb.speaker && sb.type!=SBT_16 && sb.ess_type==ESS_NONE) {
-		Bitu bigger=(sb.dma.left > sb.dma.min) ? sb.dma.min : sb.dma.left;
-		float delay=(bigger*1000.0f)/sb.dma.rate;
-		PIC_AddEvent(DMA_Silent_Event,delay,bigger);
-		LOG(LOG_SB,LOG_NORMAL)("Silent DMA Transfer scheduling IRQ in %.3f milliseconds",delay);
-	} else if (sb.dma.left<sb.dma.min) {
-		float delay=(sb.dma.left*1000.0f)/sb.dma.rate;
-		LOG(LOG_SB,LOG_NORMAL)("Short transfer scheduling IRQ in %.3f milliseconds",delay);
-		PIC_AddEvent(END_DMA_Event,delay,sb.dma.left);
-	}
-}
-
-static void DSP_ChangeMode(DSP_MODES mode) {
-	if (sb.mode==mode) return;
-	else sb.chan->FillUp();
-	sb.mode=mode;
 }
 
 static void DSP_RaiseIRQEvent(Bitu /*val*/) {
@@ -1454,7 +1452,7 @@ static void DSP_Reset(void) {
 	LOG(LOG_SB,LOG_NORMAL)("DSP:Reset");
 	PIC_DeActivateIRQ(sb.hw.irq);
 
-	DSP_ChangeMode(MODE_NONE);
+	sb.DSP_ChangeMode(MODE_NONE);
 	sb.DSP_FlushData();
 	sb.dsp.cmd=DSP_NO_COMMAND;
 	sb.dsp.cmd_len=0;
@@ -1598,7 +1596,7 @@ static void ESS_StartDMA() {
 
 static void ESS_StopDMA() {
 	// DMA stop
-	DSP_ChangeMode(MODE_NONE);
+	sb.DSP_ChangeMode(MODE_NONE);
 	if (sb.dma.chan) sb.dma.chan->Clear_Request();
 	PIC_RemoveEvents(END_DMA_Event);
 	PIC_RemoveEvents(DMA_DAC_Event);
@@ -1927,7 +1925,7 @@ static void DSP_DoCommand(void) {
         }
         break;
     case 0x10:  /* Direct DAC */
-        DSP_ChangeMode(MODE_DAC);
+        sb.DSP_ChangeMode(MODE_DAC);
 
         /* just in case something is trying to play direct DAC audio while the speaker is turned off... */
         if (!sb.speaker && sb.directdac_warn_speaker_off) {
@@ -2172,7 +2170,7 @@ static void DSP_DoCommand(void) {
         DSP_SB16_ONLY;
     case 0xd0:  /* Halt 8-bit DMA */
         sb.chan->FillUp();
-//      DSP_ChangeMode(MODE_NONE);
+//      sb.DSP_ChangeMode(MODE_NONE);
 //      Games sometimes already program a new dma before stopping, gives noise
         if (sb.mode==MODE_NONE) {
             // possibly different code here that does not switch to MODE_DMA_PAUSE
