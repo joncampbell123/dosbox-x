@@ -90,8 +90,11 @@
 #include "hardopl.h"
 using namespace std;
 
+int MPU401_GetIRQ();
 void MIDI_RawOutByte(uint8_t data);
 bool MIDI_Available(void);
+
+Bitu DEBUG_EnableDebugger(void);
 
 #define SB_PIC_EVENTS 0
 
@@ -302,6 +305,8 @@ static const uint8_t adjustMap_ADPCM2[24] = {
 static void DMA_DAC_Event(Bitu);
 static void END_DMA_Event(Bitu);
 static void DMA_Silent_Event(Bitu val);
+static void DSP_FinishReset(Bitu /*val*/);
+static void DSP_BusyComplete(Bitu /*val*/);
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event);
 void updateSoundBlasterFilter(Bitu rate);
 
@@ -1270,6 +1275,70 @@ struct SB_INFO {
 		DSP_DoDMATransfer(new_mode,saved_freq,stereo);
 	}
 
+	void DSP_Reset(void) {
+		LOG(LOG_SB,LOG_NORMAL)("DSP:Reset");
+		PIC_DeActivateIRQ(hw.irq);
+
+		DSP_ChangeMode(MODE_NONE);
+		DSP_FlushData();
+		dsp.cmd=DSP_NO_COMMAND;
+		dsp.cmd_len=0;
+		dsp.in.pos=0;
+		dsp.out.pos=0;
+		dsp.write_busy=0;
+		ess_extended_mode = false;
+		ess_playback_mode = false;
+		single_sample_dma = 0;
+		dma_dac_mode = 0;
+		directdac_warn_speaker_off = true;
+		PIC_RemoveEvents(DSP_FinishReset);
+		PIC_RemoveEvents(DSP_BusyComplete);
+
+		dma.left=0;
+		dma.total=0;
+		dma.stereo=false;
+		dma.recording=false;
+		dma.sign=false;
+		dma.autoinit=false;
+		dma.mode=dma.mode_assigned=DSP_DMA_NONE;
+		dma.remain_size=0;
+		if (dma.chan) dma.chan->Clear_Request();
+
+		gen_input_reset();
+
+		dsp.midi_rwpoll_mode = false;
+		dsp.midi_read_interrupt = false;
+		dsp.midi_read_with_timestamps = false;
+
+		freq=22050;
+		freq_derived_from_tc=true;
+		time_constant=45;
+		dac.last=0;
+		e2.valadd=0xaa;
+		e2.valxor=0x96;
+		dsp.highspeed=0;
+		irq.pending_8bit=false;
+		irq.pending_16bit=false;
+		chan->SetFreq(22050);
+		updateSoundBlasterFilter(22050);
+		//  DSP_SetSpeaker(false);
+		PIC_RemoveEvents(END_DMA_Event);
+		PIC_RemoveEvents(DMA_DAC_Event);
+	}
+
+	void DSP_DoReset(uint8_t val) {
+		if (((val&1)!=0) && (dsp.state!=DSP_S_RESET)) {
+			//TODO Get out of highspeed mode
+			DSP_Reset();
+			dsp.state=DSP_S_RESET;
+		} else if (((val&1)==0) && (dsp.state==DSP_S_RESET)) {   // reset off
+			dsp.state=DSP_S_RESET_WAIT;
+			PIC_RemoveEvents(DSP_FinishReset);
+			PIC_AddEvent(DSP_FinishReset,20.0f/1000.0f,0);  // 20 microseconds
+		}
+		dsp.write_busy = 0;
+	}
+
 };
 
 static SB_INFO sb;
@@ -1459,70 +1528,6 @@ static void DSP_FinishReset(Bitu /*val*/) {
 	sb.dsp.state=DSP_S_NORMAL;
 }
 
-static void DSP_Reset(void) {
-	LOG(LOG_SB,LOG_NORMAL)("DSP:Reset");
-	PIC_DeActivateIRQ(sb.hw.irq);
-
-	sb.DSP_ChangeMode(MODE_NONE);
-	sb.DSP_FlushData();
-	sb.dsp.cmd=DSP_NO_COMMAND;
-	sb.dsp.cmd_len=0;
-	sb.dsp.in.pos=0;
-	sb.dsp.out.pos=0;
-	sb.dsp.write_busy=0;
-	sb.ess_extended_mode = false;
-	sb.ess_playback_mode = false;
-	sb.single_sample_dma = 0;
-	sb.dma_dac_mode = 0;
-	sb.directdac_warn_speaker_off = true;
-	PIC_RemoveEvents(DSP_FinishReset);
-	PIC_RemoveEvents(DSP_BusyComplete);
-
-	sb.dma.left=0;
-	sb.dma.total=0;
-	sb.dma.stereo=false;
-	sb.dma.recording=false;
-	sb.dma.sign=false;
-	sb.dma.autoinit=false;
-	sb.dma.mode=sb.dma.mode_assigned=DSP_DMA_NONE;
-	sb.dma.remain_size=0;
-	if (sb.dma.chan) sb.dma.chan->Clear_Request();
-
-	sb.gen_input_reset();
-
-	sb.dsp.midi_rwpoll_mode = false;
-	sb.dsp.midi_read_interrupt = false;
-	sb.dsp.midi_read_with_timestamps = false;
-
-	sb.freq=22050;
-	sb.freq_derived_from_tc=true;
-	sb.time_constant=45;
-	sb.dac.last=0;
-	sb.e2.valadd=0xaa;
-	sb.e2.valxor=0x96;
-	sb.dsp.highspeed=0;
-	sb.irq.pending_8bit=false;
-	sb.irq.pending_16bit=false;
-	sb.chan->SetFreq(22050);
-	updateSoundBlasterFilter(22050);
-	//  DSP_SetSpeaker(false);
-	PIC_RemoveEvents(END_DMA_Event);
-	PIC_RemoveEvents(DMA_DAC_Event);
-}
-
-static void DSP_DoReset(uint8_t val) {
-	if (((val&1)!=0) && (sb.dsp.state!=DSP_S_RESET)) {
-		//TODO Get out of highspeed mode
-		DSP_Reset();
-		sb.dsp.state=DSP_S_RESET;
-	} else if (((val&1)==0) && (sb.dsp.state==DSP_S_RESET)) {   // reset off
-		sb.dsp.state=DSP_S_RESET_WAIT;
-		PIC_RemoveEvents(DSP_FinishReset);
-		PIC_AddEvent(DSP_FinishReset,20.0f/1000.0f,0);  // 20 microseconds
-	}
-	sb.dsp.write_busy = 0;
-}
-
 static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	if (event==DMA_UNMASKED) {
 		uint8_t val = sb.e2.valadd;
@@ -1531,8 +1536,6 @@ static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 		chan->Write(1,&val);
 	}
 }
-
-Bitu DEBUG_EnableDebugger(void);
 
 static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	if (event==DMA_UNMASKED) {
@@ -1764,8 +1767,6 @@ static uint8_t ESS_DoRead(uint8_t reg) {
 
 	return 0xFF;
 }
-
-int MPU401_GetIRQ();
 
 static void sb16asp_write_current_RAM_byte(const uint8_t r) {
 	sb.sb16asp_ram_contents[sb.sb16asp_ram_contents_index] = r;
@@ -3294,7 +3295,7 @@ static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
     uint8_t val8=(uint8_t)(val&0xff);
     switch (((port-sb.hw.base) >> (IS_PC98_ARCH ? 8u : 0u)) & 0xFu) {
     case DSP_RESET:
-        DSP_DoReset(val8);
+        sb.DSP_DoReset(val8);
         break;
     case DSP_WRITE_DATA:
         /* FIXME: We need to emulate behavior where either the DSP command is delayed (busy cycle)
@@ -4057,7 +4058,7 @@ public:
         sb.ASP_regs[5] = 0x01;
         sb.ASP_regs[9] = 0xf8;
 
-        DSP_Reset();
+        sb.DSP_Reset();
         CTMIXER_Reset();
 
         // The documentation does not specify if SB gets initialized with the speaker enabled
@@ -4308,7 +4309,7 @@ ASP>
             CMS_ShutDown(m_configuration);
         }
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
-        DSP_Reset(); // Stop everything
+        sb.DSP_Reset(); // Stop everything
     }
 }; //End of SBLASTER class
 
