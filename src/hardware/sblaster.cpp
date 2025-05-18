@@ -275,7 +275,13 @@ struct SB_INFO {
     bool listen_to_recording_source = false;
     uint8_t ASP_regs[256];
     uint8_t ASP_mode = 0x00;
+    unsigned char ESSregs[0x20] = {0}; /* 0xA0-0xBF */
     MixerChannel * chan;
+
+    unsigned char &ESSreg(uint8_t reg) {
+        assert(reg >= 0xA0 && reg <= 0xBF);
+        return ESSregs[reg-0xA0];
+    }
 };
 
 static SB_INFO sb;
@@ -378,13 +384,6 @@ static uint8_t const DSP_cmd_len_sb16[256] = {
   0,0,0,0, 0,0,0,0, 0,1,2,0, 0,0,0,0   // 0xf0
 };
 
-static unsigned char ESSregs[0x20] = {0}; /* 0xA0-0xBF */
-
-static unsigned char &ESSreg(uint8_t reg) {
-    assert(reg >= 0xA0 && reg <= 0xBF);
-    return ESSregs[reg-0xA0];
-}
-
 #ifndef max
 #define max(a,b) ((a)>(b)?(a):(b))
 #endif
@@ -428,7 +427,7 @@ static INLINE void SB_RaiseIRQ(SB_IRQS type) {
     LOG(LOG_SB,LOG_NORMAL)("Raising IRQ");
 
     if (sb.ess_playback_mode) {
-        if (!(ESSreg(0xB1) & 0x40)) // if ESS playback, and IRQ disabled, do not fire
+        if (!(sb.ESSreg(0xB1) & 0x40)) // if ESS playback, and IRQ disabled, do not fire
             return;
     }
 
@@ -636,7 +635,7 @@ void SB_OnEndOfDMA(void) {
 
         if (sb.ess_playback_mode) {
             LOG(LOG_SB,LOG_NORMAL)("ESS DMA stop");
-            ESSreg(0xB8) &= ~0x01; // automatically stop DMA (right?)
+            sb.ESSreg(0xB8) &= ~0x01; // automatically stop DMA (right?)
             if (sb.dma.chan) sb.dma.chan->Clear_Request();
         }
     } else {
@@ -1565,8 +1564,8 @@ Bitu DEBUG_EnableDebugger(void);
 static unsigned int ESS_DMATransferCount() {
     unsigned int r;
 
-    r = (unsigned int)ESSreg(0xA5) << 8U;
-    r |= (unsigned int)ESSreg(0xA4);
+    r = (unsigned int)sb.ESSreg(0xA5) << 8U;
+    r |= (unsigned int)sb.ESSreg(0xA4);
 
     /* the 16-bit counter is a "two's complement" of the DMA count because it counts UP to 0 and triggers IRQ on overflow */
     return 0x10000U-r;
@@ -1576,7 +1575,7 @@ static void ESS_StartDMA() {
     LOG(LOG_SB,LOG_DEBUG)("ESS DMA start");
     sb.dma_dac_mode = 0;
     sb.dma.chan = GetDMAChannel(sb.hw.dma8);
-    sb.dma.recording = (ESSreg(0xB8) & 8/*ADC mode*/) > 0;
+    sb.dma.recording = (sb.ESSreg(0xB8) & 8/*ADC mode*/) > 0;
     if (sb.dma.chan) sb.dma.chan->Raise_Request();
     // FIXME: Which bit(s) are responsible for signalling stereo?
     //        Is it bit 3 of the Analog Control?
@@ -1587,8 +1586,8 @@ static void ESS_StartDMA() {
     //      too fast the ISA bus will effectively cap the sample rate at some
     //      rate above 48KHz to 60KHz anyway.
     DSP_DoDMATransfer(
-        (ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
-        sb.freq,(ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
+        (sb.ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
+        sb.freq,(sb.ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
     sb.mode = MODE_DMA;
     sb.ess_playback_mode = true;
 }
@@ -1606,15 +1605,15 @@ static void ESS_UpdateDMATotal() {
 }
 
 static void ESS_CheckDMAEnable() {
-    bool dma_en = (ESSreg(0xB8) & 1)?true:false;
+    bool dma_en = (sb.ESSreg(0xB8) & 1)?true:false;
 
     // if the DRQ is disabled, do not start
-    if (!(ESSreg(0xB2) & 0x40))
+    if (!(sb.ESSreg(0xB2) & 0x40))
         dma_en = false;
 
-    if (ESSreg(0xB8) & 8) LOG(LOG_SB,LOG_WARN)("Guest recording audio using ESS commands");
+    if (sb.ESSreg(0xB8) & 8) LOG(LOG_SB,LOG_WARN)("Guest recording audio using ESS commands");
 
-    if (!!(ESSreg(0xB8) & 8/*ADC mode*/) != !!(ESSreg(0xB8) & 2/*DMA read*/)) LOG(LOG_SB,LOG_WARN)("ESS DMA direction vs ADC mismatch");
+    if (!!(sb.ESSreg(0xB8) & 8/*ADC mode*/) != !!(sb.ESSreg(0xB8) & 2/*DMA read*/)) LOG(LOG_SB,LOG_WARN)("ESS DMA direction vs ADC mismatch");
 
     if (dma_en) {
         if (sb.mode != MODE_DMA) ESS_StartDMA();
@@ -1626,12 +1625,12 @@ static void ESS_CheckDMAEnable() {
 
 static void ESSUpdateFilterFromSB(void) {
     if (sb.freq >= 22050)
-        ESSreg(0xA1) = 256 - (795500UL / sb.freq);
+        sb.ESSreg(0xA1) = 256 - (795500UL / sb.freq);
     else
-        ESSreg(0xA1) = 128 - (397700UL / sb.freq);
+        sb.ESSreg(0xA1) = 128 - (397700UL / sb.freq);
 
     unsigned int freq = ((sb.freq * 4) / (5 * 2)); /* 80% of 1/2 the sample rate */
-    ESSreg(0xA2) = 256 - (7160000 / (freq * 82));
+    sb.ESSreg(0xA2) = 256 - (7160000 / (freq * 82));
 }
 
 static void ESS_DoWrite(uint8_t reg,uint8_t data) {
@@ -1641,7 +1640,7 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 
     switch (reg) {
         case 0xA1: /* Extended Mode Sample Rate Generator */
-            ESSreg(reg) = data;
+            sb.ESSreg(reg) = data;
             if (data & 0x80)
                 sb.freq = 795500UL / (256ul - data);
             else
@@ -1654,12 +1653,12 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
             }
             break;
         case 0xA2: /* Filter divider (effectively, a hardware lowpass filter under S/W control) */
-            ESSreg(reg) = data;
+            sb.ESSreg(reg) = data;
             updateSoundBlasterFilter(sb.freq);
             break;
         case 0xA4: /* DMA Transfer Count Reload (low) */
         case 0xA5: /* DMA Transfer Count Reload (high) */
-            ESSreg(reg) = data;
+            sb.ESSreg(reg) = data;
             ESS_UpdateDMATotal();
             if (sb.dma.left == 0) sb.dma.left = sb.dma.total;
             break;
@@ -1673,8 +1672,8 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
              *                               01=Stereo
              *                               10=Mono
              *                               11=Reserved */
-            chg = ESSreg(reg) ^ data;
-            ESSreg(reg) = data;
+            chg = sb.ESSreg(reg) ^ data;
+            sb.ESSreg(reg) = data;
             if (chg & 0x3) {
                 if (sb.mode == MODE_DMA) {
                     ESS_StopDMA();
@@ -1684,13 +1683,13 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
             break;
         case 0xB1: /* Legacy Audio Interrupt Control */
         case 0xB2: /* DRQ Control */
-            chg = ESSreg(reg) ^ data;
-            ESSreg(reg) = (ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
+            chg = sb.ESSreg(reg) ^ data;
+            sb.ESSreg(reg) = (sb.ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
             if (chg & 0x40) ESS_CheckDMAEnable();
             break;
         case 0xB5: /* DAC Direct Access Holding (low) */
         case 0xB6: /* DAC Direct Access Holding (high) */
-            ESSreg(reg) = data;
+            sb.ESSreg(reg) = data;
             break;
         case 0xB7: /* Audio 1 Control 1 */
             /* bit  7     Enable FIFO to/from codec
@@ -1701,8 +1700,8 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
              * bit  2     FIFO 16-bit mode                  1=Data is 16-bit
              * bit  1     Reserved                          Always write 0
              * bit  0     Generate load signal */
-            chg = ESSreg(reg) ^ data;
-            ESSreg(reg) = data;
+            chg = sb.ESSreg(reg) ^ data;
+            sb.ESSreg(reg) = data;
             sb.dma.sign = (data&0x20)?1:0;
             if (chg & 0x04) ESS_UpdateDMATotal();
             if (chg & 0x0C) {
@@ -1722,8 +1721,8 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
              *                               0=first DMA is write (for DAC)
              * bit  0     DMA xfer enable    1=DMA is allowed to proceed */
             data &= 0xF;
-            chg = ESSreg(reg) ^ data;
-            ESSreg(reg) = data;
+            chg = sb.ESSreg(reg) ^ data;
+            sb.ESSreg(reg) = data;
 
             /* FIXME: This is a guess */
             if (chg & 1) sb.dma.left = sb.dma.total;
@@ -1737,7 +1736,7 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
         case 0xB9: /* Audio 1 Transfer Type */
         case 0xBA: /* Left Channel ADC Offset Adjust */
         case 0xBB: /* Right Channel ADC Offset Adjust */
-            ESSreg(reg) = data;
+            sb.ESSreg(reg) = data;
             break;
     }
 }
@@ -1747,7 +1746,7 @@ static uint8_t ESS_DoRead(uint8_t reg) {
 
     switch (reg) {
         default:
-            return ESSreg(reg);
+            return sb.ESSreg(reg);
     }
 
     return 0xFF;
@@ -1954,8 +1953,8 @@ static void DSP_DoCommand(void) {
             if (rt < 1000) rt = 1000;
 
             // FIXME: What does the ESS AudioDrive do to its filter/sample rate divider registers when emulating this Sound Blaster command?
-            ESSreg(0xA1) = 128 - (397700 / 22050);
-            ESSreg(0xA2) = 256 - (7160000 / (82 * ((4 * 22050) / 10)));
+            sb.ESSreg(0xA1) = 128 - (397700 / 22050);
+            sb.ESSreg(0xA2) = 256 - (7160000 / (82 * ((4 * 22050) / 10)));
 
             // Direct DAC playback could be thought of as application-driven 8-bit output up to 23KHz.
             // The sound card isn't given any hint what the actual sample rate is, only that it's given
@@ -2690,7 +2689,7 @@ void updateSoundBlasterFilter(Bitu rate) {
          *
          * This implementation is matched against real hardware by ear, even though the reference hardware is a
          * laptop with a cheap tinny amplifier */
-        uint64_t filter_raw = (uint64_t)7160000ULL / (256u - ESSreg(0xA2));
+        uint64_t filter_raw = (uint64_t)7160000ULL / (256u - sb.ESSreg(0xA2));
         uint64_t filter_hz = (filter_raw * (uint64_t)11) / (uint64_t)(82 * 4); /* match lowpass by ear compared to real hardware */
 
         if ((filter_hz * 2) > sb.freq)
@@ -4127,7 +4126,7 @@ public:
                 case 7:     t |= 0xA; break;
                 case 10:    t |= 0xF; break;
             }
-            ESSreg(0xB1) = t;
+            sb.ESSreg(0xB1) = t;
 
             /* DRQ control */
             t = 0x80;/*game compatible DRQ */
@@ -4136,7 +4135,7 @@ public:
                 case 1:     t |= 0xA; break;
                 case 3:     t |= 0xF; break;
             }
-            ESSreg(0xB2) = t;
+            sb.ESSreg(0xB2) = t;
         }
 
         /* first configuration byte returned by 0x58.
