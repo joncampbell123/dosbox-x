@@ -434,6 +434,113 @@ struct SB_INFO {
 		assert(reg >= 0xA0 && reg <= 0xBF);
 		return ESSregs[reg-0xA0];
 	}
+
+	void gen_input_reset(void) {
+		gen_input_ofs = 0;
+	}
+
+	double gen_1khz_tone(const bool advance) {
+		/* sin() is pretty fast on today's hardware, no lookup table necessary */
+		if (advance) gen_tone_angle++;
+		return sin((gen_tone_angle * M_PI * 1000.0) / dma_dac_srcrate);
+	}
+
+	int gen_hiss(unsigned int mask) {
+		if (gen_hiss_rand[0] == 0) gen_hiss_rand[0] = (unsigned int)rand();
+		if (gen_hiss_rand[1] == 0) gen_hiss_rand[1] = (unsigned int)rand();
+		/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
+		gen_hiss_rand[0] = 36969*(gen_hiss_rand[0] & 0xFFFF) + (gen_hiss_rand[1] >> 16);
+		gen_hiss_rand[1] = 18000*(gen_hiss_rand[1] & 0xFFFF) + (gen_hiss_rand[0] >> 16);
+		const unsigned int v = (gen_hiss_rand[1] << 16) + (gen_hiss_rand[0] & 0xFFFF);
+		const int r = (v - gen_last_hiss) & mask; /* we want a hiss not white noise */
+		gen_last_hiss = v;
+		return r;
+	}
+
+	int gen_noise(unsigned int mask) {
+		if (gen_hiss_rand[0] == 0) gen_hiss_rand[0] = (unsigned int)rand();
+		if (gen_hiss_rand[1] == 0) gen_hiss_rand[1] = (unsigned int)rand();
+		/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
+		gen_hiss_rand[0] = 36969*(gen_hiss_rand[0] & 0xFFFF) + (gen_hiss_rand[1] >> 16);
+		gen_hiss_rand[1] = 18000*(gen_hiss_rand[1] & 0xFFFF) + (gen_hiss_rand[0] >> 16);
+		const unsigned int v = (gen_hiss_rand[1] << 16) + (gen_hiss_rand[0] & 0xFFFF);
+		const int r = v & mask; /* white noise in this case */
+		gen_last_hiss = v;
+		return r;
+	}
+
+	void gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf) {
+		const unsigned int ofsmax = dma.stereo ? 2 : 1;
+		unsigned int fill;
+
+		if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED) {
+			uint16_t *buf16 = (uint16_t*)buf;
+
+			if (dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
+			fill = ((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000);
+			while (dmabytes-- > 0) {
+				*buf16++ = fill;
+				if ((++gen_input_ofs) >= ofsmax) {
+					fill = ((unsigned int)(gen_1khz_tone(true) * 0x4000) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000);
+					gen_input_ofs = 0;
+				}
+			}
+		}
+		else { /* 8-bit */
+			fill = ((((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000)) >> 8u;
+			while (dmabytes-- > 0) {
+				*buf++ = fill;
+				if ((++gen_input_ofs) >= ofsmax) {
+					fill = ((((unsigned int)(gen_1khz_tone(true) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000)) >> 8u;
+					gen_input_ofs = 0;
+				}
+			}
+		}
+	}
+
+	void gen_input_hiss(Bitu dmabytes,unsigned char *buf) {
+		if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED) {
+			uint16_t *buf16 = (uint16_t*)buf;
+
+			if (dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
+			while (dmabytes-- > 0) *buf16++ = ((gen_hiss(0x3ff) - 0x200) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000);
+		}
+		else { /* 8-bit */
+			while (dmabytes-- > 0) *buf++ = ((gen_hiss(0x3) - 0x2) & 0xFF) ^ (dma.sign ? 0x00 : 0x80);
+		}
+	}
+
+	void gen_input_silence(Bitu dmabytes,unsigned char *buf) {
+		unsigned int fill;
+
+		if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED) {
+			uint16_t *buf16 = (uint16_t*)buf;
+
+			if (dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
+			fill = dma.sign ? 0x0000 : 0x8000;
+			while (dmabytes-- > 0) *buf16++ = fill;
+		}
+		else { /* 8-bit */
+			fill = dma.sign ? 0x00 : 0x80;
+			while (dmabytes-- > 0) *buf++ = fill;
+		}
+	}
+
+	void gen_input(Bitu dmabytes,unsigned char *buf) {
+		switch (recording_source) {
+			case REC_SILENCE:
+				gen_input_silence(dmabytes,buf);
+				break;
+			case REC_HISS:
+				gen_input_hiss(dmabytes,buf);
+				break;
+			case REC_1KHZ_TONE:
+				gen_input_1khz_tone(dmabytes,buf);
+				break;
+			default:
+				abort();
+		}
+	}
 };
 
 static SB_INFO sb;
@@ -664,113 +771,6 @@ void SB_OnEndOfDMA(void) {
 	}
 }
 
-static void gen_input_reset(void) {
-	sb.gen_input_ofs = 0;
-}
-
-static double gen_1khz_tone(const bool advance) {
-	/* sin() is pretty fast on today's hardware, no lookup table necessary */
-	if (advance) sb.gen_tone_angle++;
-	return sin((sb.gen_tone_angle * M_PI * 1000.0) / sb.dma_dac_srcrate);
-}
-
-static int gen_hiss(unsigned int mask) {
-	if (sb.gen_hiss_rand[0] == 0) sb.gen_hiss_rand[0] = (unsigned int)rand();
-	if (sb.gen_hiss_rand[1] == 0) sb.gen_hiss_rand[1] = (unsigned int)rand();
-	/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
-	sb.gen_hiss_rand[0] = 36969*(sb.gen_hiss_rand[0] & 0xFFFF) + (sb.gen_hiss_rand[1] >> 16);
-	sb.gen_hiss_rand[1] = 18000*(sb.gen_hiss_rand[1] & 0xFFFF) + (sb.gen_hiss_rand[0] >> 16);
-	const unsigned int v = (sb.gen_hiss_rand[1] << 16) + (sb.gen_hiss_rand[0] & 0xFFFF);
-	const int r = (v - sb.gen_last_hiss) & mask; /* we want a hiss not white noise */
-	sb.gen_last_hiss = v;
-	return r;
-}
-
-static int gen_noise(unsigned int mask) {
-	if (sb.gen_hiss_rand[0] == 0) sb.gen_hiss_rand[0] = (unsigned int)rand();
-	if (sb.gen_hiss_rand[1] == 0) sb.gen_hiss_rand[1] = (unsigned int)rand();
-	/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
-	sb.gen_hiss_rand[0] = 36969*(sb.gen_hiss_rand[0] & 0xFFFF) + (sb.gen_hiss_rand[1] >> 16);
-	sb.gen_hiss_rand[1] = 18000*(sb.gen_hiss_rand[1] & 0xFFFF) + (sb.gen_hiss_rand[0] >> 16);
-	const unsigned int v = (sb.gen_hiss_rand[1] << 16) + (sb.gen_hiss_rand[0] & 0xFFFF);
-	const int r = v & mask; /* white noise in this case */
-	sb.gen_last_hiss = v;
-	return r;
-}
-
-static void gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf) {
-	const unsigned int ofsmax = sb.dma.stereo ? 2 : 1;
-	unsigned int fill;
-
-	if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
-		uint16_t *buf16 = (uint16_t*)buf;
-
-		if (sb.dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
-		fill = ((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000);
-		while (dmabytes-- > 0) {
-			*buf16++ = fill;
-			if ((++sb.gen_input_ofs) >= ofsmax) {
-				fill = ((unsigned int)(gen_1khz_tone(true) * 0x4000) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000);
-				sb.gen_input_ofs = 0;
-			}
-		}
-	}
-	else { /* 8-bit */
-		fill = ((((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000)) >> 8u;
-		while (dmabytes-- > 0) {
-			*buf++ = fill;
-			if ((++sb.gen_input_ofs) >= ofsmax) {
-				fill = ((((unsigned int)(gen_1khz_tone(true) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000)) >> 8u;
-				sb.gen_input_ofs = 0;
-			}
-		}
-	}
-}
-
-static void gen_input_hiss(Bitu dmabytes,unsigned char *buf) {
-	if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
-		uint16_t *buf16 = (uint16_t*)buf;
-
-		if (sb.dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
-		while (dmabytes-- > 0) *buf16++ = ((gen_hiss(0x3ff) - 0x200) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000);
-	}
-	else { /* 8-bit */
-		while (dmabytes-- > 0) *buf++ = ((gen_hiss(0x3) - 0x2) & 0xFF) ^ (sb.dma.sign ? 0x00 : 0x80);
-	}
-}
-
-static void gen_input_silence(Bitu dmabytes,unsigned char *buf) {
-	unsigned int fill;
-
-	if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
-		uint16_t *buf16 = (uint16_t*)buf;
-
-		if (sb.dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
-		fill = sb.dma.sign ? 0x0000 : 0x8000;
-		while (dmabytes-- > 0) *buf16++ = fill;
-	}
-	else { /* 8-bit */
-		fill = sb.dma.sign ? 0x00 : 0x80;
-		while (dmabytes-- > 0) *buf++ = fill;
-	}
-}
-
-static void gen_input(Bitu dmabytes,unsigned char *buf) {
-	switch (sb.recording_source) {
-		case REC_SILENCE:
-			gen_input_silence(dmabytes,buf);
-			break;
-		case REC_HISS:
-			gen_input_hiss(dmabytes,buf);
-			break;
-		case REC_1KHZ_TONE:
-			gen_input_1khz_tone(dmabytes,buf);
-			break;
-		default:
-			abort();
-	}
-}
-
 static void GenerateDMASound(Bitu size) {
 	Bitu read=0;Bitu done=0;Bitu i=0;
 
@@ -807,15 +807,15 @@ static void GenerateDMASound(Bitu size) {
 		read=sb.dma.chan->currcnt + 1; /* DMA channel current count remain */
 		if (read > size) read = size;
 		if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED)
-			gen_input(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size]));
+			sb.gen_input(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size]));
 		else
-			gen_input(read,&sb.dma.buf.b8[sb.dma.remain_size]);
+			sb.gen_input(read,&sb.dma.buf.b8[sb.dma.remain_size]);
 
 		switch (sb.dma.mode) {
 			case DSP_DMA_8:
 				if (sb.dma.stereo) {
 					read=sb.dma.chan->Write(read,&sb.dma.buf.b8[sb.dma.remain_size]);
-					if (read > 0 && !sb.listen_to_recording_source) gen_input_silence(read,&sb.dma.buf.b8[sb.dma.remain_size]); /* mute before going out to mixer */
+					if (read > 0 && !sb.listen_to_recording_source) sb.gen_input_silence(read,&sb.dma.buf.b8[sb.dma.remain_size]); /* mute before going out to mixer */
 					Bitu total=read+sb.dma.remain_size;
 					if (!sb.dma.sign)  sb.chan->AddSamples_s8(total>>1,sb.dma.buf.b8);
 					else sb.chan->AddSamples_s8s(total>>1,(int8_t*)sb.dma.buf.b8);
@@ -825,7 +825,7 @@ static void GenerateDMASound(Bitu size) {
 					} else sb.dma.remain_size=0;
 				} else {
 					read=sb.dma.chan->Write(read,sb.dma.buf.b8);
-					if (read > 0 && !sb.listen_to_recording_source) gen_input_silence(read,sb.dma.buf.b8); /* mute before going out to mixer */
+					if (read > 0 && !sb.listen_to_recording_source) sb.gen_input_silence(read,sb.dma.buf.b8); /* mute before going out to mixer */
 					if (!sb.dma.sign) sb.chan->AddSamples_m8(read,sb.dma.buf.b8);
 					else sb.chan->AddSamples_m8s(read,(int8_t *)sb.dma.buf.b8);
 				}
@@ -838,7 +838,7 @@ static void GenerateDMASound(Bitu size) {
 					   16-bit DMA Read returns word size */
 					read=sb.dma.chan->Write(read,(uint8_t *)&sb.dma.buf.b16[sb.dma.remain_size])
 						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-					if (read > 0 && !sb.listen_to_recording_source) gen_input_silence(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size])); /* mute before going out to mixer */
+					if (read > 0 && !sb.listen_to_recording_source) sb.gen_input_silence(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size])); /* mute before going out to mixer */
 					Bitu total=read+sb.dma.remain_size;
 #if defined(WORDS_BIGENDIAN)
 					if (sb.dma.sign) sb.chan->AddSamples_s16_nonnative(total>>1,sb.dma.buf.b16);
@@ -854,7 +854,7 @@ static void GenerateDMASound(Bitu size) {
 				} else {
 					read=sb.dma.chan->Write(read,(uint8_t *)sb.dma.buf.b16)
 						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-					if (read > 0 && !sb.listen_to_recording_source) gen_input_silence(read,(unsigned char*)sb.dma.buf.b16); /* mute before going out to mixer */
+					if (read > 0 && !sb.listen_to_recording_source) sb.gen_input_silence(read,(unsigned char*)sb.dma.buf.b16); /* mute before going out to mixer */
 #if defined(WORDS_BIGENDIAN)
 					if (sb.dma.sign) sb.chan->AddSamples_m16_nonnative(read,sb.dma.buf.b16);
 					else sb.chan->AddSamples_m16u_nonnative(read,(uint16_t *)sb.dma.buf.b16);
@@ -981,7 +981,7 @@ static void GenerateDMASound(Bitu size) {
 
 static void DMA_Silent_Event(Bitu val) {
 	if (sb.dma.left<val) val=sb.dma.left;
-	if (sb.dma.recording) gen_input(val,sb.dma.buf.b8);
+	if (sb.dma.recording) sb.gen_input(val,sb.dma.buf.b8);
 	Bitu read = sb.dma.recording ? sb.dma.chan->Write(val,sb.dma.buf.b8) : sb.dma.chan->Read(val,sb.dma.buf.b8);
 	sb.dma.left-=read;
 	if (!sb.dma.left) {
@@ -1042,7 +1042,7 @@ static void DMA_DAC_Event(Bitu val) {
 	 *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */
 	expct = (sb.dma.stereo ? 2u : 1u) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2u : 1u);
 	if (sb.dma.recording) {
-		gen_input(expct,tmp);
+		sb.gen_input(expct,tmp);
 		read = sb.dma.chan->Write(expct,tmp);
 		L = R = 0;
 	}
@@ -1480,7 +1480,7 @@ static void DSP_Reset(void) {
 	sb.dma.remain_size=0;
 	if (sb.dma.chan) sb.dma.chan->Clear_Request();
 
-	gen_input_reset();
+	sb.gen_input_reset();
 
 	sb.dsp.midi_rwpoll_mode = false;
 	sb.dsp.midi_read_interrupt = false;
