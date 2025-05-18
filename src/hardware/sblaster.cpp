@@ -1149,6 +1149,28 @@ struct SB_INFO {
 		return freq;
 	}
 
+	void DSP_AddData(uint8_t val) {
+		if (dsp.out.used<DSP_BUFSIZE) {
+			Bitu start=dsp.out.used+dsp.out.pos;
+			if (start>=DSP_BUFSIZE) start-=DSP_BUFSIZE;
+			dsp.out.data[start]=val;
+			dsp.out.used++;
+		} else {
+			LOG(LOG_SB,LOG_ERROR)("DSP:Data Output buffer full");
+		}
+	}
+
+	uint8_t DSP_ReadData(void) {
+		/* Static so it repeats the last value on successive reads (JANGLE DEMO) */
+		if (dsp.out.used) {
+			dsp.out.lastval=dsp.out.data[dsp.out.pos];
+			dsp.out.pos++;
+			if (dsp.out.pos>=DSP_BUFSIZE) dsp.out.pos-=DSP_BUFSIZE;
+			dsp.out.used--;
+		}
+		return dsp.out.lastval;
+	}
+
 };
 
 static SB_INFO sb;
@@ -1427,25 +1449,13 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 	sb.DSP_DoDMATransfer(mode,freq,stereo);
 }
 
-
-static void DSP_AddData(uint8_t val) {
-	if (sb.dsp.out.used<DSP_BUFSIZE) {
-		Bitu start=sb.dsp.out.used+sb.dsp.out.pos;
-		if (start>=DSP_BUFSIZE) start-=DSP_BUFSIZE;
-		sb.dsp.out.data[start]=val;
-		sb.dsp.out.used++;
-	} else {
-		LOG(LOG_SB,LOG_ERROR)("DSP:Data Output buffer full");
-	}
-}
-
 static void DSP_BusyComplete(Bitu /*val*/) {
 	sb.dsp.write_busy = 0;
 }
 
 static void DSP_FinishReset(Bitu /*val*/) {
 	sb.DSP_FlushData();
-	DSP_AddData(0xaa);
+	sb.DSP_AddData(0xaa);
 	sb.dsp.state=DSP_S_NORMAL;
 }
 
@@ -1787,7 +1797,7 @@ static void DSP_DoCommand(void) {
         else if (sb.dsp.cmd == 0xC0) { // read ESS register   (data[0]=register to read)
             sb.DSP_FlushData();
             if (sb.ess_extended_mode && sb.dsp.in.data[0] >= 0xA0 && sb.dsp.in.data[0] <= 0xBF)
-                DSP_AddData(ESS_DoRead(sb.dsp.in.data[0]));
+                sb.DSP_AddData(ESS_DoRead(sb.dsp.in.data[0]));
         }
         else if (sb.dsp.cmd == 0xC6 || sb.dsp.cmd == 0xC7) { // set(0xC6) clear(0xC7) extended mode
             sb.ess_extended_mode = (sb.dsp.cmd == 0xC6);
@@ -1832,9 +1842,9 @@ static void DSP_DoCommand(void) {
         } else {
             /* DSP Status SB 2.0/pro version. NOT SB16. */
             sb.DSP_FlushData();
-            if (sb.type == SBT_2) DSP_AddData(0x88);
-            else if ((sb.type == SBT_PRO1) || (sb.type == SBT_PRO2)) DSP_AddData(0x7b);
-            else DSP_AddData(0xff);         //Everything enabled
+            if (sb.type == SBT_2) sb.DSP_AddData(0x88);
+            else if ((sb.type == SBT_PRO1) || (sb.type == SBT_PRO2)) sb.DSP_AddData(0x7b);
+            else sb.DSP_AddData(0xff);         //Everything enabled
         }
         break;
     case 0x05:  /* SB16 ASP set codec parameter */
@@ -1848,9 +1858,9 @@ static void DSP_DoCommand(void) {
                     LOG(LOG_SB,LOG_DEBUG)("DSP SB16ASP command %X sub %X (get chip version)",sb.dsp.cmd,sb.dsp.in.data[0]);
 
                     if (sb.enable_asp)
-                        DSP_AddData(0x10);  // version ID
+                        sb.DSP_AddData(0x10);  // version ID
                     else
-                        DSP_AddData(0xFF);  // NTS: This is what a SB16 ViBRA PnP card with no ASP returns when queried in this way
+                        sb.DSP_AddData(0xFF);  // NTS: This is what a SB16 ViBRA PnP card with no ASP returns when queried in this way
                     break;
                 default:
                     LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X sub %X",sb.dsp.cmd,sb.dsp.in.data[0]);
@@ -1920,7 +1930,7 @@ static void DSP_DoCommand(void) {
                 LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],sb.ASP_regs[sb.dsp.in.data[0]]);
             }
 
-            DSP_AddData(sb.ASP_regs[sb.dsp.in.data[0]]);
+            sb.DSP_AddData(sb.ASP_regs[sb.dsp.in.data[0]]);
         } else {
             LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (get register)",sb.dsp.cmd);
         }
@@ -2209,8 +2219,8 @@ static void DSP_DoCommand(void) {
     case 0xd8:  /* Speaker status */
         DSP_SB2_ABOVE;
         sb.DSP_FlushData();
-        if (sb.speaker) DSP_AddData(0xff);
-        else DSP_AddData(0x00);
+        if (sb.speaker) sb.DSP_AddData(0xff);
+        else sb.DSP_AddData(0x00);
         break;
     case 0xd6:  /* Continue DMA 16-bit */
         DSP_SB16_ONLY;
@@ -2237,40 +2247,40 @@ static void DSP_DoCommand(void) {
         break;
     case 0xe0:  /* DSP Identification - SB2.0+ */
         sb.DSP_FlushData();
-        DSP_AddData(~sb.dsp.in.data[0]);
+        sb.DSP_AddData(~sb.dsp.in.data[0]);
         break;
     case 0xe1:  /* Get DSP Version */
         sb.DSP_FlushData();
         switch (sb.type) {
         case SBT_1:
-            if (sb.subtype == SBST_100) { DSP_AddData(0x1);DSP_AddData(0x0); }
-            else { DSP_AddData(0x1);DSP_AddData(0x5); }
+            if (sb.subtype == SBST_100) { sb.DSP_AddData(0x1); sb.DSP_AddData(0x0); }
+            else { sb.DSP_AddData(0x1); sb.DSP_AddData(0x5); }
             break;
         case SBT_2:
-            if (sb.subtype == SBST_200) { DSP_AddData(0x2);DSP_AddData(0x0); }
-            else { DSP_AddData(0x2);DSP_AddData(0x1); }
+            if (sb.subtype == SBST_200) { sb.DSP_AddData(0x2); sb.DSP_AddData(0x0); }
+            else { sb.DSP_AddData(0x2); sb.DSP_AddData(0x1); }
             break;
         case SBT_PRO1:
-            DSP_AddData(0x3);DSP_AddData(0x0);break;
+            sb.DSP_AddData(0x3); sb.DSP_AddData(0x0);break;
         case SBT_PRO2:
             if (sb.ess_type != ESS_NONE) {
-                DSP_AddData(0x3);DSP_AddData(0x1);
+                sb.DSP_AddData(0x3); sb.DSP_AddData(0x1);
             }
             else if (sb.reveal_sc_type == RSC_SC400) { // SC400 cards report as v3.5 by default, but there is a DSP command to change the version!
-                DSP_AddData(sb.sc400_dsp_major);DSP_AddData(sb.sc400_dsp_minor);
+                sb.DSP_AddData(sb.sc400_dsp_major); sb.DSP_AddData(sb.sc400_dsp_minor);
             }
             else {
-                DSP_AddData(0x3);DSP_AddData(0x2);
+                sb.DSP_AddData(0x3); sb.DSP_AddData(0x2);
             }
             break;
         case SBT_16:
             if (sb.vibra) {
-                DSP_AddData(4); /* SB16 ViBRA DSP 4.13 */
-                DSP_AddData(13);
+                sb.DSP_AddData(4); /* SB16 ViBRA DSP 4.13 */
+                sb.DSP_AddData(13);
             }
             else {
-                DSP_AddData(4); /* SB16 DSP 4.05 */
-                DSP_AddData(5);
+                sb.DSP_AddData(4); /* SB16 DSP 4.05 */
+                sb.DSP_AddData(5);
             }
             break;
         default:
@@ -2290,14 +2300,14 @@ static void DSP_DoCommand(void) {
             sb.DSP_FlushData();
             if (sb.ess_type != ESS_NONE) {
                 /* ESS chips do not return copyright string */
-                DSP_AddData(0);
+                sb.DSP_AddData(0);
             }
             else if (sb.reveal_sc_type == RSC_SC400) {
                 static const char *gallant = "SC-6000";
 
                 /* NTS: Yes, this writes the terminating NUL as well. Not a bug. */
                 for (size_t i=0;i<=strlen(gallant);i++) {
-                    DSP_AddData((uint8_t)gallant[i]);
+                    sb.DSP_AddData((uint8_t)gallant[i]);
                 }
             }
             else if (sb.type <= SBT_PRO2) {
@@ -2309,7 +2319,7 @@ static void DSP_DoCommand(void) {
             else {
                 /* NTS: Yes, this writes the terminating NUL as well. Not a bug. */
                 for (size_t i=0;i<=strlen(copyright_string);i++) {
-                    DSP_AddData((uint8_t)copyright_string[i]);
+                    sb.DSP_AddData((uint8_t)copyright_string[i]);
                 }
             }
         }
@@ -2324,20 +2334,20 @@ static void DSP_DoCommand(void) {
             case ESS_NONE:
                 break;
             case ESS_688:
-                DSP_AddData(0x68);
-                DSP_AddData(0x80 | 0x04);
+                sb.DSP_AddData(0x68);
+                sb.DSP_AddData(0x80 | 0x04);
                 break;
             case ESS_1688:
                 // Determined via Windows driver debugging.
-                DSP_AddData(0x68);
-                DSP_AddData(0x80 | 0x09);
+                sb.DSP_AddData(0x68);
+                sb.DSP_AddData(0x80 | 0x09);
                 break;
             }
         }
         break;
     case 0xe8:  /* Read Test Register */
         sb.DSP_FlushData();
-        DSP_AddData(sb.dsp.test_register);
+        sb.DSP_AddData(sb.dsp.test_register);
         break;
     case 0xf2:  /* Trigger 8bit IRQ */
         //Small delay in order to emulate the slowness of the DSP, fixes Llamatron 2012 and Lemmings 3D
@@ -2355,7 +2365,7 @@ static void DSP_DoCommand(void) {
         break;
     case 0xf8:  /* Undocumented, pre-SB16 only */
         sb.DSP_FlushData();
-        DSP_AddData(0);
+        sb.DSP_AddData(0);
         break;
     case 0x30: case 0x31: case 0x32: case 0x33:
         LOG(LOG_SB,LOG_ERROR)("DSP:Unimplemented MIDI I/O command %2X",sb.dsp.cmd);
@@ -2379,7 +2389,7 @@ static void DSP_DoCommand(void) {
         sb.dsp.midi_read_with_timestamps = true;
         break;
     case 0x20:
-        DSP_AddData(0x7f);   // fake silent input for Creative parrot
+        sb.DSP_AddData(0x7f);   // fake silent input for Creative parrot
         break;
     case 0x88: /* Reveal SC400 ??? (used by TESTSC.EXE) */
         if (sb.reveal_sc_type != RSC_SC400) break;
@@ -2430,9 +2440,9 @@ static void DSP_DoCommand(void) {
         break;
     case 0x58: /* Reveal SC400 read configuration */
         if (sb.reveal_sc_type != RSC_SC400) break;
-        DSP_AddData(sb.sc400_jumper_status_1);
-        DSP_AddData(sb.sc400_jumper_status_2);
-        DSP_AddData(sb.sc400_cfg);
+        sb.DSP_AddData(sb.sc400_jumper_status_1);
+        sb.DSP_AddData(sb.sc400_jumper_status_2);
+        sb.DSP_AddData(sb.sc400_cfg);
         break;
     case 0x6E: /* Reveal SC400 SBPRO.EXE set DSP version */
         if (sb.reveal_sc_type != RSC_SC400) break;
@@ -2451,7 +2461,7 @@ static void DSP_DoCommand(void) {
         break;
     case 0xf9:  /* SB16 8051 memory read */
         if (sb.type == SBT_16) {
-            DSP_AddData(sb.sb16_8051_mem[sb.dsp.in.data[0]]);
+            sb.DSP_AddData(sb.sb16_8051_mem[sb.dsp.in.data[0]]);
             LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory read %x, got byte %x",sb.dsp.in.data[0],sb.sb16_8051_mem[sb.dsp.in.data[0]]);
         } else {
             LOG(LOG_SB,LOG_ERROR)("DSP:Unhandled (undocumented) command %2X",sb.dsp.cmd);
@@ -2597,17 +2607,6 @@ static void DSP_DoWrite(uint8_t val) {
             sb.dsp.in.pos++;
             if (sb.dsp.in.pos>=sb.dsp.cmd_len) DSP_DoCommand();
     }
-}
-
-static uint8_t DSP_ReadData(void) {
-/* Static so it repeats the last value on successive reads (JANGLE DEMO) */
-    if (sb.dsp.out.used) {
-        sb.dsp.out.lastval=sb.dsp.out.data[sb.dsp.out.pos];
-        sb.dsp.out.pos++;
-        if (sb.dsp.out.pos>=DSP_BUFSIZE) sb.dsp.out.pos-=DSP_BUFSIZE;
-        sb.dsp.out.used--;
-    }
-    return sb.dsp.out.lastval;
 }
 
 //The soundblaster manual says 2.0 Db steps but we'll go for a bit less
@@ -3206,7 +3205,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
     case MIXER_DATA:
         return CTMIXER_Read();
     case DSP_READ_DATA:
-        return DSP_ReadData();
+        return sb.DSP_ReadData();
     case DSP_READ_STATUS:
         //TODO See for high speed dma :)
         if (sb.irq.pending_8bit)  {
