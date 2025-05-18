@@ -299,10 +299,11 @@ static const uint8_t adjustMap_ADPCM2[24] = {
 	252, 0, 252, 0
 };
 
-void updateSoundBlasterFilter(Bitu rate);
 static void DMA_DAC_Event(Bitu);
 static void END_DMA_Event(Bitu);
 static void DMA_Silent_Event(Bitu val);
+static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event);
+void updateSoundBlasterFilter(Bitu rate);
 
 static INLINE uint8_t decode_ADPCM_4_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
 	Bits samp = sample + scale;
@@ -958,6 +959,196 @@ struct SB_INFO {
 		mode=new_mode;
 	}
 
+	void DSP_DoDMATransfer(DMA_MODES new_mode,Bitu freq,bool stereo,bool dontInitLeft=false) {
+		char const * type;
+
+		mode=MODE_DMA_MASKED;
+
+		/* Explanation: A handful of ancient DOS demos (in the 1990-1992 timeframe) were written to output
+		 *              sound using the timer interrupt (IRQ 0) at a fixed rate to a device, usually the
+		 *              PC speaker or LPT1 DAC. When SoundBlaster came around, the programmers decided
+		 *              apparently to treat the Sound Blaster in the same way, so many of these early
+		 *              demos (especially those using GoldPlay) used either Direct DAC output or a hacked
+		 *              form of DMA single-cycle 8-bit output.
+		 *
+		 *              The way the hacked DMA mode works, is that the Sound Blaster is told the transfer
+		 *              length is 65536 or some other large value. Then, the DMA controller is programmed
+		 *              to point at a specific byte (or two bytes for stereo) and the counter value for
+		 *              that DMA channel is set to 0 (or 1 for stereo). This means that as the Sound Blaster
+		 *              fetches bytes to play, the DMA controller ends up sending the same byte value
+		 *              over and over again. However, the demo has the timer running at the desired sample
+		 *              rate (IRQ 0) and the interrupt routine is modifying the byte to reflect the latest
+		 *              sample output. In this way, the demo renders audio whenever it feels like it and
+		 *              the Sound Blaster gets audio at the rate it works best with.
+		 *
+		 *              It's worth noting the programmers may have done this because DMA playback is the
+		 *              only way to get SB Pro stereo output working.
+		 *
+		 *              The problem here in DOSBox is that the DMA block-transfer code here is not precise
+		 *              enough to handle that properly. When you run such a program in DOSBox 0.74 and
+		 *              earlier, you get a low-frequency digital "rumble" that kinda-sorta sounds like
+		 *              what the demo is playing (the same byte value repeated over and over again,
+		 *              remember?). The only way to properly render such output, is to read the memory
+		 *              value at the sample rate and buffer it for output.
+		 *
+		 * This fixes Sound Blaster output in:
+		 *    Twilight Zone - Buttman (1992) [SB and SB Pro modes]
+		 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
+		 *    The Jungly (1992) [SB and SB Pro modes]
+		 */
+		if (dma.chan != NULL &&
+			dma.chan->basecnt < ((new_mode==DSP_DMA_16_ALIASED?2:1)*((stereo || mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
+			single_sample_dma = 1;
+		else
+			single_sample_dma = 0;
+
+		dma_dac_srcrate=freq;
+		if (dsp.force_goldplay || (goldplay && freq > 0 && single_sample_dma))
+			dma_dac_mode=1;
+		else
+			dma_dac_mode=0;
+
+		/* explanation: the purpose of Goldplay stereo mode is to compensate for the fact
+		 * that demos using this method of playback know to set the SB Pro stereo bit, BUT,
+		 * apparently did not know that they needed to double the sample rate when
+		 * computing the DSP time constant. Such demos sound "OK" on Sound Blaster Pro but
+		 * have audible aliasing artifacts because of this. The Goldplay Stereo hack
+		 * detects this condition and doubles the sample rate to better capture what the
+		 * demo is *trying* to do. NTS: freq is the raw sample rate given by the
+		 * program, before it is divided by two for stereo.
+		 *
+		 * Of course, some demos like Crystal Dream take the approach of just setting the
+		 * sample rate to the max supported by the card and then letting its timer interrupt
+		 * define the sample rate. So of course anything below 44.1KHz sounds awful. */
+		if (dma_dac_mode && goldplay_stereo && (stereo || mixer.sbpro_stereo) && single_sample_dma)
+			dma_dac_srcrate = freq;
+
+		chan->FillUp();
+
+		if (!dontInitLeft)
+			dma.left=dma.total;
+
+		dma.mode=dma.mode_assigned=new_mode;
+		dma.stereo=stereo;
+		irq.pending_8bit=false;
+		irq.pending_16bit=false;
+		switch (new_mode) {
+			case DSP_DMA_2:
+				type="2-bits ADPCM";
+				dma.mul=(1 << SB_SH)/4;
+				break;
+			case DSP_DMA_3:
+				type="3-bits ADPCM";
+				dma.mul=(1 << SB_SH)/3;
+				break;
+			case DSP_DMA_4:
+				type="4-bits ADPCM";
+				dma.mul=(1 << SB_SH)/2;
+				break;
+			case DSP_DMA_8:
+				type="8-bits PCM";
+				dma.mul=(1 << SB_SH);
+				break;
+			case DSP_DMA_16_ALIASED:
+				type="16-bits(aliased) PCM";
+				dma.mul=(1 << SB_SH)*2;
+				break;
+			case DSP_DMA_16:
+				type="16-bits PCM";
+				dma.mul=(1 << SB_SH);
+				break;
+			default:
+				LOG(LOG_SB,LOG_ERROR)("DSP:Illegal transfer mode %d",new_mode);
+				return;
+		}
+		if (dma.stereo) dma.mul*=2;
+		dma.rate=(dma_dac_srcrate*dma.mul) >> SB_SH;
+		dma.min=((Bitu)dma.rate*(Bitu)(min_dma_user >= 0 ? min_dma_user : /*default*/3))/1000u;
+		if (dma_dac_mode && goldplay_stereo && (stereo || mixer.sbpro_stereo) && single_sample_dma) {
+			//        LOG(LOG_SB,LOG_DEBUG)("Goldplay stereo hack. freq=%u rawfreq=%u dacrate=%u",(unsigned int)freq,(unsigned int)freq,(unsigned int)dma_dac_srcrate);
+			chan->SetFreq(dma_dac_srcrate);
+			updateSoundBlasterFilter(freq); /* BUT, you still filter like the actual sample rate */
+		}
+		else {
+			chan->SetFreq(freq);
+			updateSoundBlasterFilter(freq);
+		}
+		dma.mode=dma.mode_assigned=new_mode;
+		PIC_RemoveEvents(DMA_DAC_Event);
+		PIC_RemoveEvents(END_DMA_Event);
+
+		if (dma_dac_mode)
+			PIC_AddEvent(DMA_DAC_Event,1000.0 / dma_dac_srcrate);
+
+		if (dma.chan != NULL) {
+			dma.chan->Register_Callback(DSP_DMA_CallBack);
+		}
+		else {
+			LOG(LOG_SB,LOG_WARN)("DMA transfer initiated with no channel assigned");
+		}
+
+#if (C_DEBUG)
+		LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s dsp %s dma %s freq %d rate %d dspsize %d dmasize %d gold %d",
+			type,
+			dma.recording ? "Recording" : "Playback",
+			dma.stereo ? "Stereo" : "Mono",
+			dma.autoinit ? "Auto-Init" : "Single-Cycle",
+			dma.chan ? (dma.chan->autoinit ? "Auto-Init" : "Single-Cycle") : "n/a",
+			(int)freq,(int)dma.rate,(int)dma.total,
+			dma.chan ? (dma.chan->basecnt+1) : 0,
+			(int)dma_dac_mode
+			);
+#else
+		(void)type;
+#endif
+	}
+
+	uint8_t DSP_RateLimitedFinalTC_Old() {
+		if (sample_rate_limits) { /* enforce speed limits documented by Creative */
+			/* commands that invoke this call use the DSP time constant, so use the DSP
+			 * time constant to constrain rate */
+			unsigned int u_limit=212;/* 23KHz */
+
+			/* NTS: We skip the SB16 commands because those are handled by another function */
+			if ((dsp.cmd&0xFE) == 0x74 || dsp.cmd == 0x7D) { /* 4-bit ADPCM */
+				u_limit = 172; /* 12KHz */
+			}
+			else if ((dsp.cmd&0xFE) == 0x76) { /* 2.6-bit ADPCM */
+				if (type == SBT_2) u_limit = 172; /* 12KHz */
+				else u_limit = 179; /* 13KHz */
+			}
+			else if ((dsp.cmd&0xFE) == 0x16) { /* 2-bit ADPCM */
+				if (type == SBT_2) u_limit = 189; /* 15KHz */
+				else u_limit = 165; /* 11KHz */
+			}
+			else if (type == SBT_16) /* Sound Blaster 16. Highspeed commands are treated like an alias to normal DSP commands */
+				u_limit = 234/*45454Hz*/;
+			else if (type == SBT_2) /* Sound Blaster 2.0 */
+				u_limit = (dsp.highspeed ? 234/*45454Hz*/ : 210/*22.5KHz*/);
+			else
+				u_limit = (dsp.highspeed ? 234/*45454Hz*/ : 212/*22.5KHz*/);
+
+			/* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
+			 *      two times the sample rate, which is what we get back here. That's why here we don't need
+			 *      to consider stereo vs mono. */
+			if (timeconst > u_limit) return u_limit;
+		}
+
+		return timeconst;
+	}
+
+	unsigned int DSP_RateLimitedFinalSB16Freq_New(unsigned int freq) {
+		/* If sample rate was set by DSP command 0x41/0x42 */
+		if (sample_rate_limits) { /* enforce speed limits documented by Creative... which are somewhat wrong. They are the same limits as high-speed playback modes on SB Pro and 2.0 */
+			if (freq < 4900)
+				freq = 5000; /* Apparent behavior is that SB16 commands only go down to 5KHz but that limit is imposed if slightly below 5KHz, see rate graphs on Hackipedia */
+			if (freq > 45454)
+				freq = 45454;
+		}
+
+		return freq;
+	}
+
 };
 
 static SB_INFO sb;
@@ -1137,196 +1328,6 @@ static void DSP_RaiseIRQEvent(Bitu /*val*/) {
 	sb.SB_RaiseIRQ(SB_IRQ_8);
 }
 
-static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInitLeft=false) {
-	char const * type;
-
-	sb.mode=MODE_DMA_MASKED;
-
-	/* Explanation: A handful of ancient DOS demos (in the 1990-1992 timeframe) were written to output
-	 *              sound using the timer interrupt (IRQ 0) at a fixed rate to a device, usually the
-	 *              PC speaker or LPT1 DAC. When SoundBlaster came around, the programmers decided
-	 *              apparently to treat the Sound Blaster in the same way, so many of these early
-	 *              demos (especially those using GoldPlay) used either Direct DAC output or a hacked
-	 *              form of DMA single-cycle 8-bit output.
-	 *
-	 *              The way the hacked DMA mode works, is that the Sound Blaster is told the transfer
-	 *              length is 65536 or some other large value. Then, the DMA controller is programmed
-	 *              to point at a specific byte (or two bytes for stereo) and the counter value for
-	 *              that DMA channel is set to 0 (or 1 for stereo). This means that as the Sound Blaster
-	 *              fetches bytes to play, the DMA controller ends up sending the same byte value
-	 *              over and over again. However, the demo has the timer running at the desired sample
-	 *              rate (IRQ 0) and the interrupt routine is modifying the byte to reflect the latest
-	 *              sample output. In this way, the demo renders audio whenever it feels like it and
-	 *              the Sound Blaster gets audio at the rate it works best with.
-	 *
-	 *              It's worth noting the programmers may have done this because DMA playback is the
-	 *              only way to get SB Pro stereo output working.
-	 *
-	 *              The problem here in DOSBox is that the DMA block-transfer code here is not precise
-	 *              enough to handle that properly. When you run such a program in DOSBox 0.74 and
-	 *              earlier, you get a low-frequency digital "rumble" that kinda-sorta sounds like
-	 *              what the demo is playing (the same byte value repeated over and over again,
-	 *              remember?). The only way to properly render such output, is to read the memory
-	 *              value at the sample rate and buffer it for output.
-	 *
-	 * This fixes Sound Blaster output in:
-	 *    Twilight Zone - Buttman (1992) [SB and SB Pro modes]
-	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
-	 *    The Jungly (1992) [SB and SB Pro modes]
-	 */
-	if (sb.dma.chan != NULL &&
-			sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*((stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
-		sb.single_sample_dma = 1;
-	else
-		sb.single_sample_dma = 0;
-
-	sb.dma_dac_srcrate=freq;
-	if (sb.dsp.force_goldplay || (sb.goldplay && sb.freq > 0 && sb.single_sample_dma))
-		sb.dma_dac_mode=1;
-	else
-		sb.dma_dac_mode=0;
-
-	/* explanation: the purpose of Goldplay stereo mode is to compensate for the fact
-	 * that demos using this method of playback know to set the SB Pro stereo bit, BUT,
-	 * apparently did not know that they needed to double the sample rate when
-	 * computing the DSP time constant. Such demos sound "OK" on Sound Blaster Pro but
-	 * have audible aliasing artifacts because of this. The Goldplay Stereo hack
-	 * detects this condition and doubles the sample rate to better capture what the
-	 * demo is *trying* to do. NTS: sb.freq is the raw sample rate given by the
-	 * program, before it is divided by two for stereo.
-	 *
-	 * Of course, some demos like Crystal Dream take the approach of just setting the
-	 * sample rate to the max supported by the card and then letting its timer interrupt
-	 * define the sample rate. So of course anything below 44.1KHz sounds awful. */
-	if (sb.dma_dac_mode && sb.goldplay_stereo && (stereo || sb.mixer.sbpro_stereo) && sb.single_sample_dma)
-		sb.dma_dac_srcrate = sb.freq;
-
-	sb.chan->FillUp();
-
-	if (!dontInitLeft)
-		sb.dma.left=sb.dma.total;
-
-	sb.dma.mode=sb.dma.mode_assigned=mode;
-	sb.dma.stereo=stereo;
-	sb.irq.pending_8bit=false;
-	sb.irq.pending_16bit=false;
-	switch (mode) {
-		case DSP_DMA_2:
-			type="2-bits ADPCM";
-			sb.dma.mul=(1 << SB_SH)/4;
-			break;
-		case DSP_DMA_3:
-			type="3-bits ADPCM";
-			sb.dma.mul=(1 << SB_SH)/3;
-			break;
-		case DSP_DMA_4:
-			type="4-bits ADPCM";
-			sb.dma.mul=(1 << SB_SH)/2;
-			break;
-		case DSP_DMA_8:
-			type="8-bits PCM";
-			sb.dma.mul=(1 << SB_SH);
-			break;
-		case DSP_DMA_16_ALIASED:
-			type="16-bits(aliased) PCM";
-			sb.dma.mul=(1 << SB_SH)*2;
-			break;
-		case DSP_DMA_16:
-			type="16-bits PCM";
-			sb.dma.mul=(1 << SB_SH);
-			break;
-		default:
-			LOG(LOG_SB,LOG_ERROR)("DSP:Illegal transfer mode %d",mode);
-			return;
-	}
-	if (sb.dma.stereo) sb.dma.mul*=2;
-	sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) >> SB_SH;
-	sb.dma.min=((Bitu)sb.dma.rate*(Bitu)(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000u;
-	if (sb.dma_dac_mode && sb.goldplay_stereo && (stereo || sb.mixer.sbpro_stereo) && sb.single_sample_dma) {
-		//        LOG(LOG_SB,LOG_DEBUG)("Goldplay stereo hack. freq=%u rawfreq=%u dacrate=%u",(unsigned int)freq,(unsigned int)sb.freq,(unsigned int)sb.dma_dac_srcrate);
-		sb.chan->SetFreq(sb.dma_dac_srcrate);
-		updateSoundBlasterFilter(freq); /* BUT, you still filter like the actual sample rate */
-	}
-	else {
-		sb.chan->SetFreq(freq);
-		updateSoundBlasterFilter(freq);
-	}
-	sb.dma.mode=sb.dma.mode_assigned=mode;
-	PIC_RemoveEvents(DMA_DAC_Event);
-	PIC_RemoveEvents(END_DMA_Event);
-
-	if (sb.dma_dac_mode)
-		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-
-	if (sb.dma.chan != NULL) {
-		sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
-	}
-	else {
-		LOG(LOG_SB,LOG_WARN)("DMA transfer initiated with no channel assigned");
-	}
-
-#if (C_DEBUG)
-	LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s dsp %s dma %s freq %d rate %d dspsize %d dmasize %d gold %d",
-			type,
-			sb.dma.recording ? "Recording" : "Playback",
-			sb.dma.stereo ? "Stereo" : "Mono",
-			sb.dma.autoinit ? "Auto-Init" : "Single-Cycle",
-			sb.dma.chan ? (sb.dma.chan->autoinit ? "Auto-Init" : "Single-Cycle") : "n/a",
-			(int)freq,(int)sb.dma.rate,(int)sb.dma.total,
-			sb.dma.chan ? (sb.dma.chan->basecnt+1) : 0,
-			(int)sb.dma_dac_mode
-			);
-#else
-	(void)type;
-#endif
-}
-
-static uint8_t DSP_RateLimitedFinalTC_Old() {
-	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
-		/* commands that invoke this call use the DSP time constant, so use the DSP
-		 * time constant to constrain rate */
-		unsigned int u_limit=212;/* 23KHz */
-
-		/* NTS: We skip the SB16 commands because those are handled by another function */
-		if ((sb.dsp.cmd&0xFE) == 0x74 || sb.dsp.cmd == 0x7D) { /* 4-bit ADPCM */
-			u_limit = 172; /* 12KHz */
-		}
-		else if ((sb.dsp.cmd&0xFE) == 0x76) { /* 2.6-bit ADPCM */
-			if (sb.type == SBT_2) u_limit = 172; /* 12KHz */
-			else u_limit = 179; /* 13KHz */
-		}
-		else if ((sb.dsp.cmd&0xFE) == 0x16) { /* 2-bit ADPCM */
-			if (sb.type == SBT_2) u_limit = 189; /* 15KHz */
-			else u_limit = 165; /* 11KHz */
-		}
-		else if (sb.type == SBT_16) /* Sound Blaster 16. Highspeed commands are treated like an alias to normal DSP commands */
-			u_limit = 234/*45454Hz*/;
-		else if (sb.type == SBT_2) /* Sound Blaster 2.0 */
-			u_limit = (sb.dsp.highspeed ? 234/*45454Hz*/ : 210/*22.5KHz*/);
-		else
-			u_limit = (sb.dsp.highspeed ? 234/*45454Hz*/ : 212/*22.5KHz*/);
-
-		/* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
-		 *      two times the sample rate, which is what we get back here. That's why here we don't need
-		 *      to consider stereo vs mono. */
-		if (sb.timeconst > u_limit) return u_limit;
-	}
-
-	return sb.timeconst;
-}
-
-static unsigned int DSP_RateLimitedFinalSB16Freq_New(unsigned int freq) {
-	/* If sample rate was set by DSP command 0x41/0x42 */
-	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative... which are somewhat wrong. They are the same limits as high-speed playback modes on SB Pro and 2.0 */
-		if (freq < 4900)
-			freq = 5000; /* Apparent behavior is that SB16 commands only go down to 5KHz but that limit is imposed if slightly below 5KHz, see rate graphs on Hackipedia */
-		if (freq > 45454)
-			freq = 45454;
-	}
-
-	return freq;
-}
-
 static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed) {
 	/* this must be processed BEFORE forcing auto-init because the non-autoinit case provides the DSP transfer block size (fix for "Jump" by Public NMI) */
 	if (!autoinit) sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+(unsigned int)(sb.dsp.in.data[1] << 8u);
@@ -1356,18 +1357,18 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispe
 		 *         playback. Rate-limiting the copy means the 45454Hz time constant written
 		 *         by the demo stays intact despite being limited to 22050Hz during the first
 		 *         DSP block (command 0x14). */
-		uint8_t final_tc = DSP_RateLimitedFinalTC_Old();
+		const uint8_t final_tc = sb.DSP_RateLimitedFinalTC_Old();
 		sb.freq = (256000000ul / (65536ul - ((unsigned long)final_tc << 8ul)));
 	}
 	else {
 		LOG(LOG_SB,LOG_DEBUG)("Guest is using non-SB16 playback commands after using SB16 commands to set sample rate");
-		sb.freq = DSP_RateLimitedFinalSB16Freq_New(sb.freq);
+		sb.freq = sb.DSP_RateLimitedFinalSB16Freq_New(sb.freq);
 	}
 
 	sb.dma_dac_mode=0;
 	sb.ess_playback_mode = false;
 	sb.dma.chan=GetDMAChannel(sb.hw.dma8);
-	DSP_DoDMATransfer(mode,sb.freq / (sb.mixer.stereo ? 2 : 1),sb.mixer.stereo);
+	sb.DSP_DoDMATransfer(mode,sb.freq / (sb.mixer.stereo ? 2 : 1),sb.mixer.stereo);
 }
 
 static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool stereo) {
@@ -1389,7 +1390,7 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 	}
 
 	sb.dsp.highspeed = false;
-	sb.freq = DSP_RateLimitedFinalSB16Freq_New(sb.freq);
+	sb.freq = sb.DSP_RateLimitedFinalSB16Freq_New(sb.freq);
 	sb.timeconst = (65536 - (256000000 / sb.freq)) >> 8;
 	sb.freq_derived_from_tc = false;
 
@@ -1423,7 +1424,7 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 		sb.dma.chan=GetDMAChannel(sb.hw.dma8);
 	}
 
-	DSP_DoDMATransfer(mode,freq,stereo);
+	sb.DSP_DoDMATransfer(mode,freq,stereo);
 }
 
 
@@ -1587,9 +1588,9 @@ static void ESS_StartDMA() {
 	// NTS: ESS chipsets also do not cap the sample rate, though if you drive them
 	//      too fast the ISA bus will effectively cap the sample rate at some
 	//      rate above 48KHz to 60KHz anyway.
-	DSP_DoDMATransfer(
-			(sb.ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
-			sb.freq,(sb.ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
+	sb.DSP_DoDMATransfer(
+		(sb.ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
+		sb.freq,(sb.ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
 	sb.mode = MODE_DMA;
 	sb.ess_playback_mode = true;
 }
