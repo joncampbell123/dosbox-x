@@ -282,6 +282,15 @@ struct SB_INFO {
 	unsigned int gen_hiss_rand[2] = {0,0};
 	int gen_last_hiss = 0;
 
+	/* SB16 cards have a 256-byte block of 8051 internal RAM accessible through DSP commands 0xF9 (Read) and 0xFA (Write) */
+	unsigned char sb16_8051_mem[256];
+
+	/* The SB16 ASP appears to have a mystery 2KB RAM block that is accessible through register 0x83 of the ASP.
+	 * This array represents the initial contents as seen on my SB16 non-PnP ASP chip (version ID 0x10). */
+	unsigned int sb16asp_ram_contents_index = 0;
+	unsigned char sb16asp_ram_contents[2048];
+	pic_tickindex_t next_check_record_settings = 0;
+
 	unsigned char &ESSreg(uint8_t reg) {
 		assert(reg >= 0xA0 && reg <= 0xBF);
 		return ESSregs[reg-0xA0];
@@ -1749,25 +1758,17 @@ static uint8_t ESS_DoRead(uint8_t reg) {
 
 int MPU401_GetIRQ();
 
-/* SB16 cards have a 256-byte block of 8051 internal RAM accessible through DSP commands 0xF9 (Read) and 0xFA (Write) */
-static unsigned char sb16_8051_mem[256];
-
-/* The SB16 ASP appears to have a mystery 2KB RAM block that is accessible through register 0x83 of the ASP.
- * This array represents the initial contents as seen on my SB16 non-PnP ASP chip (version ID 0x10). */
-static unsigned int sb16asp_ram_contents_index = 0;
-static unsigned char sb16asp_ram_contents[2048];
-
 static void sb16asp_write_current_RAM_byte(const uint8_t r) {
-	sb16asp_ram_contents[sb16asp_ram_contents_index] = r;
+	sb.sb16asp_ram_contents[sb.sb16asp_ram_contents_index] = r;
 }
 
 static uint8_t sb16asp_read_current_RAM_byte(void) {
-	return sb16asp_ram_contents[sb16asp_ram_contents_index];
+	return sb.sb16asp_ram_contents[sb.sb16asp_ram_contents_index];
 }
 
 static void sb16asp_next_RAM_byte(void) {
-	if ((++sb16asp_ram_contents_index) >= 2048)
-		sb16asp_ram_contents_index = 0;
+	if ((++sb.sb16asp_ram_contents_index) >= 2048)
+		sb.sb16asp_ram_contents_index = 0;
 }
 
 /* Demo notes for fixing:
@@ -1805,7 +1806,7 @@ static void DSP_DoCommand(void) {
 
     if (sb.type == SBT_16) {
         // FIXME: This is a guess! See also [https://github.com/joncampbell123/dosbox-x/issues/1044#issuecomment-480024957]
-        sb16_8051_mem[0x20] = sb.dsp.last_cmd; /* cur_cmd */
+        sb.sb16_8051_mem[0x20] = sb.dsp.last_cmd; /* cur_cmd */
     }
 
     // TODO: There are more SD16 ASP commands we can implement, by name even, with microcode download,
@@ -1826,7 +1827,7 @@ static void DSP_DoCommand(void) {
             // bit 1: if set, writing register 0x83 increments memory index. doesn't matter if memory access or not.
             // bit 0: if set, reading register 0x83 increments memory index. doesn't matter if memory access or not.
             if (sb.ASP_mode&4)
-                sb16asp_ram_contents_index = 0;
+                sb.sb16asp_ram_contents_index = 0;
 
             LOG(LOG_SB,LOG_DEBUG)("SB16ASP set mode register to %X",sb.dsp.in.data[0]);
         } else {
@@ -1869,10 +1870,10 @@ static void DSP_DoCommand(void) {
                     if ((sb.ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
                         // memory access mode
                         if (sb.ASP_mode & 4) // NTS: As far as I can tell...
-                            sb16asp_ram_contents_index = 0;
+                            sb.sb16asp_ram_contents_index = 0;
 
                         // log it, write it
-                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb.sb16asp_ram_contents_index,sb.dsp.in.data[1]);
                         sb16asp_write_current_RAM_byte(sb.dsp.in.data[1]);
 
                         if (sb.ASP_mode & 2) // if bit 1 of the mode is set, memory index increment on write
@@ -1902,11 +1903,11 @@ static void DSP_DoCommand(void) {
                 if ((sb.ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
                     // memory access mode
                     if (sb.ASP_mode & 4) // NTS: As far as I can tell...
-                        sb16asp_ram_contents_index = 0;
+                        sb.sb16asp_ram_contents_index = 0;
 
                     // log it, read it
                     sb.ASP_regs[0x83] = sb16asp_read_current_RAM_byte();
-                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb16asp_ram_contents_index,sb.ASP_regs[0x83]);
+                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb.sb16asp_ram_contents_index,sb.ASP_regs[0x83]);
 
                     if (sb.ASP_mode & 1) // if bit 0 of the mode is set, memory index increment on read
                         sb16asp_next_RAM_byte();
@@ -2019,8 +2020,8 @@ static void DSP_DoCommand(void) {
 
         DSP_ChangeRate(((unsigned int)sb.dsp.in.data[0] << 8u) | (unsigned int)sb.dsp.in.data[1]);
         sb.freq_derived_from_tc=false;
-        sb16_8051_mem[0x13] = sb.freq & 0xffu;                  // rate low
-        sb16_8051_mem[0x14] = (sb.freq >> 8u) & 0xffu;          // rate high
+        sb.sb16_8051_mem[0x13] = sb.freq & 0xffu;                  // rate low
+        sb.sb16_8051_mem[0x14] = (sb.freq >> 8u) & 0xffu;          // rate high
         break;
     case 0x48:  /* Set DMA Block Size */
         DSP_SB2_ABOVE;
@@ -2443,7 +2444,7 @@ static void DSP_DoCommand(void) {
         break;
     case 0xfa:  /* SB16 8051 memory write */
         if (sb.type == SBT_16) {
-            sb16_8051_mem[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
+            sb.sb16_8051_mem[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
             LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory write %x byte %x",sb.dsp.in.data[0],sb.dsp.in.data[1]);
         } else {
             LOG(LOG_SB,LOG_ERROR)("DSP:Unhandled (undocumented) command %2X",sb.dsp.cmd);
@@ -2451,8 +2452,8 @@ static void DSP_DoCommand(void) {
         break;
     case 0xf9:  /* SB16 8051 memory read */
         if (sb.type == SBT_16) {
-            DSP_AddData(sb16_8051_mem[sb.dsp.in.data[0]]);
-            LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory read %x, got byte %x",sb.dsp.in.data[0],sb16_8051_mem[sb.dsp.in.data[0]]);
+            DSP_AddData(sb.sb16_8051_mem[sb.dsp.in.data[0]]);
+            LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory read %x, got byte %x",sb.dsp.in.data[0],sb.sb16_8051_mem[sb.dsp.in.data[0]]);
         } else {
             LOG(LOG_SB,LOG_ERROR)("DSP:Unhandled (undocumented) command %2X",sb.dsp.cmd);
         }
@@ -2464,7 +2465,7 @@ static void DSP_DoCommand(void) {
 
     if (sb.type == SBT_16) {
         // FIXME: This is a guess! See also [https://github.com/joncampbell123/dosbox-x/issues/1044#issuecomment-480024957]
-        sb16_8051_mem[0x30] = sb.dsp.last_cmd; /* last_cmd */
+        sb.sb16_8051_mem[0x30] = sb.dsp.last_cmd; /* last_cmd */
     }
 
     sb.dsp.last_cmd=sb.dsp.cmd;
@@ -3337,13 +3338,11 @@ bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
     }
 }
 
-static pic_tickindex_t next_check_record_settings = 0;
-
 static void SBLASTER_CallBack(Bitu len) {
     pic_tickindex_t now = PIC_FullIndex();
 
-    if (now >= next_check_record_settings) {
-        next_check_record_settings = now + 100/*ms*/;
+    if (now >= sb.next_check_record_settings) {
+        sb.next_check_record_settings = now + 100/*ms*/;
         sb_update_recording_source_settings();
     }
 
@@ -4221,10 +4220,10 @@ public:
         // SB16 non-PNP ASP RAM content observation.
         // Contrary to my initial impression, it looks like the RAM is mostly 0xFF
         // with some random bits flipped because no initialization is done at hardware power-on.
-        memset(sb16asp_ram_contents,0xFF,2048);
+        memset(sb.sb16asp_ram_contents,0xFF,2048);
         for (i=0;i < (2048 * 8);i++) {
             if (((unsigned int)rand() & 31) == 0)
-                sb16asp_ram_contents[i>>3] ^= 1 << (i & 7);
+                sb.sb16asp_ram_contents[i>>3] ^= 1 << (i & 7);
         }
 
 /* Reference: Command 0xF9 result map taken from Sound Blaster 16 with DSP 4.4 and ASP chip version ID 0x10:
@@ -4248,10 +4247,10 @@ e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 ASP>
  * End reference */
-        memset(sb16_8051_mem,0x00,256);
-        sb16_8051_mem[0x0E] = 0xFF;
-        sb16_8051_mem[0x0F] = 0x07;
-        sb16_8051_mem[0x37] = 0x38;
+        memset(sb.sb16_8051_mem,0x00,256);
+        sb.sb16_8051_mem[0x0E] = 0xFF;
+        sb.sb16_8051_mem[0x0F] = 0x07;
+        sb.sb16_8051_mem[0x37] = 0x38;
 
         if (sb.enable_asp)
             LOG(LOG_SB,LOG_WARN)("ASP emulation at this stage is extremely limited and only covers DSP command responses.");
