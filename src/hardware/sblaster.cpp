@@ -299,12 +299,12 @@ static const uint8_t adjustMap_ADPCM2[24] = {
 	252, 0, 252, 0
 };
 
+void updateSoundBlasterFilter(Bitu rate);
 static void DSP_ChangeMode(DSP_MODES mode);
 static void CheckDMAEnd();
 static void DMA_DAC_Event(Bitu);
 static void END_DMA_Event(Bitu);
 static void DMA_Silent_Event(Bitu val);
-static void GenerateDMASound(Bitu size);
 
 static INLINE uint8_t decode_ADPCM_4_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
 	Bits samp = sample + scale;
@@ -732,6 +732,214 @@ struct SB_INFO {
 		}
 	}
 
+	void GenerateDMASound(Bitu size) {
+		Bitu read=0;Bitu done=0;Bitu i=0;
+
+		// don't read if the DMA channel is masked
+		if (dma.chan->masked) return;
+
+		if (dma_dac_mode) return;
+
+		last_dma_callback = PIC_FullIndex();
+
+		if(dma.autoinit) {
+			if (dma.left <= size) size = dma.left;
+		} else {
+			if (dma.left <= dma.min)
+				size = dma.left;
+		}
+
+		if (size > DMA_BUFSIZE) {
+			/* Maybe it's time to consider rendering intervals based on what the mixer wants rather than odd 1ms DMA packet calculations... */
+			LOG(LOG_SB,LOG_WARN)("Whoah! GenerateDMASound asked to render too much audio (%u > %u). Read could have overrun the DMA buffer!",(unsigned int)size,DMA_BUFSIZE);
+			size = DMA_BUFSIZE;
+		}
+
+		if (dma.recording) {
+			/* How much can we do? assume not masked because we checked that at the start of this function.
+			 * Then generate that much input data. After writing via DMA, mute the audio before it goes to
+			 * the mixer.
+			 *
+			 * TODO: It would be kind of fun to tie the generated audio parameters to mixer controls such
+			 *       as allowing the user to control how loud the 1KHz sine wave is with the line in volume
+			 *       control, and perhaps we should allow the generated audio to go out to the mixer output
+			 *       if the line in is unmuted, subject to the audio volume controls. Or perhaps this code
+			 *       should just make another mixer channel for recording sources. */
+			read=dma.chan->currcnt + 1; /* DMA channel current count remain */
+			if (read > size) read = size;
+			if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED)
+				gen_input(read,(unsigned char*)(&dma.buf.b16[dma.remain_size]));
+			else
+				gen_input(read,&dma.buf.b8[dma.remain_size]);
+
+			switch (dma.mode) {
+				case DSP_DMA_8:
+					if (dma.stereo) {
+						read=dma.chan->Write(read,&dma.buf.b8[dma.remain_size]);
+						if (read > 0 && !listen_to_recording_source) gen_input_silence(read,&dma.buf.b8[dma.remain_size]); /* mute before going out to mixer */
+						Bitu total=read+dma.remain_size;
+						if (!dma.sign)  chan->AddSamples_s8(total>>1,dma.buf.b8);
+						else chan->AddSamples_s8s(total>>1,(int8_t*)dma.buf.b8);
+						if (total&1) {
+							dma.remain_size=1;
+							dma.buf.b8[0]=dma.buf.b8[total-1];
+						} else dma.remain_size=0;
+					} else {
+						read=dma.chan->Write(read,dma.buf.b8);
+						if (read > 0 && !listen_to_recording_source) gen_input_silence(read,dma.buf.b8); /* mute before going out to mixer */
+						if (!dma.sign) chan->AddSamples_m8(read,dma.buf.b8);
+						else chan->AddSamples_m8s(read,(int8_t *)dma.buf.b8);
+					}
+					break;
+				case DSP_DMA_16:
+				case DSP_DMA_16_ALIASED:
+					if (dma.stereo) {
+						/* In DSP_DMA_16_ALIASED mode temporarily divide by 2 to get number of 16-bit
+						   samples, because 8-bit DMA Read returns byte size, while in DSP_DMA_16 mode
+						   16-bit DMA Read returns word size */
+						read=dma.chan->Write(read,(uint8_t *)&dma.buf.b16[dma.remain_size])
+							>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+						if (read > 0 && !listen_to_recording_source) gen_input_silence(read,(unsigned char*)(&dma.buf.b16[dma.remain_size])); /* mute before going out to mixer */
+						Bitu total=read+dma.remain_size;
+#if defined(WORDS_BIGENDIAN)
+						if (dma.sign) chan->AddSamples_s16_nonnative(total>>1,dma.buf.b16);
+						else chan->AddSamples_s16u_nonnative(total>>1,(uint16_t *)dma.buf.b16);
+#else
+						if (dma.sign) chan->AddSamples_s16(total>>1,dma.buf.b16);
+						else chan->AddSamples_s16u(total>>1,(uint16_t *)dma.buf.b16);
+#endif
+						if (total&1) {
+							dma.remain_size=1;
+							dma.buf.b16[0]=dma.buf.b16[total-1];
+						} else dma.remain_size=0;
+					} else {
+						read=dma.chan->Write(read,(uint8_t *)dma.buf.b16)
+							>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+						if (read > 0 && !listen_to_recording_source) gen_input_silence(read,(unsigned char*)dma.buf.b16); /* mute before going out to mixer */
+#if defined(WORDS_BIGENDIAN)
+						if (dma.sign) chan->AddSamples_m16_nonnative(read,dma.buf.b16);
+						else chan->AddSamples_m16u_nonnative(read,(uint16_t *)dma.buf.b16);
+#else
+						if (dma.sign) chan->AddSamples_m16(read,dma.buf.b16);
+						else chan->AddSamples_m16u(read,(uint16_t *)dma.buf.b16);
+#endif
+					}
+					//restore buffer length value to byte size in aliased mode
+					if (dma.mode==DSP_DMA_16_ALIASED) read=read<<1;
+					break;
+				default:
+					LOG_MSG("Unhandled dma record mode %d",dma.mode);
+					mode=MODE_NONE;
+					return;
+			}
+		}
+		else {
+			switch (dma.mode) {
+				case DSP_DMA_2:
+					read=dma.chan->Read(size,dma.buf.b8);
+					if (read && adpcm.haveref) {
+						adpcm.haveref=false;
+						adpcm.reference=dma.buf.b8[0];
+						adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
+						i++;
+					}
+					for (;i<read;i++) {
+						MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 6) & 0x3,adpcm.reference,adpcm.stepsize);
+						MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 4) & 0x3,adpcm.reference,adpcm.stepsize);
+						MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 2) & 0x3,adpcm.reference,adpcm.stepsize);
+						MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 0) & 0x3,adpcm.reference,adpcm.stepsize);
+					}
+					chan->AddSamples_m8(done,MixTemp);
+					break;
+				case DSP_DMA_3:
+					read=dma.chan->Read(size,dma.buf.b8);
+					if (read && adpcm.haveref) {
+						adpcm.haveref=false;
+						adpcm.reference=dma.buf.b8[0];
+						adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
+						i++;
+					}
+					for (;i<read;i++) {
+						MixTemp[done++]=decode_ADPCM_3_sample((dma.buf.b8[i] >> 5) & 0x7,adpcm.reference,adpcm.stepsize);
+						MixTemp[done++]=decode_ADPCM_3_sample((dma.buf.b8[i] >> 2) & 0x7,adpcm.reference,adpcm.stepsize);
+						MixTemp[done++]=decode_ADPCM_3_sample((dma.buf.b8[i] & 0x3) << 1,adpcm.reference,adpcm.stepsize);
+					}
+					chan->AddSamples_m8(done,MixTemp);
+					break;
+				case DSP_DMA_4:
+					read=dma.chan->Read(size,dma.buf.b8);
+					if (read && adpcm.haveref) {
+						adpcm.haveref=false;
+						adpcm.reference=dma.buf.b8[0];
+						adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
+						i++;
+					}
+					for (;i<read;i++) {
+						MixTemp[done++]=decode_ADPCM_4_sample(dma.buf.b8[i] >> 4,adpcm.reference,adpcm.stepsize);
+						MixTemp[done++]=decode_ADPCM_4_sample(dma.buf.b8[i]& 0xf,adpcm.reference,adpcm.stepsize);
+					}
+					chan->AddSamples_m8(done,MixTemp);
+					break;
+				case DSP_DMA_8:
+					if (dma.stereo) {
+						read=dma.chan->Read(size,&dma.buf.b8[dma.remain_size]);
+						Bitu total=read+dma.remain_size;
+						if (!dma.sign)  chan->AddSamples_s8(total>>1,dma.buf.b8);
+						else chan->AddSamples_s8s(total>>1,(int8_t*)dma.buf.b8);
+						if (total&1) {
+							dma.remain_size=1;
+							dma.buf.b8[0]=dma.buf.b8[total-1];
+						} else dma.remain_size=0;
+					} else {
+						read=dma.chan->Read(size,dma.buf.b8);
+						if (!dma.sign) chan->AddSamples_m8(read,dma.buf.b8);
+						else chan->AddSamples_m8s(read,(int8_t *)dma.buf.b8);
+					}
+					break;
+				case DSP_DMA_16:
+				case DSP_DMA_16_ALIASED:
+					if (dma.stereo) {
+						/* In DSP_DMA_16_ALIASED mode temporarily divide by 2 to get number of 16-bit
+						   samples, because 8-bit DMA Read returns byte size, while in DSP_DMA_16 mode
+						   16-bit DMA Read returns word size */
+						read=dma.chan->Read(size,(uint8_t *)&dma.buf.b16[dma.remain_size])
+							>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+						Bitu total=read+dma.remain_size;
+#if defined(WORDS_BIGENDIAN)
+						if (dma.sign) chan->AddSamples_s16_nonnative(total>>1,dma.buf.b16);
+						else chan->AddSamples_s16u_nonnative(total>>1,(uint16_t *)dma.buf.b16);
+#else
+						if (dma.sign) chan->AddSamples_s16(total>>1,dma.buf.b16);
+						else chan->AddSamples_s16u(total>>1,(uint16_t *)dma.buf.b16);
+#endif
+						if (total&1) {
+							dma.remain_size=1;
+							dma.buf.b16[0]=dma.buf.b16[total-1];
+						} else dma.remain_size=0;
+					} else {
+						read=dma.chan->Read(size,(uint8_t *)dma.buf.b16)
+							>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+#if defined(WORDS_BIGENDIAN)
+						if (dma.sign) chan->AddSamples_m16_nonnative(read,dma.buf.b16);
+						else chan->AddSamples_m16u_nonnative(read,(uint16_t *)dma.buf.b16);
+#else
+						if (dma.sign) chan->AddSamples_m16(read,dma.buf.b16);
+						else chan->AddSamples_m16u(read,(uint16_t *)dma.buf.b16);
+#endif
+					}
+					//restore buffer length value to byte size in aliased mode
+					if (dma.mode==DSP_DMA_16_ALIASED) read=read<<1;
+					break;
+				default:
+					LOG_MSG("Unhandled dma playback mode %d",dma.mode);
+					mode=MODE_NONE;
+					return;
+			}
+		}
+		dma.left-=read;
+		if (!dma.left) SB_OnEndOfDMA();
+	}
+
 };
 
 static SB_INFO sb;
@@ -758,7 +966,7 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 				if (s > (sb.dma.left - min_size)) s = sb.dma.left - min_size;
 				//This will trigger an irq, see GenerateDMASound, so let's not do that
 				if (!sb.dma.autoinit && sb.dma.left <= sb.dma.min) s = 0;
-				if (s) GenerateDMASound(s);
+				if (s) sb.GenerateDMASound(s);
 			}
 			sb.mode = MODE_DMA_MASKED;
 			LOG(LOG_SB,LOG_NORMAL)("DMA masked, stopping %s, dsp left %d, dma left %d, by %s",sb.dma.recording?"input":"output",(unsigned int)sb.dma.left,chan->currcnt+1,DMAActorStr(chan->masked_by));
@@ -770,214 +978,6 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 			LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d dma left %d, by %s dma init count %d",sb.dma.recording?"input":"output",chan->autoinit,chan->currcnt+1,DMAActorStr(chan->masked_by),chan->basecnt+1);
 		}
 	}
-}
-
-static void GenerateDMASound(Bitu size) {
-	Bitu read=0;Bitu done=0;Bitu i=0;
-
-	// don't read if the DMA channel is masked
-	if (sb.dma.chan->masked) return;
-
-	if (sb.dma_dac_mode) return;
-
-	sb.last_dma_callback = PIC_FullIndex();
-
-	if(sb.dma.autoinit) {
-		if (sb.dma.left <= size) size = sb.dma.left;
-	} else {
-		if (sb.dma.left <= sb.dma.min)
-			size = sb.dma.left;
-	}
-
-	if (size > DMA_BUFSIZE) {
-		/* Maybe it's time to consider rendering intervals based on what the mixer wants rather than odd 1ms DMA packet calculations... */
-		LOG(LOG_SB,LOG_WARN)("Whoah! GenerateDMASound asked to render too much audio (%u > %u). Read could have overrun the DMA buffer!",(unsigned int)size,DMA_BUFSIZE);
-		size = DMA_BUFSIZE;
-	}
-
-	if (sb.dma.recording) {
-		/* How much can we do? assume not masked because we checked that at the start of this function.
-		 * Then generate that much input data. After writing via DMA, mute the audio before it goes to
-		 * the mixer.
-		 *
-		 * TODO: It would be kind of fun to tie the generated audio parameters to mixer controls such
-		 *       as allowing the user to control how loud the 1KHz sine wave is with the line in volume
-		 *       control, and perhaps we should allow the generated audio to go out to the mixer output
-		 *       if the line in is unmuted, subject to the audio volume controls. Or perhaps this code
-		 *       should just make another mixer channel for recording sources. */
-		read=sb.dma.chan->currcnt + 1; /* DMA channel current count remain */
-		if (read > size) read = size;
-		if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED)
-			sb.gen_input(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size]));
-		else
-			sb.gen_input(read,&sb.dma.buf.b8[sb.dma.remain_size]);
-
-		switch (sb.dma.mode) {
-			case DSP_DMA_8:
-				if (sb.dma.stereo) {
-					read=sb.dma.chan->Write(read,&sb.dma.buf.b8[sb.dma.remain_size]);
-					if (read > 0 && !sb.listen_to_recording_source) sb.gen_input_silence(read,&sb.dma.buf.b8[sb.dma.remain_size]); /* mute before going out to mixer */
-					Bitu total=read+sb.dma.remain_size;
-					if (!sb.dma.sign)  sb.chan->AddSamples_s8(total>>1,sb.dma.buf.b8);
-					else sb.chan->AddSamples_s8s(total>>1,(int8_t*)sb.dma.buf.b8);
-					if (total&1) {
-						sb.dma.remain_size=1;
-						sb.dma.buf.b8[0]=sb.dma.buf.b8[total-1];
-					} else sb.dma.remain_size=0;
-				} else {
-					read=sb.dma.chan->Write(read,sb.dma.buf.b8);
-					if (read > 0 && !sb.listen_to_recording_source) sb.gen_input_silence(read,sb.dma.buf.b8); /* mute before going out to mixer */
-					if (!sb.dma.sign) sb.chan->AddSamples_m8(read,sb.dma.buf.b8);
-					else sb.chan->AddSamples_m8s(read,(int8_t *)sb.dma.buf.b8);
-				}
-				break;
-			case DSP_DMA_16:
-			case DSP_DMA_16_ALIASED:
-				if (sb.dma.stereo) {
-					/* In DSP_DMA_16_ALIASED mode temporarily divide by 2 to get number of 16-bit
-					   samples, because 8-bit DMA Read returns byte size, while in DSP_DMA_16 mode
-					   16-bit DMA Read returns word size */
-					read=sb.dma.chan->Write(read,(uint8_t *)&sb.dma.buf.b16[sb.dma.remain_size])
-						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-					if (read > 0 && !sb.listen_to_recording_source) sb.gen_input_silence(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size])); /* mute before going out to mixer */
-					Bitu total=read+sb.dma.remain_size;
-#if defined(WORDS_BIGENDIAN)
-					if (sb.dma.sign) sb.chan->AddSamples_s16_nonnative(total>>1,sb.dma.buf.b16);
-					else sb.chan->AddSamples_s16u_nonnative(total>>1,(uint16_t *)sb.dma.buf.b16);
-#else
-					if (sb.dma.sign) sb.chan->AddSamples_s16(total>>1,sb.dma.buf.b16);
-					else sb.chan->AddSamples_s16u(total>>1,(uint16_t *)sb.dma.buf.b16);
-#endif
-					if (total&1) {
-						sb.dma.remain_size=1;
-						sb.dma.buf.b16[0]=sb.dma.buf.b16[total-1];
-					} else sb.dma.remain_size=0;
-				} else {
-					read=sb.dma.chan->Write(read,(uint8_t *)sb.dma.buf.b16)
-						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-					if (read > 0 && !sb.listen_to_recording_source) sb.gen_input_silence(read,(unsigned char*)sb.dma.buf.b16); /* mute before going out to mixer */
-#if defined(WORDS_BIGENDIAN)
-					if (sb.dma.sign) sb.chan->AddSamples_m16_nonnative(read,sb.dma.buf.b16);
-					else sb.chan->AddSamples_m16u_nonnative(read,(uint16_t *)sb.dma.buf.b16);
-#else
-					if (sb.dma.sign) sb.chan->AddSamples_m16(read,sb.dma.buf.b16);
-					else sb.chan->AddSamples_m16u(read,(uint16_t *)sb.dma.buf.b16);
-#endif
-				}
-				//restore buffer length value to byte size in aliased mode
-				if (sb.dma.mode==DSP_DMA_16_ALIASED) read=read<<1;
-				break;
-			default:
-				LOG_MSG("Unhandled dma record mode %d",sb.dma.mode);
-				sb.mode=MODE_NONE;
-				return;
-		}
-	}
-	else {
-		switch (sb.dma.mode) {
-			case DSP_DMA_2:
-				read=sb.dma.chan->Read(size,sb.dma.buf.b8);
-				if (read && sb.adpcm.haveref) {
-					sb.adpcm.haveref=false;
-					sb.adpcm.reference=sb.dma.buf.b8[0];
-					sb.adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
-					i++;
-				}
-				for (;i<read;i++) {
-					MixTemp[done++]=decode_ADPCM_2_sample((sb.dma.buf.b8[i] >> 6) & 0x3,sb.adpcm.reference,sb.adpcm.stepsize);
-					MixTemp[done++]=decode_ADPCM_2_sample((sb.dma.buf.b8[i] >> 4) & 0x3,sb.adpcm.reference,sb.adpcm.stepsize);
-					MixTemp[done++]=decode_ADPCM_2_sample((sb.dma.buf.b8[i] >> 2) & 0x3,sb.adpcm.reference,sb.adpcm.stepsize);
-					MixTemp[done++]=decode_ADPCM_2_sample((sb.dma.buf.b8[i] >> 0) & 0x3,sb.adpcm.reference,sb.adpcm.stepsize);
-				}
-				sb.chan->AddSamples_m8(done,MixTemp);
-				break;
-			case DSP_DMA_3:
-				read=sb.dma.chan->Read(size,sb.dma.buf.b8);
-				if (read && sb.adpcm.haveref) {
-					sb.adpcm.haveref=false;
-					sb.adpcm.reference=sb.dma.buf.b8[0];
-					sb.adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
-					i++;
-				}
-				for (;i<read;i++) {
-					MixTemp[done++]=decode_ADPCM_3_sample((sb.dma.buf.b8[i] >> 5) & 0x7,sb.adpcm.reference,sb.adpcm.stepsize);
-					MixTemp[done++]=decode_ADPCM_3_sample((sb.dma.buf.b8[i] >> 2) & 0x7,sb.adpcm.reference,sb.adpcm.stepsize);
-					MixTemp[done++]=decode_ADPCM_3_sample((sb.dma.buf.b8[i] & 0x3) << 1,sb.adpcm.reference,sb.adpcm.stepsize);
-				}
-				sb.chan->AddSamples_m8(done,MixTemp);
-				break;
-			case DSP_DMA_4:
-				read=sb.dma.chan->Read(size,sb.dma.buf.b8);
-				if (read && sb.adpcm.haveref) {
-					sb.adpcm.haveref=false;
-					sb.adpcm.reference=sb.dma.buf.b8[0];
-					sb.adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
-					i++;
-				}
-				for (;i<read;i++) {
-					MixTemp[done++]=decode_ADPCM_4_sample(sb.dma.buf.b8[i] >> 4,sb.adpcm.reference,sb.adpcm.stepsize);
-					MixTemp[done++]=decode_ADPCM_4_sample(sb.dma.buf.b8[i]& 0xf,sb.adpcm.reference,sb.adpcm.stepsize);
-				}
-				sb.chan->AddSamples_m8(done,MixTemp);
-				break;
-			case DSP_DMA_8:
-				if (sb.dma.stereo) {
-					read=sb.dma.chan->Read(size,&sb.dma.buf.b8[sb.dma.remain_size]);
-					Bitu total=read+sb.dma.remain_size;
-					if (!sb.dma.sign)  sb.chan->AddSamples_s8(total>>1,sb.dma.buf.b8);
-					else sb.chan->AddSamples_s8s(total>>1,(int8_t*)sb.dma.buf.b8);
-					if (total&1) {
-						sb.dma.remain_size=1;
-						sb.dma.buf.b8[0]=sb.dma.buf.b8[total-1];
-					} else sb.dma.remain_size=0;
-				} else {
-					read=sb.dma.chan->Read(size,sb.dma.buf.b8);
-					if (!sb.dma.sign) sb.chan->AddSamples_m8(read,sb.dma.buf.b8);
-					else sb.chan->AddSamples_m8s(read,(int8_t *)sb.dma.buf.b8);
-				}
-				break;
-			case DSP_DMA_16:
-			case DSP_DMA_16_ALIASED:
-				if (sb.dma.stereo) {
-					/* In DSP_DMA_16_ALIASED mode temporarily divide by 2 to get number of 16-bit
-					   samples, because 8-bit DMA Read returns byte size, while in DSP_DMA_16 mode
-					   16-bit DMA Read returns word size */
-					read=sb.dma.chan->Read(size,(uint8_t *)&sb.dma.buf.b16[sb.dma.remain_size])
-						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-					Bitu total=read+sb.dma.remain_size;
-#if defined(WORDS_BIGENDIAN)
-					if (sb.dma.sign) sb.chan->AddSamples_s16_nonnative(total>>1,sb.dma.buf.b16);
-					else sb.chan->AddSamples_s16u_nonnative(total>>1,(uint16_t *)sb.dma.buf.b16);
-#else
-					if (sb.dma.sign) sb.chan->AddSamples_s16(total>>1,sb.dma.buf.b16);
-					else sb.chan->AddSamples_s16u(total>>1,(uint16_t *)sb.dma.buf.b16);
-#endif
-					if (total&1) {
-						sb.dma.remain_size=1;
-						sb.dma.buf.b16[0]=sb.dma.buf.b16[total-1];
-					} else sb.dma.remain_size=0;
-				} else {
-					read=sb.dma.chan->Read(size,(uint8_t *)sb.dma.buf.b16)
-						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-#if defined(WORDS_BIGENDIAN)
-					if (sb.dma.sign) sb.chan->AddSamples_m16_nonnative(read,sb.dma.buf.b16);
-					else sb.chan->AddSamples_m16u_nonnative(read,(uint16_t *)sb.dma.buf.b16);
-#else
-					if (sb.dma.sign) sb.chan->AddSamples_m16(read,sb.dma.buf.b16);
-					else sb.chan->AddSamples_m16u(read,(uint16_t *)sb.dma.buf.b16);
-#endif
-				}
-				//restore buffer length value to byte size in aliased mode
-				if (sb.dma.mode==DSP_DMA_16_ALIASED) read=read<<1;
-				break;
-			default:
-				LOG_MSG("Unhandled dma playback mode %d",sb.dma.mode);
-				sb.mode=MODE_NONE;
-				return;
-		}
-	}
-	sb.dma.left-=read;
-	if (!sb.dma.left) sb.SB_OnEndOfDMA();
 }
 
 static void DMA_Silent_Event(Bitu val) {
@@ -1001,8 +1001,6 @@ static void DMA_Silent_Event(Bitu val) {
 	}
 
 }
-
-void updateSoundBlasterFilter(Bitu rate);
 
 static void DMA_DAC_Event(Bitu val) {
 	(void)val;//UNUSED
@@ -1114,7 +1112,7 @@ static void DMA_DAC_Event(Bitu val) {
 }
 
 static void END_DMA_Event(Bitu val) {
-	GenerateDMASound(val);
+	sb.GenerateDMASound(val);
 }
 
 static void CheckDMAEnd(void) {
@@ -3363,7 +3361,7 @@ static void SBLASTER_CallBack(Bitu len) {
         if (len&SB_SH_MASK) len+=1 << SB_SH;
         len>>=SB_SH;
         if (len>sb.dma.left) len=sb.dma.left;
-        GenerateDMASound(len);
+        sb.GenerateDMASound(len);
         break;
     }
 }
