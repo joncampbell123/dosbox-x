@@ -150,9 +150,6 @@ enum {
     REC_HISS
 };
 
-unsigned int sb_recording_source = REC_SILENCE;
-bool sb_listen_to_recording_source = false;
-
 struct SB_INFO {
     Bitu freq;
     uint8_t timeconst;
@@ -273,6 +270,8 @@ struct SB_INFO {
         uint8_t valadd;
         uint8_t valxor;
     } e2;
+    unsigned int recording_source = REC_SILENCE;
+    bool listen_to_recording_source = false;
     MixerChannel * chan;
 };
 
@@ -466,19 +465,19 @@ static double last_dma_callback = 0.0f;
 void sb_update_recording_source_settings() {
 	Section_prop* section = static_cast<Section_prop *>(control->GetSection("sblaster"));
 
-	sb_listen_to_recording_source=section->Get_bool("listen to recording source");
+	sb.listen_to_recording_source=section->Get_bool("listen to recording source");
 
 	{
 		const char *s = section->Get_string("recording source");
 
 		if (!strcmp(s,"silence"))
-			sb_recording_source = REC_SILENCE;
+			sb.recording_source = REC_SILENCE;
 		else if (!strcmp(s,"hiss"))
-			sb_recording_source = REC_HISS;
+			sb.recording_source = REC_HISS;
 		else if (!strcmp(s,"1khz tone"))
-			sb_recording_source = REC_1KHZ_TONE;
+			sb.recording_source = REC_1KHZ_TONE;
 		else
-			sb_recording_source = REC_SILENCE;
+			sb.recording_source = REC_SILENCE;
 	}
 }
 
@@ -755,7 +754,7 @@ static void gen_input_silence(Bitu dmabytes,unsigned char *buf) {
 }
 
 static void gen_input(Bitu dmabytes,unsigned char *buf) {
-	switch (sb_recording_source) {
+	switch (sb.recording_source) {
 		case REC_SILENCE:
 			gen_input_silence(dmabytes,buf);
 			break;
@@ -814,7 +813,7 @@ static void GenerateDMASound(Bitu size) {
 			case DSP_DMA_8:
 				if (sb.dma.stereo) {
 					read=sb.dma.chan->Write(read,&sb.dma.buf.b8[sb.dma.remain_size]);
-					if (read > 0 && !sb_listen_to_recording_source) gen_input_silence(read,&sb.dma.buf.b8[sb.dma.remain_size]); /* mute before going out to mixer */
+					if (read > 0 && !sb.listen_to_recording_source) gen_input_silence(read,&sb.dma.buf.b8[sb.dma.remain_size]); /* mute before going out to mixer */
 					Bitu total=read+sb.dma.remain_size;
 					if (!sb.dma.sign)  sb.chan->AddSamples_s8(total>>1,sb.dma.buf.b8);
 					else sb.chan->AddSamples_s8s(total>>1,(int8_t*)sb.dma.buf.b8);
@@ -824,7 +823,7 @@ static void GenerateDMASound(Bitu size) {
 					} else sb.dma.remain_size=0;
 				} else {
 					read=sb.dma.chan->Write(read,sb.dma.buf.b8);
-					if (read > 0 && !sb_listen_to_recording_source) gen_input_silence(read,sb.dma.buf.b8); /* mute before going out to mixer */
+					if (read > 0 && !sb.listen_to_recording_source) gen_input_silence(read,sb.dma.buf.b8); /* mute before going out to mixer */
 					if (!sb.dma.sign) sb.chan->AddSamples_m8(read,sb.dma.buf.b8);
 					else sb.chan->AddSamples_m8s(read,(int8_t *)sb.dma.buf.b8);
 				}
@@ -837,7 +836,7 @@ static void GenerateDMASound(Bitu size) {
 					   16-bit DMA Read returns word size */
 					read=sb.dma.chan->Write(read,(uint8_t *)&sb.dma.buf.b16[sb.dma.remain_size])
 						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-					if (read > 0 && !sb_listen_to_recording_source) gen_input_silence(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size])); /* mute before going out to mixer */
+					if (read > 0 && !sb.listen_to_recording_source) gen_input_silence(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size])); /* mute before going out to mixer */
 					Bitu total=read+sb.dma.remain_size;
 #if defined(WORDS_BIGENDIAN)
 					if (sb.dma.sign) sb.chan->AddSamples_s16_nonnative(total>>1,sb.dma.buf.b16);
@@ -853,7 +852,7 @@ static void GenerateDMASound(Bitu size) {
 				} else {
 					read=sb.dma.chan->Write(read,(uint8_t *)sb.dma.buf.b16)
 						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-					if (read > 0 && !sb_listen_to_recording_source) gen_input_silence(read,(unsigned char*)sb.dma.buf.b16); /* mute before going out to mixer */
+					if (read > 0 && !sb.listen_to_recording_source) gen_input_silence(read,(unsigned char*)sb.dma.buf.b16); /* mute before going out to mixer */
 #if defined(WORDS_BIGENDIAN)
 					if (sb.dma.sign) sb.chan->AddSamples_m16_nonnative(read,sb.dma.buf.b16);
 					else sb.chan->AddSamples_m16u_nonnative(read,(uint16_t *)sb.dma.buf.b16);
@@ -3822,6 +3821,8 @@ public:
 
         Section_prop * section=static_cast<Section_prop *>(configuration);
 
+        sb.recording_source = REC_SILENCE;
+        sb.listen_to_recording_source = false;
         sb.hw.base=(unsigned int)section->Get_hex("sbbase");
 
         if (sb.ess_type != ESS_NONE && sb.ess_type != ESS_688) {
