@@ -1171,6 +1171,49 @@ struct SB_INFO {
 		return dsp.out.lastval;
 	}
 
+	void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed) {
+		/* this must be processed BEFORE forcing auto-init because the non-autoinit case provides the DSP transfer block size (fix for "Jump" by Public NMI) */
+		if (!autoinit) dma.total=1u+(unsigned int)dsp.in.data[0]+(unsigned int)(dsp.in.data[1] << 8u);
+
+		if (dma.force_autoinit)
+			autoinit = true;
+
+		dma.autoinit=autoinit;
+		dsp.highspeed=hispeed;
+		dma.sign=sign;
+
+		/* BUGFIX: There is code out there that uses SB16 sample rate commands mixed with SB/SBPro
+		 *         playback commands. In order to handle these cases properly we need to use the
+		 *         SB16 sample rate if that is what was given to us, else the sample rate will
+		 *         come out wrong.
+		 *
+		 *         Test cases:
+		 *
+		 *         #1: Silpheed (vogons user newrisingsun amatorial patch)
+		 */
+		if (freq_derived_from_tc) {
+			// sample rate was set by SB/SBpro command 0x40 Set Time Constant (very common case)
+			/* BUGFIX: Instead of direct rate-limiting the DSP time constant, keep the original
+			 *         value written intact and rate-limit a copy. Bugfix for Optic Nerve and
+			 *         sbtype=sbpro2. On initialization the demo first sends DSP command 0x14
+			 *         with a 2-byte playback interval, then sends command 0x91 to begin
+			 *         playback. Rate-limiting the copy means the 45454Hz time constant written
+			 *         by the demo stays intact despite being limited to 22050Hz during the first
+			 *         DSP block (command 0x14). */
+			const uint8_t final_tc = DSP_RateLimitedFinalTC_Old();
+			freq = (256000000ul / (65536ul - ((unsigned long)final_tc << 8ul)));
+		}
+		else {
+			LOG(LOG_SB,LOG_DEBUG)("Guest is using non-SB16 playback commands after using SB16 commands to set sample rate");
+			freq = DSP_RateLimitedFinalSB16Freq_New(freq);
+		}
+
+		dma_dac_mode=0;
+		ess_playback_mode = false;
+		dma.chan=GetDMAChannel(hw.dma8);
+		DSP_DoDMATransfer(mode,freq / (mixer.stereo ? 2 : 1),mixer.stereo);
+	}
+
 };
 
 static SB_INFO sb;
@@ -1348,49 +1391,6 @@ static void END_DMA_Event(Bitu val) {
 
 static void DSP_RaiseIRQEvent(Bitu /*val*/) {
 	sb.SB_RaiseIRQ(SB_IRQ_8);
-}
-
-static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed) {
-	/* this must be processed BEFORE forcing auto-init because the non-autoinit case provides the DSP transfer block size (fix for "Jump" by Public NMI) */
-	if (!autoinit) sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+(unsigned int)(sb.dsp.in.data[1] << 8u);
-
-	if (sb.dma.force_autoinit)
-		autoinit = true;
-
-	sb.dma.autoinit=autoinit;
-	sb.dsp.highspeed=hispeed;
-	sb.dma.sign=sign;
-
-	/* BUGFIX: There is code out there that uses SB16 sample rate commands mixed with SB/SBPro
-	 *         playback commands. In order to handle these cases properly we need to use the
-	 *         SB16 sample rate if that is what was given to us, else the sample rate will
-	 *         come out wrong.
-	 *
-	 *         Test cases:
-	 *
-	 *         #1: Silpheed (vogons user newrisingsun amatorial patch)
-	 */
-	if (sb.freq_derived_from_tc) {
-		// sample rate was set by SB/SBpro command 0x40 Set Time Constant (very common case)
-		/* BUGFIX: Instead of direct rate-limiting the DSP time constant, keep the original
-		 *         value written intact and rate-limit a copy. Bugfix for Optic Nerve and
-		 *         sbtype=sbpro2. On initialization the demo first sends DSP command 0x14
-		 *         with a 2-byte playback interval, then sends command 0x91 to begin
-		 *         playback. Rate-limiting the copy means the 45454Hz time constant written
-		 *         by the demo stays intact despite being limited to 22050Hz during the first
-		 *         DSP block (command 0x14). */
-		const uint8_t final_tc = sb.DSP_RateLimitedFinalTC_Old();
-		sb.freq = (256000000ul / (65536ul - ((unsigned long)final_tc << 8ul)));
-	}
-	else {
-		LOG(LOG_SB,LOG_DEBUG)("Guest is using non-SB16 playback commands after using SB16 commands to set sample rate");
-		sb.freq = sb.DSP_RateLimitedFinalSB16Freq_New(sb.freq);
-	}
-
-	sb.dma_dac_mode=0;
-	sb.ess_playback_mode = false;
-	sb.dma.chan=GetDMAChannel(sb.hw.dma8);
-	sb.DSP_DoDMATransfer(mode,sb.freq / (sb.mixer.stereo ? 2 : 1),sb.mixer.stereo);
 }
 
 static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool stereo) {
@@ -1982,7 +1982,7 @@ static void DSP_DoCommand(void) {
         /* fall through */
     case 0x24:  /* Single Cycle 8-Bit DMA ADC */
         sb.dma.recording=true;
-        DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         LOG(LOG_SB,LOG_WARN)("Guest recording audio using SB/SBPro commands");
         break;
     case 0x98:  /* Auto Init 8-bit DMA High Speed */
@@ -1990,7 +1990,7 @@ static void DSP_DoCommand(void) {
     case 0x2c:  /* Auto Init 8-bit DMA */
         DSP_SB2_ABOVE; /* Note: 0x98 is documented only for DSP ver.2.x and 3.x, not 4.x */
         sb.dma.recording=true;
-        DSP_PrepareDMA_Old(DSP_DMA_8,true,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_8,true,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         break;
     case 0x91:  /* Single Cycle 8-Bit DMA High speed DAC */
         DSP_SB201_ABOVE;
@@ -1999,14 +1999,14 @@ static void DSP_DoCommand(void) {
     case 0x15:  /* Wari hack. Waru uses this one instead of 0x14, but some weird stuff going on there anyway */
         /* Note: 0x91 is documented only for DSP ver.2.x and 3.x, not 4.x */
         sb.dma.recording=false;
-        DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         break;
     case 0x90:  /* Auto Init 8-bit DMA High Speed */
         DSP_SB201_ABOVE;
     case 0x1c:  /* Auto Init 8-bit DMA */
         DSP_SB2_ABOVE; /* Note: 0x90 is documented only for DSP ver.2.x and 3.x, not 4.x */
         sb.dma.recording=false;
-        DSP_PrepareDMA_Old(DSP_DMA_8,true,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_8,true,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         break;
     case 0x38:  /* Write to SB MIDI Output */
         if (sb.midi == true) MIDI_RawOutByte(sb.dsp.in.data[0]);
@@ -2067,39 +2067,39 @@ static void DSP_DoCommand(void) {
         /* FALLTHROUGH */
     case 0x74:  /* 074h : Single Cycle 4-bit ADPCM */
         sb.dma.recording=false;
-        DSP_PrepareDMA_Old(DSP_DMA_4,false,false,false);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_4,false,false,false);
         break;
     case 0x77:  /* 077h : Single Cycle 3-bit(2.6bit) ADPCM Reference*/
         sb.adpcm.haveref=true;
         /* FALLTHROUGH */
     case 0x76:  /* 074h : Single Cycle 3-bit(2.6bit) ADPCM */
         sb.dma.recording=false;
-        DSP_PrepareDMA_Old(DSP_DMA_3,false,false,false);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_3,false,false,false);
         break;
     case 0x7d:  /* Auto Init 4-bit ADPCM Reference */
         DSP_SB2_ABOVE;
         sb.adpcm.haveref=true;
         sb.dma.recording=false;
-        DSP_PrepareDMA_Old(DSP_DMA_4,true,false,false);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_4,true,false,false);
         break;
     case 0x7f:  /* Auto Init 3-bit(2.6bit) ADPCM Reference */
         DSP_SB2_ABOVE;
         sb.adpcm.haveref=true;
         sb.dma.recording=false;
-        DSP_PrepareDMA_Old(DSP_DMA_3,true,false,false);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_3,true,false,false);
         break;
     case 0x1f:  /* Auto Init 2-bit ADPCM Reference */
         DSP_SB2_ABOVE;
         sb.adpcm.haveref=true;
         sb.dma.recording=false;
-        DSP_PrepareDMA_Old(DSP_DMA_2,true,false,false);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_2,true,false,false);
         break;
     case 0x17:  /* 017h : Single Cycle 2-bit ADPCM Reference*/
         sb.adpcm.haveref=true;
         /* FALLTHROUGH */
     case 0x16:  /* 074h : Single Cycle 2-bit ADPCM */
         sb.dma.recording=false;
-        DSP_PrepareDMA_Old(DSP_DMA_2,false,false,false);
+        sb.DSP_PrepareDMA_Old(DSP_DMA_2,false,false,false);
         break;
     case 0x80:  /* Silence DAC */
         PIC_AddEvent(&DSP_RaiseIRQEvent,
