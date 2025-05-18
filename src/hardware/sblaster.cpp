@@ -1684,6 +1684,53 @@ struct SB_INFO {
 		}
 	}
 
+	//The soundblaster manual says 2.0 Db steps but we'll go for a bit less
+	float calc_vol(uint8_t amount) {
+		const uint8_t count = 31 - amount;
+		float db = static_cast<float>(count);
+		if (type == SBT_PRO1 || type == SBT_PRO2) {
+			if (count) {
+				if (count < 16) db -= 1.0f;
+				else if (count > 16) db += 1.0f;
+				if (count == 24) db += 2.0f;
+				if (count > 27) return 0.0f; //turn it off.
+			}
+		} else { //Give the rest, the SB16 scale, as we don't have data.
+			db *= 2.0f;
+			if (count > 20) db -= 1.0f;
+		}
+		return (float) pow (10.0f,-0.05f * db);
+	}
+
+	void CTMIXER_UpdateVolumes(void) {
+		if (!mixer.enabled) return;
+
+		chan->FillUp();
+
+		MixerChannel * chan;
+		float m0 = calc_vol(mixer.master[0]);
+		float m1 = calc_vol(mixer.master[1]);
+		chan = MIXER_FindChannel("SB");
+		if (chan) chan->SetVolume(m0 * calc_vol(mixer.dac[0]), m1 * calc_vol(mixer.dac[1]));
+		chan = MIXER_FindChannel("FM");
+		if (chan) chan->SetVolume(m0 * calc_vol(mixer.fm[0]) , m1 * calc_vol(mixer.fm[1]) );
+		chan = MIXER_FindChannel("CDAUDIO");
+		if (chan) chan->SetVolume(m0 * calc_vol(mixer.cda[0]), m1 * calc_vol(mixer.cda[1]));
+	}
+
+	void CTMIXER_Reset(void) {
+		mixer.filter_bypass=0; // Creative Documentation: filter_bypass bit is 0 by default
+		mixer.fm[0]=
+		mixer.fm[1]=
+		mixer.cda[0]=
+		mixer.cda[1]=
+		mixer.dac[0]=
+		mixer.dac[1]=31;
+		mixer.master[0]=
+		mixer.master[1]=31;
+		CTMIXER_UpdateVolumes();
+	}
+
 };
 
 static SB_INFO sb;
@@ -2609,52 +2656,6 @@ static void DSP_DoCommand(void) {
     sb.dsp.in.pos=0;
 }
 
-//The soundblaster manual says 2.0 Db steps but we'll go for a bit less
-static float calc_vol(uint8_t amount) {
-    uint8_t count = 31 - amount;
-    float db = static_cast<float>(count);
-    if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) {
-        if (count) {
-            if (count < 16) db -= 1.0f;
-            else if (count > 16) db += 1.0f;
-            if (count == 24) db += 2.0f;
-            if (count > 27) return 0.0f; //turn it off.
-        }
-    } else { //Give the rest, the SB16 scale, as we don't have data.
-        db *= 2.0f;
-        if (count > 20) db -= 1.0f;
-    }
-    return (float) pow (10.0f,-0.05f * db);
-}
-static void CTMIXER_UpdateVolumes(void) {
-    if (!sb.mixer.enabled) return;
-
-    sb.chan->FillUp();
-
-    MixerChannel * chan;
-    float m0 = calc_vol(sb.mixer.master[0]);
-    float m1 = calc_vol(sb.mixer.master[1]);
-    chan = MIXER_FindChannel("SB");
-    if (chan) chan->SetVolume(m0 * calc_vol(sb.mixer.dac[0]), m1 * calc_vol(sb.mixer.dac[1]));
-    chan = MIXER_FindChannel("FM");
-    if (chan) chan->SetVolume(m0 * calc_vol(sb.mixer.fm[0]) , m1 * calc_vol(sb.mixer.fm[1]) );
-    chan = MIXER_FindChannel("CDAUDIO");
-    if (chan) chan->SetVolume(m0 * calc_vol(sb.mixer.cda[0]), m1 * calc_vol(sb.mixer.cda[1]));
-}
-
-static void CTMIXER_Reset(void) {
-    sb.mixer.filter_bypass=0; // Creative Documentation: filter_bypass bit is 0 by default
-    sb.mixer.fm[0]=
-    sb.mixer.fm[1]=
-    sb.mixer.cda[0]=
-    sb.mixer.cda[1]=
-    sb.mixer.dac[0]=
-    sb.mixer.dac[1]=31;
-    sb.mixer.master[0]=
-    sb.mixer.master[1]=31;
-    CTMIXER_UpdateVolumes();
-}
-
 #define SETPROVOL(_WHICH_,_VAL_)                                        \
     _WHICH_[0]=   ((((_VAL_) & 0xf0) >> 3)|(sb.type==SBT_16 ? 1:3));    \
     _WHICH_[1]=   ((((_VAL_) & 0x0f) << 1)|(sb.type==SBT_16 ? 1:3));    \
@@ -2773,32 +2774,32 @@ static inline uint8_t expand16to32(const uint8_t t) {
 static void CTMIXER_Write(uint8_t val) {
     switch (sb.mixer.index) {
     case 0x00:      /* Reset */
-        CTMIXER_Reset();
+        sb.CTMIXER_Reset();
         LOG(LOG_SB,LOG_WARN)("Mixer reset value %x",val);
         break;
     case 0x02:      /* Master Volume (SB2 Only) */
         SETPROVOL(sb.mixer.master,(val&0xf)|(val<<4));
-        CTMIXER_UpdateVolumes();
+        sb.CTMIXER_UpdateVolumes();
         break;
     case 0x04:      /* DAC Volume (SBPRO) */
         SETPROVOL(sb.mixer.dac,val);
-        CTMIXER_UpdateVolumes();
+        sb.CTMIXER_UpdateVolumes();
         break;
     case 0x06:      /* FM output selection, Somewhat obsolete with dual OPL SBpro + FM volume (SB2 Only) */
         //volume controls both channels
         SETPROVOL(sb.mixer.fm,(val&0xf)|(val<<4));
-        CTMIXER_UpdateVolumes();
+        sb.CTMIXER_UpdateVolumes();
         if(val&0x60) LOG(LOG_SB,LOG_WARN)("Turned FM one channel off. not implemented %X",val);
         //TODO Change FM Mode if only 1 fm channel is selected
         break;
     case 0x08:      /* CDA Volume (SB2 Only) */
         SETPROVOL(sb.mixer.cda,(val&0xf)|(val<<4));
-        CTMIXER_UpdateVolumes();
+        sb.CTMIXER_UpdateVolumes();
         break;
     case 0x0a:      /* Mic Level (SBPRO) or DAC Volume (SB2): 2-bit, 3-bit on SB16 */
         if (sb.type==SBT_2) {
             sb.mixer.dac[0]=sb.mixer.dac[1]=((val & 0x6) << 2)|3;
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         } else {
             sb.mixer.mic=((val & 0x7) << 2)|(sb.type==SBT_16?1:3);
         }
@@ -2826,20 +2827,20 @@ static void CTMIXER_Write(uint8_t val) {
         if (sb.ess_type != ESS_NONE) {
             sb.mixer.dac[0]=expand16to32((val>>4)&0xF);
             sb.mixer.dac[1]=expand16to32(val&0xF);
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         break;
     case 0x22:      /* Master Volume (SBPRO) */
         SETPROVOL(sb.mixer.master,val);
-        CTMIXER_UpdateVolumes();
+        sb.CTMIXER_UpdateVolumes();
         break;
     case 0x26:      /* FM Volume (SBPRO) */
         SETPROVOL(sb.mixer.fm,val);
-        CTMIXER_UpdateVolumes();
+        sb.CTMIXER_UpdateVolumes();
         break;
     case 0x28:      /* CD Audio Volume (SBPRO) */
         SETPROVOL(sb.mixer.cda,val);
-        CTMIXER_UpdateVolumes();
+        sb.CTMIXER_UpdateVolumes();
         break;
     case 0x2e:      /* Line-in Volume (SBPRO) */
         SETPROVOL(sb.mixer.lin,val);
@@ -2848,62 +2849,62 @@ static void CTMIXER_Write(uint8_t val) {
     case 0x30:      /* Master Volume Left (SB16) */
         if (sb.type==SBT_16) {
             sb.mixer.master[0]=val>>3;
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         break;
     //case 0x21:        /* Master Volume Right (SBPRO) ? */
     case 0x31:      /* Master Volume Right (SB16) */
         if (sb.type==SBT_16) {
             sb.mixer.master[1]=val>>3;
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         break;
     case 0x32:      /* DAC Volume Left (SB16) */
                 /* Master Volume (ESS 688) */
         if (sb.type==SBT_16) {
             sb.mixer.dac[0]=val>>3;
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         else if (sb.ess_type != ESS_NONE) {
             sb.mixer.master[0]=expand16to32((val>>4)&0xF);
             sb.mixer.master[1]=expand16to32(val&0xF);
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         break;
     case 0x33:      /* DAC Volume Right (SB16) */
         if (sb.type==SBT_16) {
             sb.mixer.dac[1]=val>>3;
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         break;
     case 0x34:      /* FM Volume Left (SB16) */
         if (sb.type==SBT_16) {
             sb.mixer.fm[0]=val>>3;
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
                 break;
     case 0x35:      /* FM Volume Right (SB16) */
         if (sb.type==SBT_16) {
             sb.mixer.fm[1]=val>>3;
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         break;
     case 0x36:      /* CD Volume Left (SB16) */
                 /* FM Volume (ESS 688) */
         if (sb.type==SBT_16) {
             sb.mixer.cda[0]=val>>3;
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         else if (sb.ess_type != ESS_NONE) {
             sb.mixer.fm[0]=expand16to32((val>>4)&0xF);
             sb.mixer.fm[1]=expand16to32(val&0xF);
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         break;
     case 0x37:      /* CD Volume Right (SB16) */
         if (sb.type==SBT_16) {
             sb.mixer.cda[1]=val>>3;
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         break;
     case 0x38:      /* Line-in Volume Left (SB16) */
@@ -2913,7 +2914,7 @@ static void CTMIXER_Write(uint8_t val) {
         else if (sb.ess_type != ESS_NONE) {
             sb.mixer.cda[0]=expand16to32((val>>4)&0xF);
             sb.mixer.cda[1]=expand16to32(val&0xF);
-            CTMIXER_UpdateVolumes();
+            sb.CTMIXER_UpdateVolumes();
         }
         break;
     case 0x39:      /* Line-in Volume Right (SB16) */
@@ -4058,7 +4059,7 @@ public:
         sb.ASP_regs[9] = 0xf8;
 
         sb.DSP_Reset();
-        CTMIXER_Reset();
+        sb.CTMIXER_Reset();
 
         // The documentation does not specify if SB gets initialized with the speaker enabled
         // or disabled. Real SBPro2 has it disabled.
