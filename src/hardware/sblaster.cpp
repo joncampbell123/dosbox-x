@@ -1425,6 +1425,138 @@ struct SB_INFO {
 		ESSreg(0xA2) = 256 - (7160000 / (new_freq * 82));
 	}
 
+	void ESS_DoWrite(uint8_t reg,uint8_t data) {
+		uint8_t chg;
+
+		LOG(LOG_SB,LOG_DEBUG)("ESS register write reg=%02xh val=%02xh",reg,data);
+
+		switch (reg) {
+			case 0xA1: /* Extended Mode Sample Rate Generator */
+				ESSreg(reg) = data;
+				if (data & 0x80)
+					freq = 795500UL / (256ul - data);
+				else
+					freq = 397700UL / (128ul - data);
+
+				freq_derived_from_tc = false;
+				if (mode == MODE_DMA) {
+					ESS_StopDMA();
+					ESS_StartDMA();
+				}
+				break;
+			case 0xA2: /* Filter divider (effectively, a hardware lowpass filter under S/W control) */
+				ESSreg(reg) = data;
+				updateSoundBlasterFilter(freq);
+				break;
+			case 0xA4: /* DMA Transfer Count Reload (low) */
+			case 0xA5: /* DMA Transfer Count Reload (high) */
+				ESSreg(reg) = data;
+				ESS_UpdateDMATotal();
+				if (dma.left == 0) dma.left = dma.total;
+				break;
+			case 0xA8: /* Analog Control */
+				/* bits 7:5   0                  Reserved. Always write 0
+				 * bit  4     1                  Reserved. Always write 1
+				 * bit  3     Record monitor     1=Enable record monitor
+				 *            enable
+				 * bit  2     0                  Reserved. Always write 0
+				 * bits 1:0   Stereo/mono select 00=Reserved
+				 *                               01=Stereo
+				 *                               10=Mono
+				 *                               11=Reserved */
+				chg = ESSreg(reg) ^ data;
+				ESSreg(reg) = data;
+				if (chg & 0x3) {
+					if (mode == MODE_DMA) {
+						ESS_StopDMA();
+						ESS_StartDMA();
+					}
+				}
+				break;
+			case 0xB1: /* Legacy Audio Interrupt Control */
+			case 0xB2: /* DRQ Control */
+				chg = ESSreg(reg) ^ data;
+				ESSreg(reg) = (ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
+				if (chg & 0x40) ESS_CheckDMAEnable();
+				break;
+			case 0xB5: /* DAC Direct Access Holding (low) */
+			case 0xB6: /* DAC Direct Access Holding (high) */
+				ESSreg(reg) = data;
+				break;
+			case 0xB7: /* Audio 1 Control 1 */
+				/* bit  7     Enable FIFO to/from codec
+				 * bit  6     Opposite from bit 3               Must be set opposite to bit 3
+				 * bit  5     FIFO signed mode                  1=Data is signed twos-complement   0=Data is unsigned
+				 * bit  4     Reserved                          Always write 1
+				 * bit  3     FIFO stereo mode                  1=Data is stereo
+				 * bit  2     FIFO 16-bit mode                  1=Data is 16-bit
+				 * bit  1     Reserved                          Always write 0
+				 * bit  0     Generate load signal */
+				chg = ESSreg(reg) ^ data;
+				ESSreg(reg) = data;
+				dma.sign = (data&0x20)?1:0;
+				if (chg & 0x04) ESS_UpdateDMATotal();
+				if (chg & 0x0C) {
+					if (mode == MODE_DMA) {
+						ESS_StopDMA();
+						ESS_StartDMA();
+					}
+				}
+				break;
+			case 0xB8: /* Audio 1 Control 2 */
+				/* bits 7:4   reserved
+				 * bit  3     CODEC mode         1=first DMA converter in ADC mode
+				 *                               0=first DMA converter in DAC mode
+				 * bit  2     DMA mode           1=auto-initialize mode
+				 *                               0=normal DMA mode
+				 * bit  1     DMA read enable    1=first DMA is read (for ADC)
+				 *                               0=first DMA is write (for DAC)
+				 * bit  0     DMA xfer enable    1=DMA is allowed to proceed */
+				data &= 0xF;
+				chg = ESSreg(reg) ^ data;
+				ESSreg(reg) = data;
+
+				/* FIXME: This is a guess */
+				if (chg & 1) dma.left = dma.total;
+
+				dma.autoinit = (data >> 2) & 1;
+				if (chg & 0xB) {
+					if (chg & 0xA) ESS_StopDMA(); /* changing capture/playback direction? stop DMA to reinit */
+					ESS_CheckDMAEnable();
+				}
+				break;
+			case 0xB9: /* Audio 1 Transfer Type */
+			case 0xBA: /* Left Channel ADC Offset Adjust */
+			case 0xBB: /* Right Channel ADC Offset Adjust */
+				ESSreg(reg) = data;
+				break;
+		}
+	}
+
+	uint8_t ESS_DoRead(uint8_t reg) {
+		LOG(LOG_SB,LOG_DEBUG)("ESS register read reg=%02xh",reg);
+
+		switch (reg) {
+			default:
+				return ESSreg(reg);
+		}
+
+		return 0xFF;
+	}
+
+	void sb16asp_write_current_RAM_byte(const uint8_t r) {
+		sb16asp_ram_contents[sb16asp_ram_contents_index] = r;
+	}
+
+	uint8_t sb16asp_read_current_RAM_byte(void) {
+		return sb16asp_ram_contents[sb16asp_ram_contents_index];
+	}
+
+	void sb16asp_next_RAM_byte(void) {
+		if ((++sb16asp_ram_contents_index) >= 2048)
+			sb16asp_ram_contents_index = 0;
+	}
+
 };
 
 static SB_INFO sb;
@@ -1647,138 +1779,6 @@ static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	ch->Register_Callback(nullptr);
 }
 
-static void ESS_DoWrite(uint8_t reg,uint8_t data) {
-	uint8_t chg;
-
-	LOG(LOG_SB,LOG_DEBUG)("ESS register write reg=%02xh val=%02xh",reg,data);
-
-	switch (reg) {
-		case 0xA1: /* Extended Mode Sample Rate Generator */
-			sb.ESSreg(reg) = data;
-			if (data & 0x80)
-				sb.freq = 795500UL / (256ul - data);
-			else
-				sb.freq = 397700UL / (128ul - data);
-
-			sb.freq_derived_from_tc = false;
-			if (sb.mode == MODE_DMA) {
-				sb.ESS_StopDMA();
-				sb.ESS_StartDMA();
-			}
-			break;
-		case 0xA2: /* Filter divider (effectively, a hardware lowpass filter under S/W control) */
-			sb.ESSreg(reg) = data;
-			updateSoundBlasterFilter(sb.freq);
-			break;
-		case 0xA4: /* DMA Transfer Count Reload (low) */
-		case 0xA5: /* DMA Transfer Count Reload (high) */
-			sb.ESSreg(reg) = data;
-			sb.ESS_UpdateDMATotal();
-			if (sb.dma.left == 0) sb.dma.left = sb.dma.total;
-			break;
-		case 0xA8: /* Analog Control */
-			/* bits 7:5   0                  Reserved. Always write 0
-			 * bit  4     1                  Reserved. Always write 1
-			 * bit  3     Record monitor     1=Enable record monitor
-			 *            enable
-			 * bit  2     0                  Reserved. Always write 0
-			 * bits 1:0   Stereo/mono select 00=Reserved
-			 *                               01=Stereo
-			 *                               10=Mono
-			 *                               11=Reserved */
-			chg = sb.ESSreg(reg) ^ data;
-			sb.ESSreg(reg) = data;
-			if (chg & 0x3) {
-				if (sb.mode == MODE_DMA) {
-					sb.ESS_StopDMA();
-					sb.ESS_StartDMA();
-				}
-			}
-			break;
-		case 0xB1: /* Legacy Audio Interrupt Control */
-		case 0xB2: /* DRQ Control */
-			chg = sb.ESSreg(reg) ^ data;
-			sb.ESSreg(reg) = (sb.ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
-			if (chg & 0x40) sb.ESS_CheckDMAEnable();
-			break;
-		case 0xB5: /* DAC Direct Access Holding (low) */
-		case 0xB6: /* DAC Direct Access Holding (high) */
-			sb.ESSreg(reg) = data;
-			break;
-		case 0xB7: /* Audio 1 Control 1 */
-			/* bit  7     Enable FIFO to/from codec
-			 * bit  6     Opposite from bit 3               Must be set opposite to bit 3
-			 * bit  5     FIFO signed mode                  1=Data is signed twos-complement   0=Data is unsigned
-			 * bit  4     Reserved                          Always write 1
-			 * bit  3     FIFO stereo mode                  1=Data is stereo
-			 * bit  2     FIFO 16-bit mode                  1=Data is 16-bit
-			 * bit  1     Reserved                          Always write 0
-			 * bit  0     Generate load signal */
-			chg = sb.ESSreg(reg) ^ data;
-			sb.ESSreg(reg) = data;
-			sb.dma.sign = (data&0x20)?1:0;
-			if (chg & 0x04) sb.ESS_UpdateDMATotal();
-			if (chg & 0x0C) {
-				if (sb.mode == MODE_DMA) {
-					sb.ESS_StopDMA();
-					sb.ESS_StartDMA();
-				}
-			}
-			break;
-		case 0xB8: /* Audio 1 Control 2 */
-			/* bits 7:4   reserved
-			 * bit  3     CODEC mode         1=first DMA converter in ADC mode
-			 *                               0=first DMA converter in DAC mode
-			 * bit  2     DMA mode           1=auto-initialize mode
-			 *                               0=normal DMA mode
-			 * bit  1     DMA read enable    1=first DMA is read (for ADC)
-			 *                               0=first DMA is write (for DAC)
-			 * bit  0     DMA xfer enable    1=DMA is allowed to proceed */
-			data &= 0xF;
-			chg = sb.ESSreg(reg) ^ data;
-			sb.ESSreg(reg) = data;
-
-			/* FIXME: This is a guess */
-			if (chg & 1) sb.dma.left = sb.dma.total;
-
-			sb.dma.autoinit = (data >> 2) & 1;
-			if (chg & 0xB) {
-				if (chg & 0xA) sb.ESS_StopDMA(); /* changing capture/playback direction? stop DMA to reinit */
-				sb.ESS_CheckDMAEnable();
-			}
-			break;
-		case 0xB9: /* Audio 1 Transfer Type */
-		case 0xBA: /* Left Channel ADC Offset Adjust */
-		case 0xBB: /* Right Channel ADC Offset Adjust */
-			sb.ESSreg(reg) = data;
-			break;
-	}
-}
-
-static uint8_t ESS_DoRead(uint8_t reg) {
-	LOG(LOG_SB,LOG_DEBUG)("ESS register read reg=%02xh",reg);
-
-	switch (reg) {
-		default:
-			return sb.ESSreg(reg);
-	}
-
-	return 0xFF;
-}
-
-static void sb16asp_write_current_RAM_byte(const uint8_t r) {
-	sb.sb16asp_ram_contents[sb.sb16asp_ram_contents_index] = r;
-}
-
-static uint8_t sb16asp_read_current_RAM_byte(void) {
-	return sb.sb16asp_ram_contents[sb.sb16asp_ram_contents_index];
-}
-
-static void sb16asp_next_RAM_byte(void) {
-	if ((++sb.sb16asp_ram_contents_index) >= 2048)
-		sb.sb16asp_ram_contents_index = 0;
-}
-
 /* Demo notes for fixing:
  *
  *  - "Buttman"'s intro uses a timer and DSP command 0x10 to play the sound effects even in Pro mode.
@@ -1791,12 +1791,12 @@ static void DSP_DoCommand(void) {
 
         if (sb.dsp.cmd < 0xC0) { // write ESS register   (cmd=register data[0]=value to write)
             if (sb.ess_extended_mode)
-                ESS_DoWrite(sb.dsp.cmd,sb.dsp.in.data[0]);
+                sb.ESS_DoWrite(sb.dsp.cmd,sb.dsp.in.data[0]);
         }
         else if (sb.dsp.cmd == 0xC0) { // read ESS register   (data[0]=register to read)
             sb.DSP_FlushData();
             if (sb.ess_extended_mode && sb.dsp.in.data[0] >= 0xA0 && sb.dsp.in.data[0] <= 0xBF)
-                sb.DSP_AddData(ESS_DoRead(sb.dsp.in.data[0]));
+                sb.DSP_AddData(sb.ESS_DoRead(sb.dsp.in.data[0]));
         }
         else if (sb.dsp.cmd == 0xC6 || sb.dsp.cmd == 0xC7) { // set(0xC6) clear(0xC7) extended mode
             sb.ess_extended_mode = (sb.dsp.cmd == 0xC6);
@@ -1882,10 +1882,10 @@ static void DSP_DoCommand(void) {
 
                         // log it, write it
                         LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb.sb16asp_ram_contents_index,sb.dsp.in.data[1]);
-                        sb16asp_write_current_RAM_byte(sb.dsp.in.data[1]);
+                        sb.sb16asp_write_current_RAM_byte(sb.dsp.in.data[1]);
 
                         if (sb.ASP_mode & 2) // if bit 1 of the mode is set, memory index increment on write
-                            sb16asp_next_RAM_byte();
+                            sb.sb16asp_next_RAM_byte();
                     }
                     else {
                         // unknown. nothing, I assume?
@@ -1914,11 +1914,11 @@ static void DSP_DoCommand(void) {
                         sb.sb16asp_ram_contents_index = 0;
 
                     // log it, read it
-                    sb.ASP_regs[0x83] = sb16asp_read_current_RAM_byte();
+                    sb.ASP_regs[0x83] = sb.sb16asp_read_current_RAM_byte();
                     LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb.sb16asp_ram_contents_index,sb.ASP_regs[0x83]);
 
                     if (sb.ASP_mode & 1) // if bit 0 of the mode is set, memory index increment on read
-                        sb16asp_next_RAM_byte();
+                        sb.sb16asp_next_RAM_byte();
                 }
                 else {
                     // chip version ID
