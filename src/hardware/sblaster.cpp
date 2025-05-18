@@ -519,100 +519,100 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 #define MAX_ADAPTIVE_STEP_SIZE 32767
 #define DC_OFFSET_FADE 254
 
+static const int8_t scaleMap_ADPCM4[64] = {
+	0,  1,  2,  3,  4,  5,  6,  7,  0,  -1,  -2,  -3,  -4,  -5,  -6,  -7,
+	1,  3,  5,  7,  9, 11, 13, 15, -1,  -3,  -5,  -7,  -9, -11, -13, -15,
+	2,  6, 10, 14, 18, 22, 26, 30, -2,  -6, -10, -14, -18, -22, -26, -30,
+	4, 12, 20, 28, 36, 44, 52, 60, -4, -12, -20, -28, -36, -44, -52, -60
+};
+static const uint8_t adjustMap_ADPCM4[64] = {
+	  0, 0, 0, 0, 0, 16, 16, 16,
+	  0, 0, 0, 0, 0, 16, 16, 16,
+	240, 0, 0, 0, 0, 16, 16, 16,
+	240, 0, 0, 0, 0, 16, 16, 16,
+	240, 0, 0, 0, 0, 16, 16, 16,
+	240, 0, 0, 0, 0, 16, 16, 16,
+	240, 0, 0, 0, 0,  0,  0,  0,
+	240, 0, 0, 0, 0,  0,  0,  0
+};
+
+static const int8_t scaleMap_ADPCM3[40] = {
+	0,  1,  2,  3,  0,  -1,  -2,  -3,
+	1,  3,  5,  7, -1,  -3,  -5,  -7,
+	2,  6, 10, 14, -2,  -6, -10, -14,
+	4, 12, 20, 28, -4, -12, -20, -28,
+	5, 15, 25, 35, -5, -15, -25, -35
+};
+static const uint8_t adjustMap_ADPCM3[40] = {
+	  0, 0, 0, 8,   0, 0, 0, 8,
+	248, 0, 0, 8, 248, 0, 0, 8,
+	248, 0, 0, 8, 248, 0, 0, 8,
+	248, 0, 0, 8, 248, 0, 0, 8,
+	248, 0, 0, 0, 248, 0, 0, 0
+};
+
+static const int8_t scaleMap_ADPCM2[24] = {
+	0,  1,  0,  -1,  1,  3,  -1,  -3,
+	2,  6, -2,  -6,  4, 12,  -4, -12,
+	8, 24, -8, -24, 16, 48, -16, -48
+};
+static const uint8_t adjustMap_ADPCM2[24] = {
+	  0, 4,   0, 4,
+	252, 4, 252, 4, 252, 4, 252, 4,
+	252, 4, 252, 4, 252, 4, 252, 4,
+	252, 0, 252, 0
+};
+
 static INLINE uint8_t decode_ADPCM_4_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
-    static const int8_t scaleMap[64] = {
-        0,  1,  2,  3,  4,  5,  6,  7,  0,  -1,  -2,  -3,  -4,  -5,  -6,  -7,
-        1,  3,  5,  7,  9, 11, 13, 15, -1,  -3,  -5,  -7,  -9, -11, -13, -15,
-        2,  6, 10, 14, 18, 22, 26, 30, -2,  -6, -10, -14, -18, -22, -26, -30,
-        4, 12, 20, 28, 36, 44, 52, 60, -4, -12, -20, -28, -36, -44, -52, -60
-    };
-    static const uint8_t adjustMap[64] = {
-          0, 0, 0, 0, 0, 16, 16, 16,
-          0, 0, 0, 0, 0, 16, 16, 16,
-        240, 0, 0, 0, 0, 16, 16, 16,
-        240, 0, 0, 0, 0, 16, 16, 16,
-        240, 0, 0, 0, 0, 16, 16, 16,
-        240, 0, 0, 0, 0, 16, 16, 16,
-        240, 0, 0, 0, 0,  0,  0,  0,
-        240, 0, 0, 0, 0,  0,  0,  0
-    };
+	Bits samp = sample + scale;
 
-    Bits samp = sample + scale;
+	if ((samp < 0) || (samp > 63)) {
+		LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-4 sample");
+		if(samp < 0 ) samp =  0;
+		if(samp > 63) samp = 63;
+	}
 
-    if ((samp < 0) || (samp > 63)) {
-        LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-4 sample");
-        if(samp < 0 ) samp =  0;
-        if(samp > 63) samp = 63;
-    }
+	Bits ref = reference + scaleMap_ADPCM4[samp];
+	if (ref > 0xff) reference = 0xff;
+	else if (ref < 0x00) reference = 0x00;
+	else reference = (uint8_t)(ref&0xff);
+	scale = (scale + adjustMap_ADPCM4[samp]) & 0xff;
 
-    Bits ref = reference + scaleMap[samp];
-    if (ref > 0xff) reference = 0xff;
-    else if (ref < 0x00) reference = 0x00;
-    else reference = (uint8_t)(ref&0xff);
-    scale = (scale + adjustMap[samp]) & 0xff;
-
-    return reference;
+	return reference;
 }
 
 static INLINE uint8_t decode_ADPCM_2_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
-    static const int8_t scaleMap[24] = {
-        0,  1,  0,  -1,  1,  3,  -1,  -3,
-        2,  6, -2,  -6,  4, 12,  -4, -12,
-        8, 24, -8, -24, 16, 48, -16, -48
-    };
-    static const uint8_t adjustMap[24] = {
-          0, 4,   0, 4,
-        252, 4, 252, 4, 252, 4, 252, 4,
-        252, 4, 252, 4, 252, 4, 252, 4,
-        252, 0, 252, 0
-    };
+	Bits samp = sample + scale;
+	if ((samp < 0) || (samp > 23)) {
+		LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-2 sample");
+		if(samp < 0 ) samp =  0;
+		if(samp > 23) samp = 23;
+	}
 
-    Bits samp = sample + scale;
-    if ((samp < 0) || (samp > 23)) {
-        LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-2 sample");
-        if(samp < 0 ) samp =  0;
-        if(samp > 23) samp = 23;
-    }
+	Bits ref = reference + scaleMap_ADPCM2[samp];
+	if (ref > 0xff) reference = 0xff;
+	else if (ref < 0x00) reference = 0x00;
+	else reference = (uint8_t)(ref&0xff);
+	scale = (scale + adjustMap_ADPCM2[samp]) & 0xff;
 
-    Bits ref = reference + scaleMap[samp];
-    if (ref > 0xff) reference = 0xff;
-    else if (ref < 0x00) reference = 0x00;
-    else reference = (uint8_t)(ref&0xff);
-    scale = (scale + adjustMap[samp]) & 0xff;
-
-    return reference;
+	return reference;
 }
 
 INLINE uint8_t decode_ADPCM_3_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
-    static const int8_t scaleMap[40] = {
-        0,  1,  2,  3,  0,  -1,  -2,  -3,
-        1,  3,  5,  7, -1,  -3,  -5,  -7,
-        2,  6, 10, 14, -2,  -6, -10, -14,
-        4, 12, 20, 28, -4, -12, -20, -28,
-        5, 15, 25, 35, -5, -15, -25, -35
-    };
-    static const uint8_t adjustMap[40] = {
-          0, 0, 0, 8,   0, 0, 0, 8,
-        248, 0, 0, 8, 248, 0, 0, 8,
-        248, 0, 0, 8, 248, 0, 0, 8,
-        248, 0, 0, 8, 248, 0, 0, 8,
-        248, 0, 0, 0, 248, 0, 0, 0
-    };
+	Bits samp = sample + scale;
+	if ((samp < 0) || (samp > 39)) {
+		LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-3 sample");
+		if(samp < 0 ) samp =  0;
+		if(samp > 39) samp = 39;
+	}
 
-    Bits samp = sample + scale;
-    if ((samp < 0) || (samp > 39)) {
-        LOG(LOG_SB,LOG_ERROR)("Bad ADPCM-3 sample");
-        if(samp < 0 ) samp =  0;
-        if(samp > 39) samp = 39;
-    }
+	Bits ref = reference + scaleMap_ADPCM3[samp];
+	if (ref > 0xff) reference = 0xff;
+	else if (ref < 0x00) reference = 0x00;
+	else reference = (uint8_t)(ref&0xff);
+	scale = (scale + adjustMap_ADPCM3[samp]) & 0xff;
 
-    Bits ref = reference + scaleMap[samp];
-    if (ref > 0xff) reference = 0xff;
-    else if (ref < 0x00) reference = 0x00;
-    else reference = (uint8_t)(ref&0xff);
-    scale = (scale + adjustMap[samp]) & 0xff;
-
-    return reference;
+	return reference;
 }
 
 void SB_OnEndOfDMA(void) {
