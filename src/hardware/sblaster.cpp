@@ -609,6 +609,26 @@ struct SB_INFO {
 		}
 	}
 
+	/* these are settings that the user would probably like to change on the fly during emulation */
+	void sb_update_recording_source_settings() {
+		Section_prop* section = static_cast<Section_prop *>(control->GetSection("sblaster"));
+
+		listen_to_recording_source=section->Get_bool("listen to recording source");
+
+		{
+			const char *s = section->Get_string("recording source");
+
+			if (!strcmp(s,"silence"))
+				recording_source = REC_SILENCE;
+			else if (!strcmp(s,"hiss"))
+				recording_source = REC_HISS;
+			else if (!strcmp(s,"1khz tone"))
+				recording_source = REC_1KHZ_TONE;
+			else
+				recording_source = REC_SILENCE;
+		}
+	}
+
 };
 
 static SB_INFO sb;
@@ -620,25 +640,9 @@ static SB_INFO sb;
 #define min(a,b) ((a)<(b)?(a):(b))
 #endif
 
-/* these are settings that the user would probably like to change on the fly during emulation */
-void sb_update_recording_source_settings() {
-	Section_prop* section = static_cast<Section_prop *>(control->GetSection("sblaster"));
-
-	sb.listen_to_recording_source=section->Get_bool("listen to recording source");
-
-	{
-		const char *s = section->Get_string("recording source");
-
-		if (!strcmp(s,"silence"))
-			sb.recording_source = REC_SILENCE;
-		else if (!strcmp(s,"hiss"))
-			sb.recording_source = REC_HISS;
-		else if (!strcmp(s,"1khz tone"))
-			sb.recording_source = REC_1KHZ_TONE;
-		else
-			sb.recording_source = REC_SILENCE;
-	}
-}
+#define MIN_ADAPTIVE_STEP_SIZE 0
+#define MAX_ADAPTIVE_STEP_SIZE 32767
+#define DC_OFFSET_FADE 254
 
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 	if (chan!=sb.dma.chan || event==DMA_REACHED_TC) return;
@@ -675,10 +679,6 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 		}
 	}
 }
-
-#define MIN_ADAPTIVE_STEP_SIZE 0
-#define MAX_ADAPTIVE_STEP_SIZE 32767
-#define DC_OFFSET_FADE 254
 
 static INLINE uint8_t decode_ADPCM_4_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
 	Bits samp = sample + scale;
@@ -3343,7 +3343,7 @@ static void SBLASTER_CallBack(Bitu len) {
 
     if (now >= sb.next_check_record_settings) {
         sb.next_check_record_settings = now + 100/*ms*/;
-        sb_update_recording_source_settings();
+        sb.sb_update_recording_source_settings();
     }
 
     sb.directdac_warn_speaker_off = true;
@@ -3830,7 +3830,7 @@ public:
                 sb.hw.base = 0x200 + ((sb.hw.base & 0xFu) << 4u);
         }
 
-        sb_update_recording_source_settings();
+        sb.sb_update_recording_source_settings();
 
         sb.ASP_mode = 0x00;
         sb.goldplay=section->Get_bool("goldplay");
