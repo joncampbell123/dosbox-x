@@ -1214,6 +1214,62 @@ struct SB_INFO {
 		DSP_DoDMATransfer(mode,freq / (mixer.stereo ? 2 : 1),mixer.stereo);
 	}
 
+	void DSP_PrepareDMA_New(DMA_MODES new_mode,Bitu length,bool autoinit,bool stereo) {
+		if (dma.force_autoinit)
+			autoinit = true;
+
+		/* apparently SB16 hardware allows 0xBx-0xCx 4.xx DSP commands to interrupt
+		 * a previous SB16 playback command, DSP "nag" style. The difference is that
+		 * if you do that you risk exploiting DMA and timing glitches in the chip that
+		 * can cause funny things to happen, like causing 16-bit PCM to stop, or causing
+		 * 8-bit stereo PCM to swap left/right channels because the host is using auto-init
+		 * DMA and you interrupted the DSP chip when it fetched the L channel before it
+		 * had a chance to latch it and begin loading the R channel. */
+		if (mode == MODE_DMA) {
+			if (!autoinit) dma.total=length;
+			dma.left=dma.total;
+			dma.autoinit=autoinit;
+			return;
+		}
+
+		dsp.highspeed = false;
+		freq = DSP_RateLimitedFinalSB16Freq_New(freq);
+		timeconst = (65536 - (256000000 / freq)) >> 8;
+		freq_derived_from_tc = false;
+
+		const Bitu saved_freq=freq;
+		//equal length if data format and dma channel are both 16-bit or 8-bit
+		dma_dac_mode=0;
+		dma.total=length;
+		dma.autoinit=autoinit;
+		ess_playback_mode = false;
+		if (new_mode==DSP_DMA_16) {
+			if (hw.dma16 == 0xff || hw.dma16 == hw.dma8) { /* 16-bit DMA not assigned or same as 8-bit channel */
+				dma.chan=GetDMAChannel(hw.dma8);
+				new_mode=DSP_DMA_16_ALIASED;
+				//UNDOCUMENTED:
+				//In aliased mode sample length is written to DSP as number of
+				//16-bit samples so we need double 8-bit DMA buffer length
+				dma.total<<=1;
+			}
+			else if (hw.dma16 >= 4) { /* 16-bit DMA assigned to 16-bit DMA channel */
+				dma.chan=GetDMAChannel(hw.dma16);
+			}
+			else {
+				/* Nope. According to one ViBRA PnP card I have on hand, asking the
+				 * card to do 16-bit DMA over 8-bit DMA only works if they are the
+				 * same channel, otherwise, the card doesn't seem to carry out any
+				 * DMA fetching. */
+				dma.chan=NULL;
+				return;
+			}
+		} else {
+			dma.chan=GetDMAChannel(hw.dma8);
+		}
+
+		DSP_DoDMATransfer(new_mode,saved_freq,stereo);
+	}
+
 };
 
 static SB_INFO sb;
@@ -1391,62 +1447,6 @@ static void END_DMA_Event(Bitu val) {
 
 static void DSP_RaiseIRQEvent(Bitu /*val*/) {
 	sb.SB_RaiseIRQ(SB_IRQ_8);
-}
-
-static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool stereo) {
-	if (sb.dma.force_autoinit)
-		autoinit = true;
-
-	/* apparently SB16 hardware allows 0xBx-0xCx 4.xx DSP commands to interrupt
-	 * a previous SB16 playback command, DSP "nag" style. The difference is that
-	 * if you do that you risk exploiting DMA and timing glitches in the chip that
-	 * can cause funny things to happen, like causing 16-bit PCM to stop, or causing
-	 * 8-bit stereo PCM to swap left/right channels because the host is using auto-init
-	 * DMA and you interrupted the DSP chip when it fetched the L channel before it
-	 * had a chance to latch it and begin loading the R channel. */
-	if (sb.mode == MODE_DMA) {
-		if (!autoinit) sb.dma.total=length;
-		sb.dma.left=sb.dma.total;
-		sb.dma.autoinit=autoinit;
-		return;
-	}
-
-	sb.dsp.highspeed = false;
-	sb.freq = sb.DSP_RateLimitedFinalSB16Freq_New(sb.freq);
-	sb.timeconst = (65536 - (256000000 / sb.freq)) >> 8;
-	sb.freq_derived_from_tc = false;
-
-	Bitu freq=sb.freq;
-	//equal length if data format and dma channel are both 16-bit or 8-bit
-	sb.dma_dac_mode=0;
-	sb.dma.total=length;
-	sb.dma.autoinit=autoinit;
-	sb.ess_playback_mode = false;
-	if (mode==DSP_DMA_16) {
-		if (sb.hw.dma16 == 0xff || sb.hw.dma16 == sb.hw.dma8) { /* 16-bit DMA not assigned or same as 8-bit channel */
-			sb.dma.chan=GetDMAChannel(sb.hw.dma8);
-			mode=DSP_DMA_16_ALIASED;
-			//UNDOCUMENTED:
-			//In aliased mode sample length is written to DSP as number of
-			//16-bit samples so we need double 8-bit DMA buffer length
-			sb.dma.total<<=1;
-		}
-		else if (sb.hw.dma16 >= 4) { /* 16-bit DMA assigned to 16-bit DMA channel */
-			sb.dma.chan=GetDMAChannel(sb.hw.dma16);
-		}
-		else {
-			/* Nope. According to one ViBRA PnP card I have on hand, asking the
-			 * card to do 16-bit DMA over 8-bit DMA only works if they are the
-			 * same channel, otherwise, the card doesn't seem to carry out any
-			 * DMA fetching. */
-			sb.dma.chan=NULL;
-			return;
-		}
-	} else {
-		sb.dma.chan=GetDMAChannel(sb.hw.dma8);
-	}
-
-	sb.DSP_DoDMATransfer(mode,freq,stereo);
 }
 
 static void DSP_BusyComplete(Bitu /*val*/) {
@@ -2171,7 +2171,7 @@ static void DSP_DoCommand(void) {
 //      DSP_SetSpeaker(true);       //SB16 always has speaker enabled
         sb.dma.sign=(sb.dsp.in.data[0] & 0x10) > 0;
         sb.dma.recording=(sb.dsp.cmd & 0x8) > 0;
-        DSP_PrepareDMA_New((sb.dsp.cmd & 0x10) ? DSP_DMA_16 : DSP_DMA_8,
+        sb.DSP_PrepareDMA_New((sb.dsp.cmd & 0x10) ? DSP_DMA_16 : DSP_DMA_8,
             1u+(unsigned int)sb.dsp.in.data[1]+((unsigned int)sb.dsp.in.data[2] << 8u),
             (sb.dsp.cmd & 0x4)>0,
             (sb.dsp.in.data[0] & 0x20) > 0
