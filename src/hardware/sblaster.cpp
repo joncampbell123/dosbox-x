@@ -288,6 +288,13 @@ static const uint8_t adjustMap_ADPCM2[24] = {
 	252, 0, 252, 0
 };
 
+static void DSP_ChangeMode(DSP_MODES mode);
+static void CheckDMAEnd();
+static void DMA_DAC_Event(Bitu);
+static void END_DMA_Event(Bitu);
+static void DMA_Silent_Event(Bitu val);
+static void GenerateDMASound(Bitu size);
+
 struct SB_INFO {
 	Bitu freq;
 	uint8_t timeconst;
@@ -541,6 +548,26 @@ struct SB_INFO {
 				abort();
 		}
 	}
+
+	void DSP_SetSpeaker(bool how) {
+		if (speaker==how) return;
+		speaker=how;
+		if (type==SBT_16) return;
+		if (ess_type!=ESS_NONE) return;
+		chan->Enable(how);
+		if (speaker) {
+			PIC_RemoveEvents(DMA_Silent_Event);
+			CheckDMAEnd();
+		} else {
+			;
+		}
+	}
+
+	INLINE void DSP_FlushData(void) {
+		dsp.out.used=0;
+		dsp.out.pos=0;
+	}
+
 };
 
 static SB_INFO sb;
@@ -551,27 +578,6 @@ static SB_INFO sb;
 #ifndef min
 #define min(a,b) ((a)<(b)?(a):(b))
 #endif
-
-static void DSP_ChangeMode(DSP_MODES mode);
-static void CheckDMAEnd();
-static void DMA_DAC_Event(Bitu);
-static void END_DMA_Event(Bitu);
-static void DMA_Silent_Event(Bitu val);
-static void GenerateDMASound(Bitu size);
-
-static void DSP_SetSpeaker(bool how) {
-	if (sb.speaker==how) return;
-	sb.speaker=how;
-	if (sb.type==SBT_16) return;
-	if (sb.ess_type!=ESS_NONE) return;
-	sb.chan->Enable(how);
-	if (sb.speaker) {
-		PIC_RemoveEvents(DMA_Silent_Event);
-		CheckDMAEnd();
-	} else {
-		;
-	}
-}
 
 /* NTS: Using some old Creative Sound Blaster 16 ViBRA PnP cards as reference,
  *      the card will send IRQ 9 if the IRQ is configured to either "2" or "9".
@@ -612,11 +618,6 @@ static INLINE void SB_RaiseIRQ(SB_IRQS type) {
 		default:
 			break;
 	}
-}
-
-static INLINE void DSP_FlushData(void) {
-	sb.dsp.out.used=0;
-	sb.dsp.out.pos=0;
 }
 
 /* these are settings that the user would probably like to change on the fly during emulation */
@@ -1446,7 +1447,7 @@ static void DSP_BusyComplete(Bitu /*val*/) {
 }
 
 static void DSP_FinishReset(Bitu /*val*/) {
-	DSP_FlushData();
+	sb.DSP_FlushData();
 	DSP_AddData(0xaa);
 	sb.dsp.state=DSP_S_NORMAL;
 }
@@ -1456,7 +1457,7 @@ static void DSP_Reset(void) {
 	PIC_DeActivateIRQ(sb.hw.irq);
 
 	DSP_ChangeMode(MODE_NONE);
-	DSP_FlushData();
+	sb.DSP_FlushData();
 	sb.dsp.cmd=DSP_NO_COMMAND;
 	sb.dsp.cmd_len=0;
 	sb.dsp.in.pos=0;
@@ -1787,7 +1788,7 @@ static void DSP_DoCommand(void) {
                 ESS_DoWrite(sb.dsp.cmd,sb.dsp.in.data[0]);
         }
         else if (sb.dsp.cmd == 0xC0) { // read ESS register   (data[0]=register to read)
-            DSP_FlushData();
+            sb.DSP_FlushData();
             if (sb.ess_extended_mode && sb.dsp.in.data[0] >= 0xA0 && sb.dsp.in.data[0] <= 0xBF)
                 DSP_AddData(ESS_DoRead(sb.dsp.in.data[0]));
         }
@@ -1833,7 +1834,7 @@ static void DSP_DoCommand(void) {
             LOG(LOG_SB,LOG_DEBUG)("SB16ASP set mode register to %X",sb.dsp.in.data[0]);
         } else {
             /* DSP Status SB 2.0/pro version. NOT SB16. */
-            DSP_FlushData();
+            sb.DSP_FlushData();
             if (sb.type == SBT_2) DSP_AddData(0x88);
             else if ((sb.type == SBT_PRO1) || (sb.type == SBT_PRO2)) DSP_AddData(0x7b);
             else DSP_AddData(0xff);         //Everything enabled
@@ -2184,11 +2185,11 @@ static void DSP_DoCommand(void) {
         break;
     case 0xd1:  /* Enable Speaker */
         sb.chan->FillUp();
-        DSP_SetSpeaker(true);
+        sb.DSP_SetSpeaker(true);
         break;
     case 0xd3:  /* Disable Speaker */
         sb.chan->FillUp();
-        DSP_SetSpeaker(false);
+        sb.DSP_SetSpeaker(false);
 
         /* There are demoscene productions that reinitialize sound between parts.
          * But instead of stopping playback, then starting it again, the demo leaves
@@ -2210,7 +2211,7 @@ static void DSP_DoCommand(void) {
         break;
     case 0xd8:  /* Speaker status */
         DSP_SB2_ABOVE;
-        DSP_FlushData();
+        sb.DSP_FlushData();
         if (sb.speaker) DSP_AddData(0xff);
         else DSP_AddData(0x00);
         break;
@@ -2238,11 +2239,11 @@ static void DSP_DoCommand(void) {
         sb.chan->FillUp();
         break;
     case 0xe0:  /* DSP Identification - SB2.0+ */
-        DSP_FlushData();
+        sb.DSP_FlushData();
         DSP_AddData(~sb.dsp.in.data[0]);
         break;
     case 0xe1:  /* Get DSP Version */
-        DSP_FlushData();
+        sb.DSP_FlushData();
         switch (sb.type) {
         case SBT_1:
             if (sb.subtype == SBST_100) { DSP_AddData(0x1);DSP_AddData(0x0); }
@@ -2289,7 +2290,7 @@ static void DSP_DoCommand(void) {
         break;
     case 0xe3:  /* DSP Copyright */
         {
-            DSP_FlushData();
+            sb.DSP_FlushData();
             if (sb.ess_type != ESS_NONE) {
                 /* ESS chips do not return copyright string */
                 DSP_AddData(0);
@@ -2321,7 +2322,7 @@ static void DSP_DoCommand(void) {
         break;
     case 0xe7:  /* ESS detect/read config */
         if (sb.ess_type != ESS_NONE) {
-            DSP_FlushData();
+            sb.DSP_FlushData();
             switch (sb.ess_type) {
             case ESS_NONE:
                 break;
@@ -2338,7 +2339,7 @@ static void DSP_DoCommand(void) {
         }
         break;
     case 0xe8:  /* Read Test Register */
-        DSP_FlushData();
+        sb.DSP_FlushData();
         DSP_AddData(sb.dsp.test_register);
         break;
     case 0xf2:  /* Trigger 8bit IRQ */
@@ -2356,7 +2357,7 @@ static void DSP_DoCommand(void) {
         SB_RaiseIRQ(SB_IRQ_16);
         break;
     case 0xf8:  /* Undocumented, pre-SB16 only */
-        DSP_FlushData();
+        sb.DSP_FlushData();
         DSP_AddData(0);
         break;
     case 0x30: case 0x31: case 0x32: case 0x33:
@@ -4071,7 +4072,7 @@ public:
         else sb.chan->Enable(false);
 
         if (sb.def_enable_speaker)
-            DSP_SetSpeaker(true);
+            sb.DSP_SetSpeaker(true);
 
         s=section->Get_string("dsp require interrupt acknowledge");
         if (s == "true" || s == "1" || s == "on")
