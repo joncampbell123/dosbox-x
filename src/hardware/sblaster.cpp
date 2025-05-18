@@ -273,6 +273,8 @@ struct SB_INFO {
     double last_dma_callback = 0.0f;
     unsigned int recording_source = REC_SILENCE;
     bool listen_to_recording_source = false;
+    uint8_t ASP_regs[256];
+    uint8_t ASP_mode = 0x00;
     MixerChannel * chan;
 };
 
@@ -382,9 +384,6 @@ static unsigned char &ESSreg(uint8_t reg) {
     assert(reg >= 0xA0 && reg <= 0xBF);
     return ESSregs[reg-0xA0];
 }
-
-static uint8_t ASP_regs[256];
-static uint8_t ASP_mode = 0x00;
 
 #ifndef max
 #define max(a,b) ((a)>(b)?(a):(b))
@@ -1825,14 +1824,14 @@ static void DSP_DoCommand(void) {
     case 0x04:
         if (sb.type == SBT_16) {
             /* SB16 ASP set mode register */
-            ASP_mode = sb.dsp.in.data[0];
+            sb.ASP_mode = sb.dsp.in.data[0];
 
             // bit 7: if set, enables bit 3 and memory access.
             // bit 3: if set, and bit 7 is set, register 0x83 can be used to read/write ASP internal memory. if clear, register 0x83 contains chip version ID
             // bit 2: if set, memory index is reset to 0. doesn't matter if memory access or not.
             // bit 1: if set, writing register 0x83 increments memory index. doesn't matter if memory access or not.
             // bit 0: if set, reading register 0x83 increments memory index. doesn't matter if memory access or not.
-            if (ASP_mode&4)
+            if (sb.ASP_mode&4)
                 sb16asp_ram_contents_index = 0;
 
             LOG(LOG_SB,LOG_DEBUG)("SB16ASP set mode register to %X",sb.dsp.in.data[0]);
@@ -1870,19 +1869,19 @@ static void DSP_DoCommand(void) {
     case 0x0e:  /* SB16 ASP set register */
         if (sb.type == SBT_16) {
             if (sb.enable_asp) {
-                ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
+                sb.ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
 
                 if (sb.dsp.in.data[0] == 0x83) {
-                    if ((ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
+                    if ((sb.ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
                         // memory access mode
-                        if (ASP_mode & 4) // NTS: As far as I can tell...
+                        if (sb.ASP_mode & 4) // NTS: As far as I can tell...
                             sb16asp_ram_contents_index = 0;
 
                         // log it, write it
                         LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
                         sb16asp_write_current_RAM_byte(sb.dsp.in.data[1]);
 
-                        if (ASP_mode & 2) // if bit 1 of the mode is set, memory index increment on write
+                        if (sb.ASP_mode & 2) // if bit 1 of the mode is set, memory index increment on write
                             sb16asp_next_RAM_byte();
                     }
                     else {
@@ -1906,28 +1905,28 @@ static void DSP_DoCommand(void) {
             // FIXME: We have to emulate this whether or not ASP emulation is enabled. Windows 98 SB16 driver requires this.
             //        The question is: What does actual hardware do here exactly?
             if (sb.enable_asp && sb.dsp.in.data[0] == 0x83) {
-                if ((ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
+                if ((sb.ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
                     // memory access mode
-                    if (ASP_mode & 4) // NTS: As far as I can tell...
+                    if (sb.ASP_mode & 4) // NTS: As far as I can tell...
                         sb16asp_ram_contents_index = 0;
 
                     // log it, read it
-                    ASP_regs[0x83] = sb16asp_read_current_RAM_byte();
-                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb16asp_ram_contents_index,ASP_regs[0x83]);
+                    sb.ASP_regs[0x83] = sb16asp_read_current_RAM_byte();
+                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb16asp_ram_contents_index,sb.ASP_regs[0x83]);
 
-                    if (ASP_mode & 1) // if bit 0 of the mode is set, memory index increment on read
+                    if (sb.ASP_mode & 1) // if bit 0 of the mode is set, memory index increment on read
                         sb16asp_next_RAM_byte();
                 }
                 else {
                     // chip version ID
-                    ASP_regs[0x83] = 0x10;
+                    sb.ASP_regs[0x83] = 0x10;
                 }
             }
             else {
-                LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],ASP_regs[sb.dsp.in.data[0]]);
+                LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],sb.ASP_regs[sb.dsp.in.data[0]]);
             }
 
-            DSP_AddData(ASP_regs[sb.dsp.in.data[0]]);
+            DSP_AddData(sb.ASP_regs[sb.dsp.in.data[0]]);
         } else {
             LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (get register)",sb.dsp.cmd);
         }
@@ -3840,6 +3839,7 @@ public:
 
         sb_update_recording_source_settings();
 
+        sb.ASP_mode = 0x00;
         sb.goldplay=section->Get_bool("goldplay");
         sb.min_dma_user=section->Get_int("mindma");
         sb.goldplay_stereo=section->Get_bool("goldplay stereo");
@@ -4062,11 +4062,11 @@ public:
         //      according to real SB16 CSP/ASP hardware (chip version id 0x10).
         //
         //      Registers 0x00-0x1F are defined. Registers 0x80-0x83 are defined.
-        for (i=0;i<256;i++) ASP_regs[i] = i;
-        for (i=0x00;i < 0x20;i++) ASP_regs[i] = 0;
-        for (i=0x80;i < 0x84;i++) ASP_regs[i] = 0;
-        ASP_regs[5] = 0x01;
-        ASP_regs[9] = 0xf8;
+        for (i=0;i<256;i++) sb.ASP_regs[i] = i;
+        for (i=0x00;i < 0x20;i++) sb.ASP_regs[i] = 0;
+        for (i=0x80;i < 0x84;i++) sb.ASP_regs[i] = 0;
+        sb.ASP_regs[5] = 0x01;
+        sb.ASP_regs[9] = 0xf8;
 
         DSP_Reset();
         CTMIXER_Reset();
@@ -4421,9 +4421,6 @@ void POD_Save_Sblaster( std::ostream& stream )
 	// - near-pure data
 	WRITE_POD( &sb, sb );
 
-	// - pure data
-	WRITE_POD( &ASP_regs, ASP_regs );
-
 	// - reloc ptr
 	WRITE_POD( &dma_idx, dma_idx );
 
@@ -4468,9 +4465,6 @@ void POD_Load_Sblaster( std::istream& stream )
 
 	// - near-pure data
 	READ_POD( &sb, sb );
-
-	// - pure data
-	READ_POD( &ASP_regs, ASP_regs );
 
 	// - reloc ptr
 	READ_POD( &dma_idx, dma_idx );
