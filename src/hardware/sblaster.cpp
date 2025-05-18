@@ -568,6 +568,47 @@ struct SB_INFO {
 		dsp.out.pos=0;
 	}
 
+	/* NTS: Using some old Creative Sound Blaster 16 ViBRA PnP cards as reference,
+	 *      the card will send IRQ 9 if the IRQ is configured to either "2" or "9".
+	 *      Whichever value is written will be read back. The reason for this has
+	 *      to do with the pin on the ISA bus connector that used to signal IRQ 2
+	 *      on PC/XT hardware, but was wired to fire IRQ 9 instead on PC/AT hardware
+	 *      because of the IRQ 8-15 -> IRQ 2 cascade on AT hardware.
+	 *
+	 *      There's not much to change here, because PIC_ActivateIRQ was modified
+	 *      to remap IRQ 2 -> IRQ 9 for us *if* emulating AT hardware.
+	 *
+	 *      --Jonathan C. */
+	INLINE void SB_RaiseIRQ(SB_IRQS type) {
+		LOG(LOG_SB,LOG_NORMAL)("Raising IRQ");
+
+		if (ess_playback_mode) {
+			if (!(ESSreg(0xB1) & 0x40)) // if ESS playback, and IRQ disabled, do not fire
+				return;
+		}
+
+		switch (type) {
+			case SB_IRQ_8:
+				if (irq.pending_8bit) {
+					//          LOG_MSG("SB: 8bit irq pending");
+					return;
+				}
+				irq.pending_8bit=true;
+				PIC_ActivateIRQ(hw.irq);
+				break;
+			case SB_IRQ_16:
+				if (irq.pending_16bit) {
+					//          LOG_MSG("SB: 16bit irq pending");
+					return;
+				}
+				irq.pending_16bit=true;
+				PIC_ActivateIRQ(hw.irq);
+				break;
+			default:
+				break;
+		}
+	}
+
 };
 
 static SB_INFO sb;
@@ -578,47 +619,6 @@ static SB_INFO sb;
 #ifndef min
 #define min(a,b) ((a)<(b)?(a):(b))
 #endif
-
-/* NTS: Using some old Creative Sound Blaster 16 ViBRA PnP cards as reference,
- *      the card will send IRQ 9 if the IRQ is configured to either "2" or "9".
- *      Whichever value is written will be read back. The reason for this has
- *      to do with the pin on the ISA bus connector that used to signal IRQ 2
- *      on PC/XT hardware, but was wired to fire IRQ 9 instead on PC/AT hardware
- *      because of the IRQ 8-15 -> IRQ 2 cascade on AT hardware.
- *
- *      There's not much to change here, because PIC_ActivateIRQ was modified
- *      to remap IRQ 2 -> IRQ 9 for us *if* emulating AT hardware.
- *
- *      --Jonathan C. */
-static INLINE void SB_RaiseIRQ(SB_IRQS type) {
-	LOG(LOG_SB,LOG_NORMAL)("Raising IRQ");
-
-	if (sb.ess_playback_mode) {
-		if (!(sb.ESSreg(0xB1) & 0x40)) // if ESS playback, and IRQ disabled, do not fire
-			return;
-	}
-
-	switch (type) {
-		case SB_IRQ_8:
-			if (sb.irq.pending_8bit) {
-				//          LOG_MSG("SB: 8bit irq pending");
-				return;
-			}
-			sb.irq.pending_8bit=true;
-			PIC_ActivateIRQ(sb.hw.irq);
-			break;
-		case SB_IRQ_16:
-			if (sb.irq.pending_16bit) {
-				//          LOG_MSG("SB: 16bit irq pending");
-				return;
-			}
-			sb.irq.pending_16bit=true;
-			PIC_ActivateIRQ(sb.hw.irq);
-			break;
-		default:
-			break;
-	}
-}
 
 /* these are settings that the user would probably like to change on the fly during emulation */
 void sb_update_recording_source_settings() {
@@ -738,11 +738,11 @@ void SB_OnEndOfDMA(void) {
 	PIC_RemoveEvents(END_DMA_Event);
 	if (sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE && sb.dma.mode >= DSP_DMA_16) {
 		was_irq = sb.irq.pending_16bit;
-		SB_RaiseIRQ(SB_IRQ_16);
+		sb.SB_RaiseIRQ(SB_IRQ_16);
 	}
 	else {
 		was_irq = sb.irq.pending_8bit;
-		SB_RaiseIRQ(SB_IRQ_8);
+		sb.SB_RaiseIRQ(SB_IRQ_8);
 	}
 
 	if (!sb.dma.autoinit) {
@@ -986,8 +986,8 @@ static void DMA_Silent_Event(Bitu val) {
 	Bitu read = sb.dma.recording ? sb.dma.chan->Write(val,sb.dma.buf.b8) : sb.dma.chan->Read(val,sb.dma.buf.b8);
 	sb.dma.left-=read;
 	if (!sb.dma.left) {
-		if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
-		else SB_RaiseIRQ(SB_IRQ_8);
+		if (sb.dma.mode >= DSP_DMA_16) sb.SB_RaiseIRQ(SB_IRQ_16);
+		else sb.SB_RaiseIRQ(SB_IRQ_8);
 		if (sb.dma.autoinit) sb.dma.left=sb.dma.total;
 		else {
 			sb.mode=MODE_NONE;
@@ -1138,7 +1138,7 @@ static void DSP_ChangeMode(DSP_MODES mode) {
 }
 
 static void DSP_RaiseIRQEvent(Bitu /*val*/) {
-	SB_RaiseIRQ(SB_IRQ_8);
+	sb.SB_RaiseIRQ(SB_IRQ_8);
 }
 
 static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInitLeft=false) {
@@ -1536,7 +1536,7 @@ static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 		chan->Write(8,(uint8_t*)string);
 		chan->Clear_Request();
 		if (!chan->tcount) LOG(LOG_SB,LOG_DEBUG)("SC400 warning: DMA did not reach terminal count");
-		SB_RaiseIRQ(SB_IRQ_8);
+		sb.SB_RaiseIRQ(SB_IRQ_8);
 	}
 }
 
@@ -1547,7 +1547,7 @@ static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	while (sb.dma.left--) {
 		ch->Write(1,&val);
 	}
-	SB_RaiseIRQ(SB_IRQ_8);
+	sb.SB_RaiseIRQ(SB_IRQ_8);
 	ch->Register_Callback(nullptr);
 }
 
@@ -2354,7 +2354,7 @@ static void DSP_DoCommand(void) {
         break;
     case 0xf3:   /* Trigger 16bit IRQ */
         DSP_SB16_ONLY;
-        SB_RaiseIRQ(SB_IRQ_16);
+        sb.SB_RaiseIRQ(SB_IRQ_16);
         break;
     case 0xf8:  /* Undocumented, pre-SB16 only */
         sb.DSP_FlushData();
