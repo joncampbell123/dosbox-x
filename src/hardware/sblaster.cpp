@@ -290,6 +290,7 @@ struct SB_INFO {
 	unsigned int sb16asp_ram_contents_index = 0;
 	unsigned char sb16asp_ram_contents[2048];
 	pic_tickindex_t next_check_record_settings = 0;
+	unsigned char pc98_mixctl_reg = 0x14;
 
 	unsigned char &ESSreg(uint8_t reg) {
 		assert(reg >= 0xA0 && reg <= 0xBF);
@@ -2762,8 +2763,6 @@ static inline uint8_t expand16to32(const uint8_t t) {
     return (t << 1) | (t >> 3);
 }
 
-static unsigned char pc98_mixctl_reg = 0x14;
-
 /* Sound Blaster Pro 2 (CT1600) notes:
  *
  * - Registers 0x40-0xFF do nothing written and read back 0xFF.
@@ -2957,7 +2956,7 @@ static void CTMIXER_Write(uint8_t val) {
             sb.hw.dma8=0xff;
             sb.hw.dma16=0xff;
             if (IS_PC98_ARCH) {
-                pc98_mixctl_reg = (unsigned char)val ^ 0x14;
+                sb.pc98_mixctl_reg = (unsigned char)val ^ 0x14;
 
                 if (val & 0x1) sb.hw.dma8=0;
                 else if (val & 0x2) sb.hw.dma8=3;
@@ -3158,7 +3157,7 @@ static uint8_t CTMIXER_Read(void) {
             }
 
             // there's some strange behavior on the PC-98 version of the card
-            ret |= (pc98_mixctl_reg & (~3u));
+            ret |= (sb.pc98_mixctl_reg & (~3u));
         }
         else {
             switch (sb.hw.dma8) {
