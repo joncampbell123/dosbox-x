@@ -302,6 +302,7 @@ static const uint8_t adjustMap_ADPCM2[24] = {
 	252, 0, 252, 0
 };
 
+static void DSP_DoCommand(void);
 static void DMA_DAC_Event(Bitu);
 static void END_DMA_Event(Bitu);
 static void DMA_Silent_Event(Bitu val);
@@ -1557,6 +1558,132 @@ struct SB_INFO {
 			sb16asp_ram_contents_index = 0;
 	}
 
+	bool DSP_busy_cycle_active() {
+		/* NTS: Busy cycle happens on SB16 at all times, or on earlier cards, only when the DSP is
+		 *      fetching/writing data via the ISA DMA channel. So a non-auto-init DSP block that's
+		 *      just finished fetching ISA DMA and is playing from the FIFO doesn't count.
+		 *
+		 *      dma.left >= dma.min condition causes busy cycle to stop 3ms early (by default).
+		 *      This helps realism.
+		 *
+		 *      This also helps Crystal Dream, which uses the busy cycle to detect when the Sound
+		 *      Blaster is about to finish playing the DSP block and therefore needs the same 3ms
+		 *      "dmamin" hack to reissue another playback command without any audible hiccups in
+		 *      the audio. */
+		return (mode == MODE_DMA && (dma.autoinit || dma.left >= dma.min)) || busy_cycle_always;
+	}
+
+	bool DSP_busy_cycle() {
+		double now;
+		int t;
+
+		if (!DSP_busy_cycle_active()) return false;
+		if (busy_cycle_duty_percent <= 0 || busy_cycle_hz <= 0) return false;
+
+		/* NTS: DOSBox's I/O emulation doesn't yet attempt to accurately match ISA bus speeds or
+		 *      consider ISA bus cycles, but to emulate SB16 behavior we have to "time" it so
+		 *      that 8 consecutive I/O reads eventually see a transition from busy to not busy
+		 *      (or the other way around). So what this hack does is it uses accurate timing
+		 *      to determine where in the cycle we are, but if this function is called repeatedly
+		 *      through I/O access, we switch to incrementing a counter to ensure busy/not busy
+		 *      transition happens in 8 I/O cycles.
+		 *
+		 *      Without this hack, the CPU cycles count becomes a major factor in how many I/O
+		 *      reads are required for busy/not busy to happen. If you set cycles count high
+		 *      enough, more than 8 is required, and the SNDSB test code will have issues with
+		 *      direct DAC mode again.
+		 *
+		 *      This isn't 100% accurate, but it's the best DOSBox-X can do for now to mimic
+		 *      SB16 DSP behavior. */
+
+		now = PIC_FullIndex();
+		if (now >= (busy_cycle_last_check+0.02/*ms*/))
+			busy_cycle_io_hack = (int)(fmod((now / 1000) * busy_cycle_hz,1.0) * 16);
+
+		busy_cycle_last_check = now;
+		t = ((busy_cycle_io_hack % 16) * 100) / 16; /* HACK: DOSBox's I/O is not quite ISA bus speeds or related to it */
+		if (t < busy_cycle_duty_percent) return true;
+		return false;
+	}
+
+	void DSP_DoWrite(uint8_t val) {
+		if (dsp.write_busy || (dsp.highspeed && type != SBT_16 && ess_type == ESS_NONE && reveal_sc_type == RSC_NONE)) {
+			LOG(LOG_SB,LOG_WARN)("DSP:Command write %2X ignored, DSP not ready. DOS game or OS is not polling status",val);
+			return;
+		}
+
+		/* NTS: We allow the user to set busy wait time == 0 aka "instant gratification mode".
+		 *      We also assume that if they do that, some DOS programs might be timing sensitive
+		 *      enough to freak out when DSP commands and data are accepted immediately */
+		{
+			unsigned int delay = dsp.dsp_write_busy_time;
+
+			if (dsp.instant_direct_dac) {
+				delay = 0;
+			}
+			/* Part of enforcing sample rate limits is to make sure to emulate that the
+			 * Direct DAC output command 0x10 is "busy" long enough to effectively rate
+			 * limit output to 23KHz. */
+			else if (sample_rate_limits) {
+				unsigned int limit = 23000; /* documented max sample rate for SB16/SBPro and earlier */
+
+				if (type == SBT_16 && vibra)
+					limit = 23000; /* DSP maxes out at 46KHz not 44.1KHz on ViBRA cards */
+
+				if (dsp.cmd == DSP_NO_COMMAND && val == 0x10/*DSP direct DAC, command*/)
+					delay = (625000000UL / limit) - dsp.dsp_write_busy_time;
+			}
+
+			if (delay > 0) {
+				dsp.write_busy = 1;
+				PIC_RemoveEvents(DSP_BusyComplete);
+				PIC_AddEvent(DSP_BusyComplete,(double)delay / 1000000);
+			}
+
+			//      LOG(LOG_SB,LOG_NORMAL)("DSP:Command %02x delay %u",val,delay);
+		}
+
+		if (dsp.midi_rwpoll_mode) {
+			// DSP writes in this mode go to the MIDI port
+			//      LOG(LOG_SB,LOG_DEBUG)("DSP MIDI read/write poll mode: sending 0x%02x",val);
+			if (midi == true) MIDI_RawOutByte(val);
+			return;
+		}
+
+		switch (dsp.cmd) {
+			case DSP_NO_COMMAND:
+				/* genuine SB Pro and lower: remap DSP command to emulate aliases. */
+				if (dsp.command_aliases && type < SBT_16 && ess_type == ESS_NONE && reveal_sc_type == RSC_NONE) {
+					/* 0x41...0x47 are aliases of 0x40.
+					 * See also: [https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280].
+					 * This is required for ftp.scene.org/mirrors/hornet/demos/1994/y/yahxmas.zip which relies on the 0x41 alias of command 0x40
+					 * to function (which means that it may happen to work on SB Pro but will fail on clones and will fail on SB16 cards). */
+					if (val >= 0x41 && val <= 0x47) {
+						LOG(LOG_SB,LOG_WARN)("DSP command %02x and SB Pro or lower, treating as alias of 40h. Either written for SB16 or using undocumented alias.",val);
+						val = 0x40;
+					}
+				}
+
+				dsp.cmd=val;
+				if (type == SBT_16)
+					dsp.cmd_len=DSP_cmd_len_sb16[val];
+				else if (ess_type != ESS_NONE)
+					dsp.cmd_len=DSP_cmd_len_ess[val];
+				else if (reveal_sc_type != RSC_NONE)
+					dsp.cmd_len=DSP_cmd_len_sc400[val];
+				else
+					dsp.cmd_len=DSP_cmd_len_sb[val];
+
+				dsp.in.pos=0;
+				if (!dsp.cmd_len) DSP_DoCommand();
+				break;
+			default:
+				dsp.in.data[dsp.in.pos]=val;
+				dsp.in.pos++;
+				if (dsp.in.pos>=dsp.cmd_len) DSP_DoCommand();
+		}
+	}
+
 };
 
 static SB_INFO sb;
@@ -2482,132 +2609,6 @@ static void DSP_DoCommand(void) {
     sb.dsp.in.pos=0;
 }
 
-static bool DSP_busy_cycle_active() {
-    /* NTS: Busy cycle happens on SB16 at all times, or on earlier cards, only when the DSP is
-     *      fetching/writing data via the ISA DMA channel. So a non-auto-init DSP block that's
-     *      just finished fetching ISA DMA and is playing from the FIFO doesn't count.
-     *
-     *      sb.dma.left >= sb.dma.min condition causes busy cycle to stop 3ms early (by default).
-     *      This helps realism.
-     *
-     *      This also helps Crystal Dream, which uses the busy cycle to detect when the Sound
-     *      Blaster is about to finish playing the DSP block and therefore needs the same 3ms
-     *      "dmamin" hack to reissue another playback command without any audible hiccups in
-     *      the audio. */
-    return (sb.mode == MODE_DMA && (sb.dma.autoinit || sb.dma.left >= sb.dma.min)) || sb.busy_cycle_always;
-}
-
-static bool DSP_busy_cycle() {
-    double now;
-    int t;
-
-    if (!DSP_busy_cycle_active()) return false;
-    if (sb.busy_cycle_duty_percent <= 0 || sb.busy_cycle_hz <= 0) return false;
-
-    /* NTS: DOSBox's I/O emulation doesn't yet attempt to accurately match ISA bus speeds or
-     *      consider ISA bus cycles, but to emulate SB16 behavior we have to "time" it so
-     *      that 8 consecutive I/O reads eventually see a transition from busy to not busy
-     *      (or the other way around). So what this hack does is it uses accurate timing
-     *      to determine where in the cycle we are, but if this function is called repeatedly
-     *      through I/O access, we switch to incrementing a counter to ensure busy/not busy
-     *      transition happens in 8 I/O cycles.
-     *
-     *      Without this hack, the CPU cycles count becomes a major factor in how many I/O
-     *      reads are required for busy/not busy to happen. If you set cycles count high
-     *      enough, more than 8 is required, and the SNDSB test code will have issues with
-     *      direct DAC mode again.
-     *
-     *      This isn't 100% accurate, but it's the best DOSBox-X can do for now to mimic
-     *      SB16 DSP behavior. */
-
-    now = PIC_FullIndex();
-    if (now >= (sb.busy_cycle_last_check+0.02/*ms*/))
-        sb.busy_cycle_io_hack = (int)(fmod((now / 1000) * sb.busy_cycle_hz,1.0) * 16);
-
-    sb.busy_cycle_last_check = now;
-    t = ((sb.busy_cycle_io_hack % 16) * 100) / 16; /* HACK: DOSBox's I/O is not quite ISA bus speeds or related to it */
-    if (t < sb.busy_cycle_duty_percent) return true;
-    return false;
-}
-
-static void DSP_DoWrite(uint8_t val) {
-    if (sb.dsp.write_busy || (sb.dsp.highspeed && sb.type != SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE)) {
-        LOG(LOG_SB,LOG_WARN)("DSP:Command write %2X ignored, DSP not ready. DOS game or OS is not polling status",val);
-        return;
-    }
-
-    /* NTS: We allow the user to set busy wait time == 0 aka "instant gratification mode".
-     *      We also assume that if they do that, some DOS programs might be timing sensitive
-     *      enough to freak out when DSP commands and data are accepted immediately */
-    {
-        unsigned int delay = sb.dsp.dsp_write_busy_time;
-
-        if (sb.dsp.instant_direct_dac) {
-            delay = 0;
-        }
-        /* Part of enforcing sample rate limits is to make sure to emulate that the
-         * Direct DAC output command 0x10 is "busy" long enough to effectively rate
-         * limit output to 23KHz. */
-        else if (sb.sample_rate_limits) {
-            unsigned int limit = 23000; /* documented max sample rate for SB16/SBPro and earlier */
-
-            if (sb.type == SBT_16 && sb.vibra)
-                limit = 23000; /* DSP maxes out at 46KHz not 44.1KHz on ViBRA cards */
-
-            if (sb.dsp.cmd == DSP_NO_COMMAND && val == 0x10/*DSP direct DAC, command*/)
-                delay = (625000000UL / limit) - sb.dsp.dsp_write_busy_time;
-        }
-
-        if (delay > 0) {
-            sb.dsp.write_busy = 1;
-            PIC_RemoveEvents(DSP_BusyComplete);
-            PIC_AddEvent(DSP_BusyComplete,(double)delay / 1000000);
-        }
-
-//      LOG(LOG_SB,LOG_NORMAL)("DSP:Command %02x delay %u",val,delay);
-    }
-
-    if (sb.dsp.midi_rwpoll_mode) {
-        // DSP writes in this mode go to the MIDI port
-//      LOG(LOG_SB,LOG_DEBUG)("DSP MIDI read/write poll mode: sending 0x%02x",val);
-        if (sb.midi == true) MIDI_RawOutByte(val);
-        return;
-    }
-
-    switch (sb.dsp.cmd) {
-        case DSP_NO_COMMAND:
-            /* genuine SB Pro and lower: remap DSP command to emulate aliases. */
-            if (sb.dsp.command_aliases && sb.type < SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE) {
-                /* 0x41...0x47 are aliases of 0x40.
-                 * See also: [https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280].
-                 * This is required for ftp.scene.org/mirrors/hornet/demos/1994/y/yahxmas.zip which relies on the 0x41 alias of command 0x40
-                 * to function (which means that it may happen to work on SB Pro but will fail on clones and will fail on SB16 cards). */
-                if (val >= 0x41 && val <= 0x47) {
-                    LOG(LOG_SB,LOG_WARN)("DSP command %02x and SB Pro or lower, treating as alias of 40h. Either written for SB16 or using undocumented alias.",val);
-                    val = 0x40;
-                }
-            }
-
-            sb.dsp.cmd=val;
-            if (sb.type == SBT_16)
-                sb.dsp.cmd_len=DSP_cmd_len_sb16[val];
-            else if (sb.ess_type != ESS_NONE)
-                sb.dsp.cmd_len=DSP_cmd_len_ess[val];
-            else if (sb.reveal_sc_type != RSC_NONE)
-                sb.dsp.cmd_len=DSP_cmd_len_sc400[val];
-            else
-                sb.dsp.cmd_len=DSP_cmd_len_sb[val];
-
-            sb.dsp.in.pos=0;
-            if (!sb.dsp.cmd_len) DSP_DoCommand();
-            break;
-        default:
-            sb.dsp.in.data[sb.dsp.in.pos]=val;
-            sb.dsp.in.pos++;
-            if (sb.dsp.in.pos>=sb.dsp.cmd_len) DSP_DoCommand();
-    }
-}
-
 //The soundblaster manual says 2.0 Db steps but we'll go for a bit less
 static float calc_vol(uint8_t amount) {
     uint8_t count = 31 - amount;
@@ -3252,7 +3253,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
              *      is remembered, but not acted on until the DSP leaves its busy
              *      cycle. */
             sb.busy_cycle_io_hack++; /* NTS: busy cycle I/O timing hack! */
-            if (DSP_busy_cycle())
+            if (sb.DSP_busy_cycle())
                 busy = true;
             else if (sb.dsp.write_busy || (sb.dsp.highspeed && sb.type != SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE))
                 busy = true;
@@ -3299,7 +3300,7 @@ static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
         /* FIXME: We need to emulate behavior where either the DSP command is delayed (busy cycle)
          *        and then acted on, or we need to emulate the DSP ignoring the byte because a
          *        command is in progress */
-        DSP_DoWrite(val8);
+        sb.DSP_DoWrite(val8);
         break;
     case MIXER_INDEX:
         sb.mixer.index=val8;
