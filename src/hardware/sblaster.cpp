@@ -362,6 +362,10 @@ static INLINE uint8_t decode_ADPCM_2_sample(uint8_t sample,uint8_t & reference,B
 	return reference;
 }
 
+#define DSP_SB16_ONLY if (sb.type != SBT_16) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB16",sb.dsp.cmd); break; }
+#define DSP_SB2_ABOVE if (sb.type <= SBT_1) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2 or above",sb.dsp.cmd); break; }
+#define DSP_SB201_ABOVE if (sb.type <= SBT_1 || (sb.type == SBT_2 && sb.subtype == SBST_200)) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2.01 or above",sb.dsp.cmd); break; }
+
 struct SB_INFO {
 	Bitu freq;
 	uint8_t timeconst;
@@ -1339,6 +1343,88 @@ struct SB_INFO {
 		dsp.write_busy = 0;
 	}
 
+	void DSP_ChangeRate(Bitu new_freq) {
+		if (freq!=new_freq && dma.mode!=DSP_DMA_NONE) {
+			chan->FillUp();
+			chan->SetFreq(new_freq / (mixer.stereo ? 2 : 1));
+			dma.rate=(new_freq*dma.mul) >> SB_SH;
+			dma.min=(dma.rate*3)/1000;
+		}
+		freq = new_freq;
+	}
+
+	unsigned int ESS_DMATransferCount() {
+		unsigned int r;
+
+		r = (unsigned int)ESSreg(0xA5) << 8U;
+		r |= (unsigned int)ESSreg(0xA4);
+
+		/* the 16-bit counter is a "two's complement" of the DMA count because it counts UP to 0 and triggers IRQ on overflow */
+		return 0x10000U-r;
+	}
+
+	void ESS_StartDMA() {
+		LOG(LOG_SB,LOG_DEBUG)("ESS DMA start");
+		dma_dac_mode = 0;
+		dma.chan = GetDMAChannel(hw.dma8);
+		dma.recording = (ESSreg(0xB8) & 8/*ADC mode*/) > 0;
+		if (dma.chan) dma.chan->Raise_Request();
+		// FIXME: Which bit(s) are responsible for signalling stereo?
+		//        Is it bit 3 of the Analog Control?
+		//        Is it bit 3/6 of the Audio Control 1?
+		//        Is it both?
+		// NTS: ESS chipsets always use the 8-bit DMA channel, even for 16-bit PCM.
+		// NTS: ESS chipsets also do not cap the sample rate, though if you drive them
+		//      too fast the ISA bus will effectively cap the sample rate at some
+		//      rate above 48KHz to 60KHz anyway.
+		DSP_DoDMATransfer(
+			(ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
+			freq,(ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
+		mode = MODE_DMA;
+		ess_playback_mode = true;
+	}
+
+	void ESS_StopDMA() {
+		// DMA stop
+		DSP_ChangeMode(MODE_NONE);
+		if (dma.chan) dma.chan->Clear_Request();
+		PIC_RemoveEvents(END_DMA_Event);
+		PIC_RemoveEvents(DMA_DAC_Event);
+	}
+
+	void ESS_UpdateDMATotal() {
+		dma.total = ESS_DMATransferCount();
+	}
+
+	void ESS_CheckDMAEnable() {
+		bool dma_en = (ESSreg(0xB8) & 1)?true:false;
+
+		// if the DRQ is disabled, do not start
+		if (!(ESSreg(0xB2) & 0x40))
+			dma_en = false;
+
+		if (ESSreg(0xB8) & 8) LOG(LOG_SB,LOG_WARN)("Guest recording audio using ESS commands");
+
+		if (!!(ESSreg(0xB8) & 8/*ADC mode*/) != !!(ESSreg(0xB8) & 2/*DMA read*/)) LOG(LOG_SB,LOG_WARN)("ESS DMA direction vs ADC mismatch");
+
+		if (dma_en) {
+			if (mode != MODE_DMA) ESS_StartDMA();
+		}
+		else {
+			if (mode == MODE_DMA) ESS_StopDMA();
+		}
+	}
+
+	void ESSUpdateFilterFromSB(void) {
+		if (freq >= 22050)
+			ESSreg(0xA1) = 256 - (795500UL / freq);
+		else
+			ESSreg(0xA1) = 128 - (397700UL / freq);
+
+		const unsigned int new_freq = ((freq * 4) / (5 * 2)); /* 80% of 1/2 the sample rate */
+		ESSreg(0xA2) = 256 - (7160000 / (new_freq * 82));
+	}
+
 };
 
 static SB_INFO sb;
@@ -1561,94 +1647,6 @@ static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	ch->Register_Callback(nullptr);
 }
 
-static void DSP_ChangeRate(Bitu freq) {
-	if (sb.freq!=freq && sb.dma.mode!=DSP_DMA_NONE) {
-		sb.chan->FillUp();
-		sb.chan->SetFreq(freq / (sb.mixer.stereo ? 2 : 1));
-		sb.dma.rate=(freq*sb.dma.mul) >> SB_SH;
-		sb.dma.min=(sb.dma.rate*3)/1000;
-	}
-	sb.freq=freq;
-}
-
-Bitu DEBUG_EnableDebugger(void);
-
-#define DSP_SB16_ONLY if (sb.type != SBT_16) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB16",sb.dsp.cmd); break; }
-#define DSP_SB2_ABOVE if (sb.type <= SBT_1) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2 or above",sb.dsp.cmd); break; }
-#define DSP_SB201_ABOVE if (sb.type <= SBT_1 || (sb.type == SBT_2 && sb.subtype == SBST_200)) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2.01 or above",sb.dsp.cmd); break; }
-
-static unsigned int ESS_DMATransferCount() {
-	unsigned int r;
-
-	r = (unsigned int)sb.ESSreg(0xA5) << 8U;
-	r |= (unsigned int)sb.ESSreg(0xA4);
-
-	/* the 16-bit counter is a "two's complement" of the DMA count because it counts UP to 0 and triggers IRQ on overflow */
-	return 0x10000U-r;
-}
-
-static void ESS_StartDMA() {
-	LOG(LOG_SB,LOG_DEBUG)("ESS DMA start");
-	sb.dma_dac_mode = 0;
-	sb.dma.chan = GetDMAChannel(sb.hw.dma8);
-	sb.dma.recording = (sb.ESSreg(0xB8) & 8/*ADC mode*/) > 0;
-	if (sb.dma.chan) sb.dma.chan->Raise_Request();
-	// FIXME: Which bit(s) are responsible for signalling stereo?
-	//        Is it bit 3 of the Analog Control?
-	//        Is it bit 3/6 of the Audio Control 1?
-	//        Is it both?
-	// NTS: ESS chipsets always use the 8-bit DMA channel, even for 16-bit PCM.
-	// NTS: ESS chipsets also do not cap the sample rate, though if you drive them
-	//      too fast the ISA bus will effectively cap the sample rate at some
-	//      rate above 48KHz to 60KHz anyway.
-	sb.DSP_DoDMATransfer(
-		(sb.ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
-		sb.freq,(sb.ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
-	sb.mode = MODE_DMA;
-	sb.ess_playback_mode = true;
-}
-
-static void ESS_StopDMA() {
-	// DMA stop
-	sb.DSP_ChangeMode(MODE_NONE);
-	if (sb.dma.chan) sb.dma.chan->Clear_Request();
-	PIC_RemoveEvents(END_DMA_Event);
-	PIC_RemoveEvents(DMA_DAC_Event);
-}
-
-static void ESS_UpdateDMATotal() {
-	sb.dma.total = ESS_DMATransferCount();
-}
-
-static void ESS_CheckDMAEnable() {
-	bool dma_en = (sb.ESSreg(0xB8) & 1)?true:false;
-
-	// if the DRQ is disabled, do not start
-	if (!(sb.ESSreg(0xB2) & 0x40))
-		dma_en = false;
-
-	if (sb.ESSreg(0xB8) & 8) LOG(LOG_SB,LOG_WARN)("Guest recording audio using ESS commands");
-
-	if (!!(sb.ESSreg(0xB8) & 8/*ADC mode*/) != !!(sb.ESSreg(0xB8) & 2/*DMA read*/)) LOG(LOG_SB,LOG_WARN)("ESS DMA direction vs ADC mismatch");
-
-	if (dma_en) {
-		if (sb.mode != MODE_DMA) ESS_StartDMA();
-	}
-	else {
-		if (sb.mode == MODE_DMA) ESS_StopDMA();
-	}
-}
-
-static void ESSUpdateFilterFromSB(void) {
-	if (sb.freq >= 22050)
-		sb.ESSreg(0xA1) = 256 - (795500UL / sb.freq);
-	else
-		sb.ESSreg(0xA1) = 128 - (397700UL / sb.freq);
-
-	unsigned int freq = ((sb.freq * 4) / (5 * 2)); /* 80% of 1/2 the sample rate */
-	sb.ESSreg(0xA2) = 256 - (7160000 / (freq * 82));
-}
-
 static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 	uint8_t chg;
 
@@ -1664,8 +1662,8 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 
 			sb.freq_derived_from_tc = false;
 			if (sb.mode == MODE_DMA) {
-				ESS_StopDMA();
-				ESS_StartDMA();
+				sb.ESS_StopDMA();
+				sb.ESS_StartDMA();
 			}
 			break;
 		case 0xA2: /* Filter divider (effectively, a hardware lowpass filter under S/W control) */
@@ -1675,7 +1673,7 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 		case 0xA4: /* DMA Transfer Count Reload (low) */
 		case 0xA5: /* DMA Transfer Count Reload (high) */
 			sb.ESSreg(reg) = data;
-			ESS_UpdateDMATotal();
+			sb.ESS_UpdateDMATotal();
 			if (sb.dma.left == 0) sb.dma.left = sb.dma.total;
 			break;
 		case 0xA8: /* Analog Control */
@@ -1692,8 +1690,8 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 			sb.ESSreg(reg) = data;
 			if (chg & 0x3) {
 				if (sb.mode == MODE_DMA) {
-					ESS_StopDMA();
-					ESS_StartDMA();
+					sb.ESS_StopDMA();
+					sb.ESS_StartDMA();
 				}
 			}
 			break;
@@ -1701,7 +1699,7 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 		case 0xB2: /* DRQ Control */
 			chg = sb.ESSreg(reg) ^ data;
 			sb.ESSreg(reg) = (sb.ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
-			if (chg & 0x40) ESS_CheckDMAEnable();
+			if (chg & 0x40) sb.ESS_CheckDMAEnable();
 			break;
 		case 0xB5: /* DAC Direct Access Holding (low) */
 		case 0xB6: /* DAC Direct Access Holding (high) */
@@ -1719,11 +1717,11 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 			chg = sb.ESSreg(reg) ^ data;
 			sb.ESSreg(reg) = data;
 			sb.dma.sign = (data&0x20)?1:0;
-			if (chg & 0x04) ESS_UpdateDMATotal();
+			if (chg & 0x04) sb.ESS_UpdateDMATotal();
 			if (chg & 0x0C) {
 				if (sb.mode == MODE_DMA) {
-					ESS_StopDMA();
-					ESS_StartDMA();
+					sb.ESS_StopDMA();
+					sb.ESS_StartDMA();
 				}
 			}
 			break;
@@ -1745,8 +1743,8 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 
 			sb.dma.autoinit = (data >> 2) & 1;
 			if (chg & 0xB) {
-				if (chg & 0xA) ESS_StopDMA(); /* changing capture/playback direction? stop DMA to reinit */
-				ESS_CheckDMAEnable();
+				if (chg & 0xA) sb.ESS_StopDMA(); /* changing capture/playback direction? stop DMA to reinit */
+				sb.ESS_CheckDMAEnable();
 			}
 			break;
 		case 0xB9: /* Audio 1 Transfer Type */
@@ -2013,11 +2011,11 @@ static void DSP_DoCommand(void) {
         if (sb.midi == true) MIDI_RawOutByte(sb.dsp.in.data[0]);
         break;
     case 0x40:  /* Set Timeconstant */
-        DSP_ChangeRate(256000000ul / (65536ul - ((unsigned int)sb.dsp.in.data[0] << 8u)));
+        sb.DSP_ChangeRate(256000000ul / (65536ul - ((unsigned int)sb.dsp.in.data[0] << 8u)));
         sb.timeconst=sb.dsp.in.data[0];
         sb.freq_derived_from_tc=true;
 
-        if (sb.ess_type != ESS_NONE) ESSUpdateFilterFromSB();
+        if (sb.ess_type != ESS_NONE) sb.ESSUpdateFilterFromSB();
         break;
     case 0x41:  /* Set Output Samplerate */
     case 0x42:  /* Set Input Samplerate */
@@ -2028,7 +2026,7 @@ static void DSP_DoCommand(void) {
             DSP_SB16_ONLY;
         }
 
-        DSP_ChangeRate(((unsigned int)sb.dsp.in.data[0] << 8u) | (unsigned int)sb.dsp.in.data[1]);
+        sb.DSP_ChangeRate(((unsigned int)sb.dsp.in.data[0] << 8u) | (unsigned int)sb.dsp.in.data[1]);
         sb.freq_derived_from_tc=false;
         sb.sb16_8051_mem[0x13] = sb.freq & 0xffu;                  // rate low
         sb.sb16_8051_mem[0x14] = (sb.freq >> 8u) & 0xffu;          // rate high
