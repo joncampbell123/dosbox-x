@@ -3235,181 +3235,181 @@ uint8_t SB_INFO::CTMIXER_Read(void) {
 }
 
 static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
-    if (!IS_PC98_ARCH) {
-        /* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
-         * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
-         * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
-        if (sb.hw.sb_io_alias) {
-            if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
-                { } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
-            else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
-                port &= ~1u;
-        }
-    }
+	if (!IS_PC98_ARCH) {
+		/* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
+		 * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
+		 * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
+		if (sb.hw.sb_io_alias) {
+			if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
+			{ } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
+			else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
+				port &= ~1u;
+		}
+	}
 
-    switch (((port-sb.hw.base) >> (IS_PC98_ARCH ? 8u : 0u)) & 0xFu) {
-    case MIXER_INDEX:
-        return sb.mixer.index;
-    case MIXER_DATA:
-        return sb.CTMIXER_Read();
-    case DSP_READ_DATA:
-        return sb.DSP_ReadData();
-    case DSP_READ_STATUS:
-        //TODO See for high speed dma :)
-        if (sb.irq.pending_8bit)  {
-            sb.irq.pending_8bit=false;
-            PIC_DeActivateIRQ(sb.hw.irq);
-        }
+	switch (((port-sb.hw.base) >> (IS_PC98_ARCH ? 8u : 0u)) & 0xFu) {
+		case MIXER_INDEX:
+			return sb.mixer.index;
+		case MIXER_DATA:
+			return sb.CTMIXER_Read();
+		case DSP_READ_DATA:
+			return sb.DSP_ReadData();
+		case DSP_READ_STATUS:
+			//TODO See for high speed dma :)
+			if (sb.irq.pending_8bit)  {
+				sb.irq.pending_8bit=false;
+				PIC_DeActivateIRQ(sb.hw.irq);
+			}
 
-        if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK) {
-            sb.chan->FillUp();
-            sb.mode = MODE_DMA;
-        }
+			if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK) {
+				sb.chan->FillUp();
+				sb.mode = MODE_DMA;
+			}
 
-        extern const char* RunningProgram; // Wengier: Hack for Desert Strike & Jungle Strike
-        if (!IS_PC98_ARCH && port>0x220 && port%0x10==0xE && !sb.dsp.out.used && (!strcmp(RunningProgram, "DESERT") || !strcmp(RunningProgram, "JUNGLE"))) {
-            LOG_MSG("Check status by game: %s\n", RunningProgram);
-            sb.dsp.out.used++;
-        }
-        if (sb.ess_type == ESS_NONE && (sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
-            return sb.dsp.out.used ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
-        else
-            return sb.dsp.out.used ? 0xFF : 0x7F; /* normal return values */
-    case DSP_ACK_16BIT:
-        if (sb.ess_type == ESS_NONE && sb.type == SBT_16) {
-            if (sb.irq.pending_16bit)  {
-                sb.irq.pending_16bit=false;
-                PIC_DeActivateIRQ(sb.hw.irq);
-            }
+			extern const char* RunningProgram; // Wengier: Hack for Desert Strike & Jungle Strike
+			if (!IS_PC98_ARCH && port>0x220 && port%0x10==0xE && !sb.dsp.out.used && (!strcmp(RunningProgram, "DESERT") || !strcmp(RunningProgram, "JUNGLE"))) {
+				LOG_MSG("Check status by game: %s\n", RunningProgram);
+				sb.dsp.out.used++;
+			}
+			if (sb.ess_type == ESS_NONE && (sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
+				return sb.dsp.out.used ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
+			else
+				return sb.dsp.out.used ? 0xFF : 0x7F; /* normal return values */
+		case DSP_ACK_16BIT:
+			if (sb.ess_type == ESS_NONE && sb.type == SBT_16) {
+				if (sb.irq.pending_16bit)  {
+					sb.irq.pending_16bit=false;
+					PIC_DeActivateIRQ(sb.hw.irq);
+				}
 
-            if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK) {
-                sb.chan->FillUp();
-                sb.mode = MODE_DMA;
-            }
-        }
-        break;
-    case DSP_WRITE_STATUS:
-        switch (sb.dsp.state) {
-            /* FIXME: On a SB 2.0 card I own, the port will usually read either 0x2A or 0xAA,
-             *        rather than 0x7F or 0xFF. Is there any significance to that? */
-        case DSP_S_NORMAL: {
-            bool busy = false;
+				if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK) {
+					sb.chan->FillUp();
+					sb.mode = MODE_DMA;
+				}
+			}
+			break;
+		case DSP_WRITE_STATUS:
+			switch (sb.dsp.state) {
+				/* FIXME: On a SB 2.0 card I own, the port will usually read either 0x2A or 0xAA,
+				 *        rather than 0x7F or 0xFF. Is there any significance to that? */
+				case DSP_S_NORMAL: {
+					bool busy = false;
 
-            /* NTS: DSP "busy cycle" is independent of whether the DSP is actually
-             *      busy (executing a command) or highspeed mode. On SB16 hardware,
-             *      writing a DSP command during the busy cycle means that the command
-             *      is remembered, but not acted on until the DSP leaves its busy
-             *      cycle. */
-            sb.busy_cycle_io_hack++; /* NTS: busy cycle I/O timing hack! */
-            if (sb.DSP_busy_cycle())
-                busy = true;
-            else if (sb.dsp.write_busy || (sb.dsp.highspeed && sb.type != SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE))
-                busy = true;
+					/* NTS: DSP "busy cycle" is independent of whether the DSP is actually
+					 *      busy (executing a command) or highspeed mode. On SB16 hardware,
+					 *      writing a DSP command during the busy cycle means that the command
+					 *      is remembered, but not acted on until the DSP leaves its busy
+					 *      cycle. */
+					sb.busy_cycle_io_hack++; /* NTS: busy cycle I/O timing hack! */
+					if (sb.DSP_busy_cycle())
+						busy = true;
+					else if (sb.dsp.write_busy || (sb.dsp.highspeed && sb.type != SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE))
+						busy = true;
 
-            if (!sb.write_status_must_return_7f && sb.ess_type == ESS_NONE && (sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
-                return busy ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
-            else
-                return busy ? 0xFF : 0x7F; /* normal return values */
+					if (!sb.write_status_must_return_7f && sb.ess_type == ESS_NONE && (sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
+						return busy ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
+					else
+						return busy ? 0xFF : 0x7F; /* normal return values */
 
-            }
-        case DSP_S_RESET:
-        case DSP_S_RESET_WAIT:
-            return 0xff;
-        }
-        return 0xff;
-    case DSP_RESET:
-        return 0xff;
-    default:
-        LOG(LOG_SB,LOG_NORMAL)("Unhandled read from SB Port %4X",(int)port);
-        break;
-    }
-    return 0xff;
+				}
+				case DSP_S_RESET:
+				case DSP_S_RESET_WAIT:
+					return 0xff;
+			}
+			return 0xff;
+		case DSP_RESET:
+			return 0xff;
+		default:
+			LOG(LOG_SB,LOG_NORMAL)("Unhandled read from SB Port %4X",(int)port);
+			break;
+	}
+	return 0xff;
 }
 
 static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
-    /* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
-     * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
-     * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
-    if (!IS_PC98_ARCH) {
-        if (sb.hw.sb_io_alias) {
-            if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
-                { } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
-            else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
-                port &= ~1u;
-        }
-    }
+	/* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
+	 * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
+	 * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
+	if (!IS_PC98_ARCH) {
+		if (sb.hw.sb_io_alias) {
+			if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
+			{ } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
+			else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
+				port &= ~1u;
+		}
+	}
 
-    uint8_t val8=(uint8_t)(val&0xff);
-    switch (((port-sb.hw.base) >> (IS_PC98_ARCH ? 8u : 0u)) & 0xFu) {
-    case DSP_RESET:
-        sb.DSP_DoReset(val8);
-        break;
-    case DSP_WRITE_DATA:
-        /* FIXME: We need to emulate behavior where either the DSP command is delayed (busy cycle)
-         *        and then acted on, or we need to emulate the DSP ignoring the byte because a
-         *        command is in progress */
-        sb.DSP_DoWrite(val8);
-        break;
-    case MIXER_INDEX:
-        sb.mixer.index=val8;
-        if (sb.mixer.index == 0x40 && sb.ess_type != ESS_NONE) {
-            sb.mixer.ess_id_str_pos = 0;
-        }
-        break;
-    case MIXER_DATA:
-        sb.CTMIXER_Write(val8);
-        break;
-    default:
-        LOG(LOG_SB,LOG_NORMAL)("Unhandled write to SB Port %4X",(int)port);
-        break;
-    }
+	uint8_t val8=(uint8_t)(val&0xff);
+	switch (((port-sb.hw.base) >> (IS_PC98_ARCH ? 8u : 0u)) & 0xFu) {
+		case DSP_RESET:
+			sb.DSP_DoReset(val8);
+			break;
+		case DSP_WRITE_DATA:
+			/* FIXME: We need to emulate behavior where either the DSP command is delayed (busy cycle)
+			 *        and then acted on, or we need to emulate the DSP ignoring the byte because a
+			 *        command is in progress */
+			sb.DSP_DoWrite(val8);
+			break;
+		case MIXER_INDEX:
+			sb.mixer.index=val8;
+			if (sb.mixer.index == 0x40 && sb.ess_type != ESS_NONE) {
+				sb.mixer.ess_id_str_pos = 0;
+			}
+			break;
+		case MIXER_DATA:
+			sb.CTMIXER_Write(val8);
+			break;
+		default:
+			LOG(LOG_SB,LOG_NORMAL)("Unhandled write to SB Port %4X",(int)port);
+			break;
+	}
 }
 
 static void adlib_gusforward(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
-    adlib_commandreg=(uint8_t)(val&0xff);
+	adlib_commandreg=(uint8_t)(val&0xff);
 }
 
 bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
-    sbaddr=0;
-    sbirq =0;
-    sbdma =0;
-    if (sb.type == SBT_NONE) return false;
-    else {
-        sbaddr=sb.hw.base;
-        sbirq =sb.hw.irq;
-        sbdma = sb.hw.dma8;
-        return true;
-    }
+	sbaddr=0;
+	sbirq =0;
+	sbdma =0;
+	if (sb.type == SBT_NONE) return false;
+	else {
+		sbaddr=sb.hw.base;
+		sbirq =sb.hw.irq;
+		sbdma = sb.hw.dma8;
+		return true;
+	}
 }
 
 static void SBLASTER_CallBack(Bitu len) {
-    pic_tickindex_t now = PIC_FullIndex();
+	pic_tickindex_t now = PIC_FullIndex();
 
-    if (now >= sb.next_check_record_settings) {
-        sb.next_check_record_settings = now + 100/*ms*/;
-        sb.sb_update_recording_source_settings();
-    }
+	if (now >= sb.next_check_record_settings) {
+		sb.next_check_record_settings = now + 100/*ms*/;
+		sb.sb_update_recording_source_settings();
+	}
 
-    sb.directdac_warn_speaker_off = true;
+	sb.directdac_warn_speaker_off = true;
 
-    switch (sb.mode) {
-    case MODE_NONE:
-    case MODE_DMA_PAUSE:
-    case MODE_DMA_MASKED:
-    case MODE_DMA_REQUIRE_IRQ_ACK:
-        sb.chan->AddSilence();
-        break;
-    case MODE_DAC:
-        sb.mode = MODE_NONE;
-        break;
-    case MODE_DMA:
-        len*=sb.dma.mul;
-        if (len&SB_SH_MASK) len+=1 << SB_SH;
-        len>>=SB_SH;
-        if (len>sb.dma.left) len=sb.dma.left;
-        sb.GenerateDMASound(len);
-        break;
-    }
+	switch (sb.mode) {
+		case MODE_NONE:
+		case MODE_DMA_PAUSE:
+		case MODE_DMA_MASKED:
+		case MODE_DMA_REQUIRE_IRQ_ACK:
+			sb.chan->AddSilence();
+			break;
+		case MODE_DAC:
+			sb.mode = MODE_NONE;
+			break;
+		case MODE_DMA:
+			len*=sb.dma.mul;
+			if (len&SB_SH_MASK) len+=1 << SB_SH;
+			len>>=SB_SH;
+			if (len>sb.dma.left) len=sb.dma.left;
+			sb.GenerateDMASound(len);
+			break;
+	}
 }
 
 #define ISAPNP_COMPATIBLE(id) \
@@ -3459,268 +3459,268 @@ static const unsigned char ViBRA_sysdev[] = {
 #endif
 
 class ViBRA_PnP : public ISAPnPDevice {
-    public:
-        ViBRA_PnP() : ISAPnPDevice() {
-            resource_ident = 0;
-            host_writed(ident+0,ISAPNP_ID('C','T','L',0x0,0x0,0x7,0x0)); /* CTL0070: ViBRA C */
-            host_writed(ident+4,0xFFFFFFFFUL);
-            checksum_ident();
+	public:
+		ViBRA_PnP() : ISAPnPDevice() {
+			resource_ident = 0;
+			host_writed(ident+0,ISAPNP_ID('C','T','L',0x0,0x0,0x7,0x0)); /* CTL0070: ViBRA C */
+			host_writed(ident+4,0xFFFFFFFFUL);
+			checksum_ident();
 
-            alloc(256 - 9/*ident*/); // Real ViBRA hardware acts as if PNP data is read from a 256-byte ROM
+			alloc(256 - 9/*ident*/); // Real ViBRA hardware acts as if PNP data is read from a 256-byte ROM
 
-            // this template taken from a real Creative ViBRA16C card
-            begin_write_res();
-            write_ISAPnP_version(/*version*/1,0,/*vendor*/0x10);
-            write_Identifier_String("Creative ViBRA16C PnP");
+			// this template taken from a real Creative ViBRA16C card
+			begin_write_res();
+			write_ISAPnP_version(/*version*/1,0,/*vendor*/0x10);
+			write_Identifier_String("Creative ViBRA16C PnP");
 
-            write_Logical_Device_ID('C','T','L',0x0,0x0,0x0,0x1); // CTL0001
-            write_Identifier_String("Audio");
+			write_Logical_Device_ID('C','T','L',0x0,0x0,0x0,0x1); // CTL0001
+			write_Identifier_String("Audio");
 
-            write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::PreferredDependentConfiguration);
-            write_IRQ_Format(
-                ISAPnPDevice::irq2mask(5));
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(1),
-                DMATransferType_8bitOnly,
-                false,/*not a bus master*/
-                true,/*byte mode */
-                false,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(5),
-                DMATransferType_16bitOnly,
-                false,/*not a bus master*/
-                false,/*byte mode */
-                true,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_IO_Port(/*min*/0x220,/*max*/0x220,/*count*/0x10,/*align*/0x01);
-            write_IO_Port(/*min*/0x330,/*max*/0x330,/*count*/0x02,/*align*/0x01);
-            write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::PreferredDependentConfiguration);
+			write_IRQ_Format(
+					ISAPnPDevice::irq2mask(5));
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(1),
+					DMATransferType_8bitOnly,
+					false,/*not a bus master*/
+					true,/*byte mode */
+					false,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(5),
+					DMATransferType_16bitOnly,
+					false,/*not a bus master*/
+					false,/*byte mode */
+					true,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x220,/*count*/0x10,/*align*/0x01);
+			write_IO_Port(/*min*/0x330,/*max*/0x330,/*count*/0x02,/*align*/0x01);
+			write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
 
-            write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::AcceptableDependentConfiguration,true);
-            write_IRQ_Format(
-                ISAPnPDevice::irq2mask(5,7,9,10));
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(1,3),
-                DMATransferType_8bitOnly,
-                false,/*not a bus master*/
-                true,/*byte mode */
-                false,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(5,7),
-                DMATransferType_16bitOnly,
-                false,/*not a bus master*/
-                false,/*byte mode */
-                true,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
-            write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
-            write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::AcceptableDependentConfiguration,true);
+			write_IRQ_Format(
+					ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(1,3),
+					DMATransferType_8bitOnly,
+					false,/*not a bus master*/
+					true,/*byte mode */
+					false,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(5,7),
+					DMATransferType_16bitOnly,
+					false,/*not a bus master*/
+					false,/*byte mode */
+					true,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+			write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+			write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
 
-            write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::AcceptableDependentConfiguration,true);
-            write_IRQ_Format(
-                ISAPnPDevice::irq2mask(5,7,9,10));
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(1,3),
-                DMATransferType_8bitOnly,
-                false,/*not a bus master*/
-                true,/*byte mode */
-                false,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(5,7),
-                DMATransferType_16bitOnly,
-                false,/*not a bus master*/
-                false,/*byte mode */
-                true,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
-            write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::AcceptableDependentConfiguration,true);
+			write_IRQ_Format(
+					ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(1,3),
+					DMATransferType_8bitOnly,
+					false,/*not a bus master*/
+					true,/*byte mode */
+					false,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(5,7),
+					DMATransferType_16bitOnly,
+					false,/*not a bus master*/
+					false,/*byte mode */
+					true,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+			write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
 
-            write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
-            write_IRQ_Format(
-                ISAPnPDevice::irq2mask(5,7,9,10));
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(1,3),
-                DMATransferType_8bitOnly,
-                false,/*not a bus master*/
-                true,/*byte mode */
-                false,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(5,7),
-                DMATransferType_16bitOnly,
-                false,/*not a bus master*/
-                false,/*byte mode */
-                true,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
+			write_IRQ_Format(
+					ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(1,3),
+					DMATransferType_8bitOnly,
+					false,/*not a bus master*/
+					true,/*byte mode */
+					false,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(5,7),
+					DMATransferType_16bitOnly,
+					false,/*not a bus master*/
+					false,/*byte mode */
+					true,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
 
-            write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
-            write_IRQ_Format(
-                ISAPnPDevice::irq2mask(5,7,9,10));
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(1,3),
-                DMATransferType_8bitOnly,
-                false,/*not a bus master*/
-                true,/*byte mode */
-                false,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
-            write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
-            write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
+			write_IRQ_Format(
+					ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(1,3),
+					DMATransferType_8bitOnly,
+					false,/*not a bus master*/
+					true,/*byte mode */
+					false,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+			write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+			write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
 
-            write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
-            write_IRQ_Format(
-                ISAPnPDevice::irq2mask(5,7,9,10));
-            write_DMA_Format(
-                ISAPnPDevice::dma2mask(1,3),
-                DMATransferType_8bitOnly,
-                false,/*not a bus master*/
-                true,/*byte mode */
-                false,/*word mode*/
-                DMASpeedSupported_Compat);
-            write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
+			write_IRQ_Format(
+					ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+					ISAPnPDevice::dma2mask(1,3),
+					DMATransferType_8bitOnly,
+					false,/*not a bus master*/
+					true,/*byte mode */
+					false,/*word mode*/
+					DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
 
-            write_End_Dependent_Functions();
+			write_End_Dependent_Functions();
 
-            // NTS: DOSBox-X as coded now always has a joystick port at 0x201 even if no joystick
-            write_Logical_Device_ID('C','T','L',0x7,0x0,0x0,0x1); // CTL7001
-            write_Compatible_Device_ID('P','N','P',0xB,0x0,0x2,0xF); // PNPB02F
-            write_Identifier_String("Game");
-            write_IO_Port(/*min*/0x200,/*max*/0x200,/*count*/0x08);
+			// NTS: DOSBox-X as coded now always has a joystick port at 0x201 even if no joystick
+			write_Logical_Device_ID('C','T','L',0x7,0x0,0x0,0x1); // CTL7001
+			write_Compatible_Device_ID('P','N','P',0xB,0x0,0x2,0xF); // PNPB02F
+			write_Identifier_String("Game");
+			write_IO_Port(/*min*/0x200,/*max*/0x200,/*count*/0x08);
 
-            end_write_res();        // END
-        }
-        void select_logical_device(Bitu val) override {
-            logical_device = val;
-        }
-        uint8_t read(Bitu addr) override {
-            uint8_t ret = 0xFF;
-            if (logical_device == 0) {
-                switch (addr) {
-                    case 0x60: case 0x61:   /* I/O [0] sound blaster */
-                        ret = sb.hw.base >> ((addr & 1) ? 0 : 8);
-                        break;
-                    case 0x62: case 0x63:   /* I/O [1] MPU */
-                        ret = 0x330 >> ((addr & 1) ? 0 : 8); /* FIXME: What I/O port really IS the MPU on? */
-                        break;
-                    case 0x64: case 0x65:   /* I/O [1] OPL-3 */
-                        ret = 0x388 >> ((addr & 1) ? 0 : 8); /* FIXME */
-                        break;
-                    case 0x70: /* IRQ[0] */
-                        ret = sb.hw.irq;
-                        break;
-                        /* TODO: 0x71 IRQ mode */
-                    case 0x74: /* DMA[0] */
-                        ret = sb.hw.dma8;
-                        break;
-                    case 0x75: /* DMA[1] */
-                        ret = sb.hw.dma16 == 0xFF ? sb.hw.dma8 : sb.hw.dma16;
-                        break;
+			end_write_res();        // END
+		}
+		void select_logical_device(Bitu val) override {
+			logical_device = val;
+		}
+		uint8_t read(Bitu addr) override {
+			uint8_t ret = 0xFF;
+			if (logical_device == 0) {
+				switch (addr) {
+					case 0x60: case 0x61:   /* I/O [0] sound blaster */
+						ret = sb.hw.base >> ((addr & 1) ? 0 : 8);
+						break;
+					case 0x62: case 0x63:   /* I/O [1] MPU */
+						ret = 0x330 >> ((addr & 1) ? 0 : 8); /* FIXME: What I/O port really IS the MPU on? */
+						break;
+					case 0x64: case 0x65:   /* I/O [1] OPL-3 */
+						ret = 0x388 >> ((addr & 1) ? 0 : 8); /* FIXME */
+						break;
+					case 0x70: /* IRQ[0] */
+						ret = sb.hw.irq;
+						break;
+						/* TODO: 0x71 IRQ mode */
+					case 0x74: /* DMA[0] */
+						ret = sb.hw.dma8;
+						break;
+					case 0x75: /* DMA[1] */
+						ret = sb.hw.dma16 == 0xFF ? sb.hw.dma8 : sb.hw.dma16;
+						break;
 
-                }
-            }
-            else if (logical_device == 1) {
-                switch (addr) {
-                    case 0x60: case 0x61:   /* I/O [0] gameport */
-                        ret = 0x200 >> ((addr & 1) ? 0 : 8);
-                        break;
-                }
-            }
+				}
+			}
+			else if (logical_device == 1) {
+				switch (addr) {
+					case 0x60: case 0x61:   /* I/O [0] gameport */
+						ret = 0x200 >> ((addr & 1) ? 0 : 8);
+						break;
+				}
+			}
 
-            return ret;
-        }
-        void write(Bitu addr,Bitu val) override {
-            if (logical_device == 0) {
-                switch (addr) {
-                    case 0x30:  /* activate range */
-                        /* TODO: set flag to ignore writes/return 0xFF when "deactivated". setting bit 0 activates, clearing deactivates */
-                        break;
-                    case 0x60: case 0x61:   /* I/O [0] sound blaster */
-                        /* TODO: on-the-fly changing */
-                        //LOG_MSG("ISA PnP Warning: Sound Blaster I/O port changing not implemented yet\n");
-                        break;
-                    case 0x62: case 0x63:   /* I/O [1] MPU */
-                        /* TODO: on-the-fly changing */
-                        //LOG_MSG("ISA PnP Warning: MPU I/O port changing not implemented yet\n");
-                        break;
-                    case 0x64: case 0x65:   /* I/O [1] OPL-3 */
-                        /* TODO: on-the-fly changing */
-                        //LOG_MSG("ISA PnP Warning: OPL-3 I/O port changing not implemented yet\n");
-                        break;
-                    case 0x70: /* IRQ[0] */
-                        if (val & 0xF)
-                            sb.hw.irq = val;
-                        else
-                            sb.hw.irq = 0xFF;
-                        break;
-                    case 0x74: /* DMA[0] */
-                        if ((val & 7) == 4)
-                            sb.hw.dma8 = 0xFF;
-                        else
-                            sb.hw.dma8 = val & 7;
-                        break;
-                    case 0x75: /* DMA[1] */
-                        if ((val & 7) == 4)
-                            sb.hw.dma16 = 0xFF;
-                        else
-                            sb.hw.dma16 = val & 7;
-                        break;
+			return ret;
+		}
+		void write(Bitu addr,Bitu val) override {
+			if (logical_device == 0) {
+				switch (addr) {
+					case 0x30:  /* activate range */
+						/* TODO: set flag to ignore writes/return 0xFF when "deactivated". setting bit 0 activates, clearing deactivates */
+						break;
+					case 0x60: case 0x61:   /* I/O [0] sound blaster */
+						/* TODO: on-the-fly changing */
+						//LOG_MSG("ISA PnP Warning: Sound Blaster I/O port changing not implemented yet\n");
+						break;
+					case 0x62: case 0x63:   /* I/O [1] MPU */
+						/* TODO: on-the-fly changing */
+						//LOG_MSG("ISA PnP Warning: MPU I/O port changing not implemented yet\n");
+						break;
+					case 0x64: case 0x65:   /* I/O [1] OPL-3 */
+						/* TODO: on-the-fly changing */
+						//LOG_MSG("ISA PnP Warning: OPL-3 I/O port changing not implemented yet\n");
+						break;
+					case 0x70: /* IRQ[0] */
+						if (val & 0xF)
+							sb.hw.irq = val;
+						else
+							sb.hw.irq = 0xFF;
+						break;
+					case 0x74: /* DMA[0] */
+						if ((val & 7) == 4)
+							sb.hw.dma8 = 0xFF;
+						else
+							sb.hw.dma8 = val & 7;
+						break;
+					case 0x75: /* DMA[1] */
+						if ((val & 7) == 4)
+							sb.hw.dma16 = 0xFF;
+						else
+							sb.hw.dma16 = val & 7;
+						break;
 
-                }
-            }
-            else if (logical_device == 1) {
-                switch (addr) {
-                    case 0x60: case 0x61:   /* I/O [0] gameport */
-                        /* TODO: on-the-fly changing */
-                        //LOG_MSG("ISA PnP Warning: Gameport I/O port changing not implemented yet\n");
-                        break;
-                }
-            }
-        }
+				}
+			}
+			else if (logical_device == 1) {
+				switch (addr) {
+					case 0x60: case 0x61:   /* I/O [0] gameport */
+						/* TODO: on-the-fly changing */
+						//LOG_MSG("ISA PnP Warning: Gameport I/O port changing not implemented yet\n");
+						break;
+				}
+			}
+		}
 };
 
 bool JOYSTICK_IsEnabled(Bitu which);
 
 std::string GetSBtype() {
-    switch (sb.type) {
-        case SBT_NONE:
-            return "None";
-        case SBT_1:
-            return "SB1";
-        case SBT_PRO1:
-            return "SBPro";
-        case SBT_2:
-            return "SB2";
-        case SBT_PRO2:
-            return "SBPro 2";
-        case SBT_16:
-            return "SB16";
-        case SBT_GB:
-            return "GB";
-        default:
-            return "Unknown";
-    }
+	switch (sb.type) {
+		case SBT_NONE:
+			return "None";
+		case SBT_1:
+			return "SB1";
+		case SBT_PRO1:
+			return "SBPro";
+		case SBT_2:
+			return "SB2";
+		case SBT_PRO2:
+			return "SBPro 2";
+		case SBT_16:
+			return "SB16";
+		case SBT_GB:
+			return "GB";
+		default:
+			return "Unknown";
+	}
 }
 
 std::string GetSBbase() {
-    std::stringstream ss;
-    ss << std::hex << sb.hw.base;
-    return ss.str();
+	std::stringstream ss;
+	ss << std::hex << sb.hw.base;
+	return ss.str();
 }
 
 std::string GetSBirq() {
-    return sb.hw.irq==0xff?"None":std::to_string(sb.hw.irq);
+	return sb.hw.irq==0xff?"None":std::to_string(sb.hw.irq);
 }
 
 std::string GetSBldma() {
-    return sb.hw.dma8==0xff?"None":std::to_string((int)sb.hw.dma8);
+	return sb.hw.dma8==0xff?"None":std::to_string((int)sb.hw.dma8);
 }
 
 std::string GetSBhdma() {
-    return sb.hw.dma16==0xff?"None":std::to_string((int)sb.hw.dma16);
+	return sb.hw.dma16==0xff?"None":std::to_string((int)sb.hw.dma16);
 }
 
 class SBLASTER: public Module_base {
@@ -4363,56 +4363,56 @@ ASP>
 static SBLASTER* test = NULL;
 
 void SBLASTER_DOS_Shutdown() {
-    if (test != NULL) test->DOS_Shutdown();
+	if (test != NULL) test->DOS_Shutdown();
 }
 
 void SBLASTER_ShutDown(Section* /*sec*/) {
-    if (test != NULL) {
-        delete test;
-        test = NULL;
-    }
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 #if HAS_HARDOPL
-    HARDOPL_Cleanup();
+	HARDOPL_Cleanup();
 #endif
 }
 
 void SBLASTER_OnReset(Section *sec) {
-    (void)sec;//UNUSED
-    SBLASTER_DOS_Shutdown();
+	(void)sec;//UNUSED
+	SBLASTER_DOS_Shutdown();
 
-    if (test != NULL) {
-        delete test;
-        test = NULL;
-    }
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 #if HAS_HARDOPL
-    HARDOPL_Cleanup();
+	HARDOPL_Cleanup();
 #endif
 
-    if (test == NULL) {
-        LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
-        test = new SBLASTER(control->GetSection("sblaster"));
-    }
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
+		test = new SBLASTER(control->GetSection("sblaster"));
+	}
 }
 
 void SBLASTER_DOS_Exit(Section *sec) {
-    (void)sec;//UNUSED
-    SBLASTER_DOS_Shutdown();
+	(void)sec;//UNUSED
+	SBLASTER_DOS_Shutdown();
 }
 
 void SBLASTER_DOS_Boot(Section *sec) {
-    (void)sec;//UNUSED
-    if (test != NULL) test->DOS_Startup();
+	(void)sec;//UNUSED
+	if (test != NULL) test->DOS_Startup();
 }
 
 void SBLASTER_Init() {
-    LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
 
-    AddExitFunction(AddExitFunctionFuncPair(SBLASTER_ShutDown),true);
-    AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SBLASTER_OnReset));
-    AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
-    AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
-    AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
-    AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(SBLASTER_DOS_Boot));
+	AddExitFunction(AddExitFunctionFuncPair(SBLASTER_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SBLASTER_OnReset));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
+	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
+	AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(SBLASTER_DOS_Boot));
 }
 
 // save state support
