@@ -586,6 +586,9 @@ struct SB_INFO {
 	void DSP_Reset(void);
 	void ESS_StartDMA();
 	void ESS_StopDMA();
+
+	Bitu read_sb(Bitu port,Bitu /*iolen*/);
+	void write_sb(Bitu port,Bitu val,Bitu /*iolen*/);
 };
 
 static SB_INFO sb;
@@ -3236,7 +3239,7 @@ uint8_t SB_INFO::CTMIXER_Read(void) {
 }
 
 std::string SB_INFO::GetSBtype() {
-	switch (sb.type) {
+	switch (type) {
 		case SBT_NONE:
 			return "None";
 		case SBT_1:
@@ -3256,62 +3259,62 @@ std::string SB_INFO::GetSBtype() {
 	}
 }
 
-static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
+Bitu SB_INFO::read_sb(Bitu port,Bitu /*iolen*/) {
 	if (!IS_PC98_ARCH) {
 		/* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
 		 * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
 		 * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
-		if (sb.hw.sb_io_alias) {
-			if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
-			{ } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
-			else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
+		if (hw.sb_io_alias) {
+			if ((port-hw.base) == DSP_ACK_16BIT && ess_type != ESS_NONE)
+				{ } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
+			else if ((port-hw.base) < MIXER_INDEX || (port-hw.base) > MIXER_DATA)
 				port &= ~1u;
 		}
 	}
 
-	switch (((port-sb.hw.base) >> (IS_PC98_ARCH ? 8u : 0u)) & 0xFu) {
+	switch (((port-hw.base) >> (IS_PC98_ARCH ? 8u : 0u)) & 0xFu) {
 		case MIXER_INDEX:
-			return sb.mixer.index;
+			return mixer.index;
 		case MIXER_DATA:
-			return sb.CTMIXER_Read();
+			return CTMIXER_Read();
 		case DSP_READ_DATA:
-			return sb.DSP_ReadData();
+			return DSP_ReadData();
 		case DSP_READ_STATUS:
 			//TODO See for high speed dma :)
-			if (sb.irq.pending_8bit)  {
-				sb.irq.pending_8bit=false;
-				PIC_DeActivateIRQ(sb.hw.irq);
+			if (irq.pending_8bit)  {
+				irq.pending_8bit=false;
+				PIC_DeActivateIRQ(hw.irq);
 			}
 
-			if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK) {
-				sb.chan->FillUp();
-				sb.mode = MODE_DMA;
+			if (mode == MODE_DMA_REQUIRE_IRQ_ACK) {
+				chan->FillUp();
+				mode = MODE_DMA;
 			}
 
 			extern const char* RunningProgram; // Wengier: Hack for Desert Strike & Jungle Strike
-			if (!IS_PC98_ARCH && port>0x220 && port%0x10==0xE && !sb.dsp.out.used && (!strcmp(RunningProgram, "DESERT") || !strcmp(RunningProgram, "JUNGLE"))) {
+			if (!IS_PC98_ARCH && port>0x220 && port%0x10==0xE && !dsp.out.used && (!strcmp(RunningProgram, "DESERT") || !strcmp(RunningProgram, "JUNGLE"))) {
 				LOG_MSG("Check status by game: %s\n", RunningProgram);
-				sb.dsp.out.used++;
+				dsp.out.used++;
 			}
-			if (sb.ess_type == ESS_NONE && (sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
-				return sb.dsp.out.used ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
+			if (ess_type == ESS_NONE && (type == SBT_1 || type == SBT_2 || type == SBT_PRO1 || type == SBT_PRO2))
+				return dsp.out.used ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
 			else
-				return sb.dsp.out.used ? 0xFF : 0x7F; /* normal return values */
+				return dsp.out.used ? 0xFF : 0x7F; /* normal return values */
 		case DSP_ACK_16BIT:
-			if (sb.ess_type == ESS_NONE && sb.type == SBT_16) {
-				if (sb.irq.pending_16bit)  {
-					sb.irq.pending_16bit=false;
-					PIC_DeActivateIRQ(sb.hw.irq);
+			if (ess_type == ESS_NONE && type == SBT_16) {
+				if (irq.pending_16bit)  {
+					irq.pending_16bit=false;
+					PIC_DeActivateIRQ(hw.irq);
 				}
 
-				if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK) {
-					sb.chan->FillUp();
-					sb.mode = MODE_DMA;
+				if (mode == MODE_DMA_REQUIRE_IRQ_ACK) {
+					chan->FillUp();
+					mode = MODE_DMA;
 				}
 			}
 			break;
 		case DSP_WRITE_STATUS:
-			switch (sb.dsp.state) {
+			switch (dsp.state) {
 				/* FIXME: On a SB 2.0 card I own, the port will usually read either 0x2A or 0xAA,
 				 *        rather than 0x7F or 0xFF. Is there any significance to that? */
 				case DSP_S_NORMAL: {
@@ -3322,13 +3325,13 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 					 *      writing a DSP command during the busy cycle means that the command
 					 *      is remembered, but not acted on until the DSP leaves its busy
 					 *      cycle. */
-					sb.busy_cycle_io_hack++; /* NTS: busy cycle I/O timing hack! */
-					if (sb.DSP_busy_cycle())
+					busy_cycle_io_hack++; /* NTS: busy cycle I/O timing hack! */
+					if (DSP_busy_cycle())
 						busy = true;
-					else if (sb.dsp.write_busy || (sb.dsp.highspeed && sb.type != SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE))
+					else if (dsp.write_busy || (dsp.highspeed && type != SBT_16 && ess_type == ESS_NONE && reveal_sc_type == RSC_NONE))
 						busy = true;
 
-					if (!sb.write_status_must_return_7f && sb.ess_type == ESS_NONE && (sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
+					if (!write_status_must_return_7f && ess_type == ESS_NONE && (type == SBT_2 || type == SBT_PRO1 || type == SBT_PRO2))
 						return busy ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
 					else
 						return busy ? 0xFF : 0x7F; /* normal return values */
@@ -3348,43 +3351,51 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 	return 0xff;
 }
 
-static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
+void SB_INFO::write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
 	/* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
 	 * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
 	 * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
 	if (!IS_PC98_ARCH) {
-		if (sb.hw.sb_io_alias) {
-			if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
+		if (hw.sb_io_alias) {
+			if ((port-hw.base) == DSP_ACK_16BIT && ess_type != ESS_NONE)
 			{ } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
-			else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
+			else if ((port-hw.base) < MIXER_INDEX || (port-hw.base) > MIXER_DATA)
 				port &= ~1u;
 		}
 	}
 
 	uint8_t val8=(uint8_t)(val&0xff);
-	switch (((port-sb.hw.base) >> (IS_PC98_ARCH ? 8u : 0u)) & 0xFu) {
+	switch (((port-hw.base) >> (IS_PC98_ARCH ? 8u : 0u)) & 0xFu) {
 		case DSP_RESET:
-			sb.DSP_DoReset(val8);
+			DSP_DoReset(val8);
 			break;
 		case DSP_WRITE_DATA:
 			/* FIXME: We need to emulate behavior where either the DSP command is delayed (busy cycle)
 			 *        and then acted on, or we need to emulate the DSP ignoring the byte because a
 			 *        command is in progress */
-			sb.DSP_DoWrite(val8);
+			DSP_DoWrite(val8);
 			break;
 		case MIXER_INDEX:
-			sb.mixer.index=val8;
-			if (sb.mixer.index == 0x40 && sb.ess_type != ESS_NONE) {
-				sb.mixer.ess_id_str_pos = 0;
+			mixer.index=val8;
+			if (mixer.index == 0x40 && ess_type != ESS_NONE) {
+				mixer.ess_id_str_pos = 0;
 			}
 			break;
 		case MIXER_DATA:
-			sb.CTMIXER_Write(val8);
+			CTMIXER_Write(val8);
 			break;
 		default:
 			LOG(LOG_SB,LOG_NORMAL)("Unhandled write to SB Port %4X",(int)port);
 			break;
 	}
+}
+
+static Bitu read_sb(Bitu port,Bitu iolen) {
+	return sb.read_sb(port,iolen);
+}
+
+static void write_sb(Bitu port,Bitu val,Bitu iolen) {
+	sb.write_sb(port,val,iolen);
 }
 
 static void adlib_gusforward(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
