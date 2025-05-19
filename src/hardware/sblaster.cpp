@@ -387,12 +387,12 @@ static INLINE uint8_t decode_ADPCM_2_sample(uint8_t sample,uint8_t & reference,B
 #define DSP_SB201_ABOVE if (type <= SBT_1 || (type == SBT_2 && subtype == SBST_200)) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2.01 or above",dsp.cmd); break; }
 
 #define SETPROVOL(_WHICH_,_VAL_)                                        \
-    _WHICH_[0]=   ((((_VAL_) & 0xf0) >> 3)|(sb.type==SBT_16 ? 1:3));    \
-    _WHICH_[1]=   ((((_VAL_) & 0x0f) << 1)|(sb.type==SBT_16 ? 1:3));    \
+    _WHICH_[0]=   ((((_VAL_) & 0xf0) >> 3)|(type==SBT_16 ? 1:3));    \
+    _WHICH_[1]=   ((((_VAL_) & 0x0f) << 1)|(type==SBT_16 ? 1:3));    \
 
 #define MAKEPROVOL(_WHICH_)											\
 	((((_WHICH_[0] & 0x1e) << 3) | ((_WHICH_[1] & 0x1e) >> 1)) |	\
-		((sb.type==SBT_PRO1 || sb.type==SBT_PRO2) ? 0x11:0))
+		((type==SBT_PRO1 || type==SBT_PRO2) ? 0x11:0))
 
 struct SB_INFO {
 	Bitu freq;
@@ -2540,6 +2540,431 @@ struct SB_INFO {
 		dma.stereo=stereo;
 	}
 
+	/* Sound Blaster Pro 2 (CT1600) notes:
+	 *
+	 * - Registers 0x40-0xFF do nothing written and read back 0xFF.
+	 * - Registers 0x00-0x3F are almost exact mirrors of registers 0x00-0x0F, but not quite
+	 * - Registers 0x00-0x1F are exact mirrors of 0x00-0x0F
+	 * - Registers 0x20-0x3F are exact mirrors of 0x20-0x2F which are.... non functional shadow copies of 0x00-0x0F (???)
+	 * - Register 0x0E is mirrored at 0x0F, 0x1E, 0x1F. Reading 0x00, 0x01, 0x10, 0x11 also reads register 0x0E.
+	 * - Writing 0x00, 0x01, 0x10, 0x11 resets the mixer as expected.
+	 * - Register 0x0E is 0x11 on reset, which defaults to mono and lowpass filter enabled.
+	 * - See screenshot for mixer registers on hardware or mixer reset, file 'CT1600 Sound Blaster Pro 2 mixer register dump hardware and mixer reset state.png' */
+	void CTMIXER_Write(uint8_t val) {
+		switch (mixer.index) {
+			case 0x00:      /* Reset */
+				CTMIXER_Reset();
+				LOG(LOG_SB,LOG_WARN)("Mixer reset value %x",val);
+				break;
+			case 0x02:      /* Master Volume (SB2 Only) */
+				SETPROVOL(mixer.master,(val&0xf)|(val<<4));
+				CTMIXER_UpdateVolumes();
+				break;
+			case 0x04:      /* DAC Volume (SBPRO) */
+				SETPROVOL(mixer.dac,val);
+				CTMIXER_UpdateVolumes();
+				break;
+			case 0x06:      /* FM output selection, Somewhat obsolete with dual OPL SBpro + FM volume (SB2 Only) */
+				//volume controls both channels
+				SETPROVOL(mixer.fm,(val&0xf)|(val<<4));
+				CTMIXER_UpdateVolumes();
+				if(val&0x60) LOG(LOG_SB,LOG_WARN)("Turned FM one channel off. not implemented %X",val);
+				//TODO Change FM Mode if only 1 fm channel is selected
+				break;
+			case 0x08:      /* CDA Volume (SB2 Only) */
+				SETPROVOL(mixer.cda,(val&0xf)|(val<<4));
+				CTMIXER_UpdateVolumes();
+				break;
+			case 0x0a:      /* Mic Level (SBPRO) or DAC Volume (SB2): 2-bit, 3-bit on SB16 */
+				if (type==SBT_2) {
+					mixer.dac[0]=mixer.dac[1]=((val & 0x6) << 2)|3;
+					CTMIXER_UpdateVolumes();
+				} else {
+					mixer.mic=((val & 0x7) << 2)|(type==SBT_16?1:3);
+				}
+				break;
+			case 0x0e:      /* Output/Stereo Select */
+				/* Real CT1600 notes:
+				 *
+				 * This register only allows changing bits 1 and 5. Each nibble can be 1 or 3, therefore on readback it will always be 0x11, 0x13, 0x31, or 0x11.
+				 * This register is also mirrored at 0x0F, 0x1E, 0x1F. On read this register also appears over 0x00, 0x01, 0x10, 0x11, though writing that register
+				 * resets the mixer as expected. */
+				/* only allow writing stereo bit if Sound Blaster Pro OR if a SB16 and user says to allow it */
+				if ((type == SBT_PRO1 || type == SBT_PRO2) || (type == SBT_16 && !sbpro_stereo_bit_strict_mode))
+					mixer.stereo=(val & 0x2) > 0;
+
+				mixer.sbpro_stereo=(val & 0x2) > 0;
+				mixer.filter_bypass=(val & 0x20) > 0; /* filter is ON by default, set the bit to turn OFF the filter */
+				DSP_ChangeStereo(mixer.stereo);
+				updateSoundBlasterFilter(freq);
+
+				/* help the user out if they leave sbtype=sb16 and then wonder why their DOS game is producing scratchy monural audio. */
+				if (type == SBT_16 && sbpro_stereo_bit_strict_mode && (val&0x2) != 0)
+					LOG(LOG_SB,LOG_WARN)("Mixer stereo/mono bit is set. This is Sound Blaster Pro style Stereo which is not supported by sbtype=sb16, consider using sbtype=sbpro2 instead.");
+				break;
+			case 0x14:      /* Audio 1 Play Volume (ESS 688) */
+				if (ess_type != ESS_NONE) {
+					mixer.dac[0]=expand16to32((val>>4)&0xF);
+					mixer.dac[1]=expand16to32(val&0xF);
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+			case 0x22:      /* Master Volume (SBPRO) */
+				SETPROVOL(mixer.master,val);
+				CTMIXER_UpdateVolumes();
+				break;
+			case 0x26:      /* FM Volume (SBPRO) */
+				SETPROVOL(mixer.fm,val);
+				CTMIXER_UpdateVolumes();
+				break;
+			case 0x28:      /* CD Audio Volume (SBPRO) */
+				SETPROVOL(mixer.cda,val);
+				CTMIXER_UpdateVolumes();
+				break;
+			case 0x2e:      /* Line-in Volume (SBPRO) */
+				SETPROVOL(mixer.lin,val);
+				break;
+				//case 0x20:        /* Master Volume Left (SBPRO) ? */
+			case 0x30:      /* Master Volume Left (SB16) */
+				if (type==SBT_16) {
+					mixer.master[0]=val>>3;
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+				//case 0x21:        /* Master Volume Right (SBPRO) ? */
+			case 0x31:      /* Master Volume Right (SB16) */
+				if (type==SBT_16) {
+					mixer.master[1]=val>>3;
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+			case 0x32:      /* DAC Volume Left (SB16) */
+				/* Master Volume (ESS 688) */
+				if (type==SBT_16) {
+					mixer.dac[0]=val>>3;
+					CTMIXER_UpdateVolumes();
+				}
+				else if (ess_type != ESS_NONE) {
+					mixer.master[0]=expand16to32((val>>4)&0xF);
+					mixer.master[1]=expand16to32(val&0xF);
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+			case 0x33:      /* DAC Volume Right (SB16) */
+				if (type==SBT_16) {
+					mixer.dac[1]=val>>3;
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+			case 0x34:      /* FM Volume Left (SB16) */
+				if (type==SBT_16) {
+					mixer.fm[0]=val>>3;
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+			case 0x35:      /* FM Volume Right (SB16) */
+				if (type==SBT_16) {
+					mixer.fm[1]=val>>3;
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+			case 0x36:      /* CD Volume Left (SB16) */
+				/* FM Volume (ESS 688) */
+				if (type==SBT_16) {
+					mixer.cda[0]=val>>3;
+					CTMIXER_UpdateVolumes();
+				}
+				else if (ess_type != ESS_NONE) {
+					mixer.fm[0]=expand16to32((val>>4)&0xF);
+					mixer.fm[1]=expand16to32(val&0xF);
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+			case 0x37:      /* CD Volume Right (SB16) */
+				if (type==SBT_16) {
+					mixer.cda[1]=val>>3;
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+			case 0x38:      /* Line-in Volume Left (SB16) */
+				/* AuxA (CD) Volume Register (ESS 688) */
+				if (type==SBT_16)
+					mixer.lin[0]=val>>3;
+				else if (ess_type != ESS_NONE) {
+					mixer.cda[0]=expand16to32((val>>4)&0xF);
+					mixer.cda[1]=expand16to32(val&0xF);
+					CTMIXER_UpdateVolumes();
+				}
+				break;
+			case 0x39:      /* Line-in Volume Right (SB16) */
+				if (type==SBT_16) mixer.lin[1]=val>>3;
+				break;
+			case 0x3a:
+				if (type==SBT_16) mixer.mic=val>>3;
+				break;
+			case 0x3e:      /* Line Volume (ESS 688) */
+				if (ess_type != ESS_NONE) {
+					mixer.lin[0]=expand16to32((val>>4)&0xF);
+					mixer.lin[1]=expand16to32(val&0xF);
+				}
+				break;
+			case 0x80:      /* IRQ Select */
+				if (type==SBT_16 && !vibra) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
+					hw.irq=0xff;
+					if (IS_PC98_ARCH) {
+						if (val & 0x1) hw.irq=3;
+						else if (val & 0x2) hw.irq=10;
+						else if (val & 0x4) hw.irq=12;
+						else if (val & 0x8) hw.irq=5;
+
+						// NTS: Real hardware stores only the low 4 bits. The upper 4 bits will always read back 1111.
+						//      The value read back will always be Fxh where x contains the 4 bits checked here.
+					}
+					else {
+						if (val & 0x1) hw.irq=2;
+						else if (val & 0x2) hw.irq=5;
+						else if (val & 0x4) hw.irq=7;
+						else if (val & 0x8) hw.irq=10;
+					}
+				}
+				break;
+			case 0x81:      /* DMA Select */
+				if (type==SBT_16 && !vibra) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
+					hw.dma8=0xff;
+					hw.dma16=0xff;
+					if (IS_PC98_ARCH) {
+						pc98_mixctl_reg = (unsigned char)val ^ 0x14;
+
+						if (val & 0x1) hw.dma8=0;
+						else if (val & 0x2) hw.dma8=3;
+
+						// NTS: On real hardware, only bits 0 and 1 are writeable. bits 2 and 4 seem to act oddly in response to
+						//      bytes written:
+						//
+						//      write 0x00          read 0x14
+						//      write 0x01          read 0x15
+						//      write 0x02          read 0x16
+						//      write 0x03          read 0x17
+						//      write 0x04          read 0x10
+						//      write 0x05          read 0x11
+						//      write 0x06          read 0x12
+						//      write 0x07          read 0x13
+						//      write 0x08          read 0x1C
+						//      write 0x09          read 0x1D
+						//      write 0x0A          read 0x1E
+						//      write 0x0B          read 0x1F
+						//      write 0x0C          read 0x18
+						//      write 0x0D          read 0x19
+						//      write 0x0E          read 0x1A
+						//      write 0x0F          read 0x1B
+						//      write 0x10          read 0x04
+						//      write 0x11          read 0x05
+						//      write 0x12          read 0x06
+						//      write 0x13          read 0x07
+						//      write 0x14          read 0x00
+						//      write 0x15          read 0x01
+						//      write 0x16          read 0x02
+						//      write 0x17          read 0x03
+						//      write 0x18          read 0x0C
+						//      write 0x19          read 0x0D
+						//      write 0x1A          read 0x0E
+						//      write 0x1B          read 0x0F
+						//      write 0x1C          read 0x08
+						//      write 0x1D          read 0x09
+						//      write 0x1E          read 0x0A
+						//      write 0x1F          read 0x0B
+						//
+						//      This pattern repeats for any 5 bit value in bits [4:0] i.e. 0x20 will read back 0x34.
+					}
+					else {
+						if (val & 0x1) hw.dma8=0;
+						else if (val & 0x2) hw.dma8=1;
+						else if (val & 0x8) hw.dma8=3;
+						if (val & 0x20) hw.dma16=5;
+						else if (val & 0x40) hw.dma16=6;
+						else if (val & 0x80) hw.dma16=7;
+					}
+					LOG(LOG_SB,LOG_NORMAL)("Mixer select dma8:%x dma16:%x",hw.dma8,hw.dma16);
+				}
+				break;
+			default:
+
+				if( ((type == SBT_PRO1 || type == SBT_PRO2) && mixer.index==0x0c) || /* Input control on SBPro */
+						(type == SBT_16 && mixer.index >= 0x3b && mixer.index <= 0x47)) /* New SB16 registers */
+					mixer.unhandled[mixer.index] = val;
+				LOG(LOG_SB,LOG_WARN)("MIXER:Write %X to unhandled index %X",val,mixer.index);
+		}
+	}
+
+	uint8_t CTMIXER_Read(void) {
+		uint8_t ret = 0;
+
+		//  if ( mixer.index< 0x80) LOG_MSG("Read mixer %x",mixer.index);
+		switch (mixer.index) {
+			case 0x00:      /* RESET */
+				return 0x00;
+			case 0x02:      /* Master Volume (SB2 Only) */
+				return ((mixer.master[1]>>1) & 0xe);
+			case 0x22:      /* Master Volume (SBPRO) */
+				return  MAKEPROVOL(mixer.master);
+			case 0x04:      /* DAC Volume (SBPRO) */
+				return MAKEPROVOL(mixer.dac);
+			case 0x06:      /* FM Volume (SB2 Only) + FM output selection */
+				return ((mixer.fm[1]>>1) & 0xe);
+			case 0x08:      /* CD Volume (SB2 Only) */
+				return ((mixer.cda[1]>>1) & 0xe);
+			case 0x0a:      /* Mic Level (SBPRO) or Voice (SB2 Only) */
+				if (type==SBT_2) return (mixer.dac[0]>>2);
+				else return ((mixer.mic >> 2) & (type==SBT_16 ? 7:6));
+			case 0x0e:      /* Output/Stereo Select */
+				return 0x11|(mixer.stereo ? 0x02 : 0x00)|(mixer.filter_bypass ? 0x20 : 0x00);
+			case 0x14:      /* Audio 1 Play Volume (ESS 688) */
+				if (ess_type != ESS_NONE) return ((mixer.dac[0] << 3) & 0xF0) + (mixer.dac[1] >> 1);
+				break;
+			case 0x26:      /* FM Volume (SBPRO) */
+				return MAKEPROVOL(mixer.fm);
+			case 0x28:      /* CD Audio Volume (SBPRO) */
+				return MAKEPROVOL(mixer.cda);
+			case 0x2e:      /* Line-IN Volume (SBPRO) */
+				return MAKEPROVOL(mixer.lin);
+			case 0x30:      /* Master Volume Left (SB16) */
+				if (type==SBT_16) return mixer.master[0]<<3;
+				ret=0xa;
+				break;
+			case 0x31:      /* Master Volume Right (S16) */
+				if (type==SBT_16) return mixer.master[1]<<3;
+				ret=0xa;
+				break;
+			case 0x32:      /* DAC Volume Left (SB16) */
+				/* Master Volume (ESS 688) */
+				if (type==SBT_16) return mixer.dac[0]<<3;
+				if (ess_type != ESS_NONE) return ((mixer.master[0] << 3) & 0xF0) + (mixer.master[1] >> 1);
+				ret=0xa;
+				break;
+			case 0x33:      /* DAC Volume Right (SB16) */
+				if (type==SBT_16) return mixer.dac[1]<<3;
+				ret=0xa;
+				break;
+			case 0x34:      /* FM Volume Left (SB16) */
+				if (type==SBT_16) return mixer.fm[0]<<3;
+				ret=0xa;
+				break;
+			case 0x35:      /* FM Volume Right (SB16) */
+				if (type==SBT_16) return mixer.fm[1]<<3;
+				ret=0xa;
+				break;
+			case 0x36:      /* CD Volume Left (SB16) */
+				/* FM Volume (ESS 688) */
+				if (type==SBT_16) return mixer.cda[0]<<3;
+				if (ess_type != ESS_NONE) return ((mixer.fm[0] << 3) & 0xF0) + (mixer.fm[1] >> 1);
+				ret=0xa;
+				break;
+			case 0x37:      /* CD Volume Right (SB16) */
+				if (type==SBT_16) return mixer.cda[1]<<3;
+				ret=0xa;
+				break;
+			case 0x38:      /* Line-in Volume Left (SB16) */
+				/* AuxA (CD) Volume Register (ESS 688) */
+				if (type==SBT_16) return mixer.lin[0]<<3;
+				if (ess_type != ESS_NONE) return ((mixer.cda[0] << 3) & 0xF0) + (mixer.cda[1] >> 1);
+				ret=0xa;
+				break;
+			case 0x39:      /* Line-in Volume Right (SB16) */
+				if (type==SBT_16) return mixer.lin[1]<<3;
+				ret=0xa;
+				break;
+			case 0x3a:      /* Mic Volume (SB16) */
+				if (type==SBT_16) return mixer.mic<<3;
+				ret=0xa;
+				break;
+			case 0x3e:      /* Line Volume (ESS 688) */
+				if (ess_type != ESS_NONE) return ((mixer.lin[0] << 3) & 0xF0) + (mixer.lin[1] >> 1);
+				break;
+			case 0x40:      /* ESS identification value (ES1488 and later) */
+				if (ess_type != ESS_NONE) {
+					switch (ess_type) {
+						case ESS_688:
+							ret=0xa;
+							break;
+						case ESS_1688:
+							ret=mixer.ess_id_str[mixer.ess_id_str_pos];
+							mixer.ess_id_str_pos++;
+							if (mixer.ess_id_str_pos >= 4) {
+								mixer.ess_id_str_pos = 0;
+							}
+							break;
+						default:
+							ret=0xa;
+							LOG(LOG_SB,LOG_WARN)("MIXER:FIXME:ESS identification function (0x%X) for selected card is not implemented",mixer.index);
+					}
+				} else {
+					if (type == SBT_16) {
+						ret=mixer.unhandled[mixer.index];
+					} else {
+						ret=0xa;
+					}
+					LOG(LOG_SB,LOG_WARN)("MIXER:Read from unhandled index %X",mixer.index);
+				}
+				break;
+			case 0x80:      /* IRQ Select */
+				ret=0;
+				if (IS_PC98_ARCH) {
+					switch (hw.irq) {
+						case 3:  return 0xF1; // upper 4 bits always 1111
+						case 10: return 0xF2;
+						case 12: return 0xF4;
+						case 5:  return 0xF8;
+					}
+				}
+				else {
+					switch (hw.irq) {
+						case 2:  return 0x1;
+						case 5:  return 0x2;
+						case 7:  return 0x4;
+						case 10: return 0x8;
+					}
+				}
+				break;
+			case 0x81:      /* DMA Select */
+				ret=0;
+				if (IS_PC98_ARCH) {
+					switch (hw.dma8) {
+						case 0:ret|=0x1;break;
+						case 3:ret|=0x2;break;
+					}
+
+					// there's some strange behavior on the PC-98 version of the card
+					ret |= (pc98_mixctl_reg & (~3u));
+				}
+				else {
+					switch (hw.dma8) {
+						case 0:ret|=0x1;break;
+						case 1:ret|=0x2;break;
+						case 3:ret|=0x8;break;
+					}
+					switch (hw.dma16) {
+						case 5:ret|=0x20;break;
+						case 6:ret|=0x40;break;
+						case 7:ret|=0x80;break;
+					}
+				}
+				return ret;
+			case 0x82:      /* IRQ Status */
+				return  (irq.pending_8bit ? 0x1 : 0) |
+					(irq.pending_16bit ? 0x2 : 0) |
+					((type == SBT_16) ? 0x20 : 0);
+			default:
+				if (    ((type == SBT_PRO1 || type == SBT_PRO2) && mixer.index==0x0c) || /* Input control on SBPro */
+						(type == SBT_16 && mixer.index >= 0x3b && mixer.index <= 0x47)) /* New SB16 registers */
+					ret = mixer.unhandled[mixer.index];
+				else
+					ret=0xa;
+				LOG(LOG_SB,LOG_WARN)("MIXER:Read from unhandled index %X",mixer.index);
+		}
+
+		return ret;
+	}
+
 };
 
 static SB_INFO sb;
@@ -2761,432 +3186,6 @@ static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	ch->Register_Callback(nullptr);
 }
 
-/* Sound Blaster Pro 2 (CT1600) notes:
- *
- * - Registers 0x40-0xFF do nothing written and read back 0xFF.
- * - Registers 0x00-0x3F are almost exact mirrors of registers 0x00-0x0F, but not quite
- * - Registers 0x00-0x1F are exact mirrors of 0x00-0x0F
- * - Registers 0x20-0x3F are exact mirrors of 0x20-0x2F which are.... non functional shadow copies of 0x00-0x0F (???)
- * - Register 0x0E is mirrored at 0x0F, 0x1E, 0x1F. Reading 0x00, 0x01, 0x10, 0x11 also reads register 0x0E.
- * - Writing 0x00, 0x01, 0x10, 0x11 resets the mixer as expected.
- * - Register 0x0E is 0x11 on reset, which defaults to mono and lowpass filter enabled.
- * - See screenshot for mixer registers on hardware or mixer reset, file 'CT1600 Sound Blaster Pro 2 mixer register dump hardware and mixer reset state.png' */
-static void CTMIXER_Write(uint8_t val) {
-    switch (sb.mixer.index) {
-    case 0x00:      /* Reset */
-        sb.CTMIXER_Reset();
-        LOG(LOG_SB,LOG_WARN)("Mixer reset value %x",val);
-        break;
-    case 0x02:      /* Master Volume (SB2 Only) */
-        SETPROVOL(sb.mixer.master,(val&0xf)|(val<<4));
-        sb.CTMIXER_UpdateVolumes();
-        break;
-    case 0x04:      /* DAC Volume (SBPRO) */
-        SETPROVOL(sb.mixer.dac,val);
-        sb.CTMIXER_UpdateVolumes();
-        break;
-    case 0x06:      /* FM output selection, Somewhat obsolete with dual OPL SBpro + FM volume (SB2 Only) */
-        //volume controls both channels
-        SETPROVOL(sb.mixer.fm,(val&0xf)|(val<<4));
-        sb.CTMIXER_UpdateVolumes();
-        if(val&0x60) LOG(LOG_SB,LOG_WARN)("Turned FM one channel off. not implemented %X",val);
-        //TODO Change FM Mode if only 1 fm channel is selected
-        break;
-    case 0x08:      /* CDA Volume (SB2 Only) */
-        SETPROVOL(sb.mixer.cda,(val&0xf)|(val<<4));
-        sb.CTMIXER_UpdateVolumes();
-        break;
-    case 0x0a:      /* Mic Level (SBPRO) or DAC Volume (SB2): 2-bit, 3-bit on SB16 */
-        if (sb.type==SBT_2) {
-            sb.mixer.dac[0]=sb.mixer.dac[1]=((val & 0x6) << 2)|3;
-            sb.CTMIXER_UpdateVolumes();
-        } else {
-            sb.mixer.mic=((val & 0x7) << 2)|(sb.type==SBT_16?1:3);
-        }
-        break;
-    case 0x0e:      /* Output/Stereo Select */
-        /* Real CT1600 notes:
-         *
-         * This register only allows changing bits 1 and 5. Each nibble can be 1 or 3, therefore on readback it will always be 0x11, 0x13, 0x31, or 0x11.
-         * This register is also mirrored at 0x0F, 0x1E, 0x1F. On read this register also appears over 0x00, 0x01, 0x10, 0x11, though writing that register
-         * resets the mixer as expected. */
-        /* only allow writing stereo bit if Sound Blaster Pro OR if a SB16 and user says to allow it */
-        if ((sb.type == SBT_PRO1 || sb.type == SBT_PRO2) || (sb.type == SBT_16 && !sb.sbpro_stereo_bit_strict_mode))
-            sb.mixer.stereo=(val & 0x2) > 0;
-
-        sb.mixer.sbpro_stereo=(val & 0x2) > 0;
-        sb.mixer.filter_bypass=(val & 0x20) > 0; /* filter is ON by default, set the bit to turn OFF the filter */
-        sb.DSP_ChangeStereo(sb.mixer.stereo);
-        sb.updateSoundBlasterFilter(sb.freq);
-
-        /* help the user out if they leave sbtype=sb16 and then wonder why their DOS game is producing scratchy monural audio. */
-        if (sb.type == SBT_16 && sb.sbpro_stereo_bit_strict_mode && (val&0x2) != 0)
-            LOG(LOG_SB,LOG_WARN)("Mixer stereo/mono bit is set. This is Sound Blaster Pro style Stereo which is not supported by sbtype=sb16, consider using sbtype=sbpro2 instead.");
-        break;
-    case 0x14:      /* Audio 1 Play Volume (ESS 688) */
-        if (sb.ess_type != ESS_NONE) {
-            sb.mixer.dac[0]=expand16to32((val>>4)&0xF);
-            sb.mixer.dac[1]=expand16to32(val&0xF);
-            sb.CTMIXER_UpdateVolumes();
-        }
-        break;
-    case 0x22:      /* Master Volume (SBPRO) */
-        SETPROVOL(sb.mixer.master,val);
-        sb.CTMIXER_UpdateVolumes();
-        break;
-    case 0x26:      /* FM Volume (SBPRO) */
-        SETPROVOL(sb.mixer.fm,val);
-        sb.CTMIXER_UpdateVolumes();
-        break;
-    case 0x28:      /* CD Audio Volume (SBPRO) */
-        SETPROVOL(sb.mixer.cda,val);
-        sb.CTMIXER_UpdateVolumes();
-        break;
-    case 0x2e:      /* Line-in Volume (SBPRO) */
-        SETPROVOL(sb.mixer.lin,val);
-        break;
-    //case 0x20:        /* Master Volume Left (SBPRO) ? */
-    case 0x30:      /* Master Volume Left (SB16) */
-        if (sb.type==SBT_16) {
-            sb.mixer.master[0]=val>>3;
-            sb.CTMIXER_UpdateVolumes();
-        }
-        break;
-    //case 0x21:        /* Master Volume Right (SBPRO) ? */
-    case 0x31:      /* Master Volume Right (SB16) */
-        if (sb.type==SBT_16) {
-            sb.mixer.master[1]=val>>3;
-            sb.CTMIXER_UpdateVolumes();
-        }
-        break;
-    case 0x32:      /* DAC Volume Left (SB16) */
-                /* Master Volume (ESS 688) */
-        if (sb.type==SBT_16) {
-            sb.mixer.dac[0]=val>>3;
-            sb.CTMIXER_UpdateVolumes();
-        }
-        else if (sb.ess_type != ESS_NONE) {
-            sb.mixer.master[0]=expand16to32((val>>4)&0xF);
-            sb.mixer.master[1]=expand16to32(val&0xF);
-            sb.CTMIXER_UpdateVolumes();
-        }
-        break;
-    case 0x33:      /* DAC Volume Right (SB16) */
-        if (sb.type==SBT_16) {
-            sb.mixer.dac[1]=val>>3;
-            sb.CTMIXER_UpdateVolumes();
-        }
-        break;
-    case 0x34:      /* FM Volume Left (SB16) */
-        if (sb.type==SBT_16) {
-            sb.mixer.fm[0]=val>>3;
-            sb.CTMIXER_UpdateVolumes();
-        }
-                break;
-    case 0x35:      /* FM Volume Right (SB16) */
-        if (sb.type==SBT_16) {
-            sb.mixer.fm[1]=val>>3;
-            sb.CTMIXER_UpdateVolumes();
-        }
-        break;
-    case 0x36:      /* CD Volume Left (SB16) */
-                /* FM Volume (ESS 688) */
-        if (sb.type==SBT_16) {
-            sb.mixer.cda[0]=val>>3;
-            sb.CTMIXER_UpdateVolumes();
-        }
-        else if (sb.ess_type != ESS_NONE) {
-            sb.mixer.fm[0]=expand16to32((val>>4)&0xF);
-            sb.mixer.fm[1]=expand16to32(val&0xF);
-            sb.CTMIXER_UpdateVolumes();
-        }
-        break;
-    case 0x37:      /* CD Volume Right (SB16) */
-        if (sb.type==SBT_16) {
-            sb.mixer.cda[1]=val>>3;
-            sb.CTMIXER_UpdateVolumes();
-        }
-        break;
-    case 0x38:      /* Line-in Volume Left (SB16) */
-                /* AuxA (CD) Volume Register (ESS 688) */
-        if (sb.type==SBT_16)
-            sb.mixer.lin[0]=val>>3;
-        else if (sb.ess_type != ESS_NONE) {
-            sb.mixer.cda[0]=expand16to32((val>>4)&0xF);
-            sb.mixer.cda[1]=expand16to32(val&0xF);
-            sb.CTMIXER_UpdateVolumes();
-        }
-        break;
-    case 0x39:      /* Line-in Volume Right (SB16) */
-        if (sb.type==SBT_16) sb.mixer.lin[1]=val>>3;
-        break;
-    case 0x3a:
-        if (sb.type==SBT_16) sb.mixer.mic=val>>3;
-        break;
-    case 0x3e:      /* Line Volume (ESS 688) */
-        if (sb.ess_type != ESS_NONE) {
-            sb.mixer.lin[0]=expand16to32((val>>4)&0xF);
-            sb.mixer.lin[1]=expand16to32(val&0xF);
-        }
-        break;
-    case 0x80:      /* IRQ Select */
-        if (sb.type==SBT_16 && !sb.vibra) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
-            sb.hw.irq=0xff;
-            if (IS_PC98_ARCH) {
-                if (val & 0x1) sb.hw.irq=3;
-                else if (val & 0x2) sb.hw.irq=10;
-                else if (val & 0x4) sb.hw.irq=12;
-                else if (val & 0x8) sb.hw.irq=5;
-
-                // NTS: Real hardware stores only the low 4 bits. The upper 4 bits will always read back 1111.
-                //      The value read back will always be Fxh where x contains the 4 bits checked here.
-            }
-            else {
-                if (val & 0x1) sb.hw.irq=2;
-                else if (val & 0x2) sb.hw.irq=5;
-                else if (val & 0x4) sb.hw.irq=7;
-                else if (val & 0x8) sb.hw.irq=10;
-            }
-        }
-        break;
-    case 0x81:      /* DMA Select */
-        if (sb.type==SBT_16 && !sb.vibra) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
-            sb.hw.dma8=0xff;
-            sb.hw.dma16=0xff;
-            if (IS_PC98_ARCH) {
-                sb.pc98_mixctl_reg = (unsigned char)val ^ 0x14;
-
-                if (val & 0x1) sb.hw.dma8=0;
-                else if (val & 0x2) sb.hw.dma8=3;
-
-                // NTS: On real hardware, only bits 0 and 1 are writeable. bits 2 and 4 seem to act oddly in response to
-                //      bytes written:
-                //
-                //      write 0x00          read 0x14
-                //      write 0x01          read 0x15
-                //      write 0x02          read 0x16
-                //      write 0x03          read 0x17
-                //      write 0x04          read 0x10
-                //      write 0x05          read 0x11
-                //      write 0x06          read 0x12
-                //      write 0x07          read 0x13
-                //      write 0x08          read 0x1C
-                //      write 0x09          read 0x1D
-                //      write 0x0A          read 0x1E
-                //      write 0x0B          read 0x1F
-                //      write 0x0C          read 0x18
-                //      write 0x0D          read 0x19
-                //      write 0x0E          read 0x1A
-                //      write 0x0F          read 0x1B
-                //      write 0x10          read 0x04
-                //      write 0x11          read 0x05
-                //      write 0x12          read 0x06
-                //      write 0x13          read 0x07
-                //      write 0x14          read 0x00
-                //      write 0x15          read 0x01
-                //      write 0x16          read 0x02
-                //      write 0x17          read 0x03
-                //      write 0x18          read 0x0C
-                //      write 0x19          read 0x0D
-                //      write 0x1A          read 0x0E
-                //      write 0x1B          read 0x0F
-                //      write 0x1C          read 0x08
-                //      write 0x1D          read 0x09
-                //      write 0x1E          read 0x0A
-                //      write 0x1F          read 0x0B
-                //
-                //      This pattern repeats for any 5 bit value in bits [4:0] i.e. 0x20 will read back 0x34.
-            }
-            else {
-                if (val & 0x1) sb.hw.dma8=0;
-                else if (val & 0x2) sb.hw.dma8=1;
-                else if (val & 0x8) sb.hw.dma8=3;
-                if (val & 0x20) sb.hw.dma16=5;
-                else if (val & 0x40) sb.hw.dma16=6;
-                else if (val & 0x80) sb.hw.dma16=7;
-            }
-            LOG(LOG_SB,LOG_NORMAL)("Mixer select dma8:%x dma16:%x",sb.hw.dma8,sb.hw.dma16);
-        }
-        break;
-    default:
-
-        if( ((sb.type == SBT_PRO1 || sb.type == SBT_PRO2) && sb.mixer.index==0x0c) || /* Input control on SBPro */
-             (sb.type == SBT_16 && sb.mixer.index >= 0x3b && sb.mixer.index <= 0x47)) /* New SB16 registers */
-            sb.mixer.unhandled[sb.mixer.index] = val;
-        LOG(LOG_SB,LOG_WARN)("MIXER:Write %X to unhandled index %X",val,sb.mixer.index);
-    }
-}
-
-static uint8_t CTMIXER_Read(void) {
-    uint8_t ret = 0;
-
-//  if ( sb.mixer.index< 0x80) LOG_MSG("Read mixer %x",sb.mixer.index);
-    switch (sb.mixer.index) {
-    case 0x00:      /* RESET */
-        return 0x00;
-    case 0x02:      /* Master Volume (SB2 Only) */
-        return ((sb.mixer.master[1]>>1) & 0xe);
-    case 0x22:      /* Master Volume (SBPRO) */
-        return  MAKEPROVOL(sb.mixer.master);
-    case 0x04:      /* DAC Volume (SBPRO) */
-        return MAKEPROVOL(sb.mixer.dac);
-    case 0x06:      /* FM Volume (SB2 Only) + FM output selection */
-        return ((sb.mixer.fm[1]>>1) & 0xe);
-    case 0x08:      /* CD Volume (SB2 Only) */
-        return ((sb.mixer.cda[1]>>1) & 0xe);
-    case 0x0a:      /* Mic Level (SBPRO) or Voice (SB2 Only) */
-        if (sb.type==SBT_2) return (sb.mixer.dac[0]>>2);
-        else return ((sb.mixer.mic >> 2) & (sb.type==SBT_16 ? 7:6));
-    case 0x0e:      /* Output/Stereo Select */
-        return 0x11|(sb.mixer.stereo ? 0x02 : 0x00)|(sb.mixer.filter_bypass ? 0x20 : 0x00);
-    case 0x14:      /* Audio 1 Play Volume (ESS 688) */
-        if (sb.ess_type != ESS_NONE) return ((sb.mixer.dac[0] << 3) & 0xF0) + (sb.mixer.dac[1] >> 1);
-        break;
-    case 0x26:      /* FM Volume (SBPRO) */
-        return MAKEPROVOL(sb.mixer.fm);
-    case 0x28:      /* CD Audio Volume (SBPRO) */
-        return MAKEPROVOL(sb.mixer.cda);
-    case 0x2e:      /* Line-IN Volume (SBPRO) */
-        return MAKEPROVOL(sb.mixer.lin);
-    case 0x30:      /* Master Volume Left (SB16) */
-        if (sb.type==SBT_16) return sb.mixer.master[0]<<3;
-        ret=0xa;
-        break;
-    case 0x31:      /* Master Volume Right (S16) */
-        if (sb.type==SBT_16) return sb.mixer.master[1]<<3;
-        ret=0xa;
-        break;
-    case 0x32:      /* DAC Volume Left (SB16) */
-                /* Master Volume (ESS 688) */
-        if (sb.type==SBT_16) return sb.mixer.dac[0]<<3;
-        if (sb.ess_type != ESS_NONE) return ((sb.mixer.master[0] << 3) & 0xF0) + (sb.mixer.master[1] >> 1);
-        ret=0xa;
-        break;
-    case 0x33:      /* DAC Volume Right (SB16) */
-        if (sb.type==SBT_16) return sb.mixer.dac[1]<<3;
-        ret=0xa;
-        break;
-    case 0x34:      /* FM Volume Left (SB16) */
-        if (sb.type==SBT_16) return sb.mixer.fm[0]<<3;
-        ret=0xa;
-        break;
-    case 0x35:      /* FM Volume Right (SB16) */
-        if (sb.type==SBT_16) return sb.mixer.fm[1]<<3;
-        ret=0xa;
-        break;
-    case 0x36:      /* CD Volume Left (SB16) */
-                /* FM Volume (ESS 688) */
-        if (sb.type==SBT_16) return sb.mixer.cda[0]<<3;
-        if (sb.ess_type != ESS_NONE) return ((sb.mixer.fm[0] << 3) & 0xF0) + (sb.mixer.fm[1] >> 1);
-        ret=0xa;
-        break;
-    case 0x37:      /* CD Volume Right (SB16) */
-        if (sb.type==SBT_16) return sb.mixer.cda[1]<<3;
-        ret=0xa;
-        break;
-    case 0x38:      /* Line-in Volume Left (SB16) */
-                /* AuxA (CD) Volume Register (ESS 688) */
-        if (sb.type==SBT_16) return sb.mixer.lin[0]<<3;
-        if (sb.ess_type != ESS_NONE) return ((sb.mixer.cda[0] << 3) & 0xF0) + (sb.mixer.cda[1] >> 1);
-        ret=0xa;
-        break;
-    case 0x39:      /* Line-in Volume Right (SB16) */
-        if (sb.type==SBT_16) return sb.mixer.lin[1]<<3;
-        ret=0xa;
-        break;
-    case 0x3a:      /* Mic Volume (SB16) */
-        if (sb.type==SBT_16) return sb.mixer.mic<<3;
-        ret=0xa;
-        break;
-    case 0x3e:      /* Line Volume (ESS 688) */
-        if (sb.ess_type != ESS_NONE) return ((sb.mixer.lin[0] << 3) & 0xF0) + (sb.mixer.lin[1] >> 1);
-        break;
-    case 0x40:      /* ESS identification value (ES1488 and later) */
-        if (sb.ess_type != ESS_NONE) {
-            switch (sb.ess_type) {
-            case ESS_688:
-                ret=0xa;
-                break;
-            case ESS_1688:
-                ret=sb.mixer.ess_id_str[sb.mixer.ess_id_str_pos];
-                sb.mixer.ess_id_str_pos++;
-                if (sb.mixer.ess_id_str_pos >= 4) {
-                    sb.mixer.ess_id_str_pos = 0;
-                }
-                break;
-            default:
-                ret=0xa;
-                LOG(LOG_SB,LOG_WARN)("MIXER:FIXME:ESS identification function (0x%X) for selected card is not implemented",sb.mixer.index);
-            }
-        } else {
-            if (sb.type == SBT_16) {
-                ret=sb.mixer.unhandled[sb.mixer.index];
-            } else {
-                ret=0xa;
-            }
-            LOG(LOG_SB,LOG_WARN)("MIXER:Read from unhandled index %X",sb.mixer.index);
-        }
-        break;
-    case 0x80:      /* IRQ Select */
-        ret=0;
-        if (IS_PC98_ARCH) {
-            switch (sb.hw.irq) {
-                case 3:  return 0xF1; // upper 4 bits always 1111
-                case 10: return 0xF2;
-                case 12: return 0xF4;
-                case 5:  return 0xF8;
-            }
-        }
-        else {
-            switch (sb.hw.irq) {
-                case 2:  return 0x1;
-                case 5:  return 0x2;
-                case 7:  return 0x4;
-                case 10: return 0x8;
-            }
-        }
-        break;
-    case 0x81:      /* DMA Select */
-        ret=0;
-        if (IS_PC98_ARCH) {
-            switch (sb.hw.dma8) {
-                case 0:ret|=0x1;break;
-                case 3:ret|=0x2;break;
-            }
-
-            // there's some strange behavior on the PC-98 version of the card
-            ret |= (sb.pc98_mixctl_reg & (~3u));
-        }
-        else {
-            switch (sb.hw.dma8) {
-                case 0:ret|=0x1;break;
-                case 1:ret|=0x2;break;
-                case 3:ret|=0x8;break;
-            }
-            switch (sb.hw.dma16) {
-                case 5:ret|=0x20;break;
-                case 6:ret|=0x40;break;
-                case 7:ret|=0x80;break;
-            }
-        }
-        return ret;
-    case 0x82:      /* IRQ Status */
-        return  (sb.irq.pending_8bit ? 0x1 : 0) |
-                (sb.irq.pending_16bit ? 0x2 : 0) |
-                ((sb.type == SBT_16) ? 0x20 : 0);
-    default:
-        if (    ((sb.type == SBT_PRO1 || sb.type == SBT_PRO2) && sb.mixer.index==0x0c) || /* Input control on SBPro */
-            (sb.type == SBT_16 && sb.mixer.index >= 0x3b && sb.mixer.index <= 0x47)) /* New SB16 registers */
-            ret = sb.mixer.unhandled[sb.mixer.index];
-        else
-            ret=0xa;
-        LOG(LOG_SB,LOG_WARN)("MIXER:Read from unhandled index %X",sb.mixer.index);
-    }
-
-    return ret;
-}
-
-
 static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
     if (!IS_PC98_ARCH) {
         /* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
@@ -3204,7 +3203,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
     case MIXER_INDEX:
         return sb.mixer.index;
     case MIXER_DATA:
-        return CTMIXER_Read();
+        return sb.CTMIXER_Read();
     case DSP_READ_DATA:
         return sb.DSP_ReadData();
     case DSP_READ_STATUS:
@@ -3310,7 +3309,7 @@ static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
         }
         break;
     case MIXER_DATA:
-        CTMIXER_Write(val8);
+        sb.CTMIXER_Write(val8);
         break;
     default:
         LOG(LOG_SB,LOG_NORMAL)("Unhandled write to SB Port %4X",(int)port);
