@@ -536,643 +536,29 @@ struct SB_INFO {
 	pic_tickindex_t next_check_record_settings = 0;
 	unsigned char pc98_mixctl_reg = 0x14;
 
-	unsigned char &ESSreg(uint8_t reg) {
-		assert(reg >= 0xA0 && reg <= 0xBF);
-		return ESSregs[reg-0xA0];
-	}
+	unsigned char &ESSreg(uint8_t reg);
 
-	void gen_input_reset(void) {
-		gen_input_ofs = 0;
-	}
+	void gen_input_reset(void);
+	int gen_hiss(unsigned int mask);
+	int gen_noise(unsigned int mask);
+	double gen_1khz_tone(const bool advance);
+	void gen_input(Bitu dmabytes,unsigned char *buf);
+	void gen_input_hiss(Bitu dmabytes,unsigned char *buf);
+	void gen_input_silence(Bitu dmabytes,unsigned char *buf);
+	void gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf);
 
-	double gen_1khz_tone(const bool advance) {
-		/* sin() is pretty fast on today's hardware, no lookup table necessary */
-		if (advance) gen_tone_angle++;
-		return sin((gen_tone_angle * M_PI * 1000.0) / dma_dac_srcrate);
-	}
-
-	int gen_hiss(unsigned int mask) {
-		if (gen_hiss_rand[0] == 0) gen_hiss_rand[0] = (unsigned int)rand();
-		if (gen_hiss_rand[1] == 0) gen_hiss_rand[1] = (unsigned int)rand();
-		/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
-		gen_hiss_rand[0] = 36969*(gen_hiss_rand[0] & 0xFFFF) + (gen_hiss_rand[1] >> 16);
-		gen_hiss_rand[1] = 18000*(gen_hiss_rand[1] & 0xFFFF) + (gen_hiss_rand[0] >> 16);
-		const unsigned int v = (gen_hiss_rand[1] << 16) + (gen_hiss_rand[0] & 0xFFFF);
-		const int r = (v - gen_last_hiss) & mask; /* we want a hiss not white noise */
-		gen_last_hiss = v;
-		return r;
-	}
-
-	int gen_noise(unsigned int mask) {
-		if (gen_hiss_rand[0] == 0) gen_hiss_rand[0] = (unsigned int)rand();
-		if (gen_hiss_rand[1] == 0) gen_hiss_rand[1] = (unsigned int)rand();
-		/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
-		gen_hiss_rand[0] = 36969*(gen_hiss_rand[0] & 0xFFFF) + (gen_hiss_rand[1] >> 16);
-		gen_hiss_rand[1] = 18000*(gen_hiss_rand[1] & 0xFFFF) + (gen_hiss_rand[0] >> 16);
-		const unsigned int v = (gen_hiss_rand[1] << 16) + (gen_hiss_rand[0] & 0xFFFF);
-		const int r = v & mask; /* white noise in this case */
-		gen_last_hiss = v;
-		return r;
-	}
-
-	void gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf) {
-		const unsigned int ofsmax = dma.stereo ? 2 : 1;
-		unsigned int fill;
-
-		if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED) {
-			uint16_t *buf16 = (uint16_t*)buf;
-
-			if (dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
-			fill = ((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000);
-			while (dmabytes-- > 0) {
-				*buf16++ = fill;
-				if ((++gen_input_ofs) >= ofsmax) {
-					fill = ((unsigned int)(gen_1khz_tone(true) * 0x4000) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000);
-					gen_input_ofs = 0;
-				}
-			}
-		}
-		else { /* 8-bit */
-			fill = ((((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000)) >> 8u;
-			while (dmabytes-- > 0) {
-				*buf++ = fill;
-				if ((++gen_input_ofs) >= ofsmax) {
-					fill = ((((unsigned int)(gen_1khz_tone(true) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000)) >> 8u;
-					gen_input_ofs = 0;
-				}
-			}
-		}
-	}
-
-	void gen_input_hiss(Bitu dmabytes,unsigned char *buf) {
-		if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED) {
-			uint16_t *buf16 = (uint16_t*)buf;
-
-			if (dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
-			while (dmabytes-- > 0) *buf16++ = ((gen_hiss(0x3ff) - 0x200) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000);
-		}
-		else { /* 8-bit */
-			while (dmabytes-- > 0) *buf++ = ((gen_hiss(0x3) - 0x2) & 0xFF) ^ (dma.sign ? 0x00 : 0x80);
-		}
-	}
-
-	void gen_input_silence(Bitu dmabytes,unsigned char *buf) {
-		unsigned int fill;
-
-		if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED) {
-			uint16_t *buf16 = (uint16_t*)buf;
-
-			if (dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
-			fill = dma.sign ? 0x0000 : 0x8000;
-			while (dmabytes-- > 0) *buf16++ = fill;
-		}
-		else { /* 8-bit */
-			fill = dma.sign ? 0x00 : 0x80;
-			while (dmabytes-- > 0) *buf++ = fill;
-		}
-	}
-
-	void gen_input(Bitu dmabytes,unsigned char *buf) {
-		switch (recording_source) {
-			case REC_SILENCE:
-				gen_input_silence(dmabytes,buf);
-				break;
-			case REC_HISS:
-				gen_input_hiss(dmabytes,buf);
-				break;
-			case REC_1KHZ_TONE:
-				gen_input_1khz_tone(dmabytes,buf);
-				break;
-			default:
-				abort();
-		}
-	}
-
-	void DSP_SetSpeaker(bool how) {
-		if (speaker==how) return;
-		speaker=how;
-		if (type==SBT_16) return;
-		if (ess_type!=ESS_NONE) return;
-		chan->Enable(how);
-		if (speaker) {
-			PIC_RemoveEvents(DMA_Silent_Event);
-			CheckDMAEnd();
-		} else {
-			;
-		}
-	}
-
-	INLINE void DSP_FlushData(void) {
-		dsp.out.used=0;
-		dsp.out.pos=0;
-	}
-
-	/* NTS: Using some old Creative Sound Blaster 16 ViBRA PnP cards as reference,
-	 *      the card will send IRQ 9 if the IRQ is configured to either "2" or "9".
-	 *      Whichever value is written will be read back. The reason for this has
-	 *      to do with the pin on the ISA bus connector that used to signal IRQ 2
-	 *      on PC/XT hardware, but was wired to fire IRQ 9 instead on PC/AT hardware
-	 *      because of the IRQ 8-15 -> IRQ 2 cascade on AT hardware.
-	 *
-	 *      There's not much to change here, because PIC_ActivateIRQ was modified
-	 *      to remap IRQ 2 -> IRQ 9 for us *if* emulating AT hardware.
-	 *
-	 *      --Jonathan C. */
-	INLINE void SB_RaiseIRQ(SB_IRQS type) {
-		LOG(LOG_SB,LOG_NORMAL)("Raising IRQ");
-
-		if (ess_playback_mode) {
-			if (!(ESSreg(0xB1) & 0x40)) // if ESS playback, and IRQ disabled, do not fire
-				return;
-		}
-
-		switch (type) {
-			case SB_IRQ_8:
-				if (irq.pending_8bit) {
-					//          LOG_MSG("SB: 8bit irq pending");
-					return;
-				}
-				irq.pending_8bit=true;
-				PIC_ActivateIRQ(hw.irq);
-				break;
-			case SB_IRQ_16:
-				if (irq.pending_16bit) {
-					//          LOG_MSG("SB: 16bit irq pending");
-					return;
-				}
-				irq.pending_16bit=true;
-				PIC_ActivateIRQ(hw.irq);
-				break;
-			default:
-				break;
-		}
-	}
+	void DSP_FlushData(void);
+	void DSP_SetSpeaker(bool how);
+	void SB_RaiseIRQ(SB_IRQS type);
 
 	/* these are settings that the user would probably like to change on the fly during emulation */
-	void sb_update_recording_source_settings() {
-		Section_prop* section = static_cast<Section_prop *>(control->GetSection("sblaster"));
-
-		listen_to_recording_source=section->Get_bool("listen to recording source");
-
-		{
-			const char *s = section->Get_string("recording source");
-
-			if (!strcmp(s,"silence"))
-				recording_source = REC_SILENCE;
-			else if (!strcmp(s,"hiss"))
-				recording_source = REC_HISS;
-			else if (!strcmp(s,"1khz tone"))
-				recording_source = REC_1KHZ_TONE;
-			else
-				recording_source = REC_SILENCE;
-		}
-	}
-
-	void SB_OnEndOfDMA(void) {
-		bool was_irq=false;
-
-		PIC_RemoveEvents(END_DMA_Event);
-		if (ess_type == ESS_NONE && reveal_sc_type == RSC_NONE && dma.mode >= DSP_DMA_16) {
-			was_irq = irq.pending_16bit;
-			SB_RaiseIRQ(SB_IRQ_16);
-		}
-		else {
-			was_irq = irq.pending_8bit;
-			SB_RaiseIRQ(SB_IRQ_8);
-		}
-
-		if (!dma.autoinit) {
-			dsp.highspeed = false;
-			LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
-			mode=MODE_NONE;
-			dma.mode=DSP_DMA_NONE;
-
-			if (ess_playback_mode) {
-				LOG(LOG_SB,LOG_NORMAL)("ESS DMA stop");
-				ESSreg(0xB8) &= ~0x01; // automatically stop DMA (right?)
-				if (dma.chan) dma.chan->Clear_Request();
-			}
-		} else {
-			dma.left=dma.total;
-			if (!dma.left) {
-				LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
-				dsp.highspeed = false;
-				mode=MODE_NONE;
-			}
-			else if (dsp.require_irq_ack && was_irq) {
-				/* Sound Blaster 16 behavior: If you do not acknowledge the IRQ, and the card goes to signal another IRQ, the DSP halts playback.
-				 * This is different from previous cards (and clone hardware) that continue playing whether or not you acknowledge the IRQ. */
-				LOG(LOG_SB,LOG_WARN)("DMA ended when previous IRQ had not yet been acked");
-				mode=MODE_DMA_REQUIRE_IRQ_ACK;
-			}
-		}
-	}
-
-	void GenerateDMASound(Bitu size) {
-		Bitu read=0;Bitu done=0;Bitu i=0;
-
-		// don't read if the DMA channel is masked
-		if (dma.chan->masked) return;
-
-		if (dma_dac_mode) return;
-
-		last_dma_callback = PIC_FullIndex();
-
-		if(dma.autoinit) {
-			if (dma.left <= size) size = dma.left;
-		} else {
-			if (dma.left <= dma.min)
-				size = dma.left;
-		}
-
-		if (size > DMA_BUFSIZE) {
-			/* Maybe it's time to consider rendering intervals based on what the mixer wants rather than odd 1ms DMA packet calculations... */
-			LOG(LOG_SB,LOG_WARN)("Whoah! GenerateDMASound asked to render too much audio (%u > %u). Read could have overrun the DMA buffer!",(unsigned int)size,DMA_BUFSIZE);
-			size = DMA_BUFSIZE;
-		}
-
-		if (dma.recording) {
-			/* How much can we do? assume not masked because we checked that at the start of this function.
-			 * Then generate that much input data. After writing via DMA, mute the audio before it goes to
-			 * the mixer.
-			 *
-			 * TODO: It would be kind of fun to tie the generated audio parameters to mixer controls such
-			 *       as allowing the user to control how loud the 1KHz sine wave is with the line in volume
-			 *       control, and perhaps we should allow the generated audio to go out to the mixer output
-			 *       if the line in is unmuted, subject to the audio volume controls. Or perhaps this code
-			 *       should just make another mixer channel for recording sources. */
-			read=dma.chan->currcnt + 1; /* DMA channel current count remain */
-			if (read > size) read = size;
-			if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED)
-				gen_input(read,(unsigned char*)(&dma.buf.b16[dma.remain_size]));
-			else
-				gen_input(read,&dma.buf.b8[dma.remain_size]);
-
-			switch (dma.mode) {
-				case DSP_DMA_8:
-					if (dma.stereo) {
-						read=dma.chan->Write(read,&dma.buf.b8[dma.remain_size]);
-						if (read > 0 && !listen_to_recording_source) gen_input_silence(read,&dma.buf.b8[dma.remain_size]); /* mute before going out to mixer */
-						Bitu total=read+dma.remain_size;
-						if (!dma.sign)  chan->AddSamples_s8(total>>1,dma.buf.b8);
-						else chan->AddSamples_s8s(total>>1,(int8_t*)dma.buf.b8);
-						if (total&1) {
-							dma.remain_size=1;
-							dma.buf.b8[0]=dma.buf.b8[total-1];
-						} else dma.remain_size=0;
-					} else {
-						read=dma.chan->Write(read,dma.buf.b8);
-						if (read > 0 && !listen_to_recording_source) gen_input_silence(read,dma.buf.b8); /* mute before going out to mixer */
-						if (!dma.sign) chan->AddSamples_m8(read,dma.buf.b8);
-						else chan->AddSamples_m8s(read,(int8_t *)dma.buf.b8);
-					}
-					break;
-				case DSP_DMA_16:
-				case DSP_DMA_16_ALIASED:
-					if (dma.stereo) {
-						/* In DSP_DMA_16_ALIASED mode temporarily divide by 2 to get number of 16-bit
-						   samples, because 8-bit DMA Read returns byte size, while in DSP_DMA_16 mode
-						   16-bit DMA Read returns word size */
-						read=dma.chan->Write(read,(uint8_t *)&dma.buf.b16[dma.remain_size])
-							>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-						if (read > 0 && !listen_to_recording_source) gen_input_silence(read,(unsigned char*)(&dma.buf.b16[dma.remain_size])); /* mute before going out to mixer */
-						Bitu total=read+dma.remain_size;
-#if defined(WORDS_BIGENDIAN)
-						if (dma.sign) chan->AddSamples_s16_nonnative(total>>1,dma.buf.b16);
-						else chan->AddSamples_s16u_nonnative(total>>1,(uint16_t *)dma.buf.b16);
-#else
-						if (dma.sign) chan->AddSamples_s16(total>>1,dma.buf.b16);
-						else chan->AddSamples_s16u(total>>1,(uint16_t *)dma.buf.b16);
-#endif
-						if (total&1) {
-							dma.remain_size=1;
-							dma.buf.b16[0]=dma.buf.b16[total-1];
-						} else dma.remain_size=0;
-					} else {
-						read=dma.chan->Write(read,(uint8_t *)dma.buf.b16)
-							>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-						if (read > 0 && !listen_to_recording_source) gen_input_silence(read,(unsigned char*)dma.buf.b16); /* mute before going out to mixer */
-#if defined(WORDS_BIGENDIAN)
-						if (dma.sign) chan->AddSamples_m16_nonnative(read,dma.buf.b16);
-						else chan->AddSamples_m16u_nonnative(read,(uint16_t *)dma.buf.b16);
-#else
-						if (dma.sign) chan->AddSamples_m16(read,dma.buf.b16);
-						else chan->AddSamples_m16u(read,(uint16_t *)dma.buf.b16);
-#endif
-					}
-					//restore buffer length value to byte size in aliased mode
-					if (dma.mode==DSP_DMA_16_ALIASED) read=read<<1;
-					break;
-				default:
-					LOG_MSG("Unhandled dma record mode %d",dma.mode);
-					mode=MODE_NONE;
-					return;
-			}
-		}
-		else {
-			switch (dma.mode) {
-				case DSP_DMA_2:
-					read=dma.chan->Read(size,dma.buf.b8);
-					if (read && adpcm.haveref) {
-						adpcm.haveref=false;
-						adpcm.reference=dma.buf.b8[0];
-						adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
-						i++;
-					}
-					for (;i<read;i++) {
-						MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 6) & 0x3,adpcm.reference,adpcm.stepsize);
-						MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 4) & 0x3,adpcm.reference,adpcm.stepsize);
-						MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 2) & 0x3,adpcm.reference,adpcm.stepsize);
-						MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 0) & 0x3,adpcm.reference,adpcm.stepsize);
-					}
-					chan->AddSamples_m8(done,MixTemp);
-					break;
-				case DSP_DMA_3:
-					read=dma.chan->Read(size,dma.buf.b8);
-					if (read && adpcm.haveref) {
-						adpcm.haveref=false;
-						adpcm.reference=dma.buf.b8[0];
-						adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
-						i++;
-					}
-					for (;i<read;i++) {
-						MixTemp[done++]=decode_ADPCM_3_sample((dma.buf.b8[i] >> 5) & 0x7,adpcm.reference,adpcm.stepsize);
-						MixTemp[done++]=decode_ADPCM_3_sample((dma.buf.b8[i] >> 2) & 0x7,adpcm.reference,adpcm.stepsize);
-						MixTemp[done++]=decode_ADPCM_3_sample((dma.buf.b8[i] & 0x3) << 1,adpcm.reference,adpcm.stepsize);
-					}
-					chan->AddSamples_m8(done,MixTemp);
-					break;
-				case DSP_DMA_4:
-					read=dma.chan->Read(size,dma.buf.b8);
-					if (read && adpcm.haveref) {
-						adpcm.haveref=false;
-						adpcm.reference=dma.buf.b8[0];
-						adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
-						i++;
-					}
-					for (;i<read;i++) {
-						MixTemp[done++]=decode_ADPCM_4_sample(dma.buf.b8[i] >> 4,adpcm.reference,adpcm.stepsize);
-						MixTemp[done++]=decode_ADPCM_4_sample(dma.buf.b8[i]& 0xf,adpcm.reference,adpcm.stepsize);
-					}
-					chan->AddSamples_m8(done,MixTemp);
-					break;
-				case DSP_DMA_8:
-					if (dma.stereo) {
-						read=dma.chan->Read(size,&dma.buf.b8[dma.remain_size]);
-						Bitu total=read+dma.remain_size;
-						if (!dma.sign)  chan->AddSamples_s8(total>>1,dma.buf.b8);
-						else chan->AddSamples_s8s(total>>1,(int8_t*)dma.buf.b8);
-						if (total&1) {
-							dma.remain_size=1;
-							dma.buf.b8[0]=dma.buf.b8[total-1];
-						} else dma.remain_size=0;
-					} else {
-						read=dma.chan->Read(size,dma.buf.b8);
-						if (!dma.sign) chan->AddSamples_m8(read,dma.buf.b8);
-						else chan->AddSamples_m8s(read,(int8_t *)dma.buf.b8);
-					}
-					break;
-				case DSP_DMA_16:
-				case DSP_DMA_16_ALIASED:
-					if (dma.stereo) {
-						/* In DSP_DMA_16_ALIASED mode temporarily divide by 2 to get number of 16-bit
-						   samples, because 8-bit DMA Read returns byte size, while in DSP_DMA_16 mode
-						   16-bit DMA Read returns word size */
-						read=dma.chan->Read(size,(uint8_t *)&dma.buf.b16[dma.remain_size])
-							>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-						Bitu total=read+dma.remain_size;
-#if defined(WORDS_BIGENDIAN)
-						if (dma.sign) chan->AddSamples_s16_nonnative(total>>1,dma.buf.b16);
-						else chan->AddSamples_s16u_nonnative(total>>1,(uint16_t *)dma.buf.b16);
-#else
-						if (dma.sign) chan->AddSamples_s16(total>>1,dma.buf.b16);
-						else chan->AddSamples_s16u(total>>1,(uint16_t *)dma.buf.b16);
-#endif
-						if (total&1) {
-							dma.remain_size=1;
-							dma.buf.b16[0]=dma.buf.b16[total-1];
-						} else dma.remain_size=0;
-					} else {
-						read=dma.chan->Read(size,(uint8_t *)dma.buf.b16)
-							>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-#if defined(WORDS_BIGENDIAN)
-						if (dma.sign) chan->AddSamples_m16_nonnative(read,dma.buf.b16);
-						else chan->AddSamples_m16u_nonnative(read,(uint16_t *)dma.buf.b16);
-#else
-						if (dma.sign) chan->AddSamples_m16(read,dma.buf.b16);
-						else chan->AddSamples_m16u(read,(uint16_t *)dma.buf.b16);
-#endif
-					}
-					//restore buffer length value to byte size in aliased mode
-					if (dma.mode==DSP_DMA_16_ALIASED) read=read<<1;
-					break;
-				default:
-					LOG_MSG("Unhandled dma playback mode %d",dma.mode);
-					mode=MODE_NONE;
-					return;
-			}
-		}
-		dma.left-=read;
-		if (!dma.left) SB_OnEndOfDMA();
-	}
-
-	void CheckDMAEnd(void) {
-		if (!dma.left) return;
-		if (!speaker && type!=SBT_16 && ess_type==ESS_NONE) {
-			Bitu bigger=(dma.left > dma.min) ? dma.min : dma.left;
-			float delay=(bigger*1000.0f)/dma.rate;
-			PIC_AddEvent(DMA_Silent_Event,delay,bigger);
-			LOG(LOG_SB,LOG_NORMAL)("Silent DMA Transfer scheduling IRQ in %.3f milliseconds",delay);
-		} else if (dma.left<dma.min) {
-			float delay=(dma.left*1000.0f)/dma.rate;
-			LOG(LOG_SB,LOG_NORMAL)("Short transfer scheduling IRQ in %.3f milliseconds",delay);
-			PIC_AddEvent(END_DMA_Event,delay,dma.left);
-		}
-	}
-
-	void DSP_ChangeMode(DSP_MODES new_mode) {
-		if (mode == new_mode) return;
-		else chan->FillUp();
-		mode=new_mode;
-	}
-
-	void DSP_DoDMATransfer(DMA_MODES new_mode,Bitu freq,bool stereo,bool dontInitLeft=false) {
-		char const * type;
-
-		mode=MODE_DMA_MASKED;
-
-		/* Explanation: A handful of ancient DOS demos (in the 1990-1992 timeframe) were written to output
-		 *              sound using the timer interrupt (IRQ 0) at a fixed rate to a device, usually the
-		 *              PC speaker or LPT1 DAC. When SoundBlaster came around, the programmers decided
-		 *              apparently to treat the Sound Blaster in the same way, so many of these early
-		 *              demos (especially those using GoldPlay) used either Direct DAC output or a hacked
-		 *              form of DMA single-cycle 8-bit output.
-		 *
-		 *              The way the hacked DMA mode works, is that the Sound Blaster is told the transfer
-		 *              length is 65536 or some other large value. Then, the DMA controller is programmed
-		 *              to point at a specific byte (or two bytes for stereo) and the counter value for
-		 *              that DMA channel is set to 0 (or 1 for stereo). This means that as the Sound Blaster
-		 *              fetches bytes to play, the DMA controller ends up sending the same byte value
-		 *              over and over again. However, the demo has the timer running at the desired sample
-		 *              rate (IRQ 0) and the interrupt routine is modifying the byte to reflect the latest
-		 *              sample output. In this way, the demo renders audio whenever it feels like it and
-		 *              the Sound Blaster gets audio at the rate it works best with.
-		 *
-		 *              It's worth noting the programmers may have done this because DMA playback is the
-		 *              only way to get SB Pro stereo output working.
-		 *
-		 *              The problem here in DOSBox is that the DMA block-transfer code here is not precise
-		 *              enough to handle that properly. When you run such a program in DOSBox 0.74 and
-		 *              earlier, you get a low-frequency digital "rumble" that kinda-sorta sounds like
-		 *              what the demo is playing (the same byte value repeated over and over again,
-		 *              remember?). The only way to properly render such output, is to read the memory
-		 *              value at the sample rate and buffer it for output.
-		 *
-		 * This fixes Sound Blaster output in:
-		 *    Twilight Zone - Buttman (1992) [SB and SB Pro modes]
-		 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
-		 *    The Jungly (1992) [SB and SB Pro modes]
-		 */
-		if (dma.chan != NULL &&
-			dma.chan->basecnt < ((new_mode==DSP_DMA_16_ALIASED?2:1)*((stereo || mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
-			single_sample_dma = 1;
-		else
-			single_sample_dma = 0;
-
-		dma_dac_srcrate=freq;
-		if (dsp.force_goldplay || (goldplay && freq > 0 && single_sample_dma))
-			dma_dac_mode=1;
-		else
-			dma_dac_mode=0;
-
-		/* explanation: the purpose of Goldplay stereo mode is to compensate for the fact
-		 * that demos using this method of playback know to set the SB Pro stereo bit, BUT,
-		 * apparently did not know that they needed to double the sample rate when
-		 * computing the DSP time constant. Such demos sound "OK" on Sound Blaster Pro but
-		 * have audible aliasing artifacts because of this. The Goldplay Stereo hack
-		 * detects this condition and doubles the sample rate to better capture what the
-		 * demo is *trying* to do. NTS: freq is the raw sample rate given by the
-		 * program, before it is divided by two for stereo.
-		 *
-		 * Of course, some demos like Crystal Dream take the approach of just setting the
-		 * sample rate to the max supported by the card and then letting its timer interrupt
-		 * define the sample rate. So of course anything below 44.1KHz sounds awful. */
-		if (dma_dac_mode && goldplay_stereo && (stereo || mixer.sbpro_stereo) && single_sample_dma)
-			dma_dac_srcrate = freq;
-
-		chan->FillUp();
-
-		if (!dontInitLeft)
-			dma.left=dma.total;
-
-		dma.mode=dma.mode_assigned=new_mode;
-		dma.stereo=stereo;
-		irq.pending_8bit=false;
-		irq.pending_16bit=false;
-		switch (new_mode) {
-			case DSP_DMA_2:
-				type="2-bits ADPCM";
-				dma.mul=(1 << SB_SH)/4;
-				break;
-			case DSP_DMA_3:
-				type="3-bits ADPCM";
-				dma.mul=(1 << SB_SH)/3;
-				break;
-			case DSP_DMA_4:
-				type="4-bits ADPCM";
-				dma.mul=(1 << SB_SH)/2;
-				break;
-			case DSP_DMA_8:
-				type="8-bits PCM";
-				dma.mul=(1 << SB_SH);
-				break;
-			case DSP_DMA_16_ALIASED:
-				type="16-bits(aliased) PCM";
-				dma.mul=(1 << SB_SH)*2;
-				break;
-			case DSP_DMA_16:
-				type="16-bits PCM";
-				dma.mul=(1 << SB_SH);
-				break;
-			default:
-				LOG(LOG_SB,LOG_ERROR)("DSP:Illegal transfer mode %d",new_mode);
-				return;
-		}
-		if (dma.stereo) dma.mul*=2;
-		dma.rate=(dma_dac_srcrate*dma.mul) >> SB_SH;
-		dma.min=((Bitu)dma.rate*(Bitu)(min_dma_user >= 0 ? min_dma_user : /*default*/3))/1000u;
-		if (dma_dac_mode && goldplay_stereo && (stereo || mixer.sbpro_stereo) && single_sample_dma) {
-			//        LOG(LOG_SB,LOG_DEBUG)("Goldplay stereo hack. freq=%u rawfreq=%u dacrate=%u",(unsigned int)freq,(unsigned int)freq,(unsigned int)dma_dac_srcrate);
-			chan->SetFreq(dma_dac_srcrate);
-			updateSoundBlasterFilter(freq); /* BUT, you still filter like the actual sample rate */
-		}
-		else {
-			chan->SetFreq(freq);
-			updateSoundBlasterFilter(freq);
-		}
-		dma.mode=dma.mode_assigned=new_mode;
-		PIC_RemoveEvents(DMA_DAC_Event);
-		PIC_RemoveEvents(END_DMA_Event);
-
-		if (dma_dac_mode)
-			PIC_AddEvent(DMA_DAC_Event,1000.0 / dma_dac_srcrate);
-
-		if (dma.chan != NULL) {
-			dma.chan->Register_Callback(DSP_DMA_CallBack);
-		}
-		else {
-			LOG(LOG_SB,LOG_WARN)("DMA transfer initiated with no channel assigned");
-		}
-
-#if (C_DEBUG)
-		LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s dsp %s dma %s freq %d rate %d dspsize %d dmasize %d gold %d",
-			type,
-			dma.recording ? "Recording" : "Playback",
-			dma.stereo ? "Stereo" : "Mono",
-			dma.autoinit ? "Auto-Init" : "Single-Cycle",
-			dma.chan ? (dma.chan->autoinit ? "Auto-Init" : "Single-Cycle") : "n/a",
-			(int)freq,(int)dma.rate,(int)dma.total,
-			dma.chan ? (dma.chan->basecnt+1) : 0,
-			(int)dma_dac_mode
-			);
-#else
-		(void)type;
-#endif
-	}
-
-	uint8_t DSP_RateLimitedFinalTC_Old() {
-		if (sample_rate_limits) { /* enforce speed limits documented by Creative */
-			/* commands that invoke this call use the DSP time constant, so use the DSP
-			 * time constant to constrain rate */
-			unsigned int u_limit=212;/* 23KHz */
-
-			/* NTS: We skip the SB16 commands because those are handled by another function */
-			if ((dsp.cmd&0xFE) == 0x74 || dsp.cmd == 0x7D) { /* 4-bit ADPCM */
-				u_limit = 172; /* 12KHz */
-			}
-			else if ((dsp.cmd&0xFE) == 0x76) { /* 2.6-bit ADPCM */
-				if (type == SBT_2) u_limit = 172; /* 12KHz */
-				else u_limit = 179; /* 13KHz */
-			}
-			else if ((dsp.cmd&0xFE) == 0x16) { /* 2-bit ADPCM */
-				if (type == SBT_2) u_limit = 189; /* 15KHz */
-				else u_limit = 165; /* 11KHz */
-			}
-			else if (type == SBT_16) /* Sound Blaster 16. Highspeed commands are treated like an alias to normal DSP commands */
-				u_limit = 234/*45454Hz*/;
-			else if (type == SBT_2) /* Sound Blaster 2.0 */
-				u_limit = (dsp.highspeed ? 234/*45454Hz*/ : 210/*22.5KHz*/);
-			else
-				u_limit = (dsp.highspeed ? 234/*45454Hz*/ : 212/*22.5KHz*/);
-
-			/* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
-			 *      two times the sample rate, which is what we get back here. That's why here we don't need
-			 *      to consider stereo vs mono. */
-			if (timeconst > u_limit) return u_limit;
-		}
-
-		return timeconst;
-	}
+	void DSP_DoDMATransfer(DMA_MODES new_mode,Bitu freq,bool stereo,bool dontInitLeft=false);
+	void sb_update_recording_source_settings();
+	void DSP_ChangeMode(DSP_MODES new_mode);
+	uint8_t DSP_RateLimitedFinalTC_Old();
+	void GenerateDMASound(Bitu size);
+	void SB_OnEndOfDMA(void);
+	void CheckDMAEnd(void);
 
 	unsigned int DSP_RateLimitedFinalSB16Freq_New(unsigned int freq) {
 		/* If sample rate was set by DSP command 0x41/0x42 */
@@ -3184,6 +2570,643 @@ static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	}
 	sb.SB_RaiseIRQ(SB_IRQ_8);
 	ch->Register_Callback(nullptr);
+}
+
+unsigned char &SB_INFO::ESSreg(uint8_t reg) {
+	assert(reg >= 0xA0 && reg <= 0xBF);
+	return ESSregs[reg-0xA0];
+}
+
+void SB_INFO::gen_input_reset(void) {
+	gen_input_ofs = 0;
+}
+
+double SB_INFO::gen_1khz_tone(const bool advance) {
+	/* sin() is pretty fast on today's hardware, no lookup table necessary */
+	if (advance) gen_tone_angle++;
+	return sin((gen_tone_angle * M_PI * 1000.0) / dma_dac_srcrate);
+}
+
+int SB_INFO::gen_hiss(unsigned int mask) {
+	if (gen_hiss_rand[0] == 0) gen_hiss_rand[0] = (unsigned int)rand();
+	if (gen_hiss_rand[1] == 0) gen_hiss_rand[1] = (unsigned int)rand();
+	/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
+	gen_hiss_rand[0] = 36969*(gen_hiss_rand[0] & 0xFFFF) + (gen_hiss_rand[1] >> 16);
+	gen_hiss_rand[1] = 18000*(gen_hiss_rand[1] & 0xFFFF) + (gen_hiss_rand[0] >> 16);
+	const unsigned int v = (gen_hiss_rand[1] << 16) + (gen_hiss_rand[0] & 0xFFFF);
+	const int r = (v - gen_last_hiss) & mask; /* we want a hiss not white noise */
+	gen_last_hiss = v;
+	return r;
+}
+
+int SB_INFO::gen_noise(unsigned int mask) {
+	if (gen_hiss_rand[0] == 0) gen_hiss_rand[0] = (unsigned int)rand();
+	if (gen_hiss_rand[1] == 0) gen_hiss_rand[1] = (unsigned int)rand();
+	/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
+	gen_hiss_rand[0] = 36969*(gen_hiss_rand[0] & 0xFFFF) + (gen_hiss_rand[1] >> 16);
+	gen_hiss_rand[1] = 18000*(gen_hiss_rand[1] & 0xFFFF) + (gen_hiss_rand[0] >> 16);
+	const unsigned int v = (gen_hiss_rand[1] << 16) + (gen_hiss_rand[0] & 0xFFFF);
+	const int r = v & mask; /* white noise in this case */
+	gen_last_hiss = v;
+	return r;
+}
+
+void SB_INFO::gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf) {
+	const unsigned int ofsmax = dma.stereo ? 2 : 1;
+	unsigned int fill;
+
+	if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED) {
+		uint16_t *buf16 = (uint16_t*)buf;
+
+		if (dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
+		fill = ((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000);
+		while (dmabytes-- > 0) {
+			*buf16++ = fill;
+			if ((++gen_input_ofs) >= ofsmax) {
+				fill = ((unsigned int)(gen_1khz_tone(true) * 0x4000) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000);
+				gen_input_ofs = 0;
+			}
+		}
+	}
+	else { /* 8-bit */
+		fill = ((((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000)) >> 8u;
+		while (dmabytes-- > 0) {
+			*buf++ = fill;
+			if ((++gen_input_ofs) >= ofsmax) {
+				fill = ((((unsigned int)(gen_1khz_tone(true) * 0x4000/*half range*/) + gen_noise(0x7f) - 0x40) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000)) >> 8u;
+				gen_input_ofs = 0;
+			}
+		}
+	}
+}
+
+void SB_INFO::gen_input_hiss(Bitu dmabytes,unsigned char *buf) {
+	if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED) {
+		uint16_t *buf16 = (uint16_t*)buf;
+
+		if (dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
+		while (dmabytes-- > 0) *buf16++ = ((gen_hiss(0x3ff) - 0x200) & 0xFFFF) ^ (dma.sign ? 0x0000 : 0x8000);
+	}
+	else { /* 8-bit */
+		while (dmabytes-- > 0) *buf++ = ((gen_hiss(0x3) - 0x2) & 0xFF) ^ (dma.sign ? 0x00 : 0x80);
+	}
+}
+
+void SB_INFO::gen_input_silence(Bitu dmabytes,unsigned char *buf) {
+	unsigned int fill;
+
+	if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED) {
+		uint16_t *buf16 = (uint16_t*)buf;
+
+		if (dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
+		fill = dma.sign ? 0x0000 : 0x8000;
+		while (dmabytes-- > 0) *buf16++ = fill;
+	}
+	else { /* 8-bit */
+		fill = dma.sign ? 0x00 : 0x80;
+		while (dmabytes-- > 0) *buf++ = fill;
+	}
+}
+
+void SB_INFO::gen_input(Bitu dmabytes,unsigned char *buf) {
+	switch (recording_source) {
+		case REC_SILENCE:
+			gen_input_silence(dmabytes,buf);
+			break;
+		case REC_HISS:
+			gen_input_hiss(dmabytes,buf);
+			break;
+		case REC_1KHZ_TONE:
+			gen_input_1khz_tone(dmabytes,buf);
+			break;
+		default:
+			abort();
+	}
+}
+
+void SB_INFO::DSP_SetSpeaker(bool how) {
+	if (speaker==how) return;
+	speaker=how;
+	if (type==SBT_16) return;
+	if (ess_type!=ESS_NONE) return;
+	chan->Enable(how);
+	if (speaker) {
+		PIC_RemoveEvents(DMA_Silent_Event);
+		CheckDMAEnd();
+	} else {
+		;
+	}
+}
+
+void SB_INFO::DSP_FlushData(void) {
+	dsp.out.used=0;
+	dsp.out.pos=0;
+}
+
+/* NTS: Using some old Creative Sound Blaster 16 ViBRA PnP cards as reference,
+ *      the card will send IRQ 9 if the IRQ is configured to either "2" or "9".
+ *      Whichever value is written will be read back. The reason for this has
+ *      to do with the pin on the ISA bus connector that used to signal IRQ 2
+ *      on PC/XT hardware, but was wired to fire IRQ 9 instead on PC/AT hardware
+ *      because of the IRQ 8-15 -> IRQ 2 cascade on AT hardware.
+ *
+ *      There's not much to change here, because PIC_ActivateIRQ was modified
+ *      to remap IRQ 2 -> IRQ 9 for us *if* emulating AT hardware.
+ *
+ *      --Jonathan C. */
+void SB_INFO::SB_RaiseIRQ(SB_IRQS type) {
+	LOG(LOG_SB,LOG_NORMAL)("Raising IRQ");
+
+	if (ess_playback_mode) {
+		if (!(ESSreg(0xB1) & 0x40)) // if ESS playback, and IRQ disabled, do not fire
+			return;
+	}
+
+	switch (type) {
+		case SB_IRQ_8:
+			if (irq.pending_8bit) {
+				//          LOG_MSG("SB: 8bit irq pending");
+				return;
+			}
+			irq.pending_8bit=true;
+			PIC_ActivateIRQ(hw.irq);
+			break;
+		case SB_IRQ_16:
+			if (irq.pending_16bit) {
+				//          LOG_MSG("SB: 16bit irq pending");
+				return;
+			}
+			irq.pending_16bit=true;
+			PIC_ActivateIRQ(hw.irq);
+			break;
+		default:
+			break;
+	}
+}
+
+void SB_INFO::sb_update_recording_source_settings() {
+	Section_prop* section = static_cast<Section_prop *>(control->GetSection("sblaster"));
+
+	listen_to_recording_source=section->Get_bool("listen to recording source");
+
+	{
+		const char *s = section->Get_string("recording source");
+
+		if (!strcmp(s,"silence"))
+			recording_source = REC_SILENCE;
+		else if (!strcmp(s,"hiss"))
+			recording_source = REC_HISS;
+		else if (!strcmp(s,"1khz tone"))
+			recording_source = REC_1KHZ_TONE;
+		else
+			recording_source = REC_SILENCE;
+	}
+}
+
+void SB_INFO::SB_OnEndOfDMA(void) {
+	bool was_irq=false;
+
+	PIC_RemoveEvents(END_DMA_Event);
+	if (ess_type == ESS_NONE && reveal_sc_type == RSC_NONE && dma.mode >= DSP_DMA_16) {
+		was_irq = irq.pending_16bit;
+		SB_RaiseIRQ(SB_IRQ_16);
+	}
+	else {
+		was_irq = irq.pending_8bit;
+		SB_RaiseIRQ(SB_IRQ_8);
+	}
+
+	if (!dma.autoinit) {
+		dsp.highspeed = false;
+		LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
+		mode=MODE_NONE;
+		dma.mode=DSP_DMA_NONE;
+
+		if (ess_playback_mode) {
+			LOG(LOG_SB,LOG_NORMAL)("ESS DMA stop");
+			ESSreg(0xB8) &= ~0x01; // automatically stop DMA (right?)
+			if (dma.chan) dma.chan->Clear_Request();
+		}
+	} else {
+		dma.left=dma.total;
+		if (!dma.left) {
+			LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
+			dsp.highspeed = false;
+			mode=MODE_NONE;
+		}
+		else if (dsp.require_irq_ack && was_irq) {
+			/* Sound Blaster 16 behavior: If you do not acknowledge the IRQ, and the card goes to signal another IRQ, the DSP halts playback.
+			 * This is different from previous cards (and clone hardware) that continue playing whether or not you acknowledge the IRQ. */
+			LOG(LOG_SB,LOG_WARN)("DMA ended when previous IRQ had not yet been acked");
+			mode=MODE_DMA_REQUIRE_IRQ_ACK;
+		}
+	}
+}
+
+void SB_INFO::GenerateDMASound(Bitu size) {
+	Bitu read=0;Bitu done=0;Bitu i=0;
+
+	// don't read if the DMA channel is masked
+	if (dma.chan->masked) return;
+
+	if (dma_dac_mode) return;
+
+	last_dma_callback = PIC_FullIndex();
+
+	if(dma.autoinit) {
+		if (dma.left <= size) size = dma.left;
+	} else {
+		if (dma.left <= dma.min)
+			size = dma.left;
+	}
+
+	if (size > DMA_BUFSIZE) {
+		/* Maybe it's time to consider rendering intervals based on what the mixer wants rather than odd 1ms DMA packet calculations... */
+		LOG(LOG_SB,LOG_WARN)("Whoah! GenerateDMASound asked to render too much audio (%u > %u). Read could have overrun the DMA buffer!",(unsigned int)size,DMA_BUFSIZE);
+		size = DMA_BUFSIZE;
+	}
+
+	if (dma.recording) {
+		/* How much can we do? assume not masked because we checked that at the start of this function.
+		 * Then generate that much input data. After writing via DMA, mute the audio before it goes to
+		 * the mixer.
+		 *
+		 * TODO: It would be kind of fun to tie the generated audio parameters to mixer controls such
+		 *       as allowing the user to control how loud the 1KHz sine wave is with the line in volume
+		 *       control, and perhaps we should allow the generated audio to go out to the mixer output
+		 *       if the line in is unmuted, subject to the audio volume controls. Or perhaps this code
+		 *       should just make another mixer channel for recording sources. */
+		read=dma.chan->currcnt + 1; /* DMA channel current count remain */
+		if (read > size) read = size;
+		if (dma.mode == DSP_DMA_16 || dma.mode == DSP_DMA_16_ALIASED)
+			gen_input(read,(unsigned char*)(&dma.buf.b16[dma.remain_size]));
+		else
+			gen_input(read,&dma.buf.b8[dma.remain_size]);
+
+		switch (dma.mode) {
+			case DSP_DMA_8:
+				if (dma.stereo) {
+					read=dma.chan->Write(read,&dma.buf.b8[dma.remain_size]);
+					if (read > 0 && !listen_to_recording_source) gen_input_silence(read,&dma.buf.b8[dma.remain_size]); /* mute before going out to mixer */
+					Bitu total=read+dma.remain_size;
+					if (!dma.sign)  chan->AddSamples_s8(total>>1,dma.buf.b8);
+					else chan->AddSamples_s8s(total>>1,(int8_t*)dma.buf.b8);
+					if (total&1) {
+						dma.remain_size=1;
+						dma.buf.b8[0]=dma.buf.b8[total-1];
+					} else dma.remain_size=0;
+				} else {
+					read=dma.chan->Write(read,dma.buf.b8);
+					if (read > 0 && !listen_to_recording_source) gen_input_silence(read,dma.buf.b8); /* mute before going out to mixer */
+					if (!dma.sign) chan->AddSamples_m8(read,dma.buf.b8);
+					else chan->AddSamples_m8s(read,(int8_t *)dma.buf.b8);
+				}
+				break;
+			case DSP_DMA_16:
+			case DSP_DMA_16_ALIASED:
+				if (dma.stereo) {
+					/* In DSP_DMA_16_ALIASED mode temporarily divide by 2 to get number of 16-bit
+					   samples, because 8-bit DMA Read returns byte size, while in DSP_DMA_16 mode
+					   16-bit DMA Read returns word size */
+					read=dma.chan->Write(read,(uint8_t *)&dma.buf.b16[dma.remain_size])
+						>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+					if (read > 0 && !listen_to_recording_source) gen_input_silence(read,(unsigned char*)(&dma.buf.b16[dma.remain_size])); /* mute before going out to mixer */
+					Bitu total=read+dma.remain_size;
+#if defined(WORDS_BIGENDIAN)
+					if (dma.sign) chan->AddSamples_s16_nonnative(total>>1,dma.buf.b16);
+					else chan->AddSamples_s16u_nonnative(total>>1,(uint16_t *)dma.buf.b16);
+#else
+					if (dma.sign) chan->AddSamples_s16(total>>1,dma.buf.b16);
+					else chan->AddSamples_s16u(total>>1,(uint16_t *)dma.buf.b16);
+#endif
+					if (total&1) {
+						dma.remain_size=1;
+						dma.buf.b16[0]=dma.buf.b16[total-1];
+					} else dma.remain_size=0;
+				} else {
+					read=dma.chan->Write(read,(uint8_t *)dma.buf.b16)
+						>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+					if (read > 0 && !listen_to_recording_source) gen_input_silence(read,(unsigned char*)dma.buf.b16); /* mute before going out to mixer */
+#if defined(WORDS_BIGENDIAN)
+					if (dma.sign) chan->AddSamples_m16_nonnative(read,dma.buf.b16);
+					else chan->AddSamples_m16u_nonnative(read,(uint16_t *)dma.buf.b16);
+#else
+					if (dma.sign) chan->AddSamples_m16(read,dma.buf.b16);
+					else chan->AddSamples_m16u(read,(uint16_t *)dma.buf.b16);
+#endif
+				}
+				//restore buffer length value to byte size in aliased mode
+				if (dma.mode==DSP_DMA_16_ALIASED) read=read<<1;
+				break;
+			default:
+				LOG_MSG("Unhandled dma record mode %d",dma.mode);
+				mode=MODE_NONE;
+				return;
+		}
+	}
+	else {
+		switch (dma.mode) {
+			case DSP_DMA_2:
+				read=dma.chan->Read(size,dma.buf.b8);
+				if (read && adpcm.haveref) {
+					adpcm.haveref=false;
+					adpcm.reference=dma.buf.b8[0];
+					adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
+					i++;
+				}
+				for (;i<read;i++) {
+					MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 6) & 0x3,adpcm.reference,adpcm.stepsize);
+					MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 4) & 0x3,adpcm.reference,adpcm.stepsize);
+					MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 2) & 0x3,adpcm.reference,adpcm.stepsize);
+					MixTemp[done++]=decode_ADPCM_2_sample((dma.buf.b8[i] >> 0) & 0x3,adpcm.reference,adpcm.stepsize);
+				}
+				chan->AddSamples_m8(done,MixTemp);
+				break;
+			case DSP_DMA_3:
+				read=dma.chan->Read(size,dma.buf.b8);
+				if (read && adpcm.haveref) {
+					adpcm.haveref=false;
+					adpcm.reference=dma.buf.b8[0];
+					adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
+					i++;
+				}
+				for (;i<read;i++) {
+					MixTemp[done++]=decode_ADPCM_3_sample((dma.buf.b8[i] >> 5) & 0x7,adpcm.reference,adpcm.stepsize);
+					MixTemp[done++]=decode_ADPCM_3_sample((dma.buf.b8[i] >> 2) & 0x7,adpcm.reference,adpcm.stepsize);
+					MixTemp[done++]=decode_ADPCM_3_sample((dma.buf.b8[i] & 0x3) << 1,adpcm.reference,adpcm.stepsize);
+				}
+				chan->AddSamples_m8(done,MixTemp);
+				break;
+			case DSP_DMA_4:
+				read=dma.chan->Read(size,dma.buf.b8);
+				if (read && adpcm.haveref) {
+					adpcm.haveref=false;
+					adpcm.reference=dma.buf.b8[0];
+					adpcm.stepsize=MIN_ADAPTIVE_STEP_SIZE;
+					i++;
+				}
+				for (;i<read;i++) {
+					MixTemp[done++]=decode_ADPCM_4_sample(dma.buf.b8[i] >> 4,adpcm.reference,adpcm.stepsize);
+					MixTemp[done++]=decode_ADPCM_4_sample(dma.buf.b8[i]& 0xf,adpcm.reference,adpcm.stepsize);
+				}
+				chan->AddSamples_m8(done,MixTemp);
+				break;
+			case DSP_DMA_8:
+				if (dma.stereo) {
+					read=dma.chan->Read(size,&dma.buf.b8[dma.remain_size]);
+					Bitu total=read+dma.remain_size;
+					if (!dma.sign)  chan->AddSamples_s8(total>>1,dma.buf.b8);
+					else chan->AddSamples_s8s(total>>1,(int8_t*)dma.buf.b8);
+					if (total&1) {
+						dma.remain_size=1;
+						dma.buf.b8[0]=dma.buf.b8[total-1];
+					} else dma.remain_size=0;
+				} else {
+					read=dma.chan->Read(size,dma.buf.b8);
+					if (!dma.sign) chan->AddSamples_m8(read,dma.buf.b8);
+					else chan->AddSamples_m8s(read,(int8_t *)dma.buf.b8);
+				}
+				break;
+			case DSP_DMA_16:
+			case DSP_DMA_16_ALIASED:
+				if (dma.stereo) {
+					/* In DSP_DMA_16_ALIASED mode temporarily divide by 2 to get number of 16-bit
+					   samples, because 8-bit DMA Read returns byte size, while in DSP_DMA_16 mode
+					   16-bit DMA Read returns word size */
+					read=dma.chan->Read(size,(uint8_t *)&dma.buf.b16[dma.remain_size])
+						>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+					Bitu total=read+dma.remain_size;
+#if defined(WORDS_BIGENDIAN)
+					if (dma.sign) chan->AddSamples_s16_nonnative(total>>1,dma.buf.b16);
+					else chan->AddSamples_s16u_nonnative(total>>1,(uint16_t *)dma.buf.b16);
+#else
+					if (dma.sign) chan->AddSamples_s16(total>>1,dma.buf.b16);
+					else chan->AddSamples_s16u(total>>1,(uint16_t *)dma.buf.b16);
+#endif
+					if (total&1) {
+						dma.remain_size=1;
+						dma.buf.b16[0]=dma.buf.b16[total-1];
+					} else dma.remain_size=0;
+				} else {
+					read=dma.chan->Read(size,(uint8_t *)dma.buf.b16)
+						>> (dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+#if defined(WORDS_BIGENDIAN)
+					if (dma.sign) chan->AddSamples_m16_nonnative(read,dma.buf.b16);
+					else chan->AddSamples_m16u_nonnative(read,(uint16_t *)dma.buf.b16);
+#else
+					if (dma.sign) chan->AddSamples_m16(read,dma.buf.b16);
+					else chan->AddSamples_m16u(read,(uint16_t *)dma.buf.b16);
+#endif
+				}
+				//restore buffer length value to byte size in aliased mode
+				if (dma.mode==DSP_DMA_16_ALIASED) read=read<<1;
+				break;
+			default:
+				LOG_MSG("Unhandled dma playback mode %d",dma.mode);
+				mode=MODE_NONE;
+				return;
+		}
+	}
+	dma.left-=read;
+	if (!dma.left) SB_OnEndOfDMA();
+}
+
+void SB_INFO::CheckDMAEnd(void) {
+	if (!dma.left) return;
+	if (!speaker && type!=SBT_16 && ess_type==ESS_NONE) {
+		Bitu bigger=(dma.left > dma.min) ? dma.min : dma.left;
+		float delay=(bigger*1000.0f)/dma.rate;
+		PIC_AddEvent(DMA_Silent_Event,delay,bigger);
+		LOG(LOG_SB,LOG_NORMAL)("Silent DMA Transfer scheduling IRQ in %.3f milliseconds",delay);
+	} else if (dma.left<dma.min) {
+		float delay=(dma.left*1000.0f)/dma.rate;
+		LOG(LOG_SB,LOG_NORMAL)("Short transfer scheduling IRQ in %.3f milliseconds",delay);
+		PIC_AddEvent(END_DMA_Event,delay,dma.left);
+	}
+}
+
+void SB_INFO::DSP_ChangeMode(DSP_MODES new_mode) {
+	if (mode == new_mode) return;
+	else chan->FillUp();
+	mode=new_mode;
+}
+
+void SB_INFO::DSP_DoDMATransfer(DMA_MODES new_mode,Bitu freq,bool stereo,bool dontInitLeft) {
+	char const * type;
+
+	mode=MODE_DMA_MASKED;
+
+	/* Explanation: A handful of ancient DOS demos (in the 1990-1992 timeframe) were written to output
+	 *              sound using the timer interrupt (IRQ 0) at a fixed rate to a device, usually the
+	 *              PC speaker or LPT1 DAC. When SoundBlaster came around, the programmers decided
+	 *              apparently to treat the Sound Blaster in the same way, so many of these early
+	 *              demos (especially those using GoldPlay) used either Direct DAC output or a hacked
+	 *              form of DMA single-cycle 8-bit output.
+	 *
+	 *              The way the hacked DMA mode works, is that the Sound Blaster is told the transfer
+	 *              length is 65536 or some other large value. Then, the DMA controller is programmed
+	 *              to point at a specific byte (or two bytes for stereo) and the counter value for
+	 *              that DMA channel is set to 0 (or 1 for stereo). This means that as the Sound Blaster
+	 *              fetches bytes to play, the DMA controller ends up sending the same byte value
+	 *              over and over again. However, the demo has the timer running at the desired sample
+	 *              rate (IRQ 0) and the interrupt routine is modifying the byte to reflect the latest
+	 *              sample output. In this way, the demo renders audio whenever it feels like it and
+	 *              the Sound Blaster gets audio at the rate it works best with.
+	 *
+	 *              It's worth noting the programmers may have done this because DMA playback is the
+	 *              only way to get SB Pro stereo output working.
+	 *
+	 *              The problem here in DOSBox is that the DMA block-transfer code here is not precise
+	 *              enough to handle that properly. When you run such a program in DOSBox 0.74 and
+	 *              earlier, you get a low-frequency digital "rumble" that kinda-sorta sounds like
+	 *              what the demo is playing (the same byte value repeated over and over again,
+	 *              remember?). The only way to properly render such output, is to read the memory
+	 *              value at the sample rate and buffer it for output.
+	 *
+	 * This fixes Sound Blaster output in:
+	 *    Twilight Zone - Buttman (1992) [SB and SB Pro modes]
+	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
+	 *    The Jungly (1992) [SB and SB Pro modes]
+	 */
+	if (dma.chan != NULL &&
+			dma.chan->basecnt < ((new_mode==DSP_DMA_16_ALIASED?2:1)*((stereo || mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
+		single_sample_dma = 1;
+	else
+		single_sample_dma = 0;
+
+	dma_dac_srcrate=freq;
+	if (dsp.force_goldplay || (goldplay && freq > 0 && single_sample_dma))
+		dma_dac_mode=1;
+	else
+		dma_dac_mode=0;
+
+	/* explanation: the purpose of Goldplay stereo mode is to compensate for the fact
+	 * that demos using this method of playback know to set the SB Pro stereo bit, BUT,
+	 * apparently did not know that they needed to double the sample rate when
+	 * computing the DSP time constant. Such demos sound "OK" on Sound Blaster Pro but
+	 * have audible aliasing artifacts because of this. The Goldplay Stereo hack
+	 * detects this condition and doubles the sample rate to better capture what the
+	 * demo is *trying* to do. NTS: freq is the raw sample rate given by the
+	 * program, before it is divided by two for stereo.
+	 *
+	 * Of course, some demos like Crystal Dream take the approach of just setting the
+	 * sample rate to the max supported by the card and then letting its timer interrupt
+	 * define the sample rate. So of course anything below 44.1KHz sounds awful. */
+	if (dma_dac_mode && goldplay_stereo && (stereo || mixer.sbpro_stereo) && single_sample_dma)
+		dma_dac_srcrate = freq;
+
+	chan->FillUp();
+
+	if (!dontInitLeft)
+		dma.left=dma.total;
+
+	dma.mode=dma.mode_assigned=new_mode;
+	dma.stereo=stereo;
+	irq.pending_8bit=false;
+	irq.pending_16bit=false;
+	switch (new_mode) {
+		case DSP_DMA_2:
+			type="2-bits ADPCM";
+			dma.mul=(1 << SB_SH)/4;
+			break;
+		case DSP_DMA_3:
+			type="3-bits ADPCM";
+			dma.mul=(1 << SB_SH)/3;
+			break;
+		case DSP_DMA_4:
+			type="4-bits ADPCM";
+			dma.mul=(1 << SB_SH)/2;
+			break;
+		case DSP_DMA_8:
+			type="8-bits PCM";
+			dma.mul=(1 << SB_SH);
+			break;
+		case DSP_DMA_16_ALIASED:
+			type="16-bits(aliased) PCM";
+			dma.mul=(1 << SB_SH)*2;
+			break;
+		case DSP_DMA_16:
+			type="16-bits PCM";
+			dma.mul=(1 << SB_SH);
+			break;
+		default:
+			LOG(LOG_SB,LOG_ERROR)("DSP:Illegal transfer mode %d",new_mode);
+			return;
+	}
+	if (dma.stereo) dma.mul*=2;
+	dma.rate=(dma_dac_srcrate*dma.mul) >> SB_SH;
+	dma.min=((Bitu)dma.rate*(Bitu)(min_dma_user >= 0 ? min_dma_user : /*default*/3))/1000u;
+	if (dma_dac_mode && goldplay_stereo && (stereo || mixer.sbpro_stereo) && single_sample_dma) {
+		//        LOG(LOG_SB,LOG_DEBUG)("Goldplay stereo hack. freq=%u rawfreq=%u dacrate=%u",(unsigned int)freq,(unsigned int)freq,(unsigned int)dma_dac_srcrate);
+		chan->SetFreq(dma_dac_srcrate);
+		updateSoundBlasterFilter(freq); /* BUT, you still filter like the actual sample rate */
+	}
+	else {
+		chan->SetFreq(freq);
+		updateSoundBlasterFilter(freq);
+	}
+	dma.mode=dma.mode_assigned=new_mode;
+	PIC_RemoveEvents(DMA_DAC_Event);
+	PIC_RemoveEvents(END_DMA_Event);
+
+	if (dma_dac_mode)
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / dma_dac_srcrate);
+
+	if (dma.chan != NULL) {
+		dma.chan->Register_Callback(DSP_DMA_CallBack);
+	}
+	else {
+		LOG(LOG_SB,LOG_WARN)("DMA transfer initiated with no channel assigned");
+	}
+
+#if (C_DEBUG)
+	LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s dsp %s dma %s freq %d rate %d dspsize %d dmasize %d gold %d",
+			type,
+			dma.recording ? "Recording" : "Playback",
+			dma.stereo ? "Stereo" : "Mono",
+			dma.autoinit ? "Auto-Init" : "Single-Cycle",
+			dma.chan ? (dma.chan->autoinit ? "Auto-Init" : "Single-Cycle") : "n/a",
+			(int)freq,(int)dma.rate,(int)dma.total,
+			dma.chan ? (dma.chan->basecnt+1) : 0,
+			(int)dma_dac_mode
+			);
+#else
+	(void)type;
+#endif
+}
+
+uint8_t SB_INFO::DSP_RateLimitedFinalTC_Old() {
+	if (sample_rate_limits) { /* enforce speed limits documented by Creative */
+		/* commands that invoke this call use the DSP time constant, so use the DSP
+		 * time constant to constrain rate */
+		unsigned int u_limit=212;/* 23KHz */
+
+		/* NTS: We skip the SB16 commands because those are handled by another function */
+		if ((dsp.cmd&0xFE) == 0x74 || dsp.cmd == 0x7D) { /* 4-bit ADPCM */
+			u_limit = 172; /* 12KHz */
+		}
+		else if ((dsp.cmd&0xFE) == 0x76) { /* 2.6-bit ADPCM */
+			if (type == SBT_2) u_limit = 172; /* 12KHz */
+			else u_limit = 179; /* 13KHz */
+		}
+		else if ((dsp.cmd&0xFE) == 0x16) { /* 2-bit ADPCM */
+			if (type == SBT_2) u_limit = 189; /* 15KHz */
+			else u_limit = 165; /* 11KHz */
+		}
+		else if (type == SBT_16) /* Sound Blaster 16. Highspeed commands are treated like an alias to normal DSP commands */
+			u_limit = 234/*45454Hz*/;
+		else if (type == SBT_2) /* Sound Blaster 2.0 */
+			u_limit = (dsp.highspeed ? 234/*45454Hz*/ : 210/*22.5KHz*/);
+		else
+			u_limit = (dsp.highspeed ? 234/*45454Hz*/ : 212/*22.5KHz*/);
+
+		/* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
+		 *      two times the sample rate, which is what we get back here. That's why here we don't need
+		 *      to consider stereo vs mono. */
+		if (timeconst > u_limit) return u_limit;
+	}
+
+	return timeconst;
 }
 
 static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
