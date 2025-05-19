@@ -536,613 +536,50 @@ struct SB_INFO {
 	pic_tickindex_t next_check_record_settings = 0;
 	unsigned char pc98_mixctl_reg = 0x14;
 
-	unsigned char &ESSreg(uint8_t reg);
-
 	void gen_input_reset(void);
 	int gen_hiss(unsigned int mask);
 	int gen_noise(unsigned int mask);
+	unsigned char &ESSreg(uint8_t reg);
 	double gen_1khz_tone(const bool advance);
 	void gen_input(Bitu dmabytes,unsigned char *buf);
 	void gen_input_hiss(Bitu dmabytes,unsigned char *buf);
 	void gen_input_silence(Bitu dmabytes,unsigned char *buf);
 	void gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf);
-
-	void DSP_FlushData(void);
-	void DSP_SetSpeaker(bool how);
-	void SB_RaiseIRQ(SB_IRQS type);
-
-	/* these are settings that the user would probably like to change on the fly during emulation */
 	void DSP_DoDMATransfer(DMA_MODES new_mode,Bitu freq,bool stereo,bool dontInitLeft=false);
+	void DSP_PrepareDMA_New(DMA_MODES new_mode,Bitu length,bool autoinit,bool stereo);
+	void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed);
+	unsigned int DSP_RateLimitedFinalSB16Freq_New(unsigned int freq);
+	void sb16asp_write_current_RAM_byte(const uint8_t r);
+	uint8_t sb16asp_read_current_RAM_byte(void);
+	void ESS_DoWrite(uint8_t reg,uint8_t data);
 	void sb_update_recording_source_settings();
 	void DSP_ChangeMode(DSP_MODES new_mode);
 	uint8_t DSP_RateLimitedFinalTC_Old();
+	unsigned int ESS_DMATransferCount();
+	void DSP_ChangeRate(Bitu new_freq);
+	void ESSUpdateFilterFromSB(void);
+	void CTMIXER_UpdateVolumes(void);
 	void GenerateDMASound(Bitu size);
+	void sb16asp_next_RAM_byte(void);
+	uint8_t ESS_DoRead(uint8_t reg);
+	void SB_RaiseIRQ(SB_IRQS type);
+	float calc_vol(uint8_t amount);
+	void DSP_AddData(uint8_t val);
+	void DSP_DoReset(uint8_t val);
+	void DSP_DoWrite(uint8_t val);
+	void DSP_SetSpeaker(bool how);
+	bool DSP_busy_cycle_active();
+	uint8_t DSP_ReadData(void);
+	void ESS_CheckDMAEnable();
+	void ESS_UpdateDMATotal();
 	void SB_OnEndOfDMA(void);
+	void CTMIXER_Reset(void);
+	void DSP_FlushData(void);
 	void CheckDMAEnd(void);
-
-	unsigned int DSP_RateLimitedFinalSB16Freq_New(unsigned int freq) {
-		/* If sample rate was set by DSP command 0x41/0x42 */
-		if (sample_rate_limits) { /* enforce speed limits documented by Creative... which are somewhat wrong. They are the same limits as high-speed playback modes on SB Pro and 2.0 */
-			if (freq < 4900)
-				freq = 5000; /* Apparent behavior is that SB16 commands only go down to 5KHz but that limit is imposed if slightly below 5KHz, see rate graphs on Hackipedia */
-			if (freq > 45454)
-				freq = 45454;
-		}
-
-		return freq;
-	}
-
-	void DSP_AddData(uint8_t val) {
-		if (dsp.out.used<DSP_BUFSIZE) {
-			Bitu start=dsp.out.used+dsp.out.pos;
-			if (start>=DSP_BUFSIZE) start-=DSP_BUFSIZE;
-			dsp.out.data[start]=val;
-			dsp.out.used++;
-		} else {
-			LOG(LOG_SB,LOG_ERROR)("DSP:Data Output buffer full");
-		}
-	}
-
-	uint8_t DSP_ReadData(void) {
-		/* Static so it repeats the last value on successive reads (JANGLE DEMO) */
-		if (dsp.out.used) {
-			dsp.out.lastval=dsp.out.data[dsp.out.pos];
-			dsp.out.pos++;
-			if (dsp.out.pos>=DSP_BUFSIZE) dsp.out.pos-=DSP_BUFSIZE;
-			dsp.out.used--;
-		}
-		return dsp.out.lastval;
-	}
-
-	void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed) {
-		/* this must be processed BEFORE forcing auto-init because the non-autoinit case provides the DSP transfer block size (fix for "Jump" by Public NMI) */
-		if (!autoinit) dma.total=1u+(unsigned int)dsp.in.data[0]+(unsigned int)(dsp.in.data[1] << 8u);
-
-		if (dma.force_autoinit)
-			autoinit = true;
-
-		dma.autoinit=autoinit;
-		dsp.highspeed=hispeed;
-		dma.sign=sign;
-
-		/* BUGFIX: There is code out there that uses SB16 sample rate commands mixed with SB/SBPro
-		 *         playback commands. In order to handle these cases properly we need to use the
-		 *         SB16 sample rate if that is what was given to us, else the sample rate will
-		 *         come out wrong.
-		 *
-		 *         Test cases:
-		 *
-		 *         #1: Silpheed (vogons user newrisingsun amatorial patch)
-		 */
-		if (freq_derived_from_tc) {
-			// sample rate was set by SB/SBpro command 0x40 Set Time Constant (very common case)
-			/* BUGFIX: Instead of direct rate-limiting the DSP time constant, keep the original
-			 *         value written intact and rate-limit a copy. Bugfix for Optic Nerve and
-			 *         sbtype=sbpro2. On initialization the demo first sends DSP command 0x14
-			 *         with a 2-byte playback interval, then sends command 0x91 to begin
-			 *         playback. Rate-limiting the copy means the 45454Hz time constant written
-			 *         by the demo stays intact despite being limited to 22050Hz during the first
-			 *         DSP block (command 0x14). */
-			const uint8_t final_tc = DSP_RateLimitedFinalTC_Old();
-			freq = (256000000ul / (65536ul - ((unsigned long)final_tc << 8ul)));
-		}
-		else {
-			LOG(LOG_SB,LOG_DEBUG)("Guest is using non-SB16 playback commands after using SB16 commands to set sample rate");
-			freq = DSP_RateLimitedFinalSB16Freq_New(freq);
-		}
-
-		dma_dac_mode=0;
-		ess_playback_mode = false;
-		dma.chan=GetDMAChannel(hw.dma8);
-		DSP_DoDMATransfer(mode,freq / (mixer.stereo ? 2 : 1),mixer.stereo);
-	}
-
-	void DSP_PrepareDMA_New(DMA_MODES new_mode,Bitu length,bool autoinit,bool stereo) {
-		if (dma.force_autoinit)
-			autoinit = true;
-
-		/* apparently SB16 hardware allows 0xBx-0xCx 4.xx DSP commands to interrupt
-		 * a previous SB16 playback command, DSP "nag" style. The difference is that
-		 * if you do that you risk exploiting DMA and timing glitches in the chip that
-		 * can cause funny things to happen, like causing 16-bit PCM to stop, or causing
-		 * 8-bit stereo PCM to swap left/right channels because the host is using auto-init
-		 * DMA and you interrupted the DSP chip when it fetched the L channel before it
-		 * had a chance to latch it and begin loading the R channel. */
-		if (mode == MODE_DMA) {
-			if (!autoinit) dma.total=length;
-			dma.left=dma.total;
-			dma.autoinit=autoinit;
-			return;
-		}
-
-		dsp.highspeed = false;
-		freq = DSP_RateLimitedFinalSB16Freq_New(freq);
-		timeconst = (65536 - (256000000 / freq)) >> 8;
-		freq_derived_from_tc = false;
-
-		const Bitu saved_freq=freq;
-		//equal length if data format and dma channel are both 16-bit or 8-bit
-		dma_dac_mode=0;
-		dma.total=length;
-		dma.autoinit=autoinit;
-		ess_playback_mode = false;
-		if (new_mode==DSP_DMA_16) {
-			if (hw.dma16 == 0xff || hw.dma16 == hw.dma8) { /* 16-bit DMA not assigned or same as 8-bit channel */
-				dma.chan=GetDMAChannel(hw.dma8);
-				new_mode=DSP_DMA_16_ALIASED;
-				//UNDOCUMENTED:
-				//In aliased mode sample length is written to DSP as number of
-				//16-bit samples so we need double 8-bit DMA buffer length
-				dma.total<<=1;
-			}
-			else if (hw.dma16 >= 4) { /* 16-bit DMA assigned to 16-bit DMA channel */
-				dma.chan=GetDMAChannel(hw.dma16);
-			}
-			else {
-				/* Nope. According to one ViBRA PnP card I have on hand, asking the
-				 * card to do 16-bit DMA over 8-bit DMA only works if they are the
-				 * same channel, otherwise, the card doesn't seem to carry out any
-				 * DMA fetching. */
-				dma.chan=NULL;
-				return;
-			}
-		} else {
-			dma.chan=GetDMAChannel(hw.dma8);
-		}
-
-		DSP_DoDMATransfer(new_mode,saved_freq,stereo);
-	}
-
-	void DSP_Reset(void) {
-		LOG(LOG_SB,LOG_NORMAL)("DSP:Reset");
-		PIC_DeActivateIRQ(hw.irq);
-
-		DSP_ChangeMode(MODE_NONE);
-		DSP_FlushData();
-		dsp.cmd=DSP_NO_COMMAND;
-		dsp.cmd_len=0;
-		dsp.in.pos=0;
-		dsp.out.pos=0;
-		dsp.write_busy=0;
-		ess_extended_mode = false;
-		ess_playback_mode = false;
-		single_sample_dma = 0;
-		dma_dac_mode = 0;
-		directdac_warn_speaker_off = true;
-		PIC_RemoveEvents(DSP_FinishReset);
-		PIC_RemoveEvents(DSP_BusyComplete);
-
-		dma.left=0;
-		dma.total=0;
-		dma.stereo=false;
-		dma.recording=false;
-		dma.sign=false;
-		dma.autoinit=false;
-		dma.mode=dma.mode_assigned=DSP_DMA_NONE;
-		dma.remain_size=0;
-		if (dma.chan) dma.chan->Clear_Request();
-
-		gen_input_reset();
-
-		dsp.midi_rwpoll_mode = false;
-		dsp.midi_read_interrupt = false;
-		dsp.midi_read_with_timestamps = false;
-
-		freq=22050;
-		freq_derived_from_tc=true;
-		time_constant=45;
-		dac.last=0;
-		e2.valadd=0xaa;
-		e2.valxor=0x96;
-		dsp.highspeed=0;
-		irq.pending_8bit=false;
-		irq.pending_16bit=false;
-		chan->SetFreq(22050);
-		updateSoundBlasterFilter(22050);
-		//  DSP_SetSpeaker(false);
-		PIC_RemoveEvents(END_DMA_Event);
-		PIC_RemoveEvents(DMA_DAC_Event);
-	}
-
-	void DSP_DoReset(uint8_t val) {
-		if (((val&1)!=0) && (dsp.state!=DSP_S_RESET)) {
-			//TODO Get out of highspeed mode
-			DSP_Reset();
-			dsp.state=DSP_S_RESET;
-		} else if (((val&1)==0) && (dsp.state==DSP_S_RESET)) {   // reset off
-			dsp.state=DSP_S_RESET_WAIT;
-			PIC_RemoveEvents(DSP_FinishReset);
-			PIC_AddEvent(DSP_FinishReset,20.0f/1000.0f,0);  // 20 microseconds
-		}
-		dsp.write_busy = 0;
-	}
-
-	void DSP_ChangeRate(Bitu new_freq) {
-		if (freq!=new_freq && dma.mode!=DSP_DMA_NONE) {
-			chan->FillUp();
-			chan->SetFreq(new_freq / (mixer.stereo ? 2 : 1));
-			dma.rate=(new_freq*dma.mul) >> SB_SH;
-			dma.min=(dma.rate*3)/1000;
-		}
-		freq = new_freq;
-	}
-
-	unsigned int ESS_DMATransferCount() {
-		unsigned int r;
-
-		r = (unsigned int)ESSreg(0xA5) << 8U;
-		r |= (unsigned int)ESSreg(0xA4);
-
-		/* the 16-bit counter is a "two's complement" of the DMA count because it counts UP to 0 and triggers IRQ on overflow */
-		return 0x10000U-r;
-	}
-
-	void ESS_StartDMA() {
-		LOG(LOG_SB,LOG_DEBUG)("ESS DMA start");
-		dma_dac_mode = 0;
-		dma.chan = GetDMAChannel(hw.dma8);
-		dma.recording = (ESSreg(0xB8) & 8/*ADC mode*/) > 0;
-		if (dma.chan) dma.chan->Raise_Request();
-		// FIXME: Which bit(s) are responsible for signalling stereo?
-		//        Is it bit 3 of the Analog Control?
-		//        Is it bit 3/6 of the Audio Control 1?
-		//        Is it both?
-		// NTS: ESS chipsets always use the 8-bit DMA channel, even for 16-bit PCM.
-		// NTS: ESS chipsets also do not cap the sample rate, though if you drive them
-		//      too fast the ISA bus will effectively cap the sample rate at some
-		//      rate above 48KHz to 60KHz anyway.
-		DSP_DoDMATransfer(
-			(ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
-			freq,(ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
-		mode = MODE_DMA;
-		ess_playback_mode = true;
-	}
-
-	void ESS_StopDMA() {
-		// DMA stop
-		DSP_ChangeMode(MODE_NONE);
-		if (dma.chan) dma.chan->Clear_Request();
-		PIC_RemoveEvents(END_DMA_Event);
-		PIC_RemoveEvents(DMA_DAC_Event);
-	}
-
-	void ESS_UpdateDMATotal() {
-		dma.total = ESS_DMATransferCount();
-	}
-
-	void ESS_CheckDMAEnable() {
-		bool dma_en = (ESSreg(0xB8) & 1)?true:false;
-
-		// if the DRQ is disabled, do not start
-		if (!(ESSreg(0xB2) & 0x40))
-			dma_en = false;
-
-		if (ESSreg(0xB8) & 8) LOG(LOG_SB,LOG_WARN)("Guest recording audio using ESS commands");
-
-		if (!!(ESSreg(0xB8) & 8/*ADC mode*/) != !!(ESSreg(0xB8) & 2/*DMA read*/)) LOG(LOG_SB,LOG_WARN)("ESS DMA direction vs ADC mismatch");
-
-		if (dma_en) {
-			if (mode != MODE_DMA) ESS_StartDMA();
-		}
-		else {
-			if (mode == MODE_DMA) ESS_StopDMA();
-		}
-	}
-
-	void ESSUpdateFilterFromSB(void) {
-		if (freq >= 22050)
-			ESSreg(0xA1) = 256 - (795500UL / freq);
-		else
-			ESSreg(0xA1) = 128 - (397700UL / freq);
-
-		const unsigned int new_freq = ((freq * 4) / (5 * 2)); /* 80% of 1/2 the sample rate */
-		ESSreg(0xA2) = 256 - (7160000 / (new_freq * 82));
-	}
-
-	void ESS_DoWrite(uint8_t reg,uint8_t data) {
-		uint8_t chg;
-
-		LOG(LOG_SB,LOG_DEBUG)("ESS register write reg=%02xh val=%02xh",reg,data);
-
-		switch (reg) {
-			case 0xA1: /* Extended Mode Sample Rate Generator */
-				ESSreg(reg) = data;
-				if (data & 0x80)
-					freq = 795500UL / (256ul - data);
-				else
-					freq = 397700UL / (128ul - data);
-
-				freq_derived_from_tc = false;
-				if (mode == MODE_DMA) {
-					ESS_StopDMA();
-					ESS_StartDMA();
-				}
-				break;
-			case 0xA2: /* Filter divider (effectively, a hardware lowpass filter under S/W control) */
-				ESSreg(reg) = data;
-				updateSoundBlasterFilter(freq);
-				break;
-			case 0xA4: /* DMA Transfer Count Reload (low) */
-			case 0xA5: /* DMA Transfer Count Reload (high) */
-				ESSreg(reg) = data;
-				ESS_UpdateDMATotal();
-				if (dma.left == 0) dma.left = dma.total;
-				break;
-			case 0xA8: /* Analog Control */
-				/* bits 7:5   0                  Reserved. Always write 0
-				 * bit  4     1                  Reserved. Always write 1
-				 * bit  3     Record monitor     1=Enable record monitor
-				 *            enable
-				 * bit  2     0                  Reserved. Always write 0
-				 * bits 1:0   Stereo/mono select 00=Reserved
-				 *                               01=Stereo
-				 *                               10=Mono
-				 *                               11=Reserved */
-				chg = ESSreg(reg) ^ data;
-				ESSreg(reg) = data;
-				if (chg & 0x3) {
-					if (mode == MODE_DMA) {
-						ESS_StopDMA();
-						ESS_StartDMA();
-					}
-				}
-				break;
-			case 0xB1: /* Legacy Audio Interrupt Control */
-			case 0xB2: /* DRQ Control */
-				chg = ESSreg(reg) ^ data;
-				ESSreg(reg) = (ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
-				if (chg & 0x40) ESS_CheckDMAEnable();
-				break;
-			case 0xB5: /* DAC Direct Access Holding (low) */
-			case 0xB6: /* DAC Direct Access Holding (high) */
-				ESSreg(reg) = data;
-				break;
-			case 0xB7: /* Audio 1 Control 1 */
-				/* bit  7     Enable FIFO to/from codec
-				 * bit  6     Opposite from bit 3               Must be set opposite to bit 3
-				 * bit  5     FIFO signed mode                  1=Data is signed twos-complement   0=Data is unsigned
-				 * bit  4     Reserved                          Always write 1
-				 * bit  3     FIFO stereo mode                  1=Data is stereo
-				 * bit  2     FIFO 16-bit mode                  1=Data is 16-bit
-				 * bit  1     Reserved                          Always write 0
-				 * bit  0     Generate load signal */
-				chg = ESSreg(reg) ^ data;
-				ESSreg(reg) = data;
-				dma.sign = (data&0x20)?1:0;
-				if (chg & 0x04) ESS_UpdateDMATotal();
-				if (chg & 0x0C) {
-					if (mode == MODE_DMA) {
-						ESS_StopDMA();
-						ESS_StartDMA();
-					}
-				}
-				break;
-			case 0xB8: /* Audio 1 Control 2 */
-				/* bits 7:4   reserved
-				 * bit  3     CODEC mode         1=first DMA converter in ADC mode
-				 *                               0=first DMA converter in DAC mode
-				 * bit  2     DMA mode           1=auto-initialize mode
-				 *                               0=normal DMA mode
-				 * bit  1     DMA read enable    1=first DMA is read (for ADC)
-				 *                               0=first DMA is write (for DAC)
-				 * bit  0     DMA xfer enable    1=DMA is allowed to proceed */
-				data &= 0xF;
-				chg = ESSreg(reg) ^ data;
-				ESSreg(reg) = data;
-
-				/* FIXME: This is a guess */
-				if (chg & 1) dma.left = dma.total;
-
-				dma.autoinit = (data >> 2) & 1;
-				if (chg & 0xB) {
-					if (chg & 0xA) ESS_StopDMA(); /* changing capture/playback direction? stop DMA to reinit */
-					ESS_CheckDMAEnable();
-				}
-				break;
-			case 0xB9: /* Audio 1 Transfer Type */
-			case 0xBA: /* Left Channel ADC Offset Adjust */
-			case 0xBB: /* Right Channel ADC Offset Adjust */
-				ESSreg(reg) = data;
-				break;
-		}
-	}
-
-	uint8_t ESS_DoRead(uint8_t reg) {
-		LOG(LOG_SB,LOG_DEBUG)("ESS register read reg=%02xh",reg);
-
-		switch (reg) {
-			default:
-				return ESSreg(reg);
-		}
-
-		return 0xFF;
-	}
-
-	void sb16asp_write_current_RAM_byte(const uint8_t r) {
-		sb16asp_ram_contents[sb16asp_ram_contents_index] = r;
-	}
-
-	uint8_t sb16asp_read_current_RAM_byte(void) {
-		return sb16asp_ram_contents[sb16asp_ram_contents_index];
-	}
-
-	void sb16asp_next_RAM_byte(void) {
-		if ((++sb16asp_ram_contents_index) >= 2048)
-			sb16asp_ram_contents_index = 0;
-	}
-
-	bool DSP_busy_cycle_active() {
-		/* NTS: Busy cycle happens on SB16 at all times, or on earlier cards, only when the DSP is
-		 *      fetching/writing data via the ISA DMA channel. So a non-auto-init DSP block that's
-		 *      just finished fetching ISA DMA and is playing from the FIFO doesn't count.
-		 *
-		 *      dma.left >= dma.min condition causes busy cycle to stop 3ms early (by default).
-		 *      This helps realism.
-		 *
-		 *      This also helps Crystal Dream, which uses the busy cycle to detect when the Sound
-		 *      Blaster is about to finish playing the DSP block and therefore needs the same 3ms
-		 *      "dmamin" hack to reissue another playback command without any audible hiccups in
-		 *      the audio. */
-		return (mode == MODE_DMA && (dma.autoinit || dma.left >= dma.min)) || busy_cycle_always;
-	}
-
-	bool DSP_busy_cycle() {
-		double now;
-		int t;
-
-		if (!DSP_busy_cycle_active()) return false;
-		if (busy_cycle_duty_percent <= 0 || busy_cycle_hz <= 0) return false;
-
-		/* NTS: DOSBox's I/O emulation doesn't yet attempt to accurately match ISA bus speeds or
-		 *      consider ISA bus cycles, but to emulate SB16 behavior we have to "time" it so
-		 *      that 8 consecutive I/O reads eventually see a transition from busy to not busy
-		 *      (or the other way around). So what this hack does is it uses accurate timing
-		 *      to determine where in the cycle we are, but if this function is called repeatedly
-		 *      through I/O access, we switch to incrementing a counter to ensure busy/not busy
-		 *      transition happens in 8 I/O cycles.
-		 *
-		 *      Without this hack, the CPU cycles count becomes a major factor in how many I/O
-		 *      reads are required for busy/not busy to happen. If you set cycles count high
-		 *      enough, more than 8 is required, and the SNDSB test code will have issues with
-		 *      direct DAC mode again.
-		 *
-		 *      This isn't 100% accurate, but it's the best DOSBox-X can do for now to mimic
-		 *      SB16 DSP behavior. */
-
-		now = PIC_FullIndex();
-		if (now >= (busy_cycle_last_check+0.02/*ms*/))
-			busy_cycle_io_hack = (int)(fmod((now / 1000) * busy_cycle_hz,1.0) * 16);
-
-		busy_cycle_last_check = now;
-		t = ((busy_cycle_io_hack % 16) * 100) / 16; /* HACK: DOSBox's I/O is not quite ISA bus speeds or related to it */
-		if (t < busy_cycle_duty_percent) return true;
-		return false;
-	}
-
-	void DSP_DoWrite(uint8_t val) {
-		if (dsp.write_busy || (dsp.highspeed && type != SBT_16 && ess_type == ESS_NONE && reveal_sc_type == RSC_NONE)) {
-			LOG(LOG_SB,LOG_WARN)("DSP:Command write %2X ignored, DSP not ready. DOS game or OS is not polling status",val);
-			return;
-		}
-
-		/* NTS: We allow the user to set busy wait time == 0 aka "instant gratification mode".
-		 *      We also assume that if they do that, some DOS programs might be timing sensitive
-		 *      enough to freak out when DSP commands and data are accepted immediately */
-		{
-			unsigned int delay = dsp.dsp_write_busy_time;
-
-			if (dsp.instant_direct_dac) {
-				delay = 0;
-			}
-			/* Part of enforcing sample rate limits is to make sure to emulate that the
-			 * Direct DAC output command 0x10 is "busy" long enough to effectively rate
-			 * limit output to 23KHz. */
-			else if (sample_rate_limits) {
-				unsigned int limit = 23000; /* documented max sample rate for SB16/SBPro and earlier */
-
-				if (type == SBT_16 && vibra)
-					limit = 23000; /* DSP maxes out at 46KHz not 44.1KHz on ViBRA cards */
-
-				if (dsp.cmd == DSP_NO_COMMAND && val == 0x10/*DSP direct DAC, command*/)
-					delay = (625000000UL / limit) - dsp.dsp_write_busy_time;
-			}
-
-			if (delay > 0) {
-				dsp.write_busy = 1;
-				PIC_RemoveEvents(DSP_BusyComplete);
-				PIC_AddEvent(DSP_BusyComplete,(double)delay / 1000000);
-			}
-
-			//      LOG(LOG_SB,LOG_NORMAL)("DSP:Command %02x delay %u",val,delay);
-		}
-
-		if (dsp.midi_rwpoll_mode) {
-			// DSP writes in this mode go to the MIDI port
-			//      LOG(LOG_SB,LOG_DEBUG)("DSP MIDI read/write poll mode: sending 0x%02x",val);
-			if (midi == true) MIDI_RawOutByte(val);
-			return;
-		}
-
-		switch (dsp.cmd) {
-			case DSP_NO_COMMAND:
-				/* genuine SB Pro and lower: remap DSP command to emulate aliases. */
-				if (dsp.command_aliases && type < SBT_16 && ess_type == ESS_NONE && reveal_sc_type == RSC_NONE) {
-					/* 0x41...0x47 are aliases of 0x40.
-					 * See also: [https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280].
-					 * This is required for ftp.scene.org/mirrors/hornet/demos/1994/y/yahxmas.zip which relies on the 0x41 alias of command 0x40
-					 * to function (which means that it may happen to work on SB Pro but will fail on clones and will fail on SB16 cards). */
-					if (val >= 0x41 && val <= 0x47) {
-						LOG(LOG_SB,LOG_WARN)("DSP command %02x and SB Pro or lower, treating as alias of 40h. Either written for SB16 or using undocumented alias.",val);
-						val = 0x40;
-					}
-				}
-
-				dsp.cmd=val;
-				if (type == SBT_16)
-					dsp.cmd_len=DSP_cmd_len_sb16[val];
-				else if (ess_type != ESS_NONE)
-					dsp.cmd_len=DSP_cmd_len_ess[val];
-				else if (reveal_sc_type != RSC_NONE)
-					dsp.cmd_len=DSP_cmd_len_sc400[val];
-				else
-					dsp.cmd_len=DSP_cmd_len_sb[val];
-
-				dsp.in.pos=0;
-				if (!dsp.cmd_len) DSP_DoCommand();
-				break;
-			default:
-				dsp.in.data[dsp.in.pos]=val;
-				dsp.in.pos++;
-				if (dsp.in.pos>=dsp.cmd_len) DSP_DoCommand();
-		}
-	}
-
-	//The soundblaster manual says 2.0 Db steps but we'll go for a bit less
-	float calc_vol(uint8_t amount) {
-		const uint8_t count = 31 - amount;
-		float db = static_cast<float>(count);
-		if (type == SBT_PRO1 || type == SBT_PRO2) {
-			if (count) {
-				if (count < 16) db -= 1.0f;
-				else if (count > 16) db += 1.0f;
-				if (count == 24) db += 2.0f;
-				if (count > 27) return 0.0f; //turn it off.
-			}
-		} else { //Give the rest, the SB16 scale, as we don't have data.
-			db *= 2.0f;
-			if (count > 20) db -= 1.0f;
-		}
-		return (float) pow (10.0f,-0.05f * db);
-	}
-
-	void CTMIXER_UpdateVolumes(void) {
-		if (!mixer.enabled) return;
-
-		chan->FillUp();
-
-		MixerChannel * chan;
-		float m0 = calc_vol(mixer.master[0]);
-		float m1 = calc_vol(mixer.master[1]);
-		chan = MIXER_FindChannel("SB");
-		if (chan) chan->SetVolume(m0 * calc_vol(mixer.dac[0]), m1 * calc_vol(mixer.dac[1]));
-		chan = MIXER_FindChannel("FM");
-		if (chan) chan->SetVolume(m0 * calc_vol(mixer.fm[0]) , m1 * calc_vol(mixer.fm[1]) );
-		chan = MIXER_FindChannel("CDAUDIO");
-		if (chan) chan->SetVolume(m0 * calc_vol(mixer.cda[0]), m1 * calc_vol(mixer.cda[1]));
-	}
-
-	void CTMIXER_Reset(void) {
-		mixer.filter_bypass=0; // Creative Documentation: filter_bypass bit is 0 by default
-		mixer.fm[0]=
-		mixer.fm[1]=
-		mixer.cda[0]=
-		mixer.cda[1]=
-		mixer.dac[0]=
-		mixer.dac[1]=31;
-		mixer.master[0]=
-		mixer.master[1]=31;
-		CTMIXER_UpdateVolumes();
-	}
+	bool DSP_busy_cycle();
+	void DSP_Reset(void);
+	void ESS_StartDMA();
+	void ESS_StopDMA();
 
 	/* Demo notes for fixing:
 	 *
@@ -3207,6 +2644,590 @@ uint8_t SB_INFO::DSP_RateLimitedFinalTC_Old() {
 	}
 
 	return timeconst;
+}
+
+unsigned int SB_INFO::DSP_RateLimitedFinalSB16Freq_New(unsigned int freq) {
+	/* If sample rate was set by DSP command 0x41/0x42 */
+	if (sample_rate_limits) { /* enforce speed limits documented by Creative... which are somewhat wrong. They are the same limits as high-speed playback modes on SB Pro and 2.0 */
+		if (freq < 4900)
+			freq = 5000; /* Apparent behavior is that SB16 commands only go down to 5KHz but that limit is imposed if slightly below 5KHz, see rate graphs on Hackipedia */
+		if (freq > 45454)
+			freq = 45454;
+	}
+
+	return freq;
+}
+
+void SB_INFO::DSP_AddData(uint8_t val) {
+	if (dsp.out.used<DSP_BUFSIZE) {
+		Bitu start=dsp.out.used+dsp.out.pos;
+		if (start>=DSP_BUFSIZE) start-=DSP_BUFSIZE;
+		dsp.out.data[start]=val;
+		dsp.out.used++;
+	} else {
+		LOG(LOG_SB,LOG_ERROR)("DSP:Data Output buffer full");
+	}
+}
+
+uint8_t SB_INFO::DSP_ReadData(void) {
+	/* Static so it repeats the last value on successive reads (JANGLE DEMO) */
+	if (dsp.out.used) {
+		dsp.out.lastval=dsp.out.data[dsp.out.pos];
+		dsp.out.pos++;
+		if (dsp.out.pos>=DSP_BUFSIZE) dsp.out.pos-=DSP_BUFSIZE;
+		dsp.out.used--;
+	}
+	return dsp.out.lastval;
+}
+
+void SB_INFO::DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed) {
+	/* this must be processed BEFORE forcing auto-init because the non-autoinit case provides the DSP transfer block size (fix for "Jump" by Public NMI) */
+	if (!autoinit) dma.total=1u+(unsigned int)dsp.in.data[0]+(unsigned int)(dsp.in.data[1] << 8u);
+
+	if (dma.force_autoinit)
+		autoinit = true;
+
+	dma.autoinit=autoinit;
+	dsp.highspeed=hispeed;
+	dma.sign=sign;
+
+	/* BUGFIX: There is code out there that uses SB16 sample rate commands mixed with SB/SBPro
+	 *         playback commands. In order to handle these cases properly we need to use the
+	 *         SB16 sample rate if that is what was given to us, else the sample rate will
+	 *         come out wrong.
+	 *
+	 *         Test cases:
+	 *
+	 *         #1: Silpheed (vogons user newrisingsun amatorial patch)
+	 */
+	if (freq_derived_from_tc) {
+		// sample rate was set by SB/SBpro command 0x40 Set Time Constant (very common case)
+		/* BUGFIX: Instead of direct rate-limiting the DSP time constant, keep the original
+		 *         value written intact and rate-limit a copy. Bugfix for Optic Nerve and
+		 *         sbtype=sbpro2. On initialization the demo first sends DSP command 0x14
+		 *         with a 2-byte playback interval, then sends command 0x91 to begin
+		 *         playback. Rate-limiting the copy means the 45454Hz time constant written
+		 *         by the demo stays intact despite being limited to 22050Hz during the first
+		 *         DSP block (command 0x14). */
+		const uint8_t final_tc = DSP_RateLimitedFinalTC_Old();
+		freq = (256000000ul / (65536ul - ((unsigned long)final_tc << 8ul)));
+	}
+	else {
+		LOG(LOG_SB,LOG_DEBUG)("Guest is using non-SB16 playback commands after using SB16 commands to set sample rate");
+		freq = DSP_RateLimitedFinalSB16Freq_New(freq);
+	}
+
+	dma_dac_mode=0;
+	ess_playback_mode = false;
+	dma.chan=GetDMAChannel(hw.dma8);
+	DSP_DoDMATransfer(mode,freq / (mixer.stereo ? 2 : 1),mixer.stereo);
+}
+
+void SB_INFO::DSP_PrepareDMA_New(DMA_MODES new_mode,Bitu length,bool autoinit,bool stereo) {
+	if (dma.force_autoinit)
+		autoinit = true;
+
+	/* apparently SB16 hardware allows 0xBx-0xCx 4.xx DSP commands to interrupt
+	 * a previous SB16 playback command, DSP "nag" style. The difference is that
+	 * if you do that you risk exploiting DMA and timing glitches in the chip that
+	 * can cause funny things to happen, like causing 16-bit PCM to stop, or causing
+	 * 8-bit stereo PCM to swap left/right channels because the host is using auto-init
+	 * DMA and you interrupted the DSP chip when it fetched the L channel before it
+	 * had a chance to latch it and begin loading the R channel. */
+	if (mode == MODE_DMA) {
+		if (!autoinit) dma.total=length;
+		dma.left=dma.total;
+		dma.autoinit=autoinit;
+		return;
+	}
+
+	dsp.highspeed = false;
+	freq = DSP_RateLimitedFinalSB16Freq_New(freq);
+	timeconst = (65536 - (256000000 / freq)) >> 8;
+	freq_derived_from_tc = false;
+
+	const Bitu saved_freq=freq;
+	//equal length if data format and dma channel are both 16-bit or 8-bit
+	dma_dac_mode=0;
+	dma.total=length;
+	dma.autoinit=autoinit;
+	ess_playback_mode = false;
+	if (new_mode==DSP_DMA_16) {
+		if (hw.dma16 == 0xff || hw.dma16 == hw.dma8) { /* 16-bit DMA not assigned or same as 8-bit channel */
+			dma.chan=GetDMAChannel(hw.dma8);
+			new_mode=DSP_DMA_16_ALIASED;
+			//UNDOCUMENTED:
+			//In aliased mode sample length is written to DSP as number of
+			//16-bit samples so we need double 8-bit DMA buffer length
+			dma.total<<=1;
+		}
+		else if (hw.dma16 >= 4) { /* 16-bit DMA assigned to 16-bit DMA channel */
+			dma.chan=GetDMAChannel(hw.dma16);
+		}
+		else {
+			/* Nope. According to one ViBRA PnP card I have on hand, asking the
+			 * card to do 16-bit DMA over 8-bit DMA only works if they are the
+			 * same channel, otherwise, the card doesn't seem to carry out any
+			 * DMA fetching. */
+			dma.chan=NULL;
+			return;
+		}
+	} else {
+		dma.chan=GetDMAChannel(hw.dma8);
+	}
+
+	DSP_DoDMATransfer(new_mode,saved_freq,stereo);
+}
+
+void SB_INFO::DSP_Reset(void) {
+	LOG(LOG_SB,LOG_NORMAL)("DSP:Reset");
+	PIC_DeActivateIRQ(hw.irq);
+
+	DSP_ChangeMode(MODE_NONE);
+	DSP_FlushData();
+	dsp.cmd=DSP_NO_COMMAND;
+	dsp.cmd_len=0;
+	dsp.in.pos=0;
+	dsp.out.pos=0;
+	dsp.write_busy=0;
+	ess_extended_mode = false;
+	ess_playback_mode = false;
+	single_sample_dma = 0;
+	dma_dac_mode = 0;
+	directdac_warn_speaker_off = true;
+	PIC_RemoveEvents(DSP_FinishReset);
+	PIC_RemoveEvents(DSP_BusyComplete);
+
+	dma.left=0;
+	dma.total=0;
+	dma.stereo=false;
+	dma.recording=false;
+	dma.sign=false;
+	dma.autoinit=false;
+	dma.mode=dma.mode_assigned=DSP_DMA_NONE;
+	dma.remain_size=0;
+	if (dma.chan) dma.chan->Clear_Request();
+
+	gen_input_reset();
+
+	dsp.midi_rwpoll_mode = false;
+	dsp.midi_read_interrupt = false;
+	dsp.midi_read_with_timestamps = false;
+
+	freq=22050;
+	freq_derived_from_tc=true;
+	time_constant=45;
+	dac.last=0;
+	e2.valadd=0xaa;
+	e2.valxor=0x96;
+	dsp.highspeed=0;
+	irq.pending_8bit=false;
+	irq.pending_16bit=false;
+	chan->SetFreq(22050);
+	updateSoundBlasterFilter(22050);
+	//  DSP_SetSpeaker(false);
+	PIC_RemoveEvents(END_DMA_Event);
+	PIC_RemoveEvents(DMA_DAC_Event);
+}
+
+void SB_INFO::DSP_DoReset(uint8_t val) {
+	if (((val&1)!=0) && (dsp.state!=DSP_S_RESET)) {
+		//TODO Get out of highspeed mode
+		DSP_Reset();
+		dsp.state=DSP_S_RESET;
+	} else if (((val&1)==0) && (dsp.state==DSP_S_RESET)) {   // reset off
+		dsp.state=DSP_S_RESET_WAIT;
+		PIC_RemoveEvents(DSP_FinishReset);
+		PIC_AddEvent(DSP_FinishReset,20.0f/1000.0f,0);  // 20 microseconds
+	}
+	dsp.write_busy = 0;
+}
+
+void SB_INFO::DSP_ChangeRate(Bitu new_freq) {
+	if (freq!=new_freq && dma.mode!=DSP_DMA_NONE) {
+		chan->FillUp();
+		chan->SetFreq(new_freq / (mixer.stereo ? 2 : 1));
+		dma.rate=(new_freq*dma.mul) >> SB_SH;
+		dma.min=(dma.rate*3)/1000;
+	}
+	freq = new_freq;
+}
+
+unsigned int SB_INFO::ESS_DMATransferCount() {
+	unsigned int r;
+
+	r = (unsigned int)ESSreg(0xA5) << 8U;
+	r |= (unsigned int)ESSreg(0xA4);
+
+	/* the 16-bit counter is a "two's complement" of the DMA count because it counts UP to 0 and triggers IRQ on overflow */
+	return 0x10000U-r;
+}
+
+void SB_INFO::ESS_StartDMA() {
+	LOG(LOG_SB,LOG_DEBUG)("ESS DMA start");
+	dma_dac_mode = 0;
+	dma.chan = GetDMAChannel(hw.dma8);
+	dma.recording = (ESSreg(0xB8) & 8/*ADC mode*/) > 0;
+	if (dma.chan) dma.chan->Raise_Request();
+	// FIXME: Which bit(s) are responsible for signalling stereo?
+	//        Is it bit 3 of the Analog Control?
+	//        Is it bit 3/6 of the Audio Control 1?
+	//        Is it both?
+	// NTS: ESS chipsets always use the 8-bit DMA channel, even for 16-bit PCM.
+	// NTS: ESS chipsets also do not cap the sample rate, though if you drive them
+	//      too fast the ISA bus will effectively cap the sample rate at some
+	//      rate above 48KHz to 60KHz anyway.
+	DSP_DoDMATransfer(
+			(ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
+			freq,(ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
+	mode = MODE_DMA;
+	ess_playback_mode = true;
+}
+
+void SB_INFO::ESS_StopDMA() {
+	// DMA stop
+	DSP_ChangeMode(MODE_NONE);
+	if (dma.chan) dma.chan->Clear_Request();
+	PIC_RemoveEvents(END_DMA_Event);
+	PIC_RemoveEvents(DMA_DAC_Event);
+}
+
+void SB_INFO::ESS_UpdateDMATotal() {
+	dma.total = ESS_DMATransferCount();
+}
+
+void SB_INFO::ESS_CheckDMAEnable() {
+	bool dma_en = (ESSreg(0xB8) & 1)?true:false;
+
+	// if the DRQ is disabled, do not start
+	if (!(ESSreg(0xB2) & 0x40))
+		dma_en = false;
+
+	if (ESSreg(0xB8) & 8) LOG(LOG_SB,LOG_WARN)("Guest recording audio using ESS commands");
+
+	if (!!(ESSreg(0xB8) & 8/*ADC mode*/) != !!(ESSreg(0xB8) & 2/*DMA read*/)) LOG(LOG_SB,LOG_WARN)("ESS DMA direction vs ADC mismatch");
+
+	if (dma_en) {
+		if (mode != MODE_DMA) ESS_StartDMA();
+	}
+	else {
+		if (mode == MODE_DMA) ESS_StopDMA();
+	}
+}
+
+void SB_INFO::ESSUpdateFilterFromSB(void) {
+	if (freq >= 22050)
+		ESSreg(0xA1) = 256 - (795500UL / freq);
+	else
+		ESSreg(0xA1) = 128 - (397700UL / freq);
+
+	const unsigned int new_freq = ((freq * 4) / (5 * 2)); /* 80% of 1/2 the sample rate */
+	ESSreg(0xA2) = 256 - (7160000 / (new_freq * 82));
+}
+
+void SB_INFO::ESS_DoWrite(uint8_t reg,uint8_t data) {
+	uint8_t chg;
+
+	LOG(LOG_SB,LOG_DEBUG)("ESS register write reg=%02xh val=%02xh",reg,data);
+
+	switch (reg) {
+		case 0xA1: /* Extended Mode Sample Rate Generator */
+			ESSreg(reg) = data;
+			if (data & 0x80)
+				freq = 795500UL / (256ul - data);
+			else
+				freq = 397700UL / (128ul - data);
+
+			freq_derived_from_tc = false;
+			if (mode == MODE_DMA) {
+				ESS_StopDMA();
+				ESS_StartDMA();
+			}
+			break;
+		case 0xA2: /* Filter divider (effectively, a hardware lowpass filter under S/W control) */
+			ESSreg(reg) = data;
+			updateSoundBlasterFilter(freq);
+			break;
+		case 0xA4: /* DMA Transfer Count Reload (low) */
+		case 0xA5: /* DMA Transfer Count Reload (high) */
+			ESSreg(reg) = data;
+			ESS_UpdateDMATotal();
+			if (dma.left == 0) dma.left = dma.total;
+			break;
+		case 0xA8: /* Analog Control */
+			/* bits 7:5   0                  Reserved. Always write 0
+			 * bit  4     1                  Reserved. Always write 1
+			 * bit  3     Record monitor     1=Enable record monitor
+			 *            enable
+			 * bit  2     0                  Reserved. Always write 0
+			 * bits 1:0   Stereo/mono select 00=Reserved
+			 *                               01=Stereo
+			 *                               10=Mono
+			 *                               11=Reserved */
+			chg = ESSreg(reg) ^ data;
+			ESSreg(reg) = data;
+			if (chg & 0x3) {
+				if (mode == MODE_DMA) {
+					ESS_StopDMA();
+					ESS_StartDMA();
+				}
+			}
+			break;
+		case 0xB1: /* Legacy Audio Interrupt Control */
+		case 0xB2: /* DRQ Control */
+			chg = ESSreg(reg) ^ data;
+			ESSreg(reg) = (ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
+			if (chg & 0x40) ESS_CheckDMAEnable();
+			break;
+		case 0xB5: /* DAC Direct Access Holding (low) */
+		case 0xB6: /* DAC Direct Access Holding (high) */
+			ESSreg(reg) = data;
+			break;
+		case 0xB7: /* Audio 1 Control 1 */
+			/* bit  7     Enable FIFO to/from codec
+			 * bit  6     Opposite from bit 3               Must be set opposite to bit 3
+			 * bit  5     FIFO signed mode                  1=Data is signed twos-complement   0=Data is unsigned
+			 * bit  4     Reserved                          Always write 1
+			 * bit  3     FIFO stereo mode                  1=Data is stereo
+			 * bit  2     FIFO 16-bit mode                  1=Data is 16-bit
+			 * bit  1     Reserved                          Always write 0
+			 * bit  0     Generate load signal */
+			chg = ESSreg(reg) ^ data;
+			ESSreg(reg) = data;
+			dma.sign = (data&0x20)?1:0;
+			if (chg & 0x04) ESS_UpdateDMATotal();
+			if (chg & 0x0C) {
+				if (mode == MODE_DMA) {
+					ESS_StopDMA();
+					ESS_StartDMA();
+				}
+			}
+			break;
+		case 0xB8: /* Audio 1 Control 2 */
+			/* bits 7:4   reserved
+			 * bit  3     CODEC mode         1=first DMA converter in ADC mode
+			 *                               0=first DMA converter in DAC mode
+			 * bit  2     DMA mode           1=auto-initialize mode
+			 *                               0=normal DMA mode
+			 * bit  1     DMA read enable    1=first DMA is read (for ADC)
+			 *                               0=first DMA is write (for DAC)
+			 * bit  0     DMA xfer enable    1=DMA is allowed to proceed */
+			data &= 0xF;
+			chg = ESSreg(reg) ^ data;
+			ESSreg(reg) = data;
+
+			/* FIXME: This is a guess */
+			if (chg & 1) dma.left = dma.total;
+
+			dma.autoinit = (data >> 2) & 1;
+			if (chg & 0xB) {
+				if (chg & 0xA) ESS_StopDMA(); /* changing capture/playback direction? stop DMA to reinit */
+				ESS_CheckDMAEnable();
+			}
+			break;
+		case 0xB9: /* Audio 1 Transfer Type */
+		case 0xBA: /* Left Channel ADC Offset Adjust */
+		case 0xBB: /* Right Channel ADC Offset Adjust */
+			ESSreg(reg) = data;
+			break;
+	}
+}
+
+uint8_t SB_INFO::ESS_DoRead(uint8_t reg) {
+	LOG(LOG_SB,LOG_DEBUG)("ESS register read reg=%02xh",reg);
+
+	switch (reg) {
+		default:
+			return ESSreg(reg);
+	}
+
+	return 0xFF;
+}
+
+void SB_INFO::sb16asp_write_current_RAM_byte(const uint8_t r) {
+	sb16asp_ram_contents[sb16asp_ram_contents_index] = r;
+}
+
+uint8_t SB_INFO::sb16asp_read_current_RAM_byte(void) {
+	return sb16asp_ram_contents[sb16asp_ram_contents_index];
+}
+
+void SB_INFO::sb16asp_next_RAM_byte(void) {
+	if ((++sb16asp_ram_contents_index) >= 2048)
+		sb16asp_ram_contents_index = 0;
+}
+
+bool SB_INFO::DSP_busy_cycle_active() {
+	/* NTS: Busy cycle happens on SB16 at all times, or on earlier cards, only when the DSP is
+	 *      fetching/writing data via the ISA DMA channel. So a non-auto-init DSP block that's
+	 *      just finished fetching ISA DMA and is playing from the FIFO doesn't count.
+	 *
+	 *      dma.left >= dma.min condition causes busy cycle to stop 3ms early (by default).
+	 *      This helps realism.
+	 *
+	 *      This also helps Crystal Dream, which uses the busy cycle to detect when the Sound
+	 *      Blaster is about to finish playing the DSP block and therefore needs the same 3ms
+	 *      "dmamin" hack to reissue another playback command without any audible hiccups in
+	 *      the audio. */
+	return (mode == MODE_DMA && (dma.autoinit || dma.left >= dma.min)) || busy_cycle_always;
+}
+
+bool SB_INFO::DSP_busy_cycle() {
+	double now;
+	int t;
+
+	if (!DSP_busy_cycle_active()) return false;
+	if (busy_cycle_duty_percent <= 0 || busy_cycle_hz <= 0) return false;
+
+	/* NTS: DOSBox's I/O emulation doesn't yet attempt to accurately match ISA bus speeds or
+	 *      consider ISA bus cycles, but to emulate SB16 behavior we have to "time" it so
+	 *      that 8 consecutive I/O reads eventually see a transition from busy to not busy
+	 *      (or the other way around). So what this hack does is it uses accurate timing
+	 *      to determine where in the cycle we are, but if this function is called repeatedly
+	 *      through I/O access, we switch to incrementing a counter to ensure busy/not busy
+	 *      transition happens in 8 I/O cycles.
+	 *
+	 *      Without this hack, the CPU cycles count becomes a major factor in how many I/O
+	 *      reads are required for busy/not busy to happen. If you set cycles count high
+	 *      enough, more than 8 is required, and the SNDSB test code will have issues with
+	 *      direct DAC mode again.
+	 *
+	 *      This isn't 100% accurate, but it's the best DOSBox-X can do for now to mimic
+	 *      SB16 DSP behavior. */
+
+	now = PIC_FullIndex();
+	if (now >= (busy_cycle_last_check+0.02/*ms*/))
+		busy_cycle_io_hack = (int)(fmod((now / 1000) * busy_cycle_hz,1.0) * 16);
+
+	busy_cycle_last_check = now;
+	t = ((busy_cycle_io_hack % 16) * 100) / 16; /* HACK: DOSBox's I/O is not quite ISA bus speeds or related to it */
+	if (t < busy_cycle_duty_percent) return true;
+	return false;
+}
+
+void SB_INFO::DSP_DoWrite(uint8_t val) {
+	if (dsp.write_busy || (dsp.highspeed && type != SBT_16 && ess_type == ESS_NONE && reveal_sc_type == RSC_NONE)) {
+		LOG(LOG_SB,LOG_WARN)("DSP:Command write %2X ignored, DSP not ready. DOS game or OS is not polling status",val);
+		return;
+	}
+
+	/* NTS: We allow the user to set busy wait time == 0 aka "instant gratification mode".
+	 *      We also assume that if they do that, some DOS programs might be timing sensitive
+	 *      enough to freak out when DSP commands and data are accepted immediately */
+	{
+		unsigned int delay = dsp.dsp_write_busy_time;
+
+		if (dsp.instant_direct_dac) {
+			delay = 0;
+		}
+		/* Part of enforcing sample rate limits is to make sure to emulate that the
+		 * Direct DAC output command 0x10 is "busy" long enough to effectively rate
+		 * limit output to 23KHz. */
+		else if (sample_rate_limits) {
+			unsigned int limit = 23000; /* documented max sample rate for SB16/SBPro and earlier */
+
+			if (type == SBT_16 && vibra)
+				limit = 23000; /* DSP maxes out at 46KHz not 44.1KHz on ViBRA cards */
+
+			if (dsp.cmd == DSP_NO_COMMAND && val == 0x10/*DSP direct DAC, command*/)
+				delay = (625000000UL / limit) - dsp.dsp_write_busy_time;
+		}
+
+		if (delay > 0) {
+			dsp.write_busy = 1;
+			PIC_RemoveEvents(DSP_BusyComplete);
+			PIC_AddEvent(DSP_BusyComplete,(double)delay / 1000000);
+		}
+
+		//      LOG(LOG_SB,LOG_NORMAL)("DSP:Command %02x delay %u",val,delay);
+	}
+
+	if (dsp.midi_rwpoll_mode) {
+		// DSP writes in this mode go to the MIDI port
+		//      LOG(LOG_SB,LOG_DEBUG)("DSP MIDI read/write poll mode: sending 0x%02x",val);
+		if (midi == true) MIDI_RawOutByte(val);
+		return;
+	}
+
+	switch (dsp.cmd) {
+		case DSP_NO_COMMAND:
+			/* genuine SB Pro and lower: remap DSP command to emulate aliases. */
+			if (dsp.command_aliases && type < SBT_16 && ess_type == ESS_NONE && reveal_sc_type == RSC_NONE) {
+				/* 0x41...0x47 are aliases of 0x40.
+				 * See also: [https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280].
+				 * This is required for ftp.scene.org/mirrors/hornet/demos/1994/y/yahxmas.zip which relies on the 0x41 alias of command 0x40
+				 * to function (which means that it may happen to work on SB Pro but will fail on clones and will fail on SB16 cards). */
+				if (val >= 0x41 && val <= 0x47) {
+					LOG(LOG_SB,LOG_WARN)("DSP command %02x and SB Pro or lower, treating as alias of 40h. Either written for SB16 or using undocumented alias.",val);
+					val = 0x40;
+				}
+			}
+
+			dsp.cmd=val;
+			if (type == SBT_16)
+				dsp.cmd_len=DSP_cmd_len_sb16[val];
+			else if (ess_type != ESS_NONE)
+				dsp.cmd_len=DSP_cmd_len_ess[val];
+			else if (reveal_sc_type != RSC_NONE)
+				dsp.cmd_len=DSP_cmd_len_sc400[val];
+			else
+				dsp.cmd_len=DSP_cmd_len_sb[val];
+
+			dsp.in.pos=0;
+			if (!dsp.cmd_len) DSP_DoCommand();
+			break;
+		default:
+			dsp.in.data[dsp.in.pos]=val;
+			dsp.in.pos++;
+			if (dsp.in.pos>=dsp.cmd_len) DSP_DoCommand();
+	}
+}
+
+//The soundblaster manual says 2.0 Db steps but we'll go for a bit less
+float SB_INFO::calc_vol(uint8_t amount) {
+	const uint8_t count = 31 - amount;
+	float db = static_cast<float>(count);
+	if (type == SBT_PRO1 || type == SBT_PRO2) {
+		if (count) {
+			if (count < 16) db -= 1.0f;
+			else if (count > 16) db += 1.0f;
+			if (count == 24) db += 2.0f;
+			if (count > 27) return 0.0f; //turn it off.
+		}
+	} else { //Give the rest, the SB16 scale, as we don't have data.
+		db *= 2.0f;
+		if (count > 20) db -= 1.0f;
+	}
+	return (float) pow (10.0f,-0.05f * db);
+}
+
+void SB_INFO::CTMIXER_UpdateVolumes(void) {
+	if (!mixer.enabled) return;
+
+	chan->FillUp();
+
+	MixerChannel * chan;
+	float m0 = calc_vol(mixer.master[0]);
+	float m1 = calc_vol(mixer.master[1]);
+	chan = MIXER_FindChannel("SB");
+	if (chan) chan->SetVolume(m0 * calc_vol(mixer.dac[0]), m1 * calc_vol(mixer.dac[1]));
+	chan = MIXER_FindChannel("FM");
+	if (chan) chan->SetVolume(m0 * calc_vol(mixer.fm[0]) , m1 * calc_vol(mixer.fm[1]) );
+	chan = MIXER_FindChannel("CDAUDIO");
+	if (chan) chan->SetVolume(m0 * calc_vol(mixer.cda[0]), m1 * calc_vol(mixer.cda[1]));
+}
+
+void SB_INFO::CTMIXER_Reset(void) {
+	mixer.filter_bypass=0; // Creative Documentation: filter_bypass bit is 0 by default
+	mixer.fm[0]=
+		mixer.fm[1]=
+		mixer.cda[0]=
+		mixer.cda[1]=
+		mixer.dac[0]=
+		mixer.dac[1]=31;
+	mixer.master[0]=
+		mixer.master[1]=31;
+	CTMIXER_UpdateVolumes();
 }
 
 static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
