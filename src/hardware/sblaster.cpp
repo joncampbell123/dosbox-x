@@ -311,7 +311,24 @@ static void DSP_RaiseIRQEvent(Bitu /*val*/);
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event);
 static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event);
 static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event);
-void updateSoundBlasterFilter(Bitu rate);
+
+static INLINE uint8_t expand16to32(const uint8_t t) {
+	/* 4-bit -> 5-bit expansion.
+	 *
+	 * 0 -> 0
+	 * 1 -> 2
+	 * 2 -> 4
+	 * 3 -> 6
+	 * ....
+	 * 7 -> 14
+	 * 8 -> 17
+	 * 9 -> 19
+	 * 10 -> 21
+	 * 11 -> 23
+	 * ....
+	 * 15 -> 31 */
+	return (t << 1) | (t >> 3);
+}
 
 static INLINE uint8_t decode_ADPCM_4_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
 	Bits samp = sample + scale;
@@ -368,6 +385,14 @@ static INLINE uint8_t decode_ADPCM_2_sample(uint8_t sample,uint8_t & reference,B
 #define DSP_SB16_ONLY if (type != SBT_16) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB16",dsp.cmd); break; }
 #define DSP_SB2_ABOVE if (type <= SBT_1) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2 or above",dsp.cmd); break; }
 #define DSP_SB201_ABOVE if (type <= SBT_1 || (type == SBT_2 && subtype == SBST_200)) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2.01 or above",dsp.cmd); break; }
+
+#define SETPROVOL(_WHICH_,_VAL_)                                        \
+    _WHICH_[0]=   ((((_VAL_) & 0xf0) >> 3)|(sb.type==SBT_16 ? 1:3));    \
+    _WHICH_[1]=   ((((_VAL_) & 0x0f) << 1)|(sb.type==SBT_16 ? 1:3));    \
+
+#define MAKEPROVOL(_WHICH_)											\
+	((((_WHICH_[0] & 0x1e) << 3) | ((_WHICH_[1] & 0x1e) >> 1)) |	\
+		((sb.type==SBT_PRO1 || sb.type==SBT_PRO2) ? 0x11:0))
 
 struct SB_INFO {
 	Bitu freq;
@@ -2436,6 +2461,85 @@ struct SB_INFO {
 		dsp.in.pos=0;
 	}
 
+	// TODO: Put out the various hardware listed here, do some listening tests to confirm the emulation is accurate.
+	void updateSoundBlasterFilter(Bitu rate) {
+		/* "No filtering" option for those who don't want it, or are used to the way things sound in plain vanilla DOSBox */
+		if (no_filtering) {
+			chan->SetLowpassFreq(0/*off*/);
+			chan->SetSlewFreq(0/*normal linear interpolation*/);
+			return;
+		}
+
+		/* different sound cards filter their output differently */
+		if (ess_type != ESS_NONE) { // ESS AudioDrive. Tested against real hardware (ESS 688) by Jonathan C.
+			/* ESS AudioDrive lets the driver decide what the cutoff/rolloff to use */
+			/* "The ratio of the roll-off frequency to the clock frequency is 1:82. In other words,
+			 * first determine the desired roll off frequency by taking 80% of the sample rate
+			 * divided by 2, the multiply by 82 to find the desired filter clock frequency"
+			 *
+			 * Try to approximate the ESS's filter by undoing the calculation then feeding our own lowpass filter with it.
+			 *
+			 * This implementation is matched against real hardware by ear, even though the reference hardware is a
+			 * laptop with a cheap tinny amplifier */
+			uint64_t filter_raw = (uint64_t)7160000ULL / (256u - ESSreg(0xA2));
+			uint64_t filter_hz = (filter_raw * (uint64_t)11) / (uint64_t)(82 * 4); /* match lowpass by ear compared to real hardware */
+
+			if ((filter_hz * 2) > freq)
+				chan->SetSlewFreq(filter_hz * 2 * chan->freq_d_orig);
+			else
+				chan->SetSlewFreq(0);
+
+			chan->SetLowpassFreq(filter_hz,/*order*/8);
+		}
+		else if (type == SBT_16 || // Sound Blaster 16 (DSP 4.xx). Tested against real hardware (CT4180 ViBRA 16C PnP) by Jonathan C.
+				reveal_sc_type == RSC_SC400) { // Reveal SC400 (DSP 3.5). Tested against real hardware by Jonathan C.
+			// My notes: The DSP automatically applies filtering at low sample rates. But the DSP has to know
+			//           what the sample rate is to filter. If you use direct DAC output (DSP command 0x10)
+			//           then no filtering is applied and the sound comes out grungy, just like older Sound
+			//           Blaster cards.
+			//
+			//           I can also confirm the SB16's reputation for hiss and noise is true, it's noticeable
+			//           with earbuds and the mixer volume at normal levels. --Jonathan C.
+			if (mode == MODE_DAC) {
+				chan->SetLowpassFreq(23000);
+				chan->SetSlewFreq(23000 * chan->freq_d_orig);
+			}
+			else {
+				chan->SetLowpassFreq(rate/2,1);
+				chan->SetSlewFreq(0/*normal linear interpolation*/);
+			}
+		}
+		else if (type == SBT_PRO1 || type == SBT_PRO2) { // Sound Blaster Pro (DSP 3.x). Tested against real hardware (CT1600) by Jonathan C.
+			chan->SetSlewFreq(23000 * chan->freq_d_orig);
+			if (mixer.filter_bypass)
+				chan->SetLowpassFreq(23000); // max sample rate 46000Hz. slew rate filter does the rest of the filtering for us.
+			else
+				chan->SetLowpassFreq(3800); // NOT documented by Creative, guess based on listening tests with a CT1600, and documented Input filter freqs
+		}
+		else if (type == SBT_1 || type == SBT_2) { // Sound Blaster DSP 1.x and 2.x (not Pro). Tested against real hardware (CT1350B) by Jonathan C.
+			/* As far as I can tell the DAC outputs sample-by-sample with no filtering whatsoever, aside from the limitations of analog audio */
+			chan->SetSlewFreq(23000 * chan->freq_d_orig);
+			chan->SetLowpassFreq(23000);
+		}
+	}
+
+	void DSP_ChangeStereo(bool stereo) {
+		if (!dma.stereo && stereo) {
+			chan->SetFreq(freq/2);
+			updateSoundBlasterFilter(freq/2);
+			dma.mul*=2;
+			dma.rate=(freq*dma.mul) >> SB_SH;
+			dma.min=((Bitu)dma.rate*(Bitu)(min_dma_user >= 0 ? min_dma_user : /*default*/3))/1000u;
+		} else if (dma.stereo && !stereo) {
+			chan->SetFreq(freq);
+			updateSoundBlasterFilter(freq);
+			dma.mul/=2;
+			dma.rate=(freq*dma.mul) >> SB_SH;
+			dma.min=((Bitu)dma.rate*(Bitu)(min_dma_user >= 0 ? min_dma_user : /*default*/3))/1000;
+		}
+		dma.stereo=stereo;
+	}
+
 };
 
 static SB_INFO sb;
@@ -2517,7 +2621,7 @@ static void DMA_DAC_Event(Bitu val) {
 	 * normal playback. If goldplay stereo hack is enabled and we do not catch this case, the first 0.5 seconds
 	 * of music will play twice as fast. */
 	if (sb.dma.chan != NULL &&
-			sb.dma.chan->basecnt < ((sb.dma.mode==DSP_DMA_16_ALIASED?2:1)*((sb.dma.stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
+		sb.dma.chan->basecnt < ((sb.dma.mode==DSP_DMA_16_ALIASED?2:1)*((sb.dma.stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
 		sb.single_sample_dma = 1;
 	else
 		sb.single_sample_dma = 0;
@@ -2528,7 +2632,7 @@ static void DMA_DAC_Event(Bitu val) {
 		sb.dma_dac_mode = 0;
 		sb.dma_dac_srcrate = sb.freq / (sb.mixer.stereo ? 2 : 1);
 		sb.chan->SetFreq(sb.dma_dac_srcrate);
-		updateSoundBlasterFilter(sb.dma_dac_srcrate);
+		sb.updateSoundBlasterFilter(sb.dma_dac_srcrate);
 		return;
 	}
 
@@ -2657,111 +2761,6 @@ static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	ch->Register_Callback(nullptr);
 }
 
-#define SETPROVOL(_WHICH_,_VAL_)                                        \
-    _WHICH_[0]=   ((((_VAL_) & 0xf0) >> 3)|(sb.type==SBT_16 ? 1:3));    \
-    _WHICH_[1]=   ((((_VAL_) & 0x0f) << 1)|(sb.type==SBT_16 ? 1:3));    \
-
-#define MAKEPROVOL(_WHICH_)											\
-	((((_WHICH_[0] & 0x1e) << 3) | ((_WHICH_[1] & 0x1e) >> 1)) |	\
-		((sb.type==SBT_PRO1 || sb.type==SBT_PRO2) ? 0x11:0))
-
-// TODO: Put out the various hardware listed here, do some listening tests to confirm the emulation is accurate.
-void updateSoundBlasterFilter(Bitu rate) {
-    /* "No filtering" option for those who don't want it, or are used to the way things sound in plain vanilla DOSBox */
-    if (sb.no_filtering) {
-        sb.chan->SetLowpassFreq(0/*off*/);
-        sb.chan->SetSlewFreq(0/*normal linear interpolation*/);
-        return;
-    }
-
-    /* different sound cards filter their output differently */
-    if (sb.ess_type != ESS_NONE) { // ESS AudioDrive. Tested against real hardware (ESS 688) by Jonathan C.
-        /* ESS AudioDrive lets the driver decide what the cutoff/rolloff to use */
-        /* "The ratio of the roll-off frequency to the clock frequency is 1:82. In other words,
-         * first determine the desired roll off frequency by taking 80% of the sample rate
-         * divided by 2, the multiply by 82 to find the desired filter clock frequency"
-         *
-         * Try to approximate the ESS's filter by undoing the calculation then feeding our own lowpass filter with it.
-         *
-         * This implementation is matched against real hardware by ear, even though the reference hardware is a
-         * laptop with a cheap tinny amplifier */
-        uint64_t filter_raw = (uint64_t)7160000ULL / (256u - sb.ESSreg(0xA2));
-        uint64_t filter_hz = (filter_raw * (uint64_t)11) / (uint64_t)(82 * 4); /* match lowpass by ear compared to real hardware */
-
-        if ((filter_hz * 2) > sb.freq)
-            sb.chan->SetSlewFreq(filter_hz * 2 * sb.chan->freq_d_orig);
-        else
-            sb.chan->SetSlewFreq(0);
-
-        sb.chan->SetLowpassFreq(filter_hz,/*order*/8);
-    }
-    else if (sb.type == SBT_16 || // Sound Blaster 16 (DSP 4.xx). Tested against real hardware (CT4180 ViBRA 16C PnP) by Jonathan C.
-        sb.reveal_sc_type == RSC_SC400) { // Reveal SC400 (DSP 3.5). Tested against real hardware by Jonathan C.
-        // My notes: The DSP automatically applies filtering at low sample rates. But the DSP has to know
-        //           what the sample rate is to filter. If you use direct DAC output (DSP command 0x10)
-        //           then no filtering is applied and the sound comes out grungy, just like older Sound
-        //           Blaster cards.
-        //
-        //           I can also confirm the SB16's reputation for hiss and noise is true, it's noticeable
-        //           with earbuds and the mixer volume at normal levels. --Jonathan C.
-        if (sb.mode == MODE_DAC) {
-            sb.chan->SetLowpassFreq(23000);
-            sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
-        }
-        else {
-            sb.chan->SetLowpassFreq(rate/2,1);
-            sb.chan->SetSlewFreq(0/*normal linear interpolation*/);
-        }
-    }
-    else if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) { // Sound Blaster Pro (DSP 3.x). Tested against real hardware (CT1600) by Jonathan C.
-        sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
-        if (sb.mixer.filter_bypass)
-            sb.chan->SetLowpassFreq(23000); // max sample rate 46000Hz. slew rate filter does the rest of the filtering for us.
-        else
-            sb.chan->SetLowpassFreq(3800); // NOT documented by Creative, guess based on listening tests with a CT1600, and documented Input filter freqs
-    }
-    else if (sb.type == SBT_1 || sb.type == SBT_2) { // Sound Blaster DSP 1.x and 2.x (not Pro). Tested against real hardware (CT1350B) by Jonathan C.
-        /* As far as I can tell the DAC outputs sample-by-sample with no filtering whatsoever, aside from the limitations of analog audio */
-        sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
-        sb.chan->SetLowpassFreq(23000);
-    }
-}
-
-static void DSP_ChangeStereo(bool stereo) {
-    if (!sb.dma.stereo && stereo) {
-        sb.chan->SetFreq(sb.freq/2);
-        updateSoundBlasterFilter(sb.freq/2);
-        sb.dma.mul*=2;
-        sb.dma.rate=(sb.freq*sb.dma.mul) >> SB_SH;
-        sb.dma.min=((Bitu)sb.dma.rate*(Bitu)(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000u;
-    } else if (sb.dma.stereo && !stereo) {
-        sb.chan->SetFreq(sb.freq);
-        updateSoundBlasterFilter(sb.freq);
-        sb.dma.mul/=2;
-        sb.dma.rate=(sb.freq*sb.dma.mul) >> SB_SH;
-        sb.dma.min=((Bitu)sb.dma.rate*(Bitu)(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
-    }
-    sb.dma.stereo=stereo;
-}
-
-static inline uint8_t expand16to32(const uint8_t t) {
-    /* 4-bit -> 5-bit expansion.
-     *
-     * 0 -> 0
-     * 1 -> 2
-     * 2 -> 4
-     * 3 -> 6
-     * ....
-     * 7 -> 14
-     * 8 -> 17
-     * 9 -> 19
-     * 10 -> 21
-     * 11 -> 23
-     * ....
-     * 15 -> 31 */
-    return (t << 1) | (t >> 3);
-}
-
 /* Sound Blaster Pro 2 (CT1600) notes:
  *
  * - Registers 0x40-0xFF do nothing written and read back 0xFF.
@@ -2817,8 +2816,8 @@ static void CTMIXER_Write(uint8_t val) {
 
         sb.mixer.sbpro_stereo=(val & 0x2) > 0;
         sb.mixer.filter_bypass=(val & 0x20) > 0; /* filter is ON by default, set the bit to turn OFF the filter */
-        DSP_ChangeStereo(sb.mixer.stereo);
-        updateSoundBlasterFilter(sb.freq);
+        sb.DSP_ChangeStereo(sb.mixer.stereo);
+        sb.updateSoundBlasterFilter(sb.freq);
 
         /* help the user out if they leave sbtype=sb16 and then wonder why their DOS game is producing scratchy monural audio. */
         if (sb.type == SBT_16 && sb.sbpro_stereo_bit_strict_mode && (val&0x2) != 0)
