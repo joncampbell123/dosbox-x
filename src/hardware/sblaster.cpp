@@ -959,7 +959,7 @@ void SB_INFO::SB_RaiseIRQ(SB_IRQS type) {
 	switch (type) {
 		case SB_IRQ_8:
 			if (irq.pending_8bit) {
-				//          LOG_MSG("SB: 8bit irq pending");
+				// LOG_MSG("SB: 8bit irq pending");
 				return;
 			}
 			irq.pending_8bit=true;
@@ -967,7 +967,7 @@ void SB_INFO::SB_RaiseIRQ(SB_IRQS type) {
 			break;
 		case SB_IRQ_16:
 			if (irq.pending_16bit) {
-				//          LOG_MSG("SB: 16bit irq pending");
+				// LOG_MSG("SB: 16bit irq pending");
 				return;
 			}
 			irq.pending_16bit=true;
@@ -1395,15 +1395,15 @@ void SB_INFO::DSP_DoDMATransfer(DMA_MODES new_mode,Bitu freq,bool stereo,bool do
 
 #if (C_DEBUG)
 	LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s dsp %s dma %s freq %d rate %d dspsize %d dmasize %d gold %d",
-			type,
-			dma.recording ? "Recording" : "Playback",
-			dma.stereo ? "Stereo" : "Mono",
-			dma.autoinit ? "Auto-Init" : "Single-Cycle",
-			dma.chan ? (dma.chan->autoinit ? "Auto-Init" : "Single-Cycle") : "n/a",
-			(int)freq,(int)dma.rate,(int)dma.total,
-			dma.chan ? (dma.chan->basecnt+1) : 0,
-			(int)dma_dac_mode
-			);
+		type,
+		dma.recording ? "Recording" : "Playback",
+		dma.stereo ? "Stereo" : "Mono",
+		dma.autoinit ? "Auto-Init" : "Single-Cycle",
+		dma.chan ? (dma.chan->autoinit ? "Auto-Init" : "Single-Cycle") : "n/a",
+		(int)freq,(int)dma.rate,(int)dma.total,
+		dma.chan ? (dma.chan->basecnt+1) : 0,
+		(int)dma_dac_mode
+		);
 #else
 	(void)type;
 #endif
@@ -1675,8 +1675,8 @@ void SB_INFO::ESS_StartDMA() {
 	//      too fast the ISA bus will effectively cap the sample rate at some
 	//      rate above 48KHz to 60KHz anyway.
 	DSP_DoDMATransfer(
-			(ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
-			freq,(ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
+		(ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
+		freq,(ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
 	mode = MODE_DMA;
 	ess_playback_mode = true;
 }
@@ -2017,13 +2017,13 @@ void SB_INFO::CTMIXER_UpdateVolumes(void) {
 void SB_INFO::CTMIXER_Reset(void) {
 	mixer.filter_bypass=0; // Creative Documentation: filter_bypass bit is 0 by default
 	mixer.fm[0]=
-		mixer.fm[1]=
-		mixer.cda[0]=
-		mixer.cda[1]=
-		mixer.dac[0]=
-		mixer.dac[1]=31;
+	mixer.fm[1]=
+	mixer.cda[0]=
+	mixer.cda[1]=
+	mixer.dac[0]=
+	mixer.dac[1]=31;
 	mixer.master[0]=
-		mixer.master[1]=31;
+	mixer.master[1]=31;
 	CTMIXER_UpdateVolumes();
 }
 
@@ -2366,9 +2366,9 @@ Command:
 ╠════╪════╪════╪════╪═══════╪══════╪═══════╪════╣
 ║  1 │  0 │  1 │  1 │  A/D  │  A/I │ FIFO  │  0 ║
 ╚════╧════╧════╧════┼───────┼──────┼───────┼════╝
-│ 0=D/A │ 0=SC │ 0=off │
-│ 1=A/D │ 1=AI │ 1=on  │
-└───────┴──────┴───────┘
+                    │ 0=D/A │ 0=SC │ 0=off │
+                    │ 1=A/D │ 1=AI │ 1=on  │
+                    └───────┴──────┴───────┘
 Common commands:
 B8 - 16-bit single-cycle input
 B0 - 16-bit single-cycle output
@@ -2381,9 +2381,9 @@ Mode:
 ╠════╪════╪══════════╪════════════╪════╪════╪════╪════╣
 ║  0 │  0 │  Stereo  │   Signed   │  0 │  0 │  0 │  0 ║
 ╚════╧════┼──────────┼────────────┼════╧════╧════╧════╝
-│ 0=Mono   │ 0=unsigned │
-│ 1=Stereo │ 1=signed   │
-└──────────┴────────────┘
+          │ 0=Mono   │ 0=unsigned │
+          │ 1=Stereo │ 1=signed   │
+          └──────────┴────────────┘
 
 Cx - Program 8-bit DMA mode digitized sound I/O
 Same procedure as 16-bit sound I/O using command Bx
@@ -3224,7 +3224,7 @@ uint8_t SB_INFO::CTMIXER_Read(void) {
 				((type == SBT_16) ? 0x20 : 0);
 		default:
 			if (    ((type == SBT_PRO1 || type == SBT_PRO2) && mixer.index==0x0c) || /* Input control on SBPro */
-					(type == SBT_16 && mixer.index >= 0x3b && mixer.index <= 0x47)) /* New SB16 registers */
+				(type == SBT_16 && mixer.index >= 0x3b && mixer.index <= 0x47)) /* New SB16 registers */
 				ret = mixer.unhandled[mixer.index];
 			else
 				ret=0xa;
