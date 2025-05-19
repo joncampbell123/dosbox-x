@@ -580,6 +580,7 @@ struct SB_INFO {
 	void SB_OnEndOfDMA(void);
 	void CTMIXER_Reset(void);
 	void DSP_FlushData(void);
+	std::string GetSBtype();
 	void CheckDMAEnd(void);
 	bool DSP_busy_cycle();
 	void DSP_Reset(void);
@@ -3234,6 +3235,27 @@ uint8_t SB_INFO::CTMIXER_Read(void) {
 	return ret;
 }
 
+std::string SB_INFO::GetSBtype() {
+	switch (sb.type) {
+		case SBT_NONE:
+			return "None";
+		case SBT_1:
+			return "SB1";
+		case SBT_PRO1:
+			return "SBPro";
+		case SBT_2:
+			return "SB2";
+		case SBT_PRO2:
+			return "SBPro 2";
+		case SBT_16:
+			return "SB16";
+		case SBT_GB:
+			return "GB";
+		default:
+			return "Unknown";
+	}
+}
+
 static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 	if (!IS_PC98_ARCH) {
 		/* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
@@ -3685,24 +3707,7 @@ class ViBRA_PnP : public ISAPnPDevice {
 bool JOYSTICK_IsEnabled(Bitu which);
 
 std::string GetSBtype() {
-	switch (sb.type) {
-		case SBT_NONE:
-			return "None";
-		case SBT_1:
-			return "SB1";
-		case SBT_PRO1:
-			return "SBPro";
-		case SBT_2:
-			return "SB2";
-		case SBT_PRO2:
-			return "SBPro 2";
-		case SBT_16:
-			return "SB16";
-		case SBT_GB:
-			return "GB";
-		default:
-			return "Unknown";
-	}
+	return sb.GetSBtype();
 }
 
 std::string GetSBbase() {
