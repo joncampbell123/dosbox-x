@@ -90,6 +90,8 @@
 #include "hardopl.h"
 using namespace std;
 
+#define MAX_CARDS 1
+
 int MPU401_GetIRQ();
 void MIDI_RawOutByte(uint8_t data);
 bool MIDI_Available(void);
@@ -3171,14 +3173,16 @@ void SB_INFO::write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
-static SB_INFO sb;
+static SB_INFO sb[MAX_CARDS];
 
 static Bitu read_sb(Bitu port,Bitu iolen) {
-	return sb.read_sb(port,iolen);
+	const size_t ci = 0;
+	return sb[ci].read_sb(port,iolen);
 }
 
 static void write_sb(Bitu port,Bitu val,Bitu iolen) {
-	sb.write_sb(port,val,iolen);
+	const size_t ci = 0;
+	sb[ci].write_sb(port,val,iolen);
 }
 
 static void adlib_gusforward(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
@@ -3186,44 +3190,46 @@ static void adlib_gusforward(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 }
 
 bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
+	const size_t ci = 0;
 	sbaddr=0;
 	sbirq =0;
 	sbdma =0;
-	if (sb.type == SBT_NONE) return false;
+	if (sb[ci].type == SBT_NONE) return false;
 	else {
-		sbaddr=sb.hw.base;
-		sbirq =sb.hw.irq;
-		sbdma =sb.hw.dma8;
+		sbaddr=sb[ci].hw.base;
+		sbirq =sb[ci].hw.irq;
+		sbdma =sb[ci].hw.dma8;
 		return true;
 	}
 }
 
 static void SBLASTER_CallBack(Bitu len) {
+	const size_t ci = 0;
 	pic_tickindex_t now = PIC_FullIndex();
 
-	if (now >= sb.next_check_record_settings) {
-		sb.next_check_record_settings = now + 100/*ms*/;
-		sb.sb_update_recording_source_settings();
+	if (now >= sb[ci].next_check_record_settings) {
+		sb[ci].next_check_record_settings = now + 100/*ms*/;
+		sb[ci].sb_update_recording_source_settings();
 	}
 
-	sb.directdac_warn_speaker_off = true;
+	sb[ci].directdac_warn_speaker_off = true;
 
-	switch (sb.mode) {
+	switch (sb[ci].mode) {
 		case MODE_NONE:
 		case MODE_DMA_PAUSE:
 		case MODE_DMA_MASKED:
 		case MODE_DMA_REQUIRE_IRQ_ACK:
-			sb.chan->AddSilence();
+			sb[ci].chan->AddSilence();
 			break;
 		case MODE_DAC:
-			sb.mode = MODE_NONE;
+			sb[ci].mode = MODE_NONE;
 			break;
 		case MODE_DMA:
-			len*=sb.dma.mul;
+			len*=sb[ci].dma.mul;
 			if (len&SB_SH_MASK) len+=1 << SB_SH;
 			len>>=SB_SH;
-			if (len>sb.dma.left) len=sb.dma.left;
-			sb.GenerateDMASound(len);
+			if (len>sb[ci].dma.left) len=sb[ci].dma.left;
+			sb[ci].GenerateDMASound(len);
 			break;
 	}
 }
@@ -3276,6 +3282,7 @@ static const unsigned char ViBRA_sysdev[] = {
 
 class ViBRA_PnP : public ISAPnPDevice {
 	public:
+		size_t ci = 0;
 		ViBRA_PnP() : ISAPnPDevice() {
 			resource_ident = 0;
 			host_writed(ident+0,ISAPNP_ID('C','T','L',0x0,0x0,0x7,0x0)); /* CTL0070: ViBRA C */
@@ -3417,7 +3424,7 @@ class ViBRA_PnP : public ISAPnPDevice {
 			if (logical_device == 0) {
 				switch (addr) {
 					case 0x60: case 0x61:   /* I/O [0] sound blaster */
-						ret = sb.hw.base >> ((addr & 1) ? 0 : 8);
+						ret = sb[ci].hw.base >> ((addr & 1) ? 0 : 8);
 						break;
 					case 0x62: case 0x63:   /* I/O [1] MPU */
 						ret = 0x330 >> ((addr & 1) ? 0 : 8); /* FIXME: What I/O port really IS the MPU on? */
@@ -3426,14 +3433,14 @@ class ViBRA_PnP : public ISAPnPDevice {
 						ret = 0x388 >> ((addr & 1) ? 0 : 8); /* FIXME */
 						break;
 					case 0x70: /* IRQ[0] */
-						ret = sb.hw.irq;
+						ret = sb[ci].hw.irq;
 						break;
 						/* TODO: 0x71 IRQ mode */
 					case 0x74: /* DMA[0] */
-						ret = sb.hw.dma8;
+						ret = sb[ci].hw.dma8;
 						break;
 					case 0x75: /* DMA[1] */
-						ret = sb.hw.dma16 == 0xFF ? sb.hw.dma8 : sb.hw.dma16;
+						ret = sb[ci].hw.dma16 == 0xFF ? sb[ci].hw.dma8 : sb[ci].hw.dma16;
 						break;
 
 				}
@@ -3468,21 +3475,21 @@ class ViBRA_PnP : public ISAPnPDevice {
 						break;
 					case 0x70: /* IRQ[0] */
 						if (val & 0xF)
-							sb.hw.irq = val;
+							sb[ci].hw.irq = val;
 						else
-							sb.hw.irq = 0xFF;
+							sb[ci].hw.irq = 0xFF;
 						break;
 					case 0x74: /* DMA[0] */
 						if ((val & 7) == 4)
-							sb.hw.dma8 = 0xFF;
+							sb[ci].hw.dma8 = 0xFF;
 						else
-							sb.hw.dma8 = val & 7;
+							sb[ci].hw.dma8 = val & 7;
 						break;
 					case 0x75: /* DMA[1] */
 						if ((val & 7) == 4)
-							sb.hw.dma16 = 0xFF;
+							sb[ci].hw.dma16 = 0xFF;
 						else
-							sb.hw.dma16 = val & 7;
+							sb[ci].hw.dma16 = val & 7;
 						break;
 
 				}
@@ -3499,138 +3506,146 @@ class ViBRA_PnP : public ISAPnPDevice {
 };
 
 std::string GetSBtype() {
-	return sb.GetSBtype();
+	const size_t ci = 0;
+	return sb[ci].GetSBtype();
 }
 
 std::string GetSBbase() {
+	const size_t ci = 0;
 	std::stringstream ss;
-	ss << std::hex << sb.hw.base;
+	ss << std::hex << sb[ci].hw.base;
 	return ss.str();
 }
 
 std::string GetSBirq() {
-	return sb.hw.irq==0xff?"None":std::to_string(sb.hw.irq);
+	const size_t ci = 0;
+	return sb[ci].hw.irq==0xff?"None":std::to_string(sb[ci].hw.irq);
 }
 
 std::string GetSBldma() {
-	return sb.hw.dma8==0xff?"None":std::to_string((int)sb.hw.dma8);
+	const size_t ci = 0;
+	return sb[ci].hw.dma8==0xff?"None":std::to_string((int)sb[ci].hw.dma8);
 }
 
 std::string GetSBhdma() {
-	return sb.hw.dma16==0xff?"None":std::to_string((int)sb.hw.dma16);
+	const size_t ci = 0;
+	return sb[ci].hw.dma16==0xff?"None":std::to_string((int)sb[ci].hw.dma16);
 }
 
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
-	if (chan!=sb.dma.chan || event==DMA_REACHED_TC) return;
+	const size_t ci = 0;
+	if (chan!=sb[ci].dma.chan || event==DMA_REACHED_TC) return;
 	else if (event==DMA_READ_COUNTER) {
-		sb.chan->FillUp();
+		sb[ci].chan->FillUp();
 	}
 	else if (event==DMA_MASKED) {
-		if (sb.mode==MODE_DMA) {
+		if (sb[ci].mode==MODE_DMA) {
 			//Catch up to current time, but don't generate an IRQ!
 			//Fixes problems with later sci games.
-			double t = PIC_FullIndex() - sb.last_dma_callback;
-			Bitu s = static_cast<Bitu>(sb.dma.rate * t / 1000.0f);
-			if (s > sb.dma.min) {
-				LOG(LOG_SB,LOG_NORMAL)("limiting amount masked to sb.dma.min");
-				s = sb.dma.min;
+			double t = PIC_FullIndex() - sb[ci].last_dma_callback;
+			Bitu s = static_cast<Bitu>(sb[ci].dma.rate * t / 1000.0f);
+			if (s > sb[ci].dma.min) {
+				LOG(LOG_SB,LOG_NORMAL)("limiting amount masked to sb[ci].dma.min");
+				s = sb[ci].dma.min;
 			}
-			Bitu min_size = sb.dma.mul >> SB_SH;
+			Bitu min_size = sb[ci].dma.mul >> SB_SH;
 			if (!min_size) min_size = 1;
 			min_size *= 2;
-			if (sb.dma.left > min_size) {
-				if (s > (sb.dma.left - min_size)) s = sb.dma.left - min_size;
+			if (sb[ci].dma.left > min_size) {
+				if (s > (sb[ci].dma.left - min_size)) s = sb[ci].dma.left - min_size;
 				//This will trigger an irq, see GenerateDMASound, so let's not do that
-				if (!sb.dma.autoinit && sb.dma.left <= sb.dma.min) s = 0;
-				if (s) sb.GenerateDMASound(s);
+				if (!sb[ci].dma.autoinit && sb[ci].dma.left <= sb[ci].dma.min) s = 0;
+				if (s) sb[ci].GenerateDMASound(s);
 			}
-			sb.mode = MODE_DMA_MASKED;
-			LOG(LOG_SB,LOG_NORMAL)("DMA masked, stopping %s, dsp left %d, dma left %d, by %s",sb.dma.recording?"input":"output",(unsigned int)sb.dma.left,chan->currcnt+1,DMAActorStr(chan->masked_by));
+			sb[ci].mode = MODE_DMA_MASKED;
+			LOG(LOG_SB,LOG_NORMAL)("DMA masked, stopping %s, dsp left %d, dma left %d, by %s",sb[ci].dma.recording?"input":"output",(unsigned int)sb[ci].dma.left,chan->currcnt+1,DMAActorStr(chan->masked_by));
 		}
 	} else if (event==DMA_UNMASKED) {
-		if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
-			sb.DSP_ChangeMode(MODE_DMA);
-			sb.CheckDMAEnd();
-			LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d dma left %d, by %s dma init count %d",sb.dma.recording?"input":"output",chan->autoinit,chan->currcnt+1,DMAActorStr(chan->masked_by),chan->basecnt+1);
+		if (sb[ci].mode==MODE_DMA_MASKED && sb[ci].dma.mode!=DSP_DMA_NONE) {
+			sb[ci].DSP_ChangeMode(MODE_DMA);
+			sb[ci].CheckDMAEnd();
+			LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d dma left %d, by %s dma init count %d",sb[ci].dma.recording?"input":"output",chan->autoinit,chan->currcnt+1,DMAActorStr(chan->masked_by),chan->basecnt+1);
 		}
 	}
 }
 
 static void DMA_Silent_Event(Bitu val) {
-	if (sb.dma.left<val) val=sb.dma.left;
-	if (sb.dma.recording) sb.gen_input(val,sb.dma.buf.b8);
-	Bitu read = sb.dma.recording ? sb.dma.chan->Write(val,sb.dma.buf.b8) : sb.dma.chan->Read(val,sb.dma.buf.b8);
-	sb.dma.left-=read;
-	if (!sb.dma.left) {
-		if (sb.dma.mode >= DSP_DMA_16) sb.SB_RaiseIRQ(SB_IRQ_16);
-		else sb.SB_RaiseIRQ(SB_IRQ_8);
-		if (sb.dma.autoinit) sb.dma.left=sb.dma.total;
+	const size_t ci = 0;
+	if (sb[ci].dma.left<val) val=sb[ci].dma.left;
+	if (sb[ci].dma.recording) sb[ci].gen_input(val,sb[ci].dma.buf.b8);
+	Bitu read = sb[ci].dma.recording ? sb[ci].dma.chan->Write(val,sb[ci].dma.buf.b8) : sb[ci].dma.chan->Read(val,sb[ci].dma.buf.b8);
+	sb[ci].dma.left-=read;
+	if (!sb[ci].dma.left) {
+		if (sb[ci].dma.mode >= DSP_DMA_16) sb[ci].SB_RaiseIRQ(SB_IRQ_16);
+		else sb[ci].SB_RaiseIRQ(SB_IRQ_8);
+		if (sb[ci].dma.autoinit) sb[ci].dma.left=sb[ci].dma.total;
 		else {
-			sb.mode=MODE_NONE;
-			sb.dma.mode=sb.dma.mode_assigned=DSP_DMA_NONE;
+			sb[ci].mode=MODE_NONE;
+			sb[ci].dma.mode=sb[ci].dma.mode_assigned=DSP_DMA_NONE;
 		}
 	}
-	if (sb.dma.left) {
-		Bitu bigger=(sb.dma.left > sb.dma.min) ? sb.dma.min : sb.dma.left;
-		float delay=(bigger*1000.0f)/sb.dma.rate;
+	if (sb[ci].dma.left) {
+		Bitu bigger=(sb[ci].dma.left > sb[ci].dma.min) ? sb[ci].dma.min : sb[ci].dma.left;
+		float delay=(bigger*1000.0f)/sb[ci].dma.rate;
 		PIC_AddEvent(DMA_Silent_Event,delay,bigger);
 	}
 }
 
 static void DMA_DAC_Event(Bitu val) {
+	const size_t ci = 0;
 	(void)val;//UNUSED
 	unsigned char tmp[4];
 	Bitu read,expct;
 	signed int L,R;
 	int16_t out[2];
 
-	if (sb.dma.chan->masked) {
-		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+	if (sb[ci].dma.chan->masked) {
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb[ci].dma_dac_srcrate);
 		return;
 	}
-	if (!sb.dma.left)
+	if (!sb[ci].dma.left)
 		return;
 
-	const bool psingle_sample = sb.single_sample_dma;
+	const bool psingle_sample = sb[ci].single_sample_dma;
 	/* Fix for 1994 Demoscene entry myth_dw: The demo's Sound Blaster Pro initialization will start DMA with
 	 * count == 1 or 2 (triggering Goldplay mode) but will change the DMA initial counter when it begins
 	 * normal playback. If goldplay stereo hack is enabled and we do not catch this case, the first 0.5 seconds
 	 * of music will play twice as fast. */
-	if (sb.dma.chan != NULL &&
-		sb.dma.chan->basecnt < ((sb.dma.mode==DSP_DMA_16_ALIASED?2:1)*((sb.dma.stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
-		sb.single_sample_dma = 1;
+	if (sb[ci].dma.chan != NULL &&
+		sb[ci].dma.chan->basecnt < ((sb[ci].dma.mode==DSP_DMA_16_ALIASED?2:1)*((sb[ci].dma.stereo || sb[ci].mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
+		sb[ci].single_sample_dma = 1;
 	else
-		sb.single_sample_dma = 0;
+		sb[ci].single_sample_dma = 0;
 
-	if (psingle_sample && !sb.single_sample_dma) {
+	if (psingle_sample && !sb[ci].single_sample_dma) {
 		// WARNING: This assumes Sound Blaster Pro emulation!
 		LOG(LOG_SB,LOG_NORMAL)("Goldplay mode unexpectedly switched off, normal DMA playback follows");
-		sb.dma_dac_mode = 0;
-		sb.dma_dac_srcrate = sb.freq / (sb.mixer.stereo ? 2 : 1);
-		sb.chan->SetFreq(sb.dma_dac_srcrate);
-		sb.updateSoundBlasterFilter(sb.dma_dac_srcrate);
+		sb[ci].dma_dac_mode = 0;
+		sb[ci].dma_dac_srcrate = sb[ci].freq / (sb[ci].mixer.stereo ? 2 : 1);
+		sb[ci].chan->SetFreq(sb[ci].dma_dac_srcrate);
+		sb[ci].updateSoundBlasterFilter(sb[ci].dma_dac_srcrate);
 		return;
 	}
 
 	/* NTS: chan->Read() deals with DMA unit transfers.
 	 *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */
-	expct = (sb.dma.stereo ? 2u : 1u) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2u : 1u);
-	if (sb.dma.recording) {
-		sb.gen_input(expct,tmp);
-		read = sb.dma.chan->Write(expct,tmp);
+	expct = (sb[ci].dma.stereo ? 2u : 1u) * (sb[ci].dma.mode == DSP_DMA_16_ALIASED ? 2u : 1u);
+	if (sb[ci].dma.recording) {
+		sb[ci].gen_input(expct,tmp);
+		read = sb[ci].dma.chan->Write(expct,tmp);
 		L = R = 0;
 	}
 	else {
-		read = sb.dma.chan->Read(expct,tmp);
+		read = sb[ci].dma.chan->Read(expct,tmp);
 		//if (read != expct)
 		//      LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
 
-		if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
+		if (sb[ci].dma.mode == DSP_DMA_16 || sb[ci].dma.mode == DSP_DMA_16_ALIASED) {
 			L = (int16_t)host_readw(&tmp[0]);
-			if (!sb.dma.sign) L ^= 0x8000;
-			if (sb.dma.stereo) {
+			if (!sb[ci].dma.sign) L ^= 0x8000;
+			if (sb[ci].dma.stereo) {
 				R = (int16_t)host_readw(&tmp[2]);
-				if (!sb.dma.sign) R ^= 0x8000;
+				if (!sb[ci].dma.sign) R ^= 0x8000;
 			}
 			else {
 				R = L;
@@ -3638,11 +3653,11 @@ static void DMA_DAC_Event(Bitu val) {
 		}
 		else {
 			L = tmp[0];
-			if (!sb.dma.sign) L ^= 0x80;
+			if (!sb[ci].dma.sign) L ^= 0x80;
 			L = (int16_t)(L << 8);
-			if (sb.dma.stereo) {
+			if (sb[ci].dma.stereo) {
 				R = tmp[1];
-				if (!sb.dma.sign) R ^= 0x80;
+				if (!sb[ci].dma.sign) R ^= 0x80;
 				R = (int16_t)(R << 8);
 			}
 			else {
@@ -3651,89 +3666,96 @@ static void DMA_DAC_Event(Bitu val) {
 		}
 	}
 
-	if (sb.dma.stereo) {
+	if (sb[ci].dma.stereo) {
 		out[0]=L;
 		out[1]=R;
-		sb.chan->AddSamples_s16(1,out);
+		sb[ci].chan->AddSamples_s16(1,out);
 	}
 	else {
 		out[0]=L;
-		sb.chan->AddSamples_m16(1,out);
+		sb[ci].chan->AddSamples_m16(1,out);
 	}
 
 	/* NTS: The reason we check this is that sometimes the various "checks" performed by
 	   -        *      setup/configuration tools will setup impossible playback scenarios to test
-	   -        *      the card that would result in read > sb.dma.left. If read > sb.dma.left then
-	   -        *      the subtraction below would drive sb.dma.left below zero and the IRQ would
+	   -        *      the card that would result in read > sb[ci].dma.left. If read > sb[ci].dma.left then
+	   -        *      the subtraction below would drive sb[ci].dma.left below zero and the IRQ would
 	   -        *      never fire, and the test program would fail to detect SB16 emulation.
 	   -        *
 	   -        *      Bugfix for "Extreme Assault" that allows the game to detect Sound Blaster 16
 	   -        *      hardware. "Extreme Assault"'s SB16 test appears to configure a DMA transfer
 	   -        *      of 1 byte then attempt to play 16-bit signed stereo PCM (4 bytes) which prior
-	   -        *      to this fix would falsely trigger Goldplay then cause sb.dma.left to underrun
+	   -        *      to this fix would falsely trigger Goldplay then cause sb[ci].dma.left to underrun
 	   -        *      and fail to fire the IRQ. */
-	if (sb.dma.left >= read)
-		sb.dma.left -= read;
+	if (sb[ci].dma.left >= read)
+		sb[ci].dma.left -= read;
 	else
-		sb.dma.left = 0;
+		sb[ci].dma.left = 0;
 
-	if (!sb.dma.left) {
-		sb.SB_OnEndOfDMA();
-		if (sb.dma_dac_mode) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+	if (!sb[ci].dma.left) {
+		sb[ci].SB_OnEndOfDMA();
+		if (sb[ci].dma_dac_mode) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb[ci].dma_dac_srcrate);
 	}
 	else {
-		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb[ci].dma_dac_srcrate);
 	}
 }
 
 static void END_DMA_Event(Bitu val) {
-	sb.GenerateDMASound(val);
+	const size_t ci = 0;
+	sb[ci].GenerateDMASound(val);
 }
 
 static void DSP_RaiseIRQEvent(Bitu /*val*/) {
-	sb.SB_RaiseIRQ(SB_IRQ_8);
+	const size_t ci = 0;
+	sb[ci].SB_RaiseIRQ(SB_IRQ_8);
 }
 
 static void DSP_BusyComplete(Bitu /*val*/) {
-	sb.dsp.write_busy = 0;
+	const size_t ci = 0;
+	sb[ci].dsp.write_busy = 0;
 }
 
 static void DSP_FinishReset(Bitu /*val*/) {
-	sb.DSP_FlushData();
-	sb.DSP_AddData(0xaa);
-	sb.dsp.state=DSP_S_NORMAL;
+	const size_t ci = 0;
+	sb[ci].DSP_FlushData();
+	sb[ci].DSP_AddData(0xaa);
+	sb[ci].dsp.state=DSP_S_NORMAL;
 }
 
 static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
+	const size_t ci = 0;
 	if (event==DMA_UNMASKED) {
-		uint8_t val = sb.e2.valadd;
-		DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
+		uint8_t val = sb[ci].e2.valadd;
+		DmaChannel * chan=GetDMAChannel(sb[ci].hw.dma8);
 		chan->Register_Callback(nullptr);
 		chan->Write(1,&val);
 	}
 }
 
 static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
+	const size_t ci = 0;
 	if (event==DMA_UNMASKED) {
 		static const char *string = "\x01\x02\x04\x08\x10\x20\x40\x80"; /* Confirmed response via DMA from actual Reveal SC400 card */
-		DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
-		LOG(LOG_SB,LOG_DEBUG)("SC400 returning DMA test pattern on DMA channel=%u",sb.hw.dma8);
+		DmaChannel * chan=GetDMAChannel(sb[ci].hw.dma8);
+		LOG(LOG_SB,LOG_DEBUG)("SC400 returning DMA test pattern on DMA channel=%u",sb[ci].hw.dma8);
 		chan->Register_Callback(nullptr);
 		chan->Write(8,(uint8_t*)string);
 		chan->Clear_Request();
 		if (!chan->tcount) LOG(LOG_SB,LOG_DEBUG)("SC400 warning: DMA did not reach terminal count");
-		sb.SB_RaiseIRQ(SB_IRQ_8);
+		sb[ci].SB_RaiseIRQ(SB_IRQ_8);
 	}
 }
 
 static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
+	const size_t ci = 0;
 	if (event!=DMA_UNMASKED) return;
 	uint8_t val=128;
-	DmaChannel * ch=GetDMAChannel(sb.hw.dma8);
-	while (sb.dma.left--) {
+	DmaChannel * ch=GetDMAChannel(sb[ci].hw.dma8);
+	while (sb[ci].dma.left--) {
 		ch->Write(1,&val);
 	}
-	sb.SB_RaiseIRQ(SB_IRQ_8);
+	sb[ci].SB_RaiseIRQ(SB_IRQ_8);
 	ch->Register_Callback(nullptr);
 }
 
@@ -3745,22 +3767,23 @@ class SBLASTER: public Module_base {
 		AutoexecObject autoexecline;
 		MixerObject MixerChan;
 		OPL_Mode oplmode;
+		size_t ci = 0;
 
 		/* Support Functions */
 		void Find_Type_And_Opl(Section_prop* config,SB_TYPES& type, OPL_Mode& opl_mode) const {
-			sb.vibra = false;
-			sb.ess_type = ESS_NONE;
-			sb.reveal_sc_type = RSC_NONE;
-			sb.ess_extended_mode = false;
-			sb.subtype = SBST_NONE;
+			sb[ci].vibra = false;
+			sb[ci].ess_type = ESS_NONE;
+			sb[ci].reveal_sc_type = RSC_NONE;
+			sb[ci].ess_extended_mode = false;
+			sb[ci].subtype = SBST_NONE;
 			const char * sbtype=config->Get_string("sbtype");
 			if (control->opt_silent) type = SBT_NONE;
-			else if (!strcasecmp(sbtype,"sb1.0")) { type=SBT_1; sb.subtype=SBST_100; }
-			else if (!strcasecmp(sbtype,"sb1.5")) { type=SBT_1; sb.subtype=SBST_105; }
-			else if (!strcasecmp(sbtype,"sb1")) { type=SBT_1; sb.subtype=SBST_105; } /* DOSBox SVN compat same as sb1.5 */
-			else if (!strcasecmp(sbtype,"sb2.0")) { type=SBT_2; sb.subtype=SBST_200; }
-			else if (!strcasecmp(sbtype,"sb2.01")) { type=SBT_2; sb.subtype=SBST_201; }
-			else if (!strcasecmp(sbtype,"sb2")) { type=SBT_2; sb.subtype=SBST_201; } /* DOSBox SVN compat same as sb2.01 */
+			else if (!strcasecmp(sbtype,"sb1.0")) { type=SBT_1; sb[ci].subtype=SBST_100; }
+			else if (!strcasecmp(sbtype,"sb1.5")) { type=SBT_1; sb[ci].subtype=SBST_105; }
+			else if (!strcasecmp(sbtype,"sb1")) { type=SBT_1; sb[ci].subtype=SBST_105; } /* DOSBox SVN compat same as sb1.5 */
+			else if (!strcasecmp(sbtype,"sb2.0")) { type=SBT_2; sb[ci].subtype=SBST_200; }
+			else if (!strcasecmp(sbtype,"sb2.01")) { type=SBT_2; sb[ci].subtype=SBST_201; }
+			else if (!strcasecmp(sbtype,"sb2")) { type=SBT_2; sb[ci].subtype=SBST_201; } /* DOSBox SVN compat same as sb2.01 */
 			else if (!strcasecmp(sbtype,"sbpro1")) type=SBT_PRO1;
 			else if (!strcasecmp(sbtype,"sbpro2")) type=SBT_PRO2;
 			else if (!strcasecmp(sbtype,"sb16vibra")) type=SBT_16;
@@ -3769,22 +3792,22 @@ class SBLASTER: public Module_base {
 			else if (!strcasecmp(sbtype,"none")) type=SBT_NONE;
 			else if (!strcasecmp(sbtype,"ess688")) {
 				type=SBT_PRO2;
-				sb.ess_type=ESS_688;
+				sb[ci].ess_type=ESS_688;
 				LOG(LOG_SB,LOG_DEBUG)("ESS 688 emulation enabled.");
 				LOG(LOG_SB,LOG_WARN)("ESS 688 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming");
 			}
 			else if (!strcasecmp(sbtype,"reveal_sc400")) {
 				type=SBT_PRO2;
-				sb.reveal_sc_type=RSC_SC400;
+				sb[ci].reveal_sc_type=RSC_SC400;
 				LOG(LOG_SB,LOG_DEBUG)("Reveal SC400 emulation enabled.");
 				LOG(LOG_SB,LOG_WARN)("Reveal SC400 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
 				LOG(LOG_SB,LOG_WARN)("Additional WARNING: This code only emulates the Sound Blaster portion of the card. Attempting to use the Windows Sound System part of the card (i.e. the Voyetra/SC400 Windows drivers) will not work!");
 			}
 			else if (!strcasecmp(sbtype,"ess1688")) {
 				type=SBT_PRO2;
-				sb.ess_type=ESS_1688;
-				sb.mixer.ess_id_str[0] = 0x16;
-				sb.mixer.ess_id_str[1] = 0x88;
+				sb[ci].ess_type=ESS_1688;
+				sb[ci].mixer.ess_id_str[0] = 0x16;
+				sb[ci].mixer.ess_id_str[1] = 0x88;
 				LOG(LOG_SB,LOG_DEBUG)("ESS ES1688 emulation enabled.");
 				LOG(LOG_SB,LOG_WARN)("ESS ES1688 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
 			}
@@ -3805,7 +3828,7 @@ class SBLASTER: public Module_base {
 			if (!IS_PC98_ARCH) {
 				if (!strcasecmp(sbtype,"sb16vibra")) {
 					ISA_PNP_devreg(new ViBRA_PnP());
-					sb.vibra = true;
+					sb[ci].vibra = true;
 				}
 			}
 
@@ -3836,7 +3859,7 @@ class SBLASTER: public Module_base {
 						break;
 					case SBT_PRO2: // NTS: ESS 688 cards also had an OPL3 (http://www.dosdays.co.uk/topics/Manufacturers/ess.php)
 					case SBT_16:
-						if (sb.ess_type != ESS_NONE && sb.ess_type != ESS_688) {
+						if (sb[ci].ess_type != ESS_NONE && sb[ci].ess_type != ESS_688) {
 							opl_mode=OPL_esfm;
 						} else {
 							opl_mode=OPL_opl3;
@@ -3855,9 +3878,9 @@ class SBLASTER: public Module_base {
 
 				/* card type MUST be SB16.
 				 * Creative did not release any other Sound Blaster for PC-98 as far as I know. */
-				if (sb.type != SBT_16) {
+				if (sb[ci].type != SBT_16) {
 					LOG(LOG_SB,LOG_ERROR)("Only Sound Blaster 16 is allowed in PC-98 mode");
-					sb.type = SBT_NONE;
+					sb[ci].type = SBT_NONE;
 				}
 			}
 		}
@@ -3870,45 +3893,45 @@ class SBLASTER: public Module_base {
 
 			Section_prop * section=static_cast<Section_prop *>(configuration);
 
-			sb.recording_source = REC_SILENCE;
-			sb.listen_to_recording_source = false;
-			sb.hw.base=(unsigned int)section->Get_hex("sbbase");
+			sb[ci].recording_source = REC_SILENCE;
+			sb[ci].listen_to_recording_source = false;
+			sb[ci].hw.base=(unsigned int)section->Get_hex("sbbase");
 
-			if (sb.ess_type != ESS_NONE && sb.ess_type != ESS_688) {
-				sb.mixer.ess_id_str[2] = (sb.hw.base >> 8) & 0xff;
-				sb.mixer.ess_id_str[3] = sb.hw.base & 0xff;
+			if (sb[ci].ess_type != ESS_NONE && sb[ci].ess_type != ESS_688) {
+				sb[ci].mixer.ess_id_str[2] = (sb[ci].hw.base >> 8) & 0xff;
+				sb[ci].mixer.ess_id_str[3] = sb[ci].hw.base & 0xff;
 			}
 
 			if (IS_PC98_ARCH) {
-				if (sb.hw.base >= 0x220 && sb.hw.base <= 0x2E0) /* translate IBM PC to PC-98 (220h -> D2h) */
-					sb.hw.base = 0xD0 + ((sb.hw.base >> 4u) & 0xFu);
+				if (sb[ci].hw.base >= 0x220 && sb[ci].hw.base <= 0x2E0) /* translate IBM PC to PC-98 (220h -> D2h) */
+					sb[ci].hw.base = 0xD0 + ((sb[ci].hw.base >> 4u) & 0xFu);
 			}
 			else {
-				if (sb.hw.base >= 0xD2 && sb.hw.base <= 0xDE) /* translate PC-98 to IBM PC (D2h -> 220h) */
-					sb.hw.base = 0x200 + ((sb.hw.base & 0xFu) << 4u);
+				if (sb[ci].hw.base >= 0xD2 && sb[ci].hw.base <= 0xDE) /* translate PC-98 to IBM PC (D2h -> 220h) */
+					sb[ci].hw.base = 0x200 + ((sb[ci].hw.base & 0xFu) << 4u);
 			}
 
-			sb.sb_update_recording_source_settings();
+			sb[ci].sb_update_recording_source_settings();
 
-			sb.ASP_mode = 0x00;
-			sb.goldplay=section->Get_bool("goldplay");
-			sb.min_dma_user=section->Get_int("mindma");
-			sb.goldplay_stereo=section->Get_bool("goldplay stereo");
-			sb.emit_blaster_var=section->Get_bool("blaster environment variable");
-			sb.sample_rate_limits=section->Get_bool("sample rate limits");
-			sb.sbpro_stereo_bit_strict_mode=section->Get_bool("stereo control with sbpro only");
-			sb.hw.sb_io_alias=section->Get_bool("io port aliasing");
-			sb.busy_cycle_hz=section->Get_int("dsp busy cycle rate");
-			sb.busy_cycle_duty_percent=section->Get_int("dsp busy cycle duty");
-			sb.dsp.instant_direct_dac=section->Get_bool("instant direct dac");
-			sb.dsp.force_goldplay=section->Get_bool("force goldplay");
-			sb.dma.force_autoinit=section->Get_bool("force dsp auto-init");
-			sb.no_filtering=section->Get_bool("disable filtering");
-			sb.def_enable_speaker=section->Get_bool("enable speaker");
-			sb.enable_asp=section->Get_bool("enable asp");
+			sb[ci].ASP_mode = 0x00;
+			sb[ci].goldplay=section->Get_bool("goldplay");
+			sb[ci].min_dma_user=section->Get_int("mindma");
+			sb[ci].goldplay_stereo=section->Get_bool("goldplay stereo");
+			sb[ci].emit_blaster_var=section->Get_bool("blaster environment variable");
+			sb[ci].sample_rate_limits=section->Get_bool("sample rate limits");
+			sb[ci].sbpro_stereo_bit_strict_mode=section->Get_bool("stereo control with sbpro only");
+			sb[ci].hw.sb_io_alias=section->Get_bool("io port aliasing");
+			sb[ci].busy_cycle_hz=section->Get_int("dsp busy cycle rate");
+			sb[ci].busy_cycle_duty_percent=section->Get_int("dsp busy cycle duty");
+			sb[ci].dsp.instant_direct_dac=section->Get_bool("instant direct dac");
+			sb[ci].dsp.force_goldplay=section->Get_bool("force goldplay");
+			sb[ci].dma.force_autoinit=section->Get_bool("force dsp auto-init");
+			sb[ci].no_filtering=section->Get_bool("disable filtering");
+			sb[ci].def_enable_speaker=section->Get_bool("enable speaker");
+			sb[ci].enable_asp=section->Get_bool("enable asp");
 
-			if (!sb.goldplay && sb.dsp.force_goldplay) {
-				sb.goldplay = true;
+			if (!sb[ci].goldplay && sb[ci].dsp.force_goldplay) {
+				sb[ci].goldplay = true;
 				LOG_MSG("force goldplay = true but goldplay = false, enabling Goldplay mode anyway");
 			}
 
@@ -3948,72 +3971,72 @@ class SBLASTER: public Module_base {
 			 *                   dmw@sioux.ee.ufl.edu"
 			 *
 			 */
-			sb.write_status_must_return_7f=section->Get_bool("dsp write buffer status must return 0x7f or 0xff");
+			sb[ci].write_status_must_return_7f=section->Get_bool("dsp write buffer status must return 0x7f or 0xff");
 
-			sb.dsp.midi_rwpoll_mode = false;
-			sb.dsp.midi_read_interrupt = false;
-			sb.dsp.midi_read_with_timestamps = false;
+			sb[ci].dsp.midi_rwpoll_mode = false;
+			sb[ci].dsp.midi_read_interrupt = false;
+			sb[ci].dsp.midi_read_with_timestamps = false;
 
-			sb.busy_cycle_last_check=0;
-			sb.busy_cycle_io_hack=0;
+			sb[ci].busy_cycle_last_check=0;
+			sb[ci].busy_cycle_io_hack=0;
 
 			si=section->Get_int("irq");
-			sb.hw.irq=(si >= 0) ? (unsigned int)si : 0xFF;
+			sb[ci].hw.irq=(si >= 0) ? (unsigned int)si : 0xFF;
 
 			if (IS_PC98_ARCH) {
-				if (sb.hw.irq == 7) /* IRQ 7 is not valid on PC-98 (that's cascade interrupt) */
-					sb.hw.irq = 5;
+				if (sb[ci].hw.irq == 7) /* IRQ 7 is not valid on PC-98 (that's cascade interrupt) */
+					sb[ci].hw.irq = 5;
 			}
 
 			si=section->Get_int("dma");
-			sb.hw.dma8=(si >= 0) ? (unsigned int)si : 0xFF;
+			sb[ci].hw.dma8=(si >= 0) ? (unsigned int)si : 0xFF;
 
 			si=section->Get_int("hdma");
-			sb.hw.dma16=(si >= 0) ? (unsigned int)si : 0xFF;
+			sb[ci].hw.dma16=(si >= 0) ? (unsigned int)si : 0xFF;
 
 			if (IS_PC98_ARCH) {
-				if (sb.hw.dma8 > 3)
-					sb.hw.dma8 = 3;
-				if (sb.hw.dma8 == 1) /* DMA 1 is not usable for SB on PC-98? */
-					sb.hw.dma8 = 3;
-				if (sb.hw.dma16 > 3)
-					sb.hw.dma16 = sb.hw.dma8;
+				if (sb[ci].hw.dma8 > 3)
+					sb[ci].hw.dma8 = 3;
+				if (sb[ci].hw.dma8 == 1) /* DMA 1 is not usable for SB on PC-98? */
+					sb[ci].hw.dma8 = 3;
+				if (sb[ci].hw.dma16 > 3)
+					sb[ci].hw.dma16 = sb[ci].hw.dma8;
 
-				LOG_MSG("PC-98: Final SB16 resources are DMA8=%u DMA16=%u\n",sb.hw.dma8,sb.hw.dma16);
+				LOG_MSG("PC-98: Final SB16 resources are DMA8=%u DMA16=%u\n",sb[ci].hw.dma8,sb[ci].hw.dma16);
 
-				sb.dma.chan=GetDMAChannel(sb.hw.dma8);
-				if (sb.dma.chan == NULL) LOG_MSG("PC-98: SB16 is unable to obtain DMA channel");
+				sb[ci].dma.chan=GetDMAChannel(sb[ci].hw.dma8);
+				if (sb[ci].dma.chan == NULL) LOG_MSG("PC-98: SB16 is unable to obtain DMA channel");
 			}
 
-			sb.dsp.command_aliases=section->Get_bool("dsp command aliases");
+			sb[ci].dsp.command_aliases=section->Get_bool("dsp command aliases");
 
-			Find_Type_And_Opl(section,sb.type,oplmode);
-			if (sb.hw.irq == 0) {
+			Find_Type_And_Opl(section,sb[ci].type,oplmode);
+			if (sb[ci].hw.irq == 0) {
 				std::string sbtype=GetSBtype();
-				sb.hw.irq=sbtype=="SBPro 2"||sbtype=="SB16"||IS_PC98_ARCH?5:7;
+				sb[ci].hw.irq=sbtype=="SBPro 2"||sbtype=="SB16"||IS_PC98_ARCH?5:7;
 			}
 
 			/* some DOS games/demos support Sound Blaster, and expect the IRQ to fire, but
 			 * make no attempt to unmask the IRQ (perhaps the programmer forgot). This option
 			 * is needed for Public NMI "jump" demo in order for music to continue playing. */
 			bv=section->Get_bool("pic unmask irq");
-			if (bv && sb.hw.irq != 0xFF) {
+			if (bv && sb[ci].hw.irq != 0xFF) {
 				LOG_MSG("Sound blaster: unmasking IRQ at startup as requested.");
-				PIC_SetIRQMask(sb.hw.irq,false);
+				PIC_SetIRQMask(sb[ci].hw.irq,false);
 			}
 
-			if (sb.hw.irq == 0xFF || sb.hw.dma8 == 0xFF) {
+			if (sb[ci].hw.irq == 0xFF || sb[ci].hw.dma8 == 0xFF) {
 				LOG(LOG_SB,LOG_WARN)("IRQ and 8-bit DMA not assigned, disabling BLASTER variable");
-				sb.emit_blaster_var = false;
+				sb[ci].emit_blaster_var = false;
 			}
 
-			sb.mixer.enabled=section->Get_bool("sbmixer");
-			sb.mixer.stereo=false;
+			sb[ci].mixer.enabled=section->Get_bool("sbmixer");
+			sb[ci].mixer.stereo=false;
 
 			bv=section->Get_bool("pre-set sbpro stereo");
 			if (bv) {
 				LOG_MSG("Sound blaster: setting SB Pro mixer 'stereo' bit as instructed.");
-				sb.mixer.stereo=true;
+				sb[ci].mixer.stereo=true;
 			}
 
 #if HAS_HARDOPL
@@ -4043,7 +4066,7 @@ class SBLASTER: public Module_base {
 					assert(!IS_PC98_ARCH);
 #if HAS_HARDOPL
 					Bitu base = (unsigned int)section->Get_hex("hardwarebase");
-					HARDOPL_Init(base, sb.hw.base, isCMSpassthrough);
+					HARDOPL_Init(base, sb[ci].hw.base, isCMSpassthrough);
 #else
 					LOG_MSG("OPL pass-through is disabled. It may not be supported on this operating system.");
 #endif
@@ -4053,58 +4076,58 @@ class SBLASTER: public Module_base {
 			// Backward compatibility with existing configurations
 			if(!strcmp(section->Get_string("oplmode"),"cms")) {
 				LOG(LOG_SB, LOG_WARN)("The 'cms' setting for 'oplmode' is deprecated; use 'cms = on' instead.");
-				sb.cms = true;
+				sb[ci].cms = true;
 			}
 			else {
 				const char *cms_str = section->Get_string("cms");
 				if(!strcmp(cms_str,"on")) {
-					sb.cms = true;
+					sb[ci].cms = true;
 				}
 				else if(!strcmp(cms_str,"auto")) {
-					sb.cms = (sb.type == SBT_1 || sb.type == SBT_GB);
+					sb[ci].cms = (sb[ci].type == SBT_1 || sb[ci].type == SBT_GB);
 				}
 				else
-					sb.cms = false;
+					sb[ci].cms = false;
 			}
 
-			switch(sb.type) {
+			switch(sb[ci].type) {
 				case SBT_1: // CMS is optional for Sound Blaster 1 and 2
 				case SBT_2:;
 				case SBT_GB:
-					   if(!sb.cms) {
+					   if(!sb[ci].cms) {
 						   LOG(LOG_SB, LOG_WARN)("'cms' setting is 'off', but is forced to 'auto' on the Game Blaster.");
 						   auto* sect_updater = static_cast<Section_prop*>(control->GetSection("sblaster"));
 						   sect_updater->Get_prop("cms")->SetValue("auto");
 					   }
-					   sb.cms = true; // Game Blaster is CMS
+					   sb[ci].cms = true; // Game Blaster is CMS
 					   break;
 				default:
-					   if(sb.cms) {
+					   if(sb[ci].cms) {
 						   LOG(LOG_SB, LOG_WARN)("'cms' setting 'on' not supported on this card, forcing 'auto'.");
 						   auto* sect_updater = static_cast<Section_prop*>(control->GetSection("sblaster"));
 						   sect_updater->Get_prop("cms")->SetValue("auto");
 					   }
-					   sb.cms = false;
+					   sb[ci].cms = false;
 			}
 
-			if(sb.cms && !IS_PC98_ARCH) {
+			if(sb[ci].cms && !IS_PC98_ARCH) {
 				CMS_Init(section);
 			}
 
-			if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
+			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
 
-			sb.chan=MixerChan.Install(&SBLASTER_CallBack,22050,"SB");
-			sb.dac.dac_pt = sb.dac.dac_t = 0;
-			sb.dsp.state=DSP_S_NORMAL;
-			sb.dsp.out.lastval=0xaa;
-			sb.dma.chan=NULL;
+			sb[ci].chan=MixerChan.Install(&SBLASTER_CallBack,22050,"SB");
+			sb[ci].dac.dac_pt = sb[ci].dac.dac_t = 0;
+			sb[ci].dsp.state=DSP_S_NORMAL;
+			sb[ci].dsp.out.lastval=0xaa;
+			sb[ci].dma.chan=NULL;
 
 			for (i=4;i<=0xf;i++) {
 				if (i==8 || i==9) continue;
 				//Disable mixer ports for lower soundblaster
-				if ((sb.type==SBT_1 || sb.type==SBT_2) && (i==4 || i==5)) continue;
-				ReadHandler[i].Install(sb.hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),read_sb,IO_MB);
-				WriteHandler[i].Install(sb.hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),write_sb,IO_MB);
+				if ((sb[ci].type==SBT_1 || sb[ci].type==SBT_2) && (i==4 || i==5)) continue;
+				ReadHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),read_sb,IO_MB);
+				WriteHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),write_sb,IO_MB);
 			}
 
 			// TODO: read/write handler for ESS AudioDrive ES1688 (and later) MPU-401 ports (3x0h/3x1h; prevents Windows drivers from working with default settings if missing)
@@ -4113,40 +4136,40 @@ class SBLASTER: public Module_base {
 			//      according to real SB16 CSP/ASP hardware (chip version id 0x10).
 			//
 			//      Registers 0x00-0x1F are defined. Registers 0x80-0x83 are defined.
-			for (i=0;i<256;i++) sb.ASP_regs[i] = i;
-			for (i=0x00;i < 0x20;i++) sb.ASP_regs[i] = 0;
-			for (i=0x80;i < 0x84;i++) sb.ASP_regs[i] = 0;
-			sb.ASP_regs[5] = 0x01;
-			sb.ASP_regs[9] = 0xf8;
+			for (i=0;i<256;i++) sb[ci].ASP_regs[i] = i;
+			for (i=0x00;i < 0x20;i++) sb[ci].ASP_regs[i] = 0;
+			for (i=0x80;i < 0x84;i++) sb[ci].ASP_regs[i] = 0;
+			sb[ci].ASP_regs[5] = 0x01;
+			sb[ci].ASP_regs[9] = 0xf8;
 
-			sb.DSP_Reset();
-			sb.CTMIXER_Reset();
+			sb[ci].DSP_Reset();
+			sb[ci].CTMIXER_Reset();
 
 			// The documentation does not specify if SB gets initialized with the speaker enabled
 			// or disabled. Real SBPro2 has it disabled.
-			sb.speaker=false;
+			sb[ci].speaker=false;
 			// On SB16 the speaker flag does not affect actual speaker state.
-			if (sb.type == SBT_16 || sb.ess_type != ESS_NONE || sb.reveal_sc_type != RSC_NONE) sb.chan->Enable(true);
-			else sb.chan->Enable(false);
+			if (sb[ci].type == SBT_16 || sb[ci].ess_type != ESS_NONE || sb[ci].reveal_sc_type != RSC_NONE) sb[ci].chan->Enable(true);
+			else sb[ci].chan->Enable(false);
 
-			if (sb.def_enable_speaker)
-				sb.DSP_SetSpeaker(true);
+			if (sb[ci].def_enable_speaker)
+				sb[ci].DSP_SetSpeaker(true);
 
 			s=section->Get_string("dsp require interrupt acknowledge");
 			if (s == "true" || s == "1" || s == "on")
-				sb.dsp.require_irq_ack = 1;
+				sb[ci].dsp.require_irq_ack = 1;
 			else if (s == "false" || s == "0" || s == "off")
-				sb.dsp.require_irq_ack = 0;
+				sb[ci].dsp.require_irq_ack = 0;
 			else /* auto */
-				sb.dsp.require_irq_ack = (sb.type == SBT_16) ? 1 : 0; /* Yes if SB16, No otherwise */
+				sb[ci].dsp.require_irq_ack = (sb[ci].type == SBT_16) ? 1 : 0; /* Yes if SB16, No otherwise */
 
 			si=section->Get_int("dsp write busy delay"); /* in nanoseconds */
-			if (si >= 0) sb.dsp.dsp_write_busy_time = (unsigned int)si;
-			else sb.dsp.dsp_write_busy_time = 1000; /* FIXME: How long is the DSP busy on real hardware? */
+			if (si >= 0) sb[ci].dsp.dsp_write_busy_time = (unsigned int)si;
+			else sb[ci].dsp.dsp_write_busy_time = 1000; /* FIXME: How long is the DSP busy on real hardware? */
 
 			/* Sound Blaster (1.x and 2x) and Sound Blaster Pro (3.1) have the I/O port aliasing.
 			 * The aliasing is also faithfully emulated by the ESS AudioDrive. */
-			switch (sb.type) {
+			switch (sb[ci].type) {
 				case SBT_1: /* guess */
 				case SBT_2: /* verified on real hardware */
 				case SBT_GB: /* FIXME: Right?? */
@@ -4154,40 +4177,40 @@ class SBLASTER: public Module_base {
 				case SBT_PRO2: /* guess */
 					break;
 				default:
-					sb.hw.sb_io_alias=false;
+					sb[ci].hw.sb_io_alias=false;
 					break;
 			}
 
 			/* auto-pick busy cycle */
 			/* NOTE: SB16 cards appear to run a DSP busy cycle at all times.
 			 *       SB2 cards (and Pro?) appear to run a DSP busy cycle only when playing audio through DMA. */
-			if (sb.busy_cycle_hz < 0) {
-				if (sb.type == SBT_16) /* Guess: Pentium PCI-ISA SYSCLK=8.333MHz  /  (6 cycles per 8-bit I/O read  x  16 reads from DSP status) = about 86.805KHz? */
-					sb.busy_cycle_hz = 8333333 / 6 / 16;
+			if (sb[ci].busy_cycle_hz < 0) {
+				if (sb[ci].type == SBT_16) /* Guess: Pentium PCI-ISA SYSCLK=8.333MHz  /  (6 cycles per 8-bit I/O read  x  16 reads from DSP status) = about 86.805KHz? */
+					sb[ci].busy_cycle_hz = 8333333 / 6 / 16;
 				else /* Guess ???*/
-					sb.busy_cycle_hz = 8333333 / 6 / 16;
+					sb[ci].busy_cycle_hz = 8333333 / 6 / 16;
 			}
 
-			if (sb.ess_type != ESS_NONE) {
+			if (sb[ci].ess_type != ESS_NONE) {
 				uint8_t t;
 
 				/* legacy audio interrupt control */
 				t = 0x80;/*game compatible IRQ*/
-				switch (sb.hw.irq) {
+				switch (sb[ci].hw.irq) {
 					case 5:     t |= 0x5; break;
 					case 7:     t |= 0xA; break;
 					case 10:    t |= 0xF; break;
 				}
-				sb.ESSreg(0xB1) = t;
+				sb[ci].ESSreg(0xB1) = t;
 
 				/* DRQ control */
 				t = 0x80;/*game compatible DRQ */
-				switch (sb.hw.dma8) {
+				switch (sb[ci].hw.dma8) {
 					case 0:     t |= 0x5; break;
 					case 1:     t |= 0xA; break;
 					case 3:     t |= 0xF; break;
 				}
-				sb.ESSreg(0xB2) = t;
+				sb[ci].ESSreg(0xB2) = t;
 			}
 
 			/* first configuration byte returned by 0x58.
@@ -4197,8 +4220,8 @@ class SBLASTER: public Module_base {
 			 * bits 3-2: ???
 			 * bit    1: gameport disable (1=disabled 0=enabled)
 			 * bit    0: jumper assigns Sound Blaster base port 240h (right??) */
-			sb.sc400_jumper_status_1 = 0x2C + ((sb.hw.base == 0x240) ? 0x1 : 0x0);
-			if (!JOYSTICK_IsEnabled(0) && !JOYSTICK_IsEnabled(1)) sb.sc400_jumper_status_1 += 0x02; // set bit 1
+			sb[ci].sc400_jumper_status_1 = 0x2C + ((sb[ci].hw.base == 0x240) ? 0x1 : 0x0);
+			if (!JOYSTICK_IsEnabled(0) && !JOYSTICK_IsEnabled(1)) sb[ci].sc400_jumper_status_1 += 0x02; // set bit 1
 			/* second configuration byte returned by 0x58.
 			 *
 			 * bits 7-5: 110b ???
@@ -4216,72 +4239,72 @@ class SBLASTER: public Module_base {
 			 *
 			 *           TODO: The CD-ROM interface is said to be designed for Panasonic or Goldstar CD-ROM drives. Can we emulate that someday,
 			 *                 and allow the user to configure the base I/O port? */
-			sb.sc400_jumper_status_2 = 0xC0 | (((sb.hw.base + 0x10) >> 4) & 0xF);
+			sb[ci].sc400_jumper_status_2 = 0xC0 | (((sb[ci].hw.base + 0x10) >> 4) & 0xF);
 
-			sb.sc400_dsp_major = 3;
-			sb.sc400_dsp_minor = 5;
-			sb.sc400_cfg = 0;
+			sb[ci].sc400_dsp_major = 3;
+			sb[ci].sc400_dsp_minor = 5;
+			sb[ci].sc400_cfg = 0;
 			/* bit 7:    MPU IRQ select  (1=IRQ 9  0=IRQ 5)
 			 * bit 6:    ???
 			 * bit 5-3:  IRQ select
 			 * bit 2:    MPU IRQ enable
 			 * bit 1-0:  DMA select */
-			switch (sb.hw.dma8) {
-				case 0: sb.sc400_cfg |= (1 << 0); break;
-				case 1: sb.sc400_cfg |= (2 << 0); break;
-				case 3: sb.sc400_cfg |= (3 << 0); break;
+			switch (sb[ci].hw.dma8) {
+				case 0: sb[ci].sc400_cfg |= (1 << 0); break;
+				case 1: sb[ci].sc400_cfg |= (2 << 0); break;
+				case 3: sb[ci].sc400_cfg |= (3 << 0); break;
 			}
-			switch (sb.hw.irq) {
-				case 5: sb.sc400_cfg |= (5 << 3); break;
-				case 7: sb.sc400_cfg |= (1 << 3); break;
-				case 9: sb.sc400_cfg |= (2 << 3); break;
-				case 10:sb.sc400_cfg |= (3 << 3); break;
-				case 11:sb.sc400_cfg |= (4 << 3); break;
+			switch (sb[ci].hw.irq) {
+				case 5: sb[ci].sc400_cfg |= (5 << 3); break;
+				case 7: sb[ci].sc400_cfg |= (1 << 3); break;
+				case 9: sb[ci].sc400_cfg |= (2 << 3); break;
+				case 10:sb[ci].sc400_cfg |= (3 << 3); break;
+				case 11:sb[ci].sc400_cfg |= (4 << 3); break;
 			}
 			switch (MPU401_GetIRQ()) { // SC400: bit 7 and bit 2 control MPU IRQ
-				case 5: sb.sc400_cfg |= (0 << 7) + (1 << 2); break; // bit 7=0 bit 2=1   MPU IRQ 5
-				case 9: sb.sc400_cfg |= (1 << 7) + (1 << 2); break; // bit 7=1 bit 2=1   MPU IRQ 9
+				case 5: sb[ci].sc400_cfg |= (0 << 7) + (1 << 2); break; // bit 7=0 bit 2=1   MPU IRQ 5
+				case 9: sb[ci].sc400_cfg |= (1 << 7) + (1 << 2); break; // bit 7=1 bit 2=1   MPU IRQ 9
 				default: break;                     // bit 7=0 bit 2=0   MPU IRQ disabled
 			}
 
-			if (sb.reveal_sc_type != RSC_NONE) {
+			if (sb[ci].reveal_sc_type != RSC_NONE) {
 				// SC400 cards always use 8-bit DMA even for 16-bit PCM
-				if (sb.hw.dma16 != sb.hw.dma8) {
+				if (sb[ci].hw.dma16 != sb[ci].hw.dma8) {
 					LOG(LOG_SB,LOG_DEBUG)("SC400: DMA is always 8-bit, setting 16-bit == 8-bit");
-					sb.hw.dma16 = sb.hw.dma8;
+					sb[ci].hw.dma16 = sb[ci].hw.dma8;
 				}
 			}
 
 			si = section->Get_int("dsp busy cycle always");
-			if (si >= 0) sb.busy_cycle_always= (si > 0) ? true : false;
-			else if (sb.type == SBT_16) sb.busy_cycle_always = true;
-			else sb.busy_cycle_always = false;
+			if (si >= 0) sb[ci].busy_cycle_always= (si > 0) ? true : false;
+			else if (sb[ci].type == SBT_16) sb[ci].busy_cycle_always = true;
+			else sb[ci].busy_cycle_always = false;
 
 			/* auto-pick busy duty cycle */
-			if (sb.busy_cycle_duty_percent < 0 || sb.busy_cycle_duty_percent > 100)
-				sb.busy_cycle_duty_percent = 50; /* seems about right */
+			if (sb[ci].busy_cycle_duty_percent < 0 || sb[ci].busy_cycle_duty_percent > 100)
+				sb[ci].busy_cycle_duty_percent = 50; /* seems about right */
 
-			if (sb.hw.irq != 0 && sb.hw.irq != 0xFF) {
+			if (sb[ci].hw.irq != 0 && sb[ci].hw.irq != 0xFF) {
 				s = section->Get_string("irq hack");
 				if (!s.empty() && s != "none") {
 					LOG(LOG_SB,LOG_NORMAL)("Sound Blaster emulation: Assigning IRQ hack '%s' as instructed",s.c_str());
-					PIC_Set_IRQ_hack((int)sb.hw.irq,PIC_parse_IRQ_hack_string(s.c_str()));
+					PIC_Set_IRQ_hack((int)sb[ci].hw.irq,PIC_parse_IRQ_hack_string(s.c_str()));
 				}
 			}
 
 			// ASP emulation
-			if (sb.enable_asp && sb.type != SBT_16) {
+			if (sb[ci].enable_asp && sb[ci].type != SBT_16) {
 				LOG(LOG_SB,LOG_WARN)("ASP emulation requires you to select SB16 emulation");
-				sb.enable_asp = false;
+				sb[ci].enable_asp = false;
 			}
 
 			// SB16 non-PNP ASP RAM content observation.
 			// Contrary to my initial impression, it looks like the RAM is mostly 0xFF
 			// with some random bits flipped because no initialization is done at hardware power-on.
-			memset(sb.sb16asp_ram_contents,0xFF,2048);
+			memset(sb[ci].sb16asp_ram_contents,0xFF,2048);
 			for (i=0;i < (2048 * 8);i++) {
 				if (((unsigned int)rand() & 31) == 0)
-					sb.sb16asp_ram_contents[i>>3] ^= 1 << (i & 7);
+					sb[ci].sb16asp_ram_contents[i>>3] ^= 1 << (i & 7);
 			}
 
 			/* Reference: Command 0xF9 result map taken from Sound Blaster 16 with DSP 4.4 and ASP chip version ID 0x10:
@@ -4305,17 +4328,17 @@ e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 ASP>
 			 * End reference */
-			memset(sb.sb16_8051_mem,0x00,256);
-			sb.sb16_8051_mem[0x0E] = 0xFF;
-			sb.sb16_8051_mem[0x0F] = 0x07;
-			sb.sb16_8051_mem[0x37] = 0x38;
+			memset(sb[ci].sb16_8051_mem,0x00,256);
+			sb[ci].sb16_8051_mem[0x0E] = 0xFF;
+			sb[ci].sb16_8051_mem[0x0F] = 0x07;
+			sb[ci].sb16_8051_mem[0x37] = 0x38;
 
-			if (sb.enable_asp)
+			if (sb[ci].enable_asp)
 				LOG(LOG_SB,LOG_WARN)("ASP emulation at this stage is extremely limited and only covers DSP command responses.");
 
 			/* Soundblaster midi interface */
-			if (!MIDI_Available()) sb.midi = false;
-			else sb.midi = true;
+			if (!MIDI_Available()) sb[ci].midi = false;
+			else sb[ci].midi = true;
 		}
 
 		void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
@@ -4323,19 +4346,19 @@ ASP>
 		}
 
 		void DOS_Startup() {
-			if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
+			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
 
-			if (sb.emit_blaster_var) {
+			if (sb[ci].emit_blaster_var) {
 				// Create set blaster line
 				ostringstream temp;
 				if (IS_PC98_ARCH)
-					temp << "@SET BLASTER=A" << setw(2) << hex << sb.hw.base;
+					temp << "@SET BLASTER=A" << setw(2) << hex << sb[ci].hw.base;
 				else
-					temp << "@SET BLASTER=A" << setw(3) << hex << sb.hw.base;
+					temp << "@SET BLASTER=A" << setw(3) << hex << sb[ci].hw.base;
 
-				if (sb.hw.irq != 0xFF) temp << " I" << dec << (Bitu)sb.hw.irq;
-				if (sb.hw.dma8 != 0xFF) temp << " D" << (Bitu)sb.hw.dma8;
-				if (sb.type==SBT_16 && sb.hw.dma16 != 0xFF) temp << " H" << (Bitu)sb.hw.dma16;
+				if (sb[ci].hw.irq != 0xFF) temp << " I" << dec << (Bitu)sb[ci].hw.irq;
+				if (sb[ci].hw.dma8 != 0xFF) temp << " D" << (Bitu)sb[ci].hw.dma8;
+				if (sb[ci].type==SBT_16 && sb[ci].hw.dma16 != 0xFF) temp << " H" << (Bitu)sb[ci].hw.dma16;
 				if (!IS_PC98_ARCH) {
 					Section_prop * section=static_cast<Section_prop *>(control->GetSection("midi"));
 					const char* s_mpu = section->Get_string("mpu401");
@@ -4346,7 +4369,7 @@ ASP>
 						temp << " P" << hex << baseio;
 					}
 				}
-				temp << " T" << static_cast<unsigned int>(sb.type) << ends;
+				temp << " T" << static_cast<unsigned int>(sb[ci].type) << ends;
 
 				autoexecline.Install(temp.str());
 			}
@@ -4366,24 +4389,29 @@ ASP>
 				default:
 					break;
 			}
-			if(sb.cms) {
+			if(sb[ci].cms) {
 				CMS_ShutDown(m_configuration);
 			}
-			if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
-			sb.DSP_Reset(); // Stop everything
+			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
+			sb[ci].DSP_Reset(); // Stop everything
 		}
 }; //End of SBLASTER class
 
-static SBLASTER* test = NULL;
+static SBLASTER* test[MAX_CARDS] = {NULL};
 
 void SBLASTER_DOS_Shutdown() {
-	if (test != NULL) test->DOS_Shutdown();
+	for (size_t ci=0;ci < MAX_CARDS;ci++) {
+		if (test[ci] != NULL)
+			test[ci]->DOS_Shutdown();
+	}
 }
 
 void SBLASTER_ShutDown(Section* /*sec*/) {
-	if (test != NULL) {
-		delete test;
-		test = NULL;
+	for (size_t ci=0;ci < MAX_CARDS;ci++) {
+		if (test[ci] != NULL) {
+			delete test[ci];
+			test[ci] = NULL;
+		}
 	}
 #if HAS_HARDOPL
 	HARDOPL_Cleanup();
@@ -4394,17 +4422,21 @@ void SBLASTER_OnReset(Section *sec) {
 	(void)sec;//UNUSED
 	SBLASTER_DOS_Shutdown();
 
-	if (test != NULL) {
-		delete test;
-		test = NULL;
+	for (size_t ci=0;ci < MAX_CARDS;ci++) {
+		if (test[ci] != NULL) {
+			delete test[ci];
+			test[ci] = NULL;
+		}
 	}
 #if HAS_HARDOPL
 	HARDOPL_Cleanup();
 #endif
 
-	if (test == NULL) {
-		LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
-		test = new SBLASTER(control->GetSection("sblaster"));
+	for (size_t ci=0;ci < MAX_CARDS;ci++) {
+		if (test[ci] == NULL) {
+			LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
+			test[ci] = new SBLASTER(control->GetSection("sblaster"));
+		}
 	}
 }
 
@@ -4415,7 +4447,10 @@ void SBLASTER_DOS_Exit(Section *sec) {
 
 void SBLASTER_DOS_Boot(Section *sec) {
 	(void)sec;//UNUSED
-	if (test != NULL) test->DOS_Startup();
+	for (size_t ci=0;ci < MAX_CARDS;ci++) {
+		if (test[ci] != NULL)
+			test[ci]->DOS_Startup();
+	}
 }
 
 void SBLASTER_Init() {
@@ -4443,11 +4478,12 @@ void *SB_DSP_E2_DMA_CallBack_Func = (void*)((uintptr_t)DSP_E2_DMA_CallBack);
 
 void POD_Save_Sblaster( std::ostream& stream )
 {
+	const size_t ci=0;
 	const char pod_name[32] = "SBlaster";
 
 	if( stream.fail() ) return;
 	if( !test ) return;
-	if( !sb.chan ) return;
+	if( !sb[ci].chan ) return;
 
 
 	WRITE_POD( &pod_name, pod_name );
@@ -4462,7 +4498,7 @@ void POD_Save_Sblaster( std::ostream& stream )
 
 	dma_idx = 0xff;
 	for( int lcv=0; lcv<8; lcv++ ) {
-		if( sb.dma.chan == GetDMAChannel(lcv) ) { dma_idx = lcv; break; }
+		if( sb[ci].dma.chan == GetDMAChannel(lcv) ) { dma_idx = lcv; break; }
 	}
 
 	// *******************************************
@@ -4479,17 +4515,18 @@ void POD_Save_Sblaster( std::ostream& stream )
 	// *******************************************
 	// *******************************************
 
-	sb.chan->SaveState(stream);
+	sb[ci].chan->SaveState(stream);
 }
 
 
 void POD_Load_Sblaster( std::istream& stream )
 {
+	const size_t ci=0;
 	char pod_name[32] = {0};
 
 	if( stream.fail() ) return;
 	if( !test ) return;
-	if( !sb.chan ) return;
+	if( !sb[ci].chan ) return;
 
 
 	// error checking
@@ -4508,7 +4545,7 @@ void POD_Load_Sblaster( std::istream& stream )
 
 
 	// save static ptr
-	mixer_old = sb.chan;
+	mixer_old = sb[ci].chan;
 
 	//*******************************************
 	//*******************************************
@@ -4524,16 +4561,16 @@ void POD_Load_Sblaster( std::istream& stream )
 	//*******************************************
 	//*******************************************
 
-	sb.dma.chan = NULL;
-	if( dma_idx != 0xff ) sb.dma.chan = GetDMAChannel(dma_idx);
+	sb[ci].dma.chan = NULL;
+	if( dma_idx != 0xff ) sb[ci].dma.chan = GetDMAChannel(dma_idx);
 
 	//*******************************************
 	//*******************************************
 	//*******************************************
 
 	// restore static ptr
-	sb.chan = mixer_old;
+	sb[ci].chan = mixer_old;
 
 
-	sb.chan->LoadState(stream);
+	sb[ci].chan->LoadState(stream);
 }
