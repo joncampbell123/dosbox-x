@@ -307,12 +307,12 @@ static const uint8_t adjustMap_ADPCM2[24] = {
 static void DMA_DAC_Event(Bitu);
 static void END_DMA_Event(Bitu);
 static void DMA_Silent_Event(Bitu val);
-static void DSP_FinishReset(Bitu /*val*/);
-static void DSP_BusyComplete(Bitu /*val*/);
-static void DSP_RaiseIRQEvent(Bitu /*val*/);
+static void DSP_FinishReset(Bitu val);
+static void DSP_BusyComplete(Bitu val);
+static void DSP_RaiseIRQEvent(Bitu val);
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event);
-static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event);
-static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event);
+static void DSP_E2_DMA_CallBack(DmaChannel *chan, DMAEvent event);
+static void DSP_SC400_E6_DMA_CallBack(DmaChannel *chan, DMAEvent event);
 
 static INLINE uint8_t expand16to32(const uint8_t t) {
 	/* 4-bit -> 5-bit expansion.
@@ -3716,24 +3716,28 @@ static void END_DMA_Event(Bitu val) {
 	sb[ci].GenerateDMASound(val);
 }
 
-static void DSP_RaiseIRQEvent(Bitu /*val*/) {
+static void DSP_RaiseIRQEvent(Bitu val) {
+	(void)val;
 	const size_t ci = 0;
 	sb[ci].SB_RaiseIRQ(SB_IRQ_8);
 }
 
-static void DSP_BusyComplete(Bitu /*val*/) {
+static void DSP_BusyComplete(Bitu val) {
+	(void)val;
 	const size_t ci = 0;
 	sb[ci].dsp.write_busy = 0;
 }
 
-static void DSP_FinishReset(Bitu /*val*/) {
+static void DSP_FinishReset(Bitu val) {
+	(void)val;
 	const size_t ci = 0;
 	sb[ci].DSP_FlushData();
 	sb[ci].DSP_AddData(0xaa);
 	sb[ci].dsp.state=DSP_S_NORMAL;
 }
 
-static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
+static void DSP_E2_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
+	(void)chan;
 	const size_t ci = 0;
 	if (event==DMA_UNMASKED) {
 		uint8_t val = sb[ci].e2.valadd;
@@ -3743,7 +3747,8 @@ static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	}
 }
 
-static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
+static void DSP_SC400_E6_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
+	(void)chan;
 	const size_t ci = 0;
 	if (event==DMA_UNMASKED) {
 		static const char *string = "\x01\x02\x04\x08\x10\x20\x40\x80"; /* Confirmed response via DMA from actual Reveal SC400 card */
