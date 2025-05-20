@@ -28,6 +28,8 @@
 #include <iterator>
 #include <algorithm>
 
+#include <memory> // unique_ptr
+
 #if defined (WIN32)   /* Win 32 */
 #define WIN32_LEAN_AND_MEAN        // Exclude rarely-used stuff from
 #include <windows.h>
@@ -96,7 +98,12 @@ DOS_Drive_Cache::~DOS_Drive_Cache(void) {
 void DOS_Drive_Cache::Clear(void) {
     DeleteFileInfo(dirBase); dirBase = nullptr;
     nextFreeFindFirst   = 0;
-    for (uint32_t i=0; i<MAX_OPENDIRS; i++) dirSearch[i] = nullptr;
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
+        if(dirSearch[i]){
+            DeleteFileInfo(dirSearch[i]);
+            dirSearch[i] = nullptr;
+        }
+    }
 }
 
 void DOS_Drive_Cache::EmptyCache(void) {
