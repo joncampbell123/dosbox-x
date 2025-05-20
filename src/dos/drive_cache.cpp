@@ -1011,18 +1011,24 @@ bool DOS_Drive_Cache::FindNext(uint16_t id, char* &result, char* &lresult) {
 }
 
 void DOS_Drive_Cache::ClearFileInfo(CFileInfo *dir) {
-    for(uint32_t i=0; i<dir->fileList.size(); i++) {
-        if (CFileInfo *info = dir->fileList[i])
-            ClearFileInfo(info);
+    for (uint32_t i = 0; i < dir->fileList.size(); i++) {
+        if (CFileInfo *info = dir->fileList[i]) {
+            ClearFileInfo(info);  // recursive clear
+            delete info;          // delete the child
+            dir->fileList[i] = nullptr; // avoid dangling pointer
+        }
     }
     if (dir->id != MAX_OPENDIRS) {
         dirSearch[dir->id] = nullptr;
         dir->id = MAX_OPENDIRS;
     }
+    dir->fileList.clear();      // clear vector after deletion
+    dir->longNameList.clear();  // also clear long name list if needed
 }
 
 void DOS_Drive_Cache::DeleteFileInfo(CFileInfo *dir) {
-    if (dir)
+    if (dir){
         ClearFileInfo(dir);
-    delete dir;
+        delete dir;
+    }
 }
