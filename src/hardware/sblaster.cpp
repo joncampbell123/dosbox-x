@@ -93,7 +93,7 @@ using namespace std;
 int MPU401_GetIRQ();
 void MIDI_RawOutByte(uint8_t data);
 bool MIDI_Available(void);
-
+bool JOYSTICK_IsEnabled(Bitu which);
 Bitu DEBUG_EnableDebugger(void);
 
 #define SB_PIC_EVENTS 0
@@ -590,225 +590,6 @@ struct SB_INFO {
 	Bitu read_sb(Bitu port,Bitu /*iolen*/);
 	void write_sb(Bitu port,Bitu val,Bitu /*iolen*/);
 };
-
-static SB_INFO sb;
-
-static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
-	if (chan!=sb.dma.chan || event==DMA_REACHED_TC) return;
-	else if (event==DMA_READ_COUNTER) {
-		sb.chan->FillUp();
-	}
-	else if (event==DMA_MASKED) {
-		if (sb.mode==MODE_DMA) {
-			//Catch up to current time, but don't generate an IRQ!
-			//Fixes problems with later sci games.
-			double t = PIC_FullIndex() - sb.last_dma_callback;
-			Bitu s = static_cast<Bitu>(sb.dma.rate * t / 1000.0f);
-			if (s > sb.dma.min) {
-				LOG(LOG_SB,LOG_NORMAL)("limiting amount masked to sb.dma.min");
-				s = sb.dma.min;
-			}
-			Bitu min_size = sb.dma.mul >> SB_SH;
-			if (!min_size) min_size = 1;
-			min_size *= 2;
-			if (sb.dma.left > min_size) {
-				if (s > (sb.dma.left - min_size)) s = sb.dma.left - min_size;
-				//This will trigger an irq, see GenerateDMASound, so let's not do that
-				if (!sb.dma.autoinit && sb.dma.left <= sb.dma.min) s = 0;
-				if (s) sb.GenerateDMASound(s);
-			}
-			sb.mode = MODE_DMA_MASKED;
-			LOG(LOG_SB,LOG_NORMAL)("DMA masked, stopping %s, dsp left %d, dma left %d, by %s",sb.dma.recording?"input":"output",(unsigned int)sb.dma.left,chan->currcnt+1,DMAActorStr(chan->masked_by));
-		}
-	} else if (event==DMA_UNMASKED) {
-		if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
-			sb.DSP_ChangeMode(MODE_DMA);
-			sb.CheckDMAEnd();
-			LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d dma left %d, by %s dma init count %d",sb.dma.recording?"input":"output",chan->autoinit,chan->currcnt+1,DMAActorStr(chan->masked_by),chan->basecnt+1);
-		}
-	}
-}
-
-static void DMA_Silent_Event(Bitu val) {
-	if (sb.dma.left<val) val=sb.dma.left;
-	if (sb.dma.recording) sb.gen_input(val,sb.dma.buf.b8);
-	Bitu read = sb.dma.recording ? sb.dma.chan->Write(val,sb.dma.buf.b8) : sb.dma.chan->Read(val,sb.dma.buf.b8);
-	sb.dma.left-=read;
-	if (!sb.dma.left) {
-		if (sb.dma.mode >= DSP_DMA_16) sb.SB_RaiseIRQ(SB_IRQ_16);
-		else sb.SB_RaiseIRQ(SB_IRQ_8);
-		if (sb.dma.autoinit) sb.dma.left=sb.dma.total;
-		else {
-			sb.mode=MODE_NONE;
-			sb.dma.mode=sb.dma.mode_assigned=DSP_DMA_NONE;
-		}
-	}
-	if (sb.dma.left) {
-		Bitu bigger=(sb.dma.left > sb.dma.min) ? sb.dma.min : sb.dma.left;
-		float delay=(bigger*1000.0f)/sb.dma.rate;
-		PIC_AddEvent(DMA_Silent_Event,delay,bigger);
-	}
-}
-
-static void DMA_DAC_Event(Bitu val) {
-	(void)val;//UNUSED
-	unsigned char tmp[4];
-	Bitu read,expct;
-	signed int L,R;
-	int16_t out[2];
-
-	if (sb.dma.chan->masked) {
-		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-		return;
-	}
-	if (!sb.dma.left)
-		return;
-
-	const bool psingle_sample = sb.single_sample_dma;
-	/* Fix for 1994 Demoscene entry myth_dw: The demo's Sound Blaster Pro initialization will start DMA with
-	 * count == 1 or 2 (triggering Goldplay mode) but will change the DMA initial counter when it begins
-	 * normal playback. If goldplay stereo hack is enabled and we do not catch this case, the first 0.5 seconds
-	 * of music will play twice as fast. */
-	if (sb.dma.chan != NULL &&
-		sb.dma.chan->basecnt < ((sb.dma.mode==DSP_DMA_16_ALIASED?2:1)*((sb.dma.stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
-		sb.single_sample_dma = 1;
-	else
-		sb.single_sample_dma = 0;
-
-	if (psingle_sample && !sb.single_sample_dma) {
-		// WARNING: This assumes Sound Blaster Pro emulation!
-		LOG(LOG_SB,LOG_NORMAL)("Goldplay mode unexpectedly switched off, normal DMA playback follows");
-		sb.dma_dac_mode = 0;
-		sb.dma_dac_srcrate = sb.freq / (sb.mixer.stereo ? 2 : 1);
-		sb.chan->SetFreq(sb.dma_dac_srcrate);
-		sb.updateSoundBlasterFilter(sb.dma_dac_srcrate);
-		return;
-	}
-
-	/* NTS: chan->Read() deals with DMA unit transfers.
-	 *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */
-	expct = (sb.dma.stereo ? 2u : 1u) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2u : 1u);
-	if (sb.dma.recording) {
-		sb.gen_input(expct,tmp);
-		read = sb.dma.chan->Write(expct,tmp);
-		L = R = 0;
-	}
-	else {
-		read = sb.dma.chan->Read(expct,tmp);
-		//if (read != expct)
-		//      LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
-
-		if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
-			L = (int16_t)host_readw(&tmp[0]);
-			if (!sb.dma.sign) L ^= 0x8000;
-			if (sb.dma.stereo) {
-				R = (int16_t)host_readw(&tmp[2]);
-				if (!sb.dma.sign) R ^= 0x8000;
-			}
-			else {
-				R = L;
-			}
-		}
-		else {
-			L = tmp[0];
-			if (!sb.dma.sign) L ^= 0x80;
-			L = (int16_t)(L << 8);
-			if (sb.dma.stereo) {
-				R = tmp[1];
-				if (!sb.dma.sign) R ^= 0x80;
-				R = (int16_t)(R << 8);
-			}
-			else {
-				R = L;
-			}
-		}
-	}
-
-	if (sb.dma.stereo) {
-		out[0]=L;
-		out[1]=R;
-		sb.chan->AddSamples_s16(1,out);
-	}
-	else {
-		out[0]=L;
-		sb.chan->AddSamples_m16(1,out);
-	}
-
-	/* NTS: The reason we check this is that sometimes the various "checks" performed by
-	   -        *      setup/configuration tools will setup impossible playback scenarios to test
-	   -        *      the card that would result in read > sb.dma.left. If read > sb.dma.left then
-	   -        *      the subtraction below would drive sb.dma.left below zero and the IRQ would
-	   -        *      never fire, and the test program would fail to detect SB16 emulation.
-	   -        *
-	   -        *      Bugfix for "Extreme Assault" that allows the game to detect Sound Blaster 16
-	   -        *      hardware. "Extreme Assault"'s SB16 test appears to configure a DMA transfer
-	   -        *      of 1 byte then attempt to play 16-bit signed stereo PCM (4 bytes) which prior
-	   -        *      to this fix would falsely trigger Goldplay then cause sb.dma.left to underrun
-	   -        *      and fail to fire the IRQ. */
-	if (sb.dma.left >= read)
-		sb.dma.left -= read;
-	else
-		sb.dma.left = 0;
-
-	if (!sb.dma.left) {
-		sb.SB_OnEndOfDMA();
-		if (sb.dma_dac_mode) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-	}
-	else {
-		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-	}
-}
-
-static void END_DMA_Event(Bitu val) {
-	sb.GenerateDMASound(val);
-}
-
-static void DSP_RaiseIRQEvent(Bitu /*val*/) {
-	sb.SB_RaiseIRQ(SB_IRQ_8);
-}
-
-static void DSP_BusyComplete(Bitu /*val*/) {
-	sb.dsp.write_busy = 0;
-}
-
-static void DSP_FinishReset(Bitu /*val*/) {
-	sb.DSP_FlushData();
-	sb.DSP_AddData(0xaa);
-	sb.dsp.state=DSP_S_NORMAL;
-}
-
-static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
-	if (event==DMA_UNMASKED) {
-		uint8_t val = sb.e2.valadd;
-		DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
-		chan->Register_Callback(nullptr);
-		chan->Write(1,&val);
-	}
-}
-
-static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
-	if (event==DMA_UNMASKED) {
-		static const char *string = "\x01\x02\x04\x08\x10\x20\x40\x80"; /* Confirmed response via DMA from actual Reveal SC400 card */
-		DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
-		LOG(LOG_SB,LOG_DEBUG)("SC400 returning DMA test pattern on DMA channel=%u",sb.hw.dma8);
-		chan->Register_Callback(nullptr);
-		chan->Write(8,(uint8_t*)string);
-		chan->Clear_Request();
-		if (!chan->tcount) LOG(LOG_SB,LOG_DEBUG)("SC400 warning: DMA did not reach terminal count");
-		sb.SB_RaiseIRQ(SB_IRQ_8);
-	}
-}
-
-static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
-	if (event!=DMA_UNMASKED) return;
-	uint8_t val=128;
-	DmaChannel * ch=GetDMAChannel(sb.hw.dma8);
-	while (sb.dma.left--) {
-		ch->Write(1,&val);
-	}
-	sb.SB_RaiseIRQ(SB_IRQ_8);
-	ch->Register_Callback(nullptr);
-}
 
 unsigned char &SB_INFO::ESSreg(uint8_t reg) {
 	assert(reg >= 0xA0 && reg <= 0xBF);
@@ -3390,6 +3171,8 @@ void SB_INFO::write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
+static SB_INFO sb;
+
 static Bitu read_sb(Bitu port,Bitu iolen) {
 	return sb.read_sb(port,iolen);
 }
@@ -3410,7 +3193,7 @@ bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
 	else {
 		sbaddr=sb.hw.base;
 		sbirq =sb.hw.irq;
-		sbdma = sb.hw.dma8;
+		sbdma =sb.hw.dma8;
 		return true;
 	}
 }
@@ -3715,8 +3498,6 @@ class ViBRA_PnP : public ISAPnPDevice {
 		}
 };
 
-bool JOYSTICK_IsEnabled(Bitu which);
-
 std::string GetSBtype() {
 	return sb.GetSBtype();
 }
@@ -3737,6 +3518,223 @@ std::string GetSBldma() {
 
 std::string GetSBhdma() {
 	return sb.hw.dma16==0xff?"None":std::to_string((int)sb.hw.dma16);
+}
+
+static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
+	if (chan!=sb.dma.chan || event==DMA_REACHED_TC) return;
+	else if (event==DMA_READ_COUNTER) {
+		sb.chan->FillUp();
+	}
+	else if (event==DMA_MASKED) {
+		if (sb.mode==MODE_DMA) {
+			//Catch up to current time, but don't generate an IRQ!
+			//Fixes problems with later sci games.
+			double t = PIC_FullIndex() - sb.last_dma_callback;
+			Bitu s = static_cast<Bitu>(sb.dma.rate * t / 1000.0f);
+			if (s > sb.dma.min) {
+				LOG(LOG_SB,LOG_NORMAL)("limiting amount masked to sb.dma.min");
+				s = sb.dma.min;
+			}
+			Bitu min_size = sb.dma.mul >> SB_SH;
+			if (!min_size) min_size = 1;
+			min_size *= 2;
+			if (sb.dma.left > min_size) {
+				if (s > (sb.dma.left - min_size)) s = sb.dma.left - min_size;
+				//This will trigger an irq, see GenerateDMASound, so let's not do that
+				if (!sb.dma.autoinit && sb.dma.left <= sb.dma.min) s = 0;
+				if (s) sb.GenerateDMASound(s);
+			}
+			sb.mode = MODE_DMA_MASKED;
+			LOG(LOG_SB,LOG_NORMAL)("DMA masked, stopping %s, dsp left %d, dma left %d, by %s",sb.dma.recording?"input":"output",(unsigned int)sb.dma.left,chan->currcnt+1,DMAActorStr(chan->masked_by));
+		}
+	} else if (event==DMA_UNMASKED) {
+		if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
+			sb.DSP_ChangeMode(MODE_DMA);
+			sb.CheckDMAEnd();
+			LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d dma left %d, by %s dma init count %d",sb.dma.recording?"input":"output",chan->autoinit,chan->currcnt+1,DMAActorStr(chan->masked_by),chan->basecnt+1);
+		}
+	}
+}
+
+static void DMA_Silent_Event(Bitu val) {
+	if (sb.dma.left<val) val=sb.dma.left;
+	if (sb.dma.recording) sb.gen_input(val,sb.dma.buf.b8);
+	Bitu read = sb.dma.recording ? sb.dma.chan->Write(val,sb.dma.buf.b8) : sb.dma.chan->Read(val,sb.dma.buf.b8);
+	sb.dma.left-=read;
+	if (!sb.dma.left) {
+		if (sb.dma.mode >= DSP_DMA_16) sb.SB_RaiseIRQ(SB_IRQ_16);
+		else sb.SB_RaiseIRQ(SB_IRQ_8);
+		if (sb.dma.autoinit) sb.dma.left=sb.dma.total;
+		else {
+			sb.mode=MODE_NONE;
+			sb.dma.mode=sb.dma.mode_assigned=DSP_DMA_NONE;
+		}
+	}
+	if (sb.dma.left) {
+		Bitu bigger=(sb.dma.left > sb.dma.min) ? sb.dma.min : sb.dma.left;
+		float delay=(bigger*1000.0f)/sb.dma.rate;
+		PIC_AddEvent(DMA_Silent_Event,delay,bigger);
+	}
+}
+
+static void DMA_DAC_Event(Bitu val) {
+	(void)val;//UNUSED
+	unsigned char tmp[4];
+	Bitu read,expct;
+	signed int L,R;
+	int16_t out[2];
+
+	if (sb.dma.chan->masked) {
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+		return;
+	}
+	if (!sb.dma.left)
+		return;
+
+	const bool psingle_sample = sb.single_sample_dma;
+	/* Fix for 1994 Demoscene entry myth_dw: The demo's Sound Blaster Pro initialization will start DMA with
+	 * count == 1 or 2 (triggering Goldplay mode) but will change the DMA initial counter when it begins
+	 * normal playback. If goldplay stereo hack is enabled and we do not catch this case, the first 0.5 seconds
+	 * of music will play twice as fast. */
+	if (sb.dma.chan != NULL &&
+		sb.dma.chan->basecnt < ((sb.dma.mode==DSP_DMA_16_ALIASED?2:1)*((sb.dma.stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
+		sb.single_sample_dma = 1;
+	else
+		sb.single_sample_dma = 0;
+
+	if (psingle_sample && !sb.single_sample_dma) {
+		// WARNING: This assumes Sound Blaster Pro emulation!
+		LOG(LOG_SB,LOG_NORMAL)("Goldplay mode unexpectedly switched off, normal DMA playback follows");
+		sb.dma_dac_mode = 0;
+		sb.dma_dac_srcrate = sb.freq / (sb.mixer.stereo ? 2 : 1);
+		sb.chan->SetFreq(sb.dma_dac_srcrate);
+		sb.updateSoundBlasterFilter(sb.dma_dac_srcrate);
+		return;
+	}
+
+	/* NTS: chan->Read() deals with DMA unit transfers.
+	 *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */
+	expct = (sb.dma.stereo ? 2u : 1u) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2u : 1u);
+	if (sb.dma.recording) {
+		sb.gen_input(expct,tmp);
+		read = sb.dma.chan->Write(expct,tmp);
+		L = R = 0;
+	}
+	else {
+		read = sb.dma.chan->Read(expct,tmp);
+		//if (read != expct)
+		//      LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
+
+		if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
+			L = (int16_t)host_readw(&tmp[0]);
+			if (!sb.dma.sign) L ^= 0x8000;
+			if (sb.dma.stereo) {
+				R = (int16_t)host_readw(&tmp[2]);
+				if (!sb.dma.sign) R ^= 0x8000;
+			}
+			else {
+				R = L;
+			}
+		}
+		else {
+			L = tmp[0];
+			if (!sb.dma.sign) L ^= 0x80;
+			L = (int16_t)(L << 8);
+			if (sb.dma.stereo) {
+				R = tmp[1];
+				if (!sb.dma.sign) R ^= 0x80;
+				R = (int16_t)(R << 8);
+			}
+			else {
+				R = L;
+			}
+		}
+	}
+
+	if (sb.dma.stereo) {
+		out[0]=L;
+		out[1]=R;
+		sb.chan->AddSamples_s16(1,out);
+	}
+	else {
+		out[0]=L;
+		sb.chan->AddSamples_m16(1,out);
+	}
+
+	/* NTS: The reason we check this is that sometimes the various "checks" performed by
+	   -        *      setup/configuration tools will setup impossible playback scenarios to test
+	   -        *      the card that would result in read > sb.dma.left. If read > sb.dma.left then
+	   -        *      the subtraction below would drive sb.dma.left below zero and the IRQ would
+	   -        *      never fire, and the test program would fail to detect SB16 emulation.
+	   -        *
+	   -        *      Bugfix for "Extreme Assault" that allows the game to detect Sound Blaster 16
+	   -        *      hardware. "Extreme Assault"'s SB16 test appears to configure a DMA transfer
+	   -        *      of 1 byte then attempt to play 16-bit signed stereo PCM (4 bytes) which prior
+	   -        *      to this fix would falsely trigger Goldplay then cause sb.dma.left to underrun
+	   -        *      and fail to fire the IRQ. */
+	if (sb.dma.left >= read)
+		sb.dma.left -= read;
+	else
+		sb.dma.left = 0;
+
+	if (!sb.dma.left) {
+		sb.SB_OnEndOfDMA();
+		if (sb.dma_dac_mode) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+	}
+	else {
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+	}
+}
+
+static void END_DMA_Event(Bitu val) {
+	sb.GenerateDMASound(val);
+}
+
+static void DSP_RaiseIRQEvent(Bitu /*val*/) {
+	sb.SB_RaiseIRQ(SB_IRQ_8);
+}
+
+static void DSP_BusyComplete(Bitu /*val*/) {
+	sb.dsp.write_busy = 0;
+}
+
+static void DSP_FinishReset(Bitu /*val*/) {
+	sb.DSP_FlushData();
+	sb.DSP_AddData(0xaa);
+	sb.dsp.state=DSP_S_NORMAL;
+}
+
+static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
+	if (event==DMA_UNMASKED) {
+		uint8_t val = sb.e2.valadd;
+		DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
+		chan->Register_Callback(nullptr);
+		chan->Write(1,&val);
+	}
+}
+
+static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
+	if (event==DMA_UNMASKED) {
+		static const char *string = "\x01\x02\x04\x08\x10\x20\x40\x80"; /* Confirmed response via DMA from actual Reveal SC400 card */
+		DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
+		LOG(LOG_SB,LOG_DEBUG)("SC400 returning DMA test pattern on DMA channel=%u",sb.hw.dma8);
+		chan->Register_Callback(nullptr);
+		chan->Write(8,(uint8_t*)string);
+		chan->Clear_Request();
+		if (!chan->tcount) LOG(LOG_SB,LOG_DEBUG)("SC400 warning: DMA did not reach terminal count");
+		sb.SB_RaiseIRQ(SB_IRQ_8);
+	}
+}
+
+static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
+	if (event!=DMA_UNMASKED) return;
+	uint8_t val=128;
+	DmaChannel * ch=GetDMAChannel(sb.hw.dma8);
+	while (sb.dma.left--) {
+		ch->Write(1,&val);
+	}
+	sb.SB_RaiseIRQ(SB_IRQ_8);
+	ch->Register_Callback(nullptr);
 }
 
 class SBLASTER: public Module_base {
