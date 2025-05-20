@@ -526,6 +526,7 @@ struct SB_INFO {
 	unsigned int gen_input_ofs = 0;
 	unsigned long long gen_tone_angle = 0;
 	unsigned int gen_hiss_rand[2] = {0,0};
+	size_t card_index = 0;
 	int gen_last_hiss = 0;
 
 	/* SB16 cards have a 256-byte block of 8051 internal RAM accessible through DSP commands 0xF9 (Read) and 0xFA (Write) */
@@ -592,6 +593,15 @@ struct SB_INFO {
 	Bitu read_sb(Bitu port,Bitu /*iolen*/);
 	void write_sb(Bitu port,Bitu val,Bitu /*iolen*/);
 };
+
+static const char *sb_section_names[MAX_CARDS] = {
+	"sblaster"
+};
+
+static Section_prop* sbGetSection(const size_t ci) {
+	assert(ci < MAX_CARDS);
+	return static_cast<Section_prop *>(control->GetSection(sb_section_names[ci]));
+}
 
 unsigned char &SB_INFO::ESSreg(uint8_t reg) {
 	assert(reg >= 0xA0 && reg <= 0xBF);
@@ -766,7 +776,7 @@ void SB_INFO::SB_RaiseIRQ(SB_IRQS type) {
 }
 
 void SB_INFO::sb_update_recording_source_settings() {
-	Section_prop* section = static_cast<Section_prop *>(control->GetSection("sblaster"));
+	Section_prop* section = sbGetSection(card_index);
 
 	listen_to_recording_source=section->Get_bool("listen to recording source");
 
@@ -4096,7 +4106,7 @@ class SBLASTER: public Module_base {
 				case SBT_GB:
 					   if(!sb[ci].cms) {
 						   LOG(LOG_SB, LOG_WARN)("'cms' setting is 'off', but is forced to 'auto' on the Game Blaster.");
-						   auto* sect_updater = static_cast<Section_prop*>(control->GetSection("sblaster"));
+						   auto* sect_updater = sbGetSection(ci);
 						   sect_updater->Get_prop("cms")->SetValue("auto");
 					   }
 					   sb[ci].cms = true; // Game Blaster is CMS
@@ -4104,7 +4114,7 @@ class SBLASTER: public Module_base {
 				default:
 					   if(sb[ci].cms) {
 						   LOG(LOG_SB, LOG_WARN)("'cms' setting 'on' not supported on this card, forcing 'auto'.");
-						   auto* sect_updater = static_cast<Section_prop*>(control->GetSection("sblaster"));
+						   auto* sect_updater = sbGetSection(ci);
 						   sect_updater->Get_prop("cms")->SetValue("auto");
 					   }
 					   sb[ci].cms = false;
@@ -4435,7 +4445,7 @@ void SBLASTER_OnReset(Section *sec) {
 	for (size_t ci=0;ci < MAX_CARDS;ci++) {
 		if (test[ci] == NULL) {
 			LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
-			test[ci] = new SBLASTER(control->GetSection("sblaster"));
+			test[ci] = new SBLASTER(sbGetSection(ci));
 		}
 	}
 }
