@@ -208,35 +208,39 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
 }
 
 void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
-    // Get Last part...
-    char expand [CROSS_LEN];
+    if (!path || *path == '\0') return; // Invalid path, do nothing
 
-    CFileInfo* dir = FindDirInfo(path,expand);
-    const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
+    // Allocate buffers on the heap with zero-initialization
+    std::unique_ptr<char[]> expand(new char[CROSS_LEN]());
+    std::unique_ptr<char[]> file(new char[CROSS_LEN]());
 
-    if (pos) {
-        char file   [CROSS_LEN];
-        strcpy(file,pos+1);
-        // Check if file already exists, then don't add new entry...
-        if (checkExists) {
-            if (GetLongName(dir,file)>=0) return;
-        }
+    // Find directory info for the given path
+    CFileInfo* dir = FindDirInfo(path, expand.get());
+    if (!dir) return;
 
-        char sfile[DOS_NAMELENGTH];
-        sfile[0]=0;
-        CreateEntry(dir,file,sfile,false);
+    // Find last occurrence of the file separator in path (cast away const)
+    const char* pos = strrchr_dbcs(const_cast<char*>(path), CROSS_FILESPLIT);
+    if (!pos || *(pos + 1) == '\0') return; // No filename found
 
-        Bits index = GetLongName(dir,file);
-        if (index>=0) {
-            // Check if there are any open search dir that are affected by this...
-            if (dir) for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
-                if ((dirSearch[i]==dir) && ((uint32_t)index<=dirSearch[i]->nextEntry))
-                    dirSearch[i]->nextEntry++;
+    // Safely copy filename into buffer
+    strncpy(file.get(), pos + 1, CROSS_LEN - 1);
+    file[CROSS_LEN - 1] = '\0';
+
+    // If file already exists and checking is enabled, skip adding
+    if (checkExists && GetLongName(dir, file.get()) >= 0) return;
+
+    // Prepare buffer for short filename
+    char sfile[DOS_NAMELENGTH] = {};
+    if (!CreateEntry(dir, file.get(), sfile, false)) return;
+
+    // Update open directory search state if necessary
+    Bits index = GetLongName(dir, file.get());
+    if (index >= 0) {
+        for (uint32_t i = 0; i < MAX_OPENDIRS; ++i) {
+            if (dirSearch[i] == dir && static_cast<uint32_t>(index) <= dirSearch[i]->nextEntry) {
+                dirSearch[i]->nextEntry++;
             }
         }
-        //      LOG_DEBUG("DIR: Added Entry %s",path);
-    } else {
-//      LOG_DEBUG("DIR: Error: Failed to add %s",path);
     }
 }
 
