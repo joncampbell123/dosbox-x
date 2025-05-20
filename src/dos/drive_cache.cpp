@@ -368,13 +368,21 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
 //  LOG_DEBUG("DIR: Caching out %s : dir %s",expand,dir->orgname);
 //  clear cache first?
     for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
-        dirSearch[i] = nullptr; //free[i] = true;
+        if(dirSearch[i]) {
+            DeleteFileInfo(dirSearch[i]);
+            dirSearch[i] = nullptr; //free[i] = true;
+        }
     }
     // delete file objects...
     //Maybe check if it is a file and then only delete the file and possibly the long name. instead of all objects in the dir.
-    for(uint32_t i=0; i<dir->fileList.size(); i++) {
-        if (dirSearch[srchNr]==dir->fileList[i]) dirSearch[srchNr] = nullptr;
-        DeleteFileInfo(dir->fileList[i]); dir->fileList[i] = nullptr;
+    for (CFileInfo*& file : dir->fileList) {
+        for (uint32_t j = 0; j < MAX_OPENDIRS; ++j) {
+            if (dirSearch[j] == file) {
+                dirSearch[j] = nullptr;
+            }
+        }
+        DeleteFileInfo(file);
+        file = nullptr;
     }
     // clear lists
     dir->fileList.clear();
