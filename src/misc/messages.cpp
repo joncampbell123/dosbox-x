@@ -597,8 +597,12 @@ void MSG_Init() {
         if (pathprop != NULL) {
             std::string path = pathprop->realpath;
             ResolvePath(path);
-            if (testLoadLangFile(path.c_str()))
+
+            FILE* f = testLoadLangFile(path.c_str());
+            if (f) {
+                fclose(f);
                 LoadMessageFile(path.c_str());
+            }
             else {
                 std::string lang = section->Get_string("language");
                 if (lang.size()) LoadMessageFile(lang.c_str());
