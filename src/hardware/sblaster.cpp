@@ -1314,6 +1314,7 @@ void SB_INFO::DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool his
 	dma_dac_mode=0;
 	ess_playback_mode = false;
 	dma.chan=GetDMAChannel(hw.dma8);
+	dma.chan->userData = card_index;
 	DSP_DoDMATransfer(mode,freq / (mixer.stereo ? 2 : 1),mixer.stereo);
 }
 
@@ -1349,6 +1350,7 @@ void SB_INFO::DSP_PrepareDMA_New(DMA_MODES new_mode,Bitu length,bool autoinit,bo
 	if (new_mode==DSP_DMA_16) {
 		if (hw.dma16 == 0xff || hw.dma16 == hw.dma8) { /* 16-bit DMA not assigned or same as 8-bit channel */
 			dma.chan=GetDMAChannel(hw.dma8);
+			dma.chan->userData = card_index;
 			new_mode=DSP_DMA_16_ALIASED;
 			//UNDOCUMENTED:
 			//In aliased mode sample length is written to DSP as number of
@@ -1357,6 +1359,7 @@ void SB_INFO::DSP_PrepareDMA_New(DMA_MODES new_mode,Bitu length,bool autoinit,bo
 		}
 		else if (hw.dma16 >= 4) { /* 16-bit DMA assigned to 16-bit DMA channel */
 			dma.chan=GetDMAChannel(hw.dma16);
+			dma.chan->userData = card_index;
 		}
 		else {
 			/* Nope. According to one ViBRA PnP card I have on hand, asking the
@@ -1368,6 +1371,7 @@ void SB_INFO::DSP_PrepareDMA_New(DMA_MODES new_mode,Bitu length,bool autoinit,bo
 		}
 	} else {
 		dma.chan=GetDMAChannel(hw.dma8);
+		dma.chan->userData = card_index;
 	}
 
 	DSP_DoDMATransfer(new_mode,saved_freq,stereo);
@@ -1461,6 +1465,7 @@ void SB_INFO::ESS_StartDMA() {
 	LOG(LOG_SB,LOG_DEBUG)("ESS DMA start");
 	dma_dac_mode = 0;
 	dma.chan = GetDMAChannel(hw.dma8);
+	dma.chan->userData = card_index;
 	dma.recording = (ESSreg(0xB8) & 8/*ADC mode*/) > 0;
 	if (dma.chan) dma.chan->Raise_Request();
 	// FIXME: Which bit(s) are responsible for signalling stereo?
@@ -2336,6 +2341,7 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 				LOG(LOG_SB,LOG_NORMAL)("DSP Function 0xe2");
 				e2.valadd += dsp.in.data[0] ^ e2.valxor;
 				e2.valxor = (e2.valxor >> 2u) | (e2.valxor << 6u);
+				GetDMAChannel(hw.dma8)->userData = card_index;
 				GetDMAChannel(hw.dma8)->Register_Callback(DSP_E2_DMA_CallBack);
 			}
 			break;
@@ -2441,6 +2447,7 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 			break;
 		case 0xE6: /* Reveal SC400 DMA test */
 			if (reveal_sc_type != RSC_SC400) break;
+			GetDMAChannel(hw.dma8)->userData = card_index;
 			GetDMAChannel(hw.dma8)->Register_Callback(DSP_SC400_E6_DMA_CallBack);
 			dsp.out.lastval = 0x80;
 			dsp.out.used = 0;
@@ -3213,8 +3220,7 @@ bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
 	}
 }
 
-static void SBLASTER_CallBack(Bitu len) {
-	const size_t ci = 0;
+static void SBLASTER_CallBack(const size_t ci,Bitu len) {
 	pic_tickindex_t now = PIC_FullIndex();
 
 	if (now >= sb[ci].next_check_record_settings) {
@@ -3243,6 +3249,14 @@ static void SBLASTER_CallBack(Bitu len) {
 			break;
 	}
 }
+
+template <const size_t ci> static void SBLASTER_CallBack(Bitu len) {
+	SBLASTER_CallBack(ci,len);
+}
+
+static const MIXER_Handler SBLASTER_CallBacks[MAX_CARDS] = {
+	SBLASTER_CallBack<0>
+};
 
 #define ISAPNP_COMPATIBLE(id) \
     ISAPNP_SMALL_TAG(3,4), \
@@ -3293,12 +3307,13 @@ static const unsigned char ViBRA_sysdev[] = {
 class ViBRA_PnP : public ISAPnPDevice {
 	public:
 		size_t ci = 0;
-		ViBRA_PnP() : ISAPnPDevice() {
+		ViBRA_PnP(const size_t n_ci) : ISAPnPDevice() {
 			resource_ident = 0;
 			host_writed(ident+0,ISAPNP_ID('C','T','L',0x0,0x0,0x7,0x0)); /* CTL0070: ViBRA C */
 			host_writed(ident+4,0xFFFFFFFFUL);
 			checksum_ident();
 
+			ci = n_ci;
 			alloc(256 - 9/*ident*/); // Real ViBRA hardware acts as if PNP data is read from a 256-byte ROM
 
 			// this template taken from a real Creative ViBRA16C card
@@ -3742,6 +3757,7 @@ static void DSP_E2_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
 	if (event==DMA_UNMASKED) {
 		uint8_t val = sb[ci].e2.valadd;
 		DmaChannel * chan=GetDMAChannel(sb[ci].hw.dma8);
+		chan->userData = ci;
 		chan->Register_Callback(nullptr);
 		chan->Write(1,&val);
 	}
@@ -3754,6 +3770,7 @@ static void DSP_SC400_E6_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
 		static const char *string = "\x01\x02\x04\x08\x10\x20\x40\x80"; /* Confirmed response via DMA from actual Reveal SC400 card */
 		DmaChannel * chan=GetDMAChannel(sb[ci].hw.dma8);
 		LOG(LOG_SB,LOG_DEBUG)("SC400 returning DMA test pattern on DMA channel=%u",sb[ci].hw.dma8);
+		chan->userData = ci;
 		chan->Register_Callback(nullptr);
 		chan->Write(8,(uint8_t*)string);
 		chan->Clear_Request();
@@ -3767,6 +3784,7 @@ static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	if (event!=DMA_UNMASKED) return;
 	uint8_t val=128;
 	DmaChannel * ch=GetDMAChannel(sb[ci].hw.dma8);
+	ch->userData = ci;
 	while (sb[ci].dma.left--) {
 		ch->Write(1,&val);
 	}
@@ -3842,7 +3860,7 @@ class SBLASTER: public Module_base {
 			/* SB16 Vibra cards are Plug & Play */
 			if (!IS_PC98_ARCH) {
 				if (!strcasecmp(sbtype,"sb16vibra")) {
-					ISA_PNP_devreg(new ViBRA_PnP());
+					ISA_PNP_devreg(new ViBRA_PnP(ci));
 					sb[ci].vibra = true;
 				}
 			}
@@ -3900,7 +3918,7 @@ class SBLASTER: public Module_base {
 			}
 		}
 	public:
-		SBLASTER(Section* configuration):Module_base(configuration) {
+		SBLASTER(const size_t n_ci,Section* configuration):Module_base(configuration) {
 			bool bv;
 			string s;
 			Bitu i;
@@ -3908,6 +3926,7 @@ class SBLASTER: public Module_base {
 
 			Section_prop * section=static_cast<Section_prop *>(configuration);
 
+			ci = n_ci;
 			sb[ci].recording_source = REC_SILENCE;
 			sb[ci].listen_to_recording_source = false;
 			sb[ci].hw.base=(unsigned int)section->Get_hex("sbbase");
@@ -4020,7 +4039,10 @@ class SBLASTER: public Module_base {
 				LOG_MSG("PC-98: Final SB16 resources are DMA8=%u DMA16=%u\n",sb[ci].hw.dma8,sb[ci].hw.dma16);
 
 				sb[ci].dma.chan=GetDMAChannel(sb[ci].hw.dma8);
-				if (sb[ci].dma.chan == NULL) LOG_MSG("PC-98: SB16 is unable to obtain DMA channel");
+				if (sb[ci].dma.chan != NULL)
+					sb[ci].dma.chan->userData = ci;
+				else
+					LOG_MSG("PC-98: SB16 is unable to obtain DMA channel");
 			}
 
 			sb[ci].dsp.command_aliases=section->Get_bool("dsp command aliases");
@@ -4131,7 +4153,7 @@ class SBLASTER: public Module_base {
 
 			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
 
-			sb[ci].chan=MixerChan.Install(&SBLASTER_CallBack,22050,"SB");
+			sb[ci].chan=MixerChan.Install(SBLASTER_CallBacks[ci],22050,"SB");
 			sb[ci].dac.dac_pt = sb[ci].dac.dac_t = 0;
 			sb[ci].dsp.state=DSP_S_NORMAL;
 			sb[ci].dsp.out.lastval=0xaa;
@@ -4450,7 +4472,7 @@ void SBLASTER_OnReset(Section *sec) {
 	for (size_t ci=0;ci < MAX_CARDS;ci++) {
 		if (test[ci] == NULL) {
 			LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
-			test[ci] = new SBLASTER(sbGetSection(ci));
+			test[ci] = new SBLASTER(ci,sbGetSection(ci));
 		}
 	}
 }
