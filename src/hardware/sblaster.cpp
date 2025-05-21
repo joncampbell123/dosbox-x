@@ -3351,8 +3351,10 @@ class ViBRA_PnP : public ISAPnPDevice {
 					true,/*word mode*/
 					DMASpeedSupported_Compat);
 			write_IO_Port(/*min*/0x220,/*max*/0x220,/*count*/0x10,/*align*/0x01);
-			write_IO_Port(/*min*/0x330,/*max*/0x330,/*count*/0x02,/*align*/0x01);
-			write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+			if (ci == 0) {
+				write_IO_Port(/*min*/0x330,/*max*/0x330,/*count*/0x02,/*align*/0x01);
+				write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+			}
 
 			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::AcceptableDependentConfiguration,true);
 			write_IRQ_Format(
@@ -3372,8 +3374,10 @@ class ViBRA_PnP : public ISAPnPDevice {
 					true,/*word mode*/
 					DMASpeedSupported_Compat);
 			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
-			write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
-			write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+			if (ci == 0) {
+				write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+				write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+			}
 
 			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::AcceptableDependentConfiguration,true);
 			write_IRQ_Format(
@@ -3393,7 +3397,9 @@ class ViBRA_PnP : public ISAPnPDevice {
 					true,/*word mode*/
 					DMASpeedSupported_Compat);
 			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
-			write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+			if (ci == 0) {
+				write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+			}
 
 			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
 			write_IRQ_Format(
@@ -3425,8 +3431,10 @@ class ViBRA_PnP : public ISAPnPDevice {
 					false,/*word mode*/
 					DMASpeedSupported_Compat);
 			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
-			write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
-			write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+			if (ci == 0) {
+				write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+				write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+			}
 
 			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
 			write_IRQ_Format(
@@ -3442,11 +3450,13 @@ class ViBRA_PnP : public ISAPnPDevice {
 
 			write_End_Dependent_Functions();
 
-			// NTS: DOSBox-X as coded now always has a joystick port at 0x201 even if no joystick
-			write_Logical_Device_ID('C','T','L',0x7,0x0,0x0,0x1); // CTL7001
-			write_Compatible_Device_ID('P','N','P',0xB,0x0,0x2,0xF); // PNPB02F
-			write_Identifier_String("Game");
-			write_IO_Port(/*min*/0x200,/*max*/0x200,/*count*/0x08);
+			if (ci == 0) {
+				// NTS: DOSBox-X as coded now always has a joystick port at 0x201 even if no joystick
+				write_Logical_Device_ID('C','T','L',0x7,0x0,0x0,0x1); // CTL7001
+				write_Compatible_Device_ID('P','N','P',0xB,0x0,0x2,0xF); // PNPB02F
+				write_Identifier_String("Game");
+				write_IO_Port(/*min*/0x200,/*max*/0x200,/*count*/0x08);
+			}
 
 			end_write_res();        // END
 		}
