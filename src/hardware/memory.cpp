@@ -55,6 +55,8 @@
 #include "../gamelink/gamelink.h"
 #endif // C_GAMELINK
 
+void RebootLanguage(std::string filename, bool confirm=false);
+
 /* memory from file, memory mapping */
 #if C_HAVE_MMAP
 # define DO_MEMORY_FILE
@@ -1602,6 +1604,7 @@ void On_Software_CPU_Reset() {
     /* this technique is NOT reliable when running the dynamic core! */
     if (cpudecoder == &CPU_Core_Dyn_X86_Run || cpudecoder == &CPU_Core_Dynrec_Run) {
         LOG_MSG("Warning: C++ exception method is not compatible with dynamic core when emulating reset");
+        RebootLanguage("");
     }
 #endif
 
