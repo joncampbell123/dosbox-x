@@ -28,8 +28,6 @@
 #include <iterator>
 #include <algorithm>
 
-#include <memory> // unique_ptr
-
 #if defined (WIN32)   /* Win 32 */
 #define WIN32_LEAN_AND_MEAN        // Exclude rarely-used stuff from
 #include <windows.h>
@@ -98,12 +96,7 @@ DOS_Drive_Cache::~DOS_Drive_Cache(void) {
 void DOS_Drive_Cache::Clear(void) {
     DeleteFileInfo(dirBase); dirBase = nullptr;
     nextFreeFindFirst   = 0;
-    for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
-        if(dirSearch[i]){
-            DeleteFileInfo(dirSearch[i]);
-            dirSearch[i] = nullptr;
-        }
-    }
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) dirSearch[i] = nullptr;
 }
 
 void DOS_Drive_Cache::EmptyCache(void) {
@@ -215,39 +208,35 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
 }
 
 void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
-    if (!path || *path == '\0') return; // Invalid path, do nothing
+    // Get Last part...
+    char expand [CROSS_LEN];
 
-    // Allocate buffers on the heap with zero-initialization
-    std::unique_ptr<char[]> expand(new char[CROSS_LEN]());
-    std::unique_ptr<char[]> file(new char[CROSS_LEN]());
+    CFileInfo* dir = FindDirInfo(path,expand);
+    const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
 
-    // Find directory info for the given path
-    CFileInfo* dir = FindDirInfo(path, expand.get());
-    if (!dir) return;
+    if (pos) {
+        char file   [CROSS_LEN];
+        strcpy(file,pos+1);
+        // Check if file already exists, then don't add new entry...
+        if (checkExists) {
+            if (GetLongName(dir,file)>=0) return;
+        }
 
-    // Find last occurrence of the file separator in path (cast away const)
-    const char* pos = strrchr_dbcs(const_cast<char*>(path), CROSS_FILESPLIT);
-    if (!pos || *(pos + 1) == '\0') return; // No filename found
+        char sfile[DOS_NAMELENGTH];
+        sfile[0]=0;
+        CreateEntry(dir,file,sfile,false);
 
-    // Safely copy filename into buffer
-    strncpy(file.get(), pos + 1, CROSS_LEN - 1);
-    file[CROSS_LEN - 1] = '\0';
-
-    // If file already exists and checking is enabled, skip adding
-    if (checkExists && GetLongName(dir, file.get()) >= 0) return;
-
-    // Prepare buffer for short filename
-    char sfile[DOS_NAMELENGTH] = {};
-    if (!CreateEntry(dir, file.get(), sfile, false)) return;
-
-    // Update open directory search state if necessary
-    Bits index = GetLongName(dir, file.get());
-    if (index >= 0) {
-        for (uint32_t i = 0; i < MAX_OPENDIRS; ++i) {
-            if (dirSearch[i] == dir && static_cast<uint32_t>(index) <= dirSearch[i]->nextEntry) {
-                dirSearch[i]->nextEntry++;
+        Bits index = GetLongName(dir,file);
+        if (index>=0) {
+            // Check if there are any open search dir that are affected by this...
+            if (dir) for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
+                if ((dirSearch[i]==dir) && ((uint32_t)index<=dirSearch[i]->nextEntry))
+                    dirSearch[i]->nextEntry++;
             }
         }
+        //      LOG_DEBUG("DIR: Added Entry %s",path);
+    } else {
+//      LOG_DEBUG("DIR: Error: Failed to add %s",path);
     }
 }
 
@@ -368,21 +357,13 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
 //  LOG_DEBUG("DIR: Caching out %s : dir %s",expand,dir->orgname);
 //  clear cache first?
     for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
-        if(dirSearch[i]) {
-            DeleteFileInfo(dirSearch[i]);
-            dirSearch[i] = nullptr; //free[i] = true;
-        }
+        dirSearch[i] = nullptr; //free[i] = true;
     }
     // delete file objects...
     //Maybe check if it is a file and then only delete the file and possibly the long name. instead of all objects in the dir.
-    for (CFileInfo*& file : dir->fileList) {
-        for (uint32_t j = 0; j < MAX_OPENDIRS; ++j) {
-            if (dirSearch[j] == file) {
-                dirSearch[j] = nullptr;
-            }
-        }
-        DeleteFileInfo(file);
-        file = nullptr;
+    for(uint32_t i=0; i<dir->fileList.size(); i++) {
+        if (dirSearch[srchNr]==dir->fileList[i]) dirSearch[srchNr] = nullptr;
+        DeleteFileInfo(dir->fileList[i]); dir->fileList[i] = nullptr;
     }
     // clear lists
     dir->fileList.clear();
@@ -1026,24 +1007,18 @@ bool DOS_Drive_Cache::FindNext(uint16_t id, char* &result, char* &lresult) {
 }
 
 void DOS_Drive_Cache::ClearFileInfo(CFileInfo *dir) {
-    for (uint32_t i = 0; i < dir->fileList.size(); i++) {
-        if (CFileInfo *info = dir->fileList[i]) {
-            ClearFileInfo(info);  // recursive clear
-            delete info;          // delete the child
-            dir->fileList[i] = nullptr; // avoid dangling pointer
-        }
+    for(uint32_t i=0; i<dir->fileList.size(); i++) {
+        if (CFileInfo *info = dir->fileList[i])
+            ClearFileInfo(info);
     }
     if (dir->id != MAX_OPENDIRS) {
         dirSearch[dir->id] = nullptr;
         dir->id = MAX_OPENDIRS;
     }
-    dir->fileList.clear();      // clear vector after deletion
-    dir->longNameList.clear();  // also clear long name list if needed
 }
 
 void DOS_Drive_Cache::DeleteFileInfo(CFileInfo *dir) {
-    if (dir){
+    if (dir)
         ClearFileInfo(dir);
-        delete dir;
-    }
+    delete dir;
 }
