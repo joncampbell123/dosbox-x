@@ -600,6 +600,17 @@ static const char *sb_section_names[MAX_CARDS] = {
 	"sblaster"
 };
 
+static const char *sbMixerChanNames[MAX_CARDS] = {
+	"SB"
+};
+
+const char *sbGetSectionName(const size_t ci) {
+	if (ci < MAX_CARDS)
+		return sb_section_names[ci];
+	else
+		return NULL;
+}
+
 static Section_prop* sbGetSection(const size_t ci) {
 	assert(ci < MAX_CARDS);
 	return static_cast<Section_prop *>(control->GetSection(sb_section_names[ci]));
@@ -1810,7 +1821,7 @@ void SB_INFO::CTMIXER_UpdateVolumes(void) {
 	MixerChannel * chan;
 	float m0 = calc_vol(mixer.master[0]);
 	float m1 = calc_vol(mixer.master[1]);
-	chan = MIXER_FindChannel("SB");
+	chan = MIXER_FindChannel(sbMixerChanNames[card_index]);
 	if (chan) chan->SetVolume(m0 * calc_vol(mixer.dac[0]), m1 * calc_vol(mixer.dac[1]));
 	chan = MIXER_FindChannel("FM");
 	if (chan) chan->SetVolume(m0 * calc_vol(mixer.fm[0]) , m1 * calc_vol(mixer.fm[1]) );
@@ -3161,7 +3172,7 @@ void SB_INFO::write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
 	if (!IS_PC98_ARCH) {
 		if (hw.sb_io_alias) {
 			if ((port-hw.base) == DSP_ACK_16BIT && ess_type != ESS_NONE)
-			{ } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
+				{ } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
 			else if ((port-hw.base) < MIXER_INDEX || (port-hw.base) > MIXER_DATA)
 				port &= ~1u;
 		}
@@ -3585,7 +3596,13 @@ static void DMA_Silent_Event(Bitu val) {
 	assert(ci < MAX_CARDS);
 	if (sb[ci].dma.left<val) val=sb[ci].dma.left;
 	if (sb[ci].dma.recording) sb[ci].gen_input(val,sb[ci].dma.buf.b8);
-	Bitu read = sb[ci].dma.recording ? sb[ci].dma.chan->Write(val,sb[ci].dma.buf.b8) : sb[ci].dma.chan->Read(val,sb[ci].dma.buf.b8);
+	Bitu read =
+		(sb[ci].dma.chan != NULL) ?
+			(sb[ci].dma.recording ?
+				sb[ci].dma.chan->Write(val,sb[ci].dma.buf.b8) :
+				sb[ci].dma.chan->Read(val,sb[ci].dma.buf.b8)
+			) :
+			0;
 	sb[ci].dma.left-=read;
 	if (!sb[ci].dma.left) {
 		if (sb[ci].dma.mode >= DSP_DMA_16) sb[ci].SB_RaiseIRQ(SB_IRQ_16);
@@ -3744,7 +3761,6 @@ static void DSP_E2_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
 	assert(ci < MAX_CARDS);
 	if (event==DMA_UNMASKED) {
 		uint8_t val = sb[ci].e2.valadd;
-		chan->userData = ci;
 		chan->Register_Callback(nullptr);
 		chan->Write(1,&val);
 	}
@@ -3756,7 +3772,6 @@ static void DSP_SC400_E6_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
 	if (event==DMA_UNMASKED) {
 		static const char *string = "\x01\x02\x04\x08\x10\x20\x40\x80"; /* Confirmed response via DMA from actual Reveal SC400 card */
 		LOG(LOG_SB,LOG_DEBUG)("SC400 returning DMA test pattern on DMA channel=%u",sb[ci].hw.dma8);
-		chan->userData = ci;
 		chan->Register_Callback(nullptr);
 		chan->Write(8,(uint8_t*)string);
 		chan->Clear_Request();
@@ -3937,6 +3952,7 @@ class SBLASTER: public Module_base {
 			Section_prop * section=static_cast<Section_prop *>(configuration);
 
 			ci = n_ci;
+			sb[ci].card_index = ci;
 			sb[ci].recording_source = REC_SILENCE;
 			sb[ci].listen_to_recording_source = false;
 			sb[ci].hw.base=(unsigned int)section->Get_hex("sbbase");
@@ -4163,7 +4179,7 @@ class SBLASTER: public Module_base {
 
 			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
 
-			sb[ci].chan=MixerChan.Install(SBLASTER_CallBacks[ci],22050,"SB");
+			sb[ci].chan=MixerChan.Install(SBLASTER_CallBacks[ci],22050,sbMixerChanNames[ci]);
 			sb[ci].dac.dac_pt = sb[ci].dac.dac_t = 0;
 			sb[ci].dsp.state=DSP_S_NORMAL;
 			sb[ci].dsp.out.lastval=0xaa;
