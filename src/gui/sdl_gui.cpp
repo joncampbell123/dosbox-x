@@ -1122,6 +1122,8 @@ std::string CapName(std::string name) {
         dispname="AUTOEXEC.BAT";
     else if (name=="sblaster")
         dispname="SB";
+    else if (name=="sblaster2")
+        dispname="SB #2";
     else if (name=="speaker")
         dispname="PC Speaker";
     else if (name=="imfc")
@@ -1179,6 +1181,8 @@ std::string RestoreName(std::string name) {
         dispname="autoexec";
     else if (name=="SB")
         dispname="sblaster";
+    else if (name=="SB #2")
+        dispname="sblaster2";
     else if (name=="PC Speaker")
         dispname="speaker";
     else if (name=="IMFC")
@@ -3267,7 +3271,7 @@ public:
                 "video", "voodoo", "vsync", "ttf",
                 "dos", "dosv", "pc98", "4dos",
                 "autoexec", "config", "cpu", "speaker",
-                "sblaster", "gus", "midi", "mixer",
+                "sblaster", "sblaster2", "gus", "midi", "mixer",
                 "innova", "imfc", "joystick", "mapper",
                 "keyboard", "serial", "parallel", "printer",
                 "ipx", "ne2000", "ethernet, pcap", "ethernet, slirp",
