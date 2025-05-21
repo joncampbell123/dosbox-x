@@ -1362,6 +1362,8 @@ void DOSBOX_RealInit() {
     if (IS_FM_TOWNS || want_fm_towns) LOG_MSG("FM Towns emulation not yet implemented. It's currently just a stub for future development.");
 }
 
+const char *sbGetSectionName(const size_t ci);
+
 void DOSBOX_SetupConfigSections(void) {
     Prop_int* Pint;
     Prop_hex* Phex;
@@ -3642,259 +3644,269 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->Set_help("Fluidsynth chorus type. 0 is sine wave, 1 is triangle wave.");
 #endif
 
-    secprop=control->AddSection_prop("sblaster",&Null_Init,true);
+	{
+		const char *secname;
+		const unsigned short int def_sbbase[2] = {0x220,0x260}; /* 0x240 by default is occupied by the GUS */
+		const unsigned char def_irq[2] = {7,3}; /* 5 by default occupied by the GUS */
+		const unsigned char def_dma[2] = {1,0}; /* 3 by default occupied by the GUS */
+		const unsigned char def_hdma[2] = {5,7};
+		const char *def_sbtype[2] = {"sb16","none"}; /* second card off by default */
+		for (size_t ci=0;(secname=sbGetSectionName(ci))!=NULL;ci++) {
+			secprop=control->AddSection_prop(secname,&Null_Init,true);
 
-    Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,"sb16");
-    Pstring->Set_values(sbtypes);
-    Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.");
-    Pstring->SetBasic(true);
+			Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,def_sbtype[ci]);//"sb16"
+			Pstring->Set_values(sbtypes);
+			Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.");
+			Pstring->SetBasic(true);
 
-    Phex = secprop->Add_hex("sbbase",Property::Changeable::WhenIdle,0x220);
-    Phex->Set_values(ios);
-    Phex->Set_help("The IO address of the Sound Blaster.\n"
-                   "220h to 2E0h are for use with IBM PC Sound Blaster emulation.\n"
-                   "D2h to DEh are for use with NEC PC-98 Sound Blaster 16 emulation.");
-    Phex->SetBasic(true);
+			Phex = secprop->Add_hex("sbbase",Property::Changeable::WhenIdle,def_sbbase[ci]);//0x220
+			Phex->Set_values(ios);
+			Phex->Set_help("The IO address of the Sound Blaster.\n"
+					"220h to 2E0h are for use with IBM PC Sound Blaster emulation.\n"
+					"D2h to DEh are for use with NEC PC-98 Sound Blaster 16 emulation.");
+			Phex->SetBasic(true);
 
-    Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
-    Pint->Set_values(irqssb);
-    Pint->Set_help("The IRQ number of the Sound Blaster (usually 5 or 7, depending on the sound card type and the game).\n"
-            "Set to 0 for the default setting of the sound card, or set to -1 to start DOSBox-X with the IRQ unassigned.");
-    Pint->SetBasic(true);
+			Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,def_irq[ci]);//7
+			Pint->Set_values(irqssb);
+			Pint->Set_help("The IRQ number of the Sound Blaster (usually 5 or 7, depending on the sound card type and the game).\n"
+					"Set to 0 for the default setting of the sound card, or set to -1 to start DOSBox-X with the IRQ unassigned.");
+			Pint->SetBasic(true);
 
-    Pint = secprop->Add_int("mindma",Property::Changeable::OnlyAtStart,-1);
-    Pint->Set_help( "Minimum DMA transfer left to increase attention across DSP blocks, in milliseconds. Set to -1 for default.\n"
-            "There are some DOS games/demos that use single-cycle DSP playback in their music tracker and they micromanage\n"
-            "the DMA transfer per block poorly in a way that causes popping and artifacts. Setting this option to 0 for\n"
-            "such DOS applications may reduce audible popping and artifacts.");
+			Pint = secprop->Add_int("mindma",Property::Changeable::OnlyAtStart,-1);
+			Pint->Set_help( "Minimum DMA transfer left to increase attention across DSP blocks, in milliseconds. Set to -1 for default.\n"
+					"There are some DOS games/demos that use single-cycle DSP playback in their music tracker and they micromanage\n"
+					"the DMA transfer per block poorly in a way that causes popping and artifacts. Setting this option to 0 for\n"
+					"such DOS applications may reduce audible popping and artifacts.");
 
-    Pbool = secprop->Add_bool("listen to recording source",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("When the guest records audio from the Sound Blaster card, send the input source to the speakers as well so it can be heard.");
-    Pbool->SetBasic(true);
+			Pbool = secprop->Add_bool("listen to recording source",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("When the guest records audio from the Sound Blaster card, send the input source to the speakers as well so it can be heard.");
+			Pbool->SetBasic(true);
 
-    Pstring = secprop->Add_string("recording source",Property::Changeable::WhenIdle,"silence");
-    Pstring->Set_values(sb_recording_sources);
-    Pstring->Set_help("Audio source to use when guest is recording audio. At this time only generated audio sources are available.");
-    Pstring->SetBasic(true);
+			Pstring = secprop->Add_string("recording source",Property::Changeable::WhenIdle,"silence");
+			Pstring->Set_values(sb_recording_sources);
+			Pstring->Set_help("Audio source to use when guest is recording audio. At this time only generated audio sources are available.");
+			Pstring->SetBasic(true);
 
-    /* Sound Blaster IRQ hacks.
-     *
-     * These hacks reduce emulation accuracy but can be set to work around bugs or mistakes in some old
-     * games and demos related to handling the Sound Blaster IRQ.
-     *
-     * - Saga by Dust (1993):
-     *     Sound Blaster support has a fatal flaw in that the Sound Blaster interrupt handler it installs assumes
-     *     DS == CS. It uses the DS register to read local variables needed to manage the Sound Blaster card but
-     *     it makes no attempt to push DS and then load the DS segment value it needs. While the demo may seem to
-     *     run normally at first, eventually the interrupt is fired at just the right time to catch the demo in
-     *     the middle of its graphics routines (DS=A000). Since the ISR uses DS to load the Sound Blaster DSP
-     *     I/O port, it reads some random value from *video RAM* and then hangs in a loop waiting for that I/O
-     *     port to clear bit 7! Setting 'cs_equ_ds' works around that bug by instructing PIC emulation not to
-     *     fire the interrupt unless segment registers CS and DS match. */
-    Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
-    Pstring->Set_help("Specify a hack related to the Sound Blaster IRQ to avoid crashes in a handful of games and demos.\n"
-            "    none                   Emulate IRQs normally\n"
-            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read DOSBox-X Wiki or source code for details.");
+			/* Sound Blaster IRQ hacks.
+			 *
+			 * These hacks reduce emulation accuracy but can be set to work around bugs or mistakes in some old
+			 * games and demos related to handling the Sound Blaster IRQ.
+			 *
+			 * - Saga by Dust (1993):
+			 *     Sound Blaster support has a fatal flaw in that the Sound Blaster interrupt handler it installs assumes
+			 *     DS == CS. It uses the DS register to read local variables needed to manage the Sound Blaster card but
+			 *     it makes no attempt to push DS and then load the DS segment value it needs. While the demo may seem to
+			 *     run normally at first, eventually the interrupt is fired at just the right time to catch the demo in
+			 *     the middle of its graphics routines (DS=A000). Since the ISR uses DS to load the Sound Blaster DSP
+			 *     I/O port, it reads some random value from *video RAM* and then hangs in a loop waiting for that I/O
+			 *     port to clear bit 7! Setting 'cs_equ_ds' works around that bug by instructing PIC emulation not to
+			 *     fire the interrupt unless segment registers CS and DS match. */
+			Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
+			Pstring->Set_help("Specify a hack related to the Sound Blaster IRQ to avoid crashes in a handful of games and demos.\n"
+					"    none                   Emulate IRQs normally\n"
+					"    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read DOSBox-X Wiki or source code for details.");
 
-    Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
-    Pint->Set_values(dmassb);
-    Pint->Set_help("The DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the DMA unassigned.");
-    Pint->SetBasic(true);
+			Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,def_dma[ci]);//1
+			Pint->Set_values(dmassb);
+			Pint->Set_help("The DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the DMA unassigned.");
+			Pint->SetBasic(true);
 
-    Pint = secprop->Add_int("hdma",Property::Changeable::WhenIdle,5);
-    Pint->Set_values(dmassb);
-    Pint->Set_help("The High DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the High DMA unassigned.");
-    Pint->SetBasic(true);
+			Pint = secprop->Add_int("hdma",Property::Changeable::WhenIdle,def_hdma[ci]);//5
+			Pint->Set_values(dmassb);
+			Pint->Set_help("The High DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the High DMA unassigned.");
+			Pint->SetBasic(true);
 
-    Pbool = secprop->Add_bool("dsp command aliases",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set (on by default), emulation will support known undocumented aliases\n"
-                    "of common Sound Blaster DSP commands. Some broken DOS games and demos rely on these aliases.\n"
-                    "For more information: https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280");
+			Pbool = secprop->Add_bool("dsp command aliases",Property::Changeable::WhenIdle,true);
+			Pbool->Set_help("If set (on by default), emulation will support known undocumented aliases\n"
+					"of common Sound Blaster DSP commands. Some broken DOS games and demos rely on these aliases.\n"
+					"For more information: https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280");
 
-    Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster IRQ already unmasked at the PIC.\n"
-            "Some early DOS games/demos that support Sound Blaster expect the IRQ to fire but make\n"
-            "no attempt to unmask the IRQ. If audio cuts out no matter what IRQ you try, then try\n"
-            "setting this option.\n"
-            "Option is needed for:\n"
-            "   Public NMI \"jump\" demo (1992)");
+			Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster IRQ already unmasked at the PIC.\n"
+					"Some early DOS games/demos that support Sound Blaster expect the IRQ to fire but make\n"
+					"no attempt to unmask the IRQ. If audio cuts out no matter what IRQ you try, then try\n"
+					"setting this option.\n"
+					"Option is needed for:\n"
+					"   Public NMI \"jump\" demo (1992)");
 
-    Pbool = secprop->Add_bool("enable speaker",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster speaker enabled.\n"
-                    "Sound Blaster Pro and older cards have a speaker disable/enable command.\n"
-                    "Normally the card boots up with the speaker disabled. If a DOS game or demo\n"
-                    "attempts to play without enabling the speaker, set this option to true to\n"
-                    "compensate. This setting has no meaning if emulating a Sound Blaster 16 card.");
-    Pbool->SetBasic(true);
+			Pbool = secprop->Add_bool("enable speaker",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster speaker enabled.\n"
+					"Sound Blaster Pro and older cards have a speaker disable/enable command.\n"
+					"Normally the card boots up with the speaker disabled. If a DOS game or demo\n"
+					"attempts to play without enabling the speaker, set this option to true to\n"
+					"compensate. This setting has no meaning if emulating a Sound Blaster 16 card.");
+			Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("enable asp",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, emulate the presence of the Sound Blaster 16 Advanced Sound Processor/Creative Sound Processor chip.\n"
-            "NOTE: This only emulates its presence and the basic DSP commands to communicate with it. Actual ASP/CSP functions are not yet implemented.");
+			Pbool = secprop->Add_bool("enable asp",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("If set, emulate the presence of the Sound Blaster 16 Advanced Sound Processor/Creative Sound Processor chip.\n"
+					"NOTE: This only emulates its presence and the basic DSP commands to communicate with it. Actual ASP/CSP functions are not yet implemented.");
 
-    Pbool = secprop->Add_bool("disable filtering",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("By default DOSBox-X filters Sound Blaster output to emulate lowpass filters and analog output limitations.\n"
-            "Set this option to true to disable filtering. Note that doing so disables emulation of the Sound Blaster Pro\n"
-            "output filter and ESS AudioDrive lowpass filter.");
+			Pbool = secprop->Add_bool("disable filtering",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("By default DOSBox-X filters Sound Blaster output to emulate lowpass filters and analog output limitations.\n"
+					"Set this option to true to disable filtering. Note that doing so disables emulation of the Sound Blaster Pro\n"
+					"output filter and ESS AudioDrive lowpass filter.");
 
-    Pbool = secprop->Add_bool("dsp write buffer status must return 0x7f or 0xff",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, force port 22Ch (DSP write buffer status) to return 0x7F or 0xFF. If not set, the port\n"
-            "may return 0x7F or 0xFF depending on what type of Sound Blaster is being emulated.\n"
-            "Set this option for some early DOS demos that make that assumption about port 22Ch.\n"
-            "Option is needed for:\n"
-            "   Overload by Hysteria (1992) - Audio will crackle/saturate (8-bit overflow) except when sbtype=sb16");
+			Pbool = secprop->Add_bool("dsp write buffer status must return 0x7f or 0xff",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("If set, force port 22Ch (DSP write buffer status) to return 0x7F or 0xFF. If not set, the port\n"
+					"may return 0x7F or 0xFF depending on what type of Sound Blaster is being emulated.\n"
+					"Set this option for some early DOS demos that make that assumption about port 22Ch.\n"
+					"Option is needed for:\n"
+					"   Overload by Hysteria (1992) - Audio will crackle/saturate (8-bit overflow) except when sbtype=sb16");
 
-    Pbool = secprop->Add_bool("pre-set sbpro stereo",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster Pro stereo bit set (in the mixer).\n"
-            "A few demos support Sound Blaster Pro but forget to set this bit.\n"
-            "Option is needed for:\n"
-            "   Inconexia by Iguana (1993)");
+			Pbool = secprop->Add_bool("pre-set sbpro stereo",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster Pro stereo bit set (in the mixer).\n"
+					"A few demos support Sound Blaster Pro but forget to set this bit.\n"
+					"Option is needed for:\n"
+					"   Inconexia by Iguana (1993)");
 
-    Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow the Sound Blaster mixer to modify the DOSBox-X mixer.");
-    Pbool->SetBasic(true);
+			Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
+			Pbool->Set_help("Allow the Sound Blaster mixer to modify the DOSBox-X mixer.");
+			Pbool->SetBasic(true);
 
-    Pstring = secprop->Add_string("cms", Property::Changeable::WhenIdle, "auto");
-    Pstring->Set_values(cms_settings);
-    Pstring->Set_help(
-        "Enable CMS emulation ('auto' by default).\n"
-        "  off:   Disable CMS emulation (except when the Game Blaster is selected).\n"
-        "  on:    Enable CMS emulation on Sound Blaster 1 and 2.\n"
-        "  auto:  Auto-enable CMS emulation for Sound Blaster 1 and Game Blaster.");
+			Pstring = secprop->Add_string("cms", Property::Changeable::WhenIdle, ci==0?"auto":"off");
+			Pstring->Set_values(cms_settings);
+			Pstring->Set_help(
+					"Enable CMS emulation ('auto' by default).\n"
+					"  off:   Disable CMS emulation (except when the Game Blaster is selected).\n"
+					"  on:    Enable CMS emulation on Sound Blaster 1 and 2.\n"
+					"  auto:  Auto-enable CMS emulation for Sound Blaster 1 and Game Blaster.");
 
-    Pstring = secprop->Add_string("oplmode",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(oplmodes);
-    Pstring->Set_help("Type of OPL emulation. On 'auto' the mode is determined by the 'sbtype' setting.\n"
-            "All OPL modes are AdLib-compatible.");
-    Pstring->SetBasic(true);
+			Pstring = secprop->Add_string("oplmode",Property::Changeable::WhenIdle, ci==0?"auto":"none");
+			Pstring->Set_values(oplmodes);
+			Pstring->Set_help("Type of OPL emulation. On 'auto' the mode is determined by the 'sbtype' setting.\n"
+					"All OPL modes are AdLib-compatible.");
+			Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("adlib force timer overflow on detect",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, Adlib/OPL emulation will signal 'overflow' on timers after 50 I/O reads.\n"
-            "This is a temporary hack to work around timing bugs noted in DOSBox-X. Certain\n"
-            "games (Wolfenstein 3D) poll the Adlib status port a fixed number of times assuming\n"
-            "that the poll loop takes long enough for the Adlib timer to run out. If the game\n"
-            "cannot reliably detect Adlib at higher cycles counts, but can reliably detect at\n"
-            "lower cycles counts, set this option.");
-    /* NTS: The reason I mention Wolfenstein 3D is that it seems coded not to probe for Sound Blaster unless it
-     *      first detects the Adlib at port 0x388. No Adlib, no Sound Blaster. */
-    /* ^ NTS: To see what I mean, download Wolf3d source code, look at ID_SD.C line 1585 (Adlib detection routine).
-     *        Note it sets Timer 1, then reads port 388h 100 times before reading status to detect whether the
-     *        timer "overflowed" (fairly typical Adlib detection code).
-     *        Some quick math: 8333333Hz ISA BCLK / 6 cycles per read (3 wait states) = 1388888 reads/second possible
-     *                         100 I/O reads * (1 / 1388888) = 72us */
+			Pbool = secprop->Add_bool("adlib force timer overflow on detect",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("If set, Adlib/OPL emulation will signal 'overflow' on timers after 50 I/O reads.\n"
+					"This is a temporary hack to work around timing bugs noted in DOSBox-X. Certain\n"
+					"games (Wolfenstein 3D) poll the Adlib status port a fixed number of times assuming\n"
+					"that the poll loop takes long enough for the Adlib timer to run out. If the game\n"
+					"cannot reliably detect Adlib at higher cycles counts, but can reliably detect at\n"
+					"lower cycles counts, set this option.");
+			/* NTS: The reason I mention Wolfenstein 3D is that it seems coded not to probe for Sound Blaster unless it
+			 *      first detects the Adlib at port 0x388. No Adlib, no Sound Blaster. */
+			/* ^ NTS: To see what I mean, download Wolf3d source code, look at ID_SD.C line 1585 (Adlib detection routine).
+			 *        Note it sets Timer 1, then reads port 388h 100 times before reading status to detect whether the
+			 *        timer "overflowed" (fairly typical Adlib detection code).
+			 *        Some quick math: 8333333Hz ISA BCLK / 6 cycles per read (3 wait states) = 1388888 reads/second possible
+			 *                         100 I/O reads * (1 / 1388888) = 72us */
 
-    Pstring = secprop->Add_string("oplemu",Property::Changeable::WhenIdle,"default");
-    Pstring->Set_values(oplemus);
-    Pstring->Set_help("Provider for the OPL emulation. 'compat' might provide better quality.\n"
-		"'nuked' is the most accurate (but the most CPU-intensive). See oplrate as well.");
-    Pstring->SetBasic(true);
+			Pstring = secprop->Add_string("oplemu",Property::Changeable::WhenIdle,"default");
+			Pstring->Set_values(oplemus);
+			Pstring->Set_help("Provider for the OPL emulation. 'compat' might provide better quality.\n"
+					"'nuked' is the most accurate (but the most CPU-intensive). See oplrate as well.");
+			Pstring->SetBasic(true);
 
-    Pint = secprop->Add_int("oplrate",Property::Changeable::WhenIdle,48000);
-    Pint->Set_values(rates);
-    Pint->Set_help("Sample rate of OPL music emulation. Use 49716 for highest quality (set the mixer rate accordingly).");
-    Pint->SetBasic(true);
+			Pint = secprop->Add_int("oplrate",Property::Changeable::WhenIdle,48000);
+			Pint->Set_values(rates);
+			Pint->Set_help("Sample rate of OPL music emulation. Use 49716 for highest quality (set the mixer rate accordingly).");
+			Pint->SetBasic(true);
 
-    Pstring = secprop->Add_string("oplport", Property::Changeable::WhenIdle, "");
-    Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
-    Pstring->SetBasic(true);
+			Pstring = secprop->Add_string("oplport", Property::Changeable::WhenIdle, "");
+			Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
+			Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("retrowave_bus", Property::Changeable::WhenIdle, "serial");
-    Pstring->Set_help("Bus of the Retrowave series board (serial/spi). SPI is only supported on Linux.");
-    Pstring->SetBasic(true);
+			Pstring = secprop->Add_string("retrowave_bus", Property::Changeable::WhenIdle, "serial");
+			Pstring->Set_help("Bus of the Retrowave series board (serial/spi). SPI is only supported on Linux.");
+			Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("retrowave_spi_cs", Property::Changeable::WhenIdle, "0,6");
-    Pstring->Set_help("SPI chip select pin of the Retrowave series board. Only supported on Linux.");
+			Pstring = secprop->Add_string("retrowave_spi_cs", Property::Changeable::WhenIdle, "0,6");
+			Pstring->Set_help("SPI chip select pin of the Retrowave series board. Only supported on Linux.");
 
-    Pstring = secprop->Add_string("retrowave_port", Property::Changeable::WhenIdle, "");
-    Pstring->Set_help("Serial port of the Retrowave series board.");
-    Pstring->SetBasic(true);
+			Pstring = secprop->Add_string("retrowave_port", Property::Changeable::WhenIdle, "");
+			Pstring->Set_help("Serial port of the Retrowave series board.");
+			Pstring->SetBasic(true);
 
-    Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
-    Phex->Set_help("base address of the real hardware Sound Blaster:\n"\
-        "210,220,230,240,250,260,280");
-    Phex->SetBasic(true);
+			Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
+			Phex->Set_help("base address of the real hardware Sound Blaster:\n"\
+					"210,220,230,240,250,260,280");
+			Phex->SetBasic(true);
 
-    Pbool = secprop->Add_bool("force dsp auto-init",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Treat all single-cycle DSP commands as auto-init to keep playback going.\n"
-            "This option is a workaround for DOS games or demos that use single-cycle DSP playback commands and\n"
-            "have problems with missing the Sound Blaster IRQ under load. Do not enable unless you need this workaround.\n"
-            "Needed for:\n"
-            "  - Extreme \"lunatic\" demo (1993)");
+			Pbool = secprop->Add_bool("force dsp auto-init",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("Treat all single-cycle DSP commands as auto-init to keep playback going.\n"
+					"This option is a workaround for DOS games or demos that use single-cycle DSP playback commands and\n"
+					"have problems with missing the Sound Blaster IRQ under load. Do not enable unless you need this workaround.\n"
+					"Needed for:\n"
+					"  - Extreme \"lunatic\" demo (1993)");
 
-    Pbool = secprop->Add_bool("force goldplay",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Always render Sound Blaster output sample-at-a-time. Testing option. You probably don't want to enable this.");
+			Pbool = secprop->Add_bool("force goldplay",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("Always render Sound Blaster output sample-at-a-time. Testing option. You probably don't want to enable this.");
 
-    Pbool = secprop->Add_bool("goldplay",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable goldplay emulation.");
-    Pbool->SetBasic(true);
+			Pbool = secprop->Add_bool("goldplay",Property::Changeable::WhenIdle,true);
+			Pbool->Set_help("Enable goldplay emulation.");
+			Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("goldplay stereo",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable workaround for goldplay stereo playback. Many DOS demos using this technique\n"
-            "don't seem to know they need to double the frequency when programming the DSP time constant for Pro stereo output.\n"
-            "If stereo playback seems to have artifacts consider enabling this option. For accurate emulation of Sound Blaster\n"
-            "hardware, disable this option.");
+			Pbool = secprop->Add_bool("goldplay stereo",Property::Changeable::WhenIdle,true);
+			Pbool->Set_help("Enable workaround for goldplay stereo playback. Many DOS demos using this technique\n"
+					"don't seem to know they need to double the frequency when programming the DSP time constant for Pro stereo output.\n"
+					"If stereo playback seems to have artifacts consider enabling this option. For accurate emulation of Sound Blaster\n"
+					"hardware, disable this option.");
 
-    Pstring = secprop->Add_string("dsp require interrupt acknowledge",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_help("If set, the DSP will halt DMA playback until IRQ acknowledgement occurs even in auto-init mode (SB16 behavior).\n"
-            "If clear, IRQ acknowledgement will have no effect on auto-init playback (SB Pro and earlier & clone behavior)\n"
-            "If set to 'auto' then behavior is determined by sbtype= setting.\n"
-            "This is a setting for hardware accuracy in emulation. If audio briefly plays then stops then your DOS game\n"
-            "and it's not using IRQ (but using DMA), try setting this option to 'false'");
+			Pstring = secprop->Add_string("dsp require interrupt acknowledge",Property::Changeable::WhenIdle,"auto");
+			Pstring->Set_help("If set, the DSP will halt DMA playback until IRQ acknowledgement occurs even in auto-init mode (SB16 behavior).\n"
+					"If clear, IRQ acknowledgement will have no effect on auto-init playback (SB Pro and earlier & clone behavior)\n"
+					"If set to 'auto' then behavior is determined by sbtype= setting.\n"
+					"This is a setting for hardware accuracy in emulation. If audio briefly plays then stops then your DOS game\n"
+					"and it's not using IRQ (but using DMA), try setting this option to 'false'");
 
-    Pint = secprop->Add_int("dsp write busy delay",Property::Changeable::WhenIdle,-1);
-    Pint->Set_help("Amount of time in nanoseconds the DSP chip signals 'busy' after writing to the DSP (port 2xCh). Set to -1 to use card-specific defaults.\n"
-            "WARNING: Setting the value too high (above 20000ns) may have detrimental effects to DOS games that use IRQ 0 and DSP command 0x10 to play audio.\n"
-            "         Setting the value way too high (above 1000000ns) can cause significant lag in DOS games.");
+			Pint = secprop->Add_int("dsp write busy delay",Property::Changeable::WhenIdle,-1);
+			Pint->Set_help("Amount of time in nanoseconds the DSP chip signals 'busy' after writing to the DSP (port 2xCh). Set to -1 to use card-specific defaults.\n"
+					"WARNING: Setting the value too high (above 20000ns) may have detrimental effects to DOS games that use IRQ 0 and DSP command 0x10 to play audio.\n"
+					"         Setting the value way too high (above 1000000ns) can cause significant lag in DOS games.");
 
-    Pbool = secprop->Add_bool("blaster environment variable",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Whether or not to set the BLASTER environment variable automatically at startup");
-    Pbool->SetBasic(true);
+			Pbool = secprop->Add_bool("blaster environment variable",Property::Changeable::WhenIdle,true);
+			Pbool->Set_help("Whether or not to set the BLASTER environment variable automatically at startup");
+			Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("sample rate limits",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set (default), limit DSP sample rate to what real hardware is limited to");
+			Pbool = secprop->Add_bool("sample rate limits",Property::Changeable::WhenIdle,true);
+			Pbool->Set_help("If set (default), limit DSP sample rate to what real hardware is limited to");
 
-    /* recommended for:
-     *   1992 demo "overload" (if set, Sound Blaster support can run at 24KHz without causing demo to hang in the IRQ 0 timer)
-     *   1993 demo "xmas 93" (superiority complex) because the demo's Sound Blaster mode writes at the timer interrupt rate without polling the DSP to check busy state */
-    Pbool = secprop->Add_bool("instant direct dac",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, direct DAC output commands are instantaneous. This option is intended as a quick fix for\n"
-            "games or demos that play direct DAC music/sound from the IRQ 0 timer who a) write the DSP command\n"
-            "and data without polling the DSP to ensure it's ready or b) can get locked into the IRQ 0 handler\n"
-            "waiting for DSP status when instructed to play at or beyond the DSP's maximum direct DAC sample rate.\n"
-            "This fix allows broken Sound Blaster code to work and should not be enabled unless necessary.");
+			/* recommended for:
+			 *   1992 demo "overload" (if set, Sound Blaster support can run at 24KHz without causing demo to hang in the IRQ 0 timer)
+			 *   1993 demo "xmas 93" (superiority complex) because the demo's Sound Blaster mode writes at the timer interrupt rate without polling the DSP to check busy state */
+			Pbool = secprop->Add_bool("instant direct dac",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("If set, direct DAC output commands are instantaneous. This option is intended as a quick fix for\n"
+					"games or demos that play direct DAC music/sound from the IRQ 0 timer who a) write the DSP command\n"
+					"and data without polling the DSP to ensure it's ready or b) can get locked into the IRQ 0 handler\n"
+					"waiting for DSP status when instructed to play at or beyond the DSP's maximum direct DAC sample rate.\n"
+					"This fix allows broken Sound Blaster code to work and should not be enabled unless necessary.");
 
-    /* accuracy emulation: SB16 does not honor SBPro stereo bit in the mixer */
-    Pbool = secprop->Add_bool("stereo control with sbpro only",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Default on. If set, Sound Blaster Pro stereo is not available when emulating sb16 or sb16vibra.\n"
-            "If clear, sb16 emulation will honor the sbpro stereo bit. Note that Creative SB16 cards do not\n"
-            "honor the stereo bit, and this option allows DOSBox-X emulate that fact. Accuracy setting.");
+			/* accuracy emulation: SB16 does not honor SBPro stereo bit in the mixer */
+			Pbool = secprop->Add_bool("stereo control with sbpro only",Property::Changeable::WhenIdle,true);
+			Pbool->Set_help("Default on. If set, Sound Blaster Pro stereo is not available when emulating sb16 or sb16vibra.\n"
+					"If clear, sb16 emulation will honor the sbpro stereo bit. Note that Creative SB16 cards do not\n"
+					"honor the stereo bit, and this option allows DOSBox-X emulate that fact. Accuracy setting.");
 
-    /* NTS: It turns out (SB16 at least) the DSP will periodically set bit 7 (busy) by itself at some
-     *      clock rate even if it's idle. Casual testing on an old Pentium system with a ViBRA shows
-     *      it's possible to see both 0x7F and 0xFF come back if you repeatedly type "i 22c" in DOS
-     *      DEBUG.EXE.  FIXME: At what clock rate and duty cycle does this happen? */
-    Pint = secprop->Add_int("dsp busy cycle rate",Property::Changeable::WhenIdle,-1/*default*/);
-    Pint->Set_help("Sound Blaster 16 DSP chips appear to go busy periodically at some high clock rate\n"
-            "whether the DSP is actually doing anything for the system or not. This is an accuracy\n"
-            "option for Sound Blaster emulation. If this option is nonzero, it will be interpreted\n"
-            "as the busy cycle rate in Hz. If zero, busy cycle will not be emulated. If -1, sound\n"
-            "blaster emulation will automatically choose a setting based on the sbtype= setting");
+			/* NTS: It turns out (SB16 at least) the DSP will periodically set bit 7 (busy) by itself at some
+			 *      clock rate even if it's idle. Casual testing on an old Pentium system with a ViBRA shows
+			 *      it's possible to see both 0x7F and 0xFF come back if you repeatedly type "i 22c" in DOS
+			 *      DEBUG.EXE.  FIXME: At what clock rate and duty cycle does this happen? */
+			Pint = secprop->Add_int("dsp busy cycle rate",Property::Changeable::WhenIdle,-1/*default*/);
+			Pint->Set_help("Sound Blaster 16 DSP chips appear to go busy periodically at some high clock rate\n"
+					"whether the DSP is actually doing anything for the system or not. This is an accuracy\n"
+					"option for Sound Blaster emulation. If this option is nonzero, it will be interpreted\n"
+					"as the busy cycle rate in Hz. If zero, busy cycle will not be emulated. If -1, sound\n"
+					"blaster emulation will automatically choose a setting based on the sbtype= setting");
 
-    Pint = secprop->Add_int("dsp busy cycle always",Property::Changeable::WhenIdle,-1/*default*/);
-    Pint->Set_help("If set, the DSP busy cycle always happens. If clear, DSP busy cycle only happens when\n"
-            "audio playback is running. Default setting is to pick according to the sound card.");
+			Pint = secprop->Add_int("dsp busy cycle always",Property::Changeable::WhenIdle,-1/*default*/);
+			Pint->Set_help("If set, the DSP busy cycle always happens. If clear, DSP busy cycle only happens when\n"
+					"audio playback is running. Default setting is to pick according to the sound card.");
 
-    Pint = secprop->Add_int("dsp busy cycle duty",Property::Changeable::WhenIdle,-1/*default*/);
-    Pint->Set_help("If emulating SB16 busy cycle, this value (0 to 100) controls the duty cycle of the busy cycle.\n"
-            "If this option is set to -1, Sound Blaster emulation will choose a value automatically according\n"
-            "to sbtype=. If 0, busy cycle emulation is disabled.");
+			Pint = secprop->Add_int("dsp busy cycle duty",Property::Changeable::WhenIdle,-1/*default*/);
+			Pint->Set_help("If emulating SB16 busy cycle, this value (0 to 100) controls the duty cycle of the busy cycle.\n"
+					"If this option is set to -1, Sound Blaster emulation will choose a value automatically according\n"
+					"to sbtype=. If 0, busy cycle emulation is disabled.");
 
-    /* NTS: Confirmed: My Sound Blaster 2.0 (at least) mirrors the DSP on port 22Ch and 22Dh. This option
-     *      will only take effect with sbtype sb1 and sb2, so make it enabled by default. Accuracy setting. */
-    Pbool = secprop->Add_bool("io port aliasing",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, Sound Blaster ports alias by not decoding the LSB of the I/O port.\n"
-            "This option only applies when sbtype is set to sb1 or sb2 (not SBPro or SB16).\n"
-            "This is a hack for the Electromotive Force 'Internal Damage' demo which apparently\n"
-            "relies on this behavior for Sound Blaster output and should be enabled for accuracy in emulation.");
+			/* NTS: Confirmed: My Sound Blaster 2.0 (at least) mirrors the DSP on port 22Ch and 22Dh. This option
+			 *      will only take effect with sbtype sb1 and sb2, so make it enabled by default. Accuracy setting. */
+			Pbool = secprop->Add_bool("io port aliasing",Property::Changeable::WhenIdle,true);
+			Pbool->Set_help("If set, Sound Blaster ports alias by not decoding the LSB of the I/O port.\n"
+					"This option only applies when sbtype is set to sb1 or sb2 (not SBPro or SB16).\n"
+					"This is a hack for the Electromotive Force 'Internal Damage' demo which apparently\n"
+					"relies on this behavior for Sound Blaster output and should be enabled for accuracy in emulation.");
+		}
+	}
 
     secprop=control->AddSection_prop("gus",&Null_Init,true); //done
     Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);
