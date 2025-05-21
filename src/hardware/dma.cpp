@@ -398,6 +398,13 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 	case 0xc:		/* Clear Flip/Flip (apparently most motherboards will treat read OR write as reset) */
 		flipflop=false;
 		break;
+	case 0xf:		/* Multiple Mask register, undocumented read back */
+		ret=0;
+		for (uint8_t ct=0;ct<4;ct++) {
+			chan=GetChannel(ct);
+			if (chan->masked) ret |= 1u << ct;
+		}
+		return ret;
 	default:
 		LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA port %x",(int)reg);
 		break;
