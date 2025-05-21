@@ -92,6 +92,8 @@ using namespace std;
 
 #define MAX_CARDS 1
 
+#define CARD_INDEX_BIT 28u
+
 int MPU401_GetIRQ();
 void MIDI_RawOutByte(uint8_t data);
 bool MIDI_Available(void);
@@ -1047,12 +1049,12 @@ void SB_INFO::CheckDMAEnd(void) {
 	if (!speaker && type!=SBT_16 && ess_type==ESS_NONE) {
 		Bitu bigger=(dma.left > dma.min) ? dma.min : dma.left;
 		float delay=(bigger*1000.0f)/dma.rate;
-		PIC_AddEvent(DMA_Silent_Event,delay,bigger);
+		PIC_AddEvent(DMA_Silent_Event,delay,bigger | (card_index << CARD_INDEX_BIT));
 		LOG(LOG_SB,LOG_NORMAL)("Silent DMA Transfer scheduling IRQ in %.3f milliseconds",delay);
 	} else if (dma.left<dma.min) {
 		float delay=(dma.left*1000.0f)/dma.rate;
 		LOG(LOG_SB,LOG_NORMAL)("Short transfer scheduling IRQ in %.3f milliseconds",delay);
-		PIC_AddEvent(END_DMA_Event,delay,dma.left);
+		PIC_AddEvent(END_DMA_Event,delay,dma.left | (card_index << CARD_INDEX_BIT));
 	}
 }
 
@@ -1181,7 +1183,7 @@ void SB_INFO::DSP_DoDMATransfer(DMA_MODES new_mode,Bitu freq,bool stereo,bool do
 	PIC_RemoveEvents(END_DMA_Event);
 
 	if (dma_dac_mode)
-		PIC_AddEvent(DMA_DAC_Event,1000.0 / dma_dac_srcrate);
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / dma_dac_srcrate,(card_index << CARD_INDEX_BIT));
 
 	if (dma.chan != NULL) {
 		dma.chan->Register_Callback(DSP_DMA_CallBack);
@@ -1436,7 +1438,7 @@ void SB_INFO::DSP_DoReset(uint8_t val) {
 	} else if (((val&1)==0) && (dsp.state==DSP_S_RESET)) {   // reset off
 		dsp.state=DSP_S_RESET_WAIT;
 		PIC_RemoveEvents(DSP_FinishReset);
-		PIC_AddEvent(DSP_FinishReset,20.0f/1000.0f,0);  // 20 microseconds
+		PIC_AddEvent(DSP_FinishReset,20.0f/1000.0f,(card_index << CARD_INDEX_BIT));  // 20 microseconds
 	}
 	dsp.write_busy = 0;
 }
@@ -1735,7 +1737,7 @@ void SB_INFO::DSP_DoWrite(uint8_t val) {
 		if (delay > 0) {
 			dsp.write_busy = 1;
 			PIC_RemoveEvents(DSP_BusyComplete);
-			PIC_AddEvent(DSP_BusyComplete,(double)delay / 1000000);
+			PIC_AddEvent(DSP_BusyComplete,(double)delay / 1000000,(card_index << CARD_INDEX_BIT));
 		}
 
 		//      LOG(LOG_SB,LOG_NORMAL)("DSP:Command %02x delay %u",val,delay);
@@ -2152,7 +2154,8 @@ void SB_INFO::DSP_DoCommand(void) {
 			break;
 		case 0x80:  /* Silence DAC */
 			PIC_AddEvent(&DSP_RaiseIRQEvent,
-					(1000.0f*(1+dsp.in.data[0]+(dsp.in.data[1] << 8))/freq));
+				(1000.0f*(1+dsp.in.data[0]+(dsp.in.data[1] << 8))/freq),
+				(card_index << CARD_INDEX_BIT));
 			break;
 		case 0xb0:  case 0xb1:  case 0xb2:  case 0xb3:  case 0xb4:  case 0xb5:  case 0xb6:  case 0xb7:
 		case 0xb8:  case 0xb9:  case 0xba:  case 0xbb:  case 0xbc:  case 0xbd:  case 0xbe:  case 0xbf:
@@ -2401,7 +2404,7 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 			break;
 		case 0xf2:  /* Trigger 8bit IRQ */
 			//Small delay in order to emulate the slowness of the DSP, fixes Llamatron 2012 and Lemmings 3D
-			PIC_AddEvent(&DSP_RaiseIRQEvent,0.01f);
+			PIC_AddEvent(&DSP_RaiseIRQEvent,0.01f,(card_index << CARD_INDEX_BIT));
 			break;
 		case 0xa0: case 0xa8: /* Documented only for DSP 3.x */
 			if (type == SBT_PRO1 || type == SBT_PRO2)
@@ -3192,16 +3195,6 @@ void SB_INFO::write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
 
 static SB_INFO sb[MAX_CARDS];
 
-static Bitu read_sb(Bitu port,Bitu iolen) {
-	const size_t ci = 0;
-	return sb[ci].read_sb(port,iolen);
-}
-
-static void write_sb(Bitu port,Bitu val,Bitu iolen) {
-	const size_t ci = 0;
-	sb[ci].write_sb(port,val,iolen);
-}
-
 static void adlib_gusforward(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	adlib_commandreg=(uint8_t)(val&0xff);
 }
@@ -3249,14 +3242,6 @@ static void SBLASTER_CallBack(const size_t ci,Bitu len) {
 			break;
 	}
 }
-
-template <const size_t ci> static void SBLASTER_CallBack(Bitu len) {
-	SBLASTER_CallBack(ci,len);
-}
-
-static const MIXER_Handler SBLASTER_CallBacks[MAX_CARDS] = {
-	SBLASTER_CallBack<0>
-};
 
 #define ISAPNP_COMPATIBLE(id) \
     ISAPNP_SMALL_TAG(3,4), \
@@ -3558,7 +3543,8 @@ std::string GetSBhdma() {
 }
 
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
-	const size_t ci = 0;
+	const size_t ci = chan->userData;
+	assert(ci < MAX_CARDS);
 	if (chan!=sb[ci].dma.chan || event==DMA_REACHED_TC) return;
 	else if (event==DMA_READ_COUNTER) {
 		sb[ci].chan->FillUp();
@@ -3595,7 +3581,8 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 }
 
 static void DMA_Silent_Event(Bitu val) {
-	const size_t ci = 0;
+	const size_t ci = (size_t)(val >> (Bitu)CARD_INDEX_BIT); val &= (1u << CARD_INDEX_BIT) - 1u;
+	assert(ci < MAX_CARDS);
 	if (sb[ci].dma.left<val) val=sb[ci].dma.left;
 	if (sb[ci].dma.recording) sb[ci].gen_input(val,sb[ci].dma.buf.b8);
 	Bitu read = sb[ci].dma.recording ? sb[ci].dma.chan->Write(val,sb[ci].dma.buf.b8) : sb[ci].dma.chan->Read(val,sb[ci].dma.buf.b8);
@@ -3612,20 +3599,20 @@ static void DMA_Silent_Event(Bitu val) {
 	if (sb[ci].dma.left) {
 		Bitu bigger=(sb[ci].dma.left > sb[ci].dma.min) ? sb[ci].dma.min : sb[ci].dma.left;
 		float delay=(bigger*1000.0f)/sb[ci].dma.rate;
-		PIC_AddEvent(DMA_Silent_Event,delay,bigger);
+		PIC_AddEvent(DMA_Silent_Event,delay,bigger | (ci << CARD_INDEX_BIT));
 	}
 }
 
 static void DMA_DAC_Event(Bitu val) {
-	const size_t ci = 0;
-	(void)val;//UNUSED
+	const size_t ci = (size_t)(val >> (Bitu)CARD_INDEX_BIT); val &= (1u << CARD_INDEX_BIT) - 1u;
+	assert(ci < MAX_CARDS);
 	unsigned char tmp[4];
 	Bitu read,expct;
 	signed int L,R;
 	int16_t out[2];
 
 	if (sb[ci].dma.chan->masked) {
-		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb[ci].dma_dac_srcrate);
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb[ci].dma_dac_srcrate,(ci << CARD_INDEX_BIT));
 		return;
 	}
 	if (!sb[ci].dma.left)
@@ -3719,44 +3706,44 @@ static void DMA_DAC_Event(Bitu val) {
 
 	if (!sb[ci].dma.left) {
 		sb[ci].SB_OnEndOfDMA();
-		if (sb[ci].dma_dac_mode) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb[ci].dma_dac_srcrate);
+		if (sb[ci].dma_dac_mode) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb[ci].dma_dac_srcrate,(ci << CARD_INDEX_BIT));
 	}
 	else {
-		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb[ci].dma_dac_srcrate);
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb[ci].dma_dac_srcrate,(ci << CARD_INDEX_BIT));
 	}
 }
 
 static void END_DMA_Event(Bitu val) {
-	const size_t ci = 0;
+	const size_t ci = (size_t)(val >> (Bitu)CARD_INDEX_BIT); val &= (1u << CARD_INDEX_BIT) - 1u;
+	assert(ci < MAX_CARDS);
 	sb[ci].GenerateDMASound(val);
 }
 
 static void DSP_RaiseIRQEvent(Bitu val) {
-	(void)val;
-	const size_t ci = 0;
+	const size_t ci = (size_t)(val >> (Bitu)CARD_INDEX_BIT); val &= (1u << CARD_INDEX_BIT) - 1u;
+	assert(ci < MAX_CARDS);
 	sb[ci].SB_RaiseIRQ(SB_IRQ_8);
 }
 
 static void DSP_BusyComplete(Bitu val) {
-	(void)val;
-	const size_t ci = 0;
+	const size_t ci = (size_t)(val >> (Bitu)CARD_INDEX_BIT); val &= (1u << CARD_INDEX_BIT) - 1u;
+	assert(ci < MAX_CARDS);
 	sb[ci].dsp.write_busy = 0;
 }
 
 static void DSP_FinishReset(Bitu val) {
-	(void)val;
-	const size_t ci = 0;
+	const size_t ci = (size_t)(val >> (Bitu)CARD_INDEX_BIT); val &= (1u << CARD_INDEX_BIT) - 1u;
+	assert(ci < MAX_CARDS);
 	sb[ci].DSP_FlushData();
 	sb[ci].DSP_AddData(0xaa);
 	sb[ci].dsp.state=DSP_S_NORMAL;
 }
 
 static void DSP_E2_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
-	(void)chan;
-	const size_t ci = 0;
+	const size_t ci = (size_t)chan->userData;
+	assert(ci < MAX_CARDS);
 	if (event==DMA_UNMASKED) {
 		uint8_t val = sb[ci].e2.valadd;
-		DmaChannel * chan=GetDMAChannel(sb[ci].hw.dma8);
 		chan->userData = ci;
 		chan->Register_Callback(nullptr);
 		chan->Write(1,&val);
@@ -3764,11 +3751,10 @@ static void DSP_E2_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
 }
 
 static void DSP_SC400_E6_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
-	(void)chan;
-	const size_t ci = 0;
+	const size_t ci = (size_t)chan->userData;
+	assert(ci < MAX_CARDS);
 	if (event==DMA_UNMASKED) {
 		static const char *string = "\x01\x02\x04\x08\x10\x20\x40\x80"; /* Confirmed response via DMA from actual Reveal SC400 card */
-		DmaChannel * chan=GetDMAChannel(sb[ci].hw.dma8);
 		LOG(LOG_SB,LOG_DEBUG)("SC400 returning DMA test pattern on DMA channel=%u",sb[ci].hw.dma8);
 		chan->userData = ci;
 		chan->Register_Callback(nullptr);
@@ -3779,18 +3765,42 @@ static void DSP_SC400_E6_DMA_CallBack(DmaChannel *chan, DMAEvent event) {
 	}
 }
 
-static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
-	const size_t ci = 0;
+static void DSP_ADC_CallBack(DmaChannel *chan, DMAEvent event) {
+	const size_t ci = (size_t)chan->userData;
+	assert(ci < MAX_CARDS);
 	if (event!=DMA_UNMASKED) return;
 	uint8_t val=128;
-	DmaChannel * ch=GetDMAChannel(sb[ci].hw.dma8);
-	ch->userData = ci;
-	while (sb[ci].dma.left--) {
-		ch->Write(1,&val);
-	}
+
+	while (sb[ci].dma.left--)
+		chan->Write(1,&val);
+
 	sb[ci].SB_RaiseIRQ(SB_IRQ_8);
-	ch->Register_Callback(nullptr);
+	chan->Register_Callback(nullptr);
 }
+
+template <const size_t ci> static void SBLASTER_CallBack(Bitu len) {
+	SBLASTER_CallBack(ci,len);
+}
+
+template <const size_t ci> static Bitu read_sb(Bitu port,Bitu iolen) {
+	return sb[ci].read_sb(port,iolen);
+}
+
+template <const size_t ci> static void write_sb(Bitu port,Bitu val,Bitu iolen) {
+	sb[ci].write_sb(port,val,iolen);
+}
+
+static const MIXER_Handler SBLASTER_CallBacks[MAX_CARDS] = {
+	SBLASTER_CallBack<0>
+};
+
+static const IO_ReadHandler * const read_sbs[MAX_CARDS] = {
+	read_sb<0>
+};
+
+static const IO_WriteHandler * const write_sbs[MAX_CARDS] = {
+	write_sb<0>
+};
 
 class SBLASTER: public Module_base {
 	private:
@@ -4163,8 +4173,8 @@ class SBLASTER: public Module_base {
 				if (i==8 || i==9) continue;
 				//Disable mixer ports for lower soundblaster
 				if ((sb[ci].type==SBT_1 || sb[ci].type==SBT_2) && (i==4 || i==5)) continue;
-				ReadHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),read_sb,IO_MB);
-				WriteHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),write_sb,IO_MB);
+				ReadHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),read_sbs[ci],IO_MB);
+				WriteHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),write_sbs[ci],IO_MB);
 			}
 
 			// TODO: read/write handler for ESS AudioDrive ES1688 (and later) MPU-401 ports (3x0h/3x1h; prevents Windows drivers from working with default settings if missing)
