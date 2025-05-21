@@ -90,7 +90,7 @@
 #include "hardopl.h"
 using namespace std;
 
-#define MAX_CARDS 1
+#define MAX_CARDS 2
 
 #define CARD_INDEX_BIT 28u
 
@@ -597,11 +597,13 @@ struct SB_INFO {
 };
 
 static const char *sb_section_names[MAX_CARDS] = {
-	"sblaster"
+	"sblaster",
+	"sblaster2"
 };
 
 static const char *sbMixerChanNames[MAX_CARDS] = {
-	"SB"
+	"SB",
+	"SB2"
 };
 
 const char *sbGetSectionName(const size_t ci) {
@@ -3817,15 +3819,18 @@ template <const size_t ci> static void write_sb(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static const MIXER_Handler SBLASTER_CallBacks[MAX_CARDS] = {
-	SBLASTER_CallBack<0>
+	SBLASTER_CallBack<0>,
+	SBLASTER_CallBack<1>
 };
 
 static const IO_ReadHandler * const read_sbs[MAX_CARDS] = {
-	read_sb<0>
+	read_sb<0>,
+	read_sb<1>
 };
 
 static const IO_WriteHandler * const write_sbs[MAX_CARDS] = {
-	write_sb<0>
+	write_sb<0>,
+	write_sb<1>
 };
 
 class SBLASTER: public Module_base {
@@ -3903,7 +3908,8 @@ class SBLASTER: public Module_base {
 
 			/* OPL/CMS Init */
 			const char * omode=config->Get_string("oplmode");
-			if (!strcasecmp(omode,"none")) opl_mode=OPL_none;
+			if (ci != 0) opl_mode=OPL_none; // only the first card can have an OPL chip
+			else if (!strcasecmp(omode,"none")) opl_mode=OPL_none;
 			else if (!strcasecmp(omode,"cms")); // Skip for backward compatibility with existing configurations
 			else if (!strcasecmp(omode,"opl2")) opl_mode=OPL_opl2;
 			else if (!strcasecmp(omode,"dualopl2")) opl_mode=OPL_dualopl2;
@@ -4163,6 +4169,10 @@ class SBLASTER: public Module_base {
 				else
 					sb[ci].cms = false;
 			}
+
+			/* only the first card can have CMS */
+			if (sb[ci].cms && ci != 0)
+				sb[ci].cms = false;
 
 			switch(sb[ci].type) {
 				case SBT_1: // CMS is optional for Sound Blaster 1 and 2
