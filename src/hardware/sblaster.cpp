@@ -4442,7 +4442,7 @@ ASP>
 		void DOS_Startup() {
 			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
 
-			if (sb[ci].emit_blaster_var) {
+			if (sb[ci].emit_blaster_var && ci == 0) {
 				// Create set blaster line
 				ostringstream temp;
 				if (IS_PC98_ARCH)

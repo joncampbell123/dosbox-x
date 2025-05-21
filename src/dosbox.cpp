@@ -3855,7 +3855,7 @@ void DOSBOX_SetupConfigSections(void) {
 					"WARNING: Setting the value too high (above 20000ns) may have detrimental effects to DOS games that use IRQ 0 and DSP command 0x10 to play audio.\n"
 					"         Setting the value way too high (above 1000000ns) can cause significant lag in DOS games.");
 
-			Pbool = secprop->Add_bool("blaster environment variable",Property::Changeable::WhenIdle,true);
+			Pbool = secprop->Add_bool("blaster environment variable",Property::Changeable::WhenIdle,ci == 0 ? true : false);
 			Pbool->Set_help("Whether or not to set the BLASTER environment variable automatically at startup");
 			Pbool->SetBasic(true);
 
