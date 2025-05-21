@@ -1419,6 +1419,17 @@ void SB_INFO::DSP_Reset(void) {
 	dma.remain_size=0;
 	if (dma.chan) dma.chan->Clear_Request();
 
+	/* reset must clear the DSP command E2h and E5h DMA handlers */
+	{
+		DmaChannel *chan = GetDMAChannel(hw.dma8);
+		if (chan) {
+			if (chan->callback == DSP_SC400_E6_DMA_CallBack || chan->callback == DSP_E2_DMA_CallBack) {
+				LOG(LOG_SB,LOG_DEBUG)("DSP reset interrupting E2/E5h DMA commands");
+				chan->Register_Callback(nullptr);
+			}
+		}
+	}
+
 	gen_input_reset();
 
 	dsp.midi_rwpoll_mode = false;
