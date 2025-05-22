@@ -93,9 +93,6 @@ static bool gus_warn_dma_conflict = false;
 static IO_Callout_t gus_iocallout = IO_Callout_t_none;
 static IO_Callout_t gus_iocallout2 = IO_Callout_t_none;
 
-class GUSChannels;
-static void CheckVoiceIrq(void);
-
 struct GFGus {
 	uint8_t gRegSelectData;		// what is read back from 3X3. not necessarily the index selected, but
 	// apparently the last byte read OR written to ports 3X3-3X5 as seen
@@ -154,6 +151,7 @@ struct GFGus {
 	uint32_t WaveIRQ;
 	double masterVolume;    /* decibels */
 	int32_t masterVolumeMul; /* 1<<9 fixed */
+	uint8_t GUS_reset_reg;
 	uint8_t GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 
 	void updateMasterVolume(void) {
@@ -162,15 +160,16 @@ struct GFGus {
 		masterVolumeMul = (int32_t)((1 << 9) * pow(10.0,vol / 20.0));
 		if (AutoAmp > masterVolumeMul) AutoAmp = masterVolumeMul;
 	}
-} myGUS;
+};
 
+static void CheckVoiceIrq(void);
 Bitu DEBUG_EnableDebugger(void);
-
-static uint8_t GUS_reset_reg = 0;
 
 static inline uint8_t read_GF1_mapping_control(const unsigned int ch);
 
-class GUSChannels {
+static GFGus myGUS;
+
+class GUSChannel {
 	public:
 		uint32_t WaveStart;
 		uint32_t WaveEnd;
@@ -195,7 +194,7 @@ class GUSChannels {
 		int32_t VolLeft;
 		int32_t VolRight;
 
-		GUSChannels(uint8_t num) { 
+		GUSChannel(uint8_t num) { 
 			channum = num;
 			irqmask = 1u << num;
 			WaveStart = 0;
@@ -467,7 +466,7 @@ class GUSChannels {
 					else
 						tmpsamp = GetSample8();
 					// Output stereo sample if DAC enable on
-					if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
+					if ((myGUS.GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
 						int32_t* const sp = stream + (i << 1);
 						const int32_t L = tmpsamp * VolLeft;
 						const int32_t R = tmpsamp * VolRight;
@@ -492,7 +491,7 @@ class GUSChannels {
 						tmpsamp = GetSample8();
 
 					// Output stereo sample if DAC enable on
-					if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
+					if ((myGUS.GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
 						stream[i << 1] += tmpsamp * VolLeft;
 						stream[(i << 1) + 1] += tmpsamp * VolRight;
 
@@ -504,8 +503,8 @@ class GUSChannels {
 		}
 };
 
-static GUSChannels *guschan[32] = {NULL};
-static GUSChannels *curchan = NULL;
+static GUSChannel *guschan[32] = {NULL};
+static GUSChannel *curchan = NULL;
 
 #if C_DEBUG
 void DEBUG_PrintGUS() { //debugger "GUS" command
@@ -547,7 +546,7 @@ void DEBUG_PrintGUS() { //debugger "GUS" command
                         myGUS.timers[t].running);
         }
 	for (size_t t=0;t < (size_t)myGUS.ActiveChannels;t++) {
-                GUSChannels *ch = guschan[t];
+                GUSChannel *ch = guschan[t];
                 if (ch == NULL) continue;
 
 		std::string line;
@@ -613,7 +612,7 @@ void GUS_StartDMA();
 void GUS_Update_DMA_Event_transfer();
 
 static void GUSReset(void) {
-	unsigned char p_GUS_reset_reg = GUS_reset_reg;
+	unsigned char p_GUS_reset_reg = myGUS.GUS_reset_reg;
 
 	/* NTS: From the Ultrasound SDK:
 	 *
@@ -625,14 +624,14 @@ static void GUSReset(void) {
 	 *      LOWER 8 bits, when the code should have been checking the UPPER 8 bits. Programming error #2 was the mis-interpretation of bit 0 (bit 8 of
 	 *      the gRegData). According to the SDK, clearing bit 0 triggers RESET, setting bit 0 starts the card running again. The original code had
 	 *      it backwards. */
-	GUS_reset_reg = (myGUS.gRegData >> 8) & 7;
+	myGUS.GUS_reset_reg = (myGUS.gRegData >> 8) & 7;
 
 	if ((myGUS.gRegData & 0x400) != 0x000 || myGUS.force_master_irq_enable)
 		myGUS.irqenabled = true;
 	else
 		myGUS.irqenabled = false;
 
-	if (GUS_reset_reg ^ p_GUS_reset_reg)
+	if (myGUS.GUS_reset_reg ^ p_GUS_reset_reg)
 		LOG(LOG_MISC,LOG_DEBUG)("GUS reset with 0x%04X",myGUS.gRegData);
 
 	if ((myGUS.gRegData & 0x100) == 0x000) {
@@ -698,7 +697,7 @@ static void GUSReset(void) {
 	}
 
 	/* if the card was just put into reset, or the card WAS in reset, bits 1-2 are cleared */
-	if ((GUS_reset_reg & 1) == 0 || (p_GUS_reset_reg & 1) == 0) {
+	if ((myGUS.GUS_reset_reg & 1) == 0 || (p_GUS_reset_reg & 1) == 0) {
 		/* GUS classic observed behavior: resetting the card, or even coming out of reset, clears bits 1-2.
 		 * That means, if you write any value to GUS RESET with bit 0 == 0, bits 1-2 become zero as well.
 		 * And if you take the card out of reset, bits 1-2 are zeroed.
@@ -719,7 +718,7 @@ static void GUSReset(void) {
 		 * outb(0x3X3,0x4C); outb(0x3X5,0x06);    <- bit 0 == 0, we're trying to set bits 1-2
 		 * outb(0x3X3,0x4C); c = inb(0x3X5);      <- you'll get 0x00, not 0x06, card is in reset state */
 		myGUS.irqenabled = myGUS.force_master_irq_enable; // IRQ enable resets, unless user specified we force it on
-		GUS_reset_reg &= 1;
+		myGUS.GUS_reset_reg &= 1;
 	}
 
 	GUS_CheckIRQ();
@@ -849,7 +848,7 @@ static uint16_t ExecuteReadRegister(void) {
 			tmpreg |= (myGUS.DMAControl & 0x100) >> 2; /* Bit 6 on read is the DMA terminal count IRQ status */
 			return (uint16_t)(tmpreg << 8);
 		case 0x4c:  // GUS reset register
-			tmpreg = (GUS_reset_reg & ~0x4) | (myGUS.irqenabled ? 0x4 : 0x0);
+			tmpreg = (myGUS.GUS_reset_reg & ~0x4) | (myGUS.irqenabled ? 0x4 : 0x0);
 			/* GUS Classic observed behavior: You can read Register 4Ch from both 3X4 and 3X5 and get the same 8-bit contents */
 			return ((uint16_t)(tmpreg << 8) | (uint16_t)tmpreg);
 		case 0x80: // Channel voice control read register
@@ -1009,7 +1008,7 @@ static void ExecuteGlobRegister(void) {
 		 * As far as I know, real hardware will accept the change immediately and produce the same
 		 * slowed down sound music. --J.C. */
 		if (ignore_active_channel_write_while_active) {
-			if (GUS_reset_reg & 0x02/*DAC enable*/) {
+			if (myGUS.GUS_reset_reg & 0x02/*DAC enable*/) {
 				LOG_MSG("GUS: Attempt to change active channel count while DAC active rejected");
 				break;
 			}
@@ -2093,7 +2092,7 @@ static void GUS_CallBack(Bitu len) {
     int32_t buffer[MIXER_BUFSIZE][2];
     memset(buffer, 0, len * sizeof(buffer[0]));
 
-    if ((GUS_reset_reg & 0x01/*!master reset*/) == 0x01) {
+    if ((myGUS.GUS_reset_reg & 0x01/*!master reset*/) == 0x01) {
         for (Bitu i = 0; i < myGUS.ActiveChannels; i++) {
             guschan[i]->generateSamples(buffer[0], len);
         }
@@ -2510,7 +2509,7 @@ public:
 		MakeTables();
 	
 		for (uint8_t chan_ct=0; chan_ct<32; chan_ct++) {
-			guschan[chan_ct] = new GUSChannels(chan_ct);
+			guschan[chan_ct] = new GUSChannel(chan_ct);
 		}
 		// Register the Mixer CallBack 
 		gus_chan=MixerChan.Install(GUS_CallBack,GUS_RATE,"GUS");
