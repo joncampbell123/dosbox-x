@@ -343,6 +343,30 @@ template <typename T=unsigned int> static inline unsigned int log2(T v) {
     return ~0u;
 }
 
+/* round up to the next power of 2 */
+/* 0x7000 0111 0000 0000 0000 16 bits
+ * 0x7070 0111 0000 0111 0000 shf = 8
+ * 0x7777 0111 0111 0111 0111 shf = 4
+ * 0x7FFF 0111 1111 1111 1111 shf = 2
+ * 0x7FFF 0111 1111 1111 1111 shf = 1
+ *
+ * 0x2000 0010 0000 0000 0000 16 bits
+ * 0x2020 0010 0000 0010 0000 shf = 8
+ * 0x2222 0010 0010 0010 0010 shf = 4
+ * 0x2AAA 0010 1010 1010 1010 shf = 2
+ * 0x3FFF 0011 1111 1111 1111 shf = 1
+ */
+template <typename T=unsigned int> static inline constexpr unsigned int _rounduppow2mask(const T v,const T shf) {
+	return shf != T(0u) ? _rounduppow2mask(v | (v >> shf),shf >> T(1u)) : v;
+}
+
+template <typename T=unsigned int> static inline constexpr unsigned int rounduppow2mask(const T v) {
+	return _rounduppow2mask<T>(v,type_bits<T>() >> T(1u));
+}
+
+static_assert( rounduppow2mask(0x7000) == 0x7FFF, "oops" );
+static_assert( rounduppow2mask(0x2000) == 0x3FFF, "oops" );
+static_assert( rounduppow2mask(0x0FFF) == 0x0FFF, "oops" );
 
 /* return type, pair */
 class bitseqlengthandpos_ret_t {
