@@ -101,6 +101,7 @@ struct GFGus {
 	uint16_t gRegData;
 	uint32_t gDramAddr;
 	uint32_t gDramAddrMask;
+	uint32_t gDramVoiceMask;
 	uint16_t gCurChannel;
 
 	uint8_t gUltraMAXControl;
@@ -217,11 +218,11 @@ class GUSChannel {
 		}
 
 		INLINE int32_t LoadSample8(const uint32_t addr/*memory address without fractional bits*/) const {
-			return (int8_t)myGUS.GUSRam[addr & 0xFFFFFu/*1MB*/] << int32_t(8); /* typecast to sign extend 8-bit value */
+			return (int8_t)myGUS.GUSRam[addr & myGUS.gDramVoiceMask] << int32_t(8); /* typecast to sign extend 8-bit value */
 		}
 
 		INLINE int32_t LoadSample16(const uint32_t addr/*memory address without fractional bits*/) const {
-			const uint32_t adjaddr = (addr & 0xC0000u/*256KB bank*/) | ((addr & 0x1FFFFu) << 1u/*16-bit sample value within bank*/);
+			const uint32_t adjaddr = (addr & myGUS.gDramVoiceMask & 0xC0000u/*256KB bank*/) | ((addr & 0x1FFFFu) << 1u/*16-bit sample value within bank*/);
 			return (int16_t)host_readw(myGUS.GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
 		}
 
@@ -508,12 +509,13 @@ static GUSChannel *curchan = NULL;
 
 #if C_DEBUG
 void DEBUG_PrintGUS() { //debugger "GUS" command
-        LOG_MSG("GUS regsel=%02x regseld=%02x regdata=%02x DRAMaddr=%06x/%06x memsz=%06x curch=%02x MAXctrl=%02x regctl=%02x",
+        LOG_MSG("GUS regsel=%02x regseld=%02x regdata=%02x DRAMaddr=%06x/%06x VoiceMask=%06x memsz=%06x curch=%02x MAXctrl=%02x regctl=%02x",
                         myGUS.gRegSelect,
                         myGUS.gRegSelectData,
                         myGUS.gRegData,
                         myGUS.gDramAddr,
                         myGUS.gDramAddrMask,
+                        myGUS.gDramVoiceMask,
                         myGUS.memsize,
                         myGUS.gCurChannel,
                         myGUS.gUltraMAXControl,
@@ -2546,6 +2548,7 @@ public:
 
         // Default to GUS MAX 1MB maximum
         myGUS.gDramAddrMask = 0xFFFFF;
+        myGUS.gDramVoiceMask = 0xFFFFF;
 
         // if instructed, configure the card as if ULTRINIT had been run
         if (startup_ultrinit) {
