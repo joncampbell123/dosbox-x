@@ -76,7 +76,6 @@ uint8_t adlib_commandreg;
 static MixerChannel * gus_chan;
 static uint8_t const irqtable[8] = { 0/*invalid*/, 2, 5, 3, 7, 11, 12, 15 };
 static uint8_t const dmatable[8] = { 0/*NO DMA*/, 1, 3, 5, 6, 7, 0/*invalid*/, 0/*invalid*/ };
-static uint8_t GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 static int32_t AutoAmp = 512;
 static bool unmask_irq = false;
 static bool enable_autoamp = false;
@@ -155,6 +154,7 @@ struct GFGus {
 	uint32_t WaveIRQ;
 	double masterVolume;    /* decibels */
 	int32_t masterVolumeMul; /* 1<<9 fixed */
+	uint8_t GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 
 	void updateMasterVolume(void) {
 		double vol = masterVolume;
@@ -218,12 +218,12 @@ class GUSChannels {
 		}
 
 		INLINE int32_t LoadSample8(const uint32_t addr/*memory address without fractional bits*/) const {
-			return (int8_t)GUSRam[addr & 0xFFFFFu/*1MB*/] << int32_t(8); /* typecast to sign extend 8-bit value */
+			return (int8_t)myGUS.GUSRam[addr & 0xFFFFFu/*1MB*/] << int32_t(8); /* typecast to sign extend 8-bit value */
 		}
 
 		INLINE int32_t LoadSample16(const uint32_t addr/*memory address without fractional bits*/) const {
 			const uint32_t adjaddr = (addr & 0xC0000u/*256KB bank*/) | ((addr & 0x1FFFFu) << 1u/*16-bit sample value within bank*/);
-			return (int16_t)host_readw(GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
+			return (int16_t)host_readw(myGUS.GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
 		}
 
 		// Returns a single 16-bit sample from the Gravis's RAM
@@ -1572,7 +1572,7 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 			LOG(LOG_MISC,LOG_WARN)("GUS: out of bounds DRAM read %x",(unsigned int)myGUS.gDramAddr);
 
 		if((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize)
-			return GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask];
+			return myGUS.GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask];
 		else
 			return 0;
 	case 0x306:
@@ -1819,7 +1819,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 			LOG(LOG_MISC,LOG_WARN)("GUS: out of bounds DRAM write %x val %x",(unsigned int)myGUS.gDramAddr,(unsigned int)val & 0xffu);
 
 		if ((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize)
-			GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask] = (uint8_t)val;
+			myGUS.GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask] = (uint8_t)val;
 
 		break;
 	case 0x306:
@@ -1963,7 +1963,7 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 
 	if (docount > 0) {
 		if ((myGUS.DMAControl & 0x2) == 0) {
-			Bitu read=(Bitu)chan->Read((Bitu)docount,&GUSRam[dmaaddr]);
+			Bitu read=(Bitu)chan->Read((Bitu)docount,&myGUS.GUSRam[dmaaddr]);
 			//Check for 16 or 8bit channel
 			read*=(chan->DMA16+1u);
 			if((myGUS.DMAControl & 0x80) != 0) {
@@ -1971,17 +1971,17 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 				Bitu i;
 				if((myGUS.DMAControl & 0x40) == 0) {
 					// 8-bit data
-					for(i=dmaaddr;i<(dmaaddr+read);i++) GUSRam[i] ^= 0x80;
+					for(i=dmaaddr;i<(dmaaddr+read);i++) myGUS.GUSRam[i] ^= 0x80;
 				} else {
 					// 16-bit data
-					for(i=dmaaddr+1;i<(dmaaddr+read);i+=2) GUSRam[i] ^= 0x80;
+					for(i=dmaaddr+1;i<(dmaaddr+read);i+=2) myGUS.GUSRam[i] ^= 0x80;
 				}
 			}
 
 			step = read;
 		} else {
 			//Read data out of UltraSound
-			Bitu wd = (Bitu)chan->Write((Bitu)docount,&GUSRam[dmaaddr]);
+			Bitu wd = (Bitu)chan->Write((Bitu)docount,&myGUS.GUSRam[dmaaddr]);
 			//Check for 16 or 8bit channel
 			wd*=(chan->DMA16+1u);
 
@@ -2284,7 +2284,7 @@ public:
 
         gus_enable = true;
         memset(&myGUS,0,sizeof(myGUS));
-        memset(GUSRam,0,1024*1024);
+        memset(myGUS.GUSRam,0xFF,1024*1024);
 
         ignore_active_channel_write_while_active = section->Get_bool("ignore channel count while active");
         warn_out_of_bounds_dram_access = section->Get_bool("warn on out of bounds dram access");
@@ -2693,7 +2693,6 @@ const char pod_name[32] = "GUS";
 
 	// - pure data
 	WRITE_POD( &adlib_commandreg, adlib_commandreg );
-	WRITE_POD( &GUSRam, GUSRam );
 	WRITE_POD( &vol16bit, vol16bit );
 	WRITE_POD( &pantable, pantable );
 
@@ -2749,7 +2748,6 @@ void POD_Load_GUS( std::istream& stream )
 
 	// - pure data
 	READ_POD( &adlib_commandreg, adlib_commandreg );
-	READ_POD( &GUSRam, GUSRam );
 	READ_POD( &vol16bit, vol16bit );
 	READ_POD( &pantable, pantable );
 
