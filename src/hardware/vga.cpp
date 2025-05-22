@@ -1033,9 +1033,9 @@ void VGA_Reset(Section*) {
 		SVGA_Setup_Driver();        // svga video memory size is set here, possibly over-riding the user's selection
 
 	// NTS: This is WHY the memory size must be a power of 2
-	vga.mem.memmask = vga.mem.memsize - 1u;
+	vga.mem.memmask = bitop::rounduppow2mask(vga.mem.memsize - 1u);
 
-	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.mem.memsize>>10);
+	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB (mask 0x%x)",vga.mem.memsize>>10,(unsigned int)vga.mem.memmask);
 
 	// TODO: If S3 emulation, and linear framebuffer bumps up against the CPU memalias limits,
 	//       trim Video RAM to fit (within reasonable limits) or else E_Exit() to let the user
