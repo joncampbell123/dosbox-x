@@ -3986,7 +3986,7 @@ void DOSBOX_SetupConfigSections(void) {
             "Note: DOSBox-X defaults to 'false', while mainline DOSBox SVN is currently hardcoded to render as if this setting is 'true'.");
 
     Pint = secprop->Add_int("gusmemsize",Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,1024);
+    Pint->SetMinMax(-1,8192);
     Pint->Set_help("Amount of RAM on the Gravis Ultrasound in KB. Set to -1 for default.");
     Pint->SetBasic(true);
 
