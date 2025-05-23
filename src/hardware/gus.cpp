@@ -29,6 +29,7 @@
 #include "control.h"
 #include "setup.h"
 #include "shell.h"
+#include "bitop.h"
 #include "math.h"
 #include "regs.h"
 using namespace std;
@@ -153,7 +154,7 @@ struct GFGus {
 	double masterVolume;    /* decibels */
 	int32_t masterVolumeMul; /* 1<<9 fixed */
 	uint8_t GUS_reset_reg;
-	uint8_t GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
+	uint8_t* GUSRam;
 
 	void updateMasterVolume(void) {
 		double vol = masterVolume;
@@ -2285,7 +2286,6 @@ public:
 
         gus_enable = true;
         memset(&myGUS,0,sizeof(myGUS));
-        memset(myGUS.GUSRam,0xFF,1024*1024);
 
         ignore_active_channel_write_while_active = section->Get_bool("ignore channel count while active");
         warn_out_of_bounds_dram_access = section->Get_bool("warn on out of bounds dram access");
@@ -2371,13 +2371,26 @@ public:
 		if (x >= 0) myGUS.memsize = (unsigned int)x*1024u;
 		else myGUS.memsize = 1024u*1024u;
 
-		if (myGUS.memsize > (1024u*1024u))
-			myGUS.memsize = (1024u*1024u);
+		if (myGUS.memsize > (8*1024u*1024u))
+			myGUS.memsize = (8*1024u*1024u);
 
 		if ((myGUS.memsize&((256u << 10u) - 1u)) != 0)
 			LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard",myGUS.memsize>>10);
 
-		LOG(LOG_MISC,LOG_DEBUG)("GUS emulation: %uKB onboard",myGUS.memsize>>10);
+		assert(myGUS.GUSRam == NULL);
+		{
+			const unsigned int mask =
+				myGUS.memsize != 0 ? bitop::rounduppow2mask(myGUS.memsize - 1) : 0;
+
+			myGUS.gDramAddrMask = mask;
+			myGUS.gDramVoiceMask = mask;
+			LOG(LOG_MISC,LOG_DEBUG)("GUS emulation: %uKB onboard (mask 0x%x)",myGUS.memsize>>10,(unsigned int)mask);
+
+			if (mask != 0) {
+				myGUS.GUSRam = new unsigned char[mask + 1u + 16u/*safety margin*/];
+				memset(myGUS.GUSRam,0xFF,mask + 1u + 16u);
+			}
+		}
 
         // some demoscene stuff has music that's way too loud if we render at full volume.
         // the GUS mixer emulation won't fix it because it changes the volume at the Mixer
@@ -2593,15 +2606,27 @@ public:
 	}
 
 	~GUS() {
-        if (gus_iocallout != IO_Callout_t_none) {
-            IO_FreeCallout(gus_iocallout);
-            gus_iocallout = IO_Callout_t_none;
-        }
+		if (gus_iocallout != IO_Callout_t_none) {
+			IO_FreeCallout(gus_iocallout);
+			gus_iocallout = IO_Callout_t_none;
+		}
 
-        if (gus_iocallout2 != IO_Callout_t_none) {
-            IO_FreeCallout(gus_iocallout2);
-            gus_iocallout2 = IO_Callout_t_none;
-        }
+		if (gus_iocallout2 != IO_Callout_t_none) {
+			IO_FreeCallout(gus_iocallout2);
+			gus_iocallout2 = IO_Callout_t_none;
+		}
+
+		for (uint8_t chan_ct=0; chan_ct<32; chan_ct++) {
+			if (guschan[chan_ct] != NULL) {
+				delete guschan[chan_ct];
+				guschan[chan_ct] = NULL;
+			}
+		}
+
+		if (myGUS.GUSRam != NULL) {
+			delete[] myGUS.GUSRam;
+			myGUS.GUSRam = NULL;
+		}
 
 #if 0 // FIXME
 		if(!IS_EGAVGA_ARCH) return;
