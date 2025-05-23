@@ -237,31 +237,19 @@ class GUSChannel {
 			return (int16_t)host_readw(myGUS.GUSRam + VoiceAddr16(addr));/* typecast to sign extend 16-bit value */
 		}
 
+		INLINE int32_t InterpolateSample(const int32_t w1,const int32_t w2,const uint32_t scale) const {
+			return w1 + (((w2 - w1) * int32_t(scale)) >> WAVE_FRACT);
+		}
+
 		// Returns a single 16-bit sample from the Gravis's RAM
 		INLINE int32_t GetSample8() const {
-			/* LoadSample*() will take care of wrapping to 1MB */
 			const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
-			{
-				// Interpolate
-				int32_t w1 = LoadSample8(useAddr);
-				int32_t w2 = LoadSample8(useAddr + 1u);
-				int32_t diff = w2 - w1;
-				int32_t scale = (int32_t)(WaveAddr & WAVE_FRACT_MASK);
-				return (w1 + ((diff * scale) >> WAVE_FRACT));
-			}
+			return InterpolateSample(LoadSample8(useAddr),LoadSample8(useAddr+1u),WaveAddr & WAVE_FRACT_MASK);
 		}
 
 		INLINE int32_t GetSample16() const {
-			/* Load Sample*() will take care of wrapping to 1MB and funky bank/sample conversion */
 			const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
-			{
-				// Interpolate
-				int32_t w1 = LoadSample16(useAddr);
-				int32_t w2 = LoadSample16(useAddr + 1u);
-				int32_t diff = w2 - w1;
-				int32_t scale = (int32_t)(WaveAddr & WAVE_FRACT_MASK);
-				return (w1 + ((diff * scale) >> WAVE_FRACT));
-			}
+			return InterpolateSample(LoadSample16(useAddr),LoadSample16(useAddr+1u),WaveAddr & WAVE_FRACT_MASK);
 		}
 
 		void WriteWaveFreq(uint16_t val) {
