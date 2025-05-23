@@ -156,12 +156,7 @@ struct GFGus {
 	uint8_t GUS_reset_reg;
 	uint8_t* GUSRam;
 
-	void updateMasterVolume(void) {
-		double vol = masterVolume;
-		if (vol > 6) vol = 6; // allow some amplification but don't let it overflow
-		masterVolumeMul = (int32_t)((1 << 9) * pow(10.0,vol / 20.0));
-		if (AutoAmp > masterVolumeMul) AutoAmp = masterVolumeMul;
-	}
+	void updateMasterVolume(void);
 
 	INLINE uint32_t VoiceAddr8(const uint32_t addr) const {
 		return addr & gDramVoiceMask;
@@ -202,6 +197,13 @@ static void CheckVoiceIrq(void);
 Bitu DEBUG_EnableDebugger(void);
 
 static inline uint8_t read_GF1_mapping_control(const unsigned int ch);
+
+void GFGus::updateMasterVolume(void) {
+	double vol = masterVolume;
+	if (vol > 6) vol = 6; // allow some amplification but don't let it overflow
+	masterVolumeMul = (int32_t)((1 << 9) * pow(10.0,vol / 20.0));
+	if (AutoAmp > masterVolumeMul) AutoAmp = masterVolumeMul;
+}
 
 static GFGus myGUS;
 
