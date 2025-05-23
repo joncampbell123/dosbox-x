@@ -2377,6 +2377,9 @@ public:
 		if ((myGUS.memsize&((256u << 10u) - 1u)) != 0)
 			LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard",myGUS.memsize>>10);
 
+		if (gus_type <= GUS_MAX && myGUS.memsize > (1024u*1024u))
+			LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusually large (more than 1MB) value for the model of GUS to emuulate.",myGUS.memsize>>10);
+
 		assert(myGUS.GUSRam == NULL);
 		{
 			const unsigned int mask =
