@@ -162,6 +162,40 @@ struct GFGus {
 		masterVolumeMul = (int32_t)((1 << 9) * pow(10.0,vol / 20.0));
 		if (AutoAmp > masterVolumeMul) AutoAmp = masterVolumeMul;
 	}
+
+	INLINE uint32_t VoiceAddr8(const uint32_t addr) const {
+		return addr & gDramVoiceMask;
+	}
+
+	INLINE uint32_t VoiceAddr16(const uint32_t addr) const {
+		const uint32_t maddr = addr & gDramVoiceMask;
+		const uint32_t bank_a = maddr & 0xC0000u;
+		const uint32_t bank_o = (maddr & 0x1FFFFu) << 1u;
+		return bank_a + bank_o;
+	}
+
+	INLINE int32_t LoadSample8(const uint32_t addr/*memory address without fractional bits*/) const {
+		return (int8_t)GUSRam[VoiceAddr8(addr)] << int32_t(8); /* typecast to sign extend 8-bit value */
+	}
+
+	INLINE int32_t LoadSample16(const uint32_t addr/*memory address without fractional bits*/) const {
+		return (int16_t)host_readw(GUSRam + VoiceAddr16(addr));/* typecast to sign extend 16-bit value */
+	}
+
+	INLINE int32_t InterpolateSample(const int32_t w1,const int32_t w2,const uint32_t scale) const {
+		return w1 + (((w2 - w1) * int32_t(scale)) >> WAVE_FRACT);
+	}
+
+	INLINE int32_t GetSample8(const uint32_t WaveAddr) const {
+		const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
+		return InterpolateSample(LoadSample8(useAddr),LoadSample8(useAddr+1u),WaveAddr & WAVE_FRACT_MASK);
+	}
+
+	INLINE int32_t GetSample16(const uint32_t WaveAddr) const {
+		const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
+		return InterpolateSample(LoadSample16(useAddr),LoadSample16(useAddr+1u),WaveAddr & WAVE_FRACT_MASK);
+	}
+
 };
 
 static void CheckVoiceIrq(void);
@@ -218,38 +252,12 @@ class GUSChannel {
 			PanPot = 0x7;
 		}
 
-		INLINE uint32_t VoiceAddr8(const uint32_t addr) const {
-			return addr & myGUS.gDramVoiceMask;
-		}
-
-		INLINE uint32_t VoiceAddr16(const uint32_t addr) const {
-			const uint32_t maddr = addr & myGUS.gDramVoiceMask;
-			const uint32_t bank_a = maddr & 0xC0000u;
-			const uint32_t bank_o = (maddr & 0x1FFFFu) << 1u;
-			return bank_a + bank_o;
-		}
-
-		INLINE int32_t LoadSample8(const uint32_t addr/*memory address without fractional bits*/) const {
-			return (int8_t)myGUS.GUSRam[VoiceAddr8(addr)] << int32_t(8); /* typecast to sign extend 8-bit value */
-		}
-
-		INLINE int32_t LoadSample16(const uint32_t addr/*memory address without fractional bits*/) const {
-			return (int16_t)host_readw(myGUS.GUSRam + VoiceAddr16(addr));/* typecast to sign extend 16-bit value */
-		}
-
-		INLINE int32_t InterpolateSample(const int32_t w1,const int32_t w2,const uint32_t scale) const {
-			return w1 + (((w2 - w1) * int32_t(scale)) >> WAVE_FRACT);
-		}
-
-		// Returns a single 16-bit sample from the Gravis's RAM
 		INLINE int32_t GetSample8() const {
-			const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
-			return InterpolateSample(LoadSample8(useAddr),LoadSample8(useAddr+1u),WaveAddr & WAVE_FRACT_MASK);
+			return myGUS.GetSample8(WaveAddr);
 		}
 
 		INLINE int32_t GetSample16() const {
-			const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
-			return InterpolateSample(LoadSample16(useAddr),LoadSample16(useAddr+1u),WaveAddr & WAVE_FRACT_MASK);
+			return myGUS.GetSample16(WaveAddr);
 		}
 
 		void WriteWaveFreq(uint16_t val) {
