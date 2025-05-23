@@ -218,13 +218,23 @@ class GUSChannel {
 			PanPot = 0x7;
 		}
 
+		INLINE uint32_t VoiceAddr8(const uint32_t addr) const {
+			return addr & myGUS.gDramVoiceMask;
+		}
+
+		INLINE uint32_t VoiceAddr16(const uint32_t addr) const {
+			const uint32_t maddr = addr & myGUS.gDramVoiceMask;
+			const uint32_t bank_a = maddr & 0xC0000u;
+			const uint32_t bank_o = (maddr & 0x1FFFFu) << 1u;
+			return bank_a + bank_o;
+		}
+
 		INLINE int32_t LoadSample8(const uint32_t addr/*memory address without fractional bits*/) const {
-			return (int8_t)myGUS.GUSRam[addr & myGUS.gDramVoiceMask] << int32_t(8); /* typecast to sign extend 8-bit value */
+			return (int8_t)myGUS.GUSRam[VoiceAddr8(addr)] << int32_t(8); /* typecast to sign extend 8-bit value */
 		}
 
 		INLINE int32_t LoadSample16(const uint32_t addr/*memory address without fractional bits*/) const {
-			const uint32_t adjaddr = (addr & myGUS.gDramVoiceMask & 0xC0000u/*256KB bank*/) | ((addr & 0x1FFFFu) << 1u/*16-bit sample value within bank*/);
-			return (int16_t)host_readw(myGUS.GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
+			return (int16_t)host_readw(myGUS.GUSRam + VoiceAddr16(addr));/* typecast to sign extend 16-bit value */
 		}
 
 		// Returns a single 16-bit sample from the Gravis's RAM
