@@ -805,7 +805,7 @@ void initcodepagefont() {
 	uint32_t start_pos;
 	uint16_t number_of_codepages;
 	static uint8_t cpi_buff[65536];
-	uint8_t *cpibuf = dos.loaded_codepage == 856 ? cpi_buff : cpi_buf;
+	uint8_t *cpibuf = cpi_buf;
 	uint32_t cpi_buf_size=0,size_of_cpxdata=0;
     switch (dos.loaded_codepage) {
 			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
@@ -861,7 +861,8 @@ void initcodepagefont() {
 				break;
 			case 856:	case 3846:	case 3848:
 				cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPI);
-				break;
+				cpibuf = cpi_buff;
+                break;
             default:
                     return;
     }
