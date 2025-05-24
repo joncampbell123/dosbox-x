@@ -57,7 +57,7 @@ namespace OPL2 {
 			adlib_write(reg,val);
 		}
 		uint32_t WriteAddr( uint32_t port, uint8_t val ) override {
-            (void)port;//UNUSED
+			(void)port;//UNUSED
 			return val;
 		}
 
@@ -343,39 +343,39 @@ struct Handler : public Adlib::Handler {
 		chip = ym3812_init(nullptr, OPL2_INTERNAL_FREQ, (uint32_t)rate);
 	}
 	void SaveState( std::ostream& stream ) override {
-    	const char pod_name[32] = "MAMEOPL2";
+		const char pod_name[32] = "MAMEOPL2";
 
-    	if( stream.fail() ) return;
-
-
-    	WRITE_POD( &pod_name, pod_name );
-
-    	//************************************************
-    	//************************************************
-    	//************************************************
-
-    	FMOPL_SaveState(chip, stream);
-    }
-
-    void LoadState( std::istream& stream ) override {
-    	char pod_name[32] = {0};
-
-    	if( stream.fail() ) return;
+		if( stream.fail() ) return;
 
 
-    	// error checking
-    	READ_POD( &pod_name, pod_name );
-    	if( strcmp( pod_name, "MAMEOPL2" ) ) {
-    		stream.clear( std::istream::failbit | std::istream::badbit );
-    		return;
-    	}
+		WRITE_POD( &pod_name, pod_name );
 
-    	//************************************************
-    	//************************************************
-    	//************************************************
+		//************************************************
+		//************************************************
+		//************************************************
 
-    	FMOPL_LoadState(chip, stream);
-    }
+		FMOPL_SaveState(chip, stream);
+	}
+
+	void LoadState( std::istream& stream ) override {
+		char pod_name[32] = {0};
+
+		if( stream.fail() ) return;
+
+
+		// error checking
+		READ_POD( &pod_name, pod_name );
+		if( strcmp( pod_name, "MAMEOPL2" ) ) {
+			stream.clear( std::istream::failbit | std::istream::badbit );
+			return;
+		}
+
+		//************************************************
+		//************************************************
+		//************************************************
+
+		FMOPL_LoadState(chip, stream);
+	}
 	~Handler() {
 		ym3812_shutdown(chip);
 	}
@@ -429,26 +429,26 @@ struct Handler : public Adlib::Handler {
     	//************************************************
     	//************************************************
 
-    	YMF_SaveState(chip, stream);
- 	}
-    void LoadState( std::istream& stream ) override {
-    	char pod_name[32] = {0};
+	YMF_SaveState(chip, stream);
+	}
+	void LoadState( std::istream& stream ) override {
+		char pod_name[32] = {0};
 
-    	if( stream.fail() ) return;
+		if( stream.fail() ) return;
 
 
-    	// error checking
-    	READ_POD( &pod_name, pod_name );
-    	if( strcmp( pod_name, "MAMEOPL3" ) ) {
-    		stream.clear( std::istream::failbit | std::istream::badbit );
-    		return;
-    	}
+		// error checking
+		READ_POD( &pod_name, pod_name );
+		if( strcmp( pod_name, "MAMEOPL3" ) ) {
+			stream.clear( std::istream::failbit | std::istream::badbit );
+			return;
+		}
 
-    	//************************************************
-    	//************************************************
-    	//************************************************
+		//************************************************
+		//************************************************
+		//************************************************
 
-    	YMF_LoadState(chip, stream);
+		YMF_LoadState(chip, stream);
 	}
 	~Handler() {
 		ymf262_shutdown(chip);
@@ -508,12 +508,12 @@ namespace OPL3DUOBOARD {
 		}
 
 		void Generate(MixerChannel* chan, Bitu samples) override {
-            (void)samples;//UNUSED
+			(void)samples;//UNUSED
 			int16_t buf[1] = { 0 };
 			chan->AddSamples_m16(1, buf);
 		}
 		void Init(Bitu rate) override {
-            (void)rate;//UNUSED
+			(void)rate;//UNUSED
 			opl3DuoBoard.reset();
 		}
 		~Handler() {
@@ -565,7 +565,7 @@ namespace Retrowave_OPL3 {
 		}
 
 		void Generate(MixerChannel* chan, Bitu samples) override {
-            (void)samples;//UNUSED
+			(void)samples;//UNUSED
 #ifdef RETROWAVE_USE_BUFFER
 			retrowave_flush(&retrowave_global_context);
 #endif
@@ -574,7 +574,7 @@ namespace Retrowave_OPL3 {
 		}
 
 		void Init(Bitu rate) override {
-            (void)rate;//UNUSED
+			(void)rate;//UNUSED
 			retrowave_opl3_reset(&retrowave_global_context);
 		}
 
@@ -642,12 +642,12 @@ class Capture {
 	uint8_t ToRaw[256];
 	uint8_t delay256;
 	uint8_t delayShift8;
-    RawHeader header = {};
+	RawHeader header = {};
 
 	FILE*	handle;				//File used for writing
 	uint32_t	startTicks;			//Start used to check total raw length on end
 	uint32_t	lastTicks;			//Last ticks when last last cmd was added
-    uint8_t   buf[1024] = {};     //16 added for delay commands and what not
+	uint8_t   buf[1024] = {};     //16 added for delay commands and what not
 	uint32_t	bufUsed;
 #if 0//unused
     uint8_t	cmd[2];				//Last cmd's sent to either ports
@@ -730,7 +730,7 @@ class Capture {
 	}
 	void WriteCache( void  ) {
 		uint16_t i;
-        uint8_t val;
+		uint8_t val;
 		/* Check the registers to add */
 		for (i = 0;i < 256;i++) {
 			val = (*cache)[ i ];
@@ -852,8 +852,8 @@ skipWrite:
 		cache = _cache;
 		handle = nullptr;
 		bufUsed = 0;
-        startTicks = 0;
-        lastTicks = 0;
+		startTicks = 0;
+		lastTicks = 0;
 		MakeTables();
 	}
 	~Capture() {
@@ -1033,14 +1033,14 @@ setvol:
 
 Bitu Module::CtrlRead( void ) {
 	switch ( ctrl.index ) {
-	case 0x00: /* Board Options */
-		return 0x70; //No options installed
-	case 0x09: /* Left FM Volume */
-		return ctrl.lvol;
-	case 0x0a: /* Right FM Volume */
-		return ctrl.rvol;
-	case 0x15: /* Audio Relocation */
-		return 0x388 >> 3; //Cryo installer detection
+		case 0x00: /* Board Options */
+			return 0x70; //No options installed
+		case 0x09: /* Left FM Volume */
+			return ctrl.lvol;
+		case 0x0a: /* Right FM Volume */
+			return ctrl.rvol;
+		case 0x15: /* Audio Relocation */
+			return 0x388 >> 3; //Cryo installer detection
 	}
 	return 0xff;
 }
@@ -1332,20 +1332,20 @@ void SaveRad() {
 void OPL_SaveRawEvent(bool pressed) {
 	if (!pressed)
 		return;
-    if (module == NULL)
-        return;
+	if (module == NULL)
+		return;
 
-//	SaveRad();return;
+	//	SaveRad();return;
 	/* Check for previously opened wave file */
-    std::string message;
-    if ( module->capture ) {
+	std::string message;
+	if ( module->capture ) {
 		delete module->capture;
 		module->capture = nullptr;
 		LOG_MSG("Stopped Raw OPL capturing.");
-        if(show_recorded_filename && pathopl.size()) {
-            message = formatString(MSG_Get("OPL_REC_COMPLETED"), pathopl.c_str());
-            systemmessagebox("Recording completed", message.c_str(), "ok", "info", 1);
-        }
+		if(show_recorded_filename && pathopl.size()) {
+			message = formatString(MSG_Get("OPL_REC_COMPLETED"), pathopl.c_str());
+			systemmessagebox("Recording completed", message.c_str(), "ok", "info", 1);
+		}
 	} else {
 		if (module->oplmode == OPL_esfm && module->esfm_nativemode) {
 			LOG_MSG("ERROR: Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.");
@@ -1367,19 +1367,19 @@ namespace Adlib {
 static std::string usedoplemu = "none";
 
 Module::Module( Section* configuration ) : Module_base(configuration) {
-    Bitu sb_addr=0,sb_irq=0,sb_dma=0;
-//	DOSBoxMenu::item *item;
-    lastUsed = 0;
-    mode = MODE_OPL2;
-    capture = NULL;
-    handler = NULL;
+	Bitu sb_addr=0,sb_irq=0,sb_dma=0;
+	//	DOSBoxMenu::item *item;
+	lastUsed = 0;
+	mode = MODE_OPL2;
+	capture = NULL;
+	handler = NULL;
 
-    SB_Get_Address(sb_addr,sb_irq,sb_dma);
+	SB_Get_Address(sb_addr,sb_irq,sb_dma);
 
-    if (IS_PC98_ARCH && sb_addr == 0) {
-        LOG_MSG("Adlib: Rejected configuration, OPL3 disabled in PC-98 mode");
-        return; // OPL3 emulation must work alongside SB16 emulation
-    }
+	if (IS_PC98_ARCH && sb_addr == 0) {
+		LOG_MSG("Adlib: Rejected configuration, OPL3 disabled in PC-98 mode");
+		return; // OPL3 emulation must work alongside SB16 emulation
+	}
 
 	reg.dual[0] = 0;
 	reg.dual[1] = 0;
@@ -1428,14 +1428,14 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	} else if (oplemu == "nuked") {
 		handler = new NukedOPL::Handler();
 	}
-	  else if (oplemu == "opl2board") {
+	else if (oplemu == "opl2board") {
 		oplmode = OPL_opl2;
 		handler = new OPL2BOARD::Handler(oplport.c_str());
-		}
-	  else if (oplemu == "opl3duoboard") {
-		  oplmode = OPL_opl3;
-		  handler = new OPL3DUOBOARD::Handler(oplport.c_str());
-	    }
+	}
+	else if (oplemu == "opl3duoboard") {
+		oplmode = OPL_opl3;
+		handler = new OPL3DUOBOARD::Handler(oplport.c_str());
+	}
 	else if (oplemu == "retrowave_opl3") {
 		handler = new Retrowave_OPL3::Handler(retrowave_bus, retrowave_port, retrowave_spi_cs);
 	}
@@ -1466,67 +1466,67 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	handler->Init( rate );
 	bool single = false;
 	switch ( oplmode ) {
-	case OPL_opl2:
-		single = true;
-		Init( Adlib::MODE_OPL2 );
-		break;
-	case OPL_dualopl2:
-		Init( Adlib::MODE_DUALOPL2 );
-		break;
-	case OPL_opl3:
-		Init( Adlib::MODE_OPL3 );
-		break;
-	case OPL_opl3gold:
-		Init( Adlib::MODE_OPL3GOLD );
-		break;
-	case OPL_esfm:
-		Init( Adlib::MODE_ESFM );
-		break;
-	default:
-		break;
+		case OPL_opl2:
+			single = true;
+			Init( Adlib::MODE_OPL2 );
+			break;
+		case OPL_dualopl2:
+			Init( Adlib::MODE_DUALOPL2 );
+			break;
+		case OPL_opl3:
+			Init( Adlib::MODE_OPL3 );
+			break;
+		case OPL_opl3gold:
+			Init( Adlib::MODE_OPL3GOLD );
+			break;
+		case OPL_esfm:
+			Init( Adlib::MODE_ESFM );
+			break;
+		default:
+			break;
 	}
 
-    if (IS_PC98_ARCH) {
-        /* needs to match the low 8 bits */
-        assert(sb_addr != 0);
+	if (IS_PC98_ARCH) {
+		/* needs to match the low 8 bits */
+		assert(sb_addr != 0);
 
-        //0xC8XX range (ex. C8D2)
-        WriteHandler[0].Install(sb_addr+0xC800,OPL_Write,IO_MB, 1 );
-        ReadHandler[0].Install(sb_addr+0xC800,OPL_Read,IO_MB, 1 );
-        WriteHandler[1].Install(sb_addr+0xC900,OPL_Write,IO_MB, 1 );
-        ReadHandler[1].Install(sb_addr+0xC900,OPL_Read,IO_MB, 1 );
-        WriteHandler[2].Install(sb_addr+0xCA00,OPL_Write,IO_MB, 1 );
-        ReadHandler[2].Install(sb_addr+0xCA00,OPL_Read,IO_MB, 1 );
-        WriteHandler[3].Install(sb_addr+0xCB00,OPL_Write,IO_MB, 1 );
-        ReadHandler[3].Install(sb_addr+0xCB00,OPL_Read,IO_MB, 1 );
-        //0x20XX range (ex. 20D2)
-        WriteHandler[4].Install(sb_addr+0x2000,OPL_Write,IO_MB, 1 );
-        ReadHandler[4].Install(sb_addr+0x2000,OPL_Read,IO_MB, 1 );
-        WriteHandler[5].Install(sb_addr+0x2100,OPL_Write,IO_MB, 1 );
-        ReadHandler[5].Install(sb_addr+0x2100,OPL_Read,IO_MB, 1 );
-        WriteHandler[6].Install(sb_addr+0x2200,OPL_Write,IO_MB, 1 );
-        ReadHandler[6].Install(sb_addr+0x2200,OPL_Read,IO_MB, 1 );
-        WriteHandler[7].Install(sb_addr+0x2300,OPL_Write,IO_MB, 1 );
-        ReadHandler[7].Install(sb_addr+0x2300,OPL_Read,IO_MB, 1 );
-        //0x28XX range (ex. 28D2)
-        WriteHandler[8].Install(sb_addr+0x2800,OPL_Write,IO_MB, 1 );
-        ReadHandler[8].Install(sb_addr+0x2800,OPL_Read,IO_MB, 1 );
-        WriteHandler[9].Install(sb_addr+0x2900,OPL_Write,IO_MB, 1 );
-//      ReadHandler[9].Install(sb_addr+0x2900,OPL_Read,IO_MB, 1 );
-    }
-    else {
-        //0x388 range
-        WriteHandler[0].Install(0x388,OPL_Write,IO_MB, 4 );
-        ReadHandler[0].Install(0x388,OPL_Read,IO_MB, 4 );
-        //0x220 range
-        if ( !single ) {
-            WriteHandler[1].Install(base,OPL_Write,IO_MB, 4 );
-            ReadHandler[1].Install(base,OPL_Read,IO_MB, 4 );
-        }
-        //0x228 range
-        WriteHandler[2].Install(base+8,OPL_Write,IO_MB, 2);
-        ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
-    }
+		//0xC8XX range (ex. C8D2)
+		WriteHandler[0].Install(sb_addr+0xC800,OPL_Write,IO_MB, 1 );
+		ReadHandler[0].Install(sb_addr+0xC800,OPL_Read,IO_MB, 1 );
+		WriteHandler[1].Install(sb_addr+0xC900,OPL_Write,IO_MB, 1 );
+		ReadHandler[1].Install(sb_addr+0xC900,OPL_Read,IO_MB, 1 );
+		WriteHandler[2].Install(sb_addr+0xCA00,OPL_Write,IO_MB, 1 );
+		ReadHandler[2].Install(sb_addr+0xCA00,OPL_Read,IO_MB, 1 );
+		WriteHandler[3].Install(sb_addr+0xCB00,OPL_Write,IO_MB, 1 );
+		ReadHandler[3].Install(sb_addr+0xCB00,OPL_Read,IO_MB, 1 );
+		//0x20XX range (ex. 20D2)
+		WriteHandler[4].Install(sb_addr+0x2000,OPL_Write,IO_MB, 1 );
+		ReadHandler[4].Install(sb_addr+0x2000,OPL_Read,IO_MB, 1 );
+		WriteHandler[5].Install(sb_addr+0x2100,OPL_Write,IO_MB, 1 );
+		ReadHandler[5].Install(sb_addr+0x2100,OPL_Read,IO_MB, 1 );
+		WriteHandler[6].Install(sb_addr+0x2200,OPL_Write,IO_MB, 1 );
+		ReadHandler[6].Install(sb_addr+0x2200,OPL_Read,IO_MB, 1 );
+		WriteHandler[7].Install(sb_addr+0x2300,OPL_Write,IO_MB, 1 );
+		ReadHandler[7].Install(sb_addr+0x2300,OPL_Read,IO_MB, 1 );
+		//0x28XX range (ex. 28D2)
+		WriteHandler[8].Install(sb_addr+0x2800,OPL_Write,IO_MB, 1 );
+		ReadHandler[8].Install(sb_addr+0x2800,OPL_Read,IO_MB, 1 );
+		WriteHandler[9].Install(sb_addr+0x2900,OPL_Write,IO_MB, 1 );
+		//      ReadHandler[9].Install(sb_addr+0x2900,OPL_Read,IO_MB, 1 );
+	}
+	else {
+		//0x388 range
+		WriteHandler[0].Install(0x388,OPL_Write,IO_MB, 4 );
+		ReadHandler[0].Install(0x388,OPL_Read,IO_MB, 4 );
+		//0x220 range
+		if ( !single ) {
+			WriteHandler[1].Install(base,OPL_Write,IO_MB, 4 );
+			ReadHandler[1].Install(base,OPL_Read,IO_MB, 4 );
+		}
+		//0x228 range
+		WriteHandler[2].Install(base+8,OPL_Write,IO_MB, 2);
+		ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
+	}
 
 	//MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL",&item);
 	//item->set_text("Record FM (OPL) output");
@@ -1547,24 +1547,24 @@ OPL_Mode Module::oplmode=OPL_none;
 }	//Adlib Namespace
 
 std::string getoplmode() {
-    if (Adlib::Module::oplmode == OPL_none) return "None";
-    else if (Adlib::Module::oplmode == OPL_opl2) return "OPL2";
-    else if (Adlib::Module::oplmode == OPL_dualopl2) return "Dual OPL2";
-    else if (Adlib::Module::oplmode == OPL_opl3) return "OPL3";
-    else if (Adlib::Module::oplmode == OPL_opl3gold) return "OPL3 Gold";
-    else if (Adlib::Module::oplmode == OPL_hardware) return "Hardware";
-    else if (Adlib::Module::oplmode == OPL_hardwareCMS) return "Hardware CMS";
-    else if (Adlib::Module::oplmode == OPL_esfm) return "ESFM";
-    else return "Unknown";
+	if (Adlib::Module::oplmode == OPL_none) return "None";
+	else if (Adlib::Module::oplmode == OPL_opl2) return "OPL2";
+	else if (Adlib::Module::oplmode == OPL_dualopl2) return "Dual OPL2";
+	else if (Adlib::Module::oplmode == OPL_opl3) return "OPL3";
+	else if (Adlib::Module::oplmode == OPL_opl3gold) return "OPL3 Gold";
+	else if (Adlib::Module::oplmode == OPL_hardware) return "Hardware";
+	else if (Adlib::Module::oplmode == OPL_hardwareCMS) return "Hardware CMS";
+	else if (Adlib::Module::oplmode == OPL_esfm) return "ESFM";
+	else return "Unknown";
 }
 
 std::string getoplemu() {
-    std::string emu=Adlib::usedoplemu;
-    if (emu=="mame") emu="MAME";
-    else if (emu=="opl2board") emu="OPL2 board";
-    else if (emu=="esfmu") emu="ESFMu";
-    else emu[0]=toupper(emu[0]);
-    return emu;
+	std::string emu=Adlib::usedoplemu;
+	if (emu=="mame") emu="MAME";
+	else if (emu=="opl2board") emu="OPL2 board";
+	else if (emu=="esfmu") emu="ESFMu";
+	else emu[0]=toupper(emu[0]);
+	return emu;
 }
 
 void OPL_Init(Section* sec,OPL_Mode oplmode) {
@@ -1573,7 +1573,7 @@ void OPL_Init(Section* sec,OPL_Mode oplmode) {
 }
 
 void OPL_ShutDown(Section* sec){
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	delete module;
 	module = nullptr;
 }

@@ -24,6 +24,7 @@
  * Ken Silverman's official web site: "http://www.advsys.net/ken"
  */
 
+/* WARNING: This file is not compiled directly, it is #included from other *.cpp files */
 
 #include <math.h>
 #include <stdlib.h> // rand()
