@@ -4132,35 +4132,37 @@ class SBLASTER: public Module_base {
 #if HAS_HARDOPL
 			bool isCMSpassthrough = false;
 #endif
-			switch (oplmode) {
-				case OPL_none:
-					if (!IS_PC98_ARCH)
-						WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
-					break;
-				case OPL_opl2:
-				case OPL_dualopl2:
-					assert(!IS_PC98_ARCH);
-					// fall-through
-				case OPL_opl3:
-				case OPL_opl3gold:
-				case OPL_esfm:
-					OPL_Init(section,oplmode);
-					break;
-				case OPL_hardwareCMS:
-					assert(!IS_PC98_ARCH);
+			if (ci == 0) {
+				switch (oplmode) {
+					case OPL_none:
+						if (!IS_PC98_ARCH)
+							WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
+						break;
+					case OPL_opl2:
+					case OPL_dualopl2:
+						assert(!IS_PC98_ARCH);
+						// fall-through
+					case OPL_opl3:
+					case OPL_opl3gold:
+					case OPL_esfm:
+						OPL_Init(section,oplmode);
+						break;
+					case OPL_hardwareCMS:
+						assert(!IS_PC98_ARCH);
 #if HAS_HARDOPL
-					isCMSpassthrough = true;
+						isCMSpassthrough = true;
 #endif
-					// fall-through
-				case OPL_hardware:
-					assert(!IS_PC98_ARCH);
+						// fall-through
+					case OPL_hardware:
+						assert(!IS_PC98_ARCH);
 #if HAS_HARDOPL
-					Bitu base = (unsigned int)section->Get_hex("hardwarebase");
-					HARDOPL_Init(base, sb[ci].hw.base, isCMSpassthrough);
+						Bitu base = (unsigned int)section->Get_hex("hardwarebase");
+						HARDOPL_Init(base, sb[ci].hw.base, isCMSpassthrough);
 #else
-					LOG_MSG("OPL pass-through is disabled. It may not be supported on this operating system.");
+						LOG_MSG("OPL pass-through is disabled. It may not be supported on this operating system.");
 #endif
-					break;
+						break;
+				}
 			}
 
 			// Backward compatibility with existing configurations
