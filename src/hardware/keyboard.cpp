@@ -253,6 +253,11 @@ int KEYBOARD_AUX_Active() {
     return keyb.auxactive && !keyb.ps2mouse.int33_taken;
 }
 
+int KEYBOARD_PS2REPORT_Active() {
+	/* HACK: INT 15h really needs to issue Enable AUX, but for now, report if PS/2 mouse reporting active */
+	return keyb.ps2mouse.reporting;
+}
+
 static void KEYBOARD_SetPort60(uint16_t val) {
     keyb.auxchanged=(val&AUX)>0;
     keyb.p60changed=true;
