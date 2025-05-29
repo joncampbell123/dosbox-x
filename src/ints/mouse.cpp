@@ -816,11 +816,17 @@ static bool AllowINT33RMAccess() {
 	return false;
 }
 
+bool IsDebuggerActive(void);
+
 /* FIXME: Re-test this code */
 void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     extern bool Mouse_Vertical;
     float dx = xrel * mouse.pixelPerMickey_x;
     float dy = (Mouse_Vertical?-yrel:yrel) * mouse.pixelPerMickey_y;
+
+    /* if debugging the code don't let mouse movement over the emulator window cause problems */
+    if (IsDebuggerActive())
+	return;
 
     if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
         KEYBOARD_AUX_Event(xrel,yrel,mouse.buttons,mouse.scrollwheel);
