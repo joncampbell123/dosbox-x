@@ -28,6 +28,16 @@ Next version
     (maron2000)
   - Add code page 951 in dialog box (1abcd)
   - Fix failure of create/opening a temporary file for piping (maron2000)
+  - Create/open a temporary file to device_TMP for piping on Z: drive.
+    (maron2000)
+  - Convert message to UTF16 before calling messagebox function (Windows)
+    (maron2000)
+  - Added some new members to the MMX_reg union for big-endian platforms.
+    (alarixnia)
+  - Create directory if not exist before writing conf file. (maron2000)
+  - Fixed language files were still locked after loading is completed.
+    (maron2000)
+  - Fixed freeze when codepage switched to 3846, 3848. (maron2000)
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
