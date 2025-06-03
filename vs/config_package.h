@@ -6,3 +6,4 @@
 #define PACKAGE_URL "https://dosbox-x.com"
 #define PACKAGE_VERSION "2025.05.03"
 #define VERSION "2025.05.03"
+#define COPYRIGHT_YEAR "2025"

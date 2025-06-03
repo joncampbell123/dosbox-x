@@ -10,8 +10,12 @@
     <string>English</string>
     <key>CFBundleExecutable</key>
     <string>dosbox-x</string>
+    <key>CFBundleName</key>
+    <string>DOSBox-X</string>
+    <key>CFBundleDisplayName</key>
+    <string>DOSBox-X</string>
     <key>CFBundleGetInfoString</key>
-    <string>@PACKAGE_VERSION@, Copyright 2022 DOSBox-X</string>
+    <string>@PACKAGE_VERSION@, Copyright @COPYRIGHT_YEAR@ The DOSBox-X Team</string>
     <key>CFBundleIconFile</key>
     <string>dosbox-x.icns</string>
     <key>CFBundleIdentifier</key>
@@ -24,14 +28,14 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>@PACKAGE_VERSION@</string>
+    <string>@PACKAGE_VERSION@ Commit @COMMIT_HASH@</string>
     <key>CFBundleSignature</key>
     <string>DOSB</string>
     <key>CFBundleVersion</key>
-    <string>@PACKAGE_VERSION@</string>
+    <string>@MACOSX_ARCH@ @SDL_STRING@</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright 2022 DOSBox-X</string>
+    <string>Copyright @COPYRIGHT_YEAR@ The DOSBox-X Team</string>
     <key>LSMinimumSystemVersion</key>
-    <string>10.8</string>
+    <string>@MACOSX_DEPLOYMENT_TARGET@</string>
 </dict>
 </plist>
