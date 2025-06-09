@@ -168,6 +168,15 @@ char* revert_escape_newlines(const char* aMessage);
 # include <shobjidl.h>
 #endif
 
+#include <string>
+#if defined(_WIN32)
+#include <direct.h>
+#define getcwd _getcwd
+#else
+#include <unistd.h>
+#endif
+#include <limits.h>
+
 #include <output/output_direct3d.h>
 #include <output/output_opengl.h>
 #include <output/output_surface.h>
@@ -8171,10 +8180,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
     int workdirsave = 0;
     std::string workdirsaveas = "";
+#if defined(WIN32)    
+    constexpr size_t buffer_size = MAX_PATH;
+#elif defined(MACOSX) || defined(LINUX) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+    constexpr size_t buffer_size = PATH_MAX;
+#else
+    constexpr size_t buffer_size = 512; // FIX_ME: set appropriate buffer size for other platforms
+#endif
+
 #if defined(MACOSX) || defined(LINUX) || (defined(WIN32) && !defined(HX_DOS))
     {
-        char cwd[512] = {0};
-        if(getcwd(cwd, sizeof(cwd) - 1) == NULL) {
+        std::unique_ptr<char[]> cwd(new char[buffer_size]);
+        if(getcwd(cwd.get(), buffer_size) == nullptr) {
             LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
         }
 
@@ -8205,7 +8222,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             control->opt_promptfolder = 1;
 #else
         if (control->opt_promptfolder < 0)
-            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd,"/")) ? 1 : 0;
+            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd.get(), "/")) ? 1 : 0;
 #endif
         if (control->opt_promptfolder == 1 && workdiropt == "default" && workdirdef.size()) {
             control->opt_promptfolder = 0;
@@ -8417,10 +8434,17 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
     if (!control->opt_defaultconf) {
         /* -- -- if none found, use dosbox-x.conf or dosbox.conf */
-        if (!control->configfiles.size()) control->ParseConfigFile("dosbox-x.conf");
-        if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
+        std::string cur_dir;
+        std::unique_ptr<char[]> cwd(new char[buffer_size]);
+        if(getcwd(cwd.get(), buffer_size) != nullptr) {
+            cur_dir = std::string(cwd.get()) + CROSS_FILESPLIT;
+        }
+        else {
+            cur_dir.clear();
+        }
+        if (!control->configfiles.size()) control->ParseConfigFile((cur_dir + "dosbox-x.conf").c_str());
+        if (!control->configfiles.size()) control->ParseConfigFile((cur_dir + "dosbox.conf").c_str());
         if (!control->configfiles.size()) {
-            std::string exepath=GetDOSBoxXPath();
             if (exepath.size()) {
                 control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
                 if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
@@ -8761,12 +8785,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
 
-        char cwd[512] = {0};
-        if(getcwd(cwd, sizeof(cwd) - 1))
-            LOG_MSG("DOSBox-X's working directory: %s\n", cwd);
-        else
-            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
-
+        {
+            std::unique_ptr<char[]> cwd(new char[buffer_size]);
+            if(getcwd(cwd.get(), buffer_size))
+                LOG_MSG("DOSBox-X's working directory: %s\n", cwd.get());
+            else
+                LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
+        }
     const char *imestr = section->Get_string("ime");
     enableime = !strcasecmp(imestr, "true") || !strcasecmp(imestr, "1");
     if (!strcasecmp(imestr, "auto")) {
