@@ -269,6 +269,11 @@ jobs:
           msystem: MINGW32
           update: true
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
+        run: |
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
       - name: Update build info
         shell: bash
         run: |
@@ -287,19 +292,16 @@ jobs:
         run: |
           top=`pwd`
           echo "${top}"
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           echo "path=$PATH"
           cd ${MSYSTEM_PREFIX}/..
-          rm -rf /d/a/_temp/msys64/mingw32         
+          rm -rf mingw32
           wget https://github.com/crazii/MINGW-toolchains-w9x/releases/download/v1.0.1-w95nt/mingw32.7z
           7z x mingw32.7z -o./
           echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
-          chmod +x ${MSYSTEM_PREFIX}/bin/*.*
-          chmod +x ${MSYSTEM_PREFIX}/i686-w64-mingw32/bin/*.*
+          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
       - name: Build MinGW32 lowend9x
         run: |
           top=`pwd`
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           ./build-mingw-lowend9x
           strip -s $top/src/dosbox-x.exe
       - name: Package MinGW32 lowend9x
