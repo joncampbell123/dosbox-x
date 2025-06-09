@@ -181,18 +181,18 @@ jobs:
           mkdir mingw32
           7z x $top/build-scripts/mingw/lowend-bin/i686-7.3.0-release-posix-dwarf-rt_v5-rev0+nasm.7z -o${MSYSTEM_PREFIX}
           echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
-          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
+          chmod +x ${MSYSTEM_PREFIX}/bin/*.*
+          chmod +x ${MSYSTEM_PREFIX}/i686-w64-mingw32/bin/*.*
+          chmod +x ${MSYSTEM_PREFIX}/opt/bin/*.*
       - name: Build MinGW32 lowend SDL2
         run: |
           top=`pwd`
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           ./build-mingw-sdl2
           strip -s src/dosbox-x.exe
           mkdir -p mingw-bin
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL2.exe
       - name: Build MinGW32 lowend SDL1
         run: |
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           ./build-mingw
           strip -s src/dosbox-x.exe
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL1.exe
