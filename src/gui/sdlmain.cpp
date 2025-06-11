@@ -189,6 +189,10 @@ static bool init_output = false;
 #include "resource.h"
 #if !defined(HX_DOS)
 
+#ifndef PATH_MAX
+#define PATH_MAX 4096 /* LINUX sets to 4096, while this varies from 260 to 4096 depending on platforms */
+#endif
+
 BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
     (void)hMon;
     (void)dcMon;
@@ -8180,20 +8184,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
     int workdirsave = 0;
     std::string workdirsaveas = "";
-#if defined(WIN32)    
-    constexpr size_t buffer_size = MAX_PATH;
-#elif defined(MACOSX) || defined(LINUX) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
     constexpr size_t buffer_size = PATH_MAX;
-#else
-    constexpr size_t buffer_size = 512; // FIX_ME: set appropriate buffer size for other platforms
-#endif
 
 #if defined(MACOSX) || defined(LINUX) || (defined(WIN32) && !defined(HX_DOS))
     {
-        std::unique_ptr<char[]> cwd(new char[buffer_size]);
-        if(getcwd(cwd.get(), buffer_size) == nullptr) {
-            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
-        }
+        //std::unique_ptr<char[]> cwd(new char[buffer_size]);
+        //if(getcwd(cwd.get(), buffer_size) == nullptr) {
+        //    LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
+        //}
 
         if(control->opt_promptfolder < 0) {
 #if !defined(MACOSX)
