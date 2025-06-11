@@ -8441,30 +8441,29 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         else {
             cur_dir.clear();
         }
-        if (!control->configfiles.size()) control->ParseConfigFile((cur_dir + "dosbox-x.conf").c_str());
-        if (!control->configfiles.size()) control->ParseConfigFile((cur_dir + "dosbox.conf").c_str());
-        if (!control->configfiles.size()) {
-            if (exepath.size()) {
-                control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
-                if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
+        const std::string config_paths[] = {
+            cur_dir + "dosbox-x.conf",
+            cur_dir + "dosbox.conf",
+            exepath.empty() ? "" : exepath + "dosbox-x.conf",
+            exepath.empty() ? "" : exepath + "dosbox.conf",
+            res_path.empty() ? "": res_path + "dosbox-x.conf", /* resource level conf */
+            config_path.empty() ? "" : config_path + "dosbox-x.conf", /* user level conf */
+            config_combined /* user level conf (default name)*/
+        };
+
+        for (const auto& path : config_paths) {
+            if (!control->configfiles.size() && !path.empty()) {
+                LOG(LOG_MISC, LOG_NORMAL)("Trying config: %s\n", path.c_str());
+                control->ParseConfigFile(path.c_str());
             }
         }
-
-        /* -- -- if none found, use resource level conf */
-        if (!control->configfiles.size()) control->ParseConfigFile((res_path + "dosbox-x.conf").c_str());
-
-        /* -- -- if none found, use userlevel conf */
-        if (!control->configfiles.size()) control->ParseConfigFile((config_path + "dosbox-x.conf").c_str());
-        if (!control->configfiles.size()) {
-            control->ParseConfigFile(config_combined.c_str());
-        }
-
         /* -- -- if none found, create userlevel conf */
         if(!control->configfiles.size()) {
-            Cross::CreatePlatformConfigDir(config_path);
-            control->PrintConfig(config_combined.c_str());
-            control->ParseConfigFile(config_combined.c_str()); // Load the conf file created above 
-            if(control->configfiles.size()) LOG_MSG("CONFIG: Created and loaded user config file %s", config_combined.c_str());
+            if(!config_combined.empty()){
+                control->PrintConfig(config_combined.c_str());
+                control->ParseConfigFile(config_combined.c_str()); // Load the conf file created above
+                if(control->configfiles.size()) LOG_MSG("CONFIG: Created and loaded user config file %s", config_combined.c_str());
+            } else LOG_MSG("CONFIG: Warning: User config file not found. Try specifying it with -conf option or put it in the current directory.");
         }
 
         if (control->configfiles.size()) {
