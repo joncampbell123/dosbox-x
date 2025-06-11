@@ -190,7 +190,11 @@ static bool init_output = false;
 #if !defined(HX_DOS)
 
 #ifndef PATH_MAX
-#define PATH_MAX 4096 /* LINUX sets to 4096, while this varies from 260 to 4096 depending on platforms */
+    #if defined(WIN32)
+        #define PATH_MAX MAX_PATH
+    #else
+        #define PATH_MAX 4096 /* LINUX sets to 4096, while this varies from 260 to 4096 depending on platforms */
+    #endif
 #endif
 
 BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
@@ -8184,15 +8188,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
     int workdirsave = 0;
     std::string workdirsaveas = "";
-    constexpr size_t buffer_size = PATH_MAX;
 
 #if defined(MACOSX) || defined(LINUX) || (defined(WIN32) && !defined(HX_DOS))
     {
-        //std::unique_ptr<char[]> cwd(new char[buffer_size]);
-        //if(getcwd(cwd.get(), buffer_size) == nullptr) {
-        //    LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
-        //}
-
         if(control->opt_promptfolder < 0) {
 #if !defined(MACOSX)
             struct stat st;
@@ -8251,12 +8249,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 E_Exit("Can't init SDL %s",SDL_GetError());
 #endif
 
-            char folder[512], *default_folder=folder;
-            std::string dir = workdirdef.empty()?(exepath.size()?exepath:""):workdirdef;
-            if (dir.size()&&dir.size()<512)
-                strcpy(default_folder, dir.c_str());
-            else
-                default_folder = NULL;
+            std::unique_ptr<char[]> folder(new char[PATH_MAX]);
+            char* default_folder = nullptr;
+
+            std::string dir = workdirdef.empty() ? (!exepath.empty() ? exepath : "") : workdirdef;
+            if (!dir.empty() && dir.size() < PATH_MAX) {
+                std::strncpy(folder.get(), dir.c_str(), PATH_MAX);
+                folder[PATH_MAX-1] = '\0'; // Null terminate just in case
+                default_folder = folder.get();
+            }
             const char *confirmstr = "Do you want to use the selected folder as the DOSBox-X working directory in future sessions?\n\nIf you select Yes, DOSBox-X will not prompt for a folder again.\nIf you select No, DOSBox-X will always prompt for a folder when it runs.\nIf you select Cancel, DOSBox-X will ask this question again next time.";
             const char *quitstr = "You have not selected a valid path. Do you want to run DOSBox-X with the current path as the DOSBox-X working directory?\n\nDOSBox-X will exit if you select No.";
 #if defined(MACOSX)
@@ -8433,8 +8434,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     if (!control->opt_defaultconf) {
         /* -- -- if none found, use dosbox-x.conf or dosbox.conf */
         std::string cur_dir;
-        std::unique_ptr<char[]> cwd(new char[buffer_size]);
-        if(getcwd(cwd.get(), buffer_size) != nullptr) {
+        std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
+        if(getcwd(cwd.get(), PATH_MAX) != nullptr) {
             cur_dir = std::string(cwd.get()) + CROSS_FILESPLIT;
         }
         else {
@@ -8784,8 +8785,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
         {
-            std::unique_ptr<char[]> cwd(new char[buffer_size]);
-            if(getcwd(cwd.get(), buffer_size))
+            std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
+            if(getcwd(cwd.get(), PATH_MAX))
                 LOG_MSG("DOSBox-X's working directory: %s\n", cwd.get());
             else
                 LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
