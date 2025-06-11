@@ -47,6 +47,14 @@
 #define PATH_SEPARATOR '/'
 #endif
 
+#ifndef PATH_MAX
+    #if defined(WIN32)
+        #define PATH_MAX MAX_PATH
+    #else
+        #define PATH_MAX 4096 /* LINUX sets to 4096, while this varies from 260 to 4096 depending on platforms */
+    #endif
+#endif
+
 static int get_dirname(const char* path, char* dirbuf, size_t size);
 static int dir_exists(const char* path);
 static int mkdir_recursive(const char* path);
