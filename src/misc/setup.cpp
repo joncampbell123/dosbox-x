@@ -47,6 +47,14 @@
 #define PATH_SEPARATOR '/'
 #endif
 
+#ifndef PATH_MAX
+    #if defined(WIN32)
+        #define PATH_MAX MAX_PATH
+    #else
+        #define PATH_MAX 4096 /* LINUX sets to 4096, while this varies from 260 to 4096 depending on platforms */
+    #endif
+#endif
+
 static int get_dirname(const char* path, char* dirbuf, size_t size);
 static int dir_exists(const char* path);
 static int mkdir_recursive(const char* path);
@@ -1210,8 +1218,14 @@ bool Config::ParseConfigFile(char const * const configfilename) {
     LOG(LOG_MISC,LOG_DEBUG)("CONFIG: Attempting to load config file #%zu from %s",configfiles.size(),configfilename);
 
     //static bool first_configfile = true;
+    if (strlen(configfilename) >= PATH_MAX) {
+        LOG_MSG("Warning: config file path %d characters is too long: %s", strlen(configfilename), configfilename);
+    }
     ifstream in(configfilename);
-    if (!in) return false;
+    if (!in) {
+        LOG(LOG_MISC,LOG_NORMAL)("CONFIG: Failed Loading %s as a config file", configfilename);
+        return false;
+    }
     const char * settings_type;
     settings_type = (configfiles.size() == 0)? "primary":"additional";
     configfiles.emplace_back(configfilename);
