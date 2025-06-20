@@ -1767,6 +1767,9 @@ void DOSBOX_SetupConfigSections(void) {
                    "You can increase this size to store more environment variables in DOS, although this does not affect the environment block\n"
                    "of sub-processes spawned from the DOS shell. This option has no effect unless the dynamic kernel allocation is enabled.");
 
+    Pbool = secprop->Add_bool("shell permanent", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("If enabled, initial DOSBox-X shell will stay permanent (equivalent to /P switch).");
+
     Pint = secprop->Add_int("private area size",Property::Changeable::OnlyAtStart,32768); // DOSBox mainline compatible 32KB region
     Pint->SetMinMax(16,128*1024);
     Pint->Set_help("Set DOSBox-X private memory area size. This area contains private memory structures used by the DOS kernel.\n"
