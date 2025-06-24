@@ -470,7 +470,9 @@ void DOS_Shell::ParseLine(char * line) {
 			DOS_OpenFile(in,OPEN_READ,&dummy);	//Open new stdin
 		} else {
 			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File open error - %s\n"), in);
-			in = nullptr;
+            if(in) free(in);
+            if(out) free(out);
+            if(toc) free(toc);
 			return;
 		}
 	}
