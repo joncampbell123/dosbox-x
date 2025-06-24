@@ -38,6 +38,9 @@ Next version
   - Fixed language files were still locked after loading is completed.
     (maron2000)
   - Fixed freeze when codepage switched to 3846, 3848. (maron2000)
+  - Fixed build error when internal debugger is disabled (maron2000)
+  - Show loaded conf file in log in full path (maron2000)
+  - Print syntax error if pipe has no command to pass output (maron2000)
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
