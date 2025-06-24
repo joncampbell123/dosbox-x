@@ -449,6 +449,15 @@ void DOS_Shell::ParseLine(char * line) {
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
 	
     GetRedirection(line, &in, &out, &toc, &append);
+
+    if(toc && *trim(toc) == '\0') { 
+        SyntaxError(); /* No command to pass output */
+        if(in) free(in);
+        if(out) free(out);
+        if(toc) free(toc);
+        return;
+    }
+
 	if (in || out || toc) {
 		normalstdin  = (psp->GetFileHandle(0) != 0xff); 
 		normalstdout = (psp->GetFileHandle(1) != 0xff); 
