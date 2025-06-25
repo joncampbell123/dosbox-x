@@ -903,6 +903,7 @@ void DOS_Shell::Prepare(void) {
         }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         bool startbanner = section->Get_bool("startbanner");
+        first_shell->perm = section->Get_bool("shell permanent");
         if (!countryNo) {
 #if defined(WIN32)
 			char buffer[128];
