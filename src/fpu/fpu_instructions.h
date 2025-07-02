@@ -196,12 +196,30 @@ static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
 	FPU_Reg blah;
 	blah.l.lower = mem_readd(addr);
 	blah.l.upper = (int32_t)mem_readd(addr+4);
-	fpu.regs[store_to].d = static_cast<double>(blah.ll);
-	// store the signed 64-bit integer in the 80-bit format mantissa with faked exponent.
-	// this is needed for DOS and Windows games that use the Pentium fast memcpy trick, using FLD/FST to copy 64 bits at a time.
-	// I wonder if that trick is what helped spur Intel to make the MMX extensions :)
-	fpu.regs_80[store_to].raw.l = (uint64_t)blah.ll;
-	fpu.regs_80[store_to].raw.h = ((blah.ll/*sign bit*/ >> (uint64_t)63) ? 0x8000u : 0x0000u) + FPU_Reg_80_exponent_bias + 63u; // FIXME: Verify this is correct!
+
+	// First, get a correct double representation.
+	double val_d = static_cast<double>(blah.ll);
+	fpu.regs[store_to].d = val_d;
+
+	// Now, create a correct 80-bit representation from the double.
+	// This logic is adapted from FPU_ST80.
+	FPU_Reg temp_reg;
+	temp_reg.d = val_d;
+
+	int64_t sign80 = (temp_reg.ll & ULONGTYPE(0x8000000000000000)) ? 1 : 0;
+	int64_t exp80 = temp_reg.ll & LONGTYPE(0x7ff0000000000000);
+	int64_t exp80final = (exp80 >> 52);
+	int64_t mant80 = temp_reg.ll & LONGTYPE(0x000fffffffffffff);
+	int64_t mant80final = (mant80 << 11);
+
+	if (val_d != 0.0) { // Zero is a special case
+	mant80final |= (int64_t)ULONGTYPE(0x8000000000000000); // Set the explicit integer bit
+	exp80final += (BIAS80 - BIAS64);
+	}
+
+	fpu.regs_80[store_to].raw.h = (static_cast<int16_t>(sign80) << 15) | static_cast<int16_t>(exp80final);
+	fpu.regs_80[store_to].raw.l = mant80final;
+
 	fpu.use80[store_to] = true;
 }
 
