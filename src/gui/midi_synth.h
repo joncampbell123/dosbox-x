@@ -420,17 +420,25 @@ public:
 			periodsize="64";
 #endif
 		}
-#if !defined (FLUIDSYNTH_VERSION_MAJOR) || FLUIDSYNTH_VERSION_MAJOR >= 2
+		 int major = 0, minor = 0, micro = 0;
+		 fluid_version(&major, &minor, &micro);
+		#if !defined (FLUIDSYNTH_VERSION_MAJOR) 
+		if(1)
+		#else 
+		if (major >= 2)
+		#endif
+		{
 		fluid_settings_setint(settings, "audio.periods", atoi(period.c_str()));
 		fluid_settings_setint(settings, "audio.period-size", atoi(periodsize.c_str()));
 		fluid_settings_setint(settings, "synth.reverb.active", !strcmp(section->Get_string("fluid.reverb"), "yes")?1:0);
 		fluid_settings_setint(settings, "synth.chorus.active", !strcmp(section->Get_string("fluid.chorus"), "yes")?1:0);
-#else
+		}
+		else {
 		fluid_settings_setnum(settings, "audio.periods", atof(period.c_str()));
 		fluid_settings_setnum(settings, "audio.period-size", atof(periodsize.c_str()));
 		fluid_settings_setstr(settings, "synth.reverb.active", section->Get_string("fluid.reverb"));
 		fluid_settings_setstr(settings, "synth.chorus.active", section->Get_string("fluid.chorus"));
-#endif
+		}
 
 		synth = new_fluid_synth(settings);
 		if (!synth) {
@@ -450,7 +458,7 @@ public:
 		fluid_synth_set_reverb(synth, atof(section->Get_string("fluid.reverb.roomsize")), atof(section->Get_string("fluid.reverb.damping")), atof(section->Get_string("fluid.reverb.width")), atof(section->Get_string("fluid.reverb.level")));
 
 		fluid_synth_set_chorus(synth, section->Get_int("fluid.chorus.number"), atof(section->Get_string("fluid.chorus.level")), atof(section->Get_string("fluid.chorus.speed")), atof(section->Get_string("fluid.chorus.depth")), section->Get_int("fluid.chorus.type"));
-
+		LOG_MSG("MIDI:fluidsynth: version %d.%d.%d", major, minor, micro);
 		/* Optionally load a soundfont */
 		if (!soundfont.empty()) {
 			soundfont_id = fluid_synth_sfload(synth, soundfont.c_str(), 1);
