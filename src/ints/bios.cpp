@@ -5916,42 +5916,49 @@ Table            [Programmable key setting data buffer structure]
                 update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x01 && reg_ax <= 0x0A) { /* Read individual function keys, DS:DX = data to set */
+            else if (reg_ax >= 0x01 && reg_ax <= 0x0A) { /* Write individual function keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_func_key[reg_ax - 0x01],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x0B && reg_ax <= 0x14) { /* Read individual shift + function keys, DS:DX = data to set */
+            else if (reg_ax >= 0x0B && reg_ax <= 0x14) { /* Write individual shift + function keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut[reg_ax - 0x0B],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x15 && reg_ax <= 0x1F) { /* Read individual editor keys, DS:DX = data to set */
+            else if (reg_ax >= 0x15 && reg_ax <= 0x1F) { /* Write individual editor keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_EDITDEC(pc98_editor_key_escapes[reg_ax - 0x15],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x20 && reg_ax <= 0x24) { /* Read VF1-VF5 keys, DS:DX = data to store to */
+            else if (reg_ax >= 0x20 && reg_ax <= 0x24) { /* Write VF1-VF5 keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_vfunc_key[reg_ax - 0x20],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x25 && reg_ax <= 0x29) { /* Read shift VF1-VF5 keys, DS:DX = data to store to */
+            else if (reg_ax >= 0x25 && reg_ax <= 0x29) { /* Write shift VF1-VF5 keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_vfunc_key_shortcut[reg_ax - 0x25],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x2A && reg_ax <= 0x33) { /* Read individual function keys, DS:DX = data to store to */
+            else if (reg_ax >= 0x2A && reg_ax <= 0x33) { /* Write individual function keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_func_key_ctrl[reg_ax - 0x2A],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x34 && reg_ax <= 0x38) { /* Read control VF1-VF5 keys, DS:DX = data to store to */
+            else if (reg_ax >= 0x34 && reg_ax <= 0x38) { /* Write control VF1-VF5 keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_vfunc_key_ctrl[reg_ax - 0x34],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax == 0x00) { /* Read all state, DS:DX = data to set */
+            else if (reg_ax == 0x00) { /* Write all state, DS:DX = data to set */
                 /* DS:DX contains
                  *       16*10 bytes, 16 bytes per entry for function keys F1-F10
                  *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
