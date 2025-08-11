@@ -41,6 +41,10 @@ Next version
   - Fixed build error when internal debugger is disabled (maron2000)
   - Show loaded conf file in log in full path (maron2000)
   - Print syntax error if pipe has no command to pass output (maron2000)
+  - Add permanent option for initial DOSBox-X shell (maron2000)
+  - Fix errors when initializing fluidsynth (maron2000)
+  - PC-98: Redraw the function keys after updating them (bobsayshilol)
+  - Do not carriage return with a single LF('\n') (maron2000)
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
