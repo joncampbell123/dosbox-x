@@ -1868,6 +1868,9 @@ void SDL1_hax_SetMenu(HMENU menu) {
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
 #endif
 
+/**
+ * NOTE: this function can make a SDL_Surface become invalid (e.g. mapper, Windows)
+ */
 void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* nothing to do */
