@@ -838,6 +838,7 @@ class Typer {
 static struct CMapper {
 #if defined(C_SDL2)
     SDL_Window*                                 window;
+    uint32_t                                    window_scale;
     SDL_Rect                                    draw_rect;
     SDL_Surface*                                draw_surface_nonpaletted;
     SDL_Surface*                                draw_surface;
@@ -2616,6 +2617,9 @@ public:
         Draw(true, true);
     }
     virtual bool OnTop(Bitu _x,Bitu _y) {
+        const auto scale = mapper.window_scale;
+        _x /= scale;
+        _y /= scale;
         return ( enabled && (_x>=x) && (_x<x+dx) && (_y>=y) && (_y<y+dy));
     }
     virtual void BindColor(void) {}
@@ -5323,6 +5327,51 @@ void UpdateMapperSurface()
     }
 }
 
+void GetDisplaySize(int* w, int* h)
+{
+    SDL_DisplayMode mode = { };
+    SDL_GetCurrentDisplayMode(0, &mode);
+    *w = mode.w;
+    *h = mode.h;
+}
+
+void GetWindowSize(int* w, int* h)
+{
+    SDL_GetWindowSize(mapper.window, w, h);
+}
+
+void CenterWindow()
+{
+    int dsp_w, dsp_h, win_w, win_h;
+
+    GetDisplaySize(&dsp_w, &dsp_h);
+
+    GetWindowSize(&win_w, &win_h);
+
+    SDL_SetWindowPosition(mapper.window, dsp_w / 2 - win_w / 2, dsp_h / 2 - win_h / 2);
+}
+
+int GetMapperRenderWidth()
+{
+    return 640;
+}
+
+int GetMapperRenderHeight()
+{
+    return 480;
+}
+
+int GetMapperScaleFactor()
+{
+    SDL_DisplayMode mode = { };
+
+    const auto rw = GetMapperRenderWidth();
+    const auto rh = GetMapperRenderHeight();
+    const auto sf = SDL_GetCurrentDisplayMode(0, &mode) != 0 ? 1 : std::max(1, std::min(mode.w / rw, mode.h / rh));
+
+    return sf;
+}
+
 void MAPPER_RunInternal() {
     MAPPER_ReleaseAllKeys();
 
@@ -5371,16 +5420,26 @@ void MAPPER_RunInternal() {
 
     /* Be sure that there is no update in progress */
     GFX_EndUpdate(nullptr);
+
+    /* scale mapper according display resolution */
+    const auto source_w = GetMapperRenderWidth();
+    const auto source_h = GetMapperRenderHeight();
+    const auto scale_by = GetMapperScaleFactor();
+    const auto target_w = source_w * scale_by;
+    const auto target_h = source_h * scale_by;
+    mapper.window_scale = scale_by;
+
 #if defined(C_SDL2)
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(false);
-    mapper.window = OpenGL_using() ? GFX_SetSDLWindowMode(640,480,SCREEN_OPENGL) : GFX_SetSDLSurfaceWindow(640,480);
+    mapper.window = OpenGL_using() ? GFX_SetSDLWindowMode(target_w,target_h,SCREEN_OPENGL) : GFX_SetSDLSurfaceWindow(target_w,target_h);
     if (mapper.window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
+    CenterWindow();
     UpdateMapperSurface();
-    mapper.draw_surface=SDL_CreateRGBSurface(0,640,480,8,0,0,0,0);
+    mapper.draw_surface=SDL_CreateRGBSurface(0,source_w,source_h,8,0,0,0,0);
     // Needed for SDL_BlitScaled
-    mapper.draw_surface_nonpaletted=SDL_CreateRGBSurface(0,640,480,32,0x0000ff00,0x00ff0000,0xff000000,0);
-    mapper.draw_rect=GFX_GetSDLSurfaceSubwindowDims(640,480);
+    mapper.draw_surface_nonpaletted=SDL_CreateRGBSurface(0,source_w,source_h,32,0x0000ff00,0x00ff0000,0xff000000,0);
+    mapper.draw_rect=GFX_GetSDLSurfaceSubwindowDims(target_w,target_h);
     // Sorry, but SDL_SetSurfacePalette requires a full palette.
     SDL_Palette *sdl2_map_pal_ptr = SDL_AllocPalette(256);
     SDL_SetPaletteColors(sdl2_map_pal_ptr, map_pal, 0, 7);
@@ -5390,7 +5449,7 @@ void MAPPER_RunInternal() {
         last_clicked=NULL;
     }
 #else
-    mapper.surface=SDL_SetVideoMode(640,480,8,0);
+    mapper.surface=SDL_SetVideoMode(source_w, source_h,8,0);
     if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
 
     /* Set some palette entries */
@@ -5460,6 +5519,7 @@ void MAPPER_RunInternal() {
     if((mousetoggle && !mouselocked) || (!mousetoggle && mouselocked)) GFX_CaptureMouse();
     SDL_ShowCursor(cursor);
     DOSBox_RefreshMenu();
+    CenterWindow();
     if(!menu_gui) GFX_RestoreMode();
 #if defined(__WIN32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     if(GetAsyncKeyState(0x11)) {
