@@ -3901,7 +3901,10 @@ static void DrawButtons(void) {
     SDL_BlitSurface(mapper.draw_surface, NULL, mapper.draw_surface_nonpaletted, NULL);
     SDL_BlitScaled(mapper.draw_surface_nonpaletted, NULL, mapper.surface, &mapper.draw_rect);
 //    SDL_BlitSurface(mapper.draw_surface, NULL, mapper.surface, NULL);
-    SDL_UpdateWindowSurface(mapper.window);
+    if (SDL_UpdateWindowSurface(mapper.window) != 0)
+    {
+        E_Exit("Couldn't update window surface for mapper: %s", SDL_GetError());
+    }
 #else
     SDL_UnlockSurface(mapper.surface);
     SDL_Flip(mapper.surface);
@@ -5308,6 +5311,18 @@ void update_all_shortcuts() {
         if (ev != NULL) ev->update_menu_shortcut();
 }
 
+void UpdateMapperSurface()
+{
+    mapper.surface = SDL_GetWindowSurface(mapper.window);
+
+    if (mapper.surface == nullptr)
+    {
+        const auto error = SDL_GetError();
+
+        E_Exit("Could not initialize video mode for mapper: %s", error);
+    }
+}
+
 void MAPPER_RunInternal() {
     MAPPER_ReleaseAllKeys();
 
@@ -5361,8 +5376,7 @@ void MAPPER_RunInternal() {
     GFX_SetResizeable(false);
     mapper.window = OpenGL_using() ? GFX_SetSDLWindowMode(640,480,SCREEN_OPENGL) : GFX_SetSDLSurfaceWindow(640,480);
     if (mapper.window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
-    mapper.surface=SDL_GetWindowSurface(mapper.window);
-    if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
+    UpdateMapperSurface();
     mapper.draw_surface=SDL_CreateRGBSurface(0,640,480,8,0,0,0,0);
     // Needed for SDL_BlitScaled
     mapper.draw_surface_nonpaletted=SDL_CreateRGBSurface(0,640,480,32,0x0000ff00,0x00ff0000,0xff000000,0);
@@ -5396,6 +5410,7 @@ void MAPPER_RunInternal() {
 #endif
     ApplyPreventCap();
 
+    UpdateMapperSurface(); // update again because of DOSBox_SetMenu
 #if defined(MACOSX)
     macosx_reload_touchbar();
 #endif
