@@ -2617,9 +2617,11 @@ public:
         Draw(true, true);
     }
     virtual bool OnTop(Bitu _x,Bitu _y) {
+#if defined(C_SDL2)
         const auto scale = mapper.window_scale;
         _x /= scale;
         _y /= scale;
+#endif
         return ( enabled && (_x>=x) && (_x<x+dx) && (_y>=y) && (_y<y+dy));
     }
     virtual void BindColor(void) {}
@@ -5331,19 +5333,24 @@ void UpdateMapperSurface()
 
 void GetDisplaySize(int* w, int* h)
 {
+#if defined(C_SDL2)
     SDL_DisplayMode mode = { };
     SDL_GetCurrentDisplayMode(0, &mode);
     *w = mode.w;
     *h = mode.h;
+#endif
 }
 
 void GetWindowSize(int* w, int* h)
 {
+#if defined(C_SDL2)
     SDL_GetWindowSize(mapper.window, w, h);
+#endif
 }
 
 void CenterWindow()
 {
+#if defined(C_SDL2)
     int dsp_w, dsp_h, win_w, win_h;
 
     GetDisplaySize(&dsp_w, &dsp_h);
@@ -5351,6 +5358,7 @@ void CenterWindow()
     GetWindowSize(&win_w, &win_h);
 
     SDL_SetWindowPosition(mapper.window, dsp_w / 2 - win_w / 2, dsp_h / 2 - win_h / 2);
+#endif
 }
 
 int GetMapperRenderWidth()
@@ -5365,6 +5373,7 @@ int GetMapperRenderHeight()
 
 int GetMapperScaleFactor()
 {
+#if defined(C_SDL2)
     SDL_DisplayMode mode = { };
 
     const auto rw = GetMapperRenderWidth();
@@ -5372,6 +5381,9 @@ int GetMapperScaleFactor()
     const auto sf = SDL_GetCurrentDisplayMode(0, &mode) != 0 ? 1 : std::max(1, std::min(mode.w / rw, mode.h / rh));
 
     return sf;
+#else
+    return 1;
+#endif
 }
 
 void MAPPER_RunInternal() {
@@ -5429,9 +5441,9 @@ void MAPPER_RunInternal() {
     const auto scale_by = GetMapperScaleFactor();
     const auto target_w = source_w * scale_by;
     const auto target_h = source_h * scale_by;
-    mapper.window_scale = scale_by;
 
 #if defined(C_SDL2)
+    mapper.window_scale = scale_by;
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(false);
     mapper.window = OpenGL_using() ? GFX_SetSDLWindowMode(target_w,target_h,SCREEN_OPENGL) : GFX_SetSDLSurfaceWindow(target_w,target_h);
