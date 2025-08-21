@@ -5317,6 +5317,7 @@ void update_all_shortcuts() {
 
 void UpdateMapperSurface()
 {
+#if defined(C_SDL2)
     mapper.surface = SDL_GetWindowSurface(mapper.window);
 
     if (mapper.surface == nullptr)
@@ -5325,6 +5326,7 @@ void UpdateMapperSurface()
 
         E_Exit("Could not initialize video mode for mapper: %s", error);
     }
+#endif
 }
 
 void GetDisplaySize(int* w, int* h)
