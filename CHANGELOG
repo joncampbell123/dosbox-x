@@ -46,6 +46,7 @@ Next version
   - PC-98: Redraw the function keys after updating them (bobsayshilol)
   - Do not carriage return with a single LF('\n') (maron2000)
   - Fix mapper not rendering anything on SDL2/Windows (aybe)
+  - Scale mapper according display resolution (aybe)
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
