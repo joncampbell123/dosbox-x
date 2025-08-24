@@ -1267,7 +1267,7 @@ skip_shot:
 			ffmpeg_aud_ctx->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_ctx->flags = 0; // do not use global headers
 			ffmpeg_aud_ctx->bit_rate = 320000;
-			ffmpeg_aud_ctx->profile = FF_PROFILE_AAC_LOW;
+			// ffmpeg_aud_ctx->profile = FF_PROFILE_AAC_LOW;
 
 			#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59,24,100)
 			ffmpeg_aud_ctx->channels = 2;
