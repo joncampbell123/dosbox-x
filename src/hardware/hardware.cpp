@@ -169,7 +169,6 @@ void ffmpeg_audio_frame_send() {
 
 	if (!pkt) E_Exit("Error: Unable to alloc packet");
 
-	ffmpeg_aud_frame->key_frame = 1;
 	ffmpeg_aud_frame->pts = (int64_t)ffmpeg_audio_sample_counter;
 	r=avcodec_send_frame(ffmpeg_aud_ctx,ffmpeg_aud_frame);
 	if (r < 0 && r != AVERROR(EAGAIN))
@@ -1528,7 +1527,7 @@ skip_shot:
 
 				// encode it
 				ffmpeg_vid_frame->pts = (int64_t)capture.video.frames; // or else libx264 complains about non-monotonic timestamps
-				ffmpeg_vid_frame->key_frame = ((capture.video.frames % 15) == 0)?1:0;
+                av_opt_set_int(ffmpeg_vid_ctx->priv_data, "g", 15, 0); // GOP size 15
 
 				r=avcodec_send_frame(ffmpeg_vid_ctx,ffmpeg_vid_frame);
 				if (r < 0 && r != AVERROR(EAGAIN))
