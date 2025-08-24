@@ -123,20 +123,18 @@ void ffmpeg_closeall() {
 			ffmpeg_avformat_began = false;
 		}
 		avio_close(ffmpeg_fmt_ctx->pb);
-		if (ffmpeg_vid_ctx != NULL) avcodec_close(ffmpeg_vid_ctx);
-		if (ffmpeg_aud_ctx != NULL) avcodec_close(ffmpeg_aud_ctx);
+		if (ffmpeg_vid_ctx != NULL) avcodec_free_context(&ffmpeg_vid_ctx);
+		if (ffmpeg_aud_ctx != NULL) avcodec_free_context(&ffmpeg_aud_ctx);
 		avformat_free_context(ffmpeg_fmt_ctx);
 		ffmpeg_fmt_ctx = NULL;
 		ffmpeg_vid_ctx = NULL; // NTS: avformat_free_context() freed this for us, don't free again
 		ffmpeg_aud_ctx = NULL; // NTS: avformat_free_context() freed this for us, don't free again
 	}
 	if (ffmpeg_vid_ctx != NULL) {
-		avcodec_close(ffmpeg_vid_ctx);
 		avcodec_free_context(&ffmpeg_vid_ctx);
 		ffmpeg_vid_ctx = NULL;
 	}
 	if (ffmpeg_aud_ctx != NULL) {
-		avcodec_close(ffmpeg_aud_ctx);
 		avcodec_free_context(&ffmpeg_aud_ctx);
 		ffmpeg_aud_ctx = NULL;
 	}
@@ -426,7 +424,6 @@ int ffmpeg_bpp_pick_rgb_format(int bpp) {
 
 void ffmpeg_reopen_video(double fps,const int bpp) {
 	if (ffmpeg_vid_ctx != NULL) {
-		avcodec_close(ffmpeg_vid_ctx);
 		avcodec_free_context(&ffmpeg_vid_ctx);
 		ffmpeg_vid_ctx = NULL;
 	}
