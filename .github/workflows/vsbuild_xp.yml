@@ -12,7 +12,7 @@ jobs:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: write # for actions/checkout to fetch code and softprops/action-gh-release
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: windows-latest
+    runs-on: windows-2022
     defaults:
       run:
         shell: pwsh
@@ -31,7 +31,6 @@ jobs:
             "Microsoft.VisualStudio.Component.VC.v141.x86.x64"
             "Microsoft.VisualStudio.Component.VC.v141.MFC"
             "Microsoft.VisualStudio.Component.WinXP"
-            "Microsoft.VisualStudio.Component.Windows10SDK.22621"
           )
           [string]$workloadArgs = $componentsToAdd | ForEach-Object {" --add " +  $_}
           $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
