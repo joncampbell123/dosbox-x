@@ -47,6 +47,11 @@ Next version
   - Do not carriage return with a single LF('\n') (maron2000)
   - Fix mapper not rendering anything on SDL2/Windows (aybe)
   - Scale mapper according display resolution (aybe)
+  - Added applicable changes from SVN. (Allofich)
+    r4485: Enable writing to all planes when drawing pixels in EGA modes.
+    r4487: Correct panning of VESA text modes.
+    r4488: Correct comment about odd/even bit.
+    r4490: Set MCB ownership when *blocks==total at end of DOS_ResizeMemory.
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)

@@ -168,6 +168,8 @@ void INT10_PutPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t color) {
 		}
 	case M_EGA:
 		{
+			/* Enable writing to all planes */
+			IO_Write(0x3c4,0x2);IO_Write(0x3c5,0xf);
 			/* Set the correct bitmask for the pixel position */
 			IO_Write(0x3ce,0x8);uint8_t mask=128u>>(x&7u);IO_Write(0x3cf,mask);
 			/* Set the color to set/reset register */
