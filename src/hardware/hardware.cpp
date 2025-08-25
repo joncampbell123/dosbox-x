@@ -58,6 +58,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
+#include <libavutil/opt.h>
 }
 
 /* This code now requires FFMPEG 4 or higher */
@@ -123,20 +124,18 @@ void ffmpeg_closeall() {
 			ffmpeg_avformat_began = false;
 		}
 		avio_close(ffmpeg_fmt_ctx->pb);
-		if (ffmpeg_vid_ctx != NULL) avcodec_close(ffmpeg_vid_ctx);
-		if (ffmpeg_aud_ctx != NULL) avcodec_close(ffmpeg_aud_ctx);
+		if (ffmpeg_vid_ctx != NULL) avcodec_free_context(&ffmpeg_vid_ctx);
+		if (ffmpeg_aud_ctx != NULL) avcodec_free_context(&ffmpeg_aud_ctx);
 		avformat_free_context(ffmpeg_fmt_ctx);
 		ffmpeg_fmt_ctx = NULL;
 		ffmpeg_vid_ctx = NULL; // NTS: avformat_free_context() freed this for us, don't free again
 		ffmpeg_aud_ctx = NULL; // NTS: avformat_free_context() freed this for us, don't free again
 	}
 	if (ffmpeg_vid_ctx != NULL) {
-		avcodec_close(ffmpeg_vid_ctx);
 		avcodec_free_context(&ffmpeg_vid_ctx);
 		ffmpeg_vid_ctx = NULL;
 	}
 	if (ffmpeg_aud_ctx != NULL) {
-		avcodec_close(ffmpeg_aud_ctx);
 		avcodec_free_context(&ffmpeg_aud_ctx);
 		ffmpeg_aud_ctx = NULL;
 	}
@@ -171,7 +170,6 @@ void ffmpeg_audio_frame_send() {
 
 	if (!pkt) E_Exit("Error: Unable to alloc packet");
 
-	ffmpeg_aud_frame->key_frame = 1;
 	ffmpeg_aud_frame->pts = (int64_t)ffmpeg_audio_sample_counter;
 	r=avcodec_send_frame(ffmpeg_aud_ctx,ffmpeg_aud_frame);
 	if (r < 0 && r != AVERROR(EAGAIN))
@@ -426,7 +424,6 @@ int ffmpeg_bpp_pick_rgb_format(int bpp) {
 
 void ffmpeg_reopen_video(double fps,const int bpp) {
 	if (ffmpeg_vid_ctx != NULL) {
-		avcodec_close(ffmpeg_vid_ctx);
 		avcodec_free_context(&ffmpeg_vid_ctx);
 		ffmpeg_vid_ctx = NULL;
 	}
@@ -1271,7 +1268,7 @@ skip_shot:
 			ffmpeg_aud_ctx->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_ctx->flags = 0; // do not use global headers
 			ffmpeg_aud_ctx->bit_rate = 320000;
-			ffmpeg_aud_ctx->profile = FF_PROFILE_AAC_LOW;
+			// ffmpeg_aud_ctx->profile = FF_PROFILE_AAC_LOW;
 
 			#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59,24,100)
 			ffmpeg_aud_ctx->channels = 2;
@@ -1531,7 +1528,7 @@ skip_shot:
 
 				// encode it
 				ffmpeg_vid_frame->pts = (int64_t)capture.video.frames; // or else libx264 complains about non-monotonic timestamps
-				ffmpeg_vid_frame->key_frame = ((capture.video.frames % 15) == 0)?1:0;
+                av_opt_set_int(ffmpeg_vid_ctx->priv_data, "g", 15, 0); // GOP size 15
 
 				r=avcodec_send_frame(ffmpeg_vid_ctx,ffmpeg_vid_frame);
 				if (r < 0 && r != AVERROR(EAGAIN))
@@ -1768,7 +1765,7 @@ skip_mt_wav:
 }
 
 #pragma pack(push,1)
-typedef struct pcap_hdr_struct_t {
+typedef struct {
 	uint32_t magic_number;   /* magic number */
 	uint16_t version_major;  /* major version number */
 	uint16_t version_minor;  /* minor version number */
@@ -1776,14 +1773,14 @@ typedef struct pcap_hdr_struct_t {
 	uint32_t sigfigs;        /* accuracy of timestamps */
 	uint32_t snaplen;        /* max length of captured packets, in octets */
 	uint32_t network;        /* data link type */
-};
+} pcap_hdr_struct_t;
 
-typedef struct pcaprec_hdr_struct_t {
+typedef struct  {
 	uint32_t ts_sec;         /* timestamp seconds */
 	uint32_t ts_usec;        /* timestamp microseconds */
 	uint32_t incl_len;       /* number of octets of packet saved in file */
 	uint32_t orig_len;       /* actual length of packet */
-};
+} pcaprec_hdr_struct_t;
 #pragma pack(pop)
 
 void Capture_WritePacket(bool /*send*/,const unsigned char *buf,size_t len) {
