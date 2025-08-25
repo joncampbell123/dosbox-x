@@ -58,6 +58,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
+#include <libavutil/opt.h>
 }
 
 /* This code now requires FFMPEG 4 or higher */
