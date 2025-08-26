@@ -48,8 +48,9 @@
                     bottomLocationNoHash = new URL(bottomLocation.href);
                 destUrlNoHash.hash = "";
                 destUrlWithHtmlExtNoHash.hash = "";
-                bottomLocation.hash = "";
-                if (destUrl.href == bottomLocation.href || destUrlWithHtmlExt.href == bottomLocation.href)
+                bottomLocationNoHash.hash = "";
+                if (destUrlNoHash.href == bottomLocationNoHash.href
+                    || destUrlWithHtmlExtNoHash.href == bottomLocationNoHash.href)
                     bottomLocation.hash = destUrl.hash;
                 else
                     bottomLocation.href = destUrl.href;
