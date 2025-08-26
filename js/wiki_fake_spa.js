@@ -43,7 +43,7 @@
             destUrlWithHtmlExt.pathname += ".html";
         try {
             if (destUrl.href != bottomLocation.href && destUrlWithHtmlExt.href != bottomLocation.href)
-                frame.location.href = destUrl.href;
+                bottomLocation.href = destUrl.href;
         } catch (err) {
             console.error(`Could not navigate to ${dest}.`, err);
             return false;
