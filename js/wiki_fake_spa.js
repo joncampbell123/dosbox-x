@@ -42,8 +42,18 @@
         if (!dest.includes(".") && !destUrlWithHtmlExt.pathname.endsWith(".html"))
             destUrlWithHtmlExt.pathname += ".html";
         try {
-            if (destUrl.href != bottomLocation.href && destUrlWithHtmlExt.href != bottomLocation.href)
-                bottomLocation.href = destUrl.href;
+            if (destUrl.href != bottomLocation.href && destUrlWithHtmlExt.href != bottomLocation.href) {
+                let destUrlNoHash = new URL(destUrl),
+                    destUrlWithHtmlExtNoHash = new URL(destUrlWithHtmlExt),
+                    bottomLocationNoHash = new URL(bottomLocation.href);
+                destUrlNoHash.hash = "";
+                destUrlWithHtmlExtNoHash.hash = "";
+                bottomLocation.hash = "";
+                if (destUrl.href == bottomLocation.href || destUrlWithHtmlExt.href == bottomLocation.href)
+                    bottomLocation.hash = destUrl.hash;
+                else
+                    bottomLocation.href = destUrl.href;
+            }
         } catch (err) {
             console.error(`Could not navigate to ${dest}.`, err);
             return false;
