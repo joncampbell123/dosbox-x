@@ -38,9 +38,10 @@
 
     function changeBottomUrl(ev) {
         let bottomLocation = frame.contentWindow.location;
-        let dest = contentDir + ev.newURL.hash.substring(1);
+        let newURL = ev ? ev.newURL : location;
+        let dest = contentDir + newURL.hash.substring(1);
         let destUrl = new URL(dest, serverRoot), destUrlWithHtmlExt = destUrl;
-        if (destUrl.host != ev.newURL.host || !destUrl.pathname.startsWith(contentDir)) {
+        if (destUrl.host != newURL.host || !destUrl.pathname.startsWith(contentDir)) {
             console.error(`Did not navigate to ${dest} as it escapes ${serverRoot}${contentDir}.`);
             return false;
         }
