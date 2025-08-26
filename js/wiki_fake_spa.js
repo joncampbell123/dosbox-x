@@ -25,9 +25,9 @@
         // We can't go by the actual page title because they usually just contain the text of the top
         // header
         document.title = decodeURIComponent(strippedPathname).replaceAll("-", " ") + " - DOSBox-X Wiki";
-        if (location.hash != relUrl) {
-            const url = new URL(location);
-            url.hash = relUrl;
+        const url = new URL(location);
+        url.hash = relUrl;
+        if (location.hash != url.hash) {
             history.pushState({}, "", url);
         }
     }
