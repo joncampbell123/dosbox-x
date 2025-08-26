@@ -30,15 +30,15 @@
             // We can't go by the actual page title because they usually just contain the text of the top
             // header
             document.title = decodeURIComponent(strippedPathname).replaceAll("-", " ") + " - DOSBox-X Wiki";
-            location.href = url;
+            history.replaceState({}, "", url);
         }
 
         return false;
     }
 
-    function changeBottomUrl(ev) {
+    function changeBottomUrl() {
         let bottomLocation = frame.contentWindow.location;
-        let newURL = ev ? ev.newURL : location;
+        let newURL = location;
         let dest = contentDir + newURL.hash.substring(1);
         let destUrl = new URL(dest, serverRoot), destUrlWithHtmlExt = destUrl;
         if (destUrl.host != newURL.host || !destUrl.pathname.startsWith(contentDir)) {
