@@ -66,7 +66,6 @@
             console.error(`Could not navigate to ${dest}.`, err);
             return false;
         }
-        return true;
     }
 
     if (!location.hash || !changeBottomUrl())
