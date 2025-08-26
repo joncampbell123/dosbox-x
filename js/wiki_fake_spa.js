@@ -22,14 +22,15 @@
         let relUrl = "#" + encodeURI(decodeURIComponent(
             strippedPathname + bottomLocation.search + bottomLocation.hash
         ));
-        // We can't go by the actual page title because they usually just contain the text of the top
-        // header
-        document.title = decodeURIComponent(strippedPathname).replaceAll("-", " ") + " - DOSBox-X Wiki";
         const url = new URL(location);
         url.hash = relUrl;
         if (location.hash != url.hash) {
+            // We can't go by the actual page title because they usually just contain the text of the top
+            // header
+            document.title = decodeURIComponent(strippedPathname).replaceAll("-", " ") + " - DOSBox-X Wiki";
             history.pushState({}, "", url);
         }
+        return false;
     }
     function changeBottomUrl() {
         let bottomLocation = frame.contentWindow.location;
