@@ -16,27 +16,31 @@
         let bottomLocation = frame.contentWindow.location;
         if (bottomLocation.host != location.host || !bottomLocation.pathname.startsWith(contentDir))
             return;
+
         let strippedPathname = bottomLocation.pathname.substring(contentDir.length)
             .replace(/(?:.html)?(?:\/)?$/, "");
         // FIXME: Is this even correct?
         let relUrl = "#" + encodeURI(decodeURIComponent(
             strippedPathname + bottomLocation.search + bottomLocation.hash
         ));
+
         const url = new URL(location);
         url.hash = relUrl;
         if (location.hash != url.hash) {
             // We can't go by the actual page title because they usually just contain the text of the top
             // header
             document.title = decodeURIComponent(strippedPathname).replaceAll("-", " ") + " - DOSBox-X Wiki";
-            history.pushState({}, "", url);
+            location.href = url;
         }
+
         return false;
     }
-    function changeBottomUrl() {
+
+    function changeBottomUrl(ev) {
         let bottomLocation = frame.contentWindow.location;
-        let dest = contentDir + location.hash.substring(1);
+        let dest = contentDir + ev.newURL.hash.substring(1);
         let destUrl = new URL(dest, serverRoot), destUrlWithHtmlExt = destUrl;
-        if (destUrl.host != location.host || !destUrl.pathname.startsWith(contentDir)) {
+        if (destUrl.host != ev.newURL.host || !destUrl.pathname.startsWith(contentDir)) {
             console.error(`Did not navigate to ${dest} as it escapes ${serverRoot}${contentDir}.`);
             return false;
         }
@@ -72,7 +76,7 @@
             return;
         changeHash();
         frame.contentWindow.addEventListener("popstate", changeHash);
-        if (frame.contentWindow.navigation)
+        if (frame.contentWindow.navigation) {
             frame.contentWindow.navigation.addEventListener("navigate", (e) => {
                 const url = new URL(e.destination.url);
                 if (url.host != location.host || !url.pathname.startsWith(contentDir)) {
@@ -80,5 +84,6 @@
                     window.open(url, "_blank");
                 }
             });
+        }
     });
 })();
