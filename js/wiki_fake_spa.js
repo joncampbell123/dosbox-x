@@ -2,7 +2,8 @@
 "use strict";
 
 (function() {
-    let frame = document.querySelector("main").appendChild(document.querySelector("#empty-iframe").content.querySelector("iframe"));
+    let frame = document.querySelector("main").appendChild(
+        document.querySelector("#empty-iframe").content.querySelector("iframe"));
 
     if (localStorage && localStorage.getItem("wiki_fake_spa_opt_out")) {
         window.open("./Home", frame.name);
@@ -33,8 +34,6 @@
         if (location.hash != url.hash) {
             history.pushState({}, "", url);
         }
-
-        return false;
     }
 
     function changeBottomUrl() {
@@ -50,7 +49,7 @@
             destUrlWithHtmlExt.pathname += ".html";
         try {
             if (destUrl.href != bottomLocation.href && destUrlWithHtmlExt.href != bottomLocation.href)
-                frame.contentWindow.history.pushState({}, "", destUrl.href);
+                bottomLocation.href = destUrl.href;
         } catch (err) {
             console.error(`Could not navigate to ${dest}.`, err);
             return false;
@@ -62,11 +61,13 @@
         window.open("./Home", frame.name);
     window.addEventListener("hashchange", changeBottomUrl);
     frame.addEventListener("load", () => {
-        document.querySelector("#wiki-try-reloading").style.opacity = "0.25";
+        document.querySelector("#wiki-try-reloading").style.opacity = 0.25;
         if (!frame.contentDocument)
             return;
+
         changeHash();
         frame.contentWindow.addEventListener("popstate", changeHash);
+
         if (frame.contentWindow.navigation) {
             frame.contentWindow.navigation.addEventListener("navigate", (e) => {
                 const url = new URL(e.destination.url);
