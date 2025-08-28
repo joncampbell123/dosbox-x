@@ -52,6 +52,9 @@ Next version
     r4487: Correct panning of VESA text modes.
     r4488: Correct comment about odd/even bit.
     r4490: Set MCB ownership when *blocks==total at end of DOS_ResizeMemory.
+  - Replaced deprecated functions to enable building with FFmpeg 8 (maron2000)
+  - Fixed screen blanked when restoring minimized window in TTF mode (Windows
+    SDL1) (maron2000) 
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
