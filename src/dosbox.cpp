@@ -2436,6 +2436,11 @@ void DOSBOX_SetupConfigSections(void) {
                     "at driver startup AND when INT 33h AX=0 is called. This is NEC MOUSE.COM behavior and default\n"
                     "enabled. To emulate other drivers like QMOUSE that do not follow this behavior, set to false.");
 
+    Pbool = secprop->Add_bool("pc-98 chargen vsync-limited access",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, reading pixels from the character generator while in Code Access mode (or always, for ANK\n"
+                    "characters) will be invalid. Some models (i.e. PC-9821As3) dont seem to have this limitation, but\n"
+                    "many others do.");
+
     secprop=control->AddSection_prop("dosv",&Null_Init,true);
 
     Pstring = secprop->Add_string("dosv",Property::Changeable::OnlyAtStart,"off");
