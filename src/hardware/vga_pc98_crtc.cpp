@@ -52,6 +52,7 @@ extern bool                 pc98_attr4_graphic;
 extern bool                 pc98_display_enable;
 extern bool                 pc98_monochrome_mode;
 extern bool                 pc98_graphics_hide_odd_raster_200line;
+extern bool                 pc98_cg_kanji_dot_access_mode;
 extern bool                 pc98_crt_mode;      // see port 6Ah command 40h/41h.
 
 // TODO: Other parts that change gdc_5mhz_mode should update these too!
@@ -290,9 +291,9 @@ void pc98_port68_command_write(unsigned char b) {
             if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_graphics_hide_odd_raster_200line = !!(b&1);
             break;
-        case 0x0A: // TODO
-        case 0x0B: // TODO
-            // TODO
+        case 0x0A: // Kanji Code Generator access mode: Code (reads only valid during VSync, can display kanji)
+        case 0x0B: //                                   Dot (reads always valid, cannot display kanji)
+            pc98_cg_kanji_dot_access_mode = !!(b&1);
             break;
         case 0x0E: // Display enable
         case 0x0F:
