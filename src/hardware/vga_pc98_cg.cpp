@@ -75,7 +75,7 @@ Bitu pc98_a1_read(Bitu port,Bitu iolen) {
                 // Kanji, Dot Access
                 || (((a1_font_load_addr & 0xFF00) != 0) && pc98_cg_kanji_dot_access_mode)
                 // Kanji, Code Access & ANK
-                || (pc98_gdc[0].read_status() & 0x20)
+                || (pc98_gdc[GDC_MASTER].read_status() & 0x20)
             ) {
                 return pc98_font_char_read(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1);
             } else {
