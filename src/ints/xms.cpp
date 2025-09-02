@@ -252,7 +252,7 @@ Bitu XMS_FreeMemory(Bitu handle) {
 	return 0;
 }
 
-void XMS_InitFlatRealMode(void);
+bool XMS_InitFlatRealMode(void);
 
 Bitu XMS_MoveMemory(PhysPt bpt) {
 	/* Read the block with mem_read's */
@@ -320,9 +320,8 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		// HIMEM.SYS on 386 and higher is said to use "flat real mode" to copy extended memory.
 		// That means if a program calls this function, it implicitly sets up flat real mode.
 		// It seems some demoscene stuff in the 1992-1994 timeframe assume this case.
-		if (xms_memmove_flatrealmode) {
+		if (xms_memmove_flatrealmode && XMS_InitFlatRealMode()) {
 			LOG(LOG_MISC,LOG_DEBUG)("XMS: Memory move/copy is enabling flat real mode");
-			XMS_InitFlatRealMode();
 		}
 
 		mem_memcpy(destpt,srcpt,length);
@@ -922,9 +921,8 @@ public:
 		DOS_BuildUMBChain(umb_available&&dos_umb,ems_available);
 		umb_init = true;
 
-		if (xms_init_flatrealmode) {
+		if (xms_init_flatrealmode && XMS_InitFlatRealMode()) {
 			LOG(LOG_MISC,LOG_DEBUG)("XMS: Initialization is enabling flat real mode");
-			XMS_InitFlatRealMode();
 		}
 
 		/* CP/M compat will break unless a copy of the JMP instruction is mirrored in HMA */
