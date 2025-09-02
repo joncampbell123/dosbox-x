@@ -4502,6 +4502,9 @@ void DOSBOX_SetupConfigSections(void) {
                     "This can help with any program with startup code that assumes the segment wraparound of the 8086.\n"
                     "Depending on DOS configuration the A20 gate may be re-enabled later such as calling INT 21h.");
 
+    Pbool = secprop->Add_bool("xms log memmove",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, XMS move/copy operations are logged for debugging purposes.");
+
     Pbool = secprop->Add_bool("xms memmove causes flat real mode",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, any call to XMS to move/copy memory sets up flat real mode for segment registers DS and ES.");
 

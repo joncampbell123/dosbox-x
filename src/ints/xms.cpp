@@ -97,6 +97,7 @@ bool xms_hma_alloc_non_dos_kernel_control = true;
 
 bool xms_memmove_flatrealmode = false;
 bool xms_init_flatrealmode = false;
+bool xms_debug_log_memmove = false;
 
 struct XMS_Block {
 	Bitu	size;
@@ -306,7 +307,10 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		 * extend past the end of the 8086-accessible conventional memory area. */
 		if ((destpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
 	}
-//	LOG_MSG("XMS move src %X dest %X length %X",srcpt,destpt,length);
+
+	if (xms_debug_log_memmove) {
+		LOG_MSG("XMS move src %X dest %X length %X",(unsigned int)srcpt,(unsigned int)destpt,(unsigned int)length);
+	}
 
 	/* we must enable the A20 gate during this copy.
 	 * DOSBox-X masks the A20 line and this will only cause corruption otherwise. */
@@ -733,11 +737,13 @@ public:
 
 		xms_global_enable = false;
 		xms_local_enable_count = 0;
+		xms_debug_log_memmove = false;
 		xms_memmove_flatrealmode = false;
 		xms_init_flatrealmode = false;
 
 		if (!section->Get_bool("xms")) return;
 
+		xms_debug_log_memmove = section->Get_bool("xms log memmove");
 		xms_memmove_flatrealmode = section->Get_bool("xms memmove causes flat real mode");
 		xms_init_flatrealmode = section->Get_bool("xms init causes flat real mode");
 
