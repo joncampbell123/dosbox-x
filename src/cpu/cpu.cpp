@@ -2676,7 +2676,7 @@ bool CPU_READ_CRX(Bitu cr,uint32_t & retvalue) {
 bool CPU_WRITE_DRX(Bitu dr,Bitu value) {
 	/* Check if privileged to access control registers */
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
-	LOG(LOG_CPU,LOG_DEBUG)("386 debug write to DR%d",cr);
+	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("386 debug write to DR%d = %X",(unsigned int)dr,(unsigned int)value);
 	switch (dr) {
 	case 0:
 	case 1:
