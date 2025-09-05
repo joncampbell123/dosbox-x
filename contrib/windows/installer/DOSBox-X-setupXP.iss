@@ -113,6 +113,7 @@ Source: "..\..\translations\it\it_IT.lng"; DestDir: "{app}\languages"; Flags: ig
 Source: "..\..\translations\ja\ja_JP.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\ko\ko_KR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\nl\nl_NL.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\translations\pt\pt_BR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\ru\ru_RU.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\tr\tr_TR.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\zh\zh_CN.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact
