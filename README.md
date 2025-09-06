@@ -386,30 +386,34 @@ See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
 ## Support for international language translations and keyboard layouts
 
-# Translations
+### Translations
 DOSBox-X displays English as the default language, and uses the U.S. code page (437) by default, just like DOSBox.
 
 All messages displayed by DOSBox-X are in English with the default setting. DOSBox-X does support the feature to
 change the display messages with the use of language files. The language files control all visible output of the
-internal commands and the internal DOS, as well as the text in DOSBox-X's drop-down menus. If you are a speaker of
-a non-English language, you are encouraged to create additional language files for use with DOSBox-X by translating
-messages in DOSBox-X to your language. Other DOSBox-X users can also use these language files for DOSBox-X to display
-messages in such languages. Language files can be found in the `languages` directory of your DOSBox-X installation.
+internal commands and the internal DOS, as well as the text in DOSBox-X's drop-down menus.  
+Language files can be found in the `languages` directory of your DOSBox-X installation or
+https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ .
 
-|Language name|Language file|
-| --- | --- |
-|Chinese (Simplified)|[contrib/translations/zh/zh_CN.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng)|
-|Chinese (Traditional)|[contrib/translations/zh/zh_TW.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng)|
-|French|[contrib/translations/fr/fr_FR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng)|
-|German|[contrib/translations/de/de_DE.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/de/de_DE.lng)|
-|Italian|[contrib/translations/it/it_IT.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/it/it_IT.lng)|
-|Japanese|[contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)|
-|Korean|[contrib/translations/ko/ko_KR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ko/ko_KR.lng)|
-|Portuguese (Brazilian)|[contrib/translations/pt/pt_BR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng)|
-|Spanish|[contrib/translations/es/es_ES.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng)|
-|Turkish|[contrib/translations/tr/tr_TR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng)|
+Language files currently available are:
 
-# Keyboard layouts
+[Chinese (Simplified)](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng),
+[Chinese (Traditional)](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng),
+[Dutch](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/nl/nl_NL.lng),
+[German](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/de/de_DE.lng),
+[Hungarian](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/hu/hu_HU.lng),
+[Italian](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/it/it_IT.lng),
+[Japanese](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng),
+[Korean](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ko/ko_KR.lng),
+[Portuguese (Brazilian)](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng),
+[Russian](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ru/ru_RU.lng),
+[Spanish](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng),
+[Turkish](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng)
+
+If you are a speaker of any language not included above, you are encouraged to create additional language files by translating the messages to your language using the
+[English (Template)](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/en/en_US.lng).
+
+### Keyboard layouts
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
 library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically
 uses scancodes with the default setting to work around keyboard layout issues. Scancodes are not needed when using
