@@ -411,15 +411,22 @@ Language files currently available are:
 [Turkish](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng)
 
 If you are a speaker of any language not included above, you are encouraged to create additional language files by translating the messages to your language using the
-[English (Template)](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/en/en_US.lng).
+[English (Template)](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/en/en_US.lng) or generate one by `CONFIG -wl filename` command.
 
 ### Keyboard layouts
-The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
-library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically
-uses scancodes with the default setting to work around keyboard layout issues. Scancodes are not needed when using
-non-US keyboard layouts in the SDL2 version. If you find that a keyboard layout is not yet supported by DOSBox-X,
-in order to add additional layouts for use with DOSBox-X, please see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
+DOSBox-X supports various keyboard layouts by `keyboardlayout` option in the .conf file or `KEYB` command.
+On Windows, DOSBox-X will try to match the layout with your physical keyboard when `keyboardlayout=auto`.
+On other platforms, the keyboard will work as US keyboard if not set otherwise.
+
+The SDL1 version additionally requires use of scancodes by enabling `usescancodes` option, when using non-US keyboards.
+The default setting (`usescancodes=auto`) should work in most cases, and this setting is NOT required and ignored for SDL2 versions. 
+
+If you find that a keyboard layout is not yet supported by DOSBox-X, in order to add additional layouts for use with DOSBox-X, please see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
 on how to do so as a developer.
+
+### Codepage settings
+You need to switch to the appropriate codepage in order to display various characters for your language.
+You can set the codepage by `KEYB` or `CHCP` command. Type `KEYB /?` or `CHCP /?` for details.
 
 For further information on international support and regional settings of DOSBox-X, such as steps to create DOSBox-X
 language files or use external keyboard files in DOSBox-X, as well as support for the Euro symbol and country-specific
