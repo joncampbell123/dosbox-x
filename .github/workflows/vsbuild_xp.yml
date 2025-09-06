@@ -212,7 +212,7 @@ jobs:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: write # for actions/checkout to fetch code and softprops/action-gh-release
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: [MSBuild_XP_CI_build, MinGW32_lowend_CI_build]
     env:
       GH_TOKEN: ${{ github.token }}
