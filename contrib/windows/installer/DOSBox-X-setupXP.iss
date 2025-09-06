@@ -53,9 +53,13 @@ InfoAfterClickLabel=You have now installed DOSBox-X. Please note that you can cu
 Name: "en"; MessagesFile: "compiler:Default.isl"
 Name: "fr"; MessagesFile: "compiler:Default.isl"
 Name: "ge"; MessagesFile: "compiler:Default.isl"
+Name: "hu"; MessagesFile: "compiler:Default.isl"
+Name: "it"; MessagesFile: "compiler:Default.isl"
 Name: "ja"; MessagesFile: "compiler:Default.isl"
 Name: "ko"; MessagesFile: "compiler:Default.isl"
+Name: "nl"; MessagesFile: "compiler:Default.isl"
 Name: "pt"; MessagesFile: "compiler:Default.isl"
+Name: "ru"; MessagesFile: "compiler:Default.isl"
 Name: "sc"; MessagesFile: "compiler:Default.isl"
 Name: "sp"; MessagesFile: "compiler:Default.isl"
 Name: "tc"; MessagesFile: "compiler:Default.isl"
@@ -65,9 +69,13 @@ Name: "tr"; MessagesFile: "compiler:Default.isl"
 en.LanguageID=$0409
 fr.LanguageID=$040C
 ge.LanguageID=$0407
+hu.LanguageID=$040E
+it.LanguageID=$0410
 ja.LanguageID=$0411
 ko.LanguageID=$0412
+nl.LanguageID=$0413
 pt.LanguageID=$0416
+ru.LanguageID=$0419
 sc.LanguageID=$0804
 sp.LanguageID=$0C0A
 tc.LanguageID=$0404
@@ -263,7 +271,7 @@ i: Integer;
 line, linetmp, section: String;
 FileLines: TStringList;
 begin
-      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5] or PageLang.Values[6] or PageLang.Values[7] or PageLang.Values[8] or PageLang.Values[9]) then
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageLang.Values[1] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[4] or PageLang.Values[5] or PageLang.Values[6] or PageLang.Values[7] or PageLang.Values[8] or PageLang.Values[9] or PageLang.Values[10] or PageLang.Values[11] or PageLang.Values[12] or PageLang.Values[13]) then
       begin
         FileLines := TStringList.Create;
         FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
@@ -279,67 +287,91 @@ begin
             if (CompareText(linetmp, 'language') = 0) and (CompareText(section, 'dosbox') = 0) then
             begin
               linetmp := Trim(Copy(line, 1, Pos('=', line)));
-              if (PageLang.Values[1]) and FileExists(ExpandConstant('{app}\languages\fr_FR.lng')) then
+              if (PageLang.Values[1]) and FileExists(ExpandConstant('{app}\languages\nl_NL.lng')) then
+                FileLines[i] := linetmp+' nl_NL';
+              if (PageLang.Values[2]) and FileExists(ExpandConstant('{app}\languages\fr_FR.lng')) then
                 FileLines[i] := linetmp+' fr_FR';
-              if (PageLang.Values[2]) and FileExists(ExpandConstant('{app}\languages\de_DE.lng')) then
+              if (PageLang.Values[3]) and FileExists(ExpandConstant('{app}\languages\de_DE.lng')) then
                 FileLines[i] := linetmp+' de_DE';
-              if (PageLang.Values[3]) and FileExists(ExpandConstant('{app}\languages\ja_JP.lng')) then
+              if (PageLang.Values[4]) and FileExists(ExpandConstant('{app}\languages\hu_HU.lng')) then
+                FileLines[i] := linetmp+' hu_HU';
+              if (PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\it_IT.lng')) then
+                FileLines[i] := linetmp+' it_IT';
+              if (PageLang.Values[6]) and FileExists(ExpandConstant('{app}\languages\ja_JP.lng')) then
                 FileLines[i] := linetmp+' ja_JP';
-              if (PageLang.Values[4]) and FileExists(ExpandConstant('{app}\languages\ko_KR.lng')) then
+              if (PageLang.Values[7]) and FileExists(ExpandConstant('{app}\languages\ko_KR.lng')) then
                 FileLines[i] := linetmp+' ko_KR';
-              if (PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\pt_BR.lng')) then
+              if (PageLang.Values[8]) and FileExists(ExpandConstant('{app}\languages\pt_BR.lng')) then
                 FileLines[i] := linetmp+' pt_BR';
-              if (PageLang.Values[6]) and FileExists(ExpandConstant('{app}\languages\zh_CN.lng')) then
+              if (PageLang.Values[9]) and FileExists(ExpandConstant('{app}\languages\ru_RU.lng')) then
+                FileLines[i] := linetmp+' ru_RU';
+              if (PageLang.Values[10]) and FileExists(ExpandConstant('{app}\languages\zh_CN.lng')) then
                 FileLines[i] := linetmp+' zh_CN';
-              if (PageLang.Values[7]) and FileExists(ExpandConstant('{app}\languages\es_ES.lng')) then
+              if (PageLang.Values[11]) and FileExists(ExpandConstant('{app}\languages\es_ES.lng')) then
                 FileLines[i] := linetmp+' es_ES';
-              if (PageLang.Values[8]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
+              if (PageLang.Values[12]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
                 FileLines[i] := linetmp+' zh_TW';
-              if (PageLang.Values[9]) and FileExists(ExpandConstant('{app}\languages\tr_TR.lng')) then
+              if (PageLang.Values[13]) and FileExists(ExpandConstant('{app}\languages\tr_TR.lng')) then
                 FileLines[i] := linetmp+' tr_TR';
             end;
             if (CompareText(linetmp, 'keyboardlayout') = 0) and (CompareText(section, 'dos') = 0) then
             begin
               linetmp := Trim(Copy(line, 1, Pos('=', line)));
               if (PageLang.Values[1]) then
-                FileLines[i] := linetmp+' fr';
+                FileLines[i] := linetmp+' nl';
               if (PageLang.Values[2]) then
-                FileLines[i] := linetmp+' de';
+                FileLines[i] := linetmp+' fr';
               if (PageLang.Values[3]) then
-                FileLines[i] := linetmp+' jp';
+                FileLines[i] := linetmp+' de';
               if (PageLang.Values[4]) then
-                FileLines[i] := linetmp+' ko';
+                FileLines[i] := linetmp+' hu';
               if (PageLang.Values[5]) then
-                FileLines[i] := linetmp+' br';
+                FileLines[i] := linetmp+' it';
               if (PageLang.Values[6]) then
-                FileLines[i] := linetmp+' cn';
+                FileLines[i] := linetmp+' jp';
               if (PageLang.Values[7]) then
-                FileLines[i] := linetmp+' sp';
+                FileLines[i] := linetmp+' ko';
               if (PageLang.Values[8]) then
-                FileLines[i] := linetmp+' tw';
+                FileLines[i] := linetmp+' br';
               if (PageLang.Values[9]) then
+                FileLines[i] := linetmp+' ru';
+              if (PageLang.Values[10]) then
+                FileLines[i] := linetmp+' cn';
+              if (PageLang.Values[11]) then
+                FileLines[i] := linetmp+' sp';
+              if (PageLang.Values[12]) then
+                FileLines[i] := linetmp+' tw';
+              if (PageLang.Values[13]) then
                 FileLines[i] := linetmp+' tr';
             end;
             if (CompareText(linetmp, 'country') = 0) and (CompareText(section, 'config') = 0) then
             begin
               linetmp := Trim(Copy(line, 1, Pos('=', line)));
               if (PageLang.Values[1]) then
-                FileLines[i] := linetmp+' 33,859';
+                FileLines[i] := linetmp+' 31,850';
               if (PageLang.Values[2]) then
-                FileLines[i] := linetmp+' 49,850';
+                FileLines[i] := linetmp+' 33,859';
               if (PageLang.Values[3]) then
-                FileLines[i] := linetmp+' 81,932';
+                FileLines[i] := linetmp+' 49,850';
               if (PageLang.Values[4]) then
-                FileLines[i] := linetmp+' 82,949';
+                FileLines[i] := linetmp+' 40,852';
               if (PageLang.Values[5]) then
-                FileLines[i] := linetmp+' 55,860';
+                FileLines[i] := linetmp+' 39,850';
               if (PageLang.Values[6]) then
-                FileLines[i] := linetmp+' 86,936';
+                FileLines[i] := linetmp+' 81,932';
               if (PageLang.Values[7]) then
-                FileLines[i] := linetmp+' 34,858';
+                FileLines[i] := linetmp+' 82,949';
               if (PageLang.Values[8]) then
-                FileLines[i] := linetmp+' 886,950';
+                FileLines[i] := linetmp+' 55,860';
               if (PageLang.Values[9]) then
+                FileLines[i] := linetmp+' 7,866';
+              if (PageLang.Values[10]) then
+                FileLines[i] := linetmp+' 86,936';
+              if (PageLang.Values[11]) then
+                FileLines[i] := linetmp+' 34,858';
+              if (PageLang.Values[12]) then
+                FileLines[i] := linetmp+' 886,950';
+              if (PageLang.Values[13]) then
                 FileLines[i] := linetmp+' 90,857';
               break;
             end
@@ -374,35 +406,47 @@ begin
     msg:='DOSBox-X supports language files to display messages in different languages. The language for the user interface and internal DOS is English by default, but you can select a different language for its user interface and internal DOS. The language and code page settings can be later modified in the configuration file (dosbox-x.conf).';
     PageLang:=CreateInputOptionPage(PageOutput.ID, 'User interface and DOS language', 'Select the language for DOSBox-X''s user interface and internal DOS', msg, True, False);
     PageLang.Add('Default (English)');
+    PageLang.Add('Dutch (Nederlands)');
     PageLang.Add('French (Français)');
     PageLang.Add('German (Deutsch)');
+    PageLang.Add('Hungarian (magyar)');
+    PageLang.Add('Italian (italiano)');
     PageLang.Add('Japanese (日本語)');
     PageLang.Add('Korean (한국어)');
     PageLang.Add('Portuguese (português do Brasil)');
+    PageLang.Add('Russian (русский (язык))');
     PageLang.Add('Simplified Chinese (简体中文)');
     PageLang.Add('Spanish (Español)');
     PageLang.Add('Traditional Chinese (繁體/正體中文)');
     PageLang.Add('Turkish (Türkçe)');
     PageLang.Values[0] := True;
     lang := ExpandConstant('{language}');
-    if lang = 'fr' then
+    if lang = 'nl' then
         PageLang.Values[1] := True;
-    if lang = 'ge' then
+    if lang = 'fr' then
         PageLang.Values[2] := True;
-    if lang = 'ja' then
+    if lang = 'ge' then
         PageLang.Values[3] := True;
-    if lang = 'ko' then
+    if lang = 'hu' then
         PageLang.Values[4] := True;
-    if lang = 'pt' then
+    if lang = 'it' then
         PageLang.Values[5] := True;
-    if lang = 'sc' then
+    if lang = 'ja' then
         PageLang.Values[6] := True;
-    if lang = 'sp' then
+    if lang = 'ko' then
         PageLang.Values[7] := True;
-    if lang = 'tc' then
+    if lang = 'pt' then
         PageLang.Values[8] := True;
-    if lang = 'tr' then
+    if lang = 'ru' then
         PageLang.Values[9] := True;
+    if lang = 'sc' then
+        PageLang.Values[10] := True;
+    if lang = 'sp' then
+        PageLang.Values[11] := True;
+    if lang = 'tc' then
+        PageLang.Values[12] := True;
+    if lang = 'tr' then
+        PageLang.Values[13] := True;
     msg:='DOSBox-X allows you to select a TrueType font (or OpenType font) for the TrueType font (TTF) output. It has a builtin TTF font as the default font for the output, but you may want to select a different TTF (or TTC/OTF) font than the default one.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageFont:=CreateInputOptionPage(PageLang.ID, 'TrueType font', 'Select the font for the TrueType font output', msg, True, False);
     PageFont.Add('Default TrueType font');
@@ -518,22 +562,30 @@ begin
     begin
       lang:='Default (English)';
       if (PageLang.Values[1]) then
-        lang:='French (Français)';
+        lang:='Dutch (Nederlands)';
       if (PageLang.Values[2]) then
-        lang:='German (Deutsch)';
+        lang:='French (Français)';
       if (PageLang.Values[3]) then
-        lang:='Japanese (日本語)';
+        lang:='German (Deutsch)';
       if (PageLang.Values[4]) then
-        lang:='Korean (한국어)';
+        lang:='Hungarian (magyar)';
       if (PageLang.Values[5]) then
-        lang:='Portuguese (português do Brasil)';
+        lang:='Italian (italiano)';
       if (PageLang.Values[6]) then
-        lang:='Simplified Chinese (简体中文)';
+        lang:='Japanese (日本語)';
       if (PageLang.Values[7]) then
-        lang:='Spanish (Español)';
+        lang:='Korean (한국어)';
       if (PageLang.Values[8]) then
-        lang:='Traditional Chinese (繁體/正體中文)';
+        lang:='Portuguese (português do Brasil)';
       if (PageLang.Values[9]) then
+        lang:='Russian (русский (язык))';
+      if (PageLang.Values[10]) then
+        lang:='Simplified Chinese (简体中文)';
+      if (PageLang.Values[11]) then
+        lang:='Spanish (Español)';
+      if (PageLang.Values[12]) then
+        lang:='Traditional Chinese (繁體/正體中文)';
+      if (PageLang.Values[13]) then
         lang:='Turkish (Türkçe)';
     end;
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
@@ -706,25 +758,36 @@ begin
       SetupType := WizardSetupType(False);
       if SetupType = 'compact' then
       begin
-        if (not PageLang.Values[1]) and FileExists(ExpandConstant('{app}\languages\fr_FR.lng')) then
+        if (not PageLang.Values[1]) and FileExists(ExpandConstant('{app}\languages\nl_NL.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\nl_NL.lng'));
+        if (not PageLang.Values[2]) and FileExists(ExpandConstant('{app}\languages\fr_FR.lng')) then
           DeleteFile(ExpandConstant('{app}\languages\fr_FR.lng'));
-        if (not PageLang.Values[2]) and FileExists(ExpandConstant('{app}\languages\de_DE.lng')) then
-          DeleteFile(ExpandConstant('{app}\languages\de_DE.lng'));
-        if (not PageLang.Values[3]) and FileExists(ExpandConstant('{app}\languages\ja_JP.lng')) then
+        if (not PageLang.Values[3]) and FileExists(ExpandConstant('{app}\languages\de_DE.lng')) then
+          begin
+            DeleteFile(ExpandConstant('{app}\languages\de_DE.lng'));
+            DeleteFile(ExpandConstant('{app}\languages\de_pc98.lng'));
+          end;
+        if (not PageLang.Values[4]) and FileExists(ExpandConstant('{app}\languages\hu_HU.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\hu_HU.lng'));
+        if (not PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\it_IT.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\it_IT.lng'));
+        if (not PageLang.Values[6]) and FileExists(ExpandConstant('{app}\languages\ja_JP.lng')) then
           DeleteFile(ExpandConstant('{app}\languages\ja_JP.lng'));
-        if (not PageLang.Values[4]) and FileExists(ExpandConstant('{app}\languages\ko_KR.lng')) then
+        if (not PageLang.Values[7]) and FileExists(ExpandConstant('{app}\languages\ko_KR.lng')) then
           DeleteFile(ExpandConstant('{app}\languages\ko_KR.lng'));
-        if (not PageLang.Values[5]) and FileExists(ExpandConstant('{app}\languages\pt_BR.lng')) then
+        if (not PageLang.Values[8]) and FileExists(ExpandConstant('{app}\languages\pt_BR.lng')) then
           DeleteFile(ExpandConstant('{app}\languages\pt_BR.lng'));
-        if (not PageLang.Values[6]) and FileExists(ExpandConstant('{app}\languages\zh_CN.lng')) then
+        if (not PageLang.Values[9]) and FileExists(ExpandConstant('{app}\languages\ru_RU.lng')) then
+          DeleteFile(ExpandConstant('{app}\languages\ru_RU.lng'));
+        if (not PageLang.Values[10]) and FileExists(ExpandConstant('{app}\languages\zh_CN.lng')) then
           DeleteFile(ExpandConstant('{app}\languages\zh_CN.lng'));
-        if (not PageLang.Values[7]) and FileExists(ExpandConstant('{app}\languages\es_ES.lng')) then
+        if (not PageLang.Values[11]) and FileExists(ExpandConstant('{app}\languages\es_ES.lng')) then
           DeleteFile(ExpandConstant('{app}\languages\es_ES.lng'));
-        if (not PageLang.Values[8]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
+        if (not PageLang.Values[12]) and FileExists(ExpandConstant('{app}\languages\zh_TW.lng')) then
           DeleteFile(ExpandConstant('{app}\languages\zh_TW.lng'));
-        if (not PageLang.Values[9]) and FileExists(ExpandConstant('{app}\languages\tr_TR.lng')) then
+        if (not PageLang.Values[13]) and FileExists(ExpandConstant('{app}\languages\tr_TR.lng')) then
           DeleteFile(ExpandConstant('{app}\languages\tr_TR.lng'));
-        if (not PageLang.Values[3]) and (not PageLang.Values[4]) and (not PageLang.Values[6]) and (not PageLang.Values[8]) and (not PageFont.Values[1]) then
+        if (not PageLang.Values[6]) and (not PageLang.Values[7]) and (not PageLang.Values[10]) and (not PageLang.Values[12]) and (not PageFont.Values[1]) then
         begin
           if FileExists(ExpandConstant('{app}\SarasaGothicFixed.ttf')) then
             DeleteFile(ExpandConstant('{app}\SarasaGothicFixed.ttf'));
