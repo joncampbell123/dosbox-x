@@ -399,7 +399,8 @@ Language files currently available are:
 
 [Chinese (Simplified)](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng),
 [Chinese (Traditional)](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng),
-[Dutch](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/nl/nl_NL.lng),
+[Dutch](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/nl/nl_NL.lng), 
+[French](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng),
 [German](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/de/de_DE.lng),
 [Hungarian](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/hu/hu_HU.lng),
 [Italian](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/it/it_IT.lng),
@@ -431,3 +432,4 @@ You can set the codepage by `KEYB` or `CHCP` command. Type `KEYB /?` or `CHCP /?
 For further information on international support and regional settings of DOSBox-X, such as steps to create DOSBox-X
 language files or use external keyboard files in DOSBox-X, as well as support for the Euro symbol and country-specific
 date and time formats, please look at the guide [Regional settings in DOSBox-X](https://dosbox-x.com/wiki/Guide%3ARegional-settings-in-DOSBox%E2%80%90X) in the [DOSBox-X Wiki](https://dosbox-x.com/wiki). For more information on East Asian (Chinese/Japanese/Korean) language support, see the [East Asian language and system support](https://dosbox-x.com/wiki/Guide%3AEast-Asian-language-support-in-DOSBox%E2%80%90X) guide page.
+
