@@ -66,6 +66,13 @@ emptyline:
 		n=1;
 		DOS_ReadFile(file_handle,&c,&n);
 		if (n>0) {
+			if (c==0x1a) {
+				// Stop at EOF character
+				n=0;
+				this->location=0;
+				DOS_SeekFile(file_handle,&(this->location),DOS_SEEK_END);
+				break;
+			}
 			/* Why are we filtering this ?
 			 * Exclusion list: tab for batch files 
 			 * escape for ansi
