@@ -644,7 +644,6 @@ static void MPU401_Reset(void) {
 	mpu.clock.clock_to_host=false;
 	mpu.clock.cth_rate=60;
 	mpu.clock.cth_counter=0;
-	ClrQueue();
 	mpu.state.req_mask=0;
 	mpu.condbuf.counter=0;
 	mpu.clock.cth_savecount=0;
