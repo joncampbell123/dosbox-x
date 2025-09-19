@@ -1972,7 +1972,7 @@ bool ParseCommand(char* str) {
 
 	if (command == "IV") { // Insert variable
 		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
-		uint32_t ofs = (uint16_t)GetHexValue(found,found); found++;
+		uint32_t ofs = GetHexValue(found,found); found++;
 		char name[16];
 		for (int i=0; i<16; i++) {
 			if (found[i] && (found[i]!=' ')) name[i] = found[i];
