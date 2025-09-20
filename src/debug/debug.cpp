@@ -186,6 +186,8 @@ void DEBUG_EndPagedContent(void);
 Bitu MEM_PageMaskActive(void);
 Bitu MEM_TotalPages(void);
 Bitu MEM_PageMask(void);
+void DEBUG_WarnDynamic(void);
+int CPU_IsDynamicCore(void); // cpu.cpp 0=normal, 1=dynamic, 2=dynamic core with assembler
 
 static void LogEMUMachine(void) {
     DEBUG_BeginPagedContent();
@@ -313,6 +315,8 @@ static bool debug_running = false;
 static bool check_rescroll = false;
 
 static FPU_rec oldfpu;
+static bool warn_dynamic = false;
+
 
 void VGA_DebugRedraw(void);
 
@@ -4306,7 +4310,12 @@ uint32_t DEBUG_CheckKeys(void) {
 				break;
 		case KEY_F(10):	// Step over inst
 				DrawRegistersUpdateOld();
-				if (StepOver()) {
+                if(!CPU_IsDynamicCore()) warn_dynamic = false;
+                else if(!warn_dynamic) {
+                    DEBUG_WarnDynamic();
+                    warn_dynamic = true;
+                }
+                if (StepOver()) {
 					mustCompleteInstruction = true;
 					inhibit_int_breakpoint = true;
 					ret = DEBUG_Run(1,false);
@@ -4319,6 +4328,11 @@ uint32_t DEBUG_CheckKeys(void) {
 				/* FALLTHROUGH */
 		case KEY_F(11):	// trace into
 				DrawRegistersUpdateOld();
+                if(!CPU_IsDynamicCore()) warn_dynamic = false;
+                else if(!warn_dynamic) {
+                    DEBUG_WarnDynamic();
+                    warn_dynamic = true;
+                }
 				exitLoop = false;
 				mustCompleteInstruction = true;
 				ret = DEBUG_Run(1,true);
@@ -4511,6 +4525,11 @@ Bitu DEBUG_Loop(void) {
 
 void DEBUG_FlushInput(void);
 
+void DEBUG_WarnDynamic(void) {
+    DEBUG_ShowMsg("Warning: Single-stepping may not work correctly with \"Dynamic core\".");
+    DEBUG_ShowMsg("         If you encounter problems, switch the CPU core to \"Normal core\".");
+}
+
 bool tohide=true;
 static bool hidedebugger=false;
 void DEBUG_Enable_Handler(bool pressed) {
@@ -4602,8 +4621,12 @@ void DEBUG_Enable_Handler(bool pressed) {
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
 	mainMenu.get_item("mapper_debugger").check(true).refresh_item(mainMenu);
-	if (!showhelp) {
-		showhelp=true;
+    if(!warn_dynamic) {
+        DEBUG_WarnDynamic();
+        warn_dynamic = true;
+    }
+    if (!showhelp) {
+        showhelp=true;
 		DEBUG_ShowMsg("***| TYPE HELP (+ENTER) TO GET AN OVERVIEW OF ALL COMMANDS |***\n");
 	}
 	//KEYBOARD_ClrBuffer();
