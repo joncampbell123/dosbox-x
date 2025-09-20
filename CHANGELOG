@@ -58,6 +58,10 @@ Next version
   - Replaced deprecated functions to enable building with FFmpeg 8 (maron2000)
   - Fixed screen blanked when restoring minimized window in TTF mode (Windows
     SDL1) (maron2000) 
+  - PC-98: Save Kanji CG access mode setting, restrict output accordingly
+    (OPNA2608)
+  - Added missing language options to Windows installers (maron2000)
+  - Debugger: IV must not truncate addresses to 16-bit (cmsautter)
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
