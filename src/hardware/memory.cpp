@@ -1605,6 +1605,7 @@ void On_Software_CPU_Reset() {
     if (cpudecoder == &CPU_Core_Dyn_X86_Run || cpudecoder == &CPU_Core_Dynrec_Run) {
         LOG_MSG("Warning: C++ exception method is not compatible with dynamic core when emulating reset");
         RebootLanguage("");
+        exit(0);
     }
 #endif
 
