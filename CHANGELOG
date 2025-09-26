@@ -62,6 +62,9 @@ Next version
     (OPNA2608)
   - Added missing language options to Windows installers (maron2000)
   - Debugger: IV must not truncate addresses to 16-bit (cmsautter)
+  - Debugger: Warn single-stepping may not work as expected with Dynamic core
+    (maron2000)
+  - MIDI: Show loaded Soundfont/ROM path only when required to. (maron2000)
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
