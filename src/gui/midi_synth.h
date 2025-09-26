@@ -464,7 +464,7 @@ public:
 			soundfont_id = fluid_synth_sfload(synth, soundfont.c_str(), 1);
 			if (soundfont_id == FLUID_FAILED) {
 				/* Just consider this a warning (fluidsynth already prints) */
-				soundfont.clear();
+                soundfont.clear();
 				soundfont_id = -1;
 			}
 			else {
@@ -474,10 +474,11 @@ public:
 			}
 		}
 		else {
-			soundfont_id = -1;
+            soundfont_id = -1;
 			LOG_MSG("MIDI:fluidsynth: No SoundFont loaded");
 		}
-		return true;
+        if(soundfont_id == -1) sffile = "Not available";
+        return true;
 	}
 
 	void ListAll(Program* base) override {

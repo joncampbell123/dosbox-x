@@ -267,7 +267,8 @@ public:
 							LOG_MSG("MT32 emulation requires the PCM and CONTROL ROM files.");
 							LOG_MSG("To eliminate this error message, check the DOSBox-X wiki.");
 							LOG_MSG("The ROM files are: CM32L_CONTROL.ROM and CM32L_PCM.ROM or MT32_CONTROL.ROM and MT32_PCM.ROM");
-							return false;
+                            sffile = "Not available";
+                            return false;
 					}
 			}
 		}
