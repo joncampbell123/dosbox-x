@@ -36,9 +36,6 @@
 extern "C" {
 #endif
 
-/* This is the DOSBox-X's modified SDL 2.x with IME support, not the general library */
-#define SDL_DOSBOX_X_IME 1
-
 /**
  * Information about the version of SDL in use.
  *
@@ -61,7 +58,7 @@ typedef struct SDL_version
 */
 #define SDL_MAJOR_VERSION   2
 #define SDL_MINOR_VERSION   32
-#define SDL_PATCHLEVEL      4
+#define SDL_PATCHLEVEL      10
 
 /**
  * Macro to determine SDL version program was compiled against.
