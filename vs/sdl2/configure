@@ -3516,7 +3516,7 @@ orig_CFLAGS="$CFLAGS"
 # See docs/release_checklist.md
 SDL_MAJOR_VERSION=2
 SDL_MINOR_VERSION=32
-SDL_MICRO_VERSION=4
+SDL_MICRO_VERSION=10
 SDL_VERSION=$SDL_MAJOR_VERSION.$SDL_MINOR_VERSION.$SDL_MICRO_VERSION
 
 SDL_BINARY_AGE=`expr $SDL_MINOR_VERSION \* 100 + $SDL_MICRO_VERSION`
@@ -19756,6 +19756,12 @@ then :
   printf "%s\n" "#define HAVE_SIGACTION 1" >>confdefs.h
 
 fi
+ac_fn_c_check_func "$LINENO" "sigtimedwait" "ac_cv_func_sigtimedwait"
+if test "x$ac_cv_func_sigtimedwait" = xyes
+then :
+  printf "%s\n" "#define HAVE_SIGTIMEDWAIT 1" >>confdefs.h
+
+fi
 ac_fn_c_check_func "$LINENO" "setjmp" "ac_cv_func_setjmp"
 if test "x$ac_cv_func_setjmp" = xyes
 then :
@@ -22422,7 +22428,6 @@ printf %s "checking for NAS audio support... " >&6; }
             have_nas=yes
             NAS_CFLAGS="-I/usr/X11R6/include/"
             NAS_LIBS="-L/usr/X11R6/lib -laudio -lXt"
-
         fi
 
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $have_nas" >&5
@@ -28394,7 +28399,8 @@ fi
 
         if test x$hidapi_support = xyes; then
             if test x$have_libusb_h = xyes; then
-                printf "%s\n" "#define HAVE_LIBUSB 1" >>confdefs.h
+
+printf "%s\n" "#define HAVE_LIBUSB 1" >>confdefs.h
 
                 EXTRA_CFLAGS="$EXTRA_CFLAGS $LIBUSB_CFLAGS"
                 if test x$require_hidapi_libusb = xyes; then
@@ -28741,12 +28747,23 @@ printf "%s\n" "#define SDL_VIDEO_DRIVER_ANDROID 1" >>confdefs.h
         if test x$enable_audio = xyes; then
           case $ARCH in
             sysv5|solaris|hpux)
+                # Newer Solaris-based systems, like OpenIndiana, don't have this interface anymore. Check for the header first.
+                ac_fn_c_check_header_compile "$LINENO" "sys/audioio.h" "ac_cv_header_sys_audioio_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_audioio_h" = xyes
+then :
+  have_sys_audioio_h=yes
+else $as_nop
+  have_sys_audioio_h=no
+fi
+
+                if test x$have_sys_audioio_h = xyes; then
 
 printf "%s\n" "#define SDL_AUDIO_DRIVER_SUNAUDIO 1" >>confdefs.h
 
-                SOURCES="$SOURCES $srcdir/src/audio/sun/*.c"
-                SUMMARY_audio="${SUMMARY_audio} sun"
-                have_audio=yes
+                    SOURCES="$SOURCES $srcdir/src/audio/sun/*.c"
+                    SUMMARY_audio="${SUMMARY_audio} sun"
+                    have_audio=yes
+                fi
             ;;
             netbsd)  # Don't use this on OpenBSD, it's busted.
 

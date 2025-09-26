@@ -49,7 +49,7 @@ typedef struct SDL_Keysym
 {
     SDL_Scancode scancode;      /**< SDL physical key code - see SDL_Scancode for details */
     SDL_Keycode sym;            /**< SDL virtual key code - see SDL_Keycode for details */
-    Uint16 mod;                 /**< current key modifiers */
+    Uint16 mod;                 /**< current key modifiers - see SDL_Keymod for details */
     Uint32 unused;
 } SDL_Keysym;
 
@@ -209,7 +209,6 @@ extern DECLSPEC const char *SDLCALL SDL_GetScancodeName(SDL_Scancode scancode);
  * \sa SDL_GetScancodeName
  */
 extern DECLSPEC SDL_Scancode SDLCALL SDL_GetScancodeFromName(const char *name);
-extern DECLSPEC SDL_bool SDLCALL SDL_IM_Composition(int more); // Added for DOSBox-X
 
 /**
  * Get a human-readable name for a key.

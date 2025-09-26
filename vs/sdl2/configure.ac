@@ -13,7 +13,7 @@ dnl Set various version strings - taken gratefully from the GTk sources
 # See docs/release_checklist.md
 SDL_MAJOR_VERSION=2
 SDL_MINOR_VERSION=32
-SDL_MICRO_VERSION=4
+SDL_MICRO_VERSION=10
 SDL_VERSION=$SDL_MAJOR_VERSION.$SDL_MINOR_VERSION.$SDL_MICRO_VERSION
 
 SDL_BINARY_AGE=`expr $SDL_MINOR_VERSION \* 100 + $SDL_MICRO_VERSION`
@@ -359,7 +359,7 @@ dnl Checks for library functions.
         AC_DEFINE(HAVE_MPROTECT, 1, [ ])
         ],[]),
     )
-    AC_CHECK_FUNCS(malloc calloc realloc free getenv setenv putenv unsetenv bsearch qsort abs bcopy memset memcmp memcpy memmove wcslen wcslcpy wcslcat _wcsdup wcsdup wcsstr wcscmp wcsncmp wcscasecmp _wcsicmp wcsncasecmp _wcsnicmp strlen strlcpy strlcat _strrev _strupr _strlwr index rindex strchr strrchr strstr strtok_r itoa _ltoa _uitoa _ultoa strtod strtol strtoul _i64toa _ui64toa strtoll strtoull atoi atof strcmp strncmp _stricmp strcasecmp _strnicmp strncasecmp strcasestr vsscanf vsnprintf fopen64 fseeko fseeko64 sigaction setjmp nanosleep sysconf sysctlbyname getauxval elf_aux_info poll memfd_create posix_fallocate _Exit)
+    AC_CHECK_FUNCS(malloc calloc realloc free getenv setenv putenv unsetenv bsearch qsort abs bcopy memset memcmp memcpy memmove wcslen wcslcpy wcslcat _wcsdup wcsdup wcsstr wcscmp wcsncmp wcscasecmp _wcsicmp wcsncasecmp _wcsnicmp strlen strlcpy strlcat _strrev _strupr _strlwr index rindex strchr strrchr strstr strtok_r itoa _ltoa _uitoa _ultoa strtod strtol strtoul _i64toa _ui64toa strtoll strtoull atoi atof strcmp strncmp _stricmp strcasecmp _strnicmp strncasecmp strcasestr vsscanf vsnprintf fopen64 fseeko fseeko64 sigaction sigtimedwait setjmp nanosleep sysconf sysctlbyname getauxval elf_aux_info poll memfd_create posix_fallocate _Exit)
 
     AC_CHECK_LIB(m, pow, [LIBS="$LIBS -lm"; EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lm"])
     AC_CHECK_FUNCS(acos acosf asin asinf atan atanf atan2 atan2f ceil ceilf copysign copysignf cos cosf exp expf fabs fabsf floor floorf trunc truncf fmod fmodf log logf log10 log10f lround lroundf pow powf round roundf scalbn scalbnf sin sinf sqrt sqrtf tan tanf)
@@ -1247,7 +1247,6 @@ CheckNAS()
             have_nas=yes
             NAS_CFLAGS="-I/usr/X11R6/include/"
             NAS_LIBS="-L/usr/X11R6/lib -laudio -lXt"
-
         fi
 
         AC_MSG_RESULT($have_nas)
@@ -1620,16 +1619,22 @@ CheckNoErrorDeprecatedDeclarationsWerror()
 dnl See if GCC's -Wdeclaration-after-statement is supported.
 dnl  This lets us catch things that would fail on a C89 compiler when using
 dnl  a modern GCC.
-dnl EDIT 2023/04/01 DOSBox-X: We don't care about ancient compilers. A compiler
-dnl that old doesn't support C++ and even if it did, it wouldn't be new enough
-dnl for this code base. We have to disable this because this is preventing
-dnl DOSBox-X from compiling with the latest XCode on ARM-based Macbooks because
-dnl the *.m files have variable declarations after statements. At no point is
-dnl this code going to compile itself like it's 1993. Come on guys. --J.C.
 CheckDeclarationAfterStatement()
 {
-    dnl We don't care about C89 compilers.
-	true
+    AC_MSG_CHECKING(for GCC -Wdeclaration-after-statement option)
+    have_gcc_declaration_after_statement=no
+
+    save_CFLAGS="$CFLAGS"
+    CFLAGS="$save_CFLAGS -Wdeclaration-after-statement -Werror=declaration-after-statement"
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    int x = 0;
+    ]],[])], [have_gcc_declaration_after_statement=yes],[])
+    AC_MSG_RESULT($have_gcc_declaration_after_statement)
+    CFLAGS="$save_CFLAGS"
+
+    if test x$have_gcc_declaration_after_statement = xyes; then
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -Wdeclaration-after-statement -Werror=declaration-after-statement"
+    fi
 }
 
 dnl See if GCC's -Wall is supported.
@@ -3630,7 +3635,7 @@ CheckHIDAPI()
 
         if test x$hidapi_support = xyes; then
             if test x$have_libusb_h = xyes; then
-                AC_DEFINE(HAVE_LIBUSB)
+                AC_DEFINE(HAVE_LIBUSB, 1, [ ])
                 EXTRA_CFLAGS="$EXTRA_CFLAGS $LIBUSB_CFLAGS"
                 if test x$require_hidapi_libusb = xyes; then
                     EXTRA_LDFLAGS="$EXTRA_LDFLAGS $LIBUSB_LIBS"
@@ -3863,10 +3868,14 @@ case "$host" in
         if test x$enable_audio = xyes; then
           case $ARCH in
             sysv5|solaris|hpux)
-                AC_DEFINE(SDL_AUDIO_DRIVER_SUNAUDIO, 1, [ ])
-                SOURCES="$SOURCES $srcdir/src/audio/sun/*.c"
-                SUMMARY_audio="${SUMMARY_audio} sun"
-                have_audio=yes
+                # Newer Solaris-based systems, like OpenIndiana, don't have this interface anymore. Check for the header first.
+                AC_CHECK_HEADER(sys/audioio.h, have_sys_audioio_h=yes, have_sys_audioio_h=no)
+                if test x$have_sys_audioio_h = xyes; then
+                    AC_DEFINE(SDL_AUDIO_DRIVER_SUNAUDIO, 1, [ ])
+                    SOURCES="$SOURCES $srcdir/src/audio/sun/*.c"
+                    SUMMARY_audio="${SUMMARY_audio} sun"
+                    have_audio=yes
+                fi
             ;;
             netbsd)  # Don't use this on OpenBSD, it's busted.
                 AC_DEFINE(SDL_AUDIO_DRIVER_NETBSD, 1, [ ])

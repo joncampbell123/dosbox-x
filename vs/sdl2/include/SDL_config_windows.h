@@ -299,10 +299,6 @@ typedef unsigned int uintptr_t;
 #define SDL_VIDEO_RENDER_D3D12  1
 #endif
 
-#if defined(__WIN32__) && (defined(__arm__) || defined(__arm64__) || defined(_M_ARM) || defined(_M_ARM64))
-#define NO_OPENGL /* Don't enable for DOSBox-X on Windows ARM */
-#else
-
 /* Enable OpenGL support */
 #ifndef SDL_VIDEO_OPENGL
 #define SDL_VIDEO_OPENGL    1
@@ -321,7 +317,6 @@ typedef unsigned int uintptr_t;
 #endif
 #ifndef SDL_VIDEO_OPENGL_EGL
 #define SDL_VIDEO_OPENGL_EGL    1
-#endif
 #endif
 
 /* Enable Vulkan support */
