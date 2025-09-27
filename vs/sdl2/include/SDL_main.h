@@ -158,9 +158,8 @@ extern "C" {
  * The prototype for the application's main() function
  */
 typedef int (*SDL_main_func)(int argc, char *argv[]);
-// extern SDLMAIN_DECLSPEC int SDL_main(int argc, char *argv[]);
+//extern SDLMAIN_DECLSPEC int SDL_main(int argc, char *argv[]);
 extern SDLMAIN_DECLSPEC int SDL_main(int argc, char *argv[]) SDL_MAIN_NOEXCEPT; // Changed for DOSBox-X
-
 
 /**
  * Circumvent failure of SDL_Init() when not using SDL_main() as an entry

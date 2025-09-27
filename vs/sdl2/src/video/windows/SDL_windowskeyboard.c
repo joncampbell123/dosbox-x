@@ -264,7 +264,7 @@ void WIN_SetTextInputRect(_THIS, const SDL_Rect *rect)
 
     himc = ImmGetContext(videodata->ime_hwnd_current);
     if (himc) {
-        /* //reverted for DOSBox-X
+     /** //reverted for DOSBox-X
         COMPOSITIONFORM cof;
         CANDIDATEFORM caf;
 
@@ -1059,7 +1059,7 @@ SDL_bool IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, S
 #endif
     case WM_IME_SETCONTEXT:
         // Disabled because the string being converted will not be displayed. (for DOSBox-X)
-        /*
+        /**
         if (videodata->ime_uiless) {
             *lParam = 0;
         }
