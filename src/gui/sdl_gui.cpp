@@ -2574,13 +2574,22 @@ public:
     ShowMidiDevice(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 320, 260, title) {
             std::string name=!midi.handler||!midi.handler->GetName()?"-":midi.handler->GetName();
+            std::string sf_rom{};
             if (name.size()) {
-                if (name=="mt32") name="MT32";
-                else if (name=="fluidsynth") name="FluidSynth";
+                if(name == "mt32") {
+                    name = "MT32";
+                    sf_rom = "\nMT32 ROM path:\n" + sffile;
+                }
+                else if(name == "fluidsynth") {
+                    name = "FluidSynth";
+                    sf_rom = "\nSoundFont file:\n" + sffile;
+                }
                 else name[0]=toupper(name[0]);
             }
             extern std::string getoplmode(), getoplemu();
-            std::string midiinfo = "MIDI available: "+std::string(midi.available?"Yes":"No")+"\nMIDI device: "+name+"\nMIDI soundfont file / ROM path:\n"+sffile+"\nOPL mode: "+getoplmode()+"\nOPL emulation: "+getoplemu();
+            std::string midiinfo = "MIDI available: "+std::string(midi.available?"Yes":"No")+"\nMIDI device: "+name+sf_rom
+                +"\nOPL mode: "+getoplmode()+"\nOPL emulation: "+getoplemu()
+                + (sf_rom.size()?"":"\n\n\n");
             std::istringstream in(midiinfo.c_str());
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
