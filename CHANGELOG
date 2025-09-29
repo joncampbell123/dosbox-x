@@ -65,6 +65,7 @@ Next version
   - Debugger: Warn single-stepping may not work as expected with Dynamic core
     (maron2000)
   - MIDI: Show loaded Soundfont/ROM path only when required to. (maron2000)
+  - SDL2: Updated SDL2 library to version 2.32.10 (maron2000) 
 
 2025.05.03
   - Show TURBO status in title bar. (maron2000)
