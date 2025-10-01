@@ -779,7 +779,7 @@ Bitu OUTPUT_OPENGL_SetSize()
     }
 #endif
 
-    if (sdl.desktop.fullscreen&&sdl_opengl.use_shader)
+    if (sdl_opengl.use_shader)
         glViewport((sdl.surface->w-sdl.clip.w)/2,(sdl.surface->h-sdl.clip.h)/2,sdl.clip.w,sdl.clip.h);
     else
         glViewport(0, 0, sdl.surface->w, sdl.surface->h);
