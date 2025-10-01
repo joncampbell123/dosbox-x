@@ -2958,6 +2958,7 @@ bool LocalFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 		case EINTR:
 		case ENOLCK:
 		case EAGAIN:
+		case EACCES:
 			DOS_SetError(0x21);
 			break;
 		case EBADF:
