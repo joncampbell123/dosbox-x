@@ -233,7 +233,7 @@ Set the default working path for DOSBox-X.
 Use the default config settings for DOSBox-X.
 *-defaultmapper*::
 Use the default key mappings for DOSBox-X.
-*-data-host-forced*::
+*-date-host-forced*::
 Force synchronization of date and time with the host.
 *-display2* [_color_]::
 Enable both standard & monochrome dual-screen mode. The monochrome display defaults to white, but can optionally be set to _green_ or _amber_.
