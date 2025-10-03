@@ -3423,7 +3423,7 @@ void AllocCallback1() {
                     set_callback_function(mixer_info_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sb_info").set_text("Show Sound Blaster configuration").
                     set_callback_function(sb_device_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"midi_info").set_text("Show MIDI device configuration").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"midi_info").set_text("Show MIDI/OPL device configuration").
                     set_callback_function(midi_device_menu_callback);
             }
         }
