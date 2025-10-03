@@ -144,7 +144,7 @@ DOS 命令說明
 聲霸卡組態資訊
 .
 :CURRENT_MIDICONFIG
-MIDI 裝置組態資訊
+MIDI/OPL 裝置組態資訊
 .
 :CREATE_IMAGE
 建立空白磁碟映像
@@ -2951,7 +2951,7 @@ Glide 直通
 顯示聲霸卡組態
 .
 :MENU:midi_info
-顯示 MIDI 裝置組態
+顯示 MIDI/OPL 裝置組態
 .
 :MENU:DOSMenu
 DOS
