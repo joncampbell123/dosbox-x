@@ -144,7 +144,7 @@ Huidige geluidsmixervolumes
 Sound Blaster configuratie
 .
 :CURRENT_MIDICONFIG
-Huidige MIDI configuratie
+Huidige MIDI/OPL configuratie
 .
 :CREATE_IMAGE
 Lege schijfimage maken
@@ -2979,7 +2979,7 @@ Geluidsmixervolumes weergeven
 Sound Blaster-configuratie weergeven
 .
 :MENU:midi_info
-Configuratie van MIDI-apparaat weergeven
+Configuratie van MIDI/OPL-apparaat weergeven
 .
 :MENU:DOSMenu
 DOS

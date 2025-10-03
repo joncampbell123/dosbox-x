@@ -149,7 +149,7 @@ DOS 命令帮助
 声卡配置信息
 .
 :CURRENT_MIDICONFIG
-MIDI 设备配置信息
+MIDI/OPL 设备配置信息
 .
 :CREATE_IMAGE
 创建空白磁盘镜像
@@ -2963,7 +2963,7 @@ Glide 直通
 显示声卡配置
 .
 :MENU:midi_info
-显示 MIDI 设备配置
+显示 MIDI/OPL 设备配置
 .
 :MENU:DOSMenu
 DOS

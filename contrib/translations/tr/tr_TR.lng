@@ -150,7 +150,7 @@ Geçerli ses karıştıcı düzeyi
 Sound Blaster yapılandırması
 .
 :CURRENT_MIDICONFIG
-Geçerli MIDI yapılandırması
+Geçerli MIDI/OPL yapılandırması
 .
 :CREATE_IMAGE
 Boş disk kalıbı oluştur
@@ -2992,7 +2992,7 @@ Ses karıştırıcısı düzeyini göster
 Sound Blaster yapılandırmasını göster
 .
 :MENU:midi_info
-MIDI aygıt yapılandırmasını göster
+MIDI/OPL aygıt yapılandırmasını göster
 .
 :MENU:DOSMenu
 DOS

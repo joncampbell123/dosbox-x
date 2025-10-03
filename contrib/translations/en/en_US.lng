@@ -144,7 +144,7 @@ Current sound mixer volumes
 Sound Blaster configuration
 .
 :CURRENT_MIDICONFIG
-Current MIDI configuration
+Current MIDI/OPL configuration
 .
 :CREATE_IMAGE
 Create blank disk image
@@ -2974,7 +2974,7 @@ Show sound mixer volumes
 Show Sound Blaster configuration
 .
 :MENU:midi_info
-Show MIDI device configuration
+Show MIDI/OPL device configuration
 .
 :MENU:DOSMenu
 DOS
