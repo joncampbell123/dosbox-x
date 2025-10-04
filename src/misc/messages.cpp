@@ -220,7 +220,7 @@ void AddMessages() {
     MSG_Add("HELP_COMMAND","Help on DOS command");
     MSG_Add("CURRENT_VOLUME","Current sound mixer volumes");
     MSG_Add("CURRENT_SBCONFIG","Sound Blaster configuration");
-    MSG_Add("CURRENT_MIDICONFIG","Current MIDI configuration");
+    MSG_Add("CURRENT_MIDICONFIG","Current MIDI/OPL configuration");
     MSG_Add("CREATE_IMAGE","Create blank disk image");
     MSG_Add("NETWORK_LIST","Network interface list");
     MSG_Add("PRINTER_LIST","Printer device list");

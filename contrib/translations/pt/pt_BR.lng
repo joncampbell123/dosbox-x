@@ -150,7 +150,7 @@ Valores atuais do mixer
 Configuração da Sound Blaster
 .
 :CURRENT_MIDICONFIG
-Configuração atual de MIDI
+Configuração atual de MIDI/OPL
 .
 :CREATE_IMAGE
 Criar imagem de disco em branco
@@ -3014,7 +3014,7 @@ Mostrar mixes de volume de som
 Mostrar configuração da Sound Blaster
 .
 :MENU:midi_info
-Mostrar configuração do dispositivo MIDI
+Mostrar configuração do dispositivo MIDI/OPL
 .
 :MENU:DOSMenu
 DOS

@@ -150,7 +150,7 @@ DOS コマンドのヘルプ
 現在の Sound Blaster 設定
 .
 :CURRENT_MIDICONFIG
-現在の MIDI 設定
+現在の MIDI/OPL 設定
 .
 :CREATE_IMAGE
 空のディスクイメージ作成
@@ -2982,7 +2982,7 @@ TrueTypeフォント(TTF/OTF)の選択...
 Sound Blaster設定の表示
 .
 :MENU:midi_info
-MIDIデバイス設定の表示
+MIDI/OPLデバイス設定の表示
 .
 :MENU:DOSMenu
 DOS

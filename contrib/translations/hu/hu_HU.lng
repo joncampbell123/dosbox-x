@@ -151,7 +151,7 @@ Aktív hangbeállítások
 Sound Blaster konfiguráció
 .
 :CURRENT_MIDICONFIG
-Aktív MIDI konfiguráció
+Aktív MIDI/OPL konfiguráció
 .
 :CREATE_IMAGE
 Üres lemezkép-fájl létrehozása
@@ -2982,7 +2982,7 @@ Hangerőszabályozó hangszintjei
 Sound Blaster konfiguráció
 .
 :MENU:midi_info
-MIDI eszköz konfiguráció
+MIDI/OPL eszköz konfiguráció
 .
 :MENU:DOSMenu
 DOS

@@ -273,7 +273,7 @@ Aktuelle Lautstärkeeinstellung
 Sound Blaster Konfiguration
 .
 :CURRENT_MIDICONFIG
-Aktuelle MIDI Konfiguration
+Aktuelle MIDI/OPL Konfiguration
 .
 :CREATE_IMAGE
 Leeres Laufwerksimage erstellen
@@ -3187,7 +3187,7 @@ Zeige Lautstärkeregler
 Zeige Sound Blaster Konfiguration
 .
 :MENU:midi_info
-Zeige MIDI Konfiguration
+Zeige MIDI/OPL Konfiguration
 .
 :MENU:DOSMenu
 DOS

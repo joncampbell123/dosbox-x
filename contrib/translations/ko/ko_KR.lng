@@ -150,7 +150,7 @@ DOS 명령 도움말
 현재 사운드 블라스터 구성
 .
 :CURRENT_MIDICONFIG
-현재 미디 구성
+현재 MIDI/OPL 구성
 .
 :CREATE_IMAGE
 빈 디스크 이미지를 만듬
@@ -2992,7 +2992,7 @@ TrueType 글꼴 (TTF/OTF)을 선택...
 사운드 블래스터 구성을 표시
 .
 :MENU:midi_info
-미디 장치 구성을 표시
+MIDI/OPL 장치 구성 표시
 .
 :MENU:DOSMenu
 도스
