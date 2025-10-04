@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,17 +11,24 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#define VGA_INTERNAL
 
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "vga.h"
 
-#define seq(blah) vga.seq.blah
+extern bool ignore_sequencer_blanking;
+extern bool non_cga_ignore_oddeven_engage;
+extern bool vga_ignore_extended_memory_bit;
+
+extern bool vga_render_on_demand;
+void VGA_RenderOnDemandUpTo(void);
 
 Bitu read_p3c4(Bitu /*port*/,Bitu /*iolen*/) {
 	return seq(index);
@@ -69,36 +76,86 @@ void write_p3c4(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			val &= 0x07;	// FIXME: reasonable guess, since the ET4000 does it too
 		else
 			val &= 0x0F;	// FIXME: reasonable guess
+
+        /* Paradise/Western Digital sequencer registers appear to repeat every 0x40 aka decoding bits [5:0] */
 	}
 	else if (machine == MCH_EGA) {
 		val &= 0x0F; // FIXME: reasonable guess
 	}
 
-	seq(index)=val;
+	seq(index)=(uint8_t)val;
 }
 
-void VGA_SequReset(bool reset);
-void VGA_Screenstate(bool enabled);
+unsigned int VGA_ComplexityCheck_MAP_MASK(void) {
+	return vga.complexity.setf(VGACMPLX_MAP_MASK,(vga.seq.map_mask & 0xF) != 0xF && vga.config.chained); // if any bitplane is masked off and chained mode
+}
+
+unsigned int VGA_ComplexityCheck_ODDEVEN(void) {
+	bool unusual = false;
+
+	/* Ignore odd/even mode for 256-color mode if enabled (by default).
+	 * It is a bug to enable odd/even in 256-color mode and most SVGA chipsets appear to
+	 * completely ignore the bit in that situation (which is probably how the programmer
+	 * of a specific demo did not catch the bug in their tweakmode). */
+	if (non_cga_ignore_oddeven_engage && (vga.mode == M_VGA || vga.mode == M_LIN8)) {
+		/* ignore */
+	}
+	else {
+		/* NTS: Sequencer memory mode bit 2: Odd/even mode is SET when the bit is CLEARED, meaning that bit 2 is an
+		 *      Odd/Even DISABLE bit, not an ENABLE bit. Some documentation including the WHATVGA documentation got it backwards.
+		 *      When set, even addresses go to bitplane 0+2, odd addresses go to bitplane 1+3. Note this bit doesn't affect
+		 *      the byte offset in planar video memory that is accessed when the CPU reads/writes video RAM.
+		 *
+		 *      Graphics controller misc graphics register bit 2: Odd/even mode is SET when the bit is SET. This bit
+		 *      says to REPLACE bit 0 with a "higher order bit" and the odd map is selected.
+		 *
+		 *      (wait, is that how EGA cards do the 640x350 4-color mode when you only have 64KB of video RAM?) */
+		unusual = ((vga.seq.memory_mode & 4) == 0) || ((vga.gfx.miscellaneous & 2) != 0);
+
+		/* NOTE: DOSBox-X treats the CGA modes as just another variant of EGA 16-color mode (M_EGA) because that's how
+		 *       real EGA/VGA hardware handles them too. The only difference from the standard EGA mode is that in the
+		 *       CGA modes the additional bitplanes are disabled and not rendered, and the 320x200 4-color mode sets
+		 *       an additional bit that instructs the planar mode to read 2-bit pixel values from bitplane 0 instead of
+		 *       1-bit pixel values as normal. Since odd/even mode is enabled, alternate bytes of bitplane 0 and 1 are read.
+		 *       What is normally hidden by the disabled bitplanes is that the 2-bit pixel mode also reads an additional
+		 *       2 bits from bitplane 2 or bitplane 2 and 3 to produce a 4-bit (16-color value) which is hardly used
+		 *       except for one known test case that sets up a 16-color 640x200 tweakmode for machine=ega in which the
+		 *       display is two 2-bit/pixel bitplanes instead of four 1-bit/pixel bitplanes.
+		 *
+		 *       CGA modes 4/5 (320x200 4-color) are run with odd/even mode enabled and therefore need the slower I/O path to
+		 *       function correctly.
+		 *
+		 *       EGA/VGA also use the Odd/Even mode for alphanumeric text mode for CGA compatibility reasons and because
+		 *       it allows the hardware to then map the character data to bitplane 0 and attribute data to bitplane 1
+		 *       while providing the illusion of those even/odd bytes for DOS programs written against CGA/MDA hardware.
+		 *
+		 *       Only the slow memory I/O handler can correctly map odd/even mode. */
+	}
+
+	return vga.complexity.setf(VGACMPLX_ODDEVEN,unusual);
+}
 
 void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
+	unsigned int cmplx = 0;
+
 //	LOG_MSG("SEQ WRITE reg %X val %X",seq(index),val);
 	switch(seq(index)) {
 	case 0:		/* Reset */
-		if((seq(reset)^val)&0x3) VGA_SequReset((val&0x3)!=0x3);
-		seq(reset)=val;
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
+		seq(reset)=(uint8_t)val;
 		break;
 	case 1:		/* Clocking Mode */
 		if (val!=seq(clocking_mode)) {
-			if((seq(clocking_mode)^val)&0x20) VGA_Screenstate((val&0x20)==0);
+			if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 			// don't resize if only the screen off bit was changed
-			if ((val&(~0x20))!=(seq(clocking_mode)&(~0x20))) {
-				seq(clocking_mode)=val;
+			if ((val&(~0x20u))!=(seq(clocking_mode)&(~0x20u))) {
+				seq(clocking_mode)=(uint8_t)val;
 				VGA_StartResize();
 			} else {
-				seq(clocking_mode)=val;
+				seq(clocking_mode)=(uint8_t)val;
 			}
-			if (val & 0x20) vga.attr.disabled |= 0x2;
-			else vga.attr.disabled &= ~0x2;
+			if ((val & 0x20) && !ignore_sequencer_blanking) vga.attr.disabled |= 0x2u;
+			else vga.attr.disabled &= ~0x2u;
 		}
 		/* TODO Figure this out :)
 			0	If set character clocks are 8 dots wide, else 9.
@@ -117,6 +174,8 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 		seq(map_mask)=val & 15;
 		vga.config.full_map_mask=FillTable[val & 15];
 		vga.config.full_not_map_mask=~vga.config.full_map_mask;
+		cmplx |= VGA_ComplexityCheck_MAP_MASK();
+		if (cmplx != 0) VGA_SetupHandlers();
 		/*
 			0  Enable writes to plane 0 if set
 			1  Enable writes to plane 1 if set
@@ -126,13 +185,14 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 		break;
 	case 3:		/* Character Map Select */
 		{
-			seq(character_map_select)=val;
-			Bit8u font1=(val & 0x3) << 1;
+			if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
+			seq(character_map_select)=(uint8_t)val;
+			uint8_t font1=(val & 0x3) << 1;
 			if (IS_VGA_ARCH) font1|=(val & 0x10) >> 4;
-			vga.draw.font_tables[0]=&vga.draw.font[font1*8*1024];
-			Bit8u font2=((val & 0xc) >> 1);
+			vga.draw.font_tables[0]=vga.mem.linear + (((font1*8*1024) & vga.draw.planar_mask) * 4u/*planar byte to byte offset*/) + 2/*plane*/;
+			uint8_t font2=((val & 0xc) >> 1);
 			if (IS_VGA_ARCH) font2|=(val & 0x20) >> 5;
-			vga.draw.font_tables[1]=&vga.draw.font[font2*8*1024];
+			vga.draw.font_tables[1]=vga.mem.linear + (((font2*8*1024) & vga.draw.planar_mask) * 4u/*planar byte to byte offset*/) + 2/*plane*/;
 		}
 		/*
 			0,1,4  Selects VGA Character Map (0..7) if bit 3 of the character
@@ -147,16 +207,22 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 		/* 
 			0  Set if in an alphanumeric mode, clear in graphics modes.
 			1  Set if more than 64kbytes on the adapter.
-			2  Enables Odd/Even addressing mode if set. Odd/Even mode places all odd
+			2  Disables Odd/Even addressing mode if set. Odd/Even mode places all odd
 				bytes in plane 1&3, and all even bytes in plane 0&2.
 			3  If set address bit 0-1 selects video memory planes (256 color mode),
 				rather than the Map Mask and Read Map Select Registers.
 		*/
-		seq(memory_mode)=val;
+		seq(memory_mode)=(uint8_t)val;
+		cmplx |= vga.complexity.setf(VGACMPLX_NON_EXTENDED,(val & 2) == 0 && !vga_ignore_extended_memory_bit); // only 64kb on the adapter?
+		cmplx |= VGA_ComplexityCheck_ODDEVEN();
 		if (IS_VGA_ARCH) {
 			/* Changing this means changing the VGA Memory Read/Write Handler */
 			if (val&0x08) vga.config.chained=true;
 			else vga.config.chained=false;
+			cmplx |= VGA_ComplexityCheck_MAP_MASK();
+			VGA_SetupHandlers();
+		}
+		else if (cmplx != 0) {
 			VGA_SetupHandlers();
 		}
 		break;
@@ -216,3 +282,22 @@ void VGA_UnsetupSEQ(void) {
     IO_FreeReadHandler(0x3c5,IO_MB);
 }
 
+// save state support
+void POD_Save_VGA_Seq( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.seq, vga.seq );
+
+
+	// no static globals found
+}
+
+
+void POD_Load_VGA_Seq( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.seq, vga.seq );
+
+
+	// no static globals found
+}

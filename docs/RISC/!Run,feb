@@ -1,0 +1,9 @@
+Set DosBox-X$Dir <Obey$Dir>
+
+RMEnsure SharedUnixLibrary 1.14 RMLoad System:Modules.SharedULib
+RMEnsure SharedUnixLibrary 1.14 Error DOSBox-X requires SharedUnixLibrary 1.14 or later. This can be downloaded from https://www.riscos.info/packages/LibraryDetails.html#SharedUnixLibrary
+
+RMEnsure DigitalRenderer 0.56 RMLoad System:Modules.DRenderer
+RMEnsure DigitalRenderer 0.56 Error DOSBox-X requires DigitalRenderer 0.56 or later. This can be downloaded from https://www.riscos.info/packages/LibraryDetails.html#DRenderer
+
+Run <DosBox-X$Dir>.dosbox-x 2><Obey$Dir>.stderr

@@ -1,0 +1,183 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+[*.{c,cpp,h}]
+end_of_line = lf
+indent_style = space
+indent_size = 4
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 120
+
+
+#### Resharper specific
+
+### https://www.jetbrains.com/help/resharper/EditorConfig_CPP_CppBlankLinesPageScheme.html
+keep_blank_lines_in_declarations = 2
+keep_blank_lines_in_code = 2
+blank_lines_around_class_definition = 1
+blank_lines_around_function_declaration = 1
+blank_lines_around_function_definition = 1
+blank_lines_around_single_line_function_definition = 1
+blank_lines_around_namespace = 1
+blank_lines_around_other_declaration = 0
+
+### https://www.jetbrains.com/help/resharper/EditorConfig_CPP_CppBracesPageScheme.html
+namespace_declaration_braces = next_line
+linkage_specification_braces = next_line
+type_declaration_braces = next_line
+place_namespace_definitions_on_same_line = false
+invocable_declaration_braces = next_line
+anonymous_method_declaration_braces = next_line
+case_block_braces = next_line
+other_braces = next_line
+expression_braces = inside
+empty_block_style = multiline
+simple_block_style = line_break
+
+### https://www.jetbrains.com/help/resharper/EditorConfig_CPP_CppIndentStylePageSchema.html
+indent_style = space
+cpp_indent_size = 4
+#tab_width = 4 #see editorconfig site ?
+cpp_alignment_tab_fill_style = use_spaces
+
+### https://www.jetbrains.com/help/resharper/EditorConfig_CPP_CppOtherPageScheme.html
+cpp_continuous_line_indent = single
+# Indent namespace members ?
+linkage_specification_indentation = all
+# Indent access specifier from class ?
+indent_wrapped_function_names = false
+indent_switch_labels = false
+indent_method_decl_pars = inside
+indent_invocation_pars = inside
+indent_statement_pars = inside
+indent_preprocessor_directives = none
+align_multiple_declaration = true
+align_multiline_parameter = true
+align_multiline_argument = true
+align_first_arg_by_paren = true
+align_multiline_type_parameter = true
+align_multiline_type_argument = true
+align_multiline_extends_list = true
+align_multiline_ctor_init = true
+outdent_commas = false
+align_ternary = align_all
+align_multiline_calls_chain = true
+outdent_dots = false
+align_multiline_binary_expressions_chain = true
+# these two could be false
+int_align_eq = true
+int_align_declaration_names = true
+int_align_comments = true
+
+### https://www.jetbrains.com/help/resharper/EditorConfig_CPP_CppSpacesPageScheme.html
+
+## In Declarations
+cpp_space_before_ptr_in_data_member = false
+cpp_space_after_ptr_in_data_member = true
+cpp_space_before_ptr_in_data_members = true
+cpp_space_after_ptr_in_data_members = false
+cpp_space_before_ptr_in_method = false
+cpp_space_after_ptr_in_method = true
+cpp_space_after_comma_in_declaration = true
+cpp_space_before_comma_in_declaration = false
+cpp_space_after_comma_in_method = true
+cpp_space_before_comma_in_method = false
+cpp_space_after_comma_in_enum = true
+cpp_space_before_comma_in_enum = false
+cpp_space_after_comma_in_base_clause = true
+cpp_space_before_comma_in_base_clause = false
+cpp_space_between_method_declaration_name_and_open_parenthesis = false
+cpp_space_between_method_declaration_parameter_list_parentheses = false
+cpp_space_between_method_declaration_empty_parameter_list_parentheses = false
+cpp_space_before_template_params = true
+cpp_space_within_template_params = false
+cpp_space_within_empty_template_params = false
+cpp_space_after_comma_in_template_params = true
+cpp_space_before_comma_in_template_params = false
+cpp_space_before_template_args = false
+cpp_space_within_template_args = false
+cpp_space_after_comma_in_template_args = true
+cpp_space_before_comma_in_template_args = false
+cpp_space_between_closing_angle_brackets_in_template_args = false
+cpp_space_around_alias_eq = true
+cpp_space_around_deref_in_trailing_return_type = false
+cpp_space_before_colon_in_inheritance_clause = true
+cpp_space_after_colon_in_inheritance_clause = true
+
+## In Control Statements
+cpp_space_after_keywords_in_control_flow_statements = false
+cpp_space_between_parentheses_of_control_flow_statements = false
+cpp_space_before_semicolon_in_for_statement = false
+cpp_space_after_semicolon_in_for_statement = true
+cpp_space_before_for_colon = true
+cpp_space_after_for_colon = true
+cpp_space_before_colon_in_case = false
+cpp_space_after_colon_in_case = true
+
+## In Expressions
+cpp_space_around_binary_operator = true
+cpp_space_around_assignment_operator = true
+cpp_space_around_dot = false
+cpp_space_within_parentheses = false
+cpp_space_before_open_square_brackets = false
+cpp_space_within_array_access_brackets = false
+cpp_space_before_method_call_parentheses = false
+cpp_space_before_empty_method_call_parentheses = false
+cpp_space_between_typecast_parentheses = false
+cpp_space_after_cast = false
+cpp_space_between_method_call_parameter_list_parentheses = false
+cpp_space_between_method_call_empty_parameter_list_parentheses = false
+cpp_space_before_comma_in_method_call = false
+cpp_space_after_comma_in_method_call = true
+cpp_space_before_comma_in_initializer_braces = false
+cpp_space_after_comma_in_initializer_braces = true
+cpp_space_before_ternary_quest = true
+cpp_space_after_ternary_quest = true
+cpp_space_before_ternary_colon = true
+cpp_space_after_ternary_colon = true
+cpp_space_before_initializer_braces = true
+cpp_space_within_initializer_braces = true
+cpp_space_within_empty_initializer_braces = true
+
+## Other
+cpp_space_before_trailing_comment = true
+cpp_disable_space_changes_before_trailing_comment = false
+
+
+### https://www.jetbrains.com/help/resharper/EditorConfig_CPP_CppWrappingPageScheme.html
+
+## Place on New Line
+new_line_before_else = true
+new_line_before_while = false
+cpp_new_line_before_catch = true
+simple_embedded_statement_style = line_break
+cpp_simple_case_statement_style = line_break
+function_definition_return_type_style = on_single_line
+toplevel_function_definition_return_type_style = on_single_line
+function_declaration_return_type_style = on_single_line
+toplevel_function_declaration_return_type_style = on_single_line
+cpp_break_template_declaration = line_break
+cpp_member_initializer_list_style = line_break
+line_break_before_comma_in_member_initializer_lists = false
+line_break_after_comma_in_member_initializer_lists = true
+
+## Line Wrapping
+cpp_max_line_length = 120
+cpp_wrap_before_comma = false
+cpp_wrap_ternary_expr_style = chop_if_long
+cpp_wrap_before_ternary_opsigns = true
+cpp_wrap_before_colon = true
+cpp_wrap_enumeration_style = chop_always
+cpp_wrap_braced_init_list_style = wrap_if_long
+cpp_wrap_base_clause_style = chop_if_long
+cpp_wrap_ctor_initializer_style = chop_if_long
+cpp_wrap_parameters_style = wrap_if_long
+cpp_wrap_before_declaration_lpar = false
+cpp_wrap_after_declaration_lpar = true
+cpp_wrap_arguments_style = wrap_if_long
+cpp_wrap_before_invocation_lpar = false
+cpp_wrap_after_invocation_lpar = true

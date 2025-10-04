@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,46 +11,64 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
 #include <assert.h>
 #include <sstream>
 #include <stddef.h>
-#include "dosbox.h"
+
 #include "cpu.h"
-#include "memory.h"
 #include "debug.h"
 #include "mapper.h"
-#include "setup.h"
-#include "programs.h"
 #include "paging.h"
 #include "callback.h"
 #include "lazyflags.h"
-#include "support.h"
 #include "control.h"
+#include "logging.h"
+#include "pic.h"
+
+// TODO: #ifdef FPU...
+#include "fpu.h"
+
+/* dynamic core, policy, method, and flags.
+ * We're going to make dynamic core more flexible, AND make sure
+ * that both dynx86 and dynrec are using common memory mapping
+ * code to reduce copy-pasta */
+dyncore_alloc_t         dyncore_alloc = DYNCOREALLOC_NONE;
+dyncore_method_t        dyncore_method = DYNCOREM_NONE;
+dyncore_flags_t         dyncore_flags = 0;
+
+#if defined(_MSC_VER)
+/* we don't care about switch statements with no case labels */
+#pragma warning(disable:4065)
+#endif
 
 /* caution: do not uncomment unless you want a lot of spew */
 //#define CPU_DEBUG_SPEW
 
 #if defined(CPU_DEBUG_SPEW)
 # define _LOG LOG
+# define UNBLOCKED_LOG LOG
 #else
+class UNBLOCKED_LOG : public LOG {
+public:
+	UNBLOCKED_LOG(LOG_TYPES type , LOG_SEVERITIES severity) : LOG(type,severity) { }
+};
 class _LOG : public LOG { // HACK
 public:
 	_LOG(LOG_TYPES type , LOG_SEVERITIES severity) : LOG(type,severity) { }
 };
 # undef LOG
-# if defined (_MSC_VER)
-#  define LOG(X,Y)
-# else
-#  define LOG(X,Y) CPU_LOG
+# define LOG(X,Y) CPU_LOG
 # define CPU_LOG(...)
 # endif
-#endif
+
+bool lmsw_allow_clear_pe_bit = false;
+bool mask_stack_ptr_on_enter = false;
 
 bool enable_weitek = false;
 
@@ -58,25 +76,73 @@ bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
 bool do_seg_limits = false;
+bool do_lds_wraparound = true;
+
+bool do_pse = false;
+bool enable_pse = false;
+uint8_t enable_pse_extbits = 0;
+uint8_t enable_pse_extmask = 0;
 
 bool enable_fpu = true;
 bool enable_msr = true;
+bool enable_syscall = true;
 bool enable_cmpxchg8b = true;
 bool ignore_undefined_msr = true;
+bool report_fdiv_bug = false;
+
+bool save_dynamic_rec = false;
 
 extern bool ignore_opcode_63;
+extern bool dos_kernel_disabled;
+extern bool use_dynamic_core_with_paging;
+extern bool auto_determine_dynamic_core_paging;
+
+uint64_t rdtsc_count_base = 0;
+pic_tickindex_t rdtsc_pic_base = 0;
 
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
 
+unsigned char cpu_custom_cpuid[12] = {0};
+
+/* SYSENTER/SYSEXIT */
+uint16_t cpu_sep_cs = 0;		/* MSR 0x174h value of CS */
+uint32_t cpu_sep_esp = 0;		/* MSR 0x175h value of ESP */
+uint32_t cpu_sep_eip = 0;		/* MSR 0x176h value of EIP */
+
+struct P3_PSN {
+	uint32_t	hi,lo;
+	bool		enabled;
+} p3psn;
+
 int cpu_rep_max = 0;
 
 Bitu DEBUG_EnableDebugger(void);
-extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
+extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 CPU_Regs cpu_regs;
 CPUBlock cpu;
 Segments Segs;
+
+uint64_t CPU_fixed_RDTSC_rate = 0;
+
+int64_t CPU_RDTSC() {
+	pic_tickindex_t rate;
+
+	if (CPU_fixed_RDTSC_rate > (uint64_t)0)
+		rate = (pic_tickindex_t)CPU_fixed_RDTSC_rate;
+	else
+		rate = (pic_tickindex_t)(CPU_CycleAutoAdjust?70000:CPU_CycleMax);
+
+	return (int64_t)(((PIC_FullIndex()-rdtsc_pic_base)*rate)+rdtsc_count_base);
+}
+
+void RDTSC_rebase() {
+	if (CPU_CycleMax > 0) {
+		rdtsc_count_base = CPU_RDTSC();
+		rdtsc_pic_base = PIC_FullIndex();
+	}
+}
 
 /* [cpu] setting realbig16.
  * If set, allow code to switch back to real mode with the B (big) set in the
@@ -97,7 +163,7 @@ Segments Segs;
  * that Intel processors will not update the shadow part of the segment register
  * in real mode. I'm guessing that what Project Angel is doing, is using the same
  * abuse of protected mode to also set the B (big) bit in the code segment so that
- * it's code segment can extend past 64KB (huge unreal mode), which works until
+ * its code segment can extend past 64KB (huge unreal mode), which works until
  * something like an interrupt chops off the top 16 bits of the instruction pointer.
  *
  * I want to clarify that realbig16 is an OPTION that is off by default, because
@@ -134,39 +200,321 @@ Segments Segs;
  *
  *             --J.C. */
 bool cpu_allow_big16 = false;
+bool dos_clear_tf_on_int01 = false;
 
-Bit32s CPU_Cycles = 0;
-Bit32s CPU_CycleLeft = 3000;
-Bit32s CPU_CycleMax = 3000;
-Bit32s CPU_OldCycleMax = 3000;
-Bit32s CPU_CyclePercUsed = 100;
-Bit32s CPU_CycleLimit = -1;
-Bit32s CPU_CycleUp = 0;
-Bit32s CPU_CycleDown = 0;
-Bit32s CPU_CyclesSet = 3000;
-Bit64s CPU_IODelayRemoved = 0;
+cpu_cycles_count_t CPU_Cycles = 0;
+cpu_cycles_count_t CPU_CycleLeft = 3000;
+cpu_cycles_count_t CPU_CycleMax = 3000;
+cpu_cycles_count_t CPU_OldCycleMax = 3000;
+cpu_cycles_count_t CPU_CyclePercUsed = 100;
+cpu_cycles_count_t CPU_CycleLimit = -1;
+cpu_cycles_count_t CPU_CycleUp = 0;
+cpu_cycles_count_t CPU_CycleDown = 0;
+cpu_cycles_count_t CPU_CyclesSet = 3000;
+cpu_cycles_count_t CPU_IODelayRemoved = 0;
 char core_mode[16];
 CPU_Decoder * cpudecoder;
 bool CPU_CycleAutoAdjust = false;
 bool CPU_SkipCycleAutoAdjust = false;
-Bitu CPU_AutoDetermineMode = 0;
+unsigned char CPU_AutoDetermineMode = 0;
 
-Bitu CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+unsigned char CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+unsigned char FPU_ArchitectureType = FPU_ARCHTYPE_BEST;
 
 Bitu CPU_extflags_toggle=0;	// ID and AC flags may be toggled depending on emulated CPU architecture
 
-Bitu CPU_PrefetchQueueSize=0;
+unsigned int CPU_PrefetchQueueSize=0;
 
-void CPU_Core_Full_Init(void);
 void CPU_Core_Normal_Init(void);
+#if !defined(C_EMSCRIPTEN)
 void CPU_Core_Simple_Init(void);
+void CPU_Core_Full_Init(void);
+#endif
 #if (C_DYNAMIC_X86)
 void CPU_Core_Dyn_X86_Init(void);
 void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
 void CPU_Core_Dyn_X86_Cache_Close(void);
+void CPU_Core_Dyn_X86_Cache_Reset(void);
 void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
 #endif
+#if (C_DYNREC)
+void CPU_Core_Dynrec_Init(void);
+void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
+void CPU_Core_Dynrec_Cache_Close(void);
+void CPU_Core_Dynrec_Cache_Reset(void);
+#endif
+
+int CPU_IsDynamicCore(void) {
+#if (C_DYNAMIC_X86)
+    if (cpudecoder == &CPU_Core_Dyn_X86_Run)
+        return 1;
+#endif
+#if (C_DYNREC)
+    if (cpudecoder == &CPU_Core_Dynrec_Run)
+        return 2;
+#endif
+    return 0;
+}
+
+void menu_update_cputype(void) {
+    bool allow_prefetch = false;
+    bool allow_pre386 = false;
+
+    if (!CPU_IsDynamicCore()) {
+        allow_prefetch = true;
+        allow_pre386 = true;
+        if ((cpudecoder == &CPU_Core_Full_Run) ||
+            (cpudecoder == &CPU_Core_Simple_Run)) {
+            allow_prefetch = false;
+            allow_pre386 = false;
+        }
+    }
+
+    mainMenu.get_item("cputype_auto").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_8086").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core8086_Prefetch_Run)).
+        enable(allow_pre386).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_8086_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core8086_Prefetch_Run)).
+        enable(allow_prefetch && allow_pre386).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_80186").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core286_Prefetch_Run)).
+        enable(allow_pre386).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_80186_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core286_Prefetch_Run)).
+        enable(allow_prefetch && allow_pre386).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_286").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core286_Prefetch_Run)).
+        enable(allow_pre386).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_286_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core286_Prefetch_Run)).
+        enable(allow_prefetch && allow_pre386).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_386").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_386_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(allow_prefetch).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486old").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486old_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(allow_prefetch).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(allow_prefetch).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM).
+        refresh_item(mainMenu);
+#if C_FPU
+    mainMenu.get_item("cputype_pentium_mmx").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW).
+        refresh_item(mainMenu);
+#else
+    mainMenu.get_item("cputype_pentium_mmx").
+        check(false).
+        enable(false).
+        refresh_item(mainMenu);
+#endif
+    mainMenu.get_item("cputype_ppro_slow").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium_ii").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium_iii").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_experimental").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL).
+        refresh_item(mainMenu);
+}
+
+const char *GetCPUType() {
+    if (CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core8086_Prefetch_Run))
+        return "8086";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core8086_Prefetch_Run))
+        return "8086 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core286_Prefetch_Run))
+        return "80186";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core286_Prefetch_Run))
+        return "80186 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core286_Prefetch_Run))
+        return "80286";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core286_Prefetch_Run))
+        return "80286 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80386";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80386 prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80486 (old)";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80486 (old) prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder != &CPU_Core_Prefetch_Run))
+        return "80486";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder == &CPU_Core_Prefetch_Run))
+        return "80486 Prefetch";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM)
+        return "Pentium";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW)
+        return "Pentium MMX";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW)
+        return "Pentium Pro";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII)
+        return "Pentium II";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
+        return "Pentium III";
+    else
+        return "Mixed/other x86";
+}
+
+int GetDynamicType() {
+    const Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
+    std::string core(section->Get_string("core"));
+#if (C_DYNAMIC_X86) && (C_TARGETCPU == X86 || C_TARGETCPU == X86_64)
+    if (core == "dynamic_x86" || core == "dynamic_nodhfpu")
+        return 1;
+#endif
+#if (C_DYNREC)
+    if (core == "dynamic_rec")
+        return 2;
+#endif
+#if C_TARGETCPU == X86 || C_TARGETCPU == X86_64
+# if (C_DYNAMIC_X86)
+    return save_dynamic_rec?2:1;
+# elif (C_DYNREC)
+    return 2;
+# else
+    return 0;
+# endif
+#elif (C_DYNREC)
+    return 2;
+#else
+    return 0;
+#endif
+}
+
+#if (C_DYNAMIC_X86) && (C_DYNREC)
+#define BOTH_DYNAMIC 1
+#else
+#define BOTH_DYNAMIC 0
+#endif
+
+void menu_update_dynamic() {
+#if (C_DYNAMIC_X86) || (C_DYNREC)
+	const Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+    std::string core(cpu_section->Get_string("core"));
+    std::string text = mainMenu.get_item("mapper_dynamic").get_text();
+    size_t found = text.find_last_of(" ");
+    if (found != std::string::npos && text.substr(found+1).size() && *text.substr(found+1).c_str() == '(') text = text.substr(0, found);
+#if (C_DYNREC)
+    if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec" || save_dynamic_rec || !BOTH_DYNAMIC) {
+        save_dynamic_rec = true;
+        mainMenu.get_item("mapper_dynamic").set_text(text+" (dynamic_rec)");
+    } else
+#endif
+    {
+        save_dynamic_rec = false;
+        mainMenu.get_item("mapper_dynamic").set_text(text+" (dynamic_x86)");
+    }
+#endif
+}
+
+void menu_update_core(void) {
+	const Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
+    bool allow_dynamic = false;
+
+    (void)cpu_section;
+    (void)cpu_sec_type;
+    (void)allow_dynamic;
+
+    /* cannot select Dynamic core if prefetch cpu types are in use */
+    allow_dynamic = (strstr(cpu_sec_type.c_str(),"_prefetch") == NULL);
+
+    mainMenu.get_item("mapper_normal").
+        check(cpudecoder == &CPU_Core_Normal_Run ||
+              cpudecoder == &CPU_Core286_Normal_Run ||
+              cpudecoder == &CPU_Core8086_Normal_Run ||
+              cpudecoder == &CPU_Core_Prefetch_Run ||
+              cpudecoder == &CPU_Core286_Prefetch_Run ||
+              cpudecoder == &CPU_Core8086_Prefetch_Run).
+        refresh_item(mainMenu);
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    mainMenu.get_item("mapper_simple").
+        check(cpudecoder == &CPU_Core_Simple_Run).
+        enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core8086_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Normal_Run) &&
+               (cpudecoder != &CPU_Core8086_Normal_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("mapper_full").
+        check(cpudecoder == &CPU_Core_Full_Run).
+        enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core8086_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Normal_Run) &&
+               (cpudecoder != &CPU_Core8086_Normal_Run)).
+        refresh_item(mainMenu);
+#endif
+#if (C_DYNAMIC_X86)
+    if (GetDynamicType()==1)
+    mainMenu.get_item("mapper_dynamic").
+        check(cpudecoder == &CPU_Core_Dyn_X86_Run).
+        enable(allow_dynamic &&
+               (cpudecoder != &CPU_Core_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core8086_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Normal_Run) &&
+               (cpudecoder != &CPU_Core8086_Normal_Run)).
+        refresh_item(mainMenu);
+#endif
+#if (C_DYNREC)
+    if (GetDynamicType()==2)
+    mainMenu.get_item("mapper_dynamic").
+        check(cpudecoder == &CPU_Core_Dynrec_Run).
+        enable(allow_dynamic &&
+               (cpudecoder != &CPU_Core_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core8086_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Normal_Run) &&
+               (cpudecoder != &CPU_Core8086_Normal_Run)).
+        refresh_item(mainMenu);
+#endif
+
+    menu_update_dynamic();
+}
+
+void menu_update_autocycle(void) {
+    DOSBoxMenu::item &item = mainMenu.get_item("mapper_cycauto");
+    if (CPU_CycleAutoAdjust)
+        item.set_text(MSG_Get("AUTO_CYCLE_MAX"));
+    else if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)
+        item.set_text(MSG_Get("AUTO_CYCLE_AUTO"));
+    else
+        item.set_text(MSG_Get("AUTO_CYCLE_OFF"));
+
+    item.check(CPU_CycleAutoAdjust || (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES));
+    item.refresh_item(mainMenu);
+}
 
 /* called to signal an NMI. */
 
@@ -186,7 +534,7 @@ void CPU_Core_Dyn_X86_Cache_Reset(void);
  * NMI is edge-triggered (from the Intel 386SX Microprocessor datasheet):
  *
  * "
- *   Non-Maskable Interrupt Request (NMI))
+ *   Non-Maskable Interrupt Request (NMI)
  *
  *   This input indicates a request for interrupt service
  *   which cannot be masked by software. The non-
@@ -197,7 +545,7 @@ void CPU_Core_Dyn_X86_Cache_Reset(void);
  *   processing NMI.
  *
  *   NMI is an active HIGH, rising edge-sensitive asyn-
- *   chronous signal. Setup and hold times, t27 and and t28,
+ *   chronous signal. Setup and hold times, t27 and t28,
  *   relative to the CLK2 signal must be met to guarantee
  *   recognition at a particular clock edge. To assure rec-
  *   ognition of NMI, it must be inactive for at least eight
@@ -244,19 +592,31 @@ void CPU_Core_Dyn_X86_Cache_Reset(void);
  * is no mention whatsoever to the NMI that I can find.
  */
 void CPU_NMI_Interrupt() {
+    /* WARNING: Do not call while running inside a CPU core loop */
 	if (CPU_NMI_active) E_Exit("CPU_NMI_Interrupt() called while NMI already active");
 	CPU_NMI_active = true;
 	CPU_NMI_pending = false;
-	CPU_Interrupt(2/*INT 2 = NMI*/,0,reg_eip);
+    CPU_Interrupt(2/*INT 2 = NMI*/,0,reg_eip);
 }
 
 void CPU_Raise_NMI() {
-	CPU_NMI_pending = true;
-	if (!CPU_NMI_active && CPU_NMI_gate) CPU_NMI_Interrupt();
+    CPU_NMI_pending = true;
+    CPU_Check_NMI();
 }
 
+extern Bitu PIC_IRQCheck;
+
 void CPU_Check_NMI() {
-	if (!CPU_NMI_active && CPU_NMI_gate && CPU_NMI_pending) CPU_NMI_Interrupt();
+	if (!CPU_NMI_active && CPU_NMI_gate && CPU_NMI_pending) {
+        /* STOP THE CPU CORE.
+         * reg_eip is not valid until the CPU core has left the runtime loop. */
+        if (CPU_Cycles > 1) {
+            CPU_CycleLeft += CPU_Cycles;
+            CPU_Cycles = 1;
+        }
+
+        PIC_IRQCheck = true;
+    }
 }
 
 /* In debug mode exceptions are tested and dosbox exits when 
@@ -273,7 +633,7 @@ void CPU_Check_NMI() {
 #if C_DEBUG
 // #define CPU_CHECK_EXCEPT 1
 // #define CPU_CHECK_IGNORE 1
- /* Use CHECK_EXCEPT when something doesn't work to see if a exception is 
+ /* Use CHECK_EXCEPT when something doesn't work to see if an exception is 
  * needed that isn't enabled by default.*/
 #else
 /* NORMAL NO CHECKING => More Speed */
@@ -300,40 +660,40 @@ void CPU_Check_NMI() {
 
 void Descriptor::Load(PhysPt address) {
 	cpu.mpl=0;
-	Bit32u* data = (Bit32u*)&saved;
+	uint32_t* data = (uint32_t*)&saved;
 	*data	  = mem_readd(address);
 	*(data+1) = mem_readd(address+4);
 	cpu.mpl=3;
 }
 void Descriptor:: Save(PhysPt address) {
 	cpu.mpl=0;
-	Bit32u* data = (Bit32u*)&saved;
+	const uint32_t* data = (uint32_t*)&saved;
 	mem_writed(address,*data);
 	mem_writed(address+4,*(data+1));
 	cpu.mpl=3;
 }
 
 
-void CPU_Push16(Bitu value) {
-	Bit32u new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-2)&cpu.stack.mask);
+void CPU_Push16(uint16_t value) {
+	uint32_t new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-2)&cpu.stack.mask);
 	mem_writew(SegPhys(ss) + (new_esp & cpu.stack.mask) ,value);
 	reg_esp=new_esp;
 }
 
-void CPU_Push32(Bitu value) {
-	Bit32u new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-4)&cpu.stack.mask);
+void CPU_Push32(uint32_t value) {
+	uint32_t new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-4)&cpu.stack.mask);
 	mem_writed(SegPhys(ss) + (new_esp & cpu.stack.mask) ,value);
 	reg_esp=new_esp;
 }
 
-Bitu CPU_Pop16(void) {
-	Bitu val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+uint16_t CPU_Pop16(void) {
+	uint16_t val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+2)&cpu.stack.mask);
 	return val;
 }
 
-Bitu CPU_Pop32(void) {
-	Bitu val=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+uint32_t CPU_Pop32(void) {
+	uint32_t val=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+4)&cpu.stack.mask);
 	return val;
 }
@@ -344,7 +704,7 @@ PhysPt SelBase(Bitu sel) {
 		cpu.gdt.GetDescriptor(sel,desc);
 		return desc.GetBase();
 	} else {
-		return sel<<4;
+		return (PhysPt)(sel<<4);
 	}
 }
 
@@ -366,23 +726,23 @@ void CPU_SetFlags(Bitu word,Bitu mask) {
 	/* 8086: bits 12-15 cannot be zeroed */
 	if (CPU_ArchitectureType <= CPU_ARCHTYPE_80186) {
 		/* update mask and word to ensure bits 12-15 are set */
-		word |= 0xF000;
-		mask |= 0xF000;
+		word |= 0xF000U;
+		mask |= 0xF000U;
 	}
 	/* 286 real mode: bits 12-15 bits cannot be set, always zero */
 	else if (CPU_ArchitectureType <= CPU_ARCHTYPE_286) {
 		if (!(cpu.cr0 & CR0_PROTECTION)) {
 			/* update mask and word to ensure bits 12-15 are zero */
-			word &= ~0xF000;
-			mask |= 0xF000;
+			word &= ~0xF000U;
+			mask |= 0xF000U;
 		}
 	}
 	else {
 		mask |= CPU_extflags_toggle;	// ID-flag and AC-flag can be toggled on CPUID-supporting CPUs
 	}
 
-	reg_flags=(reg_flags & ~mask)|(word & mask)|2;
-	cpu.direction=1-((reg_flags & FLAG_DF) >> 9);
+	reg_flags=(reg_flags & ~mask)|(word & mask)|2U;
+	cpu.direction=1 - (int)((reg_flags & FLAG_DF) >> 9U);
 	// ^ NTS: Notice the DF flag is bit 10. This code computes (reg_flags & FLAG_DF) >> 9 on purpose.
 	//        It's not a typo (9 vs 10), it's done to set cpu.direction to either 1 or -1.
 }
@@ -435,79 +795,64 @@ bool CPU_PUSHF(Bitu use32) {
 	FillFlags();
 	if (use32) 
 		CPU_Push32(reg_flags & 0xfcffff);
-	else CPU_Push16(reg_flags);
+	else CPU_Push16((uint16_t)reg_flags);
 	return false;
 }
 
-void CPU_CheckSegments(void) {
+void CPU_CheckSegment(const enum SegNames segi) {
 	bool needs_invalidation=false;
 	Descriptor desc;
-	if (!cpu.gdt.GetDescriptor(SegValue(es),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(es,0);
 
-	needs_invalidation=false;
-	if (!cpu.gdt.GetDescriptor(SegValue(ds),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(ds,0);
+    if (!cpu.gdt.GetDescriptor(SegValue(segi),desc)) {
+        needs_invalidation=true;
+    }
+    else {
+        switch (desc.Type()) {
+            case DESC_DATA_EU_RO_NA:    case DESC_DATA_EU_RO_A: case DESC_DATA_EU_RW_NA:    case DESC_DATA_EU_RW_A:
+            case DESC_DATA_ED_RO_NA:    case DESC_DATA_ED_RO_A: case DESC_DATA_ED_RW_NA:    case DESC_DATA_ED_RW_A:
+            case DESC_CODE_N_NC_A:      case DESC_CODE_N_NC_NA: case DESC_CODE_R_NC_A:      case DESC_CODE_R_NC_NA:
+                if (cpu.cpl>desc.DPL()) needs_invalidation=true;
+                break;
+            default:
+                break;
+        }
+    }
 
-	needs_invalidation=false;
-	if (!cpu.gdt.GetDescriptor(SegValue(fs),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(fs,0);
-
-	needs_invalidation=false;
-	if (!cpu.gdt.GetDescriptor(SegValue(gs),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(gs,0);
+    if (needs_invalidation)
+        CPU_SetSegGeneral(segi,0);
 }
 
+void CPU_CheckSegments(void) {
+    CPU_CheckSegment(es);
+    CPU_CheckSegment(ds);
+    CPU_CheckSegment(fs);
+    CPU_CheckSegment(gs);
+}
 
 class TaskStateSegment {
 public:
 	TaskStateSegment() {
-		valid=false;
 	}
 	bool IsValid(void) {
 		return valid;
 	}
 	Bitu Get_back(void) {
 		cpu.mpl=0;
-		Bit16u backlink=mem_readw(base);
+		uint16_t backlink=mem_readw(base);
 		cpu.mpl=3;
 		return backlink;
 	}
 	void SaveSelector(void) {
 		cpu.gdt.SetDescriptor(selector,desc);
 	}
-	void Get_SSx_ESPx(Bitu level,Bitu & _ss,Bitu & _esp) {
+	void Get_SSx_ESPx(Bitu level,uint16_t & _ss,uint32_t & _esp) {
 		cpu.mpl=0;
 		if (is386) {
-			PhysPt where=base+offsetof(TSS_32,esp0)+level*8;
+			PhysPt where=(PhysPt)(base+offsetof(TSS_32,esp0)+level*8);
 			_esp=mem_readd(where);
 			_ss=mem_readw(where+4);
 		} else {
-			PhysPt where=base+offsetof(TSS_16,sp0)+level*4;
+			PhysPt where= (PhysPt)(base+offsetof(TSS_16,sp0)+level*4);
 			_esp=mem_readw(where);
 			_ss=mem_readw(where+2);
 		}
@@ -544,11 +889,11 @@ public:
 	void LoadState( std::istream& stream );
 
 	TSS_Descriptor desc;
-	Bitu selector;
-	PhysPt base;
-	Bitu limit;
-	Bitu is386;
-	bool valid;
+	Bitu selector = 0;
+	PhysPt base = 0;
+	Bitu limit = 0;
+	Bitu is386 = 0;
+	bool valid = false;
 };
 
 TaskStateSegment cpu_tss;
@@ -557,7 +902,7 @@ enum TSwitchType {
 	TSwitch_JMP,TSwitch_CALL_INT,TSwitch_IRET
 };
 
-bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
+bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,uint32_t old_eip) {
 	bool old_allow = dosbox_allow_nonrecursive_page_fault;
 
 	/* this code isn't very easy to make interruptible. so temporarily revert to recursive PF handling method */
@@ -575,9 +920,10 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 			E_Exit("TSS busy for JMP/CALL/INT");
 	}
 	Bitu new_cr3=0;
-	Bitu new_eax,new_ebx,new_ecx,new_edx,new_esp,new_ebp,new_esi,new_edi;
-	Bitu new_es,new_cs,new_ss,new_ds,new_fs,new_gs;
-	Bitu new_ldt,new_eip,new_eflags;
+	uint32_t new_eax,new_ebx,new_ecx,new_edx,new_esp,new_ebp,new_esi,new_edi;
+	uint16_t new_es,new_cs,new_ss,new_ds,new_fs,new_gs;
+	Bitu new_ldt,new_eflags;
+    uint32_t new_eip;
 	/* Read new context from new TSS */
 	if (new_tss.is386) {
 		new_cr3=mem_readd(new_tss.base+offsetof(TSS_32,cr3));
@@ -616,7 +962,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 		cpu_tss.desc.SetBusy(false);
 		cpu_tss.SaveSelector();
 	}
-	Bit32u old_flags = reg_flags;
+	uint32_t old_flags = (uint32_t)reg_flags;
 	if (tstype==TSwitch_IRET) old_flags &= (~FLAG_NT);
 
 	/* Save current context in current TSS */
@@ -646,9 +992,9 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 	/* Setup a back link to the old TSS in new TSS */
 	if (tstype==TSwitch_CALL_INT) {
 		if (new_tss.is386) {
-			mem_writed(new_tss.base+offsetof(TSS_32,back),cpu_tss.selector);
+			mem_writed(new_tss.base+offsetof(TSS_32,back),(uint32_t)cpu_tss.selector);
 		} else {
-			mem_writew(new_tss.base+offsetof(TSS_16,back),cpu_tss.selector);
+			mem_writew(new_tss.base+offsetof(TSS_16,back),(uint16_t)cpu_tss.selector);
 		}
 		/* And make the new task's eflag have the nested task bit */
 		new_eflags|=FLAG_NT;
@@ -719,7 +1065,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 			if (cpu.cpl < cs_desc.DPL()) E_Exit("Task CS RPL < DPL");
 doconforming:
 			Segs.expanddown[cs]=cs_desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?cs_desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits? (PhysPt)cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=cs_desc.GetBase();
 			cpu.code.big=cs_desc.Big()>0;
 			Segs.val[cs]=new_cs;
@@ -749,11 +1095,11 @@ bool CPU_IO_Exception(Bitu port,Bitu size) {
 		cpu.mpl=0;
 		if (!cpu_tss.is386) goto doexception;
 		PhysPt bwhere=cpu_tss.base+0x66;
-		Bitu ofs=mem_readw(bwhere);
+		uint16_t ofs=mem_readw(bwhere);
 		if (ofs>cpu_tss.limit) goto doexception;
-		bwhere=cpu_tss.base+ofs+(port/8);
-		Bitu map=mem_readw(bwhere);
-		Bitu mask=(0xffff>>(16-size)) << (port&7);
+		bwhere=(PhysPt)(cpu_tss.base+ofs+(port/8));
+		uint16_t map=mem_readw(bwhere);
+		uint16_t mask=(0xffffu >> (16u - size)) << (port & 7u);
 		if (map & mask) goto doexception;
 		cpu.mpl=3;
 	}
@@ -762,6 +1108,11 @@ doexception:
 	cpu.mpl=3;
 	LOG(LOG_CPU,LOG_NORMAL)("IO Exception port %X",port);
 	return CPU_PrepareException(EXCEPTION_GP,0);
+}
+
+void CPU_DebugException(uint32_t triggers,Bitu oldeip) {
+  cpu.drx[6] = (cpu.drx[6] & 0xFFFF1FF0) | triggers;
+  CPU_Interrupt(EXCEPTION_DB,CPU_INT_EXCEPTION,(uint32_t)oldeip);
 }
 
 #include <stack>
@@ -788,6 +1139,10 @@ void On_Software_CPU_Reset();
 void CPU_Exception(Bitu which,Bitu error ) {
 	assert(which < 0x20);
 //	LOG_MSG("Exception %d error %x",which,error);
+
+	if(which >= 0x20)
+		E_Exit("CPU_Exception: Exception %d is out of range.", (int)which);
+
 	if (CPU_Exception_Level[which] != 0) {
 		if (CPU_Exception_Level[EXCEPTION_DF] != 0 && cpu_triple_fault_reset) {
 			if (always_report_triple_fault || !has_printed_triple_fault) {
@@ -810,9 +1165,16 @@ void CPU_Exception(Bitu which,Bitu error ) {
 	}
 
 	if (cpu_double_fault_enable) {
-		/* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
-		CPU_Exception_Level[which]++;
-		CPU_Exception_In_Progress.push(which);
+		/* NTS: Putting some thought into it, I don't think divide by zero counts as something to throw a double fault
+		 *      over. I may be wrong. The behavior of Intel processors will ultimately decide.
+		 *
+		 *      Until then, don't count Divide Overflow exceptions, so that the "EFP loader" can do its disgusting
+		 *      anti-debugger hackery when loading parts of a demo. --J.C. */
+		if (!(which == 0/*divide by zero/overflow*/)) {
+			/* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
+			CPU_Exception_Level[which]++;
+			CPU_Exception_In_Progress.push((int)which);
+		}
 	}
 
 	cpu.exception.error=error;
@@ -834,17 +1196,82 @@ void CPU_Exception(Bitu which,Bitu error ) {
 	}
 }
 
-Bit8u lastint;
-void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
-	lastint=num;
+uint8_t lastint;
+void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
+    if (num == EXCEPTION_DB && (type&CPU_INT_EXCEPTION) == 0) {
+      CPU_DebugException(0,oldeip); // DR6 bits need updating
+      return;
+    }
+	lastint=(uint8_t)num;
 	FillFlags();
 #if C_DEBUG
+# if C_HEAVY_DEBUG
+    bool DEBUG_IntBreakpoint(uint8_t intNum);
+    Bitu DEBUG_EnableDebugger(void);
+
+    if (type != CPU_INT_SOFTWARE) { /* CPU core already takes care of SW interrupts */
+#if !defined(HX_DOS)
+        if (DEBUG_IntBreakpoint((uint8_t)num))
+            DEBUG_EnableDebugger();
+#endif
+    }
+# endif
+    if (type == CPU_INT_SOFTWARE && boothax == BOOTHAX_MSDOS) {
+        if (num == 0x21 && boothax == BOOTHAX_MSDOS) {
+            if (dos_kernel_disabled) {
+                if ((reg_ah == 0x4A/*alloc*/ || reg_ah == 0x49/*free*/) && guest_msdos_LoL == 0) { /* needed for MS-DOS 3.3 */
+                    if (SegValue(cs) != CB_SEG) {
+                        uint16_t old_es,old_bx,old_ax;
+
+                        LOG_MSG("INT 21h AH=%02xh intercepting call to determine LoL\n",reg_ah);
+
+                        old_es = SegValue(es);
+                        old_bx = reg_bx;
+                        old_ax = reg_ax;
+
+                        reg_ah = 0x52;
+                        CALLBACK_RunRealInt(0x21);
+
+                        /* save off ES:BX */
+                        guest_msdos_LoL = RealMake(SegValue(es),reg_bx);
+                        /* Read off the MCB chain base (WARNING: Only works with MS-DOS 3.3 or later) */
+                        guest_msdos_mcb_chain = real_readw(guest_msdos_LoL>>16,(guest_msdos_LoL&0xFFFF)-2);
+#if 1
+                        LOG_MSG("List of Lists: %04x:%04x",guest_msdos_LoL>>16,guest_msdos_LoL&0xFFFF);
+                        LOG_MSG("MCB chain starts at: %04x",guest_msdos_mcb_chain);
+#endif
+
+                        CPU_SetSegGeneral(es,old_es);
+                        reg_bx = old_bx;
+                        reg_ax = old_ax;
+                    }
+                }
+                if (reg_ah == 0x52) { /* get list of lists. MS-DOS 5.0 and higher call this surprisingly often! */
+                    if (SegValue(cs) != CB_SEG) {
+                        LOG_MSG("INT 21h AH=52h intercepting call\n");
+                        reg_eip = oldeip;//HACK
+                        CALLBACK_RunRealInt(0x21);
+                        /* save off ES:BX */
+                        guest_msdos_LoL = RealMake(SegValue(es),reg_bx);
+                        /* Read off the MCB chain base (WARNING: Only works with MS-DOS 3.3 or later) */
+                        guest_msdos_mcb_chain = real_readw(guest_msdos_LoL>>16,(guest_msdos_LoL&0xFFFF)-2);
+#if 1
+                        LOG_MSG("List of Lists: %04x:%04x",guest_msdos_LoL>>16,guest_msdos_LoL&0xFFFF);
+                        LOG_MSG("MCB chain starts at: %04x",guest_msdos_mcb_chain);
+#endif
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
 	switch (num) {
 	case 0xcd:
 #if C_HEAVY_DEBUG
  		LOG(LOG_CPU,LOG_ERROR)("Call to interrupt 0xCD this is BAD");
-		DEBUG_HeavyWriteLogInstruction();
-		E_Exit("Call to interrupt 0xCD this is BAD");
+//		DEBUG_HeavyWriteLogInstruction();
+//		E_Exit("Call to interrupt 0xCD this is BAD");
 #endif
 		break;
 	case 0x03:
@@ -852,7 +1279,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 			CPU_Cycles=0;
 			return;
 		}
-	};
+	}
 #endif
 	if (!cpu.pmode) {
 		/* Save everything on a 16-bit stack */
@@ -863,9 +1290,9 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 		SETFLAGBIT(TF,false);
 		/* Get the new CS:IP from vector table */
 		PhysPt base=cpu.idt.GetBase();
-		reg_eip=mem_readw(base+(num << 2));
-		Segs.val[cs]=mem_readw(base+(num << 2)+2);
-		Segs.phys[cs]=Segs.val[cs]<<4;
+		reg_eip=mem_readw((PhysPt)(base+(num << 2)));
+		Segs.val[cs]=mem_readw((PhysPt)(base+(num << 2)+2));
+		Segs.phys[cs]=(PhysPt)Segs.val[cs] << 4u;
 		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 	} else {
@@ -881,7 +1308,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 		Descriptor gate;
 		if (!cpu.idt.GetDescriptor(num<<3,gate)) {
 			// zone66
-			CPU_Exception(EXCEPTION_GP,num*8+2+(type&CPU_INT_SOFTWARE)?0:1);
+			CPU_Exception(EXCEPTION_GP,num*8+2+((type&CPU_INT_SOFTWARE)?0:1));
 			return;
 		}
 
@@ -891,7 +1318,9 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 			return;
 		}
 
-		Bitu old_esp,old_ss,old_cpl;
+        uint16_t old_ss;
+        uint32_t old_esp;
+		Bitu old_cpl;
 
 		old_esp = reg_esp;
 		old_ss = SegValue(ss);
@@ -904,7 +1333,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 			{
 				CPU_CHECK_COND(!gate.saved.seg.p,
 					"INT:Gate segment not present",
-					EXCEPTION_NP,num*8+2+(type&CPU_INT_SOFTWARE)?0:1)
+					EXCEPTION_NP,num*8+2+((type&CPU_INT_SOFTWARE)?0:1))
 
 				Descriptor cs_desc;
 				Bitu gate_sel=gate.GetSelector();
@@ -914,12 +1343,12 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 					EXCEPTION_GP,(type&CPU_INT_SOFTWARE)?0:1)
 				CPU_CHECK_COND(!cpu.gdt.GetDescriptor(gate_sel,cs_desc),
 					"INT:Gate with CS beyond limit",
-					EXCEPTION_GP,(gate_sel & 0xfffc)+(type&CPU_INT_SOFTWARE)?0:1)
+					EXCEPTION_GP,(gate_sel & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
 
 				Bitu cs_dpl=cs_desc.DPL();
 				CPU_CHECK_COND(cs_dpl>cpu.cpl,
 					"Interrupt to higher privilege",
-					EXCEPTION_GP,(gate_sel & 0xfffc)+(type&CPU_INT_SOFTWARE)?0:1)
+					EXCEPTION_GP,(gate_sel & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
 				switch (cs_desc.Type()) {
 				case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:
 				case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
@@ -927,13 +1356,15 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 						/* Prepare for gate to inner level */
 						CPU_CHECK_COND(!cs_desc.saved.seg.p,
 							"INT:Inner level:CS segment not present",
-							EXCEPTION_NP,(gate_sel & 0xfffc)+(type&CPU_INT_SOFTWARE)?0:1)
+							EXCEPTION_NP,(gate_sel & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
 						CPU_CHECK_COND((reg_flags & FLAG_VM) && (cs_dpl!=0),
 							"V86 interrupt calling codesegment with DPL>0",
 							EXCEPTION_GP,gate_sel & 0xfffc)
 
-						Bitu n_ss,n_esp;
-						Bitu o_ss,o_esp;
+						uint16_t n_ss;
+                        uint32_t n_esp;
+                        uint16_t o_ss;
+                        uint32_t o_esp;
 						o_ss=SegValue(ss);
 						o_esp=reg_esp;
 						cpu_tss.Get_SSx_ESPx(cs_dpl,n_ss,n_esp);
@@ -943,10 +1374,10 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 						Descriptor n_ss_desc;
 						CPU_CHECK_COND(!cpu.gdt.GetDescriptor(n_ss,n_ss_desc),
 							"INT:Gate with SS beyond limit",
-							EXCEPTION_TS,(n_ss & 0xfffc)+(type&CPU_INT_SOFTWARE)?0:1)
+							EXCEPTION_TS,(n_ss & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
 						CPU_CHECK_COND(((n_ss & 3)!=cs_dpl) || (n_ss_desc.DPL()!=cs_dpl),
 							"INT:Inner level with CS_DPL!=SS_DPL and SS_RPL",
-							EXCEPTION_TS,(n_ss & 0xfffc)+(type&CPU_INT_SOFTWARE)?0:1)
+							EXCEPTION_TS,(n_ss & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
 
 						// check if stack segment is a writable data segment
 						switch (n_ss_desc.Type()) {
@@ -958,11 +1389,11 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 						}
 						CPU_CHECK_COND(!n_ss_desc.saved.seg.p,
 							"INT:Inner level with nonpresent SS",
-							EXCEPTION_SS,(n_ss & 0xfffc)+(type&CPU_INT_SOFTWARE)?0:1)
+							EXCEPTION_SS,(n_ss & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
 
 						// commit point
 						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
-						Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
+						Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.phys[ss]=n_ss_desc.GetBase();
 						Segs.val[ss]=n_ss;
 						if (n_ss_desc.Big()) {
@@ -990,7 +1421,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 						} else {					/* 16-bit Gate */
 							if (reg_flags & FLAG_VM) E_Exit("V86 to 16-bit gate");
 							CPU_Push16(o_ss);
-							CPU_Push16(o_esp);
+							CPU_Push16((uint16_t)o_esp);
 						}
 //						LOG_MSG("INT:Gate to inner level SS:%X SP:%X",n_ss,n_esp);
 						goto do_interrupt;
@@ -999,37 +1430,37 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 						E_Exit("Non-conforming intra privilege INT with DPL!=CPL");
 				case DESC_CODE_N_C_A:	case DESC_CODE_N_C_NA:
 				case DESC_CODE_R_C_A:	case DESC_CODE_R_C_NA:
-					/* Prepare stack for gate to same priviledge */
+					/* Prepare stack for gate to same privilege */
 					CPU_CHECK_COND(!cs_desc.saved.seg.p,
 							"INT:Same level:CS segment not present",
-						EXCEPTION_NP,(gate_sel & 0xfffc)+(type&CPU_INT_SOFTWARE)?0:1)
+						EXCEPTION_NP,(gate_sel & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
 					if ((reg_flags & FLAG_VM) && (cs_dpl<cpu.cpl))
 						E_Exit("V86 interrupt doesn't change to pl0");	// or #GP(cs_sel)
 
 					// commit point
 do_interrupt:
 					if (gate.Type() & 0x8) {	/* 32-bit Gate */
-						CPU_Push32(reg_flags);
+						CPU_Push32((uint32_t)reg_flags);
 						CPU_Push32(SegValue(cs));
 						CPU_Push32(oldeip);
-						if (type & CPU_INT_HAS_ERROR) CPU_Push32(cpu.exception.error);
+						if (type & CPU_INT_HAS_ERROR) CPU_Push32((uint32_t)cpu.exception.error);
 					} else {					/* 16-bit gate */
 						CPU_Push16(reg_flags & 0xffff);
 						CPU_Push16(SegValue(cs));
 						CPU_Push16(oldeip);
-						if (type & CPU_INT_HAS_ERROR) CPU_Push16(cpu.exception.error);
+						if (type & CPU_INT_HAS_ERROR) CPU_Push16((uint16_t)cpu.exception.error);
 					}
 					break;		
 				default:
 					E_Exit("INT:Gate Selector points to illegal descriptor with type %x",(int)cs_desc.Type());
 				}
 
-				Segs.val[cs]=(gate_sel&0xfffc) | cpu.cpl;
+				Segs.val[cs]=(uint16_t)((gate_sel&0xfffc) | cpu.cpl);
 				Segs.phys[cs]=cs_desc.GetBase();
-				Segs.limit[cs]=do_seg_limits?cs_desc.GetLimit():(~0UL);
+				Segs.limit[cs]=do_seg_limits? (PhysPt)cs_desc.GetLimit():((PhysPt)(~0UL));
 				Segs.expanddown[cs]=cs_desc.GetExpandDown();
 				cpu.code.big=cs_desc.Big()>0;
-				reg_eip=gate_off;
+				reg_eip=(uint32_t)gate_off;
 
 				if (!(gate.Type()&1)) {
 					SETFLAGBIT(IF,false);
@@ -1043,20 +1474,21 @@ do_interrupt:
 		case DESC_TASK_GATE:
 			CPU_CHECK_COND(!gate.saved.seg.p,
 				"INT:Gate segment not present",
-				EXCEPTION_NP,num*8+2+(type&CPU_INT_SOFTWARE)?0:1)
+				EXCEPTION_NP,num*8+2+((type&CPU_INT_SOFTWARE)?0:1))
 
 			CPU_SwitchTask(gate.GetSelector(),TSwitch_CALL_INT,oldeip);
 			if (type & CPU_INT_HAS_ERROR) {
 				//TODO Be sure about this, seems somewhat unclear
-				if (cpu_tss.is386) CPU_Push32(cpu.exception.error);
-				else CPU_Push16(cpu.exception.error);
+				if (cpu_tss.is386) CPU_Push32((uint32_t)cpu.exception.error);
+				else CPU_Push16((uint16_t)cpu.exception.error);
 			}
 			return;
 		default:
 			E_Exit("Illegal descriptor type %X for int %X",(int)gate.Type(),(int)num);
 		}
 		}
-		catch (GuestPageFaultException &pf) {
+		catch (const GuestPageFaultException &pf) {
+            (void)pf;//UNUSED
 			LOG_MSG("CPU_Interrupt() interrupted");
 			CPU_SetSegGeneral(ss,old_ss);
 			reg_esp = old_esp;
@@ -1068,9 +1500,12 @@ do_interrupt:
 	return ; // make compiler happy
 }
 
+/* NTS: It sounds like Intel processors only change the lower 16 bits of SP on IRETD if
+ *      the stack is 16 bits. See also [https://devblogs.microsoft.com/oldnewthing/20160404-00/?p=93261].
+ *      Make sure this code emulates that bug. Some buggy games might rely on that. */
 
-void CPU_IRET(bool use32,Bitu oldeip) {
-	Bitu orig_esp = reg_esp;
+void CPU_IRET(bool use32,uint32_t oldeip) {
+	uint32_t orig_esp = reg_esp;
 
 	/* x86 CPUs consider IRET the completion of an NMI, no matter where it happens */
 	/* FIXME: If the IRET causes an exception, is it still considered the end of the NMI? */
@@ -1110,33 +1545,34 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			} else {
 				try {
 				if (use32) {
-					Bit32u new_eip=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
-					Bit32u tempesp=(reg_esp&cpu.stack.notmask)|((reg_esp+4)&cpu.stack.mask);
-					Bit32u new_cs=mem_readd(SegPhys(ss) + (tempesp & cpu.stack.mask));
+					uint32_t new_eip=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+					uint32_t tempesp=(reg_esp&cpu.stack.notmask)|((reg_esp+4)&cpu.stack.mask);
+					uint32_t new_cs=mem_readd(SegPhys(ss) + (tempesp & cpu.stack.mask));
 					tempesp=(tempesp&cpu.stack.notmask)|((tempesp+4)&cpu.stack.mask);
-					Bit32u new_flags=mem_readd(SegPhys(ss) + (tempesp & cpu.stack.mask));
+					uint32_t new_flags=mem_readd(SegPhys(ss) + (tempesp & cpu.stack.mask));
 					reg_esp=(tempesp&cpu.stack.notmask)|((tempesp+4)&cpu.stack.mask);
 
 					reg_eip=new_eip;
-					SegSet16(cs,(Bit16u)(new_cs&0xffff));
+					SegSet16(cs,(uint16_t)(new_cs&0xffff));
 					/* IOPL can not be modified in v86 mode by IRET */
 					CPU_SetFlags(new_flags,FMASK_NORMAL|FLAG_NT);
 				} else {
-					Bit16u new_eip=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
-					Bit32u tempesp=(reg_esp&cpu.stack.notmask)|((reg_esp+2)&cpu.stack.mask);
-					Bit16u new_cs=mem_readw(SegPhys(ss) + (tempesp & cpu.stack.mask));
+					uint16_t new_eip=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+					uint32_t tempesp=(reg_esp&cpu.stack.notmask)|((reg_esp+2)&cpu.stack.mask);
+					uint16_t new_cs=mem_readw(SegPhys(ss) + (tempesp & cpu.stack.mask));
 					tempesp=(tempesp&cpu.stack.notmask)|((tempesp+2)&cpu.stack.mask);
-					Bit16u new_flags=mem_readw(SegPhys(ss) + (tempesp & cpu.stack.mask));
+					uint16_t new_flags=mem_readw(SegPhys(ss) + (tempesp & cpu.stack.mask));
 					reg_esp=(tempesp&cpu.stack.notmask)|((tempesp+2)&cpu.stack.mask);
 
-					reg_eip=(Bit32u)new_eip;
+					reg_eip=(uint32_t)new_eip;
 					SegSet16(cs,new_cs);
 					/* IOPL can not be modified in v86 mode by IRET */
 					CPU_SetFlags(new_flags,FMASK_NORMAL|FLAG_NT);
 				}
 				}
-				catch (GuestPageFaultException &pf) {
-					LOG_MSG("CPU_IRET() interrupted prot vm86");
+				catch (const GuestPageFaultException &pf) {
+                    (void)pf;//UNUSED
+                    LOG_MSG("CPU_IRET() interrupted prot vm86");
 					reg_esp = orig_esp;
 					throw;
 				}
@@ -1158,8 +1594,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			CPU_SwitchTask(back_link,TSwitch_IRET,oldeip);
 			return;
 		}
-		Bitu n_cs_sel,n_eip,n_flags;
-		Bit32u tempesp;
+		uint32_t n_cs_sel,n_eip,n_flags,tempesp;
 		if (use32) {
 			n_eip=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 			tempesp=(reg_esp&cpu.stack.notmask)|((reg_esp+4)&cpu.stack.mask);
@@ -1173,7 +1608,8 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 				try {
 				reg_esp=tempesp;
 				reg_eip=n_eip & 0xffff;
-				Bitu n_ss,n_esp,n_es,n_ds,n_fs,n_gs;
+				uint16_t n_ss,n_es,n_ds,n_fs,n_gs;
+                uint32_t n_esp;
 				n_esp=CPU_Pop32();
 				n_ss=CPU_Pop32() & 0xffff;
 				n_es=CPU_Pop32() & 0xffff;
@@ -1192,12 +1628,13 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 				CPU_SetSegGeneral(gs,n_gs);
 				reg_esp=n_esp;
 				cpu.code.big=false;
-				SegSet16(cs,n_cs_sel);
+				SegSet16(cs,(uint16_t)n_cs_sel);
 				LOG(LOG_CPU,LOG_NORMAL)("IRET:Back to V86: CS:%X IP %X SS:%X SP %X FLAGS:%X",SegValue(cs),reg_eip,SegValue(ss),reg_esp,reg_flags);	
 				return;
 				}
-				catch (GuestPageFaultException &pf) {
-					LOG_MSG("CPU_IRET() interrupted prot use32");
+				catch (const GuestPageFaultException &pf) {
+                    (void)pf;//UNUSED
+                    LOG_MSG("CPU_IRET() interrupted prot use32");
 					reg_esp = orig_esp;
 					throw;
 				}
@@ -1252,10 +1689,10 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			// commit point
 			reg_esp=tempesp;
 			Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?n_cs_desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
-			Segs.val[cs]=n_cs_sel;
+			Segs.val[cs]=(uint16_t)n_cs_sel;
 			reg_eip=n_eip;
 
 			Bitu mask=cpu.cpl ? (FMASK_NORMAL | FLAG_NT) : FMASK_ALL;
@@ -1265,7 +1702,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			LOG(LOG_CPU,LOG_NORMAL)("IRET:Same level:%X:%X big %d",n_cs_sel,n_eip,cpu.code.big);
 		} else {
 			/* Return to outer level */
-			Bitu n_ss,n_esp;
+			uint32_t n_ss,n_esp;
 			if (use32) {
 				n_esp=mem_readd(SegPhys(ss) + (tempesp & cpu.stack.mask));
 				tempesp=(tempesp&cpu.stack.notmask)|((tempesp+4)&cpu.stack.mask);
@@ -1304,7 +1741,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			// commit point
 
 			Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?n_cs_desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
 			Segs.val[cs]=n_cs_sel;
@@ -1317,9 +1754,9 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			CPU_SetCPL(n_cs_rpl);
 			reg_eip=n_eip;
 
-			Segs.val[ss]=n_ss;
+			Segs.val[ss]=(uint16_t)n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
-			Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
+			Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
@@ -1343,14 +1780,14 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 }
 
 
-void CPU_JMP(bool use32,Bitu selector,Bitu offset,Bitu oldeip) {
+void CPU_JMP(bool use32,Bitu selector,Bitu offset,uint32_t oldeip) {
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		if (!use32) {
 			reg_eip=offset&0xffff;
 		} else {
-			reg_eip=offset;
+			reg_eip=(uint32_t)offset;
 		}
-		SegSet16(cs,selector);
+		SegSet16(cs,(uint16_t)selector);
 		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 	} else {
@@ -1388,11 +1825,11 @@ CODE_jmp:
 
 			/* Normal jump to another selector:offset */
 			Segs.expanddown[cs]=desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
-			Segs.val[cs]=(selector & 0xfffc) | cpu.cpl;
-			reg_eip=offset;
+			Segs.val[cs]=(uint16_t)((selector & 0xfffc) | cpu.cpl);
+			reg_eip=(uint32_t)offset;
 			return;
 		case DESC_386_TSS_A:
 			CPU_CHECK_COND(desc.DPL()<cpu.cpl,
@@ -1404,6 +1841,72 @@ CODE_jmp:
 			LOG(LOG_CPU,LOG_NORMAL)("JMP:TSS to %X",selector);
 			CPU_SwitchTask(selector,TSwitch_JMP,oldeip);
 			break;
+		case DESC_386_CALL_GATE: /* CAUTION: Copy-pasta from CPU_CALL() with stack switching removed */
+		case DESC_286_CALL_GATE:
+		case DESC_TASK_GATE:
+			{
+				CPU_CHECK_COND(desc.DPL()<cpu.cpl,
+					"JMP:Gate:Gate DPL<CPL",
+					EXCEPTION_GP,selector & 0xfffc)
+				CPU_CHECK_COND(desc.DPL()<rpl,
+					"JMP:Gate:Gate DPL<RPL",
+					EXCEPTION_GP,selector & 0xfffc)
+				CPU_CHECK_COND(!desc.saved.seg.p,
+					"JMP:Gate:Segment not present",
+					EXCEPTION_NP,selector & 0xfffc)
+				Descriptor n_cs_desc;
+				Bitu n_cs_sel=desc.GetSelector();
+
+				CPU_CHECK_COND((n_cs_sel & 0xfffc)==0,
+					"JMP:Gate:CS selector zero",
+					EXCEPTION_GP,0)
+				CPU_CHECK_COND(!cpu.gdt.GetDescriptor(n_cs_sel,n_cs_desc),
+					"JMP:Gate:CS beyond limits",
+					EXCEPTION_GP,n_cs_sel & 0xfffc)
+				Bitu n_cs_dpl	= n_cs_desc.DPL();
+				CPU_CHECK_COND(n_cs_dpl>cpu.cpl,
+					"JMP:Gate:CS DPL>CPL",
+					EXCEPTION_GP,n_cs_sel & 0xfffc)
+
+				CPU_CHECK_COND(!n_cs_desc.saved.seg.p,
+					"JMP:Gate:CS not present",
+					EXCEPTION_NP,n_cs_sel & 0xfffc)
+
+				Bitu n_eip		= desc.GetOffset();
+				switch (n_cs_desc.Type()) {
+				case DESC_386_TSS_A:
+					CPU_CHECK_COND(n_cs_desc.DPL()<cpu.cpl,
+						"JMP:TSS:dpl<cpl",
+						EXCEPTION_GP,n_cs_sel & 0xfffc)
+					CPU_CHECK_COND(n_cs_desc.DPL()<rpl,
+						"JMP:TSS:dpl<rpl",
+						EXCEPTION_GP,n_cs_sel & 0xfffc)
+					LOG(LOG_CPU,LOG_NORMAL)("JMP:TSS to %X",n_cs_sel);
+					CPU_SwitchTask(n_cs_sel,TSwitch_JMP,oldeip);
+					break;
+				case DESC_CODE_N_NC_A:case DESC_CODE_N_NC_NA:
+				case DESC_CODE_R_NC_A:case DESC_CODE_R_NC_NA:
+                    CPU_CHECK_COND(n_cs_dpl != cpu.cpl, "JMP:Gate:NC CS DPL!=CPL",
+                                   EXCEPTION_GP, n_cs_sel & 0xfffc)
+                    // fallthrough
+				case DESC_CODE_N_C_A:case DESC_CODE_N_C_NA:
+				case DESC_CODE_R_C_A:case DESC_CODE_R_C_NA:
+					// zrdx extender
+
+					/* Switch to new CS:EIP */
+					Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
+					Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
+					Segs.phys[cs]	= n_cs_desc.GetBase();
+					Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
+					cpu.code.big	= n_cs_desc.Big()>0;
+					reg_eip			= (uint32_t)n_eip;
+					if (!use32)	reg_eip&=0xffff;
+					break;
+				default:
+					E_Exit("JMP:GATE:CS no executable segment");
+				}
+			}			/* Call Gates */
+			break;
 		default:
 			E_Exit("JMP Illegal descriptor type %X",(int)desc.Type());
 		}
@@ -1412,9 +1915,9 @@ CODE_jmp:
 }
 
 
-void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bitu oldeip) {
-	Bit32u old_esp = reg_esp;
-	Bit32u old_eip = reg_eip;
+void CPU_CALL(bool use32,Bitu selector,Bitu offset,uint32_t oldeip) {
+	uint32_t old_esp = reg_esp;
+	uint32_t old_eip = reg_eip;
 
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		try {
@@ -1425,16 +1928,17 @@ void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bitu oldeip) {
 		} else {
 			CPU_Push32(SegValue(cs));
 			CPU_Push32(oldeip);
-			reg_eip=offset;
+			reg_eip=(uint32_t)offset;
 		}
 		}
-		catch (GuestPageFaultException &pf) {
+		catch (const GuestPageFaultException &pf) {
+            (void)pf;//UNUSED
 			reg_esp = old_esp;
 			reg_eip = old_eip;
 			throw;
 		}
 		if (!cpu_allow_big16) cpu.code.big=false;
-		SegSet16(cs,selector);
+		SegSet16(cs,(uint16_t)selector);
 		return;
 	} else {
 		CPU_CHECK_COND((selector & 0xfffc)==0,
@@ -1478,23 +1982,25 @@ call_code:
 			} else {
 				CPU_Push32(SegValue(cs));
 				CPU_Push32(oldeip);
-				reg_eip=offset;
+				reg_eip=(uint32_t)offset;
 			}
 			}
-			catch (GuestPageFaultException &pf) {
-				reg_esp = old_esp;
+			catch (const GuestPageFaultException &pf) {
+                (void)pf;//UNUSED
+                reg_esp = old_esp;
 				reg_eip = old_eip;
 				throw;
 			}
 
 			Segs.expanddown[cs]=call.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?call.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits? (PhysPt)call.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=call.GetBase();
 			cpu.code.big=call.Big()>0;
-			Segs.val[cs]=(selector & 0xfffc) | cpu.cpl;
+			Segs.val[cs]=(uint16_t)((selector & 0xfffc) | cpu.cpl);
 			return;
 		case DESC_386_CALL_GATE: 
 		case DESC_286_CALL_GATE:
+		case DESC_TASK_GATE:
 			{
 				CPU_CHECK_COND(call.DPL()<cpu.cpl,
 					"CALL:Gate:Gate DPL<CPL",
@@ -1525,12 +2031,23 @@ call_code:
 
 				Bitu n_eip		= call.GetOffset();
 				switch (n_cs_desc.Type()) {
+				case DESC_386_TSS_A:
+					CPU_CHECK_COND(n_cs_desc.DPL()<cpu.cpl,
+						"CALL:TSS:dpl<cpl",
+						EXCEPTION_GP,n_cs_sel & 0xfffc)
+					CPU_CHECK_COND(n_cs_desc.DPL()<rpl,
+						"CALL:TSS:dpl<rpl",
+						EXCEPTION_GP,n_cs_sel & 0xfffc)
+					LOG(LOG_CPU,LOG_NORMAL)("CALL:TSS to %X",n_cs_sel);
+					CPU_SwitchTask(n_cs_sel,TSwitch_CALL_INT,oldeip);
+					break;
 				case DESC_CODE_N_NC_A:case DESC_CODE_N_NC_NA:
 				case DESC_CODE_R_NC_A:case DESC_CODE_R_NC_NA:
-					/* Check if we goto inner priviledge */
+					/* Check if we goto inner privilege */
 					if (n_cs_dpl < cpu.cpl) {
 						/* Get new SS:ESP out of TSS */
-						Bitu n_ss_sel,n_esp;
+                        uint16_t n_ss_sel;
+                        uint32_t n_esp;
 						Descriptor n_ss_desc;
 						cpu_tss.Get_SSx_ESPx(n_cs_dpl,n_ss_sel,n_esp);
 						CPU_CHECK_COND((n_ss_sel & 0xfffc)==0,
@@ -1556,19 +2073,19 @@ call_code:
 							EXCEPTION_SS,n_ss_sel & 0xfffc)
 
 						/* Load the new SS:ESP and save data on it */
-						Bitu o_esp		= reg_esp;
-						Bitu o_ss		= SegValue(ss);
+						uint32_t o_esp		= reg_esp;
+						uint16_t o_ss		= SegValue(ss);
 						PhysPt o_stack  = SegPhys(ss)+(reg_esp & cpu.stack.mask);
 
 
 						// catch pagefaults
 						if (call.saved.gate.paramcount&31) {
 							if (call.Type()==DESC_386_CALL_GATE) {
-								for (Bits i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
-									mem_readd(o_stack+i*4);
+								for (int8_t i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
+									mem_readd(o_stack+(uint8_t)i*4u);
 							} else {
-								for (Bits i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
-									mem_readw(o_stack+i*2);
+								for (int8_t i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
+									mem_readw(o_stack+(uint8_t)i*2u);
 							}
 						}
 
@@ -1580,7 +2097,7 @@ call_code:
 						// commit point
 						Segs.val[ss]=n_ss_sel;
 						Segs.phys[ss]=n_ss_desc.GetBase();
-						Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
+						Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
 						if (n_ss_desc.Big()) {
 							cpu.stack.big=true;
@@ -1595,30 +2112,30 @@ call_code:
 						}
 
 						CPU_SetCPL(n_cs_desc.DPL());
-						Bit16u oldcs    = SegValue(cs);
+						uint16_t oldcs    = SegValue(cs);
 						/* Switch to new CS:EIP */
 						Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-						Segs.limit[cs]  = do_seg_limits?n_cs_desc.GetLimit():(~0UL);
+						Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.phys[cs]	= n_cs_desc.GetBase();
-						Segs.val[cs]	= (n_cs_sel & 0xfffc) | cpu.cpl;
+						Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
 						cpu.code.big	= n_cs_desc.Big()>0;
-						reg_eip			= n_eip;
+						reg_eip			= (uint32_t)n_eip;
 						if (!use32)	reg_eip&=0xffff;
 
 						if (call.Type()==DESC_386_CALL_GATE) {
 							CPU_Push32(o_ss);		//save old stack
 							CPU_Push32(o_esp);
 							if (call.saved.gate.paramcount&31)
-								for (Bits i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
-									CPU_Push32(mem_readd(o_stack+i*4));
+								for (int8_t i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
+									CPU_Push32(mem_readd(o_stack+(uint8_t)i*4u));
 							CPU_Push32(oldcs);
 							CPU_Push32(oldeip);
 						} else {
 							CPU_Push16(o_ss);		//save old stack
-							CPU_Push16(o_esp);
+							CPU_Push16((uint16_t)o_esp);
 							if (call.saved.gate.paramcount&31)
-								for (Bits i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
-									CPU_Push16(mem_readw(o_stack+i*2));
+								for (int8_t i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
+									CPU_Push16(mem_readw(o_stack+(uint8_t)i*2u));
 							CPU_Push16(oldcs);
 							CPU_Push16(oldeip);
 						}
@@ -1640,19 +2157,20 @@ call_code:
 						CPU_Push16(oldeip);
 					}
 					}
-					catch (GuestPageFaultException &pf) {
-						reg_esp = old_esp;
+					catch (const GuestPageFaultException &pf) {
+                        (void)pf;//UNUSED
+                        reg_esp = old_esp;
 						reg_eip = old_eip;
 						throw;
 					}
 
 					/* Switch to new CS:EIP */
 					Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-					Segs.limit[cs]  = do_seg_limits?n_cs_desc.GetLimit():(~0UL);
+					Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 					Segs.phys[cs]	= n_cs_desc.GetBase();
-					Segs.val[cs]	= (n_cs_sel & 0xfffc) | cpu.cpl;
+					Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
 					cpu.code.big	= n_cs_desc.Big()>0;
-					reg_eip			= n_eip;
+					reg_eip			= (uint32_t)n_eip;
 					if (!use32)	reg_eip&=0xffff;
 					break;
 				default:
@@ -1687,37 +2205,47 @@ call_code:
 }
 
 
-void CPU_RET(bool use32,Bitu bytes,Bitu oldeip) {
-	Bitu orig_esp = reg_esp;
+void CPU_RET(bool use32,Bitu bytes,uint32_t oldeip) {
+    (void)oldeip;//UNUSED
+
+	uint32_t orig_esp = reg_esp;
 
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		try {
-		Bitu new_ip,new_cs;
-		if (!use32) {
-			new_ip=CPU_Pop16();
-			new_cs=CPU_Pop16();
-		} else {
-			new_ip=CPU_Pop32();
-			new_cs=CPU_Pop32() & 0xffff;
+			uint32_t new_ip;
+			uint16_t new_cs;
+			if (!use32) {
+				new_ip=CPU_Pop16();
+				new_cs=CPU_Pop16();
+			} else {
+				new_ip=CPU_Pop32();
+				new_cs=CPU_Pop32() & 0xffff;
+			}
+
+			/* NTS: It is very important not to modify the full 32 bits in real mode.
+			 *      Finster by Mad Scientists (1996) likes to execute "RETF FFFEh" but
+			 *      will break if the upper 16 bits of ESP are made nonzero. I'm guessing
+			 *      the RETF used in that way is an elaborate way of adding 2 to the stack
+			 *      pointer instead of subtracting. --Jonathan C. */
+			reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+(uint32_t)bytes)&cpu.stack.mask);
+			SegSet16(cs,new_cs);
+			reg_eip=new_ip;
+			if (!cpu_allow_big16) cpu.code.big=false;
+			return;
 		}
-		reg_esp+=bytes;
-		SegSet16(cs,new_cs);
-		reg_eip=new_ip;
-		if (!cpu_allow_big16) cpu.code.big=false;
-		return;
-		}
-		catch (GuestPageFaultException &pf) {
+		catch (const GuestPageFaultException &pf) {
+			(void)pf;//UNUSED
 			LOG_MSG("CPU_RET() interrupted real/vm86");
 			reg_esp = orig_esp;
 			throw;
 		}
 	} else {
-		Bitu offset,selector;
+		uint32_t offset,selector;
 		if (!use32) selector	= mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask) + 2);
 		else 		selector	= mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask) + 4) & 0xffff;
 
 		Descriptor desc;
-		Bitu rpl=selector & 3;
+		uint32_t rpl=selector & 3;
 		if(rpl < cpu.cpl) {
 			// win setup
 			CPU_Exception(EXCEPTION_GP,selector & 0xfffc);
@@ -1746,6 +2274,8 @@ void CPU_RET(bool use32,Bitu bytes,Bitu oldeip) {
 					"RET to C segment of higher privilege",
 					EXCEPTION_GP,selector & 0xfffc)
 				break;
+			case 0:
+				break;
 			default:
 				E_Exit("RET from illegal descriptor type %X",(int)desc.Type());
 			}
@@ -1766,22 +2296,23 @@ RET_same_level:
 				selector=CPU_Pop32() & 0xffff;
 			}
 			}
-			catch (GuestPageFaultException &pf) {
-				LOG_MSG("CPU_RET() interrupted prot rpl==cpl");
+			catch (const GuestPageFaultException &pf) {
+                (void)pf;//UNUSED
+                LOG_MSG("CPU_RET() interrupted prot rpl==cpl");
 				reg_esp = orig_esp;
 				throw;
 			}
 
 			Segs.expanddown[cs]=desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
-			Segs.val[cs]=selector;
+			Segs.val[cs]=(uint16_t)selector;
 			reg_eip=offset;
 			if (cpu.stack.big) {
-				reg_esp+=bytes;
+				reg_esp+=(uint32_t)bytes;
 			} else {
-				reg_sp+=bytes;
+				reg_sp+=(uint16_t)bytes;
 			}
 			LOG(LOG_CPU,LOG_NORMAL)("RET - Same level to %X:%X RPL %X DPL %X",selector,offset,rpl,desc.DPL());
 			return;
@@ -1800,6 +2331,8 @@ RET_same_level:
 					"RET to outer C segment with DPL>RPL",
 					EXCEPTION_GP,selector & 0xfffc)
 				break;
+			case 0:
+				break;
 			default:
 				E_Exit("RET from illegal descriptor type %X",(int)desc.Type());		// or #GP(selector)
 			}
@@ -1809,24 +2342,25 @@ RET_same_level:
 				EXCEPTION_NP,selector & 0xfffc)
 
 			// commit point
-			Bitu n_esp,n_ss;
+			uint32_t n_esp,n_ss;
 			try {
 			if (use32) {
 				offset=CPU_Pop32();
 				selector=CPU_Pop32() & 0xffff;
-				reg_esp+=bytes;
+				reg_esp+= (uint32_t)bytes;
 				n_esp = CPU_Pop32();
 				n_ss = CPU_Pop32() & 0xffff;
 			} else {
 				offset=CPU_Pop16();
 				selector=CPU_Pop16();
-				reg_esp+=bytes;
+				reg_esp+= (uint32_t)bytes;
 				n_esp = CPU_Pop16();
 				n_ss = CPU_Pop16();
 			}
 			}
-			catch (GuestPageFaultException &pf) {
-				LOG_MSG("CPU_RET() interrupted prot #2");
+			catch (const GuestPageFaultException &pf) {
+                (void)pf;//UNUSED
+                LOG_MSG("CPU_RET() interrupted prot #2");
 				reg_esp = orig_esp;
 				throw;
 			}
@@ -1856,26 +2390,26 @@ RET_same_level:
 
 			CPU_SetCPL(rpl);
 			Segs.expanddown[cs]=desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
-			Segs.val[cs]=(selector&0xfffc) | cpu.cpl;
+			Segs.val[cs]=(uint16_t)((selector&0xfffc) | cpu.cpl);
 			reg_eip=offset;
 
-			Segs.val[ss]=n_ss;
+			Segs.val[ss]=(uint16_t)n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
-			Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
+			Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
 				cpu.stack.mask=0xffffffff;
 				cpu.stack.notmask=0;
-				reg_esp=n_esp+bytes;
+				reg_esp=(uint32_t)(n_esp+bytes);
 			} else {
 				cpu.stack.big=false;
 				cpu.stack.mask=0xffff;
 				cpu.stack.notmask=0xffff0000;
-				reg_sp=(n_esp & 0xffff)+bytes;
+				reg_sp=(uint16_t)((n_esp & 0xffff)+bytes);
 			}
 
 			CPU_CheckSegments();
@@ -1884,7 +2418,6 @@ RET_same_level:
 			return;
 		}
 		LOG(LOG_CPU,LOG_NORMAL)("Prot ret %lX:%lX",(unsigned long)selector,(unsigned long)offset);
-		return;
 	}
 	assert(1);
 }
@@ -1905,6 +2438,13 @@ bool CPU_LLDT(Bitu selector) {
 
 Bitu CPU_STR(void) {
 	return cpu_tss.selector;
+}
+
+void CPU_TSS_ForceBusy(bool busy) {
+	if (cpu_tss.selector != 0) {
+		cpu_tss.desc.SetBusy(busy);
+		cpu_tss.SaveSelector();
+	}
 }
 
 bool CPU_LTR(Bitu selector) {
@@ -1937,13 +2477,13 @@ bool CPU_LTR(Bitu selector) {
 void CPU_LGDT(Bitu limit,Bitu base) {
 	LOG(LOG_CPU,LOG_NORMAL)("GDT Set to base:%X limit:%X",base,limit);
 	cpu.gdt.SetLimit(limit);
-	cpu.gdt.SetBase(base);
+	cpu.gdt.SetBase((PhysPt)base);
 }
 
 void CPU_LIDT(Bitu limit,Bitu base) {
 	LOG(LOG_CPU,LOG_NORMAL)("IDT Set to base:%X limit:%X",base,limit);
 	cpu.idt.SetLimit(limit);
-	cpu.idt.SetBase(base);
+	cpu.idt.SetBase((PhysPt)base);
 }
 
 Bitu CPU_SGDT_base(void) {
@@ -1961,9 +2501,10 @@ Bitu CPU_SIDT_limit(void) {
 }
 
 static bool snap_cpu_snapped=false;
-static Bit32u snap_cpu_saved_cr0;
-static Bit32u snap_cpu_saved_cr2;
-static Bit32u snap_cpu_saved_cr3;
+static uint32_t snap_cpu_saved_cr0;
+static uint32_t snap_cpu_saved_cr2;
+static uint32_t snap_cpu_saved_cr3;
+static uint32_t snap_cpu_saved_cr4;
 
 /* On shutdown, DOSBox needs to snap back to real mode
  * so that it's shutdown code doesn't cause page faults
@@ -1982,13 +2523,16 @@ void CPU_Snap_Back_To_Real_Mode() {
     cpu.stack.mask = 0xffff;
     cpu.stack.notmask = 0xffff0000;
 
-    snap_cpu_saved_cr0 = cpu.cr0;
-    snap_cpu_saved_cr2 = paging.cr2;
-    snap_cpu_saved_cr3 = paging.cr3;
+    snap_cpu_saved_cr0 = (uint32_t)cpu.cr0;
+    snap_cpu_saved_cr2 = (uint32_t)paging.cr2;
+    snap_cpu_saved_cr3 = (uint32_t)paging.cr3;
+    snap_cpu_saved_cr4 = (uint32_t)cpu.cr4;
+    do_pse = false;
 
     CPU_SET_CRX(0,0);	/* force CPU to real mode */
     CPU_SET_CRX(2,0);	/* disable paging */
     CPU_SET_CRX(3,0);	/* clear the page table dir */
+    CPU_SET_CRX(4,0);	/* disable PSE/PAE */
 
     cpu.idt.SetBase(0);         /* or ELSE weird things will happen when INTerrupts are run */
     cpu.idt.SetLimit(1023);
@@ -2002,6 +2546,7 @@ void CPU_Snap_Back_Restore() {
 	CPU_SET_CRX(0,snap_cpu_saved_cr0);
 	CPU_SET_CRX(2,snap_cpu_saved_cr2);
 	CPU_SET_CRX(3,snap_cpu_saved_cr3);
+	CPU_SET_CRX(4,snap_cpu_saved_cr4);
 
 	snap_cpu_snapped = false;
 }
@@ -2013,66 +2558,76 @@ void CPU_Snap_Back_Forget() {
 static bool printed_cycles_auto_info = false;
 void CPU_SET_CRX(Bitu cr,Bitu value) {
 	switch (cr) {
-	case 0:
-		{
-			value|=CR0_FPUPRESENT;
-			Bitu changed=cpu.cr0 ^ value;
-			if (!changed) return;
-			if (GCC_UNLIKELY(changed & CR0_WRITEPROTECT)) {
-				if (CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD)
-					PAGING_SetWP((value&CR0_WRITEPROTECT)? true:false);
-			}
-			cpu.cr0=value;
-			if (value & CR0_PROTECTION) {
-				cpu.pmode=true;
-				LOG(LOG_CPU,LOG_NORMAL)("Protected mode");
-				PAGING_Enable((value&CR0_PAGING)? true:false);
-
-				if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_MASK)) break;
-
-				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-					CPU_CycleAutoAdjust=true;
-					CPU_CycleLeft=0;
-					CPU_Cycles=0;
-					CPU_OldCycleMax=CPU_CycleMax;
-					GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
-					if(!printed_cycles_auto_info) {
-						printed_cycles_auto_info = true;
-						LOG_MSG("DOSBox switched to max cycles, because of the setting: cycles=auto. If the game runs too fast try a fixed cycles amount in DOSBox's options.");
-					}
-				} else {
-					GFX_SetTitle(-1,-1,-1,false);
+		case 0:
+			{
+				value|=CR0_FPUPRESENT;
+				Bitu changed=cpu.cr0 ^ value;
+				if (!changed) return;
+				if (GCC_UNLIKELY(changed & CR0_WRITEPROTECT)) {
+					if (CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD)
+						PAGING_SetWP((value&CR0_WRITEPROTECT)? true:false);
 				}
+				cpu.cr0=value;
+				if (value & CR0_PROTECTION) {
+					cpu.pmode=true;
+					LOG(LOG_CPU,LOG_NORMAL)("Protected mode");
+					PAGING_Enable((value&CR0_PAGING)? true:false);
+
+					if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_MASK)) break;
+
+					if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
+						CPU_CycleAutoAdjust=true;
+						CPU_CycleLeft=0;
+						CPU_Cycles=0;
+						CPU_OldCycleMax=CPU_CycleMax;
+						GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
+						if(!printed_cycles_auto_info) {
+							printed_cycles_auto_info = true;
+							LOG_MSG("DOSBox-X has switched to max cycles, because of the setting: cycles=auto.\nIf the game runs too fast, try a fixed cycles amount in DOSBox-X's options.");
+						}
+						menu_update_autocycle();
+					} else {
+						GFX_SetTitle(-1,-1,-1,false);
+					}
 #if (C_DYNAMIC_X86)
-				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
-					if (dosbox_enable_nonrecursive_page_fault) {
-						dosbox_enable_nonrecursive_page_fault = false;
-						_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
+					if (GetDynamicType()==1 && CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
+						CPU_Core_Dyn_X86_Cache_Init(true);
+						cpudecoder=&CPU_Core_Dyn_X86_Run;
+						strcpy(core_mode, "dynamic");
+						mainMenu.get_item("mapper_normal").check(false).refresh_item(mainMenu);
+						mainMenu.get_item("mapper_dynamic").check(true).refresh_item(mainMenu);
 					}
-
-					CPU_Core_Dyn_X86_Cache_Init(true);
-					cpudecoder=&CPU_Core_Dyn_X86_Run;
-					strcpy(core_mode, "dynamic");
-				}
 #endif
-				CPU_AutoDetermineMode<<=CPU_AUTODETERMINE_SHIFT;
-			} else {
-				cpu.pmode=false;
-				if (value & CR0_PAGING) LOG_MSG("Paging requested without PE=1");
-				PAGING_Enable(false);
-				LOG(LOG_CPU,LOG_NORMAL)("Real mode");
+#if (C_DYNREC)
+					if (GetDynamicType()==2 && CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
+						CPU_Core_Dynrec_Cache_Init(true);
+						cpudecoder=&CPU_Core_Dynrec_Run;
+						mainMenu.get_item("mapper_normal").check(false).refresh_item(mainMenu);
+						mainMenu.get_item("mapper_dynamic").check(true).refresh_item(mainMenu);
+					}
+#endif
+					CPU_AutoDetermineMode<<=CPU_AUTODETERMINE_SHIFT;
+				} else {
+					cpu.pmode=false;
+					if (value & CR0_PAGING) LOG_MSG("Paging requested without PE=1");
+					PAGING_Enable(false);
+					LOG(LOG_CPU,LOG_NORMAL)("Real mode");
+				}
+				break;
 			}
+		case 2:
+			paging.cr2=value;
 			break;
-		}
-	case 2:
-		paging.cr2=value;
-		break;
-	case 3:
-		PAGING_SetDirBase(value);
-		break;
-	default:
-		LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV CR%d,%X",cr,value);
-		break;
+		case 3:
+			PAGING_SetDirBase(value);
+			break;
+		case 4:
+			if (enable_pse) do_pse = !!(value & 0x10);
+			cpu.cr4=value;
+			break;
+		default:
+			LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV CR%d,%X",cr,value);
+			break;
 	}
 }
 
@@ -2089,29 +2644,31 @@ bool CPU_WRITE_CRX(Bitu cr,Bitu value) {
 
 Bitu CPU_GET_CRX(Bitu cr) {
 	switch (cr) {
-	case 0:
-		if (CPU_ArchitectureType>=CPU_ARCHTYPE_PENTIUM) return cpu.cr0;
-		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) return (cpu.cr0 & 0xe005003f);
-		else return (cpu.cr0 | 0x7ffffff0);
-	case 2:
-		return paging.cr2;
-	case 3:
-		return PAGING_GetDirBase() & 0xfffff000;
-	default:
-		LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV XXX, CR%d",cr);
-		break;
+		case 0:
+			if (CPU_ArchitectureType>=CPU_ARCHTYPE_PENTIUM) return cpu.cr0;
+			else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) return (cpu.cr0 & 0xe005003f);
+			else return (cpu.cr0 | 0x7ffffff0);
+		case 2:
+			return paging.cr2;
+		case 3:
+			return PAGING_GetDirBase() & 0xfffff000;
+		case 4:
+			return cpu.cr4;
+		default:
+			LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV XXX, CR%d",cr);
+			break;
 	}
 	return 0;
 }
 
-bool CPU_READ_CRX(Bitu cr,Bit32u & retvalue) {
+bool CPU_READ_CRX(Bitu cr,uint32_t & retvalue) {
 	/* Check if privileged to access control registers */
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
 	if ((cr==1) || (cr>4)) return CPU_PrepareException(EXCEPTION_UD,0);
 	if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) {
 		if (cr==4) return CPU_PrepareException(EXCEPTION_UD,0);
 	}
-	retvalue=CPU_GET_CRX(cr);
+	retvalue=(uint32_t)CPU_GET_CRX(cr);
 	return false;
 }
 
@@ -2119,12 +2676,13 @@ bool CPU_READ_CRX(Bitu cr,Bit32u & retvalue) {
 bool CPU_WRITE_DRX(Bitu dr,Bitu value) {
 	/* Check if privileged to access control registers */
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
+	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("386 debug write to DR%d = %X",(unsigned int)dr,(unsigned int)value);
 	switch (dr) {
 	case 0:
 	case 1:
 	case 2:
 	case 3:
-		cpu.drx[dr]=value;
+		cpu.drx[dr]=(uint32_t)value;
 		break;
 	case 4:
 	case 6:
@@ -2135,7 +2693,7 @@ bool CPU_WRITE_DRX(Bitu dr,Bitu value) {
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) {
 			cpu.drx[7]=(value|0x400) & 0xffff2fff;
 		} else {
-			cpu.drx[7]=(value|0x400);
+			cpu.drx[7]=(uint32_t)(value|0x400);
 		}
 		break;
 	default:
@@ -2145,7 +2703,7 @@ bool CPU_WRITE_DRX(Bitu dr,Bitu value) {
 	return false;
 }
 
-bool CPU_READ_DRX(Bitu dr,Bit32u & retvalue) {
+bool CPU_READ_DRX(Bitu dr,uint32_t & retvalue) {
 	/* Check if privileged to access control registers */
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
 	switch (dr) {
@@ -2178,7 +2736,7 @@ bool CPU_WRITE_TRX(Bitu tr,Bitu value) {
 //	case 3:
 	case 6:
 	case 7:
-		cpu.trx[tr]=value;
+		cpu.trx[tr]=(uint32_t)value;
 		return false;
 	default:
 		LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV TR%d,%X",tr,value);
@@ -2187,7 +2745,7 @@ bool CPU_WRITE_TRX(Bitu tr,Bitu value) {
 	return CPU_PrepareException(EXCEPTION_UD,0);
 }
 
-bool CPU_READ_TRX(Bitu tr,Bit32u & retvalue) {
+bool CPU_READ_TRX(Bitu tr,uint32_t & retvalue) {
 	/* Check if privileged to access control registers */
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
 	switch (tr) {
@@ -2209,9 +2767,10 @@ Bitu CPU_SMSW(void) {
 }
 
 bool CPU_LMSW(Bitu word) {
+	/* low 4 bits only, cannot change PE. Bochs source code agrees. */
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
 	word&=0xf;
-	if (cpu.cr0 & 1) word|=1; 
+	if ((cpu.cr0&1/*PE bit*/) && !lmsw_allow_clear_pe_bit) word|=1/*PE bit, stuck on, cannot exit protected mode, 286 style*/;
 	word|=(cpu.cr0&0xfffffff0);
 	CPU_SET_CRX(0,word);
 	return false;
@@ -2382,11 +2941,23 @@ void CPU_VERW(Bitu selector) {
 	SETFLAGBIT(ZF,true);
 }
 
-bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
-	value &= 0xffff;
+/* This is called by the XMS emulation to set up Flat Real Mode, at least for segment registers DS and ES */
+bool XMS_InitFlatRealMode(void) {
+	if (!cpu.pmode) {
+		if (Segs.limit[ds] != 0xFFFFFFFFul || Segs.limit[es] != 0xFFFFFFFFul) {
+			Segs.limit[ds] = 0xFFFFFFFFul;
+			Segs.limit[es] = 0xFFFFFFFFul;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CPU_SetSegGeneral(SegNames seg,uint16_t value) {
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		Segs.val[seg]=value;
-		Segs.phys[seg]=value << 4;
+		Segs.phys[seg]=(PhysPt)value << 4u;
 		if (seg==ss) {
 			cpu.stack.big=false;
 			cpu.stack.mask=0xffff;
@@ -2403,17 +2974,17 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 		if (seg==ss) {
 			// Stack needs to be non-zero
 			if ((value & 0xfffc)==0) {
-				E_Exit("CPU_SetSegGeneral: Stack segment zero");
-//				return CPU_PrepareException(EXCEPTION_GP,0);
+//				E_Exit("CPU_SetSegGeneral: Stack segment zero");
+				return CPU_PrepareException(EXCEPTION_GP,0);
 			}
 			Descriptor desc;
 			if (!cpu.gdt.GetDescriptor(value,desc)) {
-				E_Exit("CPU_SetSegGeneral: Stack segment beyond limits");
-//				return CPU_PrepareException(EXCEPTION_GP,value & 0xfffc);
+//				E_Exit("CPU_SetSegGeneral: Stack segment beyond limits");
+				return CPU_PrepareException(EXCEPTION_GP,value & 0xfffc);
 			}
 			if (((value & 3)!=cpu.cpl) || (desc.DPL()!=cpu.cpl)) {
-				E_Exit("CPU_SetSegGeneral: Stack segment with invalid privileges");
-//				return CPU_PrepareException(EXCEPTION_GP,value & 0xfffc);
+//				E_Exit("CPU_SetSegGeneral: Stack segment with invalid privileges");
+				return CPU_PrepareException(EXCEPTION_GP,value & 0xfffc);
 			}
 
 			switch (desc.Type()) {
@@ -2432,7 +3003,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 			Segs.val[seg]=value;
 			Segs.phys[seg]=desc.GetBase();
-			Segs.limit[seg]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[seg]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[seg]=desc.GetExpandDown();
 			if (desc.Big()) {
 				cpu.stack.big=true;
@@ -2459,7 +3030,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 			case DESC_DATA_ED_RO_NA:		case DESC_DATA_ED_RO_A:
 			case DESC_DATA_ED_RW_NA:		case DESC_DATA_ED_RW_A:
 			case DESC_CODE_R_NC_A:			case DESC_CODE_R_NC_NA:
-				if (((value & 3)>desc.DPL()) || (cpu.cpl>desc.DPL())) {
+				if (((value & 3u)>desc.DPL()) || (cpu.cpl>desc.DPL())) {
 					// extreme pinball
 					return CPU_PrepareException(EXCEPTION_GP,value & 0xfffc);
 				}
@@ -2478,7 +3049,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 			Segs.val[seg]=value;
 			Segs.phys[seg]=desc.GetBase();
-			Segs.limit[seg]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[seg]=do_seg_limits?(PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[seg]=desc.GetExpandDown();
 		}
 
@@ -2488,62 +3059,177 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 bool CPU_PopSeg(SegNames seg,bool use32) {
 	Bitu val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
-	if (CPU_SetSegGeneral(seg,val)) return true;
-	Bitu addsp=use32?0x04:0x02;
-	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+addsp)&cpu.stack.mask);
+	Bitu addsp = use32 ? 0x04 : 0x02;
+	//Calculate this beforehand since the stack mask might change
+	uint32_t new_esp  = (reg_esp&cpu.stack.notmask) | ((reg_esp + addsp)&cpu.stack.mask);
+	if (CPU_SetSegGeneral(seg,(uint16_t)val)) return true;
+	reg_esp = new_esp;
 	return false;
 }
 
 extern bool enable_fpu;
 
 bool CPU_CPUID(void) {
+	/* NTS: This function must return false ONLY if CPUID is not supported.
+	 *      Otherwise, it must always return true even if it doesn't recognize
+	 *      the value of reg_eax. */
 	if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) return false;
+
 	switch (reg_eax) {
-	case 0:	/* Vendor ID String and maximum level? */
-		reg_eax=1;  /* Maximum level */ 
-		reg_ebx='G' | ('e' << 8) | ('n' << 16) | ('u'<< 24); 
-		reg_edx='i' | ('n' << 8) | ('e' << 16) | ('I'<< 24); 
-		reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24); 
-		break;
-	case 1:	/* get processor type/family/model/stepping and feature flags */
-		if ((CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) ||
-			(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED)) {
-			reg_eax=0x402;		/* intel 486dx */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=enable_fpu?1:0;	/* FPU */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM) {
-			reg_eax=0x513;		/* intel pentium */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
-			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-            if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_P55CSLOW) {
-			reg_eax=0x543;		/* intel pentium mmx (P55C) */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
-			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-            if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
-			reg_eax=0x612;		/* intel pentium pro */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
-		} else {
-			return false;
-		}
-		break;
-	default:
-		LOG(LOG_CPU,LOG_ERROR)("Unhandled CPUID Function %x",reg_eax);
-		reg_eax=0;
-		reg_ebx=0;
-		reg_ecx=0;
-		reg_edx=0;
-		break;
+		case 0:	/* Vendor ID String and maximum level? */
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
+				reg_eax=3;  /* Maximum level */
+			else
+				reg_eax=1;  /* Maximum level */
+			if (cpu_custom_cpuid[0] != 0) {
+				reg_ebx=cpu_custom_cpuid[0] | (cpu_custom_cpuid[1] << 8) | (cpu_custom_cpuid[ 2] << 16) | (cpu_custom_cpuid[ 3] << 24);
+				reg_edx=cpu_custom_cpuid[4] | (cpu_custom_cpuid[5] << 8) | (cpu_custom_cpuid[ 6] << 16) | (cpu_custom_cpuid[ 7] << 24);
+				reg_ecx=cpu_custom_cpuid[8] | (cpu_custom_cpuid[9] << 8) | (cpu_custom_cpuid[10] << 16) | (cpu_custom_cpuid[11] << 24);
+			}
+			else {
+				reg_ebx='G' | ('e' << 8) | ('n' << 16) | ('u'<< 24);
+				reg_edx='i' | ('n' << 8) | ('e' << 16) | ('I'<< 24);
+				reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24);
+			}
+			break;
+		case 1:	/* get processor type/family/model/stepping and feature flags */
+			if ((CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) ||
+					(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED)) {
+				reg_eax=enable_fpu?0x402:0x422; /* intel 486dx or 486sx */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=enable_fpu?1:0;	/* FPU */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM) {
+				reg_eax=report_fdiv_bug?0x513:0x517;	/* intel pentium */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW) {
+				reg_eax=0x543;		/* intel pentium mmx (PMMX) */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
+				reg_eax=0x612;		/* intel pentium pro */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII) {
+				/* NTS: Most operating systems will not attempt SYSENTER/SYSEXIT unless this returns model 3, stepping 3, or higher. */
+				/* From Intel [https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-2b-manual.pdf]:
+				 *
+				 * "The SYSENTER and SYSEXIT instructions were introduced into the IA-32 architecture in the Pentium II processor."
+				 *
+				 * "An operating system that qualifies the SEP flag must also qualify the processor family and model to ensure that
+				 * the SYSENTER/SYSEXIT instructions are actually present"
+				 *
+				 * "When the CPUID instruction is executed on the Pentium Pro processor (model 1), the processor returns a the SEP
+				 * flag as set, but does not support the SYSENTER/SYSEXIT instructions."
+				 *
+				 * Therefore, always return with bit 11 (SEP) set whether or not SYSCALL is enabled because Intel made a stupid mistake.
+				 *
+				 * This website [https://www.geoffchappell.com/studies/windows/km/cpu/sep.htm?tx=256] notes how the Windows NT kernel
+				 * follows this rule, and the Linux kernel does too */
+				reg_eax=enable_syscall?0x633:0x631; /* intel pentium II */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x00808011;	/* FPU+TimeStamp/RDTSC */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+				reg_eax=0x643; /* intel pentium III */
+				reg_ebx=0x0002;			/* brand */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x03808011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+				if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
+				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
+			}
+			break;
+		case 2: /* Processor Configuration Descriptor(s) */
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII) {
+				/* NTS: Windows XP considers these values SOOOOO IMPORTANT that if we don't return any here
+				 *      the NT kernel will just spin endlessly in an infinite loop with interrupts disabled
+				 *      instead of, you know, booting up. But only if it sees a Pentium III. */
+				reg_eax=0x00004301; /* AL=1 desc 43h */
+				reg_ebx=0x00000000;
+				reg_ecx=0x00000000;
+				reg_edx=0x00000000;
+			}
+			else {
+				reg_eax=0x00000000;
+				reg_ebx=0x00000000;
+				reg_ecx=0x00000000;
+				reg_edx=0x00000000;
+			}
+			break;
+		case 3: /* Processor Serial Number */
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) {
+				reg_eax = 0;
+				reg_ebx = 0;
+				reg_ecx = p3psn.lo;
+				reg_edx = p3psn.hi;
+			}
+			break;
+		default:
+			LOG(LOG_CPU,LOG_ERROR)("Unhandled CPUID Function %x",reg_eax);
+			reg_eax=0;
+			reg_ebx=0;
+			reg_ecx=0;
+			reg_edx=0;
+			break;
 	}
+
 	return true;
+}
+
+/* this is used by dynamic core as a workaround for sending the reset signal into the emulator
+ * because C++ exceptions don't work from within dynamically generated code. */
+int reset_decode_signal = 0;
+Bits Reset_Decode(void) {
+	LOG_MSG("CPU: It is now safe to send reset signal");
+	cpudecoder = cpu.hlt.old_decoder;
+	throw int(reset_decode_signal);
+	return 0;
+}
+
+void CPU_SetResetSignal(int x) {
+	LOG_MSG("CPU: Queuing reset signal, to send when dynamic core has completed execution.");
+	reset_decode_signal = x;
+	cpu.hlt.old_decoder = cpudecoder;
+	cpudecoder = &Reset_Decode;
+	CPU_Cycles = 0;
+}
+
+bool CPU_DynamicCoreCannotUseCPPExceptions(void) {
+#if C_DYNAMIC_X86
+	if (cpudecoder == &CPU_Core_Dyn_X86_Run)
+		return true;
+#endif
+#if C_DYNREC
+	if (cpudecoder == &CPU_Core_Dynrec_Run)
+		return true;
+#endif
+	return false;
 }
 
 Bits HLT_Decode(void) {
@@ -2557,11 +3243,15 @@ Bits HLT_Decode(void) {
 	return 0;
 }
 
-void CPU_HLT(Bitu oldeip) {
+bool CPU_IsHLTed(void) {
+	return (cpudecoder == &HLT_Decode);
+}
+
+void CPU_HLT(uint32_t oldeip) {
 	/* Since cpu.hlt.old_decoder assigns the current decoder to old, and relies on restoring
 	 * it back when finished, setting cpudecoder to HLT_Decode while already HLT_Decode effectively
-	 * hangs DOSBox and makes it complete unresponsive. Don't want that! */
-	if (cpudecoder == &HLT_Decode) E_Exit("CPU_HLT attempted to set HLT_Decode while CPU decoder already HLT_Decode");
+	 * hangs DOSBox-X and makes it complete unresponsive. Don't want that! */
+	if (cpudecoder == &HLT_Decode) E_Exit("CPU_HLT attempted to set HLT_Decode while CPU decoder already HLT_Decode.\n\nIf you see this message while installing FreeDOS, please use the normal CPU core.");
 
 	reg_eip=oldeip;
 	CPU_IODelayRemoved += CPU_Cycles;
@@ -2574,12 +3264,12 @@ void CPU_HLT(Bitu oldeip) {
 
 void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 	level&=0x1f;
-	Bitu sp_index=reg_esp&cpu.stack.mask;
-	Bitu bp_index=reg_ebp&cpu.stack.mask;
+	uint32_t sp_index=reg_esp&cpu.stack.mask;
+	uint32_t bp_index=reg_ebp&cpu.stack.mask;
 	if (!use32) {
 		sp_index-=2;
 		mem_writew(SegPhys(ss)+sp_index,reg_bp);
-		reg_bp=(Bit16u)(reg_esp-2);
+		reg_bp=(uint16_t)(reg_esp-2);
 		if (level) {
 			for (Bitu i=1;i<level;i++) {	
 				sp_index-=2;bp_index-=2;
@@ -2590,8 +3280,13 @@ void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 		}
 	} else {
 		sp_index-=4;
-        mem_writed(SegPhys(ss)+sp_index,reg_ebp);
-		reg_ebp=(reg_esp-4);
+		mem_writed(SegPhys(ss)+sp_index,reg_ebp);
+
+		/* If 16-bit real mode or stack is 16-bit, even with 66h prefix, mask EBP by 0xFFFF (Fix for Finster by Mad Scientists, 1996).
+		 * This is not how Intel processors work, as verified on real 486 hardware. Unsurprisingly, Finster does not appear to run
+		 * properly on real hardware either, though I can't get the game to get that far. --Jonathan C. */
+		reg_ebp=(reg_esp-4)&(mask_stack_ptr_on_enter?cpu.stack.mask:0xFFFFFFFF);
+
 		if (level) {
 			for (Bitu i=1;i<level;i++) {	
 				sp_index-=4;bp_index-=4;
@@ -2601,36 +3296,54 @@ void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 			mem_writed(SegPhys(ss)+sp_index,reg_ebp);
 		}
 	}
-	sp_index-=bytes;
-	reg_esp=(reg_esp&cpu.stack.notmask)|((sp_index)&cpu.stack.mask);
+	sp_index-=(uint32_t)bytes;
+	reg_esp=(reg_esp&cpu.stack.notmask)|(sp_index&cpu.stack.mask);
+}
+
+void CPU_SyncCycleMaxToProp(void) {
+    char tmp[64];
+
+    Section* sec=control->GetSection("cpu");
+	const Section_prop * secprop = static_cast<Section_prop *>(sec);
+    Prop_multival* p = secprop->Get_multival("cycles");
+    Property* prop = p->GetSection()->Get_prop("type");
+    sprintf(tmp,"%llu",(unsigned long long)CPU_CycleMax);
+    prop->SetValue(tmp);
 }
 
 void CPU_CycleIncrease(bool pressed) {
 	if (!pressed) return;
+
 	if (CPU_CycleAutoAdjust) {
 		CPU_CyclePercUsed+=5;
 		if (CPU_CyclePercUsed>105) CPU_CyclePercUsed=105;
-		LOG_MSG("CPU speed: max %d percent.",CPU_CyclePercUsed);
-		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
+		LOG_MSG("CPU speed: max %ld percent.",(unsigned long)CPU_CyclePercUsed);
+		GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 	} else {
-		Bit32s old_cycles=CPU_CycleMax;
+		RDTSC_rebase();
+		int32_t old_cycles= (int32_t)CPU_CycleMax;
 		if (CPU_CycleUp < 100) {
-			CPU_CycleMax = (Bit32s)(CPU_CycleMax * (1 + (float)CPU_CycleUp / 100.0));
+			CPU_CycleMax = (int32_t)(CPU_CycleMax * (1 + (float)CPU_CycleUp / 100.0));
 		} else {
-			CPU_CycleMax = (Bit32s)(CPU_CycleMax + CPU_CycleUp);
+			CPU_CycleMax = (int32_t)(CPU_CycleMax + CPU_CycleUp);
 		}
-	    
+
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax==old_cycles) CPU_CycleMax++;
 		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%d cycles (auto)",CPU_CycleMax);
+		    LOG_MSG("CPU:%ld cycles (auto)",(unsigned long)CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
-		    if(CPU_CycleMax > 15000 )
-			LOG_MSG("CPU speed: fixed %d cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
-			else LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
-		}
-		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+#if (C_DYNAMIC_X86)
+            if (CPU_CycleMax > 15000 && cpudecoder != &CPU_Core_Dyn_X86_Run)
+                LOG_MSG("CPU speed: fixed %ld cycles. If you need more than 20000, try core=dynamic in DOSBox-X's options.",(unsigned long)CPU_CycleMax);
+            else
+// TODO: Add C_DYNREC version
+#endif
+                LOG_MSG("CPU speed: fixed %ld cycles.",(unsigned long)CPU_CycleMax);
+        }
+		GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
+        CPU_SyncCycleMaxToProp();
 	}
 }
 
@@ -2640,50 +3353,54 @@ void CPU_CycleDecrease(bool pressed) {
 		CPU_CyclePercUsed-=5;
 		if (CPU_CyclePercUsed<=0) CPU_CyclePercUsed=1;
 		if(CPU_CyclePercUsed <=70)
-			LOG_MSG("CPU speed: max %d percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",CPU_CyclePercUsed);
+			LOG_MSG("CPU speed: max %ld percent. If the game runs too fast, try a fixed cycles amount in DOSBox-X's options.",(unsigned long)CPU_CyclePercUsed);
 		else
-			LOG_MSG("CPU speed: max %d percent.",CPU_CyclePercUsed);
-		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
+			LOG_MSG("CPU speed: max %ld percent.",(unsigned long)CPU_CyclePercUsed);
+		GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 	} else {
+		RDTSC_rebase();
 		if (CPU_CycleDown < 100) {
-			CPU_CycleMax = (Bit32s)(CPU_CycleMax / (1 + (float)CPU_CycleDown / 100.0));
+			CPU_CycleMax = (int32_t)(CPU_CycleMax / (1 + (float)CPU_CycleDown / 100.0));
 		} else {
-			CPU_CycleMax = (Bit32s)(CPU_CycleMax - CPU_CycleDown);
+			CPU_CycleMax = (int32_t)(CPU_CycleMax - CPU_CycleDown);
 		}
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax <= 0) CPU_CycleMax=1;
 		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%d cycles (auto)",CPU_CycleMax);
+		    LOG_MSG("CPU:%ld cycles (auto)",(unsigned long)CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
-		    LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
+		    LOG_MSG("CPU speed: fixed %ld cycles.",(unsigned long)CPU_CycleMax);
 		}
-		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+		GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
+        CPU_SyncCycleMaxToProp();
 	}
 }
 
 static void CPU_ToggleAutoCycles(bool pressed) {
     if (!pressed)
-	return;
+        return;
+
     Section* sec=control->GetSection("cpu");
-    if(sec) {
-	std::string tmp("cycles=");
-	if(CPU_CycleAutoAdjust) {
-	    std::ostringstream str;
-	    str << "fixed " << CPU_CyclesSet;
-	    tmp.append(str.str());
-	} else if(CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-	    tmp.append("max");
-	} else {
-	    tmp.append("auto");
-	}
-	sec->HandleInputline(tmp);
+    if (sec) {
+        std::string tmp("cycles=");
+        if (CPU_CycleAutoAdjust) {
+            std::ostringstream str;
+            str << "fixed " << CPU_CyclesSet;
+            tmp.append(str.str());
+        } else if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
+            tmp.append("max");
+        } else {
+            tmp.append("auto");
+        }
+
+        sec->HandleInputline(tmp);
     }
 }
 
+#if !defined(C_EMSCRIPTEN)
 static void CPU_ToggleFullCore(bool pressed) {
-    if (!pressed)
-	return;
+    if (!pressed) return;
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=full";
@@ -2691,9 +3408,18 @@ static void CPU_ToggleFullCore(bool pressed) {
     }
 }
 
+static void CPU_ToggleSimpleCore(bool pressed) {
+    if (!pressed) return;
+    Section* sec=control->GetSection("cpu");
+    if(sec) {
+	std::string tmp="core=simple";
+	sec->HandleInputline(tmp);
+    }
+}
+#endif
+
 static void CPU_ToggleNormalCore(bool pressed) {
-    if (!pressed)
-	return;
+    if (!pressed) return;
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=normal";
@@ -2701,30 +3427,23 @@ static void CPU_ToggleNormalCore(bool pressed) {
     }
 }
 
-#if (C_DYNAMIC_X86)
+#if (C_DYNAMIC_X86) || (C_DYNREC)
 static void CPU_ToggleDynamicCore(bool pressed) {
-    if (!pressed)
-	return;
+    if (!pressed) return;
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=dynamic";
+#if (C_DYNAMIC_X86) && (C_DYNREC)
+	if (save_dynamic_rec) tmp="core=dynamic_rec";
+#endif
 	sec->HandleInputline(tmp);
     }
 }
 #endif
 
-static void CPU_ToggleSimpleCore(bool pressed) {
-    if (!pressed)
-	return;
-    Section* sec=control->GetSection("cpu");
-    std::string tmp="core=simple";
-    if(sec) {
-	sec->HandleInputline(tmp);
-    }
-}
-
 void CPU_Enable_SkipAutoAdjust(void) {
 	if (CPU_CycleAutoAdjust) {
+		RDTSC_rebase();
 		CPU_CycleMax /= 2;
 		if (CPU_CycleMax < CPU_CYCLES_LOWER_LIMIT)
 			CPU_CycleMax = CPU_CYCLES_LOWER_LIMIT;
@@ -2737,8 +3456,8 @@ void CPU_Disable_SkipAutoAdjust(void) {
 }
 
 
-extern Bit32s ticksDone;
-extern Bit32u ticksScheduled;
+extern int32_t ticksDone;
+extern uint32_t ticksScheduled;
 extern int dynamic_core_cache_block_size;
 
 void CPU_Reset_AutoAdjust(void) {
@@ -2756,44 +3475,104 @@ public:
 	~Weitek_PageHandler() {
 	}
 
-	Bitu readb(PhysPt addr);
-	void writeb(PhysPt addr,Bitu val);
-	Bitu readw(PhysPt addr);
-	void writew(PhysPt addr,Bitu val);
-	Bitu readd(PhysPt addr);
-	void writed(PhysPt addr,Bitu val);
+	uint8_t readb(PhysPt addr) override;
+	void writeb(PhysPt addr,uint8_t val) override;
+	uint16_t readw(PhysPt addr) override;
+	void writew(PhysPt addr,uint16_t val) override;
+	uint32_t readd(PhysPt addr) override;
+	void writed(PhysPt addr,uint32_t val) override;
 };
 
-Bitu Weitek_PageHandler::readb(PhysPt addr) {
-    LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
-	return (Bitu)-1;
+uint8_t Weitek_PageHandler::readb(PhysPt addr) {
+	LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
+	return (uint8_t)-1;
 }
-void Weitek_PageHandler::writeb(PhysPt addr,Bitu val) {
-    LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
-}
-
-Bitu Weitek_PageHandler::readw(PhysPt addr) {
-    LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
-	return (Bitu)-1;
+void Weitek_PageHandler::writeb(PhysPt addr,uint8_t val) {
+	LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
-void Weitek_PageHandler::writew(PhysPt addr,Bitu val) {
-    LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+uint16_t Weitek_PageHandler::readw(PhysPt addr) {
+	LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
+	return (uint16_t)-1;
 }
 
-Bitu Weitek_PageHandler::readd(PhysPt addr) {
-    LOG_MSG("Weitek stub: readd at 0x%lx",(unsigned long)addr);
-	return (Bitu)-1;
+void Weitek_PageHandler::writew(PhysPt addr,uint16_t val) {
+	LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
-void Weitek_PageHandler::writed(PhysPt addr,Bitu val) {
-    LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+uint32_t Weitek_PageHandler::readd(PhysPt addr) {
+	LOG_MSG("Weitek stub: readd at 0x%lx",(unsigned long)addr);
+	return (uint32_t)-1;
 }
 
-Weitek_PageHandler weitek_pagehandler(0);
+void Weitek_PageHandler::writed(PhysPt addr,uint32_t val) {
+	LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+}
+
+Weitek_PageHandler weitek_pagehandler(nullptr);
 
 PageHandler* weitek_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+    (void)co; // UNUSED
+    (void)phys_page; // UNUSED
     return &weitek_pagehandler;
+}
+
+bool CpuType_Auto(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    Section* sec=control->GetSection("cpu");
+    if (sec) sec->HandleInputline("cputype=auto");
+    return true;
+}
+
+bool CpuType_ByName(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
+    const char *name = menuitem->get_name().c_str();
+
+    /* name should be cputype_... */
+    if (!strncmp(name,"cputype_",8)) name += 8;
+    else abort();
+
+    Section* sec=control->GetSection("cpu");
+    if (sec) sec->HandleInputline(std::string("cputype=")+name);
+    return true;
+}
+
+static int pcpu_type = -1;
+
+static MEM_Callout_t weitek_lfb_cb = MEM_Callout_t_none;
+static Bitu weitek_lfb = 0xC0000000UL;
+static Bitu weitek_lfb_pages = 0x2000000UL >> 12UL; /* "The coprocessor will respond to memory addresses 0xC0000000-0xC1FFFFFF" */
+
+void Weitek_Init() {
+	// weitek coprocessor emulation?
+	if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
+		const Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+		enable_weitek = dsection->Get_bool("weitek");
+		if (enable_weitek) {
+			LOG_MSG("Weitek coprocessor emulation enabled");
+
+			if (weitek_lfb_cb == MEM_Callout_t_none) {
+				weitek_lfb_cb = MEM_AllocateCallout(MEM_TYPE_MB);
+				if (weitek_lfb_cb == MEM_Callout_t_none) E_Exit("Unable to allocate weitek cb for LFB");
+			}
+
+			{
+				MEM_CalloutObject *cb = MEM_GetCallout(weitek_lfb_cb);
+
+				assert(cb != NULL);
+				cb->Uninstall();
+				cb->Install(weitek_lfb>>12UL,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(weitek_lfb_pages)),weitek_memio_cb);
+
+				MEM_PutCallout(cb);
+			}
+		}
+	}
+	else {
+		enable_weitek = false;
+	}
 }
 
 class CPU: public Module_base {
@@ -2801,10 +3580,11 @@ private:
 	static bool inited;
 public:
 	CPU(Section* configuration):Module_base(configuration) {
-		Section_prop * section=static_cast<Section_prop *>(configuration);
+		const Section_prop * section=static_cast<Section_prop *>(configuration);
+		DOSBoxMenu::item *item;
 
 		if(inited) {
-			Change_Config(configuration);
+			CPU::Change_Config(configuration);
 			return;
 		}
 //		Section_prop * section=static_cast<Section_prop *>(configuration);
@@ -2818,18 +3598,22 @@ public:
 		reg_ebp=0;
 		reg_esp=0;
 
+		do_lds_wraparound = section->Get_bool("lds wraparound");
 		do_seg_limits = section->Get_bool("segment limits");
 	
-		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[cs] = false;
-		SegSet16(ds,0); Segs.limit[ds] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[ds] = false;
-		SegSet16(es,0); Segs.limit[es] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[es] = false;
-		SegSet16(fs,0); Segs.limit[fs] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[fs] = false;
-		SegSet16(gs,0); Segs.limit[gs] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[gs] = false;
-		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[ss] = false;
+		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[cs] = false;
+		SegSet16(ds,0); Segs.limit[ds] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ds] = false;
+		SegSet16(es,0); Segs.limit[es] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[es] = false;
+		SegSet16(fs,0); Segs.limit[fs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[fs] = false;
+		SegSet16(gs,0); Segs.limit[gs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[gs] = false;
+		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ss] = false;
 	
 		CPU_SetFlags(FLAG_IF,FMASK_ALL);		//Enable interrupts
-		cpu.cr0=0xffffffff;
+		fpu.mxcsr=0x1F80; // The default MXCSR value is... [https://www.felixcloutier.com/x86/ldmxcsr]
+		cpu.cr0=0x00000000;
+		cpu.cr4=0xffffffff;
 		CPU_SET_CRX(0,0);						//Initialize
+		CPU_SET_CRX(4,0);
 		cpu.code.big=false;
 		cpu.stack.mask=0xffff;
 		cpu.stack.notmask=0xffff0000;
@@ -2851,36 +3635,121 @@ public:
 
 		/* Init the cpu cores */
 		CPU_Core_Normal_Init();
+#if !defined(C_EMSCRIPTEN)
 		CPU_Core_Simple_Init();
 		CPU_Core_Full_Init();
+#endif
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Init();
 #endif
-		MAPPER_AddHandler(CPU_CycleDecrease,MK_f11,MMOD1,"cycledown","Dec Cycles");
-		MAPPER_AddHandler(CPU_CycleIncrease,MK_f12,MMOD1,"cycleup"  ,"Inc Cycles");
-		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_equals,MMOD1,"cycauto","Tog. Cycles Auto");
-		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_1,MMOD1,"normal"  ,"Tog. Normal Core");
-		MAPPER_AddHandler(CPU_ToggleFullCore,MK_2,MMOD1,"full","Tog. Full Core");
-#if (C_DYNAMIC_X86)
-		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_3,MMOD1,"dynamic","Tog. Dyn. Core");
+#if (C_DYNREC)
+		CPU_Core_Dynrec_Init();
 #endif
-		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_4,MMOD1,"simple","Tog. Simple Core");
-		Change_Config(configuration);	
+
+		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_nothing,0,"cycauto","Toggle auto cycles",&item);
+		item->set_text("Auto cycles");
+		item->set_description("Enable automatic cycle count");
+
+		MAPPER_AddHandler(CPU_CycleDecrease,MK_minus,MMODHOST,"cycledown","Decrement cycles",&item);
+		item->set_text("Decrement cycles");
+
+		MAPPER_AddHandler(CPU_CycleIncrease,MK_equals,MMODHOST,"cycleup","Increment cycles",&item);
+		item->set_text("Increment cycles");
+
+		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"CPU: normal core", &item);
+		item->set_text("Normal core");
+
+#if (C_DYNAMIC_X86) || (C_DYNREC)
+		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","CPU: dynamic core",&item);
+		item->set_text("Dynamic core");
+#endif
+#if !defined(C_EMSCRIPTEN)
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","CPU: simple core",&item);
+		item->set_text("Simple core");
+		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","CPU: full core",&item);
+		item->set_text("Full core");
+#endif
+
+		/* these are not mapper shortcuts, and probably should not be mapper shortcuts */
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_auto").
+			set_text("Auto").set_callback_function(CpuType_Auto);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086").
+			set_text("8086").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086_prefetch").
+			set_text("8086 with prefetch").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_80186").
+			set_text("80186").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_80186_prefetch").
+			set_text("80186 with prefetch").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_286").
+			set_text("286").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_286_prefetch").
+			set_text("286 with prefetch").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_386").
+			set_text("386").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_386_prefetch").
+			set_text("386 with prefetch").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486old").
+			set_text("486 (old)").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486old_prefetch").
+			set_text("486 (old) with prefetch").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486").
+			set_text("486").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486_prefetch").
+			set_text("486 with prefetch").set_callback_function(CpuType_ByName);
+
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium").
+			set_text("Pentium").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_mmx").
+			set_text("Pentium MMX").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_ppro_slow").
+			set_text("Pentium Pro").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_ii").
+			set_text("Pentium II").set_callback_function(CpuType_ByName);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_iii").
+			set_text("Pentium III").set_callback_function(CpuType_ByName);
+
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_experimental").
+			set_text("Experimental").set_callback_function(CpuType_ByName);
+
+		do_pse = false;
+		enable_pse = false;
+
+		CPU::Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
+		menu_update_dynamic();
+
+		if(CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) {
+			cpu.cr4 = 0;
+		}
 	}
-	bool Change_Config(Section* newconfig){
-		Section_prop * section=static_cast<Section_prop *>(newconfig);
+	bool Change_Config(Section* newconfig) override {
+		const Section_prop * section=static_cast<Section_prop *>(newconfig);
 		CPU_AutoDetermineMode=CPU_AUTODETERMINE_NONE;
 		//CPU_CycleLeft=0;//needed ?
 		CPU_Cycles=0;
 		CPU_SkipCycleAutoAdjust=false;
 
-		dosbox_enable_nonrecursive_page_fault = section->Get_bool("non-recursive page fault");
+		report_fdiv_bug = section->Get_bool("report fdiv bug");
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
+		dos_clear_tf_on_int01 = section->Get_bool("clear trap flag on unhandled int 1");
 		cpu_allow_big16 = section->Get_bool("realbig16");
-		if (cpu_allow_big16) LOG(LOG_CPU,LOG_DEBUG)("Emulation of the B (big) bit in real mode enabled\n");
+
+		const char *dynamic_core_paging = section->Get_string("use dynamic core with paging on");
+		auto_determine_dynamic_core_paging = !strlen(dynamic_core_paging) || !strcasecmp(dynamic_core_paging, "auto") || !strcasecmp(dynamic_core_paging, "-1");
+		if (auto_determine_dynamic_core_paging) {
+			int coretype=CPU_IsDynamicCore();
+			use_dynamic_core_with_paging = coretype==1?PAGING_Enabled()&&dos_kernel_disabled:(coretype==2?PAGING_Enabled()&&!dos_kernel_disabled:PAGING_Enabled());
+		} else {
+			use_dynamic_core_with_paging = !strcasecmp(dynamic_core_paging, "true") || !strcasecmp(dynamic_core_paging, "1");
+		}
+
+		if (cpu_allow_big16) {
+			/* FIXME: GCC 4.8: How is this an empty body? Explain. */
+			LOG(LOG_CPU,LOG_DEBUG)("Emulation of the B (big) bit in real mode enabled\n");
+		}
 
 		always_report_double_fault = section->Get_bool("always report double fault");
 		always_report_triple_fault = section->Get_bool("always report triple fault");
@@ -2891,23 +3760,24 @@ public:
 		Prop_multival* p = section->Get_multival("cycles");
 		std::string type = p->GetSection()->Get_string("type");
 		std::string str ;
-		CommandLine cmd(0,p->GetSection()->Get_string("parameters"));
+		CommandLine cmd(nullptr,p->GetSection()->Get_string("parameters"));
 		if (type=="max") {
+			RDTSC_rebase();
 			CPU_CycleMax=0;
 			CPU_CyclePercUsed=100;
 			CPU_CycleAutoAdjust=true;
 			CPU_CycleLimit=-1;
 			for (Bitu cmdnum=1; cmdnum<=cmd.GetCount(); cmdnum++) {
-				if (cmd.FindCommand(cmdnum,str)) {
+				if (cmd.FindCommand((unsigned int)cmdnum,str)) {
 					if (str.find('%')==str.length()-1) {
 						str.erase(str.find('%'));
 						int percval=0;
 						std::istringstream stream(str);
 						stream >> percval;
-						if ((percval>0) && (percval<=105)) CPU_CyclePercUsed=(Bit32s)percval;
+						if ((percval>0) && (percval<=105)) CPU_CyclePercUsed=(int32_t)percval;
 					} else if (str=="limit") {
 						cmdnum++;
-						if (cmd.FindCommand(cmdnum,str)) {
+						if (cmd.FindCommand((unsigned int)cmdnum,str)) {
 							int cyclimit=0;
 							std::istringstream stream(str);
 							stream >> cyclimit;
@@ -2918,21 +3788,22 @@ public:
 			}
 		} else {
 			if (type=="auto") {
+				RDTSC_rebase();
 				CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CYCLES;
 				CPU_CycleMax=3000;
 				CPU_OldCycleMax=3000;
 				CPU_CyclePercUsed=100;
 				for (Bitu cmdnum=0; cmdnum<=cmd.GetCount(); cmdnum++) {
-					if (cmd.FindCommand(cmdnum,str)) {
+					if (cmd.FindCommand((unsigned int)cmdnum,str)) {
 						if (str.find('%')==str.length()-1) {
 							str.erase(str.find('%'));
 							int percval=0;
 							std::istringstream stream(str);
 							stream >> percval;
-							if ((percval>0) && (percval<=105)) CPU_CyclePercUsed=(Bit32s)percval;
+							if ((percval>0) && (percval<=105)) CPU_CyclePercUsed=(int32_t)percval;
 						} else if (str=="limit") {
 							cmdnum++;
-							if (cmd.FindCommand(cmdnum,str)) {
+							if (cmd.FindCommand((unsigned int)cmdnum,str)) {
 								int cyclimit=0;
 								std::istringstream stream(str);
 								stream >> cyclimit;
@@ -2943,8 +3814,9 @@ public:
 							std::istringstream stream(str);
 							stream >> rmdval;
 							if (rmdval>0) {
-								CPU_CycleMax=(Bit32s)rmdval;
-								CPU_OldCycleMax=(Bit32s)rmdval;
+								RDTSC_rebase();
+								CPU_CycleMax=(int32_t)rmdval;
+								CPU_OldCycleMax=(int32_t)rmdval;
 							}
 						}
 					}
@@ -2954,81 +3826,102 @@ public:
 				int rmdval=0;
 				std::istringstream stream(str);
 				stream >> rmdval;
-				CPU_CycleMax=(Bit32s)rmdval;
+				RDTSC_rebase();
+				CPU_CycleMax=(int32_t)rmdval;
 			} else {
 				std::istringstream stream(type);
 				int rmdval=0;
 				stream >> rmdval;
-				if(rmdval) CPU_CycleMax=(Bit32s)rmdval;
-				if(rmdval) CPU_CyclesSet=(Bit32s)rmdval;
+				if(rmdval) {
+					RDTSC_rebase();
+					CPU_CycleMax=(int32_t)rmdval;
+					CPU_CyclesSet=(int32_t)rmdval;
+				}
 			}
 			CPU_CycleAutoAdjust=false;
 		}
 
-		enable_fpu=section->Get_bool("fpu");
+		menu_update_autocycle();
+
 		cpu_rep_max=section->Get_int("interruptible rep string op");
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
-        enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
+		enable_syscall=section->Get_bool("enable syscall");
+		enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
 		cpudecoder=&CPU_Core_Normal_Run;
 		safe_strncpy(core_mode,core.c_str(),15);
+
+		if (enable_syscall && !enable_msr) {
+			UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("syscall (SYSENTER/SYSEXIT) requires that model specific registers (RDMSR/WRMSR) are enabled");
+			enable_syscall = false;
+		}
+
 		core_mode[15] = '\0';
 		if (core == "normal") {
 			cpudecoder=&CPU_Core_Normal_Run;
 		} else if (core =="simple") {
+#if defined(C_EMSCRIPTEN)
+			cpudecoder=&CPU_Core_Normal_Run;
+#else
 			cpudecoder=&CPU_Core_Simple_Run;
+#endif
 		} else if (core == "full") {
+#if defined(C_EMSCRIPTEN)
+			cpudecoder=&CPU_Core_Normal_Run;
+#else
 			cpudecoder=&CPU_Core_Full_Run;
+#endif
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
-#if (C_DYNAMIC_X86)
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
-		}
-		else if (core == "dynamic") {
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-
+			mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+#if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
+			mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+#endif
+#if (C_DYNAMIC_X86)
+		} else if ((core == "dynamic" && GetDynamicType()==1) || core == "dynamic_x86") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(true);
 		} else if (core == "dynamic_nodhfpu") {
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(false);
-#else
+#endif
+#if (C_DYNREC)
+		} else if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec") {
+			cpudecoder=&CPU_Core_Dynrec_Run;
 #endif
 		} else {
 			strcpy(core_mode,"normal");
+			cpudecoder=&CPU_Core_Normal_Run;
 			LOG_MSG("CPU:Unknown core type %s, switching back to normal.",core.c_str());
 		}
-  
 
 #if (C_DYNAMIC_X86)
-		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
+		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic" && GetDynamicType()==1) || (core == "dynamic_x86") || (core == "dynamic_nodhfpu"));
+#endif
+#if (C_DYNREC)
+		CPU_Core_Dynrec_Cache_Init((core == "dynamic" && GetDynamicType()==2) || (core == "dynamic_rec"));
 #endif
 
 		CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 		std::string cputype(section->Get_string("cputype"));
 		if (cputype == "auto") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+		} else if (cputype == "experimental") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_EXPERIMENTAL;
 		} else if (cputype == "8086") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
 			cpudecoder=&CPU_Core8086_Normal_Run;
 		} else if (cputype == "8086_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
 			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core8086_Prefetch_Run;
 				CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
 			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core8086_Prefetch_Run;
 				CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
 				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
@@ -3040,10 +3933,10 @@ public:
 		} else if (cputype == "80186_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_80186;
 			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core286_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
 			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core286_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
 				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
@@ -3055,10 +3948,10 @@ public:
 		} else if (cputype == "286_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_286;
 			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core286_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
 			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core286_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
 				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
@@ -3092,13 +3985,100 @@ public:
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
+		} else if (cputype == "486old") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_486OLD;
+		} else if (cputype == "486old_prefetch") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_486OLD;
+			if (core == "normal") {
+				cpudecoder=&CPU_Core_Prefetch_Run;
+				CPU_PrefetchQueueSize = 16;
+			} else if (core == "auto") {
+				cpudecoder=&CPU_Core_Prefetch_Run;
+				CPU_PrefetchQueueSize = 16;
+				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
+			} else {
+				E_Exit("prefetch queue emulation requires the normal core setting.");
+			}
 		} else if (cputype == "pentium") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 		} else if (cputype == "pentium_mmx") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_P55CSLOW;
+#if C_FPU
+			CPU_ArchitectureType = CPU_ARCHTYPE_PMMXSLOW;
+#else
+			E_Exit("Pentium MMX emulation requires FPU emulation, which was not compiled into this binary");
+#endif
 		} else if (cputype == "ppro_slow") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PPROSLOW;
- 		}
+		} else if (cputype == "pentium_ii") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMII;
+		} else if (cputype == "pentium_iii") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMIII;
+		}
+
+		cpu_custom_cpuid[0] = 0;
+
+		CPU_fixed_RDTSC_rate = section->Get_int("rdtsc rate");
+
+		const char *fpus = section->Get_string("fpu");
+
+		{
+			size_t o=0;
+			const char *s = section->Get_string("cpuid string");
+			if (s != NULL && *s != 0) {
+				const char *os = s;
+
+				while (*s != 0 && o < 12) cpu_custom_cpuid[o++] = *s++;
+				while (o < 12) cpu_custom_cpuid[o++] = ' ';
+
+				if (*s != 0 && o == 12)
+					LOG_MSG("WARNING: CPUID string '%s' truncated. Maximum 12 characters",os);
+			}
+		}
+
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD)
+			FPU_ArchitectureType = FPU_ARCHTYPE_BEST;
+		else if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
+			FPU_ArchitectureType = FPU_ARCHTYPE_387;
+		else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286)
+			FPU_ArchitectureType = FPU_ARCHTYPE_287;
+		else
+			FPU_ArchitectureType = FPU_ARCHTYPE_8087;
+
+		if (!strcmp(fpus,"true") || !strcmp(fpus,"1"))
+			enable_fpu=true;
+		else if (!strcmp(fpus,"false") || !strcmp(fpus,"0"))
+			enable_fpu=false;
+		else if (!strcmp(fpus,"auto"))
+			enable_fpu=(CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD);
+		else if (!strcmp(fpus,"8087"))
+			{ enable_fpu=true; FPU_ArchitectureType = FPU_ARCHTYPE_8087; }
+		else if (!strcmp(fpus,"287"))
+			{ enable_fpu=true; FPU_ArchitectureType = FPU_ARCHTYPE_287; }
+		else if (!strcmp(fpus,"387"))
+			{ enable_fpu=true; FPU_ArchitectureType = FPU_ARCHTYPE_387; }
+		else
+			enable_fpu=true;
+
+		if (enable_fpu) {
+			if (CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD) {
+				if (FPU_ArchitectureType < FPU_ARCHTYPE_BEST) {
+					LOG_MSG("WARNING: 486 or higher with 387 or lower FPU is an unusual combination");
+				}
+			}
+			else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286) {
+				if (FPU_ArchitectureType == FPU_ARCHTYPE_8087 || FPU_ArchitectureType > FPU_ARCHTYPE_387) {
+					LOG_MSG("WARNING: 286/386 with either 8087 or higher than 387 is an unusual combination");
+				}
+			}
+			else { /* 8086/80186 */
+				if (FPU_ArchitectureType >= FPU_ARCHTYPE_287) {
+					LOG_MSG("WARNING: 8086/80186 with anything higher than 8087 is an unusual combination");
+				}
+			}
+		}
+
+		if (!enable_fpu && (cputype == "pentium" || cputype == "pentium_mmx" || cputype == "ppro_slow" || cputype == "pentium_ii"))
+			LOG_MSG("WARNING: Disabling FPU support for this CPU type is unusual, may confuse DOS programs");
 
 		/* WARNING */
 		if (CPU_ArchitectureType == CPU_ARCHTYPE_8086) {
@@ -3108,61 +4088,173 @@ public:
 			LOG_MSG("CPU warning: 80186 cpu type is experimental at this time");
 		}
 
-		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
-		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
-		else CPU_extflags_toggle=0;
+		{
+			const char *pse = section->Get_string("enable pse");
+			if (!strcmp(pse,"pse40")) {
+				enable_pse = true;
+				enable_pse_extbits = 8;
+			}
+			else if (!strcmp(pse,"pse36")) {
+				enable_pse = true;
+				enable_pse_extbits = 4;
+			}
+			else if (!strcmp(pse,"pse")) {
+				enable_pse = true;
+				enable_pse_extbits = 0;
+			}
+			else if (!strcmp(pse,"none") || !strcmp(pse,"false")) {
+				enable_pse = false;
+			}
+			else {
+				/* auto/true */
+				if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMII) {
+					enable_pse = true;
+					enable_pse_extbits = 4; // 36-bit
+				}
+				else if (CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) {
+					enable_pse = true;
+					enable_pse_extbits = 0;
+				}
+				else {
+					enable_pse = false;
+				}
+			}
 
-		if (cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run) {
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
+			if (enable_pse_extbits != 0)
+				enable_pse_extmask = (1u << enable_pse_extbits) - 1u;
+			else
+				enable_pse_extmask = 0;
+
+			LOG(LOG_CPU,LOG_DEBUG)("PSE extensions: enabled=%u bits=%u",enable_pse,enable_pse_extbits);
+		}
+
+		/* because of the way the BIOS writes certain entry points, a reboot is required
+		 * if changing between specific levels of CPU. These entry points will fault the
+		 * CPU otherwise. */
+		bool reboot_now = false;
+
+		if (pcpu_type >= 0 && pcpu_type != CPU_ArchitectureType) {
+			if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
+				if (pcpu_type < CPU_ARCHTYPE_386) /* from 8086/286, to 386+ */
+					reboot_now = true;
+			}
+			else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286) {
+				if (pcpu_type >= CPU_ARCHTYPE_386) /* from 386, to 286 */
+					reboot_now = true;
+				else if (pcpu_type < CPU_ARCHTYPE_286) /* from 8086, to 286 */
+					reboot_now = true;
+			}
+			else if (CPU_ArchitectureType >= CPU_ARCHTYPE_80186) {
+				if (pcpu_type >= CPU_ARCHTYPE_286) /* from 286, to 80186 */
+					reboot_now = true;
+				else if (pcpu_type < CPU_ARCHTYPE_80186) /* from 8086, to 80186 */
+					reboot_now = true;
+			}
+			else if (CPU_ArchitectureType >= CPU_ARCHTYPE_8086) {
+				if (pcpu_type >= CPU_ARCHTYPE_80186) /* from 186, to 8086 */
+					reboot_now = true;
 			}
 		}
 
-    // weitek coprocessor emulation?
-        if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
-	        Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
+		pcpu_type = CPU_ArchitectureType;
 
-            enable_weitek = dsection->Get_bool("weitek");
-            if (enable_weitek) {
-                LOG_MSG("Weitek coprocessor emulation enabled");
+		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
+		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=FLAG_AC;
+		else CPU_extflags_toggle=0;
 
-                static Bitu weitek_lfb = 0xC0000000UL;
-                static Bitu weitek_lfb_pages = 0x2000000UL >> 12UL; /* "The coprocessor will respond to memory addresses 0xC0000000-0xC1FFFFFF" */
-                static MEM_Callout_t weitek_lfb_cb = MEM_Callout_t_none;
+		const char *raw_psn = section->Get_string("processor serial number");
+		if (*raw_psn && CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII) {
+			const char *scan = raw_psn;
+			uint16_t w[4];
+			int c=0;
 
-                if (weitek_lfb_cb == MEM_Callout_t_none) {
-                    weitek_lfb_cb = MEM_AllocateCallout(MEM_TYPE_MB);
-                    if (weitek_lfb_cb == MEM_Callout_t_none) E_Exit("Unable to allocate weitek cb for LFB");
-                }
+			while (*scan != 0 && c < 4) {
+				if (*scan == ' ') {
+					scan++;
+				}
+				else if (*scan == '-') {
+					scan++;
+				}
+				else if (isxdigit(*scan)) {
+					w[c++] = strtoul(scan,(char**)(&scan),16);
+				}
+				else {
+					break;
+				}
+			}
 
-                {
-                    MEM_CalloutObject *cb = MEM_GetCallout(weitek_lfb_cb);
+			while (c < 4) w[c++] = 0;
 
-                    assert(cb != NULL);
-
-                    cb->Uninstall();
-
-                    cb->Install(weitek_lfb>>12UL,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(weitek_lfb_pages)),weitek_memio_cb);
-
-                    MEM_PutCallout(cb);
-                }
-            }
-        }
-        else {
-            enable_weitek = false;
-        }
+			p3psn.hi  = (w[0] << 16u) + w[1];
+			p3psn.lo  = (w[2] << 16u) + w[3];
+			p3psn.enabled = true;
+		}
+		else {
+			p3psn.enabled = false;
+		}
 
 		if (cpu_rep_max < 0) cpu_rep_max = 4;	/* compromise to help emulation speed without too much loss of accuracy */
 
+		RDTSC_rebase();
 		if(CPU_CycleMax <= 0) CPU_CycleMax = 3000;
 		if(CPU_CycleUp <= 0)   CPU_CycleUp = 500;
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
 
-        if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
+		if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
 
-		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
-		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+		if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) {
+			do_pse = false;
+			enable_pse = false;
+		}
+
+		menu_update_core();
+		menu_update_cputype();
+
+		void CPU_Core_Prefetch_reset(void);
+		CPU_Core_Prefetch_reset();
+		void CPU_Core286_Prefetch_reset(void);
+		CPU_Core286_Prefetch_reset();
+		void CPU_Core8086_Prefetch_reset(void);
+		CPU_Core8086_Prefetch_reset();
+
+		if (reboot_now) {
+			LOG_MSG("CPU change requires guest system reboot");
+			throw int(3);
+		}
+
+		const char *mask_stack_ptr_enter_leave = section->Get_string("mask stack pointer for enter leave instructions");
+		if (!strcmp(mask_stack_ptr_enter_leave,"true") || !strcmp(mask_stack_ptr_enter_leave,"1")) {
+			mask_stack_ptr_on_enter = true;
+		}
+		else if (!strcmp(mask_stack_ptr_enter_leave,"false") || !strcmp(mask_stack_ptr_enter_leave,"0")) {
+			mask_stack_ptr_on_enter = false;
+		}
+		else {
+			/* auto, which is currently off */
+			mask_stack_ptr_on_enter = false;
+		}
+
+		const char *lmsw_allow_pe_clear = section->Get_string("allow lmsw to exit protected mode");
+		if (!strcmp(lmsw_allow_pe_clear,"true") || !strcmp(lmsw_allow_pe_clear,"1")) {
+			lmsw_allow_clear_pe_bit = true;
+		}
+		else if (!strcmp(lmsw_allow_pe_clear,"false") || !strcmp(lmsw_allow_pe_clear,"0")) {
+			lmsw_allow_clear_pe_bit = false;
+		}
+		else {
+			/* Unless I see otherwise, all x86 architectures do not allow LMSW to clear the PE bit.
+			 * This is required for our VCPI implementation to work because DOS4GW when using VCPI
+			 * likes to SMSW CX, and off the PE bit, and LMSW back, then continue on using the
+			 * PROTECTED MODE segment values. If allowed to clear PE, this would cause a crash.
+			 * Why is DOS4GW masking off PE when it clearly understands it cannot anyway? It does
+			 * this before every protected mode call to VCPI for some reason. */
+			lmsw_allow_clear_pe_bit = false;
+		}
+
+		if (CPU_CycleAutoAdjust) GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
+		else GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
+		// savestate support
+		cpu.hlt.old_decoder=cpudecoder;
 		return true;
 	}
 	~CPU(){ /* empty */};
@@ -3171,18 +4263,30 @@ public:
 static CPU * test;
 
 void CPU_ShutDown(Section* sec) {
+    (void)sec;//UNUSED
+
 #if (C_DYNAMIC_X86)
 	CPU_Core_Dyn_X86_Cache_Close();
+#endif
+#if (C_DYNREC)
+	CPU_Core_Dynrec_Cache_Close();
 #endif
 	delete test;
 }
 
 void CPU_OnReset(Section* sec) {
+    (void)sec;//UNUSED
+
 	LOG(LOG_CPU,LOG_DEBUG)("CPU reset");
 
 	CPU_Snap_Back_To_Real_Mode();
 	CPU_Snap_Back_Forget();
-	CPU_SetFlags(0,~0);
+	CPU_SetFlags(0,~0UL);
+
+	do_pse = false;
+	if(CPU_ArchitectureType >= CPU_ARCHTYPE_486NEW) {
+		cpu.cr4 = 0;
+	}
 
 	Segs.limit[cs]=0xFFFF;
 	Segs.expanddown[cs]=false;
@@ -3192,13 +4296,13 @@ void CPU_OnReset(Section* sec) {
 		reg_eip=0xFFF0;
 		Segs.phys[cs]=0xFFFF0000;
 	}
-	else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286) {
-		/* 286 start at F000:FFF0 (FFFF0) */
+	else if (CPU_ArchitectureType == CPU_ARCHTYPE_286) {
+		/* 286 starts at F000:FFF0 (FFFF0) */
 		SegSet16(cs,0xF000);
 		reg_eip=0xFFF0;
 	}
 	else {
-		/* 8086 start at FFFF:0000 (FFFF0) */
+		/* 8086 starts at FFFF:0000 (FFFF0) */
 		SegSet16(cs,0xFFFF);
 		reg_eip=0x0000;
 	}
@@ -3208,22 +4312,88 @@ void CPU_OnSectionPropChange(Section *x) {
 	if (test != NULL) test->Change_Config(x);
 }
 
+void CPU_PreInit() {
+	LOG(LOG_MISC,LOG_DEBUG)("Pre-initializing CPU");
+
+	assert(test == NULL);
+	test = new CPU(control->GetSection("cpu"));
+	AddExitFunction(AddExitFunctionFuncPair(CPU_ShutDown),true);
+}
+
 void CPU_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing CPU");
 
 	control->GetSection("cpu")->onpropchange.push_back(&CPU_OnSectionPropChange);
 
-	test = new CPU(control->GetSection("cpu"));
-	AddExitFunction(AddExitFunctionFuncPair(CPU_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CPU_OnReset));
 }
 //initialize static members
 bool CPU::inited=false;
 
-
-Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
+//save state support
+void DescriptorTable::SaveState( std::ostream& stream )
 {
-	Bit16u decoder_idx;
+	WRITE_POD( &table_base, table_base );
+	WRITE_POD( &table_limit, table_limit );
+}
+ 
+ 
+void DescriptorTable::LoadState( std::istream& stream )
+{
+	READ_POD( &table_base, table_base );
+	READ_POD( &table_limit, table_limit );
+}
+
+
+void GDTDescriptorTable::SaveState(std::ostream& stream)
+{
+	this->DescriptorTable::SaveState(stream);
+
+
+	WRITE_POD( &ldt_base, ldt_base );
+	WRITE_POD( &ldt_limit, ldt_limit );
+	WRITE_POD( &ldt_value, ldt_value );
+}
+
+
+void GDTDescriptorTable::LoadState(std::istream& stream)
+{
+	this->DescriptorTable::LoadState(stream);
+
+
+	READ_POD( &ldt_base, ldt_base );
+	READ_POD( &ldt_limit, ldt_limit );
+	READ_POD( &ldt_value, ldt_value );
+}
+
+
+void TaskStateSegment::SaveState( std::ostream& stream )
+{
+	WRITE_POD( &desc.saved, desc.saved );
+	WRITE_POD( &selector, selector );
+	WRITE_POD( &base, base );
+	WRITE_POD( &limit, limit );
+	WRITE_POD( &is386, is386 );
+	WRITE_POD( &valid, valid );
+}
+
+
+void TaskStateSegment::LoadState( std::istream& stream )
+{
+	READ_POD( &desc.saved, desc.saved );
+	READ_POD( &selector, selector );
+	READ_POD( &base, base );
+	READ_POD( &limit, limit );
+	READ_POD( &is386, is386 );
+	READ_POD( &valid, valid );
+}
+
+// TODO: This looks to be unused
+uint16_t CPU_FindDecoderType( CPU_Decoder *decoder )
+{
+    (void)decoder;//UNUSED
+
+	uint16_t decoder_idx;
 
 	decoder_idx = 0xffff;
 
@@ -3231,14 +4401,23 @@ Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 	if(0) {}
 	else if( cpudecoder == &CPU_Core_Normal_Run ) decoder_idx = 0;
 	else if( cpudecoder == &CPU_Core_Prefetch_Run ) decoder_idx = 1;
+#if !defined(C_EMSCRIPTEN)
 	else if( cpudecoder == &CPU_Core_Simple_Run ) decoder_idx = 2;
 	else if( cpudecoder == &CPU_Core_Full_Run ) decoder_idx = 3;
+	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
+#endif
 #if C_DYNAMIC_X86
 	else if( cpudecoder == &CPU_Core_Dyn_X86_Run ) decoder_idx = 4;
+#endif
+#if (C_DYNREC)
+	else if( cpudecoder == &CPU_Core_Dynrec_Run ) decoder_idx = 5;
 #endif
 	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
 #if C_DYNAMIC_X86
 	else if( cpudecoder == &CPU_Core_Dyn_X86_Trap_Run ) decoder_idx = 101;
+#endif
+#if(C_DYNREC)
+	else if( cpudecoder == &CPU_Core_Dynrec_Trap_Run ) decoder_idx = 102;
 #endif
 	else if( cpudecoder == &HLT_Decode ) decoder_idx = 200;
 
@@ -3246,52 +4425,42 @@ Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 	return decoder_idx;
 }
 
-
-CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
+// TODO: This looks to be unused
+CPU_Decoder* CPU_IndexDecoderType(uint16_t decoder_idx)
 {
-	CPU_Decoder *cpudecoder;
-
-
-	cpudecoder = 0;
-	switch( decoder_idx ) {
-		case 0: cpudecoder = &CPU_Core_Normal_Run;
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-			break;
-		case 1: cpudecoder = &CPU_Core_Prefetch_Run;
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-			break;
-		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
-		case 3: cpudecoder = &CPU_Core_Full_Run; break;
-#if C_DYNAMIC_X86
-		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run;
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-			break;
+    switch (decoder_idx) {
+	    case 0: return &CPU_Core_Normal_Run;
+	    case 1: return &CPU_Core_Prefetch_Run;
+#if !defined(C_EMSCRIPTEN)
+	    case 2: return &CPU_Core_Simple_Run;
+	    case 3: return &CPU_Core_Full_Run;
 #endif
-		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
 #if C_DYNAMIC_X86
-		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run;
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-			break;
+	    case 4: return &CPU_Core_Dyn_X86_Run;
 #endif
-
-		case 200: cpudecoder = &HLT_Decode; break;
-	}
-
-
-	return cpudecoder;
+#if (C_DYNREC)
+	    case 5: return &CPU_Core_Dynrec_Run;
+#endif
+	    case 100: return &CPU_Core_Normal_Trap_Run;
+#if C_DYNAMIC_X86
+	    case 101: return &CPU_Core_Dyn_X86_Trap_Run;
+#endif
+#if(C_DYNREC)
+	    case 102: return &CPU_Core_Dynrec_Trap_Run;
+#endif
+	    case 200: return &HLT_Decode;
+	    default: return nullptr;
+    }
 }
+
+extern void POD_Save_CPU_Flags( std::ostream& stream );
+extern void POD_Save_CPU_Paging( std::ostream& stream );
+extern void POD_Load_CPU_Flags( std::istream& stream );
+extern void POD_Load_CPU_Paging( std::istream& stream );
+
+#if (C_DYNAMIC_X86)
+extern void CPU_Core_Dyn_X86_Cache_Reset(void);
+#endif
 
 Bitu vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction */
 Bitu vm86_fake_io_off = 0x0700;
@@ -3306,50 +4475,49 @@ void init_vm86_fake_io() {
 
 	/* read */
 	vm86_fake_io_offs[0] = vm86_fake_io_off + wo;
-	phys_writeb(phys+wo+0x00,(Bit8u)0xEC);	/* IN AL,DX */
-	phys_writeb(phys+wo+0x01,(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0xEC);	/* IN AL,DX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xCB);	/* RETF */
 	wo += 2;
 
 	vm86_fake_io_offs[1] = vm86_fake_io_off + wo;
-	phys_writeb(phys+wo+0x00,(Bit8u)0xED);	/* IN AX,DX */
-	phys_writeb(phys+wo+0x01,(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0xED);	/* IN AX,DX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xCB);	/* RETF */
 	wo += 2;
 
 	vm86_fake_io_offs[2] = vm86_fake_io_off + wo;
-	phys_writeb(phys+wo+0x00,(Bit8u)0x66);	/* IN EAX,DX */
-	phys_writeb(phys+wo+0x01,(Bit8u)0xED);
-	phys_writeb(phys+wo+0x02,(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0x66);	/* IN EAX,DX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xED);
+	phys_writeb((PhysPt)(phys+wo+0x02),(uint8_t)0xCB);	/* RETF */
 	wo += 3;
 
 	/* write */
 	vm86_fake_io_offs[3] = vm86_fake_io_off + wo;
-	phys_writeb(phys+wo+0x00,(Bit8u)0xEE);	/* OUT DX,AL */
-	phys_writeb(phys+wo+0x01,(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0xEE);	/* OUT DX,AL */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xCB);	/* RETF */
 	wo += 2;
 
 	vm86_fake_io_offs[4] = vm86_fake_io_off + wo;
-	phys_writeb(phys+wo+0x00,(Bit8u)0xEF);	/* OUT DX,AX */
-	phys_writeb(phys+wo+0x01,(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0xEF);	/* OUT DX,AX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xCB);	/* RETF */
 	wo += 2;
 
 	vm86_fake_io_offs[5] = vm86_fake_io_off + wo;
-	phys_writeb(phys+wo+0x00,(Bit8u)0x66);	/* OUT DX,EAX */
-	phys_writeb(phys+wo+0x01,(Bit8u)0xEF);
-	phys_writeb(phys+wo+0x02,(Bit8u)0xCB);	/* RETF */
-	wo += 3;
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0x66);	/* OUT DX,EAX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xEF);
+	phys_writeb((PhysPt)(phys+wo+0x02),(uint8_t)0xCB);	/* RETF */
 }
 
 Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
-	Bitu old_ax,old_dx,ret;
+	uint32_t old_ax,old_dx,ret;
 
 	/* save EAX:EDX and setup DX for IN instruction */
 	old_ax = reg_eax;
 	old_dx = reg_edx;
 
-	reg_edx = port;
+	reg_edx = (uint32_t)port;
 
 	/* make the CPU execute that instruction */
-	CALLBACK_RunRealFar(vm86_fake_io_seg,vm86_fake_io_offs[(len==4?2:(len-1))+0]);
+	CALLBACK_RunRealFar((uint16_t)vm86_fake_io_seg, (uint16_t)vm86_fake_io_offs[(len==4?2:(len-1))+0]);
 
 	/* take whatever the CPU or OS v86 trap left in EAX and return it */
 	ret = reg_eax;
@@ -3364,21 +4532,126 @@ Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
 }
 
 void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
-	Bitu old_ax,old_dx;
+	uint32_t old_eax,old_edx;
 
 	/* save EAX:EDX and setup DX/AX for OUT instruction */
-	old_ax = reg_eax;
-	old_dx = reg_edx;
+	old_eax = reg_eax;
+	old_edx = reg_edx;
 
-	reg_edx = port;
-	reg_eax = val;
+	reg_edx = (uint32_t)port;
+	reg_eax = (uint32_t)val;
 
 	/* make the CPU execute that instruction */
-	CALLBACK_RunRealFar(vm86_fake_io_seg,vm86_fake_io_offs[(len==4?2:(len-1))+3]);
+	CALLBACK_RunRealFar((uint16_t)vm86_fake_io_seg, (uint16_t)vm86_fake_io_offs[(len==4?2:(len-1))+3]);
 
 	/* then restore EAX:EDX */
-	reg_eax = old_ax;
-	reg_edx = old_dx;
+	reg_eax = old_eax;
+	reg_edx = old_edx;
+}
+
+bool break_sysenter = false;
+bool break_sysexit = false;
+
+Bitu DEBUG_EnableDebugger(void);
+
+bool Toggle_BreakSYSEnter() {
+	break_sysenter = !break_sysenter;
+	return break_sysenter;
+}
+
+bool Toggle_BreakSYSExit() {
+	break_sysexit = !break_sysexit;
+	return break_sysexit;
+}
+
+bool Clear_SYSENTER_Debug() {
+	break_sysenter = false;
+	break_sysexit = false;
+	return true;
+}
+
+/* pentium II fast system call */
+/* NTS: Windows XP does not set MSR 0x175, which means the SYSENTER entry point begins to run with ESP == 0. But it loads ESP right away. */
+/* FIXME: Why does this occasionally cause Windows XP to crash? */
+bool CPU_SYSENTER() {
+	if (!enable_syscall) return false;
+	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
+
+#if !defined(HX_DOS) && C_DEBUG
+	if (break_sysenter)
+		DEBUG_EnableDebugger();
+#endif
+
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
+
+	CPU_SetCPL(0);
+
+	FillFlags();
+	SETFLAGBIT(VM,false);
+	SETFLAGBIT(IF,false);
+	SETFLAGBIT(RF,false);
+
+	reg_eip = cpu_sep_eip;
+	reg_esp = cpu_sep_esp;
+
+	/* NTS: Do NOT use SetSegGeneral, SYSENTER is documented to set CS and SS based on what was given to the MSR,
+	 *      but with fixed and very specific descriptor cache values that represent 32-bit flat segments with
+	 *      base == 0 and limit == 4GB. */
+	Segs.val[cs] = (cpu_sep_cs & 0xFFFC);
+	Segs.phys[cs] = 0;
+	Segs.limit[cs] = 0xFFFFFFFF;
+	Segs.expanddown[cs] = false;
+	cpu.code.big = true;
+
+	Segs.val[ss] = (cpu_sep_cs & 0xFFFC) + 0x8; /* Yes, really. Look it up in Intel's documentation */
+	Segs.phys[ss] = 0;
+	Segs.limit[ss] = 0xFFFFFFFF;
+	Segs.expanddown[ss] = false;
+	cpu.stack.big = true;
+	cpu.stack.mask = 0xffffffff;
+	cpu.stack.notmask = 0x00000000;
+
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
+	return true;
+}
+
+/* FIXME: Why does this occasionally cause Windows XP to crash? */
+bool CPU_SYSEXIT() {
+	if (!enable_syscall) return false;
+	if (!cpu.pmode || cpu_sep_cs == 0 || cpu.cpl != 0) return false; /* CS != 0 and not real mode, or not ring 0 */
+
+#if !defined(HX_DOS) && C_DEBUG
+	if (break_sysexit)
+		DEBUG_EnableDebugger();
+#endif
+
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
+
+	/* Yes, really. Read Intel's documentation */
+	reg_eip = reg_edx;
+	reg_esp = reg_ecx;
+
+	/* NTS: Do NOT use SetSegGeneral, SYSENTER is documented to set CS and SS based on what was given to the MSR,
+	 *      but with fixed and very specific descriptor cache values that represent 32-bit flat segments with
+	 *      base == 0 and limit == 4GB. */
+	Segs.val[cs] = (cpu_sep_cs & 0xFFFC) + 0x10 + 3/*RPL*/; /* Yes, really. Look it up in Intel's documentation */
+	Segs.phys[cs] = 0;
+	Segs.limit[cs] = 0xFFFFFFFF;
+	Segs.expanddown[cs] = false;
+	cpu.code.big = true;
+
+	Segs.val[ss] = (cpu_sep_cs & 0xFFFC) + 0x18 + 3/*RPL*/; /* Yes, really. Look it up in Intel's documentation */
+	Segs.phys[ss] = 0;
+	Segs.limit[ss] = 0xFFFFFFFF;
+	Segs.expanddown[ss] = false;
+	cpu.stack.big = true;
+	cpu.stack.mask = 0xffffffff;
+	cpu.stack.notmask = 0x00000000;
+
+	CPU_SetCPL(3);
+
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
+	return true;
 }
 
 /* pentium machine-specific registers */
@@ -3386,8 +4659,94 @@ bool CPU_RDMSR() {
 	if (!enable_msr) return false;
 
 	switch (reg_ecx) {
+		case 0x00000017: /* Known in Linux kernel as MSR_IA32_PLATFORM_ID */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium III and will BSOD if this does not return a value */
+			/* FIXME: Where is this documented? */
+			// Taken from an actual Pentium III system
+			// Also seen on a 500MHz part: EDX=0x51030000 EAX=0x00000000
+			reg_edx = 0x11000000;
+			reg_eax = 0x00000000;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking IA32 platform ID");
+			return true;
+		case 0x0000001b: /* Local APIC */
+			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II or Pentium Pro,
+			 *      instead of, you know, using CPUID */
+			/* NTS: Apparently the Linux kernel also assumes this register is present. */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII && !(CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW)) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking Local APIC");
+			return true;
+		case 0x0000002a: /* MSR_IA32_EBL_CR_POWERON */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_EBL_CR_POWERON");
+			return true;
+		case 0x0000008b: /* Intel microcode revision... Windows ME insists on reading this at startup if Pentium II and stepping 3 */
+			/* NTS: Windows 98 will also read this register on boot up if emulating a Pentium Pro */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII && !(CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW)) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Guest is reading Intel microcode revision");
+			if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMIII) {
+				// Taken from an actual Pentium III system. Windows ME will try to update microcode if major version is too low, this value stops that.
+				// Also seen on a 500MHz part: EDX=0xA EAX=0x0
+				reg_edx = 0xE;
+				reg_eax = 0x0;
+			}
+			else {
+				// FIXME: This is a guess. Pull out the Pentium II DOS system and see what comes back for this.
+				// These values are large enough to prevent Windows ME from trying to update microcode.
+				reg_edx = 0x003F003F;
+				reg_eax = 0x001E03FF;
+			}
+			return true;
+		case 0x000000ce: /* MSR_PLATFORM_INFO? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_PLATFORM_INFO");
+			reg_edx = reg_eax = 0;
+			return true;
+		case 0x00000119: /* MSR_IA32_BBL_CR_CTL */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			if (!p3psn.enabled) reg_eax |= 0x200000;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_BBL_CR_CTL");
+			return true;
+		case 0x0000011e: /* MSR_IA32_BBL_CR_CTL3 */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_BBL_CR_CTL3");
+			return true;
+		case 0x00000140: /* IA32_MISC_ENABLE [https://www.geoffchappell.com/studies/windows/km/cpu/msr/misc_enable.htm] */
+			/* Linux kernel assumes this MSR is present if Pentium III and will crash otherwise */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			reg_edx = reg_eax = 0;
+			return true;
+		case 0x00000174: /* SYSENTER CS selector */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			reg_edx = 0;
+			reg_eax = cpu_sep_cs;
+			return true;
+		case 0x00000175: /* SYSENTER ESP stack pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			reg_edx = 0;
+			reg_eax = cpu_sep_esp;
+			return true;
+		case 0x00000176: /* SYSENTER EIP instruction pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			reg_edx = 0;
+			reg_eax = cpu_sep_eip;
+			return true;
+		case 0x00000186: /* MSR_P6_EVNTSEL0? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_P6_EVNTSEL0");
+			reg_edx = reg_eax = 0;
+			return true;
+		case 0x00000187: /* MSR_P6_EVNTSEL1? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_P6_EVNTSEL1");
+			reg_edx = reg_eax = 0;
+			return true;
 		default:
-			LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
 			break;
 	}
 
@@ -3403,9 +4762,71 @@ bool CPU_RDMSR() {
 bool CPU_WRMSR() {
 	if (!enable_msr) return false;
 
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("WRMSR ECX=%08x EDX:EAX=%08x:%08x",reg_ecx,reg_edx,reg_eax);
+
 	switch (reg_ecx) {
+		case 0x00000010: /* You can change the time stamp counter by writing this MSR */
+			rdtsc_count_base = ((uint64_t)reg_edx << (uint64_t)32ul) + (uint64_t)reg_eax;
+			rdtsc_pic_base = PIC_FullIndex();
+			return true;
+		case 0x0000001b: /* Local APIC */
+			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
+			 *      instead of, you know, using CPUID. It will also set the enable bit, even if
+			 *      this register was 0x00000000 when it booted. Fortunately, Windows ME still
+			 *      runs properly if we silently ignore the write and leave it 0x00000000. */
+			/* NTS: Apparently the Linux kernel also assumes this register is present. */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII && !(CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW)) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Faking Local APIC");
+			if (reg_eax & 0x800) UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("Guest OS is attempting to enable the Local APIC which we do not emulate yet");
+			return true;
+		case 0x00000079: /* Intel microcode update (EDX:EAX contains a virtual memory address of a microcode blob) */
+			/* NTS: Windows ME, if it sees a Pentium II stepping 3 or higher, will attempt to do a microcode update at startup. Why? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Guest is attempting to update microcode (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x0000008b: /* Intel microcode revision... why is Windows ME writing this register before reading it? */
+			/* NTS: Windows 98 will also write this register on boot up if emulating a Pentium Pro */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII && !(CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW)) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write Intel microcode revision (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x000000ce: /* MSR_PLATFORM_INFO? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write MSR_PLATFORM_INFO EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000119: /* MSR_IA32_BBL_CR_CTL */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			if (p3psn.enabled && (reg_eax & 0x200000)) {
+				UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: MSR_IA32_BBL_CR_CTL guest is disabling Processor Serial Number");
+				p3psn.enabled = false;
+			}
+			return true;
+		case 0x00000140: /* IA32_MISC_ENABLE [https://www.geoffchappell.com/studies/windows/km/cpu/msr/misc_enable.htm] */
+			/* Linux kernel assumes this MSR is present if Pentium III and will crash otherwise */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: IA32_MISC_ENABLE %08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000174: /* SYSENTER CS selector */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			cpu_sep_cs = (uint16_t)(reg_eax & 0xFFFFu);
+			return true;
+		case 0x00000175: /* SYSENTER ESP stack pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			cpu_sep_esp = reg_eax;
+			return true;
+		case 0x00000176: /* SYSENTER EIP instruction pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			cpu_sep_eip = reg_eax;
+			return true;
+		case 0x00000186: /* MSR_P6_EVNTSEL0? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to read MSR_P6_EVNTSEL0 EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000187: /* MSR_P6_EVNTSEL1? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to read MSR_P6_EVNTSEL1 EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
 		default:
-			LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
 			break;
 	}
 
@@ -3414,34 +4835,228 @@ bool CPU_WRMSR() {
 }
 
 /* NTS: Hopefully by implementing this Windows ME can stop randomly crashing when cputype=pentium */
+/* NTS: Linux kernels compiled for "i686" rely on this instruction too. */
 void CPU_CMPXCHG8B(PhysPt eaa) {
-    uint32_t hi,lo;
+	uint32_t hi,lo;
 
-    /* NTS: We assume that, if reading doesn't cause a page fault, writing won't either */
-    hi = (uint32_t)mem_readd(eaa+(PhysPt)4);
-    lo = (uint32_t)mem_readd(eaa);
+	/* NTS: We assume that, if reading doesn't cause a page fault, writing won't either */
+	lo = (uint32_t)mem_readd(eaa);
+	hi = (uint32_t)mem_readd(eaa+(PhysPt)4);
 
-    LOG_MSG("Experimental CMPXCHG8B implementation executed. EDX:EAX=0x%08lx%08lx ECX:EBX=0x%08lx%08lx EA=0x%08lx MEM64=0x%08lx%08lx",
-        (unsigned long)reg_edx,
-        (unsigned long)reg_eax,
-        (unsigned long)reg_ecx,
-        (unsigned long)reg_ebx,
-        (unsigned long)eaa,
-        (unsigned long)hi,
-        (unsigned long)lo);
+#if 0 // it works, shut up now
+	LOG_MSG("Experimental CMPXCHG8B implementation executed. EDX:EAX=0x%08lx%08lx ECX:EBX=0x%08lx%08lx EA=0x%08lx MEM64=0x%08lx%08lx",
+		(unsigned long)reg_edx,
+		(unsigned long)reg_eax,
+		(unsigned long)reg_ecx,
+		(unsigned long)reg_ebx,
+		(unsigned long)eaa,
+		(unsigned long)hi,
+		(unsigned long)lo);
+#endif
 
-    /* Compare EDX:EAX with 64-bit DWORD at memaddr 'eaa'.
-     * if they match, ZF=1 and write ECX:EBX to memaddr 'eaa'.
-     * else, ZF=0 and load memaddr 'eaa' into EDX:EAX */
-    if (reg_edx == hi && reg_eax == lo) {
-        mem_writed(eaa+(PhysPt)4,reg_ecx);
-        mem_writed(eaa,          reg_ebx);
+	/* Compare EDX:EAX with 64-bit DWORD at memaddr 'eaa'.
+	 * if they match, ZF=1 and write ECX:EBX to memaddr 'eaa'.
+	 * else, ZF=0 and load memaddr 'eaa' into EDX:EAX */
+	FillFlags();
+	if (reg_edx == hi && reg_eax == lo) {
+		mem_writed(eaa,          reg_ebx);
+		mem_writed(eaa+(PhysPt)4,reg_ecx);
 		SETFLAGBIT(ZF,true);
-    }
-    else {
+	}
+	else {
 		SETFLAGBIT(ZF,false);
-        reg_edx = hi;
-        reg_eax = lo;
-    }
+		reg_eax = lo;
+		reg_edx = hi;
+	}
 }
 
+bool CPU_LDMXCSR(PhysPt eaa) {
+	fpu.mxcsr = mem_readd(eaa);
+	return true;
+}
+
+bool CPU_STMXCSR(PhysPt eaa) {
+	mem_writed(eaa,fpu.mxcsr);
+	return true;
+}
+
+namespace
+{
+class SerializeCPU : public SerializeGlobalPOD
+{
+public:
+SerializeCPU() : SerializeGlobalPOD("CPU")
+{}
+
+private:
+void getBytes(std::ostream& stream) override
+{
+    uint16_t decoder_idx;
+
+// UNUSED
+//  extern Bits PageFaultCore(void);
+//  extern Bits IOFaultCore(void);
+
+
+
+    decoder_idx = CPU_FindDecoderType( cpudecoder );
+
+    //********************************************
+    //********************************************
+    //********************************************
+
+    SerializeGlobalPOD::getBytes(stream);
+
+
+    // - pure data
+    WRITE_POD( &cpu_regs, cpu_regs );
+
+    WRITE_POD( &cpu.cpl, cpu.cpl );
+    WRITE_POD( &cpu.mpl, cpu.mpl );
+    WRITE_POD( &cpu.cr0, cpu.cr0 );
+    WRITE_POD( &cpu.pmode, cpu.pmode );
+    cpu.gdt.SaveState(stream);
+    cpu.idt.SaveState(stream);
+    WRITE_POD( &cpu.stack, cpu.stack );
+    WRITE_POD( &cpu.code, cpu.code );
+    WRITE_POD( &cpu.hlt.cs, cpu.hlt.cs );
+    WRITE_POD( &cpu.hlt.eip, cpu.hlt.eip );
+    WRITE_POD( &cpu.exception, cpu.exception );
+    WRITE_POD( &cpu.direction, cpu.direction );
+    WRITE_POD( &cpu.trap_skip, cpu.trap_skip );
+    WRITE_POD( &cpu.drx, cpu.drx );
+    WRITE_POD( &cpu.trx, cpu.trx );
+
+    WRITE_POD( &Segs, Segs );
+    WRITE_POD( &CPU_Cycles, CPU_Cycles );
+    WRITE_POD( &CPU_CycleLeft, CPU_CycleLeft );
+    WRITE_POD( &CPU_IODelayRemoved, CPU_IODelayRemoved );
+    cpu_tss.SaveState(stream);
+    WRITE_POD( &lastint, lastint );
+
+    //********************************************
+    //********************************************
+    //********************************************
+
+    // - reloc func ptr
+    WRITE_POD( &decoder_idx, decoder_idx );
+
+    POD_Save_CPU_Flags(stream);
+	POD_Save_CPU_Paging(stream);
+}
+
+void setBytes(std::istream& stream) override
+{
+    uint16_t decoder_idx;
+    uint16_t decoder_old;
+
+
+
+
+
+    decoder_old = CPU_FindDecoderType( cpudecoder );
+
+    //********************************************
+    //********************************************
+    //********************************************
+
+    SerializeGlobalPOD::setBytes(stream);
+
+
+    // - pure data
+    READ_POD( &cpu_regs, cpu_regs );
+
+    READ_POD( &cpu.cpl, cpu.cpl );
+    READ_POD( &cpu.mpl, cpu.mpl );
+    READ_POD( &cpu.cr0, cpu.cr0 );
+    READ_POD( &cpu.pmode, cpu.pmode );
+    cpu.gdt.LoadState(stream);
+    cpu.idt.LoadState(stream);
+    READ_POD( &cpu.stack, cpu.stack );
+    READ_POD( &cpu.code, cpu.code );
+    READ_POD( &cpu.hlt.cs, cpu.hlt.cs );
+    READ_POD( &cpu.hlt.eip, cpu.hlt.eip );
+    READ_POD( &cpu.exception, cpu.exception );
+    READ_POD( &cpu.direction, cpu.direction );
+    READ_POD( &cpu.trap_skip, cpu.trap_skip );
+    READ_POD( &cpu.drx, cpu.drx );
+    READ_POD( &cpu.trx, cpu.trx );
+
+    READ_POD( &Segs, Segs );
+    READ_POD( &CPU_Cycles, CPU_Cycles );
+    READ_POD( &CPU_CycleLeft, CPU_CycleLeft );
+    READ_POD( &CPU_IODelayRemoved, CPU_IODelayRemoved );
+    cpu_tss.LoadState(stream);
+    READ_POD( &lastint, lastint );
+
+    //********************************************
+    //********************************************
+    //********************************************
+
+    // - reloc func ptr
+    READ_POD( &decoder_idx, decoder_idx );
+
+
+
+    POD_Load_CPU_Flags(stream);
+	POD_Load_CPU_Paging(stream);
+
+    //*******************************************
+    //*******************************************
+    //*******************************************
+
+    // switch to running core
+    if( decoder_idx < 100 ) {
+        switch( decoder_old ) {
+            // run -> run (0-99)
+
+            // trap -> run
+            case 100: cpudecoder = CPU_IndexDecoderType(0); break;
+            case 101: cpudecoder = CPU_IndexDecoderType(4); break;
+            case 102: cpudecoder = CPU_IndexDecoderType(5); break;
+
+            // hlt -> run
+            case 200: cpudecoder = cpu.hlt.old_decoder; break;
+        }
+    }
+
+    // switch to trap core
+    else if( decoder_idx < 200 ) {
+        switch( decoder_old ) {
+            // run -> trap
+            case 0:
+            case 1:
+            case 2:
+            case 3: cpudecoder = CPU_IndexDecoderType(100); break;
+            case 4: cpudecoder = CPU_IndexDecoderType(101); break;
+            case 5: cpudecoder = CPU_IndexDecoderType(102); break;
+
+            // trap -> trap (100-199)
+
+            // hlt -> trap
+            case 200: {
+                switch( CPU_FindDecoderType(cpu.hlt.old_decoder) ) {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3: cpudecoder = CPU_IndexDecoderType(100); break;
+                    case 4: cpudecoder = CPU_IndexDecoderType(101); break;
+                    case 5: cpudecoder = CPU_IndexDecoderType(102); break;
+                }
+            }
+        }
+    }
+
+    // switch to hlt core
+    else if( decoder_idx < 300 ) {
+        cpudecoder = CPU_IndexDecoderType(200);
+    }
+#if (C_DYNAMIC_X86)
+    CPU_Core_Dyn_X86_Cache_Reset();
+#endif
+#if (C_DYNREC)
+    CPU_Core_Dynrec_Cache_Reset();
+#endif
+}
+} dummy;
+}

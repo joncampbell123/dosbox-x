@@ -1,0 +1,51 @@
+# A few GLSL shaders for DOSBox-X
+
+DOSBox-X supports OpenGL (GLSL) shaders. In order to get these shaders working, you will need to make the following changes to the configuration file (dosbox-x.conf by default):
+
+    [sdl]
+    fullresolution = desktop
+    output = opengl / openglnb
+
+    [render]
+    scaler = none
+    glshader = [name of .glsl file]
+
+DOSBox-X currently includes two OpenGL outputs (`opengl` and `openglnb`).`opengl` enables bilinear filtering of the input source, while `openglnb` disables bilinear filtering and uses nearest neighbour scaling instead. Both built-in GLSL shaders (including advinterp2x, advinterp3x, advmame2x, advmame3x, rgb2x, rgb3x, scan2x, scan3x, tv2x, tv3x, sharp) and GLSL shader files can be used.
+
+The table below provides a summary of which `output` setting to use for each shader:
+
+|shader name|output setting to use|
+|-----------|---------------------|
+|crt-aperture.glsl|openglnb|
+|crt-caligari.glsl|openglnb|
+|crt-easymode.glsl|openglnb|
+|crt-easymode.tweaked.glsl|openglnb|
+|crt-geom.glsl|openglnb|
+|crt-geom.tweaked.glsl|openglnb|
+|crt-hyllian.glsl|openglnb|
+|crt-lottes-fast.glsl|opengl|
+|crt-lottes.glsl|openglnb|
+|crt-lottes.tweaked.glsl|openglnb|
+|crt-nes-mini.glsl|either|
+|crt-pi.glsl|opengl|
+|fakelottes.glsl|opengl|
+|fakelottes.tweaked.glsl|opengl|
+|ScanLine.glsl|openglnb|
+|yee64.glsl|either|
+|yeetron.glsl|openglnb|
+|zfast_crt.glsl|opengl|
+|pixellate.glsl|openglnb|
+|pixel_perfect.glsl|openglnb|
+
+Several of the included shaders have been modified to produce consistent results, regardless of the output which is used however by setting the correct output settings as shown above, the built-in filtering will be used, which could improve the performance of the shader.
+
+The window size will not increase automatically, so you will need to manually set the window resolution or switch to full screen. If the full screen resolution option is not set to `desktop`, the image will be stretched and filtered.
+
+Shaders can be copied to the DOSBox-X root directory, or alternatively to the `glshaders` subdirectory in the DOSBox-X configuration directory. The shader can be referenced by the filename, without the .glsl extension. If the shader fails to load, or does not compile correctly, an error/warning message can be seen in the DOSBox-X output window.
+
+Thanks to [Delfino Furioso](https://www.vogons.org/viewtopic.php?f=32&t=72697) for porting/tweaking many of the CRT shaders.  He has the following recommendations:
+- fakelottes for game resolutions up to 640x480
+- easymode for game resolutions over 640x480
+- geom as a 'jack of all trades' for all resolutions
+
+The tweaked versions mainly reduce the curvature effect and brighten the image.

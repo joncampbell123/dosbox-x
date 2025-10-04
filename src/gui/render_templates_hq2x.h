@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 /*
@@ -87,12 +87,14 @@
 
 inline void conc2d(Hq2x,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
 {
-    (void)conc2d(Hq2x,SBPP);
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc2d(Hq2x,SBPP);
+# endif
 
-	if (_RGBtoYUV == 0) conc2d(InitLUTs,SBPP)();
+	if (!_RGBtoYUV) conc2d(InitLUTs,SBPP)();
 
-	Bit32u pattern = 0;
-	const Bit32u YUV4 = RGBtoYUV(C4);
+	uint32_t pattern = 0;
+	const uint32_t YUV4 = RGBtoYUV(C4);
 	if (C4 != C0 && diffYUV(YUV4, RGBtoYUV(C0))) pattern |= 0x0001;
 	if (C4 != C1 && diffYUV(YUV4, RGBtoYUV(C1))) pattern |= 0x0002;
 	if (C4 != C2 && diffYUV(YUV4, RGBtoYUV(C2))) pattern |= 0x0004;

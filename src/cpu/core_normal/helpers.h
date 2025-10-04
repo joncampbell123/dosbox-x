@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,14 +11,37 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/* Magic limit value that disables segment limit checks */
+/* 8086/80186/286 cores: Magic limit is 64KB - 1 */
+/* All other cores (386 and up): Magic limit is 4GB - 1 */
+#if CPU_CORE <= CPU_ARCHTYPE_286
+#define EANoSegmentLimitMagic 0xFFFFul
+#else
+#define EANoSegmentLimitMagic 0xFFFFFFFFul
+#endif
 
 #define GetEAa												\
-	PhysPt eaa=EALookupTable[rm]();					
+	PhysPt eaa=EALookupTable[rm]();									\
+	(void)eaa
+
+#define GetEAa8086												\
+	PhysPt eaa=EATable8086[rm]();									\
+	(void)eaa
+
+#define GetEAaNDEF											\
+	PhysPt eaa;											\
+	(void)eaa
+
+#define GetEAaN												\
+	eaa=EALookupTable[rm]();
+
+#define GetEAaN8086												\
+	eaa=EATable8086[rm]();
 
 #define GetRMEAa											\
 	GetRM;													\
@@ -132,12 +155,22 @@
 #define EAXId(inst)															\
 	{ inst(reg_eax,Fetchd(),LoadRd,SaveRd);}
 
+
 #define FPU_ESC(code) {														\
-	Bit8u rm=Fetchb();														\
+	uint8_t rm=Fetchb();														\
 	if (rm >= 0xc0) {															\
 		FPU_ESC ## code ## _Normal(rm);										\
 	} else {																\
 		GetEAa;FPU_ESC ## code ## _EA(rm,eaa);								\
+	}																		\
+}
+
+#define FPU_ESC_SIZE(code, op16) {														\
+	uint8_t rm=Fetchb();														\
+	if (rm >= 0xc0) {															\
+		FPU_ESC ## code ## _Normal(rm);										\
+	} else {																\
+		GetEAa;FPU_ESC ## code ## _EA(rm,eaa,op16);								\
 	}																		\
 }
 
@@ -168,3 +201,13 @@
 #define CASE_0F_B(_WHICH)						\
 	CASE_0F_W(_WHICH)							\
 	CASE_0F_D(_WHICH)
+
+#define FixEA16 do {							\
+		switch (rm & 7) {						\
+			case 6:	if (rm < 0x40) break;		\
+			case 2:								\
+			case 3:								\
+				BaseDS=BaseSS;					\
+		}										\
+		eaa=BaseDS+(uint16_t)(eaa-BaseDS);        \
+	} while(0)

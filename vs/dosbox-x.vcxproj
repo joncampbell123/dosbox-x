@@ -1,0 +1,1940 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug SDL2|ARM">
+      <Configuration>Debug SDL2</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug SDL2|ARM64">
+      <Configuration>Debug SDL2</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug SDL2|Win32">
+      <Configuration>Debug SDL2</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug SDL2|x64">
+      <Configuration>Debug SDL2</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release SDL2|ARM">
+      <Configuration>Release SDL2</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release SDL2|ARM64">
+      <Configuration>Release SDL2</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release SDL2|Win32">
+      <Configuration>Release SDL2</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release SDL2|x64">
+      <Configuration>Release SDL2</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{8A52284E-5115-453E-AD4B-87B8FCDB1244}</ProjectGuid>
+    <RootNamespace>dosboxx</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.23107.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\contrib\windows\installer\inpout32.dll" "$(OutputPath)\inpout32.dll"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <AdditionalOptions>/QIfist</AdditionalOptions>
+      <SDLCheck>false</SDLCheck>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\contrib\windows\installer\inpout32.dll" "$(OutputPath)\inpout32.dll"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\contrib\windows\installer\inpoutx64.dll" "$(OutputPath)\inpoutx64.dll"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <Midl />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SDLCheck>false</SDLCheck>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <Midl />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <SDLCheck>false</SDLCheck>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\contrib\windows\installer\inpoutx64.dll" "$(OutputPath)\inpoutx64.dll"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'">
+    <Midl />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SDLCheck>false</SDLCheck>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM'">
+    <Midl />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <SDLCheck>false</SDLCheck>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <WarningLevel>Level3</WarningLevel>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\contrib\windows\installer\inpout32.dll" "$(OutputPath)\inpout32.dll"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <AdditionalOptions>/QIfist</AdditionalOptions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\contrib\windows\installer\inpout32.dll" "$(OutputPath)\inpout32.dll"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\contrib\windows\installer\inpoutx64.dll" "$(OutputPath)\inpoutx64.dll"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <Midl />
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <Midl />
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\contrib\windows\installer\inpoutx64.dll" "$(OutputPath)\inpoutx64.dll"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM64'">
+    <Midl />
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM'">
+    <Midl />
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
+copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
+copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
+copy "$(SolutionDir)\..\dosbox-x.reference.full.conf" "$(OutputPath)\dosbox-x.reference.full.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\CHANGELOG.txt"
+copy "$(SolutionDir)\..\contrib\windows\installer\readme.txt" "$(OutputPath)\README.txt"
+if not exist "$(OutputPath)\drivez\" mkdir "$(OutputPath)\drivez"
+copy "$(SolutionDir)\..\contrib\windows\installer\drivez_readme.txt" "$(OutputPath)\drivez\readme.txt"
+if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
+copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
+if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
+copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
+if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep />
+    <CustomBuildStep>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\builtin\25_com.cpp" />
+    <ClCompile Include="..\src\builtin\28_com.cpp" />
+    <ClCompile Include="..\src\builtin\4dos.cpp" />
+    <ClCompile Include="..\src\builtin\50_com.cpp" />
+    <ClCompile Include="..\src\builtin\append_exe.cpp" />
+    <ClCompile Include="..\src\builtin\buffers_com.cpp" />
+    <ClCompile Include="..\src\builtin\cdplay.cpp" />
+    <ClCompile Include="..\src\builtin\chkdsk_exe.cpp" />
+    <ClCompile Include="..\src\builtin\cwsdpmi_exe.cpp" />
+    <ClCompile Include="..\src\builtin\cwsdpmi_exe_pc98.cpp" />
+    <ClCompile Include="..\src\builtin\debug_exe.cpp" />
+    <ClCompile Include="..\src\builtin\defrag_exe.cpp" />
+    <ClCompile Include="..\src\builtin\device_com.cpp" />
+    <ClCompile Include="..\src\builtin\dos32a_exe.cpp" />
+    <ClCompile Include="..\src\builtin\dos4gw_exe.cpp" />
+    <ClCompile Include="..\src\builtin\dosidle_exe.cpp" />
+    <ClCompile Include="..\src\builtin\dosmid.cpp" />
+    <ClCompile Include="..\src\builtin\dsxmenu_exe_pc.cpp" />
+    <ClCompile Include="..\src\builtin\dsxmenu_exe_pc98.cpp" />
+    <ClCompile Include="..\src\builtin\diskcopy_exe.cpp" />
+    <ClCompile Include="..\src\builtin\edit_com.cpp" />
+    <ClCompile Include="..\src\builtin\emsmagic.cpp" />
+    <ClCompile Include="..\src\builtin\eval.cpp" />
+    <ClCompile Include="..\src\builtin\fc_exe.cpp" />
+    <ClCompile Include="..\src\builtin\fcbs_com.cpp" />
+    <ClCompile Include="..\src\builtin\files_com.cpp" />
+    <ClCompile Include="..\src\builtin\fdisk_exe.cpp" />
+    <ClCompile Include="..\src\builtin\find_exe.cpp" />
+    <ClCompile Include="..\src\builtin\format_exe.cpp" />
+    <ClCompile Include="..\src\builtin\glide2x.cpp" />
+    <ClCompile Include="..\src\builtin\hexmem16_exe.cpp" />
+    <ClCompile Include="..\src\builtin\hexmem32_exe.cpp" />
+    <ClCompile Include="..\src\builtin\lastdriv_com.cpp" />
+    <ClCompile Include="..\src\builtin\mem_com.cpp" />
+    <ClCompile Include="..\src\builtin\move_exe.cpp" />
+    <ClCompile Include="..\src\builtin\mpxplay.cpp" />
+    <ClCompile Include="..\src\builtin\ne2000bin.cpp" />
+    <ClCompile Include="..\src\builtin\print_com.cpp" />
+    <ClCompile Include="..\src\builtin\replace_exe.cpp" />
+    <ClCompile Include="..\src\builtin\shutdown.cpp" />
+    <ClCompile Include="..\src\builtin\sort_exe.cpp" />
+    <ClCompile Include="..\src\builtin\sys_com.cpp" />
+    <ClCompile Include="..\src\builtin\textutil.cpp" />
+    <ClCompile Include="..\src\builtin\xcopy_exe.cpp" />
+    <ClCompile Include="..\src\builtin\zip.cpp" />
+    <ClCompile Include="..\src\cpu\callback.cpp" />
+    <ClCompile Include="..\src\cpu\core_dynrec.cpp" />
+    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp" />
+    <ClCompile Include="..\src\cpu\core_full.cpp" />
+    <ClCompile Include="..\src\cpu\core_normal.cpp" />
+    <ClCompile Include="..\src\cpu\core_normal_286.cpp" />
+    <ClCompile Include="..\src\cpu\core_normal_8086.cpp" />
+    <ClCompile Include="..\src\cpu\core_prefetch.cpp" />
+    <ClCompile Include="..\src\cpu\core_prefetch_286.cpp" />
+    <ClCompile Include="..\src\cpu\core_prefetch_8086.cpp" />
+    <ClCompile Include="..\src\cpu\core_simple.cpp" />
+    <ClCompile Include="..\src\cpu\cpu.cpp" />
+    <ClCompile Include="..\src\cpu\flags.cpp" />
+    <ClCompile Include="..\src\cpu\mmx.cpp" />
+    <ClCompile Include="..\src\cpu\modrm.cpp" />
+    <ClCompile Include="..\src\cpu\paging.cpp" />
+    <ClCompile Include="..\src\debug\debug.cpp" />
+    <ClCompile Include="..\src\debug\debug_disasm.cpp" />
+    <ClCompile Include="..\src\debug\debug_gui.cpp" />
+    <ClCompile Include="..\src\debug\debug_win32.cpp" />
+    <ClCompile Include="..\src\dosbox.cpp" />
+    <ClCompile Include="..\src\dos\cdrom.cpp" />
+    <ClCompile Include="..\src\dos\cdrom_aspi_win32.cpp" />
+    <ClCompile Include="..\src\dos\cdrom_image.cpp" />
+    <ClCompile Include="..\src\dos\cdrom_ioctl_win32.cpp" />
+    <ClCompile Include="..\src\dos\dos.cpp" />
+    <ClCompile Include="..\src\dos\dos_classes.cpp" />
+    <ClCompile Include="..\src\dos\dos_devices.cpp" />
+    <ClCompile Include="..\src\dos\dos_execute.cpp" />
+    <ClCompile Include="..\src\dos\dos_files.cpp" />
+    <ClCompile Include="..\src\dos\dos_ioctl.cpp" />
+    <ClCompile Include="..\src\dos\dos_keyboard_layout.cpp" />
+    <ClCompile Include="..\src\dos\dos_memory.cpp" />
+    <ClCompile Include="..\src\dos\dos_misc.cpp" />
+    <ClCompile Include="..\src\dos\dos_mscdex.cpp" />
+    <ClCompile Include="..\src\dos\dos_programs.cpp" />
+    <ClCompile Include="..\src\dos\dos_tables.cpp" />
+    <ClCompile Include="..\src\dos\drives.cpp" />
+    <ClCompile Include="..\src\dos\drive_cache.cpp" />
+    <ClCompile Include="..\src\dos\drive_fat.cpp" />
+    <ClCompile Include="..\src\dos\drive_iso.cpp" />
+    <ClCompile Include="..\src\dos\drive_local.cpp" />
+    <ClCompile Include="..\src\dos\drive_overlay.cpp" />
+    <ClCompile Include="..\src\dos\drive_physfs.cpp" />
+    <ClCompile Include="..\src\dos\drive_virtual.cpp" />
+    <ClCompile Include="..\src\dos\eltorito.cpp" />
+    <ClCompile Include="..\src\fpu\fpu.cpp" />
+    <ClCompile Include="..\src\gamelink\gamelink.cpp" />
+    <ClCompile Include="..\src\gamelink\gamelink_term.cpp" />
+    <ClCompile Include="..\src\gui\bitop.cpp" />
+    <ClCompile Include="..\src\gui\ptrop.cpp" />
+    <ClCompile Include="..\src\gui\zipcrc.c" />
+    <ClCompile Include="..\src\gui\zipfile.cpp" />
+    <ClCompile Include="..\src\hardware\8255.cpp" />
+    <ClCompile Include="..\src\hardware\imfc.cpp" />
+    <ClCompile Include="..\src\hardware\imfc_rom.c" />
+    <ClCompile Include="..\src\hardware\mame\fmopl.cpp" />
+    <ClCompile Include="..\src\hardware\mame\saa1099.cpp" />
+    <ClCompile Include="..\src\hardware\mame\sn76496.cpp" />
+    <ClCompile Include="..\src\hardware\mame\ymdeltat.cpp" />
+    <ClCompile Include="..\src\hardware\mame\ymf262.cpp" />
+    <ClCompile Include="..\src\hardware\parport\printer_redir.cpp" />
+    <ClCompile Include="..\src\hardware\pc98.cpp" />
+    <ClCompile Include="..\src\hardware\pc98_artic.cpp" />
+    <ClCompile Include="..\src\hardware\pc98_fm.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\serialfile.cpp" />
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board26k.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board86.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\pcm86io.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\common\parts.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\generic\keydisp.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\adpcmc.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\adpcmg.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\fmboard.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\fmtimer.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getsmix.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getsnd.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getwave.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\opngenc.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\opngeng.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\pcm86c.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\pcm86g.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\psggenc.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\psggeng.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\rhythmc.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\sound.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\soundrom.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\tms3631c.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\tms3631g.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\x11\dosio.c" />
+    <ClCompile Include="..\src\hardware\vga_pc98_cg.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_crtc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_dac.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_egc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_gdc_draw.cpp" />
+    <ClCompile Include="..\src\ints\bios_memdisk.cpp" />
+    <ClCompile Include="..\src\ints\bios_vhd.cpp" />
+    <ClCompile Include="..\src\ints\int_dosv.cpp" />
+    <ClCompile Include="..\src\ints\pc98_lio.cpp" />
+    <ClCompile Include="..\src\libs\decoders\internal\ogg\bitwise.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\ogg\framing.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\http.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\info.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\internal.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\opusfile.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\stream.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\wincerts.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\bands.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\celt.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\celt_decoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\celt_encoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\celt_lpc.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\cwrs.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\entcode.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\entdec.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\entenc.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\kiss_fft.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\laplace.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\mathops.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\mdct.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\modes.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\pitch.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\quant_bands.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\rate.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\vq.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\A2NLSF.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\ana_filt_bank_1.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\biquad_alt.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\bwexpander.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\bwexpander_32.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\check_control_input.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\CNG.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\code_signs.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\control_audio_bandwidth.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\control_codec.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\control_SNR.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\debug_silk.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decoder_set_fs.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_core.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_frame.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_indices.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_parameters.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_pitch.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_pulses.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\dec_API.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\encode_indices.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\encode_pulses.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\enc_API.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\apply_sine_window_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\autocorrelation_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\burg_modified_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\bwexpander_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\corrMatrix_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\encode_frame_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\energy_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\find_LPC_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\find_LTP_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\find_pitch_lags_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\find_pred_coefs_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\inner_product_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\k2a_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\LPC_analysis_filter_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\LPC_inv_pred_gain_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\LTP_analysis_filter_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\LTP_scale_ctrl_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\noise_shape_analysis_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\pitch_analysis_core_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\process_gains_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\regularize_correlations_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\residual_energy_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\scale_copy_vector_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\scale_vector_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\schur_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\sort_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\warped_autocorrelation_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\wrappers_FLP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\gain_quant.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\HP_variable_cutoff.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\init_decoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\init_encoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\inner_prod_aligned.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\interpolate.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\lin2log.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\log2lin.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\LPC_analysis_filter.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\LPC_fit.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\LPC_inv_pred_gain.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\LP_variable_cutoff.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF2A.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_decode.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_del_dec_quant.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_encode.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_stabilize.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_unpack.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_VQ.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_VQ_weights_laroia.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NSQ.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NSQ_del_dec.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\pitch_est_tables.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\PLC.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\process_NLSFs.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\quant_LTP_gains.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_down2.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_down2_3.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_private_AR2.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_private_down_FIR.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_private_IIR_FIR.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_private_up2_HQ.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_rom.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\shell_coder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\sigm_Q15.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\sort.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_decode_pred.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_encode_pred.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_find_predictor.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_LR_to_MS.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_MS_to_LR.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_quant_pred.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\sum_sqr_shift.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_gain.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_LTP.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_NLSF_CB_NB_MB.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_NLSF_CB_WB.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_other.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_pitch_lag.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_pulses_per_block.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\table_LSF_cos.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\VAD.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\VQ_WMat_EC.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\analysis.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\mapping_matrix.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\mlp.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\mlp_data.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opussrc.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_decoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_encoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_multistream.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_multistream_decoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_multistream_encoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_projection_decoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_projection_encoder.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\repacketizer.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\buffer.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\fftwrap.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\filterbank.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\jitter.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\kiss_fftr.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\kiss_fft_speex.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\mdf.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\preprocess.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\resample.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\scal.c" />
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\smallft.c" />
+    <ClCompile Include="..\src\libs\mt32\Analog.cpp" />
+    <ClCompile Include="..\src\libs\mt32\c_interface\c_interface.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Display.cpp" />
+    <ClCompile Include="..\src\libs\mt32\LA32FloatWaveGenerator.cpp" />
+    <ClCompile Include="..\src\libs\mt32\MidiStreamParser.cpp" />
+    <ClCompile Include="..\src\libs\mt32\SampleRateConverter.cpp" />
+    <ClCompile Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.c" />
+    <ClCompile Include="..\src\libs\zmbv\zmbv.cpp" />
+    <ClCompile Include="..\src\misc\iconvpp.cpp" />
+    <ClCompile Include="..\src\misc\mkdir_p.cpp" />
+    <ClCompile Include="..\src\misc\shiftjis.cpp" />
+    <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp" />
+    <ClCompile Include="..\src\aviwriter\avi_writer.cpp" />
+    <ClCompile Include="..\src\libs\mt32\BReverbModel.cpp" />
+    <ClCompile Include="..\src\libs\mt32\File.cpp" />
+    <ClCompile Include="..\src\libs\mt32\FileStream.cpp" />
+    <ClCompile Include="..\src\aviwriter\guid.cpp" />
+    <ClCompile Include="..\src\aviwriter\ksdataformat.cpp" />
+    <ClCompile Include="..\src\libs\mt32\LA32Ramp.cpp" />
+    <ClCompile Include="..\src\libs\mt32\LA32WaveGenerator.cpp" />
+    <ClCompile Include="..\src\gui\menu_callback.cpp" />
+    <ClCompile Include="..\src\gui\menu.cpp" />
+    <ClCompile Include="..\src\gui\midi.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Part.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Partial.cpp" />
+    <ClCompile Include="..\src\libs\mt32\PartialManager.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Poly.cpp" />
+    <ClCompile Include="..\src\gui\render.cpp" />
+    <ClCompile Include="..\src\gui\render_scalers.cpp" />
+    <ClCompile Include="..\src\aviwriter\riff.cpp" />
+    <ClCompile Include="..\src\aviwriter\riff_wav_writer.cpp" />
+    <ClCompile Include="..\src\libs\mt32\ROMInfo.cpp" />
+    <ClCompile Include="..\src\gui\sdlmain.cpp" />
+    <ClCompile Include="..\src\gui\sdl_gui.cpp" />
+    <ClCompile Include="..\src\gui\sdl_mapper.cpp" />
+    <ClCompile Include="..\src\libs\mt32\sha1\sha1.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Synth.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Tables.cpp" />
+    <ClCompile Include="..\src\libs\mt32\TVA.cpp" />
+    <ClCompile Include="..\src\libs\mt32\TVF.cpp" />
+    <ClCompile Include="..\src\libs\mt32\TVP.cpp" />
+    <ClCompile Include="..\src\hardware\adlib.cpp" />
+    <ClCompile Include="..\src\hardware\cmos.cpp" />
+    <ClCompile Include="..\src\hardware\dbopl.cpp" />
+    <ClCompile Include="..\src\hardware\disney.cpp" />
+    <ClCompile Include="..\src\hardware\dma.cpp" />
+    <ClCompile Include="..\src\hardware\dongle.cpp" />
+    <ClCompile Include="..\src\hardware\esfmu\esfm.c" />
+    <ClCompile Include="..\src\hardware\esfmu\esfm_registers.c" />
+    <ClCompile Include="..\src\hardware\floppy.cpp" />
+    <ClCompile Include="..\src\hardware\gameblaster.cpp" />
+    <ClCompile Include="..\src\hardware\gus.cpp" />
+    <ClCompile Include="..\src\hardware\hardopl.cpp" />
+    <ClCompile Include="..\src\hardware\hardware.cpp" />
+    <ClCompile Include="..\src\hardware\ide.cpp" />
+    <ClCompile Include="..\src\hardware\innova.cpp" />
+    <ClCompile Include="..\src\hardware\iohandler.cpp" />
+    <ClCompile Include="..\src\hardware\ipx.cpp" />
+    <ClCompile Include="..\src\hardware\ipxserver.cpp" />
+    <ClCompile Include="..\src\hardware\joystick.cpp" />
+    <ClCompile Include="..\src\hardware\keyboard.cpp" />
+    <ClCompile Include="..\src\hardware\memory.cpp" />
+    <ClCompile Include="..\src\hardware\mixer.cpp" />
+    <ClCompile Include="..\src\hardware\mpu401.cpp" />
+    <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp" />
+    <ClCompile Include="..\src\hardware\opl3duoboard\opl3duoboard.cpp" />
+    <ClCompile Include="..\src\hardware\ne2000.cpp" />
+    <ClCompile Include="..\src\hardware\nukedopl.cpp" />
+    <ClCompile Include="..\src\hardware\opl.cpp" />
+    <ClCompile Include="..\src\hardware\parport\directlpt.cpp" />
+    <ClCompile Include="..\src\hardware\parport\filelpt.cpp" />
+    <ClCompile Include="..\src\hardware\parport\parport.cpp" />
+    <ClCompile Include="..\src\hardware\parport\printer.cpp" />
+    <ClCompile Include="..\src\hardware\parport\printer_charmaps.cpp" />
+    <ClCompile Include="..\src\hardware\pci_bus.cpp" />
+    <ClCompile Include="..\src\hardware\pcspeaker.cpp" />
+    <ClCompile Include="..\src\hardware\pic.cpp" />
+    <ClCompile Include="..\src\hardware\ps1_sound.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\envelope.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\extfilt.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\filter.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\pot.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\sid.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\version.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\voice.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave6581_PST.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave6581_PS_.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave6581_P_T.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave6581__ST.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave8580_PST.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave8580_PS_.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave8580_P_T.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave8580__ST.cpp" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave.c" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave_DOSBoX.cpp" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Board\OPL3.c" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Protocol\Serial.c" />
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Platform\Win32_SerialPort.c" />
+    <ClCompile Include="..\src\hardware\sblaster.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\directserial.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\libserial.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\misc_util.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\nullmodem.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\serialdummy.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\seriallog.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\serialmouse.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\serialport.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\softmodem.cpp" />
+    <ClCompile Include="..\src\hardware\tandy_sound.cpp" />
+    <ClCompile Include="..\src\hardware\timer.cpp" />
+    <ClCompile Include="..\src\hardware\vga.cpp" />
+    <ClCompile Include="..\src\hardware\vga_attr.cpp" />
+    <ClCompile Include="..\src\hardware\vga_crtc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_dac.cpp" />
+    <ClCompile Include="..\src\hardware\vga_draw.cpp" />
+    <ClCompile Include="..\src\hardware\vga_gfx.cpp" />
+    <ClCompile Include="..\src\hardware\vga_memory.cpp" />
+    <ClCompile Include="..\src\hardware\vga_misc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_other.cpp" />
+    <ClCompile Include="..\src\hardware\vga_paradise.cpp" />
+    <ClCompile Include="..\src\hardware\vga_ati.cpp" />
+    <ClCompile Include="..\src\hardware\vga_s3.cpp" />
+    <ClCompile Include="..\src\hardware\vga_seq.cpp" />
+    <ClCompile Include="..\src\hardware\vga_tseng.cpp" />
+    <ClCompile Include="..\src\hardware\vga_xga.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo_emu.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo_interface.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo_opengl.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo_vogl.cpp" />
+    <ClCompile Include="..\src\hardware\glide.cpp" />
+    <ClCompile Include="..\src\ints\bios.cpp" />
+    <ClCompile Include="..\src\ints\bios_disk.cpp" />
+    <ClCompile Include="..\src\ints\bios_keyboard.cpp" />
+    <ClCompile Include="..\src\ints\ems.cpp" />
+    <ClCompile Include="..\src\ints\int10.cpp" />
+    <ClCompile Include="..\src\ints\int10_char.cpp" />
+    <ClCompile Include="..\src\ints\int10_memory.cpp" />
+    <ClCompile Include="..\src\ints\int10_misc.cpp" />
+    <ClCompile Include="..\src\ints\int10_modes.cpp" />
+    <ClCompile Include="..\src\ints\int10_pal.cpp" />
+    <ClCompile Include="..\src\ints\int10_put_pixel.cpp" />
+    <ClCompile Include="..\src\ints\int10_vesa.cpp" />
+    <ClCompile Include="..\src\ints\int10_video_state.cpp" />
+    <ClCompile Include="..\src\ints\int10_vptable.cpp" />
+    <ClCompile Include="..\src\ints\mouse.cpp" />
+    <ClCompile Include="..\src\ints\xms.cpp" />
+    <ClCompile Include="..\src\libs\gui_tk\gui_tk.cpp" />
+    <ClCompile Include="..\src\libs\passthroughio\passthroughio.cpp" />
+    <ClCompile Include="..\src\misc\clipboard.cpp" />
+    <ClCompile Include="..\src\misc\cross.cpp" />
+    <ClCompile Include="..\src\misc\ethernet.cpp" />
+    <ClCompile Include="..\src\misc\messages.cpp" />
+    <ClCompile Include="..\src\misc\ethernet_pcap.cpp" />
+    <ClCompile Include="..\src\misc\ethernet_slirp.cpp" />
+    <ClCompile Include="..\src\misc\ethernet_nothing.cpp" />
+    <ClCompile Include="..\src\misc\programs.cpp" />
+    <ClCompile Include="..\src\ints\qcow2_disk.cpp" />
+    <ClCompile Include="..\src\misc\regionalloctracking.cpp" />
+    <ClCompile Include="..\src\misc\savestates.cpp" />
+    <ClCompile Include="..\src\misc\setup.cpp" />
+    <ClCompile Include="..\src\misc\support.cpp" />
+    <ClCompile Include="..\src\output\direct3d\direct3d.cpp" />
+    <ClCompile Include="..\src\output\direct3d\hq2x_d3d.cpp" />
+    <ClCompile Include="..\src\output\direct3d\ScalingEffect.cpp" />
+    <ClCompile Include="..\src\output\output_direct3d.cpp" />
+    <ClCompile Include="..\src\output\output_gamelink.cpp" />
+    <ClCompile Include="..\src\output\output_opengl.cpp" />
+    <ClCompile Include="..\src\output\output_surface.cpp" />
+    <ClCompile Include="..\src\output\output_tools.cpp" />
+    <ClCompile Include="..\src\output\output_tools_xbrz.cpp" />
+    <ClCompile Include="..\src\output\output_ttf.cpp" />
+    <ClCompile Include="..\src\shell\shell.cpp" />
+    <ClCompile Include="..\src\shell\shell_batch.cpp" />
+    <ClCompile Include="..\src\shell\shell_cmds.cpp" />
+    <ClCompile Include="..\src\shell\shell_misc.cpp" />
+    <ClCompile Include="..\src\libs\xBRZ\xbrz.cpp" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_cmd.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_filerenderer.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_adriver.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_aufile.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_dsound.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_mdriver.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_sdl2.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_dll.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_midi.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_midi_router.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_seq.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_seqbind.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_adsr_env.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_chorus.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_iir_filter.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_lfo.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rev.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice_dsp.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice_event.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice_mixer.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_defsfont.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_ramsfont.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_chan.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_event.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_gen.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_mod.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_synth.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_tuning.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_voice.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_conv.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_hash.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_list.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_ringbuffer.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_settings.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_sys.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\winres.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\8255.h" />
+    <ClInclude Include="..\include\bios.h" />
+    <ClInclude Include="..\include\bios_disk.h" />
+    <ClInclude Include="..\include\bitmapinfoheader.h" />
+    <ClInclude Include="..\include\bitop.h" />
+    <ClInclude Include="..\include\build_timestamp.h" />
+    <ClInclude Include="..\include\byteorder.h" />
+    <ClInclude Include="..\include\fpu_control_x86.h" />
+    <ClInclude Include="..\include\iconvpp.hpp" />
+    <ClInclude Include="..\include\keymap.h" />
+    <ClInclude Include="..\include\midi.h" />
+    <ClInclude Include="..\include\ptrop.h" />
+    <ClInclude Include="..\include\builtin.h" />
+    <ClInclude Include="..\include\callback.h" />
+    <ClInclude Include="..\include\clockdomain.h" />
+    <ClInclude Include="..\include\control.h" />
+    <ClInclude Include="..\include\cp437_uni.h" />
+    <ClInclude Include="..\include\cp808_uni.h" />
+    <ClInclude Include="..\include\cp850_uni.h" />
+    <ClInclude Include="..\include\cp852_uni.h" />
+    <ClInclude Include="..\include\cp853_uni.h" />
+    <ClInclude Include="..\include\cp855_uni.h" />
+    <ClInclude Include="..\include\cp856_uni.h" />
+    <ClInclude Include="..\include\cp857_uni.h" />
+    <ClInclude Include="..\include\cp858_uni.h" />
+    <ClInclude Include="..\include\cp859_uni.h" />
+    <ClInclude Include="..\include\cp860_uni.h" />
+    <ClInclude Include="..\include\cp861_uni.h" />
+    <ClInclude Include="..\include\cp862_uni.h" />
+    <ClInclude Include="..\include\cp863_uni.h" />
+    <ClInclude Include="..\include\cp864_uni.h" />
+    <ClInclude Include="..\include\cp865_uni.h" />
+    <ClInclude Include="..\include\cp866_uni.h" />
+    <ClInclude Include="..\include\cp867_uni.h" />
+    <ClInclude Include="..\include\cp868_uni.h" />
+    <ClInclude Include="..\include\cp869_uni.h" />
+    <ClInclude Include="..\include\cp872_uni.h" />
+    <ClInclude Include="..\include\cp874_uni.h" />
+    <ClInclude Include="..\include\cp932_uni.h" />
+    <ClInclude Include="..\include\cp936_uni.h" />
+    <ClInclude Include="..\include\cp949_uni.h" />
+    <ClInclude Include="..\include\cp950_uni.h" />
+    <ClInclude Include="..\include\cp1250_uni.h" />
+    <ClInclude Include="..\include\cp1251_uni.h" />
+    <ClInclude Include="..\include\cp1252_uni.h" />
+    <ClInclude Include="..\include\cp1253_uni.h" />
+    <ClInclude Include="..\include\cp1254_uni.h" />
+    <ClInclude Include="..\include\cp1255_uni.h" />
+    <ClInclude Include="..\include\cp1256_uni.h" />
+    <ClInclude Include="..\include\cp1257_uni.h" />
+    <ClInclude Include="..\include\cp1258_uni.h" />
+    <ClInclude Include="..\include\cpu.h" />
+    <ClInclude Include="..\include\cross.h" />
+    <ClInclude Include="..\include\crypt.h" />
+    <ClInclude Include="..\include\debug.h" />
+    <ClInclude Include="..\include\dma.h" />
+    <ClInclude Include="..\include\dosbox.h" />
+    <ClInclude Include="..\include\dos_inc.h" />
+    <ClInclude Include="..\include\dos_system.h" />
+    <ClInclude Include="..\include\ethernet.h" />
+    <ClInclude Include="..\include\fpu.h" />
+    <ClInclude Include="..\include\hardware.h" />
+    <ClInclude Include="..\include\ide.h" />
+    <ClInclude Include="..\include\informational.h" />
+    <ClInclude Include="..\include\inout.h" />
+    <ClInclude Include="..\include\ioapi.h" />
+    <ClInclude Include="..\include\iowin32.h" />
+    <ClInclude Include="..\include\ipx.h" />
+    <ClInclude Include="..\include\ipxserver.h" />
+    <ClInclude Include="..\include\joystick.h" />
+    <ClInclude Include="..\include\keyboard.h" />
+    <ClInclude Include="..\include\logging.h" />
+    <ClInclude Include="..\include\mapper.h" />
+    <ClInclude Include="..\include\mem.h" />
+    <ClInclude Include="..\include\menu.h" />
+    <ClInclude Include="..\include\menudef.h" />
+    <ClInclude Include="..\include\mixer.h" />
+    <ClInclude Include="..\include\mmx.h" />
+    <ClInclude Include="..\include\mouse.h" />
+    <ClInclude Include="..\include\mztools.h" />
+    <ClInclude Include="..\include\ne2000.h" />
+    <ClInclude Include="..\include\np2glue.h" />
+    <ClInclude Include="..\include\paging.h" />
+    <ClInclude Include="..\include\parport.h" />
+    <ClInclude Include="..\include\pc98_cg.h" />
+    <ClInclude Include="..\include\pc98_dac.h" />
+    <ClInclude Include="..\include\pc98_gdc.h" />
+    <ClInclude Include="..\include\pc98_gdc_const.h" />
+    <ClInclude Include="..\include\pci_bus.h" />
+    <ClInclude Include="..\include\pic.h" />
+    <ClInclude Include="..\include\programs.h" />
+    <ClInclude Include="..\include\qcow2_disk.h" />
+    <ClInclude Include="..\include\rawint.h" />
+    <ClInclude Include="..\include\regionalloctracking.h" />
+    <ClInclude Include="..\include\regs.h" />
+    <ClInclude Include="..\include\render.h" />
+    <ClInclude Include="..\include\resource.h" />
+    <ClInclude Include="..\include\sdlmain.h" />
+    <ClInclude Include="..\include\serialport.h" />
+    <ClInclude Include="..\include\setup.h" />
+    <ClInclude Include="..\include\shell.h" />
+    <ClInclude Include="..\include\shiftjis.h" />
+    <ClInclude Include="..\include\support.h" />
+    <ClInclude Include="..\include\timer.h" />
+    <ClInclude Include="..\include\uint64_const.h" />
+    <ClInclude Include="..\include\unzip.h" />
+    <ClInclude Include="..\include\util_math.h" />
+    <ClInclude Include="..\include\util_pointer.h" />
+    <ClInclude Include="..\include\util_units.h" />
+    <ClInclude Include="..\include\version_string.h" />
+    <ClInclude Include="..\include\vga.h" />
+    <ClInclude Include="..\include\video.h" />
+    <ClInclude Include="..\include\voodoo.h" />
+    <ClInclude Include="..\include\waveformatex.h" />
+    <ClInclude Include="..\include\wave_mmreg.h" />
+    <ClInclude Include="..\include\zip.h" />
+    <ClInclude Include="..\include\zipcrc.h" />
+    <ClInclude Include="..\include\zipfile.h" />
+    <ClInclude Include="..\src\aviwriter\avi.h" />
+    <ClInclude Include="..\src\aviwriter\avi_rw_iobuf.h" />
+    <ClInclude Include="..\src\aviwriter\avi_writer.h" />
+    <ClInclude Include="..\src\aviwriter\guid.h" />
+    <ClInclude Include="..\src\aviwriter\ksdataformat.h" />
+    <ClInclude Include="..\src\aviwriter\riff.h" />
+    <ClInclude Include="..\src\aviwriter\riff_wav_writer.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\cache.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\decoder.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\decoder_basic.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\decoder_opcodes.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\dyn_fpu.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\operators.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-common.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-o3.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-thumb-iw.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-thumb-niw.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-thumb.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv8le.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_mipsel32.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_x64.h" />
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_x86.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\cache.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\decoder.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu_dh.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_mmx.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x64.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x86.h" />
+    <ClInclude Include="..\src\cpu\core_dyn_x86\string.h" />
+    <ClInclude Include="..\src\cpu\core_full\ea_lookup.h" />
+    <ClInclude Include="..\src\cpu\core_full\load.h" />
+    <ClInclude Include="..\src\cpu\core_full\loadwrite.h" />
+    <ClInclude Include="..\src\cpu\core_full\op.h" />
+    <ClInclude Include="..\src\cpu\core_full\optable.h" />
+    <ClInclude Include="..\src\cpu\core_full\save.h" />
+    <ClInclude Include="..\src\cpu\core_full\string.h" />
+    <ClInclude Include="..\src\cpu\core_full\support.h" />
+    <ClInclude Include="..\src\cpu\core_normal\helpers.h" />
+    <ClInclude Include="..\src\cpu\core_normal\prefix_0f.h" />
+    <ClInclude Include="..\src\cpu\core_normal\prefix_0f_mmx.h" />
+    <ClInclude Include="..\src\cpu\core_normal\prefix_66.h" />
+    <ClInclude Include="..\src\cpu\core_normal\prefix_66_0f.h" />
+    <ClInclude Include="..\src\cpu\core_normal\prefix_none.h" />
+    <ClInclude Include="..\src\cpu\core_normal\string.h" />
+    <ClInclude Include="..\src\cpu\core_normal\support.h" />
+    <ClInclude Include="..\src\cpu\core_normal\table_ea.h" />
+    <ClInclude Include="..\src\cpu\core_normal\table_ea_8086.h" />
+    <ClInclude Include="..\src\cpu\core_prefetch_buf.h" />
+    <ClInclude Include="..\src\cpu\dynamic_alloc_common.h" />
+    <ClInclude Include="..\src\cpu\instructions.h" />
+    <ClInclude Include="..\src\cpu\lazyflags.h" />
+    <ClInclude Include="..\src\cpu\modrm.h" />
+    <ClInclude Include="..\src\debug\debug_inc.h" />
+    <ClInclude Include="..\src\debug\disasm_tables.h" />
+    <ClInclude Include="..\src\dos\cdrom.h" />
+    <ClInclude Include="..\src\dos\dev_con.h" />
+    <ClInclude Include="..\src\dos\dos_codepages.h" />
+    <ClInclude Include="..\src\dos\dos_keyboard_layout_data.h" />
+    <ClInclude Include="..\src\dos\dos_network.h" />
+    <ClInclude Include="..\src\dos\dos_network2.h" />
+    <ClInclude Include="..\src\dos\drives.h" />
+    <ClInclude Include="..\src\dos\scsidefs.h" />
+    <ClInclude Include="..\src\dos\wnaspi32.h" />
+    <ClInclude Include="..\src\fpu\fpu_instructions.h" />
+    <ClInclude Include="..\src\fpu\fpu_instructions_longdouble.h" />
+    <ClInclude Include="..\src\fpu\fpu_instructions_x86.h" />
+    <ClInclude Include="..\src\gamelink\gamelink.h" />
+    <ClInclude Include="..\src\gamelink\scancodes_windows.h" />
+    <ClInclude Include="..\src\gui\dosbox.cga640.bmp.h" />
+    <ClInclude Include="..\src\gui\dosbox.vga16.bmp.h" />
+    <ClInclude Include="..\src\gui\dosbox_logo.h" />
+    <ClInclude Include="..\src\gui\midi_alsa.h" />
+    <ClInclude Include="..\src\gui\midi_coreaudio.h" />
+    <ClInclude Include="..\src\gui\midi_coremidi.h" />
+    <ClInclude Include="..\src\gui\midi_mt32.h" />
+    <ClInclude Include="..\src\gui\midi_oss.h" />
+    <ClInclude Include="..\src\gui\midi_synth.h" />
+    <ClInclude Include="..\src\gui\midi_timidity.h" />
+    <ClInclude Include="..\src\gui\midi_win32.h" />
+    <ClInclude Include="..\src\gui\render_loops.h" />
+    <ClInclude Include="..\src\gui\render_scalers.h" />
+    <ClInclude Include="..\src\gui\render_simple.h" />
+    <ClInclude Include="..\src\gui\render_templates.h" />
+    <ClInclude Include="..\src\gui\render_templates_hq.h" />
+    <ClInclude Include="..\src\gui\render_templates_hq2x.h" />
+    <ClInclude Include="..\src\gui\render_templates_hq3x.h" />
+    <ClInclude Include="..\src\gui\render_templates_sai.h" />
+    <ClInclude Include="..\src\hardware\adlib.h" />
+    <ClInclude Include="..\src\hardware\dbopl.h" />
+    <ClInclude Include="..\src\hardware\esfmu\esfm.h" />
+    <ClInclude Include="..\src\hardware\hardopl.h" />
+    <ClInclude Include="..\src\hardware\mame\emu.h" />
+    <ClInclude Include="..\src\hardware\mame\fmopl.h" />
+    <ClInclude Include="..\src\hardware\mame\saa1099.h" />
+    <ClInclude Include="..\src\hardware\mame\sn76496.h" />
+    <ClInclude Include="..\src\hardware\mame\ymdeltat.h" />
+    <ClInclude Include="..\src\hardware\mame\ymf262.h" />
+    <ClInclude Include="..\src\hardware\opl2board\opl2board.h" />
+    <ClInclude Include="..\src\hardware\opl3duoboard\opl3duoboard.h" />
+    <ClInclude Include="..\src\hardware\nukedopl.h" />
+    <ClInclude Include="..\src\hardware\opl.h" />
+    <ClInclude Include="..\src\hardware\parport\directlpt.h" />
+    <ClInclude Include="..\src\hardware\parport\filelpt.h" />
+    <ClInclude Include="..\src\hardware\parport\printer.h" />
+    <ClInclude Include="..\src\hardware\parport\printer_charmaps.h" />
+    <ClInclude Include="..\src\hardware\parport\printer_if.h" />
+    <ClInclude Include="..\src\hardware\parport\printer_redir.h" />
+    <ClInclude Include="..\src\hardware\pci_devices.h" />
+    <ClInclude Include="..\src\hardware\reSID\envelope.h" />
+    <ClInclude Include="..\src\hardware\reSID\extfilt.h" />
+    <ClInclude Include="..\src\hardware\reSID\filter.h" />
+    <ClInclude Include="..\src\hardware\reSID\pot.h" />
+    <ClInclude Include="..\src\hardware\reSID\sid.h" />
+    <ClInclude Include="..\src\hardware\reSID\siddefs.h" />
+    <ClInclude Include="..\src\hardware\reSID\spline.h" />
+    <ClInclude Include="..\src\hardware\reSID\voice.h" />
+    <ClInclude Include="..\src\hardware\reSID\wave.h" />
+    <ClInclude Include="..\src\hardware\serialport\directserial.h" />
+    <ClInclude Include="..\src\hardware\serialport\libserial.h" />
+    <ClInclude Include="..\src\hardware\serialport\misc_util.h" />
+    <ClInclude Include="..\src\hardware\serialport\nullmodem.h" />
+    <ClInclude Include="..\src\hardware\serialport\serialdummy.h" />
+    <ClInclude Include="..\src\hardware\serialport\serialfile.h" />
+    <ClInclude Include="..\src\hardware\serialport\seriallog.h" />
+    <ClInclude Include="..\src\hardware\serialport\serialmouse.h" />
+    <ClInclude Include="..\src\hardware\serialport\softmodem.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board26k.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board86.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\pcm86io.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\common\parts.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\common\profile.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\common\wavefile.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\generic\keydisp.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\adpcm.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\fmboard.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\fmtimer.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\getsnd\getsnd.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\opngen.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\pcm86.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\psggen.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\rhythm.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\sound.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\soundrom.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\tms3631.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\x11\dosio.h" />
+    <ClInclude Include="..\src\hardware\voodoo_data.h" />
+    <ClInclude Include="..\src\hardware\voodoo_def.h" />
+    <ClInclude Include="..\src\hardware\voodoo_emu.h" />
+    <ClInclude Include="..\src\hardware\voodoo_interface.h" />
+    <ClInclude Include="..\src\hardware\voodoo_opengl.h" />
+    <ClInclude Include="..\src\hardware\voodoo_types.h" />
+    <ClInclude Include="..\src\hardware\voodoo_vogl.h" />
+    <ClInclude Include="..\src\ints\int10.h" />
+    <ClInclude Include="..\src\ints\xms.h" />
+    <ClInclude Include="..\src\libs\gui_tk\gui_tk.h" />
+    <ClInclude Include="..\src\libs\mt32\Analog.h" />
+    <ClInclude Include="..\src\libs\mt32\BReverbModel.h" />
+    <ClInclude Include="..\src\libs\mt32\c_interface\cpp_interface.h" />
+    <ClInclude Include="..\src\libs\mt32\c_interface\c_interface.h" />
+    <ClInclude Include="..\src\libs\mt32\c_interface\c_types.h" />
+    <ClInclude Include="..\src\libs\mt32\Display.h" />
+    <ClInclude Include="..\src\libs\mt32\File.h" />
+    <ClInclude Include="..\src\libs\mt32\FileStream.h" />
+    <ClInclude Include="..\src\libs\mt32\globals.h" />
+    <ClInclude Include="..\src\libs\mt32\LA32FloatWaveGenerator.h" />
+    <ClInclude Include="..\src\libs\mt32\LA32Ramp.h" />
+    <ClInclude Include="..\src\libs\mt32\LA32WaveGenerator.h" />
+    <ClInclude Include="..\src\libs\mt32\MidiStreamParser.h" />
+    <ClInclude Include="..\src\libs\mt32\mmath.h" />
+    <ClInclude Include="..\src\libs\mt32\mt32emu.h" />
+    <ClInclude Include="..\src\libs\mt32\Part.h" />
+    <ClInclude Include="..\src\libs\mt32\Partial.h" />
+    <ClInclude Include="..\src\libs\mt32\PartialManager.h" />
+    <ClInclude Include="..\src\libs\mt32\Poly.h" />
+    <ClInclude Include="..\src\libs\mt32\ROMInfo.h" />
+    <ClInclude Include="..\src\libs\mt32\SampleRateConverter.h" />
+    <ClInclude Include="..\src\libs\mt32\sha1\sha1.h" />
+    <ClInclude Include="..\src\libs\mt32\Structures.h" />
+    <ClInclude Include="..\src\libs\mt32\Synth.h" />
+    <ClInclude Include="..\src\libs\mt32\Tables.h" />
+    <ClInclude Include="..\src\libs\mt32\TVA.h" />
+    <ClInclude Include="..\src\libs\mt32\TVF.h" />
+    <ClInclude Include="..\src\libs\mt32\TVP.h" />
+    <ClInclude Include="..\src\libs\mt32\Types.h" />
+    <ClInclude Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.h" />
+    <ClInclude Include="..\src\misc\ethernet_pcap.h" />
+    <ClInclude Include="..\src\misc\ethernet_slirp.h" />
+    <ClInclude Include="..\src\output\direct3d\d3d_components.h" />
+    <ClInclude Include="..\src\output\direct3d\direct3d.h" />
+    <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h" />
+    <ClInclude Include="..\src\output\direct3d\ScalingEffect.h" />
+    <ClInclude Include="..\src\output\output_direct3d.h" />
+    <ClInclude Include="..\src\output\output_gamelink.h" />
+    <ClInclude Include="..\src\output\output_opengl.h" />
+    <ClInclude Include="..\src\output\output_surface.h" />
+    <ClInclude Include="..\src\output\output_tools.h" />
+    <ClInclude Include="..\src\output\output_tools_xbrz.h" />
+    <ClInclude Include="..\src\resource.h" />
+    <ClInclude Include="..\src\libs\xBRZ\xbrz.h" />
+    <ClInclude Include="..\src\libs\xBRZ\xbrz_config.h" />
+    <ClInclude Include="..\src\libs\xBRZ\xbrz_tools.h" />
+    <ClInclude Include="config.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="String.natvis" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

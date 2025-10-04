@@ -1,0 +1,60 @@
+xBRZ (https://sourceforge.net/projects/xbrz/) scaler is integrated into DOSBox-X.
+
+To enable, use
+    scaler=xbrz
+or
+    scaler=xbrz_bilinear
+option in [render] section.
+
+The difference between two options is in the post-scaling resize method. 
+xBRZ scaler uses fixed scale factors, 2X to 6X, which are usually not exactly
+matching the display window. So nearest size xBRZ scaler output is then 
+resized (upscaled/dowscaled) using either nearest neighbor ('xbrz') or 
+bilinear ('xbrz_bilinear') algorithm to match the window size.
+
+It is highly recommended to use 'direct3d' or any of the 'opengl' output modes
+with xBRZ because bilinear post-scaler performance is terrible and nearest
+neighbor post-scaler does not provide good results.
+
+In 'direct3d' / 'opengl' output modes, there is no difference between
+'xbrz' and 'xbrz_bilinear' variants, because software post-scaler is not used
+and output is post-scaled by the output interface/hardware.
+
+Differences from reference implementation on xBRZ site / in Daum build:
+
+- DOSBox-X implementation supports 'surface', 'direct3d' and 'opengl' outputs
+  (including opengl variants 'openglnb' and 'openglhq')
+- Windowed mode is fully working with xBRZ scaler enabled
+- You can combine xBRZ with 'direct3d' mode post-scalers to get i.e. TV effect
+- Enabling xBRZ scaler does not disable 'aspect' option, it is honored
+
+Things to notice:
+
+- The scaler is very CPU intensive so it will run with decent speed for
+  games and demos only on high-end CPUs. Keep this in mind. You can try
+  to correct performance for high output resolutions by using either
+  'xbrz fixed scale factor' or 'xbrz max scale factor' options to limit
+  xBRZ scale factor (lower factors improve performance), of course this
+  reduces image quality for higher output resolutions proportionally.
+
+- Using 'direct3d' or 'opengl' mode actually improves performance a lot
+  because it gets rid of the software post-scaler pass.
+
+- xBRZ scaler code uses parallel processing internally. There is also
+  'xbrz slice' option that affects parallelism, its default (16) gives
+  good results on 4-8 core CPUs.
+
+- When xBRZ scaler is enabled, internal DOSBox scaler options are disabled
+  because any pre-scaling will break xBRZ algorithm. For the same very reason,
+  'doublescan' option is always turned off internally when xBRZ is enabled.
+
+- When using xBRZ in 'surface' output mode and window/screen sizes less than
+  2x of the original DOS resolution, 'xbrz' scaler can degrade quality instead
+  of improving it, use 'direct3d'/'opengl' outputs or 'xbrz_bilinear' scaler
+  variant to avoid this.
+
+Caveats / issues / things to do / incomplete:
+
+- In case video adapter interface uses non-standard color scheme / byte order,
+  colors with xBRZ scaler enabled would most probably be garbled.
+  [YET TO REPRODUCE ANYWHERE]

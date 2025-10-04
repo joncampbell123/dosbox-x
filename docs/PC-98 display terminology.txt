@@ -1,0 +1,27 @@
+This is posted here in the source tree in the event
+it gets lost in Github's issue tracker.
+
+From hdk1983:
+
+...
+
+The second part of the undocumented_mem/io_prn.txt is for ハイレゾ (hairezo, high-resolution) mode. The games that read the port for detecting system clock are for normal mode.
+
+...
+
+It's "ハイレゾ", its resolution is super high resolution...
+
+    normal mode = 15khz 200-line mode
+    high resolution = 24/31khz 400/480-line mode
+    super high resolution = ?khz 1120x750 mode
+
+Modes are named as:
+
+    ノーマルモード, normal mode, is 15kHz/24kHz/31kHz.
+    ハイレゾモード, hi-res mode, high resolution mode, is the 750 lines mode.
+
+However resolution of the high resolution mode is super high resolution, that term is normally not used, but only used in Wikipedia for describing it is different from the 高解像度, high resolution, of the normal mode.
+When ハイレゾモード was released, ハイレゾ term might be used only for PC-98 series in Japan, so many Japanese speakers using the ハイレゾ term might not think about that ハイレゾ was a abbreviation for high resolution and the same meaning as 高解像度. So if you find ハイレゾ in documentation, normally it means the 750 lines mode. If you use a translator, maybe you need to look at the original sentense of "high resolution".
+
+A display for 15kHz is called as 標準ディスプレイ、a standard display. The 15kHz mode was normally not used. That might be used in early 1980s, because its display might compatible with other PCs like Sharp X1 and Fujitsu FM-7, but I've never seen PC-98 systems that are connected with such displays in 1990s.
+

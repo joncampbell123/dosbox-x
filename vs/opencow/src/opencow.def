@@ -1,0 +1,567 @@
+; ***** BEGIN LICENSE BLOCK *****
+; Version: MPL 1.1/GPL 2.0/LGPL 2.1
+;
+; The contents of this file are subject to the Mozilla Public License Version
+; 1.1 (the "License"); you may not use this file except in compliance with
+; the License. You may obtain a copy of the License at
+; http://www.mozilla.org/MPL/
+;
+; Software distributed under the License is distributed on an "AS IS" basis,
+; WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+; for the specific language governing rights and limitations under the
+; License.
+;
+; The Original Code is for Open Layer for Unicode (opencow).
+;
+; The Initial Developer of the Original Code is Brodie Thiesfield.
+; Portions created by the Initial Developer are Copyright (C) 2004
+; the Initial Developer. All Rights Reserved.
+;
+; Contributor(s):
+;
+; Alternatively, the contents of this file may be used under the terms of
+; either the GNU General Public License Version 2 or later (the "GPL"), or
+; the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+; in which case the provisions of the GPL or the LGPL are applicable instead
+; of those above. If you wish to allow use of your version of this file only
+; under the terms of either the GPL or the LGPL, and not to allow others to
+; use your version of this file under the terms of the MPL, indicate your
+; decision by deleting the provisions above and replace them with the notice
+; and other provisions required by the GPL or the LGPL. If you do not delete
+; the provisions above, a recipient may use your version of this file under
+; the terms of any one of the MPL, the GPL or the LGPL.
+;
+; ***** END LICENSE BLOCK ***** 
+
+EXPORTS
+
+;advapi32.cpp
+;    CryptAcquireContextW
+;    CryptEnumProvidersW
+;    CryptEnumProviderTypesW
+;    CryptGetDefaultProviderW
+;    CryptSetProviderExW
+;    CryptSetProviderW
+;    CryptSignHashW
+;    CryptVerifySignatureW
+;    GetCurrentHwProfileW
+    GetUserNameW
+;    IsTextUnicode
+    RegConnectRegistryW
+    RegCreateKeyExW
+    RegCreateKeyW
+    RegDeleteKeyW
+    RegDeleteValueW
+    RegEnumKeyExW
+    RegEnumKeyW
+    RegEnumValueW
+    RegLoadKeyW
+    RegOpenKeyExW
+    RegOpenKeyW
+    RegQueryInfoKeyW
+;    RegQueryMultipleValuesW
+    RegQueryValueExW
+    RegQueryValueW
+    RegReplaceKeyW
+    RegSaveKeyW
+    RegSetValueExW
+    RegSetValueW
+    RegUnLoadKeyW
+
+;avicap32
+;    capCreateCaptureWindowW
+;    capGetDriverDescriptionW
+
+;comdlg32.cpp
+;    ChooseColorW
+;    ChooseFontW
+;    FindTextW
+;    GetFileTitleW
+    GetOpenFileNameW
+    GetSaveFileNameW
+;    PageSetupDlgW
+;    PrintDlgW
+;    ReplaceTextW
+    
+;gdi32
+; NONE, see symbols.txt
+
+;imm32.cpp
+    ImmConfigureIMEW
+    ImmEnumRegisterWordW
+    ImmEscapeW
+    ImmGetCandidateListCountW
+    ImmGetCandidateListW
+    ImmGetCompositionFontW
+    ImmGetCompositionStringW
+    ImmGetConversionListW
+    ImmGetDescriptionW
+    ImmGetGuideLineW
+    ImmGetIMEFileNameW
+    ImmGetImeMenuItemsW
+    ImmGetRegisterWordStyleW
+    ImmInstallIMEW
+    ImmIsUIMessageW
+    ImmRegisterWordW
+    ImmSetCompositionFontW
+    ImmSetCompositionStringW
+    ImmUnregisterWordW
+    
+;kernel32.cpp
+    AddAtomW
+;    BeginUpdateResourceA
+;    BeginUpdateResourceW
+;    BuildCommDCBAndTimeoutsW
+;    BuildCommDCBW
+;    CallNamedPipeW
+;    CommConfigDialogW
+;    CompareStringW
+;    CopyFileExW
+    CopyFileW
+    CreateDirectoryExW
+    CreateDirectoryW
+    CreateEventW
+    CreateFileMappingW
+    CreateFileW
+    CreateMailslotW
+    CreateMutexW
+;    CreateNamedPipeW
+    CreateProcessW
+    CreateSemaphoreW
+    CreateWaitableTimerW
+    DeleteFileW
+;    EndUpdateResourceA
+;    EndUpdateResourceW
+;    EnumCalendarInfoExW
+;    EnumCalendarInfoW
+;    EnumDateFormatsExW
+;    EnumDateFormatsW
+;    EnumSystemCodePagesW
+;    EnumSystemLocalesW
+;    EnumTimeFormatsW
+    ExpandEnvironmentStringsW
+    FatalAppExitW
+;    FillConsoleOutputCharacterW
+    FindAtomW
+    FindFirstChangeNotificationW
+    FindFirstFileW
+    FindNextFileW
+    FindResourceExW
+    FindResourceW
+;    FormatMessageW
+    FreeEnvironmentStringsW
+    GetAtomNameW
+    GetCPInfo = OCOW_GetCPInfo
+    GetCPInfoExW
+;    GetCalendarInfoW
+    GetComputerNameW
+;    GetConsoleTitleW
+;    GetCurrencyFormatW
+    GetCurrentDirectoryW
+;    GetDateFormatW
+;    GetDefaultCommConfigW
+    GetDiskFreeSpaceExW
+    GetDiskFreeSpaceW
+    GetDriveTypeW
+    GetEnvironmentStringsW
+    GetEnvironmentVariableW
+;    GetFileAttributesExW
+    GetFileAttributesW
+    GetFullPathNameW
+;    GetLocaleInfoW
+    GetLogicalDriveStringsW
+    GetLongPathNameW
+    GetModuleFileNameW
+    GetModuleHandleW
+;    GetNamedPipeHandleStateW
+;    GetNumberFormatW
+;    GetPrivateProfileIntW
+;    GetPrivateProfileSectionNamesW
+;    GetPrivateProfileSectionW
+;    GetPrivateProfileStringW
+;    GetPrivateProfileStructW
+    GetProcAddress = OCOW_GetProcAddress
+;    GetProfileIntW
+;    GetProfileSectionW
+;    GetProfileStringW
+    GetShortPathNameW
+    GetStartupInfoW
+;    GetStringTypeExW
+    GetStringTypeW
+    GetSystemDirectoryW
+    GetSystemWindowsDirectoryW
+    GetTempFileNameW
+    GetTempPathW
+;    GetTimeFormatW
+;    GetVersionExW
+;    GetVolumeInformationW
+    GetWindowsDirectoryW
+    GlobalAddAtomW
+    GlobalFindAtomW
+    GlobalGetAtomNameW
+    IsBadStringPtrW
+    IsValidCodePage = OCOW_IsValidCodePage
+    LCMapStringW
+    LoadLibraryExW
+    LoadLibraryW
+    MoveFileW
+    MultiByteToWideChar = OCOW_MultiByteToWideChar
+    OpenEventW
+    OpenFileMappingW
+    OpenMutexW
+    OpenSemaphoreW
+    OpenWaitableTimerW
+    OutputDebugStringW
+;    PeekConsoleInputW
+;    QueryDosDeviceW
+;    ReadConsoleInputW
+;    ReadConsoleOutputCharacterW
+;    ReadConsoleOutputW
+;    ReadConsoleW
+    RemoveDirectoryW
+;    ScrollConsoleScreenBufferW
+;    SearchPathW
+;    SetCalendarInfoW
+    SetComputerNameW
+    SetConsoleTitleW
+    SetCurrentDirectoryW
+;    SetDefaultCommConfigW
+    SetEnvironmentVariableW
+    SetFileAttributesW
+;    SetLocaleInfoW
+    SetVolumeLabelW
+;    UpdateResourceA
+;    UpdateResourceW
+;    WaitNamedPipeW
+    WideCharToMultiByte = OCOW_WideCharToMultiByte
+;    WriteConsoleInputW
+;    WriteConsoleOutputCharacterW
+;    WriteConsoleOutputW
+;    WriteConsoleW
+;    WritePrivateProfileSectionW
+;    WritePrivateProfileStringW
+;    WritePrivateProfileStructW
+;    WriteProfileSectionW
+;    WriteProfileStringW
+    lstrcatW
+;    lstrcmpW
+;    lstrcmpiW
+    lstrcpyW
+    lstrcpynW
+    lstrlenW = OCOW_lstrlenW
+
+;mpr
+;    MultinetGetConnectionPerformanceW
+;    WNetAddConnection2W
+;    WNetAddConnection3W
+;    WNetAddConnectionW
+;    WNetCancelConnection2W
+;    WNetCancelConnectionW
+;    WNetConnectionDialog1W
+;    WNetDisconnectDialog1W
+;    WNetEnumResourceW
+;    WNetGetConnectionW
+;    WNetGetLastErrorW
+;    WNetGetNetworkInformationW
+;    WNetGetProviderNameW
+;    WNetGetResourceInformationW
+;    WNetGetResourceParentW
+;    WNetGetUniversalNameW
+;    WNetGetUserW
+;    WNetOpenEnumW
+;    WNetUseConnectionW
+
+;msvcrt.cpp
+    _waccess
+    _wchdir
+    _wgetcwd
+    _wgetdcwd
+    _wmkdir
+    _wopen
+    _wremove
+    _wrename
+    _wstat
+    _wstati64
+    
+;msvfw32
+;    GetOpenFileNamePreviewW
+;    GetSaveFileNamePreviewW
+;    MCIWndCreateW
+
+;oleacc
+    CreateStdAccessibleProxyW
+    GetRoleTextW
+    GetStateTextW
+
+;oledlg
+;    OleUIAddVerbMenuW
+;    OleUIBusyW
+;    OleUIChangeIconW
+;    OleUIChangeSourceW
+;    OleUIConvertW
+;    OleUIEditLinksW
+;    OleUIInsertObjectW
+;    OleUIObjectPropertiesW
+;    OleUIPasteSpecialW
+;    OleUIPromptUserW
+;    OleUIUpdateLinksW
+
+;rasapi32
+;     RasConnectionNotificationW
+;     RasCreatePhonebookEntryW
+;     RasDeleteEntryW
+;     RasDeleteSubEntryW
+;     RasDialW
+;     RasEditPhonebookEntryW
+;     RasEnumConnectionsW
+;     RasEnumDevicesW
+;     RasEnumEntriesW
+;     RasGetConnectStatusW
+;     RasGetEntryDialParamsW
+;     RasGetEntryPropertiesW
+;     RasGetErrorStringW
+;     RasGetProjectionInfoW
+;     RasHangUpW
+;     RasRenameEntryW
+;     RasSetEntryDialParamsW
+;     RasSetEntryPropertiesW
+;     RasSetSubEntryPropertiesW
+;     RasValidateEntryNameW
+
+;secur32
+;     AcquireCredentialsHandleW
+;     EnumerateSecurityPackagesW
+;     FreeContextBuffer
+;     InitializeSecurityContextW
+;     InitSecurityInterfaceW
+;     QueryContextAttributesW
+;     QueryCredentialsAttributesW
+;     QuerySecurityPackageInfoW
+
+;sensapi
+    IsDestinationReachableW
+
+;shell32.cpp
+;    DragQueryFileW
+;    ExtractIconExW
+;    ExtractIconW
+;    FindExecutableW
+    SHBrowseForFolderW
+;    SHChangeNotify
+;    SHFileOperationW
+;    SHGetFileInfoW
+;    SHGetNewLinkInfoW
+    SHGetPathFromIDListW
+    ShellAboutW
+;    ShellExecuteExW
+    ShellExecuteW
+;    Shell_NotifyIconW
+
+;user32.cpp    
+;    AppendMenuW
+;    BroadcastSystemMessageW
+;    CallMsgFilterW
+;    CallWindowProcA
+    CallWindowProcW
+;    ChangeDisplaySettingsExW
+;    ChangeDisplaySettingsW
+;    ChangeMenuW
+    CharLowerBuffW
+    CharLowerW
+    CharNextW
+    CharPrevW
+;    CharToOemBuffW
+;    CharToOemW
+    CharUpperBuffW
+    CharUpperW
+;    CopyAcceleratorTableW
+;    CreateAcceleratorTableW
+;    CreateDialogIndirectParamW
+;    CreateDialogParamW
+;    CreateMDIWindowW
+    CreateWindowExW
+;    DdeConnect
+;    DdeConnectList
+;    DdeCreateStringHandleW
+;    DdeInitializeW
+;    DdeQueryConvInfo
+;    DdeQueryStringW
+;    DefDlgProcW
+;    DefFrameProcW
+;    DefMDIChildProcW
+    DefWindowProcW
+;    DialogBoxIndirectParamW
+;    DialogBoxParamW
+    DispatchMessageW
+;    DlgDirListComboBoxW
+;    DlgDirListW
+;    DlgDirSelectComboBoxExW
+;    DlgDirSelectExW
+;    DrawStateW
+;    DrawTextExW
+;    DrawTextW
+;    EnableWindow
+;    EnumClipboardFormats
+;    EnumDisplayDevicesW
+;    EnumDisplaySettingsExW
+;    EnumDisplaySettingsW
+;    EnumPropsA
+;    EnumPropsExA
+;    EnumPropsExW
+;    EnumPropsW
+;    FindWindowExW
+;    FindWindowW
+;    GetAltTabInfoW
+;    GetClassInfoExW
+;    GetClassInfoW
+;    GetClassLongW
+    GetClassNameW
+;    GetClipboardData
+    GetClipboardFormatNameW
+;    GetDlgItemTextW
+;    GetKeyNameTextW
+;    GetKeyboardLayoutNameW
+;    GetMenuItemInfoW
+;    GetMenuStringW
+    GetMessageW
+;    GetMonitorInfoW
+;    GetPropA
+;    GetPropW
+;    GetTabbedTextExtentW
+;    GetWindowLongA
+;    GetWindowLongW
+;    GetWindowModuleFileNameW
+;    GetWindowTextLengthW
+;    GetWindowTextW
+;    GrayStringW
+;    InsertMenuItemW
+;    InsertMenuW
+;    IsCharAlphaNumericW
+;    IsCharAlphaW
+;    IsCharLowerW
+;    IsCharUpperW
+;    IsClipboardFormatAvailable
+;    IsDialogMessageW
+;    IsWindowUnicode
+;    LoadAcceleratorsW
+;    LoadBitmapW
+;    LoadCursorFromFileW
+;    LoadCursorW
+;    LoadIconW
+;    LoadImageW
+;    LoadKeyboardLayoutW
+;    LoadMenuIndirectW
+;    LoadMenuW
+;    LoadStringW
+;    MapVirtualKeyExW
+;    MapVirtualKeyW
+    MessageBoxExW
+;    MessageBoxIndirectW
+    MessageBoxW
+;    ModifyMenuW
+;    OemToCharBuffW
+;    OemToCharW
+    PeekMessageW
+;    PostMessageW
+;    PostThreadMessageW
+;    RegisterClassExW
+    RegisterClassW
+    RegisterClipboardFormatW
+;    RegisterDeviceNotificationW
+;    RegisterWindowMessageW
+;    RemovePropA
+;    RemovePropW
+;    SendDlgItemMessageW
+;    SendMessageCallbackW
+    SendMessageTimeoutW
+    SendMessageW
+;    SendNotifyMessageW
+;    SetClassLongW
+;    SetDlgItemTextW
+;    SetMenuItemInfoW
+;    SetPropA
+;    SetPropW
+;    SetWindowLongA
+;    SetWindowLongW
+;    SetWindowTextW
+;    SetWindowsHookExW
+;    SetWindowsHookW
+;    SystemParametersInfoW
+;    TabbedTextOutW
+;    TranslateAcceleratorW
+    UnregisterClassW
+;    VkKeyScanExW
+;    VkKeyScanW
+;    WinHelpW
+;    wsprintfW
+;    wvsprintfW
+
+;version
+;    GetFileVersionInfoSizeW
+;    GetFileVersionInfoW
+;    VerFindFileW
+;    VerInstallFileW
+;    VerLanguageNameW
+;    VerQueryValueW
+
+;winmm
+;     PlaySoundW
+;     auxGetDevCapsW
+;     joyGetDevCapsW
+;     mciGetDeviceIDW
+;     mciGetErrorStringW
+;     mciSendCommandW
+;     mciSendStringW
+;     midiInGetDevCapsW
+;     midiInGetErrorTextW
+;     midiOutGetDevCapsW
+;     midiOutGetErrorTextW
+;     mixerGetControlDetailsW
+;     mixerGetDevCapsW
+;     mixerGetLineControlsW
+;     mixerGetLineInfoW
+;     mmioInstallIOProcW
+;     mmioOpenW
+;     mmioRenameW
+;     mmioStringToFOURCCW
+;     sndPlaySoundW
+;     waveInGetDevCapsW
+;     waveInGetErrorTextW
+;     waveOutGetDevCapsW
+;     waveOutGetErrorTextW
+
+;winspool.cpp
+;    AddJobW
+;    AddMonitorW
+;    AddPortW
+;    AddPrintProcessorW
+;    AddPrintProvidorW
+;    AddPrinterDriverW
+;    AddPrinterW
+;    AdvancedDocumentPropertiesW
+;    ConfigurePortW
+;    DeleteMonitorW
+;    DeletePortW
+;    DeletePrintProcessorW
+;    DeletePrintProvidorW
+;    DeletePrinterDriverW
+;    DeviceCapabilitiesW
+    DocumentPropertiesW
+;    EnumMonitorsW
+;    EnumPortsW
+;    EnumPrintProcessorDatatypesW
+;    EnumPrintProcessorsW
+;    EnumPrinterDriversW
+;    EnumPrintersW
+;    GetJobW
+;    GetPrintProcessorDirectoryW
+;    GetPrinterDataW
+;    GetPrinterDriverDirectoryW
+;    GetPrinterDriverW
+;    GetPrinterW
+;    OpenPrinterW
+;    ResetPrinterW
+;    SetJobW
+;    SetPrinterDataW
+;    SetPrinterW
+;    StartDocPrinterW

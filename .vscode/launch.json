@@ -1,0 +1,110 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(Windows) Launch SDL1 Debug Win32",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/Win32/Debug/dosbox-x.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/Win32/Debug",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
+            "name": "(Windows) Launch SDL1 Debug Win64",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/x64/Debug/dosbox-x.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/x64/Debug",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
+            "name": "(Windows) Launch SDL1 Release Win32",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/Win32/Release/dosbox-x.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/Win32/Release",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
+            "name": "(Windows) Launch SDL1 Release Win64",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/x64/Release/dosbox-x.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/x64/Release",
+            "environment": [],
+            "externalConsole": true
+        },
+
+
+
+        {
+            "name": "(Windows) Launch SDL2 Debug Win32",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/Win32/Debug SDL2/dosbox-x.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/Win32/Debug SDL2",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
+            "name": "(Windows) Launch SDL2 Debug Win64",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/x64/Debug SDL2/dosbox-x.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/x64/Debug SDL2",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
+            "name": "(Windows) Launch SDL2 Release Win32",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/Win32/Release SDL2/dosbox-x.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/Win32/Release SDL2",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
+            "name": "(Windows) Launch SDL2 Release Win64",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/x64/Release SDL2/dosbox-x.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/x64/Release SDL2",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
+            "name": "(MacOS) Launch Debug",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/dosbox-x",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": true
+        }
+    ]
+}

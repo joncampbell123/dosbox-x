@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -33,12 +33,7 @@
 #endif
 #endif
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
-#ifndef DOSBOX_MEM_H
 #include "mem.h"
-#endif
 
 // In Use Flag codes
 #define USEFLAG_AVAILABLE  0x00
@@ -72,6 +67,10 @@
 // For Uint8 type
 #include "SDL_net.h"
 
+#ifndef SDLNet_GetError
+#define SDLNet_GetError SDL_GetError
+#endif
+
 struct PackedIP {
 	Uint32 host;
 	Uint16 port;
@@ -98,9 +97,9 @@ struct IPXHeader {
 } GCC_ATTRIBUTE(packed);
 
 struct fragmentDescriptor {
-	Bit16u offset;
-	Bit16u segment;
-	Bit16u size;
+	uint16_t offset;
+	uint16_t segment;
+	uint16_t size;
 };
 
 #define IPXBUFFERSIZE 1424
@@ -112,42 +111,42 @@ public:
    	ECBClass *prevECB;	// Linked List
 	ECBClass *nextECB;
 	
-	Bit8u iuflag;		// Need to save data since we are not always in
-	Bit16u mysocket;	// real mode
+	uint8_t iuflag;		// Need to save data since we are not always in
+	uint16_t mysocket;	// real mode
 
-	Bit8u* databuffer;	// received data is stored here until we get called
+	uint8_t* databuffer;	// received data is stored here until we get called
 	Bitu buflen;		// by Interrupt
 
 #ifdef IPX_DEBUGMSG 
 	Bitu SerialNumber;
 #endif
 
-	ECBClass(Bit16u segment, Bit16u offset);
-	Bit16u getSocket(void);
+	ECBClass(uint16_t segment, uint16_t offset);
+	uint16_t getSocket(void);
 
-	Bit8u getInUseFlag(void);
+	uint8_t getInUseFlag(void);
 
-	void setInUseFlag(Bit8u flagval);
+	void setInUseFlag(uint8_t flagval);
 
-	void setCompletionFlag(Bit8u flagval);
+	void setCompletionFlag(uint8_t flagval);
 
-	Bit16u getFragCount(void);
+	uint16_t getFragCount(void);
 
 	bool writeData();
-	void writeDataBuffer(Bit8u* buffer, Bit16u length);
+	void writeDataBuffer(uint8_t* buffer, uint16_t length);
 
-	void getFragDesc(Bit16u descNum, fragmentDescriptor *fragDesc);
+	void getFragDesc(uint16_t descNum, fragmentDescriptor *fragDesc);
 	RealPt getESRAddr(void);
 
 	void NotifyESR(void);
 
-	void setImmAddress(Bit8u *immAddr);
-	void getImmAddress(Bit8u* immAddr);
+	void setImmAddress(uint8_t *immAddr);
+	void getImmAddress(uint8_t* immAddr);
 
 	~ECBClass();
 };
 
-// The following routines may not be needed on all systems.  On my build of SDL the IPaddress structure is 8 octects 
+// The following routines may not be needed on all systems.  On my build of SDL the IPaddress structure is 8 octets 
 // and therefore screws up my IPXheader structure since it needs to be packed.
 
 void UnpackIP(PackedIP ipPack, IPaddress * ipAddr);
@@ -156,5 +155,12 @@ void PackIP(IPaddress ipAddr, PackedIP *ipPack);
 #ifdef _MSC_VER
 #pragma pack()
 #endif
+
+enum {
+	IPX_NONE=0,
+	IPX_OLD,
+	IPX_OLD_LLC,
+	IPX_8137
+};
 
 #endif

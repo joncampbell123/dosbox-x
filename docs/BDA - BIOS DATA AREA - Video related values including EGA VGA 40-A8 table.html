@@ -1,0 +1,205 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>video information</title>
+<style>@media print {#ghostery-purple-box {display:none !important}}</style></head>
+
+<body><pre></pre>
+
+<h2 align="Center">Video Information Tables</h2>
+
+<pre>
+<b>	BIOS Data Area Fields</b>
+
+<b>      Address	Size		Description</b>
+
+	40:49	byte	Current video mode  (see <a href="http://stanislavs.org/helppc/int_10-0.html">VIDEO MODE</a>)
+	40:4A	word	Number of screen columns
+	40:4C	word	Size of video regen buffer in bytes
+	40:4E	word	Starting address in video regen buffer (offset)
+	40:50  8 words	Cursor position of pages 1-8, high order
+			byte=row, low order byte=column
+	40:60	byte	Ending (bottom) scan line for cursor
+	40:61	byte	Starting (top) scan line for cursor
+	40:62	byte	Active display page number
+	40:63	word	Base port address for active <a href="http://stanislavs.org/helppc/6845.html">6845</a> CRT controller
+			3B4h = mono, 3D4h = color
+	40:65	byte	6845 CRT mode control register value (port 3x8h)
+			EGA/VGA values emulate those of the MDA/CGA
+	40:66	byte	CGA current color palette setting (port 3d9h)
+			EGA and VGA values emulate the CGA
+	40:84	byte	Rows on the screen (less 1, EGA+)
+	40:85	word	Point height of character matrix (EGA+)
+	40:87	byte	Video mode options (EGA+)
+
+		|7|6|5|4|3|2|1|0| Video mode options (EGA+)
+		 | | | | | | | `-- 1=alphanumeric cursor emulation enabled
+		 | | | | | | `--- 1=video subsystem attached to monochrome
+		 | | | | | `---- reserved
+		 | | | | `----- 1=video subsystem is inactive
+		 | | | `------ reserved
+		 | `--------- video RAM  00-64K  10-192K  01-128K  11-256K
+		 `---------- video mode number passed to <a href="http://stanislavs.org/helppc/int_10.html">INT 10</a>, function 0
+
+	40:88	byte	EGA feature bit switches, emulated on VGA
+
+		|7|6|5|4|3|2|1|0| EGA feature bit switches (EGA+)
+		 | | | | | | | `-- EGA SW1 config (1=off)
+		 | | | | | | `--- EGA SW2 config (1=off)
+		 | | | | | `---- EGA SW3 config (1=off)
+		 | | | | `----- EGA SW4 config (1=off)
+		 | | | `------ Input FEAT0 (ISR0 bit 5) after output on FCR0
+		 | | `------- Input FEAT0 (ISR0 bit 6) after output on FCR0
+		 | `-------- Input FEAT1 (ISR0 bit 5) after output on FCR1
+		 `--------- Input FEAT1 (ISR0 bit 6) after output on FCR1
+
+	40:89	byte	Video display data area (MCGA and VGA)
+
+		|7|6|5|4|3|2|1|0| Video display data area (MCGA and VGA)
+		 | | | | | | | `-- 1=VGA is active
+		 | | | | | | `--- 1=gray scale is enabled
+		 | | | | | `---- 1=using monochrome monitor
+		 | | | | `----- 1=default palette loading is disabled
+		 | | | `------ see table below
+		 | | `------- reserved
+		 | `--------  1=display switching enabled
+		 `--------- alphanumeric scan lines (see table below)
+
+<b>		Bit7   Bit4	Scan Line information</b>
+		 0	0	350 line mode
+		 0	1	400 line mode
+		 1	0	200 line mode
+		 1	1	reserved
+
+	40:8A	byte	Display Combination Code (DCC) table index (EGA+)
+	40:A8  dword	BIOS Video Save/Override Pointer Table address
+
+
+</pre>
+
+<h2 align="Center">EGA / VGA Related Tables</h2>
+
+<pre>
+<b>	Video Save/Override Pointer Table (pointer at 40:A8):</b>
+
+	00  dword  Video Parameter Table pointer
+	04  dword  Dynamic Parameter Save Area pointer (EGA, VGA)
+	08  dword  Alphanumeric Character Set Override pointer
+	0C  dword  Graphics Character Set Override pointer
+	10  dword  Secondary Save Pointer Table pointer (VGA)
+	14  dword  reserved, set to 0000:0000
+	18  dword  reserved, set to 0000:0000
+
+
+<b>	Video Parameter Table</b>
+
+	00   byte    number of displayed character columns
+	01   byte    number of displayed screen rows minus 1
+	02   byte    character matrix height in points
+	03   word    video buffer size in bytes
+	05   dword   contents of sequencer registers 1-4
+	09   byte    misc. output register values
+	0A  25bytes  contents of CRTC registers 0-18h
+	23  20bytes  contents of attribute controller regs 0-13h
+	37  9 bytes  contents of graphics controller regs 0-8
+
+
+<b>	Dynamic Parameter Save Area</b>
+
+	00  16bytes   contents of graphics controller pallette regs
+	10    byte    contents of graphics controller overscan reg
+	11  239bytes  reserved
+
+
+<b>	Alphanumeric Character Set Override</b>
+
+	00   byte    length of each character definition in bytes
+	01   byte    character generator RAM bank
+	02   word    count of characters defined
+	04   word    first character code in table
+	06   dword   pointer to character font definition table
+	0A   byte    number of character rows displayed
+	0B   nbytes  array of applicable video modes
+	0B+n byte    FFh end of mode list marker
+
+
+<b>	Graphics Character Set Override</b>
+
+	00   byte    count of displayed character rows
+	01   word    length of each character definition in bytes
+	03   dword   pointer to character font definition table
+	07   nbytes  array of applicable video modes
+	07+n byte    FFh end of mode list marker
+
+
+<b>	Secondary Save Pointer Table</b>
+
+	00  word   length of table in bytes
+	02  dword  pointer to display combination code table
+	06  dword  pointer to secondary alphanumeric char set override
+	0A  dword  pointer to user palette profile table  (VGA)
+	0E  dword  reserved
+	12  dword  reserved
+	16  dword  reserved
+
+
+<b>	Display Combination Code Table</b>
+
+	00   byte   number of table entries
+	01   byte   DCC table version number
+	02   byte   maximum display type code
+	03   byte   reserved
+	04  n words array valid display combinations:
+
+	0,0 entry  0  no display
+	0,1 entry  1  MDPA
+	0,2 entry  2  CGA
+	2,1 entry  3  MDPA + CGA
+	0,4 entry  4  EGA
+	4,1 entry  5  EGA + MDPA
+	0,5 entry  6  MEGA
+	2,5 entry  7  MEGA + CGA
+	0,6 entry  8  PGC
+	1,6 entry  9  PGC + MDPA
+	5,6 entry 10  PGC + MEGA
+	0,8 entry 11  CVGA
+	1,8 entry 12  CVGA + MDPA
+	0,7 entry 13  MVGA
+	2,7 entry 14  MVGA + CGA
+	2,6 entry 15  MVGA + PGC
+
+
+<b>	Secondary Alpha Mode Auxillary Character Generator Table</b>
+
+	00   byte    bytes per character
+	01   byte    block to load
+	02   byte    reserved
+	03   dword   font table pointer
+	07   nbytes  array of mode values for this font
+	07+n byte    FFh end of mode list marker
+
+
+<b>	Palette Profile Table (VGA only)</b>
+
+	00   byte    1 - enable underlining in all alphanumeric modes
+		     0 - enable underlining in monochrome alpha modes
+		    -1 - disable underlining in all alpha modes
+	01   byte   reserved
+	02   word   reserved
+	04   word   count of attribute controller regs in table
+	06   word   first attribute controller register number
+	08   dword  pointer to attribute controller reg table
+	0C   word   count of video DAC color registers in table
+	0E   word   first video DAC color register number
+	10   dword  video DAC color register table pointer
+	14   nbytes array of applicable video modes for this font
+	14+n byte   FFh end of video mode list marker
+
+
+	- see also <a href="http://stanislavs.org/helppc/bios_data_area.html">BIOS Data Area</a>
+	- see <a href="http://stanislavs.org/helppc/int_10-1b.html">INT 10,1B</a> for Dynamic Video State Table and Video Static
+	  Functionality Table
+
+</pre>
+
+
+</body><script src="BDA%20-%20BIOS%20DATA%20AREA%20-%20Video%20related%20values%20including%20EGA%20VGA%2040-A8%20table_files/inject.js"></script></html>

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,27 +11,33 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <stdio.h>
-
-#include "dosbox.h"
-#include "mem.h"
 #include "cpu.h"
 #include "lazyflags.h"
-#include "inout.h"
 #include "callback.h"
 #include "pic.h"
 #include "fpu.h"
 #include "paging.h"
 #include "mmx.h"
 
+extern bool do_lds_wraparound;
+
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+bool CPU_SYSENTER();
+bool CPU_SYSEXIT();
+
+#define PRE_EXCEPTION { }
+
 #define CPU_CORE CPU_ARCHTYPE_386
 
 #define DoString DoString_Normal
+
+static uint16_t last_ea86_offset;
 
 extern bool ignore_opcode_63;
 
@@ -39,42 +45,32 @@ extern bool ignore_opcode_63;
 #include "debug.h"
 #endif
 
-#if (!C_CORE_INLINE)
-#define LoadMb(off) mem_readb(off)
-#define LoadMw(off) mem_readw(off)
-#define LoadMd(off) mem_readd(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd(off+4)<<32 | (Bit64u)mem_readd(off)))
-#define SaveMb(off,val)	mem_writeb(off,val)
-#define SaveMw(off,val)	mem_writew(off,val)
-#define SaveMd(off,val)	mem_writed(off,val)
-#define SaveMq(off,val) {mem_writed(off,val&0xffffffff);mem_writed(off+4,(val>>32)&0xffffffff);}
-#else 
-#include "paging.h"
 #define LoadMb(off) mem_readb_inline(off)
 #define LoadMw(off) mem_readw_inline(off)
 #define LoadMd(off) mem_readd_inline(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd_inline(off+4)<<32 | (Bit64u)mem_readd_inline(off)))
+#define LoadMq(off) ((uint64_t)((uint64_t)mem_readd_inline(off+4)<<32 | (uint64_t)mem_readd_inline(off)))
 #define SaveMb(off,val)	mem_writeb_inline(off,val)
 #define SaveMw(off,val)	mem_writew_inline(off,val)
 #define SaveMd(off,val)	mem_writed_inline(off,val)
 #define SaveMq(off,val) {mem_writed_inline(off,val&0xffffffff);mem_writed_inline(off+4,(val>>32)&0xffffffff);}
-#endif
 
 Bitu cycle_count;
 
 #if C_FPU
-#define CPU_FPU	1						//Enable FPU escape instructions
+#define CPU_FPU	1u						//Enable FPU escape instructions
 #endif
 
-#define CPU_PIC_CHECK 1
-#define CPU_TRAP_CHECK 1
+#define CPU_PIC_CHECK 1u
+#define CPU_TRAP_CHECK 1u
 
-#define OPCODE_NONE			0x000
-#define OPCODE_0F			0x100
-#define OPCODE_SIZE			0x200
+#define CPU_TRAP_DECODER	CPU_Core_Normal_Trap_Run
 
-#define PREFIX_ADDR			0x1
-#define PREFIX_REP			0x2
+#define OPCODE_NONE			0x000u
+#define OPCODE_0F			0x100u
+#define OPCODE_SIZE			0x200u
+
+#define PREFIX_ADDR			0x1u
+#define PREFIX_REP			0x2u
 
 #define TEST_PREFIX_ADDR	(core.prefixes & PREFIX_ADDR)
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
@@ -88,7 +84,7 @@ Bitu cycle_count;
 #define DO_PREFIX_ADDR()								\
 	core.prefixes=(core.prefixes & ~PREFIX_ADDR) |		\
 	(cpu.code.big ^ PREFIX_ADDR);						\
-	core.ea_table=&EATable[(core.prefixes&1) * 256];	\
+	core.ea_table=&EATable[(core.prefixes&1u) * 256u];	\
 	goto restart_opcode;
 
 #define DO_PREFIX_REP(_ZERO)				\
@@ -96,9 +92,13 @@ Bitu cycle_count;
 	core.rep_zero=_ZERO;					\
 	goto restart_opcode;
 
+#define REMEMBER_PREFIX(_x) last_prefix = (_x)
+
+static uint8_t last_prefix;
+
 typedef PhysPt (*GetEAHandler)(void);
 
-static const Bit32u AddrMaskTable[2]={0x0000ffff,0xffffffff};
+static const uint32_t AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
 
 static struct {
 	Bitu opcode_index;
@@ -110,27 +110,37 @@ static struct {
 	GetEAHandler * ea_table;
 } core;
 
-#define GETIP		(core.cseip-SegBase(cs))
+/* FIXME: Someone at Microsoft tell how subtracting PhysPt - PhysPt = __int64, or PhysPt + PhysPt = __int64 */
+#define GETIP		((PhysPt)(core.cseip-SegBase(cs)))
 #define SAVEIP		reg_eip=GETIP;
-#define LOADIP		core.cseip=(SegBase(cs)+reg_eip);
+#define LOADIP		core.cseip=((PhysPt)(SegBase(cs)+reg_eip));
 
 #define SegBase(c)	SegPhys(c)
 #define BaseDS		core.base_ds
 #define BaseSS		core.base_ss
 
-static INLINE Bit8u Fetchb() {
-	Bit8u temp=LoadMb(core.cseip);
+static INLINE void FetchDiscardb() {
+	core.cseip+=1;
+}
+
+static INLINE uint8_t FetchPeekb() {
+	uint8_t temp=LoadMb(core.cseip);
+	return temp;
+}
+
+static INLINE uint8_t Fetchb() {
+	uint8_t temp=LoadMb(core.cseip);
 	core.cseip+=1;
 	return temp;
 }
 
-static INLINE Bit16u Fetchw() {
-	Bit16u temp=LoadMw(core.cseip);
+static INLINE uint16_t Fetchw() {
+	uint16_t temp=LoadMw(core.cseip);
 	core.cseip+=2;
 	return temp;
 }
-static INLINE Bit32u Fetchd() {
-	Bit32u temp=LoadMd(core.cseip);
+static INLINE uint32_t Fetchd() {
+	uint32_t temp=LoadMd(core.cseip);
 	core.cseip+=4;
 	return temp;
 }
@@ -147,17 +157,17 @@ static INLINE Bit32u Fetchd() {
 
 #define EALookupTable (core.ea_table)
 
-extern Bitu dosbox_check_nonrecursive_pf_cs;
-extern Bitu dosbox_check_nonrecursive_pf_eip;
-
 Bits CPU_Core_Normal_Run(void) {
+	if (CPU_Cycles <= 0)
+		return CBRET_NONE;
+
 	while (CPU_Cycles-->0) {
 		LOADIP;
-		dosbox_check_nonrecursive_pf_cs = SegValue(cs);
-		dosbox_check_nonrecursive_pf_eip = reg_eip;
-		core.opcode_index=cpu.code.big*0x200;
+		last_prefix=MP_NONE;
+		core.opcode_index=cpu.code.big*(Bitu)0x200u;
 		core.prefixes=cpu.code.big;
-		core.ea_table=&EATable[cpu.code.big*256];
+		last_ea86_offset=0;
+		core.ea_table=&EATable[cpu.code.big*256u];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
 		core.base_val_ds=ds;
@@ -165,8 +175,8 @@ Bits CPU_Core_Normal_Run(void) {
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
-			return debugCallback;
-		};
+			return (Bits)debugCallback;
+		}
 #endif
 #endif
 		cycle_count++;
@@ -204,8 +214,8 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
-	FillFlags();
-	return CBRET_NONE;
+    FillFlags();
+    return CBRET_NONE;
 decode_end:
 	SAVEIP;
 	FillFlags();
@@ -218,7 +228,7 @@ Bits CPU_Core_Normal_Trap_Run(void) {
 	cpu.trap_skip = false;
 
 	Bits ret=CPU_Core_Normal_Run();
-	if (!cpu.trap_skip) CPU_HW_Interrupt(1);
+	if (!cpu.trap_skip) CPU_DebugException(DBINT_STEP,reg_eip);
 	CPU_Cycles = oldCycles-1;
 	cpudecoder = &CPU_Core_Normal_Run;
 

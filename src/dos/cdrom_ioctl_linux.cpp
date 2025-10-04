@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,12 +11,12 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
  
-
+#include <assert.h>
 #include <string.h>
 #include "cdrom.h"
 #include "support.h"
@@ -57,21 +57,23 @@ bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 	int cdrom_fd = open(device_name, O_RDONLY | O_NONBLOCK);
 	if (cdrom_fd == -1) return false;
 	
-	Bits buflen = raw ? num * CD_FRAMESIZE_RAW : num * CD_FRAMESIZE;
-	Bit8u* buf = new Bit8u[buflen];	
+	Bitu buflen = raw ? num * (unsigned int)CD_FRAMESIZE_RAW : num * (unsigned int)CD_FRAMESIZE;
+    assert(buflen != 0u);
+
+	uint8_t* buf = new uint8_t[buflen];	
 	int ret;
 	
 	if (raw) {
 		struct cdrom_read cdrom_read;
-		cdrom_read.cdread_lba = sector;
+		cdrom_read.cdread_lba = (int)sector;
 		cdrom_read.cdread_bufaddr = (char*)buf;
-		cdrom_read.cdread_buflen = buflen;
+		cdrom_read.cdread_buflen = (int)buflen;
 		
 		ret = ioctl(cdrom_fd, CDROMREADRAW, &cdrom_read);		
 	} else {
-		ret = lseek(cdrom_fd, sector * CD_FRAMESIZE, SEEK_SET);
+		ret = lseek(cdrom_fd, (off_t)(sector * (unsigned long)CD_FRAMESIZE), SEEK_SET);
 		if (ret >= 0) ret = read(cdrom_fd, buf, buflen);
-		if (ret != buflen) ret = -1;
+		if ((Bitu)ret != buflen) ret = -1;
 	}
 	close(cdrom_fd);
 
@@ -96,7 +98,11 @@ bool CDROM_Interface_Ioctl::SetDevice(char* path, int forceCD)
 
 bool CDROM_Interface_Ioctl::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
 {
+    (void)buffer;//UNUSED
+    (void)sector;//UNUSED
+    (void)raw;//UNUSED
+    (void)num;//UNUSED
 	return false;/*TODO*/
-};
+}
 
 #endif

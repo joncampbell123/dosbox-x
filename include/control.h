@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -21,121 +21,97 @@
 #define DOSBOX_CONTROL_H
 
 #ifdef _MSC_VER
-#pragma warning ( disable : 4786 )
-#pragma warning ( disable : 4290 )
+//#pragma warning ( disable : 4786 )
+//#pragma warning ( disable : 4290 )
 #endif
 
-#ifndef DOSBOX_PROGRAMS_H
 #include "programs.h"
-#endif
-#ifndef DOSBOX_SETUP_H
 #include "setup.h"
-#endif
-
-#ifndef CH_LIST
-#define CH_LIST
-#include <list>
-#endif
-
-#ifndef CH_VECTOR
-#define CH_VECTOR
-#include <vector>
-#endif
-
-#ifndef CH_STRING
-#define CH_STRING
-#include <string>
-#endif
-
-
-
 
 class Config{
 public:
-	CommandLine * cmdline;
+    CommandLine * cmdline;
 private:
-	std::list<Section*> sectionlist;
-	typedef std::list<Section*>::iterator it;
-	typedef std::list<Section*>::reverse_iterator reverse_it;
-	typedef std::list<Section*>::const_iterator const_it;
-	typedef std::list<Section*>::const_reverse_iterator const_reverse_it;
-	void (* _start_function)(void);
-	bool secure_mode; //Sandbox mode
+    std::list<Section*> sectionlist;
+    typedef std::list<Section*>::iterator it;
+    typedef std::list<Section*>::reverse_iterator reverse_it;
+    typedef std::list<Section*>::const_iterator const_it;
+    typedef std::list<Section*>::const_reverse_iterator const_reverse_it;
+//  void (* _start_function)(void);
+    bool secure_mode = false; //Sandbox mode
 public:
-	bool initialised;
-	std::vector<std::string> startup_params;
-	std::vector<std::string> configfiles;
-	Config(CommandLine * cmd):cmdline(cmd),secure_mode(false) {
-		startup_params.push_back(cmdline->GetFileName());
-		cmdline->FillVector(startup_params);
-		opt_exit = false;
-		opt_debug = false;
-		opt_nogui = false;
-		opt_nomenu = false;
-        opt_showrt = false;
-		opt_startui = false;
-		initialised = false;
-		opt_console = false;
-		opt_userconf = false;
-		opt_noconsole = false;
-		opt_eraseconf = false;
-		opt_resetconf = false;
-		opt_printconf = false;
-		opt_noautoexec = false;
-		opt_securemode = false;
-		opt_fullscreen = false;
-		opt_showcycles = false;
-		opt_earlydebug = false;
-		opt_break_start = false;
-		opt_erasemapper = false;
-		opt_resetmapper = false;
-		opt_startmapper = false;
-		opt_date_host_forced = false;
-		opt_disable_numlock_check = false;
-		opt_disable_dpi_awareness = false;
-	}
-	~Config();
+    bool initialised = false;
+    std::vector<std::string> auto_bat_additional;
+    std::vector<std::string> startup_params;
+    std::vector<std::string> configfiles;
+    Config(CommandLine * cmd):cmdline(cmd) {
+        startup_params.emplace_back(cmdline->GetFileName());
+        cmdline->FillVector(startup_params);
+    }
+    ~Config();
 
-	Section_line * AddSection_line(char const * const _name,void (*_initfunction)(Section*));
-	Section_prop * AddSection_prop(char const * const _name,void (*_initfunction)(Section*),bool canchange=false);
-	
-	Section* GetSection(int index);
-	Section* GetSection(std::string const&_sectionname) const;
-	Section* GetSectionFromProperty(char const * const prop) const;
+    Section_line * AddSection_line(char const * const _name,void (*_initfunction)(Section*));
+    Section_prop * AddSection_prop(char const * const _name,void (*_initfunction)(Section*),bool canchange=false);
+    
+    Section* GetSection(int index);
+    Section* GetSection(std::string const&_sectionname) const;
+    Section* GetSectionFromProperty(char const * const prop) const;
 
-	bool PrintConfig(char const * const configfilename,bool everything=false) const;
-	bool ParseConfigFile(char const * const configfilename);
-	void ParseEnv(char ** envp);
-	bool SecureMode() const { return secure_mode; }
-	void SwitchToSecureMode() { secure_mode = true; }//can't be undone
+    bool PrintConfig(char const * const configfilename,int everything=-1,bool norem=false) const;
+    bool ParseConfigFile(char const * const configfilename);
+    void ParseEnv(char ** envp);
+    bool SecureMode() const { return secure_mode; }
+    void SwitchToSecureMode() { secure_mode = true; }//can't be undone
+    void ClearExtraData() { Section_prop *sec_prop; Section_line *sec_line; for (const_it tel = sectionlist.begin(); tel != sectionlist.end(); ++tel) {sec_prop = dynamic_cast<Section_prop *>(*tel); sec_line = dynamic_cast<Section_line *>(*tel); if (sec_prop) sec_prop->data = ""; else if (sec_line) sec_line->data = "";} }
 public:
-	std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang;
-	std::vector<std::string> config_file_list;
-	std::vector<std::string> opt_c;
-	bool opt_disable_dpi_awareness;
-	bool opt_disable_numlock_check;
-	bool opt_date_host_forced;
-	bool opt_break_start;
-	bool opt_erasemapper;
-	bool opt_resetmapper;
-	bool opt_startmapper;
-	bool opt_noautoexec;
-	bool opt_securemode;
-	bool opt_fullscreen;
-	bool opt_showcycles;
-	bool opt_earlydebug;
-	bool opt_noconsole;
-	bool opt_eraseconf;
-	bool opt_resetconf;
-	bool opt_printconf;
-	bool opt_userconf;
-	bool opt_console;
-	bool opt_startui;
-    bool opt_showrt;
-	bool opt_nomenu;
-	bool opt_debug;
-	bool opt_nogui;
-	bool opt_exit;
+    std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang="",opt_machine="";
+    std::vector<std::string> config_file_list;
+    std::vector<std::string> opt_o;
+    std::vector<std::string> opt_c;
+    std::vector<std::string> opt_set;
+
+    double opt_time_limit = -1;
+    signed char opt_promptfolder = -1;
+    bool opt_disable_dpi_awareness = false;
+    bool opt_disable_numlock_check = false;
+    bool opt_date_host_forced = false;
+    bool opt_used_defaultdir = false;
+    bool opt_defaultmapper = false;
+    bool opt_fastbioslogo = false;
+    bool opt_print_ticks = false;
+    bool opt_break_start = false;
+    bool opt_erasemapper = false;
+    bool opt_resetmapper = false;
+    bool opt_startmapper = false;
+    bool opt_defaultconf = false;
+    bool opt_noautoexec = false;
+    bool opt_securemode = false;
+    bool opt_fullscreen = false;
+    bool opt_fastlaunch = false;
+    bool opt_showcycles = false;
+    bool opt_earlydebug = false;
+    bool opt_logfileio = false;
+    bool opt_noconsole = false;
+    bool opt_eraseconf = false;
+    bool opt_resetconf = false;
+    bool opt_printconf = false;
+    bool opt_logint21 = false;
+    bool opt_display2 = false;
+    bool opt_userconf = false;
+    bool opt_noconfig = false;
+    bool opt_log_con = false;
+    bool opt_console = false;
+    bool opt_startui = false;
+    bool opt_silent = false;
+    bool opt_showrt = false;
+    bool opt_nomenu = false;
+    bool opt_prerun = false;
+    bool opt_langcp = false;  // True if command line option -langcp is specified, always use codepage specified by the language file
+    bool opt_debug = false;
+    bool opt_nogui = false;
+    bool opt_nolog = false;
+    bool opt_exit = false;
+    bool opt_test = false;
 };
 
 #endif

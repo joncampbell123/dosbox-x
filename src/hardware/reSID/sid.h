@@ -12,9 +12,9 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU General Public License along
+//  with this program; if not, write to the Free Software Foundation, Inc.,
+//  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 //  ---------------------------------------------------------------------------
 
 #ifndef __SID_H__
@@ -58,20 +58,20 @@ public:
   public:
     State();
 
-    char sid_register[0x20];
+    char sid_register[0x20] = {};
 
     reg8 bus_value;
     cycle_count bus_value_ttl;
 
-    reg24 accumulator[3];
-    reg24 shift_register[3];
-    reg16 rate_counter[3];
-    reg16 rate_counter_period[3];
-    reg16 exponential_counter[3];
-    reg16 exponential_counter_period[3];
-    reg8 envelope_counter[3];
-    EnvelopeGenerator::State envelope_state[3];
-    bool hold_zero[3];
+    reg24 accumulator[3] = {};
+    reg24 shift_register[3] = {};
+    reg16 rate_counter[3] = {};
+    reg16 rate_counter_period[3] = {};
+    reg16 exponential_counter[3] = {};
+    reg16 exponential_counter_period[3] = {};
+    reg8 envelope_counter[3] = {};
+    EnvelopeGenerator::State envelope_state[3] = {};
+    bool hold_zero[3] = {};
 	};
     
   State read_state();

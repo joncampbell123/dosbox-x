@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,76 +11,76 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-static bool dyn_helper_divb(Bit8u val) {
+static bool dyn_helper_divb(uint8_t val) {
 	if (!val) return CPU_PrepareException(0,0);
 	Bitu quo=reg_ax / val;
-	Bit8u rem=(Bit8u)(reg_ax % val);
-	Bit8u quo8=(Bit8u)(quo&0xff);
+	uint8_t rem=(uint8_t)(reg_ax % val);
+	uint8_t quo8=(uint8_t)(quo&0xff);
 	if (quo>0xff) return CPU_PrepareException(0,0);
 	reg_ah=rem;
 	reg_al=quo8;
 	return false;
 }
 
-static bool dyn_helper_idivb(Bit8s val) {
+static bool dyn_helper_idivb(int8_t val) {
 	if (!val) return CPU_PrepareException(0,0);
-	Bits quo=(Bit16s)reg_ax / val;
-	Bit8s rem=(Bit8s)((Bit16s)reg_ax % val);
-	Bit8s quo8s=(Bit8s)(quo&0xff);
-	if (quo!=(Bit16s)quo8s) return CPU_PrepareException(0,0);
+	Bits quo=(int16_t)reg_ax / val;
+	int8_t rem=(int8_t)((int16_t)reg_ax % val);
+	int8_t quo8s=(int8_t)(quo&0xff);
+	if (quo!=(int16_t)quo8s) return CPU_PrepareException(0,0);
 	reg_ah=rem;
 	reg_al=quo8s;
 	return false;
 }
 
-static bool dyn_helper_divw(Bit16u val) {
+static bool dyn_helper_divw(uint16_t val) {
 	if (!val) return CPU_PrepareException(0,0);
-	Bitu num=(reg_dx<<16)|reg_ax;
-	Bitu quo=num/val;
-	Bit16u rem=(Bit16u)(num % val);
-	Bit16u quo16=(Bit16u)(quo&0xffff);
-	if (quo!=(Bit32u)quo16) return CPU_PrepareException(0,0);
+	uint32_t num=(((uint32_t)reg_dx)<<16)|reg_ax;
+	uint32_t quo=num/val;
+	uint16_t rem=(uint16_t)(num % val);
+	uint16_t quo16=(uint16_t)(quo&0xffff);
+	if (quo!=(uint32_t)quo16) return CPU_PrepareException(0,0);
 	reg_dx=rem;
 	reg_ax=quo16;
 	return false;
 }
 
-static bool dyn_helper_idivw(Bit16s val) {
+static bool dyn_helper_idivw(int16_t val) {
 	if (!val) return CPU_PrepareException(0,0);
-	Bits num=(reg_dx<<16)|reg_ax;
-	Bits quo=num/val;
-	Bit16s rem=(Bit16s)(num % val);
-	Bit16s quo16s=(Bit16s)quo;
-	if (quo!=(Bit32s)quo16s) return CPU_PrepareException(0,0);
+	int32_t num=(((uint32_t)reg_dx)<<16)|reg_ax;
+	int32_t quo=num/val;
+	int16_t rem=(int16_t)(num % val);
+	int16_t quo16s=(int16_t)quo;
+	if (quo!=(int32_t)quo16s) return CPU_PrepareException(0,0);
 	reg_dx=rem;
 	reg_ax=quo16s;
 	return false;
 }
 
-static bool dyn_helper_divd(Bit32u val) {
+static bool dyn_helper_divd(uint32_t val) {
 	if (!val) return CPU_PrepareException(0,0);
-	Bit64u num=(((Bit64u)reg_edx)<<32)|reg_eax;
-	Bit64u quo=num/val;
-	Bit32u rem=(Bit32u)(num % val);
-	Bit32u quo32=(Bit32u)(quo&0xffffffff);
-	if (quo!=(Bit64u)quo32) return CPU_PrepareException(0,0);
+	uint64_t num=(((uint64_t)reg_edx)<<32)|reg_eax;
+	uint64_t quo=num/val;
+	uint32_t rem=(uint32_t)(num % val);
+	uint32_t quo32=(uint32_t)(quo&0xffffffff);
+	if (quo!=(uint64_t)quo32) return CPU_PrepareException(0,0);
 	reg_edx=rem;
 	reg_eax=quo32;
 	return false;
 }
 
-static bool dyn_helper_idivd(Bit32s val) {
+static bool dyn_helper_idivd(int32_t val) {
 	if (!val) return CPU_PrepareException(0,0);
-	Bit64s num=(((Bit64u)reg_edx)<<32)|reg_eax;
-	Bit64s quo=num/val;
-	Bit32s rem=(Bit32s)(num % val);
-	Bit32s quo32s=(Bit32s)(quo&0xffffffff);
-	if (quo!=(Bit64s)quo32s) return CPU_PrepareException(0,0);
+	int64_t num=(((uint64_t)reg_edx)<<32)|reg_eax;
+	int64_t quo=num/val;
+	int32_t rem=(int32_t)(num % val);
+	int32_t quo32s=(int32_t)(quo&0xffffffff);
+	if (quo!=(int64_t)quo32s) return CPU_PrepareException(0,0);
 	reg_edx=rem;
 	reg_eax=quo32s;
 	return false;

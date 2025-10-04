@@ -1,4 +1,4 @@
-/* double-byte SHIFT-JIS charset to unicode. 0x0000 means no mapping */
+/* DBCS (double-byte) charset to unicode. 0x0000 means no mapping */
 /* hi = (code >> 6) */
 /* lo = code & 0x3F */
 /* rawoff = cp932_to_unicode_hitbl[hi] */

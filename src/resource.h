@@ -372,7 +372,6 @@
 #define ID_MOUNT_IMAGE_Y                459
 #define ID_FORCESCALER                  460
 #define ID_VSYNC_HOST                   461
-#define ID_OVERLAY                      462
 #define ID_WINRES_USER                  463
 #define ID_WINRES_DESKTOP               464
 #define ID_WINFULL_USER                 465
@@ -730,6 +729,7 @@
 #define ID_GLIDE_EMU_OPENGL             818
 #define ID_GLIDE_EMU_AUTO               819
 #define ID_ALWAYS_ON_TOP                820
+#define ID_RESET_RESCALE                821
 #define ID_MFCLOC_MANIFEST              1000
 #define AFX_IDC_FONTPROP                1000
 #define AFX_IDC_FONTNAMES               1001

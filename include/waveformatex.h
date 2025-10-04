@@ -2,9 +2,6 @@
 #ifndef __ISP_UTILS_V4_WIN_WAVEFORMATEX_H
 #define __ISP_UTILS_V4_WIN_WAVEFORMATEX_H
 
-#include <stdint.h>
-
-#include "informational.h"
 #include "guid.h"	/* <- need windows_GUID definition below */
 
 #if defined(_MSC_VER)
@@ -55,7 +52,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 /* [doc] windows_WAVEFORMATEX
  *
  * Packed portable representation of the Microsoft Windows WAVEFORMATEX
- * structure. This is the most common format because it can accomodate
+ * structure. This is the most common format because it can accommodate
  * almost every non-PCM WAVE codec. WAVEFORMATEXTENSIBLE builds on this
  * for additional codecs that don't have a 16-bit wFormatTag registered.
  */
@@ -153,4 +150,3 @@ typedef struct {							/* (sizeof) (offset hex) (offset dec) */
 #endif
 
 #endif /* __ISP_UTILS_V4_WIN_WAVEFORMATEX_H */
-

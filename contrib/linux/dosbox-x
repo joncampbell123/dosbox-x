@@ -1,0 +1,144 @@
+# dosbox-x(1) completion                                    -*- shell-script -*-
+# shellcheck shell=bash
+### EDITING NOTES:
+# As this is a bash function, when adding variables or arrays it is important
+# to initialise with local. This prevents the var./array polluting the users
+# env. Please check output of:
+#    declare -x ; declare -a
+# after testing your new completion script
+#
+# Notable exception is COMPREPLY, this needs to persist for communication with
+# bash_completion
+####
+_dosbox-x()
+{
+  COMPREPLY=()
+  local cur prev words cword
+  _init_completion -s || return
+  local IFS=$'|\t\n'
+  local words_filter="${words[*]:1:$(( cword - 1 ))}"
+
+  ### Main options, note the \ line cont.
+  local -a \
+       _main_opts=(
+                    -fs -fullscreen -startmapper -noautoexec -securemode
+                    -scaler -forcescaler -lang -langcp -socket -exit -userconf
+                    -startui -startgui -starttool -promptfolder -nopromptfolder
+                    -nogui -nomenu -showcycles -showrt -savedir -defaultdir
+                    -defaultconf -defaultmapper -date-host-forced -display2
+                    -nodpiaware -securemode -prerun -hostrun -noconfig -silent
+                    -time-limit -fastlaunch -machine -debug -tests
+                  )\
+     _repeat_opts=(
+                    -conf -c -o -set
+                  )\
+  _exclusive_opts=(
+                    -ver -version -printconf -editconf -resetconf
+                    -eraseconf -erasemapper -resetmapper -help #-h
+                    -opencaptures -opensaves -helpdebug
+                  )
+  ####
+
+  # setup nameref to point to array
+  [[ ${prev:0:1} == - ]] && local -n _sub_opts=${prev//+(-)/_}
+
+  ### Arrays holding sub. options
+  # The name should be the trigger option with leading "-"s replaced with "_"
+  # for example, --machine => _machine
+  # latter parts of the script will reference these arrays via a "nameref"
+  # i.e. The last option dictates the available sub. options
+
+  #
+  # shellcheck disable=SC2034
+  local -a \
+    _machine=(
+               mda hercules cga cga_mono cga_composite cga_composite2
+               pcjr pcjr_composite pcjr_composite2 tandy amstrad ega jega
+               mcga vgaonly svga_s3 svga_s386c928 svga_s3vision864
+               svga_s3vision868 svga_s3vision964 svga_s3vision968 svga_s3trio32
+               svga_s3trio64 svga_s3trio64v+ svga_s3virge svga_s3virgevx
+               svga_et3000 svga_et4000 svga_paradise vesa_nolfb
+               vesa_oldvbe vesa_oldvbe10 pc98 pc9801 pc9821
+             )
+
+  local _conf="$HOME/.config/dosbox-x/"
+
+  case "$prev" in
+    -conf)
+      compopt -o plusdirs
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+        < <( compgen -f -X '!*.@(conf|CONF)' -- "${cur}" )
+
+      # skip configured conf dir if cur looks like it contains a path
+      [[ ${cur} =~ ^[.]|[/\~] ]] ||
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+        < <( compgen -f -X '!*.@(conf|CONF)' -- "${_sub_opts%/}/${cur##*/}" )
+
+      # filter out previously selected confs
+      COMPREPLY=( "${COMPREPLY[@]#@(${words_filter})}" )
+      return;;
+    -machine)
+      readarray -t -O 0 COMPREPLY \
+        < <( compgen -W "${_sub_opts[*]}" -- "${cur}" )
+      return;;
+    -socket)
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+      < <(printf "» -socket\nSpecify TCP socket number [1-65535]")
+      return;;
+    -display2)
+      local _display2=("white" "green" "amber")
+      readarray -t -O 0 COMPREPLY \
+        < <( compgen -W "${_sub_opts[*]}" -- "${cur}" )
+      return;;
+    -time-limit)
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+      < <(printf "» -time-limit\nSpecify seconds after which to kill the emulator")
+      return;;
+    -c)
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+      < <(printf "» -c\nDOS command to run in DOSBox-X (enclose in quotes, if it contains spaces)")
+      return;;
+    -o)
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+      < <(printf "» -o\nCommand-line option(s) to pass to program (enclose in quotes, if it contains spaces)")
+      return;;
+    -set)
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+      < <(printf "» -set\nConfig option, specified as <section property=value> between quotes")
+      return;;
+    -lang)
+      local _lang="/usr/share/dosbox-x/translations/"
+      compopt -o plusdirs
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+        < <( compgen -f -X '!*.@(lng|LNG)' -- "${cur}" )
+
+      # skip configured conf dir if cur looks like it contains a path
+      [[ ${cur} =~ ^[.]|[/\~] ]] ||
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+        < <( compgen -f -X '!*.@(lng|LNG)' -- "${_sub_opts%/}/${cur##*/}" )
+      return;;
+    -savedir|-defaultdir)
+      compopt -o dirnames
+      return;;
+  esac
+
+  # Some options are exclusive, no more options should be available
+  [[ ${words[*]} =~ (${_exclusive_opts[*]}) ]] && return
+
+  # Turn dir listing on
+  compopt -o plusdirs
+
+  readarray -t -O ${#COMPREPLY[@]} COMPREPLY < <(
+    # Only show exclusive options in initial pass
+    [[ $cword -gt 1 ]] || compgen -W "${_exclusive_opts[*]}" -- "${cur}"
+
+    # Should only be used once, so filtered
+    compgen -W "${_main_opts[*]#@(${words_filter})}" -- "${cur}"
+
+    # can be used more than once
+    compgen -W "${_repeat_opts[*]}" -- "${cur}"
+
+    compgen -f -X '!*.@(bat|BAT|com|COM|exe|EXE)'    -- "${cur}"
+  )
+}
+complete -F _dosbox-x -o nosort dosbox-x

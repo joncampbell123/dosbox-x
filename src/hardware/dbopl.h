@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,15 +11,15 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include "adlib.h"
 #include "dosbox.h"
 
-//Use 8 handlers based on a small logatirmic wavetabe and an exponential table for volume
+//Use 8 handlers based on a small logarithmic wavetable and an exponential table for volume
 #define WAVE_HANDLER	10
 //Use a logarithmic wavetable with an exponential table for volume
 #define WAVE_TABLELOG	11
@@ -40,7 +40,7 @@ typedef Bits ( DB_FASTCALL *WaveHandler) ( Bitu i, Bitu volume );
 #endif
 
 typedef Bits ( DBOPL::Operator::*VolumeHandler) ( );
-typedef Channel* ( DBOPL::Channel::*SynthHandler) ( Chip* chip, Bit32u samples, Bit32s* output );
+typedef Channel* ( DBOPL::Channel::*SynthHandler) ( Chip* chip, uint32_t samples, int32_t* output );
 
 //Different synth modes that can generate blocks of data
 typedef enum {
@@ -87,41 +87,41 @@ public:
 #if (DBOPL_WAVE == WAVE_HANDLER)
 	WaveHandler waveHandler;	//Routine that generate a wave 
 #else
-	Bit16s* waveBase;
-	Bit32u waveMask;
-	Bit32u waveStart;
+	int16_t* waveBase;
+	uint32_t waveMask;
+	uint32_t waveStart;
 #endif
-	Bit32u waveIndex;			//WAVE_BITS shifted counter of the frequency index
-	Bit32u waveAdd;				//The base frequency without vibrato
-	Bit32u waveCurrent;			//waveAdd + vibratao
+	uint32_t waveIndex;			//WAVE_BITS shifted counter of the frequency index
+	uint32_t waveAdd;				//The base frequency without vibrato
+	uint32_t waveCurrent;			//waveAdd + vibrato
 
-	Bit32u chanData;			//Frequency/octave and derived data coming from whatever channel controls this
-	Bit32u freqMul;				//Scale channel frequency with this, TODO maybe remove?
-	Bit32u vibrato;				//Scaled up vibrato strength
-	Bit32s sustainLevel;		//When stopping at sustain level stop here
-	Bit32s totalLevel;			//totalLevel is added to every generated volume
-	Bit32u currentLevel;		//totalLevel + tremolo
-	Bit32s volume;				//The currently active volume
+	uint32_t chanData;			//Frequency/octave and derived data coming from whatever channel controls this
+	uint32_t freqMul;				//Scale channel frequency with this, TODO maybe remove?
+	uint32_t vibrato;				//Scaled up vibrato strength
+	int32_t sustainLevel;		//When stopping at sustain level stop here
+	int32_t totalLevel;			//totalLevel is added to every generated volume
+	uint32_t currentLevel;		//totalLevel + tremolo
+	int32_t volume;				//The currently active volume
 	
-	Bit32u attackAdd;			//Timers for the different states of the envelope
-	Bit32u decayAdd;
-	Bit32u releaseAdd;
-	Bit32u rateIndex;			//Current position of the evenlope
+	uint32_t attackAdd;			//Timers for the different states of the envelope
+	uint32_t decayAdd;
+	uint32_t releaseAdd;
+	uint32_t rateIndex;			//Current position of the envelope
 
-	Bit8u rateZero;				//Bits for the different states of the envelope having no changes
-	Bit8u keyOn;				//Bitmask of different values that can generate keyon
+	uint8_t rateZero;				//Bits for the different states of the envelope having no changes
+	uint8_t keyOn;				//Bitmask of different values that can generate keyon
 	//Registers, also used to check for changes
-	Bit8u reg20, reg40, reg60, reg80, regE0;
+	uint8_t reg20, reg40, reg60, reg80, regE0;
 	//Active part of the envelope we're in
-	Bit8u state;
+	uint8_t state;
 	//0xff when tremolo is enabled
-	Bit8u tremoloMask;
+	uint8_t tremoloMask;
 	//Strength of the vibrato
-	Bit8u vibStrength;
+	uint8_t vibStrength;
 	//Keep track of the calculated KSR so we can check for changes
-	Bit8u ksr;
+	uint8_t ksr;
 private:
-	void SetState( Bit8u s );
+	void SetState( uint8_t s );
 	void UpdateAttack( const Chip* chip );
 	void UpdateRelease( const Chip* chip );
 	void UpdateDecay( const Chip* chip );
@@ -130,22 +130,22 @@ public:
 	void UpdateRates( const Chip* chip );
 	void UpdateFrequency( );
 
-	void Write20( const Chip* chip, Bit8u val );
-	void Write40( const Chip* chip, Bit8u val );
-	void Write60( const Chip* chip, Bit8u val );
-	void Write80( const Chip* chip, Bit8u val );
-	void WriteE0( const Chip* chip, Bit8u val );
+	void Write20( const Chip* chip, uint8_t val );
+	void Write40( const Chip* chip, uint8_t val );
+	void Write60( const Chip* chip, uint8_t val );
+	void Write80( const Chip* chip, uint8_t val );
+	void WriteE0( const Chip* chip, uint8_t val );
 
 	bool Silent() const;
 	void Prepare( const Chip* chip );
 
-	void KeyOn( Bit8u mask);
-	void KeyOff( Bit8u mask);
+	void KeyOn( uint8_t mask);
+	void KeyOff( uint8_t mask);
 
 	template< State state>
 	Bits TemplateVolume( );
 
-	Bit32s RateForward( Bit32u add );
+	int32_t RateForward( uint32_t add );
 	Bitu ForwardWave();
 	Bitu ForwardVolume();
 
@@ -156,102 +156,110 @@ public:
 };
 
 struct Channel {
-	Operator op[2];
+	Operator op[2]; //Leave on top of struct for simpler pointer math.
 	inline Operator* Op( Bitu index ) {
 		return &( ( this + (index >> 1) )->op[ index & 1 ]);
 	}
 	SynthHandler synthHandler;
-	Bit32u chanData;		//Frequency/octave and derived values
-	Bit32s old[2];			//Old data for feedback
+	uint32_t chanData;		//Frequency/octave and derived values
+	int32_t old[2];			//Old data for feedback
 
-	Bit8u feedback;			//Feedback shift
-	Bit8u regB0;			//Register values to check for changes
-	Bit8u regC0;
+	uint8_t feedback;			//Feedback shift
+	uint8_t regB0;			//Register values to check for changes
+	uint8_t regC0;
 	//This should correspond with reg104, bit 6 indicates a Percussion channel, bit 7 indicates a silent channel
-	Bit8u fourMask;
-	Bit8s maskLeft;		//Sign extended values for both channel's panning
-	Bit8s maskRight;
+	uint8_t fourMask;
+	int8_t maskLeft;		//Sign extended values for both channel's panning
+	int8_t maskRight;
 
 	//Forward the channel data to the operators of the channel
-	void SetChanData( const Chip* chip, Bit32u data );
+	void SetChanData( const Chip* chip, uint32_t data );
 	//Change in the chandata, check for new values and if we have to forward to operators
-	void UpdateFrequency( const Chip* chip, Bit8u fourOp );
-	void WriteA0( const Chip* chip, Bit8u val );
-	void WriteB0( const Chip* chip, Bit8u val );
-	void WriteC0( const Chip* chip, Bit8u val );
-	void ResetC0( const Chip* chip );
+	void UpdateFrequency( const Chip* chip, uint8_t fourOp );
+	void UpdateSynth(const Chip* chip);
+	void WriteA0( const Chip* chip, uint8_t val );
+	void WriteB0( const Chip* chip, uint8_t val );
+	void WriteC0( const Chip* chip, uint8_t val );
 
 	//call this for the first channel
 	template< bool opl3Mode >
-	void GeneratePercussion( Chip* chip, Bit32s* output );
+	void GeneratePercussion( Chip* chip, int32_t* output );
 
 	//Generate blocks of data in specific modes
 	template<SynthMode mode>
-	Channel* BlockTemplate( Chip* chip, Bit32u samples, Bit32s* output );
+	Channel* BlockTemplate( Chip* chip, uint32_t samples, int32_t* output );
 	Channel();
 };
 
 struct Chip {
-	//This is used as the base counter for vibrato and tremolo
-	Bit32u lfoCounter;
-	Bit32u lfoAdd;
-	
-
-	Bit32u noiseCounter;
-	Bit32u noiseAdd;
-	Bit32u noiseValue;
-
-	//Frequency scales for the different multiplications
-	Bit32u freqMul[16];
-	//Rates for decay and release for rate of this chip
-	Bit32u linearRates[76];
-	//Best match attack rates for the rate of this chip
-	Bit32u attackRates[76];
-
-	//18 channels with 2 operators each
+	//18 channels with 2 operators each. Leave on top of struct for simpler pointer math.
 	Channel chan[18];
 
-	Bit8u reg104;
-	Bit8u reg08;
-	Bit8u reg04;
-	Bit8u regBD;
-	Bit8u vibratoIndex;
-	Bit8u tremoloIndex;
-	Bit8s vibratoSign;
-	Bit8u vibratoShift;
-	Bit8u tremoloValue;
-	Bit8u vibratoStrength;
-	Bit8u tremoloStrength;
+	//This is used as the base counter for vibrato and tremolo
+	uint32_t lfoCounter = 0;
+	uint32_t lfoAdd = 0;
+
+	uint32_t noiseCounter = 0;
+	uint32_t noiseAdd = 0;
+	uint32_t noiseValue = 0;
+
+	//Frequency scales for the different multiplications
+    uint32_t freqMul[16] = {};
+	//Rates for decay and release for rate of this chip
+    uint32_t linearRates[76] = {};
+	//Best match attack rates for the rate of this chip
+    uint32_t attackRates[76] = {};
+
+	uint8_t reg104;
+	uint8_t reg08;
+	uint8_t reg04;
+	uint8_t regBD;
+	uint8_t vibratoIndex = 0;
+	uint8_t tremoloIndex = 0;
+	int8_t vibratoSign = 0;
+	uint8_t vibratoShift = 0;
+	uint8_t tremoloValue = 0;
+	uint8_t vibratoStrength = 0;
+	uint8_t tremoloStrength = 0;
 	//Mask for allowed wave forms
-	Bit8u waveFormMask;
+	uint8_t waveFormMask = 0;
 	//0 or -1 when enabled
-	Bit8s opl3Active;
+	int8_t opl3Active;
+	//Running in opl3 mode
+	const bool opl3Mode;
 
 	//Return the maximum amount of samples before and LFO change
-	Bit32u ForwardLFO( Bit32u samples );
-	Bit32u ForwardNoise();
+	uint32_t ForwardLFO( uint32_t samples );
+	uint32_t ForwardNoise();
 
-	void WriteBD( Bit8u val );
-	void WriteReg(Bit32u reg, Bit8u val );
+	void WriteBD( uint8_t val );
+	void WriteReg(uint32_t reg, uint8_t val );
 
-	Bit32u WriteAddr( Bit32u port, Bit8u val );
+	uint32_t WriteAddr( uint32_t port, uint8_t val );
 
-	void GenerateBlock2( Bitu samples, Bit32s* output );
-	void GenerateBlock3( Bitu samples, Bit32s* output );
+	void GenerateBlock2( Bitu total, int32_t* output );
+	void GenerateBlock3( Bitu total, int32_t* output );
 
-	void Generate( Bit32u samples );
-	void Setup( Bit32u r );
+	//Update the synth handlers in all channels
+	void UpdateSynths();
+	void Generate( uint32_t samples );
+	void Setup( uint32_t rate );
 
-	Chip();
+	Chip( bool opl3Mode );
 };
 
 struct Handler : public Adlib::Handler {
 	DBOPL::Chip chip;
-	virtual Bit32u WriteAddr( Bit32u port, Bit8u val );
-	virtual void WriteReg( Bit32u addr, Bit8u val );
-	virtual void Generate( MixerChannel* chan, Bitu samples );
-	virtual void Init( Bitu rate );
+	uint32_t WriteAddr( uint32_t port, uint8_t val ) override;
+	void WriteReg( uint32_t addr, uint8_t val ) override;
+	void Generate( MixerChannel* chan, Bitu samples ) override;
+	void Init( Bitu rate ) override;
+	void SaveState( std::ostream& stream ) override;
+	void LoadState( std::istream& stream ) override;
+
+	Handler(bool opl3Mode) : chip(opl3Mode) {
+	}
 };
 
 
-};		//Namespace
+}		//Namespace

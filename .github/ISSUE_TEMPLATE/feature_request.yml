@@ -1,0 +1,55 @@
+name: Feature request
+description: Suggest an idea (a new feature or other improvements) to DOSBox-X
+labels: ["feature request"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Please fill out the form as cleanly as possible.
+        Also, make sure that you have properly filled in the title of the feature request.
+  - type: textarea
+    id: issue
+    attributes:
+      label: Is your feature request related to a problem? Please describe.
+      description: A clear and concise description of what the problem is. If applicable, add screenshots to help in explaining.
+      placeholder: "Ex. I'm always frustrated when [...]"
+    validations:
+      required: false
+  - type: textarea
+    id: excepted
+    attributes:
+      label: What you want
+      description: A clear and concise description of what you want (to happen). If applicable, add screenshots to help in explaining.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional information
+      description: Add more information about the feature request here.
+    validations:
+      required: false
+  - type: checkboxes
+    id: alreadyexists
+    attributes:
+      label: Have you checked that no similar feature request(s) exist?
+      description: Please try to search for similar feature requests in the issues before creating this issue.
+      options:
+        - label: I have searched and didn't find any similar feature request.
+          required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct & Contributing Guidelines
+      description: By submitting this issue, you agree to follow our [contributing guidelines](https://github.com/joncampbell123/dosbox-x/blob/master/CONTRIBUTING.md) and [code of conduct](https://github.com/joncampbell123/dosbox-x/blob/master/CODE_OF_CONDUCT.md).
+      options:
+        - label: I agree to follow the code of conduct and the contributing guidelines.
+          required: true

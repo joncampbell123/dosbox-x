@@ -1,0 +1,39 @@
+
+local a = 123;
+local b = 123.456;
+local c = "Hello world";
+
+/* Comment */
+
+print(a+"\n");
+print(b+"\n");
+print(c+"\n");
+
+local d = [1,2,3,4]
+
+print(d[0]+"\n");
+
+local e = {
+    a = 10,
+    b = 20,
+    c = "Hello",
+    [20] = "World"
+}
+
+print(e.a+"\n");
+print(e["c"]+"\n");
+print(e[20]+"\n");
+
+function aaa(x,y) {
+    return x*y;
+}
+
+print(aaa(4,3)+"\n");
+hello1();
+hello1(1);
+hello1(23.44);
+hello1("Hello world");
+hello1(1,2,3,4);
+hello1(1,2.3,"4");
+hello1(hello1);
+

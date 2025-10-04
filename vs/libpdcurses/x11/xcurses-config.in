@@ -1,0 +1,81 @@
+#! /bin/sh
+#
+# The idea to this kind of setup info script was stolen from numerous
+# other packages, such as neon, libxml and gnome.
+#
+
+verdot=3.6
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@/xcurses
+
+usage()
+{
+    echo "Usage: xcurses-config [OPTION]"
+    echo ""
+    echo "Available values for OPTION include:"
+    echo ""
+    echo "  --help         display this help and exit"
+    echo "  --cflags       pre-processor and compiler flags"
+    echo "                 [-I$includedir @PDC_WIDE@]"
+    echo "  --libs         library linking information"
+    echo "                 [-L$libdir -lXCurses @LDFLAGS@ @MH_XLIBS@ @MH_EXTRA_LIBS@"
+    echo "  --libs-static  static library linking information (libXCurses only)"
+    echo "                 [$libdir/libXCurses.a @LDFLAGS@ @MH_XLIBS@ @MH_EXTRA_LIBS@"
+    echo "  --prefix       PDCurses install prefix"
+    echo "                 [$prefix]"
+    echo "  --version      output version information"
+    echo "                 [$verdot]"
+    exit $1
+}
+
+if test $# -eq 0; then
+    usage 1
+fi
+
+while test $# -gt 0; do
+    case "$1" in
+    # this deals with options in the style
+    # --option=value and extracts the value part
+    # [not currently used]
+    -*=*) value=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+    *) value= ;;
+    esac
+
+    case "$1" in
+    --prefix)
+       echo $prefix
+       ;;
+
+    --version)
+       echo $verdot
+       exit 0
+       ;;
+
+    --help)
+       usage 0
+       ;;
+
+    --cflags)
+       echo -I$includedir @PDC_WIDE@
+       ;;
+
+    --libs)
+       echo -L$libdir -lXCurses @LDFLAGS@ @MH_XLIBS@ @MH_EXTRA_LIBS@
+       ;;
+
+    --libs-static)
+       echo $libdir/libXCurses.a @LDFLAGS@ @MH_XLIBS@ @MH_EXTRA_LIBS@
+       ;;
+
+    *)
+       usage
+       exit 1
+       ;;
+    esac
+    shift
+done
+
+exit 0

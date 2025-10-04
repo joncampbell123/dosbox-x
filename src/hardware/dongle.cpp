@@ -1,13 +1,14 @@
 #include <string.h>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "pic.h"
 #include "setup.h"
 #include "control.h"
 
 /*
 
-This is DosBox handler of 93c46 copy-protection dongle connected to LPT port.
+This is DOSBox-X's handler of 93c46 copy-protection dongle connected to LPT port.
 At least Rainbow Sentinel Cplus and MicroPhar are 93c46-based dongles.
 
 93c46 memory chip contain 64*16 words. More on it:
@@ -24,7 +25,7 @@ taken from D0..D7 in some order.
 
 * DO (data output) may be connected to ACK or BUSY printer lines.
 
-Add this file to DosBox project, patch dosbox.cpp patch and add to dosbox.conf
+Add this file to the DOSBox-X project, patch dosbox.cpp patch and add to dosbox-x.conf
 "dongle=true" under "[speaker]" section.
 
 More information: http://blogs.conus.info/node/56
@@ -61,6 +62,8 @@ static unsigned short MEMORY[0x40]=
 //#include <windows.h>
 
 static void dongle_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	static int DI, SK;
 	/*
 	LOG(LOG_MISC,LOG_NORMAL)("write dongle port=%x val=%d%d%d%d%d%d%d%d\n",
@@ -90,7 +93,7 @@ static void dongle_write(Bitu port,Bitu val,Bitu iolen) {
 				queue_filled=false;
 			else
 				out_idx--;
-		};
+		}
 
 		if (queue_filling==false && DI==1) // start bit
 		{                                
@@ -98,7 +101,7 @@ static void dongle_write(Bitu port,Bitu val,Bitu iolen) {
 			queue_filling=true;
 			queue_filled=false;
 			queue_idx=0;
-		};
+		}
 
 		if (queue_filling)
 		{
@@ -124,13 +127,15 @@ static void dongle_write(Bitu port,Bitu val,Bitu iolen) {
 			}
 			else
 				queue_idx++;
-		};
-	};
+		}
+	}
 
 	last_SK=SK;
 }
 
 static Bitu dongle_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	Bitu retval;
 	switch (port-DONGLE_BASE) 
 	{
@@ -174,13 +179,7 @@ public:
 static DONGLE* test = NULL;
 
 static void DONGLE_ShutDown(Section* sec){
-    if (test) {
-        delete test;
-        test = NULL;
-    }
-}
-
-static void DONGLE_OnEnterPC98(Section* sec){
+    (void)sec;//UNUSED
     if (test) {
         delete test;
         test = NULL;
@@ -188,7 +187,8 @@ static void DONGLE_OnEnterPC98(Section* sec){
 }
 
 void DONGLE_OnReset(Section* sec) {
-	if (test == NULL) {
+    (void)sec;//UNUSED
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating parallel dongle emulation");
 		test = new DONGLE(control->GetSection("parallel"));
 	}
@@ -199,5 +199,4 @@ void DONGLE_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(DONGLE_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DONGLE_OnReset));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(DONGLE_OnEnterPC98));
 }

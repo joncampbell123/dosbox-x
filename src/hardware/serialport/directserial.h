@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -35,20 +35,20 @@ public:
 	CDirectSerial(Bitu id, CommandLine* cmd);
 	~CDirectSerial();
 
-	void updatePortConfig(Bit16u divider, Bit8u lcr);
-	void updateMSR();
-	void transmitByte(Bit8u val, bool first);
-	void setBreak(bool value);
+	void updatePortConfig(uint16_t divider, uint8_t lcr) override;
+	void updateMSR() override;
+	void transmitByte(uint8_t val, bool first) override;
+	void setBreak(bool value) override;
 	
-	void setRTSDTR(bool rts, bool dtr);
-	void setRTS(bool val);
-	void setDTR(bool val);
-	void handleUpperEvent(Bit16u type);
+	void setRTSDTR(bool rts, bool dtr) override;
+	void setRTS(bool val) override;
+	void setDTR(bool val) override;
+	void handleUpperEvent(uint16_t type) override;
 
 private:
 	COMPORT comport;
 
-	Bitu rx_state;
+	Bitu rx_state = 0;
 #define D_RX_IDLE		0
 #define D_RX_WAIT		1
 #define D_RX_BLOCKED	2
@@ -60,8 +60,8 @@ private:
 	bool doReceive();
 
 #if SERIAL_DEBUG
-	bool dbgmsg_poll_block;
-	bool dbgmsg_rx_block;
+	bool dbgmsg_poll_block = false;
+	bool dbgmsg_rx_block = false;
 #endif
 
 };

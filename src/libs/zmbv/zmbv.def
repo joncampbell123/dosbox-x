@@ -1,4 +1,0 @@
-LIBRARY         ZMBV
-
-EXPORTS
-	DriverProc

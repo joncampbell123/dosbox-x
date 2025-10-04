@@ -9,23 +9,23 @@
 
 class CPrinterRedir : public CParallel {
 public:
-	CPrinterRedir(Bitu nr, Bit8u initIrq, CommandLine* cmd);
+	CPrinterRedir(Bitu nr, uint8_t initIrq, CommandLine* cmd);
 	
 
 	~CPrinterRedir();
 	
 	bool InstallationSuccessful;	// check after constructing. If
 									// something was wrong, delete it right away.
-	Bitu Read_PR();
-	Bitu Read_COM();
-	Bitu Read_SR();
+	Bitu Read_PR() override;
+	Bitu Read_COM() override;
+	Bitu Read_SR() override;
 
-	void Write_PR(Bitu);
-	void Write_CON(Bitu);
-	void Write_IOSEL(Bitu);
-	bool Putchar(Bit8u);
+	void Write_PR(Bitu) override;
+	void Write_CON(Bitu) override;
+	void Write_IOSEL(Bitu) override;
+	bool Putchar(uint8_t) override;
 
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type) override;
 };
 
 #endif	// include guard

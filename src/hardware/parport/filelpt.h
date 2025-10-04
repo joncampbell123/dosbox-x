@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 // include guard
@@ -27,7 +27,7 @@ typedef enum { FILE_DEV, FILE_CAPTURE, FILE_APPEND } DFTYPE;
 
 class CFileLPT : public CParallel {
 public:
-	CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd);
+	CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq = false);
 
 	~CFileLPT();
 	
@@ -35,36 +35,40 @@ public:
 									// something was wrong, delete it right away.
 	
 	bool fileOpen;
-	DFTYPE filetype;			// which mode to operate in (capture,fileappend,device)
-	FILE* file;
+	DFTYPE filetype = (DFTYPE)0;			// which mode to operate in (capture,fileappend,device)
+	FILE* file = NULL;
 	std::string name;			// name of the thing to open
+	std::string action1, action2, action3, action4; // open with a program or batch script
+	bool shellhide;
 	bool addFF;					// add a formfeed character before closing the file/device
 	bool addLF;					// if set, add line feed after carriage return if not used by app
+    bool squote;
 
-	Bit8u lastChar;				// used to save the previous character to decide wether to add LF
-	const Bit16u* codepage_ptr; // pointer to the translation codepage if not null
+	uint8_t lastChar = 0;				// used to save the previous character to decide whether to add LF
+	const uint16_t* codepage_ptr; // pointer to the translation codepage if not null
 
 	bool OpenFile();
 	
-	bool ack_polarity;
+	bool ack_polarity = false;
 
-	Bitu Read_PR();
-	Bitu Read_COM();
-	Bitu Read_SR();
+	Bitu Read_PR() override;
+	Bitu Read_COM() override;
+	Bitu Read_SR() override;
 
-	Bit8u datareg;
-	Bit8u controlreg;
+	uint8_t datareg = 0;
+	uint8_t controlreg;
 
-	void Write_PR(Bitu);
-	void Write_CON(Bitu);
-	void Write_IOSEL(Bitu);
-	bool Putchar(Bit8u);
+	void Write_PR(Bitu) override;
+	void Write_CON(Bitu) override;
+	void Write_IOSEL(Bitu) override;
+	bool Putchar(uint8_t) override;
 
-	bool autofeed;
+	bool autofeed = false;
 	bool ack;
-	unsigned int timeout;
-	Bitu lastUsedTick;
-	virtual void handleUpperEvent(Bit16u type);
+	unsigned int timeout = 0;
+	Bitu lastUsedTick = 0;
+	void doAction();
+	virtual void handleUpperEvent(uint16_t type) override;
 };
 
 #endif	// include guard

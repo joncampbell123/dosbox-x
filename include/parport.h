@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #ifndef DOSBOX_PARPORT_H
@@ -22,31 +22,37 @@
 // set to 1 for debug messages and debugging log:
 #define PARALLEL_DEBUG 0
 
-#ifndef DOSBOX_DOSBOX_H
-#include "dosbox.h"
-#endif
-#ifndef DOSBOX_INOUT_H
 #include "inout.h"
-#endif
 
-#include "control.h"
-#include "dos_inc.h"
+#include "programs.h"
 
 class device_LPT : public DOS_Device {
 public:
 	// Creates a LPT device that communicates with the num-th parallel port, i.e. is LPTnum
-	device_LPT(Bit8u num, class CParallel* pp);
+	device_LPT(uint8_t num, class CParallel* pp);
 	virtual ~device_LPT();
-	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(Bit8u * data,Bit16u * size);
-	bool Seek(Bit32u * pos,Bit32u type);
-	bool Close();
-	Bit16u GetInformation(void);
+	bool Read(uint8_t * data,uint16_t * size) override;
+	bool Write(const uint8_t * data,uint16_t * size) override;
+	bool Seek(uint32_t * pos,uint32_t type) override;
+	bool Close() override;
+	uint16_t GetInformation(void) override;
 private:
 	CParallel* pportclass;
-	Bit8u num; // This device is LPTnum
+	uint8_t num; // This device is LPTnum
 };
 
+enum ParallelTypesE {
+	PARALLEL_TYPE_DISABLED = 0,
+#if HAS_CDIRECTLPT
+	PARALLEL_TYPE_REALLPT,
+#endif
+	PARALLEL_TYPE_FILE,
+#if C_PRINTER
+	PARALLEL_TYPE_PRINTER,
+#endif
+	PARALLEL_TYPE_DISNEY,
+	PARALLEL_TYPE_COUNT
+};
 
 class CParallel {
 public:
@@ -61,17 +67,17 @@ public:
 #endif
 
 	// Constructor
-	CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq);
-	
+	CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq);
+
 	virtual ~CParallel();
 
 	IO_ReadHandleObject ReadHandler[3];
 	IO_WriteHandleObject WriteHandler[3];
 
-	void setEvent(Bit16u type, float duration);
-	void removeEvent(Bit16u type);
-	void handleEvent(Bit16u type);
-	virtual void handleUpperEvent(Bit16u type)=0;
+	void setEvent(uint16_t type, float duration);
+	void removeEvent(uint16_t type);
+	void handleEvent(uint16_t type);
+	virtual void handleUpperEvent(uint16_t type)=0;
 
 	void registerDOSDevice();
 	void unregisterDOSDevice();
@@ -79,7 +85,7 @@ public:
 	Bitu port_nr;
 	Bitu base;
 	Bitu irq;
-	
+
 	// read data line register
 	virtual Bitu Read_PR()=0;
 	virtual Bitu Read_COM()=0;
@@ -89,20 +95,20 @@ public:
 	virtual void Write_CON(Bitu)=0;
 	virtual void Write_IOSEL(Bitu)=0;
 
-	void Write_reserved(Bit8u data, Bit8u address);
-
-	virtual bool Putchar(Bit8u)=0;
-	bool Putchar_default(Bit8u);
-	Bit8u getPrinterStatus();
+	virtual bool Putchar(uint8_t)=0;
+	uint8_t getPrinterStatus();
 	void initialize();
+
+	// What type of port is this?
+	ParallelTypesE parallelType = PARALLEL_TYPE_DISABLED;
+
+	// How was it created?
+	std::string commandLineString = "";
 
 	DOS_Device* mydosdevice;
 };
 
 extern CParallel* parallelPortObjects[];
-void PARALLEL_Init (Section * sec);
-
-const Bit16u parallel_baseaddr[3] = {0x378,0x278,0x3bc};
+extern uint16_t parallel_baseaddr[9];
 
 #endif
-

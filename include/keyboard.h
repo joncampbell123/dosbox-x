@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #ifndef DOSBOX_KEYBOARD_H
@@ -59,6 +59,8 @@ enum KBD_KEYS {
 	KBD_jp_muhenkan,	/* Muhenkan (No conversion from kana to kanji) */
 	KBD_jp_henkan,		/* Henkan/zenkouho (Conversion from kana to kanji, shifted: previous candidate, alt: all candidates) */
 	KBD_jp_hiragana,	/* Hiragana/Katakana (Hiragana, shifted: Katakana, alt: romaji) */
+	KBD_yen, KBD_underscore,   /* JP layout */
+	KBD_ax,KBD_conv,KBD_nconv, /* for AX */
 
 	/* Korean */
 	KBD_kor_hancha,		/* Hancha */
@@ -66,7 +68,9 @@ enum KBD_KEYS {
 
 	/* for Japanese A01 (106) key [http://www.mediafire.com/download/t968ydz6ky92myl/dosbox74.zip] */
 	/* see reference image [https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/KB_Japanese.svg/1280px-KB_Japanese.svg.png] */
-	KBD_jp_yen, KBD_jp_backslash,
+	KBD_jp_yen, KBD_jp_backslash, KBD_colon, KBD_caret, KBD_atsign, KBD_jp_ro, KBD_help, KBD_kpcomma,
+    KBD_stop, KBD_copy, KBD_vf1, KBD_vf2, KBD_vf3, KBD_vf4, KBD_vf5, KBD_kana,
+    KBD_nfer, KBD_xfer,
 
 	KBD_LAST
 };

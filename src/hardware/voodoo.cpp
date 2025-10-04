@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,17 +11,18 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "dosbox.h"
 #include "config.h"
+#include "logging.h"
 #include "setup.h"
 #include "cross.h"
 #include "control.h"
@@ -36,12 +37,15 @@
 class VOODOO;
 static VOODOO* voodoo_dev;
 
-static Bit32u voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
+static uint32_t assigned_lfb = 0;
+static uint32_t voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
 
 static bool voodoo_pci_enabled = false;
 static MEM_Callout_t voodoo_lfb_cb = MEM_Callout_t_none;
 
 PageHandler* voodoo_lfb_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+    (void)phys_page;//UNUSED
+    (void)co;//UNUSED
     if (voodoo_current_lfb == 0)
         return NULL;
 
@@ -83,156 +87,179 @@ void voodoo_lfb_cb_init() {
 
 class VOODOO:public Module_base{
 private:
-	Bits emulation_type;
+    Bits emulation_type;
 public:
-	VOODOO(Section* configuration):Module_base(configuration){
-		emulation_type=-1;
+    VOODOO(Section* configuration):Module_base(configuration){
+        emulation_type=-1;
 
-		Section_prop * section=static_cast<Section_prop *>(configuration);
-		std::string voodoo_type_str(section->Get_string("voodoo"));
-		if (voodoo_type_str=="false") {
-			emulation_type=0;
-		} else if (voodoo_type_str=="software") {
-			emulation_type=1;
+        Section_prop * section=static_cast<Section_prop *>(configuration);
+        std::string voodoo_type_str(section->Get_string("voodoo_card"));
+        if (voodoo_type_str=="false") {
+            emulation_type=0;
+        } else if (voodoo_type_str=="software") {
+            emulation_type=1;
 #if C_OPENGL
-		} else if ((voodoo_type_str=="opengl") || (voodoo_type_str=="auto")) {
-			emulation_type=2;
+        } else if ((voodoo_type_str=="opengl") || (voodoo_type_str=="auto")) {
+            emulation_type=2;
 #else
-		} else if (voodoo_type_str=="auto") {
-			emulation_type=1;
+        } else if (voodoo_type_str=="auto") {
+            emulation_type=1;
 #endif
-		} else {
-			emulation_type=0;
-		}
+        } else {
+            emulation_type=0;
+        }
 
-		Bits card_type = 1;
-		bool max_voodoomem = true;
+        Bits card_type = 1;
+        bool max_voodoomem = true;
+		if (section->Get_bool("voodoo_maxmem"))
+			max_voodoomem = true;
+		else
+			max_voodoomem = false;
 
-		bool needs_pci_device = false;
+        bool needs_pci_device = false;
 
-		switch (emulation_type) {
-			case 1:
-			case 2:
-				Voodoo_Initialize(emulation_type, card_type, max_voodoomem);
-				needs_pci_device = true;
-				break;
-			default:
-				break;
-		}
+        switch (emulation_type) {
+            case 1:
+            case 2:
+                Voodoo_Initialize(emulation_type, card_type, max_voodoomem);
+                needs_pci_device = true;
+                break;
+            default:
+                break;
+        }
 
-		if (needs_pci_device) PCI_AddSST_Device(card_type);
-	}
+        if (needs_pci_device) {
+            LOG(LOG_MISC,LOG_DEBUG)("Voodoo 3Dfx LFB at 0x%lx",(unsigned long)voodoo_current_lfb);
+            PCI_AddSST_Device((Bitu)card_type);
+        }
+    }
 
-	~VOODOO(){
-		PCI_RemoveSST_Device();
+    ~VOODOO(){
+        PCI_RemoveSST_Device();
 
-		if (emulation_type<=0) return;
+        if (emulation_type<=0) return;
 
-		switch (emulation_type) {
-			case 1:
-			case 2:
-				Voodoo_Shut_Down();
-				break;
-			default:
-				break;
-		}
+        switch (emulation_type) {
+            case 1:
+            case 2:
+                Voodoo_Shut_Down();
+                break;
+            default:
+                break;
+        }
 
-		emulation_type=-1;
-	}
+        emulation_type=-1;
+    }
 
-	void PCI_InitEnable(Bitu val) {
-		switch (emulation_type) {
-			case 1:
-			case 2:
-				Voodoo_PCI_InitEnable(val);
-				break;
-			default:
-				break;
-		}
-	}
+    void PCI_InitEnable(Bitu val) {
+        switch (emulation_type) {
+            case 1:
+            case 2:
+                Voodoo_PCI_InitEnable(val);
+                break;
+            default:
+                break;
+        }
+    }
 
-	void PCI_Enable(bool enable) {
-		switch (emulation_type) {
-			case 1:
-			case 2:
-				Voodoo_PCI_Enable(enable);
-				break;
-			default:
-				break;
-		}
-	}
+    void PCI_Enable(bool enable) {
+        switch (emulation_type) {
+            case 1:
+            case 2:
+                Voodoo_PCI_Enable(enable);
+                break;
+            default:
+                break;
+        }
+    }
 
-	PageHandler* GetPageHandler() {
-		switch (emulation_type) {
-			case 1:
-			case 2:
-				return Voodoo_GetPageHandler();
-			default:
-				break;
-		}
-		return NULL;
-	}
+    PageHandler* GetPageHandler() {
+        switch (emulation_type) {
+            case 1:
+            case 2:
+                return Voodoo_GetPageHandler();
+            default:
+                break;
+        }
+        return NULL;
+    }
 
 };
 
 
 void VOODOO_PCI_InitEnable(Bitu val) {
-	if (voodoo_dev!=NULL) {
-		voodoo_dev->PCI_InitEnable(val);
-	}
+    if (voodoo_dev!=NULL) {
+        voodoo_dev->PCI_InitEnable(val);
+    }
 }
 
 void VOODOO_PCI_Enable(bool enable) {
-	if (voodoo_dev!=NULL) {
-		voodoo_dev->PCI_Enable(enable);
-	}
+    if (voodoo_dev!=NULL) {
+        voodoo_dev->PCI_Enable(enable);
+    }
 }
 
 
-void VOODOO_PCI_SetLFB(Bit32u lfbaddr) {
-    lfbaddr &= 0xFFFF0000UL;
+void VOODOO_PCI_SetLFB(uint32_t lfbaddr) {
+    lfbaddr &= VOODOO_LFB_ALIGNMASK;
 
     if (lfbaddr == voodoo_current_lfb)
         return;
 
-	voodoo_current_lfb = lfbaddr;
+    voodoo_current_lfb = lfbaddr;
     voodoo_lfb_cb_init();
 }
 
 bool VOODOO_PCI_CheckLFBPage(Bitu page) {
-	if (voodoo_current_lfb != 0 &&
+    if (voodoo_current_lfb != 0 &&
         (page>=(voodoo_current_lfb>>12)) &&
-		(page<(voodoo_current_lfb>>12)+VOODOO_PAGES))
-		return true;
-	return false;
+        (page<(voodoo_current_lfb>>12)+VOODOO_PAGES))
+        return true;
+    return false;
 }
 
 PageHandler* VOODOO_GetPageHandler() {
-	if (voodoo_dev!=NULL) {
-		return voodoo_dev->GetPageHandler();
-	}
-	return NULL;
+    if (voodoo_dev!=NULL) {
+        return voodoo_dev->GetPageHandler();
+    }
+    return NULL;
 }
 
 
 void VOODOO_Destroy(Section* /*sec*/) {
-	delete voodoo_dev;
-	voodoo_dev=NULL;
+    if (voodoo_dev!=NULL) {
+        delete voodoo_dev;
+        voodoo_dev=NULL;
+    }
 }
 
 void VOODOO_OnPowerOn(Section* /*sec*/) {
-	if (voodoo_dev == NULL) {
+    if (voodoo_dev == NULL) {
         voodoo_pci_enabled = true;
-		voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
-		voodoo_dev = new VOODOO(control->GetSection("pci"));
+
+        voodoo_current_lfb = VOODOO_INITIAL_LFB & VOODOO_LFB_ALIGNMASK;
+
+        /* must not overlap system RAM */
+        if (voodoo_current_lfb < (MEM_TotalPages()*4096))
+            voodoo_current_lfb = (MEM_TotalPages()*4096);
+        if (voodoo_current_lfb < assigned_lfb)
+            voodoo_current_lfb = assigned_lfb;
+
+        voodoo_current_lfb += ~VOODOO_LFB_ALIGNMASK; /* round up */
+        voodoo_current_lfb &= VOODOO_LFB_ALIGNMASK;
+
+        voodoo_dev = new VOODOO(control->GetSection("voodoo"));
 
         voodoo_lfb_cb_init();
-	}
+    }
 }
 
 void VOODOO_Init() {
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing Voodoo/3DFX emulation");
+    LOG(LOG_MISC,LOG_DEBUG)("Initializing Voodoo/3DFX emulation");
 
-	AddExitFunction(AddExitFunctionFuncPair(VOODOO_Destroy),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(VOODOO_OnPowerOn));
+    /* the purpose of this is so that, if everything is crammed up at the top to make room for system RAM, the S3 and 3Dfx do not conflict */
+    assigned_lfb = MEM_HardwareAllocate("Voodoo 3Dfx",16ul << 20ul/*16MB*/);
+
+    AddExitFunction(AddExitFunctionFuncPair(VOODOO_Destroy),true);
+    AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(VOODOO_OnPowerOn));
 }

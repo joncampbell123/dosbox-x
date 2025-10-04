@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 	CASE_0F_D(0x00)												/* GRP 6 Exxx */
@@ -27,8 +27,8 @@
 					Bitu saveval;
 					if (!which) saveval=CPU_SLDT();
 					else saveval=CPU_STR();
-					if (rm >= 0xc0) {GetEArw;*earw=(Bit16u)saveval;}
-					else {GetEAa;SaveMw(eaa,saveval);}
+					if (rm >= 0xc0) {GetEArw;*earw=(uint16_t)saveval;}
+					else {GetEAa;SaveMw(eaa,(uint16_t)saveval);}
 				}
 				break;
 			case 0x02:case 0x03:case 0x04:case 0x05:
@@ -68,12 +68,12 @@
 				GetEAa;Bitu limit;
 				switch (which) {
 				case 0x00:										/* SGDT */
-					SaveMw(eaa,(Bit16u)CPU_SGDT_limit());
-					SaveMd(eaa+2,(Bit32u)CPU_SGDT_base());
+					SaveMw(eaa,(uint16_t)CPU_SGDT_limit());
+					SaveMd(eaa+2,(uint32_t)CPU_SGDT_base());
 					break;
 				case 0x01:										/* SIDT */
-					SaveMw(eaa,(Bit16u)CPU_SIDT_limit());
-					SaveMd(eaa+2,(Bit32u)CPU_SIDT_base());
+					SaveMw(eaa,(uint16_t)CPU_SIDT_limit());
+					SaveMd(eaa+2,(uint32_t)CPU_SIDT_base());
 					break;
 				case 0x02:										/* LGDT */
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -84,13 +84,14 @@
 					CPU_LIDT(LoadMw(eaa),LoadMd(eaa+2));
 					break;
 				case 0x04:										/* SMSW */
-					SaveMw(eaa,(Bit16u)CPU_SMSW());
+					SaveMw(eaa,(uint16_t)CPU_SMSW());
 					break;
 				case 0x06:										/* LMSW */
 					limit=LoadMw(eaa);
-					if (CPU_LMSW((Bit16u)limit)) RUNEXCEPTION();
+					if (CPU_LMSW((uint16_t)limit)) RUNEXCEPTION();
 					break;
 				case 0x07:										/* INVLPG */
+					if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 					PAGING_ClearTLB();
 					break;
@@ -105,7 +106,7 @@
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 					goto illegal_opcode;
 				case 0x04:										/* SMSW */
-					*eard=(Bit32u)CPU_SMSW();
+					*eard=(uint32_t)CPU_SMSW();
 					break;
 				case 0x06:										/* LMSW */
 					if (CPU_LMSW(*eard)) RUNEXCEPTION();
@@ -128,7 +129,7 @@
 			} else {
 				GetEAa;CPU_LAR(LoadMw(eaa),ar);
 			}
-			*rmrd=(Bit32u)ar;
+			*rmrd=(uint32_t)ar;
 		}
 		break;
 	CASE_0F_D(0x03)												/* LSL Gd,Ew */
@@ -141,7 +142,7 @@
 			} else {
 				GetEAa;CPU_LSL(LoadMw(eaa),limit);
 			}
-			*rmrd=(Bit32u)limit;
+			*rmrd=(uint32_t)limit;
 		}
 		break;
 
@@ -236,13 +237,14 @@
 	CASE_0F_D(0xa3)												/* BT Ed,Gd */
 		{
 			FillFlags();GetRMrd;
-			Bit32u mask=1 << (*rmrd & 31);
+			uint32_t mask=1u << (*rmrd & 31u);
 			if (rm >= 0xc0 ) {
 				GetEArd;
 				SETFLAGBIT(CF,(*eard & mask));
 			} else {
-				GetEAa;eaa+=(((Bit32s)*rmrd)>>5)*4;
-				Bit32u old=LoadMd(eaa);
+				GetEAa;eaa+=(PhysPt)((((int32_t)*rmrd)>>5)*4);
+				if (!TEST_PREFIX_ADDR) FixEA16;
+				uint32_t old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 			}
 			break;
@@ -261,14 +263,15 @@
 	CASE_0F_D(0xab)												/* BTS Ed,Gd */
 		{
 			FillFlags();GetRMrd;
-			Bit32u mask=1 << (*rmrd & 31);
+			uint32_t mask=1u << (*rmrd & 31u);
 			if (rm >= 0xc0 ) {
 				GetEArd;
 				SETFLAGBIT(CF,(*eard & mask));
 				*eard|=mask;
 			} else {
-				GetEAa;eaa+=(((Bit32s)*rmrd)>>5)*4;
-				Bit32u old=LoadMd(eaa);
+				GetEAa;eaa+=(PhysPt)((((int32_t)*rmrd)>>5)*4);
+				if (!TEST_PREFIX_ADDR) FixEA16;
+				uint32_t old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMd(eaa,old | mask);
 			}
@@ -302,7 +305,7 @@
 				}
 			} else {
 				GetEAa;
-				Bit32u val=LoadMd(eaa);
+				uint32_t val=LoadMd(eaa);
 				if (val==reg_eax) {
 					SaveMd(eaa,*rmrd);
 					SETFLAGBIT(ZF,1);
@@ -326,14 +329,15 @@
 	CASE_0F_D(0xb3)												/* BTR Ed,Gd */
 		{
 			FillFlags();GetRMrd;
-			Bit32u mask=1 << (*rmrd & 31);
+			uint32_t mask=1u << (*rmrd & 31u);
 			if (rm >= 0xc0 ) {
 				GetEArd;
 				SETFLAGBIT(CF,(*eard & mask));
 				*eard&= ~mask;
 			} else {
-				GetEAa;eaa+=(((Bit32s)*rmrd)>>5)*4;
-				Bit32u old=LoadMd(eaa);
+				GetEAa;eaa+=(PhysPt)((((int32_t)*rmrd)>>5)*4);
+				if (!TEST_PREFIX_ADDR) FixEA16;
+				uint32_t old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMd(eaa,old & ~mask);
 			}
@@ -376,7 +380,7 @@
 			FillFlags();GetRM;
 			if (rm >= 0xc0 ) {
 				GetEArd;
-				Bit32u mask=1 << (Fetchb() & 31);
+				uint32_t mask=1u << (Fetchb() & 31u);
 				SETFLAGBIT(CF,(*eard & mask));
 				switch (rm & 0x38) {
 				case 0x20:											/* BT */
@@ -395,8 +399,8 @@
 					E_Exit("CPU:66:0F:BA:Illegal subfunction %X",rm & 0x38);
 				}
 			} else {
-				GetEAa;Bit32u old=LoadMd(eaa);
-				Bit32u mask=1 << (Fetchb() & 31);
+				GetEAa;uint32_t old=LoadMd(eaa);
+				uint32_t mask=1u << (Fetchb() & 31u);
 				SETFLAGBIT(CF,(old & mask));
 				switch (rm & 0x38) {
 				case 0x20:											/* BT */
@@ -421,14 +425,15 @@
 	CASE_0F_D(0xbb)												/* BTC Ed,Gd */
 		{
 			FillFlags();GetRMrd;
-			Bit32u mask=1 << (*rmrd & 31);
+			uint32_t mask=1u << (*rmrd & 31u);
 			if (rm >= 0xc0 ) {
 				GetEArd;
 				SETFLAGBIT(CF,(*eard & mask));
 				*eard^=mask;
 			} else {
-				GetEAa;eaa+=(((Bit32s)*rmrd)>>5)*4;
-				Bit32u old=LoadMd(eaa);
+				GetEAa;eaa+=(PhysPt)((((int32_t)*rmrd)>>5)*4);
+				if (!TEST_PREFIX_ADDR) FixEA16;
+				uint32_t old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMd(eaa,old ^ mask);
 			}
@@ -437,13 +442,13 @@
 	CASE_0F_D(0xbc)												/* BSF Gd,Ed */
 		{
 			GetRMrd;
-			Bit32u result,value;
+			uint32_t value;
 			if (rm >= 0xc0) { GetEArd; value=*eard; } 
 			else			{ GetEAa; value=LoadMd(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				result = 0;
+				uint32_t result = 0;
 				while ((value & 0x01)==0) { result++; value>>=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrd = result;
@@ -454,13 +459,13 @@
 	CASE_0F_D(0xbd)												/*  BSR Gd,Ed */
 		{
 			GetRMrd;
-			Bit32u result,value;
+			uint32_t value;
 			if (rm >= 0xc0) { GetEArd; value=*eard; } 
 			else			{ GetEAa; value=LoadMd(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				result = 31;	// Operandsize-1
+				uint32_t result = 31;	// Operandsize-1
 				while ((value & 0x80000000)==0) { result--; value<<=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrd = result;
@@ -471,23 +476,24 @@
 	CASE_0F_D(0xbe)												/* MOVSX Gd,Eb */
 		{
 			GetRMrd;															
-			if (rm >= 0xc0 ) {GetEArb;*rmrd=*(Bit8s *)earb;}
-			else {GetEAa;*rmrd=LoadMbs(eaa);}
+			if (rm >= 0xc0 ) {GetEArb;*rmrd=(uint32_t)(*(int8_t *)earb);}
+			else {GetEAa;*rmrd=(uint32_t)LoadMbs(eaa);}
 			break;
 		}
 	CASE_0F_D(0xbf)												/* MOVSX Gd,Ew */
 		{
 			GetRMrd;															
-			if (rm >= 0xc0 ) {GetEArw;*rmrd=*(Bit16s *)earw;}
-			else {GetEAa;*rmrd=LoadMws(eaa);}
+			if (rm >= 0xc0 ) {GetEArw;*rmrd=(uint32_t)(*(int16_t *)earw);}
+			else {GetEAa;*rmrd=(uint32_t)LoadMws(eaa);}
 			break;
 		}
 	CASE_0F_D(0xc1)												/* XADD Gd,Ed */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
-			GetRMrd;Bit32u oldrmrd=*rmrd;
-			if (rm >= 0xc0 ) {GetEArd;*rmrd=*eard;*eard+=oldrmrd;}
-			else {GetEAa;*rmrd=LoadMd(eaa);SaveMd(eaa,LoadMd(eaa)+oldrmrd);}
+			GetRMrd;auto oldrmrd=lf_var2d=*rmrd;
+			if (rm >= 0xc0 ) {GetEArd;lf_var1d=*rmrd=*eard;*eard+=oldrmrd;lf_resd=*eard;}
+			else {GetEAa;lf_var1d=*rmrd=LoadMd(eaa);SaveMd(eaa,lf_resd=*rmrd+oldrmrd);}
+			lflags.type=t_ADDd;
 			break;
 		}
     CASE_0F_D(0xc7)
@@ -531,4 +537,8 @@
 	CASE_0F_D(0xcf)												/* BSWAP EDI */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 		BSWAPD(reg_edi);break;
+#if C_FPU
+#define CASE_0F_MMX(x) CASE_0F_D(x)
 #include "prefix_0f_mmx.h"
+#undef CASE_0F_MMX
+#endif

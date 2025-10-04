@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include <fcntl.h>
@@ -22,12 +22,12 @@
 class MidiHandler_oss: public MidiHandler {
 private:
 	int  device;
-	Bit8u device_num;
+	uint8_t device_num;
 	bool isOpen;
 public:
 	MidiHandler_oss() : MidiHandler(),isOpen(false) {};
-	const char * GetName(void) { return "oss";};
-	bool Open(const char * conf) {
+	const char * GetName(void) override { return "oss";};
+	bool Open(const char * conf) override {
 		char devname[512];
 		if (conf && conf[0]) safe_strncpy(devname,conf,512);
 		else strcpy(devname,"/dev/sequencer");
@@ -41,12 +41,12 @@ public:
 		if (device<0) return false;
 		return true;
 	};
-	void Close(void) {
+	void Close(void) override {
 		if (!isOpen) return;
 		if (device>0) close(device);
 	};
-	void PlayMsg(Bit8u * msg) {
-		Bit8u buf[128];Bitu pos=0;
+	void PlayMsg(uint8_t * msg) override {
+		uint8_t buf[128];Bitu pos=0;
 		Bitu len=MIDI_evt_len[*msg];
 		for (;len>0;len--) {
 			buf[pos++] = SEQ_MIDIPUTC;
@@ -55,17 +55,23 @@ public:
 			buf[pos++] = 0;
 			msg++;
 		}
-		write(device,buf,pos);
+        ssize_t writeResult = write(device, buf, pos);
+        if (writeResult == -1) {
+            LOG(LOG_IO, LOG_ERROR) ("Writing error in PlayMsg\n");
+        }
 	};
-	void PlaySysex(Bit8u * sysex,Bitu len) {
-		Bit8u buf[SYSEX_SIZE*4];Bitu pos=0;
+	void PlaySysex(uint8_t * sysex,Bitu len) override {
+		uint8_t buf[SYSEX_SIZE*4];Bitu pos=0;
 		for (;len>0;len--) {
 			buf[pos++] = SEQ_MIDIPUTC;
 			buf[pos++] = *sysex++;
 			buf[pos++] = device_num;
 			buf[pos++] = 0;
 		}
-		write(device,buf,pos);	
+        ssize_t writeResult = write(device, buf, pos);
+        if (writeResult == -1) {
+            LOG(LOG_IO, LOG_ERROR) ("Writing error in PlaySysex\n");
+        }
 	}
 };
 

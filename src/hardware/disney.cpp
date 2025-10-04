@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -21,6 +21,7 @@
 #include <algorithm>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "mixer.h"
 #include "pic.h"
 #include "setup.h"
@@ -35,7 +36,7 @@ unsigned int DISNEY_BASE = 0x0378;
 #define DISNEY_SIZE 128
 
 typedef struct _dac_channel {
-	Bit8u buffer[DISNEY_SIZE];	// data buffer
+	uint8_t buffer[DISNEY_SIZE];	// data buffer
 	Bitu used;					// current data buffer level
 	double speedcheck_sum;
 	double speedcheck_last;
@@ -45,9 +46,9 @@ typedef struct _dac_channel {
 
 static struct {
 	// parallel port stuff
-	Bit8u data;
-	Bit8u status;
-	Bit8u control;
+	uint8_t data;
+	uint8_t status;
+	uint8_t control;
 	// the D/A channels
 	dac_channel da[2];
 
@@ -76,7 +77,7 @@ static void DISNEY_disable(Bitu) {
 		disney.chan->AddSilence();
 		disney.chan->Enable(false);
 	}
-	disney.leader = 0;
+	disney.leader = nullptr;
 	disney.last_used = 0;
 	disney.state = DS_IDLE;
 	disney.interface_det = 0;
@@ -124,7 +125,7 @@ static void DISNEY_analyze(Bitu channel){
 		case DS_FINISH: 
 		{
 			// detect stereo: if we have about the same data amount in both channels
-			Bits st_diff = disney.da[0].used - disney.da[1].used;
+			Bits st_diff = (Bits)disney.da[0].used - (Bits)disney.da[1].used;
 			
 			// find leader channel (the one with higher rate) [this good for the stereo case?]
 			if(disney.da[0].used > disney.da[1].used) {
@@ -190,14 +191,15 @@ static void DISNEY_analyze(Bitu channel){
 }
 
 static void disney_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	//LOG_MSG("write disney time %f addr%x val %x",PIC_FullIndex(),port,val);
 	disney.last_used=PIC_Ticks;
 	switch (port-DISNEY_BASE) {
 	case 0:		/* Data Port */
 	{
-		disney.data=val;
+		disney.data=(uint8_t)val;
 		// if data is written here too often without using the stereo
-		// mechanism we use the simple DAC machanism. 
+		// mechanism we use the simple DAC mechanism.
         if(disney.state != DS_RUNNING) {
 			disney.interface_det++;
 			if(disney.interface_det > 5)
@@ -262,12 +264,13 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 
 //		LOG_WARN("DISNEY:Control write %x",val);
 		if (val&0x10) LOG(LOG_MISC,LOG_ERROR)("DISNEY:Parallel IRQ Enabled");
-		disney.control=val;
+		disney.control=(uint8_t)val;
 		break;
 	}
 }
 
 static Bitu disney_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	Bitu retval;
 	switch (port-DISNEY_BASE) {
 	case 0:		/* Data Port */
@@ -279,8 +282,8 @@ static Bitu disney_read(Bitu port,Bitu iolen) {
 		retval = 0x07;//0x40; // Stereo-on-1 and (or) New-Stereo DACs present
 		if(disney.interface_det_ext > 5) {
 			if (disney.leader && disney.leader->used >= 16){
-				retval |= 0x40; // ack
-				retval &= ~0x4; // interrupt
+				retval |= 0x40u; // ack
+				retval &= ~0x4u; // interrupt
 			}
 		}
 		if(!(disney.data&0x80)) retval |= 0x80; // pin 9 is wired to pin 11
@@ -294,8 +297,8 @@ static Bitu disney_read(Bitu port,Bitu iolen) {
 	return 0xff;
 }
 
-static void DISNEY_PlayStereo(Bitu len, Bit8u* l, Bit8u* r) {
-	static Bit8u stereodata[DISNEY_SIZE*2];
+static void DISNEY_PlayStereo(Bitu len, uint8_t* l, uint8_t* r) {
+	static uint8_t stereodata[DISNEY_SIZE*2];
 	for(Bitu i = 0; i < len; i++) {
 		stereodata[i*2] = l[i];
 		stereodata[i*2+1] = r[i];
@@ -328,12 +331,12 @@ static void DISNEY_CallBack(Bitu len) {
 	// TODO: len > DISNEY
 	} else { // not enough data
 		if(disney.stereo) {
-			Bit8u gapfiller0 = 128;
-			Bit8u gapfiller1 = 128;
+			uint8_t gapfiller0 = 128;
+			uint8_t gapfiller1 = 128;
 			if(real_used) {
 				gapfiller0 = disney.da[0].buffer[real_used-1];
 				gapfiller1 = disney.da[1].buffer[real_used-1];
-			};
+			}
 
 			memset(disney.da[0].buffer+real_used,
 				gapfiller0,len-real_used);
@@ -344,10 +347,10 @@ static void DISNEY_CallBack(Bitu len) {
 			len -= real_used;
 
 		} else { // mono
-			Bit8u gapfiller = 128; //Keep the middle
+			uint8_t gapfiller = 128; //Keep the middle
 			if(real_used) {
 				// fix for some stupid game; it outputs 0 at the end of the stream
-				// causing a click. So if we have at least two bytes availible in the
+				// causing a click. So if we have at least two bytes available in the
 				// buffer and the last one is a 0 then ignore that.
 				if(disney.leader->buffer[real_used-1]==0)
 					real_used--;
@@ -382,8 +385,10 @@ private:
 	//MixerObject MixerChan;
 public:
 	DISNEY(Section* configuration):Module_base(configuration) {
-		Section_prop * section=static_cast<Section_prop *>(configuration);
-		if(!section->Get_bool("disney")) return;
+// This is determined by DISNEY_Init() and DISNEY_ShoudldInit() now.
+// We may be initialized by the parallel port emulation if the user has "parallel1=disney" in their dosbox.conf
+//		Section_prop * section=static_cast<Section_prop *>(configuration);
+//		if(!section->Get_bool("disney")) return;
 
 		for(int i = 0; i < 2; i++) {
 			disney.da[i].used = 0;
@@ -418,18 +423,16 @@ public:
 
 static DISNEY* test = NULL;
 
-static void DISNEY_ShutDown(Section* sec){
+void DISNEY_Close() {
     if (test) {
         delete test;
         test = NULL;
     }
 }
 
-static void DISNEY_OnEnterPC98(Section* sec){
-    if (test) {
-        delete test;
-        test = NULL;
-    }
+static void DISNEY_ShutDown(Section* sec){
+    (void)sec;//UNUSED
+    DISNEY_Close();
 }
 
 Bitu DISNEY_BasePort() {
@@ -458,11 +461,108 @@ void DISNEY_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Disney Sound Source emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(DISNEY_ShutDown),true);
-
-    /* FIXME: We *could* emulate a Disney Sound Source / LPT DAC / etc. attached to the parallel port
-     *        of a PC-98 system, but, since this code attaches to the I/O ports to emulate the hardware
-     *        we have to disable it in PC-98 mode until such time that this code can remap to emulate
-     *        the PC-98's printer port. */
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(DISNEY_OnEnterPC98));
 }
 
+// save state support
+void *DISNEY_disable_PIC_Event = (void*)((uintptr_t)DISNEY_disable);
+
+void POD_Save_Disney( std::ostream& stream )
+{
+	const char pod_name[32] = "Disney";
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !disney.chan ) return;
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	uint8_t dac_leader_idx;
+
+
+	dac_leader_idx = 0xff;
+	for( int lcv=0; lcv<2; lcv++ ) {
+		if( disney.leader == &disney.da[lcv] ) { dac_leader_idx = lcv; break; }
+	}
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - near-pure struct data
+	WRITE_POD( &disney, disney );
+
+
+
+
+	// - reloc ptr
+	WRITE_POD( &dac_leader_idx, dac_leader_idx );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	disney.chan->SaveState(stream);
+}
+
+void POD_Load_Disney( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !disney.chan ) return;
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "Disney" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	uint8_t dac_leader_idx;
+	MixerObject *mo_old;
+	MixerChannel *chan_old;
+
+
+	// save old ptrs
+	mo_old = disney.mo;
+	chan_old = disney.chan;
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	// - near-pure struct data
+	READ_POD( &disney, disney );
+
+
+
+	// - reloc ptr
+	READ_POD( &dac_leader_idx, dac_leader_idx );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	disney.leader = NULL;
+	if( dac_leader_idx != 0xff ) disney.leader = &disney.da[dac_leader_idx];
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	// restore old ptrs
+	disney.mo = mo_old;
+	disney.chan = chan_old;
+
+
+	disney.chan->LoadState(stream);
+}

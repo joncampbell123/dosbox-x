@@ -1,0 +1,115 @@
+name: HX-DOS build
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  HX_DOS_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - name: Prepare HX-DOS
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          pwd>pwd.txt
+          mkdir package
+          mkdir mingw-get
+          vs/tool/unzip.exe build-scripts/mingw/lowend-bin/mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip -d mingw-get
+          mingw-get/bin/mingw-get.exe install msys-base gcc g++ autoconf automake libiconv libpdcurses libz
+          mv pwd.txt mingw-get/msys/1.0
+          cp build-scripts/mingw/lowend-bin/msys.bat mingw-get/msys/1.0
+          cp build-scripts/mingw/lowend-bin/runbuild.sh mingw-get/msys/1.0
+          cp build-scripts/mingw/lowend-bin/gawk.exe mingw-get/msys/1.0/bin
+      - name: Update build info
+        shell: bash
+        run: |
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Build HX-DOS
+        shell: pwsh
+        run: |
+          mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-hx-dos
+          if (-not(Test-Path -Path src\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Package HX-DOS
+        shell: bash
+        run: |
+          top=`pwd`
+          strip -s $top/src/dosbox-x.exe
+          $top/build-scripts/mingw/hxdos-bin/PESTUB.EXE -n $top/src/dosbox-x.exe
+          $top/vs/tool/upx.exe --strip-relocs=0 --lzma -9 $top/src/dosbox-x.exe
+          cp $top/src/dosbox-x.exe $top/package/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/CHANGELOG.txt
+          cp $top/COPYING $top/package/COPYING.txt
+          cp $top/dosbox-x.reference.conf $top/package/dosbox-x.ref
+          cp $top/dosbox-x.reference.full.conf $top/package/dosbox-x.ref.full
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/INPOUT32.DLL
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/DPMILD32.EXE $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/HDPMI32.EXE $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/HXGUIHLP.INI $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/README.TXT $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/WATTCP.CFG $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/WINSPOOL.DRV $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/*.DLL $top/package/
+          mkdir -p $top/package/drivez
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/drivez/readme.txt
+          mkdir -p $top/package/language
+          cp $top/contrib/translations/*/*.lng $top/package/language/
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-hx-dos-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Wait for VS 32bit build to finish (Release only)
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          sleep 40m
+      - name: Download Windows build
+        uses: robinraju/release-downloader@v1.12
+        with:
+          repository: "joncampbell123/dosbox-x"
+          latest: true
+          filename: "dosbox-x-vsbuild-win32-*.zip"
+      - name: Run in Windows build
+        shell: bash
+        run: |
+          top=`pwd`
+          $top/vs/tool/unzip.exe -n "dosbox-x-vsbuild-win32-*.zip" "bin/Win32/Release/dosbox-x.*"
+          cp $top/package/dosbox-x.ref $top/hxdos.cfg
+          echo mount b ..>>$top/hxdos.cfg
+          echo "echo success>b:\SUCCESS.TXT">>$top/hxdos.cfg
+          $top/bin/Win32/Release/dosbox-x.exe -silent -exit -set memsize=128 -c "mount c ." -c "c:" -c "cd package" -c "dosbox-x -silent -exit -conf ..\hxdos.cfg>..\OUTPUT.TXT"
+          cat $top/OUTPUT.TXT
+          test -f $top/SUCCESS.TXT || (echo The HX-DOS build did not run successfully && exit 1)
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-mingw-hx-dos-${{ env.timestamp }}
+          path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-mingw-hx-dos-${{ env.timestamp }}.zip

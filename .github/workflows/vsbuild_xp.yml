@@ -1,0 +1,300 @@
+name: Visual Studio builds for WinXP
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  MSBuild_XP_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - uses: microsoft/setup-msbuild@v2
+      - name: Install v141 build tools
+        run: |
+          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+          $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          $componentsToAdd= @(
+            "Microsoft.VisualStudio.Component.VC.v141.x86.x64"
+            "Microsoft.VisualStudio.Component.VC.v141.MFC"
+            "Microsoft.VisualStudio.Component.WinXP"
+          )
+          [string]$workloadArgs = $componentsToAdd | ForEach-Object {" --add " +  $_}
+          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
+          # should be run twice
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+      - name: Prepare Visual Studio build for WinXP
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          ls -1 vs/dosbox-x.vcxproj vs/freetype/builds/windows/vc2010/freetype.vcxproj vs/libpdcurses/libpdcurses.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/sdl/VisualC/SDL/SDL.vcxproj vs/sdl/VisualC/SDLmain/SDLmain.vcxproj vs/sdl2/VisualC/SDL/SDL.vcxproj vs/sdl2/VisualC/SDLmain/SDLmain.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/zlib/zlib/zlib.vcxproj | xargs sed -b -i 's/v14[2-9]/v141/g;s/>10.0</>10.0.22621.0</g'
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Build Visual Studio Win32 SDL1
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=Win32
+          if (-not(Test-Path -Path bin\Win32\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+          contrib\windows\installer\PatchPE.exe bin\Win32\Release\dosbox-x.exe
+      - name: Build Visual Studio Win32 SDL2
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=Win32
+          if (-not(Test-Path -Path bin\Win32\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+          contrib\windows\installer\PatchPE.exe bin\Win32\"Release SDL2"\dosbox-x.exe
+      - name: Build Visual Studio Win64 SDL1
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=x64
+          if (-not(Test-Path -Path bin\x64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+          contrib\windows\installer\PatchPE.exe bin\x64\Release\dosbox-x.exe
+      - name: Build Visual Studio Win64 SDL2
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=x64
+          if (-not(Test-Path -Path bin\x64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+          contrib\windows\installer\PatchPE.exe bin\x64\"Release SDL2"\dosbox-x.exe
+      - name: Package Visual Studio build for WinXP
+        shell: bash
+        run: |
+          top=`pwd`
+          #$top/bin/Win32/Release/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
+          #cat tests.log
+          mkdir -p $top/package/drivez
+          mkdir -p $top/package/scripts
+          mkdir -p $top/package/shaders
+          mkdir -p $top/package/glshaders
+          mkdir -p $top/package/languages
+          mkdir -p $top/vs-bin
+          cp $top/bin/Win32/Release/dosbox-x.exe $top/package/dosbox-x_XPx86_SDL1.exe
+          cp $top/bin/Win32/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_XPx86_SDL2.exe
+          cp $top/bin/x64/Release/dosbox-x.exe $top/package/dosbox-x_XPx64_SDL1.exe
+          cp $top/bin/x64/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_XPx64_SDL2.exe
+          cp $top/bin/Win32/Release/dosbox-x.exe $top/vs-bin/dosbox-x_XPx86_SDL1.exe
+          cp $top/bin/Win32/"Release SDL2"/dosbox-x.exe $top/vs-bin/dosbox-x_XPx86_SDL2.exe
+          cp $top/bin/x64/Release/dosbox-x.exe $top/vs-bin/dosbox-x_XPx64_SDL1.exe
+          cp $top/bin/x64/"Release SDL2"/dosbox-x.exe $top/vs-bin/dosbox-x_XPx64_SDL2.exe
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/dosbox-x.conf
+          cp $top/CHANGELOG $top/package/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/README.txt
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/inpout32.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/shaders/
+          cp $top/contrib/glshaders/* $top/package/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/languages/
+          cp $top/COPYING $top/package/COPYING
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vsbuild-XP-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-vsbuild-XP-${{ env.timestamp }}
+          path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-vsbuild-XP-${{ env.timestamp }}.zip
+      - name: Cache Visual Studio builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: vs-xp-bin-${{ github.sha }}
+      - name: Cache Visual Studio builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: vs-xp-bin-r-${{ github.sha }}
+  MinGW32_lowend_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
+        run: |
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
+      - name: Update build info
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+          sed -i -e "s/#define OS_PLATFORM \"MinGW\"/#define OS_PLATFORM \"MinGWLE\"/" include/version_string.h
+          sed -i -e "s/#define OS_PLATFORM_LONG \"MinGW\"/#define OS_PLATFORM_LONG \"MinGW Low-end\"/" include/version_string.h
+      - name: setup lowend build environment
+        run: |
+          top=`pwd`
+          echo "${top}"
+          echo "path=$PATH"
+          cd ${MSYSTEM_PREFIX}/..
+          rm -rf mingw32
+          mkdir mingw32
+          7z x $top/build-scripts/mingw/lowend-bin/i686-7.3.0-release-posix-dwarf-rt_v5-rev0+nasm.7z -o${MSYSTEM_PREFIX}
+          echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
+          chmod +x ${MSYSTEM_PREFIX}/bin/*.*
+          chmod +x ${MSYSTEM_PREFIX}/i686-w64-mingw32/bin/*.*
+          chmod +x ${MSYSTEM_PREFIX}/opt/bin/*.*
+      - name: Build MinGW32 lowend SDL2
+        run: |
+          top=`pwd`
+          ./build-mingw-sdl2
+          strip -s src/dosbox-x.exe
+          mkdir -p mingw-bin
+          cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL2.exe
+      - name: Build MinGW32 lowend SDL1
+        run: |
+          ./build-mingw
+          strip -s src/dosbox-x.exe
+          cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL1.exe
+      - name: Cache MinGW32 lowend builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/mingw-bin
+          key: mingw-xp-bin-${{ github.sha }}
+      - name: Cache MinGW32 lowend builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/mingw-bin
+          key: mingw-xp-bin-r-${{ github.sha }}
+  build-XP-installer:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    runs-on: windows-2022
+    needs: [MSBuild_XP_CI_build, MinGW32_lowend_CI_build]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+      - name: Restore Visual Studio builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: vs-xp-bin-${{ github.sha }}
+      - name: Restore Visual Studio builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/vs-bin
+          key: vs-xp-bin-r-${{ github.sha }}
+      - name: Restore MinGW builds (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/mingw-bin
+          key: mingw-xp-bin-${{ github.sha }}
+      - name: Restore MinGW builds (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/mingw-bin
+          key: mingw-xp-bin-r-${{ github.sha }}
+      - name: Update release version
+        if: startsWith(github.ref, 'refs/tags/') 
+        shell: bash
+        run: |
+          DOSBOX_X_RELEASE=`gh release list -L1 | grep -o "....-..-.." | head -n 1 | sed -e "s/-/./g"`
+          sed -i "s/^#define MyAppVersion.*/#define MyAppVersion \"$DOSBOX_X_RELEASE\"/" contrib/windows/installer/DOSBox-X-setupXP.iss
+      - name: Prepare files
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          cp dosbox-*.conf contrib/windows/installer/
+          #ls -lg vs-bin
+          #ls -lg mingw-bin
+          mkdir -p contrib/windows/installer/WinXP
+          cp vs-bin/*.exe contrib/windows/installer/WinXP
+          cp mingw-bin/*.exe contrib/windows/installer/WinXP
+          #ls -lg contrib/windows/installer/WinXP
+          cd contrib/windows/installer/
+          ./ISCC.exe ./DOSBox-X-setupXP.iss
+      - name: Upload preview installer
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-winXP-${{ env.timestamp }}-setup.exe
+          path: contrib/windows/installer/dosbox-x-winXP-*.exe
+      - name: Upload XP build installer release version
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            contrib/windows/installer/dosbox-x-winXP-*.exe
+      - name: Clean cache (nightly)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          gh extension install actions/gh-actions-cache
+          ## need permission? disable the following lines if error occurs when deleting cache
+          set +e
+          gh actions-cache delete mingw-xp-bin-${{ github.sha }} --confirm
+          gh actions-cache delete vs-xp-bin-${{ github.sha }} --confirm
+          gh actions-cache list
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Clean cache (release)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          gh extension install actions/gh-actions-cache
+          ## need permission? disable the following lines if error occurs when deleting cache
+          set +e
+          gh actions-cache delete mingw-xp-bin-r-${{ github.sha }} --confirm
+          gh actions-cache delete vs-xp-bin-r-${{ github.sha }} --confirm
+          gh actions-cache list
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          

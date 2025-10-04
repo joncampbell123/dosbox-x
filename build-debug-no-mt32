@@ -1,5 +1,0 @@
-#!/bin/bash
-chmod +x configure
-./configure --enable-core-inline --enable-debug=heavy --enable-avcodec --prefix=/usr --disable-mt32 || exit 1
-make -j3 || exit 1
-

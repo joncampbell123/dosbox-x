@@ -1,0 +1,151 @@
+name: macOS builds
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  macOS_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-13
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - name: Install libraries
+        run: |
+          brew install autoconf automake nasm glfw glew coreutils sevenzip libslirp fluid-synth pkg-config sdl2_net
+          mkdir -p package/dosbox-x
+          mkdir -p package/dosbox-x-sdl2
+          # cd vs/sdlnet && ./build-dosbox.sh
+      - name: Update build info
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# gdate -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# gdate -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# gdate -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Build macOS SDL1
+        run: |
+          top=`pwd`
+          ./build-macos
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x
+      - name: Build macOS SDL2
+        run: |
+          top=`pwd`
+          ./build-macos-sdl2
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x-sdl2
+      - name: Unit testing
+        run: |
+          top=`pwd`
+          chmod +x $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
+          $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+          $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+      - name: Package build
+        run: |
+          top=`pwd`
+          cp $top/CHANGELOG $top/package/dosbox-x/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x/README.txt
+          cp $top/CHANGELOG $top/package/dosbox-x-sdl2/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x-sdl2/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x-sdl2/README.txt
+          cd $top/package/
+          7zz a $top/dosbox-x-macosx-x86_64-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-macosx-x86_64-${{ env.timestamp }}
+          path: ${{ github.workspace }}/dosbox-x-macosx-x86_64-${{ env.timestamp }}.zip
+      - name: Upload release package
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-macosx-x86_64-${{ env.timestamp }}.zip
+  macOS_ARM_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-14
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - name: Install libraries
+        run: |
+          brew install autoconf automake nasm glfw glew coreutils sevenzip libslirp fluid-synth pkg-config sdl2_net
+          mkdir -p package/dosbox-x
+          mkdir -p package/dosbox-x-sdl2
+          # cd vs/sdlnet && ./build-dosbox.sh
+      - name: Update build info
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# gdate -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# gdate -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# gdate -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Build macOS SDL1
+        run: |
+          top=`pwd`
+          ./build-macos
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x
+      - name: Build macOS SDL2
+        run: |
+          top=`pwd`
+          ./build-macos-sdl2
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x-sdl2
+      - name: Unit testing
+        run: |
+          top=`pwd`
+          chmod +x $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
+          $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+          $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+      - name: Package build
+        run: |
+          top=`pwd`
+          cp $top/CHANGELOG $top/package/dosbox-x/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x/README.txt
+          cp $top/CHANGELOG $top/package/dosbox-x-sdl2/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x-sdl2/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x-sdl2/README.txt
+          cd $top/package/
+          7zz a $top/dosbox-x-macosx-arm64-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-macosx-arm64-${{ env.timestamp }}
+          path: ${{ github.workspace }}/dosbox-x-macosx-arm64-${{ env.timestamp }}.zip
+      - name: Upload release package
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-macosx-arm64-${{ env.timestamp }}.zip

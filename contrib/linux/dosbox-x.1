@@ -1,0 +1,1109 @@
+'\" t
+.\"     Title: dosbox-x
+.\"    Author: DOSBox-X is maintained by the DOSBox-X Team
+.\" Generator: Asciidoctor 2.0.15
+.\"      Date: 2022-04-26
+.\"    Manual: dosbox-x
+.\"    Source: dosbox-x
+.\"  Language: English
+.\"
+.TH "DOSBOX\-X" "1" "2022-04-26" "dosbox\-x" "dosbox\-x"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+dosbox-x \- a x86/DOS and PC98 emulator
+.SH "SYNOPSIS"
+.sp
+\fBdosbox\-x\fP [\fIOPTIONS\fP] [\fIFILE\fP]
+.SH "DESCRIPTION"
+.sp
+This manual page briefly documents DOSBox\-X, an x86/DOS and PC98 emulator.
+.sp
+Options are listed below. Depending on the option, one or more may be specified.
+.sp
+The optional \fIFILE\fP argument should be a DOS executable or a directory.
+If it is a DOS executable (.com .exe .bat), the program will run automatically.
+If it is a directory, the directory specified will be mounted as the C:\(rs drive.
+If the DOS executable requires parameters, enclose the command and it\(cqs parameters in quotes.
+.sp
+For an introduction type \fIINTRO\fP inside dosbox\-x.
+.SH "OPTIONS"
+.sp
+A summary of available options.
+.sp
+\fB\-?\fP, \fB\-h\fP or \fB\-help\fP
+.RS 4
+Display the help screen and exit.
+.RE
+.sp
+\fB\-v\fP, \fB\-ver\fP or \fB\-version\fP
+.RS 4
+Display the version information and exit.
+.RE
+.sp
+\fB\-fullscreen\fP, \fB\-fs\fP
+.RS 4
+Start dosbox\-x in fullscreen mode.
+.RE
+.sp
+\fB\-machine\fP \fImachinetype\fP
+.RS 4
+Start dosbox\-x with a specific machine type.  Valid choices are:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBmda\fP
+.sp
+IBM Monochrome Display Adapter (text only)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBhercules\fP
+.sp
+Hercules Graphics Card (monochrome)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBcga\fP
+.sp
+IBM Color Graphics Adapter, with automatic RGB/Composite switching.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBcga_mono\fP
+.sp
+IBM CGA attached to a monochrome display
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBcga_rgb\fP
+.sp
+IBM CGA attached to an RGB monitor
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBcga_composite\fP
+.sp
+IBM CGA (early revision) attached to an NTSC TV
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBcga_composite2\fP
+.sp
+IBM CGA (late revision) attached to an NTSC TV
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBpcjr\fP
+.sp
+IBM PCjr
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBpcjr_composite\fP
+.sp
+IBM PCjr (late revision) attached to NTSC TV
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBpcjr_composite2\fP
+.sp
+IBM PCjr (late revision) attached to NTSC TV
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBtandy\fP
+.sp
+Tandy 1000 Graphics Adapter
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBamstrad\fP
+.sp
+Amstrad PC1512 graphics mode
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBega\fP
+.sp
+IBM Enhanced Graphics Adapter
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBjega\fP
+.sp
+Japanese Enhanced Graphics Adapter (Microsoft AX)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBmcga\fP
+.sp
+IBM Multi\-Color Graphics Array
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBvgaonly\fP
+.sp
+IBM Video Graphics Array (see below)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_paradise\fP
+.sp
+SVGA \- Paradise Systems PVGA1A
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_et3000\fP
+.sp
+SVGA \- Tseng Labs ET3000
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_et4000\fP
+.sp
+SVGA \- Tseng Labs ET4000
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3\fP
+.sp
+VESA SVGA \- S3 Trio64 \- VBE 2.0
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s386c928\fP
+.sp
+VESA SVGA \- S3 86c928 \- VBE 2.0 (experimental)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3vision864\fP
+.sp
+VESA SVGA \- S3 Vision 864 \- VBE 2.0
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3vision868\fP
+.sp
+VESA SVGA \- S3 Vision 868 \- VBE 2.0
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3vision964\fP
+.sp
+VESA SVGA \- S3 Vision 964 \- VBE 2.0
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3vision968\fP
+.sp
+VESA SVGA \- S3 Vision 968 \- VBE 2.0
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3trio32\fP
+.sp
+VESA SVGA \- S3 Trio32 \- VBE 2.0
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3trio64\fP
+.sp
+VESA SVGA \- S3 Trio64 \- VBE 2.0 (same as \fBsvga_s3\fP)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3trio64v+\fP
+.sp
+VESA SVGA \- S3 Trio64V+ \- VBE 2.0
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3virge\fP
+.sp
+VESA SVGA \- S3 ViRGE \- VBE 2.0 (experimental)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBsvga_s3virgevx\fP
+.sp
+VESA SVGA \- S3 ViRGE VX \- VBE 2.0 (experimental)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBvesa_oldvbe\fP
+.sp
+VESA SVGA \- S3 Trio64 with VESA BIOS Extensions (VBE) 1.2
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBvesa_oldvbe10\fP
+.sp
+VESA SVGA \- S3 Trio64 with VESA BIOS Extensions (VBE) 1.0
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBvesa_nolfb\fP
+.sp
+VESA SVGA \- S3 Trio64 with VBE 2.0 with Linear Frame Buffer disabled
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBpc98\fP
+.sp
+Japanese NEC PC\-98 emulation
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBpc9801\fP
+.sp
+same as \fBpc98\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBpc9821\fP
+.sp
+same as \fBpc98\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBfm_towns\fP
+.sp
+Japanese Fujitsu FM Towns (not implemented)
+.RE
+.RE
+.sp
+The default is \fBsvga_s3\fP.
+.sp
+For some special VGA effects the machinetype \fBvgaonly\fP can be used, note that this disables SVGA capabilities and might be slower due to the higher emulation accuracy.
+.if n .sp
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+.B Note
+.ps -1
+.br
+.sp
+The \fImachinetype\fP affects not only the emulated video card, but may also effect the available sound cards.
+.sp .5v
+.RE
+.sp
+\fB\-conf\fP \fIconfigfile\fP
+.RS 4
+Start dosbox\-x with the options specified in \fIconfigfile\fP. This file may also have a section called \fI[autoexec]\fP in which you can put commands you wish to execute on startup.
+Multiple \fB\-conf\fP options with \fIconfigfiles\fP can be specified and they will be overlaid on each other.
+.RE
+.sp
+\fB\-editconf\fP [\fIeditor\fP]
+.RS 4
+Open the default configuration file in a text editor. If no editor name is given, then use the program from the EDITOR environment variable.
+.RE
+.sp
+\fB\-userconf\fP
+.RS 4
+Load the configuration file located in ~/.config/dosbox\-x. Can be combined with the \fB\-conf\fP option.
+.RE
+.sp
+\fB\-printconf\fP
+.RS 4
+Prints the location of the default configuration file and exit.
+.RE
+.sp
+\fB\-eraseconf\fP, \fB\-resetconf\fP
+.RS 4
+Removes the default configuration file and exit.
+.RE
+.sp
+\fB\-erasemapper\fP, \fB\-resetmapper\fP
+.RS 4
+Removes the mapperfile configured in the clean default configuration file and exit.
+.RE
+.sp
+\fB\-opencaptures\fP \fIprogram\fP
+.RS 4
+Calls program with as first parameter the location of the captures folder and exit.
+.RE
+.sp
+\fB\-opensaves\fP \fIprogram\fP
+.RS 4
+Calls program with as first parameter the location of the saves folder and exit.
+.RE
+.sp
+\fB\-startui\fP, \fB\-startgui\fP or \fB\-starttool\fP
+.RS 4
+Start DOSBox\-X with GUI configuration tool.
+.RE
+.sp
+\fB\-startmapper\fP
+.RS 4
+Start the internal keymapper on startup of dosbox\-x. You can use it to change the keys dosbox\-x uses.
+.RE
+.sp
+\fB\-promptfolder\fP
+.RS 4
+Prompt for the working directory when DOSBox\-X starts.
+.RE
+.sp
+\fB\-nopromptfolder\fP
+.RS 4
+Do not prompt for the working directory when DOSBox\-X starts.
+.RE
+.sp
+\fB\-nogui\fP or \fB\-nomenu\fP
+.RS 4
+Do not show the GUI menu bar when in windowed mode.
+.RE
+.sp
+\fB\-showcycles\fP
+.RS 4
+Show cycles count (FPS) in the title.
+.RE
+.sp
+\fB\-showrt\fP
+.RS 4
+Show emulation speed relative to realtime in the title.
+.RE
+.sp
+\fB\-socket\fP \fIsocketnumber\fP
+.RS 4
+Passes the TCP socket number \fIsocketnumber\fP for the nullmodem emulation.
+See the WIKI for details.
+.RE
+.sp
+\fB\-savedir\fP \fIpath\fP
+.RS 4
+Set path for the save slots.
+.RE
+.sp
+\fB\-defaultdir\fP \fIpath\fP
+.RS 4
+Set the default working path for DOSBox\-X.
+.RE
+.sp
+\fB\-defaultconf\fP
+.RS 4
+Use the default config settings for DOSBox\-X.
+.RE
+.sp
+\fB\-defaultmapper\fP
+.RS 4
+Use the default key mappings for DOSBox\-X.
+.RE
+.sp
+\fB\-data\-host\-forced\fP
+.RS 4
+Force synchronization of date and time with the host.
+.RE
+.sp
+\fB\-display2\fP [\fIcolor\fP]
+.RS 4
+Enable both standard & monochrome dual\-screen mode. The monochrome display defaults to white, but can optionally be set to \fIgreen\fP or \fIamber\fP.
+.RE
+.sp
+\fB\-lang\fP \fImessage_file\fP
+.RS 4
+Start dosbox\-x with the language specified in \fImessage_file\fP.
+.RE
+.sp
+\fB\-nodpiaware\fP
+.RS 4
+Ignore (do not signal) Windows DPI awareness.
+.RE
+.sp
+\fB\-securemode\fP
+.RS 4
+Enable  secure mode, which is meant to prevent a DOS program potentially gaining access to files outside directories mounted in the [autoexec] section of the config file.
+It does this by running \fBZ:\(rsSYSTEM\(rsCONFIG.COM \-securemode\fP after completing the [autoexec] section (which in turn disables any changes to how the drives are mounted "inside" dosbox\-x).
+It also disables various other CONFIG.COM options that could be exploited.
+.RE
+.sp
+\fB\-prerun\fP
+.RS 4
+If \fIFILE\fP is given, run it before the AUTOEXEC.BAT config section
+.RE
+.sp
+\fB\-hostrun\fP
+.RS 4
+Enable START command, CLIP$ device and long filename (LFN) support
+.RE
+.sp
+\fB\-noconfig\fP
+.RS 4
+Skips the [config] section of the loaded configuration file. This is equivalent to skipping CONFIG.SYS in DOS.
+.RE
+.sp
+\fB\-noautoexec\fP
+.RS 4
+Skips the [autoexec] section of the loaded configuration file. This is equivalent to skipping AUTOEXEC.BAT in DOS.
+.RE
+.sp
+\fB\-exit\fP
+.RS 4
+dosbox\-x will close itself when the DOS program specified by \fIFILE\fP ends.
+.RE
+.sp
+\fB\-silent\fP
+.RS 4
+Run DOSBox\-X silently and exit after executing the [autoexec] section of the loaded config file.
+.RE
+.sp
+\fB\-o\fP \fIoption(s)\fP
+.RS 4
+Provide command\-line option(s) for [\fIFILE\fP] if specified.
+.RE
+.sp
+\fB\-c\fP \fIcommand\fP
+.RS 4
+Runs the specified command before running [\fIFILE\fP].
+Multiple commands can be specified.
+Each command should start with \fB\-c\fP though.
+A command can be an Internal Program, a DOS command or an executable on a mounted drive.
+If the command requires parameters, enclose the command and its parameters in quotes.
+.RE
+.sp
+\fB\-set\fP \fIsection property=value\fP
+.RS 4
+Set the config option (override any config file).
+If the property contains spaces, ensure to enclose the string in quotes.
+The section is the name of a dosbox\-x config section such as \fB[video]\fP without the brackets.
+Multiple \fB\-set\fP commands may be specified.
+If a property is unique, the section may be omitted.
+e.g. \fB\-set sdl output=ttf\fP is equivalent to \fB\-set output=ttf\fP
+.RE
+.sp
+\fB\-time\-limit\fP \fIseconds\fP
+.RS 4
+Kill the emulator after \fIseconds\fP.
+.RE
+.sp
+\fB\-fastlaunch\fP
+.RS 4
+Fast launch mode (skip the BIOS logo and welcome banner).
+.RE
+.sp
+\fB\-helpdebug\fP
+.RS 4
+Show debug\-related options and exit.
+.RE
+.SH "INTERNAL INTERPRETER COMMANDS"
+.sp
+\fBdosbox\-x\fP Supports most of the internal DOS commands found in COMMAND.COM.
+Help text is integrated for these commands in DOSBox\-X, and will not be duplicated here.
+An explanation of these commands can also be found on the DOSBox\-X wiki on the Supported Commands page.
+.sp
+\fBALIAS\fP, \fBATTRIB\fP, \fBBREAK\fP, \fBCALL\fP, \fBCD\fP/\fBCDDIR\fP, \fBCHCP\fP, \fBCHOICE\fP, \fBCLS\fP,
+\fBCOPY\fP, \fBCOUNTRY\fP, \fBCTTY\fP, \fBDATE\fP, \fBDEL\fP/\fBERASE\fP, \fBDELTREE\fP, \fBECHO\fP, \fBEXIT\fP,
+\fBDIR\fP, \fBFOR\fP, \fBGOTO\fP, \fBHELP\fP, \fBIF\fP, \fBLFNFOR\fP, \fBLH\fP/\fBLOADHIGH\fP, \fBMD\fP/\fBMKDIR\fP,
+\fBMORE\fP, \fBPATH\fP, \fBPAUSE\fP, \fBPROMPT\fP, \fBRD\fP/\fBRMDIR\fP, \fBREM\fP, \fBREN\fP/\fBRENAME\fP, \fBSET\fP,
+\fBSHIFT\fP, \fBSUBST\fP, \fBTIME\fP, \fBTRUENAME\fP, \fBTYPE\fP, \fBVER\fP, \fBVERIFY\fP, \fBVOL\fP
+.SH "OTHER PROVIDED COMMANDS"
+.sp
+In addition, the following extra commands are available on the emulated Z: drive:
+.if n .sp
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+.B Note
+.ps -1
+.br
+.sp
+Some commands (like NE2000) are only present in case the corresponding feature is enabled.
+.sp .5v
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBZ:\(rs4DOS\fP
+.sp
+\fB4DOS\fP, \fB4HELP\fP, \fBOPTION\fP, \fBBATCOMP\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBZ:\(rsBIN\fP
+.sp
+\fBEVAL\fP, \fBSHUTDOWN\fP, \fBDSXMENU\fP, \fBCWSDPMI\fP, \fBEMSMAGIC\fP, \fBUNZIP\fP, \fBZIP\fP, \fBMPXPLAY\fP,
+\fBDOSMID\fP, \fBCDPLAY\fP, \fBDOS4GW\fP, \fBDOS32A\fP, \fBDOSIDLE\fP, \fBUTF16\fP, \fBUTF8\fP, \fBAUTOTYPE\fP,
+\fBADDKEY\fP, \fBLS\fP, \fBTITLE\fP, \fBCOLOR\fP, \fBSETCOLOR\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBZ:\(rsDOS\fP
+.sp
+\fBMEM\fP, \fBEDIT\fP, \fBPRINT\fP, \fBDISKCOPY\fP, \fBDEFRAG\fP, \fBFORMAT\fP, \fBFDISK\fP, \fBSYS\fP, \fBFC\fP,
+\fBCOMP\fP, \fBCHKDSK\fP, \fBBUFFERS\fP, \fBDEVICE\fP, \fBAPPEND\fP, \fBXCOPY\fP, \fBSORT\fP, \fBREPLACE\fP,
+\fBLASTDRIV\fP, \fBFILES\fP, \fBFCBS\fP, \fBFIND\fP, \fBMOVE\fP, \fBDEBUG\fP, \fBEDLIN\fP, \fBCHOICE\fP,
+\fBDELTREE\fP, \fBTREE\fP, \fBLABEL\fP, \fBLOADFIX\fP, \fBMOUSE\fP, \fBMODE\fP, \fBKEYB\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBZ:\(rsDEBUG\fP
+.sp
+\fBHEXMEM32\fP, \fBHEXMEM16\fP, \fBA20GATE\fP, \fBBIOSTEST\fP, \fBINT2FDBG\fP, \fBNMITEST\fP, \fBLOADROM\fP,
+\fBVESAMOED\fP, \fBVFRCRATE\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBZ:\(rsSYSTEM\fP
+.sp
+\fBPARALLEL\fP, \fBSERIAL\fP, \fBMIXER\fP, \fBCAPMOUSE\fP, \fBFLAGSAVE\fP, \fBCFGTOOL\fP, \fBRESCAN\fP,
+\fBRE\-DOS\fP, \fBCOUNTRY\fP, \fBCONFIG\fP, \fBBOOT\fP, \fBMOUNT\fP, \fBIMGSWAP\fP, \fBIMGMAKE\fP,
+\fBIMGMOUNT\fP, \fBINTRO\fP, \fBHELP\fP, \fBNE2000\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBZ:\(rsTEXTUTIL\fP
+.sp
+\fBCGA\fP, \fBCLR\fP, \fBEGA\fP, \fBVGA\fP, \fBDCGA\fP, \fB132X25\fP, \fB132X43\fP, \fB132X50\fP,
+\fB132X60\fP, \fB80X25\fP, \fB80X50\fP, \fB80X60\fP
+.RE
+.SH "SPECIAL KEYS"
+.sp
+\fBCTRL\-F7\fP
+.RS 4
+CGA emulation only \- Switch between early and late model IBM CGA emulation.
+.RE
+.sp
+\fBCTRL\-F8\fP
+.RS 4
+CGA emulation only \- Switch between Auto, RGBI and Composite monitor output emulation.
+.RE
+.sp
+\fBCTRL\-SHIFT\-F7\fP
+.RS 4
+CGA emulation only \- Decrease Hue
+.RE
+.sp
+\fBCTRL\-SHIFT\-F8\fP
+.RS 4
+CGA emulation only \- Increase Hue
+.RE
+.sp
+\fBCTRL\-F7\fP
+.RS 4
+CGA Mono and Hercules emulation only \- Cycle between Green, Amber, White and Grey
+.RE
+.sp
+\fBCTRL\-F8\fP
+.RS 4
+CGA Mono and Hercules emulation only \- Cycle between low and high brightness
+.RE
+.sp
+\fBF12\-F\fP
+.RS 4
+Switch between fullscreen and window mode.
+.RE
+.sp
+\fBF12\-R\fP
+.RS 4
+Reset the virtual machine inside DOSBox\-X
+.RE
+.sp
+\fBF12\-B\fP
+.RS 4
+Reboot the emulated DOS (integrated DOS or guest DOS) inside DOSBox\-X.
+.RE
+.sp
+\fBF12\-C\fP
+.RS 4
+Start DOSBox\-X’s graphical configuration tool.
+.RE
+.sp
+\fBF12\-M\fP
+.RS 4
+Start DOSBox\-X’s mapper editor.
+.RE
+.sp
+\fBF12\-Esc\fP
+.RS 4
+Show/hide DOSBox\-X’s drop\-down menu bar.
+.RE
+.sp
+\fBF12\-Del\fP
+.RS 4
+Send the selected special key combination (Ctrl+Alt+Del by default) to the guest system.
+.RE
+.sp
+\fBF12\-{+}\fP
+.RS 4
+Increase the sound volume of DOSBox\-X’s emulated DOS.
+.RE
+.sp
+\fBF12\-{\-}\fP
+.RS 4
+Decrease the sound volume of DOSBox\-X’s emulated DOS.
+.RE
+.sp
+\fBF12\-]\fP
+.RS 4
+Increase the emulated DOS’s current speed relative to real\-time.
+.RE
+.sp
+\fBF12\-[\fP
+.RS 4
+Decrease the emulated DOS’s current speed relative to real\-time.
+.RE
+.sp
+\fBF12\-{=}\fP
+.RS 4
+Increase DOSBox\-X’s emulation CPU cycles.
+.RE
+.sp
+\fBF12\-{\-}\fP
+.RS 4
+Decrease DOSBox\-X’s emulation CPU cycles.
+.RE
+.sp
+\fBF12\-Up\fP
+.RS 4
+Increase the font size for the TrueType font (TTF) output.
+.RE
+.sp
+\fBF12\-Down\fP
+.RS 4
+Decrease the font size for the TrueType font (TTF) output.
+.RE
+.sp
+\fBF12\-Left\fP
+.RS 4
+Reset the emulated DOS’s current CPU speed to the normal speed.
+.RE
+.sp
+\fBF12\-Right\fP
+.RS 4
+Toggle DOSBox\-X’s speed lock.
+.RE
+.sp
+\fBF12\-D\fP
+.RS 4
+Swap between mounted CD images.
+.RE
+.sp
+\fBF12\-O\fP
+.RS 4
+Swap between mounted floppy images.
+.RE
+.sp
+\fBF12\-P\fP
+.RS 4
+Take a screenshot of the current screen in PNG format.
+.RE
+.sp
+\fBF12\-I\fP
+.RS 4
+Start/Stop capturing an AVI video of the current session.
+.RE
+.sp
+\fBF12\-W\fP
+.RS 4
+Start/Stop recording a WAV audio of the current session.  Alt+Pause Start DOSBox\-X’s Debugger.
+.RE
+.sp
+\fBF12\-[,]\fP
+.RS 4
+Select the previous save slot to save to or load from.
+.RE
+.sp
+\fBF12\-[.]\fP
+.RS 4
+Select the next save slot to save to or load from.
+.RE
+.sp
+\fBF12\-S\fP
+.RS 4
+Save current state to the selected save slot.
+.RE
+.sp
+\fBF12\-L\fP
+.RS 4
+Load the state from the selected save slot.
+.RE
+.sp
+\fBF12\-Pause\fP
+.RS 4
+Pause emulation (press again to continue).
+.RE
+.sp
+\fBCtrl+F5\fP
+.RS 4
+Copy all text on the DOS screen to the host clipboard.
+.RE
+.sp
+\fBCtrl+F6\fP
+.RS 4
+Paste the text in the host clipboard to the DOS screen.
+.RE
+.sp
+\fBCtrl+F9\fP
+.RS 4
+Exit DOSBox\-X.
+.RE
+.sp
+\fBCtrl+F10\fP
+.RS 4
+Capture the mouse for use with the emulated DOS.
+.RE
+.sp
+These are the default keybindings. They can be changed in the keymapper.
+.sp
+Saved/recorded files can be found in current_directory/capture (can be changed in the configfile).
+The directory has to exist prior to starting dosbox\-x else nothing gets saved or recorded!
+.if n .sp
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+.B Note
+.ps -1
+.br
+.sp
+Once you increase your dosbox\-x cycles beyond your computer\(cqs maximum capacity, it will produce the same effect as slowing down the emulation.
+This maximum will vary from computer to computer, there is no standard.
+.sp .5v
+.RE
+.SH "ENVIRONMENT"
+.sp
+Any configuration option can be overridden using an environment variable.
+Environment variables starting with prefix \fBDOSBOX\fP are processed and interpreted as follows: \fBDOSBOX_SECTIONNAME_PROPERTYNAME=value\fP
+.sp
+For example, you can override the render aspect this way:
+.sp
+\fB$ DOSBOX_RENDER_ASPECT=false dosbox\-x\fP
+.SH "BUGS"
+.sp
+To report a bug, please visit \c
+.URL "https://github.com/joncampbell123/dosbox\-x/issues" "" ""
+.SH "RESOURCES"
+.sp
+\fBproject web site:\fP \c
+.URL "https://dosbox\-x.com" "" ""
+.sp
+\fBProject Wiki:\fP \c
+.URL "https://dosbox\-x.com/wiki" "" ""
+.SH "AUTHOR"
+.sp
+DOSBox-X is maintained by the DOSBox-X Team

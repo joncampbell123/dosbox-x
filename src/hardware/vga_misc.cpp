@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -21,7 +21,11 @@
 #include "inout.h"
 #include "pic.h"
 #include "vga.h"
+#include "control.h"
 #include <math.h>
+
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
 
 void vsync_poll_debug_notify();
 
@@ -29,6 +33,11 @@ void vga_write_p3d4(Bitu port,Bitu val,Bitu iolen);
 Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 Bitu vga_read_p3d5(Bitu port,Bitu iolen);
+extern void DISP2_RegisterPorts(void);
+extern bool DISP2_Active(void);
+
+extern bool vga_render_on_demand;
+void VGA_RenderOnDemandUpTo(void);
 
 /* allow the user to specify that undefined bits in 3DA/3BA be set to some nonzero value.
  * this is needed for "JOOP #2" by Europe demo, which has some weird retrace tracking code
@@ -42,8 +51,15 @@ Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 unsigned char vga_p3da_undefined_bits = 0;
 
 Bitu vga_read_p3da(Bitu port,Bitu iolen) {
-	Bit8u retval = vga_p3da_undefined_bits;
+	(void)port;//UNUSED
+	(void)iolen;//UNUSED
+	uint8_t retval = vga_p3da_undefined_bits;
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
+
+	// If the game or demo is wasting time in a loop polling this register (not merely reading to
+	// clear the port 3C0h flip/flop) then now is as good a time as any to render the VGA raster
+	// up to the current point.
+	if (vga_render_on_demand && !vga.attr.disabled/*screen not disabled*/ && !vga.internal.attrindex/*attribute controller flipflop clear*/) VGA_RenderOnDemandUpTo();
 
 	vga.internal.attrindex=false;
 	vga.tandy.pcjr_flipflop=false;
@@ -57,50 +73,59 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 	} else {
 		double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
 		if (timeInLine >= vga.draw.delay.hblkstart && 
-			timeInLine <= vga.draw.delay.hblkend) {
+				timeInLine <= vga.draw.delay.hblkend) {
 			retval |= 1; // horizontal blanking
 		}
 	}
 
-    if (timeInFrame >= vga.draw.delay.vrstart &&
-        timeInFrame <= vga.draw.delay.vrend) {
-        retval |= 8; // vertical retrace
-    }
+	if (timeInFrame >= vga.draw.delay.vrstart &&
+			timeInFrame <= vga.draw.delay.vrend) {
+		retval |= 8; // vertical retrace
+	}
 
 	vsync_poll_debug_notify();
 	return retval;
 }
 
 static void write_p3c2(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	if((machine==MCH_EGA) && ((vga.misc_output^val)&0xc)) VGA_StartResize();
-	vga.misc_output=val;
-	if (val & 0x1) {
-		IO_RegisterWriteHandler(0x3d4,vga_write_p3d4,IO_MB);
-		IO_RegisterReadHandler(0x3d4,vga_read_p3d4,IO_MB);
-		IO_RegisterReadHandler(0x3da,vga_read_p3da,IO_MB);
+	vga.misc_output=(uint8_t)val;
+	Bitu base=(val & 0x1) ? 0x3d0 : 0x3b0;
+	Bitu free=(val & 0x1) ? 0x3b0 : 0x3d0;
+	Bitu first=2, last=2;
+	if (machine==MCH_EGA) {first=0; last=3;}
 
-		IO_RegisterWriteHandler(0x3d5,vga_write_p3d5,IO_MB);
-		IO_RegisterReadHandler(0x3d5,vga_read_p3d5,IO_MB);
-
-		IO_FreeWriteHandler(0x3b4,IO_MB);
-		IO_FreeReadHandler(0x3b4,IO_MB);
-		IO_FreeWriteHandler(0x3b5,IO_MB);
-		IO_FreeReadHandler(0x3b5,IO_MB);
-		IO_FreeReadHandler(0x3ba,IO_MB);
-	} else {
-		IO_RegisterWriteHandler(0x3b4,vga_write_p3d4,IO_MB);
-		IO_RegisterReadHandler(0x3b4,vga_read_p3d4,IO_MB);
-		IO_RegisterReadHandler(0x3ba,vga_read_p3da,IO_MB);
-
-		IO_RegisterWriteHandler(0x3b5,vga_write_p3d5,IO_MB);
-		IO_RegisterReadHandler(0x3b5,vga_read_p3d5,IO_MB);
-
-		IO_FreeWriteHandler(0x3d4,IO_MB);
-		IO_FreeReadHandler(0x3d4,IO_MB);
-		IO_FreeWriteHandler(0x3d5,IO_MB);
-		IO_FreeReadHandler(0x3d5,IO_MB);
-		IO_FreeReadHandler(0x3da,IO_MB);
+	for (Bitu i=first; i<=last; i++) {
+#if C_DEBUG
+        if (!(base==0x3b0&&DISP2_Active()))
+#endif
+        {
+            IO_RegisterWriteHandler(base+i*2,vga_write_p3d4,IO_MB);
+            IO_RegisterReadHandler(base+i*2,vga_read_p3d4,IO_MB);
+            IO_RegisterWriteHandler(base+i*2+1,vga_write_p3d5,IO_MB);
+            IO_RegisterReadHandler(base+i*2+1,vga_read_p3d5,IO_MB);
+        }
+#if C_DEBUG
+        if (!(free==0x3b0&&DISP2_Active()))
+#endif
+        {
+            IO_FreeWriteHandler(free+i*2,IO_MB);
+            IO_FreeReadHandler(free+i*2,IO_MB);
+            IO_FreeWriteHandler(free+i*2+1,IO_MB);
+            IO_FreeReadHandler(free+i*2+1,IO_MB);
+        }
 	}
+
+#if C_DEBUG
+    if (!(base==0x3b0&&DISP2_Active()))
+#endif
+    {
+        IO_RegisterReadHandler(base+0xa,vga_read_p3da,IO_MB);
+        IO_FreeReadHandler(free+0xa,IO_MB);
+    }
+
 	/*
 		0	If set Color Emulation. Base Address=3Dxh else Mono Emulation. Base Address=3Bxh.
 		2-3	Clock Select. 0: 25MHz, 1: 28MHz
@@ -116,33 +141,38 @@ static void write_p3c2(Bitu port,Bitu val,Bitu iolen) {
 
 
 static Bitu read_p3cc(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	return vga.misc_output;
 }
 
 // VGA feature control register
 static Bitu read_p3ca(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	return 0;
 }
 
 static Bitu read_p3c8(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	return 0x10;
 }
 
+extern bool ega200;
+
 static Bitu read_p3c2(Bitu port,Bitu iolen) {
-	Bit8u retval=0;
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
+	uint8_t retval=0;
 
 	if (machine==MCH_EGA) retval = 0x0F;
 	else if (IS_VGA_ARCH) retval = 0x60;
 
 	if(IS_EGAVGA_ARCH) {
-		switch((vga.misc_output>>2)&3) {
-			case 0:
-			case 3:
-				retval |= 0x10; // 0110 switch positions
-				break;
-			default:
-				break;
-		}
+		uint8_t setting = ~((!IS_VGA_ARCH && ega200)?0x08:0x09)/*bits are inverted*/;
+		const uint8_t bit = (vga.misc_output>>2)&3;
+		if (setting & (1 << bit)) retval |= 0x10;
 	}
 
 	if (vga.draw.vret_triggered) retval |= 0x80;
@@ -172,9 +202,12 @@ void VGA_SetupMisc(void) {
 		} else {
 			IO_RegisterReadHandler(0x3c8,read_p3c8,IO_MB);
 		}
-	} else if (machine==MCH_CGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
+	} else if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
 		IO_RegisterReadHandler(0x3da,vga_read_p3da,IO_MB);
 	}
+#if C_DEBUG
+	if (control->opt_display2) DISP2_RegisterPorts();
+#endif
 }
 
 void VGA_UnsetupMisc(void) {
@@ -198,3 +231,30 @@ void VGA_UnsetupMisc(void) {
     IO_FreeReadHandler(0x3da,IO_MB);
 }
 
+void pc98_clear_text(void) {
+	for (unsigned int i = 0; i < 0x2000; i += 2) {
+		*((uint16_t*)(vga.mem.linear + i)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + 0x2000)) = 0xE1;
+	}
+}
+
+void pc98_clear_graphics(void) {
+	for (unsigned int i = 0; i < 0x8000; i += 2) {
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x00000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x08000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x10000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x18000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x20000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x28000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x30000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x38000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x40000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x48000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x50000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x58000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x60000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x68000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x70000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x78000)) = 0;
+	}
+}

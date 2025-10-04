@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 /* 
@@ -22,42 +22,21 @@
 
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "mixer.h"
 #include "mem.h"
 #include "setup.h"
 #include "pic.h"
 #include "dma.h"
-#include "hardware.h"
 #include "control.h"
-#include "sn76496.h"
+#include "hardware.h"
 #include <cstring>
 #include <math.h>
+#include "mame/emu.h"
+#include "mame/sn76496.h"
 
-#define MAX_OUTPUT 0x7fff
-#define STEP 0x10000
 
-/* Formulas for noise generator */
-/* bit0 = output */
-
-/* noise feedback for white noise mode (verified on real SN76489 by John Kortink) */
-#define FB_WNOISE 0x14002	/* (16bits) bit16 = bit0(out) ^ bit2 ^ bit15 */
-
-/* noise feedback for periodic noise mode */
-//#define FB_PNOISE 0x10000 /* 16bit rorate */
-#define FB_PNOISE 0x08000   /* JH 981127 - fixes Do Run Run */
-
-/*
-0x08000 is definitely wrong. The Master System conversion of Marble Madness
-uses periodic noise as a baseline. With a 15-bit rotate, the bassline is
-out of tune.
-The 16-bit rotate has been confirmed against a real PAL Sega Master System 2.
-Hope that helps the System E stuff, more news on the PSG as and when!
-*/
-
-/* noise generator start preset (for periodic noise) */
-#define NG_PRESET 0x0f35
-
-static struct SN76496 sn;
+#define SOUND_CLOCK (14318180 / 4)
 
 #define TDAC_DMA_BUFSIZE 1024
 
@@ -70,183 +49,29 @@ static struct {
 		bool enabled;
 		struct {
 			Bitu base;
-			Bit8u irq,dma;
+			uint8_t irq,dma;
 		} hw;
 		struct {
 			Bitu rate;
-			Bit8u buf[TDAC_DMA_BUFSIZE];
-			Bit8u last_sample;
+			uint8_t buf[TDAC_DMA_BUFSIZE];
+			uint8_t last_sample;
 			DmaChannel * chan;
 			bool transfer_done;
 		} dma;
-		Bit8u mode,control;
-		Bit16u frequency;
-		Bit8u amplitude;
+		uint8_t mode,control;
+		uint16_t frequency;
+		uint8_t amplitude;
 		bool irq_activated;
 	} dac;
 } tandy;
 
-void SN76496Write(struct SN76496 *R,Bitu port,Bitu data) {
-	/* update the output buffer before changing the registers */
+static sn76496_device device_sn76496(machine_config(), nullptr, nullptr, SOUND_CLOCK );
+static ncr8496_device device_ncr8496(machine_config(), nullptr, nullptr, SOUND_CLOCK);
 
-	if (data & 0x80)
-	{
-		int r = (data & 0x70) >> 4;
-		int c = r/2;
+static sn76496_base_device* activeDevice = &device_ncr8496;
+#define device (*activeDevice)
 
-		R->LastRegister = r;
-		R->Register[r] = (R->Register[r] & 0x3f0) | (data & 0x0f);
-		switch (r)
-		{
-			case 0:	/* tone 0 : frequency */
-			case 2:	/* tone 1 : frequency */
-			case 4:	/* tone 2 : frequency */
-				R->Period[c] = R->UpdateStep * R->Register[r];
-				if (R->Period[c] == 0) R->Period[c] = 0x3fe;
-				if (r == 4)
-				{
-					/* update noise shift frequency */
-					if ((R->Register[6] & 0x03) == 0x03)
-						R->Period[3] = 2 * R->Period[2];
-				}
-				break;
-			case 1:	/* tone 0 : volume */
-			case 3:	/* tone 1 : volume */
-			case 5:	/* tone 2 : volume */
-			case 7:	/* noise  : volume */
-				R->Volume[c] = R->VolTable[data & 0x0f];
-				break;
-			case 6:	/* noise  : frequency, mode */
-				{
-					int n = R->Register[6];
-					R->NoiseFB = (n & 4) ? FB_WNOISE : FB_PNOISE;
-					n &= 3;
-					/* N/512,N/1024,N/2048,Tone #3 output */
-					R->Period[3] = (n == 3) ? 2 * R->Period[2] : (R->UpdateStep << (5+n));
-
-					/* reset noise shifter */
-//					R->RNG = NG_PRESET;
-//					R->Output[3] = R->RNG & 1;
-				}
-				break;
-		}
-	}
-	else
-	{
-		int r = R->LastRegister;
-		int c = r/2;
-
-		switch (r)
-		{
-			case 0:	/* tone 0 : frequency */
-			case 2:	/* tone 1 : frequency */
-			case 4:	/* tone 2 : frequency */
-				R->Register[r] = (R->Register[r] & 0x0f) | ((data & 0x3f) << 4);
-				R->Period[c] = R->UpdateStep * R->Register[r];
-				if (R->Period[c] == 0) R->Period[c] = 0x3fe;
-				if (r == 4)
-				{
-					/* update noise shift frequency */
-					if ((R->Register[6] & 0x03) == 0x03)
-						R->Period[3] = 2 * R->Period[2];
-				}
-				break;
-		}
-	}
-}
-
-void SN76496Update(struct SN76496 *R, Bit16s *buffer, Bitu length) {
-	int i;
-
-	/* If the volume is 0, increase the counter */
-	for (i = 0;i < 4;i++)
-	{
-		if (R->Volume[i] == 0)
-		{
-			/* note that I do count += length, NOT count = length + 1. You might think */
-			/* it's the same since the volume is 0, but doing the latter could cause */
-			/* interferencies when the program is rapidly modulating the volume. */
-			if (R->Count[i] <= (int)length*STEP) R->Count[i] += length*STEP;
-		}
-	}
-
-	Bitu count=length;
-	while (count)
-	{
-		int vol[4];
-		unsigned int out;
-		int left;
-
-
-		/* vol[] keeps track of how long each square wave stays */
-		/* in the 1 position during the sample period. */
-		vol[0] = vol[1] = vol[2] = vol[3] = 0;
-
-		for (i = 0;i < 3;i++)
-		{
-			if (R->Output[i]) vol[i] += R->Count[i];
-			R->Count[i] -= STEP;
-			/* Period[i] is the half period of the square wave. Here, in each */
-			/* loop I add Period[i] twice, so that at the end of the loop the */
-			/* square wave is in the same status (0 or 1) it was at the start. */
-			/* vol[i] is also incremented by Period[i], since the wave has been 1 */
-			/* exactly half of the time, regardless of the initial position. */
-			/* If we exit the loop in the middle, Output[i] has to be inverted */
-			/* and vol[i] incremented only if the exit status of the square */
-			/* wave is 1. */
-			while (R->Count[i] <= 0)
-			{
-				R->Count[i] += R->Period[i];
-				if (R->Count[i] > 0)
-				{
-					R->Output[i] ^= 1;
-					if (R->Output[i]) vol[i] += R->Period[i];
-					break;
-				}
-				R->Count[i] += R->Period[i];
-				vol[i] += R->Period[i];
-			}
-			if (R->Output[i]) vol[i] -= R->Count[i];
-		}
-
-		left = STEP;
-		do
-		{
-			int nextevent;
-
-
-			if (R->Count[3] < left) nextevent = R->Count[3];
-			else nextevent = left;
-
-			if (R->Output[3]) vol[3] += R->Count[3];
-			R->Count[3] -= nextevent;
-			if (R->Count[3] <= 0)
-			{
-				if (R->RNG & 1) R->RNG ^= R->NoiseFB;
-				R->RNG >>= 1;
-				R->Output[3] = R->RNG & 1;
-				R->Count[3] += R->Period[3];
-				if (R->Output[3]) vol[3] += R->Period[3];
-			}
-			if (R->Output[3]) vol[3] -= R->Count[3];
-
-			left -= nextevent;
-		} while (left > 0);
-
-		out = vol[0] * R->Volume[0] + vol[1] * R->Volume[1] +
-				vol[2] * R->Volume[2] + vol[3] * R->Volume[3];
-
-		if (out > MAX_OUTPUT * STEP) out = MAX_OUTPUT * STEP;
-
-		*(buffer++) = (Bit16s)(out / STEP);
-
-		count--;
-	}
-}
-
-static void TandySN76496Write(Bitu port,Bitu data,Bitu iolen) {
-	struct SN76496 *R = &sn;
- 
+static void SN76496Write(Bitu /*port*/,Bitu data,Bitu /*iolen*/) {
 	tandy.last_write=PIC_Ticks;
 	if (!tandy.enabled) {
 		tandy.chan->Enable(true);
@@ -257,80 +82,27 @@ static void TandySN76496Write(Bitu port,Bitu data,Bitu iolen) {
 	// this hack allows sample accurate rendering without enabling sample accurate mode in the mixer.
 	tandy.chan->FillUp();
 
-	SN76496Write(R,port,data);
+	device.write((uint8_t)data);
+
+//	LOG_MSG("3voice write %X at time %7.3f",data,PIC_FullIndex());
 }
 
-static void TandySN76496Update(Bitu length) {
-	struct SN76496 *R = &sn;
-
+static void SN76496Update(Bitu length) {
+	//Disable the channel if it's been quiet for a while
 	if ((tandy.last_write+5000)<PIC_Ticks) {
 		tandy.enabled=false;
 		tandy.chan->Enable(false);
+		return;
 	}
- 
-	Bit16s * buffer=(Bit16s *)MixTemp;
-	SN76496Update(R,buffer,length);
-	tandy.chan->AddSamples_m16(length,(Bit16s *)MixTemp);
-}
+	const Bitu MAX_SAMPLES = 2048;
+	if (length > MAX_SAMPLES)
+		return;
+	int16_t buffer[MAX_SAMPLES];
+	int16_t* outputs = buffer;
 
-static void TandyDACWrite(Bitu port,Bitu data,Bitu iolen) {
-	LOG_MSG("Write tandy dac %X val %X",(int)port,(int)data);
-}
-
-static void SN76496_set_clock(struct SN76496 *R, int clock) {
-	/* the base clock for the tone generators is the chip clock divided by 16; */
-	/* for the noise generator, it is clock / 256. */
-	/* Here we calculate the number of steps which happen during one sample */
-	/* at the given sample rate. No. of events = sample rate / (clock/16). */
-	/* STEP is a multiplier used to turn the fraction into a fixed point */
-	/* number. */
-	R->UpdateStep = (unsigned int)(((double)STEP * R->SampleRate * 16) / clock);
-}
-
-
-static void SN76496_set_gain(struct SN76496 *R, int gain) {
-	int i;
-	double out;
-
-	gain &= 0xff;
-
-	/* increase max output basing on gain (0.2 dB per step) */
-	out = MAX_OUTPUT / 3;
-	while (gain-- > 0)
-		out *= 1.023292992;	/* = (10 ^ (0.2/20)) */
-
-	/* build volume table (2dB per step) */
-	for (i = 0;i < 15;i++)
-	{
-		/* limit volume to avoid clipping */
-		if (out > MAX_OUTPUT / 3) R->VolTable[i] = MAX_OUTPUT / 3;
-		else R->VolTable[i] = (int)out;
-
-		out /= 1.258925412;	/* = 10 ^ (2/20) = 2dB */
-	}
-	R->VolTable[15] = 0;
-}
-
-void SN76496Reset(struct SN76496 *R, Bitu Clock, Bitu sample_rate) {
-	Bitu i;
-	R->SampleRate = sample_rate;
-	SN76496_set_clock(R,Clock);
-	for (i = 0;i < 4;i++) R->Volume[i] = 0;
-	R->LastRegister = 0;
-	for (i = 0;i < 8;i+=2)
-	{
-		R->Register[i] = 0;
-		R->Register[i + 1] = 0x0f;	/* volume = 0 */
-	}
-	
-	for (i = 0;i < 4;i++)
-	{
-		R->Output[i] = 0;
-		R->Period[i] = R->Count[i] = R->UpdateStep;
-	}
-	R->RNG = NG_PRESET;
-	R->Output[3] = R->RNG & 1;
-	SN76496_set_gain(R,0x1);
+	device_sound_interface::sound_stream stream;
+	static_cast<device_sound_interface&>(device).sound_stream_update(stream, nullptr, &outputs, (int)length);
+	tandy.chan->AddSamples_m16(length, buffer);
 }
 
 bool TS_Get_Address(Bitu& tsaddr, Bitu& tsirq, Bitu& tsdma) {
@@ -354,10 +126,7 @@ static void TandyDAC_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	}
 }
 
-/* NTS: Formerly defined static, but nobody uses the function. But, this
- * function contains too much technical documentation within that is worth
- * keeping. --J.C. */
-void TandyDACModeChanged(void) {
+static void TandyDACModeChanged(void) {
 	switch (tandy.dac.mode&3) {
 	case 0:
 		// joystick mode
@@ -381,9 +150,76 @@ void TandyDACModeChanged(void) {
 				if (tandy.dac.dma.chan) {
 					tandy.dac.dma.chan->Register_Callback(TandyDAC_DMA_CallBack);
 					tandy.dac.chan->Enable(true);
-//					LOG_MSG("Tandy DAC: playback started with freqency %f, volume %f",freq,vol);
+//					LOG_MSG("Tandy DAC: playback started with frequency %f, volume %f",freq,vol);
 				}
 			}
+		}
+		break;
+	}
+}
+
+static void TandyDACDMAEnabled(void) {
+	TandyDACModeChanged();
+}
+
+static void TandyDACDMADisabled(void) {
+}
+
+static void TandyDACWrite(Bitu port,Bitu data,Bitu /*iolen*/) {
+	switch (port) {
+	case 0xc4: {
+		Bitu oldmode = tandy.dac.mode;
+		tandy.dac.mode = (uint8_t)(data&0xff);
+		if ((data&3)!=(oldmode&3)) {
+			TandyDACModeChanged();
+		}
+		if (((data&0x0c)==0x0c) && ((oldmode&0x0c)!=0x0c)) {
+			TandyDACDMAEnabled();
+		} else if (((data&0x0c)!=0x0c) && ((oldmode&0x0c)==0x0c)) {
+			TandyDACDMADisabled();
+		}
+		}
+		break;
+	case 0xc5:
+		switch (tandy.dac.mode&3) {
+		case 0:
+			// joystick mode
+			break;
+		case 1:
+			tandy.dac.control = (uint8_t)(data&0xff);
+			break;
+		case 2:
+			break;
+		case 3:
+			// direct output
+			break;
+		}
+		break;
+	case 0xc6:
+		tandy.dac.frequency = (tandy.dac.frequency & 0xf00) | (uint8_t)(data & 0xff);
+		switch (tandy.dac.mode&3) {
+		case 0:
+			// joystick mode
+			break;
+		case 1:
+		case 2:
+		case 3:
+			TandyDACModeChanged();
+			break;
+		}
+		break;
+	case 0xc7:
+		tandy.dac.frequency = (tandy.dac.frequency & 0x00ff) | (((uint8_t)(data & 0xf)) << 8);
+		tandy.dac.amplitude = (uint8_t)(data>>5);
+		switch (tandy.dac.mode&3) {
+		case 0:
+			// joystick mode
+			break;
+		case 1:
+		case 2:
+		case 3:
+			TandyDACModeChanged();
+			break;
 		}
 		break;
 	}
@@ -394,20 +230,24 @@ static Bitu TandyDACRead(Bitu port,Bitu /*iolen*/) {
 	case 0xc4:
 		return (tandy.dac.mode&0x77) | (tandy.dac.irq_activated ? 0x08 : 0x00);
 	case 0xc6:
-		return (Bit8u)(tandy.dac.frequency&0xff);
+		return (uint8_t)(tandy.dac.frequency&0xff);
 	case 0xc7:
-		return (Bit8u)(((tandy.dac.frequency>>8)&0xf) | (tandy.dac.amplitude<<5));
+		return (uint8_t)(((tandy.dac.frequency>>8)&0xf) | (tandy.dac.amplitude<<5));
 	}
-	LOG_MSG("Tandy DAC: Read from unknown %X",(int)port);
+	LOG_MSG("Tandy DAC: Read from unknown %X", (unsigned int)port);
 	return 0xff;
 }
 
 static void TandyDACGenerateDMASound(Bitu length) {
 	if (length) {
-		Bitu read=tandy.dac.dma.chan->Read(length,tandy.dac.dma.buf);
-		tandy.dac.chan->AddSamples_m8(read,tandy.dac.dma.buf);
+		Bitu read = tandy.dac.dma.chan->Read(length,tandy.dac.dma.buf);
+		if (read > 0) {
+			tandy.dac.chan->AddSamples_m8(read,tandy.dac.dma.buf);
+			tandy.dac.dma.last_sample = tandy.dac.dma.buf[read - 1u];
+		}
+
+		/* repeat the last sample to fill output if not enough */
 		if (read < length) {
-			if (read>0) tandy.dac.dma.last_sample=tandy.dac.dma.buf[read-1];
 			for (Bitu ct=read; ct < length; ct++) {
 				tandy.dac.chan->AddSamples_m8(1,&tandy.dac.dma.last_sample);
 			}
@@ -425,12 +265,29 @@ static void TandyDACUpdate(Bitu length) {
 				tandy.dac.chan->AddSamples_m8(1,&tandy.dac.dma.last_sample);
 			}
 		}
+		/* even if the DAC is disabled hold the last sample and SLOWLY restore DC.
+		 * jumping to silence quickly here causes loud annoying pops in Prince of Persia
+		 * when sound effects play. Prince of Persia seems to emit some very non-zero DC
+		 * value (like 0x08) when not playing sound effects, so this is needed to
+		 * recover from that without pops. This behavior also seems to match DAC behavior
+		 * with Prince of Persia according to real Tandy 1000 TL/3 hardware, complete
+		 * with the 8-bit DAC stepping noise on return to zero. In any case, this
+		 * modification makes the Tandy DAC sound effects in Prince of Persia much
+		 * more enjoyable to listen to and match the apparent sound of real hardware. */
+		/* NTS: This doesn't quite make the DAC step noise heard on real hardware, but
+		 *      it's good enough for now. */
+	} else if (tandy.dac.dma.last_sample != 128) {
+		for (Bitu ct=0; ct < length; ct++) {
+			tandy.dac.chan->AddSamples_m8(1,&tandy.dac.dma.last_sample);
+			if (tandy.dac.dma.last_sample != 128)
+				tandy.dac.dma.last_sample = (uint8_t)(((((int)tandy.dac.dma.last_sample - 128) * 63) / 64) + 128);
+		}
 	} else {
 		tandy.dac.chan->AddSilence();
 	}
 }
 
-Bit8u BIOS_tandy_D4_flag = 0;
+uint8_t BIOS_tandy_D4_flag = 0;
 
 class TANDYSOUND: public Module_base {
 private:
@@ -449,6 +306,11 @@ public:
 		}
 
 		BIOS_tandy_D4_flag = 0;
+
+		//Select the correct tandy chip implementation
+		if (machine == MCH_PCJR) activeDevice = &device_sn76496;
+		else activeDevice = &device_ncr8496;
+
 		if (IS_TANDY_ARCH) {
 			/* enable tandy sound if tandy=true/auto */
 			if ((strcmp(section->Get_string("tandy"),"true")!=0) &&
@@ -459,21 +321,25 @@ public:
 			if ((strcmp(section->Get_string("tandy"),"true")!=0) &&
 				(strcmp(section->Get_string("tandy"),"on")!=0)) return;
 
-			/* ports from second DMA controller conflict with tandy ports */
-			CloseSecondDMAController();
-
 			if (enable_hw_tandy_dac) {
-				WriteHandler[2].Install(0x1e0,TandySN76496Write,IO_MB,2);
+				WriteHandler[2].Install(0x1e0,SN76496Write,IO_MB,2);
 				WriteHandler[3].Install(0x1e4,TandyDACWrite,IO_MB,4);
 //				ReadHandler[3].Install(0x1e4,TandyDACRead,IO_MB,4);
 			}
 		}
 
+		/* ports from second DMA controller conflict with tandy ports at 0xC0.
+		 * Furthermore, the default I/O handlers after de-registration are needed
+		 * to ensure the SN76496 is writeable at port 0xC0 whether you're doing
+		 * normal 8-bit I/O or you're a weirdo like Prince of Persia using 16-bit
+		 * I/O to write frequency values. (bugfix for Tandy mode of Prince of
+		 * Persia). */
+		CloseSecondDMAController();
 
-		Bit32u sample_rate = section->Get_int("tandyrate");
-		tandy.chan=MixerChan.Install(&TandySN76496Update,sample_rate,"TANDY");
+		uint32_t sample_rate = section->Get_int("tandyrate");
+		tandy.chan=MixerChan.Install(&SN76496Update,sample_rate,"TANDY");
 
-		WriteHandler[0].Install(0xc0,TandySN76496Write,IO_MB,2);
+		WriteHandler[0].Install(0xc0,SN76496Write,IO_MB,2);
 
 		if (enable_hw_tandy_dac) {
 			// enable low-level Tandy DAC emulation
@@ -482,6 +348,8 @@ public:
 
 			tandy.dac.enabled=true;
 			tandy.dac.chan=MixerChanDAC.Install(&TandyDACUpdate,sample_rate,"TANDYDAC");
+			tandy.dac.chan->SetLowpassFreq(6000);
+			tandy.dac.chan->SetSlewFreq(22050);
 
 			tandy.dac.hw.base=0xc4;
 			tandy.dac.hw.irq =7;
@@ -498,13 +366,15 @@ public:
 		tandy.dac.irq_activated=false;
 		tandy.dac.frequency=0;
 		tandy.dac.amplitude=0;
-		tandy.dac.dma.last_sample=0;
+		tandy.dac.dma.last_sample=128;
 
 
 		tandy.enabled=false;
 		BIOS_tandy_D4_flag = 0xFF;
 
-		SN76496Reset( &sn, 3579545, sample_rate );
+		((device_t&)device).device_start();
+		device.convert_samplerate(sample_rate);
+
 	}
 	~TANDYSOUND(){ }
 };
@@ -520,15 +390,9 @@ void TANDYSOUND_ShutDown(Section* /*sec*/) {
     }
 }
 
-void TANDYSOUND_OnEnterPC98(Section* /*sec*/) {
-    if (test) {
-        delete test;
-        test = NULL;
-    }
-}
-
 void TANDYSOUND_OnReset(Section* sec) {
-	if (test == NULL) {
+    (void)sec;//UNUSED
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Tandy speaker emulation");
 		test = new TANDYSOUND(control->GetSection("speaker"));
 	}
@@ -539,7 +403,106 @@ void TANDYSOUND_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(TANDYSOUND_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
-
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(TANDYSOUND_OnEnterPC98));
 }
 
+// save state support
+void *TandyDAC_DMA_CallBack_Func = (void*)((uintptr_t)TandyDAC_DMA_CallBack);
+
+void POD_Save_Tandy_Sound( std::ostream& stream )
+{
+	const char pod_name[32] = "Tandy";
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !tandy.chan ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	uint8_t dma_idx;
+
+
+	dma_idx = 0xff;
+	for( int lcv=0; lcv<8; lcv++ ) {
+		if( tandy.dac.dma.chan == GetDMAChannel(lcv) ) { dma_idx = lcv; break; }
+	}
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - near-pure data
+	WRITE_POD( &tandy, tandy );
+
+	// - reloc ptr
+	WRITE_POD( &dma_idx, dma_idx );
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+    activeDevice->SaveState(stream);
+
+	tandy.chan->SaveState(stream);
+	tandy.dac.chan->SaveState(stream);
+}
+
+void POD_Load_Tandy_Sound( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !tandy.chan ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "Tandy" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	uint8_t dma_idx;
+	MixerChannel *chan_old, *dac_chan_old;
+
+	// - save static ptrs
+	chan_old = tandy.chan;
+	dac_chan_old = tandy.dac.chan;
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - near-pure data
+	READ_POD( &tandy, tandy );
+
+	// - reloc ptr
+	READ_POD( &dma_idx, dma_idx );
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+	tandy.dac.dma.chan = NULL;
+	if( dma_idx != 0xff ) tandy.dac.dma.chan = GetDMAChannel(dma_idx);
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - restore static ptrs
+	tandy.chan = chan_old;
+	tandy.dac.chan = dac_chan_old;
+    activeDevice->LoadState(stream);
+
+	tandy.chan->LoadState(stream);
+	tandy.dac.chan->LoadState(stream);
+}

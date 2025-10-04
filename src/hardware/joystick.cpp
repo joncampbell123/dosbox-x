@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,15 +11,16 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
 #include <string.h>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "setup.h"
 #include "joystick.h"
 #include "pic.h"
@@ -44,14 +45,18 @@ struct JoyStick {
 JoystickType joytype;
 static JoyStick stick[2];
 
-static Bit32u last_write = 0;
+static uint32_t last_write = 0;
 static bool write_active = false;
 static bool swap34 = false;
 bool button_wrapping_enabled = true;
 
 extern bool autofire; //sdl_mapper.cpp
+extern int joy1axes[]; //sdl_mapper.cpp
+extern int joy2axes[]; //sdl_mapper.cpp
 
 static Bitu read_p201(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	/* Reset Joystick to 0 after TIMEOUT ms */
 	if(write_active && ((PIC_Ticks - last_write) > TIMEOUT)) {
 		write_active = false;
@@ -71,7 +76,7 @@ static Bitu read_p201(Bitu port,Bitu iolen) {
 	**  Joystick A, Button 2 -----------+   |   |   +----------- Joystick B, X Axis
 	**  Joystick A, Button 1 ---------------+   +--------------- Joystick B, Y Axis
 	**/
-	Bit8u ret=0xff;
+	uint8_t ret=0xff;
 	if (stick[0].enabled) {
 		if (stick[0].xcount) stick[0].xcount--; else ret&=~1;
 		if (stick[0].ycount) stick[0].ycount--; else ret&=~2;
@@ -88,7 +93,9 @@ static Bitu read_p201(Bitu port,Bitu iolen) {
 }
 
 static Bitu read_p201_timed(Bitu port,Bitu iolen) {
-	Bit8u ret=0xff;
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
+	uint8_t ret=0xff;
 	double currentTick = PIC_FullIndex();
 	if( stick[0].enabled ){
 		if( stick[0].xtick < currentTick ) ret &=~1;
@@ -111,9 +118,12 @@ static Bitu read_p201_timed(Bitu port,Bitu iolen) {
 }
 
 static void write_p201(Bitu port,Bitu val,Bitu iolen) {
+    (void)val;//UNUSED
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	/* Store writetime index */
 	write_active = true;
-	last_write = PIC_Ticks;
+	last_write = (uint32_t)PIC_Ticks;
 	if (stick[0].enabled) {
 		stick[0].xcount=(Bitu)((stick[0].xpos*RANGE)+RANGE);
 		stick[0].ycount=(Bitu)((stick[0].ypos*RANGE)+RANGE);
@@ -125,16 +135,19 @@ static void write_p201(Bitu port,Bitu val,Bitu iolen) {
 
 }
 static void write_p201_timed(Bitu port,Bitu val,Bitu iolen) {
+    (void)val;//UNUSED
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	// Store writetime index
-	// Axes take time = 24.2 microseconds + ( 0.011 microsecons/ohm * resistance )
+	// Axes take time = 24.2 microseconds + ( 0.011 microseconds/ohm * resistance )
 	// to reset to 0
 	// Precalculate the time at which each axis hits 0 here
 	double currentTick = PIC_FullIndex();
 	if (stick[0].enabled) {
 		stick[0].xtick = currentTick + 1000.0*( JOY_S_CONSTANT + S_PER_OHM *
-	                         (double)(((stick[0].xpos+1.0)* OHMS)) );
+	                         (double)((stick[0].xpos+1.0)* OHMS) );
 		stick[0].ytick = currentTick + 1000.0*( JOY_S_CONSTANT + S_PER_OHM *
-		                 (double)(((stick[0].ypos+1.0)* OHMS)) );
+		                 (double)((stick[0].ypos+1.0)* OHMS) );
 	}
 	if (stick[1].enabled) {
 		stick[1].xtick = currentTick + 1000.0*( JOY_S_CONSTANT + S_PER_OHM *
@@ -207,6 +220,7 @@ public:
 static JOYSTICK* test = NULL;
 
 void JOYSTICK_Destroy(Section* sec) {
+    (void)sec;//UNUSED
     if (test != NULL) {
         delete test;
         test = NULL;
@@ -214,16 +228,10 @@ void JOYSTICK_Destroy(Section* sec) {
 }
 
 void JOYSTICK_OnPowerOn(Section* sec) {
+    (void)sec;//UNUSED
     if (test == NULL) {
         LOG(LOG_MISC,LOG_DEBUG)("Allocating joystick emulation");
         test = new JOYSTICK(control->GetSection("joystick"));
-    }
-}
-
-void JOYSTICK_OnEnterPC98(Section* sec) {
-    if (test != NULL) {
-        delete test;
-        test = NULL;
     }
 }
 
@@ -254,11 +262,49 @@ void JOYSTICK_Init() {
 		stick[1].enabled = false;
 		stick[0].xtick = stick[0].ytick = stick[1].xtick =
 		                 stick[1].ytick = PIC_FullIndex();
+		
+		// retrieves axes mapping
+		auto joysticks = 2;
+		auto axes = 8;
+		for (auto i = 0; i < joysticks; i++)
+		{
+			for (auto j = 0; j < axes; j++)
+			{
+				auto propname = "joy" + std::to_string(i + 1) + "axis" + std::to_string(j);
+				auto axis = section->Get_int(propname);
+				if (i == 0)
+				{
+					joy1axes[j] = axis;
+				}
+				else
+				{
+					joy2axes[j] = axis;
+				}
+			}
+		}
 	}
 
-	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true); 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnPowerOn));
+	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true);
 
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(JOYSTICK_OnEnterPC98));
+    if (!IS_PC98_ARCH)
+        AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnPowerOn));
 }
 
+//save state support
+namespace
+{
+class SerializeStick : public SerializeGlobalPOD
+{
+public:
+    SerializeStick() : SerializeGlobalPOD("Joystick")
+    {
+        registerPOD(joytype);
+        registerPOD(stick);
+        registerPOD(last_write);
+        registerPOD(write_active);
+        registerPOD(swap34);
+        registerPOD(button_wrapping_enabled);
+        registerPOD(autofire);
+    }
+} dummy;
+}

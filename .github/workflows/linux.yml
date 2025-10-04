@@ -1,0 +1,124 @@
+name: Linux builds
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  Linux_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: read  # for actions/checkout to fetch code
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '14'
+      - name: Build minimal
+        if: false
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          ./build --disable-freetype --disable-libfluidsynth --disable-mt32 --disable-screenshots
+      - name: Install libraries
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libavcodec-extra
+          mkdir src/bin
+      - name: Update build info
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Build Linux SDL1
+        run: |
+          top=`pwd`
+          ./build-debug --enable-avcodec
+          strip -s $top/src/dosbox-x
+          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
+      - name: Build Linux SDL2
+        run: |
+          top=`pwd`
+          ./build-debug-sdl2 --enable-avcodec
+          strip -s $top/src/dosbox-x
+          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
+      - name: Unit testing
+        run: |
+          top=`pwd`
+          chmod +x $top/src/bin/dosbox-x-sdl1 $top/src/bin/dosbox-x-sdl2
+          $top/src/bin/dosbox-x-sdl1 -tests
+          $top/src/bin/dosbox-x-sdl2 -tests
+      - name: Package build
+        run: |
+          top=`pwd`
+          mkdir -p $top/src/bin/drivez
+          mkdir -p $top/src/bin/glshaders
+          mkdir -p $top/src/bin/languages
+          cp $top/CHANGELOG $top/src/bin/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/src/bin/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/src/bin/dosbox-x.reference.full.conf
+          cp $top/contrib/fonts/FREECG98.BMP $top/src/bin/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/src/bin/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/src/bin/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/src/bin/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/src/bin/drivez/readme.txt
+          cp $top/contrib/glshaders/* $top/src/bin/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/src/bin/languages/
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-linux-x86_64-${{ env.timestamp }}
+          path: ${{ github.workspace }}/src/bin/
+  Test_cxx11:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: read  # for actions/checkout to fetch code
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '14'
+      - name: Install libraries
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev
+          mkdir src/bin
+      - name: Build Linux SDL1
+        run: |
+          top=`pwd`
+          ./build-debug  --enable-force-cxx11
+          strip -s $top/src/dosbox-x
+          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
+      - name: Build Linux SDL2
+        run: |
+          top=`pwd`
+          ./build-debug-sdl2  --enable-force-cxx11
+          strip -s $top/src/dosbox-x
+          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
+      - name: Unit testing
+        run: |
+          top=`pwd`
+          chmod +x $top/src/bin/dosbox-x-sdl1 $top/src/bin/dosbox-x-sdl2
+          $top/src/bin/dosbox-x-sdl1 -tests
+          $top/src/bin/dosbox-x-sdl2 -tests
+

@@ -1,0 +1,596 @@
+
+ Start  Stop   Length Name               Class
+
+ 00000H 0306AH 0306BH _TEXT              CODE
+ 03070H 03070H 00000H _FARDATA           FAR_DATA
+ 03070H 03070H 00000H _FARBSS            FAR_BSS
+ 03070H 03564H 004F5H _DATA              DATA
+ 03566H 03567H 00002H _CVTSEG            DATA
+ 03568H 0356DH 00006H _SCNSEG            DATA
+ 0356EH 0356EH 00000H _CONST             CONST
+ 0356EH 0357FH 00012H _INIT_             INITDATA
+ 03580H 03580H 00000H _INITEND_          INITDATA
+ 03580H 03580H 00000H _EXIT_             EXITDATA
+ 03580H 03580H 00000H _EXITEND_          EXITDATA
+ 03580H 035D5H 00056H _BSS               BSS
+ 035D6H 035D6H 00000H _COMDEF_           BSS
+ 035D6H 035D6H 00000H _BSSEND            BSS
+
+
+Detailed map of segments
+
+ 0000:0000 0367 C=CODE   S=_TEXT          G=DGROUP  M=c0.ASM     ACBP=28
+ 0000:0367 004B C=CODE   S=_TEXT          G=DGROUP  M=colorbug.c ACBP=28
+ 0000:03B2 0015 C=CODE   S=_TEXT          G=DGROUP  M=_abort     ACBP=28
+ 0000:03C7 0028 C=CODE   S=_TEXT          G=DGROUP  M=atexit     ACBP=28
+ 0000:03EF 001F C=CODE   S=_TEXT          G=DGROUP  M=errormsg   ACBP=28
+ 0000:040E 00A0 C=CODE   S=_TEXT          G=DGROUP  M=exit       ACBP=28
+ 0000:04AE 0000 C=CODE   S=_TEXT          G=DGROUP  M=files      ACBP=28
+ 0000:04AE 0000 C=CODE   S=_TEXT          G=DGROUP  M=files2     ACBP=28
+ 0000:04AE 0000 C=CODE   S=_TEXT          G=DGROUP  M=heaplen    ACBP=28
+ 0000:04AE 0052 C=CODE   S=_TEXT          G=DGROUP  M=ioerror    ACBP=28
+ 0000:0500 0015 C=CODE   S=_TEXT          G=DGROUP  M=isatty     ACBP=28
+ 0000:0515 009E C=CODE   S=_TEXT          G=DGROUP  M=longtoa    ACBP=28
+ 0000:05B3 002D C=CODE   S=_TEXT          G=DGROUP  M=lseek      ACBP=28
+ 0000:05E0 009B C=CODE   S=_TEXT          G=DGROUP  M=setupio    ACBP=28
+ 0000:067B 0000 C=CODE   S=_TEXT          G=DGROUP  M=stklen     ACBP=28
+ 0000:067B 04CB C=CODE   S=_TEXT          G=DGROUP  M=vprinter   ACBP=28
+ 0000:0B46 007F C=CODE   S=_TEXT          G=DGROUP  M=brk        ACBP=28
+ 0000:0BC5 0277 C=CODE   S=_TEXT          G=DGROUP  M=nearheap   ACBP=28
+ 0000:0E3C 0091 C=CODE   S=_TEXT          G=DGROUP  M=fflush     ACBP=28
+ 0000:0ECD 0042 C=CODE   S=_TEXT          G=DGROUP  M=flushall   ACBP=28
+ 0000:0F0F 01A6 C=CODE   S=_TEXT          G=DGROUP  M=fseek      ACBP=28
+ 0000:10B5 001F C=CODE   S=_TEXT          G=DGROUP  M=memcpy     ACBP=28
+ 0000:10D4 001B C=CODE   S=_TEXT          G=DGROUP  M=printf     ACBP=28
+ 0000:10EF 0327 C=CODE   S=_TEXT          G=DGROUP  M=putc       ACBP=28
+ 0000:1416 00E5 C=CODE   S=_TEXT          G=DGROUP  M=setvbuf    ACBP=28
+ 0000:14FB 001C C=CODE   S=_TEXT          G=DGROUP  M=strlen     ACBP=28
+ 0000:1517 0000 C=CODE   S=_TEXT          G=DGROUP  M=sysnerr    ACBP=28
+ 0000:1517 0125 C=CODE   S=_TEXT          G=DGROUP  M=write      ACBP=28
+ 0000:163C 0055 C=CODE   S=_TEXT          G=DGROUP  M=writea     ACBP=28
+ 0000:1691 0035 C=CODE   S=_TEXT          G=DGROUP  M=xfflush    ACBP=28
+ 0000:16C6 001F C=CODE   S=_TEXT          G=DGROUP  M=cvtfak     ACBP=28
+ 0000:16E5 0004 C=CODE   S=_TEXT          G=DGROUP  M=realcvt    ACBP=28
+ 0000:16E9 00C0 C=CODE   S=_TEXT          G=DGROUP  M=ccomcolr   ACBP=28
+ 0000:17A9 00BA C=CODE   S=_TEXT          G=DGROUP  M=ccomgptx   ACBP=28
+ 0000:1863 002B C=CODE   S=_TEXT          G=DGROUP  M=ccomgtxy   ACBP=28
+ 0000:188E 001B C=CODE   S=_TEXT          G=DGROUP  M=ccompbel   ACBP=28
+ 0000:18A9 0077 C=CODE   S=_TEXT          G=DGROUP  M=ccomputn   ACBP=28
+ 0000:1920 0041 C=CODE   S=_TEXT          G=DGROUP  M=ccomscrl   ACBP=28
+ 0000:1961 003F C=CODE   S=_TEXT          G=DGROUP  M=ccomscrn   ACBP=28
+ 0000:19A0 001F C=CODE   S=_TEXT          G=DGROUP  M=ccomwhxy   ACBP=28
+ 0000:19BF 00A0 C=CODE   S=_TEXT          G=DGROUP  M=cibmcolr   ACBP=28
+ 0000:1A5F 0215 C=CODE   S=_TEXT          G=DGROUP  M=cibmgptx   ACBP=28
+ 0000:1C74 0018 C=CODE   S=_TEXT          G=DGROUP  M=cibmgtxy   ACBP=28
+ 0000:1C8C 000C C=CODE   S=_TEXT          G=DGROUP  M=cibmpbel   ACBP=28
+ 0000:1C98 01B1 C=CODE   S=_TEXT          G=DGROUP  M=cibmputn   ACBP=28
+ 0000:1E49 00B8 C=CODE   S=_TEXT          G=DGROUP  M=cibmscrl   ACBP=28
+ 0000:1F01 03A9 C=CODE   S=_TEXT          G=DGROUP  M=cibmscrn   ACBP=28
+ 0000:22AA 00C9 C=CODE   S=_TEXT          G=DGROUP  M=cibmvram   ACBP=28
+ 0000:2373 000E C=CODE   S=_TEXT          G=DGROUP  M=cibmwhxy   ACBP=28
+ 0000:2381 00DE C=CODE   S=_TEXT          G=DGROUP  M=cneccolr   ACBP=28
+ 0000:245F 01DB C=CODE   S=_TEXT          G=DGROUP  M=cnecgptx   ACBP=28
+ 0000:263A 004A C=CODE   S=_TEXT          G=DGROUP  M=cnecgtxy   ACBP=28
+ 0000:2684 00D0 C=CODE   S=_TEXT          G=DGROUP  M=cnecinit   ACBP=28
+ 0000:2754 000E C=CODE   S=_TEXT          G=DGROUP  M=cnecpbel   ACBP=28
+ 0000:2762 00F7 C=CODE   S=_TEXT          G=DGROUP  M=cnecputn   ACBP=28
+ 0000:2859 00AA C=CODE   S=_TEXT          G=DGROUP  M=cnecscrl   ACBP=28
+ 0000:2903 014D C=CODE   S=_TEXT          G=DGROUP  M=cnecscrn   ACBP=28
+ 0000:2A50 0012 C=CODE   S=_TEXT          G=DGROUP  M=cnecwhxy   ACBP=28
+ 0000:2A62 0000 C=CODE   S=_TEXT          G=DGROUP  M=coniotyp   ACBP=28
+ 0000:2A62 002A C=CODE   S=_TEXT          G=DGROUP  M=conioini   ACBP=28
+ 0000:2A8C 0215 C=CODE   S=_TEXT          G=DGROUP  M=cputn      ACBP=28
+ 0000:2CA1 0019 C=CODE   S=_TEXT          G=DGROUP  M=cputs      ACBP=28
+ 0000:2CBA 0062 C=CODE   S=_TEXT          G=DGROUP  M=crtinit    ACBP=28
+ 0000:2D1C 007E C=CODE   S=_TEXT          G=DGROUP  M=screen     ACBP=28
+ 0000:2D9A 003F C=CODE   S=_TEXT          G=DGROUP  M=validate   ACBP=28
+ 0000:2DD9 0000 C=CODE   S=_TEXT          G=DGROUP  M=wclrnorm   ACBP=28
+ 0000:2DD9 0000 C=CODE   S=_TEXT          G=DGROUP  M=wedgectl   ACBP=28
+ 0000:2DD9 0000 C=CODE   S=_TEXT          G=DGROUP  M=wgarbage   ACBP=28
+ 0000:2DD9 0000 C=CODE   S=_TEXT          G=DGROUP  M=wkanji     ACBP=28
+ 0000:2DD9 0000 C=CODE   S=_TEXT          G=DGROUP  M=wnewline   ACBP=28
+ 0000:2DD9 0000 C=CODE   S=_TEXT          G=DGROUP  M=wscroll    ACBP=28
+ 0000:2DD9 0000 C=CODE   S=_TEXT          G=DGROUP  M=MBCTYPE    ACBP=28
+ 0000:2DD9 0292 C=CODE   S=_TEXT          G=DGROUP  M=cibminit   ACBP=28
+ 0000:3070 0000 C=FAR_DATA S=_FARDATA       G=DGROUP  M=c0.ASM     ACBP=68
+ 0000:3070 0000 C=FAR_BSS S=_FARBSS        G=DGROUP  M=c0.ASM     ACBP=68
+ 0000:3070 006E C=DATA   S=_DATA          G=DGROUP  M=c0.ASM     ACBP=68
+ 0000:30DE 003D C=DATA   S=_DATA          G=DGROUP  M=colorbug.c ACBP=48
+ 0000:311C 001F C=DATA   S=_DATA          G=DGROUP  M=_abort     ACBP=48
+ 0000:313C 0002 C=DATA   S=_DATA          G=DGROUP  M=atexit     ACBP=48
+ 0000:313E 0000 C=DATA   S=_DATA          G=DGROUP  M=errormsg   ACBP=48
+ 0000:313E 0006 C=DATA   S=_DATA          G=DGROUP  M=exit       ACBP=48
+ 0000:3144 0140 C=DATA   S=_DATA          G=DGROUP  M=files      ACBP=48
+ 0000:3284 002A C=DATA   S=_DATA          G=DGROUP  M=files2     ACBP=48
+ 0000:32AE 0002 C=DATA   S=_DATA          G=DGROUP  M=heaplen    ACBP=48
+ 0000:32B0 005B C=DATA   S=_DATA          G=DGROUP  M=ioerror    ACBP=48
+ 0000:330C 0000 C=DATA   S=_DATA          G=DGROUP  M=isatty     ACBP=48
+ 0000:330C 0000 C=DATA   S=_DATA          G=DGROUP  M=longtoa    ACBP=48
+ 0000:330C 0000 C=DATA   S=_DATA          G=DGROUP  M=lseek      ACBP=48
+ 0000:330C 0000 C=DATA   S=_DATA          G=DGROUP  M=setupio    ACBP=48
+ 0000:330C 0002 C=DATA   S=_DATA          G=DGROUP  M=stklen     ACBP=48
+ 0000:330E 0067 C=DATA   S=_DATA          G=DGROUP  M=vprinter   ACBP=48
+ 0000:3376 0000 C=DATA   S=_DATA          G=DGROUP  M=brk        ACBP=48
+ 0000:3376 0006 C=DATA   S=_DATA          G=DGROUP  M=nearheap   ACBP=48
+ 0000:337C 0000 C=DATA   S=_DATA          G=DGROUP  M=fflush     ACBP=48
+ 0000:337C 0000 C=DATA   S=_DATA          G=DGROUP  M=flushall   ACBP=48
+ 0000:337C 0000 C=DATA   S=_DATA          G=DGROUP  M=fseek      ACBP=48
+ 0000:337C 0000 C=DATA   S=_DATA          G=DGROUP  M=memcpy     ACBP=48
+ 0000:337C 0000 C=DATA   S=_DATA          G=DGROUP  M=printf     ACBP=48
+ 0000:337C 0001 C=DATA   S=_DATA          G=DGROUP  M=putc       ACBP=48
+ 0000:337E 0004 C=DATA   S=_DATA          G=DGROUP  M=setvbuf    ACBP=48
+ 0000:3382 0000 C=DATA   S=_DATA          G=DGROUP  M=strlen     ACBP=48
+ 0000:3382 0002 C=DATA   S=_DATA          G=DGROUP  M=sysnerr    ACBP=48
+ 0000:3384 0000 C=DATA   S=_DATA          G=DGROUP  M=write      ACBP=48
+ 0000:3384 0000 C=DATA   S=_DATA          G=DGROUP  M=writea     ACBP=48
+ 0000:3384 0000 C=DATA   S=_DATA          G=DGROUP  M=xfflush    ACBP=48
+ 0000:3384 0031 C=DATA   S=_DATA          G=DGROUP  M=cvtfak     ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=realcvt    ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=ccomcolr   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=ccomgptx   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=ccomgtxy   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=ccompbel   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=ccomputn   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=ccomscrl   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=ccomscrn   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=ccomwhxy   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=cibmcolr   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=cibmgptx   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=cibmgtxy   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=cibmpbel   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=cibmputn   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=cibmscrl   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=cibmscrn   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=cibmvram   ACBP=48
+ 0000:33B6 0000 C=DATA   S=_DATA          G=DGROUP  M=cibmwhxy   ACBP=48
+ 0000:33B6 0080 C=DATA   S=_DATA          G=DGROUP  M=cneccolr   ACBP=48
+ 0000:3436 0000 C=DATA   S=_DATA          G=DGROUP  M=cnecgptx   ACBP=48
+ 0000:3436 0000 C=DATA   S=_DATA          G=DGROUP  M=cnecgtxy   ACBP=48
+ 0000:3436 0000 C=DATA   S=_DATA          G=DGROUP  M=cnecinit   ACBP=48
+ 0000:3436 0000 C=DATA   S=_DATA          G=DGROUP  M=cnecpbel   ACBP=48
+ 0000:3436 0000 C=DATA   S=_DATA          G=DGROUP  M=cnecputn   ACBP=48
+ 0000:3436 0000 C=DATA   S=_DATA          G=DGROUP  M=cnecscrl   ACBP=48
+ 0000:3436 0000 C=DATA   S=_DATA          G=DGROUP  M=cnecscrn   ACBP=48
+ 0000:3436 0000 C=DATA   S=_DATA          G=DGROUP  M=cnecwhxy   ACBP=48
+ 0000:3436 0002 C=DATA   S=_DATA          G=DGROUP  M=coniotyp   ACBP=48
+ 0000:3438 0000 C=DATA   S=_DATA          G=DGROUP  M=conioini   ACBP=48
+ 0000:3438 0002 C=DATA   S=_DATA          G=DGROUP  M=cputn      ACBP=48
+ 0000:343A 0000 C=DATA   S=_DATA          G=DGROUP  M=cputs      ACBP=48
+ 0000:343A 0016 C=DATA   S=_DATA          G=DGROUP  M=crtinit    ACBP=48
+ 0000:3450 0000 C=DATA   S=_DATA          G=DGROUP  M=screen     ACBP=48
+ 0000:3450 0000 C=DATA   S=_DATA          G=DGROUP  M=validate   ACBP=48
+ 0000:3450 0002 C=DATA   S=_DATA          G=DGROUP  M=wclrnorm   ACBP=48
+ 0000:3452 0002 C=DATA   S=_DATA          G=DGROUP  M=wedgectl   ACBP=48
+ 0000:3454 0002 C=DATA   S=_DATA          G=DGROUP  M=wgarbage   ACBP=48
+ 0000:3456 0002 C=DATA   S=_DATA          G=DGROUP  M=wkanji     ACBP=48
+ 0000:3458 0002 C=DATA   S=_DATA          G=DGROUP  M=wnewline   ACBP=48
+ 0000:345A 0002 C=DATA   S=_DATA          G=DGROUP  M=wscroll    ACBP=48
+ 0000:345C 0101 C=DATA   S=_DATA          G=DGROUP  M=MBCTYPE    ACBP=48
+ 0000:355E 0007 C=DATA   S=_DATA          G=DGROUP  M=cibminit   ACBP=48
+ 0000:3566 0000 C=DATA   S=_CVTSEG        G=DGROUP  M=c0.ASM     ACBP=48
+ 0000:3566 0002 C=DATA   S=_CVTSEG        G=DGROUP  M=cvtfak     ACBP=48
+ 0000:3568 0000 C=DATA   S=_CVTSEG        G=DGROUP  M=realcvt    ACBP=48
+ 0000:3568 0000 C=DATA   S=_SCNSEG        G=DGROUP  M=c0.ASM     ACBP=48
+ 0000:3568 0006 C=DATA   S=_SCNSEG        G=DGROUP  M=cvtfak     ACBP=48
+ 0000:356E 0000 C=CONST  S=_CONST         G=DGROUP  M=c0.ASM     ACBP=48
+ 0000:356E 0000 C=INITDATA S=_INIT_         G=DGROUP  M=c0.ASM     ACBP=48
+ 0000:356E 0006 C=INITDATA S=_INIT_         G=DGROUP  M=setupio    ACBP=48
+ 0000:3574 0006 C=INITDATA S=_INIT_         G=DGROUP  M=conioini   ACBP=48
+ 0000:357A 0006 C=INITDATA S=_INIT_         G=DGROUP  M=crtinit    ACBP=48
+ 0000:3580 0000 C=INITDATA S=_INITEND_      G=DGROUP  M=c0.ASM     ACBP=28
+ 0000:3580 0000 C=EXITDATA S=_EXIT_         G=DGROUP  M=c0.ASM     ACBP=48
+ 0000:3580 0000 C=EXITDATA S=_EXITEND_      G=DGROUP  M=c0.ASM     ACBP=28
+ 0000:3580 0000 C=BSS    S=_BSS           G=DGROUP  M=c0.ASM     ACBP=48
+ 0000:3580 0000 C=BSS    S=_BSS           G=DGROUP  M=colorbug.c ACBP=48
+ 0000:3580 0040 C=BSS    S=_BSS           G=DGROUP  M=atexit     ACBP=48
+ 0000:35C0 0000 C=BSS    S=_BSS           G=DGROUP  M=ioerror    ACBP=48
+ 0000:35C0 0000 C=BSS    S=_BSS           G=DGROUP  M=isatty     ACBP=48
+ 0000:35C0 0000 C=BSS    S=_BSS           G=DGROUP  M=longtoa    ACBP=48
+ 0000:35C0 0000 C=BSS    S=_BSS           G=DGROUP  M=lseek      ACBP=48
+ 0000:35C0 0000 C=BSS    S=_BSS           G=DGROUP  M=setupio    ACBP=48
+ 0000:35C0 0000 C=BSS    S=_BSS           G=DGROUP  M=vprinter   ACBP=48
+ 0000:35C0 0000 C=BSS    S=_BSS           G=DGROUP  M=brk        ACBP=48
+ 0000:35C0 0000 C=BSS    S=_BSS           G=DGROUP  M=memcpy     ACBP=48
+ 0000:35C0 0001 C=BSS    S=_BSS           G=DGROUP  M=putc       ACBP=48
+ 0000:35C2 0000 C=BSS    S=_BSS           G=DGROUP  M=strlen     ACBP=48
+ 0000:35C2 0000 C=BSS    S=_BSS           G=DGROUP  M=writea     ACBP=48
+ 0000:35C2 0000 C=BSS    S=_BSS           G=DGROUP  M=cibmgptx   ACBP=48
+ 0000:35C2 000C C=BSS    S=_BSS           G=DGROUP  M=cibmputn   ACBP=48
+ 0000:35CE 0000 C=BSS    S=_BSS           G=DGROUP  M=cibmscrn   ACBP=48
+ 0000:35CE 0000 C=BSS    S=_BSS           G=DGROUP  M=cibmvram   ACBP=48
+ 0000:35CE 0000 C=BSS    S=_BSS           G=DGROUP  M=cnecgptx   ACBP=48
+ 0000:35CE 0000 C=BSS    S=_BSS           G=DGROUP  M=cnecgtxy   ACBP=48
+ 0000:35CE 0000 C=BSS    S=_BSS           G=DGROUP  M=cnecinit   ACBP=48
+ 0000:35CE 0004 C=BSS    S=_BSS           G=DGROUP  M=cnecputn   ACBP=48
+ 0000:35D2 0000 C=BSS    S=_BSS           G=DGROUP  M=cnecscrn   ACBP=48
+ 0000:35D2 0000 C=BSS    S=_BSS           G=DGROUP  M=cnecwhxy   ACBP=48
+ 0000:35D2 0000 C=BSS    S=_BSS           G=DGROUP  M=conioini   ACBP=48
+ 0000:35D2 0004 C=BSS    S=_BSS           G=DGROUP  M=cputn      ACBP=48
+ 0000:35D6 0000 C=BSS    S=_BSS           G=DGROUP  M=crtinit    ACBP=48
+ 0000:35D6 0000 C=BSS    S=_BSS           G=DGROUP  M=cibminit   ACBP=48
+ 0000:35D6 0000 C=BSS    S=_COMDEF_       G=DGROUP  M=c0.ASM     ACBP=48
+ 0000:35D6 0000 C=BSS    S=_BSSEND        G=DGROUP  M=c0.ASM     ACBP=28
+
+  Address         Publics by Name
+
+ 0000:3070 idle  DATASEG@
+ 0000:0363 idle  DGROUP@
+ 0000:03C7 idle  _atexit
+ 0000:0BA1 idle  _brk
+ 0000:2CA1       _cputs
+ 0000:30CA       _errno
+ 0000:0463       _exit
+ 0000:0E3C       _fflush
+ 0000:0ECD       _flushall
+ 0000:110A idle  _fputc
+ 0000:124E idle  _fputchar
+ 0000:0BC5       _free
+ 0000:0F7F       _fseek
+ 0000:0FE8 idle  _ftell
+ 0000:17A9       _gettext
+ 0000:1758 idle  _highvideo
+ 0000:0500       _isatty
+ 0000:1773 idle  _lowvideo
+ 0000:05B3       _lseek
+ 0000:038B       _main
+ 0000:0C94       _malloc
+ 0000:10B5       _memcpy
+ 0000:178E idle  _normvideo
+ 0000:10D4       _printf
+ 0000:0367 idle  _print_wherexy
+ 0000:17E9       _puttext
+ 0000:0DEB idle  _realloc
+ 0000:0BB1 idle  _sbrk
+ 0000:1416       _setvbuf
+ 0000:14FB       _strlen
+ 0000:1733       _textattr
+ 0000:170E idle  _textbackground
+ 0000:16E9       _textcolor
+ 0000:03B2       __abort
+ 0000:1000 idle  __AHINCR
+ 0000:000C idle  __AHSHIFT
+ 0000:313C       __atexitcnt
+ 0000:3580       __atexittbl
+ 0000:30D6 idle  __brklvl
+ 0000:30BA idle  __C0argc
+ 0000:30BC idle  __C0argv
+ 0000:2CBA idle  __c0crtinit
+ 0000:30BE idle  __C0environ
+ 0000:048C idle  __cexit
+ 0000:0255       __checknull
+ 0000:0242       __cleanup
+ 0000:188E       __cputbell
+ 0000:2C44       __CPUTN
+ 0000:0000  Abs  __cvtfak
+ 0000:049E idle  __c_exit
+ 0000:344E       __directvideo
+ 0000:32B0 idle  __doserrno
+ 0000:04EC idle  __DOSERROR
+ 0000:32B2 idle  __dosErrorToSV
+ 0000:18DF       __END_VRAM_ACCESS
+ 0000:30C0 idle  __envLng
+ 0000:30C2 idle  __envseg
+ 0000:30C4 idle  __envSize
+ 0000:30CC idle  __Exception_list
+ 0000:0476       __exit
+ 0000:313E       __exitbuf
+ 0000:3140 idle  __exitfopen
+ 0000:3142 idle  __exitopen
+ 0000:3376 idle  __first
+ 0000:10EF idle  __fputc
+ 0000:1263       __FPUTN
+ 0000:1829 idle  __getputtextsize
+ 0000:1863       __GOTOXY
+ 0000:30D2 idle  __heapbase
+ 0000:32AE       __heaplen
+ 0000:30DA idle  __heaptop
+ 0000:20CD       __IBM_CHECK_DBCS_TRAIL
+ 0000:1D16       __IBM_END_VRAM_ACCESS
+ 0000:2167       __IBM_FILL_SPACE
+ 0000:1C74       __IBM_GOTOXY
+ 0000:21E6       __IBM_MOVELINE
+ 0000:21A9       __IBM_OFF_CURSOR
+ 0000:1DAE       __IBM_OUTPUT_CHAR
+ 0000:2348       __IBM_REFRESH_VRAM
+ 0000:1C98       __IBM_RESET_VRAM_ACCESS
+ 0000:2082       __IBM_SCREENIO
+ 0000:1E49       __IBM_SCROLL
+ 0000:21D3       __IBM_SET_CURSOR
+ 0000:1CA3       __IBM_START_VRAM_ACCESS
+ 0000:2E19       __IBM_VIDEOINT
+ 0000:2EE3       __IBM_VIDEOINTESBP
+ 0000:2EC9       __IBM_VIDEOINTESDI
+ 0000:22AA       __IBM_VPTR
+ 0000:22CE       __IBM_VRAM
+ 0000:2373       __IBM_WHEREXY
+ 0000:30AA idle  __Int0Vector
+ 0000:30AE idle  __Int4Vector
+ 0000:30B2 idle  __Int5Vector
+ 0000:30B6 idle  __Int6Vector
+ 0000:04AE       __IOERROR
+ 0000:3378 idle  __last
+ 0000:0515       __LONGTOA
+ 0000:345C       __mbctype
+ 0000:0365 idle  __MMODEL
+ 0000:1961       __MOVELINE
+ 0000:2D1C       __MOVETEXT
+ 0000:27C0       __NEC_END_VRAM_ACCESS
+ 0000:263A       __NEC_GOTOXY
+ 0000:29B6       __NEC_MOVELINE
+ 0000:2802       __NEC_OUTPUT_CHAR
+ 0000:2762       __NEC_RESET_VRAM_ACCESS
+ 0000:2859       __NEC_SCROLL
+ 0000:276D       __NEC_START_VRAM_ACCESS
+ 0000:0000 idle  __nec_turboCrt
+ 0000:2746       __NEC_VIDEOINT18
+ 0000:274D       __NEC_VIDEOINTDC
+ 0000:2A50       __NEC_WHEREXY
+ 0000:2943       __NEC_ZAP_LINE
+ 0000:3284       __nfile
+ 0000:3286       __openfd
+ 0000:30C8 idle  __osmajor
+ 0000:30C9 idle  __osminor
+ 0000:30C8 idle  __osversion
+ 0000:18FA       __OUTPUT_CHAR
+ 0000:30C6 idle  __psp
+ 0000:16E5       __REALCVT
+ 0000:3566       __RealCvtVector
+ 0000:18A9       __RESET_VRAM_ACCESS
+ 0000:02B1       __restorezero
+ 0000:337A idle  __rover
+ 0000:163C       __rtl_write
+ 0000:3568 idle  __ScanTodVector
+ 0000:1920       __SCROLL
+ 0000:05E0       __setupio
+ 0000:18C4       __START_VRAM_ACCESS
+ 0000:330C       __stklen
+ 0000:3144       __streams
+ 0000:3382       __sys_nerr
+ 0000:0256       __terminate
+ 0000:0000 idle  __turboCrt
+ 0000:0592 idle  __UTOA
+ 0000:2D9A       __VALIDATEXY
+ 0000:30C8 idle  __version
+ 0000:343A       __video
+ 0000:0693       __VPRINTER
+ 0000:3450       __wclrnorm
+ 0000:3452       __wedgectrl
+ 0000:3454       __wgarbage
+ 0000:19A0       __WHEREXY
+ 0000:3456       __wkanji
+ 0000:3458       __wnewline
+ 0000:1679 idle  __write
+ 0000:345A       __wscroll
+ 0000:1691       __xfflush
+ 0000:0B46       ___brk
+ 0000:30D0       ___brklvl
+ 0000:35D2       ___col
+ 0000:3436       ___conio_type
+ 0000:2A62       ___conio_type_init
+ 0000:03EF       ___ErrorMessage
+ 0000:2CD8       ___get_screen_height
+ 0000:2CFA       ___get_windowy2
+ 0000:30CE idle  ___heapbase
+ 0000:2F1A       ___ibm_c0crtinit
+ 0000:1C8C       ___ibm_cputbell
+ 0000:2F3D idle  ___ibm_crtinit
+ 0000:1C59       ___ibm_getputtextsize
+ 0000:1A5F       ___ibm_gettext
+ 0000:3039       ___ibm_get_screen_height
+ 0000:304E       ___ibm_get_windowy2
+ 0000:1A40       ___ibm_highvideo
+ 0000:1A4A       ___ibm_lowvideo
+ 0000:1A54       ___ibm_normvideo
+ 0000:1B39       ___ibm_puttext
+ 0000:1A27       ___ibm_textattr
+ 0000:19EA       ___ibm_textbackground
+ 0000:19BF       ___ibm_textcolor
+ 0000:2684       ___nec_c0crtinit
+ 0000:2754       ___nec_cputbell
+ 0000:261D       ___nec_getputtextsize
+ 0000:245F       ___nec_gettext
+ 0000:2715       ___nec_get_screen_height
+ 0000:2729       ___nec_get_windowy2
+ 0000:2430       ___nec_highvideo
+ 0000:2442       ___nec_lowvideo
+ 0000:2454       ___nec_normvideo
+ 0000:24CB       ___nec_puttext
+ 0000:23DB       ___nec_textattr
+ 0000:23B5       ___nec_textbackground
+ 0000:2381       ___nec_textcolor
+ 0000:35D4       ___row
+ 0000:0B6C       ___sbrk
+ 0000:1517       ___write
+
+  Address         Publics by Value
+
+ 0000:0000  Abs  __cvtfak
+ 0000:0000 idle  __turboCrt
+ 0000:0000 idle  __nec_turboCrt
+ 0000:000C idle  __AHSHIFT
+ 0000:1000 idle  __AHINCR
+ 0000:0242       __cleanup
+ 0000:0255       __checknull
+ 0000:0256       __terminate
+ 0000:02B1       __restorezero
+ 0000:0363 idle  DGROUP@
+ 0000:0365 idle  __MMODEL
+ 0000:0367 idle  _print_wherexy
+ 0000:038B       _main
+ 0000:03B2       __abort
+ 0000:03C7 idle  _atexit
+ 0000:03EF       ___ErrorMessage
+ 0000:0463       _exit
+ 0000:0476       __exit
+ 0000:048C idle  __cexit
+ 0000:049E idle  __c_exit
+ 0000:04AE       __IOERROR
+ 0000:04EC idle  __DOSERROR
+ 0000:0500       _isatty
+ 0000:0515       __LONGTOA
+ 0000:0592 idle  __UTOA
+ 0000:05B3       _lseek
+ 0000:05E0       __setupio
+ 0000:0693       __VPRINTER
+ 0000:0B46       ___brk
+ 0000:0B6C       ___sbrk
+ 0000:0BA1 idle  _brk
+ 0000:0BB1 idle  _sbrk
+ 0000:0BC5       _free
+ 0000:0C94       _malloc
+ 0000:0DEB idle  _realloc
+ 0000:0E3C       _fflush
+ 0000:0ECD       _flushall
+ 0000:0F7F       _fseek
+ 0000:0FE8 idle  _ftell
+ 0000:10B5       _memcpy
+ 0000:10D4       _printf
+ 0000:10EF idle  __fputc
+ 0000:110A idle  _fputc
+ 0000:124E idle  _fputchar
+ 0000:1263       __FPUTN
+ 0000:1416       _setvbuf
+ 0000:14FB       _strlen
+ 0000:1517       ___write
+ 0000:163C       __rtl_write
+ 0000:1679 idle  __write
+ 0000:1691       __xfflush
+ 0000:16E5       __REALCVT
+ 0000:16E9       _textcolor
+ 0000:170E idle  _textbackground
+ 0000:1733       _textattr
+ 0000:1758 idle  _highvideo
+ 0000:1773 idle  _lowvideo
+ 0000:178E idle  _normvideo
+ 0000:17A9       _gettext
+ 0000:17E9       _puttext
+ 0000:1829 idle  __getputtextsize
+ 0000:1863       __GOTOXY
+ 0000:188E       __cputbell
+ 0000:18A9       __RESET_VRAM_ACCESS
+ 0000:18C4       __START_VRAM_ACCESS
+ 0000:18DF       __END_VRAM_ACCESS
+ 0000:18FA       __OUTPUT_CHAR
+ 0000:1920       __SCROLL
+ 0000:1961       __MOVELINE
+ 0000:19A0       __WHEREXY
+ 0000:19BF       ___ibm_textcolor
+ 0000:19EA       ___ibm_textbackground
+ 0000:1A27       ___ibm_textattr
+ 0000:1A40       ___ibm_highvideo
+ 0000:1A4A       ___ibm_lowvideo
+ 0000:1A54       ___ibm_normvideo
+ 0000:1A5F       ___ibm_gettext
+ 0000:1B39       ___ibm_puttext
+ 0000:1C59       ___ibm_getputtextsize
+ 0000:1C74       __IBM_GOTOXY
+ 0000:1C8C       ___ibm_cputbell
+ 0000:1C98       __IBM_RESET_VRAM_ACCESS
+ 0000:1CA3       __IBM_START_VRAM_ACCESS
+ 0000:1D16       __IBM_END_VRAM_ACCESS
+ 0000:1DAE       __IBM_OUTPUT_CHAR
+ 0000:1E49       __IBM_SCROLL
+ 0000:2082       __IBM_SCREENIO
+ 0000:20CD       __IBM_CHECK_DBCS_TRAIL
+ 0000:2167       __IBM_FILL_SPACE
+ 0000:21A9       __IBM_OFF_CURSOR
+ 0000:21D3       __IBM_SET_CURSOR
+ 0000:21E6       __IBM_MOVELINE
+ 0000:22AA       __IBM_VPTR
+ 0000:22CE       __IBM_VRAM
+ 0000:2348       __IBM_REFRESH_VRAM
+ 0000:2373       __IBM_WHEREXY
+ 0000:2381       ___nec_textcolor
+ 0000:23B5       ___nec_textbackground
+ 0000:23DB       ___nec_textattr
+ 0000:2430       ___nec_highvideo
+ 0000:2442       ___nec_lowvideo
+ 0000:2454       ___nec_normvideo
+ 0000:245F       ___nec_gettext
+ 0000:24CB       ___nec_puttext
+ 0000:261D       ___nec_getputtextsize
+ 0000:263A       __NEC_GOTOXY
+ 0000:2684       ___nec_c0crtinit
+ 0000:2715       ___nec_get_screen_height
+ 0000:2729       ___nec_get_windowy2
+ 0000:2746       __NEC_VIDEOINT18
+ 0000:274D       __NEC_VIDEOINTDC
+ 0000:2754       ___nec_cputbell
+ 0000:2762       __NEC_RESET_VRAM_ACCESS
+ 0000:276D       __NEC_START_VRAM_ACCESS
+ 0000:27C0       __NEC_END_VRAM_ACCESS
+ 0000:2802       __NEC_OUTPUT_CHAR
+ 0000:2859       __NEC_SCROLL
+ 0000:2943       __NEC_ZAP_LINE
+ 0000:29B6       __NEC_MOVELINE
+ 0000:2A50       __NEC_WHEREXY
+ 0000:2A62       ___conio_type_init
+ 0000:2C44       __CPUTN
+ 0000:2CA1       _cputs
+ 0000:2CBA idle  __c0crtinit
+ 0000:2CD8       ___get_screen_height
+ 0000:2CFA       ___get_windowy2
+ 0000:2D1C       __MOVETEXT
+ 0000:2D9A       __VALIDATEXY
+ 0000:2E19       __IBM_VIDEOINT
+ 0000:2EC9       __IBM_VIDEOINTESDI
+ 0000:2EE3       __IBM_VIDEOINTESBP
+ 0000:2F1A       ___ibm_c0crtinit
+ 0000:2F3D idle  ___ibm_crtinit
+ 0000:3039       ___ibm_get_screen_height
+ 0000:304E       ___ibm_get_windowy2
+ 0000:3070 idle  DATASEG@
+ 0000:30AA idle  __Int0Vector
+ 0000:30AE idle  __Int4Vector
+ 0000:30B2 idle  __Int5Vector
+ 0000:30B6 idle  __Int6Vector
+ 0000:30BA idle  __C0argc
+ 0000:30BC idle  __C0argv
+ 0000:30BE idle  __C0environ
+ 0000:30C0 idle  __envLng
+ 0000:30C2 idle  __envseg
+ 0000:30C4 idle  __envSize
+ 0000:30C6 idle  __psp
+ 0000:30C8 idle  __osversion
+ 0000:30C8 idle  __osmajor
+ 0000:30C8 idle  __version
+ 0000:30C9 idle  __osminor
+ 0000:30CA       _errno
+ 0000:30CC idle  __Exception_list
+ 0000:30CE idle  ___heapbase
+ 0000:30D0       ___brklvl
+ 0000:30D2 idle  __heapbase
+ 0000:30D6 idle  __brklvl
+ 0000:30DA idle  __heaptop
+ 0000:313C       __atexitcnt
+ 0000:313E       __exitbuf
+ 0000:3140 idle  __exitfopen
+ 0000:3142 idle  __exitopen
+ 0000:3144       __streams
+ 0000:3284       __nfile
+ 0000:3286       __openfd
+ 0000:32AE       __heaplen
+ 0000:32B0 idle  __doserrno
+ 0000:32B2 idle  __dosErrorToSV
+ 0000:330C       __stklen
+ 0000:3376 idle  __first
+ 0000:3378 idle  __last
+ 0000:337A idle  __rover
+ 0000:3382       __sys_nerr
+ 0000:3436       ___conio_type
+ 0000:343A       __video
+ 0000:344E       __directvideo
+ 0000:3450       __wclrnorm
+ 0000:3452       __wedgectrl
+ 0000:3454       __wgarbage
+ 0000:3456       __wkanji
+ 0000:3458       __wnewline
+ 0000:345A       __wscroll
+ 0000:345C       __mbctype
+ 0000:3566       __RealCvtVector
+ 0000:3568 idle  __ScanTodVector
+ 0000:3580       __atexittbl
+ 0000:35D2       ___col
+ 0000:35D4       ___row
+
+

@@ -12,9 +12,9 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU General Public License along
+//  with this program; if not, write to the Free Software Foundation, Inc.,
+//  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 //  ---------------------------------------------------------------------------
 
 #ifndef __ENVELOPE_H__
@@ -202,16 +202,16 @@ void EnvelopeGenerator::clock(cycle_count delta_t)
   //
 
   // NB! This requires two's complement integer.
-  int rate_step = rate_period - rate_counter;
+  int rate_step = (int)(rate_period - rate_counter);
   if (rate_step <= 0) {
     rate_step += 0x7fff;
   }
 
   while (delta_t) {
     if (delta_t < rate_step) {
-      rate_counter += delta_t;
-      if (rate_counter & 0x8000) {
-	++rate_counter &= 0x7fff;
+      rate_counter += (unsigned int)delta_t;
+      if (rate_counter & 0x8000u) {
+	++rate_counter &= 0x7fffu;
       }
       return;
     }
@@ -228,7 +228,7 @@ void EnvelopeGenerator::clock(cycle_count delta_t)
 
       // Check whether the envelope counter is frozen at zero.
       if (hold_zero) {
-	rate_step = rate_period;
+	rate_step = (int)rate_period;
 	continue;
       }
 
@@ -291,7 +291,7 @@ void EnvelopeGenerator::clock(cycle_count delta_t)
       }
     }
 
-    rate_step = rate_period;
+    rate_step = (int)rate_period;
   }
 }
 

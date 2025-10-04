@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,22 +11,25 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
+#include <assert.h>
 #include <string.h>
 #include "control.h"
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "setup.h"
 #include "cpu.h"
 #include "../src/cpu/lazyflags.h"
 #include "callback.h"
 
 //#define ENABLE_PORTLOG
+
+#include <math.h> /* floor */
 
 #include <vector>
 
@@ -48,11 +51,18 @@ IO_ReadHandler * io_readhandlers[3][IO_MAX];
 
 static IO_callout_vector IO_callouts[IO_callouts_max];
 
+#if C_DEBUG
+void DEBUG_EnableDebugger(void);
+#endif
+
 static Bitu IO_ReadBlocked(Bitu /*port*/,Bitu /*iolen*/) {
-	return ~0;
+	return ~0ul;
 }
 
 static void IO_WriteBlocked(Bitu /*port*/,Bitu /*val*/,Bitu /*iolen*/) {
+#if C_DEBUG && 0
+    DEBUG_EnableDebugger();
+#endif
 }
 
 static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
@@ -70,7 +80,7 @@ static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
 			(io_readhandlers[1][port+0](port+0,2) << 0) |
 			(io_readhandlers[1][port+2](port+2,2) << 16);
 	}
-	return ~0;
+	return ~0ul;
 }
 
 void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
@@ -91,7 +101,8 @@ void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
 }
 
 template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
-    IO_callout_vector &vec = IO_callouts[iotype - IO_TYPE_MIN];
+    int actual = iotype - IO_TYPE_MIN;
+    IO_callout_vector &vec = IO_callouts[actual];
     unsigned int match = 0;
     IO_ReadHandler *t_f;
     size_t scan = 0;
@@ -100,7 +111,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &r
         IO_CalloutObject &obj = vec[scan++];
         if (!obj.isInstalled()) continue;
         if (obj.m_r_handler == NULL) continue;
-        if (!obj.MatchPort(port)) continue;
+        if (!obj.MatchPort((uint16_t)port)) continue;
 
         t_f = obj.m_r_handler(obj,port,iolen);
         if (t_f != NULL) {
@@ -122,7 +133,8 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &r
 }
 
 template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
-    IO_callout_vector &vec = IO_callouts[iotype - IO_TYPE_MIN];
+    int actual = iotype - IO_TYPE_MIN;
+    IO_callout_vector &vec = IO_callouts[actual];
     unsigned int match = 0;
     IO_WriteHandler *t_f;
     size_t scan = 0;
@@ -131,7 +143,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Write(IO_Wri
         IO_CalloutObject &obj = vec[scan++];
         if (!obj.isInstalled()) continue;
         if (obj.m_w_handler == NULL) continue;
-        if (!obj.MatchPort(port)) continue;
+        if (!obj.MatchPort((uint16_t)port)) continue;
 
         t_f = obj.m_w_handler(obj,port,iolen);
         if (t_f != NULL) {
@@ -172,11 +184,10 @@ static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
     IO_ReadHandler *f = iolen > 1 ? IO_ReadDefault : IO_ReadBlocked;
     unsigned int match = 0;
     unsigned int porti;
-    Bitu ret = ~0;
+    Bitu ret = ~0ul;
 
     /* check motherboard devices */
-    if ((port & 0xFF00) == 0x0000) /* motherboard-level I/O */
-        match = IO_Motherboard_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
+    match = IO_Motherboard_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
 
     if (match == 0) {
         /* first PCI bus device, then ISA.
@@ -220,10 +231,10 @@ static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
     }
 
     /* if nothing matched, assign default handler to IO handler slot.
-     * if one device responded, assign it's handler to the IO handler slot.
+     * if one device responded, assign its handler to the IO handler slot.
      * if more than one responded, then do not update the IO handler slot. */
     assert(iolen >= 1 && iolen <= 4);
-    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
+    porti = (iolen >= 4) ? 2 : (unsigned int)(iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
     LOG(LOG_MISC,LOG_DEBUG)("IO read slow path port=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)iolen,(unsigned int)match);
     if (match == 0) ret = f(port,iolen); /* if nobody responded, then call the default */
     if (match <= 1) io_readhandlers[porti][port] = f;
@@ -237,8 +248,7 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
     unsigned int porti;
 
     /* check motherboard devices */
-    if ((port & 0xFF00) == 0x0000) /* motherboard-level I/O */
-        match = IO_Motherboard_Callout_Write(/*&*/f,port,val,iolen);
+    match = IO_Motherboard_Callout_Write(/*&*/f,port,val,iolen);
 
     if (match == 0) {
         /* first PCI bus device, then ISA.
@@ -280,13 +290,17 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
     }
 
     /* if nothing matched, assign default handler to IO handler slot.
-     * if one device responded, assign it's handler to the IO handler slot.
+     * if one device responded, assign its handler to the IO handler slot.
      * if more than one responded, then do not update the IO handler slot. */
     assert(iolen >= 1 && iolen <= 4);
-    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
+    porti = (iolen >= 4) ? 2 : (unsigned int)(iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
     LOG(LOG_MISC,LOG_DEBUG)("IO write slow path port=%x data=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)val,(unsigned int)iolen,(unsigned int)match);
     if (match == 0) f(port,val,iolen); /* if nobody responded, then call the default */
     if (match <= 1) io_writehandlers[porti][port] = f;
+
+#if C_DEBUG && 0
+    if (match == 0) DEBUG_EnableDebugger();
+#endif
 }
 
 void IO_RegisterReadHandler(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range) {
@@ -330,12 +344,10 @@ void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range) {
 }
 
 void IO_InvalidateCachedHandler(Bitu port,Bitu range) {
-    Bitu mb,r,p;
-
     assert((port+range) <= IO_MAX);
-    for (mb=0;mb <= 2;mb++) {
-        p = port;
-        r = range;
+    for (Bitu mb=0;mb <= 2;mb++) {
+        Bitu p = port;
+        Bitu r = range;
         while (r--) {
             io_writehandlers[mb][p]=IO_WriteSlowPath;
             io_readhandlers[mb][p]=IO_ReadSlowPath;
@@ -393,8 +405,11 @@ IO_WriteHandleObject::~IO_WriteHandleObject(){
 /* how much delay to add to I/O in nanoseconds */
 int io_delay_ns[3] = {-1,-1,-1};
 
+/* nonzero if we're in a callback */
+extern unsigned int last_callback;
+
 inline void IO_USEC_read_delay(const unsigned int szidx) {
-	if (io_delay_ns[szidx] > 0) {
+	if (io_delay_ns[szidx] > 0 && last_callback == 0/*NOT running within a callback function*/) {
 		Bits delaycyc = (CPU_CycleMax * io_delay_ns[szidx]) / 1000000;
 		CPU_Cycles -= delaycyc;
 		CPU_IODelayRemoved += delaycyc;
@@ -402,7 +417,7 @@ inline void IO_USEC_read_delay(const unsigned int szidx) {
 }
 
 inline void IO_USEC_write_delay(const unsigned int szidx) {
-	if (io_delay_ns[szidx] > 0) {
+	if (io_delay_ns[szidx] > 0 && last_callback == 0/*NOT running within a callback function*/) {
 		Bits delaycyc = (CPU_CycleMax * io_delay_ns[szidx] * 3) / (1000000 * 4);
 		CPU_Cycles -= delaycyc;
 		CPU_IODelayRemoved += delaycyc;
@@ -410,7 +425,7 @@ inline void IO_USEC_write_delay(const unsigned int szidx) {
 }
 
 #ifdef ENABLE_PORTLOG
-static Bit8u crtc_index = 0;
+static uint8_t crtc_index = 0;
 const char* const len_type[] = {" 8","16","32"};
 void log_io(Bitu width, bool write, Bitu port, Bitu val) {
 	switch(width) {
@@ -424,8 +439,8 @@ void log_io(Bitu width, bool write, Bitu port, Bitu val) {
 	if (write) {
 		// skip the video cursor position spam
 		if (port==0x3d4) {
-			if (width==0) crtc_index = (Bit8u)val;
-			else if(width==1) crtc_index = (Bit8u)(val>>8);
+			if (width==0) crtc_index = (uint8_t)val;
+			else if(width==1) crtc_index = (uint8_t)(val>>8);
 		}
 		if (crtc_index==0xe || crtc_index==0xf) {
 			if((width==0 && (port==0x3d4 || port==0x3d5))||(width==1 && port==0x3d4))
@@ -475,7 +490,7 @@ void log_io(Bitu width, bool write, Bitu port, Bitu val) {
 #endif
 
 
-void IO_WriteB(Bitu port,Bitu val) {
+void IO_WriteB(Bitu port,uint8_t val) {
 	log_io(0, true, port, val);
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,1)))) {
 		CPU_ForceV86FakeIO_Out(port,val,1);
@@ -486,7 +501,7 @@ void IO_WriteB(Bitu port,Bitu val) {
 	}
 }
 
-void IO_WriteW(Bitu port,Bitu val) {
+void IO_WriteW(Bitu port,uint16_t val) {
 	log_io(1, true, port, val);
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,2)))) {
 		CPU_ForceV86FakeIO_Out(port,val,2);
@@ -497,7 +512,7 @@ void IO_WriteW(Bitu port,Bitu val) {
 	}
 }
 
-void IO_WriteD(Bitu port,Bitu val) {
+void IO_WriteD(Bitu port,uint32_t val) {
 	log_io(2, true, port, val);
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,4)))) {
 		CPU_ForceV86FakeIO_Out(port,val,4);
@@ -508,40 +523,40 @@ void IO_WriteD(Bitu port,Bitu val) {
 	}
 }
 
-Bitu IO_ReadB(Bitu port) {
-	Bitu retval;
+uint8_t IO_ReadB(Bitu port) {
+	uint8_t retval;
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,1)))) {
-		return CPU_ForceV86FakeIO_In(port,1);
+		return (uint8_t)CPU_ForceV86FakeIO_In(port,1);
 	}
 	else {
 		IO_USEC_read_delay(0);
-		retval = io_readhandlers[0][port](port,1);
+		retval = (uint8_t)io_readhandlers[0][port](port,1);
 	}
 	log_io(0, false, port, retval);
 	return retval;
 }
 
-Bitu IO_ReadW(Bitu port) {
-	Bitu retval;
+uint16_t IO_ReadW(Bitu port) {
+	uint16_t retval;
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,2)))) {
-		return CPU_ForceV86FakeIO_In(port,2);
+		return (uint16_t)CPU_ForceV86FakeIO_In(port,2);
 	}
 	else {
 		IO_USEC_read_delay(1);
-		retval = io_readhandlers[1][port](port,2);
+		retval = (uint16_t)io_readhandlers[1][port](port,2);
 	}
 	log_io(1, false, port, retval);
 	return retval;
 }
 
-Bitu IO_ReadD(Bitu port) {
-	Bitu retval;
+uint32_t IO_ReadD(Bitu port) {
+	uint32_t retval;
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,4)))) {
-		return CPU_ForceV86FakeIO_In(port,4);
+		return (uint32_t)CPU_ForceV86FakeIO_In(port,4);
 	}
 	else {
 		IO_USEC_read_delay(2);
-		retval = io_readhandlers[2][port](port,4);
+		retval = (uint32_t)io_readhandlers[2][port](port,4);
 	}
 	log_io(2, false, port, retval);
 	return retval;
@@ -602,9 +617,9 @@ void IO_CalloutObject::InvalidateCachedHandlers(void) {
      *
      *      Not too bad, really. */
 
-    /* for both the base I/O, as well as it's aliases, revert the I/O ports back to "slow path" */
-    for (p=m_port;p < 0x10000;p += alias_mask+1)
-        IO_InvalidateCachedHandler(p,range_mask+1);
+    /* for both the base I/O, as well as its aliases, revert the I/O ports back to "slow path" */
+    for (p=m_port;p < 0x10000ul;p += alias_mask+1ul)
+        IO_InvalidateCachedHandler(p,range_mask+1ul);
 }
 
 void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler) {
@@ -631,7 +646,7 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
             range_mask = 0;
             test = portmask ^ 0xFFFFU;
             while ((test & m) == m) {
-                range_mask = m;
+                range_mask = (uint16_t)m;
                 m = (m << 1) + 1;
             }
 
@@ -649,7 +664,7 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
             alias_mask = range_mask;
             test = portmask + range_mask; /* will break if portmask & range_mask != 0 */
             while ((test & m) == m) {
-                alias_mask = m;
+                alias_mask = (uint16_t)m;
                 m = (m << 1) + 1;
             }
 
@@ -694,7 +709,7 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
 		m_port=port;
 		m_mask=0; /* not used */
 		m_range=0; /* not used */
-        io_mask=portmask;
+        io_mask=(uint16_t)portmask;
         m_r_handler=r_handler;
         m_w_handler=w_handler;
 
@@ -729,7 +744,7 @@ void IO_InitCallouts(void) {
  *
  * this allows us to maintain ready-made IO callout objects to return quickly rather
  * than write more complicated code where the caller has to make an IO_CalloutObject
- * and then call install and we have to add it's pointer to a list/vector/whatever.
+ * and then call install and we have to add its pointer to a list/vector/whatever.
  * It also avoids problems where if we have to resize the vector, the pointers become
  * invalid, because callers have only handles and they have to put all the pointers
  * back in order for us to resize the vector. */
@@ -758,7 +773,7 @@ try_again:
         size_t nsz = vec.size() * 2;
 
         LOG(LOG_MISC,LOG_WARN)("IO_AllocateCallout type %u expanding array to %u",(unsigned int)t,(unsigned int)nsz);
-        vec.alloc_from = vec.size(); /* allocate from end of old vector size */
+        vec.alloc_from = (unsigned int)vec.size(); /* allocate from end of old vector size */
         vec.resize(nsz);
         goto try_again;
     }
@@ -786,7 +801,8 @@ void IO_FreeCallout(IO_Callout_t c) {
         obj.Uninstall();
 
     obj.alloc = false;
-    vec.alloc_from = idx; /* an empty slot just opened up, you can alloc from there */
+    if (vec.alloc_from > idx)
+        vec.alloc_from = idx; /* an empty slot just opened up, you can alloc from there */
 }
 
 IO_CalloutObject *IO_GetCallout(IO_Callout_t c) {
@@ -814,3 +830,18 @@ void IO_PutCallout(IO_CalloutObject *obj) {
     obj->getcounter--;
 }
 
+//save state support
+namespace
+{
+class SerializeIO : public SerializeGlobalPOD
+{
+public:
+    SerializeIO() : SerializeGlobalPOD("IO handler")
+    {
+        //io_writehandlers -> quasi constant
+        //io_readhandlers  -> quasi constant
+
+        //registerPOD(iof_queue.used); registerPOD(iof_queue.entries);
+    }
+} dummy;
+}

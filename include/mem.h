@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,367 +11,348 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #ifndef DOSBOX_MEM_H
 #define DOSBOX_MEM_H
 
-#ifndef DOSBOX_DOSBOX_H
 #include "dosbox.h"
-#endif
 
-/* MinGW implements some MSVC idioms, so always test for MinGW first. */
-#if defined(__MINGW32__)
+#include "byteorder.h"
 
-# if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define MEM_PAGESIZE        (4096U)
 
-#  define htobe16(x) htons(x)
-#  define htole16(x) (x)
-#  define be16toh(x) ntohs(x)
-#  define le16toh(x) (x)
+/* HostPt and ConstHostPt is for holding linear addresses within this emulator i.e. a normal pointer.
+ *
+ * PhysPt is for 32-bit physical memory addresses within the emulation environment.
+ * PhysPt64 is for 64-bit physical memory addresses for code and device/memory emulation that supports addresses above 4GB.
+ * LinearPt is a 32-bit linear memory address from the point of view of the CPU execution context, meaning the linear address
+ *   of the code prior to translation through the page tables to physical addresses.
+ * RealPt is a 32-bit value that holds segment in the upper 16 bits, offset in the lower 16 bits.
+ *
+ * Please do not mix these types up in the code, even if they happen to have the same underlying data types */
 
-#  define htobe32(x) htonl(x)
-#  define htole32(x) (x)
-#  define be32toh(x) ntohl(x)
-#  define le32toh(x) (x)
+typedef uint8_t const *       ConstHostPt;        /* host (virtual) memory address aka ptr */
+typedef uint8_t *             HostPt;             /* host (virtual) memory address aka ptr */
 
-#  define htobe64(x) htonll(x)
-#  define htole64(x) (x)
-#  define be64toh(x) ntohll(x)
-#  define le64toh(x) (x)
+typedef uint32_t              PhysPt;             /* guest physical memory pointer */
+typedef uint32_t              LinearPt;           /* guest linear memory address */
+typedef uint32_t              RealPt;             /* guest real-mode memory address (16:16 -> seg:offset) */
+typedef uint16_t              SegmentVal;         /* guest segment value */
+typedef uint32_t              PageNum;            /* page frame number */
 
-# elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+typedef uint64_t              PhysPt64;           /* guest physical memory pointer */
 
-#  define htobe16(x) (x)
-#  define htole16(x) __builtin_bswap16(x)
-#  define be16toh(x) (x)
-#  define le16toh(x) __builtin_bswap16(x)
+typedef int32_t               MemHandle;
 
-#  define htobe32(x) (x)
-#  define htole32(x) __builtin_bswap32(x)
-#  define be32toh(x) (x)
-#  define le32toh(x) __builtin_bswap32(x)
+extern HostPt                 MemBase;
+extern size_t                 MemSize;
 
-#  define htobe64(x) (x)
-#  define htole64(x) __builtin_bswap64(x)
-#  define be64toh(x) (x)
-#  define le64toh(x) __builtin_bswap64(x)
-
-# else
-#  error Unexpected __BYTE_ORDER__
-
-# endif /* __MINGW__ __BYTE_ORDER__ */
-
-#elif defined(_MSC_VER)
-
-# if BYTE_ORDER == LITTLE_ENDIAN
-
-# define htobe16(x) htons(x)
-# define htole16(x) (x)
-# define be16toh(x) ntohs(x)
-# define le16toh(x) (x)
-
-# define htobe32(x) htonl(x)
-# define htole32(x) (x)
-# define be32toh(x) ntohl(x)
-# define le32toh(x) (x)
-
-# define htobe64(x) htonll(x)
-# define htole64(x) (x)
-# define be64toh(x) ntohll(x)
-# define le64toh(x) (x)
-
-# elif BYTE_ORDER == BIG_ENDIAN
-
-# define htobe16(x) (x)
-# define htole16(x) __builtin_bswap16(x)
-# define be16toh(x) (x)
-# define le16toh(x) __builtin_bswap16(x)
-
-# define htobe32(x) (x)
-# define htole32(x) __builtin_bswap32(x)
-# define be32toh(x) (x)
-# define le32toh(x) __builtin_bswap32(x)
-
-# define htobe64(x) (x)
-# define htole64(x) __builtin_bswap64(x)
-# define be64toh(x) (x)
-# define le64toh(x) __builtin_bswap64(x)
-
-# else
-# error Unexpected BYTE_ORDER.
-
-# endif /* _MSC_VER BYTE_ORDER */
-
-#elif defined(__APPLE__)
- /* This is a simple compatibility shim to convert
- * BSD/Linux endian macros to the Mac OS X equivalents. */
-#include <libkern/OSByteOrder.h>
-#define htobe16(x) OSSwapHostToBigInt16(x)
-#define htole16(x) OSSwapHostToLittleInt16(x)
-#define be16toh(x) OSSwapBigToHostInt16(x)
-#define le16toh(x) OSSwapLittleToHostInt16(x)
-
-#define htobe32(x) OSSwapHostToBigInt32(x)
-#define htole32(x) OSSwapHostToLittleInt32(x)
-#define be32toh(x) OSSwapBigToHostInt32(x)
-#define le32toh(x) OSSwapLittleToHostInt32(x)
-
-#define htobe64(x) OSSwapHostToBigInt64(x)
-#define htole64(x) OSSwapHostToLittleInt64(x)
-#define be64toh(x) OSSwapBigToHostInt64(x)
-#define le64toh(x) OSSwapLittleToHostInt64(x)
-
-#elif defined(__linux__) || defined(__CYGWIN__)
-
-#include <endian.h>
-
-#elif defined(__OpenBSD__)
-
-#include <sys/endian.h>
-
-#elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
-
-#include <sys/endian.h>
-
-#define be16toh(x) betoh16(x)
-#define le16toh(x) letoh16(x)
-
-#define be32toh(x) betoh32(x)
-#define le32toh(x) letoh32(x)
-
-#define be64toh(x) betoh64(x)
-#define le64toh(x) letoh64(x)
-
-#endif
-
-typedef Bit8u *HostPt;		/* host (virtual) memory address aka ptr */
-
-typedef Bit32u PhysPt;		/* guest physical memory pointer */
-typedef Bit32u LinearPt;	/* guest linear memory address */
-typedef Bit32u RealPt;		/* guest real-mode memory address (16:16 -> seg:offset) */
-typedef Bit16u SegmentVal;	/* guest segment value */
-
-typedef Bit32s MemHandle;
-
-#define MEM_PAGESIZE 4096
-
-extern HostPt MemBase;
-HostPt GetMemBase(void);
-
-bool MEM_A20_Enabled(void);
-void MEM_A20_Enable(bool enable);
+HostPt                      GetMemBase(void);
+bool                        MEM_A20_Enabled(void);
+void                        MEM_A20_Enable(bool enabled);
 
 /* Memory management / EMS mapping */
-HostPt MEM_GetBlockPage(void);
-Bitu MEM_FreeTotal(void);			//Free 4 kb pages
-Bitu MEM_FreeLargest(void);			//Largest free 4 kb pages block
-Bitu MEM_TotalPages(void);			//Total amount of 4 kb pages
-Bitu MEM_AllocatedPages(MemHandle handle); // amount of allocated pages of handle
-MemHandle MEM_AllocatePages(Bitu pages,bool sequence);
-MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence);
-MemHandle MEM_GetNextFreePage(void);
-PhysPt MEM_AllocatePage(void);
-void MEM_ReleasePages(MemHandle handle);
-bool MEM_ReAllocatePages(MemHandle & handle,Bitu pages,bool sequence);
+Bitu                        MEM_FreeTotal(void);           //Free 4 kb pages
+Bitu                        MEM_FreeLargest(void);         //Largest free 4 kb pages block
+Bitu                        MEM_TotalPages(void);          //Total amount of 4 kb pages
+Bitu                        MEM_TotalPagesAt4GB(void);          //Total amount of 4 kb pages starting at 4GB
+Bitu                        MEM_ConventionalPages(void);
+Bitu                        MEM_AllocatedPages(MemHandle handle); // amount of allocated pages of handle
+MemHandle                   MEM_AllocatePages(Bitu pages,bool sequence);
+MemHandle                   MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence);
+MemHandle                   MEM_GetNextFreePage(void);
+void                        MEM_ReleasePages(MemHandle handle);
+bool                        MEM_ReAllocatePages(MemHandle & handle,Bitu pages,bool sequence);
 
-MemHandle MEM_NextHandle(MemHandle handle);
-MemHandle MEM_NextHandleAt(MemHandle handle,Bitu where);
+MemHandle                   MEM_NextHandle(MemHandle handle);
+MemHandle                   MEM_NextHandleAt(MemHandle handle,Bitu where);
+
+uint32_t                    MEM_HardwareAllocate(const char *name,uint32_t sz);
+
+static constexpr bool build_memlimit_32bit(void) {
+	return sizeof(void*) < 8;
+}
 
 /* 
-	The folowing six functions are used everywhere in the end so these should be changed for
-	Working on big or little endian machines 
+    The following six functions are used everywhere in the end so these should be changed for
+    Working on big or little endian machines 
 */
 
-#if !defined(C_UNALIGNED_MEMORY)
-/* meaning: we're probably being compiled for a processor that doesn't like unaligned WORD access,
-            on such processors typecasting memory as uint16_t and higher can cause a fault if the
-	    address is not aligned to that datatype when we read/write through it. */
-
-static INLINE Bit8u host_readb(HostPt off) {
-	return *off;
-}
-static INLINE Bit16u host_readw(HostPt off) {
-	return (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+1) << (Bit16u)8);
-}
-static INLINE Bit32u host_readd(HostPt off) {
-	return (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+2) << (Bit32u)16);
-}
-static INLINE Bit64u host_readq(HostPt off) {
-	return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+4) << (Bit64u)32);
+static INLINE uint8_t host_readb(ConstHostPt const off) {
+    return *off;
 }
 
-static INLINE void host_writeb(HostPt off,Bit8u val) {
-	*off = val;
+static INLINE void host_writeb(HostPt const off,const uint8_t val) {
+    *off = val;
 }
-static INLINE void host_writew(HostPt off,Bit16u val) {
-	host_writeb(off,(Bit8u)(val));
-	host_writeb(off+1,(Bit8u)(val >> (Bit16u)8));
+
+// use __builtin_bswap* for gcc >= 4.3
+#if defined(WORDS_BIGENDIAN) && defined(__GNUC__) && \
+    (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
+
+static INLINE uint16_t host_readw(ConstHostPt off) {
+    return __builtin_bswap16(*(uint16_t *)off);
 }
-static INLINE void host_writed(HostPt off,Bit32u val) {
-	host_writew(off,(Bit16u)(val));
-	host_writew(off+2,(Bit16u)(val >> (Bit32u)16));
+static INLINE uint32_t host_readd(ConstHostPt off) {
+    return __builtin_bswap32(*(uint32_t *)off);
 }
-static INLINE void host_writeq(HostPt off,Bit64u val) {
-	host_writed(off,(Bit32u)(val));
-	host_writed(off+4,(Bit32u)(val >> (Bit64u)32));
+static INLINE void host_writew(HostPt const off, const uint16_t val) {
+    *(uint16_t *)off = __builtin_bswap16(val);
+}
+static INLINE void host_writed(HostPt const off, const uint32_t val) {
+    *(uint32_t *)off = __builtin_bswap32(val);
+}
+static INLINE void host_writeq(HostPt const off, const uint64_t val) {
+    *(uint64_t *)off = __builtin_bswap64(val);
+}
+#elif !defined(C_UNALIGNED_MEMORY)
+/* !defined(C_UNALIGNED_MEMORY) meaning: we're probably being compiled for a processor that doesn't like unaligned WORD access,
+        on such processors typecasting memory as uint16_t and higher can cause a fault if the
+        address is not aligned to that datatype when we read/write through it. */
+
+static INLINE uint16_t host_readw(ConstHostPt const off) {
+    return (uint16_t)host_readb(off) + ((uint16_t)host_readb(off+(uintptr_t)1U) << (uint16_t)8U);
+}
+static INLINE uint32_t host_readd(ConstHostPt const off) {
+    return (uint32_t)host_readw(off) + ((uint32_t)host_readw(off+(uintptr_t)2U) << (uint32_t)16U);
+}
+static INLINE uint64_t host_readq(ConstHostPt const off) {
+    return (uint64_t)host_readd(off) + ((uint64_t)host_readd(off+(uintptr_t)4U) << (uint64_t)32U);
+}
+
+
+static INLINE void host_writew(HostPt const off,const uint16_t val) {
+    host_writeb(off,   (uint8_t)(val));
+    host_writeb(off+1U,(uint8_t)(val >> (uint16_t)8U));
+}
+static INLINE void host_writed(HostPt const off,const uint32_t val) {
+    host_writew(off,   (uint16_t)(val));
+    host_writew(off+2U,(uint16_t)(val >> (uint32_t)16U));
+}
+static INLINE void host_writeq(HostPt const off,const uint64_t val) {
+    host_writed(off,   (uint32_t)(val));
+    host_writed(off+4U,(uint32_t)(val >> (uint64_t)32U));
 }
 
 #else
 
-static INLINE Bit8u host_readb(HostPt off) {
-	return *(Bit8u *)off;
+static INLINE uint16_t host_readw(ConstHostPt const off) {
+    return le16toh((*(const uint16_t *)off)); // BSD endian.h
 }
-static INLINE Bit16u host_readw(HostPt off) {
-	return le16toh((*(Bit16u *)off)); // BSD endian.h
+static INLINE uint32_t host_readd(ConstHostPt const off) {
+    return le32toh((*(const uint32_t *)off)); // BSD endian.h
 }
-static INLINE Bit32u host_readd(HostPt off) {
-	return le32toh((*(Bit32u *)off)); // BSD endian.h
-}
-static INLINE Bit64u host_readq(HostPt off) {
-	return le64toh((*(Bit64u *)off)); // BSD endian.h
+static INLINE uint64_t host_readq(ConstHostPt const off) {
+    return le64toh((*(const uint64_t *)off)); // BSD endian.h
 }
 
-static INLINE void host_writeb(HostPt off,Bit8u val) {
-	*(Bit8u *)(off) = val;
+static INLINE void host_writew(HostPt const off,const uint16_t val) {
+    *(uint16_t *)(off) = htole16(val);
 }
-static INLINE void host_writew(HostPt off,Bit16u val) {
-	*(Bit16u *)(off) = htole16(val);
+static INLINE void host_writed(HostPt const off,const uint32_t val) {
+    *(uint32_t *)(off) = htole32(val);
 }
-static INLINE void host_writed(HostPt off,Bit32u val) {
-	*(Bit32u *)(off) = htole32(val);
-}
-static INLINE void host_writeq(HostPt off,Bit64u val) {
-	*(Bit64u *)(off) = htole64(val);
+static INLINE void host_writeq(HostPt const off,const uint64_t val) {
+    *(uint64_t *)(off) = htole64(val);
 }
 
 #endif
 
 
-static INLINE void var_write(Bit8u * var, Bit8u val) {
-	host_writeb((HostPt)var, val);
+static INLINE void var_write(uint8_t * const var, const uint8_t val) {
+    host_writeb(var, val);
 }
 
-static INLINE void var_write(Bit16u * var, Bit16u val) {
-	host_writew((HostPt)var, val);
+static INLINE void var_write(uint16_t * const var, const uint16_t val) {
+    host_writew((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit32u * var, Bit32u val) {
-	host_writed((HostPt)var, val);
+static INLINE void var_write(uint32_t * const var, const uint32_t val) {
+    host_writed((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit64u * var, Bit64u val) {
-	host_writeq((HostPt)var, val);
+static INLINE void var_write(uint64_t * const var, const uint64_t val) {
+    host_writeq((HostPt)var, val);
 }
 
-/* The Folowing six functions are slower but they recognize the paged memory system */
+static INLINE uint16_t var_read(uint16_t * var) {
+    return host_readw((ConstHostPt)var);
+}
 
-Bit8u  mem_readb(PhysPt pt);
-Bit16u mem_readw(PhysPt pt);
-Bit32u mem_readd(PhysPt pt);
+static INLINE uint32_t var_read(uint32_t * var) {
+    return host_readd((ConstHostPt)var);
+}
 
-void mem_writeb(PhysPt pt,Bit8u val);
-void mem_writew(PhysPt pt,Bit16u val);
-void mem_writed(PhysPt pt,Bit32u val);
+/* The Following six functions are slower but they recognize the paged memory system */
+
+uint8_t  mem_readb(const LinearPt address);
+uint16_t mem_readw(const LinearPt address);
+uint32_t mem_readd(const LinearPt address);
+
+void mem_writeb(const LinearPt address,const uint8_t val);
+void mem_writew(const LinearPt address,const uint16_t val);
+void mem_writed(const LinearPt address,const uint32_t val);
 
 void phys_writes(PhysPt addr, const char* string, Bitu length);
 
-static INLINE void phys_writeb(PhysPt addr,Bit8u val) {
-	host_writeb(MemBase+addr,val);
+/* WARNING: These will cause a segfault or out of bounds access IF
+ *          addr is beyond the end of memory */
+/* 2024/12/22: Looking across the DOSBox-X codebase, these functions
+ *             aren't used TOO often, and where they are used, some
+ *             code has memory range checks anyway. So it doesn't hurt
+ *             performance very much if at all to just put the range
+ *             check here instead, in order not to segfault if somehow
+ *             the address given is beyond end of system memory. --J.C.
+ *
+ *             There is one more important detail here. These functions
+ *             take only a 32-bit physical address. Which means if more
+ *             than 32 address bits are enabled on the CPU and the OS
+ *             has PSE/PAE page tables enabled, these functions will not
+ *             be able to reach above 4GB. Given how memory will be
+ *             segmented between the 'below 4GB' and 'above 4GB' regions,
+ *             if emulating 4GB or more, that is perfectly fine. S3 XGA
+ *             and ISA DMA emulation will never reach above 4GB anyway.
+ *
+ *             The way the range check is done is ideal for performance,
+ *             yet may fail to work correctly if MemSize is very close
+ *             to zero, low enough that subtraction would cause it to
+ *             wrap back around to the largest possible value. The code,
+ *             when MemBase is a valid pointer, will never set MemSize
+ *             that small. */
+/* NTS: Technically these phys_ functions are misnamed. They don't read/write
+ *      all physically addressable memory and MMIO attached to the CPU. These
+ *      functions can only address system RAM. So perhaps they should be named
+ *      physmem_read/physmem_write instead and a physmmio_read/physmmio_write
+ *      function should be added that addresses the "physical" memory addresses
+ *      accessible to the CPU. That hackery in the debugger to dump by physical
+ *      memory addresse could be a useful guide on how to do that. --J.C. */
+
+static INLINE void phys_writeb(const PhysPt addr,const uint8_t val) {
+    if (addr < MemSize)
+        host_writeb(MemBase+addr,val);
 }
-static INLINE void phys_writew(PhysPt addr,Bit16u val){
-	host_writew(MemBase+addr,val);
+static INLINE void phys_writew(const PhysPt addr,const uint16_t val) {
+    if (addr < (MemSize-1u))
+        host_writew(MemBase+addr,val);
 }
-static INLINE void phys_writed(PhysPt addr,Bit32u val){
-	host_writed(MemBase+addr,val);
+static INLINE void phys_writed(const PhysPt addr,const uint32_t val) {
+    if (addr < (MemSize-3u))
+        host_writed(MemBase+addr,val);
 }
 
-static INLINE Bit8u phys_readb(PhysPt addr) {
-	return host_readb(MemBase+addr);
+static INLINE uint8_t phys_readb(const PhysPt addr) {
+    if (addr < MemSize)
+        return host_readb(MemBase+addr);
+    else
+        return 0xFF;
 }
-static INLINE Bit16u phys_readw(PhysPt addr){
-	return host_readw(MemBase+addr);
+static INLINE uint16_t phys_readw(const PhysPt addr) {
+    if (addr < (MemSize-1u))
+        return host_readw(MemBase+addr);
+    else
+        return 0xFFFFu;
 }
-static INLINE Bit32u phys_readd(PhysPt addr){
-	return host_readd(MemBase+addr);
+static INLINE uint32_t phys_readd(const PhysPt addr) {
+    if (addr < (MemSize-3u))
+        return host_readd(MemBase+addr);
+    else
+        return 0xFFFFFFFFu;
 }
 
 /* These don't check for alignment, better be sure it's correct */
 
-void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size);
-void MEM_BlockRead(PhysPt pt,void * data,Bitu size);
-void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size);
-void MEM_BlockRead32(PhysPt pt,void * data,Bitu size);
-void MEM_BlockCopy(PhysPt dest,PhysPt src,Bitu size);
-void MEM_StrCopy(PhysPt pt,char * data,Bitu size);
+void MEM_BlockWrite(LinearPt pt, const void *data, size_t size);
+void MEM_BlockRead(LinearPt pt,void * data,Bitu size);
+void MEM_BlockWrite32(LinearPt pt,void * data,Bitu size);
+void MEM_BlockRead32(LinearPt pt,void * data,Bitu size);
+void MEM_BlockCopy(LinearPt dest,LinearPt src,Bitu size);
+void MEM_StrCopy(LinearPt pt,char * data,Bitu size);
 
-void mem_memcpy(PhysPt dest,PhysPt src,Bitu size);
-Bitu mem_strlen(PhysPt pt);
-void mem_strcpy(PhysPt dest,PhysPt src);
+void mem_memcpy(LinearPt dest,LinearPt src,Bitu size);
+Bitu mem_strlen(LinearPt pt);
+void mem_strcpy(LinearPt dest,LinearPt src);
 
-/* The folowing functions are all shortcuts to the above functions using physical addressing */
+/* The following functions are all shortcuts to the above functions using physical addressing */
 
-static INLINE Bit8u real_readb(Bit16u seg,Bit16u off) {
-	return mem_readb((seg<<4)+off);
-}
-static INLINE Bit16u real_readw(Bit16u seg,Bit16u off) {
-	return mem_readw((seg<<4)+off);
-}
-static INLINE Bit32u real_readd(Bit16u seg,Bit16u off) {
-	return mem_readd((seg<<4)+off);
+static inline constexpr LinearPt PhysMake(const uint16_t seg,const uint16_t off) {
+    return ((LinearPt)seg << 4U) + (LinearPt)off;
 }
 
-static INLINE void real_writeb(Bit16u seg,Bit16u off,Bit8u val) {
-	mem_writeb(((seg<<4)+off),val);
-}
-static INLINE void real_writew(Bit16u seg,Bit16u off,Bit16u val) {
-	mem_writew(((seg<<4)+off),val);
-}
-static INLINE void real_writed(Bit16u seg,Bit16u off,Bit32u val) {
-	mem_writed(((seg<<4)+off),val);
+static inline constexpr uint16_t RealSeg(const RealPt pt) {
+    return (uint16_t)(pt >> 16U);
 }
 
-
-static INLINE Bit16u RealSeg(RealPt pt) {
-	return (Bit16u)(pt>>16);
+static inline constexpr uint16_t RealOff(const RealPt pt) {
+    return (uint16_t)(pt & 0xffffu);
 }
 
-static INLINE Bit16u RealOff(RealPt pt) {
-	return (Bit16u)(pt&0xffff);
+static inline constexpr LinearPt Real2Phys(const RealPt pt) {
+    return (((LinearPt)RealSeg(pt) << 4U) + (LinearPt)RealOff(pt));
 }
 
-static INLINE PhysPt Real2Phys(RealPt pt) {
-	return (RealSeg(pt)<<4) +RealOff(pt);
-}
-
-static INLINE PhysPt PhysMake(Bit16u seg,Bit16u off) {
-	return (seg<<4)+off;
-}
-
-static INLINE RealPt RealMake(Bit16u seg,Bit16u off) {
-	return (seg<<16)+off;
-}
-
-static INLINE void RealSetVec(Bit8u vec,RealPt pt) {
-	mem_writed(vec<<2,pt);
-}
-
-static INLINE void RealSetVec(Bit8u vec,RealPt pt,RealPt &old) {
-	old = mem_readd(vec<<2);
-	mem_writed(vec<<2,pt);
+static inline constexpr RealPt RealMake(const uint16_t seg,const uint16_t off) {
+    return (((RealPt)seg << 16U) + (RealPt)off);
 }
 
 /* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
-static INLINE RealPt PhysToReal416(PhysPt phys) {
-	return RealMake((phys>>4)&0xF000,phys&0xFFFF);
+static inline constexpr RealPt PhysToReal416(const LinearPt phys) {
+    return RealMake((uint16_t)((phys >> 4U) & 0xF000U),(uint16_t)(phys & 0xFFFFU));
 }
 
-static INLINE RealPt RealGetVec(Bit8u vec) {
-	return mem_readd(vec<<2);
-}	
+static inline constexpr LinearPt RealVecAddress(const uint8_t vec) {
+    return ((unsigned int)vec << 2U);
+}
+
+
+static INLINE uint8_t real_readb(const uint16_t seg,const uint16_t off) {
+    return mem_readb(PhysMake(seg,off));
+}
+static INLINE uint16_t real_readw(const uint16_t seg,const uint16_t off) {
+    return mem_readw(PhysMake(seg,off));
+}
+static INLINE uint32_t real_readd(const uint16_t seg,const uint16_t off) {
+    return mem_readd(PhysMake(seg,off));
+}
+
+static INLINE void real_writeb(const uint16_t seg,const uint16_t off,const uint8_t val) {
+    mem_writeb(PhysMake(seg,off),val);
+}
+static INLINE void real_writew(const uint16_t seg,const uint16_t off,const uint16_t val) {
+    mem_writew(PhysMake(seg,off),val);
+}
+static INLINE void real_writed(const uint16_t seg,const uint16_t off,const uint32_t val) {
+    mem_writed(PhysMake(seg,off),val);
+}
+
+
+static INLINE RealPt RealGetVec(const uint8_t vec) {
+    return mem_readd(RealVecAddress(vec));
+}
+
+static INLINE void RealSetVec(const uint8_t vec,const RealPt pt) {
+    mem_writed(RealVecAddress(vec),pt);
+}
+
+static INLINE void RealSetVec(const uint8_t vec,const RealPt pt,RealPt &old) {
+    const LinearPt addr = RealVecAddress(vec);
+    old = mem_readd(addr);
+    mem_writed(addr,pt);
+}
+
+uint8_t physdev_readb(const PhysPt64 addr);
+uint16_t physdev_readw(const PhysPt64 addr);
+uint32_t physdev_readd(const PhysPt64 addr);
+void physdev_writeb(const PhysPt64 addr,const uint8_t val);
+void physdev_writew(const PhysPt64 addr,const uint16_t val);
+void physdev_writed(const PhysPt64 addr,const uint32_t val);
+
+uint32_t MEM_get_address_bits();
+uint32_t MEM_get_address_bits4GB();
+
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
 #endif
-

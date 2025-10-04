@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,764 +11,2322 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+
+#include <assert.h>
 
 #include "../dos/drives.h"
 #include "control.h"
 #include "cpu.h"
 #include "render.h"
 #include "menu.h"
+#include "menudef.h"
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "bios_disk.h"
 #include "ide.h" // for ide support
 #include "mapper.h"
 #include "keyboard.h"
+#include "timer.h"
 #include "inout.h"
+#include "shell.h"
+#include "jfont.h"
+#include "sdlmain.h"
+#include "../ints/int10.h"
 
-extern bool dos_kernel_disabled;
+#include <output/output_opengl.h>
+#include <output/output_ttf.h>
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+unsigned int min_sdldraw_menu_width = 500;
+unsigned int min_sdldraw_menu_height = 300;
+#endif
+
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+unsigned int SDLDrawGenFontTextureUnitPerRow = 16;
+unsigned int SDLDrawGenFontTextureRows = 16;
+unsigned int SDLDrawGenFontTextureWidth = SDLDrawGenFontTextureUnitPerRow * 8;
+unsigned int SDLDrawGenFontTextureHeight = SDLDrawGenFontTextureRows * 16;
+bool SDLDrawGenFontTextureInit = false;
+GLuint SDLDrawGenFontTexture = (GLuint)(~0UL), SDLDrawGenDBCSFontTexture = (GLuint)(~0UL);
+#endif
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+void                                                sdl_hax_nsMenuAddApplicationMenu(void *nsMenu);
+void*                                               sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag);
+void                                                sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item);
+void                                                sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int id);
+void                                                sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu);
+void                                                sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem);
+void*                                               sdl_hax_nsMenuAllocSeparator(void);
+void*                                               sdl_hax_nsMenuAlloc(const char *initWithText);
+void                                                sdl_hax_nsMenuRelease(void *nsMenu);
+void*                                               sdl_hax_nsMenuItemAlloc(const char *initWithText);
+void                                                sdl_hax_nsMenuItemRelease(void *nsMenuItem);
+#endif
+
+void                                                reflectmenu_INITMENU_cb();
+void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
+bool                                                OpenGL_using(void);
+
+void                                                MAPPER_TriggerEventByName(const std::string& name);
+void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
+
+const DOSBoxMenu::mapper_event_t                    DOSBoxMenu::unassigned_mapper_event; /* empty std::string */
+
+static DOSBoxMenu::item_handle_t                    separator_alloc = 0;
+static std::vector<DOSBoxMenu::item_handle_t>       separators;
+
+static std::string                                  not_recommended = "Mounting C:\\ is NOT recommended.\nDo you want to continue?";
+
+/* this is THE menu */
+DOSBoxMenu                                          mainMenu;
+
+extern const char*                                  drive_opts[][2];
+extern const char*                                  scaler_menu_opts[][2];
+extern int                                          NonUserResizeCounter, msgcodepage;
+
+extern bool                                         force_conversion;
+extern bool                                         dos_kernel_disabled;
+extern bool                                         dos_shell_running_program;
+extern SHELL_Cmd                                    cmd_list[];
+
+bool                                                GFX_GetPreventFullscreen(void);
+void                                                DOSBox_ShowConsole();
+
+void                                                GUI_ResetResize(bool pressed);
+
+MENU_Block                                          menu;
+
+unsigned int                                        hdd_defsize=16000;
+char                                                hdd_size[20]="";
+
+extern "C" void                                     (*SDL1_hax_INITMENU_cb)();
+
+extern bool showdbcs, loadlang;
+extern bool isDBCSCP(), InitCodePage();
+extern bool font_14_init, font_16_init;
+uint8_t *GetDbcsFont(Bitu code);
+bool Direct3D_using(void);
+void UpdateSDLDrawDBCSTexture(Bitu code);
+unsigned char prevc = 0;
+
+/* top level menu ("") */
+static const char *def_menu__toplevel[] =
+{
+    "MainMenu",
+    "CpuMenu",
+    "VideoMenu",
+    "SoundMenu",
+    "DOSMenu",
+    "DriveMenu",
+#if !defined(C_EMSCRIPTEN)
+    "CaptureMenu",
+#endif
+#if C_DEBUG
+    "DebugMenu",
+#endif
+    "HelpMenu",
+    NULL
+};
+
+/* main menu ("MainMenu") */
+static const char *def_menu_main[] =
+{
+    "mapper_gui",
+    "mapper_mapper",
+#if !defined(HX_DOS)
+    "--",
+    "mapper_quickrun",
+    "loadlang",
+    "mapper_loadmap",
+#endif
+    "--",
+    "MainSendKey",
+    "MainHostKey",
+    "SharedClipboard",
+    "--",
+    "mapper_capmouse",
+    "auto_lock_mouse",
+    "WheelToArrow",
+    "--",
+    "alwaysontop",
+#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
+    "mapper_pause",
+    "mapper_pauseints",
+#endif
+#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
+    "--",
+    "mapper_reset",
+    "mapper_reboot",
+    "mapper_pwrbutton", /* APM/ACPI etc */
+    "--",
+    "restartinst",
+    "restartconf",
+    "--",
+    "mapper_shutdown",
+#endif
+    NULL
+};
+
+/* main -> send key menu ("MenuSendKey") */
+static const char *def_menu_main_sendkey[] =
+{
+    "sendkey_winlogo",
+    "sendkey_winmenu",
+    "sendkey_alttab",
+    "sendkey_ctrlesc",
+    "sendkey_ctrlbreak",
+    "sendkey_cad",
+    "--",
+    "sendkey_mapper_winlogo",
+    "sendkey_mapper_winmenu",
+    "sendkey_mapper_alttab",
+    "sendkey_mapper_ctrlesc",
+    "sendkey_mapper_ctrlbreak",
+    "sendkey_mapper_cad",
+    NULL
+};
+
+/* main -> host key menu ("MenuHostKey") */
+static const char *def_menu_main_hostkey[] =
+{
+    "hostkey_ctrlalt",
+    "hostkey_ctrlshift",
+    "hostkey_altshift",
+    "--",
+    "hostkey_mapper",
+    NULL
+};
+
+/* main -> mouse wheel menu ("WheelToArrows") */
+static const char *def_menu_main_wheelarrow[] =
+{
+    "wheel_updown",
+    "wheel_leftright",
+    "wheel_pageupdown",
+    "wheel_ctrlupdown",
+    "wheel_ctrlleftright",
+    "wheel_ctrlpageupdown",
+    "wheel_ctrlwz",
+    "--",
+    "wheel_none",
+    "wheel_guest",
+    NULL
+};
+
+/* main -> shared clipboard menu ("SharedClipboard") */
+static const char *def_menu_main_clipboard[] =
+{
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
+    "mapper_fastedit",
+    "clipboard_right",
+    "clipboard_middle",
+    "clipboard_arrows",
+    "--",
+#endif
+    "clipboard_device",
+    "clipboard_dosapi",
+    "clipboard_biospaste",
+    "--",
+#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
+    "mapper_copyall",
+#endif
+    "mapper_paste",
+    "mapper_pasteend",
+    NULL
+};
+
+/* cpu -> core menu ("CpuSpeedMenu") */
+static const char *def_menu_cpu_speed[] =
+{
+    "cpu88-4",
+    "cpu286-8",
+    "cpu286-12",
+    "cpu286-25",
+    "cpu386-25",
+    "cpu386-33",
+    "cpu486-33",
+    "cpu486-66",
+    "cpu486-100",
+    "cpu486-133",
+    "cpu586-60",
+    "cpu586-66",
+    "cpu586-75",
+    "cpu586-90",
+    "cpu586-100",
+    "cpu586-120",
+    "cpu586-133",
+    "cpu586-166",
+    "cpu586-200",
+    "cpuak6-200",
+    "cpuak6-300",
+    "cpuath-600",
+    "cpu686-866",
+    NULL
+};
+
+/* cpu -> core menu ("CpuCoreMenu") */
+static const char *def_menu_cpu_core[] =
+{
+    "mapper_cycauto",
+    "--",
+    "mapper_normal",
+#if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
+    "mapper_dynamic",
+#endif
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    "mapper_simple",
+    "mapper_full",
+#endif
+    NULL
+};
+
+/* cpu -> type menu ("CpuTypeMenu") */
+static const char *def_menu_cpu_type[] =
+{
+    "cputype_auto",
+    "--",
+    "cputype_8086",
+    "cputype_8086_prefetch",
+    "cputype_80186",
+    "cputype_80186_prefetch",
+    "cputype_286",
+    "cputype_286_prefetch",
+    "cputype_386",
+    "cputype_386_prefetch",
+    "cputype_486old",
+    "cputype_486old_prefetch",
+    "cputype_486",
+    "cputype_486_prefetch",
+    "cputype_pentium",
+    "cputype_pentium_mmx",
+    "cputype_ppro_slow",
+    "cputype_pentium_ii",
+    "cputype_pentium_iii",
+    "--",
+    "cputype_experimental",
+    NULL
+};
+
+/* cpu menu ("CpuMenu") */
+static const char *def_menu_cpu[] =
+{
+    "mapper_speedlock2", /* NTS: "mapper_speedlock" doesn't work for a menu item because it requires holding the key */
+    "mapper_speednorm",
+    "mapper_speedup",
+    "mapper_slowdown",
+    "--",
+    "mapper_cycleup",
+    "mapper_cycledown",
+    "CpuSpeedMenu",
+    "mapper_editcycles",
+    "--",
+    "CpuCoreMenu",
+    "CpuTypeMenu",
+    NULL
+};
+
+/* video frameskip menu ("VideoFrameskipMenu") */
+static const char *def_menu_video_frameskip[] =
+{
+    "frameskip_0",
+    "frameskip_1",
+    "frameskip_2",
+    "frameskip_3",
+    "frameskip_4",
+    "frameskip_5",
+    "frameskip_6",
+    "frameskip_7",
+    "frameskip_8",
+    "frameskip_9",
+    "frameskip_10",
+    NULL
+};
+
+/* video prevent capture menu ("VideoPreventCaptureMenu") */
+static const char *def_menu_video_preventcapture[] =
+{
+    "prevcap_none",
+    "prevcap_blank",
+    "prevcap_invisible",
+    NULL
+};
+
+/* video scaler menu ("VideoRatioMenu") */
+static const char *def_menu_video_ratio[] =
+{
+    "video_ratio_1_1",
+    "video_ratio_3_2",
+    "video_ratio_4_3",
+    "video_ratio_16_9",
+    "video_ratio_16_10",
+    "video_ratio_18_10",
+    "--",
+    "video_ratio_original",
+    "video_ratio_set",
+    NULL
+};
+
+/* video scaler menu ("VideoScalerMenu") */
+static const char *def_menu_video_scaler[] =
+{
+    NULL
+};
+
+/* video output menu ("VideoOutputMenu") */
+static const char *def_menu_video_output[] =
+{
+    "output_surface",
+#if (HAVE_D3D9_H) && defined(WIN32) && !defined(HX_DOS)
+    "output_direct3d",
+#endif
+#if defined(C_OPENGL) && !defined(HX_DOS)
+    "output_opengl",
+    "output_openglnb",
+    "output_openglpp",
+#endif
+#if defined(USE_TTF)
+    "output_ttf",
+#endif
+#if C_GAMELINK
+    "output_gamelink",
+#endif
+    "--",
+    "doublescan",
+#if !defined(C_SDL2)
+    "doublebuf",
+#else
+    "modeswitch",
+#endif
+    NULL
+};
+
+/* video 3dfx menu ("Video3dfxMenu") */
+static const char *def_menu_video_3dfx[] =
+{
+    "3dfx_voodoo",
+    "3dfx_glide",
+    NULL
+};
+
+/* video text-mode menu ("VideoTextmodeMenu") */
+static const char *def_menu_video_textmode[] =
+{
+    "clear_screen",
+    "vga_9widetext",
+    "--",
+    "text_background",
+    "text_blinking",
+    "--",
+    "line_80x25",
+    "line_80x43",
+    "line_80x50",
+    "line_80x60",
+    "line_132x25",
+    "line_132x43",
+    "line_132x50",
+    "line_132x60",
+    NULL
+};
+
+#if defined(USE_TTF)
+/* video TTF menu ("VideoTTFMenu") */
+static const char *def_menu_video_ttf[] =
+{
+    "mapper_incsize",
+    "mapper_decsize",
+    "mapper_resetcolor",
+    "--",
+    "ttf_showbold",
+    "ttf_showital",
+    "ttf_showline",
+    "ttf_showsout",
+    "--",
+    "ttf_wpno",
+    "ttf_wpwp",
+    "ttf_wpws",
+    "ttf_wpxy",
+    "ttf_wpfe",
+    "--",
+    "ttf_blinkc",
+    "ttf_right_left",
+#if C_PRINTER
+    "ttf_printfont",
+#endif
+    "--",
+    "mapper_dbcssbcs",
+    "mapper_autoboxdraw",
+    "ttf_halfwidthkana",
+    "ttf_extcharset",
+    NULL
+};
+#endif
+
+/* video vsync menu ("VideoVsyncMenu") */
+static const char *def_menu_video_vsync[] =
+{
+    "vsync_on",
+    "vsync_force",
+    "vsync_host",
+    "vsync_off",
+    "--",
+    "vsync_set_syncrate",
+    NULL
+};
+
+/* video overscan menu ("VideoOverscanMenu") */
+static const char *def_menu_video_overscan[] =
+{
+    "overscan_0",
+    "overscan_1",
+    "overscan_2",
+    "overscan_3",
+    "overscan_4",
+    "overscan_5",
+    "overscan_6",
+    "overscan_7",
+    "overscan_8",
+    "overscan_9",
+    "overscan_10",
+    NULL
+};
+
+/* video output menu ("VideoPC98Menu") */
+static const char *def_menu_video_pc98[] =
+{
+    "pc98_use_uskb",
+    "pc98_allow_200scanline",
+    "pc98_allow_4partitions",
+    "pc98_5mhz_gdc",
+    "--",
+    "dos_pc98_pit_4mhz",
+    "dos_pc98_pit_5mhz",
+    "--",
+    "pc98_enable_egc",
+    "pc98_enable_grcg",
+    "pc98_enable_analog",
+    "pc98_enable_analog256",
+    "pc98_enable_188user",
+    "--",
+    "pc98_clear_text",
+    "pc98_clear_graphics",
+    NULL
+};
+
+/* video menu ("VideoMenu") */
+static const char *def_menu_video[] =
+{
+#if defined(WIN32) || defined(MACOSX)
+    "VideoPreventCaptureMenu",
+#endif
+    "VideoRatioMenu",
+    "mapper_aspratio",
+#if defined(C_SDL2)
+    "center_window",
+#endif
+#if !defined(C_SDL2) && defined(MACOSX)
+    "highdpienable",
+#endif
+    "mapper_resetsize",
+    "--",
+#if !defined(HX_DOS)
+    "mapper_fullscr",
+#endif
+#ifndef MACOSX
+    "mapper_togmenu",
+#endif
+    "showdetails",
+    "--",
+    "set_titletext",
+    "set_transparency",
+    "refresh_rate",
+    "--",
+    "mapper_fscaler",
+    "VideoScalerMenu",
+    "VideoOutputMenu",
+    "VideoVsyncMenu",
+    "--",
+    "VideoOverscanMenu",
+    "VideoFrameskipMenu",
+    "VideoTextmodeMenu",
+#if defined(USE_TTF)
+    "VideoTTFMenu",
+#endif
+    "VideoPC98Menu",
+    "Video3dfxMenu",
+#if defined(C_D3DSHADERS) || defined(C_OPENGL) || defined(USE_TTF)
+    "--",
+#endif
+#ifdef C_D3DSHADERS
+    "load_d3d_shader",
+#endif
+#ifdef C_OPENGL
+    "load_glsl_shader",
+#endif
+#ifdef USE_TTF
+    "load_ttf_font",
+#endif
+    NULL
+};
+
+/* DOS menu ("DOSMenu") */
+static const char *def_menu_dos[] =
+{
+    "DOSVerMenu",
+    "DOSLFNMenu",
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+    "DOSWinMenu",
+#endif
+    "--",
+    "DOSMouseMenu",
+    "DOSEMSMenu",
+    "DOSDiskRateMenu",
+    "--",
+    "enable_a20gate",
+    "quick_reboot",
+    "sync_host_datetime",
+    "shell_config_commands",
+    "--",
+    "mapper_swapimg",
+    "mapper_swapcd",
+    "change_currentfd",
+    "change_currentcd",
+    "--",
+    "make_diskimage",
+    "list_drivenum",
+    "list_ideinfo",
+    "mapper_rescanall",
+    "--",
+#if C_PRINTER
+    "mapper_printtext",
+    "mapper_ejectpage",
+#endif
+    NULL
+};
+
+/* DOS mouse menu ("DOSMouseMenu") */
+static const char *def_menu_dos_mouse[] =
+{
+    "dos_mouse_enable_int33",
+    "dos_mouse_y_axis_reverse",
+    "--",
+    "dos_mouse_sensitivity",
+    NULL
+};
+
+/* DOS version menu ("DOSVerMenu") */
+static const char *def_menu_dos_ver[] =
+{
+    "dos_ver_330",
+    "dos_ver_500",
+    "dos_ver_622",
+    "dos_ver_710",
+    "--",
+    "dos_ver_edit",
+    NULL
+};
+
+/* DOS LFN menu ("DOSLFNMenu") */
+static const char *def_menu_dos_lfn[] =
+{
+    "dos_lfn_auto",
+    "--",
+    "dos_lfn_enable",
+    "dos_lfn_disable",
+    NULL
+};
+
+/* DOS EMS menu ("DOSEMSMenu") */
+static const char *def_menu_dos_ems[] =
+{
+    "dos_ems_true",
+    "dos_ems_board",
+    "dos_ems_emm386",
+    "dos_ems_false",
+    NULL
+};
+
+/* DOS disk rate menu ("DOSDiskRateMenu") */
+static const char *def_menu_dos_diskrate[] =
+{
+    "limit_hdd_rate",
+    "limit_floppy_rate",
+    NULL
+};
+
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+/* DOS WIN menu ("DOSWinMenu") */
+static const char *def_menu_dos_win[] =
+{
+    "dos_win_autorun",
+    "dos_win_transpath",
+    "dos_win_wait",
+    "dos_win_quiet",
+    NULL
+};
+#endif
+
+/* sound menu ("SoundMenu") */
+static const char *def_menu_sound[] =
+{
+    "mapper_volup",
+    "mapper_voldown",
+    "--",
+    "mapper_recvolup",
+    "mapper_recvoldown",
+    "--",
+    "mixer_info",
+    "sb_info",
+    "midi_info",
+    "--",
+    "mixer_mute",
+    "mixer_swapstereo",
+    NULL
+};
+
+/* capture menu ("CaptureMenu") */
+static const char *def_menu_capture[] =
+{
+#if defined(C_SSHOT)
+    "mapper_scrshot",
+    "mapper_rawscrshot",
+    "--",
+#endif
+#if !defined(C_EMSCRIPTEN)
+# if (C_SSHOT)
+    "CaptureFormatMenu",
+    "--",
+# endif
+    "mapper_video",
+    "mapper_recwave",
+    "mapper_recmtwave",
+    "mapper_caprawopl",
+    "mapper_caprawmidi",
+    "mapper_capnetrf",
+    "--",
+#endif
+    "mapper_savestate",
+    "mapper_loadstate",
+    "saveoptionmenu",
+    "saveslotmenu",
+    "autosavecfg",
+    "browsesavefile",
+    "mapper_showstate",
+    NULL
+};
+
+#if !defined(C_EMSCRIPTEN)
+# if (C_SSHOT)
+/* capture format menu ("CaptureFormatMenu") */
+static const char *def_menu_capture_format[] =
+{
+    "capture_fmt_avi_zmbv",
+    "capture_fmt_mpegts_h264",
+    NULL
+};
+# endif
+#endif
+
+/* Save/load options */
+static const char *save_load_options[] =
+{
+    "enable_autosave",
+    "noremark_savestate",
+    "force_loadstate",
+    "usesavefile",
+    NULL
+};
+
+/* Save slots */
+static const char *def_save_slots[] =
+{
+    "current_page",
+    "prev_page",
+    "next_page",
+    "--",
+    "first_page",
+    "last_page",
+    "--",
+    "slot0",
+    "slot1",
+    "slot2",
+    "slot3",
+    "slot4",
+    "slot5",
+    "slot6",
+    "slot7",
+    "slot8",
+    "slot9",
+    "--",
+    "lastautosaveslot",
+    "mapper_prevslot",
+    "mapper_nextslot",
+    "--",
+    "removestate",
+    "--",
+    "refreshslot",
+    NULL
+};
+
+/* Drive menu ("DriveMenu") */
+static const char *def_menu_drive[] =
+{
+    "DriveA",
+    "DriveB",
+    "DriveC",
+    "DriveD",
+    "DriveE",
+    "DriveF",
+    "DriveG",
+    "DriveH",
+    "DriveI",
+    "DriveJ",
+    "DriveK",
+    "DriveL",
+    "DriveM",
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    "||",
+#endif
+
+    "DriveN",
+    "DriveO",
+    "DriveP",
+    "DriveQ",
+    "DriveR",
+    "DriveS",
+    "DriveT",
+    "DriveU",
+    "DriveV",
+    "DriveW",
+    "DriveX",
+    "DriveY",
+    "DriveZ",
+    NULL
+};
+
+/* help DOS commands ("HelpCommandMenu") */
+#define MENU_HELP_COMMAND_MAX 512
+static const char *def_menu_help_command[MENU_HELP_COMMAND_MAX];
+char help_command_temp[MENU_HELP_COMMAND_MAX][30];
+
+/* help debug ("DebugMenu" or "HelpDebugMenu") */
+#if C_DEBUG
+static const char* def_menu_debug[] =
+{
+    "mapper_debugger",
+    "--",
+    "debugger_rundebug",
+    "debugger_runnormal",
+    "debugger_runwatch",
+    "--",
+    "debug_blankrefreshtest",
+    "debug_generatenmi",
+    "debug_int2fhook",
+    "debug_pageflip",
+    "debug_retracepoll",
+    "--",
+    "show_codetext",
+    "show_logtext",
+    "save_logas",
+    "--",
+    "show_console",
+    "clear_console",
+    "disable_logging",
+    "wait_on_error",
+    "--",
+    "video_debug_overlay",
+    "--",
+    "debug_logint21",
+    "debug_logfileio",
+    NULL
+};
+#elif !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+static const char* def_menu_help_debug[] =
+{
+    "show_console",
+    "wait_on_error",
+    "--",
+    "video_debug_overlay",
+    NULL
+};
+#endif
+
+/* help menu ("HelpMenu") */
+static const char *def_menu_help[] =
+{
+    "help_intro",
+    "help_about",
+#if !defined(HX_DOS)
+    "--",
+    "help_homepage",
+    "help_wiki",
+    "help_issue",
+#endif
+    "--",
+#if C_PCAP
+    "help_nic",
+#endif
+#if C_PRINTER && defined(WIN32)
+    "help_prt",
+#endif
+#if !C_DEBUG && !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+    "HelpDebugMenu",
+#endif
+#if C_PCAP || C_PRINTER && defined(WIN32) || !C_DEBUG && !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+    "--",
+#endif
+    "HelpCommandMenu",
+    NULL
+};
+
+extern bool is_paused;
+void DOSBox_SetSysMenu(void);
+#if defined(USE_TTF)
+void resetFontSize();
+#endif
+bool DOSBox_isMenuVisible(void) {
+    return menu.toggle;
+}
+
+DOSBoxMenu::DOSBoxMenu() {
+}
+
+DOSBoxMenu::~DOSBoxMenu() {
+    unbuild();
+    clear_all_menu_items();
+}
+
+DOSBoxMenu::displaylist::displaylist() {
+}
+
+DOSBoxMenu::displaylist::~displaylist() {
+}
+
+bool DOSBoxMenu::item_exists(const std::string &name) {
+    const auto i = name_map.find(name);
+
+    if (i == name_map.end())
+       return false;
+
+    return item_exists(i->second);
+}
+
+bool DOSBoxMenu::item_exists(const item_handle_t i) {
+    if (i == unassigned_item_handle)
+        return false;
+    else if (i >= master_list.size())
+        return false;
+
+    item &ret = master_list[(size_t)i];
+
+    if (!ret.status.allocated || ret.master_id == unassigned_item_handle)
+        return false;
+    else if (ret.master_id != i)
+        return false;
+
+    return true;
+}
+
+DOSBoxMenu::item_handle_t DOSBoxMenu::get_item_id_by_name(const std::string &name) {
+    const auto i = name_map.find(name);
+
+    if (i == name_map.end())
+        return unassigned_item_handle;
+
+    return i->second;
+}
+
+DOSBoxMenu::item& DOSBoxMenu::get_item(const std::string &name) {
+    const item_handle_t handle = get_item_id_by_name(name);
+
+    if (handle == unassigned_item_handle)
+        E_Exit("DOSBoxMenu::get_item() No such item '%s'",name.c_str());
+
+    return get_item(handle);
+}
+
+DOSBoxMenu::item& DOSBoxMenu::get_item(const item_handle_t i) {
+    if (i == unassigned_item_handle)
+        E_Exit("DOSBoxMenu::get_item() attempt to get unassigned handle");
+    else if (i >= master_list.size())
+        E_Exit("DOSBoxMenu::get_item() attempt to get out of range handle");
+
+    item &ret = master_list[(size_t)i];
+
+    if (!ret.status.allocated || ret.master_id == unassigned_item_handle)
+        E_Exit("DOSBoxMenu::get_item() attempt to read unallocated item");
+    else if (ret.master_id != i)
+        E_Exit("DOSBoxMenu::get_item() ID mismatch");
+
+    return ret;
+}
+
+DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type,const std::string &name) {
+    if (type >= MAX_id)
+        E_Exit("DOSBoxMenu::alloc_item() illegal menu type value");
+
+    if (name_map.find(name) != name_map.end())
+        E_Exit("DOSBoxMenu::alloc_item() name '%s' already taken",name.c_str());
+
+    while (master_list_alloc < master_list.size()) {
+        if (!master_list[master_list_alloc].status.allocated) {
+            name_map[name] = master_list_alloc;
+            return master_list[master_list_alloc].allocate(master_list_alloc,type,name);
+        }
+
+        master_list_alloc++;
+    }
+
+    if (master_list_alloc >= master_list_limit)
+        E_Exit("DOSBoxMenu::alloc_item() no slots are free");
+
+    size_t newsize = master_list.size() + (master_list.size() / 2);
+    if (newsize < 64) newsize = 64;
+    if (newsize > master_list_limit) newsize = master_list_limit;
+    master_list.resize(newsize);
+
+    assert(master_list_alloc < master_list.size());
+
+    name_map[name] = master_list_alloc;
+    return master_list[master_list_alloc].allocate(master_list_alloc,type,name);
+}
+
+void DOSBoxMenu::delete_item(const item_handle_t i) {
+    if (i == unassigned_item_handle)
+        E_Exit("DOSBoxMenu::delete_item() attempt to get unassigned handle");
+    else if (i >= master_list.size())
+        E_Exit("DOSBoxMenu::delete_item() attempt to get out of range handle");
+
+    {
+        const auto it = name_map.find(master_list[i].name);
+        if (it != name_map.end()) {
+            if (it->second != i) E_Exit("DOSBoxMenu::delete_item() master_id mismatch");
+            name_map.erase(it);
+        }
+    }
+
+    master_list[i].deallocate();
+    master_list_alloc = i;
+}
+
+const char *DOSBoxMenu::TypeToString(const enum item_type_t type) {
+    switch (type) {
+        case item_type_id:              return "Item";
+        case submenu_type_id:           return "Submenu";
+        case separator_type_id:         return "Separator";
+        case vseparator_type_id:        return "VSeparator";
+        default:                        break;
+    }
+
+    return "";
+}
+
+void DOSBoxMenu::dump_log_displaylist(DOSBoxMenu::displaylist &ls, unsigned int indent) {
+    std::string prep;
+
+    for (unsigned int i=0;i < indent;i++)
+        prep += "+ ";
+
+    for (const auto &id : ls.disp_list) {
+        DOSBoxMenu::item &item = get_item(id);
+
+        if (!item.is_allocated()) {
+            LOG_MSG("%s (NOT ALLOCATED!!!)",prep.c_str());
+            continue;
+        }
+
+        LOG_MSG("%sid=%u type=\"%s\" name=\"%s\" text=\"%s\"",
+            prep.c_str(),
+            (unsigned int)item.master_id,
+            TypeToString(item.type),
+            item.name.c_str(),
+            item.text.c_str());
+
+        if (item.type == submenu_type_id)
+            dump_log_displaylist(item.display_list, indent+1);
+    }
+}
+
+void DOSBoxMenu::dump_log_debug(void) {
+    LOG_MSG("Menu dump log (%p)",(void*)this);
+    LOG_MSG("---- Master list ----");
+    for (auto &id : master_list) {
+        if (id.is_allocated()) {
+            LOG_MSG("+ id=%u type=\"%s\" name=\"%s\" text=\"%s\" shortcut=\"%s\" desc=\"%s\"",
+                (unsigned int)id.master_id,
+                TypeToString(id.type),
+                id.name.c_str(),
+                id.text.c_str(),
+                id.shortcut_text.c_str(),
+                id.description.c_str());
+
+            if (!id.get_mapper_event().empty())
+                LOG_MSG("+ + mapper_event=\"%s\"",id.get_mapper_event().c_str());
+        }
+    }
+    LOG_MSG("---- display list ----");
+    dump_log_displaylist(display_list, 1);
+}
+
+std::vector<DOSBoxMenu::item> DOSBoxMenu::get_master_list(void) {
+    return master_list;
+}
+
+void DOSBoxMenu::clear_all_menu_items(void) {
+    for (auto &id : master_list) {
+        if (id.is_allocated())
+            id.deallocate();
+    }
+    master_list_alloc = 0;
+    master_list.clear();
+    name_map.clear();
+}
+
+DOSBoxMenu::item::item() {
+}
+
+DOSBoxMenu::item::~item() {
+}
+
+DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id,const enum item_type_t new_type,const std::string &new_name) {
+    if (master_id != unassigned_item_handle || status.allocated)
+        E_Exit("DOSBoxMenu::item::allocate() called on item already allocated");
+
+    status.allocated = 1;
+    name = new_name;
+    type = new_type;
+    master_id = id;
+    return *this;
+}
+
+void DOSBoxMenu::item::deallocate(void) {
+    if (master_id == unassigned_item_handle || !status.allocated)
+        E_Exit("DOSBoxMenu::item::deallocate() called on item already deallocated");
+
+    master_id = unassigned_item_handle;
+    status.allocated = 0;
+    status.changed = 1;
+    shortcut_text.clear();
+    description.clear();
+    text.clear();
+    name.clear();
+}
+
+void DOSBoxMenu::displaylist_append(displaylist &ls,const DOSBoxMenu::item_handle_t item_id) {
+    DOSBoxMenu::item &item = get_item(item_id);
+
+    if (item.status.in_use)
+        E_Exit("DOSBoxMenu::displaylist_append() item already in use");
+
+    ls.disp_list.push_back(item.master_id);
+    item.status.in_use = true;
+    ls.order_changed = true;
+}
+
+void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
+    uint16_t id = DOSBoxMenu::unassigned_item_handle;
+    std::fill(ls.disp_list.begin(), ls.disp_list.end(), id);
+
+    ls.disp_list.clear();
+    ls.items_changed = true;
+    ls.order_changed = true;
+}
+
+void DOSBoxMenu::rebuild(void) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+    if (winMenu == NULL) {
+        if (!winMenuInit())
+            return;
+    }
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+    if (nsMenu == NULL) {
+        if (!nsMenuInit())
+            return;
+    }
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+    layoutMenu();
+#endif
+}
+
+void DOSBoxMenu::unbuild(void) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+    winMenuDestroy();
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+    nsMenuDestroy();
+#endif
+}
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+bool DOSBoxMenu::mainMenuAction(unsigned int id) {
+    if (id < nsMenuMinimumID) return false;
+    id -= nsMenuMinimumID;
+
+    if (id >= master_list.size()) return false;
+
+    item &item = master_list[id];
+    if (!item.status.allocated || item.master_id == unassigned_item_handle) return false;
+
+    dispatchItemCommand(item);
+    return true;
+}
+
+void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
+    if (type == separator_type_id) {
+        sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
+    }
+    else if (type == vseparator_type_id) {
+        sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
+    }
+    else if (type == submenu_type_id) {
+        if (nsMenu != NULL) {
+            // NTS: You have to make a menu ITEM who's submenu is the submenu object
+            nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+
+            sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
+            sdl_hax_nsMenuItemSetSubmenu(nsMenuItem, nsMenu);
+            sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
+            sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
+            sdl_hax_nsMenuItemRelease(nsMenuItem);
+        }
+    }
+    else if (type == item_type_id) {
+        nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+
+        sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
+        sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
+        sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
+        sdl_hax_nsMenuItemRelease(nsMenuItem);
+    }
+}
+
+bool DOSBoxMenu::nsMenuSubInit(DOSBoxMenu::item &p_item) {
+    if (p_item.nsMenu == NULL) {
+        p_item.nsMenu = sdl_hax_nsMenuAlloc(p_item.get_text().c_str());
+        if (p_item.nsMenu != NULL) {
+            for (const auto id : p_item.display_list.disp_list) {
+                DOSBoxMenu::item &item = get_item(id);
+
+                /* if a submenu, make the submenu */
+                if (item.type == submenu_type_id) {
+                    item.parent_id = p_item.master_id;
+                    nsMenuSubInit(item);
+                }
+
+                item.nsAppendMenu(p_item.nsMenu);
+            }
+        }
+    }
+
+    return true;
+}
+
+bool DOSBoxMenu::nsMenuInit(void) {
+    if (nsMenu == NULL) {
+        if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)
+            return false;
+
+        /* For whatever reason, Mac OS X will always make the first top level menu
+           the Application menu and will put the name of the app there NO MATTER WHAT */
+        sdl_hax_nsMenuAddApplicationMenu(nsMenu);
+
+        /* top level */
+        for (const auto id : display_list.disp_list) {
+            DOSBoxMenu::item &item = get_item(id);
+
+            /* if a submenu, make the submenu */
+            if (item.type == submenu_type_id) {
+                item.parent_id = unassigned_item_handle;
+                nsMenuSubInit(item);
+            }
+
+            item.nsAppendMenu(nsMenu);
+        }
+
+        /* release our handle on the nsMenus. Mac OS X will keep them alive with its
+           reference until the menu is destroyed at which point all items and submenus
+           will be automatically destroyed */
+        for (auto &id : master_list) {
+            if (id.nsMenu != NULL) {
+                sdl_hax_nsMenuRelease(id.nsMenu);
+                id.nsMenu = NULL;
+            }
+        }
+    }
+
+    return true;
+}
+
+void DOSBoxMenu::nsMenuDestroy(void) {
+    if (nsMenu != NULL) {
+        sdl_hax_nsMenuRelease(nsMenu);
+        nsMenu = NULL;
+    }
+}
+
+void* DOSBoxMenu::getNsMenu(void) const {
+    return nsMenu;
+}
+#endif
+
+#if defined(WIN32) && !defined(HX_DOS)
+bool isSupportedCP(int newCP);
+LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
+    LPWSTR ret = def;
+    int reqsize = 0, cp = dos.loaded_codepage;
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
+    if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage)
+        cp = msgcodepage;
+    else if ((!dos.loaded_codepage || dos_kernel_disabled || force_conversion) && section!=NULL && !control->opt_noconfig) {
+        char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
+        if (r!=NULL && *(r+1) && !IS_PC98_ARCH && !IS_JEGA_ARCH && !IS_DOSV) {
+            cp = atoi(trim(r+1));
+            if ((cp<1 || !isSupportedCP(cp)) && msgcodepage>0) cp = msgcodepage;
+        } else if (msgcodepage>0)
+            cp = msgcodepage;
+        if (cp<1 || !isSupportedCP(cp)) {
+            if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV) cp = 932;
+            else if (IS_PDOSV) cp = 936;
+            else if (IS_KDOSV) cp = 949;
+            else if (IS_TDOSV) cp = 950;
+        }
+    }
+    uint16_t len=(uint16_t)str.size();
+    if (cp>0) {
+        if (cp==808) cp=866;
+        else if (cp==859) cp=858;
+        else if (cp==872) cp=855;
+        else if (cp==951) cp=950;
+        reqsize = MultiByteToWideChar(cp, 0, str.c_str(), len+1, NULL, 0);
+        buffer = new wchar_t[reqsize];
+        if (reqsize>0 && MultiByteToWideChar(cp, 0, str.c_str(), len+1, buffer, reqsize)==reqsize) ret = (LPWSTR)buffer;
+    } else {
+        buffer = new wchar_t[len+1];
+        mbstowcs(buffer, str.c_str(), len+1);
+        ret = (LPWSTR)buffer;
+    }
+    return ret;
+}
+#endif
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+std::string DOSBoxMenu::item::winConstructMenuText(void) {
+    std::string r;
+
+    /* copy text, converting '&' to '&&' for Windows.
+     * TODO: Use accelerator to place '&' for underline */
+    for (auto i=text.begin();i!=text.end();i++) {
+        const char c = *i;
+
+        if (c == '&') {
+            r += "&&";
+        }
+        else {
+            r += c;
+        }
+    }
+
+    /* then the shortcut text */
+    if (!shortcut_text.empty()) {
+        r += "\t";
+
+        for (auto i=shortcut_text.begin();i!=shortcut_text.end();i++) {
+            const char c = *i;
+
+            if (c == '&') {
+                r += "&&";
+            }
+            else {
+                r += c;
+            }
+        }
+    }
+
+    return r;
+}
+
+void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
+    wchar_t* buffer = NULL;
+    wchar_t emptyStr[] = L"";
+    if (type == separator_type_id) {
+        AppendMenu(handle, MF_SEPARATOR, 0, NULL);
+    }
+    else if (type == vseparator_type_id) {
+        AppendMenu(handle, MF_MENUBREAK, 0, NULL);
+    }
+    else if (type == submenu_type_id) {
+        if (winMenu != NULL) {
+            LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
+            if (wcscmp(str, L""))
+                AppendMenuW(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, str);
+            else
+                AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, winConstructMenuText().c_str());
+        }
+    }
+    else if (type == item_type_id) {
+        unsigned int attr = MF_STRING;
+
+        attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
+        attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
+
+        LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
+        if (wcscmp(str, L""))
+            AppendMenuW(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), str);
+        else
+            AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
+    }
+    if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+}
+
+bool DOSBoxMenu::winMenuSubInit(DOSBoxMenu::item &p_item) {
+    if (p_item.winMenu == NULL) {
+        p_item.winMenu = CreatePopupMenu();
+        if (p_item.winMenu != NULL) {
+            for (const auto id : p_item.display_list.disp_list) {
+                DOSBoxMenu::item &item = get_item(id);
+
+                /* if a submenu, make the submenu */
+                if (item.type == submenu_type_id) {
+                    item.parent_id = p_item.master_id;
+                    winMenuSubInit(item);
+                }
+
+                item.winAppendMenu(p_item.winMenu);
+            }
+        }
+    }
+
+    return true;
+}
+
+bool DOSBoxMenu::winMenuInit(void) {
+    if (winMenu == NULL) {
+        winMenu = CreateMenu();
+        if (winMenu == NULL) return false;
+
+        /* top level */
+        for (const auto id : display_list.disp_list) {
+            DOSBoxMenu::item &item = get_item(id);
+
+            /* if a submenu, make the submenu */
+            if (item.type == submenu_type_id) {
+                item.parent_id = unassigned_item_handle;
+                winMenuSubInit(item);
+            }
+
+            item.winAppendMenu(winMenu);
+        }
+    }
+
+    return true;
+}
+
+void DOSBoxMenu::winMenuDestroy(void) {
+    if (winMenu != NULL) {
+        /* go through all menu items, and clear the menu handle */
+        for (auto &id : master_list)
+            id.winMenu = NULL;
+
+        /* destroy the menu.
+         * By MSDN docs it destroys submenus automatically */
+        DestroyMenu(winMenu);
+        winMenu = NULL;
+    }
+}
+
+HMENU DOSBoxMenu::getWinMenu(void) const {
+    return winMenu;
+}
+
+/* call this from WM_COMMAND */
+bool DOSBoxMenu::mainMenuWM_COMMAND(unsigned int id) {
+    if (id < winMenuMinimumID) return false;
+    id -= winMenuMinimumID;
+
+    if (id >= master_list.size()) return false;
+
+    item &item = master_list[id];
+    if (!item.status.allocated || item.master_id == unassigned_item_handle) return false;
+
+    dispatchItemCommand(item);
+    return true;
+}
+#endif
+
+void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
+    (void)menu;//POSSIBLY UNUSED
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+    if (menu.winMenu != NULL && status.in_use && status.changed) {
+        HMENU phandle = NULL;
+
+        if (parent_id != unassigned_item_handle)
+            phandle = menu.get_item(parent_id).winMenu;
+        else
+            phandle = menu.winMenu;
+
+        if (phandle != NULL) {
+            if (type == separator_type_id) {
+                /* none */
+            }
+            else if (type == vseparator_type_id) {
+                /* none */
+            }
+            else if (type == submenu_type_id) {
+                /* TODO: Can't change by ID, have to change by position */
+            }
+            else if (type == item_type_id) {
+                unsigned int attr = MF_STRING;
+
+                attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
+                attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
+
+                wchar_t* buffer = NULL;
+                wchar_t emptyStr[] = L"";
+                LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
+                if (wcscmp(str, L""))
+                    ModifyMenuW(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), str);
+                else
+                    ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
+            }
+        }
+    }
+
+    status.changed = false;
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+    if (nsMenuItem != NULL)
+        sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
+#endif
+}
+
+void DOSBoxMenu::dispatchItemCommand(item &item) {
+    if (item.callback_func)
+        item.callback_func(this,&item);
+
+    if (item.mapper_event != unassigned_mapper_event)
+        MAPPER_TriggerEventByName(item.mapper_event);
+}
+
+static std::string separator_id(const DOSBoxMenu::item_handle_t r) {
+    char tmp[32];
+
+    sprintf(tmp,"%u",(unsigned int)r);
+    return std::string("_separator_") + std::string(tmp);
+}
+
+static DOSBoxMenu::item_handle_t separator_get(const DOSBoxMenu::item_type_t t=DOSBoxMenu::separator_type_id) {
+    assert(separator_alloc <= separators.size());
+    if (separator_alloc == separators.size()) {
+        DOSBoxMenu::item &nitem = mainMenu.alloc_item(t, separator_id(separator_alloc));
+        separators.push_back(nitem.get_master_id());
+    }
+
+    assert(separator_alloc < separators.size());
+    mainMenu.get_item(separators[separator_alloc]).set_type(t);
+    return separators[separator_alloc++];
+}
+
+void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * list) {
+    for (size_t i=0;list[i] != NULL;i++) {
+        const char *ref = list[i];
+
+        /* NTS: This code calls mainMenu.get_item(item_id) every iteration.
+         *
+         *      This seemingly inefficient method of populating the display
+         *      list is REQUIRED because DOSBoxMenu::item& is a reference
+         *      to a std::vector, and the reference becomes invalid when
+         *      the vector reallocates to accommodate more entries.
+         *
+         *      Holding onto one reference for the entire loop risks a
+         *      segfault (use after free) bug if the vector should reallocate
+         *      in separator_get() -> alloc_item()
+         *
+         *      Since get_item(item_id) is literally just a constant time
+         *      array lookup, this is not very inefficient at all. */
+
+        if (!strcmp(ref,"--")) {
+            /* separator is allocated on the fly by separator_get and we cannot
+             * rely that parameters are expanded from right to left
+             * -> we must get separator handle first */
+            DOSBoxMenu::item_handle_t separator_handle = separator_get(DOSBoxMenu::separator_type_id);
+            mainMenu.displaylist_append(
+                mainMenu.get_item(item_id).display_list, separator_handle);
+        }
+        else if (!strcmp(ref,"||")) {
+            /* ditto */
+            DOSBoxMenu::item_handle_t separator_handle = separator_get(DOSBoxMenu::vseparator_type_id);
+            mainMenu.displaylist_append(
+                mainMenu.get_item(item_id).display_list, separator_handle);
+        }
+        else if (mainMenu.item_exists(ref)) {
+            mainMenu.displaylist_append(
+                mainMenu.get_item(item_id).display_list, mainMenu.get_item_id_by_name(ref));
+        }
+    }
+}
+
+void ConstructMenu(void) {
+    mainMenu.displaylist_clear(mainMenu.display_list);
+    separator_alloc = 0;
+
+    /* top level */
+    for (size_t i=0;def_menu__toplevel[i] != NULL;i++)
+        mainMenu.displaylist_append(
+            mainMenu.display_list,
+            mainMenu.get_item_id_by_name(def_menu__toplevel[i]));
+
+    /* main menu */
+    ConstructSubMenu(mainMenu.get_item("MainMenu").get_master_id(), def_menu_main);
+
+    /* main sendkey menu */
+    ConstructSubMenu(mainMenu.get_item("MainSendKey").get_master_id(), def_menu_main_sendkey);
+
+    /* main hostkey menu */
+    ConstructSubMenu(mainMenu.get_item("MainHostKey").get_master_id(), def_menu_main_hostkey);
+
+    /* main mouse wheel movements menu */
+    ConstructSubMenu(mainMenu.get_item("WheelToArrow").get_master_id(), def_menu_main_wheelarrow);
+
+    /* shared clipboard menu */
+    ConstructSubMenu(mainMenu.get_item("SharedClipboard").get_master_id(), def_menu_main_clipboard);
+
+    /* cpu menu */
+    ConstructSubMenu(mainMenu.get_item("CpuMenu").get_master_id(), def_menu_cpu);
+
+    /* cpu speed menu */
+    ConstructSubMenu(mainMenu.get_item("CpuSpeedMenu").get_master_id(), def_menu_cpu_speed);
+
+    /* cpu core menu */
+    ConstructSubMenu(mainMenu.get_item("CpuCoreMenu").get_master_id(), def_menu_cpu_core);
+
+    /* cpu type menu */
+    ConstructSubMenu(mainMenu.get_item("CpuTypeMenu").get_master_id(), def_menu_cpu_type);
+
+    /* video menu */
+    ConstructSubMenu(mainMenu.get_item("VideoMenu").get_master_id(), def_menu_video);
+
+    /* video ratio menu */
+    ConstructSubMenu(mainMenu.get_item("VideoRatioMenu").get_master_id(), def_menu_video_ratio);
+
+#if defined(WIN32) || defined(MACOSX)
+    /* video prevent capture menu */
+    ConstructSubMenu(mainMenu.get_item("VideoPreventCaptureMenu").get_master_id(), def_menu_video_preventcapture);
+#endif
+
+    /* video frameskip menu */
+    ConstructSubMenu(mainMenu.get_item("VideoFrameskipMenu").get_master_id(), def_menu_video_frameskip);
+
+    /* video scaler menu */
+    ConstructSubMenu(mainMenu.get_item("VideoScalerMenu").get_master_id(), def_menu_video_scaler);
+    {
+        size_t count=0;
+
+        for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
+            const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
+
+            if (mainMenu.item_exists(name)) {
+                mainMenu.displaylist_append(
+                    mainMenu.get_item("VideoScalerMenu").display_list,
+                    mainMenu.get_item_id_by_name(name));
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                if ((count % 15) == 14) {
+                    mainMenu.displaylist_append(
+                        mainMenu.get_item("VideoScalerMenu").display_list,
+                        separator_get(DOSBoxMenu::vseparator_type_id));
+                }
+#endif
+
+                count++;
+            }
+        }
+    }
+
+    /* video output menu */
+    ConstructSubMenu(mainMenu.get_item("VideoOutputMenu").get_master_id(), def_menu_video_output);
+
+    /* video text-mode menu */
+    ConstructSubMenu(mainMenu.get_item("VideoTextmodeMenu").get_master_id(), def_menu_video_textmode);
+
+#if defined(USE_TTF)
+    /* video TTF menu */
+    ConstructSubMenu(mainMenu.get_item("VideoTTFMenu").get_master_id(), def_menu_video_ttf);
+#endif
+
+    /* video vsync menu */
+    ConstructSubMenu(mainMenu.get_item("VideoVsyncMenu").get_master_id(), def_menu_video_vsync);
+
+    /* video overscan menu */
+    ConstructSubMenu(mainMenu.get_item("VideoOverscanMenu").get_master_id(), def_menu_video_overscan);
+
+    /* video PC-98 menu */
+    ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);
+
+    /* video 3dfx menu */
+    ConstructSubMenu(mainMenu.get_item("Video3dfxMenu").get_master_id(), def_menu_video_3dfx);
+
+    /* sound menu */
+    ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);
+
+    /* DOS menu */
+    ConstructSubMenu(mainMenu.get_item("DOSMenu").get_master_id(), def_menu_dos);
+
+    /* DOS mouse menu */
+    ConstructSubMenu(mainMenu.get_item("DOSMouseMenu").get_master_id(), def_menu_dos_mouse);
+
+    /* DOS version menu */
+    ConstructSubMenu(mainMenu.get_item("DOSVerMenu").get_master_id(), def_menu_dos_ver);
+
+    /* DOS LFN menu */
+    ConstructSubMenu(mainMenu.get_item("DOSLFNMenu").get_master_id(), def_menu_dos_lfn);
+
+    /* DOS EMS menu */
+    ConstructSubMenu(mainMenu.get_item("DOSEMSMenu").get_master_id(), def_menu_dos_ems);
+
+    /* DOS disk rate menu */
+    ConstructSubMenu(mainMenu.get_item("DOSDiskRateMenu").get_master_id(), def_menu_dos_diskrate);
+
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+    /* DOS WIN menu */
+    ConstructSubMenu(mainMenu.get_item("DOSWinMenu").get_master_id(), def_menu_dos_win);
+#endif
+
+#if !defined(C_EMSCRIPTEN)
+    /* capture menu */
+    ConstructSubMenu(mainMenu.get_item("CaptureMenu").get_master_id(), def_menu_capture);
+#endif
+
+#if !defined(C_EMSCRIPTEN)
+# if (C_SSHOT)
+    /* capture format menu */
+    ConstructSubMenu(mainMenu.get_item("CaptureFormatMenu").get_master_id(), def_menu_capture_format);
+# endif
+#endif
+    ConstructSubMenu(mainMenu.get_item("saveoptionmenu").get_master_id(), save_load_options);
+    ConstructSubMenu(mainMenu.get_item("saveslotmenu").get_master_id(), def_save_slots);
+
+    /* Drive menu */
+    ConstructSubMenu(mainMenu.get_item("DriveMenu").get_master_id(), def_menu_drive);
+    for (char drv='A';drv <= 'Z';drv++) {
+        const std::string dname = std::string("Drive") + drv;
+        for (size_t i=0;drive_opts[i][0] != NULL;i++) {
+            const std::string name = std::string("drive_") + drv + "_" + drive_opts[i][0];
+
+            if (mainMenu.item_exists(name)) {
+                mainMenu.displaylist_append(
+                    mainMenu.get_item(dname).display_list,
+                    mainMenu.get_item_id_by_name(name));
+            }
+        }
+    }
+
+    /* help menu */
+    ConstructSubMenu(mainMenu.get_item("HelpMenu").get_master_id(), def_menu_help);
+
+    uint32_t i=0, cmd_index=0;
+    while (cmd_list[cmd_index].name) {
+        if (!cmd_list[cmd_index].flags) {
+            strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
+            def_menu_help_command[i] = help_command_temp[i];
+            i++;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if ((i % 15) == 14) {
+                strcpy(help_command_temp[i], "||");
+                def_menu_help_command[i]=help_command_temp[i];
+                i++;
+            }
+#endif
+        }
+        cmd_index++;
+    }
+    strcpy(help_command_temp[i], "--");
+    def_menu_help_command[i]=help_command_temp[i];
+    i++;
+    cmd_index=0;
+    while (cmd_list[cmd_index].name) {
+        if (cmd_list[cmd_index].flags && strcmp(cmd_list[cmd_index].name, "CHDIR") && strcmp(cmd_list[cmd_index].name, "ERASE") && strcmp(cmd_list[cmd_index].name, "LOADHIGH") && strcmp(cmd_list[cmd_index].name, "MKDIR") && strcmp(cmd_list[cmd_index].name, "RMDIR") && strcmp(cmd_list[cmd_index].name, "RENAME") && strcmp(cmd_list[cmd_index].name, "DX-CAPTURE") && strcmp(cmd_list[cmd_index].name, "DEBUGBOX")) {
+            strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
+            def_menu_help_command[i] = help_command_temp[i];
+            i++;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if ((i % 15) == 14) {
+                strcpy(help_command_temp[i], "||");
+                def_menu_help_command[i]=help_command_temp[i];
+                i++;
+            }
+#endif
+        }
+        cmd_index++;
+    }
+    def_menu_help_command[i++]=NULL;
+    assert(i <= MENU_HELP_COMMAND_MAX);
+
+    /* help DOS command menu */
+    ConstructSubMenu(mainMenu.get_item("HelpCommandMenu").get_master_id(), def_menu_help_command);
+
+#if C_DEBUG
+    /* debug menu */
+    ConstructSubMenu(mainMenu.get_item("DebugMenu").get_master_id(), def_menu_debug);
+#elif !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+    /* help debug menu */
+    ConstructSubMenu(mainMenu.get_item("HelpDebugMenu").get_master_id(), def_menu_help_debug);
+#endif
+}
+
+bool MENU_SetBool(std::string secname, std::string value) {
+    Section_prop * sec = static_cast<Section_prop *>(control->GetSection(secname));
+    if(sec) SetVal(secname, value, sec->Get_bool(value) ? "false" : "true");
+    return sec->Get_bool(value);
+}
+
+// Sets the scaler 'forced' flag.
+void SetScaleForced(bool forced)
+{
+    render.scale.forced = forced;
+
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
+    Prop_multival* prop = section->Get_multival("scaler");
+    std::string scaler = prop->GetSection()->Get_string("type");
+
+    auto value = scaler + (render.scale.forced ? " forced" : "");
+    SetVal("render", "scaler", value);
+
+    RENDER_CallBack(GFX_CallBackReset);
+    mainMenu.get_item("mapper_fscaler").check(render.scale.forced).refresh_item(mainMenu);
+}
+
+// Sets the scaler to use.
+void SetScaler(scalerOperation_t op, Bitu size, std::string& prefix)
+{
+    auto value = prefix + (render.scale.forced ? " forced" : "");
+    SetVal("render", "scaler", value);
+    render.scale.size = size;
+    render.scale.op = op;
+    RENDER_CallBack(GFX_CallBackReset);
+}
 
 std::string MSCDEX_Output(int num) {
-	std::string MSCDEX_MSG = "GUI: MSCDEX ";
-	std::string MSCDEX_MSG_Failure = "Failure: ";
-	switch (num) {
-	case 0: return MSCDEX_MSG + "installed";
-	case 1: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Drive-letters of multiple CDRom-drives have to be continuous.";
-	case 2: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Not yet supported.";
-	case 3: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Path not valid.";
-	case 4: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Too many CDRom-drives (max: 5). MSCDEX Installation failed";
-	case 5: return MSCDEX_MSG + "Mounted subdirectory: limited support.";
-	case 6: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Unknown error";
-	default: return 0;
-	}
-}
-
-static std::string not_recommended = "Mounting C:\\ is NOT recommended.\nDo you want to continue?";
-
-void SetVal(const std::string secname, std::string preval, const std::string val) {
-	if (dos_kernel_disabled)
-		return;
-
-	if(preval=="keyboardlayout") {
-		DOS_MCB mcb(dos.psp()-1);
-		static char name[9];
-		mcb.GetFileName(name);
-		if (strlen(name)) {
-			LOG_MSG("GUI: Exit %s running in DOSBox, and then try again.",name);
-			return;
-		}
-	}
-	Section* sec = control->GetSection(secname);
-	if(sec) {
-		std::string real_val=preval+"="+val;
-		sec->HandleInputline(real_val);
-	}
-}
-
-MENU_Block menu;
-
-#ifdef WIN32
-#include <shlobj.h>
-
-extern void RENDER_CallBack( GFX_CallBackFunctions_t function );
-
-unsigned int hdd_defsize=16000;
-char hdd_size[20]="";
-
-HWND GetHWND(void) {
-	SDL_SysWMinfo wmi;
-	SDL_VERSION(&wmi.version);
-
-	if(!SDL_GetWMInfo(&wmi)) {
-		return NULL;
-	}
-	return wmi.window;
-}
-
-void GetDefaultSize(void) {
-	char sizetemp[20]="512,32,32765,";
-	char sizetemp2[20]="";
-	sprintf(sizetemp2,"%d",hdd_defsize);
-	strcat(sizetemp,sizetemp2);
-	sprintf(hdd_size,sizetemp);
-}
-
-void SearchFolder( char path[MAX_PATH], char drive, std::string drive_type ) {
-	WIN32_FIND_DATA FindFileData;
-	HANDLE hFind;
-
-	hFind = FindFirstFile ( "*.*", &FindFileData );
-
-	if ( hFind != INVALID_HANDLE_VALUE ) MountDrive_2(drive,path,drive_type);
-	FindClose ( hFind );
-}
-
-void BrowseFolder( char drive , std::string drive_type ) {
-	if (Drives[drive-'A']) {
-		LOG_MSG("Unmount drive %c first, and then try again.",drive);
-		return;
-	}
-	std::string title = "Select a drive/directory to mount";
-	char path[MAX_PATH];
-	BROWSEINFO bi = { 0 };
-	if(drive_type=="CDROM")
-		bi.lpszTitle = ( title + " CD-ROM\nMounting a directory as CD-ROM gives an limited support" ).c_str();
-	else if(drive_type=="FLOPPY")
-		bi.lpszTitle = ( title + " as Floppy" ).c_str();
-	else if(drive_type=="LOCAL")
-		bi.lpszTitle = ( title + " as Local").c_str();
-	else
-		bi.lpszTitle = (title.c_str());
-	LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
-
-	if ( pidl != 0 ) {
-		SHGetPathFromIDList ( pidl, path );
-//		SetCurrentDirectory ( path );
-		SearchFolder( path , drive, drive_type );
-		IMalloc * imalloc = 0;
-		if ( SUCCEEDED( SHGetMalloc ( &imalloc )) ) {
-			imalloc->Free ( pidl );
-			imalloc->Release ( );
-		}
-	}
-}
-
-void mem_conf(std::string memtype, int option) {
-	std::string tmp;
-	Section* sec = control->GetSection("dos");
-	Section_prop * section=static_cast<Section_prop *>(sec); 
-	if (!option) {
-		tmp = section->Get_bool(memtype) ? "false" : "true";
-	} else {
-		switch (option) {
-			case 1: tmp = "true"; break;
-			case 2: tmp = "false"; break;
-			case 3: tmp = "emsboard"; break;
-			case 4: tmp = "emm386"; break;
-			default: return;
-		}
-	}
-	if(sec) {
-		memtype += "=" + tmp;
-		sec->HandleInputline(memtype);
-	}
-}
-
-void UnMount(int i_drive) {
-	if (dos_kernel_disabled)
-		return;
-
-	i_drive = toupper(i_drive);
-	if(i_drive-'A' == DOS_GetDefaultDrive()) {
-		DOS_MCB mcb(dos.psp()-1);
-		static char name[9];
-		mcb.GetFileName(name);
-		if (!strlen(name)) goto umount;
-		LOG_MSG("GUI:Drive %c is being used. Aborted.",i_drive);
-		return;
-	};
-umount:
-	if (i_drive-'A' < DOS_DRIVES && i_drive-'A' >= 0 && Drives[i_drive-'A']) {
-		switch (DriveManager::UnmountDrive(i_drive-'A')) {
-		case 0:
-			Drives[i_drive-'A'] = 0;
-			if(i_drive-'A' == DOS_GetDefaultDrive()) 
-				DOS_SetDrive(toupper('Z') - 'A');
-			LOG_MSG("GUI:Drive %c has succesfully been removed.",i_drive); break;
-		case 1:
-			LOG_MSG("GUI:Virtual Drives can not be unMOUNTed."); break;
-		case 2:
-			LOG_MSG(MSCDEX_Output(1).c_str()); break;
-		}
-	}
-}
-
-#include "../dos/cdrom.h"
-extern void MSCDEX_SetCDInterface(int intNr, int numCD);
-void MountDrive_2(char drive, const char drive2[DOS_PATHLENGTH], std::string drive_type) {
-	DOS_Drive * newdrive;
-	std::string temp_line;
-	std::string str_size;
-	Bit16u sizes[4];
-	Bit8u mediaid;
-	int num = SDL_CDNumDrives();
-
-	if((drive_type=="LOCAL") && (drive2=="C:\\")) {
-		if (MessageBox(GetHWND(),not_recommended.c_str(), "Warning", MB_YESNO) == IDNO) return;
-	}
-
-	if(drive_type=="CDROM") {
-		mediaid=0xF8;		/* Hard Disk */
-		str_size="650,127,16513,1700";
-	} else {
-		if(drive_type=="FLOPPY") {
-			str_size="512,1,2847,2847";	/* All space free */
-			mediaid=0xF0;			/* Floppy 1.44 media */
-		} else if(drive_type=="LOCAL") {
-			mediaid=0xF8;
-			GetDefaultSize();
-			str_size=hdd_size;		/* Hard Disk */
-		}
-	}
-
-	char number[20]; const char * scan=str_size.c_str();
-	Bitu index=0; Bitu count=0;
-		while (*scan) {
-			if (*scan==',') {
-				number[index]=0;sizes[count++]=atoi(number);
-				index=0;
-			} else number[index++]=*scan;
-			scan++;
-		}
-	number[index]=0; sizes[count++]=atoi(number);
-
-	temp_line = drive2;
-	if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
-	if (temp_line[temp_line.size()-1]!=CROSS_FILESPLIT) temp_line+=CROSS_FILESPLIT;
-	Bit8u bit8size=(Bit8u) sizes[1];
-
-	if(drive_type=="CDROM") {
-		num = -1;
-		int error;
-
-		int id, major, minor;
-		DOSBox_CheckOS(id, major, minor);
-		if ((id==VER_PLATFORM_WIN32_NT) && (major>5)) {
-			// Vista/above
-			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
-		} else {
-			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
-		}
-		newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error);
-		LOG_MSG(MSCDEX_Output(error).c_str());
-	} else newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid);
-
-	if (!newdrive) E_Exit("DOS:Can't create drive");
-	Drives[drive-'A']=newdrive;
-	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,mediaid);
-	if(drive_type=="CDROM")
-		LOG_MSG("GUI: Drive %c is mounted as CD-ROM",drive);
-	else
-		LOG_MSG("GUI: Drive %c is mounted as local directory",drive);
-    if(drive == drive2[0] && sizeof(drive2) == 4) {
-        // automatic mount
-    } else {
-        if(drive_type=="CDROM") return;
-        std::string label;
-        label = drive;
-        if(drive_type=="LOCAL")
-            label += "_DRIVE";
-        else
-            label += "_FLOPPY";
-        newdrive->SetLabel(label.c_str(),false,true);
+    std::string MSCDEX_MSG = "GUI: MSCDEX ";
+    std::string MSCDEX_MSG_Failure = "Failure: ";
+    switch (num) {
+    case 0: return MSCDEX_MSG + "installed";
+    case 1: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Drive-letters of multiple CDRom-drives have to be continuous.";
+    case 2: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Not yet supported.";
+    case 3: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Path not valid.";
+    case 4: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Too many CDRom-drives (max: 5). MSCDEX Installation failed";
+    case 5: return MSCDEX_MSG + "Mounted subdirectory: limited support.";
+    case 6: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Unknown error";
+    default: return {};
     }
 }
 
-void MountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
-	DOS_Drive * newdrive;
-	std::string drive_warn="Do you really want to give DOSBox access to";
-	std::string temp_line;
-	std::string str_size;
-	Bit16u sizes[4];
-	Bit8u mediaid;
-	int num = SDL_CDNumDrives();
-	std::string str(1, drive);
-	if(GetDriveType(drive2)==DRIVE_CDROM) {
-		drive_warn += " your real CD-ROM drive ";
-	}
-	else if(GetDriveType(drive2)==DRIVE_REMOVABLE) {
-		drive_warn += " your real floppy drive ";
-	}
-	else {
-		drive_warn += " everything\non your real drive ";
-	}
-
-	if (MessageBox(GetHWND(),(drive_warn+str+"?").c_str(),"Warning",MB_YESNO)==IDNO) return;
-
-	if((GetDriveType(drive2)==DRIVE_FIXED) && (strcasecmp(drive2,"C:\\")==0)) {
-		if (MessageBox(GetHWND(), not_recommended.c_str(), "Warning", MB_YESNO) == IDNO) return;
-	}
-
-	if(GetDriveType(drive2)==DRIVE_CDROM) {
-		mediaid=0xF8;		/* Hard Disk */
-		str_size="650,127,16513,1700";
-	} else {
-		if(GetDriveType(drive2)==DRIVE_REMOVABLE) {
-			str_size="512,1,2847,2847";	/* All space free */
-			mediaid=0xF0;			/* Floppy 1.44 media */
-		} else {
-			mediaid=0xF8;
-			GetDefaultSize();
-			str_size=hdd_size;	/* Hard Disk */
-		}
-	}
-
-	char number[20]; const char * scan=str_size.c_str();
-	Bitu index=0; Bitu count=0;
-		while (*scan) {
-			if (*scan==',') {
-				number[index]=0;sizes[count++]=atoi(number);
-				index=0;
-			} else number[index++]=*scan;
-			scan++;
-		}
-	number[index]=0; sizes[count++]=atoi(number);
-	Bit8u bit8size=(Bit8u) sizes[1];
-
-	temp_line = drive2;
-	int error; num = -1;
-	if(GetDriveType(drive2)==DRIVE_CDROM) {
-		int id, major, minor;
-		DOSBox_CheckOS(id, major, minor);
-
-		if ((id==VER_PLATFORM_WIN32_NT) && (major>5)) {
-			// Vista/above
-			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
-		} else {
-			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
-		}
-		newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error);
-		LOG_MSG(MSCDEX_Output(error).c_str());
-	} else newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid);
-
-	if (!newdrive) E_Exit("DOS:Can't create drive");
-	if(error && (GetDriveType(drive2)==DRIVE_CDROM)) return;
-	Drives[drive-'A']=newdrive;
-	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,mediaid);
-	if(GetDriveType(drive2)==DRIVE_CDROM) LOG_MSG("GUI: Drive %c is mounted as CD-ROM %c:\\",drive,drive);
-	else LOG_MSG("GUI: Drive %c is mounted as local directory %c:\\",drive,drive);
-    if(drive == drive2[0] && sizeof(drive2) == 4) {
-        // automatic mount
-    } else {
-        if(GetDriveType(drive2) == DRIVE_CDROM) return;
-        std::string label;
-        label = drive;
-        if(GetDriveType(drive2) == DRIVE_FIXED)
-            label += "_DRIVE";
-        else
-            label += "_FLOPPY";
-        newdrive->SetLabel(label.c_str(),false,true);
+void SetVal(const std::string& secname, const std::string& preval, const std::string& val) {
+    if(preval=="keyboardlayout" && !dos_kernel_disabled) {
+        DOS_MCB mcb(dos.psp()-1);
+        static char name[9];
+        mcb.GetFileName(name);
+        if (strlen(name)) {
+            LOG_MSG("GUI: Exit %s running in DOSBox-X, and then try again.",name);
+            return;
+        }
+    }
+    Section* sec = control->GetSection(secname);
+    if(sec) {
+        std::string real_val=preval+"="+val;
+        sec->HandleInputline(real_val);
     }
 }
 
-void Mount_Img_Floppy(char drive, std::string realpath) {
-	DOS_Drive * newdrive = NULL;
-	imageDisk * newImage = NULL;
-	std::string label;
-	std::string temp_line = realpath;
-	std::vector<std::string> paths;
-	std::string umount;
-	//std::string type="hdd";
-	std::string fstype="fat";
-	Bit8u mediaid;
-	Bit16u sizes[4];
-			
-	std::string str_size;
-	mediaid=0xF0;
-	char number[20];
-	const char * scan=str_size.c_str();
-	Bitu index=0;Bitu count=0;
-
-	while (*scan) {
-		if (*scan==',') {
-			number[index]=0;sizes[count++]=atoi(number);
-			index=0;
-		} else number[index++]=*scan;
-		scan++;
-	}
-
-	number[index]=0;sizes[count++]=atoi(number);
-	struct stat test;
-	if (stat(temp_line.c_str(),&test)) {
-		// convert dosbox filename to system filename
-		char fullname[CROSS_LEN];
-		char tmp[CROSS_LEN];
-		safe_strncpy(tmp, temp_line.c_str(), CROSS_LEN);
-		Bit8u dummy;
-		localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
-		ldp->GetSystemFilename(tmp, fullname);
-		temp_line = tmp;
-	}
-	paths.push_back(temp_line);
-	if (paths.size() == 1)
-		temp_line = paths[0];
-
-				std::vector<DOS_Drive*> imgDisks;
-				std::vector<std::string>::size_type i;
-				std::vector<DOS_Drive*>::size_type ct;
-				
-				for (i = 0; i < paths.size(); i++) {
-					DOS_Drive* newDrive = new fatDrive(paths[i].c_str(),sizes[0],sizes[1],sizes[2],sizes[3],0);
-					imgDisks.push_back(newDrive);
-					if(!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
-						LOG_MSG("Can't create drive from file.");
-						for(ct = 0; ct < imgDisks.size(); ct++) {
-							delete imgDisks[ct];
-						}
-						return;
-					}
-				}
-
-				// Update DriveManager
-				for(ct = 0; ct < imgDisks.size(); ct++) {
-					DriveManager::AppendDisk(drive - 'A', imgDisks[ct]);
-				}
-				DriveManager::InitializeDrive(drive - 'A');
-
-				// Set the correct media byte in the table 
-				mem_writeb(Real2Phys(dos.tables.mediaid) + (drive - 'A') * 2, mediaid);
-				
-				/* Command uses dta so set it to our internal dta */
-				RealPt save_dta = dos.dta();
-				dos.dta(dos.tables.tempdta);
-
-				for(ct = 0; ct < imgDisks.size(); ct++) {
-					DriveManager::CycleAllDisks();
-
-					char root[4] = {drive, ':', '\\', 0};
-					DOS_FindFirst(root, DOS_ATTR_VOLUME); // force obtaining the label and saving it in dirCache
-				}
-				dos.dta(save_dta);
-
-				std::string tmp(paths[0]);
-				for (i = 1; i < paths.size(); i++) {
-					tmp += "; " + paths[i];
-				}
-				LOG_MSG("Drive %c is mounted as %s", drive, tmp.c_str());
-
-				if (paths.size() == 1) {
-					newdrive = imgDisks[0];
-					if(((fatDrive *)newdrive)->loadedDisk->hardDrive) {
-						if(imageDiskList[2] == NULL) {
-							imageDiskList[2] = ((fatDrive *)newdrive)->loadedDisk;
-							updateDPT();
-							return;
-						}
-						if(imageDiskList[3] == NULL) {
-							imageDiskList[3] = ((fatDrive *)newdrive)->loadedDisk;
-							updateDPT();
-							return;
-						}
-					}
-					if(!((fatDrive *)newdrive)->loadedDisk->hardDrive) {
-						imageDiskList[0] = ((fatDrive *)newdrive)->loadedDisk;
-					}
-				}
+#if defined(WIN32) && defined(C_SDL2)
+void SDL1_hax_SetMenu(HMENU menu) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (GFX_IsFullscreen()) {
+        SetMenu(GetHWND(), NULL);
+        return;
+    }
+    if(GetMenu(GetHWND()) != menu) {
+        bool res = SetMenu(GetHWND(), menu);
+        if(!res) {
+            mainMenu.unbuild();
+            mainMenu.rebuild();
+            res = SetMenu(GetHWND(), mainMenu.getWinMenu());
+        }
+        DrawMenuBar(GetHWND());
+    }
+#endif
 }
+#elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+#endif
 
-void Mount_Img_HDD(char drive, std::string realpath) {
-	/* ide support start */
-	bool ide_slave = false;
-	signed char ide_index = -1;
-	std::string ideattach="auto";
-	/* ide support end */
+/**
+ * NOTE: this function can make a SDL_Surface become invalid (e.g. mapper, Windows)
+ */
+void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    /* nothing to do */
+    (void)altMenu;
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* TODO: Move to menu.cpp DOSBox_SetMenu() and add setmenu(NULL) to DOSBox_NoMenu() @emendelson request showmenu=false */
+    void sdl_hax_macosx_setmenu(void *nsMenu);
+    void menu_macosx_set_menuobj(DOSBoxMenu *altMenu);
+    sdl_hax_macosx_setmenu(altMenu.getNsMenu());
+    menu_macosx_set_menuobj(&altMenu);
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if(!menu.gui) return;
+    if(!menu.toggle) return;
 
-	DOS_Drive * newdrive = NULL;
-	imageDisk * newImage = NULL;
-	std::string label;
-	std::string temp_line = realpath;
-	std::vector<std::string> paths;
-	std::string umount;
-	std::string fstype="fat";
-	Bit8u mediaid;
-	Bit16u sizes[4];
-	std::string str_size;
-	mediaid=0xF8;
+    LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching custom menu resource to DOSBox-X's window");
 
-	/* ide support start */
-	IDE_Auto(ide_index,ide_slave);
-	/* ide support end */
+    HMENU pMenu = GetMenu(GetHWND());
 
-	char number[20];
-	const char * scan=str_size.c_str();
-	Bitu index=0;Bitu count=0;
-	while (*scan) {
-		if (*scan==',') {
-			number[index]=0;sizes[count++]=atoi(number);
-			index=0;
-		} else number[index++]=*scan;
-		scan++;
-	}
-	number[index]=0;sizes[count++]=atoi(number);
-	struct stat test;
-	if (stat(temp_line.c_str(),&test)) {
-		// convert dosbox filename to system filename
-		char fullname[CROSS_LEN];
-		char tmp[CROSS_LEN];
-		safe_strncpy(tmp, temp_line.c_str(), CROSS_LEN);
-		Bit8u dummy;
-		localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
-		ldp->GetSystemFilename(tmp, fullname);
-		temp_line = tmp;
-	}
-	paths.push_back(temp_line);
-	if (paths.size() == 1)
-		temp_line = paths[0];
-		FILE * diskfile = fopen64(temp_line.c_str(), "rb+");
-		if(!diskfile) {
-			LOG_MSG("Could not load image file.");
-			return;
-		}
-		fseeko64(diskfile, 0L, SEEK_END);
-		Bit32u fcsize = (Bit32u)(ftello64(diskfile) / 512L);
-		Bit8u buf[512];
-		fseeko64(diskfile, 0L, SEEK_SET);
-		if (fread(buf,sizeof(Bit8u),512,diskfile)<512) {
-			fclose(diskfile);
-			LOG_MSG("Could not load image file.");
-			return;
-		}
-		fclose(diskfile);
-		if ((buf[510]!=0x55) || (buf[511]!=0xaa)) {
-			LOG_MSG("Could not extract drive geometry from image. Use IMGMOUNT with parameter -size bps,spc,hpc,cyl to specify the geometry.");
-			return;
-		}
-		bool yet_detected = false;
-		// check MBR partition entry 1
-		Bitu starthead = buf[0x1bf];
-		Bitu startsect = buf[0x1c0]&0x3f-1;
-		Bitu startcyl = buf[0x1c1]|((buf[0x1c0]&0xc0)<<2);
-		Bitu endcyl = buf[0x1c5]|((buf[0x1c4]&0xc0)<<2);
+    SDL1_hax_SetMenu(altMenu.getWinMenu());
 
-		Bitu heads = buf[0x1c3]+1;
-		Bitu sectors = buf[0x1c4]&0x3f;
-
-		Bitu pe1_size = host_readd(&buf[0x1ca]);		
-		if(pe1_size!=0) {		
-			Bitu part_start = startsect + sectors*starthead +
-				startcyl*sectors*heads;
-			Bitu part_end = heads*sectors*endcyl;	
-			Bits part_len = part_end - part_start;	
-			// partition start/end sanity check	
-			// partition length should not exceed file length	
-			// real partition size can be a few cylinders less than pe1_size	
-			// if more than 1023 cylinders see if first partition fits	
-			// into 1023, else bail.	
-			if((part_len<0)||((Bitu)part_len > pe1_size)||(pe1_size > fcsize)||	
-				((pe1_size-part_len)/(sectors*heads)>2)||
-				((pe1_size/(heads*sectors))>1023)) {
-				//LOG_MSG("start(c,h,s) %u,%u,%u",startcyl,starthead,startsect);
-				//LOG_MSG("endcyl %u heads %u sectors %u",endcyl,heads,sectors);
-				//LOG_MSG("psize %u start %u end %u",pe1_size,part_start,part_end);
-			} else {	
-				sizes[0]=512; sizes[1]=sectors;
-				sizes[2]=heads; sizes[3]=(Bit16u)(fcsize/(heads*sectors));
-				if(sizes[3]>1023) sizes[3]=1023;
-				yet_detected = true;
-			}	
-		}		
-		if(!yet_detected) {		
-			// Try bximage disk geometry	
-			Bitu cylinders=(Bitu)(fcsize/(16*63));	
-			// Int13 only supports up to 1023 cylinders	
-			// For mounting unknown images we could go up with the heads to 255	
-			if ((cylinders*16*63==fcsize)&&(cylinders<1024)) {	
-				yet_detected=true;
-				sizes[0]=512; sizes[1]=63; sizes[2]=16; sizes[3]=cylinders;
-			}	
-		}		
-
-		if(yet_detected)
-			LOG_MSG("autosized image file: %d:%d:%d:%d",sizes[0],sizes[1],sizes[2],sizes[3]);
-		else {
-			LOG_MSG("Could not extract drive geometry from image. Use IMGMOUNT with parameter -size bps,spc,hpc,cyl to specify the geometry.");
-			return;
-		}
-	std::vector<DOS_Drive*> imgDisks;
-	std::vector<std::string>::size_type i;
-	std::vector<DOS_Drive*>::size_type ct;
-				
-	for (i = 0; i < paths.size(); i++) {
-		DOS_Drive* newDrive = new fatDrive(paths[i].c_str(),sizes[0],sizes[1],sizes[2],sizes[3],0);
-		imgDisks.push_back(newDrive);
-		if(!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
-			LOG_MSG("Can't create drive from file.");
-			for(ct = 0; ct < imgDisks.size(); ct++) {
-				delete imgDisks[ct];
-			}
-			return;
-		}
-	}
-
-	// Update DriveManager
-	for(ct = 0; ct < imgDisks.size(); ct++) {
-		DriveManager::AppendDisk(drive - 'A', imgDisks[ct]);
-	}
-	DriveManager::InitializeDrive(drive - 'A');
-
-	// Set the correct media byte in the table 
-	mem_writeb(Real2Phys(dos.tables.mediaid) + (drive - 'A') * 2, mediaid);
-				
-	/* Command uses dta so set it to our internal dta */
-	RealPt save_dta = dos.dta();
-	dos.dta(dos.tables.tempdta);
-
-	for(ct = 0; ct < imgDisks.size(); ct++) {
-		DriveManager::CycleAllDisks();
-
-		char root[4] = {drive, ':', '\\', 0};
-		DOS_FindFirst(root, DOS_ATTR_VOLUME); // force obtaining the label and saving it in dirCache
-	}
-	dos.dta(save_dta);
-
-	std::string tmp(paths[0]);
-	for (i = 1; i < paths.size(); i++) {
-		tmp += "; " + paths[i];
-	}
-	LOG_MSG("Drive %c is mounted as %s", drive, tmp.c_str());
-
-	if (paths.size() == 1) {
-		newdrive = imgDisks[0];
-		if(((fatDrive *)newdrive)->loadedDisk->hardDrive) {
-			if(imageDiskList[2] == NULL) {
-				imageDiskList[2] = ((fatDrive *)newdrive)->loadedDisk;
-				/* ide support start */
-				// If instructed, attach to IDE controller as ATA hard disk
-				if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index,ide_slave,2);
-				/* ide support end */
-				updateDPT();
-				return;
-			}
-			if(imageDiskList[3] == NULL) {
-				imageDiskList[3] = ((fatDrive *)newdrive)->loadedDisk;
-				/* ide support start */
-				// If instructed, attach to IDE controller as ATA hard disk
-				if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index,ide_slave,3);
-				/* ide support end */
-				updateDPT();
-				return;
-			}
-		}
-		if(!((fatDrive *)newdrive)->loadedDisk->hardDrive) {
-			imageDiskList[0] = ((fatDrive *)newdrive)->loadedDisk;
-		}
-	}
-}
-
-void Mount_Img(char drive, std::string realpath) {
-	/* ide support start */
-	bool ide_slave = false;
-	signed char ide_index = -1;
-	std::string ideattach="auto";
-	/* ide support end */
-	DOS_Drive * newdrive = NULL;
-	imageDisk * newImage = NULL;
-	std::string label;
-	std::string temp_line = realpath;
-	std::vector<std::string> paths;
-
-	Bit8u mediaid;
-	Bit16u sizes[4];
-	std::string str_size;
-	mediaid=0xF8;
-	/* ide support start */
-	IDE_Auto(ide_index,ide_slave);
-	/* ide support end */
-	str_size="650,127,16513,1700";
-	mediaid=0xF8;
-	char number[20];
-	const char * scan=str_size.c_str();
-	Bitu index=0;Bitu count=0;
-	while (*scan) {
-		if (*scan==',') {
-			number[index]=0;sizes[count++]=atoi(number);
-			index=0;
-		} else number[index++]=*scan;
-		scan++;
-	}
-	number[index]=0;sizes[count++]=atoi(number);
-	struct stat test;
-	if (stat(temp_line.c_str(),&test)) {
-		// convert dosbox filename to system filename
-		char fullname[CROSS_LEN];
-		char tmp[CROSS_LEN];
-		safe_strncpy(tmp, temp_line.c_str(), CROSS_LEN);
-		Bit8u dummy;
-		localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
-		ldp->GetSystemFilename(tmp, fullname);
-		temp_line = tmp;
-	}
-	paths.push_back(temp_line);
-	if (paths.size() == 1)
-		temp_line = paths[0];
-	MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
-	// create new drives for all images
-	std::vector<DOS_Drive*> isoDisks;
-	std::vector<std::string>::size_type i;
-	for (i = 0; i < paths.size(); i++) {
-		int error = -1;
-		DOS_Drive* newDrive = new isoDrive(drive, paths[i].c_str(), mediaid, error);
-		isoDisks.push_back(newDrive);
-		LOG_MSG(MSCDEX_Output(error).c_str());
-		// error: clean up and leave
-		if (error) {
-			for(i = 0; i < isoDisks.size(); i++) {
-				delete isoDisks[i];
-			}
-			return;
-		}
-		// Update DriveManager
-		for(i = 0; i < isoDisks.size(); i++) {
-			DriveManager::AppendDisk(drive - 'A', isoDisks[i]);
-		}
-		DriveManager::InitializeDrive(drive - 'A');
-
-		// Set the correct media byte in the table 
-		mem_writeb(Real2Phys(dos.tables.mediaid) + (drive - 'A') * 2, mediaid);
-
-		/* ide support start */
-		// If instructed, attach to IDE controller as ATAPI CD-ROM device
-		if (ide_index >= 0) IDE_CDROM_Attach(ide_index,ide_slave,drive - 'A');
-		/* ide support end */
-
-		// Print status message (success)
-		LOG_MSG(MSCDEX_Output(0).c_str());
-		std::string tmp(paths[0]);
-		for (i = 1; i < paths.size(); i++) {
-			tmp += "; " + paths[i];
-		}
-		LOG_MSG("GUI: Drive %c is mounted as %s", drive, tmp.c_str());
-
-		// check if volume label is given
-		//if (cmd->FindString("-label",label,true)) newdrive->dirCache.SetLabel(label.c_str());
-		return;
-	}
+    if((GetMenu(GetHWND()) != NULL) != (pMenu != NULL))
+        NonUserResizeCounter = 1;
+#endif
 }
 
 void DOSBox_SetMenu(void) {
-	if(!menu.gui) return;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    {
+        menu.toggle=true;
+        mainMenu.showMenu();
+        mainMenu.setRedraw();
+        GFX_ResetScreen();
+    }
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* TODO: Move to menu.cpp DOSBox_SetMenu() and add setmenu(NULL) to DOSBox_NoMenu() @emendelson request showmenu=false */
+    if(!menu.gui) return;
+    menu.toggle=true;
+    void sdl_hax_macosx_setmenu(void *nsMenu);
+    sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if(!menu.gui) return;
 
-	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
+    LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox-X's window");
 
-	menu.toggle=true;
-	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-	DrawMenuBar (GetHWND());
+    HMENU pMenu = GetMenu(GetHWND());
 
-	if(menu.startup) {
-		RENDER_CallBack( GFX_CallBackReset );
-	}
+    menu.toggle=true;
+    SDL1_hax_SetMenu(mainMenu.getWinMenu());
+    mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+
+    Reflect_Menu();
+
+    if(menu.startup) {
+        RENDER_CallBack( GFX_CallBackReset );
+    }
+
+    if((GetMenu(GetHWND()) != NULL) != (pMenu != NULL))
+        NonUserResizeCounter = 1;
+#endif
+#if defined(USE_TTF)
+    if (ttf.inUse) resetFontSize();
+#endif
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_NoMenu(void) {
-	if(!menu.gui) return;
-	menu.toggle=false;
-	SetMenu(GetHWND(), NULL);
-	DrawMenuBar(GetHWND());
-	RENDER_CallBack( GFX_CallBackReset );
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    {
+        menu.toggle=false;
+        mainMenu.showMenu(false);
+        mainMenu.setRedraw();
+        GFX_ResetScreen();
+    }
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+    if(!menu.gui) return;
+    menu.toggle=false;
+    void sdl_hax_macosx_setmenu(void *nsMenu);
+    sdl_hax_macosx_setmenu(NULL);
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if(!menu.gui) return;
+    menu.toggle=false;
+    NonUserResizeCounter=1;
+    SDL1_hax_SetMenu(NULL);
+    mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+    RENDER_CallBack( GFX_CallBackReset );
+#endif
+#if defined(USE_TTF)
+    if (ttf.inUse) resetFontSize();
+#endif
+    DOSBox_SetSysMenu();
+}
+
+void ToggleMenu(bool pressed) {
+    /* prevent removing the menu in 3Dfx mode */
+    if (GFX_GetPreventFullscreen())
+        return;
+
+    menu.resizeusing=true;
+    int width, height; bool fullscreen;
+    void GFX_GetSize(int &width, int &height, bool &fullscreen);
+    GFX_GetSize(width, height, fullscreen);
+    if(!menu.gui || !pressed || fullscreen) return;
+    if(!menu.toggle) {
+        menu.toggle=true;
+        DOSBox_SetMenu();
+    } else {
+        menu.toggle=false;
+        DOSBox_NoMenu();
+    }
+    DOSBox_SetSysMenu();
+}
+
+#if !defined(WIN32) || defined(HX_DOS)
+int Reflect_Menu(void) {
+    return 0;
+}
+
+void DOSBox_RefreshMenu(void) {
 }
 
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
-	OSVERSIONINFO osi;
-	ZeroMemory(&osi, sizeof(OSVERSIONINFO));
-	osi.dwOSVersionInfoSize = sizeof(osi);
-	GetVersionEx(&osi);
-	id=osi.dwPlatformId;
-	if(id==1) { major=0; minor=0; return; }
-	major=osi.dwMajorVersion;
-	minor=osi.dwMinorVersion;
+    id=major=minor=0;
+}
+#endif
+
+void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
+#if defined(WIN32) && !defined(HX_DOS)
+    bool MAPPER_IsRunning(void);
+    bool GUI_IsRunning(void);
+
+#if defined(C_SDL2)
+    if (Message.msg.win.msg != WM_COMMAND) return;
+#else
+    if (Message.msg != WM_COMMAND) return;
+#endif
+
+    WPARAM wParam;
+#if defined(C_SDL2)
+    wParam=Message.msg.win.wParam;
+#else
+    wParam=Message.wParam;
+#endif
+    if (!MAPPER_IsRunning() && !GUI_IsRunning()) {
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_MAPPER) {
+            extern void MAPPER_Run(bool pressed);
+            MAPPER_Run(false);
+        }
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_CFG_GUI) {
+            extern void GUI_Run(bool pressed);
+            GUI_Run(false);
+        }
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_PAUSE) {
+            extern void PauseDOSBox(bool pressed);
+            PauseDOSBox(true);
+        }
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_RESETSIZE) {
+            void GUI_ResetResize(bool pressed);
+            GUI_ResetResize(true);
+        }
+#if defined(USE_TTF)
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_TTFINCSIZE) {
+            extern void increaseFontSize();
+            increaseFontSize();
+        }
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_TTFDECSIZE) {
+            extern void decreaseFontSize();
+            decreaseFontSize();
+        }
+#endif
+    }
+    std::string fullScreenString = std::string("desktop.fullscreen");
+    if (!menu.gui || GetSetSDLValue(1, fullScreenString, 0)) return;
+    if (!GetMenu(GetHWND())) return;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(wParam))) return;
+#endif
+#else
+    (void)Message;//UNUSED
+#endif
+}
+
+void DOSBox_SetSysMenu(void) {
+#if defined(WIN32) && !defined(HX_DOS)
+    MENUITEMINFOW mii;
+    HMENU sysmenu;
+
+    sysmenu = GetSystemMenu(GetHWND(), TRUE); // revert, so we can reapply menu items
+    sysmenu = GetSystemMenu(GetHWND(), FALSE);
+    if (sysmenu == NULL) return;
+
+    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+    std::string get_mapper_shortcut(const char *name), key="", msg="";
+    wchar_t* buffer = NULL;
+
+    {
+        key="togmenu";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
+        mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
+        wchar_t showMenuBarStr[] = L"Show menu bar";
+        mii.dwTypeData = getWString(msg, showMenuBarStr, buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
+
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+    }
+
+    {
+        key="pause";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = (is_paused ? MFS_CHECKED : 0) | MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_PAUSE;
+        wchar_t pauseEmulationStr[] = L"Pause emulation";
+        mii.dwTypeData = getWString(msg, pauseEmulationStr, buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
+
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+    }
+
+    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+    {
+        key="resetsize";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_RESETSIZE;
+        wchar_t resetWindowSizeStr[] = L"Reset window size";
+        mii.dwTypeData = getWString(msg, resetWindowSizeStr, buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
+
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+    }
+
+#if defined(USE_TTF)
+    {
+        key="incsize";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
+        mii.wID = ID_WIN_SYSMENU_TTFINCSIZE;
+        wchar_t increaseTTFFontSizeStr[] = L"Increase TTF font size";
+        mii.dwTypeData = getWString(msg, increaseTTFFontSizeStr, buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
+
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+    }
+
+    {
+        key="decsize";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
+        mii.wID = ID_WIN_SYSMENU_TTFDECSIZE;
+        wchar_t decreaseTTFFontSizeStr[] = L"Decrease TTF font size";
+        mii.dwTypeData = getWString(msg, decreaseTTFFontSizeStr, buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
+
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+    }
+#endif
+
+    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+    {
+        key="gui";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_CFG_GUI;
+        wchar_t configurationToolStr[] = L"Configuration tool";
+        mii.dwTypeData = getWString(msg, configurationToolStr, buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
+
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+    }
+
+    {
+        key="mapper";
+        msg=mainMenu.get_item("mapper_"+key).get_text()+(get_mapper_shortcut(key.c_str()).size()?"\t"+get_mapper_shortcut(key.c_str()):"");
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_MAPPER;
+        wchar_t mapperEditorStr[] = L"Mapper editor";
+        mii.dwTypeData = getWString(msg, mapperEditorStr, buffer);
+        mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
+
+        InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+        if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+    }
+#endif
+}
+#if defined(WIN32) && !defined(HX_DOS)
+#include <shlobj.h>
+
+void GetDefaultSize(void) {
+    char sizetemp[20]="512,32,32765,";
+    char sizetemp2[20]="";
+    sprintf(sizetemp2,"%d",hdd_defsize);
+    strcat(sizetemp,sizetemp2);
+    sprintf(hdd_size,sizetemp);
+}
+
+void SearchFolder( char path[MAX_PATH], char drive, std::string drive_type ) {
+    WIN32_FIND_DATA FindFileData;
+    HANDLE hFind;
+
+    hFind = FindFirstFile ( "*.*", &FindFileData );
+
+    if ( hFind != INVALID_HANDLE_VALUE ) MountDrive_2(drive,path,drive_type);
+    FindClose ( hFind );
+}
+
+void BrowseFolder( char drive , std::string drive_type ) {
+#if !defined(HX_DOS)
+    if (Drives[drive-'A']) {
+        LOG_MSG("Unmount drive %c first, and then try again.",drive);
+        return;
+    }
+    std::string title = "Select a drive/directory to mount";
+    char path[MAX_PATH];
+    BROWSEINFO bi = { 0 };
+    if(drive_type=="CDROM")
+        bi.lpszTitle = ( title + " CD-ROM\nMounting a directory as CD-ROM gives an limited support" ).c_str();
+    else if(drive_type=="FLOPPY")
+        bi.lpszTitle = ( title + " as Floppy" ).c_str();
+    else if(drive_type=="LOCAL")
+        bi.lpszTitle = ( title + " as Local").c_str();
+    else
+        bi.lpszTitle = (title.c_str());
+    LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
+
+    if ( pidl != 0 ) {
+        SHGetPathFromIDList ( pidl, path );
+//      SetCurrentDirectory ( path );
+        SearchFolder( path , drive, drive_type );
+        IMalloc * imalloc = 0;
+        if ( SUCCEEDED( SHGetMalloc ( &imalloc )) ) {
+            imalloc->Free ( pidl );
+            imalloc->Release ( );
+        }
+    }
+#endif
+}
+
+void mem_conf(std::string memtype, int option) {
+    std::string tmp;
+    Section* sec = control->GetSection("dos");
+    Section_prop * section=static_cast<Section_prop *>(sec);
+    if (!option) {
+        tmp = section->Get_bool(memtype) ? "false" : "true";
+    } else {
+        switch (option) {
+            case 1: tmp = "true"; break;
+            case 2: tmp = "false"; break;
+            case 3: tmp = "emsboard"; break;
+            case 4: tmp = "emm386"; break;
+            default: return;
+        }
+    }
+    if(sec) {
+        memtype += "=" + tmp;
+        sec->HandleInputline(memtype);
+    }
+}
+
+void UnMount(int i_drive) {
+    if (dos_kernel_disabled)
+        return;
+
+    i_drive = toupper(i_drive);
+    if(i_drive-'A' == DOS_GetDefaultDrive()) {
+        DOS_MCB mcb(dos.psp()-1);
+        static char name[9];
+        mcb.GetFileName(name);
+        if (!strlen(name)) goto umount;
+        LOG_MSG("GUI:Drive %c is being used. Aborted.",i_drive);
+        return;
+    }
+umount:
+    if (i_drive-'A' < DOS_DRIVES && i_drive-'A' >= 0 && Drives[i_drive-'A']) {
+        switch (DriveManager::UnmountDrive(i_drive-'A')) {
+        case 0:
+            Drives[i_drive-'A'] = 0;
+            if(i_drive-'A' == DOS_GetDefaultDrive())
+                DOS_SetDrive(toupper('Z') - 'A');
+            LOG_MSG("GUI:Drive %c has successfully been removed.",i_drive); break;
+        case 1:
+            LOG_MSG("GUI:Virtual Drives can not be unMOUNTed."); break;
+        case 2:
+            LOG_MSG(MSCDEX_Output(1).c_str()); break;
+        }
+    }
+}
+
+void MountDrive_2(char drive, const char drive2[DOS_PATHLENGTH], std::string drive_type) {
+    (void)drive_type;
+    (void)drive2;
+    (void)drive;
+}
+
+void MountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
+    (void)drive2;
+    (void)drive;
+}
+
+void Mount_Img_Floppy(char drive, std::string realpath) {
+    (void)realpath;
+    (void)drive;
+}
+
+void Mount_Img_HDD(char drive, std::string realpath) {
+    (void)realpath;
+    (void)drive;
+}
+
+void Mount_Img(char drive, std::string realpath) {
+    (void)realpath;
+    (void)drive;
+}
+
+void DOSBox_CheckOS(int &id, int &major, int &minor) {
+    OSVERSIONINFO osi;
+    ZeroMemory(&osi, sizeof(OSVERSIONINFO));
+    osi.dwOSVersionInfoSize = sizeof(osi);
+    GetVersionEx(&osi);
+    id=osi.dwPlatformId;
+    if(id==1) { major=0; minor=0; return; }
+    major=osi.dwMajorVersion;
+    minor=osi.dwMinorVersion;
 }
 
 bool DOSBox_Kor(void) {
@@ -779,6 +2337,7 @@ bool DOSBox_Kor(void) {
 }
 
 void DOSBox_RefreshMenu(void) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     int width, height; bool fullscreen;
     void GFX_GetSize(int &width, int &height, bool &fullscreen);
     GFX_GetSize(width,height,fullscreen);
@@ -786,19 +2345,29 @@ void DOSBox_RefreshMenu(void) {
     SDL_Prepare();
     if(!menu.gui) return;
 
+    bool GFX_GetPreventFullscreen(void);
+
+    /* prevent removing the menu in 3Dfx mode */
+    if (GFX_GetPreventFullscreen())
+        return;
+
     if(fullscreen) {
-    	SetMenu(GetHWND(), NULL);
-    	DrawMenuBar(GetHWND());
+        NonUserResizeCounter=1;
+        SetMenu(GetHWND(), NULL);
+        DrawMenuBar(GetHWND());
         return;
     }
-	if(menu.toggle)
-		DOSBox_SetMenu();
-	else
-		DOSBox_NoMenu();
+    if(menu.toggle)
+        DOSBox_SetMenu();
+    else
+        DOSBox_NoMenu();
+#endif
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_RefreshMenu2(void) {
-	if(!menu.gui) return;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if(!menu.gui) return;
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
    GFX_GetSize(width,height,fullscreen);
@@ -807,1532 +2376,1016 @@ void DOSBox_RefreshMenu2(void) {
     if(!menu.gui) return;
 
     if(fullscreen) {
-    	SetMenu(GetHWND(), NULL);
-    	DrawMenuBar(GetHWND());
+        NonUserResizeCounter=1;
         return;
     }
-	if(menu.toggle) {
-		menu.toggle=true;
-		SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-		DrawMenuBar (GetHWND());
-	} else {
-		menu.toggle=false;
-		SetMenu(GetHWND(), NULL);
-		DrawMenuBar(GetHWND());
-	}
-}
-
-void ToggleMenu(bool pressed) {
-    menu.resizeusing=true;
-	int width, height; bool fullscreen;
-	void GFX_GetSize(int &width, int &height, bool &fullscreen);
-	GFX_GetSize(width, height, fullscreen);
-    if(!menu.gui || !pressed || fullscreen) return;
-	if(!menu.toggle) {
-		menu.toggle=true;
-		DOSBox_SetMenu();
-	} else {
-		menu.toggle=false;
-		DOSBox_NoMenu();
-	}
+    if(menu.toggle) {
+        menu.toggle=true;
+        NonUserResizeCounter=1;
+        SDL1_hax_SetMenu(mainMenu.getWinMenu());
+    } else {
+        menu.toggle=false;
+        NonUserResizeCounter=1;
+        SDL1_hax_SetMenu(NULL);
+    }
+#endif
+    DOSBox_SetSysMenu();
 }
 
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
-	std::string full_drive(1, drive);
-	Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
-	full_drive += ":\\";
-	EnableMenuItem(handle, cdrom, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(handle, floppy, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(handle, local, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(handle, image, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	if(sec) EnableMenuItem(handle, automount, AUTOMOUNT(full_drive.c_str(), drive) && !menu.boot && sec->Get_bool("automount") ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(handle, umount, (!Drives[drive - 'A']) || menu.boot ? MF_GRAYED : MF_ENABLED);
-}
-
-bool MENU_SetBool(std::string secname, std::string value) {
-	Section_prop * sec = static_cast<Section_prop *>(control->GetSection(secname));
-	if(sec) SetVal(secname, value, sec->Get_bool(value) ? "false" : "true");
-	return sec->Get_bool(value);
+#if !defined(HX_DOS)
+    std::string full_drive(1, drive);
+    Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
+    full_drive += ":\\";
+    EnableMenuItem(handle, cdrom, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
+    EnableMenuItem(handle, floppy, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
+    EnableMenuItem(handle, local, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
+    EnableMenuItem(handle, image, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
+    if(sec) EnableMenuItem(handle, automount, AUTOMOUNT(full_drive.c_str(), drive) && !menu.boot && sec->Get_bool("automount") ? MF_ENABLED : MF_GRAYED);
+    EnableMenuItem(handle, umount, (!Drives[drive - 'A']) || menu.boot ? MF_GRAYED : MF_ENABLED);
+#endif
 }
 
 void MENU_KeyDelayRate(int delay, int rate) {
-	IO_Write(0x60,0xf3); IO_Write(0x60,(Bit8u)(((delay-1)<<5)|(32-rate)));
-	LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
+    IO_Write(0x60,0xf3); IO_Write(0x60,(uint8_t)(((delay-1)<<5)|(32-rate)));
+    LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
 }
-
-enum SCREEN_TYPES	{
-	SCREEN_OPENGLHQ,
-	SCREEN_SURFACE,
-	SCREEN_SURFACE_DDRAW,
-	SCREEN_OVERLAY,
-	SCREEN_OPENGL,
-	SCREEN_DIRECT3D
-};
-extern bool load_videodrv;
 
 int Reflect_Menu(void) {
-	extern bool Mouse_Drv;
-	static char name[9];
-
-	if (!menu.gui) return 0;
-	HMENU m_handle = GetMenu(GetHWND());
-	if (!m_handle) return 0;
-
-	if (!dos_kernel_disabled) {
-		DOS_MCB mcb(dos.psp() - 1);
-		mcb.GetFileName(name);
-	}
-	else {
-		name[0] = 0;
-	}
-
-	CheckMenuItem(m_handle, ID_WAITONERR, GetSetSDLValue(1, "wait_on_error", 0) ? MF_CHECKED : MF_STRING);
-	EnableMenuItem(m_handle, ID_OPENFILE, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_GLIDE_TRUE, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_GLIDE_EMU, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_NONE, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_BG, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_CZ, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_FR, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_GK, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_GR, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_HR, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_HU, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_IT, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_NL, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_NO, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_PL, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_RU, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_SK, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_SP, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_SU, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_SV, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_BE, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_BR, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_CF, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_DK, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_LA, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_PO, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_SF, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_SG, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_UK, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_US, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_YU, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_FO, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_MK, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_MT, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_PH, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_RO, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_SQ, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_TM, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_TR, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_UX, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_YC, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_DV, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_RH, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_KEY_LH, (strlen(name)) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_BOOT_A, (strlen(name) || menu.boot || (Drives['A' - 'A'])) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_BOOT_C, (strlen(name) || menu.boot || (Drives['C' - 'A'])) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_BOOT_D, (strlen(name) || menu.boot || (Drives['D' - 'A'])) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_BOOT_A_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_BOOT_C_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_BOOT_D_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	CheckMenuItem(m_handle, ID_MOUSE, Mouse_Drv ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_AUTOCYCLE, (CPU_CycleAutoAdjust) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_AUTODETER, (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_NORMAL, (!strcasecmp(core_mode, "Normal")) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DYNAMIC, (!strcasecmp(core_mode, "Dynamic")) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_FULL, (!strcasecmp(core_mode, "Full")) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_SIMPLE, (!strcasecmp(core_mode, "Simple")) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_AUTO, (!strcasecmp(core_mode, "Auto")) ? MF_CHECKED : MF_STRING);
-
-	Section_prop * sec = 0;
-	sec = static_cast<Section_prop *>(control->GetSection("cpu"));
-	const std::string cputype = sec->Get_string("cputype");
-	CheckMenuItem(m_handle, ID_CPUTYPE_AUTO, cputype == "auto" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_CPUTYPE_386, cputype == "386" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_CPUTYPE_386_PREFETCH, cputype == "386_prefetch" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_CPUTYPE_486, cputype == "486" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM, cputype == "pentium" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM_MMX, cputype == "pentium_mmx" ? MF_CHECKED : MF_STRING);
-
-	extern bool ticksLocked;
-	CheckMenuItem(m_handle, ID_CPU_TURBO, ticksLocked ? MF_CHECKED : MF_STRING);
-
-	sec = static_cast<Section_prop *>(control->GetSection("joystick"));
-	const std::string joysticktype = sec->Get_string("joysticktype");
-	CheckMenuItem(m_handle, ID_JOYSTICKTYPE_AUTO, joysticktype == "auto" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICKTYPE_2AXIS, joysticktype == "2axis" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICKTYPE_4AXIS, joysticktype == "4axis" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICKTYPE_4AXIS_2, joysticktype == "4axis_2" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICKTYPE_FCS, joysticktype == "fcs" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICKTYPE_CH, joysticktype == "ch" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICKTYPE_NONE, joysticktype == "none" ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICK_TIMED, sec->Get_bool("timed") ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICK_AUTOFIRE, sec->Get_bool("autofire") ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICK_SWAP34, sec->Get_bool("swap34") ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_JOYSTICK_BUTTONWRAP, sec->Get_bool("buttonwrap") ? MF_CHECKED : MF_STRING);
-
-	CheckMenuItem(m_handle, ID_ASPECT, (render.aspect) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_SURFACE, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DDRAW, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE_DDRAW) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DIRECT3D, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_OVERLAY, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OVERLAY) ? MF_CHECKED : MF_STRING);
-	if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGL) {
-		if (GetSetSDLValue(1, "opengl.bilinear", 0)) {
-			CheckMenuItem(m_handle, ID_OPENGL, MF_CHECKED);
-			CheckMenuItem(m_handle, ID_OPENGLNB, MF_STRING);
-		}
-		else {
-			CheckMenuItem(m_handle, ID_OPENGL, MF_STRING);
-			CheckMenuItem(m_handle, ID_OPENGLNB, MF_CHECKED);
-		}
-	}
-	else {
-		CheckMenuItem(m_handle, ID_OPENGLNB, MF_STRING);
-		CheckMenuItem(m_handle, ID_OPENGL, MF_STRING);
-	}
-	
-	CheckMenuItem(m_handle, ID_OPENGLHQ, ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGLHQ) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_FULLDOUBLE, (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_AUTOLOCK, (GetSetSDLValue(1, "mouse.autoenable", 0)) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_HIDECYCL, !menu.hidecycles ? MF_CHECKED : MF_STRING);
-
-	sec = static_cast<Section_prop *>(control->GetSection("serial"));
-	if (sec) {
-		bool serial = false;
-		const std::string serial1 = sec->Get_string("serial1");
-		const std::string serial2 = sec->Get_string("serial2");
-		const std::string serial3 = sec->Get_string("serial3");
-		const std::string serial4 = sec->Get_string("serial4");
-		if (serial1 != "disabled" || serial2 != "disabled" || serial3 != "disabled"
-			|| serial4 != "disabled") serial = true;
-		CheckMenuItem(m_handle, ID_SERIAL_SECTION, serial ? MF_CHECKED : MF_STRING);
-	}
-
-	sec = static_cast<Section_prop *>(control->GetSection("parallel"));
-	if (sec) {
-		//CheckMenuItem(m_handle,ID_DONGLE,sec->Get_bool("dongle")?MF_CHECKED:MF_STRING);
-		bool parallel = false;
-		const std::string parallel1 = sec->Get_string("parallel1");
-		const std::string parallel2 = sec->Get_string("parallel2");
-		const std::string parallel3 = sec->Get_string("parallel3");
-		if (parallel1 != "disabled" || parallel2 != "disabled" || parallel3 != "disabled")
-			parallel = true;
-		CheckMenuItem(m_handle, ID_PARALLEL_SECTION, (parallel || sec->Get_bool("dongle")) ? MF_CHECKED : MF_STRING);
-	}
-
-	std::string path;
-	std::string real_path;
-	bool Get_Custom_SaveDir(std::string& savedir);
-	if (Get_Custom_SaveDir(path)) {
-		path += CROSS_FILESPLIT;
-	}
-	else {
-		extern std::string capturedir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			path = capturedir.substr(0, last_slash_idx);
-		}
-		else {
-			path = ".";
-		}
-		path += CROSS_FILESPLIT;
-		path += "save";
-		path += CROSS_FILESPLIT;
-	}
-
-	sec = static_cast<Section_prop *>(control->GetSection("printer"));
-	if (sec) CheckMenuItem(m_handle, ID_PRINTER_SECTION, sec->Get_bool("printer") ? MF_CHECKED : MF_STRING);
-
-	sec = static_cast<Section_prop *>(control->GetSection("sdl"));
-	if (sec) {
-		const char* windowresolution = sec->Get_string("windowresolution");
-		const int sdl_overscan = sec->Get_int("overscan");
-		CheckMenuItem(m_handle, ID_OVERSCAN_0, sdl_overscan == 0 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_1, sdl_overscan == 1 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_2, sdl_overscan == 2 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_3, sdl_overscan == 3 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_4, sdl_overscan == 4 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_5, sdl_overscan == 5 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_6, sdl_overscan == 6 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_7, sdl_overscan == 7 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_8, sdl_overscan == 8 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_9, sdl_overscan == 9 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_OVERSCAN_10, sdl_overscan == 10 ? MF_CHECKED : MF_STRING);
-
-		if (windowresolution && *windowresolution) {
-			char res[30];
-			safe_strncpy(res, windowresolution, sizeof(res));
-			windowresolution = lowcase(res);//so x and X are allowed
-			CheckMenuItem(m_handle, ID_USESCANCODES, (sec->Get_bool("usescancodes")) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_NONE, SCALER_SW_2(scalerOpNormal, 1) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_NORMAL2X, SCALER_SW_2(scalerOpNormal, 2) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_NORMAL3X, SCALER_SW_2(scalerOpNormal, 3) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_NORMAL4X, SCALER_SW_2(scalerOpNormal, 4) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_NORMAL5X, SCALER_SW_2(scalerOpNormal, 5) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_HARDWARE_NONE, (SCALER_HW_2(scalerOpNormal, 1)) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_HARDWARE2X, (SCALER_HW_2(scalerOpNormal, 4)) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_HARDWARE3X, (SCALER_HW_2(scalerOpNormal, 6)) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_HARDWARE4X, (SCALER_HW_2(scalerOpNormal, 8)) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_HARDWARE5X, (SCALER_HW_2(scalerOpNormal, 10)) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_ADVMAME2X, SCALER_2(scalerOpAdvMame, 2) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_ADVMAME3X, SCALER_2(scalerOpAdvMame, 3) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_ADVINTERP2X, SCALER_2(scalerOpAdvInterp, 2) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_ADVINTERP3X, SCALER_2(scalerOpAdvInterp, 3) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_HQ2X, SCALER_2(scalerOpHQ, 2) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_HQ3X, SCALER_2(scalerOpHQ, 3) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_TV2X, SCALER_2(scalerOpTV, 2) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_TV3X, SCALER_2(scalerOpTV, 3) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SCAN2X, SCALER_2(scalerOpScan, 2) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SCAN3X, SCALER_2(scalerOpScan, 3) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_RGB2X, SCALER_2(scalerOpRGB, 2) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_RGB3X, SCALER_2(scalerOpRGB, 3) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_2XSAI, SCALER_2(scalerOpSaI, 2) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SUPER2XSAI, SCALER_2(scalerOpSuperSaI, 2) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SUPEREAGLE, SCALER_2(scalerOpSuperEagle, 2) ? MF_CHECKED : MF_STRING);
-			//EnableMenuItem(m_handle,ID_FORCESCALER,SCALER_2(scalerOpNormal,4) || SCALER_2(scalerOpNormal,6)?MF_GRAYED:MF_ENABLED);
-			CheckMenuItem(m_handle, ID_FORCESCALER, render.scale.forced ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_0, render.frameskip.max==0 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_1, render.frameskip.max==1 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_2, render.frameskip.max==2 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_3, render.frameskip.max==3 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_4, render.frameskip.max==4 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_5, render.frameskip.max==5 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_6, render.frameskip.max==6 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_7, render.frameskip.max==7 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_8, render.frameskip.max==8 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_9, render.frameskip.max==9 ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_SKIP_10, render.frameskip.max==10 ? MF_CHECKED : MF_STRING);
-		}
-		const std::string winres = sec->Get_string("windowresolution");
-		const std::string fullres = sec->Get_string("fullresolution");
-
-		if (!(winres == "original" || winres == "desktop" || winres == "0x0"))
-			CheckMenuItem(m_handle, ID_WINRES_USER, MF_CHECKED);
-		else
-			CheckMenuItem(m_handle, ID_WINRES_USER, MF_STRING);
-
-		if (!(fullres == "original" || fullres == "desktop" || fullres == "0x0"))
-			CheckMenuItem(m_handle, ID_WINFULL_USER, MF_CHECKED);
-		else
-			CheckMenuItem(m_handle, ID_WINFULL_USER, MF_STRING);
-		CheckMenuItem(m_handle, ID_WINFULL_DESKTOP, (fullres == "desktop") || (fullres == "0x0") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_WINFULL_ORIGINAL, (fullres == "original") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_WINRES_DESKTOP, (winres == "desktop" || winres == "0x0") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_WINRES_ORIGINAL, (winres == "original") ? MF_CHECKED : MF_STRING);
-	}
-
-	sec = static_cast<Section_prop *>(control->GetSection("midi"));
-	if (sec) {
-		const std::string mpu401 = sec->Get_string("mpu401");
-		const std::string device = sec->Get_string("mididevice");
-		const std::string mt32reverbmode = sec->Get_string("mt32.reverb.mode");
-		const std::string mt32dac = sec->Get_string("mt32.dac");
-		const std::string mt32reversestereo = sec->Get_string("mt32.reverse.stereo");
-		const int mt32reverbtime = sec->Get_int("mt32.reverb.time");
-		const int mt32reverblevel = sec->Get_int("mt32.reverb.level");
-		CheckMenuItem(m_handle, ID_MIDI_NONE, (mpu401 == "none") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_UART, (mpu401 == "uart") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_INTELLI, (mpu401 == "intelligent") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_DEV_NONE, (device == "none") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_DEFAULT, (device == "default") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_ALSA, (device == "alsa") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_OSS, (device == "oss") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_WIN32, (device == "win32") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_COREAUDIO, (device == "coreaudio") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_COREMIDI, (device == "coremidi") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32, (device == "mt32") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_SYNTH, (device == "synth") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_TIMIDITY, (device == "timidity") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBMODE_AUTO, (mt32reverbmode == "auto") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBMODE_0, (mt32reverbmode == "0") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBMODE_1, (mt32reverbmode == "1") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBMODE_2, (mt32reverbmode == "2") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBMODE_3, (mt32reverbmode == "3") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_DAC_AUTO, (mt32dac == "auto") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_DAC_0, (mt32dac == "0") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_DAC_1, (mt32dac == "1") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_DAC_2, (mt32dac == "2") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_DAC_3, (mt32dac == "3") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBTIME_0, mt32reverbtime == 0 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBTIME_1, mt32reverbtime == 1 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBTIME_2, mt32reverbtime == 2 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBTIME_3, mt32reverbtime == 3 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBTIME_4, mt32reverbtime == 4 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBTIME_5, mt32reverbtime == 5 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBTIME_6, mt32reverbtime == 6 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBTIME_7, mt32reverbtime == 7 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBLEV_0, mt32reverblevel == 0 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBLEV_1, mt32reverblevel == 1 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBLEV_2, mt32reverblevel == 2 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBLEV_3, mt32reverblevel == 3 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBLEV_4, mt32reverblevel == 4 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBLEV_5, mt32reverblevel == 5 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBLEV_6, mt32reverblevel == 6 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERBLEV_7, mt32reverblevel == 7 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERSESTEREO_TRUE, (mt32reversestereo == "on") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MIDI_MT32_REVERSESTEREO_FALSE, (mt32reversestereo == "off") ? MF_CHECKED : MF_STRING);
-	}
-
-	CheckMenuItem(m_handle, ID_MUTE, SDL_GetAudioStatus() == SDL_AUDIO_PAUSED ? MF_CHECKED : MF_STRING);
-
-	sec = static_cast<Section_prop *>(control->GetSection("mixer"));
-	if (sec) {
-		CheckMenuItem(m_handle, ID_SWAPSTEREO, sec->Get_bool("swapstereo") ? MF_CHECKED : MF_STRING);
-	}
-
-	sec = static_cast<Section_prop *>(control->GetSection("sblaster"));
-	if (sec) {
-		const std::string sbtype = sec->Get_string("sbtype");
-		const int sbbase = sec->Get_hex("sbbase");
-		const int hwbase = sec->Get_hex("hardwarebase");
-		const int irq = sec->Get_int("irq");
-		const int dma = sec->Get_int("dma");
-		const int hdma = sec->Get_int("hdma");
-		const std::string oplmode = sec->Get_string("oplmode");
-		const std::string oplemu = sec->Get_string("oplemu");
-		const int oplrate = sec->Get_int("oplrate");
-		CheckMenuItem(m_handle, ID_SB_NONE, (sbtype == "none") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_SB1, (sbtype == "sb1") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_SB2, (sbtype == "sb2") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_SBPRO1, (sbtype == "sbpro1") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_SBPRO2, (sbtype == "sbpro2") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_SB16, (sbtype == "sb16") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_SB16VIBRA, (sbtype == "sb16vibra") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_GB, (sbtype == "gb") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_220, sbbase == 544 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_240, sbbase == 576 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_260, sbbase == 608 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_280, sbbase == 640 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_300, sbbase == 768 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_2a0, sbbase == 672 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_2c0, sbbase == 704 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_2e0, sbbase == 736 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HW210, hwbase == 528 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HW220, hwbase == 544 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HW230, hwbase == 560 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HW240, hwbase == 576 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HW250, hwbase == 592 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HW260, hwbase == 608 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HW280, hwbase == 640 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_IRQ_3, irq == 3 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_IRQ_5, irq == 5 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_IRQ_7, irq == 7 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_IRQ_9, irq == 9 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_IRQ_10, irq == 10 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_IRQ_11, irq == 11 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_IRQ_12, irq == 12 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_DMA_0, dma == 0 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_DMA_1, dma == 1 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_DMA_3, dma == 3 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_DMA_5, dma == 5 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_DMA_6, dma == 6 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_DMA_7, dma == 7 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HDMA_0, hdma == 0 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HDMA_1, hdma == 1 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HDMA_3, hdma == 3 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HDMA_5, hdma == 5 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HDMA_6, hdma == 6 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_HDMA_7, hdma == 7 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_AUTO, (oplmode == "auto") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_NONE, (oplmode == "none") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_CMS, (oplmode == "cms") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_OPL2, (oplmode == "opl2") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_DUALOPL2, (oplmode == "dualopl2") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_OPL3, (oplmode == "opl3") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_HARDWARE, (oplmode == "hardware") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_HARDWAREGB, (oplmode == "hardwaregb") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_EMU_DEFAULT, (oplemu == "default") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_EMU_COMPAT, (oplemu == "compat") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_EMU_FAST, (oplemu == "fast") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_49716, oplrate == 49716 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_48000, oplrate == 48000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_44100, oplrate == 44100 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_32000, oplrate == 32000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_22050, oplrate == 22050 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_16000, oplrate == 16000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_11025, oplrate == 11025 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_SB_OPL_8000, oplrate == 8000 ? MF_CHECKED : MF_STRING);
-	}
-	sec = static_cast<Section_prop *>(control->GetSection("glide"));
-	if (sec) {
-		const std::string glide = sec->Get_string("glide");
-		const std::string lfb = sec->Get_string("lfb");
-		CheckMenuItem(m_handle, ID_GLIDE_TRUE, (glide == "true") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_EMU, (glide == "emu") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_LFB_FULL, (lfb == "full") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_LFB_FULL_NOAUX, (lfb == "full_noaux") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_LFB_READ, (lfb == "read") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_LFB_READ_NOAUX, (lfb == "read_noaux") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_LFB_WRITE, (lfb == "write") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_LFB_WRITE_NOAUX, (lfb == "write_noaux") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_LFB_NONE, (lfb == "none") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_SPLASH, sec->Get_bool("splash") ? MF_CHECKED : MF_STRING);
-	}
-	sec = static_cast<Section_prop *>(control->GetSection("pci"));
-	if(sec) {
-		const std::string emu = sec->Get_string("voodoo");
-		CheckMenuItem(m_handle, ID_GLIDE_EMU_FALSE, (emu == "false") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_EMU_SOFTWARE, (emu == "software") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_EMU_OPENGL, (emu == "opengl") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GLIDE_EMU_AUTO, (emu == "auto") ? MF_CHECKED : MF_STRING);
-	}
-
-	sec = static_cast<Section_prop *>(control->GetSection("ne2000"));
-	if (sec) {
-		CheckMenuItem(m_handle, ID_NE2000_SECTION, sec->Get_bool("ne2000") ? MF_CHECKED : MF_STRING);
-	}
-
-	sec = static_cast<Section_prop *>(control->GetSection("gus"));
-	if (sec) {
-		const bool gus = sec->Get_bool("gus");
-		const int gusrate = sec->Get_int("gusrate");
-		const int gusbase = sec->Get_hex("gusbase");
-		const int gusirq = sec->Get_int("gusirq");
-		const int gusdma = sec->Get_int("gusdma");
-		CheckMenuItem(m_handle, ID_GUS_TRUE, gus ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_49716, gusrate == 49716 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_48000, gusrate == 48000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_44100, gusrate == 44100 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_32000, gusrate == 32000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_22050, gusrate == 22050 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_16000, gusrate == 16000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_11025, gusrate == 11025 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_8000, gusrate == 8000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_300, gusbase == 768 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_280, gusbase == 640 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_260, gusbase == 608 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_240, gusbase == 576 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_220, gusbase == 544 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_2a0, gusbase == 672 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_2c0, gusbase == 704 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_2e0, gusbase == 736 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_IRQ_3, gusirq == 3 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_IRQ_5, gusirq == 5 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_IRQ_7, gusirq == 7 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_IRQ_9, gusirq == 9 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_IRQ_10, gusirq == 10 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_IRQ_11, gusirq == 11 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_IRQ_12, gusirq == 12 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_DMA_0, gusdma == 0 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_DMA_1, gusdma == 1 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_DMA_3, gusdma == 3 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_DMA_5, gusdma == 5 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_DMA_6, gusdma == 6 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_GUS_DMA_7, gusdma == 7 ? MF_CHECKED : MF_STRING);
-	}
-	sec = static_cast<Section_prop *>(control->GetSection("innova"));
-	if (sec) {
-		const bool innova = sec->Get_bool("innova");
-		const int samplerate = sec->Get_int("samplerate");
-		const int sidbase = sec->Get_hex("sidbase");
-		const int quality = sec->Get_int("quality");
-		CheckMenuItem(m_handle, ID_INNOVA_TRUE, innova ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_49716, samplerate == 49716 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_48000, samplerate == 48000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_44100, samplerate == 44100 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_32000, samplerate == 32000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_22050, samplerate == 22050 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_16000, samplerate == 16000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_11025, samplerate == 11025 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_8000, samplerate == 8000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_280, sidbase == 640 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_2A0, sidbase == 672 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_2C0, sidbase == 704 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_2E0, sidbase == 736 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_220, sidbase == 544 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_240, sidbase == 576 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_260, sidbase == 608 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_300, sidbase == 768 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_3, quality == 3 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_2, quality == 2 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_1, quality == 1 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_INNOVA_0, quality == 0 ? MF_CHECKED : MF_STRING);
-	}
-	sec = static_cast<Section_prop *>(control->GetSection("speaker"));
-	if (sec) {
-		const bool pcspeaker = sec->Get_bool("pcspeaker");
-		const int pcrate = sec->Get_int("pcrate");
-		const std::string tandy = sec->Get_string("tandy");
-		const int tandyrate = sec->Get_int("tandyrate");
-		const bool disney = sec->Get_bool("disney");
-		const std::string ps1audio = sec->Get_string("ps1audio");
-		const int ps1audiorate = sec->Get_int("ps1audiorate");
-		CheckMenuItem(m_handle, ID_PS1_ON, (ps1audio == "on") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PS1_OFF, (ps1audio == "off") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PS1_49716, ps1audiorate == 49716 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PS1_48000, ps1audiorate == 48000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PS1_44100, ps1audiorate == 44100 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PS1_32000, ps1audiorate == 32000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PS1_22050, ps1audiorate == 22050 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PS1_16000, ps1audiorate == 16000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PS1_11025, ps1audiorate == 11025 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PS1_8000, ps1audiorate == 8000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PCSPEAKER_TRUE, pcspeaker ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PCSPEAKER_49716, pcrate == 49716 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PCSPEAKER_48000, pcrate == 48000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PCSPEAKER_44100, pcrate == 44100 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PCSPEAKER_32000, pcrate == 32000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PCSPEAKER_22050, pcrate == 22050 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PCSPEAKER_16000, pcrate == 16000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PCSPEAKER_11025, pcrate == 11025 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_PCSPEAKER_8000, pcrate == 8000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_ON, (tandy == "on") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_OFF, (tandy == "off") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_AUTO, (tandy == "auto") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_49716, tandyrate == 49716 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_48000, tandyrate == 48000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_44100, tandyrate == 44100 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_32000, tandyrate == 32000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_22050, tandyrate == 22050 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_16000, tandyrate == 16000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_11025, tandyrate == 11025 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_TANDY_8000, tandyrate == 8000 ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_DISNEY_TRUE, disney ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_DISNEY_FALSE, !disney ? MF_CHECKED : MF_STRING);
-	}
-	sec = static_cast<Section_prop *>(control->GetSection("render"));
-	if (sec) {
-		CheckMenuItem(m_handle, ID_CHAR9, sec->Get_bool("char9") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_MULTISCAN, sec->Get_bool("multiscan") ? MF_CHECKED : MF_STRING);
-	}
-	sec = static_cast<Section_prop *>(control->GetSection("vsync"));
-	if (sec) {
-		const std::string vsyncmode = sec->Get_string("vsyncmode");
-		EnableMenuItem(m_handle, ID_VSYNC, ((vsyncmode == "off") || (vsyncmode == "host")) ? MF_GRAYED : MF_ENABLED);
-		CheckMenuItem(m_handle, ID_VSYNC_ON, (vsyncmode == "on") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_VSYNC_OFF, (vsyncmode == "off") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_VSYNC_HOST, (vsyncmode == "host") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_VSYNC_FORCE, (vsyncmode == "force") ? MF_CHECKED : MF_STRING);
-	}
-	char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
-	CheckMenuItem(m_handle, ID_DRVFORCE_DIRECTX, ((!strcmp(sdl_videodrv, "directx")) && (load_videodrv)) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DRVFORCE_WINDIB, ((!strcmp(sdl_videodrv, "windib")) && (load_videodrv)) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DRVFORCE_AUTO, !load_videodrv ? MF_CHECKED : MF_STRING);
-	extern bool Mouse_Vertical;
-	CheckMenuItem(m_handle, ID_MOUSE_VERTICAL, Mouse_Vertical ? MF_CHECKED : MF_STRING);
-	sec = static_cast<Section_prop *>(control->GetSection("dos"));
-	if (sec) {
-		const std::string ems = sec->Get_string("ems");
-		CheckMenuItem(m_handle, ID_XMS, sec->Get_bool("xms") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_EMS_TRUE, (ems == "true") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_EMS_FALSE, (ems == "false") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_EMS_EMSBOARD, (ems == "emsboard") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_EMS_EMM386, (ems == "emm386") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_UMB, sec->Get_bool("umb") ? MF_CHECKED : MF_STRING);
-
-		const std::string key = sec->Get_string("keyboardlayout");
-		CheckMenuItem(m_handle, ID_KEY_NONE, (key == "auto") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_BG, (key == "bg") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_CZ, (key == "CZ") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_FR, (key == "fr") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_GK, (key == "gk") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_GR, (key == "gr") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_HR, (key == "hr") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_HU, (key == "hu") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_IT, (key == "it") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_NL, (key == "nl") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_NO, (key == "no") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_PL, (key == "pl") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_RU, (key == "ru") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_SK, (key == "sk") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_SP, (key == "sp") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_SU, (key == "su") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_SV, (key == "sv") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_BE, (key == "be") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_BR, (key == "br") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_CF, (key == "cf") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_DK, (key == "dk") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_LA, (key == "la") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_PO, (key == "po") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_SF, (key == "sf") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_SG, (key == "sg") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_UK, (key == "uk") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_US, (key == "us") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_YU, (key == "yu") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_FO, (key == "fo") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_MK, (key == "mk") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_MT, (key == "mt") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_PH, (key == "ph") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_RO, (key == "ro") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_SQ, (key == "sq") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_TM, (key == "tm") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_TR, (key == "tr") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_UX, (key == "ux") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_YC, (key == "yc") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_DV, (key == "dv") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_RH, (key == "rh") ? MF_CHECKED : MF_STRING);
-		CheckMenuItem(m_handle, ID_KEY_LH, (key == "lh") ? MF_CHECKED : MF_STRING);
-	}
-	sec = static_cast<Section_prop *>(control->GetSection("ipx"));
-	if (sec)	CheckMenuItem(m_handle, ID_IPXNET, sec->Get_bool("ipx") ? MF_CHECKED : MF_STRING);
-	sec = 0;
-
-	sec = static_cast<Section_prop *>(control->GetSection("dos"));
-	if (sec) CheckMenuItem(m_handle, ID_AUTOMOUNT, sec->Get_bool("automount") ? MF_CHECKED : MF_STRING);
-	sec=0;
-
-	DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
-	CheckMenuItem(m_handle, ID_ALWAYS_ON_TOP, (dwExStyle & WS_EX_TOPMOST) ? MF_CHECKED : MF_STRING);
-
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_A, ID_MOUNT_FLOPPY_A, ID_MOUNT_LOCAL_A, ID_MOUNT_IMAGE_A, ID_AUTOMOUNT_A, ID_UMOUNT_A, 'A');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_B, ID_MOUNT_FLOPPY_B, ID_MOUNT_LOCAL_B, ID_MOUNT_IMAGE_B, ID_AUTOMOUNT_B, ID_UMOUNT_B, 'B');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_C, ID_MOUNT_FLOPPY_C, ID_MOUNT_LOCAL_C, ID_MOUNT_IMAGE_C, ID_AUTOMOUNT_C, ID_UMOUNT_C, 'C');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_D, ID_MOUNT_FLOPPY_D, ID_MOUNT_LOCAL_D, ID_MOUNT_IMAGE_D, ID_AUTOMOUNT_D, ID_UMOUNT_D, 'D');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_E, ID_MOUNT_FLOPPY_E, ID_MOUNT_LOCAL_E, ID_MOUNT_IMAGE_E, ID_AUTOMOUNT_E, ID_UMOUNT_E, 'E');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_F, ID_MOUNT_FLOPPY_F, ID_MOUNT_LOCAL_F, ID_MOUNT_IMAGE_F, ID_AUTOMOUNT_F, ID_UMOUNT_F, 'F');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_G, ID_MOUNT_FLOPPY_G, ID_MOUNT_LOCAL_G, ID_MOUNT_IMAGE_G, ID_AUTOMOUNT_G, ID_UMOUNT_G, 'G');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_H, ID_MOUNT_FLOPPY_H, ID_MOUNT_LOCAL_H, ID_MOUNT_IMAGE_H, ID_AUTOMOUNT_H, ID_UMOUNT_H, 'H');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_I, ID_MOUNT_FLOPPY_I, ID_MOUNT_LOCAL_I, ID_MOUNT_IMAGE_I, ID_AUTOMOUNT_I, ID_UMOUNT_I, 'I');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_J, ID_MOUNT_FLOPPY_J, ID_MOUNT_LOCAL_J, ID_MOUNT_IMAGE_J, ID_AUTOMOUNT_J, ID_UMOUNT_J, 'J');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_K, ID_MOUNT_FLOPPY_K, ID_MOUNT_LOCAL_K, ID_MOUNT_IMAGE_K, ID_AUTOMOUNT_K, ID_UMOUNT_K, 'K');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_L, ID_MOUNT_FLOPPY_L, ID_MOUNT_LOCAL_L, ID_MOUNT_IMAGE_L, ID_AUTOMOUNT_L, ID_UMOUNT_L, 'L');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_M, ID_MOUNT_FLOPPY_M, ID_MOUNT_LOCAL_M, ID_MOUNT_IMAGE_M, ID_AUTOMOUNT_M, ID_UMOUNT_M, 'M');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_N, ID_MOUNT_FLOPPY_N, ID_MOUNT_LOCAL_N, ID_MOUNT_IMAGE_N, ID_AUTOMOUNT_N, ID_UMOUNT_N, 'N');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_O, ID_MOUNT_FLOPPY_O, ID_MOUNT_LOCAL_O, ID_MOUNT_IMAGE_O, ID_AUTOMOUNT_O, ID_UMOUNT_O, 'O');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_P, ID_MOUNT_FLOPPY_P, ID_MOUNT_LOCAL_P, ID_MOUNT_IMAGE_P, ID_AUTOMOUNT_P, ID_UMOUNT_P, 'P');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Q, ID_MOUNT_FLOPPY_Q, ID_MOUNT_LOCAL_Q, ID_MOUNT_IMAGE_Q, ID_AUTOMOUNT_Q, ID_UMOUNT_Q, 'Q');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_R, ID_MOUNT_FLOPPY_R, ID_MOUNT_LOCAL_R, ID_MOUNT_IMAGE_R, ID_AUTOMOUNT_R, ID_UMOUNT_R, 'R');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_S, ID_MOUNT_FLOPPY_S, ID_MOUNT_LOCAL_S, ID_MOUNT_IMAGE_S, ID_AUTOMOUNT_S, ID_UMOUNT_S, 'S');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_T, ID_MOUNT_FLOPPY_T, ID_MOUNT_LOCAL_T, ID_MOUNT_IMAGE_T, ID_AUTOMOUNT_T, ID_UMOUNT_T, 'T');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_U, ID_MOUNT_FLOPPY_U, ID_MOUNT_LOCAL_U, ID_MOUNT_IMAGE_U, ID_AUTOMOUNT_U, ID_UMOUNT_U, 'U');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_V, ID_MOUNT_FLOPPY_V, ID_MOUNT_LOCAL_V, ID_MOUNT_IMAGE_V, ID_AUTOMOUNT_V, ID_UMOUNT_V, 'V');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_W, ID_MOUNT_FLOPPY_W, ID_MOUNT_LOCAL_W, ID_MOUNT_IMAGE_W, ID_AUTOMOUNT_W, ID_UMOUNT_W, 'W');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_X, ID_MOUNT_FLOPPY_X, ID_MOUNT_LOCAL_X, ID_MOUNT_IMAGE_X, ID_AUTOMOUNT_X, ID_UMOUNT_X, 'X');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Y, ID_MOUNT_FLOPPY_Y, ID_MOUNT_LOCAL_Y, ID_MOUNT_IMAGE_Y, ID_AUTOMOUNT_Y, ID_UMOUNT_Y, 'Y');
-	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
-}
-
-// Sets the scaler to use.
-void SetScaler(scalerOperation_t op, Bitu size, std::string prefix)
-{
-	auto value = prefix + (render.scale.forced ? " forced" : "");
-	SetVal("render", "scaler", value);
-	render.scale.size = size;
-	render.scale.op = op;
-	RENDER_CallBack(GFX_CallBackReset);
-}
-
-// Sets the scaler 'forced' flag.
-void SetScaleForced(bool forced)
-{
-	render.scale.forced = forced;
-	RENDER_CallBack(GFX_CallBackReset);
-}
-
-void MSG_Loop(void) {
-	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
-	if (!GetMenu(GetHWND())) return;
-	MSG Message;
-	while (PeekMessage(&Message, GetHWND(), 0, 0, PM_REMOVE)) {
-		switch (Message.message) {
-		case WM_SYSCHAR:
-			break;
-		case WM_COMMAND:
-			switch (LOWORD(Message.wParam)) {
-			case ID_USESCANCODES: {
-				Section* sec = control->GetSection("sdl");
-				Section_prop * section = static_cast<Section_prop *>(sec);
-				SetVal("sdl", "usescancodes", section->Get_bool("usescancodes") ? "false" : "true");
-				}
-				break;
-			case ID_WAITONERR:
-				if (GetSetSDLValue(1, "wait_on_error", 0)) {
-					SetVal("sdl", "waitonerror", "false");
-					GetSetSDLValue(0, "wait_on_error", (void*)false);
-				}
-				else {
-					SetVal("sdl", "waitonerror", "true");
-					GetSetSDLValue(0, "wait_on_error", (void*)true);
-				}
-				break;
-			case ID_HDD_SIZE: GUI_Shortcut(18); break;
-			case ID_BOOT_A: Go_Boot("A"); break;
-			case ID_BOOT_C: Go_Boot("C"); break;
-			case ID_BOOT_D: Go_Boot("D"); break;
-			case ID_BOOT_A_MOUNTED: Go_Boot2("A"); break;
-			case ID_BOOT_C_MOUNTED: Go_Boot2("C"); break;
-			case ID_BOOT_D_MOUNTED: Go_Boot2("D"); break;
-			case ID_RESTART: void restart_program(std::vector<std::string> & parameters); restart_program(control->startup_params); break;
-			case ID_QUIT: throw(0); break;
-			case ID_OPENFILE: OpenFileDialog(0); break;
-			case ID_PAUSE: void PauseDOSBox(bool pressed); PauseDOSBox(1); break;
-			case ID_NORMAL:
-				if (strcasecmp(core_mode, "normal") == 0) break;
-				SetVal("cpu", "core", "normal");
-				break;
-#if (C_DYNAMIC_X86)
-			case ID_DYNAMIC: if (strcmp(core_mode, "dynamic") != 0) SetVal("cpu", "core", "dynamic"); break;
+#if !defined(HX_DOS) && !defined(C_SDL2)
+    SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
 #endif
-			case ID_FULL: if (strcmp(core_mode, "full") != 0) SetVal("cpu", "core", "full"); break;
-			case ID_SIMPLE: if (strcmp(core_mode, "simple") != 0) SetVal("cpu", "core", "simple"); break;
-			case ID_AUTO: if (strcmp(core_mode, "auto") != 0) SetVal("cpu", "core", "auto"); break;
-			case ID_KEYMAP: MAPPER_RunInternal(); break;
-			case ID_AUTOCYCLE: SetVal("cpu", "cycles", (!CPU_CycleAutoAdjust) ? "max" : "auto"); break;
-			case ID_AUTODETER:
-			{
-			if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)) {
-				SetVal("cpu", "cycles", "auto");
-				break;
-			}
-			else {
-				std::ostringstream str;
-				str << "fixed " << CPU_CycleMax;
-				std::string cycles = str.str();
-				SetVal("cpu", "cycles", cycles);
-				break;
-			}
-			}
-			case ID_CAPMOUSE: GFX_CaptureMouse(); break;
-			case ID_REFRESH: GUI_Shortcut(1); break;
-			case ID_FULLSCREEN: GFX_SwitchFullScreen(); break;
-			case ID_ASPECT: SetVal("render", "aspect", render.aspect ? "false" : "true"); break;
-			case ID_HIDECYCL:
-				menu.hidecycles = !menu.hidecycles;
-				GFX_SetTitle(CPU_CycleMax, -1, -1, false);
-				break;
-			case ID_TOGGLE: ToggleMenu(true); break;
-			case ID_NONE:			SetScaler(scalerOpNormal,			1, "none");				break;
-			case ID_NORMAL2X:		SetScaler(scalerOpNormal,			2, "normal2x");			break;
-			case ID_NORMAL3X:		SetScaler(scalerOpNormal,			3, "normal3x");			break;
-			case ID_NORMAL4X:		SetScaler(scalerOpNormal,			4, "normal4x");			break;
-			case ID_NORMAL5X:		SetScaler(scalerOpNormal,			5, "normal5x");			break;
-			case ID_HARDWARE_NONE:	SetScaler(scalerOpNormal,			1, "hardware_none");	break;
-			case ID_HARDWARE2X:		SetScaler(scalerOpNormal,			2, "hardware2x");		break;
-			case ID_HARDWARE3X:		SetScaler(scalerOpNormal,			3, "hardware3x");		break;
-			case ID_HARDWARE4X:		SetScaler(scalerOpNormal,			4, "hardware4x");		break;
-			case ID_HARDWARE5X:		SetScaler(scalerOpNormal,			4, "hardware5x");		break;
-			case ID_ADVMAME2X:		SetScaler(scalerOpAdvMame,			2, "advmame2x");		break;
-			case ID_ADVMAME3X:		SetScaler(scalerOpAdvMame,			3, "advmame3x");		break;
-			case ID_ADVINTERP2X:	SetScaler(scalerOpAdvInterp,		2, "advinterp2x");		break;
-			case ID_ADVINTERP3X:	SetScaler(scalerOpAdvInterp,		3, "advinterp3x");		break;
-			case ID_HQ2X:			SetScaler(scalerOpHQ,				2, "hq2x");				break;
-			case ID_HQ3X:			SetScaler(scalerOpHQ,				3, "hq3x");				break;
-			case ID_2XSAI:			SetScaler(scalerOpSaI,				2, "2xsai");			break;
-			case ID_SUPER2XSAI:		SetScaler(scalerOpSuperSaI,			2, "super2xsai");		break;
-			case ID_SUPEREAGLE:		SetScaler(scalerOpSuperEagle,		2, "supereagle");		break;
-			case ID_TV2X:			SetScaler(scalerOpTV,				2, "tv2x");				break;
-			case ID_TV3X:			SetScaler(scalerOpTV,				3, "tv3x");				break;
-			case ID_RGB2X:			SetScaler(scalerOpRGB,				2, "rgb2x");			break;
-			case ID_RGB3X:			SetScaler(scalerOpRGB,				3, "rgb3x");			break;
-			case ID_SCAN2X:			SetScaler(scalerOpScan,				2, "scan2x");			break;
-			case ID_SCAN3X:			SetScaler(scalerOpScan,				3, "scan3x");			break;
-			case ID_FORCESCALER:	SetScaleForced(!render.scale.forced);						break;
-			case ID_CYCLE: GUI_Shortcut(16); break;
-			case ID_CPU_TURBO: extern void DOSBOX_UnlockSpeed2(bool pressed); DOSBOX_UnlockSpeed2(1); break;
-			case ID_SKIP_0: SetVal("render", "frameskip", "0"); break;
-			case ID_SKIP_1: SetVal("render", "frameskip", "1"); break;
-			case ID_SKIP_2: SetVal("render", "frameskip", "2"); break;
-			case ID_SKIP_3: SetVal("render", "frameskip", "3"); break;
-			case ID_SKIP_4: SetVal("render", "frameskip", "4"); break;
-			case ID_SKIP_5: SetVal("render", "frameskip", "5"); break;
-			case ID_SKIP_6: SetVal("render", "frameskip", "6"); break;
-			case ID_SKIP_7: SetVal("render", "frameskip", "7"); break;
-			case ID_SKIP_8: SetVal("render", "frameskip", "8"); break;
-			case ID_SKIP_9: SetVal("render", "frameskip", "9"); break;
-			case ID_SKIP_10: SetVal("render", "frameskip", "10"); break;
-			case ID_UMOUNT_A: UnMount('A'); break;
-			case ID_UMOUNT_B: UnMount('B'); break;
-			case ID_UMOUNT_C: UnMount('C'); break;
-			case ID_UMOUNT_D: UnMount('D'); break;
-			case ID_UMOUNT_E: UnMount('E'); break;
-			case ID_UMOUNT_F: UnMount('F'); break;
-			case ID_UMOUNT_G: UnMount('G'); break;
-			case ID_UMOUNT_H: UnMount('H'); break;
-			case ID_UMOUNT_I: UnMount('I'); break;
-			case ID_UMOUNT_J: UnMount('J'); break;
-			case ID_UMOUNT_K: UnMount('K'); break;
-			case ID_UMOUNT_L: UnMount('L'); break;
-			case ID_UMOUNT_M: UnMount('M'); break;
-			case ID_UMOUNT_N: UnMount('N'); break;
-			case ID_UMOUNT_O: UnMount('O'); break;
-			case ID_UMOUNT_P: UnMount('P'); break;
-			case ID_UMOUNT_Q: UnMount('Q'); break;
-			case ID_UMOUNT_R: UnMount('R'); break;
-			case ID_UMOUNT_S: UnMount('S'); break;
-			case ID_UMOUNT_T: UnMount('T'); break;
-			case ID_UMOUNT_U: UnMount('U'); break;
-			case ID_UMOUNT_V: UnMount('V'); break;
-			case ID_UMOUNT_W: UnMount('W'); break;
-			case ID_UMOUNT_X: UnMount('X'); break;
-			case ID_UMOUNT_Y: UnMount('Y'); break;
-			case ID_UMOUNT_Z: UnMount('Z'); break;
-			case ID_AUTOMOUNT:
-			{
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
-			if(sec) SetVal("dos", "automount", sec->Get_bool("automount") ? "false" : "true");
-			}
-			break;
-			case ID_AUTOMOUNT_A: MountDrive('A', "A:\\"); break;
-			case ID_AUTOMOUNT_B: MountDrive('B', "B:\\"); break;
-			case ID_AUTOMOUNT_C: MountDrive('C', "C:\\"); break;
-			case ID_AUTOMOUNT_D: MountDrive('D', "D:\\"); break;
-			case ID_AUTOMOUNT_E: MountDrive('E', "E:\\"); break;
-			case ID_AUTOMOUNT_F: MountDrive('F', "F:\\"); break;
-			case ID_AUTOMOUNT_G: MountDrive('G', "G:\\"); break;
-			case ID_AUTOMOUNT_H: MountDrive('H', "H:\\"); break;
-			case ID_AUTOMOUNT_I: MountDrive('I', "I:\\"); break;
-			case ID_AUTOMOUNT_J: MountDrive('J', "J:\\"); break;
-			case ID_AUTOMOUNT_K: MountDrive('K', "K:\\"); break;
-			case ID_AUTOMOUNT_L: MountDrive('L', "L:\\"); break;
-			case ID_AUTOMOUNT_M: MountDrive('M', "M:\\"); break;
-			case ID_AUTOMOUNT_N: MountDrive('N', "N:\\"); break;
-			case ID_AUTOMOUNT_O: MountDrive('O', "O:\\"); break;
-			case ID_AUTOMOUNT_P: MountDrive('P', "P:\\"); break;
-			case ID_AUTOMOUNT_Q: MountDrive('Q', "Q:\\"); break;
-			case ID_AUTOMOUNT_R: MountDrive('R', "R:\\"); break;
-			case ID_AUTOMOUNT_S: MountDrive('S', "S:\\"); break;
-			case ID_AUTOMOUNT_T: MountDrive('T', "T:\\"); break;
-			case ID_AUTOMOUNT_U: MountDrive('U', "U:\\"); break;
-			case ID_AUTOMOUNT_V: MountDrive('V', "V:\\"); break;
-			case ID_AUTOMOUNT_W: MountDrive('W', "W:\\"); break;
-			case ID_AUTOMOUNT_X: MountDrive('X', "X:\\"); break;
-			case ID_AUTOMOUNT_Y: MountDrive('Y', "Y:\\"); break;
-			case ID_AUTOMOUNT_Z: MountDrive('Z', "Z:\\"); break;
-			case ID_MOUNT_CDROM_A: BrowseFolder('A', "CDROM"); break;
-			case ID_MOUNT_CDROM_B: BrowseFolder('B', "CDROM"); break;
-			case ID_MOUNT_CDROM_C: BrowseFolder('C', "CDROM"); break;
-			case ID_MOUNT_CDROM_D: BrowseFolder('D', "CDROM"); break;
-			case ID_MOUNT_CDROM_E: BrowseFolder('E', "CDROM"); break;
-			case ID_MOUNT_CDROM_F: BrowseFolder('F', "CDROM"); break;
-			case ID_MOUNT_CDROM_G: BrowseFolder('G', "CDROM"); break;
-			case ID_MOUNT_CDROM_H: BrowseFolder('H', "CDROM"); break;
-			case ID_MOUNT_CDROM_I: BrowseFolder('I', "CDROM"); break;
-			case ID_MOUNT_CDROM_J: BrowseFolder('J', "CDROM"); break;
-			case ID_MOUNT_CDROM_K: BrowseFolder('K', "CDROM"); break;
-			case ID_MOUNT_CDROM_L: BrowseFolder('L', "CDROM"); break;
-			case ID_MOUNT_CDROM_M: BrowseFolder('M', "CDROM"); break;
-			case ID_MOUNT_CDROM_N: BrowseFolder('N', "CDROM"); break;
-			case ID_MOUNT_CDROM_O: BrowseFolder('O', "CDROM"); break;
-			case ID_MOUNT_CDROM_P: BrowseFolder('P', "CDROM"); break;
-			case ID_MOUNT_CDROM_Q: BrowseFolder('Q', "CDROM"); break;
-			case ID_MOUNT_CDROM_R: BrowseFolder('R', "CDROM"); break;
-			case ID_MOUNT_CDROM_S: BrowseFolder('S', "CDROM"); break;
-			case ID_MOUNT_CDROM_T: BrowseFolder('T', "CDROM"); break;
-			case ID_MOUNT_CDROM_U: BrowseFolder('U', "CDROM"); break;
-			case ID_MOUNT_CDROM_V: BrowseFolder('V', "CDROM"); break;
-			case ID_MOUNT_CDROM_W: BrowseFolder('W', "CDROM"); break;
-			case ID_MOUNT_CDROM_X: BrowseFolder('X', "CDROM"); break;
-			case ID_MOUNT_CDROM_Y: BrowseFolder('Y', "CDROM"); break;
-			case ID_MOUNT_CDROM_Z: BrowseFolder('Z', "CDROM"); break;
-			case ID_MOUNT_FLOPPY_A: BrowseFolder('A', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_B: BrowseFolder('B', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_C: BrowseFolder('C', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_D: BrowseFolder('D', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_E: BrowseFolder('E', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_F: BrowseFolder('F', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_G: BrowseFolder('G', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_H: BrowseFolder('H', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_I: BrowseFolder('I', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_J: BrowseFolder('J', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_K: BrowseFolder('K', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_L: BrowseFolder('L', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_M: BrowseFolder('M', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_N: BrowseFolder('N', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_O: BrowseFolder('O', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_P: BrowseFolder('P', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_Q: BrowseFolder('Q', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_R: BrowseFolder('R', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_S: BrowseFolder('S', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_T: BrowseFolder('T', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_U: BrowseFolder('U', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_V: BrowseFolder('V', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_W: BrowseFolder('W', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_X: BrowseFolder('X', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_Y: BrowseFolder('Y', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_Z: BrowseFolder('Z', "FLOPPY"); break;
-			case ID_MOUNT_LOCAL_A: BrowseFolder('A', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_B: BrowseFolder('B', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_C: BrowseFolder('C', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_D: BrowseFolder('D', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_E: BrowseFolder('E', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_F: BrowseFolder('F', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_G: BrowseFolder('G', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_H: BrowseFolder('H', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_I: BrowseFolder('I', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_J: BrowseFolder('J', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_K: BrowseFolder('K', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_L: BrowseFolder('L', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_M: BrowseFolder('M', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_N: BrowseFolder('N', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_O: BrowseFolder('O', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_P: BrowseFolder('P', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_Q: BrowseFolder('Q', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_R: BrowseFolder('R', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_S: BrowseFolder('S', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_T: BrowseFolder('T', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_U: BrowseFolder('U', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_V: BrowseFolder('V', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_W: BrowseFolder('W', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_X: BrowseFolder('X', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_Y: BrowseFolder('Y', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_Z: BrowseFolder('Z', "LOCAL"); break;
-			case ID_MOUNT_IMAGE_A: OpenFileDialog_Img('A'); break;
-			case ID_MOUNT_IMAGE_B: OpenFileDialog_Img('B'); break;
-			case ID_MOUNT_IMAGE_C: OpenFileDialog_Img('C'); break;
-			case ID_MOUNT_IMAGE_D: OpenFileDialog_Img('D'); break;
-			case ID_MOUNT_IMAGE_E: OpenFileDialog_Img('E'); break;
-			case ID_MOUNT_IMAGE_F: OpenFileDialog_Img('F'); break;
-			case ID_MOUNT_IMAGE_G: OpenFileDialog_Img('G'); break;
-			case ID_MOUNT_IMAGE_H: OpenFileDialog_Img('H'); break;
-			case ID_MOUNT_IMAGE_I: OpenFileDialog_Img('I'); break;
-			case ID_MOUNT_IMAGE_J: OpenFileDialog_Img('J'); break;
-			case ID_MOUNT_IMAGE_K: OpenFileDialog_Img('K'); break;
-			case ID_MOUNT_IMAGE_L: OpenFileDialog_Img('L'); break;
-			case ID_MOUNT_IMAGE_M: OpenFileDialog_Img('M'); break;
-			case ID_MOUNT_IMAGE_N: OpenFileDialog_Img('N'); break;
-			case ID_MOUNT_IMAGE_O: OpenFileDialog_Img('O'); break;
-			case ID_MOUNT_IMAGE_P: OpenFileDialog_Img('P'); break;
-			case ID_MOUNT_IMAGE_Q: OpenFileDialog_Img('Q'); break;
-			case ID_MOUNT_IMAGE_R: OpenFileDialog_Img('R'); break;
-			case ID_MOUNT_IMAGE_S: OpenFileDialog_Img('S'); break;
-			case ID_MOUNT_IMAGE_T: OpenFileDialog_Img('T'); break;
-			case ID_MOUNT_IMAGE_U: OpenFileDialog_Img('U'); break;
-			case ID_MOUNT_IMAGE_V: OpenFileDialog_Img('V'); break;
-			case ID_MOUNT_IMAGE_W: OpenFileDialog_Img('W'); break;
-			case ID_MOUNT_IMAGE_X: OpenFileDialog_Img('X'); break;
-			case ID_MOUNT_IMAGE_Y: OpenFileDialog_Img('Y'); break;
-			case ID_MOUNT_IMAGE_Z: OpenFileDialog_Img('Z'); break;
-//			case ID_SSHOT: void CAPTURE_ScreenShotEvent(bool pressed); CAPTURE_ScreenShotEvent(true); break;
-//			case ID_MOVIE: void CAPTURE_VideoEvent(bool pressed); CAPTURE_VideoEvent(true); break;
-			case ID_WAVE: void CAPTURE_WaveEvent(bool pressed); CAPTURE_WaveEvent(true); break;
-			case ID_OPL: void OPL_SaveRawEvent(bool pressed); OPL_SaveRawEvent(true); break;
-			case ID_MIDI: void CAPTURE_MidiEvent(bool pressed); CAPTURE_MidiEvent(true); break;
-			case ID_XMS: mem_conf("xms", 0); break;
-			case ID_EMS_TRUE: mem_conf("ems", 1); break;
-			case ID_EMS_FALSE: mem_conf("ems", 2); break;
-			case ID_EMS_EMSBOARD: mem_conf("ems", 3); break;
-			case ID_EMS_EMM386: mem_conf("ems", 4); break;
-			case ID_UMB: mem_conf("umb", 0); break;
-			case ID_SEND_CTRL_ESC: {
-				KEYBOARD_AddKey(KBD_leftctrl, true);
-				KEYBOARD_AddKey(KBD_esc, true);
-				KEYBOARD_AddKey(KBD_leftctrl, false);
-				KEYBOARD_AddKey(KBD_esc, false);
-				break;
-				}
-			case ID_SEND_ALT_TAB: {
-				KEYBOARD_AddKey(KBD_leftalt, true);
-				KEYBOARD_AddKey(KBD_tab, true);
-				KEYBOARD_AddKey(KBD_leftalt, false);
-				KEYBOARD_AddKey(KBD_tab, false);
-				break;
-				}
-			case ID_SEND_CTRL_ALT_DEL: {
-				KEYBOARD_AddKey(KBD_leftctrl, true);
-				KEYBOARD_AddKey(KBD_leftalt, true);
-				KEYBOARD_AddKey(KBD_delete, true);
-				KEYBOARD_AddKey(KBD_leftctrl, false);
-				KEYBOARD_AddKey(KBD_leftalt, false);
-				KEYBOARD_AddKey(KBD_delete, false);
-				break;
-				}
-			case ID_CHAR9: MENU_SetBool("render", "char9"); break;
-			case ID_MULTISCAN: MENU_SetBool("render", "multiscan"); break;
-			case ID_DRVFORCE_DIRECTX: {
-				load_videodrv = true;
-				putenv("SDL_VIDEODRIVER=directx");
-				GetSetSDLValue(0, "using_windib", (void*) false);
-				void restart_program(std::vector<std::string> & parameters);
-				restart_program(control->startup_params);
-				break;
-				}
-			case ID_DRVFORCE_WINDIB: {
-				load_videodrv = true;
-				putenv("SDL_VIDEODRIVER=windib");
-				GetSetSDLValue(0, "using_windib", (void*) true);
-				void restart_program(std::vector<std::string> & parameters);
-				restart_program(control->startup_params);
-				break;
-				}
-			case ID_DRVFORCE_AUTO: {
-				load_videodrv = false;
-				void restart_program(std::vector<std::string> & parameters);
-				restart_program(control->startup_params);
-				break;
-				}
-			case ID_VSYNC_ON: SetVal("vsync", "vsyncmode", "on"); break;
-			case ID_VSYNC_HOST: SetVal("vsync", "vsyncmode", "host"); break;
-			case ID_VSYNC_FORCE: SetVal("vsync", "vsyncmode", "force"); break;
-			case ID_VSYNC_OFF: SetVal("vsync", "vsyncmode", "off"); break;
-			case ID_SURFACE: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE) { change_output(0); SetVal("sdl", "output", "surface"); } break;
-			case ID_DDRAW: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE_DDRAW) { change_output(1); SetVal("sdl", "output", "ddraw"); } break;
-			case ID_OVERLAY: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OVERLAY) { change_output(2); SetVal("sdl", "output", "overlay"); } break;
-			case ID_OPENGL: change_output(3); SetVal("sdl", "output", "opengl"); break;
-			case ID_OPENGLNB: change_output(4); SetVal("sdl", "output", "openglnb"); break;
-			case ID_DIRECT3D: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
-			case ID_OPENGLHQ: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OPENGLHQ) { change_output(6); SetVal("sdl", "output", "openglhq"); } break;
-			case ID_WINFULL_USER: case ID_WINRES_USER: GUI_Shortcut(2); break;
-			case ID_WINRES_ORIGINAL: res_input(true, "original"); break;
-			case ID_WINFULL_ORIGINAL: res_input(false, "original"); break;
-			case ID_WINRES_DESKTOP: res_input(true, "desktop"); break;
-			case ID_WINFULL_DESKTOP: res_input(false, "desktop"); break;
-			case ID_FULLDOUBLE: SetVal("sdl", "fulldouble", (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? "false" : "true"); res_init(); break;
-			case ID_AUTOLOCK: (GetSetSDLValue(0, "mouse.autoenable", (void*)MENU_SetBool("sdl", "autolock"))); break;
-			case ID_MOUSE: extern bool Mouse_Drv; Mouse_Drv = !Mouse_Drv; break;
-			case ID_KEY_NONE: SetVal("dos", "keyboardlayout", "auto"); break;
-			case ID_KEY_BG: SetVal("dos", "keyboardlayout", "bg"); break;
-			case ID_KEY_CZ: SetVal("dos", "keyboardlayout", "cz"); break;
-			case ID_KEY_FR: SetVal("dos", "keyboardlayout", "fr"); break;
-			case ID_KEY_GK: SetVal("dos", "keyboardlayout", "gk"); break;
-			case ID_KEY_GR: SetVal("dos", "keyboardlayout", "gr"); break;
-			case ID_KEY_HR: SetVal("dos", "keyboardlayout", "hr"); break;
-			case ID_KEY_HU: SetVal("dos", "keyboardlayout", "hu"); break;
-			case ID_KEY_IT: SetVal("dos", "keyboardlayout", "it"); break;
-			case ID_KEY_NL: SetVal("dos", "keyboardlayout", "nl"); break;
-			case ID_KEY_NO: SetVal("dos", "keyboardlayout", "no"); break;
-			case ID_KEY_PL: SetVal("dos", "keyboardlayout", "pl"); break;
-			case ID_KEY_RU: SetVal("dos", "keyboardlayout", "ru"); break;
-			case ID_KEY_SK: SetVal("dos", "keyboardlayout", "sk"); break;
-			case ID_KEY_SP: SetVal("dos", "keyboardlayout", "sp"); break;
-			case ID_KEY_SU: SetVal("dos", "keyboardlayout", "su"); break;
-			case ID_KEY_SV: SetVal("dos", "keyboardlayout", "sv"); break;
-			case ID_KEY_BE: SetVal("dos", "keyboardlayout", "be"); break;
-			case ID_KEY_BR: SetVal("dos", "keyboardlayout", "br"); break;
-			case ID_KEY_CF: SetVal("dos", "keyboardlayout", "cf"); break;
-			case ID_KEY_DK: SetVal("dos", "keyboardlayout", "dk"); break;
-			case ID_KEY_LA: SetVal("dos", "keyboardlayout", "la"); break;
-			case ID_KEY_PO: SetVal("dos", "keyboardlayout", "po"); break;
-			case ID_KEY_SF: SetVal("dos", "keyboardlayout", "sf"); break;
-			case ID_KEY_SG: SetVal("dos", "keyboardlayout", "sg"); break;
-			case ID_KEY_UK: SetVal("dos", "keyboardlayout", "uk"); break;
-			case ID_KEY_US: SetVal("dos", "keyboardlayout", "us"); break;
-			case ID_KEY_YU: SetVal("dos", "keyboardlayout", "yu"); break;
-			case ID_KEY_FO: SetVal("dos", "keyboardlayout", "fo"); break;
-			case ID_KEY_MK: SetVal("dos", "keyboardlayout", "mk"); break;
-			case ID_KEY_MT: SetVal("dos", "keyboardlayout", "mt"); break;
-			case ID_KEY_PH: SetVal("dos", "keyboardlayout", "ph"); break;
-			case ID_KEY_RO: SetVal("dos", "keyboardlayout", "ro"); break;
-			case ID_KEY_SQ: SetVal("dos", "keyboardlayout", "sq"); break;
-			case ID_KEY_TM: SetVal("dos", "keyboardlayout", "tm"); break;
-			case ID_KEY_TR: SetVal("dos", "keyboardlayout", "tr"); break;
-			case ID_KEY_UX: SetVal("dos", "keyboardlayout", "ux"); break;
-			case ID_KEY_YC: SetVal("dos", "keyboardlayout", "yc"); break;
-			case ID_KEY_DV: SetVal("dos", "keyboardlayout", "dv"); break;
-			case ID_KEY_RH: SetVal("dos", "keyboardlayout", "rh"); break;
-			case ID_KEY_LH: SetVal("dos", "keyboardlayout", "lh"); break;
-			case ID_MIDI_NONE: SetVal("midi", "mpu401", "none"); break;
-			case ID_MIDI_UART: SetVal("midi", "mpu401", "uart"); break;
-			case ID_MIDI_INTELLI: SetVal("midi", "mpu401", "intelligent"); break;
-			case ID_MIDI_DEFAULT: SetVal("midi", "mididevice", "default"); break;
-			case ID_MIDI_ALSA: SetVal("midi", "mididevice", "alsa"); break;
-			case ID_MIDI_OSS: SetVal("midi", "mididevice", "oss"); break;
-			case ID_MIDI_WIN32: SetVal("midi", "mididevice", "win32"); break;
-			case ID_MIDI_COREAUDIO: SetVal("midi", "mididevice", "coreaudio"); break;
-			case ID_MIDI_COREMIDI: SetVal("midi", "mididevice", "coremidi"); break;
-			case ID_MIDI_MT32: SetVal("midi", "mididevice", "mt32"); break;
-			case ID_MIDI_SYNTH: SetVal("midi", "mididevice", "synth"); break;
-			case ID_MIDI_TIMIDITY: SetVal("midi", "mididevice", "timidity"); break;
-			case ID_MIDI_MT32_REVERBMODE_AUTO: SetVal("midi", "mt32.reverb.mode", "auto"); break;
-			case ID_MIDI_MT32_REVERBMODE_0: SetVal("midi", "mt32.reverb.mode", "0"); break;
-			case ID_MIDI_MT32_REVERBMODE_1: SetVal("midi", "mt32.reverb.mode", "1"); break;
-			case ID_MIDI_MT32_REVERBMODE_2: SetVal("midi", "mt32.reverb.mode", "2"); break;
-			case ID_MIDI_MT32_REVERBMODE_3: SetVal("midi", "mt32.reverb.mode", "3"); break;
-			case ID_MIDI_MT32_DAC_AUTO: SetVal("midi", "mt32.dac", "auto"); break;
-			case ID_MIDI_MT32_DAC_0: SetVal("midi", "mt32.dac", "0"); break;
-			case ID_MIDI_MT32_DAC_1: SetVal("midi", "mt32.dac", "1"); break;
-			case ID_MIDI_MT32_DAC_2: SetVal("midi", "mt32.dac", "2"); break;
-			case ID_MIDI_MT32_DAC_3: SetVal("midi", "mt32.dac", "3"); break;
-			case ID_MIDI_MT32_REVERBTIME_0: SetVal("midi", "mt32.reverb.time", "0"); break;
-			case ID_MIDI_MT32_REVERBTIME_1: SetVal("midi", "mt32.reverb.time", "1"); break;
-			case ID_MIDI_MT32_REVERBTIME_2: SetVal("midi", "mt32.reverb.time", "2"); break;
-			case ID_MIDI_MT32_REVERBTIME_3: SetVal("midi", "mt32.reverb.time", "3"); break;
-			case ID_MIDI_MT32_REVERBTIME_4: SetVal("midi", "mt32.reverb.time", "4"); break;
-			case ID_MIDI_MT32_REVERBTIME_5: SetVal("midi", "mt32.reverb.time", "5"); break;
-			case ID_MIDI_MT32_REVERBTIME_6: SetVal("midi", "mt32.reverb.time", "6"); break;
-			case ID_MIDI_MT32_REVERBTIME_7: SetVal("midi", "mt32.reverb.time", "7"); break;
-			case ID_MIDI_MT32_REVERBLEV_0: SetVal("midi", "mt32.reverb.level", "0"); break;
-			case ID_MIDI_MT32_REVERBLEV_1: SetVal("midi", "mt32.reverb.level", "1"); break;
-			case ID_MIDI_MT32_REVERBLEV_2: SetVal("midi", "mt32.reverb.level", "2"); break;
-			case ID_MIDI_MT32_REVERBLEV_3: SetVal("midi", "mt32.reverb.level", "3"); break;
-			case ID_MIDI_MT32_REVERBLEV_4: SetVal("midi", "mt32.reverb.level", "4"); break;
-			case ID_MIDI_MT32_REVERBLEV_5: SetVal("midi", "mt32.reverb.level", "5"); break;
-			case ID_MIDI_MT32_REVERBLEV_6: SetVal("midi", "mt32.reverb.level", "6"); break;
-			case ID_MIDI_MT32_REVERBLEV_7: SetVal("midi", "mt32.reverb.level", "7"); break;
-			case ID_MIDI_MT32_REVERSESTEREO_TRUE: SetVal("midi", "mt32ReverseStereo", "on"); break;
-			case ID_MIDI_MT32_REVERSESTEREO_FALSE: SetVal("midi", "mt32ReverseStereo", "off"); break;
-			case ID_MIDI_DEV_NONE: SetVal("midi", "mididevice", "none"); break;
-			case ID_GUS_TRUE:
-			{
-				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("gus"));
-				if(sec) SetVal("gus", "gus", sec->Get_bool("gus")?"false":"true"); break;
-			}
-			case ID_GUS_49716: SetVal("gus", "gusrate", "49716"); break;
-			case ID_GUS_48000: SetVal("gus", "gusrate", "48000"); break;
-			case ID_GUS_44100: SetVal("gus", "gusrate", "44100"); break;
-			case ID_GUS_32000:  SetVal("gus", "gusrate", "32000"); break;
-			case ID_GUS_22050: SetVal("gus", "gusrate", "22050"); break;
-			case ID_GUS_16000: SetVal("gus", "gusrate", "16000"); break;
-			case ID_GUS_11025: SetVal("gus", "gusrate", "11025"); break;
-			case ID_GUS_8000: SetVal("gus", "gusrate", "8000"); break;
-			case ID_GUS_300: SetVal("gus", "gusbase", "300"); break;
-			case ID_GUS_280: SetVal("gus", "gusbase", "280"); break;
-			case ID_GUS_260: SetVal("gus", "gusbase", "260"); break;
-			case ID_GUS_240: SetVal("gus", "gusbase", "240"); break;
-			case ID_GUS_220: SetVal("gus", "gusbase", "220"); break;
-			case ID_GUS_2a0: SetVal("gus", "gusbase", "2a0"); break;
-			case ID_GUS_2c0: SetVal("gus", "gusbase", "2c0"); break;
-			case ID_GUS_2e0: SetVal("gus", "gusbase", "2e0"); break;
-			case ID_GUS_IRQ_3: SetVal("gus", "gusirq", "3"); break;
-			case ID_GUS_IRQ_5: SetVal("gus", "gusirq", "5"); break;
-			case ID_GUS_IRQ_7: SetVal("gus", "gusirq", "7"); break;
-			case ID_GUS_IRQ_9: SetVal("gus", "gusirq", "9"); break;
-			case ID_GUS_IRQ_10: SetVal("gus", "gusirq", "10"); break;
-			case ID_GUS_IRQ_11: SetVal("gus", "gusirq", "11"); break;
-			case ID_GUS_IRQ_12: SetVal("gus", "gusirq", "12"); break;
-			case ID_GUS_DMA_0: SetVal("gus", "gusdma", "0"); break;
-			case ID_GUS_DMA_1: SetVal("gus", "gusdma", "1"); break;
-			case ID_GUS_DMA_3: SetVal("gus", "gusdma", "3"); break;
-			case ID_GUS_DMA_5: SetVal("gus", "gusdma", "5"); break;
-			case ID_GUS_DMA_6: SetVal("gus", "gusdma", "6"); break;
-			case ID_GUS_DMA_7: SetVal("gus", "gusdma", "7"); break;
-			case ID_INNOVA_TRUE:
-			{
-			Section_prop * sec =  static_cast<Section_prop *>(control->GetSection("innova"));
-			if(sec) SetVal("innova", "innova", sec->Get_bool("innova")?"false":"true"); break;
-			}
-			case ID_INNOVA_49716: SetVal("innova", "samplerate", "49716"); break;
-			case ID_INNOVA_48000: SetVal("innova", "samplerate", "48000"); break;
-			case ID_INNOVA_44100: SetVal("innova", "samplerate", "44100"); break;
-			case ID_INNOVA_32000: SetVal("innova", "samplerate", "32000"); break;
-			case ID_INNOVA_22050: SetVal("innova", "samplerate", "22050"); break;
-			case ID_INNOVA_11025: SetVal("innova", "samplerate", "11025"); break;
-			case ID_INNOVA_8000: SetVal("innova", "samplerate", "8000"); break;
-			case ID_INNOVA_280: SetVal("innova", "sidbase", "280"); break;
-			case ID_INNOVA_2A0: SetVal("innova", "sidbase", "2a0"); break;
-			case ID_INNOVA_2C0: SetVal("innova", "sidbase", "2c0"); break;
-			case ID_INNOVA_2E0: SetVal("innova", "sidbase", "2e0"); break;
-			case ID_INNOVA_220: SetVal("innova", "sidbase", "220"); break;
-			case ID_INNOVA_240: SetVal("innova", "sidbase", "240"); break;
-			case ID_INNOVA_260: SetVal("innova", "sidbase", "260"); break;
-			case ID_INNOVA_300: SetVal("innova", "sidbase", "300"); break;
-			case ID_INNOVA_3: SetVal("innova", "quality", "3"); break;
-			case ID_INNOVA_2: SetVal("innova", "quality", "2"); break;
-			case ID_INNOVA_1: SetVal("innova", "quality", "1"); break;
-			case ID_INNOVA_0: SetVal("innova", "quality", "0"); break;
-			case ID_PCSPEAKER_TRUE:
-			{
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("speaker"));
-			if(sec) SetVal("speaker", "pcspeaker", sec->Get_bool("pcspeaker")?"false":"true"); break;
-			}
-			case ID_PCSPEAKER_49716: SetVal("speaker", "pcrate", "49716"); break;
-			case ID_PCSPEAKER_48000: SetVal("speaker", "pcrate", "48000"); break;
-			case ID_PCSPEAKER_44100: SetVal("speaker", "pcrate", "44100"); break;
-			case ID_PCSPEAKER_32000: SetVal("speaker", "pcrate", "32000"); break;
-			case ID_PCSPEAKER_22050: SetVal("speaker", "pcrate", "22050"); break;
-			case ID_PCSPEAKER_16000: SetVal("speaker", "pcrate", "16000"); break;
-			case ID_PCSPEAKER_11025: SetVal("speaker", "pcrate", "11025"); break;
-			case ID_PCSPEAKER_8000: SetVal("speaker", "pcrate", "8000"); break;
-			case ID_PS1_ON: SetVal("speaker", "ps1audio", "on"); break;
-			case ID_PS1_OFF: SetVal("speaker", "ps1audio", "off"); break;
-			case ID_PS1_49716: SetVal("speaker", "ps1audiorate", "49716"); break;
-			case ID_PS1_48000: SetVal("speaker", "ps1audiorate", "48000"); break;
-			case ID_PS1_44100: SetVal("speaker", "ps1audiorate", "44100"); break;
-			case ID_PS1_32000: SetVal("speaker", "ps1audiorate", "32000"); break;
-			case ID_PS1_22050: SetVal("speaker", "ps1audiorate", "22050"); break;
-			case ID_PS1_16000: SetVal("speaker", "ps1audiorate", "16000"); break;
-			case ID_PS1_11025: SetVal("speaker", "ps1audiorate", "11025"); break;
-			case ID_PS1_8000: SetVal("speaker", "ps1audiorate", "8000"); break;
-			case ID_TANDY_ON: SetVal("speaker", "tandy", "on"); break;
-			case ID_TANDY_OFF: SetVal("speaker", "tandy", "off"); break;
-			case ID_TANDY_AUTO: SetVal("speaker", "tandy", "auto"); break;
-			case ID_TANDY_49716: SetVal("speaker", "tandyrate", "49716"); break;
-			case ID_TANDY_48000: SetVal("speaker", "tandyrate", "48000"); break;
-			case ID_TANDY_44100: SetVal("speaker", "tandyrate", "44100"); break;
-			case ID_TANDY_32000: SetVal("speaker", "tandyrate", "32000"); break;
-			case ID_TANDY_22050: SetVal("speaker", "tandyrate", "22050"); break;
-			case ID_TANDY_16000: SetVal("speaker", "tandyrate", "16000"); break;
-			case ID_TANDY_11025: SetVal("speaker", "tandyrate", "11025"); break;
-			case ID_TANDY_8000: SetVal("speaker", "tandyrate", "8000"); break;
-			case ID_DISNEY_TRUE: SetVal("speaker", "disney", "true"); break;
-			case ID_DISNEY_FALSE: SetVal("speaker", "disney", "false"); break;
-			case ID_SB_NONE: SetVal("sblaster", "sbtype", "none"); break;
-			case ID_SB_SB1: SetVal("sblaster", "sbtype", "sb1"); break;
-			case ID_SB_SB2: SetVal("sblaster", "sbtype", "sb2"); break;
-			case ID_SB_SBPRO1: SetVal("sblaster", "sbtype", "sbpro1"); break;
-			case ID_SB_SBPRO2: SetVal("sblaster", "sbtype", "sbpro2"); break;
-			case ID_SB_SB16: SetVal("sblaster", "sbtype", "sb16"); break;
-			case ID_SB_SB16VIBRA: SetVal("sblaster", "sbtype", "sb16vibra"); break;
-			case ID_SB_GB: SetVal("sblaster", "sbtype", "gb"); break;
-			case ID_SB_300: SetVal("sblaster", "sbbase", "300"); break;
-			case ID_SB_220: SetVal("sblaster", "sbbase", "220"); break;
-			case ID_SB_240: SetVal("sblaster", "sbbase", "240"); break;
-			case ID_SB_260: SetVal("sblaster", "sbbase", "260"); break;
-			case ID_SB_280: SetVal("sblaster", "sbbase", "280"); break;
-			case ID_SB_2a0: SetVal("sblaster", "sbbase", "2a0"); break;
-			case ID_SB_2c0: SetVal("sblaster", "sbbase", "2c0"); break;
-			case ID_SB_2e0: SetVal("sblaster", "sbbase", "2e0"); break;
-			case ID_SB_HW210: SetVal("sblaster", "hardwarebase", "210"); break;
-			case ID_SB_HW220: SetVal("sblaster", "hardwarebase", "220"); break;
-			case ID_SB_HW230: SetVal("sblaster", "hardwarebase", "230"); break;
-			case ID_SB_HW240: SetVal("sblaster", "hardwarebase", "240"); break;
-			case ID_SB_HW250: SetVal("sblaster", "hardwarebase", "250"); break;
-			case ID_SB_HW260: SetVal("sblaster", "hardwarebase", "260"); break;
-			case ID_SB_HW280: SetVal("sblaster", "hardwarebase", "280"); break;
-			case ID_SB_IRQ_3: SetVal("sblaster", "irq", "3"); break;
-			case ID_SB_IRQ_5: SetVal("sblaster", "irq", "5"); break;
-			case ID_SB_IRQ_7: SetVal("sblaster", "irq", "7"); break;
-			case ID_SB_IRQ_9: SetVal("sblaster", "irq", "9"); break;
-			case ID_SB_IRQ_10: SetVal("sblaster", "irq", "10"); break;
-			case ID_SB_IRQ_11: SetVal("sblaster", "irq", "11"); break;
-			case ID_SB_IRQ_12: SetVal("sblaster", "irq", "12"); break;
-			case ID_SB_DMA_0: SetVal("sblaster", "dma", "0"); break;
-			case ID_SB_DMA_1: SetVal("sblaster", "dma", "1"); break;
-			case ID_SB_DMA_3: SetVal("sblaster", "dma", "3"); break;
-			case ID_SB_DMA_5: SetVal("sblaster", "dma", "5"); break;
-			case ID_SB_DMA_6: SetVal("sblaster", "dma", "6"); break;
-			case ID_SB_DMA_7: SetVal("sblaster", "dma", "7"); break;
-			case ID_SB_HDMA_0: SetVal("sblaster", "hdma", "0"); break;
-			case ID_SB_HDMA_1: SetVal("sblaster", "hdma", "1"); break;
-			case ID_SB_HDMA_3: SetVal("sblaster", "hdma", "3"); break;
-			case ID_SB_HDMA_5: SetVal("sblaster", "hdma", "5"); break;
-			case ID_SB_HDMA_6: SetVal("sblaster", "hdma", "6"); break;
-			case ID_SB_HDMA_7: SetVal("sblaster", "hdma", "7"); break;
-			case ID_SB_OPL_AUTO: SetVal("sblaster", "oplmode", "auto"); break;
-			case ID_SB_OPL_NONE: SetVal("sblaster", "oplmode", "none"); break;
-			case ID_SB_OPL_CMS: SetVal("sblaster", "oplmode", "cms"); break;
-			case ID_SB_OPL_OPL2: SetVal("sblaster", "oplmode", "opl2"); break;
-			case ID_SB_OPL_DUALOPL2: SetVal("sblaster", "oplmode", "dualopl2"); break;
-			case ID_SB_OPL_OPL3: SetVal("sblaster", "oplmode", "opl3"); break;
-			case ID_SB_OPL_HARDWARE: SetVal("sblaster", "oplmode", "hardware"); break;
-			case ID_SB_OPL_HARDWAREGB: SetVal("sblaster", "oplmode", "hardwaregb"); break;
-			case ID_SB_OPL_EMU_DEFAULT: SetVal("sblaster", "oplemu", "default"); break;
-			case ID_SB_OPL_EMU_COMPAT: SetVal("sblaster", "oplemu", "compat"); break;
-			case ID_SB_OPL_EMU_FAST: SetVal("sblaster", "oplemu", "fast"); break;
-			case ID_SB_OPL_49716: SetVal("sblaster", "oplrate", "49716"); break;
-			case ID_SB_OPL_48000: SetVal("sblaster", "oplrate", "48000"); break;
-			case ID_SB_OPL_44100: SetVal("sblaster", "oplrate", "44100"); break;
-			case ID_SB_OPL_32000: SetVal("sblaster", "oplrate", "32000"); break;
-			case ID_SB_OPL_22050: SetVal("sblaster", "oplrate", "22050"); break;
-			case ID_SB_OPL_16000: SetVal("sblaster", "oplrate", "16000"); break;
-			case ID_SB_OPL_11025: SetVal("sblaster", "oplrate", "11025"); break;
-			case ID_SB_OPL_8000: SetVal("sblaster", "oplrate", "8000"); break;
-			case ID_OVERSCAN_0: LOG_MSG("GUI: Overscan 0 (surface)"); SetVal("sdl", "overscan", "0"); change_output(7); break;
-			case ID_OVERSCAN_1: LOG_MSG("GUI: Overscan 1 (surface)"); SetVal("sdl", "overscan", "1"); change_output(7); break;
-			case ID_OVERSCAN_2: LOG_MSG("GUI: Overscan 2 (surface)"); SetVal("sdl", "overscan", "2"); change_output(7); break;
-			case ID_OVERSCAN_3: LOG_MSG("GUI: Overscan 3 (surface)"); SetVal("sdl", "overscan", "3"); change_output(7); break;
-			case ID_OVERSCAN_4: LOG_MSG("GUI: Overscan 4 (surface)"); SetVal("sdl", "overscan", "4"); change_output(7); break;
-			case ID_OVERSCAN_5: LOG_MSG("GUI: Overscan 5 (surface)"); SetVal("sdl", "overscan", "5"); change_output(7); break;
-			case ID_OVERSCAN_6: LOG_MSG("GUI: Overscan 6 (surface)"); SetVal("sdl", "overscan", "6"); change_output(7); break;
-			case ID_OVERSCAN_7: LOG_MSG("GUI: Overscan 7 (surface)"); SetVal("sdl", "overscan", "7"); change_output(7); break;
-			case ID_OVERSCAN_8: LOG_MSG("GUI: Overscan 8 (surface)"); SetVal("sdl", "overscan", "8"); change_output(7); break;
-			case ID_OVERSCAN_9: LOG_MSG("GUI: Overscan 9 (surface)"); SetVal("sdl", "overscan", "9"); change_output(7); break;
-			case ID_OVERSCAN_10: LOG_MSG("GUI: Overscan 10 (surface)"); SetVal("sdl", "overscan", "10"); change_output(7); break;
-			case ID_VSYNC: GUI_Shortcut(17); break;
-			case ID_IPXNET: MENU_SetBool("ipx", "ipx"); break;
-			case ID_D3D_PS: D3D_PS(); if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) change_output(7); break;
-			case ID_JOYSTICKTYPE_AUTO: SetVal("joystick", "joysticktype", "auto"); break;
-			case ID_JOYSTICKTYPE_2AXIS: SetVal("joystick", "joysticktype", "2axis"); break;
-			case ID_JOYSTICKTYPE_4AXIS: SetVal("joystick", "joysticktype", "4axis"); break;
-			case ID_JOYSTICKTYPE_4AXIS_2: SetVal("joystick", "joysticktype", "4axis_2"); break;
-			case ID_JOYSTICKTYPE_FCS: SetVal("joystick", "joysticktype", "fcs"); break;
-			case ID_JOYSTICKTYPE_CH: SetVal("joystick", "joysticktype", "ch"); break;
-			case ID_JOYSTICKTYPE_NONE: SetVal("joystick", "joysticktype", "none"); break;
-			case ID_JOYSTICK_TIMED: MENU_SetBool("joystick", "timed"); break;
-			case ID_JOYSTICK_AUTOFIRE: MENU_SetBool("joystick", "autofire"); break;
-			case ID_JOYSTICK_SWAP34: MENU_SetBool("joystick", "swap34"); break;
-			case ID_JOYSTICK_BUTTONWRAP: MENU_SetBool("joystick", "buttonwrap"); break;
-			case ID_SWAPSTEREO: MENU_swapstereo(MENU_SetBool("mixer", "swapstereo")); break;
-			case ID_MUTE: SDL_PauseAudio((SDL_GetAudioStatus() != SDL_AUDIO_PAUSED)); break;
-			case ID_DOSBOX_SECTION:  GUI_Shortcut(3); break;
-			case ID_MIXER_SECTION:  GUI_Shortcut(4); break;
-			case ID_SERIAL_SECTION:  GUI_Shortcut(5); break;
-			case ID_PARALLEL_SECTION:  GUI_Shortcut(11); break;
-			case ID_PRINTER_SECTION:  GUI_Shortcut(12); break;
-			case ID_NE2000_SECTION:  GUI_Shortcut(6); break;
-			case ID_AUTOEXEC:  GUI_Shortcut(7); break;
-			case ID_MOUSE_VERTICAL: extern bool Mouse_Vertical; Mouse_Vertical = !Mouse_Vertical; break;
-			case ID_GLIDE_TRUE:
-			{	
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
-			if(sec) SetVal("glide", "glide", sec->Get_string("glide")=="true"?"false":"true");
-			break;
-			}
-			case ID_GLIDE_EMU:
-			{	
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
-			if(sec) SetVal("glide", "glide", sec->Get_string("glide")=="emu"?"false":"emu");
-			break;
-			}
-			case ID_SAVELANG:  GUI_Shortcut(9); break;
-			case ID_CPUTYPE_AUTO: SetVal("cpu", "cputype", "auto"); break;
-			case ID_CPUTYPE_386: SetVal("cpu", "cputype", "386"); break;
-			//case ID_CPUTYPE_386_SLOW: SetVal("cpu","cputype","386_slow"); break;
-			case ID_CPUTYPE_386_PREFETCH: SetVal("cpu", "cputype", "386_prefetch"); break;
-			case ID_CPUTYPE_486: SetVal("cpu", "cputype", "486"); break;
-			case ID_CPUTYPE_PENTIUM: SetVal("cpu", "cputype", "pentium"); break;
-			case ID_CPUTYPE_PENTIUM_MMX: SetVal("cpu", "cputype", "pentium_mmx"); break;
-			case ID_CPU_ADVANCED:  GUI_Shortcut(13); break;
-			case ID_DOS_ADVANCED:  GUI_Shortcut(14); break;
-			case ID_MIDI_ADVANCED:  GUI_Shortcut(15); break;
-			case ID_RATE_1_DELAY_1: MENU_KeyDelayRate(1, 1); break;
-			case ID_RATE_2_DELAY_1: MENU_KeyDelayRate(1, 2); break;
-			case ID_RATE_3_DELAY_1: MENU_KeyDelayRate(1, 3); break;
-			case ID_RATE_4_DELAY_1: MENU_KeyDelayRate(1, 4); break;
-			case ID_RATE_5_DELAY_1: MENU_KeyDelayRate(1, 5); break;
-			case ID_RATE_6_DELAY_1: MENU_KeyDelayRate(1, 6); break;
-			case ID_RATE_7_DELAY_1: MENU_KeyDelayRate(1, 7); break;
-			case ID_RATE_8_DELAY_1: MENU_KeyDelayRate(1, 8); break;
-			case ID_RATE_9_DELAY_1: MENU_KeyDelayRate(1, 9); break;
-			case ID_RATE_10_DELAY_1: MENU_KeyDelayRate(1, 10); break;
-			case ID_RATE_11_DELAY_1: MENU_KeyDelayRate(1, 11); break;
-			case ID_RATE_12_DELAY_1: MENU_KeyDelayRate(1, 12); break;
-			case ID_RATE_13_DELAY_1: MENU_KeyDelayRate(1, 13); break;
-			case ID_RATE_14_DELAY_1: MENU_KeyDelayRate(1, 14); break;
-			case ID_RATE_15_DELAY_1: MENU_KeyDelayRate(1, 15); break;
-			case ID_RATE_16_DELAY_1: MENU_KeyDelayRate(1, 16); break;
-			case ID_RATE_17_DELAY_1: MENU_KeyDelayRate(1, 17); break;
-			case ID_RATE_18_DELAY_1: MENU_KeyDelayRate(1, 18); break;
-			case ID_RATE_19_DELAY_1: MENU_KeyDelayRate(1, 19); break;
-			case ID_RATE_20_DELAY_1: MENU_KeyDelayRate(1, 20); break;
-			case ID_RATE_21_DELAY_1: MENU_KeyDelayRate(1, 21); break;
-			case ID_RATE_22_DELAY_1: MENU_KeyDelayRate(1, 22); break;
-			case ID_RATE_23_DELAY_1: MENU_KeyDelayRate(1, 23); break;
-			case ID_RATE_24_DELAY_1: MENU_KeyDelayRate(1, 24); break;
-			case ID_RATE_25_DELAY_1: MENU_KeyDelayRate(1, 25); break;
-			case ID_RATE_26_DELAY_1: MENU_KeyDelayRate(1, 26); break;
-			case ID_RATE_27_DELAY_1: MENU_KeyDelayRate(1, 27); break;
-			case ID_RATE_28_DELAY_1: MENU_KeyDelayRate(1, 28); break;
-			case ID_RATE_29_DELAY_1: MENU_KeyDelayRate(1, 29); break;
-			case ID_RATE_30_DELAY_1: MENU_KeyDelayRate(1, 30); break;
-			case ID_RATE_31_DELAY_1: MENU_KeyDelayRate(1, 31); break;
-			case ID_RATE_32_DELAY_1: MENU_KeyDelayRate(1, 32); break;
-			case ID_RATE_1_DELAY_2: MENU_KeyDelayRate(2, 1); break;
-			case ID_RATE_2_DELAY_2: MENU_KeyDelayRate(2, 2); break;
-			case ID_RATE_3_DELAY_2: MENU_KeyDelayRate(2, 3); break;
-			case ID_RATE_4_DELAY_2: MENU_KeyDelayRate(2, 4); break;
-			case ID_RATE_5_DELAY_2: MENU_KeyDelayRate(2, 5); break;
-			case ID_RATE_6_DELAY_2: MENU_KeyDelayRate(2, 6); break;
-			case ID_RATE_7_DELAY_2: MENU_KeyDelayRate(2, 7); break;
-			case ID_RATE_8_DELAY_2: MENU_KeyDelayRate(2, 8); break;
-			case ID_RATE_9_DELAY_2: MENU_KeyDelayRate(2, 9); break;
-			case ID_RATE_10_DELAY_2: MENU_KeyDelayRate(2, 10); break;
-			case ID_RATE_11_DELAY_2: MENU_KeyDelayRate(2, 11); break;
-			case ID_RATE_12_DELAY_2: MENU_KeyDelayRate(2, 12); break;
-			case ID_RATE_13_DELAY_2: MENU_KeyDelayRate(2, 13); break;
-			case ID_RATE_14_DELAY_2: MENU_KeyDelayRate(2, 14); break;
-			case ID_RATE_15_DELAY_2: MENU_KeyDelayRate(2, 15); break;
-			case ID_RATE_16_DELAY_2: MENU_KeyDelayRate(2, 16); break;
-			case ID_RATE_17_DELAY_2: MENU_KeyDelayRate(2, 17); break;
-			case ID_RATE_18_DELAY_2: MENU_KeyDelayRate(2, 18); break;
-			case ID_RATE_19_DELAY_2: MENU_KeyDelayRate(2, 19); break;
-			case ID_RATE_20_DELAY_2: MENU_KeyDelayRate(2, 20); break;
-			case ID_RATE_21_DELAY_2: MENU_KeyDelayRate(2, 21); break;
-			case ID_RATE_22_DELAY_2: MENU_KeyDelayRate(2, 22); break;
-			case ID_RATE_23_DELAY_2: MENU_KeyDelayRate(2, 23); break;
-			case ID_RATE_24_DELAY_2: MENU_KeyDelayRate(2, 24); break;
-			case ID_RATE_25_DELAY_2: MENU_KeyDelayRate(2, 25); break;
-			case ID_RATE_26_DELAY_2: MENU_KeyDelayRate(2, 26); break;
-			case ID_RATE_27_DELAY_2: MENU_KeyDelayRate(2, 27); break;
-			case ID_RATE_28_DELAY_2: MENU_KeyDelayRate(2, 28); break;
-			case ID_RATE_29_DELAY_2: MENU_KeyDelayRate(2, 29); break;
-			case ID_RATE_30_DELAY_2: MENU_KeyDelayRate(2, 30); break;
-			case ID_RATE_31_DELAY_2: MENU_KeyDelayRate(2, 31); break;
-			case ID_RATE_32_DELAY_2: MENU_KeyDelayRate(2, 32); break;
-			case ID_RATE_1_DELAY_3: MENU_KeyDelayRate(3, 1); break;
-			case ID_RATE_2_DELAY_3: MENU_KeyDelayRate(3, 2); break;
-			case ID_RATE_3_DELAY_3: MENU_KeyDelayRate(3, 3); break;
-			case ID_RATE_4_DELAY_3: MENU_KeyDelayRate(3, 4); break;
-			case ID_RATE_5_DELAY_3: MENU_KeyDelayRate(3, 5); break;
-			case ID_RATE_6_DELAY_3: MENU_KeyDelayRate(3, 6); break;
-			case ID_RATE_7_DELAY_3: MENU_KeyDelayRate(3, 7); break;
-			case ID_RATE_8_DELAY_3: MENU_KeyDelayRate(3, 8); break;
-			case ID_RATE_9_DELAY_3: MENU_KeyDelayRate(3, 9); break;
-			case ID_RATE_10_DELAY_3: MENU_KeyDelayRate(3, 10); break;
-			case ID_RATE_11_DELAY_3: MENU_KeyDelayRate(3, 11); break;
-			case ID_RATE_12_DELAY_3: MENU_KeyDelayRate(3, 12); break;
-			case ID_RATE_13_DELAY_3: MENU_KeyDelayRate(3, 13); break;
-			case ID_RATE_14_DELAY_3: MENU_KeyDelayRate(3, 14); break;
-			case ID_RATE_15_DELAY_3: MENU_KeyDelayRate(3, 15); break;
-			case ID_RATE_16_DELAY_3: MENU_KeyDelayRate(3, 16); break;
-			case ID_RATE_17_DELAY_3: MENU_KeyDelayRate(3, 17); break;
-			case ID_RATE_18_DELAY_3: MENU_KeyDelayRate(3, 18); break;
-			case ID_RATE_19_DELAY_3: MENU_KeyDelayRate(3, 19); break;
-			case ID_RATE_20_DELAY_3: MENU_KeyDelayRate(3, 20); break;
-			case ID_RATE_21_DELAY_3: MENU_KeyDelayRate(3, 21); break;
-			case ID_RATE_22_DELAY_3: MENU_KeyDelayRate(3, 22); break;
-			case ID_RATE_23_DELAY_3: MENU_KeyDelayRate(3, 23); break;
-			case ID_RATE_24_DELAY_3: MENU_KeyDelayRate(3, 24); break;
-			case ID_RATE_25_DELAY_3: MENU_KeyDelayRate(3, 25); break;
-			case ID_RATE_26_DELAY_3: MENU_KeyDelayRate(3, 26); break;
-			case ID_RATE_27_DELAY_3: MENU_KeyDelayRate(3, 27); break;
-			case ID_RATE_28_DELAY_3: MENU_KeyDelayRate(3, 28); break;
-			case ID_RATE_29_DELAY_3: MENU_KeyDelayRate(3, 29); break;
-			case ID_RATE_30_DELAY_3: MENU_KeyDelayRate(3, 30); break;
-			case ID_RATE_31_DELAY_3: MENU_KeyDelayRate(3, 31); break;
-			case ID_RATE_32_DELAY_3: MENU_KeyDelayRate(3, 32); break;
-			case ID_RATE_1_DELAY_4: MENU_KeyDelayRate(4, 1); break;
-			case ID_RATE_2_DELAY_4: MENU_KeyDelayRate(4, 2); break;
-			case ID_RATE_3_DELAY_4: MENU_KeyDelayRate(4, 3); break;
-			case ID_RATE_4_DELAY_4: MENU_KeyDelayRate(4, 4); break;
-			case ID_RATE_5_DELAY_4: MENU_KeyDelayRate(4, 5); break;
-			case ID_RATE_6_DELAY_4: MENU_KeyDelayRate(4, 6); break;
-			case ID_RATE_7_DELAY_4: MENU_KeyDelayRate(4, 7); break;
-			case ID_RATE_8_DELAY_4: MENU_KeyDelayRate(4, 8); break;
-			case ID_RATE_9_DELAY_4: MENU_KeyDelayRate(4, 9); break;
-			case ID_RATE_10_DELAY_4: MENU_KeyDelayRate(4, 10); break;
-			case ID_RATE_11_DELAY_4: MENU_KeyDelayRate(4, 11); break;
-			case ID_RATE_12_DELAY_4: MENU_KeyDelayRate(4, 12); break;
-			case ID_RATE_13_DELAY_4: MENU_KeyDelayRate(4, 13); break;
-			case ID_RATE_14_DELAY_4: MENU_KeyDelayRate(4, 14); break;
-			case ID_RATE_15_DELAY_4: MENU_KeyDelayRate(4, 15); break;
-			case ID_RATE_16_DELAY_4: MENU_KeyDelayRate(4, 16); break;
-			case ID_RATE_17_DELAY_4: MENU_KeyDelayRate(4, 17); break;
-			case ID_RATE_18_DELAY_4: MENU_KeyDelayRate(4, 18); break;
-			case ID_RATE_19_DELAY_4: MENU_KeyDelayRate(4, 19); break;
-			case ID_RATE_20_DELAY_4: MENU_KeyDelayRate(4, 20); break;
-			case ID_RATE_21_DELAY_4: MENU_KeyDelayRate(4, 21); break;
-			case ID_RATE_22_DELAY_4: MENU_KeyDelayRate(4, 22); break;
-			case ID_RATE_23_DELAY_4: MENU_KeyDelayRate(4, 23); break;
-			case ID_RATE_24_DELAY_4: MENU_KeyDelayRate(4, 24); break;
-			case ID_RATE_25_DELAY_4: MENU_KeyDelayRate(4, 25); break;
-			case ID_RATE_26_DELAY_4: MENU_KeyDelayRate(4, 26); break;
-			case ID_RATE_27_DELAY_4: MENU_KeyDelayRate(4, 27); break;
-			case ID_RATE_28_DELAY_4: MENU_KeyDelayRate(4, 28); break;
-			case ID_RATE_29_DELAY_4: MENU_KeyDelayRate(4, 29); break;
-			case ID_RATE_30_DELAY_4: MENU_KeyDelayRate(4, 30); break;
-			case ID_RATE_31_DELAY_4: MENU_KeyDelayRate(4, 31); break;
-			case ID_RATE_32_DELAY_4: MENU_KeyDelayRate(4, 32); break;
-			case ID_MOUSE_SENSITIVITY: GUI_Shortcut(2); break;
-			case ID_GLIDE_LFB_FULL: SetVal("glide", "lfb", "full"); break;
-			case ID_GLIDE_LFB_FULL_NOAUX: SetVal("glide", "lfb", "full_noaux"); break;
-			case ID_GLIDE_LFB_READ: SetVal("glide", "lfb", "read"); break;
-			case ID_GLIDE_LFB_READ_NOAUX: SetVal("glide", "lfb", "read_noaux"); break;
-			case ID_GLIDE_LFB_WRITE: SetVal("glide", "lfb", "write"); break;
-			case ID_GLIDE_LFB_WRITE_NOAUX: SetVal("glide", "lfb", "write_noaux"); break;
-			case ID_GLIDE_LFB_NONE: SetVal("glide", "lfb", "none"); break;
-			case ID_GLIDE_SPLASH:
-			{
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
-			if(sec) SetVal("glide", "splash", sec->Get_bool("splash") ? "false" : "true");
-			}
-			break;
-			case ID_GLIDE_EMU_FALSE: SetVal("pci", "voodoo", "false"); break;
-			case ID_GLIDE_EMU_SOFTWARE: SetVal("pci", "voodoo", "software"); break;
-			case ID_GLIDE_EMU_OPENGL: SetVal("pci", "voodoo", "opengl"); break;
-			case ID_GLIDE_EMU_AUTO: SetVal("pci", "voodoo", "auto"); break;
-			case ID_ALWAYS_ON_TOP:
-			{
-			SetFocus(GetHWND());
-			DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
-			HWND top = ((dwExStyle & WS_EX_TOPMOST) == 0)?HWND_TOPMOST:HWND_NOTOPMOST;
-			SetWindowPos(GetHWND(), top,  0, 0, 0, 0, SWP_SHOWWINDOW|SWP_NOMOVE|SWP_NOSIZE);
-			break;
-			}
+    return 1;
+}
 
-			default:
-				break;
-			}
-		default: {
-			if (Message.message == 0x00A1) Reflect_Menu();
+void reflectmenu_INITMENU_cb() {
+    /* WARNING: SDL calls this from Parent Window Thread!
+                This executes in the context of the Parent Window Thread, NOT the main thread!
+                As stupid as that seems, this is the only way the Parent Window Thread can make
+                sure to keep Windows waiting while we take our time to reset the checkmarks in
+                the menus before the menu is displayed. */
+    Reflect_Menu();
+}
+#endif
 
-			if (!TranslateAccelerator(GetHWND(), 0, &Message)) {
-				TranslateMessage(&Message);
-				DispatchMessage(&Message);
-			}
-			}
-		}
-	}
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+void DOSBoxMenu::item::showItem(DOSBoxMenu &menu,bool show) {
+    (void)menu;//UNUSED
+    if (itemVisible != show) {
+        itemVisible = show;
+        needRedraw = true;
+    }
+    else {
+    }
+}
+
+DOSBoxMenu::item &DOSBoxMenu::item::setHilight(DOSBoxMenu &menu,bool hi) {
+    (void)menu;//UNUSED
+    itemHilight = hi;
+
+    return *this;
+}
+
+DOSBoxMenu::item &DOSBoxMenu::item::setHover(DOSBoxMenu &menu,bool ho) {
+    (void)menu;//UNUSED
+    itemHover = ho;
+
+    return *this;
+}
+
+void DOSBoxMenu::item::removeFocus(DOSBoxMenu &menu) {
+    if (menu.menuUserAttentionAt == master_id) {
+        menu.menuUserAttentionAt = unassigned_item_handle;
+        setHilight(menu,false);
+    }
+}
+
+void DOSBoxMenu::item::removeHover(DOSBoxMenu &menu) {
+    if (menu.menuUserHoverAt == master_id) {
+        menu.menuUserHoverAt = unassigned_item_handle;
+        setHover(menu,false);
+    }
+}
+
+void DOSBoxMenu::showMenu(bool show) {
+    if (menuVisible != show) {
+        menuVisible = show;
+        needRedraw = true;
+        removeFocus();
+        updateRect();
+    }
+}
+
+void DOSBoxMenu::removeFocus(void) {
+    if (menuUserAttentionAt != unassigned_item_handle) {
+        for (auto &id : master_list) {
+            id.removeFocus(*this);
+            id.showItem(*this,false);
+        }
+        menuUserAttentionAt = unassigned_item_handle;
+        needRedraw = true;
+    }
+}
+
+void DOSBoxMenu::setScale(size_t s) {
+    if (s == 0) s = 1;
+    if (s > 2) s = 2;
+
+    if (fontCharScale != s) {
+        fontCharScale = s;
+        menuBarHeight = menuBarHeightBase * fontCharScale;
+        fontCharWidth = fontCharWidthBase * fontCharScale;
+        fontCharHeight = fontCharHeightBase * fontCharScale;
+        updateRect();
+        layoutMenu();
+    }
+}
+
+void DOSBoxMenu::removeHover(void) {
+    if (menuUserHoverAt != unassigned_item_handle) {
+        get_item(menuUserHoverAt).removeHover(*this);
+        menuUserHoverAt = unassigned_item_handle;
+        needRedraw = true;
+    }
+}
+
+void DOSBoxMenu::updateRect(void) {
+    menuBox.x = 0;
+    menuBox.y = 0;
+    menuBox.w = menuVisible ? (unsigned int)screenWidth : 0;
+    menuBox.h = menuVisible ? (unsigned int)menuBarHeight : 0;
+#if 0
+    LOG_MSG("SDL menuBox w=%d h=%d",menuBox.w,menuBox.h);
+#endif
+    layoutMenu();
+}
+
+void DOSBoxMenu::layoutMenu(void) {
+    int x, y;
+
+    x = menuBox.x;
+    y = menuBox.y;
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
+        DOSBoxMenu::item &item = get_item(*i);
+
+        item.placeItem(*this, x, y, /*toplevel*/true);
+        x += item.screenBox.w;
+    }
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
+        get_item(*i).placeItemFinal(*this, /*finalwidth*/x - menuBox.x, /*toplevel*/true);
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
+        get_item(*i).layoutSubmenu(*this, /*toplevel*/true);
+
+#if 0
+    LOG_MSG("Layout complete");
+#endif
+}
+
+void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
+    int x, y, minx, maxx;
+
+    x = screenBox.x;
+    y = screenBox.y;
+
+    if (isTopLevel) {
+        y += textBox.h;
+    }
+    else {
+        x += screenBox.w + 2/*popup border*/;
+    }
+
+    popupBox.x = x;
+    popupBox.y = y;
+
+    minx = x;
+    maxx = x;
+
+    auto arr_follow=display_list.disp_list.begin();
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
+        DOSBoxMenu::item &item = menu.get_item(*i);
+
+        if (item.get_type() == DOSBoxMenu::vseparator_type_id) {
+            for (;arr_follow < i;arr_follow++)
+                menu.get_item(*arr_follow).placeItemFinal(menu, /*finalwidth*/maxx - minx, /*toplevel*/false);
+
+            x = maxx;
+
+            item.screenBox.x = x;
+            item.screenBox.y = popupBox.y;
+            item.screenBox.w = (unsigned int)((4 * menu.fontCharScale) + 1);
+            item.screenBox.h = y - popupBox.y;
+
+            minx = maxx = x = item.screenBox.x + item.screenBox.w;
+            y = popupBox.y;
+        }
+        else {
+            item.placeItem(menu, x, y, /*toplevel*/false);
+            y += item.screenBox.h;
+
+            if (maxx < (item.screenBox.x + item.screenBox.w))
+                maxx = (item.screenBox.x + item.screenBox.w);
+        }
+    }
+
+    for (;arr_follow < display_list.disp_list.end();arr_follow++)
+        menu.get_item(*arr_follow).placeItemFinal(menu, /*finalwidth*/maxx - minx, /*toplevel*/false);
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
+        DOSBoxMenu::item &item = menu.get_item(*i);
+        int my = item.screenBox.y + item.screenBox.h;
+        if (y < my) y = my;
+    }
+
+    popupBox.w = maxx - popupBox.x;
+    popupBox.h = y - popupBox.y;
+
+    /* keep it on the screen if possible */
+    {
+        int new_y = 0;
+
+        new_y = popupBox.y;
+        if ((new_y + (int)popupBox.h) > (int)menu.screenHeight)
+            new_y = (int)menu.screenHeight - popupBox.h;
+        if (new_y < ((int)menu.menuBarHeight - 1))
+            new_y = ((int)menu.menuBarHeight - 1);
+
+        int adj_y = new_y - popupBox.y;
+        if (adj_y != 0) {
+            popupBox.y += adj_y;
+
+            for (auto &i : display_list.disp_list) {
+                DOSBoxMenu::item &item = menu.get_item(i);
+                item.screenBox.y += adj_y;
+            }
+        }
+    }
+    {
+        int new_x = 0;
+
+        new_x = popupBox.x;
+        if ((new_x + (int)popupBox.w) > (int)menu.screenWidth)
+            new_x = (int)menu.screenWidth - popupBox.w;
+        if (new_x < (int)0)
+            new_x = (int)0;
+
+        int adj_x = new_x - popupBox.x;
+        if (adj_x != 0) {
+            popupBox.x += adj_x;
+
+            for (auto &i : display_list.disp_list) {
+                DOSBoxMenu::item &item = menu.get_item(i);
+                item.screenBox.x += adj_x;
+            }
+        }
+    }
+
+    /* 1 pixel border, top */
+    if (!isTopLevel) {
+        borderTop = true;
+        popupBox.y -= 1;
+        popupBox.h += 1;
+    }
+    else {
+        borderTop = false;
+    }
+    /* 1 pixel border, left */
+    popupBox.x -= 1;
+    popupBox.w += 1;
+    /* 1 pixel border, right */
+    popupBox.w += 1;
+    /* 1 pixel border, bottom */
+    popupBox.h += 1;
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
+        menu.get_item(*i).layoutSubmenu(menu, /*toplevel*/false);
+}
+
+void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel) {
+    if (type < separator_type_id) {
+        int x = 0,rx = 0;
+
+        if (!isTopLevel) {
+            screenBox.w = finalwidth;
+        }
+
+        /* from the left */
+        checkBox.x = x;
+        x += checkBox.w;
+
+        textBox.x = x;
+        x += textBox.w;
+
+        /* from the right */
+        rx = screenBox.w;
+
+        rx -= (int)menu.fontCharWidth;
+
+        rx -= shortBox.w;
+        shortBox.x = rx;
+
+        if (!isTopLevel) {
+            screenBox.w = finalwidth;
+        }
+
+        /* check */
+        if (x > rx) LOG_MSG("placeItemFinal warning: text and shorttext overlap by %d pixels",x-rx);
+    }
+    else if (type == separator_type_id) {
+        if (!isTopLevel) {
+            screenBox.w = finalwidth;
+        }
+    }
+
+#if 0
+    LOG_MSG("Item id=%u name=\"%s\" placed at x,y,w,h=%d,%d,%d,%d. text:x,y,w,h=%d,%d,%d,%d",
+        master_id,name.c_str(),
+        screenBox.x,screenBox.y,
+        screenBox.w,screenBox.h,
+        textBox.x,textBox.y,
+        textBox.w,textBox.h);
+#endif
+
+    boxInit = true;
+}
+
+void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
+    if (type < separator_type_id) {
+        screenBox.x = x;
+        screenBox.y = y;
+        screenBox.w = 0;
+        screenBox.h = (unsigned int)menu.fontCharHeight;
+
+        checkBox.x = 0;
+        checkBox.y = 0;
+        checkBox.w = (unsigned int)menu.fontCharWidth;
+        checkBox.h = (unsigned int)menu.fontCharHeight;
+        screenBox.w += (unsigned int)checkBox.w;
+
+        textBox.x = 0;
+        textBox.y = 0;
+        textBox.w = (unsigned int)menu.fontCharWidth * (unsigned int)text.length();
+        textBox.h = (unsigned int)menu.fontCharHeight;
+        screenBox.w += (unsigned int)textBox.w;
+
+        shortBox.x = 0;
+        shortBox.y = 0;
+        shortBox.w = 0;
+        shortBox.h = 0;
+        if (!isTopLevel && !shortcut_text.empty()) {
+            screenBox.w += (unsigned int)menu.fontCharWidth;
+            shortBox.w += (unsigned int)menu.fontCharWidth * (unsigned int)shortcut_text.length();
+            shortBox.h = (unsigned int)menu.fontCharHeight;
+            screenBox.w += (unsigned int)shortBox.w;
+        }
+
+        if (!isTopLevel && type == submenu_type_id)
+            screenBox.w += (unsigned int)menu.fontCharWidth;
+
+        screenBox.w += (unsigned int)menu.fontCharWidth;
+    }
+    else {
+        screenBox.x = x;
+        screenBox.y = y;
+        screenBox.w = (unsigned int)menu.fontCharWidth * 2;
+        screenBox.h = (unsigned int)((4 * menu.fontCharScale) + 1);
+
+        checkBox.x = 0;
+        checkBox.y = 0;
+        checkBox.w = 0;
+        checkBox.h = 0;
+
+        textBox.x = 0;
+        textBox.y = 0;
+        textBox.w = 0;
+        textBox.h = 0;
+
+        shortBox.x = 0;
+        shortBox.y = 0;
+        shortBox.w = 0;
+        shortBox.h = 0;
+    }
+}
+#endif
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+void MenuShadeRect(int x,int y,int w,int h) {
+    if (OpenGL_using()) {
+#if C_OPENGL
+        glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_SRC_ALPHA);
+        glDisable (GL_DEPTH_TEST);
+        glDisable (GL_LIGHTING);
+        glEnable(GL_BLEND);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glDisable(GL_TEXTURE_2D);
+
+        glColor4ub(0, 0, 0, 64);
+        glBegin(GL_QUADS);
+        glVertex2i(x  ,y  );
+        glVertex2i(x+w,y  );
+        glVertex2i(x+w,y+h);
+        glVertex2i(x  ,y+h);
+        glEnd();
+
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glEnable(GL_TEXTURE_2D);
+#endif
+    }
+    else {
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+        if (y < 0) {
+            h += y;
+            y = 0;
+        }
+        if ((x+w) > sdl.surface->w)
+            w = sdl.surface->w - x;
+        if ((y+h) > sdl.surface->h)
+            h = sdl.surface->h - y;
+        if (w <= 0 || h <= 0)
+            return;
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            unsigned char *scan;
+            uint32_t mask;
+
+            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 4;
+            while (h-- > 0) {
+                uint32_t *row = (uint32_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            unsigned char *scan;
+            uint16_t mask;
+
+            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 2;
+            while (h-- > 0) {
+                uint16_t *row = (uint16_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+            }
+        }
+        else {
+            /* TODO */
+        }
+    }
+}
+
+void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
+    if (OpenGL_using()) {
+#if C_OPENGL
+        glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glDisable (GL_DEPTH_TEST);
+        glDisable (GL_LIGHTING);
+        glDisable(GL_BLEND);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glDisable(GL_TEXTURE_2D);
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX)
+        if (color >= 0x1000000) color = ((color / 0x1000000) % 0x100) + ((color / 0x10000) % 0x100) * 0x100 + ((color / 0x100) % 0x100) * 0x10000;
+#endif
+        glColor3ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF);
+        glBegin(GL_QUADS);
+        glVertex2i(x  ,y  );
+        glVertex2i(x+w,y  );
+        glVertex2i(x+w,y+h);
+        glVertex2i(x  ,y+h);
+        glEnd();
+
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glEnable(GL_TEXTURE_2D);
+#endif
+    }
+    else {
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+        if (y < 0) {
+            h += y;
+            y = 0;
+        }
+        if ((x+w) > sdl.surface->w)
+            w = sdl.surface->w - x;
+        if ((y+h) > sdl.surface->h)
+            h = sdl.surface->h - y;
+        if (w <= 0 || h <= 0)
+            return;
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            unsigned char *scan;
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 4;
+            while (h-- > 0) {
+                uint32_t *row = (uint32_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint32_t)color;
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            unsigned char *scan;
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 2;
+            while (h-- > 0) {
+                uint16_t *row = (uint16_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint16_t)color;
+            }
+        }
+        else {
+            /* TODO */
+        }
+    }
+}
+
+void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
+    static const unsigned int fontHeight = 16;
+    unsigned char *scan, *bmp = NULL;
+
+    if (x < 0 || y < 0 ||
+        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
+        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
+        return;
+
+    if (check)
+        prevc = 0;
+    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prevc == 0) {
+            prevc = c;
+            return;
+        } else if (isKanji2(c) && prevc > 1) {
+#if C_OPENGL
+            if (OpenGL_using())
+                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
+            else
+#endif
+                bmp = GetDbcsFont(prevc*0x100+c);
+            prevc = 1;
+        } else if (prevc < 0x81)
+            prevc = 0;
+    } else
+        prevc = 0;
+
+    if (OpenGL_using()) {
+#if C_OPENGL
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+            glPushMatrix();
+            glMatrixMode (GL_TEXTURE);
+            glLoadIdentity ();
+            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+        }
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
+            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
+
+            /* MenuDrawText() has prepared OpenGL state for us */
+            glBegin(GL_QUADS);
+            // lower left
+            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i((int)x,  (int)y                );
+            // lower right
+            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i((int)x+8,(int)y                );
+            // upper right
+            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i((int)x+8,(int)y+(int)fontHeight);
+            // upper left
+            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i((int)x,  (int)y+(int)fontHeight);
+            glEnd();
+            x += (int)mainMenu.fontCharWidth;
+        }
+
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glDisable(GL_ALPHA_TEST);
+            glEnable(GL_TEXTURE_2D);
+            glPopMatrix();
+            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+        }
+#endif
+    }
+    else {
+        assert(sdl.surface->pixels != NULL);
+
+        if (x < 0 || y < 0)
+            return;
+        if ((x + 8) > sdl.surface->w)
+            return;
+        if ((y + (int)fontHeight) > sdl.surface->h)
+            return;
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&prevc!=1)
+                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
+            else if (prevc!=1)
+                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
+            scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
+
+            for (unsigned int row=0;row < fontHeight;row++) {
+                unsigned char rb = bmp[prevc==1?(row*2+i):row];
+
+                if (sdl.surface->format->BitsPerPixel == 32) {
+                    uint32_t *dp = (uint32_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) *dp = (uint32_t)color;
+                        dp++;
+                    }
+                }
+                else if (sdl.surface->format->BitsPerPixel == 16) {
+                    uint16_t *dp = (uint16_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) *dp = (uint16_t)color;
+                        dp++;
+                    }
+                }
+
+                scan += (size_t)sdl.surface->pitch;
+            }
+            x += (int)mainMenu.fontCharWidth;
+        }
+    }
+    prevc = 0;
+}
+
+void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
+    static const unsigned int fontHeight = 16;
+    unsigned char *scan, *bmp = NULL;
+
+    if (x < 0 || y < 0 ||
+        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
+        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
+        return;
+
+    if (check)
+        prevc = 0;
+    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prevc == 0) {
+            prevc = c;
+            return;
+        } else if (isKanji2(c) && prevc > 1) {
+#if C_OPENGL
+            if (OpenGL_using())
+                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
+            else
+#endif
+                bmp = GetDbcsFont(prevc*0x100+c);
+            prevc = 1;
+        } else
+            prevc = 0;
+    } else
+        prevc = 0;
+
+    if (OpenGL_using()) {
+#if C_OPENGL
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+            glPushMatrix();
+            glMatrixMode (GL_TEXTURE);
+            glLoadIdentity ();
+            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+        }
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
+            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
+
+            /* MenuDrawText() has prepared OpenGL state for us */
+            glBegin(GL_QUADS);
+            // lower left
+            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i(x,      y                    );
+            // lower right
+            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i(x+(8*2),y                    );
+            // upper right
+            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i(x+(8*2),y+((int)fontHeight*2));
+            // upper left
+            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i(x,      y+((int)fontHeight*2));
+            glEnd();
+            x += (int)mainMenu.fontCharWidth;
+        }
+
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glDisable(GL_ALPHA_TEST);
+            glEnable(GL_TEXTURE_2D);
+            glPopMatrix();
+            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+        }
+#endif
+    }
+    else {
+        assert(sdl.surface->pixels != NULL);
+
+        if (x < 0 || y < 0)
+            return;
+        if ((x + 16) > sdl.surface->w)
+            return;
+        if ((y + ((int)fontHeight * 2)) > sdl.surface->h)
+            return;
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&!prevc)
+                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
+            else if (prevc!=1)
+                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
+
+            for (unsigned int row=0;row < (fontHeight*2);row++) {
+                unsigned char rb = bmp[prevc==1?((row>>1U)*2+i):(row>>1U)];
+
+                if (sdl.surface->format->BitsPerPixel == 32) {
+                    uint32_t *dp = (uint32_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) {
+                            *dp++ = (uint32_t)color;
+                            *dp++ = (uint32_t)color;
+                        }
+                        else {
+                            dp += 2;
+                        }
+                    }
+                }
+                else if (sdl.surface->format->BitsPerPixel == 16) {
+                    uint16_t *dp = (uint16_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) {
+                            *dp++ = (uint16_t)color;
+                            *dp++ = (uint16_t)color;
+                        }
+                        else {
+                            dp += 2;
+                        }
+                    }
+                }
+
+                scan += (size_t)sdl.surface->pitch;
+            }
+            x += (int)mainMenu.fontCharWidth;
+        }
+    }
+    prevc = 0;
+}
+
+void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
+    bool use0 = false;
+#if C_OPENGL
+    if (OpenGL_using()) {
+        if (check&&(text[0]&0xFF)==0xFB) {
+            use0 = true;
+            UpdateSDLDrawDBCSTexture(0);
+        }
+        glBindTexture(GL_TEXTURE_2D,use0?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+
+        glPushMatrix();
+
+        glMatrixMode (GL_TEXTURE);
+        glLoadIdentity ();
+        glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX)
+        if (color >= 0x1000000) color = ((color / 0x1000000) % 0x100) + ((color / 0x10000) % 0x100) * 0x100 + ((color / 0x100) % 0x100) * 0x10000;
+#endif
+        glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_ALPHA_TEST);
+        glEnable(GL_BLEND);
+    }
+#endif
+
+    prevc = 0;
+    while (*text != 0) {
+        if (mainMenu.fontCharScale >= 2)
+            MenuDrawTextChar2x(x,y,use0?0:(unsigned char)*text,color,check);
+        else
+            MenuDrawTextChar(x,y,use0?0:(unsigned char)*text,color,check);
+        text++;
+    }
+    if (prevc>1) {
+        if (mainMenu.fontCharScale >= 2)
+            MenuDrawTextChar2x(x,y,prevc,color,true);
+        else
+            MenuDrawTextChar(x,y,prevc,color,true);
+    }
+    prevc = 0;
+#if C_OPENGL
+    if (OpenGL_using()) {
+        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glDisable(GL_ALPHA_TEST);
+        glEnable(GL_TEXTURE_2D);
+
+        glPopMatrix();
+
+        glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+    }
+#endif
+}
+
+void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+
+    force_conversion = showdbcs;
+    int cp = dos.loaded_codepage;
+    if (!cp || force_conversion) InitCodePage();
+    force_conversion = false;
+
+    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
+    Bitu fgcolor = GFX_GetRGB(191, 191, 191);
+    Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
+    Bitu fgcheckcolor = GFX_GetRGB(191, 191, 127);
+
+    if (type >= separator_type_id) {
+        /* separators never change visual state on hover/select */
+    }
+    else if (!status.enabled) {
+        if (itemHover)
+            bgcolor = GFX_GetRGB(79, 79, 79);
+
+        fgcolor = GFX_GetRGB(144, 144, 144);
+        fgshortcolor = GFX_GetRGB(63, 63, 144);
+        fgcheckcolor = GFX_GetRGB(144, 144, 63);
+    }
+    else if (itemHilight) {
+        bgcolor = GFX_GetRGB(0, 0, 63);
+        fgcolor = GFX_GetRGB(255, 255, 255);
+        fgshortcolor = GFX_GetRGB(191, 191, 255);
+    }
+    else if (itemHover) {
+        bgcolor = GFX_GetRGB(127, 127, 127);
+        fgcolor = GFX_GetRGB(255, 255, 255);
+        fgshortcolor = GFX_GetRGB(191, 191, 255);
+    }
+
+    itemHoverDrawn = itemHover;
+    itemHilightDrawn = itemHilight;
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_LockSurface(sdl.surface);
+
+    MenuDrawRect(screenBox.x, screenBox.y, screenBox.w, screenBox.h, bgcolor);
+    if (checkBox.w != 0 && checkBox.h != 0) {
+        const char *str = status.checked ? "\xFB" : " ";
+
+        MenuDrawText(screenBox.x+checkBox.x, screenBox.y+checkBox.y, str, fgcheckcolor, true);
+    }
+    if (textBox.w != 0 && textBox.h != 0)
+        MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
+    if (shortBox.w != 0 && shortBox.h != 0)
+        MenuDrawText(screenBox.x+shortBox.x, screenBox.y+shortBox.y, shortcut_text.c_str(), fgshortcolor);
+
+    if (type == submenu_type_id && borderTop/*not toplevel*/)
+        MenuDrawText((int)((int)screenBox.x+(int)screenBox.w - (int)mainMenu.fontCharWidth - 1), (int)((int)screenBox.y+(int)textBox.y), "\x10", fgcheckcolor);
+
+    if (type == separator_type_id)
+        MenuDrawRect((int)screenBox.x, (int)screenBox.y + ((int)screenBox.h/2), (int)screenBox.w, 1, fgcolor);
+    else if (type == vseparator_type_id)
+        MenuDrawRect((int)screenBox.x + ((int)screenBox.w/2), (int)screenBox.y, 1, (int)screenBox.h, fgcolor);
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_UnlockSurface(sdl.surface);
+    dos.loaded_codepage = cp;
+}
+
+void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu,bool updateScreen) {
+    for (auto &id : disp_list) {
+        DOSBoxMenu::item &item = menu.get_item(id);
+
+        item.drawMenuItem(menu);
+        if (updateScreen) item.updateScreenFromItem(menu);
+    }
+}
+
+DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &menu,int x,int y) {
+    for (auto &id : disp_list) {
+        DOSBoxMenu::item &item = menu.get_item(id);
+        if (x >= item.screenBox.x && y >= item.screenBox.y) {
+            int sx = x - item.screenBox.x;
+            int sy = y - item.screenBox.y;
+            int adj = (this != &menu.display_list && item.get_type() == DOSBoxMenu::submenu_type_id) ? 2 : 0;
+            if (sx < (item.screenBox.w+adj) && sy < item.screenBox.h)
+                return id;
+        }
+    }
+
+    return unassigned_item_handle;
+}
+
+bool skipdraw=false;
+void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+    if (!OpenGL_using()) {
+        SDL_Rect uprect = screenBox;
+
+        SDL_rect_cliptoscreen(uprect);
+
+#if defined(C_SDL2)
+        if (!Direct3D_using() || !skipdraw)
+        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+#else
+        SDL_UpdateRects( sdl.surface, 1, &uprect );
+#endif
+    }
+}
+
+void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+    if (!OpenGL_using()) {
+        SDL_Rect uprect = popupBox;
+
+        uprect.w += DOSBoxMenu::dropshadowX;
+        uprect.h += DOSBoxMenu::dropshadowY;
+        SDL_rect_cliptoscreen(uprect);
+
+#if defined(C_SDL2)
+        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+#else
+        SDL_UpdateRects( sdl.surface, 1, &uprect );
+#endif
+    }
+}
+
+void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+    Bitu bordercolor = GFX_GetRGB(31, 31, 31);
+    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
+
+    if (popupBox.w <= 1 || popupBox.h <= 1)
+        return;
+
+    MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, popupBox.h, bgcolor);
+
+    if (borderTop)
+        MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, 1, bordercolor);
+
+    MenuDrawRect(popupBox.x, popupBox.y + popupBox.h - 1, popupBox.w, 1, bordercolor);
+
+    MenuDrawRect(popupBox.x, popupBox.y, 1, popupBox.h, bordercolor);
+    MenuDrawRect(popupBox.x + popupBox.w - 1, popupBox.y, 1, popupBox.h, bordercolor);
+
+    if (type == DOSBoxMenu::submenu_type_id) {
+        MenuShadeRect((int)popupBox.x + (int)popupBox.w, (int)popupBox.y + (int)DOSBoxMenu::dropshadowY,
+                      (int)DOSBoxMenu::dropshadowX, (int)popupBox.h);
+        MenuShadeRect((int)popupBox.x + (int)DOSBoxMenu::dropshadowX, (int)popupBox.y + (int)popupBox.h,
+                      (int)popupBox.w - (int)DOSBoxMenu::dropshadowX, (int)DOSBoxMenu::dropshadowY);
+    }
 }
 #endif

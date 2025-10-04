@@ -12,9 +12,9 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU General Public License along
+//  with this program; if not, write to the Free Software Foundation, Inc.,
+//  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 //  ---------------------------------------------------------------------------
 
 #include "sid.h"
@@ -26,8 +26,8 @@
 SID2::SID2()
 {
   // Initialize pointers.
-  sample = 0;
-  fir = 0;
+  sample = nullptr;
+  fir = nullptr;
 
   voice[0].set_sync_source(&voice[2]);
   voice[1].set_sync_source(&voice[0]);
@@ -285,8 +285,8 @@ SID2::State::State()
 // ----------------------------------------------------------------------------
 SID2::State SID2::read_state()
 {
+  unsigned int i, j;
   State state;
-  int i, j;
 
   for (i = 0, j = 0; i < 3; i++, j += 7) {
     WaveformGenerator& wave = voice[i].wave;
@@ -345,10 +345,10 @@ SID2::State SID2::read_state()
 // ----------------------------------------------------------------------------
 void SID2::write_state(const State& state)
 {
-  int i;
+  unsigned int i;
 
   for (i = 0; i <= 0x18; i++) {
-    write(i, state.sid_register[i]);
+    write(i, (unsigned char)state.sid_register[i]);
   }
 
   bus_value = state.bus_value;
@@ -395,14 +395,14 @@ double SID2::I0(double x)
   // Max error acceptable in I0.
   const double I0e = 1e-6;
 
-  double sum, u, halfx, temp;
+  double sum, u, halfx;
   int n;
 
   sum = u = n = 1;
   halfx = x/2.0;
 
   do {
-    temp = halfx/n++;
+    double temp = halfx/n++;
     u *= temp*temp;
     sum += u;
   } while (u >= I0e*sum);
@@ -414,7 +414,7 @@ double SID2::I0(double x)
 // ----------------------------------------------------------------------------
 // Setting of SID sampling parameters.
 //
-// Use a clock freqency of 985248Hz for PAL C64, 1022730Hz for NTSC C64.
+// Use a clock frequency of 985248Hz for PAL C64, 1022730Hz for NTSC C64.
 // The default end of passband frequency is pass_freq = 0.9*sample_freq/2
 // for sample frequencies up to ~ 44.1kHz, and 20kHz for higher sample
 // frequencies.
@@ -479,8 +479,8 @@ bool SID2::set_sampling_parameters(double clock_freq, sampling_method method,
   {
     delete[] sample;
     delete[] fir;
-    sample = 0;
-    fir = 0;
+    sample = nullptr;
+    fir = nullptr;
     return true;
   }
 
@@ -679,9 +679,9 @@ void SID2::clock(cycle_count delta_t)
 
       // Clock on MSB off if MSB is on, clock on MSB on if MSB is off.
       reg24 delta_accumulator =
-	(accumulator & 0x800000 ? 0x1000000 : 0x800000) - accumulator;
+	((accumulator & 0x800000) ? 0x1000000 : 0x800000) - accumulator;
 
-      cycle_count delta_t_next = delta_accumulator/freq;
+      cycle_count delta_t_next = (cycle_count)((unsigned int)delta_accumulator / (unsigned int)freq);
       if (delta_accumulator%freq) {
 	++delta_t_next;
       }
@@ -715,7 +715,7 @@ void SID2::clock(cycle_count delta_t)
 
 // ----------------------------------------------------------------------------
 // SID clocking with audio sampling.
-// Fixpoint arithmetics is used.
+// Fixpoint arithmetic is used.
 //
 // The example below shows how to clock the SID a specified amount of cycles
 // while producing audio output:
@@ -920,7 +920,7 @@ int SID2::clock_resample_interpolate(cycle_count& delta_t, short* buf, int n,
 
     v >>= FIR_SHIFT;
 
-    // Saturated arithmetics to guard against 16 bit sample overflow.
+    // Saturated arithmetic to guard against 16 bit sample overflow.
     const int half = 1 << 15;
     if (v >= half) {
       v = half - 1;
@@ -983,7 +983,7 @@ int SID2::clock_resample_fast(cycle_count& delta_t, short* buf, int n,
 
     v >>= FIR_SHIFT;
 
-    // Saturated arithmetics to guard against 16 bit sample overflow.
+    // Saturated arithmetic to guard against 16 bit sample overflow.
     const int half = 1 << 15;
     if (v >= half) {
       v = half - 1;

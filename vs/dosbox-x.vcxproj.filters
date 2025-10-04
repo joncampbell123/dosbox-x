@@ -1,0 +1,2628 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{8dbaf89d-8c9d-42a3-b8a4-a60a4c5aef56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\aviwriter">
+      <UniqueIdentifier>{a1ec8d2a-54a6-4ea0-bf63-61f7449b66b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\builtin">
+      <UniqueIdentifier>{30d5602d-6e2d-4691-9b9c-5706bd0bb63f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\cpu">
+      <UniqueIdentifier>{a0d191bf-6485-420a-84b4-8854ff7389a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\cpu\core_full">
+      <UniqueIdentifier>{67311e9a-8aab-49c8-bb25-b1d7160c8f85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\cpu\core_normal">
+      <UniqueIdentifier>{98d08d67-dcae-4d80-bfa1-15472da792d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\debug">
+      <UniqueIdentifier>{a5277e37-3fda-43a2-b060-3f459e1b9e75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\dos">
+      <UniqueIdentifier>{c795e362-1843-4567-b1ff-09c023ca9893}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\fpu">
+      <UniqueIdentifier>{d08318af-b364-4a97-b234-0c7b2e6f08d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\gui">
+      <UniqueIdentifier>{1632efc8-6b8c-4f89-a1a1-fc1da685f29f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware">
+      <UniqueIdentifier>{d6c2f459-d760-4117-8253-b60cef969a13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ints">
+      <UniqueIdentifier>{8709a460-e591-4394-b201-bee585d9db19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\reSID">
+      <UniqueIdentifier>{796e68c6-80fd-4c10-aa7b-ad0e99d43348}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\parport">
+      <UniqueIdentifier>{f31d9c9a-5a0e-496f-a141-7c576fc2f86d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\serialport">
+      <UniqueIdentifier>{b7262097-2a01-4247-a2f3-e93f15386b05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs">
+      <UniqueIdentifier>{5a13656d-e234-4fd4-8969-f73bf2fa6d3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\gui_tk">
+      <UniqueIdentifier>{5d5417f9-58a8-4b86-a8f7-8626b7120043}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\passthroughio">
+      <UniqueIdentifier>{cd3f8fa5-7241-4256-a47c-a74ae8a95284}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\misc">
+      <UniqueIdentifier>{5af65dcd-0cd1-4ee7-a026-ead87797f0df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\platform">
+      <UniqueIdentifier>{8071adb6-9510-4483-a580-36c1e98cfd47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\shell">
+      <UniqueIdentifier>{6b5f8ac0-a925-4910-ad61-914aede51b8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Includes">
+      <UniqueIdentifier>{39027cf6-2435-4d52-a1ea-c3cc6c7f31ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\output">
+      <UniqueIdentifier>{b81e382e-b6fe-4ac3-91d1-a4c1e031214b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\snd_pc98">
+      <UniqueIdentifier>{bd560cc3-48c5-40d2-89ed-18bb890e85f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\snd_pc98\cbus">
+      <UniqueIdentifier>{ac790bbf-6718-4b72-9cd1-b8f76f16c3a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\snd_pc98\common">
+      <UniqueIdentifier>{845326a1-1737-4d13-8b97-a3e39829ffda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\snd_pc98\generic">
+      <UniqueIdentifier>{f01f7ecf-16a2-47f6-aab2-bb5089d70fc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\snd_pc98\x11">
+      <UniqueIdentifier>{dd370a1a-f30e-4dbf-9d74-bf98b8be48f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\snd_pc98\sound">
+      <UniqueIdentifier>{023b0f91-b8ac-4891-b979-69c5decfaa70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\snd_pc98\sound\getsnd">
+      <UniqueIdentifier>{f6769d5c-60ef-441a-9658-290ad81b7cec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\output\direct3d">
+      <UniqueIdentifier>{3755469d-f02e-4c3e-b6cd-25db8b71b1fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\cpu\core_dynrec">
+      <UniqueIdentifier>{8d1a73c6-be58-4d9f-aa03-b9f57516bedb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\mame">
+      <UniqueIdentifier>{31feddeb-9587-415e-9cd8-a8bc0bed318c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\zmbv">
+      <UniqueIdentifier>{fd585132-36d9-4941-8490-3821d36aec5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\fluidsynth">
+      <UniqueIdentifier>{ec267673-8195-4cd9-9a9b-8c4505d285be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\mt32">
+      <UniqueIdentifier>{100486ca-860f-43d4-a37d-3c5b6c9cf849}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\mt32\sha1">
+      <UniqueIdentifier>{4f7f2cfd-2b47-4f7b-9951-22375362f7fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\mt32\c_interface">
+      <UniqueIdentifier>{1c77ffdf-9bc7-404b-8b6f-77a41fc2ed1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\xBRZ">
+      <UniqueIdentifier>{6212d2c1-4c3f-4ec6-ad0e-88413d9f1b6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\decoder">
+      <UniqueIdentifier>{8c545daa-26e1-4aad-a8ee-48caa3730fab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\cpu\core_dyn_x86">
+      <UniqueIdentifier>{09ec76de-76b7-416f-9a14-f47a19aabc07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\RetroWaveLib">
+      <UniqueIdentifier>{2a582629-0964-4559-9992-810e70c2f6ce}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
+      <Filter>Sources\aviwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\aviwriter\avi_writer.cpp">
+      <Filter>Sources\aviwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\aviwriter\guid.cpp">
+      <Filter>Sources\aviwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\aviwriter\ksdataformat.cpp">
+      <Filter>Sources\aviwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\aviwriter\riff.cpp">
+      <Filter>Sources\aviwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\aviwriter\riff_wav_writer.cpp">
+      <Filter>Sources\aviwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\25_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\28_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\50_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\append_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\buffers_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\chkdsk_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\cwsdpmi_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\debug_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\defrag_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\dos4gw_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\dos32a_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\dosidle_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\diskcopy_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\edit_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\fc_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\fcbs_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\files_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\fdisk_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\find_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\format_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\hexmem16_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\hexmem32_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\lastdriv_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\mem_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\move_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\print_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\replace_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\sort_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\sys_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\xcopy_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\device_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\callback.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_full.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_normal.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_normal_286.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_normal_8086.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_prefetch.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_simple.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\cpu.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\flags.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\mmx.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\modrm.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\paging.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\cdrom.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\cdrom_aspi_win32.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\cdrom_image.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\cdrom_ioctl_win32.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_classes.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_devices.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_execute.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_files.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_ioctl.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_keyboard_layout.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_memory.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_misc.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_mscdex.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_programs.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\dos_tables.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\drive_cache.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\drive_fat.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\drive_iso.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\drive_local.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\drive_overlay.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\drive_physfs.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\drive_virtual.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\drives.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fpu\fpu.cpp">
+      <Filter>Sources\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\menu_callback.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\menu.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\midi.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\render.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\render_scalers.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\sdl_gui.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\sdl_mapper.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\sdlmain.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\adlib.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\cmos.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\dbopl.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\disney.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\dma.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\dongle.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\floppy.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\gameblaster.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\gus.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\hardopl.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\ide.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\innova.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\iohandler.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\ipx.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\ipxserver.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\joystick.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\keyboard.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\memory.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mixer.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mpu401.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\ne2000.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\nukedopl.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\opl.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\pc98.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\pc98_fm.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\pci_bus.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\pcspeaker.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\pic.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\ps1_sound.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\sblaster.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\tandy_sound.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\timer.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_attr.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_crtc.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_dac.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_draw.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_gfx.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_memory.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_misc.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_other.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_paradise.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_cg.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_crtc.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_dac.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_egc.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_ati.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_s3.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_seq.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_tseng.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_xga.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\voodoo.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\voodoo_emu.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\voodoo_interface.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\voodoo_opengl.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\voodoo_vogl.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\glide.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\parport\directlpt.cpp">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\parport\filelpt.cpp">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\parport\parport.cpp">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\parport\printer.cpp">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\parport\printer_charmaps.cpp">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\directserial.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\libserial.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\misc_util.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\nullmodem.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\serialdummy.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\seriallog.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\serialmouse.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\serialport.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\softmodem.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\bios.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\bios_disk.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\bios_keyboard.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\ems.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int_dosv.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10_char.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10_memory.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10_misc.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10_modes.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10_pal.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10_put_pixel.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10_vesa.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10_video_state.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\int10_vptable.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\mouse.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\qcow2_disk.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\xms.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\gui_tk\gui_tk.cpp">
+      <Filter>Sources\libs\gui_tk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\passthroughio\passthroughio.cpp">
+      <Filter>Sources\libs\passthroughio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\clipboard.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\cross.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\messages.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_pcap.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_slirp.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_nothing.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\regionalloctracking.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\programs.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\savestates.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\setup.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\shiftjis.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\support.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\BReverbModel.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\File.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\FileStream.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\LA32Ramp.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\LA32WaveGenerator.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\Part.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\Partial.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\PartialManager.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\Poly.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\ROMInfo.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\Synth.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\Tables.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\TVA.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\TVF.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\TVP.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\sha1\sha1.cpp">
+      <Filter>Sources\libs\mt32\sha1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shell\shell.cpp">
+      <Filter>Sources\shell</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shell\shell_batch.cpp">
+      <Filter>Sources\shell</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shell\shell_cmds.cpp">
+      <Filter>Sources\shell</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shell\shell_misc.cpp">
+      <Filter>Sources\shell</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\envelope.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\extfilt.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\filter.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\pot.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\sid.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\version.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\voice.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave6581__ST.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave6581_P_T.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave6581_PS_.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave6581_PST.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave8580__ST.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave8580_P_T.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave8580_PS_.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave8580_PST.cpp">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Board\OPL3.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\RetroWave_DOSBoX.cpp">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Protocol\Serial.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\RetroWaveLib\Platform\Win32_SerialPort.c">
+      <Filter>Sources\hardware\RetroWaveLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debug\debug.cpp">
+      <Filter>Sources\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debug\debug_disasm.cpp">
+      <Filter>Sources\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debug\debug_gui.cpp">
+      <Filter>Sources\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debug\debug_win32.cpp">
+      <Filter>Sources\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dosbox.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\8255.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\bios_memdisk.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\bios_vhd.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\bitop.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\xBRZ\xbrz.cpp">
+      <Filter>Sources\libs\xBRZ</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\ptrop.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_surface.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_direct3d.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_opengl.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_tools.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_tools_xbrz.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_ttf.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\hardware.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\adpcmg.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\adpcmc.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board26k.c">
+      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board86.c">
+      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\x11\dosio.c">
+      <Filter>Sources\hardware\snd_pc98\x11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\fmboard.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\fmtimer.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getsmix.c">
+      <Filter>Sources\hardware\snd_pc98\sound\getsnd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getsnd.c">
+      <Filter>Sources\hardware\snd_pc98\sound\getsnd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getwave.c">
+      <Filter>Sources\hardware\snd_pc98\sound\getsnd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\generic\keydisp.c">
+      <Filter>Sources\hardware\snd_pc98\generic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\opngenc.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\opngeng.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\common\parts.c">
+      <Filter>Sources\hardware\snd_pc98\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\pcm86c.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\pcm86g.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\psggenc.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\psggeng.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\rhythmc.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\sound.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\soundrom.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\tms3631c.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\tms3631g.c">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\direct3d\direct3d.cpp">
+      <Filter>Sources\output\direct3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\direct3d\hq2x_d3d.cpp">
+      <Filter>Sources\output\direct3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\direct3d\ScalingEffect.cpp">
+      <Filter>Sources\output\direct3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\parport\printer_redir.cpp">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\dsxmenu_exe_pc.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\dsxmenu_exe_pc98.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\iconvpp.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_prefetch_286.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_prefetch_8086.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\fmopl.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\saa1099.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\sn76496.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\ymdeltat.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\ymf262.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_dynrec.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\zipcrc.c">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gui\zipfile.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\zmbv\zmbv.cpp">
+      <Filter>Sources\libs\zmbv</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\serialfile.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_adriver.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_adsr_env.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_aufile.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_chan.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_chorus.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_cmd.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_conv.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_defsfont.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_dll.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_dsound.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_event.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_filerenderer.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_gen.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_hash.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_iir_filter.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_lfo.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_list.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_mdriver.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_midi.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_midi_router.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_mod.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_ramsfont.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rev.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_ringbuffer.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice_dsp.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice_event.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice_mixer.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_sdl2.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_seq.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_seqbind.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_settings.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_synth.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_sys.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_tuning.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_voice.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\opl3duoboard\opl3duoboard.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\LA32FloatWaveGenerator.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\Analog.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\c_interface\c_interface.cpp">
+      <Filter>Sources\libs\mt32\c_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\SampleRateConverter.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\MidiStreamParser.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\ogg\bitwise.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\ogg\framing.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\bands.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\celt.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\celt_decoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\celt_encoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\celt_lpc.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\cwrs.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\entcode.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\entdec.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\entenc.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\kiss_fft.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\laplace.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\mathops.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\mdct.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\modes.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\pitch.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\quant_bands.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\rate.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\celt\vq.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\A2NLSF.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\ana_filt_bank_1.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\biquad_alt.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\bwexpander.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\bwexpander_32.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\check_control_input.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\CNG.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\code_signs.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\control_audio_bandwidth.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\control_codec.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\control_SNR.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\dec_API.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_core.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_frame.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_indices.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_parameters.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_pitch.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decode_pulses.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\decoder_set_fs.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\enc_API.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\encode_indices.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\encode_pulses.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\gain_quant.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\HP_variable_cutoff.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\init_decoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\init_encoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\inner_prod_aligned.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\interpolate.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\lin2log.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\log2lin.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\LP_variable_cutoff.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\LPC_analysis_filter.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\LPC_fit.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\LPC_inv_pred_gain.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_decode.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_del_dec_quant.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_encode.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_stabilize.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_unpack.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_VQ.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF_VQ_weights_laroia.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NLSF2A.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NSQ.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\NSQ_del_dec.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\pitch_est_tables.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\PLC.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\process_NLSFs.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\quant_LTP_gains.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_down2.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_down2_3.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_private_AR2.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_private_down_FIR.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_private_IIR_FIR.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_private_up2_HQ.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\resampler_rom.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\shell_coder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\sigm_Q15.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\sort.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_decode_pred.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_encode_pred.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_find_predictor.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_LR_to_MS.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_MS_to_LR.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\stereo_quant_pred.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\sum_sqr_shift.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\table_LSF_cos.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_gain.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_LTP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_NLSF_CB_NB_MB.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_NLSF_CB_WB.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_other.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_pitch_lag.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\tables_pulses_per_block.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\VAD.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\VQ_WMat_EC.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\analysis.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\mapping_matrix.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\mlp.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\mlp_data.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_decoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_encoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_multistream.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_multistream_decoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_multistream_encoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_projection_decoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opus_projection_encoder.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\repacketizer.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\http.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\info.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\internal.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\opusfile.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\stream.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opusfile\wincerts.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\encode_frame_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\noise_shape_analysis_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\apply_sine_window_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\autocorrelation_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\burg_modified_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\bwexpander_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\corrMatrix_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\energy_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\find_LPC_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\find_LTP_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\find_pitch_lags_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\find_pred_coefs_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\inner_product_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\k2a_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\LPC_analysis_filter_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\LPC_inv_pred_gain_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\LTP_analysis_filter_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\LTP_scale_ctrl_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\pitch_analysis_core_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\process_gains_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\regularize_correlations_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\residual_energy_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\scale_copy_vector_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\scale_vector_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\schur_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\sort_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\warped_autocorrelation_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\float\wrappers_FLP.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\buffer.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\fftwrap.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\filterbank.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\jitter.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\kiss_fftr.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\mdf.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\preprocess.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\resample.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\scal.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\smallft.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\speexdsp\kiss_fft_speex.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\src\opussrc.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\decoders\internal\opus\silk\debug_silk.c">
+      <Filter>Sources\libs\decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\Display.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\pc98_lio.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_gdc_draw.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\mkdir_p.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\pcm86io.c">
+      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gamelink\gamelink.cpp" />
+    <ClCompile Include="..\src\gamelink\gamelink_term.cpp" />
+    <ClCompile Include="..\src\output\output_gamelink.cpp" />
+    <ClCompile Include="..\src\hardware\imfc_rom.c">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\imfc.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\esfmu\esfm.c" />
+    <ClCompile Include="..\src\hardware\esfmu\esfm_registers.c" />
+    <ClCompile Include="..\src\builtin\4dos.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\cdplay.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\dosmid.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\emsmagic.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\eval.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\glide2x.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\mpxplay.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\shutdown.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\textutil.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\zip.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dos\eltorito.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\ne2000bin.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\pc98_artic.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\cwsdpmi_exe_pc98.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\aviwriter\avi.h">
+      <Filter>Sources\aviwriter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\avi_rw_iobuf.h">
+      <Filter>Sources\aviwriter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\avi_writer.h">
+      <Filter>Sources\aviwriter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\guid.h">
+      <Filter>Sources\aviwriter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\ksdataformat.h">
+      <Filter>Sources\aviwriter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\riff.h">
+      <Filter>Sources\aviwriter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\riff_wav_writer.h">
+      <Filter>Sources\aviwriter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\instructions.h">
+      <Filter>Sources\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\lazyflags.h">
+      <Filter>Sources\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\modrm.h">
+      <Filter>Sources\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dos\cdrom.h">
+      <Filter>Sources\dos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dos\dev_con.h">
+      <Filter>Sources\dos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dos\dos_codepages.h">
+      <Filter>Sources\dos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dos\dos_keyboard_layout_data.h">
+      <Filter>Sources\dos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dos\dos_network.h">
+      <Filter>Sources\dos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dos\dos_network2.h">
+      <Filter>Sources\dos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dos\drives.h">
+      <Filter>Sources\dos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dos\scsidefs.h">
+      <Filter>Sources\dos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dos\wnaspi32.h">
+      <Filter>Sources\dos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fpu\fpu_instructions.h">
+      <Filter>Sources\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\dosbox.cga640.bmp.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\dosbox.vga16.bmp.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\dosbox_logo.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\midi_alsa.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\midi_coreaudio.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\midi_coremidi.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\midi_mt32.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\midi_oss.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\midi_synth.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\midi_timidity.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\midi_win32.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\render_loops.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\render_scalers.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\render_simple.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\render_templates.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\render_templates_hq.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\render_templates_hq2x.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\render_templates_hq3x.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gui\render_templates_sai.h">
+      <Filter>Sources\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\adlib.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\dbopl.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\hardopl.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\nukedopl.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\opl.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\pci_devices.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\voodoo_data.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\voodoo_def.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\voodoo_emu.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\voodoo_interface.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\voodoo_opengl.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\voodoo_types.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\voodoo_vogl.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\parport\directlpt.h">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\parport\filelpt.h">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\parport\printer.h">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\parport\printer_charmaps.h">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\parport\printer_if.h">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\parport\printer_redir.h">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\directserial.h">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\libserial.h">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\misc_util.h">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\nullmodem.h">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\serialdummy.h">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\seriallog.h">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\serialmouse.h">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\softmodem.h">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ints\xms.h">
+      <Filter>Sources\ints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ints\int10.h">
+      <Filter>Sources\ints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\BReverbModel.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\File.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\FileStream.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\LA32Ramp.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\LA32WaveGenerator.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\mmath.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\mt32emu.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Part.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Partial.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\PartialManager.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Poly.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\ROMInfo.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Structures.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Synth.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Tables.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\TVA.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\TVF.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\TVP.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\sha1\sha1.h">
+      <Filter>Sources\libs\mt32\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\misc\ethernet_pcap.h">
+      <Filter>Sources\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\misc\ethernet_slirp.h">
+      <Filter>Sources\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\envelope.h">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\extfilt.h">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\filter.h">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\pot.h">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\sid.h">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\siddefs.h">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\spline.h">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\voice.h">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\wave.h">
+      <Filter>Sources\hardware\reSID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\debug\debug_inc.h">
+      <Filter>Sources\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\debug\disasm_tables.h">
+      <Filter>Sources\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bios.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bios_disk.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bitmapinfoheader.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\builtin.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\callback.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\clockdomain.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp437_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp808_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp850_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp852_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp853_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp855_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp856_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp857_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp858_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp859_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp860_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp861_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp862_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp863_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp864_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp865_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp866_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp867_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp868_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp869_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp872_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp874_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp932_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp936_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp949_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp950_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp1250_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp1251_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp1252_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp1253_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp1254_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp1255_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp1256_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp1257_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp1258_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cpu.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cross.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\crypt.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\debug.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dma.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dos_inc.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dos_system.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dosbox.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ethernet.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fpu.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hardware.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ide.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\informational.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\inout.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ioapi.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\iowin32.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ipx.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ipxserver.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\joystick.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\keyboard.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\logging.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mapper.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mem.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\menu.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\menudef.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mixer.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mmx.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mouse.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mztools.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ne2000.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\np2glue.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\paging.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\parport.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\pc98_cg.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\pc98_dac.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\pc98_gdc.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\pc98_gdc_const.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\pci_bus.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\pic.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\programs.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\qcow2_disk.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rawint.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\regionalloctracking.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\regs.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\render.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\resource.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\serialport.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\setup.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\shell.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\shiftjis.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\support.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\timer.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\uint64_const.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\unzip.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util_pointer.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util_units.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\vga.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\video.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\voodoo.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\wave_mmreg.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\waveformatex.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\zip.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\8255.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bitop.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\xBRZ\xbrz.h">
+      <Filter>Sources\libs\xBRZ</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\xBRZ\xbrz_config.h">
+      <Filter>Sources\libs\xBRZ</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\xBRZ\xbrz_tools.h">
+      <Filter>Sources\libs\xBRZ</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ptrop.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sdlmain.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_surface.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_direct3d.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_opengl.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_tools.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_tools_xbrz.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\adpcm.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board26k.h">
+      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board86.h">
+      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\x11\dosio.h">
+      <Filter>Sources\hardware\snd_pc98\x11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\fmboard.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\fmtimer.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\getsnd\getsnd.h">
+      <Filter>Sources\hardware\snd_pc98\sound\getsnd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\generic\keydisp.h">
+      <Filter>Sources\hardware\snd_pc98\generic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\opngen.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\common\parts.h">
+      <Filter>Sources\hardware\snd_pc98\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\pcm86.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\common\profile.h">
+      <Filter>Sources\hardware\snd_pc98\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\psggen.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\rhythm.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\sound.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\soundrom.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\tms3631.h">
+      <Filter>Sources\hardware\snd_pc98\sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\common\wavefile.h">
+      <Filter>Sources\hardware\snd_pc98\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\direct3d\d3d_components.h">
+      <Filter>Sources\output\direct3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\direct3d\direct3d.h">
+      <Filter>Sources\output\direct3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h">
+      <Filter>Sources\output\direct3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\direct3d\ScalingEffect.h">
+      <Filter>Sources\output\direct3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\midi.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\fmopl.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\saa1099.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\sn76496.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\ymdeltat.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\ymf262.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\emu.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\build_timestamp.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\byteorder.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fpu_control_x86.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\iconvpp.hpp">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\keymap.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util_math.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\zipcrc.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\zipfile.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_prefetch_buf.h">
+      <Filter>Sources\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\cache.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\decoder.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\decoder_basic.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\decoder_opcodes.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\dyn_fpu.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\operators.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-common.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-o3.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-thumb.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-thumb-iw.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv4le-thumb-niw.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_armv8le.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_mipsel32.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_x64.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dynrec\risc_x86.h">
+      <Filter>Sources\cpu\core_dynrec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_full\ea_lookup.h">
+      <Filter>Sources\cpu\core_full</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_full\load.h">
+      <Filter>Sources\cpu\core_full</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_full\loadwrite.h">
+      <Filter>Sources\cpu\core_full</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_full\op.h">
+      <Filter>Sources\cpu\core_full</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_full\optable.h">
+      <Filter>Sources\cpu\core_full</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_full\save.h">
+      <Filter>Sources\cpu\core_full</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_full\string.h">
+      <Filter>Sources\cpu\core_full</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_full\support.h">
+      <Filter>Sources\cpu\core_full</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\helpers.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\prefix_0f.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\prefix_0f_mmx.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\prefix_66.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\prefix_66_0f.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\prefix_none.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\string.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\support.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\table_ea.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_normal\table_ea_8086.h">
+      <Filter>Sources\cpu\core_normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fpu\fpu_instructions_longdouble.h">
+      <Filter>Sources\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fpu\fpu_instructions_x86.h">
+      <Filter>Sources\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\resource.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\serialfile.h">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\opl2board\opl2board.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\opl3duoboard\opl3duoboard.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\LA32FloatWaveGenerator.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Analog.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\c_interface\c_interface.h">
+      <Filter>Sources\libs\mt32\c_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\c_interface\c_types.h">
+      <Filter>Sources\libs\mt32\c_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\c_interface\cpp_interface.h">
+      <Filter>Sources\libs\mt32\c_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\SampleRateConverter.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\MidiStreamParser.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\cache.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\decoder.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_fpu_dh.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\dyn_mmx.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\helpers.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x64.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\risc_x86.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cpu\core_dyn_x86\string.h">
+      <Filter>Sources\cpu\core_dyn_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\gui_tk\gui_tk.h">
+      <Filter>Sources\libs\gui_tk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\globals.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Display.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\pcm86io.h">
+      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Types.h" />
+    <ClInclude Include="..\src\gamelink\gamelink.h" />
+    <ClInclude Include="..\src\gamelink\scancodes_windows.h" />
+    <ClInclude Include="..\src\output\output_gamelink.h" />
+    <ClInclude Include="..\src\cpu\dynamic_alloc_common.h">
+      <Filter>Sources\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\version_string.h" />
+    <ClInclude Include="..\src\hardware\esfmu\esfm.h" />
+    <ClInclude Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\winres.rc">
+      <Filter>Sources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="String.natvis" />
+  </ItemGroup>
+</Project>

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,167 +11,201 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Library General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#if C_FLUIDSYNTH
 #include <fluidsynth.h>
-#include <math.h>
-
-#define FLUID_FREE(_p)               free(_p)
-#define FLUID_OK   (0) 
-#define FLUID_NEW(_t)                (_t*)malloc(sizeof(_t))
-
-/* Missing fluidsynth API follow: */
-extern "C" {
-  typedef struct _fluid_midi_parser_t fluid_midi_parser_t;
-  typedef struct _fluid_midi_event_t fluid_midi_event_t;
-
-  fluid_midi_parser_t * new_fluid_midi_parser(void);
-  fluid_midi_event_t * fluid_midi_parser_parse(fluid_midi_parser_t *parser, unsigned char c);
-
-  void fluid_log_config(void);
-}
-
-//static fluid_log_function_t fluid_log_function[LAST_LOG_LEVEL];
-//static int fluid_log_initialized = 0;
-
-struct _fluid_midi_event_t {
-  fluid_midi_event_t* next; /* Link to next event */
-  void *paramptr;           /* Pointer parameter (for SYSEX data), size is stored to param1, param2 indicates if pointer should be freed (dynamic if TRUE) */
-  unsigned int dtime;       /* Delay (ticks) between this and previous event. midi tracks. */
-  unsigned int param1;      /* First parameter */
-  unsigned int param2;      /* Second parameter */
-  unsigned char type;       /* MIDI event type */
-  unsigned char channel;    /* MIDI channel */
-};
-
-struct _fluid_midi_parser_t {
-  unsigned char status;           /* Identifies the type of event, that is currently received ('Noteon', 'Pitch Bend' etc). */
-  unsigned char channel;          /* The channel of the event that is received (in case of a channel event) */
-  unsigned int nr_bytes;          /* How many bytes have been read for the current event? */
-  unsigned int nr_bytes_total;    /* How many bytes does the current event type include? */
-  unsigned char data[1024]; /* The parameters or SYSEX data */
-  fluid_midi_event_t event;        /* The event, that is returned to the MIDI driver. */
-};
-
-enum fluid_midi_event_type {
-  /* channel messages */
-  NOTE_OFF = 0x80,
-  NOTE_ON = 0x90,
-  KEY_PRESSURE = 0xa0,
-  CONTROL_CHANGE = 0xb0,
-  PROGRAM_CHANGE = 0xc0,
-  CHANNEL_PRESSURE = 0xd0,
-  PITCH_BEND = 0xe0,
-  /* system exclusive */
-  MIDI_SYSEX = 0xf0,
-  /* system common - never in midi files */
-  MIDI_TIME_CODE = 0xf1,
-  MIDI_SONG_POSITION = 0xf2,
-  MIDI_SONG_SELECT = 0xf3,
-  MIDI_TUNE_REQUEST = 0xf6,
-  MIDI_EOX = 0xf7,
-  /* system real-time - never in midi files */
-  MIDI_SYNC = 0xf8,
-  MIDI_TICK = 0xf9,
-  MIDI_START = 0xfa,
-  MIDI_CONTINUE = 0xfb,
-  MIDI_STOP = 0xfc,
-  MIDI_ACTIVE_SENSING = 0xfe,
-  MIDI_SYSTEM_RESET = 0xff,
-  /* meta event - for midi files only */
-  MIDI_META_EVENT = 0xff
-};
-
-#if 0 /* UNUSED CODE */
-static int fluid_midi_event_length(unsigned char event) {
-      switch (event & 0xF0) {
-            case NOTE_OFF: 
-            case NOTE_ON:
-            case KEY_PRESSURE:
-            case CONTROL_CHANGE:
-            case PITCH_BEND: 
-                  return 3;
-            case PROGRAM_CHANGE:
-            case CHANNEL_PRESSURE: 
-                  return 2;
-      }
-      switch (event) {
-            case MIDI_TIME_CODE:
-            case MIDI_SONG_SELECT:
-            case 0xF4:
-            case 0xF5:
-                  return 2;
-            case MIDI_TUNE_REQUEST:
-                  return 1;
-            case MIDI_SONG_POSITION:
-                  return 3;
-      }
-      return 1;
-}
+#else
+#include "fluidsynth.h"
 #endif
-
-int delete_fluid_midi_parser(fluid_midi_parser_t* parser) {
-      FLUID_FREE(parser);
-      return FLUID_OK;
-}
+#include <math.h>
+#include <string.h>
+#include "control.h"
 
 /* Protect against multiple inclusions */
 #ifndef MIXER_BUFSIZE
 #include "mixer.h"
 #endif
 
-static MixerChannel *synthchan;
+static MixerChannel *synthchan = NULL;
+static fluid_synth_t *synth_soft = NULL;
+static int synthsamplerate = 0;
+static uint8_t master_volume = 128;
 
-static fluid_synth_t *synth_soft;
-static fluid_midi_parser_t *synth_parser;
+static void synth_log(int level,
+#if !defined (FLUIDSYNTH_VERSION_MAJOR) || FLUIDSYNTH_VERSION_MAJOR >= 2 // Let version 2.x be the default
+                      const
+#endif
+                      char *message,
+                      void *data) {
+    (void)data;//UNUSED
 
-static int synthsamplerate;
-
-
-static void synth_log(int level, char *message, void *data) {
 	switch (level) {
 	case FLUID_PANIC:
 	case FLUID_ERR:
-		LOG(LOG_ALL,LOG_ERROR)(message);
+		LOG(LOG_ALL,LOG_ERROR)("%s", message);
 		break;
 
 	case FLUID_WARN:
-		LOG(LOG_ALL,LOG_WARN)(message);
+		LOG(LOG_ALL,LOG_WARN)("%s", message);
 		break;
 
 	default:
-		LOG(LOG_ALL,LOG_NORMAL)(message);
+		LOG(LOG_ALL,LOG_NORMAL)("%s", message);
 		break;
 	}
 }
 
 static void synth_CallBack(Bitu len) {
-	fluid_synth_write_s16(synth_soft, len, MixTemp, 0, 2, MixTemp, 1, 2);
-	synthchan->AddSamples_s16(len,(Bit16s *)MixTemp);
+	if (synth_soft != NULL) {
+		fluid_synth_write_s16(synth_soft, (int)len, MixTemp, 0, 2, MixTemp, 1, 2);
+		if (master_volume < 128) {
+			for (unsigned int i=0;i < (len*2);i++) {
+				((int16_t*)MixTemp)[i] = (int16_t)(((((int16_t*)MixTemp)[i]) * master_volume) >> 7);
+			}
+		}
+		synthchan->AddSamples_s16(len,(int16_t *)MixTemp);
+	}
 }
 
+#if defined (WIN32) || defined (OS2)
+#	define PATH_SEP "\\"
+#else
+#	define PATH_SEP "/"
+#endif
+
+void ResolvePath(std::string& in);
 class MidiHandler_synth: public MidiHandler {
 private:
+	std::string fsinfo = "";
 	fluid_settings_t *settings;
-	fluid_midi_router_t *router;
 	int sfont_id;
 	bool isOpen;
 
-public:
-	MidiHandler_synth() : MidiHandler(),isOpen(false) {};
-	const char * GetName(void) { return "synth"; };
-	bool Open(const char *conf) {
+	void PlayEvent(uint8_t *msg, Bitu len) {
+		uint8_t event = msg[0], channel, p1, p2;
 
-		/* Sound font file required */
-		if (!conf || (conf[0] == '\0')) {
-			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: Specify .SF2 sound font file with config=");
-			return false;
+		if (roland_gs_sysex) {
+			if (msg[1] == 0x41/*Roland*/ && msg[3] == 0x42/*GS*/ && msg[4] == 0x12/*Send*/ && len >= 9) {
+				const uint32_t addr =
+					((uint32_t)msg[5] << 16) +
+					((uint32_t)msg[6] <<  8) +
+					(uint32_t)msg[7];
+
+				if (addr == 0x400004) { /* MASTER VOLUME */
+					/* Fluidsynth doesn't appear to support this message, so we have to handle it ourself. */
+					master_volume = msg[8];
+					if (master_volume >= 127) master_volume = 128;
+					LOG_MSG("MIDI synth: MASTER VOLUME %u",master_volume);
+					return;
+				}
+			}
 		}
 
-		fluid_log_config();
+		switch (event) {
+		case 0xf0:
+		case 0xf7:
+			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: sysex 0x%02x len %lu", (int)event, (long unsigned)len);
+			fluid_synth_sysex(synth_soft, (char *)(msg + 1), (int)(len - 1), NULL, NULL, NULL, 0);
+			return;
+		case 0xf9:
+			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: midi tick");
+			return;
+		case 0xff:
+			master_volume = 128;
+			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: system reset");
+			fluid_synth_system_reset(synth_soft);
+			return;
+		case 0xf1: case 0xf2: case 0xf3: case 0xf4:
+		case 0xf5: case 0xf6: case 0xf8: case 0xfa:
+		case 0xfb: case 0xfc: case 0xfd: case 0xfe:
+			LOG(LOG_MISC,LOG_WARN)("SYNTH: unhandled event 0x%02x", (int)event);
+			return;
+		}
+
+		channel = event & 0xf;
+		p1 = len > 1 ? msg[1] : 0;
+		p2 = len > 2 ? msg[2] : 0;
+
+		LOG(LOG_MISC,LOG_DEBUG)("SYNTH: event 0x%02x channel %d, 0x%02x 0x%02x",
+			(int)event, (int)channel, (int)p1, (int)p2);
+
+		switch (event & 0xf0) {
+		case 0x80:
+			fluid_synth_noteoff(synth_soft, channel, p1);
+			break;
+		case 0x90:
+			fluid_synth_noteon(synth_soft, channel, p1, p2);
+			break;
+		case 0xb0:
+			fluid_synth_cc(synth_soft, channel, p1, p2);
+			break;
+		case 0xc0:
+			fluid_synth_program_change(synth_soft, channel, p1);
+			break;
+		case 0xd0:
+			fluid_synth_channel_pressure(synth_soft, channel, p1);
+			break;
+		case 0xe0:
+			fluid_synth_pitch_bend(synth_soft, channel, (p2 << 7) | p1);
+			break;
+		}
+	};
+
+public:
+	MidiHandler_synth() : MidiHandler(),isOpen(false) {};
+
+	const char * GetName(void) override {
+		return "synth";
+	};
+
+	bool Open(const char *conf) override {
+		if (isOpen) return false;
+
+		std::string sf = "";
+		/* Sound font file required */
+		if (!conf || (conf[0] == '\0')) {
+#if defined (WIN32)
+			// default for windows according to fluidsynth docs
+			if (FILE *file = fopen("C:\\soundfonts\\default.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\soundfonts\\default.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\GeneralUser_GS.sf2";
+			} else {
+				LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
+				return false;
+			}
+#else
+			// Default on "other" platforms according to fluidsynth docs
+			// This works on RH and Fedora, if a soundfont is installed
+			if (FILE *file = fopen("/usr/share/soundfonts/default.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/soundfonts/default.sf2";
+			// Ubuntu and Debian don't have a default.sf2...
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/GeneralUser_GS.sf2";
+			} else {
+				LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
+				return false;
+			}
+#endif
+		} else {
+            sf = std::string(conf);
+            ResolvePath(sf);
+        }
+
 		fluid_set_log_function(FLUID_PANIC, synth_log, NULL);
 		fluid_set_log_function(FLUID_ERR, synth_log, NULL);
 		fluid_set_log_function(FLUID_WARN, synth_log, NULL);
@@ -186,16 +220,8 @@ public:
 		}
 
 		fluid_settings_setstr(settings, "audio.sample-format", "16bits");
-
-		if (synthsamplerate == 0) {
-			synthsamplerate = 44100;
-		}
-
-		fluid_settings_setnum(settings,
-			"synth.sample-rate", (double)synthsamplerate);
-
-		//fluid_settings_setnum(settings,
-		//	"synth.gain", 0.5);
+		fluid_settings_setnum(settings, "synth.sample-rate", (double)synthsamplerate);
+		//fluid_settings_setnum(settings, "synth.gain", 0.5);
 
 		/* Create the synthesizer. */
 		synth_soft = new_fluid_synth(settings);
@@ -206,91 +232,258 @@ public:
 		}
 
 		/* Load a SoundFont */
-		extern std::string capturedir;
-		char str[260];
-		strcpy(str,capturedir.c_str());
-		#if defined (WIN32) || defined (OS2)
-		strcat(str,"\\");
-		#else
-		strcat(str,"/");
-		#endif
-		strcat(str,conf);
-		sfont_id = fluid_synth_sfload(synth_soft, conf, 0);
+		sfont_id = fluid_synth_sfload(synth_soft, sf.c_str(), 0);
 		if (sfont_id == -1) {
-			sfont_id = fluid_synth_sfload(synth_soft, str, 0);
-			if (sfont_id == -1) {
-				LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to load MIDI sound font file \"%s\"",
-				   conf);
-				delete_fluid_synth(synth_soft);
-				delete_fluid_settings(settings);
-				return false;
-			}
+			extern std::string capturedir;
+			std::string str = capturedir + std::string(PATH_SEP) + sf;
+			sfont_id = fluid_synth_sfload(synth_soft, str.c_str(), 0);
 		}
 
-		/* Allocate one event to store the input data */
-		synth_parser = new_fluid_midi_parser();
-		if (synth_parser == NULL) {
-			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to allocate MIDI parser");
+		if (sfont_id == -1) {
+			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to load MIDI sound font file \"%s\"", sf.c_str());
 			delete_fluid_synth(synth_soft);
 			delete_fluid_settings(settings);
 			return false;
 		}
+		sffile=sf;
+        fsinfo="Sound font: "+sf;
 
-		router = new_fluid_midi_router(settings,
-					       fluid_synth_handle_midi_event,
-					       (void*)synth_soft);
-		if (router == NULL) {
-			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to initialise MIDI router");
-			delete_fluid_midi_parser(synth_parser);
-			delete_fluid_synth(synth_soft);
-			delete_fluid_settings(settings);
-			return false;
-		}
-
-		synthchan=MIXER_AddChannel(synth_CallBack, synthsamplerate,
-					   "SYNTH");
+		master_volume = 128;
+		synthchan = MIXER_AddChannel(synth_CallBack, (unsigned int)synthsamplerate, "SYNTH");
 		synthchan->Enable(false);
 		isOpen = true;
 		return true;
 	};
-	void Close(void) {
+
+	void Close(void) override {
 		if (!isOpen) return;
-		delete_fluid_midi_router(router);
-		delete_fluid_midi_parser(synth_parser);
+
+		synthchan->Enable(false);
+		MIXER_DelChannel(synthchan);
 		delete_fluid_synth(synth_soft);
 		delete_fluid_settings(settings);
-		isOpen=false;
-	};
-	void PlayMsg(Bit8u *msg) {
-		fluid_midi_event_t *evt;
-		Bitu len;
-		Bitu i;
 
-		len=MIDI_evt_len[*msg];
+		synthchan = NULL;
+		synth_soft = NULL;
+		settings = NULL;
+		isOpen = false;
+	};
+
+	void PlayMsg(uint8_t *msg) override {
 		synthchan->Enable(true);
-
-		/* let the parser convert the data into events */
-		for (i = 0; i < len; i++) {
-			evt = fluid_midi_parser_parse(synth_parser, msg[i]);
-			if (evt != NULL) {
-			  /* send the event to the next link in the chain */
-			  fluid_midi_router_handle_midi_event(router, evt);
-			}
-		}
+		PlayEvent(msg, MIDI_evt_len[*msg]);
 	};
-	void PlaySysex(Bit8u *sysex, Bitu len) {
-		fluid_midi_event_t *evt;
-		Bitu i;
 
-		/* let the parser convert the data into events */
-		for (i = 0; i < len; i++) {
-			evt = fluid_midi_parser_parse(synth_parser, sysex[i]);
-			if (evt != NULL) {
-			  /* send the event to the next link in the chain */
-			  fluid_midi_router_handle_midi_event(router, evt);
-			}
-		}
+	void PlaySysex(uint8_t *sysex, Bitu len) override {
+		PlayEvent(sysex, len);
 	};
+
+	void ListAll(Program* base) override {
+		base->WriteOut("  %s\n",fsinfo.c_str());
+	}
+
 };
 
 MidiHandler_synth Midi_synth;
+
+class MidiHandler_fluidsynth : public MidiHandler {
+private:
+	std::string fsinfo = "";
+	std::string soundfont;
+	int soundfont_id;
+	fluid_settings_t *settings;
+	fluid_synth_t *synth;
+	fluid_audio_driver_t* adriver;
+public:
+	MidiHandler_fluidsynth() : MidiHandler() {};
+	const char* GetName(void) override { return "fluidsynth"; }
+	void PlaySysex(uint8_t * sysex, Bitu len) override {
+		fluid_synth_sysex(synth, (char*)sysex, (int)len, NULL, NULL, NULL, 0);
+	}
+
+	void PlayMsg(uint8_t * msg) override {
+		unsigned char chanID = msg[0] & 0x0F;
+		switch (msg[0] & 0xF0) {
+		case 0x80:
+			fluid_synth_noteoff(synth, chanID, msg[1]);
+			break;
+		case 0x90:
+			fluid_synth_noteon(synth, chanID, msg[1], msg[2]);
+			break;
+		case 0xB0:
+			fluid_synth_cc(synth, chanID, msg[1], msg[2]);
+			break;
+		case 0xC0:
+			fluid_synth_program_change(synth, chanID, msg[1]);
+			break;
+		case 0xD0:
+			fluid_synth_channel_pressure(synth, chanID, msg[1]);
+			break;
+		case 0xE0: {
+			long theBend = ((long)msg[1] + (long)(msg[2] << 7));
+			fluid_synth_pitch_bend(synth, chanID, theBend);
+		}
+				   break;
+		default:
+			LOG(LOG_MISC, LOG_WARN)("MIDI:fluidsynth: Unknown Command: %08lx", (long)msg[0]);
+			break;
+		}
+	}
+
+	void Close(void) override {
+		if (soundfont_id >= 0) {
+			fluid_synth_sfunload(synth, soundfont_id, 0);
+		}
+		delete_fluid_audio_driver(adriver);
+		delete_fluid_synth(synth);
+		delete_fluid_settings(settings);
+	}
+
+	bool Open(const char * conf) override {
+		(void)conf;
+
+		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
+		std::string sf = section->Get_string("fluid.soundfont");
+		if (!sf.size()) { // Let's try to find a soundfont before bailing
+#if defined (WIN32)
+			// default for windows according to fluidsynth docs
+			if (FILE *file = fopen("C:\\soundfonts\\default.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\soundfonts\\default.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\GeneralUser_GS.sf2";
+			} else {
+				LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
+				return false;
+			}
+#else
+			// Default on "other" platforms according to fluidsynth docs
+			// This works on RH and Fedora, if a soundfont is installed
+			if (FILE *file = fopen("/usr/share/soundfonts/default.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/soundfonts/default.sf2";
+			// Ubuntu and Debian don't have a default.sf2...
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/GeneralUser_GS.sf2";
+			} else {
+				LOG_MSG("MIDI:fluidsynth: SoundFont not specified, and no system SoundFont found");
+				return false;
+			}
+#endif
+		} else
+			ResolvePath(sf);
+
+		soundfont.assign(sf);
+		settings = new_fluid_settings();
+
+		if (strcmp(section->Get_string("fluid.driver"), "default") != 0) {
+			fluid_settings_setstr(settings, "audio.driver", section->Get_string("fluid.driver"));
+		}
+#if defined (__linux__) // Let's use pulseaudio as default on Linux, and not the FluidSynth default of Jack
+		else {
+			fluid_settings_setstr(settings, "audio.driver", "pulseaudio");
+		}
+#endif
+#if defined (WIN32) && !defined(HX_DOS)
+		else {
+			fluid_settings_setstr(settings, "audio.driver", "dsound"); // Explicitly set audio driver to be dsound as default for Windows
+		}
+#endif //WIN32
+
+		fluid_settings_setnum(settings, "synth.sample-rate", atof(section->Get_string("fluid.samplerate")));
+		fluid_settings_setnum(settings, "synth.gain", atof(section->Get_string("fluid.gain")));
+		fluid_settings_setint(settings, "synth.polyphony", section->Get_int("fluid.polyphony"));
+		if (strcmp(section->Get_string("fluid.cores"), "default") != 0) {
+			fluid_settings_setnum(settings, "synth.cpu-cores", atof(section->Get_string("fluid.cores")));
+		}
+		
+		std::string period=section->Get_string("fluid.periods"), periodsize=section->Get_string("fluid.periodsize");
+		if (period=="default") {
+#if defined (WIN32)
+			period="8";
+#else
+			period="16";
+#endif
+		}
+		if (periodsize=="default") {
+#if defined (WIN32)
+			periodsize="512";
+#else
+			periodsize="64";
+#endif
+		}
+		 int major = 0, minor = 0, micro = 0;
+		 fluid_version(&major, &minor, &micro);
+		#if !defined (FLUIDSYNTH_VERSION_MAJOR) 
+		if(1)
+		#else 
+		if (major >= 2)
+		#endif
+		{
+		fluid_settings_setint(settings, "audio.periods", atoi(period.c_str()));
+		fluid_settings_setint(settings, "audio.period-size", atoi(periodsize.c_str()));
+		fluid_settings_setint(settings, "synth.reverb.active", !strcmp(section->Get_string("fluid.reverb"), "yes")?1:0);
+		fluid_settings_setint(settings, "synth.chorus.active", !strcmp(section->Get_string("fluid.chorus"), "yes")?1:0);
+		}
+		else {
+		fluid_settings_setnum(settings, "audio.periods", atof(period.c_str()));
+		fluid_settings_setnum(settings, "audio.period-size", atof(periodsize.c_str()));
+		fluid_settings_setstr(settings, "synth.reverb.active", section->Get_string("fluid.reverb"));
+		fluid_settings_setstr(settings, "synth.chorus.active", section->Get_string("fluid.chorus"));
+		}
+
+		synth = new_fluid_synth(settings);
+		if (!synth) {
+			LOG_MSG("MIDI:fluidsynth: Can't open synthesiser");
+			delete_fluid_settings(settings);
+			return false;
+		}
+
+		adriver = new_fluid_audio_driver(settings, synth);
+		if (!adriver) {
+			LOG_MSG("MIDI:fluidsynth: Can't create audio driver");
+			delete_fluid_synth(synth);
+			delete_fluid_settings(settings);
+			return false;
+		}
+
+		fluid_synth_set_reverb(synth, atof(section->Get_string("fluid.reverb.roomsize")), atof(section->Get_string("fluid.reverb.damping")), atof(section->Get_string("fluid.reverb.width")), atof(section->Get_string("fluid.reverb.level")));
+
+		fluid_synth_set_chorus(synth, section->Get_int("fluid.chorus.number"), atof(section->Get_string("fluid.chorus.level")), atof(section->Get_string("fluid.chorus.speed")), atof(section->Get_string("fluid.chorus.depth")), section->Get_int("fluid.chorus.type"));
+		LOG_MSG("MIDI:fluidsynth: version %d.%d.%d", major, minor, micro);
+		/* Optionally load a soundfont */
+		if (!soundfont.empty()) {
+			soundfont_id = fluid_synth_sfload(synth, soundfont.c_str(), 1);
+			if (soundfont_id == FLUID_FAILED) {
+				/* Just consider this a warning (fluidsynth already prints) */
+                soundfont.clear();
+				soundfont_id = -1;
+			}
+			else {
+				sffile=soundfont;
+				fsinfo="Sound font: "+soundfont;
+				LOG_MSG("MIDI:fluidsynth: Loaded SoundFont: %s", soundfont.c_str());
+			}
+		}
+		else {
+            soundfont_id = -1;
+			LOG_MSG("MIDI:fluidsynth: No SoundFont loaded");
+		}
+        if(soundfont_id == -1) sffile = "Not available";
+        return true;
+	}
+
+	void ListAll(Program* base) override {
+		base->WriteOut("  %s\n",fsinfo.c_str());
+	}
+};
+
+MidiHandler_fluidsynth Midi_fluidsynth;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,18 +11,20 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
 #include <string.h>
 #include <ctype.h>
+#include <SDL_timer.h>
 
 #include "dosbox.h"
 
 #include "inout.h"
+#include "logging.h"
 #include "pic.h"
 #include "setup.h"
 #include "bios.h"					// SetComPorts(..)
@@ -36,17 +38,18 @@
 #include "softmodem.h"
 #include "nullmodem.h"
 #include "seriallog.h"
+#include "serialfile.h"
 
 #include "cpu.h"
 
 #define LOG_SER(x) log_ser 
 
-bool device_COM::Read(Bit8u * data,Bit16u * size) {
+bool device_COM::Read(uint8_t * data,uint16_t * size) {
 	// DTR + RTS on
 	sclass->Write_MCR(0x03);
-	for (Bit16u i=0; i<*size; i++)
+	for (uint16_t i=0; i<*size; i++)
 	{
-		Bit8u status;
+		uint8_t status;
 		if(!(sclass->Getchar(&data[i],&status,true,1000))) {
 			*size=i;
 			return true;
@@ -56,10 +59,10 @@ bool device_COM::Read(Bit8u * data,Bit16u * size) {
 }
 
 
-bool device_COM::Write(Bit8u * data,Bit16u * size) {
+bool device_COM::Write(const uint8_t * data,uint16_t * size) {
 	// DTR + RTS on
 	sclass->Write_MCR(0x03);
-	for (Bit16u i=0; i<*size; i++)
+	for (uint16_t i=0; i<*size; i++)
 	{
 		if(!(sclass->Putchar(data[i],true,true,1000))) {
 			*size=i;
@@ -72,7 +75,8 @@ bool device_COM::Write(Bit8u * data,Bit16u * size) {
 	return true;
 }
 
-bool device_COM::Seek(Bit32u * pos,Bit32u type) {
+bool device_COM::Seek(uint32_t * pos,uint32_t type) {
+    (void)type;//UNUSED
 	*pos = 0;
 	return true;
 }
@@ -81,8 +85,8 @@ bool device_COM::Close() {
 	return false;
 }
 
-Bit16u device_COM::GetInformation(void) {
-	return 0x80A0;
+uint16_t device_COM::GetInformation(void) {
+	return DeviceInfoFlags::Device | DeviceInfoFlags::Binary;
 }
 
 device_COM::device_COM(class CSerial* sc) {
@@ -96,23 +100,27 @@ device_COM::~device_COM() {
 		sclass->mydosdevice = NULL;
 }
 
-
-
-// COM1 - COM4 objects
-CSerial* serialports[4] ={0,0,0,0};
+// COM1 - COM9 objects
+CSerial * serialports[9] = {
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr
+};
+uint16_t serial_baseaddr[9] = {0,0,0,0,0,0,0,0,0};
+bool serialMouseEmulated = false;
 
 static Bitu SERIAL_Read (Bitu port, Bitu iolen) {
-	Bitu i;
+    (void)iolen;//UNUSED
+	Bitu i=10;
 	Bitu retval;
 	Bitu index = port & 0x7;
-	switch(port&0xff8) {
-		case 0x3f8: i=0; break;
-		case 0x2f8: i=1; break;
-		case 0x3e8: i=2; break;
-		case 0x2e8: i=3; break;
-		default: return 0xff;
-	}
-	if(serialports[i]==0) return 0xff;
+    if ((port&0xff8) == 0) return 0xff;
+    for (int k=0; k<9; k++)
+        if ((port&0xff8) == serial_baseaddr[k]) {
+            i=k;
+            break;
+        }
+    if (i==10) return 0xff;
+	if (!serialports[i]) return 0xff;
 
 	switch (index) {
 		case RHR_OFFSET:
@@ -154,17 +162,17 @@ static Bitu SERIAL_Read (Bitu port, Bitu iolen) {
 	return retval;	
 }
 static void SERIAL_Write (Bitu port, Bitu val, Bitu) {
-	Bitu i;
+	Bitu i=10;
 	Bitu index = port & 0x7;
-	switch(port&0xff8) {
-		case 0x3f8: i=0; break;
-		case 0x2f8: i=1; break;
-		case 0x3e8: i=2; break;
-		case 0x2e8: i=3; break;
-		default: return;
-	}
-	if(serialports[i]==0) return;
-	
+    if ((port&0xff8) == 0) return;
+    for (int k=0; k<9; k++)
+        if ((port&0xff8) == serial_baseaddr[k]) {
+            i=k;
+            break;
+        }
+    if (i==10) return;
+	if (!serialports[i]) return;
+
 #if SERIAL_DEBUG
 		const char* const dbgtext[]={"THR","IER","FCR",
 			"LCR","MCR","!LSR","MSR","SPR","DLL","DLM"};
@@ -178,28 +186,28 @@ static void SERIAL_Write (Bitu port, Bitu val, Bitu) {
 #endif
 	switch (index) {
 		case THR_OFFSET:
-			serialports[i]->Write_THR (val);
+			serialports[i]->Write_THR ((uint8_t)val);
 			return;
 		case IER_OFFSET:
-			serialports[i]->Write_IER (val);
+			serialports[i]->Write_IER ((uint8_t)val);
 			return;
 		case FCR_OFFSET:
-			serialports[i]->Write_FCR (val);
+			serialports[i]->Write_FCR ((uint8_t)val);
 			return;
 		case LCR_OFFSET:
-			serialports[i]->Write_LCR (val);
+			serialports[i]->Write_LCR ((uint8_t)val);
 			return;
 		case MCR_OFFSET:
-			serialports[i]->Write_MCR (val);
+			serialports[i]->Write_MCR ((uint8_t)val);
 			return;
 		case MSR_OFFSET:
-			serialports[i]->Write_MSR (val);
+			serialports[i]->Write_MSR ((uint8_t)val);
 			return;
 		case SPR_OFFSET:
-			serialports[i]->Write_SPR (val);
+			serialports[i]->Write_SPR ((uint8_t)val);
 			return;
 		default:
-			serialports[i]->Write_reserved (val, port & 0x7);
+			serialports[i]->Write_reserved ((uint8_t)val, port & 0x7);
 	}
 }
 #if SERIAL_DEBUG
@@ -208,13 +216,13 @@ void CSerial::log_ser(bool active, char const* format,...) {
 		// copied from DEBUG_SHOWMSG
 		char buf[512];
 		buf[0]=0;
-		sprintf(buf,"%12.3f [%7u] ",PIC_FullIndex(), SDL_GetTicks());
+		sprintf(buf,"%12.3f [%7u] ",(double)PIC_FullIndex(), (unsigned int)SDL_GetTicks());
 		va_list msg;
 		va_start(msg,format);
 		vsprintf(buf+strlen(buf),format,msg);
 		va_end(msg);
 		// Add newline if not present
-		Bitu len=strlen(buf);
+		Bitu len=(Bitu)strlen(buf);
 		if(buf[len-1]!='\n') strcat(buf,"\r\n");
 		fputs(buf,debugfp);
 	}
@@ -225,8 +233,8 @@ void CSerial::changeLineProperties() {
 	// update the event wait time
 	float bitlen;
 
-	if(baud_divider==0) bitlen=(1000.0f/115200.0f);
-	else bitlen = (1000.0f/115200.0f)*(float)baud_divider;
+	if(baud_divider==0) bitlen=(1000.0f/(115200.0f*baud_multiplier));
+	else bitlen = (1000.0f/(115200.0f*baud_multiplier))*(float)baud_divider;
 	bytetime=bitlen*(float)(1+5+1);		// startbit + minimum length + stopbit
 	bytetime+= bitlen*(float)(LCR&0x3); // databits
 	if(LCR&0x4) bytetime+=bitlen;		// 2nd stopbit
@@ -237,25 +245,25 @@ void CSerial::changeLineProperties() {
 	log_ser(dbg_serialtraffic,"New COM parameters: baudrate %5.0f, parity %s, wordlen %d, stopbits %d",
 		1.0/bitlen*1000.0f,dbgtext[(LCR&0x38)>>3],(LCR&0x3)+5,((LCR&0x4)>>2)+1);
 #endif	
-	updatePortConfig (baud_divider, LCR);
+	updatePortConfig (baud_divider*baud_multiplier, LCR);
 }
 
 static void Serial_EventHandler(Bitu val) {
-	Bitu serclassid=val&0x3;
-	if(serialports[serclassid]!=0)
-		serialports[serclassid]->handleEvent(val>>2);
+	Bitu serclassid=val&0xf;
+	if(serialports[serclassid])
+		serialports[serclassid]->handleEvent((uint16_t)(val>>4));
 }
 
-void CSerial::setEvent(Bit16u type, float duration) {
-    PIC_AddEvent(Serial_EventHandler,duration,(type<<2)|idnumber);
+void CSerial::setEvent(uint16_t type, float duration) {
+    PIC_AddEvent(Serial_EventHandler,duration,(Bitu)(((unsigned int)type<<4u)|(unsigned int)idnumber));
 }
 
-void CSerial::removeEvent(Bit16u type) {
+void CSerial::removeEvent(uint16_t type) {
     // TODO
-	PIC_RemoveSpecificEvents(Serial_EventHandler,(type<<2)|idnumber);
+	PIC_RemoveSpecificEvents(Serial_EventHandler,(Bitu)(((unsigned int)type<<4u)|(unsigned int)idnumber));
 }
 
-void CSerial::handleEvent(Bit16u type) {
+void CSerial::handleEvent(uint16_t type) {
 	switch(type) {
 		case SERIAL_TX_LOOPBACK_EVENT: {
 
@@ -304,7 +312,7 @@ void CSerial::handleEvent(Bit16u type) {
 /*****************************************************************************/
 /* Interrupt control routines                                               **/
 /*****************************************************************************/
-void CSerial::rise (Bit8u priority) {
+void CSerial::rise (uint8_t priority) {
 #if SERIAL_DEBUG
 	if(priority&TX_PRIORITY && !(waiting_interrupts&TX_PRIORITY))
 		log_ser(dbg_interrupt,"tx interrupt on.");
@@ -321,7 +329,7 @@ void CSerial::rise (Bit8u priority) {
 }
 
 // clears the pending interrupt, triggers other waiting interrupt
-void CSerial::clear (Bit8u priority) {
+void CSerial::clear (uint8_t priority) {
 	
 #if SERIAL_DEBUG
 	if(priority&TX_PRIORITY && (waiting_interrupts&TX_PRIORITY))
@@ -378,7 +386,7 @@ bool CSerial::CanReceiveByte() {
 /*****************************************************************************/
 /* A byte was received                                                      **/
 /*****************************************************************************/
-void CSerial::receiveByteEx (Bit8u data, Bit8u error) {
+void CSerial::receiveByteEx (uint8_t data, uint8_t error) {
 #if SERIAL_DEBUG
 	log_ser(dbg_serialtraffic,data<0x10 ? "\t\t\t\trx 0x%02x (%u)":
 		"\t\t\t\trx 0x%02x (%c)", data, data);
@@ -406,7 +414,7 @@ void CSerial::receiveByteEx (Bit8u data, Bit8u error) {
 				errorfifo->addb(error);
 			}
 			else {
-				Bit8u toperror=errorfifo->getTop();
+				uint8_t toperror=errorfifo->getTop();
 				if(!toperror) errors_in_fifo++;
 				errorfifo->addb(error|toperror);
 			}
@@ -419,17 +427,17 @@ void CSerial::receiveByteEx (Bit8u data, Bit8u error) {
 			// error and FIFO inactive
 			rise (ERROR_PRIORITY);
 			LSR |= error;
-		};
+		}
         if(error&LSR_PARITY_ERROR_MASK) {
 			parityErrors++;
-		};
+		}
 		if(error&LSR_OVERRUN_ERROR_MASK) {
 			overrunErrors++;
 			if(!GETFLAG(IF)) overrunIF0++;
 #if SERIAL_DEBUG
 			log_ser(dbg_serialtraffic,"rx overrun (IF=%d)", GETFLAG(IF)>0);
 #endif
-		};
+		}
 		if(error&LSR_FRAMING_ERROR_MASK) {
 			framingErrors++;
 		}
@@ -449,7 +457,7 @@ void CSerial::receiveByteEx (Bit8u data, Bit8u error) {
 	}
 }
 
-void CSerial::receiveByte (Bit8u data) {
+void CSerial::receiveByte (uint8_t data) {
 	receiveByteEx(data,0);
 }
 
@@ -473,7 +481,7 @@ void CSerial::ByteTransmitting() {
 void CSerial::ByteTransmitted () {
 	if(!txfifo->isEmpty()) {
 		// there is more data
-		Bit8u data = txfifo->getb();
+		uint8_t data = txfifo->getb();
 #if SERIAL_DEBUG
 		log_ser(dbg_serialtraffic,data<0x10?
 			"\t\t\t\t\ttx 0x%02x (%u) (from buffer)":
@@ -494,10 +502,10 @@ void CSerial::ByteTransmitted () {
 /*****************************************************************************/
 /* Transmit Holding Register, also LSB of Divisor Latch (r/w)               **/
 /*****************************************************************************/
-void CSerial::Write_THR (Bit8u data) {
+void CSerial::Write_THR (uint8_t data) {
 	// 0-7 transmit data
 	
-	if ((LCR & LCR_DIVISOR_Enable_MASK)) {
+	if (LCR & LCR_DIVISOR_Enable_MASK) {
 		// write to DLL
 		baud_divider&=0xFF00;
 		baud_divider |= data;
@@ -506,7 +514,7 @@ void CSerial::Write_THR (Bit8u data) {
 		// write to THR
         clear (TX_PRIORITY);
 
-		if((LSR & LSR_TX_EMPTY_MASK))
+		if(LSR & LSR_TX_EMPTY_MASK)
 		{	// we were idle before
 			//LOG_MSG("starting new transmit cycle");
 			//if(sync_guardtime) LOG_MSG("Serial port internal error 1");
@@ -551,11 +559,11 @@ void CSerial::Write_THR (Bit8u data) {
 /*****************************************************************************/
 Bitu CSerial::Read_RHR () {
 	// 0-7 received data
-	if ((LCR & LCR_DIVISOR_Enable_MASK)) return baud_divider&0xff;
+	if (LCR & LCR_DIVISOR_Enable_MASK) return baud_divider&0xff;
 	else {
-		Bit8u data=rxfifo->getb();
+		uint8_t data=rxfifo->getb();
 		if(FCR&FCR_ACTIVATE) {
-			Bit8u error=errorfifo->getb();
+			uint8_t error=errorfifo->getb();
 			if(error) errors_in_fifo--;
 			// new error
 			if(!rxfifo->isEmpty()) {
@@ -588,14 +596,14 @@ Bitu CSerial::Read_IER () {
 	// 3	modem status 
 	// 4-7	0
 
-	if (LCR & LCR_DIVISOR_Enable_MASK) return baud_divider>>8;
+	if (LCR & LCR_DIVISOR_Enable_MASK) return (Bitu)baud_divider>>8u;
 	else return IER&0x0f;
 }
 
-void CSerial::Write_IER (Bit8u data) {
-	if ((LCR & LCR_DIVISOR_Enable_MASK)) {	// write to DLM
+void CSerial::Write_IER (uint8_t data) {
+	if (LCR & LCR_DIVISOR_Enable_MASK) {	// write to DLM
 		baud_divider&=0xff;
-		baud_divider |= ((Bit16u)data)<<8;
+		baud_divider |= ((uint16_t)data)<<8;
 		changeLineProperties();
 	} else {
 		// Retrigger TX interrupt
@@ -625,7 +633,7 @@ Bitu CSerial::Read_ISR () {
 	// 4-7	0
 
 	if(IER&Modem_Status_INT_Enable_MASK) updateMSR();
-	Bit8u retval = ISR;
+	uint8_t retval = ISR;
 
 	// clear changes ISR!! mean..
 	if(ISR==ISR_TX_VAL) clear(TX_PRIORITY);
@@ -637,7 +645,7 @@ Bitu CSerial::Read_ISR () {
 #define BIT_CHANGE_H(oldv,newv,bitmask) (!(oldv&bitmask) && (newv&bitmask))
 #define BIT_CHANGE_L(oldv,newv,bitmask) ((oldv&bitmask) && !(newv&bitmask))
 
-void CSerial::Write_FCR (Bit8u data) {
+void CSerial::Write_FCR (uint8_t data) {
 	if(BIT_CHANGE_H(FCR,data,FCR_ACTIVATE)) {
 		// FIFO was switched on
 		errors_in_fifo=0; // should already be 0
@@ -688,8 +696,8 @@ Bitu CSerial::Read_LCR () {
 	return LCR;
 }
 
-void CSerial::Write_LCR (Bit8u data) {
-	Bit8u lcr_old = LCR;
+void CSerial::Write_LCR (uint8_t data) {
+	uint8_t lcr_old = LCR;
 	LCR = data;
 	if (((data ^ lcr_old) & LCR_PORTCONFIG_MASK) != 0) {
 		changeLineProperties();
@@ -719,7 +727,7 @@ Bitu CSerial::Read_MCR () {
 	// 3	-OP2
 	// 4	loopback enable
 	// 5-7	0
-	Bit8u retval=0;
+	uint8_t retval=0;
 	if(dtr) retval|=MCR_DTR_MASK;
 	if(rts) retval|=MCR_RTS_MASK;
 	if(op1) retval|=MCR_OP1_MASK;
@@ -728,84 +736,88 @@ Bitu CSerial::Read_MCR () {
 	return retval;
 }
 
-void CSerial::Write_MCR (Bit8u data) {
+void CSerial::Write_MCR (uint8_t data) {
 	// WARNING: At the time setRTSDTR is called rts and dsr members are still wrong.
-	if(data&FIFO_FLOWCONTROL) LOG_MSG("Warning: tried to activate hardware handshake.");
-	bool temp_dtr = data & MCR_DTR_MASK? true:false;
-	bool temp_rts = data & MCR_RTS_MASK? true:false;
-	bool temp_op1 = data & MCR_OP1_MASK? true:false;
-	bool temp_op2 = data & MCR_OP2_MASK? true:false;
-	bool temp_loopback = data & MCR_LOOPBACK_Enable_MASK? true:false;
-	if(loopback!=temp_loopback) {
-		if(temp_loopback) setRTSDTR(false,false);
-		else setRTSDTR(temp_rts,temp_dtr);
+	if (data&FIFO_FLOWCONTROL) LOG_MSG("Warning: tried to activate hardware handshake.");
+	bool new_dtr = (data & MCR_DTR_MASK)? true:false;
+	bool new_rts = (data & MCR_RTS_MASK)? true:false;
+	bool new_op1 = (data & MCR_OP1_MASK)? true:false;
+	bool new_op2 = (data & MCR_OP2_MASK)? true:false;
+	bool new_loopback = (data & MCR_LOOPBACK_Enable_MASK)? true:false;
+	if (loopback != new_loopback) {
+		if (new_loopback) setRTSDTR(false,false);
+		else setRTSDTR(new_rts,new_dtr);
 	}
 
-	if (temp_loopback) {	// is on:
+	if (new_loopback) {	// is on:
 		// DTR->DSR
 		// RTS->CTS
 		// OP1->RI
 		// OP2->CD
-		if(temp_dtr!=dtr && !d_dsr) {
-			d_dsr=true;
+		if (new_dtr != dtr && !d_dsr) {
+			d_dsr = true;
 			rise (MSR_PRIORITY);
 		}
-		if(temp_rts!=rts && !d_cts) {
-			d_cts=true;
+		if (new_dtr != dtr && !d_dsr) {
+			d_dsr = true;
 			rise (MSR_PRIORITY);
 		}
-		if(temp_op1!=op1 && !d_ri) {
+		if (new_op1 != op1 && !d_ri) {
 			// interrupt only at trailing edge
-			if(!temp_op1) {
-				d_ri=true;
+			if (!new_op1) {
+				d_ri = true;
 				rise (MSR_PRIORITY);
 			}
 		}
-		if(temp_op2!=op2 && !d_cd) {
-			d_cd=true;
+		if (new_op2 != op2 && !d_cd) {
+			d_cd = true;
 			rise (MSR_PRIORITY);
 		}
 	} else {
 		// loopback is off
-		if(temp_rts!=rts) {
+		if (new_rts != rts) {
 			// RTS difference
-			if(temp_dtr!=dtr) {
+			if (new_dtr != dtr) {
 				// both difference
 
 #if SERIAL_DEBUG
-				log_ser(dbg_modemcontrol,"RTS %x.",temp_rts);
-				log_ser(dbg_modemcontrol,"DTR %x.",temp_dtr);
+				log_ser(dbg_modemcontrol,"RTS %x.",new_rts);
+				log_ser(dbg_modemcontrol,"DTR %x.",new_dtr);
 #endif
-				setRTSDTR(temp_rts, temp_dtr);
+				setRTSDTR(new_rts, new_dtr);
 			} else {
 				// only RTS
 
 #if SERIAL_DEBUG
-				log_ser(dbg_modemcontrol,"RTS %x.",temp_rts);
+				log_ser(dbg_modemcontrol,"RTS %x.",new_rts);
 #endif
-				setRTS(temp_rts);
+				setRTS(new_rts);
 			}
-		} else if(temp_dtr!=dtr) {
+		} else if (new_dtr != dtr) {
 			// only DTR
 #if SERIAL_DEBUG
-				log_ser(dbg_modemcontrol,"%DTR %x.",temp_dtr);
+				log_ser(dbg_modemcontrol,"%DTR %x.",new_dtr);
 #endif
-			setDTR(temp_dtr);
+			setDTR(new_dtr);
 		}
 	}
-	// interrupt logic: if OP2 is 0, the IRQ line is tristated (pulled high)
-	if((!op2) && temp_op2) {
+	// interrupt logic: if new_OP2 is 0, the IRQ line is tristated (pulled high)
+	// which turns off the IRQ generation.
+	if ((!op2) && new_op2) {
 		// irq has been enabled (tristate high -> irq level)
-		if(!irq_active) PIC_DeActivateIRQ(irq);
-	} else if(op2 && (!temp_op2)) {
-		if(!irq_active) PIC_ActivateIRQ(irq); 
+		// Generate one if ComputeInterrupts has set irq_active to true
+		if (irq_active) PIC_ActivateIRQ(irq);
+	} else if (op2 && (!new_op2)) {
+		// irq has been disabled (irq level -> tristate) 
+		// Remove the IRQ signal if the irq was being generated before
+		if (irq_active) PIC_DeActivateIRQ(irq); 
 	}
 
-	dtr=temp_dtr;
-	rts=temp_rts;
-	op1=temp_op1;
-	op2=temp_op2;
-	loopback=temp_loopback;
+	dtr=new_dtr;
+	rts=new_rts;
+	op1=new_op1;
+	op2=new_op2;
+	loopback=new_loopback;
 }
 
 /*****************************************************************************/
@@ -825,7 +837,7 @@ Bitu CSerial::Read_LSR () {
 	return retval;
 }
 
-void CSerial::Write_MSR (Bit8u val) {
+void CSerial::Write_MSR (uint8_t val) {
 	d_cts = (val&MSR_dCTS_MASK)?true:false;
 	d_dsr = (val&MSR_dDSR_MASK)?true:false;
 	d_cd = (val&MSR_dCD_MASK)?true:false;
@@ -841,7 +853,7 @@ void CSerial::Write_MSR (Bit8u val) {
 // - real values
 // - write operation to MCR in loopback mode
 Bitu CSerial::Read_MSR () {
-	Bit8u retval=0;
+	uint8_t retval=0;
 	
 	if (loopback) {
 		
@@ -882,20 +894,22 @@ Bitu CSerial::Read_SPR () {
 	return SPR;
 }
 
-void CSerial::Write_SPR (Bit8u data) {
+void CSerial::Write_SPR (uint8_t data) {
 	SPR = data;
 }
 
 /*****************************************************************************/
 /* Write_reserved                                                           **/
 /*****************************************************************************/
-void CSerial::Write_reserved (Bit8u data, Bit8u address) {
+void CSerial::Write_reserved (uint8_t data, uint8_t address) {
+    (void)data;//UNUSED
+    (void)address;//UNUSED
 	/*LOG_UART("Serial%d: Write to reserved register, value 0x%x, register %x",
 		COMNUMBER, data, address);*/
 }
 
 /*****************************************************************************/
-/* MCR Access: returns cirquit state as boolean.                            **/
+/* MCR Access: returns circuit state as boolean.                            **/
 /*****************************************************************************/
 bool CSerial::getDTR () {
 	if(loopback) return false;
@@ -992,12 +1006,12 @@ void CSerial::Init_Registers () {
 	irq_active=false;
 	waiting_interrupts = 0x0;
 
-	Bit32u initbps = 9600;
-	Bit8u bytesize = 8;
+	uint32_t initbps = 9600;
+	uint8_t bytesize = 8;
 	char parity = 'N';
 							  
-	Bit8u lcrresult = 0;
-	Bit16u baudresult = 0;
+	uint8_t lcrresult = 0;
+	uint16_t baudresult = 0;
 
 	IER = 0;
 	ISR = 0x1;
@@ -1065,14 +1079,14 @@ void CSerial::Init_Registers () {
 
 	// baudrate
 	if (initbps > 0)
-		baudresult = (Bit16u) (115200 / initbps);
+		baudresult = (uint16_t) (115200 / initbps);
 	else
 		baudresult = 12;			// = 9600 baud
 
 	Write_MCR (0);
 	Write_LCR (LCR_DIVISOR_Enable_MASK);
-	Write_THR ((Bit8u) baudresult & 0xff);
-	Write_IER ((Bit8u) (baudresult >> 8));
+	Write_THR ((uint8_t) baudresult & 0xff);
+	Write_IER ((uint8_t) (baudresult >> 8));
 	Write_LCR (lcrresult);
 	updateMSR();
 	Read_MSR();
@@ -1081,7 +1095,26 @@ void CSerial::Init_Registers () {
 
 CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	idnumber=id;
-	Bit16u base = serial_baseaddr[id];
+    InstallationSuccessful = false;
+    bytetime = 0;
+    waiting_interrupts = 0;
+    baud_divider = 0;
+    IER = 0;
+    irq_active = false;
+    ISR = 0;
+    LCR = 0;
+    dtr = false;
+    rts = false;
+    op1 = false;
+    op2 = false;
+    loopback = false;
+    LSR = 0;
+    SPR = 0;
+    loopback_data = 0;
+    errors_in_fifo = 0;
+    rx_interrupt_threshold = 0;
+    FCR = 0;
+    sync_guardtime = false;
 
     d_cts=false;		// bit0: deltaCTS
     d_dsr=false;		// bit1: deltaDSR
@@ -1092,6 +1125,11 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
     ri=false;			// bit6: RI
     cd=false;			// bit7: CD
 
+	std::string str;
+	uint16_t base = serial_defaultaddr[id];
+	if(cmd->FindStringBegin("base:",str,true)) base = (uint16_t)strtol(str.c_str(), NULL, 16);
+	for (Bitu i=0; i<id; i++) if (base == serial_baseaddr[i]) base = 0;
+	serial_baseaddr[id] = base;
 	irq = serial_defaultirq[id];
 	getBituSubstring("irq:",&irq, cmd);
 	if (irq < 2 || irq > 15) irq = serial_defaultirq[id];
@@ -1114,9 +1152,9 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
 
 	if(dbg_serialtraffic|dbg_modemcontrol|dbg_register|dbg_interrupt|dbg_aux)
 		debugfp=OpenCaptureFile("serlog",".serlog.txt");
-	else debugfp=0;
+	else debugfp = nullptr;
 
-	if(debugfp == 0) {
+	if (!debugfp) {
 		dbg_serialtraffic= 
 		dbg_modemcontrol= 
 		dbg_register=
@@ -1144,6 +1182,7 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	txOverrunErrors=0;
 	overrunIF0=0;
 	breakErrors=0;
+	LOG_MSG("Serial%d: BASE %xh",(int)id+1,(int)base);
 	
 	for (Bitu i = 0; i <= 7; i++) {
 		WriteHandler[i].Install (i + base, SERIAL_Write, IO_MB);
@@ -1180,7 +1219,7 @@ void CSerial::unregisterDOSDevice() {
 
 CSerial::~CSerial(void) {
 	unregisterDOSDevice();
-	for(Bitu i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)
+	for(uint8_t i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)
 		removeEvent(i);
 
 	if (rxfifo != NULL) {
@@ -1195,9 +1234,9 @@ CSerial::~CSerial(void) {
 		delete errorfifo;
 		errorfifo = NULL;
 	}
-};
+}
 
-bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
+bool CSerial::Getchar(uint8_t* data, uint8_t* lsr, bool wait_dsr, Bitu timeout) {
 	double starttime=PIC_FullIndex();
 	// wait for DSR on
 	if(wait_dsr) {
@@ -1211,7 +1250,7 @@ bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 		}
 	}
 	// wait for a byte to arrive
-	while((!((*lsr=Read_LSR())&0x1))&&(starttime>PIC_FullIndex()-timeout))
+	while((!((*lsr=(uint8_t)Read_LSR())&0x1))&&(starttime>PIC_FullIndex()-timeout))
 		CALLBACK_Idle();
 	
 	if(!(starttime>PIC_FullIndex()-timeout)) {
@@ -1220,7 +1259,7 @@ bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 #endif
 		return false;
 	}
-	*data=Read_RHR();
+	*data=(uint8_t)Read_RHR();
 
 #if SERIAL_DEBUG
 	log_ser(dbg_aux,"Getchar read 0x%x",*data);
@@ -1229,7 +1268,7 @@ bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 }
 
 
-bool CSerial::Putchar(Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout) {
+bool CSerial::Putchar(uint8_t data, bool wait_dsr, bool wait_cts, Bitu timeout) {
 	
 	double starttime=PIC_FullIndex();
 	// wait for it to become empty
@@ -1238,7 +1277,7 @@ bool CSerial::Putchar(Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout) {
 	}
 	// wait for DSR+CTS on
 	if(wait_dsr||wait_cts) {
-		if(wait_dsr||wait_cts) {
+		if(wait_dsr&&wait_cts) {
 			while(((Read_MSR()&0x30)!=0x30)&&(starttime>PIC_FullIndex()-timeout))
 				CALLBACK_Idle();
 		} else if(wait_dsr) {
@@ -1265,13 +1304,13 @@ bool CSerial::Putchar(Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout) {
 }
 
 void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq);
-void BIOS_SetCOMPort(Bitu port, Bit16u baseaddr);
+void BIOS_SetCOMPort(Bitu port, uint16_t baseaddr);
 
 void BIOS_Post_register_comports_PNP() {
 	unsigned int i;
 
-	for (i=0;i < 4;i++) {
-		if (serialports[i] != NULL) {
+	for (i=0;i < 9;i++) {
+		if (serialports[i] != NULL && serial_baseaddr[i]) {
 			BIOS_PnP_ComPortRegister(serial_baseaddr[i],serialports[i]->irq);
 		}
 	}
@@ -1281,8 +1320,8 @@ Bitu bios_post_comport_count() {
 	Bitu count = 0;
 	unsigned int i;
 
-	for (i=0;i < 4;i++) {
-		if (serialports[i] != NULL)
+	for (i=0;i < 9;i++) {
+		if (serialports[i] != NULL && serial_baseaddr[i])
 			count++;
 	}
 
@@ -1293,38 +1332,84 @@ Bitu bios_post_comport_count() {
 void BIOS_Post_register_comports() {
 	unsigned int i;
 
-	for (i=0;i < 4;i++) {
-		if (serialports[i] != NULL)
-			BIOS_SetCOMPort(i,serial_baseaddr[i]);
+	for (i=0;i < 9;i++) {
+		if (serialports[i] != NULL && serial_baseaddr[i])
+			BIOS_SetCOMPort(i,serial_baseaddr[i]); // This works only for ports COM1 to COM4. There is no space to store more addresses
 	}
 }
 
+void ResolvePath(std::string& in);
 class SERIALPORTS:public Module_base {
 public:
 	SERIALPORTS (Section * configuration):Module_base (configuration) {
 		Section_prop *section = static_cast <Section_prop*>(configuration);
 
+		// TODO: PC-98 does have serial ports, though differently.
+		//       COM1 is a 8251 UART, while COM2 and higher if they exist are 8250/16xxx UARTs
+		if (IS_PC98_ARCH) return;
+
+#if C_MODEM
+		const Prop_path *pbFilename = section->Get_path("phonebookfile");
+		std::string path=pbFilename->realpath;
+		ResolvePath(path);
+		MODEM_ReadPhonebook(path);
+#endif
+
 		char s_property[] = "serialx"; 
-		for(Bitu i = 0; i < 4; i++) {
+		for(uint8_t i = 0; i < 9; i++) {
 			// get the configuration property
 			s_property[6] = '1' + i;
 			Prop_multival* p = section->Get_multival(s_property);
 			std::string type = p->GetSection()->Get_string("type");
-			CommandLine cmd(0,p->GetSection()->Get_string("parameters"));
-			
+			CommandLine cmd(nullptr, p->GetSection()->Get_string("parameters"));
+			CommandLine tmp(nullptr, p->GetSection()->Get_string("parameters"), CommandLine::either, true);
+			double multiplier = 1;
+			std::string str;
+			bool squote = false;
+			// single quotes to quote string?
+			if(cmd.FindStringBegin("squote",str,false)) {
+				squote = true;
+				cmd=tmp;
+			}
+
+			if(cmd.FindStringBegin("multiplier:",str,false)) {
+				multiplier = atof(str.c_str());
+				if (multiplier < 1) multiplier = 1;
+				if (multiplier > 1000000) multiplier = 1000000;
+			}
+
 			// detect the type
 			if (type=="dummy") {
 				serialports[i] = new CSerialDummy (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_DUMMY;
+				serialports[i]->baud_multiplier = multiplier;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 			}
 			else if (type=="log") {
 				serialports[i] = new CSerialLog (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_LOG;
+				serialports[i]->baud_multiplier = multiplier;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
+			}
+			else if (type=="file") {
+				serialports[i] = new CSerialFile (i, &cmd, squote);
+				serialports[i]->serialType = SERIAL_TYPE_FILE;
+				serialports[i]->baud_multiplier = multiplier;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 			}
 			else if (type=="serialmouse") {
 				serialports[i] = new CSerialMouse (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_MOUSE;
+				serialports[i]->baud_multiplier = multiplier;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
+				serialMouseEmulated = true;
 			}
-#ifdef DIRECTSERIAL_AVAILIBLE
+#if C_DIRECTSERIAL
 			else if (type=="directserial") {
 				serialports[i] = new CDirectSerial (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_DIRECT_SERIAL;
+				serialports[i]->baud_multiplier = multiplier;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 				if (!serialports[i]->InstallationSuccessful)  {
 					// serial port name was wrong or already in use
 					delete serialports[i];
@@ -1335,6 +1420,9 @@ public:
 #if C_MODEM
 			else if(type=="modem") {
 				serialports[i] = new CSerialModem (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_MODEM;
+				serialports[i]->baud_multiplier = multiplier;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 				if (!serialports[i]->InstallationSuccessful)  {
 					delete serialports[i];
 					serialports[i] = NULL;
@@ -1342,6 +1430,9 @@ public:
 			}
 			else if(type=="nullmodem") {
 				serialports[i] = new CNullModem (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_NULL_MODEM;
+				serialports[i]->baud_multiplier = multiplier;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 				if (!serialports[i]->InstallationSuccessful)  {
 					delete serialports[i];
 					serialports[i] = NULL;
@@ -1354,21 +1445,216 @@ public:
 				serialports[i] = NULL;
 				LOG_MSG("Invalid type for serial%d",(int)i+1);
 			}
-		} // for 1-4
+		} // for 1-9
 	}
 
 	~SERIALPORTS () {
-		for (Bitu i = 0; i < 4; i++)
+		for (Bitu i = 0; i < 9; i++)
 			if (serialports[i]) {
 				delete serialports[i];
-				serialports[i] = 0;
+				serialports[i] = nullptr;
 			}
+#if C_MODEM
+		MODEM_ClearPhonebook();
+#endif
 	}
 };
 
 static SERIALPORTS *testSerialPortsBaseclass;
 
+static const char *serialTypes[SERIAL_TYPE_COUNT] = {
+	"disabled",
+	"dummy",
+	"log",
+	"file",
+	"serialmouse",
+#if C_DIRECTSERIAL
+	"directserial",
+#endif
+#if C_MODEM
+	"modem",
+	"nullmodem"
+#endif
+};
+
+class SERIAL : public Program {
+public:
+	void Run() override;
+private:
+	void showPort(int port);
+};
+
+void SERIAL::showPort(int port) {
+	if (serialports[port] != nullptr) {
+		WriteOut("COM%d: %s %s\n", port + 1, serialTypes[serialports[port]->serialType], serialports[port]->commandLineString.c_str());
+	} else {
+		WriteOut("COM%d: %s %s\n", port + 1, serialTypes[SERIAL_TYPE_DISABLED], "");
+	}
+}
+
+void SERIAL::Run()
+{
+	if (!testSerialPortsBaseclass) return;
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		WriteOut("Views or changes the serial port settings.\n\nSERIAL [port] [type] [option]\n\n"
+				" port   Serial port number (between 1 and 9).\n type   Type of the serial port, including:\n        ");
+		for (int x=0; x<SERIAL_TYPE_COUNT; x++) {
+			WriteOut("%s", serialTypes[x]);
+			if (x<SERIAL_TYPE_COUNT-1) WriteOut(", ");
+		}
+		WriteOut("\n option Serial options, if any (see [serial] section of the configuration).\n");
+		return;
+	}
+	// Select COM mode.
+	if (cmd->GetCount() == 1) {
+		int port = -1;
+		cmd->FindCommand(1, temp_line);
+		try {
+			port = stoi(temp_line);
+		} catch (...) {
+		}
+		if (port >= 1 && port <= 9) {
+			showPort(port-1);
+			return;
+		}
+		if (port < 1 || port > 9) {
+			WriteOut(MSG_Get("PROGRAM_PORT_INVALID_NUMBER"));
+			return;
+		}
+	} if (cmd->GetCount() >= 2) {
+		// Which COM did they want to change?
+		int port = -1;
+		cmd->FindCommand(1, temp_line);
+		try {
+			port = stoi(temp_line);
+		} catch (...) {
+		}
+		if (port < 1 || port > 9) {
+			WriteOut(MSG_Get("PROGRAM_PORT_INVALID_NUMBER"));
+			return;
+		}
+		// Which mode do they want?
+		int mode = -1;
+		cmd->FindCommand(2, temp_line);
+		for (int x=0; x<SERIAL_TYPE_COUNT; x++) {
+			if (!strcasecmp(temp_line.c_str(), serialTypes[x])) {
+				mode = x;
+				break;
+			}
+		}
+		if (mode < 0) {
+			// No idea what they asked for.
+			WriteOut("Type must be one of the following:\n");
+			for (int x=0; x<SERIAL_TYPE_COUNT; x++)
+				WriteOut("  %s\n", serialTypes[x]);
+			return;
+		}
+		// Build command line, if any.
+		int i = 3;
+		std::string commandLineString = "";
+		while (cmd->FindCommand(i++, temp_line)) {
+			commandLineString.append(temp_line);
+			commandLineString.append(" ");
+		}
+		CommandLine cmd("SERIAL.COM",commandLineString.c_str());
+		CommandLine tmp("SERIAL.COM",commandLineString.c_str(), CommandLine::either, true);
+		std::string str;
+		bool squote = false;
+		double baud_multiplier = 1;
+		// single quotes to quote string?
+		if(cmd.FindStringBegin("squote",str,false)) {
+			squote = true;
+			cmd=tmp;
+		}
+		// Remove existing port.
+		if (serialports[port-1]) {
+			baud_multiplier = serialports[port-1]->baud_multiplier;
+			if (baud_multiplier < 1) baud_multiplier = 1;
+			DOS_PSP curpsp(dos.psp());
+			if (dos.psp()!=curpsp.GetParent()) {
+				char name[5];
+				sprintf(name, "COM%d", port);
+				curpsp.CloseFile(name);
+			}
+			delete serialports[port-1];
+			serialports[port-1] = NULL;
+		}
+		// multiplier update?
+		if(cmd.FindStringBegin("multiplier:",str,false)) {
+			baud_multiplier = atof(str.c_str());
+			if (baud_multiplier < 1) baud_multiplier = 1;
+			if (baud_multiplier > 1000000) baud_multiplier = 1000000;
+		}
+		// Recreate the port with the new mode.
+		switch (mode) {
+			case SERIAL_TYPE_DISABLED:
+				serialports[port-1] = NULL;
+				break;
+			case SERIAL_TYPE_DUMMY:
+				serialports[port-1] = new CSerialDummy(port-1, &cmd);
+				break;
+			case SERIAL_TYPE_LOG:
+				serialports[port-1] = new CSerialLog(port-1, &cmd);
+				break;
+			case SERIAL_TYPE_FILE:
+				serialports[port-1] = new CSerialFile(port-1, &cmd, squote);
+				break;
+			case SERIAL_TYPE_MOUSE:
+				serialports[port-1] = new CSerialMouse(port-1, &cmd);
+				serialMouseEmulated = true;
+				break;
+#if C_DIRECTSERIAL
+			case SERIAL_TYPE_DIRECT_SERIAL:
+				serialports[port-1] = new CDirectSerial(port-1, &cmd);
+				if (!serialports[port-1]->InstallationSuccessful) {
+					delete serialports[port-1];
+					serialports[port-1] = NULL;
+				}
+				break;
+#endif
+#if C_MODEM
+			case SERIAL_TYPE_MODEM:
+				serialports[port-1] = new CSerialModem(port-1, &cmd);
+				if (!serialports[port-1]->InstallationSuccessful) {
+					delete serialports[port-1];
+					serialports[port-1] = NULL;
+				}
+				break;
+			case SERIAL_TYPE_NULL_MODEM:
+				serialports[port-1] = new CNullModem(port-1, &cmd);
+				if (!serialports[port-1]->InstallationSuccessful) {
+					delete serialports[port-1];
+					serialports[port-1] = NULL;
+				}
+				break;
+#endif
+		}
+		if (serialports[port-1] != NULL) {
+			serialports[port-1]->registerDOSDevice();
+			serialports[port-1]->serialType = (SerialTypesE)mode;
+			serialports[port-1]->commandLineString = commandLineString;
+			serialports[port-1]->baud_multiplier = baud_multiplier;
+		}
+		showPort(port-1);
+		return;
+	}
+	// Show current serial port configurations.
+	for (int x=0; x<9; x++) showPort(x);
+}
+
+void SERIAL_ProgramStart(Program **make)
+{
+	*make = new SERIAL;
+}
+
+void runSerial(const char *str) {
+	SERIAL serial;
+	serial.cmd=new CommandLine("SERIAL", str);
+	serial.Run();
+}
+
 void SERIAL_Destroy (Section * sec) {
+    (void)sec;//UNUSED
 	if (testSerialPortsBaseclass) {
 		LOG(LOG_MISC,LOG_DEBUG)("Deleting serial port base class");
 		delete testSerialPortsBaseclass;
@@ -1377,6 +1663,7 @@ void SERIAL_Destroy (Section * sec) {
 }
 
 void SERIAL_OnPowerOn (Section * sec) {
+    (void)sec;//UNUSED
 	// should never happen
 	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing serial emulation");
 	if (testSerialPortsBaseclass) delete testSerialPortsBaseclass;
@@ -1384,56 +1671,35 @@ void SERIAL_OnPowerOn (Section * sec) {
 }
 
 void SERIAL_OnDOSKernelInit (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	LOG(LOG_MISC,LOG_DEBUG)("DOS kernel initializing, creating COMx devices");
 
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (serialports[i] != NULL)
 			serialports[i]->registerDOSDevice();
 	}
 }
 
 void SERIAL_OnDOSKernelExit (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (serialports[i] != NULL)
 			serialports[i]->unregisterDOSDevice();
 	}
 }
 
 void SERIAL_OnReset (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.
-	for (i=0;i < 3;i++) {
+	for (i=0;i < 9;i++) {
 		if (serialports[i] != NULL)
 			serialports[i]->unregisterDOSDevice();
-	}
-}
-
-void SERIAL_OnEnterPC98Mode (Section * sec) {
-    // TODO: PC-98 systems do have serial port(s).
-    //
-    //       I will update the code to match when I better understand them.
-    //
-    //       Note that up to two different chipsets are involved.
-    //
-    //       COM1 is usually an Intel 8251, which is completely different from the 8250/16550 used on IBM PC.
-    //
-    //       COM2 however, is usually an 16550.
-	unsigned int i;
-
-	for (i=0;i < 3;i++) {
-		if (serialports[i] != NULL)
-			serialports[i]->unregisterDOSDevice();
-	}
-
-    if (testSerialPortsBaseclass) {
-		LOG(LOG_MISC,LOG_DEBUG)("Deleting serial port base class");
-		delete testSerialPortsBaseclass;
-		testSerialPortsBaseclass = NULL;
 	}
 }
 
@@ -1441,11 +1707,14 @@ void SERIAL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing serial port emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnPowerOn));
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelExit));
-	AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelInit));
 
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(SERIAL_OnEnterPC98Mode));
+    if (!IS_PC98_ARCH) {
+        AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnPowerOn));
+        AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
+        AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelExit));
+        AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelInit));
+    }
 }
 
+// save state support
+void *Serial_EventHandler_PIC_Event = (void*)((uintptr_t)Serial_EventHandler);

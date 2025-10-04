@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,14 +11,15 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include <string.h>
 #include "dosbox.h"
 #include "inout.h"
+#include "logging.h"
 #include "mixer.h"
 #include "pic.h"
 #include "setup.h"
@@ -26,8 +27,7 @@
 
 #include "reSID/sid.h"
 
-#define SID_FREQ 1022727
-//#define SID_FREQ 985248
+#define SID_FREQ 894886
 
 static struct {
 	SID2* sid;
@@ -38,30 +38,32 @@ static struct {
 } innova;
 
 static void innova_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (!innova.last_used) {
 		innova.chan->Enable(true);
 	}
 	innova.last_used=PIC_Ticks;
 
 	Bitu sidPort = port-innova.basePort;
-	innova.sid->write(sidPort, val);
+	innova.sid->write((reg8)sidPort, (reg8)val);
 }
 
 static Bitu innova_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	Bitu sidPort = port-innova.basePort;
-	return innova.sid->read(sidPort);
+	return innova.sid->read((reg8)sidPort);
 }
 
 
 static void INNOVA_CallBack(Bitu len) {
 	if (!len) return;
 
-	cycle_count delta_t = SID_FREQ*len/innova.rate;
+	cycle_count delta_t = (cycle_count)(SID_FREQ*len/innova.rate);
 	short* buffer = (short*)MixTemp;
 	Bitu bufindex = 0;
 
 	while(delta_t && bufindex != len) {
-		bufindex += innova.sid->clock(delta_t, buffer+bufindex, len-bufindex);
+		bufindex += (Bitu)innova.sid->clock(delta_t, buffer+bufindex, (int)(len-bufindex));
 	}
 	innova.chan->AddSamples_m16(len, buffer);
 
@@ -79,9 +81,9 @@ private:
 public:
 	INNOVA(Section* configuration):Module_base(configuration) {
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-		if(!section->Get_bool("innova")) return;
-		innova.rate = section->Get_int("samplerate");
-		innova.basePort = section->Get_hex("sidbase");
+		if(!section->Get_bool("innova")||control->opt_silent) return;
+		innova.rate = (unsigned int)section->Get_int("samplerate");
+		innova.basePort = (unsigned int)section->Get_hex("sidbase");
 		sampling_method method = SAMPLE_FAST;
 		int m = section->Get_int("quality");
 		switch(m) {
@@ -101,7 +103,7 @@ public:
 		innova.sid->set_chip_model(MOS6581);
 		innova.sid->enable_filter(true);
 		innova.sid->enable_external_filter(true);
-		innova.sid->set_sampling_parameters(SID_FREQ, method, innova.rate, -1, 0.97);
+		innova.sid->set_sampling_parameters(SID_FREQ, method, (double)innova.rate, -1, 0.97);
 
 		innova.last_used=0;
 
@@ -115,14 +117,7 @@ public:
 static INNOVA* test = NULL;
 
 static void INNOVA_ShutDown(Section* sec){
-    if (test != NULL) {
-        delete test;
-        test = NULL;
-    }
-}
-
-static void INNOVA_OnEnterPC98(Section* sec){
-    /* No such device on PC-98 */
+    (void)sec;//UNUSED
     if (test != NULL) {
         delete test;
         test = NULL;
@@ -130,7 +125,8 @@ static void INNOVA_OnEnterPC98(Section* sec){
 }
 
 void INNOVA_OnReset(Section *sec) {
-	if (test == NULL) {
+    (void)sec;//UNUSED
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Innova emulation");
 		test = new INNOVA(control->GetSection("innova"));
 	}
@@ -141,7 +137,5 @@ void INNOVA_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(INNOVA_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(INNOVA_OnReset));
-
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(INNOVA_OnEnterPC98));
 }
 

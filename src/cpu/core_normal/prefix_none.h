@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 	CASE_B(0x00)												/* ADD Eb,Gb */
@@ -48,18 +48,23 @@
 	CASE_W(0x0e)												/* PUSH CS */		
 		Push_16(SegValue(cs));break;
 	CASE_B(0x0f)												/* 2 byte opcodes*/
-#if CPU_CORE < CPU_ARCHTYPE_286
-		if (CPU_ArchitectureType < CPU_ARCHTYPE_286) {
-			/* 8086 emulation: treat as "POP CS" */
-			if (CPU_PopSeg(cs,false)) RUNEXCEPTION();
-			break;
-		}
-		else
+#if CPU_CORE == CPU_ARCHTYPE_8086
+	/* 8086 emulation: treat as "POP CS" */
+	SAVEIP;
+	if (CPU_PopSeg(cs,false)) RUNEXCEPTION();
+	goto skip_saveip;
+#else
+#  if CPU_CORE == CPU_ARCHTYPE_286
+	/* try not to slow down 386+ emulation with a check for 186 every time we hit an opcode starting with 0x0F,
+	 * do this check only for the 80186 and 286 emulation provided by normal/prefetch 286 core code. */
+        if (CPU_ArchitectureType < CPU_ARCHTYPE_286)
+            goto illegal_opcode;
+#  endif
+
+        core.opcode_index|=OPCODE_0F;
+        goto restart_opcode;
+        break;
 #endif
-		{
-			core.opcode_index|=OPCODE_0F;
-			goto restart_opcode;
-		} break;
 	CASE_B(0x10)												/* ADC Eb,Gb */
 		RMEbGb(ADCB);break;
 	CASE_W(0x11)												/* ADC Ew,Gw */
@@ -203,7 +208,7 @@
 		if (CPU_ArchitectureType >= CPU_ARCHTYPE_286)
 			Push_16(reg_sp);
 		else /* 8086 decrements SP then pushes it */
-			Push_16(reg_sp-2);
+			Push_16(reg_sp-2u);
 		break;
 	CASE_W(0x55)												/* PUSH BP */
 		Push_16(reg_bp);break;
@@ -228,108 +233,186 @@
 	CASE_W(0x5f)												/* POP DI */
 		reg_di=Pop_16();break;
 	CASE_W(0x60)												/* PUSHA */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_O); break; /* alias of 0x70, jo. see also [http://www.os2museum.com/wp/undocumented-8086-opcodes/] */
+#else
 		{
-			Bitu old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 			try {
-				Bit16u old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
+				uint16_t old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
 				Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
 				Push_16(old_sp);Push_16(reg_bp);Push_16(reg_si);Push_16(reg_di);
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("PUSHA interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
 			}
 		} break;
+#endif
 	CASE_W(0x61)												/* POPA */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NO); break; /* alias of 0x71, jno */
+#else
 		{
-			Bitu old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 			try {
 				reg_di=Pop_16();reg_si=Pop_16();reg_bp=Pop_16();Pop_16();//Don't save SP
 				reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("POPA interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
 			}
 		} break;
+#endif
 	CASE_W(0x62)												/* BOUND */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_B); break; /* alias of 0x72, jb */
+#else
 		{
-			Bit16s bound_min, bound_max;
-			GetRMrw;GetEAa;
-			bound_min=LoadMw(eaa);
-			bound_max=LoadMw(eaa+2);
-			if ( (((Bit16s)*rmrw) < bound_min) || (((Bit16s)*rmrw) > bound_max) ) {
-				EXCEPTION(5);
+			int16_t bound_min, bound_max;
+			GetRMrw;
+			if (rm < 0xc0) { // r/m = memory
+				GetEAa;
+				bound_min=(int16_t)LoadMw(eaa);
+				bound_max=(int16_t)LoadMw(eaa+2u);
+				if ( (((int16_t)*rmrw) < bound_min) || (((int16_t)*rmrw) > bound_max) ) {
+					EXCEPTION(5);
+				}
+			}
+			else { // r/m = register, which is an illegal encoding
+				goto illegal_opcode;
 			}
 		}
 		break;
+#endif
 	CASE_W(0x63)												/* ARPL Ew,Rw */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NB); break; /* alias of 0x73, jnb */
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        if (CPU_ArchitectureType < CPU_ARCHTYPE_286) goto illegal_opcode;
+        else
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_286
 		{
 			if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegal_opcode;
 			GetRMrw;
 			if (rm >= 0xc0 ) {
 				GetEArw;Bitu new_sel=*earw;
 				CPU_ARPL(new_sel,*rmrw);
-				*earw=(Bit16u)new_sel;
+				*earw=(uint16_t)new_sel;
 			} else {
 				GetEAa;Bitu new_sel=LoadMw(eaa);
 				CPU_ARPL(new_sel,*rmrw);
-				SaveMw(eaa,(Bit16u)new_sel);
+				SaveMw(eaa,(uint16_t)new_sel);
 			}
 		}
 		break;
+#endif
 	CASE_B(0x64)												/* SEG FS: */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
-		DO_PREFIX_SEG(fs);break;
-	CASE_B(0x65)												/* SEG GS: */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
-		DO_PREFIX_SEG(gs);break;
-#if CPU_CORE >= CPU_ARCHTYPE_386
-	CASE_B(0x66)												/* Operand Size Prefix (386+) */
-		core.opcode_index=(cpu.code.big^0x1)*0x200;
-		goto restart_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_Z); break; /* alias of 0x74, jz */
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        goto illegal_opcode;
 #endif
 #if CPU_CORE >= CPU_ARCHTYPE_386
+		DO_PREFIX_SEG(fs);break;
+#endif
+	CASE_B(0x65)												/* SEG GS: */
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NZ); break; /* alias of 0x75, jnz */
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        goto illegal_opcode;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+		DO_PREFIX_SEG(gs);break;
+#endif
+
+	CASE_B(0x66)												/* Operand Size Prefix (386+) */
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_BE); break; /* alias of 0x76, jbe */
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        goto illegal_opcode;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+		REMEMBER_PREFIX(MP_66);
+		core.opcode_index=(cpu.code.big^0x1u)*0x200u;
+		goto restart_opcode;
+#endif
 	CASE_B(0x67)												/* Address Size Prefix (386+) */
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NBE); break; /* alias of 0x77, jnbe */
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_286
+        goto illegal_opcode;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+		REMEMBER_PREFIX(MP_NONE);
 		DO_PREFIX_ADDR();
 #endif
 	CASE_W(0x68)												/* PUSH Iw */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_S); break; /* alias of 0x78, js */
+#else
 		Push_16(Fetchw());break;
+#endif
 	CASE_W(0x69)												/* IMUL Gw,Ew,Iw */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NS); break; /* alias of 0x79, jns */
+#else
 		RMGwEwOp3(DIMULW,Fetchws());
 		break;
+#endif
 	CASE_W(0x6a)												/* PUSH Ib */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
-		Push_16(Fetchbs());
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_P); break; /* alias of 0x7A, jp */
+#else
+		Push_16((uint16_t)Fetchbs());
 		break;
+#endif
 	CASE_W(0x6b)												/* IMUL Gw,Ew,Ib */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NP); break; /* alias of 0x7B, jnp */
+#else
 		RMGwEwOp3(DIMULW,Fetchbs());
 		break;
+#endif
 	CASE_B(0x6c)												/* INSB */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_L); break; /* alias of 0x7C, jl */
+#else
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_INSB);break;
+#endif
 	CASE_W(0x6d)												/* INSW */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NL); break; /* alias of 0x7D, jnl */
+#else
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_INSW);break;
+#endif
 	CASE_B(0x6e)												/* OUTSB */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_LE); break; /* alias of 0x7E, jle */
+#else
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_OUTSB);break;
+#endif
 	CASE_W(0x6f)												/* OUTSW */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+        JumpCond16_b(TFLG_NLE); break; /* alias of 0x7F, jnle */
+#else
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_OUTSW);break;
+#endif
 	CASE_W(0x70)												/* JO */
 		JumpCond16_b(TFLG_O);break;
 	CASE_W(0x71)												/* JNO */
@@ -367,7 +450,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm>= 0xc0) {
-				GetEArb;Bit8u ib=Fetchb();
+				GetEArb;uint8_t ib=Fetchb();
 				switch (which) {
 				case 0x00:ADDB(*earb,ib,LoadRb,SaveRb);break;
 				case 0x01: ORB(*earb,ib,LoadRb,SaveRb);break;
@@ -379,7 +462,7 @@
 				case 0x07:CMPB(*earb,ib,LoadRb,SaveRb);break;
 				}
 			} else {
-				GetEAa;Bit8u ib=Fetchb();
+				GetEAa;uint8_t ib=Fetchb();
 				switch (which) {
 				case 0x00:ADDB(eaa,ib,LoadMb,SaveMb);break;
 				case 0x01: ORB(eaa,ib,LoadMb,SaveMb);break;
@@ -397,7 +480,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm>= 0xc0) {
-				GetEArw;Bit16u iw=Fetchw();
+				GetEArw;uint16_t iw=Fetchw();
 				switch (which) {
 				case 0x00:ADDW(*earw,iw,LoadRw,SaveRw);break;
 				case 0x01: ORW(*earw,iw,LoadRw,SaveRw);break;
@@ -409,7 +492,7 @@
 				case 0x07:CMPW(*earw,iw,LoadRw,SaveRw);break;
 				}
 			} else {
-				GetEAa;Bit16u iw=Fetchw();
+				GetEAa;uint16_t iw=Fetchw();
 				switch (which) {
 				case 0x00:ADDW(eaa,iw,LoadMw,SaveMw);break;
 				case 0x01: ORW(eaa,iw,LoadMw,SaveMw);break;
@@ -427,7 +510,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm>= 0xc0) {
-				GetEArw;Bit16u iw=(Bit16s)Fetchbs();
+				GetEArw;uint16_t iw=(uint16_t)Fetchbs();
 				switch (which) {
 				case 0x00:ADDW(*earw,iw,LoadRw,SaveRw);break;
 				case 0x01: ORW(*earw,iw,LoadRw,SaveRw);break;
@@ -439,7 +522,7 @@
 				case 0x07:CMPW(*earw,iw,LoadRw,SaveRw);break;
 				}
 			} else {
-				GetEAa;Bit16u iw=(Bit16s)Fetchbs();
+				GetEAa;uint16_t iw=(uint16_t)Fetchbs();
 				switch (which) {
 				case 0x00:ADDW(eaa,iw,LoadMw,SaveMw);break;
 				case 0x01: ORW(eaa,iw,LoadMw,SaveMw);break;
@@ -461,14 +544,14 @@
 		break;
 	CASE_B(0x86)												/* XCHG Eb,Gb */
 		{	
-			GetRMrb;Bit8u oldrmrb=*rmrb;
+			GetRMrb;uint8_t oldrmrb=*rmrb;
 			if (rm >= 0xc0 ) {GetEArb;*rmrb=*earb;*earb=oldrmrb;}
 			else {GetEAa;*rmrb=LoadMb(eaa);SaveMb(eaa,oldrmrb);}
 			break;
 		}
 	CASE_W(0x87)												/* XCHG Ew,Gw */
 		{	
-			GetRMrw;Bit16u oldrmrw=*rmrw;
+			GetRMrw;uint16_t oldrmrw=*rmrw;
 			if (rm >= 0xc0 ) {GetEArw;*rmrw=*earw;*earw=oldrmrw;}
 			else {GetEAa;*rmrw=LoadMw(eaa);SaveMw(eaa,oldrmrw);}
 			break;
@@ -515,7 +598,7 @@
 		}
 	CASE_W(0x8c)												/* Mov Ew,Sw */
 		{
-			GetRM;Bit16u val;Bitu which=(rm>>3)&7;
+			GetRM;uint16_t val;Bitu which=(rm>>3)&7;
 			switch (which) {
 			case 0x00:					/* MOV Ew,ES */
 				val=SegValue(es);break;
@@ -539,33 +622,113 @@
 		}
 	CASE_W(0x8d)												/* LEA Gw */
 		{
+			GetRMrw;
+			if (rm >= 0xc0) goto illegal_opcode;     // Direct register causes #UD exception
 			//Little hack to always use segprefixed version
 			BaseDS=BaseSS=0;
-			GetRMrw;
 			if (TEST_PREFIX_ADDR) {
-				*rmrw=(Bit16u)(*EATable[256+rm])();
+				*rmrw=(uint16_t)(*EATable[256+rm])();
 			} else {
-				*rmrw=(Bit16u)(*EATable[rm])();
+				*rmrw=(uint16_t)(*EATable[rm])();
 			}
 			break;
 		}
 	CASE_B(0x8e)												/* MOV Sw,Ew */
 		{
-			GetRM;Bit16u val;Bitu which=(rm>>3)&7;
+			GetRM;uint16_t val;Bitu which=(rm>>3)&7;
 			if (rm >= 0xc0 ) {GetEArw;val=*earw;}
 			else {GetEAa;val=LoadMw(eaa);}
 			switch (which) {
-#if CPU_CORE <= CPU_ARCHTYPE_8086
-			case 0x01:					/* MOV CS,Ew (8086 only) */
+            case 0x00:                  /* MOV ES,Ew */
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x01:                  /* MOV CS,Ew (8086) */
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x01:                  /* MOV CS,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
 #endif
-			case 0x02:					/* MOV SS,Ew */
-				CPU_Cycles++; //Always do another instruction
-			case 0x00:					/* MOV ES,Ew */
-			case 0x03:					/* MOV DS,Ew */
-			case 0x05:					/* MOV GS,Ew */
-			case 0x04:					/* MOV FS,Ew */
-				if (CPU_SetSegGeneral((SegNames)which,val)) RUNEXCEPTION();
-				break;
+#endif
+            case 0x02:                  /* MOV SS,Ew */
+                CPU_Cycles++; //Always do another instruction
+            case 0x03:                  /* MOV DS,Ew */
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x04:                  /* Alias of MOV ES,Ew (8086) */
+                which = 0;
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x04:                  /* Alias of MOV ES,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                which = 0;
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+            case 0x04:                  /* MOV FS,Ew (386+) */
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#endif
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x05:                  /* Alias of MOV CS,Ew (8086) */
+                which = 1;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x05:                  /* Alias of MOV CS,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                which = 1;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+            case 0x05:                  /* MOV FS,Ew (386+) */
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#endif
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x06:                  /* Alias of MOV SS,Ew (8086) */
+                which = 2;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x06:                  /* Alias of MOV SS,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                which = 2;
+                CPU_Cycles++; //Always do another instruction
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#endif
+#endif
+#if CPU_CORE == CPU_ARCHTYPE_8086
+            case 0x07:                  /* Alias of MOV DS,Ew (8086) */
+                which = 3;
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#else
+#if CPU_CORE == CPU_ARCHTYPE_286
+            case 0x07:                  /* Alias of MOV DS,Ew (186) */
+                if(CPU_ArchitectureType == CPU_ARCHTYPE_286) goto illegal_opcode;
+                which = 3;
+                if(CPU_SetSegGeneral((SegNames)which, val)) RUNEXCEPTION();
+                break;
+#endif
+#endif
 			default:
 				goto illegal_opcode;
 			}
@@ -573,15 +736,16 @@
 		}							
 	CASE_W(0x8f)												/* POP Ew */
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 
 			try {
-				Bit16u val=Pop_16();
+				uint16_t val=Pop_16();
 				GetRM;
 				if (rm >= 0xc0 ) {GetEArw;*earw=val;}
 				else {GetEAa;SaveMw(eaa,val);}
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}
@@ -589,39 +753,39 @@
 	CASE_B(0x90)												/* NOP */
 		break;
 	CASE_W(0x91)												/* XCHG CX,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_cx;reg_cx=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_cx;reg_cx=temp; }
 		break;
 	CASE_W(0x92)												/* XCHG DX,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_dx;reg_dx=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_dx;reg_dx=temp; }
 		break;
 	CASE_W(0x93)												/* XCHG BX,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_bx;reg_bx=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_bx;reg_bx=temp; }
 		break;
 	CASE_W(0x94)												/* XCHG SP,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_sp;reg_sp=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_sp;reg_sp=temp; }
 		break;
 	CASE_W(0x95)												/* XCHG BP,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_bp;reg_bp=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_bp;reg_bp=temp; }
 		break;
 	CASE_W(0x96)												/* XCHG SI,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_si;reg_si=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_si;reg_si=temp; }
 		break;
 	CASE_W(0x97)												/* XCHG DI,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_di;reg_di=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_di;reg_di=temp; }
 		break;
 	CASE_W(0x98)												/* CBW */
-		reg_ax=(Bit8s)reg_al;break;
+		reg_ax=(uint16_t)((int8_t)reg_al);break;
 	CASE_W(0x99)												/* CWD */
 		if (reg_ax & 0x8000) reg_dx=0xffff;else reg_dx=0;
 		break;
 	CASE_W(0x9a)												/* CALL Ap */
 		{ 
 			FillFlags();
-			Bit16u newip=Fetchw();Bit16u newcs=Fetchw();
+			uint16_t newip=Fetchw();uint16_t newcs=Fetchw();
 			CPU_CALL(false,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
 			if (GETFLAG(TF)) {	
-				cpudecoder=CPU_Core_Normal_Trap_Run;
+				cpudecoder=CPU_TRAP_DECODER;
 				return CBRET_NONE;
 			}
 #endif
@@ -636,7 +800,7 @@
 		if (CPU_POPF(false)) RUNEXCEPTION();
 #if CPU_TRAP_CHECK
 		if (GETFLAG(TF)) {	
-			cpudecoder=CPU_Core_Normal_Trap_Run;
+			cpudecoder=CPU_TRAP_DECODER;
 			goto decode_end;
 		}
 #endif
@@ -737,23 +901,31 @@
 		reg_di=Fetchw();break;
 #if CPU_CORE >= CPU_ARCHTYPE_80186
 	CASE_B(0xc0)												/* GRP2 Eb,Ib */
-		if (CPU_ArchitectureType < CPU_ARCHTYPE_80186) abort();
 		GRP2B(Fetchb());break;
 	CASE_W(0xc1)												/* GRP2 Ew,Ib */
-		if (CPU_ArchitectureType < CPU_ARCHTYPE_80186) abort();
 		GRP2W(Fetchb());break;
+#else
+    CASE_W(0xc0)												/* Alias of RETN Iw (0xC2) on 8086 */
+        goto opcode_c2;
+    CASE_W(0xc1)												/* Alias of RETN (0xC3) on 8086 */
+        reg_eip = Pop_16();
+        continue;
 #endif
 	CASE_W(0xc2)												/* RETN Iw */
 		{
-			Bit32u old_esp = reg_esp;
+#if CPU_CORE < CPU_ARCHTYPE_80186
+        opcode_c2:
+#endif
+			uint32_t old_esp = reg_esp;
 
 			try {
 				/* this is structured either to complete RET or leave registers unmodified if interrupted by page fault */
-				Bit32u new_eip = Pop_16();
+				uint32_t new_eip = Pop_16();
 				reg_esp += Fetchw();
 				reg_eip = new_eip;
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp; /* restore stack pointer */
 				throw;
 			}
@@ -762,19 +934,51 @@
 		reg_eip=Pop_16();
 		continue;
 	CASE_W(0xc4)												/* LES */
-		{	
+		{
+			GetEAaNDEF;
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
-			GetEAa;
+#ifndef CPU_OMIT_8086
+			if (do_lds_wraparound && !cpu.code.big/*8086 table is missing latter half for 32-bit!*/) {
+				/* stack underflow 64KB wraparound? [https://github.com/joncampbell123/dosbox-x/issues/5621] */
+				GetEAaN8086; /* 8086 version that also sets last_ea86_offset */
+				if (last_ea86_offset > (0x10000u-4u)) {
+					if (CPU_SetSegGeneral(es,LoadMw(eaa+2-0x10000))) RUNEXCEPTION();
+					*rmrw=LoadMw(eaa);
+					break;
+				}
+			}
+			else {
+				GetEAaN;
+			}
+#else
+			GetEAaN;
+#endif
 			if (CPU_SetSegGeneral(es,LoadMw(eaa+2))) RUNEXCEPTION();
 			*rmrw=LoadMw(eaa);
 			break;
 		}
 	CASE_W(0xc5)												/* LDS */
-		{	
+		{
+			GetEAaNDEF;
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
-			GetEAa;
+#ifndef CPU_OMIT_8086
+			if (do_lds_wraparound && !cpu.code.big/*8086 table is missing latter half for 32-bit!*/) {
+				/* stack underflow 64KB wraparound? [https://github.com/joncampbell123/dosbox-x/issues/5621] */
+				GetEAaN8086; /* 8086 version that also sets last_ea86_offset */
+				if (last_ea86_offset > (0x10000u-4u)) {
+					if (CPU_SetSegGeneral(ds,LoadMw(eaa+2-0x10000))) RUNEXCEPTION();
+					*rmrw=LoadMw(eaa);
+					break;
+				}
+			}
+			else {
+				GetEAaN;
+			}
+#else
+			GetEAaN;
+#endif
 			if (CPU_SetSegGeneral(ds,LoadMw(eaa+2))) RUNEXCEPTION();
 			*rmrw=LoadMw(eaa);
 			break;
@@ -793,8 +997,8 @@
 			else {GetEAa;SaveMw(eaa,Fetchw());}
 			break;
 		}
+#if CPU_CORE >= CPU_ARCHTYPE_80186
 	CASE_W(0xc8)												/* ENTER Iw,Ib */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
 			Bitu bytes=Fetchw();
 			Bitu level=Fetchb();
@@ -802,9 +1006,8 @@
 		}
 		break;
 	CASE_W(0xc9)												/* LEAVE */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 
 			reg_esp &= cpu.stack.notmask;
 			reg_esp |= reg_ebp&cpu.stack.mask;
@@ -812,18 +1015,31 @@
 				reg_bp = Pop_16();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}
 		} break;
+#else
+    CASE_W(0xc8)												/* Alias of RETF Iw (0xCA) on 8086 */
+        goto opcode_ca;
+    CASE_W(0xc9)												/* Alias of RETF (0xCB) on 8086 */
+        goto opcode_cb;
+#endif
 	CASE_W(0xca)												/* RETF Iw */
 		{
+#if CPU_CORE < CPU_ARCHTYPE_80186
+        opcode_ca:
+#endif
 			Bitu words=Fetchw();
 			FillFlags();
 			CPU_RET(false,words,GETIP);
 			continue;
 		}
-	CASE_W(0xcb)												/* RETF */			
+	CASE_W(0xcb)												/* RETF */
+#if CPU_CORE < CPU_ARCHTYPE_80186
+        opcode_cb:
+#endif
 		FillFlags();
 		CPU_RET(false,0,GETIP);
 		continue;
@@ -831,9 +1047,9 @@
 #if C_DEBUG	
 		FillFlags();
 		if (DEBUG_Breakpoint())
-			return debugCallback;
+			return (Bits)debugCallback;
 		if (DEBUG_IntBreakpoint(3))
-			return debugCallback;
+			return (Bits)debugCallback;
 #endif			
 		CPU_SW_Interrupt_NoIOPLCheck(3,GETIP);
 #if CPU_TRAP_CHECK
@@ -842,11 +1058,11 @@
 		continue;
 	CASE_B(0xcd)												/* INT Ib */	
 		{
-			Bit8u num=Fetchb();
+			uint8_t num=Fetchb();
 #if C_DEBUG
 			FillFlags();
 			if (DEBUG_IntBreakpoint(num)) {
-				return debugCallback;
+				return (Bits)debugCallback;
 			}
 #endif
 			CPU_SW_Interrupt(num,GETIP);
@@ -869,7 +1085,7 @@
 			CPU_IRET(false,GETIP);
 #if CPU_TRAP_CHECK
 			if (GETFLAG(TF)) {	
-				cpudecoder=CPU_Core_Normal_Trap_Run;
+				cpudecoder=CPU_TRAP_DECODER;
 				return CBRET_NONE;
 			}
 #endif
@@ -895,9 +1111,9 @@
 		break;
 	CASE_B(0xd7)												/* XLAT */
 		if (TEST_PREFIX_ADDR) {
-			reg_al=LoadMb(BaseDS+(Bit32u)(reg_ebx+reg_al));
+			reg_al=LoadMb(BaseDS+(uint32_t)(reg_ebx+reg_al));
 		} else {
-			reg_al=LoadMb(BaseDS+(Bit16u)(reg_bx+reg_al));
+			reg_al=LoadMb(BaseDS+(uint16_t)(reg_bx+reg_al));
 		}
 		break;
 #ifdef CPU_FPU
@@ -906,16 +1122,16 @@
 			FPU_ESC(0);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 	CASE_B(0xd9)												/* FPU ESC 1 */
 		if (enable_fpu) {
-			FPU_ESC(1);
+			FPU_ESC_SIZE(1, !(core.opcode_index&OPCODE_SIZE));
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -924,7 +1140,7 @@
 			FPU_ESC(2);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -933,7 +1149,7 @@
 			FPU_ESC(3);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -942,16 +1158,16 @@
 			FPU_ESC(4);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 	CASE_B(0xdd)												/* FPU ESC 5 */
 		if (enable_fpu) {
-			FPU_ESC(5);
+			FPU_ESC_SIZE(5, !(core.opcode_index&OPCODE_SIZE));
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -960,7 +1176,7 @@
 			FPU_ESC(6);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -969,7 +1185,7 @@
 			FPU_ESC(7);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -984,7 +1200,7 @@
 	CASE_B(0xdf)												/* FPU ESC 7 */
 		{
 			LOG(LOG_CPU,LOG_NORMAL)("FPU used");
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) GetEAa;
 		}
 		break;
@@ -1045,28 +1261,28 @@
 		{ 
 			/* must not adjust (E)IP until we have completed the instruction.
 			 * if interrupted by a page fault, EIP must be unmodified. */
-			Bit16u addip=Fetchws();
-			Bit16u here=GETIP;
+			uint16_t addip=(uint16_t)Fetchws();
+			uint16_t here=GETIP;
 			Push_16(here);
-			reg_eip=(Bit16u)(addip+here);
+			reg_eip=(uint16_t)(addip+here);
 			continue;
 		}
 	CASE_W(0xe9)												/* JMP Jw */
 		{ 
-			Bit16u addip=Fetchws();
+			uint16_t addip=(uint16_t)Fetchws();
 			SAVEIP;
-			reg_eip=(Bit16u)(reg_eip+addip);
+			reg_eip=(uint16_t)(reg_eip+addip);
 			continue;
 		}
 	CASE_W(0xea)												/* JMP Ap */
 		{ 
-			Bit16u newip=Fetchw();
-			Bit16u newcs=Fetchw();
+			uint16_t newip=Fetchw();
+			uint16_t newcs=Fetchw();
 			FillFlags();
 			CPU_JMP(false,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
 			if (GETFLAG(TF)) {	
-				cpudecoder=CPU_Core_Normal_Trap_Run;
+				cpudecoder=CPU_TRAP_DECODER;
 				return CBRET_NONE;
 			}
 #endif
@@ -1074,9 +1290,9 @@
 		}
 	CASE_W(0xeb)												/* JMP Jb */
 		{ 
-			Bit16s addip=Fetchbs();
+			int16_t addip=Fetchbs();
 			SAVEIP;
-			reg_eip=(Bit16u)(reg_eip+addip);
+			reg_eip=(uint16_t)(reg_eip+(uint32_t)addip);
 			continue;
 		}
 	CASE_B(0xec)												/* IN AL,DX */
@@ -1096,19 +1312,30 @@
 		IO_WriteW(reg_dx,reg_ax);
 		break;
 	CASE_B(0xf0)												/* LOCK */
+#if CPU_CORE < CPU_ARCHTYPE_80186
+        opcode_f0:
+#endif
+		REMEMBER_PREFIX(MP_NONE);
 // todo: make an option to show this
 //		LOG(LOG_CPU,LOG_NORMAL)("CPU:LOCK"); /* FIXME: see case D_LOCK in core_full/load.h */
 		break;
+#if CPU_CORE >= CPU_ARCHTYPE_80186
 	CASE_B(0xf1)												/* ICEBP */
 		CPU_SW_Interrupt_NoIOPLCheck(1,GETIP);
 #if CPU_TRAP_CHECK
 		cpu.trap_skip=true;
 #endif
 		continue;
+#else
+     CASE_B(0xf1)                                                /* Believed to be alias of LOCK (0xf0) on 8086 */
+        goto opcode_f0;
+#endif
 	CASE_B(0xf2)												/* REPNZ */
+		REMEMBER_PREFIX(MP_F2);
 		DO_PREFIX_REP(false);	
 		break;		
 	CASE_B(0xf3)												/* REPZ */
+		REMEMBER_PREFIX(MP_F3);
 		DO_PREFIX_REP(true);	
 		break;		
 	CASE_B(0xf4)												/* HLT */
@@ -1178,7 +1405,7 @@
 			case 0x02:											/* NOT Ew */
 				{
 					if (rm >= 0xc0 ) {GetEArw;*earw=~*earw;}
-					else {GetEAa;SaveMw(eaa,~LoadMw(eaa));}
+					else {GetEAa;SaveMw(eaa,(Bitu)(~LoadMw(eaa)));}
 					break;
 				}
 			case 0x03:											/* NEG Ew */
@@ -1220,11 +1447,49 @@
 		if (CPU_CLI()) RUNEXCEPTION();
 		break;
 	CASE_B(0xfb)												/* STI */
+		//      It turns out on a 486 that STI+CLI (right next to each other) does not
+		//      trigger the CPU to process interrupts. Like this:
+		//
+		//      STI
+		//      CLI
+		//
+		//      The FM music driver for the PC-98 version of Peret em Heru appears to have
+		//      STI+CLI sequences for some reason in certain subroutines within the FM
+		//      music interrupt handler, which should not be trigger points to process
+		//      interrupts because the FM interrupt is non-reentrant and Peret is also
+		//      calling another entry point to the FM driver from IRQ 2 (vsync). If
+		//      IRQ 2 is processed while the FM interrupt is processing at the STI, the
+		//      stack switch will overwrite the first and the FM interrupt will return
+		//      by stale data and crash.
+		//
+		//      [https://github.com/joncampbell123/dosbox-x/issues/1162]
+		//
+		// NTS: The prior fix that set CPU_Cycles = 4 causes the normal core to get stuck
+		//      and never break out (hanging DOSBox-X) when running PC-98 game Night Slave,
+		//      so that isn't a long-term option.
+		//
+		//      Capping CPU_Cycles = 2 seems to break Commander Keen games because of the
+		//      way the video vsync and wait loop works. It waits for retrace/vsync with
+		//      interrupts disabled, then on vertical retrace, briefly enables interrupts
+		//      to allow them to run by jumping to a STI + JMP short $+2 + CLI sequence.
+		//      Note the code deliberately uses a JMP short delay to avoid STI + CLI and
+		//      make sure interrupts process.
+		//
+		// NTS: New idea: On STI, force the core to execute another instruction immediately.
+		//      If there isn't enough CPU cycles, then break out of the loop. If CLI follows
+		//      immediately, then it will undo the effects of STI without a chance to process
+		//      interrupts.
 		if (CPU_STI()) RUNEXCEPTION();
-#if CPU_PIC_CHECK
-		if (GETFLAG(IF) && PIC_IRQCheck) goto decode_end;
-#endif
-		break;
+		if (GETFLAG(IF) && PIC_IRQCheck) {
+			// FORCE another instruction decode before allowing interrupt processing
+			CPU_CycleLeft += CPU_Cycles - 1;
+			CPU_Cycles = 1;
+			SAVEIP;
+			continue;
+		}
+		else {
+			break;
+		}
 	CASE_B(0xfc)												/* CLD */
 		SETFLAGBIT(DF,false);
 		cpu.direction=1;
@@ -1247,11 +1512,11 @@
 				{
 					Bitu cb=Fetchw();
 					FillFlags();SAVEIP;
-					return cb;
+					return (Bits)cb;
 				}
 			default:
-				E_Exit("Illegal GRP4 Call %d",(rm>>3) & 7);
-				break;
+				LOG(LOG_CPU,LOG_DEBUG)("Illegal GRP4 Call %d",(rm>>3) & 7);
+				goto illegal_opcode;
 			}
 			break;
 		}
@@ -1267,7 +1532,7 @@
 				break;		
 			case 0x02:										/* CALL Ev */
 				{ /* either EIP is set to the call address or EIP does not change if interrupted by PF */
-					Bit16u new_eip;
+					uint16_t new_eip;
 					if (rm >= 0xc0 ) {GetEArw;new_eip=*earw;}
 					else {GetEAa;new_eip=LoadMw(eaa);}
 					Push_16(GETIP); /* <- PF may happen here */
@@ -1278,13 +1543,13 @@
 				{
 					if (rm >= 0xc0) goto illegal_opcode;
 					GetEAa;
-					Bit16u newip=LoadMw(eaa);
-					Bit16u newcs=LoadMw(eaa+2);
+					uint16_t newip=LoadMw(eaa);
+					uint16_t newcs=LoadMw(eaa+2);
 					FillFlags();
 					CPU_CALL(false,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
 					if (GETFLAG(TF)) {	
-						cpudecoder=CPU_Core_Normal_Trap_Run;
+						cpudecoder=CPU_TRAP_DECODER;
 						return CBRET_NONE;
 					}
 #endif
@@ -1299,13 +1564,13 @@
 				{
 					if (rm >= 0xc0) goto illegal_opcode;
 					GetEAa;
-					Bit16u newip=LoadMw(eaa);
-					Bit16u newcs=LoadMw(eaa+2);
+					uint16_t newip=LoadMw(eaa);
+					uint16_t newcs=LoadMw(eaa+2);
 					FillFlags();
 					CPU_JMP(false,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
 					if (GETFLAG(TF)) {	
-						cpudecoder=CPU_Core_Normal_Trap_Run;
+						cpudecoder=CPU_TRAP_DECODER;
 						return CBRET_NONE;
 					}
 #endif

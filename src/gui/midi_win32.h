@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -29,15 +29,18 @@
 
 class MidiHandler_win32: public MidiHandler {
 private:
-	HMIDIOUT m_out;
-	MIDIHDR m_hdr;
-	HANDLE m_event;
+	HMIDIOUT m_out = NULL;
+    MIDIHDR m_hdr = {};
+	HANDLE m_event = NULL;
+    bool useMidiVolume = false;
+    bool isMicrosoftSoftSynth = false;
+    bool resetVolume = true;
 	bool isOpen;
 
 #if WIN32_MIDI_PORT_PROTECT
-	HINSTANCE hMidiHelper;
-	bool midi_dll;
-	bool midi_dll_active;
+	HINSTANCE hMidiHelper = NULL;
+	bool midi_dll = false;
+	bool midi_dll_active = false;
 
 	void MidiHelper_Reset()
 	{
@@ -74,10 +77,8 @@ private:
 	void MidiHelper_End()
 	{
 		void (*func_ptr)(void);
-
-
-    func_ptr = (void(*)(void))GetProcAddress( hMidiHelper,"MIDIHelper_CloseMidiOut" );
- 		if (!func_ptr ) return;
+		func_ptr = (void(*)(void))GetProcAddress( hMidiHelper,"MIDIHelper_CloseMidiOut" );
+		if (!func_ptr) return;
 
 		func_ptr();
 	}
@@ -103,22 +104,48 @@ public:
 		if(conf && *conf) {
 			std::string strconf(conf);
 			std::istringstream configmidi(strconf);
-			unsigned int nummer = midiOutGetNumDevs();
+			unsigned int total = midiOutGetNumDevs();
+			unsigned int nummer = total;
 			configmidi >> nummer;
-			if(nummer < midiOutGetNumDevs()){
+			if (configmidi.fail() && total) {
+				lowcase(strconf);
+				for(unsigned int i = 0; i< total;i++) {
+					midiOutGetDevCaps(i, &mididev, sizeof(MIDIOUTCAPS));
+					std::string devname(mididev.szPname);
+					lowcase(devname);
+					if (devname.find(strconf) != std::string::npos) {
+						nummer = i;
+						break;
+					}
+				}
+			}
+
+			if (nummer < total) {
 				midiOutGetDevCaps(nummer, &mididev, sizeof(MIDIOUTCAPS));
 				LOG_MSG("MIDI:win32 selected %s",mididev.szPname);
-
+#if !defined(HX_DOS)
+                /* If we're not talking to MIDI hardware, but the default Microsoft software synthesizer,
+                   and it supports volume control, we want to use it, because Microsoft's MIDI synth also
+                   does not recognize the Roland GS master volume SysEx either. */
+                if(mididev.dwSupport & MIDICAPS_VOLUME) {
+                    if(mididev.wTechnology == MOD_SWSYNTH) {
+                        isMicrosoftSoftSynth = true;
+                    }
+                }
+#else
+                isMicrosoftSoftSynth = false;
+#endif
+                resetVolume = true;
 
 #if WIN32_MIDI_PORT_PROTECT
 				if( midi_dll == false || strcmp( mididev.szPname, "Roland VSC" ) != 0 )
-					res = midiOutOpen(&m_out, nummer, PtrToUlong(m_event), 0, CALLBACK_EVENT);
+					res = midiOutOpen(&m_out, nummer, (DWORD_PTR)m_event, 0, CALLBACK_EVENT);
 				else {
 					// Roland VSC - crash protection
 					res = MidiHelper_Start(nummer);
 				}
 #else
-				res = midiOutOpen(&m_out, nummer, PtrToUlong(m_event), 0, CALLBACK_EVENT);
+				res = midiOutOpen(&m_out, nummer, (DWORD_PTR)m_event, 0, CALLBACK_EVENT);
 #endif
 
 
@@ -127,12 +154,12 @@ public:
 
 					if( nummer != 0 ) {
 						LOG_MSG("MIDI:win32 selected %s","default");
-						res = midiOutOpen(&m_out, MIDI_MAPPER, PtrToUlong(m_event), 0, CALLBACK_EVENT);
+						res = midiOutOpen(&m_out, MIDI_MAPPER, (DWORD_PTR)m_event, 0, CALLBACK_EVENT);
 					}
 				}
 			}
 		} else {
-			res = midiOutOpen(&m_out, MIDI_MAPPER, PtrToUlong(m_event), 0, CALLBACK_EVENT);
+			res = midiOutOpen(&m_out, MIDI_MAPPER, (DWORD_PTR)m_event, 0, CALLBACK_EVENT);
 		}
 		if (res != MMSYSERR_NOERROR) return false;
 
@@ -158,11 +185,25 @@ public:
 		CloseHandle (m_event);
 	};
 
-	void PlayMsg(Bit8u * msg) {
-		midiOutShortMsg(m_out, *(Bit32u*)msg);
+	void PlayMsg(uint8_t * msg) {
+		midiOutShortMsg(m_out, *(uint32_t*)msg);
+
+        /* This must be done AFTER to prevent the notes left hanging from ever becoming audible before reset */
+        if(*msg == 0xFF/*MIDI RESET*/) {
+            midiOutReset(m_out);
+            resetVolume = true;
+        }
+        else {
+            if(resetVolume) {
+                if(isMicrosoftSoftSynth) {
+                    midiOutSetVolume(m_out, 0xFFFF);
+                }
+                resetVolume = false;
+            }
+        }
 	};
 
-	void PlaySysex(Bit8u * sysex,Bitu len) {
+	void PlaySysex(uint8_t * sysex,Bitu len) {
 #if WIN32_MIDI_PORT_PROTECT
 		if( midi_dll_active == false ) {
 #endif
@@ -174,11 +215,33 @@ public:
 		}
 #endif
 
+        if(roland_gs_sysex) {
+            if(sysex[1] == 0x41/*Roland*/ && sysex[3] == 0x42/*GS*/ && sysex[4] == 0x12/*Send*/ && len >= 9) {
+                const uint32_t addr =
+                    ((uint32_t)sysex[5] << 16) +
+                    ((uint32_t)sysex[6] << 8) +
+                    (uint32_t)sysex[7];
+
+                if(addr == 0x400004) { /* MASTER VOLUME */
+                    if(isMicrosoftSoftSynth) {
+                        /* input: MIDI volume 0-127
+                           output: MIDI volume 0x0000-0xFFFF */
+                        unsigned int mvol = sysex[8];
+                        if(mvol > 127) mvol = 127;
+                        mvol = (mvol * 0xFFFFu) / 127u;
+                        midiOutSetVolume(m_out, mvol);
+                        resetVolume = false;
+                        return;
+                    }
+                }
+            }
+        }
+
 		midiOutUnprepareHeader (m_out, &m_hdr, sizeof (m_hdr));
 
 		m_hdr.lpData = (char *) sysex;
-		m_hdr.dwBufferLength = len ;
-		m_hdr.dwBytesRecorded = len ;
+		m_hdr.dwBufferLength = (DWORD)len;
+		m_hdr.dwBytesRecorded = (DWORD)len;
 		m_hdr.dwUser = 0;
 
 		MMRESULT result = midiOutPrepareHeader (m_out, &m_hdr, sizeof (m_hdr));
@@ -197,10 +260,21 @@ public:
 		}
 #endif
 	}
+	
+	void ListAll(Program* base) {
+#if defined (WIN32)
+		unsigned int total = midiOutGetNumDevs();	
+		for(unsigned int i = 0;i < total;i++) {
+			MIDIOUTCAPS mididev;
+			midiOutGetDevCaps(i, &mididev, sizeof(MIDIOUTCAPS));
+			base->WriteOut("  %2d - \"%s\"\n",i,mididev.szPname);
+		}
+#endif
+	}
 
 	void Reset()
 	{
-		Bit8u buf[64], used;
+		uint8_t buf[64];
 
 		// flush buffers
 		midiOutReset(m_out);
@@ -213,7 +287,7 @@ public:
 		buf[3] = 0x09;
 		buf[4] = 0x01;
 		buf[5] = 0xf7;
-		PlaySysex( (Bit8u *) buf, 6 );
+		PlaySysex( (uint8_t *) buf, 6 );
 
 
 		// GS1 reset
@@ -228,7 +302,7 @@ public:
 		buf[8] = 0x00;
 		buf[9] = 0x41;
 		buf[10] = 0xf7;
-		PlaySysex( (Bit8u *) buf, 11 );
+		PlaySysex( (uint8_t *) buf, 11 );
 	}
 };
 

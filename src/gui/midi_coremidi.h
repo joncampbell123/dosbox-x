@@ -9,12 +9,14 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include <CoreMIDI/MIDIServices.h>
+#include <sstream>
+#include <string>
 
 class MidiHandler_coremidi : public MidiHandler {
 private:
@@ -25,14 +27,44 @@ private:
 public:
 	MidiHandler_coremidi()  {m_pCurPacket = 0;}
 	const char * GetName(void) { return "coremidi"; }
-	bool Open(const char * conf) {
-	
+	bool Open(const char * conf) {	
 		// Get the MIDIEndPoint
 		m_endpoint = 0;
-		OSStatus result;
+//		OSStatus result;
 		Bitu numDests = MIDIGetNumberOfDestinations();
-	        Bitu destId = 0;
-	        if(conf && conf[0]) destId = atoi(conf);
+		Bitu destId = numDests;
+		if (numDests == 0) {
+			/* Mac OS X Big Sur returns zero, nothing we can do */
+			LOG_MSG("coremidi: No MIDI destinations available");
+			return false;
+		}
+		LOG_MSG("coremidi: %u MIDI destinations available",(unsigned int)numDests); // FIXME: Why isn't LOG(..,..)(...) available here?
+		if(conf && *conf) {
+			std::string strconf(conf);
+			std::istringstream configmidi(strconf);
+			configmidi >> destId;
+			if (configmidi.fail() && numDests) {
+				lowcase(strconf);
+				for(Bitu i = 0; i<numDests; i++) {
+					MIDIEndpointRef dummy = MIDIGetDestination(i);
+					if (!dummy) continue;
+					CFStringRef midiname = 0;
+					if (MIDIObjectGetStringProperty(dummy,kMIDIPropertyDisplayName,&midiname) == noErr) {
+						const char* s = CFStringGetCStringPtr(midiname,kCFStringEncodingMacRoman);
+						if (s) {
+							std::string devname(s);
+							lowcase(devname);
+							if (devname.find(strconf) != std::string::npos) { 
+								destId = i;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (destId >= numDests) destId = 0;
+
 		if (destId < numDests)
 		{
 			m_endpoint = MIDIGetDestination(destId);
@@ -67,10 +99,11 @@ public:
 		MIDIClientDispose(m_client);
 
 		// Dispose the endpoint
-		MIDIEndpointDispose(m_endpoint);
+		// Not, as it is for Endpoints created by us
+//		MIDIEndpointDispose(m_endpoint);
 	}
 	
-	void PlayMsg(Bit8u * msg) {
+	void PlayMsg(uint8_t * msg) {
 		// Acquire a MIDIPacketList
 		Byte packetBuf[128];
 		MIDIPacketList *packetList = (MIDIPacketList *)packetBuf;
@@ -86,10 +119,10 @@ public:
 		MIDISend(m_port,m_endpoint,packetList);
 	}
 	
-	void PlaySysex(Bit8u * sysex, Bitu len) {
+	void PlaySysex(uint8_t * sysex, Bitu len) {
 		// Acquire a MIDIPacketList
 		Byte packetBuf[SYSEX_SIZE*4];
-		Bitu pos=0;
+//		Bitu pos=0;
 		MIDIPacketList *packetList = (MIDIPacketList *)packetBuf;
 		m_pCurPacket = MIDIPacketListInit(packetList);
 		
@@ -98,6 +131,22 @@ public:
 		
 		// Send the MIDIPacketList
 		MIDISend(m_port,m_endpoint,packetList);
+	}
+	
+	void ListAll(Program* base) {
+		Bitu numDests = MIDIGetNumberOfDestinations();
+		for(Bitu i = 0; i < numDests; i++){
+			MIDIEndpointRef dest = MIDIGetDestination(i);
+			if (!dest) continue;
+			CFStringRef midiname = 0;
+			if(MIDIObjectGetStringProperty(dest, kMIDIPropertyDisplayName, &midiname) == noErr) {
+				const char * s = CFStringGetCStringPtr(midiname, kCFStringEncodingMacRoman);
+				if (s) base->WriteOut("  %02d - %s\n",i,s);
+			}
+			//This is for EndPoints created by us.
+			//MIDIEndpointDispose(dest);
+		}
+
 	}
 };
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -22,6 +22,8 @@
 
 #include <stdio.h>
 #include <stdint.h>
+
+using io_port_t = uint16_t; // DOS only supports 16-bit port addresses
 
 #define IO_MAX (64*1024+3)
 
@@ -49,13 +51,13 @@ void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range=1);
 
 void IO_InvalidateCachedHandler(Bitu port,Bitu range=1);
 
-void IO_WriteB(Bitu port,Bitu val);
-void IO_WriteW(Bitu port,Bitu val);
-void IO_WriteD(Bitu port,Bitu val);
+void IO_WriteB(Bitu port,uint8_t val);
+void IO_WriteW(Bitu port,uint16_t val);
+void IO_WriteD(Bitu port,uint32_t val);
 
-Bitu IO_ReadB(Bitu port);
-Bitu IO_ReadW(Bitu port);
-Bitu IO_ReadD(Bitu port);
+uint8_t IO_ReadB(Bitu port);
+uint16_t IO_ReadW(Bitu port);
+uint32_t IO_ReadD(Bitu port);
 
 static const Bitu IOMASK_ISA_10BIT = 0x3FFU; /* ISA 10-bit decode */
 static const Bitu IOMASK_ISA_12BIT = 0xFFFU; /* ISA 12-bit decode */
@@ -73,8 +75,8 @@ static const Bitu IOMASK_FULL = 0xFFFFU; /* full 16-bit decode */
  *       ~(0x10 - 1) = ~0xF = 0xFFFFFFF0
  *
  */
-static inline const Bitu IOMASK_Range(const Bitu x) {
-    return ~(x - 1);
+static inline constexpr Bitu IOMASK_Range(const Bitu x) {
+    return ~((Bitu)x - (Bitu)1U);
 }
 
 /* combine range mask with IOMASK value.
@@ -84,7 +86,7 @@ static inline const Bitu IOMASK_Range(const Bitu x) {
  *     IOMASK_Combine(IOMASK_ISA_10BIT,IOMASK_Range(16));
  *
  */
-static inline const Bitu IOMASK_Combine(const Bitu a,const Bitu b) {
+static inline constexpr Bitu IOMASK_Combine(const Bitu a,const Bitu b) {
     return a & b;
 }
 
@@ -92,10 +94,10 @@ static inline const Bitu IOMASK_Combine(const Bitu a,const Bitu b) {
  * The io objects will remove itself on destruction.*/
 class IO_Base{
 protected:
-	bool installed;
+	bool installed = false;
 	Bitu m_port, m_mask/*IO_MB, etc.*/, m_range/*number of ports*/;
 public:
-	IO_Base() : installed(false), m_port(0), m_mask(0), m_range(0) {};
+	IO_Base() : m_port(0), m_mask(0), m_range(0) {};
 };
 /* NTS: To explain the Install() method, the caller not only provides the IOMASK_.. value, but ANDs
  *      the least significant bits to define the range of I/O ports to respond to. An ISA Sound Blaster
@@ -108,20 +110,20 @@ public:
  *      move on to the next device or mark the I/O port as empty. */
 class IO_CalloutObject: private IO_Base {
 public:
-    IO_CalloutObject() : IO_Base(), io_mask(0xFFFFU), range_mask(0U), alias_mask(0xFFFFU), getcounter(0), m_r_handler(NULL), m_w_handler(NULL), alloc(false) {};
+    IO_CalloutObject() : IO_Base() {};
     void InvalidateCachedHandlers(void);
 	void Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler);
 	void Uninstall();
 public:
-    Bit16u io_mask;
-    Bit16u range_mask;
-    Bit16u alias_mask;
-    unsigned int getcounter;
-    IO_ReadCalloutHandler *m_r_handler;
-    IO_WriteCalloutHandler *m_w_handler;
-    bool alloc;
+    uint16_t io_mask = 0xFFFF;
+    uint16_t range_mask = 0;
+    uint16_t alias_mask = 0xFFFF;
+    unsigned int getcounter = 0;
+    IO_ReadCalloutHandler *m_r_handler = NULL;
+    IO_WriteCalloutHandler *m_w_handler = NULL;
+    bool alloc = false;
 public:
-    inline bool MatchPort(const Bit16u p) {
+    inline bool MatchPort(const uint16_t p) {
         /* (p & io_mask) == (m_port & io_mask) but this also works.
          * apparently modern x86 processors are faster at addition/subtraction than bitmasking.
          * for this to work, m_port must be a multiple of the I/O range. For example, if the I/O
@@ -147,11 +149,11 @@ public:
 	~IO_WriteHandleObject();
 };
 
-static INLINE void IO_Write(Bitu port,Bit8u val) {
+static INLINE void IO_Write(Bitu port,uint8_t val) {
 	IO_WriteB(port,val);
 }
-static INLINE Bit8u IO_Read(Bitu port){
-	return (Bit8u)IO_ReadB(port);
+static INLINE uint8_t IO_Read(Bitu port){
+	return IO_ReadB(port);
 }
 
 enum IO_Type_t {
@@ -168,15 +170,15 @@ void IO_InitCallouts(void);
 
 typedef uint32_t IO_Callout_t;
 
-static inline uint32_t IO_Callout_t_comb(const enum IO_Type_t t,const uint32_t idx) {
+static inline constexpr uint32_t IO_Callout_t_comb(const enum IO_Type_t t,const uint32_t idx) {
     return ((uint32_t)t << (uint32_t)28) + idx;
 }
 
-static inline enum IO_Type_t IO_Callout_t_type(const IO_Callout_t t) {
+static inline constexpr enum IO_Type_t IO_Callout_t_type(const IO_Callout_t t) {
     return (enum IO_Type_t)(t >> 28);
 }
 
-static inline uint32_t IO_Callout_t_index(const IO_Callout_t t) {
+static inline constexpr uint32_t IO_Callout_t_index(const IO_Callout_t t) {
     return t & (((uint32_t)1 << (uint32_t)28) - (uint32_t)1);
 }
 

@@ -1,0 +1,344 @@
+name: 32-bit MinGW builds
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  MinGW32_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils mingw-w64-i686-libslirp
+      - name: Install libslirp
+        if: false
+        run: |
+          # Run this job when MinGW drops 32-bit library support (Other libraries can be built as well)
+          top=`pwd`
+          mkdir pkg
+          cd pkg
+          git clone https://github.com/msys2/MINGW-packages.git
+          pwd
+          cd MINGW-packages
+          cd mingw-w64-libslirp
+          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw32\')/" PKGBUILD
+          MINGW_ARCH=MINGW32 makepkg-mingw -sCLf --noconfirm
+          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
+      - name: Update build info
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Build MinGW32 SDL1
+        run: |
+          top=`pwd`
+          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
+          # cp $top/build-scripts/mingw/lowend-bin/make.exe ${MSYSTEM_PREFIX}/bin/make.exe
+          ./build-mingw
+          strip -s $top/src/dosbox-x.exe
+      - name: Package MinGW32 SDL1
+        run: |
+          top=`pwd`
+          mkdir -p $top/package/mingw-build/mingw/drivez
+          mkdir -p $top/package/mingw-build/mingw/scripts
+          mkdir -p $top/package/mingw-build/mingw/shaders
+          mkdir -p $top/package/mingw-build/mingw/glshaders
+          mkdir -p $top/package/mingw-build/mingw/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw/dosbox-x.conf
+          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/mingw-build/mingw/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw/README.txt
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw/inpout32.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/mingw-build/mingw/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw/shaders/
+          cp $top/contrib/glshaders/* $top/package/mingw-build/mingw/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw/languages/
+      - name: Build MinGW32 SDL2
+        run: |
+          top=`pwd`
+          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
+          ./build-mingw-sdl2
+          strip -s $top/src/dosbox-x.exe
+      - name: Package MinGW32 SDL2
+        run: |
+          top=`pwd`
+          mkdir -p $top/package/mingw-build/mingw-sdl2/drivez
+          mkdir -p $top/package/mingw-build/mingw-sdl2/scripts
+          mkdir -p $top/package/mingw-build/mingw-sdl2/shaders
+          mkdir -p $top/package/mingw-build/mingw-sdl2/glshaders
+          mkdir -p $top/package/mingw-build/mingw-sdl2/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw-sdl2/dosbox-x.conf
+          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw-sdl2/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/mingw-build/mingw-sdl2/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-sdl2/README.txt
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw-sdl2/inpout32.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-sdl2/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/mingw-build/mingw-sdl2/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-sdl2/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-sdl2/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-sdl2/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw-sdl2/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-sdl2/shaders/
+          cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-sdl2/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw-sdl2/languages/
+          cp $top/COPYING $top/package/COPYING
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-win32-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-mingw-win32-${{ env.timestamp }}
+          path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-mingw-win32-${{ env.timestamp }}.zip
+  MinGW32_CI_lowend_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
+        run: |
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
+      - name: Update build info
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+          sed -i -e "s/#define OS_PLATFORM \"MinGW\"/#define OS_PLATFORM \"MinGWLE\"/" include/version_string.h
+          sed -i -e "s/#define OS_PLATFORM_LONG \"MinGW\"/#define OS_PLATFORM_LONG \"MinGW Low-end\"/" include/version_string.h
+      - name: setup lowend build environment
+        run: |
+          top=`pwd`
+          echo "${top}"
+          echo "path=$PATH"
+          cd ${MSYSTEM_PREFIX}/..
+          rm -rf mingw32
+          mkdir mingw32
+          7z x $top/build-scripts/mingw/lowend-bin/i686-7.3.0-release-posix-dwarf-rt_v5-rev0+nasm.7z -o${MSYSTEM_PREFIX}
+          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
+      - name: Build MinGW32 SDL1
+        run: |
+          top=`pwd`
+          ./build-mingw
+          strip -s $top/src/dosbox-x.exe
+      - name: Package MinGW32 lowend SDL1
+        run: |
+          top=`pwd`
+          mkdir -p $top/package/mingw-build/mingw/drivez
+          mkdir -p $top/package/mingw-build/mingw/scripts
+          mkdir -p $top/package/mingw-build/mingw/shaders
+          mkdir -p $top/package/mingw-build/mingw/glshaders
+          mkdir -p $top/package/mingw-build/mingw/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw/dosbox-x.conf
+          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/mingw-build/mingw/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw/README.txt
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw/inpout32.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/mingw-build/mingw/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw/shaders/
+          cp $top/contrib/glshaders/* $top/package/mingw-build/mingw/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw/languages/
+      - name: Build MinGW32 lowend SDL2
+        run: |
+          top=`pwd`
+          ./build-mingw-sdl2
+          strip -s $top/src/dosbox-x.exe
+      - name: Package MinGW32 lowend SDL2
+        run: |
+          top=`pwd`
+          mkdir -p $top/package/mingw-build/mingw-sdl2/drivez
+          mkdir -p $top/package/mingw-build/mingw-sdl2/scripts
+          mkdir -p $top/package/mingw-build/mingw-sdl2/shaders
+          mkdir -p $top/package/mingw-build/mingw-sdl2/glshaders
+          mkdir -p $top/package/mingw-build/mingw-sdl2/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw-sdl2/dosbox-x.conf
+          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw-sdl2/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/mingw-build/mingw-sdl2/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-sdl2/README.txt
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw-sdl2/inpout32.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-sdl2/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/mingw-build/mingw-sdl2/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-sdl2/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-sdl2/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-sdl2/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw-sdl2/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-sdl2/shaders/
+          cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-sdl2/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw-sdl2/languages/
+          cp $top/COPYING $top/package/COPYING
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-win32-lowend-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-mingw-win32-lowend-${{ env.timestamp }}
+          path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-mingw-win32-lowend-${{ env.timestamp }}.zip
+  MinGW32_CI_lowend9x_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
+        run: |
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
+      - name: Update build info
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+          sed -i -e "s/#define OS_PLATFORM \"MinGW\"/#define OS_PLATFORM \"MinGW9x\"/" include/version_string.h
+          sed -i -e "s/#define OS_PLATFORM_LONG \"MinGW\"/#define OS_PLATFORM_LONG \"MinGW Low-end 9x\"/" include/version_string.h
+      - name: setup lowend9x build environment
+        run: |
+          top=`pwd`
+          echo "${top}"
+          echo "path=$PATH"
+          cd ${MSYSTEM_PREFIX}/..
+          rm -rf mingw32
+          wget https://github.com/crazii/MINGW-toolchains-w9x/releases/download/v1.0.1-w95nt/mingw32.7z
+          7z x mingw32.7z -o./
+          echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
+          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
+      - name: Build MinGW32 lowend9x
+        run: |
+          top=`pwd`
+          ./build-mingw-lowend9x
+          strip -s $top/src/dosbox-x.exe
+      - name: Package MinGW32 lowend9x
+        run: |
+          top=`pwd`
+          mkdir -p $top/package/mingw-build/mingw/drivez
+          mkdir -p $top/package/mingw-build/mingw/scripts
+          mkdir -p $top/package/mingw-build/mingw/shaders
+          mkdir -p $top/package/mingw-build/mingw/glshaders
+          mkdir -p $top/package/mingw-build/mingw/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw/dosbox-x.conf
+          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/mingw-build/mingw/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw/README.txt
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw/inpout32.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/mingw-build/mingw/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw/shaders/
+          cp $top/contrib/glshaders/* $top/package/mingw-build/mingw/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw/languages/
+          cp $top/COPYING $top/package/COPYING
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-win32-lowend9x-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-mingw-win32-lowend9x-${{ env.timestamp }}
+          path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-mingw-win32-lowend9x-${{ env.timestamp }}.zip

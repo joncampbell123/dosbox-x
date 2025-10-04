@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="GUI::String">
+		<DisplayString>{_Mypair._Myval2._Myfirst,[_Mypair._Myval2._Mylast - _Mypair._Myval2._Myfirst]s32b}</DisplayString>
+	</Type>
+</AutoVisualizer>

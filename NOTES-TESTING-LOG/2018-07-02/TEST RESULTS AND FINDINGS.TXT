@@ -1,0 +1,146 @@
+2018/07/02 test results and findings.
+
+Test units:
+
+COMP-Compro1997                                     An old Pentium ? from 1997, with ATI AGP VGA
+COMP-IBMPS2-30                                      An old IBM PS/2 Model 30 (286) with VGA
+COMP-P2ISA1997                                      An old Pentium II from 1997, with S3 VGA
+COMP-IBM5150                                        An old IBM 5150, 8088, with CGA
+COMP-Old486y91                                      An old 486SX 33MHz, with Tseng ET4000
+DOSBox-X-1e6bb8dc469761d46217d44615c06a7ff95f2e49   DOSBox-X, by indicated commit
+DOSLIB-848166fcacb6292773253273ef192ddae7942064     DOSLIB, by indicated commit
+
+Equipment:
+
+    - Composite video capture (PEXHDCAP 1080p60). None of my Happauge USB capture
+      sticks were willing to capture the CGA composite video output for some reason,
+      nor would the Happauge WinTV in one of my machines. The PEXHDCAP was able to
+      but had curious brightness problems as screen contents changed.
+
+    - HDMI video capture (PEXHDCAP 1080p30)
+
+    - VGA to HDMI adapter (one that matches the mode and converts as-is)
+
+    - A mobile phone, pointed at the LCD TV set (second try, IBM 5150 test)
+
+Software:
+
+    - DOSBox-X build:
+        git commit 1e6bb8dc469761d46217d44615c06a7ff95f2e49
+
+    - DOSLIB build:
+        git commit 848166fcacb6292773253273ef192ddae7942064
+
+Findings:
+
+    - On the IBM 5150, The IBM BIOS (I think it dates from 1982) is indeed missing
+      the "number of rows - 1" value in the BIOS data area. This confirms comments
+      in TEST-FW\VIDEO\PC\TEST.C about how it may not exist according to the
+      definitions listed in IBM ROM BIOS source code from 1984, while the 1986
+      listing does list it.
+
+    - On the IBM 5150, INT 10h appears to have a bug where all CGA modes work, but
+      setting mode 7 produces a video mode with horizontal and vertical timing that
+      is incompatible with NTSC. During that part, neither my capture card nor the
+      LCD TV set would display anything.
+
+      Perhaps the bug, theoretically, is the application of MDA monitor timing for
+      INT 10h mode 7 even on CGA.
+
+    - The EGA palette assumed in 16-color modes didn't always match the TEST-FW
+      video's assumptions, but the differences are not jarring. They're understandable.
+
+    - In the 256-color mode test, three different attribute controller to DAC to
+      DAC mask behaviors were seen.
+
+
+      The most common, seen on all but two, is that the attribute controller appears
+      to affect both the low nibble and upper bits (high nibble?) of the 8-bit
+      color palette index.
+
+      When the test program flashes the attribute controller palette #1 for example,
+      it appears to affect not only every 16th color starting from #1, but also
+      colors #16-#31.
+
+      Generally, flashing attribute controller palette N affects:
+        Every 16th color starting at N
+        Colors (N * 16) to (N * 16 + 15)
+
+      This remapping needs more investigation on how exactly it works. This should
+      be done as a separate palette test program targeting only the VGA.
+
+      Results so far suggest that both the low nibble and high nibble are translated
+      through the attribute controller palette registers.
+
+
+      On the Tseng ET4000, the attribute controller only affects the low 4 bits.
+      It does not affect any of the higher bits.
+
+      Flashing attribute color palette N affects only every 16th color starting at N.
+
+
+      Finally, perhaps the most erroneous is DOSBox-X (and DOSBox SVN).
+
+      Due to optimizations around lazily updating only part of the color palette,
+      DOSBox-X only updates ONE color palette entry when the attribute controller
+      palette is flashing.
+
+      Flashing attribute controller palette N affects:
+        One color at DAC palette entry N
+
+Questions to answer in further development:
+
+    For a separate program in TEST-FW\VIDEO\PC, focused on the VGA:
+
+    - How exactly does the attribute controller affect all 8 bits of 256-color pixels?
+
+      The TEST-FW\VIDEO\PC\TEST.C program only shows what happens when flashing the
+      attribute controller palette entry between it's initial value and 0x3F (if the
+      initial value is dimmer than neutral gray) or 0x00 (if brigher than gray).
+
+    - How do Attribute Controller registers 0x10 and 0x14 affect this mapping?
+
+      See http://www.osdever.net/FreeVGA/vga/attrreg.htm
+
+      These registers are documented to affect the color palette entry coming from
+      the attribute controller, bits 4-5 in one case, and bits 6-7 in non-256-color
+      modes.
+
+      Interesting to check: What happens if register 0x10 bit 6 (8-bit color enable)
+      is switched off in 256-color mode?
+
+    - How does the DAC mask (3C6h) affect the attribute controller, VGA palette,
+      various AC bits?
+
+      It's not clear where the DAC mask is applied, though as "Pel mask" it may be
+      at the final stage before conversion through the VGA palette. Test program
+      should confirm this.
+
+    Test routine ideas:
+
+    - Interactive mode to fiddle with attribute controller, color palette, and
+      attribute controller bits, with 256-color palette on screen to show effects.
+
+    - Non-interactive mode to run through combinations of these bits, for capture
+      and logging purposes.
+
+Related demoscene capture ideas:
+
+    "Copper" (ftp.scene.org/pub/parties/1992/theparty92/demo/copper.zip)
+
+        - This demo uses VGA palette tricks that only seem to work in DOSBox-X and
+          are said only to work on Tseng ET4000AX cards.
+
+          Test on ET4000 card vs S3 and ATI to note where it works exactly.
+
+          Noted in the past is that on S3 and Paradise chipsets, the "line fading"
+          effects (explicitly said and during scrolling credits) show absolutely
+          nothing on-screen.
+
+        - This demo abuses the horizontal sync pulse in some parts to make the
+          picture "wobble", which causes modern VGA monitors and LCDS to switch off
+          instead. Pull out an old VGA CRT or two and see if the effect can be
+          recorded off the screen. Noted in past test runs, is that the effect
+          makes an audible though quiet "ringing" sound in the back of the picture
+          tube as the CRT tries to follow this "wobble" effect.
+

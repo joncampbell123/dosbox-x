@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -24,6 +24,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <fstream>
+#include <sstream>
 
 #include "support.h"
 #include "serialport.h"
@@ -32,11 +34,93 @@
 
 //#include "mixer.h"
 
+class PhonebookEntry {
+public:
+	PhonebookEntry(const std::string &_phone, const std::string &_address) :
+		phone(_phone),
+		address(_address) {
+	}
+
+	bool IsMatchingPhone(const std::string &input) const {
+		return (input == phone);
+	}
+
+	const std::string &GetAddress() const {
+		return address;
+	}
+
+private:
+	std::string phone;
+	std::string address;
+};
+
+static std::vector<PhonebookEntry> phones;
+static const char phoneValidChars[] = "01234567890*=,;#+>";
+
+static bool MODEM_IsPhoneValid(const std::string &input) {
+	size_t found = input.find_first_not_of(phoneValidChars);
+	if (found != std::string::npos) {
+		LOG_MSG("SERIAL: Phonebook %s contains invalid character %c.",
+		        input.c_str(), input[found]);
+		return false;
+	}
+
+	return true;
+}
+
+bool MODEM_ReadPhonebook(const std::string &filename) {
+	std::ifstream loadfile(filename);
+	if (!loadfile)
+		return false;
+
+	LOG_MSG("SERIAL: Loading phonebook from %s", filename.c_str());
+
+	std::string linein;
+	while (std::getline(loadfile, linein)) {
+		std::istringstream iss(linein);
+		std::string phone, address;
+
+		if (!(iss >> phone >> address)) {
+			LOG_MSG("SERIAL: Skipped a bad line in %s", filename.c_str());
+			continue;
+		}
+
+		// Check phone number for characters ignored by Hayes modems.
+		if (!MODEM_IsPhoneValid(phone))
+			continue;
+
+		LOG_MSG("SERIAL: Mapped phone %s to address %s", phone.c_str(), address.c_str());
+		phones.emplace_back(phone, address);
+	}
+
+	return true;
+}
+
+void MODEM_ClearPhonebook()
+{
+	phones.clear();
+}
+
+static const char *MODEM_GetAddressFromPhone(const char *input) {
+	for (const auto &entry : phones) {
+		if (entry.IsMatchingPhone(input))
+			return entry.GetAddress().c_str();
+	}
+
+	return nullptr;
+}
 
 CSerialModem::CSerialModem(Bitu id, CommandLine* cmd):CSerial(id, cmd) {
+	Bitu bool_temp = 0;
 	InstallationSuccessful=false;
 	connected=false;
 
+	// enet: Setting to 1 enables enet on the port, otherwise TCP.
+	if (getBituSubstring("sock:", &bool_temp, cmd)) {
+		if (bool_temp == 1) {
+			socketType = SOCKET_TYPE_ENET;
+		}
+	}
 	rqueue=new CFifo(MODEM_BUFFER_QUEUE_SIZE);
 	tqueue=new CFifo(MODEM_BUFFER_QUEUE_SIZE);
 	
@@ -45,9 +129,9 @@ CSerialModem::CSerialModem(Bitu id, CommandLine* cmd):CSerial(id, cmd) {
 
 	// Initialize the sockets and setup the listening port
 	listenport = 23;
-	waitingclientsocket=0;
-	clientsocket = 0;
-	serversocket = 0;
+	waitingclientsocket = nullptr;
+	clientsocket = nullptr;
+	serversocket = nullptr;
 	getBituSubstring("listenport:", &listenport, cmd);
 	
 	// TODO: Fix dialtones if requested
@@ -71,17 +155,17 @@ CSerialModem::~CSerialModem() {
 	delete tqueue;
 
 	// remove events
-	for(Bitu i = SERIAL_BASE_EVENT_COUNT+1;	i <= SERIAL_MODEM_EVENT_COUNT; i++)
+	for(uint8_t i = SERIAL_BASE_EVENT_COUNT+1;	i <= SERIAL_MODEM_EVENT_COUNT; i++)
 		removeEvent(i);
 }
 
-void CSerialModem::handleUpperEvent(Bit16u type) {
+void CSerialModem::handleUpperEvent(uint16_t type) {
 	switch (type) {
 	case SERIAL_RX_EVENT: {
 		// check for bytes to be sent to port
 		if(CSerial::CanReceiveByte())
 			if(rqueue->inuse() && (CSerial::getRTS()||(flowcontrol!=3))) {
-				Bit8u rbyte = rqueue->getb();
+				uint8_t rbyte = rqueue->getb();
 				//LOG_MSG("Modem: sending byte %2x back to UART3",rbyte);
 				CSerial::receiveByte(rbyte);
 			}
@@ -123,7 +207,7 @@ void CSerialModem::handleUpperEvent(Bit16u type) {
 void CSerialModem::SendLine(const char *line) {
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
-	rqueue->adds((Bit8u *)line,strlen(line));
+	rqueue->adds((uint8_t *)line,(Bitu)strlen(line));
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
 }
@@ -133,11 +217,11 @@ void CSerialModem::SendNumber(Bitu val) {
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
 	
-	rqueue->addb(val/100+'0');
+	rqueue->addb((uint8_t)(val / 100+'0'));
 	val = val%100;
-	rqueue->addb(val/10+'0');
+	rqueue->addb((uint8_t)(val / 10+'0'));
 	val = val%10;
-	rqueue->addb(val+'0');
+	rqueue->addb((uint8_t)(val + '0'));
 
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
@@ -147,17 +231,19 @@ void CSerialModem::SendRes(ResTypes response) {
 	char const * string;Bitu code;
 	switch (response)
 	{
-		case ResNONE:		return;
-		case ResOK:			string="OK"; code=0; break;
-		case ResERROR:		string="ERROR"; code=4; break;
-		case ResRING:		string="RING"; code=2; break;
-		case ResNODIALTONE: string="NO DIALTONE"; code=6; break;
-		case ResNOCARRIER:	string="NO CARRIER" ;code=3; break;
-		case ResCONNECT:	string="CONNECT 57600"; code=1; break;
-		default:		return;
+		case ResOK:         code = 0; string = "OK"; break;
+		case ResCONNECT:    code = 1; string = "CONNECT 57600"; break;
+		case ResRING:       code = 2; string = "RING"; break;
+		case ResNOCARRIER:  code = 3; string = "NO CARRIER"; break;
+		case ResERROR:      code = 4; string = "ERROR"; break;
+		case ResNODIALTONE: code = 6; string = "NO DIALTONE"; break;
+		case ResBUSY:       code = 7; string = "BUSY"; break;
+		case ResNOANSWER:   code = 8; string = "NO ANSWER"; break;
+		case ResNONE:       return;
+		default:            return;
 	}
 	
-	if(doresponse!=1) {
+	if(doresponse != 1) {
 		if(doresponse==2 && (response==ResRING || 
 			response == ResCONNECT || response==ResNOCARRIER)) return;
 		if(numericresponse) SendNumber(code);
@@ -165,7 +251,7 @@ void CSerialModem::SendRes(ResTypes response) {
 
 		//if(CSerial::CanReceiveByte())	// very fast response
 		//	if(rqueue->inuse() && CSerial::getRTS())
-		//	{ Bit8u rbyte =rqueue->getb();
+		//	{ uint8_t rbyte =rqueue->getb();
 		//		CSerial::receiveByte(rbyte);
 		//	LOG_MSG("Modem: sending byte %2x back to UART2",rbyte);
 		//	}
@@ -174,22 +260,27 @@ void CSerialModem::SendRes(ResTypes response) {
 	}
 }
 
-bool CSerialModem::Dial(char * host) {
+bool CSerialModem::Dial(const char *host) {
+        char buf[128] = "";
+	safe_strcpy(buf, host);
+
+	const char *destination = buf;
 
 	// Scan host for port
-	Bit16u port;
-	char * hasport=strrchr(host,':');
+	uint16_t port;
+	char *hasport=strrchr(buf, ':');
 	if (hasport) {
-		*hasport++=0;
-		port=(Bit16u)atoi(hasport);
+		*hasport++ = 0;
+		port = (uint16_t)atoi(hasport);
 	}
 	else port=MODEM_DEFAULT_PORT;
-	// Resolve host we're gonna dial
-	LOG_MSG("Connecting to host %s port %d",host,port);
-	clientsocket = new TCPClientSocket(host, port);
+	
+        // Resolve host we're gonna dial
+	LOG_MSG("Connecting to host %s port %u", destination, port);
+	clientsocket = NETClientSocket::NETClientFactory(socketType, destination, port);
 	if(!clientsocket->isopen) {
 		delete clientsocket;
-		clientsocket=0;
+		clientsocket = nullptr;
 		LOG_MSG("Failed to connect.");
 		SendRes(ResNOCARRIER);
 		EnterIdleState();
@@ -203,7 +294,7 @@ bool CSerialModem::Dial(char * host) {
 void CSerialModem::AcceptIncomingCall(void) {
 	if(waitingclientsocket) {
 		clientsocket=waitingclientsocket;
-		waitingclientsocket=0;
+		waitingclientsocket = nullptr;
 		EnterConnectedState();
 	} else {
 		EnterIdleState();
@@ -211,11 +302,11 @@ void CSerialModem::AcceptIncomingCall(void) {
 }
 
 Bitu CSerialModem::ScanNumber(char * & scan) {
-	Bitu ret=0;
-	while (char c=*scan) {
-		if (c>='0' && c<='9') {
+	Bitu ret = 0;
+	while (char c = *scan) {
+		if (c >= '0' && c <= '9') {
 			ret*=10;
-			ret+=c-'0';
+			ret+=(Bitu)(c-'0');
 			scan++;
 		} else break;
 	}
@@ -231,21 +322,24 @@ char CSerialModem::GetChar(char * & scan) {
 void CSerialModem::Reset(){
 	EnterIdleState();
 	cmdpos = 0;
-	cmdbuf[0]=0;
+	cmdbuf[0] = 0;
 	oldDTRstate = getDTR();
 	flowcontrol = 0;
 	plusinc = 0;
+	dtrmode = 2;
 	if(clientsocket) {
 		delete clientsocket;
-		clientsocket=0;
+		clientsocket = nullptr;
 	}
 	memset(&reg,0,sizeof(reg));
-	reg[MREG_AUTOANSWER_COUNT]=0;	// no autoanswer
-	reg[MREG_RING_COUNT] = 1;
-	reg[MREG_ESCAPE_CHAR]='+';
-	reg[MREG_CR_CHAR]='\r';
-	reg[MREG_LF_CHAR]='\n';
-	reg[MREG_BACKSPACE_CHAR]='\b';
+	reg[MREG_AUTOANSWER_COUNT] = 0;	// no autoanswer
+	reg[MREG_RING_COUNT]       = 1;
+	reg[MREG_ESCAPE_CHAR]      = '+';
+	reg[MREG_CR_CHAR]          = '\r';
+	reg[MREG_LF_CHAR]          = '\n';
+	reg[MREG_BACKSPACE_CHAR]   = '\b';
+	reg[MREG_GUARD_TIME]       = 50;
+	reg[MREG_DTR_DELAY]        = 5;
 
 	cmdpause = 0;	
 	echo = true;
@@ -257,33 +351,39 @@ void CSerialModem::Reset(){
 }
 
 void CSerialModem::EnterIdleState(void){
-	connected=false;
-	ringing=false;
-	
+	connected = false;
+	ringing = false;
+	dtrofftimer = -1;
+
 	if(clientsocket) {
 		delete clientsocket;
-		clientsocket=0;
+		clientsocket = nullptr;
 	}
 
 	if(waitingclientsocket) {	// clear current incoming socket
 		delete waitingclientsocket;
-		waitingclientsocket=0;
+		waitingclientsocket = nullptr;
 	}
 	// get rid of everything
 	if(serversocket) {
 		while ((waitingclientsocket=serversocket->Accept()))
 			delete waitingclientsocket;
 	} else if (listenport) {
-		
-		serversocket=new TCPServerSocket(listenport);	
+
+		serversocket=NETServerSocket::NETServerFactory(socketType,listenport);
 		if(!serversocket->isopen) {
-			LOG_MSG("Serial%d: Modem could not open TCP port %d.",(int)COMNUMBER,(int)listenport);
+			LOG_MSG("Serial%d: Modem could not open %s port %u.",
+                                static_cast<uint32_t>(COMNUMBER), socketType ? "ENet" : "TCP",
+                                static_cast<uint32_t>(listenport));
 			delete serversocket;
-			serversocket=0;
-		} else LOG_MSG("Serial%d: Modem listening on port %d...",(int)COMNUMBER,(int)listenport);
+			serversocket = nullptr;
+		} else
+                    LOG_MSG("Serial%u: Modem listening on %s port %u...",
+		            static_cast<uint32_t>(COMNUMBER), socketType ? "ENet" : "TCP",
+			        static_cast<uint32_t>(listenport));
 	}
-	waitingclientsocket=0;
-	
+	waitingclientsocket = nullptr;
+
 	commandmode = true;
 	CSerial::setCD(false);
 	CSerial::setRI(false);
@@ -296,15 +396,26 @@ void CSerialModem::EnterConnectedState(void) {
 	if(serversocket) {
 		// we don't accept further calls
 		delete serversocket;
-		serversocket=0;
+		serversocket = nullptr;
 	}
 	SendRes(ResCONNECT);
 	commandmode = false;
 	memset(&telClient, 0, sizeof(telClient));
 	connected = true;
 	ringing = false;
+        dtrofftimer = -1;
 	CSerial::setCD(true);
 	CSerial::setRI(false);
+}
+
+template <size_t N>
+bool is_next_token(const char (&a)[N], const char *b) noexcept
+{
+	// Is 'b' at least as long as 'a'?
+	constexpr size_t N_without_null = N - 1;
+	if (strnlen(b, N) < N_without_null)
+		return false;
+	return (strncmp(a, b, N_without_null) == 0);
 }
 
 void CSerialModem::DoCommand() {
@@ -314,7 +425,7 @@ void CSerialModem::DoCommand() {
 	LOG_MSG("Command sent to modem: ->%s<-\n", cmdbuf);
 	/* Check for empty line, stops dialing and autoanswer */
 	if (!cmdbuf[0]) {
-		reg[0]=0;	// autoanswer off
+		reg[MREG_AUTOANSWER_COUNT] = 0;	// autoanswer off
 		return;
 	}
 	//else {
@@ -345,47 +456,114 @@ void CSerialModem::DoCommand() {
 		// LOG_MSG("loopstart ->%s<-",scanbuf);
 		char chr = GetChar(scanbuf);
 		switch (chr) {
+		// Multi-character AT-commands are prefixed with +
+		// -----------------------------------------------
+		// Note: successfully finding your multi-char command
+		// requires moving the scanbuf position one beyond the
+		// the last character in the multi-char sequence to ensure
+		// single-character detection resumes on the next character.
+		// Either break if successful or fail with SendRes(ResERROR)
+		// and return (halting the command sequence all together).
+		case '+':
+			// +NET1 enables telnet-mode and +NET0 disables it
+			if (is_next_token("NET", scanbuf)) {
+				// only walk the pointer ahead if the command matches
+				scanbuf += 3;
+				const uint32_t requested_mode = ScanNumber(scanbuf);
+
+				// If the mode isn't valid then stop parsing
+				if (requested_mode != 1 && requested_mode != 0) {
+					SendRes(ResERROR);
+					return;
+				}
+				// Inform the user on changes
+				if (telnetmode != static_cast<bool>(requested_mode)) {
+					telnetmode = requested_mode;
+					LOG_MSG("SERIAL: Port %u telnet-mode %s",
+					        (int)idnumber + 1,
+					        telnetmode ? "enabled" : "disabled");
+				}
+				break;
+			}
+			// +SOCK1 enables enet.  +SOCK0 is TCP.
+			if (is_next_token("SOCK", scanbuf)) {
+				scanbuf += 4;
+				const uint32_t requested_mode = ScanNumber(scanbuf);
+				if (requested_mode >= SOCKET_TYPE_COUNT) {
+					SendRes(ResERROR);
+					return;
+				}
+				socketType = (SocketTypesE)requested_mode;
+				// This will break when there's more than two
+				// socket types.
+				LOG_MSG("SERIAL: Port %u socket type %s",
+				        (int)idnumber + 1,
+				        socketType ? "ENet" : "TCP");
+				// Reset port state.
+				EnterIdleState();
+				break;
+			}
+			// If the command wasn't recognized then stop parsing
+			SendRes(ResERROR);
+			return;
 		case 'D': { // Dial
-			char * foundstr=&scanbuf[0];
+			char *foundstr = &scanbuf[0];
 			if (*foundstr=='T' || *foundstr=='P') foundstr++;
+
 			// Small protection against empty line and long string
-			if ((!foundstr[0]) || (strlen(foundstr)>100)) {
+			if ((!foundstr[0]) || (strlen(foundstr) > 100)) {
 				SendRes(ResERROR);
 				return;
 			}
-			char* helper;
-			// scan for and remove spaces; weird bug: with leading spaces in the string,
+			// scan for and remove whitespaces; weird bug: with leading spaces in the string,
 			// SDLNet_ResolveHost will return no error but not work anyway (win)
-			while(foundstr[0]==' ') foundstr++;
-			helper=foundstr;
-			helper+=strlen(foundstr);
-			while(helper[0]==' ') {
-				helper[0]=0;
-				helper--;
+			foundstr = trim(foundstr);
+
+			const char *mappedaddr = MODEM_GetAddressFromPhone(foundstr);
+			if (mappedaddr) {
+				Dial(mappedaddr);
+				return;
 			}
+			//Large enough scope, so the buffers are still valid when reaching Dial.
+			char buffer[128];
+			char obuffer[128];
 			if (strlen(foundstr) >= 12) {
 				// Check if supplied parameter only consists of digits
 				bool isNum = true;
-				for (Bitu i=0; i<strlen(foundstr); i++)
+				size_t fl = strlen(foundstr);
+				for (size_t i = 0; i < fl; i++)
 					if (foundstr[i] < '0' || foundstr[i] > '9') isNum = false;
 				if (isNum) {
 					// Parameter is a number with at least 12 digits => this cannot
 					// be a valid IP/name
 					// Transform by adding dots
-					char buffer[128];
-					Bitu j = 0;
-					for (Bitu i=0; i<strlen(foundstr); i++) {
+					size_t j = 0;
+					size_t foundlen = strlen(foundstr);
+					for (size_t i = 0; i < foundlen; i++) {
 						buffer[j++] = foundstr[i];
 						// Add a dot after the third, sixth and ninth number
 						if (i == 2 || i == 5 || i == 8)
 							buffer[j++] = '.';
 						// If the string is longer than 12 digits,
 						// interpret the rest as port
-						if (i == 11 && strlen(foundstr)>12)
+						if (i == 11 && strlen(foundstr) > 12)
 							buffer[j++] = ':';
 					}
 					buffer[j] = 0;
 					foundstr = buffer;
+					
+					// Remove Zeros from beginning of octets
+					size_t k = 0;
+					size_t foundlen2 = strlen(foundstr);
+					for (size_t i = 0; i < foundlen2; i++) {
+						if (i == 0 && foundstr[0] == '0') continue;
+						if (i == 1 && foundstr[0] == '0' && foundstr[1] == '0') continue;
+						if (foundstr[i] == '0' && foundstr[i-1] == '.') continue;
+						if (foundstr[i] == '0' && foundstr[i-1] == '0' && foundstr[i-2] == '.') continue;
+						obuffer[k++] = foundstr[i];
+						}
+					obuffer[k] = 0;
+					foundstr = obuffer;
 				}
 			}
 			Dial(foundstr);
@@ -393,8 +571,8 @@ void CSerialModem::DoCommand() {
 		}
 		case 'I': // Some strings about firmware
 			switch (ScanNumber(scanbuf)) {
-			case 3: SendLine("DosBox Emulated Modem Firmware V1.00"); break;
-			case 4: SendLine("Modem compiled for DosBox version " VERSION); break;
+			case 3: SendLine("DOSBox-X Emulated Modem Firmware V1.00"); break;
+			case 4: SendLine("Modem compiled for DOSBox-X version " VERSION); break;
 			}
 			break;
 		case 'E': // Echo on/off
@@ -482,7 +660,7 @@ void CSerialModem::DoCommand() {
 				scanbuf++;
 				while(scanbuf[0]==' ') scanbuf++;	// skip spaces
 				Bitu val = ScanNumber(scanbuf);
-				reg[index]=val;
+				reg[index]=(uint8_t)val;
 				break;
 			}
 			else if(scanbuf[0]=='?') {	// get register
@@ -505,12 +683,23 @@ void CSerialModem::DoCommand() {
 					}
 					break;
 				}
+                                case 'D': {
+					Bitu val = ScanNumber(scanbuf);
+					if (val<4) dtrmode=val;
+					else {
+						SendRes(ResERROR);
+						return;
+					}
+					break;
+				}
 				case '\0':
 					// end of string
 					SendRes(ResERROR);
 					return;
 				default:
-					LOG_MSG("Modem: Unhandled command: &%c%d",cmdchar,(int)ScanNumber(scanbuf));
+					LOG_MSG("Modem: Unhandled command: &%c%u",
+                                                cmdchar,
+                                                static_cast<uint32_t>(ScanNumber(scanbuf)));
 					break;
 			}
 			break;
@@ -530,7 +719,9 @@ void CSerialModem::DoCommand() {
 					SendRes(ResERROR);
 					return;
 				default:
-					LOG_MSG("Modem: Unhandled command: \\%c%d",cmdchar, (int)ScanNumber(scanbuf));
+					LOG_MSG("Modem: Unhandled command: \\%c%u",
+                                                cmdchar,
+                                                static_cast<uint32_t>(ScanNumber(scanbuf)));
 					break;
 			}
 			break;
@@ -539,21 +730,23 @@ void CSerialModem::DoCommand() {
 			SendRes(ResOK);
 			return;
 		default:
-			LOG_MSG("Modem: Unhandled command: %c%d",chr,(int)ScanNumber(scanbuf));
+			LOG_MSG("Modem: Unhandled command: %c%u",
+                                chr,
+                                static_cast<uint32_t>(ScanNumber(scanbuf)));
 			break;
 		}
 	}
 }
 
-void CSerialModem::TelnetEmulation(Bit8u * data, Bitu size) {
+void CSerialModem::TelnetEmulation(uint8_t * data, Bitu size) {
 	Bitu i;
-	Bit8u c;
+	uint8_t c;
 	for(i=0;i<size;i++) {
 		c = data[i];
 		if(telClient.inIAC) {
 			if(telClient.recCommand) {
 				if((c != 0) && (c != 1) && (c != 3)) {
-					LOG_MSG("MODEM: Unrecognized option %d", c);
+					LOG_MSG("MODEM: Unrecognized option %u", c);
 					if(telClient.command>250) {
 						/* Reject anything we don't recognize */
 						tqueue->addb(0xff);
@@ -650,12 +843,28 @@ void CSerialModem::Timer2(void) {
 
 	bool sendbyte = true;
 	Bitu usesize;
-	Bit8u txval;
+	uint8_t txval;
 	Bitu txbuffersize =0;
 
+	(void)sendbyte;// UNUSED
+
 	// Check for eventual break command
-	if (!commandmode) cmdpause++;
-	// Handle incoming data from serial port, read as much as available
+	if (!commandmode) {
+		cmdpause++;
+		if (cmdpause > (20 * reg[MREG_GUARD_TIME])) {
+			if (plusinc == 0) {
+				plusinc = 1;
+			}
+			else if (plusinc == 4) {
+				LOG_MSG("Modem: Entering command mode(escape sequence)");
+				commandmode = true;
+				SendRes(ResOK);
+				plusinc = 0;
+			}
+		}
+	}
+        
+        // Handle incoming data from serial port, read as much as available
 	CSerial::setCTS(true);	// buffer will get 'emptier', new data can be received 
 	while (tqueue->inuse()) {
 		txval = tqueue->getb();
@@ -664,43 +873,38 @@ void CSerialModem::Timer2(void) {
 				rqueue->addb(txval);
 				//LOG_MSG("Echo back to queue: %x",txval);
 			}
-			if (txval==0xa) continue;		//Real modem doesn't seem to skip this?
-			else if (txval==0x8 && (cmdpos > 0)) --cmdpos;	// backspace
-			else if (txval==0xd) DoCommand();				// return
-			else if (txval != '+') {
-				if(cmdpos<99) {
-					cmdbuf[cmdpos] = txval;
+			if (txval == '\n')
+                            continue; // Real modem doesn't seem to skip this?
+                        
+                        if (txval == '\b') {
+                            if (cmdpos > 0)
+                                cmdpos--;
+                        } else if (txval == '\r') {
+                            DoCommand();
+                        } else if (txval != '+') {
+                            if (cmdpos < 99) {
+					cmdbuf[cmdpos] = (char)txval;
 					cmdpos++;
 				}
 			}
 		}
 		else {// + character
-			// 1000 ticks have passed, can check for pause command
-			if (cmdpause > 1000) {
-				if(txval ==reg[MREG_ESCAPE_CHAR]) // +
-				{
-					plusinc++;
-					if(plusinc>=3) {
-						LOG_MSG("Modem: Entering command mode(escape sequence)");
-						commandmode = true;
-						SendRes(ResOK);
-						plusinc = 0;
-					}
-					sendbyte=false;
-				} else {
-					plusinc=0;
-				}
-	// If not a special pause command, should go for bigger blocks to send 
+			if (plusinc >= 1 && plusinc <= 3 && txval == reg[MREG_ESCAPE_CHAR]) // +
+                            plusinc++;
+                        else {
+                            plusinc = 0;
 			}
+                        cmdpause = 0;
 			tmpbuf[txbuffersize] = txval;
 			txbuffersize++;
 		}
 	} // while loop
 	
-	if (clientsocket && sendbyte && txbuffersize) {
+	if (clientsocket && txbuffersize) {
 		// down here it saves a lot of network traffic
 		if(!clientsocket->SendArray(tmpbuf,txbuffersize)) {
 			SendRes(ResNOCARRIER);
+			LOG_MSG("SERIAL: No carrier on send");
 			EnterIdleState();
 		}
 	}
@@ -708,8 +912,9 @@ void CSerialModem::Timer2(void) {
 	if(!commandmode && clientsocket && rqueue->left()) {
 		usesize = rqueue->left();
 		if (usesize>16) usesize=16;
-		if(!clientsocket->ReceiveArray(tmpbuf, &usesize)) {
+		if(!clientsocket->ReceiveArray(tmpbuf, usesize)) {
 			SendRes(ResNOCARRIER);
+			LOG_MSG("SERIAL: No carrier on receive");
 			EnterIdleState();
 		} else if(usesize) {
 			// Filter telnet commands 
@@ -722,7 +927,7 @@ void CSerialModem::Timer2(void) {
 	if (!connected && !waitingclientsocket && serversocket) {
 		waitingclientsocket=serversocket->Accept();
 		if(waitingclientsocket) {	
-			if(!CSerial::getDTR()) {
+			if(!CSerial::getDTR() && dtrmode != 0) {
 				// accept no calls with DTR off; TODO: AT &Dn
 				EnterIdleState();
 			} else {
@@ -731,14 +936,15 @@ void CSerialModem::Timer2(void) {
 				CSerial::setRI(!CSerial::getRI());
 				//MIXER_Enable(mhd.chan,true);
 				ringtimer = 3000;
-				reg[1] = 0;		//Reset ring counter reg
+				reg[MREG_RING_COUNT] = 0; //Reset ring counter reg
 			}
 		}
 	}
 	if (ringing) {
 		if (ringtimer <= 0) {
-			reg[1]++;
-			if ((reg[0]>0) && (reg[0]>=reg[1])) {
+			reg[MREG_RING_COUNT]++;
+			if ((reg[MREG_AUTOANSWER_COUNT] > 0) &&
+                                (reg[MREG_RING_COUNT] >= reg[MREG_AUTOANSWER_COUNT])) {
 				AcceptIncomingCall();
 				return;
 			}
@@ -750,6 +956,40 @@ void CSerialModem::Timer2(void) {
 		}
 		--ringtimer;
 	}
+
+        if (connected && !getDTR()) {
+		if (dtrofftimer == 0) {
+			switch (dtrmode) {
+				case 0:
+					// Do nothing.
+					//LOG_MSG("Modem: Dropped DTR.");
+					break;
+				case 1:
+					// Go back to command mode.
+					LOG_MSG("Modem: Entering command mode due to dropped DTR.");
+					commandmode = true;
+					SendRes(ResOK);
+					break;
+				case 2:
+					// Hang up.
+					LOG_MSG("Modem: Hanging up due to dropped DTR.");
+					SendRes(ResNOCARRIER);
+					EnterIdleState();
+					break;
+				case 3:
+					// Reset.
+					LOG_MSG("Modem: Resetting due to dropped DTR.");
+					SendRes(ResNOCARRIER);
+					Reset();
+					break;
+			}
+		}
+
+		// Set the timer to -1 once it's expired to turn it off.
+		if (dtrofftimer >= 0) {
+			dtrofftimer--;
+		}
+	}
 }
 
 
@@ -757,21 +997,21 @@ void CSerialModem::Timer2(void) {
 void CSerialModem::RXBufferEmpty() {
 	// see if rqueue has some more bytes
 	if(rqueue->inuse() && (CSerial::getRTS()||(flowcontrol!=3))){
-		Bit8u rbyte = rqueue->getb();
+		uint8_t rbyte = rqueue->getb();
 		//LOG_MSG("Modem: sending byte %2x back to UART1",rbyte);
 		CSerial::receiveByte(rbyte);
 	}
 }
 
-void CSerialModem::transmitByte(Bit8u val, bool first) {
+void CSerialModem::transmitByte(uint8_t val, bool first) {
 	waiting_tx_character=val;
 	setEvent(MODEM_TX_EVENT, bytetime); // TX event
 	if(first) ByteTransmitting();
 	//LOG_MSG("MODEM: Byte %x to be transmitted",val);
 }
 
-void CSerialModem::updatePortConfig(Bit16u, Bit8u lcr) { 
-// nothing to do here right?
+void CSerialModem::updatePortConfig(uint16_t, uint8_t lcr) {
+    (void) lcr; // deliberately unused by needed to meet the API
 }
 
 void CSerialModem::updateMSR() {
@@ -783,18 +1023,23 @@ void CSerialModem::setBreak(bool) {
 }
 
 void CSerialModem::setRTSDTR(bool rts, bool dtr) {
-	setDTR(dtr);
+    (void) rts; // deliberately unused but needed to meet the API
+    setDTR(dtr);
 }
 void CSerialModem::setRTS(bool val) {
-	
+    (void) val; // deliberately unused but needed to meet the API
 }
 void CSerialModem::setDTR(bool val) {
-	if(!val && connected) {
-		// If DTR goes low, hang up.
-		SendRes(ResNOCARRIER);
-		EnterIdleState();
-		LOG_MSG("Modem: Hang up due to dropped DTR.");
-	}	
+	if (val != oldDTRstate) {
+		if (connected && !val) {
+                        // Start the timer upon losing DTR.
+                        dtrofftimer = reg[MREG_DTR_DELAY];
+		} else {
+			dtrofftimer = -1;
+		}
+	}
+
+	oldDTRstate = val;
 }
 /*
 void CSerialModem::updateModemControlLines() {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include <assert.h>
@@ -25,6 +25,7 @@
 #include "SDL.h"
 
 #include "dosbox.h"
+#include "midi.h"
 #include "control.h"
 #include "cross.h"
 #include "support.h"
@@ -32,12 +33,12 @@
 #include "mapper.h"
 #include "pic.h"
 #include "hardware.h"
+#include "logging.h"
 #include "timer.h"
 
-#define SYSEX_SIZE 1024
 #define RAWBUF	1024
 
-Bit8u MIDI_evt_len[256] = {
+uint8_t MIDI_evt_len[256] = {
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x00
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x10
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x20
@@ -60,62 +61,34 @@ Bit8u MIDI_evt_len[256] = {
   0,2,3,2, 0,0,1,0, 1,0,1,1, 1,0,1,0   // 0xf0
 };
 
-class MidiHandler;
+MidiHandler * handler_list = nullptr;
 
-MidiHandler * handler_list=0;
+MidiHandler::MidiHandler(){
+	next = handler_list;
+	handler_list = this;
+}
 
-class MidiHandler {
-public:
-	MidiHandler() {
-		next=handler_list;
-		handler_list=this;
-	};
-	virtual bool Open(const char * /*conf*/) { return true; };
-	virtual void Close(void) {};
-	virtual void PlayMsg(Bit8u * /*msg*/) {};
-	virtual void PlaySysex(Bit8u * /*sysex*/,Bitu /*len*/) {};
-	virtual const char * GetName(void) { return "none"; };
-	virtual void Reset() {};
-	virtual ~MidiHandler() { };
-	MidiHandler * next;
-};
-
+bool roland_gs_sysex = true;
 MidiHandler Midi_none;
-
-
-static struct {
-	Bitu status;
-	Bitu cmd_len;
-	Bitu cmd_pos;
-	Bit8u cmd_buf[8];
-	Bit8u rt_buf[8];
-	struct {
-		Bit8u buf[SYSEX_SIZE];
-		Bitu used;
-		Bitu delay;
-		Bit32u start;
-	} sysex;
-	bool available;
-	MidiHandler * handler;
-} midi;
-
+DB_Midi midi;
+std::string sffile="Not available";
 
 static struct {
 	bool init;
 	bool ignore;
 
 	// NOTE: 16-bit ($ffff = not used, $00-ff = data value)
-	Bit16u code_80[0x80];			// note off (w/ velocity)
-	Bit16u code_90[0x80];			// note on (w/ velocity)
-	Bit16u code_a0[0x80];			// aftertouch (polyphonic key pressure)
-	Bit16u code_b0[0x80];			// Continuous controller (GM 1.0 + GS)
-	Bit16u code_c0[1];				// patch change
-	Bit16u code_d0[1];				// channel pressure (after-touch)
-	Bit16u code_e0[2];				// pitch bend
-	//Bit16u code_f0-ff				// system messages
+	uint16_t code_80[0x80];			// note off (w/ velocity)
+	uint16_t code_90[0x80];			// note on (w/ velocity)
+	uint16_t code_a0[0x80];			// aftertouch (polyphonic key pressure)
+	uint16_t code_b0[0x80];			// Continuous controller (GM 1.0 + GS)
+	uint16_t code_c0[1];				// patch change
+	uint16_t code_d0[1];				// channel pressure (after-touch)
+	uint16_t code_e0[2];				// pitch bend
+	//uint16_t code_f0-ff				// system messages
 
-	Bit16u code_rpn_coarse[3];		// registered parameter numbers (GM 1.0)
-	Bit16u code_rpn_fine[3];			// registered parameter numbers (GM 1.0)
+	uint16_t code_rpn_coarse[3];		// registered parameter numbers (GM 1.0)
+	uint16_t code_rpn_fine[3];			// registered parameter numbers (GM 1.0)
 } midi_state[16];
 
 
@@ -126,7 +99,7 @@ static struct {
 #include "midi_mt32.h"
 #endif
 
-#if C_FLUIDSYNTH
+#if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 #include "midi_synth.h"
 #endif
 
@@ -169,7 +142,7 @@ void MIDI_State_Reset()
 
 void MIDI_State_SaveMessage()
 {
-	Bit8u channel, command, arg1, arg2;
+	uint8_t channel, command, arg1, arg2;
 
 	if( midi_state[0].init == false ) {
 		MIDI_State_Reset();
@@ -348,7 +321,7 @@ void MIDI_State_SaveMessage()
 
 						// GM 1.0 = 0-2
 						if( rpn >= 3 ) break;
-						if( rpn == 0x7f7f ) break;
+						//if( rpn == 0x7f7f ) break;
 
 						midi_state[channel].code_rpn_coarse[rpn] = arg2;
 					}
@@ -365,7 +338,7 @@ void MIDI_State_SaveMessage()
 
 						// GM 1.0 = 0-2
 						if( rpn >= 3 ) break;
-						if( rpn == 0x7f7f ) break;
+						//if( rpn == 0x7f7f ) break;
 
 						midi_state[channel].code_rpn_fine[rpn] = arg2;
 					}
@@ -402,7 +375,7 @@ void MIDI_State_SaveMessage()
 }
 
 
-void MIDI_RawOutByte(Bit8u);
+void MIDI_RawOutByte(uint8_t);
 void MIDI_State_LoadMessage()
 {
 	if( midi_state[0].init == false ) {
@@ -536,10 +509,10 @@ void MIDI_State_LoadMessage()
 }
 
 
-void MIDI_RawOutByte(Bit8u data) {
+void MIDI_RawOutByte(uint8_t data) {
 	if (midi.sysex.start) {
-		Bit32u passed_ticks = GetTicks() - midi.sysex.start;
-		if (passed_ticks < midi.sysex.delay) SDL_Delay(midi.sysex.delay - passed_ticks);
+		uint32_t passed_ticks = GetTicks() - midi.sysex.start;
+		if (passed_ticks < midi.sysex.delay) SDL_Delay((Uint32)(midi.sysex.delay - passed_ticks));
 	}
 
 	/* Test for a realtime MIDI message */
@@ -548,7 +521,7 @@ void MIDI_RawOutByte(Bit8u data) {
 		midi.handler->PlayMsg(midi.rt_buf);
 		return;
 	}	 
-	/* Test for a active sysex tranfer */
+	/* Test for an active sysex transfer */
 	if (midi.status==0xf0) {
 		if (!(data&0x80)) { 
 			if (midi.sysex.used<(SYSEX_SIZE-1)) midi.sysex.buf[midi.sysex.used++] = data;
@@ -561,6 +534,27 @@ void MIDI_RawOutByte(Bit8u data) {
 			} else {
 //				LOG(LOG_ALL,LOG_NORMAL)("Play sysex; address:%02X %02X %02X, length:%4d, delay:%3d", midi.sysex.buf[5], midi.sysex.buf[6], midi.sysex.buf[7], midi.sysex.used, midi.sysex.delay);
 				midi.handler->PlaySysex(midi.sysex.buf, midi.sysex.used);
+
+				if (roland_gs_sysex) {
+					if (midi.sysex.buf[1] == 0x41/*Roland*/ && midi.sysex.buf[3] == 0x42/*GS*/ && midi.sysex.buf[4] == 0x12/*Send*/) {
+						const uint32_t addr =
+							((uint32_t)midi.sysex.buf[5] << 16) +
+							((uint32_t)midi.sysex.buf[6] <<  8) +
+							(uint32_t)midi.sysex.buf[7];
+
+						switch (addr) {
+							case 0x40007F: /* GS reset */
+								{
+									uint8_t msg[] = {0xFF};
+									midi.handler->PlayMsg(msg); /* MIDI reset */
+								}
+								break;
+							default:
+								break;
+						};
+					}
+				}
+
 				if (midi.sysex.start) {
 					if (midi.sysex.buf[5] == 0x7F) {
 						midi.sysex.delay = 290; // All Parameters reset
@@ -568,7 +562,12 @@ void MIDI_RawOutByte(Bit8u data) {
 						midi.sysex.delay = 145; // Viking Child
 					} else if (midi.sysex.buf[5] == 0x10 && midi.sysex.buf[6] == 0x00 && midi.sysex.buf[7] == 0x01) {
 						midi.sysex.delay = 30; // Dark Sun 1
-					} else midi.sysex.delay = (Bitu)(((float)(midi.sysex.used) * 1.25f) * 1000.0f / 3125.0f) + 2;
+					} else {
+						midi.sysex.delay = (Bitu)(((float)(midi.sysex.used) * 1.25f) * 1000.0f / 3125.0f) + 2;
+						if (midi.sysex.extra_delay && midi.sysex.delay < 40) {
+							midi.sysex.delay = 40;
+						}
+					}
 					midi.sysex.start = GetTicks();
 				}
 			}
@@ -610,11 +609,21 @@ bool MIDI_Available(void)  {
 class MIDI:public Module_base{
 public:
 	MIDI(Section* configuration):Module_base(configuration){
-		Section_prop * section=static_cast<Section_prop *>(configuration);
+		Section_prop * section = static_cast<Section_prop *>(configuration);
 		const char * dev=section->Get_string("mididevice");
-		std::string fullconf=section->Get_string("midiconfig");
+		std::string fullconf = section->Get_string("midiconfig");
+#if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+		synthsamplerate = section->Get_int("samplerate");
+		if (synthsamplerate == 0) synthsamplerate = 44100;
+#endif
+		if (control->opt_silent) dev = "none";
+
 		/* If device = "default" go for first handler that works */
 		MidiHandler * handler;
+		bool opened = false;
+
+		roland_gs_sysex = section->Get_bool("roland gs sysex");
+
 //		MAPPER_AddHandler(MIDI_SaveRawEvent,MK_f8,MMOD1|MMOD2,"caprawmidi","Cap MIDI");
 		midi.sysex.delay = 0;
 		midi.sysex.start = 0;
@@ -622,49 +631,48 @@ public:
 			midi.sysex.start = GetTicks();
 			fullconf.erase(fullconf.find("delaysysex"));
 			LOG(LOG_MISC,LOG_DEBUG)("MIDI:Using delayed SysEx processing");
+			midi.sysex.extra_delay = true;
 		}
-		std::remove(fullconf.begin(), fullconf.end(), ' ');
+		trim(fullconf);
 		const char * conf = fullconf.c_str();
 		midi.status=0x00;
 		midi.cmd_pos=0;
 		midi.cmd_len=0;
-		if (!strcasecmp(dev,"default")) goto getdefault;
-		handler=handler_list;
-		while (handler) {
-			if (!strcasecmp(dev,handler->GetName())) {
-#if C_FLUIDSYNTH
-                       if(!strcasecmp(dev,"synth"))    // synth device, get sample rate from config
-                           synthsamplerate=section->Get_int("samplerate");
-#endif
-				if (!handler->Open(conf)) {
-					LOG(LOG_MISC,LOG_WARN)("MIDI:Can't open device:%s with config:%s.",dev,conf);	
-					goto getdefault;
-				}
-				midi.handler=handler;
-				midi.available=true;	
-				LOG(LOG_MISC,LOG_DEBUG)("MIDI:Opened device:%s",handler->GetName());
 
-				// force reset to prevent crashes (when not properly shutdown)
-				// ex. Roland VSC = unexpected hard system crash
-				midi_state[0].init = false;
-				MIDI_State_LoadMessage();
-				return;
+		if (strcasecmp(dev,"default")) {
+			for (handler = handler_list; handler; handler = handler->next) {
+				if (!strcasecmp(dev,handler->GetName())) {
+					opened = handler->Open(conf);
+					break;
+				}
 			}
-			handler=handler->next;
+			if (handler == NULL)
+				LOG_MSG("MIDI:Cannot find device:%s. Finding default handler.",dev);
+			else if (!opened)
+				LOG_MSG("MIDI:Cannot open device:%s with config:%s. Finding default handler.",dev,conf);
 		}
-		LOG(LOG_MISC,LOG_DEBUG)("MIDI:Can't find device:%s, finding default handler.",dev);	
-getdefault:	
-		handler=handler_list;
-		while (handler) {
-			if (handler->Open(conf)) {
-				midi.available=true;	
-				midi.handler=handler;
-				LOG(LOG_MISC,LOG_DEBUG)("MIDI:Opened device:%s",handler->GetName());
-				return;
+
+		if (!opened) {
+			for (handler = handler_list; handler; handler = handler->next) {
+				opened = handler->Open(conf);
+				if (opened) break;
 			}
-			handler=handler->next;
 		}
-		/* This shouldn't be possible */
+
+		if (!opened) {
+			// This shouldn't be possible
+			LOG_MSG("MIDI:Could not open a handler");
+			return;
+		}
+
+		midi.available=true;
+		midi.handler=handler;
+		LOG_MSG("MIDI:Opened device:%s",handler->GetName());
+
+		// force reset to prevent crashes (when not properly shutdown)
+		// ex. Roland VSC = unexpected hard system crash
+		midi_state[0].init = false;
+		MIDI_State_LoadMessage();
 	}
 	~MIDI(){
 		if( midi.status < 0xf0 ) {
@@ -677,14 +685,29 @@ getdefault:
 		}
 		if(midi.available) midi.handler->Close();
 		midi.available = false;
-		midi.handler = 0;
+		midi.handler = nullptr;
 	}
 };
 
+void MIDI_ListHandler(Program *caller, const char *name)
+{
+    if (!*name) return;
+    bool found=false;
+    for (auto *handler = handler_list; handler; handler = handler->next)
+        if (!strcasecmp(handler->GetName(), name)) {
+            handler->ListAll(caller);
+            found=true;
+            break;
+        }
+    if (!found) caller->WriteOut("MIDI handler not available - %s\n", name);
+}
 
-static MIDI* test;
+static MIDI* test = NULL;
 void MIDI_Destroy(Section* /*sec*/){
-	delete test;
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 }
 
 void MIDI_Init() {
@@ -694,3 +717,120 @@ void MIDI_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(MIDI_Destroy),true);
 }
 
+void MIDI_GUI_OnSectionPropChange(Section *x) {
+    (void)x;//UNUSED
+
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
+
+	test = new MIDI(control->GetSection("midi"));
+}
+
+//save state support
+namespace {
+class SerializeMidi : public SerializeGlobalPOD {
+public:
+    SerializeMidi() : SerializeGlobalPOD("Midi")
+    {}
+
+private:
+    void getBytes(std::ostream& stream) override
+    {
+				if( !test ) return;
+
+				//******************************************
+				//******************************************
+				//******************************************
+
+				SerializeGlobalPOD::getBytes(stream);
+
+
+				// - pure data
+				WRITE_POD( &midi.status, midi.status );
+				WRITE_POD( &midi.cmd_len, midi.cmd_len );
+				WRITE_POD( &midi.cmd_pos, midi.cmd_pos );
+				WRITE_POD( &midi.cmd_buf, midi.cmd_buf );
+				WRITE_POD( &midi.rt_buf, midi.rt_buf );
+				WRITE_POD( &midi.sysex, midi.sysex );
+
+				//*******************************************
+				//*******************************************
+				//*******************************************
+
+				// Supports MT-32 MUNT only!!
+				if(0) {
+				}
+
+				// external MIDI 
+				else if( midi.available ) {
+					const char pod_name[32] = "External";
+
+
+					WRITE_POD( &pod_name, pod_name );
+
+					//*******************************************
+					//*******************************************
+					//*******************************************
+
+					// - pure data
+					WRITE_POD( &midi_state, midi_state );
+				}
+    }
+
+    void setBytes(std::istream& stream) override
+    {
+				if( !test ) return;
+
+				//******************************************
+				//******************************************
+				//******************************************
+
+        SerializeGlobalPOD::setBytes(stream);
+
+
+				// - pure data
+				READ_POD( &midi.status, midi.status );
+				READ_POD( &midi.cmd_len, midi.cmd_len );
+				READ_POD( &midi.cmd_pos, midi.cmd_pos );
+				READ_POD( &midi.cmd_buf, midi.cmd_buf );
+				READ_POD( &midi.rt_buf, midi.rt_buf );
+				READ_POD( &midi.sysex, midi.sysex );
+
+				//*******************************************
+				//*******************************************
+				//*******************************************
+
+				// Supports MT-32 MUNT only!!
+				if(0) {
+				}
+
+				// external MIDI
+				else if( midi.available ) {
+					char pod_name[32] = {0};
+
+
+					// error checking
+					READ_POD( &pod_name, pod_name );
+					if( strcmp( pod_name, "External" ) ) {
+						stream.clear( std::istream::failbit | std::istream::badbit );
+						return;
+					}
+
+					//************************************************
+					//************************************************
+					//************************************************
+
+				// - pure data
+					READ_POD( &midi_state, midi_state );
+
+					//************************************************
+					//************************************************
+					//************************************************
+
+					MIDI_State_LoadMessage();
+				}
+    }
+} dummy;
+}

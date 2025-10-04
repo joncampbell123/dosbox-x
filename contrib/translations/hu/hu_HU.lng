@@ -1,0 +1,4513 @@
+:DOSBOX-X:LANGUAGE:Hungarian (Hungary)
+:DOSBOX-X:CODEPAGE:852
+:DOSBOX-X:VERSION:2025.05.03
+:DOSBOX-X:REMARK:
+:AUTOEXEC_CONFIGFILE_HELP
+Ebben a szekcióban lévő sorok indításkor lefutnak.
+A csatoláshoz a MOUNT sorokat ide kell beilleszteni.
+
+.
+:CONFIGFILE_INTRO
+# Ez a DOSBox-X %s konfigurációs fájlja. (A legutolsó DOSBox-X verzió használata ajánlott!)
+# A # karakterrel induló sorok megjegyzések, amelyeket a DOSBox-X nem vesz figyelembe.
+# Az egyes opciók hatásának (rövid) dokumentálására használtak.
+# Az ÖSSZES opció kiírásához a 'config -all' parancs használható vagy a -wc vagy -writeconf opciók.
+# Nem triviális funkcióknál előfordulhat, hogy véletlenül sületlenséget írtam, ezekért elnézést kérek.
+# Igyekeztem az általános terminológiát használni, ami helyhány miatt néhol nehézkes, de nem akinek nem tetszik, itt javítható. :)
+.
+:CONFIG_SUGGESTED_VALUES
+Lehetséges értékek
+.
+:CONFIG_ADVANCED_OPTION
+Haladó beállítások (a részletek a [dosbox-x.reference.full.conf] file-ban találhatóak)
+.
+:CONFIG_TOOL
+DOSBox-X konfigurációs eszköz
+.
+:CONFIG_TOOL_EXIT
+Kilépés a konfigurációs eszközből
+.
+:MAPPER_EDITOR_EXIT
+Kilépés a billentyűzetkiosztás szerkesztőből
+.
+:SAVE_MAPPER_FILE
+Billentyűzetkiosztás elmentése
+.
+:WARNING
+Figyelmeztetés
+.
+:YES
+Igen
+.
+:NO
+Nem
+.
+:OK
+OK
+.
+:CANCEL
+Mégse
+.
+:CLOSE
+Bezár
+.
+:DEBUGCMD
+Debug parancs
+.
+:ADD
+Hozzáad
+.
+:DEL
+Töröl
+.
+:NEXT
+Következő
+.
+:SAVE
+Ment
+.
+:EXIT
+Kilép
+.
+:CAPTURE
+Rögzítés
+.
+:SAVE_CONFIGURATION
+A beállítások mentése
+.
+:SAVE_LANGUAGE
+A nyelvi fájl mentése
+.
+:SAVE_RESTART
+Elment/újraindít
+.
+:PASTE_CLIPBOARD
+Vágólap beillesztése
+.
+:APPEND_HISTORY
+Hozzáfűzés a parancs-történethez 
+.
+:EXECUTE_NOW
+Azonnali futtatás
+.
+:ADDITION_CONTENT
+Hozzáadott tartalom:
+.
+:CONTENT
+Tartalom:
+.
+:EDIT_FOR
+%s szerkesztése
+.
+:HELP_FOR
+%s súgója
+.
+:HELP_INFO
+Részletes súgó elérhető a "Súgó" gombbal.
+.
+:SELECT_VALUE
+Érték megadása
+.
+:CONFIGURATION_FOR
+%s beállítása
+.
+:CONFIGURATION
+Konfiguráció
+.
+:SETTINGS
+Beállítások
+.
+:LOGGING_OUTPUT
+DOSBox-X napló kimenete
+.
+:CODE_OVERVIEW
+Kód áttekintés
+.
+:VISIT_HOMEPAGE
+Honlap megnyitása
+.
+:GET_STARTED
+Indítás
+.
+:CDROM_SUPPORT
+CDROM támogatás
+.
+:DRIVE_INFORMATION
+Meghajtó információ
+.
+:MOUNTED_DRIVE_NUMBER
+Csatolt meghajtók
+.
+:IDE_CONTROLLER_ASSIGNMENT
+IDE meghajtó
+.
+:HELP_COMMAND
+DOS parancsok súgója
+.
+:CURRENT_VOLUME
+Aktív hangbeállítások
+.
+:CURRENT_SBCONFIG
+Sound Blaster konfiguráció
+.
+:CURRENT_MIDICONFIG
+Aktív MIDI konfiguráció
+.
+:CREATE_IMAGE
+Üres lemezkép-fájl létrehozása
+.
+:NETWORK_LIST
+Hálózati interfészek kilistázása
+.
+:PRINTER_LIST
+Nyomtató lista
+.
+:INTRODUCTION
+Ismertető
+.
+:CONFIGURE_GROUP
+A beállítandó csoport kiválasztása:
+.
+:SHOW_ADVOPT
+Haladó beállítások
+.
+:USE_PRIMARYCONFIG
+Dosbox-x.conf
+.
+:USE_PORTABLECONFIG
+Hordozható konfig
+.
+:USE_USERCONFIG
+Egyedi konfig
+.
+:CONFIG_SAVETO
+Adja meg a konfigurációs fájl nevét:
+.
+:CONFIG_SAVEALL
+Minden konfiguráció (a haladókat is beleértve) fájlba mentése
+.
+:LANG_FILENAME
+A nyelvi fájl neve:
+.
+:LANG_LANGNAME
+Nyelv (opcionális):
+.
+:INTRO_MESSAGE
+Üdvözölet a Dosbox-x nevű ingyenes és teljes DOS emulációs csomagban.
+DOSBox-X, a normál DOS-hoz hasonló parancsértelmezőt hoz létre.
+A DOS emulációban Windows 3.x/9x/Me is futtatható.
+.
+:DRIVE
+Meghajtó
+.
+:TYPE
+Típus
+.
+:LABEL
+Cimke
+.
+:DRIVE_NUMBER
+Meghajtó kódja
+.
+:DISK_NAME
+Lemez neve
+.
+:IDE_POSITION
+IDE pozíció
+.
+:SWAP_SLOT
+SWAP sor 
+.
+:EMPTY_SLOT
+Üres sor
+.
+:SLOT
+Mentési sor
+.
+:SELECT_EVENT
+Esemény kiválasztása
+.
+:SELECT_DIFFERENT_EVENT
+Válasszon másik eseményt vagy Hozzáad/Töröl/Következő gombot.
+.
+:PRESS_JOYSTICK_KEY
+Nyomjon meg egy gombot, vagy mozgassa a Joystick-ot.
+.
+:CAPTURE_ENABLED
+Rögzítés aktív. ESC a feloldáshoz.
+.
+:MAPPER_FILE_SAVED
+Billentyűzetkiosztás elmentve
+.
+:AUTO_CYCLE_MAX
+Automata sebesség [max]
+.
+:AUTO_CYCLE_AUTO
+Automata sebesség [auto]
+.
+:AUTO_CYCLE_OFF
+Automata sebesség [kikapcs]
+.
+:PROGRAM_CONFIG_PROPERTY_ERROR
+Nincs ilyen szekció vagy tulajdonság.
+
+.
+:PROGRAM_CONFIG_NO_PROPERTY
+A(z) %s szekcióban nincs %s tulajdonság.
+
+.
+:PROGRAM_CONFIG_SET_SYNTAX
+A -set opció hibásan van megadva.
+
+.
+:PROGRAM_CONFIG_NOCONFIGFILE
+Nincs konfigurációs fájl betöltve!
+
+.
+:PROGRAM_CONFIG_PRIMARY_CONF
+Elsődleges konfig fájl: 
+%s
+
+.
+:PROGRAM_CONFIG_ADDITIONAL_CONF
+További konfig fájlok:
+
+.
+:PROGRAM_CONFIG_GLOBAL_CONF
+
+Globális konfig fájl: 
+%s
+
+.
+:PROGRAM_CONFIG_CONFDIR
+DOSBox-X %s felhasználó konfigurációs könyvtára: 
+%s
+
+
+.
+:PROGRAM_CONFIG_WORKDIR
+DOSBox-X munkakönyvtra: 
+%s
+
+
+.
+:PROGRAM_CONFIG_FILE_ERROR
+
+A(z) %s fájl megnyitása sikertelen
+
+.
+:PROGRAM_CONFIG_FILE_WHICH
+A(z) %s konfigurációs fájl mentése
+
+.
+:PROGRAM_LANGUAGE_FILE_WHICH
+A(z) %s nyelvi fájl mentése
+
+.
+:PROGRAM_CONFIG_USAGE
+DOSBox-X parancssori konfiguráció. Támogatott kapcsolók:
+-wc (vagy -writeconf) paraméter nélkül: elsődlegesen betöltött konfigurációs fájlba mentés.
+-wc (vagy -writeconf) fájl nevével: fájl mentése a konfigurációs könyvtárba.
+-wl (vagy -writelang) fájl nevével: az aktuális nyelvi szövegek elmentése.
+-ln (vagy -langname) Dili kilistázása (argümansız) vagy belirtir.
+-wcp [fájlnév] Fájl mentése a programkönyvtárba (dosbox-x.conf vagy fájlnév).
+-wcd Az konfigurációs könyvtárban lévő alapértelmezett konfigurációs fájl mentése.
+-all, -mod a -wc/-wcp/-wcd paraméterekkel használandó az összes vagy csak módosított opciók mentésére.
+-norem -wc/-wcp/-wcd paraméterekkel használandó az opciókhoz tartozó megjegyzések mellőzésére.
+-wcboot, -wcpboot, or -wcdboot a DOSBox-X program újraindítása mentés után.
+-bootconf (vagy -bc) megadott/elsődleges konfigurációs állománnyal történő újraindítás.
+-l A DOSBox-X konfigurációjának listázása.
+-h, -help, -? Súgó megjelenítése, "sections" szó hozzáadásáaval a szekciók választhatóak.
+-h, -help, -? section / property szekció/tulajdonság súgójának megjelenítése.
+-axclear [autoexec] szekció törlése.
+-axadd [line] [autoexec] szekcióba 1 sor létrehozása.
+-axtype [autoexec] szekció tartalmásának kiírása.
+-avistart, -avistop AVI felvétel elindítása vagy megállítása.
+-securemode Biztonsági üzemmód, ahol bizonyos funkciók mint a csatolás tiltott.
+-startmapper DOSBox-X billentyűzet-szerkesztő elindítása.
+-gui A konfigurációs eszköz elindításaszerkesztő.
+-get "section property" visszatér a szekció tulajdonság értékével (szintén a(z) %%CONFIG%%).
+-set (-setf erőltetett) "section property=value" érték beállítása.
+
+.
+:PROGRAM_CONFIG_HLP_PROPHLP
+"%s" tulajdonság ("%s" szekcióban található):
+%s
+
+Lehetséges érték: %s
+Alapbeállítás: %s
+Aktuális: %s
+
+.
+:PROGRAM_CONFIG_HLP_LINEHLP
+A(z) "%s" szekció célja:
+%s
+Aktuális érték:
+%s
+
+.
+:PROGRAM_CONFIG_HLP_NOCHANGE
+Futás közben ez az érték nem változtatható.
+
+.
+:PROGRAM_CONFIG_APPLY_RESTART
+A beállítások érvénybe léptetéséért újraindítsam a programot [Y-igen | N-nem]?
+.
+:PROGRAM_CONFIG_HLP_POSINT
+pozitív egész
+.
+:PROGRAM_CONFIG_HLP_SECTHLP
+A(z) %s szekció az alábbi tulajdonságokat tartalmazza:
+
+.
+:PROGRAM_CONFIG_HLP_SECTLIST
+DOSBox-X konfiguráció az alábbi szekciókat tartalmazza:
+
+
+.
+:PROGRAM_CONFIG_SECURE_ON
+Biztonsági mód bekapcsolva.
+
+.
+:PROGRAM_CONFIG_SECURE_DISALLOW
+Ez a funkcó biztonsági módban nem elérhető.
+
+.
+:PROGRAM_CONFIG_SECTION_ERROR
+A(z) %s szekció nem elérhető.
+
+.
+:PROGRAM_CONFIG_VALUE_ERROR
+"%s" nem megfelelő érték a(z) %s tulajdonsághoz.
+
+.
+:PROGRAM_CONFIG_PROPERTY_DUPLICATE
+A tulajdonság neve másik szekcióban is megtalálható.
+
+.
+:PROGRAM_CONFIG_GET_SYNTAX
+Megfelelő szintaktika: config -get "section property".
+
+.
+:PROGRAM_CONFIG_PRINT_STARTUP
+
+DOSBox-X az alábbi parancssori paraméter(ek/r)el lett elindítva:
+%s
+
+.
+:PROGRAM_CONFIG_MISSINGPARAM
+Hiányzó paraméter.
+
+.
+:PROGRAM_MOUSE_INSTALL
+A PS/2 csatolóhoz telepítve.
+
+.
+:PROGRAM_MOUSE_VERTICAL
+Fordított Y-tengely aktív.
+
+.
+:PROGRAM_MOUSE_VERTICAL_BACK
+Fordított Y-tengely kikapcsolva.
+
+.
+:PROGRAM_MOUSE_UNINSTALL
+A meghajtóprogram sikeresen eltávolítva...
+
+.
+:PROGRAM_MOUSE_ERROR
+A PS/2 csatolóhoz már kapcsolódik.
+
+.
+:PROGRAM_MOUSE_NOINSTALLED
+A meghajtóprogram nincs telepítve.
+
+.
+:PROGRAM_MOUSE_HELP
+Az egér be/ki kapcsolása.
+
+MOUSE [/?] [/U] [/V]
+  /U: Eltávolít
+  /V: Fordított Y-tengely
+
+.
+:PROGRAM_MOUNT_CDROMS_FOUND
+CDROM(ok): %d
+
+.
+:PROGRAM_MOUNT_STATUS_FORMAT
+%-5s  %-58s %-12s
+
+.
+:PROGRAM_MOUNT_STATUS_ELTORITO
+A %c meghajtó El Torito floppyként csatolva
+
+.
+:PROGRAM_MOUNT_STATUS_RAMDRIVE
+A %c meghajtó El Torito RAM meghajtóként csatolva
+
+.
+:PROGRAM_MOUNT_STATUS_2
+%c meghajtó mint %s csatolva
+
+.
+:PROGRAM_MOUNT_STATUS_1
+Csatolt meghajtók:
+
+.
+:PROGRAM_MOUNT_NOT_FORMATTED
+A meghajtó nincs formázva. Használat előtt formázás szükséges.
+
+.
+:PROGRAM_MOUNT_UNSUPPORTED_EXT
+Nem támogatott bővítmény %s: IMG lemezkép-fájlként csatolva.
+
+.
+:PROGRAM_IMGMOUNT_STATUS_FORMAT
+%-5s  %-47s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT
+%-12s  %-40s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_2
+Csatolt meghajtók azonosítói:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_1
+Csatolt FAT/ISO meghajtók:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NONE
+Nincs elérhető meghajtó
+
+.
+:PROGRAM_IMGSWAP_STATUS
+SWAP meghajtók:
+
+.
+:PROGRAM_IMGSWAP_ERROR
+A meghajtó pozíciója 1 és %d között kell, hogy legyen.
+
+.
+:PROGRAM_MOUNT_ERROR_1
+%s könyvtár nem található.
+
+.
+:PROGRAM_MOUNT_ERROR_2
+%s nem könyvtár.
+
+.
+:PROGRAM_MOUNT_IMGMOUNT
+Képfile-ok csatlakoztatásához ←[34;1mIMGMOUNT←[0m parancs használandó a ←[34;1mMOUNT←[0m parancs helyett.
+
+.
+:PROGRAM_MOUNT_ILL_TYPE
+Nem megengedett %s
+
+.
+:PROGRAM_MOUNT_ALREADY_MOUNTED
+%c meghajtó már csatolva mint %s
+
+.
+:PROGRAM_MOUNT_USAGE
+Könyvtárak vagy meghajtók DOSBox-X meghajtóként csatlakoztatása.
+Használat: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mmeghajtó←[0m ←[36;1melérési út←[0m [opció]←[0m
+ ←[37;1mmeghajtó←[0m   A csatlakoztatandó meghajtó betűkódja.
+ ←[36;1melérési út←[0m  Helyi könyvtár vagy meghajtó.
+ [opciók] A csatlakozás beállításai. Az elfogadott kapcsolók:
+ -t            Meghajtó típusa: (dir, floppy, cdrom, overlay)
+  (Megjegyzés: az overlay átirányítja az írási műveleteket másik könyvárba)
+ -label [név]  Cimke használata (NAGY BETŰKKEL).
+ -nl           Ha foglalt, a következő betűkód használata.
+ -ro           Csak olvasásra.
+ -pr           Az elérési út a konfigurációs fájl helyzetéhez relatív.
+ -cd           A helyi CD-meghajtók listája (#).
+ -usecd [#]    Közvetlen emuláció (pl. audió lejátszás).
+ -ioctl        Legalacsonyabb szintű hardware hozzáférés(-usecd).
+ -aspi         A betöltött ASPI meghajtóprogram használata (-usecd).
+ -freesize [x] Szabad hely megadása MB formátumban (Floppy KB).
+ -nocachedir   Gyorsítótár alkalmazása nélkül közvetlen használat.
+ -z [drive]    Z: virtuális meghajtó másik betűkódra mozgatása.
+ -o            Helyi vagy távoli meghajtóként megjelenítés (local, remote).
+ -q            Csendes mód (nincsenek üzenetek).
+ -u            A meghajtó eltávolítása.
+ ←[32;1m-examples Példák a használatra.←[0m
+A csatolt meghajtók listázásához: MOUNT [ENTER].
+.
+:PROGRAM_MOUNT_EXAMPLE
+MOUNT parancs alap használata:
+
+←[32;1mMOUNT c %s←[0m
+
+Ez a parancs, a(z) %s könyvtárat a DOSBox-X C: meghajtóként csatlakoztatja. A könyvtárnak léteznie kell. 
+Ha a nevében üres hely (space) található, a (dupla) idézőjel használata szükséges, pl: %s
+
+MOUNT parancs egyéb használati lehetőségei:
+
+←[32;1mMOUNT←[0m                            - meghajtók listázása
+←[32;1mMOUNT -cd←[0m                        - CD meghajtók listázása
+←[32;1mMOUNT d %s←[0m           - D: meghajtóként csatolva a könyvtár
+←[32;1mMOUNT c %s -t cdrom←[0m     - C: meghajtó CDROM-ként
+←[32;1mMOUNT c %s -ro←[0m          - C: meghajtó csak olvasásra
+←[32;1mMOUNT c %s -label TEST←[0m  - C: meghajtó TEST cimkével
+←[32;1mMOUNT c %s -nocachedir ←[0m - C: meghajtó nem használ gyorsítótárat
+←[32;1mMOUNT c %s -freesize 128←[0m- C: meghajtón 128MB szabad hely elérhető
+←[32;1mMOUNT c %s -u←[0m           - C: meghajtó erőltetett csatlakoztatása
+←[32;1mMOUNT c %s -t overlay←[0m - C: meghajtó linkelve az írható könyvtárba
+←[32;1mMOUNT c -u←[0m                       - C: eltávolítása
+
+.
+:PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
+%c meghajtó nincs csatolva.
+
+.
+:PROGRAM_MOUNT_UMOUNT_SUCCESS
+%c meghajtó sikeresen eltávolítva.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
+%c meghajtó sikeresen eltávolítva.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
+Virtuális meghajtók nem eltávolíthatóak.
+
+.
+:PROGRAM_MOUNT_WARNING_WIN
+Figyelmeztetés: C:\ csatlakoztatása ellenjavalt.
+
+.
+:PROGRAM_MOUNT_WARNING_OTHER
+Figyelmeztetés: / (root) csatlakoztatása ellenjavalt.
+
+.
+:PROGRAM_MOUNT_PHYSFS_ERROR
+PhysFS meghajtó archív file-al csatlakoztatása sikertelen.
+
+.
+:PROGRAM_MOUNT_OVERLAY_NO_BASE
+Az "overlay" könyvtár megadása előtt egy normál könyvtárat kell csatlakoztatni.
+
+.
+:PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
+Az "overlay" NEM megfelelő a megadott meghajtóhoz.
+
+.
+:PROGRAM_MOUNT_OVERLAY_MIXED_BASE
+Az "overlay" megadásához azonos elérési út formát kell használni, mint a csatolt meghajtó. Relatív és abszolút elérési utak nem keverhetőek.
+.
+:PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
+Az "overlay" könyvtár nem lehet azonos a meghajtóhoz megadott eredeti könyvtárral.
+
+.
+:PROGRAM_MOUNT_OVERLAY_ERROR
+Az "overlay" meghajtó létrehozása során hiba lépett fel.
+
+.
+:PROGRAM_MOUNT_OVERLAY_STATUS
+Az "Overlay" %s sikeresen létrehozva a(z) %c meghajtón.
+
+.
+:PROGRAM_LOADFIX_ALLOC
+%d kb elkülönítve.
+
+.
+:PROGRAM_LOADFIX_DEALLOC
+%d kb felszabadítva.
+
+.
+:PROGRAM_LOADFIX_DEALLOCALL
+A használt memória felszabadítva.
+
+.
+:PROGRAM_LOADFIX_ERROR
+Memória allokációs hiba.
+
+.
+:PROGRAM_LOADFIX_HELP
+A felső memóriába (első 64KB fölé) tölt egy programot az elérhető memória csökkentésével.
+
+LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{opciók}]
+LOADFIX -f [-xms] [-ems]
+
+  -xms        A hagyományos memória helyére az XMS allokációja
+  -ems        A hagyományos memória helyére az EMS allokációja
+  -{ram}      A lefoglalandó memória méretének meghatározása KB formában
+              Alapértékek: Hagyományos memória - 64kb; XMS/EMS - 1MB.
+  -a          A legalacsonyabb 64KB megtöltéséhez elég hagymányos memória automatikus allokációja
+  -f (or -d)  Az előzőleg lefoglalt memória felszabadítása
+  {program}   A megadott program futtatása
+  {opciók}    A program paraméterei (ha van)
+
+Példák:
+  ←[32;1mLOADFIX abc.exe←[0m      64KB hagymányos memória allokációja és az abc.exe futtatása
+  ←[32;1mLOADFIX -a←[0m           Automatikusan allokálja az első 64KB hagymányos memóriát
+  ←[32;1mLOADFIX -128←[0m         128KB hagymányos memóriát allokál
+  ←[32;1mLOADFIX -xms←[0m         1MB XMS memóriát allokál
+  ←[32;1mLOADFIX -f←[0m           Felszabadítja a hagymányos memóriát
+
+.
+:MSCDEX_SUCCESS
+MSCDEX aktiválva.
+
+.
+:MSCDEX_ERROR_MULTIPLE_CDROMS
+MSCDEX: Sikertelen: Egynél több CDROM meghajtó betűjeleinek folyamatosnak kell lennie.
+
+.
+:MSCDEX_ERROR_NOT_SUPPORTED
+MSCDEX: Sikertelen: Egyelőre nem támogatott.
+
+.
+:MSCDEX_ERROR_PATH
+MSCDEX: A megadott lokáció nem egy CDROM meghajtó.
+
+.
+:MSCDEX_ERROR_OPEN
+MSCDEX: Sikertelen: Nem megfelelő vagy nem megnyitható fájl.
+
+.
+:MSCDEX_TOO_MANY_DRIVES
+MSCDEX: Sikertelen: Túl sok CDROM meghajtó (max: 5). MSCDEX aktiválás sikertelen.
+
+.
+:MSCDEX_LIMITED_SUPPORT
+MSCDEX: Alkönyvtár csatolva: limitált támogatás.
+
+.
+:MSCDEX_INVALID_FILEFORMAT
+MSCDEX: Sikertelen: A fájl nem ISO/CUE vagy sérült.
+
+.
+:MSCDEX_UNKNOWN_ERROR
+MSCDEX: Sikertelen: Ismeretlen hiba.
+
+.
+:PROGRAM_RESCAN_SUCCESS
+A meghajtó gyorsítótára kiűrítve.
+
+.
+:PROGRAM_INTRO
+Üdvözölet a ←[2J←[32;1mDOSBox-X-ben. A ←[0m DOSBox-X egy nyílt forráskódú x86 emulátor grafikával és hanggal.
+A DOSBox-X a normál DOS-hoz hasonló parancsértelmezőt hoz létre.
+
+←[31;1mHiba bekövetkezése esetén a DOSBox-X magától (figyelmeztetés nélkül) bezáródik!←[0m
+
+
+
+.
+:PROGRAM_INTRO_MENU_UP
+DOSBox-X ismertető
+.
+:PROGRAM_INTRO_MENU_BASIC
+Alap MOUNT
+.
+:PROGRAM_INTRO_MENU_CDROM
+CDROM támogatás
+.
+:PROGRAM_INTRO_MENU_USAGE
+Használat
+.
+:PROGRAM_INTRO_MENU_INFO
+Infó
+.
+:PROGRAM_INTRO_MENU_QUIT
+Kilépés
+.
+:PROGRAM_INTRO_MENU_BASIC_HELP
+
+←[1m   ←[1m←[KMOUNT, a DOSBox-X-hez fizikai eszközöket csatolásában segítkezik.←[0m
+
+.
+:PROGRAM_INTRO_MENU_CDROM_HELP
+
+←[1m   ←[1m←[KCDROM DOSBox-X-hez csatlakoztatásához speciális beállítások megadása szükséges.←[0m
+
+.
+:PROGRAM_INTRO_MENU_USAGE_HELP
+
+←[1m   ←[1m←[KA DOSBox-X-ban használható parancssori opciók áttekintése.←[0m
+
+.
+:PROGRAM_INTRO_MENU_INFO_HELP
+
+←[1m   ←[1m←[KTöbb információ a DOSBox-X-hez.←[0m
+
+.
+:PROGRAM_INTRO_MENU_QUIT_HELP
+
+←[1m   ←[1m←[KKilépés a DOSBox-X ismertetőből.←[0m
+
+.
+:PROGRAM_INTRO_USAGE_TOP
+←[2J←[32;1mA DOSBox-X-ban használható parancssori opciók áttekintése.←[0m
+Windows alatt a cmd.exe vagy a DOSBox-X parancsikon segítségével használhatóak.
+
+dosbox-x [név] [-exit] [-version] [-fastlaunch] [-fullscreen]
+         [-conf konfiguráció] [-lang nyelvi file] [-machine géptípus]
+         [-startmapper] [-noautoexec] [-scaler méret | -forcescaler
+         méret] [-o opciók] [-c parancs] [-set <szekció tulajdonság=érték>]
+
+
+.
+:PROGRAM_INTRO_USAGE_1
+←[33;1m  név←[0m
+○Ha a név egy könyvtár, akkor mint C: meghajtó csatlakoztatja.
+○Ha a név egy futtatható állmány, az őt tartalmazó könyvtár fog
+○C: meghajtóként csatlakozni ás a nevet futtatja.
+
+←[33;1m  -exit←[0m
+○A DOS program futásának befejezésével a DOSBox-X magától bezáródik.
+
+←[33;1m  -version←[0m
+○Kiírja a verzó információt és bezáródik. Hasznos a frontend-ekhez.
+
+←[33;1m  -fastlaunch←[0m
+○Gyors indítás(a logo és üdvözlő szövegek nem kerülnek megjelenítésre).
+
+←[33;1m  -fullscreen←[0m
+○DOSBox-X indítása teljes képernyő módban.
+
+.
+:PROGRAM_INTRO_USAGE_2
+←[33;1m  -conf←[0m konfiguráció
+○DOSBox-X-et a konfigurációban megadott beállításokkal indítja.
+○Részletes információ a dokumentációban található.
+
+←[33;1m  -lang←[0m nyelvi állmány
+○DOSBox-X-et a fájlban megadott nyelven indítja.
+
+←[33;1m  -startmapper←[0m
+○Indításkor megnyitja a billentyűzet-szerkesztőt. Hasznos lehet azoknak,
+○akiknek a billentyűzettel van problémájuk.
+
+←[33;1m  -machine←[0m géptípus
+○DOSBox-X-et meghatározott emulációban indítja. Lehetőségek:
+○hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
+○pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (alapértelmezett).
+○Befolyásolja mint a grafikus mint a hangkártya beállításait.
+
+.
+:PROGRAM_INTRO_USAGE_3
+←[33;1m  -noautoexec←[0m
+○A betöltött konfiguráció [autoexec] szekcióját figyelmen kívül hagyja.
+
+←[33;1m  -o←[0m options
+○Parancssori lehetőség(ek)et ad a "név"-ben megadott futtatható fájlhoz,
+○ha az meg van adva. Több -o használható több futtatható fájlnévvel.
+
+←[33;1m  -c←[0m command
+○Parancs futtatása a "név"-ben megadott fájl indítása előtt.
+○Több parancs is megadható, de mind elé egyenként kell a -c. 
+○A parancs lehet: DOS belső parancs, külső parancs vagy a csatolt
+○meghajtón levő futtatható fájl.
+
+←[33;1m  -set←[0m <section property=value>
+○Beállít egy konfigurációs opciót (felülírva a mentett beállításokat).
+○Több opció is megadható, de mindnek -set-el kell kezdődnie.
+
+.
+:PROGRAM_INTRO_INFO
+←[32;1mIsmertető:←[0m
+
+Az alap csatolási lehetőségek bemutatásához: ←[34;1mintro mount←[0m
+A CDROM támogatás bemutatásához: ←[34;1mintro cdrom←[0m
+A DOSBox-X használatának áttekintéséhez: ←[34;1mintro usage←[0m
+
+A legutolsó DOSBox-X verzió elérhető a honlapján:←[34;1m
+
+←[34;1mhttps://dosbox-x.com/←[0m vagy ←[34;1mhttp://dosbox-x.software←[0m
+
+További információk a DOSBox-X használatáról elérhető a Wiki oldalán:
+
+←[34;1mhttps://dosbox-x.com/wiki←[0m
+
+.
+:PROGRAM_INTRO_MOUNT_START
+←[32;1mNéhány parancs bemelegítésnek:←[0m
+Mielőtt a gazdagép fájlainak használatba vételéhez
+az őket tartalmazó könyvtárat csatolni kell.
+
+
+.
+:PROGRAM_INTRO_MOUNT_EXST_WINDOWS
+←[32mmount c c:\játék\←[37m csatol egy C meghajtót a helyi könyvtár tartalmával.  
+.
+:PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
+←[32mA c:\játék\←[37m csak egy példa, bármely saját könyvtár megadható.          ←[37m 
+.
+:PROGRAM_INTRO_MOUNT_EXST_OTHER
+←[32mmount c ~/játék←[37m csatol egy C meghajtót a ~/játék könyvtár tartalmával.  
+.
+:PROGRAM_INTRO_MOUNT_EXEN_OTHER
+←[32mA ~/játék←[37m csak egy példa, bármely saját könyvtár megadható.            ←[37m 
+.
+:PROGRAM_INTRO_MOUNT_END
+Amikor a csatolás sikeresen megtörtént, a ←[34;1mc:←[0m paranccsal aktiválható a frissen
+csatolt C: meghajtó. Itt ←[34;1mdir←[0m kilistázza a tartalmát. ←[34;1mcd←[0m segítségével
+beléphetünk a könyvtárba (ami ←[33;1m[]←[0m jelekkel van megjelölve a könyvtárlistában).
+Programok, melyek kiterjesztése ←[31m.exe←[0m, ←[31m.bat←[0m vagy ←[31m.com←[0m pedig futtathatóak.
+
+.
+:PROGRAM_INTRO_CDROM
+←[2J←[32;1mHogyan csatoljunk Valódi/Virtuális CDROM Meghajtót A DOSBox-X-ben:←[0m
+A DOSBox-X különböző szinteken rendelkezik CDROM emulációs képességekkel.
+
+Az ←[33malap←[0m szint használható minden CDROM meghajtóval és normál könyvtárral.
+Ez betölti az MSCDEX-et és a fájlokat csak olvashatóvá teszi.
+Általában ez elég a legtöbb játéknak:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom←[0m   vagy   ←[34;1mmount d C:\példa -t cdrom←[0m
+Ha ez nem működik, lehet, hogy meg kell adni a CDROM cimkéjét a DOSBox-X-nak:
+←[34;1mmount d C:\példa -t cdrom -label CDCIMKE←[0m
+
+A ←[33mkövetkező←[0m szint már tartalmaz némi alacsony szintű támogatást.
+Ezért csak CDROM meghajtókkal működik:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0←[0m
+
+Az ←[33mutolsó←[0m szint a használt operációs rendszertől függ:
+←[1mWindows 2000←[0m, ←[1mWindows XP←[0m vagy ←[1mLinux←[0m esetén:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-ioctl←[0m
+←[1mWindows 9x←[0m (ASPI layer-el) esetén:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-aspi←[0m
+
+A ←[0;31mD:\←[0m betűjel helyére a tényleges CDROM meghajtó jelét kell megadni.
+A ←[34;1m-usecd←[0m paraméterben a ←[33m0←[0m szám helyére pedig azt a számot kell megadni, amit a
+←[34;1mmount -cd←[0m parancs mutat a CDROM meghajtóra.
+
+.
+:PROGRAM_BOOT_NOT_EXIST
+Indítólemez-fájl nem található.  Kényszerleállás.
+
+.
+:PROGRAM_BOOT_NOT_OPEN
+Indítólemez-fájl nem nyitható meg. Kényszerleállás.
+
+.
+:PROGRAM_BOOT_WRITE_PROTECTED
+Képfile csak olvasható! Indítás írásvédett módban.
+
+.
+:PROGRAM_BOOT_PRINT_ERROR
+DOSBox-X bootolása floppy vagy merevlemez lemezkép-fájlról.
+
+Ezzel a paranccsal megadható(ak) (akár egymást követő) floppy lemez(ek) ( 
+amelyek egy menüparanccsal cserélhetőek) és a ←[33;1mmeghajtó:←[0m amiről bootolni kell.
+Ha nincs betűjel megadva, az alapértelmezett az A meghajtó.
+Ha nincs paraméter megadva, az aktív meghajtóról fog bootolni.
+Csak az A, C, vagy D meghajtók bootolhatóak.  Merevlemezről bootoláshoz
+(C vagy D) a lemezkép-fájlnak már a ←[34;1mIMGMOUNT←[0m paranccsal csatolva kell lennie.
+
+A parancs formátuma egyike a következőknek:
+
+←[34;1mBOOT [←[33;1mmeghajtó-betűjel:←[34;1m] [-convertfat|-convertfatro|-noconvertfat]←[0m
+
+←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L ←[33;1mmeghajtó-betűjel←[34;1m]←[0m
+
+Megjegyzés: Egy lemezkép-fájlnév ami kettősponttal (:) kezdődik,  írásvédett módban
+lesz bootolva ha a "vezető kettőspont írásvédetté teszi a lemezkép-fájlt" opció aktív.
+
+Példák:
+
+←[32;1mBOOT A:←[0m       - bootolás az A: meghajtóról ha csatolt és bootolható.
+←[32;1mBOOT :DOS.IMG←[0m - bootolás a DOS.IMG lemezkép-fájlról írásvédett módban.
+
+.
+:PROGRAM_BOOT_UNABLE
+Nem lehet a(z) %c meghajtóról bootolni.
+
+.
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Floppy image(s) already mounted.
+
+.
+:PROGRAM_BOOT_IMAGE_OPEN
+Lemezkép-fájl megnyitása: %s
+
+.
+:PROGRAM_BOOT_IMAGE_NOT_OPEN
+Lemezkép-fájl nem megnyitható: %s
+
+.
+:PROGRAM_BOOT_CART_WO_PCJR
+PCjr kárty detektálva, de a gép nem PCjr.
+.
+:PROGRAM_BOOT_CART_LIST_CMDS
+Elérhető PCjr kártya parancsok:%s
+.
+:PROGRAM_BOOT_CART_NO_CMDS
+PCjr kártya parancsok nem találhatóak
+.
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
+.
+:PROGRAM_LOADROM_HELP
+A megadott ROM képfájl betöltése video BIOS vagy IBM BASIC aktiválásához.
+
+LOADROM ROM_file
+
+.
+:PROGRAM_LOADROM_SPECIFY_FILE
+A betöltendő ROM fájl megadása kötelező.
+
+.
+:PROGRAM_LOADROM_CANT_OPEN
+A ROM fájl nem elérhető.
+
+.
+:PROGRAM_LOADROM_TOO_LARGE
+A ROM fájl túl nagy.
+
+.
+:PROGRAM_LOADROM_INCOMPATIBLE
+Video BIOS-t nem támogatja a gép típusa.
+
+.
+:PROGRAM_LOADROM_UNRECOGNIZED
+ROM fájl felismerhetetlen.
+
+.
+:PROGRAM_LOADROM_BASIC_LOADED
+Alap (BASIC) ROM betöltve.
+
+.
+:PROGRAM_BIOSTEST_HELP
+CPU tesztelő BIOS futatására alkalmas képfájl bootolása.
+
+BIOSTEST image_fájl
+
+.
+:VHD_ERROR_OPENING
+A megadott VHD fájl megnyitása sikertelen.
+
+.
+:VHD_INVALID_DATA
+A megadott VHD fájl sérült és nem lehet megnyitni.
+
+.
+:VHD_UNSUPPORTED_TYPE
+A megadott VHD fájl formátuma nem támogatott.
+
+.
+:VHD_ERROR_OPENING_PARENT
+A megadott VHD fájl szülője nem található.
+
+.
+:VHD_PARENT_INVALID_DATA
+A megadott VHD fájl szülője sérült és nem lehet megnyitni.
+
+.
+:VHD_PARENT_UNSUPPORTED_TYPE
+A megadott VHD fájl szülőjének a formátuma nem támogatott.
+
+.
+:VHD_PARENT_INVALID_MATCH
+A megadott VHD fájl szülője nem tartalmazza az elvárt azonosítót.
+
+.
+:VHD_PARENT_INVALID_DATE
+A megadott VHD fájl szülője megváltozott és nem lehet betölteni.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_DRIVE
+A képfájl csatolásához meg kell adni egy meghajtó betűjelet.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY2
+Meghajtó azonosító (0- tól %d-ig) megadása kötelező a képfájl csatolásához (0,1=fda,fdb;2,3=hda,hdb).
+
+.
+:PROGRAM_IMGMOUNT_INVALID_IMAGE
+A képfájl betöltése nem lehetséges.
+Ellenőrizze az elérési utat és hogy a képfájl elérhető-e.
+
+.
+:PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
+Dinamikus fájlok nem támogatottak.
+
+.
+:PROGRAM_IMGMOUNT_INVALID_GEOMETRY
+A geometria meghatározása a képfájlból sikertelen.
+A geometria megadásához a -size bps,spc,hpc,cyl használandó.
+
+.
+:PROGRAM_IMGMOUNT_AUTODET_VALUES
+Képfájl geometria detektálva: -size %u,%u,%u,%u
+
+.
+:PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED
+A "%s" típus nem támogatott. Támogatott: "hdd" vagy "floppy" vagy "iso".
+
+.
+:PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED
+A "%s" formátum nem támogatott. Támogatott: "fat" vagy "iso" vagy "none".
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_FILE
+A csatoláshoz meg kell adni egy vagy több képfájlt.
+
+.
+:PROGRAM_IMGMOUNT_FILE_NOT_FOUND
+Képfájl nem található.
+
+.
+:PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND
+Képfájl nem található: IMGMAKE.IMG.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT
+Könyvtárak csatolásához ←[34;1mMOUNT←[0m parancs és nem az ←[34;1mIMGMOUNT←[0m használandó.
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED
+A betűjel már használatban másik meghajtóhoz.
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER
+Meghajtó azonosító %d már csatolva.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE
+A fálból meghajtó készítése sikertelen.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS
+PhysFS meghajtó készítése sikertelen.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT_NUMBER
+Meghajtó azonosító %d csatolva mint %s
+
+.
+:PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
+A képfájnak a gazdagépen kell lennie, helyi vagy hálózati meghajtón.
+
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
+Egynél több fájl csak cue/iso képfájlok esetén adható meg.
+
+.
+:PROGRAM_IMGMOUNT_HELP
+Floppy-, merevlemez- vagy optikai lemezkép-fájlok csatolása.
+←[32;1mIMGMOUNT←[0m ←[37;1mmegh.←[0m ←[36;1mfájl←[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
+←[32;1mIMGMOUNT←[0m ←[37;1mmegh.←[0m ←[36;1mfájl←[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide szabályozó]
+←[32;1mIMGMOUNT←[0m ←[37;1mazonosító←[0m ←[36;1mfájl←[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+←[32;1mIMGMOUNT←[0m ←[37;1mmegh.←[0m ←[36;1mfájl←[0m [-t iso] [-fs iso]
+←[32;1mIMGMOUNT←[0m ←[37;1mmegh.←[0m [-t floppy] -bootcd CD (vagy el-torito cdmeghajtó)
+←[32;1mIMGMOUNT←[0m ←[37;1mmegh.←[0m -t ram -size xxx
+←[32;1mIMGMOUNT←[0m -u ←[37;1mmegh.|azonosító←[0m (or ←[32;1mIMGMOUNT←[0m ←[37;1mmegh.|azonosító←[0m ←[36;1mfájl←[0m [opciók] -u)
+ ←[37;1mmegh.←[0m               Csatolandó meghajtó betűjel.
+ ←[37;1mazonosító←[0m           Csatolandó meghajtó azonosító, ahol 0-1 FDD, 2-5 HDD.
+ ←[36;1mfájl←[0m                Képfájl neve vagy ←[33;1mIMGMAKE.IMG←[0m ha nincs megadva.
+ -t iso              Képfájl optikai lemez iso vagy cue/bin formátumban.
+ -t hdd|floppy|ram   Képfájl típusa merevlemez (VHD/HDI)|floppy|RAM drive.
+ -fs iso             ISO fájlrendszer 9660 (.iso/.cue fájlokhoz automatikus).
+ -fs fat             FAT fájlrendszer - FAT12, FAT16, FAT32 támogatott.
+ -fs none            Fájlrendszer direkt megadása azonosítóval(nem detektálva).
+ -reservecyl #       A cilinderek száma # (a BIOSnál kevesebb).
+ -ide szabályozó     Az IDE interfész szabályozó (1m, 1s, 2m, 2s) megadása.
+ -size xxx|ss,s,h,c  Méret meghatározása KB, vagy szektor és CHS geometriával.
+ -bootcd CD          A bootolható floppy melyik CD meghajtóról töltődjön be.
+ -o partidx=#        A csatolandó partició száma.
+ -ro                 Csak olvasható (vagy vezető ':').
+ -u                  Meghajtó vagy azonosító leválasztása.
+ ←[32;1m-examples           Néhány példa a használatra.←[0m
+.
+:PROGRAM_IMGMOUNT_EXAMPLE
+Néhány használati példa az IMGMOUNT használatára:
+
+ ←[32;1mIMGMOUNT←[0m                      - a csatolt FAT/ISO meghajtók listája
+ ←[32;1mIMGMOUNT C←[0m                    - ←[33;1mIMGMAKE.IMG←[0m csatolása mint C: merevlemez
+ ←[32;1mIMGMOUNT C c:\image.img←[0m       - c:\image.img csatolása mint C: merevlemez
+ ←[32;1mIMGMOUNT D c:\files\game.iso←[0m  - c:\files\game.iso csatolása mint D: CDROM
+ ←[32;1mIMGMOUNT D cdaudio.cue←[0m        - cdaudio cue/bin pár csatolása mint D: CDROM
+ ←[32;1mIMGMOUNT 0 dos.ima←[0m            - dos.ima csatolása mint azonosító ←[33;1m0←[0m
+                                 (Ha bootolható, bootoláshoz: ←[33;1mBOOT A:←[0m)
+ ←[32;1mIMGMOUNT A -ro dos.ima←[0m        - dos.ima csatolása csak olvasható A: floppyként
+ ←[32;1mIMGMOUNT A :dsk1.img dsk2.img←[0m - dsk1.img és dsk2.img csatolása A: floppyként
+                                 menü: "DOS\Floppy meghajtó cseréje"
+                                 dsk1.img csak olvasható (a dsk2.img nem csak)
+ ←[32;1mIMGMOUNT A -bootcd D←[0m          - A D: lemez csatolása bootolható A: floppyként
+ ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - 10MB RAM drive csatolása C: merevlemezként
+ ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m - A d.img első partíciójának a csatolása mint D:
+ ←[32;1mIMGMOUNT C hdd.img -u←[0m        - A hdd.img csatolása mint C:,
+                                 ha szükséges az előző meghajtó leválasztásával
+ ←[32;1mIMGMOUNT A -u←[0m                 - Az A: (korábban csatolt) meghajtó leválasztása
+
+.
+:PROGRAM_IMGMAKE_SYNTAX
+Floppy vagy merevlemez képfájl készítése. Használat:
+←[34;1mIMGMAKE [fájl] [-t típus] [[-size méret] | [-chs geometria]] [-spc] [-nofs]←[0m
+  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source forrás] [-retries #]←[0m
+  fájl: Készítendő képfájl neve (vagy ←[33;1mIMGMAKE.IMG←[0m) - ←[31;1melérési út a gazdagépen←[0m
+  -t: A képfájl típusa.
+    ←[33;1mFloppy sablonok:←[0m (a név a méretre utal KB-ban vagy fd=fd_1440 formában):
+     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
+    ←[33;1mMerevlemez sablonok:←[0m
+     hd_250: 250MB, hd_520: 520MB, hd_1gig: 1GB
+     hd_2gig: 2GB, hd_4gig: 4GB, hd_8gig: 8GB
+     hd_st251: 40MB, hd_st225: 20MB (régi meghajtók geometriája)
+    ←[33;1mEgyedi merevlemez-képfájl:←[0m hd (-size vagy -chs szükséges)
+  -size: Méret MB-ban megadva.
+  -chs: A lemez geometriája cilinderek(1-1023),fejek(1-255),szektorok(1-63).
+  -nofs: Fájlrendszer nélküli (üres) képfájl készítéséhez.
+  -force: meglévő képfájl erőltetett felülírása.
+  -bat: A csatoláshoz szükséges IMGMOUNT paranccsal .bat fájl készítése.
+  -fat: FAT fájlrendszer típusa (12, 16, or 32).
+  -spc: Clusterenkénti szektorok számána felülírása. A 2 többszöröse kötelező!
+  -fatcopies: a FAT tábla-másolatok számának felülírása.
+  -rootdir: Size of root directory in entries. Ignored for FAT32.
+  -source: meghajtó betűjel - floppy lemezről történő beolvasáshoz!
+  -retries: hányszor próbálkozzon újra hibás floppy lemez esetén(1-99).
+  ←[32;1m-examples: Néhány példa a használatra.←[0m
+.
+:PROGRAM_IMGMAKE_EXAMPLE
+Néhány használati példa az IMGMAKE használatára:
+
+ ←[32;1mIMGMAKE -t fd←[0m                       - 1.44MB floppy képfájl ←[33;1mIMGMAKE.IMG←[0m néven
+ ←[32;1mIMGMAKE -t fd_1440 -force←[0m           - ugyanaz a régi ←[33;1mIMGMAKE.IMG←[0m felülírásával
+ ←[32;1mIMGMAKE dos.img -t fd_2880←[0m          - 2.88MB floppy képfájl dos.img néven
+ ←[32;1mIMGMAKE c:\hdd.img -t hd -size 50←[0m   - 50MB merevlemez-képfájl: c:\hdd.img
+ ←[32;1mIMGMAKE c:\hdd.img -t hd_520 -nofs←[0m  - üres 520MB merevlemez-képfájl
+ ←[32;1mIMGMAKE c:\hdd.img -t hd_2gig -fat 32←[0m  - 2GB FAT32 merevlemez-képfájl
+ ←[32;1mIMGMAKE c:\hdd.img -t hd -chs 130,2,17←[0m - a megadott geometriával képfájl
+ ←[32;1mIMGMAKE c:\hdd.img -source a←[0m        - képfájl készítése a gazdagép ←[33;1mA:←[0m 
+				       meghajtójában levő lemezről
+
+.
+:PROGRAM_IMGMAKE_FLREAD
+Lemez geometria: %d cilinder, %d fej, %d szektor, %d KB
+
+
+.
+:PROGRAM_IMGMAKE_FLREAD2
+%s =jó, %s =jó (újrapróbálva), ! =CRC hiba, 
+x =szektor nem található, ? =ismeretlen
+
+.
+:PROGRAM_IMGMAKE_FILE_EXISTS
+A "%s" fájl már létezik. Felülíráshoz: "-force".
+
+.
+:PROGRAM_IMGMAKE_CANNOT_WRITE
+A "%s" fájl nem nyitható meg írásra.
+
+.
+:PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
+Nincs elég hely a képfájl írásához. Még %llu bytes szükséges.
+
+.
+:PROGRAM_IMGMAKE_PRINT_CHS
+Képfájl "%s" készítése: %u cilinder, %u fej és %u szektor
+
+.
+:PROGRAM_IMGMAKE_CANT_READ_FLOPPY
+
+
+Floppy olvasása sikertelen.
+.
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
+.
+:PROGRAM_KEYB_INFO
+A %i kódlap betöltve
+
+.
+:PROGRAM_KEYB_INFO_LAYOUT
+A %i kódlap betöltve a(z) %s billentyűzetkiosztáshoz
+
+.
+:PROGRAM_KEYB_SHOWHELP
+Billentyűzet konfigurálása egy megadott nyelvhez.
+
+Használat: ←[32;1mKEYB←[0m [billentyűzetkiosztás-kód [kódlap száma [kódlap fájl]]]
+  billentyűkiosztás kód  A betöltendő kiosztás vagy fájl (.kl) neve 
+  kódlap száma           A betöltendő kódlap száma
+  kódlap fájl            .cpi vagy .cpx fájl, ami tartalmazza a kódlap adatokat
+		(.kl, .cpi/.cpx fájlok a dosbox-x programkönyvtárában legyenek)
+
+Néhány példa:
+  ←[32;1mKEYB←[0m           Az aktív kódlap (és billentyzetkiosztás ha van) megjelenítése.
+  ←[32;1mKEYB hu←[0m        Magyar (HU) kiosztás, a hozzá tartozó kódlappal.
+  ←[32;1mKEYB hu208 852←[0m Magyar (HU208) kiosztás, 852-es kódlap.
+  ←[32;1mKEYB hu 852 éncp.cpi←[0m Ugyanaz, csak az éncp.cpi fájlból veszi a kiosztást.
+  ←[32;1mKEYB hu_mod 852←[0m      A hu_mod.kl kiosztás-fájl betöltése, 852-es kódlap.
+
+.
+:PROGRAM_KEYB_NOERROR
+A %s billentyűzetkiosztás betöltve a(z) %i kódlaphoz
+
+.
+:PROGRAM_KEYB_FILENOTFOUND
+Billentyűzetkiosztás-fájl %s nem található (vagy nem érvényes KÓD)
+
+
+.
+:PROGRAM_KEYB_INVALIDFILE
+Billentyűzetkiosztás-fájl %s nem érvényes
+
+.
+:PROGRAM_KEYB_LAYOUTNOTFOUND
+Nincs billentyűzetkiosztás a(z) %s-ban a(z) %i kódlaphoz.
+
+.
+:PROGRAM_KEYB_INVCPFILE
+Nem létező/érvényes kódlap fájl a(z) %s billentyűzetkiosztáshoz.
+
+.
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
+
+.
+:PROGRAM_MODE_USAGE
+Rendszereszközök konfigurációja.
+
+←[34;1mMODE←[0m megjelenítő       : használható kódok ←[1mCO80←[0m, ←[1mBW80←[0m, ←[1mCO40←[0m, ←[1mBW40←[0m, vagy ←[1mMONO←[0m
+←[34;1mMODE CON COLS=←[0mo ←[34;1mLINES=←[0ms: oszlop/sor, ←[1mc=80←[0m vagy ←[1m132←[0m, ←[1mn=25←[0m, ←[1m43←[0m, ←[1m50←[0m vagy ←[1m60←[0m
+←[34;1mMODE CON RATE=←[0mr ←[34;1mDELAY=←[0mk: bill. ismétlési ráta, r=1-32 (32=gyors), k=1-4 (1=kicsi)
+
+.
+:PROGRAM_MODE_INVALID_PARAMETERS
+Hibás paraméter(ek)! (pl: az oszlop/sor értékek fixek.)
+
+.
+:PROGRAM_PORT_INVALID_NUMBER
+Port megadása kötelező 1 és 9 között.
+
+.
+:PROGRAM_VHDMAKE_WRITERR
+A "%s" VHD képfájl létrehozása sikertelen, megszakítva.
+
+.
+:PROGRAM_VHDMAKE_REMOVEERR
+A "%s" VHD képfájl nem törölhető.
+
+.
+:PROGRAM_VHDMAKE_RENAME
+Az újonnan készített VHD képfájlt kézzel kell átnevezni.
+
+.
+:PROGRAM_VHDMAKE_SUCCESS
+Az új VHD képfájl sikeresen elkészült. Csatolásához: ←[34;1mIMGMOUNT←[0m.
+
+.
+:PROGRAM_VHDMAKE_ERROPEN
+HIBA: a "%s" képfájl megnyitása sikertelen.
+
+.
+:PROGRAM_VHDMAKE_BADSIZE
+Rossz VHD méret megadva, folyamat megszakítva!
+
+.
+:PROGRAM_VHDMAKE_FNEEDED
+Létező képfájl felülírásához a -f opció használata szükséges!
+
+.
+:PROGRAM_VHDMAKE_BADPARENT
+A szülő VHD képfájl "%s" nem megnyitható, megszakítva!
+
+.
+:PROGRAM_VHDMAKE_NOINFO
+Információ nem lekérhető: "%s".
+
+.
+:PROGRAM_VHDMAKE_BLOCKSTATS
+%d/%d blokk allokálva.
+
+.
+:PROGRAM_VHDMAKE_INFO
+VHD "%s" típusa(z) %s.
+Virtuális mérete: %.02f MB
+
+.
+:PROGRAM_VHDMAKE_CANTMERGE
+A %s nem különbözet VHD fájl, nem egyesíthető!
+
+.
+:PROGRAM_VHDMAKE_MERGEREPORT
+A "%s" %d szektor %d blokkja egyesítve mint "%s".
+
+.
+:PROGRAM_VHDMAKE_MERGENODELETE
+A különbözet (snapshot) "%s" törlése sikertelen, próbálja kézzel!
+
+.
+:PROGRAM_VHDMAKE_MERGEOKDELETE
+A különbözet (Snapshot) VHD egyesítve és törölve.
+
+.
+:PROGRAM_VHDMAKE_MERGEFAILED
+Hiba az egyesítés során, folyamat megszakítva!
+.
+:PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
+A szülő "%s" tartalma megrongálódhat!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_WIN
+Figyelem: egy abszolút elérési út a szülőhőz megakadályozza a mozgathatóságot.
+A különbözet képfálhoz relatív útvonal használata AJÁNLOTT!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_UX
+HIBA: egy abszolút elérési út a szülőhőz megakadályozza a mozgathatóságot.
+A különbözet képfálhoz relatív útvonal használata szükséges!
+
+.
+:PROGRAM_VHDMAKE_HELP
+Dinamikus vagy különbözet (delta) virtuális merevlemezképek (VHD) készítése, 
+vagy nyers merevlemez képfájlok fix VHD formátumra konvertálása.
+←[32;1mVHDMAKE←[0m [-f] új.vhd méret[BKMGT]
+←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m nyers.hdd új.vhd
+←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m szülő.vhd új.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m különbözet.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
+ -c | -convert  átkonvertálja a nyers lemezképfájlt Fix VHD-vé, új.vhd néven
+ -l | -link     készít egy új delta VHD fájlt új.vhd néven és hozzáköti a
+                már meglévő szülő.vhd szülő VHD lemezkép-fájlhoz. 
+ -f | -force    a meglévő képfájl erőltetett felülírása
+ -i | -info     hasznos információk az a.vhd képfájlról
+ -m | -merge    a különbözet.vhd képfájl tartalmának egyesítése annak szülőjébe
+ új.vhd         name of the new Dynamic VHD image to create
+ méret          lemezméret (mértékegységgel, a Byte implicit)
+Amikor nyers lemezképet konvertálunk Fix VHD-vá, annak MBR formájú particióval
+kell rendelkeznie FAT formátumra formázva.
+Dinamikus VHD méretének a 3 MB-tól 2040 GB-ig tartományba kell esnie.
+Az elkészített Dinamikus VHD nem particionált vagy formattált: a meghajtóként
+←[34;1mIMGMOUNT←[0m-al való csatolása helyett az ←[34;1mIMGMAKE←[0m használata javasolt.
+Az egyesített (snapshot) VHD automatikusan törlődik, ha az összfűzés sikeres.
+.
+:SHELL_CMD_TREE_ERROR
+Nincsenek alkönyvtárak
+
+.
+:SHELL_CMD_VOL_TREE
+Könyvtárstruktúra a(z) %s köteten
+
+.
+:SHELL_CMD_VOL_DRIVE
+
+ Kötet a(z) %c: meghajtóban: 
+.
+:SHELL_CMD_VOL_SERIAL
+ Kötet sorozatszáma: 
+.
+:SHELL_CMD_VOL_SERIAL_NOLABEL
+nincs cimkéje
+
+.
+:SHELL_CMD_VOL_SERIAL_LABEL
+%s
+
+.
+:SHELL_ILLEGAL_PATH
+Elérési út nem található
+
+.
+:SHELL_ILLEGAL_DRIVE
+Érvénytelen meghajtó specifikáció
+
+.
+:SHELL_CMD_HELP
+A támogatott belső parancsok teljes listájához ←[33;1mHELP /ALL←[0m.
+A külső parancsok a Z: meghajtón mint program találhatóak.
+A leggyakrabban használt parancsok rövid listája :
+
+.
+:SHELL_CMD_HELP_END1
+Külső parancsok mint a ←[33;1mMOUNT←[0m vagy ←[33;1mIMGMOUNT←[0m a Z: meghajtón találhatóak.
+
+.
+:SHELL_CMD_HELP_END2
+A súgó a ←[33;1mHELP parancs←[0m vagy ←[33;1mparancs /?←[0m kiadásával elérhető.
+
+.
+:SHELL_CMD_ECHO_ON
+ECHO bekapcsolva.
+
+.
+:SHELL_CMD_ECHO_OFF
+ECHO kikapcsolva.
+
+.
+:SHELL_ILLEGAL_SWITCH
+Érvénytelen kapcsoló - %s
+
+.
+:SHELL_INVALID_PARAMETER
+Érvénytelen paraméter - %s
+
+.
+:SHELL_MISSING_PARAMETER
+Kötelező paraméter hiányzik.
+
+.
+:SHELL_MISSING_FILE
+A következő fájl hiányzik vagy sérült: %s
+
+.
+:SHELL_CMD_CHDIR_ERROR
+Érvénytelen könyvtár - %s
+
+.
+:SHELL_CMD_CHDIR_HINT
+Tipp: Másik meghajtó választásához ←[31m%c:←[0m
+
+.
+:SHELL_CMD_CHDIR_HINT_2
+A könyvtárnév szóközt tartalmaz idézőjelek nélkül.
+Próbájuk a ←[31mcd %s←[0m formátumban vagy idézőjelek között.
+
+.
+:SHELL_CMD_CHDIR_HINT_3
+Az aktuális meghajtó még mindig a Z: és a megadott könyvtár nem található.
+Másik csatolt meghajtó eléréséhez a ←[31mC:←[0m paranccsal kell meghajtót váltani.
+
+.
+:SHELL_CMD_DATE_HELP
+Megjeleníti vagy megváltoztatja a belső dátumot.
+
+.
+:SHELL_CMD_DATE_ERROR
+A megadott dátum nem megfelelő.
+
+.
+:SHELL_CMD_DATE_DAYS
+3V  H  K  SzeCs P  Szo
+.
+:SHELL_CMD_DATE_NOW
+Aktuális idő: 
+.
+:SHELL_CMD_DATE_SETHLP
+Beállítás: 'date %s'.
+
+.
+:SHELL_CMD_DATE_HELP_LONG
+DATE [[/T] [/H] [/S] | dátum]
+  dátum:      Beállítandó dátum
+  /S:         A DOS idő és dátum linkelése a gazdagépére
+  /F:         Saját DOSBox-X belső idő használata (az /S ellentéte)
+  /T:         Csak dátum megjelenítése
+  /H:         Szinkronizálás a gazdagéppel
+
+.
+:SHELL_CMD_TIME_HELP
+Megjeleníti vagy megváltoztatja a belső időt.
+
+.
+:SHELL_CMD_TIME_ERROR
+A megadott idő nem megfelelő.
+
+.
+:SHELL_CMD_TIME_NOW
+Aktuális idő: 
+
+.
+:SHELL_CMD_TIME_SETHLP
+Beállítás: 'time %s'.
+
+.
+:SHELL_CMD_TIME_HELP_LONG
+TIME [[/T] [/H] | idő]
+  idő:       Beállítandó idő
+  /T:        Egyszerű idő megjelenítése
+  /H:        Frissítés a gazdagépről
+
+.
+:SHELL_CMD_MKDIR_EXIST
+Könyvtár már létezik - %s
+
+.
+:SHELL_CMD_MKDIR_ERROR
+Könyvtár létrehozása sikertelen - %s
+
+.
+:SHELL_CMD_RMDIR_ERROR
+Érvénytelen elérési út, nem könyvtár vagy a könyvtár nem üres - %s
+
+.
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
+:SHELL_CMD_RENAME_ERROR
+Az átnevezés sikertelen - %s
+
+.
+:SHELL_CMD_ATTRIB_GET_ERROR
+Az attribútumok lekérése sikertelen: %s
+
+.
+:SHELL_CMD_ATTRIB_SET_ERROR
+Nem beállítható attribútumok: %s
+
+.
+:SHELL_CMD_DEL_ERROR
+Nem törölhető - %s
+
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
+.
+:SHELL_CMD_DEL_SURE
+Minden fájls a könyvtárban törlésre kerül!!!
+Megerősítés: [Y-igen | N-nem]?
+.
+:SHELL_SYNTAXERROR
+Nyelvtani hiba
+
+.
+:SHELL_CMD_SET_NOT_SET
+Environment változó %s not defined.
+
+.
+:SHELL_CMD_SET_OUT_OF_SPACE
+Nincs elég hely a környezeti változónak.
+
+.
+:SHELL_CMD_IF_EXIST_MISSING_FILENAME
+IF EXIST: Hiányzó fájlnév.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_MISSING_NUMBER
+IF ERRORLEVEL: Hiányzó szám.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
+IF ERRORLEVEL: Érvénytelen szám.
+
+.
+:SHELL_CMD_GOTO_MISSING_LABEL
+Nincs cimke megadva a GOTO parancshoz.
+
+.
+:SHELL_CMD_GOTO_LABEL_NOT_FOUND
+GOTO: Cimke %s nem található.
+
+.
+:SHELL_CMD_FILE_ACCESS_DENIED
+Hozzáférés megtagadva - %s
+
+.
+:SHELL_CMD_FILE_NOT_FOUND
+Fájl nem található - %s
+
+.
+:SHELL_CMD_FILE_EXISTS
+Fájl %s már létezik.
+
+.
+:SHELL_CMD_DIR_INTRO
+ %s könyvtár
+
+
+.
+:SHELL_CMD_DIR_BYTES_USED
+%5d Fájl(ok) %17s Bájt(ok)
+
+.
+:SHELL_CMD_DIR_BYTES_FREE
+%5d Könyvtár(ok)  %17s Bájt szabad
+
+.
+:SHELL_CMD_DIR_FILES_LISTED
+Az összes listázott fájl:
+
+.
+:SHELL_EXECUTE_DRIVE_NOT_FOUND
+A %c meghajtó nem létezik!
+Először ←[31mcsatolni←[0m kell. Bővebb info az ←[1;33mintro←[0m vagy az ←[1;33mintro mount←[0m segítségével.
+
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_CDROM
+Szeretne hozzáférést adni a DOSBox-X-nek a fizikai %c CDROM meghajtóhoz [Y-igen | N-nem]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY
+Szeretne hozzáférést adni a DOSBox-X-nek a fizikai %c Floppy meghajtóhoz [Y-igen | N-nem]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
+Szeretne hozzáférést adni a DOSBox-X-nek az eltávolítható %c meghajtóhoz [Y-igen | N-nem]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
+Szeretne hozzáférést adni a DOSBox-X-nek a hálózati %c meghajtóhoz [Y-igen | N-nem]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FIXED
+Biztos, hogy tényleg hozzáférést adjunk a DOSBox-X-nek a fizikai %c merevlemezhez [Y-igen | N-nem]?
+.
+:SHELL_EXECUTE_ILLEGAL_COMMAND
+Rossz parancs vagy fájlnév - "%s"
+
+.
+:SHELL_CMD_PAUSE
+Nyomjon meg egy gombot a folytatáshoz. . .
+
+.
+:SHELL_CMD_PAUSE_HELP
+Vár egy billentyű megnyomására a folytatáshoz.
+
+.
+:SHELL_CMD_PAUSE_HELP_LONG
+PAUSE
+
+.
+:SHELL_CMD_COPY_FAILURE
+Másolás sikertelen - %s
+
+.
+:SHELL_CMD_COPY_SUCCESS
+   %d Fájl(ok) másolva.
+
+.
+:SHELL_CMD_COPY_CONFIRM
+Felülír %s (Y-Igen/N-Nem/A-Mindet)?
+.
+:SHELL_CMD_COPY_NOSPACE
+Nincs elég szabad hely - %s
+
+.
+:SHELL_CMD_COPY_ERROR
+Másolási hiba - %s
+
+.
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself♪
+
+.
+:SHELL_CMD_SUBST_DRIVE_LIST
+A jelenleg csatolt helyi meghajtók:
+
+.
+:SHELL_CMD_SUBST_NO_REMOVE
+Nem lehet eltávolítani, a meghajtó nincs használatban.
+
+.
+:SHELL_CMD_SUBST_IN_USE
+A célmeghajtó már használatban van.
+
+.
+:SHELL_CMD_SUBST_NOT_LOCAL
+A SUBST csak helyi meghajtókkal működik.
+
+.
+:SHELL_CMD_SUBST_INVALID_PATH
+A megadott meghajtó vagy elérési út nem megfelelő.
+
+.
+:SHELL_CMD_SUBST_FAILURE
+SUBST: Hiba van a parancssorban.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text bekapcsolva.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text kikapcsolva.
+
+.
+:SHELL_ALLFILES_CHAR
+a
+.
+:SHELL_STARTUP_TITLE
+Üdvözlet a DOSBox-X-ben!
+.
+:SHELL_STARTUP_HEAD1_PC98
+←[36mDOSBox-X használata:←[37m                                    
+.
+:SHELL_STARTUP_TEXT1_PC98
+A parancsok listája: ←[32mHELP←[37m, rövid bevezető: a ←[32mINTRO←[37m parancs.     
+A ←[33legördülő menükben←[37m a DOSBOX-X jónéhány funkciója elvégezhető.
+.
+:SHELL_STARTUP_EXAMPLE_PC98
+←[32mPélda←[37m: ←[33mTrueType betűtípus←[37m vagy ←[33mOpenGL megjelenítő←[37m kiválasztása.             
+.
+:SHELL_STARTUP_TEXT2_PC98
+-←[31mF11←[37m+←[31mF←[37m←[37m ablakos/teljes képernyő közötti váltás.                              
+-←[31mF11←[37m+←[31mC←[37m←[37m ←[33mKonfigurációs eszköz←[37m, ←[31mF11←[37m+←[31mM←[37m←[37m ←[33mBillentyűzet beállítása←[37m.                 
+-←[31mF11←[37m+←[31m+←[37m←[37m vagy ←[31mF11←[37m+←[31m-←[37m←[37m növeli/csökkenti az emuláció sebességét.                  
+.
+:SHELL_STARTUP_INFO_PC98
+←[36mDOSBox-X most ←[32mJapán NEC PC-98←[36m emulációs módban működik.←[37m     
+.
+:SHELL_STARTUP_TEXT3_PC98
+←[32mProjekt honlap    ←[37m: ←[33mhttps://dosbox-x.com/               ←[36mTeljes DOS emulációk←[37m
+←[32mHasználati útmutatók←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x és 9x←[37m
+←[32mHibabejelentés/javaslatok←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m
+.
+:SHELL_STARTUP_HEAD1
+←[36mDOSBox-X használata:                                                        ←[37m
+.
+:SHELL_STARTUP_TEXT1
+A parancsok listája: ←[32mHELP←[37m, rövid bevezető: ←[32mINTRO←[37m parancs [ENTER].           
+A ←[33mlegördülő menükben←[37m a DOSBOX-X jónéhány funkciója elvégezhető.             
+.
+:SHELL_STARTUP_EXAMPLE
+←[32mPélda←[37m: ←[33mTrueType betűtípus←[37m vagy ←[33mOpenGL megjelenítő←[37m kiválasztása.             
+.
+:SHELL_STARTUP_HEAD2
+←[36mHasznos billentyűzetkombinációk:                                            ←[37m
+.
+:SHELL_STARTUP_TEXT2
+-←[31mF11←[37m+←[31mF←[37m←[37m ablakos/teljes képernyő közötti váltás.                              
+-←[31mF11←[37m+←[31mC←[37m←[37m ←[33mKonfigurációs eszköz←[37m, ←[31mF11←[37m+←[31mM←[37m←[37m ←[33mBillentyűzet beállítása←[37m.                 
+-←[31mF11←[37m+←[31m+←[37m←[37m vagy ←[31mF11←[37m+←[31m-←[37m←[37m növeli/csökkenti az emuláció sebességét.                  
+.
+:SHELL_STARTUP_DOSV
+←[32mDOS/V mód←[37m aktív. A ←[32mTTF CJK mód←[37m szintén elérhető mint általános DOS emuláció.
+.
+:SHELL_STARTUP_CGA
+Kompozit CGA mód támogatott. A ←[31mCtrl+F8←[37m kapcsolja a kompozit kimenetet BE/KI.
+←[31mCtrl+Shift+[F7/F8]←[37m színárnyalat; ←[31mCtrl+F7←[37m korai/későbbi CGA model. 
+.
+:SHELL_STARTUP_CGA_MONO
+←[31mCtrl+F7←[37m váltás a fehér, narancs (amber) és green monochrome között.      
+←[31mCtrl+F8←[37m kontraszt/fényerő beállítása.                         
+.
+:SHELL_STARTUP_HERC
+←[31mCtrl+F7←[37m váltás a fehér, narancs (amber) és green monochrome között.      
+←[31mCtrl+F8←[37m a to toggle "horizontális símítás" BE/KI (csak grafikus módban).          
+.
+:SHELL_STARTUP_HEAD3
+←[36mDOSBox-X a weben:                                                           ←[37m
+.
+:SHELL_STARTUP_TEXT3
+←[32mProjekt honlap    ←[37m: ←[33mhttps://dosbox-x.com/               ←[36mTeljes DOS emulációk←[37m
+←[32mHasználati útmutatók←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x és 9x←[37m
+←[32mHibabejelentés/javaslatok←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m
+.
+:SHELL_STARTUP_LAST
+Jó szórakozást a DOSBox-X-el!
+.
+:SHELL_CMD_BREAK_HELP
+Kiterjesztett CTRL+C figyelés be/ki.
+
+.
+:SHELL_CMD_BREAK_HELP_LONG
+BREAK [Be | Ki]
+
+Az aktuális BREAK beállításért paraméter nélkül BREAK [enter].
+
+.
+:SHELL_CMD_CHDIR_HELP
+Aktuális könyvtár mutatása vagy beállítása.
+
+.
+:SHELL_CMD_CHDIR_HELP_LONG
+CHDIR [meghajtó:][elérési út]
+CHDIR [..]
+CD [meghajtó:][elérési út]
+CD [..]
+
+  ..   a szülő (parent) könyvtárba való visszalépés.
+
+A meghajtó váltása: CD meghajtó: [ENTER].
+Aktuális meghajtó/könyvtár megjelenítése: CD [ENTER].
+
+.
+:SHELL_CMD_CLS_HELP
+A képernyő törlése.
+
+.
+:SHELL_CMD_CLS_HELP_LONG
+CLS
+
+.
+:SHELL_CMD_DIR_HELP
+A könyvtárban lévő alkönyvtárak és fájlok kilistázása.
+
+.
+:SHELL_CMD_DIR_HELP_LONG
+DIR [meghajtó:][elérési út][fájlnév] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
+
+  [meghajtó:][elérési út][fájlnév]
+        A kilistázandó meghajtó, könyvtár és/vagy fájl(ok) meghatározása.
+  /W	Széles lista formátum használata.
+  /B	Csupasz (fejléc és összefoglaló nélküli) formátum használata.
+  /S	A megadott és annak összes alkönyvtárban levő fájlok kilistázása.
+  /P	A listázás megállítása minden teljes oldal után. (CTRL+C leállítás)
+  /A	A megadott attribútumok szerinti fájlok kilistázása.
+  attrib: D  Könyvtárak                 R  Csak olvasható fájlok
+          H  Rejtett fájlok             A  Archiválásra kész fájlok
+          S  Rendszer fájlok            -  Fordított működés előtag (nem)
+  /O	Fájlok listázási sorrendje.
+  sorr.:  N  Név szerinti (abc)         S  Méret szerint (először  a kicsik)
+          E  Kiterjesztés szerint (abc) D  Dátum szerint (régebbi elől)
+          G  Csoport könyvtárak előr    -  Fordított sorrendben
+
+←[37;1mDIRCMD←[0m környezeti változóban ezek a kapcsolók beállíthatóak. 
+A beállítások felülírására a - (minusz) kapcsoló használandó, pl: /-W.
+
+.
+:SHELL_CMD_ECHO_HELP
+Üzenetek megjelenítése vagy a parancs-visszajelzés be/ki kapcsolása.
+
+.
+:SHELL_CMD_ECHO_HELP_LONG
+  ECHO [ON=be | OFF=ki]
+  ECHO [üzenet]
+
+Az aktuális parancs-visszajelzési mód megjelenítése: ECHO [ENTER].
+
+.
+:SHELL_CMD_EXIT_HELP
+Kilépés a parancsértelmezőből (shell).
+
+.
+:SHELL_CMD_EXIT_HELP_LONG
+EXIT
+
+.
+:SHELL_CMD_HELP_HELP
+DOSBox-X parancsok súgója.
+
+.
+:SHELL_CMD_HELP_HELP_LONG
+HELP [/A or /ALL]
+HELP [parancs]
+
+   /A vagy /ALL   Összes elérhető parancs kilistázása.
+   [parancs]      Meghatározott parancsra vonatkozó súgó megjelenítése.
+
+←[0mPL:, ←[37;1mHELP COPY←[0m vagy ←[37;1mCOPY /?←[0m COPY parancs súgója.
+
+Megj.: Külső parancsok mint a ←[33;1mMOUNT←[0m vagy ←[33;1mIMGMOUNT←[0m nem látszanak a HELP /A-val.
+       Ezek a parancsok a Z: meghajtón mint program találhatóak (pl.: MOUNT.COM).
+       A súgó a ←[33;1mparancs /?←[0m vagy ←[33;1mHELP parancs←[0m kiadásával elérhető.
+
+.
+:SHELL_CMD_LS_HELP
+A könyvtár tartalmának kilistázása.
+
+.
+:SHELL_CMD_LS_HELP_LONG
+LS [meghajtó:][elérési út][fájlnév] [/A] [/L] [/P] [/Z]
+
+  /A     Rejtett vagy rendszer fájlokat is kilistáz.
+  /L     Soronként 1 név.
+  /P  	 A listázás megállítása minden teljes oldal után. (CTRL+C leállítás)
+  /Z     Rövid fájlnév, még, ha az LFN (hosszú fájlnév) támogatás aktív is.
+
+.
+:SHELL_CMD_MKDIR_HELP
+Könyvtár létrehozása.
+
+.
+:SHELL_CMD_MKDIR_HELP_LONG
+MKDIR [meghajtó:][elérési út]
+MD [meghajtó:][elérési út]
+
+.
+:SHELL_CMD_RMDIR_HELP
+Könyvtár eltávolítása.
+
+.
+:SHELL_CMD_RMDIR_HELP_LONG
+RMDIR [meghajtó:][elérési út]
+RD [meghajtó:][elérési út]
+
+.
+:SHELL_CMD_SET_HELP
+Környezeti változók kilistázása vagy megváltoztatása.
+
+.
+:SHELL_CMD_SET_HELP_LONG
+SET [változó=[szöveg]]
+
+   változó     Környezeti változó neve.
+   szöveg      A változóhoz rendelendő szöveg.
+
+* ha nincs szöveg megadva, a környezeti változó törlésre kerül.
+
+A környezeti változók kilistázása: SET [ENTER].
+
+.
+:SHELL_CMD_IF_HELP
+Feltételes végrehajtás a kötegfájlban.
+
+.
+:SHELL_CMD_IF_HELP_LONG
+IF [NOT] ERRORLEVEL szám parancs
+IF [NOT] szöveg1==szöveg2 parancs
+IF [NOT] EXIST fájlnév parancs
+
+  NOT               A parancs csak akkor hajtandó végre, ha a feltétel HAMIS.
+
+  ERRORLEVEL szám   IGAZ feltétel, ha az előző program futásakor generált kód
+                    nagyobb, vagy egyenlő a megadott számmal.
+
+  szöveg1==szöveg2  IGAZ feltétel, ha a megadott szövegek egyeznek.
+
+  EXIST filename    IGAZ feltétel, ha a megadott fájl létezik.
+
+  parancs           A megadott parancs végrehajtandó, ha a feltétel IGAZ.
+                    Folytatható egy ELSE paranccsal ami akkor hajtódik végre,
+                    ha a feltétel HAMIS.
+
+.
+:SHELL_CMD_GOTO_HELP
+A kötegfájlban a cimkézett sorra ugrik.
+
+.
+:SHELL_CMD_GOTO_HELP_LONG
+GOTO cimke
+
+   cimke   A kötegfájlban cimkeként használt szöveg (kettőspont nélkül!).
+
+Cimke megadása: üres sorban, egymagában kettősponttal kezdve. Pl: :VÉGE
+
+.
+:SHELL_CMD_HISTORY_HELP
+Megjeleníti vagy törli a parancstörténetet.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  A parancstörténet törlése.
+
+.
+:SHELL_CMD_SHIFT_HELP
+Balra tolja a parancssori paramétereket egy kötegfájlban.
+
+.
+:SHELL_CMD_SHIFT_HELP_LONG
+SHIFT
+
+.
+:SHELL_CMD_FOR_HELP
+Meghatározott parancs futtatása egy fájl halmaz minden egyes elemére.
+
+.
+:SHELL_CMD_FOR_HELP_LONG
+FOR %%változó IN (halmaz) DO parancs [paraméterek]
+
+  %%változó  Változó paraméter.
+  (halmaz)   Egy vagy több fájl halmaza. Helyettesítő karakterek használhatóak.
+  parancs    A minden egyes fájlra végrehajtandó parancs.
+  paraméterek
+             Paraméterek vagy kapcsolók társítása a megadott parancshoz.
+
+Kötegfájlban "%%%%változó" használandó a "%%változó" helyett.
+
+.
+:SHELL_CMD_LFNFOR_HELP
+Engedélyezi vagy kikapcsolja a hosszú fájlnevek használatát a 
+helyettesítő karakterekhez.
+
+.
+:SHELL_CMD_LFNFOR_HELP_LONG
+LFNFOR [ON=be | OFF=ki]
+
+LFNFOR paraméter nélkül megjeleníti az aktuális LFNFOR beállítást.
+
+Ez a parancs csak akkor hatásos, ha a hosszú fájlnév támogatás (LFN) aktív.
+
+.
+:SHELL_CMD_TYPE_HELP
+Megjeleníti egy szövegfájl tartalmát.
+
+.
+:SHELL_CMD_TYPE_HELP_LONG
+TYPE [meghajtó:][elérési út][fájlnév]
+
+.
+:SHELL_CMD_REM_HELP
+Megjegyzések hozzáadása egy kötegfájlban.
+
+.
+:SHELL_CMD_REM_HELP_LONG
+REM [megjegyzés]
+
+.
+:SHELL_CMD_RENAME_HELP
+Átnevez egy fájlt/könyvtárat vagy fájlokat.
+
+.
+:SHELL_CMD_RENAME_HELP_LONG
+RENAME [meghajtó:][elérési út][könyvtár1 | fájl1] [könyvtár2 | fájl2]
+REN [meghajtó:][elérési út][könyvtárnév1 | fájlnév1] [könyvtárnév2 | fájlnév2]
+
+Megjegyzés: új meghajtó vagy elérési út NEM adható meg célként.
+
+Helyettesítő karakterek (* vagy ?) használhatóak fájlokhoz. 
+Pl: ←[37;1mREN *.TXT *.BAK←[0m átnevez minden szövegfájlt.
+
+.
+:SHELL_CMD_DELETE_HELP
+Egy vagy több fájl törlése.
+
+.
+:SHELL_CMD_DELETE_HELP_LONG
+DEL [/P] [/F] [/Q] név
+ERASE [/P] [/F] [/Q] név
+
+ név  Törlendő fálj(ok) vagy könyvtárak listája.
+      Helyettesítő karakterek használhatóak több fájl törléséhez.
+      Könyvtár megadásakor az összes benne lévő fájl törlődik.
+ /P   Megerősítés kérése a fájl(ok) törlése előtt.
+ /F   Csak olvasható fájlok erőltetett törlése.
+ /Q   Csendes mód, ne kérjen megerősítést helyettesítő karakterek használatához.
+ 
+.
+:SHELL_CMD_COPY_HELP
+Egy vagy több fájl másolása.
+
+.
+:SHELL_CMD_COPY_HELP_LONG
+COPY [/Y | /-Y] forrás [+forrás [+ ...]] [cél]
+
+  forrás        A másolandó fájl vagy fájlok megadása.
+  cél           A célkönyvár és/vagy fájlnév a létrehozandó új fájl(ok)hoz.
+  /Y            Létező fájl felülírás külön kérdés nélkül.
+  /-Y           Meglévő fájl felülírásának megerősítésének kérése futáskor.
+
+The switch /Y may be preset in the COPYCMD environment változó.
+This may be overridden with /-Y on the command line.
+
+To append fájls, specify a single fájl for destination, but multiple fájls
+for source (using wildcards or fájl1+fájl2+fájl3 format).
+
+.
+:SHELL_CMD_CALL_HELP
+Másik kötegfájl indítása egy kötegfájlból.
+
+.
+:SHELL_CMD_CALL_HELP_LONG
+CALL [meghajtó:][elérési út]fájlnév [paraméterek]
+
+paraméterek  A kötegfájl (batch file) által elvárt parancssori paraméterek.
+
+.
+:SHELL_CMD_SUBST_HELP
+Hozzárendel egy meghajtót egy belső könyvtárhoz.
+
+.
+:SHELL_CMD_SUBST_HELP_LONG
+SUBST [meghajtó1: [meghajtó2:]elérési út]
+SUBST meghajtó1: /D
+
+  meghajtó1:  Meghajtó amihez elérési utat szeretnénk rendelni vagy törölni.
+  [meghajtó2:]elérési út  
+              Csatolt helyi meghajtó és elérési út amit használni szeretnénk.
+  /D          Eltávolít egy csatolt vagy helyettesített meghajtót.
+
+SUBST paraméter nélkül megjeleníti a csatolt helyi meghajtók listáját.
+
+.
+:SHELL_CMD_LOADHIGH_HELP
+Programot betölt a felső memóriába (XMS és UMB memória szükséges).
+
+.
+:SHELL_CMD_LOADHIGH_HELP_LONG
+LH              [meghajtó:][elérési út]fájlnév [parameters]
+LOADHIGH        [meghajtó:][elérési út]fájlnév [parameters]
+
+.
+:SHELL_CMD_CHOICE_HELP
+Addig vár, míg a felhasználó megnyom egy (amegadott választási lehetőségeknek megfelelő) billentyűt.
+
+.
+:SHELL_CMD_CHOICE_HELP_LONG
+CHOICE [/C:gombok] [/N] [/S] /T[:]c,nn szöveg
+
+  /C[:]gombok  A megengedett billentyűket határozza meg.  Alapértelmezett: yn. (igen/nem)
+  /N           A választási lehetőségeket ne jelenítse meg.
+  /S           Kisbetű/nagybetű megkülönböztetésének bekapcsolása.
+  /T[:]c,nn    Alapértelmezett választás a c nn másodperc után.
+  szöveg       Beviteli szöveg meghatározása.
+
+Az ERRORLEVEL környezeti változó aktiválódik a felhasználó által lenyomott gomboknak megfelelően.
+
+.
+:SHELL_CMD_ATTRIB_HELP
+Displays or changes fájl attribútumait.
+
+.
+:SHELL_CMD_ATTRIB_HELP_LONG
+ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [meghajtó:][elérési út][fájlnév] [/S]
+
+  +   Beállít egy attribútumot.
+  -   Töröl egy attribútumot.
+  R   Csak olvasható fájl attribútum.
+  A   Arhív fájl attribútum.
+  S   Rendszer fájl attribútum.
+  H   Rejtett fájl attribútum.
+  [meghajtó:][elérési út][fájlnév]
+      Meghatározza fájl(ok) vagy könyvtár(ak)at az ATTRIB működéséhez.
+  /S  Az összes fájlt feldolgozza a megadott elérés úton beleértve annak alkönyvtárait is.
+
+.
+:SHELL_CMD_PATH_HELP
+Megjeleníti vagy beállítja a keresési utat a futtatható fájlokhoz.
+
+.
+:SHELL_CMD_PATH_HELP_LONG
+PATH [[meghajtó:]elérési út[;...][;%PATH%]
+PATH ;
+
+PATH ; kitörli az összes keresési útbeállítást.
+PATH paraméter nélkül megjeleníti az aktuálisan eltárolt keresési utat/utakat.
+[;%PATH%] az új elérési utat a meglevőkhöz fűzi hozzá
+
+.
+:SHELL_CMD_PUSHD_HELP
+Eltárolja az aktív könyvtárat (a POPD parancshoz) majd átlép a megadottra.
+
+.
+:SHELL_CMD_PUSHD_HELP_LONG
+PUSHD [elérési út]
+
+elérési út  Meghatározza a könyvtárat amibe a POPD paranccsal lehet átlépni.
+
+PUSHD paraméter nélkül megjeleníti az aktuálisan eltárolt könyvtára(ka)t.
+
+.
+:SHELL_CMD_POPD_HELP
+Megváltoztatja az aktuális könyvtárat a PUSHD parancs által (elsőként) eltároltra 
+majd törli azt a listáról.
+
+.
+:SHELL_CMD_POPD_HELP_LONG
+POPD
+
+.
+:SHELL_CMD_VERIFY_HELP
+Szabályozza, hogy a fájlok lemezre írásának helyessége ellenőrizve legyen-e.
+
+.
+:SHELL_CMD_VERIFY_HELP_LONG
+VERIFY [ON=be | OFF=ki]
+
+VERIFY paraméter nélkül megjeleníti az aktuális ellenőrzési mód beállítást.
+
+.
+:SHELL_CMD_VER_HELP
+Megjeleníti vagy beállítja az emulált DOS verizót a DOSBox-X-ben.
+
+.
+:SHELL_CMD_VER_HELP_LONG
+VER [/R]
+VER [verziószám] vagy VER SET [fő alverzió]
+
+  /R                 DOSBox-X committált verziószáma és készítés (build) ideje.
+  [verziószám]       A [verziószám] beállítása mint emulált DOS verzió.
+  SET [fő alverzió]  Az emulált DOS verzió beállítása fő és alverzió formában.
+
+  ←[0mPl. ←[37;1mVER 6.0←[0m vagy ←[37;1mVER 7.1←[0m beállítja a DOS verziót ←[37;1m6.0←[0m-ra vagy ←[37;1m7.1←[0m-re.
+  Másrészről, ←[37;1mVER SET 7 1←[0m a DOS verziót ←[37;1m7.01←[0m-re állítja be és nem 7.10-re.
+
+VER paraméter nélkül megjeleníti a DOSBox-X és az emulált DOS verzióját.
+
+.
+:SHELL_CMD_VER_VER
+DOSBox-X verzió %s (%s). Emulált DOS verzió %d.%02d.
+
+.
+:SHELL_CMD_VER_INVALID
+A megadott DOS verzió nem megfelelő.
+
+.
+:SHELL_CMD_VOL_HELP
+Megjeleníti a lemez kötetcimkéjét és a sorozatszámot, ha létezik.
+
+.
+:SHELL_CMD_VOL_HELP_LONG
+VOL [meghajtó]
+
+.
+:SHELL_CMD_PROMPT_HELP
+Megváltoztatja a várakozási jelet (command prompt).
+
+.
+:SHELL_CMD_PROMPT_HELP_LONG
+PROMPT [szöveg]
+  szöveg    Új várakozási jel megadása.
+
+Prompt can be made up of normal characters and the following special codes:
+  $A   & (És jel)
+  $B   | (pipa)
+  $C   ( (Bal zárójel)
+  $D   Aktuális dátum
+  $E   Esc jel (ASCII kód 27)
+  $F   ) (Jobb zárójel)
+  $G   > (nagyobb-mint jel)
+  $H   Törlés (kitörli az előző karaktert)
+  $L   < (kisebb-mint jel)
+  $N   Aktív meghajtó
+  $P   Aktív meghajtó és elérési út
+  $Q   = (egyenlőség jel)
+  $S     (szóköz)
+  $T   Aktuális idő
+  $V   DOS verzószám
+  $_   Visszatérés és sortörés
+  $$   $ (dollárjel)
+
+.
+:SHELL_CMD_ALIAS_HELP
+Parancsaliaszok megjelenítése vagy megadása.
+
+.
+:SHELL_CMD_ALIAS_HELP_LONG
+ALIAS [név[=érték] ... ]
+
+ALIAS paraméter nélkül megjeleníti a definiált parancsaliaszok listáját:
+'ALIAS név = érték' formában.
+
+.
+:SHELL_CMD_ASSOC_HELP
+Fájl-kiterjesztés hozzárendelések megjelenítése vagy megváltoztatása.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.kiterjesztés[=parancs] ... ]
+
+ASSOC paraméter nélkül megjeleníti a fájl hozzárendeléseket.
+A fájl-kiterjesztéseknek ponttal (.) kell kezdődnie; 
+helyettesítő karakterek (* vagy ?) használhatóak.
+
+.
+:SHELL_CMD_CHCP_HELP
+DOS kódlap megjelenítése vagy megváltoztatása.
+
+.
+:SHELL_CMD_CHCP_HELP_LONG
+CHCP [nnn [fájl]]
+CHCP nnn[:[nyelv]]
+
+  nnn      Meghatározza a kódlapot.
+  fájl     Meghatározza a kódlap-fájlt.
+  nyelv    Meghatározza a megfelelő nyelvet.
+
+Támogatott kódlapok a TrueType betú kimenethez:
+
+437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021
+
+A két-bájtos kódlapok 932, 936, 949, vagy 950/951 szintén beleértve.
+
+Testreszabott kódlapok használhatóak kódlap fájlok megadásával.
+
+.
+:SHELL_CMD_CHCP_ACTIVE
+Aktív kódlap: %d
+
+.
+:SHELL_CMD_CHCP_MISSING
+ASCII karakterek nincsenek definiálva a TTF betúkészletben: %d
+
+.
+:SHELL_CMD_CHCP_INVALID
+Nem létező kódlap - %s
+
+.
+:SHELL_CMD_COUNTRY_HELP
+Megjeleníti vagy megváltoztatja az aktív ország-beállítást.
+
+.
+:SHELL_CMD_COUNTRY_HELP_LONG
+COUNTRY [nnn] 
+
+  nnn   Meghatározza az ország kódot.
+
+Hatással van az ország-specifikus információkra, mint pl. dátum és idő formátumok.
+
+.
+:SHELL_CMD_CTTY_HELP
+Megváltoztatja a rendszer által használ terminál eszközt (TTY).
+
+.
+:SHELL_CMD_CTTY_HELP_LONG
+CTTY eszköz
+  eszköz        A használandó terminál eszköz, mint pl. CON.
+
+.
+:SHELL_CMD_MORE_HELP
+A kimenet megjelenítése képernyőnként egyesével.
+
+.
+:SHELL_CMD_MORE_HELP_LONG
+MORE [meghajtó:][elérési út][fájlnév]
+MORE < [meghajtó:][elérési út]fájlnév
+command-name | MORE [meghajtó:][elérési út][fájlnév]
+
+.
+:SHELL_CMD_TRUENAME_HELP
+Megkeresi a teljes nevet a fájlhoz.
+
+.
+:SHELL_CMD_TRUENAME_HELP_LONG
+TRUENAME [/H] fájl
+
+.
+:SHELL_CMD_DXCAPTURE_HELP
+Program futtatása videó- vagy hangrögzítéssel.
+
+.
+:SHELL_CMD_DXCAPTURE_HELP_LONG
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [parancs] [opció(k)]
+
+Elindítja a videó- vagy hangrögzítést, elindítja a programot majd 
+automatikusan leállítja a rögzítést amikor a program futása befejeződik.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP
+Elindítja a programot és átvált a hibakeresőre a belépési pontnál.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP_LONG
+DEBUGBOX [parancs] [paraméterek]
+
+DEBUGBOX paraméter nélkül elindítja a hibakeresőt.
+
+.
+:SHELL_CMD_COMMAND_HELP
+Elindítja a DOSBox-X parancsértelmezőt.
+
+A következő opciók elfogadottak:
+
+  /C    Végrehatja a megadott parancsot, majd visszatér.
+  /K    Végrehatja a megadott parancsot és folytatja a futást.
+  /P    Betölt egy maradandó (permanent) másolatot a parancsértelmezőből.
+  /INIT Inicializálja a parancsértelmezőt.
+
+.
+:MENU:mapper_reset
+Virtuális gép újraindítása
+.
+:MENU:mapper_reboot
+Virtuális gép inicializálása
+.
+:MENU:mapper_loadmap
+Billentyűzetkiosztás betöltése...
+.
+:MENU:mapper_quickrun
+Gyors program indítás...
+.
+:MENU:mapper_shutdown
+Kilépés a DOSBox-X-ből
+.
+:MENU:mapper_capmouse
+Az egér DOSBOX-X-hez rendelése (ALT+Tab a feloldáshoz)
+.
+:MENU:mapper_fastedit
+Gyorsfix: kiválasztáskor kimásol majd beilleszt
+.
+:MENU:mapper_copyall
+DOS képernyő teljes tartalmának másolása
+.
+:MENU:mapper_paste
+Beillesztés a Vágólapről
+.
+:MENU:mapper_pasteend
+A Vágólapről való beillesztés megállítása 
+.
+:MENU:mapper_ejectpage
+"Következő oldal" küldése
+.
+:MENU:mapper_printtext
+DOS képernyő kinyomtatása
+.
+:MENU:mapper_pause
+Pillanatmegállítás
+.
+:MENU:mapper_pauseints
+Pillanatmegállítás megszakítások engedélyezésével
+.
+:MENU:mapper_gui
+Konfigurációs eszköz
+.
+:MENU:mapper_mapper
+Billentyűzetkiosztás szerkesztő
+.
+:MENU:mapper_fullscr
+Teljes képernyőmód váltás
+.
+:MENU:mapper_resetsize
+Képernyő méretének helyreállítása
+.
+:MENU:mapper_dbcssbcs
+CJK: DBCS/SBCS üzemmódok közötti váltás
+.
+:MENU:mapper_autoboxdraw
+CJK: A doboz karaktereinek automatikus beállítása
+.
+:MENU:mapper_incsize
+TTF betűkészlet méretének növelése
+.
+:MENU:mapper_decsize
+TTF betűkészlet méretének csökkentése
+.
+:MENU:mapper_resetcolor
+TTF betűkészlet színe alaphelyzetbe
+.
+:MENU:mapper_pwrbutton
+APM kikapcsológomb
+.
+:MENU:mapper_togmenu
+Menüsor megjelenítése/elrejtése
+.
+:MENU:MainMenu
+Főmenü
+.
+:MENU:MainSendKey
+Speciális billentyűzetkombinációk küldése
+.
+:MENU:MainHostKey
+Gazdabillentyű (host) kiválasztása
+.
+:MENU:WheelToArrow
+Egér görgő
+.
+:MENU:SharedClipboard
+Megosztott vágólap-funkciók
+.
+:MENU:CpuMenu
+CPU
+.
+:MENU:CpuCoreMenu
+CPU mag
+.
+:MENU:CpuTypeMenu
+CPU típusa
+.
+:MENU:CpuSpeedMenu
+CPU sebességének emulációja
+.
+:MENU:cpu88-4
+8088 XT 4.77MHz (~240 kör)
+.
+:MENU:cpu286-8
+286 8MHz (~750 kör)
+.
+:MENU:cpu286-12
+286 12MHz (~1510 kör)
+.
+:MENU:cpu286-25
+286 25MHz (~3300 kör)
+.
+:MENU:cpu386-25
+386DX 25MHz (~4595 kör)
+.
+:MENU:cpu386-33
+386DX 33MHz (~6075 kör)
+.
+:MENU:cpu486-33
+486DX 33MHz (~12010 kör)
+.
+:MENU:cpu486-66
+486DX2 66MHz (~23880 kör)
+.
+:MENU:cpu486-100
+486DX4 100MHz (~33445 kör)
+.
+:MENU:cpu486-133
+486DX5 133MHz (~47810 kör)
+.
+:MENU:cpu586-60
+Pentium 60MHz (~31545 kör)
+.
+:MENU:cpu586-66
+Pentium 66MHz (~35620 kör)
+.
+:MENU:cpu586-75
+Pentium 75MHz (~43500 kör)
+.
+:MENU:cpu586-90
+Pentium 90MHz (~52000 kör)
+.
+:MENU:cpu586-100
+Pentium 100MHz (~60000 kör)
+.
+:MENU:cpu586-120
+Pentium 120MHz (~74000 kör)
+.
+:MENU:cpu586-133
+Pentium 133MHz (~80000 kör)
+.
+:MENU:cpu586-166
+Pentium 166MHz MMX (~97240 kör)
+.
+:MENU:cpuak6-166
+AMD K6 166MHz (~110000 kör)
+.
+:MENU:cpuak6-200
+AMD K6 200MHz (~130000 kör)
+.
+:MENU:cpuak6-300
+AMD K6-2 300MHz (~193000 kör)
+.
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 kör)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 kör)
+.
+:MENU:VideoMenu
+Video
+.
+:MENU:VideoFrameskipMenu
+Képkocka átugrása
+.
+:MENU:frameskip_0
+Ki
+.
+:MENU:frameskip_1
+1 képkocka
+.
+:MENU:frameskip_2
+2 képkocka
+.
+:MENU:frameskip_3
+3 képkocka
+.
+:MENU:frameskip_4
+4 képkocka
+.
+:MENU:frameskip_5
+5 képkocka
+.
+:MENU:frameskip_6
+6 képkocka
+.
+:MENU:frameskip_7
+7 képkocka
+.
+:MENU:frameskip_8
+8 képkocka
+.
+:MENU:frameskip_9
+9 képkocka
+.
+:MENU:frameskip_10
+10 képkocka
+.
+:MENU:VideoRatioMenu
+Képarány
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_3_2
+3:2
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+Eredeti arány
+.
+:MENU:video_ratio_set
+Képarány beállítása
+.
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
+:MENU:VideoScalerMenu
+Skálázó
+.
+:MENU:scaler_set_none
+Nincs
+.
+:MENU:scaler_set_normal2x
+Normal 2X
+.
+:MENU:scaler_set_normal3x
+Normal 3X
+.
+:MENU:scaler_set_normal4x
+Normal 4X
+.
+:MENU:scaler_set_normal5x
+Normal 5X
+.
+:MENU:scaler_set_hardware_none
+Hardveresen nincs
+.
+:MENU:scaler_set_hardware2x
+Hardveres 2X
+.
+:MENU:scaler_set_hardware3x
+Hardveres 3X
+.
+:MENU:scaler_set_hardware4x
+Hardveres 4X
+.
+:MENU:scaler_set_hardware5x
+Hardveres 5X
+.
+:MENU:scaler_set_gray
+Szürkeárnyalatos
+.
+:MENU:scaler_set_gray2x
+Szürkeárnyalatos 2X
+.
+:MENU:scaler_set_tv2x
+TV 2X
+.
+:MENU:scaler_set_tv3x
+TV 3X
+.
+:MENU:scaler_set_scan2x
+Scan 2X
+.
+:MENU:scaler_set_scan3x
+Scan 3X
+.
+:MENU:scaler_set_rgb2x
+RGB 2X
+.
+:MENU:scaler_set_rgb3x
+RGB 3X
+.
+:MENU:scaler_set_advmame2x
+Haladó MAME 2X
+.
+:MENU:scaler_set_advmame3x
+Haladó MAME 3X
+.
+:MENU:scaler_set_hq2x
+HQ (magas minőség) 2X
+.
+:MENU:scaler_set_hq3x
+HQ (magas minőség) 3X
+.
+:MENU:scaler_set_advinterp2x
+Haladó interpoláció 2X
+.
+:MENU:scaler_set_advinterp3x
+Haladó interpoláció 3X
+.
+:MENU:scaler_set_2xsai
+2xSai
+.
+:MENU:scaler_set_super2xsai
+Super2xSai
+.
+:MENU:scaler_set_supereagle
+SuperEagle
+.
+:MENU:scaler_set_xbrz
+xBRZ
+.
+:MENU:scaler_set_xbrz_bilinear
+xBRZ kettős
+.
+:MENU:center_window
+Center window
+.
+:MENU:set_titletext
+Fejléc szövegének beállítása...
+.
+:MENU:set_transparency
+Áttetszőség beállítása...
+.
+:MENU:refresh_rate
+Frissítési ráta beállítása...
+.
+:MENU:VideoOutputMenu
+Kimenet
+.
+:MENU:output_surface
+Felület
+.
+:MENU:output_direct3d
+Direct3D
+.
+:MENU:output_opengl
+OpenGL
+.
+:MENU:output_openglnb
+OpenGL legközelebbi
+.
+:MENU:output_openglpp
+OpenGL tökéletes
+.
+:MENU:output_ttf
+TrueType betűkészlet
+.
+:MENU:output_gamelink
+Game Link
+.
+:MENU:doublescan
+Dupla scan
+.
+:MENU:VideoVsyncMenu
+V-Sync
+.
+:MENU:vsync_on
+Be
+.
+:MENU:vsync_force
+Erőltetett
+.
+:MENU:vsync_host
+Gazdagép
+.
+:MENU:vsync_off
+Ki
+.
+:MENU:vsync_set_syncrate
+Szinkron ráta beállítása
+.
+:MENU:VideoOverscanMenu
+Túlpásztázás
+.
+:MENU:overscan_0
+Ki
+.
+:MENU:overscan_1
+1
+.
+:MENU:overscan_2
+2
+.
+:MENU:overscan_3
+3
+.
+:MENU:overscan_4
+4
+.
+:MENU:overscan_5
+5
+.
+:MENU:overscan_6
+6
+.
+:MENU:overscan_7
+7
+.
+:MENU:overscan_8
+8
+.
+:MENU:overscan_9
+9
+.
+:MENU:overscan_10
+10
+.
+:MENU:VideoTextmodeMenu
+Szövegmód
+.
+:MENU:clear_screen
+Képernyőtörlés
+.
+:MENU:vga_9widetext
+9 pixel széles betűk engedélyezése
+.
+:MENU:text_background
+Magas intenzitás: háttérszín
+.
+:MENU:text_blinking
+Magas intenzitás: villogó szöveg
+.
+:MENU:line_80x25
+Képernyő: 80 oszlop x 25 sor
+.
+:MENU:line_80x43
+Képernyő: 80 oszlop x 43 sor
+.
+:MENU:line_80x50
+Képernyő: 80 oszlop x 50 sor
+.
+:MENU:line_80x60
+Képernyő: 80 oszlop x 60 sor
+.
+:MENU:line_132x25
+Képernyő: 132 oszlop x 25 sor
+.
+:MENU:line_132x43
+Képernyő: 132 oszlop x 43 sor
+.
+:MENU:line_132x50
+Képernyő: 132 oszlop x 50 sor
+.
+:MENU:line_132x60
+Képernyő: 132 oszlop x 60 sor
+.
+:MENU:VideoTTFMenu
+TTF opciók
+.
+:MENU:ttf_showbold
+Vastagon szedett szöveg TTF-ben
+.
+:MENU:ttf_showital
+Dőlt szöveg TTF-ben
+.
+:MENU:ttf_showline
+Aláhúzott szöveg TTF-ben
+.
+:MENU:ttf_showsout
+Áthúzott szöveg TTF-ben
+.
+:MENU:ttf_wpno
+TTF szövegszerkesztő: nincs
+.
+:MENU:ttf_wpwp
+TTF szövegszerkesztő: WordPerfect
+.
+:MENU:ttf_wpws
+TTF szövegszerkesztő: WordStar
+.
+:MENU:ttf_wpxy
+TTF szövegszerkesztő: XyWrite
+.
+:MENU:ttf_wpfe
+TTF szövegszerkesztő: FastEdit
+.
+:MENU:ttf_blinkc
+TTF villogó kurzor megjelenítése
+.
+:MENU:ttf_right_left
+Balról jobbra szövegelrendezés
+.
+:MENU:ttf_printfont
+Nyomtatáshoz az aktuális TTF betűtípus használata
+.
+:MENU:ttf_halfwidthkana
+CJK: Fele szélességű Japán Katakana engedélyezése
+.
+:MENU:ttf_extcharset
+CJK: Kiterjesztett Kínai írásjelek engedélyezése
+.
+:MENU:VideoPC98Menu
+PC-98 opciók
+.
+:MENU:pc98_5mhz_gdc
+5MHz GDC óra
+.
+:MENU:pc98_allow_200scanline
+200 sor scanline hatás engedélyezése
+.
+:MENU:pc98_allow_4partitions
+4 grafikus partíció engedélyezése a grafikus rétegben
+.
+:MENU:pc98_enable_egc
+EGC engedélyezése
+.
+:MENU:pc98_enable_grcg
+GRCG engedélyezése
+.
+:MENU:pc98_enable_analog
+Analog Képernyő engedélyezése
+.
+:MENU:pc98_enable_analog256
+Analog 256 színű képernyő engedélyezése
+.
+:MENU:pc98_enable_188user
+188+ felhasználói CG cellák engedélyezése
+.
+:MENU:pc98_clear_text
+Szöveges réteg törlése
+.
+:MENU:pc98_clear_graphics
+Grafikus réteg törlése
+.
+:MENU:Video3dfxMenu
+3dfx emuláció
+.
+:MENU:3dfx_voodoo
+Belső Voodoo kártya
+.
+:MENU:3dfx_glide
+Glide API használata
+.
+:MENU:load_d3d_shader
+Direct3D pixel árnyékoló kiválasztása...
+.
+:MENU:load_glsl_shader
+OpenGL (GLSL) árnyékoló kiválasztása...
+.
+:MENU:load_ttf_font
+TrueType betűkészlet kiválasztása (TTF/OTF)...
+.
+:MENU:SoundMenu
+Hang
+.
+:MENU:mixer_swapstereo
+Sztereó (bal/jobb) cseréje
+.
+:MENU:mixer_mute
+Elnémít
+.
+:MENU:mixer_info
+Hangerőszabályozó hangszintjei
+.
+:MENU:sb_info
+Sound Blaster konfiguráció
+.
+:MENU:midi_info
+MIDI eszköz konfiguráció
+.
+:MENU:DOSMenu
+DOS
+.
+:MENU:enable_a20gate
+A20 kapu engedélyezése
+.
+:MENU:change_currentcd
+Aktív CD lemezkép cseréje...
+.
+:MENU:change_currentfd
+Aktív Floppy lemezkép cseréje...
+.
+:MENU:DOSMouseMenu
+Egér emuláció
+.
+:MENU:dos_mouse_enable_int33
+Belső emuláció
+.
+:MENU:dos_mouse_y_axis_reverse
+Fordított Y tengely
+.
+:MENU:dos_mouse_sensitivity
+Érzékenység
+.
+:MENU:DOSVerMenu
+A DOS névleges verziója
+.
+:MENU:dos_ver_330
+3.30
+.
+:MENU:dos_ver_500
+5.00
+.
+:MENU:dos_ver_622
+6.22
+.
+:MENU:dos_ver_710
+7.10
+.
+:MENU:dos_ver_edit
+Szerkeszt
+.
+:MENU:DOSLFNMenu
+Hosszú fájlnevek támogatása
+.
+:MENU:dos_lfn_auto
+A névleges DOS verzió szerint automatikus
+.
+:MENU:dos_lfn_enable
+Hosszú fájlnevek emulációjának engedélyezése
+.
+:MENU:dos_lfn_disable
+Hosszú fájlnevek emulációjának tiltáasa
+.
+:MENU:DOSPC98Menu
+PC-98 PIT működési frekvencia
+.
+:MENU:dos_pc98_pit_4mhz
+4MHz/8MHz PIT működési frekvencia
+.
+:MENU:dos_pc98_pit_5mhz
+5MHz/10MHz PIT működési frekvencia
+.
+:MENU:DOSEMSMenu
+Kiterjesztett memória (EMS)
+.
+:MENU:dos_ems_true
+Kiterjesztett memória emulációjának engedélyezése
+.
+:MENU:dos_ems_board
+Kiterjesztett memória emulációja (panel)
+.
+:MENU:dos_ems_emm386
+EMM386 emuláció
+.
+:MENU:dos_ems_false
+Kiterjesztett memória emulációjának kikapcsolása
+.
+:MENU:DOSDiskRateMenu
+Lemez átviteli sebességének korlátozása
+.
+:MENU:limit_hdd_rate
+Merevlemez átviteli sebességének korlátozása
+.
+:MENU:limit_floppy_rate
+Floppy lemez átviteli sebességének korlátozása
+.
+:MENU:DOSWinMenu
+Gazdagép alkalmazásai
+.
+:MENU:dos_win_autorun
+Windows gazdagépen program indítása
+.
+:MENU:dos_win_transpath
+Elérési utak a Gazdagép rendszerének megfelelő átalakítása
+.
+:MENU:dos_win_wait
+Az alkalmazás megvárása (ha lehetséges)
+.
+:MENU:dos_win_quiet
+Csendes üzemmód- indításkor üzenetek ki
+.
+:MENU:CaptureMenu
+Rögzítés
+.
+:MENU:CaptureFormatMenu
+Rögzítés formátuma
+.
+:MENU:capture_fmt_avi_zmbv
+AVI + ZMBV
+.
+:MENU:capture_fmt_mpegts_h264
+MPEG-TS + H.264
+.
+:MENU:saveoptionmenu
+Mentés/betöltés opciói
+.
+:MENU:saveslotmenu
+Mentési sor kiválasztása
+.
+:MENU:enable_autosave
+Automatikus állapotmentés engedélyezése
+.
+:MENU:noremark_savestate
+Állapot mentésekor megjegyzés ki
+.
+:MENU:force_loadstate
+Állapot visszatöltésekor figyelmeztetések ki
+.
+:MENU:removestate
+Mentési sorból eltávolít
+.
+:MENU:refreshslot
+Képernyő státuszának frissítése
+.
+:MENU:lastautosaveslot
+Az utolsó automatilkus státusz mentési sor kiválasztása
+.
+:MENU:usesavefile
+Mentési sor helyett mentési fájl használata
+.
+:MENU:autosavecfg
+Beállítások automatikus mentése...
+.
+:MENU:browsesavefile
+Mentési fájl betöltése...
+.
+:MENU:current_page
+Oldalszám: 1/10
+.
+:MENU:prev_page
+Előző oldal
+.
+:MENU:next_page
+Következő oldal
+.
+:MENU:first_page
+Első oldalra ugrás
+.
+:MENU:last_page
+Utolsó oldalra ugrás
+.
+:MENU:DriveMenu
+Meghajtó
+.
+:MENU:drive_mountauto
+Windows meghajtó automatikus csatolása
+.
+:MENU:drive_mounthd
+Mappa merevlemezként csatolása
+.
+:MENU:drive_mountcd
+Mappa CD meghajtóként csatolása
+.
+:MENU:drive_mountfd
+Mappa Floppy meghajtóként csatolása
+.
+:MENU:drive_mountfro
+Opció: a mappa írásvédett csatolása
+.
+:MENU:drive_mountarc
+Tömörített fájl csatolása(ZIP/7Z)
+.
+:MENU:drive_mountimg
+Lemez vagy CD lemezkép-fájl csatolása
+.
+:MENU:drive_mountimgs
+Egynél több lemez/CD lemezkép-fájl csatolása
+.
+:MENU:drive_mountiro
+Opció: képfájl írásvédett csatolása
+.
+:MENU:drive_unmount
+Meghajtó eltávolítása
+.
+:MENU:drive_rescan
+Meghajtó frissítése
+.
+:MENU:drive_swap
+Meghajtó cseréje
+.
+:MENU:drive_info
+Meghajtó információk
+.
+:MENU:drive_boot
+Rendszerindítás a meghajtóról
+.
+:MENU:drive_bootimg
+Rendszerindítás lemezkép-fájl-ról
+.
+:MENU:drive_saveimg
+Mentés lemezkép-fájl-ba
+.
+:MENU:HelpMenu
+Súgó
+.
+:MENU:help_intro
+Ismertető
+.
+:MENU:help_homepage
+DOSBox-X főoldala
+.
+:MENU:help_wiki
+DOSBox-X Wiki oldala
+.
+:MENU:help_issue
+DOSBox-X támogatás
+.
+:MENU:help_nic
+Hálózati eszközök listája
+.
+:MENU:help_prt
+Nyomtatók listája
+.
+:MENU:help_about
+DOSBox-X névjegye
+.
+:MENU:show_console
+Naplózás konzol megjelenítése
+.
+:MENU:clear_console
+Clear logging console
+.
+:MENU:disable_logging
+Naplózási kimenet kikapcsolása
+.
+:MENU:wait_on_error
+A konzol hiba esetén várjon
+.
+:MENU:show_codetext
+Kód áttekintés megjelenítése
+.
+:MENU:show_logtext
+Naplózás megtekintése
+.
+:MENU:save_logas
+Naplózás elmentése más néven...
+.
+:MENU:debugger_rundebug
+Hibakereső opció: Hibakereső futtatása
+.
+:MENU:debugger_runnormal
+Hibakereső opciól: Normal futtatás
+.
+:MENU:debugger_runwatch
+Hibakereső opciól: Watch futtás
+.
+:MENU:video_debug_overlay
+Video debug overlay
+.
+:MENU:HelpCommandMenu
+DOS parancsok
+.
+:MENU:DebugMenu
+Hibakereső
+.
+:MENU:HelpDebugMenu
+Naplózás konzol
+.
+:MENU:debug_blankrefreshtest
+Frissítés teszt (üres képernyő)
+.
+:MENU:debug_generatenmi
+NMI megszakítás generálása
+.
+:MENU:debug_int2fhook
+INT 2Fh hívások linkelése
+.
+:MENU:debug_logint21
+INT 21h hívások naplózása
+.
+:MENU:debug_logfileio
+Naplófile I/O
+.
+:MENU:mapper_speedlock
+Sebességzár be/ki
+.
+:MENU:mapper_speedlock2
+Turbo (Gyorsítás)
+.
+:MENU:mapper_speednorm
+Normal sebesség
+.
+:MENU:mapper_speedup
+Gyorsít
+.
+:MENU:mapper_slowdown
+Lassít
+.
+:MENU:mapper_editcycles
+Sebesség (frissítési körök) beállítása
+.
+:MENU:mapper_savestate
+Állapot mentése
+.
+:MENU:mapper_loadstate
+Állapot betöltése
+.
+:MENU:mapper_showstate
+Állapotinformáció megjelenítése
+.
+:MENU:mapper_prevslot
+Előző mentési sor kiválasztása
+.
+:MENU:mapper_nextslot
+Következő mentési sor kiválasztása
+.
+:MENU:mapper_decfskip
+Képkocka átugrás csökkentése
+.
+:MENU:mapper_incfskip
+Képkocka átugrás növelése
+.
+:MENU:mapper_aspratio
+Képarányhoz igazítás
+.
+:MENU:mapper_fscaler
+Skálázó (erőltetett)
+.
+:MENU:mapper_recwave
+Hang mentése WAV-ként
+.
+:MENU:mapper_recmtwave
+Hang mentése többsávos AVI-ként
+.
+:MENU:mapper_caprawmidi
+MIDI kimenet mentése
+.
+:MENU:mapper_caprawopl
+FM (OPL) kimenet mentése
+.
+:MENU:mapper_capnetrf
+Record network traffic
+.
+:MENU:mapper_video
+Videó mentése AVI-ként
+.
+:MENU:mapper_scrshot
+Képernyő mentése (screenshot)
+.
+:MENU:mapper_rawscrshot
+Take raw screenshot
+.
+:MENU:mapper_volup
+Hangerő növelése
+.
+:MENU:mapper_voldown
+Hangerő csökkentése
+.
+:MENU:mapper_recvolup
+Mentési hangerő növelése
+.
+:MENU:mapper_recvoldown
+Mentési hangerő csökkentése
+.
+:MENU:mapper_sendkey_mapper
+Speciális gomb(ok) küldése
+.
+:MENU:mapper_cycledown
+Sebesség (frissítési körök) csökkentése
+.
+:MENU:mapper_cycleup
+Sebesség (frissítési körök) növelése
+.
+:MENU:mapper_normal
+Normál CPU mag
+.
+:MENU:mapper_dynamic
+Dinamikus CPU mag (dynamic_x86)
+.
+:MENU:mapper_simple
+szimpla CPU mag
+.
+:MENU:mapper_full
+Teljes CPU mag
+.
+:MENU:cputype_auto
+Automatikus
+.
+:MENU:cputype_8086
+8086
+.
+:MENU:cputype_8086_prefetch
+8086 utasítás előbetöltéssel
+.
+:MENU:cputype_80186
+80186
+.
+:MENU:cputype_80186_prefetch
+80186 utasítás előbetöltéssel
+.
+:MENU:cputype_286
+286
+.
+:MENU:cputype_286_prefetch
+286 utasítás előbetöltéssel
+.
+:MENU:cputype_386
+386
+.
+:MENU:cputype_386_prefetch
+386 utasítás előbetöltéssel
+.
+:MENU:cputype_486old
+486 (régi)
+.
+:MENU:cputype_486old_prefetch
+486 (régi) utasítás előbetöltéssel
+.
+:MENU:cputype_486
+486
+.
+:MENU:cputype_486_prefetch
+486 utasítás előbetöltéssel
+.
+:MENU:cputype_pentium
+Pentium
+.
+:MENU:cputype_pentium_mmx
+Pentium MMX
+.
+:MENU:cputype_ppro_slow
+Pentium Pro
+.
+:MENU:cputype_pentium_ii
+Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
+.
+:MENU:cputype_experimental
+Kísérleti
+.
+:MENU:debug_pageflip
+Page flip hibakereső vonal
+.
+:MENU:debug_retracepoll
+Vertikális Poll hibakereső vonal
+.
+:MENU:mapper_swapimg
+Floppy meghajtó cseréje
+.
+:MENU:mapper_swapcd
+CD meghajtó cseréje
+.
+:MENU:mapper_debugger
+DOSBox-X hibakereső indítása
+.
+:MENU:mapper_rescanall
+Meghajtók frissítése
+.
+:MENU:hostkey_mapper
+Billentyűzetkiosztás-kezelővel definiált
+.
+:MENU:showdetails
+FPS és RT mutatása a fejlécben
+.
+:MENU:restartinst
+DOSBox-X újraindítása
+.
+:MENU:restartconf
+DOSBox-X újraindítása konfigurációs állománnyal...
+.
+:MENU:loadlang
+Nyelvi fájl betöltése...
+.
+:MENU:auto_lock_mouse
+Az egér fókuszának automatikus átvétele
+.
+:MENU:clipboard_right
+Jobb egérgombbal
+.
+:MENU:clipboard_middle
+Középső egérgombbal
+.
+:MENU:clipboard_arrows
+Nyílgombokkal (Home=kezdet, End=vég)
+.
+:MENU:screen_to_clipboard
+Teljes DOS képernyő vágólapra
+.
+:MENU:clipboard_device
+DOS vágólap elérésének engedélyezése
+.
+:MENU:clipboard_dosapi
+DOS vágólap elérése programok (API) által
+.
+:MENU:clipboard_biospaste
+Vágólap beillesztése BIOS funkcióval
+.
+:MENU:sendkey_winlogo
+Start gomb küldése
+.
+:MENU:sendkey_winmenu
+Menü gomb küldése
+.
+:MENU:sendkey_alttab
+Alt+Tab küldése
+.
+:MENU:sendkey_ctrlesc
+Ctrl+Esc küldése
+.
+:MENU:sendkey_ctrlbreak
+Ctrl+Break gönden
+.
+:MENU:sendkey_cad
+Ctrl+Alt+Del küldése
+.
+:MENU:hostkey_ctrlalt
+Ctrl+Alt
+.
+:MENU:hostkey_ctrlshift
+Ctrl+Shift
+.
+:MENU:hostkey_altshift
+Alt+Shift
+.
+:MENU:sendkey_mapper_winlogo
+"Speciális gomb küldése": Start
+.
+:MENU:sendkey_mapper_winmenu
+"Speciális gomb küldése": Menü
+.
+:MENU:sendkey_mapper_alttab
+"Speciális gomb küldése": Alt+Tab
+.
+:MENU:sendkey_mapper_ctrlesc
+"Speciális gomb küldése": Ctrl+Esc
+.
+:MENU:sendkey_mapper_ctrlbreak
+"Speciális gomb küldése": Ctrl+Break
+.
+:MENU:sendkey_mapper_cad
+"Speciális gomb küldése": Ctrl+Alt+Del
+.
+:MENU:wheel_none
+Nyílbillentyűk emulációja KI
+.
+:MENU:wheel_updown
+Fel/le nyíl emulációja
+.
+:MENU:wheel_leftright
+Bal/jobb nyíl emulációja
+.
+:MENU:wheel_pageupdown
+PgUp/PgDn emulációja
+.
+:MENU:wheel_ctrlupdown
+Ctrl+fel/le emulációja
+.
+:MENU:wheel_ctrlleftright
+Ctrl+bal/jobb emulációja
+.
+:MENU:wheel_ctrlpageupdown
+Ctrl+PgUp/PgDn emulációja
+.
+:MENU:wheel_ctrlwz
+Ctrl+W/Z emulációja
+.
+:MENU:wheel_guest
+Az alrendszerekben is aktivál
+.
+:MENU:doublebuf
+Dupla bufferelés (Teljes képernyő)
+.
+:MENU:alwaysontop
+Mindig legfelül
+.
+:MENU:highdpienable
+Magas DPI bekapcsol
+.
+:MENU:sync_host_datetime
+Dátum/idő frissítése a gazdagépről
+.
+:MENU:shell_config_commands
+Konfigurációs parancsok
+.
+:MENU:quick_reboot
+Gyors újraindítás engedélyezése
+.
+:MENU:make_diskimage
+Üres lemezkép-fájl létrehozása...
+.
+:MENU:list_drivenum
+Csatolt meghajtók listája
+.
+:MENU:list_ideinfo
+IDE lemez vagy CD státusza
+.
+:MENU:pc98_use_uskb
+US billentyűkiosztás
+.
+:MAPPER:capnetrf
+Record Network traffic
+.
+:MAPPER:caprawopl
+FM/OPL kimenet rögzítése
+.
+:MAPPER:copyall
+Vágólapra másol
+.
+:MAPPER:cycauto
+Automata sebesség be/ki
+.
+:MAPPER:debugger
+Hibakereső megnyitása
+.
+:MAPPER:decsize
+Betűméret (TTF) csökkentése
+.
+:MAPPER:dynamic
+CPU: dinamikus mag
+.
+:MAPPER:fastedit
+Gyorsszerkesztés
+.
+:MAPPER:full
+CPU: teljes mag
+.
+:MAPPER:incsize
+Betűméret (TTF) növelése
+.
+:MAPPER:loadmap
+Billentyűzetkiosztás betöltése
+.
+:MAPPER:nextslot
+Következő mentési hely
+.
+:MAPPER:normal
+CPU: normál mag
+.
+:MAPPER:paste
+Vágólapról beilleszt
+.
+:MAPPER:pasteend
+Beillesztés leállítása
+.
+:MAPPER:pauseints
+Pillanatmegállítás megszakítással
+.
+:MAPPER:prevslot
+Előző mentési hely
+.
+:MAPPER:printtext
+Szöveges képernyő nyomtatása
+.
+:MAPPER:quickrun
+Gyorsindító program
+.
+:MAPPER:reboot
+A DOS újraindítása
+.
+:MAPPER:recmtwave
+Record to multi-track AVI
+.
+:MAPPER:rescanall
+Meghajtók frissítése
+.
+:MAPPER:reset
+DOSBox-X újraindítása
+.
+:MAPPER:resetcolor
+Színpaletta alaphelyzetbe
+.
+:MAPPER:showstate
+Állapotinformáció
+.
+:MAPPER:simple
+CPU: szimpla mag
+.
+:MAPPER:togmenu
+Menüsor be/ki
+.
+:PROGRAM_FLAGSAVE_UNFLAGALL
+All files unflagged for saving.
+
+.
+:PROGRAM_FLAGSAVE_UNFLAGGED
+File %s unflagged for saving.
+
+.
+:PROGRAM_FLAGSAVE_FLAGGED
+File already flagged for saving - %s
+
+.
+:PROGRAM_FLAGSAVE_TOOMANY
+Too many files to flag for saving.
+
+.
+:PROGRAM_FLAGSAVE_SAVED
+File %s flagged for saving
+
+.
+:PROGRAM_FLAGSAVE_LIST
+Files flagged for saving:
+.
+:PROGRAM_FLAGSAVE_HLP
+Marks or flags files to be saved for the save state feature.
+
+FLAGSAVE [file(s) [/F] [/R]] [/U]
+
+  file(s)     Specifies one or more files to be flagged for saving.
+  /F          Forces to flag the file(s) even if they are not found.
+  /R          Removes flags from the specified file(s).
+  /U          Removes flags from all flagged files.
+
+Type FLAGSAVE without a parameter to list flagged files.
+
+.
+:PROGRAM_INT2FDBG_NOT_SET
+INT 2Fh hook has not been set.
+
+.
+:PROGRAM_INT2FDBG_ALREADY
+INT 2Fh hook has already been set.
+
+.
+:PROGRAM_INT2FDBG_HELP
+Hooks INT 2Fh for debugging purposes.
+
+INT2FDBG [option]
+  /I      Installs hook
+  
+It will hook INT 2Fh at the top of the call chain for debugging information.
+
+Type INT2FDBG without a parameter to show the current hook status.
+.
+:PROGRAM_SET80x25
+Changes to 80x25 text mode.
+.
+:PROGRAM_SET80x43
+Changes to 80x43 text mode.
+.
+:PROGRAM_SET80x50
+Changes to 80x50 text mode.
+.
+:PROGRAM_SET80x60
+Changes to 80x60 text mode.
+.
+:PROGRAM_SET132x25
+Changes to 132x25 text mode.
+.
+:PROGRAM_SET132x43
+Changes to 132x43 text mode.
+.
+:PROGRAM_SET132x50
+Changes to 132x50 text mode.
+.
+:PROGRAM_SET132x60
+Changes to 132x60 text mode.
+.
+:PROGRAM_RESCAN_HELP
+Rescans for changes on mounted drives made on the host by clearing caches.
+
+RESCAN [/A] [/Q]
+RESCAN [drive:] [/Q]
+
+  [/A]     Rescan all drives
+  [/Q]     Enable quiet mode
+  [drive:] The drive to rescan
+
+Type RESCAN with no parameters to rescan the current drive.
+
+.
+:PROGRAM_CFGTOOL_HELP
+Starts DOSBox-X's graphical configuration tool.
+
+CFGTOOL
+
+Note: You can also use CONFIG command for command-line configurations.
+.
+:PROGRAM_IMGSWAP_HELP
+Swaps floppy, hard drive and optical disc images.
+
+←[32;1mIMGSWAP←[0m ←[37;1mdrive←[0m ←[36;1m[position]←[0m
+ ←[37;1mdrive←[0m               Drive letter to swap the image.
+ ←[36;1m[position]←[0m          Disk position to swap to.
+.
+:PROGRAM_INTRO_HELP
+A full-screen introduction to DOSBox-X.
+
+INTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]
+.
+:PROGRAM_IMGMOUNT_NOT_ASSIGNED
+BIOS disk index does not have an image assigned.
+.
+:PROGRAM_IMGMOUNT_INVALID_NUMBER
+Invalid mount number.
+.
+:PROGRAM_IMGMOUNT_INVALID_FSTYPE
+Invalid fstype.
+.
+:PROGRAM_IMGMOUNT_INVALID_SIZE
+Invalid size parameter.
+.
+:PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER
+Drive number %d is not mounted.
+.
+:PROGRAM_IMGMOUNT_UMOUNT_USAGE
+Incorrect IMGMOUNT unmount usage.
+.
+:PROGRAM_IMGMOUNT_INVALID_LETTER
+Invalid drive letter.
+.
+:PROGRAM_IMGMOUNT_CHOOSE_LETTER
+Partitions cannot be mounted in conflict with the standard INT 13h hard disk
+allotment. Choose a different drive letter to mount to.
+.
+:PROGRAM_ELTORITO_LETTER
+El Torito emulation requires a proper CD-ROM drive letter.
+.
+:PROGRAM_ELTORITO_DRIVE_EXISTS
+El Torito CD-ROM drive specified already exists as a non-CD-ROM device
+.
+:PROGRAM_ELTORITO_NOT_CDDRIVE
+El Torito CD-ROM drive specified is not actually a CD-ROM drive.
+.
+:PROGRAM_ELTORITO_REQUIRE_FLOPPY
+El Torito emulation must be used with -t floppy at this time.
+.
+:PROGRAM_ELTORITO_NO_BOOT_RECORD
+El Torito CD-ROM boot record not found.
+.
+:PROGRAM_ELTORITO_ENTRY_UNREADABLE
+El Torito entries unreadable.
+.
+:PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY
+El Torito bootable floppy not found.
+.
+:PROGRAM_ELTORITO_BOOTABLE_SECTION
+Unable to locate bootable section
+.
+:PROGRAM_ELTORITO_BOOTSECTOR
+El Torito boot sector unreadable
+.
+:PROGRAM_IMGMAKE_ALIGNMENT
+Invalid alignment
+.
+:PROGRAM_IMGMAKE_PARTOFS
+Invalid -partofs
+.
+:PROGRAM_IMGMAKE_FAT
+Invalid -fat option. Must be 12, 16, or 32
+.
+:PROGRAM_IMGMAKE_FATCOPIES
+Invalid -fatcopies option
+.
+:PROGRAM_IMGMAKE_SPC
+Invalid -spc option, out of range
+.
+:PROGRAM_IMGMAKE_SPC2
+Invalid -spc option, must be a power of 2
+.
+:PROGRAM_IMGMAKE_ROOTDIR
+Invalid -rootdir option
+.
+PROGRAM_IMGMAKE_BOOTSECT
+Invalid bootsector position
+.
+PROGRAM_IMGMAKE_VOLUME_ALIGN
+Sanity check failed: Volume size not aligned
+.
+:PROGRAM_IMGMAKE_FAT_ALIGN
+Sanity check failed: FAT tables not aligned
+.
+:PROGRAM_IMGMAKE_SECTPERFAT
+Error: Generated filesystem has more than 256 sectors per FAT and is not FAT32
+.
+:PROGRAM_IMGMAKE_VOLSIZE
+Sanity check failed: Volume size not aligned
+.
+:PROGRAM_IMGMAKE_CLUSTERS
+Error: Generated filesystem has too few clusters given the parameters
+.
+:PROGRAM_IMGMAKE_CLUSTERCOUNT
+Warning: Cluster count is too high given the volume size. 
+         Reporting a smaller sector count.
+.
+:PROGRAM_IMGMAKE_CLUSTER_ALIGN
+Sanity check failed: First cluster not aligned
+.
+:PROGRAM_IMGMAKE_CLUSTER_SIZE
+WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK
+.
+:PROGRAM_BOOT_UNSUPPORTED
+Unsupported boot mode
+.
+:PROGRAM_MOUNT_OVERLAY_REPLACE
+Existing overlay has been replaced with new overlay.
+.
+:PROGRAM_LOADFIX_EMS_FREE
+EMS handle %u: unable to free
+.
+:PROGRAM_LOADFIX_XMS_FREE
+XMS handle %u: unable to free
+.
+:PROGRAM_LOADFIX_EMS_ALLOC
+EMS block allocated (%uKB)
+.
+:PROGRAM_LOADFIX_EMS_ALLOCERROR
+Unable to allocate EMS block
+.
+PROGRAM_LOADFIX_NOEMS
+EMS not active
+.
+:PROGRAM_LOADFIX_XMS_ALLOC
+XMS block allocated (%uKB)
+.
+:PROGRAM_LOADFIX_XMS_ALLOCERROR
+Unable to allocate XMS block
+.
+:PROGRAM_LOADFIX_NOXMS
+XMS not active
+.
+:PROGRAM_LOADFIX_NOALLOC
+Lowest MCB is above 64KB, nothing allocated
+.
+:PROGRAM_BOOT_SWAP_ALREADY
+Multiple disk images specified and another drive is already connected to the swap list
+.
+:PROGRAM_BOOT_NOT_SPECIFIED
+No images specified
+.
+:PROGRAM_BOOT_IS_PC88
+The D88 image appears to target PC-88 and cannot be booted.
+.
+:PROGRAM_BOOT_BPS_TOOLARGE
+Bytes/sector too large
+.
+:PROGRAM_BOOT_DRIVE_READERROR
+Error reading drive
+.
+:PROGRAM_START_HELP_WIN
+Starts a separate window to run a specified program or command.
+
+START [+|-|_] command [arguments]
+
+  [+|-|_]: To maximize/minimize/hide the program.
+  The options /MAX, /MIN, /HID are also accepted.
+  command: The command, program or file to start.
+  arguments: Arguments to pass to the application.
+  
+START opens the Windows command prompt automatically to run these commands
+and wait for a key press before exiting (specified by "startincon" option):
+%s
+
+Note: The path specified in this command is the path on the host system.
+.
+:PROGRAM_START_HELP
+Starts a separate window to run a specified program or command.
+
+START /OPEN file
+START command [arguments]
+
+  /OPEN: To open a file or URL with the associated program.
+  file: The file or URL to open with the associated program.
+  command: The command or program to start or run.
+  arguments: Arguments to pass to the application.
+  
+Note: The path specified in this command is the path on the host system.
+.
+:PROGRAM_START_COMPLETED
+The command execution is completed.
+.
+:PROGRAM_START_COMMAND
+Starting %s...
+.
+:PROGRAM_START_CTRLC
+(Press Ctrl+C to exit immediately)
+.
+:PROGRAM_START_HOST_ERROR
+Error: START cannot launch application to run on your current host system.
+.
+:PROGRAM_START_LAUNCH_ERROR
+Error: START could not launch application.
+.
+:PROGRAM_IMGMOUNT_ELTORITO_NO_FILE
+Do not specify files when mounting floppy drives from El Torito bootable CDs
+.
+:PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE
+Do not specify files when mounting RAM drives
+.
+:PROGRAM_IMGMOUNT_INVALID_SECTORSIZE
+Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.
+.
+:PROGRAM_IMGMOUNT_OPEN_ERROR
+Unable to open '%s'
+.
+:PROGRAM_IMGMOUNT_QCOW2_INVALID
+qcow2 image '%s' is not supported
+.
+:PROGRAM_IMGMOUNT_GEOMETRY_ERROR
+Unable to detect geometry
+.
+:PROGRAM_IMGMOUNT_DOS_VERSION
+Mounting this image file requires a reported DOS version of %u.%u or higher.
+%s
+.
+:PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE
+Floppy size not recognized
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_USED
+Multiple images given and another drive already uses multiple images
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED
+Multiple disk images not supported for that drive
+.
+:PROGRAM_IMGMOUNT_HD_FDPOSITION
+Cannot mount hard drive in floppy position.
+.
+:PROGRAM_IMGMOUNT_FD_HDPOSITION
+Cannot mount floppy in hard drive position.
+.
+:PROGRAM_ELTORITO_ISOMOUNT
+El Torito bootable CD: -fs iso mounting not supported
+.
+:PROGRAM_MODE_STATUS
+Status for device CON:
+----------------------
+Columns=%d
+Lines=%d
+.
+:PROGRAM_MODE_NOTSUPPORTED
+
+Code page operation not supported on this device
+.
+:PROGRAM_MODE_RATE_DELAY
+Rate and delay must be specified together
+.
+:PROGRAM_UTF8_HELP
+Converts UTF-8 text to view in the current code page.
+
+UTF8 < [drive:][path]filename
+command-name | UTF8
+.
+:PROGRAM_UTF8_NO_TEXT
+No input text found.
+.
+:PROGRAM_UTF8_INVALIDCP
+Invalid code page for text conversion.
+.
+:PROGRAM_UTF8_NOT_UTF8
+The input text is UTF-16.
+.
+:PROGRAM_UTF8_CONVERSION_ERROR
+An error occurred during text conversion.
+.
+:PROGRAM_UTF16_HELP
+Converts UTF-16 text to view in the current code page.
+
+UTF16 [/BE|/LE] < [drive:][path]filename
+command-name | UTF16 [/BE|/LE]
+
+  /BE  Use UTF-16 Big Endian
+  /LE  Use UTF-16 Little Endian
+.
+:PROGRAM_VTEXT_HELP
+Changes V-text mode for the DOS/V emulation.
+
+VTEXT [mode]
+
+  [mode] can be 0, 1, 2, for no V-text, V-text 1, and V-text 2 respectively.
+
+Type VTEXT without a parameter to show the current V-text mode status.
+.
+:PROGRAM_NMITEST_HELP
+Generates a non-maskable interrupt (NMI).
+
+NMITEST
+
+Note: This is a debugging tool to test if the interrupt handler works properly.
+.
+:PROGRAM_NMITEST_GENERATE_NMI
+Generating a non-maskable interrupt (NMI)...
+.
+:PROGRAM_CAPMOUSE_HELP
+Captures or releases the mouse inside DOSBox-X.
+
+CAPMOUSE [/C|/R]
+
+  /C Capture the mouse
+  /R Release the mouse
+.
+:PROGRAM_CAPMOUSE_MOUSE
+Mouse 
+.
+:PROGRAM_CAPMOUSE_CURRENTLY
+is currently 
+.
+:PROGRAM_CAPMOUSE_CAPTURED
+captured
+.
+:PROGRAM_CAPMOUSE_RELEASED
+released
+.
+:PROGRAM_AUTOTYPE_HELP
+Performs scripted keyboard entry into a running DOS program.
+
+AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
+
+Where:
+  -list:   prints all available button names.
+  -w WAIT: seconds before typing begins. Two second default; max of 30.
+  -p PACE: seconds between each keystroke. Half-second default; max of 10.
+  
+  The sequence is comprised of one or more space-separated buttons.
+  Autotyping begins after WAIT seconds, and each button is entered
+  every PACE seconds. The , character inserts an extra PACE delay.
+  
+Some examples:
+  ←[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter←[0m
+  ←[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter←[0m
+  ←[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter←[0m
+.
+:PROGRAM_AUTOTYPE_NO_BINDINGS
+AUTOTYPE: The mapper has no key bindings
+.
+:PROGRAM_AUTOTYPE_CLAMP_VALUE
+AUTOTYPE: bounding %s value of %.2f to %.2f
+.
+:PROGRAM_AUTOTYPE_INVALID_VALUE
+AUTOTYPE: %s value '%s' is not a valid floating point number
+.
+:PROGRAM_ADDKEY_HELP
+Generates artificial keypresses.
+
+ADDKEY [pmsec] [key]
+
+For example, the command below types "dir" followed by ENTER after 1 second:
+
+ADDKEY p1000 d i r enter
+
+You could also try AUTOTYPE command instead of this command to perform
+scripted keyboard entry into a running DOS program.
+.
+:PROGRAM_SETCOLOR_HELP
+Views or changes the text-mode color scheme settings.
+
+SETCOLOR [color# [value]]
+
+For example:
+
+   ←[32;1mSETCOLOR 0 (50,50,50)←[0m
+Change Color #0 to the specified color value
+
+   ←[32;1mSETCOLOR 7 -←[0m
+Return Color #7 to the default color value
+
+   ←[32;1mSETCOLOR 3 +←[0m
+Return Color #3 to the preset color value
+
+   ←[32;1mSETCOLOR MONO←[0m
+Display current MONO mode status
+
+To change the current background and foreground colors, use COLOR command.
+.
+:PROGRAM_SETCOLOR_STATUS
+MONO mode status: %s (video mode %d)
+
+.
+:PROGRAM_SETCOLOR_ACTIVE
+active
+.
+:PROGRAM_SETCOLOR_INACTIVE
+inactive
+.
+:PROGRAM_SETCOLOR_UNAVAILABLE
+unavailable
+.
+:PROGRAM_SETCOLOR_MONO_MODE7
+MONO mode status => active (video mode 7)
+.
+:PROGRAM_SETCOLOR_MONO_MODE3
+MONO mode status => inactive (video mode 3)
+.
+:PROGRAM_SETCOLOR_MONO_FAIL
+Failed to change MONO mode
+.
+:PROGRAM_SETCOLOR_MONO_SYNTAX
+Must be + or - for MONO: %s
+.
+:PROGRAM_SETCOLOR_COLOR
+Color %d: (%d,%d,%d) or #%02x%02x%02x
+
+.
+:PROGRAM_SETCOLOR_INVALID_NUMBER
+Invalid color number - %s
+.
+:PROGRAM_SETCOLOR_INVALID_VALUE
+Invalid color value - %s
+.
+:PROGRAM_SETCOLOR_NOT_SUPPORTED
+Changing color scheme is not supported for the current video mode.
+.
+:PROGRAM_BOOT_UNKNOWN_BOOTHAX
+Unknown boothax mode
+.
+:PROGRAM_BOOT_SPECIFY_FILE
+Must specify BIOS image to boot
+.
+:PROGRAM_BOOT_BIOS_OPEN_ERROR
+Unable to open BIOS image
+.
+:PROGRAM_BIOSTEST_SPECIFY_FILE
+Must specify BIOS file to load.
+.
+:PROGRAM_BIOSTEST_OPEN_ERROR
+Can't open a file
+.
+:PROGRAM_BIOSTEST_TOO_LARGE
+BIOS File too large
+.
+:PROGRAM_DELTREE_HELP
+Deletes a directory and all the subdirectories and files in it.
+
+To delete one or more files and directories:
+DELTREE [/Y] [drive:]path [[drive:]path[...]]
+
+  /Y              Suppresses prompting to confirm you want to delete
+                  the subdirectory.
+  [drive:]path    Specifies the name of the directory you want to delete.
+
+Note: Use DELTREE cautiously. Every file and subdirectory within the
+specified directory will be deleted.
+
+.
+:PROGRAM_TREE_HELP
+Graphically displays the directory structure of a drive or path.
+
+TREE [drive:][path] [/F] [/A]
+
+  /F   Displays the names of the files in each directory.
+  /A   Uses ASCII instead of extended characters.
+
+.
+:PROGRAM_TITLE_HELP
+Sets the window title for the DOSBox-X window.
+
+TITLE [string]
+
+  string       Specifies the title for the DOSBox-X window.
+
+.
+:PROGRAM_COLOR_HELP
+Sets the default console foreground and background colors.
+
+COLOR [attr]
+
+  attr        Specifies color attribute of console output
+  
+Color attributes are specified by TWO hex digits -- the first
+corresponds to the background; the second to the foreground.
+Each digit can be any of the following values:
+
+    0 = Black       8 = Gray
+    1 = Blue        9 = Light Blue
+    2 = Green       A = Light Green
+    3 = Aqua        B = Light Aqua
+    4 = Red         C = Light Red
+    5 = Purple      D = Light Purple
+    6 = Yellow      E = Light Yellow
+    7 = White       F = Bright White
+
+If no argument is given, this command restores the original color.
+
+The COLOR command sets ERRORLEVEL to 1 if an attempt is made to execute
+the COLOR command with a foreground and background color that are the same.
+
+Example: "COLOR fc" produces light red on bright white.
+
+.
+:PROGRAM_SWITCH_LANG
+You have changed the active code page to %d.
+Do you want to load language file %s for this code page ?
+.
+:PROGRAM_ALREADY_MOUNTED
+Drive %s: is already mounted. Unmount it first, and then try again.
+.
+:PROGRAM_DRIVE_NO_EXIST
+Drive %s: does not exist in the system.
+.
+:PROGRAM_DRIVE_WARN
+Do you really want to give DOSBox-X access to your real %s drive %s ?
+.
+:DRIVE_TYPE_FLOPPY
+floppy
+.
+:DRIVE_TYPE_REMOVABLE
+removable
+.
+:DRIVE_TYPE_NETWORK
+network
+.
+:DRIVE_TYPE_HARD
+hard
+.
+:DRIVE_TYPE_LOCAL
+local
+.
+:DRIVE_TYPE_CDROM
+CD-ROM
+.
+:PROGRAM_CDDRIVE_WARN
+CD drive %s is currently mounted with the image:
+
+%s
+
+Do you want to change the CD image now?
+.
+:PROGRAM_CDMOUNT_ERROR
+Could not mount the selected CD image.
+.
+:ELTORITO_IMAGE
+El Torito floppy image
+.
+:RAM_FLOPPY_IMAGE
+RAM floppy image
+.
+:PROGRAM_FLOPPY_WARN
+Floppy drive %s is currently mounted with the image:
+
+%s
+
+Do you want to change the floppy disk image now?
+.
+:PROGRAM_FLOPPYMOUNT_ERROR
+Could not mount the selected floppy disk image.
+.
+:PROGRAM_MOUNT_MORE_IMAGES
+Do you want to mount more image file(s)?
+.
+:PROGRAM_MOUNT_PATH_TOOLONG
+The path for the file(s) to mount is too long.
+.
+:PROGRAM_BOOT_FAILED
+Drive %s: failed to boot.
+.
+:PROGRAM_MOUNT_FAILED
+Drive %s: failed to mount.
+.
+:PROGRAM_MOUNT_IMAGE
+Mounted %s to Drive %s:
+%s %s
+.
+:ARCHIVE
+archive
+.
+:DISK_IMAGE
+disk image
+.
+:READONLY_MODE
+Read-only mode
+.
+:PROGRAM_MOUNT_SELECT_DRIVE
+Select a drive/directory to mount for Drive %s: as %s
+.
+:PROGRAM_MOUNT_CDROM_SUPPORT
+Mounting a directory as CD-ROM gives an limited support.
+.
+:PROGRAM_MOUNT_NOT_MOUNTED
+Drive %s: is not yet mounted.
+.
+:PROGRAM_PROGRAM_ALREADY
+Another program is already running.
+.
+:PROGRAM_SHELL_ALREADY
+Another shell is currently running.
+.
+:PROGRAM_MOUNT_SUCCESS
+Drive %s is now mounted to:
+%s
+.
+:PROGRAM_WARN_QUICKLAUNCH
+Quick launch automatically mounts drive C in DOSBox-X.
+Drive C has already been mounted. Do you want to continue?
+.
+:PROGRAM_NO_EXECUTABLE
+Executable file not found.
+.
+:PROGRAM_EXEC_FINISHED
+Program has finished execution. Do you want to unmount Drive %s now?
+.
+:PROGRAM_ASK_CHCP
+Drive %c: may require code page %d to be properly accessed.
+
+Do you want to change the current code page to %d now?
+.
+:PROGRAM_CHANGING_CODEPAGE
+Changing code page
+.
+:IMAGEMOUNT_CHANGE_DOSVER
+Mounting this type of disk images requires a reported DOS version of %s or higher.
+Do you want to auto - change the reported DOS version to %s now and mount the disk image ?
+.
+:MENU_DRIVE_NOTEXIST
+Drive does not exist or is mounted from disk image.
+.
+:MENU_SAVE_IMAGE_FAILED
+Failed to save disk image.
+.
+:MENU_JP_CPONLY
+This function is only available for the Japanese code page (932).
+.
+:MENU_CH_CPONLY
+This function is only available for the Chinese code pages (936, 950, or 951).
+.
+:MENU_GLIDE_ERROR
+Glide passthrough cannot be enabled. Check the Glide wrapper installation.
+.
+:MENU_HIGH_INTENSITY_ERROR
+High intensity is not supported for the current video mode.
+.
+:MENU_SAVE_FILE_ERROR
+Cannot save to the file: %s
+.
+:MENU_INT2F_SUCCESS
+The INT 2Fh hook has been successfully set.
+.
+:MENU_INT2F_ALREADY_SET
+The INT 2Fh hook was already set up.
+.
+:QUIT_DISABLED
+Quitting from DOSBox-X with this is currently disabled.
+.
+:QUIT_CONFIRM
+This will quit from DOSBox-X.
+Are you sure?
+.
+:QUIT_GUEST_DISABLED
+You cannot quit DOSBox-X while running a guest system.
+.
+:QUIT_GUEST_CONFIRM
+You are currently running a guest system.
+Are you sure to quit anyway now?
+.
+:QUIT_FILE_OPEN_DISABLED
+You cannot quit DOSBox-X while one or more files are open.
+.
+:QUIT_FILE_OPEN_CONFIRM
+It may be unsafe to quit from DOSBox-X right now
+because one or more files are currently open.
+Are you sure to quit anyway now?
+.
+:QUIT_PROGRAM_DISABLED
+You cannot quit DOSBox-X while running a program or game.
+.
+:QUIT_PROGRAM_CONFIRM
+You are currently running a program or game.
+Are you sure to quit anyway now?
+.
+:LANG_JP_INCOMPATIBLE
+You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.
+
+Are you sure to use the language file for this machine type?
+.
+:LANG_DOSV_INCOMPATIBLE
+You have specified a language file which uses a code page incompatible with the current DOS/V system.
+
+Are you sure to use the language file for this system type?
+.
+:LANG_CHANGE_CP
+The specified language file uses code page %d. Do you want to change to this code page accordingly?.
+.
+:SCALER_LOAD_WARN
+This scaler may not work properly or have undesired effect:
+
+%s
+
+Do you want to force load the scaler?
+.
+:PIXEL_SHADER_WARN
+This pixel shader may be unneeded or have undesired effect:
+
+%s
+
+Do you want to load the pixel shader anyway?
+
+(You may append 'forced' to the pixelshader setting to force load the pixel shader without this message)
+.
+:PIXEL_SHADER_LOADED
+Loaded pixel shader - %s
+.
+:MAPPEREDITOR_NOT_AVAILABLE
+Mapper Editor is not currently available.
+.
+:OPL_REC_COMPLETED
+Saved Raw OPL output to the file:
+
+%s
+.
+:OPL_CAPTURE_FAILED
+Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.
+.
+:TTF_DBCS_ONLY
+This function is only available for the Chinese/Japanese/Korean code pages.
+.
+:SAVE_FAILED
+Failed to save the current state.
+.
+:SAVE_CORRUPTED
+Save state corrupted! Program may not work.
+.
+:SAVE_SCREENSHOT
+Saved screenshot to the file:
+
+%s
+.

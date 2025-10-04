@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,36 +11,33 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #ifndef DOSBOX_REGS_H
 #define DOSBOX_REGS_H
 
-#include <iostream>
-
-#ifndef DOSBOX_MEM_H
 #include "mem.h"
-#endif
 
-#define FLAG_CF		0x00000001
-#define FLAG_PF		0x00000004
-#define FLAG_AF		0x00000010
-#define FLAG_ZF		0x00000040
-#define FLAG_SF		0x00000080
-#define FLAG_OF		0x00000800
+#define FLAG_CF		0x00000001U
+#define FLAG_PF		0x00000004U
+#define FLAG_AF		0x00000010U
+#define FLAG_ZF		0x00000040U
+#define FLAG_SF		0x00000080U
+#define FLAG_OF		0x00000800U
 
-#define FLAG_TF		0x00000100
-#define FLAG_IF		0x00000200
-#define FLAG_DF		0x00000400
+#define FLAG_TF		0x00000100U
+#define FLAG_IF		0x00000200U
+#define FLAG_DF		0x00000400U
 
-#define FLAG_IOPL	0x00003000
-#define FLAG_NT		0x00004000
-#define FLAG_VM		0x00020000
-#define FLAG_AC		0x00040000
-#define FLAG_ID		0x00200000
+#define FLAG_IOPL	0x00003000U
+#define FLAG_NT		0x00004000U
+#define FLAG_RF		0x00010000U
+#define FLAG_VM		0x00020000U
+#define FLAG_AC		0x00040000U
+#define FLAG_ID		0x00200000U
 
 #define FMASK_TEST		(FLAG_CF | FLAG_PF | FLAG_AF | FLAG_ZF | FLAG_SF | FLAG_OF)
 #define FMASK_NORMAL	(FMASK_TEST | FLAG_DF | FLAG_TF | FLAG_IF )	
@@ -54,8 +51,8 @@
 #define GETFLAG_IOPL ((reg_flags & FLAG_IOPL) >> 12)
 
 struct Segment {
-	Bit16u val;
-	PhysPt phys;							/* The phyiscal address start in emulated machine */
+	uint16_t val;
+	PhysPt phys;							/* The physical address start in emulated machine */
 	PhysPt limit;
 };
 
@@ -69,9 +66,9 @@ struct Segments {
 };
 
 union GenReg32 {
-	Bit32u dword[1];
-	Bit16u word[2];
-	Bit8u byte[4];
+	uint32_t dword[1];
+	uint16_t word[2];
+	uint8_t byte[4];
 };
 
 #ifdef WORDS_BIGENDIAN
@@ -98,13 +95,6 @@ struct CPU_Regs {
 extern Segments Segs;
 extern CPU_Regs cpu_regs;
 
-//serialization
-std::ostream& operator<<(std::ostream& stream, const Segments& seg);
-std::istream& operator>>(std::istream& stream, Segments& seg);
-
-std::ostream& operator<<(std::ostream& stream, const CPU_Regs& reg);
-std::istream& operator>>(std::istream& stream, CPU_Regs& reg);
-
 static INLINE PhysPt SegLimit(SegNames index) {
 	return Segs.limit[index];
 }
@@ -113,18 +103,18 @@ static INLINE PhysPt SegPhys(SegNames index) {
 	return Segs.phys[index];
 }
 
-static INLINE Bit16u SegValue(SegNames index) {
-	return (Bit16u)Segs.val[index];
+static INLINE uint16_t SegValue(SegNames index) {
+	return (uint16_t)Segs.val[index];
 }
 	
-static INLINE RealPt RealMakeSeg(SegNames index,Bit16u off) {
+static INLINE RealPt RealMakeSeg(SegNames index,uint16_t off) {
 	return RealMake(SegValue(index),off);	
 }
 
 
-static INLINE void SegSet16(Bitu index,Bit16u val) {
-	Segs.val[index]=val;
-	Segs.phys[index]=val << 4;
+static INLINE void SegSet16(Bitu index,uint16_t val) {
+	Segs.val[index]=(Bitu)val;
+	Segs.phys[index]=(PhysPt)((unsigned int)val << 4U);
 	/* real mode does not update limit */
 }
 
@@ -142,7 +132,7 @@ enum {
 //macros to convert a 3-bit register index to the correct register
 #define reg_8l(reg) (cpu_regs.regs[(reg)].byte[BL_INDEX])
 #define reg_8h(reg) (cpu_regs.regs[(reg)].byte[BH_INDEX])
-#define reg_8(reg) ((reg) & 4 ? reg_8h((reg) & 3) : reg_8l((reg) & 3))
+#define reg_8(reg) ((reg & 4) ? reg_8h((reg) & 3) : reg_8l((reg) & 3))
 #define reg_16(reg) (cpu_regs.regs[(reg)].word[W_INDEX])
 #define reg_32(reg) (cpu_regs.regs[(reg)].dword[DW_INDEX])
 

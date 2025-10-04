@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Int 1D
+</title>
+<meta name="Description" content="
+Int 1D - SYSTEM DATA - VIDEO PARAMETER TABLES - 
+Notes: the default parameter table (see #01263) is located at F000h:F0A4h for
+100% compatible BIOSes
+Under PhysTechSoft's PTS ROM-DOS this table is fictitious.
+SeeAlso: INT 10/AH=00h
+Format of video parameters:
+Offset Size  Description   (Table 01263)
+00h 16 BYTEs  6845 register values for modes 00h and 01h
+10h 16 BYTEs  6845 register values for modes 02h and 03h
+20h 16 BYTEs  6845 register values for modes 04h and 05h
+">
+<meta name="robots" content="none">
+</head>
+<body bgcolor="#FFD0A0">
+<center>
+<h2>Int 1D
+</h2>
+</center>
+<p></p>
+<h3><font color="#C00040">SYSTEM DATA - VIDEO PARAMETER TABLES</font></h3>
+<p><b>Notes:</b>
+The default parameter table (see #01263) is located at F000h:F0A4h for
+100% compatible BIOSes.
+Under PhysTechSoft's PTS ROM-DOS this table is fictitious.
+</p>
+<p></p>
+<pre>
+<p>
+Format of video parameters:
+<a name="table1263"></a>
+Offset  Size    Description     (Table 01263)
+00h 16 BYTEs   6845 register values for modes 00h and 01h
+10h 16 BYTEs   6845 register values for modes 02h and 03h
+20h 16 BYTEs   6845 register values for modes 04h and 05h
+30h 16 BYTEs   6845 register values for modes 06h and 07h
+40h    WORD    bytes in video buffer for modes 00h and 01h (0800h)
+42h    WORD    bytes in video buffer for modes 02h and 03h (1000h)
+44h    WORD    bytes in video buffer for modes 04h and 05h (4000h)
+46h    WORD    bytes in video buffer for mode 06h (4000h)
+48h  8 BYTEs   columns on screen for each of modes 00h through 07h
+50h  8 BYTEs   CRT controller mode bytes for each of modes 00h through 07h
+</p></pre>
+<p><b>Note:</b>
+QEMM v7.5 Stealth appears to copy only the first 40h bytes of this
+table into always-accessible memory
+</p>
+</body>
+</html>

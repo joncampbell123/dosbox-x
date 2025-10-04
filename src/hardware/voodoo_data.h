@@ -195,7 +195,7 @@ static const UINT8 dither_matrix_2x2[16] =
 #define EXTRACT_332_TO_888(val, a, b, c)					\
 	(a) = (((val) >> 0) & 0xe0) | (((val) >> 3) & 0x1c) | (((val) >> 6) & 0x03); \
 	(b) = (((val) << 3) & 0xe0) | (((val) >> 0) & 0x1c) | (((val) >> 3) & 0x03); \
-	(c) = (((val) << 6) & 0xc0) | (((val) << 4) & 0x30) | (((val) << 2) & 0x0c) | (((val) << 0) & 0x03); \
+	(c) = (((val) << 6) & 0xc0) | (((val) << 4) & 0x30) | (((val) << 2) & 0xc0) | (((val) << 0) & 0x03); \
 
 
 
@@ -682,7 +682,7 @@ struct _fbi_state
 
 	UINT8				fogblend[64];			/* 64-entry fog table */
 	UINT8				fogdelta[64];			/* 64-entry fog table */
-	UINT8				fogdelta_mask;			/* mask for for delta (0xff for V1, 0xfc for V2) */
+	UINT8				fogdelta_mask;			/* mask for fog delta (0xff for V1, 0xfc for V2) */
 
 //	rgb_t				clut[512];				/* clut gamma data */
 };
@@ -905,7 +905,7 @@ INLINE INT64 fast_reciplog(INT64 value, INT32 *log2)
 	/* compute the interpolation value */
 	interp = (temp >> (31 - RECIPLOG_LOOKUP_BITS - 8)) & 0xff;
 
-	/* do a linear interpolatation between the two nearest table values */
+	/* do a linear interpolation between the two nearest table values */
 	/* for both the log and the reciprocal */
 	rlog = (table[1] * (0x100 - interp) + table[3] * interp) >> 8;
 	recip = (table[0] * (0x100 - interp) + table[2] * interp) >> 8;
@@ -1088,15 +1088,15 @@ INLINE UINT32 compute_raster_hash(const raster_info *info)
 #define DITHER_RB(val,dith)	((((val) << 1) - ((val) >> 4) + ((val) >> 7) + (dith)) >> 1)
 #define DITHER_G(val,dith)	((((val) << 2) - ((val) >> 4) + ((val) >> 6) + (dith)) >> 2)
 
-#define DECLARE_DITHER_POINTERS 												\
-	const UINT8 *dither_lookup = NULL;											\
-	const UINT8 *dither4 = NULL;												\
-	const UINT8 *dither = NULL													\
+#define DECLARE_DITHER_POINTERS_ \
+	const UINT8 *dither_lookup = NULL; \
+	const UINT8 *dither4 = NULL
 
-#define DECLARE_DITHER_POINTERS_NO_DITHER_VAR												\
-	const UINT8 *dither_lookup = NULL;											\
+#define DECLARE_DITHER_POINTERS \
+	DECLARE_DITHER_POINTERS_; \
+	const UINT8 *dither = NULL
 
-#define COMPUTE_DITHER_POINTERS(FBZMODE, YY)									\
+#define COMPUTE_DITHER_POINTERS_(FBZMODE, YY, d1_, d2_) \
 do																				\
 {																				\
 	/* compute the dithering pointers */										\
@@ -1105,35 +1105,24 @@ do																				\
 		dither4 = &dither_matrix_4x4[((YY) & 3) * 4];							\
 		if (FBZMODE_DITHER_TYPE(FBZMODE) == 0)									\
 		{																		\
-			dither = dither4;													\
+			d1_ \
 			dither_lookup = &dither4_lookup[(YY & 3) << 11];					\
 		}																		\
 		else																	\
 		{																		\
-			dither = &dither_matrix_2x2[((YY) & 3) * 4];						\
+			d2_ \
 			dither_lookup = &dither2_lookup[(YY & 3) << 11];					\
 		}																		\
 	}																			\
 }																				\
 while (0)
 
-#define COMPUTE_DITHER_POINTERS_NO_DITHER_VAR(FBZMODE, YY)									\
-do																				\
-{																				\
-	/* compute the dithering pointers */										\
-	if (FBZMODE_ENABLE_DITHERING(FBZMODE))										\
-	{																			\
-		if (FBZMODE_DITHER_TYPE(FBZMODE) == 0)									\
-		{																		\
-			dither_lookup = &dither4_lookup[(YY & 3) << 11];					\
-		}																		\
-		else																	\
-		{																		\
-			dither_lookup = &dither2_lookup[(YY & 3) << 11];					\
-		}																		\
-	}																			\
-}																				\
-while (0)
+#define COMPUTE_DITHER_POINTERS(FBZMODE, YY) \
+	COMPUTE_DITHER_POINTERS_( \
+		FBZMODE, \
+		YY, \
+		dither = dither4;, \
+		dither = &dither_matrix_2x2[((YY) & 3) * 4];)
 
 #define APPLY_DITHER(FBZMODE, XX, DITHER_LOOKUP, RR, GG, BB)					\
 do																				\
@@ -1169,10 +1158,10 @@ while (0)
 #define CLAMPED_ARGB(ITERR, ITERG, ITERB, ITERA, FBZCP, RESULT)					\
 do																				\
 {																				\
-	r = (INT32)(ITERR) >> 12;												\
-	g = (INT32)(ITERG) >> 12;												\
-	b = (INT32)(ITERB) >> 12;												\
-	a = (INT32)(ITERA) >> 12;												\
+	INT32 r = (INT32)(ITERR) >> 12;												\
+	INT32 g = (INT32)(ITERG) >> 12;												\
+	INT32 b = (INT32)(ITERB) >> 12;												\
+	INT32 a = (INT32)(ITERA) >> 12;												\
 																				\
 	if (FBZCP_RGBZW_CLAMP(FBZCP) == 0)											\
 	{																			\
@@ -1442,8 +1431,9 @@ do																				\
 	if (ALPHAMODE_ALPHABLEND(ALPHAMODE))										\
 	{																			\
 		int dpix = dest[XX];													\
-		int dr, dg, db;                                                         \
-		EXTRACT_565_TO_888(dpix, dr, dg, db);                                   \
+		int dr = (dpix >> 8) & 0xf8;											\
+		int dg = (dpix >> 3) & 0xfc;											\
+		int db = (dpix << 3) & 0xf8;											\
 		int da = (FBZMODE_ENABLE_ALPHA_PLANES(FBZMODE) && depth) ? depth[XX] : 0xff;		\
 		int sr = (RR);															\
 		int sg = (GG);															\
@@ -1644,12 +1634,12 @@ do																				\
 			{																	\
 				case 0:		/* fog table */										\
 				{																\
-					INT32 delta = (VV)->fbi.fogdelta[fogdepth >> 10];				\
+					INT32 delta = (VV)->fbi.fogdelta[wfloat >> 10];				\
 					INT32 deltaval;												\
 																				\
 					/* perform the multiply against lower 8 bits of wfloat */	\
 					deltaval = (delta & (VV)->fbi.fogdelta_mask) *				\
-								((fogdepth >> 2) & 0xff);							\
+								((wfloat >> 2) & 0xff);							\
 																				\
 					/* fog zones allow for negating this value */				\
 					if (FOGMODE_FOG_ZONES(FOGMODE) && (delta & 2))				\
@@ -1663,7 +1653,7 @@ do																				\
 					deltaval >>= 4;												\
 																				\
 					/* add to the blending factor */							\
-					fogblend = (VV)->fbi.fogblend[fogdepth >> 10] + deltaval;		\
+					fogblend = (VV)->fbi.fogblend[wfloat >> 10] + deltaval;		\
 					break;														\
 				}																\
 																				\
@@ -1737,7 +1727,7 @@ do																				\
 		oow = fast_reciplog((ITERW), &lod);										\
 		s = (INT32)((oow * (ITERS)) >> 29);										\
 		t = (INT32)((oow * (ITERT)) >> 29);										\
-		lod = (LODBASE);														\
+		lod += (LODBASE);														\
 	}																			\
 	else																		\
 	{																			\
@@ -2064,7 +2054,7 @@ while (0)
 #define PIXEL_PIPELINE_BEGIN(VV, XX, YY, FBZCOLORPATH, FBZMODE, ITERZ, ITERW)	\
 do																				\
 {																				\
-	INT32 depthval, wfloat, fogdepth, biasdepth;														\
+	INT32 depthval, wfloat;														\
 	INT32 prefogr, prefogg, prefogb;											\
 	INT32 r, g, b, a;															\
 																				\
@@ -2106,125 +2096,111 @@ do																				\
 		else																	\
 		{																		\
 			int exp = count_leading_zeros(temp);								\
-			wfloat = ((exp << 12) | ((~temp >> (19 - exp)) & 0xfff)) + 1;			\
+			wfloat = ((exp << 12) | ((~temp >> (19 - exp)) & 0xfff));			\
+			if (wfloat < 0xffff) wfloat++;										\
 		}																		\
 	}																			\
-	fogdepth = wfloat;                                                         \
- 	/* add the bias for fog selection*/                                         \
- 	if (FBZMODE_ENABLE_DEPTH_BIAS(FBZMODE))                                     \
- 	{                                                                           \
-		fogdepth += (INT16)(VV)->reg[zaColor].u;                                \
-		CLAMP(fogdepth, 0, 0xffff);                                             \
- 	}                                                                           \
 																				\
-	/* compute depth value (W or Z) for this pixel */                           \
-	if (FBZMODE_WBUFFER_SELECT(FBZMODE) == 0)                                   \
-	{                                                                           \
-		CLAMPED_Z(ITERZ, FBZCOLORPATH, depthval);                               \
-	}                                                                           \
-	else if (FBZMODE_DEPTH_FLOAT_SELECT(FBZMODE) == 0)                          \
-		depthval = wfloat;                                                      \
-	else                                                                        \
-	{                                                                           \
-		if ((ITERZ) & 0xf0000000)                                               \
-			depthval = 0x0000;                                                  \
-		else                                                                    \
-		{                                                                       \
-			UINT32 temp = (ITERZ << 4);                             \
-			if (!(temp & 0xffff0000))                                                           \
-				depthval = 0xffff;                                              \
-			else                                                                \
-			{                                                                   \
-				int exp = count_leading_zeros(temp);                            \
-				depthval = ((exp << 12) | ((~temp >> (19 - exp)) & 0xfff)) + 1; \
-			}                                                                   \
-		}                                                                       \
-	}                                                                            \
-	/* add the bias */                                                          \
-	biasdepth = depthval;                                                     \
-	if (FBZMODE_ENABLE_DEPTH_BIAS(FBZMODE))                                     \
-	{                                                                           \
-		biasdepth += (INT16)(VV)->reg[zaColor].u;                                \
-		CLAMP(biasdepth, 0, 0xffff);                                             \
-	}															\
-
-
-#define DEPTH_TEST(VV, STATS, XX, FBZMODE)    \
-do                                                                              \
-{                                                                               \
-	/* handle depth buffer testing */                                           \
-	if (FBZMODE_ENABLE_DEPTHBUF(FBZMODE))                                       \
-	{                                                                           \
-		INT32 depthsource;                                                      \
+	/* compute depth value (W or Z) for this pixel */							\
+	if (FBZMODE_WBUFFER_SELECT(FBZMODE) == 0)									\
+		CLAMPED_Z(ITERZ, FBZCOLORPATH, depthval);								\
+	else if (FBZMODE_DEPTH_FLOAT_SELECT(FBZMODE) == 0)							\
+		depthval = wfloat;														\
+	else																		\
+	{																			\
+		if ((ITERZ) & 0xf0000000)												\
+			depthval = 0x0000;													\
+		else																	\
+		{																		\
+			UINT32 temp = (ITERZ) << 4;											\
+			if ((temp & 0xffff0000) == 0)										\
+				depthval = 0xffff;												\
+			else																\
+			{																	\
+				int exp = count_leading_zeros(temp);							\
+				depthval = ((exp << 12) | ((~temp >> (19 - exp)) & 0xfff));		\
+				if (depthval < 0xffff) depthval++;								\
+			}																	\
+		}																		\
+	}																			\
 																				\
-		/* the source depth is either the iterated W/Z+bias or a */             \
-		/* constant value */                                                    \
-		if (FBZMODE_DEPTH_SOURCE_COMPARE(FBZMODE) == 0)                         \
-			depthsource = biasdepth;                                             \
-		else                                                                    \
-			depthsource = (UINT16)(VV)->reg[zaColor].u;                         \
+	/* add the bias */															\
+	if (FBZMODE_ENABLE_DEPTH_BIAS(FBZMODE))										\
+	{																			\
+		depthval += (INT16)(VV)->reg[zaColor].u;								\
+		CLAMP(depthval, 0, 0xffff);												\
+	}																			\
 																				\
-		/* test against the depth buffer */                                     \
-		switch (FBZMODE_DEPTH_FUNCTION(FBZMODE))                                \
-		{                                                                       \
-			case 0:     /* depthOP = never */                                   \
-				(STATS)->zfunc_fail++;                                          \
-				goto skipdrawdepth;                                             \
+	/* handle depth buffer testing */											\
+	if (FBZMODE_ENABLE_DEPTHBUF(FBZMODE))										\
+	{																			\
+		INT32 depthsource;														\
 																				\
-			case 1:     /* depthOP = less than */                               \
-				if (depthsource >= depth[XX])                                   \
-				{                                                               \
-					(STATS)->zfunc_fail++;                                      \
-					goto skipdrawdepth;                                         \
-				}                                                               \
-				break;                                                          \
+		/* the source depth is either the iterated W/Z+bias or a */				\
+		/* constant value */													\
+		if (FBZMODE_DEPTH_SOURCE_COMPARE(FBZMODE) == 0)							\
+			depthsource = depthval;												\
+		else																	\
+			depthsource = (UINT16)(VV)->reg[zaColor].u;							\
 																				\
-			case 2:     /* depthOP = equal */                                   \
-				if (depthsource != depth[XX])                                   \
-				{                                                               \
-					(STATS)->zfunc_fail++;                                      \
-					goto skipdrawdepth;                                         \
-				}                                                               \
-				break;                                                          \
+		/* test against the depth buffer */										\
+		switch (FBZMODE_DEPTH_FUNCTION(FBZMODE))								\
+		{																		\
+			case 0:		/* depthOP = never */									\
+				goto skipdrawdepth;												\
 																				\
-			case 3:     /* depthOP = less than or equal */                      \
-				if (depthsource > depth[XX])                                    \
-				{                                                               \
-					(STATS)->zfunc_fail++;                                      \
-					goto skipdrawdepth;                                         \
-				}                                                               \
-				break;                                                          \
+			case 1:		/* depthOP = less than */								\
+				if (depth)														\
+					if (depthsource >= depth[XX])								\
+					{															\
+						goto skipdrawdepth;										\
+					}															\
+				break;															\
 																				\
-			case 4:     /* depthOP = greater than */                            \
-				if (depthsource <= depth[XX])                                   \
-				{                                                               \
-					(STATS)->zfunc_fail++;                                      \
-					goto skipdrawdepth;                                         \
-				}                                                               \
-				break;                                                          \
+			case 2:		/* depthOP = equal */									\
+				if (depth)														\
+					if (depthsource != depth[XX])								\
+					{															\
+						goto skipdrawdepth;										\
+					}															\
+				break;															\
 																				\
-			case 5:     /* depthOP = not equal */                               \
-				if (depthsource == depth[XX])                                   \
-				{                                                               \
-					(STATS)->zfunc_fail++;                                      \
-					goto skipdrawdepth;                                         \
-				}                                                               \
-				break;                                                          \
+			case 3:		/* depthOP = less than or equal */						\
+				if (depth)														\
+					if (depthsource > depth[XX])								\
+					{															\
+						goto skipdrawdepth;										\
+					}															\
+				break;															\
 																				\
-			case 6:     /* depthOP = greater than or equal */                   \
-				if (depthsource < depth[XX])                                    \
-				{                                                               \
-					(STATS)->zfunc_fail++;                                      \
-					goto skipdrawdepth;                                         \
-				}                                                               \
-				break;                                                          \
+			case 4:		/* depthOP = greater than */							\
+				if (depth)														\
+					if (depthsource <= depth[XX])								\
+					{															\
+						goto skipdrawdepth;										\
+					}															\
+				break;															\
 																				\
-			case 7:     /* depthOP = always */                                  \
-				break;                                                          \
-		}                                                                       \
-	}                                                                       \
-}                                                                               \
-while (0)
+			case 5:		/* depthOP = not equal */								\
+				if (depth)														\
+					if (depthsource == depth[XX])								\
+					{															\
+						goto skipdrawdepth;										\
+					}															\
+				break;															\
+																				\
+			case 6:		/* depthOP = greater than or equal */					\
+				if (depth)														\
+					if (depthsource < depth[XX])								\
+					{															\
+						goto skipdrawdepth;										\
+					}															\
+				break;															\
+																				\
+			case 7:		/* depthOP = always */									\
+				break;															\
+		}																		\
+	}
 
 
 #define PIXEL_PIPELINE_MODIFY(VV, DITHER, DITHER4, XX, FBZMODE, FBZCOLORPATH, ALPHAMODE, FOGMODE, ITERZ, ITERW, ITERAXXX) \
@@ -2254,7 +2230,7 @@ while (0)
 	if (depth && FBZMODE_AUX_BUFFER_MASK(FBZMODE))								\
 	{																			\
 		if (FBZMODE_ENABLE_ALPHA_PLANES(FBZMODE) == 0)							\
-			depth[XX] = (UINT16)biasdepth;										\
+			depth[XX] = (UINT16)depthval;										\
 		else																	\
 			depth[XX] = (UINT16)a;												\
 	}

@@ -12,9 +12,9 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU General Public License along
+//  with this program; if not, write to the Free Software Foundation, Inc.,
+//  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 //  ---------------------------------------------------------------------------
 
 #ifndef __SPLINE_H__
@@ -40,7 +40,7 @@
 // Engineering Mathematics".
 //
 // Our approach is to approximate the properties of Catmull-Rom splines for
-// piecewice cubic polynomials f(x) = ax^3 + bx^2 + cx + d as follows:
+// piecewise cubic polynomials f(x) = ax^3 + bx^2 + cx + d as follows:
 // Each curve segment is specified by four interpolation points,
 // p0, p1, p2, p3.
 // The curve between p1 and p2 must interpolate both p1 and p2, and in addition
@@ -150,9 +150,9 @@ void interpolate_brute_force(double x1, double y1, double x2, double y2,
   cubic_coefficients(x1, y1, x2, y2, k1, k2, a, b, c, d);
   
   // Calculate each point.
-  for (double x = x1; x <= x2; x += res) {
-    double y = ((a*x + b)*x + c)*x + d;
-    plot(x, y);
+  for (double xCoord = x1; xCoord <= x2; xCoord += res) {
+    double yCoord = ((a* xCoord + b)* xCoord + c)* xCoord + d;
+    plot(xCoord, yCoord);
   }
 }
 
@@ -168,15 +168,15 @@ void interpolate_forward_difference(double x1, double y1, double x2, double y2,
   double a, b, c, d;
   cubic_coefficients(x1, y1, x2, y2, k1, k2, a, b, c, d);
   
-  double y = ((a*x1 + b)*x1 + c)*x1 + d;
+  double yCoord = ((a*x1 + b)*x1 + c)*x1 + d;
   double dy = (3*a*(x1 + res) + 2*b)*x1*res + ((a*res + b)*res + c)*res;
   double d2y = (6*a*(x1 + res) + 2*b)*res*res;
   double d3y = 6*a*res*res*res;
     
   // Calculate each point.
-  for (double x = x1; x <= x2; x += res) {
-    plot(x, y);
-    y += dy; dy += d2y; d2y += d3y;
+  for (double xCoord = x1; xCoord <= x2; xCoord += res) {
+    plot(xCoord, yCoord);
+    yCoord += dy; dy += d2y; d2y += d3y;
   }
 }
 

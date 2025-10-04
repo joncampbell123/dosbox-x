@@ -12,9 +12,9 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU General Public License along
+//  with this program; if not, write to the Free Software Foundation, Inc.,
+//  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 //  ---------------------------------------------------------------------------
 
 #define __FILTER_CC__
@@ -171,7 +171,7 @@ void Filter::set_chip_model(chip_model model)
 
     f0 = f0_6581;
     f0_points = f0_points_6581;
-    f0_count = sizeof(f0_points_6581)/sizeof(*f0_points_6581);
+    f0_count = int(sizeof(f0_points_6581)/sizeof(*f0_points_6581));
   }
   else {
     // No DC offsets in the MOS8580.
@@ -179,7 +179,7 @@ void Filter::set_chip_model(chip_model model)
 
     f0 = f0_8580;
     f0_points = f0_points_8580;
-    f0_count = sizeof(f0_points_8580)/sizeof(*f0_points_8580);
+    f0_count = int(sizeof(f0_points_8580)/sizeof(*f0_points_8580));
   }
 
   set_w0();

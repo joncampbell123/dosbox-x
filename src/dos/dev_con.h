@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,56 +11,307 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <assert.h>
 
 #include "dos_inc.h"
+#include "logging.h"
 #include "../ints/int10.h"
 #include <string.h>
 #include "inout.h"
+#include "jfont.h"
+#include "shiftjis.h"
 #include "callback.h"
 
 #define NUMBER_ANSI_DATA 10
 
+extern bool inshell;
 extern bool DOS_BreakFlag;
+extern bool INT28_AllowOnce;
+extern bool DOS_BreakConioFlag;
+extern unsigned char pc98_function_row_mode;
 
 Bitu INT10_Handler(void);
 Bitu INT16_Handler_Wrap(void);
 
+bool inhibited_ControlFn(void);
+void pc98_function_row_user_toggle(void);
+void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
+void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
+void PC98_GetShiftFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
+void PC98_GetEditorKeyEscape(size_t &len,unsigned char buf[16],const unsigned int scan);
+void PC98_GetVFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
+void PC98_GetShiftVFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
+void PC98_GetCtrlFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
+void PC98_GetCtrlVFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
+
+ShiftJISDecoder con_sjis;
+
+uint16_t last_int16_code = 0;
+
+static size_t dev_con_pos=0,dev_con_max=0;
+static unsigned char dev_con_readbuf[64];
+static bool pc98_column_over;
+extern bool CheckHat(uint8_t code);
+extern bool isDBCSCP();
+extern bool inshell;
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
+
+uint8_t DefaultANSIAttr() {
+	return IS_PC98_ARCH ? 0xE1 : 0x07;
+}
+
 class device_CON : public DOS_Device {
 public:
 	device_CON();
-	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(Bit8u * data,Bit16u * size);
-	bool Seek(Bit32u * pos,Bit32u type);
-	bool Close();
-	void ClearAnsi(void);
-	Bit16u GetInformation(void);
-	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
-	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
+	bool Read(uint8_t * data,uint16_t * size) override;
+	bool Write(const uint8_t * data,uint16_t * size) override;
+	bool Seek(uint32_t * pos,uint32_t type) override;
+	bool Close() override;
+	uint8_t GetAnsiAttr(void) {
+		return ansi.attr;
+	}
+	void SetAnsiAttr(uint8_t attr) {
+		ansi.attr = attr;
+	}
+	uint16_t GetInformation(void) override;
+	void SetInformation(uint16_t info) override {
+		binary = info & DeviceInfoFlags::Binary;
+	}
+	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
+    bool ANSI_SYS_installed();
+	void ClearKeyMap() {
+		key_map.clear();
+	}
+	void SetKeyMap(uint16_t src, uint16_t dst) {
+		struct key_change key;
+		key.src = src;
+		key.dst = dst;
+		key_map.push_back(key);
+	}
 private:
-	Bit8u readcache;
-	Bit8u lastwrite;
+	void ClearAnsi(void);
+	void Output(uint8_t chr);
+	uint8_t readcache;
+	bool lasthat;
 	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
+        bool installed;     // ANSI.SYS is installed (and therefore escapes are handled)
 		bool esc;
 		bool sci;
+        bool equcurp;       // ????? ESC = Y X      cursor pos    (not sure if PC-98 specific or general to DOS ANSI.SYS)
         bool pc98rab;       // PC-98 ESC [ > ...    (right angle bracket) I will rename this variable if MS-DOS ANSI.SYS also supports this sequence
+        bool pc98rparen;    // PC-98 ESC ) ...
 		bool enabled;
-		Bit8u attr;
-		Bit8u data[NUMBER_ANSI_DATA];
-		Bit8u numberofarg;
-		Bit16u nrows;
-		Bit16u ncols;
-		Bit8s savecol;
-		Bit8s saverow;
+		uint8_t attr;         // machine-specific
+		uint8_t data[NUMBER_ANSI_DATA];
+		uint8_t numberofarg;
+		uint16_t nrows;
+		uint16_t ncols;
+		uint8_t savecol;
+		uint8_t saverow;
 		bool warned;
+		bool key;
 	} ansi;
+	uint16_t binary;
 
-	static void Real_INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
-		Bit16u		oldax,oldbx,olddx;
+	struct key_change {
+		uint16_t	src;
+		uint16_t	dst;
+	};
+	std::vector<struct key_change> key_map;
+
+    // ESC M
+    void ESC_M(void) {
+        LineFeedRev();
+        ClearAnsi();
+    }
+
+    // ESC D
+    void ESC_D(void) {
+        LineFeed();
+        ClearAnsi();
+    }
+
+    // ESC E
+    void ESC_E(void) {
+        Real_INT10_TeletypeOutputAttr('\n',ansi.attr,ansi.enabled);
+        ClearAnsi();
+    }
+
+    // ESC [ A
+    void ESC_BRACKET_A(void) {
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t tempdata;
+        uint8_t col,row;
+
+        col=CURSOR_POS_COL(page) ;
+        row=CURSOR_POS_ROW(page) ;
+        tempdata = (ansi.data[0]? ansi.data[0] : 1);
+        if(tempdata > row) { row=0; } 
+        else { row-=tempdata;}
+        Real_INT10_SetCursorPos(row,col,page);
+        ClearAnsi();
+    }
+
+    // ESC [ B
+    void ESC_BRACKET_B(void) {
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t tempdata;
+        uint8_t col,row;
+
+        col=CURSOR_POS_COL(page) ;
+        row=CURSOR_POS_ROW(page) ;
+        if (!IS_PC98_ARCH)
+            ansi.nrows = IS_EGAVGA_ARCH ? (real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) : 25;
+        tempdata = (ansi.data[0]? ansi.data[0] : 1);
+        if(tempdata + static_cast<Bitu>(row) >= ansi.nrows)
+        { row = ansi.nrows - 1;}
+        else	{ row += tempdata; }
+        Real_INT10_SetCursorPos(row,col,page);
+        ClearAnsi();
+    }
+
+    // ESC [ C
+    void ESC_BRACKET_C(void) {
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t tempdata;
+        uint8_t col,row;
+
+        col=CURSOR_POS_COL(page);
+        row=CURSOR_POS_ROW(page);
+        if (!IS_PC98_ARCH)
+            ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        tempdata=(ansi.data[0]? ansi.data[0] : 1);
+        if(tempdata + static_cast<Bitu>(col) >= ansi.ncols) 
+        { col = ansi.ncols - 1;} 
+        else	{ col += tempdata;}
+        Real_INT10_SetCursorPos(row,col,page);
+        ClearAnsi();
+    }
+
+    // ESC [ D
+    void ESC_BRACKET_D(void) {
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t tempdata;
+        uint8_t col,row;
+
+        col=CURSOR_POS_COL(page);
+        row=CURSOR_POS_ROW(page);
+        tempdata=(ansi.data[0]? ansi.data[0] : 1);
+        if(tempdata > col) {col = 0;}
+        else { col -= tempdata;}
+        Real_INT10_SetCursorPos(row,col,page);
+        ClearAnsi();
+    }
+
+    // ESC [ J
+    void ESC_BRACKET_J() {
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        if(IS_PC98_ARCH) {
+            uint8_t col = CURSOR_POS_COL(page);
+            uint8_t row = CURSOR_POS_ROW(page);
+            if(ansi.data[0] == 0) {
+                INT10_ScrollWindow(row, col, row, (uint8_t)ansi.ncols, 0, ansi.attr, page);
+                INT10_ScrollWindow(row + 1, 0, (uint8_t)ansi.nrows, (uint8_t)ansi.ncols, 0, ansi.attr, page);
+            } else if(ansi.data[0] == 1) {
+                INT10_ScrollWindow(0, 0, row - 1, (uint8_t)ansi.ncols, 0, ansi.attr, page);
+                INT10_ScrollWindow(row, 0, row, col, 0, ansi.attr, page);
+            } else if(ansi.data[0] == 2) {
+                INT10_ScrollWindow(0, 0, (uint8_t)ansi.nrows, (uint8_t)ansi.ncols, 0, ansi.attr,page);
+                Real_INT10_SetCursorPos(0, 0, page);
+            }
+            ClearAnsi();
+        } else {
+            if(ansi.data[0]==0) ansi.data[0]=2;
+            if(ansi.data[0]!=2) {/* every version behaves like type 2 */
+                LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: esc[%dJ called : not supported handling as 2",ansi.data[0]);
+            }
+            INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+            ClearAnsi();
+            Real_INT10_SetCursorPos(0,0,page);
+        }
+    }
+
+    // ESC [ K
+    void ESC_BRACKET_K() {
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t col = CURSOR_POS_COL(page);
+        uint8_t row = CURSOR_POS_ROW(page);
+        if(IS_PC98_ARCH) {
+            if(ansi.data[0] == 0) {
+                INT10_WriteChar(' ', ansi.attr, page, ansi.ncols - col, true);
+            } else if(ansi.data[0] == 1) {
+                Real_INT10_SetCursorPos(row, 0, page);
+                INT10_WriteChar(' ', ansi.attr, page, col + 1, true);
+            } else if(ansi.data[0] == 2) {
+                Real_INT10_SetCursorPos(row, 0, page);
+                INT10_WriteChar(' ', ansi.attr, page, ansi.ncols, true);
+            }
+        } else {
+            ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+            INT10_WriteChar(' ',ansi.attr,page,ansi.ncols-col,true);
+        }
+        Real_INT10_SetCursorPos(row,col,page);
+        ClearAnsi();
+    }
+
+    // ESC [ L
+    void ESC_BRACKET_L() {
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t row = CURSOR_POS_ROW(page);
+        if(!IS_PC98_ARCH) {
+            ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+            ansi.nrows = IS_EGAVGA_ARCH ? (real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) : 25;
+        }
+        INT10_ScrollWindow(row,0,ansi.nrows-1,ansi.ncols-1,ansi.data[0]? ansi.data[0] : 1,ansi.attr,0xFF);
+        ClearAnsi();
+        Real_INT10_SetCursorPos(row, 0, page);
+    }
+
+    // ESC [ M
+    void ESC_BRACKET_M() {
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t row = CURSOR_POS_ROW(page);
+        if(!IS_PC98_ARCH) {
+            ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+            ansi.nrows = IS_EGAVGA_ARCH ? (real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) : 25;
+        }
+        INT10_ScrollWindow(row,0,ansi.nrows-1,ansi.ncols-1,ansi.data[0]? -ansi.data[0] : -1,ansi.attr,0xFF);
+        ClearAnsi();
+        Real_INT10_SetCursorPos(row, 0, page);
+    }
+
+    // ESC = Y X
+    void ESC_EQU_cursor_pos(void) {
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+
+        /* This is what the PC-98 ANSI driver does */
+        if(ansi.data[0] >= 0x20) ansi.data[0] -= 0x20;
+        else ansi.data[0] = 0;
+        if(ansi.data[1] >= 0x20) ansi.data[1] -= 0x20;
+        else ansi.data[1] = 0;
+
+        if (!IS_PC98_ARCH) {
+            ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+            ansi.nrows = IS_EGAVGA_ARCH ? (real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) : 25;
+        }
+        /* Turn them into positions that are on the screen */
+        if(ansi.data[0] >= ansi.nrows) ansi.data[0] = (uint8_t)ansi.nrows - 1;
+        if(ansi.data[1] >= ansi.ncols) ansi.data[1] = (uint8_t)ansi.ncols - 1;
+        Real_INT10_SetCursorPos(ansi.data[0],ansi.data[1],page);
+
+        ClearAnsi();
+    }
+
+	static void Real_INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
+		uint16_t		oldax,oldbx,olddx;
 
 		oldax=reg_ax;
 		oldbx=reg_bx;
@@ -75,9 +326,10 @@ private:
          *        better emulates the actual platform. The purpose of this
          *        hack is to allow our code to call into INT 10h without
          *        setting up an INT 10h vector */
-        if (IS_PC98_ARCH)
+        if (IS_PC98_ARCH) {
             INT10_Handler();
-        else
+            if(pc98_column_over && CURSOR_POS_COL(page) != 80 - 1) pc98_column_over = false;
+        } else
             CALLBACK_RunRealInt(0x10);
 
 		reg_ax=oldax;
@@ -85,38 +337,198 @@ private:
 		reg_dx=olddx;
 	}
 
+    /* Common function to turn specific scan codes into ANSI codes.
+     * This is a separate function so that both Read() and GetInformation() can use it.
+     * GetInformation needs to handle the scan code on entry in order to correctly
+     * assert whether Read() will return data or not. Some scan codes are ignored by
+     * the CON driver, therefore even though the BIOS says there is key data, Read()
+     * will not return anything and will block. */
+    bool CommonPC98ExtScanConversionToReadBuf(unsigned char code) {
+        size_t esclen;
 
-	static void Real_INT10_TeletypeOutput(Bit8u xChar,Bit8u xAttr) {
-		Bit16u		oldax,oldbx;
+        switch (code) {
+            case 0x36: // ROLL UP
+            case 0x37: // ROLL DOWN
+            case 0x38: // INS
+            case 0x39: // DEL
+            case 0x3A: // UP ARROW
+            case 0x3B: // LEFT ARROW
+            case 0x3C: // RIGHT ARROW
+            case 0x3D: // DOWN ARROW
+            case 0x3E: // HOME/CLR
+            case 0x3F: // HELP
+            case 0x40: // KEYPAD -
+                PC98_GetEditorKeyEscape(/*&*/esclen,dev_con_readbuf,code); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
+            case 0x52: // VF1
+            case 0x53: // VF2
+            case 0x54: // VF3
+            case 0x55: // VF4
+            case 0x56: // VF5
+                PC98_GetVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0x52u); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
+            case 0x62: // F1
+            case 0x63: // F2
+            case 0x64: // F3
+            case 0x65: // F4
+            case 0x66: // F5
+            case 0x67: // F6
+            case 0x68: // F7
+            case 0x69: // F8
+            case 0x6A: // F9
+            case 0x6B: // F10
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0x62u); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
+            case 0x82: // Shift+F1
+            case 0x83: // Shift+F2
+            case 0x84: // Shift+F3
+            case 0x85: // Shift+F4
+            case 0x86: // Shift+F5
+            case 0x87: // Shift+F6
+            case 0x88: // Shift+F7
+            case 0x89: // Shift+F8
+            case 0x8A: // Shift+F9
+            case 0x8B: // Shift+F10
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0x82u); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
+            case 0x92: // Control+F1
+            case 0x93: // Control+F2
+            case 0x94: // Control+F3
+            case 0x95: // Control+F4
+            case 0x96: // Control+F5
+            case 0x97: // Control+F6
+            case 0x98: // Control+F7
+            case 0x99: // Control+F8
+            case 0x9A: // Control+F9
+            case 0x9B: // Control+F10
+                if (inhibited_ControlFn()) {
+                    PC98_GetCtrlFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0x92u); dev_con_pos=0; dev_con_max=esclen;
+                    return (dev_con_max != 0)?true:false;
+                }
+                else if (code == 0x95) {// CTRL+F4   Toggle kanji/graph mode     HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
+                    void pc98_toggle_char_mode(void);
+                    pc98_toggle_char_mode();
+                }
+                else if (code == 0x97) {// CTRL+F6   Toggle 20/25-line text      HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
+                    /* toggle the bit and change the text layer */
+                    {
+                        uint8_t b = real_readb(0x60,0x113);
+                        real_writeb(0x60,0x113,b ^ 1);
 
-		oldax=reg_ax;
-		oldbx=reg_bx;
+                        reg_ah = 0x0A; /* Set CRT mode */
+                        reg_al = b;
+                        CALLBACK_RunRealInt(0x18);
 
-		reg_ah=0xE;
-		reg_al=xChar;
-		reg_bl=xAttr;
+                        reg_ah = 0x11; /* show cursor (Func 0x0A hides the cursor) */
+                        CALLBACK_RunRealInt(0x18);
+                    }
 
-        /* FIXME: PC-98 emulation should eventually use CONIO emulation that
-         *        better emulates the actual platform. The purpose of this
-         *        hack is to allow our code to call into INT 10h without
-         *        setting up an INT 10h vector */
-        if (IS_PC98_ARCH)
-            INT10_Handler();
-        else
+                    /* clear the screen */
+                    {
+                        uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+
+                        /* it also redraws the function key row */
+                        update_pc98_function_row(pc98_function_row_mode,true);
+
+                        INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                        Real_INT10_SetCursorPos(0,0,page);
+                    }
+                }
+                else if (code == 0x98) {// CTRL+F7   Toggle function key row     HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
+                    void pc98_function_row_user_toggle(void);
+                    pc98_function_row_user_toggle();
+                }
+                else if (code == 0x99) {// CTRL+F8   Clear screen, home cursor   HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
+                    uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+
+                    /* it also redraws the function key row */
+                    update_pc98_function_row(pc98_function_row_mode,true);
+
+                    INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                    Real_INT10_SetCursorPos(0,0,page);
+                    ClearAnsi();
+                }
+                break;
+
+            case 0xC2: // VF1
+            case 0xC3: // VF2
+            case 0xC4: // VF3
+            case 0xC5: // VF4
+            case 0xC6: // VF5
+                PC98_GetShiftVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0xC2u); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
+
+            case 0xD2: // VF1
+            case 0xD3: // VF2
+            case 0xD4: // VF3
+            case 0xD5: // VF4
+            case 0xD6: // VF5
+                if (inhibited_ControlFn()) {
+                    PC98_GetCtrlVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0xD2u); dev_con_pos=0; dev_con_max=esclen;
+                    return (dev_con_max != 0)?true:false;
+                }
+                break;
+#if 0
+                // ROLL UP  --          --          --
+                // POLL DOWN--          --          --
+                // COPY     --          --          --
+                // HOME/CLR 0x1A        0x1E        --
+                // HELP     --          --          --
+#endif
+        }
+
+        return false;
+    }
+
+	static void Real_INT10_TeletypeOutput(uint8_t xChar,uint8_t xAttr) {
+        if (IS_PC98_ARCH && (real_readb(0x60, 0x8A) == 1)) {
+            if (con_sjis.take(xChar)) {
+                BIOS_NCOLS;
+                uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+                uint8_t cur_row=CURSOR_POS_ROW(page);
+                uint8_t cur_col=CURSOR_POS_COL(page);
+                unsigned char cw = con_sjis.doublewide ? 2 : 1;
+
+                /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
+                if ((cur_col+cw) > ncols) {
+                    cur_col = (uint8_t)ncols;
+                    AdjustCursorPosition(cur_col,cur_row);
+                }
+
+                /* JIS conversion to WORD value appropriate for text RAM */
+                if (con_sjis.b2 != 0) con_sjis.b1 -= 0x20;
+
+                INT10_WriteChar((con_sjis.b2 << 8) + con_sjis.b1,xAttr,0,1,true);
+
+                cur_col += cw;
+                AdjustCursorPosition(cur_col,cur_row);
+                Real_INT10_SetCursorPos(cur_row,cur_col,page);	
+            }
+        }
+        else {
+            uint16_t oldax,oldbx;
+            oldax=reg_ax;
+            oldbx=reg_bx;
+
+            reg_ah=0xE;
+            reg_al=xChar;
+            reg_bl=xAttr;
+
             CALLBACK_RunRealInt(0x10);
 
-		reg_ax=oldax;
-		reg_bx=oldbx;
+            reg_ax=oldax;
+            reg_bx=oldbx;
+        }
 	}
 
 
-	static void Real_WriteChar(Bit8u cur_col,Bit8u cur_row,
-					Bit8u page,Bit8u chr,Bit8u attr,Bit8u useattr) {
+	static void Real_WriteChar(uint8_t cur_col,uint8_t cur_row,
+					uint8_t page,uint8_t chr,uint8_t attr,uint8_t useattr) {
 		//Cursor position
 		Real_INT10_SetCursorPos(cur_row,cur_col,page);
 
 		//Write the character
-		Bit16u		oldax,oldbx,oldcx;
+		uint16_t		oldax,oldbx,oldcx;
 		oldax=reg_ax;
 		oldbx=reg_bx;
 		oldcx=reg_cx;
@@ -143,32 +555,79 @@ private:
 		reg_cx=oldcx;
 	}//static void Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr)
 
-	
-	static void AdjustCursorPosition(Bit8u& cur_col,Bit8u& cur_row) {
+    static void LineFeedRev(void) { // ESC M
 		BIOS_NCOLS;BIOS_NROWS;
+		auto defattr = DefaultANSIAttr();
+		uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+		uint8_t cur_row=CURSOR_POS_ROW(page);
+		uint8_t cur_col=CURSOR_POS_COL(page);
+
+		if(cur_row==0) 
+		{
+            INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),1,defattr,0);
+        }
+        else {
+            cur_row--;
+        }
+
+		Real_INT10_SetCursorPos(cur_row,cur_col,page);	
+    }
+
+    static void LineFeed(void) { // ESC D
+		BIOS_NCOLS;BIOS_NROWS;
+		auto defattr = DefaultANSIAttr();
+		uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+		uint8_t cur_row=CURSOR_POS_ROW(page);
+		uint8_t cur_col=CURSOR_POS_COL(page);
+
+        if (cur_row < nrows) cur_row++;
+
+		if(cur_row==nrows) 
+		{
+            INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,defattr,0);
+            cur_row--;
+		}
+
+		Real_INT10_SetCursorPos(cur_row,cur_col,page);	
+    }
+	
+	static void AdjustCursorPosition(uint8_t& cur_col,uint8_t& cur_row) {
+		BIOS_NCOLS;BIOS_NROWS;
+		auto defattr = DefaultANSIAttr();
 		//Need a new line?
 		if(cur_col==ncols) 
 		{
-			cur_col=0;
-			cur_row++;
-			Real_INT10_TeletypeOutput('\r',0x7);
-		}
+            if (!IS_PC98_ARCH) {
+				cur_col=0;
+				cur_row++;
+				Real_INT10_TeletypeOutput('\r',defattr);
+			} else {
+				if(!pc98_column_over) {
+					pc98_column_over = true;
+					cur_col--;
+				}
+			}
+        } else pc98_column_over = false;
 		
 		//Reached the bottom?
 		if(cur_row==nrows) 
 		{
-			Real_INT10_TeletypeOutput('\n',0x7);	//Scroll up
-			cur_row--;
+            if (IS_PC98_ARCH)
+		        INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,defattr,0);
+            else
+                Real_INT10_TeletypeOutput('\n',defattr);	//Scroll up
+
+            cur_row--;
 		}
 	}
 
 
-	void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) {
+	void Real_INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr) {
 		//TODO Check if this page thing is correct
-		Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+		uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 //		BIOS_NCOLS;BIOS_NROWS;
-		Bit8u cur_row=CURSOR_POS_ROW(page);
-		Bit8u cur_col=CURSOR_POS_COL(page);
+		uint8_t cur_row=CURSOR_POS_ROW(page);
+		uint8_t cur_col=CURSOR_POS_COL(page);
 		switch (chr) 
 		{
 		case 7: {
@@ -191,7 +650,6 @@ private:
 			cur_col=0;
 			break;
 		case '\n':
-			cur_col=0;
 			cur_row++;
 			break;
 		case '\t':
@@ -202,14 +660,108 @@ private:
 			} while(cur_col%8);
 			break;
 		default:
-			//* Draw the actual Character 
-			Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr);
-			cur_col++;
+			//* Draw the actual Character
+            if (IS_PC98_ARCH && (real_readb(0x60, 0x8A) == 1)) {
+                if (con_sjis.take(chr)) {
+                    BIOS_NCOLS;
+                    unsigned char cw = con_sjis.doublewide ? 2 : 1;
+
+                    if(pc98_column_over || (cw == 2 && (cur_col+cw) > ncols)) {
+                        BIOS_NROWS;
+                        auto defattr = DefaultANSIAttr();
+                        pc98_column_over = false;
+                        cur_col=0;
+                        cur_row++;
+                        if(cur_row==nrows) {
+                            INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,defattr,0);
+                            cur_row--;
+                        }
+                        Real_INT10_SetCursorPos(cur_row,cur_col,page);
+                    }
+                    /* JIS conversion to WORD value appropriate for text RAM */
+                    if (con_sjis.b2 != 0) con_sjis.b1 -= 0x20;
+
+                    INT10_WriteChar((con_sjis.b2 << 8) + con_sjis.b1,attr,0,1,true);
+
+                    cur_col += cw;
+                }
+            }
+            else {
+                Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr);
+                cur_col++;
+            }
 		}
 		
 		AdjustCursorPosition(cur_col,cur_row);
 		Real_INT10_SetCursorPos(cur_row,cur_col,page);	
-	}//void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) 
+	}//void Real_INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr) 
+public:
+    // INT DC interface: CL=0x10 AH=0x03
+    void INTDC_CL10h_AH03h(uint16_t raw) {
+        /* NTS: This emulates translation behavior seen in INT DCh interface:
+         *
+         *      DX = raw
+         *      DX += 0x2020
+         *      XCHG DL, DH
+         *      CX = DX
+         *      CALL "ESC = HANDLING CODE"
+         *
+         * Technically this means there is a bug where if DL(X) is 0xE0 or larger it will carry into DH(Y) */
+        raw += 0x2020;
+
+        ansi.data[0] = (raw >> 8); // Y
+        ansi.data[1] = raw & 0xFF; // X
+        ESC_EQU_cursor_pos();
+    }
+
+    void INTDC_CL10h_AH04h(void) {
+        ESC_D();
+    }
+
+    void INTDC_CL10h_AH05h(void) {
+        ESC_M();
+    }
+
+    void INTDC_CL10h_AH06h(uint16_t count) {
+        ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
+        ESC_BRACKET_A();
+    }
+
+    void INTDC_CL10h_AH07h(uint16_t count) {
+        ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
+        ESC_BRACKET_B();
+    }
+
+    void INTDC_CL10h_AH08h(uint16_t count) {
+        ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
+        ESC_BRACKET_C();
+    }
+
+    void INTDC_CL10h_AH09h(uint16_t count) {
+        ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
+        ESC_BRACKET_D();
+    }
+
+    void INTDC_CL10h_AH0Ah(uint16_t pattern) {
+        ansi.data[0] = (uint8_t)pattern;
+        ESC_BRACKET_J();
+    }
+
+    void INTDC_CL10h_AH0Bh(uint16_t pattern) {
+        ansi.data[0] = (uint8_t)pattern;
+        ESC_BRACKET_K();
+    }
+
+    void INTDC_CL10h_AH0Ch(uint16_t count) {
+        ansi.data[0] = (uint8_t)count;
+        ESC_BRACKET_L();
+    }
+
+    void INTDC_CL10h_AH0Dh(uint16_t count) {
+        ansi.data[0] = (uint8_t)count;
+        ESC_BRACKET_M();
+    }
+
 };
 
 // NEC-PC98 keyboard input notes
@@ -247,17 +799,65 @@ private:
 // VF4      --          --          --
 // VF5      --          --          --
 
-bool device_CON::Read(Bit8u * data,Bit16u * size) {
-	Bit16u oldax=reg_ax;
-	Bit16u count=0;
+// TODO for PC-98 mode:
+//
+// According to:
+//
+// http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20NEC%20PC%2d98/Collections/PC%2d9801%20Bible%20%e6%9d%b1%e4%ba%ac%e7%90%86%e7%a7%91%e5%a4%a7%e5%ad%a6EIC%20%281994%29%2epdf
+//
+// Section 4-8.
+//
+// The PDF documents ANSI codes defined on PC-98, which may or may not be a complete listing.
+bool device_CON::Read(uint8_t * data,uint16_t * size) {
+	uint16_t oldax=reg_ax;
+	uint16_t count=0;
+	auto defattr=DefaultANSIAttr();
 	INT10_SetCurMode();
 	if ((readcache) && (*size)) {
 		data[count++]=readcache;
-		if(dos.echo) Real_INT10_TeletypeOutput(readcache,7);
+		if (dos.echo) {
+#if defined(USE_TTF)
+			if (IS_DOSV || ttf_dosv || IS_PC98_ARCH) {
+#else
+			if (IS_DOSV || IS_PC98_ARCH) {
+#endif
+				reg_al = readcache;
+				CALLBACK_RunRealInt(0x29);
+			} else
+                Real_INT10_TeletypeOutput(readcache,defattr);
+        }
 		readcache=0;
 	}
 	while (*size>count) {
-		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
+        if (dev_con_pos < dev_con_max) {
+            data[count++] = (uint8_t)dev_con_readbuf[dev_con_pos++];
+            continue;
+        }
+
+        const uint8_t int16_poll_function=(IS_EGAVGA_ARCH)?0x11:0x1;
+        const uint8_t int16_read_function=(IS_EGAVGA_ARCH)?0x10:0x0;
+
+        static const bool idle_enabled = ((Section_prop*)control->GetSection("dos"))->Get_bool("dos idle api");
+        if (idle_enabled) {
+            // Poll the keyboard until there is a key-press ready to read. If there
+            // is no input (ZF=0) then call INT 28h to release the rest of our
+            // timeslice to host system.
+            while (true) {
+                reg_ah=int16_poll_function;
+                if (IS_PC98_ARCH)
+                    INT16_Handler_Wrap();
+                else
+                    CALLBACK_RunRealInt(0x16);
+                if (GETFLAG(ZF) == 0) {
+                    break;
+                } else {
+                    INT28_AllowOnce=true;
+                    CALLBACK_RunRealInt(0x28);
+                }
+            }
+        }
+
+		reg_ah=int16_read_function;
 
         /* FIXME: PC-98 emulation should eventually use CONIO emulation that
          *        better emulates the actual platform. The purpose of this
@@ -268,6 +868,9 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
         else
             CALLBACK_RunRealInt(0x16);
 
+        /* hack for DOSKEY emulation */
+        last_int16_code = reg_ax;
+
 		switch(reg_al) {
 		case 13:
 			data[count++]=0x0D;
@@ -275,23 +878,82 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			*size=count;
 			reg_ax=oldax;
 			if(dos.echo) { 
-				Real_INT10_TeletypeOutput(13,7); //maybe don't do this ( no need for it actually ) (but it's compatible)
-				Real_INT10_TeletypeOutput(10,7);
+#if defined(USE_TTF)
+				if (IS_DOSV || ttf_dosv || IS_PC98_ARCH) {
+#else
+				if (IS_DOSV || IS_PC98_ARCH) {
+#endif
+					reg_al = 13;
+					CALLBACK_RunRealInt(0x29);
+					reg_al = 10;
+					CALLBACK_RunRealInt(0x29);
+				} else {
+					Real_INT10_TeletypeOutput(13,defattr); //maybe don't do this ( no need for it actually ) (but it's compatible)
+					Real_INT10_TeletypeOutput(10,defattr);
+				}
 			}
 			return true;
 			break;
 		case 8:
 			if(*size==1) data[count++]=reg_al;  //one char at the time so give back that BS
 			else if(count) {                    //Remove data if it exists (extended keys don't go right)
-				data[count--]=0;
-				Real_INT10_TeletypeOutput(8,7);
-				Real_INT10_TeletypeOutput(' ',7);
+				uint8_t flag = 0;
+				if(IS_PC98_ARCH || isDBCSCP()) {
+					if(count > 1) {
+						for(uint16_t pos = 0 ; pos < count ; pos++) {
+							if(flag == 1) {
+								flag = 2;
+							} else {
+								flag = 0;
+								if(isKanji1(data[pos])) {
+									flag = 1;
+								}
+							}
+						}
+					}
+				}
+				if(flag == 2) {
+					data[count--]=0;
+					data[count--]=0;
+					if(IS_PC98_ARCH) {
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						reg_al = ' '; CALLBACK_RunRealInt(0x29);
+						reg_al = ' '; CALLBACK_RunRealInt(0x29);
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						continue;
+					} else {
+						Real_INT10_TeletypeOutput(8, defattr);
+						Real_INT10_TeletypeOutput(8, defattr);
+						Real_INT10_TeletypeOutput(' ', defattr);
+						Real_INT10_TeletypeOutput(' ', defattr);
+						Real_INT10_TeletypeOutput(8, defattr);
+					}
+				} else {
+					data[count--]=0;
+					if(IS_PC98_ARCH) {
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						reg_al = ' '; CALLBACK_RunRealInt(0x29);
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						continue;
+					} else {
+						Real_INT10_TeletypeOutput(8, defattr);
+						Real_INT10_TeletypeOutput(' ', defattr);
+					}
+				}
 			} else {
 				continue;                       //no data read yet so restart whileloop.
 			}
 			break;
 		case 0xe0: /* Extended keys in the  int 16 0x10 case */
-			if(!reg_ah) { /*extended key if reg_ah isn't 0 */
+#if defined(USE_TTF)
+			if((isJEGAEnabled() || IS_PC98_ARCH || IS_DOSV || ttf_dosv) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
+#else
+			if((isJEGAEnabled() || IS_PC98_ARCH || IS_DOSV) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
+#endif
+				data[count++]=reg_al;
+			} else if(!reg_ah) { /*extended key if reg_ah isn't 0 */
 				data[count++] = reg_al;
 			} else {
 				data[count++] = 0;
@@ -300,48 +962,234 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
-			data[count++]=reg_al;
-			if (*size>count) data[count++]=reg_ah;
-			else readcache=reg_ah;
+			for(std::vector<key_change>::iterator key = key_map.begin() ; key != key_map.end() ; ++key) {
+				if(key->src == reg_ah << 8) {
+					reg_al = (uint8_t)key->dst;
+					reg_ah = (uint8_t)(key->dst >> 8);
+					break;
+				}
+			}
+            if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
+				data[count++]=0x03; // CTRL+C
+                if (*size > 1 || !inshell) {
+                    dos.errorcode=77;
+                    *size=count;
+                    reg_ax=oldax;
+                    return false;
+                }
+            }
+            else if (IS_PC98_ARCH) {
+                /* PC-98 does NOT return scan code, but instead returns nothing or
+                 * control/escape code */
+                CommonPC98ExtScanConversionToReadBuf(reg_ah);
+            }
+            else {
+                /* IBM PC/XT/AT signals extended code by entering AL, AH.
+                 * Arrow keys for example become 0x00 0x48, 0x00 0x50, etc. */
+    			data[count++]=reg_al;
+	    		if (*size>count) data[count++]=reg_ah;
+		    	else readcache=reg_ah;
+            }
 			break;
 		default:
+			for(std::vector<key_change>::iterator key = key_map.begin() ; key != key_map.end() ; ++key) {
+				if(key->src == reg_al) {
+					reg_al = (uint8_t)key->dst;
+				}
+			}
 			data[count++]=reg_al;
+			if ((*size > 1 || !inshell) && reg_al == 3 && !binary) {
+				dos.errorcode=77;
+				*size=count;
+				reg_ax=oldax;
+				return false;
+			}
 			break;
 		}
-		if(dos.echo) { //what to do if *size==1 and character is BS ?????
+
+		if(dos.echo && !binary) { //what to do if *size==1 and character is BS ?????
 			// TODO: If CTRL+C checking is applicable do not echo (reg_al == 3)
-			Real_INT10_TeletypeOutput(reg_al,7);
+#if defined(USE_TTF)
+			if (IS_DOSV || ttf_dosv) {
+#else
+			if (IS_DOSV) {
+#endif
+				if(inshell && CheckHat(reg_al)) {
+					uint8_t ch = reg_al + 0x40;
+					reg_al = '^';
+					CALLBACK_RunRealInt(0x29);
+					reg_al = ch;
+					CALLBACK_RunRealInt(0x29);
+					lasthat = true;
+				} else {
+					CALLBACK_RunRealInt(0x29);
+					if(lasthat && reg_al == 0x08) {
+						CALLBACK_RunRealInt(0x29);
+						reg_al = 0x20;
+						CALLBACK_RunRealInt(0x29);
+						reg_al = 0x08;
+						CALLBACK_RunRealInt(0x29);
+					}
+					lasthat = false;
+				}
+			} else
+				Real_INT10_TeletypeOutput(reg_al,defattr);
 		}
 	}
+	INT28_AllowOnce=true;
+	dos.errorcode=0;
 	*size=count;
 	reg_ax=oldax;
 	return true;
 }
 
+extern bool ctrlbrk;
+extern int log_dev_con;
+std::string log_dev_con_str;
+bool logging_con = false;
+bool DOS_BreakTest(bool print);
+void DOS_BreakAction();
+bool read_kanji1 = false;
+uint8_t temp_char = 0;
+void WriteChar(uint16_t col, uint16_t row, uint8_t page, uint16_t chr, uint8_t attr, bool useattr);
+extern bool dbcs_sbcs;
 
-bool device_CON::Write(Bit8u * data,Bit16u * size) {
-    Bit16u count=0;
+bool device_CON::Write(const uint8_t * data,uint16_t * size) {
+	uint16_t count=0;
+#if defined(USE_TTF)
+	if (IS_DOSV || ttf_dosv) {
+#else
+	if (IS_DOSV) {
+#endif
+		while (*size > count) {
+			reg_al = data[count];
+			if(reg_al == 0x07) {
+				INT10_TeletypeOutput(reg_al, 7);
+			} else {
+				if(inshell && CheckHat(reg_al)) {
+					uint8_t ch = reg_al + 0x40;
+					reg_al = '^';
+					CALLBACK_RunRealInt(0x29);
+					reg_al = ch;
+					CALLBACK_RunRealInt(0x29);
+				} else {
+					CALLBACK_RunRealInt(0x29);
+				}
+			}
+			count++;
+		}
+		*size = count;
+		return true;
+	}
     Bitu i;
-    Bit8u col,row;
-    Bit8u tempdata;
+    uint8_t col,row,page;
+
     INT10_SetCurMode();
+
+    if (IS_PC98_ARCH) {
+        ansi.enabled = true; // ANSI is enabled at all times
+        ansi.attr = real_readb(0x60,0x11D);
+    }
+
     while (*size>count) {
+        if (ctrlbrk && !inshell) {
+            ctrlbrk=false;
+            DOS_BreakAction();
+            if (!DOS_BreakTest(false)) {
+                Output('^');Output('C');Output('\r');Output('\n');
+                dos.errorcode=77;
+                return false;
+            }
+        }
+        if (log_dev_con) {
+            if (log_dev_con_str.size() >= 255 || data[count] == '\n' || data[count] == 27) {
+                logging_con = true;
+                LOG_MSG(log_dev_con==2?"%s":"DOS CON: %s",log_dev_con_str.c_str());
+                logging_con = false;
+                log_dev_con_str.clear();
+            }
+
+            if (data[count] != '\n' && data[count] != '\r')
+                log_dev_con_str += (char)data[count];
+        }
+
+        page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+        col = CURSOR_POS_COL(page);
+        BIOS_NCOLS;
+
+        if(isDBCSCP() && !dos.direct_output
+#if defined(USE_TTF)
+            && dbcs_sbcs
+#endif
+            ) { // Consideration of first byte of DBCS characters at the end of line 
+            if(!read_kanji1 && isKanji1(data[count])) {
+                read_kanji1 = true;
+                temp_char = data[count];
+                count++;
+                continue;
+            }
+            else if(read_kanji1) {
+                if(col == ncols - 1 && isKanji2(data[count])) {
+                    BIOS_NROWS;
+                    row = CURSOR_POS_ROW(page);
+                    WriteChar(col, row, page, ' ', ansi.attr, true);
+                    if(nrows == row + 1) {
+                        INT10_ScrollWindow(0, 0, (uint8_t)(nrows - 1), (uint8_t)(ncols - 1), -1, ansi.attr, page);
+                        INT10_SetCursorPos(row, 0, page);
+                    }
+                    else INT10_SetCursorPos(row + 1, 0, page);
+                    Output(temp_char);
+                    Output(data[count]);
+                    count++;
+                    read_kanji1 = false;
+                    continue;
+                }
+                Output(temp_char);
+                read_kanji1 = false;
+            }
+        }
+
         if (!ansi.esc){
-            if(data[count]=='\033') {
+            if(data[count]=='\033' && ansi.installed) {
                 /*clear the datastructure */
                 ClearAnsi();
                 /* start the sequence */
                 ansi.esc=true;
                 count++;
                 continue;
+            } else if(data[count] == '\t' && !dos.direct_output) {
+                /* expand tab if not direct output */
+                do {
+                    Output(' ');
+                    col=CURSOR_POS_COL(page);
+                } while(col%8);
+                count++;
+                continue;
+            } else if (data[count] == 0x1A && IS_PC98_ARCH) {
+                /* it also redraws the function key row */
+                update_pc98_function_row(pc98_function_row_mode,true);
+
+                INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                Real_INT10_SetCursorPos(0,0,page);
+            } else if (data[count] == 0x1E && IS_PC98_ARCH) {
+                Real_INT10_SetCursorPos(0,0,page);
             } else { 
-                /* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
-                if((data[count] == '\n') && (lastwrite != '\r')) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,ansi.enabled);
-                /* use ansi attribute if ansi is enabled, otherwise use DOS default attribute*/
-                Real_INT10_TeletypeOutputAttr(data[count],ansi.enabled?ansi.attr:7,true);
-                lastwrite = data[count++];
+                Output(data[count]);
+                count++;
                 continue;
             }
+        }
+
+        if(ansi.pc98rparen){
+            /* PC-98: change between graph and kanji modes */
+            if(data[count] == '3' || data[count] == '0'){
+                bool new_mode = (data[count] == '0');
+                void pc98_set_char_mode(bool mode);
+                pc98_set_char_mode(new_mode);
+            }
+            ClearAnsi();
+            count++;
+            continue;
         }
 
         if(!ansi.sci){
@@ -350,12 +1198,48 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
                 case '[': 
                     ansi.sci=true;
                     break;
-                case '7': /* save cursor pos + attr */
-                case '8': /* restore this  (Wonder if this is actually used) */
-                case 'D':/* scrolling DOWN*/
-                case 'M':/* scrolling UP*/ 
+                case '*':/* PC-98: clear screen (same code path as CTRL+Z) */
+                    if (IS_PC98_ARCH) {
+                        page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+
+                        /* it also redraws the function key row */
+                        update_pc98_function_row(pc98_function_row_mode,true);
+
+                        INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                        Real_INT10_SetCursorPos(0,0,page);
+                        ClearAnsi();
+                    }
+                    else {
+                        LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after an esc",data[count]); /*prob () */
+                        ClearAnsi();
+                    }
+                    break;
+                case ')':/* PC-98 kanji/graph mode */
+                    if (IS_PC98_ARCH) {
+                        ansi.pc98rparen = true;
+                    }
+                    else {
+                        LOG(LOG_IOCTL, LOG_NORMAL)("ANSI: unknown char %c after an esc", data[count]); /*prob () */
+                        ClearAnsi();
+                    }
+                    break;
+                case 'D':/* cursor DOWN (with scrolling) */
+                    ESC_D();
+                    break;
+                case 'E':/* cursor DOWN, carriage return (with scrolling) */
+                    ESC_E();
+                    break;
+                case 'M':/* cursor UP (with scrolling) */ 
+                    ESC_M();
+                    break;
+                case '=':/* cursor position */
+                    ansi.equcurp=true;
+                    ansi.sci=true;
+                    break;
+                case '7': /* save cursor pos + attr TODO */
+                case '8': /* restore this TODO */
                 default:
-                    LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc",data[count]); /*prob () */
+                    LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after an esc",data[count]); /*prob () */
                     ClearAnsi();
                     break;
             }
@@ -363,8 +1247,15 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
             continue;
         }
         /*ansi.esc and ansi.sci are true */
-        Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-        if (isdigit(data[count])) {
+        if (!dos.internal_output) ansi.enabled=true;
+        page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        if (ansi.equcurp) { /* proprietary ESC = Y X command */
+            ansi.data[ansi.numberofarg++] = data[count];
+            if (ansi.numberofarg >= 2) {
+                ESC_EQU_cursor_pos(); /* clears ANSI state */
+            }
+        }
+        else if (isdigit(data[count])) {
             assert(ansi.numberofarg < NUMBER_ANSI_DATA);
             ansi.data[ansi.numberofarg]=10*ansi.data[ansi.numberofarg]+(data[count]-'0');
         }
@@ -380,12 +1271,17 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
                 case 'l': /* RESET MODE */
                     switch (ansi.data[0]) {
                         case 1: // show/hide function key row
-                            void update_pc98_function_row(bool enable);
                             update_pc98_function_row(data[count] == 'l');
+                            ansi.nrows = real_readb(0x60,0x112)+1;
+                            break;
+                        case 3: // clear screen (doesn't matter if l or h)
+                            INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                            Real_INT10_SetCursorPos(0,0,page);
                             break;
                         case 5: // show/hide cursor
                             void PC98_show_cursor(bool show);
                             PC98_show_cursor(data[count] == 'l');
+                            real_writeb(0x60,0x11B,data[count] == 'l' ? 0x01 : 0x00); /* cursor display state */
                             break;
                         default:
                             LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled esc [ > %d %c",ansi.data[0],data[count]);
@@ -403,93 +1299,94 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
         else {
             switch(data[count]){
                 case 'm':               /* SGR */
+                    // NEC's ANSI driver always resets at the beginning
+                    if(IS_PC98_ARCH) {
+                        ansi.attr = DefaultANSIAttr();
+                    }
                     for(i=0;i<=ansi.numberofarg;i++){ 
-                        ansi.enabled=true;
+                        const uint8_t COLORFLAGS[][8] = {
+                        //  Black   Red Green Yellow Blue  Pink  Cyan  White
+                            { 0x0,  0x4,  0x2,  0x6,  0x1,  0x5,  0x3,  0x7 }, /*   IBM */
+                            { 0x0, 0x40, 0x80, 0xC0, 0x20, 0x60, 0xA0, 0xE0 }, /* PC-98 */
+                        };
+                        const auto &flagset = COLORFLAGS[IS_PC98_ARCH];
+
+                        if(IS_PC98_ARCH) {
+                            // Convert alternate color codes to regular ones
+                            if(ansi.data[i] >= 17 && ansi.data[i] <= 23) {
+                                const uint8_t convtbl[] = {
+                                    31, 34, 35, 32, 33, 36, 37
+                                };
+                                ansi.data[i] = convtbl[ansi.data[i] - 17];
+                            }
+                        }
+
                         switch(ansi.data[i]){
                             case 0: /* normal */
-                                ansi.attr=0x07;//Real ansi does this as well. (should do current defaults)
-                                ansi.enabled=false;
+                                //Real ansi does this as well. (should do current defaults)
+                                ansi.attr = DefaultANSIAttr();
                                 break;
                             case 1: /* bold mode on*/
-                                ansi.attr|=0x08;
+                                // FIXME: According to http://www.ninton.co.jp/?p=11, this
+                                // should set some sort of "highlight" flag in monochrome
+                                // mode, but I have no idea how to even enter that mode.
+                                ansi.attr |= IS_PC98_ARCH ? 0 : 0x08;
+                                break;
+                            case 2: /* PC-98 "Bit 4" */
+                                ansi.attr |= IS_PC98_ARCH ? 0x10 : 0;
                                 break;
                             case 4: /* underline */
-                                LOG(LOG_IOCTL,LOG_NORMAL)("ANSI:no support for underline yet");
+                                if(IS_PC98_ARCH) {
+                                    ansi.attr |= 0x08;
+                                } else {
+                                    LOG(LOG_IOCTL, LOG_NORMAL)("ANSI:no support for underline yet");
+                                }
                                 break;
                             case 5: /* blinking */
-                                ansi.attr|=0x80;
+                                ansi.attr |= IS_PC98_ARCH ? 0x02 : 0x80;
                                 break;
                             case 7: /* reverse */
-                                ansi.attr=0x70;//Just like real ansi. (should do use current colors reversed)
+                                //Just like real ansi. (should do use current colors reversed)
+                                if(IS_PC98_ARCH) {
+                                    ansi.attr |= 0x04;
+                                } else {
+                                    ansi.attr = 0x70;
+                                }
+                                break;
+                            case 8: /* PC-98 secret */
+                            case 16:
+                                ansi.attr &= IS_PC98_ARCH ? 0xFE : 0xFF;
                                 break;
                             case 30: /* fg color black */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x0;
-                                break;
-                            case 31:  /* fg color red */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x4;
-                                break;
-                            case 32:  /* fg color green */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x2;
-                                break;
+                            case 31: /* fg color red */
+                            case 32: /* fg color green */
                             case 33: /* fg color yellow */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x6;
-                                break;
                             case 34: /* fg color blue */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x1;
-                                break;
                             case 35: /* fg color magenta */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x5;
-                                break;
                             case 36: /* fg color cyan */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x3;
-                                break;
                             case 37: /* fg color white */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x7;
+                                ansi.attr &= ~(flagset[7]);
+                                ansi.attr |= (flagset[ansi.data[i] - 30]);
                                 break;
                             case 40:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x0;
-                                break;
                             case 41:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x40;
-                                break;
                             case 42:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x20;
-                                break;
                             case 43:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x60;
-                                break;
                             case 44:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x10;
-                                break;
                             case 45:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x50;
-                                break;
                             case 46:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x30;
-                                break;	
-                            case 47:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x70;
+                            case 47: {
+                                uint8_t shift = IS_PC98_ARCH ? 0 : 4;
+                                ansi.attr &= ~(flagset[7] << shift);
+                                ansi.attr |= (flagset[ansi.data[i] - 40] << shift);
+                                ansi.attr |= IS_PC98_ARCH ? 0x04 : 0;
                                 break;
+                            }
                             default:
                                 break;
                         }
                     }
+                    if (IS_PC98_ARCH) real_writeb(0x60,0x11D,ansi.attr);
                     ClearAnsi();
                     break;
                 case 'f':
@@ -498,61 +1395,33 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
                         ansi.warned = true;
                         LOG(LOG_IOCTL,LOG_WARN)("ANSI SEQUENCES USED");
                     }
+                    if (!IS_PC98_ARCH) {
+                        ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+                        ansi.nrows = IS_EGAVGA_ARCH ? (real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1) : 25;
+                    }
                     /* Turn them into positions that are on the screen */
                     if(ansi.data[0] == 0) ansi.data[0] = 1;
                     if(ansi.data[1] == 0) ansi.data[1] = 1;
-                    if(ansi.data[0] > ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows;
-                    if(ansi.data[1] > ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols;
+                    if(ansi.data[0] > ansi.nrows) ansi.data[0] = (uint8_t)ansi.nrows;
+                    if(ansi.data[1] > ansi.ncols) ansi.data[1] = (uint8_t)ansi.ncols;
                     Real_INT10_SetCursorPos(--(ansi.data[0]),--(ansi.data[1]),page); /*ansi=1 based, int10 is 0 based */
                     ClearAnsi();
                     break;
                     /* cursor up down and forward and backward only change the row or the col not both */
                 case 'A': /* cursor up*/
-                    col=CURSOR_POS_COL(page) ;
-                    row=CURSOR_POS_ROW(page) ;
-                    tempdata = (ansi.data[0]? ansi.data[0] : 1);
-                    if(tempdata > row) { row=0; } 
-                    else { row-=tempdata;}
-                    Real_INT10_SetCursorPos(row,col,page);
-                    ClearAnsi();
+                    ESC_BRACKET_A();
                     break;
                 case 'B': /*cursor Down */
-                    col=CURSOR_POS_COL(page) ;
-                    row=CURSOR_POS_ROW(page) ;
-                    tempdata = (ansi.data[0]? ansi.data[0] : 1);
-                    if(tempdata + static_cast<Bitu>(row) >= ansi.nrows)
-                    { row = ansi.nrows - 1;}
-                    else	{ row += tempdata; }
-                    Real_INT10_SetCursorPos(row,col,page);
-                    ClearAnsi();
+                    ESC_BRACKET_B();
                     break;
                 case 'C': /*cursor forward */
-                    col=CURSOR_POS_COL(page);
-                    row=CURSOR_POS_ROW(page);
-                    tempdata=(ansi.data[0]? ansi.data[0] : 1);
-                    if(tempdata + static_cast<Bitu>(col) >= ansi.ncols) 
-                    { col = ansi.ncols - 1;} 
-                    else	{ col += tempdata;}
-                    Real_INT10_SetCursorPos(row,col,page);
-                    ClearAnsi();
+                    ESC_BRACKET_C();
                     break;
                 case 'D': /*Cursor Backward  */
-                    col=CURSOR_POS_COL(page);
-                    row=CURSOR_POS_ROW(page);
-                    tempdata=(ansi.data[0]? ansi.data[0] : 1);
-                    if(tempdata > col) {col = 0;}
-                    else { col -= tempdata;}
-                    Real_INT10_SetCursorPos(row,col,page);
-                    ClearAnsi();
+                    ESC_BRACKET_D();
                     break;
                 case 'J': /*erase screen and move cursor home*/
-                    if(ansi.data[0]==0) ansi.data[0]=2;
-                    if(ansi.data[0]!=2) {/* every version behaves like type 2 */
-                        LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: esc[%dJ called : not supported handling as 2",ansi.data[0]);
-                    }
-                    INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
-                    ClearAnsi();
-                    Real_INT10_SetCursorPos(0,0,page);
+                    ESC_BRACKET_J();
                     break;
                 case 'h': /* SET   MODE (if code =7 enable linewrap) */
                 case 'I': /* RESET MODE */
@@ -569,19 +1438,13 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
                     ClearAnsi();
                     break;
                 case 'K': /* erase till end of line (don't touch cursor) */
-                    col = CURSOR_POS_COL(page);
-                    row = CURSOR_POS_ROW(page);
-                    INT10_WriteChar(' ',ansi.attr,page,ansi.ncols-col,true); //Real_WriteChar(ansi.ncols-col,row,page,' ',ansi.attr,true);
-
-                    //for(i = col;i<(Bitu) ansi.ncols; i++) INT10_TeletypeOutputAttr(' ',ansi.attr,true);
-                    Real_INT10_SetCursorPos(row,col,page);
-                    ClearAnsi();
+                    ESC_BRACKET_K();
                     break;
-                case 'M': /* delete line (NANSI) */
-                    col = CURSOR_POS_COL(page);
-                    row = CURSOR_POS_ROW(page);
-                    INT10_ScrollWindow(row,0,ansi.nrows-1,ansi.ncols-1,ansi.data[0]? -ansi.data[0] : -1,ansi.attr,0xFF);
-                    ClearAnsi();
+                case 'L': /* insert line (PC-98) */
+                    ESC_BRACKET_L();
+                    break;
+                case 'M': /* delete line (NANSI,PC-98) */
+                    ESC_BRACKET_M();
                     break;
                 case '>':/* proprietary NEC PC-98 MS-DOS codes (??) */
                     if (IS_PC98_ARCH) {
@@ -592,8 +1455,45 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
                         ClearAnsi();
                     }
                     break;
+                case 'n':/* Device Status Report */
+                    switch (ansi.data[0]) {
+                        case 6: /* report active position */
+                            dev_con_pos = 0;
+                            dev_con_max = sprintf((char*)dev_con_readbuf,"\x1B[%d;%dR",CURSOR_POS_ROW(page)+1,CURSOR_POS_COL(page)+1);
+                            break;
+                        default:
+                            LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled Device Status Report code %d",ansi.data[0]);
+                            break;
+                    };
+                    ClearAnsi();
+                    break;
                 case 'l':/* (if code =7) disable linewrap */
                 case 'p':/* reassign keys (needs strings) */
+                    {
+                        struct key_change key;
+                        i = 0;
+                        if(ansi.data[i] == 0) {
+                            i++;
+                            key.src = ansi.data[i++] << 8;
+                        } else {
+                            key.src = ansi.data[i++];
+                        }
+                        if(ansi.data[i] == 0) {
+                            i++;
+                            key.dst = ansi.data[i++] << 8;
+                        } else {
+                            key.dst = ansi.data[i++];
+                        }
+                        key_map.push_back(key);
+                        ClearAnsi();
+                    }
+                    break;
+                case '"':
+                    if(!ansi.key) {
+                        ansi.key = true;
+                        ansi.numberofarg = 0;
+                    }
+                    break;
                 case 'i':/* printer stuff */
                 default:
                     LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled char %c in esc[",data[count]);
@@ -607,7 +1507,8 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
     return true;
 }
 
-bool device_CON::Seek(Bit32u * pos,Bit32u type) {
+bool device_CON::Seek(uint32_t * pos,uint32_t type) {
+    (void)type; // UNUSED
 	// seek is valid
 	*pos = 0;
 	return true;
@@ -619,9 +1520,12 @@ bool device_CON::Close() {
 
 extern bool dos_con_use_int16_to_detect_input;
 
-Bit16u device_CON::GetInformation(void) {
+uint16_t device_CON::GetInformation(void) {
+    static constexpr auto deviceWord = DeviceInfoFlags::Device | DeviceInfoFlags::Special | DeviceInfoFlags::StdIn |
+                                       DeviceInfoFlags::StdOut;
+
 	if (dos_con_use_int16_to_detect_input || IS_PC98_ARCH) {
-		Bit16u ret = 0x80D3; /* No Key Available */
+        uint16_t ret = deviceWord | DeviceInfoFlags::EofOnInput;  /* No Key Available */
 
 		/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.
 		 * The reason we do this is some DOS programs actually rely on hooking INT 16h
@@ -641,9 +1545,11 @@ Bit16u device_CON::GetInformation(void) {
 		 * Since Scandisk is using INT 21h AH=0x0B to query STDIN during this time,
 		 * this implementation is a good "halfway" compromise in that this call
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
-		if (readcache) return 0x8093; /* key available */
+		if (readcache || dev_con_pos < dev_con_max) return deviceWord; /* key available */
 
-		Bitu saved_ax = reg_ax;
+		if (DOS_BreakConioFlag) return deviceWord; /* key available */
+
+		uint16_t saved_ax = reg_ax;
 
 		reg_ah = (IS_EGAVGA_ARCH)?0x11:0x1; // check for keystroke
 
@@ -656,51 +1562,120 @@ Bit16u device_CON::GetInformation(void) {
         else
             CALLBACK_RunRealInt(0x16);
 
-		if (!GETFLAG(ZF)) { /* key is present, waiting to be returned on AH=0x10 or AH=0x00 */
-			ret = 0x8093; /* Key Available */
-		}
+        if (!GETFLAG(ZF)) { /* key is present, waiting to be returned on AH=0x10 or AH=0x00 */
+            if (IS_PC98_ARCH && reg_al == 0) {
+                /* some scan codes are ignored by CON, and wouldn't read anything.
+                 * while we're at it, take the scan code and convert it into ANSI here
+                 * so that Read() returns it immediately instead of doing this conversion itself.
+                 * This way we never block when we SAID a key was available that gets ignored. */
+                if (CommonPC98ExtScanConversionToReadBuf(reg_ah))
+                    ret = deviceWord; /* Key Available */
+                else
+                    ret = deviceWord | DeviceInfoFlags::EofOnInput; /* No Key Available */
+
+                /* need to consume the key. if it generated anything it will be returned to Read()
+                 * through dev_con_readbuf[] */
+                reg_ah=0x0;
+
+                /* FIXME: PC-98 emulation should eventually use CONIO emulation that
+                 *        better emulates the actual platform. The purpose of this
+                 *        hack is to allow our code to call into INT 16h without
+                 *        setting up an INT 16h vector */
+                INT16_Handler_Wrap();
+            }
+            else {
+                ret = deviceWord; /* Key Available */
+            }
+        }
 
 		reg_ax = saved_ax;
-		return ret;
+		return ret | binary;
 	}
 	else {
 		/* DOSBox mainline behavior: alternate "fast" way through direct manipulation of keyboard scan buffer */
-		Bit16u head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-		Bit16u tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+		uint16_t head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+		uint16_t tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
 
-		if ((head==tail) && !readcache) return 0x80D3;	/* No Key Available */
-		if (readcache || real_readw(0x40,head)) return 0x8093;		/* Key Available */
+		if ((head==tail) && !readcache) return deviceWord | DeviceInfoFlags::EofOnInput;	/* No Key Available */
+		if (readcache || real_readw(0x40,head)) return deviceWord;  /* Key Available */
 
 		/* remove the zero from keyboard buffer */
-		Bit16u start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
-		Bit16u end	=mem_readw(BIOS_KEYBOARD_BUFFER_END);
+		uint16_t start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
+		uint16_t end	=mem_readw(BIOS_KEYBOARD_BUFFER_END);
 		head+=2;
 		if (head>=end) head=start;
 		mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);
 	}
 
-	return 0x80D3; /* No Key Available */
+	return deviceWord | DeviceInfoFlags::EofOnInput | binary; /* No Key Available */
 }
 
 device_CON::device_CON() {
+	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
+
 	SetName("CON");
 	readcache=0;
-	lastwrite=0;
+
+    if (IS_PC98_ARCH) {
+        /* On real MS-DOS for PC-98, ANSI.SYS is effectively part of the DOS kernel, and cannot be turned off. */
+        ansi.installed=true;
+    }
+    else {
+        /* Otherwise (including IBM systems), ANSI.SYS is not installed by default but can be added to CONFIG.SYS.
+         * For compatibility with DOSBox SVN and other forks ANSI.SYS is installed by default. */
+        ansi.installed=section->Get_bool("ansi.sys");
+    }
+
 	ansi.enabled=false;
-	ansi.attr=0x7;
-	ansi.ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS); //should be updated once set/reset mode is implemented
-	ansi.nrows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+	ansi.attr=DefaultANSIAttr();
+    if (IS_PC98_ARCH) {
+        // NTS: On real hardware, the BIOS does NOT manage the console at all.
+        //      TTY handling is entirely handled by MS-DOS.
+        ansi.ncols=80;
+        ansi.nrows=25 - 1;
+        // the DOS kernel will call on this function to disable, and SDLmain
+        // will call on to enable
+    }
 	ansi.saverow=0;
 	ansi.savecol=0;
 	ansi.warned=false;
 	ClearAnsi();
+
+	binary = 0;
 }
 
 void device_CON::ClearAnsi(void){
-	for(Bit8u i=0; i<NUMBER_ANSI_DATA;i++) ansi.data[i]=0;
+	for(uint8_t i=0; i<NUMBER_ANSI_DATA;i++) ansi.data[i]=0;
+    ansi.pc98rparen = false;
     ansi.pc98rab=false;
+    ansi.equcurp=false;
 	ansi.esc=false;
 	ansi.sci=false;
 	ansi.numberofarg=0;
+}
+
+void device_CON::Output(uint8_t chr) {
+	if (!ANSI_SYS_installed() && !IS_PC98_ARCH) {
+		uint16_t oldax=reg_ax;
+		reg_ax=chr;
+		CALLBACK_RunRealInt(0x29);
+		reg_ax=oldax;
+	} else if (dos.internal_output || ansi.enabled) {
+		if (CurMode->type==M_TEXT) {
+			uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+			uint8_t col=CURSOR_POS_COL(page);
+			uint8_t row=CURSOR_POS_ROW(page);
+ 			BIOS_NCOLS;BIOS_NROWS;
+			if (nrows==row+1 && (chr=='\n' || (ncols==col+1 && chr!='\r' && chr!=8 && chr!=7))) {
+				INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,ansi.attr,page);
+				INT10_SetCursorPos(row-1,col,page);
+			}
+		}
+		Real_INT10_TeletypeOutputAttr(chr,ansi.attr,true);
+	} else Real_INT10_TeletypeOutput(chr,DefaultANSIAttr());
+}
+
+bool device_CON::ANSI_SYS_installed() {
+    return ansi.installed;
 }
 

@@ -1,0 +1,22 @@
+The discussion for the new FREECG98.BMP file can be found at:
+
+https://github.com/joncampbell123/dosbox-x/issues/2132
+
+It is based on the Unifont Japanese TrueType font:
+
+http://unifoundry.com/unifont/index.html
+
+TODO:
+
+Write a Linux-based utility
+- To load this font
+- Render ANEX86.BMP with it using Freetype
+
+Except that it should be called FREECG98.BMP,
+and DOSBox-X should look for it if ANEX86.BMP does not exist.
+
+The reason I won't build it into DOSBox-X is that users may
+not care about PC-98 emulation and would not want to waste
+the space (or see the main EXE bloat by 512KB to hold it).
+However, the DOS/V font will be used for displaying Japanese
+characters in the case when no PC-98 font available.

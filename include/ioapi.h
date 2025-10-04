@@ -23,7 +23,7 @@
 
 #if (!defined(_WIN32)) && (!defined(WIN32))
 
-  // Linux needs this to support file operation on files larger then 4+GB
+  // Linux needs this to support file operation on files larger than 4+GB
   // But might need better if/def to select just the platforms that needs them.
 
         #ifndef __USE_FILE_OFFSET64
@@ -44,21 +44,26 @@
 #include <stdlib.h>
 #include "zlib.h"
 
-#if defined(__APPLE__) || defined(USE_FILE32API)
-#define fopen64 fopen
-#define ftello64 ftell
-#define fseeko64 fseek
-#else
-#ifdef _MSC_VER
+#if defined(__APPLE__) || defined(USE_FILE32API) || defined(OS2)
  #define fopen64 fopen
- #if (_MSC_VER >= 1400) && (!(defined(NO_MSCVER_FILE64_FUNC)))
-  #define ftello64 _ftelli64
-  #define fseeko64 _fseeki64
- #else // old MSC
-  #define ftello64 ftell
-  #define fseeko64 fseek
+ #define ftello64 ftell
+ #define fseeko64 fseek
+ #define fseek_ofs_t off_t
+#else
+ #ifdef _MSC_VER
+  #define fopen64 fopen
+  #if (_MSC_VER >= 1400) && (!(defined(NO_MSCVER_FILE64_FUNC)))
+   #define ftello64 _ftelli64
+   #define fseeko64 _fseeki64
+   #define fseek_ofs_t __int64
+  #else // old MSC
+   #define ftello64 ftell
+   #define fseeko64 fseek
+   #define fseek_ofs_t long
+  #endif
+ #else
+  #define fseek_ofs_t long
  #endif
-#endif
 #endif
 
 /*
@@ -76,7 +81,7 @@
 #include "mz64conf.h"
 #endif
 
-/* a type choosen by DEFINE */
+/* a type chosen by DEFINE */
 #ifdef HAVE_64BIT_INT_CUSTOM
 typedef  64BIT_INT_CUSTOM_TYPE ZPOS64_T;
 #else
@@ -100,6 +105,10 @@ typedef unsigned long long int ZPOS64_T;
 extern "C" {
 #endif
 
+#ifdef _Z_OF
+#undef OF
+#define OF _Z_OF
+#endif
 
 #define ZLIB_FILEFUNC_SEEK_CUR (1)
 #define ZLIB_FILEFUNC_SEEK_END (2)

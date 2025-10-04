@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,28 +11,32 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
 #include <stdio.h>
+#include <string.h>
 
-#include "dosbox.h"
-#include "mem.h"
 #include "cpu.h"
 #include "lazyflags.h"
-#include "inout.h"
 #include "callback.h"
+#include "paging.h"
 #include "pic.h"
 #include "fpu.h"
-#include "paging.h"
-#include "mmx.h"
+
+extern bool do_lds_wraparound;
+
+using namespace std;
+
+#define PRE_EXCEPTION { }
 
 #define CPU_CORE CPU_ARCHTYPE_386
 
 #define DoString DoString_Prefetch
+
+static uint16_t last_ea86_offset;
 
 extern bool ignore_opcode_63;
 
@@ -40,42 +44,32 @@ extern bool ignore_opcode_63;
 #include "debug.h"
 #endif
 
-#if (!C_CORE_INLINE)
-#define LoadMb(off) mem_readb(off)
-#define LoadMw(off) mem_readw(off)
-#define LoadMd(off) mem_readd(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd(off+4)<<32 | (Bit64u)mem_readd(off)))
-#define SaveMb(off,val)	mem_writeb(off,val)
-#define SaveMw(off,val)	mem_writew(off,val)
-#define SaveMd(off,val)	mem_writed(off,val)
-#define SaveMq(off,val) {mem_writed(off,val&0xffffffff);mem_writed(off+4,(val>>32)&0xffffffff);}
-#else 
-#include "paging.h"
 #define LoadMb(off) mem_readb_inline(off)
 #define LoadMw(off) mem_readw_inline(off)
 #define LoadMd(off) mem_readd_inline(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd_inline(off+4)<<32 | (Bit64u)mem_readd_inline(off)))
+#define LoadMq(off) ((uint64_t)((uint64_t)mem_readd_inline(off+4)<<32 | (uint64_t)mem_readd_inline(off)))
 #define SaveMb(off,val)	mem_writeb_inline(off,val)
 #define SaveMw(off,val)	mem_writew_inline(off,val)
 #define SaveMd(off,val)	mem_writed_inline(off,val)
 #define SaveMq(off,val) {mem_writed_inline(off,val&0xffffffff);mem_writed_inline(off+4,(val>>32)&0xffffffff);}
-#endif
 
 extern Bitu cycle_count;
 
 #if C_FPU
-#define CPU_FPU	1						//Enable FPU escape instructions
+#define CPU_FPU	1u						//Enable FPU escape instructions
 #endif
 
-#define CPU_PIC_CHECK 1
-#define CPU_TRAP_CHECK 1
+#define CPU_PIC_CHECK 1u
+#define CPU_TRAP_CHECK 1u
 
-#define OPCODE_NONE			0x000
-#define OPCODE_0F			0x100
-#define OPCODE_SIZE			0x200
+#define CPU_TRAP_DECODER	CPU_Core_Prefetch_Trap_Run
 
-#define PREFIX_ADDR			0x1
-#define PREFIX_REP			0x2
+#define OPCODE_NONE			0x000u
+#define OPCODE_0F			0x100u
+#define OPCODE_SIZE			0x200u
+
+#define PREFIX_ADDR			0x1u
+#define PREFIX_REP			0x2u
 
 #define TEST_PREFIX_ADDR	(core.prefixes & PREFIX_ADDR)
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
@@ -89,7 +83,7 @@ extern Bitu cycle_count;
 #define DO_PREFIX_ADDR()								\
 	core.prefixes=(core.prefixes & ~PREFIX_ADDR) |		\
 	(cpu.code.big ^ PREFIX_ADDR);						\
-	core.ea_table=&EATable[(core.prefixes&1) * 256];	\
+	core.ea_table=&EATable[(core.prefixes&1u) * 256u];	\
 	goto restart_opcode;
 
 #define DO_PREFIX_REP(_ZERO)				\
@@ -97,9 +91,13 @@ extern Bitu cycle_count;
 	core.rep_zero=_ZERO;					\
 	goto restart_opcode;
 
+#define REMEMBER_PREFIX(_x) last_prefix = (_x)
+
+static uint8_t last_prefix;
+
 typedef PhysPt (*GetEAHandler)(void);
 
-static const Bit32u AddrMaskTable[2]={0x0000ffff,0xffffffff};
+static const uint32_t AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
 
 static struct {
 	Bitu opcode_index;
@@ -119,91 +117,49 @@ static struct {
 #define BaseDS		core.base_ds
 #define BaseSS		core.base_ss
 
+//#define PREFETCH_DEBUG
 
 #define MAX_PQ_SIZE 32
-static Bit8u prefetch_buffer[MAX_PQ_SIZE];
+static uint8_t prefetch_buffer[MAX_PQ_SIZE];
 static bool pq_valid=false;
 static Bitu pq_start;
+static Bitu pq_fill;
+static Bitu pq_limit;
+static Bitu pq_reload;
+#ifdef PREFETCH_DEBUG
+static double pq_next_dbg=0;
+static unsigned int pq_hit=0,pq_miss=0;
+#endif
 
-static Bit8u Fetchb() {
-	Bit8u temp;
-	if (pq_valid && (core.cseip>=pq_start) && (core.cseip<pq_start+CPU_PrefetchQueueSize)) {
-		temp=prefetch_buffer[core.cseip-pq_start];
-		if ((core.cseip+1>=pq_start+CPU_PrefetchQueueSize-4) &&
-			(core.cseip+1<pq_start+CPU_PrefetchQueueSize)) {
-			Bitu remaining_bytes=pq_start+CPU_PrefetchQueueSize-(core.cseip+1);
-			for (Bitu i=0; i<remaining_bytes; i++) prefetch_buffer[i]=prefetch_buffer[core.cseip+1-pq_start+i];
-			for (Bitu i=remaining_bytes; i<CPU_PrefetchQueueSize; i++) prefetch_buffer[i]=LoadMb(core.cseip+1+i);
-			pq_start=core.cseip+1;
-			pq_valid=true;
-		}
-	} else {
-		for (Bitu i=0; i<CPU_PrefetchQueueSize; i++) prefetch_buffer[i]=LoadMb(core.cseip+i);
-		pq_start=core.cseip;
-		pq_valid=true;
-		temp=prefetch_buffer[0];
-	}
-/*	if (temp!=LoadMb(core.cseip)) {
-		LOG_MSG("prefetch queue content!=memory at %x:%x",SegValue(cs),reg_eip);
-	} */
-	core.cseip+=1;
-	return temp;
+/* MUST BE POWER OF 2 */
+#define prefetch_unit       (4ul)
+
+#include "core_prefetch_buf.h"
+
+static INLINE void FetchDiscardb() {
+	FetchDiscard<uint8_t>();
 }
 
-static Bit16u Fetchw() {
-	Bit16u temp;
-	if (pq_valid && (core.cseip>=pq_start) && (core.cseip+2<pq_start+CPU_PrefetchQueueSize)) {
-		temp=prefetch_buffer[core.cseip-pq_start]|
-			(prefetch_buffer[core.cseip-pq_start+1]<<8);
-		if ((core.cseip+2>=pq_start+CPU_PrefetchQueueSize-4) &&
-			(core.cseip+2<pq_start+CPU_PrefetchQueueSize)) {
-			Bitu remaining_bytes=pq_start+CPU_PrefetchQueueSize-(core.cseip+2);
-			for (Bitu i=0; i<remaining_bytes; i++) prefetch_buffer[i]=prefetch_buffer[core.cseip+2-pq_start+i];
-			for (Bitu i=remaining_bytes; i<CPU_PrefetchQueueSize; i++) prefetch_buffer[i]=LoadMb(core.cseip+2+i);
-			pq_start=core.cseip+2;
-			pq_valid=true;
-		}
-	} else {
-		for (Bitu i=0; i<CPU_PrefetchQueueSize; i++) prefetch_buffer[i]=LoadMb(core.cseip+i);
-		pq_start=core.cseip;
-		pq_valid=true;
-		temp=prefetch_buffer[0] | (prefetch_buffer[1]<<8);
-	}
-/*	if (temp!=LoadMw(core.cseip)) {
-		LOG_MSG("prefetch queue content!=memory at %x:%x",SegValue(cs),reg_eip);
-	} */
-	core.cseip+=2;
-	return temp;
+static INLINE uint8_t FetchPeekb() {
+	return FetchPeek<uint8_t>();
 }
 
-static Bit32u Fetchd() {
-	Bit32u temp;
-	if (pq_valid && (core.cseip>=pq_start) && (core.cseip+4<pq_start+CPU_PrefetchQueueSize)) {
-		temp=prefetch_buffer[core.cseip-pq_start]|
-			(prefetch_buffer[core.cseip-pq_start+1]<<8)|
-			(prefetch_buffer[core.cseip-pq_start+2]<<16)|
-			(prefetch_buffer[core.cseip-pq_start+3]<<24);
-		if ((core.cseip+4>=pq_start+CPU_PrefetchQueueSize-4) &&
-			(core.cseip+4<pq_start+CPU_PrefetchQueueSize)) {
-			Bitu remaining_bytes=pq_start+CPU_PrefetchQueueSize-(core.cseip+4);
-			for (Bitu i=0; i<remaining_bytes; i++) prefetch_buffer[i]=prefetch_buffer[core.cseip+4-pq_start+i];
-			for (Bitu i=remaining_bytes; i<CPU_PrefetchQueueSize; i++) prefetch_buffer[i]=LoadMb(core.cseip+4+i);
-			pq_start=core.cseip+4;
-			pq_valid=true;
-		}
-	} else {
-		for (Bitu i=0; i<CPU_PrefetchQueueSize; i++) prefetch_buffer[i]=LoadMb(core.cseip+i);
-		pq_start=core.cseip;
-		pq_valid=true;
-		temp=prefetch_buffer[0] | (prefetch_buffer[1]<<8) |
-			(prefetch_buffer[2]<<16) | (prefetch_buffer[3]<<24);
-	}
-/*	if (temp!=LoadMd(core.cseip)) {
-		LOG_MSG("prefetch queue content!=memory at %x:%x",SegValue(cs),reg_eip);
-	} */
-	core.cseip+=4;
-	return temp;
+static uint8_t Fetchb() {
+	return Fetch<uint8_t>();
 }
+
+static uint16_t Fetchw() {
+	return Fetch<uint16_t>();
+}
+
+static uint32_t Fetchd() {
+	return Fetch<uint32_t>();
+}
+
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+bool CPU_SYSENTER();
+bool CPU_SYSEXIT();
 
 #define Push_16 CPU_Push16
 #define Push_32 CPU_Push32
@@ -217,22 +173,38 @@ static Bit32u Fetchd() {
 
 #define EALookupTable (core.ea_table)
 
-extern Bitu dosbox_check_nonrecursive_pf_cs;
-extern Bitu dosbox_check_nonrecursive_pf_eip;
+void CPU_Core_Prefetch_reset(void) {
+    pq_valid=false;
+    prefetch_init(0);
+#ifdef PREFETCH_DEBUG
+    pq_next_dbg=0;
+#endif
+}
 
 Bits CPU_Core_Prefetch_Run(void) {
 	bool invalidate_pq=false;
+
+	if (CPU_Cycles <= 0)
+		return CBRET_NONE;
+
+	// FIXME: This makes 8086 4-byte prefetch queue impossible to emulate.
+	//        The best way to accomplish this is to have an alternate version
+	//        of this prefetch queue for 286 or lower that fetches in 16-bit
+	//        WORDs instead of 32-bit WORDs.
+	pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
+	pq_reload = min(pq_limit,(Bitu)8u);
+
 	while (CPU_Cycles-->0) {
 		if (invalidate_pq) {
 			pq_valid=false;
 			invalidate_pq=false;
 		}
 		LOADIP;
-		dosbox_check_nonrecursive_pf_cs = SegValue(cs);
-		dosbox_check_nonrecursive_pf_eip = reg_eip;
-		core.opcode_index=cpu.code.big*0x200;
+		last_prefix=MP_NONE;
+		core.opcode_index=cpu.code.big*(Bitu)0x200u;
 		core.prefixes=cpu.code.big;
-		core.ea_table=&EATable[cpu.code.big*256];
+		last_ea86_offset=0;
+		core.ea_table=&EATable[cpu.code.big*256u];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
 		core.base_val_ds=ds;
@@ -240,13 +212,13 @@ Bits CPU_Core_Prefetch_Run(void) {
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
-			return debugCallback;
-		};
+			return (Bits)debugCallback;
+		}
 #endif
 		cycle_count++;
 #endif
 restart_opcode:
-		Bit8u next_opcode=Fetchb();
+		uint8_t next_opcode=Fetchb();
 		invalidate_pq=false;
 		if (core.opcode_index&OPCODE_0F) invalidate_pq=true;
 		else switch (next_opcode) {
@@ -308,8 +280,16 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
-	FillFlags();
-	return CBRET_NONE;
+
+#ifdef PREFETCH_DEBUG
+    if (PIC_FullIndex() > pq_next_dbg) {
+        LOG_MSG("Prefetch core debug: prefetch cache hit=%u miss=%u",pq_hit,pq_miss);
+        pq_next_dbg += 500.0;
+    }
+#endif
+
+    FillFlags();
+    return CBRET_NONE;
 decode_end:
 	SAVEIP;
 	FillFlags();
@@ -322,7 +302,7 @@ Bits CPU_Core_Prefetch_Trap_Run(void) {
 	cpu.trap_skip = false;
 
 	Bits ret=CPU_Core_Prefetch_Run();
-	if (!cpu.trap_skip) CPU_HW_Interrupt(1);
+	if (!cpu.trap_skip) CPU_DebugException(DBINT_STEP,reg_eip);
 	CPU_Cycles = oldCycles-1;
 	cpudecoder = &CPU_Core_Prefetch_Run;
 

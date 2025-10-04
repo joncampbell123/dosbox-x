@@ -11,6 +11,7 @@ dma.h \
 dos_inc.h \
 dos_system.h \
 dosbox.h \
+ethernet.h \
 fpu.h \
 hardware.h \
 inout.h \
@@ -21,8 +22,8 @@ keyboard.h \
 logging.h \
 mapper.h \
 mem.h \
+midi.h \
 mixer.h \
-modules.h \
 mouse.h \
 parport.h \
 paging.h \

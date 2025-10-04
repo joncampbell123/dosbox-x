@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -41,7 +41,7 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 
 	// open the port in NT object space (recommended by Microsoft)
 	// allows the user to open COM10+ and custom port names.
-	int len = strlen(portname);
+    size_t len = strlen(portname);
 	if(len > 240) {
 		SetLastError(ERROR_BUFFER_OVERFLOW);
 		free(cp);
@@ -125,7 +125,7 @@ void SERIAL_close(COMPORT port) {
 	free(port);
 }
 
-void SERIAL_getErrorString(char* buffer, int length) {
+void SERIAL_getErrorString(char* buffer, size_t length) {
 	int error = GetLastError();
 	if(length < 50) return;
 	memset(buffer,0,length);
@@ -138,23 +138,25 @@ void SERIAL_getErrorString(char* buffer, int length) {
 		(LPTSTR) &sysmessagebuffer,
 		0,NULL);
 
-	const char* err5text = "The specified port is already in use.\n";
-	const char* err2text = "The specified port does not exist.\n";
-
-	int sysmsg_offset = 0;
+    size_t sysmsg_offset = 0;
 
 	if(error == 5) {
-		sysmsg_offset = strlen(err5text);
+		const char* err5text = "The specified port is already in use.\n";
+		sysmsg_offset = (int)strlen(err5text);
 		memcpy(buffer,err5text,sysmsg_offset);
 
 	} else if(error == 2) {
-		sysmsg_offset = strlen(err2text);
+		const char* err2text = "The specified port does not exist.\n";
+		sysmsg_offset = (int)strlen(err2text);
 		memcpy(buffer,err2text,sysmsg_offset);
 	}
 
-	if((length - sysmsg_offset - strlen((const char*)sysmessagebuffer)) >= 0)
+	// Go for length > so there will be bytes left afterwards.
+	// (which are 0 due to memset, thus the buffer is 0 terminated
+	if ( length > (sysmsg_offset + (int)strlen((const char*)sysmessagebuffer)) ) {
 		memcpy(buffer + sysmsg_offset, sysmessagebuffer,
 		strlen((const char*)sysmessagebuffer));
+	}
 		
 	LocalFree(sysmessagebuffer);
 }
@@ -254,7 +256,7 @@ bool SERIAL_setCommParameters(COMPORT port,
 }
 #endif
 
-#if defined (LINUX) || defined (MACOSX) || defined (BSD)
+#if defined (LINUX) || defined (MACOSX) || defined (BSD) || defined (HAIKU)
 
 #include <string.h> // strlen
 #include <stdlib.h>
@@ -268,7 +270,13 @@ bool SERIAL_setCommParameters(COMPORT port,
 
 #include <errno.h>
 #include <fcntl.h>
-#include <stdio.h> // sprinf
+#include <stdio.h> // sprintf
+
+#ifndef CMSPAR
+// Mark or space parity bit.
+// "works on many systems"
+#define CMSPAR 010000000000 // Many systems have this define, not posix standard
+#endif
 
 struct _COMPORT {
 	int porthandle;
@@ -284,13 +292,14 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 
 	cp->breakstatus=false;
 
-	int len = strlen(portname);
+    size_t len = strlen(portname);
 	if(len > 240) {
+		free(cp);
 		///////////////////////////////////SetLastError(ERROR_BUFFER_OVERFLOW);
 		return false;
 	}
 	char extended_portname[256] = "/dev/";
-	memcpy(extended_portname+5,portname,len);
+	memcpy(extended_portname+5,portname,(size_t)len);
 
 	cp->porthandle = open (extended_portname, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	if (cp->porthandle < 0) goto cleanup_error;
@@ -302,11 +311,14 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 	termios termInfo;
 	memcpy(&termInfo,&cp->backup,sizeof(termios));
 
-	// initialize the port
-	termInfo.c_cflag = CS8 | CREAD | CLOCAL; // noparity, 1 stopbit
-	termInfo.c_iflag = PARMRK | INPCK;
-	termInfo.c_oflag = 0;
-	termInfo.c_lflag = 0;
+	// initialize the device, we first reset any bits we don't need.
+	// this step is needed because edits to serial devices are persistent.
+	termInfo.c_cflag &= ~(PARENB | CSTOPB | CSIZE | CRTSCTS | CMSPAR);
+	termInfo.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON); // reset input controls
+	termInfo.c_oflag &= ~OPOST ; // raw output
+	termInfo.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG); // no line processing, raw input
+	// Use preferred default options
+	termInfo.c_cflag |= CREAD | CLOCAL; // Standard default, must always be set
 	termInfo.c_cc[VMIN] = 0;
 	termInfo.c_cc[VTIME] = 0;
 
@@ -331,25 +343,25 @@ void SERIAL_close(COMPORT port) {
 	free(port);
 }
 
-void SERIAL_getErrorString(char* buffer, int length) {
+void SERIAL_getErrorString(char* buffer, size_t length) {
 	int error = errno;
 	if(length < 50) return;
-	memset(buffer,0,length);
+	memset(buffer,0,(size_t)length);
 	// get the error message text from the operating system
 	// TODO (or not)
 	
 	const char* err5text = "The specified port is already in use.\n";
 	const char* err2text = "The specified port does not exist.\n";
 	
-	int sysmsg_offset = 0;
+    size_t sysmsg_offset = 0;
 
 	if(error == EBUSY) {
 		sysmsg_offset = strlen(err5text);
-		memcpy(buffer,err5text,sysmsg_offset);
+		memcpy(buffer,err5text,(size_t)sysmsg_offset);
 
 	} else if(error == 2) {
 		sysmsg_offset = strlen(err2text);
-		memcpy(buffer,err2text,sysmsg_offset);
+		memcpy(buffer,err2text,(size_t)sysmsg_offset);
 	}
 	
 	sprintf(buffer + sysmsg_offset, "System error %d.",error);
@@ -405,17 +417,30 @@ bool SERIAL_setCommParameters(COMPORT port,
 	termios termInfo;
 	int result = tcgetattr(port->porthandle, &termInfo);
 	if (result==-1) return false;
-	termInfo.c_cflag = CREAD | CLOCAL;
+	// reset flags that will be affected by this function
+	termInfo.c_iflag &= ~(INPCK | ISTRIP);
+	termInfo.c_cflag &= ~(CSIZE | PARENB | PARODD | CSTOPB | CMSPAR);
 
 	// parity
-	// "works on many systems"
-	#define CMSPAR 010000000000
+	// set options according to parity
 	switch (parity) {
-	case 'n': break;
-	case 'o': termInfo.c_cflag |= (PARODD | PARENB); break;
-	case 'e': termInfo.c_cflag |= PARENB; break;
-	case 'm': termInfo.c_cflag |= (PARENB | CMSPAR | PARODD); break;
-	case 's': termInfo.c_cflag |= (PARENB | CMSPAR); break;
+	case 'n': break; // no parity
+	case 'o': // Odd parity
+		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_cflag |= (PARODD | PARENB);
+		break;
+	case 'e': // Even parity
+		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_cflag |= PARENB;
+		break;
+	case 'm': // Mark parity
+		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_cflag |= (PARENB | CMSPAR | PARODD);
+		break;
+	case 's': // Space parity
+		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_cflag |= (PARENB | CMSPAR);
+		break;
 	default:
 		return false;
 	}
@@ -451,8 +476,8 @@ bool SERIAL_setCommParameters(COMPORT port,
 		case    110: posix_baudrate = B110; break;
 		default: return false;
 	}
-	cfsetospeed (&termInfo, posix_baudrate);
-	cfsetispeed (&termInfo, posix_baudrate);
+	cfsetospeed (&termInfo, (unsigned int)posix_baudrate);
+	cfsetispeed (&termInfo, (unsigned int)posix_baudrate);
 
 	int retval = tcsetattr(port->porthandle, TCSANOW, &termInfo);
 	if(retval==-1) return false;
@@ -482,11 +507,13 @@ void SERIAL_setRTS(COMPORT port, bool value) {
 #define INCL_DOSDEVIOCTL
 #define INCL_DOSPROCESS
 #include <os2.h>
+#include <malloc.h>
+#include <string.h>
+#include <stdio.h>
 
 struct _COMPORT {
 	HFILE porthandle;
-	bool breakstatus;
-	DCBINFO backup;
+	DCBINFO orig_dcb;
 };
 // TODO: THIS IS INCOMPLETE and UNTESTED.
 
@@ -495,18 +522,18 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 	COMPORT cp = (_COMPORT*)malloc(sizeof(_COMPORT));
 	if(cp == NULL) return false;
 	cp->porthandle=0;
-	cp->breakstatus=false;
 
+	USHORT errors = 0;
 	ULONG ulAction = 0;
-	APIRET rc = DosOpen(portname, &cp->porthandle,
+	ULONG ulParmLen = sizeof(DCBINFO);
+	APIRET rc = DosOpen((PSZ)portname, &cp->porthandle,
 		&ulAction, 0L, FILE_NORMAL, FILE_OPEN,
 		OPEN_ACCESS_READWRITE | OPEN_SHARE_DENYNONE | OPEN_FLAGS_SEQUENTIAL, 0L);
 	if (rc != NO_ERROR) {
 		goto cleanup_error;
 	}
 
-	ULONG ulParmLen = sizeof(DCBINFO);
-	rc = DosDevIOCtl(hCom, IOCTL_ASYNC, ASYNC_GETDCBINFO,
+	rc = DosDevIOCtl(cp->porthandle, IOCTL_ASYNC, ASYNC_GETDCBINFO,
 		0, 0, 0, &cp->orig_dcb, ulParmLen, &ulParmLen);
 	if ( rc != NO_ERROR) {
 		goto cleanup_error;
@@ -517,18 +544,17 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 
 	newdcb.usWriteTimeout = 0;
 	newdcb.usReadTimeout = 0; //65535;
-	newdcb.fbCtlHndShake = dcb.fbFlowReplace = 0;
+	newdcb.fbCtlHndShake = cp->orig_dcb.fbFlowReplace = 0;
 	newdcb.fbTimeout = 6;
 
-	rc = DosDevIOCtl(hCom, IOCTL_ASYNC, ASYNC_SETDCBINFO,
+	rc = DosDevIOCtl(cp->porthandle, IOCTL_ASYNC, ASYNC_SETDCBINFO,
 		&newdcb, ulParmLen, &ulParmLen, 0, 0, 0);
 	if ( rc != NO_ERROR) {
 		goto cleanup_error;
 	}
 
-	USHORT errors = 0;
 	ulParmLen = sizeof(errors);
-	rc = DosDevIOCtl(hCom, IOCTL_ASYNC, ASYNC_GETCOMMERROR,
+	rc = DosDevIOCtl(cp->porthandle, IOCTL_ASYNC, ASYNC_GETCOMMERROR,
 		0, 0, 0, &errors, ulParmLen, &ulParmLen);
 	if ( rc != NO_ERROR) {
 		goto cleanup_error;
@@ -539,12 +565,12 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 
 cleanup_error:
 	// TODO error string - rc value
-	if (cp->porthandle != 0) CloseHandle(cp->porthandle);
+	if (cp->porthandle != 0) DosClose(cp->porthandle);
 	free(cp);
 	return false;
 }
 
-void SERIAL_getErrorString(char* buffer, int length) {
+void SERIAL_getErrorString(char* buffer, size_t length) {
 	sprintf(buffer, "TODO: error handling is not fun");
 }
 void SERIAL_close(COMPORT port) {
@@ -553,14 +579,12 @@ void SERIAL_close(COMPORT port) {
 	if (port->porthandle != 0) {
 		DosDevIOCtl(port->porthandle, IOCTL_ASYNC, ASYNC_SETDCBINFO,
 			&port->orig_dcb, ulParmLen, &ulParmLen,	0, 0, 0);
-		SetCmmState(port->porthandle, &port->orig_dcb);
 		DosClose (port->porthandle);
 	}
 	free(port);
 }
 bool SERIAL_sendchar(COMPORT port, char data) {
 	ULONG bytesWritten = 0;
-	if(port->breakstatus) return true; // does OS/2 need this?
 
 	APIRET rc = DosWrite(port->porthandle, &data, 1, &bytesWritten);
 	if (rc == NO_ERROR && bytesWritten > 0) return true;
@@ -571,7 +595,7 @@ void SERIAL_setBREAK(COMPORT port, bool value) {
 	USHORT error;
 	ULONG ulParmLen = sizeof(error);
 	DosDevIOCtl(port->porthandle, IOCTL_ASYNC,
-		value? ASYNC_SETBREAKON:ASYNC_SETBREAKOFF,
+		value ? ASYNC_SETBREAKON : ASYNC_SETBREAKOFF,
 		0,0,0, &error, ulParmLen, &ulParmLen);
 }
 
@@ -590,7 +614,7 @@ int SERIAL_getextchar(COMPORT port) {
 			DosDevIOCtl(port->porthandle, IOCTL_ASYNC, ASYNC_GETCOMMEVENT,
 				0, 0, 0, &event, ulParmLen, &ulParmLen);
 			if (event & (64 + 128) ) { // Break (Bit 6) or Frame or Parity (Bit 7) error
-				Bit8u errreg = 0;
+				uint8_t errreg = 0;
 				if (event & 64) retval |= SERIAL_BREAK_ERR;
 				if (event & 128) {
 					DosDevIOCtl(port->porthandle, IOCTL_ASYNC, ASYNC_GETCOMMERROR,
@@ -656,7 +680,7 @@ bool SERIAL_setCommParameters(COMPORT port,
 	setbaud.baud = baudrate;
 	setbaud.fraction = 0;
 	ULONG ulParmLen = sizeof(setbaud);
-	APIRET rc = DosDevIOCtl(hCom, IOCTL_ASYNC, ASYNC_EXTSETBAUDRATE,
+	APIRET rc = DosDevIOCtl(port->porthandle, IOCTL_ASYNC, ASYNC_EXTSETBAUDRATE,
 		&setbaud, ulParmLen, &ulParmLen, 0, 0, 0);
 	if (rc != NO_ERROR) {
 		return false;
@@ -697,7 +721,7 @@ bool SERIAL_setCommParameters(COMPORT port,
 	}
 	// set it
 	ulParmLen = sizeof(paramline);
-	rc = DosDevIOCtl(hCom, IOCTL_ASYNC, ASYNC_SETLINECTRL,
+	rc = DosDevIOCtl(port->porthandle, IOCTL_ASYNC, ASYNC_SETLINECTRL,
 		&paramline, ulParmLen, &ulParmLen, 0, 0, 0);
 	if ( rc != NO_ERROR)
 		return false;

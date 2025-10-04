@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -21,6 +21,7 @@
 
 #if C_DIRECTSERIAL
 
+#include "logging.h"
 #include "serialport.h"
 #include "directserial.h"
 #include "misc_util.h"
@@ -34,10 +35,11 @@
 CDirectSerial::CDirectSerial (Bitu id, CommandLine* cmd)
 					:CSerial (id, cmd) {
 	InstallationSuccessful = false;
-	comport = 0;
+	comport = nullptr;
 
 	rx_retry = 0;
     rx_retry_max = 0;
+    rx_state = 0;
 
 	std::string tmpstring;
 	if(!cmd->FindStringBegin("realport:",tmpstring,false)) return;
@@ -51,11 +53,6 @@ CDirectSerial::CDirectSerial (Bitu id, CommandLine* cmd)
 		LOG_MSG("%s",errorbuffer);
 		return;
 	}
-
-#if SERIAL_DEBUG
-	dbgmsg_poll_block=false;
-	dbgmsg_rx_block=false;
-#endif
 
 	// rxdelay: How many milliseconds to wait before causing an
 	// overflow when the application is unresponsive.
@@ -94,7 +91,7 @@ CDirectSerial::~CDirectSerial () {
 
 // to be continued...
 
-void CDirectSerial::handleUpperEvent(Bit16u type) {
+void CDirectSerial::handleUpperEvent(uint16_t type) {
 /*
 #if SERIAL_DEBUG
 		const char* s;
@@ -233,7 +230,7 @@ void CDirectSerial::handleUpperEvent(Bit16u type) {
 			break;
 		}
 		case SERIAL_TX_EVENT: {
-			// Maybe echo cirquit works a bit better this way
+			// Maybe echo circuit works a bit better this way
 			if(rx_state==D_RX_IDLE && CanReceiveByte()) {
 				if(doReceive()) {
 					// a byte was received
@@ -272,7 +269,7 @@ void CDirectSerial::handleUpperEvent(Bit16u type) {
 bool CDirectSerial::doReceive() {
 	int value = SERIAL_getextchar(comport);
 	if(value) {
-		receiveByteEx((Bit8u)(value&0xff),(Bit8u)((value&0xff00)>>8));
+		receiveByteEx((uint8_t)(value&0xff),(uint8_t)((value&0xff00)>>8));
 		return true;
 	}
 	return false;
@@ -280,8 +277,8 @@ bool CDirectSerial::doReceive() {
 
 // updatePortConfig is called when emulated app changes the serial port
 // parameters baudrate, stopbits, number of databits, parity.
-void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
-	Bit8u parity = 0;
+void CDirectSerial::updatePortConfig (uint16_t divider, uint8_t lcr) {
+	uint8_t parity = 0;
 
 	switch ((lcr & 0x38)>>3) {
 	case 0x1: parity='o'; break;
@@ -291,21 +288,21 @@ void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
 	default: parity='n'; break;
 	}
 
-	Bit8u bytelength = (lcr & 0x3)+5;
+	uint8_t bytelength = (lcr & 0x3)+5;
 
 	// baudrate
 	Bitu baudrate;
-	if(divider==0) baudrate=115200;
-	else baudrate = 115200 / divider;
+	if(divider==0) baudrate=115200u;
+	else baudrate = 115200u / divider;
 
 	// stopbits
-	Bit8u stopbits;
+	uint8_t stopbits;
 	if (lcr & 0x4) {
 		if (bytelength == 5) stopbits = SERIAL_15STOP;
 		else stopbits = SERIAL_2STOP;
 	} else stopbits = SERIAL_1STOP;
 
-	if(!SERIAL_setCommParameters(comport, baudrate, parity, stopbits, bytelength)) {
+	if(!SERIAL_setCommParameters(comport, (int)baudrate, (char)parity, (char)stopbits, (char)bytelength)) {
 #if SERIAL_DEBUG
 		log_ser(dbg_aux,"Serial port settings not supported by host." );
 #endif
@@ -318,14 +315,14 @@ void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
 void CDirectSerial::updateMSR () {
 	int new_status = SERIAL_getmodemstatus(comport);
 
-	setCTS(new_status&SERIAL_CTS? true:false);
-	setDSR(new_status&SERIAL_DSR? true:false);
-	setRI(new_status&SERIAL_RI? true:false);
-	setCD(new_status&SERIAL_CD? true:false);
+	setCTS((new_status&SERIAL_CTS)? true:false);
+	setDSR((new_status&SERIAL_DSR)? true:false);
+	setRI((new_status&SERIAL_RI)? true:false);
+	setCD((new_status&SERIAL_CD)? true:false);
 }
 
-void CDirectSerial::transmitByte (Bit8u val, bool first) {
-	if(!SERIAL_sendchar(comport, val))
+void CDirectSerial::transmitByte (uint8_t val, bool first) {
+	if(!SERIAL_sendchar(comport, (char)val))
 		LOG_MSG("Serial%d: COM port error: write failed!", (int)COMNUMBER);
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/8);
 	else setEvent(SERIAL_TX_EVENT, bytetime);

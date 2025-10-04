@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,13 +11,13 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
-#if defined (WIN32) && 0
+#if defined (WIN32)
 
 // *****************************************************************
 // Windows IOCTL functions (not suitable for 95/98/Me)
@@ -26,9 +26,9 @@
 #include <windows.h>
 #include <io.h>
 
-#if defined (_MSC_VER)
-//#include <ntddcdrm.h>			// Ioctl stuff
+#if (defined (_MSC_VER)) || (defined __MINGW64_VERSION_MAJOR)
 #include <winioctl.h>			// Ioctl stuff
+#include <ntddcdrm.h>			// Ioctl stuff
 #else 
 #include "ddk/ntddcdrm.h"		// Ioctl stuff
 #endif
@@ -36,6 +36,7 @@
 #include <mmsystem.h>
 
 #include "cdrom.h"
+#include "logging.h"
 
 // for a more sophisticated implementation of the mci cdda functionality
 // see the SDL sources, which the mci_ functions are based on
@@ -174,12 +175,11 @@ bool CDROM_Interface_Ioctl::mci_CDPosition(int *position) {
 
 
 CDROM_Interface_Ioctl::dxPlayer CDROM_Interface_Ioctl::player = {
-	NULL, NULL, NULL, {0}, 0, 0, 0, false, false, false, {0} };
+	NULL, NULL, NULL, {0}, 0, 0, 0, false, false, false, { {0,0,0,0},{0,0,0,0} } };
 
 CDROM_Interface_Ioctl::CDROM_Interface_Ioctl(cdioctl_cdatype ioctl_cda) {
 	pathname[0] = 0;
 	hIOCTL = INVALID_HANDLE_VALUE;
-	memset(&oldLeadOut,0,sizeof(oldLeadOut));
 	cdioctl_cda_selected = ioctl_cda;
 }
 
@@ -191,6 +191,8 @@ CDROM_Interface_Ioctl::~CDROM_Interface_Ioctl() {
 }
 
 bool CDROM_Interface_Ioctl::GetUPC(unsigned char& attr, char* upc) {
+    (void)attr;
+    (void)upc;
 	// FIXME : To Do
 	return true;
 }
@@ -477,7 +479,7 @@ bool CDROM_Interface_Ioctl::LoadUnloadMedia(bool unload) {
 	return bStat>0;
 }
 
-bool CDROM_Interface_Ioctl::ReadSector(Bit8u *buffer, bool raw, unsigned long sector) {
+bool CDROM_Interface_Ioctl::ReadSector(uint8_t *buffer, bool raw, unsigned long sector) {
 	BOOL  bStat;
 	DWORD byteCount = 0;
 
@@ -508,7 +510,7 @@ bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 	DWORD byteCount = 0;
 
 	Bitu	buflen	= raw ? num*RAW_SECTOR_SIZE : num*COOKED_SECTOR_SIZE;
-	Bit8u*	bufdata = new Bit8u[buflen];
+	uint8_t*	bufdata = new uint8_t[buflen];
 
 	if (!raw) {
 		// Cooked
@@ -558,21 +560,22 @@ void CDROM_Interface_Ioctl::dx_CDAudioCallBack(Bitu len) {
 	}
 	SDL_mutexV(player.mutex);
 	if (player.ctrlUsed) {
-		Bit16s sample0,sample1;
-		Bit16s * samples=(Bit16s *)&player.buffer;
+		int16_t sample0,sample1;
+		int16_t * samples=(int16_t *)&player.buffer;
 		for (Bitu pos=0;pos<len/4;pos++) {
 			sample0=samples[pos*2+player.ctrlData.out[0]];
 			sample1=samples[pos*2+player.ctrlData.out[1]];
-			samples[pos*2+0]=(Bit16s)(sample0*player.ctrlData.vol[0]/255.0);
-			samples[pos*2+1]=(Bit16s)(sample1*player.ctrlData.vol[1]/255.0);
+			samples[pos*2+0]=(int16_t)(sample0*player.ctrlData.vol[0]/255.0);
+			samples[pos*2+1]=(int16_t)(sample1*player.ctrlData.vol[1]/255.0);
 		}
 	}
-	player.channel->AddSamples_s16(len/4,(Bit16s *)player.buffer);
+	player.channel->AddSamples_s16(len/4,(int16_t *)player.buffer);
 	memmove(player.buffer, &player.buffer[len], player.bufLen - len);
 	player.bufLen -= len;
 }
 
 bool CDROM_Interface_Ioctl::SetDevice(char* path, int forceCD) {
+    (void)forceCD;
 	mci_devid = 0;
 	use_mciplay = false;
 	use_dxplay = false;
@@ -622,6 +625,10 @@ void CDROM_Interface_Ioctl::Close(void) {
 
 bool CDROM_Interface_Ioctl::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
 {
+    (void)buffer;
+    (void)raw;
+    (void)sector;
+    (void)num;
 	return false;/*TODO*/
 };
 

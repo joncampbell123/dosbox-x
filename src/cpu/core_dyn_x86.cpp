@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,26 +11,19 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <stdarg.h>
+#include <string.h>
 
-#include "dosbox.h"
+#include "config.h"
 
 #if (C_DYNAMIC_X86)
-
-#include <assert.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-#include <stddef.h>
-#include <stdlib.h>
-
 #if defined (WIN32)
 #include <windows.h>
-#include <winbase.h>
 #endif
 
 #if (C_HAVE_MPROTECT)
@@ -43,15 +36,12 @@
 #endif /* C_HAVE_MPROTECT */
 
 #include "callback.h"
-#include "regs.h"
-#include "mem.h"
 #include "cpu.h"
 #include "debug.h"
 #include "paging.h"
-#include "inout.h"
 #include "fpu.h"
 
-#define CACHE_MAXSIZE	(4096*3)
+#define CACHE_MAXSIZE	(4096*8)
 #define CACHE_TOTAL		(1024*1024*8)
 #define CACHE_PAGES		(512)
 #define CACHE_BLOCKS	(64*1024)
@@ -60,11 +50,13 @@
 #define DYN_PAGE_HASH	(4096>>DYN_HASH_SHIFT)
 #define DYN_LINKS		(16)
 
-//#define DYN_LOG 1 //Turn logging on
+extern bool do_lds_wraparound;
 
+//#define DYN_LOG 1 //Turn logging on
 
 #if C_FPU
 #define CPU_FPU 1                                               //Enable FPU escape instructions
+#define X86_DYNFPU_DH_ENABLED
 #endif
 
 enum {
@@ -73,7 +65,7 @@ enum {
 	G_ES,G_CS,G_SS,G_DS,G_FS,G_GS,
 	G_FLAGS,G_NEWESP,G_EIP,
 	G_EA,G_STACK,G_CYCLES,
-	G_TMPB,G_TMPW,G_SHIFT,
+	G_TMPB,G_TMPW,G_TMPD,G_SHIFT,
 	G_EXIT,
 	G_MAX,
 };
@@ -108,17 +100,16 @@ enum BranchTypes {
 };
 
 
-enum BlockReturn {
+enum BlockReturnDynX86 {
 	BR_Normal=0,
 	BR_Cycles,
 	BR_Link1,BR_Link2,
 	BR_Opcode,
-#if (C_DEBUG)
-	BR_OpcodeFull,
-#endif
+	BR_Opcode2,
 	BR_Iret,
 	BR_CallBack,
-	BR_SMCBlock
+	BR_SMCBlock,
+	BR_Trap
 };
 
 #define SMC_CURRENT_BLOCK	0xffff
@@ -154,31 +145,102 @@ static DynReg DynRegs[G_MAX];
 #define DREG(_WHICH_) &DynRegs[G_ ## _WHICH_ ]
 
 static struct {
-	Bitu ea,tmpb,tmpd,stack,shift,newesp;
+	uint32_t ea,tmpb,tmpw,tmpd,stack,shift,newesp;
 } extra_regs;
 
-static void IllegalOption(const char* msg) {
-	E_Exit("DynCore: illegal option in %s",msg);
-}
+#define IllegalOption(msg) E_Exit("DYNX86: illegal option in " msg)
 
 #include "core_dyn_x86/cache.h" 
 
 static struct {
 	Bitu callback;
-	Bit32u readdata;
+	Bitu readdata;
+	void *call_func;
+	Bitu pagefault_old_stack;
+#ifdef CPU_FPU
+	Bitu pagefault_old_fpu_top;
+#endif
+	Bitu pagefault_faultcode;
+	bool pagefault;
 } core_dyn;
 
 static struct {
-	Bit32u		state[32];
+	bool had_pagefault;
+	PhysPt lin_addr;
+	Bitu page_addr;
+	Bitu faultcode;
+} decoder_pagefault;
+
+#if defined(X86_DYNFPU_DH_ENABLED)
+static struct dyn_dh_fpu_struct {
+	uint16_t	cw,host_cw;
+	bool		state_used;
+	// some fields expanded here for alignment purposes
+	struct {
+		uint32_t cw;
+		uint32_t sw;
+		uint32_t tag;
+		uint32_t ip;
+		uint32_t cs;
+		uint32_t ea;
+		uint32_t ds;
+		uint8_t st_reg[8][10];
+	} state;
 	FPU_P_Reg	temp,temp2;
-	Bit32u		dh_fpu_enabled;
-	Bit32u		state_used;
-	Bit32u		cw,host_cw;
-	Bit8u		temp_state[128];
+	uint32_t	dh_fpu_enabled;
+	uint8_t		temp_state[128];
 } dyn_dh_fpu;
+#endif
 
+//#define DYN_DEBUG_PAGEFAULT
 
+#ifdef DYN_DEBUG_PAGEFAULT
+#define DYN_PF_LOG_MSG LOG_MSG
+#else
+#define DYN_PF_LOG_MSG(...)
+#endif
+
+extern bool use_dynamic_core_with_paging;
+
+#define DYN_PAGEFAULT_CHECK(x) { \
+	try { \
+		x; \
+	} catch (const GuestPageFaultException &pf) { \
+		core_dyn.pagefault_faultcode = pf.faultcode; \
+		core_dyn.pagefault = true; \
+		DYN_PF_LOG_MSG("Caught pagefault at %s:%d (%s)", __FILE__, __LINE__, __FUNCTION__); \
+	} \
+	return 0; \
+}
+
+static INLINE bool mem_writeb_checked_pagefault(const PhysPt address,const uint8_t val) {
+	DYN_PAGEFAULT_CHECK({
+		return mem_writeb_checked(address, val);
+	});
+}
+
+static INLINE bool mem_writew_checked_pagefault(const PhysPt address,const uint16_t val) {
+	DYN_PAGEFAULT_CHECK({
+		return mem_writew_checked(address, val);
+	});
+}
+
+static INLINE bool mem_writed_checked_pagefault(const PhysPt address,const uint32_t val) {
+	DYN_PAGEFAULT_CHECK({
+		return mem_writed_checked(address, val);
+	});
+}
+
+#define X86         0x01
+#define X86_64      0x02
+
+#if C_TARGETCPU == X86_64
+#include "core_dyn_x86/risc_x64.h"
+#elif C_TARGETCPU == X86
 #include "core_dyn_x86/risc_x86.h"
+#else
+#error DYN_X86 core not supported for this CPU target.
+#endif
 
 struct DynState {
 	DynReg regs[G_MAX];
@@ -233,92 +295,171 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 
 #include "core_dyn_x86/decoder.h"
 
-#if defined (_MSC_VER)
-#define DH_FPU_SAVE_REINIT				\
-{										\
-	__asm {								\
-	__asm	fnsave	dyn_dh_fpu.state[0]	\
-	}									\
-	dyn_dh_fpu.state_used=false;		\
-	dyn_dh_fpu.state[0]|=0x3f;			\
+#if defined(X86_DYNFPU_DH_ENABLED)
+
+static bool using_normal_core = false;
+
+static void dh_fpu_enter_normal_core (void)
+{
+	if (dyn_dh_fpu.state_used) {
+		gen_dh_fpu_save();
+	}
+	if (!using_normal_core) {
+		using_normal_core = true;
+		if (dyn_dh_fpu.dh_fpu_enabled) { /* If NOT enabled, the code below will obliterate FPU state and problems result */
+			FPU_SetTag(dyn_dh_fpu.state.tag);
+			fpu.cw = dyn_dh_fpu.state.cw;
+			fpu.sw = dyn_dh_fpu.state.sw;
+			const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+			for(Bitu i = 0;i < 8;i++){
+				memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
+			}
+		}
+	}
+}
+
+static void dh_fpu_enter_dyn_core (void)
+{
+	if (using_normal_core) {
+		using_normal_core = false;
+		dyn_dh_fpu.state.tag = FPU_GetTag();
+		dyn_dh_fpu.state.cw = fpu.cw;
+		dyn_dh_fpu.state.sw = fpu.sw;
+		uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+		for(Bitu i = 0;i < 8;i++){
+			memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
+		}
+	}
+}
+
+static Bits Safe_CPU_Core_Normal_Run (void)
+{
+	dh_fpu_enter_normal_core();
+	return CPU_Core_Normal_Run();
+}
+static BlockReturnDynX86 safe_gen_runcode(uint8_t* code)
+{
+	dh_fpu_enter_dyn_core();
+	return gen_runcode(code);
+}
+
+void dyn_core_dh_debug_flush (void) {
+	dh_fpu_enter_normal_core();
 }
 #else
-#define DH_FPU_SAVE_REINIT				\
-{										\
-	__asm__ volatile (					\
-		"fnsave		%0			\n"		\
-		:	"=m" (dyn_dh_fpu.state[0])	\
-		:								\
-		:	"memory"					\
-	);									\
-	dyn_dh_fpu.state_used=false;		\
-	dyn_dh_fpu.state[0]|=0x3f;			\
+static Bits Safe_CPU_Core_Normal_Run (void)
+{
+	return CPU_Core_Normal_Run();
+}
+static BlockReturnDynX86 safe_gen_runcode(uint8_t* code)
+{
+	return gen_runcode(code);
+}
+
+void dyn_core_dh_debug_flush (void) {
 }
 #endif
 
 extern int dynamic_core_cache_block_size;
 
 Bits CPU_Core_Dyn_X86_Run(void) {
-	/* Determine the linear address of CS:EIP */
+	// helper class to auto-save DH_FPU state on function exit
+	class auto_dh_fpu {
+	public:
+		~auto_dh_fpu(void) {
+#if defined(X86_DYNFPU_DH_ENABLED)
+			if (dyn_dh_fpu.state_used)
+				gen_dh_fpu_save();
+#endif
+		};
+	};
+	auto_dh_fpu fpu_saver;
+
+    /* Determine the linear address of CS:EIP */
 restart_core:
+	if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = false;
 	PhysPt ip_point=SegPhys(cs)+reg_eip;
 #if C_DEBUG
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) return debugCallback;
 #endif
 #endif
-	CodePageHandler * chandler=0;
+	CodePageHandler * chandler=nullptr;
 	if (GCC_UNLIKELY(MakeCodePage(ip_point,chandler))) {
 		CPU_Exception(cpu.exception.which,cpu.exception.error);
 		goto restart_core;
 	}
 	if (!chandler) {
-		if (dyn_dh_fpu.state_used) DH_FPU_SAVE_REINIT
-		return CPU_Core_Normal_Run();
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
+		return Safe_CPU_Core_Normal_Run();
 	}
 	/* Find correct Dynamic Block to run */
 	CacheBlock * block=chandler->FindCacheBlock(ip_point&4095);
 	if (!block) {
 		if (!chandler->invalidation_map || (chandler->invalidation_map[ip_point&4095]<4)) {
-			block=CreateCacheBlock(chandler,ip_point,dynamic_core_cache_block_size);
+			decoder_pagefault.had_pagefault = false;
+			int cache_size = dynamic_core_cache_block_size;
+			block = CreateCacheBlock(chandler,ip_point,cache_size);
+			while (decoder_pagefault.had_pagefault) {
+				// Can happen only if use_dynamic_core_with_paging is on
+				// We can't throw exception during the creation of the block, as it will corrupt things
+				// If a page fault occurred, invalidated the block, and try to create smaller block
+				// If the page fault is in the current instruction, throw exception
+				block->Clear();
+				if (cache_size == 1)
+					throw GuestPageFaultException(decoder_pagefault.lin_addr, decoder_pagefault.page_addr, decoder_pagefault.faultcode);
+				cache_size /= 2;
+				decoder_pagefault.had_pagefault = false;
+				block = CreateCacheBlock(chandler,ip_point,cache_size);
+			}
 		} else {
-			Bitu old_cycles=CPU_Cycles;
+			int32_t old_cycles=(int32_t)CPU_Cycles;
 			CPU_Cycles=1;
-			Bits nc_retcode=CPU_Core_Normal_Run();
-			if (dyn_dh_fpu.state_used) DH_FPU_SAVE_REINIT
+			CPU_CycleLeft+=old_cycles;
+			if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
+			Bits nc_retcode=Safe_CPU_Core_Normal_Run();
 			if (!nc_retcode) {
 				CPU_Cycles=old_cycles-1;
+				CPU_CycleLeft-=old_cycles;
 				goto restart_core;
 			}
-			CPU_CycleLeft+=old_cycles;
 			return nc_retcode; 
 		}
 	}
 run_block:
-	Bitu CPU_CyclesOld = CPU_Cycles;
-	cache.block.running=0;
-	BlockReturn ret=gen_runcode(block->cache.start);
-	cycle_count += CPU_CyclesOld - CPU_Cycles;
+	cache.block.running=nullptr;
+	core_dyn.pagefault = false;
+	BlockReturnDynX86 ret=safe_gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
+
+	if (sizeof(CPU_Cycles) > 4) {
+		// HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.
+		//       The purpose of this hack is to sign-extend the lower 32 bits so that
+		//       when CPU_Cycles goes negative it doesn't suddenly appear as a very
+		//       large integer value.
+		//
+		//       This hack is needed for dynrec to work on x86_64 targets.
+		CPU_Cycles = (Bits)((int32_t)CPU_Cycles);
+	}
+
+#if C_DEBUG
+	cycle_count += 32;
+#endif
 	switch (ret) {
 	case BR_Iret:
 #if C_DEBUG
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
-			if (dyn_dh_fpu.state_used) DH_FPU_SAVE_REINIT
 			return debugCallback;
 		}
 #endif
 #endif
 		if (!GETFLAG(TF)) {
 			if (GETFLAG(IF) && PIC_IRQCheck) {
-				if (dyn_dh_fpu.state_used) DH_FPU_SAVE_REINIT
 				return CBRET_NONE;
 			}
 			goto restart_core;
 		}
 		cpudecoder=CPU_Core_Dyn_X86_Trap_Run;
-		if (!dyn_dh_fpu.state_used) return CBRET_NONE;
-		DH_FPU_SAVE_REINIT
 		return CBRET_NONE;
 	case BR_Normal:
 		/* Maybe check if we staying in the same page? */
@@ -334,12 +475,8 @@ run_block:
 		if (DEBUG_HeavyIsBreakpoint()) return debugCallback;
 #endif
 #endif
-		if (!dyn_dh_fpu.state_used) return CBRET_NONE;
-		DH_FPU_SAVE_REINIT
 		return CBRET_NONE;
 	case BR_CallBack:
-		if (!dyn_dh_fpu.state_used) return core_dyn.callback;
-		DH_FPU_SAVE_REINIT
 		return core_dyn.callback;
 	case BR_SMCBlock:
 //		LOG_MSG("selfmodification of running block at %x:%x",SegValue(cs),reg_eip);
@@ -348,21 +485,19 @@ run_block:
 	case BR_Opcode:
 		CPU_CycleLeft+=CPU_Cycles;
 		CPU_Cycles=1;
-		if (dyn_dh_fpu.state_used) DH_FPU_SAVE_REINIT
-		return CPU_Core_Normal_Run();
-#if (C_DEBUG)
-	case BR_OpcodeFull:
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
+		return Safe_CPU_Core_Normal_Run();
+	case BR_Opcode2:
 		CPU_CycleLeft+=CPU_Cycles;
-		CPU_Cycles=1;
-		if (dyn_dh_fpu.state_used) DH_FPU_SAVE_REINIT
-		return CPU_Core_Full_Run();
-#endif
+		CPU_Cycles=2;
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
+		return Safe_CPU_Core_Normal_Run();
 	case BR_Link1:
 	case BR_Link2:
 		{
-			Bitu temp_ip=SegPhys(cs)+reg_eip;
+			uint32_t temp_ip=SegPhys(cs)+reg_eip;
 			CodePageHandler * temp_handler=(CodePageHandler *)get_tlb_readhandler(temp_ip);
-			if (temp_handler->getFlags() & PFLAG_HASCODE) {
+			if (temp_handler->flags & (cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16)) {
 				block=temp_handler->FindCacheBlock(temp_ip & 4095);
 				if (!block) goto restart_core;
 				cache.block.running->LinkTo(ret==BR_Link2,block);
@@ -370,18 +505,28 @@ run_block:
 			}
 		}
 		goto restart_core;
+	case BR_Trap:
+			// trapflag is set, switch to the trap-aware decoder
+	#if C_DEBUG
+	#if C_HEAVY_DEBUG
+			if (DEBUG_HeavyIsBreakpoint()) {
+				return debugCallback;
+			}
+	#endif
+	#endif
+			cpudecoder=CPU_Core_Dyn_X86_Trap_Run;
+			return CBRET_NONE;
 	}
-	if (dyn_dh_fpu.state_used) DH_FPU_SAVE_REINIT
 	return CBRET_NONE;
 }
 
 Bits CPU_Core_Dyn_X86_Trap_Run(void) {
-	Bits oldCycles = CPU_Cycles;
+	int32_t oldCycles = (int32_t)CPU_Cycles;
 	CPU_Cycles = 1;
 	cpu.trap_skip = false;
 
-	Bits ret=CPU_Core_Normal_Run();
-	if (!cpu.trap_skip) CPU_HW_Interrupt(1);
+	Bits ret=Safe_CPU_Core_Normal_Run();
+	if (!cpu.trap_skip) CPU_DebugException(DBINT_STEP,reg_eip);
 	CPU_Cycles = oldCycles-1;
 	cpudecoder = &CPU_Core_Dyn_X86_Run;
 
@@ -395,7 +540,7 @@ void CPU_Core_Dyn_X86_Shutdown(void) {
 void CPU_Core_Dyn_X86_Init(void) {
 	Bits i;
 	/* Setup the global registers and their flags */
-	for (i=0;i<G_MAX;i++) DynRegs[i].genreg=0;
+	for (i=0;i<G_MAX;i++) DynRegs[i].genreg=nullptr;
 	DynRegs[G_EAX].data=&reg_eax;
 	DynRegs[G_EAX].flags=DYNFLG_HAS8|DYNFLG_HAS16|DYNFLG_LOAD|DYNFLG_SAVE;
 	DynRegs[G_ECX].data=&reg_ecx;
@@ -444,34 +589,26 @@ void CPU_Core_Dyn_X86_Init(void) {
 	DynRegs[G_CYCLES].flags=DYNFLG_LOAD|DYNFLG_SAVE;
 	DynRegs[G_TMPB].data=&extra_regs.tmpb;
 	DynRegs[G_TMPB].flags=DYNFLG_HAS8|DYNFLG_HAS16;
-	DynRegs[G_TMPW].data=&extra_regs.tmpd;
+	DynRegs[G_TMPW].data=&extra_regs.tmpw;
 	DynRegs[G_TMPW].flags=DYNFLG_HAS16;
+	DynRegs[G_TMPD].data=&extra_regs.tmpd;
+	DynRegs[G_TMPD].flags=DYNFLG_HAS16;
 	DynRegs[G_SHIFT].data=&extra_regs.shift;
 	DynRegs[G_SHIFT].flags=DYNFLG_HAS8|DYNFLG_HAS16;
-	DynRegs[G_EXIT].data=0;
+	DynRegs[G_EXIT].data=nullptr;
 	DynRegs[G_EXIT].flags=DYNFLG_HAS16;
 	/* Init the generator */
 	gen_init();
 
+#if defined(X86_DYNFPU_DH_ENABLED)
 	/* Init the fpu state */
 	dyn_dh_fpu.dh_fpu_enabled=true;
 	dyn_dh_fpu.state_used=false;
 	dyn_dh_fpu.cw=0x37f;
-#if defined (_MSC_VER)
-	__asm {
-	__asm	finit
-	__asm	fsave	dyn_dh_fpu.state[0]
-	__asm	fstcw	dyn_dh_fpu.host_cw
-	}
-#else
-	__asm__ volatile (
-		"finit					\n"
-		"fsave		%0			\n"
-		"fstcw		%1			\n"
-		:	"=m" (dyn_dh_fpu.state[0]), "=m" (dyn_dh_fpu.host_cw)
-		:
-		:	"memory"
-	);
+	// FINIT
+	memset(&dyn_dh_fpu.state, 0, sizeof(dyn_dh_fpu.state));
+	dyn_dh_fpu.state.cw = 0x37F;
+	dyn_dh_fpu.state.tag = 0xFFFF;
 #endif
 
 	return;
@@ -491,12 +628,15 @@ void CPU_Core_Dyn_X86_Cache_Reset(void) {
 }
 
 void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu) {
+#if defined(X86_DYNFPU_DH_ENABLED)
 	dyn_dh_fpu.dh_fpu_enabled=dh_fpu;
+#endif
 }
 
-Bit32u fpu_state[32];
+uint32_t fpu_state[32];
 
 void CPU_Core_Dyn_X86_SaveDHFPUState(void) {
+#if C_TARGETCPU != X86_64
 	if (dyn_dh_fpu.dh_fpu_enabled) {
 		if (dyn_dh_fpu.state_used!=0) {
 #if defined (_MSC_VER)
@@ -515,9 +655,11 @@ void CPU_Core_Dyn_X86_SaveDHFPUState(void) {
 #endif
 		}
 	}
+#endif
 }
 
 void CPU_Core_Dyn_X86_RestoreDHFPUState(void) {
+#if C_TARGETCPU != X86_64
 	if (dyn_dh_fpu.dh_fpu_enabled) {
 		if (dyn_dh_fpu.state_used!=0) {
 #if defined (_MSC_VER)
@@ -534,6 +676,7 @@ void CPU_Core_Dyn_X86_RestoreDHFPUState(void) {
 #endif
 		}
 	}
+#endif
 }
 
 #else

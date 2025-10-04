@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 /* Do the actual opcode */
@@ -54,14 +54,14 @@ switch (inst.code.op) {
 		lflags.oldcf=(get_CF()!=0);
 		lf_var1d=inst_op1_d;
 		lf_var2d=inst_op2_d;
-		inst_op1_d=lf_resd=lf_var1d + lf_var2d + lflags.oldcf;
+		inst_op1_d=lf_resd=(uint32_t)(lf_var1d + lf_var2d + lflags.oldcf);
 		lflags.type=inst.code.op;
 		break;
 	case t_SBBb:	case t_SBBw:	case t_SBBd:
 		lflags.oldcf=(get_CF()!=0);
 		lf_var1d=inst_op1_d;
 		lf_var2d=inst_op2_d;
-		inst_op1_d=lf_resd=lf_var1d - lf_var2d - lflags.oldcf;
+		inst_op1_d=lf_resd=(uint32_t)(lf_var1d - lf_var2d - lflags.oldcf);
 		lflags.type=inst.code.op;
 		break;
 	case t_INCb:	case t_INCw:	case t_INCd:
@@ -319,14 +319,14 @@ switch (inst.code.op) {
 		break;
 	case O_XCHG_AX:
 		{
-			Bit16u temp=reg_ax;
+			uint16_t temp=reg_ax;
 			reg_ax=inst_op1_w;
 			inst_op1_w=temp;
 			break;
 		}
 	case O_XCHG_EAX:
 		{
-			Bit32u temp=reg_eax;
+			uint32_t temp=reg_eax;
 			reg_eax=inst_op1_d;
 			inst_op1_d=temp;
 			break;
@@ -359,9 +359,9 @@ switch (inst.code.op) {
 #if C_DEBUG
 		FillFlags();
 		if (((inst.entry & 0xFF)==0xcc) && DEBUG_Breakpoint()) 
-			return debugCallback;
+			return (Bits)debugCallback;
 		else if (DEBUG_IntBreakpoint(inst_op1_b)) 
-			return debugCallback;
+			return (Bits)debugCallback;
 #endif
 		CPU_SW_Interrupt(inst_op1_b,GetIP());
 		continue;
@@ -391,16 +391,16 @@ switch (inst.code.op) {
 		goto nextopcode;
 	case O_CBACK:
 		FillFlags();SaveIP();
-		return inst_op1_d;
+		return (Bits)inst_op1_d;
 	case O_GRP6w:
 	case O_GRP6d:
 		if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegalopcode;
 		switch (inst.rm_index) {
 		case 0x00:	/* SLDT */
-			inst_op1_d=(Bit32u)CPU_SLDT();
+			inst_op1_d=(uint32_t)CPU_SLDT();
 			break;
 		case 0x01:	/* STR */
-			inst_op1_d=(Bit32u)CPU_STR();
+			inst_op1_d=(uint32_t)CPU_STR();
 			break;
 		case 0x02:	/* LLDT */
 			if (cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -425,12 +425,12 @@ switch (inst.code.op) {
 	case O_GRP7d:
 		switch (inst.rm_index) {
 		case 0:		/* SGDT */
-			SaveMw(inst.rm_eaa,CPU_SGDT_limit());
-			SaveMd(inst.rm_eaa+2,CPU_SGDT_base());
+			SaveMw(inst.rm_eaa,(uint16_t)CPU_SGDT_limit());
+			SaveMd(inst.rm_eaa+2,(uint32_t)CPU_SGDT_base());
 			goto nextopcode;
 		case 1:		/* SIDT */
-			SaveMw(inst.rm_eaa,CPU_SIDT_limit());
-			SaveMd(inst.rm_eaa+2,CPU_SIDT_base());
+			SaveMw(inst.rm_eaa,(uint16_t)CPU_SIDT_limit());
+			SaveMd(inst.rm_eaa+2,(uint32_t)CPU_SIDT_base());
 			goto nextopcode;
 		case 2:		/* LGDT */
 			if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -441,7 +441,7 @@ switch (inst.code.op) {
 			CPU_LIDT(LoadMw(inst.rm_eaa),LoadMd(inst.rm_eaa+2)&((inst.code.op == O_GRP7w) ? 0xFFFFFF : 0xFFFFFFFF));
 			goto nextopcode;
 		case 4:		/* SMSW */
-			inst_op1_d=CPU_SMSW();
+			inst_op1_d=(uint32_t)CPU_SMSW();
 			break;
 		case 6:		/* LMSW */
 			FillFlags();
@@ -479,21 +479,21 @@ switch (inst.code.op) {
 		{
 			Bitu ar=inst_op2_d;
 			CPU_LAR(inst_op1_w,ar);
-			inst_op1_d=(Bit32u)ar;
+			inst_op1_d=(uint32_t)ar;
 		}
 		break;
 	case O_LSL:
 		{
 			Bitu limit=inst_op2_d;
 			CPU_LSL(inst_op1_w,limit);
-			inst_op1_d=(Bit32u)limit;
+			inst_op1_d=(uint32_t)limit;
 		}
 		break;
 	case O_ARPL:
 		{
 			Bitu new_sel=inst_op1_d;
 			CPU_ARPL(new_sel,inst_op2_d);
-			inst_op1_d=(Bit32u)new_sel;
+			inst_op1_d=(uint32_t)new_sel;
 		}
 		break;
 	case O_BSFw:
@@ -503,7 +503,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bitu count=0;
+				uint8_t count=0;
 				while (1) {
 					if (inst_op1_w & 0x1) break;
 					count++;inst_op1_w>>=1;
@@ -520,7 +520,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bitu count=0;
+				uint8_t count=0;
 				while (1) {
 					if (inst_op1_d & 0x1) break;
 					count++;inst_op1_d>>=1;
@@ -537,7 +537,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bitu count=15;
+				uint8_t count=15;
 				while (1) {
 					if (inst_op1_w & 0x8000) break;
 					count--;inst_op1_w<<=1;
@@ -554,7 +554,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bitu count=31;
+				uint8_t count=31;
 				while (1) {
 					if (inst_op1_d & 0x80000000) break;
 					count--;inst_op1_d<<=1;
@@ -566,41 +566,41 @@ switch (inst.code.op) {
 		break;
 	case O_BTw:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 15))));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 15u))));
 		break;
 	case O_BTSw:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 15))));
-		inst_op1_d|=(1 << (inst_op2_d & 15));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 15u))));
+		inst_op1_d|=(1u << (inst_op2_d & 15u));
 		break;
 	case O_BTCw:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 15))));
-		inst_op1_d^=(1 << (inst_op2_d & 15));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 15u))));
+		inst_op1_d^=(1u << (inst_op2_d & 15u));
 		break;
 	case O_BTRw:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 15))));
-		inst_op1_d&=~(1 << (inst_op2_d & 15));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 15u))));
+		inst_op1_d&=~(1u << (inst_op2_d & 15u));
 		break;
 	case O_BTd:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 31))));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 31u))));
 		break;
 	case O_BTSd:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 31))));
-		inst_op1_d|=(1 << (inst_op2_d & 31));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 31u))));
+		inst_op1_d|=(1u << (inst_op2_d & 31u));
 		break;
 	case O_BTCd:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 31))));
-		inst_op1_d^=(1 << (inst_op2_d & 31));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 31))));
+		inst_op1_d^=(1u << (inst_op2_d & 31u));
 		break;
 	case O_BTRd:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 31))));
-		inst_op1_d&=~(1 << (inst_op2_d & 31));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 31u))));
+		inst_op1_d&=~(1u << (inst_op2_d & 31u));
 		break;
 	case O_BSWAPw:
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegalopcode;
@@ -627,11 +627,11 @@ switch (inst.code.op) {
 #if C_FPU
 		switch (((inst.rm>=0xc0) << 3) | inst.code.save) {
 		case 0x00:	FPU_ESC0_EA(inst.rm,inst.rm_eaa);break;
-		case 0x01:	FPU_ESC1_EA(inst.rm,inst.rm_eaa);break;
+		case 0x01:	FPU_ESC1_EA(inst.rm,inst.rm_eaa,inst.code.extra);break;
 		case 0x02:	FPU_ESC2_EA(inst.rm,inst.rm_eaa);break;
 		case 0x03:	FPU_ESC3_EA(inst.rm,inst.rm_eaa);break;
 		case 0x04:	FPU_ESC4_EA(inst.rm,inst.rm_eaa);break;
-		case 0x05:	FPU_ESC5_EA(inst.rm,inst.rm_eaa);break;
+		case 0x05:	FPU_ESC5_EA(inst.rm,inst.rm_eaa,inst.code.extra);break;
 		case 0x06:	FPU_ESC6_EA(inst.rm,inst.rm_eaa);break;
 		case 0x07:	FPU_ESC7_EA(inst.rm,inst.rm_eaa);break;
 
@@ -651,10 +651,20 @@ switch (inst.code.op) {
 #endif
 	case O_BOUNDw:
 		{
-			Bit16s bound_min, bound_max;
-			bound_min=LoadMw(inst.rm_eaa);
-			bound_max=LoadMw(inst.rm_eaa+2);
-			if ( (((Bit16s)inst_op1_w) < bound_min) || (((Bit16s)inst_op1_w) > bound_max) ) {
+			if (inst.rm>=0xc0) goto illegalopcode;
+			int16_t bound_min=LoadMws(inst.rm_eaa);
+			int16_t bound_max=LoadMws(inst.rm_eaa+2);
+			if ( (inst_op1_ws < bound_min) || (inst_op1_ws > bound_max) ) {
+				EXCEPTION(5);
+			}
+		}
+		break;
+	case O_BOUNDd:
+		{
+			if (inst.rm>=0xc0) goto illegalopcode;
+			int32_t bound_min=LoadMds(inst.rm_eaa);
+			int32_t bound_max=LoadMds(inst.rm_eaa+4);
+			if ( (inst_op1_ds < bound_min) || (inst_op1_ds > bound_max) ) {
 				EXCEPTION(5);
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,11 +11,12 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <assert.h>
 
 class CacheBlock {
 public:
@@ -27,16 +28,17 @@ public:
 		toblock->link[index].from=this;
 	}
 	struct {
-		Bit16u start,end;				//Where the page is the original code
+		uint16_t start,end;				//Where the page is the original code
 		CodePageHandler * handler;		//Page containing this code
 	} page;
 	struct {
-		Bit8u * start;					//Where in the cache are we
+		uint8_t * start;					//Where in the cache are we
+		uint8_t * xstart;					//Where in the cache are we
 		Bitu size;
 		CacheBlock * next;
-		Bit8u * wmapmask;
-		Bit16u maskstart;
-		Bit16u masklen;
+		uint8_t * wmapmask;
+		uint16_t maskstart;
+		uint16_t masklen;
 	} cache;
 	struct {
 		Bitu index;
@@ -57,7 +59,7 @@ static struct {
 		CacheBlock * free;
 		CacheBlock * running;
 	} block;
-	Bit8u * pos;
+	uint8_t * pos;
 	CodePageHandler * free_pages;
 	CodePageHandler * used_pages;
 	CodePageHandler * last_page;
@@ -67,16 +69,14 @@ static CacheBlock link_blocks[2];
 
 class CodePageHandler : public PageHandler {
 public:
-	CodePageHandler() : PageHandler(0) {
+	CodePageHandler() {
 		invalidation_map=NULL;
 	}
-
 	void SetupAt(Bitu _phys_page,PageHandler * _old_pagehandler) {
 		phys_page=_phys_page;
 		old_pagehandler=_old_pagehandler;
-		Bitu newflags = old_pagehandler->getFlags() | PFLAG_HASCODE;
-		newflags&=~PFLAG_WRITEABLE;
-		setFlags(newflags);
+		flags=old_pagehandler->flags|(cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16);
+		flags&=~PFLAG_WRITEABLE;
 		active_blocks=0;
 		active_count=16;
 		memset(&hash_map,0,sizeof(hash_map));
@@ -89,8 +89,8 @@ public:
 	bool InvalidateRange(Bitu start,Bitu end) {
 		Bits index=1+(end>>DYN_HASH_SHIFT);
 		bool is_current_block=false;
-		Bit32u ip_point=SegPhys(cs)+reg_eip;
-		ip_point=(PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff);
+		uint32_t ip_point=SegPhys(cs)+reg_eip;
+		ip_point=(uint32_t)((PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff));
 		while (index>=0) {
 			Bitu map=0;
 			for (Bitu count=start;count<=end;count++) map+=write_map[count];
@@ -108,81 +108,81 @@ public:
 		}
 		return is_current_block;
 	}
-	void writeb(PhysPt addr,Bitu val){
-		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return;
-		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
+	void writeb(PhysPt addr,uint8_t val) override {
+		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return;
+		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("wb:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
-		if (host_readb(hostmem+addr)==(Bit8u)val) return;
+		if (host_readb(hostmem+addr)==(uint8_t)val) return;
 		host_writeb(hostmem+addr,val);
-		if (!*(Bit8u*)&write_map[addr]) {
+		if ((*(uint8_t*)&write_map[addr]) == 0) {
 			if (active_blocks) return;
 			active_count--;
 			if (!active_count) Release();
 			return;
 		} else if (!invalidation_map) {
-			invalidation_map=(Bit8u*)malloc(4096);
+			invalidation_map=(uint8_t*)malloc(4096);
 			memset(invalidation_map,0,4096);
 		}
 		invalidation_map[addr]++;
 		InvalidateRange(addr,addr);
 	}
-	void writew(PhysPt addr,Bitu val){
-		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return;
-		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
+	void writew(PhysPt addr,uint16_t val) override {
+		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return;
+		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("ww:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
-		if (host_readw(hostmem+addr)==(Bit16u)val) return;
+		if (host_readw(hostmem+addr)==(uint16_t)val) return;
 		host_writew(hostmem+addr,val);
-		if ((*(Bit16u*)&write_map[addr]) == 0) {
+		if ((*(uint16_t*)&write_map[addr]) == 0) {
 			if (active_blocks) return;
 			active_count--;
 			if (!active_count) Release();
 			return;
 		} else if (!invalidation_map) {
-			invalidation_map=(Bit8u*)malloc(4096);
+			invalidation_map=(uint8_t*)malloc(4096);
 			memset(invalidation_map,0,4096);
 		}
-		(*(Bit16u*)&invalidation_map[addr])+=0x101;
+		(*(uint16_t*)&invalidation_map[addr])+=0x101;
 		InvalidateRange(addr,addr+1);
 	}
-	void writed(PhysPt addr,Bitu val){
-		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return;
-		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
+	void writed(PhysPt addr,uint32_t val) override {
+		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return;
+		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("wd:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
-		if (host_readd(hostmem+addr)==(Bit32u)val) return;
+		if (host_readd(hostmem+addr)==(uint32_t)val) return;
 		host_writed(hostmem+addr,val);
-		if ((*(Bit32u*)&write_map[addr]) == 0) {
+		if ((*(uint32_t*)&write_map[addr]) == 0) {
 			if (active_blocks) return;
 			active_count--;
 			if (!active_count) Release();
 			return;
 		} else if (!invalidation_map) {
-			invalidation_map=(Bit8u*)malloc(4096);
+			invalidation_map=(uint8_t*)malloc(4096);
 			memset(invalidation_map,0,4096);
 		}
-		(*(Bit32u*)&invalidation_map[addr])+=0x1010101;
+		(*(uint32_t*)&invalidation_map[addr])+=0x1010101;
 		InvalidateRange(addr,addr+3);
 	}
-	bool writeb_checked(PhysPt addr,Bitu val) {
-		if (GCC_UNLIKELY(old_pagehandler->getFlags()&PFLAG_HASROM)) return false;
-		if (GCC_UNLIKELY((old_pagehandler->getFlags()&PFLAG_READABLE)!=PFLAG_READABLE)) {
+	bool writeb_checked(PhysPt addr,uint8_t val) override {
+		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return false;
+		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("cb:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
-		if (host_readb(hostmem+addr)==(Bit8u)val) return false;
-		if (!*(Bit8u*)&write_map[addr]) {
+		if (host_readb(hostmem+addr)==(uint8_t)val) return false;
+		if ((*(uint8_t*)&write_map[addr]) == 0) {
 			if (!active_blocks) {
 				active_count--;
 				if (!active_count) Release();
 			}
 		} else {
 			if (!invalidation_map) {
-				invalidation_map=(Bit8u*)malloc(4096);
+				invalidation_map=(uint8_t*)malloc(4096);
 				memset(invalidation_map,0,4096);
 			}
 			invalidation_map[addr]++;
@@ -194,24 +194,24 @@ public:
 		host_writeb(hostmem+addr,val);
 		return false;
 	}
-	bool writew_checked(PhysPt addr,Bitu val) {
-		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return false;
-		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
+	bool writew_checked(PhysPt addr,uint16_t val) override {
+		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return false;
+		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("cw:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
-		if (host_readw(hostmem+addr)==(Bit16u)val) return false;
-		if ((*(Bit16u*)&write_map[addr]) == 0) {
+		if (host_readw(hostmem+addr)==(uint16_t)val) return false;
+		if ((*(uint16_t*)&write_map[addr]) == 0) {
 			if (!active_blocks) {
 				active_count--;
 				if (!active_count) Release();
 			}
 		} else {
 			if (!invalidation_map) {
-				invalidation_map=(Bit8u*)malloc(4096);
+				invalidation_map=(uint8_t*)malloc(4096);
 				memset(invalidation_map,0,4096);
 			}
-			(*(Bit16u*)&invalidation_map[addr])+=0x101;
+			(*(uint16_t*)&invalidation_map[addr])+=0x101;
 			if (InvalidateRange(addr,addr+1)) {
 				cpu.exception.which=SMC_CURRENT_BLOCK;
 				return true;
@@ -220,24 +220,24 @@ public:
 		host_writew(hostmem+addr,val);
 		return false;
 	}
-	bool writed_checked(PhysPt addr,Bitu val) {
-		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return false;
-		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
+	bool writed_checked(PhysPt addr,uint32_t val) override {
+		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return false;
+		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("cd:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
-		if (host_readd(hostmem+addr)==(Bit32u)val) return false;
-		if ((*(Bit32u*)&write_map[addr]) == 0) {
+		if (host_readd(hostmem+addr)==(uint32_t)val) return false;
+		if ((*(uint32_t*)&write_map[addr]) == 0) {
 			if (!active_blocks) {
 				active_count--;
 				if (!active_count) Release();
 			}
 		} else {
 			if (!invalidation_map) {
-				invalidation_map=(Bit8u*)malloc(4096);
+				invalidation_map=(uint8_t*)malloc(4096);
 				memset(invalidation_map,0,4096);
 			}
-			(*(Bit32u*)&invalidation_map[addr])+=0x1010101;
+			(*(uint32_t*)&invalidation_map[addr])+=0x1010101;
 			if (InvalidateRange(addr,addr+3)) {
 				cpu.exception.which=SMC_CURRENT_BLOCK;
 				return true;
@@ -297,14 +297,14 @@ public:
 		else cache.last_page=prev;
 		next=cache.free_pages;
 		cache.free_pages=this;
-		prev=0;
+		prev=nullptr;
 	}
 	void ClearRelease(void) {
 		for (Bitu index=0;index<(1+DYN_PAGE_HASH);index++) {
 			CacheBlock * block=hash_map[index];
 			while (block) {
 				CacheBlock * nextblock=block->hash.next;
-				block->page.handler=0;			//No need, full clear
+				block->page.handler=nullptr;			//No need, full clear
 				block->Clear();
 				block=nextblock;
 			}
@@ -317,18 +317,18 @@ public:
 			if (block->page.start==start) return block;
 			block=block->hash.next;
 		}
-		return 0;
+		return nullptr;
 	}
-	HostPt GetHostReadPt(Bitu phys_page) { 
+	HostPt GetHostReadPt(PageNum phys_page) override {
 		hostmem=old_pagehandler->GetHostReadPt(phys_page);
 		return hostmem;
 	}
-	HostPt GetHostWritePt(Bitu phys_page) { 
+	HostPt GetHostWritePt(PageNum phys_page) override {
 		return GetHostReadPt( phys_page );
 	}
 public:
-	Bit8u write_map[4096];
-	Bit8u * invalidation_map;
+	uint8_t write_map[4096];
+	uint8_t * invalidation_map;
 	CodePageHandler * next, * prev;
 private:
 	PageHandler * old_pagehandler;
@@ -349,7 +349,7 @@ static CacheBlock * cache_getblock(void) {
 	CacheBlock * ret=cache.block.free;
 	if (!ret) E_Exit("Ran out of CacheBlocks" );
 	cache.block.free=ret->cache.next;
-	ret->cache.next=0;
+	ret->cache.next=nullptr;
 	return ret;
 }
 
@@ -358,10 +358,10 @@ void CacheBlock::Clear(void) {
 	/* Check if this is not a cross page block */
 	if (hash.index) for (ind=0;ind<2;ind++) {
 		CacheBlock * fromlink=link[ind].from;
-		link[ind].from=0;
+		link[ind].from=nullptr;
 		while (fromlink) {
 			CacheBlock * nextlink=fromlink->link[ind].next;
-			fromlink->link[ind].next=0;
+			fromlink->link[ind].next=nullptr;
 			fromlink->link[ind].to=&link_blocks[ind];
 			fromlink=nextlink;
 		}
@@ -378,13 +378,13 @@ void CacheBlock::Clear(void) {
 	} else 
 		cache_addunsedblock(this);
 	if (crossblock) {
-		crossblock->crossblock=0;
+		crossblock->crossblock=nullptr;
 		crossblock->Clear();
-		crossblock=0;
+		crossblock=nullptr;
 	}
 	if (page.handler) {
 		page.handler->DelCacheBlock(this);
-		page.handler=0;
+		page.handler=nullptr;
 	}
 	if (cache.wmapmask){
 		free(cache.wmapmask);
@@ -392,6 +392,7 @@ void CacheBlock::Clear(void) {
 	}
 }
 
+static INLINE void *cache_rwtox(void *x);
 
 static CacheBlock * cache_openblock(void) {
 	CacheBlock * block=cache.block.active;
@@ -421,16 +422,19 @@ static void cache_closeblock(void) {
 	CacheBlock * block=cache.block.active;
 	block->link[0].to=&link_blocks[0];
 	block->link[1].to=&link_blocks[1];
-	block->link[0].from=0;
-	block->link[1].from=0;
-	block->link[0].next=0;
-	block->link[1].next=0;
+	block->link[0].from=nullptr;
+	block->link[1].from=nullptr;
+	block->link[0].next=nullptr;
+	block->link[1].next=nullptr;
 	/* Close the block with correct alignments */
 	Bitu written=cache.pos-block->cache.start;
 	if (written>block->cache.size) {
 		if (!block->cache.next) {
-			if (written>block->cache.size+CACHE_MAXSIZE) E_Exit("CacheBlock overrun 1 %d",written-block->cache.size);	
-		} else E_Exit("CacheBlock overrun 2 written %d size %d",written,block->cache.size);	
+			if (written > block->cache.size + CACHE_MAXSIZE) E_Exit("CacheBlock overrun 1 %d",(int)(written-block->cache.size));
+        }
+        else {
+            E_Exit("CacheBlock overrun 2 written %d size %d", (int)written, (int)block->cache.size);
+        }
 	} else {
 		Bitu new_size;
 		Bitu left=block->cache.size-written;
@@ -441,6 +445,7 @@ static void cache_closeblock(void) {
 			newblock->cache.start=block->cache.start+new_size;
 			newblock->cache.size=block->cache.size-new_size;
 			newblock->cache.next=block->cache.next;
+			newblock->cache.xstart=(uint8_t*)cache_rwtox(newblock->cache.start);
 			block->cache.next=newblock;
 			block->cache.size=new_size;
 		}
@@ -454,36 +459,61 @@ static void cache_closeblock(void) {
 	}
 }
 
-static INLINE void cache_addb(Bit8u val) {
-	*cache.pos++=val;
+static INLINE void cache_addb(uint8_t val,uint8_t *pos) {
+	*pos=val;
+}
+static INLINE void cache_addb(uint8_t val) {
+	uint8_t *pos=cache.pos+1;
+	cache_addb(val,cache.pos);
+	cache.pos=pos;
 }
 
-static INLINE void cache_addw(Bit16u val) {
-	*(Bit16u*)cache.pos=val;
-	cache.pos+=2;
+static INLINE void cache_addw(uint16_t val,uint8_t *pos) {
+	*(uint16_t*)pos=val;
+}
+static INLINE void cache_addw(uint16_t val) {
+	uint8_t *pos=cache.pos+2;
+	cache_addw(val,cache.pos);
+	cache.pos=pos;
 }
 
-static INLINE void cache_addd(Bit32u val) {
-	*(Bit32u*)cache.pos=val;
-	cache.pos+=4;
+static INLINE void cache_addd(uint32_t val,uint8_t *pos) {
+	*(uint32_t*)pos=val;
+}
+static INLINE void cache_addd(uint32_t val) {
+	uint8_t *pos=cache.pos+4;
+	cache_addd(val,cache.pos);
+	cache.pos=pos;
 }
 
+static INLINE void cache_addq(uint64_t val,uint8_t *pos) {
+	*(uint64_t*)pos=val;
+}
+static INLINE void cache_addq(uint64_t val) {
+	uint8_t *pos=cache.pos+8;
+	cache_addq(val,cache.pos);
+	cache.pos=pos;
+}
 
-static void gen_return(BlockReturn retcode);
+static void gen_return(BlockReturnDynX86 retcode);
 
-static Bit8u * cache_code_start_ptr=NULL;
-static Bit8u * cache_code=NULL;
-static Bit8u * cache_code_link_blocks=NULL;
+static uint8_t * cache_code_start_ptr=NULL;
+static uint8_t * cache_code=NULL;
+static uint8_t * cache_code_link_blocks=NULL;
 static CacheBlock * cache_blocks=NULL;
 
-/* Define temporary pagesize so the MPROTECT case and the regular case share as much code as possible */
-#if (C_HAVE_MPROTECT)
-#define PAGESIZE_TEMP PAGESIZE
-#else 
-#define PAGESIZE_TEMP 4096
-#endif
-
 static bool cache_initialized = false;
+
+#include "cpu/dynamic_alloc_common.h"
+
+static void cache_ensure_allocation(void) {
+	if (cache_code_start_ptr==NULL) {
+        cache_dynamic_common_alloc(CACHE_TOTAL+CACHE_MAXSIZE); /* sets cache_code_start_ptr/cache_code */
+ 
+		cache_code_link_blocks=cache_code;
+		cache_code+=PAGESIZE_TEMP;
+	}
+}
 
 static void cache_init(bool enable) {
 	Bits i;
@@ -502,42 +532,28 @@ static void cache_init(bool enable) {
 			}
 		}
 		if (cache_code_start_ptr==NULL) {
-#if defined (WIN32)
-			cache_code_start_ptr=(Bit8u*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
-				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-			if (!cache_code_start_ptr)
-				cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#else
-			cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#endif
-			if(!cache_code_start_ptr) E_Exit("Allocating dynamic core cache memory failed");
+			cache_ensure_allocation();
 
-			cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
-
-			cache_code_link_blocks=cache_code;
-			cache_code+=PAGESIZE_TEMP;
-
-#if (C_HAVE_MPROTECT)
-			if(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
-				LOG_MSG("Setting excute permission on the code cache has failed!");
-#endif
 			CacheBlock * block=cache_getblock();
 			cache.block.first=block;
 			cache.block.active=block;
 			block->cache.start=&cache_code[0];
+			block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 			block->cache.size=CACHE_TOTAL;
-			block->cache.next=0;								//Last block in the list
+			block->cache.next=nullptr;								//Last block in the list
 		}
 		/* Setup the default blocks for block linkage returns */
 		cache.pos=&cache_code_link_blocks[0];
 		link_blocks[0].cache.start=cache.pos;
+		link_blocks[0].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[0].cache.start);
 		gen_return(BR_Link1);
 		cache.pos=&cache_code_link_blocks[32];
 		link_blocks[1].cache.start=cache.pos;
+		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		gen_return(BR_Link2);
-		cache.free_pages=0;
-		cache.last_page=0;
-		cache.used_pages=0;
+		cache.free_pages=nullptr;
+		cache.last_page=nullptr;
+		cache.used_pages=nullptr;
 		/* Setup the code pages */
 		for (i=0;i<CACHE_PAGES;i++) {
 			CodePageHandler * newpage=new CodePageHandler();
@@ -596,45 +612,28 @@ static void cache_reset(void) {
 			cache_blocks[i].cache.next=&cache_blocks[i+1];
 		}
 
-		if (cache_code_start_ptr==NULL) {
-#if defined (WIN32)
-			cache_code_start_ptr=(Bit8u*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
-				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-			if (!cache_code_start_ptr)
-				cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#else
-			cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#endif
-			if (!cache_code_start_ptr) E_Exit("Allocating dynamic core cache memory failed");
-
-			cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
-
-			cache_code_link_blocks=cache_code;
-			cache_code+=PAGESIZE_TEMP;
-
-#if (C_HAVE_MPROTECT)
-			if(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
-				LOG_MSG("Setting excute permission on the code cache has failed!");
-#endif
-		}
+		cache_ensure_allocation();
 
 		CacheBlock * block=cache_getblock();
 		cache.block.first=block;
 		cache.block.active=block;
 		block->cache.start=&cache_code[0];
+		block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 		block->cache.size=CACHE_TOTAL;
-		block->cache.next=0;								//Last block in the list
+		block->cache.next=nullptr;								//Last block in the list
 
 		/* Setup the default blocks for block linkage returns */
 		cache.pos=&cache_code_link_blocks[0];
 		link_blocks[0].cache.start=cache.pos;
+		link_blocks[0].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[0].cache.start);
 		gen_return(BR_Link1);
 		cache.pos=&cache_code_link_blocks[32];
 		link_blocks[1].cache.start=cache.pos;
+		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		gen_return(BR_Link2);
-		cache.free_pages=0;
-		cache.last_page=0;
-		cache.used_pages=0;
+		cache.free_pages=nullptr;
+		cache.last_page=nullptr;
+		cache.used_pages=nullptr;
 		/* Setup the code pages */
 		for (Bitu i=0;i<CACHE_PAGES;i++) {
 			CodePageHandler * newpage=new CodePageHandler();

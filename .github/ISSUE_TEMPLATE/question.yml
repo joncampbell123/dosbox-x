@@ -1,0 +1,34 @@
+name: Question
+description: Ask for support or start a discussion about DOSBox-X
+labels: question
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Please fill out the form as cleanly as possible.
+        Also, make sure that you have properly filled in the title of the question. You can also visit [our wiki](https://dosbox-x.com/wiki), which may be able to answer your question.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: A clear and concise description of what your question is. If applicable, add screenshots to help in explaining.
+      placeholder: "Ex. How do I [...]"
+    validations:
+      required: true
+  - type: checkboxes
+    id: alreadyexists
+    attributes:
+      label: Have you checked that no similar question(s) exist?
+      description: Please try to search for similar questions in the issues before creating this issue.
+      options:
+        - label: I have searched and didn't find any similar question.
+          required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct & Contributing Guidelines
+      description: By submitting this issue, you agree to follow our [contributing guidelines](https://github.com/joncampbell123/dosbox-x/blob/master/CONTRIBUTING.md) and [code of conduct](https://github.com/joncampbell123/dosbox-x/blob/master/CODE_OF_CONDUCT.md).
+      options:
+        - label: I agree to follow the code of conduct and the contributing guidelines.
+          required: true

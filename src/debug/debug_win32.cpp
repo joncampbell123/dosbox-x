@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #ifdef WIN32
@@ -32,11 +32,10 @@
 */
 static void ResizeConsole( HANDLE hConsole, SHORT xSize, SHORT ySize ) {   
 	CONSOLE_SCREEN_BUFFER_INFO csbi; // Hold Current Console Buffer Info 
-	BOOL bSuccess;   
 	SMALL_RECT srWindowRect;         // Hold the New Console Size 
 	COORD coordScreen;    
 	
-	bSuccess = GetConsoleScreenBufferInfo( hConsole, &csbi );
+	GetConsoleScreenBufferInfo( hConsole, &csbi );
 	
 	// Get the Largest Size we can size the Console Window to 
 	coordScreen = GetLargestConsoleWindowSize( hConsole );
@@ -54,26 +53,32 @@ static void ResizeConsole( HANDLE hConsole, SHORT xSize, SHORT ySize ) {
 	// Console Window First, then the Buffer 
 	if( (DWORD)csbi.dwSize.X * csbi.dwSize.Y > (DWORD) xSize * ySize)
 	{
-		bSuccess = SetConsoleWindowInfo( hConsole, TRUE, &srWindowRect );
-		bSuccess = SetConsoleScreenBufferSize( hConsole, coordScreen );
+		SetConsoleWindowInfo( hConsole, TRUE, &srWindowRect );
+		SetConsoleScreenBufferSize( hConsole, coordScreen );
 	}
 	
 	// If the Current Buffer is Smaller than what we want, Resize the 
 	// Buffer First, then the Console Window 
 	if( (DWORD)csbi.dwSize.X * csbi.dwSize.Y < (DWORD) xSize * ySize )
 	{
-		bSuccess = SetConsoleScreenBufferSize( hConsole, coordScreen );
-		bSuccess = SetConsoleWindowInfo( hConsole, TRUE, &srWindowRect );
+		SetConsoleScreenBufferSize( hConsole, coordScreen );
+		SetConsoleWindowInfo( hConsole, TRUE, &srWindowRect );
 	}
 	
-	// If the Current Buffer *is* the Size we want, Don't do anything! 
+	// If the Current Buffer *is* the Size we want, Don't do anything!
 	return;
-   }
+}
 
-
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
+void DEBUG_ShowMsg(char const* format,...);
 void WIN32_Console() {
 	AllocConsole();
-	SetConsoleTitle("DOSBox Debugger");
-	ResizeConsole(GetStdHandle(STD_OUTPUT_HANDLE),80,50);
+	SetConsoleTitle("DOSBox-X Debugger");
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD dwMode = 0;
+	if (GetConsoleMode(hOut, &dwMode)) SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+	ResizeConsole(hOut,80,50);
 }
 #endif

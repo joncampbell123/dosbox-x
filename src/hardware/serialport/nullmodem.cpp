@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2013  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,26 +11,30 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
 #include "dosbox.h"
 
+
 #if C_MODEM
 
 #include "control.h"
+#include "logging.h"
 #include "serialport.h"
 #include "nullmodem.h"
+
+extern int socknum;
 
 CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	Bitu temptcpport=23;
 	memset(&telClient, 0, sizeof(telClient));
 	InstallationSuccessful = false;
-	serversocket = 0;
-	clientsocket = 0;
+	serversocket = nullptr;
+	clientsocket = nullptr;
 	serverport = 0;
 	clientport = 0;
 
@@ -49,6 +53,12 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	
 	Bitu bool_temp=0;
 
+    // enet: Setting to 1 enables enet on the port, otherwise TCP.
+	if (getBituSubstring("sock:", &bool_temp, cmd)) {
+		if (bool_temp == 1) {
+			socketType = SOCKET_TYPE_ENET;
+		}
+	}
 	// usedtr: The nullmodem will
 	// 1) when it is client connect to the server not immediately but
 	//    as soon as a modem-aware application is started (DTR is switched on).
@@ -104,12 +114,11 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 #ifdef NATIVESOCKETS
 		if (Netwrapper_GetCapabilities()&NETWRAPPER_TCP_NATIVESOCKET) {
 			if (bool_temp==1) {
-				int sock;
-				if (control->cmdline->FindInt("-socket",sock,true)) {
+				if (socknum>-1) {
 					dtrrespect=false;
 					transparent=true;
-					LOG_MSG("Inheritance socket handle: %d",sock);
-					if (!ClientConnect(new TCPClientSocket(sock)))
+					LOG_MSG("Inheritance socket handle: %d",socknum);
+					if (!ClientConnect(new TCPClientSocket(socknum)))
 						return;
 				} else {
 					LOG_MSG("Serial%d: -socket parameter missing.",(int)COMNUMBER);
@@ -135,17 +144,16 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 				hostnamebuffer[sizeof(hostnamebuffer)-1]=0;
 			}
 			memcpy(hostnamebuffer,hostnamechar,hostlen);
-			clientport=(Bit16u)temptcpport;
+			clientport=(uint16_t)temptcpport;
 			if (dtrrespect) {
 				// we connect as soon as DTR is switched on
 				setEvent(SERIAL_NULLMODEM_DTR_EVENT, 50);
 				LOG_MSG("Serial%d: Waiting for DTR...",(int)COMNUMBER);
-			} else if (!ClientConnect(
-				new TCPClientSocket((char*)hostnamebuffer,(Bit16u)clientport)))
+			} else if (!ClientConnect(NETClientSocket::NETClientFactory(socketType, (char *)hostnamebuffer, clientport)))
 				return;
 		} else {
 			// we are a server
-			serverport = (Bit16u)temptcpport;
+			serverport = (uint16_t)temptcpport;
 			if (!ServerListen()) return;
 		}
 	}
@@ -155,20 +163,20 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	setCTS(dtrrespect||transparent);
 	setDSR(dtrrespect||transparent);
 	setRI(false);
-	setCD(clientsocket != 0); // CD on if connection established
+	setCD(!!clientsocket); // CD on if connection established
 }
 
 CNullModem::~CNullModem() {
 	if (serversocket) delete serversocket;
 	if (clientsocket) delete clientsocket;
 	// remove events
-	for(Bit16u i = SERIAL_BASE_EVENT_COUNT+1;
+	for(uint16_t i = SERIAL_BASE_EVENT_COUNT+1;
 			i <= SERIAL_NULLMODEM_EVENT_COUNT; i++) {
 		removeEvent(i);
 	}
 }
 
-void CNullModem::WriteChar(Bit8u data) {
+void CNullModem::WriteChar(uint8_t data) {
 	if (clientsocket)clientsocket->SendByteBuffered(data);
 	if (!tx_block) {
 		//LOG_MSG("setevreduct");
@@ -177,12 +185,20 @@ void CNullModem::WriteChar(Bit8u data) {
 	}
 }
 
-Bits CNullModem::readChar() {
-	Bits rxchar = clientsocket->GetcharNonBlock();
-	if (telnet && rxchar>=0) return TelnetEmulation((Bit8u)rxchar);
+Bits CNullModem::readChar(uint8_t &val) {
+	SocketState state = clientsocket->GetcharNonBlock(val);
+	if (state == SocketState::Closed)
+		return -2;
+	if (state != SocketState::Good)
+		return -1;
+	Bits rxchar = val;
+	if (telnet && rxchar>=0) return TelnetEmulation((uint8_t)rxchar);
 	else if (rxchar==0xff && !transparent) {// escape char
 		// get the next char
-		Bits rxchar = clientsocket->GetcharNonBlock();
+		state = clientsocket->GetcharNonBlock(val);
+		if (state != SocketState::Good) // 0xff 0xff -> 0xff was meant
+			return -1;
+		Bits rxchar = val;
 		if (rxchar==0xff) return rxchar; // 0xff 0xff -> 0xff was meant
 		rxchar&0x1? setCTS(true) : setCTS(false);
 		rxchar&0x2? setDSR(true) : setDSR(false);
@@ -191,14 +207,14 @@ Bits CNullModem::readChar() {
 	} else return rxchar;
 }
 
-bool CNullModem::ClientConnect(TCPClientSocket* newsocket) {
-	Bit8u peernamebuf[16];
+bool CNullModem::ClientConnect(NETClientSocket *newsocket) {
+	char peernamebuf[INET_ADDRSTRLEN];
 	clientsocket = newsocket;
  
 	if (!clientsocket->isopen) {
 		LOG_MSG("Serial%d: Connection failed.",(int)COMNUMBER);
 		delete clientsocket;
-		clientsocket=0;
+		clientsocket = nullptr;
 		setCD(false);
 		return false;
 	}
@@ -215,10 +231,10 @@ bool CNullModem::ClientConnect(TCPClientSocket* newsocket) {
 
 bool CNullModem::ServerListen() {
 	// Start the server listen port.
-	serversocket = new TCPServerSocket(serverport);
+	serversocket = NETServerSocket::NETServerFactory(socketType, serverport);
 	if (!serversocket->isopen) return false;
-	LOG_MSG("Serial%d: Nullmodem server waiting for connection on port %d...",
-		(int)COMNUMBER,serverport);
+	LOG_MSG("Serial%d: Nullmodem server waiting for connection on %s port %d...",
+		(int)COMNUMBER,socketType ? "ENet" : "TCP",serverport);
 	setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
 	setCD(false);
 	return true;
@@ -229,7 +245,7 @@ bool CNullModem::ServerConnect() {
 	clientsocket=serversocket->Accept();
 	if (!clientsocket) return false;
 	
-	Bit8u peeripbuf[16];
+	char peeripbuf[INET_ADDRSTRLEN];
 	clientsocket->GetRemoteAddressString(peeripbuf);
 	LOG_MSG("Serial%d: A client (%s) has connected.",(int)COMNUMBER,peeripbuf);
 #if SERIAL_DEBUG
@@ -251,7 +267,7 @@ bool CNullModem::ServerConnect() {
 	
 	// we don't accept further connections
 	delete serversocket;
-	serversocket=0;
+	serversocket = nullptr;
 
 	// transmit the line status
 	setRTSDTR(getRTS(), getDTR());
@@ -265,14 +281,14 @@ void CNullModem::Disconnect() {
 	// it was disconnected; free the socket and restart the server socket
 	LOG_MSG("Serial%d: Disconnected.",(int)COMNUMBER);
 	delete clientsocket;
-	clientsocket=0;
+	clientsocket = nullptr;
 	setDSR(false);
 	setCTS(false);
 	setCD(false);
 	
 	if (serverport) {
-		serversocket = new TCPServerSocket(serverport);
-		if (serversocket->isopen) 
+		serversocket = NETServerSocket::NETServerFactory(socketType,serverport);
+		if (serversocket->isopen)
 			setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
 		else delete serversocket;
 	} else if (dtrrespect) {
@@ -281,7 +297,7 @@ void CNullModem::Disconnect() {
 	}
 }
 
-void CNullModem::handleUpperEvent(Bit16u type) {
+void CNullModem::handleUpperEvent(uint16_t type) {
 	
 	switch(type) {
 		case SERIAL_POLLING_EVENT: {
@@ -388,7 +404,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 			break;
 		}
 		case SERIAL_TX_EVENT: {
-			// Maybe echo cirquit works a bit better this way
+			// Maybe echo circuit works a bit better this way
 			if (rx_state==N_RX_IDLE && CanReceiveByte() && clientsocket) {
 				if (doReceive()) {
 					// a byte was received
@@ -423,8 +439,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 		case SERIAL_NULLMODEM_DTR_EVENT: {
 			if ((!DTR_delta) && getDTR()) {
 				// DTR went positive. Try to connect.
-				if (ClientConnect(new TCPClientSocket((char*)hostnamebuffer,
-								(Bit16u)clientport)))
+				if (ClientConnect(NETClientSocket::NETClientFactory(socketType, (char *)hostnamebuffer, clientport)))
 					break; // no more DTR wait event when connected
 			}
 			DTR_delta = getDTR();
@@ -438,7 +453,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CNullModem::updatePortConfig (Bit16u /*divider*/, Bit8u /*lcr*/) {
+void CNullModem::updatePortConfig (uint16_t /*divider*/, uint8_t /*lcr*/) {
 	
 }
 
@@ -447,9 +462,10 @@ void CNullModem::updateMSR () {
 }
 
 bool CNullModem::doReceive () {
-		Bits rxchar = readChar();
+		uint8_t val;
+		Bits rxchar = readChar(val);
 		if (rxchar>=0) {
-			receiveByteEx((Bit8u)rxchar,0);
+			receiveByteEx((uint8_t)rxchar,0);
 			return true;
 		}
 		else if (rxchar==-2) {
@@ -458,7 +474,7 @@ bool CNullModem::doReceive () {
 		return false;
 }
  
-void CNullModem::transmitByte (Bit8u val, bool first) {
+void CNullModem::transmitByte (uint8_t val, bool first) {
  	// transmit it later in THR_Event
 	if (first) setEvent(SERIAL_THR_EVENT, bytetime/8);
 	else setEvent(SERIAL_TX_EVENT, bytetime);
@@ -469,8 +485,8 @@ void CNullModem::transmitByte (Bit8u val, bool first) {
 	WriteChar(val);
 }
 
-Bits CNullModem::TelnetEmulation(Bit8u data) {
-	Bit8u response[3];
+Bits CNullModem::TelnetEmulation(uint8_t data) {
+	uint8_t response[3];
 	if (telClient.inIAC) {
 		if (telClient.recCommand) {
 			if ((data != 0) && (data != 1) && (data != 3)) {
@@ -587,7 +603,7 @@ void CNullModem::setBreak (bool /*value*/) {
 /*****************************************************************************/
 void CNullModem::setRTSDTR(bool xrts, bool xdtr) {
 	if (!transparent) {
-		Bit8u control[2];
+		uint8_t control[2];
 		control[0]=0xff;
 		control[1]=0x0;
 		if (xrts) control[1]|=1;

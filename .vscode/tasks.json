@@ -1,0 +1,173 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build Windows SDL1 Debug Win32",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "/property:GenerateFullPaths=true",
+                "/p:Configuration=Debug",
+                "/p:Platform=Win32",
+                "/t:build",
+                "vs/dosbox-x.sln"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build Windows SDL1 Debug Win64",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "/property:GenerateFullPaths=true",
+                "/p:Configuration=Debug",
+                "/p:Platform=x64",
+                "/t:build",
+                "vs/dosbox-x.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build Windows SDL1 Release Win32",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "/property:GenerateFullPaths=true",
+                "/p:Configuration=Release",
+                "/p:Platform=Win32",
+                "/t:build",
+                "vs/dosbox-x.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build Windows SDL1 Release Win64",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "/property:GenerateFullPaths=true",
+                "/p:Configuration=Release",
+                "/p:Platform=x64",
+                "/t:build",
+                "vs/dosbox-x.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build Windows SDL2 Debug Win32",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "/property:GenerateFullPaths=true",
+                "/p:Configuration='Debug SDL2'",
+                "/p:Platform=Win32",
+                "/t:build",
+                "vs/dosbox-x.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build Windows SDL2 Debug Win64",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "/property:GenerateFullPaths=true",
+                "/p:Configuration='Debug SDL2'",
+                "/p:Platform=x64",
+                "/t:build",
+                "vs/dosbox-x.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build Windows SDL2 Release Win32",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "/property:GenerateFullPaths=true",
+                "/p:Configuration='Release SDL2'",
+                "/p:Platform=Win32",
+                "/t:build",
+                "vs/dosbox-x.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build Windows SDL2 Release Win64",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "/property:GenerateFullPaths=true",
+                "/p:Configuration='Release SDL2'",
+                "/p:Platform=x64",
+                "/t:build",
+                "vs/dosbox-x.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build MacOS SDL1 Debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/build-debug-macosx",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "build MacOS SDL2 Debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/build-debug-macosx-sdl2",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}

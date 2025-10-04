@@ -1,0 +1,7 @@
+Apple MachO header files.
+It has become necessary to develop an in-tree tool to change MachO dylib dependency commands
+because the official XCode tool has made itself useless with neurotic hand-writing over something
+about link edit data failing to fill a __LINKEDIT segment, as if anybody really cares.
+
+And I copied the header files in case Apple decides to remove them from standard XCode installs too!
+

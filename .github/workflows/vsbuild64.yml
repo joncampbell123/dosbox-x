@@ -1,0 +1,313 @@
+name: 64-bit Visual Studio builds
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  MSBuild64_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - uses: microsoft/setup-msbuild@v2
+      - name: Prepare Visual Studio Win64
+        shell: bash
+        run: |
+          #ls -1 vs/dosbox-x.vcxproj vs/freetype/builds/windows/vc2010/freetype.vcxproj vs/libpdcurses/libpdcurses.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/sdl/VisualC/SDL/SDL.vcxproj vs/sdl/VisualC/SDLmain/SDLmain.vcxproj vs/sdl2/VisualC/SDL/SDL.vcxproj vs/sdl2/VisualC/SDLmain/SDLmain.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/zlib/zlib/zlib.vcxproj | xargs sed -b -i 's/v142/v141/g;s/>10.0</>10.0.22000.0</g'
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Build Visual Studio Win64 SDL1
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=x64 
+          if (-not(Test-Path -Path bin\x64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+          contrib\windows\installer\PatchPE.exe bin\x64\Release\dosbox-x.exe
+      - name: Package Visual Studio Win64 SDL1
+        shell: bash
+        run: |
+          top=`pwd`
+          $top/bin/x64/Release/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
+          cat tests.log
+          mkdir -p $top/package/bin/x64/Release/drivez
+          mkdir -p $top/package/bin/x64/Release/scripts
+          mkdir -p $top/package/bin/x64/Release/shaders
+          mkdir -p $top/package/bin/x64/Release/glshaders
+          mkdir -p $top/package/bin/x64/Release/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/x64/Release/dosbox-x.conf
+          cp $top/bin/x64/Release/dosbox-x.exe $top/package/bin/x64/Release/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/bin/x64/Release/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/bin/x64/Release/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/bin/x64/Release/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/bin/x64/Release/README.txt
+          cp $top/contrib/windows/installer/inpoutx64.dll $top/package/bin/x64/Release/inpoutx64.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/x64/Release/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/x64/Release/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/x64/Release/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/x64/Release/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/x64/Release/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/x64/Release/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/bin/x64/Release/shaders/
+          cp $top/contrib/glshaders/* $top/package/bin/x64/Release/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/bin/x64/Release/languages/
+      - name: Build Visual Studio Win64 SDL2
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=x64
+          if (-not(Test-Path -Path bin\x64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+          contrib\windows\installer\PatchPE.exe bin\x64\"Release SDL2"\dosbox-x.exe
+      - name: Package Visual Studio Win64 SDL2
+        shell: bash
+        run: |
+          top=`pwd`
+          $top/bin/x64/"Release SDL2"/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
+          cat tests.log
+          mkdir -p $top/package/bin/x64/"Release SDL2"/drivez
+          mkdir -p $top/package/bin/x64/"Release SDL2"/scripts
+          mkdir -p $top/package/bin/x64/"Release SDL2"/shaders
+          mkdir -p $top/package/bin/x64/"Release SDL2"/glshaders
+          mkdir -p $top/package/bin/x64/"Release SDL2"/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/x64/"Release SDL2"/dosbox-x.conf
+          cp $top/bin/x64/"Release SDL2"/dosbox-x.exe $top/package/bin/x64/"Release SDL2"/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/bin/x64/"Release SDL2"/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/bin/x64/"Release SDL2"/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/bin/x64/"Release SDL2"/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/bin/x64/"Release SDL2"/README.txt
+          cp $top/contrib/windows/installer/inpoutx64.dll $top/package/bin/x64/"Release SDL2"/inpoutx64.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/x64/"Release SDL2"/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/x64/"Release SDL2"/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/x64/"Release SDL2"/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/x64/"Release SDL2"/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/x64/"Release SDL2"/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/x64/"Release SDL2"/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/bin/x64/"Release SDL2"/shaders/
+          cp $top/contrib/glshaders/* $top/package/bin/x64/"Release SDL2"/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/bin/x64/"Release SDL2"/languages/
+          cp $top/COPYING $top/package/COPYING
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vsbuild-win64-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-vsbuild-win64-${{ env.timestamp }}
+          path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-vsbuild-win64-${{ env.timestamp }}.zip
+
+  MSBuild_ARM64_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - uses: microsoft/setup-msbuild@v2
+      - name: Prepare Visual Studio ARM64
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Build Visual Studio ARM64 SDL1
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false -p:PlatformToolset=v143
+          if (-not(Test-Path -Path bin\ARM64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Package Visual Studio ARM64 SDL1
+        shell: bash
+        run: |
+          top=`pwd`
+          mkdir -p $top/package/bin/ARM64/Release/drivez
+          mkdir -p $top/package/bin/ARM64/Release/scripts
+          mkdir -p $top/package/bin/ARM64/Release/shaders
+          mkdir -p $top/package/bin/ARM64/Release/glshaders
+          mkdir -p $top/package/bin/ARM64/Release/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM64/Release/dosbox-x.conf
+          cp $top/bin/ARM64/Release/dosbox-x.exe $top/package/bin/ARM64/Release/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/bin/ARM64/Release/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/bin/ARM64/Release/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/bin/ARM64/Release/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/bin/ARM64/Release/README.txt
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/ARM64/Release/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/ARM64/Release/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/ARM64/Release/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/ARM64/Release/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM64/Release/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/ARM64/Release/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/bin/ARM64/Release/shaders/
+          cp $top/contrib/glshaders/* $top/package/bin/ARM64/Release/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/bin/ARM64/Release/languages/
+      - name: Build Visual Studio ARM64 SDL2
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false -p:PlatformToolset=v143
+          if (-not(Test-Path -Path bin\ARM64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Package Visual Studio ARM64 SDL2
+        shell: bash
+        run: |
+          top=`pwd`
+          mkdir -p $top/package/bin/ARM64/"Release SDL2"/drivez
+          mkdir -p $top/package/bin/ARM64/"Release SDL2"/scripts
+          mkdir -p $top/package/bin/ARM64/"Release SDL2"/shaders
+          mkdir -p $top/package/bin/ARM64/"Release SDL2"/glshaders
+          mkdir -p $top/package/bin/ARM64/"Release SDL2"/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM64/"Release SDL2"/dosbox-x.conf
+          cp $top/bin/ARM64/"Release SDL2"/dosbox-x.exe $top/package/bin/ARM64/"Release SDL2"/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/bin/ARM64/"Release SDL2"/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/bin/ARM64/"Release SDL2"/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/bin/ARM64/"Release SDL2"/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/bin/ARM64/"Release SDL2"/README.txt
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/ARM64/"Release SDL2"/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/ARM64/"Release SDL2"/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/ARM64/"Release SDL2"/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/ARM64/"Release SDL2"/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM64/"Release SDL2"/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/ARM64/"Release SDL2"/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/bin/ARM64/"Release SDL2"/shaders/
+          cp $top/contrib/glshaders/* $top/package/bin/ARM64/"Release SDL2"/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/bin/ARM64/"Release SDL2"/languages/
+          cp $top/COPYING $top/package/COPYING
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vsbuild-arm64-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-vsbuild-arm64-${{ env.timestamp }}
+          path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-vsbuild-arm64-${{ env.timestamp }}.zip
+  MS2022Build64_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v5
+      - uses: microsoft/setup-msbuild@v2
+      - name: Prepare Visual Studio 2022 build
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Build Visual Studio Win32 SDL1
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=Win32 -p:PlatformToolset=v143
+          if (-not(Test-Path -Path bin\Win32\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Build Visual Studio Win32 SDL2
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=Win32 -p:PlatformToolset=v143
+          if (-not(Test-Path -Path bin\Win32\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Build Visual Studio Win64 SDL1
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v143
+          if (-not(Test-Path -Path bin\x64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Build Visual Studio Win64 SDL2
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=x64 -p:PlatformToolset=v143
+          if (-not(Test-Path -Path bin\x64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Package Visual Studio 2022 build
+        shell: bash
+        run: |
+          top=`pwd`
+          #$top/bin/Win32/Release/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
+          #cat tests.log
+          mkdir -p $top/package/drivez
+          mkdir -p $top/package/scripts
+          mkdir -p $top/package/shaders
+          mkdir -p $top/package/glshaders
+          mkdir -p $top/package/languages
+          mkdir -p $top/vs-bin
+          cp $top/bin/Win32/Release/dosbox-x.exe $top/package/dosbox-x_VS2022x86_SDL1.exe
+          cp $top/bin/Win32/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_VS2022x86_SDL2.exe
+          cp $top/bin/x64/Release/dosbox-x.exe $top/package/dosbox-x_VS2022x64_SDL1.exe
+          cp $top/bin/x64/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_VS2022x64_SDL2.exe
+          cp $top/bin/Win32/Release/dosbox-x.exe $top/vs-bin/dosbox-x_VS2022x86_SDL1.exe
+          cp $top/bin/Win32/"Release SDL2"/dosbox-x.exe $top/vs-bin/dosbox-x_VS2022x86_SDL2.exe
+          cp $top/bin/x64/Release/dosbox-x.exe $top/vs-bin/dosbox-x_VS2022x64_SDL1.exe
+          cp $top/bin/x64/"Release SDL2"/dosbox-x.exe $top/vs-bin/dosbox-x_VS2022x64_SDL2.exe
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/dosbox-x.conf
+          cp $top/CHANGELOG $top/package/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/README.txt
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/inpout32.dll
+          cp $top/contrib/windows/installer/inpoutx64.dll $top/package/inpoutx64.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/shaders/
+          cp $top/contrib/glshaders/* $top/package/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/package/languages/
+          cp $top/COPYING $top/package/COPYING
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vs2022build-${{ env.timestamp }}-experimental.zip *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dosbox-x-vs2022build-${{ env.timestamp }}-experimental
+          path: ${{ github.workspace }}/package/

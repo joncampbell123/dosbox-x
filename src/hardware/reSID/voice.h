@@ -12,9 +12,9 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU General Public License along
+//  with this program; if not, write to the Free Software Foundation, Inc.,
+//  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 //  ---------------------------------------------------------------------------
 
 #ifndef __VOICE_H__
@@ -72,7 +72,7 @@ RESID_INLINE
 sound_sample Voice::output()
 {
   // Multiply oscillator output with envelope output.
-  return (wave.output() - wave_zero)*envelope.output() + voice_DC;
+  return ((sound_sample)wave.output() - (sound_sample)wave_zero)*(sound_sample)envelope.output() + (sound_sample)voice_DC;
 }
 
 #endif // RESID_INLINING || defined(__VOICE_CC__)

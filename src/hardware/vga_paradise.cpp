@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,19 +11,26 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
 #include "dosbox.h"
+#include "logging.h"
 #include "setup.h"
 #include "vga.h"
 #include "inout.h"
 #include "mem.h"
 
-typedef struct {
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
+extern unsigned int vbe_window_granularity;
+extern unsigned int vbe_window_size;
+
+typedef struct SVGA_PVGA1A_DATA_t {
 	Bitu PR0A;
 	Bitu PR0B;
 	Bitu PR1;
@@ -52,13 +59,19 @@ static void bank_setup_pvga1a() {
 		// TODO: Requirements are not compatible with vga_memory implementation.
 	} else {
 		// Single bank config is straightforward
-		vga.svga.bank_read = vga.svga.bank_write = pvga1a.PR0A;
-		vga.svga.bank_size = 4*1024;
+		vga.svga.bank_read = vga.svga.bank_write = (uint8_t)pvga1a.PR0A;
+
+		if (vbe_window_granularity > 0)
+			vga.svga.bank_size = vbe_window_granularity; /* allow different sizes for dev testing */
+		else
+			vga.svga.bank_size = 4*1024;
+
 		VGA_SetupHandlers();
 	}
 }
 
 void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (pvga1a.locked() && reg >= 0x09 && reg <= 0x0e)
 		return;
 
@@ -77,7 +90,7 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 		break;
 	case 0x0b:
 		// Memory size. We only allow to mess with bit 3 here (enable bank B) - this may break some detection schemes
-		pvga1a.PR1 = (pvga1a.PR1 & ~0x08) | (val & 0x08);
+		pvga1a.PR1 = (pvga1a.PR1 & ~0x08u) | (val & 0x08u);
 		bank_setup_pvga1a();
 		break;
 	case 0x0c:
@@ -90,8 +103,8 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 		// TODO: Implement bit 2 (CRT address doubling - this mechanism is present in other chipsets as well,
 		// but not implemented in DosBox core)
 		pvga1a.PR3 = val;
-		vga.config.display_start = (vga.config.display_start & 0xffff) | ((val & 0x18)<<13);
-		vga.config.cursor_start = (vga.config.cursor_start & 0xffff) | ((val & 0x18)<<13);
+		vga.config.display_start = (vga.config.display_start & 0xffffu) | ((val & 0x18u)<<13u);
+		vga.config.cursor_start = (vga.config.cursor_start & 0xffffu) | ((val & 0x18u)<<13u);
 		break;
 	case 0x0e:
 		// Video control
@@ -109,6 +122,7 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 }
 
 Bitu read_p3cf_pvga1a(Bitu reg,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (pvga1a.locked() && reg >= 0x09 && reg <= 0x0e)
 		return 0x0;
 
@@ -147,7 +161,7 @@ void FinishSetMode_PVGA1A(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	IO_Write(0x3ce, 0x0a);
 	IO_Write(0x3cf, 0x00);
 	IO_Write(0x3ce, 0x0b);
-	Bit8u val = IO_Read(0x3cf);
+	uint8_t val = IO_Read(0x3cf);
 	IO_Write(0x3cf, val & ~0x08);
 	IO_Write(0x3ce, 0x0c);
 	IO_Write(0x3cf, 0x00);
@@ -156,20 +170,18 @@ void FinishSetMode_PVGA1A(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	IO_Write(0x3ce, 0x0e);
 	IO_Write(0x3cf, 0x00);
 	IO_Write(0x3ce, 0x0f);
-	IO_Write(0x3cf, oldlock);
+	IO_Write(0x3cf, (uint8_t)oldlock);
 
 	if (svga.determine_mode)
 		svga.determine_mode();
 
 	if(vga.mode != M_VGA) {
 		vga.config.compatible_chain4 = false;
-		vga.vmemwrap = vga.vmemsize;
+//		vga.vmemwrap = vga.mem.memsize;
 	} else {
 		vga.config.compatible_chain4 = true;
-		vga.vmemwrap = 256*1024;
+//		vga.vmemwrap = 256*1024;
 	}
-
-	vga.config.compatible_chain4 = false;
 
 	VGA_SetupHandlers();
 }
@@ -200,7 +212,7 @@ Bitu GetClock_PVGA1A() {
 }
 
 bool AcceptsMode_PVGA1A(Bitu mode) {
-	return VideoModeMemSize(mode) < vga.vmemsize;
+	return VideoModeMemSize(mode) < vga.mem.memsize;
 }
 
 void SVGA_Setup_ParadisePVGA1A(void) {
@@ -219,26 +231,38 @@ void SVGA_Setup_ParadisePVGA1A(void) {
 	VGA_SetClock(3,35900);
 
 	// Adjust memory, default to 512K
-	if (vga.vmemsize == 0)
-		vga.vmemsize = 512*1024;
+	if (vga.mem.memsize == 0)
+		vga.mem.memsize = 512*1024;
 
-	if (vga.vmemsize < 512*1024)	{
-		vga.vmemsize = 256*1024;
+	if (vga.mem.memsize < 512*1024)	{
+		vga.mem.memsize = 256*1024;
 		pvga1a.PR1 = 1<<6;
-	} else if (vga.vmemsize > 512*1024) {
-		vga.vmemsize = 1024*1024;
+	} else if (vga.mem.memsize > 512*1024) {
+		vga.mem.memsize = 1024*1024;
 		pvga1a.PR1 = 3<<6;
 	} else {
 		pvga1a.PR1 = 2<<6;
 	}
 
-	// Paradise ROM signature
-	PhysPt rom_base=PhysMake(0xc000,0);
-	phys_writeb(rom_base+0x007d,'V');
-	phys_writeb(rom_base+0x007e,'G');
-	phys_writeb(rom_base+0x007f,'A');
-	phys_writeb(rom_base+0x0080,'=');
-
 	IO_Write(0x3cf, 0x05); // Enable!
 }
 
+// save state support
+void POD_Save_VGA_Paradise( std::ostream& stream )
+{
+	// static globals
+
+
+	// - pure struct data
+	WRITE_POD( &pvga1a, pvga1a );
+}
+
+
+void POD_Load_VGA_Paradise( std::istream& stream )
+{
+	// static globals
+
+
+	// - pure struct data
+	READ_POD( &pvga1a, pvga1a );
+}

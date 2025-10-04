@@ -1,0 +1,85 @@
+---
+app-id: com.dosbox_x.DOSBox-X
+runtime: org.freedesktop.Platform
+runtime-version: '22.08'
+sdk: org.freedesktop.Sdk
+
+command: dosbox-x
+
+finish-args:         # flatpak permissions
+  - --device=all     # needed for gamepads and serial/parallel
+  - --share=ipc      # needed for X11
+  - --share=network  # needed for networking (NE2000, IPX)
+  - --socket=x11     # default to X11 due to fullscreen issues
+  - --socket=pulseaudio
+  - --filesystem=home
+
+cleanup:
+  - '/include'
+  - '/lib/pkgconfig'
+  - '/share/aclocal'
+  - '/share/man'
+  - '*.la'
+  - '*.a'
+  - '/share/doc'
+
+modules:
+
+  # Build Mesa GLU
+  - name: GLU
+    config-opts:
+      - --disable-static
+    sources:
+      - type: archive
+        url: https://ftp.osuosl.org/pub/blfs/conglomeration/glu/glu-9.0.2.tar.xz
+        sha256: 6e7280ff585c6a1d9dfcdf2fca489251634b3377bfc33c29e4002466a38d02d4
+    cleanup:
+      - /include
+      - /lib/*.a
+      - /lib/*.la
+      - /lib/pkgconfig
+
+  # Build FluidSynth
+  - name: FluidSynth
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DLIB_SUFFIX=
+    cleanup:
+      - /bin
+      - /include
+      - /lib/pkgconfig
+      - /share/man
+      - "*.so"
+    sources:
+      - type: archive
+        url: https://github.com/FluidSynth/fluidsynth/archive/v2.2.9.tar.gz
+        sha256: bc62494ec2554fdcfc01512a2580f12fc1e1b01ce37a18b370dd7902af7a8159
+
+  # Build libslirp for networking
+  - name: libslirp
+    buildsystem: meson
+    cleanup:
+      - "/include"
+      - "/lib/pkgconfig"
+    sources:
+      - type: git
+        url: https://gitlab.freedesktop.org/slirp/libslirp
+        tag: "v4.7.0"
+    x-checker-data:
+      type: anitya
+      project-id: 96796
+      stable-only: true
+      tag-template: v$version
+
+  # Build DOSBox-X SDL2
+  - name: dosbox-x
+    buildsystem: autotools
+    config-opts:
+      - --enable-debug=heavy
+      - --enable-sdl2
+    sources:
+      - type: dir
+        path: ../..
+    post-install:
+      - install -Dm644 /app/share/icons/hicolor/scalable/apps/dosbox-x.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
+      - desktop-file-edit --set-key=Icon --set-value=${FLATPAK_ID} /app/share/applications/${FLATPAK_ID}.desktop

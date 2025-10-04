@@ -1,6 +1,7 @@
 
 #include <assert.h>
 #include "dosbox.h"
+#include "logging.h"
 #include "mem.h"
 #include "cpu.h"
 #include "bios.h"
@@ -21,36 +22,51 @@
 #include "regionalloctracking.h"
 #include "parport.h"
 #include <time.h>
+#if !defined(ANDROID) && !defined(__ANDROID__) && !defined(__OpenBSD__)
+/* Newer NDKs doesn't have this header.
+   It doesn't matter anyway */
 #include <sys/timeb.h>
+#endif
 
-RegionAllocTracking::Block::Block() : start(0), end(0), free(true) {
+/* Really, Microsoft, Really?? You're the only compiler I know that doesn't understand ssize_t! */
+#if defined(_MSC_VER)
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
+RegionAllocTracking::Block::Block() : start(0), end(0), free(true), fixed(false) {
 }
 
-RegionAllocTracking::RegionAllocTracking() : _min(0), _max(~((Bitu)0)), topDownAlloc(false) {
+RegionAllocTracking::RegionAllocTracking() : _min(0), _max(~((Bitu)0)), _max_nonfixed(~((Bitu)0)), topDownAlloc(false) {
+}
+
+void RegionAllocTracking::setMaxDynamicAllocationAddress(Bitu _new_max) {
+	if (_new_max != 0) /* nonzero to set */
+		_max_nonfixed = _new_max;
+	else /* zero to clear */
+		_max_nonfixed = ~((Bitu)0);
 }
 
 Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at) {
-	size_t si;
-	Bitu base;
-
-	if (bytes == 0) return alloc_failed;
-	if (alignment > 1 && must_be_at != 0) return alloc_failed; /* avoid nonsense! */
+	if (bytes == 0u) return alloc_failed;
+	if (alignment > 1u && must_be_at != 0u) return alloc_failed; /* avoid nonsense! */
 	if (who == NULL) who = "";
 	if (alist.empty()) E_Exit("getMemory called when '%s' allocation list not initialized",name.c_str());
 
 	/* alignment must be power of 2 */
-	if (alignment == 0)
-		alignment = 1;
-	else if ((alignment & (alignment-1)) != 0)
+	if (alignment == 0u)
+		alignment = 1u;
+	else if ((alignment & (alignment-1u)) != 0u)
 		E_Exit("getMemory called with non-power of 2 alignment value %u on '%s'",(int)alignment,name.c_str());
 
 	{
 		/* allocate downward from the top */
-		si = topDownAlloc ? (alist.size() - 1) : 0;
-		while (si >= 0) {
+		size_t si = topDownAlloc ? (alist.size() - 1u) : 0u;
+		while ((ssize_t)si >= 0) {
 			Block &blk = alist[si];
+			Bitu base;
 
-			if (!blk.free || (blk.end+1-blk.start) < bytes) {
+			if (!blk.free || (blk.end+1u-blk.start) < bytes) {
 				if (topDownAlloc) si--;
 				else si++;
 				continue;
@@ -58,110 +74,77 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 
 			/* if must_be_at != 0 the caller wants a block at a very specific location */
 			if (must_be_at != 0) {
-				/* well, is there room to fit the forced block? if it starts before
-				 * this block or the forced block would end past the block then, no. */
-				if (must_be_at < blk.start || (must_be_at+bytes-1) > blk.end) {
-					if (topDownAlloc) si--;
-					else si++;
-					continue;
-				}
-
 				base = must_be_at;
-				if (base == blk.start && (base+bytes-1) == blk.end) { /* easy case: perfect match */
-					blk.free = false;
-					blk.who = who;
-				}
-				else if (base == blk.start) { /* need to split */
-					Block newblk = blk; /* this becomes the new block we insert */
-					blk.start = base+bytes;
-					newblk.end = base+bytes-1;
-					newblk.free = false;
-					newblk.who = who;
-					alist.insert(alist.begin()+si,newblk);
-				}
-				else if ((base+bytes-1) == blk.end) { /* need to split */
-					Block newblk = blk; /* this becomes the new block we insert */
-					blk.end = base-1;
-					newblk.start = base;
-					newblk.free = false;
-					newblk.who = who;
-					alist.insert(alist.begin()+si+1,newblk);
-				}
-				else { /* complex split */
-					Block newblk = blk,newblk2 = blk; /* this becomes the new block we insert */
-					Bitu orig_end = blk.end;
-					blk.end = base-1;
-					newblk.start = base+bytes;
-					newblk.end = orig_end;
-					alist.insert(alist.begin()+si+1,newblk);
-					newblk2.start = base;
-					newblk2.end = base+bytes-1;
-					newblk2.free = false;
-					newblk2.who = who;
-					alist.insert(alist.begin()+si+1,newblk2);
-				}
+				assert(alignment == 1u);
 			}
 			else {
 				if (topDownAlloc) {
-					base = blk.end + 1 - bytes; /* allocate downward from the top */
+					base = blk.end + 1u - bytes; /* allocate downward from the top */
 					assert(base >= blk.start);
+
+					if (_max_nonfixed < _max) {
+						/* if instructed to by caller, disallow any dynamic allocation above a certain memory limit */
+						if ((_max_nonfixed + 1u) >= bytes) {
+							const Bitu nbase = _max_nonfixed + 1u - bytes;
+							if (base > nbase) base = nbase;
+						}
+						else {
+							base = 0;
+						}
+					}
 				}
 				else {
 					base = blk.start; /* allocate upward from the bottom */
 					assert(base <= blk.end);
-					base += alignment - 1; /* alignment round up */
+					base += alignment - 1u; /* alignment round up */
+
+					/* TODO: max_nonfixed... */
 				}
+			}
 
-				base &= ~(alignment - 1); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
-				if (base < blk.start || (base+bytes-1) > blk.end) { /* if not possible after alignment, then skip */
-					if (topDownAlloc) si--;
-					else si++;
-					continue;
-				}
+			base &= ~(alignment - 1u); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
+			if (base < blk.start || (base+bytes-1u) > blk.end) {
+				if (topDownAlloc) si--;
+				else si++;
+				continue;
+			}
 
-				if (topDownAlloc) {
-					/* easy case: base matches start, just take the block! */
-					if (base == blk.start) {
-						blk.free = false;
-						blk.who = who;
-						return blk.start;
-					}
-
-					/* not-so-easy: need to split the block and claim the upper half */
-					RegionAllocTracking::Block newblk = blk; /* this becomes the new block we insert */
-					newblk.start = base;
-					newblk.free = false;
-					newblk.who = who;
-					blk.end = base - 1;
-
-					if (blk.start > blk.end) {
-						sanityCheck();
-						abort();
-					}
-
-					alist.insert(alist.begin()+si+1,newblk);
-				}
-				else {
-					if ((base+bytes-1) == blk.end) {
-						blk.free = false;
-						blk.who = who;
-						return blk.start;
-					}
-
-					/* not-so-easy: need to split the block and claim the lower half */
-					RegionAllocTracking::Block newblk = blk; /* this becomes the new block we insert */
-					newblk.start = base+bytes;
-					blk.free = false;
-					blk.who = who;
-					blk.end = base+bytes-1;
-
-					if (blk.start > blk.end) {
-						sanityCheck();
-						abort();
-					}
-
-					alist.insert(alist.begin()+si+1,newblk);
-				}
+			if (base == blk.start && (base+bytes-1u) == blk.end) { /* easy case: perfect match */
+				blk.fixed = (must_be_at != 0u);
+				blk.free = false;
+				blk.who = who;
+			}
+			else if (base == blk.start) { /* need to split */
+				Block newblk = blk; /* this becomes the new block we insert */
+				blk.start = base+bytes;
+				newblk.end = base+bytes-1u;
+				newblk.fixed = (must_be_at != 0u);
+				newblk.free = false;
+				newblk.who = who;
+				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si,newblk);
+			}
+			else if ((base+bytes-1) == blk.end) { /* need to split */
+				Block newblk = blk; /* this becomes the new block we insert */
+				blk.end = base-1;
+				newblk.start = base;
+				newblk.fixed = (must_be_at != 0u);
+				newblk.free = false;
+				newblk.who = who;
+				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
+			}
+			else { /* complex split */
+				Block newblk = blk,newblk2 = blk; /* this becomes the new block we insert */
+				Bitu orig_end = blk.end;
+				blk.end = base-1u;
+				newblk.start = base+bytes;
+				newblk.end = orig_end;
+				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
+				newblk2.start = base;
+				newblk2.end = base+bytes-1u;
+				newblk2.fixed = (must_be_at != 0u);
+				newblk2.free = false;
+				newblk2.who = who;
+				alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk2);
 			}
 
 			LOG(LOG_BIOS,LOG_DEBUG)("getMemory in '%s' (0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x",name.c_str(),(int)bytes,who,(int)alignment,(int)must_be_at,(int)base);
@@ -201,6 +184,7 @@ void RegionAllocTracking::initSetRange(Bitu start,Bitu end) {
 	alist.clear();
 	_min = start;
 	_max = end;
+	_max_nonfixed = end;
 
 	x.end = _max;
 	x.free = true;
@@ -268,14 +252,14 @@ Bitu RegionAllocTracking::freeUnusedMinToLoc(Bitu phys) {
 void RegionAllocTracking::compactFree() {
 	size_t si=0;
 
-	while ((si+1) < alist.size()) {
+	while ((si+1u) < alist.size()) {
 		RegionAllocTracking::Block &blk1 = alist[si];
-		RegionAllocTracking::Block &blk2 = alist[si+1];
+		RegionAllocTracking::Block &blk2 = alist[si+1u];
 
 		if (blk1.free && blk2.free) {
-			if ((blk1.end+(Bitu)1) == blk2.start) {
+			if ((blk1.end+(Bitu)1u) == blk2.start) {
 				blk1.end = blk2.end;
-				alist.erase(alist.begin()+si+1);
+				alist.erase(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u);
 				continue;
 			}
 		}
@@ -300,6 +284,7 @@ bool RegionAllocTracking::freeMemory(Bitu offset) {
 				name.c_str(),(unsigned long)offset,blk.who.c_str(),(unsigned long)blk.start,(unsigned long)blk.end);
 
 			if (!blk.free) {
+				blk.fixed = false;
 				blk.free = true;
 				blk.who.clear();
 				compactFree();

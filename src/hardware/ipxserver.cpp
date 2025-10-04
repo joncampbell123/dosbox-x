@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2021  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -23,6 +23,7 @@
 
 #include "dosbox.h"
 #include "ipxserver.h"
+#include "logging.h"
 #include "timer.h"
 #include <stdlib.h>
 #include <string.h>
@@ -33,15 +34,16 @@ UDPsocket ipxServerSocket;  // Listening server socket
 
 packetBuffer connBuffer[SOCKETTABLESIZE];
 
-Bit8u inBuffer[IPXBUFFERSIZE];
+uint8_t inBuffer[IPXBUFFERSIZE];
+PackedIP ipconnguest[SOCKETTABLESIZE]; // the MAC address associated with each connection
 IPaddress ipconn[SOCKETTABLESIZE];  // Active TCP/IP connection 
 UDPsocket tcpconn[SOCKETTABLESIZE];  // Active TCP/IP connections
 SDLNet_SocketSet serverSocketSet;
 TIMER_TickHandler* serverTimer;
 
-Bit8u packetCRC(Bit8u *buffer, Bit16u bufSize) {
-	Bit8u tmpCRC = 0;
-	Bit16u i;
+uint8_t packetCRC(uint8_t *buffer, uint16_t bufSize) {
+	uint8_t tmpCRC = 0;
+	uint16_t i;
 	for(i=0;i<bufSize;i++) {
 		tmpCRC ^= *buffer;
 		buffer++;
@@ -50,8 +52,8 @@ Bit8u packetCRC(Bit8u *buffer, Bit16u bufSize) {
 }
 
 /*
-static void closeSocket(Bit16u sockidx) {
-	Bit32u host;
+static void closeSocket(uint16_t sockidx) {
+	uint32_t host;
 
 	host = ipconn[sockidx].host;
 	LOG_MSG("IPXSERVER: %d.%d.%d.%d disconnected", CONVIP(host));
@@ -63,10 +65,10 @@ static void closeSocket(Bit16u sockidx) {
 }
 */
 
-static void sendIPXPacket(Bit8u *buffer, Bit16s bufSize) {
-	Bit16u srcport, destport;
-	Bit32u srchost, desthost;
-	Bit16u i;
+static void sendIPXPacket(uint8_t *buffer, int16_t bufSize) {
+	uint16_t srcport, destport;
+	uint32_t srchost, desthost;
+	uint16_t i;
 	Bits result;
 	UDPpacket outPacket;
 	outPacket.channel = -1;
@@ -81,12 +83,11 @@ static void sendIPXPacket(Bit8u *buffer, Bit16s bufSize) {
 
 	srcport = tmpHeader->src.addr.byIP.port;
 	destport = tmpHeader->dest.addr.byIP.port;
-	
 
 	if(desthost == 0xffffffff) {
 		// Broadcast
 		for(i=0;i<SOCKETTABLESIZE;i++) {
-			if(connBuffer[i].connected && ((ipconn[i].host != srchost)||(ipconn[i].port!=srcport))) {
+			if(connBuffer[i].connected && ((ipconnguest[i].host != srchost)||(ipconnguest[i].port!=srcport))) {
 				outPacket.address = ipconn[i];
 				result = SDLNet_UDP_Send(ipxServerSocket,-1,&outPacket);
 				if(result == 0) {
@@ -99,7 +100,7 @@ static void sendIPXPacket(Bit8u *buffer, Bit16s bufSize) {
 	} else {
 		// Specific address
 		for(i=0;i<SOCKETTABLESIZE;i++) {
-			if((connBuffer[i].connected) && (ipconn[i].host == desthost) && (ipconn[i].port == destport)) {
+			if((connBuffer[i].connected) && (ipconnguest[i].host == desthost) && (ipconnguest[i].port == destport)) {
 				outPacket.address = ipconn[i];
 				result = SDLNet_UDP_Send(ipxServerSocket,-1,&outPacket);
 				if(result == 0) {
@@ -122,7 +123,7 @@ bool IPX_isConnectedToServer(Bits tableNum, IPaddress ** ptrAddr) {
 	return connBuffer[tableNum].connected;
 }
 
-static void ackClient(IPaddress clientAddr) {
+static void ackClient(IPaddress clientAddr,bool extAck,PackedIP *guestmac) {
 	IPXHeader regHeader;
 	UDPpacket regPacket;
 
@@ -138,6 +139,12 @@ static void ackClient(IPaddress clientAddr) {
 	SDLNet_Write16(0x2, regHeader.src.socket);
 	regHeader.transControl = 0;
 
+	/* This is a way for the client to know whether the extension worked or not */
+	if (extAck && guestmac != NULL) {
+		memcpy(&regHeader.dest.addr.byNode,guestmac,6);
+		regHeader.transControl = (unsigned char)'M';
+	}
+
 	regPacket.data = (Uint8 *)&regHeader;
 	regPacket.len = sizeof(regHeader);
 	regPacket.maxlen = sizeof(regHeader);
@@ -152,8 +159,8 @@ static void IPX_ServerLoop() {
 
 	//char regString[] = "IPX Register\0";
 
-	Bit16u i;
-	Bit32u host;
+	uint16_t i;
+	uint32_t host;
 	Bits result;
 
 	inPacket.channel = -1;
@@ -167,30 +174,43 @@ static void IPX_ServerLoop() {
 		// For this, I just spoofed the echo protocol packet designation 0x02
 		IPXHeader *tmpHeader;
 		tmpHeader = (IPXHeader *)&inBuffer[0];
-	
+
 		// Check to see if echo packet
 		if(SDLNet_Read16(tmpHeader->dest.socket) == 0x2) {
-			// Null destination node means its a server registration packet
+			// Null destination node means it's a server registration packet
 			if(tmpHeader->dest.addr.byIP.host == 0x0) {
 				UnpackIP(tmpHeader->src.addr.byIP, &tmpAddr);
 				for(i=0;i<SOCKETTABLESIZE;i++) {
 					if(!connBuffer[i].connected) {
-						// Use prefered host IP rather than the reported source IP
+						bool extAck = false;
+
+						// Use preferred host IP rather than the reported source IP
 						// It may be better to use the reported source
 						ipconn[i] = inPacket.address;
+
+						// Other DOSBox forks may expect the MAC address to match the IP host + port combined. Default behavior.
+						ipconnguest[i].host = inPacket.address.host;
+						ipconnguest[i].port = inPacket.address.port;
+
+						// Allow client to register their own MAC address. Guest MAC address sits just after header at offset 30.
+						if (tmpHeader->transControl == (unsigned char)'M' && inPacket.len >= (30+6)) {
+							LOG_MSG("IPXSERVER: Allowing client to register their own MAC address (DOSBox-X extension) %02x:%02x:%02x:%02x:%02x:%02x",
+								inBuffer[30],inBuffer[31],inBuffer[32],inBuffer[33],inBuffer[34],inBuffer[35]);
+							memcpy(&ipconnguest[i],&inBuffer[30],6);
+							extAck = true;
+						}
 
 						connBuffer[i].connected = true;
 						host = ipconn[i].host;
 						LOG_MSG("IPXSERVER: Connect from %d.%d.%d.%d", CONVIP(host));
-						ackClient(inPacket.address);
+						ackClient(inPacket.address,extAck,&ipconnguest[i]);
 						return;
 					} else {
-						if((ipconn[i].host == tmpAddr.host) && (ipconn[i].port == tmpAddr.port)) {
-
+						if((ipconnguest[i].host == tmpAddr.host) && (ipconnguest[i].port == tmpAddr.port)) {
 							LOG_MSG("IPXSERVER: Reconnect from %d.%d.%d.%d", CONVIP(tmpAddr.host));
 							// Update anonymous port number if changed
 							ipconn[i].port = inPacket.address.port;
-							ackClient(inPacket.address);
+							ackClient(inPacket.address,false,&ipconnguest[i]);
 							return;
 						}
 					}
@@ -200,7 +220,7 @@ static void IPX_ServerLoop() {
 		}
 
 		// IPX packet is complete.  Now interpret IPX header and send to respective IP address
-		sendIPXPacket((Bit8u *)inPacket.data, inPacket.len);
+		sendIPXPacket((uint8_t *)inPacket.data, inPacket.len);
 	}
 }
 
@@ -209,8 +229,8 @@ void IPX_StopServer() {
 	SDLNet_UDP_Close(ipxServerSocket);
 }
 
-bool IPX_StartServer(Bit16u portnum) {
-	Bit16u i;
+bool IPX_StartServer(uint16_t portnum) {
+	uint16_t i;
 
 	if(!SDLNet_ResolveHost(&ipxServerIp, NULL, portnum)) {
 	
@@ -225,9 +245,5 @@ bool IPX_StartServer(Bit16u portnum) {
 	}
 	return false;
 }
-
-
-// save state support
-void *IPX_ServerLoop_PIC_Timer = (void*)IPX_ServerLoop;
 
 #endif
