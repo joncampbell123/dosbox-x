@@ -4633,6 +4633,13 @@ void DOSBOX_SetupConfigSections(void) {
             "Set either \"ipx=true\" in [ipx] section or \"ne2000=true\" in [ne2000] section for a full network redirector environment.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("mcb corruption becomes application free memory",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If MCB chain corruption occurs following the DOS program PSP segment and the DOS program does anything to cause memory allocation,"
+                    "make a new free memory block in it's place instead of halting emulation with an MCB chain error. Some DOS programs are sloppy"
+                    "with memory to corrupt the MCB chain after itself in memory. This is apparently real MS-DOS behavior, set to true to enable."
+                    "If set to false, all MCB chain corruption will halt emulation as DOSBox forks typically do already.");
+    Pbool->SetBasic(true);
+
     Phex = secprop->Add_hex("minimum dos initial private segment", Property::Changeable::WhenIdle,0);
     Phex->Set_help("In non-mainline mapping mode, where DOS structures are allocated from base memory, this sets the\n"
             "minimum segment value. Recommended value is 0x70. You may reduce the value down to 0x50 if freeing\n"
