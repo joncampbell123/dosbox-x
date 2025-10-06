@@ -1,4 +1,6 @@
 Next version
+  - Debugger: DOS MCBS command now also prints the segment immediately
+    following the last MCB block (joncampbell123).
   - Tseng ET3000/ET4000: Update Status register 3DAh behavior when emulating
     Tseng chipsets to reflect Tseng datasheet, and VGAKIT SVGA detection code
     expectations. Bit 7 is expected, as documented by Tseng, to be the inverse
