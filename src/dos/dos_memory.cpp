@@ -28,6 +28,8 @@
 // uncomment for alloc/free debug messages
 #define DEBUG_ALLOC
 
+extern bool auto_repair_dos_psp_mcb_corruption;
+
 uint16_t CONV_MAX_SEG = 0xA000;
 Bitu UMB_START_SEG = 0x9FFF;
 /* FIXME: This should be a variable that reflects the last RAM segment.
@@ -95,7 +97,7 @@ void DOS_CompressMemory(uint16_t first_segment=0/*default*/,uint32_t healfrom=0x
 			 * block header. Real MS-DOS appears in this case to just scan up to the last valid block and
 			 * then right after it, write a new free MCB block there. We can't do this for the split memory
 			 * layout of the PCjr emulation. */
-			if (nseg >= healfrom && (nseg+1u) < CONV_MAX_SEG && !(machine==MCH_PCJR)) {
+			if (auto_repair_dos_psp_mcb_corruption && nseg >= healfrom && (nseg+1u) < CONV_MAX_SEG && !(machine==MCH_PCJR)) {
 				LOG(LOG_DOSMISC,LOG_ERROR)("Corrupted MCB chain, but within the possible memory region of the DOS application.");
 				DOS_Mem_MCBdump();
 				LOG(LOG_DOSMISC,LOG_ERROR)("Declaring all memory past it as a free block. This is apparently MS-DOS behavior.");
