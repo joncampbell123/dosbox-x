@@ -1,4 +1,10 @@
 Next version
+  - Tseng ET3000/ET4000: Update Status register 3DAh behavior when emulating
+    Tseng chipsets to reflect Tseng datasheet, and VGAKIT SVGA detection code
+    expectations. Bit 7 is expected, as documented by Tseng, to be the inverse
+    of bit 3 (vertical retrace). Extended Start Register CRTC 33h must not
+    allow setting the upper 4 bits because Tseng only documents the bottom
+    four, and because VGAKIT requires it for Tseng detection (joncampbell123).
   - Fix bug that, for machine=hercules, prevented Hercules palette shortcut
     from changing colors when in graphics mode (joncampbell123).
   - Remove mixer and VGA capture test modes from integration device. Update
