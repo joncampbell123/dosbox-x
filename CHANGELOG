@@ -1,4 +1,6 @@
 Next version
+  - Fix bug that, for machine=hercules, prevented Hercules palette shortcut
+    from changing colors when in graphics mode (joncampbell123).
   - Remove mixer and VGA capture test modes from integration device. Update
     integration device version number. Convert hardcoded magic constants used
     in IG into constants in iglib.h which is now shared explicitly with the
