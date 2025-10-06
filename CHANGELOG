@@ -1,4 +1,10 @@
 Next version
+  - Add dosbox.conf option, disabled by default, where if the MCB memory
+    chain is corrupted anywhere past the running program's memory block,
+    and it does anything to cause allocation, a new free memory block is
+    created to satisfy allocations instead of halting emulation. Some DOS
+    programs are a bit sloppy in a way that can corrupt the MCB chain.
+    When enabled, this behavior matches apparent MS-DOS behavior (joncampbell123).
   - Debugger: DOS MCBS command now also prints the segment immediately
     following the last MCB block (joncampbell123).
   - Tseng ET3000/ET4000: Update Status register 3DAh behavior when emulating
