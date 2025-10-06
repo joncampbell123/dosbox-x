@@ -67,8 +67,8 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	LOG_MSG("End dump\n");
 
 #if C_DEBUG
-    LOG_MSG("DOS fatal memory error: %s",msg);
-    throw int(7); // DOS non-fatal error (restart when debugger runs again)
+	LOG_MSG("DOS fatal memory error: %s",msg);
+	throw int(7); // DOS non-fatal error (restart when debugger runs again)
 #else
 	E_Exit("%s",msg);
 #endif
@@ -159,16 +159,16 @@ static uint16_t GetMaximumMCBFreeSize(uint16_t mcb_segment)
 {
 	uint16_t largestSize = 0;
 	DOS_MCB mcb(mcb_segment);
-    uint16_t last_mcb_segment;
+	uint16_t last_mcb_segment;
 	for (bool endOfChain = false; !endOfChain; mcb.SetPt(mcb_segment))
 	{
 		auto size = mcb.GetSize();
 		if (mcb.GetPSPSeg()==MCB_FREE) largestSize = (std::max)(largestSize, size);
 		endOfChain = DOS_MCB::MCBType(mcb.GetType())==DOS_MCB::MCBType::LastBlock;
-        last_mcb_segment = mcb_segment;
+		last_mcb_segment = mcb_segment;
 		mcb_segment += size+1;
-        if (mcb_segment == last_mcb_segment) // Check for infinite loop
-            break;
+		if (mcb_segment == last_mcb_segment) // Check for infinite loop
+			break;
 	}
 	return largestSize;
 }
@@ -432,13 +432,13 @@ bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks) {
 
 
 bool DOS_FreeMemory(uint16_t segment) {
-//TODO Check if allowed to free this segment
+	//TODO Check if allowed to free this segment
 	if (segment < DOS_MEM_START+1) {
 		LOG(LOG_DOSMISC,LOG_ERROR)("Program tried to free %X ---ERROR",segment);
 		DOS_SetError(DOSERR_MB_ADDRESS_INVALID);
 		return false;
 	}
-      
+
 	DOS_MCB mcb(segment-1);
 	if ((mcb.GetType()!=0x4d) && (mcb.GetType()!=0x5a)) {
 		DOS_SetError(DOSERR_MB_ADDRESS_INVALID);
@@ -450,7 +450,7 @@ bool DOS_FreeMemory(uint16_t segment) {
 #endif
 
 	mcb.SetPSPSeg(MCB_FREE);
-//	DOS_CompressMemory();
+	//	DOS_CompressMemory();
 	return true;
 }
 
@@ -461,8 +461,8 @@ void DOS_BuildUMBChain(bool umb_active,bool /*ems_active*/) {
 
 	/* UMBs are only possible if the machine has 1MB+64KB of RAM */
 	if (umb_active && (machine!=MCH_TANDY) && seg_limit >= (0x10000+0x1000-1) && first_umb_seg < GetEMSPageFrameSegment()) {
-        /* XMS emulation sets UMB size now.
-         * PCjr mode disables UMB emulation */
+		/* XMS emulation sets UMB size now.
+		 * PCjr mode disables UMB emulation */
 #if 0
 		if (ems_active) {
 			/* we can use UMBs up to the EMS page frame */
@@ -521,7 +521,7 @@ bool DOS_LinkUMBsToMemChain(uint16_t linkstate) {
 	}
 
 	if ((linkstate&1)==(dos_infoblock.GetUMBChainState()&1)) return true;
-	
+
 	/* Scan MCB-chain for last block before UMB-chain */
 	uint16_t mcb_segment=dos.firstMCB;
 	uint16_t prev_mcb_segment=dos.firstMCB;

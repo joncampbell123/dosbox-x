@@ -286,7 +286,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	uint16_t pspseg,envseg,loadseg,memsize=0xffff,readsize;
 	uint16_t maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
-    uint32_t headersize = 0, imagesize = 0;
+	uint32_t headersize = 0, imagesize = 0;
 	DOS_ParamBlock block(block_pt);
 	uint32_t checksum = 0;
 	uint32_t checksum_bytes = 0;
@@ -303,17 +303,17 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	/* Check for EXE or COM File */
 	bool iscom=false;
 	if (!DOS_OpenFile(name,OPEN_READ,&fhandle)) {
-        int16_t fLen = (int16_t)strlen(name);
-        bool shellcom =(!strcasecmp(name+fLen-8, "4DOS.COM") && (fLen == 8 || *(name+fLen-9)=='\\')) || (!strcasecmp(name+fLen-11, "COMMAND.COM") && (fLen == 11 || *(name+fLen-12)=='\\')); // Trap 4DOS.COM and COMMAND.COM
-        char z4dos[]="Z:\\4DOS\\4DOS.COM", zcmd[]="Z:\\COMMAND.COM";
-        if (ZDRIVE_NUM!=25) {
-            z4dos[0]='A'+ZDRIVE_NUM;
-            zcmd[0]='A'+ZDRIVE_NUM;
-        }
-        if (!shellcom || !DOS_OpenFile(!strcasecmp(name+fLen-8, "4DOS.COM")?z4dos:zcmd,OPEN_READ,&fhandle)) {
-            DOS_SetError(DOSERR_FILE_NOT_FOUND);
-            return false;
-        }
+		int16_t fLen = (int16_t)strlen(name);
+		bool shellcom =(!strcasecmp(name+fLen-8, "4DOS.COM") && (fLen == 8 || *(name+fLen-9)=='\\')) || (!strcasecmp(name+fLen-11, "COMMAND.COM") && (fLen == 11 || *(name+fLen-12)=='\\')); // Trap 4DOS.COM and COMMAND.COM
+		char z4dos[]="Z:\\4DOS\\4DOS.COM", zcmd[]="Z:\\COMMAND.COM";
+		if (ZDRIVE_NUM!=25) {
+			z4dos[0]='A'+ZDRIVE_NUM;
+			zcmd[0]='A'+ZDRIVE_NUM;
+		}
+		if (!shellcom || !DOS_OpenFile(!strcasecmp(name+fLen-8, "4DOS.COM")?z4dos:zcmd,OPEN_READ,&fhandle)) {
+			DOS_SetError(DOSERR_FILE_NOT_FOUND);
+			return false;
+		}
 	}
 	len=sizeof(EXE_Header);
 	if (!DOS_ReadFile(fhandle,(uint8_t *)&head,&len)) {
@@ -380,17 +380,17 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			if (head.maxmemory!=0) maxsize=long2para(imagesize+((unsigned int)head.maxmemory<<4u)+256u);
 			else maxsize=0xffffu;
 
-            /* Bugfix: scene.org mirrors/hornet/demos/1991/putrefac.zip Putrefaction !PF.{3}
-             *         has an EXE header that specifies a maxsize less than minsize, and a
-             *         initial stack pointer that is only valid if we use the maxsize.
-             *
-             *         This allows it to run without the SS:IP out of range error below. */
-            if (maxsize < minsize) maxsize = minsize;
+			/* Bugfix: scene.org mirrors/hornet/demos/1991/putrefac.zip Putrefaction !PF.{3}
+			 *         has an EXE header that specifies a maxsize less than minsize, and a
+			 *         initial stack pointer that is only valid if we use the maxsize.
+			 *
+			 *         This allows it to run without the SS:IP out of range error below. */
+			if (maxsize < minsize) maxsize = minsize;
 		}
 		maxfree = DOS_GetMaximumFreeSize(minsize);
 		if (maxfree<minsize) {
 			DOS_CloseFile(fhandle);
-            delete[] loadbuf;
+			delete[] loadbuf;
 			DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
 			DOS_FreeMemory(envseg);
 			return false;
@@ -472,11 +472,11 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		SetupCMDLine(pspseg,block);
 	}
 	CALLBACK_SCF(false);		/* Carry flag cleared for caller if successful */
-    if(flags == OVERLAY) {
-        reg_ax = 0;             // Testing with MS-DOS (6.22) shows that if INT 21 AX=4B is called with the overlay flag (AL==3), then AX and DX are 0 on return.
-        reg_dx = 0;
-        return true;			/* Everything done for overlays */
-    }
+	if(flags == OVERLAY) {
+		reg_ax = 0;             // Testing with MS-DOS (6.22) shows that if INT 21 AX=4B is called with the overlay flag (AL==3), then AX and DX are 0 on return.
+		reg_dx = 0;
+		return true;			/* Everything done for overlays */
+	}
 	RealPt csip,sssp;
 	if (iscom) {
 		unsigned int stack_sp = 0xfffe;
