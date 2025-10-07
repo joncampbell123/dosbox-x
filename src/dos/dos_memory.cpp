@@ -393,7 +393,11 @@ bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks) {
 	else
 		DOS_CompressMemory();
 
-	total=mcb.GetSize(); /* DOS_CompressMemory() may change the MCB block size if this is a free block */
+	/* DOS_CompressMemory() may change the MCB block size if this is a free block when it combines consecutive free blocks.
+	 * If you don't think this could be a free block, understand that there are DOS applications and games out there
+	 * that like to allocate memory by resizing a previously freed block. The Tandy version of California Games II
+	 * does this, for example, as does (noted behlow) some Demoscene code. */
+	total=mcb.GetSize();
 	DOS_MCB	mcb_next(segment+total);
 
 	if (*blocks<=total) {

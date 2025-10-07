@@ -1,4 +1,11 @@
 Next version
+  - INT 21h AH=4Ah resize memory: Fix bug where, if asked to resize a previously
+    freed memory block and the block is not the last block in the MCB chain,
+    and the next block in the MCB chain is also free, the MCB management code
+    would correctly compact free blocks but then allocate according to the
+    old size of the freed MCB block, causing truncation of the MCB chain.
+    Fix for MCB chain truncation caused by California Games II DOS memory
+    management when running in Tandy graphics mode. (joncampbell123).
   - Add dosbox.conf option, disabled by default, where if the MCB memory
     chain is corrupted anywhere past the running program's memory block,
     and it does anything to cause allocation, a new free memory block is
