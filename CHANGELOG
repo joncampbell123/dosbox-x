@@ -1,4 +1,6 @@
 Next version
+  - INT 21h AH=4Ah resize memory: Compact free blocks only at or after the
+    segment being resized, as MS-DOS is documented to do (joncampbell123).
   - INT 21h AH=4Ah resize memory: Fix bug where, if asked to resize a previously
     freed memory block and the block is not the last block in the MCB chain,
     and the next block in the MCB chain is also free, the MCB management code
