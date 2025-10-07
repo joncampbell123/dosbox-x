@@ -387,17 +387,19 @@ bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks) {
 	}
 
 	uint16_t total=mcb.GetSize();
-	DOS_MCB	mcb_next(segment+total);
 
 	if (*blocks > total)
 		DOS_CompressMemory(segment-1);
 	else
 		DOS_CompressMemory();
 
+	total=mcb.GetSize(); /* DOS_CompressMemory() may change the MCB block size if this is a free block */
+	DOS_MCB	mcb_next(segment+total);
+
 	if (*blocks<=total) {
 		if (GCC_UNLIKELY(*blocks==total)) {
 			/* Nothing to do, however if the block is freed, canonical MS-DOS behavior is to assign your PSP segment as if allocated (Incentiv by DID, party '94) */
-			if (mcb.GetPSPSeg()==MCB_FREE && freed_mcb_allocate_on_resize)
+			if (mcb.GetPSPSeg()==MCB_FREE)
 				mcb.SetPSPSeg(dos.psp());
 
 			return true;
