@@ -41,13 +41,15 @@ uint16_t first_umb_size = 0x2000;
 
 static uint16_t memAllocStrategy = 0x00;
 
-static void DOS_Mem_MCBdump(void) {
-	uint16_t mcb_segment=dos.firstMCB;
+void DOS_Mem_MCBdump(void) {
+	uint16_t mcb_segment=dos_kernel_disabled ? guest_msdos_mcb_chain : dos.firstMCB;
 	DOS_MCB mcb(mcb_segment);
 	DOS_MCB mcb_next(0);
 	Bitu counter=0;
 	char name[10];
 	char c;
+
+	if (mcb_segment == 0) return;
 
 	LOG_MSG("DOS MCB dump:\n");
 	while ((c=(char)mcb.GetType()) != 'Z') {
@@ -55,9 +57,12 @@ static void DOS_Mem_MCBdump(void) {
 		if (c != 'M') break;
 
 		mcb.GetFileName(name);
-		LOG_MSG(" Type=0x%02x(%c) Seg=0x%04x size=0x%04x name='%s'\n",
+		LOG_MSG(" Type=0x%02x(%c) Seg=0x%04x size=0x%04x PSP=0x%04x name='%s'\n",
 			mcb.GetType(),c,
-			mcb_segment+1,mcb.GetSize(),name);
+			mcb_segment+1,
+			mcb.GetSize(),
+			mcb.GetPSPSeg(),
+			name);
 		mcb_next.SetPt((uint16_t)(mcb_segment+mcb.GetSize()+1));
 		mcb_segment+=mcb.GetSize()+1;
 		mcb.SetPt(mcb_segment);
@@ -65,8 +70,8 @@ static void DOS_Mem_MCBdump(void) {
 
 	mcb.GetFileName(name);
 	c = (char)mcb.GetType(); if (c < 32) c = '.';
-	LOG_MSG("FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x name='%s'\n",
-		mcb.GetType(),c,mcb_segment+1,mcb.GetSize(),name);
+	LOG_MSG("FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x PSP=0x%04x name='%s'\n",
+		mcb.GetType(),c,mcb_segment+1,mcb.GetSize(),mcb.GetPSPSeg(),name);
 	LOG_MSG("End dump\n");
 }
 
