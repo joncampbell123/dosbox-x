@@ -2290,7 +2290,7 @@ static Bitu DOS_21Handler(void) {
                     CALLBACK_SCF(false);
                 } else {            
                     reg_ax=dos.errorcode;
-                    reg_bx=size;
+                    if (dos.errorcode != 7) reg_bx=size; /* Real MS-DOS does not appear to update BX for error 7 */
                     CALLBACK_SCF(true);
                 }
                 break;
