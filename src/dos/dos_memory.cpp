@@ -386,12 +386,10 @@ bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks) {
 		return false;
 	}
 
+	/* MS-DOS is documented to combine free blocks at or after this block. Also to avoid combining free blocks in a way
+	 * that might invalidate the mcb() block we just constructed. */
 	uint16_t total=mcb.GetSize();
-
-	if (*blocks > total)
-		DOS_CompressMemory(segment-1);
-	else
-		DOS_CompressMemory();
+	DOS_CompressMemory(segment-1);
 
 	/* DOS_CompressMemory() may change the MCB block size if this is a free block when it combines consecutive free blocks.
 	 * If you don't think this could be a free block, understand that there are DOS applications and games out there
