@@ -1,3 +1,6 @@
+NEXT VERSION
+  - 
+
 2025.10.07
   - INT 21h AH=4Ah resize memory: Compact free blocks only at or after the
     segment being resized, as MS-DOS is documented to do (joncampbell123).
