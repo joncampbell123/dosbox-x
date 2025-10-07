@@ -4621,7 +4621,8 @@ void DEBUG_Enable_Handler(bool pressed) {
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
 	mainMenu.get_item("mapper_debugger").check(true).refresh_item(mainMenu);
-    if(!warn_dynamic) {
+    if(!CPU_IsDynamicCore()) warn_dynamic = false;
+    else if(!warn_dynamic) {
         DEBUG_WarnDynamic();
         warn_dynamic = true;
     }
