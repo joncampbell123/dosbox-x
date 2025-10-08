@@ -632,7 +632,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 				return;
 			}
 
-			if (p->mode == 0 || p->mode == 4) {
+			if (p->mode == 0 || p->mode == 1 || p->mode == 4) {
 				/* Mode 0 is the only mode NOT to wait for the current counter to finish if you write another counter value
 				 * according to the Intel 8254 datasheet.
 				 *
@@ -643,7 +643,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 				// this debug message will help development trace down cases where writing without a new mode
 				// would incorrectly restart the counter instead of letting the current count complete before
 				// writing a new one.
-				LOG(LOG_PIT,LOG_NORMAL)("WARNING: Writing counter %u in mode %u without writing port 43h not yet supported, will be handled as if new mode and reset of the cycle",(int)counter,(int)p->mode);
+				LOG(LOG_PIT,LOG_NORMAL)("WARNING: Writing counter %u in mode %u counter 0x%x without writing port 43h not yet supported, will be handled as if new mode and reset of the cycle",(int)counter,(int)p->mode,(int)p->cntr);
 			}
 		}
 
