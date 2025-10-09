@@ -1,15 +1,15 @@
 ---
 app-id: com.dosbox_x.DOSBox-X
 runtime: org.freedesktop.Platform
-runtime-version: '22.08'
+runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 
 command: dosbox-x
 
 finish-args:         # flatpak permissions
-  - --device=all     # needed for gamepads and serial/parallel
+  - --device=all     # needed for OpenGL, gamepads and serial/parallel
   - --share=ipc      # needed for X11
-  - --share=network  # needed for networking (NE2000, IPX)
+  - --share=network  # Needed for NE2000, IPX and serial over TCP/IP
   - --socket=x11     # default to X11 due to fullscreen issues
   - --socket=pulseaudio
   - --filesystem=home
@@ -31,8 +31,8 @@ modules:
       - --disable-static
     sources:
       - type: archive
-        url: https://ftp.osuosl.org/pub/blfs/conglomeration/glu/glu-9.0.2.tar.xz
-        sha256: 6e7280ff585c6a1d9dfcdf2fca489251634b3377bfc33c29e4002466a38d02d4
+        url: https://ftp.osuosl.org/pub/blfs/conglomeration/glu/glu-9.0.3.tar.xz
+        sha256: bd43fe12f374b1192eb15fe20e45ff456b9bc26ab57f0eee919f96ca0f8a330f
     cleanup:
       - /include
       - /lib/*.a
@@ -52,10 +52,10 @@ modules:
       - "*.so"
     sources:
       - type: archive
-        url: https://github.com/FluidSynth/fluidsynth/archive/v2.2.9.tar.gz
-        sha256: bc62494ec2554fdcfc01512a2580f12fc1e1b01ce37a18b370dd7902af7a8159
+        url: https://github.com/FluidSynth/fluidsynth/archive/refs/tags/v2.5.0.tar.gz
+        sha256: e4ae831ce02f38b5594ab4dacb11c1a4067ca65ea183523655ebdc9c1b2b92a1
 
-  # Build libslirp for networking
+  # Build libslirp for TCP/IP networking
   - name: libslirp
     buildsystem: meson
     cleanup:
@@ -64,7 +64,7 @@ modules:
     sources:
       - type: git
         url: https://gitlab.freedesktop.org/slirp/libslirp
-        tag: "v4.7.0"
+        tag: "v4.9.1"
     x-checker-data:
       type: anitya
       project-id: 96796
@@ -75,6 +75,7 @@ modules:
   - name: dosbox-x
     buildsystem: autotools
     config-opts:
+      - --enable-core-inline
       - --enable-debug=heavy
       - --enable-sdl2
     sources:
@@ -83,3 +84,5 @@ modules:
     post-install:
       - install -Dm644 /app/share/icons/hicolor/scalable/apps/dosbox-x.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
       - desktop-file-edit --set-key=Icon --set-value=${FLATPAK_ID} /app/share/applications/${FLATPAK_ID}.desktop
+      - install -Dm644 com.dosbox_x.DOSBox-X.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
+...
