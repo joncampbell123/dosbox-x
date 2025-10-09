@@ -1,5 +1,21 @@
 NEXT VERSION
-  - 
+  - Tandy machine type: Many registers are WRITE ONLY according to SX
+    documentation, yet "Troubadours" likes to read/modify/write those
+    registers in what appears to be hand-rolled manual modesetting code
+    to set up 320x200 16-color mode, so, add code to respond to reads
+    from those ports with zeros and print a debug message to the log
+    about how DOS games are not supposed to read those registers. Make
+    the hand-rolled modesetting work by returning 0x00, rather than 0xFF.
+    The code will not set up the mode correctly if 0xFF is returned, but
+    will if 0x00 is returned. A side effect of this is that, since one
+    of the registers controls the RAM address used as video memory, this
+    moves it down to 512KB from base memory as well, which of course
+    easily corrupts the very end of the MCB chain unless you enable more
+    than 640KB of RAM and ask DOSBox-X to emulate the full Tandy 768KB
+    of conventional memory. Though the game still crashes very easily,
+    and in the exact same manner in both DOSBox-X and DOSBox SVN, this
+    fix does solve the problem where the game was only able to draw
+    2 out of 4 scanlines on the screen. (joncampbell123).
 
 2025.10.07
   - INT 21h AH=4Ah resize memory: Compact free blocks only at or after the

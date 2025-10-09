@@ -944,6 +944,27 @@ static void write_tandy_reg(uint8_t val) {
 	}
 }
 
+/* You're not SUPPOSED to read Tandy registers 3D8, 3DE, 3DF, they're documented WRITE ONLY! */
+static Bitu read_tandy(Bitu port,Bitu /*iolen*/) {
+	LOG(LOG_VGAMISC,LOG_DEBUG)("DOS applications are NOT SUPPOSED to read Tandy register %x",(unsigned int)port);
+
+	switch (port) {
+		/* "Troubadours" does not switch into Tandy 320x200 16-color by calling INT 10h.
+		 * Instead, it has it's own hand-written code to modify registers directly.
+		 * For whatever reason, it modifies 3DD and 3DF by reading, modifying, and writing
+		 * the registers EVEN THOUGH Tandy documents the registers as write only.
+		 * Returning the last written value doesn't work, because the modified values
+		 * come out incorrect. 3DFh after modification comes out to 0xFF which maps the
+		 * video RAM to B800h as repeating 16KB banks for example. The game works correctly
+		 * if this code provides 0x00, not 0xFF, when it reads these specific registers. */
+		case 0x3DD:
+		case 0x3DF:
+			return 0;
+	}
+
+	return ~0u;
+}
+
 static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
 	switch (port) {
 	case 0x3d8:
@@ -981,7 +1002,6 @@ static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
 		// appears to be ORed with CPU A14 (to preserve some sort of
 		// backwards compatibility?), resulting in odd pages being mapped
 		// as 2x16kB. Implemented in vga_memory.cpp Tandy handler.
-
 		vga.tandy.line_mask = (uint8_t)(val >> 6);
 		vga.tandy.draw_bank = val & ((vga.tandy.line_mask&2) ? 0x6 : 0x7);
 		vga.tandy.mem_bank = (val >> 3) & 7;
@@ -1297,6 +1317,18 @@ void VGA_SetupOther(void) {
 	}
 	if (machine==MCH_TANDY) {
 		write_tandy( 0x3df, 0x0, 0 );
+
+		// according to Tandy SX documentation a lot of registers are write-only
+		IO_RegisterReadHandler(0x3d4,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3d5,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3d8,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3d9,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3db,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3dc,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3dd,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3de,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3df,read_tandy,IO_MB);
+
 		IO_RegisterWriteHandler(0x3d8,write_tandy,IO_MB);
 		IO_RegisterWriteHandler(0x3d9,write_tandy,IO_MB);
 		IO_RegisterWriteHandler(0x3da,write_tandy,IO_MB);
