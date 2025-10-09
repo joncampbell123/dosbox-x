@@ -1107,12 +1107,12 @@ void DOSBOX_RealInit() {
     LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X RealInit: loading settings and initializing");
 
     {
-        MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_grave, MMODHOST, "speedlock", "Turbo (fast-forward): burst mode", &item);
+        MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_grave, MMODHOST, "speedlock", "Turbo (fast-forward): burst", &item);
         item->set_description("Burst turbo (fast-forward) emulation speed, to allow running faster than realtime");
         item->set_text("Turbo (fast-forward): burst mode");
     }
     {
-        MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_rightarrow, MMODHOST, "speedlock2", "Turbo (fast-forward)", &item);
+        MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_rightarrow, MMODHOST, "speedlock2", "Turbo (fast-forward): toggle", &item);
         item->set_description("Toggle turbo (fast-forward) emulation speed, to allow running faster than realtime");
         item->set_text("Turbo (fast-forward)");
     }
