@@ -281,6 +281,21 @@ public:
 };
 #endif
 
+typedef struct MEMFinder {
+	bool usePreviousValue = false;
+	uint8_t opType = 0;
+	uint8_t size = 1;
+	uint16_t iterations = 0;
+	uint16_t seg = 0;
+	uint32_t ofs = 0;
+	uint32_t range = 0;
+	uint32_t value = 0;
+	uint32_t matches = 0;
+	vector<uint8_t> tableValue;
+	vector<bool> tableTruth;
+}MEMFinder;
+
+MEMFinder* MEMFINDInstance = NULL;
 
 class DEBUG;
 
@@ -1971,6 +1986,283 @@ bool ParseCommand(char* str) {
 		uint32_t ofs = GetHexValue(found,found); found++;
 		uint32_t num = GetHexValue(found,found); found++;
 		SaveMemoryBin(seg,ofs,num);
+		return true;
+	}
+
+    if (command == "MEMFIND") { // Start a memory search instance with seg:ofs range
+		uint32_t valfind;
+		uint8_t valfind8;
+		uint16_t valfind16;
+		uint32_t valfind32;
+		uint32_t listedvalues = 0;
+		if (found[0] == '!'){
+			if (MEMFINDInstance != NULL){
+				DEBUG_ShowMsg("DEBUG: Memory search instance cancelled.");
+				MEMFINDInstance->tableTruth.clear();
+				MEMFINDInstance->tableValue.clear();
+				MEMFINDInstance->tableTruth.shrink_to_fit();
+				MEMFINDInstance->tableValue.shrink_to_fit();
+				delete MEMFINDInstance;
+				MEMFINDInstance = NULL;
+			} else {
+				DEBUG_ShowMsg("DEBUG: No active search instances to cancel.");
+			}
+			return true;
+		} else if (found[0] == 'L'){
+			if (MEMFINDInstance != NULL){
+				DEBUG_BeginPagedContent();
+				uint32_t j = 0;
+				for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i+=MEMFINDInstance->size){
+							switch (MEMFINDInstance->size){
+								case 1:
+									mem_readb_checked((PhysPt)(i),&valfind8);
+									valfind = valfind8;
+									break;
+								case 2:
+									mem_readw_checked((PhysPt)(i),&valfind16);
+									valfind = valfind16;
+									break;
+								case 4:
+									mem_readd_checked((PhysPt)(i),&valfind32);
+									valfind = valfind32;
+									break;
+								default:
+									mem_readb_checked((PhysPt)(i),&valfind8);
+									valfind = valfind8;
+									break;
+							}
+							if (MEMFINDInstance->tableTruth[j] == true){
+								listedvalues++;
+								DEBUG_ShowMsg("DEBUG: [MEMFIND] Address: %04X:%06X Current Value: %08X\n",MEMFINDInstance->seg,(i - (MEMFINDInstance->seg * 16)),valfind);
+							}
+							j+=MEMFINDInstance->size;
+						}
+				DEBUG_ShowMsg("DEBUG: [MEMFIND] Matched values during current instance: %06X\n",listedvalues);
+				DEBUG_EndPagedContent();
+			} else {
+				DEBUG_ShowMsg("DEBUG: No active search instances to list from.");
+			}
+			return true;
+		}
+		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
+		uint32_t ofs = GetHexValue(found,found); found++;
+		uint32_t num = GetHexValue(found,found); found++;
+		if ((MEMFINDInstance == NULL) && (num > 0)){
+			if (((seg*16)+ofs+num) > 16777215){
+				DEBUG_ShowMsg("DEBUG: Address range larger than valid size, cancelling.");
+				return true;
+			}
+			DEBUG_ShowMsg("DEBUG: Created memory search instance.");
+			MEMFINDInstance = new MEMFinder;
+		} else if ((MEMFINDInstance == NULL) && (num == 0)){
+			DEBUG_ShowMsg("DEBUG: --MEMFIND-- Start memory search instance.");
+			DEBUG_ShowMsg("DEBUG: Use MEMS to proceed through search instance.");
+			DEBUG_ShowMsg("DEBUG: Usage: MEMFIND (!/L) [seg]:[offset] [range] (B/W/D)");
+			DEBUG_ShowMsg("DEBUG: L - List entries matched in the search instance.");
+			DEBUG_ShowMsg("DEBUG: ! - Cancel memory search instance.");
+			return true;
+		} else if (MEMFINDInstance != NULL){
+			DEBUG_ShowMsg("DEBUG: Memory search instance is already active.");
+			return true;
+		}
+		switch (*found){
+			case 'B':
+				DEBUG_ShowMsg("DEBUG: 1 byte specified.");
+				MEMFINDInstance->size = 1;
+				break;
+			case 'W':
+				DEBUG_ShowMsg("DEBUG: 2 bytes specified.");
+				MEMFINDInstance->size = 2;
+				break;
+			case 'D':
+				DEBUG_ShowMsg("DEBUG: 4 bytes specified.");
+				MEMFINDInstance->size = 4;
+				break;
+			default:
+				DEBUG_ShowMsg("DEBUG: No size specified, using 1 byte.");
+				MEMFINDInstance->size = 1;
+				break;
+		}
+		DEBUG_ShowMsg("DEBUG: RAM search from %04X:%04X with range: %06X\n",seg,ofs,num);
+		MEMFINDInstance->range = num;
+		MEMFINDInstance->ofs = ofs;
+		MEMFINDInstance->seg = seg;
+		MEMFINDInstance->tableTruth.resize(num,true);
+		for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i++){
+			mem_readb_checked((PhysPt)(i),&valfind8);
+			MEMFINDInstance->tableValue.push_back(valfind8);
+		}
+		return true;
+	}
+
+	if (command == "MEMS") { // Search through MEMFIND for matching values in memory search instance
+		bool parsed;
+		uint32_t valfind;
+		uint8_t valfind8;
+		uint16_t valfind16;
+		uint32_t valfind32;
+		uint32_t value;
+		uint32_t matches = 0;
+		char opTypeStr[26];
+		if (MEMFINDInstance == NULL){
+			DEBUG_ShowMsg("DEBUG: MEMFIND Memory search is not active.\n");
+			return true;
+		}
+		switch (found[0]){
+			case '>':
+				if (found[1] == '='){
+					found+=2;
+					MEMFINDInstance->opType = 4;
+					sprintf(opTypeStr, "GREATER THAN OR EQUAL TO");
+				} else {
+					found+=1;
+					MEMFINDInstance->opType = 1;
+					sprintf(opTypeStr, "GREATER THAN");
+				}
+				break;
+			case '<':
+				if (found[1] == '='){
+					found+=2;
+					MEMFINDInstance->opType = 5;
+					sprintf(opTypeStr, "LESS THAN OR EQUAL TO");
+				} else {
+					found+=1;
+					MEMFINDInstance->opType = 2;
+					sprintf(opTypeStr, "LESS THAN");
+				}
+				break;
+			case '!':
+				found+=1;
+				MEMFINDInstance->opType = 3;
+				sprintf(opTypeStr, "NOT EQUAL TO");
+				break;
+			case '=':
+				found+=1;
+				MEMFINDInstance->opType = 0;
+				sprintf(opTypeStr, "EQUAL TO");
+			default:
+				MEMFINDInstance->opType = 0;
+				sprintf(opTypeStr, "EQUAL TO");
+				break;
+		}
+		SkipSpace(found);
+		if (*found == ' '){
+			DEBUG_ShowMsg("DEBUG: MEMS - Memory Search from MEMFIND instance.\n");
+			DEBUG_ShowMsg("DEBUG: Usage: MEMS (OPERATOR) VALUE.\n");
+			DEBUG_ShowMsg("DEBUG: Valid operators: >, >=, <, <=, !, =.\n");
+			return true;
+		} else if (*found == '\0'){
+			DEBUG_ShowMsg("DEBUG: No value was entered. Comparing with previous values.\n");
+			MEMFINDInstance->usePreviousValue = true;
+			value = 0;
+		} else {
+			value = GetHexValue(found,found,&parsed);
+			if (((value > 255) && (MEMFINDInstance->size == 1)) || ((value > 65535) && (MEMFINDInstance->size == 2))){
+				DEBUG_ShowMsg("DEBUG: Memory search failed. Value is larger than specified size range.\n");
+				return true;
+			}
+			MEMFINDInstance->value = value;
+			MEMFINDInstance->usePreviousValue = false;
+		}
+		uint32_t y = 0;	//This index is seperated from the for loop, as the for loop can start from any index while this particular index starts at 0
+		for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i+=MEMFINDInstance->size){
+			switch (MEMFINDInstance->size){
+				case 1:
+					mem_readb_checked((PhysPt)(i),&valfind8);
+					valfind = valfind8;
+					if (MEMFINDInstance->usePreviousValue == true){
+						memcpy(&value, &MEMFINDInstance->tableValue[y], 1);
+					}
+					break;
+				case 2:
+					mem_readw_checked((PhysPt)(i),&valfind16);
+					valfind = valfind16;
+					if (MEMFINDInstance->usePreviousValue == true){
+						memcpy(&value, &MEMFINDInstance->tableValue[y], 2);
+					}
+					break;
+				case 4:
+					mem_readd_checked((PhysPt)(i),&valfind32);
+					valfind = valfind32;
+					if (MEMFINDInstance->usePreviousValue == true){
+						memcpy(&value, &MEMFINDInstance->tableValue[y], 4);
+					}
+					break;
+				default:
+					mem_readb_checked((PhysPt)(i),&valfind8);
+					valfind = valfind8;
+					if (MEMFINDInstance->usePreviousValue == true){
+						memcpy(&value, &MEMFINDInstance->tableValue[y], 1);
+					}
+					break;
+			}
+			switch (MEMFINDInstance->opType){
+				case 1:
+					if ((valfind > value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				case 2:
+					if ((valfind < value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				case 3:
+					if ((valfind != value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				case 4:
+					if ((valfind >= value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				case 5:
+					if ((valfind <= value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				default:
+					if ((valfind == value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+			}
+			y+=MEMFINDInstance->size;
+		}
+		MEMFINDInstance->matches = matches;
+		MEMFINDInstance->iterations++;
+		if (MEMFINDInstance->matches == 0){
+			if (MEMFINDInstance->usePreviousValue == true){
+				DEBUG_ShowMsg("DEBUG: No more matches found when comparing %s previous value. Memory search instance finished.\n",opTypeStr);
+			} else {
+				DEBUG_ShowMsg("DEBUG: No more matches found with value %s (%06X). Memory search instance finished.\n",opTypeStr,value);
+			}
+			MEMFINDInstance->tableTruth.clear();
+			MEMFINDInstance->tableValue.clear();
+			MEMFINDInstance->tableTruth.shrink_to_fit();
+			MEMFINDInstance->tableValue.shrink_to_fit();
+			delete MEMFINDInstance;
+			MEMFINDInstance = NULL;
+		} else {
+				if (MEMFINDInstance->usePreviousValue == true){
+					DEBUG_ShowMsg("DEBUG: (%06X) addresses matching %s their previous values. Iterations: %06X\n",MEMFINDInstance->matches,opTypeStr,MEMFINDInstance->iterations);
+				} else {
+					DEBUG_ShowMsg("DEBUG: (%06X) matches found with value %s (%06X). Iterations: %06X\n",MEMFINDInstance->matches,opTypeStr,value,MEMFINDInstance->iterations);
+				}
+		}
 		return true;
 	}
 
@@ -3696,6 +3988,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("EMU MEM/MACHINE           - Show emulator memory or machine info.\n");
 		DEBUG_ShowMsg("MEMDUMP [seg]:[off] [len] - Write memory to file memdump.txt.\n");
 		DEBUG_ShowMsg("MEMDUMPBIN [s]:[o] [len]  - Write memory to file memdump.bin.\n");
+        DEBUG_ShowMsg("MEMFIND [seg]:[off] [.].. - Start memory find search instance.\n");
+		DEBUG_ShowMsg("MEMS [operator] [value]   - Search value within instance.\n");
 		DEBUG_ShowMsg("SELINFO [segName]         - Show selector info.\n");
 
 		DEBUG_ShowMsg("INTVEC [filename]         - Writes interrupt vector table to file.\n");
