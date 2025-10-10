@@ -2352,6 +2352,13 @@ static Bitu DOS_21Handler(void) {
             dos_program_running = false;
             *appname=0;
             *appargs=0;
+            /* Magic Pockets (slightly buggy version on the Internet Archive) expects AL
+             * to be nonzero to continue from INTRO.EXE to the game. The buggy version
+             * expects AL to be the INTRO.EXE error code but apparently they forgot to
+             * call INT 21h AH=4Dh to read it. Real MS-DOS appears to return something
+             * like AX=0x3E01 on return from INT 21h AH=4Bh. There is a non-buggy
+             * version on various abandonware sites that do not have this bug. */
+            reg_ax=0x3E01;
             break;
         case 0x4d:                  /* Get Return code */
             reg_al=dos.return_code;/* Officially read from SDA and clear when read */

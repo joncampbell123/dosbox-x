@@ -1,4 +1,9 @@
 NEXT VERSION
+  - INT 21h AH=4Bh EXEC: Real MS-DOS returns a nonzero value like 0x3E01.
+    A buggy version of Magic Pockets fails to call INT 21 AH=4Dh to read
+    the INTRO.EXE exit code and expects AL to just be nonzero to continue
+    to the game. So to make it work properly (kind of), return a nonzero
+    value. (joncampbell123).
   - Tandy machine type: Many registers are WRITE ONLY according to SX
     documentation, yet "Troubadours" likes to read/modify/write those
     registers in what appears to be hand-rolled manual modesetting code
