@@ -1476,7 +1476,6 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 #ifdef WIN32
 		uint8_t c;uint16_t n;
 #endif
-		if (strrchr_dbcs(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
 #ifdef WIN32
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
