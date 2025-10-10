@@ -1,4 +1,7 @@
 NEXT VERSION
+  - Some extra code in shell processing was preventing drive change commands
+    if the last character was a backslash i.e. "a:\" instead of "a:".
+    Fixed. (joncampbell123).
   - INT 21h AH=4Bh EXEC: Real MS-DOS returns a nonzero value like 0x3E01.
     A buggy version of Magic Pockets fails to call INT 21 AH=4Dh to read
     the INTRO.EXE exit code and expects AL to just be nonzero to continue
