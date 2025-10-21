@@ -778,7 +778,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 		} else if (lTheOpenFileName) {
             std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSG_Get("READONLY_MODE")) + ")" : "";
             std::string image = arc ? std::string(MSG_Get("ARCHIVE")) : std::string(MSG_Get("DISK_IMAGE"));
-            drive_warn = formatString(MSG_Get("PROGRAM_MOUNT_IMAGE"), image.c_str(),std::string(1, drive).c_str(), lTheOpenFileName, readonly.c_str());
+            drive_warn = formatString(MSG_Get("PROGRAM_MOUNT_IMAGE"), image.c_str(),std::string(1, drive).c_str(), GetNewStr(lTheOpenFileName).c_str(), readonly.c_str());
             systemmessagebox(MSG_Get("INFORMATION"),drive_warn.c_str(),"ok","info", 1);
 		}
 	}
