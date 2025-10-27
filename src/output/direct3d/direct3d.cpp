@@ -72,7 +72,8 @@ std::string shader_translate_directory(const std::string& path) {
     if (FileDirExistCP(("shaders\\"+path+".fx").c_str())==1)
         return "shaders\\"+path+".fx";
     std::string confpath, respath, exepath=GetDOSBoxXPath();
-    Cross::GetPlatformConfigDir(confpath), Cross::GetPlatformResDir(respath);
+    confpath = Cross::GetPlatformConfigDir();
+    respath = Cross::GetPlatformResDir();
     if (exepath.size()) {
         if (FileDirExistCP((exepath+path).c_str())==1)
             return exepath+path;

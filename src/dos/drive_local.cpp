@@ -1173,14 +1173,14 @@ void getdrivezpath(std::string &path, std::string const& dirname) {
         }
         if (!path.size() || !ret) {
             path = "";
-            Cross::GetPlatformConfigDir(path);
+            path = Cross::GetPlatformConfigDir();
             path += dirname;
             host_name = CodePageGuestToHost(path.c_str());
             res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);
             ret=res==-1?false:((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR);
             if (!ret) {
                 path = "";
-                Cross::GetPlatformResDir(path);
+                path = Cross::GetPlatformResDir();
                 path += dirname;
                 host_name = CodePageGuestToHost(path.c_str());
                 res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);

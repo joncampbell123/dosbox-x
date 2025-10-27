@@ -42,6 +42,7 @@
 #define IS_BIGENDIAN false
 #endif
 
+#include "cross.h"
 #include "drives.h"
 #include "logging.h"
 #include "support.h"

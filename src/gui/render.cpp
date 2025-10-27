@@ -1319,9 +1319,9 @@ std::string LoadGLShader(Section_prop * section) {
             path = "";
         }
         if (path.size() && !RENDER_GetShader(path,(char *)shader_src.c_str())) {
-            Cross::GetPlatformConfigDir(path);
+            path = Cross::GetPlatformConfigDir();
             pathcfg = path + "glshaders" + CROSS_FILESPLIT + f;
-            Cross::GetPlatformResDir(path);
+            path = Cross::GetPlatformResDir();
             pathres = path + "glshaders" + CROSS_FILESPLIT + f;
             if (!RENDER_GetShader(pathcfg,(char *)shader_src.c_str()) && !RENDER_GetShader(pathres,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {
                 sh->SetValue("none");

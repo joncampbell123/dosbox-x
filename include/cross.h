@@ -66,10 +66,10 @@ static inline float powf (float x, float y) { return (float) pow (x,y); }
 
 class Cross {
 public:
-	static void GetPlatformResDir(std::string& in);
-	static void GetPlatformConfigDir(std::string& in);
-	static void GetPlatformConfigName(std::string& in);
-	static void CreatePlatformConfigDir(std::string& in);
+	static std::string GetPlatformResDir(void);
+	static std::string GetPlatformConfigDir(void);
+	static std::string GetPlatformConfigName(void);
+	static std::string CreatePlatformConfigDir(void);
 	static void ResolveHomedir(std::string & temp_line);
 	static void CreateDir(std::string const& in);
 	static bool IsPathAbsolute(std::string const& in);
@@ -129,4 +129,6 @@ bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sn
 void close_directory(dir_information* dirp);
 
 FILE* fopen_wrap(const char* path, const char* mode);
+
+const char* get_time(void);
 #endif

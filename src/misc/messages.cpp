@@ -271,8 +271,8 @@ bool CheckDBCSCP(int32_t codepage) {
 FILE* testLoadLangFile(const char* fname) {
     std::string exepath = GetDOSBoxXPath();
     std::string config_path, res_path;
-    Cross::GetPlatformConfigDir(config_path);
-    Cross::GetPlatformResDir(res_path);
+    config_path = Cross::GetPlatformConfigDir();
+    res_path = Cross::GetPlatformResDir();
 
     std::vector<std::string> base_paths = {
         "", exepath, config_path, res_path,

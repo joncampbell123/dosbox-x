@@ -2001,9 +2001,9 @@ public:
         }
         if (arg == MSG_Get("USE_USERCONFIG")) {
             std::string config_path;
-            Cross::GetPlatformConfigDir(config_path);
+            config_path = Cross::GetPlatformConfigDir();
             std::string fullpath,file;
-            Cross::GetPlatformConfigName(file);
+            file = Cross::GetPlatformConfigName();
             const size_t last_slash_idx = config_path.find_last_of("\\/");
             if (std::string::npos != last_slash_idx) {
                 fullpath = config_path.substr(0, last_slash_idx);

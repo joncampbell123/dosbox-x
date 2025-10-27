@@ -956,13 +956,13 @@ void Init_VGABIOS() {
         }
         if (rom_fp == NULL) {
             path = "";
-            Cross::GetPlatformResDir(path);
+            path = Cross::GetPlatformResDir();
             path += VGA_BIOS_rom;
             rom_fp = fopen(path.c_str(),"rb");
         }
         if (rom_fp == NULL) {
             path = "";
-            Cross::GetPlatformConfigDir(path);
+            path = Cross::GetPlatformConfigDir();
             path += VGA_BIOS_rom;
             rom_fp = fopen(path.c_str(),"rb");
         }

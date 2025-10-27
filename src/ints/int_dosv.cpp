@@ -660,7 +660,8 @@ bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 	if(*fname=='\0') return false;
 	FILE * mfile=fopen(fname,"rb");
 	std::string config_path, res_path, exepath=GetDOSBoxXPath();
-	Cross::GetPlatformConfigDir(config_path), Cross::GetPlatformResDir(res_path);
+    config_path = Cross::GetPlatformConfigDir();
+    res_path = Cross::GetPlatformResDir();
 	if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
 	if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
 	if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
@@ -1196,7 +1197,8 @@ uint8_t *GetDbcsFont(Bitu code)
                     if (!getwqy16) {
                         getwqy16=true;
                         std::string config_path, res_path, exepath=GetDOSBoxXPath(), fname="wqy_12pt.bdf";
-                        Cross::GetPlatformConfigDir(config_path), Cross::GetPlatformResDir(res_path);
+                        config_path = Cross::GetPlatformConfigDir();
+                        res_path = Cross::GetPlatformResDir();
                         FILE * mfile=fopen(fname.c_str(),"rb");
                         if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
                         if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
@@ -1294,7 +1296,8 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                     if (!getwqy14) {
                         getwqy14=true;
                         std::string config_path, res_path, exepath=GetDOSBoxXPath(), fname="wqy_11pt.bdf";
-                        Cross::GetPlatformConfigDir(config_path), Cross::GetPlatformResDir(res_path);
+                        config_path = Cross::GetPlatformConfigDir();
+                        res_path = Cross::GetPlatformResDir();
                         FILE * mfile=fopen(fname.c_str(),"rb");
                         if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
                         if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
