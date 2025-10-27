@@ -5718,7 +5718,8 @@ void ReloadMapper(Section_prop *section, bool init) {
     }
     if (!loadfile) {
         std::string exepath=GetDOSBoxXPath(), config_path, res_path;
-        Cross::GetPlatformConfigDir(config_path), Cross::GetPlatformResDir(res_path);
+        config_path = Cross::GetPlatformConfigDir();
+        res_path = Cross::GetPlatformResDir();
         if (mapper.filename.size() && exepath.size()) {
             loadfile=fopen((exepath+mapper.filename).c_str(),"rt");
             if (!loadfile) {

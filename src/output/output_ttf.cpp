@@ -339,7 +339,7 @@ bool readTTF(const char *fName, bool bold, bool ital) {
     }
     if (!ttf_fh) {
         std::string config_path;
-        Cross::GetPlatformConfigDir(config_path);
+        config_path = Cross::GetPlatformConfigDir();
         struct stat info;
         if (!stat(config_path.c_str(), &info) && (info.st_mode & S_IFDIR)) {
             strcpy(ttfPath, config_path.c_str());
@@ -355,7 +355,7 @@ bool readTTF(const char *fName, bool bold, bool ital) {
     }
     if (!ttf_fh) {
         std::string res_path;
-        Cross::GetPlatformResDir(res_path);
+        res_path = Cross::GetPlatformResDir();
         struct stat info;
         if (!stat(res_path.c_str(), &info) && (info.st_mode & S_IFDIR)) {
             strcpy(ttfPath, res_path.c_str());

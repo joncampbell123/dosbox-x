@@ -6840,8 +6840,8 @@ static void launcheditor(std::string edit) {
     if (control->configfiles.size() && control->configfiles.front().size())
         execlp(edit.c_str(),edit.c_str(),control->configfiles.front().c_str(),(char*) 0);
     std::string path,file;
-    Cross::CreatePlatformConfigDir(path);
-    Cross::GetPlatformConfigName(file);
+    path = Cross::CreatePlatformConfigDir();
+    file = Cross::GetPlatformConfigName();
     path += file;
     FILE* f = fopen(path.c_str(),"r");
     if(!f && !control->PrintConfig(path.c_str())) {
@@ -6881,7 +6881,7 @@ static void launchcaptures(std::string const& edit) {
         exit(1);
     } else {
         path = "";
-        Cross::CreatePlatformConfigDir(path);
+        path = Cross::CreatePlatformConfigDir();
         path += file;
         Cross::CreateDir(path);
         stat(path.c_str(),&cstat);
@@ -6911,7 +6911,7 @@ static void launchsaves(std::string const& edit) {
         exit(1);
     } else {
         path = "";
-        Cross::CreatePlatformConfigDir(path);
+        path = Cross::CreatePlatformConfigDir();
         path += file;
         Cross::CreateDir(path);
         stat(path.c_str(),&cstat);
@@ -6928,8 +6928,8 @@ static void launchsaves(std::string const& edit) {
 
 static void printconfiglocation() {
     std::string path,file;
-    Cross::CreatePlatformConfigDir(path);
-    Cross::GetPlatformConfigName(file);
+    path =Cross::CreatePlatformConfigDir();
+    file = Cross::GetPlatformConfigName();
     path += file;
 
     FILE* f = fopen(path.c_str(),"r");
@@ -6950,8 +6950,8 @@ static void eraseconfigfile() {
         show_warning("Warning: dosbox-x.conf (or dosbox.conf) exists in current working directory.\nThis will override the configuration file at runtime.\n");
     }
     std::string path,file;
-    Cross::GetPlatformConfigDir(path);
-    Cross::GetPlatformConfigName(file);
+    path = Cross::GetPlatformConfigDir();
+    file = Cross::GetPlatformConfigName();
     path += file;
     f = fopen(path.c_str(),"r");
     if (!f) exit(0);
@@ -6970,7 +6970,7 @@ static void erasemapperfile() {
     }
 
     std::string path,file=MAPPERFILE;
-    Cross::GetPlatformConfigDir(path);
+    path = Cross::GetPlatformConfigDir();
     path += file;
     FILE* f = fopen(path.c_str(),"r");
     if (!f) exit(0);
@@ -8120,8 +8120,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         std::string tmp,config_path,config_combined;
 
         /* -- Parse configuration files */
-        Cross::GetPlatformConfigDir(config_path);
-        Cross::GetPlatformConfigName(tmp);
+        config_path = Cross::GetPlatformConfigDir();
+        tmp = Cross::GetPlatformConfigName();
 
         if (exepath.size()) {
             control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
@@ -8159,7 +8159,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         usecfgdir = false;
     } else if (workdiropt == "userconfig") {
         std::string config_path;
-        Cross::GetPlatformConfigDir(config_path);
+        config_path = Cross::GetPlatformConfigDir();
         if (config_path.size()) {
             if (chdir(config_path.c_str()) == -1) {
                 LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'userconfig'.");
@@ -8203,7 +8203,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
 #endif
             std::string res_path;
-            Cross::GetPlatformResDir(res_path);
+            res_path = Cross::GetPlatformResDir();
             if(stat((res_path + "dosbox-x.conf").c_str(), &st) == 0) {
                 if(S_ISREG(st.st_mode)) {
                     control->opt_promptfolder = 0;
@@ -8340,9 +8340,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
     std::string tmp, config_path, res_path, config_combined;
     /* -- Parse configuration files */
-    Cross::GetPlatformConfigDir(config_path);
-    Cross::GetPlatformResDir(res_path);
-    Cross::GetPlatformConfigName(tmp);
+    config_path = Cross::GetPlatformConfigDir();
+    res_path = Cross::GetPlatformResDir();
+    tmp = Cross::GetPlatformConfigName();
     config_combined = config_path + tmp;
     {
 
@@ -8396,7 +8396,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         tsec->HandleInputline("working directory option=autoprompt");
                 }
                 //Try to create the userlevel configfile.
-                Cross::CreatePlatformConfigDir(config_path);
+                config_path = Cross::CreatePlatformConfigDir();
 
                 LOG(LOG_MISC,LOG_DEBUG)("Attempting to write config file according to -userconf, to %s",config_combined.c_str());
                 if (control->PrintConfig(config_combined.c_str())) {
@@ -8764,7 +8764,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         } else if (workdiropt == "userconfig") {
             std::string config_path;
-            Cross::GetPlatformConfigDir(config_path);
+            config_path = Cross::GetPlatformConfigDir();
             if(config_path.size()) {
                 if(chdir(config_path.c_str()) == -1) {
                     LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'userconfig'.");

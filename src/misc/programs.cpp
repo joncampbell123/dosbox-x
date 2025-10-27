@@ -711,7 +711,7 @@ private:
 		if (configdir) {
 			// write file to the default config directory
 			std::string config_path;
-			Cross::GetPlatformConfigDir(config_path);
+			config_path = Cross::GetPlatformConfigDir();
 			struct stat info;
 			if (!stat(config_path.c_str(), &info) || !(info.st_mode & S_IFDIR)) {
 #ifdef WIN32
@@ -1370,7 +1370,7 @@ void CONFIG::Run(void) {
 		case P_LISTCONF: {
 			Bitu size = (Bitu)control->configfiles.size();
 			std::string config_path;
-			Cross::GetPlatformConfigDir(config_path);
+			config_path = Cross::GetPlatformConfigDir();
 			WriteOut(MSG_Get("PROGRAM_CONFIG_CONFDIR"), VERSION,config_path.c_str());
 			char cwd[512] = {0};
 			char *res = getcwd(cwd,sizeof(cwd)-1);
@@ -1413,7 +1413,7 @@ void CONFIG::Run(void) {
 			if (securemode_check()) return;
 			if (pvars.size() > 0) return;
 			std::string confname;
-			Cross::GetPlatformConfigName(confname);
+			confname = Cross::GetPlatformConfigName();
 			writeconf(confname, true, all, norem);
 			if (presult==P_WRITECONF_DEFAULT_REBOOT) RebootConfig(confname);
 			break;
@@ -1789,7 +1789,7 @@ void CONFIG::Run(void) {
                         } else if (!strcasecmp(pvars[0].c_str(), "userconfigdir")) {
                             if (securemode_check()) return;
                             std::string config_path;
-                            Cross::GetPlatformConfigDir(config_path);
+                            config_path = Cross::GetPlatformConfigDir();
                             WriteOut("%s\n",config_path.c_str());
                             first_shell->SetEnv("CONFIG",config_path.c_str());
                         } else if (!strcasecmp(pvars[0].c_str(), "configdir")) {
