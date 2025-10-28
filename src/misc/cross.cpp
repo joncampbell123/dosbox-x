@@ -90,26 +90,30 @@ void ResolvePath(std::string& in) {
 }
 
 #if defined(WIN32) && !defined(HX_DOS)
-static void W32_ConfDir(std::string& in,bool create) {
-	int c = create?1:0;
-	char result[MAX_PATH] = { 0 };
-    #if !defined(_WIN32_WINDOWS)
-	BOOL r = SHGetSpecialFolderPath(NULL,result,CSIDL_LOCAL_APPDATA,c);
-	if(!r || result[0] == 0) r = SHGetSpecialFolderPath(NULL,result,CSIDL_APPDATA,c);
-    #else
+static std::string W32_ConfDir(bool create) {
+    char result[MAX_PATH] = { 0 };
+#if !defined(_WIN32_WINDOWS)
+    BOOL r = SHGetSpecialFolderPathA(NULL, result, CSIDL_LOCAL_APPDATA, create ? 1 : 0);
+    if(!r || result[0] == 0)
+        r = SHGetSpecialFolderPathA(NULL, result, CSIDL_APPDATA, create ? 1 : 0);
+#else
     BOOL r = GetModuleFileNameA(NULL, result, MAX_PATH);
     while(r && result[r] != '\\') result[r--] = '\0';
-    #endif
-	if(!r || result[0] == 0) {
-		char const * windir = getenv("windir");
-		if(!windir) windir = "c:\\windows";
-		safe_strncpy(result,windir,MAX_PATH);
-		char const* appdata = "\\Application Data";
-		size_t len = strlen(result);
-		if(len + strlen(appdata) < MAX_PATH) strcat(result,appdata);
-		if(create) _mkdir(result);
-	}
-	in = result;
+#endif
+
+    if(!r || result[0] == 0) {
+        const char* windir = getenv("windir");
+        if(!windir) windir = "c:\\windows";
+        strncpy(result, windir, MAX_PATH - 1);
+        result[MAX_PATH - 1] = '\0';
+        const char* appdata = "\\Application Data";
+        size_t len = strlen(result);
+        if(len + strlen(appdata) < MAX_PATH)
+            strcat(result, appdata);
+    }
+
+    if(create) _mkdir(result);
+    return std::string(result);
 }
 #endif
 
@@ -170,7 +174,7 @@ std::string Cross::GetPlatformConfigDir()
     std::string dir;
 
 #if defined(WIN32) && !defined(HX_DOS)
-    W32_ConfDir(dir, false);
+    dir = W32_ConfDir(false);
     dir += "\\DOSBox-X";
 
 #elif defined(MACOSX)
@@ -224,7 +228,7 @@ std::string Cross::CreatePlatformConfigDir()
     std::string path;
 
 #if defined(WIN32) && !defined(HX_DOS)
-    W32_ConfDir(path, true);
+    path = W32_ConfDir(true);
     path += "\\DOSBox-X";
     _mkdir(path.c_str());
 
