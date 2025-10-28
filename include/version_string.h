@@ -31,8 +31,13 @@
 #define OS_PLATFORM_LONG "Visual Studio ARM"
 #endif
 #elif defined(__MINGW32__)
+#ifdef _UCRT
+#define OS_PLATFORM "UCRT"
+#define OS_PLATFORM_LONG "UCRT"
+#else
 #define OS_PLATFORM "MinGW"
 #define OS_PLATFORM_LONG "MinGW"
+#endif
 #else
 #define OS_PLATFORM "Windows"
 #define OS_PLATFORM_LONG "Windows"
