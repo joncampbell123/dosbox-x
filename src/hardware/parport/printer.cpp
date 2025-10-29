@@ -341,12 +341,12 @@ void CPrinter::updateFont()
     struct stat wstat;
     if (stat(fontName.c_str(),&wstat)) {
         std::string configfont, resfont, name = fontName;
-        Cross::GetPlatformConfigDir(configfont);
+        configfont = Cross::GetPlatformConfigDir();
         configfont += fontName;
         fontName = configfont;
         if (stat(fontName.c_str(),&wstat)) {
             fontName = name;
-            Cross::GetPlatformResDir(resfont);
+            resfont = Cross::GetPlatformResDir();
             resfont += fontName;
             fontName = resfont;
             if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
@@ -360,12 +360,12 @@ void CPrinter::updateFont()
         fontName = basedir + "SarasaGothicFixed.ttf";
         if (stat(fontName.c_str(),&wstat)) {
             std::string configfont, resfont, name = fontName;
-            Cross::GetPlatformConfigDir(configfont);
+            configfont = Cross::GetPlatformConfigDir();
             configfont += fontName;
             fontName = configfont;
             if (stat(fontName.c_str(),&wstat)) {
                 fontName = name;
-                Cross::GetPlatformResDir(resfont);
+                resfont = Cross::GetPlatformResDir();
                 resfont += fontName;
                 fontName = resfont;
                 if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
@@ -373,12 +373,12 @@ void CPrinter::updateFont()
                     fontName = "SarasaGothicFixed.ttf";
                     if (stat(fontName.c_str(),&wstat)) {
                         std::string configfont, resfont, name = fontName;
-                        Cross::GetPlatformConfigDir(configfont);
+                        configfont = Cross::GetPlatformConfigDir();
                         configfont += fontName;
                         fontName = configfont;
                         if (stat(fontName.c_str(),&wstat)) {
                             fontName = name;
-                            Cross::GetPlatformResDir(resfont);
+                            resfont = Cross::GetPlatformResDir();
                             resfont += fontName;
                             fontName = resfont;
                             if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;

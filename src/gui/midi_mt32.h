@@ -257,9 +257,9 @@ public:
         }
 
 		if (!load_rom_set(romDir, model)) {
-			Cross::GetPlatformResDir(romDir);
+			romDir = Cross::GetPlatformResDir();
 			if (!load_rom_set(romDir, model)) {
-					Cross::GetPlatformConfigDir(romDir);
+					romDir = Cross::GetPlatformConfigDir();
 					if (!load_rom_set(romDir, model)) {
 							delete service;
 							service = NULL;

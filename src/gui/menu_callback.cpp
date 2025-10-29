@@ -1858,7 +1858,7 @@ void Load_language_file() {
     struct stat st;
     std::string res_path, exepath = GetDOSBoxXPath();
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"languages"+CROSS_FILESPLIT;
-    Cross::GetPlatformResDir(res_path);
+    res_path = Cross::GetPlatformResDir();
     if (stat(cwd.c_str(),&st) != 0 && exepath.size())
         cwd = exepath+(exepath.back()==CROSS_FILESPLIT?"":std::string(1, CROSS_FILESPLIT))+"languages"+CROSS_FILESPLIT;
     if (stat(cwd.c_str(),&st) != 0 && res_path.size())

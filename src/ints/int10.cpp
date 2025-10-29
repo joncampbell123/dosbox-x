@@ -1453,7 +1453,7 @@ FILE *Try_Load_FontFile(std::string filename) {
     }
 
     /* try to load file from user config directory */
-    Cross::GetPlatformConfigDir(confdir);
+    confdir = Cross::GetPlatformConfigDir();
     if (!confdir.empty()) {
         tmpdir = confdir + filename;
         if ((fp = fopen(tmpdir.c_str(),"rb")))
@@ -1461,7 +1461,7 @@ FILE *Try_Load_FontFile(std::string filename) {
     }
 
     /* try to load file from resources directory */
-    Cross::GetPlatformResDir(resdir);
+    resdir = Cross::GetPlatformResDir();
     if (!resdir.empty()) {
         tmpdir = resdir + filename;
         if ((fp = fopen(tmpdir.c_str(),"rb")))
