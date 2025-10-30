@@ -2084,6 +2084,19 @@ static Bitu INT13_DiskHandler(void) {
         break;
     case 0x08: /* Get drive parameters */
         if(driveInactive(drivenum)) {
+            if(drivenum == 0) {
+                // if no floppy drive 0 mounted, return fixed values for 1.44MB drive
+                // This fixes a problem in some DOS applications that occurred when booting from the hard disk without a mounted floppy disk.
+                reg_ax = 0x00;
+                reg_bl = 4;
+                reg_ch = 79;
+                reg_cl = 18;
+                reg_dh = 1;
+                reg_dl = 1;
+                last_status = 0x00;
+                CALLBACK_SCF(false);
+                return CBRET_NONE;
+            }
             last_status = 0x07;
             reg_ah = last_status;
             CALLBACK_SCF(true);
