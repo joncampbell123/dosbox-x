@@ -23,6 +23,13 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
+#if defined(__linux__) && !defined(__GLIBC__)
+// msul libc does not need 64 suffix to work with files > 2 GiB 
+#define fopen64 fopen
+#define fseeko64 fseeko
+#define ftello64 ftello
+#endif
+
 using namespace std;
 
 

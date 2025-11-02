@@ -39,6 +39,13 @@
 
 #include <algorithm>
 
+#if defined(__linux__) && !defined(__GLIBC__)
+// musl libc does not need 64 suffix to work with files > 2 GiB
+#define fopen64 fopen
+#define fseeko64 fseeko
+#define ftello64 ftello
+#endif
+
 #define IMGTYPE_FLOPPY          0
 #define IMGTYPE_ISO             1
 #define IMGTYPE_HDD             2
