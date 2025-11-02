@@ -33,13 +33,13 @@
 #include <utime.h>
 #include <sys/file.h>
 #else
-#include <fcntl.h>
 #include <sys/utime.h>
 #include <sys/locking.h>
 #ifdef OS2
 #include <sys/time.h>
 #endif
 #endif
+#include <fcntl.h>
 #include <sys/stat.h>
 
 #include "dosbox.h"
