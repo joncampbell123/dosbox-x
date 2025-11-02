@@ -21,14 +21,13 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
           update: true
-          install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils mingw-w64-i686-libslirp
+          install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils
       - name: Install libslirp
-        if: false
         run: |
           # Run this job when MinGW drops 32-bit library support (Other libraries can be built as well)
           top=`pwd`
@@ -37,12 +36,9 @@ jobs:
           git clone https://github.com/msys2/MINGW-packages.git
           pwd
           cd MINGW-packages
-          #ls -lg
           cd mingw-w64-libslirp
-          #ls -lg
           sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw32\')/" PKGBUILD
           MINGW_ARCH=MINGW32 makepkg-mingw -sCLf --noconfirm
-          #ls -lg
           pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Update build info
         shell: bash
@@ -145,12 +141,17 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
           update: true
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
+        run: |
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
       - name: Update build info
         shell: bash
         run: |
@@ -169,21 +170,15 @@ jobs:
         run: |
           top=`pwd`
           echo "${top}"
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           echo "path=$PATH"
           cd ${MSYSTEM_PREFIX}/..
-          rm -rf /d/a/_temp/msys64/mingw32
+          rm -rf mingw32
           mkdir mingw32
           7z x $top/build-scripts/mingw/lowend-bin/i686-7.3.0-release-posix-dwarf-rt_v5-rev0+nasm.7z -o${MSYSTEM_PREFIX}
-          # cp $top/build-scripts/mingw/lowend-bin/make.exe ${MSYSTEM_PREFIX}/bin/make.exe
-          echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
-          chmod +x ${MSYSTEM_PREFIX}/bin/*.*
-          chmod +x ${MSYSTEM_PREFIX}/i686-w64-mingw32/bin/*.*
-          chmod +x ${MSYSTEM_PREFIX}/opt/bin/*.*
+          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
       - name: Build MinGW32 SDL1
         run: |
           top=`pwd`
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           ./build-mingw
           strip -s $top/src/dosbox-x.exe
       - name: Package MinGW32 lowend SDL1
@@ -213,7 +208,6 @@ jobs:
       - name: Build MinGW32 lowend SDL2
         run: |
           top=`pwd`
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           ./build-mingw-sdl2
           strip -s $top/src/dosbox-x.exe
       - name: Package MinGW32 lowend SDL2
@@ -268,12 +262,17 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
           update: true
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
+        run: |
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
       - name: Update build info
         shell: bash
         run: |
@@ -292,19 +291,16 @@ jobs:
         run: |
           top=`pwd`
           echo "${top}"
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           echo "path=$PATH"
           cd ${MSYSTEM_PREFIX}/..
-          rm -rf /d/a/_temp/msys64/mingw32         
+          rm -rf mingw32
           wget https://github.com/crazii/MINGW-toolchains-w9x/releases/download/v1.0.1-w95nt/mingw32.7z
           7z x mingw32.7z -o./
           echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
-          chmod +x ${MSYSTEM_PREFIX}/bin/*.*
-          chmod +x ${MSYSTEM_PREFIX}/i686-w64-mingw32/bin/*.*
+          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
       - name: Build MinGW32 lowend9x
         run: |
           top=`pwd`
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           ./build-mingw-lowend9x
           strip -s $top/src/dosbox-x.exe
       - name: Package MinGW32 lowend9x

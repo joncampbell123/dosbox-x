@@ -105,113 +105,11 @@ static struct {
 } mixer;
 
 uint32_t Mixer_MIXQ(void) {
-    return  ((uint32_t)mixer.freq) |
-            ((uint32_t)2u/*channels*/ << (uint32_t)20u) |
-            (mixer.swapstereo ?      ((uint32_t)1u << (uint32_t)29u) : 0u) |
-            (mixer.mute       ?      ((uint32_t)1u << (uint32_t)30u) : 0u) |
-            (mixer.nosound    ? 0u : ((uint32_t)1u << (uint32_t)31u));
-}
-
-PhysPt mixer_capture_write = 0;
-PhysPt mixer_capture_write_begin = 0;
-PhysPt mixer_capture_write_end = 0;
-uint32_t mixer_control = 0;
-
-// mixer capture source bits [23:16]
-enum {
-    MIXER_SRC_MIXDOWN=0
-};
-
-unsigned int Mixer_MIXC_Source(void) {
-    return (unsigned int)((mixer_control >> 16ul) & 0xFFul);
-}
-
-bool Mixer_MIXC_Active(void) {
-    return ((mixer_control & 3u) == 3u)/*capture interface enable|write to memory*/;
-}
-
-bool Mixer_MIXC_Error(void) {
-    return ((mixer_control & 8u) == 8u);
-}
-
-bool Mixer_MIXC_ShouldLoop(void) {
-    return ((mixer_control & 4u) == 4u);
-}
-
-void Mixer_MIXC_Stop(void) {
-    mixer_control &= ~1u; // clear enable
-}
-
-void Mixer_MIXC_LoopAround(void) {
-    mixer_capture_write = mixer_capture_write_begin;
-}
-
-// NTS: Check AFTER writing sample
-bool Mixer_MIXC_AtEnd(void) {
-    return (mixer_capture_write >= mixer_capture_write_end);
-}
-
-void Mixer_MIXC_MarkError(void) {
-    mixer_control &= ~1u; // clear enable
-    mixer_control |=  8u; // set error
-}
-
-PhysPt Mixer_MIXWritePos(void) {
-    return mixer_capture_write;
-}
-
-void Mixer_MIXWritePos_Write(PhysPt np) {
-    if (!Mixer_MIXC_Active())
-        mixer_capture_write = np;
-}
-
-void Mixer_MIXWriteBegin_Write(PhysPt np) {
-    if (!Mixer_MIXC_Active())
-        mixer_capture_write_begin = np;
-}
-
-void Mixer_MIXWriteEnd_Write(PhysPt np) {
-    if (!Mixer_MIXC_Active())
-        mixer_capture_write_end = np;
-}
-
-void Mixer_MIXC_Validate(void) {
-    if (Mixer_MIXC_Active()) {
-        // NTS: phys_writew() will cause a segfault if the address is beyond the end of memory,
-        //      because it computes MemBase+addr
-        PhysPt MemMax = (PhysPt)MEM_TotalPages() * (PhysPt)4096ul;
-
-        if (Mixer_MIXC_Error() ||
-            Mixer_MIXC_Source() != 0x00 ||
-            mixer_capture_write == 0 || mixer_capture_write_begin == 0 || mixer_capture_write_end == 0 ||
-            mixer_capture_write < mixer_capture_write_begin ||
-            mixer_capture_write > mixer_capture_write_end ||
-            mixer_capture_write_begin > mixer_capture_write_end ||
-            mixer_capture_write >= MemMax ||
-            mixer_capture_write_end >= MemMax ||
-            mixer_capture_write_begin >= MemMax)
-            Mixer_MIXC_MarkError();
-    }
-}
-
-uint32_t Mixer_MIXC(void) {
-    return mixer_control;
-}
-
-void Mixer_MIXC_Write(uint32_t v) {
-    /* bit [0:0] = enable capture interface
-     * bit [1:1] = enable writing to memory
-     * bit [2:2] = enable loop around, when write == write_end, set write == write_begin
-     * bit [3:3] = 1=error condition  0=no error
-     * bit [23:16] = source selection (see list) */
-    if (mixer_control != v) {
-        mixer_control = (v & 0x00FF00FFUL);
-        Mixer_MIXC_Validate();
-    }
-}
-
-bool Mixer_SampleAccurate() {
-    return mixer.sampleaccurate;
+	return  ((uint32_t)mixer.freq) |
+		((uint32_t)2u/*channels*/ << (uint32_t)20u) |
+		(mixer.swapstereo ?      ((uint32_t)1u << (uint32_t)29u) : 0u) |
+		(mixer.mute       ?      ((uint32_t)1u << (uint32_t)30u) : 0u) |
+		(mixer.nosound    ? 0u : ((uint32_t)1u << (uint32_t)31u));
 }
 
 uint8_t MixTemp[MIXER_BUFSIZE];
@@ -804,35 +702,6 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
         }
         assert(readpos <= MIXER_BUFSIZE);
         CAPTURE_AddWave( mixer.freq, added, (int16_t*)convert );
-    }
-
-    if (Mixer_MIXC_Active() && prev_rendered < whole) {
-        Bitu readpos = mixer.work_in + prev_rendered;
-        Bitu added = whole - prev_rendered;
-        Bitu cando = (mixer_capture_write_end - mixer_capture_write) / 2/*bytes/sample*/ / 2/*channels*/;
-        if (cando > added) cando = added;
-
-        if (cando == 0 && !Mixer_MIXC_AtEnd()) {
-            Mixer_MIXC_MarkError();
-        }
-        else if (cando != 0) {
-            for (Bitu i=0;i < cando;i++) {
-                phys_writew(mixer_capture_write,(uint16_t)MIXER_CLIP(((int64_t)mixer.work[readpos][0]) >> (MIXER_VOLSHIFT)));
-                mixer_capture_write += 2;
-
-                phys_writew(mixer_capture_write,(uint16_t)MIXER_CLIP(((int64_t)mixer.work[readpos][1]) >> (MIXER_VOLSHIFT)));
-                mixer_capture_write += 2;
-
-                readpos++;
-            }
-
-            if (Mixer_MIXC_AtEnd()) {
-                if (Mixer_MIXC_ShouldLoop())
-                    Mixer_MIXC_LoopAround();
-                else
-                    Mixer_MIXC_Stop();
-            }
-        }
     }
 
     mixer.samples_rendered_ms.w = whole;

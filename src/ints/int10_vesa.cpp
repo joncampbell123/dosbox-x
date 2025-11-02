@@ -832,6 +832,7 @@ uint8_t VESA_GetDisplayStart(uint16_t & x,uint16_t & y) {
 	IO_Read(0x3da);              // reset attribute flipflop
 	IO_Write(0x3c0,0x13 | 0x20); // panning register, screen on
 	uint8_t panning = IO_Read(0x3c1);
+	if ((CurMode->type == M_TEXT) && (panning > 7)) panning = 0;
 
 	/* FIXME: Why does this happen with VBETEST.EXE and more than 1MB of RAM? */
 	if (vga.config.scan_len == 0) {

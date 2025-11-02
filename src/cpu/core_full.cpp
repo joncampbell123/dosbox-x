@@ -28,8 +28,10 @@
 #include "inout.h"
 #include "callback.h"
 
+extern bool do_lds_wraparound;
 extern bool ignore_opcode_63;
 
+#define CPU_OMIT_8086
 #define CPU_CORE CPU_ARCHTYPE_386
 
 typedef PhysPt EAPoint;

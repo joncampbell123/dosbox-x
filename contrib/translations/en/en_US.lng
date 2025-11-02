@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:English (United States)
 :DOSBOX-X:CODEPAGE:437
-:DOSBOX-X:VERSION:2025.05.03
+:DOSBOX-X:VERSION:2025.10.07
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -144,7 +144,7 @@ Current sound mixer volumes
 Sound Blaster configuration
 .
 :CURRENT_MIDICONFIG
-Current MIDI configuration
+Current MIDI/OPL configuration
 .
 :CREATE_IMAGE
 Create blank disk image
@@ -2974,7 +2974,7 @@ Show sound mixer volumes
 Show Sound Blaster configuration
 .
 :MENU:midi_info
-Show MIDI device configuration
+Show MIDI/OPL device configuration
 .
 :MENU:DOSMenu
 DOS
@@ -4399,8 +4399,8 @@ Failed to save disk image.
 :MENU_JP_CPONLY
 This function is only available for the Japanese code page (932).
 .
-:MENU_CN_CPONLY
-This function is only available for the Chinese code pages (936 or 950).
+:MENU_CH_CPONLY
+This function is only available for the Chinese code pages (936, 950, or 951).
 .
 :MENU_GLIDE_ERROR
 Glide passthrough cannot be enabled. Check the Glide wrapper installation.

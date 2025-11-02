@@ -10451,7 +10451,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("MENU_DRIVE_NOTEXIST", "Drive does not exist or is mounted from disk image.");
     MSG_Add("MENU_SAVE_IMAGE_FAILED","Failed to save disk image.");
     MSG_Add("MENU_JP_CPONLY","This function is only available for the Japanese code page (932).");
-    MSG_Add("MENU_CN_CPONLY","This function is only available for the Chinese code pages (936 or 950).");
+    MSG_Add("MENU_CH_CPONLY","This function is only available for the Chinese code pages (936, 950, or 951).");
     MSG_Add("MENU_GLIDE_ERROR","Glide passthrough cannot be enabled. Check the Glide wrapper installation.");
     MSG_Add("MENU_HIGH_INTENSITY_ERROR", "High intensity is not supported for the current video mode.");
     MSG_Add("MENU_SAVE_FILE_ERROR","Cannot save to the file: %s");

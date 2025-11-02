@@ -76,7 +76,7 @@ for arch in ${architectures}; do
 
     do_cleanup
 
-    arch_flags="-arch ${arch} -mmacosx-version-min=10.12 "
+    arch_flags="-arch ${arch} -mmacosx-version-min=10.13 "
     CFLAGS="${arch_flags}${orig_CFLAGS}"
     LDFLAGS="${arch_flags}${orig_LDFLAGS}"
     CPPFLAGS="${arch_flags}${orig_CPPFLAGS}"

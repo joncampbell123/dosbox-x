@@ -76,6 +76,7 @@ bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
 bool do_seg_limits = false;
+bool do_lds_wraparound = true;
 
 bool do_pse = false;
 bool enable_pse = false;
@@ -2675,6 +2676,7 @@ bool CPU_READ_CRX(Bitu cr,uint32_t & retvalue) {
 bool CPU_WRITE_DRX(Bitu dr,Bitu value) {
 	/* Check if privileged to access control registers */
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
+	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("386 debug write to DR%d = %X",(unsigned int)dr,(unsigned int)value);
 	switch (dr) {
 	case 0:
 	case 1:
@@ -2940,11 +2942,16 @@ void CPU_VERW(Bitu selector) {
 }
 
 /* This is called by the XMS emulation to set up Flat Real Mode, at least for segment registers DS and ES */
-void XMS_InitFlatRealMode(void) {
-	if (!cpu.pmode && !(reg_flags & FLAG_VM)) {
-		Segs.limit[ds] = 0xFFFFFFFFul;
-		Segs.limit[es] = 0xFFFFFFFFul;
+bool XMS_InitFlatRealMode(void) {
+	if (!cpu.pmode) {
+		if (Segs.limit[ds] != 0xFFFFFFFFul || Segs.limit[es] != 0xFFFFFFFFul) {
+			Segs.limit[ds] = 0xFFFFFFFFul;
+			Segs.limit[es] = 0xFFFFFFFFul;
+			return true;
+		}
 	}
+
+	return false;
 }
 
 bool CPU_SetSegGeneral(SegNames seg,uint16_t value) {
@@ -3591,6 +3598,7 @@ public:
 		reg_ebp=0;
 		reg_esp=0;
 
+		do_lds_wraparound = section->Get_bool("lds wraparound");
 		do_seg_limits = section->Get_bool("segment limits");
 	
 		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[cs] = false;

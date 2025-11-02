@@ -350,7 +350,7 @@ void VGA_SetCGA2Table(uint8_t val0,uint8_t val1) {
 			((Bitu)total[(i >> 0u) & 1u] << 0u  ) | ((Bitu)total[(i >> 1u) & 1u] << 8u  ) |
 			((Bitu)total[(i >> 2u) & 1u] << 16u ) | ((Bitu)total[(i >> 3u) & 1u] << 24u );
 #else 
-		((Bitu)total[(i >> 3u) & 1u] << 0u  ) | ((Bitu)total[(i >> 2u) & 1u] << 8u  ) |
+			((Bitu)total[(i >> 3u) & 1u] << 0u  ) | ((Bitu)total[(i >> 2u) & 1u] << 8u  ) |
 			((Bitu)total[(i >> 1u) & 1u] << 16u ) | ((Bitu)total[(i >> 0u) & 1u] << 24u );
 #endif
 	}
@@ -1033,9 +1033,9 @@ void VGA_Reset(Section*) {
 		SVGA_Setup_Driver();        // svga video memory size is set here, possibly over-riding the user's selection
 
 	// NTS: This is WHY the memory size must be a power of 2
-	vga.mem.memmask = vga.mem.memsize - 1u;
+	vga.mem.memmask = bitop::rounduppow2mask(vga.mem.memsize - 1u);
 
-	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.mem.memsize>>10);
+	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB (mask 0x%x)",vga.mem.memsize>>10,(unsigned int)vga.mem.memmask);
 
 	// TODO: If S3 emulation, and linear framebuffer bumps up against the CPU memalias limits,
 	//       trim Video RAM to fit (within reasonable limits) or else E_Exit() to let the user
@@ -1055,8 +1055,13 @@ void VGA_Reset(Section*) {
 		VGA_SetupXGA();
 		VGA_SetClock(0,CLK_25);
 		VGA_SetClock(1,CLK_28);
+
 		/* Generate tables */
-		VGA_SetCGA2Table(0,1);
+		if (machine == MCH_HERC && hercCard < HERC_InColor)
+			VGA_SetCGA2Table(0,7); /* make graphics mode use colors 0 and 7 so hercules palette selection works */
+		else
+			VGA_SetCGA2Table(0,1);
+
 		VGA_SetCGA4Table(0,1,2,3);
 
 		if (machine == MCH_HERC || machine == MCH_MDA) {

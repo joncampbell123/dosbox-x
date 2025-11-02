@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:2025.05.03
+:DOSBOX-X:VERSION:2025.10.07
 :DOSBOX-X:REMARK:配置完中文语言与字体后，就可以直接支持中文显示和打印。国家和代码页选项可以留空，或设为 “86,936”。
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -149,7 +149,7 @@ DOS 命令帮助
 声卡配置信息
 .
 :CURRENT_MIDICONFIG
-MIDI 设备配置信息
+MIDI/OPL 设备配置信息
 .
 :CREATE_IMAGE
 创建空白磁盘镜像
@@ -2963,7 +2963,7 @@ Glide 直通
 显示声卡配置
 .
 :MENU:midi_info
-显示 MIDI 设备配置
+显示 MIDI/OPL 设备配置
 .
 :MENU:DOSMenu
 DOS
@@ -4255,4 +4255,48 @@ the COLOR command with a foreground and background color that are the same.
 
 Example: "COLOR fc" produces light red on bright white.
 
+.
+:SCALER_LOAD_WARN
+This scaler may not work properly or have undesired effect:
+
+%s
+
+Do you want to force load the scaler?
+.
+:PIXEL_SHADER_WARN
+This pixel shader may be unneeded or have undesired effect:
+
+%s
+
+Do you want to load the pixel shader anyway?
+
+(You may append 'forced' to the pixelshader setting to force load the pixel shader without this message)
+.
+:PIXEL_SHADER_LOADED
+Loaded pixel shader - %s
+.
+:MAPPEREDITOR_NOT_AVAILABLE
+Mapper Editor is not currently available.
+.
+:OPL_REC_COMPLETED
+Saved Raw OPL output to the file:
+
+%s
+.
+:OPL_CAPTURE_FAILED
+Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.
+.
+:TTF_DBCS_ONLY
+This function is only available for the Chinese/Japanese/Korean code pages.
+.
+:SAVE_FAILED
+Failed to save the current state.
+.
+:SAVE_CORRUPTED
+Save state corrupted! Program may not work.
+.
+:SAVE_SCREENSHOT
+Saved screenshot to the file:
+
+%s
 .

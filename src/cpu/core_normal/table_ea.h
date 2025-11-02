@@ -16,8 +16,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-typedef PhysPt (*EA_LookupHandler)(void);
-
 /* The MOD/RM Decoder for EA for this decoder's addressing modes */
 static PhysPt EA_16_00_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_si); }
 static PhysPt EA_16_01_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_di); }

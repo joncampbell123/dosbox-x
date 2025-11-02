@@ -1660,7 +1660,7 @@ bool ttf_extend_charset_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     if (!isDBCSCP()||(dos.loaded_codepage!=936&&dos.loaded_codepage!=950&&dos.loaded_codepage!=951)) {
-        systemmessagebox("Warning", MSG_Get("MENU_CN_CPONLY"), "ok","warning", 1);
+        systemmessagebox("Warning", MSG_Get("MENU_CH_CPONLY"), "ok","warning", 1);
         return true;
     }
     if (dos.loaded_codepage==936) {
@@ -3423,7 +3423,7 @@ void AllocCallback1() {
                     set_callback_function(mixer_info_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sb_info").set_text("Show Sound Blaster configuration").
                     set_callback_function(sb_device_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"midi_info").set_text("Show MIDI device configuration").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"midi_info").set_text("Show MIDI/OPL device configuration").
                     set_callback_function(midi_device_menu_callback);
             }
         }

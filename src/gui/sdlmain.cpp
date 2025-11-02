@@ -84,6 +84,10 @@ void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_me
 extern int tryconvertcp, Reflect_Menu(void);
 bool kana_input = false; // true if a half-width kana was typed
 
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+#define IS_OLDMACOS 1 /* FIX_ME: Tested on El Capitan (10.11). If this macro is required for Sierra (10.12), change to 101300 */
+#endif
+
 #ifndef LINUX
 char* convert_escape_newlines(const char* aMessage);
 char* revert_escape_newlines(const char* aMessage);
@@ -152,7 +156,7 @@ char* revert_escape_newlines(const char* aMessage);
 #include "display2.cpp"
 #endif
 
-#if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
 #include "libs/passthroughio/passthroughio.h" // for dropPrivileges()
 #endif
 
@@ -163,6 +167,15 @@ char* revert_escape_newlines(const char* aMessage);
 #if defined(WIN32) && !defined(HX_DOS)
 # include <shobjidl.h>
 #endif
+
+#include <string>
+#if defined(_WIN32)
+#include <direct.h>
+#define getcwd _getcwd
+#else
+#include <unistd.h>
+#endif
+#include <limits.h>
 
 #include <output/output_direct3d.h>
 #include <output/output_opengl.h>
@@ -175,6 +188,14 @@ static bool init_output = false;
 #if defined(WIN32)
 #include "resource.h"
 #if !defined(HX_DOS)
+
+#ifndef PATH_MAX
+    #if defined(WIN32)
+        #define PATH_MAX MAX_PATH
+    #else
+        #define PATH_MAX 4096 /* LINUX sets to 4096, while this varies from 260 to 4096 depending on platforms */
+    #endif
+#endif
 
 BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
     (void)hMon;
@@ -1104,52 +1125,26 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 bool warn_on_mem_write = false;
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) ;
 
-#if defined(WIN32)
-char* convert_escape_newlines(const char* aMessage) {
-    size_t len = strlen(aMessage);
-    char* lMessage = (char*)malloc(len * 2 + 1); // Allocate memory considering convert to UTF8
-
-    if(!lMessage) return nullptr;
-
-    const char* src = aMessage;
-    char* dst = lMessage;
-
-    while(*src) {
-        if(*src == '\n') {
-            *dst++ = '\\';
-            *dst++ = 'n';
-            src++;
-        }
-        else {
-            *dst++ = *src++;
-        }
-    }
-
-    *dst = '\0'; // Terminate with NULL character
-    return lMessage;
+#ifdef WIN32
+#ifdef __cplusplus
+extern "C" {
+#endif
+    int tinyfd_messageBoxW(
+        wchar_t const* aTitle, /* NULL or "" */
+        wchar_t const* aMessage, /* NULL or ""  may contain \n and \t */
+        wchar_t const* aDialogType, /* "ok" "okcancel" "yesno" "yesnocancel" */
+        wchar_t const* aIconType, /* "info" "warning" "error" "question" */
+        int aDefaultButton);
+#ifdef __cplusplus
 }
-
-char* revert_escape_newlines(const char* aMessage) {
-    size_t len = strlen(aMessage);
-    char* lMessage = (char*)malloc(len * 2 + 1); // Allocate memory considering convert to UTF8
-
-    if(!lMessage) return nullptr;
-
-    const char* src = aMessage;
-    char* dst = lMessage;
-
-    while(*src) {
-        if(src[0] == '\\' && src[1] == 'n') {
-            *dst++ = '\n';
-            src += 2;
-        }
-        else {
-            *dst++ = *src++;
+#endif
+bool CodePageGuestToHostUTF16(uint16_t* d/*CROSS_LEN*/, const char* s/*CROSS_LEN*/);
+void SanitizeUTF16Newlines(uint16_t* utf16Message, size_t maxLen) {
+    for(size_t i = 0; i < maxLen && utf16Message[i] != 0; ++i) {
+        if(utf16Message[i] == 0x25D9) {
+            utf16Message[i] = 0x000A;
         }
     }
-
-    *dst = '\0'; // Terminate with NULL character
-    return lMessage;
 }
 #elif defined(MACOSX)
 std::string replaceNewlineWithEscaped(const std::string& input) {
@@ -1205,11 +1200,16 @@ std::string replaceNewlineWithEscaped(const std::string& input) {
 
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)
-    if(!aMessage) aMessage = "";
-    std::string lDialogString(aMessage);
-    std::string lTitleString(aTitle);
-    std::replace(lDialogString.begin(), lDialogString.end(), '\"', ' ');
+    std::string lTitleString = aTitle ? aTitle : "";
+    std::string lDialogString = aMessage ? aMessage : "";
+    std::string lDialogTypeStr = aDialogType ? aDialogType : "ok";
+    std::string lIconTypeStr = aIconType ? aIconType : "info";
+
     std::replace(lTitleString.begin(), lTitleString.end(), '\"', ' ');
+    std::replace(lDialogString.begin(), lDialogString.end(), '\"', ' ');
+    std::replace(lDialogTypeStr.begin(), lDialogTypeStr.end(), '\"', ' ');
+    std::replace(lIconTypeStr.begin(), lIconTypeStr.end(), '\"', ' ');
+
     bool fs=sdl.desktop.fullscreen;
     if (fs) GFX_SwitchFullScreen();
     MAPPER_ReleaseAllKeys();
@@ -1225,25 +1225,48 @@ bool systemmessagebox(char const * aTitle, char const * aMessage, char const * a
     CodePageGuestToHostUTF8(lMessage, lDialogString.c_str());
     lTitleString = replaceNewlineWithEscaped(lTitleString); // String may include "\n" which needs to be escaped to "\\n" 
     CodePageGuestToHostUTF8(lTitle, lTitleString.c_str());
-    bool ret=tinyfd_messageBox(lTitle, lMessage, aDialogType, aIconType, aDefaultButton);
+    bool result=tinyfd_messageBox(lTitle, lMessage, aDialogType, aIconType, aDefaultButton);
     free(lMessage);
     free(lTitle);
 #else
-    char* temp_message = convert_escape_newlines(aMessage); //FIX_ME: CodePageGuestToHostUTF8() gives weird results for '\n'
-    size_t max_utf8_len = strlen(temp_message) * 3 + 1;
-    char* lMessage = (char*)malloc(max_utf8_len);
-    if(!isDBCSCP() && temp_message && lMessage) CodePageGuestToHostUTF8(lMessage, temp_message);
-    else strcpy(lMessage, temp_message);
-    free(temp_message);
-    temp_message = revert_escape_newlines(lMessage);        //FIX_ME: CodePageGuestToHostUTF8() gives weird results for '\n'
-    bool ret = tinyfd_messageBox(aTitle, temp_message, aDialogType, aIconType, aDefaultButton);
-    free(temp_message);
-    free(lMessage);
+    size_t msgLen = lDialogString.length() + 1;
+    size_t titleLen = lTitleString.length() + 1;
+    size_t typeLen = lDialogTypeStr.length() + 1;
+    size_t iconLen = lIconTypeStr.length() + 1;
+
+    uint16_t* utf16Message = (uint16_t*)malloc(msgLen * 2);
+    uint16_t* utf16Title = (uint16_t*)malloc(titleLen * 2);
+    uint16_t* utf16Type = (uint16_t*)malloc(typeLen * 2);
+    uint16_t* utf16Icon = (uint16_t*)malloc(iconLen * 2);
+
+    if(!utf16Message || !utf16Title || !utf16Type || !utf16Icon) {
+        free(utf16Message); free(utf16Title); free(utf16Type); free(utf16Icon);
+        return false;
+    }
+
+    CodePageGuestToHostUTF16(utf16Message, lDialogString.c_str());
+    CodePageGuestToHostUTF16(utf16Title, lTitleString.c_str());
+    CodePageGuestToHostUTF16(utf16Type, lDialogTypeStr.c_str());
+    CodePageGuestToHostUTF16(utf16Icon, lIconTypeStr.c_str());
+
+    SanitizeUTF16Newlines(utf16Message, msgLen);
+    int result = tinyfd_messageBoxW(
+        (wchar_t const*)utf16Title,
+        (wchar_t const*)utf16Message,
+        (wchar_t const*)utf16Type,
+        (wchar_t const*)utf16Icon,
+        aDefaultButton
+    );
+
+    free(utf16Message);
+    free(utf16Title);
+    free(utf16Type);
+    free(utf16Icon);
 #endif
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-    return ret;
+    return result;
 #else
     return true;
 #endif
@@ -2090,6 +2113,7 @@ void drawmenu(Bitu) {
 #endif
 
 void RENDER_Reset(void);
+void UpdateUserCursorScreenDimensions(void);
 
 Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback)
 {
@@ -2242,7 +2266,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     }
 #endif
     UpdateWindowDimensions();
-
+    UpdateUserCursorScreenDimensions();
 #if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     WindowsTaskbarUpdatePreviewRegion();
 #endif
@@ -4465,6 +4489,16 @@ bool GFX_CursorInOrNearScreen(int wx,int wy) {
     return  (wx >= minx && wx < maxx) && (wy >= miny && wy < maxy);
 }
 
+void UpdateUserCursorScreenDimensions(void) {
+	user_cursor_sw     = sdl.clip.w;
+	user_cursor_sh     = sdl.clip.h;
+
+	if (video_debug_overlay && vga.draw.width < render.src.width) {
+		user_cursor_sw     = (vga.draw.width*user_cursor_sw)/render.src.width;
+		user_cursor_sh     = (vga.draw.height*user_cursor_sh)/render.src.height;
+	}
+}
+
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     bool inputToScreen = false;
 
@@ -4547,13 +4581,8 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     user_cursor_y      = motion->y - sdl.clip.y;
     user_cursor_locked = sdl.mouse.locked;
     user_cursor_emulation = sdl.mouse.emulation;
-    user_cursor_sw     = sdl.clip.w;
-    user_cursor_sh     = sdl.clip.h;
 
-    if (video_debug_overlay && vga.draw.width < render.src.width) {
-        user_cursor_sw     = (vga.draw.width*user_cursor_sw)/render.src.width;
-        user_cursor_sh     = (vga.draw.height*user_cursor_sh)/render.src.height;
-    }
+    UpdateUserCursorScreenDimensions();
 
     auto xrel = static_cast<float>(motion->xrel) * sdl.mouse.xsensitivity / 100.0f;
     auto yrel = static_cast<float>(motion->yrel) * sdl.mouse.ysensitivity / 100.0f;
@@ -7894,7 +7923,7 @@ void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
 void grGlideShutdown(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
-#if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
     dropPrivilegesTemp();
 #endif
     CommandLine com_line(argc,argv);
@@ -8159,13 +8188,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
     int workdirsave = 0;
     std::string workdirsaveas = "";
+
 #if defined(MACOSX) || defined(LINUX) || (defined(WIN32) && !defined(HX_DOS))
     {
-        char cwd[512] = {0};
-        if(getcwd(cwd, sizeof(cwd) - 1) == NULL) {
-            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
-        }
-
         if(control->opt_promptfolder < 0) {
 #if !defined(MACOSX)
             struct stat st;
@@ -8192,8 +8217,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (control->opt_promptfolder < 0)
             control->opt_promptfolder = 1;
 #else
-        if (control->opt_promptfolder < 0)
-            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd,"/")) ? 1 : 0;
+        std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
+        if (control->opt_promptfolder < 0 && getcwd(cwd.get(), PATH_MAX) != nullptr)
+            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd.get(), "/")) ? 1 : 0;
 #endif
         if (control->opt_promptfolder == 1 && workdiropt == "default" && workdirdef.size()) {
             control->opt_promptfolder = 0;
@@ -8224,12 +8250,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 E_Exit("Can't init SDL %s",SDL_GetError());
 #endif
 
-            char folder[512], *default_folder=folder;
-            std::string dir = workdirdef.empty()?(exepath.size()?exepath:""):workdirdef;
-            if (dir.size()&&dir.size()<512)
-                strcpy(default_folder, dir.c_str());
-            else
-                default_folder = NULL;
+            std::unique_ptr<char[]> folder(new char[PATH_MAX]);
+            char* default_folder = nullptr;
+
+            std::string dir = workdirdef.empty() ? (!exepath.empty() ? exepath : "") : workdirdef;
+            if (!dir.empty() && dir.size() < PATH_MAX) {
+                std::strncpy(folder.get(), dir.c_str(), PATH_MAX);
+                folder[PATH_MAX-1] = '\0'; // Null terminate just in case
+                default_folder = folder.get();
+            }
             const char *confirmstr = "Do you want to use the selected folder as the DOSBox-X working directory in future sessions?\n\nIf you select Yes, DOSBox-X will not prompt for a folder again.\nIf you select No, DOSBox-X will always prompt for a folder when it runs.\nIf you select Cancel, DOSBox-X will ask this question again next time.";
             const char *quitstr = "You have not selected a valid path. Do you want to run DOSBox-X with the current path as the DOSBox-X working directory?\n\nDOSBox-X will exit if you select No.";
 #if defined(MACOSX)
@@ -8405,31 +8434,37 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
     if (!control->opt_defaultconf) {
         /* -- -- if none found, use dosbox-x.conf or dosbox.conf */
-        if (!control->configfiles.size()) control->ParseConfigFile("dosbox-x.conf");
-        if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
-        if (!control->configfiles.size()) {
-            std::string exepath=GetDOSBoxXPath();
-            if (exepath.size()) {
-                control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
-                if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
+        std::string cur_dir;
+        std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
+        if(getcwd(cwd.get(), PATH_MAX) != nullptr) {
+            cur_dir = std::string(cwd.get()) + CROSS_FILESPLIT;
+        }
+        else {
+            cur_dir.clear();
+        }
+        const std::string config_paths[] = {
+            cur_dir + "dosbox-x.conf",
+            cur_dir + "dosbox.conf",
+            exepath.empty() ? "" : exepath + "dosbox-x.conf",
+            exepath.empty() ? "" : exepath + "dosbox.conf",
+            res_path.empty() ? "": res_path + "dosbox-x.conf", /* resource level conf */
+            config_path.empty() ? "" : config_path + "dosbox-x.conf", /* user level conf */
+            config_combined /* user level conf (default name)*/
+        };
+
+        for (const auto& path : config_paths) {
+            if (!control->configfiles.size() && !path.empty()) {
+                LOG(LOG_MISC, LOG_NORMAL)("Trying config: %s\n", path.c_str());
+                control->ParseConfigFile(path.c_str());
             }
         }
-
-        /* -- -- if none found, use resource level conf */
-        if (!control->configfiles.size()) control->ParseConfigFile((res_path + "dosbox-x.conf").c_str());
-
-        /* -- -- if none found, use userlevel conf */
-        if (!control->configfiles.size()) control->ParseConfigFile((config_path + "dosbox-x.conf").c_str());
-        if (!control->configfiles.size()) {
-            control->ParseConfigFile(config_combined.c_str());
-        }
-
         /* -- -- if none found, create userlevel conf */
         if(!control->configfiles.size()) {
-            Cross::CreatePlatformConfigDir(config_path);
-            control->PrintConfig(config_combined.c_str());
-            control->ParseConfigFile(config_combined.c_str()); // Load the conf file created above 
-            if(control->configfiles.size()) LOG_MSG("CONFIG: Created and loaded user config file %s", config_combined.c_str());
+            if(!config_combined.empty()){
+                control->PrintConfig(config_combined.c_str());
+                control->ParseConfigFile(config_combined.c_str()); // Load the conf file created above
+                if(control->configfiles.size()) LOG_MSG("CONFIG: Created and loaded user config file %s", config_combined.c_str());
+            } else LOG_MSG("CONFIG: Warning: User config file not found. Try specifying it with -conf option or put it in the current directory.");
         }
 
         if (control->configfiles.size()) {
@@ -8749,12 +8784,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
 
-        char cwd[512] = {0};
-        if(getcwd(cwd, sizeof(cwd) - 1))
-            LOG_MSG("DOSBox-X's working directory: %s\n", cwd);
-        else
-            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
-
+        {
+            std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
+            if(getcwd(cwd.get(), PATH_MAX))
+                LOG_MSG("DOSBox-X's working directory: %s\n", cwd.get());
+            else
+                LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
+        }
     const char *imestr = section->Get_string("ime");
     enableime = !strcasecmp(imestr, "true") || !strcasecmp(imestr, "1");
     if (!strcasecmp(imestr, "auto")) {
@@ -9432,7 +9468,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* The machine just "powered on", and then reset finished */
         if (!VM_PowerOn()) E_Exit("VM failed to power on");
 
-#if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
         /*
           Drop root privileges after they are no longer needed, which is a good
           practice if the executable is setuid root.

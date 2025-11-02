@@ -12,7 +12,7 @@ jobs:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: write # for actions/checkout to fetch code and softprops/action-gh-release
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: windows-latest
+    runs-on: windows-2022
     defaults:
       run:
         shell: pwsh
@@ -21,7 +21,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: microsoft/setup-msbuild@v2
       - name: Install v141 build tools
         run: |
@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
-          ls -1 vs/dosbox-x.vcxproj vs/freetype/builds/windows/vc2010/freetype.vcxproj vs/libpdcurses/libpdcurses.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/sdl/VisualC/SDL/SDL.vcxproj vs/sdl/VisualC/SDLmain/SDLmain.vcxproj vs/sdl2/VisualC/SDL/SDL.vcxproj vs/sdl2/VisualC/SDLmain/SDLmain.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/zlib/zlib/zlib.vcxproj | xargs sed -b -i 's/v14[2-9]/v141/g;s/>10.0</>10.0.22000.0</g'
+          ls -1 vs/dosbox-x.vcxproj vs/freetype/builds/windows/vc2010/freetype.vcxproj vs/libpdcurses/libpdcurses.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/sdl/VisualC/SDL/SDL.vcxproj vs/sdl/VisualC/SDLmain/SDLmain.vcxproj vs/sdl2/VisualC/SDL/SDL.vcxproj vs/sdl2/VisualC/SDLmain/SDLmain.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/zlib/zlib/zlib.vcxproj | xargs sed -b -i 's/v14[2-9]/v141/g;s/>10.0</>10.0.22621.0</g'
           echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
           export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
           export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
@@ -146,12 +146,17 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
           update: true
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
+        run: |
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
       - name: Update build info
         shell: bash
         run: |
@@ -170,13 +175,11 @@ jobs:
         run: |
           top=`pwd`
           echo "${top}"
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           echo "path=$PATH"
           cd ${MSYSTEM_PREFIX}/..
-          rm -rf /d/a/_temp/msys64/mingw32
+          rm -rf mingw32
           mkdir mingw32
           7z x $top/build-scripts/mingw/lowend-bin/i686-7.3.0-release-posix-dwarf-rt_v5-rev0+nasm.7z -o${MSYSTEM_PREFIX}
-          # cp $top/build-scripts/mingw/lowend-bin/make.exe ${MSYSTEM_PREFIX}/bin/make.exe
           echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
           chmod +x ${MSYSTEM_PREFIX}/bin/*.*
           chmod +x ${MSYSTEM_PREFIX}/i686-w64-mingw32/bin/*.*
@@ -184,14 +187,12 @@ jobs:
       - name: Build MinGW32 lowend SDL2
         run: |
           top=`pwd`
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           ./build-mingw-sdl2
           strip -s src/dosbox-x.exe
           mkdir -p mingw-bin
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL2.exe
       - name: Build MinGW32 lowend SDL1
         run: |
-          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           ./build-mingw
           strip -s src/dosbox-x.exe
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL1.exe
@@ -211,7 +212,7 @@ jobs:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: write # for actions/checkout to fetch code and softprops/action-gh-release
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: [MSBuild_XP_CI_build, MinGW32_lowend_CI_build]
     env:
       GH_TOKEN: ${{ github.token }}
@@ -219,7 +220,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Restore Visual Studio builds (nightly)
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/restore@v4

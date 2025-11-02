@@ -152,6 +152,7 @@ bool incall = false;
 bool startnopause = false;
 int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
+bool auto_repair_dos_psp_mcb_corruption = false;
 int dos_sda_size = 0x560;
 int dos_clipboard_device_access;
 const char *dos_clipboard_device_name;
@@ -2289,7 +2290,7 @@ static Bitu DOS_21Handler(void) {
                     CALLBACK_SCF(false);
                 } else {            
                     reg_ax=dos.errorcode;
-                    reg_bx=size;
+                    if (dos.errorcode != 7) reg_bx=size; /* Real MS-DOS does not appear to update BX for error 7 */
                     CALLBACK_SCF(true);
                 }
                 break;
@@ -4147,6 +4148,7 @@ public:
 		enable_filenamechar = section->Get_bool("filenamechar");
 		file_access_tries = section->Get_int("file access tries");
 		dos_initial_hma_free = section->Get_int("hma free space");
+		auto_repair_dos_psp_mcb_corruption = section->Get_bool("mcb corruption becomes application free memory");
 		minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
 		private_segment_in_umb = section->Get_bool("private area in umb");

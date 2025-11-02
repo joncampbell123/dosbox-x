@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Japanese
 :DOSBOX-X:CODEPAGE:932
-:DOSBOX-X:VERSION:2025.05.03
+:DOSBOX-X:VERSION:2025.10.07
 :DOSBOX-X:REMARK:PC-98, JEGA, DOS/V エミュレーション、または とコード ページ 932 の日本語フォントを使用して、日本語の表示と印刷を直接サポートします
 :AUTOEXEC_CONFIGFILE_HELP
 このセクションに記載の行は起動時に実行されます。
@@ -150,7 +150,7 @@ DOS コマンドのヘルプ
 現在の Sound Blaster 設定
 .
 :CURRENT_MIDICONFIG
-現在の MIDI 設定
+現在の MIDI/OPL 設定
 .
 :CREATE_IMAGE
 空のディスクイメージ作成
@@ -2982,7 +2982,7 @@ TrueTypeフォント(TTF/OTF)の選択...
 Sound Blaster設定の表示
 .
 :MENU:midi_info
-MIDIデバイス設定の表示
+MIDI/OPLデバイス設定の表示
 .
 :MENU:DOSMenu
 DOS
@@ -4417,8 +4417,8 @@ C ドライブはすでにマウントされていますが、続けますか?
 :MENU_JP_CPONLY
 この機能は日本語のコードページ (932) のみに使われます。
 .
-:MENU_CN_CPONLY
-この機能は中国語のコードページ (936 または 950) のみに使われます。
+:MENU_CH_CPONLY
+この機能は中国語のコードページ (936、950、または951) のみに使われます。
 .
 :MENU_GLIDE_ERROR
 Glide パススルーを設定できませんでした。Glide ラッパーが正しくインストールされているか確認して下さい。

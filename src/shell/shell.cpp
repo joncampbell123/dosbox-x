@@ -449,6 +449,15 @@ void DOS_Shell::ParseLine(char * line) {
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
 	
     GetRedirection(line, &in, &out, &toc, &append);
+
+    if(toc && *trim(toc) == '\0') { 
+        SyntaxError(); /* No command to pass output */
+        if(in) free(in);
+        if(out) free(out);
+        if(toc) free(toc);
+        return;
+    }
+
 	if (in || out || toc) {
 		normalstdin  = (psp->GetFileHandle(0) != 0xff); 
 		normalstdout = (psp->GetFileHandle(1) != 0xff); 
@@ -461,27 +470,54 @@ void DOS_Shell::ParseLine(char * line) {
 			DOS_OpenFile(in,OPEN_READ,&dummy);	//Open new stdin
 		} else {
 			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File open error - %s\n"), in);
-			in = nullptr;
+            if(in) free(in);
+            if(out) free(out);
+            if(toc) free(toc);
 			return;
 		}
 	}
 	bool fail=false;
 	char pipetmp[270];
 	uint16_t fattr;
-	if (toc) {
-		initRand();
-		std::string line;
-		if (!GetEnvStr("TEMP",line)&&!GetEnvStr("TMP",line))
-			sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
-		else {
-			std::string::size_type idx = line.find('=');
-			std::string temp=line.substr(idx +1 , std::string::npos);
-			if (DOS_GetFileAttr(temp.c_str(), &fattr) && fattr&DOS_ATTR_DIRECTORY)
-				sprintf(pipetmp, "%s\\pipe%d.tmp", temp.c_str(), rand()%10000);
-			else
-				sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
-		}
-	}
+    if(toc) {
+        // Initialize random number generator
+        initRand();
+
+        // Try to get TEMP or TMP environment variable
+        std::string tempPath;
+        if(!GetEnvStr("TEMP", tempPath) && !GetEnvStr("TMP", tempPath)) {
+            // Fallback: use current drive root as fallback directory (e.g., "C:\")
+            char currentDrive = DOS_GetDefaultDrive() + 'A';
+            tempPath = std::string(1, currentDrive) + ":\\";
+        }
+        else {
+            // Extract directory from environmental variable
+            std::string::size_type idx = tempPath.find('=');
+            if(idx != std::string::npos)
+                tempPath = tempPath.substr(idx + 1);
+        }
+
+        // Ensure the path ends with backslash
+        if(!tempPath.empty() && tempPath.back() != '\\') {
+            tempPath += '\\';
+        }
+
+        // Check if directory is valid
+        uint16_t fattr;
+        if(!(DOS_GetFileAttr(tempPath.c_str(), &fattr) && (fattr & DOS_ATTR_DIRECTORY))) {
+            // Fallback to current drive root again if directory is invalid
+            char currentDrive = DOS_GetDefaultDrive() + 'A';
+            tempPath = std::string(1, currentDrive) + ":\\";
+        }
+
+        // Assign to tempEnv after fixing the path
+        const char* tempEnv = tempPath.c_str();
+
+        // Generate unique pipe file path
+        int pipeid = rand() % 10000;
+        snprintf(pipetmp, sizeof(pipetmp), "%spipe%d.tmp", tempEnv, pipeid);
+    }
+
 	DOS_Device *tmpdev = NULL;
 	if (out||toc) {
 		if (out&&toc)
@@ -490,7 +526,7 @@ void DOS_Shell::ParseLine(char * line) {
 		if(normalstdout) DOS_CloseFile(1);
 		if(!normalstdin && !in) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
 		bool status = true;
-		/* Create if not exist. Open if exist. Both in read/write mode */
+        /* Create if not exist. Open if exist. Both in read/write mode */
 		if(!toc&&append) {
 			if (DOS_GetFileAttr(out, &fattr) && fattr&DOS_ATTR_READ_ONLY) {
 				DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -508,26 +544,36 @@ void DOS_Shell::ParseLine(char * line) {
 			if (toc&&!device&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
 				fail=true;
 			status = device?false:DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
-			if (toc&&(fail||!status)&&!strchr(pipetmp,'\\')) {
+            bool pipetmp_is_zdrive = strncasecmp(pipetmp, "Z:\\", 3) == 0;
+            if (toc&&(fail||!status)&&(!strchr(pipetmp,'\\')|| pipetmp_is_zdrive)) {
                 Overlay_Drive *da = Drives[0] ? (Overlay_Drive *)Drives[0] : NULL, *dc = Drives[2] ? (Overlay_Drive *)Drives[2] : NULL;
-                if ((Drives[0]&&!Drives[0]->readonly&&!(da&&da->ovlreadonly))||(Drives[2]&&!Drives[2]->readonly&&!(dc&&dc->ovlreadonly))) {
+                if (!pipetmp_is_zdrive && ((Drives[0]&&!Drives[0]->readonly&&!(da&&da->ovlreadonly))||(Drives[2]&&!Drives[2]->readonly&&!(dc&&dc->ovlreadonly)))) {
                     int len = (int)strlen(pipetmp);
-                    if (len > 266) {
+                    if(len > 266) {
                         len = 266;
                         pipetmp[len] = 0;
                     }
-                    for (int i = len; i >= 0; i--)
+                    for(int i = len; i >= 0; i--)
                         pipetmp[i + 3] = pipetmp[i];
-                    pipetmp[0] = Drives[2]?'c':'a';
+                    pipetmp[0] = Drives[2] ? 'c' : 'a';
                     pipetmp[1] = ':';
                     pipetmp[2] = '\\';
-                    fail=false;
+                    fail = false;
                 } else if (!tmpdev && pipetmpdev) {
-                    char *p=strchr(pipetmp, '.');
-                    if (p) *p = 0;
-                    tmpdev = new device_TMP(pipetmp);
-                    if (p) *p = '.';
-                    if (tmpdev) {
+                    char* filename_only = strrchr(pipetmp, '\\');
+                    if(!filename_only) filename_only = pipetmp;
+                    else filename_only++;
+                    char tmpname[270];
+                    strncpy(tmpname, filename_only, sizeof(tmpname));
+                    tmpname[sizeof(tmpname) - 1] = 0;
+
+                    char* p = strchr(tmpname, '.');
+                    if(p) *p = 0;
+
+                    tmpdev = new device_TMP(tmpname);
+                    if(p) *p = '.';
+
+                    if(tmpdev) {
                         DOS_AddDevice(tmpdev);
                         fail = false;
                     }
@@ -579,7 +625,18 @@ void DOS_Shell::ParseLine(char * line) {
 		if (out) free(out);
 	}
 	if (toc) {
-		if (!fail&&DOS_OpenFile(pipetmp, OPEN_READ, &dummy))					// Test if file can be opened for reading
+        if(tmpdev != nullptr) {
+            std::string path(pipetmp);
+            size_t lastSlash = path.find_last_of("\\/");
+            if(lastSlash != std::string::npos)
+                path = path.substr(lastSlash + 1);
+            size_t dot = path.find_last_of('.');
+            if(dot != std::string::npos)
+                path = path.substr(0, dot);
+            strncpy(pipetmp, path.c_str(), sizeof(pipetmp) - 1);
+            pipetmp[sizeof(pipetmp) - 1] = '\0';
+        }
+        if (!fail&&DOS_OpenFile(pipetmp, OPEN_READ, &dummy))					// Test if file can be opened for reading
 			{
 			DOS_CloseFile(dummy);
 			if (normalstdin)
@@ -846,6 +903,7 @@ void DOS_Shell::Prepare(void) {
         }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         bool startbanner = section->Get_bool("startbanner");
+        first_shell->perm = section->Get_bool("shell permanent");
         if (!countryNo) {
 #if defined(WIN32)
 			char buffer[128];

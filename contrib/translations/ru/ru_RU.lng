@@ -1,6 +1,6 @@
-:DOSBOX-X:LANGUAGE:Русский (Россия)
+:DOSBOX-X:LANGUAGE:Russian (Russia)
 :DOSBOX-X:CODEPAGE:866
-:DOSBOX-X:VERSION:2025.05.03
+:DOSBOX-X:VERSION:2025.10.07
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Строки в этом разделе будут выполнены при запуске.
@@ -150,7 +150,7 @@ OK
 Конфигурация Sound Blaster
 .
 :CURRENT_MIDICONFIG
-Текущая конфигурация MIDI
+Текущая конфигурация MIDI/OPL
 .
 :CREATE_IMAGE
 Создать пустой образ диска
@@ -3128,7 +3128,7 @@ CJK: Включить расширенный китайский набор си�
 Показать конфигурацию Sound Blaster
 .
 :MENU:midi_info
-Показать конфигурацию MIDI устройства
+Показать конфигурацию MIDI/OPL устройства
 .
 :MENU:DOSMenu
 DOS
@@ -4420,4 +4420,48 @@ the COLOR command with a foreground and background color that are the same.
 
 Example: "COLOR fc" produces light red on bright white.
 
+.
+:SCALER_LOAD_WARN
+This scaler may not work properly or have undesired effect:
+
+%s
+
+Do you want to force load the scaler?
+.
+:PIXEL_SHADER_WARN
+This pixel shader may be unneeded or have undesired effect:
+
+%s
+
+Do you want to load the pixel shader anyway?
+
+(You may append 'forced' to the pixelshader setting to force load the pixel shader without this message)
+.
+:PIXEL_SHADER_LOADED
+Loaded pixel shader - %s
+.
+:MAPPEREDITOR_NOT_AVAILABLE
+Mapper Editor is not currently available.
+.
+:OPL_REC_COMPLETED
+Saved Raw OPL output to the file:
+
+%s
+.
+:OPL_CAPTURE_FAILED
+Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.
+.
+:TTF_DBCS_ONLY
+This function is only available for the Chinese/Japanese/Korean code pages.
+.
+:SAVE_FAILED
+Failed to save the current state.
+.
+:SAVE_CORRUPTED
+Save state corrupted! Program may not work.
+.
+:SAVE_SCREENSHOT
+Saved screenshot to the file:
+
+%s
 .

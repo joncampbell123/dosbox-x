@@ -45,6 +45,7 @@
 #include "pc98_gdc_const.h"
 #include "regionalloctracking.h"
 #include "build_timestamp.h"
+#include "int10.h"
 extern bool PS1AudioCard;
 #include "parport.h"
 #include "dma.h"
@@ -54,6 +55,9 @@ extern bool PS1AudioCard;
 #include <time.h>
 #include <sys/stat.h>
 #include "version_string.h"
+
+#define DOSBOX_INCLUDE
+#include "iglib.h"
 
 #if C_LIBPNG
 #include <png.h>
@@ -79,6 +83,10 @@ extern bool PS1AudioCard;
 #if defined(WIN32) && !defined(S_ISREG)
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
+
+static unsigned char ig_cpu_cycles_set = 0;
+static uint32_t ig_cpu_cycles_value = 0;
+static uint8_t ig_cpu_cycles_max_percent = 0;
 
 struct BIOS_E280_entry {
 	uint64_t	base = 0;
@@ -607,15 +615,16 @@ static bool dosbox_int_busy = false;
 #define PPCAT_HELPER(A, B, C) A ## . ## B ## . ## C
 #define PPCAT(A, B, C) PPCAT_HELPER(A, B, C)
 
-#define INTDEV_VERSION_BUMP 2
+#define INTDEV_VERSION_BUMP 0
 #define INTDEV_VERSION_MAJOR 1
-#define INTDEV_VERSION_MINOR 0
-#define INTDEV_VERSION_SUB 1
+#define INTDEV_VERSION_MINOR 1
+#define INTDEV_VERSION_SUB 0
 
 static const char *dosbox_int_version = "DOSBox-X integration device v" STRINGIZE(PPCAT(INTDEV_VERSION_MAJOR, INTDEV_VERSION_MINOR, INTDEV_VERSION_SUB));
 static const char *dosbox_int_ver_read = NULL;
 
 struct dosbox_int_saved_state {
+    const char*     dosbox_int_ver_read;
     unsigned char   dosbox_int_register_shf;
     uint32_t        dosbox_int_register;
     unsigned char   dosbox_int_regsel_shf;
@@ -634,42 +643,43 @@ int                                 dosbox_int_saved_sp = -1;
  * with anything userspace is doing (as an alternative to wrapping all access
  * in CLI/STI or PUSHF/CLI/POPF) */
 bool dosbox_int_push_save_state(void) {
+	if (dosbox_int_saved_sp >= (DOSBOX_INT_SAVED_STATE_MAX-1))
+		return false;
 
-    if (dosbox_int_saved_sp >= (DOSBOX_INT_SAVED_STATE_MAX-1))
-        return false;
+	struct dosbox_int_saved_state *ss = &dosbox_int_saved[++dosbox_int_saved_sp];
 
-    struct dosbox_int_saved_state *ss = &dosbox_int_saved[++dosbox_int_saved_sp];
-
-    ss->dosbox_int_register_shf =       dosbox_int_register_shf;
-    ss->dosbox_int_register =           dosbox_int_register;
-    ss->dosbox_int_regsel_shf =         dosbox_int_regsel_shf;
-    ss->dosbox_int_regsel =             dosbox_int_regsel;
-    ss->dosbox_int_error =              dosbox_int_error;
-    ss->dosbox_int_busy =               dosbox_int_busy;
-    return true;
+	ss->dosbox_int_ver_read =           dosbox_int_ver_read;
+	ss->dosbox_int_register_shf =       dosbox_int_register_shf;
+	ss->dosbox_int_register =           dosbox_int_register;
+	ss->dosbox_int_regsel_shf =         dosbox_int_regsel_shf;
+	ss->dosbox_int_regsel =             dosbox_int_regsel;
+	ss->dosbox_int_error =              dosbox_int_error;
+	ss->dosbox_int_busy =               dosbox_int_busy;
+	return true;
 }
 
 bool dosbox_int_pop_save_state(void) {
-    if (dosbox_int_saved_sp < 0)
-        return false;
+	if (dosbox_int_saved_sp < 0)
+		return false;
 
-    struct dosbox_int_saved_state *ss = &dosbox_int_saved[dosbox_int_saved_sp--];
+	struct dosbox_int_saved_state *ss = &dosbox_int_saved[dosbox_int_saved_sp--];
 
-    dosbox_int_register_shf =           ss->dosbox_int_register_shf;
-    dosbox_int_register =               ss->dosbox_int_register;
-    dosbox_int_regsel_shf =             ss->dosbox_int_regsel_shf;
-    dosbox_int_regsel =                 ss->dosbox_int_regsel;
-    dosbox_int_error =                  ss->dosbox_int_error;
-    dosbox_int_busy =                   ss->dosbox_int_busy;
-    return true;
+	dosbox_int_ver_read =               ss->dosbox_int_ver_read;
+	dosbox_int_register_shf =           ss->dosbox_int_register_shf;
+	dosbox_int_register =               ss->dosbox_int_register;
+	dosbox_int_regsel_shf =             ss->dosbox_int_regsel_shf;
+	dosbox_int_regsel =                 ss->dosbox_int_regsel;
+	dosbox_int_error =                  ss->dosbox_int_error;
+	dosbox_int_busy =                   ss->dosbox_int_busy;
+	return true;
 }
 
 bool dosbox_int_discard_save_state(void) {
-    if (dosbox_int_saved_sp < 0)
-        return false;
+	if (dosbox_int_saved_sp < 0)
+		return false;
 
-    dosbox_int_saved_sp--;
-    return true;
+	dosbox_int_saved_sp--;
+	return true;
 }
 
 extern bool user_cursor_locked;
@@ -682,245 +692,251 @@ extern uint16_t countryNo;
 bool bootvm = false, bootfast = false;
 static std::string dosbox_int_debug_out;
 
-uint32_t VGA_QuerySizeIG(void);
-
 uint32_t Mixer_MIXQ(void);
-uint32_t Mixer_MIXC(void);
-void Mixer_MIXC_Write(uint32_t v);
-PhysPt Mixer_MIXWritePos(void);
-void Mixer_MIXWritePos_Write(PhysPt np);
-void Mixer_MIXWriteBegin_Write(PhysPt np);
-void Mixer_MIXWriteEnd_Write(PhysPt np);
+uint32_t VGA_QuerySizeIG(void);
 
 /* read triggered, update the regsel */
 void dosbox_integration_trigger_read() {
-    dosbox_int_error = false;
+	dosbox_int_error = false;
 
-    switch (dosbox_int_regsel) {
-        case 0: /* Identification */
-            dosbox_int_register = 0xD05B0740;
-            break;
-        case 1: /* test */
-            break;
-        case 2: /* version string */
-            if (dosbox_int_ver_read == NULL)
-                dosbox_int_ver_read = dosbox_int_version;
+	switch (dosbox_int_regsel) {
+		case DOSBOX_ID_REG_IDENTIFY:
+			dosbox_int_register = 0xD05B0740;
+			break;
+		case DOSBOX_ID_REG_TEST:
+			break;
+		case DOSBOX_ID_REG_VERSION_STRING:
+			if (dosbox_int_ver_read == NULL)
+				dosbox_int_ver_read = dosbox_int_version;
 
-            dosbox_int_register = 0;
-            for (Bitu i=0;i < 4;i++) {
-                if (*dosbox_int_ver_read == 0) {
-                    dosbox_int_ver_read = dosbox_int_version;
-                    break;
-                }
+			dosbox_int_register = 0;
+			for (Bitu i=0;i < 4;i++) {
+				if (*dosbox_int_ver_read == 0) {
+					dosbox_int_ver_read = dosbox_int_version;
+					break;
+				}
 
-                dosbox_int_register += ((uint32_t)((unsigned char)(*dosbox_int_ver_read++))) << (uint32_t)(i * 8);
-            }
-            break;
-        case 3: /* version number */
-            dosbox_int_register = INTDEV_VERSION_MAJOR + (INTDEV_VERSION_MINOR << 8U) + (INTDEV_VERSION_SUB << 16U) + (INTDEV_VERSION_BUMP << 24U);
-            break;
-        case 4: /* current emulator time as 16.16 fixed point */
-            dosbox_int_register = (uint32_t)(PIC_FullIndex() * 0x10000);
-            break;
-        case 5: // DOSBox-X version number major (e.g. 2022)
-        {
-            const char * ver = strchr(VERSION, '.');
-            dosbox_int_register = ver == NULL ? 0 : atoi(std::string(VERSION).substr(0, strlen(ver) - strlen(VERSION)).c_str());
-            break;
-        }
-        case 6: // DOSBox-X version number minor (e.g. 8)
-        {
-            const char * ver = strchr(VERSION, '.');
-            dosbox_int_register = ver == NULL ? 0 : atoi(ver + 1);
-            break;
-        }
-        case 7: // DOSBox-X version number sub (e.g. 0)
-        {
-            const char * ver = strchr(VERSION, '.');
-            ver = strchr(ver + 1, '.');
-            dosbox_int_register = ver == NULL ? 0 : atoi(ver + 1);
-            break;
-        }
-        case 8: // DOSBox-X platform type
-            dosbox_int_register = 0;
+				dosbox_int_register += ((uint32_t)((unsigned char)(*dosbox_int_ver_read++))) << (uint32_t)(i * 8);
+			}
+			break;
+		case DOSBOX_ID_REG_VERSION_NUMBER:
+			dosbox_int_register = INTDEV_VERSION_MAJOR + (INTDEV_VERSION_MINOR << 8U) + (INTDEV_VERSION_SUB << 16U) + (INTDEV_VERSION_BUMP << 24U);
+			break;
+		case DOSBOX_ID_REG_READ_EMTIME: /* current emulator time as 16.16 fixed point */
+			dosbox_int_register = (uint32_t)(PIC_FullIndex() * 0x10000);
+			break;
+		case DOSBOX_ID_REG_DOSBOX_VERSION_MAJOR: // DOSBox-X version number major (e.g. 2022)
+			{
+				const char * ver = strchr(VERSION, '.');
+				dosbox_int_register = ver == NULL ? 0 : atoi(std::string(VERSION).substr(0, strlen(ver) - strlen(VERSION)).c_str());
+				break;
+			}
+		case DOSBOX_ID_REG_DOSBOX_VERSION_MINOR: // DOSBox-X version number minor (e.g. 8)
+			{
+				const char * ver = strchr(VERSION, '.');
+				dosbox_int_register = ver == NULL ? 0 : atoi(ver + 1);
+				break;
+			}
+		case DOSBOX_ID_REG_DOSBOX_VERSION_SUB: // DOSBox-X version number sub (e.g. 0)
+			{
+				const char * ver = strchr(VERSION, '.');
+				ver = strchr(ver + 1, '.');
+				dosbox_int_register = ver == NULL ? 0 : atoi(ver + 1);
+				break;
+			}
+		case DOSBOX_ID_REG_DOSBOX_PLATFORM_TYPE: // DOSBox-X platform type
+			dosbox_int_register = 0;
 #if defined(HX_DOS)
-            dosbox_int_register = 4;
+			dosbox_int_register = 4;
 #elif defined(WIN32)
-            dosbox_int_register = 1;
+			dosbox_int_register = 1;
 #elif defined(LINUX)
-            dosbox_int_register = 2;
+			dosbox_int_register = 2;
 #elif defined(MACOSX)
-            dosbox_int_register = 3;
+			dosbox_int_register = 3;
 #elif defined(OS2)
-            dosbox_int_register = 5;
+			dosbox_int_register = 5;
 #else
-            dosbox_int_register = 0;
+			dosbox_int_register = 0;
 #endif
-            if (control->opt_securemode || control->SecureMode()) dosbox_int_register = 0;
+			if (control->opt_securemode || control->SecureMode()) dosbox_int_register = 0;
 #if OS_BIT_INT == 64
-            dosbox_int_register += 0x20; // 64-bit
+			dosbox_int_register += 0x20; // 64-bit
 #else
-            dosbox_int_register += 0x10; // 32-bit
+			dosbox_int_register += 0x10; // 32-bit
 #endif
 #if defined(C_SDL2)
-            dosbox_int_register += 0x200; // SDL2
+			dosbox_int_register += 0x200; // SDL2
 #elif defined(SDL_DOSBOX_X_SPECIAL)
-            dosbox_int_register += 0x100; // SDL1 (modified)
+			dosbox_int_register += 0x100; // SDL1 (modified)
 #endif
-            break;
-        case 9: // DOSBox-X machine type
-            dosbox_int_register = machine;
-            break;
+			break;
+		case DOSBOX_ID_REG_DOSBOX_MACHINE_TYPE: // DOSBox-X machine type
+			dosbox_int_register = machine;
+			break;
 
-        case 0x4B6F4400: // DOS kernel status
-            dosbox_int_register = dos_kernel_disabled ? 0: 1;
-            break;
-        case 0x4B6F4401: // DOS codepage number
-            dosbox_int_register = dos_kernel_disabled ? 0: dos.loaded_codepage;
-            break;
-        case 0x4B6F4402: // DOS country number
-            dosbox_int_register = dos_kernel_disabled ? 0: countryNo;
-            break;
-        case 0x4B6F4403: // DOS version major
-            dosbox_int_register = dos_kernel_disabled ? 0: dos.version.major;
-            break;
-        case 0x4B6F4404: // DOS version minor
-            dosbox_int_register = dos_kernel_disabled ? 0: dos.version.minor;
-            break;
-        case 0x4B6F4405: // DOS error code
-            dosbox_int_register = dos_kernel_disabled ? 0 : dos.errorcode;
-            break;
-        case 0x4B6F4406: // DOS boot drive
-            dosbox_int_register = bootdrive;
-            break;
-        case 0x4B6F4407: // DOS current drive
-            dosbox_int_register = dos_kernel_disabled ? 0 : DOS_GetDefaultDrive();
-            break;
-        case 0x4B6F4408: // DOS LFN status
-            dosbox_int_register = dos_kernel_disabled || !uselfn ? 0: 1;
-            break;
+		case DOSBOX_ID_REG_MIXER_QUERY: /* query mixer output 'MIXQ' */
+			/* bits [19:0] = sample rate in Hz or 0 if mixer is not mixing AT ALL
+			 * bits [23:20] = number of channels (at this time, always 2 aka stereo)
+			 * bits [29:29] = 1=swap stereo  0=normal
+			 * bits [30:30] = 1=muted  0=not muted
+			 * bits [31:31] = 1=sound  0=nosound */
+			dosbox_int_register = Mixer_MIXQ();
+			break;
 
-        case 0x5158494D: /* query mixer output 'MIXQ' */
-            /* bits [19:0] = sample rate in Hz or 0 if mixer is not mixing AT ALL
-             * bits [23:20] = number of channels (at this time, always 2 aka stereo)
-             * bits [29:29] = 1=swap stereo  0=normal
-             * bits [30:30] = 1=muted  0=not muted
-             * bits [31:31] = 1=sound  0=nosound */
-            dosbox_int_register = Mixer_MIXQ();
-            break;
+		case DOSBOX_ID_REG_DOS_KERNEL_STATUS: // DOS kernel status
+			dosbox_int_register = dos_kernel_disabled ? 0: 1;
+			break;
+		case DOSBOX_ID_REG_DOS_KERNEL_CODEPAGE: // DOS codepage number
+			dosbox_int_register = dos_kernel_disabled ? 0: dos.loaded_codepage;
+			break;
+		case DOSBOX_ID_REG_DOS_KERNEL_COUNTRY: // DOS country number
+			dosbox_int_register = dos_kernel_disabled ? 0: countryNo;
+			break;
+		case DOSBOX_ID_REG_DOS_KERNEL_VERSION_MAJOR: // DOS version major
+			dosbox_int_register = dos_kernel_disabled ? 0: dos.version.major;
+			break;
+		case DOSBOX_ID_REG_DOS_KERNEL_VERSION_MINOR: // DOS version minor
+			dosbox_int_register = dos_kernel_disabled ? 0: dos.version.minor;
+			break;
+		case DOSBOX_ID_REG_DOS_KERNEL_ERROR_CODE: // DOS error code
+			dosbox_int_register = dos_kernel_disabled ? 0 : dos.errorcode;
+			break;
+		case DOSBOX_ID_REG_DOS_KERNEL_BOOT_DRIVE: // DOS boot drive
+			dosbox_int_register = bootdrive;
+			break;
+		case DOSBOX_ID_REG_DOS_KERNEL_CURRENT_DRIVE: // DOS current drive
+			dosbox_int_register = dos_kernel_disabled ? 0 : DOS_GetDefaultDrive();
+			break;
+		case DOSBOX_ID_REG_DOS_KERNEL_LFN_STATUS: // DOS LFN status
+			dosbox_int_register = dos_kernel_disabled || !uselfn ? 0: 1;
+			break;
 
-        case 0x4358494D: /* query mixer output 'MIXC' */
-            dosbox_int_register = Mixer_MIXC();
-            break;
+		case DOSBOX_ID_REG_GET_VGA_SIZE: /* query VGA display size */
+			dosbox_int_register = VGA_QuerySizeIG();
+			break;
 
-        case 0x5058494D: /* query mixer output 'MIXP' */
-            dosbox_int_register = Mixer_MIXWritePos();
-            break;
+		case DOSBOX_ID_REG_GET_WINDOW_SIZE: /* query window size (so user mouse cursor has meaning) */
+			dosbox_int_register = user_cursor_sw | (user_cursor_sh << 16);
+			break;
 
-        case 0x4258494D: /* query mixer output 'MIXB' */
-            break;
+		case DOSBOX_ID_REG_8237_INJECT_READ: /* ISA DMA injection, single byte/word (read from memory) */
+			break;
 
-        case 0x4558494D: /* query mixer output 'MIXE' */
-            break;
+		case DOSBOX_ID_REG_8259_PIC_INFO: /* PIC configuration */
+			/* bits [7:0] = cascade interrupt or 0xFF if none
+			 * bit  [8:8] = primary PIC present
+			 * bit  [9:9] = secondary PIC present */
+			if (master_cascade_irq >= 0)
+				dosbox_int_register = ((unsigned int)master_cascade_irq & 0xFFu);
+			else
+				dosbox_int_register = 0xFFu;
 
-        case 0x6845C0: /* query VGA display size */
-            dosbox_int_register = VGA_QuerySizeIG();
-            break;
+			dosbox_int_register |= 0x100; // primary always present
+			if (enable_slave_pic) dosbox_int_register |= 0x200;
+			break;
 
-        case 0x825901: /* PIC configuration */
-            /* bits [7:0] = cascade interrupt or 0xFF if none
-             * bit  [8:8] = primary PIC present
-             * bit  [9:9] = secondary PIC present */
-            if (master_cascade_irq >= 0)
-                dosbox_int_register = ((unsigned int)master_cascade_irq & 0xFFu);
-            else
-                dosbox_int_register = 0xFFu;
+		case DOSBOX_ID_REG_8042_KB_STATUS: /* keyboard status */
+			dosbox_int_register = Keyb_ig_status();
+			break;
 
-            dosbox_int_register |= 0x100; // primary always present
-            if (enable_slave_pic) dosbox_int_register |= 0x200;
-            break;
+		case DOSBOX_ID_REG_USER_MOUSE_STATUS: /* read user mouse status */
+			dosbox_int_register =
+				(user_cursor_locked        ? (1UL << 0UL) : 0UL) |    /* bit 0 = mouse capture lock */
+				(sdl.mouse.locked          ? (1UL << 1UL) : 0UL);     /* bit 1 = mouse captured */
+			break;
 
-        case 0x823780: /* ISA DMA injection, single byte/word (read from memory) */
-            break;
+		case DOSBOX_ID_REG_USER_MOUSE_CURSOR: /* read user mouse cursor position */
+			dosbox_int_register = (uint32_t((uint16_t)user_cursor_y & 0xFFFFUL) << 16UL) | uint32_t((uint16_t)user_cursor_x & 0xFFFFUL);
+			break;
 
-//      case 0x804200: /* keyboard input injection -- not supposed to read */
-//          break;
+		case DOSBOX_ID_REG_USER_MOUSE_CURSOR_NORMALIZED:
+			{ /* read user mouse cursor position (normalized for Windows 1.x/2.x/3.x/95/98/ME mouse driver interface) */
+				signed long long x = ((signed long long)user_cursor_x << 16LL) / (signed long long)(user_cursor_sw-1);
+				signed long long y = ((signed long long)user_cursor_y << 16LL) / (signed long long)(user_cursor_sh-1);
+				if (x < 0x0000LL) x = 0x0000LL;
+				if (x > 0xFFFFLL) x = 0xFFFFLL;
+				if (y < 0x0000LL) y = 0x0000LL;
+				if (y > 0xFFFFLL) y = 0xFFFFLL;
+				dosbox_int_register = ((unsigned int)y << 16UL) | (unsigned int)x;
+			} break;
 
-        case 0x804201: /* keyboard status */
-            dosbox_int_register = Keyb_ig_status();
-            break;
-
-        case 0x434D54: /* read user mouse status */
-            dosbox_int_register =
-                (user_cursor_locked ? (1UL << 0UL) : 0UL);      /* bit 0 = mouse capture lock */
-            break;
-
-        case 0x434D55: /* read user mouse cursor position */
-            dosbox_int_register = (uint32_t((uint16_t)user_cursor_y & 0xFFFFUL) << 16UL) | uint32_t((uint16_t)user_cursor_x & 0xFFFFUL);
-            break;
-
-        case 0x434D56: { /* read user mouse cursor position (normalized for Windows 3.x) */
-            signed long long x = ((signed long long)user_cursor_x << 16LL) / (signed long long)(user_cursor_sw-1);
-            signed long long y = ((signed long long)user_cursor_y << 16LL) / (signed long long)(user_cursor_sh-1);
-            if (x < 0x0000LL) x = 0x0000LL;
-            if (x > 0xFFFFLL) x = 0xFFFFLL;
-            if (y < 0x0000LL) y = 0x0000LL;
-            if (y > 0xFFFFLL) y = 0xFFFFLL;
-            dosbox_int_register = ((unsigned int)y << 16UL) | (unsigned int)x;
-            } break;
-
-        case 0xC54010: /* Screenshot/capture trigger */
-            /* TODO: This should also be hidden behind an enable switch, so that rogue DOS development
-             *       can't retaliate if the user wants to capture video or screenshots. */
+		case DOSBOX_ID_REG_SCREENSHOT_TRIGGER: /* Screenshot/capture trigger */
+			       /* TODO: This should be designed so that rogue DOS development cannot abuse this interface
+				*       to prevent the user from recording anything */
 #if (C_SSHOT)
-            dosbox_int_register = 0x00000000; // available
-            if (CaptureState & CAPTURE_IMAGE)
-                dosbox_int_register |= 1 << 0; // Image capture is in progress
-            if (CaptureState & CAPTURE_VIDEO)
-                dosbox_int_register |= 1 << 1; // Video capture is in progress
-            if (CaptureState & CAPTURE_WAVE)
-                dosbox_int_register |= 1 << 2; // WAVE capture is in progress
+			dosbox_int_register = 0x00000000; // available
+			if (CaptureState & CAPTURE_IMAGE)
+				dosbox_int_register |= 1 << 0; // Image capture is in progress
+			if (CaptureState & CAPTURE_VIDEO)
+				dosbox_int_register |= 1 << 1; // Video capture is in progress
+			if (CaptureState & CAPTURE_WAVE)
+				dosbox_int_register |= 1 << 2; // WAVE capture is in progress
 #else
-            dosbox_int_register = 0xC0000000; // not available (bit 31 set), not enabled (bit 30 set)
+			dosbox_int_register = 0xC0000000; // not available (bit 31 set), not enabled (bit 30 set)
 #endif
-            break;
+			break;
 
-        case 0xAA55BB66UL: /* interface reset result */
-            break;
+		case DOSBOX_ID_RESET_INDEX_CODE: /* interface reset result */
+			break;
 
-        default:
-            dosbox_int_register = 0xAA55AA55;
-            dosbox_int_error = true;
-            break;
-    }
+		case DOSBOX_ID_REG_CPU_CYCLES:
+			ig_cpu_cycles_set = 0;
+			if (CPU_CycleMax < 0x80000000)
+				dosbox_int_register = (uint32_t)CPU_CycleMax;
+			else
+				dosbox_int_register = (uint32_t)0x7FFFFFFFUL;
+			break;
 
-    LOG(LOG_MISC,LOG_DEBUG)("DOSBox-X integration read 0x%08lx got 0x%08lx (err=%u)\n",
-        (unsigned long)dosbox_int_regsel,
-        (unsigned long)dosbox_int_register,
-        dosbox_int_error?1:0);
+		case DOSBOX_ID_REG_CPU_MAX_PERCENT:
+			dosbox_int_register = CPU_CyclePercUsed;
+			ig_cpu_cycles_set = 0;
+			break;
+
+		case DOSBOX_ID_REG_CPU_CYCLES_INFO:
+			ig_cpu_cycles_set = 0;
+			dosbox_int_register = 0;
+			if (CPU_CycleAutoAdjust)
+			       dosbox_int_register |= DOSBOX_ID_REG_CPU_CYCLES_INFO_MAX;
+			else if (CPU_AutoDetermineMode &CPU_AUTODETERMINE_CYCLES)
+			       dosbox_int_register |= DOSBOX_ID_REG_CPU_CYCLES_INFO_AUTO;
+			else
+			       dosbox_int_register |= DOSBOX_ID_REG_CPU_CYCLES_INFO_FIXED;
+			break;
+
+		default:
+			dosbox_int_register = 0xAA55AA55;
+			dosbox_int_error = true;
+			break;
+	}
+
+	LOG(LOG_MISC,LOG_DEBUG)("DOSBox-X integration read 0x%08lx got 0x%08lx (err=%u)\n",
+			(unsigned long)dosbox_int_regsel,
+			(unsigned long)dosbox_int_register,
+			dosbox_int_error?1:0);
 }
 
 bool watchdog_set = false;
 
 void Watchdog_Timeout_Event(Bitu /*val*/) {
-    LOG_MSG("Watchdog timeout occurred");
-    CPU_Raise_NMI();
+	LOG_MSG("Watchdog timeout occurred");
+	CPU_Raise_NMI();
 }
 
 void Watchdog_Timer_Clear(void) {
-    if (watchdog_set) {
-        PIC_RemoveEvents(Watchdog_Timeout_Event);
-        watchdog_set = false;
-    }
+	if (watchdog_set) {
+		PIC_RemoveEvents(Watchdog_Timeout_Event);
+		watchdog_set = false;
+	}
 }
 
 void Watchdog_Timer_Set(uint32_t timeout_ms) {
-    Watchdog_Timer_Clear();
+	Watchdog_Timer_Clear();
 
-    if (timeout_ms != 0) {
-        watchdog_set = true;
-        PIC_AddEvent(Watchdog_Timeout_Event,(double)timeout_ms);
-    }
+	if (timeout_ms != 0) {
+		watchdog_set = true;
+		PIC_AddEvent(Watchdog_Timeout_Event,(double)timeout_ms);
+	}
 }
 
 unsigned int mouse_notify_mode = 0;
@@ -929,227 +945,265 @@ unsigned int mouse_notify_mode = 0;
 
 /* write triggered */
 void dosbox_integration_trigger_write() {
-    dosbox_int_error = false;
+	dosbox_int_error = false;
 
-    LOG(LOG_MISC,LOG_DEBUG)("DOSBox-X integration write 0x%08lx val 0x%08lx\n",
-        (unsigned long)dosbox_int_regsel,
-        (unsigned long)dosbox_int_register);
+	LOG(LOG_MISC,LOG_DEBUG)("DOSBox-X integration write 0x%08lx val 0x%08lx\n",
+			(unsigned long)dosbox_int_regsel,
+			(unsigned long)dosbox_int_register);
 
-    switch (dosbox_int_regsel) {
-        case 1: /* test */
-            break;
+	switch (dosbox_int_regsel) {
+		case DOSBOX_ID_REG_TEST:
+			break;
 
-        case 2: /* version string */
-            dosbox_int_ver_read = NULL;
-            break;
+		case DOSBOX_ID_REG_VERSION_STRING:
+			dosbox_int_ver_read = NULL;
+			break;
 
-        case 0xDEB0: /* debug output (to log) */
-            for (unsigned int b=0;b < 4;b++) {
-                unsigned char c = (unsigned char)(dosbox_int_register >> (b * 8U));
-                if (c == '\n' || dosbox_int_debug_out.length() >= 200) {
-                    LOG_MSG("Client debug message: %s\n",dosbox_int_debug_out.c_str());
-                    dosbox_int_debug_out.clear();
-                }
-                else if (c != 0) {
-                    dosbox_int_debug_out += ((char)c);
-                }
-                else {
-                    break;
-                }
-            }
-            dosbox_int_register = 0;
-            break;
+		case DOSBOX_ID_REG_DEBUG_OUT: /* debug output (to log) */
+			for (unsigned int b=0;b < 4;b++) {
+				unsigned char c = (unsigned char)(dosbox_int_register >> (b * 8U));
+				if (c == '\n' || dosbox_int_debug_out.length() >= 200) {
+					LOG_MSG("Client debug message: %s\n",dosbox_int_debug_out.c_str());
+					dosbox_int_debug_out.clear();
+				}
+				else if (c != 0) {
+					dosbox_int_debug_out += ((char)c);
+				}
+				else {
+					break;
+				}
+			}
+			dosbox_int_register = 0;
+			break;
 
-        case 0xDEB1: /* debug output clear */
-            dosbox_int_debug_out.clear();
-            break;
+		case DOSBOX_ID_REG_DEBUG_CLEAR: /* debug output clear */
+			dosbox_int_debug_out.clear();
+			break;
 
-        case 0x52434D: /* release mouse capture 'MCR' */
-            void GFX_ReleaseMouse(void);
-            GFX_ReleaseMouse();
-            break;
+		case DOSBOX_ID_REG_RELEASE_MOUSE_CAPTURE: /* release mouse capture 'MCR' */
+			void GFX_ReleaseMouse(void);
+			GFX_ReleaseMouse();
+			break;
 
-        case 0x5158494D: /* query mixer output 'MIXQ' */
-            break;
+		case DOSBOX_ID_REG_SET_WATCHDOG: /* Set/clear watchdog timer 'WATD' */
+			Watchdog_Timer_Set(dosbox_int_register);
+			break;
 
-        case 0x4358494D: /* query mixer output 'MIXC' */
-            Mixer_MIXC_Write(dosbox_int_register);
-            break;
+		case DOSBOX_ID_REG_INJECT_NMI: /* NMI (INT 02h) interrupt injection */
+			{
+				dosbox_int_register_shf = 0;
+				dosbox_int_regsel_shf = 0;
+				CPU_Raise_NMI();
+			}
+			break;
 
-        case 0x5058494D: /* query mixer output 'MIXP' */
-            Mixer_MIXWritePos_Write(dosbox_int_register);
-            break;
+		case DOSBOX_ID_REG_8259_INJECT_IRQ: /* PIC interrupt injection */
+			{
+				dosbox_int_register_shf = 0;
+				dosbox_int_regsel_shf = 0;
+				/* bits  [7:0]  = IRQ to signal (must be 0-15)
+				 * bit   [8:8]  = 1=raise 0=lower IRQ */
+				uint8_t IRQ = dosbox_int_register&0xFFu;
+				bool raise = (dosbox_int_register>>8u)&1u;
 
-        case 0x4258494D: /* query mixer output 'MIXB' */
-            Mixer_MIXWriteBegin_Write(dosbox_int_register);
-            break;
+				if (IRQ < 16) {
+					if (raise)
+						PIC_ActivateIRQ(IRQ);
+					else
+						PIC_DeActivateIRQ(IRQ);
+				}
+			}
+			break;
 
-        case 0x4558494D: /* query mixer output 'MIXE' */
-            Mixer_MIXWriteEnd_Write(dosbox_int_register);
-            break;
+		case DOSBOX_ID_REG_8237_INJECT_WRITE: /* ISA DMA injection, single byte/word (write to memory) */
+			{
+				dosbox_int_register_shf = 0;
+				dosbox_int_regsel_shf = 0;
+				/* bits  [7:0]  = data byte if 8-bit DNA
+				 * bits [15:0]  = data word if 16-bit DMA
+				 * bits [18:16] = DMA channel to send to */
+				DmaChannel *ch = GetDMAChannel((dosbox_int_register>>16u)&7u);
+				if (ch != NULL) {
+					unsigned char tmp[2];
 
-        case 0x57415444: /* Set/clear watchdog timer 'WATD' */
-            Watchdog_Timer_Set(dosbox_int_register);
-            break;
+					tmp[0] = (unsigned char)( dosbox_int_register         & 0xFFu);
+					tmp[1] = (unsigned char)((dosbox_int_register >>  8u) & 0xFFu);
 
-        case 0x808602: /* NMI (INT 02h) interrupt injection */
-            {
-                dosbox_int_register_shf = 0;
-                dosbox_int_regsel_shf = 0;
-                CPU_Raise_NMI();
-            }
-            break;
+					/* NTS: DMA channel write will write tmp[0] if 8-bit, tmp[0]/tmp[1] if 16-bit */
+					if (ch->Write(1/*one unit of transfer*/,tmp) == 1) {
+						dosbox_int_register = 0;
+						dosbox_int_error = false;
+					}
+					else {
+						dosbox_int_register = 0x823700;
+						dosbox_int_error = true;
+					}
+				}
+				else {
+					dosbox_int_register = 0x8237FF;
+					dosbox_int_error = true;
+				}
+			}
+			break;
 
-        case 0x825900: /* PIC interrupt injection */
-            {
-                dosbox_int_register_shf = 0;
-                dosbox_int_regsel_shf = 0;
-                /* bits  [7:0]  = IRQ to signal (must be 0-15)
-                 * bit   [8:8]  = 1=raise 0=lower IRQ */
-                uint8_t IRQ = dosbox_int_register&0xFFu;
-                bool raise = (dosbox_int_register>>8u)&1u;
+		case DOSBOX_ID_REG_8237_INJECT_READ: /* ISA DMA injection, single byte/word (read from memory) */
+			{
+				dosbox_int_register_shf = 0;
+				dosbox_int_regsel_shf = 0;
+				/* bits [18:16] = DMA channel to send to */
+				DmaChannel *ch = GetDMAChannel((dosbox_int_register>>16u)&7u);
+				if (ch != NULL) {
+					unsigned char tmp[2];
 
-                if (IRQ < 16) {
-                    if (raise)
-                        PIC_ActivateIRQ(IRQ);
-                    else
-                        PIC_DeActivateIRQ(IRQ);
-                }
-            }
-            break;
+					/* NTS: DMA channel write will write tmp[0] if 8-bit, tmp[0]/tmp[1] if 16-bit */
+					tmp[0] = tmp[1] = 0;
+					if (ch->Read(1/*one unit of transfer*/,tmp) == 1) {
+						dosbox_int_register = ((unsigned int)tmp[1] << 8u) + (unsigned int)tmp[0];
+						dosbox_int_error = false;
+					}
+					else {
+						dosbox_int_register = 0x823700;
+						dosbox_int_error = true;
+					}
+				}
+				else {
+					dosbox_int_register = 0x8237FF;
+					dosbox_int_error = true;
+				}
+			}
+			break;
 
-        case 0x823700: /* ISA DMA injection, single byte/word (write to memory) */
-            {
-                dosbox_int_register_shf = 0;
-                dosbox_int_regsel_shf = 0;
-                /* bits  [7:0]  = data byte if 8-bit DNA
-                 * bits [15:0]  = data word if 16-bit DMA
-                 * bits [18:16] = DMA channel to send to */
-                DmaChannel *ch = GetDMAChannel((dosbox_int_register>>16u)&7u);
-                if (ch != NULL) {
-                    unsigned char tmp[2];
+		case DOSBOX_ID_REG_8042_KB_INJECT: /* keyboard input injection */
+			void Mouse_ButtonPressed(uint8_t button);
+			void Mouse_ButtonReleased(uint8_t button);
+			void pc98_keyboard_send(const unsigned char b);
+			void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate);
+			void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
+			void KEYBOARD_AddBuffer(uint16_t data);
 
-                    tmp[0] = (unsigned char)( dosbox_int_register         & 0xFFu);
-                    tmp[1] = (unsigned char)((dosbox_int_register >>  8u) & 0xFFu);
+			switch ((dosbox_int_register>>8)&0xFF) {
+				case 0x00: // keyboard
+					if (IS_PC98_ARCH)
+						pc98_keyboard_send(dosbox_int_register&0xFF);
+					else
+						KEYBOARD_AddBuffer(dosbox_int_register&0xFF);
+					break;
+				case 0x01: // AUX
+					if (!IS_PC98_ARCH)
+						KEYBOARD_AddBuffer((dosbox_int_register&0xFF)|0x100/*AUX*/);
+					else   // no such interface in PC-98 mode
+						dosbox_int_error = true;
+					break;
+				case 0x08: // mouse button injection
+					if (dosbox_int_register&0x80) Mouse_ButtonPressed(dosbox_int_register&0x7F);
+					else Mouse_ButtonReleased(dosbox_int_register&0x7F);
+					break;
+				case 0x09: // mouse movement injection (X)
+					Mouse_CursorMoved(((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0,0,true);
+					break;
+				case 0x0A: // mouse movement injection (Y)
+					Mouse_CursorMoved(0,((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0,true);
+					break;
+				case 0x0B: // mouse scrollwheel injection
+					// TODO
+					break;
+				default:
+					dosbox_int_error = true;
+					break;
+			}
+			break;
 
-                    /* NTS: DMA channel write will write tmp[0] if 8-bit, tmp[0]/tmp[1] if 16-bit */
-                    if (ch->Write(1/*one unit of transfer*/,tmp) == 1) {
-                        dosbox_int_register = 0;
-                        dosbox_int_error = false;
-                    }
-                    else {
-                        dosbox_int_register = 0x823700;
-                        dosbox_int_error = true;
-                    }
-                }
-                else {
-                    dosbox_int_register = 0x8237FF;
-                    dosbox_int_error = true;
-                }
-            }
-            break;
+			/* this command is used to enable notification of mouse movement over the windows even if the mouse isn't captured */
+		case DOSBOX_ID_REG_USER_MOUSE_CURSOR: /* read user mouse cursor position */
+		case DOSBOX_ID_REG_USER_MOUSE_CURSOR_NORMALIZED: /* read user mouse cursor position (normalized for Windows 3.x) */
+			mouse_notify_mode = dosbox_int_register & 0xFF;
+			LOG(LOG_MISC,LOG_DEBUG)("Mouse notify mode=%u",mouse_notify_mode);
+			break;
 
-        case 0x823780: /* ISA DMA injection, single byte/word (read from memory) */
-            {
-                dosbox_int_register_shf = 0;
-                dosbox_int_regsel_shf = 0;
-                /* bits [18:16] = DMA channel to send to */
-                DmaChannel *ch = GetDMAChannel((dosbox_int_register>>16u)&7u);
-                if (ch != NULL) {
-                    unsigned char tmp[2];
-
-                    /* NTS: DMA channel write will write tmp[0] if 8-bit, tmp[0]/tmp[1] if 16-bit */
-                    tmp[0] = tmp[1] = 0;
-                    if (ch->Read(1/*one unit of transfer*/,tmp) == 1) {
-                        dosbox_int_register = ((unsigned int)tmp[1] << 8u) + (unsigned int)tmp[0];
-                        dosbox_int_error = false;
-                    }
-                    else {
-                        dosbox_int_register = 0x823700;
-                        dosbox_int_error = true;
-                    }
-                }
-                else {
-                    dosbox_int_register = 0x8237FF;
-                    dosbox_int_error = true;
-                }
-            }
-            break;
-
-        case 0x804200: /* keyboard input injection */
-            void Mouse_ButtonPressed(uint8_t button);
-            void Mouse_ButtonReleased(uint8_t button);
-            void pc98_keyboard_send(const unsigned char b);
-            void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate);
-            void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
-            void KEYBOARD_AddBuffer(uint16_t data);
-
-            switch ((dosbox_int_register>>8)&0xFF) {
-                case 0x00: // keyboard
-                    if (IS_PC98_ARCH)
-                        pc98_keyboard_send(dosbox_int_register&0xFF);
-                    else
-                        KEYBOARD_AddBuffer(dosbox_int_register&0xFF);
-                    break;
-                case 0x01: // AUX
-                    if (!IS_PC98_ARCH)
-                        KEYBOARD_AddBuffer((dosbox_int_register&0xFF)|0x100/*AUX*/);
-                    else   // no such interface in PC-98 mode
-                        dosbox_int_error = true;
-                    break;
-                case 0x08: // mouse button injection
-                    if (dosbox_int_register&0x80) Mouse_ButtonPressed(dosbox_int_register&0x7F);
-                    else Mouse_ButtonReleased(dosbox_int_register&0x7F);
-                    break;
-                case 0x09: // mouse movement injection (X)
-                    Mouse_CursorMoved(((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0,0,true);
-                    break;
-                case 0x0A: // mouse movement injection (Y)
-                    Mouse_CursorMoved(0,((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0,true);
-                    break;
-                case 0x0B: // mouse scrollwheel injection
-                    // TODO
-                    break;
-                default:
-                    dosbox_int_error = true;
-                    break;
-            }
-            break;
-
-//      case 0x804201: /* keyboard status do not write */
-//          break;
-
-        /* this command is used to enable notification of mouse movement over the windows even if the mouse isn't captured */
-        case 0x434D55: /* read user mouse cursor position */
-        case 0x434D56: /* read user mouse cursor position (normalized for Windows 3.x) */
-            mouse_notify_mode = dosbox_int_register & 0xFF;
-            LOG(LOG_MISC,LOG_DEBUG)("Mouse notify mode=%u",mouse_notify_mode);
-            break;
- 
-        case 0xC54010: /* Screenshot/capture trigger */
+		case DOSBOX_ID_REG_SCREENSHOT_TRIGGER: /* Screenshot/capture trigger */
 #if (C_SSHOT)
-            void CAPTURE_ScreenShotEvent(bool pressed);
-            void CAPTURE_VideoEvent(bool pressed);
+			void CAPTURE_ScreenShotEvent(bool pressed);
+			void CAPTURE_VideoEvent(bool pressed);
 #endif
-            void CAPTURE_WaveEvent(bool pressed);
+			void CAPTURE_WaveEvent(bool pressed);
 
-            /* TODO: It would be wise to grant/deny access to this register through another dosbox-x.conf option
-             *       so that rogue DOS development cannot shit-spam the capture folder */
+			/* TODO: It would be wise to grant/deny access to this register through another dosbox-x.conf option
+			 *       so that rogue DOS development cannot shit-spam the capture folder */
 #if (C_SSHOT)
-            if (dosbox_int_register & 1)
-                CAPTURE_ScreenShotEvent(true);
-            if (dosbox_int_register & 2)
-                CAPTURE_VideoEvent(true);
+			if (dosbox_int_register & 1)
+				CAPTURE_ScreenShotEvent(true);
+			if (dosbox_int_register & 2)
+				CAPTURE_VideoEvent(true);
 #endif
-            if (dosbox_int_register & 4)
-                CAPTURE_WaveEvent(true);
-            break;
+			if (dosbox_int_register & 4)
+				CAPTURE_WaveEvent(true);
+			break;
 
-        default:
-            dosbox_int_register = 0x55AA55AA;
-            dosbox_int_error = true;
-            break;
-    }
+		case DOSBOX_ID_REG_CPU_CYCLES:
+			ig_cpu_cycles_set |= 1u;
+			ig_cpu_cycles_value = dosbox_int_register;
+			if (ig_cpu_cycles_value == 0) ig_cpu_cycles_value = 3000;
+			if (ig_cpu_cycles_value > 0x7FFFFFFFul) ig_cpu_cycles_value = 0x7FFFFFFFul;
+			break;
+
+		case DOSBOX_ID_REG_CPU_MAX_PERCENT:
+			ig_cpu_cycles_set |= 2u;
+			ig_cpu_cycles_max_percent = dosbox_int_register;
+			if (ig_cpu_cycles_max_percent == 0) ig_cpu_cycles_max_percent = 100;
+			if (ig_cpu_cycles_max_percent > 100) ig_cpu_cycles_max_percent = 100;
+			break;
+
+		case DOSBOX_ID_REG_CPU_CYCLES_INFO:
+			dosbox_int_error = false;
+			{
+				unsigned int mode = dosbox_int_register & DOSBOX_ID_REG_CPU_CYCLES_INFO_MODE_MASK;
+				char setting[256] = {0};
+
+				if (mode == 0) {
+					if (CPU_CycleAutoAdjust)
+						mode = DOSBOX_ID_REG_CPU_CYCLES_INFO_MAX;
+					else if (CPU_AutoDetermineMode &CPU_AUTODETERMINE_CYCLES)
+						mode = DOSBOX_ID_REG_CPU_CYCLES_INFO_AUTO;
+					else
+						mode = DOSBOX_ID_REG_CPU_CYCLES_INFO_FIXED;
+				}
+
+				switch (mode) {
+					case DOSBOX_ID_REG_CPU_CYCLES_INFO_MAX:
+						if (ig_cpu_cycles_set & 2)
+							sprintf(setting,"cycles=max %lu%%",(unsigned long)ig_cpu_cycles_max_percent);
+						break;
+					case DOSBOX_ID_REG_CPU_CYCLES_INFO_AUTO:
+						if (ig_cpu_cycles_set & 2)
+							sprintf(setting,"cycles=auto %lu%%",(unsigned long)ig_cpu_cycles_max_percent);
+						break;
+					case DOSBOX_ID_REG_CPU_CYCLES_INFO_FIXED:
+						if (ig_cpu_cycles_set & 1)
+							sprintf(setting,"cycles=fixed %lu",(unsigned long)ig_cpu_cycles_value);
+						break;
+					default:
+						dosbox_int_error = true;
+						break;
+				};
+
+				if (setting) {
+					LOG(LOG_MISC,LOG_DEBUG)("Integratoin device cycle change: %s\n",setting);
+					Section* sec = control->GetSection("cpu");
+					if (sec) sec->HandleInputline(setting);
+				}
+				else {
+					LOG(LOG_MISC,LOG_DEBUG)("Integratoin device cycle change ignored (setmask 0x%x mode 0x%x)\n",
+						ig_cpu_cycles_set,mode);
+				}
+			}
+			ig_cpu_cycles_set = 0;
+			break;
+
+		default:
+			dosbox_int_register = 0x55AA55AA;
+			dosbox_int_error = true;
+			break;
+	}
 }
 
 /* PORT 0x28: Index
@@ -1163,164 +1217,164 @@ void dosbox_integration_trigger_write() {
  *      read one byte out of 4. */
 
 static Bitu dosbox_integration_port00_index_r(Bitu port,Bitu iolen) {
-    (void)port;//UNUSED
-    Bitu retb = 0;
-    Bitu ret = 0;
+	(void)port;//UNUSED
+	Bitu retb = 0;
+	Bitu ret = 0;
 
-    while (iolen > 0) {
-        ret += ((dosbox_int_regsel >> (dosbox_int_regsel_shf * 8)) & 0xFFU) << (retb * 8);
-        if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
-        iolen--;
-        retb++;
-    }
+	while (iolen > 0) {
+		ret += ((dosbox_int_regsel >> (dosbox_int_regsel_shf * 8)) & 0xFFU) << (retb * 8);
+		if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
+		iolen--;
+		retb++;
+	}
 
-    return ret;
+	return ret;
 }
 
 static void dosbox_integration_port00_index_w(Bitu port,Bitu val,Bitu iolen) {
-    (void)port;//UNUSED
+	(void)port;//UNUSED
 
-    while (iolen > 0) {
-        uint32_t msk = 0xFFU << (dosbox_int_regsel_shf * 8);
-        dosbox_int_regsel = (dosbox_int_regsel & ~msk) + ((val & 0xFF) << (dosbox_int_regsel_shf * 8));
-        if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
-        val >>= 8U;
-        iolen--;
-    }
+	while (iolen > 0) {
+		uint32_t msk = 0xFFU << (dosbox_int_regsel_shf * 8);
+		dosbox_int_regsel = (dosbox_int_regsel & ~msk) + ((val & 0xFF) << (dosbox_int_regsel_shf * 8));
+		if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
+		val >>= 8U;
+		iolen--;
+	}
 }
 
 static Bitu dosbox_integration_port01_data_r(Bitu port,Bitu iolen) {
-    (void)port;//UNUSED
-    Bitu retb = 0;
-    Bitu ret = 0;
+	(void)port;//UNUSED
+	Bitu retb = 0;
+	Bitu ret = 0;
 
-    while (iolen > 0) {
-        if (dosbox_int_register_shf == 0) dosbox_integration_trigger_read();
-        ret += ((dosbox_int_register >> (dosbox_int_register_shf * 8)) & 0xFFU) << (retb * 8);
-        if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
-        iolen--;
-        retb++;
-    }
+	while (iolen > 0) {
+		if (dosbox_int_register_shf == 0) dosbox_integration_trigger_read();
+		ret += ((dosbox_int_register >> (dosbox_int_register_shf * 8)) & 0xFFU) << (retb * 8);
+		if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
+		iolen--;
+		retb++;
+	}
 
-    return ret;
+	return ret;
 }
 
 static void dosbox_integration_port01_data_w(Bitu port,Bitu val,Bitu iolen) {
-    (void)port;//UNUSED
+	(void)port;//UNUSED
 
-    while (iolen > 0) {
-        uint32_t msk = 0xFFU << (dosbox_int_register_shf * 8);
-        dosbox_int_register = (dosbox_int_register & ~msk) + ((val & 0xFF) << (dosbox_int_register_shf * 8));
-        if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
-        if (dosbox_int_register_shf == 0) dosbox_integration_trigger_write();
-        val >>= 8U;
-        iolen--;
-    }
+	while (iolen > 0) {
+		uint32_t msk = 0xFFU << (dosbox_int_register_shf * 8);
+		dosbox_int_register = (dosbox_int_register & ~msk) + ((val & 0xFF) << (dosbox_int_register_shf * 8));
+		if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
+		if (dosbox_int_register_shf == 0) dosbox_integration_trigger_write();
+		val >>= 8U;
+		iolen--;
+	}
 }
 
 static Bitu dosbox_integration_port02_status_r(Bitu port,Bitu iolen) {
-    (void)iolen;//UNUSED
-    (void)port;//UNUSED
-    /* status */
-    /* 7:6 = regsel byte index
-     * 5:4 = register byte index
-     * 3:2 = reserved
-     *   1 = error
-     *   0 = busy */
-    return
-        ((unsigned int)dosbox_int_regsel_shf << 6u) + ((unsigned int)dosbox_int_register_shf << 4u) +
-        (dosbox_int_error ? 2u : 0u) + (dosbox_int_busy ? 1u : 0u);
+	(void)iolen;//UNUSED
+	(void)port;//UNUSED
+	/* status */
+	/* 7:6 = regsel byte index
+	 * 5:4 = register byte index
+	 * 3:2 = reserved
+	 *   1 = error
+	 *   0 = busy */
+	return
+		((unsigned int)dosbox_int_regsel_shf << 6u) + ((unsigned int)dosbox_int_register_shf << 4u) +
+		(dosbox_int_error ? 2u : 0u) + (dosbox_int_busy ? 1u : 0u);
 }
 
 static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
-    (void)port;
-    (void)iolen;
-    switch (val) {
-        case 0x00: /* reset latch */
-            dosbox_int_register_shf = 0;
-            dosbox_int_regsel_shf = 0;
-            break;
-        case 0x01: /* flush write */
-            if (dosbox_int_register_shf != 0) {
-                dosbox_integration_trigger_write();
-                dosbox_int_register_shf = 0;
-            }
-            break;
-        case 0x20: /* push state */
-            if (dosbox_int_push_save_state()) {
-                dosbox_int_register_shf = 0;
-                dosbox_int_regsel_shf = 0;
-                dosbox_int_error = false;
-                dosbox_int_busy = false;
-                dosbox_int_regsel = 0xAA55BB66;
-                dosbox_int_register = 0xD05B0C5;
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state saved");
-            }
-            else {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG unable to push state, stack overflow");
-                dosbox_int_error = true;
-            }
-            break;
-        case 0x21: /* pop state */
-            if (dosbox_int_pop_save_state()) {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state restored");
-            }
-            else {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG unable to pop state, stack underflow");
-                dosbox_int_error = true;
-            }
-            break;
-        case 0x22: /* discard state */
-            if (dosbox_int_discard_save_state()) {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state discarded");
-            }
-            else {
-                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG unable to discard state, stack underflow");
-                dosbox_int_error = true;
-            }
-            break;
-        case 0x23: /* discard all state */
-            while (dosbox_int_discard_save_state());
-            break;
-        case 0xFE: /* clear error */
-            dosbox_int_error = false;
-            break;
-        case 0xFF: /* reset interface */
-            dosbox_int_busy = false;
-            dosbox_int_error = false;
-            dosbox_int_regsel = 0xAA55BB66;
-            dosbox_int_register = 0xD05B0C5;
-            break;
-        default:
-            dosbox_int_error = true;
-            break;
-    }
+	(void)port;
+	(void)iolen;
+	switch (val) {
+		case DOSBOX_ID_CMD_RESET_LATCH:
+			dosbox_int_register_shf = 0;
+			dosbox_int_regsel_shf = 0;
+			break;
+		case DOSBOX_ID_CMD_FLUSH_WRITE:
+			if (dosbox_int_register_shf != 0) {
+				dosbox_integration_trigger_write();
+				dosbox_int_register_shf = 0;
+			}
+			break;
+		case DOSBOX_ID_CMD_PUSH_STATE:
+			if (dosbox_int_push_save_state()) {
+				dosbox_int_register_shf = 0;
+				dosbox_int_regsel_shf = 0;
+				dosbox_int_error = false;
+				dosbox_int_busy = false;
+				dosbox_int_regsel = DOSBOX_ID_RESET_INDEX_CODE;
+				dosbox_int_register = DOSBOX_ID_RESET_DATA_CODE;
+				LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state saved");
+			}
+			else {
+				LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG unable to push state, stack overflow");
+				dosbox_int_error = true;
+			}
+			break;
+		case DOSBOX_ID_CMD_POP_STATE:
+			if (dosbox_int_pop_save_state()) {
+				LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state restored");
+			}
+			else {
+				LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG unable to pop state, stack underflow");
+				dosbox_int_error = true;
+			}
+			break;
+		case DOSBOX_ID_CMD_DISCARD_STATE:
+			if (dosbox_int_discard_save_state()) {
+				LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG state discarded");
+			}
+			else {
+				LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X IG unable to discard state, stack underflow");
+				dosbox_int_error = true;
+			}
+			break;
+		case DOSBOX_ID_CMD_DISCARD_ALL_STATE:
+			while (dosbox_int_discard_save_state());
+			break;
+		case DOSBOX_ID_CMD_CLEAR_ERROR:
+			dosbox_int_error = false;
+			break;
+		case DOSBOX_ID_CMD_RESET_INTERFACE:
+			dosbox_int_busy = false;
+			dosbox_int_error = false;
+			dosbox_int_regsel = DOSBOX_ID_RESET_INDEX_CODE;
+			dosbox_int_register = DOSBOX_ID_RESET_DATA_CODE;
+			break;
+		default:
+			dosbox_int_error = true;
+			break;
+	}
 }
 
 static IO_ReadHandler* const dosbox_integration_cb_ports_r[4] = {
-    dosbox_integration_port00_index_r,
-    dosbox_integration_port01_data_r,
-    dosbox_integration_port02_status_r,
-    NULL
+	dosbox_integration_port00_index_r,
+	dosbox_integration_port01_data_r,
+	dosbox_integration_port02_status_r,
+	NULL
 };
 
 static IO_ReadHandler* dosbox_integration_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) {
-    (void)co;
-    (void)iolen;
-    return dosbox_integration_cb_ports_r[port&3];
+	(void)co;
+	(void)iolen;
+	return dosbox_integration_cb_ports_r[port&3];
 }
 
 static IO_WriteHandler* const dosbox_integration_cb_ports_w[4] = {
-    dosbox_integration_port00_index_w,
-    dosbox_integration_port01_data_w,
-    dosbox_integration_port02_command_w,
-    NULL
+	dosbox_integration_port00_index_w,
+	dosbox_integration_port01_data_w,
+	dosbox_integration_port02_command_w,
+	NULL
 };
 
 static IO_WriteHandler* dosbox_integration_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen) {
-    (void)co;
-    (void)iolen;
-    return dosbox_integration_cb_ports_w[port&3];
+	(void)co;
+	(void)iolen;
+	return dosbox_integration_cb_ports_w[port&3];
 }
 
 /* if mem_systems 0 then size_extended is reported as the real size else 
@@ -3347,8 +3401,6 @@ void PC98_InitDefFuncRow(void) {
         def.set_shortcut("");
     }
 }
-
-#include "int10.h"
 
 void draw_pc98_function_row_elem(unsigned int o, unsigned int co, const struct pc98_func_key_shortcut_def& key) {
     const unsigned char *str = key.shortcut;
@@ -5864,42 +5916,49 @@ Table            [Programmable key setting data buffer structure]
                 update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x01 && reg_ax <= 0x0A) { /* Read individual function keys, DS:DX = data to set */
+            else if (reg_ax >= 0x01 && reg_ax <= 0x0A) { /* Write individual function keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_func_key[reg_ax - 0x01],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x0B && reg_ax <= 0x14) { /* Read individual shift + function keys, DS:DX = data to set */
+            else if (reg_ax >= 0x0B && reg_ax <= 0x14) { /* Write individual shift + function keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut[reg_ax - 0x0B],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x15 && reg_ax <= 0x1F) { /* Read individual editor keys, DS:DX = data to set */
+            else if (reg_ax >= 0x15 && reg_ax <= 0x1F) { /* Write individual editor keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_EDITDEC(pc98_editor_key_escapes[reg_ax - 0x15],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x20 && reg_ax <= 0x24) { /* Read VF1-VF5 keys, DS:DX = data to store to */
+            else if (reg_ax >= 0x20 && reg_ax <= 0x24) { /* Write VF1-VF5 keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_vfunc_key[reg_ax - 0x20],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x25 && reg_ax <= 0x29) { /* Read shift VF1-VF5 keys, DS:DX = data to store to */
+            else if (reg_ax >= 0x25 && reg_ax <= 0x29) { /* Write shift VF1-VF5 keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_vfunc_key_shortcut[reg_ax - 0x25],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x2A && reg_ax <= 0x33) { /* Read individual function keys, DS:DX = data to store to */
+            else if (reg_ax >= 0x2A && reg_ax <= 0x33) { /* Write individual function keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_func_key_ctrl[reg_ax - 0x2A],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax >= 0x34 && reg_ax <= 0x38) { /* Read control VF1-VF5 keys, DS:DX = data to store to */
+            else if (reg_ax >= 0x34 && reg_ax <= 0x38) { /* Write control VF1-VF5 keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_FUNCDEC(pc98_vfunc_key_ctrl[reg_ax - 0x34],ofs);
+                update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
             }
-            else if (reg_ax == 0x00) { /* Read all state, DS:DX = data to set */
+            else if (reg_ax == 0x00) { /* Write all state, DS:DX = data to set */
                 /* DS:DX contains
                  *       16*10 bytes, 16 bytes per entry for function keys F1-F10
                  *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
@@ -12576,7 +12635,6 @@ void GEN_PowerButton(bool pressed) {
 }
 
 
-extern uint8_t int10_font_08[256 * 8];
 extern uint16_t j3_font_offset;
 
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */

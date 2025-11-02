@@ -1,5 +1,7 @@
 dnl Init.
-AC_INIT(dosbox-x,2025.05.03,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,2025.10.07,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+COPYRIGHT_YEAR=`echo $PACKAGE_VERSION | cut -c1-4`
+AC_SUBST([COPYRIGHT_YEAR])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -60,6 +62,47 @@ dnl End Utility function ============================
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
+
+MACOSX_DEPLOYMENT_TARGET="10.15"
+MACOSX_ARCH="ARM"
+
+case "$host_os" in
+  darwin*)
+    HOST_VERSION=`sw_vers -productVersion | cut -d. -f1,2`
+    major=`echo $HOST_VERSION | cut -d. -f1`
+    minor=`echo $HOST_VERSION | cut -d. -f2`
+    
+    version_num=`expr $major \* 100 + $minor`
+
+    if test "$version_num" -lt 1015; then
+      MACOSX_DEPLOYMENT_TARGET="$HOST_VERSION"
+    else
+      MACOSX_DEPLOYMENT_TARGET="10.15"
+    fi
+    case "$host_cpu" in
+      x86_64)
+        MACOSX_ARCH="Intel"
+        ;;
+      arm64|aarch64)
+        MACOSX_ARCH="ARM"
+        ;;
+      *)
+        MACOSX_ARCH="Unknown"
+        ;;
+    esac
+    ;;
+  *)
+    echo "Not macOS, skipping version check"
+    ;;
+esac
+
+AC_SUBST([MACOSX_DEPLOYMENT_TARGET])
+AC_SUBST([MACOSX_ARCH])
+
+AC_MSG_CHECKING([for Git commit hash])
+COMMIT_HASH=`git rev-parse --short=7 HEAD 2>/dev/null || echo "unknown"`
+AC_SUBST([COMMIT_HASH])
+AC_MSG_RESULT([$COMMIT_HASH])
 
 dnl Setup for automake
 AM_INIT_AUTOMAKE([foreign subdir-objects])
@@ -446,14 +489,17 @@ dnl LIBRARY USE: SDL selection
 if test -n "$SDL2_LIBS"; then
     LIBS="$LIBS $SDL2_LIBS"
     CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+    SDL_STRING="SDL2"
 else
   if test -n "$SDL_LIBS"; then
     LIBS="$LIBS $SDL_LIBS"
     CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+    SDL_STRING="SDL1"
   else
     AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
   fi
 fi
+AC_SUBST([SDL_STRING])
 
 AH_TEMPLATE(C_GAMELINK,[Define to 1 to enable game link headless mode])
 AC_CHECK_LIB(rt, main, have_rt_lib=yes, have_rt_lib=no , )

@@ -21,7 +21,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: microsoft/setup-msbuild@v2
       - name: Prepare Visual Studio Win64
         shell: bash
@@ -131,7 +131,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: microsoft/setup-msbuild@v2
       - name: Prepare Visual Studio ARM64
         shell: bash
@@ -148,7 +148,7 @@ jobs:
       - name: Build Visual Studio ARM64 SDL1
         shell: pwsh
         run: |
-          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false -p:WindowsTargetPlatformVersion=10.0.22621.0 
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false -p:PlatformToolset=v143
           if (-not(Test-Path -Path bin\ARM64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package Visual Studio ARM64 SDL1
         shell: bash
@@ -177,7 +177,7 @@ jobs:
       - name: Build Visual Studio ARM64 SDL2
         shell: pwsh
         run: |
-          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false -p:WindowsTargetPlatformVersion=10.0.22621.0 
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false -p:PlatformToolset=v143
           if (-not(Test-Path -Path bin\ARM64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package Visual Studio ARM64 SDL2
         shell: bash
@@ -231,13 +231,12 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: microsoft/setup-msbuild@v2
       - name: Prepare Visual Studio 2022 build
         shell: bash
         run: |
           echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
-          ls -1 vs/dosbox-x.vcxproj vs/freetype/builds/windows/vc2010/freetype.vcxproj vs/libpdcurses/libpdcurses.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/sdl/VisualC/SDL/SDL.vcxproj vs/sdl/VisualC/SDLmain/SDLmain.vcxproj vs/sdl2/VisualC/SDL/SDL.vcxproj vs/sdl2/VisualC/SDLmain/SDLmain.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/zlib/zlib/zlib.vcxproj | xargs sed -b -i 's/v14[2-9]/v143/g'
           echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
           export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
           export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
@@ -250,22 +249,22 @@ jobs:
       - name: Build Visual Studio Win32 SDL1
         shell: pwsh
         run: |
-          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=Win32
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=Win32 -p:PlatformToolset=v143
           if (-not(Test-Path -Path bin\Win32\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Build Visual Studio Win32 SDL2
         shell: pwsh
         run: |
-          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=Win32
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=Win32 -p:PlatformToolset=v143
           if (-not(Test-Path -Path bin\Win32\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Build Visual Studio Win64 SDL1
         shell: pwsh
         run: |
-          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=x64
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v143
           if (-not(Test-Path -Path bin\x64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Build Visual Studio Win64 SDL2
         shell: pwsh
         run: |
-          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=x64
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=x64 -p:PlatformToolset=v143
           if (-not(Test-Path -Path bin\x64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package Visual Studio 2022 build
         shell: bash

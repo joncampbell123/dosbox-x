@@ -12,13 +12,13 @@ jobs:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: write # for actions/checkout to fetch code and softprops/action-gh-release
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
       - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install libraries
         run: |
           brew install autoconf automake nasm glfw glew coreutils sevenzip libslirp fluid-synth pkg-config sdl2_net
@@ -89,7 +89,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install libraries
         run: |
           brew install autoconf automake nasm glfw glew coreutils sevenzip libslirp fluid-synth pkg-config sdl2_net

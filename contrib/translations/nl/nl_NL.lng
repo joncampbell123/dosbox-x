@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Nederlands (Nederland)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:2025.05.03
+:DOSBOX-X:VERSION:2025.10.07
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lijnen in dit gedeelte worden uitgevoerd bij opstarten.
@@ -144,7 +144,7 @@ Huidige geluidsmixervolumes
 Sound Blaster configuratie
 .
 :CURRENT_MIDICONFIG
-Huidige MIDI configuratie
+Huidige MIDI/OPL configuratie
 .
 :CREATE_IMAGE
 Lege schijfimage maken
@@ -2979,7 +2979,7 @@ Geluidsmixervolumes weergeven
 Sound Blaster-configuratie weergeven
 .
 :MENU:midi_info
-Configuratie van MIDI-apparaat weergeven
+Configuratie van MIDI/OPL-apparaat weergeven
 .
 :MENU:DOSMenu
 DOS
@@ -4413,8 +4413,8 @@ Het opslaan van de schijf-image is mislukt.
 :MENU_JP_CPONLY
 Deze functie is alleen beschikbaar voor de Japanse codepagina (932).
 .
-:MENU_CN_CPONLY
-Deze functie is alleen beschikbaar voor Chinese codepagina's (936 of 950).
+:MENU_CH_CPONLY
+Deze functie is alleen beschikbaar voor Chinese codepagina's (936, 950 of 951).
 .
 :MENU_GLIDE_ERROR
 Glide-passthrough kan niet worden ingeschakeld. Controleer de installatie van
@@ -4476,4 +4476,48 @@ Weet u zeker dat u het taalbestand voor dit systeemtype wilt gebruiken?
 :LANG_CHANGE_CP
 Het opgegeven taalbestand gebruikt codepagina %d. Wilt u naar deze
 codepagina overschakelen?
+.
+:SCALER_LOAD_WARN
+This scaler may not work properly or have undesired effect:
+
+%s
+
+Do you want to force load the scaler?
+.
+:PIXEL_SHADER_WARN
+This pixel shader may be unneeded or have undesired effect:
+
+%s
+
+Do you want to load the pixel shader anyway?
+
+(You may append 'forced' to the pixelshader setting to force load the pixel shader without this message)
+.
+:PIXEL_SHADER_LOADED
+Loaded pixel shader - %s
+.
+:MAPPEREDITOR_NOT_AVAILABLE
+Mapper Editor is not currently available.
+.
+:OPL_REC_COMPLETED
+Saved Raw OPL output to the file:
+
+%s
+.
+:OPL_CAPTURE_FAILED
+Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.
+.
+:TTF_DBCS_ONLY
+This function is only available for the Chinese/Japanese/Korean code pages.
+.
+:SAVE_FAILED
+Failed to save the current state.
+.
+:SAVE_CORRUPTED
+Save state corrupted! Program may not work.
+.
+:SAVE_SCREENSHOT
+Saved screenshot to the file:
+
+%s
 .

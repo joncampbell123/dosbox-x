@@ -300,14 +300,14 @@ Bitu INT10_Handler(void) {
 		}
 		break;
 	case 0x11:								/* Character generator functions */
-        if (machine==MCH_MCGA) {
-            if (!(reg_al == 0x24 || reg_al == 0x30))
-                break;
-        }
-        else {
-            if (!IS_EGAVGA_ARCH)
-                break;
-        }
+		if (machine==MCH_MCGA) {
+			if (!(reg_al == 0x24 || reg_al == 0x30))
+				break;
+		}
+		else {
+			if (!IS_EGAVGA_ARCH)
+				break;
+		}
 
 		if ((reg_al&0xf0)==0x10) Mouse_BeforeNewVideoMode(false);
 		switch (reg_al) {
@@ -336,11 +336,11 @@ Bitu INT10_Handler(void) {
 			break;
 		case 0x03:			/* Set Block Specifier */
 #if defined(USE_TTF)
-            if (ttf.inUse&&wpType==1) {
-                DOS_Block dos;
-                if (mem_readd(((dos.psp()-1)<<4)+8) == 0x5057)							// Name of MCB PSP should be WP
-                    wpExtChar = reg_bl != 0;
-            }
+			if (ttf.inUse&&wpType==1) {
+				DOS_Block dos;
+				if (mem_readd(((dos.psp()-1)<<4)+8) == 0x5057) // Name of MCB PSP should be WP
+					wpExtChar = reg_bl != 0;
+			}
 #endif
 			IO_Write(0x3c4,0x3);IO_Write(0x3c5,reg_bl);
 			break;
@@ -372,15 +372,20 @@ Bitu INT10_Handler(void) {
 			goto graphics_chars;
 graphics_chars:
 			switch (reg_bl) {
-			case 0x00:real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,reg_dl-1);break;
-			case 0x01:real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,13);break;
-			case 0x03:real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,42);break;
-			case 0x02:
-			default:real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,24);break;
+				case 0x00:real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,reg_dl-1);break;
+				case 0x01:real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,13);break;
+				case 0x03:real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,42);break;
+				case 0x02:
+				default:real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,24);break;
 			}
 			break;
 /* General */
 		case 0x30:/* Get Font Information */
+			if (machine == MCH_MCGA) {
+				if (reg_bh == 5 || reg_bh == 7) /* these don't work on MCGA */
+					break;
+			}
+
 			switch (reg_bh) {
 			case 0x00:	/* interrupt 0x1f vector */
 				{
@@ -397,8 +402,15 @@ graphics_chars:
 				}
 				break;
 			case 0x02:	/* font 8x14 */
-				SegSet16(es,RealSeg(int10.rom.font_14));
-				reg_bp=RealOff(int10.rom.font_14);
+				if (machine == MCH_MCGA) {
+					/* No such font on MCGA, returns 8x16 font */
+					SegSet16(es,RealSeg(int10.rom.font_16));
+					reg_bp=RealOff(int10.rom.font_16);
+				}
+				else {
+					SegSet16(es,RealSeg(int10.rom.font_14));
+					reg_bp=RealOff(int10.rom.font_14);
+				}
 				break;
 			case 0x03:	/* font 8x8 first 128 */
 				SegSet16(es,RealSeg(int10.rom.font_8_first));
@@ -413,14 +425,26 @@ graphics_chars:
 				reg_bp=RealOff(int10.rom.font_14_alternate);
 				break;
 			case 0x06:	/* font 8x16 */
-				if (!IS_VGA_ARCH) break;
-				SegSet16(es,RealSeg(int10.rom.font_16));
-				reg_bp=RealOff(int10.rom.font_16);
+				if (IS_VGA_ARCH || machine == MCH_MCGA) {
+					SegSet16(es,RealSeg(int10.rom.font_16));
+					reg_bp=RealOff(int10.rom.font_16);
+				}
+				else if (IS_EGA_ARCH) {
+					/* EGA BIOSes reportedly return garbage here */
+					SegSet16(es,0xC000);
+					reg_bp=0xFB80;
+				}
 				break;
 			case 0x07:	/* alpha alternate 9x16 */
-				if (!IS_VGA_ARCH) break;
-				SegSet16(es,RealSeg(int10.rom.font_16_alternate));
-				reg_bp=RealOff(int10.rom.font_16_alternate);
+				if (IS_VGA_ARCH) {
+					SegSet16(es,RealSeg(int10.rom.font_16_alternate));
+					reg_bp=RealOff(int10.rom.font_16_alternate);
+				}
+				else if (IS_EGA_ARCH) {
+					/* EGA BIOSes reportedly return garbage here */
+					SegSet16(es,0xC000);
+					reg_bp=0x7210;
+				}
 				break;
 			default:
 				LOG(LOG_INT10,LOG_ERROR)("Function 11:30 Request for font %2X",reg_bh);

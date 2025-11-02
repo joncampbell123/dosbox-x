@@ -650,7 +650,6 @@ private:
 			cur_col=0;
 			break;
 		case '\n':
-			cur_col=0;
 			cur_row++;
 			break;
 		case '\t':

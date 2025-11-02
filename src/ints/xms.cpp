@@ -97,6 +97,7 @@ bool xms_hma_alloc_non_dos_kernel_control = true;
 
 bool xms_memmove_flatrealmode = false;
 bool xms_init_flatrealmode = false;
+bool xms_debug_log_memmove = false;
 
 struct XMS_Block {
 	Bitu	size;
@@ -252,7 +253,7 @@ Bitu XMS_FreeMemory(Bitu handle) {
 	return 0;
 }
 
-void XMS_InitFlatRealMode(void);
+bool XMS_InitFlatRealMode(void);
 
 Bitu XMS_MoveMemory(PhysPt bpt) {
 	/* Read the block with mem_read's */
@@ -306,7 +307,10 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		 * extend past the end of the 8086-accessible conventional memory area. */
 		if ((destpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
 	}
-//	LOG_MSG("XMS move src %X dest %X length %X",srcpt,destpt,length);
+
+	if (xms_debug_log_memmove) {
+		LOG_MSG("XMS move src %X dest %X length %X",(unsigned int)srcpt,(unsigned int)destpt,(unsigned int)length);
+	}
 
 	/* we must enable the A20 gate during this copy.
 	 * DOSBox-X masks the A20 line and this will only cause corruption otherwise. */
@@ -320,9 +324,8 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		// HIMEM.SYS on 386 and higher is said to use "flat real mode" to copy extended memory.
 		// That means if a program calls this function, it implicitly sets up flat real mode.
 		// It seems some demoscene stuff in the 1992-1994 timeframe assume this case.
-		if (xms_memmove_flatrealmode) {
+		if (xms_memmove_flatrealmode && XMS_InitFlatRealMode()) {
 			LOG(LOG_MISC,LOG_DEBUG)("XMS: Memory move/copy is enabling flat real mode");
-			XMS_InitFlatRealMode();
 		}
 
 		mem_memcpy(destpt,srcpt,length);
@@ -734,11 +737,13 @@ public:
 
 		xms_global_enable = false;
 		xms_local_enable_count = 0;
+		xms_debug_log_memmove = false;
 		xms_memmove_flatrealmode = false;
 		xms_init_flatrealmode = false;
 
 		if (!section->Get_bool("xms")) return;
 
+		xms_debug_log_memmove = section->Get_bool("xms log memmove");
 		xms_memmove_flatrealmode = section->Get_bool("xms memmove causes flat real mode");
 		xms_init_flatrealmode = section->Get_bool("xms init causes flat real mode");
 
@@ -922,9 +927,8 @@ public:
 		DOS_BuildUMBChain(umb_available&&dos_umb,ems_available);
 		umb_init = true;
 
-		if (xms_init_flatrealmode) {
+		if (xms_init_flatrealmode && XMS_InitFlatRealMode()) {
 			LOG(LOG_MISC,LOG_DEBUG)("XMS: Initialization is enabling flat real mode");
-			XMS_InitFlatRealMode();
 		}
 
 		/* CP/M compat will break unless a copy of the JMP instruction is mirrored in HMA */

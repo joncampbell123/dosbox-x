@@ -1431,7 +1431,7 @@ void ttf_switch_on(bool ss=true) {
         bool OpenGL_using(void), gl = OpenGL_using();
 	(void)gl; // unused var warning
 #if defined(WIN32) && !defined(C_SDL2)
-        //change_output(0); // call OUTPUT_SURFACE_Select() to initialize output before enabling TTF output on Windows builds
+        change_output(0); // call OUTPUT_SURFACE_Select() to initialize output before enabling TTF output on Windows builds
 #endif
         change_output(10); // call OUTPUT_TTF_Select()
         SetVal("sdl", "output", "ttf");

@@ -2721,21 +2721,35 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool fcb_findfirst) {
 
 	checkDiskChange();
 
-    direntry dummyClust = {};
+	direntry dummyClust = {};
 
-    // volume label searches always affect root directory, no matter the current directory, at least with FCBs
-    if (dta.GetAttr() == DOS_ATTR_VOLUME || ((dta.GetAttr() & DOS_ATTR_VOLUME) && (fcb_findfirst || !(_dir && *_dir && dta.GetAttr() == 0x3F)))) {
-        if(!getDirClustNum("\\", &cwdDirCluster, false)) {
-            DOS_SetError(DOSERR_PATH_NOT_FOUND);
-            return false;
-        }
-    }
-    else {
-        if(!getDirClustNum(_dir, &cwdDirCluster, false)) {
-            DOS_SetError(DOSERR_PATH_NOT_FOUND);
-            return false;
-        }
-    }
+	/* Elder Scrolls Arena does an 8-bit divide using CL=A and then forgets to clear CL when calling INT 21h AH=4Eh,
+	 * which to us appears as a program searching for files that may also be a volume label and/or hidden (CX=0x000A). */
+	/* TODO: Perhaps this check could be rolled into the _dir && *_dir && dta.GetAttr() == 0x3F check? */
+	/* Elder Scrolls Arena: The load game screen doesn't just open SAVEGAME.00, it does an INT 21h AH=4Eh search for
+	 *                      it with CX=0x007C??? What the fuck? If we don't watch for this, then players running the
+	 *                      game from a image will see their saves, but will not be able to load them ("No save here"). */
+	bool ignore_volbit = false;
+	if (dta.GetAttr() & DOS_ATTR_VOLUME) {
+		if (dta.GetAttr() & (0xC0|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM|DOS_ATTR_READ_ONLY)) {
+			LOG(LOG_MISC,LOG_DEBUG)("FindFirst() ignoring volume label bit because other bits are set (Elder Scrolls Arena fix)");
+			ignore_volbit = true;
+		}
+	}
+
+	// volume label searches always affect root directory, no matter the current directory, at least with FCBs
+	if (dta.GetAttr() == DOS_ATTR_VOLUME || ((dta.GetAttr() & DOS_ATTR_VOLUME) && !ignore_volbit && (fcb_findfirst || !(_dir && *_dir && dta.GetAttr() == 0x3F)))) {
+		if(!getDirClustNum("\\", &cwdDirCluster, false)) {
+			DOS_SetError(DOSERR_PATH_NOT_FOUND);
+			return false;
+		}
+	}
+	else {
+		if(!getDirClustNum(_dir, &cwdDirCluster, false)) {
+			DOS_SetError(DOSERR_PATH_NOT_FOUND);
+			return false;
+		}
+	}
 
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
 		dta.SetDirID(0);
@@ -2824,9 +2838,9 @@ bool fatDrive::FindNextInternal(uint32_t dirClustNumber, DOS_DTA &dta, direntry 
 	bool lfn_ord_found[0x40];
 	char extension[4];
 
-    size_t dirent_per_sector = getSectSize() / sizeof(direntry);
-    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
-    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+	size_t dirent_per_sector = getSectSize() / sizeof(direntry);
+	assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+	assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
 	dta.GetSearchParams(attrs, srch_pattern,false);
 	dirPos = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():dpos[lfn_filefind_handle]; /* NTS: Windows 9x is said to have a 65536 dirent limit even for FAT32, so dirPos as 16-bit is acceptable */
@@ -2839,7 +2853,7 @@ nextfile:
 	entryoffset = (uint32_t)((size_t)dirPos % dirent_per_sector);
 
 	if(dirClustNumber==0) {
-        if (BPB.is_fat32()) return false;
+		if (BPB.is_fat32()) return false;
 
 		if(dirPos >= BPB.v.BPB_RootEntCnt) {
 			if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
@@ -2867,51 +2881,51 @@ nextfile:
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) dta.SetDirID(dirPos);
 	else dpos[lfn_filefind_handle]=dirPos;
 
-    /* Deleted file entry */
-    if (sectbuf[entryoffset].entryname[0] == 0xe5) {
-        lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
-        lfn_max_ord = 0;
-        lfnRange.clear();
-        goto nextfile;
-    }
+	/* Deleted file entry */
+	if (sectbuf[entryoffset].entryname[0] == 0xe5) {
+		lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
+		lfn_max_ord = 0;
+		lfnRange.clear();
+		goto nextfile;
+	}
 
 	/* End of directory list */
 	if (sectbuf[entryoffset].entryname[0] == 0x00) {
-			if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
-				dpos[lfn_filefind_handle]=0;
-				dnum[lfn_filefind_handle]=0;
-			}
+		if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
+			dpos[lfn_filefind_handle]=0;
+			dnum[lfn_filefind_handle]=0;
+		}
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
 	memset(find_name,0,DOS_NAMELENGTH_ASCII);
 	memset(extension,0,4);
 
-    if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
-        memcpy(find_name, &sectbuf[entryoffset].entryname[0], 11);
-    else
-    {
-        memcpy(find_name, &sectbuf[entryoffset].entryname[0], 8);
-        memcpy(extension, &sectbuf[entryoffset].entryname[8], 3);
-    }
+	if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
+		memcpy(find_name, &sectbuf[entryoffset].entryname[0], 11);
+	else
+	{
+		memcpy(find_name, &sectbuf[entryoffset].entryname[0], 8);
+		memcpy(extension, &sectbuf[entryoffset].entryname[8], 3);
+	}
 
 	// recover the SFN initial E5, which was converted to 05
 	// to distinguish with a free directory entry
 	if (find_name[0] == 0x05) find_name[0] = 0xe5;
 
-    if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
-        trimString(&find_name[0]);
-        trimString(&extension[0]);
-    }
+	if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
+		trimString(&find_name[0]);
+		trimString(&extension[0]);
+	}
 
 	if (extension[0]!=0) {
 		strcat(find_name, ".");
 		strcat(find_name, extension);
 	}
 
-    /* Compare attributes to search attributes */
+	/* Compare attributes to search attributes */
 
-    //TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
+	//TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
 	if (attrs == DOS_ATTR_VOLUME) {
 		if (dos.version.major >= 7 || uselfn) {
 			/* skip LFN entries */
@@ -2939,80 +2953,80 @@ nextfile:
 			unsigned int stridx = oidx * 13u, len = 0;
 			uint16_t lchar = 0;
 			char lname[27] = {0};
-            char text[10];
-            uint16_t uname[4];
+			char text[10];
+			uint16_t uname[4];
 
-            for (unsigned int i=0;i < 5;i++) {
-                text[0] = text[1] = text[2] = 0;
-                lchar = (uint16_t)(dlfn->LDIR_Name1[i]);
-                if (lchar < 0x100 || lchar == 0xFFFF)
-                    lname[len++] = lchar != 0xFFFF && CodePageHostToGuestUTF16(text,&lchar) && text[0] && !text[1] ? text[0] : (char)(lchar & 0xFF);
-                else {
-                    uname[0]=lchar;
-                    uname[1]=0;
-                    if (CodePageHostToGuestUTF16(text,uname)) {
-                        lname[len++] = (char)(text[0] & 0xFF);
-                        lname[len++] = (char)(text[1] & 0xFF);
-                    } else
-                        lname[len++] = '_';
-                }
-            }
-            for (unsigned int i=0;i < 6;i++) {
-                text[0] = text[1] = text[2] = 0;
-                lchar = (uint16_t)(dlfn->LDIR_Name2[i]);
-                if (lchar < 0x100 || lchar == 0xFFFF)
-                    lname[len++] = lchar != 0xFFFF && CodePageHostToGuestUTF16(text,&lchar) && text[0] && !text[1] ? text[0] : (char)(lchar & 0xFF);
-                else {
-                    char text[10];
-                    uint16_t uname[4];
-                    uname[0]=lchar;
-                    uname[1]=0;
-                    text[0] = 0;
-                    text[1] = 0;
-                    text[2] = 0;
-                    if (CodePageHostToGuestUTF16(text,uname)) {
-                        lname[len++] = (char)(text[0] & 0xFF);
-                        lname[len++] = (char)(text[1] & 0xFF);
-                    } else
-                        lname[len++] = '_';
-                }
-            }
-            for (unsigned int i=0;i < 2;i++) {
-                text[0] = text[1] = text[2] = 0;
-                lchar = (uint16_t)(dlfn->LDIR_Name3[i]);
-                if (lchar < 0x100 || lchar == 0xFFFF)
-                    lname[len++] = lchar != 0xFFFF && CodePageHostToGuestUTF16(text,&lchar) && text[0] && !text[1] ? text[0] : (char)(lchar & 0xFF);
-                else {
-                    char text[10];
-                    uint16_t uname[4];
-                    uname[0]=lchar;
-                    uname[1]=0;
-                    text[0] = 0;
-                    text[1] = 0;
-                    text[2] = 0;
-                    if (CodePageHostToGuestUTF16(text,uname)) {
-                        lname[len++] = (char)(text[0] & 0xFF);
-                        lname[len++] = (char)(text[1] & 0xFF);
-                    } else
-                        lname[len++] = '_';
-                }
-            }
-            lname[len] = 0;
-            if ((stridx+len) <= LFN_NAMELENGTH) {
-                std::string full = std::string(lname) + std::string(lfind_name);
-                strcpy(lfind_name, full.c_str());
-                lfn_ord_found[oidx] = true;
-            }
+			for (unsigned int i=0;i < 5;i++) {
+				text[0] = text[1] = text[2] = 0;
+				lchar = (uint16_t)(dlfn->LDIR_Name1[i]);
+				if (lchar < 0x100 || lchar == 0xFFFF)
+					lname[len++] = lchar != 0xFFFF && CodePageHostToGuestUTF16(text,&lchar) && text[0] && !text[1] ? text[0] : (char)(lchar & 0xFF);
+				else {
+					uname[0]=lchar;
+					uname[1]=0;
+					if (CodePageHostToGuestUTF16(text,uname)) {
+						lname[len++] = (char)(text[0] & 0xFF);
+						lname[len++] = (char)(text[1] & 0xFF);
+					} else
+						lname[len++] = '_';
+				}
+			}
+			for (unsigned int i=0;i < 6;i++) {
+				text[0] = text[1] = text[2] = 0;
+				lchar = (uint16_t)(dlfn->LDIR_Name2[i]);
+				if (lchar < 0x100 || lchar == 0xFFFF)
+					lname[len++] = lchar != 0xFFFF && CodePageHostToGuestUTF16(text,&lchar) && text[0] && !text[1] ? text[0] : (char)(lchar & 0xFF);
+				else {
+					char text[10];
+					uint16_t uname[4];
+					uname[0]=lchar;
+					uname[1]=0;
+					text[0] = 0;
+					text[1] = 0;
+					text[2] = 0;
+					if (CodePageHostToGuestUTF16(text,uname)) {
+						lname[len++] = (char)(text[0] & 0xFF);
+						lname[len++] = (char)(text[1] & 0xFF);
+					} else
+						lname[len++] = '_';
+				}
+			}
+			for (unsigned int i=0;i < 2;i++) {
+				text[0] = text[1] = text[2] = 0;
+				lchar = (uint16_t)(dlfn->LDIR_Name3[i]);
+				if (lchar < 0x100 || lchar == 0xFFFF)
+					lname[len++] = lchar != 0xFFFF && CodePageHostToGuestUTF16(text,&lchar) && text[0] && !text[1] ? text[0] : (char)(lchar & 0xFF);
+				else {
+					char text[10];
+					uint16_t uname[4];
+					uname[0]=lchar;
+					uname[1]=0;
+					text[0] = 0;
+					text[1] = 0;
+					text[2] = 0;
+					if (CodePageHostToGuestUTF16(text,uname)) {
+						lname[len++] = (char)(text[0] & 0xFF);
+						lname[len++] = (char)(text[1] & 0xFF);
+					} else
+						lname[len++] = '_';
+				}
+			}
+			lname[len] = 0;
+			if ((stridx+len) <= LFN_NAMELENGTH) {
+				std::string full = std::string(lname) + std::string(lfind_name);
+				strcpy(lfind_name, full.c_str());
+				lfn_ord_found[oidx] = true;
+			}
 		}
 
 		goto nextfile;
 	} else {
-        if (~attrs & sectbuf[entryoffset].attrib & (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME) ) {
-            lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
-            lfn_max_ord = 0;
-            lfnRange.clear();
-            goto nextfile;
-        }
+		if (~attrs & sectbuf[entryoffset].attrib & (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME) ) {
+			lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
+			lfn_max_ord = 0;
+			lfnRange.clear();
+			goto nextfile;
+		}
 	}
 
 	if (lfn_max_ord != 0) {
@@ -3045,10 +3059,10 @@ nextfile:
 	}
 
 	/* Compare name to search pattern. Skip long filename match if no long filename given. */
-    if(attrs == DOS_ATTR_VOLUME) {
-        if (!(wild_match(find_name, srch_pattern)))
-            goto nextfile;
-    }
+	if(attrs == DOS_ATTR_VOLUME) {
+		if (!(wild_match(find_name, srch_pattern)))
+			goto nextfile;
+	}
 	else if (!(WildFileCmp(find_name,srch_pattern) || (lfn_max_ord != 0 && lfind_name[0] != 0 && LWildFileCmp(lfind_name,srch_pattern)))) {
 		lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
 		lfn_max_ord = 0;
@@ -3056,11 +3070,11 @@ nextfile:
 		goto nextfile;
 	}
 
-    if(sectbuf[entryoffset].attrib == DOS_ATTR_VOLUME)
-        trimString(find_name);
+	if(sectbuf[entryoffset].attrib == DOS_ATTR_VOLUME)
+		trimString(find_name);
 
-    // Drive emulation does not need to require a LFN in case there is no corresponding 8.3 names.
-    if (lfind_name[0] == 0) strcpy(lfind_name,find_name);
+	// Drive emulation does not need to require a LFN in case there is no corresponding 8.3 names.
+	if (lfind_name[0] == 0) strcpy(lfind_name,find_name);
 
 	copyDirEntry(&sectbuf[entryoffset], foundEntry);
 
@@ -3074,7 +3088,7 @@ nextfile:
 bool fatDrive::FindNext(DOS_DTA &dta) {
 	if (unformatted) return false;
 
-    direntry dummyClust = {};
+	direntry dummyClust = {};
 
 	return FindNextInternal(lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirIDCluster():(dnum[lfn_filefind_handle]?dnum[lfn_filefind_handle]:0), dta, &dummyClust);
 }

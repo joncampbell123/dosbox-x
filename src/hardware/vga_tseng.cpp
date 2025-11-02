@@ -100,8 +100,11 @@ void write_p3d5_et4k(Bitu reg,Bitu val,Bitu iolen) {
         // 3d4 index 33h (R/W): Extended start Address
         // 0-1 Display Start Address bits 16-17
         // 2-3 Cursor start address bits 16-17
+        // 4-7 zero, does not exist
         // Used by standard Tseng ID scheme
-        et4k.store_3d4_33 = val;
+        // The upper 4 bits must remain zero or else VGAKIT based programs will fail to detect ET3000/ET4000.
+        // See also [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/Tseng%20Labs/Tseng%20ET4000%20Graphics%20Controller%20%281990%29%2epdf] PDF page 131 "Extended Start Address".
+        et4k.store_3d4_33 = val & 0x0F;
         vga.config.display_start = (vga.config.display_start & 0xffff) | ((val & 0x03)<<16);
         vga.config.cursor_start = (vga.config.cursor_start & 0xffff) | ((val & 0x0c)<<14);
         break;

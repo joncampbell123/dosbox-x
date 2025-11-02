@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:French (France)
 :DOSBOX-X:CODEPAGE:859
-:DOSBOX-X:VERSION:2025.05.03
+:DOSBOX-X:VERSION:2025.10.07
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Les lignes de cette section seront exécutées au démarrage.
@@ -150,7 +150,7 @@ Volumes actuels de la table de mixage
 Configuration Sound Blaster
 .
 :CURRENT_MIDICONFIG
-Configuration MIDI actuelle
+Configuration MIDI/OPL actuelle
 .
 :CREATE_IMAGE
 Créer une image disque vierge
@@ -2990,7 +2990,7 @@ Afficher les volumes du mélangeur de sons
 Afficher la configuration Sound Blaster
 .
 :MENU:midi_info
-Afficher la configuration du périphérique MIDI
+Afficher la configuration du périphérique MIDI/OPL
 .
 :MENU:DOSMenu
 DOS
@@ -4432,8 +4432,8 @@ Lecteur inexistant ou est monté depuis une image disque.
 :MENU_JP_CPONLY
 Cette fonction n'est disponible que pour le code de page Japonais (932).
 .
-:MENU_CN_CPONLY
-Cette fonction n'est disponible que pour le code de page Chinois (936 ou 950).
+:MENU_CH_CPONLY
+Cette fonction n'est disponible que pour le code de page Chinois (936, 950 ou 951).
 .
 :MENU_GLIDE_ERROR
 La fonction Glide passthrough ne peut pas être activée. Vérifiez l'installation 
@@ -4496,4 +4496,49 @@ Vous avez spécifié un fichier de langue qui utilise un code de page incompatib
 .
 :LANG_CHANGE_CP
 Le fichier de langue spécifié utilise la page de code %d. Voulez-vous passer à cette page de code en conséquence ?.
+.
+:SCALER_LOAD_WARN
+Cette échelle peut ne pas fonctionner correctement ou avoir des effets indésirables :
+
+%s
+
+Voulez-vous forcer le chargement de l'échelle ?
+.
+:PIXEL_SHADER_WARN
+Ce pixel shader peut être inutile ou avoir un effet indésirable.:
+
+%s
+
+Voulez-vous charger le pixel shader malgré tout ?
+
+(Vous pouvez ajouter « forcé » au paramètre Pixel shader pour forcer le chargement du Pixel shader sans ce message)
+.
+:PIXEL_SHADER_LOADED
+Pixel shader chargé - %s
+.
+:MAPPEREDITOR_NOT_AVAILABLE
+L'éditeur de mappage n'est pas disponible actuellement.
+.
+:OPL_REC_COMPLETED
+Enregistrement de la sortie OPL brute dans le fichier :
+
+%s
+.
+:OPL_CAPTURE_FAILED
+Impossible de capturer la sortie Raw OPL car le mode natif ESFM est utilisé par l'application actuelle, ce qui n'est pas pris en charge par 
+le format Raw OPL.
+.
+:TTF_DBCS_ONLY
+Cette fonction n'est disponible que pour les code de pages chinoises/japonaises/coréennes..
+.
+:SAVE_FAILED
+Échec de la sauvegarde de l'état actuel.
+.
+:SAVE_CORRUPTED
+L'état de la sauvegarde est corrompu ! Le programme peut ne pas fonctionner.
+.
+:SAVE_SCREENSHOT
+Enregistrement de la capture d'écran dans le fichier :
+
+%s
 .

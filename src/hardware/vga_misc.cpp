@@ -71,17 +71,27 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 	if (timeInFrame >= vga.draw.delay.vdend) {
 		retval |= 1; // vertical blanking
 	} else {
-		double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
-		if (timeInLine >= vga.draw.delay.hblkstart && 
-				timeInLine <= vga.draw.delay.hblkend) {
+		const double timeInLine = fmod(timeInFrame,vga.draw.delay.htotal);
+		if (timeInLine >= vga.draw.delay.hblkstart && timeInLine <= vga.draw.delay.hblkend)
 			retval |= 1; // horizontal blanking
-		}
 	}
 
-	if (timeInFrame >= vga.draw.delay.vrstart &&
-			timeInFrame <= vga.draw.delay.vrend) {
+	if (timeInFrame >= vga.draw.delay.vrstart && timeInFrame <= vga.draw.delay.vrend)
 		retval |= 8; // vertical retrace
-	}
+
+	/* Tseng ET3000/ET4000 cards have additional documented bits:
+	 * [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/Tseng%20Labs/Tseng%20ET4000%20Graphics%20Controller%20%281990%29%2epdf]
+	 *
+	 * bit   0  ~display enable (hblank | vblank)
+	 * bit   1-2 zero
+	 * bit   3   vretrace
+	 * bit   4-5 diagnostic feedback from attribute controller(?)
+	 * bi6   6   zero
+	 * bit   7  ~vretrace (invert of bit 3)
+	 *
+	 * VGAKIT must read bit 7 as a complement of bit 3 to test for ET3000/ET4000 */
+	if (IS_VGA_ARCH && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K))
+		retval ^= ((retval & 8u) ^ 8u) << 4u;
 
 	vsync_poll_debug_notify();
 	return retval;
