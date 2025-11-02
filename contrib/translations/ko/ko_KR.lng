@@ -2424,6 +2424,9 @@ DOSBox-X 명령 쉘을 시작합니다.
 :MENU:mapper_shutdown
 DOSBox-X를 종료
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 마우스를 갈무리
 .

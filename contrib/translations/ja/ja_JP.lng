@@ -2414,6 +2414,9 @@ DOSBox-X コマンド・シェルの起動
 :MENU:mapper_shutdown
 DOSBox-Xを終了する
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 マウスをキャプチャ
 .

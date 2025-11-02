@@ -149,6 +149,9 @@ static const char *def_menu_main[] =
     "MainHostKey",
     "SharedClipboard",
     "--",
+#if defined(C_SDL2)
+    "mapper_capkeyboard",
+#endif
     "mapper_capmouse",
     "auto_lock_mouse",
     "WheelToArrow",

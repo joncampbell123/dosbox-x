@@ -2406,6 +2406,9 @@ Quick launch program...
 :MENU:mapper_shutdown
 Quit from DOSBox-X
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 Capture mouse
 .

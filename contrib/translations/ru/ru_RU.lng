@@ -2558,6 +2558,9 @@ DEBUGBOX [команда] [опции]
 :MENU:mapper_shutdown
 Выйти из DOSBox-X
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 Захват мыши
 .

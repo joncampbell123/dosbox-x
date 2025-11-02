@@ -2446,6 +2446,9 @@ Início rápido de programa...
 :MENU:mapper_shutdown
 Sair do DOSBox-X
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 Capturar mouse
 .

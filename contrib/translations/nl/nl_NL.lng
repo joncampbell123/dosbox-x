@@ -2411,6 +2411,9 @@ Snelstartprogramma...
 :MENU:mapper_shutdown
 Afsluiten van DOSBox-X
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 Muis vastleggen
 .

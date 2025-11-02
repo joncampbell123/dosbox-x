@@ -174,6 +174,9 @@ struct SDL_Block {
         int ysensitivity = 0;
         MOUSE_EMULATION emulation = (MOUSE_EMULATION)0;
     } mouse;
+#if defined(C_SDL2)
+    bool capture_keyboard = false;
+#endif
     SDL_Rect updateRects[1024] = {};
     Bitu overscan_color = 0;
     Bitu overscan_width = 0;
@@ -238,6 +241,10 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 
 #if defined(C_SDL2) && defined(C_OPENGL)/*HACK*/
 void SDL_GL_SwapBuffers(void);
+#endif
+
+#if defined(C_SDL2)
+void GFX_KeyboardCapture(bool enabled);
 #endif
 
 #if defined(WIN32) && !defined(HX_DOS)
