@@ -2414,6 +2414,9 @@ Gyors program indítás...
 :MENU:mapper_shutdown
 Kilépés a DOSBox-X-ből
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 Az egér DOSBOX-X-hez rendelése (ALT+Tab a feloldáshoz)
 .

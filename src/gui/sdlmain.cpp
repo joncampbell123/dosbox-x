@@ -2686,6 +2686,14 @@ static void CaptureMouse(bool pressed) {
     GFX_CaptureMouse();
 }
 
+#if defined(C_SDL2)
+static void CaptureKeyboard(bool pressed) {
+    if (pressed) {
+        GFX_KeyboardCapture(!sdl.capture_keyboard);
+    }
+}
+#endif
+
 #if defined (WIN32)
 STICKYKEYS stick_keys = {sizeof(STICKYKEYS), 0};
 void sticky_keys(bool restore){
@@ -3770,6 +3778,11 @@ static void GUI_StartUp() {
     sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
 
 #if defined(C_SDL2)
+    // Because we have the option of a dedicated keyboard shortcut to exit
+    // fullscreen, we don't need an Alt+Tab escape hatch. This lets us
+    // block it along with everything else, so you can use it in Windows etc.
+    SDL_SetHint(SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED, "0");
+
     // Apply raw mouse input setting
     SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, section->Get_bool("raw_mouse_input") ? "0" : "1", SDL_HINT_OVERRIDE);
 #endif
@@ -3814,6 +3827,11 @@ static void GUI_StartUp() {
         MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Capture mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
         item->set_text("Capture mouse");
     }
+
+#if defined(C_SDL2)
+    MAPPER_AddHandler(CaptureKeyboard,MK_f11,MMOD1,"capkeyboard","Capture keyboard", &item);
+    item->set_text("Capture keyboard");
+#endif
 
 #if defined(C_SDL2) || defined(WIN32) || defined(MACOSX)
     MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
@@ -4144,6 +4162,10 @@ static void GUI_StartUp() {
     SDL_WM_SetCaption("DOSBox-X",VERSION);
 #endif
 
+#if defined(C_SDL2)
+    GFX_KeyboardCapture(section->Get_bool("keyboard_capture"));
+#endif
+
     /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
@@ -4179,6 +4201,28 @@ bool Mouse_IsLocked()
 {
     return sdl.mouse.locked;
 }
+
+#if defined(C_SDL2)
+void GFX_KeyboardCapture(bool enable) {
+    if (sdl.window) {
+        SDL_SetWindowKeyboardGrab(sdl.window, enable ? SDL_TRUE : SDL_FALSE);
+
+        // Make sure we're using the true value of the current grabbed state.
+        bool grabbed = SDL_GetWindowKeyboardGrab(sdl.window) == SDL_TRUE;
+        sdl.capture_keyboard = grabbed;
+
+        if (grabbed)
+            LOG_MSG("Capturing keyboard");
+        else
+            LOG_MSG("Releasing keyboard");
+    }
+
+    // Make sure our menu item is refreshed, to ensure the checkmark value next
+    // to the item is up-to-date.
+    if (mainMenu.item_exists("mapper_capkeyboard"))
+            mainMenu.get_item("mapper_capkeyboard").check(sdl.capture_keyboard).refresh_item(mainMenu);
+}
+#endif
 
 static void RedrawScreen(uint32_t nWidth, uint32_t nHeight) {
     (void)nWidth;//UNUSED
@@ -6692,6 +6736,18 @@ void SDL_SetupConfigSection() {
         "7: Ctrl+W/Z, as supported by text editors like WordStar and MS-DOS EDIT.\n"
         "Putting a minus sign in front will disable the conversion for guest systems.");
     Pint->SetBasic(true);
+
+#if defined(C_SDL2)
+    Pbool = sdl_sec->Add_bool("keyboard_capture", Property::Changeable::Always, false);
+    Pbool->Set_help("Capture the keyboard, inhibiting window manager shortcuts.\n"
+        "Be warned, enabling this runs the risk of getting trapped inside "
+        "DOSBox-X, however it can be useful for passing combinations like Alt+F4 "
+        "through to DOS applications that use them, like WordPerfect.\n"
+        "Note that if another application attempts to grab the keyboard, DOSBox-X "
+        "will lose its grab over the keyboard. Additionally, not all shortcuts "
+        "can be inhibited on all platforms, for example Ctrl+Alt+Del on Windows.");
+    Pbool->SetBasic(true);
+#endif
 
     Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
     Pbool->Set_help("Wait before closing the console if DOSBox-X has an error.");
