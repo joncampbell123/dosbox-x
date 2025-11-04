@@ -2619,6 +2619,9 @@ Schnellstartprogramm...
 :MENU:mapper_shutdown
 Beende DOSBox-X
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 Maus einfangen
 .

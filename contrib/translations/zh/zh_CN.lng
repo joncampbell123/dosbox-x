@@ -2395,6 +2395,9 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 :MENU:mapper_shutdown
 退出 DOSBox-X
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 捕获鼠标
 .

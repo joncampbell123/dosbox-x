@@ -2433,6 +2433,9 @@ Hızlı program başlat...
 :MENU:mapper_shutdown
 DOSBox-X'ten çık
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 Fareyi yakala
 .

@@ -2385,6 +2385,9 @@ DEBUGBOX [命令] [選項]
 :MENU:mapper_shutdown
 結束 DOSBox-X
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 擷取滑鼠
 .
