@@ -19,6 +19,11 @@
 #define FOPEN_FUNC(filename, mode) fopen(filename, mode)
 #define FTELLO_FUNC(stream) ftello(stream)
 #define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
+#elif defined(__linux__) && !defined(__GLIBC__)
+// Also the case with musl on Linux
+#define FOPEN_FUNC(filename, mode) fopen(filename, mode)
+#define FTELLO_FUNC(stream) ftello(stream)
+#define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
 #else
 #define FOPEN_FUNC(filename, mode) fopen64(filename, mode)
 #define FTELLO_FUNC(stream) ftello64(stream)

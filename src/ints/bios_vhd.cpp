@@ -20,6 +20,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
+#if defined(__linux__)
+#include <linux/limits.h>
+#endif
 #include "dosbox.h"
 #include "callback.h"
 #include "bios.h"
@@ -30,6 +33,13 @@
 #include "../dos/drives.h"
 #include "mapper.h"
 #include "SDL.h"
+
+#if defined(__linux__) && !defined(__GLIBC__)
+// msul libc does not need 64 suffix to work with files > 2 GiB 
+#define fopen64 fopen
+#define fseeko64 fseeko
+#define ftello64 ftello
+#endif
 
 /*
 * imageDiskVHD supports fixed, dynamic, and differential VHD file formats
