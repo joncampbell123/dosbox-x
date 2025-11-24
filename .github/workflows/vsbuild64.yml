@@ -21,7 +21,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: microsoft/setup-msbuild@v2
       - name: Prepare Visual Studio Win64
         shell: bash
@@ -131,7 +131,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: microsoft/setup-msbuild@v2
       - name: Prepare Visual Studio ARM64
         shell: bash
@@ -231,7 +231,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: microsoft/setup-msbuild@v2
       - name: Prepare Visual Studio 2022 build
         shell: bash
