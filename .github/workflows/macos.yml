@@ -18,7 +18,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install libraries
         run: |
           brew install autoconf automake nasm glfw glew coreutils sevenzip libslirp fluid-synth pkg-config sdl2_net
@@ -89,7 +89,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install libraries
         run: |
           brew install autoconf automake nasm glfw glew coreutils sevenzip libslirp fluid-synth pkg-config sdl2_net

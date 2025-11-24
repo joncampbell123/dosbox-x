@@ -21,7 +21,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: microsoft/setup-msbuild@v2
       - name: Install v141 build tools
         run: |
@@ -146,7 +146,7 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
@@ -220,7 +220,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Restore Visual Studio builds (nightly)
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/restore@v4
