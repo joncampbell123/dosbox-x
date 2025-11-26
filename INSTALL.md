@@ -163,7 +163,7 @@ You should be able to solve the problem by running the following command once in
 2. Run ``xattr -cr .``
 
 ### macOS Packages (Homebrew)
-Homebrew provides packages for macOS Ventura and after.
+Homebrew provides [packages](https://formulae.brew.sh/formula/dosbox-x) for macOS Ventura and after.
 You can install the package by the following steps.
 1. Install [Homebrew](https://brew.sh)
 2. In macOS Terminal (Applications -> Utilities -> Terminal) run `brew install dosbox-x`
@@ -172,7 +172,7 @@ You can install the package by the following steps.
 Please note that these packages are NOT built or updated by the DOSBox-X team.
 
 ### macOS Packages (MacPorts)
-[MacPorts](https://www.macports.org/) provides packages for High Sierra (10.13) and after. 
+[MacPorts](https://www.macports.org/) provides [packages](https://ports.macports.org/port/dosbox-x/details/) for High Sierra (10.13) and after. 
 You can install the package by the following steps.
 1. [Install MacPorts](https://www.macports.org/install.php)
 2. In macOS terminal (Applications -> Utilities -> Terminal) run `sudo port install dosbox-x`
@@ -205,3 +205,4 @@ You could use either the released source code package or the latest source code 
 ## Development nightly builds
 
 The development (preview) builds intended for testing purposes for the supported platforms can be found [here](https://dosbox-x.com/devel-build.html).
+
