@@ -2348,7 +2348,11 @@ bool localDrive::AllocationInfo64(uint32_t* _bytes_sector, uint32_t* _sectors_cl
         res = GetDiskFreeSpace(diskToQuery, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
         if(dwSectPerClust * dwBytesPerSect == 0) return false;
         ULARGE_INTEGER FreeBytesAvailableToCaller, TotalNumberOfBytes;
-        GetDiskFreeSpaceEx(diskToQuery, &FreeBytesAvailableToCaller, &TotalNumberOfBytes, NULL);
+        HMODULE __kernel32 = GetModuleHandleW(L"kernel32.dll");
+        auto __GetDiskFreeSpaceExA = (BOOL (WINAPI *)(LPCSTR, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER))GetProcAddress(__kernel32,"GetDiskFreeSpaceExA");
+        if (!__GetDiskFreeSpaceExA)
+            return false;
+        __GetDiskFreeSpaceExA(diskToQuery, &FreeBytesAvailableToCaller, &TotalNumberOfBytes, NULL);
         qwTotalClusters = TotalNumberOfBytes.QuadPart / (dwSectPerClust * dwBytesPerSect);
         qwFreeClusters = FreeBytesAvailableToCaller.QuadPart / (dwSectPerClust * dwBytesPerSect);
 
