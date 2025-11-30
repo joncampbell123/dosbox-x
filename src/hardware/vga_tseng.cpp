@@ -443,9 +443,9 @@ void DetermineMode_ET4K() {
                 VGA_SetMode(M_LIN8);
             }
         }
-        else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
-        else if ((vga.gfx.miscellaneous & 0x0c)==0x0c) VGA_SetMode(M_CGA2);
-        else VGA_SetMode((et4k.biosMode<=0x13)?M_EGA:M_LIN4);
+        else {
+            VGA_SetMode((et4k.biosMode<=0x13)?M_EGA:M_LIN4);
+        }
     } else {
         VGA_SetMode(M_TEXT);
     }
