@@ -2,7 +2,7 @@ NEXT VERSION
   - Fix Tseng ET3000/ET4000 emulation bug where CGA graphics modes
     were garbled. The main VGA emulation no longer uses M_CGA2/M_CGA4
     and the ET4000 emulation needs to behave the same to fix the
-    graphics modes. (joncampbell123).
+    graphics modes. Apply fix to ET3000 emulation as well. (joncampbell123).
   - Some extra code in shell processing was preventing drive change commands
     if the last character was a backslash i.e. "a:\" instead of "a:".
     Fixed. (joncampbell123).
