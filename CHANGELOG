@@ -1,4 +1,7 @@
 NEXT VERSION
+  - Tseng ET4000 emulation: Fix modes 0x22/0x23/0x24 to match how the
+    actual VGA BIOS programs them. This fixes problems where the 132x25
+    mode was rendered only on the upper half of the screen (joncampbell123).
   - Fix Tseng ET3000/ET4000 emulation bug where CGA graphics modes
     were garbled. The main VGA emulation no longer uses M_CGA2/M_CGA4
     and the ET4000 emulation needs to behave the same to fix the
