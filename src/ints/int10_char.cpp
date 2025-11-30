@@ -1805,7 +1805,7 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
 			break;
 		case '\n':
 //			cur_col=0; // Seems to break an old chess game
-//			           // That's absolutely right, \r CR and \n LF, this is why DOS requires \r\n for newline --J.C>
+//			           // That's absolutely right, \r CR and \n LF, this is why DOS requires \r\n for newline --J.C.
 			cur_row++;
 			break;
 		case 7: /* Beep */
