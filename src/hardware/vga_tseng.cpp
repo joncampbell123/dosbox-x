@@ -958,8 +958,6 @@ void DetermineMode_ET3K() {
     // merge them.
     if (vga.attr.mode_control & 1) {
         if (vga.gfx.mode & 0x40) VGA_SetMode((et3k.biosMode<=0x13)?M_VGA:M_LIN8); // Ugly...
-        else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
-        else if ((vga.gfx.miscellaneous & 0x0c)==0x0c) VGA_SetMode(M_CGA2);
         else VGA_SetMode((et3k.biosMode<=0x13)?M_EGA:M_LIN4);
     } else {
         VGA_SetMode(M_TEXT);
