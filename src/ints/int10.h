@@ -99,6 +99,7 @@ extern uint32_t S3_LFB_BASE;
 #define BIOS_CHEIGHT uint8_t cheight=IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT):8;
 
 extern uint8_t int10_font_08[256 * 8];
+extern uint8_t int10_font_13[256 * 13];
 extern uint8_t int10_font_14[256 * 14];
 extern uint8_t int10_font_16[256 * 16];
 extern uint8_t int10_font_19[256 * 19];
@@ -130,6 +131,7 @@ typedef struct {
 	struct {
 		RealPt font_8_first;
 		RealPt font_8_second;
+		RealPt font_13;
 		RealPt font_14;
 		RealPt font_16;
 		RealPt font_14_alternate;
