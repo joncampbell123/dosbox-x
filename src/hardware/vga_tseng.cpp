@@ -284,13 +284,18 @@ Bitu read_p3cd_et4k(Bitu port,Bitu iolen) {
 void write_p3c0_et4k(Bitu reg,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     switch(reg) {
-    // 3c0 index 16h: ATC Miscellaneous
-    // VGADOC provides a lot of information, Ferarro documents only two bits
-    // and even those incompletely. The register is used as part of identification
-    // scheme.
-    // Unlikely to be used by any games but double timing may be useful.
-    // TODO: Figure out if this has any practical use
-    STORE_ET4K(3c0, 16);
+    /* 3c0 index 16h: ATC Miscellaneous
+       bit 7: bypass the internal palette
+       bit 6: 2-byte character code (ET4000 Rev E) [TODO: See addendum 6.1]
+       bit 4-5: Select high resolution/color mode
+                00b: Normal
+                01b: Reserved
+                10b: High resolution mode (up to 256 colors)
+                11b: High-color 16-bit/pixel
+       bit 0-3: Reserved */
+        case 0x16:
+            et4k.store_3c0_16 = val;
+            break;
     /*
     3C0h index 17h (R/W):  Miscellaneous 1
     bit   7  If set protects the internal palette ram and redefines the attribute
