@@ -1,4 +1,8 @@
 NEXT VERSION
+  - Video debug overlay: For Tandy and PCjr emulation, add information on
+    the screen that shows the line mask, display and cpu memory banks and
+    the corresponding segment values, which may aid in debugging issues
+    with games and reveal any remapping or page flipping (joncampbell123).
   - Tandy emulation: Add the string "Tandy" somewhere in the DOS kernel
     at startup if machine=tandy. The game "The Train: Escape to Normandy"
     scans from FFFF:0000 for the string "Tandy" which of course wraps

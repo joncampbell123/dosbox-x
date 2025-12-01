@@ -5062,6 +5062,28 @@ void VGA_sof_debug_video_info(void) {
 				/* would be redundant copy of HWPAL */
 			}
 
+			x = 4;
+			y += 8;
+
+			{
+				uint16_t drawseg,memseg;
+
+				drawseg = vga.tandy.draw_bank * 0x400u;
+				memseg = vga.tandy.mem_bank * 0x400u;
+				if (machine == MCH_TANDY) {
+					drawseg += 0x8000u;
+					memseg += 0x8000u;
+				}
+
+				sprintf(tmp,"LM=%X DB=%u(%04X) MB=%u(%04X)",
+					(unsigned int)vga.tandy.line_mask,
+					(unsigned int)vga.tandy.draw_bank,
+					(unsigned int)drawseg,
+					(unsigned int)vga.tandy.mem_bank,
+					(unsigned int)memseg);
+				x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+			}
+
 			x += 8;
 		}
 	}
