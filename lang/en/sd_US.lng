@@ -1,0 +1,42 @@
+:CHEAT_HELP_SD1
+  After entering Snap mode and continuing the game, use this command to 
+.
+:CHEAT_HELP_SD2
+continue searching if the value you want to search for is **smaller than** the
+.
+:CHEAT_HELP_SD3
+ value when entering "Snap mode" or **smaller than the value from the last 
+.
+:CHEAT_HELP_SD4
+search**. Usage is as follows:
+.
+:CHEAT_HELP_SD5
+    SD
+.
+:CHEAT_HELP_SD6
+This method is suitable for values like health bars, where the exact value is 
+.
+:CHEAT_HELP_SD7
+unknown, allowing only fuzzy searches. This approach may require many attempts
+.
+:CHEAT_HELP_SD8
+ to find your target. Alternatively, you can use:
+.
+:CHEAT_HELP_SD9
+    SD 10
+.
+:CHEAT_HELP_SD10
+This method is suitable when the exact numerical difference is known. For 
+.
+:CHEAT_HELP_SD11
+example, if your money starts at 1000, use SNAP, then enter the game and spend
+.
+:CHEAT_HELP_SD12
+ 10. You can then enter debug mode and use `SD 10` to search quickly. If the 
+.
+:CHEAT_HELP_SD13
+search results are still numerous, press `[F5]` to return to the game, wait 
+.
+:CHEAT_HELP_SD14
+for the value to change again, and then search once more.
+.

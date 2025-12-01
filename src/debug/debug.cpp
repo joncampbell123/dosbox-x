@@ -50,6 +50,12 @@ using namespace std;
 #include "../cpu/lazyflags.h"
 #include "keyboard.h"
 #include "control.h"
+/* Knifour Start */
+#ifdef C_CHEAT
+#include <direct.h>
+#include "cheat.h"
+#endif
+/* Knifour End */
 
 bool Clear_SYSENTER_Debug();
 bool Toggle_BreakSYSEnter();
@@ -156,6 +162,12 @@ static void DrawInput(void);
 static void DEBUG_RaiseTimerIrq(void);
 static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num);
 static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num);
+/* Knifour Start */
+#ifdef C_CHEAT
+static void SaveVMemoryBin(uint32_t ofs, uint32_t num);
+uint32_t GetCr0(void);
+#endif
+/* Knifour End */
 static void LogMCBS(void);
 static void LogGDT(void);
 static void LogLDT(void);
@@ -186,8 +198,6 @@ void DEBUG_EndPagedContent(void);
 Bitu MEM_PageMaskActive(void);
 Bitu MEM_TotalPages(void);
 Bitu MEM_PageMask(void);
-void DEBUG_WarnDynamic(void);
-int CPU_IsDynamicCore(void); // cpu.cpp 0=normal, 1=dynamic, 2=dynamic core with assembler
 
 static void LogEMUMachine(void) {
     DEBUG_BeginPagedContent();
@@ -282,21 +292,6 @@ public:
 };
 #endif
 
-typedef struct MEMFinder {
-	bool usePreviousValue = false;
-	uint8_t opType = 0;
-	uint8_t size = 1;
-	uint16_t iterations = 0;
-	uint16_t seg = 0;
-	uint32_t ofs = 0;
-	uint32_t range = 0;
-	uint32_t value = 0;
-	uint32_t matches = 0;
-	vector<uint8_t> tableValue;
-	vector<bool> tableTruth;
-}MEMFinder;
-
-MEMFinder* MEMFINDInstance = NULL;
 
 class DEBUG;
 
@@ -331,8 +326,6 @@ static bool debug_running = false;
 static bool check_rescroll = false;
 
 static FPU_rec oldfpu;
-static bool warn_dynamic = false;
-
 
 void VGA_DebugRedraw(void);
 
@@ -1272,8 +1265,20 @@ static void DrawInput(void) {
         char* dispPtr = codeViewData.inputStr;
         char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
 
-        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+/* Knifour Start */
+#ifdef C_CHEAT
+				if (cheating) {
+					wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_WHITE_BLUE));
+          wattrset(dbg.win_inp,COLOR_PAIR(PAIR_WHITE_BLUE));
+				} else {
+					wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+          wattrset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+				}
+#else
+				wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
         wattrset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+#endif				
+/* Knifour End */
         mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
                 (codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
         wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
@@ -1896,6 +1901,41 @@ void VGA_DumpFontRamBIN(const char *filename);
 void VGA_DumpFontRamBMP(const char *filename);
 int32_t DEBUG_Run(int32_t amount,bool quickexit);
 
+/* Knifour Start */
+CHEAT *game;
+std::string old_title;
+std::string sCheatDir = "";
+
+bool isDirExists(const std::string& path) {
+#ifdef WIN32
+  struct _stat info;
+	return (_stat(path.c_str(), &info) == 0) && (info.st_mode & _S_IFDIR);
+#else
+	struct stat info;
+	return (stat(path.c_str(), &info) == 0) && (info.st_mode & S_IFDIR);
+#endif
+}
+
+bool createDirectory(const std::string &path) {
+#ifdef WIN32
+	int ret = _mkdir(path.c_str());
+#else
+	int ret = mkdir(path.c_str(), 0755);
+#endif
+  return (ret == 0);
+}
+
+bool preWorks(void){
+	std::string sWorkDir = GetDOSBoxXPath();
+	char cSlash = sWorkDir.back();
+	sCheatDir = sWorkDir + "cheat" + cSlash;
+	if (!isDirExists(sCheatDir)) {
+		return createDirectory(sCheatDir);
+	}
+	return true;
+}
+/* Knifour End */
+
 bool ParseCommand(char* str) {
     std::string copy_str = str;
     for (auto &c : copy_str) c = toupper(c);
@@ -1911,6 +1951,255 @@ bool ParseCommand(char* str) {
 	if(next == string::npos) next = command.size();
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
+
+/* Knifour Start */
+#ifdef C_CHEAT
+  string para;
+	if (!cheating) {
+		if (command == "CHEAT") {
+			string sFound(found);
+			istringstream issStream(sFound);
+			string sCommand;
+			issStream >> sCommand;
+			if (sCommand.size() == 0){
+				CHEAT::showMsg("CHEAT_NAME_ERROR");
+				DrawInput();
+				return true;
+			}
+			if (!preWorks()){
+				CHEAT::showMsg("CHEAT_CREATEDIR_ERROR");
+				DrawInput();
+				return true;
+			}
+			cheating = true;
+			dbg.win_vis[DBGBlock::WINI_CODE] = false;
+			dbg.win_vis[DBGBlock::WINI_VAR] = true;
+			if (dbg.active_win == DBGBlock::WINI_CODE)
+				dbg.active_win = DBGBlock::WINI_VAR;
+			old_title = dbg.win_title[DBGBlock::WINI_VAR];
+			dbg.win_title[DBGBlock::WINI_VAR] += " : " + sCommand;
+			DEBUG_GUI_Rebuild();
+			game = new CHEAT(dbg.win_var, sCommand);
+			game->showStatus();
+			//DrawInput();
+			return true;
+		}
+	} else {
+		// command parsing begins
+		string sFound(found);
+		istringstream issStream(sFound);
+		string sCommand, sPara1, sPara2;
+		issStream >> sCommand;
+		issStream >> sPara1;
+		if (!sPara1.empty())
+		  issStream >> sPara2;
+		else
+			sPara2 = "";
+		
+		if (command == "EXIT") {
+			cheating = false;
+			dbg.win_vis[DBGBlock::WINI_CODE] = true;
+			dbg.win_vis[DBGBlock::WINI_VAR] = false;
+			if (dbg.active_win == DBGBlock::WINI_VAR)
+				dbg.active_win = DBGBlock::WINI_CODE;
+			dbg.win_title[DBGBlock::WINI_VAR] = old_title;
+			DEBUG_GUI_Rebuild();
+			delete game;
+			game = nullptr;
+			return true;
+		}
+		
+		if (command == "HELP") {
+			if (sCommand.size() == 0)
+			  CHEAT::prtHelp();
+			else {
+				bool flag = false;
+				for (int i=0; i<CHEAT::HELPS; i++) {
+					if (sCommand == CHEAT::CMDS[i]) {
+						CHEAT::showDetailMsg(CHEAT::HELP[i]);
+						flag = true;
+						break;
+					}
+				}
+				if (!flag)
+					CHEAT::showMsg("CHEAT_HELP_NOT_FOUND");
+			}
+			return true;
+		}
+		
+		if (command == "SM") {
+			game->setMode(sCommand);
+			return true;
+		}
+		
+		if (command == "SEG") {
+			game->setSeg(sCommand);
+			return true;
+		}
+		
+		if (command == "OFF") {
+			game->setOff(sCommand);
+			return true;
+		}
+		
+		if (command == "SL") {
+			game->setLength(sCommand);
+			return true;
+		}
+		
+		if (command == "D") {
+			para = game->setDview(sCommand);
+			if (para == "")
+				return false;
+			found = const_cast<char*>(para.c_str());
+		}
+		
+		if (command == "DV") {
+			para = game->setDVview(sCommand);
+			if (para == "")
+				return false;
+			found = const_cast<char*>(para.c_str());
+		}
+		
+		if (command == "S") {
+			if (!game->mSearching)
+				game->makeSearch(sCommand);
+			else
+				game->makeOldSearch(sCommand);
+		  return true;
+		}
+		
+		if (command == "L") {
+			game->listMemory(sCommand, sPara1);
+			return true;
+		}
+		
+		if (command == "TL") {
+			game->listTemp();
+			return true;
+		}
+		
+		if (command == "TD") {
+			game->deleteTemp(sCommand);
+			return true;
+		}
+		
+		if (command == "TW") {
+			game->writeTemp(sCommand, sPara1);
+			return true;
+		}
+		
+		if (command == "TS") {
+			game->saveTemp(sCommand);
+			return true;
+		}
+		
+		if (command == "TR") {
+			game->loadTemp(sCommand);
+			return true;
+		}
+		
+		if (command == "A") {
+			game->addRecord(string(str+2));
+			return true;
+		}
+		
+		if (command == "R") {
+			game->prtRecord(sCommand);
+			return true;
+		}
+		
+		if (command == "WR") {
+			game->writeRecord(sCommand, sPara1);
+			return true;
+		}
+		
+		if (command == "CLS") {
+			game->resetSearch();
+			return true;
+		}
+		
+		if (command == "MM") {
+			game->setMemMode(sCommand);
+			return true;
+		}
+		
+		if (command == "MSEG") {
+			game->setMemSeg(sCommand);
+			return true;
+		}
+		
+		if (command == "MOFF") {
+			game->setMemOff(sCommand);
+			return true;
+		}
+		
+		if (command == "MD") {
+			para = game->setMemDview();
+			if (para.substr(0, 2) == "DV"){
+				command = "DV";
+				found = &para[3];
+			} else {
+				command = "D";
+				found = &para[3];
+			}
+		}
+		
+		if (command == "MR") {
+			game->prtMmodeValue();
+			return true;
+		}
+		
+		if (command == "MW") {
+			game->setMmodeValue(sCommand);
+			return true;
+		}
+		
+		if (command == "MA") {
+			game->addMemRecord(sCommand);
+			return true;
+		}
+		
+		if (command == "SNAP") {
+			game->snapStart();
+			return true;
+		}
+		
+		if (command == "SD") {
+			game->snapSearch(true, sCommand);
+			return true;
+		}
+		
+		if (command == "SU") {
+			game->snapSearch(false, sCommand);
+			return true;
+		}
+		
+		if (command == "SS") {
+			game->snapSearchValue(sCommand);
+			return true;
+		}
+		
+		if (command == "SAVE") {
+			game->saveRecord();
+			return true;
+		}
+		
+		if (command == "CVT") {
+			game->dspValue(sCommand);
+			return true;
+		}
+		
+		// command parsing ends
+		
+		// Check if it is a supported legacy command
+		if (!game->isOlds(command)) {
+			CHEAT::showMsg("CHEAT_CMD_NOT_FOUND");
+			return false;
+		}
+	}
+#endif
+/* Knifour End */
 
     if (command == "QUIT") {
         void DoKillSwitch(void);
@@ -1989,287 +2278,19 @@ bool ParseCommand(char* str) {
 		SaveMemoryBin(seg,ofs,num);
 		return true;
 	}
-
-    if (command == "MEMFIND") { // Start a memory search instance with seg:ofs range
-		uint32_t valfind;
-		uint8_t valfind8;
-		uint16_t valfind16;
-		uint32_t valfind32;
-		uint32_t listedvalues = 0;
-		if (found[0] == '!'){
-			if (MEMFINDInstance != NULL){
-				DEBUG_ShowMsg("DEBUG: Memory search instance cancelled.");
-				MEMFINDInstance->tableTruth.clear();
-				MEMFINDInstance->tableValue.clear();
-				MEMFINDInstance->tableTruth.shrink_to_fit();
-				MEMFINDInstance->tableValue.shrink_to_fit();
-				delete MEMFINDInstance;
-				MEMFINDInstance = NULL;
-			} else {
-				DEBUG_ShowMsg("DEBUG: No active search instances to cancel.");
-			}
-			return true;
-		} else if (found[0] == 'L'){
-			if (MEMFINDInstance != NULL){
-				DEBUG_BeginPagedContent();
-				uint32_t j = 0;
-				for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i+=MEMFINDInstance->size){
-							switch (MEMFINDInstance->size){
-								case 1:
-									mem_readb_checked((PhysPt)(i),&valfind8);
-									valfind = valfind8;
-									break;
-								case 2:
-									mem_readw_checked((PhysPt)(i),&valfind16);
-									valfind = valfind16;
-									break;
-								case 4:
-									mem_readd_checked((PhysPt)(i),&valfind32);
-									valfind = valfind32;
-									break;
-								default:
-									mem_readb_checked((PhysPt)(i),&valfind8);
-									valfind = valfind8;
-									break;
-							}
-							if (MEMFINDInstance->tableTruth[j] == true){
-								listedvalues++;
-								DEBUG_ShowMsg("DEBUG: [MEMFIND] Address: %04X:%06X Current Value: %08X\n",MEMFINDInstance->seg,(i - (MEMFINDInstance->seg * 16)),valfind);
-							}
-							j+=MEMFINDInstance->size;
-						}
-				DEBUG_ShowMsg("DEBUG: [MEMFIND] Matched values during current instance: %06X\n",listedvalues);
-				DEBUG_EndPagedContent();
-			} else {
-				DEBUG_ShowMsg("DEBUG: No active search instances to list from.");
-			}
-			return true;
-		}
-		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
-		uint32_t ofs = GetHexValue(found,found); found++;
-		uint32_t num = GetHexValue(found,found); found++;
-		if ((MEMFINDInstance == NULL) && (num > 0)){
-			if (((seg*16)+ofs+num) > 16777215){
-				DEBUG_ShowMsg("DEBUG: Address range larger than valid size, cancelling.");
-				return true;
-			}
-			DEBUG_ShowMsg("DEBUG: Created memory search instance.");
-			MEMFINDInstance = new MEMFinder;
-		} else if ((MEMFINDInstance == NULL) && (num == 0)){
-			DEBUG_ShowMsg("DEBUG: --MEMFIND-- Start memory search instance.");
-			DEBUG_ShowMsg("DEBUG: Use MEMS to proceed through search instance.");
-			DEBUG_ShowMsg("DEBUG: Usage: MEMFIND (!/L) [seg]:[offset] [range] (B/W/D)");
-			DEBUG_ShowMsg("DEBUG: L - List entries matched in the search instance.");
-			DEBUG_ShowMsg("DEBUG: ! - Cancel memory search instance.");
-			return true;
-		} else if (MEMFINDInstance != NULL){
-			DEBUG_ShowMsg("DEBUG: Memory search instance is already active.");
-			return true;
-		}
-		switch (*found){
-			case 'B':
-				DEBUG_ShowMsg("DEBUG: 1 byte specified.");
-				MEMFINDInstance->size = 1;
-				break;
-			case 'W':
-				DEBUG_ShowMsg("DEBUG: 2 bytes specified.");
-				MEMFINDInstance->size = 2;
-				break;
-			case 'D':
-				DEBUG_ShowMsg("DEBUG: 4 bytes specified.");
-				MEMFINDInstance->size = 4;
-				break;
-			default:
-				DEBUG_ShowMsg("DEBUG: No size specified, using 1 byte.");
-				MEMFINDInstance->size = 1;
-				break;
-		}
-		DEBUG_ShowMsg("DEBUG: RAM search from %04X:%04X with range: %06X\n",seg,ofs,num);
-		MEMFINDInstance->range = num;
-		MEMFINDInstance->ofs = ofs;
-		MEMFINDInstance->seg = seg;
-		MEMFINDInstance->tableTruth.resize(num,true);
-		for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i++){
-			mem_readb_checked((PhysPt)(i),&valfind8);
-			MEMFINDInstance->tableValue.push_back(valfind8);
-		}
-		return true;
-	}
-
-	if (command == "MEMS") { // Search through MEMFIND for matching values in memory search instance
-		bool parsed;
-		uint32_t valfind;
-		uint8_t valfind8;
-		uint16_t valfind16;
-		uint32_t valfind32;
-		uint32_t value;
-		uint32_t matches = 0;
-		char opTypeStr[26];
-		if (MEMFINDInstance == NULL){
-			DEBUG_ShowMsg("DEBUG: MEMFIND Memory search is not active.\n");
-			return true;
-		}
-		switch (found[0]){
-			case '>':
-				if (found[1] == '='){
-					found+=2;
-					MEMFINDInstance->opType = 4;
-					sprintf(opTypeStr, "GREATER THAN OR EQUAL TO");
-				} else {
-					found+=1;
-					MEMFINDInstance->opType = 1;
-					sprintf(opTypeStr, "GREATER THAN");
-				}
-				break;
-			case '<':
-				if (found[1] == '='){
-					found+=2;
-					MEMFINDInstance->opType = 5;
-					sprintf(opTypeStr, "LESS THAN OR EQUAL TO");
-				} else {
-					found+=1;
-					MEMFINDInstance->opType = 2;
-					sprintf(opTypeStr, "LESS THAN");
-				}
-				break;
-			case '!':
-				found+=1;
-				MEMFINDInstance->opType = 3;
-				sprintf(opTypeStr, "NOT EQUAL TO");
-				break;
-			case '=':
-				found+=1;
-				MEMFINDInstance->opType = 0;
-				sprintf(opTypeStr, "EQUAL TO");
-			default:
-				MEMFINDInstance->opType = 0;
-				sprintf(opTypeStr, "EQUAL TO");
-				break;
-		}
-		SkipSpace(found);
-		if (*found == ' '){
-			DEBUG_ShowMsg("DEBUG: MEMS - Memory Search from MEMFIND instance.\n");
-			DEBUG_ShowMsg("DEBUG: Usage: MEMS (OPERATOR) VALUE.\n");
-			DEBUG_ShowMsg("DEBUG: Valid operators: >, >=, <, <=, !, =.\n");
-			return true;
-		} else if (*found == '\0'){
-			DEBUG_ShowMsg("DEBUG: No value was entered. Comparing with previous values.\n");
-			MEMFINDInstance->usePreviousValue = true;
-			value = 0;
-		} else {
-			value = GetHexValue(found,found,&parsed);
-			if (((value > 255) && (MEMFINDInstance->size == 1)) || ((value > 65535) && (MEMFINDInstance->size == 2))){
-				DEBUG_ShowMsg("DEBUG: Memory search failed. Value is larger than specified size range.\n");
-				return true;
-			}
-			MEMFINDInstance->value = value;
-			MEMFINDInstance->usePreviousValue = false;
-		}
-		uint32_t y = 0;	//This index is seperated from the for loop, as the for loop can start from any index while this particular index starts at 0
-		for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i+=MEMFINDInstance->size){
-			switch (MEMFINDInstance->size){
-				case 1:
-					mem_readb_checked((PhysPt)(i),&valfind8);
-					valfind = valfind8;
-					if (MEMFINDInstance->usePreviousValue == true){
-						memcpy(&value, &MEMFINDInstance->tableValue[y], 1);
-					}
-					break;
-				case 2:
-					mem_readw_checked((PhysPt)(i),&valfind16);
-					valfind = valfind16;
-					if (MEMFINDInstance->usePreviousValue == true){
-						memcpy(&value, &MEMFINDInstance->tableValue[y], 2);
-					}
-					break;
-				case 4:
-					mem_readd_checked((PhysPt)(i),&valfind32);
-					valfind = valfind32;
-					if (MEMFINDInstance->usePreviousValue == true){
-						memcpy(&value, &MEMFINDInstance->tableValue[y], 4);
-					}
-					break;
-				default:
-					mem_readb_checked((PhysPt)(i),&valfind8);
-					valfind = valfind8;
-					if (MEMFINDInstance->usePreviousValue == true){
-						memcpy(&value, &MEMFINDInstance->tableValue[y], 1);
-					}
-					break;
-			}
-			switch (MEMFINDInstance->opType){
-				case 1:
-					if ((valfind > value) && (MEMFINDInstance->tableTruth[y] == true)){
-						matches++;
-					} else {
-						MEMFINDInstance->tableTruth[y] = false;
-					}
-					break;
-				case 2:
-					if ((valfind < value) && (MEMFINDInstance->tableTruth[y] == true)){
-						matches++;
-					} else {
-						MEMFINDInstance->tableTruth[y] = false;
-					}
-					break;
-				case 3:
-					if ((valfind != value) && (MEMFINDInstance->tableTruth[y] == true)){
-						matches++;
-					} else {
-						MEMFINDInstance->tableTruth[y] = false;
-					}
-					break;
-				case 4:
-					if ((valfind >= value) && (MEMFINDInstance->tableTruth[y] == true)){
-						matches++;
-					} else {
-						MEMFINDInstance->tableTruth[y] = false;
-					}
-					break;
-				case 5:
-					if ((valfind <= value) && (MEMFINDInstance->tableTruth[y] == true)){
-						matches++;
-					} else {
-						MEMFINDInstance->tableTruth[y] = false;
-					}
-					break;
-				default:
-					if ((valfind == value) && (MEMFINDInstance->tableTruth[y] == true)){
-						matches++;
-					} else {
-						MEMFINDInstance->tableTruth[y] = false;
-					}
-					break;
-			}
-			y+=MEMFINDInstance->size;
-		}
-		MEMFINDInstance->matches = matches;
-		MEMFINDInstance->iterations++;
-		if (MEMFINDInstance->matches == 0){
-			if (MEMFINDInstance->usePreviousValue == true){
-				DEBUG_ShowMsg("DEBUG: No more matches found when comparing %s previous value. Memory search instance finished.\n",opTypeStr);
-			} else {
-				DEBUG_ShowMsg("DEBUG: No more matches found with value %s (%06X). Memory search instance finished.\n",opTypeStr,value);
-			}
-			MEMFINDInstance->tableTruth.clear();
-			MEMFINDInstance->tableValue.clear();
-			MEMFINDInstance->tableTruth.shrink_to_fit();
-			MEMFINDInstance->tableValue.shrink_to_fit();
-			delete MEMFINDInstance;
-			MEMFINDInstance = NULL;
-		} else {
-				if (MEMFINDInstance->usePreviousValue == true){
-					DEBUG_ShowMsg("DEBUG: (%06X) addresses matching %s their previous values. Iterations: %06X\n",MEMFINDInstance->matches,opTypeStr,MEMFINDInstance->iterations);
-				} else {
-					DEBUG_ShowMsg("DEBUG: (%06X) matches found with value %s (%06X). Iterations: %06X\n",MEMFINDInstance->matches,opTypeStr,value,MEMFINDInstance->iterations);
-				}
-		}
-		return true;
-	}
-
+/* Knifour Start */
+#ifdef C_CHEAT
+  if(command == "VMEMDUMPBIN") { // Dump memory to file binary
+    uint32_t ofs = GetHexValue(found, found); found++;
+    uint32_t num = GetHexValue(found, found); found++;
+    SaveVMemoryBin(ofs, num);
+    return true;
+  }
+#endif
+/* Knifour End */
 	if (command == "IV") { // Insert variable
 		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
-		uint32_t ofs = GetHexValue(found,found); found++;
+		uint32_t ofs = (uint16_t)GetHexValue(found,found); found++;
 		char name[16];
 		for (int i=0; i<16; i++) {
 			if (found[i] && (found[i]!=' ')) name[i] = found[i];
@@ -3989,8 +4010,6 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("EMU MEM/MACHINE           - Show emulator memory or machine info.\n");
 		DEBUG_ShowMsg("MEMDUMP [seg]:[off] [len] - Write memory to file memdump.txt.\n");
 		DEBUG_ShowMsg("MEMDUMPBIN [s]:[o] [len]  - Write memory to file memdump.bin.\n");
-        DEBUG_ShowMsg("MEMFIND [seg]:[off] [.].. - Start memory find search instance.\n");
-		DEBUG_ShowMsg("MEMS [operator] [value]   - Search value within instance.\n");
 		DEBUG_ShowMsg("SELINFO [segName]         - Show selector info.\n");
 
 		DEBUG_ShowMsg("INTVEC [filename]         - Writes interrupt vector table to file.\n");
@@ -4605,12 +4624,7 @@ uint32_t DEBUG_CheckKeys(void) {
 				break;
 		case KEY_F(10):	// Step over inst
 				DrawRegistersUpdateOld();
-                if(!CPU_IsDynamicCore()) warn_dynamic = false;
-                else if(!warn_dynamic) {
-                    DEBUG_WarnDynamic();
-                    warn_dynamic = true;
-                }
-                if (StepOver()) {
+				if (StepOver()) {
 					mustCompleteInstruction = true;
 					inhibit_int_breakpoint = true;
 					ret = DEBUG_Run(1,false);
@@ -4623,11 +4637,6 @@ uint32_t DEBUG_CheckKeys(void) {
 				/* FALLTHROUGH */
 		case KEY_F(11):	// trace into
 				DrawRegistersUpdateOld();
-                if(!CPU_IsDynamicCore()) warn_dynamic = false;
-                else if(!warn_dynamic) {
-                    DEBUG_WarnDynamic();
-                    warn_dynamic = true;
-                }
 				exitLoop = false;
 				mustCompleteInstruction = true;
 				ret = DEBUG_Run(1,true);
@@ -4820,11 +4829,6 @@ Bitu DEBUG_Loop(void) {
 
 void DEBUG_FlushInput(void);
 
-void DEBUG_WarnDynamic(void) {
-    DEBUG_ShowMsg("Warning: Single-stepping may not work correctly with \"Dynamic core\".");
-    DEBUG_ShowMsg("         If you encounter problems, switch the CPU core to \"Normal core\".");
-}
-
 bool tohide=true;
 static bool hidedebugger=false;
 void DEBUG_Enable_Handler(bool pressed) {
@@ -4916,13 +4920,8 @@ void DEBUG_Enable_Handler(bool pressed) {
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
 	mainMenu.get_item("mapper_debugger").check(true).refresh_item(mainMenu);
-    if(!CPU_IsDynamicCore()) warn_dynamic = false;
-    else if(!warn_dynamic) {
-        DEBUG_WarnDynamic();
-        warn_dynamic = true;
-    }
-    if (!showhelp) {
-        showhelp=true;
+	if (!showhelp) {
+		showhelp=true;
 		DEBUG_ShowMsg("***| TYPE HELP (+ENTER) TO GET AN OVERVIEW OF ALL COMMANDS |***\n");
 	}
 	//KEYBOARD_ClrBuffer();
@@ -4974,25 +4973,23 @@ static void LogMCBChain(uint16_t mcb_segment) {
 				psp_seg_note = "";
 		}
 
-		DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename);
+        DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename);
 
 		// print a message if dataAddr is within this MCB's memory range
 		PhysPt mcbStartAddr = PhysMake(mcb_segment+1,0);
 		PhysPt mcbEndAddr = PhysMake(mcb_segment+1+mcb.GetSize(),0);
 		if (dataAddr >= mcbStartAddr && dataAddr < mcbEndAddr) {
-			DEBUG_ShowMsg("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,DOS_dataOfs,dataAddr - mcbStartAddr);
+            DEBUG_ShowMsg("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,DOS_dataOfs,dataAddr - mcbStartAddr);
 		}
 
 		// if we've just processed the last MCB in the chain, break out of the loop
-		mcb_segment+=mcb.GetSize()+1;
-		if (mcb.GetType()==0x5a)
+		if (mcb.GetType()==0x5a) {
 			break;
-
+		}
 		// else, move to the next MCB in the chain
+		mcb_segment+=mcb.GetSize()+1;
 		mcb.SetPt(mcb_segment);
 	}
-
-	DEBUG_ShowMsg("   %04X  END OF CHAIN",mcb_segment);
 }
 
 #include "regionalloctracking.h"
@@ -5785,7 +5782,33 @@ static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num) {
 	fclose(f);
 	DEBUG_ShowMsg("DEBUG: Memory dump binary success.\n");
 }
+/* Knifour Start */
+#ifdef C_CHEAT
+static void SaveVMemoryBin(uint32_t ofs1, uint32_t num) {
+    FILE* f = fopen("VMEMDUMP.BIN", "wb");
+    if(!f) {
+        DEBUG_ShowMsg("DEBUG: Memory binary dump failed.\n");
+        return;
+    }
 
+    for(uint32_t x = 0; x < num; x++) {
+        uint8_t val;
+        if(mem_readb_checked((PhysPt)(ofs1+x), &val)) val = 0;
+        fwrite(&val, 1, 1, f);
+    }
+
+    fclose(f);
+    DEBUG_ShowMsg("DEBUG: Linear Memory dump binary success. CR0 is %X \n", GetCr0());
+}
+
+uint32_t GetCr0(void) {
+    char* found = "CR0";
+    bool parsed;
+
+    return GetHexValue(found, found, &parsed);
+}
+#endif
+/* Knifour End */
 static void OutputVecTable(char* filename) {
 	FILE* f = fopen(filename, "wt");
 	if (!f)

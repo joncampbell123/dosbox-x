@@ -1,0 +1,10 @@
+  This command marks the entry into the memory operation mode. All commands in this mode start with `M`. This mode allows direct manipulation of memory content. he typical use case for this mode is when a game likely stores important numerical values clustered together. After you have identified a specific target, you can set the Data View to display the memory content of that block. Upon inspection, you might discover that nearby memory locations contain other targets you are seeking. At this point, you can use a series of commands in the memory operation mode to test the results. Once confirmed, you can directly add the results to the formal record area. The purpose of this specific command is to set the base data size for the memory mode. Examples:
+    MM 1
+    MM BYTE
+The above sets the memory mode to BYTE.
+    MM 2
+    MM WORD
+The above sets the memory mode to WORD.
+    MM 4
+    MM DWORD
+The above sets the memory mode to DWORD.

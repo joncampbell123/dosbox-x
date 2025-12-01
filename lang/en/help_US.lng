@@ -1,0 +1,75 @@
+:CHEAT_HELP_HELP1
+  After entering cheat mode, in all commands, values or addresses starting 
+.
+:CHEAT_HELP_HELP2
+with `0x` are hexadecimal numbers, and all values not starting with `0x` are 
+.
+:CHEAT_HELP_HELP3
+decimal. Other number bases are currently not supported. If any illegal 
+.
+:CHEAT_HELP_HELP4
+characters appear in a hexadecimal or decimal value, that value will become 0.
+.
+:CHEAT_HELP_HELP5
+ All commands and their parameters are case-insensitive. The following is an 
+.
+:CHEAT_HELP_HELP6
+example of this command:
+.
+:CHEAT_HELP_HELP7
+    HELP HELP
+.
+:CHEAT_HELP_HELP8
+In the game, press `Alt+Pause` or open the debug menu and select the first 
+.
+:CHEAT_HELP_HELP9
+item to enter debug mode. At the very bottom of the debug window is the 
+.
+:CHEAT_HELP_HELP10
+command line. Enter `cheat [project name]` here to enter cheat mode. Cheat 
+.
+:CHEAT_HELP_HELP11
+mode will create a `cheat` folder in the location where Dosbox-X is installed.
+.
+:CHEAT_HELP_HELP12
+ When any command requiring saving is executed within cheat mode, a folder 
+.
+:CHEAT_HELP_HELP13
+named `[project name]` will be created under the `cheat` folder. In cheat mode
+.
+:CHEAT_HELP_HELP14
+, entering `help` will show a brief description of all commands. Entering 
+.
+:CHEAT_HELP_HELP15
+`help [command]` will show the detailed description for that specific command.
+.
+:CHEAT_HELP_HELP16
+ Press `[F5]` in cheat mode to resume the game execution.
+.
+:CHEAT_HELP_HELP17
+The standard search procedure is as follows:
+.
+:CHEAT_HELP_HELP18
+    1. SM mode          # Set the search mode
+.
+:CHEAT_HELP_HELP19
+    2. SEG segment      # Set the segment address
+.
+:CHEAT_HELP_HELP20
+    3. OFF offset       # Do not change unless necessary
+.
+:CHEAT_HELP_HELP21
+    4. SL search_length # Do not change unless necessary
+.
+:CHEAT_HELP_HELP22
+    5. S value          # Search for your target data
+.
+:CHEAT_HELP_HELP23
+    6. TW value number  # Test write a value
+.
+:CHEAT_HELP_HELP24
+    7. A description    # Save the temporary storage to the formal record area
+.
+:CHEAT_HELP_HELP25
+    8. CLS              # Clear the temporary storage area
+.

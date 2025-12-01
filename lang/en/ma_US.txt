@@ -1,0 +1,3 @@
+  If you have confirmed that this setting is your desired target, use this command to save the setting into the formal record area. After saving, remember to use the SAVE command to write it to the project file. Example:
+    MA description
+The description can only contain characters inputtable by the raw keyboard setting language. If necessary, you can use a text editor to open the project file and modify the description text. The description text cannot use the ` character, as it is the field delimiter. Unless you know what you are doing, do not modify data in other fields. The project file must be saved in UTF-8 Without BOM format.

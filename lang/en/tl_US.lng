@@ -1,0 +1,15 @@
+:CHEAT_HELP_TL1
+  After performing a search and then other operations, you might not see the 
+.
+:CHEAT_HELP_TL2
+previously displayed search results. Alternatively, if you have just loaded an
+.
+:CHEAT_HELP_TL3
+ unfinished search from the temporary storage area, you can use this command 
+.
+:CHEAT_HELP_TL4
+to display the first 10 entries. This command does not take any parameters; 
+.
+:CHEAT_HELP_TL5
+simply enter the command and press [ENTER] to execute it.
+.

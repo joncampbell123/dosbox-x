@@ -1,0 +1,90 @@
+:CHEAT_HELP_SEG1
+  The 80x86 CPU uses "Segment:Offset" to point to physical memory addresses. 
+.
+:CHEAT_HELP_SEG2
+Both the segment and offset are 16-bit values. The physical address is 
+.
+:CHEAT_HELP_SEG3
+calculated as "Segment * 16 + Offset". Users don't need to understand how to 
+.
+:CHEAT_HELP_SEG4
+calculate the physical address, but the game might use the DS, ES, or CS 
+.
+:CHEAT_HELP_SEG5
+registers to point to the area storing character attributes. Therefore, before
+.
+:CHEAT_HELP_SEG6
+ searching, you must set the `SEG` to point to the DS, ES, or CS register. If 
+.
+:CHEAT_HELP_SEG7
+you don't know which segment the game data resides in, set the `SEG` to 0. 
+.
+:CHEAT_HELP_SEG8
+This enables linear address mode, allowing you to search the entire memory 
+.
+:CHEAT_HELP_SEG9
+range. However, this significantly increases the search scope, so using the 
+.
+:CHEAT_HELP_SEG10
+"Segment:Offset" method is recommended whenever possible. Command examples:
+.
+:CHEAT_HELP_SEG11
+    SEG ES      # Set the segment address to follow the ES register
+.
+:CHEAT_HELP_SEG12
+    SEG 0x9117  # Set the segment address to the hexadecimal value 0x9117
+.
+:CHEAT_HELP_SEG13
+    SEG 0       # Use linear addressing, ignoring segment registers
+.
+:CHEAT_HELP_SEG14
+Setting the `SEG` value to follow the DS, ES, or CS registers carries risks 
+.
+:CHEAT_HELP_SEG15
+because the game process might change the values of these registers. It's 
+.
+:CHEAT_HELP_SEG16
+possible that during the search phase they point to the correct address and 
+.
+:CHEAT_HELP_SEG17
+allow you to find the correct offset. However, as the game continues execution
+.
+:CHEAT_HELP_SEG18
+, they might point elsewhere, rendering the offset address you found earlier 
+.
+:CHEAT_HELP_SEG19
+useless. Therefore, it is recommended to set the `SEG` value by referring to 
+.
+:CHEAT_HELP_SEG20
+the top of the DEBUG screen, which displays the values of the DS and ES 
+.
+:CHEAT_HELP_SEG21
+registers (in hexadecimal). Use these values as a reference to set the correct
+.
+:CHEAT_HELP_SEG22
+ segment address using the `SEG` command. If the game enters protected mode, 
+.
+:CHEAT_HELP_SEG23
+the `SEG` value *must* be set to 0. Setting it to any other value will be 
+.
+:CHEAT_HELP_SEG24
+ineffective. The search length depends on the memory size set in the Dosbox-X 
+.
+:CHEAT_HELP_SEG25
+configuration file. If you truly have no concept of registers and are 
+.
+:CHEAT_HELP_SEG26
+completely unsure whether to use DS, ES, or CS, you can simply set the `SEG` 
+.
+:CHEAT_HELP_SEG27
+value to 0. This will greatly increase the search length, but the benefit is 
+.
+:CHEAT_HELP_SEG28
+that you will almost certainly find your target (unless the game uses encoding
+.
+:CHEAT_HELP_SEG29
+ methods to store character attributes, which is beyond this program's 
+.
+:CHEAT_HELP_SEG30
+capability to solve).
+.

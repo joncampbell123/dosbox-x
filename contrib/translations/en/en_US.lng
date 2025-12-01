@@ -144,7 +144,7 @@ Current sound mixer volumes
 Sound Blaster configuration
 .
 :CURRENT_MIDICONFIG
-Current MIDI/OPL configuration
+Current MIDI configuration
 .
 :CREATE_IMAGE
 Create blank disk image
@@ -2406,9 +2406,6 @@ Quick launch program...
 :MENU:mapper_shutdown
 Quit from DOSBox-X
 .
-:MENU:mapper_capkeyboard
-Capture keyboard
-.
 :MENU:mapper_capmouse
 Capture mouse
 .
@@ -2977,7 +2974,7 @@ Show sound mixer volumes
 Show Sound Blaster configuration
 .
 :MENU:midi_info
-Show MIDI/OPL device configuration
+Show MIDI device configuration
 .
 :MENU:DOSMenu
 DOS
@@ -4402,8 +4399,8 @@ Failed to save disk image.
 :MENU_JP_CPONLY
 This function is only available for the Japanese code page (932).
 .
-:MENU_CH_CPONLY
-This function is only available for the Chinese code pages (936, 950, or 951).
+:MENU_CN_CPONLY
+This function is only available for the Chinese code pages (936 or 950).
 .
 :MENU_GLIDE_ERROR
 Glide passthrough cannot be enabled. Check the Glide wrapper installation.
@@ -4505,4 +4502,1416 @@ Save state corrupted! Program may not work.
 Saved screenshot to the file:
 
 %s
+.:CHEAT_NAME_ERROR
+Entering cheat mode requires specifying a project name.
+.
+:CHEAT_CMD_NOT_FOUND
+Command not found in cheat mode.
+.
+:CHEAT_HELP_NOT_FOUND
+No detailed help available for this command.
+.
+:CHEAT_CREATEDIR_ERROR
+Unable to create cheat folder.
+.
+:CHEAT_HELP_HELP
+HELP [CHEAT COMMANDS]   : This command
+.
+:CHEAT_HELP_SM
+SM   Search Mode        : Search mode, can be BYTE, WORD, DWORD or 1, 2, 4
+.
+:CHEAT_HELP_SEG
+SEG  Segment            : Set segment, can use CS, DS, ES; 0 use linear
+.
+:CHEAT_HELP_OFF
+OFF  Offset             : Set search offset address (64KB or memory limit)
+.
+:CHEAT_HELP_SL
+SL   Length             : Search length (unit: BYTE)
+.
+:CHEAT_HELP_D
+D    Address            : Display memory data in DATA VIEW
+.
+:CHEAT_HELP_DV
+DV   Address            : Display memory data in DATA VIEW(linear address)
+.
+:CHEAT_HELP_S
+S    Value              : Search for value with specified mode and length
+.
+:CHEAT_HELP_L
+L    [Address] [MODE]   : List values at specified address based on SEG:OFF
+.
+:CHEAT_HELP_TL
+TL                      : List first 10 entries in temporary buffer
+.
+:CHEAT_HELP_TD
+TD   Number             : Manually delete specific data from temporary buffer
+.
+:CHEAT_HELP_TW
+TW   Value [Number]     : Write value to memory corresponding to temporary
+.
+:CHEAT_HELP_TS
+TS   Name               : Save search temporary buffer to specified file
+.
+:CHEAT_HELP_TR
+TR   Name               : Load specified file into search temporary buffer
+.
+:CHEAT_HELP_A
+A    Description        : Write search results to data area
+.
+:CHEAT_HELP_R
+R    [Record Number]    : List all data in record area
+.
+:CHEAT_HELP_WR
+WR   Value Record Number: Write specified value to memory
+.
+:CHEAT_HELP_CLS
+CLS                     : Clear temporary buffer
+.
+:CHEAT_HELP_SAVE
+SAVE                    : Save record area data to project file
+.
+:CHEAT_HELP_MM
+MM   Memory Mode        : Memory operation mode, can be BYTE, WORD, DWORD
+.
+:CHEAT_HELP_MSEG
+MSEG Segment            : Set memory mode segment, can use CS, DS, ES
+.
+:CHEAT_HELP_MOFF
+MOFF Offset             : Set memory mode offset(64KB or memory limit)
+.
+:CHEAT_HELP_MD
+MD                      : Display in DATA VIEW by memory mode setting
+.
+:CHEAT_HELP_MR
+MR                      : Display value by memory mode setting
+.
+:CHEAT_HELP_MW
+MW   Value              : Write specified value to memory mode set address
+.
+:CHEAT_HELP_MA
+MA   Description        : Add memory mode set address to data area
+.
+:CHEAT_HELP_SNAP
+SNAP                    : Create memory snapshot
+.
+:CHEAT_HELP_SU
+SU   [Difference Value] : Search current value > snapshot value
+.
+:CHEAT_HELP_SD
+SD   [Difference Value] : Search current value < snapshot value
+.
+:CHEAT_HELP_SS
+SS   Specified Value    : Search temporary buffer that equal specified value
+.
+:CHEAT_HELP_CVT
+CVT  Decimal|Hex        : Convert decimal to HEX, or HEX to decimal
+.
+:CHEAT_HELP_EXIT
+EXIT                    : Exit cheat mode
+.
+:CHEAT_HELP_HELP1
+  After entering cheat mode, in all commands, values or addresses starting 
+.
+:CHEAT_HELP_HELP2
+with `0x` are hexadecimal numbers, and all values not starting with `0x` are 
+.
+:CHEAT_HELP_HELP3
+decimal. Other number bases are currently not supported. If any illegal 
+.
+:CHEAT_HELP_HELP4
+characters appear in a hexadecimal or decimal value, that value will become 0.
+.
+:CHEAT_HELP_HELP5
+ All commands and their parameters are case-insensitive. The following is an 
+.
+:CHEAT_HELP_HELP6
+example of this command:
+.
+:CHEAT_HELP_HELP7
+    HELP HELP
+.
+:CHEAT_HELP_HELP8
+In the game, press `Alt+Pause` or open the debug menu and select the first 
+.
+:CHEAT_HELP_HELP9
+item to enter debug mode. At the very bottom of the debug window is the 
+.
+:CHEAT_HELP_HELP10
+command line. Enter `cheat [project name]` here to enter cheat mode. Cheat 
+.
+:CHEAT_HELP_HELP11
+mode will create a `cheat` folder in the location where Dosbox-X is installed.
+.
+:CHEAT_HELP_HELP12
+ When any command requiring saving is executed within cheat mode, a folder 
+.
+:CHEAT_HELP_HELP13
+named `[project name]` will be created under the `cheat` folder. In cheat mode
+.
+:CHEAT_HELP_HELP14
+, entering `help` will show a brief description of all commands. Entering 
+.
+:CHEAT_HELP_HELP15
+`help [command]` will show the detailed description for that specific command.
+.
+:CHEAT_HELP_HELP16
+ Press `[F5]` in cheat mode to resume the game execution.
+.
+:CHEAT_HELP_HELP17
+The standard search procedure is as follows:
+.
+:CHEAT_HELP_HELP18
+    1. SM mode          # Set the search mode
+.
+:CHEAT_HELP_HELP19
+    2. SEG segment      # Set the segment address
+.
+:CHEAT_HELP_HELP20
+    3. OFF offset       # Do not change unless necessary
+.
+:CHEAT_HELP_HELP21
+    4. SL search_length # Do not change unless necessary
+.
+:CHEAT_HELP_HELP22
+    5. S value          # Search for your target data
+.
+:CHEAT_HELP_HELP23
+    6. TW value number  # Test write a value
+.
+:CHEAT_HELP_HELP24
+    7. A description    # Save the temporary storage to the formal record area
+.
+:CHEAT_HELP_HELP25
+    8. CLS              # Clear the temporary storage area
+.
+:CHEAT_HELP_SM1
+  The default search mode is WORD. The value ranges for each mode are as 
+.
+:CHEAT_HELP_SM2
+follows:
+.
+:CHEAT_HELP_SM3
+    BYTE: 0~255, WORD: 0-65535, DWORD: 0~4294967295
+.
+:CHEAT_HELP_SM4
+You should choose the mode based on the maximum possible value of the game 
+.
+:CHEAT_HELP_SM5
+character's attribute. For example, for money, if its maximum value might 
+.
+:CHEAT_HELP_SM6
+exceed 65535, you should set the search mode to DWORD without hesitation. This
+.
+:CHEAT_HELP_SM7
+ will likely help you quickly find the memory address storing the money value.
+.
+:CHEAT_HELP_SM8
+ Most games do not store values as negative numbers, so negative values are 
+.
+:CHEAT_HELP_SM9
+not currently considered. Using BYTE mode might yield too many search results,
+.
+:CHEAT_HELP_SM10
+ so it is not recommended. Command examples:
+.
+:CHEAT_HELP_SM11
+    SM DWORD     # Set the search mode to DOUBLE WORD
+.
+:CHEAT_HELP_SM12
+    SM 4         # Set the search mode to DOUBLE WORD
+.
+:CHEAT_HELP_SM13
+    SM BYTE      # Set the search mode to BYTE
+.
+:CHEAT_HELP_SM14
+    SM 1         # Set the search mode to BYTE
+.
+:CHEAT_HELP_SM15
+    SM           # Set the search mode to WORD
+.
+:CHEAT_HELP_SM16
+    SM 2         # Set the search mode to WORD
+.
+:CHEAT_HELP_SM17
+    SM WORD      # Set the search mode to WORD
+.
+:CHEAT_HELP_SEG1
+  The 80x86 CPU uses "Segment:Offset" to point to physical memory addresses. 
+.
+:CHEAT_HELP_SEG2
+Both the segment and offset are 16-bit values. The physical address is 
+.
+:CHEAT_HELP_SEG3
+calculated as "Segment * 16 + Offset". Users don't need to understand how to 
+.
+:CHEAT_HELP_SEG4
+calculate the physical address, but the game might use the DS, ES, or CS 
+.
+:CHEAT_HELP_SEG5
+registers to point to the area storing character attributes. Therefore, before
+.
+:CHEAT_HELP_SEG6
+ searching, you must set the `SEG` to point to the DS, ES, or CS register. If 
+.
+:CHEAT_HELP_SEG7
+you don't know which segment the game data resides in, set the `SEG` to 0. 
+.
+:CHEAT_HELP_SEG8
+This enables linear address mode, allowing you to search the entire memory 
+.
+:CHEAT_HELP_SEG9
+range. However, this significantly increases the search scope, so using the 
+.
+:CHEAT_HELP_SEG10
+"Segment:Offset" method is recommended whenever possible. Command examples:
+.
+:CHEAT_HELP_SEG11
+    SEG ES      # Set the segment address to follow the ES register
+.
+:CHEAT_HELP_SEG12
+    SEG 0x9117  # Set the segment address to the hexadecimal value 0x9117
+.
+:CHEAT_HELP_SEG13
+    SEG 0       # Use linear addressing, ignoring segment registers
+.
+:CHEAT_HELP_SEG14
+Setting the `SEG` value to follow the DS, ES, or CS registers carries risks 
+.
+:CHEAT_HELP_SEG15
+because the game process might change the values of these registers. It's 
+.
+:CHEAT_HELP_SEG16
+possible that during the search phase they point to the correct address and 
+.
+:CHEAT_HELP_SEG17
+allow you to find the correct offset. However, as the game continues execution
+.
+:CHEAT_HELP_SEG18
+, they might point elsewhere, rendering the offset address you found earlier 
+.
+:CHEAT_HELP_SEG19
+useless. Therefore, it is recommended to set the `SEG` value by referring to 
+.
+:CHEAT_HELP_SEG20
+the top of the DEBUG screen, which displays the values of the DS and ES 
+.
+:CHEAT_HELP_SEG21
+registers (in hexadecimal). Use these values as a reference to set the correct
+.
+:CHEAT_HELP_SEG22
+ segment address using the `SEG` command. If the game enters protected mode, 
+.
+:CHEAT_HELP_SEG23
+the `SEG` value *must* be set to 0. Setting it to any other value will be 
+.
+:CHEAT_HELP_SEG24
+ineffective. The search length depends on the memory size set in the Dosbox-X 
+.
+:CHEAT_HELP_SEG25
+configuration file. If you truly have no concept of registers and are 
+.
+:CHEAT_HELP_SEG26
+completely unsure whether to use DS, ES, or CS, you can simply set the `SEG` 
+.
+:CHEAT_HELP_SEG27
+value to 0. This will greatly increase the search length, but the benefit is 
+.
+:CHEAT_HELP_SEG28
+that you will almost certainly find your target (unless the game uses encoding
+.
+:CHEAT_HELP_SEG29
+ methods to store character attributes, which is beyond this program's 
+.
+:CHEAT_HELP_SEG30
+capability to solve).
+.
+:CHEAT_HELP_OFF1
+  Unless you already know the memory address where the search target is 
+.
+:CHEAT_HELP_OFF2
+located, you generally don't need to set this value. It's best to leave it at 
+.
+:CHEAT_HELP_OFF3
+the default value of 0. Command example:
+.
+:CHEAT_HELP_OFF4
+    OFF 0xEB00     # Set the offset address to 0xEB00
+.
+:CHEAT_HELP_OFF5
+Unless you know what you are doing, it is not recommended to set the offset 
+.
+:CHEAT_HELP_OFF6
+address. Keep it set to 0.
+.
+:CHEAT_HELP_SL1
+  The system sets the search length based on your configured search conditions
+.
+:CHEAT_HELP_SL2
+. Unless you specifically know the required search range, you do not need to 
+.
+:CHEAT_HELP_SL3
+modify this value. Command example:
+.
+:CHEAT_HELP_SL4
+    SL 0x10000  # Set the search length to 64KB
+.
+:CHEAT_HELP_SL5
+When the `SEG` value is not 0, the default search length is 64KB. When the 
+.
+:CHEAT_HELP_SL6
+`SEG` value is 0, the search length is 640KB or 1088KB, depending on whether 
+.
+:CHEAT_HELP_SL7
+HI MEMORY is enabled. If the game enters protected mode, the `SEG` value must 
+.
+:CHEAT_HELP_SL8
+be set to 0; setting it to any other value is invalid. The search length 
+.
+:CHEAT_HELP_SL9
+depends on the memory size set in the Dosbox-X configuration file.
+.
+:CHEAT_HELP_D1
+  Sometimes after searching, you might end up with only a few pieces of data 
+.
+:CHEAT_HELP_D2
+that match the criteria. You can use this command to specify the memory 
+.
+:CHEAT_HELP_D3
+segment to be displayed in the Data View to assist with your judgment. You 
+.
+:CHEAT_HELP_D4
+only need to provide the address given to you by the search command as a 
+.
+:CHEAT_HELP_D5
+parameter, and the system will automatically calculate the actual memory 
+.
+:CHEAT_HELP_D6
+address for you. Suppose the following is the content displayed from one of my
+.
+:CHEAT_HELP_D7
+ searches:
+.
+:CHEAT_HELP_D8
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_D9
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_D10
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_D11
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_D12
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_D13
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_D14
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_D15
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_D16
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_D17
+If you want to see the memory condition around the 2nd entry, you can issue 
+.
+:CHEAT_HELP_D18
+the following command:
+.
+:CHEAT_HELP_D19
+    D 0xEB00
+.
+:CHEAT_HELP_D20
+This will make the Data View start displaying data from address 0xEB00. You 
+.
+:CHEAT_HELP_D21
+might wonder, since the address of the 2nd entry is clearly 0xEB0E, why would 
+.
+:CHEAT_HELP_D22
+I start displaying from 0xEB00? I do this in the hope that all displayed 
+.
+:CHEAT_HELP_D23
+addresses are aligned to end with a '0'. This makes it easier to calculate the
+.
+:CHEAT_HELP_D24
+ address of any nearby data that you find interesting.
+.
+:CHEAT_HELP_DV1
+  Sometimes after searching, you might end up with only a few pieces of data 
+.
+:CHEAT_HELP_DV2
+that match the criteria. You can use this command to specify the memory 
+.
+:CHEAT_HELP_DV3
+segment to be displayed in the Data View in linear memory mode to assist with 
+.
+:CHEAT_HELP_DV4
+judgment. In this case, the address you provide is the linear memory address, 
+.
+:CHEAT_HELP_DV5
+and the system will ignore the segment address value. The theoretical maximum 
+.
+:CHEAT_HELP_DV6
+linear memory address is 4GB, but the actual limit depends on the memory size 
+.
+:CHEAT_HELP_DV7
+you configured in the Dosbox-X settings file. Command example:
+.
+:CHEAT_HELP_DV8
+    DV 0x100000  # Display memory content starting from 1024KB
+.
+:CHEAT_HELP_DV9
+When the game enters protected mode, because protected mode ignores segment 
+.
+:CHEAT_HELP_DV10
+address values, you must use the DV command to correctly display the memory 
+.
+:CHEAT_HELP_DV11
+content.
+.
+:CHEAT_HELP_S1
+  After configuring the search mode, segment address, offset address, and 
+.
+:CHEAT_HELP_S2
+search length, you can use this command to search for the specified value. The
+.
+:CHEAT_HELP_S3
+ search results will be displayed in the Output window. The system will only 
+.
+:CHEAT_HELP_S4
+show the first 10 found memory addresses. If there are more than 10 results, 
+.
+:CHEAT_HELP_S5
+it indicates that further searching is needed to find the correct target. You 
+.
+:CHEAT_HELP_S6
+can stop searching when only 1 result remains, or when the results remain 
+.
+:CHEAT_HELP_S7
+consistent across successive searches. Use further commands to test if the 
+.
+:CHEAT_HELP_S8
+search result is correct. Command example:
+.
+:CHEAT_HELP_S9
+    s 100000 # This means searching for one hundred thousand
+.
+:CHEAT_HELP_S10
+Suppose your in-game money value is 100,000. The first search using `s 100000`
+.
+:CHEAT_HELP_S11
+ might yield many results. Press the `F5` key to continue the game. When the 
+.
+:CHEAT_HELP_S12
+money value changes in the game, enter debug mode again and search for the 
+.
+:CHEAT_HELP_S13
+changed amount. If the changed amount is 94,000, you can use the following 
+.
+:CHEAT_HELP_S14
+command to search:
+.
+:CHEAT_HELP_S15
+    s 94000  # Search for 94000 from the previous results
+.
+:CHEAT_HELP_S16
+If only 1 result remains, it's highly likely this is your target. If more than
+.
+:CHEAT_HELP_S17
+ 1 result remains, press `F5` to continue the game, and search again after the
+.
+:CHEAT_HELP_S18
+ in-game money changes, until only 1 result remains or the results stabilize. 
+.
+:CHEAT_HELP_S19
+Below is an example of a search result:
+.
+:CHEAT_HELP_S20
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_S21
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_S22
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_S23
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_S24
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_S25
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_S26
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_S27
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_S28
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_S29
+Search result explanation: Number : Decimal Address <==> Hexadecimal Address, 
+.
+:CHEAT_HELP_S30
+Value = Searched Value
+.
+:CHEAT_HELP_L1
+  To check the value stored at a specific address, you can use this command. 
+.
+:CHEAT_HELP_L2
+In many games, related attributes of a character are often stored in nearby 
+.
+:CHEAT_HELP_L3
+memory locations. When you have confirmed the memory address of one attribute,
+.
+:CHEAT_HELP_L4
+ it's recommended to use the `D` or `DV` command to modify the Data View 
+.
+:CHEAT_HELP_L5
+window to display the data of the specified memory block. Look around that 
+.
+:CHEAT_HELP_L6
+address; you might find the memory addresses of other attributes. Since the 
+.
+:CHEAT_HELP_L7
+Data View displays data in hexadecimal, using this command allows you to view 
+.
+:CHEAT_HELP_L8
+the value at that address in decimal.
+.
+:CHEAT_HELP_L9
+Here is part of the content displayed in the Data View after I used the 
+.
+:CHEAT_HELP_L10
+command `D 0XEB00`:
+.
+:CHEAT_HELP_L11
+    9117:0000EB00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 A0 86
+.
+:CHEAT_HELP_L12
+    9117:0000EB10 01 00 A0 86 01 00 00 00 00 00 00 00 00 00 64 00
+.
+:CHEAT_HELP_L13
+    9117:0000EB20 00 00 00 00 00 00 00 00 00 00 00 00 01 00 64 00
+.
+:CHEAT_HELP_L14
+    9117:0000EB30 00 00 00 00 00 00 00 00 00 00 00 00 9A 01 19 00
+.
+:CHEAT_HELP_L15
+    9117:0000EB40 23 00 1E 00 2D 00 3C 00 CD 01 01 03 00 00 0A 00
+.
+:CHEAT_HELP_L16
+The `9117:0000EB10` on the second line represents `Segment:Offset`. The first 
+.
+:CHEAT_HELP_L17
+value in that line is `0x01` in hexadecimal. The offset address here is 
+.
+:CHEAT_HELP_L18
+`0xEB10`. Moving one cell to the right is `0xEB11`, and so on. The last 
+.
+:CHEAT_HELP_L19
+address in this line is `0xEB1F`. Each line occupies 16 bytes. Please note the
+.
+:CHEAT_HELP_L20
+ four bytes `0xA0`, `0x86`, `0x01`, `0x00` at the end of the first line. The 
+.
+:CHEAT_HELP_L21
+starting address of this line is `0xEB00`, so the address of `0xA0` is 
+.
+:CHEAT_HELP_L22
+`0xEB0E`.
+.
+:CHEAT_HELP_L23
+When I use:
+.
+:CHEAT_HELP_L24
+    L 0xEB0E BYTE
+.
+:CHEAT_HELP_L25
+It means I want to interpret the value at this address in BYTE mode. You will 
+.
+:CHEAT_HELP_L26
+see the Output list:
+.
+:CHEAT_HELP_L27
+    Memory EB0E value is 160    # Hexadecimal is 0xA0
+.
+:CHEAT_HELP_L28
+Using `L 0xEB0E WORD` will show:
+.
+:CHEAT_HELP_L29
+    Memory EB0E value is 34464  # Hexadecimal is 0x86A0
+.
+:CHEAT_HELP_L30
+Using `L 0xEB0E DWORD` will show:
+.
+:CHEAT_HELP_L31
+    Memory EB0E value is 100000 # Hexadecimal is 0x000186A0
+.
+:CHEAT_HELP_L32
+Note 1: This explanation is based on the game I am running. The game you are 
+.
+:CHEAT_HELP_L33
+running is different, so you will absolutely not see the same results.
+.
+:CHEAT_HELP_L34
+Note 2: When using the command `L 0xEB0E` without specifying a mode, the 
+.
+:CHEAT_HELP_L35
+system will use the mode set by the `SM` command as the default.
+.
+:CHEAT_HELP_TL1
+  After performing a search and then other operations, you might not see the 
+.
+:CHEAT_HELP_TL2
+previously displayed search results. Alternatively, if you have just loaded an
+.
+:CHEAT_HELP_TL3
+ unfinished search from the temporary storage area, you can use this command 
+.
+:CHEAT_HELP_TL4
+to display the first 10 entries. This command does not take any parameters; 
+.
+:CHEAT_HELP_TL5
+simply enter the command and press [ENTER] to execute it.
+.
+:CHEAT_HELP_TD1
+  When your search has narrowed down to just a few entries, and testing has 
+.
+:CHEAT_HELP_TD2
+confirmed that certain entries are not useful, you can use this command to 
+.
+:CHEAT_HELP_TD3
+delete them. Command example:
+.
+:CHEAT_HELP_TD4
+    TD 2     # Delete the second entry in the temporary storage area
+.
+:CHEAT_HELP_TW1
+  When your search has narrowed down to just a few or even a single result, 
+.
+:CHEAT_HELP_TW2
+you may need to test by modifying the memory content and then returning to the
+.
+:CHEAT_HELP_TW3
+ game to check if the change was successful. You can use this command for that
+.
+:CHEAT_HELP_TW4
+ purpose. Usage example: 
+.
+:CHEAT_HELP_TW5
+Suppose the search results are as follows:
+.
+:CHEAT_HELP_TW6
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_TW7
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_TW8
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_TW9
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_TW10
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_TW11
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_TW12
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_TW13
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_TW14
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_TW15
+The following command changes the value of the second entry to 200000. If the 
+.
+:CHEAT_HELP_TW16
+last parameter is omitted, it will modify the first entry by default.
+.
+:CHEAT_HELP_TW17
+    TW 200000 2
+.
+:CHEAT_HELP_TW18
+If returning to the game shows that the desired effect was not achieved, 
+.
+:CHEAT_HELP_TW19
+remember to change it back:
+.
+:CHEAT_HELP_TW20
+    TW 100000 2
+.
+:CHEAT_HELP_TW21
+If returning to the game confirms that the game attribute has changed to your 
+.
+:CHEAT_HELP_TW22
+desired value, use the `TD` command to delete the extra search results until 
+.
+:CHEAT_HELP_TW23
+only this one entry remains.
+.
+:CHEAT_HELP_TS1
+  Save the search settings and the temporary search storage area into a file 
+.
+:CHEAT_HELP_TS2
+with the specified name. The file will be stored in the "cheat/[project name]"
+.
+:CHEAT_HELP_TS3
+ folder, with the filename "[name].tmp". The typical use case for this command
+.
+:CHEAT_HELP_TS4
+ is at the beginning of a game, when you have multiple targets to search for. 
+.
+:CHEAT_HELP_TS5
+You can configure the search settings, perform a search using the `s` command,
+.
+:CHEAT_HELP_TS6
+ and then immediately use this command to save both the search settings and 
+.
+:CHEAT_HELP_TS7
+the temporary storage area. Afterwards, use `cls` to clear the temporary 
+.
+:CHEAT_HELP_TS8
+storage area, configure the search settings for the next target, perform 
+.
+:CHEAT_HELP_TS9
+another search with the `s` command, and save again. Command example:
+.
+:CHEAT_HELP_TS10
+    TS CASH
+.
+:CHEAT_HELP_TS11
+This will save the current settings and temporary storage area into a file 
+.
+:CHEAT_HELP_TS12
+named `CASH.tmp`.
+.
+:CHEAT_HELP_TR1
+  Read the data from the temporary storage area to continue searching. The 
+.
+:CHEAT_HELP_TR2
+data in the temporary storage area is stored in the "cheat/[project name]" 
+.
+:CHEAT_HELP_TR3
+folder. Please open that folder yourself to check which temporary storage 
+.
+:CHEAT_HELP_TR4
+files are available to read. Command example:
+.
+:CHEAT_HELP_TR5
+    TR CASH
+.
+:CHEAT_HELP_A1
+  When there is only one piece of data left in the temporary storage area and 
+.
+:CHEAT_HELP_A2
+it has been tested and confirmed to be the correct address, you can use this 
+.
+:CHEAT_HELP_A3
+command to add the data from the temporary storage area to the formal data 
+.
+:CHEAT_HELP_A4
+record area. A record description must be specified when adding. Example:
+.
+:CHEAT_HELP_A5
+    A CASH
+.
+:CHEAT_HELP_A6
+This action should only be performed when there is only one piece of data left
+.
+:CHEAT_HELP_A7
+ in the temporary storage area and it has been tested and confirmed to be the 
+.
+:CHEAT_HELP_A8
+correct address. Because the input area in debug mode cannot switch input 
+.
+:CHEAT_HELP_A9
+methods, the record description can only consist of raw characters that can be
+.
+:CHEAT_HELP_A10
+ input directly from the keyboard. If necessary, after saving the file, you 
+.
+:CHEAT_HELP_A11
+can use a text editor to open the project file. Each record in the record area
+.
+:CHEAT_HELP_A12
+ starts with the record description and uses as a separator. You can edit the 
+.
+:CHEAT_HELP_A13
+description content before the symbol to change it to your desired language 
+.
+:CHEAT_HELP_A14
+description. Please note that the description content must never contain the `
+.
+:CHEAT_HELP_A15
+ symbol, as this would compromise the integrity of the project file.
+.
+:CHEAT_HELP_R1
+  List the data entries in the formal record area. If you have used a text 
+.
+:CHEAT_HELP_R2
+editor to change the descriptions to another language, the description text 
+.
+:CHEAT_HELP_R3
+will be displayed in the language you edited. Example:
+.
+:CHEAT_HELP_R4
+    R
+.
+:CHEAT_HELP_R5
+Using this command lists all data entries in the record area.
+.
+:CHEAT_HELP_R6
+    R 2
+.
+:CHEAT_HELP_R7
+Using this command lists the detailed content of the second data entry in the 
+.
+:CHEAT_HELP_R8
+record area..
+.
+:CHEAT_HELP_WR1
+  After data is saved to the formal record area, you can use this command to 
+.
+:CHEAT_HELP_WR2
+directly modify its value. Typically, you would first use the `R` command to 
+.
+:CHEAT_HELP_WR3
+list all records and identify the target record number. Then, use this command
+.
+:CHEAT_HELP_WR4
+ to make the modification. Example:
+.
+:CHEAT_HELP_WR5
+    WR 200000 1
+.
+:CHEAT_HELP_WR6
+Assuming the first record represents cash, this command would change the cash 
+.
+:CHEAT_HELP_WR7
+value to 200000.
+.
+:CHEAT_HELP_CLS1
+  Clear the temporary storage area to prepare for the next search. Example:
+.
+:CHEAT_HELP_CLS2
+    CLS
+.
+:CHEAT_HELP_SAVE1
+  Save the data from the formal record area into the project file. The data is
+.
+:CHEAT_HELP_SAVE2
+ stored in the "cheat/[project name]" folder, and the filename is "[project 
+.
+:CHEAT_HELP_SAVE3
+name].prj". Example:
+.
+:CHEAT_HELP_SAVE4
+    SAVE
+.
+:CHEAT_HELP_SAVE5
+When you use the "cheat [project name]" command in debug mode to enter cheat 
+.
+:CHEAT_HELP_SAVE6
+mode, it will automatically load the previously saved records and display the 
+.
+:CHEAT_HELP_SAVE7
+number of records loaded in the output area.
+.
+:CHEAT_HELP_MM1
+  This command marks the entry into the memory operation mode. All commands in
+.
+:CHEAT_HELP_MM2
+ this mode start with `M`. This mode allows direct manipulation of memory 
+.
+:CHEAT_HELP_MM3
+content. he typical use case for this mode is when a game likely stores 
+.
+:CHEAT_HELP_MM4
+important numerical values clustered together. After you have identified a 
+.
+:CHEAT_HELP_MM5
+specific target, you can set the Data View to display the memory content of 
+.
+:CHEAT_HELP_MM6
+that block. Upon inspection, you might discover that nearby memory locations 
+.
+:CHEAT_HELP_MM7
+contain other targets you are seeking. At this point, you can use a series of 
+.
+:CHEAT_HELP_MM8
+commands in the memory operation mode to test the results. Once confirmed, you
+.
+:CHEAT_HELP_MM9
+ can directly add the results to the formal record area. The purpose of this 
+.
+:CHEAT_HELP_MM10
+specific command is to set the base data size for the memory mode. Examples:
+.
+:CHEAT_HELP_MM11
+    MM 1
+.
+:CHEAT_HELP_MM12
+    MM BYTE
+.
+:CHEAT_HELP_MM13
+The above sets the memory mode to BYTE.
+.
+:CHEAT_HELP_MM14
+    MM 2
+.
+:CHEAT_HELP_MM15
+    MM WORD
+.
+:CHEAT_HELP_MM16
+The above sets the memory mode to WORD.
+.
+:CHEAT_HELP_MM17
+    MM 4
+.
+:CHEAT_HELP_MM18
+    MM DWORD
+.
+:CHEAT_HELP_MM19
+The above sets the memory mode to DWORD.
+.
+:CHEAT_HELP_MSEG1
+  Set the segment address for memory mode. You can directly use `CS`, `DS`, or
+.
+:CHEAT_HELP_MSEG2
+ `ES` to substitute for the actual value. However, since the game process may 
+.
+:CHEAT_HELP_MSEG3
+change the values of these registers at any time, it is highly recommended 
+.
+:CHEAT_HELP_MSEG4
+**not** to use these three registers to set the segment address. You should 
+.
+:CHEAT_HELP_MSEG5
+use the actual numerical value to set the segment address. You can see the 
+.
+:CHEAT_HELP_MSEG6
+current actual values of these registers at the top of the debug mode window. 
+.
+:CHEAT_HELP_MSEG7
+Examples:
+.
+:CHEAT_HELP_MSEG8
+    MSEG ES
+.
+:CHEAT_HELP_MSEG9
+This sets the segment address to point to the current value of the ES register
+.
+:CHEAT_HELP_MSEG10
+.
+.
+:CHEAT_HELP_MSEG11
+    MSEG 0X9117
+.
+:CHEAT_HELP_MSEG12
+This sets the segment address to point to `0x9117`. The reason for setting 
+.
+:CHEAT_HELP_MSEG13
+this value is that I observed the current value of the ES register is `0x9117`
+.
+:CHEAT_HELP_MSEG14
+, so I replaced the ES register with the actual numerical value.
+.
+:CHEAT_HELP_MOFF1
+  Set the offset address for memory mode. Unlike setting the offset to 0 
+.
+:CHEAT_HELP_MOFF2
+during searches, here you need to set the offset address to the confirmed 
+.
+:CHEAT_HELP_MOFF3
+target memory address. Then use the `MD` command to make the DATA VIEW window 
+.
+:CHEAT_HELP_MOFF4
+display the memory content of this segment, and observe if the values in the 
+.
+:CHEAT_HELP_MOFF5
+nearby memory match certain attributes of the game character. Suppose I use 
+.
+:CHEAT_HELP_MOFF6
+the following series of commands to set up the memory mode. This example is 
+.
+:CHEAT_HELP_MOFF7
+based on a specific game I am running. Since the game you are running is 
+.
+:CHEAT_HELP_MOFF8
+different, you should configure the settings according to your own game's 
+.
+:CHEAT_HELP_MOFF9
+context.
+.
+:CHEAT_HELP_MOFF10
+    MM DWORD
+.
+:CHEAT_HELP_MOFF11
+    MSEG 0x9117
+.
+:CHEAT_HELP_MOFF12
+    MOFF 0xEB0E
+.
+:CHEAT_HELP_MOFF13
+    MD
+.
+:CHEAT_HELP_MOFF14
+You will see the following lines in the debug window:
+.
+:CHEAT_HELP_MOFF15
+    9117:0000EB0E A0 86 01 00 A0 86 01 00 00 00 00 00 00 00 00 00
+.
+:CHEAT_HELP_MOFF16
+    9117:0000EB1E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+.
+:CHEAT_HELP_MOFF17
+    9117:0000EB2E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 9A 01
+.
+:CHEAT_HELP_MOFF18
+    9117:0000EB3E 19 00 23 00 1E 00 2D 00 3C 00 CD 01 01 03 00 00
+.
+:CHEAT_HELP_MOFF19
+Another attribute value in the game is 100, which converts to the hexadecimal 
+.
+:CHEAT_HELP_MOFF20
+value `0x64`. You can see that the values at both `0xEB1E` and `0xEB2E` are:
+.
+:CHEAT_HELP_MOFF21
+    64 00 00 00
+.
+:CHEAT_HELP_MOFF22
+Since this attribute value is relatively small, it is推测 
+.
+:CHEAT_HELP_MOFF23
+(inferred/speculated) that its data type should be WORD. Use the following two
+.
+:CHEAT_HELP_MOFF24
+ commands to change the address and data size:
+.
+:CHEAT_HELP_MOFF25
+    MM 2
+.
+:CHEAT_HELP_MOFF26
+    MOFF 0xEB2E # Already tested and confirmed to be this address
+.
+:CHEAT_HELP_MOFF27
+For subsequent steps, please refer to the `MD`, `MR`, `MS`, and `MA` command 
+.
+:CHEAT_HELP_MOFF28
+instructions.
+.
+:CHEAT_HELP_MW1
+  Based on the configured parameters like `MM`, `MSEG`, and `MOFF`, write the 
+.
+:CHEAT_HELP_MW2
+specified value into memory. After writing, press `[F5]` to continue executing
+.
+:CHEAT_HELP_MW3
+ the game and check if the address is correct. Before execution, be sure to 
+.
+:CHEAT_HELP_MW4
+remember the original value at the memory address. If the written value has no
+.
+:CHEAT_HELP_MW5
+ effect, remember to re-enter debug mode and restore the original value. 
+.
+:CHEAT_HELP_MW6
+Example:
+.
+:CHEAT_HELP_MW7
+    MW 3000
+.
+:CHEAT_HELP_MW8
+If the `MM` mode is BYTE,  it affects 1 byte. The value written is the 
+.
+:CHEAT_HELP_MW9
+remainder of 3000 divided by 256.
+.
+:CHEAT_HELP_MW10
+If the `MM` mode is WORD,  it affects 2 bytes. The value written is the 
+.
+:CHEAT_HELP_MW11
+remainder of 3000 divided by 65536.
+.
+:CHEAT_HELP_MW12
+If the `MM` mode is DWORD, it affects 4 bytes. The value written is the 
+.
+:CHEAT_HELP_MW13
+remainder of 3000 divided by 4294967295.
+.
+:CHEAT_HELP_MA1
+  If you have confirmed that this setting is your desired target, use this 
+.
+:CHEAT_HELP_MA2
+command to save the setting into the formal record area. After saving, 
+.
+:CHEAT_HELP_MA3
+remember to use the SAVE command to write it to the project file. Example:
+.
+:CHEAT_HELP_MA4
+    MA description
+.
+:CHEAT_HELP_MA5
+The description can only contain characters inputtable by the raw keyboard 
+.
+:CHEAT_HELP_MA6
+setting language. If necessary, you can use a text editor to open the project 
+.
+:CHEAT_HELP_MA7
+file and modify the description text. The description text cannot use the ` 
+.
+:CHEAT_HELP_MA8
+character, as it is the field delimiter. Unless you know what you are doing, 
+.
+:CHEAT_HELP_MA9
+do not modify data in other fields. The project file must be saved in UTF-8 
+.
+:CHEAT_HELP_MA10
+Without BOM format.
+.
+:CHEAT_HELP_SNAP1
+  If you lack a clear concept of how to search, you can use Snap mode. Note: 
+.
+:CHEAT_HELP_SNAP2
+this command is invalid if you are currently in search mode or already in Snap
+.
+:CHEAT_HELP_SNAP3
+ mode. Before executing this command, please use `SM`, `SEG`, and `OFF` to 
+.
+:CHEAT_HELP_SNAP4
+configure your search settings. These settings cannot be changed after 
+.
+:CHEAT_HELP_SNAP5
+entering Snap mode. Command example:
+.
+:CHEAT_HELP_SNAP6
+    SNAP
+.
+:CHEAT_HELP_SNAP7
+If a `SEG` value is set, after executing this command, the cheat tool will 
+.
+:CHEAT_HELP_SNAP8
+save the current state of the 64KB memory segment into a temporary file for 
+.
+:CHEAT_HELP_SNAP9
+future comparison. If the `SEG` value is set to 0, the cheat tool will save 
+.
+:CHEAT_HELP_SNAP10
+the state of all current memory into the temporary file. If the game you are 
+.
+:CHEAT_HELP_SNAP11
+running is a DOS-based game that enters protected mode (e.g., DOOM), it is 
+.
+:CHEAT_HELP_SNAP12
+recommended to set the memory size to 4MB in the Dosbox-X configuration. The 
+.
+:CHEAT_HELP_SNAP13
+default memory size in Dosbox-X is 16MB. Using a larger memory size will 
+.
+:CHEAT_HELP_SNAP14
+significantly increase the size of the temporary snapshot file.
+.
+:CHEAT_HELP_SU1
+  After entering Snap mode and continuing the game, use this command to 
+.
+:CHEAT_HELP_SU2
+continue searching if the value you want to search for is **larger than** the 
+.
+:CHEAT_HELP_SU3
+value when entering "Snap mode" or **larger than the value from the last 
+.
+:CHEAT_HELP_SU4
+search**. Usage is as follows:
+.
+:CHEAT_HELP_SU5
+    SU
+.
+:CHEAT_HELP_SU6
+This method is suitable for values like health bars, where the exact value is 
+.
+:CHEAT_HELP_SU7
+unknown, allowing only fuzzy searches. This approach may require many attempts
+.
+:CHEAT_HELP_SU8
+ to find your target. Alternatively, you can use:
+.
+:CHEAT_HELP_SU9
+    SU 10
+.
+:CHEAT_HELP_SU10
+This method is suitable when the exact numerical difference is known. For 
+.
+:CHEAT_HELP_SU11
+example, if your money starts at 1000, use SNAP, then enter the game and earn 
+.
+:CHEAT_HELP_SU12
+10 more. You can then enter debug mode and use `SU 10` to search quickly. If 
+.
+:CHEAT_HELP_SU13
+the search results are still numerous, press `[F5]` to return to the game, 
+.
+:CHEAT_HELP_SU14
+wait for the value to change again, and then search once more.
+.
+:CHEAT_HELP_SD1
+  After entering Snap mode and continuing the game, use this command to 
+.
+:CHEAT_HELP_SD2
+continue searching if the value you want to search for is **smaller than** the
+.
+:CHEAT_HELP_SD3
+ value when entering "Snap mode" or **smaller than the value from the last 
+.
+:CHEAT_HELP_SD4
+search**. Usage is as follows:
+.
+:CHEAT_HELP_SD5
+    SD
+.
+:CHEAT_HELP_SD6
+This method is suitable for values like health bars, where the exact value is 
+.
+:CHEAT_HELP_SD7
+unknown, allowing only fuzzy searches. This approach may require many attempts
+.
+:CHEAT_HELP_SD8
+ to find your target. Alternatively, you can use:
+.
+:CHEAT_HELP_SD9
+    SD 10
+.
+:CHEAT_HELP_SD10
+This method is suitable when the exact numerical difference is known. For 
+.
+:CHEAT_HELP_SD11
+example, if your money starts at 1000, use SNAP, then enter the game and spend
+.
+:CHEAT_HELP_SD12
+ 10. You can then enter debug mode and use `SD 10` to search quickly. If the 
+.
+:CHEAT_HELP_SD13
+search results are still numerous, press `[F5]` to return to the game, wait 
+.
+:CHEAT_HELP_SD14
+for the value to change again, and then search once more.
+.
+:CHEAT_HELP_SS1
+  This command is only applicable under the following conditions:
+.
+:CHEAT_HELP_SS2
+    1. You have entered Snap mode using the `SNAP` command.
+.
+:CHEAT_HELP_SS3
+    2. You have performed at least one search using the `SU` or `SD` command.
+.
+:CHEAT_HELP_SS4
+After searching and knowing the current correct value, you can use this 
+.
+:CHEAT_HELP_SS5
+command to search further. Suppose at the beginning of the game, the quantity 
+.
+:CHEAT_HELP_SS6
+of a certain item is 1. The search command sequence would be as follows:
+.
+:CHEAT_HELP_SS7
+    SM WORD
+.
+:CHEAT_HELP_SS8
+    SEG 0x9117
+.
+:CHEAT_HELP_SS9
+    SNAP
+.
+:CHEAT_HELP_SS10
+Then press `[F5]` to return to the game, use the item, and re-enter debug mode
+.
+:CHEAT_HELP_SS11
+.
+.
+:CHEAT_HELP_SS12
+    SD 1
+.
+:CHEAT_HELP_SS13
+The item quantity decreased by 1, so use `SD 1` to search. Dozens of results 
+.
+:CHEAT_HELP_SS14
+are found. Since the item quantity is now 0, use the following command next:
+.
+:CHEAT_HELP_SS15
+    SS 0
+.
+:CHEAT_HELP_SS16
+After this search, only the following two results remain:
+.
+:CHEAT_HELP_SS17
+1 : 53302 <==> 0xD036, value = 0
+.
+:CHEAT_HELP_SS18
+2 : 57340 <==> 0xDFFC, value = 0
+.
+:CHEAT_HELP_SS19
+At this point, you can use trial and error with the command:
+.
+:CHEAT_HELP_SS20
+    TW 9 1
+.
+:CHEAT_HELP_SS21
+This writes the value 9 to temporary storage entry 1. Press `[F5]` to return 
+.
+:CHEAT_HELP_SS22
+to the game and observe that the item quantity has changed to 9. Then use:
+.
+:CHEAT_HELP_SS23
+    TD 2
+.
+:CHEAT_HELP_SS24
+to delete the second entry from the temporary storage area. Finally, use:
+.
+:CHEAT_HELP_SS25
+    A Item_Name
+.
+:CHEAT_HELP_SS26
+    SAVE
+.
+:CHEAT_HELP_SS27
+to save the search result to the project file.
+.
+:CHEAT_HELP_CVT1
+  This command allows users to perform decimal <=> hexadecimal conversion. 
+.
+:CHEAT_HELP_CVT2
+Inputting a decimal number will output its hexadecimal equivalent, and 
+.
+:CHEAT_HELP_CVT3
+inputting a hexadecimal number will output its decimal equivalent. Example:
+.
+:CHEAT_HELP_CVT4
+    CVT 100     #Outputs 0x64
+.
+:CHEAT_HELP_CVT5
+    CVT 10000   #Outputs 0x2710
+.
+:CHEAT_HELP_CVT6
+    CVT 100000  #Outputs 0x000186A0
+.
+:CHEAT_HELP_CVT7
+    CVT 0xABC   #Outputs 2748
 .

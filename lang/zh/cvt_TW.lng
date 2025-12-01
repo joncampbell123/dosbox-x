@@ -1,0 +1,18 @@
+:CHEAT_HELP_CVT1
+  這個指令供使用者做10<==>16進位轉換, 輸入10進位會轉16進位輸出, 輸入16進位會轉
+.
+:CHEAT_HELP_CVT2
+10進位輸出, 範例如下
+.
+:CHEAT_HELP_CVT3
+    CVT 100     #輸出0x64
+.
+:CHEAT_HELP_CVT4
+    CVT 10000   #輸出0x2710
+.
+:CHEAT_HELP_CVT5
+    CVT 100000  #輸出0x000186A0
+.
+:CHEAT_HELP_CVT6
+    CVT 0xABC   #輸出2748
+.

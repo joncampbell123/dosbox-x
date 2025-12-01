@@ -3,22 +3,22 @@
 :DOSBOX-X:VERSION:2025.12.01
 :DOSBOX-X:REMARK:設定好中文語言與字型後，就可以直接支援中文顯示和列印。國家和字碼頁選項可以留空，或設為「886,950」、「886,951」。譯者註：932 字碼頁的中文語言檔（用於 PC-98、JEGA、DOS/V）可至 https://github.com/1abcd/dosbox-x/issues/2 下載。
 :AUTOEXEC_CONFIGFILE_HELP
-區段中的指令行會在啟動時執行。
-您可以在這裡下達 MOUNT 指令。
+區段中的指令行會在啟動時執行.
+您可以在這裡下達 MOUNT 指令.
 
 .
 :CONFIGFILE_INTRO
-# 這是給 DOSBox-X %s 使用的組態檔案。(請使用最新版 DOSBox-X)
-# 以井號 # 開頭的文字行是註解行，會被 DOSBox-X 忽略。
-# 它被用來 (簡短) 說明每個選項的效果。
-# 要寫入「所有的」組態選項，使用命令 'config -all' 加上 -wc 或 -writeconf 選項。
+# 這是給 DOSBox-X %s 使用的組態檔案. (請使用最新版 DOSBox-X)
+# 以井號 # 開頭的行是註解行, 會被 DOSBox-X 忽略.
+# 註解行習慣用於 (簡短) 記載每個選項的效果.
+# 要寫入「所有的」組態選項, 使用命令 'config -all' 加上 -wc 或 -writeconf 選項.
 
 .
 :CONFIG_SUGGESTED_VALUES
 可能值
 .
 :CONFIG_ADVANCED_OPTION
-進階選項 (詳細資訊請見完整的組態設定參照檔案 [dosbox-x.reference.full.conf])
+進階選項 (請見完整的組態設定參照檔案 [dosbox-x.reference.full.conf] 取得更多詳細資訊)
 .
 :CONFIG_TOOL
 DOSBox-X 組態工具
@@ -144,7 +144,7 @@ DOS 命令說明
 聲霸卡組態資訊
 .
 :CURRENT_MIDICONFIG
-MIDI/OPL 裝置組態資訊
+MIDI 裝置組態資訊
 .
 :CREATE_IMAGE
 建立空白磁碟映像
@@ -305,13 +305,13 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 -all, -mod 與 -wc、-wcp、或 -wcd 一起使用以寫入「所有的」或者修改過的組態選項.
 -wcboot、-wcpboot、或 -wcdboot 將在寫入組態檔案後自動重開 DOSBox-X.
 -bootconf (或 -bc) 重開 DOSBox-X 並載入指定的組態檔案 (或已載入的主組態檔案).
--norem 與 -wc、-wcp、或 -wcd 一起使用時不會寫入組態選項的備註.
+-norem 與 -wc、-wcp、或 -wcd 一起使用時不寫入組態檔案的註解.
 -l 列出 DOSBox-X 程式的設定參數.
 -h, -help, -? 顯示本說明; 加上英文單字 "sections" 以顯示區段清單.
 -h, -help, -? 區段 或 屬性 顯示指定區段或屬性的資訊.
 -axclear 清除 [autoexec] 區段.
 -axadd [指令行] 新增指令行至 [autoexec] 區段.
--axtype 列出 [autoexec] 區段中的內容.
+-axtype 顯示 [autoexec] 區段中的內容.
 -avistart, -avistop 開始或停止錄製 AVI.
 -securemode 啟用安全模式, 將停用掛載磁碟機等功能.
 -startmapper 啟動 DOSBox-X 的對應表編輯器.
@@ -477,7 +477,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_IMGSWAP_ERROR
-提供給此磁碟機的位置必須在 1 和 %d 之間.
+此磁碟機的位置必須在 1 和 %d 之間.
 
 .
 :PROGRAM_MOUNT_ERROR_1
@@ -510,10 +510,10 @@ MOUSE [/?] [/U] [/V]
                    支援的磁碟機類型有: dir, floppy, cdrom, overlay
                    (其中 'overlay' 將掛載磁碟機的寫入操作重新導向到另一個目錄)
  -label [名稱]     設定磁碟機中的磁碟區標籤名稱 (全部大寫).
- -nl               如果指定的磁碟機已被掛載, 自動使用下一個磁碟機代號.
+ -nl               如果指定的磁碟機已掛載, 自動使用下一個磁碟機代號.
  -ro               以唯讀模式掛載磁碟機.
  -pr               指定路徑為相對於組態檔案所在目錄.
- -cd               產生包含光碟機編號的本機光碟機清單.
+ -cd               顯示包含光碟機編號的本機光碟機清單.
  -usecd [光碟機編號] 支援直接硬體模擬比如 CD 音訊播放.
  -ioctl            使用最低階的硬體存取 (與 -usecd 選項一起使用).
  -aspi             使用已安裝的 ASPI 層 (與 -usecd 選項一起使用).
@@ -540,13 +540,13 @@ MOUSE [/?] [/U] [/V]
 [32;1mMOUNT[0m                             - 列出所有已掛載的磁碟機
 [32;1mMOUNT -cd[0m                         - 列出本機所有光碟機
 [32;1mMOUNT d %s[0m            - 將磁碟機 D: 掛載到指定目錄
-[32;1mMOUNT c %s -t cdrom[0m      - 用指定目錄將磁碟機 C: 掛載為光碟機
-[32;1mMOUNT c %s -ro[0m           - 以唯讀模式掛載磁碟機 C:
+[32;1mMOUNT c %s -t cdrom[0m      - 以光碟機方式將磁碟機 C: 掛載到指定目錄
+[32;1mMOUNT c %s -ro[0m           - 將磁碟機 C: 以唯讀模式掛載
 [32;1mMOUNT c %s -label TEST[0m   - 掛載磁碟機 C: 並給予標籤 TEST
 [32;1mMOUNT c %s -nocachedir [0m  - 掛載磁碟機 C: 且不使用磁碟機快取
 [32;1mMOUNT c %s -freesize 128[0m - 掛載磁碟機 C: 並報告剩餘磁碟空間為 128MB
 [32;1mMOUNT c %s -u[0m            - 強制掛載磁碟機 C: 即使之前已掛載
-[32;1mMOUNT c %s -t overlay[0m  - 掛載磁碟機 C: 並且加上重疊目錄
+[32;1mMOUNT c %s -t overlay[0m  - 掛載磁碟機 C: 並加上重疊目錄
 [32;1mMOUNT c -u[0m                        - 卸載磁碟機 C:
 
 .
@@ -555,11 +555,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_UMOUNT_SUCCESS
-磁碟機 %c 已被成功卸載.
+磁碟機 %c 已成功卸載.
 
 .
 :PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
-磁碟機編號 %c 已被成功卸載.
+磁碟機編號 %c 已成功卸載.
 
 .
 :PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
@@ -575,7 +575,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-無法用此壓縮檔掛載 PhysFS 磁碟機.
+無法從此壓縮檔中掛載 PhysFS 磁碟機.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
@@ -598,7 +598,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-重疊目錄 %s 已被掛載加到磁碟機 %c.
+重疊目錄 %s 已掛載加到磁碟機 %c.
 
 .
 :PROGRAM_LOADFIX_ALLOC
@@ -714,7 +714,7 @@ DOSBox-X 建立一個 DOS 環境讓您彷彿正在使用原本的 DOS 系統.
 .
 :PROGRAM_INTRO_MENU_CDROM_HELP
 
-[1m   [1m[K如果要在 DOSBox-X 中掛載光碟機, 在掛載時您需要指定更多的選項.[0m
+[1m   [1m[K如果在 DOSBox-X 中掛載光碟, 您需要在掛載它們時指定更多的選項.[0m
 
 .
 :PROGRAM_INTRO_MENU_USAGE_HELP
@@ -764,7 +764,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 :PROGRAM_INTRO_USAGE_2
 [33;1m  -conf[0m 組態檔案
 	以指定組態檔案中的選項啟動 DOSBox-X.
-	詳細資訊請見註解行說明.
+	檢視說明文件取得更詳細資訊.
 
 [33;1m  -lang[0m 語言檔案
 	以指定的語言檔案啟動 DOSBox-X.
@@ -889,7 +889,7 @@ DOSBox-X 提供多程度的光碟機模擬.
 
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L 磁碟機代號][0m
 
-附註: 如果啟用了 "leading colon write protect image" 組態選項,
+備註: 如果啟用了 "leading colon write protect image" 組態選項,
       前導字元冒號 (:) 帶頭的映像檔, 將會以防寫模式開機.
 
 舉例:
@@ -941,7 +941,7 @@ ROM 檔案無法存取.
 
 .
 :PROGRAM_LOADROM_TOO_LARGE
-ROM 檔案過大.
+ROM 檔案太大.
 
 .
 :PROGRAM_LOADROM_INCOMPATIBLE
@@ -1131,7 +1131,7 @@ BIOSTEST 映像檔
   -size: 自訂硬碟映像的大小 MB 數 (vhd: 上限 2088960).
   -chs: 磁碟版面, 使用 磁柱(1-1023),磁頭(1-255),磁區(1-63) 定址方式.
   -nofs: 如果想建立空白映像檔請加入此參數.
-  -force: 強制覆寫已存在的映像檔. -chs / -lba: 選擇 C/H/S 或者 LBA 定址.
+  -force: 強制覆寫已存在的映像檔. -chs / -lba: 選擇 C/H/S 或者 LBA.
   -bat: 建立一個包含 IMGMOUNT 命令的批次檔以掛載此映像檔.
   -fat: 檔案系統類型 (12、16、或 32). -fatcopies: 指定 FAT 表格複本數.
   -spc: 指定每個叢集所包含的磁區數 (必須為 2 的冪次方). -label 磁碟機標籤.
@@ -1241,7 +1241,7 @@ BIOSTEST 映像檔
 yn
 .
 :PROGRAM_LABEL_HELP
-建立、變更、或刪除磁碟機中的磁碟區標籤.
+建立、變更或刪除磁碟機中的磁碟區標籤.
 
 LABEL [磁碟機:][標籤]
 
@@ -1347,7 +1347,6 @@ VHD "%s" 的類型是 %s.
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
 合併過程失敗, 中止程序!
-
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
 父檔案 "%s" 內容可能已毀損!
@@ -1359,28 +1358,27 @@ VHD "%s" 的類型是 %s.
 
 .
 :PROGRAM_VHDMAKE_HELP
-建立動態擴充或差異的 VHD 映像、將原始 (raw) 映像轉成固定的 VHD、
+建立動態擴充或差異的 VHD 映像、將原始映像轉成大小固定的 VHD、
 顯示關於 VHD 映像的資訊, 以及合併映像檔.
-[32;1mVHDMAKE[0m [-f] new.vhd 容量大小[BKMGT]
+[32;1mVHDMAKE[0m [-f] new.vhd size[BKMGT]
 [32;1mVHDMAKE[0m [34;1m-convert[0m raw.hdd new.vhd
 [32;1mVHDMAKE[0m [-f] [34;1m-link[0m parent.vhd new.vhd
 [32;1mVHDMAKE[0m [34;1m-merge[0m delta.vhd
 [32;1mVHDMAKE[0m [34;1m-info[0m a.vhd
- -c | -convert  將原始 (raw) 硬碟映像轉成固定的 VHD, 並改名為 new.vhd
+ -c | -convert  將原始硬碟映像檔轉成大小固定的 VHD, 並改名為 new.vhd
  -l | -link     建立一個新的差異 VHD new.vhd, 並鏈結至先前存在的父系
                 映像檔 parent.vhd
  -f | -force    強制覆寫先前存在的映像檔
  -i | -info     顯示關於 a.vhd 映像檔的實用資訊
  -m | -merge    將差異 delta.vhd 的變化合併到它的父檔案
  new.vhd        建立新的動態擴充 VHD 映像檔名稱
- 容量大小       磁碟容量大小 (最後面加上大小單位, 位元組 (Bytes) 隱含在裡面)
-將原始 (raw) 磁碟映像轉成固定的 VHD 時, 它必須是使用 MBR 配置進行分割,
-並且是以 FAT 格式來格式化.
-建立一個動態擴充的 VHD 時, 它的大小必須是在 3 MB 到 2040 GB 之間.
+ size           磁碟大小 (最後面加上大小單位, 位元組 B 隱含在裡面)
+當轉換一個原始磁碟映像到大小固定的 VHD, 這個磁碟映像必須以 MBR 配置分割,
+並且用 FAT 格式來格式化.
+當建立一個動態擴充 VHD, 它的大小必須介在 3 MB 到 2040 GB.
 已建立好的動態擴充 VHD 沒有經過分割也沒有格式化: 直接用 [34;1mIMGMOUNT[0m
 掛載到一個磁碟機代號, 也請考慮改成用 [34;1mIMGMAKE[0m 製作.
 如果合併作業成功, 會自動刪除已被合併的快照 VHD.
-
 .
 :SHELL_CMD_TREE_ERROR
 不存在子目錄
@@ -1716,7 +1714,7 @@ DOS/V V-text 目前狀態為關.
 a
 .
 :SHELL_STARTUP_TITLE
-歡迎使用 DOSBox-X！
+歡迎使用 DOSBox-X !
 .
 :SHELL_STARTUP_HEAD1
 [36m輕鬆上手 DOSBox-X：                                                         [37m
@@ -1737,12 +1735,12 @@ a
 - 提高或降低模擬速度：[31mF11 [37m+ [31m加號[37m[37m 或 [31mF11 [37m+ [31m減號[37m   [37m                           
 .
 :SHELL_STARTUP_CGA
-支援 CGA 合成模式。按 [31mCtrl+F8[37m 鍵啟用或停用合成輸出。                        
-按 [31mCtrl+Shift+[F7/F8][37m 變更色度；按 [31mCtrl+F7[37m 選擇早期/晚期 CGA 型號。         
+支援 CGA 合成模式. 按 [31mCtrl+F8[37m 鍵啟用或停用合成輸出.                         
+按 [31mCtrl+Shift+[F7/F8][37m 變更色度; 按 [31mCtrl+F7[37m 選擇早期/晚期 CGA 型號.          
 .
 :SHELL_STARTUP_HERC
-按 [31mCtrl+F7[37m 鍵在單色間切換：白色、黃褐色、綠色。                             
-按 [31mCtrl+F8[37m 鍵切換水平混合 (僅限圖形模式)。                                  
+按 [31mCtrl+F7[37m 鍵在單色間切換： 白色、黃褐色、綠色.                             
+按 [31mCtrl+F8[37m 鍵切換水平混合 (僅限圖形模式).                                     
 .
 :SHELL_STARTUP_HEAD3
 [36m線上 DOSBox-X 專案：                                                        [37m
@@ -1753,7 +1751,7 @@ a
 [32m問題建議[37m：[33mhttps://github.com/joncampbell123/dosbox-x/issues                 [37m
 .
 :SHELL_STARTUP_LAST
-祝您使用 DOSBox-X 愉快！
+祝您使用 DOSBox-X 愉快!
 .
 :SHELL_CMD_BREAK_HELP
 設定或清除延伸的 CTRL+C 檢查.
@@ -1847,7 +1845,7 @@ HELP [命令]
 
 [0mE.g., [37;1mHELP COPY[0m 或 [37;1mCOPY /?[0m 顯示 COPY 命令的說明資訊.
 
-附註: 外部命令比如 [33;1mMOUNT[0m 和 [33;1mIMGMOUNT[0m 不會被 HELP [/A] 命令列出.
+備註: 外部命令比如 [33;1mMOUNT[0m 和 [33;1mIMGMOUNT[0m 不會被 HELP [/A] 命令列出.
       這些命令可以在 Z 槽中作為程式找到 (比如 MOUNT.COM).
       輸入 [33;1m命令 /?[0m 或 [33;1mHELP 命令[0m 顯示此命令的說明資訊.
 
@@ -2248,7 +2246,7 @@ CHCP nnn[:[語言]]
   檔案  指定字碼頁檔案.
   語言  指定對應的語言.
 
-用 TrueType 字型輸出方式, 支援變更的字碼頁包括:
+在 TrueType 字型輸出方式所支援變更的字碼頁包括:
 
 437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021
 
@@ -2340,7 +2338,7 @@ DEBUGBOX [命令] [選項]
 
 .
 :SHELL_STARTUP_HEAD1_PC98
-[36m輕鬆上手 DOSBox-X：[37m                                               
+[36m輕鬆上手 DOSBox-X:[37m                                                
 .
 :SHELL_STARTUP_TEXT1_PC98
 輸入 [32mHELP[37m 命令檢視 DOS 命令清單，輸入 [32mINTRO[37m 命令進入簡短介紹。    
@@ -2356,19 +2354,19 @@ DEBUGBOX [命令] [選項]
 調整 CPU 模擬速度            - 使用 [31m主機鍵+加號[37m 與 [31m主機鍵+減號[37m。  
 .
 :SHELL_STARTUP_INFO_PC98
-[36mDOSBox-X 正在使用[32m日本的 NEC PC-98[36m 模擬模式執行。[37m                  
+[36mDOSBox-X 正在執行於[32m日本 NEC PC-98[36m 模擬模式。[37m                      
 .
 :SHELL_STARTUP_TEXT3_PC98
-[32mDOSBox-X 首頁 [33mhttps://dosbox-x.com/      [36m提供了完整的 DOS 環境模擬[37m
-[32mDOSBox-X 指南 [33mhttps://dosbox-x.com/wiki[37m  [36m包括 DOS、視窗 3.x 和 9x [37m
-[32mDOSBox-X 支援 [33mhttps://github.com/joncampbell123/dosbox-x/issues   [37m
+[32mDOSBox-X 首頁 [33mhttps://dosbox-x.com/        [36mComplete DOS emulations[37m
+[32mDOSBox-X 指南 [33mhttps://dosbox-x.com/wiki   [37m [36mDOS, Windows 3.x and 9x[37m
+[32mDOSBox-X 支援 [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m   
 .
 :SHELL_STARTUP_DOSV
-[32mDOS/V 模式[37m正在作用中。汝亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。  
+[32mDOS/V 模式[37m正在運作中。汝亦可以使用[32m中/日/韓 TTF 模式[37m來模擬標準的 DOS 環境。  
 .
 :SHELL_STARTUP_CGA_MONO
-按 [31mCtrl+F7[37m 鍵在單色間切換：綠色、黃褐色、白色。                             
-按 [31mCtrl+F8[37m 鍵變更高對比度/亮度設定。                                        
+按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             
+按 [31mCtrl+F8[37m 鍵變更高對比度/亮度設定.                                         
 .
 :MENU:mapper_reset
 重設虛擬機器
@@ -2384,9 +2382,6 @@ DEBUGBOX [命令] [選項]
 .
 :MENU:mapper_shutdown
 結束 DOSBox-X
-.
-:MENU:mapper_capkeyboard
-Capture keyboard
 .
 :MENU:mapper_capmouse
 擷取滑鼠
@@ -2728,7 +2723,7 @@ xBRZ Bilinear
 輸出
 .
 :MENU:output_surface
-軟體繪製 (Surface)
+Surface
 .
 :MENU:output_direct3d
 Direct3D
@@ -2956,7 +2951,7 @@ Glide 直通
 顯示聲霸卡組態
 .
 :MENU:midi_info
-顯示 MIDI/OPL 裝置組態
+顯示 MIDI 裝置組態
 .
 :MENU:DOSMenu
 DOS
@@ -3550,7 +3545,7 @@ Alt+Shift
 啟用高 DPI 模式
 .
 :MENU:sync_host_datetime
-將日期時間與主機系統同步
+日期時間與主機系統同步
 .
 :MENU:shell_config_commands
 把組態選項當作命令
@@ -3652,39 +3647,39 @@ CPU: 簡單核心
 切換選單列顯示
 .
 :PROGRAM_FLAGSAVE_UNFLAGALL
-所有檔案的儲存標幟已移除.
+所有檔案的儲存標記已移除.
 
 .
 :PROGRAM_FLAGSAVE_UNFLAGGED
-檔案 %s 的儲存標幟已移除.
+檔案 %s 的儲存標記已移除.
 
 .
 :PROGRAM_FLAGSAVE_FLAGGED
-檔案早已加上儲存標幟 - %s
+檔案早已加上儲存標記 - %s
 
 .
 :PROGRAM_FLAGSAVE_TOOMANY
-要加上儲存標幟的檔案數過多.
+要加上儲存標記的檔案太多.
 
 .
 :PROGRAM_FLAGSAVE_SAVED
-檔案 %s 已加上儲存標幟
+檔案 %s 已加上儲存標記
 
 .
 :PROGRAM_FLAGSAVE_LIST
-已加上儲存標幟的檔案:
+檔案已加上儲存標記:
 .
 :PROGRAM_FLAGSAVE_HLP
-替儲存狀態功能把要儲存的檔案加上標記或標幟.
+替儲存狀態功能把要儲存的檔案加記號或標記出來.
 
 FLAGSAVE [檔案 [/F] [/R]] [/U]
 
-  檔案        指定一個或多個要加上儲存標幟的檔案.
-  /F          即使檔案找不到, 也要強制加上標幟.
-  /R          從指定檔案移除標幟.
-  /U          從所有已標幟檔案移除標幟.
+  檔案        指定一個或多個要加上儲存標記的檔案.
+  /F          即使檔案找不到, 也要強制加上標記.
+  /R          移除指定檔案的標記.
+  /U          移除所有被標記檔案的標記.
 
-輸入不含參數的 FLAGSAVE 命令列出被加上標幟的檔案.
+輸入不含參數的 FLAGSAVE 命令列出被標記的檔案.
 
 .
 :PROGRAM_INT2FDBG_NOT_SET
@@ -3747,7 +3742,7 @@ RESCAN [磁碟機:] [/Q]
 
 CFGTOOL
 
-附註: 您也可以使用 CONFIG 命令以進行命令列介面的組態設定.
+備註: 您也可以使用 CONFIG 命令以進行命令列介面的組態設定.
 .
 :PROGRAM_IMGSWAP_HELP
 切換軟碟機、硬碟機、以及光碟片映像檔.
@@ -3791,10 +3786,10 @@ BIOS 的磁碟索引沒有已指派的映像檔.
 可開機光碟 (El Torito) 模擬需要一個合適的光碟機代號.
 .
 :PROGRAM_ELTORITO_DRIVE_EXISTS
-指定的可開機光碟 (El Torito) 光碟機, 已經以非光碟機裝置存在.
+指定的可開機光碟 (El Torito) 光碟機, 它已經不是作為光碟機裝置存在.
 .
 :PROGRAM_ELTORITO_NOT_CDDRIVE
-指定的可開機光碟 (El Torito) 光碟機, 實際上不是光碟機.
+指定的可開機光碟 (El Torito) 光碟機, 實際上不是一台光碟機.
 .
 :PROGRAM_ELTORITO_REQUIRE_FLOPPY
 此時可開機光碟 (El Torito) 模擬必須要與 -t floppy 一起使用.
@@ -3852,11 +3847,11 @@ PROGRAM_IMGMAKE_VOLUME_ALIGN
 健全性測試失敗: 磁碟區大小未對齊
 .
 :PROGRAM_IMGMAKE_CLUSTERS
-錯誤: 基於設定的參數, 產生的檔案系統中的叢集數過少
+錯誤: 基於設定的參數, 產生的檔案系統中的叢集數太少
 .
 :PROGRAM_IMGMAKE_CLUSTERCOUNT
-警告: 基於設定的磁碟區大小, 叢集數量過高.
-      報告為較小的磁區數量.
+警告: 基於設定的磁碟區大小, 叢集總數太高.
+      報告為較小的磁區總數.
 .
 :PROGRAM_IMGMAKE_CLUSTER_ALIGN
 健全性測試失敗: 第一個叢集未對齊
@@ -3907,7 +3902,7 @@ XMS 未作用
 D88 映像檔似乎是用於 PC-88, 不能用它來開機.
 .
 :PROGRAM_BOOT_BPS_TOOLARGE
-位元組數/磁區 過大
+位元組數/磁區 太大
 .
 :PROGRAM_BOOT_DRIVE_READERROR
 讀取磁碟機發生錯誤
@@ -3926,7 +3921,7 @@ START 自動開啟 Windows 命令提示字元來執行這些命令時,
 會等待按鍵按下才結束 (由 "startincon" 選項指定):
 %s
 
-附註: 這個命令指定的路徑是主機系統上的路徑.
+備註: 這個命令指定的路徑是主機系統上的路徑.
 .
 :PROGRAM_START_HELP
 啟動個別的視窗以執行指定的程式或命令.
@@ -3939,7 +3934,7 @@ START 命令 [引數]
   命令: 要啟動或執行的命令或程式.
   引數: 傳遞給應用程式的引數.
   
-附註: 這個命令指定的路徑是主機系統上的路徑.
+備註: 這個命令指定的路徑是主機系統上的路徑.
 .
 :PROGRAM_START_COMPLETED
 命令執行完成.
@@ -3948,7 +3943,7 @@ START 命令 [引數]
 正在啟動 %s...
 .
 :PROGRAM_START_CTRLC
-(按下 Ctrl+C 立即結束)
+(按住 Ctrl+C 立即結束)
 .
 :PROGRAM_START_HOST_ERROR
 錯誤: START 不能啟動應用程式以在您目前的主機系統上執行.
@@ -4010,7 +4005,7 @@ CON 裝置的狀態:
 鍵盤輸入速率與延遲必須一起指定
 .
 :PROGRAM_UTF8_HELP
-轉換 UTF-8 文字以在目前字碼頁檢視.
+在目前字碼頁轉換與檢視 UTF-8 文字.
 
 UTF8 < [磁碟機:][路徑]檔名
 命令名稱 | UTF8
@@ -4019,16 +4014,16 @@ UTF8 < [磁碟機:][路徑]檔名
 找不到輸入文字.
 .
 :PROGRAM_UTF8_INVALIDCP
-提供文字轉換的字碼頁無效.
+對於文字轉換, 此字碼頁無效.
 .
 :PROGRAM_UTF8_NOT_UTF8
 輸入的文字是 UTF-16.
 .
 :PROGRAM_UTF8_CONVERSION_ERROR
-在文字轉換過程發生錯誤.
+轉換文字過程發生錯誤.
 .
 :PROGRAM_UTF16_HELP
-轉換 UTF-16 文字以在目前字碼頁檢視.
+在目前字碼頁轉換與檢視 UTF-16 文字.
 
 UTF16 [/BE|/LE] < [磁碟機:][路徑]檔名
 命令名稱 | UTF16 [/BE|/LE]
@@ -4041,7 +4036,7 @@ UTF16 [/BE|/LE] < [磁碟機:][路徑]檔名
 
 VTEXT [模式]
 
-  [模式] 設定值為 0、1、2, 分別對應: 無 V-text、V-text 1、V-text 2.
+  [模式] 設定值 0、1、2 分別對應 無 V-text、V-text 1、V-text 2.
 
 輸入不含參數的 VTEXT 命令顯示目前的 V-text 模式狀態.
 .
@@ -4050,7 +4045,7 @@ VTEXT [模式]
 
 NMITEST
 
-附註: 這是一個偵錯工具, 測試插斷處理常式是否能正常運作.
+備註: 這是一個偵錯工具, 測試插斷處理常式是否能正常運作.
 .
 :PROGRAM_NMITEST_GENERATE_NMI
 正在產生一個非遮罩式插斷 (NMI)...
@@ -4085,7 +4080,7 @@ AUTOTYPE [-list] [-w 等待] [-p 間距] 按鈕_1 [按鈕_2 [...]]
   -w 等待: 鍵入開始前的秒數. 預設兩秒; 最大 30 秒.
   -p 間距: 每次按鍵之間的秒數. 預設半秒; 最大 10 秒.
   
-  序列是由一個或多個以空白分隔的按鈕組成.
+  序列由一個或多個空白分隔的按鈕組成.
   自動鍵入在「等待」秒數後開始, 於每個「間距」秒數再將每項按鈕輸入.
   一個逗號 , 字元額外插入一段「間距」的延遲.
   
@@ -4190,7 +4185,7 @@ MONO 必須是 + 或 -: %s
 不能開啟檔案
 .
 :PROGRAM_BIOSTEST_TOO_LARGE
-BIOS 檔案過大
+BIOS 檔案太大
 .
 :PROGRAM_DELTREE_HELP
 刪除目錄以及當中的所有子目錄和檔案.
@@ -4201,7 +4196,7 @@ DELTREE [/Y] [磁碟機:]路徑 [[磁碟機:]路徑[...]]
   /Y               刪除子目錄時不進行確認.
   [磁碟機:]路徑    指定要刪除的目錄名稱.
 
-附註: 小心使用 DELTREE. 指定目錄中的每個檔案和子目錄都會被刪除.
+備註: 小心使用 DELTREE. 指定目錄中的每個檔案和子目錄都會被刪除.
 
 .
 :PROGRAM_TREE_HELP
@@ -4228,7 +4223,7 @@ COLOR [屬性]
 
   屬性        指定主控台輸出的色彩屬性
   
-色彩屬性由十六進位的「兩位數」數字來指定 -- 第一位數對應到背景色;
+色彩屬性由十六進位的「兩位」數字來指定 -- 第一位數對應到背景色;
 第二位數對應到前景色. 每一位數可以是下列的任一個值:
 
     0 = 黑色        8 = 灰色
@@ -4314,16 +4309,16 @@ RAM 軟碟映像
 您還要掛載更多的映像檔嗎?
 .
 :PROGRAM_MOUNT_PATH_TOOLONG
-被掛載的檔案路徑過長.
+被掛載的檔案路徑太長.
 .
 :PROGRAM_BOOT_FAILED
-磁碟機 %s: 無法開機.
+磁碟機 %s: 開機失敗.
 .
 :PROGRAM_MOUNT_FAILED
-磁碟機 %s: 無法掛載.
+磁碟機 %s: 掛載失敗.
 .
 :PROGRAM_MOUNT_IMAGE
-已掛載%s到磁碟機 %s:
+已掛載 %s 到磁碟機 %s:
 %s %s
 .
 :ARCHIVE
@@ -4336,7 +4331,7 @@ RAM 軟碟映像
 唯讀模式
 .
 :PROGRAM_MOUNT_SELECT_DRIVE
-替磁碟機 %s 選擇一個要掛載的磁碟機/目錄: 呈現為 %s
+替磁碟機 %s 選擇一個要掛載的磁碟機/目錄: 作為 %s
 .
 :PROGRAM_MOUNT_CDROM_SUPPORT
 將目錄掛載為光碟機時提供有限支援.
@@ -4377,16 +4372,16 @@ C 槽已經被掛載. 您還要繼續嗎?
 現在您想要自動變更報告的 DOS 版本為 %s 以及掛載這個磁碟映像嗎?
 .
 :MENU_DRIVE_NOTEXIST
-磁碟機不存在, 或者是從磁碟映像掛載.
+磁碟機不存在, 或是已從磁碟映像掛載.
 .
 :MENU_SAVE_IMAGE_FAILED
 無法儲存磁碟映像.
 .
 :MENU_JP_CPONLY
-此功能只適用於日文的字碼頁 (932).
+此功能只適用於日文字碼頁 (932).
 .
-:MENU_CH_CPONLY
-此功能只適用於中文的字碼頁 (936、950、或 951).
+:MENU_CN_CPONLY
+此功能只適用於中文字碼頁 (936 或 950).
 .
 :MENU_GLIDE_ERROR
 不能啟用 Glide 直通. 檢查 Glide wrapper 安裝.
@@ -4444,47 +4439,1026 @@ INT 2Fh 勾點早已被設定.
 :LANG_CHANGE_CP
 指定的語言檔案使用字碼頁 %d. 您想要字碼頁也跟著變更嗎?
 .
-:SCALER_LOAD_WARN
-此縮放器可能不能正常運作、或有非預期的效果:
-
-%s
-
-您要強制載入縮放器嗎?
+:CHEAT_NAME_ERROR
+進入金手指模式必須指定專案名稱
 .
-:PIXEL_SHADER_WARN
-此像素著色器可能非必要、或有非預期的效果:
-
-%s
-
-您仍然要載入像素著色器嗎?
-
-(您可以在 pixelshader 的設定值後方加上 'forced' 來強制載入像素著色器並略過此訊息)
+:CHEAT_CMD_NOT_FOUND
+金手指模式沒有這個指令
 .
-:PIXEL_SHADER_LOADED
-已載入像素著色器 - %s
+:CHEAT_HELP_NOT_FOUND
+沒有關於這個指令的詳細說明
 .
-:MAPPEREDITOR_NOT_AVAILABLE
-對應表編輯器目前不能用.
+:CHEAT_CREATEDIR_ERROR
+無法建立金手指資料夾
 .
-:OPL_REC_COMPLETED
-Raw OPL 的輸出已存檔:
-
-%s
+:CHEAT_HELP_HELP
+HELP [CHEAT COMMANDS]   : 本指令
 .
-:OPL_CAPTURE_FAILED
-目前應用程式正在使用 ESFM 原生模式, 這種模式不被 Raw OPL 格式支援, 所以不能擷取 Raw OPL 的輸出.
+:CHEAT_HELP_SM
+SM   搜尋模式           : 搜尋模式, 可為BYTE, WORD, DWORD或1, 2, 4
 .
-:TTF_DBCS_ONLY
-此功能只適用於中文/日文/韓文的字碼頁.
+:CHEAT_HELP_SEG
+SEG  起始段位址         : 設定搜尋段位址, 可用CS, DS, ES, 0代表線性位址
 .
-:SAVE_FAILED
-無法儲存目前狀態.
+:CHEAT_HELP_OFF
+OFF  起始偏移位址       : 設定搜尋偏移位址(64KB或記憶體上限)
 .
-:SAVE_CORRUPTED
-儲存狀態已損壞! 程式可能不能運作.
+:CHEAT_HELP_SL
+SL   搜尋長度           : 搜尋長度(單位:BYTE)
 .
-:SAVE_SCREENSHOT
-螢幕抓圖已存檔:
-
-%s
+:CHEAT_HELP_D
+D    位址               : 在DATA VIEW從"SEG:OFF+位址"開始顯示記憶體資料
+.
+:CHEAT_HELP_DV
+DV   位址               : 在DATA VIEW從"OFF+位址"開始顯示記憶體資料(線性位址)
+.
+:CHEAT_HELP_S
+S    數值               : 以指定的模式及長度搜尋數值
+.
+:CHEAT_HELP_L
+L    [位址] [MODE]      : 以SEG:OFF為基底, 列出指定位址的值, 可以指定MODE
+.
+:CHEAT_HELP_TL
+TL                      : 列出暫存區前10筆內容
+.
+:CHEAT_HELP_TD
+TD   編號               : 手動刪除暫存區特定資料
+.
+:CHEAT_HELP_TW
+TW   數值 [編號]        : 將數值寫入暫存區對應的記憶體位址, 未指定時默認為1
+.
+:CHEAT_HELP_TS
+TS   名稱               : 將搜尋暫存區存入指定檔案
+.
+:CHEAT_HELP_TR
+TR   名稱               : 將指定檔案讀入搜尋暫存區
+.
+:CHEAT_HELP_A
+A    紀錄說明           : 搜尋結果寫入資料區, 只在暫存區只剩1筆資料時才可使用
+.
+:CHEAT_HELP_R
+R    紀錄編號           : 列出記錄區所有資料, 若有指定紀錄編號會列印該編號詳細資料
+.
+:CHEAT_HELP_WR
+WR   數值 紀錄編號      : 將指定數值寫入記憶體, 需指定紀錄編號
+.
+:CHEAT_HELP_CLS
+CLS                     : 清除暫存區
+.
+:CHEAT_HELP_SAVE
+SAVE                    : 將記錄區資料存入專案檔
+.
+:CHEAT_HELP_MM
+MM   記憶體模式         : 記憶體操作模式, 可為BYTE, WORD, DWORD或1, 2, 4
+.
+:CHEAT_HELP_MSEG
+MSEG 段位址             : 設定記憶體模式段位址, 可用CS, DS, ES, 0代表線性位址
+.
+:CHEAT_HELP_MOFF
+MOFF 偏移位址           : 設定記憶體模式偏移位址(64KB或記憶體上限)
+.
+:CHEAT_HELP_MD
+MD                      : 根據記憶體模式設定的位址在DATA VIEW中顯示
+.
+:CHEAT_HELP_MR
+MR                      : 根據記憶體模式設定的位址及模式顯示其值
+.
+:CHEAT_HELP_MW
+MW   值                 : 將指定值寫入記憶體模式設定的位址
+.
+:CHEAT_HELP_MA
+MA   說明               : 將記憶體模式設定的位址加入資料區
+.
+:CHEAT_HELP_SNAP
+SNAP                    : 建立記憶體快照
+.
+:CHEAT_HELP_SU
+SU   [差異值]           : 搜尋 現值 > 快照值 的位置, 可指定差異值
+.
+:CHEAT_HELP_SD
+SD   [差異值]           : 搜尋 現值 < 快照值 的位置, 可指定差異值
+.
+:CHEAT_HELP_SS
+SS   指定值             : 搜尋暫存區儲存的值與指定值相等者
+.
+:CHEAT_HELP_CVT
+CVT  10或16進位值       : 轉換10進位成16進位，或是將16進位轉換成10進位
+.
+:CHEAT_HELP_EXIT
+EXIT                    : 離開金手指模式
+.
+:CHEAT_HELP_HELP1
+   進入金手指模式之後, 所有指令中以 0x 開頭的數值或位址皆為16進位數, 所有非 0x
+.
+:CHEAT_HELP_HELP2
+ 開頭的數值皆為10進位, 目前暫不支援其他進位, 無論16進位或10進位數值出現非法字
+.
+:CHEAT_HELP_HELP3
+元會讓這個值變成0 , 所有指令及其參數皆不分大小寫, 以下為本指令範例
+.
+:CHEAT_HELP_HELP4
+    HELP HELP
+.
+:CHEAT_HELP_HELP5
+遊戲中按Alt+Pause或開啟debug 選單點選第一項可進入debug 模式, 在debug 視窗最底
+.
+:CHEAT_HELP_HELP6
+下為指令行, 在此處輸入"cheat 專案名稱"可進入cheat 模式, cheat 模式會在dosbox-x
+.
+:CHEAT_HELP_HELP7
+所在位置建立一個cheat 資料夾, cheat 模式中有執行任何需要儲存的指令時會在cheat 
+.
+:CHEAT_HELP_HELP8
+資料夾底下建立"專案名稱"資料夾, 在cheat 模式輸入"help"可以看到所有指令的簡易說
+.
+:CHEAT_HELP_HELP9
+明, 輸入"help 指令" 可看到該指令的詳細說明, cheat 模式中按[F5]可以讓遊戲繼續執
+.
+:CHEAT_HELP_HELP10
+行
+.
+:CHEAT_HELP_HELP11
+正常的搜尋流程如下
+.
+:CHEAT_HELP_HELP12
+    1. SM  模式       #設定搜尋模式
+.
+:CHEAT_HELP_HELP13
+    2. SEG 段位址     #設定段位址
+.
+:CHEAT_HELP_HELP14
+    3. OFF 偏移位址   #沒必要不要改
+.
+:CHEAT_HELP_HELP15
+    4. SL  搜尋長度   #沒必要不要改
+.
+:CHEAT_HELP_HELP16
+    5. S   數值       #搜尋你要的資料, 可能需搜尋好幾次
+.
+:CHEAT_HELP_HELP17
+    6. TW  數值 編號  #寫入數值測試
+.
+:CHEAT_HELP_HELP18
+    7. A   自定說明   #將暫存區存入正式紀錄區(暫存區剩一筆時才可執行)
+.
+:CHEAT_HELP_HELP19
+    8. CLS            #清除暫存區
+.
+:CHEAT_HELP_SM1
+  預設搜尋模式為WORD, 各種模式的值域如下: 
+.
+:CHEAT_HELP_SM2
+    BYTE:0~255, WORD:0-65535, DWORD:0~4294967295 
+.
+:CHEAT_HELP_SM3
+你應該根據遊戲角色屬性的最大數值來決定使用哪一種模式, 比如說金錢, 如果他的最大
+.
+:CHEAT_HELP_SM4
+值可能超過65535那麼你應該毫不考慮將搜尋模式設定成DWORD, 這樣應該很快就能找到儲
+.
+:CHEAT_HELP_SM5
+存金錢數值的記憶體位址, 大部分遊戲不會以負值儲存數值, 所以暫不考慮負數, BYTE模
+.
+:CHEAT_HELP_SM6
+式可能會有過多搜尋結果, 所以不建議使用BYTE模式搜尋, 本指令範例
+.
+:CHEAT_HELP_SM7
+    SM DWORD     #將搜尋模式設定為DOUBLE WORD
+.
+:CHEAT_HELP_SM8
+    SM 4         #將搜尋模式設定為DOUBLE WORD
+.
+:CHEAT_HELP_SM9
+    SM BYTE      #將搜尋模式設定為BYTE
+.
+:CHEAT_HELP_SM10
+    SM 1         #將搜尋模式設定為BYTE
+.
+:CHEAT_HELP_SM11
+    SM           #將搜尋模式設定為WORD
+.
+:CHEAT_HELP_SM12
+    SM 2         #將搜尋模式設定為WORD
+.
+:CHEAT_HELP_SM13
+    SM WORD      #將搜尋模式設定為WORD
+.
+:CHEAT_HELP_SEG1
+  80x86 CPU使用 "段: 偏移位址" 來指向真實記憶體位址, 無論段及偏移位址都是16位
+.
+:CHEAT_HELP_SEG2
+元大小, 真實位址採用 "段*16+偏移" 的方式來計算, 使用者無需了解如何計算真實位址
+.
+:CHEAT_HELP_SEG3
+, 但遊戲可能會用DS, ES或CS暫存器指向儲存角色數值的區域, 所以在搜尋前您必須把
+.
+:CHEAT_HELP_SEG4
+SEG 指向DS, ES或CS暫存器, 如果您不知道遊戲資料所在區段, 把SEG 設定成0, 這樣就
+.
+:CHEAT_HELP_SEG5
+可以使用線性記憶模式模式, 可搜尋整個記憶體範圍, 但這樣會大幅增加搜尋範圍, 所以
+.
+:CHEAT_HELP_SEG6
+請盡量使用 "段:偏移位址" 方式搜尋, 指令範例如下
+.
+:CHEAT_HELP_SEG7
+    SEG ES      # 把段位址設定成隨ES暫存器變動
+.
+:CHEAT_HELP_SEG8
+    SEG 0x9117  # 把段位址設定成16進位數0x9117
+.
+:CHEAT_HELP_SEG9
+    SEG 0       # 使用線性位址, 忽略段暫存器
+.
+:CHEAT_HELP_SEG10
+將SEG 值設定成隨DS, ES, CS暫存器變動會有風險, 因為遊戲執行過程中很可能會改變這
+.
+:CHEAT_HELP_SEG11
+些暫存器的值, 有可能在搜尋階段時他們指向正確的位址且讓你搜尋到正確的偏移位址, 
+.
+:CHEAT_HELP_SEG12
+隨者遊戲繼續執行它們可能會指向其他位址, 此時你先前搜尋到的偏移位址已無作用, 所
+.
+:CHEAT_HELP_SEG13
+以建議設定SEG 值時參考DEBUG 畫面最上方, 他會顯示DS, ES暫存器的值, 這些值為16進
+.
+:CHEAT_HELP_SEG14
+位, 參考這些值之後再使用SEG 指令設定正確的段位址而定, 如果遊戲進入保護模式, 
+.
+:CHEAT_HELP_SEG15
+SEG 值一定要設成0 , 設定成其他值無效, 搜尋長度依照DOSBOX-X設定檔裡面設定的記憶
+.
+:CHEAT_HELP_SEG16
+體大小而定
+.
+:CHEAT_HELP_SEG17
+如果你對於暫存器實在沒有概念, 也完全不知道到底要用DS, ES, 還是CS暫存器, 你可以
+.
+:CHEAT_HELP_SEG18
+直接將SEG 的值設定為0 , 這樣將大幅增加搜尋長度, 好處是你絕對找得到你所要的目標
+.
+:CHEAT_HELP_SEG19
+, 除非遊戲使用編碼手段儲存角色屬性, 這就不是本程式可以解決的問題了
+.
+:CHEAT_HELP_OFF1
+  除非你已經知道搜尋目標所在的記憶體位址在哪裡才需要設定這個值, 一般讓他維持預
+.
+:CHEAT_HELP_OFF2
+設值為0 即可, 指令範例如下
+.
+:CHEAT_HELP_OFF3
+	  OFF 0xEB00     # 將偏移位址設定為0xEB00
+.
+:CHEAT_HELP_OFF4
+除非你知道你在做甚麼，不然不建議設定偏移位址, 讓他保持為0 即可
+.
+:CHEAT_HELP_SL1
+  系統會根據你所設定的搜尋條件來設定搜尋長度, 除非你確實知道所要的搜尋範圍, 不
+.
+:CHEAT_HELP_SL2
+然不須修改這個值, 指令範例如下
+.
+:CHEAT_HELP_SL3
+    SL 0x10000  #將搜尋長度設定成64KB
+.
+:CHEAT_HELP_SL4
+當SEG 值不為0 時，搜尋長度預設為64KB, 當SEG 值為0 時， 搜尋長度為640KB或1088KB
+.
+:CHEAT_HELP_SL5
+, 以上依是否有開啟HI MEMORY而定, 如果遊戲進入保護模式, SEG 值一定要設成0 , 設
+.
+:CHEAT_HELP_SL6
+定成其他值無效, 搜尋長度依照DOSBOX-X設定檔裡面設定的記憶體大小而定
+.
+:CHEAT_HELP_D1
+  有時搜尋到最後可能會只剩幾筆符合條件的資料, 你可以使用這個指令指定要顯示在
+.
+:CHEAT_HELP_D2
+Data view 的記憶體區段輔助判斷, 你只要提供搜尋指令提供給你的位址作為參數即可, 
+.
+:CHEAT_HELP_D3
+系統會自動幫你計算實際的記憶體位址, 假設以下是我某次搜尋顯示的內容
+.
+:CHEAT_HELP_D4
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_D5
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_D6
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_D7
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_D8
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_D9
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_D10
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_D11
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_D12
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_D13
+如果你想看第2 筆附近的記憶體狀況, 你可以下達以下指令
+.
+:CHEAT_HELP_D14
+    D 0xEB00
+.
+:CHEAT_HELP_D15
+這樣Data view就會從0xEB00開始顯示資料, 也許你會奇怪, 第2 筆的位址明明是0xEB0E,
+.
+:CHEAT_HELP_D16
+ 我為什麼要從0xEB00開始顯示? 我這樣做是希望所有顯示都位址都在最後一碼向0 對齊,
+.
+:CHEAT_HELP_D17
+ 這樣當你發現附近記憶體有你感興趣的資料時要計算它的位址時會比較好計算
+.
+:CHEAT_HELP_DV1
+  有時搜尋到最後可能會只剩幾筆符合條件的資料, 你可以使用這個指令以線性記憶體模
+.
+:CHEAT_HELP_DV2
+式指定要顯示在Data view 的記憶體區段輔助判斷, 此時你提供的位址即為線性記憶體, 
+.
+:CHEAT_HELP_DV3
+系統會忽略段位址的值, 線性記憶體最大值理論上為 4GB, 但實際上還是要依照你在
+.
+:CHEAT_HELP_DV4
+dosbox-x設定檔設定的記憶體大小決定的, 指令範例如下
+.
+:CHEAT_HELP_DV5
+    DV 0x100000  #顯示1024KB之後開始的記憶體內容
+.
+:CHEAT_HELP_DV6
+如果遊戲進入保護模式時, 因為保護模式會忽略段位址的值, 所以你必須使用DV指令才能
+.
+:CHEAT_HELP_DV7
+正確顯示記憶體內容
+.
+:CHEAT_HELP_S1
+  當你設定好搜尋模式, 段位址, 偏移位址, 搜尋長度之後就可以使用這個指令來搜尋指
+.
+:CHEAT_HELP_S2
+定的數值, 搜尋結果會顯示在Output視窗, 系統只會顯示前10筆搜尋到的記憶體位址, 因
+.
+:CHEAT_HELP_S3
+為結果超過10筆以上時, 表示你還要進一步搜尋才能找到正確目標, 搜尋到只剩 1筆時可
+.
+:CHEAT_HELP_S4
+停止搜尋, 搜尋到每次的結果都一樣時也可停止搜尋, 使用進一步指令測試搜尋結果是否
+.
+:CHEAT_HELP_S5
+正確, 指令範例如下
+.
+:CHEAT_HELP_S6
+    s 100000 #表示要搜尋十萬
+.
+:CHEAT_HELP_S7
+假設你在遊戲中的金錢數值為100000, 第一次採用s 100000搜尋, 搜尋之後可能會有許多
+.
+:CHEAT_HELP_S8
+結果, 按F5按鍵繼續進行遊戲, 當你在遊戲中有改變金錢數值時, 再次進入debug 模式搜
+.
+:CHEAT_HELP_S9
+尋改變後的金額, 假設改變後的金額為 94000, 你可以使用以下指令進行搜尋
+.
+:CHEAT_HELP_S10
+    s 94000  #從上一次的結果中搜尋94000
+.
+:CHEAT_HELP_S11
+如果只剩 1筆結果代表很有可能這就是你要的目標, 如果還有 1筆以上的結果, 按F5繼續
+.
+:CHEAT_HELP_S12
+遊戲, 等遊戲中的金錢有改變時再搜尋一次, 直到只剩 1個結果或是每次的結果都相同為
+.
+:CHEAT_HELP_S13
+止, 以下是某次搜尋結果的範例
+.
+:CHEAT_HELP_S14
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_S15
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_S16
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_S17
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_S18
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_S19
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_S20
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_S21
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_S22
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_S23
+搜尋結果說明, 編號 : 10進位位址 <==> 16進位位址, Value = 搜尋數值
+.
+:CHEAT_HELP_L1
+  想知道某個位址儲存的值是多少可以使用這個指令確認, 很多遊戲角色的相關屬性都存
+.
+:CHEAT_HELP_L2
+在同一塊記憶體附近, 當你已經確認某個屬性的記憶體位址時, 建議用D 或DV指令修改
+.
+:CHEAT_HELP_L3
+Data view 視窗顯示指定記憶體區塊的資料, 在該位址附近找看看, 也許可以找到其他屬
+.
+:CHEAT_HELP_L4
+性的記憶體位址, 由於Data view 以16進位顯示, 使用這個指令可以10進位顯示該位址的
+.
+:CHEAT_HELP_L5
+值, 以下是我使用指令D 0XEB00之後再Data view顯示的部分內容
+.
+:CHEAT_HELP_L6
+    9117:0000EB00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 A0 86
+.
+:CHEAT_HELP_L7
+    9117:0000EB10 01 00 A0 86 01 00 00 00 00 00 00 00 00 00 64 00
+.
+:CHEAT_HELP_L8
+    9117:0000EB20 00 00 00 00 00 00 00 00 00 00 00 00 01 00 64 00
+.
+:CHEAT_HELP_L9
+    9117:0000EB30 00 00 00 00 00 00 00 00 00 00 00 00 9A 01 19 00
+.
+:CHEAT_HELP_L10
+    9117:0000EB40 23 00 1E 00 2D 00 3C 00 CD 01 01 03 00 00 0A 00
+.
+:CHEAT_HELP_L11
+第二行的9117:0000EB10是段位址:偏移位址, 該行第一個值是16進位的0x01, 這裡的偏移
+.
+:CHEAT_HELP_L12
+位址是0xEB10, 往右一格是0xEB11, 依此類推, 本行最後一個位址是0xEB1F, 每行佔據16
+.
+:CHEAT_HELP_L13
+個位元組, 請注意第一行末尾的0xA0, 0x86, 0x01, 0x00這四個位元組, 這一行的開頭位
+.
+:CHEAT_HELP_L14
+址是0xEB00, 所以0xA0的位址就是0xEB0E, 當我使用
+.
+:CHEAT_HELP_L15
+    L 0xEB0E BYTE
+.
+:CHEAT_HELP_L16
+代表我要用BYTE模式解讀這個位址的值, 你會看到Output列出
+.
+:CHEAT_HELP_L17
+    Memory EB0E value is 160    #16進位是0xA0
+.
+:CHEAT_HELP_L18
+使用L 0xEB0E WORD會看到
+.
+:CHEAT_HELP_L19
+    Memory EB0E value is 34464  #16進位是0x86A0
+.
+:CHEAT_HELP_L20
+使用L 0xEB0E DWORD會看到
+.
+:CHEAT_HELP_L21
+    Memory EB0E value is 100000 #16進位是0x000186A0
+.
+:CHEAT_HELP_L22
+註1: 此處是以我執行的遊戲解說, 你執行的遊戲和我不一樣絕不會看到一樣的結果
+.
+:CHEAT_HELP_L23
+註2: 使用指令L 0xEB0E時, 後面沒有指定模式時, 系統會用SM指令設定的模式當作模式
+.
+:CHEAT_HELP_L24
+預設值
+.
+:CHEAT_HELP_TL1
+  當你搜尋過後又做了其他操作, 可能會看不到之前顯示的搜尋結果, 或者你剛剛載入一
+.
+:CHEAT_HELP_TL2
+個你之前未完成的一個搜尋暫存區, 你可以用這個指令顯示其前10筆資料, 指令沒有任何
+.
+:CHEAT_HELP_TL3
+參數, 只要輸入指令按[ENTER] 執行即可
+.
+:CHEAT_HELP_TD1
+  當你搜尋到最後只剩幾筆資料, 且經過測試已確認有哪幾筆資料無用, 可以使用這指令
+.
+:CHEAT_HELP_TD2
+刪除它, 指令範例如下
+.
+:CHEAT_HELP_TD3
+    TD 2     #刪除暫存區第2筆資料
+.
+:CHEAT_HELP_TW1
+  當你搜尋到只剩幾筆甚至一筆結果時, 你可能需要嘗試修改記憶體內容並返回遊戲檢視
+.
+:CHEAT_HELP_TW2
+是否已成功修改, 此時你可以使用這個指令, 使用範例如下
+.
+:CHEAT_HELP_TW3
+假設搜尋結果如下
+.
+:CHEAT_HELP_TW4
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_TW5
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_TW6
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_TW7
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_TW8
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_TW9
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_TW10
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_TW11
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_TW12
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_TW13
+以下指令將第二筆改成200000, 若沒有最後一個參數則會修改第一筆
+.
+:CHEAT_HELP_TW14
+    TW 200000 2
+.
+:CHEAT_HELP_TW15
+返回遊戲後如果發現沒有達到你要的效果, 記得改回來
+.
+:CHEAT_HELP_TW16
+    TW 100000 2
+.
+:CHEAT_HELP_TW17
+返回遊戲發現遊戲屬性已改變成你要的數值, 使用TD指令刪除多餘的搜尋結果直到只剩這
+.
+:CHEAT_HELP_TW18
+一筆
+.
+:CHEAT_HELP_TS1
+  將搜尋設定及搜尋暫存區存入指定名稱的檔案裏面, 檔案會放在 "cheat/專案" 資料夾
+.
+:CHEAT_HELP_TS2
+, 檔名為 "名稱.tmp" , 這個指令的使用時機是當游戲開始時, 如果你有多個目標需要搜
+.
+:CHEAT_HELP_TS3
+尋, 你可以做好搜尋設定, 使用s 指令搜尋後立刻使用這個指令儲存搜尋設定及暫存區, 
+.
+:CHEAT_HELP_TS4
+使用cls 清除暫存區並做好下一個目標的搜尋設定且使用s 指令搜尋後再儲存起來, 指令
+.
+:CHEAT_HELP_TS5
+的範例如下
+.
+:CHEAT_HELP_TS6
+    TS CASH
+.
+:CHEAT_HELP_TS7
+會將此時的設定及暫存區存入CASH.tmp檔案裏面
+.
+:CHEAT_HELP_TR1
+  讀取暫存區的資料以繼續搜尋, 暫存區的資料都放在 "cheat/專案" 資料夾, 請自行開
+.
+:CHEAT_HELP_TR2
+啟該資料夾檢視有哪些暫存區資料可讀取, 指令範例如下
+.
+:CHEAT_HELP_TR3
+    TR CASH
+.
+:CHEAT_HELP_A1
+  當暫存區只剩一筆資料且經過測試確定這是正確的位址時, 可以使用這個指令將暫存區
+.
+:CHEAT_HELP_A2
+加入正式資料記錄區, 加入時需指定紀錄說明, 範例如下
+.
+:CHEAT_HELP_A3
+    A CASH
+.
+:CHEAT_HELP_A4
+只有在暫存區僅剩一筆資料且經過測試確定這是正確的位址時才能做這個動作, 因為
+.
+:CHEAT_HELP_A5
+debug 模式的指令輸入區無法切換輸入法, 所以紀錄說明僅能輸入鍵盤能輸入的原始字元
+.
+:CHEAT_HELP_A6
+, 必要時可在存檔之後使用文字編輯軟體打開專案檔, 記錄區的每一筆紀錄皆以記錄說明
+.
+:CHEAT_HELP_A7
+開頭且使用` 作為分隔符號, 你可以編輯` 符號之前的說明內容, 改成你想要的語系說明
+.
+:CHEAT_HELP_A8
+, 注意說明內容絕不能使用` 符號, 否則會破壞專案檔的完整性
+.
+:CHEAT_HELP_R1
+  列出正式紀錄區有哪些資料, 如果你有使用文字編輯器將說明編輯成其他語言, 此時說
+.
+:CHEAT_HELP_R2
+明文字會使用你編輯後的語言顯示, 範例如下
+.
+:CHEAT_HELP_R3
+    R
+.
+:CHEAT_HELP_R4
+使用這個指令會列出紀錄區所有資料
+.
+:CHEAT_HELP_R5
+    R 2
+.
+:CHEAT_HELP_R6
+使用這個指令會列出紀錄區第二筆資料的詳細內容
+.
+:CHEAT_HELP_WR1
+  資料存入正式紀錄區之後, 可以直接使用這個指令修改其值,  一般先使用R 指令列出
+.
+:CHEAT_HELP_WR2
+有哪些紀錄且確定目標的紀錄編號是多少? 然後再使用這個指令修改, 範例如下
+.
+:CHEAT_HELP_WR3
+    WR 200000 1
+.
+:CHEAT_HELP_WR4
+假設第一筆紀錄內容為現金, 這個指令可以將現金修改成200000
+.
+:CHEAT_HELP_CLS1
+  清除暫存區準備做下一次的搜尋, 範例如下
+.
+:CHEAT_HELP_CLS2
+    CLS
+.
+:CHEAT_HELP_SAVE1
+  將正式紀錄區資料存入專案檔, 資料放在 "cheat/專案" 資料夾, 檔名為 "專案.prj",
+.
+:CHEAT_HELP_SAVE2
+ 範例如下
+.
+:CHEAT_HELP_SAVE3
+    SAVE
+.
+:CHEAT_HELP_SAVE4
+在debug 模式使用 "cheat 專案名稱" 指令進入金手指模式時, 會自動讀取之前儲存的紀
+.
+:CHEAT_HELP_SAVE5
+錄, 並在output區顯示讀取幾筆紀錄
+.
+:CHEAT_HELP_MM1
+  從這個指令開始進入記憶體操作模式, 所有指令皆以M 開頭, 此模式可以直接操作記憶
+.
+:CHEAT_HELP_MM2
+體內容, 此模式的使用時機為遊戲很可能將重要的數值都放在一起, 當你確定某個目標之
+.
+:CHEAT_HELP_MM3
+後可以讓data view 顯示這個區塊的記憶體內容, 檢視之後有可能會發現附近的記憶體存
+.
+:CHEAT_HELP_MM4
+著你所要的其他目標, 此時可以使用記憶體操作模式的一連串指令測試結果, 等確認後就
+.
+:CHEAT_HELP_MM5
+可以直接將結果加入正式紀錄區, 這個指令式的用途是設定記憶體模式的基礎資料大小, 
+.
+:CHEAT_HELP_MM6
+範例如下
+.
+:CHEAT_HELP_MM7
+    MM 1
+.
+:CHEAT_HELP_MM8
+    MM BYTE
+.
+:CHEAT_HELP_MM9
+以上將記憶體模式設定成BYTE
+.
+:CHEAT_HELP_MM10
+    MM 2
+.
+:CHEAT_HELP_MM11
+    MM WORD
+.
+:CHEAT_HELP_MM12
+以上將記憶體模式設定成WORD
+.
+:CHEAT_HELP_MM13
+    MM 4
+.
+:CHEAT_HELP_MM14
+    MM DWORD
+.
+:CHEAT_HELP_MM15
+以上將記憶體模式設定成DWORD
+.
+:CHEAT_HELP_MSEG1
+  設定記憶體模式的段位址, 可以直接使用CS, DS, ES取代實際數值, 由於遊戲執行過程
+.
+:CHEAT_HELP_MSEG2
+可能會隨時改變這幾個暫存器的數值, 所以極度不推薦使用這三個暫存器來設定段位址, 
+.
+:CHEAT_HELP_MSEG3
+應該使用實際數值來設定段位址, 你可以在debug 模式視窗的最上方看到這幾個暫存器的
+.
+:CHEAT_HELP_MSEG4
+實際數值, 範例如下
+.
+:CHEAT_HELP_MSEG5
+    MSEG ES
+.
+:CHEAT_HELP_MSEG6
+讓段位址指向ES暫存器
+.
+:CHEAT_HELP_MSEG7
+    MSEG 0X9117
+.
+:CHEAT_HELP_MSEG8
+讓段位址指向0x9117, 會設定成這個數值是因為我看到ES暫存器的目前數值是0x9117, 所
+.
+:CHEAT_HELP_MSEG9
+以我以實際數值取代ES暫存器
+.
+:CHEAT_HELP_MOFF1
+  設定記憶體模式的偏移位址, 和搜尋時把偏移位址設定成0 時不一樣, 這裡需要把偏移
+.
+:CHEAT_HELP_MOFF2
+位址設定成已確定目標的記憶體位址, 然後使用MD指令讓DATA VIEW 視窗顯示這個區段的
+.
+:CHEAT_HELP_MOFF3
+位址, 然後觀察一下附近記憶體的值是否與遊戲角色的某個屬性相同, 假設我使用以下一
+.
+:CHEAT_HELP_MOFF4
+系列指令設定記憶體模式, 此例為我執行中的某個遊戲的狀況, 你執行的遊戲與我不同, 
+.
+:CHEAT_HELP_MOFF5
+你應該以你的遊戲狀況來設定資料
+.
+:CHEAT_HELP_MOFF6
+    MM   DWORD
+.
+:CHEAT_HELP_MOFF7
+    MSEG 0x9117
+.
+:CHEAT_HELP_MOFF8
+    MOFF 0xEB0E
+.
+:CHEAT_HELP_MOFF9
+    MD
+.
+:CHEAT_HELP_MOFF10
+你會在debug 視窗看到以下幾行內容
+.
+:CHEAT_HELP_MOFF11
+    9117:0000EB0E A0 86 01 00 A0 86 01 00 00 00 00 00 00 00 00 00
+.
+:CHEAT_HELP_MOFF12
+    9117:0000EB1E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+.
+:CHEAT_HELP_MOFF13
+    9117:0000EB2E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 9A 01
+.
+:CHEAT_HELP_MOFF14
+    9117:0000EB3E 19 00 23 00 1E 00 2D 00 3C 00 CD 01 01 03 00 00
+.
+:CHEAT_HELP_MOFF15
+遊戲中另外一個屬性值為100 , 換算成16進位值為0x64, 你可以看到0xEB1E及0xEB2E的值
+.
+:CHEAT_HELP_MOFF16
+皆為
+.
+:CHEAT_HELP_MOFF17
+    64 00 00 00
+.
+:CHEAT_HELP_MOFF18
+此屬性值較小, 所以推測他的屬性應該為WORD, 使用以下兩個指令更改位址
+.
+:CHEAT_HELP_MOFF19
+    MM   2
+.
+:CHEAT_HELP_MOFF20
+    MOFF 0xEB2E  #已經試驗過確定是這個位址
+.
+:CHEAT_HELP_MOFF21
+後續的做法請看MD, MR, MS, MA指令說明
+.
+:CHEAT_HELP_MW1
+  根據設定好的MM, MSEG, MOFF等參數, 將指定的值寫入記憶體, 寫入後按[F5]繼續執行
+.
+:CHEAT_HELP_MW2
+遊戲以確定該位址是否正確, 執行前務必記住原記憶體位址的值, 如發現寫入值沒有作用
+.
+:CHEAT_HELP_MW3
+, 記得再次進入debug 模式把原來的數值改回來, 範例如下
+.
+:CHEAT_HELP_MW4
+    MW 3000
+.
+:CHEAT_HELP_MW5
+如果MM模式為BYTE , 會影響1 個位元組, 寫入值為3000除以       256的餘數
+.
+:CHEAT_HELP_MW6
+如果MM模式為WORD , 會影響2 個位元組, 寫入值為3000除以     63356的餘數
+.
+:CHEAT_HELP_MW7
+如果MM模式為DWORD, 會影響4 個位元組, 寫入值為3000除以4294967295的餘數
+.
+:CHEAT_HELP_MA1
+  如果確定此設定是你所要的目標, 使用此指令將設定存入正式紀錄區, 存入後記得使用
+.
+:CHEAT_HELP_MA2
+SAVE指令存進專案檔, 範例如下
+.
+:CHEAT_HELP_MA3
+    MA 說明
+.
+:CHEAT_HELP_MA4
+說明只能輸入原始鍵盤設定語言所能輸入的字元, 有需要可使用文字編輯軟體開啟專案檔
+.
+:CHEAT_HELP_MA5
+修改說明文字, 說明文字不可使用` 字元, 該字元為欄位分隔字元, 除非你知道自己在做
+.
+:CHEAT_HELP_MA6
+甚麼, 不然不要修改到其他欄位的資料, 專案檔務必使用UTF-8 Without BOM格式儲存
+.
+:CHEAT_HELP_SNAP1
+  如果你實在沒有搜尋的概念, 可以使用Snap模式, 注意, 如果目前在搜尋模式或Snap模
+.
+:CHEAT_HELP_SNAP2
+式之下, 使用此指令無效, 執行此指令之前請用SM, SEG, OFF設定好搜尋模式, 進入Snap
+.
+:CHEAT_HELP_SNAP3
+模式之後就不能改了, 指令範例如下
+.
+:CHEAT_HELP_SNAP4
+    SNAP
+.
+:CHEAT_HELP_SNAP5
+如果有設定SEG 的值, 執行這個指令之後, 金手指會將目前段的64KG記憶體狀態存進一個
+.
+:CHEAT_HELP_SNAP6
+暫存檔案供未來比對, 如果設定的SEG 值為0 , 金手指會將目前所有記憶體狀態存進暫存
+.
+:CHEAT_HELP_SNAP7
+檔, 如果你要執行的遊戲是DOS 模式下的遊戲且會進入保護模式, 如DOOM, 建議你將記憶
+.
+:CHEAT_HELP_SNAP8
+體大小設定成4M, DOSBOX-X記憶體預設值為16M , 這樣會大幅增加暫存檔大小
+.
+:CHEAT_HELP_SU1
+  進入Snap模式之後繼續執行遊戲, 如果你想要搜尋的數值比進入"Snap模式"或是"比上
+.
+:CHEAT_HELP_SU2
+次搜尋過的值還大", 使用這個指令繼續搜尋, 使用方式如下
+.
+:CHEAT_HELP_SU3
+    SU
+.
+:CHEAT_HELP_SU4
+這種方式適用於血條值, 因為不知實際數值, 所以只能做模糊搜尋, 這個方式可能需要非
+.
+:CHEAT_HELP_SU5
+常多次才能找到你要的目標, 或可使用
+.
+:CHEAT_HELP_SU6
+    SU 10
+.
+:CHEAT_HELP_SU7
+這種方式適用於明確知道數值是多少時, 假設你的金錢值一開始為1000, 使用SNAP之後進
+.
+:CHEAT_HELP_SU8
+入遊戲賺了10元, 可再進入debug 模式使用SU 10搜尋, 這樣可以快速搜尋到目標, 如果
+.
+:CHEAT_HELP_SU9
+搜尋結果還是很多, 請按[F5]進入遊戲待數值有差異之後再次搜尋
+.
+:CHEAT_HELP_SD1
+  進入Snap模式之後繼續執行遊戲, 如果你想要搜尋的數值比進入"Snap模式"或是"比上
+.
+:CHEAT_HELP_SD2
+次搜尋過的值還小", 使用這個指令繼續搜尋, 使用方式如下
+.
+:CHEAT_HELP_SD3
+    SD
+.
+:CHEAT_HELP_SD4
+這種方式適用於血條值, 因為不知實際數值, 所以只能做模糊搜尋, 這個方式可能需要非
+.
+:CHEAT_HELP_SD5
+常多次才能找到你要的目標, 或可使用
+.
+:CHEAT_HELP_SD6
+    SD 10
+.
+:CHEAT_HELP_SD7
+這種方式適用於明確知道數值是多少時, 假設你的金錢值一開始為1000, 使用SNAP之後進
+.
+:CHEAT_HELP_SD8
+入遊戲花了10元, 可再進入debug 模式使用SD 10搜尋, 這樣可以快速搜尋到目標, 如果
+.
+:CHEAT_HELP_SD9
+搜尋結果還是很多, 請按[F5]進入遊戲待數值有差異之後再次搜尋
+.
+:CHEAT_HELP_SS1
+  這個指令只適用於
+.
+:CHEAT_HELP_SS2
+    1. 使用SNAP指令進入Snap模式
+.
+:CHEAT_HELP_SS3
+    2. 至少使用SU或SD指令搜尋過一次
+.
+:CHEAT_HELP_SS4
+搜尋過後且知道目前正確數值時, 可使用這個指令搜尋, 假設遊戲剛開始某道具數量為1 
+.
+:CHEAT_HELP_SS5
+, 搜尋指令順序如下
+.
+:CHEAT_HELP_SS6
+    SM   WORD
+.
+:CHEAT_HELP_SS7
+    SEG  0x9117
+.
+:CHEAT_HELP_SS8
+    SNAP 
+.
+:CHEAT_HELP_SS9
+此時按[F5]進入遊戲用掉該道具再進入debug 模式
+.
+:CHEAT_HELP_SS10
+    SD 1
+.
+:CHEAT_HELP_SS11
+道具數量比之前少1 , 所以使用SD 1搜尋, 搜尋到數十筆資料, 由於道具數量目前為0 , 
+.
+:CHEAT_HELP_SS12
+所以再使用以下指令搜尋
+.
+:CHEAT_HELP_SS13
+    SS 0
+.
+:CHEAT_HELP_SS14
+搜尋之後只剩以下兩筆
+.
+:CHEAT_HELP_SS15
+1 : 53302 <==> 0xD036, value = 0
+.
+:CHEAT_HELP_SS16
+2 : 57340 <==> 0xDFFC, value = 0
+.
+:CHEAT_HELP_SS17
+此時可以使用嘗試錯誤法使用指令
+.
+:CHEAT_HELP_SS18
+  TW 9 1
+.
+:CHEAT_HELP_SS19
+將數值9 寫入暫存區1 , 按[F5]進入遊戲發現該道具數量已變成9, 再使用
+.
+:CHEAT_HELP_SS20
+  TD 2
+.
+:CHEAT_HELP_SS21
+刪掉暫存區第二筆資料, 再使用
+.
+:CHEAT_HELP_SS22
+  A    道具名稱
+.
+:CHEAT_HELP_SS23
+  SAVE
+.
+:CHEAT_HELP_SS24
+將搜尋結果存檔
+.
+:CHEAT_HELP_CVT1
+  這個指令供使用者做10<==>16進位轉換, 輸入10進位會轉16進位輸出, 輸入16進位會轉
+.
+:CHEAT_HELP_CVT2
+10進位輸出, 範例如下
+.
+:CHEAT_HELP_CVT3
+    CVT 100     #輸出0x64
+.
+:CHEAT_HELP_CVT4
+    CVT 10000   #輸出0x2710
+.
+:CHEAT_HELP_CVT5
+    CVT 100000  #輸出0x000186A0
+.
+:CHEAT_HELP_CVT6
+    CVT 0xABC   #輸出2748
 .

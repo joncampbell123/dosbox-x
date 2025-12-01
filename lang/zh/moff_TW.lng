@@ -1,0 +1,63 @@
+:CHEAT_HELP_MOFF1
+  設定記憶體模式的偏移位址, 和搜尋時把偏移位址設定成0 時不一樣, 這裡需要把偏移
+.
+:CHEAT_HELP_MOFF2
+位址設定成已確定目標的記憶體位址, 然後使用MD指令讓DATA VIEW 視窗顯示這個區段的
+.
+:CHEAT_HELP_MOFF3
+位址, 然後觀察一下附近記憶體的值是否與遊戲角色的某個屬性相同, 假設我使用以下一
+.
+:CHEAT_HELP_MOFF4
+系列指令設定記憶體模式, 此例為我執行中的某個遊戲的狀況, 你執行的遊戲與我不同, 
+.
+:CHEAT_HELP_MOFF5
+你應該以你的遊戲狀況來設定資料
+.
+:CHEAT_HELP_MOFF6
+    MM   DWORD
+.
+:CHEAT_HELP_MOFF7
+    MSEG 0x9117
+.
+:CHEAT_HELP_MOFF8
+    MOFF 0xEB0E
+.
+:CHEAT_HELP_MOFF9
+    MD
+.
+:CHEAT_HELP_MOFF10
+你會在debug 視窗看到以下幾行內容
+.
+:CHEAT_HELP_MOFF11
+    9117:0000EB0E A0 86 01 00 A0 86 01 00 00 00 00 00 00 00 00 00
+.
+:CHEAT_HELP_MOFF12
+    9117:0000EB1E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+.
+:CHEAT_HELP_MOFF13
+    9117:0000EB2E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 9A 01
+.
+:CHEAT_HELP_MOFF14
+    9117:0000EB3E 19 00 23 00 1E 00 2D 00 3C 00 CD 01 01 03 00 00
+.
+:CHEAT_HELP_MOFF15
+遊戲中另外一個屬性值為100 , 換算成16進位值為0x64, 你可以看到0xEB1E及0xEB2E的值
+.
+:CHEAT_HELP_MOFF16
+皆為
+.
+:CHEAT_HELP_MOFF17
+    64 00 00 00
+.
+:CHEAT_HELP_MOFF18
+此屬性值較小, 所以推測他的屬性應該為WORD, 使用以下兩個指令更改位址
+.
+:CHEAT_HELP_MOFF19
+    MM   2
+.
+:CHEAT_HELP_MOFF20
+    MOFF 0xEB2E  #已經試驗過確定是這個位址
+.
+:CHEAT_HELP_MOFF21
+後續的做法請看MD, MR, MS, MA指令說明
+.
