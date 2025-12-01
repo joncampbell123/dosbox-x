@@ -301,6 +301,25 @@ void DOS_SetupTables(void) {
 	/* create SDA */
 	DOS_SDA(DOS_SDA_SEG,0).Init();
 
+	/* For Tandy emulation, put the string "Tandy" somewhere in the DOS kernel.
+	 * "The Train: Escape to Normandy" apparently detects Tandy hardware by
+	 * whether or not the string "Tandy" appears in the first 64KB of base
+	 * memory. [https://github.com/joncampbell123/dosbox-x/issues/5918].
+	 *
+	 * It does a REPNE SCASB in FFFF:0000 for the string "Tandy", which on the
+	 * older hardware, wraps around to the base memory and finds it that way.
+	 * Of course if you're on a 286 Tandy and the HMA is enabled, this isn't
+	 * going to work, but, that's what the game does. */
+	if(machine == MCH_TANDY) {
+		seg = DOS_GetMemory(8,"Tandy signature");
+		real_writeb(seg,0x00,'T');
+		real_writeb(seg,0x01,'a');
+		real_writeb(seg,0x02,'n');
+		real_writeb(seg,0x03,'d');
+		real_writeb(seg,0x04,'y');
+		real_writeb(seg,0x05,0);
+	}
+
 	/* create a CON device driver */
 	if(IS_DOSV) {
 		seg = DOS_GetMemory(2, "device $IBMADSP");
