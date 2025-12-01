@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,2025.10.07,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,2025.12.01,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 COPYRIGHT_YEAR=`echo $PACKAGE_VERSION | cut -c1-4`
 AC_SUBST([COPYRIGHT_YEAR])
 AC_PREREQ(2.60)

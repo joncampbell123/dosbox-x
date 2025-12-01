@@ -1,4 +1,4 @@
-NEXT VERSION
+2025.12.01
   - Video debug overlay: For Tandy and PCjr emulation, add information on
     the screen that shows the line mask, display and cpu memory banks and
     the corresponding segment values, which may aid in debugging issues
