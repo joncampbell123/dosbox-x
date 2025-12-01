@@ -155,11 +155,21 @@ void write_p3d5_et4k(Bitu reg,Bitu val,Bitu iolen) {
         break;
 
     // 3d4h index 36h - Video System Configuration 1 (R/W)
-    // VGADOC provides a lot of info on this register, Ferraro has significantly less detail.
-    // This is unlikely to be used by any games. Bit 4 switches chipset into linear mode -
-    // that may be useful in some cases if there is any software actually using it.
-    // TODO (not near future): support linear addressing
-    STORE_ET4K(3d4, 36);
+    // Bits 0-2: Refresh count per line - 1
+    // Bit 3: Font width control (1=up to 16-bit, 0=8-bit VGA compatible font)
+    // Bit 4: Segment/linear system configuration (0=segment 1=linear),
+    //        meaning to present the 1MB of the card as a linear framebuffer somewhere on the SSA bus
+    // Bit 5: Addressing mode (0=IBM 1=TLI).
+    //        If set, enables contiguous address mapping which is a much more efficient use of the card's resources.
+    //        If not set, address mapping is compatible with VGA.
+    // Bit 6: 16-bit display memory read/write (1=enable)
+    // Bit 7: 16-bit I/O read/write (1=enable)
+    case 0x36:
+        if (val != et4k.store_3d4_36) {
+            et4k.store_3d4_36 = val;
+            // TODO
+        }
+        break;
 
     // 3d4h index 37 - Video System Configuration 2 (R/W)
     // Bits 0,1, and 3 provides information about memory size:
