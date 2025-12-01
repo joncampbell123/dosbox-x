@@ -642,8 +642,8 @@ void SVGA_Setup_TsengET4K(void) {
     // From the depths of X86Config, probably inexact
     VGA_SetClock(0,CLK_25);
     VGA_SetClock(1,CLK_28);
-    VGA_SetClock(2,32400);
-    VGA_SetClock(3,35900);
+    VGA_SetClock(2,32515);
+    VGA_SetClock(3,40000);
     VGA_SetClock(4,39900);
     VGA_SetClock(5,44700);
     VGA_SetClock(6,31400);
