@@ -1006,6 +1006,9 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 		width += 8*32;
 		width += 4;
 	}
+	else if (machine == MCH_TANDY || machine == MCH_PCJR) {
+		height += 8*3;
+	}
 	else {
 		height += 8*2;
 	}
