@@ -52,6 +52,19 @@ NEXT VERSION
     and in the exact same manner in both DOSBox-X and DOSBox SVN, this
     fix does solve the problem where the game was only able to draw
     2 out of 4 scanlines on the screen. (joncampbell123).
+  - Fix: Load GetDiskFreeSpaceExA at runtime to restore compatibility with
+    Win95RTM (emxd)
+  - Support for musl libc under Linux (repzilon)
+  - Utilize SDL2's keyboard capture logic to inhibit window manager shortcuts
+    (BenAckerley)
+  - Fix OpenGL resize / crash issue related to SDL and the internal GUI (rebb)
+  - Fix: missing floppy drive after harddisk boot (merubird)
+  - Fix crash on launch in MinGW and UCRT 64-bit builds (maron2000)
+  - Fix file open dialog encoding (maron2000)
+  - Allow controlling K-CG via BIOS interrupt (OPNA2608)
+  - Add debug feature memory find (Enmet)
+  - Fix turbo to allow burst mode and toggle mode (jez9999)
+  - Linters - fixup freedesktop metainfo and flatpak (rderooy)
 
 2025.10.07
   - INT 21h AH=4Ah resize memory: Compact free blocks only at or after the
