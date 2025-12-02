@@ -1,5 +1,7 @@
 NEXT VERSION
-  - 
+  - A patch was submitted to DOSLIB DSXMENU to incorporate non-selectable
+    informational lines of text. Incorporate the updated DSXMENU binaries
+    into DOSBox-X (joncampbell123).
 
 2025.12.01
   - Video debug overlay: For Tandy and PCjr emulation, add information on
