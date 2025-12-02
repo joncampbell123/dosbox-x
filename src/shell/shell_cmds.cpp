@@ -118,7 +118,7 @@ SHELL_Cmd cmd_list[]={
 #endif
 // Advanced commands specific to DOSBox-X
 //{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\BIN\ADDKEY.COM) instead of shell command
-{	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
+{	"DX-CAPTURE",		1,		&DOS_Shell::CMD_DXCAPTURE,	"SHELL_CMD_DXCAPTURE_HELP"},
 { nullptr, 0, nullptr, nullptr }
 };
 
