@@ -53,7 +53,7 @@ if not exist "%lng%" (
 
 set help0=%1_%2.ext
 if not exist "%help0%" (
-  echo "Extension language file : %tmp%"
+  echo "Extension language file : %help0%"
   echo "Language extension file not exist."
 	exit /b /1
 )

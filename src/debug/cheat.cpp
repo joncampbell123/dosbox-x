@@ -817,7 +817,7 @@ void CHEAT::writeRecord(std::string p1, std::string p2) {
 	else if (data[rec].segname == "ES")
 		mem = SegValue(es);
 	else
-		mem = mSeg;
+		mem = data[rec].seg;
 	
 	mem = (mem << 4) + data[rec].off + data[rec].add;
 	for (int i=0; i<data[rec].mode; i++){
