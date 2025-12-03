@@ -924,6 +924,7 @@ std::string SaveState::getName(size_t slot, bool nl) const {
 			if (length != 0) ret += nl?"Remark: "+(!strlen(buffer1)?"-":std::string(buffer1))+"\n":" - "+std::string(buffer1);
 		}
 	}
-
+    unzClose(zf);
 	return ret;
 }
+
