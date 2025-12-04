@@ -2444,7 +2444,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, reading pixels from the character generator while in Code Access mode (or always, for ANK\n"
                     "characters) will be invalid. Some models (i.e. PC-9821As3) dont seem to have this limitation, but\n"
                     "many others do.\n"
-                    "Try enabling this if you suffer some glitches in text display.");
+                    "This option is set to false by default, set this option to true if you suffer text glitches.\n"
+                    "It is reported that setting this option to true will result in glitches in some titles;"
+                    "therefore revert this option to false in such cases.");
 
     secprop=control->AddSection_prop("dosv",&Null_Init,true);
 
