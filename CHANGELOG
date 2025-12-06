@@ -2,6 +2,9 @@ NEXT VERSION
   - A patch was submitted to DOSLIB DSXMENU to incorporate non-selectable
     informational lines of text. Incorporate the updated DSXMENU binaries
     into DOSBox-X (joncampbell123).
+  - Wrote IPS patching tools IPSMAKE and IPSPATCH in DOSLIB, then incorporated
+    them as builtin executables on drive Z: under Z:\PATCHING. You can
+    now use IPS patch files to "ROM hack" your MS-DOS games. (joncampbell123)
 
 2025.12.01
   - Video debug overlay: For Tandy and PCjr emulation, add information on

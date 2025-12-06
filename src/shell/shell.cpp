@@ -795,7 +795,7 @@ const char *ParseMsg(const char *msg) {
     }
 }
 
-static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG;Z:\\TEXTUTIL";
+static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG;Z:\\TEXTUTIL;Z:\\PATCHING";
 static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
 static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";

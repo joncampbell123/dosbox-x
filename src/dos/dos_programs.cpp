@@ -9395,6 +9395,7 @@ static void FLAGSAVE_ProgramStart(Program** make)
 }
 
 void Add_VFiles(bool usecp) {
+    VFILE_Register("PATCHING", nullptr, 0, "/");
     VFILE_Register("TEXTUTIL", nullptr, 0, "/");
     VFILE_Register("SYSTEM", nullptr, 0, "/");
     VFILE_Register("DEBUG", nullptr, 0, "/");
@@ -9606,6 +9607,9 @@ void Add_VFiles(bool usecp) {
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA3_CPX, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA2_CPX, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA_CPX, "/CPI/");
+
+	VFILE_RegisterBuiltinFileBlob(bfb_IPSMAKE_EXE, "/PATCHING/");
+	VFILE_RegisterBuiltinFileBlob(bfb_IPSPATCH_EXE, "/PATCHING/");
 }
 
 #if WIN32
