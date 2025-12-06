@@ -11,6 +11,7 @@
 #include "../src/builtin/shutdown.h"
 #include "../src/builtin/textutil.h"
 #include "../src/builtin/4DOS_img.h"
+#include "../src/builtin/patchutil.h"
 
 extern char i4dos_data[CONFIG_SIZE];
 extern char config_data[CONFIG_SIZE];

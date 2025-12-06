@@ -33,9 +33,11 @@ libbuiltin_a_SOURCES = \
 	format_exe.cpp \
 	chkdsk_exe.cpp \
 	ne2000bin.cpp \
+	ipspatch.cpp \
 	textutil.cpp \
 	emsmagic.cpp \
 	shutdown.cpp \
+	ipsmake.cpp \
 	glide2x.cpp \
 	mpxplay.cpp \
 	sys_com.cpp \
