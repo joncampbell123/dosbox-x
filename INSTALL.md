@@ -127,7 +127,8 @@ and that it only contains a small subset of the DOS programs provided in the Z: 
 
 Portable packages for the macOS (64-bit) platform are also available from the [DOSBox-X homepage](https://dosbox-x.com/).
 
-The macOS package requires recent 64-bit Intel or ARM-based macOS (Catalina (10.15) and later). 
+The official macOS package requires recent 64-bit Intel or ARM-based macOS 10.15 (Catalina) and later.
+For SDL2 builds, there are a known issue that it cannot run on macOS 11 (Big Sur) and before, you can still try the [MacPorts](https://ports.macports.org/port/dosbox-x/details/) package or build the app on your own.
 Using the Finder app, go to the folder where the macOS zip package is downloaded, and click the zip package. Then the package will be unzipped and you will see a folder with the same name as the package. 
 Both SDL1 and SDL2 binaries (in .app format) are provided in the folders named ```dosbox-x``` and ```dosbox-x-sdl2``` respectively inside the zip file.
 
