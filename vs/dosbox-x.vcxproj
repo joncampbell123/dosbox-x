@@ -1120,6 +1120,8 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\builtin\glide2x.cpp" />
     <ClCompile Include="..\src\builtin\hexmem16_exe.cpp" />
     <ClCompile Include="..\src\builtin\hexmem32_exe.cpp" />
+    <ClCompile Include="..\src\builtin\ipsmake.cpp" />
+    <ClCompile Include="..\src\builtin\ipspatch.cpp" />
     <ClCompile Include="..\src\builtin\lastdriv_com.cpp" />
     <ClCompile Include="..\src\builtin\mem_com.cpp" />
     <ClCompile Include="..\src\builtin\move_exe.cpp" />

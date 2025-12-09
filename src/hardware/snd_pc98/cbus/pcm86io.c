@@ -39,9 +39,9 @@ static void IOOUTCALL pcm86_oa468(UINT port, REG8 val) {
 //	TRACEOUT(("86pcm out %.4x %.2x", port, val));
 	sound_sync();
 	xchgbit = pcm86.fifo ^ val;
-	// バッファリセット判定
+	// buffer reset check
 	if ((xchgbit & 8) && (val & 8)) {
-		pcm86.readpos = 0;				// バッファリセット
+		pcm86.readpos = 0;				// buffer reset
 		pcm86.wrtpos = 0;
 		pcm86.realbuf = 0;
 		pcm86.virbuf = 0;
@@ -110,7 +110,7 @@ static void IOOUTCALL pcm86_oa46c(UINT port, REG8 val) {
 	pcm86.buffer[pcm86.wrtpos] = val;
 	pcm86.wrtpos = (pcm86.wrtpos + 1) & PCM86_BUFMSK;
 	pcm86.realbuf++;
-	// バッファオーバーフローの監視
+	// Check buffer overflow
 	if (pcm86.realbuf >= PCM86_REALBUFSIZE) {
 #if 1
 		pcm86.realbuf -= 4;
