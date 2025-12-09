@@ -1659,6 +1659,12 @@
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.c" />
+    <ClCompile Include="..\src\builtin\ipspatch.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\ipsmake.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
