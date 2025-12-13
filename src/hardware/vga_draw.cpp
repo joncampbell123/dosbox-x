@@ -1144,10 +1144,10 @@ template <const unsigned int card,typename templine_type_t> static inline void E
 
 template <const unsigned int card,typename templine_type_t> static uint8_t * EGA_Planar2BPP_Common_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
     if (vga.crtc.maximum_scan_line & 0x80) line >>= 1u; /* CGA modes (and 200-line EGA) have the VGA doublescan bit set. We need to compensate to properly map lines. */
-    uint8_t *vram = vga.draw.linear_base + ((line & vga.tandy.line_mask) << (2+vga.tandy.line_shift));
-    Bitu vidmask = vga.tandy.line_mask ? ((vga.tandy.addr_mask << 2) | 3) : vga.draw.linear_mask;
-    templine_type_t* temps = (templine_type_t*)dst;
+    const uint8_t *vram = vga.draw.linear_base + (((line & vga.tandy.line_mask) << (2+vga.tandy.line_shift)) & vga.draw.linear_mask);
+    const Bitu vidmask = vga.tandy.line_mask ? ((vga.tandy.addr_mask << 2) | 3) : vga.draw.linear_mask;
     Bitu count = vga.draw.blocks + ((vga.draw.panning + 7u) >> 3u);
+    templine_type_t* temps = (templine_type_t*)dst;
     VGA_Latch pixels;
     Bitu i = 0;
 
@@ -1172,7 +1172,7 @@ template <const unsigned int card,typename templine_type_t> static uint8_t * EGA
      *      (ref: "Leather Goddesses of Phobos 2" according to ripsaw8080 when machine=ega). */
 
     while (count > 0u) {
-        pixels.d = *((uint32_t*)(&vram[ vidstart & vidmask ]));
+        pixels.d = *((const uint32_t*)(&vram[ vidstart & vidmask ]));
         vidstart += (uintptr_t)4 << (uintptr_t)vga.config.addr_shift;
         EGA_Planar2BPP_Common_Block<card,templine_type_t>(temps+i,pixels);
         count--;
@@ -1266,7 +1266,7 @@ void S3_XGA_RenderYUY2MPEGcolorkeyEVF(uint32_t* temp2/*already adjusted to X coo
 
     // HACK: DOSBox/DOSBox-X VGA emulation, unless otherwise, maps the 6-bit RGB VGA palette to 8-bit by shifting over by 2.
     //       Unfortunately, S3's DCI driver and XingMPEG uses 0xFF00FF bright magenta to color key.
-    //       Mask off the low 2 bits if not 8-bit VGA or the color key will never work.
+    //       Mask off the low 2 bits if not 8-bit VGA DAC or the color key will never work.
     if (!vga_8bit_dac) mask &= 0xFCFCFC;
 
     const uint32_t key = (((uint32_t)vga.s3.streams.ckctl_b_lb) | ((uint32_t)vga.s3.streams.ckctl_g_lb << 8u) | ((uint32_t)vga.s3.streams.ckctl_r_lb << 16)) & mask;
