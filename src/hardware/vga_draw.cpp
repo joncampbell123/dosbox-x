@@ -873,12 +873,13 @@ static void VGA_RawDraw_Xlat32_VGA_CRTC_bmode_Line(uint8_t *dst,Bitu vidstart, B
 }
 
 /* WARNING: This routine assumes (vidstart&3) == 0 */
-static uint8_t * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/) {
+static uint8_t * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu line) {
+    if (vga.crtc.maximum_scan_line & 0x80) line >>= 1u; /* CGA modes (and 200-line EGA) have the VGA doublescan bit set. We need to compensate to properly map lines. */
+    const uint8_t *vram = vga.draw.linear_base + (((line & vga.tandy.line_mask) << (2+vga.tandy.line_shift)) & vga.draw.linear_mask);
+    const Bitu vidmask = vga.tandy.line_mask ? ((vga.tandy.addr_mask << 2) | 3) : vga.draw.linear_mask;
+    const Bitu skip = 4u << vga.config.addr_shift; /* how much to skip after drawing 4 pixels */
     uint32_t* temps = (uint32_t*) TempLine;
     unsigned int poff = 0;
-    Bitu skip; /* how much to skip after drawing 4 pixels */
-
-    skip = 4u << vga.config.addr_shift;
 
     /* *sigh* it looks like DOSBox's VGA scanline code will pass nonzero bits 0-1 in vidstart */
     poff += vidstart & 3u;
@@ -911,8 +912,10 @@ static uint8_t * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*
         poff += x & 3;
     }
 
-    for(Bitu i = 0; i < ((vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/))+((poff+3)>>2)); i++) {
-        uint8_t *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
+    const Bitu count = ((vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/))+((poff+3)>>2));
+
+    for(Bitu i = 0; i < count; i++) {
+        const uint8_t *ret = &vram[ vidstart & vidmask ];
 
         /* one group of 4 */
         *temps++ = vga.dac.xlat32[*ret++];

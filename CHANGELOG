@@ -5,6 +5,9 @@ NEXT VERSION
   - Wrote IPS patching tools IPSMAKE and IPSPATCH in DOSLIB, then incorporated
     them as builtin executables on drive Z: under Z:\PATCHING. You can
     now use IPS patch files to "ROM hack" your MS-DOS games. (joncampbell123)
+  - Add map13/map14 CGA/HGC like interleaved rendering support for VGA
+    256-color mode. There is a game engine in development that is willing to
+    use such oddball modes. (joncampbell123)
 
 2025.12.01
   - Video debug overlay: For Tandy and PCjr emulation, add information on
