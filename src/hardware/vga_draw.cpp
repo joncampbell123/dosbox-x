@@ -1019,10 +1019,11 @@ template <const unsigned int card,typename templine_type_t> static inline void E
  *      Don't believe me? Look at the VGA register dumps on Hackipedia.org and see for yourself. */
 template <const unsigned int card,typename templine_type_t> static uint8_t * EGA_Planar_Common_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
     if (vga.crtc.maximum_scan_line & 0x80) line >>= 1u; /* CGA modes (and 200-line EGA) have the VGA doublescan bit set. We need to compensate to properly map lines. */
-    uint8_t *vram = vga.draw.linear_base + ((line & vga.tandy.line_mask) << (2+vga.tandy.line_shift));
-    Bitu vidmask = vga.tandy.line_mask ? ((vga.tandy.addr_mask << 2) | 3) : vga.draw.linear_mask;
-    templine_type_t* temps = (templine_type_t*)dst;
+    const uint8_t *vram = vga.draw.linear_base + (((line & vga.tandy.line_mask) << (2+vga.tandy.line_shift)) & vga.draw.linear_mask);
+    const Bitu vidmask = vga.tandy.line_mask ? ((vga.tandy.addr_mask << 2) | 3) : vga.draw.linear_mask;
     Bitu count = vga.draw.blocks + ((vga.draw.panning + 7u) >> 3u);
+    templine_type_t* temps = (templine_type_t*)dst;
+    uint32_t t1,t2;
     Bitu i = 0;
 
     /* All EGA/VGA modes obey the MEM13 bits and other bits present in the hardware that
@@ -1038,8 +1039,7 @@ template <const unsigned int card,typename templine_type_t> static uint8_t * EGA
      * 4-way interleave that was obviously added with Hercules graphics mode in mind. */
 
     while (count > 0u) {
-        uint32_t t1,t2;
-        t1 = t2 = *((uint32_t*)(&vram[ vidstart & vidmask ]));
+        t1 = t2 = *((const uint32_t*)(&vram[ vidstart & vidmask ]));
         t1 = (t1 >> 4) & 0x0f0f0f0f;
         t2 &= 0x0f0f0f0f;
         vidstart += (uintptr_t)4 << (uintptr_t)vga.config.addr_shift;
