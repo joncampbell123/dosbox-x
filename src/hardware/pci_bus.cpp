@@ -125,6 +125,35 @@ PCI_Device::PCI_Device(uint16_t vendor, uint16_t device) {
 	host_writew(config_writemask+0x04,0x0403);	/* allow changing mem/io enable and interrupt disable */
 }
 
+class PCI_DOSBoxIGVGADevice:public PCI_Device {
+private:
+	static const uint16_t vendor=0xD05B;		// DOSBox
+	static const uint16_t device=0x6845;		// VGA device
+public:
+	PCI_DOSBoxIGVGADevice():PCI_Device(vendor,device) {
+		config[0x08] = 0x00;	// revision ID
+
+		config[0x09] = 0x00;	// interface
+		config[0x0a] = 0x00;	// subclass type (vga compatible)
+		config[0x0b] = 0x03;	// class type (display controller)
+		config[0x0c] = 0x00;	// cache line size
+		config[0x0d] = 0x00;	// latency timer
+		config[0x0e] = 0x00;	// header type (other)
+
+		config[0x3c] = 0xff;	// no irq
+
+		// reset
+		config[0x04] = 0x23;	// command register (vga palette snoop, ports enabled, memory space enabled)
+		config[0x05] = 0x00;
+		config[0x06] = 0x80;	// status register (medium timing, fast back-to-back)
+		config[0x07] = 0x02;
+
+		host_writew(config_writemask+0x04,0x0023);	/* allow changing mem/io enable and VGA palette snoop */
+		host_writed(config_writemask+0x10,0xF8000000);	/* BAR0: memory resource 128MB aligned [26:0 reserved] */
+		host_writed(config+0x10,(((uint32_t)S3_LFB_BASE)&0xfffffff0) | 0x8);
+	}
+};
+
 class PCI_VGADevice:public PCI_Device {
 private:
 	static const uint16_t vendor=0x5333;		// S3
@@ -438,8 +467,27 @@ static void Deinitialize(void) {
 
 static PCI_Device *S3_PCI=NULL;
 static PCI_Device *SST_PCI=NULL;
+static PCI_Device *DOSBoxIG_PCI=NULL;
 
 extern bool enable_pci_vga;
+
+void PCI_AddSVGADOSBoxIG_Device(void) {
+	if (!pcibus_enable || !enable_pci_vga) return;
+
+	if (DOSBoxIG_PCI == NULL) {
+		if ((DOSBoxIG_PCI=new PCI_DOSBoxIGVGADevice()) == NULL)
+			return;
+
+		RegisterPCIDevice(DOSBoxIG_PCI);
+	}
+}
+
+void PCI_RemoveSVGADOSBoxIG_Device(void) {
+	if (DOSBoxIG_PCI != NULL) {
+		UnregisterPCIDevice(DOSBoxIG_PCI);
+		DOSBoxIG_PCI = NULL;
+	}
+}
 
 void PCI_AddSVGAS3_Device(void) {
 	if (!pcibus_enable || !enable_pci_vga) return;

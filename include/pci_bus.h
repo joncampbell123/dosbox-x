@@ -96,6 +96,9 @@ bool PCI_IsInitialized();
 void PCI_AddSVGAS3_Device(void);
 void PCI_RemoveSVGAS3_Device(void);
 
+void PCI_AddSVGADOSBoxIG_Device(void);
+void PCI_RemoveSVGADOSBoxIG_Device(void);
+
 void PCI_AddSST_Device(Bitu type);
 void PCI_RemoveSST_Device(void);
 
