@@ -1715,6 +1715,15 @@ void SVGA_Setup_JEGA(void) {
 	phys_writeb(rom_base + 0x40 * 512 - 18 + 3, 'A');
 }
 
+void SVGA_Setup_DOSBoxIG(void) {
+	if (vga.mem.memsize == 0)
+		vga.mem.memsize = 512*1024;
+	if (vga.mem.memsize < (256*1024))
+		vga.mem.memsize = (256*1024);
+	if (vga.mem.memsize > (128*1024*1024))
+		vga.mem.memsize = (128*1024*1024);
+}
+
 void SVGA_Setup_Driver(void) {
 	memset(&svga, 0, sizeof(SVGA_Driver));
 
@@ -1733,6 +1742,9 @@ void SVGA_Setup_Driver(void) {
 			break;
 		case SVGA_ATI:
 			SVGA_Setup_ATI();
+			break;
+		case SVGA_DOSBoxIG:
+			SVGA_Setup_DOSBoxIG();
 			break;
 		default:
 			if (IS_JEGA_ARCH) SVGA_Setup_JEGA();
