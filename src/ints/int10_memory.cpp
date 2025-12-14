@@ -411,7 +411,7 @@ void INT10_SetupRomMemory(void) {
 		int10.rom.used=0x100;
 	}
 	
-	if (IS_VGA_ARCH && svgaCard==SVGA_S3Trio) INT10_SetupVESA();
+	if (IS_VGA_ARCH && (svgaCard==SVGA_S3Trio || svgaCard==SVGA_DOSBoxIG)) INT10_SetupVESA();
 	
 	if (VGA_BIOS_dont_duplicate_CGA_first_half) {
 		int10.rom.font_8_first=RealMake(0xF000,0xFA6E); /* why duplicate data? use the copy in the ROM BIOS */

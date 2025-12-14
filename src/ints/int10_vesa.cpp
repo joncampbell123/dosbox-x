@@ -81,6 +81,11 @@ static char string_vendorname[]="DOSBox Development Team";
 static char string_productname[]="DOSBox - The DOS Emulator";
 static char string_productrev[]="2";
 
+static char dosboxig_string_oem[]="DOSBox Integrated Video";
+static char dosboxig_string_vendorname[]="DOSBox Development Team";
+static char dosboxig_string_productname[]="DOSBox - The DOS Emulator";
+static char dosboxig_string_productrev[]="1";
+
 #ifdef _MSC_VER
 #pragma pack (1)
 #endif
@@ -200,15 +205,28 @@ uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off) {
 	if (vbe2) {
 		vbe2_pos=256+off;
 
-		mem_writed(buffer+0x06,RealMake(seg,vbe2_pos));
-		for (i=0;i<sizeof(string_oem);i++) real_writeb(seg,vbe2_pos++,(uint8_t)string_oem[i]);
-		mem_writew(buffer+0x14,0x200);					//VBE 2 software revision
-		mem_writed(buffer+0x16,RealMake(seg,vbe2_pos));
-		for (i=0;i<sizeof(string_vendorname);i++) real_writeb(seg,vbe2_pos++,(uint8_t)string_vendorname[i]);
-		mem_writed(buffer+0x1a,RealMake(seg,vbe2_pos));
-		for (i=0;i<sizeof(string_productname);i++) real_writeb(seg,vbe2_pos++,(uint8_t)string_productname[i]);
-		mem_writed(buffer+0x1e,RealMake(seg,vbe2_pos));
-		for (i=0;i<sizeof(string_productrev);i++) real_writeb(seg,vbe2_pos++,(uint8_t)string_productrev[i]);
+		if (svgaCard == SVGA_DOSBoxIG) {
+			mem_writed(buffer+0x06,RealMake(seg,vbe2_pos));
+			for (i=0;i<sizeof(dosboxig_string_oem);i++) real_writeb(seg,vbe2_pos++,(uint8_t)dosboxig_string_oem[i]);
+			mem_writew(buffer+0x14,0x200);					//VBE 2 software revision
+			mem_writed(buffer+0x16,RealMake(seg,vbe2_pos));
+			for (i=0;i<sizeof(dosboxig_string_vendorname);i++) real_writeb(seg,vbe2_pos++,(uint8_t)dosboxig_string_vendorname[i]);
+			mem_writed(buffer+0x1a,RealMake(seg,vbe2_pos));
+			for (i=0;i<sizeof(dosboxig_string_productname);i++) real_writeb(seg,vbe2_pos++,(uint8_t)dosboxig_string_productname[i]);
+			mem_writed(buffer+0x1e,RealMake(seg,vbe2_pos));
+			for (i=0;i<sizeof(dosboxig_string_productrev);i++) real_writeb(seg,vbe2_pos++,(uint8_t)dosboxig_string_productrev[i]);
+		}
+		else {
+			mem_writed(buffer+0x06,RealMake(seg,vbe2_pos));
+			for (i=0;i<sizeof(string_oem);i++) real_writeb(seg,vbe2_pos++,(uint8_t)string_oem[i]);
+			mem_writew(buffer+0x14,0x200);					//VBE 2 software revision
+			mem_writed(buffer+0x16,RealMake(seg,vbe2_pos));
+			for (i=0;i<sizeof(string_vendorname);i++) real_writeb(seg,vbe2_pos++,(uint8_t)string_vendorname[i]);
+			mem_writed(buffer+0x1a,RealMake(seg,vbe2_pos));
+			for (i=0;i<sizeof(string_productname);i++) real_writeb(seg,vbe2_pos++,(uint8_t)string_productname[i]);
+			mem_writed(buffer+0x1e,RealMake(seg,vbe2_pos));
+			for (i=0;i<sizeof(string_productrev);i++) real_writeb(seg,vbe2_pos++,(uint8_t)string_productrev[i]);
+		}
 	} else {
 		vbe2_pos=0x20+off;
 
@@ -1003,9 +1021,13 @@ void INT10_SetupVESA(void) {
 	phys_writew(PhysMake(0xc000,int10.rom.used),0xffff);
 	int10.rom.used+=2;
 	int10.rom.oemstring=RealMake(0xc000,int10.rom.used);
-	Bitu len=(Bitu)(strlen(string_oem)+1);
-	for (i=0;i<len;i++) {
-		phys_writeb(0xc0000u+(int10.rom.used++),(uint8_t)string_oem[i]);
+	if (svgaCard == SVGA_DOSBoxIG) {
+		const Bitu len=(Bitu)(strlen(dosboxig_string_oem)+1);
+		for (i=0;i<len;i++) phys_writeb(0xc0000u+(int10.rom.used++),(uint8_t)dosboxig_string_oem[i]);
+	}
+	else {
+		const Bitu len=(Bitu)(strlen(string_oem)+1);
+		for (i=0;i<len;i++) phys_writeb(0xc0000u+(int10.rom.used++),(uint8_t)string_oem[i]);
 	}
 	/* Prepare the real mode interface */
 	int10.rom.wait_retrace=RealMake(0xc000,int10.rom.used);
