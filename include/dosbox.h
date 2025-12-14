@@ -140,7 +140,8 @@ enum SVGACards {
 	SVGA_TsengET4K,
 	SVGA_TsengET3K,
 	SVGA_ParadisePVGA1A,
-	SVGA_ATI
+	SVGA_ATI,
+	SVGA_DOSBoxIG                // special "integrated graphics" emulator accelerated card
 };
 
 enum S3Card {

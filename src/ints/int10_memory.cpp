@@ -59,7 +59,7 @@ static uint16_t map_offset[8]={
 void INT10_LoadFont(PhysPt font,bool reload,uint16_t count,Bitu offset,Bitu map,uint8_t height) {
     unsigned char m64k;
 
-	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
+    if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
         m64k=0x02;
     else
         m64k = 0x00;
@@ -303,6 +303,9 @@ void INT10_SetupRomMemory(void) {
 		if (IS_VGA_ARCH) {
 			// SVGA card-specific ROM signatures
 			switch (svgaCard) {
+				case SVGA_DOSBoxIG:
+					phys_writes(rom_base+0x0040, "DOSBox Integrated Graphics", 26);
+					break;
 				case SVGA_S3Trio:
 					if(!VGA_BIOS_use_rom) {
 						// S3 ROM signature

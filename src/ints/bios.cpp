@@ -1953,6 +1953,14 @@ void ISAPNP_Cfg_Reset(Section *sec) {
     APMBIOS_allow_prot16 = section->Get_bool("apmbios allow 16-bit protected mode");
     APMBIOS_allow_prot32 = section->Get_bool("apmbios allow 32-bit protected mode");
 
+    /* The DOSBox Integration Graphics require the integration device */
+    if (IS_VGA_ARCH && svgaCard == SVGA_DOSBoxIG) {
+        if (!enable_integration_device) {
+            LOG(LOG_MISC,LOG_WARN)("Machine type is SVGA DOSBox Integrated Graphics, which requires integration device. Enabling it.");
+            enable_integration_device = true;
+        }
+    }
+
     std::string apmbiosver = section->Get_string("apmbios version");
 
     /* PC-98 does not have the IBM PC/AT APM BIOS interface */
@@ -11282,6 +11290,9 @@ startfunction:
                             case ATI_Mach32:           card = "ATI Mach32"; break;
                             case ATI_Mach64:           card = "ATI Mach64"; break;
                         }
+                        break;
+                    case SVGA_DOSBoxIG:
+                        card = "DOSBox Integrated Graphics";
                         break;
                     default:
                         card = "Standard VGA";

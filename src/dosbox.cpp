@@ -1251,6 +1251,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "pc9821")        { machine = MCH_PC98; } /* Future differentiation */
 
     else if (mtype == "fm_towns")      { machine = MCH_VGA; want_fm_towns = true; /*machine = MCH_FM_TOWNS;*/ }
+    else if (mtype == "svga_dosbox")   { machine = MCH_VGA; svgaCard = SVGA_DOSBoxIG; } /* special emulator accelerator graphics adapter */
 
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
@@ -1508,6 +1509,7 @@ void DOSBOX_SetupConfigSections(void) {
 	"svga_ati_mach8",
 	"svga_ati_mach32",
 	"svga_ati_mach64",
+	"svga_dosbox",
 	"fm_towns", // STUB
         nullptr };
 
@@ -2592,7 +2594,7 @@ void DOSBOX_SetupConfigSections(void) {
 	    "This option may be useful if you would like to prevent your DOS gaming from appearing in the Windows 11 Recall feature");
 
     Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,16);
+    Pint->SetMinMax(-1,128);
     Pint->Set_help(
         "Amount of video memory in megabytes.\n"
         "  The maximum resolution and color depth the svga_s3 will be able to display\n"
