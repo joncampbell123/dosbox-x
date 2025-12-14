@@ -342,7 +342,7 @@ void OUTPUT_OPENGL_Select( GLKind kind )
     sdl_opengl.use_shader = false;
     initgl=0;
 #if defined(C_SDL2)
-    SDL_SetHint( SDL_HINT_FRAMEBUFFER_ACCELERATION, "0" ); // setting this to "opengl" or "1" causes crashes in certain situations (#3661,#5990). can still be overridden via environment variable
+    SDL_SetHint( SDL_HINT_FRAMEBUFFER_ACCELERATION, "1" ); // setting this to "opengl" causes crashes in certain situations (#3661). can still be overridden via environment variable
 
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(true);
