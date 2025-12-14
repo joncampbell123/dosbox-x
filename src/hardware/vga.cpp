@@ -1722,6 +1722,8 @@ void SVGA_Setup_DOSBoxIG(void) {
 		vga.mem.memsize = (256*1024);
 	if (vga.mem.memsize > (128*1024*1024))
 		vga.mem.memsize = (128*1024*1024);
+
+	PCI_AddSVGADOSBoxIG_Device();
 }
 
 void SVGA_Setup_Driver(void) {
