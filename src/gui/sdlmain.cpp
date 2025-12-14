@@ -1760,6 +1760,7 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
      */
     if (!sdl.window
             || (lastType != screenType)
+            || !GFX_IsFullscreen() && ( SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_FULLSCREEN )
 //          || (currWidth != width) || (currHeight != height)
 //          || (glwindow != (0 != (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_OPENGL)))
 //          || (fullscreen && (0 == (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_FULLSCREEN)))
