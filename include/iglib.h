@@ -76,6 +76,8 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 
 #define DOSBOX_ID_REG_RELEASE_MOUSE_CAPTURE             (0x0052434DUL)  /* release mouse capture (W) / mouse capture status (R) */
 
+#define DOSBOX_ID_REG_GET_VGA_MEMBASE                   (0x00684580UL)  /* get VGA video memory base in extended memory */
+#define DOSBOX_ID_REG_GET_VGA_MEMSIZE                   (0x00684581UL)  /* get VGA video memory size */
 #define DOSBOX_ID_REG_GET_VGA_SIZE                      (0x006845C0UL)  /* size of the VGA screen */
 #define DOSBOX_ID_REG_GET_WINDOW_SIZE                   (0x006845FFUL)  /* size of the emulator window (to give USER_MOUSE_CURSOR meaning) */
 

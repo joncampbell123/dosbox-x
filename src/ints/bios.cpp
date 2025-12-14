@@ -815,6 +815,12 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = dos_kernel_disabled || !uselfn ? 0: 1;
 			break;
 
+		case DOSBOX_ID_REG_GET_VGA_MEMBASE:
+			dosbox_int_register = S3_LFB_BASE;
+			break;
+		case DOSBOX_ID_REG_GET_VGA_MEMSIZE:
+			dosbox_int_register = vga.mem.memsize;
+			break;
 		case DOSBOX_ID_REG_GET_VGA_SIZE: /* query VGA display size */
 			dosbox_int_register = VGA_QuerySizeIG();
 			break;
