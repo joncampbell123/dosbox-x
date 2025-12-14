@@ -813,11 +813,17 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
             (unsigned long)(page*4096),
             (unsigned long)(((page+pages)*4096)-1),
             (unsigned int)(pages*4));
-        // FIXME: Because this code emulates S3 by hardcoding the MMIO address!
-        LOG(LOG_MISC,LOG_DEBUG)("MEM: Linear framebuffer MMIO is now set to 0x%lx-0x%lx (%uKB)",
-            (unsigned long)(page*4096)+0x01000000,
-            (unsigned long)(((page+16)*4096)+0x01000000-1),
-            (unsigned int)(16*4));
+
+        if (svgaCard == SVGA_DOSBoxIG) {
+            /* TODO: Perhaps the DOSBox Integrated Device could have an MMIO region */
+        }
+        else {
+            // FIXME: Because this code emulates S3 by hardcoding the MMIO address!
+            LOG(LOG_MISC,LOG_DEBUG)("MEM: Linear framebuffer MMIO is now set to 0x%lx-0x%lx (%uKB)",
+                (unsigned long)(page*4096)+0x01000000,
+                (unsigned long)(((page+16)*4096)+0x01000000-1),
+                (unsigned int)(16*4));
+        }
     }
 
     PAGING_ClearTLB();

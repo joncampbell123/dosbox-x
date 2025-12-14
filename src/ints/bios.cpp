@@ -10967,6 +10967,9 @@ startfunction:
         if (IS_VGA_ARCH) {
             reg_eax = 18;       // 640x480 16-color
             CALLBACK_RunRealInt(0x10);
+
+            if (svgaCard == SVGA_DOSBoxIG)
+                VGA_StartUpdateLFB();
         }
         else if (machine == MCH_PC98) {
             // clear the graphics layer

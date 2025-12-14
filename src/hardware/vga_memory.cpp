@@ -2807,58 +2807,69 @@ range_done:
 }
 
 void VGA_StartUpdateLFB(void) {
-	/* please obey the Linear Address Window Size register!
-	 * Windows 3.1 S3 driver will reprogram the linear framebuffer down to 0xA0000 when entering a DOSBox
-	 * and assuming the full VRAM size will cause a LOT of problems! */
-	Bitu winsz = 0x10000;
-
-	switch (vga.s3.reg_58&3) {
-		case 1:
-			winsz = 1 << 20;	//1MB
-			break;
-		case 2:
-			winsz = 2 << 20;	//2MB
-			break;
-		case 3:
-			winsz = 4 << 20;	//4MB
-			break;
-		// FIXME: What about the 8MB window?
-	}
-
-	/* NTS: 64KB winsz = 0x10000 => winmsk = 0xFFFF0000 => 0xFFFF
-	 *      1MB winsz = 0x100000 => winmsk = 0xFFF00000 => 0xFFF0
-	 *      2MB winsz = 0x200000 => winmsk = 0xFFE00000 => 0xFFE0
-	 *      and so on.
-	 *
-	 * From the S3 Trio32/Trio64 documentation regarding the Linear Address Window Position Registers:
-	 * "The Linear Address Window resides on a 64KB, 1MB, 2MB, or 4MB (Trio64 only) memory boundary (size-aligned) ...
-	 *  Some LSBs of this register are ignored because of the size-aligned boundary scheme" */
-	const unsigned int la_winmsk = ~((winsz - 1u) >> 16u); /* Register holds the upper 16 bits of the linear address */
-
-	/* The LFB register has an enable bit */
-	if (!(vga.s3.reg_58 & 0x10)) {
-		vga.lfb.page = (unsigned int)(vga.s3.la_window & la_winmsk) << 4u;
-		vga.lfb.addr = (unsigned int)(vga.s3.la_window & la_winmsk) << 16u;
-		vga.lfb.handler = NULL;
-		MEM_SetLFB(0,0,NULL,NULL);
-	}
-	/* if the DOS application or Windows 3.1 driver attempts to put the linear framebuffer
-	 * below the top of memory, then we're probably entering a DOS VM and it's probably
-	 * a 64KB window. If it's not a 64KB window then print a warning. */
-	else if ((unsigned long)(vga.s3.la_window << 4UL) < (unsigned long)MEM_TotalPages()) {
-		if (winsz != 0x10000) // 64KB window normal for entering a DOS VM in Windows 3.1 or legacy bank switching in DOS
-			LOG(LOG_MISC,LOG_WARN)("S3 warning: Window size != 64KB and address conflict with system RAM!");
-
-		vga.lfb.page = (unsigned int)(vga.s3.la_window & la_winmsk) << 4u;
-		vga.lfb.addr = (unsigned int)(vga.s3.la_window & la_winmsk) << 16u;
-		vga.lfb.handler = NULL;
-		MEM_SetLFB(0,0,NULL,NULL);
+	if (svgaCard == SVGA_DOSBoxIG) {
+		/* TODO: Perhaps the DOSBox Integrated Device could have an MMIO region */
+		vga.lfb.page = (unsigned int)(S3_LFB_BASE >> 12ul);
+		vga.lfb.addr = (unsigned int)S3_LFB_BASE;
+		vga.lfb.handler = vga_memio_lfb_delay ? &vgaph.lfb_slow : &vgaph.lfb;
+		MEM_SetLFB(vga.lfb.page,(unsigned int)vga.mem.memsize/4096u, vga.lfb.handler, NULL);
+		LOG(LOG_MISC,LOG_DEBUG)("DOSBox Integrated Device setting LFB at 0x%lx size 0x%lx",
+			(unsigned long)vga.lfb.addr,(unsigned long)vga.mem.memsize);
 	}
 	else {
-		vga.lfb.page = (unsigned int)(vga.s3.la_window & la_winmsk) << 4u;
-		vga.lfb.addr = (unsigned int)(vga.s3.la_window & la_winmsk) << 16u;
-		vga.lfb.handler = vga_memio_lfb_delay ? &vgaph.lfb_slow : &vgaph.lfb;
-		MEM_SetLFB((unsigned int)(vga.s3.la_window & la_winmsk) << 4u,(unsigned int)vga.mem.memsize/4096u, vga.lfb.handler, &vgaph.mmio);
+		/* please obey the Linear Address Window Size register!
+		 * Windows 3.1 S3 driver will reprogram the linear framebuffer down to 0xA0000 when entering a DOSBox
+		 * and assuming the full VRAM size will cause a LOT of problems! */
+		Bitu winsz = 0x10000;
+
+		switch (vga.s3.reg_58&3) {
+			case 1:
+				winsz = 1 << 20;	//1MB
+				break;
+			case 2:
+				winsz = 2 << 20;	//2MB
+				break;
+			case 3:
+				winsz = 4 << 20;	//4MB
+				break;
+				// FIXME: What about the 8MB window?
+		}
+
+		/* NTS: 64KB winsz = 0x10000 => winmsk = 0xFFFF0000 => 0xFFFF
+		 *      1MB winsz = 0x100000 => winmsk = 0xFFF00000 => 0xFFF0
+		 *      2MB winsz = 0x200000 => winmsk = 0xFFE00000 => 0xFFE0
+		 *      and so on.
+		 *
+		 * From the S3 Trio32/Trio64 documentation regarding the Linear Address Window Position Registers:
+		 * "The Linear Address Window resides on a 64KB, 1MB, 2MB, or 4MB (Trio64 only) memory boundary (size-aligned) ...
+		 *  Some LSBs of this register are ignored because of the size-aligned boundary scheme" */
+		const unsigned int la_winmsk = ~((winsz - 1u) >> 16u); /* Register holds the upper 16 bits of the linear address */
+
+		/* The LFB register has an enable bit */
+		if (!(vga.s3.reg_58 & 0x10)) {
+			vga.lfb.page = (unsigned int)(vga.s3.la_window & la_winmsk) << 4u;
+			vga.lfb.addr = (unsigned int)(vga.s3.la_window & la_winmsk) << 16u;
+			vga.lfb.handler = NULL;
+			MEM_SetLFB(0,0,NULL,NULL);
+		}
+		/* if the DOS application or Windows 3.1 driver attempts to put the linear framebuffer
+		 * below the top of memory, then we're probably entering a DOS VM and it's probably
+		 * a 64KB window. If it's not a 64KB window then print a warning. */
+		else if ((unsigned long)(vga.s3.la_window << 4UL) < (unsigned long)MEM_TotalPages()) {
+			if (winsz != 0x10000) // 64KB window normal for entering a DOS VM in Windows 3.1 or legacy bank switching in DOS
+				LOG(LOG_MISC,LOG_WARN)("S3 warning: Window size != 64KB and address conflict with system RAM!");
+
+			vga.lfb.page = (unsigned int)(vga.s3.la_window & la_winmsk) << 4u;
+			vga.lfb.addr = (unsigned int)(vga.s3.la_window & la_winmsk) << 16u;
+			vga.lfb.handler = NULL;
+			MEM_SetLFB(0,0,NULL,NULL);
+		}
+		else {
+			vga.lfb.page = (unsigned int)(vga.s3.la_window & la_winmsk) << 4u;
+			vga.lfb.addr = (unsigned int)(vga.s3.la_window & la_winmsk) << 16u;
+			vga.lfb.handler = vga_memio_lfb_delay ? &vgaph.lfb_slow : &vgaph.lfb;
+			MEM_SetLFB((unsigned int)(vga.s3.la_window & la_winmsk) << 4u,(unsigned int)vga.mem.memsize/4096u, vga.lfb.handler, &vgaph.mmio);
+		}
 	}
 }
 
