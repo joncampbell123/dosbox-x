@@ -82,7 +82,8 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 # define DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE               (1UL << 0UL)    /* override the standard VGA with IG video mode */
 # define DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT         (1UL << 1UL)    /* lock out access to most VGA registers except 3DAh and DAC */
 # define DOSBOX_ID_REG_VGAIG_CTL_3DA_LOCKOUT            (1UL << 2UL)    /* lock out access to 3BAh/3DAh */
-# define DOSBOX_ID_REG_VGAIG_CTL_DAC_LOCKOUT            (1UL << 3UL)    /* lcok out access to DAC registers */
+# define DOSBOX_ID_REG_VGAIG_CTL_DAC_LOCKOUT            (1UL << 3UL)    /* lock out access to DAC registers */
+# define DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE_REFRESH       (1UL << 4UL)    /* override refresh rate */
 #define DOSBOX_ID_REG_VGAIG_DISPLAYSIZE                 (0x00684591UL)  /* integrated device width/height (16:16 = HEIGHT:WIDTH) */
 #define DOSBOX_ID_REG_VGAIG_HVTOTALADD                  (0x00684592UL)  /* integrated device add to width/height to get htotal/vtotal = (16:16 V:H) */
 #define DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE        (0x00684593UL)  /* integrated device fmt/bytes per scanline (16:16 FMT:BYTESPERSCANLINE) */

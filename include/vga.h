@@ -674,6 +674,7 @@ typedef struct VGA_DOSBoxIG {
 	bool                    vga_reg_lockout = false; /* lock out standard VGA registers except 3BAh/3DAh and DAC registers */
 	bool                    vga_3da_lockout = false; /* lock out port 3BAh/3DAh */
 	bool                    vga_dac_lockout = false; /* lock out DAC registers */
+	bool			override_refresh = false;
 	unsigned int            width = 0;
 	unsigned int            height = 0;
 	unsigned int		bytes_per_scanline = 0;
