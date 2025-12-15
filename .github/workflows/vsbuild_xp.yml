@@ -126,13 +126,13 @@ jobs:
           files: dosbox-x-vsbuild-XP-${{ env.timestamp }}.zip
       - name: Cache Visual Studio builds (nightly)
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-xp-bin-${{ github.sha }}
       - name: Cache Visual Studio builds (release)
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-xp-bin-r-${{ github.sha }}
@@ -198,13 +198,13 @@ jobs:
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL1.exe
       - name: Cache MinGW32 lowend builds (nightly)
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/mingw-bin
           key: mingw-xp-bin-${{ github.sha }}
       - name: Cache MinGW32 lowend builds (release)
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/mingw-bin
           key: mingw-xp-bin-r-${{ github.sha }}
@@ -223,25 +223,25 @@ jobs:
       - uses: actions/checkout@v6
       - name: Restore Visual Studio builds (nightly)
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-xp-bin-${{ github.sha }}
       - name: Restore Visual Studio builds (release)
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-xp-bin-r-${{ github.sha }}
       - name: Restore MinGW builds (nightly)
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{ github.workspace }}/mingw-bin
           key: mingw-xp-bin-${{ github.sha }}
       - name: Restore MinGW builds (release)
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{ github.workspace }}/mingw-bin
           key: mingw-xp-bin-r-${{ github.sha }}
