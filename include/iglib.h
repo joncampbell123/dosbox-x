@@ -101,6 +101,7 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 #define DOSBOX_ID_REG_VGAIG_REFRESHRATE                 (0x00684594UL)  /* integrated device refresh rate as a 16.16 fixed point number */
 #define DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET               (0x00684595UL)  /* display video memory offset */
 #define DOSBOX_ID_REG_VGAIG_HVPELSCALE                  (0x00684596UL)  /* h/v scale and h/v pel (8:8:8:8 = vscale:hscale:vpel:hpel) */
+#define DOSBOX_ID_REG_VGAIG_BANKWINDOW                  (0x00684597UL)  /* bank switching window offset (4KB granularity) */
 #define DOSBOX_ID_REG_GET_VGA_SIZE                      (0x006845C0UL)  /* size of the VGA screen */
 #define DOSBOX_ID_REG_GET_WINDOW_SIZE                   (0x006845FFUL)  /* size of the emulator window (to give USER_MOUSE_CURSOR meaning) */
 

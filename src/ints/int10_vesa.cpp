@@ -31,6 +31,13 @@
 #include "dos_inc.h"
 #include "bitop.h"
 
+#define DOSBOX_INCLUDE
+#include "iglib.h"
+
+void dosbox_integration_trigger_write_direct32(const uint32_t reg,const uint32_t val);
+bool dosbox_int_push_save_state(void);
+bool dosbox_int_pop_save_state(void);
+
 int hack_lfb_yadjust = 0;
 int hack_lfb_xadjust = 0;
 
@@ -567,16 +574,29 @@ uint8_t VESA_SetCPUWindow(uint8_t window,uint16_t address) {
 	if (CurMode->type == M_LIN4) calcmemsize /= 4u; /* 4bpp planar = 4 bytes per video memory byte */
 
 	if ((!vesa_bank_switch_window_range_check) || (uint32_t)(address)*vga.svga.bank_size<calcmemsize) { /* range check, or silently truncate address depending on dosbox-x.conf setting */
-		IO_Write(0x3d4,0x6a);
-		IO_Write(0x3d5,(uint8_t)address); /* NTS: in vga_s3.cpp this is a 7-bit field, wraparound will occur at address >= 128 but only if emulating a full 64KB bank as normal */
+		if (svgaCard == SVGA_DOSBoxIG) {
+			dosbox_int_push_save_state();
+			dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_BANKWINDOW,(uint32_t)address * (uint32_t)vga.svga.bank_size);
+			dosbox_int_pop_save_state();
+			VGA_SetupHandlers();
+		}
+		else {
+			IO_Write(0x3d4,0x6a);
+			IO_Write(0x3d5,(uint8_t)address); /* NTS: in vga_s3.cpp this is a 7-bit field, wraparound will occur at address >= 128 but only if emulating a full 64KB bank as normal */
+		}
 		return VESA_SUCCESS;
 	} else return VESA_FAIL;
 }
 
 uint8_t VESA_GetCPUWindow(uint8_t window,uint16_t & address) {
 	if (window && !vesa_bank_switch_window_mirror) return VESA_FAIL;
-	IO_Write(0x3d4,0x6a);
-	address=IO_Read(0x3d5);
+	if (svgaCard == SVGA_DOSBoxIG) {
+		address=vga.svga.bank_read_full / vga.svga.bank_size;
+	}
+	else {
+		IO_Write(0x3d4,0x6a);
+		address=IO_Read(0x3d5);
+	}
 	return VESA_SUCCESS;
 }
 
@@ -877,8 +897,16 @@ static Bitu VESA_SetWindow(void) {
 }
 
 static Bitu VESA_PMSetWindow(void) {
-	IO_Write(0x3d4,0x6a);
-	IO_Write(0x3d5,reg_dl);
+	if (svgaCard == SVGA_DOSBoxIG) {
+		dosbox_int_push_save_state();
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_BANKWINDOW,(uint32_t)reg_dl * (uint32_t)vga.svga.bank_size);
+		dosbox_int_pop_save_state();
+		VGA_SetupHandlers();
+	}
+	else {
+		IO_Write(0x3d4,0x6a);
+		IO_Write(0x3d5,reg_dl);
+	}
 	return CBRET_NONE;
 }
 static Bitu VESA_PMSetPalette(void) {

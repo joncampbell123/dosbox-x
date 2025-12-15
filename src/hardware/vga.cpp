@@ -1739,11 +1739,14 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 		/* switch off Integration Graphics */
 		dosbox_int_push_save_state();
 
-		if (width > 640 || height > 480)
+		if (width > 640 || height > 480) {
 			ctl |= DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE_REFRESH;
+			vga.config.compatible_chain4 = false; /* or else >800x600 16-color planar modes will not work properly */
+		}
 
 		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,0);
 		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_REFRESHRATE,refresh);
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_BANKWINDOW,0);
 		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,ctl);
 
 		dosbox_int_pop_save_state();
@@ -1755,6 +1758,7 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	}
 
 	htadd *= 8u;
+	vga.config.compatible_chain4 = false; /* or else bank switching support does not work properly */
 	switch (CurMode->type) {
 		case M_CGA2:
 			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_1BPP;
@@ -1796,6 +1800,7 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYSIZE,(height << 16u) | width);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_REFRESHRATE,refresh);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET,0);
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_BANKWINDOW,0);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVPELSCALE,0);
 
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE);
