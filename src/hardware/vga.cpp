@@ -1754,6 +1754,7 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 		/* VGA draw code still uses S3 extended horz/vert regs so put it there so >800x600 modes work correctly */
 		vga.s3.ex_hor_overflow=(uint8_t)modeData->hor_overflow;
 		vga.s3.ex_ver_overflow=(uint8_t)modeData->ver_overflow;
+		vga.config.scan_len=modeData->offset;
 		return;
 	}
 
