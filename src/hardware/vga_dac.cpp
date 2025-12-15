@@ -144,7 +144,10 @@ void VGA_DAC_UpdateColor( Bitu index ) {
     Bitu maskIndex;
 
     if (IS_VGA_ARCH) {
-        if (vga.mode == M_VGA || vga.mode == M_LIN8) {
+        if (vga.dosboxig.svga) {
+            maskIndex = index; /* no VGA AC mapping, palette select, anything */
+        }
+        else if (vga.mode == M_VGA || vga.mode == M_LIN8) {
             /* WARNING: This code assumes index < 256 */
             switch (VGA_AC_remap) {
                 case AC_4x4:
@@ -211,6 +214,10 @@ void VGA_DAC_DeferredUpdateColorPalette() {
 void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
+
+    if (vga.dosboxig.vga_dac_lockout)
+        return;
+
     if((IS_VGA_ARCH) && (vga.dac.hidac_counter>3)) {
         vga.dac.reg02=(uint8_t)val;
         vga.dac.hidac_counter=0;
@@ -243,6 +250,10 @@ Bitu read_p3c6(Bitu port,Bitu iolen) {
 void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
+
+    if (vga.dosboxig.vga_dac_lockout)
+        return;
+
     vga.dac.hidac_counter=0;
     vga.dac.pel_index=0;
     vga.dac.state=DAC_READ;
@@ -261,6 +272,10 @@ Bitu read_p3c7(Bitu port,Bitu iolen) {
 void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
+
+    if (vga.dosboxig.vga_dac_lockout)
+        return;
+
     vga.dac.hidac_counter=0;
     vga.dac.pel_index=0;
     vga.dac.state=DAC_WRITE;
@@ -283,6 +298,9 @@ static unsigned char tmp_dac[3] = {0,0,0};
 
 void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
     bool update = false;
+
+    if (vga.dosboxig.vga_dac_lockout)
+        return;
 
     (void)iolen;//UNUSED
     (void)port;//UNUSED

@@ -56,6 +56,9 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 	uint8_t retval = vga_p3da_undefined_bits;
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
 
+	if (vga.dosboxig.vga_3da_lockout)
+		return 0;
+
 	// If the game or demo is wasting time in a loop polling this register (not merely reading to
 	// clear the port 3C0h flip/flop) then now is as good a time as any to render the VGA raster
 	// up to the current point.
@@ -100,6 +103,10 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 static void write_p3c2(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
+
+	if (vga.dosboxig.vga_reg_lockout)
+		return;
+
 	if((machine==MCH_EGA) && ((vga.misc_output^val)&0xc)) VGA_StartResize();
 	vga.misc_output=(uint8_t)val;
 	Bitu base=(val & 0x1) ? 0x3d0 : 0x3b0;

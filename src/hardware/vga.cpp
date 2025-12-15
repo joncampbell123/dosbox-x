@@ -120,6 +120,7 @@
 
 #include <assert.h>
 
+#include "vga.h"
 #include "dosbox.h"
 #include "logging.h"
 #include "setup.h"
@@ -131,6 +132,7 @@
 #include "support.h"
 #include "setup.h"
 #include "timer.h"
+#include "../ints/int10.h"
 #include "mem.h"
 #include "pci_bus.h"
 #include "util_units.h"
@@ -152,6 +154,13 @@
 #include <stdlib.h>
 #include <string>
 #include <stdio.h>
+
+#define DOSBOX_INCLUDE
+#include "iglib.h"
+
+void dosbox_integration_trigger_write_direct32(const uint32_t reg,const uint32_t val);
+bool dosbox_int_push_save_state(void);
+bool dosbox_int_pop_save_state(void);
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -1715,6 +1724,74 @@ void SVGA_Setup_JEGA(void) {
 	phys_writeb(rom_base + 0x40 * 512 - 18 + 3, 'A');
 }
 
+extern VideoModeBlock* CurMode;
+
+void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
+	uint32_t htadd = CurMode->htotal - CurMode->hdispend, vtadd = CurMode->vtotal - CurMode->vdispend;
+	uint32_t fmtc = 0,cwidth = (CurMode->pitch != 0) ? CurMode->pitch : CurMode->swidth;
+	uint32_t width = CurMode->swidth,height = CurMode->sheight;
+	uint32_t refresh = (uint32_t)(70.09 * 0x10000);
+
+	/* 16-color planar modes and standard VGA modes use standard VGA emulation */
+	if (CurMode->type == M_ERROR || CurMode->type == M_EGA || CurMode->type == M_LIN4 || CurMode->type == M_TEXT || modeData->modeNo <= 0x13) {
+		/* switch off Integration Graphics */
+		dosbox_int_push_save_state();
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,0);
+		dosbox_int_pop_save_state();
+		return;
+	}
+
+	htadd *= 8u;
+	switch (CurMode->type) {
+		case M_CGA2:
+			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_1BPP;
+			break;
+		case M_PACKED4:
+			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_4BPP;
+			fmtc |= (uint16_t)((((cwidth+15U)/8U)&(~1U))*4); // must match code in VESA BIOS emulation
+			break;
+		case M_VGA:
+		case M_LIN8:
+			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_8BPP;
+			fmtc |= cwidth;
+			break;
+		case M_LIN15:
+			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_15BPP;
+			fmtc |= cwidth * 2u;
+			break;
+		case M_LIN16:
+			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_16BPP;
+			fmtc |= cwidth * 2u;
+			break;
+		case M_LIN24:
+			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_24BPP8;
+			fmtc |= cwidth * 3u;
+			break;
+		case M_LIN32:
+			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_32BPP8;
+			fmtc |= cwidth * 4u;
+			break;
+		default:
+			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_NONE;
+			break;
+	}
+
+	dosbox_int_push_save_state();
+
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,fmtc);
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVTOTALADD,(vtadd << 16u) | htadd);
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYSIZE,(height << 16u) | width);
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_REFRESHRATE,refresh);
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET,0);
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVPELSCALE,0);
+
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE);
+
+	dosbox_int_pop_save_state();
+
+	LOG(LOG_MISC,LOG_DEBUG)("DOSBox Integration Device is active");
+}
+
 void SVGA_Setup_DOSBoxIG(void) {
 	if (vga.mem.memsize == 0)
 		vga.mem.memsize = 512*1024;
@@ -1722,6 +1799,8 @@ void SVGA_Setup_DOSBoxIG(void) {
 		vga.mem.memsize = (256*1024);
 	if (vga.mem.memsize > (128*1024*1024))
 		vga.mem.memsize = (128*1024*1024);
+
+	svga.set_video_mode = &FinishSetMode_DOSBoxIG;
 
 	PCI_AddSVGADOSBoxIG_Device();
 }

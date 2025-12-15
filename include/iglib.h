@@ -78,6 +78,28 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 
 #define DOSBOX_ID_REG_GET_VGA_MEMBASE                   (0x00684580UL)  /* get VGA video memory base in extended memory */
 #define DOSBOX_ID_REG_GET_VGA_MEMSIZE                   (0x00684581UL)  /* get VGA video memory size */
+#define DOSBOX_ID_REG_VGAIG_CTL                         (0x00684590UL)  /* integrated device control */
+# define DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE               (1UL << 0UL)    /* override the standard VGA with IG video mode */
+# define DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT         (1UL << 1UL)    /* lock out access to most VGA registers except 3DAh and DAC */
+# define DOSBOX_ID_REG_VGAIG_CTL_3DA_LOCKOUT            (1UL << 2UL)    /* lock out access to 3BAh/3DAh */
+# define DOSBOX_ID_REG_VGAIG_CTL_DAC_LOCKOUT            (1UL << 3UL)    /* lcok out access to DAC registers */
+#define DOSBOX_ID_REG_VGAIG_DISPLAYSIZE                 (0x00684591UL)  /* integrated device width/height (16:16 = HEIGHT:WIDTH) */
+#define DOSBOX_ID_REG_VGAIG_HVTOTALADD                  (0x00684592UL)  /* integrated device add to width/height to get htotal/vtotal = (16:16 V:H) */
+#define DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE        (0x00684593UL)  /* integrated device fmt/bytes per scanline (16:16 FMT:BYTESPERSCANLINE) */
+/* fmt codes must match enum VGA_DOSBoxIG_VidFormat << 16 */
+# define DOSBOX_ID_REG_VGAIG_FMT_MASK                   (0xFFUL << 16UL)/* mask value to extract format */
+# define DOSBOX_ID_REG_VGAIG_FMT_NONE                   (0x00UL << 16UL)/* none (blank screen) */
+# define DOSBOX_ID_REG_VGAIG_FMT_1BPP                   (0x01UL << 16UL)/* 1bpp */
+# define DOSBOX_ID_REG_VGAIG_FMT_4BPP                   (0x02UL << 16UL)/* 4bpp */
+# define DOSBOX_ID_REG_VGAIG_FMT_8BPP                   (0x03UL << 16UL)/* 8bpp */
+# define DOSBOX_ID_REG_VGAIG_FMT_15BPP                  (0x04UL << 16UL)/* 15bpp 1:5:5:5 */
+# define DOSBOX_ID_REG_VGAIG_FMT_16BPP                  (0x05UL << 16UL)/* 16bpp 5:6:5 */
+# define DOSBOX_ID_REG_VGAIG_FMT_24BPP8                 (0x06UL << 16UL)/* 24bpp 8:8:8 */
+# define DOSBOX_ID_REG_VGAIG_FMT_32BPP8                 (0x07UL << 16UL)/* 32bpp 8:8:8:8 */
+# define DOSBOX_ID_REG_VGAIG_FMT_32BPP10                (0x08UL << 16UL)/* 32bpp 2:10:10:10 */
+#define DOSBOX_ID_REG_VGAIG_REFRESHRATE                 (0x00684594UL)  /* integrated device refresh rate as a 16.16 fixed point number */
+#define DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET               (0x00684595UL)  /* display video memory offset */
+#define DOSBOX_ID_REG_VGAIG_HVPELSCALE                  (0x00684596UL)  /* h/v scale and h/v pel (8:8:8:8 = vscale:hscale:vpel:hpel) */
 #define DOSBOX_ID_REG_GET_VGA_SIZE                      (0x006845C0UL)  /* size of the VGA screen */
 #define DOSBOX_ID_REG_GET_WINDOW_SIZE                   (0x006845FFUL)  /* size of the emulator window (to give USER_MOUSE_CURSOR meaning) */
 

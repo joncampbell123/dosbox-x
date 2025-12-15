@@ -657,6 +657,36 @@ typedef struct VGA_Override_t {
 	uint32_t		start = ~uint32_t(0u);
 } VGA_Override;
 
+enum VGA_DOSBoxIG_VidFormat {
+	DBIGVF_NONE=0,          // none (blank screen)
+	DBIGVF_1BPP=1,		// 1bpp monochrome
+	DBIGVF_4BPP=2,		// 4bpp packed 16-color
+	DBIGVF_8BPP=3,		// 8bpp packed 256-color
+	DBIGVF_15BPP=4,		// 16bpp R:G:B 1:5:5:5
+	DBIGVF_16BPP=5,		// 16bpp R:G:B 5:6:5
+	DBIGVF_24BPP8=6,	// 24bpp RGB
+	DBIGVF_32BPP8=7,	// 32bpp XRGB 8:8:8:8
+	DBIGVF_32BPP10=8	// 32bpp XRGB 2:10:10:10
+};
+
+typedef struct VGA_DOSBoxIG {
+	bool                    svga = false; /* override VGA output with DOSBoxIG SVGA graphics */
+	bool                    vga_reg_lockout = false; /* lock out standard VGA registers except 3BAh/3DAh and DAC registers */
+	bool                    vga_3da_lockout = false; /* lock out port 3BAh/3DAh */
+	bool                    vga_dac_lockout = false; /* lock out DAC registers */
+	unsigned int            width = 0;
+	unsigned int            height = 0;
+	unsigned int		bytes_per_scanline = 0;
+	unsigned int            wa_total = 0,ha_total = 0; /* additional cols/rows to add to get htotal/vtotal */
+	uint32_t                vratefp16 = 0; /* video sync rate as a fixed point 16.16 number */
+	uint32_t		display_offset = 0; /* offset in video memory to display */
+	uint8_t                 vidformat = 0; /* video pixel format (VGA_DOSBoxIG_VidFormat) */
+	uint8_t			hpel = 0; /* horizontal pan */
+	uint8_t			vpel = 0; /* vertical pan */
+	uint8_t			hscale = 0; /* horizontal pixel duplication */
+	uint8_t			vscale = 0; /* vertical pixel duplication */
+} VGA_DOSBoxIG;
+
 typedef struct VGA_Type_t {
     VGAModes mode = {};                              /* The mode the vga system is in */
     VGAModes lastmode = {};
@@ -681,6 +711,7 @@ typedef struct VGA_Type_t {
     VGA_LFB lfb = {};
     VGA_Complexity complexity = {};
     VGA_Override overopts = {};
+    VGA_DOSBoxIG dosboxig = {};
 } VGA_Type;
 
 

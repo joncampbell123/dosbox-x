@@ -192,6 +192,9 @@ bool J3_IsCga4Dcga();
 void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 	unsigned int cmplx = 0;
 
+	if (vga.dosboxig.vga_reg_lockout)
+		return;
+
 	if (!vga.internal.attrindex) {
 		/* Render on Demand problem:
 		 *

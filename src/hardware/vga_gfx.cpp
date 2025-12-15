@@ -39,6 +39,9 @@ static Bitu read_p3ce(Bitu /*port*/,Bitu /*iolen*/) {
 static void write_p3cf(Bitu /*port*/,Bitu val,Bitu iolen) {
 	unsigned int cmplx = 0;
 
+	if (vga.dosboxig.vga_reg_lockout)
+		return;
+
 	switch (gfx(index)) {
 		case 0:	/* Set/Reset Register */
 			gfx(set_reset)=val & 0x0f;
