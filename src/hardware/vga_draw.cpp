@@ -7200,7 +7200,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		fps=vga_force_refresh_rate;
 		clock=((double)(vtotal*htotal))*fps;
 	}
-	else if (vga.dosboxig.svga && vga.dosboxig.vratefp16 >= 0x10000ul/*at least 1.0fps*/) {
+	else if ((vga.dosboxig.svga || vga.dosboxig.override_refresh) && vga.dosboxig.vratefp16 >= 0x10000ul/*at least 1.0fps*/) {
 		fps=(double)vga.dosboxig.vratefp16 / 65536.0;
 		clock=((double)(vtotal*htotal))*fps;
 		LOG(LOG_VGA,LOG_NORMAL)("VGA refresh rate is now, %.3f (DOSBox Integrated Graphics)",fps);

@@ -1734,10 +1734,23 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 
 	/* 16-color planar modes and standard VGA modes use standard VGA emulation */
 	if (CurMode->type == M_ERROR || CurMode->type == M_EGA || CurMode->type == M_LIN4 || CurMode->type == M_TEXT || modeData->modeNo <= 0x13) {
+		uint32_t ctl = 0;
+
 		/* switch off Integration Graphics */
 		dosbox_int_push_save_state();
+
+		if (width > 640 || height > 480)
+			ctl |= DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE_REFRESH;
+
 		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,0);
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_REFRESHRATE,refresh);
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,ctl);
+
 		dosbox_int_pop_save_state();
+
+		/* VGA draw code still uses S3 extended horz/vert regs so put it there so >800x600 modes work correctly */
+		vga.s3.ex_hor_overflow=(uint8_t)modeData->hor_overflow;
+		vga.s3.ex_ver_overflow=(uint8_t)modeData->ver_overflow;
 		return;
 	}
 
