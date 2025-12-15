@@ -336,10 +336,18 @@ static uint8_t * VGA_Draw_DOSBOXIG_1bpp(Bitu vidstart, Bitu line) { // renders t
 }
 
 static uint8_t * VGA_Draw_DOSBOXIG_4bpp(Bitu vidstart, Bitu line) { // renders to 8bpp
-	(void)vidstart;
+	uint32_t *temp = (uint32_t*)TempLine;
+	uint32_t ofs = (uint32_t)vidstart;
+	unsigned int x;
+
 	(void)line;
 
-	memset(TempLine,0,vga.draw.width);
+	for (x=0;x < vga.draw.width;x += 2,ofs++) {
+		const uint8_t b = vga.mem.linear[ofs & vga.draw.linear_mask];
+		temp[x+0] = vga.dac.xlat32[b >> 4u];
+		temp[x+1] = vga.dac.xlat32[b & 0xFu];
+	}
+
 	return TempLine;
 }
 
@@ -7417,6 +7425,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 					VGA_DrawLine = VGA_Draw_DOSBOXIG_1bpp;
 					break;
 				case M_PACKED4:
+					bpp = 32;
 					VGA_DrawLine = VGA_Draw_DOSBOXIG_4bpp;
 					break;
 				case M_VGA: // 8bpp

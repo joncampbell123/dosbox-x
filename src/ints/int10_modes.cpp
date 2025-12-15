@@ -2496,7 +2496,7 @@ Bitu VideoModeMemSize(Bitu mode) {
 	        return ~0ul;
 
 	switch(vmodeBlock->type) {
-    case M_PACKED4:
+        case M_PACKED4:
 		if (mode >= 0x100 && !(mode >= 0x202 && mode <= 0x208)/*S3 Windows 95 driver needs these*/ && !allow_vesa_4bpp_packed) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight/2;
 	case M_LIN4:
