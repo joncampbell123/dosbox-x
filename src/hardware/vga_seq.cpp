@@ -138,6 +138,9 @@ unsigned int VGA_ComplexityCheck_ODDEVEN(void) {
 void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 	unsigned int cmplx = 0;
 
+	if (vga.dosboxig.vga_reg_lockout)
+		return;
+
 //	LOG_MSG("SEQ WRITE reg %X val %X",seq(index),val);
 	switch(seq(index)) {
 	case 0:		/* Reset */

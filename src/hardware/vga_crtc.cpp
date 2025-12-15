@@ -79,6 +79,9 @@ Bitu vga_read_p3d4(Bitu port,Bitu iolen) {
 }
 
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
+	if (vga.dosboxig.vga_reg_lockout)
+		return;
+
     (void)port;//UNUSED
 //	if((crtc(index)!=0xe)&&(crtc(index)!=0xf)) 
 //		LOG_MSG("CRTC w #%2x val %2x",crtc(index),val);

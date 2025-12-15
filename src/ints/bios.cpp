@@ -948,6 +948,8 @@ void Watchdog_Timer_Set(uint32_t timeout_ms) {
 	}
 }
 
+void VGA_DOSBoxIG_FmtToVGA(void);
+
 unsigned int mouse_notify_mode = 0;
 // 0 = off
 // 1 = trigger as PS/2 mouse interrupt
@@ -1148,6 +1150,110 @@ void dosbox_integration_trigger_write() {
 				CAPTURE_WaveEvent(true);
 			break;
 
+		case DOSBOX_ID_REG_VGAIG_CTL: {
+			bool modechange = false;
+			bool pv;
+
+			if (IS_VGA_ARCH && svgaCard == SVGA_DOSBoxIG) {
+				pv = vga.dosboxig.svga;
+				vga.dosboxig.svga = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE);
+				if (vga.dosboxig.svga != pv) modechange = true;
+
+				vga.dosboxig.vga_reg_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT);
+				vga.dosboxig.vga_3da_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_3DA_LOCKOUT);
+				vga.dosboxig.vga_dac_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_DAC_LOCKOUT);
+
+				if (modechange) {
+					VGA_StartResize(0);
+					VGA_DAC_UpdateColorPalette();
+				}
+			}
+			break; }
+
+		case DOSBOX_ID_REG_VGAIG_DISPLAYSIZE:
+			{
+				unsigned int nw = dosbox_int_register & 0xFFFFu;
+				unsigned int nh = dosbox_int_register >> 16u;
+
+				// NTS: There are problems with the DOSBox scaler system beyond 1920x1080.
+				//      When those are resolved, or a bypass is implemented, this will be changed
+				//      to allow up to 4096x4096.
+				if (nw > 1920) nw = 1920;
+				if (nh > 1080) nh = 1080;
+
+				if (vga.dosboxig.width != nw || vga.dosboxig.height != nh) {
+					vga.dosboxig.width = nw;
+					vga.dosboxig.height = nh;
+					if (vga.dosboxig.svga) VGA_StartResize(0);
+				}
+			}
+			break;
+
+		case DOSBOX_ID_REG_VGAIG_HVTOTALADD:
+			{
+				unsigned int nw = dosbox_int_register & 0xFFFFu;
+				unsigned int nh = dosbox_int_register >> 16u;
+
+				if (vga.dosboxig.wa_total != nw || vga.dosboxig.ha_total != nh) {
+					vga.dosboxig.wa_total = nw;
+					vga.dosboxig.ha_total = nh;
+					if (vga.dosboxig.svga) VGA_StartResize(0);
+				}
+			}
+			break;
+
+		case DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE:
+			{
+				unsigned int bpl = dosbox_int_register & 0xFFFFu;
+				unsigned int fmt = (dosbox_int_register >> 16u) & 0xFFu;
+
+				if (vga.dosboxig.vidformat != fmt) {
+					vga.dosboxig.vidformat = fmt;
+					VGA_DOSBoxIG_FmtToVGA();
+					if (vga.dosboxig.svga) VGA_StartResize(0);
+				}
+				if (vga.dosboxig.bytes_per_scanline != bpl) {
+					vga.dosboxig.bytes_per_scanline = bpl;
+					if (vga.dosboxig.svga) VGA_CheckScanLength();
+				}
+			}
+			break;
+
+		case DOSBOX_ID_REG_VGAIG_REFRESHRATE:
+			{
+				uint32_t nr = dosbox_int_register;
+
+				if (nr > (240ul << 16ul)) nr = 240ul << 16ul; /* 240fps is enough! */
+
+				if (vga.dosboxig.vratefp16 != nr) {
+					vga.dosboxig.vratefp16 = nr;
+					if (vga.dosboxig.svga) VGA_StartResize(0);
+				}
+			}
+			break;
+
+		case DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET: {
+			vga.dosboxig.display_offset = dosbox_int_register;
+			break; }
+
+		case DOSBOX_ID_REG_VGAIG_HVPELSCALE: {
+			uint8_t vs = (dosbox_int_register >> 24u) & 0xFFu;
+			uint8_t hs = (dosbox_int_register >> 16u) & 0xFFu;
+			uint8_t vp = (dosbox_int_register >>  8u) & 0xFFu;
+			uint8_t hp =  dosbox_int_register         & 0xFFu;
+
+			/* for now, only pixel doubling is supported */
+			vs &= 1u;
+			hs &= 1u;
+			vp &= 1u;
+			hp &= 1u;
+
+			vga.dosboxig.vscale = vs;
+			vga.dosboxig.hscale = hs;
+			vga.dosboxig.vpel = vp;
+			vga.dosboxig.hpel = hp;
+			break; }
+
 		case DOSBOX_ID_REG_CPU_CYCLES:
 			ig_cpu_cycles_set |= 1u;
 			ig_cpu_cycles_value = dosbox_int_register;
@@ -1213,6 +1319,12 @@ void dosbox_integration_trigger_write() {
 			dosbox_int_error = true;
 			break;
 	}
+}
+
+void dosbox_integration_trigger_write_direct32(const uint32_t reg,const uint32_t val) {
+	dosbox_int_regsel = reg;
+	dosbox_int_register = val;
+	dosbox_integration_trigger_write();
 }
 
 /* PORT 0x28: Index

@@ -37,6 +37,13 @@
 
 #include <output/output_ttf.h>
 
+#define DOSBOX_INCLUDE
+#include "iglib.h"
+
+void dosbox_integration_trigger_write_direct32(const uint32_t reg,const uint32_t val);
+bool dosbox_int_push_save_state(void);
+bool dosbox_int_pop_save_state(void);
+
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15
@@ -1315,6 +1322,13 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	}
 
 	if (IS_VGA_ARCH && svgaCard == SVGA_None && mode > 0x13) return false; /* Standard VGA does not have anything above 0x13 */
+
+	if (IS_VGA_ARCH && svgaCard == SVGA_DOSBoxIG) {
+		/* switch off Integration Graphics */
+		dosbox_int_push_save_state();
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,0);
+		dosbox_int_pop_save_state();
+	}
 
 	if (unmask_irq0_on_int10_setmode) {
 		/* setting the video mode unmasks certain IRQs as a matter of course */

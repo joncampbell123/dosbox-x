@@ -60,6 +60,8 @@ extern bool allow_vesa_4bpp;
 extern bool allow_vesa_tty;
 extern bool vga_8bit_dac;
 
+void dosbox_integration_trigger_write_direct32(const uint32_t reg,const uint32_t val);
+
 #define VESA_SUCCESS          0x00
 #define VESA_FAIL             0x01
 #define VESA_HW_UNSUPPORTED   0x02

@@ -220,6 +220,7 @@ static void LogEMUMachine(void) {
             case SVGA_TsengET3K:        cardName ="Tseng ET3000";    break;
             case SVGA_ParadisePVGA1A:   cardName ="Paradise PVGA1A"; break;
             case SVGA_ATI:              cardName ="ATI";             break;
+            case SVGA_DOSBoxIG:         cardName ="DOSBox Integrated Graphics"; break;
         }
 
         DEBUG_ShowMsg("Machine: %s %s",m, cardName);
