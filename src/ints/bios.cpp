@@ -1213,7 +1213,6 @@ void dosbox_integration_trigger_write() {
 
 				if (vga.dosboxig.vidformat != fmt) {
 					vga.dosboxig.vidformat = fmt;
-					VGA_DOSBoxIG_FmtToVGA();
 					if (vga.dosboxig.svga) VGA_StartResize(0);
 				}
 				if (vga.dosboxig.bytes_per_scanline != bpl) {
