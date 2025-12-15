@@ -1803,9 +1803,13 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_BANKWINDOW,0);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVPELSCALE,0);
 
-	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE);
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE|DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT);
 
 	dosbox_int_pop_save_state();
+
+	/* INT 10h at this point still has the screen blanked, having not yet written bit 5 of the attr control index.
+	 * It won't be able to with our lockout in effect, do it now directly */
+	vga.attr.disabled = 0;
 
 	LOG(LOG_MISC,LOG_DEBUG)("DOSBox Integration Device is active");
 }
