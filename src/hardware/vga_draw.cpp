@@ -379,17 +379,15 @@ static uint8_t * VGA_Draw_DOSBOXIG_16bpp(Bitu vidstart, Bitu line) { // renders 
 
 static uint8_t * VGA_Draw_DOSBOXIG_24bpp(Bitu vidstart, Bitu line) { // renders to 32bpp
 	uint32_t ofs = (uint32_t)vidstart;
-	unsigned int x = 0,c = vga.draw.width * 3u;
+	unsigned int x;
 
 	(void)line;
 
-	while (x < c) {
-		TempLine[x+0] = vga.mem.linear[(ofs+0) & vga.draw.linear_mask];
-		TempLine[x+1] = vga.mem.linear[(ofs+1) & vga.draw.linear_mask];
-		TempLine[x+2] = vga.mem.linear[(ofs+2) & vga.draw.linear_mask];
+	for (x=0;x < (vga.draw.width*4u);x += 4,ofs += 3u) {
+		TempLine[x+0] = *((uint16_t*)(&vga.mem.linear[(ofs+0) & vga.draw.linear_mask]));
+		TempLine[x+1] = *((uint16_t*)(&vga.mem.linear[(ofs+1) & vga.draw.linear_mask]));
+		TempLine[x+2] = *((uint16_t*)(&vga.mem.linear[(ofs+2) & vga.draw.linear_mask]));
 		TempLine[x+3] = 0;
-		ofs += 3;
-		x += 4;
 	}
 
 	return TempLine;
@@ -7113,13 +7111,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 			htotal  += vga.dosboxig.wa_total;
 			hbend   += vga.dosboxig.wa_total;
-			hrstart += vga.dosboxig.wa_total / 2;
-			hrend   += (vga.dosboxig.wa_total + 1) / 2;
+			hrstart += (vga.dosboxig.wa_total / 3);
+			hrend   += (vga.dosboxig.wa_total / 3) * 2;
 
 			vtotal  += vga.dosboxig.ha_total;
 			vbend   += vga.dosboxig.ha_total;
-			vrstart += vga.dosboxig.ha_total / 2;
-			vrend   += (vga.dosboxig.ha_total + 1) / 2;
+			vrstart += (vga.dosboxig.ha_total / 3);
+			vrend   += (vga.dosboxig.ha_total / 3) * 2;
 
 			LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG w=%u h=%u",vga.dosboxig.width,vga.dosboxig.height);
 		}
@@ -7229,11 +7227,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		/* force the VGA refresh rate by setting fps and bending the clock to our will */
 		LOG(LOG_VGA,LOG_NORMAL)("VGA forced refresh rate in effect, %.3f",vga_force_refresh_rate);
 		fps=vga_force_refresh_rate;
-		clock=((double)(vtotal*htotal))*fps;
+		oscclock=clock=((double)(vtotal*htotal))*fps;
 	}
 	else if ((vga.dosboxig.svga || vga.dosboxig.override_refresh) && vga.dosboxig.vratefp16 >= 0x10000ul/*at least 1.0fps*/) {
 		fps=(double)vga.dosboxig.vratefp16 / 65536.0;
-		clock=((double)(vtotal*htotal))*fps;
+		oscclock=clock=((double)(vtotal*htotal))*fps;
 		LOG(LOG_VGA,LOG_NORMAL)("VGA refresh rate is now, %.3f (DOSBox Integrated Graphics)",fps);
 	}
 	else {

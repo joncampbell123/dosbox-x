@@ -778,16 +778,53 @@ uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait) {
 	Bitu pixels_per_offset;
 	Bitu panning_factor = 1;
 
-	/* this special hack is for the Windows 3.1 S3 driver in "640x480 (1MB) 16 million colors" mode which does no scan line or display offset calls at all */
-	if (CurMode->special & _S3_POW2_STRIDE)
-		return VESA_MODE_UNSUPPORTED;
-
 	if (!wait) {
 		if (vesa_set_display_vsync_wait > 0)
 			wait = true;
 		else if (vesa_set_display_vsync_wait < 0)
 			wait = int10.vesa_oldvbe;
 	}
+
+	if (vga.dosboxig.svga) {
+		uint32_t offset = vga.dosboxig.bytes_per_scanline * y;
+		uint8_t hpel = 0;
+
+		switch (CurMode->type) {
+			case M_PACKED4:
+				offset += x >> 1u;
+				hpel = x & 1u;
+				break;
+			case M_LIN8:
+				offset += x;
+				break;
+			case M_LIN15:
+			case M_LIN16:
+				offset += x * 2u;
+				break;
+			case M_LIN24:
+				offset += x * 3u;
+				break;
+			case M_LIN32:
+				offset += x * 4u;
+				break;
+			default:
+				return VESA_MODE_UNSUPPORTED;
+		}
+
+		dosbox_int_push_save_state();
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET,offset);
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVPELSCALE,hpel);
+		dosbox_int_pop_save_state();
+
+		// Wait for retrace if requested
+		if (wait) CALLBACK_RunRealFar(RealSeg(int10.rom.wait_retrace),RealOff(int10.rom.wait_retrace));
+
+		return VESA_SUCCESS;
+	}
+
+	/* this special hack is for the Windows 3.1 S3 driver in "640x480 (1MB) 16 million colors" mode which does no scan line or display offset calls at all */
+	if (CurMode->special & _S3_POW2_STRIDE)
+		return VESA_MODE_UNSUPPORTED;
 
 	switch (CurMode->type) {
 	case M_TEXT:
@@ -833,7 +870,7 @@ uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait) {
 	IO_Read(0x3da);              // reset attribute flipflop
 	IO_Write(0x3c0,0x13 | 0x20); // panning register, screen on
 	IO_Write(0x3c0,(uint8_t)new_panning);
-	
+
 	// Wait for retrace if requested
 	if (wait) CALLBACK_RunRealFar(RealSeg(int10.rom.wait_retrace),RealOff(int10.rom.wait_retrace));
 
@@ -843,6 +880,39 @@ uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait) {
 uint8_t VESA_GetDisplayStart(uint16_t & x,uint16_t & y) {
 	Bitu pixels_per_offset;
 	Bitu panning_factor = 1;
+
+	if (vga.dosboxig.svga) {
+		if (vga.dosboxig.bytes_per_scanline) {
+			x = vga.dosboxig.display_offset % vga.dosboxig.bytes_per_scanline;
+			y = vga.dosboxig.display_offset / vga.dosboxig.bytes_per_scanline;
+		}
+		else {
+			x = y = 0;
+		}
+
+		switch (CurMode->type) {
+			case M_PACKED4:
+				x *= 2u;
+				x += vga.dosboxig.hpel & 1u;
+				break;
+			case M_LIN8:
+				break;
+			case M_LIN15:
+			case M_LIN16:
+				x /= 2u;
+				break;
+			case M_LIN24:
+				x /= 3u;
+				break;
+			case M_LIN32:
+				x /= 4u;
+				break;
+			default:
+				return VESA_MODE_UNSUPPORTED;
+		}
+
+		return VESA_SUCCESS;
+	}
 
 	switch (CurMode->type) {
 	case M_TEXT:
