@@ -1258,6 +1258,14 @@ void dosbox_integration_trigger_write() {
 			vga.dosboxig.hpel = hp;
 			break; }
 
+		case DOSBOX_ID_REG_VGAIG_BANKWINDOW:
+			{
+				uint32_t nr = dosbox_int_register & (~0xFFFul);
+				vga.dosboxig.bank_offset = nr;
+				VGA_SetupHandlers();
+			}
+			break;
+
 		case DOSBOX_ID_REG_CPU_CYCLES:
 			ig_cpu_cycles_set |= 1u;
 			ig_cpu_cycles_value = dosbox_int_register;

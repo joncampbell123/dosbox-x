@@ -681,6 +681,7 @@ typedef struct VGA_DOSBoxIG {
 	unsigned int            wa_total = 0,ha_total = 0; /* additional cols/rows to add to get htotal/vtotal */
 	uint32_t                vratefp16 = 0; /* video sync rate as a fixed point 16.16 number */
 	uint32_t		display_offset = 0; /* offset in video memory to display */
+	uint32_t		bank_offset = 0; /* offset of 64KB bank window in video memory */
 	uint8_t                 vidformat = 0; /* video pixel format (VGA_DOSBoxIG_VidFormat) */
 	uint8_t			hpel = 0; /* horizontal pan */
 	uint8_t			vpel = 0; /* vertical pan */

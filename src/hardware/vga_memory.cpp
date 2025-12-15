@@ -2501,8 +2501,14 @@ void VGA_SetupHandlers(void) {
 	 * mapped to A0000-BFFFF. Most cards expose a window of 64KB. Most cards also have
 	 * a bank granularity of 64KB, but some, like Paradise and Cirrus, have 64KB windows
 	 * and 4KB granularity. */
-	vga.svga.bank_read_full = vga.svga.bank_read*vga.svga.bank_size;
-	vga.svga.bank_write_full = vga.svga.bank_write*vga.svga.bank_size;
+	if (svgaCard == SVGA_DOSBoxIG) {
+		vga.svga.bank_read_full = vga.dosboxig.bank_offset & (~0xFFFu);
+		vga.svga.bank_write_full = vga.dosboxig.bank_offset & (~0xFFFu);
+	}
+	else {
+		vga.svga.bank_read_full = vga.svga.bank_read*vga.svga.bank_size;
+		vga.svga.bank_write_full = vga.svga.bank_write*vga.svga.bank_size;
+	}
 	bool runeten = false;
 	PageHandler *newHandler;
 	switch (machine) {
