@@ -365,26 +365,46 @@ static uint8_t * VGA_Draw_DOSBOXIG_8bpp(Bitu vidstart, Bitu line) { // renders t
 }
 
 static uint8_t * VGA_Draw_DOSBOXIG_16bpp(Bitu vidstart, Bitu line) { // renders to 15/16bpp
-	(void)vidstart;
+	uint16_t *temp = (uint16_t*)TempLine;
+	uint32_t ofs = (uint32_t)vidstart & ~1u;
+	unsigned int x;
+
 	(void)line;
 
-	memset(TempLine,0,vga.draw.width*2u);
+	for (x=0;x < vga.draw.width;x++,ofs += 2u)
+		temp[x] = *((uint16_t*)(&vga.mem.linear[ofs & vga.draw.linear_mask]));
+
 	return TempLine;
 }
 
 static uint8_t * VGA_Draw_DOSBOXIG_24bpp(Bitu vidstart, Bitu line) { // renders to 32bpp
-	(void)vidstart;
+	uint32_t ofs = (uint32_t)vidstart;
+	unsigned int x = 0,c = vga.draw.width * 3u;
+
 	(void)line;
 
-	memset(TempLine,0,vga.draw.width*4u);
+	while (x < c) {
+		TempLine[x+0] = vga.mem.linear[(ofs+0) & vga.draw.linear_mask];
+		TempLine[x+1] = vga.mem.linear[(ofs+1) & vga.draw.linear_mask];
+		TempLine[x+2] = vga.mem.linear[(ofs+2) & vga.draw.linear_mask];
+		TempLine[x+3] = 0;
+		ofs += 3;
+		x += 4;
+	}
+
 	return TempLine;
 }
 
 static uint8_t * VGA_Draw_DOSBOXIG_32bpp(Bitu vidstart, Bitu line) { // renders to 32bpp
-	(void)vidstart;
+	uint32_t *temp = (uint32_t*)TempLine;
+	uint32_t ofs = (uint32_t)vidstart & ~3u;
+	unsigned int x;
+
 	(void)line;
 
-	memset(TempLine,0,vga.draw.width*4u);
+	for (x=0;x < vga.draw.width;x++,ofs += 4u)
+		temp[x] = *((uint32_t*)(&vga.mem.linear[ofs & vga.draw.linear_mask]));
+
 	return TempLine;
 }
 
