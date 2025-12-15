@@ -6858,6 +6858,9 @@ void VGA_DOSBoxIG_FmtToVGA(void) {
 }
 
 void VGA_SetupDrawing(Bitu /*val*/) {
+	if (vga.dosboxig.svga)
+		VGA_DOSBoxIG_FmtToVGA();
+
 	if (vga.mode==M_ERROR) {
 		PIC_RemoveEvents(VGA_VerticalTimer);
 		PIC_RemoveEvents(VGA_PanningLatch);
