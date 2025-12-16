@@ -747,7 +747,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 
 			if (vga.dosboxig.svga) {
 				dosbox_int_push_save_state();
-				dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,new_offset * bytes_per_offset);
+				dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,(new_offset * bytes_per_offset) | DOSBOX_ID_REG_VGAIG_FMT_MASK);
 				dosbox_int_pop_save_state();
 			}
 			else {
@@ -779,7 +779,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 
 			if (vga.dosboxig.svga) {
 				dosbox_int_push_save_state();
-				dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,new_offset * bytes_per_offset);
+				dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,(new_offset * bytes_per_offset) | DOSBOX_ID_REG_VGAIG_FMT_MASK);
 				dosbox_int_pop_save_state();
 			}
 			else {
