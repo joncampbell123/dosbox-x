@@ -7356,7 +7356,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	Bitu height=vdend;
 
 	if (vga.dosboxig.svga) {
-		vga.draw.doublescan_effect = true;
+		vga.draw.doublescan_effect = false;
 	}
 	else if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
 		vga.draw.address_line_total=(vga.crtc.maximum_scan_line&0x1fu)+1u;
