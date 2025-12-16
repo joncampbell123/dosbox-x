@@ -688,6 +688,8 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 			default:
 				return VESA_MODE_UNSUPPORTED;
 		}
+
+		max_offset = 8192;
 	}
 	else {
 		switch (CurMode->type) {
@@ -722,9 +724,10 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 			default:
 				return VESA_MODE_UNSUPPORTED;
 		}
+
+		max_offset = S3_MAX_OFFSET;
 	}
 
-	max_offset = S3_MAX_OFFSET;
 	if ((max_offset * bytes_per_offset * screen_height) > vmemsize)
 		max_offset = vmemsize / (bytes_per_offset * screen_height);
 
