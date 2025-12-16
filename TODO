@@ -1,5 +1,6 @@
 DOSBox Integrated Graphics:
 - Video debug overlay does not reflect Integrated Graphics width/height/bytesperscanline/hpel state when active,
   still shows VGA state underneath.
+[DONE]
 - Need to implement get/set scanline length, so VBETEST can do the full panning test
 

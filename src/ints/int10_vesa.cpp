@@ -649,7 +649,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 	Bitu pixels_per_offset;
 	Bitu bytes_per_offset = 8;
 	Bitu vmemsize = GetReportedVideoMemorySize();
-	Bitu new_offset = vga.config.scan_len;
+	Bitu new_offset = vga.dosboxig.svga ? vga.dosboxig.bytes_per_scanline : vga.config.scan_len;
 	Bitu screen_height = CurMode->sheight;
 	Bitu max_offset;
 
@@ -657,37 +657,71 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 	if (CurMode->special & _S3_POW2_STRIDE)
 		return VESA_MODE_UNSUPPORTED;
 
-	switch (CurMode->type) {
-		case M_TEXT:
-			vmemsize = 0x8000;      // we have only the 32kB window here
-			screen_height = CurMode->theight;
-			pixels_per_offset = 16; // two characters each 8 pixels wide
-			bytes_per_offset = 4;   // 2 characters + 2 attributes
-			break;
-		case M_LIN4:
-			bytes_per_offset = 2;
-			pixels_per_offset = 16;
-			vmemsize /= 4u; /* because planar VGA */
-			break;
-		case M_PACKED4:
-			pixels_per_offset = 16;
-			break;
-		case M_LIN8:
-			pixels_per_offset = 8;
-			break;
-		case M_LIN15:
-		case M_LIN16:
-			pixels_per_offset = 4;
-			break;
-		case M_LIN24:
-			pixels_per_offset = 8;
-			bytes_per_offset = 24;
-			break;
-		case M_LIN32:
-			pixels_per_offset = 2;
-			break;
-		default:
-			return VESA_MODE_UNSUPPORTED;
+	if (vga.dosboxig.svga) {
+		switch (CurMode->type) {
+			case M_LIN4:
+				bytes_per_offset = 1;
+				pixels_per_offset = 8;
+				vmemsize /= 4u; /* because planar VGA */
+				break;
+			case M_PACKED4:
+				bytes_per_offset = 1;
+				pixels_per_offset = 2;
+				break;
+			case M_LIN8:
+				bytes_per_offset = 1;
+				pixels_per_offset = 1;
+				break;
+			case M_LIN15:
+			case M_LIN16:
+				bytes_per_offset = 2;
+				pixels_per_offset = 1;
+				break;
+			case M_LIN24:
+				bytes_per_offset = 3;
+				pixels_per_offset = 1;
+				break;
+			case M_LIN32:
+				bytes_per_offset = 4;
+				pixels_per_offset = 1;
+				break;
+			default:
+				return VESA_MODE_UNSUPPORTED;
+		}
+	}
+	else {
+		switch (CurMode->type) {
+			case M_TEXT:
+				vmemsize = 0x8000;      // we have only the 32kB window here
+				screen_height = CurMode->theight;
+				pixels_per_offset = 16; // two characters each 8 pixels wide
+				bytes_per_offset = 4;   // 2 characters + 2 attributes
+				break;
+			case M_LIN4:
+				bytes_per_offset = 2;
+				pixels_per_offset = 16;
+				vmemsize /= 4u; /* because planar VGA */
+				break;
+			case M_PACKED4:
+				pixels_per_offset = 16;
+				break;
+			case M_LIN8:
+				pixels_per_offset = 8;
+				break;
+			case M_LIN15:
+			case M_LIN16:
+				pixels_per_offset = 4;
+				break;
+			case M_LIN24:
+				pixels_per_offset = 8;
+				bytes_per_offset = 24;
+				break;
+			case M_LIN32:
+				pixels_per_offset = 2;
+				break;
+			default:
+				return VESA_MODE_UNSUPPORTED;
+		}
 	}
 
 	max_offset = S3_MAX_OFFSET;
@@ -711,12 +745,19 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 			// TODO: Add dosbox-x.conf option to control which behavior is emulated.
 			if (new_offset > max_offset) new_offset = max_offset;
 
-			if (CurMode->type == M_LIN24)
-				vga.config.scan_len = new_offset * 3u;
-			else
-				vga.config.scan_len = new_offset;
+			if (vga.dosboxig.svga) {
+				dosbox_int_push_save_state();
+				dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,new_offset * bytes_per_offset);
+				dosbox_int_pop_save_state();
+			}
+			else {
+				if (CurMode->type == M_LIN24)
+					vga.config.scan_len = new_offset * 3u;
+				else
+					vga.config.scan_len = new_offset;
 
-			VGA_CheckScanLength();
+				VGA_CheckScanLength();
+			}
 			break;
 
 		case 0x01: // get current scanline length
@@ -736,12 +777,19 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 			// TODO: Add dosbox-x.conf option to control which behavior is emulated.
 			if (new_offset > max_offset) new_offset = max_offset;
 
-			if (CurMode->type == M_LIN24)
-				vga.config.scan_len = new_offset * 3u;
-			else
-				vga.config.scan_len = new_offset;
+			if (vga.dosboxig.svga) {
+				dosbox_int_push_save_state();
+				dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,new_offset * bytes_per_offset);
+				dosbox_int_pop_save_state();
+			}
+			else {
+				if (CurMode->type == M_LIN24)
+					vga.config.scan_len = new_offset * 3u;
+				else
+					vga.config.scan_len = new_offset;
 
-			VGA_CheckScanLength();
+				VGA_CheckScanLength();
+			}
 			break;
 
 		case 0x03: // get maximum scan line length
@@ -993,7 +1041,16 @@ static Bitu VESA_PMSetPalette(void) {
 }
 static Bitu VESA_PMSetStart(void) {
 	uint32_t start = (uint32_t)(((unsigned int)reg_dx << 16u) | (unsigned int)reg_cx);
-	vga.config.display_start = start;
+
+	if (vga.dosboxig.svga) {
+		dosbox_int_push_save_state();
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET,start);
+		dosbox_int_pop_save_state();
+	}
+	else {
+		vga.config.display_start = start;
+	}
+
 	return CBRET_NONE;
 }
 
