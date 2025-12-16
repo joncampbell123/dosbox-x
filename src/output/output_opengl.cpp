@@ -354,6 +354,8 @@ void OUTPUT_OPENGL_Select( GLKind kind )
         }
         sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
         sdl.surface = SDL_GetWindowSurface(sdl.window);
+
+        LOG_MSG( "OpenGL Version : %s", glGetString( GL_VERSION ));
     }
     if (!sdl.window || !sdl_opengl.context || sdl.surface == NULL) {
 #else
