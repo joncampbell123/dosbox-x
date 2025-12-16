@@ -1168,6 +1168,7 @@ void dosbox_integration_trigger_write() {
 				vga.dosboxig.vga_dac_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_DAC_LOCKOUT);
 
 				if (modechange) {
+					VGA_DetermineMode();
 					VGA_StartResize(0);
 					VGA_DAC_UpdateColorPalette();
 				}
@@ -1211,9 +1212,12 @@ void dosbox_integration_trigger_write() {
 				unsigned int bpl = dosbox_int_register & 0xFFFFu;
 				unsigned int fmt = (dosbox_int_register >> 16u) & 0xFFu;
 
-				if (vga.dosboxig.vidformat != fmt) {
+				if (vga.dosboxig.vidformat != fmt && fmt != 0xFFu) {
 					vga.dosboxig.vidformat = fmt;
-					if (vga.dosboxig.svga) VGA_StartResize(0);
+					if (vga.dosboxig.svga) {
+						VGA_DetermineMode();
+						VGA_StartResize(0);
+					}
 				}
 				if (vga.dosboxig.bytes_per_scanline != bpl) {
 					vga.dosboxig.bytes_per_scanline = bpl;

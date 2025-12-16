@@ -6839,46 +6839,7 @@ void ChooseRenderOnDemand(void) {
 	LOG(LOG_VGAMISC,LOG_DEBUG)("Render On Demand mode is %s for RodU %d",vga_render_on_demand?"on":"off",vga_render_on_demand_user);
 }
 
-
-void VGA_DOSBoxIG_FmtToVGA(void) {
-	switch (vga.dosboxig.vidformat) {
-		case DBIGVF_NONE:
-			vga.mode = M_CGA4; // which should be ignored
-			break;
-		case DBIGVF_1BPP:
-			vga.mode = M_CGA2;
-			break;
-		case DBIGVF_4BPP:
-			vga.mode = M_PACKED4;
-			break;
-		case DBIGVF_8BPP:
-			vga.mode = M_LIN8;
-			break;
-		case DBIGVF_15BPP:
-			vga.mode = M_LIN15;
-			break;
-		case DBIGVF_16BPP:
-			vga.mode = M_LIN16;
-			break;
-		case DBIGVF_24BPP8:
-			vga.mode = M_LIN24;
-			break;
-		case DBIGVF_32BPP8:
-			vga.mode = M_LIN32;
-			break;
-		case DBIGVF_32BPP10:
-			vga.mode = M_LIN32;
-			break;
-		default:
-			vga.mode = M_ERROR;
-			break;
-	}
-}
-
 void VGA_SetupDrawing(Bitu /*val*/) {
-	if (vga.dosboxig.svga)
-		VGA_DOSBoxIG_FmtToVGA();
-
 	if (vga.mode==M_ERROR) {
 		PIC_RemoveEvents(VGA_VerticalTimer);
 		PIC_RemoveEvents(VGA_PanningLatch);
@@ -7356,7 +7317,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	Bitu height=vdend;
 
 	if (vga.dosboxig.svga) {
-		vga.draw.doublescan_effect = false;
+		vga.draw.address_add = vga.dosboxig.bytes_per_scanline;
+		vga.draw.doublescan_effect = true;
+		vga.draw.address_line_total = 1;
+		vga.draw.render_max = 1;
 	}
 	else if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
 		vga.draw.address_line_total=(vga.crtc.maximum_scan_line&0x1fu)+1u;

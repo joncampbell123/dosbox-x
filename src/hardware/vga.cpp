@@ -325,8 +325,37 @@ void VGA_DetermineMode_StandardVGA(void) { /* and EGA, the extra regs are not us
 	}
 }
 
+enum VGAModes VGA_DOSBoxIG_FmtToVGA(void) {
+	switch (vga.dosboxig.vidformat) {
+		case DBIGVF_NONE:
+			return M_CGA4; // which should be ignored
+		case DBIGVF_1BPP:
+			return M_CGA2;
+		case DBIGVF_4BPP:
+			return M_PACKED4;
+		case DBIGVF_8BPP:
+			return M_LIN8;
+		case DBIGVF_15BPP:
+			return M_LIN15;
+		case DBIGVF_16BPP:
+			return M_LIN16;
+		case DBIGVF_24BPP8:
+			return M_LIN24;
+		case DBIGVF_32BPP8:
+			return M_LIN32;
+		case DBIGVF_32BPP10:
+			return M_LIN32;
+		default:
+			break;
+	}
+
+	return M_ERROR;
+}
+
 void VGA_DetermineMode(void) {
-	if (svga.determine_mode)
+	if (vga.dosboxig.svga)
+		VGA_SetMode(VGA_DOSBoxIG_FmtToVGA());
+	else if (svga.determine_mode)
 		svga.determine_mode();
 	else
 		VGA_DetermineMode_StandardVGA();
