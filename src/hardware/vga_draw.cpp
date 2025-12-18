@@ -1101,6 +1101,24 @@ template <const unsigned int card,typename templine_type_t> static inline void E
     temps[7] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
 }
 
+static uint8_t * VGA_Draw_DOSBOXIG_1bpp4plane(Bitu vidstart, Bitu line) { // renders to 8bpp
+	uint32_t ofs = (uint32_t)vidstart & ~3u;
+	uint32_t *temp = (uint32_t*)TempLine;
+	uint32_t t1,t2;
+	unsigned int x;
+
+	(void)line;
+
+	for (x=0;x < vga.draw.width;x += 8,ofs += 4u) {
+		t1 = t2 = *((uint32_t*)(&vga.mem.linear[ofs & vga.draw.linear_mask]));
+		t1 = (t1 >> 4) & 0x0f0f0f0f;
+		t2 &= 0x0f0f0f0f;
+		EGA_Planar_Common_Block<MCH_VGA,uint32_t>(temp+x,t1,t2);
+	}
+
+	return TempLine;
+}
+
 /* NTS: For EGA/VGA machine types this code is also used to render the CGA 640x200 2-color and MCGA 640x480 2-color modes.
  *      The reason is that on EGA/VGA, CGA graphics modes are really just a tweaked EGA 16-color mode with color plane enable set
  *      to show only one bitplane. The attribute controller is set to map 0 to black and anything else to white. The
@@ -7420,6 +7438,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 				case M_PACKED4:
 					bpp = 32;
 					VGA_DrawLine = VGA_Draw_DOSBOXIG_4bpp;
+					break;
+				case M_LIN4:
+				case M_EGA:
+					bpp = 32;
+					VGA_DrawLine = VGA_Draw_DOSBOXIG_1bpp4plane;
 					break;
 				case M_VGA: // 8bpp
 				case M_LIN8:

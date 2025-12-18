@@ -345,6 +345,8 @@ enum VGAModes VGA_DOSBoxIG_FmtToVGA(void) {
 			return M_LIN32;
 		case DBIGVF_32BPP10:
 			return M_LIN32;
+		case DBIGVF_1BPP4PLANE:
+			return M_LIN4;
 		default:
 			break;
 	}
@@ -1760,11 +1762,10 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	uint32_t fmtc = 0,cwidth = (CurMode->pitch != 0) ? CurMode->pitch : CurMode->swidth;
 	uint32_t width = CurMode->swidth,height = CurMode->sheight;
 	uint32_t refresh = (uint32_t)(70.09 * 0x10000);
+	uint32_t ctl = 0;
 
 	/* 16-color planar modes and standard VGA modes use standard VGA emulation */
-	if (CurMode->type == M_ERROR || CurMode->type == M_EGA || CurMode->type == M_LIN4 || CurMode->type == M_TEXT || modeData->modeNo <= 0x13) {
-		uint32_t ctl = 0;
-
+	if (CurMode->type == M_ERROR || CurMode->type == M_TEXT || modeData->modeNo <= 0x13) {
 		/* switch off Integration Graphics */
 		dosbox_int_push_save_state();
 
@@ -1794,9 +1795,16 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	htadd *= 8u;
 	vga.config.line_compare=0x7FFu;
 	vga.config.compatible_chain4 = false; /* or else bank switching support does not work properly */
+	ctl = DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE|DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT;
 	switch (CurMode->type) {
 		case M_CGA2:
 			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_1BPP;
+			break;
+		case M_LIN4:
+		case M_EGA:
+			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_1BPP4PLANE;
+			fmtc |= (uint16_t)((((cwidth+15U)/8U)&(~1U))*4); // must match code in VESA BIOS emulation except times 4
+			ctl &= ~DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT; // VGA registers are REQUIRED in order to use planar modes properly
 			break;
 		case M_PACKED4:
 			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_4BPP;
@@ -1838,7 +1846,7 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_BANKWINDOW,0);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVPELSCALE,0);
 
-	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE|DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT);
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,ctl);
 
 	dosbox_int_pop_save_state();
 
