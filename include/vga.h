@@ -666,7 +666,8 @@ enum VGA_DOSBoxIG_VidFormat {
 	DBIGVF_16BPP=5,		// 16bpp R:G:B 5:6:5
 	DBIGVF_24BPP8=6,	// 24bpp RGB
 	DBIGVF_32BPP8=7,	// 32bpp XRGB 8:8:8:8
-	DBIGVF_32BPP10=8	// 32bpp XRGB 2:10:10:10
+	DBIGVF_32BPP10=8,	// 32bpp XRGB 2:10:10:10
+	DBIGVF_1BPP4PLANE=9	// 1bpp planar
 };
 
 typedef struct VGA_DOSBoxIG {

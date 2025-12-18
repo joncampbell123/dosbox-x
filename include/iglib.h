@@ -98,6 +98,7 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 # define DOSBOX_ID_REG_VGAIG_FMT_24BPP8                 (0x06UL << 16UL)/* 24bpp 8:8:8 */
 # define DOSBOX_ID_REG_VGAIG_FMT_32BPP8                 (0x07UL << 16UL)/* 32bpp 8:8:8:8 */
 # define DOSBOX_ID_REG_VGAIG_FMT_32BPP10                (0x08UL << 16UL)/* 32bpp 2:10:10:10 */
+# define DOSBOX_ID_REG_VGAIG_FMT_1BPP4PLANE             (0x09UL << 16UL)/* 1bpp planar */
 #define DOSBOX_ID_REG_VGAIG_REFRESHRATE                 (0x00684594UL)  /* integrated device refresh rate as a 16.16 fixed point number */
 #define DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET               (0x00684595UL)  /* display video memory offset */
 #define DOSBOX_ID_REG_VGAIG_HVPELSCALE                  (0x00684596UL)  /* h/v scale and h/v pel (8:8:8:8 = vscale:hscale:vpel:hpel) */

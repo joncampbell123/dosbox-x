@@ -145,7 +145,10 @@ void VGA_DAC_UpdateColor( Bitu index ) {
 
     if (IS_VGA_ARCH) {
         if (vga.dosboxig.svga) {
-            maskIndex = index; /* no VGA AC mapping, palette select, anything */
+            if (vga.mode == M_EGA || vga.mode == M_LIN4)
+                maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
+            else
+                maskIndex = index;
         }
         else if (vga.mode == M_VGA || vga.mode == M_LIN8) {
             /* WARNING: This code assumes index < 256 */
