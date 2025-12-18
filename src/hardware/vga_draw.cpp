@@ -4914,6 +4914,13 @@ void VGA_sof_debug_video_info(void) {
 
 		d += sprintf(d," pg:c%ud%u",(pc98_gdc_vramop & (1 << VOPBIT_ACCESS))?1:0,GDC_display_plane_pending);
 	}
+	else if (vga.dosboxig.svga) {
+		char *d = tmp;
+
+		d += sprintf(d,"@%04x+%04xL",(unsigned int)vga.dosboxig.display_offset,(unsigned int)vga.dosboxig.bytes_per_scanline);
+
+		*d = 0;
+	}
 	else if (IS_EGAVGA_ARCH) {
 		char *d = tmp;
 

@@ -1,8 +1,9 @@
 DOSBox Integrated Graphics:
-- Video debug overlay does not reflect Integrated Graphics width/height/bytesperscanline/hpel state when active,
-  still shows VGA state underneath.
 - Why does VBETEST's line drawing glitch out for mode 0x10D (320x200 15bpp). It makes the test for that mode
   either take way too long or never complete.
+- HD (1920x1080) modes crash the emulator if the Video Debug Overlay is enabled.
 [DONE]
 - Need to implement get/set scanline length, so VBETEST can do the full panning test
+- Video debug overlay does not reflect Integrated Graphics width/height/bytesperscanline/hpel state when active,
+  still shows VGA state underneath.
 
