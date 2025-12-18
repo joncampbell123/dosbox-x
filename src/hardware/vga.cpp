@@ -1771,6 +1771,10 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 		if (width > 640 || height > 480) {
 			ctl |= DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE_REFRESH;
 			vga.config.compatible_chain4 = false; /* or else >800x600 16-color planar modes will not work properly */
+			vga.config.line_compare=0x7FFu;
+		}
+		else {
+			vga.config.line_compare=0x3FFu;
 		}
 
 		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,0);
@@ -1788,6 +1792,7 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	}
 
 	htadd *= 8u;
+	vga.config.line_compare=0x7FFu;
 	vga.config.compatible_chain4 = false; /* or else bank switching support does not work properly */
 	switch (CurMode->type) {
 		case M_CGA2:

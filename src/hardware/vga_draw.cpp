@@ -3866,7 +3866,7 @@ again:
 
     if (!skiprender) {
         vga.draw.lines_done++;
-        if (vga.draw.split_line==vga.draw.lines_done && machine != MCH_PC98) VGA_ProcessSplit();
+        if (vga.draw.split_line==vga.draw.lines_done && machine != MCH_PC98 && !vga.dosboxig.svga) VGA_ProcessSplit();
     }
 
     if (mcga_double_scan) {
@@ -3964,7 +3964,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 
     if (!skiprender) {
         vga.draw.lines_done++;
-        if (vga.draw.split_line==vga.draw.lines_done && machine != MCH_PC98) VGA_ProcessSplit();
+        if (vga.draw.split_line==vga.draw.lines_done && machine != MCH_PC98 && !vga.dosboxig.svga) VGA_ProcessSplit();
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
@@ -6106,6 +6106,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
 	if (vga.dosboxig.svga) {
 		vga.draw.address = vga.dosboxig.display_offset;
+		vga.draw.linear_mask = vga.mem.memmask;
 		vga.draw.address_line = 0;
 	}
 	else {
@@ -6259,7 +6260,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		}
 
 		/* do VGA split now if line compare <= 0. NTS: vga.draw.split_line is defined as Bitu (unsigned integer) so we need the typecast. */
-		if (GCC_UNLIKELY((Bits)vga.draw.split_line <= 0) && machine != MCH_PC98) {
+		if (GCC_UNLIKELY((Bits)vga.draw.split_line <= 0) && machine != MCH_PC98 && !vga.dosboxig.svga) {
 			VGA_ProcessSplit();
 
 			/* if vblank_skip != 0, line compare can become a negative value! Fixes "Warlock" 1992 demo by Warlock */
