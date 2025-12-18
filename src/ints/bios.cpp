@@ -1252,8 +1252,6 @@ void dosbox_integration_trigger_write() {
 			/* for now, only pixel doubling is supported */
 			vs &= 1u;
 			hs &= 1u;
-			vp &= 1u;
-			hp &= 1u;
 
 			vga.dosboxig.vscale = vs;
 			vga.dosboxig.hscale = hs;

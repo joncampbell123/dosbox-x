@@ -335,20 +335,21 @@ static uint8_t * VGA_Draw_DOSBOXIG_1bpp(Bitu vidstart, Bitu line) { // renders t
 	return TempLine;
 }
 
-static uint8_t * VGA_Draw_DOSBOXIG_4bpp(Bitu vidstart, Bitu line) { // renders to 8bpp
+static uint8_t * VGA_Draw_DOSBOXIG_4bpp(Bitu vidstart, Bitu line) { // renders to 32bpp
+	unsigned int xmax = vga.draw.width + (vga.dosboxig.hpel & 1u);
 	uint32_t *temp = (uint32_t*)TempLine;
 	uint32_t ofs = (uint32_t)vidstart;
 	unsigned int x;
 
 	(void)line;
 
-	for (x=0;x < vga.draw.width;x += 2,ofs++) {
+	for (x=0;x < xmax;x += 2,ofs++) {
 		const uint8_t b = vga.mem.linear[ofs & vga.draw.linear_mask];
 		temp[x+0] = vga.dac.xlat32[b >> 4u];
 		temp[x+1] = vga.dac.xlat32[b & 0xFu];
 	}
 
-	return TempLine;
+	return (uint8_t*)(temp+(vga.dosboxig.hpel & 1u));
 }
 
 static uint8_t * VGA_Draw_DOSBOXIG_8bpp(Bitu vidstart, Bitu line) { // renders to 32bpp
@@ -1102,6 +1103,7 @@ template <const unsigned int card,typename templine_type_t> static inline void E
 }
 
 static uint8_t * VGA_Draw_DOSBOXIG_1bpp4plane(Bitu vidstart, Bitu line) { // renders to 8bpp
+	unsigned int xmax = vga.draw.width + (vga.dosboxig.hpel & 7u);
 	uint32_t ofs = (uint32_t)vidstart & ~3u;
 	uint32_t *temp = (uint32_t*)TempLine;
 	uint32_t t1,t2;
@@ -1109,14 +1111,14 @@ static uint8_t * VGA_Draw_DOSBOXIG_1bpp4plane(Bitu vidstart, Bitu line) { // ren
 
 	(void)line;
 
-	for (x=0;x < vga.draw.width;x += 8,ofs += 4u) {
+	for (x=0;x < xmax;x += 8,ofs += 4u) {
 		t1 = t2 = *((uint32_t*)(&vga.mem.linear[ofs & vga.draw.linear_mask]));
 		t1 = (t1 >> 4) & 0x0f0f0f0f;
 		t2 &= 0x0f0f0f0f;
 		EGA_Planar_Common_Block<MCH_VGA,uint32_t>(temp+x,t1,t2);
 	}
 
-	return TempLine;
+	return (uint8_t*)(temp+(vga.dosboxig.hpel & 7u));
 }
 
 /* NTS: For EGA/VGA machine types this code is also used to render the CGA 640x200 2-color and MCGA 640x480 2-color modes.
