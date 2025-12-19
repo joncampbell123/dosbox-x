@@ -7373,9 +7373,16 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 	if (vga.dosboxig.svga) {
 		vga.draw.address_add = vga.dosboxig.bytes_per_scanline;
-		vga.draw.doublescan_effect = true;
 		vga.draw.address_line_total = 1 + vga.dosboxig.vscale;
 		vga.draw.render_max = 1;
+
+		/* if doublescan=false and line_total is even, then halve the height.
+		 * the VGA raster scan will skip every other line to accommodate that. */
+		vga.draw.doublescan_effect = vga.draw.doublescan_set;
+		if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0)
+			height /= 2;
+		else
+			vga.draw.doublescan_effect = true;
 	}
 	else if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
 		vga.draw.address_line_total=(vga.crtc.maximum_scan_line&0x1fu)+1u;
