@@ -1762,6 +1762,7 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	uint32_t fmtc = 0,cwidth = (CurMode->pitch != 0) ? CurMode->pitch : CurMode->swidth;
 	uint32_t width = CurMode->swidth,height = CurMode->sheight;
 	uint32_t refresh = (uint32_t)(70.09 * 0x10000);
+	uint8_t hscale = 0,vscale = 0;
 	uint32_t darctl = 0;
 	uint32_t ctl = 0;
 
@@ -1850,16 +1851,22 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 			darctl = (3 << 16u) | 4u; /* 4:3 */
 	}
 
+	/* pixel doubling */
+	while ((width * (1+hscale)) < 640)
+		hscale++;
+	while ((height * (1+vscale)) < 400)
+		vscale++;
+
 	dosbox_int_push_save_state();
 
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,fmtc);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVTOTALADD,(vtadd << 16u) | htadd);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYSIZE,(height << 16u) | width);
+	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVPELSCALE,(vscale << 24u) | (hscale << 16u));
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_REFRESHRATE,refresh);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_ASPECTRATIO,darctl);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET,0);
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_BANKWINDOW,0);
-	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVPELSCALE,0);
 
 	dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_CTL,ctl);
 
