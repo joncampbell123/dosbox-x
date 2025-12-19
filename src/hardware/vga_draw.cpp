@@ -4878,6 +4878,9 @@ void VGA_sof_debug_video_info(void) {
 			else if (vga.tandy.line_mask & 1) interleave_mul = 2;
 		}
 
+		/* render_max == 2 and address_line_total == 2 can happen if the user disabled doublescan mode */
+		interleave_mul *= vga.draw.render_max;
+
 		d += sprintf(d,"G%ux%u>%ux%u",
 			(unsigned int)vga.draw.width,((unsigned int)vga.draw.height * interleave_mul) / rowdiv,
 			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
