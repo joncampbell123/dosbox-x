@@ -4937,7 +4937,9 @@ void VGA_sof_debug_video_info(void) {
 	else if (vga.dosboxig.svga) {
 		char *d = tmp;
 
-		d += sprintf(d,"@%04x+%04xL",(unsigned int)vga.dosboxig.display_offset,(unsigned int)vga.dosboxig.bytes_per_scanline);
+		d += sprintf(d,"@%04x+%04xL HPL=%u VPL=%u",
+			(unsigned int)vga.dosboxig.display_offset,(unsigned int)vga.dosboxig.bytes_per_scanline,
+			(unsigned int)vga.dosboxig.hpel,(unsigned int)vga.dosboxig.vpel);
 
 		*d = 0;
 	}
