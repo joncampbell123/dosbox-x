@@ -4944,6 +4944,11 @@ void VGA_sof_debug_video_info(void) {
 			(unsigned int)vga.dosboxig.display_offset,(unsigned int)vga.dosboxig.bytes_per_scanline,
 			(unsigned int)vga.dosboxig.hpel,(unsigned int)vga.dosboxig.vpel);
 
+		if (vga.dosboxig.dar_width != 0 && vga.dosboxig.dar_height != 0)
+			d += sprintf(d," DAR=%u:%u",vga.dosboxig.dar_width,vga.dosboxig.dar_height);
+		else
+			d += sprintf(d," DAR=%.3f",vga.draw.screen_ratio);
+
 		*d = 0;
 	}
 	else if (IS_EGAVGA_ARCH) {
