@@ -4,11 +4,11 @@ DOSBox Integrated Graphics:
 - HD (1920x1080) modes crash the emulator if the Video Debug Overlay is enabled.
 - 16:9 VESA BIOS modes, when "fit to aspect ratio", are squeezed as if 4:3.
 - Add register to control pixel aspect ratio, so that it can fix the distorted frame when "fit to aspect ratio" is set. 1920x1080 has a 16:9 aspect ratio, not a 4:3 aspect ratio.
-- video debug overlay, when DOSBox IG is enabled, does not show hpel
 [DONE]
 - Need to implement get/set scanline length, so VBETEST can do the full panning test
 - Video debug overlay does not reflect Integrated Graphics width/height/bytesperscanline/hpel state when active,
   still shows VGA state underneath.
+- video debug overlay, when DOSBox IG is enabled, does not show hpel [FIXED]
 
 DOSBox scaler render system:
 - Render scaler code crashes if the GFX display is larger than 1920x1080. Add code to bypass scalers entirely and draw directly to the SDL surface if the resolution is greater than 1920x1080. At that high resolution there is no need for scalers (you probably can't see the effects of the more elaborate ones anyway), and you probably have a GPU through which you can use the OpenGL output mode to scale up to your screen if for some reason you have an 8K monitor.
