@@ -752,10 +752,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 
 			if (vga.dosboxig.svga) {
 				dosbox_int_push_save_state();
-				if (CurMode->type == M_EGA || CurMode->type == M_LIN4)
-					dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,(new_offset * bytes_per_offset * 4u) | DOSBOX_ID_REG_VGAIG_FMT_MASK);
-				else
-					dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,(new_offset * bytes_per_offset) | DOSBOX_ID_REG_VGAIG_FMT_MASK);
+				dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,(new_offset * bytes_per_offset) | DOSBOX_ID_REG_VGAIG_FMT_MASK);
 				dosbox_int_pop_save_state();
 			}
 			else {
@@ -787,10 +784,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 
 			if (vga.dosboxig.svga) {
 				dosbox_int_push_save_state();
-				if (CurMode->type == M_EGA || CurMode->type == M_LIN4)
-					dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,(new_offset * bytes_per_offset * 4u) | DOSBOX_ID_REG_VGAIG_FMT_MASK);
-				else
-					dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,(new_offset * bytes_per_offset) | DOSBOX_ID_REG_VGAIG_FMT_MASK);
+				dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE,(new_offset * bytes_per_offset) | DOSBOX_ID_REG_VGAIG_FMT_MASK);
 				dosbox_int_pop_save_state();
 			}
 			else {
@@ -851,7 +845,7 @@ uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait) {
 		switch (CurMode->type) {
 			case M_LIN4:
 			case M_EGA:
-				offset += (x >> 3u) * 4u; /* planar memory */
+				offset += x >> 3u;
 				hpel = x & 7u;
 				break;
 			case M_PACKED4:
@@ -957,7 +951,6 @@ uint8_t VESA_GetDisplayStart(uint16_t & x,uint16_t & y) {
 		switch (CurMode->type) {
 			case M_LIN4:
 			case M_EGA:
-				x /= 4u; /* planar memory */
 				x *= 8u;
 				x += vga.dosboxig.hpel & 7u;
 				break;
@@ -1065,9 +1058,6 @@ static Bitu VESA_PMSetStart(void) {
 	uint32_t start = (uint32_t)(((unsigned int)reg_dx << 16u) | (unsigned int)reg_cx);
 
 	if (vga.dosboxig.svga) {
-		if (CurMode->type == M_EGA || CurMode->type == M_LIN4)
-			start *= 4u;
-
 		dosbox_int_push_save_state();
 		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET,start);
 		dosbox_int_pop_save_state();

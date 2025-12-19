@@ -1104,7 +1104,7 @@ template <const unsigned int card,typename templine_type_t> static inline void E
 
 static uint8_t * VGA_Draw_DOSBOXIG_1bpp4plane(Bitu vidstart, Bitu line) { // renders to 8bpp
 	unsigned int xmax = vga.draw.width + (vga.dosboxig.hpel & 7u);
-	uint32_t ofs = (uint32_t)vidstart & ~3u;
+	uint32_t ofs = (uint32_t)vidstart << 2u;
 	uint32_t *temp = (uint32_t*)TempLine;
 	uint32_t t1,t2;
 	unsigned int x;

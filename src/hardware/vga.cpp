@@ -1803,7 +1803,7 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 		case M_LIN4:
 		case M_EGA:
 			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_1BPP4PLANE;
-			fmtc |= (uint16_t)((((cwidth+15U)/8U)&(~1U))*4); // must match code in VESA BIOS emulation except times 4
+			fmtc |= (uint16_t)(((cwidth+15U)/8U)&(~1U)); // must match code in VESA BIOS emulation
 			ctl &= ~DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT; // VGA registers are REQUIRED in order to use planar modes properly
 			break;
 		case M_PACKED4:
