@@ -1267,6 +1267,19 @@ void dosbox_integration_trigger_write() {
 			}
 			break;
 
+		case DOSBOX_ID_REG_VGAIG_ASPECTRATIO:
+			{
+				uint16_t w = dosbox_int_register & 0xFFFFu;
+				uint16_t h = dosbox_int_register >> 16u;
+
+				if (vga.dosboxig.dar_width != w || vga.dosboxig.dar_height != h) {
+					vga.dosboxig.dar_width = w;
+					vga.dosboxig.dar_height = h;
+					if (vga.dosboxig.svga) VGA_StartResize(0);
+				}
+			}
+			break;
+
 		case DOSBOX_ID_REG_CPU_CYCLES:
 			ig_cpu_cycles_set |= 1u;
 			ig_cpu_cycles_value = dosbox_int_register;

@@ -7894,8 +7894,16 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	// calculate screen ratio
 	double screenratio = scanratio * scanfield_ratio;
 
+	// unless DOSBox IG says otherwise, pixels are always square.
+	// the 16:9 HD VESA modes are impossible to display properly otherwise.
+	if (vga.dosboxig.svga) {
+		screenratio = (double)vga.dosboxig.width / (double)vga.dosboxig.height;
+
+		if (vga.dosboxig.dar_width != 0 || vga.dosboxig.dar_height != 0)
+			screenratio = (double)vga.dosboxig.dar_width / (double)vga.dosboxig.dar_height;
+	}
 	// override screenratio for certain cases:
-	if (!IS_PC98_ARCH) {
+	else if (!IS_PC98_ARCH) {
 		if (vratio == 1.6) screenratio = 4.0 / 3.0;
 		else if (vratio == 0.8) screenratio = 4.0 / 3.0;
 		else if (vratio == 3.2) screenratio = 4.0 / 3.0;
