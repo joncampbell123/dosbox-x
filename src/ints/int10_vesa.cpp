@@ -665,7 +665,6 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 				bytes_per_offset = 1;
 				pixels_per_offset = 8;
 				vmemsize /= 4u; /* because planar VGA */
-				new_offset /= 4u;
 				max_offset /= 4u;
 				break;
 			case M_PACKED4:
@@ -680,14 +679,17 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 			case M_LIN16:
 				bytes_per_offset = 2;
 				pixels_per_offset = 1;
+				new_offset /= 2;
 				break;
 			case M_LIN24:
 				bytes_per_offset = 3;
 				pixels_per_offset = 1;
+				new_offset /= 3;
 				break;
 			case M_LIN32:
 				bytes_per_offset = 4;
 				pixels_per_offset = 1;
+				new_offset /= 4;
 				break;
 			default:
 				return VESA_MODE_UNSUPPORTED;
