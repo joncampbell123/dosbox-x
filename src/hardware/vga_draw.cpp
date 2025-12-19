@@ -4760,7 +4760,6 @@ void VGA_sof_debug_video_info(void) {
 
 	x = y = 4;
 	x = VGA_debug_screen_puts8(x,y,mode_texts[vga.mode],green) + 8;
-	if (vga.dosboxig.svga) x = VGA_debug_screen_puts8(x,y,"DBIG",green) + 8;
 
 	/* 2023/04/26: DOSBox-X users are probably going to discover the "Video debug overlay" and then immediately
 	 *             point out the "bug" that it's showing M_EGA for CGA/MCGA 2-color graphics modes. It's not a
@@ -4940,14 +4939,8 @@ void VGA_sof_debug_video_info(void) {
 	else if (vga.dosboxig.svga) {
 		char *d = tmp;
 
-		d += sprintf(d,"@%04x+%04xL HPL=%u VPL=%u",
-			(unsigned int)vga.dosboxig.display_offset,(unsigned int)vga.dosboxig.bytes_per_scanline,
-			(unsigned int)vga.dosboxig.hpel,(unsigned int)vga.dosboxig.vpel);
-
-		if (vga.dosboxig.dar_width != 0 && vga.dosboxig.dar_height != 0)
-			d += sprintf(d," DAR=%u:%u",vga.dosboxig.dar_width,vga.dosboxig.dar_height);
-		else
-			d += sprintf(d," DAR=%.3f",vga.draw.screen_ratio);
+		d += sprintf(d,"@%04x+%04xL",
+			(unsigned int)vga.dosboxig.display_offset,(unsigned int)vga.dosboxig.bytes_per_scanline);
 
 		*d = 0;
 	}
@@ -5326,91 +5319,112 @@ void VGA_sof_debug_video_info(void) {
 			x = 4;
 			y += 8*2; /* next line */
 
-			/* effective PAL (after all remapping) */
-			sprintf(tmp,"EPAL%u:",vga_8bit_dac?8:6);
-			x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
-			if (vga.mode == M_LIN8 || vga.mode == M_VGA) {
-				VGA_debug_screen_func->rect(x-1,y,x,y+(4*4),dkgray);
-				VGA_debug_screen_func->rect(x-1,y,x+(4*64),y+1,dkgray);
-				VGA_debug_screen_func->rect(x-1,y+(4*4)-1,x+(4*64),y+(4*4),dkgray);
-				for (unsigned int c=0;c < 256;c++) {
-					const int bx = x+((c&63)*4),by = y+((c>>6)*4);
-					VGA_debug_screen_func->rect(bx,by+1,bx+3,by+4,vga.dac.xlat32[c]); /* xlat32[] already contains the translated color */
-					VGA_debug_screen_func->rect(bx+3,by+1,bx+4,by+4,dkgray);
-				}
-			}
-			else {
-				unsigned int colors = 16;
+			if (vga.dosboxig.svga) {
+				char *d = tmp;
 
-				if (!(vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT || vga.mode == M_HERC_TEXT)) {
-					unsigned char chk = vga.attr.color_plane_enable;
+				d += sprintf(d,"HPL=%u VPL=%u HSC=%u VSC=%u",
+					(unsigned int)vga.dosboxig.hpel,(unsigned int)vga.dosboxig.vpel,
+					(unsigned int)vga.dosboxig.hscale,(unsigned int)vga.dosboxig.vscale);
 
-					if (vga.gfx.mode & 0x20/*CGA 4-color*/)
-						chk |= (chk & 0x5u) << 1u; /* bit 0->1 and 2->3 */
+				if (vga.dosboxig.dar_width != 0 && vga.dosboxig.dar_height != 0)
+					d += sprintf(d," DAR=%u:%u",vga.dosboxig.dar_width,vga.dosboxig.dar_height);
+				else
+					d += sprintf(d," DAR=%.3f",vga.draw.screen_ratio);
 
-					if (chk & 8) colors = 16;
-					else if (chk & 4) colors = 8;
-					else if (chk & 2) colors = 4;
-					else colors = 2;
-				}
+				*d = 0;
 
-				VGA_debug_screen_func->rect(x-1,y,x+(8*colors),y+1,dkgray);
-				VGA_debug_screen_func->rect(x-1,y+7,x+(8*colors),y+8,dkgray);
-				for (unsigned int c=0;c < colors;c++) {
-					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,vga.dac.xlat32[c]);
-					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
-					x += 8;
-				}
-			}
-
-			x = 4;
-			y += 8*2; /* next line */
-
-			if (IS_VGA_ARCH) {
-				/* attribute controller PAL */
-				x = VGA_debug_screen_puts8(x,y,"ACPAL:",white) + 8;
-				VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
-				VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
-				for (unsigned int c=0;c < 16;c++) {
-					const unsigned int idx = vga.attr.palette[c]&0x3F;
-					const unsigned int color = SDL_MapRGB(
-						sdl.surface->format,
-						((vga.dac.rgb[idx].red << dacshift) & 0xFF),
-						((vga.dac.rgb[idx].green << dacshift) & 0xFF),
-						((vga.dac.rgb[idx].blue << dacshift) & 0xFF));
-					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,color);
-					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
-					x += 8;
-				}
-
-				x += 8;
-
-				sprintf(tmp,"CPE%x HPL%x YP%02x",vga.attr.color_plane_enable&0xF,vga.config.pel_panning&0xF,vga.config.hlines_skip); /* 4 bits, 4 bitplanes, one hex digit */
 				x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
 
 				x = 4;
-				y += 8; /* next line */
+				y += 8*2; /* next line */
+			}
+			else {
+				/* effective PAL (after all remapping) */
+				sprintf(tmp,"EPAL%u:",vga_8bit_dac?8:6);
+				x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+				if (vga.mode == M_LIN8 || vga.mode == M_VGA) {
+					VGA_debug_screen_func->rect(x-1,y,x,y+(4*4),dkgray);
+					VGA_debug_screen_func->rect(x-1,y,x+(4*64),y+1,dkgray);
+					VGA_debug_screen_func->rect(x-1,y+(4*4)-1,x+(4*64),y+(4*4),dkgray);
+					for (unsigned int c=0;c < 256;c++) {
+						const int bx = x+((c&63)*4),by = y+((c>>6)*4);
+						VGA_debug_screen_func->rect(bx,by+1,bx+3,by+4,vga.dac.xlat32[c]); /* xlat32[] already contains the translated color */
+						VGA_debug_screen_func->rect(bx+3,by+1,bx+4,by+4,dkgray);
+					}
+				}
+				else {
+					unsigned int colors = 16;
 
-				/* attribute controller PAL with color select and other in force */
-				x = VGA_debug_screen_puts8(x,y,"CSPAL:",white) + 8;
-				VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
-				VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
-				for (unsigned int c=0;c < 16;c++) {
-					const unsigned int idx = vga.dac.combine[c]; /* vga_dac.cpp considers color select */
-					const unsigned int color = SDL_MapRGB(
-						sdl.surface->format,
-						((vga.dac.rgb[idx].red << dacshift) & 0xFF),
-						((vga.dac.rgb[idx].green << dacshift) & 0xFF),
-						((vga.dac.rgb[idx].blue << dacshift) & 0xFF));
-					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,color);
-					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
-					x += 8;
+					if (!(vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT || vga.mode == M_HERC_TEXT)) {
+						unsigned char chk = vga.attr.color_plane_enable;
+
+						if (vga.gfx.mode & 0x20/*CGA 4-color*/)
+							chk |= (chk & 0x5u) << 1u; /* bit 0->1 and 2->3 */
+
+						if (chk & 8) colors = 16;
+						else if (chk & 4) colors = 8;
+						else if (chk & 2) colors = 4;
+						else colors = 2;
+					}
+
+					VGA_debug_screen_func->rect(x-1,y,x+(8*colors),y+1,dkgray);
+					VGA_debug_screen_func->rect(x-1,y+7,x+(8*colors),y+8,dkgray);
+					for (unsigned int c=0;c < colors;c++) {
+						VGA_debug_screen_func->rect(x,y+1,x+7,y+7,vga.dac.xlat32[c]);
+						VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
+						x += 8;
+					}
 				}
 
-				x += 8;
+				x = 4;
+				y += 8*2; /* next line */
 
-				sprintf(tmp,"PM%02x MD%02x CS%02x",vga.dac.pel_mask,vga.attr.mode_control,vga.attr.color_select);
-				x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+				if (IS_VGA_ARCH) {
+					/* attribute controller PAL */
+					x = VGA_debug_screen_puts8(x,y,"ACPAL:",white) + 8;
+					VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
+					VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
+					for (unsigned int c=0;c < 16;c++) {
+						const unsigned int idx = vga.attr.palette[c]&0x3F;
+						const unsigned int color = SDL_MapRGB(
+								sdl.surface->format,
+								((vga.dac.rgb[idx].red << dacshift) & 0xFF),
+								((vga.dac.rgb[idx].green << dacshift) & 0xFF),
+								((vga.dac.rgb[idx].blue << dacshift) & 0xFF));
+						VGA_debug_screen_func->rect(x,y+1,x+7,y+7,color);
+						VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
+						x += 8;
+					}
+
+					x += 8;
+
+					sprintf(tmp,"CPE%x HPL%x YP%02x",vga.attr.color_plane_enable&0xF,vga.config.pel_panning&0xF,vga.config.hlines_skip); /* 4 bits, 4 bitplanes, one hex digit */
+					x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+
+					x = 4;
+					y += 8; /* next line */
+
+					/* attribute controller PAL with color select and other in force */
+					x = VGA_debug_screen_puts8(x,y,"CSPAL:",white) + 8;
+					VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
+					VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
+					for (unsigned int c=0;c < 16;c++) {
+						const unsigned int idx = vga.dac.combine[c]; /* vga_dac.cpp considers color select */
+						const unsigned int color = SDL_MapRGB(
+								sdl.surface->format,
+								((vga.dac.rgb[idx].red << dacshift) & 0xFF),
+								((vga.dac.rgb[idx].green << dacshift) & 0xFF),
+								((vga.dac.rgb[idx].blue << dacshift) & 0xFF));
+						VGA_debug_screen_func->rect(x,y+1,x+7,y+7,color);
+						VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
+						x += 8;
+					}
+
+					x += 8;
+
+					sprintf(tmp,"PM%02x MD%02x CS%02x",vga.dac.pel_mask,vga.attr.mode_control,vga.attr.color_select);
+					x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+				}
 			}
 
 			/* point out where side debug info is */
