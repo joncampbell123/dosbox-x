@@ -148,7 +148,7 @@ TEST(Set_Label, EqualTo8)
 TEST(Set_Label, EqualTo8CD)
 {
     std::string output = run_Set_Label("a1234567", true);
-    EXPECT_EQ("a1234567", output);
+    EXPECT_EQ("a1234567.", output);
 }
 
 // A test to ensure non-CD-ROM function strips trailing dot
