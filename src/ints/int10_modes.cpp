@@ -723,11 +723,11 @@ static bool SetCurMode(VideoModeBlock modeblock[],uint16_t mode) {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
 				CurMode=&modeblock[i];
 #if defined(USE_TTF)
-                conf_output = static_cast<Section_prop*>(control->GetSection("sdl"))->Get_string("output");
-                if(conf_output.empty())conf_output = "default";
-                if(finish_prepare) ttf_switch_off();
+				conf_output = static_cast<Section_prop*>(control->GetSection("sdl"))->Get_string("output");
+				if(conf_output.empty())conf_output = "default";
+				if(finish_prepare) ttf_switch_off();
 #endif
-                return true;
+				return true;
 			}
 			return false;
 		}
@@ -757,6 +757,13 @@ static void SetTextLines(void) {
 
 bool DISP2_Active(void);
 bool INT10_SetCurMode(void) {
+	// bug fix: This code might match a VBE mode properly, but then revert it to some entirely different mode.
+	//          This fixes a bug where VBETEST was getting weird wacky incorrect results for mode 0x10D (320x200 15bpp)
+	//          because mode 0x10D is INT 10h mode 0x75, and mode 0x75 is also a JEGA mode in the modelist, causing
+	//          VBE scanling and panning to behave as if M_CGA4.
+	if (CurMode && CurMode->mode >= 0x100)
+		return false;
+
 	bool mode_changed=false;
 	uint16_t bios_mode=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE);
 	if (CurMode == NULL || CurMode->mode != bios_mode) {
