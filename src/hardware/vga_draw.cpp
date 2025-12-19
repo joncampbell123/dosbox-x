@@ -4866,7 +4866,10 @@ void VGA_sof_debug_video_info(void) {
 		unsigned int interleave_mul = 1;
 		char *d = tmp;
 
-		if (machine == MCH_CGA || machine == MCH_TANDY || machine == MCH_PCJR || machine == MCH_HERC || machine == MCH_AMSTRAD) {
+		if (vga.dosboxig.svga) {
+			/* do not change */
+		}
+		else if (machine == MCH_CGA || machine == MCH_TANDY || machine == MCH_PCJR || machine == MCH_HERC || machine == MCH_AMSTRAD) {
 			if (rowdiv == 2 || rowdiv == 4) rowdiv = 1; /* CGA graphics use interleaving to accomplish 200 lines, Tandy and Hercules use 4-way interleaving in some modes */
 		}
 		else if (machine == MCH_EGA || machine == MCH_VGA) {
@@ -7119,7 +7122,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 		if (vga.dosboxig.svga && vga.dosboxig.width != 0 && vga.dosboxig.height != 0) {
 			htotal = hdend = hbend = hbstart = hrstart = hrend = vga.dosboxig.width;
-			vtotal = vdend = vbend = vbstart = vrstart = vrend = vga.dosboxig.height;
+			vtotal = vdend = vbend = vbstart = vrstart = vrend = vga.dosboxig.height * (1 + vga.dosboxig.vscale);
 			clock = oscclock;
 
 			htotal  += vga.dosboxig.wa_total;
@@ -7371,7 +7374,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	if (vga.dosboxig.svga) {
 		vga.draw.address_add = vga.dosboxig.bytes_per_scanline;
 		vga.draw.doublescan_effect = true;
-		vga.draw.address_line_total = 1;
+		vga.draw.address_line_total = 1 + vga.dosboxig.vscale;
 		vga.draw.render_max = 1;
 	}
 	else if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {

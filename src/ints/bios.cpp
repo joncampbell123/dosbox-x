@@ -1248,15 +1248,14 @@ void dosbox_integration_trigger_write() {
 			uint8_t hs = (dosbox_int_register >> 16u) & 0xFFu;
 			uint8_t vp = (dosbox_int_register >>  8u) & 0xFFu;
 			uint8_t hp =  dosbox_int_register         & 0xFFu;
+			bool modechange = false;
 
-			/* for now, only pixel doubling is supported */
-			vs &= 1u;
-			hs &= 1u;
+			if (vs != 0xFFu && vga.dosboxig.vscale != vs) { vga.dosboxig.vscale = vs; modechange = true; }
+			if (hs != 0xFFu && vga.dosboxig.hscale != hs) { vga.dosboxig.hscale = hs; modechange = true; }
+			if (vp != 0xFFu && vga.dosboxig.vpel != vp) { vga.dosboxig.vpel = vp; modechange = true; }
+			if (hp != 0xFFu && vga.dosboxig.hpel != hp) { vga.dosboxig.hpel = hp; modechange = true; }
 
-			vga.dosboxig.vscale = vs;
-			vga.dosboxig.hscale = hs;
-			vga.dosboxig.vpel = vp;
-			vga.dosboxig.hpel = hp;
+			if (modechange && vga.dosboxig.svga) VGA_StartResize(0);
 			break; }
 
 		case DOSBOX_ID_REG_VGAIG_BANKWINDOW:
