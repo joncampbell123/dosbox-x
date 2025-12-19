@@ -299,7 +299,11 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
     //DBCS_upcase(upcasebuf);  /* Another mscdex quirk. Label is not always uppercase. (Daggerfall) */ 
 
     while (togo > 0) {
-        if(upcasebuf[vnamePos] == 0) str_end = true;
+        if(upcasebuf[vnamePos] == 0 && !str_end) {
+            str_end = true;
+            if(cdrom && vnamePos == 8) output[labelPos++] = '.';
+            //Add a trailing dot ('.') when on cdrom and label is exactly 8 characters, MSCDEX feature/bug (fifa96 cdrom detection)
+        }
         else if(cdrom && vnamePos == 8 && !str_end && upcasebuf[vnamePos] != '.') {
             output[labelPos] = '.'; // add a dot between 8th and 9th character (Descent 2 installer needs this)
             labelPos++;
