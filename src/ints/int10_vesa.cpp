@@ -871,7 +871,7 @@ uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait) {
 
 		dosbox_int_push_save_state();
 		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET,offset);
-		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVPELSCALE,hpel);
+		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_HVPELSCALE,hpel | 0xFFFFFF00u);
 		dosbox_int_pop_save_state();
 
 		// Wait for retrace if requested
