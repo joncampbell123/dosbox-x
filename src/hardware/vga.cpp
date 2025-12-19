@@ -1842,13 +1842,17 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	 * Most of the time the mode is 4:3.
 	 * Some modes like 640x400 and 1280x1024 must be slightly distorted to display at the intended 4:3.
 	 * For everything else, leave the aspect ratio setting as zero, the DOSBox IG handling will assume a square 1:1 pixel aspect ratio. */
-	{
+	if (height >= 480) {
 		double ar = (double)width / height;
 
 		if (ar >= 1.65) /* NTS: 640x400 mode 0x100 would be mistaken as 16:9 otherwise (ar=1.6) */
 			darctl = (9 << 16u) | 16u; /* 16:9 */
 		else /* including modes such as 320x480 */
 			darctl = (3 << 16u) | 4u; /* 4:3 */
+	}
+	else {
+		/* 640x400, 640x350, etc. are always 4:3 */
+		darctl = (3 << 16u) | 4u; /* 4:3 */
 	}
 
 	/* pixel doubling */
