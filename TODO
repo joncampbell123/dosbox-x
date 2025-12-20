@@ -1,11 +1,11 @@
 DOSBox Integrated Graphics:
-- HD (1920x1080) modes crash the emulator if the Video Debug Overlay is enabled.
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
 - VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
 - doublescan setting should become "true" "false" or "auto". "auto" is like true, but automatically becomes false when the user selects any render scaler other than the scale2x, etc. scalers. If the user wants to use the mame upscalers the doublescan setting shouldn't get in the way.
 - Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
 - VESA BIOS emulation is correct in not listing modes that there is not enough video memory to set, but, if you know the video mode by number you can set it anyway. The mode set function should refuse to set such modes.
 [DONE]
+- HD (1920x1080) modes crash the emulator if the Video Debug Overlay is enabled. [FIXED: Now it just stops rendering]
 - Why does VBETEST's line drawing glitch out for mode 0x10D (320x200 15bpp). It makes the test for that mode
   either take way too long or never complete. ANSWER: Mode 0x10D is INT 10 mode 0x75, and 0x75 is a JEGA mode, which is M_CGA4, which confuses the VESA BIOS code.
 - DOSBox IG should use vscale register for low res VESA BIOS modes to double the pixels as normal SVGA cards do.
