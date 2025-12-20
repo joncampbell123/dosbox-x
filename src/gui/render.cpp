@@ -1249,6 +1249,27 @@ void RENDER_OnSectionPropChange(Section *x) {
 
 extern const char *scaler_menu_opts[][2];
 
+bool RENDER_IsScalerCompatibleWithDoublescan(void) {
+    switch (render.scale.op) {
+        case scalerOpAdvMame:
+        case scalerOpAdvInterp:
+        case scalerOpHQ:
+        case scalerOpSaI:
+        case scalerOpSuperSaI:
+        case scalerOpSuperEagle:
+        // FIXME: The TV/RGB/Scan scalers would actually benefit from the doublescan mode, if only they would enable properly when selected
+        case scalerOpTV:
+        case scalerOpRGB:
+        case scalerOpScan:
+            return false;
+        default:
+            if (sdl_xbrz.enable) return false;
+            break;
+    };
+
+    return true;
+}
+
 void RENDER_UpdateScalerMenu(void) {
     const std::string scaler = RENDER_GetScaler();
 
@@ -1270,6 +1291,7 @@ void RENDER_UpdateFromScalerSetting(void) {
     sdl_xbrz.enable = false;
 #endif
 
+    bool p_dscompat = RENDER_IsScalerCompatibleWithDoublescan();
     bool p_forced = render.scale.forced;
     unsigned int p_size = (unsigned int)(render.scale.size);
     bool p_hardware = render.scale.hardware;
@@ -1316,13 +1338,14 @@ void RENDER_UpdateFromScalerSetting(void) {
         render.scale.op = scalerOpNormal; 
         render.scale.size = 1; 
         render.scale.hardware = false; 
-        vga.draw.doublescan_set = false; 
         sdl_xbrz.enable = true; 
         sdl_xbrz.postscale_bilinear = (scaler == "xbrz_bilinear");
     }
 #endif
 
     bool reset = false;
+
+    bool dscompat = RENDER_IsScalerCompatibleWithDoublescan();
 
 #if C_XBRZ
     if (old_xBRZ_enable != sdl_xbrz.enable) reset = true;
@@ -1333,6 +1356,7 @@ void RENDER_UpdateFromScalerSetting(void) {
     if (p_op != render.scale.op) reset = true;
 
     if (reset) RENDER_CallBack(GFX_CallBackReset);
+    if (p_dscompat != dscompat) VGA_SetupDrawing(0);
 }
 
 #if C_OPENGL
