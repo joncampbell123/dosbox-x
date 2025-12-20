@@ -210,6 +210,8 @@ typedef struct {
 	} cursor;
 	Drawmode mode;
 	bool has_split;
+	bool must_draw_again;
+	bool must_complete_frame;
 	bool vret_triggered;
 	bool vga_override;
 	bool modeswitch_set;

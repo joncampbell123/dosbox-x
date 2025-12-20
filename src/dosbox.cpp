@@ -2943,11 +2943,19 @@ void DOSBOX_SetupConfigSections(void) {
 		    "If graphical artifacts or errors occur, try turning this off first. May provide a performance benefit.");
     Pbool->SetBasic(true);
 
+    Pstring = secprop->Add_string("skip render if nothing changed",Property::Changeable::Always,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If set, DOSBox-X will skip rendering entirely unless any change is made to the guest display.\n"
+                      "This may provide a performance benefit, especially in SVGA modes. This option has no effect unless render on demand is true or auto.\n"
+                      "Normally in DOSBox and DOSBox-X, video is rendered constantly, whether or not anything changed,\n"
+                      "and then compared with the previous frame to determine where to update the host display.");
+    Pstring->SetBasic(true);
+
     Pstring = secprop->Add_string("scanline render on demand",Property::Changeable::Always,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Render video output at vsync or when something is changed mid frame, instead of stopping to render every scanline.\n"
-		    "May provide a performance benefit to most DOS games. However this may also break timing-dependent game or Demoscene effects.\n"
-		    "Default auto, which will turn if off for VGA modes and turn it on for SVGA modes.");
+                      "This may provide a performance benefit to most DOS games. However this may also break timing-dependent game or Demoscene effects.\n"
+                      "Default is auto, which will turn it off for VGA modes and turn it on for SVGA modes.");
     Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done

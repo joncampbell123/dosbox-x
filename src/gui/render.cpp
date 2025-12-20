@@ -364,6 +364,7 @@ bool RENDER_StartUpdate(void) {
         if (GCC_UNLIKELY(!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )))
             return false;
         render.fullFrame = true;
+        vga.draw.must_complete_frame = true;
         RENDER_DrawLine = RENDER_ClearCacheHandler;
     } else {
         if (render.pal.changed) {
@@ -371,6 +372,7 @@ bool RENDER_StartUpdate(void) {
             if (GCC_UNLIKELY(!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )))
                 return false;
             RENDER_DrawLine = render.scale.linePalHandler;
+            vga.draw.must_complete_frame = true;
             render.fullFrame = true;
         } else {
             RENDER_DrawLine = RENDER_StartLineHandler;
@@ -411,7 +413,7 @@ void RENDER_EndUpdate( bool abort ) {
     if (GCC_UNLIKELY(!render.updating))
         return;
 
-    if (video_debug_overlay && !abort && render.active)
+    if (video_debug_overlay && !abort && render.active && render.scale.inLine != 0)
         VGA_DebugOverlay();
 
     if (!abort && render.active && RENDER_DrawLine == RENDER_ClearCacheHandler)
@@ -929,6 +931,7 @@ forcenormal:
 	memset(render.pal.modified, 0, sizeof(render.pal.modified));
 	//Finish this frame using a copy only handler
 	if (!render.disablerender) RENDER_DrawLine = RENDER_FinishLineHandler;
+	vga.draw.must_complete_frame = true;
 	render.scale.outWrite = nullptr;
 	/* Signal the next frame to first reinit the cache */
 	render.scale.clearCache = true;
@@ -1291,6 +1294,8 @@ void RENDER_UpdateScalerMenu(void) {
     }
 }
 
+extern bool vga_render_wait_for_changes;
+
 void RENDER_UpdateFromScalerSetting(void) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
     Prop_multival* prop = section->Get_multival("scaler");
@@ -1368,6 +1373,7 @@ void RENDER_UpdateFromScalerSetting(void) {
 
     if (reset) RENDER_CallBack(GFX_CallBackReset);
     if (p_dscompat != dscompat) VGA_SetupDrawing(0);
+    vga.draw.must_complete_frame = true;
 }
 
 #if C_OPENGL
