@@ -102,13 +102,14 @@ typedef struct Render_t {
 	} cache;
 #if C_OPENGL
 	char* shader_src;
-    bool shader_def=false;
+	bool shader_def=false;
 #endif
-    RenderPal_t pal;
+	RenderPal_t pal;
 	bool updating;
 	bool active;
 	int aspect;
-    bool aspectOffload;
+	bool aspectOffload;
+	bool disablerender;
 	bool fullFrame;
 	bool forceUpdate;
 	bool autofit;
