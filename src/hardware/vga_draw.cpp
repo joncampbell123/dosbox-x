@@ -6873,6 +6873,9 @@ static bool isSVGAMode(void) {
 			return true;
 	}
 
+	if (vga.dosboxig.svga)
+		return true;
+
 	return false;
 }
 
@@ -6896,6 +6899,8 @@ void ChooseRenderOnDemand(void) {
 
 	LOG(LOG_VGAMISC,LOG_DEBUG)("Render On Demand mode is %s for RodU %d",vga_render_on_demand?"on":"off",vga_render_on_demand_user);
 }
+
+bool RENDER_IsScalerCompatibleWithDoublescan(void);
 
 void VGA_SetupDrawing(Bitu /*val*/) {
 	if (vga.mode==M_ERROR) {
@@ -7382,6 +7387,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		/* if doublescan=false and line_total is even, then halve the height.
 		 * the VGA raster scan will skip every other line to accommodate that. */
 		vga.draw.doublescan_effect = vga.draw.doublescan_set;
+
+		/* If the user selected a scalar that expects to process pixels beyond duplication or CRT emulation, disable doublescan */
+		if (vga.draw.doublescan_effect && !RENDER_IsScalerCompatibleWithDoublescan()) {
+			LOG(LOG_VGA,LOG_DEBUG)("Render scaler requires disabling doublescan mode");
+			vga.draw.doublescan_effect = false;
+		}
+
 		if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0)
 			height /= 2;
 		else
@@ -7398,6 +7410,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			case M_TEXT:
 			default:
 				vga.draw.doublescan_effect = vga.draw.doublescan_set;
+
+				/* If the user selected a scalar that expects to process pixels beyond duplication or CRT emulation, disable doublescan */
+				if (vga.draw.doublescan_effect && !RENDER_IsScalerCompatibleWithDoublescan()) {
+					LOG(LOG_VGA,LOG_DEBUG)("Render scaler requires disabling doublescan mode");
+					vga.draw.doublescan_effect = false;
+				}
 
 				if (vga.crtc.maximum_scan_line & 0x80)
 					vga.draw.address_line_total *= 2;
