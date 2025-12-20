@@ -72,6 +72,8 @@ static bool is_vga_rendering_on_demand = false;
 
 extern bool vga_render_on_demand;
 extern signed char vga_render_on_demand_user;
+extern bool vga_render_wait_for_changes;
+extern signed char vga_render_wait_for_changes_user;
 extern bool vga_ignore_extended_memory_bit;
 
 /* S3 streams processor state.
@@ -4038,6 +4040,10 @@ void VGA_RenderOnDemandUpTo(void) {
 
 //assert(vga_render_on_demand);
 
+    if (scanline < vga.draw.lines_total)
+        vga.draw.must_draw_again = true;
+
+    vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
     if (scanline < 0) scanline = 0;
     while (vga.draw.lines_done < vga.draw.lines_total && vga.draw.hsync_events < (unsigned int)scanline && patience-- > 0)
         VGA_DrawSingleLine(0);
@@ -4048,13 +4054,19 @@ void VGA_RenderOnDemandComplete(void) {
 
 //assert(vga_render_on_demand);
 
+    if (vga.draw.lines_done != 0 && vga.draw.lines_done < vga.draw.lines_total)
+        vga.draw.must_draw_again = true;
+
+    vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
     while (vga.draw.lines_done < vga.draw.lines_total && patience-- > 0)
         VGA_DrawSingleLine(0);
 }
 
 static void VGA_VertInterrupt(Bitu /*val*/) {
-    if (is_vga_rendering_on_demand)
-        VGA_RenderOnDemandComplete();
+    if (is_vga_rendering_on_demand) {
+        if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
+            VGA_RenderOnDemandComplete();
+    }
 
     if (IS_PC98_ARCH) {
         if (GDC_vsync_interrupt) {
@@ -4071,16 +4083,20 @@ static void VGA_VertInterrupt(Bitu /*val*/) {
 }
 
 static void VGA_Other_VertInterrupt(Bitu val) {
-    if (is_vga_rendering_on_demand)
-        VGA_RenderOnDemandComplete();
+    if (is_vga_rendering_on_demand) {
+        if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
+            VGA_RenderOnDemandComplete();
+    }
 
     if (val) PIC_ActivateIRQ(5);
     else PIC_DeActivateIRQ(5);
 }
 
 static void VGA_DisplayStartLatch(Bitu /*val*/) {
-    if (is_vga_rendering_on_demand)
-        VGA_RenderOnDemandComplete();
+    if (is_vga_rendering_on_demand) {
+        if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
+            VGA_RenderOnDemandComplete();
+    }
 
     /* hretrace fx support: store the hretrace value at start of picture so we have
      * a point of reference how far to displace the scanline when wavy effects are
@@ -4105,8 +4121,10 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {
-    if (is_vga_rendering_on_demand)
-        VGA_RenderOnDemandComplete();
+    if (is_vga_rendering_on_demand) {
+        if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
+            VGA_RenderOnDemandComplete();
+    }
 
     if (vga.dosboxig.svga)
         vga.draw.panning = vga.dosboxig.hpel;
@@ -5894,8 +5912,14 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		pc98_update_display_page_ptr();
 	}
 
-	if (is_vga_rendering_on_demand)
-		VGA_RenderOnDemandComplete();
+	if (is_vga_rendering_on_demand) {
+		if (vga.draw.must_complete_frame || !vga_render_wait_for_changes) {
+			VGA_RenderOnDemandComplete();
+		}
+	}
+
+	vga.draw.must_complete_frame = vga.draw.must_draw_again;
+	vga.draw.must_draw_again = false;
 
 	is_vga_rendering_on_demand = vga_render_on_demand;
 	if (CaptureState & CAPTURE_RAWIMAGE) {
@@ -6109,6 +6133,29 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		for (unsigned int i=0;i < 2;i++)
 			pc98_gdc[i].cursor_advance();
 	}
+
+	bool renderAbort = false;
+
+	switch (vga.draw.mode) {
+		case DRAWLINE:
+		case EGALINE:
+			if (GCC_UNLIKELY(vga.draw.lines_done < vga.draw.lines_total)) {
+				vga_mode_frames_since_time_base++;
+				if (vga_render_wait_for_changes && vga.draw.lines_done == 0) {
+					/* do nothing */
+				}
+				else {
+					LOG(LOG_VGAMISC,LOG_NORMAL)( "Lines left: %d",
+						(int)(vga.draw.lines_total-vga.draw.lines_done));
+					renderAbort = true;
+				}
+			}
+			break;
+		default:
+			break;
+	}
+	RENDER_EndUpdate(renderAbort);
+	vga.draw.lines_done = 0;
 
 	//Check if we can actually render, else skip the rest
 	if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
@@ -6651,15 +6698,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	switch (vga.draw.mode) {
 		case DRAWLINE:
 		case EGALINE:
-			if (GCC_UNLIKELY(vga.draw.lines_done < vga.draw.lines_total)) {
-				LOG(LOG_VGAMISC,LOG_NORMAL)( "Lines left: %d", 
-						(int)(vga.draw.lines_total-vga.draw.lines_done));
-				if (vga.draw.mode==EGALINE) PIC_RemoveEvents(VGA_DrawEGASingleLine);
-				else PIC_RemoveEvents(VGA_DrawSingleLine);
-				vga_mode_frames_since_time_base++;
-				RENDER_EndUpdate(true);
-			}
-			vga.draw.lines_done = 0;
 			if (!is_vga_rendering_on_demand) {
 				if (vga.draw.mode==EGALINE)
 					PIC_AddEvent(VGA_DrawEGASingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
@@ -6894,10 +6932,18 @@ void ChooseRenderOnDemand(void) {
 		vga_render_on_demand = true;
 	else if (machine == MCH_MDA || machine == MCH_HERC) /* I don't believe raster effects are used for MDA and all variants of Hercules cards text or otherwise */
 		vga_render_on_demand = true;
+	else if (vga_render_wait_for_changes > 0) /* NTS: Wait for changes requires render on demand. Only if explicitly enabled. */
+		vga_render_on_demand = true;
 	else
 		vga_render_on_demand = false;
 
+	if (vga_render_on_demand)
+		vga_render_wait_for_changes = vga_render_wait_for_changes_user > 0;
+	else
+		vga_render_wait_for_changes = false;
+
 	LOG(LOG_VGAMISC,LOG_DEBUG)("Render On Demand mode is %s for RodU %d",vga_render_on_demand?"on":"off",vga_render_on_demand_user);
+	LOG(LOG_VGAMISC,LOG_DEBUG)("Wait for changes mode is %s for SrinC %d",vga_render_wait_for_changes?"on":"off",vga_render_wait_for_changes_user);
 }
 
 bool RENDER_IsScalerCompatibleWithDoublescan(void);
@@ -6913,7 +6959,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	// multiscan -- zooming effects - only makes sense if linewise is enabled
 	// linewise -- scan display line by line instead of 4 blocks
 	// keep compatibility with other builds of DOSBox for vgaonly.
+	is_vga_rendering_on_demand = vga_render_on_demand;
+	vga.draw.must_complete_frame = true;
 	vga.draw.doublescan_effect = true;
+	vga.draw.must_draw_again = false;
 	vga.draw.render_step = 0;
 	vga.draw.render_max = 1;
 
@@ -7875,7 +7924,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		mcga_double_scan = false;
 	}
 
-	vga.draw.lines_total=height;
+	vga.draw.lines_done = 0;
+	vga.draw.lines_total = height;
 	vga.draw.line_length = width * ((bpp + 1) / 8);
 	vga.draw.oscclock = oscclock;
 	vga.draw.clock = clock;
@@ -8020,6 +8070,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		}
 	}
 	vga.draw.delay.singleline_delay = (float)vga.draw.delay.htotal;
+	vga.draw.must_complete_frame = true;
 
 	if (machine == MCH_HERC && hercCard == HERC_InColor) {
 		VGA_DAC_UpdateColorPalette();
@@ -8038,7 +8089,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 }
 
 void VGA_KillDrawing(void) {
-	is_vga_rendering_on_demand = false;
 	PIC_RemoveEvents(VGA_DrawSingleLine);
 	PIC_RemoveEvents(VGA_DrawEGASingleLine);
 }

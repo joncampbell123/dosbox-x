@@ -190,6 +190,8 @@ bool                                ignore_sequencer_blanking = false;
 bool                                memio_complexity_optimization = true;
 bool                                vga_render_on_demand = false; // Render at vsync or specific changes to hardware instead of every scanline
 signed char                         vga_render_on_demand_user = -1;
+bool                                vga_render_wait_for_changes = false; // Skip rendering entirely, even at vsync, unless anything changes
+signed char                         vga_render_wait_for_changes_user = -1;
 
 bool                                pc98_crt_mode = false;      // see port 6Ah command 40h/41h.
                                                                 // this boolean is the INVERSE of the bit.
@@ -270,14 +272,20 @@ double vga_force_refresh_rate = -1;
 uint8_t CGAPal2[2] = {0,0};
 uint8_t CGAPal4[4] = {0,0,0,0};
 
+void VGA_RenderOnDemandUpTo(void);
+
 void page_flip_debug_notify() {
-	if (enable_page_flip_debugging_marker)
+	if (enable_page_flip_debugging_marker) {
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		vga_page_flip_occurred = true;
+	}
 }
 
 void vsync_poll_debug_notify() {
-	if (enable_vretrace_poll_debugging_marker)
+	if (enable_vretrace_poll_debugging_marker) {
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		vga_3da_polled = true;
+	}
 }
 
 void VGA_SetModeNow(VGAModes mode) {
@@ -888,6 +896,7 @@ void VGA_Reset(Section*) {
 	memio_complexity_optimization = section->Get_bool("memory io optimization 1");
 
 	vga_render_on_demand = false;
+	vga_render_wait_for_changes = false;
 
 	{
 		const char *str = section->Get_string("scanline render on demand");
@@ -899,6 +908,16 @@ void VGA_Reset(Section*) {
 			vga_render_on_demand_user = -1;
 	}
 
+	{
+		const char *str = section->Get_string("skip render if nothing changed");
+		if (!strcmp(str,"true") || !strcmp(str,"1"))
+			vga_render_wait_for_changes_user = 1;
+		else if (!strcmp(str,"false") || !strcmp(str,"0"))
+			vga_render_wait_for_changes_user = 0;
+		else
+			vga_render_wait_for_changes_user = -1;
+	}
+
 	if (memio_complexity_optimization)
 		LOG_MSG("Memory I/O complexity optimization enabled aka option 'memory io optimization 1'. If the game or demo is unable to draw to the screen properly, set the option to false.");
 
@@ -906,6 +925,9 @@ void VGA_Reset(Section*) {
 		LOG_MSG("'scanline render on demand' option is enabled. If this option breaks the game or demo effects or display, set the option to false.");
 	else if (vga_render_on_demand_user < 0)
 		LOG_MSG("The 'scanline render on demand' option is available and may provide a modest boost in video render performance if set to true.");
+
+	if (vga_render_wait_for_changes_user > 0)
+		LOG_MSG("The option to skip rendering entirely if nothing changes is enabled.");
 
 	vga_memio_lfb_delay = section->Get_bool("lfb vmemdelay");
 
