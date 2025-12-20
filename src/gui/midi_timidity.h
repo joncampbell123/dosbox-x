@@ -19,8 +19,11 @@
 
 #include "logging.h"
 #include "SDL.h"
+#if defined(C_SDL2) && !defined(_MSC_VER) && !defined(WIN32)
+#include <SDL2/SDL_net.h>
+#else
 #include "SDL_net.h"
-
+#endif
 #define SEQ_MIDIPUTC 5
 
 #define TIMIDITY_LOW_DELAY

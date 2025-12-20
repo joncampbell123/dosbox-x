@@ -65,7 +65,11 @@
 #endif
 
 // For Uint8 type
+#if defined(C_SDL2) && !defined(_MSC_VER) && !defined(WIN32)
+#include <SDL2/SDL_net.h>
+#else
 #include "SDL_net.h"
+#endif
 
 #ifndef SDLNet_GetError
 #define SDLNet_GetError SDL_GetError
