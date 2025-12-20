@@ -628,6 +628,21 @@ void RENDER_Reset( void ) {
 	} else if (dblw && !render.scale.hardware) {
 		if(scalerOpGray == render.scale.op){
 			simpleBlock = &ScaleGrayDw;
+		}else if(scalerOpTV == render.scale.op){
+			if (render.scale.size >= 3)
+				simpleBlock = &ScaleTV3xDw;
+			else
+				simpleBlock = &ScaleTV2xDw;
+		}else if(scalerOpRGB == render.scale.op){
+			if (render.scale.size >= 3)
+				simpleBlock = &ScaleRGB3xDw;
+			else
+				simpleBlock = &ScaleRGB2xDw;
+		}else if(scalerOpScan == render.scale.op){
+			if (render.scale.size >= 3)
+				simpleBlock = &ScaleScan3xDw;
+			else
+				simpleBlock = &ScaleScan2xDw;
 		}else{
 			if (render.scale.forced && render.scale.size >= 2)
 				simpleBlock = &ScaleNormal2xDw;
@@ -1257,10 +1272,6 @@ bool RENDER_IsScalerCompatibleWithDoublescan(void) {
         case scalerOpSaI:
         case scalerOpSuperSaI:
         case scalerOpSuperEagle:
-        // FIXME: The TV/RGB/Scan scalers would actually benefit from the doublescan mode, if only they would enable properly when selected
-        case scalerOpTV:
-        case scalerOpRGB:
-        case scalerOpScan:
             return false;
         default:
             if (sdl_xbrz.enable) return false;

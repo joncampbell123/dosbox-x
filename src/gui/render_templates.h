@@ -502,6 +502,28 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
+#define SCALERNAME		TV2xDw
+#define SCALERWIDTH		4
+#define SCALERHEIGHT	2
+#define SCALERFUNC									\
+{													\
+	PTYPE halfpixel=((P & redblueMask) >> 1) & redblueMask;	\
+	halfpixel|=((P & greenMask) >> 1) & greenMask;			\
+	line0[0]=P;							\
+	line0[1]=P;							\
+	line0[2]=P;							\
+	line0[3]=P;							\
+	line1[0]=halfpixel;						\
+	line1[1]=halfpixel;						\
+	line1[2]=halfpixel;						\
+	line1[3]=halfpixel;						\
+}
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
 #define SCALERNAME		TVDh
 #define SCALERWIDTH		1
 #define SCALERHEIGHT	2
@@ -562,6 +584,68 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
+#define SCALERNAME		TV3xDw
+#define SCALERWIDTH		6
+#define SCALERHEIGHT	3
+#if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
+#define SCALERFUNC							\
+{											\
+	PTYPE halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)3) & redblueMask;	\
+	halfpixel|=(((uint64_t)(P & greenMask) * (uint64_t)5) >> (uint64_t)3) & greenMask;			\
+	line0[0]=P;								\
+	line0[1]=P;								\
+	line0[2]=P;								\
+	line0[3]=P;								\
+	line0[4]=P;								\
+	line0[5]=P;								\
+	line1[0]=halfpixel;						\
+	line1[1]=halfpixel;						\
+	line1[2]=halfpixel;						\
+	line1[3]=halfpixel;						\
+	line1[4]=halfpixel;						\
+	line1[5]=halfpixel;						\
+	halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)4) & redblueMask;	\
+	halfpixel|=(((uint64_t)(P & greenMask) * (uint64_t)5) >> (uint64_t)4) & greenMask;			\
+	line2[0]=halfpixel;						\
+	line2[1]=halfpixel;						\
+	line2[2]=halfpixel;						\
+	line2[3]=halfpixel;						\
+	line2[4]=halfpixel;						\
+	line2[5]=halfpixel;						\
+}
+#else
+#define SCALERFUNC							\
+{											\
+	PTYPE halfpixel=(((P & redblueMask) * 5) >> 3) & redblueMask;	\
+	halfpixel|=(((P & greenMask) * 5) >> 3) & greenMask;			\
+	line0[0]=P;								\
+	line0[1]=P;								\
+	line0[2]=P;								\
+	line0[3]=P;								\
+	line0[4]=P;								\
+	line0[5]=P;								\
+	line1[0]=halfpixel;						\
+	line1[1]=halfpixel;						\
+	line1[2]=halfpixel;						\
+	line1[3]=halfpixel;						\
+	line1[4]=halfpixel;						\
+	line1[5]=halfpixel;						\
+	halfpixel=(((P & redblueMask) * 5) >> 4) & redblueMask;	\
+	halfpixel|=(((P & greenMask) * 5) >> 4) & greenMask;			\
+	line2[0]=halfpixel;						\
+	line2[1]=halfpixel;						\
+	line2[2]=halfpixel;						\
+	line2[3]=halfpixel;						\
+	line2[4]=halfpixel;						\
+	line2[5]=halfpixel;						\
+}
+#endif
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
 #define SCALERNAME		RGB2x
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
@@ -570,6 +654,24 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	line0[1]=P & greenMask;			\
 	line1[0]=P & blueMask;				\
 	line1[1]=P;
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		RGB2xDw
+#define SCALERWIDTH		4
+#define SCALERHEIGHT	2
+#define SCALERFUNC						\
+	line0[0]=P & redMask;				\
+	line0[1]=P & greenMask;			\
+	line0[2]=P & redMask;				\
+	line0[3]=P & greenMask;			\
+	line1[0]=P & blueMask;				\
+	line1[1]=P;				\
+	line1[2]=P & blueMask;				\
+	line1[3]=P;
 #include "render_simple.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -595,6 +697,34 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
+#define SCALERNAME		RGB3xDw
+#define SCALERWIDTH		6
+#define SCALERHEIGHT	3
+#define SCALERFUNC						\
+	line0[0]=P;							\
+	line0[1]=P & greenMask;				\
+	line0[2]=P & blueMask;				\
+	line0[3]=P;							\
+	line0[4]=P & greenMask;				\
+	line0[5]=P & blueMask;				\
+	line1[0]=P & greenMask;				\
+	line1[1]=P & redMask; 						\
+	line1[2]=P;				\
+	line1[3]=P & greenMask;				\
+	line1[4]=P & redMask; 						\
+	line1[5]=P;				\
+	line2[0]=P;				\
+	line2[1]=P & blueMask;				\
+	line2[2]=P & redMask;			\
+	line2[3]=P;				\
+	line2[4]=P & blueMask;				\
+	line2[5]=P & redMask;
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
 #define SCALERNAME		Scan2x
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
@@ -603,6 +733,24 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	line0[1]=P;							\
 	line1[0]=0;							\
 	line1[1]=0;
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		Scan2xDw
+#define SCALERWIDTH		4
+#define SCALERHEIGHT	2
+#define SCALERFUNC						\
+	line0[0]=P;							\
+	line0[1]=P;							\
+	line0[2]=P;							\
+	line0[3]=P;							\
+	line1[0]=0;							\
+	line1[1]=0;							\
+	line1[2]=0;							\
+	line1[3]=0;
 #include "render_simple.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -634,6 +782,34 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	line2[0]=0;				\
 	line2[1]=0;				\
 	line2[2]=0;
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		Scan3xDw
+#define SCALERWIDTH		6
+#define SCALERHEIGHT	3
+#define SCALERFUNC			\
+	line0[0]=P;				\
+	line0[1]=P;				\
+	line0[2]=P;				\
+	line0[3]=P;				\
+	line0[4]=P;				\
+	line0[5]=P;				\
+	line1[0]=P;				\
+	line1[1]=P;				\
+	line1[2]=P;				\
+	line1[3]=P;				\
+	line1[4]=P;				\
+	line1[5]=P;				\
+	line2[0]=0;				\
+	line2[1]=0;				\
+	line2[2]=0;				\
+	line2[3]=0;				\
+	line2[4]=0;				\
+	line2[5]=0;
 #include "render_simple.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
