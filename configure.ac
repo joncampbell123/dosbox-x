@@ -782,10 +782,25 @@ size_t iconv(iconv_t, const char **restrict, size_t *restrict, char **restrict, 
 ])], AC_DEFINE(ICONV_CONST_CHAR, 1) AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
 AH_TEMPLATE(ICONV_CONST_CHAR,[Whether iconv uses const char**])
 
-dnl LIBRARY TEST: SDLnet
-AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
-AC_CHECK_LIB(SDL2_net, SDLNet_Init, have_sdl2_net_lib=yes, , )
-AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
+have_sdl_net_h=no
+have_sdl_net_lib=no
+
+AC_CHECK_HEADERS([SDL_net.h],
+  [have_sdl_net_h=yes])
+
+AC_CHECK_LIB([SDL_net], [SDLNet_Init],
+  [have_sdl_net_lib=yes])
+
+dnl Check SDL2_net using headers + library first
+have_sdl2_net_h=no
+have_sdl2_net_lib=no
+
+AC_CHECK_HEADERS([SDL2/SDL_net.h],
+  [have_sdl2_net_h=yes])
+
+AC_CHECK_LIB([SDL2_net], [SDLNet_Init],
+  [have_sdl2_net_lib=yes],
+  [have_sdl2_net_lib=no])
 
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <SDL_config.h>
@@ -1109,37 +1124,23 @@ case "$host" in
     fi
   ;;
 esac
-dnl enable SDL2 net if SDL2
-if test -n "$SDL2_LIBS"; then
- if test x$disable_sdl_net = xyes ; then
+
+if test x$disable_sdl_net = xyes ; then
   AC_MSG_WARN([SDL_net is disabled in parameters])
- elif test x$have_sdl2_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+elif test x$have_sdl2_net_lib = xyes ; then
+  AC_DEFINE(C_SDL_NET,1)
+  AC_DEFINE(C_MODEM,1)
+  AC_DEFINE(C_IPX,1)
   LIBS="$LIBS -lSDL2_net"
+  AC_MSG_NOTICE([Using SDL2_net (SDL2): internal modem and IPX enabled])
+elif test x$have_sdl_net_lib = xyes ; then
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
-  have_sdl_net=yes
- elif test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
   LIBS="$LIBS -lSDL_net"
-  AC_DEFINE(C_SDL_NET,1)
-  AC_DEFINE(C_MODEM,1)
-  AC_DEFINE(C_IPX,1)
-  have_sdl_net=yes
- else
-  AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
- fi
+  AC_MSG_NOTICE([Using SDL_net (SDL1): internal modem and IPX enabled])
 else
- if test x$disable_sdl_net = xyes ; then
-  AC_MSG_WARN([SDL_net is disabled in parameters])
- elif test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-  LIBS="$LIBS -lSDL_net"
-  AC_DEFINE(C_SDL_NET,1)
-  AC_DEFINE(C_MODEM,1)
-  AC_DEFINE(C_IPX,1)
-  have_sdl_net=yes
- else 
-  AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
- fi
+  AC_MSG_WARN([Can't find SDL_net or SDL2_net, internal modem and IPX disabled])
 fi
 
 dnl FEATURE: Whether to support libz, and enable snapshots
