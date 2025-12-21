@@ -3719,6 +3719,7 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
     unsigned int lines = 0;
     bool skiprender;
 
+    vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
     vga.draw.hsync_events++;
 
 again:
@@ -3902,6 +3903,7 @@ again:
         if (!is_vga_rendering_on_demand)
             PIC_AddEvent(VGA_DrawSingleLine,vga.draw.delay.singleline_delay);
     } else {
+        vga.draw.must_complete_frame = false;
         vga_mode_frames_since_time_base++;
         RENDER_EndUpdate(false);
     }
@@ -3940,6 +3942,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
     else
         skiprender = true;
 
+    vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
     if ((++vga.draw.render_step) >= vga.draw.render_max)
         vga.draw.render_step = 0;
 
@@ -3992,6 +3995,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
     if (vga.draw.lines_done < vga.draw.lines_total) {
         PIC_AddEvent(VGA_DrawEGASingleLine,vga.draw.delay.singleline_delay);
     } else {
+        vga.draw.must_complete_frame = false;
         vga_mode_frames_since_time_base++;
         RENDER_EndUpdate(false);
     }
@@ -4040,11 +4044,11 @@ void VGA_RenderOnDemandUpTo(void) {
 
 //assert(vga_render_on_demand);
 
-    if (scanline < vga.draw.lines_total)
+    if (scanline < 0) scanline = 0;
+
+    if (scanline != 0 && scanline < vga.draw.lines_total)
         vga.draw.must_draw_again = true;
 
-    vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
-    if (scanline < 0) scanline = 0;
     while (vga.draw.lines_done < vga.draw.lines_total && vga.draw.hsync_events < (unsigned int)scanline && patience-- > 0)
         VGA_DrawSingleLine(0);
 }
@@ -4057,7 +4061,6 @@ void VGA_RenderOnDemandComplete(void) {
     if (vga.draw.lines_done != 0 && vga.draw.lines_done < vga.draw.lines_total)
         vga.draw.must_draw_again = true;
 
-    vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
     while (vga.draw.lines_done < vga.draw.lines_total && patience-- > 0)
         VGA_DrawSingleLine(0);
 }
@@ -5918,7 +5921,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		}
 	}
 
-	vga.draw.must_complete_frame = vga.draw.must_draw_again;
+	if (vga.draw.must_draw_again)
+		vga.draw.must_complete_frame = true;
+
 	vga.draw.must_draw_again = false;
 
 	is_vga_rendering_on_demand = vga_render_on_demand;
