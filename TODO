@@ -2,10 +2,11 @@ Render on Demand:
 - XARGON: Causes extra long pause going from initial title screen to main menu.
 
 Render on Demand + Wait for Changes:
+[DONE]
 - XARGON: Wait for Changes often fails to update display when Xargon shows a popup message on the screen.
           Xargon is using VGA unchained page flipping. The page flip to present the popup fails to render.
           Perhaps the RenderComplete VGA function is rendering the entire frame in response BEFORE the
-          new start address takes effect.
+          new start address takes effect. [FIXED]
 
 DOSBox Integrated Graphics:
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.

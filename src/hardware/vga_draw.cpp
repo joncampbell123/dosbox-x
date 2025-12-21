@@ -4124,11 +4124,6 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {
-    if (is_vga_rendering_on_demand) {
-        if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
-            VGA_RenderOnDemandComplete();
-    }
-
     if (vga.dosboxig.svga)
         vga.draw.panning = vga.dosboxig.hpel;
     else

@@ -223,7 +223,6 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	}
 	case 0x0A:	/* Cursor Start Register */
-		vga.draw.must_complete_frame = true;
 		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(cursor_start)=(uint8_t)val;
 		vga.draw.cursor.sline=val&0x1f;
@@ -235,7 +234,6 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x0B:	/* Cursor End Register */
-		vga.draw.must_complete_frame = true;
 		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(cursor_end)=(uint8_t)val;
 		vga.draw.cursor.eline=val&0x1f;
@@ -247,21 +245,21 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x0C:	/* Start Address High Register */
-		vga.draw.must_complete_frame = true;
+		vga.draw.must_draw_again = true; // takes effect NEXT frame, not current frame!
 		crtc(start_address_high)=(uint8_t)val;
 		vga.config.display_start=(vga.config.display_start & 0xFF00FF)| (val << 8);
 		/* 0-7  Upper 8 bits of the start address of the display buffer */
 		page_flip_debug_notify();
 		break;
 	case 0x0D:	/* Start Address Low Register */
-		vga.draw.must_complete_frame = true;
+		vga.draw.must_draw_again = true; // takes effect NEXT frame, not current frame!
 		crtc(start_address_low)=(uint8_t)val;
 		vga.config.display_start=(vga.config.display_start & 0xFFFF00)| val;
 		/*	0-7	Lower 8 bits of the start address of the display buffer */
 		page_flip_debug_notify();
 		break;
 	case 0x0E:	/*Cursor Location High Register */
-		vga.draw.must_complete_frame = true;
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(cursor_location_high)=(uint8_t)val;
 		vga.config.cursor_start&=0xff00ff;
 		vga.config.cursor_start|=val << 8;
@@ -270,8 +268,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		 * color index [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%2086C928%20GUI%20Accelerator%20%281992%2d09%29%2epdf] */
 		break;
 	case 0x0F:	/* Cursor Location Low Register */
-		//TODO update cursor on screen
-		vga.draw.must_complete_frame = true;
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(cursor_location_low)=(uint8_t)val;
 		vga.config.cursor_start&=0xffff00;
 		vga.config.cursor_start|=val;
@@ -340,7 +337,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x14:	/* Underline Location Register */
-		vga.draw.must_complete_frame = true;
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(underline_location)=(uint8_t)val;
 		VGA_CheckAddrShift();
 		VGA_CheckScanLength();
