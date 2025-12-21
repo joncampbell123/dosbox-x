@@ -283,7 +283,8 @@ static void RENDER_ScalerLineHandler(const void * s) {
 		render.scale.lineHandler(s);
 	}
 	else {
-		LOG(LOG_MISC,LOG_WARN)("RENDER: Attempted to render too much");
+		LOG(LOG_MISC,LOG_WARN)("RENDER: Attempted to render too much (in=%u/out=%u/height=%u)",
+			(unsigned int)render.scale.inLine,(unsigned int)render.scale.outLine,(unsigned int)render.src.height);
 		RENDER_DrawLine = RENDER_EmptyLineHandler;
 	}
 }
