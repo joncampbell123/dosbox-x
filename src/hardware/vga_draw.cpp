@@ -6129,6 +6129,14 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	} else
 		vga.draw.cursor.count++;
 
+	// render on demand + wait for changes needs to render frame when cursor blinks.
+	// most code uses 8 frames for cursor blink and 16 frames for attribute blink.
+	if (!IS_PC98_ARCH && (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT || vga.mode == M_HERC_TEXT) && (vga.draw.cursor.enabled || vga.draw.blinking)) {
+		const unsigned int chkmsk = vga.draw.cursor.enabled ? 0x7 : 0xF;
+		if ((vga.draw.cursor.count&chkmsk) == 0)
+			vga.draw.must_complete_frame = true;
+	}
+
 	if (IS_PC98_ARCH) {
 		for (unsigned int i=0;i < 2;i++)
 			pc98_gdc[i].cursor_advance();
