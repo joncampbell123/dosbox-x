@@ -1,4 +1,11 @@
 NEXT VERSION
+  - Apparently at random, VGA render will call RENDER_DrawLine too much,
+    causing buffer overruns at random, so, instead of directly assigning
+    the scaler line handler, assign a function that checks the rendered
+    line count and ensures that rendering stops at the correct line
+    count. This should fix some random crashes or corruptions, especially
+    on Linux with the OpenGL output which likes to allocate EXACTLY the
+    amount of memory required for the frame. (joncampbell123).
   - A patch was submitted to DOSLIB DSXMENU to incorporate non-selectable
     informational lines of text. Incorporate the updated DSXMENU binaries
     into DOSBox-X (joncampbell123).
