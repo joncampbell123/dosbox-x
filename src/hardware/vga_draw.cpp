@@ -7932,6 +7932,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		mcga_double_scan = false;
 	}
 
+	/* NTS: This code resets line_done. If RENDER_EndUpdate() is not called, misrendering
+	 *      will occur. VGA draw liness_done will be out of sync with render.scale.outLine
+	 *      and the frame will not render properly. */
+	RENDER_EndUpdate(false);
+
 	vga.draw.lines_done = 0;
 	vga.draw.lines_total = height;
 	vga.draw.line_length = width * ((bpp + 1) / 8);
