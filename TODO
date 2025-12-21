@@ -2,10 +2,13 @@ Render on Demand:
 - XARGON: Causes extra long pause going from initial title screen to main menu.
 
 Render on Demand + Wait for Changes:
-- Commander Keen in Invasion of the Vorticons (keen1): Wait for Changes fails to update display when Keen
-  is altering the Attribute Controller palette to "fade in" or "fade out" between sections. Starting a
-  game, when it shows "Keens left" during fade in, leaves the screen in the dim state until the game
-  redraws the screen to start the game.a
+- Commander Keen in Invasion of the Vorticons (keen1):
+  Commander Keen in Aliens Ate My Babysitter (keen6):
+  Cosmo's Cosmic Adventure (cosmo):
+
+  Wait for Changes fails to update display when game uses only the attribute controller palette to "fade in"
+  and "fade out" the display. These games target the EGA where that is a only practical palette-based way
+  to do it. There is no VGA palette on EGA.
 [DONE]
 - XARGON: Wait for Changes often fails to update display when Xargon shows a popup message on the screen.
           Xargon is using VGA unchained page flipping. The page flip to present the popup fails to render.
