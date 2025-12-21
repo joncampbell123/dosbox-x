@@ -33,6 +33,7 @@ void vga_write_p3d4(Bitu port,Bitu val,Bitu iolen);
 Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 Bitu vga_read_p3d5(Bitu port,Bitu iolen);
+extern bool vga_render_wait_for_changes;
 extern void DISP2_RegisterPorts(void);
 extern bool DISP2_Active(void);
 
@@ -62,7 +63,7 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 	// If the game or demo is wasting time in a loop polling this register (not merely reading to
 	// clear the port 3C0h flip/flop) then now is as good a time as any to render the VGA raster
 	// up to the current point.
-	if (vga_render_on_demand && !vga.attr.disabled/*screen not disabled*/ && !vga.internal.attrindex/*attribute controller flipflop clear*/) VGA_RenderOnDemandUpTo();
+	if (vga_render_on_demand && !vga_render_wait_for_changes && !vga.attr.disabled/*screen not disabled*/ && !vga.internal.attrindex/*attribute controller flipflop clear*/) VGA_RenderOnDemandUpTo();
 
 	vga.internal.attrindex=false;
 	vga.tandy.pcjr_flipflop=false;
