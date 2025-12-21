@@ -1,3 +1,12 @@
+Render on Demand:
+- XARGON: Causes extra long pause going from initial title screen to main menu.
+
+Render on Demand + Wait for Changes:
+- XARGON: Wait for Changes often fails to update display when Xargon shows a popup message on the screen.
+          Xargon is using VGA unchained page flipping. The page flip to present the popup fails to render.
+          Perhaps the RenderComplete VGA function is rendering the entire frame in response BEFORE the
+          new start address takes effect.
+
 DOSBox Integrated Graphics:
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
 - VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
