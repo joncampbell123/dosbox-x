@@ -413,7 +413,7 @@ void RENDER_EndUpdate( bool abort ) {
     if (GCC_UNLIKELY(!render.updating))
         return;
 
-    if (video_debug_overlay && !abort && render.active && render.scale.inLine != 0)
+    if (video_debug_overlay && !abort && render.active && render.scale.outLine != 0)
         VGA_DebugOverlay();
 
     if (!abort && render.active && RENDER_DrawLine == RENDER_ClearCacheHandler)
