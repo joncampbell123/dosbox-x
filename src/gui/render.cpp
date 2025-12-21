@@ -1298,7 +1298,9 @@ bool RENDER_IsScalerCompatibleWithDoublescan(void) {
         case scalerOpSuperEagle:
             return false;
         default:
+#if C_XBRZ
             if (sdl_xbrz.enable) return false;
+#endif
             break;
     };
 
