@@ -278,6 +278,16 @@ static void RENDER_DrawLine_countdown(const void * s) {
 }
 #endif
 
+static void RENDER_ScalerLineHandler(const void * s) {
+	if (render.scale.outLine < render.src.height) {
+		render.scale.lineHandler(s);
+	}
+	else {
+		LOG(LOG_MISC,LOG_WARN)("RENDER: Attempted to render too much");
+		RENDER_DrawLine = RENDER_EmptyLineHandler;
+	}
+}
+
 static void RENDER_StartLineHandler(const void * s) {
     if (render.disablerender)
         return;
@@ -298,7 +308,17 @@ static void RENDER_StartLineHandler(const void * s) {
         RENDER_scaler_countdown = RENDER_scaler_countdown_init;
         RENDER_DrawLine = RENDER_DrawLine_countdown;
 #else
-        RENDER_DrawLine = render.scale.lineHandler;
+	// apparently the render code is randomly drawing too many scanlines, so,
+	// to avoid crashes and buffer overruns, we're going to have to use a line
+	// handler that watches the scaler line handler and stops rendering automatically
+	// at the end of the render height. No more uncontrolled rendering and trusting
+	// VGA output not to write too much.
+	//
+	// Sorry, but I just wasted my entire Saturday trying to track down random
+	// OpenGL output crashes (buffer overruns and glibc "double free or corruption"
+	// runtime termination) and this was the only way I could stop it. --J.C.
+        //RENDER_DrawLine = render.scale.lineHandler;
+	RENDER_DrawLine = RENDER_ScalerLineHandler;
 #endif
         RENDER_DrawLine( s );
     }
