@@ -17,6 +17,7 @@ orig_CFLAGS="${CFLAGS}"
 orig_LDFLAGS="${LDFLAGS}"
 orig_CPPFLAGS="${CPPFLAGS}"
 orig_CXXFLAGS="${CXXFLAGS}"
+orig_LIBS="${LIBS}"
 
 # Remove our temporary copies of dosbox-x executable before rebuilding
 rm -f src/dosbox-x-arm64 src/dosbox-x-x86_64
@@ -26,6 +27,8 @@ do_cleanup() {
     rm -rf vs/zlib/linux-host vs/zlib/linux-build
     rm -rf vs/libpng/linux-host vs/libpng/linux-build
     rm -rf vs/freetype/linux-host vs/freetype/linux-build
+    rm -rf vs/sdlnet/linux-host vs/sdlnet/linux-build
+    rm -rf vs/sdl2net/linux-host vs/sdl2net/linux-build
     [ -e Makefile ] && make clean
 }
 
@@ -93,15 +96,23 @@ for arch in ${architectures}; do
     new="-I${top}/vs/sdl2/linux-host/include "
     nld="-L${top}/vs/sdl2/linux-host/lib "
     CFLAGS="${CFLAGS}${new}"
+    CPPFLAGS="${CPPFLAGS}${new}"
+    CXXFLAGS="${CXXFLAGS}${new}"
+    LDFLAGS="${orig_LDFLAGS}${nld}"
+    export CFLAGS CPPFLAGS CXXFLAGS
+
+    # prefer to compile against our own copy of SDLnet 2.x
+    echo "Compiling our internal SDLnet 2.x"
+    chmod +x vs/sdl2net/*.sh
+    (cd vs/sdl2net && ./build-dosbox.sh) || exit 1
+    new="-I${top}/vs/sdl2net/linux-host/include "
+    nld="-L${top}/vs/sdl2net/linux-host/lib "
+    CFLAGS="${CFLAGS}${new}"
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
     CXXFLAGS="${CXXFLAGS}${new}"
-    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
-
-    # prefer to compile against our own copy of SDLnet 1.x
-    echo "Compiling our internal SDLnet 1.x"
-    (cd vs/sdlnet && ./build-dosbox.sh) || exit 1
-
+    export CFLAGS CPPFLAGS CXXFLAGS
+    
     # prefer to compile against our own zlib
     echo "Compiling our internal zlib"
     (cd vs/zlib && ./build-dosbox.sh) || exit 1
@@ -111,7 +122,7 @@ for arch in ${architectures}; do
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
     CXXFLAGS="${CXXFLAGS}${new}"
-    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
+    export CFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own libpng (comment this out to disable)
     echo "Compiling our internal libpng"
@@ -122,15 +133,14 @@ for arch in ${architectures}; do
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
     CXXFLAGS="${CXXFLAGS}${new}"
-    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
+    export CFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own freetype
     echo "Compiling our internal freetype"
     (cd vs/freetype && ./build-dosbox.sh) || exit 1
     new="-I${top}/vs/freetype/linux-host/include/freetype2 "
-    nld="-L${top}/vs/freetype/linux-host/lib -lfreetype "
     CFLAGS="${CFLAGS}${new}"
-    LDFLAGS="${LDFLAGS}${nld}"
+    LDFLAGS="${LDFLAGS}${nld} -lfreetype "
     CPPFLAGS="${CPPFLAGS}${new}"
     CXXFLAGS="${CXXFLAGS}${new}"
     INTERNAL_FREETYPE=1
@@ -158,8 +168,9 @@ for arch in ${architectures}; do
     # now compile ourself
     echo "Compiling DOSBox-X"
     chmod +x configure
+
     ./configure --enable-debug=heavy --prefix=/usr --enable-sdl2 "${opts}" "${@}" || exit 1
-    make -j3 || exit 1
+    make -j$(sysctl -n hw.ncpu) || exit 1
 
     cp src/dosbox-x "src/dosbox-x-${arch}"
 done

@@ -1,0 +1,16 @@
+projectfullname = SDL_net
+projectshortname = SDL_net
+incsubdir =
+wikisubdir = SDL_net
+apiprefixregex = SDLNet_
+mainincludefname = SDL_net.h
+versionfname = SDL_net.h
+versionmajorregex = \A\#define\s+SDL_NET_MAJOR_VERSION\s+(\d+)\Z
+versionminorregex = \A\#define\s+SDL_NET_MINOR_VERSION\s+(\d+)\Z
+versionpatchregex = \A\#define\s+SDL_NET_PATCHLEVEL\s+(\d+)\Z
+selectheaderregex = \ASDL_net\.h\Z
+projecturl = https://libsdl.org/projects/SDL_net
+wikiurl = https://wiki.libsdl.org/SDL_net
+bugreporturl = https://github.com/libsdl-org/sdlwiki/issues/new
+warn_about_missing = 1
+wikipreamble = (This function is part of SDL_net, a separate library from SDL.)

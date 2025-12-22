@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: SDL2_net
+Description: net library for Simple DirectMedia Layer
+Version: @VERSION@
+Requires: sdl2 >= @SDL_VERSION@
+@ENABLE_SHARED_TRUE@Libs: -L${libdir} -lSDL2_net
+@ENABLE_SHARED_TRUE@@ENABLE_STATIC_TRUE@Libs.private: @INETLIB@
+@ENABLE_SHARED_FALSE@Libs: -L${libdir} -lSDL2_net @INETLIB@
+Cflags: -I${includedir}/SDL2
