@@ -15,7 +15,7 @@
     <category>Emulator</category>
   </categories>
   <releases>
-          <release version="@PACKAGE_VERSION@" date="2025-12-1"/>
+          <release version="@PACKAGE_VERSION@" date="2025-12-22"/>
   </releases>
   <screenshots>
 	  <screenshot type="default">

@@ -213,6 +213,7 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 		vga.internal.attrindex=true;
 		if (val & 0x20) attr(disabled) &= ~1;
 		else attr(disabled) |= 1;
+		if (vga_render_on_demand && !attr(disabled)/*screen not yet disabled*/) VGA_RenderOnDemandUpTo();
 		/* 
 		   0-4	Address of data register to write to port 3C0h or read from port 3C1h
 		   5	If set screen output is enabled and the palette can not be modified,
@@ -245,6 +246,7 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 					}
 				}
 				if (attr(disabled) & 0x1) {
+					vga.draw.must_complete_frame = true;
 					VGA_ATTR_SetPalette(attr(index),(uint8_t)val);
 
 					/* if the color plane enable register is anything other than 0x0F, then
@@ -268,56 +270,61 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 				   */
 				break;
 			case 0x10: { /* Mode Control Register */
-					   if (!IS_VGA_ARCH) val&=0x1f;	// not really correct, but should do it
-					   Bitu difference = attr(mode_control)^val;
-					   attr(mode_control)=(uint8_t)val;
+					if (!IS_VGA_ARCH) val&=0x1f;	// not really correct, but should do it
+					Bitu difference = attr(mode_control)^val;
+					attr(mode_control)=(uint8_t)val;
 
-					   if (difference & 0x80) {
-						   for (uint8_t i=0;i<0x10;i++)
-							   VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
-					   }
-					   if (difference & 0x08)
-						   VGA_SetBlinking(val & 0x8);
+					if (difference & 0x80) {
+						vga.draw.must_complete_frame = true;
+						for (uint8_t i=0;i<0x10;i++)
+							VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
+					}
+					if (difference & 0x08) {
+						vga.draw.must_complete_frame = true;
+						VGA_SetBlinking(val & 0x8);
+					}
 
-					   if (difference & 0x41) {
-						   VGA_DetermineMode();
-						   cmplx |= VGA_ComplexityCheck_ODDEVEN();
-					   }
-					   if ((difference & 0x40) && (vga.mode == M_VGA)) // 8BIT changes in 256-color mode must be handled
-						   VGA_StartResize(50);
+					if (difference & 0x41) {
+						VGA_DetermineMode();
+						cmplx |= VGA_ComplexityCheck_ODDEVEN();
+					}
+					if ((difference & 0x40) && (vga.mode == M_VGA)) // 8BIT changes in 256-color mode must be handled
+						VGA_StartResize(50);
 
-					   if (difference & 0x04) {
-						   // recompute the panning value
-						   if(vga.mode==M_TEXT) {
-							   uint8_t pan_reg = attr(horizontal_pel_panning);
-							   if (pan_reg > 7)
-								   vga.config.pel_panning=0;
-							   else if (val&0x4) // 9-dot wide characters
-								   vga.config.pel_panning=(uint8_t)(pan_reg+1);
-							   else // 8-dot characters
-								   vga.config.pel_panning=(uint8_t)pan_reg;
-						   }
-					   }
+					if (difference & 0x04) {
+						vga.draw.must_complete_frame = true;
+						// recompute the panning value
+						if(vga.mode==M_TEXT) {
+							uint8_t pan_reg = attr(horizontal_pel_panning);
+							if (pan_reg > 7)
+								vga.config.pel_panning=0;
+							else if (val&0x4) // 9-dot wide characters
+								vga.config.pel_panning=(uint8_t)(pan_reg+1);
+							else // 8-dot characters
+								vga.config.pel_panning=(uint8_t)pan_reg;
+							vga.draw.must_draw_again = true; // takes effect NEXT frame, not current frame!
+						}
+					}
 
-					   if (cmplx != 0) VGA_SetupHandlers();
+					if (cmplx != 0) VGA_SetupHandlers();
 
-					   /*
-					      0	Graphics mode if set, Alphanumeric mode else.
-					      1	Monochrome mode if set, color mode else.
-					      2	9-bit wide characters if set.
-					      The 9th bit of characters C0h-DFh will be the same as
-					      the 8th bit. Otherwise it will be the background color.
-					      3	If set Attribute bit 7 is blinking, else high intensity.
-					      5	If set the PEL panning register (3C0h index 13h) is temporarily set
-					      to 0 from when the line compare causes a wrap around until the next
-					      vertical retrace when the register is automatically reloaded with
-					      the old value, else the PEL panning register ignores line compares.
-					      6	If set pixels are 8 bits wide. Used in 256 color modes.
-					      7	If set bit 4-5 of the index into the DAC table are taken from port
-					      3C0h index 14h bit 0-1, else the bits in the palette register are
-					      used.
-					      */
-					   break;
+					/*
+					   0	Graphics mode if set, Alphanumeric mode else.
+					   1	Monochrome mode if set, color mode else.
+					   2	9-bit wide characters if set.
+					   The 9th bit of characters C0h-DFh will be the same as
+					   the 8th bit. Otherwise it will be the background color.
+					   3	If set Attribute bit 7 is blinking, else high intensity.
+					   5	If set the PEL panning register (3C0h index 13h) is temporarily set
+					   to 0 from when the line compare causes a wrap around until the next
+					   vertical retrace when the register is automatically reloaded with
+					   the old value, else the PEL panning register ignores line compares.
+					   6	If set pixels are 8 bits wide. Used in 256 color modes.
+					   7	If set bit 4-5 of the index into the DAC table are taken from port
+					   3C0h index 14h bit 0-1, else the bits in the palette register are
+					   used.
+					   */
+					break;
 				   }
 			case 0x11:	/* Overscan Color Register */
 				   attr(overscan_color)=(uint8_t)val;
@@ -345,6 +352,8 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 				      */
 				   break;
 			case 0x13:	/* Horizontal PEL Panning Register */
+				   vga.draw.must_complete_frame = true;
+				   vga.draw.must_draw_again = true; // takes effect NEXT frame, not current frame!
 				   attr(horizontal_pel_panning)=val & 0xF;
 				   switch (vga.mode) {
 					   case M_TEXT:

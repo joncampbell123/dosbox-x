@@ -2948,7 +2948,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("If set, DOSBox-X will skip rendering entirely unless any change is made to the guest display.\n"
                       "This may provide a performance benefit, especially in SVGA modes. This option has no effect unless render on demand is true or auto.\n"
                       "Normally in DOSBox and DOSBox-X, video is rendered constantly, whether or not anything changed,\n"
-                      "and then compared with the previous frame to determine where to update the host display.");
+                      "and then compared with the previous frame to determine where to update the host display.\n"
+                      "In addition to the render on demand option, this option may further break timing dependent effects and/or cause problems with some games.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("scanline render on demand",Property::Changeable::Always,"auto");

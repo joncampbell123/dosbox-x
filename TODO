@@ -2,13 +2,6 @@ Render on Demand:
 - XARGON: Causes extra long pause going from initial title screen to main menu.
 
 Render on Demand + Wait for Changes:
-- Commander Keen in Invasion of the Vorticons (keen1):
-  Commander Keen in Aliens Ate My Babysitter (keen6):
-  Cosmo's Cosmic Adventure (cosmo):
-
-  Wait for Changes fails to update display when game uses only the attribute controller palette to "fade in"
-  and "fade out" the display. These games target the EGA where that is a only practical palette-based way
-  to do it. There is no VGA palette on EGA.
 - Cosmo's Cosmic Adventure (cosmo):
 
   Wait for Changes appears to affect Cosmo's rendering and page flipping. The normally regular (8fps?) frame
@@ -18,6 +11,13 @@ Render on Demand + Wait for Changes:
           Xargon is using VGA unchained page flipping. The page flip to present the popup fails to render.
           Perhaps the RenderComplete VGA function is rendering the entire frame in response BEFORE the
           new start address takes effect. [FIXED]
+- Commander Keen in Invasion of the Vorticons (keen1):
+  Commander Keen in Aliens Ate My Babysitter (keen6):
+  Cosmo's Cosmic Adventure (cosmo):
+
+  Wait for Changes fails to update display when game uses only the attribute controller palette to "fade in"
+  and "fade out" the display. These games target the EGA where that is a more practical palette-based way
+  to do it. There is no VGA palette on EGA.
 
 DOSBox Integrated Graphics:
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
