@@ -3,6 +3,7 @@ Render on Demand:
 
 Render on Demand + Wait for Changes:
 - Cosmo's Cosmic Adventure (cosmo):
+  Jill of the Jungle (jill/trilogy-1):
 
   Wait for Changes appears to affect Cosmo's rendering and page flipping. The normally regular (8fps?) frame
   rate becomes somewhat irregular.
