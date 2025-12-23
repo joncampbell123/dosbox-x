@@ -1,0 +1,18 @@
+:CHEAT_HELP_OFF1
+  Unless you already know the memory address where the search target is 
+.
+:CHEAT_HELP_OFF2
+located, you generally don't need to set this value. It's best to leave it at 
+.
+:CHEAT_HELP_OFF3
+the default value of 0. Command example:
+.
+:CHEAT_HELP_OFF4
+    OFF 0xEB00     # Set the offset address to 0xEB00
+.
+:CHEAT_HELP_OFF5
+Unless you know what you are doing, it is not recommended to set the offset 
+.
+:CHEAT_HELP_OFF6
+address. Keep it set to 0.
+.

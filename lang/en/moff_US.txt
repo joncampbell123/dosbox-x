@@ -1,0 +1,16 @@
+  Set the offset address for memory mode. Unlike setting the offset to 0 during searches, here you need to set the offset address to the confirmed target memory address. Then use the `MD` command to make the DATA VIEW window display the memory content of this segment, and observe if the values in the nearby memory match certain attributes of the game character. Suppose I use the following series of commands to set up the memory mode. This example is based on a specific game I am running. Since the game you are running is different, you should configure the settings according to your own game's context.
+    MM DWORD
+    MSEG 0x9117
+    MOFF 0xEB0E
+    MD
+You will see the following lines in the debug window:
+    9117:0000EB0E A0 86 01 00 A0 86 01 00 00 00 00 00 00 00 00 00
+    9117:0000EB1E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+    9117:0000EB2E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 9A 01
+    9117:0000EB3E 19 00 23 00 1E 00 2D 00 3C 00 CD 01 01 03 00 00
+Another attribute value in the game is 100, which converts to the hexadecimal value `0x64`. You can see that the values at both `0xEB1E` and `0xEB2E` are:
+    64 00 00 00
+Since this attribute value is relatively small, it is推测 (inferred/speculated) that its data type should be WORD. Use the following two commands to change the address and data size:
+    MM 2
+    MOFF 0xEB2E # Already tested and confirmed to be this address
+For subsequent steps, please refer to the `MD`, `MR`, `MS`, and `MA` command instructions.

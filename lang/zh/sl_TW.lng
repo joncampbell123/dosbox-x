@@ -1,0 +1,18 @@
+:CHEAT_HELP_SL1
+  系統會根據你所設定的搜尋條件來設定搜尋長度, 除非你確實知道所要的搜尋範圍, 不
+.
+:CHEAT_HELP_SL2
+然不須修改這個值, 指令範例如下
+.
+:CHEAT_HELP_SL3
+    SL 0x10000  #將搜尋長度設定成64KB
+.
+:CHEAT_HELP_SL4
+當SEG 值不為0 時，搜尋長度預設為64KB, 當SEG 值為0 時， 搜尋長度為640KB或1088KB
+.
+:CHEAT_HELP_SL5
+, 以上依是否有開啟HI MEMORY而定, 如果遊戲進入保護模式, SEG 值一定要設成0 , 設
+.
+:CHEAT_HELP_SL6
+定成其他值無效, 搜尋長度依照DOSBOX-X設定檔裡面設定的記憶體大小而定
+.

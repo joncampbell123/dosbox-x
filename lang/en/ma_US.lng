@@ -1,0 +1,30 @@
+:CHEAT_HELP_MA1
+  If you have confirmed that this setting is your desired target, use this 
+.
+:CHEAT_HELP_MA2
+command to save the setting into the formal record area. After saving, 
+.
+:CHEAT_HELP_MA3
+remember to use the SAVE command to write it to the project file. Example:
+.
+:CHEAT_HELP_MA4
+    MA description
+.
+:CHEAT_HELP_MA5
+The description can only contain characters inputtable by the raw keyboard 
+.
+:CHEAT_HELP_MA6
+setting language. If necessary, you can use a text editor to open the project 
+.
+:CHEAT_HELP_MA7
+file and modify the description text. The description text cannot use the ` 
+.
+:CHEAT_HELP_MA8
+character, as it is the field delimiter. Unless you know what you are doing, 
+.
+:CHEAT_HELP_MA9
+do not modify data in other fields. The project file must be saved in UTF-8 
+.
+:CHEAT_HELP_MA10
+Without BOM format.
+.

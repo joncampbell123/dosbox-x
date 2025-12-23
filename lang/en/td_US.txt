@@ -1,0 +1,2 @@
+  When your search has narrowed down to just a few entries, and testing has confirmed that certain entries are not useful, you can use this command to delete them. Command example:
+    TD 2     # Delete the second entry in the temporary storage area

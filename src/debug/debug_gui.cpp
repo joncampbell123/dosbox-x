@@ -84,7 +84,13 @@ const unsigned int dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
     7,          /* WINI_REG */
     9,          /* WINI_DATA */
     12,         /* WINI_CODE */
+/* Knifour Start */		
+#ifdef C_CHEAT
+    6,
+#else
     5,          /* WINI_VAR */
+#endif
+/* Knifour End */
     6           /* WINI_OUT */
 };
 
@@ -92,7 +98,13 @@ const char *dbg_def_win_titles[DBGBlock::WINI_MAX_INDEX] = {
     "Register Overview",        /* WINI_REG */
     "Data Overview",            /* WINI_DATA */
     "Code Overview",            /* WINI_CODE */
+/* Knifour Start */
+#ifdef C_CHEAT
+		"Cheater Overview",
+#else		
     "Variable Overview",        /* WINI_VAR */
+#endif
+/* Knifour End */
     "Output"                    /* WINI_OUT */
 };
 
@@ -603,7 +615,13 @@ void DBGUI_StartUp(void) {
         if (dbg.win_main) {
             int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main, win_main_maxy, win_main_maxx);
             if (win_main_maxx > 100) win_main_maxy = 100;
+/* Knifour Start */						
+#ifdef C_CHEAT	
+						if (win_main_maxy > 50) win_main_maxy = 50;
+#else
             if (win_main_maxy > 40) win_main_maxy = 40;
+#endif
+/* Knifour End */
             resize_term(win_main_maxy, win_main_maxx);
         }
     }

@@ -1,0 +1,22 @@
+  This command is only applicable under the following conditions:
+    1. You have entered Snap mode using the `SNAP` command.
+    2. You have performed at least one search using the `SU` or `SD` command.
+After searching and knowing the current correct value, you can use this command to search further. Suppose at the beginning of the game, the quantity of a certain item is 1. The search command sequence would be as follows:
+    SM WORD
+    SEG 0x9117
+    SNAP
+Then press `[F5]` to return to the game, use the item, and re-enter debug mode.
+    SD 1
+The item quantity decreased by 1, so use `SD 1` to search. Dozens of results are found. Since the item quantity is now 0, use the following command next:
+    SS 0
+After this search, only the following two results remain:
+1 : 53302 <==> 0xD036, value = 0
+2 : 57340 <==> 0xDFFC, value = 0
+At this point, you can use trial and error with the command:
+    TW 9 1
+This writes the value 9 to temporary storage entry 1. Press `[F5]` to return to the game and observe that the item quantity has changed to 9. Then use:
+    TD 2
+to delete the second entry from the temporary storage area. Finally, use:
+    A Item_Name
+    SAVE
+to save the search result to the project file.

@@ -1,0 +1,5 @@
+  Based on the configured parameters like `MM`, `MSEG`, and `MOFF`, write the specified value into memory. After writing, press `[F5]` to continue executing the game and check if the address is correct. Before execution, be sure to remember the original value at the memory address. If the written value has no effect, remember to re-enter debug mode and restore the original value. Example:
+    MW 3000
+If the `MM` mode is BYTE,  it affects 1 byte. The value written is the remainder of 3000 divided by 256.
+If the `MM` mode is WORD,  it affects 2 bytes. The value written is the remainder of 3000 divided by 65536.
+If the `MM` mode is DWORD, it affects 4 bytes. The value written is the remainder of 3000 divided by 4294967295.

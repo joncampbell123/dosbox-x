@@ -1,0 +1,15 @@
+  After configuring the search mode, segment address, offset address, and search length, you can use this command to search for the specified value. The search results will be displayed in the Output window. The system will only show the first 10 found memory addresses. If there are more than 10 results, it indicates that further searching is needed to find the correct target. You can stop searching when only 1 result remains, or when the results remain consistent across successive searches. Use further commands to test if the search result is correct. Command example:
+    s 100000 # This means searching for one hundred thousand
+Suppose your in-game money value is 100,000. The first search using `s 100000` might yield many results. Press the `F5` key to continue the game. When the money value changes in the game, enter debug mode again and search for the changed amount. If the changed amount is 94,000, you can use the following command to search:
+    s 94000  # Search for 94000 from the previous results
+If only 1 result remains, it's highly likely this is your target. If more than 1 result remains, press `F5` to continue the game, and search again after the in-game money changes, until only 1 result remains or the results stabilize. Below is an example of a search result:
+    1 : 9594 <==> 0x257A, Value = 100000
+    2 : 60174 <==> 0xEB0E, Value = 100000
+    3 : 60178 <==> 0xEB12, Value = 100000
+    4 : 60276 <==> 0xEB74, Value = 100000
+    5 : 60280 <==> 0xEB78, Value = 100000
+    6 : 60378 <==> 0xEBDA, Value = 100000
+    7 : 60382 <==> 0xEBDE, Value = 100000
+    8 : 60480 <==> 0xEC40, Value = 100000
+    9 : 60484 <==> 0xEC44, Value = 100000
+Search result explanation: Number : Decimal Address <==> Hexadecimal Address, Value = Searched Value

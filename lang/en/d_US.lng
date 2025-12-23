@@ -1,0 +1,72 @@
+:CHEAT_HELP_D1
+  Sometimes after searching, you might end up with only a few pieces of data 
+.
+:CHEAT_HELP_D2
+that match the criteria. You can use this command to specify the memory 
+.
+:CHEAT_HELP_D3
+segment to be displayed in the Data View to assist with your judgment. You 
+.
+:CHEAT_HELP_D4
+only need to provide the address given to you by the search command as a 
+.
+:CHEAT_HELP_D5
+parameter, and the system will automatically calculate the actual memory 
+.
+:CHEAT_HELP_D6
+address for you. Suppose the following is the content displayed from one of my
+.
+:CHEAT_HELP_D7
+ searches:
+.
+:CHEAT_HELP_D8
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_D9
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_D10
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_D11
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_D12
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_D13
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_D14
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_D15
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_D16
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_D17
+If you want to see the memory condition around the 2nd entry, you can issue 
+.
+:CHEAT_HELP_D18
+the following command:
+.
+:CHEAT_HELP_D19
+    D 0xEB00
+.
+:CHEAT_HELP_D20
+This will make the Data View start displaying data from address 0xEB00. You 
+.
+:CHEAT_HELP_D21
+might wonder, since the address of the 2nd entry is clearly 0xEB0E, why would 
+.
+:CHEAT_HELP_D22
+I start displaying from 0xEB00? I do this in the hope that all displayed 
+.
+:CHEAT_HELP_D23
+addresses are aligned to end with a '0'. This makes it easier to calculate the
+.
+:CHEAT_HELP_D24
+ address of any nearby data that you find interesting.
+.
