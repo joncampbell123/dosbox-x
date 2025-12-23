@@ -33,6 +33,29 @@ AC_CHECK_HEADER(d3dx9math.h, have_d3dx9math_h=yes , have_d3dx9math_h=no , )
 
 dnl Utility function ============================
 
+# AC_CHECK_CFLAGS(ADDITIONAL-CFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+#
+# checks whether the $(CC) (C compiler) accepts the ADDITIONAL-CFLAGS
+# if so, they are added to the CFLAGS
+AC_DEFUN([AC_CHECK_CFLAGS],
+[
+  AC_MSG_CHECKING([whether $CC accepts "$1"])
+cat > conftest.c << EOF
+int main(void){
+  return 0;
+}
+EOF
+if $CC $CPPFLAGS $CFLAGS -Werror -c -o conftest.o conftest.c [$1] > /dev/null 2>&1
+then
+  AC_MSG_RESULT([yes])
+  CFLAGS="${CFLAGS} [$1]"
+  [$2]
+else
+  AC_MSG_RESULT([no])
+  [$3]
+fi
+])# AC_CHECK_CFLAGS
+
 # AC_CHECK_CXXFLAGS(ADDITIONAL-CXXFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
 #
 # checks whether the $(CXX) (c++) compiler accepts the ADDITIONAL-CXXFLAGS
@@ -49,13 +72,28 @@ if $CXX $CPPFLAGS $CXXFLAGS -Werror -c -o conftest.o conftest.c++ [$1] > /dev/nu
 then
   AC_MSG_RESULT([yes])
   CXXFLAGS="${CXXFLAGS} [$1]"
-  AC_CHECK_CPPFLAGS([$1])
+  dnl AC_CHECK_CPPFLAGS([$1]) #CXXFLAGS should not be included in CPPFLAGS
+  AC_CHECK_CFLAGS([$1]) #add CFLAGS if accepts as well
   [$2]
 else
   AC_MSG_RESULT([no])
   [$3]
 fi
 ])# AC_CHECK_CXXFLAGS
+
+dnl Detect Clang
+AC_CACHE_CHECK([whether the compiler is clang],
+  [ac_cv_compiler_clang],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[
+#ifndef __clang__
+#error not clang
+#endif
+     ]], [])],
+     [ac_cv_compiler_clang=yes],
+     [ac_cv_compiler_clang=no])])
+
+is_clang=$ac_cv_compiler_clang
 
 dnl End Utility function ============================
 
@@ -450,10 +488,12 @@ dnl other
 AC_CHECK_CXXFLAGS([ -Wno-missing-field-initializers ])
 AC_CHECK_CXXFLAGS([ -Wno-format-zero-length ])
 
-dnl Clang/LLVM warning: don't care the address of a member may be unaligned, unless targeting ARM!
-AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
-dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
-AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
+if test "x$is_clang" = xyes; then
+  dnl Clang/LLVM warning: don't care the address of a member may be unaligned, unless targeting ARM!
+  AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
+  dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
+  AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
+fi
 
 dnl Some stuff for the icon and other makefile platform stuff.
 dnl Slightly double with the above, but that deals more with compiled features.
