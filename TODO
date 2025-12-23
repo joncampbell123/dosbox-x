@@ -2,11 +2,6 @@ Render on Demand:
 - XARGON: Causes extra long pause going from initial title screen to main menu.
 
 Render on Demand + Wait for Changes:
-- Cosmo's Cosmic Adventure (cosmo):
-  Jill of the Jungle (jill/trilogy-1):
-
-  Wait for Changes appears to affect Cosmo's rendering and page flipping. The normally regular (8fps?) frame
-  rate becomes somewhat irregular.
 [DONE]
 - XARGON: Wait for Changes often fails to update display when Xargon shows a popup message on the screen.
           Xargon is using VGA unchained page flipping. The page flip to present the popup fails to render.
@@ -19,6 +14,13 @@ Render on Demand + Wait for Changes:
   Wait for Changes fails to update display when game uses only the attribute controller palette to "fade in"
   and "fade out" the display. These games target the EGA where that is a more practical palette-based way
   to do it. There is no VGA palette on EGA.
+- Cosmo's Cosmic Adventure (cosmo):
+  Jill of the Jungle (jill/trilogy-1):
+
+  Wait for Changes appears to affect Cosmo's rendering and page flipping. The normally regular (8fps?) frame
+  rate becomes somewhat irregular.
+
+  NOTE: I still see from time to time, Cosmo's frame rate seem to skip a bit, but it's much better (2025/12/23).
 
 DOSBox Integrated Graphics:
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.

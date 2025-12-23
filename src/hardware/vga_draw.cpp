@@ -3722,6 +3722,9 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
     vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
     vga.draw.hsync_events++;
 
+    if (vga.draw.lines_total == 0)
+        vga.draw.must_complete_frame = true;
+
 again:
     if (vga.draw.render_step == 0)
         skiprender = false;
@@ -3942,7 +3945,9 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
     else
         skiprender = true;
 
-    vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
+    if (vga.draw.lines_total == 0)
+        vga.draw.must_complete_frame = true;
+
     if ((++vga.draw.render_step) >= vga.draw.render_max)
         vga.draw.render_step = 0;
 
@@ -4046,9 +4051,6 @@ void VGA_RenderOnDemandUpTo(void) {
 
     if (scanline < 0) scanline = 0;
 
-    if (scanline != 0 && scanline < vga.draw.lines_total)
-        vga.draw.must_draw_again = true;
-
     while (vga.draw.lines_done < vga.draw.lines_total && vga.draw.hsync_events < (unsigned int)scanline && patience-- > 0)
         VGA_DrawSingleLine(0);
 }
@@ -4058,19 +4060,11 @@ void VGA_RenderOnDemandComplete(void) {
 
 //assert(vga_render_on_demand);
 
-    if (vga.draw.lines_done != 0 && vga.draw.lines_done < vga.draw.lines_total)
-        vga.draw.must_draw_again = true;
-
     while (vga.draw.lines_done < vga.draw.lines_total && patience-- > 0)
         VGA_DrawSingleLine(0);
 }
 
 static void VGA_VertInterrupt(Bitu /*val*/) {
-    if (is_vga_rendering_on_demand) {
-        if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
-            VGA_RenderOnDemandComplete();
-    }
-
     if (IS_PC98_ARCH) {
         if (GDC_vsync_interrupt) {
             GDC_vsync_interrupt = false;
@@ -4086,27 +4080,40 @@ static void VGA_VertInterrupt(Bitu /*val*/) {
 }
 
 static void VGA_Other_VertInterrupt(Bitu val) {
-    if (is_vga_rendering_on_demand) {
-        if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
-            VGA_RenderOnDemandComplete();
-    }
-
     if (val) PIC_ActivateIRQ(5);
     else PIC_DeActivateIRQ(5);
 }
 
-static void VGA_DisplayStartLatch(Bitu /*val*/) {
+static void OnDemandCompleteFrame(void) {
     if (is_vga_rendering_on_demand) {
         if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
             VGA_RenderOnDemandComplete();
     }
+
+    if (vga.draw.must_draw_again) {
+        vga.draw.must_complete_frame = true;
+        vga.draw.must_draw_again = false;
+    }
+}
+
+static void VGA_DisplayStartLatch(Bitu /*val*/) {
+    const Bitu old_start = vga.config.real_start;
+
+    if (!IS_PC98_ARCH) OnDemandCompleteFrame();
 
     /* hretrace fx support: store the hretrace value at start of picture so we have
      * a point of reference how far to displace the scanline when wavy effects are
      * made */
     vga_display_start_hretrace = vga.crtc.start_horizontal_retrace;
-    vga.config.real_start=vga.config.display_start & vga.mem.memmask;
+    vga.config.real_start = vga.config.display_start & vga.mem.memmask;
     vga.draw.bytes_skip = vga.config.bytes_skip;
+
+    if (vga.config.real_start != old_start) {
+        if (!vga.draw.must_complete_frame) {
+            LOG_MSG("Real start change unexpected");
+            vga.draw.must_complete_frame = true;
+        }
+    }
 
     if (vga.overopts.enable) {
 	    if (vga.overopts.start != ~uint32_t(0u)) {
@@ -4130,6 +4137,7 @@ static void VGA_PanningLatch(Bitu /*val*/) {
         vga.draw.panning = vga.config.pel_panning;
 
     if (IS_PC98_ARCH) {
+        OnDemandCompleteFrame();
         for (unsigned int i=0;i < 2;i++)
             pc98_gdc[i].begin_frame();
 
@@ -5915,11 +5923,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 			VGA_RenderOnDemandComplete();
 		}
 	}
-
-	if (vga.draw.must_draw_again)
-		vga.draw.must_complete_frame = true;
-
-	vga.draw.must_draw_again = false;
 
 	is_vga_rendering_on_demand = vga_render_on_demand;
 	if (CaptureState & CAPTURE_RAWIMAGE) {
