@@ -79,6 +79,14 @@ CPPFLAGS="$CPPFLAGS -DNCURSES_STATIC "
 CFLAGS="$CFLAGS -DNCURSES_STATIC "
 export CXXFLAGS CPPFLAGS CFLAGS
 
+#Knifour Start
+# add C_CHEAT compile option
+CFLAGS="$CFLAGS -DC_CHEAT"
+CXXFLAGS="$CXXFLAGS -DC_CHEAT"
+CPPFLAGS="$CPPFLAGS -DC_CHEAT"
+#Knifour End
+export CXXFLAGS CPPFLAGS CFLAGS
+
 # now compile ourself
 echo "Compiling DOSBox-X"
 chmod +x configure
