@@ -208,12 +208,12 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 		 *          very timing dependent tricks, but will render most DOS games with better performance
 		 *          which for most casual users of DOSBox and DOSBox-X is just fine. Just don't expect
 		 *          this performance enhancement to handle all the tricks of the Demoscene. --J.C. */
-		if (vga_render_on_demand && !attr(disabled)/*screen not yet disabled*/) VGA_RenderOnDemandUpTo();
+		if (vga_render_on_demand && !(attr(disabled)&1)/*screen not yet disabled*/) VGA_RenderOnDemandUpTo();
 		attr(index)=val & 0x1F;
 		vga.internal.attrindex=true;
 		if (val & 0x20) attr(disabled) &= ~1;
 		else attr(disabled) |= 1;
-		if (vga_render_on_demand && !attr(disabled)/*screen not yet disabled*/) VGA_RenderOnDemandUpTo();
+		if (vga_render_on_demand && !(attr(disabled)&1)/*screen not yet disabled*/) VGA_RenderOnDemandUpTo();
 		/* 
 		   0-4	Address of data register to write to port 3C0h or read from port 3C1h
 		   5	If set screen output is enabled and the palette can not be modified,
@@ -232,7 +232,7 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 		 */
 		return;
 	} else {
-		if (vga_render_on_demand && !attr(disabled)/*screen not disabled*/) VGA_RenderOnDemandUpTo();
+		if (vga_render_on_demand && !(attr(disabled)&1)/*screen not disabled*/) VGA_RenderOnDemandUpTo();
 		vga.internal.attrindex=false;
 		switch (attr(index)) {
 			/* Palette */
@@ -246,7 +246,6 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 					}
 				}
 				if (attr(disabled) & 0x1) {
-					vga.draw.must_complete_frame = true;
 					VGA_ATTR_SetPalette(attr(index),(uint8_t)val);
 
 					/* if the color plane enable register is anything other than 0x0F, then
