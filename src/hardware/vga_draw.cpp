@@ -3719,11 +3719,9 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
     unsigned int lines = 0;
     bool skiprender;
 
-    vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
     vga.draw.hsync_events++;
-
     if (vga.draw.lines_total == 0)
-        vga.draw.must_complete_frame = true;
+        vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
 
 again:
     if (vga.draw.render_step == 0)
@@ -3946,7 +3944,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
         skiprender = true;
 
     if (vga.draw.lines_total == 0)
-        vga.draw.must_complete_frame = true;
+        vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
 
     if ((++vga.draw.render_step) >= vga.draw.render_max)
         vga.draw.render_step = 0;
@@ -5916,12 +5914,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	if (IS_PC98_ARCH) {
 		GDC_display_plane = GDC_display_plane_pending;
 		pc98_update_display_page_ptr();
-	}
-
-	if (is_vga_rendering_on_demand) {
-		if (vga.draw.must_complete_frame || !vga_render_wait_for_changes) {
-			VGA_RenderOnDemandComplete();
-		}
 	}
 
 	is_vga_rendering_on_demand = vga_render_on_demand;

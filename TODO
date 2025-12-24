@@ -2,6 +2,12 @@ Render on Demand:
 - XARGON: Causes extra long pause going from initial title screen to main menu.
 
 Render on Demand + Wait for Changes:
+- Cosmo's Cosmic Adventure (cosmo):
+  When your health goes to zero, Cosmo "dies" and goes to heaven, and the game does the
+  attribute controller "fade out", the Wait For Changes emulation fails to update the
+  screen after the last color is blanked. If you look at the Video Debug Overlay, despite
+  that all colors should be blanked, the last rendered frame still has color 15 set to
+  white. This does not happen if only Render On Demand is active.
 [DONE]
 - XARGON: Wait for Changes often fails to update display when Xargon shows a popup message on the screen.
           Xargon is using VGA unchained page flipping. The page flip to present the popup fails to render.
@@ -21,6 +27,7 @@ Render on Demand + Wait for Changes:
   rate becomes somewhat irregular.
 
   NOTE: I still see from time to time, Cosmo's frame rate seem to skip a bit, but it's much better (2025/12/23).
+  NOTE: Apparently reducing the calls to render complete frame down to ONE call per frame solves the issue (2025/12/24).
 
 DOSBox Integrated Graphics:
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
