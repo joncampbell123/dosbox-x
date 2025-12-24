@@ -3720,7 +3720,7 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
     bool skiprender;
 
     vga.draw.hsync_events++;
-    if (vga.draw.lines_total == 0)
+    if (vga.draw.lines_done == 0)
         vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
 
 again:
@@ -3943,7 +3943,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
     else
         skiprender = true;
 
-    if (vga.draw.lines_total == 0)
+    if (vga.draw.lines_done == 0)
         vga.draw.must_complete_frame = true; /* frame started, vsync must complete it */
 
     if ((++vga.draw.render_step) >= vga.draw.render_max)
@@ -4049,6 +4049,11 @@ void VGA_RenderOnDemandUpTo(void) {
 
     if (scanline < 0) scanline = 0;
 
+    /* if something changed mid-frame, then the frame must be drawn again to reflect it.
+     * unless of course you like to see tearlines and the output stuck on half-drawn frames. */
+    if (vga.draw.lines_done != 0)
+        vga.draw.must_draw_again = true;
+
     while (vga.draw.lines_done < vga.draw.lines_total && vga.draw.hsync_events < (unsigned int)scanline && patience-- > 0)
         VGA_DrawSingleLine(0);
 }
@@ -4088,10 +4093,8 @@ static void OnDemandCompleteFrame(void) {
             VGA_RenderOnDemandComplete();
     }
 
-    if (vga.draw.must_draw_again) {
-        vga.draw.must_complete_frame = true;
-        vga.draw.must_draw_again = false;
-    }
+    vga.draw.must_complete_frame |= vga.draw.must_draw_again;
+    vga.draw.must_draw_again = false;
 }
 
 static void VGA_DisplayStartLatch(Bitu /*val*/) {
@@ -7928,7 +7931,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	}
 
 	/* NTS: This code resets line_done. If RENDER_EndUpdate() is not called, misrendering
-	 *      will occur. VGA draw liness_done will be out of sync with render.scale.outLine
+	 *      will occur. VGA draw lines_done will be out of sync with render.scale.outLine
 	 *      and the frame will not render properly. */
 	RENDER_EndUpdate(false);
 
