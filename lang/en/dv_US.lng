@@ -1,0 +1,33 @@
+:CHEAT_HELP_DV1
+  Sometimes after searching, you might end up with only a few pieces of data 
+.
+:CHEAT_HELP_DV2
+that match the criteria. You can use this command to specify the memory 
+.
+:CHEAT_HELP_DV3
+segment to be displayed in the Data View in linear memory mode to assist with 
+.
+:CHEAT_HELP_DV4
+judgment. In this case, the address you provide is the linear memory address, 
+.
+:CHEAT_HELP_DV5
+and the system will ignore the segment address value. The theoretical maximum 
+.
+:CHEAT_HELP_DV6
+linear memory address is 4GB, but the actual limit depends on the memory size 
+.
+:CHEAT_HELP_DV7
+you configured in the Dosbox-X settings file. Command example:
+.
+:CHEAT_HELP_DV8
+    DV 0x100000  # Display memory content starting from 1024KB
+.
+:CHEAT_HELP_DV9
+When the game enters protected mode, because protected mode ignores segment 
+.
+:CHEAT_HELP_DV10
+address values, you must use the DV command to correctly display the memory 
+.
+:CHEAT_HELP_DV11
+content.
+.

@@ -1,0 +1,2 @@
+  Read the data from the temporary storage area to continue searching. The data in the temporary storage area is stored in the "cheat/[project name]" folder. Please open that folder yourself to check which temporary storage files are available to read. Command example:
+    TR CASH

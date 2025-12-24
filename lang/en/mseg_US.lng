@@ -1,0 +1,42 @@
+:CHEAT_HELP_MSEG1
+  Set the segment address for memory mode. You can directly use `CS`, `DS`, or
+.
+:CHEAT_HELP_MSEG2
+ `ES` to substitute for the actual value. However, since the game process may 
+.
+:CHEAT_HELP_MSEG3
+change the values of these registers at any time, it is highly recommended 
+.
+:CHEAT_HELP_MSEG4
+**not** to use these three registers to set the segment address. You should 
+.
+:CHEAT_HELP_MSEG5
+use the actual numerical value to set the segment address. You can see the 
+.
+:CHEAT_HELP_MSEG6
+current actual values of these registers at the top of the debug mode window. 
+.
+:CHEAT_HELP_MSEG7
+Examples:
+.
+:CHEAT_HELP_MSEG8
+    MSEG ES
+.
+:CHEAT_HELP_MSEG9
+This sets the segment address to point to the current value of the ES register
+.
+:CHEAT_HELP_MSEG10
+.
+.
+:CHEAT_HELP_MSEG11
+    MSEG 0X9117
+.
+:CHEAT_HELP_MSEG12
+This sets the segment address to point to `0x9117`. The reason for setting 
+.
+:CHEAT_HELP_MSEG13
+this value is that I observed the current value of the ES register is `0x9117`
+.
+:CHEAT_HELP_MSEG14
+, so I replaced the ES register with the actual numerical value.
+.

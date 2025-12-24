@@ -1,0 +1,72 @@
+:CHEAT_HELP_L1
+  想知道某個位址儲存的值是多少可以使用這個指令確認, 很多遊戲角色的相關屬性都存
+.
+:CHEAT_HELP_L2
+在同一塊記憶體附近, 當你已經確認某個屬性的記憶體位址時, 建議用D 或DV指令修改
+.
+:CHEAT_HELP_L3
+Data view 視窗顯示指定記憶體區塊的資料, 在該位址附近找看看, 也許可以找到其他屬
+.
+:CHEAT_HELP_L4
+性的記憶體位址, 由於Data view 以16進位顯示, 使用這個指令可以10進位顯示該位址的
+.
+:CHEAT_HELP_L5
+值, 以下是我使用指令D 0XEB00之後再Data view顯示的部分內容
+.
+:CHEAT_HELP_L6
+    9117:0000EB00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 A0 86
+.
+:CHEAT_HELP_L7
+    9117:0000EB10 01 00 A0 86 01 00 00 00 00 00 00 00 00 00 64 00
+.
+:CHEAT_HELP_L8
+    9117:0000EB20 00 00 00 00 00 00 00 00 00 00 00 00 01 00 64 00
+.
+:CHEAT_HELP_L9
+    9117:0000EB30 00 00 00 00 00 00 00 00 00 00 00 00 9A 01 19 00
+.
+:CHEAT_HELP_L10
+    9117:0000EB40 23 00 1E 00 2D 00 3C 00 CD 01 01 03 00 00 0A 00
+.
+:CHEAT_HELP_L11
+第二行的9117:0000EB10是段位址:偏移位址, 該行第一個值是16進位的0x01, 這裡的偏移
+.
+:CHEAT_HELP_L12
+位址是0xEB10, 往右一格是0xEB11, 依此類推, 本行最後一個位址是0xEB1F, 每行佔據16
+.
+:CHEAT_HELP_L13
+個位元組, 請注意第一行末尾的0xA0, 0x86, 0x01, 0x00這四個位元組, 這一行的開頭位
+.
+:CHEAT_HELP_L14
+址是0xEB00, 所以0xA0的位址就是0xEB0E, 當我使用
+.
+:CHEAT_HELP_L15
+    L 0xEB0E BYTE
+.
+:CHEAT_HELP_L16
+代表我要用BYTE模式解讀這個位址的值, 你會看到Output列出
+.
+:CHEAT_HELP_L17
+    Memory EB0E value is 160    #16進位是0xA0
+.
+:CHEAT_HELP_L18
+使用L 0xEB0E WORD會看到
+.
+:CHEAT_HELP_L19
+    Memory EB0E value is 34464  #16進位是0x86A0
+.
+:CHEAT_HELP_L20
+使用L 0xEB0E DWORD會看到
+.
+:CHEAT_HELP_L21
+    Memory EB0E value is 100000 #16進位是0x000186A0
+.
+:CHEAT_HELP_L22
+註1: 此處是以我執行的遊戲解說, 你執行的遊戲和我不一樣絕不會看到一樣的結果
+.
+:CHEAT_HELP_L23
+註2: 使用指令L 0xEB0E時, 後面沒有指定模式時, 系統會用SM指令設定的模式當作模式
+.
+:CHEAT_HELP_L24
+預設值
+.

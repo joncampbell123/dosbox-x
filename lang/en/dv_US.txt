@@ -1,0 +1,3 @@
+  Sometimes after searching, you might end up with only a few pieces of data that match the criteria. You can use this command to specify the memory segment to be displayed in the Data View in linear memory mode to assist with judgment. In this case, the address you provide is the linear memory address, and the system will ignore the segment address value. The theoretical maximum linear memory address is 4GB, but the actual limit depends on the memory size you configured in the Dosbox-X settings file. Command example:
+    DV 0x100000  # Display memory content starting from 1024KB
+When the game enters protected mode, because protected mode ignores segment address values, you must use the DV command to correctly display the memory content.

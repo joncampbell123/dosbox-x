@@ -1,0 +1,5 @@
+  Set the segment address for memory mode. You can directly use `CS`, `DS`, or `ES` to substitute for the actual value. However, since the game process may change the values of these registers at any time, it is highly recommended **not** to use these three registers to set the segment address. You should use the actual numerical value to set the segment address. You can see the current actual values of these registers at the top of the debug mode window. Examples:
+    MSEG ES
+This sets the segment address to point to the current value of the ES register.
+    MSEG 0X9117
+This sets the segment address to point to `0x9117`. The reason for setting this value is that I observed the current value of the ES register is `0x9117`, so I replaced the ES register with the actual numerical value.

@@ -1,0 +1,84 @@
+:CHEAT_HELP_MOFF1
+  Set the offset address for memory mode. Unlike setting the offset to 0 
+.
+:CHEAT_HELP_MOFF2
+during searches, here you need to set the offset address to the confirmed 
+.
+:CHEAT_HELP_MOFF3
+target memory address. Then use the `MD` command to make the DATA VIEW window 
+.
+:CHEAT_HELP_MOFF4
+display the memory content of this segment, and observe if the values in the 
+.
+:CHEAT_HELP_MOFF5
+nearby memory match certain attributes of the game character. Suppose I use 
+.
+:CHEAT_HELP_MOFF6
+the following series of commands to set up the memory mode. This example is 
+.
+:CHEAT_HELP_MOFF7
+based on a specific game I am running. Since the game you are running is 
+.
+:CHEAT_HELP_MOFF8
+different, you should configure the settings according to your own game's 
+.
+:CHEAT_HELP_MOFF9
+context.
+.
+:CHEAT_HELP_MOFF10
+    MM DWORD
+.
+:CHEAT_HELP_MOFF11
+    MSEG 0x9117
+.
+:CHEAT_HELP_MOFF12
+    MOFF 0xEB0E
+.
+:CHEAT_HELP_MOFF13
+    MD
+.
+:CHEAT_HELP_MOFF14
+You will see the following lines in the debug window:
+.
+:CHEAT_HELP_MOFF15
+    9117:0000EB0E A0 86 01 00 A0 86 01 00 00 00 00 00 00 00 00 00
+.
+:CHEAT_HELP_MOFF16
+    9117:0000EB1E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+.
+:CHEAT_HELP_MOFF17
+    9117:0000EB2E 64 00 00 00 00 00 00 00 00 00 00 00 00 00 9A 01
+.
+:CHEAT_HELP_MOFF18
+    9117:0000EB3E 19 00 23 00 1E 00 2D 00 3C 00 CD 01 01 03 00 00
+.
+:CHEAT_HELP_MOFF19
+Another attribute value in the game is 100, which converts to the hexadecimal 
+.
+:CHEAT_HELP_MOFF20
+value `0x64`. You can see that the values at both `0xEB1E` and `0xEB2E` are:
+.
+:CHEAT_HELP_MOFF21
+    64 00 00 00
+.
+:CHEAT_HELP_MOFF22
+Since this attribute value is relatively small, it is推测 
+.
+:CHEAT_HELP_MOFF23
+(inferred/speculated) that its data type should be WORD. Use the following two
+.
+:CHEAT_HELP_MOFF24
+ commands to change the address and data size:
+.
+:CHEAT_HELP_MOFF25
+    MM 2
+.
+:CHEAT_HELP_MOFF26
+    MOFF 0xEB2E # Already tested and confirmed to be this address
+.
+:CHEAT_HELP_MOFF27
+For subsequent steps, please refer to the `MD`, `MR`, `MS`, and `MA` command 
+.
+:CHEAT_HELP_MOFF28
+instructions.
+.
