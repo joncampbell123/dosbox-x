@@ -4067,7 +4067,18 @@ void VGA_RenderOnDemandComplete(void) {
         VGA_DrawSingleLine(0);
 }
 
+static void OnDemandCompleteFrame(void) {
+    if (is_vga_rendering_on_demand) {
+        if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
+            VGA_RenderOnDemandComplete();
+    }
+
+    vga.draw.must_complete_frame |= vga.draw.must_draw_again;
+    vga.draw.must_draw_again = false;
+}
+
 static void VGA_VertInterrupt(Bitu /*val*/) {
+    OnDemandCompleteFrame();
     if (IS_PC98_ARCH) {
         if (GDC_vsync_interrupt) {
             GDC_vsync_interrupt = false;
@@ -4083,24 +4094,15 @@ static void VGA_VertInterrupt(Bitu /*val*/) {
 }
 
 static void VGA_Other_VertInterrupt(Bitu val) {
+    OnDemandCompleteFrame();
     if (val) PIC_ActivateIRQ(5);
     else PIC_DeActivateIRQ(5);
-}
-
-static void OnDemandCompleteFrame(void) {
-    if (is_vga_rendering_on_demand) {
-        if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
-            VGA_RenderOnDemandComplete();
-    }
-
-    vga.draw.must_complete_frame |= vga.draw.must_draw_again;
-    vga.draw.must_draw_again = false;
 }
 
 static void VGA_DisplayStartLatch(Bitu /*val*/) {
     const Bitu old_start = vga.config.real_start;
 
-    if (!IS_PC98_ARCH) OnDemandCompleteFrame();
+    OnDemandCompleteFrame();
 
     /* hretrace fx support: store the hretrace value at start of picture so we have
      * a point of reference how far to displace the scanline when wavy effects are
@@ -4132,13 +4134,14 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {
+    OnDemandCompleteFrame();
+
     if (vga.dosboxig.svga)
         vga.draw.panning = vga.dosboxig.hpel;
     else
         vga.draw.panning = vga.config.pel_panning;
 
     if (IS_PC98_ARCH) {
-        OnDemandCompleteFrame();
         for (unsigned int i=0;i < 2;i++)
             pc98_gdc[i].begin_frame();
 
@@ -4906,9 +4909,10 @@ void VGA_sof_debug_video_info(void) {
 		/* render_max == 2 and address_line_total == 2 can happen if the user disabled doublescan mode */
 		interleave_mul *= vga.draw.render_max;
 
-		d += sprintf(d,"G%ux%u>%ux%u",
-			(unsigned int)vga.draw.width,((unsigned int)vga.draw.height * interleave_mul) / rowdiv,
-			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
+		d += sprintf(d,"G%ux%u>%u",
+			(unsigned int)vga.draw.width,
+			((unsigned int)vga.draw.height * interleave_mul) / rowdiv,
+			(unsigned int)vga.draw.height);
 
 		if (machine == MCH_HERC) {
 			if (hercCard >= HERC_InColor) {
@@ -5904,6 +5908,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		DEBUG_HaltOnRetrace = false;
 	}
 #endif
+
+	OnDemandCompleteFrame();
 
 	if (BIOSlogo.visible) BIOSlogo.vsync_enable = true;
 
