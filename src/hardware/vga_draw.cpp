@@ -4067,6 +4067,7 @@ void VGA_RenderOnDemandComplete(void) {
         VGA_DrawSingleLine(0);
 }
 
+/* WARNING: Do not call this more than once per frame! Events will get missed if you do. */
 static void OnDemandCompleteFrame(void) {
     if (is_vga_rendering_on_demand) {
         if (vga.draw.must_complete_frame || !vga_render_wait_for_changes)
@@ -4078,7 +4079,6 @@ static void OnDemandCompleteFrame(void) {
 }
 
 static void VGA_VertInterrupt(Bitu /*val*/) {
-    OnDemandCompleteFrame();
     if (IS_PC98_ARCH) {
         if (GDC_vsync_interrupt) {
             GDC_vsync_interrupt = false;
@@ -4094,7 +4094,6 @@ static void VGA_VertInterrupt(Bitu /*val*/) {
 }
 
 static void VGA_Other_VertInterrupt(Bitu val) {
-    OnDemandCompleteFrame();
     if (val) PIC_ActivateIRQ(5);
     else PIC_DeActivateIRQ(5);
 }
@@ -4102,7 +4101,7 @@ static void VGA_Other_VertInterrupt(Bitu val) {
 static void VGA_DisplayStartLatch(Bitu /*val*/) {
     const Bitu old_start = vga.config.real_start;
 
-    OnDemandCompleteFrame();
+    if (!IS_PC98_ARCH) OnDemandCompleteFrame();
 
     /* hretrace fx support: store the hretrace value at start of picture so we have
      * a point of reference how far to displace the scanline when wavy effects are
@@ -4134,7 +4133,7 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {
-    OnDemandCompleteFrame();
+    if (IS_PC98_ARCH) OnDemandCompleteFrame();
 
     if (vga.dosboxig.svga)
         vga.draw.panning = vga.dosboxig.hpel;
@@ -5925,8 +5924,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	}
 #endif
 
-	OnDemandCompleteFrame();
-
 	if (video_debug_overlay && render.src.height > vga.draw.height && vga.draw.bpp == render.src.bpp)
 		VGA_debug_screen_resize(render.src.width,render.src.height - vga.draw.height,vga.draw.bpp);
 	else
@@ -6413,6 +6410,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		}
 	}
 
+	// default catch all memory access to trigger updates
+	vga.draw.draw_base_planar = 0;
+	vga.draw.draw_base_size = 0xFFFFFFFFu;
+
 	if (IS_PC98_ARCH) {
 		// TODO
 	}
@@ -6442,6 +6443,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		// FIXME: The planar render code counts bytes in vram buffer, not planar bytes.
 		//        M_EGA/M_LIN4 should count by planar bytes as it does now for the DOSBox IG version of planar 16-color.
 		if (vga.mode == M_EGA || vga.mode == M_LIN4) {
+			vga.draw.draw_base_planar >>= 2u;
+			vga.draw.draw_base_size >>= 2u;
+		}
+		else if (vga.mode == M_VGA) {
 			vga.draw.draw_base_planar >>= 2u;
 			vga.draw.draw_base_size >>= 2u;
 		}
