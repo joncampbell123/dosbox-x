@@ -30,18 +30,6 @@ EXTRA_DIST = \
 	mingw \
 	version.rc
 
-# Noinst programs (examples)
-noinst_PROGRAMS = showinterfaces chat chatd
-
-showinterfaces_SOURCES = showinterfaces.c
-showinterfaces_LDADD = libSDL2_net.a
-
-chat_SOURCES = chat.c chat.h
-chat_LDADD = libSDL2_net.a -lSDL2_test
-
-chatd_SOURCES = chatd.c
-chatd_LDADD = libSDL2_net.a
-
 .rc.o:
 	$(RC) $< $@
 
