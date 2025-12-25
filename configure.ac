@@ -881,8 +881,14 @@ dnl Check SDL2_net using headers + library first
 have_sdl2_net_h=no
 have_sdl2_net_lib=no
 
-AC_CHECK_HEADERS([SDL2/SDL_net.h], [have_sdl2_net_h=yes])
-AC_CHECK_LIB([SDL2_net], [SDLNet_Init], [have_sdl2_net_lib=yes], [have_sdl2_net_lib=no],[$SDLNETLIB])
+if test "x$SDL_STRING" = "xSDL2"; then
+  AC_CHECK_HEADERS([SDL2/SDL_net.h], [have_sdl2_net_h=yes])
+  AC_CHECK_LIB([SDL2_net], [SDLNet_Init], [have_sdl2_net_lib=yes], [have_sdl2_net_lib=no],[$SDLNETLIB])
+fi
+
+if test x$enable_hx = xyes; then
+  SDLNETLIB=""
+fi
 
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <SDL_config.h>
