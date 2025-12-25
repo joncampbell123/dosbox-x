@@ -4305,6 +4305,7 @@ static void VGA_debug_screen_resize(size_t w,size_t h,size_t bpp) {
 
 void VGA_DebugOverlay() {
     if (VGA_debug_screen == NULL || VGA_debug_screen_w < render.src.width) return;
+    if (vga.draw.lines_done < vga.draw.lines_total) return;
 
     for (unsigned int y=0;y < VGA_debug_screen_h && render.scale.inLine < render.src.height;y++)
         RENDER_DrawLine(VGA_debug_screen+(y*VGA_debug_screen_stride));
@@ -4745,6 +4746,8 @@ void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
 	if (allclear) debugline_events.clear();
 }
 
+static unsigned char single_digit_frame_count = 0;
+
 void VGA_sof_debug_video_info(void) {
 	unsigned int green,white;
 	char tmp[256];
@@ -4787,7 +4790,17 @@ void VGA_sof_debug_video_info(void) {
 	};
 
 	x = y = 4;
-	x = VGA_debug_screen_puts8(x,y,mode_texts[vga.mode],green) + 8;
+	if (is_vga_rendering_on_demand && vga_render_wait_for_changes) {
+		x = VGA_debug_screen_puts8(x,y,mode_texts[vga.mode],green);
+
+		tmp[0] = ':';
+		tmp[1] = '0' + single_digit_frame_count;
+		tmp[2] = 0;
+		x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+	}
+	else {
+		x = VGA_debug_screen_puts8(x,y,mode_texts[vga.mode],green) + 8;
+	}
 
 	/* 2023/04/26: DOSBox-X users are probably going to discover the "Video debug overlay" and then immediately
 	 *             point out the "bug" that it's showing M_EGA for CGA/MCGA 2-color graphics modes. It's not a
@@ -5551,6 +5564,9 @@ void VGA_sof_debug_video_info(void) {
 			VGA_debug_screen_puts8(x,y+16,"E",0);
 		}
 	}
+
+	if ((++single_digit_frame_count) >= 10)
+		single_digit_frame_count = 0;
 }
 
 static inline uint8_t dacexpand(const uint8_t v,const uint8_t dacshl,const uint8_t dacshr) {
@@ -5910,6 +5926,16 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 #endif
 
 	OnDemandCompleteFrame();
+
+	if (video_debug_overlay && render.src.height > vga.draw.height && vga.draw.bpp == render.src.bpp)
+		VGA_debug_screen_resize(render.src.width,render.src.height - vga.draw.height,vga.draw.bpp);
+	else
+		VGA_debug_screen_free();
+
+	if (video_debug_overlay && VGA_debug_screen && vga.draw.lines_done >= vga.draw.lines_total) {
+		VGA_debug_screen_func->clear(0);
+		VGA_sof_debug_video_info();
+	}
 
 	if (BIOSlogo.visible) BIOSlogo.vsync_enable = true;
 
@@ -6695,16 +6721,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		}
 	}
 #endif
-
-	if (video_debug_overlay && render.src.height > vga.draw.height && vga.draw.bpp == render.src.bpp)
-		VGA_debug_screen_resize(render.src.width,render.src.height - vga.draw.height,vga.draw.bpp);
-	else
-		VGA_debug_screen_free();
-
-	if (video_debug_overlay && VGA_debug_screen) {
-		VGA_debug_screen_func->clear(0);
-		VGA_sof_debug_video_info();
-	}
 
 	// add the draw event
 	switch (vga.draw.mode) {
