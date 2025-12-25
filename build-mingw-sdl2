@@ -29,11 +29,21 @@ x=$(which sdl2-config)
 if test -z "${x}" ; then
    echo "Compiling our internal SDL 2.x"
    (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+   new="-I${top}/vs/sdl2/linux-host/include "
+   nld="-L${top}/vs/sdl2/linux-host/lib "
+   LDFLAGS="${nld}${LDFLAGS}"
+   CPPFLAGS="${new}${CPPFLAGS}"
+   export LDFLAGS CPPFLAGS
 fi
 
 # prefer to compile against our own copy of SDLnet 2.x
 echo "Compiling our internal SDLnet 2.x"
 (cd vs/sdl2net && ./build-dosbox.sh) || exit 1
+new="-I${top}/vs/sdl2net/linux-host/include "
+nld="-L${top}/vs/sdl2net/linux-host/lib "
+LDFLAGS="${nld}${LDFLAGS}"
+CPPFLAGS="${new}${CPPFLAGS}"
+export LDFLAGS CPPFLAGS
 
 # NTS: MinGW provides zlib for us
 if false; then
