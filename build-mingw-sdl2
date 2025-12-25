@@ -31,9 +31,9 @@ if test -z "${x}" ; then
    (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
 fi
 
-# prefer to compile against our own copy of SDLnet 1.x
-echo "Compiling our internal SDLnet 1.x"
-(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
+# prefer to compile against our own copy of SDLnet 2.x
+echo "Compiling our internal SDLnet 2.x"
+(cd vs/sdl2net && ./build-dosbox.sh) || exit 1
 
 # NTS: MinGW provides zlib for us
 if false; then
