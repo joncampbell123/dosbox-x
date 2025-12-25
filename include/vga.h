@@ -221,6 +221,16 @@ typedef struct {
 	Bitu bpp;
 	double clock;
 	double oscclock;
+
+	/* memory write checker will do:
+	 *
+	 * if ((addr-draw_base_planar) < draw_base_size)
+	 *   ...
+	 *
+	 * memory write checking must be as simple as possible because mem write code is called VERY OFTEN */
+	unsigned int draw_base_planar=0;
+	unsigned int draw_base_size=0;
+
 	uint8_t cga_snow[80];			// one bit per horizontal column where snow should occur
 
 	/*Color and brightness for monochrome display*/
