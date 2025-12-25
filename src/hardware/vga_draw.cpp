@@ -6413,6 +6413,53 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		}
 	}
 
+	if (IS_PC98_ARCH) {
+		// TODO
+	}
+	// EGA/VGA: The mem write range check must be kept simple! if ((addr-base) < size)...  anything more complex will slow emulation down.
+	//          That means if the line compare is in use to split the screen (Epic Pinball) then we have to set the range to count any change
+	//          from VGA base memory to line compare as visible.
+	//
+	//          NTS: address_add was already multiplied by 1 << addr_shift
+	//
+	// FIXME: This works for standard VGA modes but does not take SVGA bank switching into account!
+	//        Perhaps this should move into a central function that both vertical timer and the SVGA bank switching handling
+	//        can call to correctly map planar writes (0xA0000-0xBFFFF) to the vga draw address to determine when writes lie
+	//        within the visible video memory.
+	else if (IS_EGAVGA_ARCH) {
+		if (vga.draw.split_line < vga.draw.height) {
+			vga.draw.draw_base_planar = 0;
+			vga.draw.draw_base_size = vga.draw.address +
+				(vga.draw.address_add *
+					((vga.draw.split_line + vga.draw.address_line_total - 1) / vga.draw.address_line_total));
+		}
+		else {
+			vga.draw.draw_base_planar = vga.draw.address;
+			vga.draw.draw_base_size = vga.draw.address_add *
+				((vga.draw.height + vga.draw.address_line_total - 1) / vga.draw.address_line_total);
+		}
+
+		// FIXME: The planar render code counts bytes in vram buffer, not planar bytes.
+		//        M_EGA/M_LIN4 should count by planar bytes as it does now for the DOSBox IG version of planar 16-color.
+		if (vga.mode == M_EGA || vga.mode == M_LIN4) {
+			vga.draw.draw_base_planar >>= 2u;
+			vga.draw.draw_base_size >>= 2u;
+		}
+	}
+	else {
+		// TODO
+	}
+
+#if 0//DEBUG
+	if (vga.draw.draw_base_size != 0) {
+		LOG(LOG_MISC,LOG_DEBUG)("VGA draw mem planar check 0x%x-0x%x",
+			(unsigned int)vga.draw.draw_base_planar,(unsigned int)vga.draw.draw_base_planar+vga.draw.draw_base_size-1u);
+	}
+	else {
+		LOG(LOG_MISC,LOG_DEBUG)("VGA draw mem planar check disabled");
+	}
+#endif
+
 	// NTS: To be moved
 	if (autosave_second>0&&enable_autosave) {
 		uint32_t ticksNew=GetTicks();

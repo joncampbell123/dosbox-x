@@ -61,6 +61,11 @@ static inline void vga_cg_write_trigger_update(void) {
 	vga.draw.must_complete_frame = true;
 }
 
+static inline void vga_vram_write_trigger_update_planar_mem(const PhysPt a) {
+	if ((a-(PhysPt)vga.draw.draw_base_planar) < (PhysPt)vga.draw.draw_base_size) /* NTS: Subtract and compare must all use unsigned integers or this won't work! */
+		vga.draw.must_complete_frame = true;
+}
+
 uint32_t tandy_128kbase = 0x80000;
 
 #define TANDY_VIDBASE(_X_)  &MemBase[ tandy_128kbase + (_X_)]
@@ -582,7 +587,7 @@ public:
 		return VGA_Generic_Read_Handler(addr, addr, vga.config.read_map_select);
 	}
 	static INLINE void writeHandler8(PhysPt addr, uint8_t val) {
-		vga_vram_write_trigger_update();
+		vga_vram_write_trigger_update_planar_mem(addr);
 		VGA_Generic_Write_Handler<false/*chained*/>(addr, addr, val);
 	}
 
@@ -638,7 +643,7 @@ public:
 	}
 
 	static INLINE void writeHandler8(PhysPt addr, uint8_t val) {
-		vga_vram_write_trigger_update();
+		vga_vram_write_trigger_update_planar_mem(addr);
 		((uint32_t*)vga.mem.linear)[addr] =
 			(((uint32_t*)vga.mem.linear)[addr] & vga.config.full_not_map_mask) + (ExpandTable[val] & vga.config.full_map_mask);
 	}
