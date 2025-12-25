@@ -5924,16 +5924,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	}
 #endif
 
-	if (video_debug_overlay && render.src.height > vga.draw.height && vga.draw.bpp == render.src.bpp)
-		VGA_debug_screen_resize(render.src.width,render.src.height - vga.draw.height,vga.draw.bpp);
-	else
-		VGA_debug_screen_free();
-
-	if (video_debug_overlay && VGA_debug_screen && vga.draw.lines_done >= vga.draw.lines_total) {
-		VGA_debug_screen_func->clear(0);
-		VGA_sof_debug_video_info();
-	}
-
 	if (BIOSlogo.visible) BIOSlogo.vsync_enable = true;
 
 	dbg_event_maxscan = false;
@@ -6144,6 +6134,16 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 			PIC_AddEvent(VGA_PanningLatch, (float)vga.draw.delay.vrend);
 			PIC_AddEvent(VGA_VertInterrupt,(float)(vga.draw.delay.vdend + 0.005));
 			break;
+	}
+
+	if (video_debug_overlay && render.src.height > vga.draw.height && vga.draw.bpp == render.src.bpp)
+		VGA_debug_screen_resize(render.src.width,render.src.height - vga.draw.height,vga.draw.bpp);
+	else
+		VGA_debug_screen_free();
+
+	if (video_debug_overlay && VGA_debug_screen && vga.draw.lines_done >= vga.draw.lines_total) {
+		VGA_debug_screen_func->clear(0);
+		VGA_sof_debug_video_info();
 	}
 
 	// for same blinking frequency with higher frameskip
