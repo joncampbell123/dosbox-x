@@ -30,39 +30,39 @@ static inline void conc4d_sub_func(const SRCTYPE* &src, SRCTYPE* &cache, PTYPE* 
 #if !defined(C_SCALER_FULL_LINE)
         if (memcmp(src,cache,block_proc * sizeof(SRCTYPE)) == 0
 # if (SBPP == 9)
-            && !(
+		&& !(
 			render.pal.modified[src[0]] | 
 			render.pal.modified[src[1]] | 
 			render.pal.modified[src[2]] | 
 			render.pal.modified[src[3]] |
-            render.pal.modified[src[4]] | 
-            render.pal.modified[src[5]] | 
+			render.pal.modified[src[4]] | 
+			render.pal.modified[src[5]] | 
 			render.pal.modified[src[6]] | 
 			render.pal.modified[src[7]])
 # endif
-            ) {
+		) {
 			src   += block_proc;
 			cache += block_proc;
 			line0 += block_proc*SCALERWIDTH;
 		}
         else
 #endif
-        {
+	{
 #if defined(SCALERLINEAR)
 #if (SCALERHEIGHT > 1) 
-			PTYPE *line1 = WC[0];
+		PTYPE *line1 = WC[0];
 #endif
 #if (SCALERHEIGHT > 2) 
-			PTYPE *line2 = WC[1];
+		PTYPE *line2 = WC[1];
 #endif
 #if (SCALERHEIGHT > 3) 
-			PTYPE *line3 = WC[2];
+		PTYPE *line3 = WC[2];
 #endif
 #if (SCALERHEIGHT > 4) 
-			PTYPE *line4 = WC[3];
+		PTYPE *line4 = WC[3];
 #endif
 #if (SCALERHEIGHT > 5) 
-			PTYPE *line5 = WC[4];
+		PTYPE *line5 = WC[4];
 #endif
 #else
 #if (SCALERHEIGHT > 1) 
@@ -81,49 +81,49 @@ static inline void conc4d_sub_func(const SRCTYPE* &src, SRCTYPE* &cache, PTYPE* 
 		PTYPE *line5 = (PTYPE *)(((uint8_t*)line0)+ render.scale.outPitch * 5);
 #endif
 #endif //defined(SCALERLINEAR)
-			hadChange = 1;
-            unsigned int i = block_proc; /* WARNING: assume block_proc != 0 */
-            do {
-				const SRCTYPE S = *src++;
-				*cache++ = S;
-				const PTYPE P = PMAKE(S);
-				SCALERFUNC;
-				line0 += SCALERWIDTH;
+		hadChange = 1;
+		unsigned int i = block_proc; /* WARNING: assume block_proc != 0 */
+		do {
+			const SRCTYPE S = *src++;
+			*cache++ = S;
+			const PTYPE P = PMAKE(S);
+			SCALERFUNC;
+			line0 += SCALERWIDTH;
 #if (SCALERHEIGHT > 1) 
-				line1 += SCALERWIDTH;
+			line1 += SCALERWIDTH;
 #endif
 #if (SCALERHEIGHT > 2) 
-				line2 += SCALERWIDTH;
+			line2 += SCALERWIDTH;
 #endif
 #if (SCALERHEIGHT > 3) 
-				line3 += SCALERWIDTH;
+			line3 += SCALERWIDTH;
 #endif
 #if (SCALERHEIGHT > 4) 
-				line4 += SCALERWIDTH;
+			line4 += SCALERWIDTH;
 #endif
 #if (SCALERHEIGHT > 5) 
-				line5 += SCALERWIDTH;
+			line5 += SCALERWIDTH;
 #endif
-			} while (--i != 0u);
+		} while (--i != 0u);
 #if defined(SCALERLINEAR)
 #if (SCALERHEIGHT > 1)
-			Bitu copyLen = (Bitu)((uint8_t*)line1 - (uint8_t*)WC[0]);
-			BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch  ,WC[0], copyLen );
+		Bitu copyLen = (Bitu)((uint8_t*)line1 - (uint8_t*)WC[0]);
+		BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch  ,WC[0], copyLen );
 #endif
 #if (SCALERHEIGHT > 2) 
-			BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch*2,WC[1], copyLen );
+		BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch*2,WC[1], copyLen );
 #endif
 #if (SCALERHEIGHT > 3) 
-			BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch*3,WC[2], copyLen );
+		BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch*3,WC[2], copyLen );
 #endif
 #if (SCALERHEIGHT > 4) 
-			BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch*4,WC[3], copyLen );
+		BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch*4,WC[3], copyLen );
 #endif
 #if (SCALERHEIGHT > 5) 
-			BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch*5,WC[4], copyLen );
+		BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch*5,WC[4], copyLen );
 #endif
 #endif //defined(SCALERLINEAR)
-		}
+	}
 }
 
 static inline void conc4d_func(const void *s) {
@@ -148,23 +148,23 @@ static inline void conc4d_func(const void *s) {
 	PTYPE * line0=(PTYPE *)(render.scale.outWrite);
 
 #if defined(C_SCALER_FULL_LINE)
-    conc4d_sub_func(src,cache,line0,(unsigned int)render.src.width,hadChange);
+	conc4d_sub_func(src,cache,line0,(unsigned int)render.src.width,hadChange);
 #else
 # if (SBPP == 9)
-    // the pal change code above limits this to 8 pixels only, see function above
-    const unsigned int block_size = 8;
+	// the pal change code above limits this to 8 pixels only, see function above
+	const unsigned int block_size = 8;
 # else
-    // larger blocks encourage memcmp() to optimize, scaler loop to process before coming back to check again.
-    const unsigned int block_size = 128;
+	// larger blocks encourage memcmp() to optimize, scaler loop to process before coming back to check again.
+	const unsigned int block_size = 128;
 # endif
 
-    Bitu x = (Bitu)render.src.width;
-    while (x >= block_size) {
-        x -= block_size;
-        conc4d_sub_func(src,cache,line0,block_size,hadChange);
-    }
-    if (x > 0) {
-        conc4d_sub_func(src,cache,line0,(unsigned int)x,hadChange);
+	Bitu x = (Bitu)render.src.width;
+	while (x >= block_size) {
+		x -= block_size;
+		conc4d_sub_func(src,cache,line0,block_size,hadChange);
+	}
+	if (x > 0) {
+		conc4d_sub_func(src,cache,line0,(unsigned int)x,hadChange);
 	}
 #endif
 
