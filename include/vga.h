@@ -173,7 +173,7 @@ typedef struct {
 	Bitu bytes_skip;
 	uint8_t *linear_base;
 	Bitu linear_mask;
-    Bitu planar_mask;
+	Bitu planar_mask;
 	Bitu address_add;
 	Bitu line_length;
 	Bitu address_line_total;
@@ -184,7 +184,7 @@ typedef struct {
 	Bitu split_line;
 	Bitu hsync_events;
 	Bitu byte_panning_shift;
-    Bitu render_step,render_max;
+	Bitu render_step,render_max;
 	struct {
 		double framestart;
 		double vrstart, vrend;		// V-retrace
@@ -728,6 +728,7 @@ typedef struct VGA_Type_t {
     VGA_Complexity complexity = {};
     VGA_Override overopts = {};
     VGA_DOSBoxIG dosboxig = {};
+    unsigned int max_svga_width = 0,max_svga_height = 0;
 } VGA_Type;
 
 

@@ -1182,8 +1182,8 @@ void dosbox_integration_trigger_write() {
 
 				if (nw < 16) nw = 16;
 				if (nh < 16) nh = 16;
-				if (nw > 4096) nw = 4096;
-				if (nh > 4096) nh = 4096;
+				if (nw > vga.max_svga_width) nw = vga.max_svga_width;
+				if (nh > vga.max_svga_height) nh = vga.max_svga_height;
 
 				if (vga.dosboxig.width != nw || vga.dosboxig.height != nh) {
 					vga.dosboxig.width = nw;

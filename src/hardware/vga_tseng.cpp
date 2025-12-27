@@ -631,6 +631,9 @@ void SVGA_Setup_TsengET4K(void) {
     svga.write_p3c0 = &write_p3c0_et4k;
     svga.read_p3c1 = &read_p3c1_et4k;
 
+    vga.max_svga_width = 2048; // because Tseng reportedly supports a 1280x1024 mode
+    vga.max_svga_height = 1024;
+
     svga.set_video_mode = &FinishSetMode_ET4K;
     svga.determine_mode = &DetermineMode_ET4K;
     svga.set_clock = &SetClock_ET4K;

@@ -217,6 +217,9 @@ void SVGA_Setup_ParadisePVGA1A(void) {
 	svga.write_p3cf = &write_p3cf_pvga1a;
 	svga.read_p3cf = &read_p3cf_pvga1a;
 
+	vga.max_svga_width = 2048; // GUESS
+	vga.max_svga_height = 1024;
+
 	svga.set_video_mode = &FinishSetMode_PVGA1A;
 	svga.determine_mode = &DetermineMode_PVGA1A;
 	svga.set_clock = &SetClock_PVGA1A;

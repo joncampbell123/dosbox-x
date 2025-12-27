@@ -1124,8 +1124,11 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
                     bool allow4 =
                         allow_unusual_vesa_modes ||
                         !(ModeList_VGA[i].special & _UNUSUAL_MODE);
-                    bool allow_res = allow1 && allow2 && allow3 && allow4;
-		    bool allow_s3_packed4 = (ModeList_VGA[i].mode >= 0x202 && ModeList_VGA[i].mode <= 0x208);
+                    bool allow5 =
+                        ModeList_VGA[i].swidth <= vga.max_svga_width && ModeList_VGA[i].sheight <= vga.max_svga_height &&
+                        ModeList_VGA[i].vtotal <= vga.max_svga_height;
+                    bool allow_res = allow1 && allow2 && allow3 && allow4 && allow5;
+                    bool allow_s3_packed4 = (ModeList_VGA[i].mode >= 0x202 && ModeList_VGA[i].mode <= 0x208 && ModeList_VGA[i].type == M_PACKED4);
 
                     switch (ModeList_VGA[i].type) {
                         case M_LIN32:	canuse_mode=allow_vesa_32bpp && allow_res; break;
