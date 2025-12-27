@@ -1485,7 +1485,7 @@ void VGA_Init() {
 	vga.tandy.draw_base = NULL;
 	vga.tandy.mem_base = NULL;
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA");
-	LOG(LOG_MISC,LOG_DEBUG)("Render scaler maximum resolution is %u x %u",SCALER_MAXWIDTH,SCALER_MAXHEIGHT);
+	LOG(LOG_MISC,LOG_DEBUG)("Traditional render scaler maximum resolution is %u x %u. Simple scalers are no longer limited to that size.",SCALER_MAXWIDTH,SCALER_MAXHEIGHT);
 
 	/* the purpose of this is so that, if everything is crammed up at the top to make room for system RAM, the S3 and 3Dfx do not conflict */
 	if (IS_VGA_ARCH && svgaCard != SVGA_None)

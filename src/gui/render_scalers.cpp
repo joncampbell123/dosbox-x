@@ -30,15 +30,33 @@ uint16_t Scaler_ChangedLines[SCALER_MAXHEIGHT];
 Bitu Scaler_ChangedLineIndex;
 
 static union {
-	uint32_t b32 [4][SCALER_MAXWIDTH*3];
-	uint16_t b16 [4][SCALER_MAXWIDTH*3];
-	uint8_t b8 [4][SCALER_MAXWIDTH*3];
-} scalerWriteCache;
+	// NTS: A pointer is a pointer is a pointer, no matter the data type.
+	//      Unless your compiler is weird, all pointers should line up to
+	//      the same memory address for each element of the array.
+	uint32_t *b32[5];
+	uint16_t *b16[5];
+	uint8_t *b8[5];
+} scalerWriteCache = {NULL};
 //scalerFrameCache_t scalerFrameCache;
 scalerSourceCache_t scalerSourceCache;
 #if RENDER_USE_ADVANCED_SCALERS>1
 scalerChangeCache_t scalerChangeCache;
 #endif
+
+void scalerWriteCacheFree(void) {
+	if (scalerWriteCache.b8[0]) free(scalerWriteCache.b8[0]);
+	for (unsigned int i=0;i < 5;i++) scalerWriteCache.b8[i]=NULL;
+}
+
+void scalerWriteCacheAlloc(unsigned int p) {
+	if (!scalerWriteCache.b8[0]) {
+		if ((scalerWriteCache.b8[0]=(uint8_t*)malloc(p*5)) == NULL)
+			return;
+
+		for (unsigned int i=1;i < 5;i++)
+			scalerWriteCache.b8[i] = scalerWriteCache.b8[i-1] + p;
+	}
+}
 
 #define _conc2(A,B) A ## B
 #define _conc3(A,B,C) A ## B ## C
@@ -174,7 +192,6 @@ static INLINE void ScalerAddLines( Bitu changed, Bitu count ) {
 #include "render_templates.h"
 #undef SBPP
 #undef DBPP
-
 
 #if RENDER_USE_ADVANCED_SCALERS>1
 ScalerLineBlock_t ScalerCache = {

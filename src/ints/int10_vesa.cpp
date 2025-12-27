@@ -1124,10 +1124,7 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
                     bool allow4 =
                         allow_unusual_vesa_modes ||
                         !(ModeList_VGA[i].special & _UNUSUAL_MODE);
-                    bool allow5 = /* either user modified or within the limits of the render scaler architecture */
-                        (ModeList_VGA[i].special & _USER_MODIFIED) ||
-                        (ModeList_VGA[i].swidth <= SCALER_MAXWIDTH && ModeList_VGA[i].sheight <= SCALER_MAXHEIGHT);
-                    bool allow_res = allow1 && allow2 && allow3 && allow4 && allow5;
+                    bool allow_res = allow1 && allow2 && allow3 && allow4;
 		    bool allow_s3_packed4 = (ModeList_VGA[i].mode >= 0x202 && ModeList_VGA[i].mode <= 0x208);
 
                     switch (ModeList_VGA[i].type) {

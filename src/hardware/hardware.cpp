@@ -808,19 +808,17 @@ static inline unsigned long math_gcd_png_uint_32(const png_uint_32 a,const png_u
 void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, uint8_t * data, uint8_t * pal) {
 #if (C_SSHOT)
 	Bitu i;
-	uint8_t doubleRow[SCALER_MAXWIDTH*4];
 	Bitu countWidth = width;
+	uint8_t *doubleRow = (uint8_t*)alloca((countWidth+32)*4);
+	// ^ FIXME: If this becomes too large for the stack, switch to malloc/free or perhaps even declare std::vector<uint8_t>,
+	//          size it to the allocation size and point doubleRow at that. std::vector<uint8_t> will automatically free the
+	//          buffer when destructor is called at this function's exit points.
 
 	if (flags & CAPTURE_FLAG_DBLH)
 		height *= 2;
 	if (flags & CAPTURE_FLAG_DBLW)
 		width *= 2;
 
-	if (height > SCALER_MAXHEIGHT)
-		return;
-	if (width > SCALER_MAXWIDTH)
-		return;
-	
 	if (CaptureState & CAPTURE_IMAGE) {
 		png_structp png_ptr;
 		png_infop info_ptr;
