@@ -61,6 +61,9 @@ unsigned int scalerSourceCacheBufferSize=0;
 void scalerWriteCacheFree(void);
 void scalerWriteCacheAlloc(unsigned int p);
 
+void Scaler_AspectChangedLinesFree(void);
+void Scaler_AspectChangedLinesAlloc(unsigned int h);
+
 void scalerSourceCacheBufferFree(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Freeing render cache buffer");
 	if (scalerSourceCacheBuffer) free(scalerSourceCacheBuffer);
@@ -558,6 +561,7 @@ void RENDER_Reset( void ) {
 	double gfx_scaleh;
 	const std::string scaler = RENDER_GetScaler();
 
+	Scaler_AspectChangedLinesFree();
 	scalerSourceCacheBufferFree();
 	scalerWriteCacheFree();
 	TempLineFree();
@@ -826,6 +830,7 @@ forcenormal:
 	}
 	width *= xscale;
 	Bitu skip = complexBlock ? 1 : 0;
+	Scaler_AspectChangedLinesAlloc(render.src.height);
 	useTraditionalRenderCache = !!complexBlock; // the advanced scalers depend heavily on the traditional fixed cache/change buffers
 	if (gfx_flags & GFX_SCALING) {
 		if(render.scale.size == 1 && render.scale.hardware) { //hardware_none

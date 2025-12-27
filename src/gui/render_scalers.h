@@ -21,9 +21,10 @@
 
 //#include "render.h"
 #include "video.h"
-// TODO: Make the simpler scalers and the write cache work properly regardless of these values
-#define SCALER_MAXWIDTH		1920
-#define SCALER_MAXHEIGHT	1440
+
+//remove these, but first src/output/output_gamelink.cpp needs to stop using these
+#define SCALER_MAXWIDTH		800
+#define SCALER_MAXHEIGHT	600
 
 #if RENDER_USE_ADVANCED_SCALERS>1
 #define SCALER_COMPLEXWIDTH	800
@@ -58,10 +59,10 @@ typedef enum scalerOperation {
 typedef void (*ScalerLineHandler_t)(const void *src);
 typedef void (*ScalerComplexHandler_t)(void);
 
-extern uint8_t Scaler_Aspect[];
 extern uint8_t diff_table[];
+extern uint8_t *Scaler_Aspect;
 extern Bitu Scaler_ChangedLineIndex;
-extern uint16_t Scaler_ChangedLines[];
+extern uint16_t *Scaler_ChangedLines;
 #if RENDER_USE_ADVANCED_SCALERS>1
 /* Not entirely happy about those +2's since they make a non power of 2, with muls instead of shift */
 typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE] ;
