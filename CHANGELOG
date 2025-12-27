@@ -1,4 +1,10 @@
 NEXT VERSION
+  - Render scaler system has been modified so that render and frame caches
+    are now dynamically allocated, instead of fixed buffers. Not only does
+    this reduce memory wasted by over-large buffers, it also removes
+    limitations on guest video mode resolution that previously capped the
+    video mode to 1920x1440 or lower, and the advanced scalers (HQ2X,
+    Advanced MAME, etc) to 800x600 or lower. (joncampbell123).
   - VGA output will now automatically disable doublescan mode whenever an
     advanced scaler, such as the "XBRZ" or the Advanced MAME scalers, are
     selected, so that the scalers can do their job properly on the low
