@@ -767,7 +767,9 @@ Bitu OUTPUT_OPENGL_SetSize()
     }
     else
     {
-        sdl_opengl.framebuf = calloc(adjTexWidth*adjTexHeight, 4); //32 bit color
+        /* NTS: Allocate an additional 4K on top because modern MesaGL / libgallium likes to use SSE/AVX
+	 *      instructions to memcpy on texture update and that can EASILY read a little bit past the buffer. */
+        sdl_opengl.framebuf = calloc((adjTexWidth*adjTexHeight) + (4096/4), 4); //32 bit color
     }
     sdl_opengl.pitch = adjTexWidth * 4;
 
