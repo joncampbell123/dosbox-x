@@ -1000,8 +1000,7 @@ forcenormal:
 	if (render.scale.complexHandler) {
 		assert(render.src.width < (SCALER_COMPLEXWIDTH - 16)); /* or else buffer overrun and crash! */
 		scalerFrameCacheAlloc(SCALER_COMPLEXWIDTH * ((render.src.bpp+7u)/8u),render.src.width,render.src.height);
-		scalerChangeCacheAlloc(SCALER_COMPLEXWIDTH,render.src.height);
-		/* ^ FIXME: Must also be COMPLEXWIDTH or misrendering happens, even if the code's use of CC suggests otherwise */
+		scalerChangeCacheAlloc(render.src.width,render.src.height);
 	}
 
 	TempLineAlloc(render.src.width); // vga_draw.cpp make the scan line larger or smaller to match. that code also previously used scaler max width

@@ -50,7 +50,7 @@ void scalerChangeCacheFree(void) {
 void scalerChangeCacheAlloc(unsigned int w,unsigned int h) {
 	if (!scalerChangeCache.d) {
 		//typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE];
-		scalerChangeCache.pitch = (w + SCALER_BLOCKSIZE - 1) / SCALER_BLOCKSIZE;
+		scalerChangeCache.pitch = ((w + SCALER_BLOCKSIZE - 1) / SCALER_BLOCKSIZE) + 2; /* adjacent pixel checks or render errors result */
 		if ((scalerChangeCache.d=(uint8_t*)malloc(scalerChangeCache.pitch*(h+16))) == NULL) {
 			scalerChangeCache.pitch = 0;
 			return;
