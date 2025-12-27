@@ -23,8 +23,7 @@
 #define PSIZE 1
 #define PTYPE uint8_t
 #define WC scalerWriteCache.b8
-//#define FC scalerFrameCache.b8
-#define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b8
+#define FC scalerFrameCache.b8
 #define redMask		0
 #define	greenMask	0
 #define blueMask	0
@@ -38,8 +37,7 @@
 #define PSIZE 2
 #define PTYPE uint16_t
 #define WC scalerWriteCache.b16
-//#define FC scalerFrameCache.b16
-#define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b16
+#define FC scalerFrameCache.b16
 #if DBPP == 15
 #define	redMask		0x7C00
 #define	greenMask	0x03E0
@@ -65,8 +63,7 @@
 #define PSIZE 4
 #define PTYPE uint32_t
 #define WC scalerWriteCache.b32
-//#define FC scalerFrameCache.b32
-#define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b32
+#define FC scalerFrameCache.b32
 # if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
 #  define redMask       0x0000ff00
 #  define greenMask     0x00ff0000
