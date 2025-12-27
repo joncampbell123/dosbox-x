@@ -33,6 +33,29 @@ AC_CHECK_HEADER(d3dx9math.h, have_d3dx9math_h=yes , have_d3dx9math_h=no , )
 
 dnl Utility function ============================
 
+# AC_CHECK_CFLAGS(ADDITIONAL-CFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+#
+# checks whether the $(CC) (C compiler) accepts the ADDITIONAL-CFLAGS
+# if so, they are added to the CFLAGS
+AC_DEFUN([AC_CHECK_CFLAGS],
+[
+  AC_MSG_CHECKING([whether $CC accepts "$1"])
+cat > conftest.c << EOF
+int main(void){
+  return 0;
+}
+EOF
+if $CC $CPPFLAGS $CFLAGS -Werror -c -o conftest.o conftest.c [$1] > /dev/null 2>&1
+then
+  AC_MSG_RESULT([yes])
+  CFLAGS="${CFLAGS} [$1]"
+  [$2]
+else
+  AC_MSG_RESULT([no])
+  [$3]
+fi
+])# AC_CHECK_CFLAGS
+
 # AC_CHECK_CXXFLAGS(ADDITIONAL-CXXFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
 #
 # checks whether the $(CXX) (c++) compiler accepts the ADDITIONAL-CXXFLAGS
@@ -49,13 +72,28 @@ if $CXX $CPPFLAGS $CXXFLAGS -Werror -c -o conftest.o conftest.c++ [$1] > /dev/nu
 then
   AC_MSG_RESULT([yes])
   CXXFLAGS="${CXXFLAGS} [$1]"
-  AC_CHECK_CPPFLAGS([$1])
+  dnl AC_CHECK_CPPFLAGS([$1]) #CXXFLAGS should not be included in CPPFLAGS
+  AC_CHECK_CFLAGS([$1]) #add CFLAGS if accepts as well
   [$2]
 else
   AC_MSG_RESULT([no])
   [$3]
 fi
 ])# AC_CHECK_CXXFLAGS
+
+dnl Detect Clang
+AC_CACHE_CHECK([whether the compiler is clang],
+  [ac_cv_compiler_clang],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[
+#ifndef __clang__
+#error not clang
+#endif
+     ]], [])],
+     [ac_cv_compiler_clang=yes],
+     [ac_cv_compiler_clang=no])])
+
+is_clang=$ac_cv_compiler_clang
 
 dnl End Utility function ============================
 
@@ -450,10 +488,12 @@ dnl other
 AC_CHECK_CXXFLAGS([ -Wno-missing-field-initializers ])
 AC_CHECK_CXXFLAGS([ -Wno-format-zero-length ])
 
-dnl Clang/LLVM warning: don't care the address of a member may be unaligned, unless targeting ARM!
-AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
-dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
-AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
+if test "x$is_clang" = xyes; then
+  dnl Clang/LLVM warning: don't care the address of a member may be unaligned, unless targeting ARM!
+  AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
+  dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
+  AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
+fi
 
 dnl Some stuff for the icon and other makefile platform stuff.
 dnl Slightly double with the above, but that deals more with compiled features.
@@ -477,6 +517,12 @@ esac
        AM_CONDITIONAL(MACOSX, test "x$DBPLATFORM" = "xmac")
        AC_SUBST(WINDRES)
 
+AC_ARG_ENABLE([sdl2],
+  [AS_HELP_STRING([--enable-sdl2],[Build DOSBox-X using SDL2])],
+  [enable_sdl2=yes],
+  [enable_sdl2=no]
+)
+
 dnl LIBRARY TEST: SDL 2.x
 SDL2_VERSION=2.0.5
 AM_PATH_SDL2($SDL2_VERSION)
@@ -486,19 +532,43 @@ SDL_VERSION=1.2.0
 AM_PATH_SDL($SDL_VERSION)
 
 dnl LIBRARY USE: SDL selection
-if test -n "$SDL2_LIBS"; then
-    LIBS="$LIBS $SDL2_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
-    SDL_STRING="SDL2"
+
+if test x"$enable_sdl2" = xyes; then
+    AC_MSG_NOTICE([--enable-sdl2 specified, trying SDL2])
+    if test -n "$SDL2_LIBS"; then
+        SDL_STRING="SDL2"
+        LIBS="$LIBS $SDL2_LIBS"
+        CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+        AC_MSG_NOTICE([Building with SDL2])
+    else
+        AC_MSG_ERROR([--enable-sdl2 was specified, but SDL2 was not found])
+    fi
 else
-  if test -n "$SDL_LIBS"; then
-    LIBS="$LIBS $SDL_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-    SDL_STRING="SDL1"
-  else
-    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
-  fi
+    AC_MSG_CHECKING([for SDL1])
+
+    if test -n "$SDL_LIBS"; then
+        AC_MSG_RESULT([yes])
+        SDL_STRING="SDL1"
+        LIBS="$LIBS $SDL_LIBS"
+        CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+
+    else
+        AC_MSG_RESULT([no])
+        AC_MSG_NOTICE([SDL1 not found, falling back to SDL2])
+
+        AC_MSG_CHECKING([for SDL2])
+        if test -n "$SDL2_LIBS"; then
+            AC_MSG_RESULT([yes])
+            SDL_STRING="SDL2"
+            LIBS="$LIBS $SDL2_LIBS"
+            CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+        else
+            AC_MSG_RESULT([no])
+            AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
+        fi
+    fi
 fi
+
 AC_SUBST([SDL_STRING])
 
 AH_TEMPLATE(C_GAMELINK,[Define to 1 to enable game link headless mode])
@@ -506,18 +576,18 @@ AC_CHECK_LIB(rt, main, have_rt_lib=yes, have_rt_lib=no , )
 AC_ARG_ENABLE(gamelink,AC_HELP_STRING([--disable-gamelink],[Disable headless game link output mode (only for SDL2)]),,enable_gamelink=yes)
 AC_MSG_CHECKING(whether gamelink is enabled) 
 if test x$enable_gamelink = xyes; then
-  if test "x$SDL2_LIBS" = "x"; then
-    AC_MSG_RESULT(no (SDL2 missing))
-  else
+  if test "x$SDL_STRING" = "xSDL2"; then
     AC_MSG_RESULT(yes)
     C_GAMELINK=1
     AC_DEFINE(C_GAMELINK,1)
+  else
+    AC_MSG_RESULT(no (requires SDL2))
   fi
 else
   AC_MSG_RESULT(no)
 fi
-AM_CONDITIONAL([C_GAMELINK], [test "x$C_GAMELINK" = x1])
 
+AM_CONDITIONAL([C_GAMELINK], [test "x$C_GAMELINK" = x1])
 
 dnl FEATURE: Whether to use OpenGL
 AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
@@ -624,7 +694,7 @@ case "$host" in
        dnl FEATURE: Whether to support direct serial port pass-through
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        dnl If we have SDL2, we need to link the multimedia extensions.
-       if test "x$SDL2_LIBS" != "x"; then
+       if test "x$SDL_STRING" = "xSDL2"; then
          LIBS="$LIBS -lmmpm2"
        fi
        ;;
@@ -782,25 +852,43 @@ size_t iconv(iconv_t, const char **restrict, size_t *restrict, char **restrict, 
 ])], AC_DEFINE(ICONV_CONST_CHAR, 1) AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
 AH_TEMPLATE(ICONV_CONST_CHAR,[Whether iconv uses const char**])
 
+dnl Determine networking library
+case "$host" in
+  *-*-cygwin* | *-*-mingw*)
+    SDLNETLIB="-lws2_32 -liphlpapi"
+    ;;
+  sparc*-*-solaris*)
+    SDLNETLIB="-lsocket -lnsl"
+    ;;
+  *-*-qnx*)
+    SDLNETLIB="-lsocket"
+    ;;
+  *-*-haiku*)
+    SDLNETLIB="-lnetwork"
+    ;;
+  *)
+    SDLNETLIB=""
+    ;;
+esac
+
 have_sdl_net_h=no
 have_sdl_net_lib=no
 
-AC_CHECK_HEADERS([SDL_net.h],
-  [have_sdl_net_h=yes])
-
-AC_CHECK_LIB([SDL_net], [SDLNet_Init],
-  [have_sdl_net_lib=yes])
+AC_CHECK_HEADERS([SDL_net.h], [have_sdl_net_h=yes])
+AC_CHECK_LIB([SDL_net], [SDLNet_Init], [have_sdl_net_lib=yes],,[$SDLNETLIB])
 
 dnl Check SDL2_net using headers + library first
 have_sdl2_net_h=no
 have_sdl2_net_lib=no
 
-AC_CHECK_HEADERS([SDL2/SDL_net.h],
-  [have_sdl2_net_h=yes])
+if test "x$SDL_STRING" = "xSDL2"; then
+  AC_CHECK_HEADERS([SDL2/SDL_net.h], [have_sdl2_net_h=yes])
+  AC_CHECK_LIB([SDL2_net], [SDLNet_Init], [have_sdl2_net_lib=yes], [have_sdl2_net_lib=no],[$SDLNETLIB])
+fi
 
-AC_CHECK_LIB([SDL2_net], [SDLNet_Init],
-  [have_sdl2_net_lib=yes],
-  [have_sdl2_net_lib=no])
+if test x$enable_hx = xyes; then
+  SDLNETLIB=""
+fi
 
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <SDL_config.h>
@@ -1114,30 +1202,23 @@ fi
 
 dnl FEATURE: Whether to support SDL net, and emulate modem and IPX connections
 AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
+AH_TEMPLATE(C_SDL2_NET,[Indicate whether SDL2_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
-
-case "$host" in
-  *-*-cygwin* | *-*-mingw32*)
-    if test x$have_sdl_net_h = xyes; then
-      have_sdl_net_lib=yes
-    fi
-  ;;
-esac
 
 if test x$disable_sdl_net = xyes ; then
   AC_MSG_WARN([SDL_net is disabled in parameters])
 elif test x$have_sdl2_net_lib = xyes ; then
-  AC_DEFINE(C_SDL_NET,1)
+  AC_DEFINE(C_SDL2_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
-  LIBS="$LIBS -lSDL2_net"
+  LIBS="$LIBS -lSDL2_net $SDLNETLIB"
   AC_MSG_NOTICE([Using SDL2_net (SDL2): internal modem and IPX enabled])
 elif test x$have_sdl_net_lib = xyes ; then
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
-  LIBS="$LIBS -lSDL_net"
+  LIBS="$LIBS -lSDL_net $SDLNETLIB"
   AC_MSG_NOTICE([Using SDL_net (SDL1): internal modem and IPX enabled])
 else
   AC_MSG_WARN([Can't find SDL_net or SDL2_net, internal modem and IPX disabled])
