@@ -35,8 +35,13 @@ static inline int conc2d(GetResult,SBPP)(PTYPE A, PTYPE B, PTYPE C, PTYPE D) {
 	return rmap[y][x];
 }
 
-inline void conc2d(Super2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
+inline void conc2d(Super2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fcp1, const PTYPE * fc, const PTYPE * fcn1, const PTYPE * fcn2)
 {
+	(void)fcp1;
+	(void)fc;
+	(void)fcn1;
+	(void)fcn2;
+
 # if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
 	(void)conc2d(Super2xSaI,SBPP);
 # endif
@@ -91,8 +96,13 @@ inline void conc2d(Super2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * 
 		line0[0] = C4;
 }
 
-inline void conc2d(SuperEagle,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
+inline void conc2d(SuperEagle,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fcp1, const PTYPE * fc, const PTYPE * fcn1, const PTYPE * fcn2)
 {
+	(void)fcp1;
+	(void)fc;
+	(void)fcn1;
+	(void)fcn2;
+
 	// --------------------------------------
 	if (C4 != C8) {
 		if (C7 == C5) {
@@ -151,8 +161,13 @@ inline void conc2d(SuperEagle,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * 
 	}
 }
 
-inline void conc2d(_2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
+inline void conc2d(_2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fcp1, const PTYPE * fc, const PTYPE * fcn1, const PTYPE * fcn2)
 {
+	(void)fcp1;
+	(void)fc;
+	(void)fcn1;
+	(void)fcn2;
+
 	if ((C4 == C8) && (C5 != C7)) {
 		if (((C4 == C1) && (C5 == D5)) ||
 			((C4 == C7) && (C4 == C2) && (C5 != C1) && (C5 == D3))) {

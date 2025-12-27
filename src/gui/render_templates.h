@@ -179,12 +179,13 @@
 //  C6 C7 C8 D5
 //  D0 D1 D2 D6
 
+#if 0//OLD
 #define C0 fc[-1 - SCALER_COMPLEXWIDTH]
 #define C1 fc[+0 - SCALER_COMPLEXWIDTH]
 #define C2 fc[+1 - SCALER_COMPLEXWIDTH]
-#define C3 fc[-1 ]
-#define C4 fc[+0 ]
-#define C5 fc[+1 ]
+#define C3 fc[-1]
+#define C4 fc[+0]
+#define C5 fc[+1]
 #define C6 fc[-1 + SCALER_COMPLEXWIDTH]
 #define C7 fc[+0 + SCALER_COMPLEXWIDTH]
 #define C8 fc[+1 + SCALER_COMPLEXWIDTH]
@@ -196,7 +197,37 @@
 #define D4 fc[+2]
 #define D5 fc[+2 + SCALER_COMPLEXWIDTH]
 #define D6 fc[+2 + 2*SCALER_COMPLEXWIDTH]
+#else//NEW
+#define C0 fcp1[-1]
+#define C1 fcp1[+0]
+#define C2 fcp1[+1]
+#define C3 fc[-1]
+#define C4 fc[+0]
+#define C5 fc[+1]
+#define C6 fcn1[-1]
+#define C7 fcn1[+0]
+#define C8 fcn1[+1]
 
+#define D0 fcn2[-1]
+#define D1 fcn2[+0]
+#define D2 fcn2[+1]
+#define D3 fcp1[+2]
+#define D4 fc[+2]
+#define D5 fcn1[+2]
+#define D6 fcn2[+2]
+#endif
+
+#define FC_PTR_ADV(adj) \
+	fcp1 += (adj); \
+	fc   += (adj); \
+	fcn1 += (adj); \
+	fcn2 += (adj);
+
+#define FC_PTRS(pt_t,line) \
+	pt_t *fcp1 = &FC[(line)-1u][1]; (void)fcp1; \
+	pt_t *fc   = &FC[(line)   ][1]; (void)fc;   \
+	pt_t *fcn1 = &FC[(line)+1u][1]; (void)fcn1; \
+	pt_t *fcn2 = &FC[(line)+2u][1]; (void)fcn2;
 
 #if RENDER_USE_ADVANCED_SCALERS>1
 static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
@@ -212,9 +243,10 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	}
 #endif
 	const SRCTYPE * src = (SRCTYPE*)s;
-	PTYPE *fc= &FC[render.scale.inLine+1][1];
+	FC_PTRS(PTYPE,render.scale.inLine+1);
 	SRCTYPE *sc = (SRCTYPE*)(render.scale.cacheRead);
 	render.scale.cacheRead += render.scale.cachePitch;
+
 	Bitu b;
 	bool hadChange = false;
 	/* This should also copy the surrounding pixels but it looks nice enough without */
@@ -224,40 +256,41 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 			PTYPE pixel = PMAKE(src[x]);
 			if (pixel != fc[x]) {
 #else 
-			for (Bitu x=0;x<SCALER_BLOCKSIZE;x+=sizeof(Bitu)/sizeof(SRCTYPE)) {
-				if (*(Bitu const*)&src[x] != *(Bitu*)&sc[x]) {
+		for (Bitu x=0;x<SCALER_BLOCKSIZE;x+=sizeof(Bitu)/sizeof(SRCTYPE)) {
+			if (*(Bitu const*)&src[x] != *(Bitu*)&sc[x]) {
 #endif
-					do {
-						fc[x] = PMAKE(src[x]);
-						sc[x] = src[x];
-						x++;
-					} while (x<SCALER_BLOCKSIZE);
-					hadChange = true;
-					/* Change the surrounding blocks */
-					CC[render.scale.inLine+0][1+b-1] |= SCALE_RIGHT;
-					CC[render.scale.inLine+0][1+b+0] |= SCALE_FULL;
-					CC[render.scale.inLine+0][1+b+1] |= SCALE_LEFT;
-					CC[render.scale.inLine+1][1+b-1] |= SCALE_RIGHT;
-					CC[render.scale.inLine+1][1+b+0] |= SCALE_FULL;
-					CC[render.scale.inLine+1][1+b+1] |= SCALE_LEFT;
-					CC[render.scale.inLine+2][1+b-1] |= SCALE_RIGHT;
-					CC[render.scale.inLine+2][1+b+0] |= SCALE_FULL;
-					CC[render.scale.inLine+2][1+b+1] |= SCALE_LEFT;
-					continue;
-				}
+				do {
+					fc[x] = PMAKE(src[x]);
+					sc[x] = src[x];
+					x++;
+				} while (x<SCALER_BLOCKSIZE);
+				hadChange = true;
+				/* Change the surrounding blocks */
+				CC[render.scale.inLine+0][1+b-1] |= SCALE_RIGHT;
+				CC[render.scale.inLine+0][1+b+0] |= SCALE_FULL;
+				CC[render.scale.inLine+0][1+b+1] |= SCALE_LEFT;
+				CC[render.scale.inLine+1][1+b-1] |= SCALE_RIGHT;
+				CC[render.scale.inLine+1][1+b+0] |= SCALE_FULL;
+				CC[render.scale.inLine+1][1+b+1] |= SCALE_LEFT;
+				CC[render.scale.inLine+2][1+b-1] |= SCALE_RIGHT;
+				CC[render.scale.inLine+2][1+b+0] |= SCALE_FULL;
+				CC[render.scale.inLine+2][1+b+1] |= SCALE_LEFT;
+				continue;
 			}
-			fc += SCALER_BLOCKSIZE;
-			sc += SCALER_BLOCKSIZE;
-			src += SCALER_BLOCKSIZE;
 		}
-		if (hadChange) {
-			CC[render.scale.inLine+0][0] = 1;
-			CC[render.scale.inLine+1][0] = 1;
-			CC[render.scale.inLine+2][0] = 1;
-		}
-		render.scale.inLine++;
-		render.scale.complexHandler();
+
+		FC_PTR_ADV(SCALER_BLOCKSIZE);
+		sc += SCALER_BLOCKSIZE;
+		src += SCALER_BLOCKSIZE;
 	}
+	if (hadChange) {
+		CC[render.scale.inLine+0][0] = 1;
+		CC[render.scale.inLine+1][0] = 1;
+		CC[render.scale.inLine+2][0] = 1;
+	}
+	render.scale.inLine++;
+	render.scale.complexHandler();
+}
 #endif
 
 
@@ -885,7 +918,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
 #include "render_templates_hq2x.h"
-#define SCALERFUNC		conc2d(Hq2x,SBPP)(line0, line1, fc)
+#define SCALERFUNC		conc2d(Hq2x,SBPP)(line0, line1, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -896,7 +929,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERWIDTH		3
 #define SCALERHEIGHT	3
 #include "render_templates_hq3x.h"
-#define SCALERFUNC		conc2d(Hq3x,SBPP)(line0, line1, line2, fc)
+#define SCALERFUNC		conc2d(Hq3x,SBPP)(line0, line1, line2, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -908,7 +941,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERNAME		Super2xSaI
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
-#define SCALERFUNC		conc2d(Super2xSaI,SBPP)(line0, line1, fc)
+#define SCALERFUNC		conc2d(Super2xSaI,SBPP)(line0, line1, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -918,7 +951,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERNAME		SuperEagle
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
-#define SCALERFUNC		conc2d(SuperEagle,SBPP)(line0, line1, fc)
+#define SCALERFUNC		conc2d(SuperEagle,SBPP)(line0, line1, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -928,7 +961,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERNAME		_2xSaI
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
-#define SCALERFUNC		conc2d(_2xSaI,SBPP)(line0, line1, fc)
+#define SCALERFUNC		conc2d(_2xSaI,SBPP)(line0, line1, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
