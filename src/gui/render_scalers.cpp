@@ -38,7 +38,6 @@ static union {
 	uint8_t *b8[5];
 } scalerWriteCache = {NULL};
 scalerFrameCache_t scalerFrameCache;
-scalerSourceCache_t scalerSourceCache;
 #if RENDER_USE_ADVANCED_SCALERS>1
 scalerChangeCache_t scalerChangeCache;
 #endif

@@ -71,12 +71,6 @@ typedef union {
 	uint8_t b8	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
 } scalerFrameCache_t;
 #endif
-typedef union {
-	uint32_t b32	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-	uint16_t b16	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-	uint8_t b8	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-} scalerSourceCache_t;
-extern scalerSourceCache_t scalerSourceCache;
 #if RENDER_USE_ADVANCED_SCALERS>1
 extern scalerChangeCache_t scalerChangeCache;
 #endif
