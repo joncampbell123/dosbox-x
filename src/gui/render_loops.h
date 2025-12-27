@@ -46,7 +46,7 @@ lastagain:
 	}
 	/* Clear the complete line marker */
 	CC[render.scale.outLine][0] = 0;
-	const PTYPE * fc = &FC[render.scale.outLine][1];
+	FC_PTRS(const PTYPE,render.scale.outLine);
 	PTYPE * line0=(PTYPE *)(render.scale.outWrite);
 	uint8_t * changed = &CC[render.scale.outLine][1];
 	Bitu b;
@@ -69,7 +69,7 @@ lastagain:
 		switch (changeType) {
 		case 0:
 			line0 += SCALERWIDTH * SCALER_BLOCKSIZE;
-			fc += SCALER_BLOCKSIZE;
+			FC_PTR_ADV(SCALER_BLOCKSIZE);
 			continue;
 		case SCALE_LEFT:
 #if (SCALERHEIGHT > 1) 
@@ -86,7 +86,7 @@ lastagain:
 #endif
 			SCALERFUNC;
 			line0 += SCALERWIDTH * SCALER_BLOCKSIZE;
-			fc += SCALER_BLOCKSIZE;
+			FC_PTR_ADV(SCALER_BLOCKSIZE);
 			break;
 		case SCALE_LEFT | SCALE_RIGHT:
 #if (SCALERHEIGHT > 1) 
@@ -128,10 +128,10 @@ lastagain:
 #if (SCALERHEIGHT > 4) 
 			line4 += SCALERWIDTH * (SCALER_BLOCKSIZE -1);
 #endif
-			fc += SCALER_BLOCKSIZE -1;
+			FC_PTR_ADV(SCALER_BLOCKSIZE-1);
 			SCALERFUNC;
 			line0 += SCALERWIDTH;
-			fc++;
+			FC_PTR_ADV(1);
 			break;
 		default:
 #if defined(SCALERLINEAR)
@@ -176,7 +176,7 @@ lastagain:
 #if (SCALERHEIGHT > 4) 
 				line4 += SCALERWIDTH;
 #endif
-				fc++;
+				FC_PTR_ADV(1);
 			}
 #if defined(SCALERLINEAR)
 #if (SCALERHEIGHT > 1) 
