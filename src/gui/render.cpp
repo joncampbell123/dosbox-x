@@ -744,10 +744,7 @@ forcenormal:
 	}
 	if (complexBlock) {
 #if RENDER_USE_ADVANCED_SCALERS>1
-		if ((width >= SCALER_COMPLEXWIDTH - 16)) {
-			LOG_MSG("Scaler can't handle this resolution, going back to normal");
-			goto forcenormal;
-		}
+		/* no restrictions */
 #else
 		goto forcenormal;
 #endif
@@ -998,8 +995,7 @@ forcenormal:
 	 * the way the advanced scalers are coded, the pitch MUST be sizeof(PTYPE)*SCALER_COMPLEXWIDTH or else the code will misrender!
 	 * Also allocate the change cache. */
 	if (render.scale.complexHandler) {
-		assert(render.src.width < (SCALER_COMPLEXWIDTH - 16)); /* or else buffer overrun and crash! */
-		scalerFrameCacheAlloc(SCALER_COMPLEXWIDTH * ((render.src.bpp+7u)/8u),render.src.width,render.src.height);
+		scalerFrameCacheAlloc(render.scale.cachePitch,render.src.width,render.src.height);
 		scalerChangeCacheAlloc(render.src.width,render.src.height);
 	}
 

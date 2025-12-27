@@ -179,25 +179,6 @@
 //  C6 C7 C8 D5
 //  D0 D1 D2 D6
 
-#if 0//OLD
-#define C0 fc[-1 - SCALER_COMPLEXWIDTH]
-#define C1 fc[+0 - SCALER_COMPLEXWIDTH]
-#define C2 fc[+1 - SCALER_COMPLEXWIDTH]
-#define C3 fc[-1]
-#define C4 fc[+0]
-#define C5 fc[+1]
-#define C6 fc[-1 + SCALER_COMPLEXWIDTH]
-#define C7 fc[+0 + SCALER_COMPLEXWIDTH]
-#define C8 fc[+1 + SCALER_COMPLEXWIDTH]
-
-#define D0 fc[-1 + 2*SCALER_COMPLEXWIDTH]
-#define D1 fc[+0 + 2*SCALER_COMPLEXWIDTH]
-#define D2 fc[+1 + 2*SCALER_COMPLEXWIDTH]
-#define D3 fc[+2 - SCALER_COMPLEXWIDTH]
-#define D4 fc[+2]
-#define D5 fc[+2 + SCALER_COMPLEXWIDTH]
-#define D6 fc[+2 + 2*SCALER_COMPLEXWIDTH]
-#else//NEW
 #define C0 fcp1[-1]
 #define C1 fcp1[+0]
 #define C2 fcp1[+1]
@@ -215,7 +196,6 @@
 #define D4 fc[+2]
 #define D5 fcn1[+2]
 #define D6 fcn2[+2]
-#endif
 
 #define FC_PTR_ADV(adj) \
 	fcp1 += (adj); \
