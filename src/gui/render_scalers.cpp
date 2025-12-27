@@ -42,6 +42,24 @@ scalerFrameCache_t scalerFrameCache;
 scalerChangeCache_t scalerChangeCache;
 #endif
 
+void scalerChangeCacheFree(void) {
+	if (scalerChangeCache.d) free(scalerChangeCache.d);
+	scalerChangeCache.d = NULL;
+}
+
+void scalerChangeCacheAlloc(unsigned int w,unsigned int h) {
+	if (!scalerChangeCache.d) {
+		//typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE];
+		scalerChangeCache.pitch = (w + SCALER_BLOCKSIZE - 1) / SCALER_BLOCKSIZE;
+		if ((scalerChangeCache.d=(uint8_t*)malloc(scalerChangeCache.pitch*(h+16))) == NULL) {
+			scalerChangeCache.pitch = 0;
+			return;
+		}
+		memset(scalerChangeCache.d,0,scalerChangeCache.pitch*(h+16));
+		scalerChangeCache.width = w;
+	}
+}
+
 void scalerFrameCacheFree(void) {
 	if (scalerFrameCache.b32.d) free(scalerFrameCache.b32.d);
 	scalerFrameCache.b32.d = NULL;
@@ -53,6 +71,7 @@ void scalerFrameCacheAlloc(unsigned int p,unsigned int w,unsigned int h) {
 			return;
 
 		/* advanced scalers assume p = w*bytes/pixel */
+		memset(scalerFrameCache.b32.d,0,(p+16)*h);
 		scalerFrameCache.b32.width = w;
 		scalerFrameCache.b32.pitch = p;
 	}
