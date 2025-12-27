@@ -1923,6 +1923,8 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	LOG(LOG_MISC,LOG_DEBUG)("DOSBox Integration Device is active");
 }
 
+bool SVGA_S3_AcceptsMode(Bitu mode);
+
 void SVGA_Setup_DOSBoxIG(void) {
 	if (vga.mem.memsize == 0)
 		vga.mem.memsize = 512*1024;
@@ -1932,6 +1934,7 @@ void SVGA_Setup_DOSBoxIG(void) {
 		vga.mem.memsize = (128*1024*1024);
 
 	svga.set_video_mode = &FinishSetMode_DOSBoxIG;
+	svga.accepts_mode = &SVGA_S3_AcceptsMode; // eh, borrow the S3 function
 
 	vga.max_svga_width = 4096;
 	vga.max_svga_height = 4096;
