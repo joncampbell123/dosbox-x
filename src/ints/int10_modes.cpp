@@ -749,7 +749,7 @@ static bool SetCurMode(VideoModeBlock modeblock[],uint16_t mode) {
 			i++;
 		}
 		/* ignore disabled modes */
-		else if (modeblock[i].special & _USER_DISABLED) {
+		else if (modeblock[i].special & (_USER_DISABLED|_BIOS_DISABLED)) {
 			/* ignore */
 			i++;
 		}

@@ -467,7 +467,7 @@ foundit:
 	Bitu pages = 0;
 	Bitu calcmemsize = GetReportedVideoMemorySize();
 	if (mblock->type == M_LIN4) calcmemsize /= 4u; /* 4bpp planar = 4 bytes per video memory byte */
-	if (pageSize > calcmemsize || (mblock->special & _USER_DISABLED)) {
+	if (pageSize > calcmemsize || (mblock->special & (_USER_DISABLED|_BIOS_DISABLED))) {
 		// mode not supported by current hardware configuration
 		modeAttributes &= ~0x1;
 	} else if (pageSize) {
