@@ -42,6 +42,22 @@ scalerFrameCache_t scalerFrameCache;
 scalerChangeCache_t scalerChangeCache;
 #endif
 
+void scalerFrameCacheFree(void) {
+	if (scalerFrameCache.b32.d) free(scalerFrameCache.b32.d);
+	scalerFrameCache.b32.d = NULL;
+}
+
+void scalerFrameCacheAlloc(unsigned int p,unsigned int w,unsigned int h) {
+	if (!scalerFrameCache.b32.d) {
+		if ((scalerFrameCache.b32.d=(uint8_t*)malloc((p+16)*h)) == NULL)
+			return;
+
+		/* advanced scalers assume p = w*bytes/pixel */
+		scalerFrameCache.b32.width = w;
+		scalerFrameCache.b32.pitch = p;
+	}
+}
+
 void scalerWriteCacheFree(void) {
 	if (scalerWriteCache.b8[0]) free(scalerWriteCache.b8[0]);
 	for (unsigned int i=0;i < 5;i++) scalerWriteCache.b8[i]=NULL;
@@ -67,12 +83,12 @@ void Scaler_AspectChangedLinesFree(void) {
 
 void Scaler_AspectChangedLinesAlloc(unsigned int h) {
 	if (!Scaler_Aspect && h != 0u) {
-		if ((Scaler_Aspect=(uint8_t*)malloc(h*sizeof(uint8_t))) == NULL)
+		if ((Scaler_Aspect=(uint8_t*)malloc((h+16)*sizeof(uint8_t))) == NULL)
 			return;
 	}
 
 	if (!Scaler_ChangedLines && h != 0u) {
-		if ((Scaler_ChangedLines=(uint16_t*)malloc(h*sizeof(uint16_t))) == NULL)
+		if ((Scaler_ChangedLines=(uint16_t*)malloc((h+16)*sizeof(uint16_t))) == NULL)
 			return;
 	}
 }

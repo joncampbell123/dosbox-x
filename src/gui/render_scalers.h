@@ -67,9 +67,17 @@ extern uint16_t *Scaler_ChangedLines;
 /* Not entirely happy about those +2's since they make a non power of 2, with muls instead of shift */
 typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE] ;
 typedef union {
-	uint32_t b32	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
-	uint16_t b16	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
-	uint8_t b8	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
+	// an unsigned int and a pointer, regardless of pointer type, is always the same size
+	template <typename T> struct ctd_t {
+		unsigned int pitch,width;
+		uint8_t* d;
+
+		inline T *operator[](unsigned int y) { return (T*)(d + (y * pitch)); }
+	};
+
+	ctd_t<uint32_t> b32;
+	ctd_t<uint16_t> b16;
+	ctd_t<uint8_t> b8;
 } scalerFrameCache_t;
 #endif
 #if RENDER_USE_ADVANCED_SCALERS>1
