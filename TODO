@@ -48,6 +48,31 @@ DOSBox Integrated Graphics:
 - Add register to control pixel aspect ratio, so that it can fix the distorted frame when "fit to aspect ratio" is set. 1920x1080 has a 16:9 aspect ratio, not a 4:3 aspect ratio.
 - 16:9 VESA BIOS modes, when "fit to aspect ratio", are squeezed as if 4:3. [FIXED]
 
+VGA rendering system:
+- Add to VGA struct two integers indicating the maximum video resolution supported by the emulated card.
+- S3 emulation: Fill in VGA struct to indicate maximum video resolution is 2048x2048.
+- DOSBox IG: Fill in VGA struct to indicate maximum video resolution supported is 4096x4096.
+- DOSBox IG: Reject width/height specification from guest if the dimensions are larger than the maximum video resolution
+  reported in the VGA struct.
+
+VESA BIOS:
+- Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct.
+- Now that render scaler limits have been removed, start adding VESA BIOS modes higher than 1920x1440. For example,
+  1920x1200, 2560x1600, 2880x2160, 3840x2160 (4K UHD!), 4096x2160. It is very important not to allow these UHD modes for
+  S3 emulation because the S3 chipset as emulated cannot output more than 2048 scan lines due to register limitations.
+
+AVI capture:
+- Add dosbox.conf option that, if set, will only write video frames to the AVI if the frame changed (according to the render scaler system).
+  If not set, always write a frame (which is standard DOSBox behavior). If you're recording DOS gameplay and the frame doesn't change
+  very often, why waste disk space encoding the duplicate frames, even IF the ZMBV codec is very good at compressing such frames.
+  This option should be a boolean, no "auto". If capturing to MPEG-TS, it should affect that too, though should emit a frame at least
+  4 times a second to prevent H.264 codec issues.
+
+DOSBox menus:
+- Add menu item to control render on demand, and wait for changes. Selecting the menu will toggle between [auto], [off], and [on].
+- Add menu item to control AVI capture option not to write frames that don't change. Option is a boolean, so show check mark.
+
 DOSBox scaler render system:
-- Render scaler code crashes if the GFX display is larger than 1920x1080. Add code to bypass scalers entirely and draw directly to the SDL surface if the resolution is greater than 1920x1080. At that high resolution there is no need for scalers (you probably can't see the effects of the more elaborate ones anyway), and you probably have a GPU through which you can use the OpenGL output mode to scale up to your screen if for some reason you have an 8K monitor.
+[DONE]
+- Render scaler code crashes if the GFX display is larger than 1920x1080. Add code to bypass scalers entirely and draw directly to the SDL surface if the resolution is greater than 1920x1080. At that high resolution there is no need for scalers (you probably can't see the effects of the more elaborate ones anyway), and you probably have a GPU through which you can use the OpenGL output mode to scale up to your screen if for some reason you have an 8K monitor. [FIXED]
 
