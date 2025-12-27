@@ -57,9 +57,11 @@ VGA rendering system:
 
 VESA BIOS:
 - Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct.
+- Mark modes as disabled that cannot fit within the available video memory.
+[DONE]
 - Now that render scaler limits have been removed, start adding VESA BIOS modes higher than 1920x1440. For example,
   1920x1200, 2560x1600, 2880x2160, 3840x2160 (4K UHD!), 4096x2160. It is very important not to allow these UHD modes for
-  S3 emulation because the S3 chipset as emulated cannot output more than 2048 scan lines due to register limitations.
+  S3 emulation because the S3 chipset as emulated cannot output more than 2048 scan lines due to register limitations. [DONE]
 
 AVI capture:
 - Add dosbox.conf option that, if set, will only write video frames to the AVI if the frame changed (according to the render scaler system).
