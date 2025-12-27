@@ -56,6 +56,8 @@ VESA BIOS:
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
 - VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
 - Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
+- Add dosbox.conf option that if set, instructs the VESA BIOS emulation to limit the reported amount of video memory on the card. VBETEST appears to have a bug where if the VESA BIOS reports more than 32MB of RAM, it is unable to do the panning and scan line get/set tests.
+- VESA  SetCPUWindow(). The bank number is 16-bit. The code masks off the low 8 bits because of legacy code and Demoscene bugs. Add code to NOT mask off the low 8 bits if there is enough video memory that 256 or more banks are possible. Make it one less thing for VBETEST to possibly complain about.
 [DONE]
 - Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct. [DONE]
 - Now that render scaler limits have been removed, start adding VESA BIOS modes higher than 1920x1440. For example,
