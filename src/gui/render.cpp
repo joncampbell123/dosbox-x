@@ -67,6 +67,9 @@ void Scaler_AspectChangedLinesAlloc(unsigned int h);
 void scalerFrameCacheFree(void);
 void scalerFrameCacheAlloc(unsigned int p,unsigned int w,unsigned int h);
 
+void scalerChangeCacheFree(void);
+void scalerChangeCacheAlloc(unsigned int w,unsigned int h);
+
 void scalerSourceCacheBufferFree(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Freeing render cache buffer");
 	if (scalerSourceCacheBuffer) free(scalerSourceCacheBuffer);
@@ -566,6 +569,7 @@ void RENDER_Reset( void ) {
 
 	Scaler_AspectChangedLinesFree();
 	scalerSourceCacheBufferFree();
+	scalerChangeCacheFree();
 	scalerFrameCacheFree();
 	scalerWriteCacheFree();
 	TempLineFree();
@@ -991,10 +995,13 @@ forcenormal:
 	scalerSourceCacheBufferAlloc(render.scale.cachePitch,render.src.height);
 
 	/* only allocate frame cache if using a complex scaler.
-	 * the way the advanced scalers are coded, the pitch MUST be sizeof(PTYPE)*SCALER_COMPLEXWIDTH or else the code will misrender! */
+	 * the way the advanced scalers are coded, the pitch MUST be sizeof(PTYPE)*SCALER_COMPLEXWIDTH or else the code will misrender!
+	 * Also allocate the change cache. */
 	if (render.scale.complexHandler) {
-		assert(width < (SCALER_COMPLEXWIDTH - 16)); /* or else buffer overrun and crash! */
+		assert(render.src.width < (SCALER_COMPLEXWIDTH - 16)); /* or else buffer overrun and crash! */
 		scalerFrameCacheAlloc(SCALER_COMPLEXWIDTH * ((render.src.bpp+7u)/8u),render.src.width,render.src.height);
+		scalerChangeCacheAlloc(SCALER_COMPLEXWIDTH,render.src.height);
+		/* ^ FIXME: Must also be COMPLEXWIDTH or misrendering happens, even if the code's use of CC suggests otherwise */
 	}
 
 	TempLineAlloc(render.src.width); // vga_draw.cpp make the scan line larger or smaller to match. that code also previously used scaler max width

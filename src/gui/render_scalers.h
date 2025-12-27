@@ -64,8 +64,16 @@ extern uint8_t *Scaler_Aspect;
 extern Bitu Scaler_ChangedLineIndex;
 extern uint16_t *Scaler_ChangedLines;
 #if RENDER_USE_ADVANCED_SCALERS>1
-/* Not entirely happy about those +2's since they make a non power of 2, with muls instead of shift */
-typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE] ;
+
+//typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE];
+template <typename T> struct scct_t {
+	unsigned int pitch,width;
+	uint8_t* d;
+
+	inline T *operator[](unsigned int y) { return (T*)(d + (y * pitch)); }
+};
+typedef scct_t<uint8_t> scalerChangeCache_t;
+
 typedef union {
 	// an unsigned int and a pointer, regardless of pointer type, is always the same size
 	template <typename T> struct ctd_t {
