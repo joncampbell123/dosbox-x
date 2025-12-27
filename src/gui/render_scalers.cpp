@@ -25,8 +25,8 @@
 #include "render.h"
 #include <string.h>
 
-uint8_t Scaler_Aspect[SCALER_MAXHEIGHT];
-uint16_t Scaler_ChangedLines[SCALER_MAXHEIGHT];
+uint8_t *Scaler_Aspect = NULL;
+uint16_t *Scaler_ChangedLines = NULL;
 Bitu Scaler_ChangedLineIndex;
 
 static union {
@@ -52,8 +52,28 @@ void scalerWriteCacheAlloc(unsigned int p) {
 		if ((scalerWriteCache.b8[0]=(uint8_t*)malloc(p*5)) == NULL)
 			return;
 
-		for (unsigned int i=1;i < 5;i++)
+		for (unsigned int i=1;i < 5u;i++)
 			scalerWriteCache.b8[i] = scalerWriteCache.b8[i-1] + p;
+	}
+}
+
+void Scaler_AspectChangedLinesFree(void) {
+	if (Scaler_Aspect) free(Scaler_Aspect);
+	Scaler_Aspect = NULL;
+
+	if (Scaler_ChangedLines) free(Scaler_ChangedLines);
+	Scaler_ChangedLines = NULL;
+}
+
+void Scaler_AspectChangedLinesAlloc(unsigned int h) {
+	if (!Scaler_Aspect && h != 0u) {
+		if ((Scaler_Aspect=(uint8_t*)malloc(h*sizeof(uint8_t))) == NULL)
+			return;
+	}
+
+	if (!Scaler_ChangedLines && h != 0u) {
+		if ((Scaler_ChangedLines=(uint16_t*)malloc(h*sizeof(uint16_t))) == NULL)
+			return;
 	}
 }
 
