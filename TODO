@@ -77,8 +77,6 @@ DOSBox menus:
 - Add menu item to control AVI capture option not to write frames that don't change. Option is a boolean, so show check mark.
 
 DOSBox scaler render system:
-- Recent changes to the render system in DOSBox-X just BROKE the "fit aspect ratio" setting for output=surface! It no longer stretches the
-  frame properly! Fix!
 - Speaking of surface output and "fit aspect ratio", duplicating scan lines to stretch the frame looks like crap. It's very much like
   what laptops did if you enabled "stretching" the display to fit the 800x600 LCD panel, they just duplicated pixels. The tech to
   do bilinear interpolation as late 1990s and 2000s laptops did was not there yet. We're well past slower video memory and slower CPUs,
@@ -86,4 +84,6 @@ DOSBox scaler render system:
   are available, are quite fast at cross-blending scan lines to accomplish this.
 [DONE]
 - Render scaler code crashes if the GFX display is larger than 1920x1080. Add code to bypass scalers entirely and draw directly to the SDL surface if the resolution is greater than 1920x1080. At that high resolution there is no need for scalers (you probably can't see the effects of the more elaborate ones anyway), and you probably have a GPU through which you can use the OpenGL output mode to scale up to your screen if for some reason you have an 8K monitor. [FIXED]
+- Recent changes to the render system in DOSBox-X just BROKE the "fit aspect ratio" setting for output=surface! It no longer stretches the
+  frame properly! Fix! [UM, DOES NOT HAPPEN ANYMORE?]
 
