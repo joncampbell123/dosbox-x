@@ -1016,6 +1016,24 @@ void VGA_Reset(Section*) {
 		}
 	}
 
+	/* traditional VGA limits including older SVGA cards like Tseng */
+	if (IS_VGA_ARCH) {
+		vga.max_svga_width = 1024;
+		vga.max_svga_height = 1024;
+	}
+	else if (IS_EGA_ARCH) {//GUESS
+		vga.max_svga_width = 1024;
+		vga.max_svga_height = 512;
+	}
+	else if (IS_PC98_ARCH) {//GUESS
+		vga.max_svga_width = 1024;
+		vga.max_svga_height = 512;
+	}
+	else {
+		vga.max_svga_width = 1024;
+		vga.max_svga_height = 512;
+	}
+
 	/* sanity check according to adapter type.
 	 * FIXME: Again it was foolish for DOSBox to standardize on machine=
 	 * for selecting machine type AND video card. */
@@ -1098,6 +1116,7 @@ void VGA_Reset(Section*) {
 	vga.mem.memmask = bitop::rounduppow2mask(vga.mem.memsize - 1u);
 
 	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB (mask 0x%x)",vga.mem.memsize>>10,(unsigned int)vga.mem.memmask);
+	LOG(LOG_VGA,LOG_DEBUG)("Maximum video resolution supported by card: %ux%u",vga.max_svga_width,vga.max_svga_height);
 
 	// TODO: If S3 emulation, and linear framebuffer bumps up against the CPU memalias limits,
 	//       trim Video RAM to fit (within reasonable limits) or else E_Exit() to let the user
@@ -1913,6 +1932,9 @@ void SVGA_Setup_DOSBoxIG(void) {
 		vga.mem.memsize = (128*1024*1024);
 
 	svga.set_video_mode = &FinishSetMode_DOSBoxIG;
+
+	vga.max_svga_width = 4096;
+	vga.max_svga_height = 4096;
 
 	PCI_AddSVGADOSBoxIG_Device();
 }

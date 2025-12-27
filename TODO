@@ -30,10 +30,6 @@ Render on Demand + Wait for Changes:
   white. This does not happen if only Render On Demand is active.
 
 DOSBox Integrated Graphics:
-- INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
-- VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
-- Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
-- VESA BIOS emulation is correct in not listing modes that there is not enough video memory to set, but, if you know the video mode by number you can set it anyway. The mode set function should refuse to set such modes.
 [DONE]
 - doublescan setting should become "true" "false" or "auto". "auto" is like true, but automatically becomes false when the user selects any render scaler other than the scale2x, etc. scalers. If the user wants to use the mame upscalers the doublescan setting shouldn't get in the way. [DONE, BUT IN A DIFFERENT WAY]
 - HD (1920x1080) modes crash the emulator if the Video Debug Overlay is enabled. [FIXED: Now it just stops rendering]
@@ -49,16 +45,21 @@ DOSBox Integrated Graphics:
 - 16:9 VESA BIOS modes, when "fit to aspect ratio", are squeezed as if 4:3. [FIXED]
 
 VGA rendering system:
-- Add to VGA struct two integers indicating the maximum video resolution supported by the emulated card.
-- S3 emulation: Fill in VGA struct to indicate maximum video resolution is 2048x2048.
-- DOSBox IG: Fill in VGA struct to indicate maximum video resolution supported is 4096x4096.
+[DONE]
+- Add to VGA struct two integers indicating the maximum video resolution supported by the emulated card. [DONE]
+- S3 emulation: Fill in VGA struct to indicate maximum video resolution is 2048x2048. [DONE]
+- DOSBox IG: Fill in VGA struct to indicate maximum video resolution supported is 4096x4096. [DONE]
 - DOSBox IG: Reject width/height specification from guest if the dimensions are larger than the maximum video resolution
-  reported in the VGA struct.
+  reported in the VGA struct. [DONE]
 
 VESA BIOS:
-- Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct.
+- INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
+- VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
+- Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
 - Mark modes as disabled that cannot fit within the available video memory.
+- VESA BIOS emulation: When building the mode list, if the mode was not listed in the mode list presented to the guest, mark it as disabled, unless it is also marked as do not list.
 [DONE]
+- Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct. [DONE]
 - Now that render scaler limits have been removed, start adding VESA BIOS modes higher than 1920x1440. For example,
   1920x1200, 2560x1600, 2880x2160, 3840x2160 (4K UHD!), 4096x2160. It is very important not to allow these UHD modes for
   S3 emulation because the S3 chipset as emulated cannot output more than 2048 scan lines due to register limitations. [DONE]
