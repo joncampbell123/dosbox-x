@@ -744,7 +744,7 @@ forcenormal:
 	}
 	if (complexBlock) {
 #if RENDER_USE_ADVANCED_SCALERS>1
-		if ((width >= SCALER_COMPLEXWIDTH - 16) || height >= SCALER_COMPLEXHEIGHT - 16) {
+		if ((width >= SCALER_COMPLEXWIDTH - 16)) {
 			LOG_MSG("Scaler can't handle this resolution, going back to normal");
 			goto forcenormal;
 		}
