@@ -108,19 +108,24 @@ static inline void conc4d_sub_func(const SRCTYPE* &src, SRCTYPE* &cache, PTYPE* 
 #if defined(SCALERLINEAR)
 #if (SCALERHEIGHT > 1)
 		Bitu copyLen = (Bitu)((uint8_t*)line1 - (uint8_t*)WC[0]);
-		BituMove(((uint8_t*)line0)-copyLen+render.scale.outPitch,WC[0], copyLen );
+		line1 = (PTYPE *)(((uint8_t*)line0)-copyLen+render.scale.outPitch);
+		BituMove(line1,WC[0], copyLen );
 #endif
 #if (SCALERHEIGHT > 2) 
-		BituMove(((uint8_t*)line1)-copyLen+render.scale.outPitch,WC[1], copyLen );
+		line2 = (PTYPE *)(((uint8_t*)line1)+ render.scale.outPitch);
+		BituMove(line2,WC[1], copyLen );
 #endif
 #if (SCALERHEIGHT > 3) 
-		BituMove(((uint8_t*)line2)-copyLen+render.scale.outPitch,WC[2], copyLen );
+		line3 = (PTYPE *)(((uint8_t*)line2)+ render.scale.outPitch);
+		BituMove(line3,WC[2], copyLen );
 #endif
 #if (SCALERHEIGHT > 4) 
-		BituMove(((uint8_t*)line3)-copyLen+render.scale.outPitch,WC[3], copyLen );
+		line4 = (PTYPE *)(((uint8_t*)line3)+ render.scale.outPitch);
+		BituMove(line4,WC[3], copyLen );
 #endif
 #if (SCALERHEIGHT > 5) 
-		BituMove(((uint8_t*)line4)-copyLen+render.scale.outPitch,WC[4], copyLen );
+		line5 = (PTYPE *)(((uint8_t*)line4)+ render.scale.outPitch);
+		BituMove(line5,WC[4], copyLen );
 #endif
 #endif //defined(SCALERLINEAR)
 	}

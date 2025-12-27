@@ -53,6 +53,34 @@
 #include <output/output_opengl.h>
 
 extern bool video_debug_overlay;
+bool useTraditionalRenderCache = false;
+
+unsigned char *scalerSourceCacheBuffer=NULL;
+unsigned int scalerSourceCacheBufferSize=0;
+
+void scalerWriteCacheFree(void);
+void scalerWriteCacheAlloc(unsigned int p);
+
+void scalerSourceCacheBufferFree(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("Freeing render cache buffer");
+	if (scalerSourceCacheBuffer) free(scalerSourceCacheBuffer);
+	scalerSourceCacheBuffer=NULL;
+	scalerSourceCacheBufferSize=0;
+}
+
+bool scalerSourceCacheBufferAlloc(unsigned int p,unsigned int h) {
+	if (scalerSourceCacheBuffer || p == 0 || h == 0 || p > 65536 || h > 8192) return false;
+	scalerSourceCacheBufferSize = p * (h + 16) + 4096;
+
+	LOG(LOG_MISC,LOG_DEBUG)("Allocating render cache buffer %u",p*h);
+	if ((scalerSourceCacheBuffer=(unsigned char*)malloc(scalerSourceCacheBufferSize)) == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating render cache failed");
+		scalerSourceCacheBufferSize = 0;
+		return false;
+	}
+
+	return true;
+}
 
 Render_t                                render;
 int                                     eurAscii = -1;
@@ -364,6 +392,8 @@ bool RENDER_StartUpdate(void) {
         return false;
     if (GCC_UNLIKELY(render.disablerender))
         return false;
+    if (GCC_UNLIKELY(!scalerSourceCacheBuffer && !useTraditionalRenderCache))
+	return false;
     if (GCC_UNLIKELY(render.frameskip.count<render.frameskip.max)) {
         render.frameskip.count++;
         return false;
@@ -374,7 +404,10 @@ bool RENDER_StartUpdate(void) {
     }
     render.scale.inLine = 0;
     render.scale.outLine = 0;
-    render.scale.cacheRead = (uint8_t*)&scalerSourceCache;
+    if (useTraditionalRenderCache)
+        render.scale.cacheRead = (uint8_t*)(&scalerSourceCache);
+    else
+        render.scale.cacheRead = (uint8_t*)scalerSourceCacheBuffer;
     render.scale.outWrite = nullptr;
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
@@ -452,6 +485,7 @@ void RENDER_EndUpdate( bool abort ) {
                 if (render.src.dblw) flags|=CAPTURE_FLAG_DBLW;
                 if (render.src.dblh) flags|=CAPTURE_FLAG_DBLH;
             }
+            uint8_t *sp;
             float fps = render.src.fps;
             pitch = render.scale.cachePitch;
             if (render.frameskip.max)
@@ -460,8 +494,13 @@ void RENDER_EndUpdate( bool abort ) {
             if (Scaler_ChangedLineIndex == 0)
                 flags |= CAPTURE_FLAG_NOCHANGE;
 
+            if (useTraditionalRenderCache)
+                sp = (uint8_t*)(&scalerSourceCache);
+            else
+                sp = (uint8_t*)scalerSourceCacheBuffer;
+
             CAPTURE_AddImage( render.src.width, render.src.height, render.src.bpp, pitch,
-                flags, fps, (uint8_t *)&scalerSourceCache, (uint8_t*)&render.pal.rgb );
+                flags, fps, sp, (uint8_t*)&render.pal.rgb );
         }
         if ( render.scale.outWrite ) {
             GFX_EndUpdate( abort? NULL : Scaler_ChangedLines );
@@ -527,6 +566,10 @@ void RENDER_Reset( void ) {
 	double gfx_scalew;
 	double gfx_scaleh;
 	const std::string scaler = RENDER_GetScaler();
+
+	scalerSourceCacheBufferFree();
+	scalerWriteCacheFree();
+	TempLineFree();
 
 	render.disablerender = false;
 
@@ -792,6 +835,7 @@ forcenormal:
 	}
 	width *= xscale;
 	Bitu skip = complexBlock ? 1 : 0;
+	useTraditionalRenderCache = !!complexBlock; // the advanced scalers depend heavily on the traditional fixed cache/change buffers
 	if (gfx_flags & GFX_SCALING) {
 		if(render.scale.size == 1 && render.scale.hardware) { //hardware_none
 			/* don't scale */
@@ -847,18 +891,6 @@ forcenormal:
 		}
 	}
 
-	/* avoid crashes by not drawing any mode larger than the simple scaler.
-	 * the code above has already switched to the simple scaler from complex if it exceeds what the complex scalers can do */
-	if (simpleBlock && !complexBlock) {
-		if (render.src.width > SCALER_MAXWIDTH || render.src.height > SCALER_MAXHEIGHT) {
-			LOG_MSG("Video resolution is too high for render scaler architecture (%ux%u > %ux%u)",
-				(unsigned int)render.src.width,(unsigned int)render.src.height,
-				(unsigned int)SCALER_MAXWIDTH,(unsigned int)SCALER_MAXHEIGHT);
-			RENDER_DrawLine = RENDER_EmptyLineHandler;
-			render.disablerender = true;
-		}
-	}
-
 	/* update the aspect ratio */
 	sdl.srcAspect.x = aspect_ratio_x>0?aspect_ratio_x:(int)(render.src.width * (render.src.dblw ? 2 : 1));
 	sdl.srcAspect.y = aspect_ratio_y>0?aspect_ratio_y:(int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
@@ -885,7 +917,19 @@ forcenormal:
 	else 
 		E_Exit("Failed to create a rendering output");
 	ScalerLineBlock_t *lineBlock;
-	if (gfx_flags & GFX_HARDWARE) {
+
+	/* how many bytes will be needed in the write cache?
+	 * if it's too much, do not use the L (linear) versions of the scalers because
+	 * they use the write cache as a way to render to memory and then rapid copy to device memory.
+	 * the only safe way to proceed here is to use the random versions which do not use the render cache.
+	 * this is how it's going to stay until I figure out how to dynamically allocate the write cache. --J.C. */
+	unsigned int wcpitch = width/*already multiplied by xscale*/ * ((render.src.bpp+7u)>>3u);
+	bool use_wcache = false;
+
+	/* Allow command line option to force scaler choice as if GFX_HARDWARE were set, in order to properly test scaler code */
+	if ((gfx_flags & GFX_HARDWARE) || control->opt_force_gfx_hardware) {
+		LOG(LOG_MISC,LOG_DEBUG)("Using L versions of scalers that use write cache (and GFX_HARDWARE)");
+		use_wcache = true;
 #if RENDER_USE_ADVANCED_SCALERS>1
 		if (complexBlock) {
 			lineBlock = &ScalerCache;
@@ -897,6 +941,7 @@ forcenormal:
 			lineBlock = &simpleBlock->Linear;
 		}
 	} else {
+		LOG(LOG_MISC,LOG_DEBUG)("Using R versions of scalers that do not use write cache");
 #if RENDER_USE_ADVANCED_SCALERS>1
 		if (complexBlock) {
 			lineBlock = &ScalerCache;
@@ -942,6 +987,11 @@ forcenormal:
 			break;
 			//E_Exit("RENDER:Wrong source bpp %d", render.src.bpp );
 	}
+
+	scalerSourceCacheBufferAlloc(render.scale.cachePitch,render.src.height);
+	TempLineAlloc(render.src.width); // vga_draw.cpp make the scan line larger or smaller to match. that code also previously used scaler max width
+	if (use_wcache) scalerWriteCacheAlloc(wcpitch);
+
 	render.scale.blocks = render.src.width / SCALER_BLOCKSIZE;
 	render.scale.lastBlock = render.src.width % SCALER_BLOCKSIZE;
 	render.scale.inHeight = render.src.height;
@@ -950,8 +1000,8 @@ forcenormal:
 	render.pal.last = 255;
 	render.pal.changed = false;
 	memset(render.pal.modified, 0, sizeof(render.pal.modified));
-	//Finish this frame using a copy only handler
-	if (!render.disablerender) RENDER_DrawLine = RENDER_FinishLineHandler;
+	//Finish this frame using an empty handler because the render pointers are now invalid due to cache buffer reallocation
+	if (!render.disablerender) RENDER_DrawLine = RENDER_EmptyLineHandler;
 	vga.draw.must_complete_frame = true;
 	render.scale.outWrite = nullptr;
 	/* Signal the next frame to first reinit the cache */
@@ -993,7 +1043,7 @@ void RENDER_CallBack( GFX_CallBackFunctions_t function ) {
 
 void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio) {
     RENDER_Halt( );
-    if (!width || !height || width > SCALER_MAXWIDTH || height > SCALER_MAXHEIGHT) {
+    if (!width || !height) {
         LOG(LOG_MISC,LOG_WARN)("RENDER_SetSize() rejected video mode %u x %u",(unsigned int)width,(unsigned int)height);
         return; 
     }

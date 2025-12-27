@@ -174,6 +174,9 @@ Bitu OUTPUT_GAMELINK_SetSize()
     sdl.clip.x = 0;
     sdl.clip.y = 0;
 
+    // FIXME: Please use sdl.draw.width and sdl.draw.height and allocate based on that.
+    //        Free the buffer and reallocate on size change. Look at the OpenGL output
+    //        code for a good example.
     if (!sdl.gamelink.framebuf) {
         sdl.gamelink.framebuf = malloc(SCALER_MAXWIDTH * SCALER_MAXHEIGHT * 4);   // 32 bit color frame buffer
     }

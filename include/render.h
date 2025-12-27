@@ -192,4 +192,9 @@ void RENDER_SetPal(uint8_t entry,uint8_t red,uint8_t green,uint8_t blue);
 bool RENDER_GetForceUpdate(void);
 void RENDER_SetForceUpdate(bool);
 
+bool TempLineAlloc(unsigned int w);
+void TempLineFree(void);
+void scalerSourceCacheBufferFree(void);
+bool scalerSourceCacheBufferAlloc(unsigned int p,unsigned int h);
+
 #endif

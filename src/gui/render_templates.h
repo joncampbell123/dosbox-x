@@ -94,7 +94,6 @@
 
 
 #if SBPP == 8 || SBPP == 9
-#define SC scalerSourceCache.b8
 #if DBPP == 8
 #define PMAKE(_VAL) (_VAL)
 #elif DBPP == 15
@@ -108,7 +107,6 @@
 #endif
 
 #if SBPP == 15
-#define SC scalerSourceCache.b16
 #ifdef WORDS_BIGENDIAN
 #if DBPP == 15   // GGGBBBBBxRRRRRGG -> xRRRRRGGGGGBBBBB
 #define PMAKE(_VAL) (((_VAL>>8)&0x00FF)|((_VAL<<8)&0xFF00))
@@ -134,7 +132,6 @@
 #endif
 
 #if SBPP == 16
-#define SC scalerSourceCache.b16
 #ifdef WORDS_BIGENDIAN
 #if DBPP == 15   // GGgBBBBBRRRRRGGG -> 0RRRRRGGGGGBBBBB
 #define PMAKE(_VAL) (((_VAL>>8)&0x001F)|((_VAL>>9)&0x0060)|((_VAL<<7)&0x7F80))
@@ -160,7 +157,6 @@
 #endif
 
 #if SBPP == 32
-#define SC scalerSourceCache.b32
 #ifdef WORDS_BIGENDIAN
 #if DBPP == 15   // BBBBBbbbGGGGGgggRRRRRrrrxxxxxxxx -> 0RRRRRGGGGGBBBBB
 #define PMAKE(_VAL) (PTYPE)(((_VAL>>27)&0x001F)|((_VAL>>14)&0x03E0)|((_VAL>>1)&0x7C00))

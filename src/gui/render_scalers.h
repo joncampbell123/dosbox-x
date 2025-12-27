@@ -21,17 +21,12 @@
 
 //#include "render.h"
 #include "video.h"
-#if RENDER_USE_ADVANCED_SCALERS>0
+// TODO: Make the simpler scalers and the write cache work properly regardless of these values
 #define SCALER_MAXWIDTH		1920
 #define SCALER_MAXHEIGHT	1440
-#else
-// reduced to save some memory
-#define SCALER_MAXWIDTH		800 
-#define SCALER_MAXHEIGHT	600
-#endif
 
 #if RENDER_USE_ADVANCED_SCALERS>1
-#define SCALER_COMPLEXWIDTH		800
+#define SCALER_COMPLEXWIDTH	800
 #define SCALER_COMPLEXHEIGHT	600
 #endif
 
@@ -86,6 +81,13 @@ extern scalerSourceCache_t scalerSourceCache;
 extern scalerChangeCache_t scalerChangeCache;
 #endif
 typedef ScalerLineHandler_t ScalerLineBlock_t[5][4];
+
+extern bool useTraditionalRenderCache;
+extern unsigned char *scalerSourceCacheBuffer;
+extern unsigned int scalerSourceCacheBufferSize;
+
+void scalerSourceCacheBufferFree(void);
+bool scalerSourceCacheBufferAlloc(unsigned int p,unsigned int h);
 
 typedef struct {
 	const char *name;

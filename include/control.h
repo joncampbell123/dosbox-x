@@ -74,6 +74,7 @@ public:
     signed char opt_promptfolder = -1;
     bool opt_disable_dpi_awareness = false;
     bool opt_disable_numlock_check = false;
+    bool opt_force_gfx_hardware = false;
     bool opt_date_host_forced = false;
     bool opt_used_defaultdir = false;
     bool opt_defaultmapper = false;

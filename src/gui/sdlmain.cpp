@@ -7253,6 +7253,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -nolog                                  Do not log anything to log file\n");
             fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n");
             fprintf(stderr,"  -print-ticks                            (Debug) Print emulator time and SDL_GetTicks()\n");
+            fprintf(stderr,"  -force-gfx-hardware                     Force render scaler system to act as if GFX_HARDWARE\n");
             fprintf(stderr,"\n");
 
 #if defined(WIN32)
@@ -7288,6 +7289,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "break-start") {
             control->opt_break_start = true;
+        }
+        else if (optname == "force-gfx-hardware") {
+            control->opt_force_gfx_hardware = true;
         }
         else if (optname == "silent") {
             putenv(const_cast<char*>("SDL_AUDIODRIVER=dummy"));

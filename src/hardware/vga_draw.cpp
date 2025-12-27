@@ -316,8 +316,26 @@ typedef uint8_t * (* VGA_Line_Handler)(Bitu vidstart, Bitu line);
 
 static VGA_Line_Handler VGA_DrawLine;
 static VGA_RawLine_Handler VGA_DrawRawLine;
-static uint8_t TempLine[SCALER_MAXWIDTH * 4 + 256];
+static uint8_t *TempLine = NULL;
+static unsigned int TempLineSize = 0;
 static float hretrace_fx_avg = 0;
+
+bool TempLineAlloc(unsigned int w) {
+	if (TempLine) return false;
+
+	TempLineSize = w * 4 + 1024;
+	if ((TempLine=(uint8_t*)malloc(TempLineSize)) == NULL) {
+		TempLineSize = 0;
+		return false;
+	}
+
+	return true;
+}
+
+void TempLineFree(void) {
+	if (TempLine) free(TempLine);
+	TempLine = NULL;
+}
 
 void pc98_update_display_page_ptr(void);
 
@@ -1984,9 +2002,9 @@ static const uint8_t* VGA_Text_Memwrap(Bitu vidstart) {
         // wrapping in this line
         Bitu break_pos = (vga.draw.linear_mask - vidstart) + 1;
         // need a temporary storage - TempLine/2 is ok for a bit more than 132 columns
-        memcpy(&TempLine[sizeof(TempLine)/2], &vga.tandy.draw_base[vidstart], break_pos);
-        memcpy(&TempLine[sizeof(TempLine)/2 + break_pos],&vga.tandy.draw_base[0], line_end - break_pos);
-        return &TempLine[sizeof(TempLine)/2];
+        memcpy(&TempLine[TempLineSize/2], &vga.tandy.draw_base[vidstart], break_pos);
+        memcpy(&TempLine[TempLineSize/2 + break_pos],&vga.tandy.draw_base[0], line_end - break_pos);
+        return &TempLine[TempLineSize/2];
     } else return &vga.tandy.draw_base[vidstart];
 }
 
@@ -3633,7 +3651,7 @@ static uint8_t *VGA_DrawLineBiosLogoOverlay(Bitu vidstart, Bitu line) {
 	 * corruption. Modifying TempLine, which is basically the same exact memory "r" points to, does not. */
 
 	if (BIOSlogo.bmp != NULL && BIOSlogo.palette != NULL && BIOSlogo.visible && BIOSlogo.vsync_enable) {
-		if (vga.draw.lines_done >= BIOSlogo.y && r >= TempLine && r < (TempLine+sizeof(TempLine))) {
+		if (vga.draw.lines_done >= BIOSlogo.y && r >= TempLine && r < (TempLine+TempLineSize)) {
 			const unsigned int rel = vga.draw.lines_done - BIOSlogo.y;
 			const unsigned int bofs = (unsigned int)(r - TempLine);
 			if (rel < BIOSlogo.height) {
@@ -3794,17 +3812,17 @@ again:
                     break;
             }
             if (vga.draw.bpp==8) {
-                memset(TempLine, bg_color_index, sizeof(TempLine));
+                memset(TempLine, bg_color_index, TempLineSize);
             } else if (vga.draw.bpp==16) {
                 uint16_t* wptr = (uint16_t*) TempLine;
                 uint16_t value = vga.dac.xlat16[bg_color_index];
-                for (Bitu i = 0; i < sizeof(TempLine)/2; i++) {
+                for (Bitu i = 0; i < TempLineSize/2; i++) {
                     wptr[i] = value;
                 }
             } else if (vga.draw.bpp==32) {
                 uint32_t* wptr = (uint32_t*) TempLine;
                 uint32_t value = vga.dac.xlat32[bg_color_index];
-                for (Bitu i = 0; i < sizeof(TempLine)/4; i++) {
+                for (Bitu i = 0; i < TempLineSize/4; i++) {
                     wptr[i] = value;
                 }
             }
@@ -3951,7 +3969,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 
     if (!skiprender) {
         if (GCC_UNLIKELY(vga.attr.disabled)) {
-            memset(TempLine, 0, sizeof(TempLine));
+            memset(TempLine, 0, TempLineSize);
             RENDER_DrawLine(TempLine);
         } else {
             Bitu address = vga.draw.address;
