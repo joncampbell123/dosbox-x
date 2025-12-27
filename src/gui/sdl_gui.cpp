@@ -198,12 +198,7 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
     if (y < 0) y = 0;
 
     uint32_t pixel;
-    uint8_t* src;
-
-    if (useTraditionalRenderCache)
-        src = (uint8_t *)&scalerSourceCache;
-    else
-        src = (uint8_t *)scalerSourceCacheBuffer;
+    uint8_t* src = (uint8_t *)scalerSourceCacheBuffer;
 
     if (!src) return;
 

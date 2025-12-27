@@ -404,10 +404,7 @@ bool RENDER_StartUpdate(void) {
     }
     render.scale.inLine = 0;
     render.scale.outLine = 0;
-    if (useTraditionalRenderCache)
-        render.scale.cacheRead = (uint8_t*)(&scalerSourceCache);
-    else
-        render.scale.cacheRead = (uint8_t*)scalerSourceCacheBuffer;
+    render.scale.cacheRead = (uint8_t*)scalerSourceCacheBuffer;
     render.scale.outWrite = nullptr;
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
@@ -485,7 +482,6 @@ void RENDER_EndUpdate( bool abort ) {
                 if (render.src.dblw) flags|=CAPTURE_FLAG_DBLW;
                 if (render.src.dblh) flags|=CAPTURE_FLAG_DBLH;
             }
-            uint8_t *sp;
             float fps = render.src.fps;
             pitch = render.scale.cachePitch;
             if (render.frameskip.max)
@@ -494,13 +490,8 @@ void RENDER_EndUpdate( bool abort ) {
             if (Scaler_ChangedLineIndex == 0)
                 flags |= CAPTURE_FLAG_NOCHANGE;
 
-            if (useTraditionalRenderCache)
-                sp = (uint8_t*)(&scalerSourceCache);
-            else
-                sp = (uint8_t*)scalerSourceCacheBuffer;
-
             CAPTURE_AddImage( render.src.width, render.src.height, render.src.bpp, pitch,
-                flags, fps, sp, (uint8_t*)&render.pal.rgb );
+                flags, fps, (uint8_t*)scalerSourceCacheBuffer, (uint8_t*)&render.pal.rgb );
         }
         if ( render.scale.outWrite ) {
             GFX_EndUpdate( abort? NULL : Scaler_ChangedLines );
