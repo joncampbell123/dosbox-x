@@ -1,0 +1,5 @@
+  After entering Snap mode and continuing the game, use this command to continue searching if the value you want to search for is **larger than** the value when entering "Snap mode" or **larger than the value from the last search**. Usage is as follows:
+    SU
+This method is suitable for values like health bars, where the exact value is unknown, allowing only fuzzy searches. This approach may require many attempts to find your target. Alternatively, you can use:
+    SU 10
+This method is suitable when the exact numerical difference is known. For example, if your money starts at 1000, use SNAP, then enter the game and earn 10 more. You can then enter debug mode and use `SU 10` to search quickly. If the search results are still numerous, press `[F5]` to return to the game, wait for the value to change again, and then search once more.

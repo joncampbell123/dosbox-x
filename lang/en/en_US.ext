@@ -1,0 +1,108 @@
+:CHEAT_NAME_ERROR
+Entering cheat mode requires specifying a project name.
+.
+:CHEAT_CMD_NOT_FOUND
+Command not found in cheat mode.
+.
+:CHEAT_HELP_NOT_FOUND
+No detailed help available for this command.
+.
+:CHEAT_CREATEDIR_ERROR
+Unable to create cheat folder.
+.
+:CHEAT_HELP_HELP
+HELP [CHEAT COMMANDS]   : This command
+.
+:CHEAT_HELP_SM
+SM   Search Mode        : Search mode, can be BYTE, WORD, DWORD or 1, 2, 4
+.
+:CHEAT_HELP_SEG
+SEG  Segment            : Set segment, can use CS, DS, ES; 0 use linear
+.
+:CHEAT_HELP_OFF
+OFF  Offset             : Set search offset address (64KB or memory limit)
+.
+:CHEAT_HELP_SL
+SL   Length             : Search length (unit: BYTE)
+.
+:CHEAT_HELP_D
+D    Address            : Display memory data in DATA VIEW
+.
+:CHEAT_HELP_DV
+DV   Address            : Display memory data in DATA VIEW(linear address)
+.
+:CHEAT_HELP_S
+S    Value              : Search for value with specified mode and length
+.
+:CHEAT_HELP_L
+L    [Address] [MODE]   : List values at specified address based on SEG:OFF
+.
+:CHEAT_HELP_TL
+TL                      : List first 10 entries in temporary buffer
+.
+:CHEAT_HELP_TD
+TD   Number             : Manually delete specific data from temporary buffer
+.
+:CHEAT_HELP_TW
+TW   Value [Number]     : Write value to memory corresponding to temporary
+.
+:CHEAT_HELP_TS
+TS   Name               : Save search temporary buffer to specified file
+.
+:CHEAT_HELP_TR
+TR   Name               : Load specified file into search temporary buffer
+.
+:CHEAT_HELP_A
+A    Description        : Write search results to data area
+.
+:CHEAT_HELP_R
+R    [Record Number]    : List all data in record area
+.
+:CHEAT_HELP_WR
+WR   Value Record Number: Write specified value to memory
+.
+:CHEAT_HELP_CLS
+CLS                     : Clear temporary buffer
+.
+:CHEAT_HELP_SAVE
+SAVE                    : Save record area data to project file
+.
+:CHEAT_HELP_MM
+MM   Memory Mode        : Memory operation mode, can be BYTE, WORD, DWORD
+.
+:CHEAT_HELP_MSEG
+MSEG Segment            : Set memory mode segment, can use CS, DS, ES
+.
+:CHEAT_HELP_MOFF
+MOFF Offset             : Set memory mode offset(64KB or memory limit)
+.
+:CHEAT_HELP_MD
+MD                      : Display in DATA VIEW by memory mode setting
+.
+:CHEAT_HELP_MR
+MR                      : Display value by memory mode setting
+.
+:CHEAT_HELP_MW
+MW   Value              : Write specified value to memory mode set address
+.
+:CHEAT_HELP_MA
+MA   Description        : Add memory mode set address to data area
+.
+:CHEAT_HELP_SNAP
+SNAP                    : Create memory snapshot
+.
+:CHEAT_HELP_SU
+SU   [Difference Value] : Search current value > snapshot value
+.
+:CHEAT_HELP_SD
+SD   [Difference Value] : Search current value < snapshot value
+.
+:CHEAT_HELP_SS
+SS   Specified Value    : Search temporary buffer that equal specified value
+.
+:CHEAT_HELP_CVT
+CVT  Decimal|Hex        : Convert decimal to HEX, or HEX to decimal
+.
+:CHEAT_HELP_EXIT
+EXIT                    : Exit cheat mode
+.

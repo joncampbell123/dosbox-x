@@ -1,0 +1,45 @@
+:CHEAT_HELP_MM1
+  從這個指令開始進入記憶體操作模式, 所有指令皆以M 開頭, 此模式可以直接操作記憶
+.
+:CHEAT_HELP_MM2
+體內容, 此模式的使用時機為遊戲很可能將重要的數值都放在一起, 當你確定某個目標之
+.
+:CHEAT_HELP_MM3
+後可以讓data view 顯示這個區塊的記憶體內容, 檢視之後有可能會發現附近的記憶體存
+.
+:CHEAT_HELP_MM4
+著你所要的其他目標, 此時可以使用記憶體操作模式的一連串指令測試結果, 等確認後就
+.
+:CHEAT_HELP_MM5
+可以直接將結果加入正式紀錄區, 這個指令式的用途是設定記憶體模式的基礎資料大小, 
+.
+:CHEAT_HELP_MM6
+範例如下
+.
+:CHEAT_HELP_MM7
+    MM 1
+.
+:CHEAT_HELP_MM8
+    MM BYTE
+.
+:CHEAT_HELP_MM9
+以上將記憶體模式設定成BYTE
+.
+:CHEAT_HELP_MM10
+    MM 2
+.
+:CHEAT_HELP_MM11
+    MM WORD
+.
+:CHEAT_HELP_MM12
+以上將記憶體模式設定成WORD
+.
+:CHEAT_HELP_MM13
+    MM 4
+.
+:CHEAT_HELP_MM14
+    MM DWORD
+.
+:CHEAT_HELP_MM15
+以上將記憶體模式設定成DWORD
+.

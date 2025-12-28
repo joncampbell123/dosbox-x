@@ -1,0 +1,15 @@
+:CHEAT_HELP_SAVE1
+  將正式紀錄區資料存入專案檔, 資料放在 "cheat/專案" 資料夾, 檔名為 "專案.prj",
+.
+:CHEAT_HELP_SAVE2
+ 範例如下
+.
+:CHEAT_HELP_SAVE3
+    SAVE
+.
+:CHEAT_HELP_SAVE4
+在debug 模式使用 "cheat 專案名稱" 指令進入金手指模式時, 會自動讀取之前儲存的紀
+.
+:CHEAT_HELP_SAVE5
+錄, 並在output區顯示讀取幾筆紀錄
+.

@@ -50,6 +50,12 @@ using namespace std;
 #include "../cpu/lazyflags.h"
 #include "keyboard.h"
 #include "control.h"
+/* Knifour Start */
+#ifdef C_CHEAT
+#include <direct.h>
+#include "cheat.h"
+#endif
+/* Knifour End */
 
 bool Clear_SYSENTER_Debug();
 bool Toggle_BreakSYSEnter();
@@ -156,6 +162,12 @@ static void DrawInput(void);
 static void DEBUG_RaiseTimerIrq(void);
 static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num);
 static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num);
+/* Knifour Start */
+#ifdef C_CHEAT
+static void SaveVMemoryBin(uint32_t ofs, uint32_t num);
+uint32_t GetCr0(void);
+#endif
+/* Knifour End */
 static void LogMCBS(void);
 static void LogGDT(void);
 static void LogLDT(void);
@@ -1271,9 +1283,20 @@ static void DrawInput(void) {
         //TODO long lines
         char* dispPtr = codeViewData.inputStr;
         char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
-
-        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+/* Knifour Start */
+#ifdef C_CHEAT
+				if (cheating) {
+					wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_WHITE_BLUE));
+          wattrset(dbg.win_inp,COLOR_PAIR(PAIR_WHITE_BLUE));
+				} else {
+					wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+          wattrset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+				}
+#else
+				wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
         wattrset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+#endif				
+/* Knifour End */
         mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
                 (codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
         wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
@@ -1896,6 +1919,42 @@ void VGA_DumpFontRamBIN(const char *filename);
 void VGA_DumpFontRamBMP(const char *filename);
 int32_t DEBUG_Run(int32_t amount,bool quickexit);
 
+/* Knifour Start */
+CHEAT *game;
+std::string old_title;
+std::string sCheatDir = "";
+
+bool isDirExists(const std::string& path) {
+#ifdef WIN32
+  struct _stat info;
+	return (_stat(path.c_str(), &info) == 0) && (info.st_mode & _S_IFDIR);
+#else
+	struct stat info;
+	return (stat(path.c_str(), &info) == 0) && (info.st_mode & S_IFDIR);
+#endif
+}
+
+bool createDirectory(const std::string &path) {
+#ifdef WIN32
+	int ret = _mkdir(path.c_str());
+#else
+	int ret = mkdir(path.c_str(), 0755);
+#endif
+  return (ret == 0);
+}
+
+bool preWorks(void){
+	std::string sWorkDir = GetDOSBoxXPath();
+	char cSlash = sWorkDir.back();
+	sCheatDir = sWorkDir + "cheat";
+	if (!isDirExists(sCheatDir)) {
+		return createDirectory(sCheatDir);
+	}
+	sCheatDir = sCheatDir + cSlash;
+	return true;
+}
+/* Knifour End */
+
 bool ParseCommand(char* str) {
     std::string copy_str = str;
     for (auto &c : copy_str) c = toupper(c);
@@ -1911,6 +1970,255 @@ bool ParseCommand(char* str) {
 	if(next == string::npos) next = command.size();
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
+	
+/* Knifour Start */
+#ifdef C_CHEAT
+  string para;
+	if (!cheating) {
+		if (command == "CHEAT") {
+			string sFound(found);
+			istringstream issStream(sFound);
+			string sCommand;
+			issStream >> sCommand;
+			if (sCommand.size() == 0){
+				CHEAT::showMsg("CHEAT_NAME_ERROR");
+				DrawInput();
+				return true;
+			}
+			if (!preWorks()){
+				CHEAT::showMsg("CHEAT_CREATEDIR_ERROR");
+				DrawInput();
+				return true;
+			}
+			cheating = true;
+			dbg.win_vis[DBGBlock::WINI_CODE] = false;
+			dbg.win_vis[DBGBlock::WINI_VAR] = true;
+			if (dbg.active_win == DBGBlock::WINI_CODE)
+				dbg.active_win = DBGBlock::WINI_VAR;
+			old_title = dbg.win_title[DBGBlock::WINI_VAR];
+			dbg.win_title[DBGBlock::WINI_VAR] += " : " + sCommand;
+			DEBUG_GUI_Rebuild();
+			game = new CHEAT(dbg.win_var, sCommand);
+			game->showStatus();
+			//DrawInput();
+			return true;
+		}
+	} else {
+		// command parsing begins
+		string sFound(found);
+		istringstream issStream(sFound);
+		string sCommand, sPara1, sPara2;
+		issStream >> sCommand;
+		issStream >> sPara1;
+		if (!sPara1.empty())
+		  issStream >> sPara2;
+		else
+			sPara2 = "";
+		
+		if (command == "EXIT") {
+			cheating = false;
+			dbg.win_vis[DBGBlock::WINI_CODE] = true;
+			dbg.win_vis[DBGBlock::WINI_VAR] = false;
+			if (dbg.active_win == DBGBlock::WINI_VAR)
+				dbg.active_win = DBGBlock::WINI_CODE;
+			dbg.win_title[DBGBlock::WINI_VAR] = old_title;
+			DEBUG_GUI_Rebuild();
+			delete game;
+			game = nullptr;
+			return true;
+		}
+		
+		if (command == "HELP") {
+			if (sCommand.size() == 0)
+			  CHEAT::prtHelp();
+			else {
+				bool flag = false;
+				for (int i=0; i<CHEAT::HELPS; i++) {
+					if (sCommand == CHEAT::CMDS[i]) {
+						CHEAT::showDetailMsg(CHEAT::HELP[i]);
+						flag = true;
+						break;
+					}
+				}
+				if (!flag)
+					CHEAT::showMsg("CHEAT_HELP_NOT_FOUND");
+			}
+			return true;
+		}
+		
+		if (command == "SM") {
+			game->setMode(sCommand);
+			return true;
+		}
+		
+		if (command == "SEG") {
+			game->setSeg(sCommand);
+			return true;
+		}
+		
+		if (command == "OFF") {
+			game->setOff(sCommand);
+			return true;
+		}
+		
+		if (command == "SL") {
+			game->setLength(sCommand);
+			return true;
+		}
+		
+		if (command == "D") {
+			para = game->setDview(sCommand);
+			if (para == "")
+				return false;
+			found = const_cast<char*>(para.c_str());
+		}
+		
+		if (command == "DV") {
+			para = game->setDVview(sCommand);
+			if (para == "")
+				return false;
+			found = const_cast<char*>(para.c_str());
+		}
+		
+		if (command == "S") {
+			if (!game->mSearching)
+				game->makeSearch(sCommand);
+			else
+				game->makeOldSearch(sCommand);
+		  return true;
+		}
+		
+		if (command == "L") {
+			game->listMemory(sCommand, sPara1);
+			return true;
+		}
+		
+		if (command == "TL") {
+			game->listTemp();
+			return true;
+		}
+		
+		if (command == "TD") {
+			game->deleteTemp(sCommand);
+			return true;
+		}
+		
+		if (command == "TW") {
+			game->writeTemp(sCommand, sPara1);
+			return true;
+		}
+		
+		if (command == "TS") {
+			game->saveTemp(sCommand);
+			return true;
+		}
+		
+		if (command == "TR") {
+			game->loadTemp(sCommand);
+			return true;
+		}
+		
+		if (command == "A") {
+			game->addRecord(string(str+2));
+			return true;
+		}
+		
+		if (command == "R") {
+			game->prtRecord(sCommand);
+			return true;
+		}
+		
+		if (command == "WR") {
+			game->writeRecord(sCommand, sPara1);
+			return true;
+		}
+		
+		if (command == "CLS") {
+			game->resetSearch();
+			return true;
+		}
+		
+		if (command == "MM") {
+			game->setMemMode(sCommand);
+			return true;
+		}
+		
+		if (command == "MSEG") {
+			game->setMemSeg(sCommand);
+			return true;
+		}
+		
+		if (command == "MOFF") {
+			game->setMemOff(sCommand);
+			return true;
+		}
+		
+		if (command == "MD") {
+			para = game->setMemDview();
+			if (para.substr(0, 2) == "DV"){
+				command = "DV";
+				found = &para[3];
+			} else {
+				command = "D";
+				found = &para[3];
+			}
+		}
+		
+		if (command == "MR") {
+			game->prtMmodeValue();
+			return true;
+		}
+		
+		if (command == "MW") {
+			game->setMmodeValue(sCommand);
+			return true;
+		}
+		
+		if (command == "MA") {
+			game->addMemRecord(sCommand);
+			return true;
+		}
+		
+		if (command == "SNAP") {
+			game->snapStart();
+			return true;
+		}
+		
+		if (command == "SD") {
+			game->snapSearch(true, sCommand);
+			return true;
+		}
+		
+		if (command == "SU") {
+			game->snapSearch(false, sCommand);
+			return true;
+		}
+		
+		if (command == "SS") {
+			game->snapSearchValue(sCommand);
+			return true;
+		}
+		
+		if (command == "SAVE") {
+			game->saveRecord();
+			return true;
+		}
+		
+		if (command == "CVT") {
+			game->dspValue(sCommand);
+			return true;
+		}
+		
+		// command parsing ends
+		
+		// Check if it is a supported legacy command
+		if (!game->isOlds(command)) {
+			CHEAT::showMsg("CHEAT_CMD_NOT_FOUND");
+			return false;
+		}
+	}
+#endif
+/* Knifour End */
 
     if (command == "QUIT") {
         void DoKillSwitch(void);
@@ -1989,7 +2297,16 @@ bool ParseCommand(char* str) {
 		SaveMemoryBin(seg,ofs,num);
 		return true;
 	}
-
+/* Knifour Start */
+#ifdef C_CHEAT
+  if(command == "VMEMDUMPBIN") { // Dump memory to file binary
+    uint32_t ofs = GetHexValue(found, found); found++;
+    uint32_t num = GetHexValue(found, found); found++;
+    SaveVMemoryBin(ofs, num);
+    return true;
+  }
+#endif
+/* Knifour End */
     if (command == "MEMFIND") { // Start a memory search instance with seg:ofs range
 		uint32_t valfind;
 		uint8_t valfind8;
@@ -5785,7 +6102,33 @@ static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num) {
 	fclose(f);
 	DEBUG_ShowMsg("DEBUG: Memory dump binary success.\n");
 }
+/* Knifour Start */
+#ifdef C_CHEAT
+static void SaveVMemoryBin(uint32_t ofs1, uint32_t num) {
+    FILE* f = fopen("VMEMDUMP.BIN", "wb");
+    if(!f) {
+        DEBUG_ShowMsg("DEBUG: Memory binary dump failed.\n");
+        return;
+    }
 
+    for(uint32_t x = 0; x < num; x++) {
+        uint8_t val;
+        if(mem_readb_checked((PhysPt)(ofs1+x), &val)) val = 0;
+        fwrite(&val, 1, 1, f);
+    }
+
+    fclose(f);
+    DEBUG_ShowMsg("DEBUG: Linear Memory dump binary success. CR0 is %X \n", GetCr0());
+}
+
+uint32_t GetCr0(void) {
+    char* found = "CR0";
+    bool parsed;
+
+    return GetHexValue(found, found, &parsed);
+}
+#endif
+/* Knifour End */
 static void OutputVecTable(char* filename) {
 	FILE* f = fopen(filename, "wt");
 	if (!f)

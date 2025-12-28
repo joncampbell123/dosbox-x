@@ -60,6 +60,11 @@
 /* Define to 1 to enable internal debugger, requires libcurses */
 #define C_DEBUG 1
 
+/* Knifour Start */
+/* Define to 1 to enable game cheater, requires libcurses */
+#define C_CHEAT 1
+/* Knifour End */
+
 /* Define to 1 if you want parallel passthrough support (Win32, Linux). */
 #define C_DIRECTLPT 1
 

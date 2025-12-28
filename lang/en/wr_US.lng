@@ -1,0 +1,21 @@
+:CHEAT_HELP_WR1
+  After data is saved to the formal record area, you can use this command to 
+.
+:CHEAT_HELP_WR2
+directly modify its value. Typically, you would first use the `R` command to 
+.
+:CHEAT_HELP_WR3
+list all records and identify the target record number. Then, use this command
+.
+:CHEAT_HELP_WR4
+ to make the modification. Example:
+.
+:CHEAT_HELP_WR5
+    WR 200000 1
+.
+:CHEAT_HELP_WR6
+Assuming the first record represents cash, this command would change the cash 
+.
+:CHEAT_HELP_WR7
+value to 200000.
+.

@@ -1,0 +1,42 @@
+:CHEAT_HELP_SU1
+  After entering Snap mode and continuing the game, use this command to 
+.
+:CHEAT_HELP_SU2
+continue searching if the value you want to search for is **larger than** the 
+.
+:CHEAT_HELP_SU3
+value when entering "Snap mode" or **larger than the value from the last 
+.
+:CHEAT_HELP_SU4
+search**. Usage is as follows:
+.
+:CHEAT_HELP_SU5
+    SU
+.
+:CHEAT_HELP_SU6
+This method is suitable for values like health bars, where the exact value is 
+.
+:CHEAT_HELP_SU7
+unknown, allowing only fuzzy searches. This approach may require many attempts
+.
+:CHEAT_HELP_SU8
+ to find your target. Alternatively, you can use:
+.
+:CHEAT_HELP_SU9
+    SU 10
+.
+:CHEAT_HELP_SU10
+This method is suitable when the exact numerical difference is known. For 
+.
+:CHEAT_HELP_SU11
+example, if your money starts at 1000, use SNAP, then enter the game and earn 
+.
+:CHEAT_HELP_SU12
+10 more. You can then enter debug mode and use `SU 10` to search quickly. If 
+.
+:CHEAT_HELP_SU13
+the search results are still numerous, press `[F5]` to return to the game, 
+.
+:CHEAT_HELP_SU14
+wait for the value to change again, and then search once more.
+.

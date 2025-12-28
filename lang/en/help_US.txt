@@ -1,0 +1,12 @@
+  After entering cheat mode, in all commands, values or addresses starting with `0x` are hexadecimal numbers, and all values not starting with `0x` are decimal. Other number bases are currently not supported. If any illegal characters appear in a hexadecimal or decimal value, that value will become 0. All commands and their parameters are case-insensitive. The following is an example of this command:
+    HELP HELP
+In the game, press `Alt+Pause` or open the debug menu and select the first item to enter debug mode. At the very bottom of the debug window is the command line. Enter `cheat [project name]` here to enter cheat mode. Cheat mode will create a `cheat` folder in the location where Dosbox-X is installed. When any command requiring saving is executed within cheat mode, a folder named `[project name]` will be created under the `cheat` folder. In cheat mode, entering `help` will show a brief description of all commands. Entering `help [command]` will show the detailed description for that specific command. Press `[F5]` in cheat mode to resume the game execution.
+The standard search procedure is as follows:
+    1. SM mode          # Set the search mode
+    2. SEG segment      # Set the segment address
+    3. OFF offset       # Do not change unless necessary
+    4. SL search_length # Do not change unless necessary
+    5. S value          # Search for your target data
+    6. TW value number  # Test write a value
+    7. A description    # Save the temporary storage to the formal record area
+    8. CLS              # Clear the temporary storage area

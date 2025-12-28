@@ -1,0 +1,81 @@
+:CHEAT_HELP_SS1
+  This command is only applicable under the following conditions:
+.
+:CHEAT_HELP_SS2
+    1. You have entered Snap mode using the `SNAP` command.
+.
+:CHEAT_HELP_SS3
+    2. You have performed at least one search using the `SU` or `SD` command.
+.
+:CHEAT_HELP_SS4
+After searching and knowing the current correct value, you can use this 
+.
+:CHEAT_HELP_SS5
+command to search further. Suppose at the beginning of the game, the quantity 
+.
+:CHEAT_HELP_SS6
+of a certain item is 1. The search command sequence would be as follows:
+.
+:CHEAT_HELP_SS7
+    SM WORD
+.
+:CHEAT_HELP_SS8
+    SEG 0x9117
+.
+:CHEAT_HELP_SS9
+    SNAP
+.
+:CHEAT_HELP_SS10
+Then press `[F5]` to return to the game, use the item, and re-enter debug mode
+.
+:CHEAT_HELP_SS11
+.
+.
+:CHEAT_HELP_SS12
+    SD 1
+.
+:CHEAT_HELP_SS13
+The item quantity decreased by 1, so use `SD 1` to search. Dozens of results 
+.
+:CHEAT_HELP_SS14
+are found. Since the item quantity is now 0, use the following command next:
+.
+:CHEAT_HELP_SS15
+    SS 0
+.
+:CHEAT_HELP_SS16
+After this search, only the following two results remain:
+.
+:CHEAT_HELP_SS17
+1 : 53302 <==> 0xD036, value = 0
+.
+:CHEAT_HELP_SS18
+2 : 57340 <==> 0xDFFC, value = 0
+.
+:CHEAT_HELP_SS19
+At this point, you can use trial and error with the command:
+.
+:CHEAT_HELP_SS20
+    TW 9 1
+.
+:CHEAT_HELP_SS21
+This writes the value 9 to temporary storage entry 1. Press `[F5]` to return 
+.
+:CHEAT_HELP_SS22
+to the game and observe that the item quantity has changed to 9. Then use:
+.
+:CHEAT_HELP_SS23
+    TD 2
+.
+:CHEAT_HELP_SS24
+to delete the second entry from the temporary storage area. Finally, use:
+.
+:CHEAT_HELP_SS25
+    A Item_Name
+.
+:CHEAT_HELP_SS26
+    SAVE
+.
+:CHEAT_HELP_SS27
+to save the search result to the project file.
+.

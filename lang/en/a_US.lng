@@ -1,0 +1,45 @@
+:CHEAT_HELP_A1
+  When there is only one piece of data left in the temporary storage area and 
+.
+:CHEAT_HELP_A2
+it has been tested and confirmed to be the correct address, you can use this 
+.
+:CHEAT_HELP_A3
+command to add the data from the temporary storage area to the formal data 
+.
+:CHEAT_HELP_A4
+record area. A record description must be specified when adding. Example:
+.
+:CHEAT_HELP_A5
+    A CASH
+.
+:CHEAT_HELP_A6
+This action should only be performed when there is only one piece of data left
+.
+:CHEAT_HELP_A7
+ in the temporary storage area and it has been tested and confirmed to be the 
+.
+:CHEAT_HELP_A8
+correct address. Because the input area in debug mode cannot switch input 
+.
+:CHEAT_HELP_A9
+methods, the record description can only consist of raw characters that can be
+.
+:CHEAT_HELP_A10
+ input directly from the keyboard. If necessary, after saving the file, you 
+.
+:CHEAT_HELP_A11
+can use a text editor to open the project file. Each record in the record area
+.
+:CHEAT_HELP_A12
+ starts with the record description and uses as a separator. You can edit the 
+.
+:CHEAT_HELP_A13
+description content before the symbol to change it to your desired language 
+.
+:CHEAT_HELP_A14
+description. Please note that the description content must never contain the `
+.
+:CHEAT_HELP_A15
+ symbol, as this would compromise the integrity of the project file.
+.

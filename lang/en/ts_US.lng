@@ -1,0 +1,36 @@
+:CHEAT_HELP_TS1
+  Save the search settings and the temporary search storage area into a file 
+.
+:CHEAT_HELP_TS2
+with the specified name. The file will be stored in the "cheat/[project name]"
+.
+:CHEAT_HELP_TS3
+ folder, with the filename "[name].tmp". The typical use case for this command
+.
+:CHEAT_HELP_TS4
+ is at the beginning of a game, when you have multiple targets to search for. 
+.
+:CHEAT_HELP_TS5
+You can configure the search settings, perform a search using the `s` command,
+.
+:CHEAT_HELP_TS6
+ and then immediately use this command to save both the search settings and 
+.
+:CHEAT_HELP_TS7
+the temporary storage area. Afterwards, use `cls` to clear the temporary 
+.
+:CHEAT_HELP_TS8
+storage area, configure the search settings for the next target, perform 
+.
+:CHEAT_HELP_TS9
+another search with the `s` command, and save again. Command example:
+.
+:CHEAT_HELP_TS10
+    TS CASH
+.
+:CHEAT_HELP_TS11
+This will save the current settings and temporary storage area into a file 
+.
+:CHEAT_HELP_TS12
+named `CASH.tmp`.
+.

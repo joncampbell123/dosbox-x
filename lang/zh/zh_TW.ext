@@ -1,0 +1,108 @@
+:CHEAT_NAME_ERROR
+進入金手指模式必須指定專案名稱
+.
+:CHEAT_CMD_NOT_FOUND
+金手指模式沒有這個指令
+.
+:CHEAT_HELP_NOT_FOUND
+沒有關於這個指令的詳細說明
+.
+:CHEAT_CREATEDIR_ERROR
+無法建立金手指資料夾
+.
+:CHEAT_HELP_HELP
+HELP [CHEAT COMMANDS]   : 本指令
+.
+:CHEAT_HELP_SM
+SM   搜尋模式           : 搜尋模式, 可為BYTE, WORD, DWORD或1, 2, 4
+.
+:CHEAT_HELP_SEG
+SEG  起始段位址         : 設定搜尋段位址, 可用CS, DS, ES, 0代表線性位址
+.
+:CHEAT_HELP_OFF
+OFF  起始偏移位址       : 設定搜尋偏移位址(64KB或記憶體上限)
+.
+:CHEAT_HELP_SL
+SL   搜尋長度           : 搜尋長度(單位:BYTE)
+.
+:CHEAT_HELP_D
+D    位址               : 在DATA VIEW從"SEG:OFF+位址"開始顯示記憶體資料
+.
+:CHEAT_HELP_DV
+DV   位址               : 在DATA VIEW從"OFF+位址"開始顯示記憶體資料(線性位址)
+.
+:CHEAT_HELP_S
+S    數值               : 以指定的模式及長度搜尋數值
+.
+:CHEAT_HELP_L
+L    [位址] [MODE]      : 以SEG:OFF為基底, 列出指定位址的值, 可以指定MODE
+.
+:CHEAT_HELP_TL
+TL                      : 列出暫存區前10筆內容
+.
+:CHEAT_HELP_TD
+TD   編號               : 手動刪除暫存區特定資料
+.
+:CHEAT_HELP_TW
+TW   數值 [編號]        : 將數值寫入暫存區對應的記憶體位址, 未指定時默認為1
+.
+:CHEAT_HELP_TS
+TS   名稱               : 將搜尋暫存區存入指定檔案
+.
+:CHEAT_HELP_TR
+TR   名稱               : 將指定檔案讀入搜尋暫存區
+.
+:CHEAT_HELP_A
+A    紀錄說明           : 搜尋結果寫入資料區, 只在暫存區只剩1筆資料時才可使用
+.
+:CHEAT_HELP_R
+R    紀錄編號           : 列出記錄區所有資料, 若有指定紀錄編號會列印該編號詳細資料
+.
+:CHEAT_HELP_WR
+WR   數值 紀錄編號      : 將指定數值寫入記憶體, 需指定紀錄編號
+.
+:CHEAT_HELP_CLS
+CLS                     : 清除暫存區
+.
+:CHEAT_HELP_SAVE
+SAVE                    : 將記錄區資料存入專案檔
+.
+:CHEAT_HELP_MM
+MM   記憶體模式         : 記憶體操作模式, 可為BYTE, WORD, DWORD或1, 2, 4
+.
+:CHEAT_HELP_MSEG
+MSEG 段位址             : 設定記憶體模式段位址, 可用CS, DS, ES, 0代表線性位址
+.
+:CHEAT_HELP_MOFF
+MOFF 偏移位址           : 設定記憶體模式偏移位址(64KB或記憶體上限)
+.
+:CHEAT_HELP_MD
+MD                      : 根據記憶體模式設定的位址在DATA VIEW中顯示
+.
+:CHEAT_HELP_MR
+MR                      : 根據記憶體模式設定的位址及模式顯示其值
+.
+:CHEAT_HELP_MW
+MW   值                 : 將指定值寫入記憶體模式設定的位址
+.
+:CHEAT_HELP_MA
+MA   說明               : 將記憶體模式設定的位址加入資料區
+.
+:CHEAT_HELP_SNAP
+SNAP                    : 建立記憶體快照
+.
+:CHEAT_HELP_SU
+SU   [差異值]           : 搜尋 現值 > 快照值 的位置, 可指定差異值
+.
+:CHEAT_HELP_SD
+SD   [差異值]           : 搜尋 現值 < 快照值 的位置, 可指定差異值
+.
+:CHEAT_HELP_SS
+SS   指定值             : 搜尋暫存區儲存的值與指定值相等者
+.
+:CHEAT_HELP_CVT
+CVT  10或16進位值       : 轉換10進位成16進位，或是將16進位轉換成10進位
+.
+:CHEAT_HELP_EXIT
+EXIT                    : 離開金手指模式
+.
