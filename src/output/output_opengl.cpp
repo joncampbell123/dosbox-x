@@ -767,7 +767,9 @@ Bitu OUTPUT_OPENGL_SetSize()
     }
     else
     {
-        sdl_opengl.framebuf = calloc(adjTexWidth*adjTexHeight, 4); //32 bit color
+        /* NTS: Allocate an additional 4K on top because modern MesaGL / libgallium likes to use SSE/AVX
+	 *      instructions to memcpy on texture update and that can EASILY read a little bit past the buffer. */
+        sdl_opengl.framebuf = calloc((adjTexWidth*adjTexHeight) + (4096/4), 4); //32 bit color
     }
     sdl_opengl.pitch = adjTexWidth * 4;
 
@@ -1063,6 +1065,17 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
                 {
                     uint8_t *pixels = (uint8_t *)sdl_opengl.framebuf + y * sdl_opengl.pitch;
                     Bitu height = changedLines[index];
+
+                    // FIXME: This is causing libgallium crashes by sometimes getting y+height > sdl.draw.height.
+                    //        It seems to happen on VGA mode changes.
+                    //        Figure out what is causing that.
+                    //        I have to see any crash from y >= sdl.draw.height though.
+                    if ((y+height) > sdl.draw.height) {
+                        LOG(LOG_MISC,LOG_WARN)("OpenGL: Changed lines extend past texture (y=%u h=%u drawheight=%u y+h=%u y+h>drawheight)",
+                            (unsigned int)y,(unsigned int)height,(unsigned int)(y+height),(unsigned int)sdl.draw.height);
+                        height = sdl.draw.height - y;
+                    }
+
                     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, (int)y,
                         (int)sdl.draw.width, (int)height, GL_BGRA_EXT,
 #if defined (MACOSX) && !defined(C_SDL2)

@@ -14,12 +14,12 @@
  *      entirely and remove the #include and it would have no effect on
  *      DOSBox-X. --J.C. */
 
-#ifdef C_SDL_NET
+#if (defined(C_SDL_NET) && C_SDL_NET) || (defined(C_SDL2_NET) && C_SDL2_NET)
 //#ifdef C_TIMIDITY
 
 #include "logging.h"
 #include "SDL.h"
-#if defined(C_SDL2) && !defined(_MSC_VER) && !defined(WIN32)
+#if defined(C_SDL2_NET) && C_SDL2_NET
 #include <SDL2/SDL_net.h>
 #else
 #include "SDL_net.h"

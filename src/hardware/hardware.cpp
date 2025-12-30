@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <vector>
 
 #include "bitmapinfoheader.h"
 #include "dosbox.h"
@@ -808,19 +809,15 @@ static inline unsigned long math_gcd_png_uint_32(const png_uint_32 a,const png_u
 void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, uint8_t * data, uint8_t * pal) {
 #if (C_SSHOT)
 	Bitu i;
-	uint8_t doubleRow[SCALER_MAXWIDTH*4];
 	Bitu countWidth = width;
+    std::vector<uint8_t> doubleRowBuf((countWidth + 32) * 4);
+    uint8_t *doubleRow = doubleRowBuf.data();
 
 	if (flags & CAPTURE_FLAG_DBLH)
 		height *= 2;
 	if (flags & CAPTURE_FLAG_DBLW)
 		width *= 2;
 
-	if (height > SCALER_MAXHEIGHT)
-		return;
-	if (width > SCALER_MAXWIDTH)
-		return;
-	
 	if (CaptureState & CAPTURE_IMAGE) {
 		png_structp png_ptr;
 		png_infop info_ptr;

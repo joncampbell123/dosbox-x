@@ -21,19 +21,10 @@
 
 //#include "render.h"
 #include "video.h"
-#if RENDER_USE_ADVANCED_SCALERS>0
-#define SCALER_MAXWIDTH		1920
-#define SCALER_MAXHEIGHT	1440
-#else
-// reduced to save some memory
-#define SCALER_MAXWIDTH		800 
-#define SCALER_MAXHEIGHT	600
-#endif
 
-#if RENDER_USE_ADVANCED_SCALERS>1
-#define SCALER_COMPLEXWIDTH		800
-#define SCALER_COMPLEXHEIGHT	600
-#endif
+//remove these, but first src/output/output_gamelink.cpp needs to stop using these
+#define SCALER_MAXWIDTH		800
+#define SCALER_MAXHEIGHT	600
 
 #define SCALER_BLOCKSIZE	16
 
@@ -63,29 +54,46 @@ typedef enum scalerOperation {
 typedef void (*ScalerLineHandler_t)(const void *src);
 typedef void (*ScalerComplexHandler_t)(void);
 
-extern uint8_t Scaler_Aspect[];
 extern uint8_t diff_table[];
+extern uint8_t *Scaler_Aspect;
 extern Bitu Scaler_ChangedLineIndex;
-extern uint16_t Scaler_ChangedLines[];
+extern uint16_t *Scaler_ChangedLines;
 #if RENDER_USE_ADVANCED_SCALERS>1
-/* Not entirely happy about those +2's since they make a non power of 2, with muls instead of shift */
-typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE] ;
+
+//typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE];
+template <typename T> struct scct_t {
+	unsigned int pitch,width;
+	uint8_t* d;
+
+	inline T *operator[](unsigned int y) { return (T*)(d + (y * pitch)); }
+};
+typedef scct_t<uint8_t> scalerChangeCache_t;
+
 typedef union {
-	uint32_t b32	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
-	uint16_t b16	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
-	uint8_t b8	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
+	// an unsigned int and a pointer, regardless of pointer type, is always the same size
+	template <typename T> struct ctd_t {
+		unsigned int pitch,width;
+		uint8_t* d;
+
+		inline T *operator[](unsigned int y) { return (T*)(d + (y * pitch)); }
+	};
+
+	ctd_t<uint32_t> b32;
+	ctd_t<uint16_t> b16;
+	ctd_t<uint8_t> b8;
 } scalerFrameCache_t;
 #endif
-typedef union {
-	uint32_t b32	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-	uint16_t b16	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-	uint8_t b8	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-} scalerSourceCache_t;
-extern scalerSourceCache_t scalerSourceCache;
 #if RENDER_USE_ADVANCED_SCALERS>1
 extern scalerChangeCache_t scalerChangeCache;
 #endif
 typedef ScalerLineHandler_t ScalerLineBlock_t[5][4];
+
+extern bool useTraditionalRenderCache;
+extern unsigned char *scalerSourceCacheBuffer;
+extern unsigned int scalerSourceCacheBufferSize;
+
+void scalerSourceCacheBufferFree(void);
+bool scalerSourceCacheBufferAlloc(unsigned int p,unsigned int h);
 
 typedef struct {
 	const char *name;

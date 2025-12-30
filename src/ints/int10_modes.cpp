@@ -344,6 +344,46 @@ VideoModeBlock ModeList_VGA[]={
 { 0x354  ,M_LIN32  ,1920,1440,240,90 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1584,240 ,1440,_HIGH_DEFINITION, 0},
 { 0x355  ,M_LIN24  ,1920,1440,240,90 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1584,240 ,1440,_HIGH_DEFINITION, 0},
 
+// 1920x1200 16:10 modes
+{ 0x360  ,M_LIN4   ,1920,1200,240,75 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1300,240 ,1200,_HIGH_DEFINITION, 0},
+{ 0x361  ,M_LIN8   ,1920,1200,240,75 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1300,240 ,1200,_HIGH_DEFINITION, 0},
+{ 0x362  ,M_LIN15  ,1920,1200,240,75 ,8 ,16 ,1 ,0xA0000 ,0x10000,528 ,1300,480 ,1200,_HIGH_DEFINITION, 0},
+{ 0x363  ,M_LIN16  ,1920,1200,240,75 ,8 ,16 ,1 ,0xA0000 ,0x10000,528 ,1300,480 ,1200,_HIGH_DEFINITION, 0},
+{ 0x364  ,M_LIN32  ,1920,1200,240,75 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1300,240 ,1200,_HIGH_DEFINITION, 0},
+{ 0x365  ,M_LIN24  ,1920,1200,240,75 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1300,240 ,1200,_HIGH_DEFINITION, 0},
+
+// 2560x1600 16:10 modes
+{ 0x370  ,M_LIN4   ,2560,1600,320,100,8 ,16 ,1 ,0xA0000 ,0x10000,340 ,1700,320 ,1600,_HIGH_DEFINITION, 0},
+{ 0x371  ,M_LIN8   ,2560,1600,320,100,8 ,16 ,1 ,0xA0000 ,0x10000,340 ,1700,320 ,1600,_HIGH_DEFINITION, 0},
+{ 0x372  ,M_LIN15  ,2560,1600,320,100,8 ,16 ,1 ,0xA0000 ,0x10000,680 ,1700,640 ,1600,_HIGH_DEFINITION, 0},
+{ 0x373  ,M_LIN16  ,2560,1600,320,100,8 ,16 ,1 ,0xA0000 ,0x10000,680 ,1700,640 ,1600,_HIGH_DEFINITION, 0},
+{ 0x374  ,M_LIN32  ,2560,1600,320,100,8 ,16 ,1 ,0xA0000 ,0x10000,340 ,1700,320 ,1600,_HIGH_DEFINITION, 0},
+{ 0x375  ,M_LIN24  ,2560,1600,320,100,8 ,16 ,1 ,0xA0000 ,0x10000,340 ,1700,320 ,1600,_HIGH_DEFINITION, 0},
+
+// 2880x2160 4:3 modes
+{ 0x380  ,M_LIN4   ,2880,2160,360,135,8 ,16 ,1 ,0xA0000 ,0x10000,380 ,2260,360 ,2160,_HIGH_DEFINITION, 0},
+{ 0x381  ,M_LIN8   ,2880,2160,360,135,8 ,16 ,1 ,0xA0000 ,0x10000,380 ,2260,360 ,2160,_HIGH_DEFINITION, 0},
+{ 0x382  ,M_LIN15  ,2880,2160,360,135,8 ,16 ,1 ,0xA0000 ,0x10000,760 ,2260,720 ,2160,_HIGH_DEFINITION, 0},
+{ 0x383  ,M_LIN16  ,2880,2160,360,135,8 ,16 ,1 ,0xA0000 ,0x10000,760 ,2260,720 ,2160,_HIGH_DEFINITION, 0},
+{ 0x384  ,M_LIN32  ,2880,2160,360,135,8 ,16 ,1 ,0xA0000 ,0x10000,380 ,2260,360 ,2160,_HIGH_DEFINITION, 0},
+{ 0x385  ,M_LIN24  ,2880,2160,360,135,8 ,16 ,1 ,0xA0000 ,0x10000,380 ,2260,360 ,2160,_HIGH_DEFINITION, 0},
+
+// 3840x2160 16:9 modes
+{ 0x390  ,M_LIN4   ,3840,2160,480,135,8 ,16 ,1 ,0xA0000 ,0x10000,500 ,2260,480 ,2160,_HIGH_DEFINITION, 0},
+{ 0x391  ,M_LIN8   ,3840,2160,480,135,8 ,16 ,1 ,0xA0000 ,0x10000,500 ,2260,480 ,2160,_HIGH_DEFINITION, 0},
+{ 0x392  ,M_LIN15  ,3840,2160,480,135,8 ,16 ,1 ,0xA0000 ,0x10000,1000,2260,960 ,2160,_HIGH_DEFINITION, 0},
+{ 0x393  ,M_LIN16  ,3840,2160,480,135,8 ,16 ,1 ,0xA0000 ,0x10000,1000,2260,960 ,2160,_HIGH_DEFINITION, 0},
+{ 0x394  ,M_LIN32  ,3840,2160,480,135,8 ,16 ,1 ,0xA0000 ,0x10000,500 ,2260,480 ,2160,_HIGH_DEFINITION, 0},
+{ 0x395  ,M_LIN24  ,3840,2160,480,135,8 ,16 ,1 ,0xA0000 ,0x10000,500 ,2260,480 ,2160,_HIGH_DEFINITION, 0},
+
+// 4096x2160 modes
+{ 0x3A0  ,M_LIN4   ,4096,2160,512,135,8 ,16 ,1 ,0xA0000 ,0x10000,612 ,2260,512 ,2160,_HIGH_DEFINITION, 0},
+{ 0x3A1  ,M_LIN8   ,4096,2160,512,135,8 ,16 ,1 ,0xA0000 ,0x10000,612 ,2260,512 ,2160,_HIGH_DEFINITION, 0},
+{ 0x3A2  ,M_LIN15  ,4096,2160,512,135,8 ,16 ,1 ,0xA0000 ,0x10000,1224,2260,1024,2160,_HIGH_DEFINITION, 0},
+{ 0x3A3  ,M_LIN16  ,4096,2160,512,135,8 ,16 ,1 ,0xA0000 ,0x10000,1224,2260,1024,2160,_HIGH_DEFINITION, 0},
+{ 0x3A4  ,M_LIN32  ,4096,2160,512,135,8 ,16 ,1 ,0xA0000 ,0x10000,612 ,2260,512 ,2160,_HIGH_DEFINITION, 0},
+{ 0x3A5  ,M_LIN24  ,4096,2160,512,135,8 ,16 ,1 ,0xA0000 ,0x10000,612 ,2260,512 ,2160,_HIGH_DEFINITION, 0},
+
 // packed 16-color (4bpp) modes seen on a Toshiba Libretto VESA BIOS (Chips & Technologies 65550)
 { 0x25F  ,M_PACKED4,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40  ,400 , _REPEAT1, 0},
 { 0x260  ,M_PACKED4,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80  ,400 ,0, 0},
@@ -709,13 +749,7 @@ static bool SetCurMode(VideoModeBlock modeblock[],uint16_t mode) {
 			i++;
 		}
 		/* ignore disabled modes */
-		else if (modeblock[i].special & _USER_DISABLED) {
-			/* ignore */
-			i++;
-		}
-		/* ignore modes beyond the render scaler architecture's limits... unless the user created it. We did warn the user! */
-		else if (!(modeblock[i].special & _USER_MODIFIED) &&
-			(modeblock[i].swidth > SCALER_MAXWIDTH || modeblock[i].sheight > SCALER_MAXHEIGHT)) {
+		else if (modeblock[i].special & (_USER_DISABLED|_BIOS_DISABLED)) {
 			/* ignore */
 			i++;
 		}
@@ -2900,16 +2934,6 @@ public:
             WriteOut("Mode 0x%x moved to mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode,(unsigned int)newmode);
             ModeList_VGA[array_i].mode = (uint16_t)newmode;
             INT10_WriteVESAModeList(int10.rom.vesa_alloc_modes);
-        }
-
-        /* If the new mode exceeds the maximum supported resolution of the render scaler architecture, then warn.
-         * Exceeding the scaler maximum will result in a frozen screen with the contents prior to the mode switch,
-         * which is useless. VESA BIOS emulation will not allow setting the mode. */
-        if (ModeList_VGA[array_i].swidth > SCALER_MAXWIDTH || ModeList_VGA[array_i].sheight > SCALER_MAXHEIGHT) {
-            WriteOut("WARNING: Mode %u x %u as specified exceeds the maximum resolution\n",
-                ModeList_VGA[array_i].swidth,ModeList_VGA[array_i].sheight);
-            WriteOut("supported by the render scaler architecture of this emulator and\n");
-            WriteOut("will be disabled.\n");
         }
 
         /* if the new mode cannot fit in available memory, then mark as disabled */

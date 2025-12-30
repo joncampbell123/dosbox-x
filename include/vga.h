@@ -173,7 +173,7 @@ typedef struct {
 	Bitu bytes_skip;
 	uint8_t *linear_base;
 	Bitu linear_mask;
-    Bitu planar_mask;
+	Bitu planar_mask;
 	Bitu address_add;
 	Bitu line_length;
 	Bitu address_line_total;
@@ -184,7 +184,7 @@ typedef struct {
 	Bitu split_line;
 	Bitu hsync_events;
 	Bitu byte_panning_shift;
-    Bitu render_step,render_max;
+	Bitu render_step,render_max;
 	struct {
 		double framestart;
 		double vrstart, vrend;		// V-retrace
@@ -221,6 +221,16 @@ typedef struct {
 	Bitu bpp;
 	double clock;
 	double oscclock;
+
+	/* memory write checker will do:
+	 *
+	 * if ((addr-draw_base_planar) < draw_base_size)
+	 *   ...
+	 *
+	 * memory write checking must be as simple as possible because mem write code is called VERY OFTEN */
+	unsigned int draw_base_planar=0;
+	unsigned int draw_base_size=0;
+
 	uint8_t cga_snow[80];			// one bit per horizontal column where snow should occur
 
 	/*Color and brightness for monochrome display*/
@@ -718,6 +728,7 @@ typedef struct VGA_Type_t {
     VGA_Complexity complexity = {};
     VGA_Override overopts = {};
     VGA_DOSBoxIG dosboxig = {};
+    unsigned int max_svga_width = 0,max_svga_height = 0;
 } VGA_Type;
 
 

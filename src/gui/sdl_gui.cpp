@@ -197,8 +197,11 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
     if (x < 0) x = 0;
     if (y < 0) y = 0;
 
-    uint8_t* src = (uint8_t *)&scalerSourceCache;
     uint32_t pixel;
+    uint8_t* src = (uint8_t *)scalerSourceCacheBuffer;
+
+    if (!src) return;
+
     switch (render.scale.inMode) {
         case scalerMode8:
             pixel = *((unsigned int)x+(uint8_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));

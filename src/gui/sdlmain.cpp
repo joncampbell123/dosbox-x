@@ -7250,6 +7250,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -nolog                                  Do not log anything to log file\n");
             fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n");
             fprintf(stderr,"  -print-ticks                            (Debug) Print emulator time and SDL_GetTicks()\n");
+            fprintf(stderr,"  -force-gfx-hardware                     Force render scaler system to act as if GFX_HARDWARE\n");
             fprintf(stderr,"\n");
 
 #if defined(WIN32)
@@ -7285,6 +7286,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "break-start") {
             control->opt_break_start = true;
+        }
+        else if (optname == "force-gfx-hardware") {
+            control->opt_force_gfx_hardware = true;
         }
         else if (optname == "silent") {
             putenv(const_cast<char*>("SDL_AUDIODRIVER=dummy"));
@@ -8945,39 +8949,40 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
         LOG(LOG_GUI,LOG_DEBUG)("SDL 1.2.14 hack: SDL_DISABLE_LOCK_KEYS=1");
 #endif
-
         std::string videodriver = static_cast<Section_prop *>(control->GetSection("sdl"))->Get_string("videodriver");
         if (videodriver.size()) {
             videodriver = "SDL_VIDEODRIVER="+videodriver;
             putenv((char *)videodriver.c_str());
         }
-
-#ifdef WIN32
-        /* hack: Encourage SDL to use windib if not otherwise specified */
-        if (getenv("SDL_VIDEODRIVER") == NULL) {
+        else {
+            const char* env_driver = getenv("SDL_VIDEODRIVER");
+            if(!env_driver || !*env_driver) {
+#if defined(LINUX)
+                putenv("SDL_VIDEODRIVER=x11"); // default to x11 (xwayland) on Linux
+#elif defined(WIN32)
+                /* hack: Encourage SDL to use windib if not otherwise specified */
 #if defined(C_SDL2)
-            LOG(LOG_GUI, LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windows because environ variable is not set");
-            putenv("SDL_VIDEODRIVER=windows");
+                LOG(LOG_GUI, LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windows because environ variable is not set");
+                putenv("SDL_VIDEODRIVER=windows");
 #else
-            LOG(LOG_GUI,LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windib because environ variable is not set");
-            putenv("SDL_VIDEODRIVER=windib");
+                LOG(LOG_GUI, LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windib because environ variable is not set");
+                putenv("SDL_VIDEODRIVER=windib");
 #endif
-            sdl.using_windib=true;
-        }
+                sdl.using_windib = true;
 #endif
-
+            }
 #if defined(WIN32) && defined(C_SDL2)
-        /* HACK: WASAPI output on Windows 10 isn't working... */
-        if (getenv("SDL_AUDIODRIVER") == NULL) {
-            LOG(LOG_GUI, LOG_DEBUG)("Win32: using directsound audio driver");
-            putenv("SDL_AUDIODRIVER=directsound");
-        }
-        if (getenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4") == NULL)
-            putenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4=1");
+            /* HACK: WASAPI output on Windows 10 isn't working... */
+            if(getenv("SDL_AUDIODRIVER") == NULL) {
+                LOG(LOG_GUI, LOG_DEBUG)("Win32: using directsound audio driver");
+                putenv("SDL_AUDIODRIVER=directsound");
+            }
+            if(getenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4") == NULL)
+                putenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4=1");
 #endif
 
-        sdl.init_ignore = true;
-
+            sdl.init_ignore = true;
+        }
     {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         assert(section != NULL);
@@ -9066,9 +9071,22 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(C_SDL2)
         SDL_version sdl_version;
         SDL_GetVersion(&sdl_version);
+        const char* vdrv = SDL_GetCurrentVideoDriver();
+        const char* adrv = SDL_GetCurrentAudioDriver();
+        videodriver = vdrv ? vdrv : "(unknown)";
+        std::string audiodriver = adrv ? adrv : "(unknown)";
         LOG_MSG("SDL: version %d.%d.%d, Video %s, Audio %s",
             sdl_version.major, sdl_version.minor, sdl_version.patch,
-            SDL_GetCurrentVideoDriver(), SDL_GetCurrentAudioDriver());
+            videodriver.c_str(), audiodriver.c_str());
+#if defined(LINUX)
+        if(videodriver == "wayland") {
+            LOG_MSG(
+                "WARNING: SDL is using the Wayland video driver. \n"
+                "Fullscreen mode switching and display mode changes may be unstable.\n"
+                "If you encounter crashes, try setting videodriver option to \"x11\" or \"SDL_VIDEODRIVER=x11\"."
+            );
+        }
+#endif //defined (LINUX)
 #endif //defined (C_SDL2)
 #if defined(__MINGW32__) && defined(C_DEBUG)
         LOG_MSG("EXPERIMENTAL: Debugger enabled for MinGW build, DOSBox-X crashes depending on the terminal software you use. Launching from command prompt (cmd.exe) is recommended.");

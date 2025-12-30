@@ -179,8 +179,9 @@ typedef struct {
 #define _HIGH_DEFINITION                0x0080
 #define _UNUSUAL_MODE                   0x0100
 #define _DO_NOT_LIST                    0x0200  /* support the mode but do not list in VBE mode enumeration */
-#define _USER_DISABLED                  0x4000  /* disabled (cannot set mode) but still listed in modelist */
+#define _USER_DISABLED                  0x4000  /* user disabled (cannot set mode) but still listed in modelist */
 #define _USER_MODIFIED                  0x8000  /* user modified (through VESAMOED) */
+#define _BIOS_DISABLED                 0x10000  /* BIOS disabled (cannot set mode), may be listed in modelist but likely not */
 
 extern Int10Data int10;
 

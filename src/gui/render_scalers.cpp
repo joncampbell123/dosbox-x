@@ -25,20 +25,92 @@
 #include "render.h"
 #include <string.h>
 
-uint8_t Scaler_Aspect[SCALER_MAXHEIGHT];
-uint16_t Scaler_ChangedLines[SCALER_MAXHEIGHT];
+uint8_t *Scaler_Aspect = NULL;
+uint16_t *Scaler_ChangedLines = NULL;
 Bitu Scaler_ChangedLineIndex;
 
 static union {
-	uint32_t b32 [4][SCALER_MAXWIDTH*3];
-	uint16_t b16 [4][SCALER_MAXWIDTH*3];
-	uint8_t b8 [4][SCALER_MAXWIDTH*3];
-} scalerWriteCache;
-//scalerFrameCache_t scalerFrameCache;
-scalerSourceCache_t scalerSourceCache;
+	// NTS: A pointer is a pointer is a pointer, no matter the data type.
+	//      Unless your compiler is weird, all pointers should line up to
+	//      the same memory address for each element of the array.
+	uint32_t *b32[5];
+	uint16_t *b16[5];
+	uint8_t *b8[5];
+} scalerWriteCache = {NULL};
+scalerFrameCache_t scalerFrameCache;
 #if RENDER_USE_ADVANCED_SCALERS>1
 scalerChangeCache_t scalerChangeCache;
 #endif
+
+void scalerChangeCacheFree(void) {
+	if (scalerChangeCache.d) free(scalerChangeCache.d);
+	scalerChangeCache.d = NULL;
+}
+
+void scalerChangeCacheAlloc(unsigned int w,unsigned int h) {
+	if (!scalerChangeCache.d) {
+		//typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE];
+		scalerChangeCache.pitch = ((w + SCALER_BLOCKSIZE - 1) / SCALER_BLOCKSIZE) + 2; /* adjacent pixel checks or render errors result */
+		if ((scalerChangeCache.d=(uint8_t*)malloc(scalerChangeCache.pitch*(h+16))) == NULL) {
+			scalerChangeCache.pitch = 0;
+			return;
+		}
+		memset(scalerChangeCache.d,0,scalerChangeCache.pitch*(h+16));
+		scalerChangeCache.width = w;
+	}
+}
+
+void scalerFrameCacheFree(void) {
+	if (scalerFrameCache.b32.d) free(scalerFrameCache.b32.d);
+	scalerFrameCache.b32.d = NULL;
+}
+
+void scalerFrameCacheAlloc(unsigned int p,unsigned int w,unsigned int h) {
+	if (!scalerFrameCache.b32.d) {
+		if ((scalerFrameCache.b32.d=(uint8_t*)malloc((p+16)*h)) == NULL)
+			return;
+
+		/* advanced scalers assume p = w*bytes/pixel */
+		memset(scalerFrameCache.b32.d,0,(p+16)*h);
+		scalerFrameCache.b32.width = w;
+		scalerFrameCache.b32.pitch = p;
+	}
+}
+
+void scalerWriteCacheFree(void) {
+	if (scalerWriteCache.b8[0]) free(scalerWriteCache.b8[0]);
+	for (unsigned int i=0;i < 5;i++) scalerWriteCache.b8[i]=NULL;
+}
+
+void scalerWriteCacheAlloc(unsigned int p) {
+	if (!scalerWriteCache.b8[0]) {
+		if ((scalerWriteCache.b8[0]=(uint8_t*)malloc(p*5)) == NULL)
+			return;
+
+		for (unsigned int i=1;i < 5u;i++)
+			scalerWriteCache.b8[i] = scalerWriteCache.b8[i-1] + p;
+	}
+}
+
+void Scaler_AspectChangedLinesFree(void) {
+	if (Scaler_Aspect) free(Scaler_Aspect);
+	Scaler_Aspect = NULL;
+
+	if (Scaler_ChangedLines) free(Scaler_ChangedLines);
+	Scaler_ChangedLines = NULL;
+}
+
+void Scaler_AspectChangedLinesAlloc(unsigned int h) {
+	if (!Scaler_Aspect && h != 0u) {
+		if ((Scaler_Aspect=(uint8_t*)malloc((h+16)*sizeof(uint8_t))) == NULL)
+			return;
+	}
+
+	if (!Scaler_ChangedLines && h != 0u) {
+		if ((Scaler_ChangedLines=(uint16_t*)malloc((h+16)*sizeof(uint16_t))) == NULL)
+			return;
+	}
+}
 
 #define _conc2(A,B) A ## B
 #define _conc3(A,B,C) A ## B ## C
@@ -175,14 +247,13 @@ static INLINE void ScalerAddLines( Bitu changed, Bitu count ) {
 #undef SBPP
 #undef DBPP
 
-
 #if RENDER_USE_ADVANCED_SCALERS>1
 ScalerLineBlock_t ScalerCache = {
-{	Cache_8_8,	Cache_8_15 ,	Cache_8_16 ,	Cache_8_32 },
-{	nullptr,	Cache_15_15,	Cache_15_16,	Cache_15_32},
-{	nullptr,	Cache_16_15,	Cache_16_16,	Cache_16_32},
-{	nullptr,	Cache_32_15,	Cache_32_16,	Cache_32_32},
-{	Cache_8_8,	Cache_9_15 ,	Cache_9_16 ,	Cache_9_32 }
+{	Cache_8_8,		Cache_8_15 ,		Cache_8_16 ,		Cache_8_32 },
+{	nullptr,		Cache_15_15,		Cache_15_16,		Cache_15_32},
+{	nullptr,		Cache_16_15,		Cache_16_16,		Cache_16_32},
+{	nullptr,		Cache_32_15,		Cache_32_16,		Cache_32_32},
+{	Cache_8_8,		Cache_9_15 ,		Cache_9_16 ,		Cache_9_32 }
 };
 #endif
 
@@ -241,34 +312,34 @@ ScalerSimpleBlock_t ScaleNormal2xDw = {
 	"Normal2x",
 	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_NORMALSCALE,
 	4,2,{
-{	Normal2xDw_8_8_L,		Normal2xDw_8_15_L ,	Normal2xDw_8_16_L ,	Normal2xDw_8_32_L },
+{	Normal2xDw_8_8_L,	Normal2xDw_8_15_L ,	Normal2xDw_8_16_L ,	Normal2xDw_8_32_L },
 {	nullptr,		Normal2xDw_15_15_L,	Normal2xDw_15_16_L,	Normal2xDw_15_32_L},
 {	nullptr,		Normal2xDw_16_15_L,	Normal2xDw_16_16_L,	Normal2xDw_16_32_L},
 {	nullptr,		Normal2xDw_32_15_L,	Normal2xDw_32_16_L,	Normal2xDw_32_32_L},
-{	Normal2xDw_8_8_L,		Normal2xDw_9_15_L ,	Normal2xDw_9_16_L ,	Normal2xDw_9_32_L }
+{	Normal2xDw_8_8_L,	Normal2xDw_9_15_L ,	Normal2xDw_9_16_L ,	Normal2xDw_9_32_L }
 },{
-{	Normal2xDw_8_8_R,		Normal2xDw_8_15_R ,	Normal2xDw_8_16_R ,	Normal2xDw_8_32_R },
+{	Normal2xDw_8_8_R,	Normal2xDw_8_15_R ,	Normal2xDw_8_16_R ,	Normal2xDw_8_32_R },
 {	nullptr,		Normal2xDw_15_15_R,	Normal2xDw_15_16_R,	Normal2xDw_15_32_R},
 {	nullptr,		Normal2xDw_16_15_R,	Normal2xDw_16_16_R,	Normal2xDw_16_32_R},
 {	nullptr,		Normal2xDw_32_15_R,	Normal2xDw_32_16_R,	Normal2xDw_32_32_R},
-{	Normal2xDw_8_8_R,		Normal2xDw_9_15_R ,	Normal2xDw_9_16_R ,	Normal2xDw_9_32_R }
+{	Normal2xDw_8_8_R,	Normal2xDw_9_15_R ,	Normal2xDw_9_16_R ,	Normal2xDw_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleNormal2xDh = {
 	"Normal2x",
 	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_NORMALSCALE,
 	2,4,{
-{	Normal2xDh_8_8_L,		Normal2xDh_8_15_L ,	Normal2xDh_8_16_L ,	Normal2xDh_8_32_L },
+{	Normal2xDh_8_8_L,	Normal2xDh_8_15_L ,	Normal2xDh_8_16_L ,	Normal2xDh_8_32_L },
 {	nullptr,		Normal2xDh_15_15_L,	Normal2xDh_15_16_L,	Normal2xDh_15_32_L},
 {	nullptr,		Normal2xDh_16_15_L,	Normal2xDh_16_16_L,	Normal2xDh_16_32_L},
 {	nullptr,		Normal2xDh_32_15_L,	Normal2xDh_32_16_L,	Normal2xDh_32_32_L},
-{	Normal2xDh_8_8_L,		Normal2xDh_9_15_L ,	Normal2xDh_9_16_L ,	Normal2xDh_9_32_L }
+{	Normal2xDh_8_8_L,	Normal2xDh_9_15_L ,	Normal2xDh_9_16_L ,	Normal2xDh_9_32_L }
 },{
-{	Normal2xDh_8_8_R,		Normal2xDh_8_15_R ,	Normal2xDh_8_16_R ,	Normal2xDh_8_32_R },
+{	Normal2xDh_8_8_R,	Normal2xDh_8_15_R ,	Normal2xDh_8_16_R ,	Normal2xDh_8_32_R },
 {	nullptr,		Normal2xDh_15_15_R,	Normal2xDh_15_16_R,	Normal2xDh_15_32_R},
 {	nullptr,		Normal2xDh_16_15_R,	Normal2xDh_16_16_R,	Normal2xDh_16_32_R},
 {	nullptr,		Normal2xDh_32_15_R,	Normal2xDh_32_16_R,	Normal2xDh_32_32_R},
-{	Normal2xDh_8_8_R,		Normal2xDh_9_15_R ,	Normal2xDh_9_16_R ,	Normal2xDh_9_32_R }
+{	Normal2xDh_8_8_R,	Normal2xDh_9_15_R ,	Normal2xDh_9_16_R ,	Normal2xDh_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleNormal2x = {
@@ -306,54 +377,54 @@ ScalerSimpleBlock_t ScaleNormal3x = {
 }};
 
 ScalerSimpleBlock_t ScaleNormal4x = {
-    "Normal4x",
-    GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_NORMALSCALE,
-    4,4,{
-{    Normal4x_8_8_L,        Normal4x_8_15_L ,    Normal4x_8_16_L ,    Normal4x_8_32_L },
-{    nullptr,               Normal4x_15_15_L,    Normal4x_15_16_L,    Normal4x_15_32_L},
-{    nullptr,               Normal4x_16_15_L,    Normal4x_16_16_L,    Normal4x_16_32_L},
-{    nullptr,               Normal4x_32_15_L,    Normal4x_32_16_L,    Normal4x_32_32_L},
-{    Normal4x_8_8_L,        Normal4x_9_15_L ,    Normal4x_9_16_L ,    Normal4x_9_32_L }
+	"Normal4x",
+	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_NORMALSCALE,
+	4,4,{
+{	Normal4x_8_8_L,		Normal4x_8_15_L	,	Normal4x_8_16_L	,	Normal4x_8_32_L	},
+{	nullptr,		Normal4x_15_15_L,	Normal4x_15_16_L,	Normal4x_15_32_L},
+{	nullptr,		Normal4x_16_15_L,	Normal4x_16_16_L,	Normal4x_16_32_L},
+{	nullptr,		Normal4x_32_15_L,	Normal4x_32_16_L,	Normal4x_32_32_L},
+{	Normal4x_8_8_L,		Normal4x_9_15_L	,	Normal4x_9_16_L	,	Normal4x_9_32_L	}
 },{
-{    Normal4x_8_8_R,        Normal4x_8_15_R ,    Normal4x_8_16_R ,    Normal4x_8_32_R },
-{    nullptr,               Normal4x_15_15_R,    Normal4x_15_16_R,    Normal4x_15_32_R},
-{    nullptr,               Normal4x_16_15_R,    Normal4x_16_16_R,    Normal4x_16_32_R},
-{    nullptr,               Normal4x_32_15_R,    Normal4x_32_16_R,    Normal4x_32_32_R},
-{    Normal4x_8_8_R,        Normal4x_9_15_R ,    Normal4x_9_16_R ,    Normal4x_9_32_R }
+{	Normal4x_8_8_R,		Normal4x_8_15_R	,	Normal4x_8_16_R	,	Normal4x_8_32_R	},
+{	nullptr,		Normal4x_15_15_R,	Normal4x_15_16_R,	Normal4x_15_32_R},
+{	nullptr,		Normal4x_16_15_R,	Normal4x_16_16_R,	Normal4x_16_32_R},
+{	nullptr,		Normal4x_32_15_R,	Normal4x_32_16_R,	Normal4x_32_32_R},
+{	Normal4x_8_8_R,		Normal4x_9_15_R	,	Normal4x_9_16_R	,	Normal4x_9_32_R	}
 }};
 
-ScalerSimpleBlock_t ScaleNormal5x = {
-    "Normal5x",
-    GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_NORMALSCALE,
-    5,5,{
-{    Normal5x_8_8_L,        Normal5x_8_15_L ,    Normal5x_8_16_L ,    Normal5x_8_32_L },
-{    nullptr,               Normal5x_15_15_L,    Normal5x_15_16_L,    Normal5x_15_32_L},
-{    nullptr,               Normal5x_16_15_L,    Normal5x_16_16_L,    Normal5x_16_32_L},
-{    nullptr,               Normal5x_32_15_L,    Normal5x_32_16_L,    Normal5x_32_32_L},
-{    Normal5x_8_8_L,        Normal5x_9_15_L ,    Normal5x_9_16_L ,    Normal5x_9_32_L }
+ScalerSimpleBlock_t	ScaleNormal5x	=	{
+	"Normal5x",
+	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_NORMALSCALE,
+	5,5,{
+{	Normal5x_8_8_L,		Normal5x_8_15_L	,	Normal5x_8_16_L	,	Normal5x_8_32_L	},
+{	nullptr,		Normal5x_15_15_L,	Normal5x_15_16_L,	Normal5x_15_32_L},
+{	nullptr,		Normal5x_16_15_L,	Normal5x_16_16_L,	Normal5x_16_32_L},
+{	nullptr,		Normal5x_32_15_L,	Normal5x_32_16_L,	Normal5x_32_32_L},
+{	Normal5x_8_8_L,		Normal5x_9_15_L	,	Normal5x_9_16_L	,	Normal5x_9_32_L	}
 },{
-{    Normal5x_8_8_R,        Normal5x_8_15_R ,    Normal5x_8_16_R ,    Normal5x_8_32_R },
-{    nullptr,               Normal5x_15_15_R,    Normal5x_15_16_R,    Normal5x_15_32_R},
-{    nullptr,               Normal5x_16_15_R,    Normal5x_16_16_R,    Normal5x_16_32_R},
-{    nullptr,               Normal5x_32_15_R,    Normal5x_32_16_R,    Normal5x_32_32_R},
-{    Normal5x_8_8_R,        Normal5x_9_15_R ,    Normal5x_9_16_R ,    Normal5x_9_32_R }
+{	Normal5x_8_8_R,		Normal5x_8_15_R	,	Normal5x_8_16_R	,	Normal5x_8_32_R	},
+{	nullptr,		Normal5x_15_15_R,	Normal5x_15_16_R,	Normal5x_15_32_R},
+{	nullptr,		Normal5x_16_15_R,	Normal5x_16_16_R,	Normal5x_16_32_R},
+{	nullptr,		Normal5x_32_15_R,	Normal5x_32_16_R,	Normal5x_32_32_R},
+{	Normal5x_8_8_R,		Normal5x_9_15_R	,	Normal5x_9_16_R	,	Normal5x_9_32_R	}
 }};
 
-/*ScalerSimpleBlock_t ScaleNormal6x = {
-    "Normal6x",
-    GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_NORMALSCALE,
-    6,6,{
-{    Normal6x_8_8_L,        Normal6x_8_15_L ,    Normal6x_8_16_L ,    Normal6x_8_32_L },
-{    nullptr,               Normal6x_15_15_L,    Normal6x_15_16_L,    Normal6x_15_32_L},
-{    nullptr,               Normal6x_16_15_L,    Normal6x_16_16_L,    Normal6x_16_32_L},
-{    nullptr,               Normal6x_32_15_L,    Normal6x_32_16_L,    Normal6x_32_32_L},
-{    Normal6x_8_8_L,        Normal6x_9_15_L ,    Normal6x_9_16_L ,    Normal6x_9_32_L }
+/*ScalerSimpleBlock_t	ScaleNormal6x	=	{
+	"Normal6x",
+	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_NORMALSCALE,
+	6,6,{
+{	Normal6x_8_8_L,		Normal6x_8_15_L	,	Normal6x_8_16_L	,	Normal6x_8_32_L	},
+{	nullptr,		Normal6x_15_15_L,	Normal6x_15_16_L,	Normal6x_15_32_L},
+{	nullptr,		Normal6x_16_15_L,	Normal6x_16_16_L,	Normal6x_16_32_L},
+{	nullptr,		Normal6x_32_15_L,	Normal6x_32_16_L,	Normal6x_32_32_L},
+{	Normal6x_8_8_L,		Normal6x_9_15_L	,	Normal6x_9_16_L	,	Normal6x_9_32_L	}
 },{
-{    Normal6x_8_8_R,        Normal6x_8_15_R ,    Normal6x_8_16_R ,    Normal6x_8_32_R },
-{    nullptr,               Normal6x_15_15_R,    Normal6x_15_16_R,    Normal6x_15_32_R},
-{    nullptr,               Normal6x_16_15_R,    Normal6x_16_16_R,    Normal6x_16_32_R},
-{    nullptr,               Normal6x_32_15_R,    Normal6x_32_16_R,    Normal6x_32_32_R},
-{    Normal6x_8_8_R,        Normal6x_9_15_R ,    Normal6x_9_16_R ,    Normal6x_9_32_R }
+{	Normal6x_8_8_R,		Normal6x_8_15_R	,	Normal6x_8_16_R	,	Normal6x_8_32_R	},
+{	nullptr,		Normal6x_15_15_R,	Normal6x_15_16_R,	Normal6x_15_32_R},
+{	nullptr,		Normal6x_16_15_R,	Normal6x_16_16_R,	Normal6x_16_32_R},
+{	nullptr,		Normal6x_32_15_R,	Normal6x_32_16_R,	Normal6x_32_32_R},
+{	Normal6x_8_8_R,		Normal6x_9_15_R	,	Normal6x_9_16_R	,	Normal6x_9_32_R	}
 }};*/
 
 #if RENDER_USE_ADVANCED_SCALERS>0
@@ -361,306 +432,306 @@ ScalerSimpleBlock_t ScaleTV2x = {
 	"TV2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	2,2,{
-{	nullptr,	TV2x_8_15_L ,	TV2x_8_16_L ,	TV2x_8_32_L },
-{	nullptr,	TV2x_15_15_L,	TV2x_15_16_L,	TV2x_15_32_L},
-{	nullptr,	TV2x_16_15_L,	TV2x_16_16_L,	TV2x_16_32_L},
-{	nullptr,	TV2x_32_15_L,	TV2x_32_16_L,	TV2x_32_32_L},
-{	nullptr,	TV2x_9_15_L ,	TV2x_9_16_L ,	TV2x_9_32_L }
+{	nullptr,		TV2x_8_15_L ,		TV2x_8_16_L ,		TV2x_8_32_L },
+{	nullptr,		TV2x_15_15_L,		TV2x_15_16_L,		TV2x_15_32_L},
+{	nullptr,		TV2x_16_15_L,		TV2x_16_16_L,		TV2x_16_32_L},
+{	nullptr,		TV2x_32_15_L,		TV2x_32_16_L,		TV2x_32_32_L},
+{	nullptr,		TV2x_9_15_L ,		TV2x_9_16_L ,		TV2x_9_32_L }
 },{
-{	nullptr,	TV2x_8_15_R ,	TV2x_8_16_R ,	TV2x_8_32_R },
-{	nullptr,	TV2x_15_15_R,	TV2x_15_16_R,	TV2x_15_32_R},
-{	nullptr,	TV2x_16_15_R,	TV2x_16_16_R,	TV2x_16_32_R},
-{	nullptr,	TV2x_32_15_R,	TV2x_32_16_R,	TV2x_32_32_R},
-{	nullptr,	TV2x_9_15_R ,	TV2x_9_16_R ,	TV2x_9_32_R }
+{	nullptr,		TV2x_8_15_R ,		TV2x_8_16_R ,		TV2x_8_32_R },
+{	nullptr,		TV2x_15_15_R,		TV2x_15_16_R,		TV2x_15_32_R},
+{	nullptr,		TV2x_16_15_R,		TV2x_16_16_R,		TV2x_16_32_R},
+{	nullptr,		TV2x_32_15_R,		TV2x_32_16_R,		TV2x_32_32_R},
+{	nullptr,		TV2x_9_15_R ,		TV2x_9_16_R ,		TV2x_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleTV2xDw = {
 	"TV2xDw",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	4,2,{
-{	nullptr,	TV2xDw_8_15_L ,	TV2xDw_8_16_L ,	TV2xDw_8_32_L },
-{	nullptr,	TV2xDw_15_15_L,	TV2xDw_15_16_L,	TV2xDw_15_32_L},
-{	nullptr,	TV2xDw_16_15_L,	TV2xDw_16_16_L,	TV2xDw_16_32_L},
-{	nullptr,	TV2xDw_32_15_L,	TV2xDw_32_16_L,	TV2xDw_32_32_L},
-{	nullptr,	TV2xDw_9_15_L ,	TV2xDw_9_16_L ,	TV2xDw_9_32_L }
+{	nullptr,		TV2xDw_8_15_L ,		TV2xDw_8_16_L ,		TV2xDw_8_32_L },
+{	nullptr,		TV2xDw_15_15_L,		TV2xDw_15_16_L,		TV2xDw_15_32_L},
+{	nullptr,		TV2xDw_16_15_L,		TV2xDw_16_16_L,		TV2xDw_16_32_L},
+{	nullptr,		TV2xDw_32_15_L,		TV2xDw_32_16_L,		TV2xDw_32_32_L},
+{	nullptr,		TV2xDw_9_15_L ,		TV2xDw_9_16_L ,		TV2xDw_9_32_L }
 },{
-{	nullptr,	TV2xDw_8_15_R ,	TV2xDw_8_16_R ,	TV2xDw_8_32_R },
-{	nullptr,	TV2xDw_15_15_R,	TV2xDw_15_16_R,	TV2xDw_15_32_R},
-{	nullptr,	TV2xDw_16_15_R,	TV2xDw_16_16_R,	TV2xDw_16_32_R},
-{	nullptr,	TV2xDw_32_15_R,	TV2xDw_32_16_R,	TV2xDw_32_32_R},
-{	nullptr,	TV2xDw_9_15_R ,	TV2xDw_9_16_R ,	TV2xDw_9_32_R }
+{	nullptr,		TV2xDw_8_15_R ,		TV2xDw_8_16_R ,		TV2xDw_8_32_R },
+{	nullptr,		TV2xDw_15_15_R,		TV2xDw_15_16_R,		TV2xDw_15_32_R},
+{	nullptr,		TV2xDw_16_15_R,		TV2xDw_16_16_R,		TV2xDw_16_32_R},
+{	nullptr,		TV2xDw_32_15_R,		TV2xDw_32_16_R,		TV2xDw_32_32_R},
+{	nullptr,		TV2xDw_9_15_R ,		TV2xDw_9_16_R ,		TV2xDw_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleTVDh = {
 	"TV2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	1,2,{
-{	nullptr,	TVDh_8_15_L ,	TVDh_8_16_L ,	TVDh_8_32_L },
-{	nullptr,	TVDh_15_15_L,	TVDh_15_16_L,	TVDh_15_32_L},
-{	nullptr,	TVDh_16_15_L,	TVDh_16_16_L,	TVDh_16_32_L},
-{	nullptr,	TVDh_32_15_L,	TVDh_32_16_L,	TVDh_32_32_L},
-{	nullptr,	TVDh_9_15_L ,	TVDh_9_16_L ,	TVDh_9_32_L }
+{	nullptr,		TVDh_8_15_L ,		TVDh_8_16_L ,		TVDh_8_32_L },
+{	nullptr,		TVDh_15_15_L,		TVDh_15_16_L,		TVDh_15_32_L},
+{	nullptr,		TVDh_16_15_L,		TVDh_16_16_L,		TVDh_16_32_L},
+{	nullptr,		TVDh_32_15_L,		TVDh_32_16_L,		TVDh_32_32_L},
+{	nullptr,		TVDh_9_15_L ,		TVDh_9_16_L ,		TVDh_9_32_L }
 },{
-{	nullptr,	TVDh_8_15_R ,	TVDh_8_16_R ,	TVDh_8_32_R },
-{	nullptr,	TVDh_15_15_R,	TVDh_15_16_R,	TVDh_15_32_R},
-{	nullptr,	TVDh_16_15_R,	TVDh_16_16_R,	TVDh_16_32_R},
-{	nullptr,	TVDh_32_15_R,	TVDh_32_16_R,	TVDh_32_32_R},
-{	nullptr,	TVDh_9_15_R ,	TVDh_9_16_R ,	TVDh_9_32_R }
+{	nullptr,		TVDh_8_15_R ,		TVDh_8_16_R ,		TVDh_8_32_R },
+{	nullptr,		TVDh_15_15_R,		TVDh_15_16_R,		TVDh_15_32_R},
+{	nullptr,		TVDh_16_15_R,		TVDh_16_16_R,		TVDh_16_32_R},
+{	nullptr,		TVDh_32_15_R,		TVDh_32_16_R,		TVDh_32_32_R},
+{	nullptr,		TVDh_9_15_R ,		TVDh_9_16_R ,		TVDh_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleTV3x = {
 	"TV3x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	3,3,{
-{	nullptr,	TV3x_8_15_L ,	TV3x_8_16_L ,	TV3x_8_32_L },
-{	nullptr,	TV3x_15_15_L,	TV3x_15_16_L,	TV3x_15_32_L},
-{	nullptr,	TV3x_16_15_L,	TV3x_16_16_L,	TV3x_16_32_L},
-{	nullptr,	TV3x_32_15_L,	TV3x_32_16_L,	TV3x_32_32_L},
-{	nullptr,	TV3x_9_15_L ,	TV3x_9_16_L ,	TV3x_9_32_L }
+{	nullptr,		TV3x_8_15_L ,		TV3x_8_16_L ,		TV3x_8_32_L },
+{	nullptr,		TV3x_15_15_L,		TV3x_15_16_L,		TV3x_15_32_L},
+{	nullptr,		TV3x_16_15_L,		TV3x_16_16_L,		TV3x_16_32_L},
+{	nullptr,		TV3x_32_15_L,		TV3x_32_16_L,		TV3x_32_32_L},
+{	nullptr,		TV3x_9_15_L ,		TV3x_9_16_L ,		TV3x_9_32_L }
 },{
-{	nullptr,	TV3x_8_15_R ,	TV3x_8_16_R ,	TV3x_8_32_R },
-{	nullptr,	TV3x_15_15_R,	TV3x_15_16_R,	TV3x_15_32_R},
-{	nullptr,	TV3x_16_15_R,	TV3x_16_16_R,	TV3x_16_32_R},
-{	nullptr,	TV3x_32_15_R,	TV3x_32_16_R,	TV3x_32_32_R},
-{	nullptr,	TV3x_9_15_R ,	TV3x_9_16_R ,	TV3x_9_32_R }
+{	nullptr,		TV3x_8_15_R ,		TV3x_8_16_R ,		TV3x_8_32_R },
+{	nullptr,		TV3x_15_15_R,		TV3x_15_16_R,		TV3x_15_32_R},
+{	nullptr,		TV3x_16_15_R,		TV3x_16_16_R,		TV3x_16_32_R},
+{	nullptr,		TV3x_32_15_R,		TV3x_32_16_R,		TV3x_32_32_R},
+{	nullptr,		TV3x_9_15_R ,		TV3x_9_16_R ,		TV3x_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleTV3xDw = {
 	"TV3xDw",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	6,3,{
-{	nullptr,	TV3xDw_8_15_L ,	TV3xDw_8_16_L ,	TV3xDw_8_32_L },
-{	nullptr,	TV3xDw_15_15_L,	TV3xDw_15_16_L,	TV3xDw_15_32_L},
-{	nullptr,	TV3xDw_16_15_L,	TV3xDw_16_16_L,	TV3xDw_16_32_L},
-{	nullptr,	TV3xDw_32_15_L,	TV3xDw_32_16_L,	TV3xDw_32_32_L},
-{	nullptr,	TV3xDw_9_15_L ,	TV3xDw_9_16_L ,	TV3xDw_9_32_L }
+{	nullptr,		TV3xDw_8_15_L ,		TV3xDw_8_16_L ,		TV3xDw_8_32_L },
+{	nullptr,		TV3xDw_15_15_L,		TV3xDw_15_16_L,		TV3xDw_15_32_L},
+{	nullptr,		TV3xDw_16_15_L,		TV3xDw_16_16_L,		TV3xDw_16_32_L},
+{	nullptr,		TV3xDw_32_15_L,		TV3xDw_32_16_L,		TV3xDw_32_32_L},
+{	nullptr,		TV3xDw_9_15_L ,		TV3xDw_9_16_L ,		TV3xDw_9_32_L }
 },{
-{	nullptr,	TV3xDw_8_15_R ,	TV3xDw_8_16_R ,	TV3xDw_8_32_R },
-{	nullptr,	TV3xDw_15_15_R,	TV3xDw_15_16_R,	TV3xDw_15_32_R},
-{	nullptr,	TV3xDw_16_15_R,	TV3xDw_16_16_R,	TV3xDw_16_32_R},
-{	nullptr,	TV3xDw_32_15_R,	TV3xDw_32_16_R,	TV3xDw_32_32_R},
-{	nullptr,	TV3xDw_9_15_R ,	TV3xDw_9_16_R ,	TV3xDw_9_32_R }
+{	nullptr,		TV3xDw_8_15_R ,		TV3xDw_8_16_R ,		TV3xDw_8_32_R },
+{	nullptr,		TV3xDw_15_15_R,		TV3xDw_15_16_R,		TV3xDw_15_32_R},
+{	nullptr,		TV3xDw_16_15_R,		TV3xDw_16_16_R,		TV3xDw_16_32_R},
+{	nullptr,		TV3xDw_32_15_R,		TV3xDw_32_16_R,		TV3xDw_32_32_R},
+{	nullptr,		TV3xDw_9_15_R ,		TV3xDw_9_16_R ,		TV3xDw_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleScan2x = {
 	"Scan2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	2,2,{
-{	nullptr,	Scan2x_8_15_L ,	Scan2x_8_16_L ,	Scan2x_8_32_L },
-{	nullptr,	Scan2x_15_15_L,	Scan2x_15_16_L,	Scan2x_15_32_L},
-{	nullptr,	Scan2x_16_15_L,	Scan2x_16_16_L,	Scan2x_16_32_L},
-{	nullptr,	Scan2x_32_15_L,	Scan2x_32_16_L,	Scan2x_32_32_L},
-{	nullptr,	Scan2x_9_15_L ,	Scan2x_9_16_L ,	Scan2x_9_32_L }
+{	nullptr,		Scan2x_8_15_L ,		Scan2x_8_16_L ,		Scan2x_8_32_L },
+{	nullptr,		Scan2x_15_15_L,		Scan2x_15_16_L,		Scan2x_15_32_L},
+{	nullptr,		Scan2x_16_15_L,		Scan2x_16_16_L,		Scan2x_16_32_L},
+{	nullptr,		Scan2x_32_15_L,		Scan2x_32_16_L,		Scan2x_32_32_L},
+{	nullptr,		Scan2x_9_15_L ,		Scan2x_9_16_L ,		Scan2x_9_32_L }
 },{
-{	nullptr,	Scan2x_8_15_R ,	Scan2x_8_16_R ,	Scan2x_8_32_R },
-{	nullptr,	Scan2x_15_15_R,	Scan2x_15_16_R,	Scan2x_15_32_R},
-{	nullptr,	Scan2x_16_15_R,	Scan2x_16_16_R,	Scan2x_16_32_R},
-{	nullptr,	Scan2x_32_15_R,	Scan2x_32_16_R,	Scan2x_32_32_R},
-{	nullptr,	Scan2x_9_15_R ,	Scan2x_9_16_R ,	Scan2x_9_32_R }
+{	nullptr,		Scan2x_8_15_R ,		Scan2x_8_16_R ,		Scan2x_8_32_R },
+{	nullptr,		Scan2x_15_15_R,		Scan2x_15_16_R,		Scan2x_15_32_R},
+{	nullptr,		Scan2x_16_15_R,		Scan2x_16_16_R,		Scan2x_16_32_R},
+{	nullptr,		Scan2x_32_15_R,		Scan2x_32_16_R,		Scan2x_32_32_R},
+{	nullptr,		Scan2x_9_15_R ,		Scan2x_9_16_R ,		Scan2x_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleScan2xDw = {
 	"Scan2xDw",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	4,2,{
-{	nullptr,	Scan2xDw_8_15_L ,	Scan2xDw_8_16_L ,	Scan2xDw_8_32_L },
-{	nullptr,	Scan2xDw_15_15_L,	Scan2xDw_15_16_L,	Scan2xDw_15_32_L},
-{	nullptr,	Scan2xDw_16_15_L,	Scan2xDw_16_16_L,	Scan2xDw_16_32_L},
-{	nullptr,	Scan2xDw_32_15_L,	Scan2xDw_32_16_L,	Scan2xDw_32_32_L},
-{	nullptr,	Scan2xDw_9_15_L ,	Scan2xDw_9_16_L ,	Scan2xDw_9_32_L }
+{	nullptr,		Scan2xDw_8_15_L ,	Scan2xDw_8_16_L ,	Scan2xDw_8_32_L },
+{	nullptr,		Scan2xDw_15_15_L,	Scan2xDw_15_16_L,	Scan2xDw_15_32_L},
+{	nullptr,		Scan2xDw_16_15_L,	Scan2xDw_16_16_L,	Scan2xDw_16_32_L},
+{	nullptr,		Scan2xDw_32_15_L,	Scan2xDw_32_16_L,	Scan2xDw_32_32_L},
+{	nullptr,		Scan2xDw_9_15_L ,	Scan2xDw_9_16_L ,	Scan2xDw_9_32_L }
 },{
-{	nullptr,	Scan2xDw_8_15_R ,	Scan2xDw_8_16_R ,	Scan2xDw_8_32_R },
-{	nullptr,	Scan2xDw_15_15_R,	Scan2xDw_15_16_R,	Scan2xDw_15_32_R},
-{	nullptr,	Scan2xDw_16_15_R,	Scan2xDw_16_16_R,	Scan2xDw_16_32_R},
-{	nullptr,	Scan2xDw_32_15_R,	Scan2xDw_32_16_R,	Scan2xDw_32_32_R},
-{	nullptr,	Scan2xDw_9_15_R ,	Scan2xDw_9_16_R ,	Scan2xDw_9_32_R }
+{	nullptr,		Scan2xDw_8_15_R ,	Scan2xDw_8_16_R ,	Scan2xDw_8_32_R },
+{	nullptr,		Scan2xDw_15_15_R,	Scan2xDw_15_16_R,	Scan2xDw_15_32_R},
+{	nullptr,		Scan2xDw_16_15_R,	Scan2xDw_16_16_R,	Scan2xDw_16_32_R},
+{	nullptr,		Scan2xDw_32_15_R,	Scan2xDw_32_16_R,	Scan2xDw_32_32_R},
+{	nullptr,		Scan2xDw_9_15_R ,	Scan2xDw_9_16_R ,	Scan2xDw_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleScanDh = {
 	"Scan2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	1,2,{
-{	nullptr,	ScanDh_8_15_L ,	ScanDh_8_16_L ,	ScanDh_8_32_L },
-{	nullptr,	ScanDh_15_15_L,	ScanDh_15_16_L,	ScanDh_15_32_L},
-{	nullptr,	ScanDh_16_15_L,	ScanDh_16_16_L,	ScanDh_16_32_L},
-{	nullptr,	ScanDh_32_15_L,	ScanDh_32_16_L,	ScanDh_32_32_L},
-{	nullptr,	ScanDh_9_15_L ,	ScanDh_9_16_L ,	ScanDh_9_32_L }
+{	nullptr,		ScanDh_8_15_L ,		ScanDh_8_16_L ,		ScanDh_8_32_L },
+{	nullptr,		ScanDh_15_15_L,		ScanDh_15_16_L,		ScanDh_15_32_L},
+{	nullptr,		ScanDh_16_15_L,		ScanDh_16_16_L,		ScanDh_16_32_L},
+{	nullptr,		ScanDh_32_15_L,		ScanDh_32_16_L,		ScanDh_32_32_L},
+{	nullptr,		ScanDh_9_15_L ,		ScanDh_9_16_L ,		ScanDh_9_32_L }
 },{
-{	nullptr,	ScanDh_8_15_R ,	ScanDh_8_16_R ,	ScanDh_8_32_R },
-{	nullptr,	ScanDh_15_15_R,	ScanDh_15_16_R,	ScanDh_15_32_R},
-{	nullptr,	ScanDh_16_15_R,	ScanDh_16_16_R,	ScanDh_16_32_R},
-{	nullptr,	ScanDh_32_15_R,	ScanDh_32_16_R,	ScanDh_32_32_R},
-{	nullptr,	ScanDh_9_15_R ,	ScanDh_9_16_R ,	ScanDh_9_32_R }
+{	nullptr,		ScanDh_8_15_R ,		ScanDh_8_16_R ,		ScanDh_8_32_R },
+{	nullptr,		ScanDh_15_15_R,		ScanDh_15_16_R,		ScanDh_15_32_R},
+{	nullptr,		ScanDh_16_15_R,		ScanDh_16_16_R,		ScanDh_16_32_R},
+{	nullptr,		ScanDh_32_15_R,		ScanDh_32_16_R,		ScanDh_32_32_R},
+{	nullptr,		ScanDh_9_15_R ,		ScanDh_9_16_R ,		ScanDh_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleScan3x = {
 	"Scan3x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	3,3,{
-{	nullptr,	Scan3x_8_15_L ,	Scan3x_8_16_L ,	Scan3x_8_32_L },
-{	nullptr,	Scan3x_15_15_L,	Scan3x_15_16_L,	Scan3x_15_32_L},
-{	nullptr,	Scan3x_16_15_L,	Scan3x_16_16_L,	Scan3x_16_32_L},
-{	nullptr,	Scan3x_32_15_L,	Scan3x_32_16_L,	Scan3x_32_32_L},
-{	nullptr,	Scan3x_9_15_L ,	Scan3x_9_16_L ,	Scan3x_9_32_L },
+{	nullptr,		Scan3x_8_15_L ,		Scan3x_8_16_L ,		Scan3x_8_32_L },
+{	nullptr,		Scan3x_15_15_L,		Scan3x_15_16_L,		Scan3x_15_32_L},
+{	nullptr,		Scan3x_16_15_L,		Scan3x_16_16_L,		Scan3x_16_32_L},
+{	nullptr,		Scan3x_32_15_L,		Scan3x_32_16_L,		Scan3x_32_32_L},
+{	nullptr,		Scan3x_9_15_L ,		Scan3x_9_16_L ,		Scan3x_9_32_L },
 },{
-{	nullptr,	Scan3x_8_15_R ,	Scan3x_8_16_R ,	Scan3x_8_32_R },
-{	nullptr,	Scan3x_15_15_R,	Scan3x_15_16_R,	Scan3x_15_32_R},
-{	nullptr,	Scan3x_16_15_R,	Scan3x_16_16_R,	Scan3x_16_32_R},
-{	nullptr,	Scan3x_32_15_R,	Scan3x_32_16_R,	Scan3x_32_32_R},
-{	nullptr,	Scan3x_9_15_R ,	Scan3x_9_16_R ,	Scan3x_9_32_R }
+{	nullptr,		Scan3x_8_15_R ,		Scan3x_8_16_R ,		Scan3x_8_32_R },
+{	nullptr,		Scan3x_15_15_R,		Scan3x_15_16_R,		Scan3x_15_32_R},
+{	nullptr,		Scan3x_16_15_R,		Scan3x_16_16_R,		Scan3x_16_32_R},
+{	nullptr,		Scan3x_32_15_R,		Scan3x_32_16_R,		Scan3x_32_32_R},
+{	nullptr,		Scan3x_9_15_R ,		Scan3x_9_16_R ,		Scan3x_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleScan3xDw = {
 	"Scan3xDw",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	6,3,{
-{	nullptr,	Scan3xDw_8_15_L ,	Scan3xDw_8_16_L ,	Scan3xDw_8_32_L },
-{	nullptr,	Scan3xDw_15_15_L,	Scan3xDw_15_16_L,	Scan3xDw_15_32_L},
-{	nullptr,	Scan3xDw_16_15_L,	Scan3xDw_16_16_L,	Scan3xDw_16_32_L},
-{	nullptr,	Scan3xDw_32_15_L,	Scan3xDw_32_16_L,	Scan3xDw_32_32_L},
-{	nullptr,	Scan3xDw_9_15_L ,	Scan3xDw_9_16_L ,	Scan3xDw_9_32_L },
+{	nullptr,		Scan3xDw_8_15_L ,	Scan3xDw_8_16_L ,	Scan3xDw_8_32_L },
+{	nullptr,		Scan3xDw_15_15_L,	Scan3xDw_15_16_L,	Scan3xDw_15_32_L},
+{	nullptr,		Scan3xDw_16_15_L,	Scan3xDw_16_16_L,	Scan3xDw_16_32_L},
+{	nullptr,		Scan3xDw_32_15_L,	Scan3xDw_32_16_L,	Scan3xDw_32_32_L},
+{	nullptr,		Scan3xDw_9_15_L ,	Scan3xDw_9_16_L ,	Scan3xDw_9_32_L },
 },{
-{	nullptr,	Scan3xDw_8_15_R ,	Scan3xDw_8_16_R ,	Scan3xDw_8_32_R },
-{	nullptr,	Scan3xDw_15_15_R,	Scan3xDw_15_16_R,	Scan3xDw_15_32_R},
-{	nullptr,	Scan3xDw_16_15_R,	Scan3xDw_16_16_R,	Scan3xDw_16_32_R},
-{	nullptr,	Scan3xDw_32_15_R,	Scan3xDw_32_16_R,	Scan3xDw_32_32_R},
-{	nullptr,	Scan3xDw_9_15_R ,	Scan3xDw_9_16_R ,	Scan3xDw_9_32_R }
+{	nullptr,		Scan3xDw_8_15_R ,	Scan3xDw_8_16_R ,	Scan3xDw_8_32_R },
+{	nullptr,		Scan3xDw_15_15_R,	Scan3xDw_15_16_R,	Scan3xDw_15_32_R},
+{	nullptr,		Scan3xDw_16_15_R,	Scan3xDw_16_16_R,	Scan3xDw_16_32_R},
+{	nullptr,		Scan3xDw_32_15_R,	Scan3xDw_32_16_R,	Scan3xDw_32_32_R},
+{	nullptr,		Scan3xDw_9_15_R ,	Scan3xDw_9_16_R ,	Scan3xDw_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleRGB2x = {
 	"RGB2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	2,2,{
-{	nullptr,	RGB2x_8_15_L ,	RGB2x_8_16_L ,	RGB2x_8_32_L },
-{	nullptr,	RGB2x_15_15_L,	RGB2x_15_16_L,	RGB2x_15_32_L},
-{	nullptr,	RGB2x_16_15_L,	RGB2x_16_16_L,	RGB2x_16_32_L},
-{	nullptr,	RGB2x_32_15_L,	RGB2x_32_16_L,	RGB2x_32_32_L},
-{	nullptr,	RGB2x_9_15_L ,	RGB2x_9_16_L ,	RGB2x_9_32_L }
+{	nullptr,		RGB2x_8_15_L ,		RGB2x_8_16_L ,		RGB2x_8_32_L },
+{	nullptr,		RGB2x_15_15_L,		RGB2x_15_16_L,		RGB2x_15_32_L},
+{	nullptr,		RGB2x_16_15_L,		RGB2x_16_16_L,		RGB2x_16_32_L},
+{	nullptr,		RGB2x_32_15_L,		RGB2x_32_16_L,		RGB2x_32_32_L},
+{	nullptr,		RGB2x_9_15_L ,		RGB2x_9_16_L ,		RGB2x_9_32_L }
 },{
-{	nullptr,	RGB2x_8_15_R ,	RGB2x_8_16_R ,	RGB2x_8_32_R },
-{	nullptr,	RGB2x_15_15_R,	RGB2x_15_16_R,	RGB2x_15_32_R},
-{	nullptr,	RGB2x_16_15_R,	RGB2x_16_16_R,	RGB2x_16_32_R},
-{	nullptr,	RGB2x_32_15_R,	RGB2x_32_16_R,	RGB2x_32_32_R},
-{	nullptr,	RGB2x_9_15_R ,	RGB2x_9_16_R ,	RGB2x_9_32_R }
+{	nullptr,		RGB2x_8_15_R ,		RGB2x_8_16_R ,		RGB2x_8_32_R },
+{	nullptr,		RGB2x_15_15_R,		RGB2x_15_16_R,		RGB2x_15_32_R},
+{	nullptr,		RGB2x_16_15_R,		RGB2x_16_16_R,		RGB2x_16_32_R},
+{	nullptr,		RGB2x_32_15_R,		RGB2x_32_16_R,		RGB2x_32_32_R},
+{	nullptr,		RGB2x_9_15_R ,		RGB2x_9_16_R ,		RGB2x_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleRGB2xDw = {
 	"RGB2xDw",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	4,2,{
-{	nullptr,	RGB2xDw_8_15_L ,	RGB2xDw_8_16_L ,	RGB2xDw_8_32_L },
-{	nullptr,	RGB2xDw_15_15_L,	RGB2xDw_15_16_L,	RGB2xDw_15_32_L},
-{	nullptr,	RGB2xDw_16_15_L,	RGB2xDw_16_16_L,	RGB2xDw_16_32_L},
-{	nullptr,	RGB2xDw_32_15_L,	RGB2xDw_32_16_L,	RGB2xDw_32_32_L},
-{	nullptr,	RGB2xDw_9_15_L ,	RGB2xDw_9_16_L ,	RGB2xDw_9_32_L }
+{	nullptr,		RGB2xDw_8_15_L ,	RGB2xDw_8_16_L ,	RGB2xDw_8_32_L },
+{	nullptr,		RGB2xDw_15_15_L,	RGB2xDw_15_16_L,	RGB2xDw_15_32_L},
+{	nullptr,		RGB2xDw_16_15_L,	RGB2xDw_16_16_L,	RGB2xDw_16_32_L},
+{	nullptr,		RGB2xDw_32_15_L,	RGB2xDw_32_16_L,	RGB2xDw_32_32_L},
+{	nullptr,		RGB2xDw_9_15_L ,	RGB2xDw_9_16_L ,	RGB2xDw_9_32_L }
 },{
-{	nullptr,	RGB2xDw_8_15_R ,	RGB2xDw_8_16_R ,	RGB2xDw_8_32_R },
-{	nullptr,	RGB2xDw_15_15_R,	RGB2xDw_15_16_R,	RGB2xDw_15_32_R},
-{	nullptr,	RGB2xDw_16_15_R,	RGB2xDw_16_16_R,	RGB2xDw_16_32_R},
-{	nullptr,	RGB2xDw_32_15_R,	RGB2xDw_32_16_R,	RGB2xDw_32_32_R},
-{	nullptr,	RGB2xDw_9_15_R ,	RGB2xDw_9_16_R ,	RGB2xDw_9_32_R }
+{	nullptr,		RGB2xDw_8_15_R ,	RGB2xDw_8_16_R ,	RGB2xDw_8_32_R },
+{	nullptr,		RGB2xDw_15_15_R,	RGB2xDw_15_16_R,	RGB2xDw_15_32_R},
+{	nullptr,		RGB2xDw_16_15_R,	RGB2xDw_16_16_R,	RGB2xDw_16_32_R},
+{	nullptr,		RGB2xDw_32_15_R,	RGB2xDw_32_16_R,	RGB2xDw_32_32_R},
+{	nullptr,		RGB2xDw_9_15_R ,	RGB2xDw_9_16_R ,	RGB2xDw_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleRGB3x = {
 	"RGB3x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	3,3,{
-{	nullptr,	RGB3x_8_15_L ,	RGB3x_8_16_L ,	RGB3x_8_32_L },
-{	nullptr,	RGB3x_15_15_L,	RGB3x_15_16_L,	RGB3x_15_32_L},
-{	nullptr,	RGB3x_16_15_L,	RGB3x_16_16_L,	RGB3x_16_32_L},
-{	nullptr,	RGB3x_32_15_L,	RGB3x_32_16_L,	RGB3x_32_32_L},
-{	nullptr,	RGB3x_9_15_L ,	RGB3x_9_16_L ,	RGB3x_9_32_L }
+{	nullptr,		RGB3x_8_15_L ,		RGB3x_8_16_L ,		RGB3x_8_32_L },
+{	nullptr,		RGB3x_15_15_L,		RGB3x_15_16_L,		RGB3x_15_32_L},
+{	nullptr,		RGB3x_16_15_L,		RGB3x_16_16_L,		RGB3x_16_32_L},
+{	nullptr,		RGB3x_32_15_L,		RGB3x_32_16_L,		RGB3x_32_32_L},
+{	nullptr,		RGB3x_9_15_L ,		RGB3x_9_16_L ,		RGB3x_9_32_L }
 },{
-{	nullptr,	RGB3x_8_15_R ,	RGB3x_8_16_R ,	RGB3x_8_32_R },
-{	nullptr,	RGB3x_15_15_R,	RGB3x_15_16_R,	RGB3x_15_32_R},
-{	nullptr,	RGB3x_16_15_R,	RGB3x_16_16_R,	RGB3x_16_32_R},
-{	nullptr,	RGB3x_32_15_R,	RGB3x_32_16_R,	RGB3x_32_32_R},
-{	nullptr,	RGB3x_9_15_R ,	RGB3x_9_16_R ,	RGB3x_9_32_R }
+{	nullptr,		RGB3x_8_15_R ,		RGB3x_8_16_R ,		RGB3x_8_32_R },
+{	nullptr,		RGB3x_15_15_R,		RGB3x_15_16_R,		RGB3x_15_32_R},
+{	nullptr,		RGB3x_16_15_R,		RGB3x_16_16_R,		RGB3x_16_32_R},
+{	nullptr,		RGB3x_32_15_R,		RGB3x_32_16_R,		RGB3x_32_32_R},
+{	nullptr,		RGB3x_9_15_R ,		RGB3x_9_16_R ,		RGB3x_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleRGB3xDw = {
 	"RGB3xDw",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	6,3,{
-{	nullptr,	RGB3xDw_8_15_L ,	RGB3xDw_8_16_L ,	RGB3xDw_8_32_L },
-{	nullptr,	RGB3xDw_15_15_L,	RGB3xDw_15_16_L,	RGB3xDw_15_32_L},
-{	nullptr,	RGB3xDw_16_15_L,	RGB3xDw_16_16_L,	RGB3xDw_16_32_L},
-{	nullptr,	RGB3xDw_32_15_L,	RGB3xDw_32_16_L,	RGB3xDw_32_32_L},
-{	nullptr,	RGB3xDw_9_15_L ,	RGB3xDw_9_16_L ,	RGB3xDw_9_32_L }
+{	nullptr,		RGB3xDw_8_15_L ,	RGB3xDw_8_16_L ,	RGB3xDw_8_32_L },
+{	nullptr,		RGB3xDw_15_15_L,	RGB3xDw_15_16_L,	RGB3xDw_15_32_L},
+{	nullptr,		RGB3xDw_16_15_L,	RGB3xDw_16_16_L,	RGB3xDw_16_32_L},
+{	nullptr,		RGB3xDw_32_15_L,	RGB3xDw_32_16_L,	RGB3xDw_32_32_L},
+{	nullptr,		RGB3xDw_9_15_L ,	RGB3xDw_9_16_L ,	RGB3xDw_9_32_L }
 },{
-{	nullptr,	RGB3xDw_8_15_R ,	RGB3xDw_8_16_R ,	RGB3xDw_8_32_R },
-{	nullptr,	RGB3xDw_15_15_R,	RGB3xDw_15_16_R,	RGB3xDw_15_32_R},
-{	nullptr,	RGB3xDw_16_15_R,	RGB3xDw_16_16_R,	RGB3xDw_16_32_R},
-{	nullptr,	RGB3xDw_32_15_R,	RGB3xDw_32_16_R,	RGB3xDw_32_32_R},
-{	nullptr,	RGB3xDw_9_15_R ,	RGB3xDw_9_16_R ,	RGB3xDw_9_32_R }
+{	nullptr,		RGB3xDw_8_15_R ,	RGB3xDw_8_16_R ,	RGB3xDw_8_32_R },
+{	nullptr,		RGB3xDw_15_15_R,	RGB3xDw_15_16_R,	RGB3xDw_15_32_R},
+{	nullptr,		RGB3xDw_16_15_R,	RGB3xDw_16_16_R,	RGB3xDw_16_32_R},
+{	nullptr,		RGB3xDw_32_15_R,	RGB3xDw_32_16_R,	RGB3xDw_32_32_R},
+{	nullptr,		RGB3xDw_9_15_R ,	RGB3xDw_9_16_R ,	RGB3xDw_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleGrayNormal = {
 	"Gray2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	1,1,{
-{	nullptr,	GrayNormal_8_15_L ,	GrayNormal_8_16_L ,	GrayNormal_8_32_L },
-{	nullptr,	GrayNormal_15_15_L,	GrayNormal_15_16_L,	GrayNormal_15_32_L},
-{	nullptr,	GrayNormal_16_15_L,	GrayNormal_16_16_L,	GrayNormal_16_32_L},
-{	nullptr,	GrayNormal_32_15_L,	GrayNormal_32_16_L,	GrayNormal_32_32_L},
-{	nullptr,	GrayNormal_9_15_L ,	GrayNormal_9_16_L ,	GrayNormal_9_32_L }
+{	nullptr,		GrayNormal_8_15_L ,	GrayNormal_8_16_L ,	GrayNormal_8_32_L },
+{	nullptr,		GrayNormal_15_15_L,	GrayNormal_15_16_L,	GrayNormal_15_32_L},
+{	nullptr,		GrayNormal_16_15_L,	GrayNormal_16_16_L,	GrayNormal_16_32_L},
+{	nullptr,		GrayNormal_32_15_L,	GrayNormal_32_16_L,	GrayNormal_32_32_L},
+{	nullptr,		GrayNormal_9_15_L ,	GrayNormal_9_16_L ,	GrayNormal_9_32_L }
 },{
-{	nullptr,	GrayNormal_8_15_R ,	GrayNormal_8_16_R ,	GrayNormal_8_32_R },
-{	nullptr,	GrayNormal_15_15_R,	GrayNormal_15_16_R,	GrayNormal_15_32_R},
-{	nullptr,	GrayNormal_16_15_R,	GrayNormal_16_16_R,	GrayNormal_16_32_R},
-{	nullptr,	GrayNormal_32_15_R,	GrayNormal_32_16_R,	GrayNormal_32_32_R},
-{	nullptr,	GrayNormal_9_15_R ,	GrayNormal_9_16_R ,	GrayNormal_9_32_R }
+{	nullptr,		GrayNormal_8_15_R ,	GrayNormal_8_16_R ,	GrayNormal_8_32_R },
+{	nullptr,		GrayNormal_15_15_R,	GrayNormal_15_16_R,	GrayNormal_15_32_R},
+{	nullptr,		GrayNormal_16_15_R,	GrayNormal_16_16_R,	GrayNormal_16_32_R},
+{	nullptr,		GrayNormal_32_15_R,	GrayNormal_32_16_R,	GrayNormal_32_32_R},
+{	nullptr,		GrayNormal_9_15_R ,	GrayNormal_9_16_R ,	GrayNormal_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleGrayDw = {
 	"Gray2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	2,1,{
-{	nullptr,	GrayDw_8_15_L ,	GrayDw_8_16_L ,	GrayDw_8_32_L },
-{	nullptr,	GrayDw_15_15_L,	GrayDw_15_16_L,	GrayDw_15_32_L},
-{	nullptr,	GrayDw_16_15_L,	GrayDw_16_16_L,	GrayDw_16_32_L},
-{	nullptr,	GrayDw_32_15_L,	GrayDw_32_16_L,	GrayDw_32_32_L},
-{	nullptr,	GrayDw_9_15_L ,	GrayDw_9_16_L ,	GrayDw_9_32_L }
+{	nullptr,		GrayDw_8_15_L ,		GrayDw_8_16_L ,		GrayDw_8_32_L },
+{	nullptr,		GrayDw_15_15_L,		GrayDw_15_16_L,		GrayDw_15_32_L},
+{	nullptr,		GrayDw_16_15_L,		GrayDw_16_16_L,		GrayDw_16_32_L},
+{	nullptr,		GrayDw_32_15_L,		GrayDw_32_16_L,		GrayDw_32_32_L},
+{	nullptr,		GrayDw_9_15_L ,		GrayDw_9_16_L ,		GrayDw_9_32_L }
 },{
-{	nullptr,	GrayDw_8_15_R ,	GrayDw_8_16_R ,	GrayDw_8_32_R },
-{	nullptr,	GrayDw_15_15_R,	GrayDw_15_16_R,	GrayDw_15_32_R},
-{	nullptr,	GrayDw_16_15_R,	GrayDw_16_16_R,	GrayDw_16_32_R},
-{	nullptr,	GrayDw_32_15_R,	GrayDw_32_16_R,	GrayDw_32_32_R},
-{	nullptr,	GrayDw_9_15_R ,	GrayDw_9_16_R ,	GrayDw_9_32_R }
+{	nullptr,		GrayDw_8_15_R ,		GrayDw_8_16_R ,		GrayDw_8_32_R },
+{	nullptr,		GrayDw_15_15_R,		GrayDw_15_16_R,		GrayDw_15_32_R},
+{	nullptr,		GrayDw_16_15_R,		GrayDw_16_16_R,		GrayDw_16_32_R},
+{	nullptr,		GrayDw_32_15_R,		GrayDw_32_16_R,		GrayDw_32_32_R},
+{	nullptr,		GrayDw_9_15_R ,		GrayDw_9_16_R ,		GrayDw_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleGrayDh = {
 	"Gray2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	1,2,{
-{	nullptr,	GrayDh_8_15_L ,	GrayDh_8_16_L ,	GrayDh_8_32_L },
-{	nullptr,	GrayDh_15_15_L,	GrayDh_15_16_L,	GrayDh_15_32_L},
-{	nullptr,	GrayDh_16_15_L,	GrayDh_16_16_L,	GrayDh_16_32_L},
-{	nullptr,	GrayDh_32_15_L,	GrayDh_32_16_L,	GrayDh_32_32_L},
-{	nullptr,	GrayDh_9_15_L ,	GrayDh_9_16_L ,	GrayDh_9_32_L }
+{	nullptr,		GrayDh_8_15_L ,		GrayDh_8_16_L ,		GrayDh_8_32_L },
+{	nullptr,		GrayDh_15_15_L,		GrayDh_15_16_L,		GrayDh_15_32_L},
+{	nullptr,		GrayDh_16_15_L,		GrayDh_16_16_L,		GrayDh_16_32_L},
+{	nullptr,		GrayDh_32_15_L,		GrayDh_32_16_L,		GrayDh_32_32_L},
+{	nullptr,		GrayDh_9_15_L ,		GrayDh_9_16_L ,		GrayDh_9_32_L }
 },{
-{	nullptr,	GrayDh_8_15_R ,	GrayDh_8_16_R ,	GrayDh_8_32_R },
-{	nullptr,	GrayDh_15_15_R,	GrayDh_15_16_R,	GrayDh_15_32_R},
-{	nullptr,	GrayDh_16_15_R,	GrayDh_16_16_R,	GrayDh_16_32_R},
-{	nullptr,	GrayDh_32_15_R,	GrayDh_32_16_R,	GrayDh_32_32_R},
-{	nullptr,	GrayDh_9_15_R ,	GrayDh_9_16_R ,	GrayDh_9_32_R }
+{	nullptr,		GrayDh_8_15_R ,		GrayDh_8_16_R ,		GrayDh_8_32_R },
+{	nullptr,		GrayDh_15_15_R,		GrayDh_15_16_R,		GrayDh_15_32_R},
+{	nullptr,		GrayDh_16_15_R,		GrayDh_16_16_R,		GrayDh_16_32_R},
+{	nullptr,		GrayDh_32_15_R,		GrayDh_32_16_R,		GrayDh_32_32_R},
+{	nullptr,		GrayDh_9_15_R ,		GrayDh_9_16_R ,		GrayDh_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleGray2x = {
 	"Gray2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	2,2,{
-{	nullptr,	Gray2x_8_15_L ,	Gray2x_8_16_L ,	Gray2x_8_32_L },
-{	nullptr,	Gray2x_15_15_L,	Gray2x_15_16_L,	Gray2x_15_32_L},
-{	nullptr,	Gray2x_16_15_L,	Gray2x_16_16_L,	Gray2x_16_32_L},
-{	nullptr,	Gray2x_32_15_L,	Gray2x_32_16_L,	Gray2x_32_32_L},
-{	nullptr,	Gray2x_9_15_L ,	Gray2x_9_16_L ,	Gray2x_9_32_L }
+{	nullptr,		Gray2x_8_15_L ,		Gray2x_8_16_L ,		Gray2x_8_32_L },
+{	nullptr,		Gray2x_15_15_L,		Gray2x_15_16_L,		Gray2x_15_32_L},
+{	nullptr,		Gray2x_16_15_L,		Gray2x_16_16_L,		Gray2x_16_32_L},
+{	nullptr,		Gray2x_32_15_L,		Gray2x_32_16_L,		Gray2x_32_32_L},
+{	nullptr,		Gray2x_9_15_L ,		Gray2x_9_16_L ,		Gray2x_9_32_L }
 },{
-{	nullptr,	Gray2x_8_15_R ,	Gray2x_8_16_R ,	Gray2x_8_32_R },
-{	nullptr,	Gray2x_15_15_R,	Gray2x_15_16_R,	Gray2x_15_32_R},
-{	nullptr,	Gray2x_16_15_R,	Gray2x_16_16_R,	Gray2x_16_32_R},
-{	nullptr,	Gray2x_32_15_R,	Gray2x_32_16_R,	Gray2x_32_32_R},
-{	nullptr,	Gray2x_9_15_R ,	Gray2x_9_16_R ,	Gray2x_9_32_R }
+{	nullptr,		Gray2x_8_15_R ,		Gray2x_8_16_R ,		Gray2x_8_32_R },
+{	nullptr,		Gray2x_15_15_R,		Gray2x_15_16_R,		Gray2x_15_32_R},
+{	nullptr,		Gray2x_16_15_R,		Gray2x_16_16_R,		Gray2x_16_32_R},
+{	nullptr,		Gray2x_32_15_R,		Gray2x_32_16_R,		Gray2x_32_32_R},
+{	nullptr,		Gray2x_9_15_R ,		Gray2x_9_16_R ,		Gray2x_9_32_R }
 }};
 #endif
 

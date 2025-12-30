@@ -1,4 +1,10 @@
 NEXT VERSION
+  - Render scaler system has been modified so that render and frame caches
+    are now dynamically allocated, instead of fixed buffers. Not only does
+    this reduce memory wasted by over-large buffers, it also removes
+    limitations on guest video mode resolution that previously capped the
+    video mode to 1920x1440 or lower, and the advanced scalers (HQ2X,
+    Advanced MAME, etc) to 800x600 or lower. (joncampbell123).
   - VGA output will now automatically disable doublescan mode whenever an
     advanced scaler, such as the "XBRZ" or the Advanced MAME scalers, are
     selected, so that the scalers can do their job properly on the low
@@ -26,6 +32,12 @@ NEXT VERSION
   - Add map13/map14 CGA/HGC like interleaved rendering support for VGA
     256-color mode. There is a game engine in development that is willing to
     use such oddball modes. (joncampbell123)
+  - Added SDL2_net to source tree (maron2000)
+  - Fixed regression of FIFA96 CD label detection (maron2000)
+  - Log OpenGL context version (rebb)
+  - Force SDL window regeneration when exiting fullscreen (rebb)
+  - Fixed file handle leak prevents save state file removal (srcdabada)
+
 
 2025.12.01
   - Video debug overlay: For Tandy and PCjr emulation, add information on

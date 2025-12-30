@@ -1180,11 +1180,10 @@ void dosbox_integration_trigger_write() {
 				unsigned int nw = dosbox_int_register & 0xFFFFu;
 				unsigned int nh = dosbox_int_register >> 16u;
 
-				// NTS: There are problems with the DOSBox scaler system beyond 1920x1080.
-				//      When those are resolved, or a bypass is implemented, this will be changed
-				//      to allow up to 4096x4096.
-				if (nw > 1920) nw = 1920;
-				if (nh > 1080) nh = 1080;
+				if (nw < 16) nw = 16;
+				if (nh < 16) nh = 16;
+				if (nw > vga.max_svga_width) nw = vga.max_svga_width;
+				if (nh > vga.max_svga_height) nh = vga.max_svga_height;
 
 				if (vga.dosboxig.width != nw || vga.dosboxig.height != nh) {
 					vga.dosboxig.width = nw;
