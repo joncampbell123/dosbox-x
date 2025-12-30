@@ -2416,53 +2416,156 @@ public:
 
             return;
         }
+        FILE* usefile;
+        auto loadDiskImage = [&](const std::string& name, size_t index) {
+            uint32_t rombytesize = 0;
+            bool readonly = wpcolon && name.length() > 1 && name[0] == ':';
 
+            if(!quiet)
+                WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_OPEN"),
+                    readonly ? name.c_str() + 1 : name.c_str());
+
+            usefile = getFSFile(name.c_str(), &floppysize, &rombytesize);
+            if(!usefile) {
+                if(!quiet)
+                    WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_NOT_OPEN"),
+                        readonly ? name.c_str() + 1 : name.c_str());
+                return false;
+            }
+
+            char hdr[256];
+            fseeko64(usefile, 0L, SEEK_SET);
+            if(fread(hdr, 256, 1, usefile) != 1)
+                return false;
+
+            const char* ext = strrchr(name.c_str(), '.');
+            const char* fname = readonly ? name.c_str() + 1 : name.c_str();
+
+            if(newDiskSwap[index]) {
+                newDiskSwap[index]->Release();
+                newDiskSwap[index] = nullptr;
+            }
+
+            if(ext && !strcasecmp(ext, ".d88"))
+                newDiskSwap[index] = new imageDiskD88(usefile, fname, floppysize, false);
+            else if(!memcmp(hdr, "VFD1.", 5))
+                newDiskSwap[index] = new imageDiskVFD(usefile, fname, floppysize, false);
+            else if(!memcmp(hdr, "T98FDDIMAGE.R0\0\0", 16))
+                newDiskSwap[index] = new imageDiskNFD(usefile, fname, floppysize, false, 0);
+            else if(!memcmp(hdr, "T98FDDIMAGE.R1\0\0", 16))
+                newDiskSwap[index] = new imageDiskNFD(usefile, fname, floppysize, false, 1);
+            else
+                newDiskSwap[index] = new imageDisk(usefile, fname, floppysize, floppysize > 2880);
+
+            newDiskSwap[index]->Addref();
+            if(index == 0 && usefile_1 == NULL) {
+                usefile_1 = usefile;
+                rombytesize_1 = rombytesize;
+            }
+            else if (usefile_2 == NULL) {
+                usefile_2 = usefile;
+                rombytesize_2 = rombytesize;
+            }
+            return true;
+        };
+
+        int image_count = 0; // number of disk images loaded from command line
+        i = 0;               // number of command line arguments processed
         if(!cmd->GetCount()) {
-            uint8_t drv = dos_kernel_disabled?26:DOS_GetDefaultDrive();
-            if (drv < 4 && Drives[drv] && !strncmp(Drives[drv]->GetInfo(), "fatDrive ", 9)) {
-                drive = 'A' + drv;
+            /* No drives or images specified */
+            if (Drives[0] && !strncmp(Drives[0]->GetInfo(), "fatDrive ", 9)) {
+                drive = 'A';
                 bootbyDrive = true;
-            } else {
+            }
+            else if (Drives[2] && !strncmp(Drives[2]->GetInfo(), "fatDrive ", 9)){
+                drive = 'C';
+                bootbyDrive = true;
+            }
+            else if(Drives[3] && !strncmp(Drives[3]->GetInfo(), "fatDrive ", 9)) {
+                drive = 'D';
+                bootbyDrive = true;
+            }
+            else {
                 printError();
                 return;
             }
-        } else if (cmd->GetCount()==1) {
-			cmd->FindCommand(1, temp_line);
-			if (temp_line.length()==2&&toupper(temp_line[0])>='A'&&toupper(temp_line[0])<='Z'&&temp_line[1]==':') {
-				drive=toupper(temp_line[0]);
-				if ((drive != 'A') && (drive != 'C') && (drive != 'D')) {
-					printError();
-					return;
-				}
-				bootbyDrive = true;
-			}
-		}
+            i++;
+        }
+        else if(cmd->GetCount() == 1) {
+            cmd->FindCommand(1, temp_line);
 
-        if(!bootbyDrive)
-            while(i < cmd->GetCount()) {
-            if(cmd->FindCommand((unsigned int)(i+1), temp_line)) {
-				if ((temp_line == "/?") || (temp_line == "-?")) {
-					printError();
-					return;
-				}
-                if((temp_line == "-l") || (temp_line == "-L")) {
-                    /* Specifying drive... next argument then is the drive */
-                    bootbyDrive = true;
-                    i++;
-                    if(cmd->FindCommand((unsigned int)(i+1), temp_line)) {
-						if (temp_line.length()==1&&isdigit(temp_line[0]))
-							drive='A'+(temp_line[0]-'0');
-						else
-							drive=toupper(temp_line[0]);
-                        if ((drive != 'A') && (drive != 'C') && (drive != 'D')) {
-                            printError();
+            if(temp_line.length() == 2 && isalpha(temp_line[0]) && temp_line[1] == ':') {
+                /* Drive specified */
+                drive = toupper(temp_line[0]);
+                if((drive != 'A') && (drive != 'C') && (drive != 'D')) {
+                    printError();
+                    return;
+                }
+                bootbyDrive = true;
+            }
+            else if(temp_line.length() == 1 && isdigit(temp_line[0])) {
+                /* Drive number specified */
+                if(temp_line[0] == '0') drive = 'A';
+                else if(temp_line[0] == '2') drive = 'C';
+                bootbyDrive = true;
+            }
+            else {
+                /* Single image specified */
+                uint32_t rombytesize = 0;
+                FILE* testfile = getFSFile(temp_line.c_str(), &floppysize, &rombytesize);
+                if(testfile) {
+                    fclose(testfile);
+                    std::string mount_string;
+                    if(floppysize <= 2880) {
+                        if(Drives[0]) {
+                            WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_MOUNTED"));
                             return;
                         }
+                        drive = 'A';
+                        loadDiskImage(temp_line, image_count);
+                    }
+                    else {
+                        if(Drives[2]){
+                            if(!strncmp(Drives[2]->GetInfo(), "fatDrive ", 9)) {
+                                WriteOut("Hard drive image already mounted\n");
+                                return;
+                            }
+                            runImgmount("c -u");
+                        }
+                        drive = 'C';
+                        mount_string = "2 " + temp_line;
+                        runImgmount(mount_string.c_str()); // loadDiskImage() doesn't work well for hard disks
+                    }
+                    image_count++;
+                }
+                else {
+                    WriteOut("BOOT: Failed to open disk image\n");
+                    return;
+                }
+            }
+            i++;
+        }
 
-                    } else {
-                        printError();
+        while(i < cmd->GetCount()) {
+            if(cmd->FindCommand((unsigned int)(i + 1), temp_line)) {
+                if((temp_line == "/?") || (temp_line == "-?")) {
+                    printError();
+                    return;
+                }
+                if((temp_line == "-l") || (temp_line == "-L")) {
+                    /* Specifying drive... next argument then is the drive */
+                    i++;
+                    if(cmd->FindCommand((unsigned int)(i + 1), temp_line)) {
+                        if(temp_line.length() != 1 || !isalpha(temp_line[0])) {
+                            printError(); /* Syntax error: invalid drive letter */
+                            return;
+                        }
+                    }
+                    else {
+                        printError(); /* DOSBox-X ignores -l option, but print error on syntax errors */
                         return;
                     }
+                    LOG_MSG("BOOT command ignores -l option");
                     i++;
                     continue;
                 }
@@ -2471,9 +2574,10 @@ public:
                     /* Command mode for PCJr cartridges */
                     i++;
                     if(cmd->FindCommand((unsigned int)(i + 1), temp_line)) {
-                        for(size_t ct = 0;ct < temp_line.size();ct++) temp_line[ct] = toupper(temp_line[ct]);
+                        for(size_t ct = 0; ct < temp_line.size(); ct++) temp_line[ct] = toupper(temp_line[ct]);
                         cart_cmd = temp_line;
-                    } else {
+                    }
+                    else {
                         printError();
                         return;
                     }
@@ -2481,122 +2585,80 @@ public:
                     continue;
                 }
 
-                if(imageDiskList[0] != NULL || imageDiskList[1] != NULL) {
-                    WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_MOUNTED"));
-                    return;
-                }
-
-                if (i >= MAX_SWAPPABLE_DISKS) {
+                if(image_count >= MAX_SWAPPABLE_DISKS) {
                     return; //TODO give a warning.
                 }
-
-                uint32_t rombytesize=0;
-				bool readonly=wpcolon&&temp_line.length()>1&&temp_line[0]==':';
-                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
-                FILE *usefile = getFSFile(temp_line.c_str(), &floppysize, &rombytesize);
-                if(usefile != NULL) {
-                    char tmp[256];
-
-                    if (newDiskSwap[i] != NULL) {
-                        newDiskSwap[i]->Release();
-                        newDiskSwap[i] = NULL;
-                    }
-
-                    fseeko64(usefile, 0L, SEEK_SET);
-                    size_t readResult = fread(tmp,256,1,usefile); // look for magic signatures
-                    if (readResult != 1) {
-                        LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
-                        return;
-                    }
-
-                    const char *ext = strrchr(temp_line.c_str(),'.'), *fname=readonly?temp_line.c_str()+1:temp_line.c_str();
-
-                    if (ext != NULL && !strcasecmp(ext, ".d88")) {
-                        newDiskSwap[i] = new imageDiskD88(usefile, fname, floppysize, false);
-                    }
-                    else if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
-                        newDiskSwap[i] = new imageDiskVFD(usefile, fname, floppysize, false);
-                    }
-                    else if (!memcmp(tmp,"T98FDDIMAGE.R0\0\0",16)) {
-                        newDiskSwap[i] = new imageDiskNFD(usefile, fname, floppysize, false, 0);
-                    }
-                    else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
-                        newDiskSwap[i] = new imageDiskNFD(usefile, fname, floppysize, false, 1);
+                loadDiskImage(temp_line, image_count);
+                if(image_count == 0 && newDiskSwap[0]) {
+                    if(newDiskSwap[0]->diskSizeK <= 2880) {
+                        if(Drives[0]) {
+                            newDiskSwap[0]->Release();
+                            newDiskSwap[0] = nullptr;
+                            WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_MOUNTED"));
+                            return;
+                        }
+                        else {
+                            drive = 'A';
+                        }
                     }
                     else {
-                        newDiskSwap[i] = new imageDisk(usefile, fname, floppysize, false);
+                        if(Drives[2]) {
+                            newDiskSwap[0]->Release();
+                            newDiskSwap[0] = nullptr;
+                            if(!strncmp(Drives[2]->GetInfo(), "fatDrive ", 9)) {
+                                WriteOut("Hard drive image already mounted\n");
+                                return;
+                            }
+                            runImgmount("c -u");
+                        }
+                        drive = 'C';
+                        std::string mount_string = "2 " + temp_line;
+                        runImgmount(mount_string.c_str());
                     }
-                    newDiskSwap[i]->Addref();
-                    if (newDiskSwap[i]->active && !newDiskSwap[i]->hardDrive) incrementFDD(); //moved from imageDisk constructor
-
-                    if (usefile_1==NULL) {
-                        usefile_1=usefile;
-                        rombytesize_1=rombytesize;
-                    } else {
-                        usefile_2=usefile;
-                        rombytesize_2=rombytesize;
-                    }
-                } else {
-                    if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_NOT_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
-                    return;
                 }
-
+                else if(newDiskSwap[image_count]) {
+                    if(newDiskSwap[image_count]->diskSizeK > 2880) {
+                        newDiskSwap[image_count]->Release();
+                        newDiskSwap[image_count] = nullptr;
+                        WriteOut("Not a floppy image.\n");
+                        return;
+                    }
+                }
+                image_count++;
             }
             i++;
         }
 
-        if (!bootbyDrive) {
-            if (i == 0) {
-                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_NOT_SPECIFIED"));
+        if(image_count > 1) {
+            drive = 'A';
+            /* if more than one image is given, then this drive becomes the focus of the swaplist */
+            if(swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
+                if(!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_SWAP_ALREADY"));
                 return;
             }
+            swapInDisksSpecificDrive = 0;
 
-            if (i > 1) {
-                /* if more than one image is given, then this drive becomes the focus of the swaplist */
-                if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
-                    if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_SWAP_ALREADY"));
-                    return;
+            /* transfer to the diskSwap array */
+            for(auto si = 0; si < MAX_SWAPPABLE_DISKS; si++) {
+                if(diskSwap[si]) {
+                    diskSwap[si]->Release();
+                    diskSwap[si] = nullptr;
                 }
-                else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
-                    swapInDisksSpecificDrive = drive - 65;
-                }
+                diskSwap[si] = newDiskSwap[si];
+                newDiskSwap[si] = nullptr;
+            }
 
-                /* transfer to the diskSwap array */
-                for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
-                    if (diskSwap[si] != NULL) {
-                        diskSwap[si]->Release();
-                        diskSwap[si] = NULL;
-                    }
-
-                    diskSwap[si] = newDiskSwap[si];
-                    newDiskSwap[si] = NULL;
-                }
-
-                swapPosition = 0;
-                swapInDisks(-1);
+            swapPosition = 0;
+            swapInDisks(-1);
+        }
+        else {
+            if(newDiskSwap[0] && newDiskSwap[0]->diskimg) { // only one image specified
+                imageDiskList[drive - 65] = newDiskSwap[0];
+                newDiskSwap[0] = nullptr;
             }
             else {
-                if (swapInDisksSpecificDrive == (drive - 65)) {
-                    /* if we're replacing the diskSwap drive clear it now */
-                    for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
-                        if (diskSwap[si] != NULL) {
-                            diskSwap[si]->Release();
-                            diskSwap[si] = NULL;
-                        }
-                    }
-
-                    swapInDisksSpecificDrive = -1;
-                }
-
-                /* attach directly without using the swap list */
-                if (imageDiskList[drive-65] != NULL) {
-                    imageDiskChange[drive-65] = true;
-                    imageDiskList[drive-65]->Release();
-                    imageDiskList[drive-65] = NULL;
-                }
-
-                imageDiskList[drive-65] = newDiskSwap[0];
-                newDiskSwap[0] = NULL;
+                WriteOut("BOOT: Failed to open disk image\n");
+                return;
             }
         }
 
