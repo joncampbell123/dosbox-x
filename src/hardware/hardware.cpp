@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <vector>
 
 #include "bitmapinfoheader.h"
 #include "dosbox.h"
@@ -809,10 +810,8 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 #if (C_SSHOT)
 	Bitu i;
 	Bitu countWidth = width;
-	uint8_t *doubleRow = (uint8_t*)alloca((countWidth+32)*4);
-	// ^ FIXME: If this becomes too large for the stack, switch to malloc/free or perhaps even declare std::vector<uint8_t>,
-	//          size it to the allocation size and point doubleRow at that. std::vector<uint8_t> will automatically free the
-	//          buffer when destructor is called at this function's exit points.
+    std::vector<uint8_t> doubleRowBuf((countWidth + 32) * 4);
+    uint8_t *doubleRow = doubleRowBuf.data();
 
 	if (flags & CAPTURE_FLAG_DBLH)
 		height *= 2;
