@@ -59,12 +59,12 @@ VESA BIOS:
 - Add dosbox.conf option that if set, instructs the VESA BIOS emulation to limit the reported amount of video memory on the card
 - VBETEST refuses to do the panning test on the initial screen per mode if the reported video memory size through the VESA BIOS is larger than 32MB. Why?
 - VBETEST refuses to do get/set scanline panning test if the video memory size reported through the VESA BIOS is larger than 8MB. Why?
-- VESA SetCPUWindow(). The bank number is 16-bit. The code masks off the low 8 bits because of legacy code and Demoscene bugs. Add code to NOT mask off the low 8 bits if there is enough video memory that 256 or more banks are possible. Make it one less thing for VBETEST to possibly complain about.
 [DONE]
 - Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct. [DONE]
 - Now that render scaler limits have been removed, start adding VESA BIOS modes higher than 1920x1440. For example,
   1920x1200, 2560x1600, 2880x2160, 3840x2160 (4K UHD!), 4096x2160. It is very important not to allow these UHD modes for
   S3 emulation because the S3 chipset as emulated cannot output more than 2048 scan lines due to register limitations. [DONE]
+- VESA SetCPUWindow(). The bank number is 16-bit. The code masks off the low 8 bits because of legacy code and Demoscene bugs. Add code to NOT mask off the low 8 bits if there is enough video memory that 256 or more banks are possible. Make it one less thing for VBETEST to possibly complain about.
 
 AVI capture:
 - Add dosbox.conf option that, if set, will only write video frames to the AVI if the frame changed (according to the render scaler system).
