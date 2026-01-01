@@ -1,4 +1,5 @@
 NEXT VERSION
+  - Update BOOT command to support multiple disk images with swapping (maron2000).
   - Render scaler system has been modified so that render and frame caches
     are now dynamically allocated, instead of fixed buffers. Not only does
     this reduce memory wasted by over-large buffers, it also removes
