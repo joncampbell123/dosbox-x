@@ -2457,16 +2457,19 @@ public:
             else
                 newDiskSwap[index] = new imageDisk(usefile, fname, floppysize, floppysize > 2880);
 
-            newDiskSwap[index]->Addref();
-            if(index == 0 && usefile_1 == NULL) {
-                usefile_1 = usefile;
-                rombytesize_1 = rombytesize;
+            if(newDiskSwap[index]) {
+                newDiskSwap[index]->Addref();
+                if(index == 0 && usefile_1 == NULL) {
+                    usefile_1 = usefile;
+                    rombytesize_1 = rombytesize;
+                }
+                else if(usefile_2 == NULL) {
+                    usefile_2 = usefile;
+                    rombytesize_2 = rombytesize;
+                }
+                return true;
             }
-            else if (usefile_2 == NULL) {
-                usefile_2 = usefile;
-                rombytesize_2 = rombytesize;
-            }
-            return true;
+            else return false;
         };
 
         int image_count = 0; // number of disk images loaded from command line
@@ -2593,6 +2596,11 @@ public:
                     return; //TODO give a warning.
                 }
                 loadDiskImage(temp_line, image_count);
+                if(!newDiskSwap[image_count]) {
+                    WriteOut("BOOT: Failed to open disk image\n");
+                    return;
+                }
+
                 if(image_count == 0 && newDiskSwap[0]) {
                     if(newDiskSwap[0]->diskSizeK <= 2880) {
                         if(Drives[0]) {
@@ -2621,7 +2629,11 @@ public:
                     }
                 }
                 else if(newDiskSwap[image_count]) {
-                    if(newDiskSwap[image_count]->diskSizeK > 2880) {
+                    if(drive == 'C') {
+                        WriteOut("Can't create swap list for hard disk images.\n");
+                        return;
+                    }
+                    else if(newDiskSwap[image_count]->diskSizeK > 2880) {
                         newDiskSwap[image_count]->Release();
                         newDiskSwap[image_count] = nullptr;
                         WriteOut("Not a floppy image.\n");
@@ -2660,7 +2672,7 @@ public:
                 imageDiskList[drive - 65] = newDiskSwap[0];
                 newDiskSwap[0] = nullptr;
             }
-            else {
+            else if(drive == 0 || !imageDiskList[drive - 65]) {
                 WriteOut("BOOT: Failed to open disk image\n");
                 return;
             }
