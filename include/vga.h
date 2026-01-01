@@ -594,6 +594,7 @@ typedef struct {
 	uint8_t	bank_read;
 	uint8_t	bank_write;
 	Bitu	bank_size;
+	uint16_t bank_mask;
 } VGA_SVGA;
 
 typedef union CGA_Latch {
