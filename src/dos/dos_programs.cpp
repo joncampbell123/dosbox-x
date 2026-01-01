@@ -2503,6 +2503,10 @@ public:
                 }
                 bootbyDrive = true;
             }
+            else if(temp_line.length() == 2 && ((temp_line == "/?") || (temp_line == "-?"))) {
+                printError();
+                return;
+            }
             else if(temp_line.length() == 1 && isdigit(temp_line[0])) {
                 /* Drive number specified */
                 if(temp_line[0] == '0') drive = 'A';
@@ -9978,22 +9982,24 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_NOT_EXIST","Bootdisk file does not exist.  Failing.\n");
     MSG_Add("PROGRAM_BOOT_NOT_OPEN","Cannot open bootdisk file.  Failing.\n");
     MSG_Add("PROGRAM_BOOT_WRITE_PROTECTED","Image file is read-only! Boot in write-protected mode.\n");
-    MSG_Add("PROGRAM_BOOT_PRINT_ERROR","This command boots DOSBox-X from either a floppy or hard disk image.\n\n"
-        "For this command, one can specify a succession of floppy disks swappable\n"
-        "by the menu command, and drive: specifies the mounted drive to boot from.\n"
-        "If no drive letter is specified, this defaults to boot from the A drive.\n"
-        "If no parameter is specified, it will try to boot from the current drive.\n"
-        "The only bootable drive letters are A, C, and D.  For booting from a hard\n"
-        "drive (C or D), ensure the image is already mounted by \033[34;1mIMGMOUNT\033[0m command.\n\n"
-        "The syntax of this command is one of the following:\n\n"
-        "\033[34;1mBOOT [driveletter:] [-convertfat|-convertfatro|-noconvertfat]\033[0m\n\n"
-        "\033[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]\033[0m\n\n"
-        "Note: An image file with a leading colon (:) will be booted in write-protected\n"
-		"mode if the \"leading colon write protect image\" option is enabled.\n\n"
-        "Examples:\n\n"
-        "\033[32;1mBOOT A:\033[0m       - boot from drive A: if it is mounted and bootable.\n"
-        "\033[32;1mBOOT :DOS.IMG\033[0m - boot from floppy image DOS.IMG in write-protected mode.\n"
-        );
+    MSG_Add("PROGRAM_BOOT_PRINT_ERROR", "Boots DOSBox-X from a floppy / PCjr cartridge or hard disk image.\n\n"
+        "\033[34;1mBOOT [driveletter:|drivenumber] [-convertfat|-convertfatro|-noconvertfat]\033[0m\n"
+        "\033[34;1mBOOT floppyimg1.img [floppyimg2.img ...] [-E <command>]\033[0m\n"
+        "\033[34;1mBOOT harddrive.img\033[0m\n\n"
+        "  driveletter      A: for floppy, C: or D: for hard drive.\n"
+        "  drivenumber      0 for floppy, 2 or 3 for hard drive.\n"
+        "  (The drive must already be mounted by the \033[34;1mIMGMOUNT\033[0m command.)\n"
+        "  floppyimg.img    Specify one or more floppy / PCjr images to boot.\n"
+        "                   Multiple images create a swap list for drive A:.\n"
+        "  harddrive.img    Specify a single hard disk image to boot from drive C:.\n"
+        "  Add a leading colon (:) to treat the image as write-protected.\n\n"
+        "  [-E <command>]   Specify a command string for PCjr cartridge images.\n"
+        "  [-L driveletter] Ignored option, accepted only for compatibility.\n\n"
+        "Examples:\n"
+        "\033[32;1mBOOT A:\033[0m       Boot from drive A: if it is mounted and bootable.\n"
+        "\033[32;1mBOOT disk1.img disk2.img\033[0m Boot from floppy images using a swap list on drive A:.\n"
+        "\033[32;1mBOOT :DOS.IMG\033[0m Boot from floppy image DOS.IMG in write-protected mode.\n"
+    );
     MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_MOUNTED", "Floppy image(s) already mounted.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_OPEN","Opening image file: %s\n");
