@@ -7,7 +7,7 @@ In builds where it is enabled, DOSBox-X supports breaking into the debugger
 interface, which is shown on the console.
 
 A mapper shortcut is provided to break into the debugger on demand. Normally
-this shortcut is set to Alt+Pause.
+this shortcut is set to Alt+Pause (Mac: Alt+F12).
 
 In Windows, DOSBox-X can create a console and show the debugger interface
 on it.
@@ -92,15 +92,28 @@ debugger.
 Debugger keyboard shortcuts
 ---------------------------
 
-Tab                 Switch between windows
+Tab/Shift+Tab       Switch to the next/previous window
+F3/F6               Previous command in history
+F4/F7               Next command in history
 F5                  Resume emulation
+F8                  Toggle printable characters display in data view
 F9                  Set/clear breakpoint
 F10                 Single step (over)
 F11                 Single step (into)
 Up arrow            Scroll up one line (if applicable)
 Down arrow          Scroll down one line (if applicable)
-Page Up             Scroll up by window height (if applicable)
-Page Down           Scroll down by window height (if applicable)
+Left arrow          Move cursor left in command line
+Right arrow         Move cursor right in command line
+Page Up/Fn+Up       Scroll up by window height (if applicable)
+Page Down/Fn+Down   Scroll down by window height (if applicable)
+Home/Fn+Left        Scroll to top (in Output window)
+End/Fn+Right        Scroll to bottom (in Output window)
+Insert              Toggle insert/overwrite mode in command line
+Alt+D               Set data view to DS:SI
+Alt+E               Set data view to ES:DI
+Alt+X               Set data view to DS:DX
+Alt+B               Set data view to ES:BX
+Alt+S               Set data view to SS:SP
 
 Debugger commands
 -----------------
