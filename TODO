@@ -30,6 +30,8 @@ Render on Demand + Wait for Changes:
   white. This does not happen if only Render On Demand is active.
 
 DOSBox Integrated Graphics:
+[TODO]
+- Add DOSBox Integrated Graphics control register to control bank switching window size and granularity. The Windows driver could change the granularity to something smaller than 64KB while maintaining a 64KB window so that it can draw without having to worry about bank switching mid-draw. It's pretty obvious why Cirrus SVGA chipsets chose to use 64KB windows and 4KB granularity, and that's likely why. Yes, the Windows 3.1 driver in 386 enhanced mode will just use the linear framebuffer anyway, but for 286 standard mode and real mode windows, it's easier for the driver to just use the A000h segment and bank switching.
 [DONE]
 - doublescan setting should become "true" "false" or "auto". "auto" is like true, but automatically becomes false when the user selects any render scaler other than the scale2x, etc. scalers. If the user wants to use the mame upscalers the doublescan setting shouldn't get in the way. [DONE, BUT IN A DIFFERENT WAY]
 - HD (1920x1080) modes crash the emulator if the Video Debug Overlay is enabled. [FIXED: Now it just stops rendering]
@@ -61,7 +63,10 @@ VESA BIOS:
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
 - VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
 - Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
-- Add dosbox.conf option that if set, instructs the VESA BIOS emulation to limit the reported amount of video memory on the card
+- Add dosbox.conf option that if set, instructs the VESA BIOS emulation to limit the reported amount of video memory on the card.
+- To complement vga.mem.memsize, add vga.mem.vbe_memsize. Normally they would be the same value, but it would make it possible to report a smaller size through the VESA BIOS to deal with troublesome programs that can't handle too many banks while bank switching, or too much video memory in general, or limitations in the S3 CRTC registers. Then replace GetReportedVideoMemorySize() with just a reference to vga.mem.vbe_memsize. The code to limit reported VBE memory for S3 to stay within the limits of the S3 CRTC registers could adjust THAT value instead of limiting video memory.
+- S3 CRTC port 6Ah (bank switching) remove 8-bit hack for smaller vbe window granularity. Update code that limits reported VBE memory for S3 based on banks to always limit to 128, instead of 128 but 256 if smaller granularity.
+- When reading the vbe_window_granularity from dosbox.conf, instead of leaving it 0 if the user doesn't set it, set it to the SVGA card's default. Then go through the code and replace all the conditional (vbe_window_granularity != 0) tests with code to just trust that vbe_window_granularity is the window granularity. Cleanup the code. Add a variable to store the loaded value from dosbox.conf in a vbe_window_granularity_default variable because we're going to allow the DOSBox IG to change it at runtime.
 [DONE]
 - Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct. [DONE]
 - Now that render scaler limits have been removed, start adding VESA BIOS modes higher than 1920x1440. For example,
