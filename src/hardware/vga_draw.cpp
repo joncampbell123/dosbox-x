@@ -4128,10 +4128,12 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
     vga.config.real_start = vga.config.display_start & vga.mem.memmask;
     vga.draw.bytes_skip = vga.config.bytes_skip;
 
-    if (vga.config.real_start != old_start) {
-        if (!vga.draw.must_complete_frame) {
-            LOG_MSG("Real start change unexpected");
-            vga.draw.must_complete_frame = true;
+    if (vga_render_wait_for_changes) {
+        if (vga.config.real_start != old_start) {
+            if (!vga.draw.must_complete_frame) {
+                LOG_MSG("Real start change unexpected");
+                vga.draw.must_complete_frame = true;
+            }
         }
     }
 
