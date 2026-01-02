@@ -1070,6 +1070,38 @@ static Bitu VESA_PMSetStart(void) {
 	uint32_t start = (uint32_t)(((unsigned int)reg_dx << 16u) | (unsigned int)reg_cx);
 
 	if (vga.dosboxig.svga) {
+		/* From the VBE 3.0 standard:
+		 *
+		 * "For the VBE 2.0 32-bit protected mode version, the value passed in DX:CX is the 32 bit offset in
+		 *  display memory, aligned to a plane boundary. For planar modes this means the value is the byte
+		 *  offset in memory, but in 8+ bits per pixel modes this is the offset from the start of memory divided
+		 *  by 4. Hence the value passed in is identical to the value that would be programmed into the
+		 *  standard VGA CRTC start address register."
+		 *
+		 * "For VBE 3.0 the application program may optionally pass the missing two bits of information in the
+		 * top two bits of DX, to allow for pixel perfect horizontal panning"
+		 *
+		 * Ah, so VBE 2.0 defined "byte offset" in a planar manner, then in VBE 3.0 they realized they fucked up
+		 * and were like "Ok, ok, here, you can put the missing 2 LSBs in the upper 2 MSBs of DX". Bleh.
+		 *
+		 * Anyway, to make this compatible with the DOSBox IG the start address needs to be multiplied by 4 and
+		 * then add the upper 2 bits of DX to adjust. This is apparently true of any mode except 16-color planar.
+		 *
+		 * Duke Nukem 3D source code shows that indeed, if it calls the protected mode display start function,
+		 * it passes N >> 2, not N, for this reason. If we want the DOSBox IG to display Duke Nukem 3D properly,
+		 * we have to compensate for this or else you're going to be fighting monsters while your screen looks
+		 * like a TV set with a rapidly rolling picture.
+		 *
+		 * 16-color planar modes are already 1:1 byte to display memory and do not need this compensation.
+		 */
+
+		if (!(CurMode->type == M_LIN4 || CurMode->type == M_EGA)) {
+			if (0/*TODO: If VBE 3.0 emulation*/)
+				start = (start << 2ul) + (start >> 30ul);
+			else
+				start <<= 2ul;
+		}
+
 		dosbox_int_push_save_state();
 		dosbox_integration_trigger_write_direct32(DOSBOX_ID_REG_VGAIG_DISPLAYOFFSET,start);
 		dosbox_int_pop_save_state();
