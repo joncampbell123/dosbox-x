@@ -53,12 +53,15 @@ VGA rendering system:
   reported in the VGA struct. [DONE]
 
 VESA BIOS:
+[NOTED]
+- VBETEST refuses to do the panning test on the initial screen per mode if the reported video memory size through the VESA BIOS is larger than 32MB. Why?
+- VBETEST refuses to do get/set scanline panning test if the video memory size reported through the VESA BIOS is larger than 8MB. Why?
+- VBETEST cannot handle more than 256 banks properly. It requires the VESA BIOS to ignore the upper 8 bits when calling the bank switching function, or else the test screens do not render properly. This is ironic considering VBETEST meticulously tests whether getting/setting the bank switching window works correctly even for banks 256 or higher if it thinks the card should support it. It seems to take the number of banks that SHOULD be there given the video memory (N), and then test up to N * 4.
+[TODO]
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
 - VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
 - Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
 - Add dosbox.conf option that if set, instructs the VESA BIOS emulation to limit the reported amount of video memory on the card
-- VBETEST refuses to do the panning test on the initial screen per mode if the reported video memory size through the VESA BIOS is larger than 32MB. Why?
-- VBETEST refuses to do get/set scanline panning test if the video memory size reported through the VESA BIOS is larger than 8MB. Why?
 [DONE]
 - Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct. [DONE]
 - Now that render scaler limits have been removed, start adding VESA BIOS modes higher than 1920x1440. For example,
