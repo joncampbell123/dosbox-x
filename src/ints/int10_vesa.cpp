@@ -52,6 +52,7 @@ extern unsigned int vbe_window_size;
 extern int vesa_mode_width_cap;
 extern int vesa_mode_height_cap;
 extern bool enable_vga_8bit_dac;
+extern bool enable_vbe_pmode_if;
 extern bool allow_hd_vesa_modes;
 extern bool allow_unusual_vesa_modes;
 extern bool allow_explicit_vesa_24bpp;
@@ -1228,6 +1229,12 @@ void INT10_SetupVESA(void) {
 	if (machine != MCH_VGA) return;
 	if (svgaCard == SVGA_None) return;
 
+	int10.rom.pmode_interface = 0;
+	int10.rom.pmode_interface_window = 0;
+	int10.rom.pmode_interface_start = 0;
+	int10.rom.pmode_interface_palette = 0;
+	int10.rom.pmode_interface_size = 0;
+
 	/* default 8-bit mask, because of legacy code and Demoscene bugs */
 	vga.svga.bank_mask = 0xFFu;
 
@@ -1269,27 +1276,30 @@ void INT10_SetupVESA(void) {
 	callback.rmWindow=CALLBACK_Allocate();
 	int10.rom.set_window=RealMake(0xc000,int10.rom.used);
 	int10.rom.used += (uint16_t)CALLBACK_Setup(callback.rmWindow, VESA_SetWindow, CB_RETF, PhysMake(0xc000,int10.rom.used), "VESA Real Set Window");
-	/* Prepare the pmode interface */
-	int10.rom.pmode_interface=RealMake(0xc000,int10.rom.used);
-	int10.rom.used += 8;		//Skip the byte later used for offsets
-	/* PM Set Window call */
-	int10.rom.pmode_interface_window = int10.rom.used - RealOff( int10.rom.pmode_interface );
-	phys_writew( Real2Phys(int10.rom.pmode_interface) + 0, int10.rom.pmode_interface_window );
-	callback.pmWindow=CALLBACK_Allocate();
-	int10.rom.used += (uint16_t)CALLBACK_Setup(callback.pmWindow, VESA_PMSetWindow, CB_RETN, PhysMake(0xc000,int10.rom.used), "VESA PM Set Window");
-	/* PM Set start call */
-	int10.rom.pmode_interface_start = int10.rom.used - RealOff( int10.rom.pmode_interface );
-	phys_writew( Real2Phys(int10.rom.pmode_interface) + 2, int10.rom.pmode_interface_start);
-	callback.pmStart=CALLBACK_Allocate();
-	int10.rom.used += (uint16_t)CALLBACK_Setup(callback.pmStart, VESA_PMSetStart, CB_VESA_PM, PhysMake(0xc000,int10.rom.used), "VESA PM Set Start");
-	/* PM Set Palette call */
-	int10.rom.pmode_interface_palette = int10.rom.used - RealOff( int10.rom.pmode_interface );
-	phys_writew( Real2Phys(int10.rom.pmode_interface) + 4, int10.rom.pmode_interface_palette);
-	callback.pmPalette=CALLBACK_Allocate();
-	int10.rom.used += (uint16_t)CALLBACK_Setup(0, NULL, CB_VESA_PM, PhysMake(0xc000,int10.rom.used), "");
-	int10.rom.used += (uint16_t)CALLBACK_Setup(callback.pmPalette, VESA_PMSetPalette, CB_RETN, PhysMake(0xc000,int10.rom.used), "VESA PM Set Palette");
-	/* Finalize the size and clear the required ports pointer */
-	phys_writew( Real2Phys(int10.rom.pmode_interface) + 6, 0);
-	int10.rom.pmode_interface_size=int10.rom.used - RealOff( int10.rom.pmode_interface );
+	if (enable_vbe_pmode_if) {
+		LOG(LOG_MISC,LOG_DEBUG)("VBE pmode interface enabled");
+		/* Prepare the pmode interface */
+		int10.rom.pmode_interface=RealMake(0xc000,int10.rom.used);
+		int10.rom.used += 8;		//Skip the byte later used for offsets
+		/* PM Set Window call */
+		int10.rom.pmode_interface_window = int10.rom.used - RealOff( int10.rom.pmode_interface );
+		phys_writew( Real2Phys(int10.rom.pmode_interface) + 0, int10.rom.pmode_interface_window );
+		callback.pmWindow=CALLBACK_Allocate();
+		int10.rom.used += (uint16_t)CALLBACK_Setup(callback.pmWindow, VESA_PMSetWindow, CB_RETN, PhysMake(0xc000,int10.rom.used), "VESA PM Set Window");
+		/* PM Set start call */
+		int10.rom.pmode_interface_start = int10.rom.used - RealOff( int10.rom.pmode_interface );
+		phys_writew( Real2Phys(int10.rom.pmode_interface) + 2, int10.rom.pmode_interface_start);
+		callback.pmStart=CALLBACK_Allocate();
+		int10.rom.used += (uint16_t)CALLBACK_Setup(callback.pmStart, VESA_PMSetStart, CB_VESA_PM, PhysMake(0xc000,int10.rom.used), "VESA PM Set Start");
+		/* PM Set Palette call */
+		int10.rom.pmode_interface_palette = int10.rom.used - RealOff( int10.rom.pmode_interface );
+		phys_writew( Real2Phys(int10.rom.pmode_interface) + 4, int10.rom.pmode_interface_palette);
+		callback.pmPalette=CALLBACK_Allocate();
+		int10.rom.used += (uint16_t)CALLBACK_Setup(0, NULL, CB_VESA_PM, PhysMake(0xc000,int10.rom.used), "");
+		int10.rom.used += (uint16_t)CALLBACK_Setup(callback.pmPalette, VESA_PMSetPalette, CB_RETN, PhysMake(0xc000,int10.rom.used), "VESA PM Set Palette");
+		/* Finalize the size and clear the required ports pointer */
+		phys_writew( Real2Phys(int10.rom.pmode_interface) + 6, 0);
+		int10.rom.pmode_interface_size=int10.rom.used - RealOff( int10.rom.pmode_interface );
+	}
 }
 

@@ -946,7 +946,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 			}
 			break;
 		case 0x0a:							/* Get Pmode Interface */
-			if (int10.vesa_oldvbe) {
+			if (int10.vesa_oldvbe || int10.rom.pmode_interface == 0) {
 				reg_ax=0x014f;
 				break;
 			}
