@@ -2593,6 +2593,22 @@ void DOSBOX_SetupConfigSections(void) {
 	    "\n"
 	    "This option may be useful if you would like to prevent your DOS gaming from appearing in the Windows 11 Recall feature");
 
+    Pint = secprop->Add_int("vbememsize", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(0,128);
+    Pint->Set_help(
+        "Amount of video memory in kilobytes to report through the VESA BIOS extensions.\n"
+        "Set this value to an amount lower than vmemsize to handle DOS programs that cannot handle\n"
+        "more than the small amount of video memory they were designed for. This option also affects\n"
+        "what video modes are reported through the VBE.\n"
+        );
+    Pint->SetBasic(true);
+
+    Pint = secprop->Add_int("vbememsizekb", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(0,1024);
+    Pint->Set_help(
+        "Amount of video memory to report in kilobytes, in addition to vbememsize.");
+    Pint->SetBasic(true);
+
     Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,-1);
     Pint->SetMinMax(-1,128);
     Pint->Set_help(
@@ -2605,6 +2621,7 @@ void DOSBOX_SetupConfigSections(void) {
         "  2: 1600x1200 at 256 colors or 1024x768 at 64k colors or 640x480 at 16M colors\n"
         "  4: 1600x1200 at 64k colors or 1024x768 at 16M colors\n"
         "  8: up to 1600x1200 at 16M colors\n"
+	"Larger values are available depending on machine type.\n"
         "For build engine games, use more memory than in the list above so it can\n"
         "use triple buffering and thus won't flicker.\n"
         );

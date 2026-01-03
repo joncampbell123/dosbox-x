@@ -159,33 +159,6 @@ void VESA_OnReset_Clear_Callbacks(void) {
 
 extern bool vesa_bios_modelist_in_info;
 
-uint32_t GetReportedVideoMemorySize(void) {
-	uint32_t sz = vga.mem.memsize;
-
-	/* if the user specified custom window granularity, than
-	 * limitations in the interface to program bank offset
-	 * can cause problems if the granularity is small enough
-	 * that the reported video memory exceeds 128 (if 64KB
-	 * banks) or 256 (if not 64KB banks) possible values
-	 * of granularity.
-	 *
-	 * The DOSBox Integrated Graphics device does not have this limit */
-	if (svgaCard == SVGA_S3Trio) {
-		unsigned int banks,maxsz;
-
-		banks = (unsigned int)sz / (unsigned int)vbe_window_granularity;
-		if (banks > 128) banks = 128; /* ref: vga_s3.cpp port 6Ah */
-
-		maxsz = (unsigned int)banks * (unsigned int)vbe_window_granularity;
-		if (vga.svga.bank_size > vbe_window_granularity)
-			maxsz -= (vga.svga.bank_size - vbe_window_granularity);
-
-		if (sz > maxsz) sz = maxsz;
-	}
-
-	return sz;
-}
-
 uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off) {
 	/* Fill 256 byte buffer with VESA information */
 	PhysPt buffer=PhysMake(seg,off);
@@ -270,7 +243,7 @@ uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off) {
 	}
 
 	mem_writed(buffer+0x0a,(enable_vga_8bit_dac ? 1 : 0));		//Capabilities and flags
-	mem_writew(buffer+0x12,(uint16_t)(GetReportedVideoMemorySize()/(64*1024))); // memory size in 64kb blocks
+	mem_writew(buffer+0x12,(uint16_t)(vga.mem.vbe_memsize/(64*1024))); // memory size in 64kb blocks
 	return VESA_SUCCESS;
 }
 
@@ -465,7 +438,7 @@ foundit:
 		pageSize &= ~0xFFFFu;
 	}
 	Bitu pages = 0;
-	Bitu calcmemsize = GetReportedVideoMemorySize();
+	Bitu calcmemsize = vga.mem.vbe_memsize;
 	if (mblock->type == M_LIN4) calcmemsize /= 4u; /* 4bpp planar = 4 bytes per video memory byte */
 	if (pageSize > calcmemsize || (mblock->special & (_USER_DISABLED|_BIOS_DISABLED))) {
 		// mode not supported by current hardware configuration
@@ -562,7 +535,7 @@ uint8_t VESA_SetCPUWindow(uint8_t window,uint16_t address) {
 	 * parameter. */
 	address &= vga.svga.bank_mask;
 
-	Bitu calcmemsize = GetReportedVideoMemorySize();
+	Bitu calcmemsize = vga.mem.vbe_memsize;
 	if (CurMode->type == M_LIN4) calcmemsize /= 4u; /* 4bpp planar = 4 bytes per video memory byte */
 
 	if ((!vesa_bank_switch_window_range_check) || (uint32_t)(address)*vga.svga.bank_size<calcmemsize) { /* range check, or silently truncate address depending on dosbox-x.conf setting */
@@ -640,7 +613,7 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 	// offset register: virtual scanline length
 	Bitu pixels_per_offset;
 	Bitu bytes_per_offset = 8;
-	Bitu vmemsize = GetReportedVideoMemorySize();
+	Bitu vmemsize = vga.mem.vbe_memsize;
 	Bitu new_offset = vga.dosboxig.svga ? vga.dosboxig.bytes_per_scanline : vga.config.scan_len;
 	Bitu screen_height = CurMode->sheight;
 	Bitu max_offset;
@@ -1221,7 +1194,7 @@ void INT10_SetupVESA(void) {
 
 	/* if there are enough SVGA banks to need more than 256, then allow the full 16 bits */
 	{
-		unsigned int banks = GetReportedVideoMemorySize();
+		unsigned int banks = vga.mem.vbe_memsize;
 		banks /= vbe_window_granularity;
 		if (banks > 256u) vga.svga.bank_mask = 0xFFFFu;
 

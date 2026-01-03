@@ -1115,10 +1115,28 @@ void VGA_Reset(Section*) {
 	if (!IS_PC98_ARCH)
 		SVGA_Setup_Driver();        // svga video memory size is set here, possibly over-riding the user's selection
 
+	// By default, VBE reported memory size is the same as actual memory size
+	vga.mem.vbe_memsize = vga.mem.memsize;
+
+	// Allow the user to limit what is reported through the VBE in case of DOS programs that cannot handle too much video memory.
+	// Looking at you, SciTech VBETEST.EXE from 1994.
+	{
+		int sz_m = section->Get_int("vbememsize");
+		int sz_k = section->Get_int("vbememsizekb");
+		uint32_t b = _MB_bytes((unsigned int)sz_m) + _KB_bytes((unsigned int)sz_k);
+		/* does not need to be a power of 2, only larger than 256KB, and less than or equal to video memory size */
+		if (b != 0) {
+			if (b > vga.mem.memsize) b = vga.mem.memsize;
+			if (b < _KB_bytes(256u)) b = _KB_bytes(256u);
+			vga.mem.vbe_memsize = b; 
+		}
+	}
+
 	// NTS: This is WHY the memory size must be a power of 2
 	vga.mem.memmask = bitop::rounduppow2mask(vga.mem.memsize - 1u);
 
 	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB (mask 0x%x)",vga.mem.memsize>>10,(unsigned int)vga.mem.memmask);
+	LOG(LOG_VGA,LOG_DEBUG)("VBE bios will report %uKB of video memory",vga.mem.vbe_memsize>>10);
 	LOG(LOG_VGA,LOG_DEBUG)("Maximum video resolution supported by card: %ux%u",vga.max_svga_width,vga.max_svga_height);
 
 	// TODO: If S3 emulation, and linear framebuffer bumps up against the CPU memalias limits,

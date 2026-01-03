@@ -67,10 +67,8 @@ VESA BIOS:
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
 - VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
 - Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
-- Add dosbox.conf option that if set, instructs the VESA BIOS emulation to limit the reported amount of video memory on the card.
-- To complement vga.mem.memsize, add vga.mem.vbe_memsize. Normally they would be the same value, but it would make it possible to report a smaller size through the VESA BIOS to deal with troublesome programs that can't handle too many banks while bank switching, or too much video memory in general, or limitations in the S3 CRTC registers. Then replace GetReportedVideoMemorySize() with just a reference to vga.mem.vbe_memsize. The code to limit reported VBE memory for S3 to stay within the limits of the S3 CRTC registers could adjust THAT value instead of limiting video memory.
-- S3 CRTC port 6Ah (bank switching) remove 8-bit hack for smaller vbe window granularity. Update code that limits reported VBE memory for S3 based on banks to always limit to 128, instead of 128 but 256 if smaller granularity.
-- BUG: machine=svga_dosbox breaks Duke Nukem 3D SVGA graphics support. You get a "rolling image" effect. This only happens if the game uses the protected mode interface to set the display start.
+- INT 10h VBE modelist. Add special flag that if set, makes use of the LFB a requirement to use the mode (and disables all bank switching non-lfb support for the mode)
+- S3: If there is enough video memory that more than 128 banks are possible, set the non-lfb flag on any mode for which more than 128 banks are required to interact with the visible page of the mode. Require the linear framebuffer to use it.
 [DONE]
 - When reading the vbe_window_granularity from dosbox.conf, instead of leaving it 0 if the user doesn't set it, set it to the SVGA card's default. Then go through the code and replace all the conditional (vbe_window_granularity != 0) tests with code to just trust that vbe_window_granularity is the window granularity. Cleanup the code. Add a variable to store the loaded value from dosbox.conf in a vbe_window_granularity_default variable because we're going to allow the DOSBox IG to change it at runtime.
 - dosbox.conf option to enable/disable the VBE protected mode interface.
@@ -79,6 +77,10 @@ VESA BIOS:
   1920x1200, 2560x1600, 2880x2160, 3840x2160 (4K UHD!), 4096x2160. It is very important not to allow these UHD modes for
   S3 emulation because the S3 chipset as emulated cannot output more than 2048 scan lines due to register limitations. [DONE]
 - VESA SetCPUWindow(). The bank number is 16-bit. The code masks off the low 8 bits because of legacy code and Demoscene bugs. Add code to NOT mask off the low 8 bits if there is enough video memory that 256 or more banks are possible. Make it one less thing for VBETEST to possibly complain about.
+- Add dosbox.conf option that if set, instructs the VESA BIOS emulation to limit the reported amount of video memory on the card.
+- To complement vga.mem.memsize, add vga.mem.vbe_memsize. Normally they would be the same value, but it would make it possible to report a smaller size through the VESA BIOS to deal with troublesome programs that can't handle too many banks while bank switching, or too much video memory in general, or limitations in the S3 CRTC registers. Then replace GetReportedVideoMemorySize() with just a reference to vga.mem.vbe_memsize. The code to limit reported VBE memory for S3 to stay within the limits of the S3 CRTC registers could adjust THAT value instead of limiting video memory.
+- S3 CRTC port 6Ah (bank switching) remove 8-bit hack for smaller vbe window granularity. Update code that limits reported VBE memory for S3 based on banks to always limit to 128, instead of 128 but 256 if smaller granularity.
+- BUG: machine=svga_dosbox breaks Duke Nukem 3D SVGA graphics support. You get a "rolling image" effect. This only happens if the game uses the protected mode interface to set the display start.
 
 AVI capture:
 - Add dosbox.conf option that, if set, will only write video frames to the AVI if the frame changed (according to the render scaler system).
