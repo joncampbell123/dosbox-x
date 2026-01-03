@@ -182,6 +182,7 @@ typedef struct {
 #define _USER_DISABLED                  0x4000  /* user disabled (cannot set mode) but still listed in modelist */
 #define _USER_MODIFIED                  0x8000  /* user modified (through VESAMOED) */
 #define _BIOS_DISABLED                 0x10000  /* BIOS disabled (cannot set mode), may be listed in modelist but likely not */
+#define _REQUIRE_LFB                   0x20000  /* Require LFB, no bank switching permitted */
 
 extern Int10Data int10;
 

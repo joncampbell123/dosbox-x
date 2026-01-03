@@ -1352,8 +1352,10 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	}
 	//LOG_MSG("set mode %x",mode);
 	bool clearmem=true;Bitu i;
+	bool lfb=false;
 	if (mode>=0x100) {
-		if ((mode & 0x4000) && int10.vesa_nolfb) return false;
+		lfb = !!(mode & 0x4000);
+		if (lfb && int10.vesa_nolfb) return false;
 		if (mode & 0x8000) clearmem=false;
 		mode&=0xfff;
 	}
@@ -1496,6 +1498,12 @@ bool INT10_SetVideoMode(uint16_t mode) {
 				}
 		}
 		if (CurMode->type==M_TEXT) SetTextLines();
+
+		// if the mode says to require LFB, reject non-LFB modeset
+		if (mode >= 0x100 && !lfb && (CurMode->special & _REQUIRE_LFB)) {
+			LOG(LOG_INT10,LOG_ERROR)("Attempt to set VESA mode %X as non-LFB, but mode requires LFB",mode);
+			return false;
+		}
 
 		// INT 10h modeset will always clear 8-bit DAC mode (by VESA BIOS standards)
 		vga_8bit_dac = false;
@@ -2706,12 +2714,13 @@ public:
         int ch = -1;
         int newmode = -1;
         signed char enable = -1;
+        signed char lfbreq = -1;
         bool doDelete = false;
         bool modefind = false;
 		
         cmd->BeginOpt();
         while (cmd->GetOpt(/*&*/arg)) {
-			got_opt=true;
+            got_opt=true;
             if (arg == "?" || arg == "help") {
                 doHelp();
                 return;
@@ -2730,10 +2739,14 @@ public:
                     return;
                 }
             }
+            else if (arg == "require-lfb") {
+                cmd->NextOptArgv(/*&*/tmp);
+                lfbreq = (int)strtoul(tmp.c_str(),NULL,0);
+            }
             else if (arg == "fmt") {
                 cmd->NextOptArgv(/*&*/tmp);
 
-                     if (tmp == "LIN4")
+                if (tmp == "LIN4")
                     fmt = M_LIN4;
                 else if (tmp == "LIN8")
                     fmt = M_LIN8;
@@ -2799,7 +2812,7 @@ public:
             }
         }
         cmd->EndOpt();
-		if(!got_opt) {
+        if(!got_opt) {
             doHelp();
             return;
         }
@@ -2811,7 +2824,7 @@ public:
             while (ModeList_VGA[array_i].mode != 0xFFFF) {
                 bool match = true;
 
-                     if (w > 0 && (Bitu)w != ModeList_VGA[array_i].swidth)
+                if (w > 0 && (Bitu)w != ModeList_VGA[array_i].swidth)
                     match = false;
                 else if (h > 0 && (Bitu)h != ModeList_VGA[array_i].sheight)
                     match = false;
@@ -2850,9 +2863,16 @@ public:
         }
 
         if (enable == 0)
-            ModeList_VGA[array_i].special |= (uint16_t)  _USER_DISABLED;
+            ModeList_VGA[array_i].special |= (Bitu)  _USER_DISABLED;
         else if (enable == 1)
-            ModeList_VGA[array_i].special &= (uint16_t)(~_USER_DISABLED);
+            ModeList_VGA[array_i].special &= (Bitu)(~_USER_DISABLED);
+
+        if (lfbreq == 0)
+            ModeList_VGA[array_i].special &= (Bitu)(~_REQUIRE_LFB);
+        else if (lfbreq == 1)
+            ModeList_VGA[array_i].special |= (Bitu)  _REQUIRE_LFB;
+
+	LOG_MSG("%x %x",(unsigned int)ModeList_VGA[array_i].mode,(unsigned int)ModeList_VGA[array_i].special);
 
         if (doDelete) {
             if (ModeList_VGA[array_i].type != M_ERROR)
@@ -2873,7 +2893,7 @@ public:
         if (!modefind && (w > 0 || h > 0 || fmt >= 0 || ch > 0 || pitch >= 0)) {
             WriteOut("Changing mode 0x%x parameters\n",(unsigned int)ModeList_VGA[array_i].mode);
 
-            ModeList_VGA[array_i].special |= _USER_MODIFIED;
+            ModeList_VGA[array_i].special |= (Bitu)_USER_MODIFIED;
 
 	    LOG_MSG("pitch %d",pitch);
             if (pitch >= 0) {
@@ -2992,8 +3012,9 @@ public:
         WriteOut("  -delete                 Delete video mode\n");
         WriteOut("  -disable                Disable video mode (list but do not allow setting)\n");
         WriteOut("  -enable                 Enable video mode\n");
-	WriteOut("  -pitch <x>              Change display pitch (pixels per scanline).\n");
-	WriteOut("                          A value of zero will restore normal calculation.\n");
+        WriteOut("  -pitch <x>              Change display pitch (pixels per scanline).\n");
+        WriteOut("                          A value of zero will restore normal calculation.\n");
+        WriteOut("  -require-lfb <x>        Set/clear flag to require LFB for mode\n");
     }
 };
 
