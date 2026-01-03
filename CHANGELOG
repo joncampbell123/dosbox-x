@@ -1,6 +1,11 @@
 NEXT VERSION
   - Add dosbox.conf option to control whether VBE emulation provides the
     protected mode interface or not (joncampbell123).
+  - Add dosbox.conf option vbememsize and vbememsizekb to control how much
+    video memory is reported through the VESA BIOS, which can be less than
+    actual video memory (but must be at least 256KB). This option can help
+    with some DOS programs that have problems with "too much" video memory
+    in the system (joncampbell123).
 
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory

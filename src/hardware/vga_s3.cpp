@@ -671,10 +671,8 @@ bool SVGA_S3_HWCursorActive(void) {
     return (vga.s3.hgc.curmode & 0x1) != 0;
 }
 
-uint32_t GetReportedVideoMemorySize(void);
-
 bool SVGA_S3_AcceptsMode(Bitu mode) {
-    return VideoModeMemSize(mode) < GetReportedVideoMemorySize();
+    return VideoModeMemSize(mode) < vga.mem.vbe_memsize;
 }
 
 extern bool VGA_BIOS_use_rom;
