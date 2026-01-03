@@ -6,6 +6,9 @@ NEXT VERSION
     actual video memory (but must be at least 256KB). This option can help
     with some DOS programs that have problems with "too much" video memory
     in the system (joncampbell123).
+  - Add INT 10h mode flag _REQUIRE_LFB. When set, INT 10h calls to set
+    VESA BIOS modes will fail unless requesting to set the linear framebuffer
+    version of the mode (joncampbell123).
 
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory
