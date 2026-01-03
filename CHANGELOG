@@ -1,5 +1,6 @@
 NEXT VERSION
-  - 
+  - Add dosbox.conf option to control whether VBE emulation provides the
+    protected mode interface or not (joncampbell123).
 
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory

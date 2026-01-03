@@ -62,7 +62,6 @@ VESA BIOS:
 [TODO]
 - For machine=svga_dosbox (DOSBox Integrated Graphics) add boolean to enable VBE 3.0 extensions, and then implement them if set. machine=svga_dosbox should emulate VBE 3.0. machine=svga_dosbox_vbe2 should emulate VBE 2.0.
 - Add machine=vesa_vbe3 (S3 emulation), enable VBE 3.0 emulation if machine=vesa_vbe3.
-- dosbox.conf option to enable/disable the VBE protected mode interface.
 - VBE protected mode "set display start" function should wait for vertical retrace if set by dosbox.conf or if BL == 0x80, same as the normal INT 10h call. Doing so should fix flickering in Duke Nukem 3D and Blood 800x600 VBE modes when used with dynamic core and cycles=max (any case where the game is able to render faster than the refresh rate). Then again perhaps the pmode interface was designed to quickly set the start address and may not have waited for vsync by default. Perhaps when Duke Nukem 3D coded their support the average machine was not capable in VBE modes of rendering more than 1/3 the refresh rate and the dev never noticed the issue.
 - Add dosbox.conf option to control whether pmode option waits for vsync. A pmode analog of "vesa set display vsync". If -1 it does not vsync.
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
@@ -74,6 +73,7 @@ VESA BIOS:
 - When reading the vbe_window_granularity from dosbox.conf, instead of leaving it 0 if the user doesn't set it, set it to the SVGA card's default. Then go through the code and replace all the conditional (vbe_window_granularity != 0) tests with code to just trust that vbe_window_granularity is the window granularity. Cleanup the code. Add a variable to store the loaded value from dosbox.conf in a vbe_window_granularity_default variable because we're going to allow the DOSBox IG to change it at runtime.
 - BUG: machine=svga_dosbox breaks Duke Nukem 3D SVGA graphics support. You get a "rolling image" effect. This only happens if the game uses the protected mode interface to set the display start.
 [DONE]
+- dosbox.conf option to enable/disable the VBE protected mode interface.
 - Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct. [DONE]
 - Now that render scaler limits have been removed, start adding VESA BIOS modes higher than 1920x1440. For example,
   1920x1200, 2560x1600, 2880x2160, 3840x2160 (4K UHD!), 4096x2160. It is very important not to allow these UHD modes for

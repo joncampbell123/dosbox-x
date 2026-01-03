@@ -186,6 +186,7 @@ unsigned char*                      pc98_pgraph_current_cpu_page;
 
 bool                                vga_8bit_dac = false;
 bool                                enable_vga_8bit_dac = true;
+bool                                enable_vbe_pmode_if = true;
 bool                                ignore_sequencer_blanking = false;
 bool                                memio_complexity_optimization = true;
 bool                                vga_render_on_demand = false; // Render at vsync or specific changes to hardware instead of every scanline
@@ -892,6 +893,7 @@ void VGA_Reset(Section*) {
 
 	vga_8bit_dac = false;
 	enable_vga_8bit_dac = section->Get_bool("enable 8-bit dac");
+	enable_vbe_pmode_if = section->Get_bool("vbe protected mode interface");
 	ignore_sequencer_blanking = section->Get_bool("ignore sequencer blanking");
 	memio_complexity_optimization = section->Get_bool("memory io optimization 1");
 
