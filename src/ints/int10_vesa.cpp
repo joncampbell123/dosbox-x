@@ -468,21 +468,40 @@ foundit:
 		var_write(&minfo.NumberOfImagePages, (uint8_t)pages); /* did not exist until VBE 1.1 */
 
 	var_write(&minfo.ModeAttributes, modeAttributes);
-	var_write(&minfo.WinAAttributes, 0x7);	// Exists/readable/writable
+	if (mblock->special & _REQUIRE_LFB) {
+		var_write(&minfo.WinAAttributes, 0x0);	// Not there
+	}
+	else {
+		var_write(&minfo.WinAAttributes, 0x7);	// Exists/readable/writable
+	}
 
 	if (mblock->type==M_TEXT) {
-		var_write(&minfo.WinGranularity,32);
-		var_write(&minfo.WinSize,32);
-		var_write(&minfo.WinASegment,(uint16_t)0xb800);
+		if (mblock->special & _REQUIRE_LFB) {
+			var_write(&minfo.WinGranularity,0);
+			var_write(&minfo.WinSize,0);
+			var_write(&minfo.WinASegment,(uint16_t)0);
+		}
+		else {
+			var_write(&minfo.WinGranularity,32);
+			var_write(&minfo.WinSize,32);
+			var_write(&minfo.WinASegment,(uint16_t)0xb800);
+		}
 
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
 			var_write(&minfo.XResolution,(uint16_t)mblock->twidth);
 			var_write(&minfo.YResolution,(uint16_t)mblock->theight);
 		}
 	} else {
-		var_write(&minfo.WinGranularity,vbe_window_granularity>>10u); /* field is in KB */
-		var_write(&minfo.WinSize,vbe_window_size>>10u); /* field is in KB */
-		var_write(&minfo.WinASegment,(uint16_t)0xa000);
+		if (mblock->special & _REQUIRE_LFB) {
+			var_write(&minfo.WinGranularity,0);
+			var_write(&minfo.WinSize,0);
+			var_write(&minfo.WinASegment,(uint16_t)0);
+		}
+		else {
+			var_write(&minfo.WinGranularity,vbe_window_granularity>>10u); /* field is in KB */
+			var_write(&minfo.WinSize,vbe_window_size>>10u); /* field is in KB */
+			var_write(&minfo.WinASegment,(uint16_t)0xa000);
+		}
 
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
 			var_write(&minfo.XResolution,(uint16_t)mblock->swidth);
