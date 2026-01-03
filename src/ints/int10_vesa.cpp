@@ -261,9 +261,9 @@ uint8_t VESA_GetSVGAModeInformation(uint16_t mode,uint16_t seg,uint16_t off) {
 	while (ModeList_VGA[i].mode!=0xffff) {
 		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
 		if (ModeList_VGA[i].mode >= 0x100 && ModeList_VGA[i].mode <= 0x11F &&
-				!(ModeList_VGA[i].special & _USER_MODIFIED) &&
-				((ModeList_VGA[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
-				 (ModeList_VGA[i].type == M_LIN24 && vesa12_modes_32bpp))) {
+			!(ModeList_VGA[i].special & _USER_MODIFIED) &&
+			((ModeList_VGA[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
+			 (ModeList_VGA[i].type == M_LIN24 && vesa12_modes_32bpp))) {
 			/* ignore */
 			i++;
 		}
@@ -309,9 +309,11 @@ foundit:
 			}
 			modeAttributes = 0x1b;	// Color, graphics
 			if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
+			if (mblock->special & _REQUIRE_LFB) modeAttributes |= 0x40; // windowed memory mode NOT available
 			break;
 		case M_LIN4:
 			if (!allow_vesa_4bpp) return VESA_FAIL;
+			if (mblock->special & _REQUIRE_LFB) return VESA_FAIL; /* um, no */
 			pageSize = mblock->sheight * (uint16_t)(((cwidth+15U)/8U)&(~1U));
 			adj = hack_lfb_xadjust / 8;
 			var_write(&minfo.BytesPerScanLine,(uint16_t)(((cwidth+15U)/8U)&(~1U))); /* NTS: 4bpp requires even value due to VGA registers, round up */
@@ -334,6 +336,7 @@ foundit:
 			}
 			modeAttributes = 0x1b;	// Color, graphics
 			if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
+			if (mblock->special & _REQUIRE_LFB) modeAttributes |= 0x40; // windowed memory mode NOT available
 			break;
 		case M_LIN15:
 			if (!allow_vesa_15bpp || !allow_res) return VESA_FAIL;
@@ -355,6 +358,7 @@ foundit:
 			}
 			modeAttributes = 0x1b;	// Color, graphics
 			if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
+			if (mblock->special & _REQUIRE_LFB) modeAttributes |= 0x40; // windowed memory mode NOT available
 			break;
 		case M_LIN16:
 			if (!allow_vesa_16bpp || !allow_res) return VESA_FAIL;
@@ -374,6 +378,7 @@ foundit:
 			}
 			modeAttributes = 0x1b;	// Color, graphics
 			if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
+			if (mblock->special & _REQUIRE_LFB) modeAttributes |= 0x40; // windowed memory mode NOT available
 			break;
 		case M_LIN24:
 			if (!allow_vesa_24bpp || !allow_res) return VESA_FAIL;
@@ -394,6 +399,7 @@ foundit:
 			}
 			modeAttributes = 0x1b;	// Color, graphics
 			if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
+			if (mblock->special & _REQUIRE_LFB) modeAttributes |= 0x40; // windowed memory mode NOT available
 			break;
 		case M_LIN32:
 			if (!allow_vesa_32bpp || !allow_res) return VESA_FAIL;
@@ -415,9 +421,11 @@ foundit:
 			}
 			modeAttributes = 0x1b;	// Color, graphics
 			if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
+			if (mblock->special & _REQUIRE_LFB) modeAttributes |= 0x40; // windowed memory mode NOT available
 			break;
 		case M_TEXT:
 			if (!allow_vesa_tty) return VESA_FAIL;
+			if (mblock->special & _REQUIRE_LFB) return VESA_FAIL; /* um, no */
 			adj = hack_lfb_xadjust / 8;
 			pageSize = mblock->sheight * cwidth/8;
 			var_write(&minfo.BytesPerScanLine, (uint16_t)(mblock->twidth * 2));
