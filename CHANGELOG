@@ -1,3 +1,6 @@
+NEXT VERSION
+  - 
+
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory
     is large enough to need more than 256 banks. Memory size will always
