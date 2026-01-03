@@ -173,21 +173,10 @@ uint32_t GetReportedVideoMemorySize(void) {
 	if (svgaCard == SVGA_S3Trio) {
 		unsigned int banks,maxsz;
 
-		if (vbe_window_granularity != 0)
-			banks = (unsigned int)sz / (unsigned int)vbe_window_granularity;
-		else
-			banks = (unsigned int)sz / (unsigned int)0x10000;
+		banks = (unsigned int)sz / (unsigned int)vbe_window_granularity;
+		if (banks > 128) banks = 128; /* ref: vga_s3.cpp port 6Ah */
 
-		if (vbe_window_granularity >= (64*1024) && banks > 128)
-			banks = 128; /* ref: vga_s3.cpp port 6Ah */
-		else if (banks > 256)
-			banks = 256; /* ref: vga_s3.cpp port 6Ah hack for < 64KB granularity */
-
-		if (vbe_window_granularity != 0)
-			maxsz = (unsigned int)banks * (unsigned int)vbe_window_granularity;
-		else
-			maxsz = (unsigned int)banks * (unsigned int)0x10000;
-
+		maxsz = (unsigned int)banks * (unsigned int)vbe_window_granularity;
 		if (vga.svga.bank_size > vbe_window_granularity)
 			maxsz -= (vga.svga.bank_size - vbe_window_granularity);
 
@@ -510,16 +499,8 @@ foundit:
 			var_write(&minfo.YResolution,(uint16_t)mblock->theight);
 		}
 	} else {
-		if (vbe_window_granularity > 0)
-			var_write(&minfo.WinGranularity,vbe_window_granularity>>10u); /* field is in KB */
-		else
-			var_write(&minfo.WinGranularity,64);
-
-		if (vbe_window_size > 0)
-			var_write(&minfo.WinSize,vbe_window_size>>10u); /* field is in KB */
-		else
-			var_write(&minfo.WinSize,64);
-
+		var_write(&minfo.WinGranularity,vbe_window_granularity>>10u); /* field is in KB */
+		var_write(&minfo.WinSize,vbe_window_size>>10u); /* field is in KB */
 		var_write(&minfo.WinASegment,(uint16_t)0xa000);
 
 		if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
@@ -1241,14 +1222,8 @@ void INT10_SetupVESA(void) {
 	/* if there are enough SVGA banks to need more than 256, then allow the full 16 bits */
 	{
 		unsigned int banks = GetReportedVideoMemorySize();
-
-		if (vbe_window_granularity != 0)
-			banks /= vbe_window_granularity;
-		else
-			banks /= 0x10000;
-
-		if (banks > 256u)
-			vga.svga.bank_mask = 0xFFFFu;
+		banks /= vbe_window_granularity;
+		if (banks > 256u) vga.svga.bank_mask = 0xFFFFu;
 
 		LOG(LOG_MISC,LOG_DEBUG)("VESA total banks=%u bank mask=0x%x",banks,vga.svga.bank_mask);
 	}
