@@ -288,3 +288,6 @@ bool INT10_VideoState_Restore(Bitu state,RealPt buffer);
 /* Video Parameter Tables */
 uint16_t INT10_SetupVideoParameterTable(PhysPt basepos);
 void INT10_SetupBasicVideoParameterTable(void);
+
+Bitu VideoModeMemSize(VideoModeBlock* vmodeBlock,Bitu mode);
+

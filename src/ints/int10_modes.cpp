@@ -2503,6 +2503,41 @@ dac_text16:
 	return true;
 }
 
+Bitu VideoModeMemSize(VideoModeBlock* vmodeBlock,Bitu mode) {
+	switch(vmodeBlock->type) {
+		case M_PACKED4:
+			if (mode >= 0x100 && !(mode >= 0x202 && mode <= 0x208)/*S3 Windows 95 driver needs these*/ && !allow_vesa_4bpp_packed) return ~0ul;
+			return vmodeBlock->swidth*vmodeBlock->sheight/2;
+		case M_LIN4:
+			if (mode >= 0x100 && !allow_vesa_4bpp) return ~0ul;
+			return vmodeBlock->swidth*vmodeBlock->sheight/2;
+		case M_LIN8:
+			if (mode >= 0x100 && !allow_vesa_8bpp) return ~0ul;
+			return vmodeBlock->swidth*vmodeBlock->sheight;
+		case M_LIN15:
+			if (mode >= 0x100 && !allow_vesa_15bpp) return ~0ul;
+			return vmodeBlock->swidth*vmodeBlock->sheight*2;
+		case M_LIN16:
+			if (mode >= 0x100 && !allow_vesa_16bpp) return ~0ul;
+			return vmodeBlock->swidth*vmodeBlock->sheight*2;
+		case M_LIN24:
+			if (mode >= 0x100 && !allow_vesa_24bpp) return ~0ul;
+			if (mode >= 0x120 && !allow_explicit_vesa_24bpp) return ~0ul;
+			return vmodeBlock->swidth*vmodeBlock->sheight*3;
+		case M_LIN32:
+			if (mode >= 0x100 && !allow_vesa_32bpp) return ~0ul;
+			return vmodeBlock->swidth*vmodeBlock->sheight*4;
+		case M_TEXT:
+			if (mode >= 0x100 && !allow_vesa_tty) return ~0ul;
+			return vmodeBlock->twidth*vmodeBlock->theight*2;
+		default:
+			break;
+	}
+
+	// Return 0 for all other types, those always fit in memory
+	return 0;
+}
+
 Bitu VideoModeMemSize(Bitu mode) {
 	if (!IS_VGA_ARCH)
 		return 0;
@@ -2524,6 +2559,7 @@ Bitu VideoModeMemSize(Bitu mode) {
 
 	VideoModeBlock* vmodeBlock = NULL;
 	Bitu i=0;
+
 	while (modelist[i].mode!=0xffff) {
 		if (modelist[i].mode==mode) {
 			/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
@@ -2544,37 +2580,7 @@ Bitu VideoModeMemSize(Bitu mode) {
 	if (!vmodeBlock)
 	        return ~0ul;
 
-	switch(vmodeBlock->type) {
-        case M_PACKED4:
-		if (mode >= 0x100 && !(mode >= 0x202 && mode <= 0x208)/*S3 Windows 95 driver needs these*/ && !allow_vesa_4bpp_packed) return ~0ul;
-		return vmodeBlock->swidth*vmodeBlock->sheight/2;
-	case M_LIN4:
-		if (mode >= 0x100 && !allow_vesa_4bpp) return ~0ul;
-		return vmodeBlock->swidth*vmodeBlock->sheight/2;
-	case M_LIN8:
-		if (mode >= 0x100 && !allow_vesa_8bpp) return ~0ul;
-		return vmodeBlock->swidth*vmodeBlock->sheight;
-	case M_LIN15:
-		if (mode >= 0x100 && !allow_vesa_15bpp) return ~0ul;
-		return vmodeBlock->swidth*vmodeBlock->sheight*2;
-	case M_LIN16:
-		if (mode >= 0x100 && !allow_vesa_16bpp) return ~0ul;
-		return vmodeBlock->swidth*vmodeBlock->sheight*2;
-	case M_LIN24:
-		if (mode >= 0x100 && !allow_vesa_24bpp) return ~0ul;
-        if (mode >= 0x120 && !allow_explicit_vesa_24bpp) return ~0ul;
-		return vmodeBlock->swidth*vmodeBlock->sheight*3;
-	case M_LIN32:
-		if (mode >= 0x100 && !allow_vesa_32bpp) return ~0ul;
-		return vmodeBlock->swidth*vmodeBlock->sheight*4;
-	case M_TEXT:
-		if (mode >= 0x100 && !allow_vesa_tty) return ~0ul;
-		return vmodeBlock->twidth*vmodeBlock->theight*2;
-	default:
-		break;
-	}
-	// Return 0 for all other types, those always fit in memory
-	return 0;
+	return VideoModeMemSize(vmodeBlock,mode);
 }
 
 VideoModeBlock ModeList_DOSV[]={
