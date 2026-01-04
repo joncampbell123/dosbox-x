@@ -1210,6 +1210,30 @@ void INT10_SetupVESA(void) {
 	if (machine != MCH_VGA) return;
 	if (svgaCard == SVGA_None) return;
 
+	/* S3: The hardware register for SVGA bank can only count up to 128.
+	 *     For 64KB granularity that allows up to (128 * 64KB) = 8MB.
+	 *     Modes too large to fit in that limit need to be marked with _REQUIRE_LFB */
+	if (svgaCard == SVGA_S3Trio) {
+		for (VideoModeBlock* modelist=ModeList_VGA;modelist->mode != 0xFFFFu;modelist++) {
+			if (modelist->mode >= 0x100) {
+				Bitu sz = VideoModeMemSize(modelist,modelist->mode);
+				if (modelist->type == M_LIN4 || modelist->type == M_EGA) sz /= 4u;
+
+				/* convert size to banks */
+				Bitu banks = sz / (Bitu)vbe_window_granularity;
+
+				/* S3 hardware can only count up to 128 banks, therefore if the mode
+				 * is large enough, it should be restricted only to DOS programs that
+				 * support the linear framebuffer.
+				 *
+				 * This is not foolproof. DOS programs that intend to page flip with
+				 * multiple pages of video memory are going to have problems regardless
+				 * if they still use bank switching. */
+				if (banks > 128) modelist->special |= _REQUIRE_LFB;
+			}
+		}
+	}
+
 	int10.rom.pmode_interface = 0;
 	int10.rom.pmode_interface_window = 0;
 	int10.rom.pmode_interface_start = 0;

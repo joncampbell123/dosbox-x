@@ -67,8 +67,8 @@ VESA BIOS:
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
 - VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
 - Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
-- S3: If there is enough video memory that more than 128 banks are possible, set the non-lfb flag on any mode for which more than 128 banks are required to interact with the visible page of the mode. Require the linear framebuffer to use it.
 [DONE]
+- S3: If there is enough video memory that more than 128 banks are possible, set the require-lfb flag on any mode for which more than 128 banks are required to interact with the visible page of the mode. Require the linear framebuffer to use it.
 - INT 10h VBE modelist. Add special flag that if set, makes use of the LFB a requirement to use the mode (and disables all bank switching non-lfb support for the mode)
 - When reading the vbe_window_granularity from dosbox.conf, instead of leaving it 0 if the user doesn't set it, set it to the SVGA card's default. Then go through the code and replace all the conditional (vbe_window_granularity != 0) tests with code to just trust that vbe_window_granularity is the window granularity. Cleanup the code. Add a variable to store the loaded value from dosbox.conf in a vbe_window_granularity_default variable because we're going to allow the DOSBox IG to change it at runtime.
 - dosbox.conf option to enable/disable the VBE protected mode interface.
