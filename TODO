@@ -89,6 +89,18 @@ AVI capture:
   This option should be a boolean, no "auto". If capturing to MPEG-TS, it should affect that too, though should emit a frame at least
   4 times a second to prevent H.264 codec issues. Also known here as "AVI capture skip unchanged option".
 - Add menu item to control AVI capture skip unchanged option.
+- When capturing MPEG-TS with H.264, if FFMPEG provides it, try using the VAAPI version if possible. That means if your GPU has H.264 encoding support, the VAAPI version will use your GPU to encode to H.264, instead of using your CPU to do it. This at least would enable it under Linux. Not sure about Mac OS or Windows here.
+- Add option for MPEG-TS to choose between H.264, H.265, or AV1. These are codecs commonly supported by GPUs today.
+- Add option for AVI capture to choose between AVI, MPEG-TS, and fragmented MP4. The MP4 format might be easier to bring into video editing software. However you can't change video format on a whim in MP4, so, like AVI, every mode change means starting another capture file.
+
+Output drivers:
+- Add Vulkan output driver. On Linux at least, allow the user to choose between surface, opengl, and vulkan.
+- Add Metal output driver. It might be some good API practice if Mac OS builds could use that.
+- DirectX 11 output driver? DirectX 12 output driver? Programming practice.
+
+Voodoo 3Dfx:
+- Idea: Set up an OpenGL texture and direct 3Dfx emulation to render to texture, then present that texture to the DOSBox-X window. This would allow 3Dfx OpenGL output while allowing resizing and the menus to work.
+- Make it possible, like other DOSBox forks do, and users seem to expect, for DOSBox-X to just OpenGL render 3Dfx at the resolution of the window, effectively upscaling the 3Dfx output. That does screw with the OpenGL matrix and OpenGL state, which is why DOSBox-X imposed the limit in the first place.
 
 DOSBox menus:
 - Add menu item to control render on demand, and wait for changes. Selecting the menu will toggle between [auto], [off], and [on].
