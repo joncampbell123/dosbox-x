@@ -3844,7 +3844,7 @@ void DOSBOX_SetupConfigSections(void) {
 					"'nuked' is the most accurate (but the most CPU-intensive). See oplrate as well.");
 			Pstring->SetBasic(true);
 
-			Pint = secprop->Add_int("oplrate",Property::Changeable::WhenIdle,48000);
+			Pint = secprop->Add_int("oplrate",Property::Changeable::WhenIdle,49716);
 			Pint->Set_values(rates);
 			Pint->Set_help("Sample rate of OPL music emulation. Use 49716 for highest quality (set the mixer rate accordingly).");
 			Pint->SetBasic(true);
