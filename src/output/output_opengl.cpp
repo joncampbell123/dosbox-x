@@ -342,7 +342,11 @@ void OUTPUT_OPENGL_Select( GLKind kind )
     sdl_opengl.use_shader = false;
     initgl=0;
 #if defined(C_SDL2)
-    SDL_SetHint( SDL_HINT_FRAMEBUFFER_ACCELERATION, "1" ); // setting this to "opengl" caused crashes in certain situations (#3661). can still be overridden via environment variable
+#if defined(MACOSX)
+    SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "opengl");// setting this to "1" caused crashes on macOS
+#else
+    SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1"); // setting this to "opengl" caused crashes in certain situations (#3661). can still be overridden via environment variable
+#endif
 
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(true);
