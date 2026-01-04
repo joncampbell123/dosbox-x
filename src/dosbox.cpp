@@ -2599,7 +2599,7 @@ void DOSBOX_SetupConfigSections(void) {
         "Amount of video memory in kilobytes to report through the VESA BIOS extensions.\n"
         "Set this value to an amount lower than vmemsize to handle DOS programs that cannot handle\n"
         "more than the small amount of video memory they were designed for. This option also affects\n"
-        "what video modes are reported through the VBE.\n"
+        "what video modes are reported through the VBE."
         );
     Pint->SetBasic(true);
 
