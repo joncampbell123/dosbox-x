@@ -9,6 +9,8 @@ NEXT VERSION
   - Add INT 10h mode flag _REQUIRE_LFB. When set, INT 10h calls to set
     VESA BIOS modes will fail unless requesting to set the linear framebuffer
     version of the mode (joncampbell123).
+  - S3 emulation will mark any more large enough to exceed bank switching
+    limits in S3 hardware as _REQUIRE_LFB (joncampbell123).
 
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory
