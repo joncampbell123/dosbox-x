@@ -1,0 +1,9 @@
+:CHEAT_HELP_TR1
+  讀取暫存區的資料以繼續搜尋, 暫存區的資料都放在 "cheat/專案" 資料夾, 請自行開
+.
+:CHEAT_HELP_TR2
+啟該資料夾檢視有哪些暫存區資料可讀取, 指令範例如下
+.
+:CHEAT_HELP_TR3
+    TR CASH
+.

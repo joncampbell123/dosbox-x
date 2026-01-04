@@ -9,6 +9,7 @@
 - [Development/Nightly builds](https://dosbox-x.com/devel-build.html)  
 - [Install instructions](INSTALL.md)  
 - [Build instructions](BUILD.md)  
+- [Game Cheater](README_CHEATER.md)
 
 ## Table of Contents
 

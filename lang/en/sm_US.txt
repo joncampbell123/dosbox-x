@@ -1,0 +1,10 @@
+  The default search mode is WORD. The value ranges for each mode are as follows:
+    BYTE: 0~255, WORD: 0-65535, DWORD: 0~4294967295
+You should choose the mode based on the maximum possible value of the game character's attribute. For example, for money, if its maximum value might exceed 65535, you should set the search mode to DWORD without hesitation. This will likely help you quickly find the memory address storing the money value. Most games do not store values as negative numbers, so negative values are not currently considered. Using BYTE mode might yield too many search results, so it is not recommended. Command examples:
+    SM DWORD     # Set the search mode to DOUBLE WORD
+    SM 4         # Set the search mode to DOUBLE WORD
+    SM BYTE      # Set the search mode to BYTE
+    SM 1         # Set the search mode to BYTE
+    SM           # Set the search mode to WORD
+    SM 2         # Set the search mode to WORD
+    SM WORD      # Set the search mode to WORD

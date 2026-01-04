@@ -1,0 +1,24 @@
+:CHEAT_HELP_SNAP1
+  如果你實在沒有搜尋的概念, 可以使用Snap模式, 注意, 如果目前在搜尋模式或Snap模
+.
+:CHEAT_HELP_SNAP2
+式之下, 使用此指令無效, 執行此指令之前請用SM, SEG, OFF設定好搜尋模式, 進入Snap
+.
+:CHEAT_HELP_SNAP3
+模式之後就不能改了, 指令範例如下
+.
+:CHEAT_HELP_SNAP4
+    SNAP
+.
+:CHEAT_HELP_SNAP5
+如果有設定SEG 的值, 執行這個指令之後, 金手指會將目前段的64KG記憶體狀態存進一個
+.
+:CHEAT_HELP_SNAP6
+暫存檔案供未來比對, 如果設定的SEG 值為0 , 金手指會將目前所有記憶體狀態存進暫存
+.
+:CHEAT_HELP_SNAP7
+檔, 如果你要執行的遊戲是DOS 模式下的遊戲且會進入保護模式, 如DOOM, 建議你將記憶
+.
+:CHEAT_HELP_SNAP8
+體大小設定成4M, DOSBOX-X記憶體預設值為16M , 這樣會大幅增加暫存檔大小
+.

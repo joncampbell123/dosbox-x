@@ -1,0 +1,57 @@
+:CHEAT_HELP_HELP1
+   進入金手指模式之後, 所有指令中以 0x 開頭的數值或位址皆為16進位數, 所有非 0x
+.
+:CHEAT_HELP_HELP2
+ 開頭的數值皆為10進位, 目前暫不支援其他進位, 無論16進位或10進位數值出現非法字
+.
+:CHEAT_HELP_HELP3
+元會讓這個值變成0 , 所有指令及其參數皆不分大小寫, 以下為本指令範例
+.
+:CHEAT_HELP_HELP4
+    HELP HELP
+.
+:CHEAT_HELP_HELP5
+遊戲中按Alt+Pause或開啟debug 選單點選第一項可進入debug 模式, 在debug 視窗最底
+.
+:CHEAT_HELP_HELP6
+下為指令行, 在此處輸入"cheat 專案名稱"可進入cheat 模式, cheat 模式會在dosbox-x
+.
+:CHEAT_HELP_HELP7
+所在位置建立一個cheat 資料夾, cheat 模式中有執行任何需要儲存的指令時會在cheat 
+.
+:CHEAT_HELP_HELP8
+資料夾底下建立"專案名稱"資料夾, 在cheat 模式輸入"help"可以看到所有指令的簡易說
+.
+:CHEAT_HELP_HELP9
+明, 輸入"help 指令" 可看到該指令的詳細說明, cheat 模式中按[F5]可以讓遊戲繼續執
+.
+:CHEAT_HELP_HELP10
+行
+.
+:CHEAT_HELP_HELP11
+正常的搜尋流程如下
+.
+:CHEAT_HELP_HELP12
+    1. SM  模式       #設定搜尋模式
+.
+:CHEAT_HELP_HELP13
+    2. SEG 段位址     #設定段位址
+.
+:CHEAT_HELP_HELP14
+    3. OFF 偏移位址   #沒必要不要改
+.
+:CHEAT_HELP_HELP15
+    4. SL  搜尋長度   #沒必要不要改
+.
+:CHEAT_HELP_HELP16
+    5. S   數值       #搜尋你要的資料, 可能需搜尋好幾次
+.
+:CHEAT_HELP_HELP17
+    6. TW  數值 編號  #寫入數值測試
+.
+:CHEAT_HELP_HELP18
+    7. A   自定說明   #將暫存區存入正式紀錄區(暫存區剩一筆時才可執行)
+.
+:CHEAT_HELP_HELP19
+    8. CLS            #清除暫存區
+.

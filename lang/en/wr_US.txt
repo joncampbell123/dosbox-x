@@ -1,0 +1,3 @@
+  After data is saved to the formal record area, you can use this command to directly modify its value. Typically, you would first use the `R` command to list all records and identify the target record number. Then, use this command to make the modification. Example:
+    WR 200000 1
+Assuming the first record represents cash, this command would change the cash value to 200000.

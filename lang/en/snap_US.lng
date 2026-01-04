@@ -1,0 +1,42 @@
+:CHEAT_HELP_SNAP1
+  If you lack a clear concept of how to search, you can use Snap mode. Note: 
+.
+:CHEAT_HELP_SNAP2
+this command is invalid if you are currently in search mode or already in Snap
+.
+:CHEAT_HELP_SNAP3
+ mode. Before executing this command, please use `SM`, `SEG`, and `OFF` to 
+.
+:CHEAT_HELP_SNAP4
+configure your search settings. These settings cannot be changed after 
+.
+:CHEAT_HELP_SNAP5
+entering Snap mode. Command example:
+.
+:CHEAT_HELP_SNAP6
+    SNAP
+.
+:CHEAT_HELP_SNAP7
+If a `SEG` value is set, after executing this command, the cheat tool will 
+.
+:CHEAT_HELP_SNAP8
+save the current state of the 64KB memory segment into a temporary file for 
+.
+:CHEAT_HELP_SNAP9
+future comparison. If the `SEG` value is set to 0, the cheat tool will save 
+.
+:CHEAT_HELP_SNAP10
+the state of all current memory into the temporary file. If the game you are 
+.
+:CHEAT_HELP_SNAP11
+running is a DOS-based game that enters protected mode (e.g., DOOM), it is 
+.
+:CHEAT_HELP_SNAP12
+recommended to set the memory size to 4MB in the Dosbox-X configuration. The 
+.
+:CHEAT_HELP_SNAP13
+default memory size in Dosbox-X is 16MB. Using a larger memory size will 
+.
+:CHEAT_HELP_SNAP14
+significantly increase the size of the temporary snapshot file.
+.

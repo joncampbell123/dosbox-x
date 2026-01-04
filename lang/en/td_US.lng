@@ -1,0 +1,12 @@
+:CHEAT_HELP_TD1
+  When your search has narrowed down to just a few entries, and testing has 
+.
+:CHEAT_HELP_TD2
+confirmed that certain entries are not useful, you can use this command to 
+.
+:CHEAT_HELP_TD3
+delete them. Command example:
+.
+:CHEAT_HELP_TD4
+    TD 2     # Delete the second entry in the temporary storage area
+.

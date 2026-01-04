@@ -1,0 +1,5 @@
+  List the data entries in the formal record area. If you have used a text editor to change the descriptions to another language, the description text will be displayed in the language you edited. Example:
+    R
+Using this command lists all data entries in the record area.
+    R 2
+Using this command lists the detailed content of the second data entry in the record area..

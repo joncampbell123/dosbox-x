@@ -1,0 +1,5 @@
+  This command allows users to perform decimal <=> hexadecimal conversion. Inputting a decimal number will output its hexadecimal equivalent, and inputting a hexadecimal number will output its decimal equivalent. Example:
+    CVT 100     #Outputs 0x64
+    CVT 10000   #Outputs 0x2710
+    CVT 100000  #Outputs 0x000186A0
+    CVT 0xABC   #Outputs 2748

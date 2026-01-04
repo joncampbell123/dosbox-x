@@ -1,0 +1,90 @@
+:CHEAT_HELP_S1
+  After configuring the search mode, segment address, offset address, and 
+.
+:CHEAT_HELP_S2
+search length, you can use this command to search for the specified value. The
+.
+:CHEAT_HELP_S3
+ search results will be displayed in the Output window. The system will only 
+.
+:CHEAT_HELP_S4
+show the first 10 found memory addresses. If there are more than 10 results, 
+.
+:CHEAT_HELP_S5
+it indicates that further searching is needed to find the correct target. You 
+.
+:CHEAT_HELP_S6
+can stop searching when only 1 result remains, or when the results remain 
+.
+:CHEAT_HELP_S7
+consistent across successive searches. Use further commands to test if the 
+.
+:CHEAT_HELP_S8
+search result is correct. Command example:
+.
+:CHEAT_HELP_S9
+    s 100000 # This means searching for one hundred thousand
+.
+:CHEAT_HELP_S10
+Suppose your in-game money value is 100,000. The first search using `s 100000`
+.
+:CHEAT_HELP_S11
+ might yield many results. Press the `F5` key to continue the game. When the 
+.
+:CHEAT_HELP_S12
+money value changes in the game, enter debug mode again and search for the 
+.
+:CHEAT_HELP_S13
+changed amount. If the changed amount is 94,000, you can use the following 
+.
+:CHEAT_HELP_S14
+command to search:
+.
+:CHEAT_HELP_S15
+    s 94000  # Search for 94000 from the previous results
+.
+:CHEAT_HELP_S16
+If only 1 result remains, it's highly likely this is your target. If more than
+.
+:CHEAT_HELP_S17
+ 1 result remains, press `F5` to continue the game, and search again after the
+.
+:CHEAT_HELP_S18
+ in-game money changes, until only 1 result remains or the results stabilize. 
+.
+:CHEAT_HELP_S19
+Below is an example of a search result:
+.
+:CHEAT_HELP_S20
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_S21
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_S22
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_S23
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_S24
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_S25
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_S26
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_S27
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_S28
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_S29
+Search result explanation: Number : Decimal Address <==> Hexadecimal Address, 
+.
+:CHEAT_HELP_S30
+Value = Searched Value
+.

@@ -1,0 +1,3 @@
+  Unless you already know the memory address where the search target is located, you generally don't need to set this value. It's best to leave it at the default value of 0. Command example:
+    OFF 0xEB00     # Set the offset address to 0xEB00
+Unless you know what you are doing, it is not recommended to set the offset address. Keep it set to 0.
