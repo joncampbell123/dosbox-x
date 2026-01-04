@@ -90,6 +90,10 @@
 #include "hardopl.h"
 using namespace std;
 
+#ifdef WIN32
+#include "mic_input_win32.h"
+#endif
+
 #define MAX_CARDS 2
 
 #define CARD_INDEX_BIT 28u
@@ -165,7 +169,8 @@ enum {
 enum {
 	REC_SILENCE=0,
 	REC_1KHZ_TONE,
-	REC_HISS
+	REC_HISS,
+	REC_MICROPHONE
 };
 
 static char const * const copyright_string="COPYRIGHT (C) CREATIVE TECHNOLOGY LTD, 1992.";
@@ -715,6 +720,10 @@ void SB_INFO::gen_input_silence(Bitu dmabytes,unsigned char *buf) {
 }
 
 void SB_INFO::gen_input(Bitu dmabytes,unsigned char *buf) {
+	// DEBUG: Log recording calls
+	LOG(LOG_SB,LOG_DEBUG)("gen_input called: %u bytes, source=%d, rate=%u",
+		(unsigned)dmabytes, recording_source, dma.rate);
+
 	switch (recording_source) {
 		case REC_SILENCE:
 			gen_input_silence(dmabytes,buf);
@@ -724,6 +733,25 @@ void SB_INFO::gen_input(Bitu dmabytes,unsigned char *buf) {
 			break;
 		case REC_1KHZ_TONE:
 			gen_input_1khz_tone(dmabytes,buf);
+			break;
+		case REC_MICROPHONE:
+#ifdef WIN32
+			LOG(LOG_SB,LOG_DEBUG)("MIC: IsAvailable=%d", MIC_IsAvailable() ? 1 : 0);
+			if (MIC_IsAvailable()) {
+				// Determine format from current DMA settings
+				bool stereo = mixer.stereo;
+				bool signed16bit = (dma.mode >= DSP_DMA_16);
+				uint32_t sampleRate = dma.rate;
+				LOG(LOG_SB,LOG_DEBUG)("MIC: Generating %u bytes, rate=%u, stereo=%d, 16bit=%d",
+					(unsigned)dmabytes, sampleRate, stereo?1:0, signed16bit?1:0);
+				MIC_GenerateInput(buf, dmabytes, sampleRate, stereo, signed16bit);
+			} else {
+				LOG(LOG_SB,LOG_WARN)("MIC: Not available, using silence");
+				gen_input_silence(dmabytes, buf);
+			}
+#else
+			gen_input_silence(dmabytes, buf);
+#endif
 			break;
 		default:
 			abort();
@@ -804,6 +832,8 @@ void SB_INFO::sb_update_recording_source_settings() {
 			recording_source = REC_HISS;
 		else if (!strcmp(s,"1khz tone"))
 			recording_source = REC_1KHZ_TONE;
+		else if (!strcmp(s,"microphone"))
+			recording_source = REC_MICROPHONE;
 		else
 			recording_source = REC_SILENCE;
 	}
@@ -1862,6 +1892,7 @@ void SB_INFO::CTMIXER_Reset(void) {
  */
 
 void SB_INFO::DSP_DoCommand(void) {
+	LOG(LOG_SB,LOG_NORMAL)("DSP Command: 0x%02X", dsp.cmd);
 	if (ess_type != ESS_NONE && dsp.cmd >= 0xA0 && dsp.cmd <= 0xCF) {
 		// ESS overlap with SB16 commands. Handle it here, not mucking up the switch statement.
 
@@ -2326,6 +2357,7 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 			DSP_AddData(~dsp.in.data[0]);
 			break;
 		case 0xe1:  /* Get DSP Version */
+			LOG(LOG_SB,LOG_NORMAL)("DSP cmd 0xE1: Get DSP Version, type=%d", type);
 			DSP_FlushData();
 			switch (type) {
 				case SBT_1:
@@ -2465,8 +2497,16 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 			dsp.midi_read_interrupt = true;
 			dsp.midi_read_with_timestamps = true;
 			break;
-		case 0x20:
+		case 0x20:	/* Direct ADC - 8-bit single sample */
+#ifdef WIN32
+			if (recording_source == REC_MICROPHONE && MIC_IsAvailable()) {
+				DSP_AddData(MIC_GetDirectADCSample());
+			} else {
+				DSP_AddData(0x7f);   // fake silent input
+			}
+#else
 			DSP_AddData(0x7f);   // fake silent input for Creative parrot
+#endif
 			break;
 		case 0x88: /* Reveal SC400 ??? (used by TESTSC.EXE) */
 			if (reveal_sc_type != RSC_SC400) break;
@@ -4512,6 +4552,9 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 #if HAS_HARDOPL
 	HARDOPL_Cleanup();
 #endif
+#ifdef WIN32
+	MIC_Shutdown();
+#endif
 }
 
 void SBLASTER_OnReset(Section *sec) {
@@ -4551,6 +4594,13 @@ void SBLASTER_DOS_Boot(Section *sec) {
 
 void SBLASTER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
+
+#ifdef WIN32
+	// Initialize microphone input for recording support
+	if (MIC_Initialize()) {
+		LOG(LOG_MISC,LOG_DEBUG)("Microphone input initialized successfully");
+	}
+#endif
 
 	AddExitFunction(AddExitFunctionFuncPair(SBLASTER_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SBLASTER_OnReset));

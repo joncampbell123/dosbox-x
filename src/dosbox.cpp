@@ -1462,7 +1462,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", nullptr };
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", nullptr };
     const char* fpu_settings[] = { "true", "false", "1", "0", "auto", "8087", "287", "387", nullptr };
-    const char* sb_recording_sources[] = { "silence", "hiss", "1khz tone", nullptr };
+    const char* sb_recording_sources[] = { "silence", "hiss", "1khz tone", "microphone", nullptr };
     const char* int10usevp[] = { "auto", "true", "false", "1", "0", nullptr };
 
     const char* hostkeys[] = {
@@ -3730,7 +3730,7 @@ void DOSBOX_SetupConfigSections(void) {
 
 			Pstring = secprop->Add_string("recording source",Property::Changeable::WhenIdle,"silence");
 			Pstring->Set_values(sb_recording_sources);
-			Pstring->Set_help("Audio source to use when guest is recording audio. At this time only generated audio sources are available.");
+			Pstring->Set_help("Audio source to use when guest is recording audio. Options: silence, hiss, 1khz tone, or microphone (Windows WASAPI input).");
 			Pstring->SetBasic(true);
 
 			/* Sound Blaster IRQ hacks.
