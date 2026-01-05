@@ -27,6 +27,7 @@ rm -f src/dosbox-x-arm64 src/dosbox-x-x86_64
 do_cleanup() {
     rm -rf vs/sdl/linux-host vs/sdl/linux-build
     rm -rf vs/sdlnet/linux-host vs/sdlnet/linux-build
+    rm -rf vs/sdl2net/linux-host vs/sdl2net/linux-build
     rm -rf vs/zlib/linux-host vs/zlib/linux-build
     rm -rf vs/libpng/linux-host vs/libpng/linux-build
     rm -rf vs/freetype/linux-host vs/freetype/linux-build
@@ -78,21 +79,17 @@ for arch in ${architectures}; do
 
     arch_flags="-arch ${arch} -mmacosx-version-min=10.13 "
     CFLAGS="${arch_flags}${orig_CFLAGS}"
-    LDFLAGS="${arch_flags}${orig_LDFLAGS}"
-    CPPFLAGS="${arch_flags}${orig_CPPFLAGS}"
     CXXFLAGS="${arch_flags}${orig_CXXFLAGS}"
-    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
+    export CFLAGS CXXFLAGS
 
     # prefer to compile against our own copy of SDL 1.x
     echo "Compiling our internal SDL 1.x"
     (cd vs/sdl && ./build-dosbox.sh) || exit 1
     new="-I${top}/vs/sdl/linux-host/include "
     nld="-L${top}/vs/sdl/linux-host/lib "
-    CFLAGS="${CFLAGS}${new}"
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
-    CXXFLAGS="${CXXFLAGS}${new}"
-    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
+    export LDFLAGS CPPFLAGS
 
     # prefer to compile against our own copy of SDLnet 1.x
     echo "Compiling our internal SDLnet 1.x"
@@ -103,32 +100,24 @@ for arch in ${architectures}; do
     (cd vs/zlib && ./build-dosbox.sh) || exit 1
     new="-I${top}/vs/zlib/linux-host/include "
     nld="-L${top}/vs/zlib/linux-host/lib "
-    CFLAGS="${CFLAGS}${new}"
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
-    CXXFLAGS="${CXXFLAGS}${new}"
-    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own libpng (comment this out to disable)
     echo "Compiling our internal libpng"
     (cd vs/libpng && ./build-dosbox.sh) || exit 1
     new="-I${top}/vs/libpng/linux-host/include "
     nld="-L${top}/vs/libpng/linux-host/lib "
-    CFLAGS="${CFLAGS}${new}"
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
-    CXXFLAGS="${CXXFLAGS}${new}"
-    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own freetype
     echo "Compiling our internal freetype"
     (cd vs/freetype && ./build-dosbox.sh) || exit 1
     new="-I${top}/vs/freetype/linux-host/include/freetype2 "
     nld="-L${top}/vs/freetype/linux-host/lib -lfreetype "
-    CFLAGS="${CFLAGS}${new}"
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
-    CXXFLAGS="${CXXFLAGS}${new}"
     INTERNAL_FREETYPE=1
     export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS INTERNAL_FREETYPE
 
