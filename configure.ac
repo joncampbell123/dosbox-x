@@ -630,10 +630,10 @@ fi
 pwd=`realpath $srcdir`
 if [[ -z "$pwd" ]]; then pwd=`pwd`; fi
 
-CFLAGS="$CFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
+#CFLAGS="$CFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
 LDFLAGS="$LDFLAGS -L$pwd/vs/sdlnet/linux-host/lib"
 CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
-CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
+#CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
 
 if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
