@@ -7,6 +7,7 @@
 #ifdef WIN32
 
 #include "mic_input_win32.h"
+#include "logging.h"
 #include <cstdio>
 #include <cstdarg>
 #include <cmath>
@@ -706,43 +707,40 @@ void MIC_GenerateInput(uint8_t* buffer, size_t bytes,
     g_MicrophoneInput->GetSamples(buffer, bytes, sampleRate, stereo, signed16bit);
 }
 
-// Direct ADC - Time-based continuous buffer approach
-// This decouples the DOS polling rate from sample generation,
-// ensuring smooth audio regardless of polling irregularities.
-static uint8_t directADCBuffer[32768];  // Large ring buffer (~8 sec at 4kHz)
+// Direct ADC - Time-based at measured average polling rate (~4500 Hz)
+// Returns sample based on real elapsed time, ensuring correct playback speed.
+static uint8_t directADCBuffer[32768];  // Ring buffer (~7 sec at 4500 Hz)
 static const size_t DIRECT_ADC_BUFFER_SIZE = sizeof(directADCBuffer);
-static const uint32_t DIRECT_ADC_SAMPLE_RATE = 4000;  // Target sample rate
+static const uint32_t DIRECT_ADC_RATE = 4500;  // Measured average polling rate
 
 static LARGE_INTEGER directADCPerfFreq;
 static LARGE_INTEGER directADCStartTime;
 static bool directADCInitialized = false;
-static size_t directADCGeneratedSamples = 0;  // Total samples generated since start
-static size_t directADCConsumedSamples = 0;   // Total samples returned to caller
+static size_t directADCGeneratedSamples = 0;
 
-// Helper: Generate samples up to a target position
-static void DirectADC_GenerateTo(size_t targetSample) {
+// Helper: Generate more samples
+static void DirectADC_GenerateMore(size_t count) {
     if (!g_MicrophoneInput || g_MicrophoneInput->GetState() != MIC_STATE_CAPTURING) {
         return;
     }
 
-    while (directADCGeneratedSamples < targetSample) {
-        // Generate in chunks of 1024 samples
-        size_t chunkSize = 1024;
+    size_t remaining = count;
+    while (remaining > 0) {
         size_t writePos = directADCGeneratedSamples % DIRECT_ADC_BUFFER_SIZE;
-
-        // Handle wrap-around
         size_t availableSpace = DIRECT_ADC_BUFFER_SIZE - writePos;
-        size_t toGenerate = (chunkSize < availableSpace) ? chunkSize : availableSpace;
+        size_t toGenerate = (remaining < availableSpace) ? remaining : availableSpace;
+        toGenerate = (toGenerate < 2048) ? toGenerate : 2048;
 
         g_MicrophoneInput->GetSamples(
             &directADCBuffer[writePos],
             toGenerate,
-            DIRECT_ADC_SAMPLE_RATE,
+            DIRECT_ADC_RATE,
             false,   // mono
             false    // 8-bit unsigned
         );
 
         directADCGeneratedSamples += toGenerate;
+        remaining -= toGenerate;
     }
 }
 
@@ -751,54 +749,47 @@ uint8_t MIC_GetDirectADCSample() {
         return 0x80;  // Silence
     }
 
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+
     // Initialize on first call
     if (!directADCInitialized) {
         QueryPerformanceFrequency(&directADCPerfFreq);
-        QueryPerformanceCounter(&directADCStartTime);
+        directADCStartTime = now;
         directADCGeneratedSamples = 0;
-        directADCConsumedSamples = 0;
 
-        // Pre-generate 500ms of audio (2000 samples at 4kHz)
-        DirectADC_GenerateTo(2000);
+        // Pre-generate 100ms of audio (450 samples)
+        DirectADC_GenerateMore(450);
 
         directADCInitialized = true;
     }
 
-    // Calculate current time position in samples
-    LARGE_INTEGER now;
-    QueryPerformanceCounter(&now);
+    // Calculate which sample corresponds to current real time
     double elapsedSec = (double)(now.QuadPart - directADCStartTime.QuadPart) /
                         (double)directADCPerfFreq.QuadPart;
-    size_t currentTimeSample = (size_t)(elapsedSec * DIRECT_ADC_SAMPLE_RATE);
+    size_t timeSample = (size_t)(elapsedSec * DIRECT_ADC_RATE);
 
-    // Ensure we have audio generated ahead of current time
-    // Generate at least 200ms ahead to avoid underruns
-    size_t targetGenerate = currentTimeSample + (DIRECT_ADC_SAMPLE_RATE / 5);  // +200ms
-    if (directADCGeneratedSamples < targetGenerate) {
-        DirectADC_GenerateTo(targetGenerate);
+    // Ensure we have enough samples generated ahead (+100ms)
+    size_t needed = timeSample + (DIRECT_ADC_RATE / 10);
+    if (directADCGeneratedSamples < needed) {
+        DirectADC_GenerateMore(needed - directADCGeneratedSamples + 450);
     }
 
-    // Return the sample at the current time position
-    // This ensures smooth playback regardless of polling irregularities
-    size_t sampleToReturn = currentTimeSample;
-
-    // Prevent reading samples we haven't generated yet
-    if (sampleToReturn >= directADCGeneratedSamples) {
-        sampleToReturn = directADCGeneratedSamples - 1;
+    // Bounds check
+    if (timeSample >= directADCGeneratedSamples) {
+        timeSample = directADCGeneratedSamples - 1;
     }
 
-    // Handle the case where generated samples wrap around the ring buffer
-    // We need to ensure we don't read stale data
-    size_t oldestValidSample = 0;
+    // Handle ring buffer wrap
+    size_t oldestValid = 0;
     if (directADCGeneratedSamples > DIRECT_ADC_BUFFER_SIZE) {
-        oldestValidSample = directADCGeneratedSamples - DIRECT_ADC_BUFFER_SIZE;
+        oldestValid = directADCGeneratedSamples - DIRECT_ADC_BUFFER_SIZE;
     }
-    if (sampleToReturn < oldestValidSample) {
-        sampleToReturn = oldestValidSample;
+    if (timeSample < oldestValid) {
+        timeSample = oldestValid;
     }
 
-    size_t bufferPos = sampleToReturn % DIRECT_ADC_BUFFER_SIZE;
-    return directADCBuffer[bufferPos];
+    return directADCBuffer[timeSample % DIRECT_ADC_BUFFER_SIZE];
 }
 
 #endif // WIN32
