@@ -1253,6 +1253,7 @@ void DOSBOX_RealInit() {
 
     else if (mtype == "fm_towns")      { machine = MCH_VGA; want_fm_towns = true; /*machine = MCH_FM_TOWNS;*/ }
     else if (mtype == "svga_dosbox")   { machine = MCH_VGA; svgaCard = SVGA_DOSBoxIG; int10.vesa_vbe3 = true; } /* special emulator accelerator graphics adapter */
+    else if (mtype == "svga_dosbox_vbe2") { machine = MCH_VGA; svgaCard = SVGA_DOSBoxIG; } /* special emulator accelerator graphics adapter */
 
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
