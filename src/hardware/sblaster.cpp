@@ -735,7 +735,7 @@ void SB_INFO::gen_input(Bitu dmabytes,unsigned char *buf) {
 			gen_input_1khz_tone(dmabytes,buf);
 			break;
 		case REC_MICROPHONE:
-#ifdef WIN32
+#if defined(_MSC_VER) || defined(__MINGW64__)
 			LOG(LOG_SB,LOG_DEBUG)("MIC: IsAvailable=%d", MIC_IsAvailable() ? 1 : 0);
 			if (MIC_IsAvailable()) {
 				// Determine format from current DMA settings
@@ -2498,7 +2498,7 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 			dsp.midi_read_with_timestamps = true;
 			break;
 		case 0x20:	/* Direct ADC - 8-bit single sample */
-#ifdef WIN32
+#if defined(_MSC_VER) || defined(__MINGW64__)
 			if (recording_source == REC_MICROPHONE && MIC_IsAvailable()) {
 				DSP_AddData(MIC_GetDirectADCSample());
 			} else {
@@ -4552,7 +4552,7 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 #if HAS_HARDOPL
 	HARDOPL_Cleanup();
 #endif
-#ifdef WIN32
+#if defined(_MSC_VER) || defined(__MINGW64__)
 	MIC_Shutdown();
 #endif
 }
@@ -4595,7 +4595,7 @@ void SBLASTER_DOS_Boot(Section *sec) {
 void SBLASTER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
 
-#ifdef WIN32
+#if defined(_MSC_VER) || defined(__MINGW64__)
 	// Initialize microphone input for recording support
 	if (MIC_Initialize()) {
 		LOG(LOG_MISC,LOG_DEBUG)("Microphone input initialized successfully");

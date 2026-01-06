@@ -1665,6 +1665,9 @@
     <ClCompile Include="..\src\builtin\ipsmake.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\mic_input_win32.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2622,6 +2625,9 @@
     <ClInclude Include="..\include\version_string.h" />
     <ClInclude Include="..\src\hardware\esfmu\esfm.h" />
     <ClInclude Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.h" />
+    <ClInclude Include="..\src\hardware\mic_input_win32.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">
