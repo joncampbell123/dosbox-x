@@ -31,8 +31,8 @@ Render on Demand + Wait for Changes:
 
 DOSBox Integrated Graphics:
 [TODO]
-- Add DOSBox Integrated Graphics control register to control bank switching window size and granularity. The Windows driver could change the granularity to something smaller than 64KB while maintaining a 64KB window so that it can draw without having to worry about bank switching mid-draw. It's pretty obvious why Cirrus SVGA chipsets chose to use 64KB windows and 4KB granularity, and that's likely why. Yes, the Windows 3.1 driver in 386 enhanced mode will just use the linear framebuffer anyway, but for 286 standard mode and real mode windows, it's easier for the driver to just use the A000h segment and bank switching.
 [DONE]
+- Add DOSBox Integrated Graphics control register to control bank switching window size and granularity. The Windows driver could change the granularity to something smaller than 64KB while maintaining a 64KB window so that it can draw without having to worry about bank switching mid-draw. It's pretty obvious why Cirrus SVGA chipsets chose to use 64KB windows and 4KB granularity, and that's likely why. Yes, the Windows 3.1 driver in 386 enhanced mode will just use the linear framebuffer anyway, but for 286 standard mode and real mode windows, it's easier for the driver to just use the A000h segment and bank switching.
 - doublescan setting should become "true" "false" or "auto". "auto" is like true, but automatically becomes false when the user selects any render scaler other than the scale2x, etc. scalers. If the user wants to use the mame upscalers the doublescan setting shouldn't get in the way. [DONE, BUT IN A DIFFERENT WAY]
 - HD (1920x1080) modes crash the emulator if the Video Debug Overlay is enabled. [FIXED: Now it just stops rendering]
 - Why does VBETEST's line drawing glitch out for mode 0x10D (320x200 15bpp). It makes the test for that mode
