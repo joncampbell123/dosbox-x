@@ -722,7 +722,7 @@ void SB_INFO::gen_input_silence(Bitu dmabytes,unsigned char *buf) {
 void SB_INFO::gen_input(Bitu dmabytes,unsigned char *buf) {
 	// DEBUG: Log recording calls
 	LOG(LOG_SB,LOG_DEBUG)("gen_input called: %u bytes, source=%d, rate=%u",
-		(unsigned)dmabytes, recording_source, dma.rate);
+		(unsigned int)dmabytes, (int)recording_source, (unsigned int)dma.rate);
 
 	switch (recording_source) {
 		case REC_SILENCE:
