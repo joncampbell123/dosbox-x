@@ -3,7 +3,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter -I$(top_srcd
 SUBDIRS = serialport parport reSID mame
 
 EXTRA_DIST = opl.cpp opl.h adlib.h dbopl.h hardopl.h pci_devices.h voodoo_types.h voodoo_def.h voodoo_data.h \
-             voodoo_interface.h voodoo_emu.h voodoo_vogl.h voodoo_opengl.h
+             voodoo_interface.h voodoo_emu.h voodoo_vogl.h voodoo_opengl.h mic_input_win32.h
 
 noinst_LIBRARIES = libhardware.a
 
@@ -14,7 +14,7 @@ libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp imfc.cpp 
 			cmos.cpp disney.cpp gus.cpp mpu401.cpp ipx.cpp ipxserver.cpp ne2000.cpp hardopl.cpp dbopl.cpp innova.cpp dongle.cpp \
 			voodoo.cpp voodoo_interface.cpp voodoo_emu.cpp ps1_sound.cpp sn76496.h ide.cpp floppy.cpp voodoo_vogl.cpp voodoo_opengl.cpp \
 			nukedopl.cpp pc98.cpp vga_pc98_gdc.cpp vga_pc98_gdc_draw.cpp vga_pc98_dac.cpp vga_pc98_crtc.cpp vga_pc98_cg.cpp \
-			vga_pc98_egc.cpp pc98_fm.cpp glide.cpp vga_ati.cpp pc98_artic.cpp \
+			vga_pc98_egc.cpp pc98_fm.cpp glide.cpp vga_ati.cpp pc98_artic.cpp mic_input_win32.cpp \
 			snd_pc98/sound/opngenc.c snd_pc98/sound/opngeng.c snd_pc98/sound/pcm86c.c snd_pc98/sound/pcm86g.c \
 			snd_pc98/sound/tms3631c.c snd_pc98/sound/tms3631g.c snd_pc98/sound/psggenc.c snd_pc98/sound/psggeng.c \
 			snd_pc98/common/parts.c snd_pc98/generic/keydisp.c snd_pc98/sound/adpcmc.c snd_pc98/sound/adpcmg.c \
