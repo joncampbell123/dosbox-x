@@ -1242,6 +1242,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_nolfb = true;}
     else if (mtype == "vesa_oldvbe")   { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_oldvbe = true;}
     else if (mtype == "vesa_oldvbe10") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_oldvbe = true; int10.vesa_oldvbe10 = true;}
+    else if (mtype == "vesa_vbe3")     { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; int10.vesa_vbe3 = true;}
     else if (mtype == "svga_et4000")   { svgaCard = SVGA_TsengET4K; }
     else if (mtype == "svga_et3000")   { svgaCard = SVGA_TsengET3K; }
     else if (mtype == "svga_paradise") { svgaCard = SVGA_ParadisePVGA1A; }
@@ -1501,7 +1502,7 @@ void DOSBOX_SetupConfigSections(void) {
         "svga_s3virge", "svga_s3virgevx",
         "svga_et3000", "svga_et4000",
         "svga_paradise",
-        "vesa_nolfb", "vesa_oldvbe", "vesa_oldvbe10",
+        "vesa_nolfb", "vesa_oldvbe", "vesa_oldvbe10", "vesa_vbe3",
         "pc98", "pc9801", "pc9821",
 	"svga_ati_egavgawonder",
 	"svga_ati_vgawonder",
@@ -1512,6 +1513,7 @@ void DOSBOX_SetupConfigSections(void) {
 	"svga_ati_mach32",
 	"svga_ati_mach64",
 	"svga_dosbox",
+	"svga_dosbox_vbe2",
 	"fm_towns", // STUB
         nullptr };
 
