@@ -1198,6 +1198,7 @@ void DOSBOX_RealInit() {
     s3Card = S3_Generic;
     machine = MCH_VGA;
     jp_ega = false;
+    int10.vesa_vbe3 = false;
     int10.vesa_nolfb = false;
     int10.vesa_oldvbe = false;
     int10.vesa_oldvbe10 = false;
@@ -1251,7 +1252,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "pc9821")        { machine = MCH_PC98; } /* Future differentiation */
 
     else if (mtype == "fm_towns")      { machine = MCH_VGA; want_fm_towns = true; /*machine = MCH_FM_TOWNS;*/ }
-    else if (mtype == "svga_dosbox")   { machine = MCH_VGA; svgaCard = SVGA_DOSBoxIG; } /* special emulator accelerator graphics adapter */
+    else if (mtype == "svga_dosbox")   { machine = MCH_VGA; svgaCard = SVGA_DOSBoxIG; int10.vesa_vbe3 = true; } /* special emulator accelerator graphics adapter */
 
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 

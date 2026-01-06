@@ -180,9 +180,10 @@ uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off) {
 	}
 
 	/* Fill common data */
-	MEM_BlockWrite(buffer,(void *)"VESA",4);				//Identification
-	if (!int10.vesa_oldvbe) mem_writew(buffer+0x04,0x200);	//Vesa version 2.0
-	else if (!int10.vesa_oldvbe10) mem_writew(buffer+0x04,0x102);	//Vesa version 1.2
+	MEM_BlockWrite(buffer,(void *)"VESA",4);					//Identification
+	if (int10.vesa_vbe3) mem_writew(buffer+0x04,0x300);				//Vesa version 3.0
+	else if (!int10.vesa_oldvbe) mem_writew(buffer+0x04,0x200);			//Vesa version 2.0
+	else if (!int10.vesa_oldvbe10) mem_writew(buffer+0x04,0x102);			//Vesa version 1.2
 	else mem_writew(buffer+0x04,0x100);						//Vesa version 1.0
 	if (vbe2) {
 		vbe2_pos=256+off;
@@ -190,7 +191,7 @@ uint8_t VESA_GetSVGAInformation(uint16_t seg,uint16_t off) {
 		if (svgaCard == SVGA_DOSBoxIG) {
 			mem_writed(buffer+0x06,RealMake(seg,vbe2_pos));
 			for (i=0;i<sizeof(dosboxig_string_oem);i++) real_writeb(seg,vbe2_pos++,(uint8_t)dosboxig_string_oem[i]);
-			mem_writew(buffer+0x14,0x200);					//VBE 2 software revision
+			mem_writew(buffer+0x14,0x200);				//VBE 2 software revision
 			mem_writed(buffer+0x16,RealMake(seg,vbe2_pos));
 			for (i=0;i<sizeof(dosboxig_string_vendorname);i++) real_writeb(seg,vbe2_pos++,(uint8_t)dosboxig_string_vendorname[i]);
 			mem_writed(buffer+0x1a,RealMake(seg,vbe2_pos));
