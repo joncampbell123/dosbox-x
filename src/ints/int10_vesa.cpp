@@ -325,6 +325,8 @@ foundit:
 				var_write(&minfo.MemoryModel,4);	//packed pixel
 			}
 			modeAttributes = 0x1b;	// Color, graphics
+			if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
+			if (mblock->special & _REQUIRE_LFB) modeAttributes |= 0x40; // windowed memory mode NOT available
 			break;
 		case M_LIN4:
 			if (!allow_vesa_4bpp) return VESA_FAIL;
