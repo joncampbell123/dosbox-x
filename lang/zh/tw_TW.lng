@@ -1,0 +1,54 @@
+:CHEAT_HELP_TW1
+  當你搜尋到只剩幾筆甚至一筆結果時, 你可能需要嘗試修改記憶體內容並返回遊戲檢視
+.
+:CHEAT_HELP_TW2
+是否已成功修改, 此時你可以使用這個指令, 使用範例如下
+.
+:CHEAT_HELP_TW3
+假設搜尋結果如下
+.
+:CHEAT_HELP_TW4
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_TW5
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_TW6
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_TW7
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_TW8
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_TW9
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_TW10
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_TW11
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_TW12
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_TW13
+以下指令將第二筆改成200000, 若沒有最後一個參數則會修改第一筆
+.
+:CHEAT_HELP_TW14
+    TW 200000 2
+.
+:CHEAT_HELP_TW15
+返回遊戲後如果發現沒有達到你要的效果, 記得改回來
+.
+:CHEAT_HELP_TW16
+    TW 100000 2
+.
+:CHEAT_HELP_TW17
+返回遊戲發現遊戲屬性已改變成你要的數值, 使用TD指令刪除多餘的搜尋結果直到只剩這
+.
+:CHEAT_HELP_TW18
+一筆
+.

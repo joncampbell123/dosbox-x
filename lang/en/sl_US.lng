@@ -1,0 +1,27 @@
+:CHEAT_HELP_SL1
+  The system sets the search length based on your configured search conditions
+.
+:CHEAT_HELP_SL2
+. Unless you specifically know the required search range, you do not need to 
+.
+:CHEAT_HELP_SL3
+modify this value. Command example:
+.
+:CHEAT_HELP_SL4
+    SL 0x10000  # Set the search length to 64KB
+.
+:CHEAT_HELP_SL5
+When the `SEG` value is not 0, the default search length is 64KB. When the 
+.
+:CHEAT_HELP_SL6
+`SEG` value is 0, the search length is 640KB or 1088KB, depending on whether 
+.
+:CHEAT_HELP_SL7
+HI MEMORY is enabled. If the game enters protected mode, the `SEG` value must 
+.
+:CHEAT_HELP_SL8
+be set to 0; setting it to any other value is invalid. The search length 
+.
+:CHEAT_HELP_SL9
+depends on the memory size set in the Dosbox-X configuration file.
+.

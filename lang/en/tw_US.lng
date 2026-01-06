@@ -1,0 +1,69 @@
+:CHEAT_HELP_TW1
+  When your search has narrowed down to just a few or even a single result, 
+.
+:CHEAT_HELP_TW2
+you may need to test by modifying the memory content and then returning to the
+.
+:CHEAT_HELP_TW3
+ game to check if the change was successful. You can use this command for that
+.
+:CHEAT_HELP_TW4
+ purpose. Usage example: 
+.
+:CHEAT_HELP_TW5
+Suppose the search results are as follows:
+.
+:CHEAT_HELP_TW6
+    1 : 9594 <==> 0x257A, Value = 100000
+.
+:CHEAT_HELP_TW7
+    2 : 60174 <==> 0xEB0E, Value = 100000
+.
+:CHEAT_HELP_TW8
+    3 : 60178 <==> 0xEB12, Value = 100000
+.
+:CHEAT_HELP_TW9
+    4 : 60276 <==> 0xEB74, Value = 100000
+.
+:CHEAT_HELP_TW10
+    5 : 60280 <==> 0xEB78, Value = 100000
+.
+:CHEAT_HELP_TW11
+    6 : 60378 <==> 0xEBDA, Value = 100000
+.
+:CHEAT_HELP_TW12
+    7 : 60382 <==> 0xEBDE, Value = 100000
+.
+:CHEAT_HELP_TW13
+    8 : 60480 <==> 0xEC40, Value = 100000
+.
+:CHEAT_HELP_TW14
+    9 : 60484 <==> 0xEC44, Value = 100000
+.
+:CHEAT_HELP_TW15
+The following command changes the value of the second entry to 200000. If the 
+.
+:CHEAT_HELP_TW16
+last parameter is omitted, it will modify the first entry by default.
+.
+:CHEAT_HELP_TW17
+    TW 200000 2
+.
+:CHEAT_HELP_TW18
+If returning to the game shows that the desired effect was not achieved, 
+.
+:CHEAT_HELP_TW19
+remember to change it back:
+.
+:CHEAT_HELP_TW20
+    TW 100000 2
+.
+:CHEAT_HELP_TW21
+If returning to the game confirms that the game attribute has changed to your 
+.
+:CHEAT_HELP_TW22
+desired value, use the `TD` command to delete the extra search results until 
+.
+:CHEAT_HELP_TW23
+only this one entry remains.
+.

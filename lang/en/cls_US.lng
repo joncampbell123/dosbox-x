@@ -1,0 +1,6 @@
+:CHEAT_HELP_CLS1
+  Clear the temporary storage area to prepare for the next search. Example:
+.
+:CHEAT_HELP_CLS2
+    CLS
+.

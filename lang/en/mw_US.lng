@@ -1,0 +1,39 @@
+:CHEAT_HELP_MW1
+  Based on the configured parameters like `MM`, `MSEG`, and `MOFF`, write the 
+.
+:CHEAT_HELP_MW2
+specified value into memory. After writing, press `[F5]` to continue executing
+.
+:CHEAT_HELP_MW3
+ the game and check if the address is correct. Before execution, be sure to 
+.
+:CHEAT_HELP_MW4
+remember the original value at the memory address. If the written value has no
+.
+:CHEAT_HELP_MW5
+ effect, remember to re-enter debug mode and restore the original value. 
+.
+:CHEAT_HELP_MW6
+Example:
+.
+:CHEAT_HELP_MW7
+    MW 3000
+.
+:CHEAT_HELP_MW8
+If the `MM` mode is BYTE,  it affects 1 byte. The value written is the 
+.
+:CHEAT_HELP_MW9
+remainder of 3000 divided by 256.
+.
+:CHEAT_HELP_MW10
+If the `MM` mode is WORD,  it affects 2 bytes. The value written is the 
+.
+:CHEAT_HELP_MW11
+remainder of 3000 divided by 65536.
+.
+:CHEAT_HELP_MW12
+If the `MM` mode is DWORD, it affects 4 bytes. The value written is the 
+.
+:CHEAT_HELP_MW13
+remainder of 3000 divided by 4294967295.
+.

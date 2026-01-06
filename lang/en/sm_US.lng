@@ -1,0 +1,51 @@
+:CHEAT_HELP_SM1
+  The default search mode is WORD. The value ranges for each mode are as 
+.
+:CHEAT_HELP_SM2
+follows:
+.
+:CHEAT_HELP_SM3
+    BYTE: 0~255, WORD: 0-65535, DWORD: 0~4294967295
+.
+:CHEAT_HELP_SM4
+You should choose the mode based on the maximum possible value of the game 
+.
+:CHEAT_HELP_SM5
+character's attribute. For example, for money, if its maximum value might 
+.
+:CHEAT_HELP_SM6
+exceed 65535, you should set the search mode to DWORD without hesitation. This
+.
+:CHEAT_HELP_SM7
+ will likely help you quickly find the memory address storing the money value.
+.
+:CHEAT_HELP_SM8
+ Most games do not store values as negative numbers, so negative values are 
+.
+:CHEAT_HELP_SM9
+not currently considered. Using BYTE mode might yield too many search results,
+.
+:CHEAT_HELP_SM10
+ so it is not recommended. Command examples:
+.
+:CHEAT_HELP_SM11
+    SM DWORD     # Set the search mode to DOUBLE WORD
+.
+:CHEAT_HELP_SM12
+    SM 4         # Set the search mode to DOUBLE WORD
+.
+:CHEAT_HELP_SM13
+    SM BYTE      # Set the search mode to BYTE
+.
+:CHEAT_HELP_SM14
+    SM 1         # Set the search mode to BYTE
+.
+:CHEAT_HELP_SM15
+    SM           # Set the search mode to WORD
+.
+:CHEAT_HELP_SM16
+    SM 2         # Set the search mode to WORD
+.
+:CHEAT_HELP_SM17
+    SM WORD      # Set the search mode to WORD
+.

@@ -1,0 +1,24 @@
+:CHEAT_HELP_R1
+  List the data entries in the formal record area. If you have used a text 
+.
+:CHEAT_HELP_R2
+editor to change the descriptions to another language, the description text 
+.
+:CHEAT_HELP_R3
+will be displayed in the language you edited. Example:
+.
+:CHEAT_HELP_R4
+    R
+.
+:CHEAT_HELP_R5
+Using this command lists all data entries in the record area.
+.
+:CHEAT_HELP_R6
+    R 2
+.
+:CHEAT_HELP_R7
+Using this command lists the detailed content of the second data entry in the 
+.
+:CHEAT_HELP_R8
+record area..
+.

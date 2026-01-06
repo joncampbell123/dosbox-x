@@ -1,0 +1,39 @@
+:CHEAT_HELP_SM1
+  預設搜尋模式為WORD, 各種模式的值域如下: 
+.
+:CHEAT_HELP_SM2
+    BYTE:0~255, WORD:0-65535, DWORD:0~4294967295 
+.
+:CHEAT_HELP_SM3
+你應該根據遊戲角色屬性的最大數值來決定使用哪一種模式, 比如說金錢, 如果他的最大
+.
+:CHEAT_HELP_SM4
+值可能超過65535那麼你應該毫不考慮將搜尋模式設定成DWORD, 這樣應該很快就能找到儲
+.
+:CHEAT_HELP_SM5
+存金錢數值的記憶體位址, 大部分遊戲不會以負值儲存數值, 所以暫不考慮負數, BYTE模
+.
+:CHEAT_HELP_SM6
+式可能會有過多搜尋結果, 所以不建議使用BYTE模式搜尋, 本指令範例
+.
+:CHEAT_HELP_SM7
+    SM DWORD     #將搜尋模式設定為DOUBLE WORD
+.
+:CHEAT_HELP_SM8
+    SM 4         #將搜尋模式設定為DOUBLE WORD
+.
+:CHEAT_HELP_SM9
+    SM BYTE      #將搜尋模式設定為BYTE
+.
+:CHEAT_HELP_SM10
+    SM 1         #將搜尋模式設定為BYTE
+.
+:CHEAT_HELP_SM11
+    SM           #將搜尋模式設定為WORD
+.
+:CHEAT_HELP_SM12
+    SM 2         #將搜尋模式設定為WORD
+.
+:CHEAT_HELP_SM13
+    SM WORD      #將搜尋模式設定為WORD
+.

@@ -1,0 +1,57 @@
+:CHEAT_HELP_MM1
+  This command marks the entry into the memory operation mode. All commands in
+.
+:CHEAT_HELP_MM2
+ this mode start with `M`. This mode allows direct manipulation of memory 
+.
+:CHEAT_HELP_MM3
+content. he typical use case for this mode is when a game likely stores 
+.
+:CHEAT_HELP_MM4
+important numerical values clustered together. After you have identified a 
+.
+:CHEAT_HELP_MM5
+specific target, you can set the Data View to display the memory content of 
+.
+:CHEAT_HELP_MM6
+that block. Upon inspection, you might discover that nearby memory locations 
+.
+:CHEAT_HELP_MM7
+contain other targets you are seeking. At this point, you can use a series of 
+.
+:CHEAT_HELP_MM8
+commands in the memory operation mode to test the results. Once confirmed, you
+.
+:CHEAT_HELP_MM9
+ can directly add the results to the formal record area. The purpose of this 
+.
+:CHEAT_HELP_MM10
+specific command is to set the base data size for the memory mode. Examples:
+.
+:CHEAT_HELP_MM11
+    MM 1
+.
+:CHEAT_HELP_MM12
+    MM BYTE
+.
+:CHEAT_HELP_MM13
+The above sets the memory mode to BYTE.
+.
+:CHEAT_HELP_MM14
+    MM 2
+.
+:CHEAT_HELP_MM15
+    MM WORD
+.
+:CHEAT_HELP_MM16
+The above sets the memory mode to WORD.
+.
+:CHEAT_HELP_MM17
+    MM 4
+.
+:CHEAT_HELP_MM18
+    MM DWORD
+.
+:CHEAT_HELP_MM19
+The above sets the memory mode to DWORD.
+.

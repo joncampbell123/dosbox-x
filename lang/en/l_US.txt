@@ -1,0 +1,18 @@
+  To check the value stored at a specific address, you can use this command. In many games, related attributes of a character are often stored in nearby memory locations. When you have confirmed the memory address of one attribute, it's recommended to use the `D` or `DV` command to modify the Data View window to display the data of the specified memory block. Look around that address; you might find the memory addresses of other attributes. Since the Data View displays data in hexadecimal, using this command allows you to view the value at that address in decimal.
+Here is part of the content displayed in the Data View after I used the command `D 0XEB00`:
+    9117:0000EB00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 A0 86
+    9117:0000EB10 01 00 A0 86 01 00 00 00 00 00 00 00 00 00 64 00
+    9117:0000EB20 00 00 00 00 00 00 00 00 00 00 00 00 01 00 64 00
+    9117:0000EB30 00 00 00 00 00 00 00 00 00 00 00 00 9A 01 19 00
+    9117:0000EB40 23 00 1E 00 2D 00 3C 00 CD 01 01 03 00 00 0A 00
+The `9117:0000EB10` on the second line represents `Segment:Offset`. The first value in that line is `0x01` in hexadecimal. The offset address here is `0xEB10`. Moving one cell to the right is `0xEB11`, and so on. The last address in this line is `0xEB1F`. Each line occupies 16 bytes. Please note the four bytes `0xA0`, `0x86`, `0x01`, `0x00` at the end of the first line. The starting address of this line is `0xEB00`, so the address of `0xA0` is `0xEB0E`.
+When I use:
+    L 0xEB0E BYTE
+It means I want to interpret the value at this address in BYTE mode. You will see the Output list:
+    Memory EB0E value is 160    # Hexadecimal is 0xA0
+Using `L 0xEB0E WORD` will show:
+    Memory EB0E value is 34464  # Hexadecimal is 0x86A0
+Using `L 0xEB0E DWORD` will show:
+    Memory EB0E value is 100000 # Hexadecimal is 0x000186A0
+Note 1: This explanation is based on the game I am running. The game you are running is different, so you will absolutely not see the same results.
+Note 2: When using the command `L 0xEB0E` without specifying a mode, the system will use the mode set by the `SM` command as the default.

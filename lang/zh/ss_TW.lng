@@ -1,0 +1,72 @@
+:CHEAT_HELP_SS1
+  這個指令只適用於
+.
+:CHEAT_HELP_SS2
+    1. 使用SNAP指令進入Snap模式
+.
+:CHEAT_HELP_SS3
+    2. 至少使用SU或SD指令搜尋過一次
+.
+:CHEAT_HELP_SS4
+搜尋過後且知道目前正確數值時, 可使用這個指令搜尋, 假設遊戲剛開始某道具數量為1 
+.
+:CHEAT_HELP_SS5
+, 搜尋指令順序如下
+.
+:CHEAT_HELP_SS6
+    SM   WORD
+.
+:CHEAT_HELP_SS7
+    SEG  0x9117
+.
+:CHEAT_HELP_SS8
+    SNAP 
+.
+:CHEAT_HELP_SS9
+此時按[F5]進入遊戲用掉該道具再進入debug 模式
+.
+:CHEAT_HELP_SS10
+    SD 1
+.
+:CHEAT_HELP_SS11
+道具數量比之前少1 , 所以使用SD 1搜尋, 搜尋到數十筆資料, 由於道具數量目前為0 , 
+.
+:CHEAT_HELP_SS12
+所以再使用以下指令搜尋
+.
+:CHEAT_HELP_SS13
+    SS 0
+.
+:CHEAT_HELP_SS14
+搜尋之後只剩以下兩筆
+.
+:CHEAT_HELP_SS15
+1 : 53302 <==> 0xD036, value = 0
+.
+:CHEAT_HELP_SS16
+2 : 57340 <==> 0xDFFC, value = 0
+.
+:CHEAT_HELP_SS17
+此時可以使用嘗試錯誤法使用指令
+.
+:CHEAT_HELP_SS18
+  TW 9 1
+.
+:CHEAT_HELP_SS19
+將數值9 寫入暫存區1 , 按[F5]進入遊戲發現該道具數量已變成9, 再使用
+.
+:CHEAT_HELP_SS20
+  TD 2
+.
+:CHEAT_HELP_SS21
+刪掉暫存區第二筆資料, 再使用
+.
+:CHEAT_HELP_SS22
+  A    道具名稱
+.
+:CHEAT_HELP_SS23
+  SAVE
+.
+:CHEAT_HELP_SS24
+將搜尋結果存檔
+.

@@ -1,0 +1,21 @@
+:CHEAT_HELP_CVT1
+  This command allows users to perform decimal <=> hexadecimal conversion. 
+.
+:CHEAT_HELP_CVT2
+Inputting a decimal number will output its hexadecimal equivalent, and 
+.
+:CHEAT_HELP_CVT3
+inputting a hexadecimal number will output its decimal equivalent. Example:
+.
+:CHEAT_HELP_CVT4
+    CVT 100     #Outputs 0x64
+.
+:CHEAT_HELP_CVT5
+    CVT 10000   #Outputs 0x2710
+.
+:CHEAT_HELP_CVT6
+    CVT 100000  #Outputs 0x000186A0
+.
+:CHEAT_HELP_CVT7
+    CVT 0xABC   #Outputs 2748
+.

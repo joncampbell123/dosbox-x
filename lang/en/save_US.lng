@@ -1,0 +1,21 @@
+:CHEAT_HELP_SAVE1
+  Save the data from the formal record area into the project file. The data is
+.
+:CHEAT_HELP_SAVE2
+ stored in the "cheat/[project name]" folder, and the filename is "[project 
+.
+:CHEAT_HELP_SAVE3
+name].prj". Example:
+.
+:CHEAT_HELP_SAVE4
+    SAVE
+.
+:CHEAT_HELP_SAVE5
+When you use the "cheat [project name]" command in debug mode to enter cheat 
+.
+:CHEAT_HELP_SAVE6
+mode, it will automatically load the previously saved records and display the 
+.
+:CHEAT_HELP_SAVE7
+number of records loaded in the output area.
+.
