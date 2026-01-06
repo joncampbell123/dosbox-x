@@ -416,6 +416,13 @@ VideoModeBlock ModeList_VGA[]={
 { 0x26B  ,M_PACKED4,1920,1080,240,67 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1188,240 ,1080,_HIGH_DEFINITION, 0},
 { 0x356  ,M_PACKED4,1920,1440,240,90 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1584,240 ,1440,_HIGH_DEFINITION, 0},
 
+// dosbox IG 1bpp monochrome modes. 640x480 is already provided by MCGA 640x480 mode
+{ 0x400  ,M_CGA2   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 ,0, 0},
+{ 0x401  ,M_CGA2   ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0, 0},
+{ 0x402  ,M_CGA2   ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0, 0},
+{ 0x403  ,M_CGA2   ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0, 0},
+{ 0x404  ,M_CGA2   ,1280,1024,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1066,160,1024,0, 0},
+
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 , 0},
 };
 
@@ -1904,6 +1911,8 @@ bool INT10_SetVideoMode(uint16_t mode) {
 	/* Mode Control */
 	uint8_t mode_control=0;
 
+	bool dosboxIGsvga = (svgaCard == SVGA_DOSBoxIG) && CurMode->mode >= 0x100;
+
 	switch (CurMode->type) {
 		case M_DCGA:
 			mode_control=0xc4;
@@ -2009,41 +2018,44 @@ bool INT10_SetVideoMode(uint16_t mode) {
 			gfx_data[0x6]|=mono_mode ? 0x0a : 0x0e;		//Either b800 or b000, chain odd/even enable
 			break;
 		case M_LIN8:
-	case M_LIN15:
-	case M_LIN16:
-	case M_LIN24:
-	case M_LIN32:
-	case M_PACKED4:
-		gfx_data[0x5] |= 0x40;		//256 color mode
-		if (int10_vesa_map_as_128kb)
-			gfx_data[0x6] |= 0x01;	//graphics mode at 0xa000-bffff
-		else
-			gfx_data[0x6] |= 0x05;	//graphics mode at 0xa000-affff
-		break;
-	case M_VGA:
-		gfx_data[0x5]|=0x40;		//256 color mode
-		gfx_data[0x6]|=0x05;		//graphics mode at 0xa000-affff
-		break;
-	case M_LIN4:
-	case M_EGA:
-		if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350 && CurMode->type == M_EGA) {
-			gfx_data[0x5]|=0x10;		//Odd-Even Mode
-			gfx_data[0x6]|=0x02;		//Odd-Even Mode
-			gfx_data[0x7]=0xF;			/* Color don't care */
-		}
-		gfx_data[0x6]|=0x05;		//graphics mode at 0xa000-affff
-		break;
-	case M_CGA4:
-		gfx_data[0x5]|=0x20;		//CGA mode
-		gfx_data[0x6]|=0x0f;		//graphics mode at 0xb800=0xbfff
-		if (IS_EGAVGA_ARCH) gfx_data[0x5]|=0x10;
-		break;
-	case M_DCGA:
-	case M_CGA2:
-		gfx_data[0x6]|=0x0d;		//graphics mode at 0xb800=0xbfff, chain odd/even disabled
-		break;
-	default:
-		break;
+		case M_LIN15:
+		case M_LIN16:
+		case M_LIN24:
+		case M_LIN32:
+		case M_PACKED4:
+			gfx_data[0x5] |= 0x40;		//256 color mode
+			if (int10_vesa_map_as_128kb)
+				gfx_data[0x6] |= 0x01;	//graphics mode at 0xa000-bffff
+			else
+				gfx_data[0x6] |= 0x05;	//graphics mode at 0xa000-affff
+			break;
+		case M_VGA:
+			gfx_data[0x5]|=0x40;		//256 color mode
+			gfx_data[0x6]|=0x05;		//graphics mode at 0xa000-affff
+			break;
+		case M_LIN4:
+		case M_EGA:
+			if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350 && CurMode->type == M_EGA) {
+				gfx_data[0x5]|=0x10;		//Odd-Even Mode
+				gfx_data[0x6]|=0x02;		//Odd-Even Mode
+				gfx_data[0x7]=0xF;			/* Color don't care */
+			}
+			gfx_data[0x6]|=0x05;		//graphics mode at 0xa000-affff
+			break;
+		case M_CGA4:
+			gfx_data[0x5]|=0x20;		//CGA mode
+			gfx_data[0x6]|=0x0f;		//graphics mode at 0xb800=0xbfff
+			if (IS_EGAVGA_ARCH) gfx_data[0x5]|=0x10;
+			break;
+		case M_DCGA:
+		case M_CGA2:
+			if (dosboxIGsvga)
+				gfx_data[0x6]|=0x05;		//graphics mode at 0xa000-affff
+			else
+				gfx_data[0x6]|=0x0d;		//graphics mode at 0xb800=0xbfff, chain odd/even disabled
+			break;
+		default:
+			break;
 	}
 
 	if (vptable) {
@@ -2190,6 +2202,11 @@ att_text16:
 			att_data[i] = phys_readb(vptp+0x23+i); /* contents of attribute controller regs 0-13h */
 	}
 
+	if (dosboxIGsvga && CurMode->type == M_CGA2) {
+		for (uint8_t ct=0;ct<10;ct++)
+			att_data[ct] = (ct & 1) ? 1 : 0;
+	}
+
 	if ((modeset_ctl & 8)==0) {
 		for (uint8_t ct=0;ct<ATT_REGS;ct++) {
 			IO_Write(0x3c0,ct);
@@ -2241,6 +2258,14 @@ att_text16:
 					break;
 				}
 			case M_CGA2:
+				if (dosboxIGsvga) {
+					for (i=0;i<64;i++) {
+						IO_Write(0x3c9,i&1?63:0);
+						IO_Write(0x3c9,i&1?63:0);
+						IO_Write(0x3c9,i&1?63:0);
+					}
+					break;
+				}
 				if(IS_J3100) {
 					uint8_t r, g, b;
 					J3_GetPalette(0, r, g, b);

@@ -312,6 +312,20 @@ foundit:
 			if (!int10.vesa_nolfb && !int10.vesa_oldvbe) modeAttributes |= 0x80;	// linear framebuffer
 			if (mblock->special & _REQUIRE_LFB) modeAttributes |= 0x40; // windowed memory mode NOT available
 			break;
+		case M_CGA2:
+			if (svgaCard != SVGA_DOSBoxIG) return VESA_FAIL;
+			if (!allow_vesa_4bpp) return VESA_FAIL;//TODO
+			if (mblock->special & _REQUIRE_LFB) return VESA_FAIL; /* um, no */
+			pageSize = mblock->sheight * (uint16_t)(((cwidth+15U)/8U)&(~1U));
+			adj = hack_lfb_xadjust / 8;
+			var_write(&minfo.BytesPerScanLine,(uint16_t)(((cwidth+15U)/8U)&(~1U))); /* NTS: 4bpp requires even value due to VGA registers, round up */
+			if (!int10.vesa_oldvbe10) { /* optional in VBE 1.0 */
+				var_write(&minfo.NumberOfPlanes,0x1);
+				var_write(&minfo.BitsPerPixel,1);   // bits per pixel
+				var_write(&minfo.MemoryModel,4);	//packed pixel
+			}
+			modeAttributes = 0x1b;	// Color, graphics
+			break;
 		case M_LIN4:
 			if (!allow_vesa_4bpp) return VESA_FAIL;
 			if (mblock->special & _REQUIRE_LFB) return VESA_FAIL; /* um, no */
@@ -660,6 +674,10 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 				vmemsize /= 4u; /* because planar VGA */
 				max_offset /= 4u;
 				break;
+			case M_CGA2:
+				bytes_per_offset = 1;
+				pixels_per_offset = 8;
+				break;
 			case M_PACKED4:
 				bytes_per_offset = 1;
 				pixels_per_offset = 2;
@@ -840,6 +858,7 @@ uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait) {
 		switch (CurMode->type) {
 			case M_LIN4:
 			case M_EGA:
+			case M_CGA2:
 				offset += x >> 3u;
 				hpel = x & 7u;
 				break;
@@ -882,6 +901,7 @@ uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait) {
 	switch (CurMode->type) {
 	case M_TEXT:
 	case M_LIN4:
+	case M_CGA2:
 	case M_PACKED4:
 		pixels_per_offset = 16;
 		break;
@@ -945,6 +965,7 @@ uint8_t VESA_GetDisplayStart(uint16_t & x,uint16_t & y) {
 
 		switch (CurMode->type) {
 			case M_LIN4:
+			case M_CGA2:
 			case M_EGA:
 				x *= 8u;
 				x += vga.dosboxig.hpel & 7u;
@@ -1122,6 +1143,10 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
         else if (ModeList_VGA[i].special & _DO_NOT_LIST) {
             /* ignore */
         }
+        /* only DOSBox IG supports 1bpp modes */
+        else if (ModeList_VGA[i].type == M_CGA2 && svgaCard != SVGA_DOSBoxIG) {
+            /* ignore */
+        }
         else {
             /* If there is no "accepts mode" then accept.
              *
@@ -1162,6 +1187,7 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
                         case M_LIN15:	canuse_mode=allow_vesa_15bpp && allow_res; break;
                         case M_LIN8:	canuse_mode=allow_vesa_8bpp && allow_res; break;
                         case M_LIN4:	canuse_mode=allow_vesa_4bpp && allow_res; break;
+                        case M_CGA2:	canuse_mode=allow_vesa_4bpp && allow_res; break;//TODO
                         case M_PACKED4:	canuse_mode=(allow_vesa_4bpp_packed || allow_s3_packed4) && allow_res; break;
                         case M_TEXT:	canuse_mode=allow_vesa_tty && allow_res; break;
                         default:	break;
@@ -1182,7 +1208,6 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
             if (canuse_mode && vesa_mode_height_cap > 0 && (unsigned int)ModeList_VGA[i].sheight > (unsigned int)vesa_mode_height_cap)
                 canuse_mode = false;
         }
-
         if (ModeList_VGA[i].mode>=0x100 && canuse_mode) {
             if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
                 phys_writew(PhysMake((uint16_t)0xc000,(uint16_t)mode_wptr),(uint16_t)ModeList_VGA[i].mode);
