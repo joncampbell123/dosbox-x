@@ -1862,6 +1862,7 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	switch (CurMode->type) {
 		case M_CGA2:
 			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_1BPP;
+			fmtc |= (uint16_t)(((cwidth+15U)/8U)&(~1U)); // must match code in VESA BIOS emulation
 			break;
 		case M_LIN4:
 		case M_EGA:

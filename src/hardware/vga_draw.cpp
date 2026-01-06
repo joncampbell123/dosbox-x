@@ -348,11 +348,26 @@ static uint8_t * VGA_Draw_DOSBOXIG_None(Bitu vidstart, Bitu line) { // renders t
 }
 
 static uint8_t * VGA_Draw_DOSBOXIG_1bpp(Bitu vidstart, Bitu line) { // renders to 8bpp
-	(void)vidstart;
+	unsigned int xmax = vga.draw.width + (vga.draw.panning & 7u);
+	uint32_t *temp = (uint32_t*)TempLine;
+	unsigned char t;
+	unsigned int x;
+
 	(void)line;
 
-	memset(TempLine,0,vga.draw.width);
-	return TempLine;
+	for (x=0;x < xmax;x += 8,vidstart++) {
+		t = vga.mem.linear[vidstart & vga.draw.linear_mask];
+		temp[x+7] = vga.dac.xlat32[t&1u]; t >>= 1u;
+		temp[x+6] = vga.dac.xlat32[t&1u]; t >>= 1u;
+		temp[x+5] = vga.dac.xlat32[t&1u]; t >>= 1u;
+		temp[x+4] = vga.dac.xlat32[t&1u]; t >>= 1u;
+		temp[x+3] = vga.dac.xlat32[t&1u]; t >>= 1u;
+		temp[x+2] = vga.dac.xlat32[t&1u]; t >>= 1u;
+		temp[x+1] = vga.dac.xlat32[t&1u]; t >>= 1u;
+		temp[x+0] = vga.dac.xlat32[t&1u];
+	}
+
+	return (uint8_t*)(temp+(vga.draw.panning & 7u));
 }
 
 static uint8_t * VGA_Draw_DOSBOXIG_4bpp(Bitu vidstart, Bitu line) { // renders to 32bpp
@@ -7639,6 +7654,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		else {
 			switch (vga.mode) {
 				case M_CGA2: // this is used for 1bpp
+					bpp = 32;
 					VGA_DrawLine = VGA_Draw_DOSBOXIG_1bpp;
 					break;
 				case M_PACKED4:
