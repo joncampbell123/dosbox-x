@@ -2761,6 +2761,11 @@ void VGA_SetupHandlers(void) {
 			newHandler = vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map;
 			break;
 	}
+
+	if (vga.dosboxig.svga && vga.mode == M_CGA2) {
+		newHandler = vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map;
+	}
+
 	// Workaround for ETen Chinese DOS system (e.g. ET24VA)
 	if ((dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
 	runeten = !vga_fill_inactive_ram && enveten && (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || !TTF_using());
