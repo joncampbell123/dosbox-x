@@ -4944,13 +4944,10 @@ void VGA_sof_debug_video_info(void) {
 		if (vga.dosboxig.svga) {
 			/* do not change */
 		}
-		else if (machine == MCH_CGA || machine == MCH_TANDY || machine == MCH_PCJR || machine == MCH_HERC || machine == MCH_AMSTRAD) {
-			if (rowdiv == 2 || rowdiv == 4) rowdiv = 1; /* CGA graphics use interleaving to accomplish 200 lines, Tandy and Hercules use 4-way interleaving in some modes */
-		}
-		else if (machine == MCH_EGA || machine == MCH_VGA) {
+		else if (machine == MCH_CGA || machine == MCH_TANDY || machine == MCH_PCJR || machine == MCH_HERC || machine == MCH_AMSTRAD || machine == MCH_EGA || machine == MCH_VGA) {
 			/* EGA/VGA have bits set to display video memory 2-way interleave like CGA and even 4-way interleave like Hercules */
-			if (vga.tandy.line_mask & 2) interleave_mul = 4;
-			else if (vga.tandy.line_mask & 1) interleave_mul = 2;
+			if ((vga.tandy.line_mask & 2) && rowdiv > 2) interleave_mul = 4;
+			else if ((vga.tandy.line_mask & 1) && rowdiv > 1) interleave_mul = 2;
 		}
 
 		/* render_max == 2 and address_line_total == 2 can happen if the user disabled doublescan mode */
