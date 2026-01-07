@@ -68,8 +68,8 @@ VESA BIOS:
 - Add dosbox.conf option to control whether pmode option waits for vsync. A pmode analog of "vesa set display vsync". If -1 it does not vsync.
 - INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
 - VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
-- Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
 [DONE]
+- Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
 - Add machine=vesa_vbe3 (S3 emulation), enable VBE 3.0 emulation if machine=vesa_vbe3.
 - For machine=svga_dosbox (DOSBox Integrated Graphics) add boolean to enable VBE 3.0 extensions, and then implement them if set. machine=svga_dosbox should emulate VBE 3.0. machine=svga_dosbox_vbe2 should emulate VBE 2.0.
 - S3: If there is enough video memory that more than 128 banks are possible, set the require-lfb flag on any mode for which more than 128 banks are required to interact with the visible page of the mode. Require the linear framebuffer to use it.
