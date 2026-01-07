@@ -926,6 +926,10 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = vga.mem.memsize;
 			break;
 
+		case DOSBOX_ID_REG_VGAIG_VRAMLFBBASE:
+			dosbox_int_register = S3_LFB_BASE;
+			break;
+
 		default:
 			dosbox_int_register = 0xAA55AA55;
 			dosbox_int_error = true;
