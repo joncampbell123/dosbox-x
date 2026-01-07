@@ -131,6 +131,8 @@ private:
 	static const uint16_t device=0x6845;		// VGA device
 public:
 	PCI_DOSBoxIGVGADevice():PCI_Device(vendor,device) {
+		Bitu vmmask = bitop::rounduppow2mask(vga.mem.memsize - 1u); // vga.mem.memmask is not yet initialized here
+
 		config[0x08] = 0x00;	// revision ID
 
 		config[0x09] = 0x00;	// interface
@@ -149,7 +151,7 @@ public:
 		config[0x07] = 0x02;
 
 		host_writew(config_writemask+0x04,0x0023);	/* allow changing mem/io enable and VGA palette snoop */
-		host_writed(config_writemask+0x10,0xF8000000);	/* BAR0: memory resource 128MB aligned [26:0 reserved] */
+		host_writed(config_writemask+0x10,(uint32_t)(~vmmask));	/* BAR0: memory resource aligned to vmemsize */
 		host_writed(config+0x10,(((uint32_t)S3_LFB_BASE)&0xfffffff0) | 0x8);
 	}
 };
