@@ -2762,7 +2762,7 @@ void VGA_SetupHandlers(void) {
 			break;
 	}
 
-	if (vga.dosboxig.svga && vga.mode == M_CGA2) {
+	if (vga.dosboxig.svga && !(vga.mode == M_EGA || vga.mode == M_LIN4)/*non-planar modes only*/) {
 		newHandler = vga_memio_lfb_delay ? &vgaph.map_slow : &vgaph.map;
 	}
 
