@@ -145,7 +145,7 @@ void VGA_DAC_UpdateColor( Bitu index ) {
 
     if (IS_VGA_ARCH) {
         if (vga.dosboxig.svga) {
-            if (vga.mode == M_EGA || vga.mode == M_LIN4)
+            if ((vga.mode == M_EGA || vga.mode == M_LIN4) && !vga.dosboxig.vga_acpal_bypass)
                 maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
             else
                 maskIndex = index;

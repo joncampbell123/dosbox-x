@@ -1164,6 +1164,7 @@ void dosbox_integration_trigger_write() {
 				if (vga.dosboxig.override_refresh != pv) modechange = true;
 
 				vga.dosboxig.vga_reg_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT);
+				vga.dosboxig.vga_acpal_bypass = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_ACPAL_BYPASS);
 				vga.dosboxig.vga_3da_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_3DA_LOCKOUT);
 				vga.dosboxig.vga_dac_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_DAC_LOCKOUT);
 

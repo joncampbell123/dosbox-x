@@ -1858,7 +1858,7 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	htadd *= 8u;
 	vga.config.line_compare=0x7FFu;
 	vga.config.compatible_chain4 = false; /* or else bank switching support does not work properly */
-	ctl = DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE|DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT;
+	ctl = DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE|DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT|DOSBOX_ID_REG_VGAIG_CTL_ACPAL_BYPASS;
 	switch (CurMode->type) {
 		case M_CGA2:
 			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_1BPP;
@@ -1868,7 +1868,11 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 		case M_EGA:
 			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_1BPP4PLANE;
 			fmtc |= (uint16_t)(((cwidth+15U)/8U)&(~1U)); // must match code in VESA BIOS emulation
-			ctl &= ~DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT; // VGA registers are REQUIRED in order to use planar modes properly
+
+			// VGA registers are REQUIRED in order to use planar modes properly.
+			// DOS games expect the 16-color planar VBE modes to remap colors through the AC palette
+			// such that colors 0-15 become colors 0x00-0x07 and 0x38-0x3F, same as EGA/VGA 16-color and EGA/VGA text mode.
+			ctl &= ~(DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT|DOSBOX_ID_REG_VGAIG_CTL_ACPAL_BYPASS);
 			break;
 		case M_PACKED4:
 			fmtc |= DOSBOX_ID_REG_VGAIG_FMT_4BPP;
