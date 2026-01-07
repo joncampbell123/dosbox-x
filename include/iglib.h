@@ -85,6 +85,7 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 # define DOSBOX_ID_REG_VGAIG_CTL_DAC_LOCKOUT            (1UL << 3UL)    /* lock out access to DAC registers */
 # define DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE_REFRESH       (1UL << 4UL)    /* override refresh rate */
 # define DOSBOX_ID_REG_VGAIG_CTL_ACPAL_BYPASS           (1UL << 5UL)    /* for 16-color planar modes, bypass the attribute controller palette mapping */
+# define DOSBOX_ID_REG_VGAIG_CTL_VBEMODESET_DISABLE     (1uL << 6UL)    /* disable VESA BIOS modesetting, intended for the Windows driver */
 #define DOSBOX_ID_REG_VGAIG_DISPLAYSIZE                 (0x00684591UL)  /* integrated device width/height (16:16 = HEIGHT:WIDTH) */
 #define DOSBOX_ID_REG_VGAIG_HVTOTALADD                  (0x00684592UL)  /* integrated device add to width/height to get htotal/vtotal = (16:16 V:H) */
 #define DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE        (0x00684593UL)  /* integrated device fmt/bytes per scanline (16:16 FMT:BYTESPERSCANLINE) */
