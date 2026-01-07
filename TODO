@@ -1,7 +1,9 @@
 Render on Demand:
+[DONE]
 - XARGON: Causes extra long pause going from initial title screen to main menu.
   Apparently for some reason, the Idle callback takes 100x as much emulator time
-  when Render On Demand is enabled.
+  when Render On Demand is enabled. Sometimes the Idle callback takes a full
+  1ms timer tick. Yikes.
 
 Render on Demand + Wait for Changes:
 [DONE]
