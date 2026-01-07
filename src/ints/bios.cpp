@@ -1176,6 +1176,7 @@ void dosbox_integration_trigger_write() {
 				vga.dosboxig.override_refresh = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE_REFRESH);
 				if (vga.dosboxig.override_refresh != pv) modechange = true;
 
+				vga.dosboxig.vesa_bios_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_VBEMODESET_DISABLE);
 				vga.dosboxig.vga_reg_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT);
 				vga.dosboxig.vga_acpal_bypass = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_ACPAL_BYPASS);
 				vga.dosboxig.vga_3da_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_3DA_LOCKOUT);

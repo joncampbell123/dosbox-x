@@ -556,6 +556,7 @@ uint8_t VESA_SetSVGAMode(uint16_t mode) {
 		int10.vesa_setmode=mode&0x7fff;
 		return VESA_SUCCESS;
 	}
+
 	return VESA_FAIL;
 }
 
