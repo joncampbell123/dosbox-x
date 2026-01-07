@@ -5,6 +5,7 @@
  */
 
 #ifdef WIN32
+#if defined(_MSC_VER) || defined(__MINGW64__)
 
 #include "mic_input_win32.h"
 #include "logging.h"
@@ -792,4 +793,5 @@ uint8_t MIC_GetDirectADCSample() {
     return directADCBuffer[timeSample % DIRECT_ADC_BUFFER_SIZE];
 }
 
+#endif //defined(_MSC_VER) || defined(__MINGW64__)
 #endif // WIN32

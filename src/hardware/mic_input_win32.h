@@ -11,6 +11,7 @@
 #define DOSBOX_MIC_INPUT_WIN32_H
 
 #ifdef WIN32
+#if !defined(HX_DOS)
 
 // Prevent Windows min/max macros from conflicting with std::min/std::max
 #ifndef NOMINMAX
@@ -171,5 +172,6 @@ void MIC_GenerateInput(uint8_t* buffer, size_t bytes,
 // Used by Creative Parrot and other programs that poll for samples
 uint8_t MIC_GetDirectADCSample();
 
+#endif // !defined(HX_DOS)
 #endif // WIN32
 #endif // DOSBOX_MIC_INPUT_WIN32_H
