@@ -1939,7 +1939,8 @@ void FinishSetMode_DOSBoxIG(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	dosbox_int_pop_save_state();
 
 	/* INT 10h at this point still has the screen blanked, having not yet written bit 5 of the attr control index.
-	 * It won't be able to with our lockout in effect, do it now directly */
+	 * It won't be able to with our lockout in effect, do it now directly.
+	 * 2026/01/07: We could leave it in the blanking state, the VGA draw code ignores this bit in DOSBox IG SVGA mode now, but, we won't */
 	vga.attr.disabled = 0;
 
 	LOG(LOG_MISC,LOG_DEBUG)("DOSBox Integration Device is active");
