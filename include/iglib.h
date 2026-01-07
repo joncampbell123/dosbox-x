@@ -109,6 +109,7 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 #define DOSBOX_ID_REG_VGAIG_CAPS                        (0x00684599UL)  /* read-only capabilities, 0 if machine type is not DOSBox IG */
 # define DOSBOX_ID_REG_VGA1G_CAPS_ENABLED               (1UL << 0UL)    /* DOSBox IG is enabled (machine=svga_dosbox) */
 #define DOSBOX_ID_REG_VGAIG_VRAMSIZE                    (0x0068459AUL)  /* total video memory, vmemsize */
+#define DOSBOX_ID_REG_VGAIG_VRAMLFBBASE                 (0x0068459BUL)  /* LFB base */
 #define DOSBOX_ID_REG_GET_VGA_SIZE                      (0x006845C0UL)  /* size of the VGA screen */
 #define DOSBOX_ID_REG_GET_WINDOW_SIZE                   (0x006845FFUL)  /* size of the emulator window (to give USER_MOUSE_CURSOR meaning) */
 
