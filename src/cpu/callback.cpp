@@ -110,8 +110,8 @@ void CALLBACK_DeAllocate(Bitu in) {
 
 void CALLBACK_Idle(void) {
 #if C_EMSCRIPTEN
-    void GFX_Events();
-    GFX_Events();
+	void GFX_Events();
+	GFX_Events();
 #endif
 
 /* this makes the cpu execute instructions to handle irq's and then come back */
@@ -121,33 +121,41 @@ void CALLBACK_Idle(void) {
 	uint32_t oldeip=reg_eip;
 	SegSet16(cs,CB_SEG);
 	reg_eip=CB_SOFFSET+call_idle*CB_SIZE;
+	CPU_CycleLeft += CPU_Cycles - 1; /* Ahem: This makes the CPU execute instructions to handle IRQs and then come back. Nothing more. */
+	CPU_Cycles = 1;
 	DOSBOX_RunMachine();
 	reg_eip=oldeip;
 	SegSet16(cs,oldcs);
 	SETFLAGBIT(IF,oldIF);
-	if (!CPU_CycleAutoAdjust && CPU_Cycles>0)
-		CPU_Cycles=0;
+	if (!CPU_CycleAutoAdjust && CPU_Cycles>0) {
+		CPU_CycleLeft += CPU_Cycles;
+		CPU_Cycles = 0;
+	}
 }
 
 void CALLBACK_IdleNoInts(void) {
 #if C_EMSCRIPTEN
-    void GFX_Events();
-    GFX_Events();
+	void GFX_Events();
+	GFX_Events();
 #endif
 
-/* this makes the cpu execute instructions to handle irq's and then come back */
+	/* this makes the cpu execute instructions to handle irq's and then come back */
 //	Bitu oldIF=GETFLAG(IF);
 //	SETFLAGBIT(IF,true);
 	uint16_t oldcs=SegValue(cs);
 	uint32_t oldeip=reg_eip;
 	SegSet16(cs,CB_SEG);
 	reg_eip=CB_SOFFSET+call_idle*CB_SIZE;
+	CPU_CycleLeft += CPU_Cycles - 1; /* Ahem: This makes the CPU execute instructions to handle IRQs and then come back. Nothing more. */
+	CPU_Cycles = 1;
 	DOSBOX_RunMachine();
 	reg_eip=oldeip;
 	SegSet16(cs,oldcs);
 //	SETFLAGBIT(IF,oldIF);
-	if (!CPU_CycleAutoAdjust && CPU_Cycles>0)
-		CPU_Cycles=0;
+	if (!CPU_CycleAutoAdjust && CPU_Cycles>0) {
+		CPU_CycleLeft += CPU_Cycles;
+		CPU_Cycles = 0;
+	}
 }
 
 static Bitu default_handler(void) {

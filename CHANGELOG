@@ -1,4 +1,16 @@
 NEXT VERSION
+  - CPU Idle callback is now strictly limited to processing IRQs and one
+    CPU instruction, instead of however many CPU instructions can run
+    until the next scheduled emulator event. This fixes a bug where
+    system calls that use the Idle callback (INT 21h, etc) can sometimes
+    vary their delay time by emulator events, and if "scanline render on
+    demand is enabled", can cause the Idle call to take a full 1ms interval
+    of time. This fixes an issue where "scanline render on demand" caused
+    some DOS games like Xargon to take 5 to 10 times longer to transition
+    between title, main menu, gameplay, etc. (joncampbell123).
+  - Debugger LOGL command now includes the PIC_FullIndex() emulator time
+    in millseconds so that it can be used to determine time as well as
+    CPU state for debugging (joncampbell123).
   - Add dosbox.conf option to control whether VBE emulation provides the
     protected mode interface or not (joncampbell123).
   - Add dosbox.conf option vbememsize and vbememsizekb to control how much
