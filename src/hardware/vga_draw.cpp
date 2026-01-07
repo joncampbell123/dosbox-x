@@ -3787,7 +3787,7 @@ again:
         }
 
         VGA_DAC_DeferredUpdateColorPalette();
-        if (GCC_UNLIKELY(vga.attr.disabled)) {
+        if (GCC_UNLIKELY(vga.attr.disabled && !vga.dosboxig.svga)) {
             switch(machine) {
                 case MCH_PCJR:
                     // Displays the border color when screen is disabled
@@ -3983,7 +3983,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
         vga.draw.render_step = 0;
 
     if (!skiprender) {
-        if (GCC_UNLIKELY(vga.attr.disabled)) {
+        if (GCC_UNLIKELY(vga.attr.disabled && !vga.dosboxig.svga)) {
             memset(TempLine, 0, TempLineSize);
             RENDER_DrawLine(TempLine);
         } else {
