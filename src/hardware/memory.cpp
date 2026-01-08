@@ -55,6 +55,8 @@
 #include "../gamelink/gamelink.h"
 #endif // C_GAMELINK
 
+void RebootLanguage(std::string filename, bool confirm=false);
+
 /* memory from file, memory mapping */
 #if C_HAVE_MMAP
 # define DO_MEMORY_FILE
@@ -1426,9 +1428,6 @@ uint16_t CPU_Pop16(void);
 
 static bool cmos_reset_type_9_sarcastic_win31_comments=true;
 
-void CPU_SetResetSignal(int x);
-bool CPU_DynamicCoreCannotUseCPPExceptions(void);
-
 void On_Software_286_int15_block_move_return(unsigned char code) {
     uint16_t vec_seg,vec_off;
 
@@ -1467,10 +1466,8 @@ void On_Software_286_int15_block_move_return(unsigned char code) {
     CPU_IRET(false,0);
 
     /* force execution change (FIXME: Is there a better way to do this?) */
-    if (CPU_DynamicCoreCannotUseCPPExceptions())
-        CPU_SetResetSignal(4);
-    else
-        throw int(4);
+    throw int(4);
+    /* does not return */
 }
 
 void On_Software_286_reset_vector(unsigned char code) {
@@ -1510,10 +1507,8 @@ void On_Software_286_reset_vector(unsigned char code) {
     reg_eip = vec_off;
 
     /* force execution change (FIXME: Is there a better way to do this?) */
-    if (CPU_DynamicCoreCannotUseCPPExceptions())
-        CPU_SetResetSignal(4);
-    else
-        throw int(4);
+    throw int(4);
+    /* does not return */
 }
 
 void CPU_Exception_Level_Reset();
@@ -1591,10 +1586,7 @@ void On_Software_CPU_Reset() {
             LOG_MSG("PC-98 reset and continue: RETF to %04x:%04x",SegValue(cs),reg_ip);
 
             /* force execution change (FIXME: Is there a better way to do this?) */
-            if (CPU_DynamicCoreCannotUseCPPExceptions())
-                CPU_SetResetSignal(4);
-            else
-                throw int(4);
+            throw int(4);
             /* does not return */
         }
     }
@@ -1614,10 +1606,17 @@ void On_Software_CPU_Reset() {
         }
     }
 
-    if (CPU_DynamicCoreCannotUseCPPExceptions())
-        CPU_SetResetSignal(3);
-    else
-        throw int(3);
+#if C_DYNAMIC_X86
+    /* this technique is NOT reliable when running the dynamic core! */
+    if (cpudecoder == &CPU_Core_Dyn_X86_Run || cpudecoder == &CPU_Core_Dynrec_Run) {
+        LOG_MSG("Warning: C++ exception method is not compatible with dynamic core when emulating reset");
+        RebootLanguage("");
+        exit(0);
+    }
+#endif
+
+    throw int(3);
+    /* does not return */
 }
 
 /* Some PC-98 code uses this register to know if the 16MB "memory hole" is open,
@@ -1811,19 +1810,15 @@ HostPt GetMemBase(void) { return MemBase; }
 /*! \brief          REDOS.COM utility command on drive Z: to trigger restart of the DOS kernel
  */
 class REDOS : public Program {
-	public:
-		/*! \brief      Program entry point, when the command is run */
-		void Run(void) override {
-			if (cmd->FindExist("/?", false) || cmd->FindExist("-?", false)) {
-				WriteOut("Reboots the kernel of DOSBox-X's emulated DOS.\n\nRE-DOS\n");
-				return;
-			}
-
-			if (CPU_DynamicCoreCannotUseCPPExceptions())
-				CPU_SetResetSignal(6);
-			else
-				throw int(6);
+public:
+    /*! \brief      Program entry point, when the command is run */
+    void Run(void) override {
+		if (cmd->FindExist("/?", false) || cmd->FindExist("-?", false)) {
+			WriteOut("Reboots the kernel of DOSBox-X's emulated DOS.\n\nRE-DOS\n");
+			return;
 		}
+        throw int(6);
+    }
 };
 
 void REDOS_ProgramStart(Program * * make) {
