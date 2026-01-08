@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # 
 # Setup:
 #   git clone https://github.com/joncampbell123/dosbox-x dosbox-x-mingw
@@ -9,9 +9,9 @@
 # 
 #          MinGW and MinGW32 will have MSYSTEM=MINGW32
 #          MinGW64 will have MSYSTEM=MINGW64.
-if [[ "${MSYSTEM}" == "MINGW32" ]]; then
+if [ "${MSYSTEM}" = "MINGW32" ]; then
     cputype=win32
-elif [[ "${MSYSTEM}" == "MINGW64" ]]; then
+elif [ "${MSYSTEM}" = "MINGW64" ]; then
     cputype=win64
 else
     echo "MinGW32/MINGW64 (not MinGW) shell environment required"
@@ -59,7 +59,7 @@ cp src/dosbox-x.exe "$buildtarget/dosbox-x.exe" || exit 1
 cp CHANGELOG "$buildtarget/CHANGELOG.txt" || exit 1
 cp dosbox-x.reference.conf "$buildtarget/dosbox-x.reference.conf" || exit 1
 cp dosbox-x.reference.full.conf "$buildtarget/dosbox-x.reference.full.conf" || exit 1
-if [[ "${MSYSTEM}" == "MINGW32" ]]; then
+if [ "${MSYSTEM}" = "MINGW32" ]; then
     cp contrib/windows/installer/inpout32.dll "${buildtarget}/inpout32.dll" || exit 1
 else
     cp contrib/windows/installer/inpoutx64.dll "${buildtarget}/inpoutx64.dll" || exit 1

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Make a set of test PNG files, MAKEPNG is the name of the makepng executable
 # built from contrib/libtests/makepng.c

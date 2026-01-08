@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # Look for GCC-4.8
 x=$(which gcc-4.8 2>/dev/null)

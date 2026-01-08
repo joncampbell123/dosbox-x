@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/sh -eu
 
 # Copyright 2017-2018 Glenn Randers-Pehrson
 # Copyright 2016 Google Inc.

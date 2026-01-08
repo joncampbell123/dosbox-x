@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # 
 # Setup:
 #   git clone https://github.com/joncampbell123/dosbox-x dosbox-x

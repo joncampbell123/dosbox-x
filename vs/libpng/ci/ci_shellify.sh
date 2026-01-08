@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -o errexit -o pipefail -o posix
 
 # Copyright (c) 2019-2024 Cosmin Truta.
@@ -48,19 +48,20 @@ function ci_shellify {
         filename="$(basename -- "$arg")"
         case "$filename" in
         ( *.[ch] )
-            [[ $filename == png.h ]] || {
+            [ $filename = png.h ] || {
                 ci_err "unable to shellify: '$filename' (expecting: 'png.h')"
             }
             ci_shellify_c <"$arg" ;;
         ( config* | *.ac )
-            [[ $filename == configure.ac ]] || {
+            [ $filename = configure.ac ] || {
                 ci_err "unable to shellify: '$filename' (expecting: 'configure.ac')"
             }
             ci_shellify_autoconf <"$arg" ;;
         ( *CMake* | *cmake* | *.txt )
-            [[ $filename == [Cc][Mm]ake[Ll]ists.txt ]] || {
-                ci_err "unable to shellify: '$filename' (expecting: 'CMakeLists.txt')"
-            }
+            case $filename in
+                [Cc][Mm]ake[Ll]ists.txt) ;;
+                *) ci_err "unable to shellify: '$filename' (expecting: 'CMakeLists.txt')" ;;
+            esac
             ci_shellify_cmake <"$arg" ;;
         ( * )
             ci_err "unable to shellify: '$arg'" ;;
@@ -80,11 +81,11 @@ function main {
     while getopts ":" opt
     do
         # This ain't a while-loop. It only pretends to be.
-        [[ $1 == -[?h]* || $1 == --help || $1 == --help=* ]] && usage 0
+        case $1 in -[?h]*|--help|--help=*) usage 0;; esac
         ci_err "unknown option: '$1'"
     done
     shift $((OPTIND - 1))
-    [[ $# -eq 0 ]] && usage 2
+    [ $# -eq 0 ] && usage 2
     # And... go!
     ci_shellify "$@"
 }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This is a script used by some Buildbot build workers to push the project
 #  through Clang's static analyzer and prepare the output to be uploaded

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 doit() {
     git checkout master-win-ci || return 1

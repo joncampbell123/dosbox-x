@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/sh
 rm -Rfv linux-host || exit 1
 mkdir -p linux-host || exit 1
 
 rm -Rfv linux-build || exit 1
 mkdir -p linux-build || exit 1
 
-if [ "$1" == "hx-dos" ]; then
+if [ "$1" = "hx-dos" ]; then
     cp SDLnet.c SDLnet.c.default || exit 1
     chmod +w SDLnet.c || exit 1
     sed -b -e 's/^\(#elif defined(__WIN32__)\)/\1 \&\& 0/' SDLnet.c.default >SDLnet.c || exit 1
@@ -47,7 +47,7 @@ make -j3 || exit 1
 make install || exit 1  # will install into ./linux-host
 
 cd "$srcdir" || exit 1
-if [ "$1" == "hx-dos" ]; then
+if [ "$1" = "hx-dos" ]; then
     cp SDLnet.c.default SDLnet.c || exit 1
 fi
 
