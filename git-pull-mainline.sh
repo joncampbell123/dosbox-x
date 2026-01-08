@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 git remote add mainline svn://svn.code.sf.net/p/dosbox/code-0/dosbox/trunk
 git fetch mainline
 

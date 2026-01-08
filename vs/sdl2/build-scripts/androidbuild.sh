@@ -1,21 +1,24 @@
-#!/bin/bash
+#!/bin/sh
 
-SOURCES=()
+SOURCES=
 MKSOURCES=""
-CURDIR=`pwd -P`
+CURDIR=$(pwd -P)
 
 # Fetch sources
-if [[ $# -ge 2 ]]; then
-    for src in ${@:2}
+if [ $# -ge 2 ]; then
+    shift
+    for src
     do
-        SOURCES+=($src)
+        SOURCES=$SOURCES"
+$src"
         MKSOURCES="$MKSOURCES $(basename $src)"
     done
 else
     if [ -n "$1" ]; then
         while read src
         do
-            SOURCES+=($src)
+            SOURCES=$SOURCES"
+$src"
             MKSOURCES="$MKSOURCES $(basename $src)"
         done
     fi
@@ -41,7 +44,7 @@ if [ ! -d "$ANDROID_HOME/ndk-bundle" -a -z "$ANDROID_NDK_HOME" ]; then
 fi
 
 APP="$1"
-APPARR=(${APP//./ })
+APPARR=$(printf '%s\n' "$APP" | tr '.' ' ')
 BUILDPATH="$SDLPATH/build/$APP"
 
 # Start Building
@@ -62,19 +65,26 @@ else
 fi
 
 cp -r $SDLPATH/Android.mk $BUILDPATH/app/jni/SDL
-sed -i -e "s|YourSourceHere.c|$MKSOURCES|g" $BUILDPATH/app/jni/src/Android.mk
-sed -i -e "s|org\.libsdl\.app|$APP|g" $BUILDPATH/app/build.gradle
-sed -i -e "s|org\.libsdl\.app|$APP|g" $BUILDPATH/app/src/main/AndroidManifest.xml
+sed "s|YourSourceHere.c|$MKSOURCES|g" "$BUILDPATH/app/jni/src/Android.mk" >"$BUILDPATH/app/jni/src/Android.mk.tmp" &&
+    mv "$BUILDPATH/app/jni/src/Android.mk.tmp" "$BUILDPATH/app/jni/src/Android.mk"
+
+sed "s|org\.libsdl\.app|$APP|g" "$BUILDPATH/app/build.gradle" >"$BUILDPATH/app/build.gradle.tmp" &&
+    mv "$BUILDPATH/app/build.gradle.tmp" "$BUILDPATH/app/build.gradle"
+
+sed "s|org\.libsdl\.app|$APP|g" "$BUILDPATH/app/src/main/AndroidManifest.xml" >"$BUILDPATH/app/src/main/AndroidManifest.xml.tmp" &&
+    mv "$BUILDPATH/app/src/main/AndroidManifest.xml.tmp" "$BUILDPATH/app/src/main/AndroidManifest.xml"
 
 # Copy user sources
-for src in "${SOURCES[@]}"
+printf '%s\n' "$SOURCES" | while IFS= read -r src
 do
     cp $src $BUILDPATH/app/jni/src
 done
 
 # Create an inherited Activity
 cd $BUILDPATH/app/src/main/java
-for folder in "${APPARR[@]}"
+set -- $APPARR
+
+for folder
 do
     mkdir -p $folder
     cd $folder
@@ -82,7 +92,9 @@ done
 
 # Uppercase the first char in the activity class name because it's Java
 ACTIVITY="$(echo $folder | awk '{$1=toupper(substr($1,0,1))substr($1,2)}1')Activity"
-sed -i -e "s|\"SDLActivity\"|\"$ACTIVITY\"|g" $BUILDPATH/app/src/main/AndroidManifest.xml
+
+sed -e "s|org\.libsdl\.app|$APP|g" -e "s|\"SDLActivity\"|\"$ACTIVITY\"|g" "$BUILDPATH/app/src/main/AndroidManifest.xml" >"$BUILDPATH/app/src/main/AndroidManifest.xml.tmp" &&
+    mv "$BUILDPATH/app/src/main/AndroidManifest.xml.tmp" "$BUILDPATH/app/src/main/AndroidManifest.xml"
 
 # Fill in a default Activity
 cat >"$ACTIVITY.java" <<__EOF__

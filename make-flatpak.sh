@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-if [[ ! -x $(which flatpak-builder) ]]; then
+if [ ! -x $(which flatpak-builder) ]; then
 	echo "Please install flatpak-builder"
 	exit
 fi
 
-if [[ ! $(flatpak list|grep -c org.freedesktop.Sdk) -ge 1 ]]; then 
+if [ ! $(flatpak list|grep -c org.freedesktop.Sdk) -ge 1 ]; then 
 	echo "Please ensure the necessary SDK and matching runtime are installed by running:"
 	echo "flatpak install flathub org.freedesktop.Platform//22.08 org.freedesktop.Sdk//22.08"
 	exit

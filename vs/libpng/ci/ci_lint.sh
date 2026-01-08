@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -o errexit -o pipefail -o posix
 
 # Copyright (c) 2019-2024 Cosmin Truta.
@@ -45,7 +45,7 @@ function ci_init_lint {
 
 function ci_finish_lint {
     ci_info "## END OF LINTING ##"
-    if [[ $CI_LINT_STATUS -eq 0 ]]
+    if [ $CI_LINT_STATUS -eq 0 ]
     then
         ci_info "## SUCCESS ##"
     else
@@ -55,7 +55,7 @@ function ci_finish_lint {
 }
 
 function ci_lint_ci_scripts {
-    [[ -x $CI_SHELLCHECK ]] || {
+    [ -x $CI_SHELLCHECK ] || {
         ci_warn "## NOT LINTING: CI scripts ##"
         return 0
     }
@@ -74,7 +74,7 @@ function ci_lint_ci_scripts {
 }
 
 function ci_lint_text_files {
-    [[ -x $CI_EDITORCONFIG_CHECKER ]] || {
+    [ -x $CI_EDITORCONFIG_CHECKER ] || {
         ci_warn "## NOT LINTING: text files ##"
         return 0
     }
@@ -87,7 +87,7 @@ function ci_lint_text_files {
 }
 
 function ci_lint_yaml_files {
-    [[ -x $CI_YAMLLINT ]] || {
+    [ -x $CI_YAMLLINT ] || {
         ci_warn "## NOT LINTING: YAML files ##"
         return 0
     }
@@ -127,11 +127,11 @@ function main {
     while getopts ":" opt
     do
         # This ain't a while-loop. It only pretends to be.
-        [[ $1 == -[?h]* || $1 == --help || $1 == --help=* ]] && usage 0
+        case $1 in -[?h]*|--help|--help=*) usage 0;; esac
         ci_err "unknown option: '$1'"
     done
     shift $((OPTIND - 1))
-    [[ $# -eq 0 ]] || {
+    [ $# -eq 0 ] || {
         echo >&2 "error: unexpected argument: '$1'"
         usage 2
     }

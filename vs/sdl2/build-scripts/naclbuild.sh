@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 if [ -z "$1" ] && [ -z "$NACL_SDK_ROOT" ]; then
     echo "Usage: ./naclbuild ~/nacl/pepper_35"
     echo "This will build SDL for Native Client, and testgles2.c as a demo"
@@ -26,11 +26,11 @@ NCPUS="1"
 case "$OSTYPE" in
     darwin*)
         NCPU=`sysctl -n hw.ncpu`
-        ;; 
+        ;;
     linux*)
         if [ -n `which nproc` ]; then
             NCPUS=`nproc`
-        fi  
+        fi
         ;;
   *);;
 esac
