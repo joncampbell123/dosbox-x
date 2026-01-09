@@ -2769,67 +2769,76 @@ void VGA_SetupHandlers(void) {
 	// Workaround for ETen Chinese DOS system (e.g. ET24VA)
 	if ((dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
 	runeten = !vga_fill_inactive_ram && enveten && (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || !TTF_using());
-	switch ((vga.gfx.miscellaneous >> 2) & 3) {
-		case 0:
-			vgapages.base = VGA_PAGE_A0;
-			switch (svgaCard) {
-				case SVGA_TsengET3K:
-				case SVGA_TsengET4K:
-					vgapages.mask = 0x1ffff & vga.mem.memmask;
-					break;
-					/* NTS: Looking at the official ET4000 programming guide, it does in fact support the full 128KB */
-				case SVGA_S3Trio:
-				default:
-					vgapages.mask = 0xffff & vga.mem.memmask;
-					break;
-			}
-			if (CurMode && CurMode->mode >= 0x14/*VESA BIOS or extended mode*/ && (vbe_window_size < 0x10000/*64KB*/ || vbe_window_size_literal)) {
-				unsigned int pages = (vbe_window_size + 0xFFFu) >> 12u; /* bytes to pages, round up */
-				if (pages > 32) pages = 32;
-				assert(pages != 0u);
 
-				/* map only what the window size determines, make the rest empty */
-				MEM_SetPageHandler(VGA_PAGE_A0, pages, newHandler );
-				MEM_SetPageHandler(VGA_PAGE_A0 + pages, 32 - pages, &vgaph.empty );
-			}
-			else {
-				/*full 128KB */
-				MEM_SetPageHandler(VGA_PAGE_A0, 32, newHandler );
-			}
-			break;
-		case 1:
-			vgapages.base = VGA_PAGE_A0;
-			vgapages.mask = 0xffff & vga.mem.memmask;
-			MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
-			if (vga_fill_inactive_ram || runeten)
-				MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 16);
-			else
-				MEM_SetPageHandler( VGA_PAGE_B0, 16, &vgaph.empty );
-			break;
-		case 2:
-			vgapages.base = VGA_PAGE_B0;
-			vgapages.mask = 0x7fff & vga.mem.memmask;
-			MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
-			if (vga_fill_inactive_ram || runeten) {
-				MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
-				MEM_ResetPageHandler_RAM( VGA_PAGE_B8, 8 );
-			} else {
-				MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
-				MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.empty );
-			}
-			break;
-		case 3:
-			vgapages.base = VGA_PAGE_B8;
-			vgapages.mask = 0x7fff & vga.mem.memmask;
-			MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
-			if (vga_fill_inactive_ram || runeten) {
-				MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
-				MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 8 );
-			} else {
-				MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
-				MEM_SetPageHandler( VGA_PAGE_B0, 8, &vgaph.empty );
-			}
-			break;
+	if (vga.dosboxig.force_A0000) {
+		vgapages.base = VGA_PAGE_A0;
+		vgapages.mask = 0xffff & vga.mem.memmask;
+		MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
+		MEM_SetPageHandler( VGA_PAGE_B0, 16, &vgaph.empty ); // NTS: Windows 3.1 may have debug output functions that write to a second MDA display
+	}
+	else {
+		switch ((vga.gfx.miscellaneous >> 2) & 3) {
+			case 0:
+				vgapages.base = VGA_PAGE_A0;
+				switch (svgaCard) {
+					case SVGA_TsengET3K:
+					case SVGA_TsengET4K:
+						vgapages.mask = 0x1ffff & vga.mem.memmask;
+						break;
+						/* NTS: Looking at the official ET4000 programming guide, it does in fact support the full 128KB */
+					case SVGA_S3Trio:
+					default:
+						vgapages.mask = 0xffff & vga.mem.memmask;
+						break;
+				}
+				if (CurMode && CurMode->mode >= 0x14/*VESA BIOS or extended mode*/ && (vbe_window_size < 0x10000/*64KB*/ || vbe_window_size_literal)) {
+					unsigned int pages = (vbe_window_size + 0xFFFu) >> 12u; /* bytes to pages, round up */
+					if (pages > 32) pages = 32;
+					assert(pages != 0u);
+
+					/* map only what the window size determines, make the rest empty */
+					MEM_SetPageHandler(VGA_PAGE_A0, pages, newHandler );
+					MEM_SetPageHandler(VGA_PAGE_A0 + pages, 32 - pages, &vgaph.empty );
+				}
+				else {
+					/*full 128KB */
+					MEM_SetPageHandler(VGA_PAGE_A0, 32, newHandler );
+				}
+				break;
+			case 1:
+				vgapages.base = VGA_PAGE_A0;
+				vgapages.mask = 0xffff & vga.mem.memmask;
+				MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
+				if (vga_fill_inactive_ram || runeten)
+					MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 16);
+				else
+					MEM_SetPageHandler( VGA_PAGE_B0, 16, &vgaph.empty );
+				break;
+			case 2:
+				vgapages.base = VGA_PAGE_B0;
+				vgapages.mask = 0x7fff & vga.mem.memmask;
+				MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
+				if (vga_fill_inactive_ram || runeten) {
+					MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
+					MEM_ResetPageHandler_RAM( VGA_PAGE_B8, 8 );
+				} else {
+					MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+					MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.empty );
+				}
+				break;
+			case 3:
+				vgapages.base = VGA_PAGE_B8;
+				vgapages.mask = 0x7fff & vga.mem.memmask;
+				MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
+				if (vga_fill_inactive_ram || runeten) {
+					MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
+					MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 8 );
+				} else {
+					MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+					MEM_SetPageHandler( VGA_PAGE_B0, 8, &vgaph.empty );
+				}
+				break;
+		}
 	}
 	if(svgaCard == SVGA_S3Trio && (vga.s3.ext_mem_ctrl & 0x10))
 		MEM_SetPageHandler(VGA_PAGE_A0, 16, &vgaph.mmio);

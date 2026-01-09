@@ -1161,6 +1161,7 @@ void dosbox_integration_trigger_write() {
 
 		case DOSBOX_ID_REG_VGAIG_CTL: {
 			bool modechange = false;
+			bool mapchange = false;
 			bool pv;
 
 			if (IS_VGA_ARCH && svgaCard == SVGA_DOSBoxIG) {
@@ -1172,6 +1173,10 @@ void dosbox_integration_trigger_write() {
 				vga.dosboxig.override_refresh = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE_REFRESH);
 				if (vga.dosboxig.override_refresh != pv) modechange = true;
 
+				pv = vga.dosboxig.force_A0000;
+				vga.dosboxig.force_A0000 = !!(dosbox_int_register & DOSBOX_ID_REG_VGA1G_CTL_A0000_FORCE);
+				if (vga.dosboxig.force_A0000 != pv) mapchange = true;
+
 				vga.dosboxig.vesa_bios_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_VBEMODESET_DISABLE);
 				vga.dosboxig.vga_reg_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_VGAREG_LOCKOUT);
 				vga.dosboxig.vga_acpal_bypass = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_ACPAL_BYPASS);
@@ -1182,6 +1187,10 @@ void dosbox_integration_trigger_write() {
 					VGA_DetermineMode();
 					VGA_StartResize(0);
 					VGA_DAC_UpdateColorPalette();
+				}
+
+				if (mapchange) {
+					VGA_SetupHandlers();
 				}
 			}
 			break; }
