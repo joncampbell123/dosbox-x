@@ -12,13 +12,13 @@ set -o errexit -o pipefail -o posix
 source "$(dirname "$0")/lib/ci.lib.sh"
 cd "$CI_TOPLEVEL_DIR"
 
-function ci_init_shellify {
+ci_init_shellify() {
     [ -f $CI_SCRIPT_DIR/ci_shellify.sh ] || {
         ci_err_internal "missing script: '$CI_SCRIPT_DIR/ci_shellify.sh'"
     }
 }
 
-function ci_run_shellify {
+ci_run_shellify() {
     ci_info "shellifying:" "$@"
     local my_result
     "$BASH" "$CI_SCRIPT_DIR/ci_shellify.sh" "$@"
@@ -26,7 +26,7 @@ function ci_run_shellify {
     echo "$my_result"
 }
 
-function ci_verify_version {
+ci_verify_version() {
     ci_info "## START OF VERIFICATION ##"
     local my_env_libpng_ver my_env_autoconf_ver my_env_cmake_ver my_expect
     ci_init_shellify
@@ -133,13 +133,13 @@ function ci_verify_version {
     ci_info "success!"
 }
 
-function usage {
+usage() {
     echo "usage: $CI_SCRIPT_NAME [<options>]"
     echo "options: -?|-h|--help"
     exit "${@:-0}"
 }
 
-function main {
+main() {
     local opt
     while getopts ":" opt
     do

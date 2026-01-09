@@ -17,7 +17,7 @@ CI_OUT_DIR="$CI_TOPLEVEL_DIR/out"
 CI_BUILD_DIR="$CI_OUT_DIR/ci_verify_configure.$CI_TARGET_SYSTEM.$CI_TARGET_ARCH.build"
 CI_INSTALL_DIR="$CI_OUT_DIR/ci_verify_configure.$CI_TARGET_SYSTEM.$CI_TARGET_ARCH.install"
 
-function ci_init_build {
+ci_init_build() {
     # Ensure that the mandatory variables are initialized.
     CI_MAKE="${CI_MAKE:-make}"
     [ "$CI_TARGET_SYSTEM.$CI_TARGET_ARCH" != "$CI_BUILD_SYSTEM.$CI_BUILD_ARCH" ] || {
@@ -34,7 +34,7 @@ function ci_init_build {
     }
 }
 
-function ci_trace_build {
+ci_trace_build() {
     ci_info "## START OF CONFIGURATION ##"
     ci_info "build arch: $CI_BUILD_ARCH"
     ci_info "build system: $CI_BUILD_SYSTEM"
@@ -81,7 +81,7 @@ function ci_trace_build {
     ci_info "## END OF CONFIGURATION ##"
 }
 
-function ci_cleanup_old_build {
+ci_cleanup_old_build() {
     ci_info "## START OF PRE-BUILD CLEANUP ##"
     [ ! -e $CI_BUILD_DIR ] && [ ! -e $CI_INSTALL_DIR ] || {
         ci_spawn rm -fr "$CI_BUILD_DIR"
@@ -108,7 +108,7 @@ function ci_cleanup_old_build {
     ci_info "## END OF PRE-BUILD CLEANUP ##"
 }
 
-function ci_build {
+ci_build() {
     ci_info "## START OF BUILD ##"
     # Export the configure build environment.
     [ -n "$CI_CC" ] && ci_spawn export CC="$CI_CC"
@@ -152,13 +152,13 @@ function ci_build {
     ci_info "## END OF BUILD ##"
 }
 
-function usage {
+usage() {
     echo "usage: $CI_SCRIPT_NAME [<options>]"
     echo "options: -?|-h|--help"
     exit "${@:-0}"
 }
 
-function main {
+main() {
     local opt
     while getopts ":" opt
     do

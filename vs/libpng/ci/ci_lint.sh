@@ -20,7 +20,7 @@ CI_YAMLLINT="${CI_YAMLLINT:-yamllint}"
 # Initialize the global lint status.
 CI_LINT_STATUS=0
 
-function ci_init_lint {
+ci_init_lint() {
     ci_info "## START OF LINTING ##"
     local my_program
     # Complete the initialization of CI_SHELLCHECK.
@@ -43,7 +43,7 @@ function ci_init_lint {
     CI_YAMLLINT="$my_program"
 }
 
-function ci_finish_lint {
+ci_finish_lint() {
     ci_info "## END OF LINTING ##"
     if [ $CI_LINT_STATUS -eq 0 ]
     then
@@ -54,7 +54,7 @@ function ci_finish_lint {
     return "$CI_LINT_STATUS"
 }
 
-function ci_lint_ci_scripts {
+ci_lint_ci_scripts() {
     [ -x $CI_SHELLCHECK ] || {
         ci_warn "## NOT LINTING: CI scripts ##"
         return 0
@@ -73,7 +73,7 @@ function ci_lint_ci_scripts {
     }
 }
 
-function ci_lint_text_files {
+ci_lint_text_files() {
     [ -x $CI_EDITORCONFIG_CHECKER ] || {
         ci_warn "## NOT LINTING: text files ##"
         return 0
@@ -86,7 +86,7 @@ function ci_lint_text_files {
     }
 }
 
-function ci_lint_yaml_files {
+ci_lint_yaml_files() {
     [ -x $CI_YAMLLINT ] || {
         ci_warn "## NOT LINTING: YAML files ##"
         return 0
@@ -107,7 +107,7 @@ function ci_lint_yaml_files {
     }
 }
 
-function ci_lint {
+ci_lint() {
     ci_init_lint
     ci_lint_ci_scripts || CI_LINT_STATUS=1
     ci_lint_text_files || CI_LINT_STATUS=1
@@ -116,13 +116,13 @@ function ci_lint {
     ci_finish_lint
 }
 
-function usage {
+usage() {
     echo "usage: $CI_SCRIPT_NAME [<options>]"
     echo "options: -?|-h|--help"
     exit "${@:-0}"
 }
 
-function main {
+main() {
     local opt
     while getopts ":" opt
     do

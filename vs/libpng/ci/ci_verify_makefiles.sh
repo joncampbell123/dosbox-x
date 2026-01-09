@@ -14,7 +14,7 @@ cd "$CI_TOPLEVEL_DIR"
 
 CI_SRC_DIR="$CI_TOPLEVEL_DIR"
 
-function ci_init_build {
+ci_init_build() {
     # Ensure that the mandatory variables are initialized.
     CI_MAKE="${CI_MAKE:-make}"
     case "$CI_CC" in
@@ -27,7 +27,7 @@ function ci_init_build {
     esac
 }
 
-function ci_trace_build {
+ci_trace_build() {
     ci_info "## START OF CONFIGURATION ##"
     ci_info "build arch: $CI_BUILD_ARCH"
     ci_info "build system: $CI_BUILD_SYSTEM"
@@ -73,7 +73,7 @@ function ci_trace_build {
     ci_info "## END OF CONFIGURATION ##"
 }
 
-function ci_cleanup_old_build {
+ci_cleanup_old_build() {
     # Any old makefile-based build will most likely leave a mess
     # of object files behind if interrupted, e.g., via Ctrl+C.
     # There may be other files behind, depending on what makefile
@@ -103,7 +103,7 @@ function ci_cleanup_old_build {
     }
 }
 
-function ci_build {
+ci_build() {
     ci_info "## START OF BUILD ##"
     # Initialize and populate the local arrays.
     local all_make_flags=
@@ -169,13 +169,13 @@ function ci_build {
     ci_info "## END OF BUILD ##"
 }
 
-function usage {
+usage() {
     echo "usage: $CI_SCRIPT_NAME [<options>]"
     echo "options: -?|-h|--help"
     exit "${@:-0}"
 }
 
-function main {
+main() {
     local opt
     while getopts ":" opt
     do
