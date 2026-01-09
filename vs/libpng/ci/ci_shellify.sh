@@ -12,7 +12,7 @@ set -o errexit -o pipefail -o posix
 source "$(dirname "$0")/lib/ci.lib.sh"
 cd "$CI_TOPLEVEL_DIR"
 
-function ci_shellify_c {
+ci_shellify_c() {
     # Convert C preprocessor text, specifically originating
     # from png.h, to shell scripting text.
     # Select only the easy-to-parse definitions of PNG_LIBPNG_*.
@@ -22,7 +22,7 @@ function ci_shellify_c {
             -e 's/^\([^ ]*=[^ ]*\).*$/export \1;/'
 }
 
-function ci_shellify_autoconf {
+ci_shellify_autoconf() {
     # Convert autoconf (M4) text, specifically originating
     # from configure.ac, to shell scripting text.
     # Select only the easy-to-parse definitions of PNGLIB_*.
@@ -31,7 +31,7 @@ function ci_shellify_autoconf {
             -e 's/^\([^ ]*=[^ ]*\).*$/export \1;/'
 }
 
-function ci_shellify_cmake {
+ci_shellify_cmake() {
     # Convert CMake lists text, specifically originating
     # from CMakeLists.txt, to shell scripting text.
     # Select only the easy-to-parse definitions of PNGLIB_*.
@@ -40,7 +40,7 @@ function ci_shellify_cmake {
             -e 's/^\([^ ]*=[^ ]*\).*$/export \1;/'
 }
 
-function ci_shellify {
+ci_shellify() {
     local arg filename
     for arg in "$@"
     do
@@ -69,14 +69,14 @@ function ci_shellify {
     done
 }
 
-function usage {
+usage() {
     echo "usage: $CI_SCRIPT_NAME [<options>] <files>..."
     echo "options: -?|-h|--help"
     echo "files: png.h|configure.ac|CMakeLists.txt"
     exit "${@:-0}"
 }
 
-function main {
+main() {
     local opt
     while getopts ":" opt
     do

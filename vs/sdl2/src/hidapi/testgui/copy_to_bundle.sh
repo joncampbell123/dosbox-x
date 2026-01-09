@@ -14,7 +14,7 @@ EXEPATH=$PWD/TestGUI.app/Contents/MacOS
 LIBS_TO_BUNDLE=libFOX
 
 
-function copydeps {
+copydeps() {
 	local file=$1
 	# echo "Copying deps for $file...."
 	local BASE_OF_EXE=`basename $file`
