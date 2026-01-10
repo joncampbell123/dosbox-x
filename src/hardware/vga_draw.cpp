@@ -5446,6 +5446,7 @@ void VGA_sof_debug_video_info(void) {
 						else colors = 2;
 					}
 
+					VGA_debug_screen_func->rect(x-1,y,x,y+8,dkgray);
 					VGA_debug_screen_func->rect(x-1,y,x+(8*colors),y+1,dkgray);
 					VGA_debug_screen_func->rect(x-1,y+7,x+(8*colors),y+8,dkgray);
 					for (unsigned int c=0;c < colors;c++) {
@@ -5461,6 +5462,7 @@ void VGA_sof_debug_video_info(void) {
 				if (IS_VGA_ARCH) {
 					/* attribute controller PAL */
 					x = VGA_debug_screen_puts8(x,y,"ACPAL:",white) + 8;
+					VGA_debug_screen_func->rect(x-1,y,x,y+8,dkgray);
 					VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
 					VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
 					for (unsigned int c=0;c < 16;c++) {
@@ -5485,6 +5487,7 @@ void VGA_sof_debug_video_info(void) {
 
 					/* attribute controller PAL with color select and other in force */
 					x = VGA_debug_screen_puts8(x,y,"CSPAL:",white) + 8;
+					VGA_debug_screen_func->rect(x-1,y,x,y+8,dkgray);
 					VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
 					VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
 					for (unsigned int c=0;c < 16;c++) {
