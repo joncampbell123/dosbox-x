@@ -65,14 +65,6 @@ if [ -n "${x86_64_brew_cmd}" ] && [ "${universal}" -eq 1 ]; then
     x86_64_brew_cmd="/usr/bin/arch -x86_64 ${x86_64_brew_cmd}"
 fi
 
-OSVER=$(sw_vers -productVersion | cut -d. -f1)
-
-if [ "$OSVER" -ge 12 ]; then
-    MINVER="12.0"
-else
-    MINVER="10.13"
-fi
-
 for arch in ${architectures}; do
     declare brew_cmd="${arch}_brew_cmd"
     if [ -n "${!brew_cmd}" ]; then
@@ -83,7 +75,7 @@ for arch in ${architectures}; do
 
     do_cleanup
 
-    arch_flags="-arch ${arch} -mmacosx-version-min=${MINVER} "
+    arch_flags="-arch ${arch} -mmacosx-version-min=10.13 "
     CFLAGS="${arch_flags}${orig_CFLAGS}"
     CXXFLAGS="${arch_flags}${orig_CXXFLAGS}"
     export CFLAGS CXXFLAGS
