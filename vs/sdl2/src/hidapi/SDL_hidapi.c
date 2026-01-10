@@ -257,7 +257,11 @@ static void HIDAPI_InitializeDiscovery(void)
 #endif /* defined(__WIN32__) || defined(__WINGDK__) */
 
 #if defined(__MACOSX__)
-    SDL_HIDAPI_discovery.m_notificationPort = IONotificationPortCreate(/*kIOMainPortDefault*/MACH_PORT_NULL); /* fixed for DOSBox-X */
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
+    SDL_HIDAPI_discovery.m_notificationPort = IONotificationPortCreate(MACH_PORT_NULL); /* fixed for DOSBox-X (old macOS support) */
+#else
+    SDL_HIDAPI_discovery.m_notificationPort = IONotificationPortCreate(kIOMainPortDefault);
+#endif
     if (SDL_HIDAPI_discovery.m_notificationPort) {
         {
             io_iterator_t portIterator = 0;

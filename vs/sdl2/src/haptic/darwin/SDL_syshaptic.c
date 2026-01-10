@@ -162,7 +162,11 @@ int SDL_SYS_HapticInit(void)
     }
 
     /* Now search I/O Registry for matching devices. */
-    result = IOServiceGetMatchingServices(/*kIOMainPortDefault*/MACH_PORT_NULL, match, &iter); /* fixed for DOSBox-X */
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
+    result = IOServiceGetMatchingServices(MACH_PORT_NULL, match, &iter); /* fixed for DOSBox-X (old macOS support) */
+#else
+    result = IOServiceGetMatchingServices(kIOMainPortDefault, match, &iter);
+#endif
     if (result != kIOReturnSuccess) {
         return SDL_SetError("Haptic: Couldn't create a HID object iterator.");
     }
