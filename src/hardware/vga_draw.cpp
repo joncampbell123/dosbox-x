@@ -5401,6 +5401,8 @@ void VGA_sof_debug_video_info(void) {
 			if (vga.dosboxig.svga) {
 				char *d = tmp;
 
+				y += 1; /* please do not overlap the rpal display */
+
 				d += sprintf(d,"HPL=%u VPL=%u HSC=%u VSC=%u",
 					(unsigned int)vga.dosboxig.hpel,(unsigned int)vga.dosboxig.vpel,
 					(unsigned int)vga.dosboxig.hscale,(unsigned int)vga.dosboxig.vscale);
