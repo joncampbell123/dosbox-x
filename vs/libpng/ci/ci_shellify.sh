@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -o errexit -o pipefail -o posix
 
 # Copyright (c) 2019-2024 Cosmin Truta.
@@ -12,7 +12,7 @@ set -o errexit -o pipefail -o posix
 source "$(dirname "$0")/lib/ci.lib.sh"
 cd "$CI_TOPLEVEL_DIR"
 
-function ci_shellify_c {
+ci_shellify_c() {
     # Convert C preprocessor text, specifically originating
     # from png.h, to shell scripting text.
     # Select only the easy-to-parse definitions of PNG_LIBPNG_*.
@@ -22,7 +22,7 @@ function ci_shellify_c {
             -e 's/^\([^ ]*=[^ ]*\).*$/export \1;/'
 }
 
-function ci_shellify_autoconf {
+ci_shellify_autoconf() {
     # Convert autoconf (M4) text, specifically originating
     # from configure.ac, to shell scripting text.
     # Select only the easy-to-parse definitions of PNGLIB_*.
@@ -31,7 +31,7 @@ function ci_shellify_autoconf {
             -e 's/^\([^ ]*=[^ ]*\).*$/export \1;/'
 }
 
-function ci_shellify_cmake {
+ci_shellify_cmake() {
     # Convert CMake lists text, specifically originating
     # from CMakeLists.txt, to shell scripting text.
     # Select only the easy-to-parse definitions of PNGLIB_*.
@@ -40,7 +40,7 @@ function ci_shellify_cmake {
             -e 's/^\([^ ]*=[^ ]*\).*$/export \1;/'
 }
 
-function ci_shellify {
+ci_shellify() {
     local arg filename
     for arg in "$@"
     do
@@ -48,19 +48,20 @@ function ci_shellify {
         filename="$(basename -- "$arg")"
         case "$filename" in
         ( *.[ch] )
-            [[ $filename == png.h ]] || {
+            [ $filename = png.h ] || {
                 ci_err "unable to shellify: '$filename' (expecting: 'png.h')"
             }
             ci_shellify_c <"$arg" ;;
         ( config* | *.ac )
-            [[ $filename == configure.ac ]] || {
+            [ $filename = configure.ac ] || {
                 ci_err "unable to shellify: '$filename' (expecting: 'configure.ac')"
             }
             ci_shellify_autoconf <"$arg" ;;
         ( *CMake* | *cmake* | *.txt )
-            [[ $filename == [Cc][Mm]ake[Ll]ists.txt ]] || {
-                ci_err "unable to shellify: '$filename' (expecting: 'CMakeLists.txt')"
-            }
+            case $filename in
+                [Cc][Mm]ake[Ll]ists.txt) ;;
+                *) ci_err "unable to shellify: '$filename' (expecting: 'CMakeLists.txt')" ;;
+            esac
             ci_shellify_cmake <"$arg" ;;
         ( * )
             ci_err "unable to shellify: '$arg'" ;;
@@ -68,23 +69,23 @@ function ci_shellify {
     done
 }
 
-function usage {
+usage() {
     echo "usage: $CI_SCRIPT_NAME [<options>] <files>..."
     echo "options: -?|-h|--help"
     echo "files: png.h|configure.ac|CMakeLists.txt"
     exit "${@:-0}"
 }
 
-function main {
+main() {
     local opt
     while getopts ":" opt
     do
         # This ain't a while-loop. It only pretends to be.
-        [[ $1 == -[?h]* || $1 == --help || $1 == --help=* ]] && usage 0
+        case $1 in -[?h]*|--help|--help=*) usage 0;; esac
         ci_err "unknown option: '$1'"
     done
     shift $((OPTIND - 1))
-    [[ $# -eq 0 ]] && usage 2
+    [ $# -eq 0 ] && usage 2
     # And... go!
     ci_shellify "$@"
 }

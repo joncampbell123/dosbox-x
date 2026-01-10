@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # Look for GCC-9.2
 x=$(which gcc-9.2 2>/dev/null)

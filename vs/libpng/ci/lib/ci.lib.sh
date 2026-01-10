@@ -33,27 +33,27 @@ CI_BUILD_SYSTEM="${CI_BUILD_SYSTEM:-"$(uname -s | tr 'A-Z/\.-' 'a-z____')"}"
 CI_TARGET_ARCH="${CI_TARGET_ARCH:-"$CI_BUILD_ARCH"}"
 CI_TARGET_SYSTEM="${CI_TARGET_SYSTEM:-"$CI_BUILD_SYSTEM"}"
 
-function ci_info {
+ci_info() {
     printf >&2 "%s: %s\\n" "$CI_SCRIPT_NAME" "$*"
 }
 
-function ci_warn {
+ci_warn() {
     printf >&2 "%s: warning: %s\\n" "$CI_SCRIPT_NAME" "$*"
 }
 
-function ci_err {
+ci_err() {
     printf >&2 "%s: error: %s\\n" "$CI_SCRIPT_NAME" "$*"
     exit 2
 }
 
-function ci_err_internal {
+ci_err_internal() {
     printf >&2 "%s: internal error: %s\\n" "$CI_SCRIPT_NAME" "$*"
     printf >&2 "ABORTED\\n"
     # Exit with the conventional SIGABRT code.
     exit 134
 }
 
-function ci_expr {
+ci_expr() {
     if [[ ${*:-0} == [0-9] ]]
     then
         # This is the same as in the else-branch below, albeit much faster
@@ -66,7 +66,7 @@ function ci_expr {
     fi
 }
 
-function ci_spawn {
+ci_spawn() {
     printf >&2 "%s: executing:" "$CI_SCRIPT_NAME"
     printf >&2 " %q" "$@"
     printf >&2 "\\n"

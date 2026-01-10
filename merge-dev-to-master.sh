@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/sh
 curbranch=$(git branch --show-current)
 
-if [[ "${curbranch}" == "master" || "${curbranch}" == "develop" ]]; then
+if [ "${curbranch}" = "master" ] || [ "${curbranch}" = "develop" ]; then
     rm -f include/build_timestamp.h
     git checkout include/build_timestamp.h
 

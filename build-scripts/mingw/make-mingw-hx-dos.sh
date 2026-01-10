@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # 
 # Setup:
 #   git clone https://github.com/joncampbell123/dosbox-x dosbox-x-mingw-hx-dos
@@ -22,7 +22,7 @@ sleep 1
 # 
 #          MinGW and MinGW32 will have MSYSTEM=MINGW32
 #          MinGW64 will have MSYSTEM=MINGW64.
-if [[ x"${MSYSTEM}" != x"MINGW32" ]]; then
+if [ x"${MSYSTEM}" != x"MINGW32" ]; then
     echo "MinGW (not MinGW 64-bit) shell environment required"
     exit 1
 fi

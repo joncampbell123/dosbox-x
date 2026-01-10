@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 src="${1}"
 dst="${1}.2x.mp4"
 

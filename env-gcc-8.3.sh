@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # Look for GCC-8.3
 x=$(which gcc-8.3 2>/dev/null)

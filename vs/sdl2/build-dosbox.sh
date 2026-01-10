@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 MAKE=""
 find_make()
@@ -33,13 +33,13 @@ opts=
 
 sys=`uname -s`
 
-if [ "$sys" == "Darwin" ]; then
+if [ "$sys" = "Darwin" ]; then
 opts="--disable-video-x11"
 elif [ "$sys" != "Linux" ]; then
 # These are supported on BSDs but the SDL2 code assumes Linux
 opts="--disable-video-wayland --disable-libudev"
 fi
-if [ "$1" == "hx-dos" ]; then
+if [ "$1" = "hx-dos" ]; then
 opts="--disable-video-opengl"
 fi
 
@@ -53,7 +53,7 @@ cat >>include/SDL_config.h <<_EOF
 #endif
 _EOF
 
-if [ "$1" == "hx-dos" ]; then
+if [ "$1" = "hx-dos" ]; then
 cat >>include/SDL_config.h <<_EOF
 /* For HX-DOS, no parent window */
 #ifndef SDL_WIN32_NO_PARENT_WINDOW

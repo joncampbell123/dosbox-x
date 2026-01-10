@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -o errexit -o pipefail -o posix
 
 # Copyright (c) 2019-2024 Cosmin Truta.
@@ -14,7 +14,7 @@ cd "$CI_TOPLEVEL_DIR"
 
 CI_SRC_DIR="$CI_TOPLEVEL_DIR"
 
-function ci_init_build {
+ci_init_build() {
     # Ensure that the mandatory variables are initialized.
     CI_MAKE="${CI_MAKE:-make}"
     case "$CI_CC" in
@@ -27,11 +27,11 @@ function ci_init_build {
     esac
 }
 
-function ci_trace_build {
+ci_trace_build() {
     ci_info "## START OF CONFIGURATION ##"
     ci_info "build arch: $CI_BUILD_ARCH"
     ci_info "build system: $CI_BUILD_SYSTEM"
-    [[ "$CI_TARGET_SYSTEM.$CI_TARGET_ARCH" != "$CI_BUILD_SYSTEM.$CI_BUILD_ARCH" ]] && {
+    [ "$CI_TARGET_SYSTEM.$CI_TARGET_ARCH" != "$CI_BUILD_SYSTEM.$CI_BUILD_ARCH" ] && {
         ci_info "target arch: $CI_TARGET_ARCH"
         ci_info "target system: $CI_TARGET_SYSTEM"
     }
@@ -55,25 +55,25 @@ function ci_trace_build {
     ci_info "environment option: \$CI_NO_TEST: '$CI_NO_TEST'"
     ci_info "environment option: \$CI_NO_CLEAN: '$CI_NO_CLEAN'"
     ci_info "executable: \$CI_MAKE: $(command -V "$CI_MAKE")"
-    [[ $CI_CC ]] && {
+    [ -n "$CI_CC" ] && {
         ci_info "executable: \$CI_CC: $(command -V "$CI_CC")"
     }
-    [[ $CI_CPP ]] && {
+    [ -n "$CI_CPP" ] && {
         ci_info "executable: \$CI_CPP: $(command -V "$CI_CPP")"
     }
-    [[ $CI_AR ]] && {
+    [ -n "$CI_AR" ] && {
         ci_info "executable: \$CI_AR: $(command -V "$CI_AR")"
     }
-    [[ $CI_RANLIB ]] && {
+    [ -n "$CI_RANLIB" ] && {
         ci_info "executable: \$CI_RANLIB: $(command -V "$CI_RANLIB")"
     }
-    [[ $CI_LD ]] && {
+    [ -n "$CI_LD" ] && {
         ci_info "executable: \$CI_LD: $(command -V "$CI_LD")"
     }
     ci_info "## END OF CONFIGURATION ##"
 }
 
-function ci_cleanup_old_build {
+ci_cleanup_old_build() {
     # Any old makefile-based build will most likely leave a mess
     # of object files behind if interrupted, e.g., via Ctrl+C.
     # There may be other files behind, depending on what makefile
@@ -82,13 +82,13 @@ function ci_cleanup_old_build {
     # sufficient to remove the old object files only.
     ci_info "## START OF PRE-BUILD CLEANUP ##"
     local find_args=(-maxdepth 1 \( -iname "*.o" -o -iname "*.obj" \))
-    [[ ! $(find "$CI_SRC_DIR" "${find_args[@]}" | head -n1) ]] || {
+    [ -z "$(find "$CI_SRC_DIR" $find_args | head -n1)" ] || {
         ci_warn "unexpected build found in '$CI_SRC_DIR'"
         if ci_expr $((CI_FORCE))
         then
             # Delete the old build.
             local my_file
-            find "$CI_SRC_DIR" "${find_args[@]}" |
+            find "$CI_SRC_DIR" $find_args |
                 while IFS="" read -r my_file
                 do
                     ci_spawn rm -fr "$my_file"
@@ -103,44 +103,43 @@ function ci_cleanup_old_build {
     }
 }
 
-function ci_build {
+ci_build() {
     ci_info "## START OF BUILD ##"
     # Initialize and populate the local arrays.
-    local all_make_flags=()
-    local all_make_vars=()
-    [[ $CI_MAKE_FLAGS ]] && {
-        all_make_flags+=($CI_MAKE_FLAGS)
+    local all_make_flags=
+    local all_make_vars=
+    [ -n "$CI_MAKE_FLAGS" ] && {
+        all_make_flags="$all_make_flags $CI_MAKE_FLAGS"
     }
-    [[ $CI_CC ]] && {
-        all_make_vars+=("CC=$CI_CC")
+    [ -n "$CI_CC" ] && {
+        all_make_vars="$all_make_vars CC=$CI_CC"
     }
-    [[ $CI_CC_FLAGS || $CI_SANITIZERS ]] && {
-        [[ $CI_SANITIZERS ]] && CI_CC_FLAGS="${CI_CC_FLAGS:-"-O2"} -fsanitize=$CI_SANITIZERS"
-        all_make_vars+=("CFLAGS=$CI_CC_FLAGS")
+    [ -n "$CI_CC_FLAGS" ] || [ -n "$CI_SANITIZERS" ] && {
+        [ -n "$CI_SANITIZERS" ] && CI_CC_FLAGS="${CI_CC_FLAGS:-"-O2"} -fsanitize=$CI_SANITIZERS"
+        all_make_vars="$all_make_vars CFLAGS=$CI_CC_FLAGS"
     }
-    [[ $CI_CPP ]] && {
-        all_make_vars+=("CPP=$CI_CPP")
+    [ -n "$CI_CPP" ] && {
+        all_make_vars="$all_make_vars CPP=$CI_CPP"
     }
-    [[ $CI_CPP_FLAGS ]] && {
-        all_make_vars+=("CPPFLAGS=$CI_CPP_FLAGS")
+    [ -n "$CI_CPP_FLAGS" ] && {
+        all_make_vars="$all_make_vars CPPFLAGS=$CI_CPP_FLAGS"
+    [ -n "$CI_AR" ] && {
+        all_make_vars="$all_make_vars AR=$CI_AR"
     }
-    [[ $CI_AR ]] && {
-        all_make_vars+=("AR=$CI_AR")
+    [ -n "$CI_RANLIB" ] && {
+        all_make_vars="$all_make_vars RANLIB=$CI_RANLIB"
     }
-    [[ $CI_RANLIB ]] && {
-        all_make_vars+=("RANLIB=$CI_RANLIB")
+    [ -n "$CI_LD" ] && {
+        all_make_vars="$all_make_vars LD=$CI_LD"
     }
-    [[ $CI_LD ]] && {
-        all_make_vars+=("LD=$CI_LD")
+    [ -n "$CI_LD_FLAGS" ] || [ -n "$CI_SANITIZERS" ] && {
+        [ -n "$CI_SANITIZERS" ] && CI_LD_FLAGS="$CI_LD_FLAGS${CI_LD_FLAGS:+" "}-fsanitize=$CI_SANITIZERS"
+        all_make_vars="$all_make_vars LDFLAGS=$CI_LD_FLAGS"
     }
-    [[ $CI_LD_FLAGS || $CI_SANITIZERS ]] && {
-        [[ $CI_SANITIZERS ]] && CI_LD_FLAGS+="${CI_LD_FLAGS:+" "}-fsanitize=$CI_SANITIZERS"
-        all_make_vars+=("LDFLAGS=$CI_LD_FLAGS")
+    [ -n "$CI_LIBS" ] && {
+        all_make_vars="$all_make_vars LIBS=$CI_LIBS"
     }
-    [[ $CI_LIBS ]] && {
-        all_make_vars+=("LIBS=$CI_LIBS")
-    }
-    all_make_vars+=($CI_MAKE_VARS)
+    all_make_vars="$all_make_vars $CI_MAKE_VARS"
     # And... build!
     local my_makefile
     for my_makefile in $CI_MAKEFILES
@@ -149,46 +148,46 @@ function ci_build {
         ci_expr $((CI_NO_BUILD)) || {
             # Spawn "make".
             ci_spawn "$CI_MAKE" -f "$my_makefile" \
-                                "${all_make_flags[@]}" \
-                                "${all_make_vars[@]}"
+                                $all_make_flags \
+                                $all_make_vars
         }
         ci_expr $((CI_NO_TEST)) || {
             # Spawn "make test" if testing is not disabled.
             ci_spawn "$CI_MAKE" -f "$my_makefile" \
-                                "${all_make_flags[@]}" \
-                                "${all_make_vars[@]}" \
+                                $all_make_flags \
+                                $all_make_vars \
                                 test
         }
         ci_expr $((CI_NO_CLEAN)) || {
             # Spawn "make clean" if cleaning is not disabled.
             ci_spawn "$CI_MAKE" -f "$my_makefile" \
-                                "${all_make_flags[@]}" \
-                                "${all_make_vars[@]}" \
+                                $all_make_flags \
+                                $all_make_vars \
                                 clean
         }
     done
     ci_info "## END OF BUILD ##"
 }
 
-function usage {
+usage() {
     echo "usage: $CI_SCRIPT_NAME [<options>]"
     echo "options: -?|-h|--help"
     exit "${@:-0}"
 }
 
-function main {
+main() {
     local opt
     while getopts ":" opt
     do
         # This ain't a while-loop. It only pretends to be.
-        [[ $1 == -[?h]* || $1 == --help || $1 == --help=* ]] && usage 0
+        case $1 in -[?h]*|--help|--help=*) usage 0;; esac
         ci_err "unknown option: '$1'"
     done
     shift $((OPTIND - 1))
     # And... go!
     ci_init_build
     ci_trace_build
-    [[ $# -eq 0 ]] || {
+    [ $# -eq 0 ] || {
         echo >&2 "error: unexpected argument: '$1'"
         echo >&2 "note: this program accepts environment options only"
         usage 2
