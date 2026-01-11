@@ -693,8 +693,8 @@ typedef struct VGA_DOSBoxIG {
 	bool			override_refresh = false; /* force a refresh rate */
 	bool			vesa_bios_lockout = false; /* disable VESA BIOS modesetting (for Windows driver) */
 	bool			force_A0000 = false; /* force VGA memory map to A0000-AFFFF */
-	unsigned int            width = 0;
-	unsigned int            height = 0;
+	unsigned int            width = 16;
+	unsigned int            height = 16;
 	unsigned int		bytes_per_scanline = 0;
 	unsigned int            wa_total = 0,ha_total = 0; /* additional cols/rows to add to get htotal/vtotal */
 	uint16_t		dar_width = 0,dar_height = 0; /* display aspect ratio, if nonzero */
@@ -707,6 +707,7 @@ typedef struct VGA_DOSBoxIG {
 	uint8_t			vpel = 0; /* vertical pan */
 	uint8_t			hscale = 0; /* horizontal pixel duplication */
 	uint8_t			vscale = 0; /* vertical pixel duplication */
+	uint32_t		ctlreg = 0; /* raw data written to CTL register */
 } VGA_DOSBoxIG;
 
 typedef struct VGA_Type_t {

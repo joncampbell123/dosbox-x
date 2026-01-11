@@ -922,6 +922,21 @@ void dosbox_integration_trigger_read() {
 			}
 			break;
 
+		case DOSBOX_ID_REG_VGAIG_CTL:
+			/* Windows 3.1 "grabber" driver needs to be able to save/restore the IG registers,
+			 * or perhaps switch on/off things at runtime. */
+			if (IS_VGA_ARCH && svgaCard == SVGA_DOSBoxIG) {
+				dosbox_int_register = vga.dosboxig.ctlreg;
+			}
+			else {
+				dosbox_int_register = 0;
+			}
+			break;
+
+		case DOSBOX_ID_REG_VGAIG_DISPLAYSIZE:
+			dosbox_int_register = vga.dosboxig.width | (vga.dosboxig.height << 16u);
+			break;
+
 		default:
 			dosbox_int_register = 0xAA55AA55;
 			dosbox_int_error = true;
@@ -1165,6 +1180,8 @@ void dosbox_integration_trigger_write() {
 			bool pv;
 
 			if (IS_VGA_ARCH && svgaCard == SVGA_DOSBoxIG) {
+				vga.dosboxig.ctlreg = dosbox_int_register;
+
 				pv = vga.dosboxig.svga;
 				vga.dosboxig.svga = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE);
 				if (vga.dosboxig.svga != pv) modechange = true;
