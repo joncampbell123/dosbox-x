@@ -593,7 +593,17 @@ void DBGUI_StartUp(void) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("DEBUG GUI startup");
 	/* Start the main window */
-	dbg.win_main=initscr();
+
+#ifdef WIN32
+    if(!AttachConsole(ATTACH_PARENT_PROCESS)) { // Make sure console window is opened
+        AllocConsole();
+    }
+    freopen("CONIN$", "r", stdin);
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+#endif
+
+    dbg.win_main=initscr();
 
 #ifdef WIN32
     /* Tell Windows 10 we DON'T want a thin tall console window that fills the screen top to bottom.
