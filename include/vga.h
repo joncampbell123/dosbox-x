@@ -700,7 +700,8 @@ typedef struct VGA_DOSBoxIG {
 	uint16_t		dar_width = 0,dar_height = 0; /* display aspect ratio, if nonzero */
 	uint32_t                vratefp16 = 0; /* video sync rate as a fixed point 16.16 number */
 	uint32_t		display_offset = 0; /* offset in video memory to display */
-	uint32_t		bank_offset = 0; /* offset of 64KB bank window in video memory */
+	uint32_t		rbank_offset = 0; /* offset of 64KB bank window in video memory */
+	uint32_t		wbank_offset = 0; /* offset of 64KB bank window in video memory */
 	uint8_t                 vidformat = 0; /* video pixel format (VGA_DOSBoxIG_VidFormat) */
 	uint8_t			hpel = 0; /* horizontal pan */
 	uint8_t			vpel = 0; /* vertical pan */

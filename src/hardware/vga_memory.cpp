@@ -2538,8 +2538,8 @@ void VGA_SetupHandlers(void) {
 	 * a bank granularity of 64KB, but some, like Paradise and Cirrus, have 64KB windows
 	 * and 4KB granularity. */
 	if (svgaCard == SVGA_DOSBoxIG) {
-		vga.svga.bank_read_full = vga.dosboxig.bank_offset & (~0xFFFu);
-		vga.svga.bank_write_full = vga.dosboxig.bank_offset & (~0xFFFu);
+		vga.svga.bank_read_full = vga.dosboxig.rbank_offset & (~0xFFFu);
+		vga.svga.bank_write_full = vga.dosboxig.wbank_offset & (~0xFFFu);
 	}
 	else {
 		vga.svga.bank_read_full = vga.svga.bank_read*vga.svga.bank_size;
