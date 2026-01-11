@@ -1280,7 +1280,24 @@ void dosbox_integration_trigger_write() {
 		case DOSBOX_ID_REG_VGAIG_BANKWINDOW:
 			{
 				uint32_t nr = dosbox_int_register & (~0xFFFul);
-				vga.dosboxig.bank_offset = nr;
+				vga.dosboxig.rbank_offset = nr;
+				vga.dosboxig.wbank_offset = nr;
+				VGA_SetupHandlers();
+			}
+			break;
+
+		case DOSBOX_ID_REG_VGAIG_RBANKWINDOW:
+			{
+				uint32_t nr = dosbox_int_register & (~0xFFFul);
+				vga.dosboxig.rbank_offset = nr;
+				VGA_SetupHandlers();
+			}
+			break;
+
+		case DOSBOX_ID_REG_VGAIG_WBANKWINDOW:
+			{
+				uint32_t nr = dosbox_int_register & (~0xFFFul);
+				vga.dosboxig.wbank_offset = nr;
 				VGA_SetupHandlers();
 			}
 			break;
