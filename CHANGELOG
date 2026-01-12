@@ -26,7 +26,16 @@ NEXT VERSION
   - I'm not sure why Adlib emulation defaults to 48KHz in most versions of
     DOSBox, but the hardware rate is 49716 and that should be the default
     (joncampbell123).
-
+  - Fixed crash on starting debugger on MinGW builds (maron2000)
+  - Use more ChinaSea/Big5-2003 extended characters for CP951 (1abcd)
+  - Replaced deprecated symbols to enable launching on old macOSs (maron2000)
+  - Converted all bash-dependent shell files to POSIX-shell compliant
+    (pandasoli)
+  - Removed 7 duplicate Chinese character mappings from CP951 (Big5-UAO) (1abcd)
+  - Added SoundBlaster microphone input support (Windows WASAPI)
+    (meldro364-glitch)
+  - Fixed segfault on launch of macOS builds (maron2000)
+    
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory
     is large enough to need more than 256 banks. Memory size will always
