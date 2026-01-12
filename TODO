@@ -35,6 +35,7 @@ Render on Demand + Wait for Changes:
 
 DOSBox Integrated Graphics:
 [TODO]
+- Windows 3.1 IG driver needs to be able to read back the bank switching (r/w) registers so the software cursor can save/restore them as part of drawing the cursor.
 [DONE]
 - Capabilities register, so the guest driver knows what we offer, AND as a way to detect whether the DOSBox IG is even enabled or not (whether machine=svga_dosbox or not).
 - Add DOSBox Integrated Graphics control register to control bank switching window size and granularity. The Windows driver could change the granularity to something smaller than 64KB while maintaining a 64KB window so that it can draw without having to worry about bank switching mid-draw. It's pretty obvious why Cirrus SVGA chipsets chose to use 64KB windows and 4KB granularity, and that's likely why. Yes, the Windows 3.1 driver in 386 enhanced mode will just use the linear framebuffer anyway, but for 286 standard mode and real mode windows, it's easier for the driver to just use the A000h segment and bank switching.
