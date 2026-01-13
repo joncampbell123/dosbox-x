@@ -937,6 +937,14 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = vga.dosboxig.width | (vga.dosboxig.height << 16u);
 			break;
 
+		case DOSBOX_ID_REG_VGAIG_RBANKWINDOW:
+			dosbox_int_register = vga.dosboxig.rbank_offset;
+			break;
+
+		case DOSBOX_ID_REG_VGAIG_WBANKWINDOW:
+			dosbox_int_register = vga.dosboxig.wbank_offset;
+			break;
+
 		default:
 			dosbox_int_register = 0xAA55AA55;
 			dosbox_int_error = true;
