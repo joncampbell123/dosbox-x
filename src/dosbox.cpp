@@ -1538,7 +1538,9 @@ void DOSBOX_SetupConfigSections(void) {
 #if C_OPENGL
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
-        "direct3d",
+#if C_DIRECT3D
+        "direct3d", "direct3d11",
+#endif
         nullptr };
 
     const char* scalers[] = {

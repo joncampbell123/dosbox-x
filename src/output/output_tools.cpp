@@ -35,9 +35,13 @@
 #include <output/output_opengl.h>
 #include <output/output_surface.h>
 #include <output/output_ttf.h>
+#include <output/output_direct3d11.h>
 
 #if C_DIRECT3D
 void d3d_init(void);
+#if defined(C_SDL2)
+void d3d11_init(void);
+#endif
 #endif
 
 #if defined(USE_TTF)
@@ -169,7 +173,13 @@ void change_output(int output) {
         OUTPUT_GAMELINK_Select();
         break;
 #endif
-
+#if C_DIRECT3D && defined(C_SDL2)
+    case 13: /* direct3d11 */
+        LOG_MSG("change_output: DIRECT3D11");
+        OUTPUT_DIRECT3D11_Select();
+        d3d11_init();
+        break;
+#endif
     default:
         LOG_MSG("SDL: Unsupported output device %d, switching back to surface",output);
         OUTPUT_SURFACE_Select();
@@ -423,6 +433,22 @@ bool toOutput(const char *what) {
         reset = true;
 #endif
     }
+#if C_DIRECT3D && defined(C_SDL2)
+    else if(!strcmp(what, "direct3d11")) {
+        if(sdl.desktop.want_type == SCREEN_DIRECT3D11)
+            return false;
+
+        if(window_was_maximized && !GFX_IsFullscreen()) {
+            change_output(13);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        }
+        else {
+            change_output(13);
+        }
+    }
+#endif
     if (reset) RENDER_Reset();
     OutputSettingMenuUpdate();
     return true;

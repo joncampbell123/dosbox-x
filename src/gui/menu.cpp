@@ -386,6 +386,9 @@ static const char *def_menu_video_output[] =
     "output_surface",
 #if (HAVE_D3D9_H) && defined(WIN32) && !defined(HX_DOS)
     "output_direct3d",
+#if defined(C_SDL2)
+    "output_direct3d11",
+#endif
 #endif
 #if defined(C_OPENGL) && !defined(HX_DOS)
     "output_opengl",

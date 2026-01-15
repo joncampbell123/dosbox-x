@@ -1558,6 +1558,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\output\direct3d\hq2x_d3d.cpp" />
     <ClCompile Include="..\src\output\direct3d\ScalingEffect.cpp" />
     <ClCompile Include="..\src\output\output_direct3d.cpp" />
+    <ClCompile Include="..\src\output\output_direct3d11.cpp" />
     <ClCompile Include="..\src\output\output_gamelink.cpp" />
     <ClCompile Include="..\src\output\output_opengl.cpp" />
     <ClCompile Include="..\src\output\output_surface.cpp" />
@@ -1924,6 +1925,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h" />
     <ClInclude Include="..\src\output\direct3d\ScalingEffect.h" />
     <ClInclude Include="..\src\output\output_direct3d.h" />
+    <ClInclude Include="..\src\output\output_direct3d11.h" />
     <ClInclude Include="..\src\output\output_gamelink.h" />
     <ClInclude Include="..\src\output\output_opengl.h" />
     <ClInclude Include="..\src\output\output_surface.h" />

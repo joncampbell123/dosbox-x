@@ -24,6 +24,9 @@ enum SCREEN_TYPES {
 #endif
     ,SCREEN_TTF
     ,SCREEN_GAMELINK
+#if C_DIRECT3D && defined(C_SDL2)
+    ,SCREEN_DIRECT3D11
+#endif
 };
 
 enum AUTOLOCK_FEEDBACK

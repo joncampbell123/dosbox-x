@@ -97,6 +97,71 @@ is_clang=$ac_cv_compiler_clang
 
 dnl End Utility function ============================
 
+dnl AX_CXX_CHECK_LIB ================================
+AC_DEFUN([AX_CXX_CHECK_LIB],
+[m4_ifval([$3], , [AH_CHECK_LIB([$1])])dnl
+AS_LITERAL_IF([$1],
+	      [AS_VAR_PUSHDEF([ac_Lib], [ac_cv_lib_$1_$2])],
+	      [AS_VAR_PUSHDEF([ac_Lib], [ac_cv_lib_$1''_$2])])dnl
+AC_CACHE_CHECK([for $2 in -l$1], ac_Lib,
+[ac_check_lib_save_LIBS=$LIBS
+LIBS="-l$1 $5 $LIBS"
+case "$2" 
+in *::*::*\(*)
+AC_LINK_IFELSE([AC_LANG_PROGRAM([
+ namespace `echo "$2" | sed -e "s/::.*//"` 
+ { class `echo "$2" | sed -e "s/.*::\\(.*\\)::.*/\\1/" -e "s/(.*//"` 
+   { public: int `echo "$2" | sed -e "s/.*:://" -e "/(/!s/..*/&amp;()/"`;
+   };
+ }
+],[`echo "$2" | sed  -e "s/(.*//" -e "s/\\(.*\\)::\\(.*\\)/((\\1*)(0))-&gt;\\2/g"`()])],
+	       [AS_VAR_SET(ac_Lib, yes)],
+	       [AS_VAR_SET(ac_Lib, no)])
+;; *::*::*)
+AC_LINK_IFELSE([AC_LANG_PROGRAM([
+ namespace `echo "$2" | sed -e "s/::.*//"` 
+ { namespace `echo "$2" | sed -e "s/.*::\\(.*\\)::.*/\\1/"` 
+   { class `echo "$2" | sed -e "s/.*:://"` 
+      { public: `echo "$2" | sed -e "s/.*:://"` ();
+      };
+   }
+ }
+],[new $2()])],
+	       [AS_VAR_SET(ac_Lib, yes)],
+	       [AS_VAR_SET(ac_Lib, no)])
+;; *::*\(*)
+AC_LINK_IFELSE([AC_LANG_PROGRAM([
+ class `echo "$2" | sed -e "s/\\(.*\\)::.*/\\1/" -e "s/(.*//"` 
+   { public: int `echo "$2" | sed -e "s/.*:://" -e "/(/!s/..*/&amp;()/"`;
+   };
+],[`echo "$2" | sed  -e "s/(.*//" -e "s/\\(.*\\)::\\(.*\\)/((\\1*)(0))-&gt;\\2/g"`()])],
+	       [AS_VAR_SET(ac_Lib, yes)],
+	       [AS_VAR_SET(ac_Lib, no)])
+;; *::*)
+AC_LINK_IFELSE([AC_LANG_PROGRAM([
+ namespace `echo "$2" | sed -e "s/::.*//"` 
+ { class `echo "$2" | sed -e "s/.*:://"`
+   { public: `echo "$2" | sed -e "s/.*:://"` ();
+   };
+ }
+],[new $2()])],
+	       [AS_VAR_SET(ac_Lib, yes)],
+	       [AS_VAR_SET(ac_Lib, no)])
+;; *)
+AC_LINK_IFELSE([AC_LANG_CALL([], [$2])],
+	       [AS_VAR_SET(ac_Lib, yes)],
+	       [AS_VAR_SET(ac_Lib, no)])
+;; esac
+LIBS=$ac_check_lib_save_LIBS])
+AS_IF([test AS_VAR_GET(ac_Lib) = yes],
+      [m4_default([$3], [AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_LIB$1))
+  LIBS="-l$1 $LIBS"
+])],
+      [$4])dnl
+AS_VAR_POPDEF([ac_Lib])dnl
+])# AC_CHECK_LIB
+dnl ==============================================
+
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
@@ -1404,6 +1469,34 @@ else
 fi
 
 AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" = x"1")
+
+if test "x$SDL_STRING" = "xSDL2"; then 
+dnl FEATURE: Direct3D11 support on Windows
+AC_MSG_CHECKING([for D3D11 support])
+
+AC_LANG_PUSH([C++])
+
+AC_CHECK_HEADERS([d3d11.h dxgi.h], [have_d3d11_h=yes], [have_d3d11_h=no])
+AC_CHECK_HEADERS([d3dcompiler.h], [have_d3dcompiler_h=yes], [have_d3dcompiler_h=no])
+
+D3D11_LIBS=""
+
+if test "x$have_d3d11_h" = "xyes"; then
+  LIBS="$LIBS -ld3d11 -ldxgi"
+  AC_DEFINE([C_DIRECT3D], [1], [Define if D3D11 is available])
+  AC_MSG_RESULT([D3D11 support detected])
+else
+  AC_MSG_RESULT([D3D11 support not found])
+fi
+
+if test "x$have_d3d11_h" = "xyes" -a "x$have_d3dcompiler_h" = "xyes"; then
+  LIBS="$LIBS -ld3dcompiler_47"
+else
+  AC_MSG_RESULT([D3D compiler not found])
+fi
+
+AC_LANG_POP([C++])
+fi
 
 AH_TEMPLATE(C_ICONV,[Define to 1 to use iconv])
 if test x$have_iconv_h = xyes; then
