@@ -53,6 +53,13 @@
 #include "shellapi.h"
 #endif
 
+#if defined(OS2)
+#define INCL_DOSPROCESS
+#define INCL_DOSERRORS
+#define INCL_WIN
+#include <os2.h>
+#endif
+
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -160,6 +167,10 @@ void RebootConfig(std::string filename, bool confirm=false) {
     if ((!confirm||CheckQuit())&&exepath.size()) {
 #if defined(WIN32)
         ShellExecute(NULL, "open", exepath.c_str(), para.c_str(), NULL, SW_NORMAL);
+#elif defined(OS2)
+        char LoadError[CCHMAXPATH] = {0};
+        RESULTCODES result;
+        DosExecPgm(LoadError, sizeof(LoadError), EXEC_ASYNC, (PSZ)para.c_str(), NULL, &result, (PSZ)exepath.c_str());
 #else
         system((exepath+" "+para+ " &").c_str());
 #endif
@@ -178,6 +189,10 @@ void RebootLanguage(std::string filename, bool confirm=false) {
         if (control->PrintConfig(tmpconfig.c_str(),false,true)&&!stat(tmpconfig.c_str(), &st)) para="-conf "+tmpconfig+" -eraseconf "+para;
 #if defined(WIN32)
         ShellExecute(NULL, "open", exepath.c_str(), para.c_str(), NULL, SW_NORMAL);
+#elif defined(OS2)
+        char LoadError[CCHMAXPATH] = {0};
+        RESULTCODES result;
+        DosExecPgm(LoadError, sizeof(LoadError), EXEC_ASYNC, (PSZ)para.c_str(), NULL, &result, (PSZ)exepath.c_str());
 #else
         system((exepath+" "+para+ " &").c_str());
 #endif
@@ -3472,6 +3487,64 @@ public:
             std::string url = "https://dosbox-x.com/";
 #if defined(WIN32)
             ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif defined(OS2)
+            char str[CCHMAXPATH];
+            APIRET rc;
+            char path[CCHMAXPATH], params[100], parambuffer[500], *paramptr;
+            char userPath[CCHMAXPATH], sysPath[CCHMAXPATH];
+            PRFPROFILE profile = { sizeof(userPath), (PSZ)userPath, sizeof(sysPath), (PSZ)sysPath };
+            HINI os2Ini;
+            HAB hAnchor = WinQueryAnchorBlock(WinQueryActiveWindow(HWND_DESKTOP));
+            RESULTCODES result = { 0 };
+            PROGDETAILS details;
+
+            // Initialize buffers
+            memset(path, 0, sizeof(path));
+            memset(parambuffer, 0, sizeof(parambuffer));
+            memset(params, 0, sizeof(params));
+            
+            // We have to look in the OS/2 configuration for the default browser.
+            // First step: Find the configuration files
+            if (!PrfQueryProfile(hAnchor, &profile)) {
+                systemmessagebox(url.c_str(), "Could not query application handle", "ok", "error", 0);
+                return;
+            }
+            
+            // Second step: Open the configuration files and read exe path and parameters
+            os2Ini = PrfOpenProfile(hAnchor, (PCSZ)userPath);
+            if (os2Ini == NULLHANDLE) {
+                systemmessagebox(url.c_str(), "Could not open user profile", "ok", "error", 0);
+                return;
+            }
+            if (!PrfQueryProfileString(os2Ini, (PCSZ)"WPURLDEFAULTSETTINGS", (PCSZ)"DefaultBrowserExe", NULL, path, sizeof(path))) {
+                PrfCloseProfile(os2Ini);
+                systemmessagebox(url.c_str(), "Could not find URL settings", "ok", "error", 0);
+                return;
+            }
+
+            PrfQueryProfileString(os2Ini, (PCSZ)"WPURLDEFAULTSETTINGS", (PCSZ)"DefaultBrowserParameters", NULL, params, sizeof(params));
+            PrfCloseProfile(os2Ini);
+            
+            // concat arguments
+            if (strlen(params) > 0) 
+                strncat(params, " ", 20);
+            strncat(params, url.c_str(), url.length());
+            
+            // Build parameter buffer
+            strcpy(parambuffer, "Browser");
+            paramptr = &parambuffer[strlen(parambuffer)+1];
+            // copy params to buffer
+            strcpy(paramptr, params);
+            paramptr += strlen(params) + 1;
+            // To be sure: Terminate parameter list with NULL
+            *paramptr = '\0';
+
+            // Last step: Execute detached browser
+            rc = DosExecPgm(userPath, sizeof(userPath), EXEC_ASYNC, (PSZ)parambuffer, NULL, &result, (PSZ)path);
+            if (rc != NO_ERROR) {
+                systemmessagebox(url.c_str(), "Could not open browser", "ok", "error", 0);
+                return;
+            }
 #elif defined(LINUX)
             system(("xdg-open "+url).c_str());
 #elif defined(MACOSX)
