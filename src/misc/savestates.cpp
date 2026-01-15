@@ -523,7 +523,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 		if ((errclose=zipOutOpenFile(zf,"Memory_Size",zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
 		zip_ostreambuf zos(zf); std::ostream memorysize(&zos);
 
-		memorysize << MEM_TotalPages();
+		memorysize << std::to_string( MEM_TotalPages());
 
 		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
 	}
