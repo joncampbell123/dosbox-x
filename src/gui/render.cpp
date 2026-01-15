@@ -327,6 +327,7 @@ static void RENDER_ScalerLineHandler(const void * s) {
 }
 
 static void RENDER_StartLineHandler(const void * s) {
+    //LOG_MSG("RENDER_StartLineHandler called s=%p", s);
     if (render.disablerender)
         return;
 
@@ -395,6 +396,7 @@ static void RENDER_ClearCacheHandler(const void * src) {
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 bool RENDER_StartUpdate(void) {
+
     if (GCC_UNLIKELY(render.updating))
         return false;
     if (GCC_UNLIKELY(!render.active))
@@ -470,6 +472,7 @@ void AspectRatio_mapper_shortcut(bool pressed) {
 void VGA_DebugOverlay();
 
 void RENDER_EndUpdate( bool abort ) {
+    //LOG_MSG("RENDER_EndUpdate called abort=%d", abort ? 1 : 0);
     if (GCC_UNLIKELY(!render.updating))
         return;
 
@@ -502,7 +505,7 @@ void RENDER_EndUpdate( bool abort ) {
             CAPTURE_AddImage( render.src.width, render.src.height, render.src.bpp, pitch,
                 flags, fps, (uint8_t*)scalerSourceCacheBuffer, (uint8_t*)&render.pal.rgb );
         }
-        if ( render.scale.outWrite ) {
+        if ( render.scale.outWrite) {
             GFX_EndUpdate( abort? NULL : Scaler_ChangedLines );
             render.frameskip.hadSkip[render.frameskip.index] = 0;
         } else {
