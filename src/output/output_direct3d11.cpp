@@ -284,8 +284,11 @@ void CDirect3D11::EndUpdate()
         uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
         uint8_t* src = cpu_buffer.data();
 
-        for(int y = 0; y < height; y++) {
-            memcpy(dst, src, width * 4);      // 毎フレーム全画面コピー
+        const uint32_t copy_w = frame_width;
+        const uint32_t copy_h = frame_height;
+
+        for(auto y = 0; y < copy_h; y++) {
+            memcpy(dst, src, copy_w * 4);      // 毎フレーム全画面コピー
             dst += mapped.RowPitch;
             src += cpu_pitch;
         }
@@ -332,8 +335,7 @@ void d3d11_init(void)
 
     LOG_MSG("D3D11: Init called");
 
-    // --- SDL ウィンドウが無ければ作成 ---
-    if(!sdl.window) {
+    if(!sdl.window) { // Create window if not yet created
         Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
         if(sdl.desktop.fullscreen)
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -411,36 +413,63 @@ Bitu OUTPUT_DIRECT3D11_GetBestMode(Bitu flags)
     return flags;
 }
 
-
 void RENDER_Reset(void);
 Bitu OUTPUT_DIRECT3D11_SetSize(void)
 {
+    if(!d3d11) {
+        LOG_MSG("D3D11: Not initialized");
+        return 0;
+    }
 
-    const uint16_t windowWidth = sdl.clip.w;
-    const uint16_t windowHeight = sdl.clip.h;
+    // Framebuffer size
+    const uint32_t tex_w = d3d11->frame_width? d3d11->frame_width: sdl.draw.width;
+    const uint32_t tex_h = d3d11->frame_height? d3d11->frame_height : sdl.draw.height;
 
-#if defined(C_SDL2)
-    if(sdl.desktop.fullscreen) {
+    // Window Size
+    int cur_w = 0, cur_h = 0;
+    SDL_GetWindowSize(sdl.window, &cur_w, &cur_h);
+    if(!sdl.desktop.fullscreen && !d3d11->was_fullscreen){
+        d3d11->window_width = cur_w;
+    }
+
+    double target_ratio = 4.0 / 3.0; // default aspect ratio 4:3
+
+    if(sdl.desktop.fullscreen && !d3d11->was_fullscreen) {
+        d3d11->was_fullscreen = true;
         SDL_SetWindowFullscreen(
             sdl.window,
             SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
-    else {
+    else if(!sdl.desktop.fullscreen && d3d11->was_fullscreen){
         SDL_SetWindowFullscreen(sdl.window, 0);
+        cur_w = d3d11->window_width;
+        cur_h = cur_w / ((double)tex_w / tex_h);
+        target_ratio = (double)tex_w / tex_h;
+        d3d11->was_fullscreen = false;
+        d3d11->Resize(
+            cur_w, cur_h,   // Window size
+            tex_w, tex_h);  // Frame texture size 
     }
-#endif
 
-    if(d3d11) {
-        if(!d3d11->Resize(
-            windowWidth,
-            windowHeight,
-            sdl.draw.width,
-            sdl.draw.height)) {
-            LOG_MSG("D3D11: Resize failed");
-            return 0;
+    LOG_MSG(
+        "D3D11 Resize: window=%ux%u frame=%ux%u",
+        cur_w, cur_h,
+        tex_w, tex_h);
+
+    if(render.aspect) {
+        if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
+            target_ratio = (double)aspect_ratio_x / aspect_ratio_y;
+        if(cur_w < cur_h * target_ratio + 0.5 || cur_w > cur_h * target_ratio + 0.5) {
+            cur_h = (uint32_t)cur_w / target_ratio + 0.5;
         }
     }
-
+    if(!d3d11->Resize(
+        cur_w, cur_h,   // Window size
+        tex_w, tex_h))  // Frame texture size 
+    {
+        LOG_MSG("D3D11: Resize failed");
+        return 0;
+    }
     return GFX_CAN_32 | GFX_SCALING | GFX_HARDWARE;
 }
 
@@ -450,10 +479,22 @@ bool CDirect3D11::Resize(
     uint32_t tex_w,
     uint32_t tex_h)
 {
-    width = window_w;
-    height = window_h;
+    // 内部解像度は固定
     frame_width = tex_w;
     frame_height = tex_h;
+
+    const int set_width = window_w;
+    const int set_height = window_h;
+
+    if(sdl.window && !sdl.desktop.fullscreen) {
+        SDL_SetWindowSize(sdl.window, set_width, set_height);
+    }
+
+    int real_w = 0, real_h = 0;
+    SDL_GetWindowSize(sdl.window, &real_w, &real_h);
+
+    width = (uint32_t)real_w;
+    height = (uint32_t)real_h;
 
     /* ----------------------------
      * 1. パイプライン解除
@@ -470,8 +511,8 @@ bool CDirect3D11::Resize(
      * ---------------------------- */
     HRESULT hr = swapchain->ResizeBuffers(
         0,
-        window_w,
-        window_h,
+        width,
+        height,
         DXGI_FORMAT_UNKNOWN,
         0);
 
@@ -484,15 +525,13 @@ bool CDirect3D11::Resize(
      * 3. BackBuffer RTV
      * ---------------------------- */
     ID3D11Texture2D* backbuffer = nullptr;
-    hr = swapchain->GetBuffer(
-        0, IID_PPV_ARGS(&backbuffer));
+    hr = swapchain->GetBuffer(0, IID_PPV_ARGS(&backbuffer));
     if(FAILED(hr)) {
         LOG_MSG("D3D11: GetBuffer failed");
         return false;
     }
 
-    hr = device->CreateRenderTargetView(
-        backbuffer, nullptr, &rtv);
+    hr = device->CreateRenderTargetView(backbuffer, nullptr, &rtv);
     backbuffer->Release();
 
     if(FAILED(hr)) {
@@ -503,27 +542,28 @@ bool CDirect3D11::Resize(
     context->OMSetRenderTargets(1, &rtv, nullptr);
 
     /* ----------------------------
-     * 4. Viewport
+     * 4. ビューポートをウィンドウサイズに合わせる
      * ---------------------------- */
     D3D11_VIEWPORT vp = {};
-    vp.TopLeftX = (FLOAT)sdl.clip.x;
-    vp.TopLeftY = (FLOAT)sdl.clip.y;
-    vp.Width = (FLOAT)sdl.clip.w;
-    vp.Height = (FLOAT)sdl.clip.h;
+    vp.TopLeftX = 0;
+    vp.TopLeftY = 0;
+    vp.Width = (FLOAT)width;
+    vp.Height = (FLOAT)height;
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     context->RSSetViewports(1, &vp);
 
     /* ----------------------------
-     * 5. フレームテクスチャ生成
+     * 5. フレームテクスチャ生成（内部解像度のまま）
      * ---------------------------- */
-    if(!CreateFrameTextures(tex_w, tex_h))
+    if(!CreateFrameTextures(frame_width, frame_height))
         return false;
 
-    LOG(LOG_MISC, LOG_DEBUG)(
-        "D3D11 Resize: window=%ux%u frame=%ux%u",
-        window_w, window_h,
-        tex_w, tex_h);
+    //LOG(LOG_MISC, LOG_DEBUG)(
+    LOG_MSG(
+    "D3D11 Resize: window=%ux%u frame=%ux%u",
+        width, height,
+        frame_width, frame_height);
 
     return true;
 }
