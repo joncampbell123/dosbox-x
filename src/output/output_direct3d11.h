@@ -47,6 +47,9 @@ public:
     void EndUpdate();
     bool Resize(uint32_t window_w, uint32_t window_h, uint32_t tex_w, uint32_t tex_h);
     bool CreateFrameTextures(uint32_t w, uint32_t h);
+    uint32_t frame_width = 0, frame_height = 0;   // Framebuffer size (Internal resolution)
+    uint32_t window_width = 0; // Window width (Used when returning from fullscreen)
+    bool was_fullscreen = false;
 
 private:
     ID3D11Device* device = nullptr;
@@ -71,7 +74,6 @@ private:
     int cpu_pitch = 0;
     std::vector<uint8_t> cpu_buffer;
     bool textureMapped = false;
-    int frame_width = 0, frame_height = 0;
 };
 
 #endif // defined(C_SDL2)
