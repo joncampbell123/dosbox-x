@@ -32,6 +32,7 @@ Bitu OUTPUT_DIRECT3D11_SetSize();
 bool OUTPUT_DIRECT3D11_StartUpdate(uint8_t*& pixels, Bitu& pitch);
 void OUTPUT_DIRECT3D11_EndUpdate(const uint16_t*);
 void OUTPUT_DIRECT3D11_Shutdown();
+void OUTPUT_DIRECT3D11_CheckSourceResolution();
 
 class CDirect3D11 {
 public:
@@ -47,6 +48,8 @@ public:
     void EndUpdate();
     bool Resize(uint32_t window_w, uint32_t window_h, uint32_t tex_w, uint32_t tex_h);
     bool CreateFrameTextures(uint32_t w, uint32_t h);
+    void CheckSourceResolution();
+    void ResizeCPUBuffer(uint32_t src_w, uint32_t src_h);
     uint32_t frame_width = 0, frame_height = 0;   // Framebuffer size (Internal resolution)
     uint32_t window_width = 0; // Window width (Used when returning from fullscreen)
     bool was_fullscreen = false;

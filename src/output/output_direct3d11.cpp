@@ -239,6 +239,46 @@ void CDirect3D11::Present(bool vsync)
     swapchain->Present(vsync ? 1 : 0, 0);
 }
 
+void CDirect3D11::CheckSourceResolution()
+{
+    static uint32_t last_w = 0;
+    static uint32_t last_h = 0;
+
+    if(last_w == sdl.draw.width &&
+        last_h == sdl.draw.height)
+        return;
+
+    LOG_MSG("D3D11: VGA source resolution changed %ux%u -> %ux%u",
+        last_w, last_h,
+        sdl.draw.width, sdl.draw.height);
+
+    // CPU バッファ拡張（shrink しない）
+    ResizeCPUBuffer(
+        sdl.draw.width,
+        sdl.draw.height);
+
+    last_w = sdl.draw.width;
+    last_h = sdl.draw.height;
+
+    Resize(
+        sdl.draw.width, sdl.draw.height,   // Window size
+        sdl.draw.width, sdl.draw.height);  // Frame texture size 
+}
+
+void CDirect3D11::ResizeCPUBuffer(uint32_t src_w, uint32_t src_h)
+{
+    const uint32_t required_pitch = src_w * 4; // BGRA32
+    const uint32_t required_size = required_pitch * src_h;
+
+    // 拡張のみ（shrink しない）
+    if(cpu_buffer.size() < required_size) {
+        cpu_buffer.resize(required_size);
+        LOG_MSG("D3D11: CPU buffer resized to %u bytes", required_size);
+    }
+
+    cpu_pitch = required_pitch;
+}
+
 void CDirect3D11::Shutdown()
 {
     if(rtv) { rtv->Release(); rtv = nullptr; }
@@ -300,6 +340,8 @@ void CDirect3D11::EndUpdate()
         context->OMSetRenderTargets(1, &rtv, nullptr);
 
         D3D11_VIEWPORT vp = {};
+        vp.TopLeftX = 0.0f;
+        vp.TopLeftY = 0.0f;
         vp.Width = (FLOAT)width;
         vp.Height = (FLOAT)height;
         vp.MinDepth = 0.0f;
@@ -318,7 +360,7 @@ void CDirect3D11::EndUpdate()
         ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
         context->PSSetShaderResources(0, 1, nullSRV);
 
-        swapchain->Present(1, 0);
+        swapchain->Present(0, 0);
 
         textureMapped = false;
     }
@@ -643,6 +685,11 @@ void OUTPUT_DIRECT3D11_EndUpdate(const uint16_t* changedLines)
 void OUTPUT_DIRECT3D11_Shutdown()
 {
     if(d3d11) d3d11->Shutdown();
+}
+
+void OUTPUT_DIRECT3D11_CheckSourceResolution()
+{
+    if(d3d11) d3d11->CheckSourceResolution();
 }
 
 #endif //#if defined(C_SDL2)
