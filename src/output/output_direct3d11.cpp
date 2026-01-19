@@ -121,7 +121,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     context->RSSetViewports(1, &vp);
 
     /* -------------------------------------------------
-     * CPU 書き込み用フレームテクスチャ
+     * Create CPU texture
      * ------------------------------------------------- */
     D3D11_TEXTURE2D_DESC td_cpu = {};
     td_cpu.Width = width;
@@ -141,7 +141,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     }
 
     /* -------------------------------------------------
-     * GPU 描画用フレームテクスチャ
+     * Create GPU texture
      * ------------------------------------------------- */
     D3D11_TEXTURE2D_DESC td_gpu = td_cpu;
     td_gpu.Usage = D3D11_USAGE_DEFAULT;
@@ -160,7 +160,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     }
 
     /* -------------------------------------------------
-     * Shaders（SV_VertexID 前提）
+     * Shaders（SV_VertexID）
      * ------------------------------------------------- */
     ID3DBlob* vs_blob = nullptr;
     ID3DBlob* ps_blob = nullptr;
@@ -227,18 +227,6 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     return true;
 }
 
-
-void CDirect3D11::Clear()
-{
-    const float color[4] = { 0.1f, 0.2f, 0.4f, 1.0f };
-    context->ClearRenderTargetView(rtv, color);
-}
-
-void CDirect3D11::Present(bool vsync)
-{
-    swapchain->Present(vsync ? 1 : 0, 0);
-}
-
 void CDirect3D11::CheckSourceResolution()
 {
     static uint32_t last_w = 0;
@@ -252,7 +240,7 @@ void CDirect3D11::CheckSourceResolution()
         last_w, last_h,
         sdl.draw.width, sdl.draw.height);
 
-    // CPU バッファ拡張（shrink しない）
+    // Resize CPU buffer（don't shrink if smaller）
     ResizeCPUBuffer(
         sdl.draw.width,
         sdl.draw.height);
@@ -270,10 +258,10 @@ void CDirect3D11::ResizeCPUBuffer(uint32_t src_w, uint32_t src_h)
     const uint32_t required_pitch = src_w * 4; // BGRA32
     const uint32_t required_size = required_pitch * src_h;
 
-    // 拡張のみ（shrink しない）
+    // Resize CPU buffer（don't shrink if smaller）
     if(cpu_buffer.size() < required_size) {
         cpu_buffer.resize(required_size);
-        LOG_MSG("D3D11: CPU buffer resized to %u bytes", required_size);
+        //LOG_MSG("D3D11: CPU buffer resized to %u bytes", required_size);
     }
 
     cpu_pitch = required_pitch;
@@ -299,7 +287,7 @@ bool CDirect3D11::StartUpdate(uint8_t*& pixels, Bitu& pitch)
 {
     if(textureMapped) return false;
 
-    // CPU 側 framebuffer を返す（DOSBox-X 設計に準拠）
+    // Begin frame update by returning the CPU-side framebuffer
     pixels = cpu_buffer.data();
     pitch = cpu_pitch;
 
@@ -312,7 +300,7 @@ void CDirect3D11::EndUpdate()
     {
         if(!textureMapped) return;
 
-        // CPU → GPU 全面コピー
+        /* Map dynamic texture for CPU write using WRITE_DISCARD (full frame update) */
         D3D11_MAPPED_SUBRESOURCE mapped = {};
         HRESULT hr = context->Map(frameTexCPU, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
         if(FAILED(hr)) {
@@ -327,8 +315,10 @@ void CDirect3D11::EndUpdate()
         const uint32_t copy_w = frame_width;
         const uint32_t copy_h = frame_height;
 
+        // Copy each scanline from the CPU framebuffer to the mapped GPU texture.
+        // The GPU texture rows are padded (RowPitch), so we must copy line by line.
         for(auto y = 0; y < copy_h; y++) {
-            memcpy(dst, src, copy_w * 4);      // 毎フレーム全画面コピー
+            memcpy(dst, src, copy_w * 4);
             dst += mapped.RowPitch;
             src += cpu_pitch;
         }
@@ -336,9 +326,11 @@ void CDirect3D11::EndUpdate()
         context->Unmap(frameTexCPU, 0);
         context->CopyResource(frameTexGPU, frameTexCPU);
 
-        // 描画準備
+        // Bind the back buffer render target (no depth buffer needed for 2D rendering)
         context->OMSetRenderTargets(1, &rtv, nullptr);
 
+        // Set viewport to cover the entire output surface
+        // This maps normalized device coordinates directly to the window area
         D3D11_VIEWPORT vp = {};
         vp.TopLeftX = 0.0f;
         vp.TopLeftY = 0.0f;
@@ -348,18 +340,24 @@ void CDirect3D11::EndUpdate()
         vp.MaxDepth = 1.0f;
         context->RSSetViewports(1, &vp);
 
+        // Draw a full-screen quad using two triangles (6 vertices)
+        // Vertex positions are generated in the vertex shader via SV_VertexID
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         context->IASetInputLayout(inputLayout); // SV_VertexID 用
+
         context->VSSetShader(vs, nullptr, 0);
         context->PSSetShader(ps, nullptr, 0);
+
         context->PSSetSamplers(0, 1, &sampler);
         context->PSSetShaderResources(0, 1, &frameSRV);
 
+        // Draw two triangles (6 vertices) to cover the entire screen
         context->Draw(6, 0);
 
         ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
         context->PSSetShaderResources(0, 1, nullSRV);
 
+        // Present the rendered frame to the screen (vsync is currently disabled)
         swapchain->Present(0, 0);
 
         textureMapped = false;
@@ -498,9 +496,9 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
         cur_w, cur_h,
         tex_w, tex_h);
 
-    if(render.aspect) {
+    if(render.aspect) { // "Fit to aspect ratio" is enabled 
         if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
-            target_ratio = (double)aspect_ratio_x / aspect_ratio_y;
+            target_ratio = (double)aspect_ratio_x / aspect_ratio_y; // default is 4:3 if <=0
         if(cur_w < cur_h * target_ratio + 0.5 || cur_w > cur_h * target_ratio + 0.5) {
             cur_h = (uint32_t)cur_w / target_ratio + 0.5;
         }
@@ -521,7 +519,7 @@ bool CDirect3D11::Resize(
     uint32_t tex_w,
     uint32_t tex_h)
 {
-    // 内部解像度は固定
+    // Texture size is fixed
     frame_width = tex_w;
     frame_height = tex_h;
 
@@ -539,7 +537,7 @@ bool CDirect3D11::Resize(
     height = (uint32_t)real_h;
 
     /* ----------------------------
-     * 1. パイプライン解除
+     * 1. Unbind pipeline resources
      * ---------------------------- */
     context->OMSetRenderTargets(0, nullptr, nullptr);
 
@@ -549,7 +547,7 @@ bool CDirect3D11::Resize(
     SAFE_RELEASE(frameSRV);
 
     /* ----------------------------
-     * 2. SwapChain Resize
+     * 2. Resize the swap chain buffers
      * ---------------------------- */
     HRESULT hr = swapchain->ResizeBuffers(
         0,
@@ -564,7 +562,7 @@ bool CDirect3D11::Resize(
     }
 
     /* ----------------------------
-     * 3. BackBuffer RTV
+     * 3. Recreate back buffer render target view
      * ---------------------------- */
     ID3D11Texture2D* backbuffer = nullptr;
     hr = swapchain->GetBuffer(0, IID_PPV_ARGS(&backbuffer));
@@ -584,7 +582,7 @@ bool CDirect3D11::Resize(
     context->OMSetRenderTargets(1, &rtv, nullptr);
 
     /* ----------------------------
-     * 4. ビューポートをウィンドウサイズに合わせる
+     * 4. Update viewport to match the window size
      * ---------------------------- */
     D3D11_VIEWPORT vp = {};
     vp.TopLeftX = 0;
@@ -596,16 +594,10 @@ bool CDirect3D11::Resize(
     context->RSSetViewports(1, &vp);
 
     /* ----------------------------
-     * 5. フレームテクスチャ生成（内部解像度のまま）
+     * 5. Recreate frame textures at internal resolution
      * ---------------------------- */
     if(!CreateFrameTextures(frame_width, frame_height))
         return false;
-
-    //LOG(LOG_MISC, LOG_DEBUG)(
-    LOG_MSG(
-    "D3D11 Resize: window=%ux%u frame=%ux%u",
-        width, height,
-        frame_width, frame_height);
 
     return true;
 }
@@ -615,7 +607,7 @@ bool CDirect3D11::CreateFrameTextures(
     uint32_t h)
 {
     /* ----------------------------
-     * CPU 書き込み用（Map）
+     * CPU-writable texture (mapped via Map)
      * ---------------------------- */
     D3D11_TEXTURE2D_DESC cpu = {};
     cpu.Width = w;
@@ -635,7 +627,7 @@ bool CDirect3D11::CreateFrameTextures(
     }
 
     /* ----------------------------
-     * GPU 描画用
+     * GPU render texture
      * ---------------------------- */
     D3D11_TEXTURE2D_DESC gpu = cpu;
     gpu.Usage = D3D11_USAGE_DEFAULT;
@@ -649,7 +641,7 @@ bool CDirect3D11::CreateFrameTextures(
     }
 
     /* ----------------------------
-     * SRV
+     * Shader Resource View (SRV)
      * ---------------------------- */
     D3D11_SHADER_RESOURCE_VIEW_DESC srv = {};
     srv.Format = gpu.Format;
@@ -670,8 +662,6 @@ bool OUTPUT_DIRECT3D11_StartUpdate(uint8_t*& pixels, Bitu& pitch)
     //LOG_MSG("D3D11: StartUpdate");
     bool result = false;
     if(d3d11) result = d3d11->StartUpdate(pixels, pitch);
-    if(!result)LOG_MSG("result=false");
-    //d3d11->EndUpdate();
     return result;
 }
 

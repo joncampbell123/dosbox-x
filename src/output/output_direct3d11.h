@@ -42,8 +42,6 @@ public:
     bool Initialize(HWND hwnd, int width, int height);
     void Shutdown();
 
-    void Clear();
-    void Present(bool vsync);
     bool StartUpdate(uint8_t*& pixels, Bitu& pitch);
     void EndUpdate();
     bool Resize(uint32_t window_w, uint32_t window_h, uint32_t tex_w, uint32_t tex_h);
