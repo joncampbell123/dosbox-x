@@ -54,6 +54,8 @@
 #include "../libs/zmbv/zmbv.h"
 #endif
 
+#include "../output/output_direct3d11.h"
+
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
 
@@ -6229,8 +6231,13 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	RENDER_EndUpdate(renderAbort);
 	vga.draw.lines_done = 0;
 
-	//Check if we can actually render, else skip the rest
-	if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
+#if C_DIRECT3D && defined(C_SDL2)
+    if(sdl.desktop.type == SCREEN_DIRECT3D11) {
+        OUTPUT_DIRECT3D11_CheckSourceResolution();
+    }
+#endif
+    //Check if we can actually render, else skip the rest
+    if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
 
 	if (svgaCard == SVGA_S3Trio) {
 		if (s3Card >= S3_ViRGE || s3Card == S3_Trio64V) {
