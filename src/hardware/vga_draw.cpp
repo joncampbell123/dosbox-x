@@ -8403,7 +8403,8 @@ void POD_Save_VGA_Draw( std::ostream& stream )
 
 
 	// - pure data
-	WRITE_POD( &TempLine, TempLine );
+	WRITE_POD( &TempLineSize, TempLineSize );
+	WRITE_POD_SIZE( TempLine, TempLineSize );	
 
 
 	// - system data
@@ -8445,7 +8446,23 @@ void POD_Load_VGA_Draw( std::istream& stream )
 
 
 	// - pure data
-	READ_POD( &TempLine, TempLine );
+	const unsigned int oldTempLineSize = TempLineSize;
+
+	READ_POD( &TempLineSize, TempLineSize );
+
+	if( oldTempLineSize != TempLineSize ) {
+		TempLineFree();
+
+		if(	TempLineAlloc(( TempLineSize - 1024 ) / 4 )) {
+			READ_POD_SIZE( TempLine, TempLineSize );
+		} else {
+			LOG( LOG_VGA, LOG_ERROR )("Savestate load could not allocate TempLine");
+			stream.seekg( TempLineSize, stream.cur );
+		}
+	} else {
+		// read directly into the old address
+		READ_POD_SIZE( TempLine, TempLineSize );
+	}
 
 
 	// - system data
