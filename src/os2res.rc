@@ -2,6 +2,8 @@
 #include "os2.h"
 #include "os2res.h"
 
+// Executable Icon
+ICON 1 "..\\contrib\\icons\\dosbox-x_os2.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

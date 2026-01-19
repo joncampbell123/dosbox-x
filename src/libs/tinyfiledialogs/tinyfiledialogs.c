@@ -3429,6 +3429,7 @@ char * tinyfd_colorChooser(
 
 #elif defined(OS2)
 #include "os2res.h"
+#include <libgen.h>
 
 int tinyfd_notifyPopup(
 	char const * aTitle, /* NULL or "" */
@@ -3446,6 +3447,7 @@ int tinyfd_messageBox(
 	char const * aIconType , /* "info" "warning" "error" "question" */
 	int aDefaultButton ) /* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
 {
+	
 // TODO aDefaultButton cf Windows implementation
 	ULONG style = MB_NOICON;
 	// Build the dialog style
@@ -3474,7 +3476,7 @@ int tinyfd_messageBox(
 			style |= MB_QUERY;
 	}
 
-	ULONG result = WinMessageBox(HWND_DESKTOP, HWND_DESKTOP, (PCSZ)aMessage, (PCSZ)aTitle, 1, style);
+	ULONG result = WinMessageBox(HWND_DESKTOP, WinQueryActiveWindow(HWND_DESKTOP), (PCSZ)aMessage, (PCSZ)aTitle, 1, style);
 	if (result == MBID_NO && !strcasecmp("yesnocancel", aDialogType))
 		return 2;
 	else if (result == MBID_OK || result == MBID_YES)
@@ -3543,7 +3545,6 @@ char * tinyfd_inputBox(
 	char const * aDefaultInput )  /* NULL = passwordBox, "" = inputbox */
 		/* returns NULL on cancel */
 {
-printf("inputBox %s\n", aDefaultInput);
 	char const *data[3] = { aTitle, aMessage, aDefaultInput };
 	ULONG result = WinDlgBox(HWND_DESKTOP, WinQueryActiveWindow(HWND_DESKTOP), InputBox_Callback, NULLHANDLE, 100, &data);
 	if (result != DID_ERROR)
@@ -3573,20 +3574,24 @@ inline static void setupFILEDLG(
 	filedlg->pszTitle = (PSZ)aTitle;
 	
 	j = filedlg->szFullFile;
-	for(i = 0; i < aNumOfFilterPatterns; i++)
+	*j = 0; // Pre-initialize the string.
+	if (aFilterPatterns && aNumOfFilterPatterns)
 	{
-		size_t len = strlen(aFilterPatterns[i]);
-		if (j + len >= filedlg->szFullFile+CCHMAXPATH)
-			break; // Too long for buffer
+		for(i = 0; i < aNumOfFilterPatterns; i++)
+		{
+			size_t len = strlen(aFilterPatterns[i]);
+			if (j + len >= filedlg->szFullFile+CCHMAXPATH)
+				break; // Too long for buffer
 
-		strcpy(j, aFilterPatterns[i]);
-		j += len;
-		*j = ';'; // Insert separator
-		j++;
+			strcpy(j, aFilterPatterns[i]);
+			j += len;
+			*j = ';'; // Insert separator
+			j++;
+		}
+		*(j-1) = 0; // End the string
 	}
-	*(j-1) = 0; // End the string
-
 }
+
 
 char * tinyfd_saveFileDialog(
 	char const * aTitle , /* NULL or "" */
@@ -3596,12 +3601,11 @@ char * tinyfd_saveFileDialog(
 	char const * aSingleFilterDescription ) /* NULL or "text files" */
 		/* returns NULL on cancel */
 {
-// TODO Refactor file dialogs
 	FILEDLG filedlg;
 	HWND hwndDlg;
 	
 	setupFILEDLG(&filedlg, aTitle, aNumOfFilterPatterns, aFilterPatterns, 0);
-	hwndDlg = WinFileDlg(HWND_DESKTOP, HWND_DESKTOP, &filedlg);
+	hwndDlg = WinFileDlg(HWND_DESKTOP, WinQueryActiveWindow(HWND_DESKTOP), &filedlg);
 	if (hwndDlg && filedlg.lReturn == DID_OK)
 	{
 		char *result = (char*)malloc(strlen(filedlg.szFullFile)+1);
@@ -3621,21 +3625,46 @@ char * tinyfd_openFileDialog(
 		/* in case of multiple files, the separator is | */
 		/* returns NULL on cancel */
 {
-// TODO Refactor file dialogs
 	FILEDLG filedlg;
 	HWND hwndDlg;
 	
 	setupFILEDLG(&filedlg, aTitle, aNumOfFilterPatterns, aFilterPatterns, aAllowMultipleSelects);
 	filedlg.fl |= FDS_OPEN_DIALOG;
-	// TODO React to multiple selects
-	hwndDlg = WinFileDlg(HWND_DESKTOP, HWND_DESKTOP, &filedlg);
+	hwndDlg = WinFileDlg(HWND_DESKTOP, WinQueryActiveWindow(HWND_DESKTOP), &filedlg);
 	if (hwndDlg && filedlg.lReturn == DID_OK)
 	{
-		// TODO React to multiple selects
-		char *result = (char*)malloc(strlen(filedlg.szFullFile)+1);
-		strcpy(result, filedlg.szFullFile);
+		char *result;
+		if (!filedlg.papszFQFilename) {
+			result = (char*)malloc(strlen(filedlg.szFullFile)+1);
+			strcpy(result, filedlg.szFullFile);
+		}
+		else 
+		{
+			ULONG i, size=CCHMAXPATH;
+			
+			result = (char*)malloc(CCHMAXPATH);
+			*result = 0; // Terminate the string;
+			for(i = 0; i < filedlg.ulFQFCount; i++)
+			{
+				char* filename = (char*)*filedlg.papszFQFilename[i];
+				if (filename && strlen(filename) > 0)
+				{
+					if (strlen(result) + strlen(filename) + 2 > size)
+					{
+						realloc(result, size + CCHMAXPATH);
+						size += CCHMAXPATH;
+					}
+					if (i > 0)
+						strcat(result, "|");
+					strcat(result, filename);
+				}
+			}
+			WinFreeFileDlgList(filedlg.papszFQFilename);
+		}
+
 		return result;
 	}
+	
 	return NULL;
 }
 
@@ -3644,6 +3673,18 @@ char * tinyfd_selectFolderDialog(
 	char const * aDefaultPath) /* NULL or "" */
 		/* returns NULL on cancel */
 {
+	FILEDLG filedlg;
+	HWND hwndDlg;
+	
+	setupFILEDLG(&filedlg, aTitle, 0, NULL, false);
+	filedlg.fl |= FDS_OPEN_DIALOG;
+	hwndDlg = WinFileDlg(HWND_DESKTOP, WinQueryActiveWindow(HWND_DESKTOP), &filedlg);
+	if (hwndDlg && filedlg.lReturn == DID_OK)
+	{
+		char *result = (char*)malloc(strlen(filedlg.szFullFile)+1);
+		strcpy(result, dirname(filedlg.szFullFile));
+		return result;
+	}
 	return NULL;
 }
 
