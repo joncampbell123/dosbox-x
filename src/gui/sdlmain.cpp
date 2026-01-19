@@ -177,6 +177,7 @@ char* revert_escape_newlines(const char* aMessage);
 #endif
 #include <limits.h>
 
+#include <output/output_direct3d11.h>
 #include <output/output_direct3d.h>
 #include <output/output_opengl.h>
 #include <output/output_surface.h>
@@ -2118,6 +2119,11 @@ void UpdateUserCursorScreenDimensions(void);
 
 Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback)
 {
+
+#if C_DIRECT3D && defined(C_SDL2)
+    //if(sdl.desktop.type == SCREEN_DIRECT3D11) sdl.desktop.want_type = SCREEN_DIRECT3D11;
+#endif
+
     if ((width == 0 || height == 0) && !TTF_using()) {
         E_Exit("GFX_SetSize with width=%d height=%d zero dimensions not allowed",(int)width,(int)height);
         return 0;
@@ -2181,8 +2187,12 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
         case SCREEN_DIRECT3D:
             retFlags = OUTPUT_DIRECT3D_SetSize();
             break;
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+            retFlags = OUTPUT_DIRECT3D11_SetSize();
+            break;
 #endif
-
+#endif
 #if defined(USE_TTF)
         case SCREEN_TTF:
             break;
@@ -3153,8 +3163,12 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
             return OUTPUT_DIRECT3D_StartUpdate(pixels, pitch);
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+            return OUTPUT_DIRECT3D11_StartUpdate(pixels, pitch);
+            break;
 #endif
-
+#endif
         default:
             break;
     }
@@ -3188,12 +3202,20 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
 #if C_EMSCRIPTEN
     emscripten_sleep(0);
 #endif
-
+#if C_OPENGL
+    bool actually_updating = false;
+#endif
     /* don't present our output if 3Dfx is in OpenGL mode */
     if (sdl.desktop.prevent_fullscreen)
         return;
 
 #if C_DIRECT3D
+#if defined(C_SDL2)
+    if(sdl.desktop.type == SCREEN_DIRECT3D11) {
+        sdl.updating = false;
+        goto switch_type;
+    }
+#endif
     // we may have to do forced update in D3D case
     if (d3d && d3d->getForceUpdate());
     else
@@ -3201,7 +3223,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     if (((sdl.desktop.type != SCREEN_OPENGL) || !RENDER_GetForceUpdate()) && !sdl.updating)
         return;
 #if C_OPENGL
-    bool actually_updating = sdl.updating;
+    actually_updating = sdl.updating;
 #endif
     sdl.updating = false;
 #if defined(USE_TTF)
@@ -3211,6 +3233,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     }
 #endif
 
+switch_type:
     switch (sdl.desktop.type)
     {
         case SCREEN_SURFACE:
@@ -3244,8 +3267,12 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
         case SCREEN_DIRECT3D:
             OUTPUT_DIRECT3D_EndUpdate(changedLines);
             break;
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+            OUTPUT_DIRECT3D11_EndUpdate(changedLines);
+            break;
 #endif
-
+#endif
         default:
             break;
     }
@@ -3370,6 +3397,11 @@ static void GUI_ShutDown(Section * /*sec*/) {
         case SCREEN_DIRECT3D:
             OUTPUT_DIRECT3D_Shutdown();
             break;
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+            OUTPUT_DIRECT3D11_Shutdown();
+            break;
+#endif
 #endif
 
         default:
@@ -4019,6 +4051,11 @@ static void GUI_StartUp() {
 #if LOG_D3D
         LOG_MSG("SDL: Direct3D activated");
 #endif
+    }
+    else if(output == "direct3d11")
+    {
+        LOG_MSG("SDL: Direct3D11 not supported on startup.");
+        OUTPUT_SURFACE_Select();
 #endif
     }
 #if defined(USE_TTF)
@@ -6624,7 +6661,10 @@ void SDL_SetupConfigSection() {
 #if C_GAMELINK
         "gamelink",
 #endif
-        "ddraw", "direct3d",
+        "ddraw",
+#if C_DIRECT3D
+        "direct3d", "direct3d11",
+#endif
         nullptr };
 
     Pint = sdl_sec->Add_int("display", Property::Changeable::Always, 0);
