@@ -368,9 +368,9 @@ static CDirect3D11* d3d11 = nullptr;
 
 void d3d11_init(void)
 {
-    if(sdl.desktop.want_type == SCREEN_DIRECT3D11 && d3d11)
-        return;
-
+    if(d3d11) {
+        d3d11->Shutdown();
+    }
     sdl.desktop.want_type = SCREEN_DIRECT3D11;
 
     LOG_MSG("D3D11: Init called");
@@ -419,7 +419,7 @@ void d3d11_init(void)
     if(sdl.desktop.fullscreen)
         GFX_CaptureMouse();
 
-    delete d3d11;
+    if(d3d11) delete d3d11;
     d3d11 = new CDirect3D11();
 
     if(!d3d11) {
