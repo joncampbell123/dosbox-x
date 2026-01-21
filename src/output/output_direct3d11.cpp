@@ -69,8 +69,8 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     width = w;
     height = h;
 
-    cpu_pitch = width * 4;                 // 1ピクセル4バイト
-    cpu_buffer.resize(cpu_pitch * height); // フレーム全体
+    cpu_pitch = width * 4;                 
+    cpu_buffer.resize(cpu_pitch * height); 
 
     DXGI_SWAP_CHAIN_DESC sd = {};
     sd.BufferCount = 1;
@@ -184,20 +184,12 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     /* -------------------------------------------------
      * Sampler
      * ------------------------------------------------- */
-    D3D11_SAMPLER_DESC samp = {};
-    samp.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-    samp.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    samp.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    samp.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-    samp.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    samp.MinLOD = 0;
-    samp.MaxLOD = D3D11_FLOAT32_MAX;
 
-    hr = device->CreateSamplerState(&samp, &sampler);
-    if(FAILED(hr)) {
-        LOG_MSG("D3D11: CreateSamplerState failed (0x%08lx)", hr);
+    if(!CreateSamplers()) {
+        LOG_MSG("D3D11: CreateSamplers failed");
         return false;
     }
+    SetSamplerMode(ASPECT_TRUE);
 
     return true;
 }
@@ -231,7 +223,7 @@ void CDirect3D11::CheckSourceResolution()
 void CDirect3D11::ResizeCPUBuffer(uint32_t src_w, uint32_t src_h)
 {
     const uint32_t required_pitch = src_w * 4; // BGRA32
-    const uint32_t required_size = required_pitch * src_h * 2;
+    const uint32_t required_size = required_pitch * src_h;
 
     // Resize CPU buffer（don't shrink if smaller）
     if(cpu_buffer.size() < required_size) {
@@ -258,7 +250,9 @@ void CDirect3D11::Shutdown()
     SAFE_RELEASE(frameSRV);
     if(vs) { vs->Release(); vs = nullptr; }
     if(ps) { ps->Release(); ps = nullptr; }
-    if(sampler) { sampler->Release(); sampler = nullptr; }
+    SAFE_RELEASE(samplerNearest);
+    SAFE_RELEASE(samplerLinear);
+    SAFE_RELEASE(samplerStretch);
     if(fullscreenVB) {fullscreenVB->Release(); fullscreenVB = nullptr;}
     //if(inputLayout) { inputLayout->Release(); inputLayout = nullptr; }
 }
@@ -277,71 +271,112 @@ bool CDirect3D11::StartUpdate(uint8_t*& pixels, Bitu& pitch)
 
 void CDirect3D11::EndUpdate()
 {
-    {
-        if(!textureMapped) return;
+    if(!textureMapped) return;
 
-        /* Map dynamic texture for CPU write using WRITE_DISCARD (full frame update) */
-        D3D11_MAPPED_SUBRESOURCE mapped = {};
-        HRESULT hr = context->Map(frameTexCPU, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-        if(FAILED(hr)) {
-            LOG_MSG("D3D11: Map failed in EndUpdate (0x%08lx)", hr);
-            textureMapped = false;
-            return;
-        }
-
-        uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
-        uint8_t* src = cpu_buffer.data();
-
-        const uint32_t copy_w = frame_width;
-        const uint32_t copy_h = frame_height;
-
-        // Copy each scanline from the CPU framebuffer to the mapped GPU texture.
-        // The GPU texture rows are padded (RowPitch), so we must copy line by line.
-        for(auto y = 0; y < copy_h; y++) {
-            memcpy(dst, src, copy_w * 4);
-            dst += mapped.RowPitch;
-            src += cpu_pitch;
-        }
-
-        context->Unmap(frameTexCPU, 0);
-        context->CopyResource(frameTexGPU, frameTexCPU);
-
-        // Bind the back buffer render target (no depth buffer needed for 2D rendering)
-        context->OMSetRenderTargets(1, &rtv, nullptr);
-
-        // Set viewport to cover the entire output surface
-        // This maps normalized device coordinates directly to the window area
-        D3D11_VIEWPORT vp = {};
-        vp.TopLeftX = 0.0f;
-        vp.TopLeftY = 0.0f;
-        vp.Width = (FLOAT)width;
-        vp.Height = (FLOAT)height;
-        vp.MinDepth = 0.0f;
-        vp.MaxDepth = 1.0f;
-        context->RSSetViewports(1, &vp);
-
-        // Draw a full-screen quad using two triangles (6 vertices)
-        // Vertex positions are generated in the vertex shader via SV_VertexID
-        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        context->IASetInputLayout(inputLayout); // SV_VertexID 用
-
-        context->VSSetShader(vs, nullptr, 0);
-        context->PSSetShader(ps, nullptr, 0);
-
-        context->PSSetSamplers(0, 1, &sampler);
-        context->PSSetShaderResources(0, 1, &frameSRV);
-
-        // Draw two triangles (6 vertices) to cover the entire screen
-        context->Draw(6, 0);
-
-        ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-        context->PSSetShaderResources(0, 1, nullSRV);
-
-        // Present the rendered frame to the screen (vsync is currently disabled)
-        swapchain->Present(0, 0);
-
+    /* Map dynamic texture for CPU write using WRITE_DISCARD (full frame update) */
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    HRESULT hr = context->Map(frameTexCPU, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+    if(FAILED(hr)) {
+        LOG_MSG("D3D11: Map failed in EndUpdate (0x%08lx)", hr);
         textureMapped = false;
+        return;
     }
+
+    uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
+    uint8_t* src = cpu_buffer.data();
+
+    const uint32_t copy_w = frame_width;
+    const uint32_t copy_h = frame_height;
+
+    // Copy each scanline from the CPU framebuffer to the mapped GPU texture.
+    // The GPU texture rows are padded (RowPitch), so we must copy line by line.
+    for(auto y = 0; y < copy_h; y++) {
+        memcpy(dst, src, copy_w * 4);
+        dst += mapped.RowPitch;
+        src += cpu_pitch;
+    }
+
+    context->Unmap(frameTexCPU, 0);
+    context->CopyResource(frameTexGPU, frameTexCPU);
+
+    // Bind the back buffer render target (no depth buffer needed for 2D rendering)
+    context->OMSetRenderTargets(1, &rtv, nullptr);
+
+    // Set viewport to cover the entire output surface
+    // This maps normalized device coordinates directly to the window area
+    /**
+    D3D11_VIEWPORT vp = {};
+    vp.TopLeftX = 0.0f;
+    vp.TopLeftY = 0.0f;
+    vp.Width = (FLOAT)width;
+    vp.Height = (FLOAT)height;
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+    context->RSSetViewports(1, &vp);
+    */
+
+    // Draw a full-screen quad using two triangles (6 vertices)
+    // Vertex positions are generated in the vertex shader via SV_VertexID
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context->IASetInputLayout(inputLayout); // SV_VertexID 用
+
+    context->VSSetShader(vs, nullptr, 0);
+    context->PSSetShader(ps, nullptr, 0);
+
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
+    std::string s_aspect = section->Get_string("aspect");
+    int mode = ASPECT_NEAREST;
+    if(s_aspect == "nearest") mode = ASPECT_NEAREST;
+    else if(s_aspect == "bilinear") mode = ASPECT_BILINEAR;
+    SetSamplerMode(mode);
+
+    context->PSSetShaderResources(0, 1, &frameSRV);
+
+    // Draw two triangles (6 vertices) to cover the entire screen
+    context->Draw(6, 0);
+
+    ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+    context->PSSetShaderResources(0, 1, nullSRV);
+
+    // Present the rendered frame to the screen (vsync is currently disabled)
+    swapchain->Present(0, 0);
+
+    textureMapped = false;
+}
+
+bool CDirect3D11::CreateSamplers(void) {
+    D3D11_SAMPLER_DESC samp = {};
+    samp.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samp.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samp.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samp.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    samp.MinLOD = 0;
+    samp.MaxLOD = D3D11_FLOAT32_MAX;
+    samp.MaxAnisotropy = 16;
+
+    // Nearest
+    samp.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    if(FAILED(device->CreateSamplerState(&samp, &samplerNearest))) return false;
+
+    // Bilinear
+    samp.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+    if(FAILED(device->CreateSamplerState(&samp, &samplerLinear))) return false;
+
+    // Stretch
+    samp.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    if(FAILED(device->CreateSamplerState(&samp, &samplerStretch))) return false;
+
+    return true;
+}
+
+void CDirect3D11::SetSamplerMode(int mode) {
+    static int last_mode = -1;
+    if(last_mode == mode) return;
+    ID3D11SamplerState* s = samplerLinear;
+    if (mode == ASPECT_NEAREST) s = samplerNearest;
+
+    context->PSSetSamplers(0, 1, &s);
+    last_mode = mode;
 }
 
 static CDirect3D11* d3d11 = nullptr;
@@ -434,7 +469,6 @@ Bitu OUTPUT_DIRECT3D11_GetBestMode(Bitu flags)
     return flags;
 }
 
-void RENDER_Reset(void);
 Bitu OUTPUT_DIRECT3D11_SetSize(void)
 {
     if(!d3d11) {
@@ -453,41 +487,10 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
         d3d11->window_width = cur_w;
     }
 
-    double target_ratio = 4.0 / 3.0; // default aspect ratio 4:3
-    if(render.aspect) { // "Fit to aspect ratio" is enabled 
-        if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
-            target_ratio = (double)aspect_ratio_x / aspect_ratio_y; // default is 4:3 if <=0
-    }
-
-    const bool reset_window_size =
-        (userResizeWindowWidth == 0) &&
-        (userResizeWindowHeight == 0) &&
-        !sdl.desktop.fullscreen;
-
-    uint32_t reset_h = render.aspect ? (uint32_t)(tex_w / target_ratio + 0.5): tex_h;
-
-    if(render.aspect) {
-        reset_h = (uint32_t)(tex_w / target_ratio + 0.5);
-    }
-
-    if(!sdl.desktop.fullscreen && reset_window_size && sdl.window) {
-        if((Bitu)cur_w != tex_w || (Bitu)cur_h != reset_h) {
-            LOG_MSG(
-                "D3D11: Reset window size %dx%d -> %dx%d",
-                cur_w, cur_h,
-                (int)tex_w, (int)reset_h);
-
-            SDL_SetWindowSize(
-                sdl.window,
-                (int)tex_w,
-                (int)reset_h);
-
-            cur_w = (int)tex_w;
-            cur_h = (int)reset_h;
-        }
-    }
     if(sdl.desktop.fullscreen && !d3d11->was_fullscreen) {
         d3d11->was_fullscreen = true;
+        d3d11->window_width = cur_w;
+        d3d11->window_height = cur_w * sdl.draw.height / sdl.draw.width;
         SDL_SetWindowFullscreen(
             sdl.window,
             SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -495,16 +498,8 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
     else if(!sdl.desktop.fullscreen && d3d11->was_fullscreen){
         SDL_SetWindowFullscreen(sdl.window, 0);
         cur_w = d3d11->window_width;
-        cur_h = cur_w / ((double)tex_w / tex_h);
-        target_ratio = (double)tex_w / tex_h;
+        cur_h = d3d11->window_height;
         d3d11->was_fullscreen = false;
-    }
-
-    if(render.aspect) {
-        if(cur_w < cur_h * target_ratio + 0.5 ||
-            cur_w > cur_h * target_ratio + 0.5) {
-            cur_h = (uint32_t)(cur_w / target_ratio + 0.5);
-        }
     }
 
     if(!d3d11->Resize(
@@ -518,11 +513,34 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
 }
 
 bool CDirect3D11::Resize(
-    uint32_t window_w,
-    uint32_t window_h,
-    uint32_t tex_w,
-    uint32_t tex_h)
+    uint32_t window_w, // current window width
+    uint32_t window_h, // current window height
+    uint32_t tex_w,    // texture width
+    uint32_t tex_h)    // texture height
 {
+    const bool reset_window_size =
+        (userResizeWindowWidth == 0) &&
+        (userResizeWindowHeight == 0) &&
+        !sdl.desktop.fullscreen;
+
+    double target_ratio = 4.0 / 3.0; // default aspect ratio 4:3
+    if(render.aspect) { // "Fit to aspect ratio" is enabled 
+        if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
+            target_ratio = (double)aspect_ratio_x / aspect_ratio_y; // default is 4:3 if <=0
+    }
+
+    uint32_t reset_h = render.aspect ? (uint32_t)(tex_w / target_ratio + 0.5) : tex_h;
+    const uint32_t cur_width = window_w;
+    const uint32_t cur_height = window_h;
+
+    if(!sdl.desktop.fullscreen) {
+        if(reset_window_size) {
+            window_w = tex_w; window_h = reset_h;
+        }
+        else if(render.aspect) {
+            window_h = (uint32_t)(window_w / target_ratio + 0.5);
+        }
+    }
 
     if(window_w == last_window_w &&
         window_h == last_window_h &&
@@ -535,11 +553,8 @@ bool CDirect3D11::Resize(
     frame_width = tex_w;
     frame_height = tex_h;
 
-    const int set_width = window_w;
-    const int set_height = window_h;
-
     if(sdl.window && !sdl.desktop.fullscreen) {
-        SDL_SetWindowSize(sdl.window, set_width, set_height);
+        SDL_SetWindowSize(sdl.window, window_w, window_h);
     }
 
     int real_w = 0, real_h = 0;
@@ -554,9 +569,6 @@ bool CDirect3D11::Resize(
     context->OMSetRenderTargets(0, nullptr, nullptr);
 
     SAFE_RELEASE(rtv);
-    SAFE_RELEASE(frameTexCPU);
-    SAFE_RELEASE(frameTexGPU);
-    SAFE_RELEASE(frameSRV);
 
     /* ----------------------------
      * 2. Resize the swap chain buffers
@@ -593,14 +605,31 @@ bool CDirect3D11::Resize(
 
     context->OMSetRenderTargets(1, &rtv, nullptr);
 
+    double screen_ratio = (double)width / height;
+    float offset_x = 0.0f;
+    float offset_y = 0.0f;
+    float vp_w = (float)width;
+    float vp_h = (float)height;
+
+    if(sdl.desktop.fullscreen && render.aspect) {
+        if(screen_ratio > target_ratio) {
+            vp_w = vp_h * target_ratio;
+            offset_x = ((float)width - vp_w) * 0.5f;
+        }
+        else if(screen_ratio < target_ratio) {
+            vp_h = vp_w / target_ratio;
+            offset_y = ((float)height - vp_h) * 0.5f;
+        }
+    }
+
     /* ----------------------------
      * 4. Update viewport to match the window size
      * ---------------------------- */
     D3D11_VIEWPORT vp = {};
-    vp.TopLeftX = 0;
-    vp.TopLeftY = 0;
-    vp.Width = (FLOAT)width;
-    vp.Height = (FLOAT)height;
+    vp.TopLeftX = offset_x;
+    vp.TopLeftY = offset_y;
+    vp.Width = (FLOAT)vp_w;
+    vp.Height = (FLOAT)vp_h;
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     context->RSSetViewports(1, &vp);
@@ -608,8 +637,13 @@ bool CDirect3D11::Resize(
     /* ----------------------------
      * 5. Recreate frame textures at internal resolution
      * ---------------------------- */
-    if(!CreateFrameTextures(frame_width, frame_height))
-        return false;
+    if(tex_w != last_tex_w || tex_h != last_tex_h) {
+        SAFE_RELEASE(frameTexCPU);
+        SAFE_RELEASE(frameTexGPU);
+        SAFE_RELEASE(frameSRV);
+        if(!CreateFrameTextures(frame_width, frame_height))
+            return false;
+    }
 
     LOG_MSG(
         "D3D11 Resize: window=%ux%u frame=%ux%u",
