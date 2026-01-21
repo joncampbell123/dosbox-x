@@ -409,7 +409,7 @@ void d3d11_init(void)
         return;
     }
 
-    if(!d3d11->Initialize(hwnd, 640, 400)) {
+    if(!d3d11->Initialize(hwnd, sdl.draw.width, sdl.draw.height)) {
         LOG_MSG("D3D11: Initialize failed");
         delete d3d11;
         d3d11 = nullptr;
