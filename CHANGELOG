@@ -35,6 +35,12 @@ NEXT VERSION
   - Added SoundBlaster microphone input support (Windows WASAPI)
     (meldro364-glitch)
   - Fixed segfault on launch of macOS builds (maron2000)
+  - Added OS/2 support for tinyfiledialogs, browser and external programs
+   (josch1710)
+  - Fixed savestate load "Memory size mismatch" error on MSVC build (rebb)
+  - Fixed savestate loading crash related to dynamically allocated TempLine in
+    VGA system (rebb)
+  - Added Direct3D11 support (Experimental, SDL2 only) (maron2000) 
     
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory
