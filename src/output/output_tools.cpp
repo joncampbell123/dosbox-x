@@ -296,7 +296,9 @@ void OutputSettingMenuUpdate(void) {
     mainMenu.get_item("output_surface").check(sdl.desktop.want_type == SCREEN_SURFACE).refresh_item(mainMenu);
 #if C_DIRECT3D
     mainMenu.get_item("output_direct3d").check(sdl.desktop.want_type == SCREEN_DIRECT3D).refresh_item(mainMenu);
+#if defined(C_SDL2)
     mainMenu.get_item("output_direct3d11").check(sdl.desktop.want_type == SCREEN_DIRECT3D11).refresh_item(mainMenu);
+#endif
 #endif
 #if C_OPENGL
     mainMenu.get_item("output_opengl").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear).refresh_item(mainMenu);

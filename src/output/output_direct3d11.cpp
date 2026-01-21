@@ -116,7 +116,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
         return false;
     }
 
-    //context->OMSetRenderTargets(1, &rtv, nullptr);
+    context->OMSetRenderTargets(1, &rtv, nullptr);
 
     D3D11_VIEWPORT vp = {};
     vp.Width = (FLOAT)width;
@@ -128,11 +128,13 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     if(!CreateFrameTextures(width, height))
         return false;
 
+    /**
     hr = device->CreateShaderResourceView(frameTexGPU, nullptr, &frameSRV);
     if(FAILED(hr)) {
         LOG_MSG("D3D11: Create SRV failed (0x%08lx)", hr);
         return false;
     }
+    */
 
     /* -------------------------------------------------
      * Shaders（SV_VertexID）
@@ -391,19 +393,7 @@ void d3d11_init(void)
     LOG_MSG("D3D11: Init called");
 
     if(!sdl.window) { // Create window if not yet created
-        Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
-        if(sdl.desktop.fullscreen)
-            flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-        else
-            flags |= SDL_WINDOW_RESIZABLE;
-
-        sdl.window = SDL_CreateWindow(
-            "DOSBox-X",
-            SDL_WINDOWPOS_CENTERED,
-            SDL_WINDOWPOS_CENTERED,
-            640, 400,
-            flags
-        );
+        sdl.window = GFX_SetSDLWindowMode(640, 400, SCREEN_SURFACE);
 
         if(!sdl.window) {
             LOG_MSG("SDL: Failed to create window: %s", SDL_GetError());
@@ -436,7 +426,6 @@ void d3d11_init(void)
 
     if(d3d11) delete d3d11;
     d3d11 = new CDirect3D11();
-    d3d11->device_ready = false;
 
     if(!d3d11) {
         LOG_MSG("D3D11: Failed to create object");
@@ -444,7 +433,7 @@ void d3d11_init(void)
         return;
     }
 
-    if(!d3d11->Initialize(hwnd, sdl.draw.width, sdl.draw.height)) {
+    if(!d3d11->Initialize(hwnd, sdl.draw.width?sdl.draw.width:640, sdl.draw.height?sdl.draw.height:400)) {
         LOG_MSG("D3D11: Initialize failed");
         delete d3d11;
         d3d11 = nullptr;

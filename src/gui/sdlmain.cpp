@@ -4051,11 +4051,13 @@ static void GUI_StartUp() {
 #if LOG_D3D
         LOG_MSG("SDL: Direct3D activated");
 #endif
+#if defined(C_SDL2)
     }
     else if(output == "direct3d11")
     {
-        LOG_MSG("SDL: Direct3D11 not supported on startup.");
-        OUTPUT_SURFACE_Select();
+        OUTPUT_DIRECT3D11_Select();
+        d3d11_init();
+#endif
 #endif
     }
 #if defined(USE_TTF)
