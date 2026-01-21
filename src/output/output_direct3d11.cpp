@@ -116,7 +116,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
         return false;
     }
 
-    context->OMSetRenderTargets(1, &rtv, nullptr);
+    //context->OMSetRenderTargets(1, &rtv, nullptr);
 
     D3D11_VIEWPORT vp = {};
     vp.Width = (FLOAT)width;
@@ -231,7 +231,7 @@ void CDirect3D11::CheckSourceResolution()
 void CDirect3D11::ResizeCPUBuffer(uint32_t src_w, uint32_t src_h)
 {
     const uint32_t required_pitch = src_w * 4; // BGRA32
-    const uint32_t required_size = required_pitch * src_h;
+    const uint32_t required_size = required_pitch * src_h * 2;
 
     // Resize CPU buffer（don't shrink if smaller）
     if(cpu_buffer.size() < required_size) {
@@ -244,18 +244,23 @@ void CDirect3D11::ResizeCPUBuffer(uint32_t src_w, uint32_t src_h)
 
 void CDirect3D11::Shutdown()
 {
-    if(rtv) { rtv->Release(); rtv = nullptr; }
-    if(swapchain) { swapchain->Release(); swapchain = nullptr; }
-    if(context) { context->Release(); context = nullptr; }
-    if(device) { device->Release(); device = nullptr; }
-    if(frameTexCPU) { frameTexCPU->Release(); frameTexCPU = nullptr; }
-    if(frameTexGPU) { frameTexGPU->Release(); frameTexGPU = nullptr; }
+    if(context) {
+        context->ClearState();
+        context->Flush();
+    }
+    SAFE_RELEASE(frameSRV);
+    SAFE_RELEASE(frameTexGPU);
+    SAFE_RELEASE(frameTexCPU);
+    SAFE_RELEASE(rtv);
+    SAFE_RELEASE(swapchain);
+    //SAFE_RELEASE(context);
+    SAFE_RELEASE(device);
+    SAFE_RELEASE(frameSRV);
     if(vs) { vs->Release(); vs = nullptr; }
     if(ps) { ps->Release(); ps = nullptr; }
     if(sampler) { sampler->Release(); sampler = nullptr; }
-    if(frameSRV) { frameSRV->Release(); frameSRV = nullptr; }
     if(fullscreenVB) {fullscreenVB->Release(); fullscreenVB = nullptr;}
-    if(inputLayout) { inputLayout->Release(); inputLayout = nullptr; }
+    //if(inputLayout) { inputLayout->Release(); inputLayout = nullptr; }
 }
 
 bool CDirect3D11::StartUpdate(uint8_t*& pixels, Bitu& pitch)
@@ -396,6 +401,7 @@ void d3d11_init(void)
 
     if(d3d11) delete d3d11;
     d3d11 = new CDirect3D11();
+    d3d11->device_ready = false;
 
     if(!d3d11) {
         LOG_MSG("D3D11: Failed to create object");
@@ -448,7 +454,38 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
     }
 
     double target_ratio = 4.0 / 3.0; // default aspect ratio 4:3
+    if(render.aspect) { // "Fit to aspect ratio" is enabled 
+        if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
+            target_ratio = (double)aspect_ratio_x / aspect_ratio_y; // default is 4:3 if <=0
+    }
 
+    const bool reset_window_size =
+        (userResizeWindowWidth == 0) &&
+        (userResizeWindowHeight == 0) &&
+        !sdl.desktop.fullscreen;
+
+    uint32_t reset_h = render.aspect ? (uint32_t)(tex_w / target_ratio + 0.5): tex_h;
+
+    if(render.aspect) {
+        reset_h = (uint32_t)(tex_w / target_ratio + 0.5);
+    }
+
+    if(!sdl.desktop.fullscreen && reset_window_size && sdl.window) {
+        if((Bitu)cur_w != tex_w || (Bitu)cur_h != reset_h) {
+            LOG_MSG(
+                "D3D11: Reset window size %dx%d -> %dx%d",
+                cur_w, cur_h,
+                (int)tex_w, (int)reset_h);
+
+            SDL_SetWindowSize(
+                sdl.window,
+                (int)tex_w,
+                (int)reset_h);
+
+            cur_w = (int)tex_w;
+            cur_h = (int)reset_h;
+        }
+    }
     if(sdl.desktop.fullscreen && !d3d11->was_fullscreen) {
         d3d11->was_fullscreen = true;
         SDL_SetWindowFullscreen(
@@ -461,18 +498,15 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
         cur_h = cur_w / ((double)tex_w / tex_h);
         target_ratio = (double)tex_w / tex_h;
         d3d11->was_fullscreen = false;
-        d3d11->Resize(
-            cur_w, cur_h,   // Window size
-            tex_w, tex_h);  // Frame texture size 
     }
 
-    if(render.aspect) { // "Fit to aspect ratio" is enabled 
-        if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
-            target_ratio = (double)aspect_ratio_x / aspect_ratio_y; // default is 4:3 if <=0
-        if(cur_w < cur_h * target_ratio + 0.5 || cur_w > cur_h * target_ratio + 0.5) {
-            cur_h = (uint32_t)cur_w / target_ratio + 0.5;
+    if(render.aspect) {
+        if(cur_w < cur_h * target_ratio + 0.5 ||
+            cur_w > cur_h * target_ratio + 0.5) {
+            cur_h = (uint32_t)(cur_w / target_ratio + 0.5);
         }
     }
+
     if(!d3d11->Resize(
         cur_w, cur_h,   // Window size
         tex_w, tex_h))  // Frame texture size 

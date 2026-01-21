@@ -51,6 +51,7 @@ public:
     uint32_t frame_width = 0, frame_height = 0;   // Framebuffer size (Internal resolution)
     uint32_t window_width = 0; // Window width (Used when returning from fullscreen)
     bool was_fullscreen = false;
+    bool device_ready = false;
 
 private:
     ID3D11Device* device = nullptr;
@@ -75,6 +76,7 @@ private:
     int cpu_pitch = 0;
     std::vector<uint8_t> cpu_buffer;
     bool textureMapped = false;
+    bool resizing = false;
     uint32_t last_window_w = 0;
     uint32_t last_window_h = 0;
     uint32_t last_tex_w = 0;
