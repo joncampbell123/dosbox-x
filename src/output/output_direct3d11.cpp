@@ -61,6 +61,11 @@ CDirect3D11::~CDirect3D11() { Shutdown(); }
 
 bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
 {
+    last_window_w = 0;
+    last_window_h = 0;
+    last_tex_w = 0;
+    last_tex_h = 0;
+
     width = w;
     height = h;
 
@@ -120,38 +125,8 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     vp.MaxDepth = 1.0f;
     context->RSSetViewports(1, &vp);
 
-    /* -------------------------------------------------
-     * Create CPU texture
-     * ------------------------------------------------- */
-    D3D11_TEXTURE2D_DESC td_cpu = {};
-    td_cpu.Width = width;
-    td_cpu.Height = height;
-    td_cpu.MipLevels = 1;
-    td_cpu.ArraySize = 1;
-    td_cpu.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    td_cpu.SampleDesc.Count = 1;
-    td_cpu.Usage = D3D11_USAGE_DYNAMIC;
-    td_cpu.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    td_cpu.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-    hr = device->CreateTexture2D(&td_cpu, nullptr, &frameTexCPU);
-    if(FAILED(hr)) {
-        LOG_MSG("D3D11: Create CPU texture failed (0x%08lx)", hr);
+    if(!CreateFrameTextures(width, height))
         return false;
-    }
-
-    /* -------------------------------------------------
-     * Create GPU texture
-     * ------------------------------------------------- */
-    D3D11_TEXTURE2D_DESC td_gpu = td_cpu;
-    td_gpu.Usage = D3D11_USAGE_DEFAULT;
-    td_gpu.CPUAccessFlags = 0;
-
-    hr = device->CreateTexture2D(&td_gpu, nullptr, &frameTexGPU);
-    if(FAILED(hr)) {
-        LOG_MSG("D3D11: Create GPU texture failed (0x%08lx)", hr);
-        return false;
-    }
 
     hr = device->CreateShaderResourceView(frameTexGPU, nullptr, &frameSRV);
     if(FAILED(hr)) {
@@ -491,11 +466,6 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
             tex_w, tex_h);  // Frame texture size 
     }
 
-    LOG_MSG(
-        "D3D11 Resize: window=%ux%u frame=%ux%u",
-        cur_w, cur_h,
-        tex_w, tex_h);
-
     if(render.aspect) { // "Fit to aspect ratio" is enabled 
         if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
             target_ratio = (double)aspect_ratio_x / aspect_ratio_y; // default is 4:3 if <=0
@@ -519,6 +489,14 @@ bool CDirect3D11::Resize(
     uint32_t tex_w,
     uint32_t tex_h)
 {
+
+    if(window_w == last_window_w &&
+        window_h == last_window_h &&
+        tex_w == last_tex_w &&
+        tex_h == last_tex_h) {
+        return true; // No change
+    }
+
     // Texture size is fixed
     frame_width = tex_w;
     frame_height = tex_h;
@@ -599,6 +577,14 @@ bool CDirect3D11::Resize(
     if(!CreateFrameTextures(frame_width, frame_height))
         return false;
 
+    LOG_MSG(
+        "D3D11 Resize: window=%ux%u frame=%ux%u",
+        width, height,
+        frame_width, frame_height);
+    last_window_w = width;
+    last_window_h = height;
+    last_tex_w = frame_width;
+    last_tex_h = frame_height;
     return true;
 }
 

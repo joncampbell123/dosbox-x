@@ -75,6 +75,10 @@ private:
     int cpu_pitch = 0;
     std::vector<uint8_t> cpu_buffer;
     bool textureMapped = false;
+    uint32_t last_window_w = 0;
+    uint32_t last_window_h = 0;
+    uint32_t last_tex_w = 0;
+    uint32_t last_tex_h = 0;
 };
 
 #endif // defined(C_SDL2)
