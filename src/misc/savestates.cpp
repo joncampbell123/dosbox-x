@@ -170,6 +170,8 @@ namespace
 	void SaveGameState(bool pressed) {
 		if (!pressed) return;
 
+		GFX_LosingFocus();
+
 		try
 		{
 			LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
@@ -194,7 +196,7 @@ namespace
 		//        LOG_MSG("[%s]: State %d is empty!", getTime().c_str(), currentSlot + 1);
 		//        return;
 		//    }
-		if (!GFX_IsFullscreen()&&render.aspect) GFX_LosingFocus();
+
 		try
 		{
 			LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
