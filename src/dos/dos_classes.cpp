@@ -434,7 +434,7 @@ bool DOS_PSP::SetNumFiles(uint16_t fileNum) {
 	return true;
 }
 
-void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern) {
+void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 	unsigned int i;
 
 	if (lfn_filefind_handle<LFN_FILEFIND_NONE || forcelfn) {

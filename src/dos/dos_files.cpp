@@ -683,6 +683,28 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
+
+    if (attr == DOS_ATTR_VOLUME) {
+        const char* vol_pattern = search;
+
+        /* Optional drive specification */
+        if (search[1] == ':') {
+            drive = (search[0] | 0x20) - 'a';
+            vol_pattern = search + 2;
+        }
+        else {
+            drive = DOS_GetDefaultDrive();
+        }
+        if (drive >= DOS_DRIVES || !Drives[drive]) {
+            DOS_SetError(DOSERR_PATH_NOT_FOUND);
+            return false;
+        }
+        sdrive = drive;
+        dta.SetupSearch(drive, (uint8_t)attr, vol_pattern);
+
+        return Drives[drive]->FindFirst("", dta, fcb_findfirst);
+    }
+
 	if (!DOS_MakeName(search,fullsearch,&drive)) return false;
 	//Check for devices. FindDevice checks for leading subdir as well
 	bool device = (DOS_FindDevice(search) != DOS_DEVICES);
