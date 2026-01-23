@@ -885,14 +885,17 @@ void showWelcome(Program *shell) {
 }
 
 bool finish_prepare = false;
+void change_output(int type);
 extern bool switch_to_d3d11_on_startup;
 
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
-    if(switch_to_d3d11_on_startup){
-        switch_to_d3d11_on_startup = false;
-        change_output(13);
-    }
+#if C_DIRECT3D && C_SDL2
+        if(switch_to_d3d11_on_startup){
+            switch_to_d3d11_on_startup = false;
+            change_output(13);
+        }
+#endif
 #if defined(USE_TTF)
         if(CurMode->type == M_TEXT || (IS_PC98_ARCH && is_ttfswitched_on)) ttf_switch_on(true); // Initialization completed, M_TEXT modes can switch to TTF mode from now on.
         if(ttf.inUse) {
