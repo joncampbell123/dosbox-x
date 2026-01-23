@@ -185,6 +185,7 @@ char* revert_escape_newlines(const char* aMessage);
 #include <output/output_ttf.h>
 #include <output/output_tools_xbrz.h>
 static bool init_output = false;
+bool switch_to_d3d11_on_startup = false;
 
 #if defined(WIN32)
 #include "resource.h"
@@ -4055,8 +4056,17 @@ static void GUI_StartUp() {
     }
     else if(output == "direct3d11")
     {
-        OUTPUT_DIRECT3D11_Select();
-        d3d11_init();
+        if(!init_output) {
+            switch_to_d3d11_on_startup = true;
+            OUTPUT_SURFACE_Select();
+            init_output = true;
+        }
+        else {
+            OUTPUT_DIRECT3D11_Select();
+            d3d11_init();
+            sdl.desktop.want_type = SCREEN_DIRECT3D11;
+            switch_to_d3d11_on_startup = false;
+        }
 #endif
 #endif
     }
