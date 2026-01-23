@@ -49,6 +49,7 @@ void resetFontSize();
 #endif
 
 void res_init(void), RENDER_Reset(void), UpdateOverscanMenu(void), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+void OutputSettingMenuUpdate(void);
 
 extern int initgl, posx, posy;
 extern bool rtl, gbk, chinasea, window_was_maximized, dpi_aware_enable, isVirtualBox;
@@ -285,6 +286,7 @@ void change_output(int output) {
     GFX_LogSDLState();
 
     UpdateWindowDimensions();
+    OutputSettingMenuUpdate();
 
 #ifdef C_SDL2
     // UX: always center window after changing output
