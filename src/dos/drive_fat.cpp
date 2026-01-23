@@ -2820,6 +2820,75 @@ static void copyDirEntry(const direntry *src, direntry *dst) {
 	var_write((uint32_t*)var, src->entrysize);
 }
 
+static bool VolumeLabelCmp(const char* label11, const char* pattern)
+{
+    int pi = 0;
+
+    /* ---- Name part (8 bytes) ---- */
+    for (int i = 0; i < 8; i++) {
+        char p = pattern[pi];
+
+        if (p == 0 || p == '.')
+            break;
+
+        if (p == '*') {
+            /* '*' matches rest of name */
+            while(pattern[pi] && pattern[pi] != '.')
+                pi++;
+            break;
+        }
+
+        if (p != '?' && toupper(p) != toupper(label11[i]))
+            return false;
+
+        pi++;
+    }
+
+    /* Skip remaining name chars in pattern until dot or end */
+    while (pattern[pi] && pattern[pi] != '.')
+        pi++;
+
+    /* No extension specified */
+    if (pattern[pi] != '.')
+        return true;
+
+    /* Skip dot */
+    pi++;
+
+    /* ---- Extension part starts at label11[8] ---- */
+    int li = 8;
+
+    while (pattern[pi]) {
+        char p = pattern[pi];
+
+        if (p == '*') {
+            /* '*' matches rest of extension */
+            return true;
+        }
+
+        /* If the rest of the pattern is only spaces, stop */
+        if (p == ' ') {
+            bool only_spaces = true;
+            for (int k = pi; pattern[k]; k++) {
+                if (pattern[k] != ' ') {
+                    only_spaces = false;
+                    break;
+                }
+            }
+            if (only_spaces)
+                return true;
+        }
+
+        if (p != '?' && toupper(p) != toupper(label11[li]))
+            return false;
+
+        pi++;
+        li++;
+    }
+
+    return true;
+}
+
 bool fatDrive::FindNextInternal(uint32_t dirClustNumber, DOS_DTA &dta, direntry *foundEntry) {
 	if (unformatted) return false;
 
@@ -2930,7 +2999,7 @@ nextfile:
 				goto nextfile;
 		}
 
-		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
+		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) || !VolumeLabelCmp((const char*)sectbuf[entryoffset].entryname, srch_pattern)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
 	} else if ((dos.version.major >= 7 || uselfn) && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
 		struct direntry_lfn *dlfn = (struct direntry_lfn*)(&sectbuf[entryoffset]);
@@ -3056,7 +3125,7 @@ nextfile:
 	}
 
 	/* Compare name to search pattern. Skip long filename match if no long filename given. */
-	if (!(WildFileCmp(find_name,srch_pattern) || (lfn_max_ord != 0 && lfind_name[0] != 0 && LWildFileCmp(lfind_name,srch_pattern)))) {
+	if (attrs != DOS_ATTR_VOLUME && (!(WildFileCmp(find_name,srch_pattern) || (lfn_max_ord != 0 && lfind_name[0] != 0 && LWildFileCmp(lfind_name,srch_pattern))))) {
 		lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
 		lfn_max_ord = 0;
 		lfnRange.clear();
