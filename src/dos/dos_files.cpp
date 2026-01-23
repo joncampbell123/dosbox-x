@@ -221,7 +221,7 @@ void DOS_SetDefaultDrive(uint8_t drive) {
 	if (drive<DOS_DRIVES && ((drive<2) || Drives[drive])) {dos.current_drive = drive; DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(drive);}
 }
 
-bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive,bool isVolume) {
+bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive) {
 	if(!name || *name == 0 || *name == ' ' || *name == '\n' || *name == ':') {
 		/* Both \0 and space are separators and
 		 * empty filenames report file not found */
@@ -231,17 +231,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive,
 	char names[LFN_NAMELENGTH];
 	strcpy(names,name);
 	char * name_int = names;
-    if (isVolume)
-    {
-        if(name_int[10] == '.') // Remove extension dot
-        {
-                name_int[10] = name_int[11];
-                name_int[11] = name_int[12];
-                name_int[12] = name_int[13];
-                name_int[13] = 32;
-        }
-	}
-	else if (strlen(names)==14 && name_int[1]==':' && name_int[2]!='\\' && name_int[9]==' ' && name_int[10]=='.') {
+	if (strlen(names)==14 && name_int[1]==':' && name_int[2]!='\\' && name_int[9]==' ' && name_int[10]=='.') {
 		for (unsigned int i=0;i<strlen(names);i++)
 			if (i<10 && name_int[i]==32) {
 				name_int[i]='.';
@@ -287,12 +277,6 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive,
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false; 
 	}
-
-    if(isVolume) // Don't process any further
-    {
-        strcpy(fullname, name_int);
-        return true;
-    }
 
 	r=0;w=0;
 	while (r<DOS_PATHLENGTH && name_int[r]!=0) {
@@ -699,11 +683,9 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
-	if (!DOS_MakeName(search,fullsearch,&drive,attr == DOS_ATTR_VOLUME)) return false;
+	if (!DOS_MakeName(search,fullsearch,&drive)) return false;
 	//Check for devices. FindDevice checks for leading subdir as well
-    bool device = false;
-    //if (attr & DOS_ATTR_DEVICE) /* FIX_ME: This line deleted to fix launching Blocek editor (Issue #4385), revert this if this induces other errors */
-        device = DOS_FindDevice(search) != DOS_DEVICES;
+	bool device = (DOS_FindDevice(search) != DOS_DEVICES);
 
     /* Split the search in dir and pattern */
     forcelfn = false;
