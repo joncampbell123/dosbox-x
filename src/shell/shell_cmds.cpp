@@ -4390,7 +4390,8 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     bool cap_audio = false;
     bool cap_mtaudio = false;
     bool cap_opl = false;
-    unsigned long post_exit_delay_ms = 3000; /* 3 sec */
+    const unsigned long default_post_exit_delay_ms = 3000; /* 3 sec */
+    unsigned long post_exit_delay_ms = default_post_exit_delay_ms;
 
     if (!strcmp(args,"-?")) {
 		args[0]='/';
@@ -4419,6 +4420,10 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 			cap_mtaudio = true;
 		else if (!(strcmp(arg1,"/-M")))
 			cap_mtaudio = false;
+		else if (!(strcmp(arg1,"/D")))
+			post_exit_delay_ms = default_post_exit_delay_ms;
+		else if (!(strcmp(arg1,"/-D")))
+			post_exit_delay_ms = 0;
 		else {
 			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),arg1);
 			return;
