@@ -812,6 +812,72 @@ int WAI_PREFIX(getModulePath)(char* out, int capacity, int* dirname_length)
   return length;
 }
 
+#elif defined(__EMSCRIPTEN__)
+
+#ifdef __cplusplus
+}
+#endif
+
+#include <emscripten.h>
+#include <string.h>
+
+// JavaScript helper: Writes JS URL into the provided C pointer
+EM_JS(int, js_fill_exe_url, (char* out, int capacity), {
+    var url = (typeof document !== 'undefined' && document.currentScript)
+              ? document.currentScript.src
+              : self.location.href;
+
+    var reqLen = lengthBytesUTF8(url);
+
+    if (out && capacity > 0) {
+        stringToUTF8(url, out, capacity);
+    }
+
+    return reqLen;
+});
+
+// JavaScript helper: Writes WASM URL into the provided C pointer
+EM_JS(int, js_fill_mod_url, (char* out, int capacity), {
+    var url = Module['wasmBinaryFile'] || "dosbox-x.wasm";
+    var absoluteUrl = new URL(url, document.baseURI).href;
+
+    var reqLen = lengthBytesUTF8(absoluteUrl);
+
+    if (out && capacity > 0) {
+        stringToUTF8(absoluteUrl, out, capacity);
+    }
+
+    return reqLen;
+});
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+WAI_NOINLINE WAI_FUNCSPEC
+int WAI_PREFIX(getExecutablePath)(char* out, int capacity, int* dirname_length) {
+    int len = js_fill_exe_url(out, capacity);
+
+    if (out && dirname_length) {
+        char* last_slash = strrchr(out, '/');
+        *dirname_length = last_slash ? (int)(last_slash - out) : 0;
+    }
+
+    return len;
+}
+
+WAI_NOINLINE WAI_FUNCSPEC
+int WAI_PREFIX(getModulePath)(char* out, int capacity, int* dirname_length) {
+    int len = js_fill_mod_url(out, capacity);
+
+    if (out && dirname_length) {
+        char* last_slash = strrchr(out, '/');
+        *dirname_length = last_slash ? (int)(last_slash - out) : 0;
+    }
+
+    return len;
+}
+
 #else
 
 #error unsupported platform
