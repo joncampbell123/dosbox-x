@@ -4,7 +4,7 @@
 
 REQUIRED_EMSDK=3.1.28
 
-if [ -z "$EMSDK"]; then
+if [ -z "$EMSDK" ]; then
     echo "Please set up Emscripten $REQUIRED_EMSDK"
     echo "Run 'source EMSDK_HOME/emsdk_env.sh' before building."
     exit 1
