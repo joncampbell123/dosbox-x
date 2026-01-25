@@ -494,7 +494,7 @@ void DOS_Shell::CMD_CLS(char * args) {
       else reg_ax=(uint16_t)CurMode->mode;
       CALLBACK_RunRealInt(0x10);
       reg_ax=oldax;
-   } 
+   }
 }
 
 void DOS_Shell::CMD_DELETE(char* args) {
@@ -1124,10 +1124,10 @@ void DOS_Shell::CMD_RENAME(char * args){
 	if (!slash) slash = strrchr(arg1,':');
 	if (slash) {
 		/* If directory specified (crystal caves installer)
-		 * rename from c:\X : rename c:\abc.exe abc.shr. 
-		 * File must appear in C:\ 
+		 * rename from c:\X : rename c:\abc.exe abc.shr.
+		 * File must appear in C:\
 		 * Ren X:\A\B C => ren X:\A\B X:\A\C */
-		 
+
 		//Copy first and then modify, makes GCC happy
 		safe_strncpy(dir_source,arg1,DOS_PATHLENGTH + 4);
 		char* dummy = strrchr_dbcs(dir_source,'\\');
@@ -1158,7 +1158,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 		if (strchr_dbcs(arg2,'\\')||strchr(arg2,':')) {SyntaxError();return;};
 		strcpy(dir_source, ".\\");
 	}
-	
+
 	strcpy(target,arg2);
 
 	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
@@ -1196,7 +1196,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	} else {
 		std::vector<std::string> sources;
 		sources.clear();
-	
+
 		do {    /* File name and extension */
 			dta.GetResult(name,lname,size,hsize,date,time,attr);
 			lfn_filefind_handle=fbak;
@@ -1321,11 +1321,11 @@ void DOS_Shell::CMD_ECHO(char * args){
 	safe_strncpy(buffer,args,512);
 	StripSpaces(pbuffer);
 	if (strcasecmp(pbuffer,"OFF")==0) {
-		echo=false;		
+		echo=false;
 		return;
 	}
 	if (strcasecmp(pbuffer,"ON")==0) {
-		echo=true;		
+		echo=true;
 		return;
 	}
 	if(strcasecmp(pbuffer,"/?")==0) { HELP("ECHO"); }
@@ -1430,7 +1430,7 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT"),toupper(targetdisplay));
 	} else if (!DOS_ChangeDir(sargs)) {
 		/* Changedir failed. Check if the filename is longer than 8 and/or contains spaces */
-	   
+
 		std::string temps(args),slashpart;
 		std::string::size_type separator = temps.find_first_of("\\/");
 		if(!separator) {
@@ -2411,7 +2411,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	}
 
 	copysource target;
-	// If more than one object exists and last target is not part of a 
+	// If more than one object exists and last target is not part of a
 	// concat sequence then make it the target.
 	if(sources.size()>1 && !sources[sources.size()-2].concat){
 		target = sources.back();
@@ -2457,7 +2457,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 		}
 		char* temp = strstr(pathTarget,"*.*");
 		if(temp && (temp == pathTarget || temp[-1] == '\\')) *temp = 0;//strip off *.* from target
-	
+
 		// add '\\' if target is a directory
 		bool target_is_file = true;
 		if (pathTarget[strlen(pathTarget)-1]!='\\') {
@@ -2482,14 +2482,14 @@ void DOS_Shell::CMD_COPY(char * args) {
 		uint16_t sourceHandle,targetHandle = 0;
 		char nameTarget[DOS_PATHLENGTH];
 		char nameSource[DOS_PATHLENGTH], nametmp[DOS_PATHLENGTH+2];
-		
+
 		// Cache so we don't have to recalculate
 		size_t pathTargetLen = strlen(pathTarget);
-		
+
 		// See if we have to substitute filename or extension
 		char * ext = nullptr;
 		size_t replacementOffset = 0;
-		if (pathTarget[pathTargetLen-1]!='\\') { 
+		if (pathTarget[pathTargetLen-1]!='\\') {
 				// only if it's not a directory
 			ext = strchr(pathTarget, '.');
 			if (ext > pathTarget) { // no possible substitution
@@ -2551,7 +2551,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 				strcpy(nameSource,pathSource);
 				strcat(nameSource,name);
-				
+
 				// Open Source
 				if (DOS_OpenFile(nameSource,0,&sourceHandle)) {
                     // record the file date/time
@@ -2561,7 +2561,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 					// Create Target or open it if in concat mode
 					strcpy(nameTarget,q);
                     strcat(nameTarget,pathTarget);
-					
+
 					if (ext) { // substitute parts if necessary
 						if (!ext[-1]) { // substitute extension
 							strcat(nameTarget, (uselfn?lname:name) + replacementOffset);
@@ -2572,13 +2572,13 @@ void DOS_Shell::CMD_COPY(char * args) {
 							strcat(nameTarget, strchr(uselfn?lname:name, '.'));
 						}
 					}
-					
+
                     if (nameTarget[strlen(nameTarget)-1]=='\\') strcat(nameTarget,uselfn?lname:name);
                     strcat(nameTarget,q);
 
 					//Special variable to ensure that copy * a_file, where a_file is not a directory concats.
 					bool special = second_file_of_current_source && target_is_file && strchr(target.filename.c_str(), '*')==NULL;
-					second_file_of_current_source = true; 
+					second_file_of_current_source = true;
 					if (special) oldsource.concat = true;
 					if (*nameSource&&*nameTarget) {
 						strcpy(nametmp, nameSource[0]!='\"'&&nameTarget[0]=='\"'?"\"":"");
@@ -2651,9 +2651,9 @@ void DOS_Shell::CMD_COPY(char * args) {
                             LOG_MSG("WARNING: COPY unable to apply date/time to dest");
 
 						//In concat mode. Open the target and seek to the eof
-						if (!oldsource.concat || (DOS_OpenFile(nameTarget,OPEN_READWRITE,&targetHandle) && 
+						if (!oldsource.concat || (DOS_OpenFile(nameTarget,OPEN_READWRITE,&targetHandle) &&
 					        	                  DOS_SeekFile(targetHandle,&dummy,DOS_SEEK_END))) {
-							// Copy 
+							// Copy
 							static uint8_t buffer[0x8000]; // static, otherwise stack overflow possible.
 							bool	failed = false;
 							uint16_t	toread = 0x8000;
@@ -2967,8 +2967,8 @@ void DOS_Shell::CMD_GOTO(char * args) {
 	//label ends at the first space
 	char* non_space = args;
 	while (*non_space) {
-		if((*non_space == ' ') || (*non_space == '\t')) 
-			*non_space = 0; 
+		if((*non_space == ' ') || (*non_space == '\t'))
+			*non_space = 0;
 		else non_space++;
 	}
 	if (!*args) {
@@ -2988,7 +2988,7 @@ void DOS_Shell::CMD_SHIFT(char * args ) {
 
 void DOS_Shell::CMD_TYPE(char * args) {
 	HELP("TYPE");
-		
+
 	// ignore /p /h and /t for compatibility
 	ScanCMDBool(args,"P");
 	ScanCMDBool(args,"H");
@@ -3225,14 +3225,14 @@ void DOS_Shell::CMD_CALL(char * args){
 }
 
 void DOS_Shell::CMD_DATE(char * args) {
-	HELP("DATE");	
+	HELP("DATE");
 	if(ScanCMDBool(args,"H")) {
 		// synchronize date with host parameter
 		time_t curtime;
 		struct tm *loctime;
 		curtime = time (NULL);
 		loctime = localtime (&curtime);
-		
+
 		reg_cx = loctime->tm_year+1900;
 		reg_dh = loctime->tm_mon+1;
 		reg_dl = loctime->tm_mday;
@@ -3296,14 +3296,14 @@ void DOS_Shell::CMD_TIME(char * args) {
 		struct tm *loctime;
 		curtime = time (NULL);
 		loctime = localtime (&curtime);
-		
+
 		//reg_cx = loctime->;
 		//reg_dh = loctime->;
 		//reg_dl = loctime->;
 
 		// reg_ah=0x2d; // set system time TODO
 		// CALLBACK_RunRealInt(0x21);
-		
+
 		uint32_t ticks=(uint32_t)(((double)(loctime->tm_hour*3600+
 										loctime->tm_min*60+
 										loctime->tm_sec))*18.206481481);
@@ -3345,7 +3345,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 }
 
 void DOS_Shell::CMD_SUBST(char * args) {
-/* If more that one type can be substed think of something else 
+/* If more that one type can be substed think of something else
  * E.g. make basedir member dos_drive instead of localdrive
  */
 	HELP("SUBST");
@@ -3381,7 +3381,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 
 				/* Change 8.3 to 11.0 */
 				const char* dot = strchr(name, '.');
-				if(dot && (dot - name == 8) ) { 
+				if(dot && (dot - name == 8) ) {
 					name[8] = name[9];name[9] = name[10];name[10] = name[11];name[11] = 0;
 				}
 
@@ -3395,7 +3395,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		}
 
 		if (command.GetCount() != 2) throw 0 ;
-  
+
 		command.FindCommand(1,arg);
 		if( (arg.size()>1) && arg[1] !=':')  throw(0);
 		char temp_str[2] = { 0,0 };
@@ -3417,17 +3417,17 @@ void DOS_Shell::CMD_SUBST(char * args) {
             sprintf(dir,"\"%s\"",arg.c_str());
         else strcpy(dir,arg.c_str());
         if (!DOS_MakeName(dir,fulldir,&drive)) throw 3;
-	
+
 		localDrive * const ldp = dynamic_cast<localDrive*>(Drives[drive]);
 		if (!ldp) throw 4;
-		char newname[CROSS_LEN];   
-		strcpy(newname, ldp->basedir);	   
+		char newname[CROSS_LEN];
+		strcpy(newname, ldp->basedir);
 		strcat(newname,fulldir);
 		CROSS_FILENAME(newname);
 		ldp->dirCache.ExpandName(newname);
-		strcat(mountstring,"\"");	   
+		strcat(mountstring,"\"");
 		strcat(mountstring, newname);
-		strcat(mountstring,"\"");	   
+		strcat(mountstring,"\"");
 		this->ParseLine(mountstring);
 	}
 	catch(int a){
@@ -3453,7 +3453,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_SUBST_FAILURE"));
 		return;
 	}
-   
+
 	return;
 }
 
@@ -3671,7 +3671,7 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
 		return;
 	}
-	
+
 	bool adda=false, adds=false, addh=false, addr=false, suba=false, subs=false, subh=false, subr=false;
 	char sfull[DOS_PATHLENGTH+2];
 	char* arg1;
@@ -3737,7 +3737,7 @@ void DOS_Shell::CMD_PATH(char *args){
 	if(args && *args){
 		char pathstring[DOS_PATHLENGTH+CROSS_LEN+20]={ 0 };
 		strcpy(pathstring,"set PATH=");
-		while(args && (*args=='='|| *args==' ')) 
+		while(args && (*args=='='|| *args==' '))
 			args++;
 		if (strlen(args) == 1 && *args == ';')
 			*args = 0;
@@ -4039,7 +4039,7 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 				KBD_x, KBD_y, KBD_z, KBD_leftbracket|shiftflag, KBD_backslash|shiftflag, KBD_rightbracket|shiftflag, KBD_grave|shiftflag, 0,
 				0, KBD_f1, KBD_f2, KBD_f3, KBD_f4, KBD_f5, KBD_f6, KBD_f7, KBD_f8, KBD_f9, KBD_f10, KBD_f11, KBD_f12,
 				KBD_up, KBD_down, KBD_left, KBD_right, KBD_insert, KBD_delete, KBD_home, KBD_end, KBD_pageup, KBD_pagedown,
-				KBD_kp0, KBD_kp1, KBD_kp2, KBD_kp3, KBD_kp4, KBD_kp5, KBD_kp6, KBD_kp7, KBD_kp8, KBD_kp9, 
+				KBD_kp0, KBD_kp1, KBD_kp2, KBD_kp3, KBD_kp4, KBD_kp5, KBD_kp6, KBD_kp7, KBD_kp8, KBD_kp9,
 			};
 			scankey = (KBD_KEYS)(map[(unsigned char)word[0]] & ~shiftflag);
 			if (map[(unsigned char)word[0]] & shiftflag) shift = true;
@@ -4549,7 +4549,7 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
         else if (!CheckDBCSCP(newCP)){
             keyb_error = DOS_ChangeCodepage(newCP, "auto");
             if (keyb_error != KEYB_NOERROR) {
-                dos.loaded_codepage = oldcp; 
+                dos.loaded_codepage = oldcp;
                 return -1;
             }
         }
