@@ -48,9 +48,13 @@ public:
     bool CreateFrameTextures(uint32_t w, uint32_t h);
     void CheckSourceResolution();
     void ResizeCPUBuffer(uint32_t src_w, uint32_t src_h);
+    bool CreateSamplers(void);
+    void SetSamplerMode(int mode);
     uint32_t frame_width = 0, frame_height = 0;   // Framebuffer size (Internal resolution)
     uint32_t window_width = 0; // Window width (Used when returning from fullscreen)
+    uint32_t window_height = 0; // Window width (Used when returning from fullscreen)
     bool was_fullscreen = false;
+    bool device_ready = false;
 
 private:
     ID3D11Device* device = nullptr;
@@ -60,7 +64,11 @@ private:
 
     ID3D11Texture2D* frameTexCPU = nullptr; // Map 用（D3D11_USAGE_DYNAMIC）
     ID3D11Texture2D* frameTexGPU = nullptr; // Copy 用（D3D11_USAGE_DEFAULT）
-    ID3D11SamplerState* sampler = nullptr;
+
+    ID3D11SamplerState* samplerNearest = nullptr;
+    ID3D11SamplerState* samplerLinear = nullptr;
+    ID3D11SamplerState* samplerStretch = nullptr;
+
     ID3D11VertexShader* vs = nullptr;
     ID3D11PixelShader* ps = nullptr;
     ID3D11InputLayout* inputLayout = nullptr;
@@ -75,6 +83,12 @@ private:
     int cpu_pitch = 0;
     std::vector<uint8_t> cpu_buffer;
     bool textureMapped = false;
+    bool resizing = false;
+    uint32_t last_window_w = 0;
+    uint32_t last_window_h = 0;
+    uint32_t last_tex_w = 0;
+    uint32_t last_tex_h = 0;
+
 };
 
 #endif // defined(C_SDL2)
