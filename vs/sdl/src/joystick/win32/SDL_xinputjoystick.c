@@ -26,7 +26,45 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include "Xinput.h"
-#pragma comment(lib, "Xinput9_1_0.lib")
+//#pragma comment(lib, "Xinput9_1_0.lib")
+
+typedef DWORD(WINAPI* XInputGetState_t)(DWORD, XINPUT_STATE*);
+typedef DWORD(WINAPI* XInputGetCapabilities_t)(DWORD, DWORD, XINPUT_CAPABILITIES*);
+
+static HMODULE hXInput = NULL;
+static XInputGetState_t pXInputGetState = NULL;
+static XInputGetCapabilities_t pXInputGetCapabilities = NULL;
+
+static int XInput_LoadDLL(void)
+{
+    const char* dlls[] = {
+        "xinput1_4.dll",   // Win8+
+        "xinput1_3.dll",   // Vista / Win7
+        "xinput9_1_0.dll"  // XP fallback
+    };
+
+    for(int i = 0; i < (int)(sizeof(dlls) / sizeof(dlls[0])); i++) {
+        hXInput = LoadLibraryA(dlls[i]);
+        if(hXInput)
+            break;
+    }
+
+    if(!hXInput)
+        return 0;
+
+    pXInputGetState = (XInputGetState_t)
+        GetProcAddress(hXInput, "XInputGetState");
+    pXInputGetCapabilities = (XInputGetCapabilities_t)
+        GetProcAddress(hXInput, "XInputGetCapabilities");
+
+    if(!pXInputGetState || !pXInputGetCapabilities) {
+        FreeLibrary(hXInput);
+        hXInput = NULL;
+        return 0;
+    }
+
+    return 1;
+}
 
 #include "SDL_events.h"
 #include "SDL_joystick.h"
@@ -78,9 +116,13 @@ static char* GetJoystickName(int index)
  * joysticks.  Joystick 0 should be the system default joystick.
  * It should return 0, or -1 on an unrecoverable fatal error.
  */
-int SDL_SYS_JoystickInit(void)
+int SDL_XINPUT_JoystickInit(void)
 {
-	int i;
+    if(!XInput_LoadDLL()) {
+        return 0;
+    }
+
+    int i;
 	int maxdevs;
 	int numdevs;
 	XINPUT_CAPABILITIES caps;
@@ -99,7 +141,7 @@ int SDL_SYS_JoystickInit(void)
 	for (i = 0; i < maxdevs && numdevs < MAX_JOYSTICKS; ++i)
 	{
 		ZeroMemory(&caps, sizeof(XINPUT_CAPABILITIES));
-		result = XInputGetCapabilities(i, XINPUT_FLAG_GAMEPAD, &caps);
+		result = pXInputGetCapabilities(i, XINPUT_FLAG_GAMEPAD, &caps);
 		if (result == ERROR_SUCCESS)
 		{
 			SYS_JoystickID[numdevs] = i;
@@ -113,7 +155,7 @@ int SDL_SYS_JoystickInit(void)
 }
 
 /* Function to get the device-dependent name of a joystick */
-const char* SDL_SYS_JoystickName(int index)
+const char* SDL_XINPUT_JoystickName(int index)
 {
 	if (SYS_JoystickName[index] != NULL)
 		return (SYS_JoystickName[index]);
@@ -126,7 +168,7 @@ const char* SDL_SYS_JoystickName(int index)
    This should fill the nbuttons and naxes fields of the joystick structure.
    It returns 0, or -1 if there is an error.
  */
-int SDL_SYS_JoystickOpen(SDL_Joystick* joystick)
+int SDL_XINPUT_JoystickOpen(SDL_Joystick* joystick)
 {
 	int index, i;
 	int axis_min[MAX_AXES], axis_max[MAX_AXES];
@@ -210,17 +252,19 @@ static Uint8 TranslatePOV(DWORD value)
  * but instead should call SDL_PrivateJoystick*() to deliver events
  * and update joystick device state.
  */
-void SDL_SYS_JoystickUpdate(SDL_Joystick* joystick)
+void SDL_XINPUT_JoystickUpdate(SDL_Joystick* joystick)
 {
+    if(!pXInputGetState) return;
+
 	DWORD result;
 	int i;
 	SHORT pos[MAX_AXES];
 	struct _transaxis* transaxis;
 	int value, change;
 
-	XINPUT_STATE state;
+ 	XINPUT_STATE state;
 	ZeroMemory(&state, sizeof(XINPUT_STATE));
-	result = XInputGetState(joystick->hwdata->id, &state);
+	result = pXInputGetState(joystick->hwdata->id, &state);
 	if (result != ERROR_SUCCESS)
 	{
 		return;
@@ -309,7 +353,7 @@ void SDL_SYS_JoystickUpdate(SDL_Joystick* joystick)
 }
 
 /* Function to close a joystick after use */
-void SDL_SYS_JoystickClose(SDL_Joystick* joystick)
+void SDL_XINPUT_JoystickClose(SDL_Joystick* joystick)
 {
 	if (joystick->hwdata != NULL)
 	{
@@ -320,7 +364,7 @@ void SDL_SYS_JoystickClose(SDL_Joystick* joystick)
 }
 
 /* Function to perform any system-specific joystick related cleanup */
-void SDL_SYS_JoystickQuit(void)
+void SDL_XINPUT_JoystickQuit(void)
 {
 	int i;
 	for (i = 0; i < MAX_JOYSTICKS; i++)

@@ -40,13 +40,31 @@ Uint8 SDL_numjoysticks = 0;
 int SDL_allocatedjoysticks = 0;
 SDL_Joystick **SDL_joysticks = NULL;
 
+static Uint8 use_xinput = 0;
+#ifdef SDL_JOYSTICK_XINPUT
+int SDL_XINPUT_JoystickInit(void);
+void SDL_XINPUT_JoystickUpdate(SDL_Joystick* joystick);
+const char* SDL_XINPUT_JoystickName(int index);
+int SDL_XINPUT_JoystickOpen(SDL_Joystick* joystick);
+void SDL_XINPUT_JoystickClose(SDL_Joystick* joystick);
+void SDL_XINPUT_JoystickQuit(void);
+#endif
+
 int SDL_JoystickInit(void)
 {
-	int arraylen;
-	int status;
+    int arraylen;
+    int status = 0;
 
-	SDL_numjoysticks = 0;
-	status = SDL_SYS_JoystickInit();
+    SDL_numjoysticks = 0;
+#ifdef SDL_JOYSTICK_XINPUT
+    status = SDL_XINPUT_JoystickInit();
+    if(status > 0) use_xinput = 1;
+    else use_xinput = 0;
+#endif
+#ifdef SDL_JOYSTICK_WINMM
+    if(!use_xinput)
+        status = SDL_SYS_JoystickInit();
+#endif
 	if ( status >= 0 ) {
 		SDL_allocatedjoysticks = status;
 		arraylen = (SDL_allocatedjoysticks+1)*sizeof(*SDL_joysticks);
@@ -81,7 +99,13 @@ const char *SDL_JoystickName(int device_index)
 		             SDL_numjoysticks);
 		return(NULL);
 	}
-	return(SDL_SYS_JoystickName(device_index));
+
+#ifdef SDL_JOYSTICK_XINPUT
+    if(use_xinput) return(SDL_XINPUT_JoystickName(device_index));
+#endif
+#ifdef SDL_JOYSTICK_WINMM
+    return(SDL_SYS_JoystickName(device_index));
+#endif
 }
 
 /*
@@ -120,10 +144,29 @@ SDL_Joystick *SDL_JoystickOpen(int device_index)
 
 	SDL_memset(joystick, 0, (sizeof *joystick));
 	joystick->index = device_index;
-	if ( SDL_SYS_JoystickOpen(joystick) < 0 ) {
-		SDL_free(joystick);
-		return(NULL);
-	}
+
+#ifdef SDL_JOYSTICK_XINPUT
+    if(use_xinput) {
+        if(SDL_XINPUT_JoystickOpen(joystick) < 0) {
+            SDL_free(joystick);
+            return NULL;
+        }
+    }
+    else
+#endif
+#ifdef SDL_JOYSTICK_WINMM
+    {
+        if(SDL_SYS_JoystickOpen(joystick) < 0) {
+            SDL_free(joystick);
+            return NULL;
+        }
+    }
+#else
+    {
+        SDL_free(joystick);
+        return NULL;
+    }
+#endif
 
 	if ( joystick->naxes > 0 ) {
 		joystick->axes = (Sint16 *)SDL_malloc
@@ -367,7 +410,17 @@ void SDL_JoystickClose(SDL_Joystick *joystick)
 	/* Lock the event queue - prevent joystick polling */
 	SDL_Lock_EventThread();
 
-	SDL_SYS_JoystickClose(joystick);
+#ifdef SDL_JOYSTICK_XINPUT
+    if(use_xinput) {
+        SDL_XINPUT_JoystickClose(joystick);
+    }
+    else
+#endif
+#ifdef SDL_JOYSTICK_WINMM
+    {
+        SDL_SYS_JoystickClose(joystick);
+    }
+#endif
 
 	/* Remove joystick from list */
 	for ( i=0; SDL_joysticks[i]; ++i ) {
@@ -418,7 +471,17 @@ void SDL_JoystickQuit(void)
 	}
 
 	/* Quit the joystick setup */
-	SDL_SYS_JoystickQuit();
+#ifdef SDL_JOYSTICK_XINPUT
+    if(use_xinput) {
+        SDL_XINPUT_JoystickQuit();
+    }
+    else
+#endif
+#ifdef SDL_JOYSTICK_WINMM
+    {
+        SDL_SYS_JoystickQuit();
+    }
+#endif
 	if ( SDL_joysticks ) {
 		SDL_free(SDL_joysticks);
 		SDL_joysticks = NULL;
@@ -570,8 +633,16 @@ void SDL_JoystickUpdate(void)
 	int i;
 
 	for ( i=0; SDL_joysticks[i]; ++i ) {
-		SDL_SYS_JoystickUpdate(SDL_joysticks[i]);
-	}
+#ifdef SDL_JOYSTICK_XINPUT
+        if(use_xinput) {
+            SDL_XINPUT_JoystickUpdate(SDL_joysticks[i]);
+            continue;
+        }
+#endif
+#ifdef SDL_JOYSTICK_WINMM
+        SDL_SYS_JoystickUpdate(SDL_joysticks[i]);
+#endif
+    }
 }
 
 int SDL_JoystickEventState(int state)
