@@ -915,7 +915,7 @@ void dosbox_integration_trigger_read() {
 
 		case DOSBOX_ID_REG_VGAIG_CAPS:
 			if (IS_VGA_ARCH && svgaCard == SVGA_DOSBoxIG) {
-				dosbox_int_register = DOSBOX_ID_REG_VGA1G_CAPS_ENABLED;
+				dosbox_int_register = DOSBOX_ID_REG_VGAIG_CAPS_ENABLED;
 			}
 			else {
 				dosbox_int_register = 0;
@@ -1199,7 +1199,7 @@ void dosbox_integration_trigger_write() {
 				if (vga.dosboxig.override_refresh != pv) modechange = true;
 
 				pv = vga.dosboxig.force_A0000;
-				vga.dosboxig.force_A0000 = !!(dosbox_int_register & DOSBOX_ID_REG_VGA1G_CTL_A0000_FORCE);
+				vga.dosboxig.force_A0000 = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_A0000_FORCE);
 				if (vga.dosboxig.force_A0000 != pv) mapchange = true;
 
 				vga.dosboxig.vesa_bios_lockout = !!(dosbox_int_register & DOSBOX_ID_REG_VGAIG_CTL_VBEMODESET_DISABLE);
