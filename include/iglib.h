@@ -86,7 +86,7 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 # define DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE_REFRESH       (1UL << 4UL)    /* override refresh rate */
 # define DOSBOX_ID_REG_VGAIG_CTL_ACPAL_BYPASS           (1UL << 5UL)    /* for 16-color planar modes, bypass the attribute controller palette mapping */
 # define DOSBOX_ID_REG_VGAIG_CTL_VBEMODESET_DISABLE     (1uL << 6UL)    /* disable VESA BIOS modesetting, intended for the Windows driver */
-# define DOSBOX_ID_REG_VGA1G_CTL_A0000_FORCE            (1UL << 7UL)    /* Force VGA memory map to A0000-AFFFF regardless of VGA registers */
+# define DOSBOX_ID_REG_VGAIG_CTL_A0000_FORCE            (1UL << 7UL)    /* Force VGA memory map to A0000-AFFFF regardless of VGA registers */
 #define DOSBOX_ID_REG_VGAIG_DISPLAYSIZE                 (0x00684591UL)  /* integrated device width/height (16:16 = HEIGHT:WIDTH) */
 #define DOSBOX_ID_REG_VGAIG_HVTOTALADD                  (0x00684592UL)  /* integrated device add to width/height to get htotal/vtotal = (16:16 V:H) */
 #define DOSBOX_ID_REG_VGAIG_FMT_BYTESPERSCANLINE        (0x00684593UL)  /* integrated device fmt/bytes per scanline (16:16 FMT:BYTESPERSCANLINE) */
@@ -108,7 +108,7 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 #define DOSBOX_ID_REG_VGAIG_BANKWINDOW                  (0x00684597UL)  /* bank switching window offset (4KB granularity) */
 #define DOSBOX_ID_REG_VGAIG_ASPECTRATIO                 (0x00684598UL)  /* display aspect ratio (16:16 = h:w), set to zero for square pixels */
 #define DOSBOX_ID_REG_VGAIG_CAPS                        (0x00684599UL)  /* read-only capabilities, 0 if machine type is not DOSBox IG */
-# define DOSBOX_ID_REG_VGA1G_CAPS_ENABLED               (1UL << 0UL)    /* DOSBox IG is enabled (machine=svga_dosbox) */
+# define DOSBOX_ID_REG_VGAIG_CAPS_ENABLED               (1UL << 0UL)    /* DOSBox IG is enabled (machine=svga_dosbox) */
 #define DOSBOX_ID_REG_VGAIG_RBANKWINDOW                 (0x0068459AUL)  /* read bank switching window offset (4KB granularity) */
 #define DOSBOX_ID_REG_VGAIG_WBANKWINDOW                 (0x0068459BUL)  /* write bank switching window offset (4KB granularity) */
 #define DOSBOX_ID_REG_GET_VGA_SIZE                      (0x006845C0UL)  /* size of the VGA screen */
