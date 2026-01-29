@@ -886,6 +886,7 @@ void showWelcome(Program *shell) {
 
 bool finish_prepare = false;
 void change_output(int type);
+bool setColors(const char* colorArray, int n);
 extern bool switch_to_d3d11_on_startup;
 
 void DOS_Shell::Prepare(void) {
@@ -902,6 +903,13 @@ void DOS_Shell::Prepare(void) {
             int cols = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("cols");
             int lins = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("lins");
             if(cols || lins) ttf_setlines(cols, lins);
+            if(is_ttfswitched_on){
+                const char* colors = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_string("colors");
+                if(*colors && !setColors(colors, -1)) {
+                    LOG_MSG("Incorrect color scheme: %s", colors);
+                }
+                is_ttfswitched_on = false;
+            }
         }
 #endif
         const char* layoutname = DOS_GetLoadedLayout();
