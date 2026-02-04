@@ -1769,8 +1769,19 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 //          || (fullscreen != (SDL_WINDOW_FULLSCREEN == (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_FULLSCREEN)))
 //          || (fullscreen && ((width != currWidth) || (height != currHeight)))
        ) {
+        /* Save window position before destroying it */
+        int saved_x = SDL_WINDOWPOS_UNDEFINED;
+        int saved_y = SDL_WINDOWPOS_UNDEFINED;
+        uint32_t saved_flags = 0;
+
         lastType = screenType;
         if (sdl.window) {
+            const uint32_t fs_flags =
+                SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP;
+            saved_flags = SDL_GetWindowFlags(sdl.window);
+            if(!(saved_flags & SDL_WINDOW_FULLSCREEN)) {
+                SDL_GetWindowPosition(sdl.window, &saved_x, &saved_y);
+            }
             SDL_DestroyWindow(sdl.window);
         }
 
@@ -1784,6 +1795,13 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
                                       | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
+            if(saved_flags & SDL_WINDOW_MAXIMIZED) {
+                SDL_MaximizeWindow(sdl.window);
+            }
+            else if(saved_x != SDL_WINDOWPOS_UNDEFINED && saved_y != SDL_WINDOWPOS_UNDEFINED &&
+                !(saved_flags & SDL_WINDOW_MAXIMIZED)) {
+                SDL_SetWindowPosition(sdl.window, saved_x, saved_y); // restore position.
+            }
         }
         sdl.surface = SDL_GetWindowSurface(sdl.window);
         SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
@@ -4193,6 +4211,26 @@ static void GUI_StartUp() {
 #if defined(C_SDL2)
     SDL_SetWindowTitle(sdl.window,"DOSBox-X");
     if (posx >= 0 && posy >= 0) {
+#if WIN32
+        HWND hwnd = GetHWND();
+        HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO info;
+        info.cbSize = sizeof(info);
+        GetMonitorInfo(monitor, &info);
+
+        int x = info.rcWork.left;
+        int y = info.rcWork.top;
+
+        SetWindowPos(
+            hwnd, nullptr,
+            x, y,
+            0, 0,
+            SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE
+        );
+
+        SDL_GetWindowPosition(sdl.window, &x, &y); // get (0,0) position
+        SDL_SetWindowPosition(sdl.window, posx, y + posy);
+#else
         if (sdl.displayNumber>0) {
             int displays = SDL_GetNumVideoDisplays();
             SDL_Rect bound;
@@ -4207,6 +4245,7 @@ static void GUI_StartUp() {
             }
         }
         SDL_SetWindowPosition(sdl.window, posx, posy);
+#endif
     }
 #else
     SDL_WM_SetCaption("DOSBox-X",VERSION);

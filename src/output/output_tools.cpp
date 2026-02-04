@@ -290,7 +290,7 @@ void change_output(int output) {
 
 #ifdef C_SDL2
     // UX: always center window after changing output
-    SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    // SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #endif
 }
 
