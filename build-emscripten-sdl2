@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 
-# make sure you use ". ./emsdk_env.sh"
+# This build script was tested on Ubunto 24.04 with Emscripten 3.1.28
+
+REQUIRED_EMSDK=3.1.28
+
+if [ -z "$EMSDK" ]; then
+    echo "Please set up Emscripten $REQUIRED_EMSDK"
+    echo "Run 'source EMSDK_HOME/emsdk_env.sh' before building."
+    exit 1
+fi
 
 # I'm sick and tired of all the churn the three versions of autoconf
 # are causing in this repo. Stop committing the configure scripts
@@ -17,8 +25,8 @@ LD_CXX="em++"
 AR="emar"
 RANLIB="emranlib"
 CFLAGS="-DEMTERPRETER_SYNC"
-CXXFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC -s USE_ZLIB=1 -s USE_SDL=2"
-LDFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC -s USE_ZLIB=1 -s USE_SDL=2 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s TOTAL_MEMORY=100663296 -s ASYNCIFY -s ERROR_ON_UNDEFINED_SYMBOLS=0"
+CXXFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_NET=2"
+LDFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_NET=2 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s TOTAL_MEMORY=100663296 -s ASYNCIFY -s ERROR_ON_UNDEFINED_SYMBOLS=0"
 export CC CXX LD LD_CXX AR RANLIB CFLAGS CXXFLAGS LDFLAGS
 
 # where are we?
