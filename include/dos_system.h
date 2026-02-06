@@ -275,24 +275,24 @@ private:
 	uint16_t		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
 
-	CFileInfo*	dirBase;
+	CFileInfo*	dirBase = NULL;
 	char		dirPath				[CROSS_LEN] = {};
 	DOS_Drive*	drive = NULL;
 	char		basePath			[CROSS_LEN] = {};
 	bool		dirFirstTime = false;
-	TDirSort	sortDirType;
-	CFileInfo*	save_dir;
+	TDirSort	sortDirType = NOSORT;
+	CFileInfo*	save_dir = NULL;
 	char		save_path			[CROSS_LEN] = {};
 	char		save_expanded		[CROSS_LEN] = {};
 
-	uint16_t		srchNr;
-	CFileInfo*	dirSearch			[MAX_OPENDIRS];
+	uint16_t		srchNr = 0;
+	CFileInfo*	dirSearch			[MAX_OPENDIRS] = {};
 	char		dirSearchName		[MAX_OPENDIRS] = {};
-	CFileInfo*	dirFindFirst		[MAX_OPENDIRS];
-	uint16_t		nextFreeFindFirst;
+	CFileInfo*	dirFindFirst		[MAX_OPENDIRS] = {};
+	uint16_t		nextFreeFindFirst = 0;
 
-	char		label				[CROSS_LEN];
-	bool		updatelabel;
+	char		label				[CROSS_LEN] = {};
+	bool		updatelabel = false;
 };
 
 class DOS_Drive {
@@ -330,16 +330,16 @@ public:
 	/* these 4 may only be used by DOS_Drive_Cache because they have special calling conventions */
 	virtual void *opendir(const char *dir) { (void)dir; return NULL; };
 	virtual void closedir(void *handle) { (void)handle; };
-    virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
-    virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
+	virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
+	virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
 	virtual const char * GetInfo(void);
 	char * GetBaseDir(void);
 
-    bool readonly;
-    bool nocachedir;
-    bool partitionMount = false;
-	char curdir[DOS_PATHLENGTH];
-	char info[256];
+	bool readonly;
+	bool nocachedir;
+	bool partitionMount = false;
+	char curdir[DOS_PATHLENGTH]={0};
+	char info[256]={0};
 	/* Can be overridden for example in iso images */
 	virtual char const * GetLabel() {return "NOLABEL";}; 
 	virtual void SetLabel(const char *label, bool iscdrom, bool updatable) { (void)label; (void)iscdrom; (void)updatable; };
@@ -351,9 +351,9 @@ public:
 	virtual void LoadState( std::istream& stream );
 	virtual void UpdateDPB(unsigned char dos_drive) { (void)dos_drive; };
 
-    // INT 25h/INT 26h
-    virtual uint32_t GetSectorCount(void) { return 0; }
-    virtual uint32_t GetSectorSize(void) { return 0; } // LOGICAL sector size (from the FAT driver) not PHYSICAL disk sector size
+	// INT 25h/INT 26h
+	virtual uint32_t GetSectorCount(void) { return 0; }
+	virtual uint32_t GetSectorSize(void) { return 0; } // LOGICAL sector size (from the FAT driver) not PHYSICAL disk sector size
 	virtual uint8_t Read_AbsoluteSector_INT25(uint32_t sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
 	virtual uint8_t Write_AbsoluteSector_INT25(uint32_t sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
 };
