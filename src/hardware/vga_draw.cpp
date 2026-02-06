@@ -326,7 +326,7 @@ bool TempLineAlloc(unsigned int w) {
 	if (TempLine) return false;
 
 	TempLineSize = w * 4 + 1024;
-	if ((TempLine=(uint8_t*)malloc(TempLineSize)) == NULL) {
+	if ((TempLine=(uint8_t*)calloc(1,TempLineSize)) == NULL) {
 		TempLineSize = 0;
 		return false;
 	}
