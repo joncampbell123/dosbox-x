@@ -8359,22 +8359,33 @@ void POD_Save_VGA_Draw( std::ostream& stream )
 	else if( vga.draw.linear_base == vga.mem.linear ) linear_base_idx = 0;
 	//else if( vga.draw.linear_base == vga.fastmem ) linear_base_idx = 1;
 
-
-	for( int lcv=0; lcv<2; lcv++ ) {
-		if(0) {}
-		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[0*1024]) ) font_tables_idx[lcv] = 0;
-		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[8*1024]) ) font_tables_idx[lcv] = 1;
-		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[16*1024]) ) font_tables_idx[lcv] = 2;
-		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[24*1024]) ) font_tables_idx[lcv] = 3;
-		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[32*1024]) ) font_tables_idx[lcv] = 4;
-		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[40*1024]) ) font_tables_idx[lcv] = 5;
-		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[48*1024]) ) font_tables_idx[lcv] = 6;
-		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[56*1024]) ) font_tables_idx[lcv] = 7;
+	if (IS_EGAVGA_ARCH) {
+		for( int lcv=0; lcv<2; lcv++ ) {
+			if( vga.draw.font_tables[lcv] == &(vga.mem.linear[0*1024*4 + 2]) ) font_tables_idx[lcv] = 0;
+			else if( vga.draw.font_tables[lcv] == &(vga.mem.linear[8*1024*4 + 2]) ) font_tables_idx[lcv] = 1;
+			else if( vga.draw.font_tables[lcv] == &(vga.mem.linear[16*1024*4 + 2]) ) font_tables_idx[lcv] = 2;
+			else if( vga.draw.font_tables[lcv] == &(vga.mem.linear[24*1024*4 + 2]) ) font_tables_idx[lcv] = 3;
+			else if( vga.draw.font_tables[lcv] == &(vga.mem.linear[32*1024*4 + 2]) ) font_tables_idx[lcv] = 4;
+			else if( vga.draw.font_tables[lcv] == &(vga.mem.linear[40*1024*4 + 2]) ) font_tables_idx[lcv] = 5;
+			else if( vga.draw.font_tables[lcv] == &(vga.mem.linear[48*1024*4 + 2]) ) font_tables_idx[lcv] = 6;
+			else if( vga.draw.font_tables[lcv] == &(vga.mem.linear[56*1024*4 + 2]) ) font_tables_idx[lcv] = 7;
+		}
+	}
+	else {
+		for( int lcv=0; lcv<2; lcv++ ) {
+			if( vga.draw.font_tables[lcv] == &(vga.draw.font[0*1024]) ) font_tables_idx[lcv] = 0;
+			else if( vga.draw.font_tables[lcv] == &(vga.draw.font[8*1024]) ) font_tables_idx[lcv] = 1;
+			else if( vga.draw.font_tables[lcv] == &(vga.draw.font[16*1024]) ) font_tables_idx[lcv] = 2;
+			else if( vga.draw.font_tables[lcv] == &(vga.draw.font[24*1024]) ) font_tables_idx[lcv] = 3;
+			else if( vga.draw.font_tables[lcv] == &(vga.draw.font[32*1024]) ) font_tables_idx[lcv] = 4;
+			else if( vga.draw.font_tables[lcv] == &(vga.draw.font[40*1024]) ) font_tables_idx[lcv] = 5;
+			else if( vga.draw.font_tables[lcv] == &(vga.draw.font[48*1024]) ) font_tables_idx[lcv] = 6;
+			else if( vga.draw.font_tables[lcv] == &(vga.draw.font[56*1024]) ) font_tables_idx[lcv] = 7;
+		}
 	}
 
 
-	if(0) {}
-	else if( VGA_DrawLine == VGA_Draw_1BPP_Line ) drawline_idx = 1;
+	if( VGA_DrawLine == VGA_Draw_1BPP_Line ) drawline_idx = 1;
 	else if( VGA_DrawLine == VGA_Draw_2BPP_Line ) drawline_idx = 3;
 	else if( VGA_DrawLine == VGA_Draw_2BPPHiRes_Line ) drawline_idx = 4;
 	else if( VGA_DrawLine == VGA_Draw_CGA16_Line ) drawline_idx = 5;
@@ -8491,16 +8502,32 @@ void POD_Load_VGA_Draw( std::istream& stream )
 	}
 
 
-	for( int lcv=0; lcv<2; lcv++ ) {
-		switch( font_tables_idx[lcv] ) {
-			case 0: vga.draw.font_tables[lcv] = &(vga.draw.font[0*1024]); break;
-			case 1: vga.draw.font_tables[lcv] = &(vga.draw.font[8*1024]); break;
-			case 2: vga.draw.font_tables[lcv] = &(vga.draw.font[16*1024]); break;
-			case 3: vga.draw.font_tables[lcv] = &(vga.draw.font[24*1024]); break;
-			case 4: vga.draw.font_tables[lcv] = &(vga.draw.font[32*1024]); break;
-			case 5: vga.draw.font_tables[lcv] = &(vga.draw.font[40*1024]); break;
-			case 6: vga.draw.font_tables[lcv] = &(vga.draw.font[48*1024]); break;
-			case 7: vga.draw.font_tables[lcv] = &(vga.draw.font[56*1024]); break;
+	if (IS_EGAVGA_ARCH) {
+		for( int lcv=0; lcv<2; lcv++ ) {
+			switch( font_tables_idx[lcv] ) {
+				case 0: vga.draw.font_tables[lcv] = &(vga.mem.linear[0*1024*4 + 2]); break;
+				case 1: vga.draw.font_tables[lcv] = &(vga.mem.linear[8*1024*4 + 2]); break;
+				case 2: vga.draw.font_tables[lcv] = &(vga.mem.linear[16*1024*4 + 2]); break;
+				case 3: vga.draw.font_tables[lcv] = &(vga.mem.linear[24*1024*4 + 2]); break;
+				case 4: vga.draw.font_tables[lcv] = &(vga.mem.linear[32*1024*4 + 2]); break;
+				case 5: vga.draw.font_tables[lcv] = &(vga.mem.linear[40*1024*4 + 2]); break;
+				case 6: vga.draw.font_tables[lcv] = &(vga.mem.linear[48*1024*4 + 2]); break;
+				case 7: vga.draw.font_tables[lcv] = &(vga.mem.linear[56*1024*4 + 2]); break;
+			}
+		}
+	}
+	else {
+		for( int lcv=0; lcv<2; lcv++ ) {
+			switch( font_tables_idx[lcv] ) {
+				case 0: vga.draw.font_tables[lcv] = &(vga.draw.font[0*1024]); break;
+				case 1: vga.draw.font_tables[lcv] = &(vga.draw.font[8*1024]); break;
+				case 2: vga.draw.font_tables[lcv] = &(vga.draw.font[16*1024]); break;
+				case 3: vga.draw.font_tables[lcv] = &(vga.draw.font[24*1024]); break;
+				case 4: vga.draw.font_tables[lcv] = &(vga.draw.font[32*1024]); break;
+				case 5: vga.draw.font_tables[lcv] = &(vga.draw.font[40*1024]); break;
+				case 6: vga.draw.font_tables[lcv] = &(vga.draw.font[48*1024]); break;
+				case 7: vga.draw.font_tables[lcv] = &(vga.draw.font[56*1024]); break;
+			}
 		}
 	}
 
