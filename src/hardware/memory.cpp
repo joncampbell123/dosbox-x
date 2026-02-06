@@ -2816,7 +2816,7 @@ public:
 private:
 	void getBytes(std::ostream& stream) override
 	{
-		uint8_t pagehandler_idx[0x40000];
+		uint8_t pagehandler_idx[0x40000] = {0};
 		unsigned int size_table;
 
 		// Assume 1GB maximum memory size

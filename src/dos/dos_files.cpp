@@ -2315,7 +2315,7 @@ char overlaydir[CROSS_LEN];
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
 void POD_Save_DOS_Files( std::ostream& stream )
 {
-    char dinfo[256];
+    char dinfo[256] = {0};
     WRITE_POD( &ZDRIVE_NUM, ZDRIVE_NUM);
 	if (!dos_kernel_disabled) {
 		// 1. Do drives first (directories -> files)
