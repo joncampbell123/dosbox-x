@@ -82,44 +82,44 @@ public:
 		ATTACK,
 	} State;
 
-	VolumeHandler volHandler;
+	VolumeHandler volHandler = NULL;
 
 #if (DBOPL_WAVE == WAVE_HANDLER)
-	WaveHandler waveHandler;	//Routine that generate a wave 
+	WaveHandler waveHandler = NULL;	//Routine that generate a wave 
 #else
-	int16_t* waveBase;
-	uint32_t waveMask;
-	uint32_t waveStart;
+	int16_t* waveBase = NULL;
+	uint32_t waveMask = 0;
+	uint32_t waveStart = 0;
 #endif
-	uint32_t waveIndex;			//WAVE_BITS shifted counter of the frequency index
-	uint32_t waveAdd;				//The base frequency without vibrato
-	uint32_t waveCurrent;			//waveAdd + vibrato
+	uint32_t waveIndex = 0;			//WAVE_BITS shifted counter of the frequency index
+	uint32_t waveAdd = 0;				//The base frequency without vibrato
+	uint32_t waveCurrent = 0;			//waveAdd + vibrato
 
-	uint32_t chanData;			//Frequency/octave and derived data coming from whatever channel controls this
-	uint32_t freqMul;				//Scale channel frequency with this, TODO maybe remove?
-	uint32_t vibrato;				//Scaled up vibrato strength
-	int32_t sustainLevel;		//When stopping at sustain level stop here
-	int32_t totalLevel;			//totalLevel is added to every generated volume
-	uint32_t currentLevel;		//totalLevel + tremolo
-	int32_t volume;				//The currently active volume
+	uint32_t chanData = 0;			//Frequency/octave and derived data coming from whatever channel controls this
+	uint32_t freqMul = 0;				//Scale channel frequency with this, TODO maybe remove?
+	uint32_t vibrato = 0;				//Scaled up vibrato strength
+	int32_t sustainLevel = 0;		//When stopping at sustain level stop here
+	int32_t totalLevel = 0;			//totalLevel is added to every generated volume
+	uint32_t currentLevel = 0;		//totalLevel + tremolo
+	int32_t volume = 0;				//The currently active volume
 	
-	uint32_t attackAdd;			//Timers for the different states of the envelope
-	uint32_t decayAdd;
-	uint32_t releaseAdd;
-	uint32_t rateIndex;			//Current position of the envelope
+	uint32_t attackAdd = 0;			//Timers for the different states of the envelope
+	uint32_t decayAdd = 0;
+	uint32_t releaseAdd = 0;
+	uint32_t rateIndex = 0;			//Current position of the envelope
 
-	uint8_t rateZero;				//Bits for the different states of the envelope having no changes
-	uint8_t keyOn;				//Bitmask of different values that can generate keyon
+	uint8_t rateZero = 0;				//Bits for the different states of the envelope having no changes
+	uint8_t keyOn = 0;				//Bitmask of different values that can generate keyon
 	//Registers, also used to check for changes
-	uint8_t reg20, reg40, reg60, reg80, regE0;
+	uint8_t reg20 = 0, reg40 = 0, reg60 = 0, reg80 = 0, regE0 = 0;
 	//Active part of the envelope we're in
-	uint8_t state;
+	uint8_t state = 0;
 	//0xff when tremolo is enabled
-	uint8_t tremoloMask;
+	uint8_t tremoloMask = 0;
 	//Strength of the vibrato
-	uint8_t vibStrength;
+	uint8_t vibStrength = 0;
 	//Keep track of the calculated KSR so we can check for changes
-	uint8_t ksr;
+	uint8_t ksr = 0;
 private:
 	void SetState( uint8_t s );
 	void UpdateAttack( const Chip* chip );
@@ -204,16 +204,16 @@ struct Chip {
 	uint32_t noiseValue = 0;
 
 	//Frequency scales for the different multiplications
-    uint32_t freqMul[16] = {};
+	uint32_t freqMul[16] = {};
 	//Rates for decay and release for rate of this chip
-    uint32_t linearRates[76] = {};
+	uint32_t linearRates[76] = {};
 	//Best match attack rates for the rate of this chip
-    uint32_t attackRates[76] = {};
+	uint32_t attackRates[76] = {};
 
-	uint8_t reg104;
-	uint8_t reg08;
-	uint8_t reg04;
-	uint8_t regBD;
+	uint8_t reg104 = 0;
+	uint8_t reg08 = 0;
+	uint8_t reg04 = 0;
+	uint8_t regBD = 0;
 	uint8_t vibratoIndex = 0;
 	uint8_t tremoloIndex = 0;
 	int8_t vibratoSign = 0;
@@ -224,7 +224,7 @@ struct Chip {
 	//Mask for allowed wave forms
 	uint8_t waveFormMask = 0;
 	//0 or -1 when enabled
-	int8_t opl3Active;
+	int8_t opl3Active = 0;
 	//Running in opl3 mode
 	const bool opl3Mode;
 
