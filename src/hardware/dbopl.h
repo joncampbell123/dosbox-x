@@ -161,16 +161,16 @@ struct Channel {
 		return &( ( this + (index >> 1) )->op[ index & 1 ]);
 	}
 	SynthHandler synthHandler;
-	uint32_t chanData;		//Frequency/octave and derived values
-	int32_t old[2];			//Old data for feedback
+	uint32_t chanData = 0;		//Frequency/octave and derived values
+	int32_t old[2] = {0};			//Old data for feedback
 
-	uint8_t feedback;			//Feedback shift
-	uint8_t regB0;			//Register values to check for changes
-	uint8_t regC0;
+	uint8_t feedback = 0;			//Feedback shift
+	uint8_t regB0 = 0;			//Register values to check for changes
+	uint8_t regC0 = 0;
 	//This should correspond with reg104, bit 6 indicates a Percussion channel, bit 7 indicates a silent channel
-	uint8_t fourMask;
-	int8_t maskLeft;		//Sign extended values for both channel's panning
-	int8_t maskRight;
+	uint8_t fourMask = 0;
+	int8_t maskLeft = 0;		//Sign extended values for both channel's panning
+	int8_t maskRight = 0;
 
 	//Forward the channel data to the operators of the channel
 	void SetChanData( const Chip* chip, uint32_t data );
