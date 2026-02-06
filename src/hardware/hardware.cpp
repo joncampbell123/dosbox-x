@@ -810,8 +810,8 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 #if (C_SSHOT)
 	Bitu i;
 	Bitu countWidth = width;
-    std::vector<uint8_t> doubleRowBuf((countWidth + 32) * 4);
-    uint8_t *doubleRow = doubleRowBuf.data();
+	std::vector<uint8_t> doubleRowBuf((countWidth + 32) * 4 * ((flags & CAPTURE_FLAG_DBLW) ? 2 : 1));
+	uint8_t *doubleRow = doubleRowBuf.data();
 
 	if (flags & CAPTURE_FLAG_DBLH)
 		height *= 2;
