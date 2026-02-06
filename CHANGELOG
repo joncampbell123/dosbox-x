@@ -27,7 +27,8 @@ NEXT VERSION
     DOSBox, but the hardware rate is 49716 and that should be the default
     (joncampbell123).
   - Fixed crash on starting debugger on MinGW builds (maron2000)
-  - Use more ChinaSea/Big5-2003 extended characters for CP951 (1abcd)
+  - Use more ChinaSea and Big5-2003 extended characters for CP951,
+    covering the ranges 8E40–A3FE and C6A1–FEFE (1abcd)
   - Replaced deprecated symbols to enable launching on old macOSs (maron2000)
   - Converted all bash-dependent shell files to POSIX-shell compliant
     (pandasoli)
