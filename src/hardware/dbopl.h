@@ -160,7 +160,7 @@ struct Channel {
 	inline Operator* Op( Bitu index ) {
 		return &( ( this + (index >> 1) )->op[ index & 1 ]);
 	}
-	SynthHandler synthHandler;
+	SynthHandler synthHandler = NULL;
 	uint32_t chanData = 0;		//Frequency/octave and derived values
 	int32_t old[2] = {0};			//Old data for feedback
 
@@ -204,11 +204,11 @@ struct Chip {
 	uint32_t noiseValue = 0;
 
 	//Frequency scales for the different multiplications
-	uint32_t freqMul[16] = {};
+	uint32_t freqMul[16] = {0};
 	//Rates for decay and release for rate of this chip
-	uint32_t linearRates[76] = {};
+	uint32_t linearRates[76] = {0};
 	//Best match attack rates for the rate of this chip
-	uint32_t attackRates[76] = {};
+	uint32_t attackRates[76] = {0};
 
 	uint8_t reg104 = 0;
 	uint8_t reg08 = 0;
