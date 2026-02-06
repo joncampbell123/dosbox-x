@@ -209,28 +209,28 @@ static GFGus myGUS;
 
 class GUSChannel {
 	public:
-		uint32_t WaveStart;
-		uint32_t WaveEnd;
-		uint32_t WaveAddr;
-		uint32_t WaveAdd;
-		uint8_t  WaveCtrl;
-		uint16_t WaveFreq;
+		uint32_t WaveStart = 0;
+		uint32_t WaveEnd = 0;
+		uint32_t WaveAddr = 0;
+		uint32_t WaveAdd = 0;
+		uint8_t  WaveCtrl = 0;
+		uint16_t WaveFreq = 0;
 
-		uint32_t RampStart;
-		uint32_t RampEnd;
-		uint32_t RampVol;
-		uint32_t RampAdd;
+		uint32_t RampStart = 0;
+		uint32_t RampEnd = 0;
+		uint32_t RampVol = 0;
+		uint32_t RampAdd = 0;
 
-		uint8_t RampRate;
-		uint8_t RampCtrl;
+		uint8_t RampRate = 0;
+		uint8_t RampCtrl = 0;
 
-		uint8_t PanPot;
-		uint8_t channum;
-		uint32_t irqmask;
-		uint32_t PanLeft;
-		uint32_t PanRight;
-		int32_t VolLeft;
-		int32_t VolRight;
+		uint8_t PanPot = 0;
+		uint8_t channum = 0;
+		uint32_t irqmask = 0;
+		uint32_t PanLeft = 0;
+		uint32_t PanRight = 0;
+		int32_t VolLeft = 0;
+		int32_t VolRight = 0;
 
 		GUSChannel(uint8_t num) { 
 			channum = num;

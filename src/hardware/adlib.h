@@ -32,18 +32,18 @@ namespace Adlib {
 
 class Timer {
 	//Rounded down start time
-	double start;
+	double start = 0;
 	//Time when you overflow
-	double trigger;
+	double trigger = 0;
 	//Clock interval
-	double clockInterval;
+	double clockInterval = 0;
 	//cycle interval
-	double counterInterval;
-	uint8_t counter;
-	bool masked;
+	double counterInterval = 0;
+	uint8_t counter = 0;
+	bool masked = false;
 public:
-	bool enabled;
-	bool overflow;
+	bool enabled = false;
+	bool overflow = false;
 
 	Timer( int16_t micros ) {
 		overflow = false;
@@ -178,32 +178,32 @@ class Module: public Module_base {
 	MixerObject mixerObject;
 
 	//Mode we're running in
-	Mode mode;
+	Mode mode = MODE_OPL2;
 	//Last selected address in the chip for the different modes
 	union {
 		uint32_t normal;
 		uint8_t dual[2];
-	} reg;
+	} reg = {};
 	struct {
 		bool active;
 		uint8_t index;
 		uint8_t lvol;
 		uint8_t rvol;
 		bool mixer;
-    } ctrl = {};
+	} ctrl = {};
 	void CacheWrite( uint32_t reg, uint8_t val );
 	void DualWrite( uint8_t index, uint8_t reg, uint8_t val );
 	void CtrlWrite( uint8_t val );
 	Bitu CtrlRead( void );
 public:
 	static OPL_Mode oplmode;
-	MixerChannel* mixerChan;
-	uint32_t lastUsed;				//Ticks when adlib was last used to turn of mixing after a few second
-	bool esfm_nativemode;			// When using MODE_ESFM, whether the synth is in native mode or not - affects port mapping
+	MixerChannel* mixerChan = NULL;
+	uint32_t lastUsed = 0;				//Ticks when adlib was last used to turn of mixing after a few second
+	bool esfm_nativemode = false;			// When using MODE_ESFM, whether the synth is in native mode or not - affects port mapping
 
-	Handler* handler;				//Handler that will generate the sound
-    RegisterCache cache = {};
-	Capture* capture;
+	Handler* handler = NULL;				//Handler that will generate the sound
+	RegisterCache cache = {};
+	Capture* capture = NULL;
 	Chip	chip[2];
 
 	//Handle port writes

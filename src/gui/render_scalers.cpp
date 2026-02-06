@@ -104,11 +104,25 @@ void Scaler_AspectChangedLinesAlloc(unsigned int h) {
 	if (!Scaler_Aspect && h != 0u) {
 		if ((Scaler_Aspect=(uint8_t*)malloc((h+16)*sizeof(uint8_t))) == NULL)
 			return;
+
+		/* pre-initialize to make sure outputs STOP at the end of the array, else there will be a
+		 * potential segfault (however unlikely) when the output changed line array scan reads up
+		 * to 2 array elements past the end of the buffer */
+		for (unsigned int i=0;i < (h+16);i++)
+			Scaler_Aspect[i] = 8; /* skip a large amount to force it to quit */
 	}
 
 	if (!Scaler_ChangedLines && h != 0u) {
 		if ((Scaler_ChangedLines=(uint16_t*)malloc((h+16)*sizeof(uint16_t))) == NULL)
 			return;
+
+		/* pre-initialize to make sure outputs STOP at the end of the array, else there will be a
+		 * potential segfault (however unlikely) when the output changed line array scan reads up
+		 * to 2 array elements past the end of the buffer */
+		for (unsigned int i=0;i < (h+16);i += 2) {
+			Scaler_ChangedLines[i+0] = 8192; /* skip a large amount to force it to quit */
+			Scaler_ChangedLines[i+1] = 0; /* draw 0 lines */
+		}
 	}
 }
 
