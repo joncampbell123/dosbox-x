@@ -52,7 +52,8 @@ public:
     void CheckSourceResolution();
     void ResizeCPUBuffer(uint32_t src_w, uint32_t src_h);
     bool CreateSamplers(void);
-    void SetSamplerMode(int mode);
+    void SetSamplerMode(void);
+    void GetRenderMode(void);
 
     uint32_t frame_width = 0, frame_height = 0;   // Framebuffer size (Internal resolution)
     uint32_t window_width = 0; // Window width (Used when returning from fullscreen)
@@ -92,6 +93,7 @@ private:
     uint32_t last_window_h = 0;
     uint32_t last_tex_w = 0;
     uint32_t last_tex_h = 0;
+    int current_render_mode;
 };
 
 #endif // defined(C_SDL2)
