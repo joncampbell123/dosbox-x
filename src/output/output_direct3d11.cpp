@@ -16,11 +16,26 @@
 #include "output_surface.h"
 
 #include "output_direct3d11.h"
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "dxgi.lib")
+//#pragma comment(lib, "d3d11.lib")
+//#pragma comment(lib, "dxgi.lib")
 
 #include <d3dcompiler.h>
-#pragma comment(lib, "d3dcompiler.lib")
+//#pragma comment(lib, "d3dcompiler.lib")
+
+typedef HRESULT(WINAPI* PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN)(
+    IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT,
+    const D3D_FEATURE_LEVEL*, UINT, UINT,
+    const DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**,
+    ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+
+typedef HRESULT(WINAPI* PFN_D3D_COMPILE)(
+    LPCVOID, SIZE_T, LPCSTR, const D3D_SHADER_MACRO*,
+    ID3DInclude*, LPCSTR, LPCSTR, UINT, UINT, ID3DBlob**, ID3DBlob**);
+
+static PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN pD3D11CreateDeviceAndSwapChain = nullptr;
+static PFN_D3D_COMPILE my_pD3DCompile = nullptr;
+static HMODULE hD3D11 = nullptr;
+static HMODULE hD3DCompiler = nullptr;
 
 static const char* vs_source = R"(
 struct VSOut {
@@ -88,19 +103,9 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     sd.Windowed = TRUE;
     sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-    HRESULT hr = D3D11CreateDeviceAndSwapChain(
-        nullptr,
-        D3D_DRIVER_TYPE_HARDWARE,
-        nullptr,
-        0,
-        nullptr,
-        0,
-        D3D11_SDK_VERSION,
-        &sd,
-        &swapchain,
-        &device,
-        nullptr,
-        &context);
+    HRESULT hr = pD3D11CreateDeviceAndSwapChain(
+        nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
+        D3D11_SDK_VERSION, &sd, &swapchain, &device, nullptr, &context);
 
     if(FAILED(hr)) {
         LOG_MSG("D3D11: CreateDeviceAndSwapChain failed (0x%08lx)", hr);
@@ -148,7 +153,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     ID3DBlob* ps_blob = nullptr;
     ID3DBlob* err = nullptr;
 
-    hr = D3DCompile(
+    hr = my_pD3DCompile(
         vs_source, strlen(vs_source),
         nullptr, nullptr, nullptr,
         "main", "vs_4_0",
@@ -160,7 +165,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
         return false;
     }
 
-    hr = D3DCompile(
+    hr = my_pD3DCompile(
         ps_source, strlen(ps_source),
         nullptr, nullptr, nullptr,
         "main", "ps_4_0",
@@ -263,6 +268,7 @@ void CDirect3D11::Shutdown()
     SAFE_RELEASE(samplerStretch);
     if(fullscreenVB) {fullscreenVB->Release(); fullscreenVB = nullptr;}
     //if(inputLayout) { inputLayout->Release(); inputLayout = nullptr; }
+    d3d11_UnloadDLL();
 }
 
 bool CDirect3D11::StartUpdate(uint8_t*& pixels, Bitu& pitch)
@@ -389,6 +395,43 @@ void CDirect3D11::SetSamplerMode(int mode) {
     last_mode = mode;
 }
 
+bool d3d11_LoadDLL() {
+    if(!hD3D11) {
+        hD3D11 = LoadLibraryA("d3d11.dll");
+        if(!hD3D11) return false;
+        pD3D11CreateDeviceAndSwapChain = (PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN)GetProcAddress(hD3D11, "D3D11CreateDeviceAndSwapChain");
+    }
+
+    if(!hD3DCompiler) {
+        const char* dlls[] = { "d3dcompiler_47.dll", "d3dcompiler_43.dll", "d3dcompiler.dll" };
+        for(int i = 0; i < 3; i++) {
+            hD3DCompiler = LoadLibraryA(dlls[i]);
+            if(hD3DCompiler) break;
+        }
+        if(hD3DCompiler) {
+            my_pD3DCompile = (PFN_D3D_COMPILE)GetProcAddress(hD3DCompiler, "D3DCompile");
+        }
+    }
+
+    return (pD3D11CreateDeviceAndSwapChain != nullptr && my_pD3DCompile != nullptr);
+}
+
+void d3d11_UnloadDLL() {
+    pD3D11CreateDeviceAndSwapChain = nullptr;
+    my_pD3DCompile = nullptr;
+
+    if(hD3DCompiler) {
+        FreeLibrary(hD3DCompiler);
+        hD3DCompiler = nullptr;
+    }
+    if(hD3D11) {
+        FreeLibrary(hD3D11);
+        hD3D11 = nullptr;
+    }
+
+    //LOG_MSG("D3D11: DLLs unloaded.");
+}
+
 static CDirect3D11* d3d11 = nullptr;
 
 void d3d11_init(void)
@@ -437,6 +480,12 @@ void d3d11_init(void)
 
     if(!d3d11) {
         LOG_MSG("D3D11: Failed to create object");
+        OUTPUT_SURFACE_Select();
+        return;
+    }
+
+    if(!d3d11_LoadDLL()) {
+        LOG_MSG("D3D11: Failed to load d3d11.dll or d3dcompiler_xx.dll");
         OUTPUT_SURFACE_Select();
         return;
     }
