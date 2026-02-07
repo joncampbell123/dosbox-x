@@ -1892,6 +1892,10 @@ bool lookslikefloat(char* str) {
     return true;
 }
 
+void AddBPINT3(void) {
+	CBreakpoint::AddIntBreakpoint(3,BPINT_ALL,BPINT_ALL,false);
+}
+
 void VGA_DumpFontRamBIN(const char *filename);
 void VGA_DumpFontRamBMP(const char *filename);
 int32_t DEBUG_Run(int32_t amount,bool quickexit);

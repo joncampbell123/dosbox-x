@@ -4546,6 +4546,9 @@ void DOSBOX_SetupConfigSections(void) {
                     "This can help with any program with startup code that assumes the segment wraparound of the 8086.\n"
                     "Depending on DOS configuration the A20 gate may be re-enabled later such as calling INT 21h.");
 
+    Pbool = secprop->Add_bool("break on int3",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, a breakpoint on INT 3 is automatically set up at startup");
+
     Pbool = secprop->Add_bool("xms log memmove",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, XMS move/copy operations are logged for debugging purposes.");
 

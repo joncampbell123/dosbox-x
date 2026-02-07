@@ -153,6 +153,7 @@ bool startnopause = false;
 int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 bool auto_repair_dos_psp_mcb_corruption = false;
+bool dos_break_int3 = false;
 int dos_sda_size = 0x560;
 int dos_clipboard_device_access;
 const char *dos_clipboard_device_name;
@@ -4020,6 +4021,7 @@ static Bitu DOS_29Handler(void)
 	return CBRET_NONE;
 }
 
+void AddBPINT3(void);
 void IPX_Setup(Section*);
 
 class DOS:public Module_base{
@@ -4146,6 +4148,7 @@ public:
 #endif
 
 		dos_sda_size = section->Get_int("dos sda size");
+		dos_break_int3 = section->Get_bool("break on int3");
 		freed_mcb_allocate_on_resize = section->Get_bool("resized free memory block becomes allocated");
 		shell_keyboard_flush = section->Get_bool("command shell flush keyboard buffer");
 		enable_network_redirector = section->Get_bool("network redirector");
@@ -4714,6 +4717,11 @@ public:
 				).refresh_item(mainMenu);
 #endif
 		force_conversion=false;
+
+		if (dos_break_int3) {
+			LOG(LOG_MISC,LOG_DEBUG)("Adding INT 3 breakpoint");
+			AddBPINT3();
+		}
 
 		if (IS_PC98_ARCH) {
 			void PC98_InitDefFuncRow(void);
