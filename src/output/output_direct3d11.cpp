@@ -16,11 +16,26 @@
 #include "output_surface.h"
 
 #include "output_direct3d11.h"
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "dxgi.lib")
+//#pragma comment(lib, "d3d11.lib")
+//#pragma comment(lib, "dxgi.lib")
 
 #include <d3dcompiler.h>
-#pragma comment(lib, "d3dcompiler.lib")
+//#pragma comment(lib, "d3dcompiler.lib")
+
+typedef HRESULT(WINAPI* PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN)(
+    IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT,
+    const D3D_FEATURE_LEVEL*, UINT, UINT,
+    const DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**,
+    ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+
+typedef HRESULT(WINAPI* PFN_D3D_COMPILE)(
+    LPCVOID, SIZE_T, LPCSTR, const D3D_SHADER_MACRO*,
+    ID3DInclude*, LPCSTR, LPCSTR, UINT, UINT, ID3DBlob**, ID3DBlob**);
+
+static PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN pD3D11CreateDeviceAndSwapChain = nullptr;
+static PFN_D3D_COMPILE my_pD3DCompile = nullptr;
+static HMODULE hD3D11 = nullptr;
+static HMODULE hD3DCompiler = nullptr;
 
 static const char* vs_source = R"(
 struct VSOut {
@@ -88,19 +103,9 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     sd.Windowed = TRUE;
     sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-    HRESULT hr = D3D11CreateDeviceAndSwapChain(
-        nullptr,
-        D3D_DRIVER_TYPE_HARDWARE,
-        nullptr,
-        0,
-        nullptr,
-        0,
-        D3D11_SDK_VERSION,
-        &sd,
-        &swapchain,
-        &device,
-        nullptr,
-        &context);
+    HRESULT hr = pD3D11CreateDeviceAndSwapChain(
+        nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
+        D3D11_SDK_VERSION, &sd, &swapchain, &device, nullptr, &context);
 
     if(FAILED(hr)) {
         LOG_MSG("D3D11: CreateDeviceAndSwapChain failed (0x%08lx)", hr);
@@ -148,7 +153,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     ID3DBlob* ps_blob = nullptr;
     ID3DBlob* err = nullptr;
 
-    hr = D3DCompile(
+    hr = my_pD3DCompile(
         vs_source, strlen(vs_source),
         nullptr, nullptr, nullptr,
         "main", "vs_4_0",
@@ -160,7 +165,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
         return false;
     }
 
-    hr = D3DCompile(
+    hr = my_pD3DCompile(
         ps_source, strlen(ps_source),
         nullptr, nullptr, nullptr,
         "main", "ps_4_0",
@@ -196,7 +201,8 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
         LOG_MSG("D3D11: CreateSamplers failed");
         return false;
     }
-    SetSamplerMode(ASPECT_TRUE);
+    GetRenderMode();
+    SetSamplerMode();
 
     return true;
 }
@@ -263,6 +269,7 @@ void CDirect3D11::Shutdown()
     SAFE_RELEASE(samplerStretch);
     if(fullscreenVB) {fullscreenVB->Release(); fullscreenVB = nullptr;}
     //if(inputLayout) { inputLayout->Release(); inputLayout = nullptr; }
+    d3d11_UnloadDLL();
 }
 
 bool CDirect3D11::StartUpdate(uint8_t*& pixels, Bitu& pitch)
@@ -285,7 +292,7 @@ void CDirect3D11::EndUpdate()
 
     /* Map dynamic texture for CPU write using WRITE_DISCARD (full frame update) */
     D3D11_MAPPED_SUBRESOURCE mapped = {};
-    HRESULT hr = context->Map(frameTexCPU, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+    HRESULT hr = context->Map(frameTexGPU, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
     if(FAILED(hr)) {
         LOG_MSG("D3D11: Map failed in EndUpdate (0x%08lx)", hr);
         textureMapped = false;
@@ -297,17 +304,23 @@ void CDirect3D11::EndUpdate()
 
     const uint32_t copy_w = frame_width;
     const uint32_t copy_h = frame_height;
+    const size_t lineBytes = copy_w * 4;
 
     // Copy each scanline from the CPU framebuffer to the mapped GPU texture.
     // The GPU texture rows are padded (RowPitch), so we must copy line by line.
-    for(auto y = 0; y < copy_h; y++) {
-        memcpy(dst, src, copy_w * 4);
-        dst += mapped.RowPitch;
-        src += cpu_pitch;
+    if(mapped.RowPitch == cpu_pitch) {
+        memcpy(dst, src, lineBytes * copy_h);
+    }
+    else {
+        for(uint32_t y = 0; y < copy_h; y++) {
+            memcpy(dst, src, lineBytes);
+            dst += mapped.RowPitch;
+            src += cpu_pitch;
+        }
     }
 
-    context->Unmap(frameTexCPU, 0);
-    context->CopyResource(frameTexGPU, frameTexCPU);
+    context->Unmap(frameTexGPU, 0);
+    //context->CopyResource(frameTexGPU, frameTexCPU);
 
     // Bind the back buffer render target (no depth buffer needed for 2D rendering)
     context->OMSetRenderTargets(1, &rtv, nullptr);
@@ -328,20 +341,13 @@ void CDirect3D11::EndUpdate()
     // Draw a full-screen quad using two triangles (6 vertices)
     // Vertex positions are generated in the vertex shader via SV_VertexID
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context->IASetInputLayout(inputLayout); // SV_VertexID 用
+    context->IASetInputLayout(inputLayout); // For SV_VertexID 
 
     context->VSSetShader(vs, nullptr, 0);
     context->PSSetShader(ps, nullptr, 0);
-
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
-    std::string s_aspect = section->Get_string("aspect");
-    int mode = ASPECT_NEAREST;
-    if(s_aspect == "nearest") mode = ASPECT_NEAREST;
-    else if(s_aspect == "bilinear") mode = ASPECT_BILINEAR;
-    SetSamplerMode(mode);
-
     context->PSSetShaderResources(0, 1, &frameSRV);
 
+    SetSamplerMode();
     // Draw two triangles (6 vertices) to cover the entire screen
     context->Draw(6, 0);
 
@@ -379,14 +385,66 @@ bool CDirect3D11::CreateSamplers(void) {
     return true;
 }
 
-void CDirect3D11::SetSamplerMode(int mode) {
+void CDirect3D11::SetSamplerMode() {
     static int last_mode = -1;
-    if(last_mode == mode) return;
+    if(last_mode == current_render_mode) return;
     ID3D11SamplerState* s = samplerLinear;
-    if (mode == ASPECT_NEAREST) s = samplerNearest;
+    if (current_render_mode == ASPECT_NEAREST) s = samplerNearest;
 
     context->PSSetSamplers(0, 1, &s);
-    last_mode = mode;
+    last_mode = current_render_mode;
+}
+
+void CDirect3D11::GetRenderMode() {
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
+    std::string s_aspect = section->Get_string("aspect");
+
+    if(s_aspect == "nearest") {
+        current_render_mode = ASPECT_NEAREST;
+    }
+    else if(s_aspect == "bilinear") {
+        current_render_mode = ASPECT_BILINEAR;
+    }
+    else {
+        current_render_mode = ASPECT_NEAREST; // default
+    }
+}
+
+bool d3d11_LoadDLL() {
+    if(!hD3D11) {
+        hD3D11 = LoadLibraryA("d3d11.dll");
+        if(!hD3D11) return false;
+        pD3D11CreateDeviceAndSwapChain = (PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN)GetProcAddress(hD3D11, "D3D11CreateDeviceAndSwapChain");
+    }
+
+    if(!hD3DCompiler) {
+        const char* dlls[] = { "d3dcompiler_47.dll", "d3dcompiler_43.dll", "d3dcompiler.dll" };
+        for(int i = 0; i < 3; i++) {
+            hD3DCompiler = LoadLibraryA(dlls[i]);
+            if(hD3DCompiler) break;
+        }
+        if(hD3DCompiler) {
+            my_pD3DCompile = (PFN_D3D_COMPILE)GetProcAddress(hD3DCompiler, "D3DCompile");
+        }
+    }
+
+    return (pD3D11CreateDeviceAndSwapChain != nullptr && my_pD3DCompile != nullptr);
+}
+
+void d3d11_UnloadDLL() {
+    pD3D11CreateDeviceAndSwapChain = nullptr;
+    my_pD3DCompile = nullptr;
+
+    if(hD3DCompiler) {
+        FreeLibrary(hD3DCompiler);
+        hD3DCompiler = nullptr;
+    }
+    if(hD3D11) {
+        FreeLibrary(hD3D11);
+        hD3D11 = nullptr;
+    }
+
+    //LOG_MSG("D3D11: DLLs unloaded.");
 }
 
 static CDirect3D11* d3d11 = nullptr;
@@ -437,6 +495,12 @@ void d3d11_init(void)
 
     if(!d3d11) {
         LOG_MSG("D3D11: Failed to create object");
+        OUTPUT_SURFACE_Select();
+        return;
+    }
+
+    if(!d3d11_LoadDLL()) {
+        LOG_MSG("D3D11: Failed to load d3d11.dll or d3dcompiler_xx.dll");
         OUTPUT_SURFACE_Select();
         return;
     }
@@ -547,7 +611,7 @@ bool CDirect3D11::Resize(
         if(reset_window_size) {
             window_w = tex_w;
             window_h = (uint32_t)(window_w / target_ratio + 0.5);
-            if(CurMode->type != M_TEXT || render.src.width < 640) {
+            if(render.src.bpp == 8 && CurMode->type != M_TEXT || render.src.width < 640) {
                 window_w *= render.scale.size;
                 window_h *= render.scale.size;
             }
@@ -686,19 +750,22 @@ bool CDirect3D11::CreateFrameTextures(
     cpu.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     cpu.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
+    /**
     if(FAILED(device->CreateTexture2D(
         &cpu, nullptr, &frameTexCPU))) {
         LOG_MSG("D3D11: Create CPU frame texture failed");
         return false;
     }
+    */
 
     /* ----------------------------
      * GPU render texture
      * ---------------------------- */
     D3D11_TEXTURE2D_DESC gpu = cpu;
-    gpu.Usage = D3D11_USAGE_DEFAULT;
+    gpu.Usage = D3D11_USAGE_DYNAMIC;
     gpu.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    gpu.CPUAccessFlags = 0;
+    gpu.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    gpu.MiscFlags = 0;
 
     if(FAILED(device->CreateTexture2D(
         &gpu, nullptr, &frameTexGPU))) {
