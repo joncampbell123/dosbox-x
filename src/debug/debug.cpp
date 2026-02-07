@@ -1894,6 +1894,7 @@ bool lookslikefloat(char* str) {
 
 void AddBPINT3(void) {
 	CBreakpoint::AddIntBreakpoint(3,BPINT_ALL,BPINT_ALL,false);
+	CBreakpoint::ActivateBreakpoints();
 }
 
 void VGA_DumpFontRamBIN(const char *filename);
