@@ -230,8 +230,7 @@ void CDirect3D11::CheckSourceResolution()
 
     Resize(
         sdl.draw.width, sdl.draw.height,   // Window size
-        render.src.bpp == 8? render.src.width: sdl.draw.width,
-        render.src.bpp == 8? render.src.height: sdl.draw.height);  // Frame texture size 
+        sdl.draw.width, sdl.draw.height);  // Frame texture size
 }
 
 void CDirect3D11::ResizeCPUBuffer(uint32_t src_w, uint32_t src_h)
@@ -277,11 +276,10 @@ bool CDirect3D11::StartUpdate(uint8_t*& pixels, Bitu& pitch)
     if(textureMapped) return false;
 
     // Begin frame update by returning the CPU-side framebuffer
-    //pixels = cpu_buffer.data();
-    //pitch = cpu_pitch;
+    pixels = cpu_buffer.data();
+    pitch = cpu_pitch;
     render.scale.outWrite = cpu_buffer.data();
     render.scale.outPitch = cpu_pitch;
-
     textureMapped = true;
     return true;
 }
@@ -563,12 +561,6 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
         d3d11->was_fullscreen = false;
     }
 
-    if(render.src.bpp == 8) {
-        tex_w = render.src.width;
-        tex_h = render.src.height;
-        LOG_MSG("D3D11 Resize: Using Hardware scaler for now.");
-    }
-
     if(!d3d11->Resize(
         cur_w, cur_h,   // Window size
         tex_w, tex_h))  // Frame texture size 
@@ -597,24 +589,10 @@ bool CDirect3D11::Resize(
     }
     else target_ratio = (double)tex_w / tex_h;
 
-    if (render.src.bpp == 8 && !render.aspect){
-        if(render.src.width == 640 && render.src.height == 200) {
-            target_ratio = 640.0 / 400.0;
-        }
-        else if(render.src.height == 350) {
-            target_ratio = 640.0 / 350.0;
-        }
-    }
-
-
     if(!sdl.desktop.fullscreen) {
         if(reset_window_size) {
             window_w = tex_w;
             window_h = (uint32_t)(window_w / target_ratio + 0.5);
-            if(render.src.bpp == 8 && CurMode->type != M_TEXT || render.src.width < 640) {
-                window_w *= render.scale.size;
-                window_h *= render.scale.size;
-            }
         }
     }
 
@@ -739,6 +717,8 @@ bool CDirect3D11::CreateFrameTextures(
     /* ----------------------------
      * CPU-writable texture (mapped via Map)
      * ---------------------------- */
+
+    /**
     D3D11_TEXTURE2D_DESC cpu = {};
     cpu.Width = w;
     cpu.Height = h;
@@ -750,7 +730,6 @@ bool CDirect3D11::CreateFrameTextures(
     cpu.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     cpu.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-    /**
     if(FAILED(device->CreateTexture2D(
         &cpu, nullptr, &frameTexCPU))) {
         LOG_MSG("D3D11: Create CPU frame texture failed");
@@ -761,7 +740,13 @@ bool CDirect3D11::CreateFrameTextures(
     /* ----------------------------
      * GPU render texture
      * ---------------------------- */
-    D3D11_TEXTURE2D_DESC gpu = cpu;
+    D3D11_TEXTURE2D_DESC gpu = {};
+    gpu.Width = w;
+    gpu.Height = h;
+    gpu.MipLevels = 1;
+    gpu.ArraySize = 1;
+    gpu.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    gpu.SampleDesc.Count = 1;
     gpu.Usage = D3D11_USAGE_DYNAMIC;
     gpu.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     gpu.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -815,6 +800,7 @@ void OUTPUT_DIRECT3D11_CheckSourceResolution()
     if(d3d11) d3d11->CheckSourceResolution();
 }
 
+#if 0
 void D3D11_DrawLine_8bpp(const void* src)
 {
     const uint8_t* s = static_cast<const uint8_t*>(src);
@@ -830,10 +816,10 @@ void D3D11_DrawLine_8bpp(const void* src)
 
     if(vga.draw.lines_done == vga.draw.lines_total-1){
         RENDER_EndUpdate(false);
-        //d3d11->EndUpdate();
     }
 
 }
+#endif
 
 #endif //#if defined(C_SDL2)
 #endif //#if C_DIRECT3D

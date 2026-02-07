@@ -3366,6 +3366,9 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
 
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+#endif
             return SDL_MapRGB(sdl.surface->format, red, green, blue);
 #endif
 

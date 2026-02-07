@@ -329,18 +329,9 @@ static void RENDER_ScalerLineHandler(const void * s) {
 void D3D11_DrawLine_8bpp(const void* src);
 
 static void RENDER_StartLineHandler(const void * s) {
-    //LOG_MSG("RENDER_StartLineHandler called s=%p", s);
     if (render.disablerender)
         return;
-#if defined(C_DIRECT3D) && defined(C_SDL2)
-    if(sdl.desktop.type == SCREEN_DIRECT3D11 && render.src.bpp == 8){
-        GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
-        RENDER_DrawLine = D3D11_DrawLine_8bpp;
-        //RENDER_DrawLine = RENDER_ScalerLineHandler;
-        RENDER_DrawLine(s);
-    }
-    else
-#endif
+
     if (RENDER_DrawLine_scanline_cacheHit(s)) { // line has not changed
         render.scale.cacheRead += render.scale.cachePitch;
         Scaler_ChangedLines[0] += Scaler_Aspect[ render.scale.inLine ];
