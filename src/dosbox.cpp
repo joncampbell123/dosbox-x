@@ -4548,6 +4548,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("break on int3",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, a breakpoint on INT 3 is automatically set up at startup");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("xms log memmove",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, XMS move/copy operations are logged for debugging purposes.");
