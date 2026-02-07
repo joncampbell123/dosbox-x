@@ -596,7 +596,7 @@ bool CDirect3D11::Resize(
         if(reset_window_size) {
             window_w = tex_w;
             window_h = (uint32_t)(window_w / target_ratio + 0.5);
-            if(CurMode->type != M_TEXT || render.src.width < 640) {
+            if(render.src.bpp == 8 && CurMode->type != M_TEXT || render.src.width < 640) {
                 window_w *= render.scale.size;
                 window_h *= render.scale.size;
             }
