@@ -416,6 +416,15 @@ AC_CHECK_HEADER([sys/mman.h], [
 AC_CHECK_FUNC([mmap],[AC_DEFINE(C_HAVE_MMAP,1)])
 ])
 
+dnl Check for duktape
+AH_TEMPLATE(C_HAVE_DUKTAPE,[Define to 1 if you have the DukTape ECMAScript library])
+AC_CHECK_HEADER([duktape.h], [
+AC_CHECK_LIB(duktape, duk_create_heap, [
+AC_DEFINE(C_HAVE_DUKTAPE,1)
+HAVE_DUKTAPE=1
+])
+])
+
 dnl Check for realpath. Used on Linux
 AC_CHECK_FUNCS([realpath])
 
@@ -729,6 +738,7 @@ esac
 fi
 
 AM_CONDITIONAL(MACOSX, test x"$macosx" = x"1")
+AM_CONDITIONAL(DUKTAPE, test x"$HAVE_DUKTAPE" = x"1")
 AM_CONDITIONAL(EMSCRIPTEN, test x"$enable_emscripten" = x"yes")
 
 dnl The target cpu checks for dynamic cores
