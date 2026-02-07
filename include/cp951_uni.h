@@ -6851,12 +6851,12 @@ bool madecp951 = false;
 uint16_t cp951sea_to_unicode_raw[24320], cp951uaosea_to_unicode_raw[24320];
 void makeseacp951table() {
     if (madecp951) return;
-    for (int i=0; i<64*41; i++) {
+    for (int i=0; i<64*50; i++) {
         cp951sea_to_unicode_raw[i] = cp951_to_unicode_raw[i];
         cp951uaosea_to_unicode_raw[i] = cp951uao_to_unicode_raw[i];
     }
-    for (int i=64*41; i<64*107; i++) {
-        /* 0x8E40-0xA3FE */
+    for (int i=64*50; i<64*107; i++) {
+        /* 0x9140-0xA3FE */
         cp951sea_to_unicode_raw[i] = cp950ext_to_unicode_raw[i];
         cp951uaosea_to_unicode_raw[i] = cp950ext_to_unicode_raw[i];
     }
