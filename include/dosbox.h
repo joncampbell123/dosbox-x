@@ -483,3 +483,9 @@ int _wmkdir_p(const wchar_t *pathname);
 int mkdir_p(const char *pathname, mode_t mode);
 #endif
 
+#if defined(C_HAVE_DUKTAPE)
+# include "duktape.h"
+
+extern duk_context *js_heap;
+#endif
+

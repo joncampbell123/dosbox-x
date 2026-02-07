@@ -74,6 +74,10 @@ if !EMSCRIPTEN
 dosbox_x_LDADD += libs/fluidsynth/libfluidsynth.a
 endif
 
+if DUKTAPE
+dosbox_x_LDADD += -lduktape
+endif
+
 if EMSCRIPTEN
 dosbox_x_js:
 	cp dosbox-x dosbox-x.js

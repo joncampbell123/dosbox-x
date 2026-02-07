@@ -336,6 +336,10 @@ int macosx_yesnocancel(const char *title, const char *message);
 std::string macosx_prompt_folder(const char *default_folder);
 #endif
 
+#if defined(C_HAVE_DUKTAPE)
+duk_context *js_heap = NULL;
+#endif
+
 #if C_DIRECT3D
 void d3d_init(void);
 #endif
@@ -8978,6 +8982,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- initialize logging first, so that higher level inits can report problems to the log file */
         LOG::Init();
 
+#if defined(C_HAVE_DUKTAPE)
+	LOG(LOG_MISC,LOG_NORMAL)("Initializing ECMA heap");
+	js_heap = duk_create_heap(NULL,NULL,NULL,NULL,NULL);//TODO: fatal exit handler that we can direct towards E_Exit()
+	if (!js_heap) E_Exit("Unable to initialize ECMA heap");//TODO: or maybe this emulator can run without ECMAScript even if compiled
+#endif
+
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         {
             DISPLAY_DEVICE dd;
@@ -10177,6 +10187,14 @@ fresh_boot:
                         ent.function(NULL);
                         exitfunctions.pop_front();
                 }
+
+#if defined(C_HAVE_DUKTAPE)
+	if (js_heap) {
+		LOG(LOG_MISC,LOG_NORMAL)("Freeing ECMA heap");
+		duk_destroy_heap(js_heap);
+		js_heap = NULL;
+	}
+#endif
 
         LOG::Exit();
 
