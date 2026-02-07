@@ -201,7 +201,8 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
         LOG_MSG("D3D11: CreateSamplers failed");
         return false;
     }
-    SetSamplerMode(ASPECT_TRUE);
+    GetRenderMode();
+    SetSamplerMode();
 
     return true;
 }
@@ -291,7 +292,7 @@ void CDirect3D11::EndUpdate()
 
     /* Map dynamic texture for CPU write using WRITE_DISCARD (full frame update) */
     D3D11_MAPPED_SUBRESOURCE mapped = {};
-    HRESULT hr = context->Map(frameTexCPU, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+    HRESULT hr = context->Map(frameTexGPU, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
     if(FAILED(hr)) {
         LOG_MSG("D3D11: Map failed in EndUpdate (0x%08lx)", hr);
         textureMapped = false;
@@ -303,17 +304,23 @@ void CDirect3D11::EndUpdate()
 
     const uint32_t copy_w = frame_width;
     const uint32_t copy_h = frame_height;
+    const size_t lineBytes = copy_w * 4;
 
     // Copy each scanline from the CPU framebuffer to the mapped GPU texture.
     // The GPU texture rows are padded (RowPitch), so we must copy line by line.
-    for(auto y = 0; y < copy_h; y++) {
-        memcpy(dst, src, copy_w * 4);
-        dst += mapped.RowPitch;
-        src += cpu_pitch;
+    if(mapped.RowPitch == cpu_pitch) {
+        memcpy(dst, src, lineBytes * copy_h);
+    }
+    else {
+        for(uint32_t y = 0; y < copy_h; y++) {
+            memcpy(dst, src, lineBytes);
+            dst += mapped.RowPitch;
+            src += cpu_pitch;
+        }
     }
 
-    context->Unmap(frameTexCPU, 0);
-    context->CopyResource(frameTexGPU, frameTexCPU);
+    context->Unmap(frameTexGPU, 0);
+    //context->CopyResource(frameTexGPU, frameTexCPU);
 
     // Bind the back buffer render target (no depth buffer needed for 2D rendering)
     context->OMSetRenderTargets(1, &rtv, nullptr);
@@ -334,20 +341,13 @@ void CDirect3D11::EndUpdate()
     // Draw a full-screen quad using two triangles (6 vertices)
     // Vertex positions are generated in the vertex shader via SV_VertexID
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context->IASetInputLayout(inputLayout); // SV_VertexID 用
+    context->IASetInputLayout(inputLayout); // For SV_VertexID 
 
     context->VSSetShader(vs, nullptr, 0);
     context->PSSetShader(ps, nullptr, 0);
-
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
-    std::string s_aspect = section->Get_string("aspect");
-    int mode = ASPECT_NEAREST;
-    if(s_aspect == "nearest") mode = ASPECT_NEAREST;
-    else if(s_aspect == "bilinear") mode = ASPECT_BILINEAR;
-    SetSamplerMode(mode);
-
     context->PSSetShaderResources(0, 1, &frameSRV);
 
+    SetSamplerMode();
     // Draw two triangles (6 vertices) to cover the entire screen
     context->Draw(6, 0);
 
@@ -385,14 +385,29 @@ bool CDirect3D11::CreateSamplers(void) {
     return true;
 }
 
-void CDirect3D11::SetSamplerMode(int mode) {
+void CDirect3D11::SetSamplerMode() {
     static int last_mode = -1;
-    if(last_mode == mode) return;
+    if(last_mode == current_render_mode) return;
     ID3D11SamplerState* s = samplerLinear;
-    if (mode == ASPECT_NEAREST) s = samplerNearest;
+    if (current_render_mode == ASPECT_NEAREST) s = samplerNearest;
 
     context->PSSetSamplers(0, 1, &s);
-    last_mode = mode;
+    last_mode = current_render_mode;
+}
+
+void CDirect3D11::GetRenderMode() {
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
+    std::string s_aspect = section->Get_string("aspect");
+
+    if(s_aspect == "nearest") {
+        current_render_mode = ASPECT_NEAREST;
+    }
+    else if(s_aspect == "bilinear") {
+        current_render_mode = ASPECT_BILINEAR;
+    }
+    else {
+        current_render_mode = ASPECT_NEAREST; // default
+    }
 }
 
 bool d3d11_LoadDLL() {
@@ -735,19 +750,22 @@ bool CDirect3D11::CreateFrameTextures(
     cpu.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     cpu.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
+    /**
     if(FAILED(device->CreateTexture2D(
         &cpu, nullptr, &frameTexCPU))) {
         LOG_MSG("D3D11: Create CPU frame texture failed");
         return false;
     }
+    */
 
     /* ----------------------------
      * GPU render texture
      * ---------------------------- */
     D3D11_TEXTURE2D_DESC gpu = cpu;
-    gpu.Usage = D3D11_USAGE_DEFAULT;
+    gpu.Usage = D3D11_USAGE_DYNAMIC;
     gpu.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    gpu.CPUAccessFlags = 0;
+    gpu.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    gpu.MiscFlags = 0;
 
     if(FAILED(device->CreateTexture2D(
         &gpu, nullptr, &frameTexGPU))) {
