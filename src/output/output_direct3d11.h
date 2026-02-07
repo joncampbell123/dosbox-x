@@ -37,16 +37,6 @@ void OUTPUT_DIRECT3D11_EndUpdate(const uint16_t*);
 void OUTPUT_DIRECT3D11_Shutdown();
 void OUTPUT_DIRECT3D11_CheckSourceResolution();
 
-typedef HRESULT(WINAPI* PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN)(
-    IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT,
-    const D3D_FEATURE_LEVEL*, UINT, UINT,
-    const DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**,
-    ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
-
-typedef HRESULT(WINAPI* PFN_D3D_COMPILE)(
-    LPCVOID, SIZE_T, LPCSTR, const D3D_SHADER_MACRO*,
-    ID3DInclude*, LPCSTR, LPCSTR, UINT, UINT, ID3DBlob**, ID3DBlob**);
-
 class CDirect3D11 {
 public:
     CDirect3D11();
@@ -64,8 +54,6 @@ public:
     bool CreateSamplers(void);
     void SetSamplerMode(int mode);
 
-    static PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN CreateDeviceAndSwapChain;
-    static PFN_D3D_COMPILE Compile;
     uint32_t frame_width = 0, frame_height = 0;   // Framebuffer size (Internal resolution)
     uint32_t window_width = 0; // Window width (Used when returning from fullscreen)
     uint32_t window_height = 0; // Window width (Used when returning from fullscreen)
