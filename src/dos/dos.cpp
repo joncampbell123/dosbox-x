@@ -3230,8 +3230,12 @@ static uint16_t DOS_SectorAccess(bool read) {
 	uint16_t sectorCnt = reg_cx;
 	uint32_t sectorNum = (uint32_t)reg_dx + drive->partSectOff;
 	uint32_t sectorEnd = drive->getSectorCount() + drive->partSectOff;
-	uint8_t sectorBuf[512];
+	uint32_t sectorSize = drive->getSectorSize();
+	uint8_t sectorBuf[SECTOR_SIZE_MAX];
 	Bitu i;
+
+	if (sectorSize == 0 || sectorSize > SECTOR_SIZE_MAX)
+		return 0x0408; // sector not found
 
 	if (sectorCnt == 0xffff) { // large partition form
 		bufferSeg = real_readw(SegValue(ds),reg_bx + 8);
@@ -3244,9 +3248,9 @@ static uint16_t DOS_SectorAccess(bool read) {
 		if (sectorNum >= sectorEnd) return 0x0408; // sector not found
 		if (read) {
 			if (drive->readSector(sectorNum++,&sectorBuf)) return 0x0408;
-			for (i=0;i<512;i++) real_writeb(bufferSeg,bufferOff++,sectorBuf[i]);
+			for (i=0;i<sectorSize;i++) real_writeb(bufferSeg,bufferOff++,sectorBuf[i]);
 		} else {
-			for (i=0;i<512;i++) sectorBuf[i] = real_readb(bufferSeg,bufferOff++);
+			for (i=0;i<sectorSize;i++) sectorBuf[i] = real_readb(bufferSeg,bufferOff++);
 			if (drive->writeSector(sectorNum++,&sectorBuf)) return 0x0408;
 		}
 	}
