@@ -950,17 +950,17 @@ bool OUTPUT_OPENGL_StartUpdate(uint8_t* &pixels, Bitu &pitch)
     return true;
 }
 
-void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
-{
-    if (!(sdl.must_redraw_all && changedLines == NULL)) 
-    {
+static void CheckClearing(void) {
         if (sdl_opengl.clear_countdown > 0)
         {
-            sdl_opengl.clear_countdown--;
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+            if (sdl_opengl.menudraw_countdown == 0)
+                sdl_opengl.menudraw_countdown++;
         }
+}
 
+static void CheckMenuDrawing(void) {
         if (sdl_opengl.menudraw_countdown > 0) 
         {
             sdl_opengl.menudraw_countdown--;
@@ -969,7 +969,17 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
             GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
 #endif
         }
+}
 
+static void CheckManagement(void) {
+	CheckClearing();
+	CheckMenuDrawing();
+}
+
+void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
+{
+    if (!(sdl.must_redraw_all && changedLines == NULL)) 
+    {
 #if C_XBRZ
         if (sdl_xbrz.enable && sdl_xbrz.scale_on)
         {
@@ -1026,6 +1036,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
 #endif
                     (uint8_t *)sdl_opengl.framebuf);
             }
+            CheckManagement();
             glCallList(sdl_opengl.displaylist);
             SDL_GL_SwapBuffers();
         }
@@ -1096,6 +1107,8 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
             }
         } else
             return;
+
+        CheckManagement();
         if (sdl_opengl.program_object) {
             glUniform1i(sdl_opengl.ruby.frame_count, sdl_opengl.actual_frame_count++);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1103,37 +1116,37 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
             glCallList(sdl_opengl.displaylist);
 
 #if 0 /* DEBUG Prove to me that you're drawing the damn texture */
-            glBindTexture(GL_TEXTURE_2D, SDLDrawGenFontTexture);
+        glBindTexture(GL_TEXTURE_2D, SDLDrawGenFontTexture);
 
-            glPushMatrix();
+	glPushMatrix();
 
-            glMatrixMode(GL_TEXTURE);
-            glLoadIdentity();
-            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
 
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glEnable(GL_ALPHA_TEST);
-            glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_ALPHA_TEST);
+	glEnable(GL_BLEND);
 
-            glBegin(GL_QUADS);
+	glBegin(GL_QUADS);
 
-            glTexCoord2i(0, 0); glVertex2i(0, 0); // lower left
-            glTexCoord2i(SDLDrawGenFontTextureWidth, 0); glVertex2i(SDLDrawGenFontTextureWidth, 0); // lower right
-            glTexCoord2i(SDLDrawGenFontTextureWidth, SDLDrawGenFontTextureHeight); glVertex2i(SDLDrawGenFontTextureWidth, SDLDrawGenFontTextureHeight); // upper right
-            glTexCoord2i(0, SDLDrawGenFontTextureHeight); glVertex2i(0, SDLDrawGenFontTextureHeight); // upper left
+	glTexCoord2i(0, 0); glVertex2i(0, 0); // lower left
+	glTexCoord2i(SDLDrawGenFontTextureWidth, 0); glVertex2i(SDLDrawGenFontTextureWidth, 0); // lower right
+	glTexCoord2i(SDLDrawGenFontTextureWidth, SDLDrawGenFontTextureHeight); glVertex2i(SDLDrawGenFontTextureWidth, SDLDrawGenFontTextureHeight); // upper right
+	glTexCoord2i(0, SDLDrawGenFontTextureHeight); glVertex2i(0, SDLDrawGenFontTextureHeight); // upper left
 
-            glEnd();
+	glEnd();
 
-            glBlendFunc(GL_ONE, GL_ZERO);
-            glDisable(GL_ALPHA_TEST);
-            glEnable(GL_TEXTURE_2D);
+	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_ALPHA_TEST);
+	glEnable(GL_TEXTURE_2D);
 
-            glPopMatrix();
+	glPopMatrix();
 
-            glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
+	glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
 #endif
 
-            SDL_GL_SwapBuffers();
+	SDL_GL_SwapBuffers();
 
         if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
     }
