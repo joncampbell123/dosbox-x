@@ -2563,7 +2563,15 @@ public:
                     /* Specifying drive... next argument then is the drive */
                     i++;
                     if(cmd->FindCommand((unsigned int)(i + 1), temp_line)) {
-                        if(temp_line.length() != 1 || !isalpha(temp_line[0])) {
+                        if(temp_line.length() != 1) {
+                            printError(); /* Syntax error: invalid drive letter */
+                            return;
+                        }
+                        if(temp_line[0] >= '0' && temp_line[0] <= '9')
+                            drive = 'A' + temp_line[0] - '0';
+                        else if (isalpha(temp_line[0]))
+                            drive = toupper(temp_line[0]);
+                        else {
                             printError(); /* Syntax error: invalid drive letter */
                             return;
                         }
@@ -2572,7 +2580,6 @@ public:
                         printError(); /* DOSBox-X ignores -l option, but print error on syntax errors */
                         return;
                     }
-                    LOG_MSG("BOOT command ignores -l option");
                     i++;
                     continue;
                 }
