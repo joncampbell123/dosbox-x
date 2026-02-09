@@ -2118,7 +2118,8 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 MEM_BlockRead(SegPhys(ds)+reg_dx,dos_copybuf,towrite);
-                packerr=reg_bx==2&&towrite==22&&!strncmp((char *)dos_copybuf,"Packed file is corrupt",towrite);
+                packerr=reg_bx==2&&!strncmp((char *)dos_copybuf,"Packed file is corrupt",towrite);
+                if(packerr) LOG_MSG("INT 21h WRITE warning: Detected 'Packed file is corrupt' message, try loadfix utility if your program fails to launch.");
                 fWritten = (packerr && !(i4dos && !shellrun) && (!autofixwarn || (autofixwarn == 2 && infix == 0) || (autofixwarn == 1 && infix == 1)));
                 if(!fWritten)
                 {
