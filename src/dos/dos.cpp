@@ -4723,8 +4723,10 @@ public:
 		force_conversion=false;
 
 		if (dos_break_int3) {
+#if C_DEBUG
 			LOG(LOG_MISC,LOG_DEBUG)("Adding INT 3 breakpoint");
 			AddBPINT3();
+#endif
 		}
 
 		if (IS_PC98_ARCH) {
