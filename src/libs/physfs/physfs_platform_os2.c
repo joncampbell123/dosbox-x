@@ -33,7 +33,7 @@
 static HMODULE uconvdll = 0;
 static UconvObject uconv = 0;
 static int (_System *pUniCreateUconvObject)(UniChar *, UconvObject *) = NULL;
-static int (_System *pUniFreeUconvObject)(UconvObject *) = NULL;
+static int (_System *pUniFreeUconvObject)(UconvObject) = NULL;
 static int (_System *pUniUconvToUcs)(UconvObject,void **,size_t *, UniChar**, size_t *, size_t *) = NULL;
 static int (_System *pUniUconvFromUcs)(UconvObject,UniChar **,size_t *,void **,size_t *,size_t *) = NULL;
 
@@ -284,7 +284,7 @@ static void prepUnicodeSupport(void)
         if (uconvdll)
         {
             if (uconv)
-                pUniFreeUconvObject(&uconv);
+                pUniFreeUconvObject(uconv);
             DosFreeModule(uconvdll);
             uconvdll = 0;
         } /* if */
@@ -298,12 +298,12 @@ int __PHYSFS_platformInit(void)
     return 1;  /* ready to go! */
 } /* __PHYSFS_platformInit */
 
-
 void __PHYSFS_platformDeinit(void)
 {
     if (uconvdll)
     {
-        pUniFreeUconvObject(&uconv);
+        if (uconv)
+            pUniFreeUconvObject(uconv);
         uconv = 0;
         DosFreeModule(uconvdll);
         uconvdll = 0;
