@@ -4722,10 +4722,12 @@ public:
 #endif
 		force_conversion=false;
 
+#if C_DEBUG
 		if (dos_break_int3) {
 			LOG(LOG_MISC,LOG_DEBUG)("Adding INT 3 breakpoint");
 			AddBPINT3();
 		}
+#endif
 
 		if (IS_PC98_ARCH) {
 			void PC98_InitDefFuncRow(void);
