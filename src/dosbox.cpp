@@ -2985,6 +2985,11 @@ void DOSBOX_SetupConfigSections(void) {
                       "Default is auto, which will turn it off for VGA modes and turn it on for SVGA modes.");
     Pstring->SetBasic(true);
 
+    secprop=control->AddSection_prop("script",&Null_Init,true);//done
+
+    Pstring = secprop->Add_string("startup.js",Property::Changeable::WhenIdle,"");
+    Pstring->Set_help("script to run at startup");
+
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
     Pstring = secprop->Add_string("vsyncmode",Property::Changeable::WhenIdle,"off");
