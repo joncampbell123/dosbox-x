@@ -9812,6 +9812,8 @@ fresh_boot:
 
 		duk_idx_t emu_idx = duk_push_object(js_heap);
 
+		duk_idx_t js_idx = duk_push_object(js_heap);
+
 		duk_push_string(js_heap,"emulator");//key
 		duk_push_string(js_heap,"DOSBox-X");//value
 		duk_put_prop(js_heap,emu_idx);//[emu_idx].emulator = "DOSBox-X"
@@ -9819,6 +9821,10 @@ fresh_boot:
 		duk_push_string(js_heap,"version");//key
 		duk_push_string(js_heap,VERSION);//value
 		duk_put_prop(js_heap,emu_idx);//[emu_idx].version = ...
+
+		duk_push_string(js_heap,"_js");//key
+		duk_dup(js_heap,js_idx);//value
+		duk_put_prop(js_heap,emu_idx);//[emu_idx]._js = ...
 
 		duk_push_string(js_heap,"_emu");//key
 		duk_dup(js_heap,emu_idx);//value
@@ -9843,36 +9849,45 @@ fresh_boot:
 		duk_put_prop(js_heap,global_idx);//[global_idx].console = [console_idx]
 
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("script"));
-		const char *script = section->Get_string("startup.js");
-		if (script && *script) {
-			int fd = open(script,O_RDONLY|O_BINARY);
-			if (fd >= 0) {
-				off_t sz = lseek(fd,0,SEEK_END);
-				if (sz > 0 && sz <= (16*1024*1024) && lseek(fd,0,SEEK_SET) == 0) {
-					char *tmp = (char*)malloc((size_t)sz + 1);
-					if (tmp) {
-						int r = read(fd,tmp,sz);
-						if (r < 0) r = 0;
-						tmp[r] = 0;
+		{
+			const char *script = section->Get_string("startup.js");
+			if (script && *script) {
+				int fd = open(script,O_RDONLY|O_BINARY);
+				if (fd >= 0) {
+					off_t sz = lseek(fd,0,SEEK_END);
+					if (sz > 0 && sz <= (16*1024*1024) && lseek(fd,0,SEEK_SET) == 0) {
+						char *tmp = (char*)malloc((size_t)sz + 1);
+						if (tmp) {
+							int r = read(fd,tmp,sz);
+							if (r < 0) r = 0;
+							tmp[r] = 0;
 
-						LOG(LOG_MISC,LOG_DEBUG)("Loading startup.js %s",script);
+							LOG(LOG_MISC,LOG_DEBUG)("Loading startup.js %s",script);
 
-						/* in:
-						 *    <string>
-						 * out:
-						 *    <function> */
-						duk_push_string(js_heap, script);
-						duk_compile_lstring_filename(js_heap,0,tmp,(duk_size_t)r);
+							/* in:
+							 *    <string>
+							 * out:
+							 *    <function> */
+							duk_push_string(js_heap, script);
+							duk_compile_lstring_filename(js_heap,0,tmp,(duk_size_t)r);
 
-						free((void*)tmp);
+							free((void*)tmp);
 
-						/* call function at top */
-						duk_call(js_heap,0);
+							duk_push_string(js_heap,"startup.js");//key
+							duk_dup(js_heap,-2);//value
+							duk_put_prop(js_heap,js_idx);//[js_idx].startup.js = [function]
+							duk_pop(js_heap);//discard function
+						}
 					}
+					close(fd);
 				}
-				close(fd);
 			}
 		}
+
+		duk_push_string(js_heap,"_emu._js['startup.js']");
+		duk_eval(js_heap);
+		if (duk_is_callable(js_heap,-1)) duk_call(js_heap,0);
+		duk_pop(js_heap);//discard retval or whatever was not a function
 	}
 #endif
 
