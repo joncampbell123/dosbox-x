@@ -46,6 +46,10 @@
 #endif
 #endif
 
+#ifndef O_BINARY
+# define O_BINARY 0
+#endif
+
 int socknum=-1;
 int posx = -1;
 int posy = -1;
@@ -8075,6 +8079,23 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 
 void CPU_OnReset(Section* sec);
 
+#if defined(C_HAVE_DUKTAPE)
+/* console.log(...)
+ * _emu.log(...) */
+static duk_ret_t jsc_console_log(duk_context *ctx) {
+	std::string r;
+
+	duk_idx_t tp = duk_get_top(ctx);
+	for (duk_idx_t i=0;i < tp;i++) {
+		if (i != 0) r += " ";
+		r += duk_to_string(ctx,i);
+	}
+
+	LOG_MSG("console.log(): %s",r.c_str());
+	return 0;
+}
+#endif
+
 void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
 void grGlideShutdown(void);
@@ -9782,6 +9803,77 @@ fresh_boot:
 
 #if C_DEBUG
         if (control->opt_test) ::testing::InitGoogleTest(&argc, argv);
+#endif
+
+#if defined(C_HAVE_DUKTAPE)
+	if (js_heap) {
+		duk_idx_t global_idx = duk_get_top(js_heap);
+		duk_push_global_object(js_heap);
+
+		duk_idx_t emu_idx = duk_push_object(js_heap);
+
+		duk_push_string(js_heap,"emulator");//key
+		duk_push_string(js_heap,"DOSBox-X");//value
+		duk_put_prop(js_heap,emu_idx);//[emu_idx].emulator = "DOSBox-X"
+
+		duk_push_string(js_heap,"version");//key
+		duk_push_string(js_heap,VERSION);//value
+		duk_put_prop(js_heap,emu_idx);//[emu_idx].version = ...
+
+		duk_push_string(js_heap,"_emu");//key
+		duk_dup(js_heap,emu_idx);//value
+		duk_put_prop(js_heap,global_idx);//[global_idx]._emu = [emu_idx]
+
+		duk_idx_t console_idx = duk_push_object(js_heap);
+
+		{
+			duk_idx_t console_log_idx = duk_push_c_function(js_heap,jsc_console_log,DUK_VARARGS);
+
+			duk_push_string(js_heap,"log");//key
+			duk_dup(js_heap,console_log_idx);//value
+			duk_put_prop(js_heap,console_idx);//[console_idx].log = [console_log_idx]
+
+			duk_push_string(js_heap,"log");//key
+			duk_dup(js_heap,console_log_idx);//value
+			duk_put_prop(js_heap,emu_idx);//[emu_idx].log = [console_log_idx]
+		}
+
+		duk_push_string(js_heap,"console");//key
+		duk_dup(js_heap,console_idx);//value
+		duk_put_prop(js_heap,global_idx);//[global_idx].console = [console_idx]
+
+		Section_prop *section = static_cast<Section_prop *>(control->GetSection("script"));
+		const char *script = section->Get_string("startup.js");
+		if (script && *script) {
+			int fd = open(script,O_RDONLY|O_BINARY);
+			if (fd >= 0) {
+				off_t sz = lseek(fd,0,SEEK_END);
+				if (sz > 0 && sz <= (16*1024*1024) && lseek(fd,0,SEEK_SET) == 0) {
+					char *tmp = (char*)malloc((size_t)sz + 1);
+					if (tmp) {
+						int r = read(fd,tmp,sz);
+						if (r < 0) r = 0;
+						tmp[r] = 0;
+
+						LOG(LOG_MISC,LOG_DEBUG)("Loading startup.js %s",script);
+
+						/* in:
+						 *    <string>
+						 * out:
+						 *    <function> */
+						duk_push_string(js_heap, script);
+						duk_compile_lstring_filename(js_heap,0,tmp,(duk_size_t)r);
+
+						free((void*)tmp);
+
+						/* call function at top */
+						duk_call(js_heap,0);
+					}
+				}
+				close(fd);
+			}
+		}
+	}
 #endif
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
