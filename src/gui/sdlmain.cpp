@@ -8146,8 +8146,8 @@ void jsc_load_file(const char *jskey,const char *script) {
 void jsc_run(const char *jskey) {
 	duk_push_string(js_heap,(std::string("_emu._js['")+jskey+"']").c_str());
 	duk_eval(js_heap);
-	if (duk_is_callable(js_heap,-1)) duk_call(js_heap,0);
-	duk_pop(js_heap);//discard retval or whatever was not a function
+	if (duk_is_callable(js_heap,-1)) duk_pcall(js_heap,0);
+	duk_pop(js_heap);//discard retval or whatever was not a function. will be an error object if JS error
 }
 #endif
 
