@@ -8084,14 +8084,33 @@ void CPU_OnReset(Section* sec);
  * _emu.log(...) */
 static duk_ret_t jsc_console_log(duk_context *ctx) {
 	std::string r;
+	const char *s;
+	int line = 0;
 
 	duk_idx_t tp = duk_get_top(ctx);
 	for (duk_idx_t i=0;i < tp;i++) {
-		if (i != 0) r += " ";
-		r += duk_to_string(ctx,i);
+		if (!r.empty()) r += " ";
+
+		s = duk_to_string(ctx,i);
+		if (s) {
+			while (*s) {
+				if (*s == '\n') {
+					LOG(LOG_MISC,LOG_NORMAL)("%s: %s",line == 0 ? "console.log()" : "             ",r.c_str());
+					r.clear();
+					line++;
+				}
+				else if (*s >= ' ' || *s < 0) {
+					r += *s;
+				}
+
+				s++;
+			}
+		}
 	}
 
-	LOG_MSG("console.log(): %s",r.c_str());
+	if (!r.empty())
+		LOG(LOG_MISC,LOG_NORMAL)("%s: %s",line == 0 ? "console.log()" : "             ",r.c_str());
+
 	return 0;
 }
 
@@ -8146,7 +8165,15 @@ void jsc_load_file(const char *jskey,const char *script) {
 void jsc_run(const char *jskey) {
 	duk_push_string(js_heap,(std::string("_emu._js['")+jskey+"']").c_str());
 	duk_eval(js_heap);
-	if (duk_is_callable(js_heap,-1)) duk_pcall(js_heap,0);
+	if (duk_is_callable(js_heap,-1)) {
+		LOG(LOG_MISC,LOG_DEBUG)("JS calling %s",jskey);
+		if (duk_pcall(js_heap,0)) {
+			if (duk_is_error(js_heap,-1)) {
+				LOG(LOG_MISC,LOG_ERROR)("JS error in %s",jskey);
+				LOG(LOG_MISC,LOG_ERROR)("Error: %s",duk_safe_to_string(js_heap,-1));
+			}
+		}
+	}
 	duk_pop(js_heap);//discard retval or whatever was not a function. will be an error object if JS error
 }
 #endif
