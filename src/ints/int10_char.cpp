@@ -1291,6 +1291,8 @@ void INT10_GetCursorPos(uint8_t *row, uint8_t*col, const uint8_t page)
 void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
     // Get the dimensions
     BIOS_NCOLS;
+
+#if 0 // Disabled to fix Bad Dude (issue #6114). Elder Scrolls Arena installer still works fine, but may need additional fixes.  
     BIOS_NROWS;
 
     // EGA/VGA: Emulate a VGA BIOS that range-checks at least the row.
@@ -1302,6 +1304,7 @@ void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
         if (nrows && row >= nrows)
 		row = nrows - 1;
     }
+#endif
 
     if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
     else if(J3_IsJapanese()) J3_OffCursor();
