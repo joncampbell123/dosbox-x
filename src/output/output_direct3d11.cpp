@@ -587,12 +587,22 @@ bool CDirect3D11::Resize(
         if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
             target_ratio = (double)aspect_ratio_x / aspect_ratio_y; // default is 4:3 if <=0
     }
+    else if(tex_h != CurMode->sheight) {
+        target_ratio = (double)CurMode->swidth / CurMode->sheight;
+    }
     else target_ratio = (double)tex_w / tex_h;
 
     if(!sdl.desktop.fullscreen) {
-        if(reset_window_size) {
-            window_w = tex_w;
-            window_h = (uint32_t)(window_w / target_ratio + 0.5);
+        if(reset_window_size || render.scale.hardware) {
+            if(tex_h >= CurMode->sheight * 2) { // doublescan mode
+                window_w = (uint32_t)(tex_h * target_ratio * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
+                window_h = (uint32_t)(tex_h * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
+            }
+            else {
+                window_w = tex_w * (render.scale.hardware ? render.scale.size : 1);
+                if(CurMode->type == M_TEXT && vga.mode != M_HERC_GFX) window_w = (uint32_t)((double)window_w / 2.0 + 0.5); // Suppress window size in text mode
+                window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
+            }
         }
     }
 

@@ -883,7 +883,11 @@ forcenormal:
 	} else {
 		// Print a warning when hardware scalers are selected, hopefully the first
 		// video mode will not have dblh or dblw or AR will be wrong
-		if (render.scale.hardware) {
+		if (render.scale.hardware
+#if C_DIRECT3D && C_SDL2
+            && sdl.desktop.type != SCREEN_DIRECT3D11
+#endif
+            ) {
 			LOG_MSG("Output does not support hardware scaling, switching to normal scalers");
 			render.scale.hardware=false;
 		}
