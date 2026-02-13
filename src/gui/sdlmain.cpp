@@ -8080,6 +8080,31 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 void CPU_OnReset(Section* sec);
 
 #if defined(C_HAVE_DUKTAPE)
+static void jsc_print_multiline_string(enum LOG_SEVERITIES lsev,const char *prefix,const char *s) {
+	std::string prefixspc;
+	std::string r;
+	int line = 0;
+
+	prefixspc.resize(strlen(prefix));
+	for (size_t i=0;i < prefixspc.length();i++) prefixspc[i] = ' ';
+
+	while (*s) {
+		if (*s == '\n') {
+			LOG(LOG_MISC,lsev)("%s: %s",line == 0 ? prefix : prefixspc.c_str(),r.c_str());
+			r.clear();
+			line++;
+		}
+		else if (*s >= ' ' || *s < 0) {
+			r += *s;
+		}
+
+		s++;
+	}
+
+	if (!r.empty())
+		LOG(LOG_MISC,lsev)("%s: %s",line == 0 ? prefix : prefixspc.c_str(),r.c_str());
+}
+
 /* console.log(...)
  * _emu.log(...) */
 static duk_ret_t jsc_console_log(duk_context *ctx) {
@@ -8170,7 +8195,14 @@ void jsc_run(const char *jskey) {
 		if (duk_pcall(js_heap,0)) {
 			if (duk_is_error(js_heap,-1)) {
 				LOG(LOG_MISC,LOG_ERROR)("JS error in %s",jskey);
-				LOG(LOG_MISC,LOG_ERROR)("Error: %s",duk_safe_to_string(js_heap,-1));
+
+				duk_dup(js_heap,-1);
+				jsc_print_multiline_string(LOG_ERROR,"JS error",duk_safe_to_string(js_heap,-1));
+				duk_pop(js_heap);
+
+				duk_dup(js_heap,-1);
+				jsc_print_multiline_string(LOG_DEBUG,"JS error stack",duk_safe_to_stacktrace(js_heap,-1));
+				duk_pop(js_heap);
 			}
 		}
 	}
