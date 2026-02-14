@@ -1369,6 +1369,9 @@ bool RENDER_IsScalerCompatibleWithDoublescan(void) {
 #if C_XBRZ
             if (sdl_xbrz.enable) return false;
 #endif
+#if C_DIRECT3D && C_SDL2
+            if(sdl.desktop.type == SCREEN_DIRECT3D11) return false;
+#endif
             break;
     };
 
@@ -1386,7 +1389,7 @@ void RENDER_UpdateScalerMenu(void) {
 }
 
 extern bool vga_render_wait_for_changes;
-bool hardware_scaler_selected;
+bool hardware_scaler_selected = false;
 
 void RENDER_UpdateFromScalerSetting(void) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));

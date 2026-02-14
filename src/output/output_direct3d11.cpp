@@ -587,7 +587,9 @@ bool CDirect3D11::Resize(
     double target_ratio = 4.0 / 3.0; // default aspect ratio 4:3
     if(render.aspect) { // "Fit to aspect ratio" is enabled 
         if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
-            target_ratio = (double)aspect_ratio_x / aspect_ratio_y; // default is 4:3 if <=0
+            target_ratio = (double)aspect_ratio_x / aspect_ratio_y;    // user-defined / preset aspect ratio
+        else if(aspect_ratio_x < 0 && aspect_ratio_y < 0 || IS_PC98_ARCH)
+            target_ratio = (double)CurMode->swidth / CurMode->sheight; // Use current mode's aspect ratio
     }
     else if(tex_h != CurMode->sheight) {
         target_ratio = (double)CurMode->swidth / CurMode->sheight;
@@ -616,7 +618,7 @@ bool CDirect3D11::Resize(
                 if(window_w < tex_w) window_w = tex_w; // Keep at least original size
                 window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
             }
-            SDL_SetWindowSize(sdl.window, window_w, window_h);
+            if(window_w != last_window_w || window_h != last_window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
             last_scalesize = render.scale.size;
         }
         if(render.aspect) {
@@ -626,7 +628,7 @@ bool CDirect3D11::Resize(
                 window_w = real_w;
                 window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
             }
-            SDL_SetWindowSize(sdl.window, window_w, window_h);
+            if(window_w != last_window_w || window_h != last_window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
             //LOG_MSG("window_w=%d, window_h=%d, sdl.draw.width=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, sdl.draw.width, real_w, real_h, (double)real_w/real_h, target_ratio);
         }
     }
