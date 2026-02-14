@@ -572,7 +572,7 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
     return GFX_CAN_32 | GFX_SCALING | GFX_HARDWARE;
 }
 
-bool hardware_scaler_selected = false;
+extern bool hardware_scaler_selected = false;
 bool CDirect3D11::Resize(
     uint32_t window_w, // current window width
     uint32_t window_h, // current window height

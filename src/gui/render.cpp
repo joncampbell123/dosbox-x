@@ -1385,7 +1385,8 @@ void RENDER_UpdateScalerMenu(void) {
     }
 }
 
-extern bool vga_render_wait_for_changes, hardware_scaler_selected;
+extern bool vga_render_wait_for_changes;
+bool hardware_scaler_selected;
 
 void RENDER_UpdateFromScalerSetting(void) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
