@@ -231,6 +231,7 @@ void CDirect3D11::CheckSourceResolution()
     Resize(
         sdl.draw.width, sdl.draw.height,   // Window size
         sdl.draw.width, sdl.draw.height);  // Frame texture size
+
 }
 
 void CDirect3D11::ResizeCPUBuffer(uint32_t src_w, uint32_t src_h)
@@ -571,6 +572,7 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
     return GFX_CAN_32 | GFX_SCALING | GFX_HARDWARE;
 }
 
+bool hardware_scaler_selected = false;
 bool CDirect3D11::Resize(
     uint32_t window_w, // current window width
     uint32_t window_h, // current window height
@@ -578,9 +580,9 @@ bool CDirect3D11::Resize(
     uint32_t tex_h)    // texture height
 {
     const bool reset_window_size =
-        (userResizeWindowWidth == 0) &&
-        (userResizeWindowHeight == 0) &&
-        !sdl.desktop.fullscreen;
+        (((userResizeWindowWidth == 0) && (userResizeWindowHeight == 0)) ||
+        (tex_w != last_tex_w || tex_h != last_tex_h))
+        && !sdl.desktop.fullscreen;
 
     double target_ratio = 4.0 / 3.0; // default aspect ratio 4:3
     if(render.aspect) { // "Fit to aspect ratio" is enabled 
@@ -593,16 +595,39 @@ bool CDirect3D11::Resize(
     else target_ratio = (double)tex_w / tex_h;
 
     if(!sdl.desktop.fullscreen) {
-        if(reset_window_size || render.scale.hardware) {
+        if(hardware_scaler_selected) {
+            render.scale.hardware = true;
+            hardware_scaler_selected = false;
+        }
+        if(reset_window_size || render.scale.size != last_scalesize){
             if(tex_h >= CurMode->sheight * 2) { // doublescan mode
-                window_w = (uint32_t)(tex_h * target_ratio * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
-                window_h = (uint32_t)(tex_h * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
+                uint32_t width = tex_w;
+                uint32_t height = tex_h;
+                if(render.aspect) {
+                    width = (uint32_t)((double)height * CurMode->swidth / CurMode->sheight +0.5); // First adjust width to match the original aspect ratio.
+                    height = (uint32_t)((double)width / target_ratio + 0.5); // Then adjust height to match the target aspect ratio. This ensures the final window size maintains the target aspect ratio, even in doublescan mode.
+                }
+                window_w = (uint32_t)(height * target_ratio * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
+                window_h = (uint32_t)(height * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
             }
             else {
                 window_w = tex_w * (render.scale.hardware ? render.scale.size : 1);
                 if(CurMode->type == M_TEXT && vga.mode != M_HERC_GFX) window_w = (uint32_t)((double)window_w / 2.0 + 0.5); // Suppress window size in text mode
+                if(window_w < tex_w) window_w = tex_w; // Keep at least original size
                 window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
             }
+            SDL_SetWindowSize(sdl.window, window_w, window_h);
+            last_scalesize = render.scale.size;
+        }
+        if(render.aspect) {
+            int real_w = 0, real_h = 0;
+            SDL_GetWindowSize(sdl.window, &real_w, &real_h);
+            if(real_w > 0) {
+                window_w = real_w;
+                window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
+            }
+            SDL_SetWindowSize(sdl.window, window_w, window_h);
+            //LOG_MSG("window_w=%d, window_h=%d, sdl.draw.width=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, sdl.draw.width, real_w, real_h, (double)real_w/real_h, target_ratio);
         }
     }
 

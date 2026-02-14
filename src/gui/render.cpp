@@ -1385,7 +1385,7 @@ void RENDER_UpdateScalerMenu(void) {
     }
 }
 
-extern bool vga_render_wait_for_changes;
+extern bool vga_render_wait_for_changes, hardware_scaler_selected;
 
 void RENDER_UpdateFromScalerSetting(void) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
@@ -1435,11 +1435,11 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "gray"){ render.scale.op = scalerOpGray; render.scale.size = 1; render.scale.hardware=false; }
     else if (scaler == "gray2x"){ render.scale.op = scalerOpGray; render.scale.size = 2; render.scale.hardware=false; }
 #endif
-    else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; }
-    else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=true; }
-    else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=true; }
-    else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; }
-    else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; render.scale.hardware=true; }
+    else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; hardware_scaler_selected=true; }
+    else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=true; hardware_scaler_selected=true; }
+    else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=true; hardware_scaler_selected=true; }
+    else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; hardware_scaler_selected=true; }
+    else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; render.scale.hardware=true; hardware_scaler_selected=true; }
 #if C_XBRZ
     else if (scaler == "xbrz" || scaler == "xbrz_bilinear") { 
         render.scale.op = scalerOpNormal; 
