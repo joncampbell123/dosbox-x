@@ -36,6 +36,8 @@
 #include <output/output_surface.h>
 #include <output/output_ttf.h>
 #include <output/output_direct3d11.h>
+void OUTPUT_Metal_Select();
+void metal_init();
 
 #if C_DIRECT3D
 void d3d_init(void);

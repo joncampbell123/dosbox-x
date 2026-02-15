@@ -9,34 +9,17 @@
 #include "menudef.h"
 #include "render.h"
 #include "vga.h"
-#include "..\ints\int10.h"
+#include "../ints/int10.h"
 #include "output_surface.h"
 
 #if defined(MACOSX)
 #if defined(C_SDL2)
+
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
 #import <AppKit/AppKit.h>
 
 #include "output_metal.h"
-
-vertex float4 vs_main(uint vid [[vertex_id]] )
-{
-    float2 pos[6] = {
-        {-1,-1},{-1,1},{1,-1},
-        {1,-1},{-1,1},{1,1}
-    };
-
-    return float4(pos[vid], 0, 1);
-}
-
-fragment float4 ps_main(
-    float2 uv [[stage_in]],
-    texture2d<float> tex [[texture(0)]],
-    sampler smp [[sampler(0)]] )
-{
-    return tex.sample(smp, uv);
-}
 
 extern VGA_Type vga;
 extern VideoModeBlock* CurMode;
@@ -241,7 +224,7 @@ bool CMetal::CreatePipeline()
     NSError* err = nil;
 
     id<MTLLibrary> lib = [device newDefaultLibrary];
-    if(!lib) return nil;
+    if(!lib) return false;
 
     id<MTLFunction> vs = [lib newFunctionWithName : @"vs_main"];
     id<MTLFunction> ps = [lib newFunctionWithName : @"ps_main"];
@@ -258,7 +241,7 @@ bool CMetal::CreatePipeline()
         LOG_MSG("OUTPUT Metal: Pipeline error: %s", err.localizedDescription.UTF8String);
     }
 
-    return pipeline != nil;
+    return !pipeline ? false : true;
 }
 
 static CMetal* metal = nullptr;
@@ -331,13 +314,13 @@ void metal_init(void)
 }
 
 
-void OUTPUT_METAL_Select()
+void OUTPUT_Metal_Select()
 {
     sdl.desktop.want_type = SCREEN_METAL;
     render.aspectOffload = true;
 }
 
-Bitu OUTPUT_METAL_GetBestMode(Bitu flags)
+Bitu OUTPUT_Metal_GetBestMode(Bitu flags)
 {
     flags |= GFX_SCALING;
     flags &= ~(GFX_CAN_8 | GFX_CAN_15 | GFX_CAN_16);

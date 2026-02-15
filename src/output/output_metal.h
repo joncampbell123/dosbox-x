@@ -29,8 +29,8 @@ using namespace std;
 
 void metal_init();
 
-void OUTPUT_METAL_Select();
-Bitu OUTPUT_METAL_GetBestMode(Bitu flags);
+void OUTPUT_Metal_Select();
+Bitu OUTPUT_Metal_GetBestMode(Bitu flags);
 bool OUTPUT_Metal_StartUpdate(uint8_t*& pixels, Bitu& pitch);
 void OUTPUT_Metal_EndUpdate(const uint16_t* changedLines);
 Bitu OUTPUT_Metal_SetSize(void);
@@ -39,6 +39,9 @@ void OUTPUT_Metal_CheckSourceResolution();
 
 class CMetal {
 public:
+    CMetal();
+    ~CMetal();
+
     bool Initialize(void* nsview, int w, int h);
     void Shutdown();
 
@@ -52,6 +55,9 @@ public:
     bool CreateSampler();
     void GetRenderMode();
     bool CreatePipeline();
+    bool CreateFrameTexture(uint32_t w, uint32_t h);
+    void SetSamplerMode(id<MTLRenderCommandEncoder> encoder);
+    void CheckSourceResolution();
 
     uint32_t frame_width = 0;
     uint32_t frame_height = 0;
@@ -76,6 +82,7 @@ private:
     id<MTLRenderPipelineState> pipeline = nil;
 
     bool textureMapped = false;
+    int current_render_mode = ASPECT_NEAREST;
 };
 
 #endif // defined(C_SDL2)
