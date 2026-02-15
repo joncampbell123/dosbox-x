@@ -184,6 +184,7 @@ char* revert_escape_newlines(const char* aMessage);
 
 #include <output/output_direct3d11.h>
 #include <output/output_direct3d.h>
+#include <output/output_metal.h>
 #include <output/output_opengl.h>
 #include <output/output_surface.h>
 #include <output/output_tools.h>
@@ -191,6 +192,7 @@ char* revert_escape_newlines(const char* aMessage);
 #include <output/output_tools_xbrz.h>
 static bool init_output = false;
 bool switch_to_d3d11_on_startup = false;
+bool switch_to_metal_on_startup = false;
 
 #if defined(WIN32)
 #include "resource.h"
@@ -2253,6 +2255,11 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
             break;
 #endif
 #endif
+#if defined(MACOSX) && defined(C_SDL2)
+        case SCREEN_METAL:
+            retFlags = OUTPUT_METAL_SetSize();
+            break;
+#endif
 #if defined(USE_TTF)
         case SCREEN_TTF:
             break;
@@ -3229,6 +3236,11 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
             break;
 #endif
 #endif
+#if defined(MACOSX) && defined(C_SDL2)
+        case SCREEN_METAL:
+            return OUTPUT_METAL_StartUpdate(pixels, pitch);
+            break;
+#endif
         default:
             break;
     }
@@ -3269,6 +3281,13 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     if (sdl.desktop.prevent_fullscreen)
         return;
 
+#if defined(MACOSX) && defined(C_SDL2)
+    if(sdl.desktop.type == SCREEN_METAL) {
+        sdl.updating = false;
+        goto switch_type;
+    }
+    else
+#endif
 #if C_DIRECT3D
 #if defined(C_SDL2)
     if(sdl.desktop.type == SCREEN_DIRECT3D11) {
@@ -3332,6 +3351,11 @@ switch_type:
             OUTPUT_DIRECT3D11_EndUpdate(changedLines);
             break;
 #endif
+#endif
+#if defined(MACOSX) && defined(C_SDL2)
+        case SCREEN_METAL:
+            OUTPUT_METAL_EndUpdate(changedLines);
+            break;
 #endif
         default:
             break;
@@ -3410,9 +3434,11 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
 #if defined(C_SDL2)
         case SCREEN_DIRECT3D11:
 #endif
+#if defined(MACOSX) && defined(C_SDL2)
+        case SCREEN_METAL: // pixelFormat = MTLPixelFormatBGRA8Unorm
+#endif
             return SDL_MapRGB(sdl.surface->format, red, green, blue);
 #endif
-
         default:
             break;
     }
@@ -3466,7 +3492,11 @@ static void GUI_ShutDown(Section * /*sec*/) {
             break;
 #endif
 #endif
-
+#if defined(MACOSX) && defined(C_SDL2)
+        case SCREEN_METAL:
+            OUTPUT_METAL_Shutdown();
+            break;
+#endif
         default:
                 break;
     }
@@ -4130,6 +4160,22 @@ static void GUI_StartUp() {
             switch_to_d3d11_on_startup = false;
         }
 #endif
+#endif
+#if defined(MACOSX) && defined(C_SDL2)
+    }
+    else if(output == "metal")
+    {
+        if(!init_output) {
+            switch_to_metal_on_startup = true;
+            OUTPUT_SURFACE_Select();
+            init_output = true;
+        }
+        else {
+            OUTPUT_Metal_Select();
+            metal_init();
+            sdl.desktop.want_type = SCREEN_METAL;
+            switch_to_metal_on_startup = false;
+        }
 #endif
     }
 #if defined(USE_TTF)
@@ -6759,6 +6805,9 @@ void SDL_SetupConfigSection() {
         "ddraw",
 #if C_DIRECT3D
         "direct3d", "direct3d11",
+#endif
+#if defined(MACOSX) && defined(C_SDL2)
+        "metal",
 #endif
         nullptr };
 

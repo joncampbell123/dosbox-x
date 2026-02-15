@@ -1541,6 +1541,9 @@ void DOSBOX_SetupConfigSections(void) {
 #if C_DIRECT3D
         "direct3d", "direct3d11",
 #endif
+#if defined(MACOSX) && defined(C_SDL2)
+        "metal",
+#endif
         nullptr };
 
     const char* scalers[] = {

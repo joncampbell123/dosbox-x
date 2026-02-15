@@ -55,6 +55,7 @@
 #endif
 
 #include "../output/output_direct3d11.h"
+#include "../output/output_metal.h"
 
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
@@ -6234,6 +6235,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 #if C_DIRECT3D && defined(C_SDL2)
     if(sdl.desktop.type == SCREEN_DIRECT3D11) {
         OUTPUT_DIRECT3D11_CheckSourceResolution();
+    }
+#endif
+#if defined(MACOSX) && defined(C_SDL2)
+    if(sdl.desktop.type == SCREEN_METAL) {
+        OUTPUT_Metal_CheckSourceResolution();
     }
 #endif
     //Check if we can actually render, else skip the rest

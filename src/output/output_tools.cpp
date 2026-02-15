@@ -181,6 +181,13 @@ void change_output(int output) {
         d3d11_init();
         break;
 #endif
+#if defined(MACOSX) && defined(C_SDL2)
+    case 14: /* Metal */
+        LOG_MSG("change_output: Metal");
+        OUTPUT_Metal_Select();
+        metal_init();
+        break;
+#endif
     default:
         LOG_MSG("SDL: Unsupported output device %d, switching back to surface",output);
         OUTPUT_SURFACE_Select();

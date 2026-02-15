@@ -668,7 +668,7 @@ case "$host" in
            OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
        fi
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
-       LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit -framework IOKit"
+       LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit -framework IOKit -framework Metal -framework QuartzCore"
        dnl FEATURE: Whether to support direct serial port pass-through
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;

@@ -27,6 +27,9 @@ enum SCREEN_TYPES {
 #if C_DIRECT3D && defined(C_SDL2)
     ,SCREEN_DIRECT3D11
 #endif
+#if defined(MACOSX) && defined(C_SDL2)
+    , SCREEN_METAL
+#endif
 };
 
 enum AUTOLOCK_FEEDBACK

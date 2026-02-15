@@ -390,6 +390,9 @@ static const char *def_menu_video_output[] =
     "output_direct3d11",
 #endif
 #endif
+#if defined(MACOSX) && defined(C_SDL2)
+    "output_metal",
+#endif
 #if defined(C_OPENGL) && !defined(HX_DOS)
     "output_opengl",
     "output_openglnb",

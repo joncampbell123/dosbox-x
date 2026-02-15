@@ -12,3 +12,7 @@ liboutput_a_SOURCES = output_direct3d.cpp output_opengl.cpp output_surface.cpp o
 if C_GAMELINK
 liboutput_a_SOURCES += output_gamelink.cpp
 endif
+
+if MACOSX
+liboutput_a_SOURCES += output_metal.mm
+endif
