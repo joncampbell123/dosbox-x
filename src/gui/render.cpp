@@ -329,18 +329,9 @@ static void RENDER_ScalerLineHandler(const void * s) {
 void D3D11_DrawLine_8bpp(const void* src);
 
 static void RENDER_StartLineHandler(const void * s) {
-    //LOG_MSG("RENDER_StartLineHandler called s=%p", s);
     if (render.disablerender)
         return;
-#if defined(C_DIRECT3D) && defined(C_SDL2)
-    if(sdl.desktop.type == SCREEN_DIRECT3D11 && render.src.bpp == 8){
-        GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
-        RENDER_DrawLine = D3D11_DrawLine_8bpp;
-        //RENDER_DrawLine = RENDER_ScalerLineHandler;
-        RENDER_DrawLine(s);
-    }
-    else
-#endif
+
     if (RENDER_DrawLine_scanline_cacheHit(s)) { // line has not changed
         render.scale.cacheRead += render.scale.cachePitch;
         Scaler_ChangedLines[0] += Scaler_Aspect[ render.scale.inLine ];
@@ -892,7 +883,11 @@ forcenormal:
 	} else {
 		// Print a warning when hardware scalers are selected, hopefully the first
 		// video mode will not have dblh or dblw or AR will be wrong
-		if (render.scale.hardware) {
+		if (render.scale.hardware
+#if C_DIRECT3D && C_SDL2
+            && sdl.desktop.type != SCREEN_DIRECT3D11
+#endif
+            ) {
 			LOG_MSG("Output does not support hardware scaling, switching to normal scalers");
 			render.scale.hardware=false;
 		}
@@ -1374,6 +1369,9 @@ bool RENDER_IsScalerCompatibleWithDoublescan(void) {
 #if C_XBRZ
             if (sdl_xbrz.enable) return false;
 #endif
+#if C_DIRECT3D && C_SDL2
+            if(sdl.desktop.type == SCREEN_DIRECT3D11) return false;
+#endif
             break;
     };
 
@@ -1391,6 +1389,7 @@ void RENDER_UpdateScalerMenu(void) {
 }
 
 extern bool vga_render_wait_for_changes;
+bool hardware_scaler_selected = false;
 
 void RENDER_UpdateFromScalerSetting(void) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
@@ -1440,11 +1439,11 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "gray"){ render.scale.op = scalerOpGray; render.scale.size = 1; render.scale.hardware=false; }
     else if (scaler == "gray2x"){ render.scale.op = scalerOpGray; render.scale.size = 2; render.scale.hardware=false; }
 #endif
-    else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; }
-    else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=true; }
-    else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=true; }
-    else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; }
-    else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; render.scale.hardware=true; }
+    else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; hardware_scaler_selected=true; }
+    else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=true; hardware_scaler_selected=true; }
+    else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=true; hardware_scaler_selected=true; }
+    else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; hardware_scaler_selected=true; }
+    else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; render.scale.hardware=true; hardware_scaler_selected=true; }
 #if C_XBRZ
     else if (scaler == "xbrz" || scaler == "xbrz_bilinear") { 
         render.scale.op = scalerOpNormal; 

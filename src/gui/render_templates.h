@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "SDL_endian.h"
+#include "vga.h"
 
 #if DBPP == 8
 #define PSIZE 1

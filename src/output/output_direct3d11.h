@@ -93,6 +93,7 @@ private:
     uint32_t last_window_h = 0;
     uint32_t last_tex_w = 0;
     uint32_t last_tex_h = 0;
+    uint32_t last_scalesize = 0;
     int current_render_mode;
 };
 
