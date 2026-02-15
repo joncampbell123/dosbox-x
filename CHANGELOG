@@ -36,15 +36,15 @@ NEXT VERSION
   - Added SoundBlaster microphone input support (Windows WASAPI)
     (meldro364-glitch)
   - Fixed segfault on launch of macOS builds (maron2000)
-  - Added OS/2 support for tinyfiledialogs, browser and external programs
-   (josch1710)
+  - Added OS/2 support for tinyfiledialogs, browser and external programs and
+    some more fixes. (josch1710)
   - Fixed savestate load "Memory size mismatch" error on MSVC build (rebb)
   - Fixed savestate loading crash related to dynamically allocated TempLine in
     VGA system (rebb)
   - Added Direct3D11 support (Experimental, SDL2 only) (maron2000) 
   - When leaving fullscreen, only force rebuilding the window for OpenGL mode.
     (rebb)
-  - Clear modifier keys before savestate gets saved. (rebb)]
+  - Clear modifier keys before savestate gets saved. (rebb)
   - Re-enabled WinMM joystick support (Windows SDL1) (maron2000)
   - Fixed colors option fails at launch on TTF mode (maron2000)
   - Optional switch to disable post exit delay in DX-CAPTURE (villesundell)
@@ -52,6 +52,10 @@ NEXT VERSION
   - Fixed long freeze during startup on linux (SmileTheory)
   - Fixed windowposition option at launch (maron2000)
   - Fixed detection of EXEPACK failures (maron2000)
+  - Fixed FPU FILD emulation (asemarafa)
+  - Removed range check in INT10_GetCursorPos causing text glitches (maron2000)
+  - Added experimental VS2026 CI builds. Can be downloaded as 64-bit Visual
+    Studio nightly builds. (maron2000)
     
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory
