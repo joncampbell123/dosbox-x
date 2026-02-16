@@ -38,6 +38,7 @@
 # define INCL_DOSERRORS
 # define INCL_WINDIALOGS
 # include <os2.h>
+# include <SDL_syswm.h>
 #endif
 
 #if defined(WIN32)
@@ -896,6 +897,38 @@ void UpdateWindowDimensions(void)
     UpdateWindowDimensions_Linux();
     void Linux_GetWindowDPI(ScreenSizeInfo &info);
     Linux_GetWindowDPI(/*&*/screen_size_info);
+#endif
+#if defined(OS2)
+    HWND hwnd = 0;
+    RECTL rect;
+    if (sdl.window != NULL) {
+        SDL_SysWMinfo wmi;
+        memset(&wmi, 0, sizeof(wmi));
+        SDL_VERSION(&wmi.version);
+        if (SDL_GetWindowWMInfo(sdl.window, &wmi)) {
+            hwnd = wmi.info.os2.hwnd;
+            if (hwnd != 0) {
+                WinQueryWindowRect(hwnd, &rect);
+                UpdateWindowDimensions(rect.xRight - rect.xLeft, rect.yTop - rect.yBottom);
+
+                // Get the screen size via the desktop window.
+                WinQueryWindowRect(HWND_DESKTOP, &rect);
+                // We just set DPI to 96dpi.
+                screen_size_info.screen_dpi.width = 96.0;
+                screen_size_info.screen_dpi.height = 96.0;
+
+                // DPI calculation pulled from sdlmain_linux.cpp and rearranged to calculate mm dimensions
+                screen_size_info.screen_dimensions_pixels.width = rect.xRight - rect.xLeft;
+                screen_size_info.screen_dimensions_pixels.height = rect.yTop - rect.yBottom;
+                screen_size_info.screen_dimensions_mm.width =
+                    ((((double)screen_size_info.screen_dimensions_pixels.width) * 25.4) /
+                    ((double)screen_size_info.screen_dpi.width));
+                screen_size_info.screen_dimensions_mm.height =
+                    ((((double)screen_size_info.screen_dimensions_pixels.height) * 25.4) /
+                    ((double)screen_size_info.screen_dpi.height));
+            }
+        }
+    }
 #endif
     PrintScreenSizeInfo();
 }
