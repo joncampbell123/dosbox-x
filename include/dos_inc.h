@@ -281,7 +281,7 @@ bool DOS_CreateTempFile(char * const name,uint16_t * entry);
 bool DOS_FileExists(char const * const name);
 
 /* Helper Functions */
-bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive,bool isVolume = false);
+bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive);
 /* Drive Handing Routines */
 uint8_t DOS_GetDefaultDrive(void);
 void DOS_SetDefaultDrive(uint8_t drive);
@@ -657,7 +657,7 @@ public:
 
     int GetFindData(int fmt,char * finddata,int *c);
 	
-	void SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern);
+	void SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern);
 	void SetResult(const char * _name,const char * _lname,uint32_t _size,uint32_t _hsize,uint16_t _date,uint16_t _time,uint8_t _attr);
 	
 	uint8_t GetSearchDrive(void);

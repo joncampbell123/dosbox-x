@@ -434,7 +434,7 @@ bool DOS_PSP::SetNumFiles(uint16_t fileNum) {
 	return true;
 }
 
-void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern) {
+void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 	unsigned int i;
 
 	if (lfn_filefind_handle<LFN_FILEFIND_NONE || forcelfn) {
@@ -461,9 +461,6 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern) {
 	} else {
 		MEM_BlockWrite(pt+offsetof(sDTA,spname),pattern,(strlen(pattern) > 8) ? 8 : (Bitu)strlen(pattern));
 	}
-    if(_sattr == DOS_ATTR_VOLUME) {
-        MEM_BlockWrite(pt+offsetof(sDTA, spext),&pattern[8],3);
-    }
 }
 
 void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,uint32_t _hsize,uint16_t _date,uint16_t _time,uint8_t _attr) {
@@ -550,16 +547,9 @@ void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {
         char temp[11];
         MEM_BlockRead(pt+offsetof(sDTA,spname),temp,11);
         for (int i=0;i<13;i++) pattern[i]=0;
-        if(attr == DOS_ATTR_VOLUME)
-        {
-            memcpy(pattern, temp, 11);
-        }
-        else
-        {
             memcpy(pattern,temp,8);
             pattern[strlen(pattern)]='.';
             memcpy(&pattern[strlen(pattern)],&temp[8],3);
-        }
     }
 }
 

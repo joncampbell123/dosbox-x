@@ -63,7 +63,6 @@ extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
 extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-extern bool wild_match(const char* haystack, char* needle);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 extern bool dos_kernel_disabled;
 std::string formatString(const char* format, ...);
@@ -2821,6 +2820,75 @@ static void copyDirEntry(const direntry *src, direntry *dst) {
 	var_write((uint32_t*)var, src->entrysize);
 }
 
+static bool VolumeLabelCmp(const char* label11, const char* pattern)
+{
+    int pi = 0;
+
+    /* ---- Name part (8 bytes) ---- */
+    for (int i = 0; i < 8; i++) {
+        char p = pattern[pi];
+
+        if (p == 0 || p == '.')
+            break;
+
+        if (p == '*') {
+            /* '*' matches rest of name */
+            while(pattern[pi] && pattern[pi] != '.')
+                pi++;
+            break;
+        }
+
+        if (p != '?' && toupper(p) != toupper(label11[i]))
+            return false;
+
+        pi++;
+    }
+
+    /* Skip remaining name chars in pattern until dot or end */
+    while (pattern[pi] && pattern[pi] != '.')
+        pi++;
+
+    /* No extension specified */
+    if (pattern[pi] != '.')
+        return true;
+
+    /* Skip dot */
+    pi++;
+
+    /* ---- Extension part starts at label11[8] ---- */
+    int li = 8;
+
+    while (pattern[pi]) {
+        char p = pattern[pi];
+
+        if (p == '*') {
+            /* '*' matches rest of extension */
+            return true;
+        }
+
+        /* If the rest of the pattern is only spaces, stop */
+        if (p == ' ') {
+            bool only_spaces = true;
+            for (int k = pi; pattern[k]; k++) {
+                if (pattern[k] != ' ') {
+                    only_spaces = false;
+                    break;
+                }
+            }
+            if (only_spaces)
+                return true;
+        }
+
+        if (p != '?' && toupper(p) != toupper(label11[li]))
+            return false;
+
+        pi++;
+        li++;
+    }
+
+    return true;
+}
+
 bool fatDrive::FindNextInternal(uint32_t dirClustNumber, DOS_DTA &dta, direntry *foundEntry) {
 	if (unformatted) return false;
 
@@ -2900,18 +2968,11 @@ nextfile:
 	}
 	memset(find_name,0,DOS_NAMELENGTH_ASCII);
 	memset(extension,0,4);
-
-	if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
-		memcpy(find_name, &sectbuf[entryoffset].entryname[0], 11);
-	else
-	{
-		memcpy(find_name, &sectbuf[entryoffset].entryname[0], 8);
-		memcpy(extension, &sectbuf[entryoffset].entryname[8], 3);
-	}
-
+	memcpy(find_name,&sectbuf[entryoffset].entryname[0],8);
 	// recover the SFN initial E5, which was converted to 05
 	// to distinguish with a free directory entry
 	if (find_name[0] == 0x05) find_name[0] = 0xe5;
+	memcpy(extension,&sectbuf[entryoffset].entryname[8],3);
 
 	if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
 		trimString(&find_name[0]);
@@ -2919,9 +2980,14 @@ nextfile:
 	}
 
 	if (extension[0]!=0) {
-		strcat(find_name, ".");
+		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
+			strcat(find_name, ".");
+		}
 		strcat(find_name, extension);
 	}
+	
+	if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
+        trimString(find_name);
 
 	/* Compare attributes to search attributes */
 
@@ -2933,7 +2999,7 @@ nextfile:
 				goto nextfile;
 		}
 
-		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
+		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) || !VolumeLabelCmp((const char*)sectbuf[entryoffset].entryname, srch_pattern)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
 	} else if ((dos.version.major >= 7 || uselfn) && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
 		struct direntry_lfn *dlfn = (struct direntry_lfn*)(&sectbuf[entryoffset]);
@@ -3059,19 +3125,12 @@ nextfile:
 	}
 
 	/* Compare name to search pattern. Skip long filename match if no long filename given. */
-	if(attrs == DOS_ATTR_VOLUME) {
-		if (!(wild_match(find_name, srch_pattern)))
-			goto nextfile;
-	}
-	else if (!(WildFileCmp(find_name,srch_pattern) || (lfn_max_ord != 0 && lfind_name[0] != 0 && LWildFileCmp(lfind_name,srch_pattern)))) {
+	if (attrs != DOS_ATTR_VOLUME && (!(WildFileCmp(find_name,srch_pattern) || (lfn_max_ord != 0 && lfind_name[0] != 0 && LWildFileCmp(lfind_name,srch_pattern))))) {
 		lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
 		lfn_max_ord = 0;
 		lfnRange.clear();
 		goto nextfile;
 	}
-
-	if(sectbuf[entryoffset].attrib == DOS_ATTR_VOLUME)
-		trimString(find_name);
 
 	// Drive emulation does not need to require a LFN in case there is no corresponding 8.3 names.
 	if (lfind_name[0] == 0) strcpy(lfind_name,find_name);
