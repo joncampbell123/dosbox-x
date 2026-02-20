@@ -3202,36 +3202,6 @@ bool CPU_CPUID(void) {
 	return true;
 }
 
-/* this is used by dynamic core as a workaround for sending the reset signal into the emulator
- * because C++ exceptions don't work from within dynamically generated code. */
-int reset_decode_signal = 0;
-Bits Reset_Decode(void) {
-	LOG_MSG("CPU: It is now safe to send reset signal");
-	cpudecoder = cpu.hlt.old_decoder;
-	throw int(reset_decode_signal);
-	return 0;
-}
-
-void CPU_SetResetSignal(int x) {
-	LOG_MSG("CPU: Queuing reset signal, to send when dynamic core has completed execution.");
-	reset_decode_signal = x;
-	cpu.hlt.old_decoder = cpudecoder;
-	cpudecoder = &Reset_Decode;
-	CPU_Cycles = 0;
-}
-
-bool CPU_DynamicCoreCannotUseCPPExceptions(void) {
-#if C_DYNAMIC_X86
-	if (cpudecoder == &CPU_Core_Dyn_X86_Run)
-		return true;
-#endif
-#if C_DYNREC
-	if (cpudecoder == &CPU_Core_Dynrec_Run)
-		return true;
-#endif
-	return false;
-}
-
 Bits HLT_Decode(void) {
 	/* Once an interrupt occurs, it should change cpu core */
 	if (reg_eip!=cpu.hlt.eip || SegValue(cs) != cpu.hlt.cs) {
