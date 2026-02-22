@@ -80,6 +80,7 @@ public:
     // Initialization
     bool Initialize();
     void Shutdown();
+    bool GetPreferHFP();
 
     // Device enumeration
     std::vector<std::wstring> GetDeviceList();

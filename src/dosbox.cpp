@@ -3744,6 +3744,15 @@ void DOSBOX_SetupConfigSections(void) {
 			Pstring->Set_help("Audio source to use when guest is recording audio. Options: silence, hiss, 1khz tone, or microphone (Windows WASAPI input).");
 			Pstring->SetBasic(true);
 
+            Pbool = secprop->Add_bool("prefer hfp", Property::Changeable::WhenIdle, false);
+            Pbool->Set_help(
+                "Prefer Bluetooth HFP (Hands-Free Profile) microphone mode.\n"
+                "This allows using the microphone of a BT headset but reduces\n"
+                "audio quality (typically 8kHz–16kHz telephone quality).\n"
+                "When disabled, higher-quality microphones are preferred."
+            );
+            Pbool->SetBasic(true);
+
 			/* Sound Blaster IRQ hacks.
 			 *
 			 * These hacks reduce emulation accuracy but can be set to work around bugs or mistakes in some old

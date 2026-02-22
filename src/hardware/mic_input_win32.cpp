@@ -14,6 +14,7 @@
 #include <cmath>
 #include <algorithm>
 #include <vector>
+#include "control.h"
 
 // Link required libraries
 #pragma comment(lib, "ole32.lib")
@@ -121,6 +122,11 @@ void MicrophoneInput::SetError(const char* format, ...) {
     va_start(args, format);
     vsnprintf(lastError_, sizeof(lastError_), format, args);
     va_end(args);
+}
+
+bool MicrophoneInput::GetPreferHFP() {
+    const Section_prop* section = static_cast<Section_prop*>(control->GetSection("sblaster"));
+    return section->Get_bool("prefer hfp");
 }
 
 bool MicrophoneInput::Initialize() {
@@ -252,24 +258,132 @@ std::wstring MicrophoneInput::GetCurrentDeviceName() const {
 bool MicrophoneInput::InitializeDevice() {
     HRESULT hr;
 
-    // Get the selected device or default
-    if (selectedDeviceIndex_ < 0) {
-        hr = deviceEnumerator_->GetDefaultAudioEndpoint(
-            eCapture, eConsole, &device_);
-    } else {
-        IMMDeviceCollection* collection = nullptr;
-        hr = deviceEnumerator_->EnumAudioEndpoints(
-            eCapture, DEVICE_STATE_ACTIVE, &collection);
-        if (SUCCEEDED(hr)) {
-            hr = collection->Item(selectedDeviceIndex_, &device_);
-            collection->Release();
-        }
-    }
+    // Enumerate all active capture devices
+    IMMDeviceCollection* collection = nullptr;
 
-    if (FAILED(hr) || !device_) {
-        SetError("Failed to get audio capture device: 0x%08X", hr);
+    hr = deviceEnumerator_->EnumAudioEndpoints(
+        eCapture, DEVICE_STATE_ACTIVE, &collection);
+
+    if(FAILED(hr) || !collection) {
+        SetError("Failed to enumerate capture devices: 0x%08X", hr);
         return false;
     }
+
+    UINT count = 0;
+    collection->GetCount(&count);
+
+    IMMDevice* selectedDevice = nullptr;
+    int bestScore = INT_MIN;
+    std::string acpname;
+
+    for(UINT i = 0; i < count; i++) {
+        IMMDevice* dev = nullptr;
+        if(FAILED(collection->Item(i, &dev)))
+            continue;
+
+        int score = 0;
+        std::wstring name;
+
+        // Get device friendly name
+        IPropertyStore* props = nullptr;
+
+        if(SUCCEEDED(dev->OpenPropertyStore(STGM_READ, &props))) {
+            PROPVARIANT varName;
+            PropVariantInit(&varName);
+
+            if(SUCCEEDED(props->GetValue(PKEY_Device_FriendlyName, &varName))) {
+                if(varName.vt == VT_LPWSTR && varName.pwszVal) {
+                    name = varName.pwszVal;
+                }
+            }
+
+            PropVariantClear(&varName);
+            props->Release();
+        }
+
+        // Activate temporarily to inspect format
+        IAudioClient* tempClient = nullptr;
+        WAVEFORMATEX* fmt = nullptr;
+
+        if(SUCCEEDED(dev->Activate(__uuidof(IAudioClient),
+            CLSCTX_ALL, nullptr,
+            (void**)&tempClient))) {
+
+            if(SUCCEEDED(tempClient->GetMixFormat(&fmt))) {
+
+                /*
+                    HFP (Hands-Free Profile) typically uses 8 kHz or 16 kHz sample rates and is mono.
+                */
+                bool isLikelyHFP =
+                    (fmt->nSamplesPerSec <= 16000) &&
+                    (fmt->nChannels == 1);
+
+                // ---- HFP handling ----
+                if(isLikelyHFP) {
+                    if(!GetPreferHFP()) {
+                        // Strongly penalize HFP when option is disabled
+                        score -= 300;
+                    }
+                    else {
+                        // Boost if user explicitly prefers HFP
+                        if(fmt->nSamplesPerSec >= 12000) score += 300;
+                        else if(fmt->nSamplesPerSec > 0) score += 200;
+                    }
+                }
+                else {
+                    if(fmt->nSamplesPerSec >= 48000) score += 100;
+                    else if(fmt->nSamplesPerSec >= 32000) score += 50;
+                    else score += 20;
+
+                }
+                CoTaskMemFree(fmt);
+            }
+
+            tempClient->Release();
+        }
+
+        // Select highest scoring device
+        if(score > bestScore) {
+            if(selectedDevice)
+                selectedDevice->Release();
+
+            selectedDevice = dev;
+            selectedDevice->AddRef();
+            bestScore = score;
+            int size = WideCharToMultiByte(
+                CP_ACP, 0,
+                name.c_str(), -1,
+                nullptr, 0,
+                nullptr, nullptr);
+
+            if(size > 0) {
+                std::string temp(size, 0);
+
+                WideCharToMultiByte(
+                    CP_ACP, 0,
+                    name.c_str(), -1,
+                    &temp[0], size,
+                    nullptr, nullptr);
+
+                acpname = temp.c_str();
+            }
+            else {
+                acpname = "(unknown)";
+            }
+        }
+
+        dev->Release();
+    }
+
+    collection->Release();
+
+    if(!selectedDevice) {
+        SetError("No usable capture device found");
+        return false;
+    }
+
+    device_ = selectedDevice;
+    LOG_MSG("mic_input: Selected microphone device: %s", acpname.c_str());
 
     // Activate audio client
     hr = device_->Activate(
