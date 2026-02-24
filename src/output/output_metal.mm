@@ -29,38 +29,91 @@ CMetal::~CMetal() { Shutdown(); }
 
 bool CMetal::Initialize(void* nsview, int w, int h)
 {
+    /* ---------------------------------
+     * 1. Metal Device
+     * --------------------------------- */
     device = MTLCreateSystemDefaultDevice();
-    if(!device) {
-        LOG_MSG("OUTPUT Metal: Backend not supported, fallback");
+    if (!device) {
+        LOG_MSG("Metal: No device available");
         return false;
     }
 
     queue = [device newCommandQueue];
-    if(!queue) {
-        LOG_MSG("OUTPUT Metal: Failed to create command queue");
+    if (!queue) {
+        LOG_MSG("Metal: Failed to create command queue");
         return false;
     }
+    this->view = (__bridge NSView*)nsview;
 
+    /* ---------------------------------
+    * 2. Create Metal Layer + SubView
+    * --------------------------------- */
     layer = [CAMetalLayer layer];
     layer.device = device;
     layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
     layer.framebufferOnly = NO;
 
-    view = (__bridge NSView*)nsview;
-    view.wantsLayer = YES;
-    view.layer = layer;
+    /* Metal専用NSViewを作る */
+    NSView* parentView = (__bridge NSView*)view;
+    NSView* metalView = [[NSView alloc] initWithFrame:parentView.bounds];
 
-    frame_width = w;
+    metalView.autoresizingMask =
+        NSViewWidthSizable | NSViewHeightSizable;
+
+    metalView.wantsLayer = YES;
+    metalView.layer = layer;
+
+    /* SDLのcontentViewに追加 */
+    [view addSubview:metalView];
+
+    /* layerサイズ同期 */
+    layer.frame = metalView.bounds;
+
+    /* ---------------------------------
+     * 3. Retina / drawableSize
+     * --------------------------------- */
+    CGFloat scale = 1.0;
+
+#if TARGET_OS_OSX
+    if (view.window)
+        scale = view.window.backingScaleFactor;
+#endif
+
+    LOG_MSG("Metal: drawableSize = %f x %f",
+            layer.drawableSize.width,
+            layer.drawableSize.height);
+
+    /* ---------------------------------
+     * 4. CPU framebuffer
+     * --------------------------------- */
+    frame_width  = w;
     frame_height = h;
 
     cpu_pitch = w * 4;
     cpu_buffer.resize(cpu_pitch * h);
 
-    return CreateFrameTexture(w, h) &&
-        CreatePipeline() &&
-        CreateSampler();
-}
+    /* ---------------------------------
+     * 5. GPU resources
+     * --------------------------------- */
+    if (!CreateFrameTexture(w, h)) {
+        LOG_MSG("Metal: CreateFrameTexture failed");
+        return false;
+    }
 
+    if (!CreatePipeline()) {
+        LOG_MSG("Metal: CreatePipeline failed");
+        return false;
+    }
+
+    if (!CreateSampler()) {
+        LOG_MSG("Metal: CreateSampler failed");
+        return false;
+    }
+    CheckSourceResolution();
+    LOG_MSG("Metal: Initialize complete");
+
+    return true;
+}
 void CMetal::CheckSourceResolution()
 {
     static uint32_t last_w = 0;
@@ -127,7 +180,10 @@ bool CMetal::StartUpdate(uint8_t*& pixels, Bitu& pitch)
 
 void CMetal::EndUpdate()
 {
-    if(!textureMapped) return;
+    if(!textureMapped){
+        LOG_MSG("METAL: EndUpdate textureMapped=false");
+        return;
+    }
 
     MTLRegion region = {
         {0,0,0},
@@ -140,11 +196,18 @@ void CMetal::EndUpdate()
         bytesPerRow : cpu_pitch] ;
 
     id<CAMetalDrawable> drawable = [layer nextDrawable];
-    if(!drawable) return;
+    if (!drawable) {
+        LOG_MSG("Metal: drawable is NULL");
+        return;
+    }
+    //LOG_MSG("Drawable texture size = %f x %f",
+    //    drawable.texture.width,
+    //    drawable.texture.height);
 
     MTLRenderPassDescriptor* pass =
         [MTLRenderPassDescriptor renderPassDescriptor];
-
+    pass.colorAttachments[0].clearColor =
+        MTLClearColorMake(0, 1, 0, 1); // 緑
     pass.colorAttachments[0].texture = drawable.texture;
     pass.colorAttachments[0].loadAction = MTLLoadActionClear;
     pass.colorAttachments[0].storeAction = MTLStoreActionStore;
@@ -159,10 +222,9 @@ void CMetal::EndUpdate()
     GetRenderMode();
     SetSamplerMode(enc);
 
-    [enc drawPrimitives : MTLPrimitiveTypeTriangle
-        vertexStart : 0
-        vertexCount : 6] ;
-
+    [enc drawPrimitives : MTLPrimitiveTypeTriangleStrip
+            vertexStart : 0
+            vertexCount : 4];
     [enc endEncoding] ;
 
     [cmd presentDrawable : drawable] ;
@@ -185,7 +247,7 @@ bool CMetal::CreateSampler()
     s.minFilter = MTLSamplerMinMagFilterLinear;
     s.magFilter = MTLSamplerMinMagFilterLinear;
     samplerLinear = [device newSamplerStateWithDescriptor : s];
-
+    if(!(samplerNearest && samplerLinear)) LOG_MSG("METAL:CreateSampler failed");
     return samplerNearest && samplerLinear;
 }
 
@@ -223,25 +285,74 @@ bool CMetal::CreatePipeline()
 {
     NSError* err = nil;
 
-    id<MTLLibrary> lib = [device newDefaultLibrary];
-    if(!lib) return false;
+    NSString* src = @"\
+    #include <metal_stdlib>\n\
+    using namespace metal;\n\
+    \
+    struct VSOut {\
+        float4 pos [[position]];\
+        float2 uv;\
+    };\
+    \
+    vertex VSOut vs_main(uint vid [[vertex_id]]) {\
+        float2 pos[4] = {\
+            {-1.0,-1.0},{ 1.0,-1.0},\
+            {-1.0, 1.0},{ 1.0, 1.0}\
+        };\
+        float2 uv[4] = {\
+            {0.0,1.0},{1.0,1.0},\
+            {0.0,0.0},{1.0,0.0}\
+        };\
+        VSOut o;\
+        o.pos = float4(pos[vid],0,1);\
+        o.uv  = uv[vid];\
+        return o;\
+    }\
+    \
+    fragment float4 ps_main(VSOut in [[stage_in]],\
+                            texture2d<float> tex [[texture(0)]],\
+                            sampler smp [[sampler(0)]]) {\
+        return tex.sample(smp, in.uv);\
+    }";
 
-    id<MTLFunction> vs = [lib newFunctionWithName : @"vs_main"];
-    id<MTLFunction> ps = [lib newFunctionWithName : @"ps_main"];
+    id<MTLLibrary> lib =
+        [device newLibraryWithSource:src options:nil error:&err];
 
-    MTLRenderPipelineDescriptor* desc =
-        [[MTLRenderPipelineDescriptor alloc]init];
-
-    desc.vertexFunction = vs;
-    desc.fragmentFunction = ps;
-    desc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-
-    pipeline = [device newRenderPipelineStateWithDescriptor : desc error : &err];
-    if(!pipeline && err) {
-        LOG_MSG("OUTPUT Metal: Pipeline error: %s", err.localizedDescription.UTF8String);
+    if (!lib) {
+        LOG_MSG("Metal: Shader compile error: %s",
+                err.localizedDescription.UTF8String);
+        return false;
     }
 
-    return !pipeline ? false : true;
+    id<MTLFunction> vs = [lib newFunctionWithName:@"vs_main"];
+    id<MTLFunction> ps = [lib newFunctionWithName:@"ps_main"];
+
+    if (!vs || !ps) {
+        LOG_MSG("Metal: Shader function missing");
+        return false;
+    }
+
+    MTLRenderPipelineDescriptor* desc =
+        [[MTLRenderPipelineDescriptor alloc] init];
+
+    desc.vertexFunction   = vs;
+    desc.fragmentFunction = ps;
+    desc.colorAttachments[0].pixelFormat =
+        MTLPixelFormatBGRA8Unorm;
+
+    desc.colorAttachments[0].blendingEnabled = NO;
+
+    pipeline =
+        [device newRenderPipelineStateWithDescriptor:desc
+                                               error:&err];
+
+    if (!pipeline) {
+        LOG_MSG("Metal: Pipeline creation failed: %s",
+                err.localizedDescription.UTF8String);
+        return false;
+    }
+
+    return true;
 }
 
 static CMetal* metal = nullptr;
@@ -330,60 +441,57 @@ Bitu OUTPUT_Metal_GetBestMode(Bitu flags)
 
 Bitu OUTPUT_Metal_SetSize(void)
 {
-    if(!metal) {
+    if (!metal) {
         LOG_MSG("Metal: Not initialized");
         return 0;
     }
 
     /* ------------------------
-     * Framebuffer size
+     * Framebuffer (texture) size
      * ------------------------ */
-    uint32_t tex_w = metal->frame_width ? metal->frame_width : sdl.draw.width;
+    uint32_t tex_w = metal->frame_width  ? metal->frame_width  : sdl.draw.width;
     uint32_t tex_h = metal->frame_height ? metal->frame_height : sdl.draw.height;
 
     /* ------------------------
-     * Window size
+     * Window logical size
      * ------------------------ */
-    int cur_w = 0, cur_h = 0;
-    SDL_GetWindowSize(sdl.window, &cur_w, &cur_h);
+    int win_w = 0, win_h = 0;
+    SDL_GetWindowSize(sdl.window, &win_w, &win_h);
 
-    if(!sdl.desktop.fullscreen && !metal->was_fullscreen) {
-        metal->window_width = cur_w;
-        metal->window_height = cur_h;
-    }
+    if (win_w <= 0 || win_h <= 0)
+        return 0;
 
-    /* ---- Enter fullscreen ---- */
-    if(sdl.desktop.fullscreen && !metal->was_fullscreen) {
+    /* ------------------------
+     * Fullscreen handling
+     * ------------------------ */
+    if (sdl.desktop.fullscreen && !metal->was_fullscreen) {
 
         metal->was_fullscreen = true;
-        metal->window_width = cur_w;
-        metal->window_height = cur_h;
+        metal->window_width  = win_w;
+        metal->window_height = win_h;
 
         SDL_SetWindowFullscreen(
             sdl.window,
             SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
-
-    /* ---- Exit fullscreen ---- */
-    else if(!sdl.desktop.fullscreen && metal->was_fullscreen) {
+    else if (!sdl.desktop.fullscreen && metal->was_fullscreen) {
 
         SDL_SetWindowFullscreen(sdl.window, 0);
 
-        cur_w = metal->window_width;
-        cur_h = metal->window_height;
+        win_w = metal->window_width;
+        win_h = metal->window_height;
 
         metal->was_fullscreen = false;
     }
+    else if (!sdl.desktop.fullscreen) {
+        metal->window_width  = win_w;
+        metal->window_height = win_h;
+    }
 
     /* ------------------------
-     * Resize Metal side
+     * Metal resize
      * ------------------------ */
-    if(!metal->Resize(
-        cur_w,
-        cur_h,
-        tex_w,
-        tex_h))
-    {
+    if (!metal->Resize(win_w, win_h, tex_w, tex_h)) {
         LOG_MSG("Metal: Resize failed");
         return 0;
     }
@@ -391,26 +499,60 @@ Bitu OUTPUT_Metal_SetSize(void)
     return GFX_CAN_32 | GFX_SCALING | GFX_HARDWARE;
 }
 
-
 extern bool hardware_scaler_selected;
 bool CMetal::Resize(uint32_t window_w,
-    uint32_t window_h,
-    uint32_t tex_w,
-    uint32_t tex_h)
+                    uint32_t window_h,
+                    uint32_t tex_w,
+                    uint32_t tex_h)
 {
-    layer.drawableSize = CGSizeMake(window_w, window_h);
+    if (!layer || !view)
+        return false;
+    LOG_MSG("Resize called: win=%u,%u tex=%u,%u", window_w, window_h, tex_w, tex_h);
 
-    if(tex_w != frame_width || tex_h != frame_height)
+    /* ---------------------------------
+     * 2. Retina / HiDPI
+     * --------------------------------- */
+    CGFloat scale = 1.0;
+    NSView* nsv = (__bridge NSView*)view;
+
+    if (nsv.window) {
+        scale = nsv.window.backingScaleFactor;
+    } else {
+        // ウィンドウにアタッチされていない場合はメイン画面のスケールを参照
+        scale = [NSScreen mainScreen].backingScaleFactor;
+    }
+    /* ---------------------------------
+     * 2. Layerサイズの更新
+     * --------------------------------- */
+    layer.contentsScale = scale;
+
+    // 直接引数の window_w/h を使ってフレームを設定
+    // これにより superlayer が nil でもサイズが決まる
+    CGRect newFrame = CGRectMake(0, 0, (CGFloat)window_w, (CGFloat)window_h);
+    layer.frame = newFrame;
+
+    // 実際に描画されるピクセル解像度を設定
+    layer.drawableSize = CGSizeMake(window_w * scale, window_h * scale);
+    /* ---------------------------------
+     * 3. フレームテクスチャ再生成
+     * --------------------------------- */
+    if (tex_w != frame_width ||
+        tex_h != frame_height)
     {
-        frame_width = tex_w;
+        frame_width  = tex_w;
         frame_height = tex_h;
 
-        cpu_pitch = tex_w * 4;
-        cpu_buffer.resize(cpu_pitch * tex_h);
+        cpu_pitch = frame_width * 4;
+        cpu_buffer.resize(cpu_pitch * frame_height);
 
-        return CreateFrameTexture(tex_w, tex_h);
+        if (!CreateFrameTexture(frame_width,
+                                frame_height))
+        {
+            LOG_MSG("Metal: CreateFrameTexture failed in Resize");
+            return false;
+        }
     }
-
+    LOG_MSG("Metal: Texture resized to %ux%u", tex_w, tex_h);
     return true;
 }
 
@@ -418,15 +560,22 @@ bool CMetal::Resize(uint32_t window_w,
 bool CMetal::CreateFrameTexture(uint32_t w, uint32_t h)
 {
     MTLTextureDescriptor* desc =
-        [MTLTextureDescriptor texture2DDescriptorWithPixelFormat :
-    MTLPixelFormatBGRA8Unorm
-        width : w
-        height : h
-        mipmapped : NO];
+        [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:
+            MTLPixelFormatBGRA8Unorm
+            width:w
+            height:h
+            mipmapped:NO];
 
-    desc.usage = MTLTextureUsageShaderRead;
+    desc.usage =
+        MTLTextureUsageShaderRead |
+        MTLTextureUsageShaderWrite;
+    
+    desc.storageMode = MTLStorageModeShared;
 
-    frameTexture = [device newTextureWithDescriptor : desc];
+    frameTexture = [device newTextureWithDescriptor:desc];
+
+    if(!frameTexture)
+        LOG_MSG("METAL: CreateFrameTexture failed");
 
     return frameTexture != nil;
 }
@@ -441,7 +590,7 @@ bool OUTPUT_Metal_StartUpdate(uint8_t*& pixels, Bitu& pitch)
 
 void OUTPUT_Metal_EndUpdate(const uint16_t* changedLines)
 {
-    //LOG_MSG("D3D11: EndUpdate called, changedLines=%p", changedLines);
+    //LOG_MSG("METAL: EndUpdate called, changedLines=%p", changedLines);
     if(metal)
         metal->EndUpdate();
 }
