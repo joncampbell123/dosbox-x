@@ -4176,7 +4176,11 @@ static void GUI_StartUp() {
     {
         if(!init_output) {
             switch_to_metal_on_startup = true;
+#if C_OPENGL
+            OUTPUT_OPENGL_Select(GLBilinear);
+#else
             OUTPUT_SURFACE_Select();
+#endif
             init_output = true;
         }
         else {

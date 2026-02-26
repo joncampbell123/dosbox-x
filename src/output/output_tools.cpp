@@ -463,6 +463,22 @@ bool toOutput(const char *what) {
         }
     }
 #endif
+#if MACOSX && defined(C_SDL2)
+    else if(!strcmp(what, "metal")) {
+        if(sdl.desktop.type == SCREEN_METAL)
+            return false;
+
+        if(window_was_maximized && !GFX_IsFullscreen()) {
+            change_output(14);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        }
+        else {
+            change_output(14);
+        }
+    }
+#endif
     if (reset) RENDER_Reset();
     OutputSettingMenuUpdate();
     return true;
