@@ -339,6 +339,10 @@ void                                            WindowsTaskbarResetPreviewRegion
 
 #if defined(MACOSX)
 void                        macosx_reload_touchbar(void);
+#if defined(C_SDL2)
+void OUTPUT_Metal_Shutdown();
+void change_output(int);
+#endif
 #endif
 
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
@@ -5557,6 +5561,16 @@ void MAPPER_RunInternal() {
 
 #if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     WindowsTaskbarUpdatePreviewRegion();
+#endif
+
+#if defined(MACOSX) && defined(C_SDL2)
+    if(sdl.desktop.want_type == SCREEN_METAL){
+        OUTPUT_Metal_Shutdown();
+#if defined(C_OPENGL)
+        change_output(3);
+#endif
+        change_output(14);
+    }  
 #endif
 
 //  KEYBOARD_ClrBuffer();

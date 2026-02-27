@@ -116,6 +116,11 @@ extern bool                 MSG_Write(const char *, const char *);
 extern void                 LoadMessageFile(const char * fname);
 extern void                 GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
+#if defined(MACOSX) && defined(C_SDL2)
+void OUTPUT_Metal_Shutdown();
+void change_output(int);
+#endif
+
 static int                  cursor;
 static bool                 running;
 static int                  saved_bpp;
@@ -3950,7 +3955,16 @@ void RunCfgTool(Bitu val) {
 #if C_OPENGL
         voodoo_ogl_update_dimensions();
 #endif
-    }
+    }    
+#if defined(MACOSX) && defined(C_SDL2)
+    if(sdl.desktop.want_type == SCREEN_METAL){
+        OUTPUT_Metal_Shutdown();
+#if defined(C_OPENGL)
+        change_output(3);
+#endif
+        change_output(14);
+    }  
+#endif
 }
 
 void GUI_Shortcut(int select) {
