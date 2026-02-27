@@ -64,9 +64,13 @@ public:
 
     int cpu_pitch = 0;
     std::vector<uint8_t> cpu_buffer;
-
     uint32_t window_width = 0;
     uint32_t window_height = 0;
+    uint32_t last_window_w = 0;
+    uint32_t last_window_h = 0;
+    uint32_t last_tex_w = 0;
+    uint32_t last_tex_h = 0;
+    uint32_t last_scalesize = 0;
     bool was_fullscreen = false;
 
 private:
@@ -83,6 +87,7 @@ private:
 
     bool textureMapped = false;
     int current_render_mode = ASPECT_NEAREST;
+    MTLViewport currentViewport;
 };
 
 #endif // defined(C_SDL2)

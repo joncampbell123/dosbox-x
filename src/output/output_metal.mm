@@ -181,7 +181,7 @@ bool CMetal::StartUpdate(uint8_t*& pixels, Bitu& pitch)
 void CMetal::EndUpdate()
 {
     if(!textureMapped){
-        LOG_MSG("METAL: EndUpdate textureMapped=false");
+        //LOG_MSG("METAL: EndUpdate textureMapped=false");
         return;
     }
 
@@ -207,7 +207,7 @@ void CMetal::EndUpdate()
     MTLRenderPassDescriptor* pass =
         [MTLRenderPassDescriptor renderPassDescriptor];
     pass.colorAttachments[0].clearColor =
-        MTLClearColorMake(0, 1, 0, 1); // 緑
+        MTLClearColorMake(0, 0, 0, 1); // Black
     pass.colorAttachments[0].texture = drawable.texture;
     pass.colorAttachments[0].loadAction = MTLLoadActionClear;
     pass.colorAttachments[0].storeAction = MTLStoreActionStore;
@@ -216,7 +216,7 @@ void CMetal::EndUpdate()
 
     id<MTLRenderCommandEncoder> enc =
         [cmd renderCommandEncoderWithDescriptor : pass];
-
+    [enc setViewport:currentViewport];
     [enc setRenderPipelineState : pipeline] ;
     [enc setFragmentTexture : frameTexture atIndex : 0] ;
     GetRenderMode();
@@ -455,43 +455,39 @@ Bitu OUTPUT_Metal_SetSize(void)
     /* ------------------------
      * Window logical size
      * ------------------------ */
-    int win_w = 0, win_h = 0;
-    SDL_GetWindowSize(sdl.window, &win_w, &win_h);
+    int cur_w = 0, cur_h = 0;
+    SDL_GetWindowSize(sdl.window, &cur_w, &cur_h);
 
-    if (win_w <= 0 || win_h <= 0)
+    if (cur_w <= 0 || cur_h <= 0)
         return 0;
 
     /* ------------------------
      * Fullscreen handling
      * ------------------------ */
-    if (sdl.desktop.fullscreen && !metal->was_fullscreen) {
+    if(!sdl.desktop.fullscreen && !metal->was_fullscreen){
+        metal->window_width = cur_w;
+        metal->window_height = cur_h;
+    }
 
+    if(sdl.desktop.fullscreen && !metal->was_fullscreen) {
         metal->was_fullscreen = true;
-        metal->window_width  = win_w;
-        metal->window_height = win_h;
-
+        metal->window_width = cur_w;
+        metal->window_height = cur_w * sdl.draw.height / sdl.draw.width;
         SDL_SetWindowFullscreen(
             sdl.window,
             SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
-    else if (!sdl.desktop.fullscreen && metal->was_fullscreen) {
-
+    else if(!sdl.desktop.fullscreen && metal->was_fullscreen){
         SDL_SetWindowFullscreen(sdl.window, 0);
-
-        win_w = metal->window_width;
-        win_h = metal->window_height;
-
+        cur_w = metal->window_width;
+        cur_h = metal->window_height;
         metal->was_fullscreen = false;
-    }
-    else if (!sdl.desktop.fullscreen) {
-        metal->window_width  = win_w;
-        metal->window_height = win_h;
     }
 
     /* ------------------------
      * Metal resize
      * ------------------------ */
-    if (!metal->Resize(win_w, win_h, tex_w, tex_h)) {
+    if (!metal->Resize(cur_w, cur_h, tex_w, tex_h)) {
         LOG_MSG("Metal: Resize failed");
         return 0;
     }
@@ -509,6 +505,82 @@ bool CMetal::Resize(uint32_t window_w,
         return false;
     LOG_MSG("Resize called: win=%u,%u tex=%u,%u", window_w, window_h, tex_w, tex_h);
 
+    const bool reset_window_size =
+        (((userResizeWindowWidth == 0) && (userResizeWindowHeight == 0)) ||
+        (tex_w != last_tex_w || tex_h != last_tex_h))
+        && !sdl.desktop.fullscreen;
+
+    double target_ratio = 4.0 / 3.0; // default aspect ratio 4:3
+    if(render.aspect) { // "Fit to aspect ratio" is enabled 
+        if(aspect_ratio_x > 0 && aspect_ratio_y > 0)
+            target_ratio = (double)aspect_ratio_x / aspect_ratio_y;    // user-defined / preset aspect ratio
+        else if(aspect_ratio_x < 0 && aspect_ratio_y < 0 || IS_PC98_ARCH)
+            target_ratio = (double)CurMode->swidth / CurMode->sheight; // Use current mode's aspect ratio
+    }
+    else if(tex_h != CurMode->sheight) {
+        target_ratio = (double)CurMode->swidth / CurMode->sheight;
+    }
+    else target_ratio = (double)tex_w / tex_h;
+
+    uint32_t width=0, height=0;
+    if(!sdl.desktop.fullscreen) {
+        if(hardware_scaler_selected) {
+            render.scale.hardware = true;
+            hardware_scaler_selected = false;
+        }
+        if(reset_window_size || render.scale.size != last_scalesize){
+            if(tex_h >= CurMode->sheight * 2) { // doublescan mode
+                width = tex_w;
+                height = tex_h;
+                if(render.aspect) {
+                    width = (uint32_t)((double)height * CurMode->swidth / CurMode->sheight +0.5); // First adjust width to match the original aspect ratio.
+                    height = (uint32_t)((double)width / target_ratio + 0.5); // Then adjust height to match the target aspect ratio. This ensures the final window size maintains the target aspect ratio, even in doublescan mode.
+                }
+                window_w = (uint32_t)(height * target_ratio * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
+                window_h = (uint32_t)(height * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
+            }
+            else {
+                window_w = tex_w * (render.scale.hardware ? render.scale.size : 1);
+                if(CurMode->type == M_TEXT && vga.mode != M_HERC_GFX) window_w = (uint32_t)((double)window_w / 2.0 + 0.5); // Suppress window size in text mode
+                if(window_w < tex_w) window_w = tex_w; // Keep at least original size
+                window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
+            }
+            if(window_w != last_window_w || window_h != last_window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
+            last_scalesize = render.scale.size;
+        }
+        if(render.aspect) {
+            int real_w = 0, real_h = 0;
+            SDL_GetWindowSize(sdl.window, &real_w, &real_h);
+            if(real_w > 0) {
+                window_w = real_w;
+                window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
+            }
+            if(window_w != last_window_w || window_h != last_window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
+            //LOG_MSG("window_w=%d, window_h=%d, sdl.draw.width=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, sdl.draw.width, real_w, real_h, (double)real_w/real_h, target_ratio);
+        }
+    }
+
+    if(window_w == last_window_w &&
+        window_h == last_window_h &&
+        tex_w == last_tex_w &&
+        tex_h == last_tex_h) {
+        return true; // No change
+    }
+
+    // Texture size is fixed
+    frame_width = tex_w;
+    frame_height = tex_h;
+
+    if(sdl.window && !sdl.desktop.fullscreen) {
+        SDL_SetWindowSize(sdl.window, window_w, window_h);
+    }
+
+    int real_w = 0, real_h = 0;
+    SDL_GetWindowSize(sdl.window, &real_w, &real_h);
+
+    width = (uint32_t)real_w;
+    height = (uint32_t)real_h;
+
     /* ---------------------------------
      * 2. Retina / HiDPI
      * --------------------------------- */
@@ -518,32 +590,55 @@ bool CMetal::Resize(uint32_t window_w,
     if (nsv.window) {
         scale = nsv.window.backingScaleFactor;
     } else {
-        // ウィンドウにアタッチされていない場合はメイン画面のスケールを参照
         scale = [NSScreen mainScreen].backingScaleFactor;
     }
     /* ---------------------------------
-     * 2. Layerサイズの更新
+     * 2. Update Layer size
      * --------------------------------- */
     layer.contentsScale = scale;
 
-    // 直接引数の window_w/h を使ってフレームを設定
-    // これにより superlayer が nil でもサイズが決まる
-    CGRect newFrame = CGRectMake(0, 0, (CGFloat)window_w, (CGFloat)window_h);
+    CGRect newFrame = CGRectMake(0, 0, (CGFloat)width, (CGFloat)height);
     layer.frame = newFrame;
 
-    // 実際に描画されるピクセル解像度を設定
-    layer.drawableSize = CGSizeMake(window_w * scale, window_h * scale);
+    layer.drawableSize = CGSizeMake(width * scale, height * scale);
+
+    uint32_t dw = (uint32_t)layer.drawableSize.width;
+    uint32_t dh = (uint32_t)layer.drawableSize.height;
+
+    if (sdl.desktop.fullscreen && render.aspect) {
+
+        double win_ratio = (double)dw / (double)dh;
+
+        double vp_w, vp_h;
+        double vp_x = 0.0;
+        double vp_y = 0.0;
+
+        if (win_ratio > target_ratio) {
+            vp_h = dh;
+            vp_w = vp_h * target_ratio;
+            vp_x = (dw - vp_w) * 0.5;
+        }
+        else {
+            vp_w = dw;
+            vp_h = vp_w / target_ratio;
+            vp_y = (dh - vp_h) * 0.5;
+        }
+
+        currentViewport = { vp_x, vp_y, vp_w, vp_h, 0.0, 1.0 };
+    }
+    else {
+        currentViewport = { 0.0, 0.0, (double)dw, (double)dh, 0.0, 1.0 };
+    }
+
     /* ---------------------------------
-     * 3. フレームテクスチャ再生成
+     * 3. Recreate Frame Texture
      * --------------------------------- */
     if (tex_w != frame_width ||
         tex_h != frame_height)
     {
         frame_width  = tex_w;
         frame_height = tex_h;
-
-        cpu_pitch = frame_width * 4;
-        cpu_buffer.resize(cpu_pitch * frame_height);
+        ResizeCPUBuffer(frame_width, frame_height);
 
         if (!CreateFrameTexture(frame_width,
                                 frame_height))
@@ -553,6 +648,10 @@ bool CMetal::Resize(uint32_t window_w,
         }
     }
     LOG_MSG("Metal: Texture resized to %ux%u", tex_w, tex_h);
+    last_window_w = width;
+    last_window_h = height;
+    last_tex_w = frame_width;
+    last_tex_h = frame_height;
     return true;
 }
 
