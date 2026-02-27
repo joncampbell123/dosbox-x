@@ -322,6 +322,9 @@ void OutputSettingMenuUpdate(void) {
 #if C_GAMELINK
     mainMenu.get_item("output_gamelink").check(sdl.desktop.want_type == SCREEN_GAMELINK).refresh_item(mainMenu);
 #endif
+#if defined(MACOSX) && defined(C_SDL2)
+    mainMenu.get_item("output_metal").check(sdl.desktop.want_type == SCREEN_METAL).refresh_item(mainMenu);
+#endif
 }
 
 void SwitchFS(Bitu val) {
