@@ -13,6 +13,6 @@ if C_GAMELINK
 liboutput_a_SOURCES += output_gamelink.cpp
 endif
 
-if MACOSX
+if C_METAL
 liboutput_a_SOURCES += output_metal.mm
 endif

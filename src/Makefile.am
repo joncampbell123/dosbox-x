@@ -58,6 +58,10 @@ if C_DIRECT3D
 dosbox_x_LDADD += output/direct3d/liboutputdirect3d.a
 endif
 
+if C_METAL
+dosbox_LDADD += $(METAL_LIBS)
+endif
+
 if C_XBRZ
 if !EMSCRIPTEN
 dosbox_x_LDADD += libs/xBRZ/libxbrz.a
