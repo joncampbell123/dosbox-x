@@ -79,9 +79,11 @@ bool CMetal::Initialize(void* nsview, int w, int h)
         scale = view.window.backingScaleFactor;
 #endif
 
+    /**
     LOG_MSG("Metal: drawableSize = %f x %f",
             layer.drawableSize.width,
             layer.drawableSize.height);
+    */
 
     /* ---------------------------------
      * 4. CPU framebuffer
@@ -365,7 +367,7 @@ void metal_init(void)
 
     sdl.desktop.want_type = SCREEN_METAL;
 
-    LOG_MSG("OUTPUT METAL: Init called");
+    //LOG_MSG("OUTPUT METAL: Init called");
 
     if(!sdl.window) {
         sdl.window = GFX_SetSDLWindowMode(640, 400, SCREEN_SURFACE);
@@ -503,7 +505,7 @@ bool CMetal::Resize(uint32_t window_w,
 {
     if (!layer || !view)
         return false;
-    LOG_MSG("Resize called: win=%u,%u tex=%u,%u", window_w, window_h, tex_w, tex_h);
+    //LOG_MSG("Resize called: win=%u,%u tex=%u,%u", window_w, window_h, tex_w, tex_h);
 
     const bool reset_window_size =
         (((userResizeWindowWidth == 0) && (userResizeWindowHeight == 0)) ||
@@ -646,8 +648,9 @@ bool CMetal::Resize(uint32_t window_w,
             LOG_MSG("Metal: CreateFrameTexture failed in Resize");
             return false;
         }
+        LOG_MSG("Metal: Texture resized to %ux%u", tex_w, tex_h);
     }
-    LOG_MSG("Metal: Texture resized to %ux%u", tex_w, tex_h);
+
     last_window_w = width;
     last_window_h = height;
     last_tex_w = frame_width;
