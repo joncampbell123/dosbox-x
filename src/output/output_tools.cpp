@@ -53,6 +53,10 @@ void resetFontSize();
 void res_init(void), RENDER_Reset(void), UpdateOverscanMenu(void), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void OutputSettingMenuUpdate(void);
 
+#if defined(MACOSX) && defined(C_SDL2)
+void OUTPUT_Metal_Shutdown();
+#endif
+
 extern int initgl, posx, posy;
 extern bool rtl, gbk, chinasea, window_was_maximized, dpi_aware_enable, isVirtualBox;
 
@@ -470,7 +474,10 @@ bool toOutput(const char *what) {
     else if(!strcmp(what, "metal")) {
         if(sdl.desktop.type == SCREEN_METAL)
             return false;
-
+        OUTPUT_Metal_Shutdown();
+#if defined(C_OPENGL)
+        change_output(3);
+#endif
         if(window_was_maximized && !GFX_IsFullscreen()) {
             change_output(14);
 #if defined(WIN32)
@@ -478,6 +485,10 @@ bool toOutput(const char *what) {
 #endif
         }
         else {
+            OUTPUT_Metal_Shutdown();
+#if defined(C_OPENGL)
+            change_output(3);
+#endif
             change_output(14);
         }
     }
