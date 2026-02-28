@@ -39,7 +39,7 @@ body:
     attributes:
       label: What operating system(s) this bug have occurred on?
       description: Put in the release name of the OS (additionally with an extra version number and/or an architecture name) this problem have occurred on.
-      placeholder: "Ex. Windows 10 21H2, Ubuntu 21.04 etc."
+      placeholder: "Ex. Windows 10 21H2 64-bit, Ubuntu 21.04 etc."
     validations:
       required: true
   # This is confusing
@@ -63,7 +63,7 @@ body:
     id: config
     attributes:
       label: Used configuration
-      description: Share the configuration (usually from the `dosbox-x.conf` or `dosbox.conf` file) that caused the bug to occur. Leave this area empty if you're using the default configuration. If you want to link to a upload of the file, please put the link into the "Additional information" box instead.
+      description: Share your options (e.g.`dosbox-x.conf`) that caused the bug to occur. Using command `config -wc filename.conf -mod -norem` will save a file with only the options you modified. You may upload and put the link of your config in the "Additional information" box instead.
       render: ini # Syntax highlighting
     validations:
       required: false
@@ -71,7 +71,7 @@ body:
     id: log
     attributes:
       label: Output log
-      description: The relevant log DOSBox-X outputted when the problem occurred. If you want to link to a upload of the file, please put the link into the "Additional information" box instead.
+      description: The log may include hints to solve your problem. Launch DOSBox-X from command line to get one. You may upload and put the link of your log in the "Additional information" box instead.
       render: text # Syntax highlighting
     validations:
       required: false
