@@ -3443,11 +3443,11 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
 #if defined(C_SDL2)
         case SCREEN_DIRECT3D11:
 #endif
+#endif
 #if defined(MACOSX) && defined(C_SDL2)
         case SCREEN_METAL: // pixelFormat = MTLPixelFormatBGRA8Unorm
 #endif
             return SDL_MapRGB(sdl.surface->format, red, green, blue);
-#endif
         default:
             break;
     }
