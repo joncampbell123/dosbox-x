@@ -3323,7 +3323,7 @@ void AllocCallback1() {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_gamelink").set_text("Game Link").
                     set_callback_function(output_menu_callback);
 #endif
-#if defined(MACOSX) && defined(C_SDL2)
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id, "output_metal").set_text("Metal(Experimental)").
                     set_callback_function(output_menu_callback);
 #endif

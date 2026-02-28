@@ -36,8 +36,11 @@
 #include <output/output_surface.h>
 #include <output/output_ttf.h>
 #include <output/output_direct3d11.h>
+
+#if C_METAL
 void OUTPUT_Metal_Select();
 void metal_init();
+#endif
 
 #if C_DIRECT3D
 void d3d_init(void);
@@ -53,7 +56,7 @@ void resetFontSize();
 void res_init(void), RENDER_Reset(void), UpdateOverscanMenu(void), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void OutputSettingMenuUpdate(void);
 
-#if defined(MACOSX) && defined(C_SDL2)
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
 void OUTPUT_Metal_Shutdown();
 #endif
 
@@ -187,7 +190,7 @@ void change_output(int output) {
         d3d11_init();
         break;
 #endif
-#if defined(MACOSX) && defined(C_SDL2)
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
     case 14: /* Metal */
         LOG_MSG("change_output: Metal");
         OUTPUT_Metal_Select();
@@ -326,7 +329,7 @@ void OutputSettingMenuUpdate(void) {
 #if C_GAMELINK
     mainMenu.get_item("output_gamelink").check(sdl.desktop.want_type == SCREEN_GAMELINK).refresh_item(mainMenu);
 #endif
-#if defined(MACOSX) && defined(C_SDL2)
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
     mainMenu.get_item("output_metal").check(sdl.desktop.want_type == SCREEN_METAL).refresh_item(mainMenu);
 #endif
 }
@@ -470,7 +473,7 @@ bool toOutput(const char *what) {
         }
     }
 #endif
-#if MACOSX && defined(C_SDL2)
+#if MACOSX && defined(C_SDL2) && C_METAL
     else if(!strcmp(what, "metal")) {
         if(sdl.desktop.type == SCREEN_METAL)
             return false;

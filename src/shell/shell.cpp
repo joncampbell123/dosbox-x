@@ -934,7 +934,7 @@ void DOS_Shell::Prepare(void) {
             change_output(13);
         }
 #endif
-#if defined(MACOSX) && defined(C_SDL2)
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
         if(switch_to_metal_on_startup){
             switch_to_metal_on_startup = false;
             change_output(14);

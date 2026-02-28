@@ -12,7 +12,7 @@
 #include "../ints/int10.h"
 #include "output_surface.h"
 
-#if defined(MACOSX)
+#if defined(MACOSX) && C_METAL
 #if defined(C_SDL2)
 
 #import <Metal/Metal.h>
@@ -23,7 +23,7 @@
 
 extern VGA_Type vga;
 extern VideoModeBlock* CurMode;
-
+ 
 CMetal::CMetal() {}
 CMetal::~CMetal() { Shutdown(); }
 

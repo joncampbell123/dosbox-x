@@ -401,7 +401,7 @@ static const char *def_menu_video_output[] =
 #if C_GAMELINK
     "output_gamelink",
 #endif
-#if defined(MACOSX) && defined(C_SDL2)
+#if ß && C_METAL
     "output_metal",
 #endif    
     "--",

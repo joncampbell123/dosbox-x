@@ -19,7 +19,7 @@
 
 
 using namespace std;
-#if defined(MACOSX)
+#if defined(MACOSX) && C_METAL
 #if defined(C_SDL2)
 
 #import <Metal/Metal.h>

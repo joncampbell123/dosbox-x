@@ -27,7 +27,7 @@ enum SCREEN_TYPES {
 #if C_DIRECT3D && defined(C_SDL2)
     ,SCREEN_DIRECT3D11
 #endif
-#if defined(MACOSX) && defined(C_SDL2)
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
     , SCREEN_METAL
 #endif
 };
