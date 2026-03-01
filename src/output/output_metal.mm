@@ -569,6 +569,26 @@ bool CMetal::Resize(uint32_t window_w,
         return true; // No change
     }
 
+    /* ---------------------------------
+     * 1. Recreate Frame Texture
+     * --------------------------------- */
+
+    if (tex_w != frame_width ||
+        tex_h != frame_height)
+    {
+        frame_width  = tex_w;
+        frame_height = tex_h;
+        ResizeCPUBuffer(frame_width, frame_height);
+
+        if (!CreateFrameTexture(frame_width,
+                                frame_height))
+        {
+            LOG_MSG("Metal: CreateFrameTexture failed in Resize");
+            return false;
+        }
+        LOG_MSG("Metal: Texture resized to %ux%u", tex_w, tex_h);
+    }
+
     // Texture size is fixed
     frame_width = tex_w;
     frame_height = tex_h;
@@ -595,7 +615,7 @@ bool CMetal::Resize(uint32_t window_w,
         scale = [NSScreen mainScreen].backingScaleFactor;
     }
     /* ---------------------------------
-     * 2. Update Layer size
+     * 3. Update Layer size
      * --------------------------------- */
     layer.contentsScale = scale;
 
@@ -630,25 +650,6 @@ bool CMetal::Resize(uint32_t window_w,
     }
     else {
         currentViewport = { 0.0, 0.0, (double)dw, (double)dh, 0.0, 1.0 };
-    }
-
-    /* ---------------------------------
-     * 3. Recreate Frame Texture
-     * --------------------------------- */
-    if (tex_w != frame_width ||
-        tex_h != frame_height)
-    {
-        frame_width  = tex_w;
-        frame_height = tex_h;
-        ResizeCPUBuffer(frame_width, frame_height);
-
-        if (!CreateFrameTexture(frame_width,
-                                frame_height))
-        {
-            LOG_MSG("Metal: CreateFrameTexture failed in Resize");
-            return false;
-        }
-        LOG_MSG("Metal: Texture resized to %ux%u", tex_w, tex_h);
     }
 
     last_window_w = width;
