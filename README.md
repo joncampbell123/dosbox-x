@@ -4,7 +4,7 @@
 ## Useful links
 - [DOSBox-X's website](https://dosbox-x.com) ([https://dosbox-x.com](https://dosbox-x.com) or [http://dosbox-x.software](http://dosbox-x.software))  
 - [DOSBox-X's Wiki page](https://dosbox-x.com/wiki)  
-- [Discord channel for the DOSBox-X project](https://discord.gg/5cnTmcsTpG) ([https://discord.gg/5cnTmcsTpG](https://discord.gg/5cnTmcsTpG))  
+- The DOSBox-X project has a Discord server. Please ask in the discussion tab for a one-time invite link to join.
 - [Releases](https://github.com/joncampbell123/dosbox-x/releases)  
 - [Development/Nightly builds](https://dosbox-x.com/devel-build.html)  
 - [Install instructions](INSTALL.md)  
