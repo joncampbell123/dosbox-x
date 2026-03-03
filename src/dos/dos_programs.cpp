@@ -118,6 +118,7 @@ bool starttranspath = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) ;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 inline bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const char16_t *s/*CROSS_LEN*/) {
     return CodePageHostToGuestUTF16(d, reinterpret_cast<const uint16_t *>(s));
@@ -138,6 +139,7 @@ bool CheckDBCSCP(int32_t codepage);
 void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result);
 void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,bool useattr);
 std::string formatString(const char* format, ...);
+const char* MSG_GetUTF8(const char* msg);
 
 #define MAXU32 0xffffffff
 #include "zip.h"
@@ -771,22 +773,42 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 			drive_warn= formatString(MSG_Get("PROGRAM_MOUNT_FAILED"), (std::string(1, drive)).c_str());
 			systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 			return;
-        } else if (multiple) {
-            std::string readonly = mountiro[drive - 'A'] ? "\n("+std::string(MSG_Get("READONLY_MODE")) +")" : "";
-            drive_warn = formatString(MSG_Get("PROGRAM_MOUNT_IMAGE"), MSG_Get("DISK_IMAGE"), std::string(1, drive).c_str(), files.c_str(), readonly.c_str());
-            systemmessagebox(MSG_Get("INFORMATION"), drive_warn.c_str(), "ok", "info", 1);
-		} else if (lTheOpenFileName) {
-            std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSG_Get("READONLY_MODE")) + ")" : "";
-            std::string image = arc ? std::string(MSG_Get("ARCHIVE")) : std::string(MSG_Get("DISK_IMAGE"));
-            drive_warn = formatString(MSG_Get("PROGRAM_MOUNT_IMAGE"), image.c_str(),std::string(1, drive).c_str(), GetNewStr(lTheOpenFileName).c_str(), readonly.c_str());
-            systemmessagebox(MSG_Get("INFORMATION"),drive_warn.c_str(),"ok","info", 1);
-		}
+        } 
+        else {
+            if(!multiple && !lTheOpenFileName){
+                chdir( Temp_CurrentDir );
+                return;    
+            }
+#if defined(MACOSX)
+            auto MSGX = MSG_GetUTF8;
+#else
+            auto MSGX = MSG_Get;
+#endif
+            std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSGX("READONLY_MODE")) + ")" : "";    
+            std::string msg = MSGX("PROGRAM_MOUNT_IMAGE");
+            std::string image, drive_warn;
+            if(multiple){
+                image = std::string(MSGX("DISK_IMAGE"));
+                files.erase(std::remove(files.begin(), files.end(), '"'), files.end());
+                drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
+                                            files.c_str(), readonly.c_str());
+            }
+            else if(lTheOpenFileName){
+                image = arc ? std::string(MSGX("ARCHIVE")) : std::string(MSGX("DISK_IMAGE"));
+                drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
+                                            GetNewStr(lTheOpenFileName).c_str(), readonly.c_str());
+            }
+            std::string title = MSGX("INFORMATION");
+#if defined(MACOSX)
+            tinyfd_messageBox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+#else
+            systemmessagebox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+#endif
+        }
 	}
-	chdir( Temp_CurrentDir );
+    chdir( Temp_CurrentDir );
 #endif
 }
-
-bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) ;
 
 void MenuBrowseFolder(char drive, std::string const& drive_type) {
     std::string str(1, drive);
