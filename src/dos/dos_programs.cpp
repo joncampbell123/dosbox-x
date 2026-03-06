@@ -3538,6 +3538,7 @@ static void lba2chs3(unsigned char *b3,uint32_t lba,const unsigned int gc,const 
 	b3[2] = c;
 }
 
+#if !defined(OSFREE)
 class IMGMAKE : public Program {
 public:
 #ifdef WIN32
@@ -4721,11 +4722,14 @@ restart_int:
 static void IMGMAKE_ProgramStart(Program * * make) {
     *make=new IMGMAKE;
 }
+#endif
 
 void runImgmake(const char *str) {
+#if !defined(OSFREE)
 	IMGMAKE imgmake;
 	imgmake.cmd=new CommandLine("IMGMAKE", str);
 	imgmake.Run();
+#endif
 }
 
 void swapInDrive(int drive, unsigned int position=0);
@@ -9617,8 +9621,8 @@ void Add_VFiles(bool usecp) {
 	PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
 #endif
 	PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
-	PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
 #if !defined(OSFREE)
+	PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
 	PROGRAMS_MakeFile("IMGSWAP.COM", IMGSWAP_ProgramStart,"/SYSTEM/");
 	PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
 #endif
