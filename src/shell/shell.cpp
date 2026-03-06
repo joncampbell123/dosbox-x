@@ -891,51 +891,51 @@ extern bool switch_to_d3d11_on_startup;
 extern bool switch_to_metal_on_startup;
 
 void DOS_Shell::Prepare(void) {
-    if (this == first_shell) {
+	if (this == first_shell) {
 #if C_DIRECT3D && C_SDL2
-        if(switch_to_d3d11_on_startup){
-            switch_to_d3d11_on_startup = false;
-            change_output(13);
-        }
+		if(switch_to_d3d11_on_startup){
+			switch_to_d3d11_on_startup = false;
+			change_output(13);
+		}
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
-        if(switch_to_metal_on_startup){
-            switch_to_metal_on_startup = false;
-            change_output(14);
-        }
+		if(switch_to_metal_on_startup){
+			switch_to_metal_on_startup = false;
+			change_output(14);
+		}
 #endif
 #if defined(USE_TTF)
-        if(CurMode->type == M_TEXT || (IS_PC98_ARCH && is_ttfswitched_on)) ttf_switch_on(true); // Initialization completed, M_TEXT modes can switch to TTF mode from now on.
-        if(ttf.inUse) {
-            int cols = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("cols");
-            int lins = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("lins");
-            if(cols || lins) ttf_setlines(cols, lins);
-            if(is_ttfswitched_on){
-                const char* colors = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_string("colors");
-                if(*colors && !setColors(colors, -1)) {
-                    LOG_MSG("Incorrect color scheme: %s", colors);
-                }
-                is_ttfswitched_on = false;
-            }
-        }
+		if(CurMode->type == M_TEXT || (IS_PC98_ARCH && is_ttfswitched_on)) ttf_switch_on(true); // Initialization completed, M_TEXT modes can switch to TTF mode from now on.
+		if(ttf.inUse) {
+			int cols = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("cols");
+			int lins = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_int("lins");
+			if(cols || lins) ttf_setlines(cols, lins);
+			if(is_ttfswitched_on){
+				const char* colors = static_cast<Section_prop*>(control->GetSection("ttf"))->Get_string("colors");
+				if(*colors && !setColors(colors, -1)) {
+					LOG_MSG("Incorrect color scheme: %s", colors);
+				}
+				is_ttfswitched_on = false;
+			}
+		}
 #endif
-        const char* layoutname = DOS_GetLoadedLayout();
-        if(layoutname == NULL) {
-            int32_t cp = dos.loaded_codepage;
-            Bitu keyb_error = DOS_LoadKeyboardLayout("us", 437, "auto");
-            toSetCodePage(NULL, cp, -1);
-        }
-        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-        bool startbanner = section->Get_bool("startbanner");
-        first_shell->perm = section->Get_bool("shell permanent");
-        if (!countryNo) {
+		const char* layoutname = DOS_GetLoadedLayout();
+		if(layoutname == NULL) {
+			int32_t cp = dos.loaded_codepage;
+			Bitu keyb_error = DOS_LoadKeyboardLayout("us", 437, "auto");
+			toSetCodePage(NULL, cp, -1);
+		}
+		Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+		bool startbanner = section->Get_bool("startbanner");
+		first_shell->perm = section->Get_bool("shell permanent");
+		if (!countryNo) {
 #if defined(WIN32)
 			char buffer[128];
 #endif
-            if (IS_PC98_ARCH || IS_JEGA_ARCH)
-                countryNo = 81;
-            else if (IS_DOSV)
-                countryNo = IS_PDOSV?86:(IS_TDOSV?886:(IS_KDOSV?82:81));
+			if (IS_PC98_ARCH || IS_JEGA_ARCH)
+				countryNo = 81;
+			else if (IS_DOSV)
+				countryNo = IS_PDOSV?86:(IS_TDOSV?886:(IS_KDOSV?82:81));
 #if defined(WIN32)
 			else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 				countryNo = uint16_t(atoi(buffer));
@@ -943,50 +943,54 @@ void DOS_Shell::Prepare(void) {
 			}
 #endif
 			else {
-                const char *layout = DOS_GetLoadedLayout();
-                if (layout == NULL)
-                    countryNo = COUNTRYNO::United_States;
-                else if (country_code_map.find(layout) != country_code_map.end())
-                    countryNo = country_code_map.find(layout)->second;
-                else
-                    countryNo = COUNTRYNO::United_States;
-                DOS_SetCountry(countryNo);
+				const char *layout = DOS_GetLoadedLayout();
+				if (layout == NULL)
+					countryNo = COUNTRYNO::United_States;
+				else if (country_code_map.find(layout) != country_code_map.end())
+					countryNo = country_code_map.find(layout)->second;
+				else
+					countryNo = COUNTRYNO::United_States;
+				DOS_SetCountry(countryNo);
 			}
 		}
 		section = static_cast<Section_prop *>(control->GetSection("dos"));
 		bool zdirpath = section->Get_bool("drive z expand path");
 		std::string layout = section->Get_string("keyboardlayout");
 		strcpy(config_data, "");
-        section = static_cast<Section_prop *>(control->GetSection("config"));
+		section = static_cast<Section_prop *>(control->GetSection("config"));
 		if ((section!=NULL&&!control->opt_noconfig)||control->opt_langcp) {
 			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
 			int country = 0;
-            int32_t newCP = dos.loaded_codepage;
-            if((control->opt_langcp && msgcodepage > 0) || CheckDBCSCP(msgcodepage) || msgcodepage == dos.loaded_codepage) newCP = msgcodepage;
-            if ((r==NULL || !*(r+1)) && !control->opt_langcp)
+			int32_t newCP = dos.loaded_codepage;
+			if((control->opt_langcp && msgcodepage > 0) || CheckDBCSCP(msgcodepage) || msgcodepage == dos.loaded_codepage) newCP = msgcodepage;
+			if ((r==NULL || !*(r+1)) && !control->opt_langcp)
 				country = atoi(trim(countrystr));
 			else if(!msgcodepage){
 				if (r!=NULL) *r=0;
 				country = atoi(trim(countrystr));
 				newCP = r==NULL||IS_PC98_ARCH||IS_JEGA_ARCH||IS_DOSV?dos.loaded_codepage:atoi(trim(r+1));
 				if (r!=NULL) *r=',';
-            }
-            if (newCP != dos.loaded_codepage && (!TTF_using() || (TTF_using() && isSupportedCP(newCP)))) {
-                int missing = toSetCodePage(this, newCP, -1);
-            }
-            if (country>0&&!control->opt_noconfig) {
+			}
+			if (newCP != dos.loaded_codepage && (!TTF_using() || (TTF_using() && isSupportedCP(newCP)))) {
+				int missing = toSetCodePage(this, newCP, -1);
+			}
+			if (country>0&&!control->opt_noconfig) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);
 			}
-            if(!chinasea)makestdcp950table();
-            if(chinasea) makeseacp951table();
-            InitCodePage();
-            if(startbanner && !control->opt_fastlaunch)
-                //showWelcome(this);
-                DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
-            else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed())
-                WriteOut("\033[2J");
-            const char * extra = section->data.c_str();
+			if(!chinasea)makestdcp950table();
+			if(chinasea) makeseacp951table();
+			InitCodePage();
+			if(startbanner && !control->opt_fastlaunch) {
+#if !defined(OSFREE)
+				//showWelcome(this);
+				DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
+#endif
+			}
+			else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed()) {
+				WriteOut("\033[2J");
+			}
+			const char * extra = section->data.c_str();
 			if (extra&&!control->opt_securemode&&!control->SecureMode()&&!control->opt_noconfig) {
 				std::string vstr;
 				std::istringstream in(extra);
@@ -1042,19 +1046,21 @@ void DOS_Shell::Prepare(void) {
 				}
 			}
 		}
-        std::string line;
-        GetEnvStr("PATH",line);
+		std::string line;
+		GetEnvStr("PATH",line);
 		if (!strlen(config_data)) {
 			strcat(config_data, "rem=");
 			strcat(config_data, section->Get_string("rem"));
 			strcat(config_data, "\r\n");
 		}
-        if(dos.loaded_codepage == 932) toSetCodePage(this, 932, -1); // Workaround for corrupted box-drawing characters
-        runRescan("-A -Q");
-        internal_program = true;
+		if(dos.loaded_codepage == 932) toSetCodePage(this, 932, -1); // Workaround for corrupted box-drawing characters
+		runRescan("-A -Q");
+		internal_program = true;
 		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
+#if !defined(OSFREE)
 		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
-        internal_program = false;
+#endif
+		internal_program = false;
 #if defined(WIN32)
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
@@ -1077,17 +1083,17 @@ void DOS_Shell::Prepare(void) {
 				}
 			}
 		}
-        internal_program = true;
+		internal_program = true;
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
-        internal_program = false;
-        //unsigned int cp=dos.loaded_codepage;
-        //if (!dos.loaded_codepage) InitCodePage();
-        //initcodepagefont();
-        //dos.loaded_codepage=cp;
-        finish_prepare = true;
-    }
+		internal_program = false;
+		//unsigned int cp=dos.loaded_codepage;
+		//if (!dos.loaded_codepage) InitCodePage();
+		//initcodepagefont();
+		//dos.loaded_codepage=cp;
+		finish_prepare = true;
+	}
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
-    if (enableime) SetIMPosition();
+	if (enableime) SetIMPosition();
 #endif
 }
 

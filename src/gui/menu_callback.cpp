@@ -1933,6 +1933,10 @@ bool voodoo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 }
 
 bool glide_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+#if defined(OSFREE)
+    (void)menu;
+    (void)menuitem;
+#else
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
@@ -1948,6 +1952,7 @@ bool glide_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
         if (!glideon) systemmessagebox("Warning", MSG_Get("MENU_GLIDE_ERROR"), "ok","warning", 1);
     }
     mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
+#endif
     return true;
 }
 

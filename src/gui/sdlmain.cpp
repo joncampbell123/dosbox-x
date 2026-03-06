@@ -9249,6 +9249,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         LOG_MSG("macOS Resource path: %s",MacOSXResPath.c_str());
 #endif
 
+#if defined(OSFREE)
+	LOG_MSG("DOSBox-X OS-Free build -- Built-in MS-DOS emulation is not available");
+#endif
+
         /* -- [debug] setup console */
 #if C_DEBUG
 # if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
