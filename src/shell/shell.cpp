@@ -1097,6 +1097,56 @@ void DOS_Shell::Prepare(void) {
 #endif
 }
 
+#if defined(OSFREE)
+bool DOS_Shell::OSFreeOperatingSystemNotFound(void) {
+	uint16_t n;
+	uint8_t c;
+
+	WriteOut("\x1B[2J"); /* erase screen */
+	WriteOut("\x1B[H"); /* home cursor */
+
+	WriteOut("Operating System Not Found.\n\n");
+	WriteOut("Press ENTER for more information, ESC to exit.\n");
+
+	do {
+		n=1;c=0;
+		if (!DOS_ReadFile(0/*STDIN*/,&c,&n)) break;
+
+		if (c == 0x04/*CTRL+D secret drop to command line--though you're not going to find much!*/) return true;
+		if (c == 27/*ESC*/) return false;
+		if (c == 13/*ENTER*/) break;
+	} while(1);
+
+	WriteOut("\n");
+	WriteOut("This version was built without MS-DOS emulation.\n");
+	WriteOut("\n");
+	WriteOut("The full version may be unavailable for your use for legal reasons including\n");
+	WriteOut("but not limited to OS level age verification requirements in your local\n");
+	WriteOut("state, province, or general jurisdiction.\n");
+	WriteOut("\n");
+	WriteOut("To use this emulator, you will need to obtain and use a working MS-DOS boot\n");
+	WriteOut("disk or bootable hard disk image. Then, modify your dosbox.conf to IMGMOUNT\n");
+	WriteOut("and/or BOOT the image to run your DOS application. Please read documentation\n");
+	WriteOut("for more information on how to boot disk images.\n");
+	WriteOut("\n");
+	WriteOut("Hit ENTER or ESC to close the emulator.\n");
+
+	do {
+		n=1;c=0;
+		if (!DOS_ReadFile(0/*STDIN*/,&c,&n)) break;
+
+		if (c == 0x04/*CTRL+D secret drop to command line--though you're not going to find much!*/) return true;
+		if (c == 13/*ENTER*/ || c == 27/*ESC*/) break;
+	} while(1);
+
+	return false;
+}
+#endif
+
+#if defined(OSFREE)
+static bool once_block = false;
+#endif
+
 void DOS_Shell::Run(void) {
 	shellrun=true;
 	char input_line[CMD_MAXLINE] = {0};
@@ -1153,6 +1203,14 @@ void DOS_Shell::Run(void) {
 			} else input_line[0]='\0';
 		} else {
 			if (optInit && control->opt_exit) break;
+#if defined(OSFREE)
+			if (!once_block) {
+				once_block = true;
+				LOG_MSG("DOS shell not available in OSFREE mode");
+				if (!OSFreeOperatingSystemNotFound()) break;
+			}
+#endif
+
 			if (echo) ShowPrompt();
 			InputCommand(input_line);
 			if (echo && !input_eof) WriteOut("\n");

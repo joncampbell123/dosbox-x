@@ -110,6 +110,10 @@ public:
 	DOS_Shell();
 	virtual ~DOS_Shell();
 
+#if defined(OSFREE)
+	bool OSFreeOperatingSystemNotFound(void);
+#endif
+
 	void Prepare(void);
     /*! \brief      Program entry point, when the command is run
      */
