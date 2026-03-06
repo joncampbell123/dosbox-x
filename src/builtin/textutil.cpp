@@ -1,6 +1,7 @@
 
 #include "dos_inc.h"
 
+#if !defined(OSFREE)
 static const unsigned char bin_cga_com[] = {
 	0xB8,0x00,0x12,0xB3,0x30,0xCD,0x10,0xB8,0x03,0x00,0xCD,
 	0x10,0xCD,0x20,
@@ -48,4 +49,5 @@ struct BuiltinFileBlob bfb_VGA_COM = {
 	/*data*/			bin_vga_com,
 	/*length*/			sizeof(bin_vga_com)
 };
+#endif
 

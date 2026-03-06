@@ -169,6 +169,7 @@ Bitu DEBUG_EnableDebugger(void);
 #define _strdup strdup
 #endif
 
+#if !defined(OSFREE)
 class MOUSE : public Program {
 public:
     void Run(void) override;
@@ -218,6 +219,7 @@ void MOUSE::Run(void) {
 static void MOUSE_ProgramStart(Program * * make) {
     *make=new MOUSE;
 }
+#endif
 
 void DetachFromBios(imageDisk* image) {
     if (image) {
@@ -1022,6 +1024,7 @@ void MenuBrowseProgramFile() {
 #endif
 }
 
+#if !defined(OSFREE)
 class MOUNT : public Program {
 public:
     std::vector<std::string> options;
@@ -1684,15 +1687,19 @@ showusage:
 static void MOUNT_ProgramStart(Program * * make) {
     *make=new MOUNT;
 }
+#endif
 
 void runMount(const char *str) {
+#if !defined(OSFREE)
 	MOUNT mount;
 	mount.cmd=new CommandLine("MOUNT", str);
 	mount.Run();
+#endif
 }
 
 void GUI_Run(bool pressed);
 
+#if !defined(OSFREE)
 class CFGTOOL : public Program {
 public:
     void Run(void) override {
@@ -1707,6 +1714,7 @@ public:
 static void CFGTOOL_ProgramStart(Program * * make) {
     *make=new CFGTOOL;
 }
+#endif
 
 extern bool custom_bios;
 extern size_t custom_bios_image_size;
@@ -3381,6 +3389,7 @@ static void LOADROM_ProgramStart(Program * * make) {
 }
 
 #if C_DEBUG
+# if !defined(OSFREE)
 class BIOSTEST : public Program {
 public:
     void Run(void) override {
@@ -3439,6 +3448,7 @@ public:
 static void BIOSTEST_ProgramStart(Program** make) {
     *make = new BIOSTEST;
 }
+# endif
 #endif
 
 /* non-bootable MS-DOS floppy disk boot sector.
@@ -4719,6 +4729,7 @@ void runImgmake(const char *str) {
 }
 
 void swapInDrive(int drive, unsigned int position=0);
+#if !defined(OSFREE)
 class IMGSWAP : public Program
 {
 public:
@@ -4824,13 +4835,16 @@ void IMGSWAP_ProgramStart(Program** make)
 {
 	*make = new IMGSWAP;
 }
+#endif
 
 // LOADFIX
 
+#if !defined(OSFREE)
 class LOADFIX : public Program {
 public:
     void Run(void) override;
 };
+#endif
 
 bool XMS_Active(void);
 Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle);
@@ -4849,6 +4863,7 @@ void LOADFIX_OnDOSShutdown(void) {
     LOADFIX_ems_handles.clear();
 }
 
+#if !defined(OSFREE)
 void LOADFIX::Run(void) 
 {
     uint16_t commandNr  = 1;
@@ -5000,9 +5015,11 @@ void LOADFIX::Run(void)
 static void LOADFIX_ProgramStart(Program * * make) {
     *make=new LOADFIX;
 }
+#endif
 
 // RESCAN
 
+#if !defined(OSFREE)
 class RESCAN : public Program {
 public:
     void Run(void) override;
@@ -5045,13 +5062,17 @@ void RESCAN::Run(void)
 static void RESCAN_ProgramStart(Program * * make) {
     *make=new RESCAN;
 }
+#endif
 
 void runRescan(const char *str) {
+#if !defined(OSFREE)
 	RESCAN rescan;
 	rescan.cmd=new CommandLine("RESCAN", str);
 	rescan.Run();
+#endif
 }
 
+#if !defined(OSFREE)
 /* TODO: This menu code sucks. Write a better one. */
 class INTRO : public Program {
 public:
@@ -5339,6 +5360,7 @@ quit:
 static void INTRO_ProgramStart(Program * * make) {
     *make=new INTRO;
 }
+#endif
 
 imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj) {
     imageDiskMemory* dsk = NULL;
@@ -7284,6 +7306,7 @@ Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 const char* DOS_GetLoadedLayout(void);
 
+#if !defined(OSFREE)
 class KEYB : public Program {
 public:
     void Run(void) override;
@@ -7405,9 +7428,11 @@ void KEYB::Run(void) {
 static void KEYB_ProgramStart(Program * * make) {
     *make=new KEYB;
 }
+#endif
 
 // MODE
 
+#if !defined(OSFREE)
 class MODE : public Program {
 public:
     void Run(void) override;
@@ -7481,6 +7506,7 @@ modeparam:
 static void MODE_ProgramStart(Program * * make) {
     *make=new MODE;
 }
+#endif
 /*
 // MORE
 class MORE : public Program {
@@ -7540,6 +7566,7 @@ void VESAMOED_ProgramStart(Program * * make);
 void VFRCRATE_ProgramStart(Program * * make);
 
 #if defined C_DEBUG
+# if !defined(OSFREE)
 class NMITEST : public Program {
 public:
     void Run(void) override {
@@ -7555,8 +7582,10 @@ public:
 static void NMITEST_ProgramStart(Program * * make) {
     *make=new NMITEST;
 }
+# endif
 #endif
 
+#if !defined(OSFREE)
 class CAPMOUSE : public Program
 {
 public:
@@ -7606,7 +7635,9 @@ void CAPMOUSE_ProgramStart(Program** make)
 {
 	*make = new CAPMOUSE;
 }
+#endif
 
+#if !defined(OSFREE)
 class LABEL : public Program
 {
 	public:
@@ -7710,10 +7741,12 @@ void LABEL_ProgramStart(Program** make)
 {
 	*make = new LABEL;
 }
+#endif
 
 std::vector<std::string> MAPPER_GetEventNames(const std::string &prefix);
 void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pacing_ms, bool choice);
 
+#if !defined(OSFREE)
 class AUTOTYPE : public Program {
 public:
 	void Run() override;
@@ -7883,7 +7916,9 @@ void AUTOTYPE_ProgramStart(Program **make)
 {
 	*make = new AUTOTYPE;
 }
+#endif
 
+#if !defined(OSFREE)
 class ADDKEY : public Program {
 public:
     void Run(void) override;
@@ -7912,7 +7947,9 @@ void ADDKEY::Run()
 static void ADDKEY_ProgramStart(Program * * make) {
     *make=new ADDKEY;
 }
+#endif
 
+#if !defined(OSFREE)
 class LS : public Program {
 public:
     void Run(void) override;
@@ -7931,7 +7968,9 @@ void LS::Run()
 static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
+#endif
 
+#if !defined(OSFREE)
 class CHOICE : public Program {
 public:
     void Run(void) override;
@@ -7952,7 +7991,9 @@ void CHOICE_ProgramStart(Program **make)
 {
 	*make = new CHOICE;
 }
+#endif
 
+#if !defined(OSFREE)
 class COUNTRY : public Program {
 public:
     void Run(void) override;
@@ -7969,8 +8010,10 @@ void COUNTRY::Run()
 static void COUNTRY_ProgramStart(Program * * make) {
     *make=new COUNTRY;
 }
+#endif
 
 #ifdef C_ICONV
+# if !defined(OSFREE)
 class UTF8 : public Program {
 public:
     void Run(void) override;
@@ -8047,7 +8090,9 @@ void UTF8::Run()
 static void UTF8_ProgramStart(Program * * make) {
     *make=new UTF8;
 }
+# endif
 
+# if !defined(OSFREE)
 class UTF16 : public Program {
 public:
     void Run(void) override;
@@ -8149,8 +8194,10 @@ void UTF16::Run()
 static void UTF16_ProgramStart(Program * * make) {
     *make=new UTF16;
 }
+# endif
 #endif
 
+#if !defined(OSFREE)
 class VTEXT : public Program {
 public:
     void Run(void) override;
@@ -8177,7 +8224,9 @@ void VTEXT::Run()
 static void VTEXT_ProgramStart(Program * * make) {
     *make=new VTEXT;
 }
+#endif
 
+#if !defined(OSFREE)
 class DCGA : public Program {
 public:
     void Run(void) override;
@@ -8194,7 +8243,9 @@ void DCGA::Run()
 static void DCGA_ProgramStart(Program * * make) {
     *make=new DCGA;
 }
+#endif
 
+#if !defined(OSFREE)
 class TEXT80X25 : public Program {
 public:
     void Run(void) override;
@@ -8214,7 +8265,9 @@ void TEXT80X25::Run()
 static void TEXT80X25_ProgramStart(Program * * make) {
     *make=new TEXT80X25;
 }
+#endif
 
+#if !defined(OSFREE)
 class TEXT80X43 : public Program {
 public:
     void Run(void) override;
@@ -8234,7 +8287,9 @@ void TEXT80X43::Run()
 static void TEXT80X43_ProgramStart(Program * * make) {
     *make=new TEXT80X43;
 }
+#endif
 
+#if !defined(OSFREE)
 class TEXT80X50 : public Program {
 public:
     void Run(void) override;
@@ -8254,7 +8309,9 @@ void TEXT80X50::Run()
 static void TEXT80X50_ProgramStart(Program * * make) {
     *make=new TEXT80X50;
 }
+#endif
 
+#if !defined(OSFREE)
 class TEXT80X60 : public Program {
 public:
     void Run(void) override;
@@ -8274,7 +8331,9 @@ void TEXT80X60::Run()
 static void TEXT80X60_ProgramStart(Program * * make) {
     *make=new TEXT80X60;
 }
+#endif
 
+#if !defined(OSFREE)
 class TEXT132X25 : public Program {
 public:
     void Run(void) override;
@@ -8294,7 +8353,9 @@ void TEXT132X25::Run()
 static void TEXT132X25_ProgramStart(Program * * make) {
     *make=new TEXT132X25;
 }
+#endif
 
+#if !defined(OSFREE)
 class TEXT132X43 : public Program {
 public:
     void Run(void) override;
@@ -8314,7 +8375,9 @@ void TEXT132X43::Run()
 static void TEXT132X43_ProgramStart(Program * * make) {
     *make=new TEXT132X43;
 }
+#endif
 
+#if !defined(OSFREE)
 class TEXT132X50 : public Program {
 public:
     void Run(void) override;
@@ -8334,7 +8397,9 @@ void TEXT132X50::Run()
 static void TEXT132X50_ProgramStart(Program * * make) {
     *make=new TEXT132X50;
 }
+#endif
 
+#if !defined(OSFREE)
 class TEXT132X60 : public Program {
 public:
     void Run(void) override;
@@ -8354,7 +8419,9 @@ void TEXT132X60::Run()
 static void TEXT132X60_ProgramStart(Program * * make) {
     *make=new TEXT132X60;
 }
+#endif
 
+#if !defined(OSFREE)
 class HELP : public Program {
 public:
     void Run(void) override;
@@ -8373,7 +8440,9 @@ void HELP::Run()
 static void HELP_ProgramStart(Program * * make) {
     *make=new HELP;
 }
+#endif
 
+#if !defined(OSFREE)
 class DELTREE : public Program {
 public:
     void Run(void) override;
@@ -8402,7 +8471,9 @@ void DELTREE::Run()
 static void DELTREE_ProgramStart(Program * * make) {
     *make=new DELTREE;
 }
+#endif
 
+#if !defined(OSFREE)
 class TREE : public Program {
 public:
     void Run(void) override;
@@ -8431,7 +8502,9 @@ void TREE::Run()
 static void TREE_ProgramStart(Program * * make) {
     *make=new TREE;
 }
+#endif
 
+#if !defined(OSFREE)
 class TITLE : public Program {
 public:
     void Run(void) override;
@@ -8467,7 +8540,9 @@ void TITLE::Run()
 static void TITLE_ProgramStart(Program * * make) {
     *make=new TITLE;
 }
+#endif
 
+#if !defined(OSFREE)
 class VHDMAKE : public Program {
 public:
     void Run(void) override;
@@ -8690,6 +8765,7 @@ void VHDMAKE::Run()
 static void VHDMAKE_ProgramStart(Program * * make) {
     *make=new VHDMAKE;
 }
+#endif
 
 static int8_t hexToInt(char hex) {
     if (hex >= '0' && hex <= '9') return hex - '0';
@@ -8698,6 +8774,7 @@ static int8_t hexToInt(char hex) {
     return -1; // error 
 }
 
+#if !defined(OSFREE)
 class COLORPGM : public Program {
 public:
     void Run(void) override;
@@ -8825,6 +8902,7 @@ void COLORPGM::Run()
 static void COLOR_ProgramStart(Program * * make) {
     *make=new COLORPGM;
 }
+#endif
 
 alt_rgb altBGR[16], altBGR0[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
 bool init_altBGR = false,init_altBGR0 = false;
@@ -8870,6 +8948,7 @@ bool setColors(const char *colorArray, int n);
 void resetFontSize();
 #endif
 
+#if !defined(OSFREE)
 bool get_pal = false;
 class SETCOLOR : public Program {
 public:
@@ -9006,16 +9085,18 @@ void SETCOLOR::Run()
 static void SETCOLOR_ProgramStart(Program * * make) {
     *make=new SETCOLOR;
 }
+#endif
 
 #if C_DEBUG
+# if !defined(OSFREE)
 extern Bitu int2fdbg_hook_callback;
 class INT2FDBG : public Program {
-public:
-    void Run(void) override;
-private:
-	void PrintUsage() {
-        WriteOut(MSG_Get("PROGRAM_INT2FDBG_HELP"));
-	}
+	public:
+		void Run(void) override;
+	private:
+		void PrintUsage() {
+			WriteOut(MSG_Get("PROGRAM_INT2FDBG_HELP"));
+		}
 };
 
 void INT2FDBG::Run()
@@ -9023,13 +9104,13 @@ void INT2FDBG::Run()
 	// Hack To allow long commandlines
 	ChangeToLongCmd();
 
-    if (!cmd->GetCount()) {
-        if (int2fdbg_hook_callback == 0)
-            WriteOut(MSG_Get("PROGRAM_INT2FDBG_NOT_SET"));
-        else
-            WriteOut(MSG_Get("PROGRAM_INT2FDBG_ALREADY"));
-        return;
-    }
+	if (!cmd->GetCount()) {
+		if (int2fdbg_hook_callback == 0)
+			WriteOut(MSG_Get("PROGRAM_INT2FDBG_NOT_SET"));
+		else
+			WriteOut(MSG_Get("PROGRAM_INT2FDBG_ALREADY"));
+		return;
+	}
 
 	// Usage
 	if (!cmd->GetCount() || cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
@@ -9043,8 +9124,9 @@ void INT2FDBG::Run()
 }
 
 static void INT2FDBG_ProgramStart(Program * * make) {
-    *make=new INT2FDBG;
+	*make=new INT2FDBG;
 }
+# endif
 #endif
 
 #if defined (WIN32)
@@ -9071,6 +9153,7 @@ void zipSetCurrentTime(zip_fileinfo &zi);
 int zipOutOpenFile(zipFile zf,const char *zfname,zip_fileinfo &zi,const bool compress);
 
 const char * TranslateHostPath(const char * arg, bool next = false);
+#if !defined(OSFREE)
 class START : public Program {
 public:
     void Run() override {
@@ -9265,6 +9348,7 @@ void START_ProgramStart(Program **make)
 {
 	*make = new START;
 }
+#endif
 
 #define MAX_FLAGS 512
 char *g_flagged_files[MAX_FLAGS]; //global array to hold flagged files
@@ -9393,6 +9477,7 @@ int flagged_restore(char* zip)
 	return ret;
 }
 
+#if !defined(OSFREE)
 class FLAGSAVE : public Program
 {
 public:
@@ -9500,59 +9585,81 @@ static void FLAGSAVE_ProgramStart(Program** make)
 {
     *make = new FLAGSAVE;
 }
-
-void Add_VFiles(bool usecp) {
-    VFILE_Register("PATCHING", nullptr, 0, "/");
-    VFILE_Register("TEXTUTIL", nullptr, 0, "/");
-    VFILE_Register("SYSTEM", nullptr, 0, "/");
-    VFILE_Register("DEBUG", nullptr, 0, "/");
-    VFILE_Register("DOS", nullptr, 0, "/");
-    VFILE_Register("CPI", nullptr, 0, "/");
-    VFILE_Register("BIN", nullptr, 0, "/");
-    VFILE_Register("4DOS", nullptr, 0, "/");
-
-    std::string dirname="drivez";
-    std::string path = ".";
-    path += CROSS_FILESPLIT;
-    path += dirname;
-    getdrivezpath(path, dirname);
-    drivezRegister(path, "/", usecp);
-
-    PROGRAMS_MakeFile("HELP.COM",HELP_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("IMGSWAP.COM", IMGSWAP_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
-	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("COUNTRY.COM",COUNTRY_ProgramStart,"/SYSTEM/");
-	PROGRAMS_MakeFile("COMMAND.COM",SHELL_ProgramStart);
-    internal_program = true;
-    if (usecp && prepared) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
-    if (prepared) VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
-    internal_program = false;
-    PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
-    if (startcmd) PROGRAMS_MakeFile("START.COM", START_ProgramStart,"/SYSTEM/");
 #endif
 
-    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart,"/TEXTUTIL/");
-    PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart,"/DEBUG/");
+void Add_VFiles(bool usecp) {
+#if !defined(OSFREE)
+	VFILE_Register("PATCHING", nullptr, 0, "/");
+	VFILE_Register("TEXTUTIL", nullptr, 0, "/");
+#endif
+	VFILE_Register("SYSTEM", nullptr, 0, "/");
+#if !defined(OSFREE)
+	VFILE_Register("DEBUG", nullptr, 0, "/");
+	VFILE_Register("DOS", nullptr, 0, "/");
+	VFILE_Register("CPI", nullptr, 0, "/");
+#endif
+	VFILE_Register("BIN", nullptr, 0, "/");
+#if !defined(OSFREE)
+	VFILE_Register("4DOS", nullptr, 0, "/");
+#endif
 
-    if (IS_VGA_ARCH && svgaCard != SVGA_None)
-        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart,"/DEBUG/");
+#if !defined(OSFREE)
+	std::string dirname="drivez";
+	std::string path = ".";
+	path += CROSS_FILESPLIT;
+	path += dirname;
+	getdrivezpath(path, dirname);
+	drivezRegister(path, "/", usecp);
+#endif
 
-    if (!IS_PC98_ARCH) {
-        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart,"/DEBUG/");
-        PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart,"/DOS/");
-        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
-        PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
-        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
-    }
+#if !defined(OSFREE)
+	PROGRAMS_MakeFile("HELP.COM",HELP_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
+#endif
+	PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
+#if !defined(OSFREE)
+	PROGRAMS_MakeFile("IMGSWAP.COM", IMGSWAP_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
+#endif
+	PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
+#if !defined(OSFREE)
+	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("COUNTRY.COM",COUNTRY_ProgramStart,"/SYSTEM/");
+#endif
+	PROGRAMS_MakeFile("COMMAND.COM",SHELL_ProgramStart);
+	internal_program = true;
+#if !defined(OSFREE)
+	if (usecp && prepared) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
+	if (prepared) VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
+	internal_program = false;
+	PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
+# if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+	if (startcmd) PROGRAMS_MakeFile("START.COM", START_ProgramStart,"/SYSTEM/");
+# endif
+#endif
+
+#if !defined(OSFREE)
+	if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart,"/TEXTUTIL/");
+#endif
+	PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart,"/DEBUG/");
+
+	if (IS_VGA_ARCH && svgaCard != SVGA_None)
+		PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart,"/DEBUG/");
+
+	if (!IS_PC98_ARCH) {
+		PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart,"/DEBUG/");
+#if !defined(OSFREE)
+		PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart,"/DOS/");
+		PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
+		PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
+		PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
+#endif
+	}
 
 	if (IS_VGA_ARCH) {
+#if !defined(OSFREE)
 		PROGRAMS_MakeFile("80X60.COM", TEXT80X60_ProgramStart,"/TEXTUTIL/");
 		PROGRAMS_MakeFile("80X50.COM", TEXT80X50_ProgramStart,"/TEXTUTIL/");
 		PROGRAMS_MakeFile("80X43.COM", TEXT80X43_ProgramStart,"/TEXTUTIL/");
@@ -9562,43 +9669,49 @@ void Add_VFiles(bool usecp) {
 		PROGRAMS_MakeFile("132X43.COM", TEXT132X43_ProgramStart,"/TEXTUTIL/");
 		PROGRAMS_MakeFile("132X25.COM", TEXT132X25_ProgramStart,"/TEXTUTIL/");
 		PROGRAMS_MakeFile("DCGA.COM", DCGA_ProgramStart,"/TEXTUTIL/");
+#endif
 	}
 
-    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("VHDMAKE.COM",VHDMAKE_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart,"/SYSTEM/");
-#if defined C_DEBUG
-    PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart,"/DEBUG/");
-    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart,"/DEBUG/");
-    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart,"/DEBUG/");
+#if !defined(OSFREE)
+	PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
+	PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
+	PROGRAMS_MakeFile("VHDMAKE.COM",VHDMAKE_ProgramStart,"/BIN/");
+	PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
+	PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
+	PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart,"/SYSTEM/");
+# if defined C_DEBUG
+	PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart,"/DEBUG/");
+	PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart,"/DEBUG/");
+	PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart,"/DEBUG/");
+# endif
+	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart,"/DEBUG/");
 #endif
-    PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart,"/DEBUG/");
 
-    if (IS_PC98_ARCH)
-        PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart,"/BIN/");
+	if (IS_PC98_ARCH)
+		PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart,"/BIN/");
 
-    PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("CHOICE.COM", CHOICE_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
-#ifdef C_ICONV
-    PROGRAMS_MakeFile("UTF8.COM", UTF8_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("UTF16.COM", UTF16_ProgramStart,"/BIN/");
+#if !defined(OSFREE)
+	PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
+	PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart,"/DOS/");
+	PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
+	PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
+	PROGRAMS_MakeFile("CHOICE.COM", CHOICE_ProgramStart,"/DOS/");
+	PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
+# ifdef C_ICONV
+	PROGRAMS_MakeFile("UTF8.COM", UTF8_ProgramStart,"/BIN/");
+	PROGRAMS_MakeFile("UTF16.COM", UTF16_ProgramStart,"/BIN/");
+# endif
+	PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("SERIAL.COM", SERIAL_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("PARALLEL.COM", PARALLEL_ProgramStart,"/SYSTEM/");
+	if (IS_DOSV)
+		PROGRAMS_MakeFile("VTEXT.COM", VTEXT_ProgramStart,"/TEXTUTIL/");
 #endif
-    PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("SERIAL.COM", SERIAL_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("PARALLEL.COM", PARALLEL_ProgramStart,"/SYSTEM/");
-    if (IS_DOSV)
-        PROGRAMS_MakeFile("VTEXT.COM", VTEXT_ProgramStart,"/TEXTUTIL/");
 
-    VFILE_RegisterBuiltinFileBlob(bfb_EDLIN_EXE, "/DOS/");
+#if !defined(OSFREE)
+	VFILE_RegisterBuiltinFileBlob(bfb_EDLIN_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE, "/DOS/");
@@ -9614,14 +9727,16 @@ void Add_VFiles(bool usecp) {
 	VFILE_RegisterBuiltinFileBlob(bfb_CHKDSK_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_COMP_COM, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_FC_EXE, "/DOS/");
-#if C_IPX
+# if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
-#endif
+# endif
 	if (addne2k) VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
 	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
+#endif
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
 	if (!IS_PC98_ARCH) {
+#if !defined(OSFREE)
 		VFILE_RegisterBuiltinFileBlob(bfb_SYS_COM, "/DOS/"); /* may rely on INT 13h or IBM PC specific functions and layout */
 		VFILE_RegisterBuiltinFileBlob(bfb_FORMAT_EXE, "/DOS/"); /* does not work in PC-98 mode */
 		VFILE_RegisterBuiltinFileBlob(bfb_DEFRAG_EXE, "/DOS/"); /* relies on IBM PC CGA/EGA/VGA alphanumeric display memory */
@@ -9656,47 +9771,61 @@ void Add_VFiles(bool usecp) {
 		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM, "/4DOS/");
+#endif
 	}
+#if !defined(OSFREE)
 	if (prepared) VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
+#endif
 
+#if !defined(OSFREE)
 	if (IS_VGA_ARCH) {
-        VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/TEXTUTIL/");
-    } else if (IS_EGA_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/TEXTUTIL/");
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/TEXTUTIL/");
+	} else if (IS_EGA_ARCH)
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/TEXTUTIL/");
+#endif
 
-    if (IS_VGA_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/TEXTUTIL/");
-    else if (IS_EGA_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega, "/TEXTUTIL/");
-    else if (!IS_PC98_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/TEXTUTIL/");
+#if !defined(OSFREE)
+	if (IS_VGA_ARCH)
+		VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/TEXTUTIL/");
+	else if (IS_EGA_ARCH)
+		VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega, "/TEXTUTIL/");
+	else if (!IS_PC98_ARCH)
+		VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/TEXTUTIL/");
+#endif
 
-    /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
-    if(!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-        VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
-    else if(IS_PC98_ARCH || CPU_ArchitectureType < CPU_ARCHTYPE_80186)
-        VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE_PC98, "/DOS/");
+#if !defined(OSFREE)
+	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
+	if(!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
+		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
+	else if(IS_PC98_ARCH || CPU_ArchitectureType < CPU_ARCHTYPE_80186)
+		VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE_PC98, "/DOS/");
+#endif
 
-    /* DSXMENU.EXE */
-    if(IS_PC98_ARCH) {
-        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
-	VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_PC98_EXE, "/BIN/");
-    }
-    else {
-        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
-        VFILE_RegisterBuiltinFileBlob(bfb_SHUTDOWN_COM, "/BIN/");
-    }
+	/* DSXMENU.EXE */
+	if(IS_PC98_ARCH) {
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
+#if !defined(OSFREE)
+		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_PC98_EXE, "/BIN/");
+#endif
+	}
+	else {
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
+#if !defined(OSFREE)
+		VFILE_RegisterBuiltinFileBlob(bfb_SHUTDOWN_COM, "/BIN/");
+#endif
+	}
 
+#if !defined(OSFREE)
 	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");
-    if(!IS_PC98_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+	if(!IS_PC98_ARCH)
+		VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
 
-    VFILE_RegisterBuiltinFileBlob(bfb_EGA18_CPI, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA18_CPI, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA17_CPX, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA16_CPX, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA15_CPX, "/CPI/");
@@ -9717,6 +9846,7 @@ void Add_VFiles(bool usecp) {
 
 	VFILE_RegisterBuiltinFileBlob(bfb_IPSMAKE_EXE, "/PATCHING/");
 	VFILE_RegisterBuiltinFileBlob(bfb_IPSPATCH_EXE, "/PATCHING/");
+#endif
 }
 
 #if WIN32
