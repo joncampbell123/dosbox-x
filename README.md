@@ -41,6 +41,9 @@ This project has a [Code of Conduct](CODE_OF_CONDUCT.md), please read it for gen
 
 Brought to you by: joncampbell123 (Jonathan Campbell)
 
+## Legal notice
+
+If you reside in a jurisdiction that enforces OS-level age verification, including the state of California, you are not permitted to use any product or source code made from the main (master) branch of this project, you must instead use the product or source code made from the main-osfree branch.
 
 ## Notable features in DOSBox-X
 
