@@ -51,40 +51,58 @@
  *           A20 should be turned on or left off in this case.
  */
 
+#if !defined(OSFREE)
 Bitu XMS_EnableA20(bool enable);
+#endif
 
 unsigned short EMM_PAGEFRAME =      0xE000;
+
+#if !defined(OSFREE)
 unsigned short EMM_PAGEFRAME4K =    ((EMM_PAGEFRAME*16)/4096);
+#endif
 
 Bitu GetEMSPageFrameSegment(void) {
     return EMM_PAGEFRAME;
 }
 
+#if !defined(OSFREE)
 #define	EMM_MAX_HANDLES	200U			/* 255 Max */
 #define EMM_PAGE_SIZE	(16U*1024U)
 #define EMM_MAX_PHYS	4U				/* 4 16kb pages in pageframe */
+#endif
 
+#if !defined(OSFREE)
 Bitu GetEMSPageFrameSize(void) {
     return EMM_MAX_PHYS * EMM_PAGE_SIZE;
 }
+#endif
 
+#if !defined(OSFREE)
 #define EMM_VERSION			0x40
 #define EMM_MINOR_VERSION		0x00
 //#define EMM_MINOR_VERSION		0x30	// emm386 4.48
 #define GEMMIS_VERSION			0x0001	// Version 1.0
+#endif
 
+#if !defined(OSFREE)
 #define EMM_SYSTEM_HANDLE		0x0000
 #define NULL_HANDLE			0xffff
 #define	NULL_PAGE			0xffff
+#endif
 
+#if !defined(OSFREE)
 bool ENABLE_VCPI=true;
 bool ENABLE_V86_STARTUP=false;
 bool zero_int67_if_no_ems=true;
 bool ems_syshandle_on_even_mb=false;
+#endif
 
+#if !defined(OSFREE)
 #define EMM_VOLATILE 0
 #define EMM_NONVOLATILE 1
+#endif
 
+#if !defined(OSFREE)
 /* EMM errors */
 #define EMM_NO_ERROR			0x00
 #define EMM_SOFT_MAL			0x80
@@ -106,19 +124,25 @@ bool ems_syshandle_on_even_mb=false;
 #define EMM_MOVE_OVLAP			0x92
 #define EMM_MOVE_OVLAPI			0x97
 #define EMM_NOT_FOUND			0xa0
+#endif
 
+#if !defined(OSFREE)
 enum {
 	EMS_NONE=0,			/* no emulation */
 	EMS_MIXED,			/* "mixed mode", default if "true", attempts to please everybody */
 	EMS_BOARD,			/* act like pre-386 expanded memory, provided by an expansion card */
 	EMS_EMM386			/* act like 386+ expanded memory, faked using virtual 8086 mode (EMM386.EXE style) */
 };
+#endif
 
+#if !defined(OSFREE)
 struct EMM_Mapping {
 	uint16_t handle;
 	uint16_t page;
 };
+#endif
 
+#if !defined(OSFREE)
 struct EMM_Handle {
 	uint16_t pages;
 	MemHandle mem;
@@ -126,9 +150,13 @@ struct EMM_Handle {
 	bool saved_page_map;
 	EMM_Mapping page_map[EMM_MAX_PHYS];
 };
+#endif
 
+#if !defined(OSFREE)
 static Bitu ems_type = EMS_NONE;
+#endif
 
+#if !defined(OSFREE)
 const char *EMS_Type_String(void) {
     switch (ems_type) {
         case EMS_NONE:  return "None";
@@ -140,11 +168,15 @@ const char *EMS_Type_String(void) {
 
     return NULL;
 }
+#endif
 
+#if !defined(OSFREE)
 static EMM_Handle emm_handles[EMM_MAX_HANDLES];
 static EMM_Mapping emm_mappings[EMM_MAX_PHYS];
 static EMM_Mapping emm_segmentmappings[0x40];
+#endif
 
+#if !defined(OSFREE)
 bool EMS_GetMapping(Bitu &handle,uint16_t &log_page,Bitu ems_page) {
     if (ems_page < EMM_MAX_PHYS) {
         auto &x = emm_mappings[ems_page];
@@ -158,7 +190,9 @@ bool EMS_GetMapping(Bitu &handle,uint16_t &log_page,Bitu ems_page) {
 
     return false;
 }
+#endif
 
+#if !defined(OSFREE)
 bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle) {
     if (handle < EMM_MAX_HANDLES) {
         auto &x = emm_handles[handle];
@@ -178,17 +212,27 @@ bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle) {
 
     return false;
 }
+#endif
 
+#if !defined(OSFREE)
 Bitu EMS_Max_Handles(void) {
     return EMM_MAX_HANDLES;
 }
+#endif
 
 bool EMS_Active(void) {
+#if !defined(OSFREE)
     return ems_type != EMS_NONE;
+#else
+    return false;
+#endif
 }
 
+#if !defined(OSFREE)
 static uint16_t GEMMIS_seg; 
+#endif
 
+#if !defined(OSFREE)
 class device_EMM : public DOS_Device {
 public:
     device_EMM(bool is_emm386_avail) : is_emm386(is_emm386_avail) {
@@ -212,7 +256,9 @@ private:
 //	uint8_t cache;
 	bool is_emm386;
 };
+#endif
 
+#if !defined(OSFREE)
 bool device_EMM::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
 	Bitu subfct=mem_readb(bufptr);
 	switch (subfct) {
@@ -297,7 +343,9 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * r
 	}
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 static struct {
 	bool enabled;
 	uint16_t ems_handle;
@@ -305,7 +353,9 @@ static struct {
 	MemHandle private_area;
 	uint8_t pic1_remapping,pic2_remapping;
 } vcpi ;
+#endif
 
+#if !defined(OSFREE)
 struct MoveRegion {
 	uint32_t bytes;
 	uint8_t src_type;
@@ -317,25 +367,33 @@ struct MoveRegion {
 	uint16_t dest_offset;
 	uint16_t dest_page_seg;
 };
+#endif
 
+#if !defined(OSFREE)
 static uint16_t EMM_GetTotalPages(void) {
 	Bitu count=MEM_FreeLargest()/4;
 	if (count>0x7fff) count=0x7fff;
 	return (uint16_t)count;
 }
+#endif
 
+#if !defined(OSFREE)
 static uint16_t EMM_GetFreePages(void) {
 	Bitu count=MEM_FreeTotal()/4;
 	if (count>0x7fff) count=0x7fff;
 	return (uint16_t)count;
 }
+#endif
 
+#if !defined(OSFREE)
 static bool INLINE ValidHandle(uint16_t handle) {
 	if (handle>=EMM_MAX_HANDLES) return false;
 	if (emm_handles[handle].pages==NULL_HANDLE) return false;
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 void EMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 	PhysPt address;
 
@@ -349,9 +407,13 @@ void EMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 		pages--;
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 extern bool dbg_zero_on_ems_allocmem;
+#endif
 
+#if !defined(OSFREE)
 /* NTS: "page" in EMS refers to 16KB regions, not the 4KB memory pages we normally work with */
 uint8_t EMM_AllocateMemory(uint16_t pages,uint16_t & dhandle,bool can_allocate_zpages) {
 	/* Check for 0 page allocation */
@@ -377,7 +439,9 @@ uint8_t EMM_AllocateMemory(uint16_t pages,uint16_t & dhandle,bool can_allocate_z
 	dhandle = handle;
 	return EMM_NO_ERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t EMM_AllocateSystemHandle(uint16_t pages/*NTS: EMS pages are 16KB, this does not refer to 4KB CPU pages*/) {
 	MemHandle mem = 0;
 
@@ -412,7 +476,9 @@ static uint8_t EMM_AllocateSystemHandle(uint16_t pages/*NTS: EMS pages are 16KB,
 		((unsigned long)mem * 4096UL) + (pages * 16384UL) - 1ul);
 	return EMM_NO_ERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t EMM_ReallocatePages(uint16_t handle, const uint16_t& pages) {
 	/* Check for valid handle */
 	if (!ValidHandle(handle)) return EMM_INVALID_HANDLE;
@@ -428,10 +494,14 @@ static uint8_t EMM_ReallocatePages(uint16_t handle, const uint16_t& pages) {
 	emm_handles[handle].pages=pages;
 	return EMM_NO_ERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 Bitu XMS_EnableA20(bool enable);
 Bitu XMS_GetEnabledA20(void);
+#endif
 
+#if !defined(OSFREE)
 static uint8_t EMM_MapPage(Bitu phys_page,uint16_t handle,uint16_t log_page) {
 //	LOG_MSG("EMS MapPage handle %d phys %d log %d",handle,phys_page,log_page);
 	/* Check for too high physical page */
@@ -475,7 +545,9 @@ static uint8_t EMM_MapPage(Bitu phys_page,uint16_t handle,uint16_t log_page) {
 		return EMM_LOG_OUT_RANGE;
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t EMM_MapSegment(Bitu segment,uint16_t handle,uint16_t log_page) {
 //	LOG_MSG("EMS MapSegment handle %d segment %d log %d",handle,segment,log_page);
 
@@ -541,7 +613,9 @@ static uint8_t EMM_MapSegment(Bitu segment,uint16_t handle,uint16_t log_page) {
 
 	return EMM_ILL_PHYS;
 }
+#endif
 
+#if !defined(OSFREE)
 uint8_t EMM_ReleaseMemory(uint16_t handle) {
 	/* Check for valid handle */
 	if (!ValidHandle(handle)) return EMM_INVALID_HANDLE;
@@ -564,7 +638,9 @@ uint8_t EMM_ReleaseMemory(uint16_t handle) {
 	memset(&emm_handles[handle].name,0,8);
 	return EMM_NO_ERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t EMM_SavePageMap(uint16_t handle) {
 	/* Check for valid handle */
 	if (handle>=EMM_MAX_HANDLES || (handle != 0 && emm_handles[handle].pages==NULL_HANDLE)) {
@@ -580,7 +656,9 @@ static uint8_t EMM_SavePageMap(uint16_t handle) {
 	emm_handles[handle].saved_page_map=true;
 	return EMM_NO_ERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t EMM_RestoreMappingTable(void) {
 	/* Move through the mappings table and setup mapping accordingly */
 	for (Bitu i=0;i<0x40;i++) {
@@ -594,6 +672,9 @@ static uint8_t EMM_RestoreMappingTable(void) {
 
 	return EMM_NO_ERROR;
 }
+#endif
+
+#if !defined(OSFREE)
 static uint8_t EMM_RestorePageMap(uint16_t handle) {
 	/* Check for valid handle */
 	if (handle>=EMM_MAX_HANDLES || (handle != 0 && emm_handles[handle].pages==NULL_HANDLE)) {
@@ -609,7 +690,9 @@ static uint8_t EMM_RestorePageMap(uint16_t handle) {
 	}
 	return EMM_RestoreMappingTable();
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t EMM_GetPagesForAllHandles(PhysPt table,uint16_t & handles) {
 	handles=0;
 	for (uint16_t i=0;i<EMM_MAX_HANDLES;i++) {
@@ -622,7 +705,9 @@ static uint8_t EMM_GetPagesForAllHandles(PhysPt table,uint16_t & handles) {
 	}
 	return EMM_NO_ERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t EMM_PartialPageMapping(void) {
 	PhysPt list,data;uint16_t count,page;
 	switch (reg_al) {
@@ -675,7 +760,9 @@ static uint8_t EMM_PartialPageMapping(void) {
 	}
 	return EMM_NO_ERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t HandleNameSearch(void) {
 	char name[9];
 	uint16_t handle=0;PhysPt data;
@@ -712,7 +799,9 @@ static uint8_t HandleNameSearch(void) {
 	}
 	return EMM_NO_ERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t GetSetHandleName(void) {
 	uint16_t handle=reg_dx;
 	switch (reg_al) {
@@ -731,7 +820,9 @@ static uint8_t GetSetHandleName(void) {
 	return EMM_NO_ERROR;
 
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t GetSetHandleAttributes(void) {
 	switch (reg_al) {
 	case 0x00:	// Get handle attributes
@@ -754,8 +845,9 @@ static uint8_t GetSetHandleAttributes(void) {
 	}
 	return EMM_NO_ERROR;
 }
+#endif
 
-
+#if !defined(OSFREE)
 static void LoadMoveRegion(PhysPt data,MoveRegion & region) {
 	region.bytes=mem_readd(data+0x0);
 
@@ -769,7 +861,9 @@ static void LoadMoveRegion(PhysPt data,MoveRegion & region) {
 	region.dest_offset=mem_readw(data+0xe);
 	region.dest_page_seg=mem_readw(data+0x10);
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t MemoryRegion(void) {
 	MoveRegion region;
 	uint8_t buf_src[MEM_PAGE_SIZE];
@@ -871,9 +965,13 @@ static uint8_t MemoryRegion(void) {
     if (!a20_was_enabled) XMS_EnableA20(false);
     return EMM_NO_ERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 void CPU_TSS_ForceBusy(bool busy);
+#endif
 
+#if !defined(OSFREE)
 static Bitu INT67_Handler(void) {
 	switch (reg_ah) {
 	case 0x40:		/* Get Status */
@@ -1250,7 +1348,9 @@ static Bitu INT67_Handler(void) {
 	}
 	return CBRET_NONE;
 }
+#endif
 
+#if !defined(OSFREE)
 static Bitu VCPI_PM_Handler() {
 //	LOG_MSG("VCPI PMODE handler, function %x",reg_ax);
 	switch (reg_ax) {
@@ -1307,9 +1407,13 @@ static Bitu VCPI_PM_Handler() {
 	}
 	return CBRET_NONE;
 }
+#endif
 
+#if !defined(OSFREE)
 bool vcpi_virtual_a20 = true;
+#endif
 
+#if !defined(OSFREE)
 /* if we handle the read, we're expected to write over AL/AX */
 bool VCPI_trapio_r(uint16_t port,unsigned int sz) {
     (void)sz;//UNUSED
@@ -1321,7 +1425,9 @@ bool VCPI_trapio_r(uint16_t port,unsigned int sz) {
 
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 bool VCPI_trapio_w(uint16_t port,uint32_t data,unsigned int sz) {
     (void)sz;//UNUSED
 	switch (port) {
@@ -1332,7 +1438,9 @@ bool VCPI_trapio_w(uint16_t port,uint32_t data,unsigned int sz) {
 
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 /* Windows virtual86 mode enable/disable callback.
  * If we're emulating VCPI, this is required for Windows to work with it.
  * Or else, it refuses to run.
@@ -1384,7 +1492,9 @@ static Bitu WinVM86Ctl() {
 
 	return CBRET_NONE;
 }
+#endif
 
+#if !defined(OSFREE)
 static Bitu V86_Monitor() {
 	/* Calculate which interrupt did occur */
 	Bitu int_num=((unsigned int)mem_readw(SegPhys(ss)+((unsigned int)reg_esp & (unsigned int)cpu.stack.mask)) - 0x2803u);
@@ -1530,7 +1640,9 @@ static Bitu V86_Monitor() {
 	mem_writew((unsigned int)(v86_ss<<4u)+(unsigned int)v86_sp+4u,(uint16_t)(return_eflags&0xffffu));
 	return CBRET_NONE;
 }
+#endif
 
+#if !defined(OSFREE)
 inline void VCPI_iopermw(uint16_t port,bool set) {
 	unsigned char b;
 
@@ -1539,7 +1651,9 @@ inline void VCPI_iopermw(uint16_t port,bool set) {
 	else b &= ~(1u<<(port&7u));
 	mem_writeb((unsigned int)vcpi.private_area+0x3000u+0x68u+((unsigned int)port>>3u),b);
 }
+#endif
 
+#if !defined(OSFREE)
 static void SetupVCPI() {
     Bitu old_a20 = XMS_GetEnabledA20();
 
@@ -1620,7 +1734,9 @@ static void SetupVCPI() {
 
     XMS_EnableA20(old_a20 != 0);
 }
+#endif
 
+#if !defined(OSFREE)
 static Bitu INT4B_Handler() {
 	switch (reg_ah) {
 	case 0x81:
@@ -1633,7 +1749,9 @@ static Bitu INT4B_Handler() {
 	}
 	return CBRET_NONE;
 }
+#endif
 
+#if !defined(OSFREE)
 Bitu GetEMSType(const Section_prop* section) {
 	std::string emstypestr = section->Get_string("ems");
 	Bitu rtype = 0;
@@ -1649,16 +1767,22 @@ Bitu GetEMSType(const Section_prop* section) {
 
 	return rtype;
 }
+#endif
 
+#if !defined(OSFREE)
 void setup_EMS_none() {
 	if (zero_int67_if_no_ems) {
 		/* zero INT 67h */
 		phys_writed(0x67*4,0);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 Bitu call_int67 = 0;
+#endif
 
+#if !defined(OSFREE)
 class EMS: public Module_base {
 private:
     uint16_t ems_baseseg = 0;
@@ -1968,15 +2092,21 @@ public:
 		}
 	}
 };
+#endif
 	
+#if !defined(OSFREE)
 static EMS* test = NULL;
 extern const char* RunningProgram;
 void CALLBACK_DeAllocate(Bitu in);
+#endif
 
+#if !defined(OSFREE)
 RealPt Get_EMS_vm86control() {
 	return (test != NULL) ? test->Get_EMS_vm86control() : 0;
 }
+#endif
 
+#if !defined(OSFREE)
 void EMS_DoShutDown() {
     if (!strcmp(RunningProgram, "LOADLIN")) {
         test = NULL;
@@ -1991,11 +2121,17 @@ void EMS_DoShutDown() {
         call_int67 = 0;
     }
 }
+#endif
 
+#if !defined(OSFREE)
 extern uint16_t desired_ems_segment;
+#endif
 
+#if !defined(OSFREE)
 void Update_Get_Desired_Segment(void);
+#endif
 
+#if !defined(OSFREE)
 void EMS_PickPageFrame(void) {
     if (desired_ems_segment == 0) Update_Get_Desired_Segment();
 
@@ -2010,15 +2146,21 @@ void EMS_PickPageFrame(void) {
 
     EMM_PAGEFRAME4K =    ((EMM_PAGEFRAME*16)/4096);
 }
+#endif
 
+#if !defined(OSFREE)
 void EMS_DOSBoot(Section* /*sec*/) {
     EMS_PickPageFrame();
 }
+#endif
 
+#if !defined(OSFREE)
 void EMS_ShutDown(Section* /*sec*/) {
 	EMS_DoShutDown();
 }
+#endif
 
+#if !defined(OSFREE)
 void EMS_Startup(Section* sec) {
     (void)sec;//UNUSED
 	if (test == NULL) {
@@ -2026,7 +2168,9 @@ void EMS_Startup(Section* sec) {
 		test = new EMS(control->GetSection("dos"));
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void EMS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing EMS expanded memory services");
 
@@ -2035,7 +2179,9 @@ void EMS_Init() {
     AddVMEventFunction(VM_EVENT_DOS_BOOT,AddVMEventFunctionFuncPair(EMS_DOSBoot));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(EMS_ShutDown));
 }
+#endif
 
+#if !defined(OSFREE)
 //save state support
 namespace
 {
@@ -2057,3 +2203,5 @@ public:
     }
 } dummy;
 }
+#endif
+

@@ -742,7 +742,9 @@ std::string custom_savedir;
 
 void SHELL_Run();
 void DisableINT33();
+#if !defined(OSFREE)
 void EMS_DoShutDown();
+#endif
 void XMS_DoShutDown();
 void DOS_DoShutDown();
 void GUS_DOS_Shutdown();
@@ -7795,7 +7797,9 @@ void PARALLEL_Init();
 void DONGLE_Init();
 void DOS_Init();
 void XMS_Init();
+#if !defined(OSFREE)
 void EMS_Init();
+#endif
 void MOUSE_Init();
 void DOS_KeyboardLayout_Init();
 void CDROM_Image_Init();
@@ -7858,7 +7862,9 @@ bool VM_Boot_DOSBox_Kernel() {
         DOS_UninstallMisc();
         SBLASTER_DOS_Shutdown();
         GUS_DOS_Shutdown();
+#if !defined(OSFREE)
         EMS_DoShutDown();
+#endif
         XMS_DoShutDown();
         DOS_DoShutDown();
 
@@ -7908,9 +7914,11 @@ bool VM_Boot_DOSBox_Kernel() {
         void XMS_Startup(Section *sec);
         XMS_Startup(NULL);
 
+#if !defined(OSFREE)
         /* And then after that, usually a DEVICE=C:\EMM386.EXE just after HIMEM.SYS */
         void EMS_Startup(Section* sec);
         EMS_Startup(NULL);
+#endif
 
         DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
         SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
@@ -9698,7 +9706,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         DOS_KeyboardLayout_Init();
         MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
         XMS_Init();
+#if !defined(OSFREE)
         EMS_Init();
+#endif
         AUTOEXEC_Init();
 #if C_IPX
         IPX_Init();
@@ -10210,8 +10220,10 @@ fresh_boot:
             DOS_UninstallMisc();
             SBLASTER_DOS_Shutdown();
             GUS_DOS_Shutdown();
+#if !defined(OSFREE)
             /* disable Expanded Memory. EMM is a DOS API, not a BIOS API */
             EMS_DoShutDown();
+#endif
             /* and XMS, also a DOS API */
             XMS_DoShutDown();
             /* and the DOS API in general */

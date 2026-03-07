@@ -161,7 +161,9 @@ static void LogGDT(void);
 static void LogLDT(void);
 static void LogIDT(void);
 static void LogXMS(void);
+#if !defined(OSFREE)
 static void LogEMS(void);
+#endif
 static void LogFNKEY(void);
 static void LogPages(char* selname);
 static void LogCPUInfo(void);
@@ -2834,7 +2836,9 @@ bool ParseCommand(char* str) {
 		if (command == "MCBS") LogMCBS();
         else if (command == "KERN") LogDOSKernMem();
         else if (command == "XMS") LogXMS();
+#if !defined(OSFREE)
         else if (command == "EMS") LogEMS();
+#endif
         else if (command == "FNKEY") LogFNKEY();
         else return false;
 
@@ -5027,10 +5031,12 @@ static void LogBIOSMem(void) {
 Bitu XMS_GetTotalHandles(void);
 bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free,Bitu handle);
 
+#if !defined(OSFREE)
 bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle);
 const char *EMS_Type_String(void);
 Bitu EMS_Max_Handles(void);
 bool EMS_Active(void);
+#endif
 
 static void LogFNKEY(void) {
     DEBUG_BeginPagedContent();
@@ -5041,6 +5047,7 @@ static void LogFNKEY(void) {
     DEBUG_EndPagedContent();
 }
 
+#if !defined(OSFREE)
 static void LogEMS(void) {
     Bitu h_size;
     PhysPt xh_addr;
@@ -5111,6 +5118,7 @@ static void LogEMS(void) {
 
     DEBUG_EndPagedContent();
 }
+#endif
 
 static void LogXMS(void) {
     Bitu phys_location;
