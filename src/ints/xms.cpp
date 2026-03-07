@@ -157,9 +157,13 @@ Bitu XMS_GetEnabledA20(void) {
 }
 
 static RealPt xms_callback;
+#if !defined(OSFREE)
 static bool umb_available = false;
 static bool umb_init = false;
 uint16_t desired_ems_segment = 0;
+#else
+static constexpr bool umb_available = false;
+#endif
 
 static XMS_Block xms_handles[XMS_HANDLES_MAX];
 
@@ -681,7 +685,9 @@ Bitu XMS_Handler(void) {
 
 bool xms_init = false;
 
+#if !defined(OSFREE)
 bool keep_umb_on_boot;
+#endif
 
 extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
@@ -704,6 +710,7 @@ void ROMBIOS_FreeUnusedMinToLoc(Bitu phys);
 bool MEM_unmap_physmem(Bitu start,Bitu end);
 Bitu ROMBIOS_MinAllocatedLoc();
 
+#if !defined(OSFREE)
 void RemoveUMBBlock() {
 	/* FIXME: Um... why is umb_available == false even when set to true below? */
 	if (umb_init) {
@@ -712,7 +719,9 @@ void RemoveUMBBlock() {
 		umb_init = false;
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void Update_Get_Desired_Segment(void) {
 	const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
 
@@ -728,6 +737,7 @@ void Update_Get_Desired_Segment(void) {
 		desired_ems_segment = IS_PC98_ARCH ? 0xD000 : 0xE000;
 	}
 }
+#endif
 
 class XMS: public Module_base {
 private:
@@ -735,7 +745,9 @@ private:
 public:
 	XMS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
+#if !defined(OSFREE)
 		umb_available=false;
+#endif
 
 		xms_global_enable = false;
 		xms_local_enable_count = 0;
@@ -823,27 +835,36 @@ public:
 		/* Disable the 0 handle */
 		xms_handles[0].free	= false;
 
+#if !defined(OSFREE)
 		/* Set up UMB chain */
 		keep_umb_on_boot=section->Get_bool("keep umb on boot");
 		umb_available=section->Get_bool("umb");
 		first_umb_seg=section->Get_hex("umb start");
 		first_umb_size=section->Get_hex("umb end");
+#endif
 
+#if !defined(OSFREE)
 		Update_Get_Desired_Segment();
+#endif
 
+#if !defined(OSFREE)
 		/* This code will mess up the MCB chain in PCjr mode if umb=true */
 		if (umb_available && machine == MCH_PCJR) {
 			LOG(LOG_MISC,LOG_DEBUG)("UMB emulation is incompatible with PCjr emulation, disabling UMBs");
 			umb_available = false;
 		}
+#endif
 
+#if !defined(OSFREE)
 		LOG(LOG_MISC,LOG_DEBUG)("Desired EMS segment 0x%04x",desired_ems_segment);
+#endif
 
 		DOS_GetMemory_Choose();
 
 		// Sanity check
 		if (rombios_minimum_location == 0) E_Exit("Uninitialized ROM BIOS base");
 
+#if !defined(OSFREE)
 		if (first_umb_seg == 0) {
 			first_umb_seg = DOS_PRIVATE_SEGMENT_END;
 			if (first_umb_seg < (uint16_t)VGA_BIOS_SEG_END)
@@ -861,7 +882,9 @@ public:
 			LOG(LOG_MISC,LOG_NORMAL)("UMB starting segment 0x%04x conflict with BIOS at 0x%04x. Disabling UMBs",(int)first_umb_seg,(int)(rombios_minimum_location>>4));
 			umb_available = false;
 		}
+#endif
 
+#if !defined(OSFREE)
 		if (IS_PC98_ARCH) {
 			bool PC98_FM_SoundBios_Enabled(void);
 
@@ -890,14 +913,12 @@ public:
 			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region",(int)first_umb_size,(int)(rombios_minimum_location>>4));
 			first_umb_size = ((unsigned int)rombios_minimum_location>>4u)-1u;
 		}
+#endif
 
 		Bitu GetEMSPageFrameSegment(void);
 
 #if !defined(OSFREE)
 		bool ems_available = GetEMSType(section)>0;
-#else
-		static constexpr bool ems_available = false;
-#endif
 
 		/* 2017/12/24 I just noticed that the EMS page frame will conflict with UMB on standard configuration.
 		 * In IBM PC mode the EMS page frame is at E000:0000.
@@ -929,9 +950,12 @@ public:
 				umb_available = false;
 			}
 		}
+#endif
 
+#if !defined(OSFREE)
 		DOS_BuildUMBChain(umb_available&&dos_umb,ems_available);
 		umb_init = true;
+#endif
 
 		if (xms_init_flatrealmode && XMS_InitFlatRealMode()) {
 			LOG(LOG_MISC,LOG_DEBUG)("XMS: Initialization is enabling flat real mode");
@@ -944,10 +968,12 @@ public:
 	~XMS(){
 		/* Remove upper memory information */
 		dos_infoblock.SetStartOfUMBChain(0xffff);
+#if !defined(OSFREE)
 		if (umb_available) {
 			if (dos_umb) dos_infoblock.SetUMBChainState(0);
 			umb_available=false;
 		}
+#endif
 
 		if (!xms_init) return;
 

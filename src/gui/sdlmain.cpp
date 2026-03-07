@@ -734,7 +734,9 @@ bool setSizeButNotResize() {
 
 Bitu time_limit_ms = 0;
 
+#if !defined(OSFREE)
 extern bool keep_umb_on_boot;
+#endif
 extern bool keep_private_area_on_boot;
 bool guest_machine_power_on = false;
 
@@ -750,8 +752,10 @@ void DOS_DoShutDown();
 void GUS_DOS_Shutdown();
 void SBLASTER_DOS_Shutdown();
 void DOS_ShutdownDevices(void);
+#if !defined(OSFREE)
 void RemoveEMSPageFrame(void);
 void RemoveUMBBlock();
+#endif
 void DOS_GetMemory_unmap();
 void VFILE_Shutdown(void);
 void PROGRAMS_Shutdown(void);
@@ -7853,8 +7857,10 @@ void Windows_DPI_Awareness_Init() {
 
 bool VM_Boot_DOSBox_Kernel() {
     if (!dos_kernel_disabled) {
+#if !defined(OSFREE)
         RemoveEMSPageFrame();
         RemoveUMBBlock();
+#endif
         DisableINT33();
         DOS_GetMemory_unmap();
         VFILE_Shutdown();
@@ -10178,11 +10184,13 @@ fresh_boot:
             else
                 DispatchVMEvent(VM_EVENT_DOS_EXIT_BEGIN);
 
+#if !defined(OSFREE)
             /* older shutdown code */
             RemoveEMSPageFrame();
 
             /* remove UMB block */
             if (!keep_umb_on_boot) RemoveUMBBlock();
+#endif
 
             /* disable INT 33h mouse services. it can interfere with guest OS paging and control of the mouse */
             DisableINT33();
