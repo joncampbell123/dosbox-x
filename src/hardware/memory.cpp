@@ -1683,6 +1683,7 @@ static void write_pc98_a20(Bitu port,Bitu val,Bitu iolen) {
     }
 }
 
+#if !defined(OSFREE)
 void RemoveEMSPageFrame(void) {
     LOG(LOG_MISC,LOG_DEBUG)("Removing EMS page frame");
 
@@ -1697,6 +1698,7 @@ void RemoveEMSPageFrame(void) {
         }
     }
 }
+#endif
 
 void PreparePCJRCartRom(void) {
     LOG(LOG_MISC,LOG_DEBUG)("Preparing mapping for PCjr cartridge ROM");

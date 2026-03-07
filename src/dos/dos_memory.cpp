@@ -36,8 +36,10 @@ Bitu UMB_START_SEG = 0x9FFF;
  *        That means 0x9FFF if 640KB or more, or a lesser value if less than 640KB */
 //#define UMB_START_SEG 0x9fff
 
+#if !defined(OSFREE)
 uint16_t first_umb_seg = 0xd000;
 uint16_t first_umb_size = 0x2000;
+#endif
 
 static uint16_t memAllocStrategy = 0x00;
 
@@ -494,6 +496,7 @@ bool DOS_FreeMemory(uint16_t segment) {
 
 Bitu GetEMSPageFrameSegment(void);
 
+#if !defined(OSFREE)
 void DOS_BuildUMBChain(bool umb_active,bool /*ems_active*/) {
 	unsigned int seg_limit = (unsigned int)(MEM_ConventionalPages()*256);
 
@@ -543,8 +546,10 @@ void DOS_BuildUMBChain(bool umb_active,bool /*ems_active*/) {
 		dos_infoblock.SetUMBChainState(0);
 	}
 }
+#endif
 
 bool DOS_LinkUMBsToMemChain(uint16_t linkstate) {
+#if !defined(OSFREE)
 	/* Get start of UMB-chain */
 	uint16_t umb_start=dos_infoblock.GetStartOfUMBChain();
 	if (umb_start!=UMB_START_SEG) {
@@ -596,6 +601,9 @@ bool DOS_LinkUMBsToMemChain(uint16_t linkstate) {
 	}
 
 	return true;
+#else
+	return false;
+#endif
 }
 
 

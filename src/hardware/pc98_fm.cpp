@@ -568,7 +568,7 @@ struct AVSDRV_PCB {
 	uint8_t status;
 };
 static AVSDRV_PCB pcb_data[AVSDRV_PCB_SIZE];
-static uint16_t avsdrv_ems_pageframe;
+static uint16_t avsdrv_ems_pageframe = 0xE000;
 static uint16_t pcb_write, pcb_read;
 static uint8_t avsdrv_pcm;
 static uint8_t avsdrv_freq;
@@ -576,7 +576,9 @@ static uint8_t avsdrv_mute;
 static uint8_t avsdrv_volume[AVSDRV_VOLUME_SIZE];
 static bool avsdrv_play;
 
+#if !defined(OSFREE)
 Bitu GetEMSPageFrameSegment(void);
+#endif
 
 Bitu PC98_AVSDRV_PCM_Handler(void)
 {
@@ -592,7 +594,9 @@ Bitu PC98_AVSDRV_PCM_Handler(void)
 		avsdrv_pcm = 0xa0;
 		avsdrv_freq = 0;
 		avsdrv_mute = 0;
+#if !defined(OSFREE)
 		avsdrv_ems_pageframe = GetEMSPageFrameSegment();
+#endif
 		break;
 	case 0x01:
 		call_name = "$INITFUNC";
