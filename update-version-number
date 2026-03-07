@@ -29,10 +29,10 @@ ver=$(echo "${ver}" | tr . ,)
 sed -b -i "s/^#define VERSION_NUMBER \([0-9,]\+\)/#define VERSION_NUMBER ${ver},0/" src/winres.rc
 
 if [[ x"$GITBRANCH" == x"main-osfree" ]]; then
-    sed -b -i "s/^#define (C_|)OSFREE 1//" vs/config_package.h
-else
     echo '#define C_OSFREE 1' >>vs/config_package.h
     echo '#define OSFREE 1' >>vs/config_package.h
+else
+    sed -b -i -r "/^#define (C_OSFREE|OSFREE) .*$/d" vs/config_package.h
 fi
 
 sed -b -i "/^[[:space:]]*$/d" vs/config_package.h
