@@ -49,7 +49,9 @@ extern bool enable_share_exe, enable_network_redirector;
 
 extern Bitu XMS_EnableA20(bool enable);
 
+#if !defined(OSFREE)
 bool enable_a20_on_windows_init = false;
+#endif
 
 static Bitu call_int2f,call_int2a;
 
@@ -311,6 +313,7 @@ static bool DOS_MultiplexFunctions(void) {
 			reg_ax = 0x301;
         return true;
 	case 0x1605:	/* Windows init broadcast */
+#if !defined(OSFREE)
 		if (enable_a20_on_windows_init) {
 			/* This hack exists because Windows 3.1 doesn't seem to enable A20 first during an
 			 * initial critical period where it assumes it's on, prior to checking and enabling/disabling it.
@@ -322,6 +325,7 @@ static bool DOS_MultiplexFunctions(void) {
 			LOG_MSG("Enabling A20 gate for Windows in response to INIT broadcast");
 			XMS_EnableA20(true);
 		}
+#endif
 
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
 		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox-x.conf or b) running a builtin command in Z:\ */

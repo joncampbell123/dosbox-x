@@ -97,7 +97,9 @@ bool xms_hma_alloc_non_dos_kernel_control = true;
 
 bool xms_memmove_flatrealmode = false;
 bool xms_init_flatrealmode = false;
+#if !defined(OSFREE)
 bool xms_debug_log_memmove = false;
+#endif
 
 struct XMS_Block {
 	Bitu	size;
@@ -205,6 +207,7 @@ Bitu XMS_QueryFreeMemory(uint32_t& largestFree, uint32_t& totalFree) {
 	return 0;
 }
 
+#if !defined(OSFREE)
 void XMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 	PhysPt address;
 
@@ -218,9 +221,12 @@ void XMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 		pages--;
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 extern bool enable_a20_on_windows_init;
 extern bool dbg_zero_on_xms_allocmem;
+#endif
 
 Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle) {	// size = kb
 	/* Find free handle */
@@ -233,11 +239,15 @@ Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle) {	// size = kb
 		Bitu pages=(size/4) + ((size & 3) ? 1 : 0);
 		mem=MEM_AllocatePages(pages,true);
 		if (!mem) return XMS_OUT_OF_SPACE;
+#if !defined(OSFREE)
 		if (dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,(unsigned int)pages);
+#endif
 	} else {
 		mem=MEM_GetNextFreePage();
 		if (mem==0) LOG(LOG_MISC,LOG_DEBUG)("XMS:Allocate zero pages with no memory left"); // Windows 3.1 triggers this surprisingly often!
+#if !defined(OSFREE)
 		if (mem != 0 && dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,1);
+#endif
 	}
 	xms_handles[index].free=false;
 	xms_handles[index].mem=mem;
@@ -312,9 +322,11 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		if ((destpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
 	}
 
+#if !defined(OSFREE)
 	if (xms_debug_log_memmove) {
 		LOG_MSG("XMS move src %X dest %X length %X",(unsigned int)srcpt,(unsigned int)destpt,(unsigned int)length);
 	}
+#endif
 
 	/* we must enable the A20 gate during this copy.
 	 * DOSBox-X masks the A20 line and this will only cause corruption otherwise. */
@@ -751,6 +763,7 @@ public:
 
 		xms_global_enable = false;
 		xms_local_enable_count = 0;
+#if !defined(OSFREE)
 		xms_debug_log_memmove = false;
 		xms_memmove_flatrealmode = false;
 		xms_init_flatrealmode = false;
@@ -760,7 +773,13 @@ public:
 		xms_debug_log_memmove = section->Get_bool("xms log memmove");
 		xms_memmove_flatrealmode = section->Get_bool("xms memmove causes flat real mode");
 		xms_init_flatrealmode = section->Get_bool("xms init causes flat real mode");
+#else
+		/* OSFREE: MS-DOS is not supposed to be there, you do NOT get to control these options! */
+		xms_memmove_flatrealmode = true;
+		xms_init_flatrealmode = true;
+#endif
 
+#if !defined(OSFREE)
 		XMS_HANDLES = (unsigned int)(section->Get_int("xms handles"));
 		if (XMS_HANDLES == 0)
 			XMS_HANDLES = XMS_HANDLES_DEFAULT;
@@ -770,6 +789,10 @@ public:
 			XMS_HANDLES = XMS_HANDLES_MAX;
 
 		LOG_MSG("XMS: %u handles allocated for use by the DOS environment",XMS_HANDLES);
+#else
+		/* OSFREE: MS-DOS is not supposed to be there, you do NOT get to control these options! */
+		XMS_HANDLES = XMS_HANDLES_DEFAULT;
+#endif
 
 		/* NTS: Disable XMS emulation if CPU type is less than a 286, because extended memory did not
 		 *      exist until the CPU had enough address lines to read past the 1MB mark.
@@ -800,21 +823,30 @@ public:
 
 		xms_init = true;
 
+#if !defined(OSFREE)
 		xms_hma_exists = section->Get_bool("hma");
 		xms_hma_minimum_alloc = (unsigned int)section->Get_int("hma minimum allocation");
 		xms_hma_alloc_non_dos_kernel_control = section->Get_bool("hma allow reservation");
 		if (xms_hma_minimum_alloc > 0xFFF0U) xms_hma_minimum_alloc = 0xFFF0U;
+#else
+		/* OSFREE: MS-DOS is not supposed to be there, you do NOT get to control these options! */
+		xms_hma_exists = true;
+		xms_hma_minimum_alloc = 0xFFF0U;
+		xms_hma_alloc_non_dos_kernel_control = false;
+#endif
 
 		Bitu i;
 		BIOS_ZeroExtendedSize(true);
 		DOS_AddMultiplexHandler(multiplex_xms);
 
+#if !defined(OSFREE)
 		enable_a20_on_windows_init = section->Get_bool("enable a20 on windows init");
 		dbg_zero_on_xms_allocmem = section->Get_bool("zero memory on xms memory allocation");
 
 		if (dbg_zero_on_xms_allocmem) {
 			LOG_MSG("Debug option enabled: XMS memory allocation will always clear memory block before returning\n");
 		}
+#endif
 
 		/* place hookable callback in writable memory area */
 		xms_callback=RealMake(DOS_GetMemory(0x1,"xms_callback")-1,0x10);

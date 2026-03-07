@@ -3564,7 +3564,10 @@ void INT10_WriteChar_viaRealInt(uint8_t chr, uint8_t attr, uint8_t page, uint16_
 void INT10_ScrollWindow_viaRealInt(uint8_t rul, uint8_t cul, uint8_t rlr, uint8_t clr, int8_t nlines, uint8_t attr, uint8_t page);
 
 extern bool dos_con_use_int16_to_detect_input;
-extern bool dbg_zero_on_dos_allocmem, addovl;
+#if !defined(OSFREE)
+extern bool dbg_zero_on_dos_allocmem;
+#endif
+extern bool addovl;
 
 bool set_ver(char *s) {
 	s=trim(s);
@@ -4173,7 +4176,9 @@ public:
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
+#if !defined(OSFREE)
 		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
+#endif
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
@@ -4320,9 +4325,11 @@ public:
 		if (ENV_KEEPFREE < 83)
 			LOG_MSG("DOS: ENV_KEEPFREE is below 83 bytes. DOS programs that rely on undocumented data following the environment block may break.");
 
+#if !defined(OSFREE)
 		if (dbg_zero_on_dos_allocmem) {
 			LOG_MSG("Debug option enabled: INT 21h memory allocation will always clear memory block before returning\n");
 		}
+#endif
 
 		if (minimum_mcb_segment > 0x8000) minimum_mcb_segment = 0x8000; /* FIXME: Clip against available memory */
 
