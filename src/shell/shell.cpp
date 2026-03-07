@@ -251,6 +251,7 @@ void AutoexecObject::Uninstall() {
 				char* after_set = buf2 + 4;//move to variable that is being set
 				char* test2 = strpbrk(after_set,"=");
 				if (!test2) {
+					it++;
 					delete [] buf2;
 					continue;
 				}
