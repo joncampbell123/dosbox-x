@@ -143,6 +143,13 @@ COMMIT_HASH=`git rev-parse --short=7 HEAD 2>/dev/null || echo "unknown"`
 AC_SUBST([COMMIT_HASH])
 AC_MSG_RESULT([$COMMIT_HASH])
 
+GITBRANCH=`git rev-parse --abbrev-ref HEAD`
+OSFREE=0
+AH_TEMPLATE(C_OSFREE,[Define to 1 to make an OSFREE version])
+if [[ x"$GITBRANCH" == x"main-osfree" ]]; then
+    AC_DEFINE(C_OSFREE,1,[Make an OSFREE build])
+fi
+
 dnl Setup for automake
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADER(config.h)
