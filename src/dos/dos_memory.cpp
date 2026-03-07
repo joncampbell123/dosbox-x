@@ -171,8 +171,11 @@ bool DOS_SetMemAllocStrategy(uint16_t strat) {
 	return false;
 }
 
+#if !defined(OSFREE)
 extern bool dbg_zero_on_dos_allocmem;
+#endif
 
+#if !defined(OSFREE)
 void DOS_zeromem(uint16_t seg,uint16_t para) {
 	uint32_t ofs,cnt;
 
@@ -186,6 +189,7 @@ void DOS_zeromem(uint16_t seg,uint16_t para) {
 		cnt--;
 	}
 }
+#endif
 
 static uint16_t GetMaximumMCBFreeSize(uint16_t mcb_segment)
 {
@@ -257,7 +261,9 @@ bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks) {
 				mcb.SetPSPSeg(dos.psp());
 				*segment=mcb_segment+1;
 
+#if !defined(OSFREE)
 				if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
+#endif
 #ifdef DEBUG_ALLOC
 				LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
 #endif
@@ -276,7 +282,9 @@ bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks) {
 						//TODO Filename
 						*segment=mcb_segment+1;
 
+#if !defined(OSFREE)
 						if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
+#endif
 #ifdef DEBUG_ALLOC
 						LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
 #endif
@@ -331,7 +339,9 @@ bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks) {
 							mcb.SetFileName(psp_name);
 							*segment = found_seg+1;
 
+#if !defined(OSFREE)
 							if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
+#endif
 #ifdef DEBUG_ALLOC
 							LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
 #endif
@@ -349,7 +359,9 @@ bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks) {
 						mcb.SetType(0x4D);
 					}
 
+#if !defined(OSFREE)
 					if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
+#endif
 #ifdef DEBUG_ALLOC
 					LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
 #endif
