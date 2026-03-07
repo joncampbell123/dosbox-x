@@ -9597,8 +9597,8 @@ void Add_VFiles(bool usecp) {
 	VFILE_Register("TEXTUTIL", nullptr, 0, "/");
 #endif
 	VFILE_Register("SYSTEM", nullptr, 0, "/");
-#if !defined(OSFREE)
 	VFILE_Register("DEBUG", nullptr, 0, "/");
+#if !defined(OSFREE)
 	VFILE_Register("DOS", nullptr, 0, "/");
 	VFILE_Register("CPI", nullptr, 0, "/");
 #endif
