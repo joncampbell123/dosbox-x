@@ -2772,6 +2772,10 @@ static void readnonspc(std::string &s,char* &pcheck) {
 	while (*pcheck != 0 && !(*pcheck == ' ' || *pcheck == '\t')) s += *(pcheck++);
 }
 
+#if defined(OSFREE)
+extern bool openfile_deny_non_z;
+#endif
+
 /* NTS: WARNING, this function modifies the buffer pointed to by char *args */
 void DOS_Shell::CMD_SET(char * args) {
 	HELP("SET");
@@ -2809,6 +2813,14 @@ void DOS_Shell::CMD_SET(char * args) {
 			else if (sw == "FIRST") { /* DOSBox-X extension: Move the specified variable to the front of the environment block */
 				op_mode = first_env;
 			}
+#if defined(OSFREE)
+			else if (sw == "U") { /* DEBUG option: Unlock non-drive Z: file I/O blocking. For osfree official releases this must be disabled */
+				/* this is here to make sure the stripped down DOS kernel in this build is still working properly, nothing more */
+				openfile_deny_non_z = false;
+				WriteOut("OK"); /* be vague */
+				return;
+			}
+#endif
 			else {
 				WriteOut("Unknown switch /");
 				WriteOut(sw.c_str());
