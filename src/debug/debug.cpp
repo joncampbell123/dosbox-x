@@ -5542,18 +5542,22 @@ private:
 };
 #endif
 
-#if C_DEBUG
+#if !defined(OSFREE)
+# if C_DEBUG
 extern bool debugger_break_on_exec;
+# endif
 #endif
 
 void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off)
 {
-#if C_DEBUG
+#if !defined(OSFREE)
+# if C_DEBUG
     if (debugger_break_on_exec) {
 		CBreakpoint::AddBreakpoint(seg,off,true);
 		CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
         debugger_break_on_exec = false;
     }
+# endif
 #endif
 #if 0
 	if (pDebugcom && pDebugcom->IsActive()) {

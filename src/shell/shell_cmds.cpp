@@ -62,12 +62,15 @@
 SHELL_Cmd cmd_list[]={
 {	"DIR",			0,		&DOS_Shell::CMD_DIR,		"SHELL_CMD_DIR_HELP"},
 {	"CD",			0,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
+#if !defined(OSFREE)
 {	"ALIAS",		1,		&DOS_Shell::CMD_ALIAS,		"SHELL_CMD_ALIAS_HELP"},
 {	"ASSOC",		1,		&DOS_Shell::CMD_ASSOC,		"SHELL_CMD_ASSOC_HELP"},
 {	"ATTRIB",		1,		&DOS_Shell::CMD_ATTRIB,		"SHELL_CMD_ATTRIB_HELP"},
 {	"BREAK",		1,		&DOS_Shell::CMD_BREAK,		"SHELL_CMD_BREAK_HELP"},
+#endif
 {	"CALL",			1,		&DOS_Shell::CMD_CALL,		"SHELL_CMD_CALL_HELP"},
 {	"CHDIR",		1,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
+#if !defined(OSFREE)
 //{	"CHOICE",		1,		&DOS_Shell::CMD_CHOICE,		"SHELL_CMD_CHOICE_HELP"}, // CHOICE as a program (Z:\DOS\CHOICE.COM) instead of shell command
 {	"CLS",			0,		&DOS_Shell::CMD_CLS,		"SHELL_CMD_CLS_HELP"},
 {	"COPY",			0,		&DOS_Shell::CMD_COPY,		"SHELL_CMD_COPY_HELP"},
@@ -77,14 +80,20 @@ SHELL_Cmd cmd_list[]={
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
 //{	"DELTREE",		1,		&DOS_Shell::CMD_DELTREE,	"SHELL_CMD_DELTREE_HELP"}, // DELTREE as a program (Z:\DOS\DELTREE.EXE) instead of shell command
+#endif
 {	"ECHO",			0,		&DOS_Shell::CMD_ECHO,		"SHELL_CMD_ECHO_HELP"},
+#if !defined(OSFREE)
 {	"ERASE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
+#endif
 {	"EXIT",			0,		&DOS_Shell::CMD_EXIT,		"SHELL_CMD_EXIT_HELP"},
 {	"FOR",			1,		&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"GOTO",			1,		&DOS_Shell::CMD_GOTO,		"SHELL_CMD_GOTO_HELP"},
+#if !defined(OSFREE)
 //{	"HELP",			1,		&DOS_Shell::CMD_HELP,		"SHELL_CMD_HELP_HELP"}, // HELP as a program (Z:\SYSTEM\HELP.COM) instead of shell command
 {	"HISTORY",		1,		&DOS_Shell::CMD_HISTORY,	"SHELL_CMD_HISTORY_HELP"},
+#endif
 {	"IF",			1,		&DOS_Shell::CMD_IF,			"SHELL_CMD_IF_HELP"},
+#if !defined(OSFREE)
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
 {	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
@@ -96,29 +105,38 @@ SHELL_Cmd cmd_list[]={
 {	"PAUSE",		1,		&DOS_Shell::CMD_PAUSE,		"SHELL_CMD_PAUSE_HELP"},
 {	"PROMPT",		0,		&DOS_Shell::CMD_PROMPT,		"SHELL_CMD_PROMPT_HELP"},
 {	"RD",			0,		&DOS_Shell::CMD_RMDIR,		"SHELL_CMD_RMDIR_HELP"},
+#endif
 {	"REM",			1,		&DOS_Shell::CMD_REM,		"SHELL_CMD_REM_HELP"},
+#if !defined(OSFREE)
 {	"REN",			0,		&DOS_Shell::CMD_RENAME,		"SHELL_CMD_RENAME_HELP"},
 {	"RENAME",		1,		&DOS_Shell::CMD_RENAME,		"SHELL_CMD_RENAME_HELP"},
 {	"RMDIR",		1,		&DOS_Shell::CMD_RMDIR,		"SHELL_CMD_RMDIR_HELP"},
+#endif
 {	"SET",			1,		&DOS_Shell::CMD_SET,		"SHELL_CMD_SET_HELP"},
 {	"SHIFT",		1,		&DOS_Shell::CMD_SHIFT,		"SHELL_CMD_SHIFT_HELP"},
+#if !defined(OSFREE)
 {	"SUBST",		1,		&DOS_Shell::CMD_SUBST,		"SHELL_CMD_SUBST_HELP"},
 {	"TIME",			0,		&DOS_Shell::CMD_TIME,		"SHELL_CMD_TIME_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 {	"TYPE",			0,		&DOS_Shell::CMD_TYPE,		"SHELL_CMD_TYPE_HELP"},
+#endif
 {	"VER",			0,		&DOS_Shell::CMD_VER,		"SHELL_CMD_VER_HELP"},
+#if !defined(OSFREE)
 {	"VERIFY",		1,		&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
 {	"VOL",			0,		&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
+#endif
 {	"POPD",			1,		&DOS_Shell::CMD_POPD,		"SHELL_CMD_POPD_HELP"},
 {	"PUSHD",		1,		&DOS_Shell::CMD_PUSHD,		"SHELL_CMD_PUSHD_HELP"},
-#if C_DEBUG
+#if !defined(OSFREE)
+# if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
 {	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"SHELL_CMD_DEBUGBOX_HELP"},
 //{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"}, // INT2FDBG as a program (Z:\DEBUG\INT2FDBG.COM) instead of shell command
-#endif
+# endif
 // Advanced commands specific to DOSBox-X
 //{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\BIN\ADDKEY.COM) instead of shell command
 {	"DX-CAPTURE",		1,		&DOS_Shell::CMD_DXCAPTURE,	"SHELL_CMD_DXCAPTURE_HELP"},
+#endif
 { nullptr, 0, nullptr, nullptr }
 };
 
@@ -470,6 +488,7 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 }
 #endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_BREAK(char * args) {
 	HELP("BREAK");
 	args = trim(args);
@@ -482,8 +501,10 @@ void DOS_Shell::CMD_BREAK(char * args) {
 	else
 		WriteOut("Must specify ON or OFF\n");
 }
+#endif
 
 bool is_ANSI_installed(Program *shell);
+#if !defined(OSFREE)
 void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");
    if ((CurMode->type==M_TEXT || IS_PC98_ARCH) && is_ANSI_installed(this))
@@ -496,7 +517,9 @@ void DOS_Shell::CMD_CLS(char * args) {
       reg_ax=oldax;
    }
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_DELETE(char* args) {
     HELP("DELETE");
     bool optP = ScanCMDBool(args, "P");
@@ -685,6 +708,7 @@ continue_1:
     if(!exist) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), args);
     dos.dta(save_dta);
 }
+#endif
 
 size_t GetPauseCount() {
 	uint16_t rows;
@@ -845,6 +869,7 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
 	return found;
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_DELTREE(char * args) {
 	//HELP("DELTREE");
 	StripSpaces(args);
@@ -887,6 +912,7 @@ void DOS_Shell::CMD_DELTREE(char * args) {
 	if (!found) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
 	dos.dta(save_dta);
 }
+#endif
 
 bool CheckBreak(DOS_Shell * shell) {
     if (ctrlbrk || dos.errorcode == 77) {
@@ -993,6 +1019,7 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
 }
 
 bool tree=false;
+#if !defined(OSFREE)
 void DOS_Shell::CMD_TREE(char * args) {
 	//HELP("TREE");
 	StripSpaces(args);
@@ -1043,7 +1070,9 @@ void DOS_Shell::CMD_TREE(char * args) {
     inshell=false;
 	dos.dta(save_dta);
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_HELP(char * args){
 	HELP("HELP");
 	bool optall=ScanCMDBool(args,"A")|ScanCMDBool(args,"ALL");
@@ -1090,6 +1119,7 @@ void DOS_Shell::CMD_HELP(char * args){
 		WriteOut(MSG_Get("SHELL_CMD_HELP_END2"));
 	if (attr) DOS_SetAnsiAttr(attr);
 }
+#endif
 
 void removeChar(char *str, char c) {
     char *src, *dst;
@@ -1100,6 +1130,7 @@ void removeChar(char *str, char c) {
     *dst = '\0';
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_RENAME(char * args){
 	HELP("RENAME");
 	StripSpaces(args);
@@ -1309,6 +1340,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	}
 	dos.dta(save_dta);
 }
+#endif
 
 void DOS_Shell::CMD_ECHO(char * args){
 	if (!*args) {
@@ -1457,6 +1489,7 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 	}
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_MKDIR(char * args) {
 	HELP("MKDIR");
 	StripSpaces(args);
@@ -1473,7 +1506,9 @@ void DOS_Shell::CMD_MKDIR(char * args) {
 		WriteOut(MSG_Get(dos.errorcode==DOSERR_ACCESS_DENIED?"SHELL_CMD_MKDIR_EXIST":"SHELL_CMD_MKDIR_ERROR"),args);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_RMDIR(char * args) {
 	HELP("RMDIR");
 	// ignore /s,and /q switches for compatibility
@@ -1493,6 +1528,7 @@ void DOS_Shell::CMD_RMDIR(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_RMDIR_ERROR"),args);
 	}
 }
+#endif
 
 static void FormatNumber(uint64_t num,char * buf) {
 	uint64_t numo = num;
@@ -2301,6 +2337,7 @@ struct copysource {
 	copysource():filename(""),concat(false){ };
 };
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_COPY(char * args) {
 	HELP("COPY");
 	static std::string defaulttarget = ".";
@@ -2719,6 +2756,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	dos.echo=echo;
 	Drives[DOS_GetDefaultDrive()]->EmptyCache();
 }
+#endif
 
 static void skipspc(char* &pcheck) {
 	while (*pcheck != 0 && (*pcheck == ' ' || *pcheck == '\t')) pcheck++;
@@ -2986,6 +3024,7 @@ void DOS_Shell::CMD_SHIFT(char * args ) {
 	if(bf) bf->Shift();
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_TYPE(char * args) {
 	HELP("TYPE");
 
@@ -3041,6 +3080,7 @@ nextfile:
 	DOS_CloseFile(handle);
 	if (*args) goto nextfile;
 }
+#endif
 
 void DOS_Shell::CMD_REM(char * args) {
 	HELP("REM");
@@ -3056,6 +3096,7 @@ static char PAUSED(void) {
 	return c;
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_MORE(char * args) {
 	HELP("MORE");
 	//ScanCMDBool(args,">");
@@ -3204,7 +3245,9 @@ nextfile:
 		goto nextfile;
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_PAUSE(char * args){
 	HELP("PAUSE");
 	if(args && *args) {
@@ -3216,6 +3259,7 @@ void DOS_Shell::CMD_PAUSE(char * args){
 	DOS_ReadFile(STDIN,&c,&n);
 	if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 }
+#endif
 
 void DOS_Shell::CMD_CALL(char * args){
 	HELP("CALL");
@@ -3224,6 +3268,7 @@ void DOS_Shell::CMD_CALL(char * args){
 	this->call=false;
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_DATE(char * args) {
 	HELP("DATE");
 	if(ScanCMDBool(args,"H")) {
@@ -3287,7 +3332,9 @@ void DOS_Shell::CMD_DATE(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_DATE_SETHLP"), format);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_TIME(char * args) {
 	HELP("TIME");
 	if(ScanCMDBool(args,"H")) {
@@ -3343,7 +3390,9 @@ void DOS_Shell::CMD_TIME(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_TIME_SETHLP"), format);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_SUBST(char * args) {
 /* If more that one type can be substed think of something else
  * E.g. make basedir member dos_drive instead of localdrive
@@ -3456,7 +3505,9 @@ void DOS_Shell::CMD_SUBST(char * args) {
 
 	return;
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_LOADHIGH(char *args){
 	HELP("LOADHIGH");
 	uint16_t umb_start=dos_infoblock.GetStartOfUMBChain();
@@ -3471,6 +3522,7 @@ void DOS_Shell::CMD_LOADHIGH(char *args){
 		DOS_SetMemAllocStrategy(old_memstrat);	// restore strategy
 	} else this->ParseLine(args);
 }
+#endif
 
 bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_sec)
 {
@@ -3503,6 +3555,7 @@ bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_
 	return true;
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_CHOICE(char * args){
 	HELP("CHOICE");
 	static char defchoice[3] = {MSG_Get("INT21_6523_YESNO_CHARS")[0],MSG_Get("INT21_6523_YESNO_CHARS")[1],0};
@@ -3568,6 +3621,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	c = '\n'; DOS_WriteFile (STDOUT,&c, &n);
 	dos.return_code = (uint8_t)(ptr-rem+1);
 }
+#endif
 
 static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, bool adda, bool adds, bool addh, bool addr, bool suba, bool subs, bool subh, bool subr) {
     char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
@@ -3661,6 +3715,7 @@ static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, boo
 	return found;
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_ATTRIB(char *args){
 	HELP("ATTRIB");
 	StripSpaces(args);
@@ -3721,7 +3776,9 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 	ctrlbrk=false;
 	dos.dta(save_dta);
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_PROMPT(char *args){
 	HELP("PROMPT");
 	if(args && *args) {
@@ -3731,7 +3788,9 @@ void DOS_Shell::CMD_PROMPT(char *args){
 		SetEnv("PROMPT","$P$G");
 	return;
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_PATH(char *args){
 	HELP("PATH");
 	if(args && *args){
@@ -3758,7 +3817,9 @@ void DOS_Shell::CMD_PATH(char *args){
 		}
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_VERIFY(char * args) {
 	HELP("VERIFY");
 	args = trim(args);
@@ -3771,6 +3832,7 @@ void DOS_Shell::CMD_VERIFY(char * args) {
 	else
 		WriteOut("Must specify ON or OFF\n");
 }
+#endif
 
 void dos_ver_menu(bool start);
 bool set_ver(char *s);
@@ -3815,6 +3877,7 @@ void DOS_Shell::CMD_VER(char *args) {
 	}
 }
 
+// OSFREE NTS: Even though we remove the command from the shell, the DIR command needs this to exist
 void DOS_Shell::CMD_VOL(char *args){
 	HELP("VOL");
 	uint8_t drive=DOS_GetDefaultDrive();
@@ -3866,6 +3929,7 @@ void DOS_Shell::CMD_VOL(char *args){
 	return;
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_TRUENAME(char * args) {
 	HELP("TRUENAME");
 	bool optH=ScanCMDBool(args,"H");
@@ -3909,6 +3973,7 @@ void DOS_Shell::CMD_TRUENAME(char * args) {
 	else
 		WriteOut(dos.errorcode==DOSERR_PATH_NOT_FOUND?"Path not found\n":"File not found\n");
 }
+#endif
 
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
 static void delayed_press(Bitu key) { KEYBOARD_AddKey((KBD_KEYS)key,true); }
@@ -4112,7 +4177,8 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 	}
  }
 
-#if C_DEBUG
+#if !defined(OSFREE)
+#  if C_DEBUG
 extern bool tohide;
 bool debugger_break_on_exec = false;
 void DEBUG_Enable_Handler(bool pressed);
@@ -4136,6 +4202,7 @@ void DOS_Shell::CMD_DEBUGBOX(char * args) {
     DoCommand((char *)argv.c_str());
     debugger_break_on_exec = false;
 }
+# endif
 #endif
 
 char *str_replace(const char *orig, const char *rep, const char *with) {
@@ -4267,6 +4334,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 	}
 }
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_LFNFOR(char * args) {
 	HELP("LFNFOR");
 	args = trim(args);
@@ -4279,7 +4347,9 @@ void DOS_Shell::CMD_LFNFOR(char * args) {
 	else
 		WriteOut("Must specify ON or OFF\n");
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_ALIAS(char* args) {
     HELP("ALIAS");
 	args = trim(args);
@@ -4314,7 +4384,9 @@ void DOS_Shell::CMD_ALIAS(char* args) {
         }
     }
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_ASSOC(char* args) {
     HELP("ASSOC");
 	args = trim(args);
@@ -4353,7 +4425,9 @@ void DOS_Shell::CMD_ASSOC(char* args) {
         }
     }
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_HISTORY(char* args) {
     HELP("HISTORY");
     if (ScanCMDBool(args,"C"))
@@ -4363,6 +4437,7 @@ void DOS_Shell::CMD_HISTORY(char* args) {
         WriteOut("\n");
     }
 }
+#endif
 
 void CAPTURE_StartCapture(void);
 void CAPTURE_StopCapture(void);
@@ -4376,6 +4451,7 @@ void CAPTURE_StopMTWave(void);
 void CAPTURE_StartOPL(void);
 void CAPTURE_StopOPL(void);
 
+#if !defined(OSFREE)
 // Explanation: Start capture, run program, stop capture when program exits.
 //              Great for gameplay footage or demoscene capture.
 //
@@ -4486,7 +4562,9 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     if (cap_opl)
         CAPTURE_StopOPL();
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_CTTY(char * args) {
 	HELP("CTTY");
 	/* NTS: This is written to emulate the simplistic parsing in MS-DOS 6.22 */
@@ -4514,7 +4592,9 @@ void DOS_Shell::CMD_CTTY(char * args) {
 	}
 	DOS_CloseFile(handle);
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_COUNTRY(char * args) {
 	HELP("COUNTRY");
 	if (char* rem = ScanCMDRemain(args)) {
@@ -4536,6 +4616,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	WriteOut("Invalid country code - %s\n", StripArg(args));
 	return;
 }
+#endif
 
 extern bool jfont_init, finish_prepare, isDBCSCP();
 extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
@@ -4616,6 +4697,7 @@ const char* DOS_GetLoadedLayout(void);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage);
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_CHCP(char * args) {
 	HELP("CHCP");
 	args = trim(args);
@@ -4751,7 +4833,9 @@ void DOS_Shell::CMD_CHCP(char * args) {
     else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
 	return;
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Shell::CMD_VTEXT(char *args)
 {
 	HELP("VTEXT");
@@ -4788,3 +4872,4 @@ void DOS_Shell::CMD_VTEXT(char *args)
 	uint8_t mode = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE);
 	WriteOut(MSG_Get(mode == 0x70?"SHELL_CMD_VTEXT_ON":"SHELL_CMD_VTEXT_OFF"));
 }
+#endif
