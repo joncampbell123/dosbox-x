@@ -61,6 +61,8 @@ NEXT VERSION
   - Removed range check in INT10_GetCursorPos causing text glitches (maron2000)
   - Added experimental VS2026 CI builds. Can be downloaded as 64-bit Visual
     Studio nightly builds. (maron2000)
+  - macOS: Fixed garbled message when opening image file(s) from dropdown menu.
+    (maron2000)
     
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory
