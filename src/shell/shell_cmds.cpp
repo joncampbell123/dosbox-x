@@ -62,12 +62,15 @@
 SHELL_Cmd cmd_list[]={
 {	"DIR",			0,		&DOS_Shell::CMD_DIR,		"SHELL_CMD_DIR_HELP"},
 {	"CD",			0,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
+#if !defined(OSFREE)
 {	"ALIAS",		1,		&DOS_Shell::CMD_ALIAS,		"SHELL_CMD_ALIAS_HELP"},
 {	"ASSOC",		1,		&DOS_Shell::CMD_ASSOC,		"SHELL_CMD_ASSOC_HELP"},
 {	"ATTRIB",		1,		&DOS_Shell::CMD_ATTRIB,		"SHELL_CMD_ATTRIB_HELP"},
+#endif
 {	"BREAK",		1,		&DOS_Shell::CMD_BREAK,		"SHELL_CMD_BREAK_HELP"},
 {	"CALL",			1,		&DOS_Shell::CMD_CALL,		"SHELL_CMD_CALL_HELP"},
 {	"CHDIR",		1,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
+#if !defined(OSFREE)
 //{	"CHOICE",		1,		&DOS_Shell::CMD_CHOICE,		"SHELL_CMD_CHOICE_HELP"}, // CHOICE as a program (Z:\DOS\CHOICE.COM) instead of shell command
 {	"CLS",			0,		&DOS_Shell::CMD_CLS,		"SHELL_CMD_CLS_HELP"},
 {	"COPY",			0,		&DOS_Shell::CMD_COPY,		"SHELL_CMD_COPY_HELP"},
@@ -77,14 +80,20 @@ SHELL_Cmd cmd_list[]={
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
 //{	"DELTREE",		1,		&DOS_Shell::CMD_DELTREE,	"SHELL_CMD_DELTREE_HELP"}, // DELTREE as a program (Z:\DOS\DELTREE.EXE) instead of shell command
+#endif
 {	"ECHO",			0,		&DOS_Shell::CMD_ECHO,		"SHELL_CMD_ECHO_HELP"},
+#if !defined(OSFREE)
 {	"ERASE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
+#endif
 {	"EXIT",			0,		&DOS_Shell::CMD_EXIT,		"SHELL_CMD_EXIT_HELP"},
 {	"FOR",			1,		&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"GOTO",			1,		&DOS_Shell::CMD_GOTO,		"SHELL_CMD_GOTO_HELP"},
+#if !defined(OSFREE)
 //{	"HELP",			1,		&DOS_Shell::CMD_HELP,		"SHELL_CMD_HELP_HELP"}, // HELP as a program (Z:\SYSTEM\HELP.COM) instead of shell command
 {	"HISTORY",		1,		&DOS_Shell::CMD_HISTORY,	"SHELL_CMD_HISTORY_HELP"},
+#endif
 {	"IF",			1,		&DOS_Shell::CMD_IF,			"SHELL_CMD_IF_HELP"},
+#if !defined(OSFREE)
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
 {	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
@@ -96,29 +105,38 @@ SHELL_Cmd cmd_list[]={
 {	"PAUSE",		1,		&DOS_Shell::CMD_PAUSE,		"SHELL_CMD_PAUSE_HELP"},
 {	"PROMPT",		0,		&DOS_Shell::CMD_PROMPT,		"SHELL_CMD_PROMPT_HELP"},
 {	"RD",			0,		&DOS_Shell::CMD_RMDIR,		"SHELL_CMD_RMDIR_HELP"},
+#endif
 {	"REM",			1,		&DOS_Shell::CMD_REM,		"SHELL_CMD_REM_HELP"},
+#if !defined(OSFREE)
 {	"REN",			0,		&DOS_Shell::CMD_RENAME,		"SHELL_CMD_RENAME_HELP"},
 {	"RENAME",		1,		&DOS_Shell::CMD_RENAME,		"SHELL_CMD_RENAME_HELP"},
 {	"RMDIR",		1,		&DOS_Shell::CMD_RMDIR,		"SHELL_CMD_RMDIR_HELP"},
+#endif
 {	"SET",			1,		&DOS_Shell::CMD_SET,		"SHELL_CMD_SET_HELP"},
 {	"SHIFT",		1,		&DOS_Shell::CMD_SHIFT,		"SHELL_CMD_SHIFT_HELP"},
+#if !defined(OSFREE)
 {	"SUBST",		1,		&DOS_Shell::CMD_SUBST,		"SHELL_CMD_SUBST_HELP"},
 {	"TIME",			0,		&DOS_Shell::CMD_TIME,		"SHELL_CMD_TIME_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 {	"TYPE",			0,		&DOS_Shell::CMD_TYPE,		"SHELL_CMD_TYPE_HELP"},
+#endif
 {	"VER",			0,		&DOS_Shell::CMD_VER,		"SHELL_CMD_VER_HELP"},
+#if !defined(OSFREE)
 {	"VERIFY",		1,		&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
 {	"VOL",			0,		&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
+#endif
 {	"POPD",			1,		&DOS_Shell::CMD_POPD,		"SHELL_CMD_POPD_HELP"},
 {	"PUSHD",		1,		&DOS_Shell::CMD_PUSHD,		"SHELL_CMD_PUSHD_HELP"},
-#if C_DEBUG
+#if !defined(OSFREE)
+# if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
 {	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"SHELL_CMD_DEBUGBOX_HELP"},
 //{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"}, // INT2FDBG as a program (Z:\DEBUG\INT2FDBG.COM) instead of shell command
-#endif
+# endif
 // Advanced commands specific to DOSBox-X
 //{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\BIN\ADDKEY.COM) instead of shell command
 {	"DX-CAPTURE",		1,		&DOS_Shell::CMD_DXCAPTURE,	"SHELL_CMD_DXCAPTURE_HELP"},
+#endif
 { nullptr, 0, nullptr, nullptr }
 };
 
