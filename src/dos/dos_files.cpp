@@ -929,6 +929,9 @@ bool DOS_FlushFile(uint16_t entry) {
 	return true;
 }
 
+#if defined(OSFREE)
+bool openfile_deny_non_z=true;
+#endif
 
 bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool fcb) {
 	// Creation of a device is the same as opening it
@@ -940,6 +943,16 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
 	DOS_PSP psp(dos.psp());
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+
+#if defined(OSFREE)
+	/* in OSFREE mode, only drive Z: is permitted */
+	if (drive != 25 && openfile_deny_non_z) {
+		LOG(LOG_FILES,LOG_NORMAL)("OSFREE policy: access denied to drive %c -> %s",drive+'A',fullname);
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+#endif
+
 	while (strlen(fullname)&&(*(fullname+strlen(fullname)-1)=='.'||*(fullname+strlen(fullname)-1)==' ')) *(fullname+strlen(fullname)-1)=0;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if(Network_IsNetworkResource(name))
@@ -987,10 +1000,6 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 	}
 }
 
-#if defined(OSFREE)
-bool openfile_deny_non_z=true;
-#endif
-
 bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	/* First check for devices */
 	if (flags>2) LOG(LOG_FILES,LOG_NORMAL)("Special file open command %X file %s",flags,name); // FIXME: Why? Is there something about special opens DOSBox doesn't handle properly?
@@ -1011,15 +1020,6 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;uint8_t i;
 	/* First check if the name is correct */
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
-
-#if defined(OSFREE)
-	/* in OSFREE mode, only drive Z: is permitted */
-	if (drive != 25 && openfile_deny_non_z) {
-		LOG(LOG_FILES,LOG_NORMAL)("OSFREE policy: access denied to drive %c -> %s",drive+'A',fullname);
-		DOS_SetError(DOSERR_ACCESS_DENIED);
-		return false;
-	}
-#endif
 
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if(Network_IsNetworkResource(name))
@@ -1051,6 +1051,15 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 		else
 			Files[handle] = new DOS_Device(*Devices[devnum]);
 	} else {
+#if defined(OSFREE)
+		/* in OSFREE mode, only drive Z: is permitted */
+		if (drive != 25 && openfile_deny_non_z) {
+			LOG(LOG_FILES,LOG_NORMAL)("OSFREE policy: access denied to drive %c -> %s",drive+'A',fullname);
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			return false;
+		}
+#endif
+
 		uint16_t olderror=dos.errorcode;
 		dos.errorcode=0;
 		exists=Drives[drive]->FileOpen(&Files[handle],fullname,flags) || Drives[drive]->FileOpen(&Files[handle],upcase(fullname),flags);
@@ -1137,6 +1146,16 @@ bool DOS_UnlinkFile(char const * const name) {
 		return false;
 	}
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+
+#if defined(OSFREE)
+	/* in OSFREE mode, only drive Z: is permitted */
+	if (drive != 25 && openfile_deny_non_z) {
+		LOG(LOG_FILES,LOG_NORMAL)("OSFREE policy: access denied to drive %c -> %s",drive+'A',fullname);
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+#endif
+
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if (Network_IsNetworkResource(name)) return Network_UnlinkFile(name);
 #endif
@@ -1255,6 +1274,15 @@ HANDLE DOS_CreateOpenFile(char const* const name)
 	uint8_t drive;
 	if (!DOS_MakeName(name, fullname, &drive))
 		return INVALID_HANDLE_VALUE;
+
+#if defined(OSFREE)
+	/* in OSFREE mode, only drive Z: is permitted */
+	if (drive != 25 && openfile_deny_non_z) {
+		LOG(LOG_FILES,LOG_NORMAL)("OSFREE policy: access denied to drive %c -> %s",drive+'A',fullname);
+		return INVALID_HANDLE_VALUE;
+	}
+#endif
+
 	return Drives[drive]->CreateOpenFile(fullname);
 }
 #endif
@@ -1264,6 +1292,16 @@ bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+
+#if defined(OSFREE)
+	/* in OSFREE mode, only drive Z: is permitted */
+	if (drive != 25 && openfile_deny_non_z) {
+		LOG(LOG_FILES,LOG_NORMAL)("OSFREE policy: access denied to drive %c -> %s",drive+'A',fullname);
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+#endif
+
 	if (strncmp(Drives[drive]->GetInfo(),"CDRom ",6)==0 || strncmp(Drives[drive]->GetInfo(),"isoDrive ",9)==0) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
