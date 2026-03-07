@@ -774,7 +774,7 @@ public:
 		xms_memmove_flatrealmode = section->Get_bool("xms memmove causes flat real mode");
 		xms_init_flatrealmode = section->Get_bool("xms init causes flat real mode");
 #else
-		/* OSFREE: MS-DOS is not supposed to be there, you do NOT get to control these options! */
+		/* OSFREE: MS-DOS is not supposed to be there, you do NOT get to control these options! That includes the ability to turn off XMS! */
 		xms_memmove_flatrealmode = true;
 		xms_init_flatrealmode = true;
 #endif

@@ -43,6 +43,7 @@
 
 uint16_t parallel_baseaddr[9] = {0x378,0x278,0x3bc,0,0,0,0,0,0};
 
+#if !defined(OSFREE)
 bool device_LPT::Read(uint8_t * data,uint16_t * size) {
     (void)data;//UNUSED
 	*size=0;
@@ -92,6 +93,7 @@ device_LPT::~device_LPT() {
 //	LOG_MSG("~device_LPT\n");
 	//LOG_MSG("del");
 }
+#endif
 
 static void Parallel_EventHandler(Bitu val) {
 	Bitu serclassid=val&0xf;
@@ -247,19 +249,23 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq) {
 }
 
 void CParallel::registerDOSDevice() {
+#if !defined(OSFREE)
 	if (mydosdevice == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("LPT%d: Registering DOS device",(int)port_nr+1);
 		mydosdevice = new device_LPT((uint8_t)port_nr, this);
 		DOS_AddDevice(mydosdevice);
 	}
+#endif
 }
 
 void CParallel::unregisterDOSDevice() {
+#if !defined(OSFREE)
 	if (mydosdevice != NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("LPT%d: Unregistering DOS device",(int)port_nr+1);
 		DOS_DelDevice(mydosdevice); // deletes the pointer for us!
 		mydosdevice=NULL;
 	}
+#endif
 }
 
 CParallel::~CParallel(void) {

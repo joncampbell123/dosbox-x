@@ -44,6 +44,7 @@
 
 #define LOG_SER(x) log_ser 
 
+#if !defined(OSFREE)
 bool device_COM::Read(uint8_t * data,uint16_t * size) {
 	// DTR + RTS on
 	sclass->Write_MCR(0x03);
@@ -99,6 +100,7 @@ device_COM::~device_COM() {
 	if (sclass != NULL && sclass->mydosdevice == this)
 		sclass->mydosdevice = NULL;
 }
+#endif
 
 // COM1 - COM9 objects
 CSerial * serialports[9] = {
@@ -1202,19 +1204,23 @@ bool CSerial::getBituSubstring(const char* name,Bitu* data, CommandLine* cmd) {
 }
 
 void CSerial::registerDOSDevice() {
+#if !defined(OSFREE)
 	if (mydosdevice == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("COM%d: Registering DOS device",(int)idnumber+1);
 		mydosdevice = new device_COM(this);
 		DOS_AddDevice(mydosdevice);
 	}
+#endif
 }
 
 void CSerial::unregisterDOSDevice() {
+#if !defined(OSFREE)
 	if (mydosdevice != NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("COM%d: Unregistering DOS device",(int)idnumber+1);
 		DOS_DelDevice(mydosdevice); // deletes the pointer for us!
 		mydosdevice=NULL;
 	}
+#endif
 }
 
 CSerial::~CSerial(void) {
