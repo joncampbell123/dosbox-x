@@ -1,9 +1,11 @@
 #define PACKAGE "dosbox-x"
 #define PACKAGE_BUGREPORT "https://github.com/joncampbell123/dosbox-x/issues"
 #define PACKAGE_NAME "dosbox-x"
-#define PACKAGE_STRING "dosbox-x 2026-03-06"
+#define PACKAGE_STRING "dosbox-x 2026.03.06"
 #define PACKAGE_TARNAME "dosbox-x"
 #define PACKAGE_URL "https://dosbox-x.com"
-#define PACKAGE_VERSION "2026-03-06"
-#define VERSION "2026-03-06"
+#define PACKAGE_VERSION "2026.03.06"
+#define VERSION "2026.03.06"
 #define COPYRIGHT_YEAR "2025"
+#define C_OSFREE 1
+#define OSFREE 1
