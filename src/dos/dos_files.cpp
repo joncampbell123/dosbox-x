@@ -1021,15 +1021,6 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	/* First check if the name is correct */
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
 
-#if defined(OSFREE)
-	/* in OSFREE mode, only drive Z: is permitted */
-	if (drive != 25 && openfile_deny_non_z) {
-		LOG(LOG_FILES,LOG_NORMAL)("OSFREE policy: access denied to drive %c -> %s",drive+'A',fullname);
-		DOS_SetError(DOSERR_ACCESS_DENIED);
-		return false;
-	}
-#endif
-
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if(Network_IsNetworkResource(name))
 		return Network_OpenFile(name,flags,entry);
@@ -1060,6 +1051,15 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 		else
 			Files[handle] = new DOS_Device(*Devices[devnum]);
 	} else {
+#if defined(OSFREE)
+		/* in OSFREE mode, only drive Z: is permitted */
+		if (drive != 25 && openfile_deny_non_z) {
+			LOG(LOG_FILES,LOG_NORMAL)("OSFREE policy: access denied to drive %c -> %s",drive+'A',fullname);
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			return false;
+		}
+#endif
+
 		uint16_t olderror=dos.errorcode;
 		dos.errorcode=0;
 		exists=Drives[drive]->FileOpen(&Files[handle],fullname,flags) || Drives[drive]->FileOpen(&Files[handle],upcase(fullname),flags);
