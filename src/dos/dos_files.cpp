@@ -987,6 +987,10 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 	}
 }
 
+#if defined(OSFREE)
+bool openfile_deny_non_z=true;
+#endif
+
 bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	/* First check for devices */
 	if (flags>2) LOG(LOG_FILES,LOG_NORMAL)("Special file open command %X file %s",flags,name); // FIXME: Why? Is there something about special opens DOSBox doesn't handle properly?
@@ -997,7 +1001,7 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	uint8_t devnum = DOS_FindDevice(name);
 	bool device = (devnum != DOS_DEVICES);
 	if(!device && DOS_GetFileAttr(name,&attr)) {
-	//DON'T ALLOW directories to be opened. (skip test if file is device).
+		//DON'T ALLOW directories to be opened. (skip test if file is device).
 		if((attr & DOS_ATTR_DIRECTORY) || (attr & DOS_ATTR_VOLUME)){
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
@@ -1007,6 +1011,16 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;uint8_t i;
 	/* First check if the name is correct */
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+
+#if defined(OSFREE)
+	/* in OSFREE mode, only drive Z: is permitted */
+	if (drive != 25 && openfile_deny_non_z) {
+		LOG(LOG_FILES,LOG_NORMAL)("OSFREE policy: access denied to drive %c -> %s",drive+'A',fullname);
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+#endif
+
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if(Network_IsNetworkResource(name))
 		return Network_OpenFile(name,flags,entry);
@@ -1032,19 +1046,19 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	}
 	bool exists=false;
 	if (device) {
-        if (Devices[devnum]->GetInformation() & EXT_DEVICE_BIT)
-            Files[handle] = new DOS_ExtDevice(*(DOS_ExtDevice*)Devices[devnum]);
-        else
-		    Files[handle]=new DOS_Device(*Devices[devnum]);
+		if (Devices[devnum]->GetInformation() & EXT_DEVICE_BIT)
+			Files[handle] = new DOS_ExtDevice(*(DOS_ExtDevice*)Devices[devnum]);
+		else
+			Files[handle] = new DOS_Device(*Devices[devnum]);
 	} else {
 		uint16_t olderror=dos.errorcode;
 		dos.errorcode=0;
-        exists=Drives[drive]->FileOpen(&Files[handle],fullname,flags) || Drives[drive]->FileOpen(&Files[handle],upcase(fullname),flags);
+		exists=Drives[drive]->FileOpen(&Files[handle],fullname,flags) || Drives[drive]->FileOpen(&Files[handle],upcase(fullname),flags);
 		if (exists) Files[handle]->SetDrive(drive);
 		else if (dos.errorcode==DOSERR_ACCESS_CODE_INVALID) return false;
 		dos.errorcode=olderror;
 	}
-	if (exists || device ) { 
+	if (exists || device) { 
 		Files[handle]->AddRef();
 		psp.SetFileHandle(*entry,handle);
 		Files[handle]->drive = drive;

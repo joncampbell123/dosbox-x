@@ -33,13 +33,6 @@ BatchFile::BatchFile(DOS_Shell * host,char const * const resolved_name,char cons
 	DOS_Canonicalize(resolved_name,totalname); // Get fullname including drive specification
 	cmd = new CommandLine(entered_name,cmd_line);
 	filename = totalname;
-
-	//Test if file is openable
-	if (!DOS_OpenFile(totalname,(DOS_NOT_INHERIT|OPEN_READ),&file_handle)) {
-		//TODO Come up with something better
-		E_Exit("SHELL:Can't open BatchFile %s",totalname);
-	}
-	DOS_CloseFile(file_handle);
 }
 
 BatchFile::~BatchFile() {
