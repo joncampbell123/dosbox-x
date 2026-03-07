@@ -2269,6 +2269,19 @@ void Init_RAM() {
         }
     }
 
+#if defined(OSFREE)
+    /* OSFREE: It must be possible to boot the guest OS, and that requires at least 32KB of RAM (128KB for PC-98).
+     *         Whether the OS can run in such little memory is another question, what matters is there is enough
+     *         RAM for the standard boot sector loading location to exist. */
+    /* FIXME: The boot process crashes with memsizekb=128 and machine=pc98, why? */
+    if (IS_PC98_ARCH) {
+        if (memsizekb < 128) memsizekb = 128; /* 1FC0:0000 = 128KB - 1024 */
+    }
+    else {
+        if (memsizekb < 32) memsizekb = 32; /* 0000:7C00 = 32KB - 1024 */
+    }
+#endif
+
     {
         uint32_t maxsz32 = 0xF8000000ul;
         uint64_t maxsz;
