@@ -3888,7 +3888,9 @@ class SBLASTER: public Module_base {
 		/* Data */
 		IO_ReadHandleObject ReadHandler[0x10];
 		IO_WriteHandleObject WriteHandler[0x10];
+#if !defined(OSFREE)
 		AutoexecObject autoexecline;
+#endif
 		MixerObject MixerChan;
 		OPL_Mode oplmode;
 		size_t ci = 0;
@@ -4478,10 +4480,13 @@ ASP>
 		}
 
 		void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
+#if !defined(OSFREE)
 			autoexecline.Uninstall();
+#endif
 		}
 
 		void DOS_Startup() {
+#if !defined(OSFREE)
 			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
 
 			if (sb[ci].emit_blaster_var && ci == 0) {
@@ -4509,6 +4514,7 @@ ASP>
 
 				autoexecline.Install(temp.str());
 			}
+#endif
 		}
 
 		~SBLASTER() {

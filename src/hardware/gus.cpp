@@ -2280,7 +2280,9 @@ class GUS:public Module_base{
 		//	IO_WriteHandleObject WriteHandler[12];
 		//	IO_ReadHandleObject ReadCS4231Handler[4];
 		//	IO_WriteHandleObject WriteCS4231Handler[4];
+#if !defined(OSFREE)
 		AutoexecObject autoexecline[3];
+#endif
 		MixerObject MixerChan;
 		bool gus_enable;
 	public:
@@ -2585,6 +2587,7 @@ class GUS:public Module_base{
 		}
 
 		void DOS_Startup() {
+#if !defined(OSFREE)
 			int portat = 0x200 + int(GUS_BASE);
 
 			if (!gus_enable) return;
@@ -2606,14 +2609,17 @@ class GUS:public Module_base{
 					<< "0,0,1,0" << ends; // FIXME What do these numbers mean?
 				autoexecline[2].Install(temp2.str());
 			}
+#endif
 		}
 
 		std::string ultradir;
 
 		void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
+#if !defined(OSFREE)
 			autoexecline[0].Uninstall();
 			autoexecline[1].Uninstall();
 			autoexecline[2].Uninstall();
+#endif
 		}
 
 		~GUS() {
