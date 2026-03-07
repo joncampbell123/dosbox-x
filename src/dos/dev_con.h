@@ -1621,9 +1621,14 @@ device_CON::device_CON() {
         ansi.installed=true;
     }
     else {
+#if !defined(OSFREE)
         /* Otherwise (including IBM systems), ANSI.SYS is not installed by default but can be added to CONFIG.SYS.
          * For compatibility with DOSBox SVN and other forks ANSI.SYS is installed by default. */
         ansi.installed=section->Get_bool("ansi.sys");
+#else
+        /* the alternate prompt to indicate lack of MS-DOS relies on ANSI codes, therefore, ignore the setting */
+        ansi.installed=true;
+#endif
     }
 
 	ansi.enabled=false;
