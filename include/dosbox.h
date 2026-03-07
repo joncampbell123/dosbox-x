@@ -20,12 +20,6 @@
 #ifndef DOSBOX_DOSBOX_H
 #define DOSBOX_DOSBOX_H
 
-/* allow for OS-free builds where the MS-DOS emulation is disabled and
- * you have to provide your own boot disks to run MS-DOS or whatever you like. */
-#if 1
-//# define OSFREE 1
-#endif
-
 #if !defined (WIN32)
 /* for mkdir_p, needed by emscripten */
 #include <sys/stat.h>
@@ -38,6 +32,12 @@
 
 #include "clockdomain.h"
 #include "config.h"
+
+/* allow for OS-free builds where the MS-DOS emulation is disabled and
+ * you have to provide your own boot disks to run MS-DOS or whatever you like. */
+#ifdef C_OSFREE
+# define OSFREE 1
+#endif
 
 #if defined(OS2) && defined(C_SDL2)
 #undef VERSION
