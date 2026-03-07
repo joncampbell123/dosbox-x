@@ -1004,8 +1004,10 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                     } else if (set_ver((char *)ver))
                         dos_ver_menu(false);
                 } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
+#if !defined(OSFREE)
                     EMS_DoShutDown();
                     EMS_Startup(NULL);
+#endif
                     update_dos_ems_menu();
                 } else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
                     enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");

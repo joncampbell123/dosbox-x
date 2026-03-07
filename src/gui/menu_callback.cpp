@@ -73,7 +73,9 @@ void SendKey(std::string key);
 void MAPPER_ReleaseAllKeys(void);
 void RENDER_Reset(void);
 void resetFontSize(void);
+#if !defined(OSFREE)
 void EMS_DoShutDown(void);
+#endif
 void DOSV_FillScreen(void);
 void CopyClipboard(int all);
 void res_init(void), change_output(int output);
@@ -840,9 +842,11 @@ bool dos_ems_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menu
     if (tmp.size()) {
         Section_prop * dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
         dos_section->HandleInputline(tmp.c_str());
+#if !defined(OSFREE)
         EMS_DoShutDown();
         void EMS_Startup(Section* sec);
         EMS_Startup(NULL);
+#endif
         update_dos_ems_menu();
     }
     return true;

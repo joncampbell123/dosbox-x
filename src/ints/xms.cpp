@@ -695,7 +695,9 @@ bool XMS_HMA_EXISTS() {
 	return XMS_IS_ACTIVE() && xms_hma_exists;
 }
 
+#if !defined(OSFREE)
 Bitu GetEMSType(const Section_prop* section);
+#endif
 void DOS_GetMemory_Choose();
 
 void ROMBIOS_FreeUnusedMinToLoc(Bitu phys);
@@ -891,7 +893,11 @@ public:
 
 		Bitu GetEMSPageFrameSegment(void);
 
+#if !defined(OSFREE)
 		bool ems_available = GetEMSType(section)>0;
+#else
+		static constexpr bool ems_available = false;
+#endif
 
 		/* 2017/12/24 I just noticed that the EMS page frame will conflict with UMB on standard configuration.
 		 * In IBM PC mode the EMS page frame is at E000:0000.
