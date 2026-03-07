@@ -986,10 +986,10 @@ void HostAppRun() {
 }
 #endif
 
-#define IAS_DEVICE_HANDLE 0x1a50
-#define MSKANJI_DEVICE_HANDLE 0x1a51
-#define IBMJP_DEVICE_HANDLE 0x1a52
 #if !defined(OSFREE)
+# define IAS_DEVICE_HANDLE 0x1a50
+# define MSKANJI_DEVICE_HANDLE 0x1a51
+# define IBMJP_DEVICE_HANDLE 0x1a52
 # define AVSDRV_DEVICE_HANDLE 0x1a53
 #endif
 
@@ -1904,11 +1904,12 @@ static Bitu DOS_21Handler(void) {
 		{
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
-#if defined(USE_TTF)
+#if !defined(OSFREE)
+# if defined(USE_TTF)
             if((IS_DOSV || ttf_dosv) && IS_DOS_JAPANESE) {
-#else
+# else
             if(IS_DOSV && IS_DOS_JAPANESE) {
-#endif
+# endif
                 char *name_start = name1;
                 if(name1[0] == '@' && name1[1] == ':') {
                     name_start += 2;
@@ -1929,11 +1930,11 @@ static Bitu DOS_21Handler(void) {
                             break;
                         }
                     }
-#if defined(USE_TTF)
+# if defined(USE_TTF)
                     if(!strncmp(name_start, "$IBMAFNT", 8) || (ttf_dosv && !strncmp(name_start, "$IBMADSP", 8))) {
-#else
+# else
                     if(!strncmp(name_start, "$IBMAFNT", 8)) {
-#endif
+# endif
                         ibmjp_handle = IBMJP_DEVICE_HANDLE;
                         reg_ax = IBMJP_DEVICE_HANDLE;
                         force_sfn = false;
@@ -1942,7 +1943,6 @@ static Bitu DOS_21Handler(void) {
                     }
                 }
             }
-#if !defined(OSFREE)
             if(IS_PC98_ARCH) {
                 if(!strncmp(name1, "AVSDRV$$", 8)) {
                     avsdrv_handle = AVSDRV_DEVICE_HANDLE;
