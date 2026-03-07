@@ -165,7 +165,9 @@ void pic_resetirq(REG8 irq) {
 #include "sound.h"
 #include "fmboard.h"
 
+#if !defined(OSFREE)
 static void avsdrv_check_size(SINT32 size);
+#endif
 
 // wrapper for fmtimer events
 void fmport_a(NEVENTITEM item);
@@ -225,9 +227,13 @@ static void pc98_mix_CallBack(Bitu len) {
     adpcm_getpcm(&adpcm3, (SINT32*)MixTemp, s);
 #endif	// defined(SUPPORT_PX)
 
+#if !defined(OSFREE)
     SINT32 start = pcm86.realbuf;
+#endif
     pcm86gen_getpcm(NULL, (SINT32*)MixTemp, s);
+#if !defined(OSFREE)
 	avsdrv_check_size(start - pcm86.realbuf);
+#endif
 
     pc98_mixer->AddSamples_s32(s, (int32_t*)MixTemp);
 }
@@ -554,6 +560,7 @@ extern "C" void pcm86io_setvol(unsigned char val);
 extern "C" void pcm86io_outpcm(unsigned char val);
 extern "C" void pcm86io_setpcm(unsigned char val);
 
+#if !defined(OSFREE)
 #define AVSDRV_PCB_SIZE		0x10
 #define AVSDRV_PCB_MASK		0x0f
 #define	AVSDRV_VOLUME_SIZE	4
@@ -576,9 +583,7 @@ static uint8_t avsdrv_mute;
 static uint8_t avsdrv_volume[AVSDRV_VOLUME_SIZE];
 static bool avsdrv_play;
 
-#if !defined(OSFREE)
 Bitu GetEMSPageFrameSegment(void);
-#endif
 
 Bitu PC98_AVSDRV_PCM_Handler(void)
 {
@@ -594,9 +599,7 @@ Bitu PC98_AVSDRV_PCM_Handler(void)
 		avsdrv_pcm = 0xa0;
 		avsdrv_freq = 0;
 		avsdrv_mute = 0;
-#if !defined(OSFREE)
 		avsdrv_ems_pageframe = GetEMSPageFrameSegment();
-#endif
 		break;
 	case 0x01:
 		call_name = "$INITFUNC";
@@ -795,7 +798,7 @@ static void avsdrv_check_size(SINT32 size)
 		pcb_data[pcb_read].use_size += size;
 
 		// POLICENAUTS
-        // Dealing with the interruption of explosion sounds, etc.
+		// Dealing with the interruption of explosion sounds, etc.
 		if(pcb_data[pcb_read].use_size > (pcb_data[pcb_read].pos - pcb_data[pcb_read].data_off) / 2) {
 		    uint8_t data[2];
 		    uint16_t step = (avsdrv_pcm & 0x80) ? 2 : 1;
@@ -859,4 +862,5 @@ static void avsdrv_check_size(SINT32 size)
 		}
 	}
 }
+#endif
 

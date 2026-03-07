@@ -989,7 +989,9 @@ void HostAppRun() {
 #define IAS_DEVICE_HANDLE 0x1a50
 #define MSKANJI_DEVICE_HANDLE 0x1a51
 #define IBMJP_DEVICE_HANDLE 0x1a52
-#define AVSDRV_DEVICE_HANDLE 0x1a53
+#if !defined(OSFREE)
+# define AVSDRV_DEVICE_HANDLE 0x1a53
+#endif
 
 /* called by shell to flush keyboard buffer right before executing the program to avoid
  * having the Enter key in the buffer to confuse programs that act immediately on keyboard input. */
@@ -1940,6 +1942,7 @@ static Bitu DOS_21Handler(void) {
                     }
                 }
             }
+#if !defined(OSFREE)
             if(IS_PC98_ARCH) {
                 if(!strncmp(name1, "AVSDRV$$", 8)) {
                     avsdrv_handle = AVSDRV_DEVICE_HANDLE;
@@ -1949,6 +1952,7 @@ static Bitu DOS_21Handler(void) {
                     break;
                 }
             }
+#endif
 			uint8_t oldal=reg_al;
 			force_sfn = true;
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
