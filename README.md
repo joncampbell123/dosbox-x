@@ -43,7 +43,7 @@ Brought to you by: joncampbell123 (Jonathan Campbell)
 
 ## Legal notice
 
-If you reside in a jurisdiction that enforces OS-level age verification, including the state of California, you are not permitted to use any product or source code made from the main (master) branch of this project, you must instead use the product or source code made from the main-osfree branch.
+If you reside in a jurisdiction that enforces OS-level age verification, including the state of California, you are not permitted to use any product made from or any source code from the main (master) branch of this project. You must instead use the product made from or source code from the main-osfree branch, which removes all built-in MS-DOS operating system emulation. main-osfree builds require a bootdisk or bootable hard disk image to run MS-DOS.
 
 ## Notable features in DOSBox-X
 
