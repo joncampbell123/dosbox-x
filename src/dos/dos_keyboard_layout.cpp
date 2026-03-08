@@ -932,6 +932,17 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 
 	if (codepage_id==dos.loaded_codepage) return KEYB_NOERROR;
 
+	/* Hold on a second: Does NEC PC-98 MS-DOS even have KEYB.COM and/or CPI/CPX codepage files?
+	 * The on-screen console is rendered using a font ROM, that later systems allow at least some
+	 * number of custom font RAM slots, so what would KEYB.COM even do on such a system?
+	 *
+	 * 2026/03/08: Why are we loading EGA.CPI for PC-98 mode when there is no purpose to it?
+	 *             Fail any attempt to load in that case. */
+	if (IS_PC98_ARCH) {
+		LOG(LOG_DOSMISC,LOG_WARN)("Not loading %s, codepage files are not supported in PC-98 mode",cp_filename);
+		return KEYB_LOADERROR;
+	}
+
 	if (!strcmp(cp_filename,"auto")) {
 		// select matching .cpi-file for specified codepage
 		switch (codepage_id) {
