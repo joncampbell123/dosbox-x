@@ -980,6 +980,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 
 	char nbuf[512];
 	sprintf(nbuf, "%s", cp_filename);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("Loading codepage file %s",cp_filename);
 	FILE* tempfile=OpenDosboxFile(nbuf);
 	if (tempfile==NULL) {
 		size_t strsz=strlen(nbuf);
@@ -1150,7 +1151,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 
 		uint16_t seg=0;
 		uint16_t size=0x1500;
-        if (!DOS_AllocateMemory(&seg, &size)) E_Exit("Not enough free low memory to unpack data");
+		if (!DOS_AllocateMemory(&seg, &size)) E_Exit("Not enough free low memory to unpack data");
 		MEM_BlockWrite(((unsigned int)seg<<4u)+0x100u,cpi_buf,size_of_cpxdata);
 
 		// setup segments
