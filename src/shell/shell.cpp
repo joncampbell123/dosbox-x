@@ -921,7 +921,7 @@ void DOS_Shell::Prepare(void) {
 		}
 #endif
 		const char* layoutname = DOS_GetLoadedLayout();
-		if(layoutname == NULL) {
+		if(layoutname == NULL && !IS_PC98_ARCH) {/*Keyboard layouts and CPI/CPX files have no meaning in PC-98 mode*/
 			int32_t cp = dos.loaded_codepage;
 			Bitu keyb_error = DOS_LoadKeyboardLayout("us", 437, "auto");
 			toSetCodePage(NULL, cp, -1);

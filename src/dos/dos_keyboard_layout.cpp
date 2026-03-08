@@ -1449,6 +1449,13 @@ bool DOS_LayoutKey(Bitu key, uint8_t flags1, uint8_t flags2, uint8_t flags3) {
 }
 
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile) {
+	/* keyboard layouts have no meaning in PC-98 mode */
+	if (IS_PC98_ARCH) {
+		LOG(LOG_DOSMISC,LOG_DEBUG)("Keyboard layouts have no meaning in PC-98 mode, ignoring. Attempted layout %s code page %u file %s",layoutname,codepage,codepagefile);
+		return KEYB_NOERROR;
+	}
+
+	LOG(LOG_DOSMISC,LOG_DEBUG)("Loading keyboard layout %s code page %u file %s",layoutname,codepage,codepagefile);
 	keyboard_layout * temp_layout=new keyboard_layout();
 	// try to read the layout for the specified codepage
 	Bitu kerrcode=temp_layout->read_keyboard_file(layoutname, codepage);
@@ -1463,8 +1470,8 @@ Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const cha
 		return kerrcode;
 	}
 	// Everything went fine, switch to new layout
-    delete loaded_layout;
-    loaded_layout=temp_layout;
+	delete loaded_layout;
+	loaded_layout=temp_layout;
 	return KEYB_NOERROR;
 }
 
