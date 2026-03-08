@@ -3574,6 +3574,7 @@ extern bool dbg_zero_on_dos_allocmem;
 extern bool addovl;
 
 bool set_ver(char *s) {
+#if !defined(OSFREE)
 	s=trim(s);
 	int major=isdigit(*s)?strtoul(s,(char**)(&s),10):-1;
 	if (major>=0&&major<100) {
@@ -3594,6 +3595,10 @@ bool set_ver(char *s) {
 		}
 	}
 	return false;
+#else
+	/* OSFREE: MS-DOS is not supposed to be here, you do not get to control this! */
+	return true;
+#endif
 }
 
 #define NUMBER_ANSI_DATA 10
@@ -4070,6 +4075,7 @@ public:
 
 		dos.version.major = 5;
 		dos.version.minor = 0;
+#if !defined(OSFREE)
 		const char *ver = section->Get_string("ver");
 		if (*ver) {
 			if (set_ver((char *)ver)) {
@@ -4085,6 +4091,7 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
+#endif
 
 		::disk_data_rate = section->Get_int("hard drive data rate limit");
 		::floppy_data_rate = section->Get_int("floppy drive data rate limit");
@@ -4102,6 +4109,7 @@ public:
 
 		maxfcb=100;
 		DOS_FILES=200;
+#if !defined(OSFREE)
 		Section_prop *config_section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (config_section != NULL && !control->opt_noconfig && !control->opt_securemode && !control->SecureMode()) {
 			DOS_FILES = (unsigned int)config_section->Get_int("files");
@@ -4140,12 +4148,13 @@ public:
 				dos.breakcheck=true;
 			else if (!strcasecmp(dosbreak, "off"))
 				dos.breakcheck=false;
-#if defined(WIN32)
+# if defined(WIN32)
 			const char *numlock = config_section->Get_string("numlock");
 			if ((!strcasecmp(numlock, "off")&&startup_state_numlock) || (!strcasecmp(numlock, "on")&&!startup_state_numlock))
 				SetNumLock();
-#endif
+# endif
 		}
+#endif
 		LOG(LOG_MISC,LOG_DEBUG)("files=%u fcbs=%u",(unsigned int)DOS_FILES,(unsigned int)maxfcb);
 		char *r;
 #if defined(WIN32)
@@ -4159,8 +4168,11 @@ public:
 		}
 #endif
 
+#if !defined(OSFREE)
 		dos_sda_size = section->Get_int("dos sda size");
+#endif
 		dos_break_int3 = section->Get_bool("break on int3");
+#if !defined(OSFREE)
 		freed_mcb_allocate_on_resize = section->Get_bool("resized free memory block becomes allocated");
 		shell_keyboard_flush = section->Get_bool("command shell flush keyboard buffer");
 		enable_network_redirector = section->Get_bool("network redirector");
@@ -4180,9 +4192,7 @@ public:
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
-#if !defined(OSFREE)
 		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
-#endif
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
@@ -4268,9 +4278,11 @@ public:
 			}
 			if (file) fclose(file);
 		}
+#endif
 		if (dos_initial_hma_free > 0x10000)
 			dos_initial_hma_free = 0x10000;
 
+#if !defined(OSFREE)
 		std::string cpmcompat = section->Get_string("cpm compatibility mode");
 
 		if (cpmcompat == "")
@@ -4286,6 +4298,9 @@ public:
 			cpm_compat_mode = CPM_COMPAT_MSDOS5; /* MS-DOS 5.x is default */
 		else
 			cpm_compat_mode = CPM_COMPAT_OFF;
+#else
+		cpm_compat_mode = CPM_COMPAT_OFF;
+#endif
 
 		/* If memsize < 16KB then the only way DOS can work properly is to allocate in the UMB private area */
 		if (MEM_ConventionalPages() < 4) {
@@ -4308,18 +4323,20 @@ public:
 		else
 			DOS_SDA_SEG_SIZE = (dos_sda_size + 0xF) & (~0xF); /* round up to paragraph */
 
+#if !defined(OSFREE)
 		/* msdos 2.x and msdos 5.x modes, if HMA is involved, require us to take the first 256 bytes of HMA
 		 * in order for "F01D:FEF0" to work properly whether or not A20 is enabled. Our direct mode doesn't
 		 * jump through that address, and therefore doesn't need it. */
 		if (dos_in_hma &&
-				cpm_compat_mode != CPM_COMPAT_OFF &&
-				cpm_compat_mode != CPM_COMPAT_DIRECT) {
+			cpm_compat_mode != CPM_COMPAT_OFF &&
+			cpm_compat_mode != CPM_COMPAT_DIRECT) {
 			LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: CP/M compatibility method with DOS in HMA requires mirror of entry point in HMA.");
 			if (dos_initial_hma_free > 0xFF00) {
 				dos_initial_hma_free = 0xFF00;
 				LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: CP/M compatibility method requires reduction of HMA free space to accommodate.");
 			}
 		}
+#endif
 
 		if ((int)MAXENV < 0) MAXENV = 65535;
 		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = 1024;
@@ -4483,6 +4500,7 @@ public:
 		//	pushf
 		//	... the rest is like int 21
 
+#if !defined(OSFREE)
 		if (IS_PC98_ARCH) {
 			/* Any interrupt vector pointing to the INT stub in the BIOS must be rewritten to point to a JMP to the stub
 			 * residing in the DOS segment (60h) because some PC-98 resident drivers use segment 60h as a check for
@@ -4505,15 +4523,18 @@ public:
 					mem_writed(i*4,vecp);
 			}
 		}
+#endif
 
+#if !defined(OSFREE)
 		/* NTS: HMA support requires XMS. EMS support may switch on A20 if VCPI emulation requires the odd megabyte */
 		if ((!dos_in_hma || !section->Get_bool("xms")) && (MEM_A20_Enabled() || strcmp(section->Get_string("ems"),"false") != 0) &&
-				cpm_compat_mode != CPM_COMPAT_OFF && cpm_compat_mode != CPM_COMPAT_DIRECT) {
+			cpm_compat_mode != CPM_COMPAT_OFF && cpm_compat_mode != CPM_COMPAT_DIRECT) {
 			/* hold on, only if more than 1MB of RAM and memory access permits it */
 			if (MEM_TotalPages() > 0x100 && MEM_PageMask() > 0xff/*more than 20-bit decoding*/) {
 				LOG(LOG_DOSMISC,LOG_WARN)("DOS not in HMA or XMS is disabled. This may break programs using the CP/M compatibility call method if the A20 gate is switched on.");
 			}
 		}
+#endif
 
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
@@ -4655,36 +4676,47 @@ public:
 			}
 		}
 
+#if !defined(OSFREE)
 		const char *keepstr = section->Get_string("keep private area on boot");
 		if (!strcasecmp(keepstr, "true")||!strcasecmp(keepstr, "1")) keep_private_area_on_boot = 1;
 		else if (!strcasecmp(keepstr, "false")||!strcasecmp(keepstr, "0")) keep_private_area_on_boot = 0;
 		else keep_private_area_on_boot = addovl;
 		dos.direct_output=false;
 		dos.internal_output=false;
+#endif
 
+#if !defined(OSFREE)
 		std::string fat32setverstr = section->Get_string("fat32setversion");
 		if (fat32setverstr=="auto") fat32setver=1;
 		else if (fat32setverstr=="manual") fat32setver=0;
 		else fat32setver=-1;
+#endif
 
+#if !defined(OSFREE)
 		std::string lfn = section->Get_string("lfn");
 		if (lfn=="true"||lfn=="1") enablelfn=1;
 		else if (lfn=="false"||lfn=="0") enablelfn=0;
 		else if (lfn=="autostart") enablelfn=-2;
 		else enablelfn=-1;
+#endif
 
+#if !defined(OSFREE)
 		force_conversion=true;
 		mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).enable(true).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
 		force_conversion=false;
+#endif
 
+#if !defined(OSFREE)
 		force_conversion=true;
 		dos_ver_menu(true);
 		mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
 		update_dos_ems_menu();
 		force_conversion=false;
+#endif
 
+#if !defined(OSFREE)
 		/* settings */
 		if (first_run) {
 			const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
@@ -4696,6 +4728,8 @@ public:
 			winautorun=startcmd;
 			first_run=false;
 		}
+#endif
+
 		force_conversion=true;
 #if !defined(HX_DOS)
 		mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);

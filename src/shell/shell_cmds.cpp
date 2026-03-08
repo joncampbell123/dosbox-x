@@ -119,9 +119,7 @@ SHELL_Cmd cmd_list[]={
 {	"TIME",			0,		&DOS_Shell::CMD_TIME,		"SHELL_CMD_TIME_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 {	"TYPE",			0,		&DOS_Shell::CMD_TYPE,		"SHELL_CMD_TYPE_HELP"},
-#endif
 {	"VER",			0,		&DOS_Shell::CMD_VER,		"SHELL_CMD_VER_HELP"},
-#if !defined(OSFREE)
 {	"VERIFY",		1,		&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
 {	"VOL",			0,		&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
 #endif
@@ -3846,6 +3844,7 @@ void DOS_Shell::CMD_VERIFY(char * args) {
 }
 #endif
 
+#if !defined(OSFREE)
 void dos_ver_menu(bool start);
 bool set_ver(char *s);
 void DOS_Shell::CMD_VER(char *args) {
@@ -3888,6 +3887,7 @@ void DOS_Shell::CMD_VER(char *args) {
 		if (optR) WriteOut("DOSBox-X Git commit %s, built on %s\nPlatform: %s %d-bit", GIT_COMMIT_HASH, UPDATED_STR, OS_PLATFORM_LONG, OS_BIT_INT);
 	}
 }
+#endif
 
 // OSFREE NTS: Even though we remove the command from the shell, the DIR command needs this to exist
 void DOS_Shell::CMD_VOL(char *args){
