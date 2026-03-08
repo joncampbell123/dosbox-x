@@ -936,41 +936,41 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 		// select matching .cpi-file for specified codepage
 		switch (codepage_id) {
 			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
-						sprintf(cp_filename, "EGA.CPI"); break;
+				sprintf(cp_filename, "EGA.CPI"); break;
 			case 775:	case 859:	case 1116:	case 1117:	case 1118:	case 1119:
-						sprintf(cp_filename, "EGA2.CPI"); break;
+				sprintf(cp_filename, "EGA2.CPI"); break;
 			case 771:	case 772:	case 808:	case 855:	case 866:	case 872:
-						sprintf(cp_filename, "EGA3.CPI"); break;
+				sprintf(cp_filename, "EGA3.CPI"); break;
 			case 848:	case 849:	case 1125:	case 1131:	case 3012:	case 30010:	case 61282:
-						sprintf(cp_filename, "EGA4.CPI"); break;
+				sprintf(cp_filename, "EGA4.CPI"); break;
 			case 113:	case 737:	case 851:	case 868:	case 869:
-						sprintf(cp_filename, "EGA5.CPI"); break;
+				sprintf(cp_filename, "EGA5.CPI"); break;
 			case 899:	case 30008:	case 58210:	case 59829:	case 60258:	case 60853:
-						sprintf(cp_filename, "EGA6.CPI"); break;
+				sprintf(cp_filename, "EGA6.CPI"); break;
 			case 30011:	case 30013:	case 30014:	case 30017:	case 30018:	case 30019:
-						sprintf(cp_filename, "EGA7.CPI"); break;
+				sprintf(cp_filename, "EGA7.CPI"); break;
 			case 770:	case 773:	case 774:	case 777:	case 778:
-						sprintf(cp_filename, "EGA8.CPI"); break;
+				sprintf(cp_filename, "EGA8.CPI"); break;
 			case 860:	case 861:	case 863:	case 865:	case 867:
-						sprintf(cp_filename, "EGA9.CPI"); break;
+				sprintf(cp_filename, "EGA9.CPI"); break;
 			case 667:	case 668:	case 790:	case 991:	case 3845:	case 57781:
-						sprintf(cp_filename, "EGA10.CPI"); break;
+				sprintf(cp_filename, "EGA10.CPI"); break;
 			case 30000:	case 30001:	case 30004:	case 30007:	case 30009:
-						sprintf(cp_filename, "EGA11.CPI"); break;
+				sprintf(cp_filename, "EGA11.CPI"); break;
 			case 30003:	case 30029:	case 30030:	case 58335:
-						sprintf(cp_filename, "EGA12.CPI"); break;
+				sprintf(cp_filename, "EGA12.CPI"); break;
 			case 895:	case 30002:	case 58152:	case 59234:	case 62306:
-						sprintf(cp_filename, "EGA13.CPI"); break;
+				sprintf(cp_filename, "EGA13.CPI"); break;
 			case 30006:	case 30012:	case 30015:	case 30016:	case 30020:	case 30021:
-						sprintf(cp_filename, "EGA14.CPI"); break;
+				sprintf(cp_filename, "EGA14.CPI"); break;
 			case 30023:	case 30024:	case 30025:	case 30026:	case 30027:	case 30028:
-						sprintf(cp_filename, "EGA15.CPI"); break;
+				sprintf(cp_filename, "EGA15.CPI"); break;
 			case 3021:	case 30005:	case 30022:	case 30031:	case 30032:
-						sprintf(cp_filename, "EGA16.CPI"); break;
+				sprintf(cp_filename, "EGA16.CPI"); break;
 			case 862:	case 864:	case 30034:	case 30033:	case 30039:	case 30040:
-						sprintf(cp_filename, "EGA17.CPI"); break;
+				sprintf(cp_filename, "EGA17.CPI"); break;
 			case 856:	case 3846:	case 3848:
-						sprintf(cp_filename, "EGA18.CPI"); break;
+				sprintf(cp_filename, "EGA18.CPI"); break;
 			default:
 				LOG_MSG("No matching cpi file for codepage %i",codepage_id);
 				return KEYB_INVALIDCPFILE;
@@ -1006,8 +1006,8 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 	if (tempfile==NULL) {
 		// check if built-in codepage is available
 		// reference: https://gitlab.com/FreeDOS/base/cpidos/-/blob/master/DOC/CPIDOS/CODEPAGE.TXT
-        upxfound = true;
-        switch (codepage_id) {
+		upxfound = true;
+		switch (codepage_id) {
 			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
 				cpi_buf_size = get_builtin_codepage(bfb_EGA_CPX);
 				break;
@@ -1060,16 +1060,16 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 				cpi_buf_size = get_builtin_codepage(bfb_EGA17_CPX);
 				break;
 			case 856:	case 3846:	case 3848:
-                cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPI);
-                upxfound = false; // EGA18.CPI is not compressed
-                break;
+				cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPI);
+				upxfound = false; // EGA18.CPI is not compressed
+				break;
 			default: 
 				return KEYB_INVALIDCPFILE;
 		}
 		if(upxfound){
-		    found_at_pos=0x29;
-		    size_of_cpxdata=cpi_buf_size;
-        }
+			found_at_pos=0x29;
+			size_of_cpxdata=cpi_buf_size;
+		}
 	} else {
 		uint32_t dr=(uint32_t)fread(cpi_buf, sizeof(uint8_t), 5, tempfile);
 		// check if file is valid
@@ -1079,45 +1079,45 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 		}
 		// check if non-compressed cpi file
 		if ((cpi_buf[0]!=0xff) || (cpi_buf[1]!=0x46) || (cpi_buf[2]!=0x4f) || 
-			(cpi_buf[3]!=0x4e) || (cpi_buf[4]!=0x54)) {
+				(cpi_buf[3]!=0x4e) || (cpi_buf[4]!=0x54)) {
 			// check if dr-dos custom cpi file
 			if ((cpi_buf[0]==0x7f) && (cpi_buf[1]!=0x44) && (cpi_buf[2]!=0x52) && 
-				(cpi_buf[3]!=0x46) && (cpi_buf[4]!=0x5f)) {
+					(cpi_buf[3]!=0x46) && (cpi_buf[4]!=0x5f)) {
 				LOG(LOG_BIOS,LOG_ERROR)("Codepage file %s has unsupported DR-DOS format",cp_filename);
 				return KEYB_INVALIDCPFILE;
 			}
 			// check if compressed cpi file
 			uint8_t next_byte=0;
 			for (Bitu i=0; i<100; i++) {
-                size_t readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
-                if (readResult != 1) {
-                    LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
-                }
-                found_at_pos++;
-                while (next_byte == 0x55) {
-                    readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
-                    if (readResult != 1) {
-                        LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
-                    }
-                    found_at_pos++;
-                    if (next_byte == 0x50) {
-                        readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
-                        if (readResult != 1) {
-                            LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
-                        }
-                        found_at_pos++;
-                        if (next_byte == 0x58) {
-                            readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
-                            if (readResult != 1) {
-                                LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
-                            }
-                            found_at_pos++;
-                            if (next_byte == 0x21) {
-                                // read version ID
-                                readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
-                                if (readResult != 1) {
-                                    LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
-                                }
+				size_t readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
+				if (readResult != 1) {
+					LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+				}
+				found_at_pos++;
+				while (next_byte == 0x55) {
+					readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
+					if (readResult != 1) {
+						LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+					}
+					found_at_pos++;
+					if (next_byte == 0x50) {
+						readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
+						if (readResult != 1) {
+							LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+						}
+						found_at_pos++;
+						if (next_byte == 0x58) {
+							readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
+							if (readResult != 1) {
+								LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+							}
+							found_at_pos++;
+							if (next_byte == 0x21) {
+								// read version ID
+								readResult = fread(&next_byte, sizeof(uint8_t), 1, tempfile);
+								if (readResult != 1) {
+									LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+								}
 								found_at_pos++;
 								upxfound=true;
 								break;
@@ -1228,7 +1228,6 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 		}
 	}
 
-
 	start_pos=host_readd(&cpi_buf[0x13]);
 	if (start_pos >= 0xFFFF) { // Without this check, invalid values can *CRASH* this emulator with a segfault
 		LOG(LOG_DOSMISC,LOG_WARN)("CPI/CPX start_pos out of range");
@@ -1255,7 +1254,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 
 			uint16_t number_of_fonts;//,font_data_length;
 			number_of_fonts=host_readw(&cpi_buf[font_data_header_pt+0x02]);
-//			font_data_length=host_readw(&cpi_buf[font_data_header_pt+0x04]);
+			//			font_data_length=host_readw(&cpi_buf[font_data_header_pt+0x04]);
 
 			bool font_changed=false;
 			uint32_t font_data_start=font_data_header_pt+0x06;
@@ -1266,47 +1265,47 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 				font_data_start+=6;
 				if (font_height==0x10) {
 					// 16x8 font, IF supported by the video card
-                    if (int10.rom.font_16 != 0) {
-                        PhysPt font16pt=Real2Phys(int10.rom.font_16);
-                        for (uint16_t i=0;i<256*16;i++) {
-                            int10_font_16_init[i]=eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpi_buf[font_data_start+i];
-                            phys_writeb(font16pt+i,int10_font_16_init[i]);
-                        }
-                        // terminate alternate list to prevent loading
-                        phys_writeb(Real2Phys(int10.rom.font_16_alternate),0);
-                        font_changed=true;
-                        font_16_init=true;
-                    }
+					if (int10.rom.font_16 != 0) {
+						PhysPt font16pt=Real2Phys(int10.rom.font_16);
+						for (uint16_t i=0;i<256*16;i++) {
+							int10_font_16_init[i]=eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpi_buf[font_data_start+i];
+							phys_writeb(font16pt+i,int10_font_16_init[i]);
+						}
+						// terminate alternate list to prevent loading
+						phys_writeb(Real2Phys(int10.rom.font_16_alternate),0);
+						font_changed=true;
+						font_16_init=true;
+					}
 				} else if (font_height==0x0e) {
 					// 14x8 font, IF supported by the video card
-                    if (int10.rom.font_14 != 0) {
-                        PhysPt font14pt=Real2Phys(int10.rom.font_14);
-                        for (uint16_t i=0;i<256*14;i++) {
-                            int10_font_14_init[i]=eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpi_buf[font_data_start+i];
-                            phys_writeb(font14pt+i,int10_font_14_init[i]);
-                        }
-                        // terminate alternate list to prevent loading
-                        phys_writeb(Real2Phys(int10.rom.font_14_alternate),0);
-                        font_changed=true;
-                        font_14_init=true;
-                    }
+					if (int10.rom.font_14 != 0) {
+						PhysPt font14pt=Real2Phys(int10.rom.font_14);
+						for (uint16_t i=0;i<256*14;i++) {
+							int10_font_14_init[i]=eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpi_buf[font_data_start+i];
+							phys_writeb(font14pt+i,int10_font_14_init[i]);
+						}
+						// terminate alternate list to prevent loading
+						phys_writeb(Real2Phys(int10.rom.font_14_alternate),0);
+						font_changed=true;
+						font_14_init=true;
+					}
 				} else if (font_height==0x08) {
-                    // 8x8 fonts. All video cards support it
-                    if (int10.rom.font_8_first != 0) {
-                        PhysPt font8pt=Real2Phys(int10.rom.font_8_first);
-                        for (uint16_t i=0;i<128*8;i++) {
-                            phys_writeb(font8pt+i,eurAscii>32&&i/8==eurAscii?euro_08[i%8]:cpi_buf[font_data_start+i]);
-                        }
-                        font_changed=true;
-                    }
-                    if (int10.rom.font_8_second != 0) {
-                        PhysPt font8pt=Real2Phys(int10.rom.font_8_second);
-                        for (uint16_t i=0;i<128*8;i++) {
-                            phys_writeb(font8pt+i,eurAscii>127&&(i+128)/8==eurAscii?euro_08[i%8]:cpi_buf[font_data_start+i+128*8]);
-                        }
-                        font_changed=true;
-                    }
-                }
+					// 8x8 fonts. All video cards support it
+					if (int10.rom.font_8_first != 0) {
+						PhysPt font8pt=Real2Phys(int10.rom.font_8_first);
+						for (uint16_t i=0;i<128*8;i++) {
+							phys_writeb(font8pt+i,eurAscii>32&&i/8==eurAscii?euro_08[i%8]:cpi_buf[font_data_start+i]);
+						}
+						font_changed=true;
+					}
+					if (int10.rom.font_8_second != 0) {
+						PhysPt font8pt=Real2Phys(int10.rom.font_8_second);
+						for (uint16_t i=0;i<128*8;i++) {
+							phys_writeb(font8pt+i,eurAscii>127&&(i+128)/8==eurAscii?euro_08[i%8]:cpi_buf[font_data_start+i+128*8]);
+						}
+						font_changed=true;
+					}
+				}
 				font_data_start+=font_height*256u;
 			}
 
@@ -1315,9 +1314,9 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 			// set codepage entries
 			dos.loaded_codepage=(uint16_t)(codepage_id&0xffff);
 #if defined(USE_TTF)
-            if (TTF_using()) setTTFCodePage(); else
+			if (TTF_using()) setTTFCodePage(); else
 #endif
-            DOSBox_SetSysMenu();
+				DOSBox_SetSysMenu();
 
 			// update font if necessary (EGA/VGA/SVGA only)
 			if (font_changed && (CurMode->type==M_TEXT) && (IS_EGAVGA_ARCH)) {
@@ -1325,8 +1324,8 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 			}
 			INT10_SetupRomMemoryChecksum();
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
-                UpdateSDLDrawTexture();
+			if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+				UpdateSDLDrawTexture();
 #endif
 
 			return KEYB_NOERROR;
