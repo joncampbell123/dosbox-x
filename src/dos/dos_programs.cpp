@@ -7413,6 +7413,9 @@ void KEYB::Run(void) {
                     WriteOut(MSG_Get("PROGRAM_KEYB_INVCPFILE"),layout_id);
                     WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
                     break;
+                case KEYB_LOADERROR:
+                    WriteOut("Layout load error\n");
+                    break;
                 default:
                     LOG(LOG_DOSMISC,LOG_ERROR)("KEYB:Invalid returncode %x",(int)keyb_error);
                     break;
