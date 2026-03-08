@@ -1150,8 +1150,9 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 		// how much is available?
 		uint16_t seg=0;
 		uint16_t size=DOS_GetMaximumFreeSize(0xA000/*whatever is available*/);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("CPI/CPX: Maximum memory available: %lu bytes",(unsigned long)size << 4ul);
 
-		if (((size<<4ul)+0x4000) >= size_of_cpxdata) {
+		if ((size<<4ul) >= (size_of_cpxdata+0x1000/*4K stack*/)) {
 			found_at_pos+=19;
 			// prepare for direct decompression
 			cpi_buf[found_at_pos]=0xcb;
