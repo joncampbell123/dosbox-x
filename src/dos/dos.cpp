@@ -239,7 +239,11 @@ uint16_t DOS_CDS_SEG=0x108;
 uint16_t DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
 uint16_t minimum_mcb_segment=0x70;
 uint16_t minimum_mcb_free=0x70;
+#if !defined(OSFREE)
 uint16_t minimum_dos_initial_private_segment=0x70;
+#else
+uint16_t minimum_dos_initial_private_segment=0;
+#endif
 
 uint16_t DOS_PRIVATE_SEGMENT=0;//0xc800;
 uint16_t DOS_PRIVATE_SEGMENT_END=0;//0xd000;
