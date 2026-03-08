@@ -582,6 +582,7 @@ extern bool dos_a20_disable_on_exec;
 static Bitu DOS_21Handler(void);
 void XMS_DOS_LocalA20DisableIfNotEnabled(void);
 void XMS_DOS_LocalA20DisableIfNotEnabled_XMSCALL(void);
+#if !defined(OSFREE)
 void DOS_Int21_7139(char *name1, const char *name2);
 void DOS_Int21_713a(char *name1, const char *name2);
 void DOS_Int21_713b(char *name1, const char *name2);
@@ -599,6 +600,7 @@ void DOS_Int21_71a6(const char *name1, const char *name2);
 void DOS_Int21_71a7(const char *name1, const char *name2);
 void DOS_Int21_71a8(char* name1, const char* name2);
 void DOS_Int21_71aa(char* name1, const char* name2);
+#endif
 Bitu DEBUG_EnableDebugger(void);
 void runMount(const char *str);
 bool Network_IsNetworkResource(const char * filename);
@@ -2955,207 +2957,209 @@ static Bitu DOS_21Handler(void) {
             LOG(LOG_DOSMISC, LOG_ERROR)("DOS:6F ROM functions not implemented");
             goto default_fallthrough;
         case 0x71:                  /* Unknown probably 4dos detection */
-            LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:MS-DOS 7+ long file name support call %2X",reg_al);
-            if (!uselfn) {
-                    reg_ax=0x7100;
-                    CALLBACK_SCF(true); //Check this! What needs this ? See default case
-                    break;
-            }
-            switch(reg_al)          {
-                    case 0x39:              /* LFN MKDIR */
-							DOS_Int21_7139(name1, name2);
-                            break;
-                    case 0x3a:              /* LFN RMDIR */
-							DOS_Int21_713a(name1, name2);
-                            break;
-                    case 0x3b:              /* LFN CHDIR */
-							DOS_Int21_713b(name1, name2);
-                            break;
-                    case 0x41:              /* LFN UNLINK */
-							DOS_Int21_7141(name1, name2);
-                            break;
-                    case 0x43:              /* LFN ATTR */
-							DOS_Int21_7143(name1, name2);
-                            break;
-                    case 0x47:              /* LFN PWD */
-							DOS_Int21_7147(name1, name2);
-                            break;
-                    case 0x4e:              /* LFN FindFirst */
-							DOS_Int21_714e(name1, name2);
-                            break;           
-                    case 0x4f:              /* LFN FindNext */
-							DOS_Int21_714f(name1, name2);
-                            break;
-                    case 0x56:              /* LFN Rename */
-							DOS_Int21_7156(name1, name2);
-                            break;         
-                    case 0x60:              /* LFN GetName */
-							DOS_Int21_7160(name1, name2);
-                            break;
-                    case 0x6c:              /* LFN Create */
-							DOS_Int21_716c(name1, name2);
-                            break;
-                    case 0xa0:              /* LFN VolInfo */
-							DOS_Int21_71a0(name1, name2);
-                            break;
-                    case 0xa1:              /* LFN FileClose */
-							DOS_Int21_71a1(name1, name2);
-							break;
-                    case 0xa6:              /* LFN GetFileInfoByHandle */
-							DOS_Int21_71a6(name1, name2);
-							break;
-                    case 0xa7:              /* LFN TimeConv */
-							DOS_Int21_71a7(name1, name2);
-                            break;
-                    case 0xa8:              /* LFN GenSFN */
-							DOS_Int21_71a8(name1, name2);
-                            break;
-					case 0xaa:              /* LFN Subst */
-							DOS_Int21_71aa(name1, name2);
-							break;
-					case 0xa9:              /* LFN Server Create */
-							reg_ax=0x7100; // unimplemented (not very useful)
-                    default:
-                            reg_ax=0x7100;
-                            CALLBACK_SCF(true); //Check this! What needs this ? See default case
-            }
-            break;
-		case 0x73:
-			if (dos.version.major < 7) { // MS-DOS 7+ only for AX=73xxh
-				CALLBACK_SCF(true);
-				reg_ax=0x7300;
-			} else if (reg_al==0 && reg_cl<2) {
-				/* Drive locking and flushing */
-				reg_al = reg_cl;
-				reg_ah = 0;
-				CALLBACK_SCF(false);
-			} else if (reg_al==2) {
-				/* Get extended DPB */
-				uint32_t ptr = SegPhys(es)+reg_di;
-				uint8_t drive;
+	    LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:MS-DOS 7+ long file name support call %2X",reg_al);
+	    if (!uselfn) {
+		    reg_ax=0x7100;
+		    CALLBACK_SCF(true); //Check this! What needs this ? See default case
+		    break;
+	    }
+#if !defined(OSFREE)
+	    switch(reg_al) {
+		    case 0x39:              /* LFN MKDIR */
+			    DOS_Int21_7139(name1, name2);
+			    break;
+		    case 0x3a:              /* LFN RMDIR */
+			    DOS_Int21_713a(name1, name2);
+			    break;
+		    case 0x3b:              /* LFN CHDIR */
+			    DOS_Int21_713b(name1, name2);
+			    break;
+		    case 0x41:              /* LFN UNLINK */
+			    DOS_Int21_7141(name1, name2);
+			    break;
+		    case 0x43:              /* LFN ATTR */
+			    DOS_Int21_7143(name1, name2);
+			    break;
+		    case 0x47:              /* LFN PWD */
+			    DOS_Int21_7147(name1, name2);
+			    break;
+		    case 0x4e:              /* LFN FindFirst */
+			    DOS_Int21_714e(name1, name2);
+			    break;           
+		    case 0x4f:              /* LFN FindNext */
+			    DOS_Int21_714f(name1, name2);
+			    break;
+		    case 0x56:              /* LFN Rename */
+			    DOS_Int21_7156(name1, name2);
+			    break;         
+		    case 0x60:              /* LFN GetName */
+			    DOS_Int21_7160(name1, name2);
+			    break;
+		    case 0x6c:              /* LFN Create */
+			    DOS_Int21_716c(name1, name2);
+			    break;
+		    case 0xa0:              /* LFN VolInfo */
+			    DOS_Int21_71a0(name1, name2);
+			    break;
+		    case 0xa1:              /* LFN FileClose */
+			    DOS_Int21_71a1(name1, name2);
+			    break;
+		    case 0xa6:              /* LFN GetFileInfoByHandle */
+			    DOS_Int21_71a6(name1, name2);
+			    break;
+		    case 0xa7:              /* LFN TimeConv */
+			    DOS_Int21_71a7(name1, name2);
+			    break;
+		    case 0xa8:              /* LFN GenSFN */
+			    DOS_Int21_71a8(name1, name2);
+			    break;
+		    case 0xaa:              /* LFN Subst */
+			    DOS_Int21_71aa(name1, name2);
+			    break;
+		    case 0xa9:              /* LFN Server Create */
+			    reg_ax=0x7100; // unimplemented (not very useful)
+		    default:
+			    reg_ax=0x7100;
+			    CALLBACK_SCF(true); //Check this! What needs this ? See default case
+	    }
+#endif
+	    break;
+	case 0x73:
+	    if (dos.version.major < 7) { // MS-DOS 7+ only for AX=73xxh
+		    CALLBACK_SCF(true);
+		    reg_ax=0x7300;
+	    } else if (reg_al==0 && reg_cl<2) {
+		    /* Drive locking and flushing */
+		    reg_al = reg_cl;
+		    reg_ah = 0;
+		    CALLBACK_SCF(false);
+	    } else if (reg_al==2) {
+		    /* Get extended DPB */
+		    uint32_t ptr = SegPhys(es)+reg_di;
+		    uint8_t drive;
 
-				/* AX=7302h
-				 * DL=drive
-				 * ES:DI=buffer to return data into
-				 * CX=length of buffer (Windows 9x uses 0x3F)
-				 * SI=??? */
+		    /* AX=7302h
+		     * DL=drive
+		     * ES:DI=buffer to return data into
+		     * CX=length of buffer (Windows 9x uses 0x3F)
+		     * SI=??? */
 
-				if (reg_dl != 0) /* 1=A: 2=B: ... */
-					drive = reg_dl - 1;
-				else /* 0=default */
-					drive = DOS_GetDefaultDrive();
+		    if (reg_dl != 0) /* 1=A: 2=B: ... */
+			    drive = reg_dl - 1;
+		    else /* 0=default */
+			    drive = DOS_GetDefaultDrive();
 
-				if (drive < DOS_DRIVES && Drives[drive] && !Drives[drive]->isRemovable() && reg_cx >= 0x3F) {
-					fatDrive *fdp;
-					FAT_BootSector::bpb_union_t bpb;
-					if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
-						fdp = dynamic_cast<fatDrive*>(Drives[drive]);
-						if (fdp != NULL) {
-							bpb=fdp->GetBPB();
-							if (bpb.is_fat32()) {
-								unsigned char tmp[24];
+		    if (drive < DOS_DRIVES && Drives[drive] && !Drives[drive]->isRemovable() && reg_cx >= 0x3F) {
+			    fatDrive *fdp;
+			    FAT_BootSector::bpb_union_t bpb;
+			    if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+				    fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+				    if (fdp != NULL) {
+					    bpb=fdp->GetBPB();
+					    if (bpb.is_fat32()) {
+						    unsigned char tmp[24];
 
-								mem_writew(ptr+0x00,0x3D);                                  // length of data (Windows 98)
-								/* first 24 bytes after len is DPB */
-								{
-									const uint32_t srcptr = (dos.tables.dpb << 4) + (drive*dos.tables.dpb_size);
-									MEM_BlockRead(srcptr,tmp,24);
-									MEM_BlockWrite(ptr+0x02,tmp,24);
-								}
-								uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters,tfree;
-								rsize=true;
-								totalc=freec=0;
-								if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
-									tfree = freec?freec:free_clusters;
-								else
-									tfree=0xFFFFFFFF;
-								rsize=false;
-								mem_writeb(ptr+0x1A,0x00);      // dpb flags
-								mem_writed(ptr+0x1B,0xFFFFFFFF);// ptr to next DPB if Windows 95 magic SI signature (TODO)
-								mem_writew(ptr+0x1F,2);         // cluster to start searching when writing (FIXME)
-								mem_writed(ptr+0x21,tfree);// number of free clusters
-								mem_writew(ptr+0x25,bpb.v32.BPB_ExtFlags);
-								mem_writew(ptr+0x27,bpb.v32.BPB_FSInfo);
-								mem_writew(ptr+0x29,bpb.v32.BPB_BkBootSec);
-								mem_writed(ptr+0x2B,fdp->GetFirstClusterOffset()); /* apparently cluster offset relative to the disk not volume */
-								mem_writed(ptr+0x2F,fdp->GetHighestClusterNumber());
-								mem_writed(ptr+0x33,bpb.v32.BPB_FATSz32);
-								mem_writed(ptr+0x37,bpb.v32.BPB_RootClus);
-								mem_writed(ptr+0x3B,2);         // cluster to start searching when writing (FIXME)
+						    mem_writew(ptr+0x00,0x3D);                                  // length of data (Windows 98)
+						    /* first 24 bytes after len is DPB */
+						    {
+							    const uint32_t srcptr = (dos.tables.dpb << 4) + (drive*dos.tables.dpb_size);
+							    MEM_BlockRead(srcptr,tmp,24);
+							    MEM_BlockWrite(ptr+0x02,tmp,24);
+						    }
+						    uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters,tfree;
+						    rsize=true;
+						    totalc=freec=0;
+						    if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
+							    tfree = freec?freec:free_clusters;
+						    else
+							    tfree=0xFFFFFFFF;
+						    rsize=false;
+						    mem_writeb(ptr+0x1A,0x00);      // dpb flags
+						    mem_writed(ptr+0x1B,0xFFFFFFFF);// ptr to next DPB if Windows 95 magic SI signature (TODO)
+						    mem_writew(ptr+0x1F,2);         // cluster to start searching when writing (FIXME)
+						    mem_writed(ptr+0x21,tfree);// number of free clusters
+						    mem_writew(ptr+0x25,bpb.v32.BPB_ExtFlags);
+						    mem_writew(ptr+0x27,bpb.v32.BPB_FSInfo);
+						    mem_writew(ptr+0x29,bpb.v32.BPB_BkBootSec);
+						    mem_writed(ptr+0x2B,fdp->GetFirstClusterOffset()); /* apparently cluster offset relative to the disk not volume */
+						    mem_writed(ptr+0x2F,fdp->GetHighestClusterNumber());
+						    mem_writed(ptr+0x33,bpb.v32.BPB_FATSz32);
+						    mem_writed(ptr+0x37,bpb.v32.BPB_RootClus);
+						    mem_writed(ptr+0x3B,2);         // cluster to start searching when writing (FIXME)
 
-								CALLBACK_SCF(false);
-								break;
-							}
-						}
-					}
+						    CALLBACK_SCF(false);
+						    break;
+					    }
+				    }
+			    }
 
-					reg_ax=0x18;//FIXME
-					CALLBACK_SCF(true);
-				} else {
-					reg_ax=0x18;//FIXME
-					CALLBACK_SCF(true);
-				}
-			} else if (reg_al==3) {
-				/* Get extended free disk space */
-				MEM_StrCopy(SegPhys(ds)+reg_dx,name1,reg_cx);
-                if(name1[1] == ':' && name1[2] == '\\') {
-                    name1[0] = toupper(name1[0]);
-                    if((name1[0] < 'A') || (name1[0] > 'Z')) {
-                        reg_ax = 0x15; // Invalid drive letter
-                        CALLBACK_SCF(true);
-                        break;
-                    }
-                    reg_dl = name1[0] - 'A' + 1; // Drive A = 1, B = 2, ...
-                }
-                else {
-					reg_ax=0xffff;
-					CALLBACK_SCF(true);
-					break;
-				}
-				uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
-				rsize=true;
-				totalc=freec=0;
-				if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
-				{
-					ext_space_info_t *info = new ext_space_info_t;
-					info->size_of_structure = sizeof(ext_space_info_t);
-					info->structure_version = 0;
-					info->sectors_per_cluster = sectors_per_cluster;
-					info->bytes_per_sector = bytes_per_sector;
-					info->available_clusters_on_drive = freec?freec:free_clusters;
-					info->total_clusters_on_drive = totalc?totalc:total_clusters;
-					info->available_sectors_on_drive = sectors_per_cluster * (freec?freec:free_clusters);
-					info->total_sectors_on_drive = sectors_per_cluster * (totalc?totalc:total_clusters);
-					info->available_allocation_units = freec?freec:free_clusters;
-					info->total_allocation_units = totalc?totalc:total_clusters;
-					MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
-					delete info;
-					reg_ax=0;
-					CALLBACK_SCF(false);
-				}
-				else
-				{
-					reg_ax=dos.errorcode;
-					CALLBACK_SCF(true);
-				}
-				rsize=false;
-			} else if (reg_al == 5 && reg_cx == 0xFFFF && (dos.version.major > 7 || dos.version.minor >= 10)) {
-				/* MS-DOS 7.1+ (Windows 95 OSR2+) FAT32 extended disk read/write */
-				reg_al = reg_dl - 1; /* INT 25h AL 0=A: 1=B:   This interface DL 1=A: 2=B: */
-				if (reg_si & 1)
-					DOS_26Handler_Actual(true/*fat32*/); /* writing */
-				else
-					DOS_25Handler_Actual(true/*fat32*/); /* reading */
+			    reg_ax=0x18;//FIXME
+			    CALLBACK_SCF(true);
+		    } else {
+			    reg_ax=0x18;//FIXME
+			    CALLBACK_SCF(true);
+		    }
+	    } else if (reg_al==3) {
+		    /* Get extended free disk space */
+		    MEM_StrCopy(SegPhys(ds)+reg_dx,name1,reg_cx);
+		    if(name1[1] == ':' && name1[2] == '\\') {
+			    name1[0] = toupper(name1[0]);
+			    if((name1[0] < 'A') || (name1[0] > 'Z')) {
+				    reg_ax = 0x15; // Invalid drive letter
+				    CALLBACK_SCF(true);
+				    break;
+			    }
+			    reg_dl = name1[0] - 'A' + 1; // Drive A = 1, B = 2, ...
+		    }
+		    else {
+			    reg_ax=0xffff;
+			    CALLBACK_SCF(true);
+			    break;
+		    }
+		    uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
+		    rsize=true;
+		    totalc=freec=0;
+		    if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
+		    {
+			    ext_space_info_t *info = new ext_space_info_t;
+			    info->size_of_structure = sizeof(ext_space_info_t);
+			    info->structure_version = 0;
+			    info->sectors_per_cluster = sectors_per_cluster;
+			    info->bytes_per_sector = bytes_per_sector;
+			    info->available_clusters_on_drive = freec?freec:free_clusters;
+			    info->total_clusters_on_drive = totalc?totalc:total_clusters;
+			    info->available_sectors_on_drive = sectors_per_cluster * (freec?freec:free_clusters);
+			    info->total_sectors_on_drive = sectors_per_cluster * (totalc?totalc:total_clusters);
+			    info->available_allocation_units = freec?freec:free_clusters;
+			    info->total_allocation_units = totalc?totalc:total_clusters;
+			    MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
+			    delete info;
+			    reg_ax=0;
+			    CALLBACK_SCF(false);
+		    }
+		    else
+		    {
+			    reg_ax=dos.errorcode;
+			    CALLBACK_SCF(true);
+		    }
+		    rsize=false;
+	    } else if (reg_al == 5 && reg_cx == 0xFFFF && (dos.version.major > 7 || dos.version.minor >= 10)) {
+		    /* MS-DOS 7.1+ (Windows 95 OSR2+) FAT32 extended disk read/write */
+		    reg_al = reg_dl - 1; /* INT 25h AL 0=A: 1=B:   This interface DL 1=A: 2=B: */
+		    if (reg_si & 1)
+			    DOS_26Handler_Actual(true/*fat32*/); /* writing */
+		    else
+			    DOS_25Handler_Actual(true/*fat32*/); /* reading */
 
-				/* CF needs to be returned on stack or else it's lost */
-				CALLBACK_SCF(!!(reg_flags & FLAG_CF));
-			} else {
-				LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Unhandled call %02X al=%02X (MS-DOS 7.x function)",reg_ah,reg_al);
-				CALLBACK_SCF(true);
-				reg_ax=0xffff;//FIXME
-			}
-			break;
-		case 0xE0:
+		    /* CF needs to be returned on stack or else it's lost */
+		    CALLBACK_SCF(!!(reg_flags & FLAG_CF));
+	    } else {
+		    LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Unhandled call %02X al=%02X (MS-DOS 7.x function)",reg_ah,reg_al);
+		    CALLBACK_SCF(true);
+		    reg_ax=0xffff;//FIXME
+	    }
+	    break;
+	case 0xE0:
         case 0xEF:                  /* Used in Ancient Art Of War CGA */
         default:
             default_fallthrough:
@@ -3574,6 +3578,7 @@ extern bool dbg_zero_on_dos_allocmem;
 extern bool addovl;
 
 bool set_ver(char *s) {
+#if !defined(OSFREE)
 	s=trim(s);
 	int major=isdigit(*s)?strtoul(s,(char**)(&s),10):-1;
 	if (major>=0&&major<100) {
@@ -3594,6 +3599,10 @@ bool set_ver(char *s) {
 		}
 	}
 	return false;
+#else
+	/* OSFREE: MS-DOS is not supposed to be here, you do not get to control this! */
+	return true;
+#endif
 }
 
 #define NUMBER_ANSI_DATA 10
@@ -4070,6 +4079,7 @@ public:
 
 		dos.version.major = 5;
 		dos.version.minor = 0;
+#if !defined(OSFREE)
 		const char *ver = section->Get_string("ver");
 		if (*ver) {
 			if (set_ver((char *)ver)) {
@@ -4085,6 +4095,7 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
+#endif
 
 		::disk_data_rate = section->Get_int("hard drive data rate limit");
 		::floppy_data_rate = section->Get_int("floppy drive data rate limit");
@@ -4102,6 +4113,7 @@ public:
 
 		maxfcb=100;
 		DOS_FILES=200;
+#if !defined(OSFREE)
 		Section_prop *config_section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (config_section != NULL && !control->opt_noconfig && !control->opt_securemode && !control->SecureMode()) {
 			DOS_FILES = (unsigned int)config_section->Get_int("files");
@@ -4140,12 +4152,13 @@ public:
 				dos.breakcheck=true;
 			else if (!strcasecmp(dosbreak, "off"))
 				dos.breakcheck=false;
-#if defined(WIN32)
+# if defined(WIN32)
 			const char *numlock = config_section->Get_string("numlock");
 			if ((!strcasecmp(numlock, "off")&&startup_state_numlock) || (!strcasecmp(numlock, "on")&&!startup_state_numlock))
 				SetNumLock();
-#endif
+# endif
 		}
+#endif
 		LOG(LOG_MISC,LOG_DEBUG)("files=%u fcbs=%u",(unsigned int)DOS_FILES,(unsigned int)maxfcb);
 		char *r;
 #if defined(WIN32)
@@ -4159,8 +4172,11 @@ public:
 		}
 #endif
 
+#if !defined(OSFREE)
 		dos_sda_size = section->Get_int("dos sda size");
+#endif
 		dos_break_int3 = section->Get_bool("break on int3");
+#if !defined(OSFREE)
 		freed_mcb_allocate_on_resize = section->Get_bool("resized free memory block becomes allocated");
 		shell_keyboard_flush = section->Get_bool("command shell flush keyboard buffer");
 		enable_network_redirector = section->Get_bool("network redirector");
@@ -4180,9 +4196,7 @@ public:
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
-#if !defined(OSFREE)
 		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
-#endif
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
@@ -4268,9 +4282,11 @@ public:
 			}
 			if (file) fclose(file);
 		}
+#endif
 		if (dos_initial_hma_free > 0x10000)
 			dos_initial_hma_free = 0x10000;
 
+#if !defined(OSFREE)
 		std::string cpmcompat = section->Get_string("cpm compatibility mode");
 
 		if (cpmcompat == "")
@@ -4286,6 +4302,9 @@ public:
 			cpm_compat_mode = CPM_COMPAT_MSDOS5; /* MS-DOS 5.x is default */
 		else
 			cpm_compat_mode = CPM_COMPAT_OFF;
+#else
+		cpm_compat_mode = CPM_COMPAT_OFF;
+#endif
 
 		/* If memsize < 16KB then the only way DOS can work properly is to allocate in the UMB private area */
 		if (MEM_ConventionalPages() < 4) {
@@ -4308,18 +4327,20 @@ public:
 		else
 			DOS_SDA_SEG_SIZE = (dos_sda_size + 0xF) & (~0xF); /* round up to paragraph */
 
+#if !defined(OSFREE)
 		/* msdos 2.x and msdos 5.x modes, if HMA is involved, require us to take the first 256 bytes of HMA
 		 * in order for "F01D:FEF0" to work properly whether or not A20 is enabled. Our direct mode doesn't
 		 * jump through that address, and therefore doesn't need it. */
 		if (dos_in_hma &&
-				cpm_compat_mode != CPM_COMPAT_OFF &&
-				cpm_compat_mode != CPM_COMPAT_DIRECT) {
+			cpm_compat_mode != CPM_COMPAT_OFF &&
+			cpm_compat_mode != CPM_COMPAT_DIRECT) {
 			LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: CP/M compatibility method with DOS in HMA requires mirror of entry point in HMA.");
 			if (dos_initial_hma_free > 0xFF00) {
 				dos_initial_hma_free = 0xFF00;
 				LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: CP/M compatibility method requires reduction of HMA free space to accommodate.");
 			}
 		}
+#endif
 
 		if ((int)MAXENV < 0) MAXENV = 65535;
 		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = 1024;
@@ -4483,6 +4504,7 @@ public:
 		//	pushf
 		//	... the rest is like int 21
 
+#if !defined(OSFREE)
 		if (IS_PC98_ARCH) {
 			/* Any interrupt vector pointing to the INT stub in the BIOS must be rewritten to point to a JMP to the stub
 			 * residing in the DOS segment (60h) because some PC-98 resident drivers use segment 60h as a check for
@@ -4505,15 +4527,18 @@ public:
 					mem_writed(i*4,vecp);
 			}
 		}
+#endif
 
+#if !defined(OSFREE)
 		/* NTS: HMA support requires XMS. EMS support may switch on A20 if VCPI emulation requires the odd megabyte */
 		if ((!dos_in_hma || !section->Get_bool("xms")) && (MEM_A20_Enabled() || strcmp(section->Get_string("ems"),"false") != 0) &&
-				cpm_compat_mode != CPM_COMPAT_OFF && cpm_compat_mode != CPM_COMPAT_DIRECT) {
+			cpm_compat_mode != CPM_COMPAT_OFF && cpm_compat_mode != CPM_COMPAT_DIRECT) {
 			/* hold on, only if more than 1MB of RAM and memory access permits it */
 			if (MEM_TotalPages() > 0x100 && MEM_PageMask() > 0xff/*more than 20-bit decoding*/) {
 				LOG(LOG_DOSMISC,LOG_WARN)("DOS not in HMA or XMS is disabled. This may break programs using the CP/M compatibility call method if the A20 gate is switched on.");
 			}
 		}
+#endif
 
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
@@ -4655,36 +4680,47 @@ public:
 			}
 		}
 
+#if !defined(OSFREE)
 		const char *keepstr = section->Get_string("keep private area on boot");
 		if (!strcasecmp(keepstr, "true")||!strcasecmp(keepstr, "1")) keep_private_area_on_boot = 1;
 		else if (!strcasecmp(keepstr, "false")||!strcasecmp(keepstr, "0")) keep_private_area_on_boot = 0;
 		else keep_private_area_on_boot = addovl;
 		dos.direct_output=false;
 		dos.internal_output=false;
+#endif
 
+#if !defined(OSFREE)
 		std::string fat32setverstr = section->Get_string("fat32setversion");
 		if (fat32setverstr=="auto") fat32setver=1;
 		else if (fat32setverstr=="manual") fat32setver=0;
 		else fat32setver=-1;
+#endif
 
+#if !defined(OSFREE)
 		std::string lfn = section->Get_string("lfn");
 		if (lfn=="true"||lfn=="1") enablelfn=1;
 		else if (lfn=="false"||lfn=="0") enablelfn=0;
 		else if (lfn=="autostart") enablelfn=-2;
 		else enablelfn=-1;
+#endif
 
+#if !defined(OSFREE)
 		force_conversion=true;
 		mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).enable(true).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
 		force_conversion=false;
+#endif
 
+#if !defined(OSFREE)
 		force_conversion=true;
 		dos_ver_menu(true);
 		mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
 		update_dos_ems_menu();
 		force_conversion=false;
+#endif
 
+#if !defined(OSFREE)
 		/* settings */
 		if (first_run) {
 			const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
@@ -4696,6 +4732,8 @@ public:
 			winautorun=startcmd;
 			first_run=false;
 		}
+#endif
+
 		force_conversion=true;
 #if !defined(HX_DOS)
 		mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
@@ -4982,6 +5020,7 @@ void DOS_Init() {
 	for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
+#if !defined(OSFREE)
 void DOS_Int21_7139(char *name1, const char *name2) {
 	(void)name2;
 	MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
@@ -4998,7 +5037,9 @@ void DOS_Int21_7139(char *name1, const char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_713a(char *name1, const char *name2) {
 	(void)name2;
 	MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
@@ -5016,7 +5057,9 @@ void DOS_Int21_713a(char *name1, const char *name2) {
 		LOG(LOG_DOSMISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_713b(char *name1, const char *name2) {
 	(void)name2;
 	MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
@@ -5033,7 +5076,9 @@ void DOS_Int21_713b(char *name1, const char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_7141(char *name1, const char *name2) {
 	(void)name2;
 	MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
@@ -5050,7 +5095,9 @@ void DOS_Int21_7141(char *name1, const char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_7143(char *name1, const char *name2) {
 	(void)name2;
 	MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
@@ -5164,7 +5211,9 @@ void DOS_Int21_7143(char *name1, const char *name2) {
 			E_Exit("DOS:Illegal LFN Attr call %2X",reg_bl);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_7147(char *name1, const char *name2) {
 	(void)name2;
 	DOS_PSP psp(dos.psp());
@@ -5179,7 +5228,9 @@ void DOS_Int21_7147(char *name1, const char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_714e(char *name1, char *name2) {
 	MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 	*name1='\"';
@@ -5251,7 +5302,9 @@ void DOS_Int21_714e(char *name1, char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_714f(const char *name1, const char *name2) {
 	(void)name1;
 	(void)name2;
@@ -5276,7 +5329,9 @@ void DOS_Int21_714f(const char *name1, const char *name2) {
 	}
 	lfn_filefind_handle=LFN_FILEFIND_NONE;
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_7156(char *name1, char *name2) {
 	MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 	*name1='\"';
@@ -5298,7 +5353,9 @@ void DOS_Int21_7156(char *name1, char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_7160(char *name1, char *name2) {
 	MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
 	if (*(name1+1)>=0 && *(name1+1)<32) {
@@ -5360,7 +5417,9 @@ void DOS_Int21_7160(char *name1, char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_716c(char *name1, const char *name2) {
 	(void)name2;
 	MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
@@ -5376,7 +5435,9 @@ void DOS_Int21_716c(char *name1, const char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_71a0(char *name1, char *name2) {
 	/* NTS:  Windows Millennium Edition's SETUP program will make this LFN call to
 	 *		 canonicalize "C:", except the protected mode kernel does not translate
@@ -5415,7 +5476,9 @@ void DOS_Int21_71a0(char *name1, char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_71a1(const char *name1, const char *name2) {
 	(void)name1;
 	(void)name2;
@@ -5435,6 +5498,7 @@ void DOS_Int21_71a1(const char *name1, const char *name2) {
 	reg_ax=0;
 	CALLBACK_SCF(false);
 }
+#endif
 
 void set_dword(char *buff, uint32_t data)
 {
@@ -5447,6 +5511,7 @@ void set_dword(char *buff, uint32_t data)
 	*buff = (char)data;
 }
 
+#if !defined(OSFREE)
 void DOS_Int21_71a6(const char *name1, const char *name2) {
 	(void)name1;
 	(void)name2;
@@ -5526,7 +5591,9 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_71a7(const char *name1, const char *name2) {
 	(void)name1;
 	(void)name2;
@@ -5566,7 +5633,9 @@ void DOS_Int21_71a7(const char *name1, const char *name2) {
 			E_Exit("DOS:Illegal LFN TimeConv call %2X",reg_bl);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_71a8(char* name1, const char* name2) {
 	(void)name2;
 	if (reg_dh == 0 || reg_dh == 1) {
@@ -5607,7 +5676,9 @@ void DOS_Int21_71a8(char* name1, const char* name2) {
 		CALLBACK_SCF(true);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_Int21_71aa(char* name1, const char* name2) {
 	(void)name2;
 	if (reg_bh<3 && (reg_bl<1 || reg_bl>26)) {
@@ -5683,6 +5754,7 @@ void DOS_Int21_71aa(char* name1, const char* name2) {
 			E_Exit("DOS:Illegal LFN Subst call %2X",reg_bh);
 	}
 }
+#endif
 
 //save state support
 extern void POD_Save_DOS_Devices( std::ostream& stream );
