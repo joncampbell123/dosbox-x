@@ -139,6 +139,8 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 	if (!tsr) DOS_FreeProcessMemory(pspseg);
 	DOS_UpdatePSPName();
 
+	dos.errorcode=0;
+
 	if ((!(CPU_AutoDetermineMode>>CPU_AUTODETERMINE_SHIFT)) || (cpu.pmode)) return;
 
 	CPU_AutoDetermineMode>>=CPU_AUTODETERMINE_SHIFT;
@@ -156,8 +158,8 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 #if (C_DYNAMIC_X86) || (C_DYNREC)
 	if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 		cpudecoder=&CPU_Core_Normal_Run;
-        mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
-        mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+		mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+		mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
 		CPU_CycleLeft=0;
 		CPU_Cycles=0;
 	}
@@ -309,6 +311,9 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		if (ZDRIVE_NUM!=25) {
 			z4dos[0]='A'+ZDRIVE_NUM;
 			zcmd[0]='A'+ZDRIVE_NUM;
+		}
+		if (dos.errorcode == DOSERR_ACCESS_DENIED) {
+			return false;
 		}
 		if (!shellcom || !DOS_OpenFile(!strcasecmp(name+fLen-8, "4DOS.COM")?z4dos:zcmd,OPEN_READ,&fhandle)) {
 			DOS_SetError(DOSERR_FILE_NOT_FOUND);

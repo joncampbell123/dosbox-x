@@ -1680,6 +1680,10 @@ continue_1:
 		/* Set the command line in the block and save it */
 		block.exec.cmdtail=RealMakeSeg(ss,reg_sp+0x100);
 		block.SaveData();
+
+		/* clear DOS error to detect errors */
+		dos.errorcode = 0;
+
 #if 0
 		/* Save CS:IP to some point where i can return them from */
 		uint32_t oldeip=reg_eip;
@@ -1705,6 +1709,16 @@ continue_1:
 		reg_eip=oldeip;
 		SegSet16(cs,oldcs);
 #endif
+
+		if (dos.errorcode != 0) {
+			if (dos.errorcode == DOSERR_ACCESS_DENIED) {
+				WriteOut(MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"), name);
+			}
+			else {
+				WriteOut("Unable to run program (errcode=%u)\n", dos.errorcode);
+			}
+		}
+
 		if (packerr&&infix<0&&sec->Get_bool("autoa20fix")) {
 			LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoa20fix workaround for EXEPACK error");
 			if (autofixwarn==1||autofixwarn==3) WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with A20 fix...\r\n");
