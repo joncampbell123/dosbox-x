@@ -1185,7 +1185,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 
 			// NTS: If the code determines from SP there is insufficient space, it will exit using INT 20h
 			//      This code makes no attempt to set up a PSP segment for this code, so it is necessary
-			//      to direct INT 20h at the RETF instruction we just wrote abpve while running the code
+			//      to direct INT 20h at the code to force return (abpve) while running the code
 			//      to prevent the termination handler from jumping off into the weeds.
 			const uint32_t pint20 = real_readd(0,0x20*4); // save INT 20h
 			real_writed(0,0x20*4,RealMake(seg,size_of_cpxdata+0x100u));
