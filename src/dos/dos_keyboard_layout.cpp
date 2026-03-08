@@ -1212,7 +1212,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 			// was there an error?
 			if (real_readb(seg,0xFF) == 0xAA) {
 				LOG(LOG_DOSMISC,LOG_WARN)("CPI/CPX file aborted using INT 20h");
-				return KEYB_INVALIDCPFILE;
+				return KEYB_LOADERROR;
 			}
 
 			// get unpacked content
@@ -1223,7 +1223,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 		}
 		else {
 			LOG(LOG_DOSMISC,LOG_WARN)("Insufficient memory to load CPI/CPX file");
-			return KEYB_INVALIDCPFILE;
+			return KEYB_LOADERROR;
 		}
 	}
 
@@ -1231,7 +1231,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 	start_pos=host_readd(&cpi_buf[0x13]);
 	if (start_pos >= 0xFFFF) { // Without this check, invalid values can *CRASH* this emulator with a segfault
 		LOG(LOG_DOSMISC,LOG_WARN)("CPI/CPX start_pos out of range");
-		return KEYB_INVALIDCPFILE;
+		return KEYB_LOADERROR;
 	}
 	number_of_codepages=host_readw(&cpi_buf[start_pos]);
 	start_pos+=4;
