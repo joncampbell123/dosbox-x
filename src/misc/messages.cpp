@@ -483,12 +483,14 @@ void LoadMessageFile(const char* fname) {
     update_bindbutton_text();
     dos.loaded_codepage = cp;
 
+#if !defined(OSFREE)
     if(loadlangcp && msgcodepage > 0) {
         const char* layoutname = DOS_GetLoadedLayout();
         if(!IS_DOSV && !IS_JEGA_ARCH && !IS_PC98_ARCH && layoutname != nullptr) {
             toSetCodePage(nullptr, msgcodepage, -1);
         }
     }
+#endif
 
     refreshExtChar();
     LOG_MSG("LoadMessageFile: Loaded language file: %s", fname);

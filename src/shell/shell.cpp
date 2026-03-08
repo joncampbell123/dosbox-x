@@ -120,7 +120,9 @@ typedef std::list<std::string>::iterator auto_it;
 
 void VFILE_Remove(const char *name,const char *dir="");
 void runRescan(const char *str), DOSBox_SetSysMenu(void);
+#if !defined(OSFREE)
 int toSetCodePage(DOS_Shell *shell, int newCP, int opt);
+#endif
 
 #if defined(WIN32)
 void MountAllDrives(bool quiet) {
@@ -920,12 +922,14 @@ void DOS_Shell::Prepare(void) {
 			}
 		}
 #endif
+#if !defined(OSFREE)
 		const char* layoutname = DOS_GetLoadedLayout();
 		if(layoutname == NULL && !IS_PC98_ARCH) {/*Keyboard layouts and CPI/CPX files have no meaning in PC-98 mode*/
 			int32_t cp = dos.loaded_codepage;
 			Bitu keyb_error = DOS_LoadKeyboardLayout("us", 437, "auto");
 			toSetCodePage(NULL, cp, -1);
 		}
+#endif
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 		bool startbanner = section->Get_bool("startbanner");
 		first_shell->perm = section->Get_bool("shell permanent");
@@ -959,6 +963,7 @@ void DOS_Shell::Prepare(void) {
 		std::string layout = section->Get_string("keyboardlayout");
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
+#if !defined(OSFREE)
 		if ((section!=NULL&&!control->opt_noconfig)||control->opt_langcp) {
 			char *countrystr = (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
 			int country = 0;
@@ -983,10 +988,8 @@ void DOS_Shell::Prepare(void) {
 			if(chinasea) makeseacp951table();
 			InitCodePage();
 			if(startbanner && !control->opt_fastlaunch) {
-#if !defined(OSFREE)
 				//showWelcome(this);
 				DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
-#endif
 			}
 			else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed()) {
 				WriteOut("\033[2J");
@@ -1047,6 +1050,7 @@ void DOS_Shell::Prepare(void) {
 				}
 			}
 		}
+#endif
 		std::string line;
 		GetEnvStr("PATH",line);
 		if (!strlen(config_data)) {
@@ -1054,7 +1058,9 @@ void DOS_Shell::Prepare(void) {
 			strcat(config_data, section->Get_string("rem"));
 			strcat(config_data, "\r\n");
 		}
+#if !defined(OSFREE)
 		if(dos.loaded_codepage == 932) toSetCodePage(this, 932, -1); // Workaround for corrupted box-drawing characters
+#endif
 		runRescan("-A -Q");
 		internal_program = true;
 		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));

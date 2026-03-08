@@ -42,9 +42,12 @@
 #include <windows.h>
 #endif
 
+#if !defined(OSFREE)
 #include <output/output_ttf.h>
+#endif
 
 int lastcp = 0;
+#if !defined(OSFREE)
 void DOSBox_SetSysMenu(void);
 bool OpenGL_using(void), isDBCSCP(void);
 void change_output(int output), UpdateSDLDrawTexture();
@@ -54,7 +57,9 @@ extern int tryconvertcp, toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 extern bool jfont_init;
 extern int msgcodepage;
 extern bool kana_input;
+#endif
 
+#if !defined(OSFREE)
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
 	char fullname[DOS_PATHLENGTH];
@@ -75,7 +80,9 @@ static FILE* OpenDosboxFile(const char* name) {
 	FILE *tmpfile=fopen(name, "rb");
 	return tmpfile;
 }
+#endif
 
+#if !defined(OSFREE)
 class keyboard_layout {
 public:
 	keyboard_layout() {
@@ -109,11 +116,11 @@ private:
 		uint16_t required_flags,forbidden_flags;
 		uint16_t required_userflags,forbidden_userflags;
 	} current_layout_planes[layout_pages-4];
-    uint8_t additional_planes = 0;
-    uint8_t used_lock_modifiers;
+	uint8_t additional_planes = 0;
+	uint8_t used_lock_modifiers;
 
 	// diacritics table
-    uint8_t diacritics[2048] = {};
+	uint8_t diacritics[2048] = {};
 	uint16_t diacritics_entries;
 	uint16_t diacritics_character;
 	uint16_t user_keys;
@@ -130,8 +137,9 @@ private:
 	Bitu read_keyboard_file(const char* keyboard_file_name, int32_t specific_layout, int32_t requested_codepage);
 	bool map_key(Bitu key, uint16_t layouted_key, bool is_command, bool is_keypair);
 };
+#endif
 
-
+#if !defined(OSFREE)
 keyboard_layout::~keyboard_layout() {
 	if (language_codes) {
 		for (Bitu i=0; i<language_code_count; i++)
@@ -165,7 +173,9 @@ void keyboard_layout::read_keyboard_file(int32_t specific_layout) {
 	if (strcmp(current_keyboard_file_name,"none"))
 		this->read_keyboard_file(current_keyboard_file_name, specific_layout, dos.loaded_codepage);
 }
+#endif
 
+#if !defined(OSFREE)
 static uint32_t read_kcl_file(const char* kcl_file_name, const char* layout_id, bool first_id_only) {
 	FILE* tempfile = OpenDosboxFile(kcl_file_name);
 	if (!tempfile) return 0;
@@ -193,20 +203,20 @@ static uint32_t read_kcl_file(const char* kcl_file_name, const char* layout_id, 
 		fseek(tempfile, -2, SEEK_CUR);
 		// get all language codes for this layout
 		for (Bitu i=0; i<data_len;) {
-            size_t readResult = fread(rbuf, sizeof(uint8_t), 2, tempfile);
-            if (readResult != 2) {
-                LOG(LOG_IO, LOG_ERROR) ("Reading error in read_kcl_file\n");
-                return 0;
-            }
+			size_t readResult = fread(rbuf, sizeof(uint8_t), 2, tempfile);
+			if (readResult != 2) {
+				LOG(LOG_IO, LOG_ERROR) ("Reading error in read_kcl_file\n");
+				return 0;
+			}
 			uint16_t lcnum=host_readw(&rbuf[0]);
 			i+=2;
 			Bitu lcpos=0;
 			for (;i<data_len;) {
-                readResult = fread(rbuf, sizeof(uint8_t), 1, tempfile);
-                if (readResult != 1) {
-                    LOG(LOG_IO, LOG_ERROR) ("Reading error in read_kcl_file\n");
-                    return 0;
-                }
+				readResult = fread(rbuf, sizeof(uint8_t), 1, tempfile);
+				if (readResult != 1) {
+					LOG(LOG_IO, LOG_ERROR) ("Reading error in read_kcl_file\n");
+					return 0;
+				}
 				i++;
 				if (((char)rbuf[0])==',') break;
 				lng_codes[lcpos++]=(char)rbuf[0];
@@ -282,7 +292,9 @@ static uint32_t read_kcl_data(struct BuiltinFileBlob bfb, const char* layout_id,
 	}
 	return 0;
 }
+#endif
 
+#if !defined(OSFREE)
 Bitu keyboard_layout::read_keyboard_file(const char* keyboard_file_name, int32_t specific_layout, int32_t requested_codepage) {
 	this->reset();
 
@@ -665,6 +677,7 @@ bool keyboard_layout::map_key(Bitu key, uint16_t layouted_key, bool is_command, 
 	}
 	return false;
 }
+#endif
 
 uint16_t GetDefaultCP() {
     if (IS_PC98_ARCH||IS_JEGA_ARCH||IS_JDOSV) return 932;
@@ -674,6 +687,7 @@ uint16_t GetDefaultCP() {
     return 437;
 }
 
+#if !defined(OSFREE)
 uint16_t keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 	if (!strcmp(keyboard_file_name,"none")) return GetDefaultCP();
 
@@ -776,7 +790,9 @@ uint16_t keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 	}
 	return GetDefaultCP();
 }
+#endif
 
+#if !defined(OSFREE)
 static uint8_t cpi_buf[65536];
 uint32_t VFILE_GetCPIData(const char *filename, std::vector<uint8_t> &cpibuf);
 uint32_t get_builtin_codepage(struct BuiltinFileBlob bfb) {
@@ -790,81 +806,88 @@ uint32_t get_builtin_codepage(struct BuiltinFileBlob bfb) {
     }
     return size;
 }
+#endif
 
+#if !defined(OSFREE)
 extern int eurAscii;
 extern uint8_t euro_08[8], euro_14[14], euro_16[16];
+#endif
 bool font_14_init=false, font_16_init=false;
 uint8_t int10_font_14_init[256 * 14], int10_font_16_init[256 * 16];
+#if !defined(OSFREE)
+#endif
+
 void initcodepagefont() {
+#if !defined(OSFREE)
     if (!dos.loaded_codepage) return;
 
     /* If you don't load COUNTRY.SYS or do any codepage font commands on stock MS-DOS then
      * there is no loading of it from disk at all */
     if (GetDefaultCP() == dos.loaded_codepage) return;
 
-	uint32_t start_pos;
-	uint16_t number_of_codepages;
-	static uint8_t cpi_buff[65536];
-	uint8_t *cpibuf = cpi_buf;
-	uint32_t cpi_buf_size=0,size_of_cpxdata=0;
+    uint32_t start_pos;
+    uint16_t number_of_codepages;
+    static uint8_t cpi_buff[65536];
+    uint8_t *cpibuf = cpi_buf;
+    uint32_t cpi_buf_size=0,size_of_cpxdata=0;
     switch (dos.loaded_codepage) {
-			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA_CPX);
-				break;
-			case 775:	case 859:	case 1116:	case 1117:	case 1118:	case 1119:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA2_CPX);
-				break;
-			case 771:	case 772:	case 808:	case 855:	case 866:	case 872:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA3_CPX);
-				break;
-			case 848:	case 849:	case 1125:	case 1131:	case 3012:	case 30010:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA4_CPX);
-				break;
-			case 113:	case 737:	case 851:	case 869:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA5_CPX);
-				break;
-			case 899:	case 30008:	case 58210:	case 59829:	case 60258:	case 60853:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA6_CPX);
-				break;
-			case 30011:	case 30013:	case 30014:	case 30017:	case 30018:	case 30019:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA7_CPX);
-				break;
-			case 770:	case 773:	case 774:	case 777:	case 778:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA8_CPX);
-				break;
-			case 860:	case 861:	case 863:	case 865:	case 867:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA9_CPX);
-				break;
-			case 667:	case 668:	case 790:	case 991:	case 3845:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA10_CPX);
-				break;
-			case 30000:	case 30001:	case 30004:	case 30007:	case 30009:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA11_CPX);
-				break;
-			case 30003:	case 30029:	case 30030:	case 58335:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA12_CPX);
-				break;
-			case 895:	case 30002:	case 58152:	case 59234:	case 62306:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA13_CPX);
-				break;
-			case 30006:	case 30012:	case 30015:	case 30016:	case 30020:	case 30021:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA14_CPX);
-				break;
-			case 30023:	case 30024:	case 30025:	case 30026:	case 30027:	case 30028:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA15_CPX);
-				break;
-			case 3021:	case 30005:	case 30022:	case 30031:	case 30032:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA16_CPX);
-				break;
-			case 862:	case 864:	case 30034:	case 30033:	case 30039:	case 30040:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA17_CPX);
-				break;
-			case 856:	case 3846:	case 3848:
-				cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPI);
-				cpibuf = cpi_buff;
-                break;
-            default:
-                    return;
+	    case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA_CPX);
+		    break;
+	    case 775:	case 859:	case 1116:	case 1117:	case 1118:	case 1119:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA2_CPX);
+		    break;
+	    case 771:	case 772:	case 808:	case 855:	case 866:	case 872:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA3_CPX);
+		    break;
+	    case 848:	case 849:	case 1125:	case 1131:	case 3012:	case 30010:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA4_CPX);
+		    break;
+	    case 113:	case 737:	case 851:	case 869:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA5_CPX);
+		    break;
+	    case 899:	case 30008:	case 58210:	case 59829:	case 60258:	case 60853:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA6_CPX);
+		    break;
+	    case 30011:	case 30013:	case 30014:	case 30017:	case 30018:	case 30019:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA7_CPX);
+		    break;
+	    case 770:	case 773:	case 774:	case 777:	case 778:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA8_CPX);
+		    break;
+	    case 860:	case 861:	case 863:	case 865:	case 867:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA9_CPX);
+		    break;
+	    case 667:	case 668:	case 790:	case 991:	case 3845:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA10_CPX);
+		    break;
+	    case 30000:	case 30001:	case 30004:	case 30007:	case 30009:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA11_CPX);
+		    break;
+	    case 30003:	case 30029:	case 30030:	case 58335:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA12_CPX);
+		    break;
+	    case 895:	case 30002:	case 58152:	case 59234:	case 62306:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA13_CPX);
+		    break;
+	    case 30006:	case 30012:	case 30015:	case 30016:	case 30020:	case 30021:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA14_CPX);
+		    break;
+	    case 30023:	case 30024:	case 30025:	case 30026:	case 30027:	case 30028:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA15_CPX);
+		    break;
+	    case 3021:	case 30005:	case 30022:	case 30031:	case 30032:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA16_CPX);
+		    break;
+	    case 862:	case 864:	case 30034:	case 30033:	case 30039:	case 30040:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA17_CPX);
+		    break;
+	    case 856:	case 3846:	case 3848:
+		    cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPI);
+		    cpibuf = cpi_buff;
+		    break;
+	    default:
+		    return;
     }
     uint16_t found_at_pos=0x29+19;
     size_of_cpxdata=cpi_buf_size;
@@ -889,42 +912,46 @@ void initcodepagefont() {
     MEM_BlockRead(((unsigned int)seg<<4u)+0x100u,cpibuf,65536u);
     cpi_buf_size=65536;
     DOS_FreeMemory(seg);
-	start_pos=host_readd(&cpibuf[0x13]);
-	number_of_codepages=host_readw(&cpibuf[start_pos]);
-	start_pos+=4;
-	for (uint16_t test_codepage=0; test_codepage<number_of_codepages; test_codepage++) {
-		uint16_t device_type, font_codepage, font_type;
-		device_type=host_readw(&cpibuf[start_pos+0x04]);
-		font_codepage=host_readw(&cpibuf[start_pos+0x0e]);
-		uint32_t font_data_header_pt;
-		font_data_header_pt=host_readd(&cpibuf[start_pos+0x16]);
-		font_type=host_readw(&cpibuf[font_data_header_pt]);
-		if ((device_type==0x0001) && (font_type==0x0001) && (font_codepage==dos.loaded_codepage)) {
-			uint16_t number_of_fonts=host_readw(&cpibuf[font_data_header_pt+0x02]);
-			uint32_t font_data_start=font_data_header_pt+0x06;
-			for (uint16_t current_font=0; current_font<number_of_fonts; current_font++) {
-				uint8_t font_height=cpibuf[font_data_start];
-				font_data_start+=6;
-				if (font_height==0x10) {
-                    for (uint16_t i=0;i<256*16;i++)
-                        int10_font_16_init[i]=eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpibuf[font_data_start+i];
-                    font_16_init=true;
-				} else if (font_height==0x0e) {
-                    for (uint16_t i=0;i<256*14;i++)
-                        int10_font_14_init[i]=eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpibuf[font_data_start+i];
-                    font_14_init=true;
-                }
-				font_data_start+=font_height*256u;
-			}
-			return;
-		}
-		start_pos=host_readd(&cpibuf[start_pos]);
-		start_pos+=2;
-	}
+    start_pos=host_readd(&cpibuf[0x13]);
+    number_of_codepages=host_readw(&cpibuf[start_pos]);
+    start_pos+=4;
+    for (uint16_t test_codepage=0; test_codepage<number_of_codepages; test_codepage++) {
+	    uint16_t device_type, font_codepage, font_type;
+	    device_type=host_readw(&cpibuf[start_pos+0x04]);
+	    font_codepage=host_readw(&cpibuf[start_pos+0x0e]);
+	    uint32_t font_data_header_pt;
+	    font_data_header_pt=host_readd(&cpibuf[start_pos+0x16]);
+	    font_type=host_readw(&cpibuf[font_data_header_pt]);
+	    if ((device_type==0x0001) && (font_type==0x0001) && (font_codepage==dos.loaded_codepage)) {
+		    uint16_t number_of_fonts=host_readw(&cpibuf[font_data_header_pt+0x02]);
+		    uint32_t font_data_start=font_data_header_pt+0x06;
+		    for (uint16_t current_font=0; current_font<number_of_fonts; current_font++) {
+			    uint8_t font_height=cpibuf[font_data_start];
+			    font_data_start+=6;
+			    if (font_height==0x10) {
+				    for (uint16_t i=0;i<256*16;i++)
+					    int10_font_16_init[i]=eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpibuf[font_data_start+i];
+				    font_16_init=true;
+			    } else if (font_height==0x0e) {
+				    for (uint16_t i=0;i<256*14;i++)
+					    int10_font_14_init[i]=eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpibuf[font_data_start+i];
+				    font_14_init=true;
+			    }
+			    font_data_start+=font_height*256u;
+		    }
+		    return;
+	    }
+	    start_pos=host_readd(&cpibuf[start_pos]);
+	    start_pos+=2;
+    }
+#endif
 }
 
+#if !defined(OSFREE)
 extern Bitu call_stop,call_default;
+#endif
 
+#if !defined(OSFREE)
 Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t codepage_id) {
 	char cp_filename[512];
 	strcpy(cp_filename, codepage_file_name);
@@ -1434,9 +1461,11 @@ const char* keyboard_layout::main_language_code() {
 	}
 	return NULL;
 }
+#endif
 
-
+#if !defined(OSFREE)
 static keyboard_layout* loaded_layout=NULL;
+#endif
 
 // CTRL-ALT-F2 switches between foreign and US-layout using this function
 /* static void switch_keyboard_layout(bool pressed) {
@@ -1447,10 +1476,15 @@ static keyboard_layout* loaded_layout=NULL;
 
 // called by int9-handler
 bool DOS_LayoutKey(Bitu key, uint8_t flags1, uint8_t flags2, uint8_t flags3) {
+#if !defined(OSFREE)
 	if (loaded_layout) return loaded_layout->layout_key(key, flags1, flags2, flags3);
 	else return false;
+#else
+	return false;
+#endif
 }
 
+#if !defined(OSFREE)
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile) {
 	/* keyboard layouts have no meaning in PC-98 mode */
 	if (IS_PC98_ARCH) {
@@ -1477,7 +1511,9 @@ Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const cha
 	loaded_layout=temp_layout;
 	return KEYB_NOERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp) {
 	if (loaded_layout) {
 		keyboard_layout* changed_layout=NULL;
@@ -1490,8 +1526,9 @@ Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp) {
 		return ret_code;
 	} else return 0xFF;
 }
+#endif
 
-
+#if !defined(OSFREE)
 Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage) {
     keyboard_layout* temp_layout = new keyboard_layout();
     // try to read the layout for the specified codepage
@@ -1505,7 +1542,9 @@ Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage) {
     loaded_layout = temp_layout;
     return KEYB_NOERROR;
 }
+#endif
 
+#if !defined(OSFREE)
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile) {
     // try to read the layout for the specified codepage
     int32_t oldcp = dos.loaded_codepage;
@@ -1517,15 +1556,19 @@ Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile) {
     // Everything went fine
     return KEYB_NOERROR;
 }
+#endif
 
 // get currently loaded layout name (NULL if no layout is loaded)
 const char* DOS_GetLoadedLayout(void) {
+#if !defined(OSFREE)
 	if (loaded_layout) {
 		return loaded_layout->get_layout_name();
 	}
+#endif
 	return NULL;
 }
 
+#if !defined(OSFREE)
 class DOS_KeyboardLayout: public Module_base {
 public:
 	DOS_KeyboardLayout(Section* configuration):Module_base(configuration){
@@ -1835,16 +1878,22 @@ public:
 		}
 	}
 };
+#endif
 
+#if !defined(OSFREE)
 static DOS_KeyboardLayout* test;
+#endif
 
+#if !defined(OSFREE)
 void DOS_KeyboardLayout_ShutDown(Section* /*sec*/) {
 	if (test != NULL) {
 		delete test;
 		test = NULL;
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_KeyboardLayout_Startup(Section* sec) {
     (void)sec;//UNUSED
 	if (test == NULL) {
@@ -1852,7 +1901,9 @@ void DOS_KeyboardLayout_Startup(Section* sec) {
 		test = new DOS_KeyboardLayout(control->GetSection("dos"));
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void DOS_KeyboardLayout_Init() {
 	LOG(LOG_DOSMISC,LOG_DEBUG)("Initializing DOS keyboard layout emulation");
 
@@ -1860,17 +1911,24 @@ void DOS_KeyboardLayout_Init() {
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_ShutDown));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_ShutDown));
 }
+#endif
 
+#if !defined(OSFREE)
 static const std::set<int> supportedCodepages =
 {
 	437, 737, 775, 808, 850, 852, 853, 855, 856, 857, 858, 859, 860, 861, 862, 863, 864, 865, 866, 867, 868, 869, 872, 874,
 	932, 936, 949, 950, 951, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258, 3021
 };
+#endif
 
 bool isSupportedCP(int cp)
 {
+#if !defined(OSFREE)
 	if (supportedCodepages.count(cp)) return true;
 	if (customcp && cp==customcp) return true;
 	if (altcp && cp==altcp) return true;
 	return false;
+#else
+	return true;
+#endif
 }
