@@ -1145,38 +1145,58 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 	if (upxfound) {
 		if (size_of_cpxdata>0xfe00) E_Exit("Size of cpx-compressed data too big");
 
-		found_at_pos+=19;
-		// prepare for direct decompression
-		cpi_buf[found_at_pos]=0xcb;
-
+		// how much is available?
 		uint16_t seg=0;
-		uint16_t size=0x1500;
-		if (!DOS_AllocateMemory(&seg, &size)) E_Exit("Not enough free low memory to unpack data");
-		MEM_BlockWrite(((unsigned int)seg<<4u)+0x100u,cpi_buf,size_of_cpxdata);
+		uint16_t size=DOS_GetMaximumFreeSize(0xA000/*whatever is available*/);
 
-		// setup segments
-		uint16_t save_ds=SegValue(ds);
-		uint16_t save_es=SegValue(es);
-		uint16_t save_ss=SegValue(ss);
-		uint32_t save_esp=reg_esp;
-		SegSet16(ds,seg);
-		SegSet16(es,seg);
-		SegSet16(ss,seg+0x1000);
-		reg_esp=0xfffe;
+		if (((size<<4ul)+0x4000) >= size_of_cpxdata) {
+			found_at_pos+=19;
+			// prepare for direct decompression
+			cpi_buf[found_at_pos]=0xcb;
 
-		// let UPX unpack the file
-		CALLBACK_RunRealFar(seg,0x100);
+			if (!DOS_AllocateMemory(&seg, &size/*does not actually modify the value*/)) E_Exit("Not enough free low memory to unpack data");
+			MEM_BlockWrite(((unsigned int)seg<<4u)+0x100u,cpi_buf,size_of_cpxdata);
 
-		SegSet16(ds,save_ds);
-		SegSet16(es,save_es);
-		SegSet16(ss,save_ss);
-		reg_esp=save_esp;
+			// setup segments
+			uint16_t save_ds=SegValue(ds);
+			uint16_t save_es=SegValue(es);
+			uint16_t save_ss=SegValue(ss);
+			uint32_t save_esp=reg_esp;
 
-		// get unpacked content
-		MEM_BlockRead(((unsigned int)seg<<4u)+0x100u,cpi_buf,65536u);
-		cpi_buf_size=65536;
+			uint16_t stackseg = seg;
+			reg_esp = (size << 4u) - 4u; /* 0xFFFC if the full 64KB */
+			if (size > 0x1000) {
+				stackseg += size - 0x1000;
+				reg_esp -= (size - 0x1000) << 4u;
+			}
 
-		DOS_FreeMemory(seg);
+			SegSet16(ds,seg);
+			SegSet16(es,seg);
+			SegSet16(ss,stackseg);
+
+			// DEBUG
+			LOG(LOG_DOSMISC,LOG_DEBUG)("Executing CPI/CPX file to decompress it (UPX) seg=%04x-%04x SS:SP=%04x:%04x",
+				(unsigned int)seg,(unsigned int)(seg+size-1u),
+				(unsigned int)stackseg,(unsigned int)reg_esp);
+
+			// let UPX unpack the file
+			CALLBACK_RunRealFar(seg,0x100);
+
+			SegSet16(ds,save_ds);
+			SegSet16(es,save_es);
+			SegSet16(ss,save_ss);
+			reg_esp=save_esp;
+
+			// get unpacked content
+			MEM_BlockRead(((unsigned int)seg<<4u)+0x100u,cpi_buf,65536u);
+			cpi_buf_size=65536;
+
+			DOS_FreeMemory(seg);
+		}
+		else {
+			LOG(LOG_DOSMISC,LOG_WARN)("Insufficient memory to load CPI/CPX file");
+			return KEYB_INVALIDCPFILE;
+		}
 	}
 
 
