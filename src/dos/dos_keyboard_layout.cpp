@@ -1184,6 +1184,9 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 				reg_esp -= (size - 0x1000) << 4u;
 			}
 
+			// clear error flag
+			real_writeb(seg,0xFF,0);
+
 			// NTS: This code is run with no real PSP segment anyway, use memory address [0xFF] to signal an error
 			real_writeb(seg,size_of_cpxdata+0x100,0xB8); // MOV AX,<seg>
 			real_writew(seg,size_of_cpxdata+0x101,seg);
