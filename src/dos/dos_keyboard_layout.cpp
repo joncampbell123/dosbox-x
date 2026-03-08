@@ -923,6 +923,8 @@ void initcodepagefont() {
 	}
 }
 
+extern Bitu call_stop,call_default;
+
 Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t codepage_id) {
 	char cp_filename[512];
 	strcpy(cp_filename, codepage_file_name);
@@ -1170,6 +1172,23 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 				reg_esp -= (size - 0x1000) << 4u;
 			}
 
+			// NTS: This code is run with no real PSP segment anyway, use memory address [0xFF] to signal an error
+			real_writeb(seg,size_of_cpxdata+0x100,0xB8); // MOV AX,<seg>
+			real_writew(seg,size_of_cpxdata+0x101,seg);
+			real_writew(seg,size_of_cpxdata+0x103,0xD88E); // MOV DS,AX
+			real_writew(seg,size_of_cpxdata+0x105,0x06C6); // MOV BYTE [FF],AA
+			real_writew(seg,size_of_cpxdata+0x107,0x00FF);
+			real_writeb(seg,size_of_cpxdata+0x109,0xAA);
+			real_writeb(seg,size_of_cpxdata+0x10A,0xEA); // JMP FAR <the stop callback>
+			real_writed(seg,size_of_cpxdata+0x10B,CALLBACK_RealPointer(call_stop));
+
+			// NTS: If the code determines from SP there is insufficient space, it will exit using INT 20h
+			//      This code makes no attempt to set up a PSP segment for this code, so it is necessary
+			//      to direct INT 20h at the RETF instruction we just wrote abpve while running the code
+			//      to prevent the termination handler from jumping off into the weeds.
+			const uint32_t pint20 = real_readd(0,0x20*4); // save INT 20h
+			real_writed(0,0x20*4,RealMake(seg,size_of_cpxdata+0x100u));
+
 			SegSet16(ds,seg);
 			SegSet16(es,seg);
 			SegSet16(ss,stackseg);
@@ -1187,6 +1206,15 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 			SegSet16(ss,save_ss);
 			reg_esp=save_esp;
 
+			// restore INT 20h
+			real_writed(0,0x20*4,pint20);
+
+			// was there an error?
+			if (real_readb(seg,0xFF) == 0xAA) {
+				LOG(LOG_DOSMISC,LOG_WARN)("CPI/CPX file aborted using INT 20h");
+				return KEYB_INVALIDCPFILE;
+			}
+
 			// get unpacked content
 			MEM_BlockRead(((unsigned int)seg<<4u)+0x100u,cpi_buf,65536u);
 			cpi_buf_size=65536;
@@ -1201,6 +1229,10 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 
 
 	start_pos=host_readd(&cpi_buf[0x13]);
+	if (start_pos >= 0xFFFF) { // Without this check, invalid values can *CRASH* this emulator with a segfault
+		LOG(LOG_DOSMISC,LOG_WARN)("CPI/CPX start_pos out of range");
+		return KEYB_INVALIDCPFILE;
+	}
 	number_of_codepages=host_readw(&cpi_buf[start_pos]);
 	start_pos+=4;
 
