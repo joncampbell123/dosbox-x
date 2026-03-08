@@ -4630,6 +4630,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 }
 #endif
 
+#if !defined(OSFREE)
 extern bool jfont_init, finish_prepare, isDBCSCP();
 extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
@@ -4704,10 +4705,13 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     }
     return -1;
 }
+#endif
 
+#if !defined(OSFREE)
 const char* DOS_GetLoadedLayout(void);
 Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage);
+#endif
 
 #if !defined(OSFREE)
 void DOS_Shell::CMD_CHCP(char * args) {
