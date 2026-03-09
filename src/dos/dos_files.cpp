@@ -207,7 +207,9 @@ bool DOS_GetFileAttrEx(char const* const name, struct stat *status, uint8_t hdri
 	return Drives[usehdrive?hdrive:drive]->GetFileAttrEx(fullname, status);
 }
 
+#if !defined(OSFREE)
 #include "dos_network2.h"
+#endif
 
 uint8_t DOS_GetDefaultDrive(void) {
 //	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
