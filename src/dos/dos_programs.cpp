@@ -1024,7 +1024,7 @@ void MenuBrowseProgramFile() {
 #endif
 }
 
-#if !defined(OSFREE) || 1/*Debug testing only, must be disabled in official builds*/
+#if !defined(OSFREE)
 class MOUNT : public Program {
 public:
     std::vector<std::string> options;
@@ -9649,7 +9649,7 @@ void Add_VFiles(bool usecp) {
 	PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
 	PROGRAMS_MakeFile("IMGSWAP.COM", IMGSWAP_ProgramStart,"/SYSTEM/");
 #endif
-#if !defined(OSFREE) || 1/*Debug testing only, must be disabled in official builds*/
+#if !defined(OSFREE)
 	PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
 #endif
 	PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
