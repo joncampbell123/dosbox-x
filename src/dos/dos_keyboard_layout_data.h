@@ -24,6 +24,7 @@
    wrapped in a KL file (for use of FD-KEYB 2.X)
    Copyright (C) 2004 by Aitor SANTAMARIA_MERINO */
 
+#if !defined(OSFREE)
 static const unsigned char bin_KEYBOARD_SYS[] = {
 	0x4B,0x43,0x46,0x00,0x01,0x01,0x33,0x4A,0x69,0x72,0x69,
 	0x20,0x4D,0x61,0x6C,0x61,0x6B,0xFF,0x46,0x72,0x65,0x65,
@@ -10552,3 +10553,4 @@ struct BuiltinFileBlob bfb_KEYBRD4_SYS = {
 	/*data*/			bin_KEYBRD4_SYS,
 	/*length*/			sizeof(bin_KEYBRD4_SYS)
 };
+#endif

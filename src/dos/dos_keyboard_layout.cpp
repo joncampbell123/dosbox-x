@@ -34,8 +34,10 @@
 #include "control.h"
 #include "render.h"
 #include "jfont.h"
+#if !defined(OSFREE)
 #include "dos_codepages.h"
 #include "dos_keyboard_layout_data.h"
+#endif
 #include "sdlmain.h"
 
 #if defined (WIN32)
