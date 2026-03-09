@@ -1013,6 +1013,7 @@ void DOS_FlushSTDIN(void) {
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
 
+#if !defined(OSFREE)
     /* NTS to ognjenmi: Your INT 21h logging patch was modified to log ALL INT 21h calls (the original
      *                  placement put it after the ignore case below), and is now conditional on
      *                  whether INT 21h logging is enabled. Also removed unnecessary copying of reg_al
@@ -1020,7 +1021,9 @@ static Bitu DOS_21Handler(void) {
     if (log_int21) {
         LOG(LOG_DOSMISC, LOG_DEBUG)("Executing interrupt 21, ah=%x, al=%x", reg_ah, reg_al);
     }
+#endif
 
+#if !defined(OSFREE)
     /* Real MS-DOS behavior:
      *   If HIMEM.SYS is loaded and CONFIG.SYS says DOS=HIGH, DOS will load itself into the HMA area.
      *   To prevent crashes, the INT 21h handler down below will enable the A20 gate before executing
@@ -1031,7 +1034,11 @@ static Bitu DOS_21Handler(void) {
         else
             XMS_DOS_LocalA20EnableIfNotEnabled();
     }
+#else
+    XMS_DOS_LocalA20EnableIfNotEnabled();
+#endif
 
+#if !defined(OSFREE)
     if (((reg_ah != 0x50) && (reg_ah != 0x51) && (reg_ah != 0x62) && (reg_ah != 0x64)) && (reg_ah<0x6c)) {
         DOS_PSP psp(dos.psp());
         psp.SetStack(RealMake(SegValue(ss),reg_sp-18));
@@ -1046,6 +1053,7 @@ static Bitu DOS_21Handler(void) {
         real_writew(SegValue(ss), reg_sp - 4, SegValue(ds));
         real_writew(SegValue(ss), reg_sp - 2, SegValue(es));
     }
+#endif
 
     if (reg_ah == 0x06 || reg_ah == 0x07) {
         /* does not check CTRL+BREAK. Some DOS programs do not expect to be interrupted with INT 23h if they read */
@@ -2548,6 +2556,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
             }
+#if !defined(OSFREE)
         case 0x5d:                  /* Network Functions */
             if(reg_al == 0x00) {
                 LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:5D:00:Remote Server Call");
@@ -2580,6 +2589,8 @@ static Bitu DOS_21Handler(void) {
                 LOG(LOG_DOSMISC,LOG_ERROR)("DOS:5D:Unsupported subfunction %X",reg_al);
             }
             break;
+#endif
+#if !defined(OSFREE)
         case 0x5e:                  /* Network and printer functions */
         {
             bool net = false;
@@ -2620,6 +2631,8 @@ static Bitu DOS_21Handler(void) {
             CALLBACK_SCF(true);
             break;
         }
+#endif
+#if !defined(OSFREE)
         case 0x5f:                  /* Network redirection */
 #if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
             switch(reg_al)
@@ -2667,7 +2680,8 @@ static Bitu DOS_21Handler(void) {
             reg_ax=0x0001;          //Failing it
             CALLBACK_SCF(true);
 #endif
-            break; 
+            break;
+#endif
         case 0x60:                  /* Canonicalize filename or path */
             MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
             if (DOS_Canonicalize(name1,name2)) {
@@ -2678,11 +2692,14 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
             }
             break;
+#if !defined(OSFREE)
         case 0x61:                  /* Unused (reserved for network use) */
             goto default_fallthrough;
+#endif
         case 0x62:                  /* Get Current PSP Address */
             reg_bx=dos.psp();
             break;
+#if !defined(OSFREE)
         case 0x63:                  /* DOUBLE BYTE CHARACTER SET */
             if(reg_al == 0 && dos.tables.dbcs != 0) {
                 SegSet16(ds,RealSeg(dos.tables.dbcs));
@@ -2691,9 +2708,11 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(false); //undocumented
             } else reg_al = 0xff; //Doesn't officially touch carry flag
             break;
+#endif
         case 0x64:                  /* Set device driver lookahead flag */
             LOG(LOG_DOSMISC,LOG_NORMAL)("set driver look ahead flag");
             break;
+#if !defined(OSFREE)
         case 0x65:                  /* Get extended country information and a lot of other useless shit*/
             { /* Todo maybe fully support this for now we set it standard for USA */ 
                 LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:65:Extended country information call %X",reg_ax);
@@ -2823,6 +2842,7 @@ static Bitu DOS_21Handler(void) {
                 }
                 break;
             }
+#endif
         case 0x66:                  /* Get/Set global code page table  */
             switch (reg_al)
             {
@@ -2940,8 +2960,10 @@ static Bitu DOS_21Handler(void) {
         case 0x6a:                  /* Commit file */
             // Note: Identical to AH=68h in DOS 5.0-6.0; not known whether this is the case in DOS 4.x
             goto case_0x68_fallthrough;
+#if !defined(OSFREE)
         case 0x6b:                  /* NULL Function */
             goto default_fallthrough;
+#endif
         case 0x6c:                  /* Extended Open/Create */
             MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
             if (DOS_OpenFileExtended(name1,reg_bx,reg_cx,reg_dx,&reg_ax,&reg_cx)) {
@@ -2951,12 +2973,14 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
             }
             break;
+#if !defined(OSFREE)
         case 0x6d:                  /* ROM - Find first ROM program */
             LOG(LOG_DOSMISC, LOG_ERROR)("DOS:ROM - Find first ROM program not implemented");
             goto default_fallthrough;
         case 0x6e:                  /* ROM - Find next ROM program */
             LOG(LOG_DOSMISC, LOG_ERROR)("DOS:ROM - Find next ROM program not implemented");
             goto default_fallthrough;
+#endif
         case 0x6f:                  /* ROM functions */
             LOG(LOG_DOSMISC, LOG_ERROR)("DOS:6F ROM functions not implemented");
             goto default_fallthrough;
