@@ -1046,6 +1046,7 @@ bool CDROM_Interface_Image::CanReadPVD(TrackFile *file, int sectorSize, bool mod
 		(pvd[8] == 1 && !strncmp((char*)(&pvd[9]), "CDROM", 5) && pvd[14] == 1))
 			return true; // At least ISO 9660 compliant
 
+#if !defined(OSFREE)
 	// Hm, maybe the ISO image is pure UDF
 	seek = 256 * sectorSize;	// anchor volume descriptor pointer at sector 256
 	if ((sectorSize == RAW_SECTOR_SIZE || sectorSize == 2448) && !mode2) seek += 16;
@@ -1059,6 +1060,7 @@ bool CDROM_Interface_Image::CanReadPVD(TrackFile *file, int sectorSize, bool mod
 				return true; // The ISO image is pure UDF
 		}
 	}
+#endif
 
 	return false;
 }
