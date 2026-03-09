@@ -248,7 +248,9 @@ bool                gbk = false;
 bool                chinasea = false;
 bool                uao = false;
 bool                jp_ega = false;
+#if !defined(OSFREE)
 bool                j3100_start = false;
+#endif
 bool                want_fm_towns = false;
 
 bool                dos_con_use_int16_to_detect_input = true;
@@ -1260,7 +1262,10 @@ void DOSBOX_RealInit() {
 
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
+#if !defined(OSFREE)
     dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_tdosv_enabled = dos.set_j3100_enabled = j3100_start = false;
+#endif
+#if !defined(OSFREE)
     Section_prop *dosv_section = static_cast<Section_prop *>(control->GetSection("dosv"));
     const char *dosvstr = dosv_section->Get_string("dosv");
     del_flag = dosv_section->Get_bool("del");
@@ -1277,10 +1282,14 @@ void DOSBOX_RealInit() {
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
     if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
     if (!strcasecmp(dosvstr, "cht")||!strcasecmp(dosvstr, "tw")) dos.set_tdosv_enabled = true;
+#endif
+#if !defined(OSFREE)
     if (machine != MCH_VGA || want_fm_towns) {
         LOG_MSG("WARNING: DOS/V is only supported for VGA video cards.");
         dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_tdosv_enabled = false;
     }
+#endif
+#if !defined(OSFREE)
     int cp = dos.loaded_codepage;
     if (!cp) InitCodePage();
 #if defined(USE_TTF)
@@ -1294,6 +1303,7 @@ void DOSBOX_RealInit() {
         if (IS_DOSV) DOSV_SetConfig(dosv_section);
 #endif
     }
+#endif
     Section_prop *ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
     gbk = ttf_section->Get_bool("gbk");
     chinasea = ttf_section->Get_bool("chinasea");
@@ -1302,7 +1312,9 @@ void DOSBOX_RealInit() {
         makestdcp950table();
         makeseacp951table();
     }
+#if !defined(OSFREE)
     dos.loaded_codepage = cp;
+#endif
     if (!tonoime) SetIME();
 #if defined(USE_TTF)
     if (IS_PC98_ARCH) ttf.cols = 80; // The number of columns on the screen is apparently fixed to 80 in PC-98 mode at this time

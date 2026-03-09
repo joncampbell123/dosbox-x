@@ -72,7 +72,10 @@ static bool first_run=true;
 bool sync_time = false, manualtime = false;
 extern std::string log_dev_con_str;
 extern const char* RunningProgram;
-extern bool use_quick_reboot, j3100_start;
+extern bool use_quick_reboot;
+#if !defined(OSFREE)
+extern bool j3100_start;
+#endif
 extern bool enable_config_as_shell_commands;
 extern bool checkwat, loadlang, pcibus_enable;
 extern bool log_int21, log_fileio, pipetmpdev;
@@ -4704,12 +4707,14 @@ public:
 		if(IS_DOSV) {
 #endif
 			DOSV_Setup();
+#if !defined(OSFREE)
 			if(IS_J3100 && j3100_start) {
 				INT10_SetVideoMode(0x74);
 				SetTrueVideoMode(0x74);
 			} else if(IS_DOSV) {
 				INT10_DOSV_SetCRTBIOSMode(0x03);
 			}
+#endif
 		}
 
 #if !defined(OSFREE)
