@@ -862,11 +862,13 @@ nextfile:
 	readSector(tmpsector,sectbuf);
 	dirPos++;
 
+#if !defined(OSFREE)
 	if (dos.version.major >= 7 || uselfn) {
 		/* skip LFN entries */
 		if ((sectbuf[entryoffset].attrib & 0x3F) == 0x0F)
 			goto nextfile;
 	}
+#endif
 
 	if (*label != 0) {
 		/* adding a volume label */
@@ -2570,6 +2572,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, uint16_t attributes
 		/* Can we find the base directory? */
 		if(!getDirClustNum(name, &dirClust, true)) return false;
 
+#if !defined(OSFREE)
 		/* NTS: "name" is the full relative path. For LFN creation to work we need only the final element of the path */
 		if (uselfn && !force_sfn) {
 			lfn = strrchr_dbcs((char *)name,'\\');
@@ -2589,6 +2592,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, uint16_t attributes
 			} else
 				lfn = NULL;
 		}
+#endif
 
 		memset(&fileEntry, 0, sizeof(direntry));
 		memcpy(&fileEntry.entryname, &pathName[0], 11);
@@ -2687,6 +2691,7 @@ bool fatDrive::FileUnlink(const char * name) {
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false; /* Do not use dirOk, DOS should never call this unless a file */
 	lfnRange_t dir_lfn_range = lfnRange; /* copy down LFN results before they are obliterated by the next call to FindNextInternal. */
 
+#if !defined(OSFREE)
 	/* delete LFNs */
 	if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
 		/* last LFN entry should be fileidx */
@@ -2699,6 +2704,7 @@ bool fatDrive::FileUnlink(const char * name) {
 			}
 		}
 	}
+#endif
 
 	/* remove primary 8.3 SFN */
 	fileEntry.entryname[0] = 0xe5;
@@ -2993,14 +2999,17 @@ nextfile:
 
 	//TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
 	if (attrs == DOS_ATTR_VOLUME) {
+#if !defined(OSFREE)
 		if (dos.version.major >= 7 || uselfn) {
 			/* skip LFN entries */
 			if ((sectbuf[entryoffset].attrib & 0x3F) == 0x0F)
 				goto nextfile;
 		}
+#endif
 
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) || !VolumeLabelCmp((const char*)sectbuf[entryoffset].entryname, srch_pattern)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
+#if !defined(OSFREE)
 	} else if ((dos.version.major >= 7 || uselfn) && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
 		struct direntry_lfn *dlfn = (struct direntry_lfn*)(&sectbuf[entryoffset]);
 
@@ -3086,6 +3095,7 @@ nextfile:
 		}
 
 		goto nextfile;
+#endif
 	} else {
 		if (~attrs & sectbuf[entryoffset].attrib & (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME) ) {
 			lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
@@ -3420,6 +3430,7 @@ bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEnt
 						}
 						readSector(tmpsector,sectbuf);
 
+#if !defined(OSFREE)
 						direntry_lfn *dlfn = (direntry_lfn*)(&sectbuf[entryoffset]);
 
 						memset(dlfn,0,sizeof(*dlfn));
@@ -3431,6 +3442,7 @@ bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEnt
 						for (unsigned int i=0;i < 5;i++) dlfn->LDIR_Name1[i] = lfnbuf[lfnsrc++];
 						for (unsigned int i=0;i < 6;i++) dlfn->LDIR_Name2[i] = lfnbuf[lfnsrc++];
 						for (unsigned int i=0;i < 2;i++) dlfn->LDIR_Name3[i] = lfnbuf[lfnsrc++];
+#endif
 
 						writeSector(tmpsector,sectbuf);
 						dirPos++;
@@ -3500,6 +3512,7 @@ bool fatDrive::MakeDir(const char *dir) {
 
 	if(!allocateCluster(dummyClust, 0)) return false;
 
+#if !defined(OSFREE)
 	/* NTS: "dir" is the full relative path. For LFN creation to work we need only the final element of the path */
 	if (uselfn && !force_sfn) {
 		lfn = strrchr_dbcs((char *)dir,'\\');
@@ -3519,6 +3532,7 @@ bool fatDrive::MakeDir(const char *dir) {
 		} else
 			lfn = NULL;
 	}
+#endif
 
 	zeroOutCluster(dummyClust);
 
@@ -3618,6 +3632,7 @@ bool fatDrive::RemoveDir(const char *dir) {
 	/* Return if directory is not empty */
 	if(filecount > 0) return false;
 
+#if !defined(OSFREE)
 	/* delete LFNs */
 	if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
 		/* last LFN entry should be fileidx */
@@ -3630,6 +3645,7 @@ bool fatDrive::RemoveDir(const char *dir) {
 			}
 		}
 	}
+#endif
 
 	/* remove primary 8.3 entry */
 	if (!directoryBrowse(dirClust, &tmpentry, subEntry)) return false;
@@ -3680,6 +3696,7 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 	/* Can we find the base directory of the new name? (we know the parent dir of oldname in dirClust1) */
 	if(!getDirClustNum(newname, &dirClust2, true)) return false;
 
+#if !defined(OSFREE)
 	/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
 	if (uselfn && !force_sfn) {
 		lfn = strrchr_dbcs((char *)newname,'\\');
@@ -3704,6 +3721,7 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 		} else
 			lfn = NULL;
 	}
+#endif
 
 	/* add new dirent */
 	memcpy(&fileEntry2, &fileEntry1, sizeof(direntry));
@@ -3714,6 +3732,7 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 	fileEntry1.entryname[0] = 0xe5;
 	directoryChange(dirClust1, &fileEntry1, (int32_t)subEntry1);
 
+#if !defined(OSFREE)
 	/* remove LFNs of old entry only if emulating LFNs or DOS version 7.0.
 	 * Earlier DOS versions ignore LFNs. */
 	if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
@@ -3727,6 +3746,7 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 			}
 		}
 	}
+#endif
 
 	return true;
 }
