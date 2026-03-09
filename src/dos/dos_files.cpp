@@ -2589,10 +2589,12 @@ void POD_Load_DOS_Files( std::istream& stream )
                     if (Drives[lcv]) {
                         DOS_EnableDriveMenu('A'+lcv);
                         mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
+#if !defined(OSFREE)
                         if (strlen(overlaydir)) {
                             uint8_t error = 0;
                             Drives[lcv]=new Overlay_Drive(dynamic_cast<localDrive*>(Drives[lcv])->getBasedir(),overlaydir,oalloc.bytes_sector,oalloc.sectors_cluster,oalloc.total_clusters,oalloc.free_clusters,oalloc.mediaid,error,options);
                         }
+#endif
                     } else
                         LOG_MSG("Error: Cannot restore drive from directory %s\n", dinfo+16);
                 } else if (!strncmp(dinfo,"CDRom ",6) || !strncmp(dinfo,"PhysFS CDRom ",13)) {

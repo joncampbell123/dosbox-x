@@ -1577,6 +1577,7 @@ public:
                         return;
                     }
                 } else if(type == "overlay") {
+#if !defined(OSFREE)
                   physfsDrive* pdp = dynamic_cast<physfsDrive*>(Drives[drive-'A']);
                   physfscdromDrive* pcdp = dynamic_cast<physfscdromDrive*>(Drives[drive-'A']);
                   if (pdp && !pcdp) {
@@ -1630,6 +1631,10 @@ public:
                       if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_ERROR"));
                       return;
                   }
+#else
+                  WriteOut("overlay fs not supported\n");
+                  return;
+#endif
               } else {
                     newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
                     newdrive->nocachedir = nocachedir;
