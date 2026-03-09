@@ -76,7 +76,9 @@ int Reflect_Menu(void);
 void SetIMPosition(void);
 void SetKEYBCP();
 void initRand();
+#if !defined(OSFREE)
 void initcodepagefont(void);
+#endif
 void runMount(const char *str);
 void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
@@ -933,20 +935,21 @@ void DOS_Shell::Prepare(void) {
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 		bool startbanner = section->Get_bool("startbanner");
 		first_shell->perm = section->Get_bool("shell permanent");
+#if !defined(OSFREE)
 		if (!countryNo) {
-#if defined(WIN32)
+# if defined(WIN32)
 			char buffer[128];
-#endif
+# endif
 			if (IS_PC98_ARCH || IS_JEGA_ARCH)
 				countryNo = 81;
 			else if (IS_DOSV)
 				countryNo = IS_PDOSV?86:(IS_TDOSV?886:(IS_KDOSV?82:81));
-#if defined(WIN32)
+# if defined(WIN32)
 			else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 				countryNo = uint16_t(atoi(buffer));
 				DOS_SetCountry(countryNo);
 			}
-#endif
+# endif
 			else {
 				const char *layout = DOS_GetLoadedLayout();
 				if (layout == NULL)
@@ -958,6 +961,7 @@ void DOS_Shell::Prepare(void) {
 				DOS_SetCountry(countryNo);
 			}
 		}
+#endif
 		section = static_cast<Section_prop *>(control->GetSection("dos"));
 		bool zdirpath = section->Get_bool("drive z expand path");
 		std::string layout = section->Get_string("keyboardlayout");
