@@ -156,7 +156,7 @@ int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 bool auto_repair_dos_psp_mcb_corruption = false;
 bool dos_break_int3 = false;
-int dos_sda_size = 0x560;
+int dos_sda_size = 0;
 int dos_clipboard_device_access;
 const char *dos_clipboard_device_name;
 const char dos_clipboard_device_default[]="CLIP$";
