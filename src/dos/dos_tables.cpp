@@ -260,6 +260,7 @@ PhysPt DOS_Get_DPB(unsigned int dos_drive) {
     return PhysMake(dos.tables.dpb,dos_drive*dos.tables.dpb_size);
 }
 
+#if !defined(OSFREE)
 void SetupDBCSTable() {
     if (enable_dbcs_tables) {
         if (!dos.tables.dbcs) dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
@@ -298,6 +299,7 @@ void SetupDBCSTable() {
     if(dos.loaded_codepage == 950 && !chinasea) makestdcp950table();
     else if(dos.loaded_codepage == 951 && chinasea) makeseacp951table();
 }
+#endif
 
 uint16_t seg_win_startup_info;
 
@@ -385,10 +387,13 @@ void DOS_SetupTables(void) {
 	real_writed(seg,0x00,0x005c3a43);
 	dos_infoblock.SetCurDirStruct(RealMake(seg,0));
 
-    /* Allocate DBCS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
-    dos.tables.dbcs = 0;
-    SetupDBCSTable();
+	/* Allocate DBCS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
+	dos.tables.dbcs = 0;
+#if !defined(OSFREE)
+	SetupDBCSTable();
+#endif
 
+#if !defined(OSFREE)
 	/* FILENAME CHARACTER TABLE */
 	if (enable_filenamechar) {
 		dos.tables.filenamechar=RealMake(DOS_GetMemory(2,"dos.tables.filenamechar"),0);
@@ -416,9 +421,13 @@ void DOS_SetupTables(void) {
 		mem_writeb(Real2Phys(dos.tables.filenamechar)+0x16,0x3b);
 		mem_writeb(Real2Phys(dos.tables.filenamechar)+0x17,0x2c);
 	}
-	else {
+	else
+#endif
+	{
 		dos.tables.filenamechar = 0;
 	}
+
+#if !defined(OSFREE)
 	/* COLLATING SEQUENCE TABLE + UPCASE TABLE*/
 	// 256 bytes for col table, 128 for upcase, 4 for number of entries
 	if (enable_collating_uppercase) {
@@ -429,7 +438,9 @@ void DOS_SetupTables(void) {
 		mem_writew(Real2Phys(dos.tables.upcase),0x80);
 		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,(uint8_t)0x80+i);
 	}
-	else {
+	else
+#endif
+	{
 		dos.tables.collatingseq = 0;
 		dos.tables.upcase = 0;
 	}

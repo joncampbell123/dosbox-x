@@ -139,9 +139,9 @@ bool dos_in_hma = true;
 bool dos_umb = true;
 bool DOS_BreakFlag = false;
 bool DOS_BreakConioFlag = false;
-bool enable_dbcs_tables = true;
-bool enable_share_exe = true;
-bool enable_filenamechar = true;
+bool enable_dbcs_tables = false;
+bool enable_share_exe = false;
+bool enable_filenamechar = false;
 bool shell_keyboard_flush = true;
 bool freed_mcb_allocate_on_resize = true;
 bool enable_network_redirector = true;
@@ -2831,6 +2831,7 @@ static Bitu DOS_21Handler(void) {
                     reg_bx=reg_dx=dos.loaded_codepage;
                     CALLBACK_SCF(false);
                     break;
+#if !defined(OSFREE)
                 case 2:
                 {
 #if defined(USE_TTF)
@@ -2888,6 +2889,7 @@ static Bitu DOS_21Handler(void) {
                     CALLBACK_SCF(false);
                     break;
                 }
+#endif
                 default:
                     dos.errorcode = 1;
                     reg_ax = dos.errorcode;
@@ -3506,7 +3508,7 @@ static Bitu DOS_26Handler(void) {
 }
 
 bool private_segment_write_protect = false;
-bool enable_collating_uppercase = true;
+bool enable_collating_uppercase = false;
 bool keep_private_area_on_boot = false;
 bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
