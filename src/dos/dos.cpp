@@ -96,7 +96,7 @@ std::string GetDOSBoxXPath(bool withexe=false);
 #if !defined(OSFREE)
 extern std::string prefix_local, prefix_overlay;
 #endif
-bool a20_off_if_loading_low=true;
+bool a20_off_if_loading_low = false;
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -4202,7 +4202,7 @@ public:
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
-		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
+		//dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
