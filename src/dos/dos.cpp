@@ -93,7 +93,9 @@ void ResolvePath(std::string& in);
 bool SwitchLanguage(int oldcp, int newcp, bool confirm);
 void makestdcp950table(), makeseacp951table();
 std::string GetDOSBoxXPath(bool withexe=false);
+#if !defined(OSFREE)
 extern std::string prefix_local, prefix_overlay;
+#endif
 bool a20_off_if_loading_low=true;
 
 int ascii_toupper(int c) {
@@ -4109,7 +4111,9 @@ public:
 			::floppy_data_rate = 22400; // 175 kbps
 		}
 		std::string prefix = section->Get_string("special operation file prefix");
+#if !defined(OSFREE)
 		if (prefix.size()) prefix_local = prefix + prefix_local.substr(3), prefix_overlay = prefix + prefix_overlay.substr(3);
+#endif
 
 		maxfcb=100;
 		DOS_FILES=200;

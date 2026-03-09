@@ -1186,6 +1186,7 @@ private:
 
 class Overlay_Drive: public localDrive {
 public:
+#if !defined(OSFREE)
 	Overlay_Drive(const char * startdir,const char* overlay, uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid,uint8_t &error, std::vector<std::string> &options);
 
 	bool FileOpen(DOS_File * * file,const char * name,uint32_t flags) override;
@@ -1206,10 +1207,22 @@ public:
 	bool TestDir(const char * dir) override;
 	bool RemoveDir(const char * dir) override;
 	bool MakeDir(const char * dir) override;
+#endif
+#if !defined(OSFREE)
 	const char* getOverlaydir() const {return overlaydir;};
+#else
+	const char* getOverlaydir() const {return "";};
+#endif
+#if !defined(OSFREE)
 	bool ovlnocachedir = false;
+#endif
+#if !defined(OSFREE)
 	bool ovlreadonly = false;
+#else
+	static constexpr bool ovlreadonly = false;
+#endif
 private:
+#if !defined(OSFREE)
 	char overlaydir[CROSS_LEN];
 	bool optimize_cache_v1;
 	bool Sync_leading_dirs(const char* dos_filename);
@@ -1241,6 +1254,7 @@ private:
 	std::vector<std::string> DOSnames_cache; //Also set is probably better.
 	std::vector<std::string> DOSdirs_cache; //Can not blindly change its type. it is important that subdirs come after the parent directory.
 	const std::string special_prefix;
+#endif
 };
 
 int get_expanded_files(const std::string &path, std::vector<std::string> &paths, bool readonly);

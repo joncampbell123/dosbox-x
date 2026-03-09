@@ -37,11 +37,14 @@
 #include <errno.h>
 
 #define OVERLAY_DIR 1
+
+#if !defined(OSFREE)
 bool logoverlay = false;
 extern int lfn_filefind_handle;
 extern uint16_t ldid[256];
 extern std::string ldir[256];
 std::string prefix_overlay = ".DBOVERLAY";
+#endif
 
 using namespace std;
 
@@ -72,10 +75,13 @@ using namespace std;
 //Either upgrade addentry to support directories. (without actually caching stuff in! (code in testing))
 //Or create an empty directory in local drive base.
 
+#if !defined(OSFREE)
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 char* GetCrossedName(const char *basedir, const char *dir);
 bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::RemoveDir(const char * dir) {
 	if (ovlnocachedir) {
 		dirCache.EmptyCache();
@@ -181,7 +187,9 @@ bool Overlay_Drive::RemoveDir(const char * dir) {
 		return true;
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::MakeDir(const char * dir) {
 	if (ovlnocachedir) {
 		dirCache.EmptyCache();
@@ -287,7 +295,9 @@ bool Overlay_Drive::MakeDir(const char * dir) {
 
 	return (temp == 0);// || ((temp!=0) && (errno==EEXIST));
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::TestDir(const char * dir) {
 	if (ovlnocachedir) {
 		dirCache.EmptyCache();
@@ -315,8 +325,9 @@ bool Overlay_Drive::TestDir(const char * dir) {
 	// Not exclusive to overlay nor marked as deleted. Pass on to LocalDrive
 	return localDrive::TestDir(dir);
 }
+#endif
 
-
+#if !defined(OSFREE)
 class OverlayFile: public LocalFile {
 public:
 	OverlayFile(const char* name, FILE * handle):LocalFile(name,handle){
@@ -345,10 +356,12 @@ public:
 //private:
 	bool overlay_active;
 };
+#endif
 
 //Create leading directories of a file being overlaid if they exist in the original (localDrive).
 //This function is used to create copies of existing files, so all leading directories exist in the original.
 
+#if !defined(OSFREE)
 FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const* mode) {
 	char newname[CROSS_LEN];
 	strcpy(newname,overlaydir); //TODO GOG make part of class and join in 
@@ -433,11 +446,13 @@ FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const
 
 	return f;
 }
+#endif
 
 #ifndef BUFSIZ
 #define BUFSIZ 2048
 #endif
 
+#if !defined(OSFREE)
 bool OverlayFile::create_copy() {
 	//test if open/valid/etc
 	//ensure file position
@@ -466,9 +481,9 @@ bool OverlayFile::create_copy() {
 	//Flags ?
 	return true;
 }
+#endif
 
-
-
+#if !defined(OSFREE)
 static OverlayFile* ccc(DOS_File* file) {
 	LocalFile* l = dynamic_cast<LocalFile*>(file);
 	if (!l) E_Exit("overlay input file is not a LocalFile");
@@ -479,7 +494,9 @@ static OverlayFile* ccc(DOS_File* file) {
 	delete l;
 	return ret;
 }
+#endif
 
+#if !defined(OSFREE)
 Overlay_Drive::Overlay_Drive(const char * startdir,const char* overlay, uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid,uint8_t &error,std::vector<std::string> &options)
 :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options),special_prefix(prefix_overlay.c_str()) {
 	optimize_cache_v1 = true; //Try to not reread overlay files on deletes. Ideally drive_cache should be improved to handle deletes properly.
@@ -516,7 +533,9 @@ Overlay_Drive::Overlay_Drive(const char * startdir,const char* overlay, uint16_t
 
 	update_cache(true);
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::convert_overlay_to_DOSname_in_base(char* dirname ) 
 {
 	dirname[0] = 0;//ensure good return string
@@ -564,7 +583,9 @@ void Overlay_Drive::convert_overlay_to_DOSname_in_base(char* dirname )
 		}
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 	if (ovlnocachedir) {
 		dirCache.EmptyCache();
@@ -663,7 +684,9 @@ bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags)
 	}
 	return fileopened;
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::FileCreate(DOS_File * * file,const char * name,uint16_t /*attributes*/) {
 	if (ovlnocachedir) {
 		dirCache.EmptyCache();
@@ -701,21 +724,27 @@ bool Overlay_Drive::FileCreate(DOS_File * * file,const char * name,uint16_t /*at
 	remove_deleted_file(name,true);
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::add_DOSname_to_cache(const char* name) {
 	for (std::vector<std::string>::const_iterator itc = DOSnames_cache.begin(); itc != DOSnames_cache.end(); ++itc){
 		if (!strcasecmp((*itc).c_str(), name)) return;
 	}
 	DOSnames_cache.push_back(name);
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::remove_DOSname_from_cache(const char* name) {
 	for (std::vector<std::string>::iterator it = DOSnames_cache.begin(); it != DOSnames_cache.end(); ++it) {
 		if (!strcasecmp((*it).c_str(), name)) { DOSnames_cache.erase(it); return;}
 	}
 
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::Sync_leading_dirs(const char* dos_filename){
 	const char* lastdir = strrchr_dbcs((char *)dos_filename,'\\');
 	//If there are no directories, return success.
@@ -769,7 +798,9 @@ bool Overlay_Drive::Sync_leading_dirs(const char* dos_filename){
 
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::update_cache(bool read_directory_contents) {
 	uint32_t a = GetTicks();
 	std::vector<std::string> specials;
@@ -1003,9 +1034,10 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 	}
 	if (logoverlay) LOG_MSG("OPTIMISE: update cache took %d",GetTicks()-a);
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::FindNext(DOS_DTA & dta) {
-
 	char * dir_ent, *ldir_ent;
 	ht_stat_t stat_block;
 	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
@@ -1139,7 +1171,9 @@ again:
 	dta.SetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::FileUnlink(const char * name) {
     if (ovlreadonly) {
         DOS_SetError(DOSERR_WRITE_PROTECTED);
@@ -1246,7 +1280,9 @@ bool Overlay_Drive::FileUnlink(const char * name) {
 		return true;
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::SetFileAttr(const char * name,uint16_t attr) {
 	char overlayname[CROSS_LEN], tmp[CROSS_LEN], overtmpname[CROSS_LEN];
 	strcpy(overlayname,overlaydir);
@@ -1385,7 +1421,9 @@ bool Overlay_Drive::SetFileAttr(const char * name,uint16_t attr) {
 	}
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::GetFileAttr(const char * name,uint16_t * attr) {
 	if (ovlnocachedir) {
 		dirCache.EmptyCache();
@@ -1454,7 +1492,9 @@ bool Overlay_Drive::GetFileAttr(const char * name,uint16_t * attr) {
 	}
 	return localDrive::GetFileAttr(name,attr);
 }
+#endif
 
+#if !defined(OSFREE)
 static std::string hostname = "";
 std::string Overlay_Drive::GetHostName(const char * name) {
 	char overlayname[CROSS_LEN];
@@ -1481,7 +1521,9 @@ std::string Overlay_Drive::GetHostName(const char * name) {
 	hostname = is_deleted_file(name)? "" : localDrive::GetHostName(name);
 	return hostname;
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::add_deleted_file(const char* name,bool create_on_disk) {
 	char tname[CROSS_LEN];
 	strcpy(tname,basedir);
@@ -1502,7 +1544,9 @@ void Overlay_Drive::add_deleted_file(const char* name,bool create_on_disk) {
 		if (create_on_disk) add_special_file_to_disk(name, "DEL");
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value, bool isdir) {
 	std::string name = create_filename_of_special_operation(dosname, operation);
 	char overlayname[CROSS_LEN];
@@ -1560,7 +1604,9 @@ bool Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* op
     }
     return true;
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::remove_special_file_from_disk(const char* dosname, const char* operation) {
 	std::string name = create_filename_of_special_operation(dosname,operation);
 	char overlayname[CROSS_LEN];
@@ -1578,7 +1624,9 @@ void Overlay_Drive::remove_special_file_from_disk(const char* dosname, const cha
 	if ((host_name == NULL || ht_unlink(host_name) != 0) && unlink(overlayname) != 0 && strcmp(operation, "ATR"))
 		E_Exit("Failed removal of %s",overlayname);
 }
+#endif
 
+#if !defined(OSFREE)
 std::string Overlay_Drive::create_filename_of_special_operation(const char* dosname, const char* operation, bool expand) {
 	(void)expand;//unused
 
@@ -1595,7 +1643,9 @@ std::string Overlay_Drive::create_filename_of_special_operation(const char* dosn
 	res.insert(s,oper);
 	return res;
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::is_dir_only_in_overlay(const char* name) {
 	if (!name || !*name) return false;
 	if (DOSdirs_cache.empty()) return false;
@@ -1611,7 +1661,9 @@ bool Overlay_Drive::is_dir_only_in_overlay(const char* name) {
 	}
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::is_deleted_file(const char* name) {
 	if (!name || !*name) return false;
 	if (deleted_files_in_base.empty()) return false;
@@ -1639,7 +1691,9 @@ bool Overlay_Drive::is_deleted_file(const char* name) {
 	}
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::add_DOSdir_to_cache(const char* name, const char *sname) {
 	if (!name || !*name ) return; //Skip empty file.
 	if (logoverlay) LOG_MSG("Adding name to overlay_only_dir_cache %s",name);
@@ -1648,7 +1702,9 @@ void Overlay_Drive::add_DOSdir_to_cache(const char* name, const char *sname) {
 		DOSdirs_cache.emplace_back(sname);
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::remove_DOSdir_from_cache(const char* name) {
 	char fname[CROSS_LEN];
 	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
@@ -1665,7 +1721,9 @@ void Overlay_Drive::remove_DOSdir_from_cache(const char* name) {
 		}
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::remove_deleted_file(const char* name,bool create_on_disk) {
 	char tname[CROSS_LEN],fname[CROSS_LEN];
 	strcpy(tname,basedir);
@@ -1694,6 +1752,9 @@ void Overlay_Drive::remove_deleted_file(const char* name,bool create_on_disk) {
 		}
 	}
 }
+#endif
+
+#if !defined(OSFREE)
 void Overlay_Drive::add_deleted_path(const char* name, bool create_on_disk) {
 	if (!name || !*name ) return; //Skip empty file.
 	if (!is_deleted_path(name)) {
@@ -1704,6 +1765,9 @@ void Overlay_Drive::add_deleted_path(const char* name, bool create_on_disk) {
 		add_deleted_file(name,false);
 	}
 }
+#endif
+
+#if !defined(OSFREE)
 bool Overlay_Drive::is_deleted_path(const char* name) {
 	if (!name || !*name) return false;
 	if (deleted_paths_in_base.empty()) return false;
@@ -1718,7 +1782,9 @@ bool Overlay_Drive::is_deleted_path(const char* name) {
 	}
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::remove_deleted_path(const char* name, bool create_on_disk) {
 	for(std::vector<std::string>::iterator it = deleted_paths_in_base.begin(); it != deleted_paths_in_base.end(); ++it) {
 		if (!strcasecmp((*it).c_str(), name)) {
@@ -1729,6 +1795,9 @@ void Overlay_Drive::remove_deleted_path(const char* name, bool create_on_disk) {
 		}
 	}
 }
+#endif
+
+#if !defined(OSFREE)
 bool Overlay_Drive::check_if_leading_is_deleted(const char* name){
 	const char* dname = strrchr_dbcs((char *)name,'\\');
 	if (dname != NULL) {
@@ -1739,7 +1808,9 @@ bool Overlay_Drive::check_if_leading_is_deleted(const char* name){
 	}
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::FileExists(const char* name) {
 	if (ovlnocachedir) {
 		dirCache.EmptyCache();
@@ -1766,7 +1837,9 @@ bool Overlay_Drive::FileExists(const char* name) {
 
 	return localDrive::FileExists(name);
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
     if (ovlreadonly) {
         DOS_SetError(DOSERR_WRITE_PROTECTED);
@@ -1979,7 +2052,9 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 	return (temp==0);
 
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	if (logoverlay) LOG_MSG("FindFirst in %s",_dir);
 	
@@ -2022,7 +2097,9 @@ bool Overlay_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 	}
 	return localDrive::FindFirst(_dir,dta,fcb_findfirst);
 }
+#endif
 
+#if !defined(OSFREE)
 bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block) {
 	if (ovlnocachedir) {
 		dirCache.EmptyCache();
@@ -2089,13 +2166,18 @@ bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 	stat_block->size=(uint32_t)temp_stat.st_size;
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 Bits Overlay_Drive::UnMount(void) { 
 	delete this;
 	return 0; 
 }
+#endif
 
+#if !defined(OSFREE)
 void Overlay_Drive::EmptyCache(void){
 	localDrive::EmptyCache();
 	update_cache(true);//lets rebuild it.
 }
+#endif
