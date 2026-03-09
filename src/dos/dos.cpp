@@ -96,7 +96,7 @@ std::string GetDOSBoxXPath(bool withexe=false);
 #if !defined(OSFREE)
 extern std::string prefix_local, prefix_overlay;
 #endif
-bool a20_off_if_loading_low=true;
+bool a20_off_if_loading_low = false;
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -139,9 +139,9 @@ bool dos_in_hma = true;
 bool dos_umb = true;
 bool DOS_BreakFlag = false;
 bool DOS_BreakConioFlag = false;
-bool enable_dbcs_tables = true;
-bool enable_share_exe = true;
-bool enable_filenamechar = true;
+bool enable_dbcs_tables = false;
+bool enable_share_exe = false;
+bool enable_filenamechar = false;
 bool shell_keyboard_flush = true;
 bool freed_mcb_allocate_on_resize = true;
 bool enable_network_redirector = true;
@@ -156,7 +156,7 @@ int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 bool auto_repair_dos_psp_mcb_corruption = false;
 bool dos_break_int3 = false;
-int dos_sda_size = 0x560;
+int dos_sda_size = 0;
 int dos_clipboard_device_access;
 const char *dos_clipboard_device_name;
 const char dos_clipboard_device_default[]="CLIP$";
@@ -2831,6 +2831,7 @@ static Bitu DOS_21Handler(void) {
                     reg_bx=reg_dx=dos.loaded_codepage;
                     CALLBACK_SCF(false);
                     break;
+#if !defined(OSFREE)
                 case 2:
                 {
 #if defined(USE_TTF)
@@ -2888,6 +2889,7 @@ static Bitu DOS_21Handler(void) {
                     CALLBACK_SCF(false);
                     break;
                 }
+#endif
                 default:
                     dos.errorcode = 1;
                     reg_ax = dos.errorcode;
@@ -3506,7 +3508,7 @@ static Bitu DOS_26Handler(void) {
 }
 
 bool private_segment_write_protect = false;
-bool enable_collating_uppercase = true;
+bool enable_collating_uppercase = false;
 bool keep_private_area_on_boot = false;
 bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
@@ -4200,7 +4202,7 @@ public:
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
-		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
+		//dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
