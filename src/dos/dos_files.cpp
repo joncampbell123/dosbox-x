@@ -2398,7 +2398,9 @@ void POD_Save_DOS_Files( std::ostream& stream )
             if (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6) || !strncmp(dinfo,"PhysFS directory ",17) || !strncmp(dinfo,"PhysFS CDRom ",13) ) {
                 localDrive *ldp = dynamic_cast<localDrive*>(Drives[lcv]);
                 if (!ldp) ldp = dynamic_cast<cdromDrive*>(Drives[lcv]);
+#if !defined(OSFREE)
                 if (!ldp) ldp = dynamic_cast<physfsDrive*>(Drives[lcv]);
+#endif
                 if (ldp) {
                     lalloc.bytes_sector=ldp->allocation.bytes_sector;
                     lalloc.sectors_cluster=ldp->allocation.sectors_cluster;
@@ -2415,9 +2417,11 @@ void POD_Save_DOS_Files( std::ostream& stream )
                     oalloc.free_clusters=odp->allocation.free_clusters;
                     oalloc.mediaid=odp->allocation.mediaid;
                 } else {
+#if !defined(OSFREE)
                     physfsDrive *pdp = dynamic_cast<physfsDrive*>(Drives[lcv]);
                     if (pdp && pdp->getOverlaydir())
                         strcpy(overlaydir,pdp->getOverlaydir());
+#endif
                 }
             } else if (!strncmp(dinfo,"fatDrive ",9)) {
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[lcv]);
@@ -2607,11 +2611,15 @@ void POD_Load_DOS_Files( std::istream& stream )
                     else
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
                     if (!strncmp(dinfo,"PhysFS CDRom ",13)) {
+#if !defined(OSFREE)
                         std::string str=std::string(dinfo+13);
                         std::size_t found=str.find(", ");
                         if (found!=std::string::npos)
                             str=str.substr(0,found);
                         Drives[lcv] = new physfscdromDrive('A'+lcv,(":"+str+"\\").c_str(),lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,0,lalloc.mediaid,error,options);
+#else
+                        LOG_MSG("Physfs CDROM not supported");
+#endif
                     } else
                         Drives[lcv] = new cdromDrive('A'+lcv,dinfo+6,lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
                     if (Drives[lcv]) {
@@ -2620,6 +2628,7 @@ void POD_Load_DOS_Files( std::istream& stream )
                     } else
                         LOG_MSG("Error: Cannot restore drive from directory %s\n", dinfo+6);
                 } else if (!strncmp(dinfo,"PhysFS directory ",17)) {
+#if !defined(OSFREE)
                     int error = 0;
                     std::string str=std::string(dinfo+17);
                     std::size_t found=str.find(", ");
@@ -2632,6 +2641,9 @@ void POD_Load_DOS_Files( std::istream& stream )
                         mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
                     } else
                         LOG_MSG("Error: Cannot restore drive from directory %s\n", dinfo+16);
+#else
+                    LOG_MSG("Physfs not supported");
+#endif
                 } else if (!strncmp(dinfo,"isoDrive ",9) && *(dinfo+9)) {
                     MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
                     uint8_t mediaid = 0xF8;

@@ -2678,6 +2678,7 @@ public:
                     }
                     swappos=DriveManager::GetDrivePosition(statusdrive);
                 } else if (!strncmp(info, "PhysFS directory ", 17)) {
+#if !defined(OSFREE)
                     type="PhysFS directory";
                     path=info+17;
                     readonly=true;
@@ -2689,10 +2690,17 @@ public:
                             overlay=std::string(wdir)+(wdir[strlen(wdir)-1]!=CROSS_FILESPLIT?std::string(1, CROSS_FILESPLIT):"")+std::string(1, 'A'+statusdrive)+"_DRIVE";
                         }
                     }
+#else
+                    E_Exit("Physfs directory not supported");
+#endif
                 } else if (!strncmp(info, "PhysFS CDRom ", 13)) {
+#if !defined(OSFREE)
                     type="PhysFS CDRom";
                     path=info+13;
                     readonly=true;
+#else
+                    E_Exit("Physfs CDROM not supported");
+#endif
                 } else if (!strncmp(info, "local directory ", 16)) {
                     type="local directory";
                     path=info+16;

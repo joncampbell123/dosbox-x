@@ -27,6 +27,7 @@
 #include <sys/statvfs.h>
 #endif
 
+#if !defined(OSFREE)
 #include "../libs/physfs/physfs.h"
 #include "../libs/physfs/physfs.c"
 #include "../libs/physfs/physfs_archiver_7z.c"
@@ -990,3 +991,4 @@ Bits physfscdromDrive::UnMount(void) {
 		return physfsDrive::UnMount();
 	return 2;
 }
+#endif
