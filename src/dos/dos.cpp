@@ -46,7 +46,9 @@
 #include "support.h"
 #include "parport.h"
 #include "serialport.h"
+#if !defined(OSFREE)
 #include "dos_network.h"
+#endif
 #include "render.h"
 #include "jfont.h"
 #include "../ints/int10.h"
