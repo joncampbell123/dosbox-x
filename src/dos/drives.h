@@ -346,6 +346,7 @@ struct direntry {
 	}
 } GCC_ATTRIBUTE(packed);
 
+#if !defined(OSFREE)
 struct direntry_lfn {
     uint8_t LDIR_Ord;                 /* 0x00 Long filename ordinal (1 to 63). bit 6 (0x40) is set if the last entry, which normally comes first in the directory */
     uint16_t LDIR_Name1[5];           /* 0x01 first 5 chars */
@@ -358,6 +359,7 @@ struct direntry_lfn {
 } GCC_ATTRIBUTE(packed);
 static_assert(sizeof(direntry_lfn) == 0x20,"Oops");
 static_assert(offsetof(direntry_lfn,LDIR_Name3) == 0x1C,"Oops");
+#endif
 
 #define MAX_DIRENTS_PER_SECTOR (SECTOR_SIZE_MAX / sizeof(direntry))
 
