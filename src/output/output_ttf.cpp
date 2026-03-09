@@ -548,8 +548,10 @@ int setTTFCodePage() {
     if (cp) {
         LOG_MSG("Loaded system codepage: %d\n", cp);
         int notMapped = setTTFMap(true);
+#if !defined(OSFREE)
         if (strcmp(RunningProgram, "LOADLIN") && !dos_kernel_disabled)
             initcodepagefont();
+#endif
 #if defined(WIN32) && !defined(HX_DOS)
         DOSBox_SetSysMenu();
 #endif

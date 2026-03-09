@@ -814,11 +814,9 @@ extern uint8_t euro_08[8], euro_14[14], euro_16[16];
 #endif
 bool font_14_init=false, font_16_init=false;
 uint8_t int10_font_14_init[256 * 14], int10_font_16_init[256 * 16];
-#if !defined(OSFREE)
-#endif
 
-void initcodepagefont() {
 #if !defined(OSFREE)
+void initcodepagefont() {
     if (!dos.loaded_codepage) return;
 
     /* If you don't load COUNTRY.SYS or do any codepage font commands on stock MS-DOS then
@@ -944,8 +942,8 @@ void initcodepagefont() {
 	    start_pos=host_readd(&cpibuf[start_pos]);
 	    start_pos+=2;
     }
-#endif
 }
+#endif
 
 #if !defined(OSFREE)
 extern Bitu call_stop,call_default;

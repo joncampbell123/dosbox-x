@@ -615,7 +615,9 @@ static Bitu IRQ1_Handler(void) {
 #else
     flags2&=~(0x40+0x20);//remove numlock/capslock pressed (hack for sdl only reporting states)
 #endif
+#if !defined(OSFREE)
     if (DOS_LayoutKey(scancode,flags1,flags2,flags3)) return CBRET_NONE;
+#endif
 //LOG_MSG("key input %d %d %d %d",scancode,flags1,flags2,flags3);
     switch (scancode) {
     /* First the hard ones  */

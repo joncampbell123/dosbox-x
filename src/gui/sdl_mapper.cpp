@@ -1235,7 +1235,9 @@ void setScanCode(Section_prop * section) {
 #endif //defined(MACOSX)
 }
 void loadScanCode();
+#if !defined(OSFREE)
 const char* DOS_GetLoadedLayout(void);
+#endif
 bool load=false;
 bool prev_ret;
 #endif // !defined(C_SDL2)
@@ -1249,6 +1251,7 @@ bool useScanCode() {
 	else if (!usescancodes)
 		return false;
 	else {
+# if !defined(OSFREE)
 		const char* layout_name = DOS_GetLoadedLayout();
 		bool ret = layout_name != NULL && !IS_PC98_ARCH;
 		if (!load)
@@ -1261,6 +1264,9 @@ bool useScanCode() {
 			load=true;
 		}
 		return ret;
+# else
+		return false;
+# endif
 	}
 #endif
 }
