@@ -2811,7 +2811,7 @@ void DOS_Shell::CMD_SET(char * args) {
 			else if (sw == "FIRST") { /* DOSBox-X extension: Move the specified variable to the front of the environment block */
 				op_mode = first_env;
 			}
-#if defined(OSFREE)
+#if defined(OSFREE) && 0
 			else if (sw == "U") { /* DEBUG option: Unlock non-drive Z: file I/O blocking. For osfree official releases this must be disabled */
 				/* this is here to make sure the stripped down DOS kernel in this build is still working properly, nothing more */
 				openfile_deny_non_z = false;
