@@ -1342,7 +1342,11 @@ public:
                 lastconfigdir.erase(pos);
                 if (lastconfigdir.length())	temp_line = lastconfigdir + CROSS_FILESPLIT + temp_line;
             }
+#if !defined(OSFREE)
             bool is_physfs = temp_line.find(':',((temp_line[0]|0x20) >= 'a' && (temp_line[0]|0x20) <= 'z')?2:0) != std::string::npos;
+#else
+            bool is_physfs = false;
+#endif
             struct stat test;
             //Win32 : strip tailing backslashes
             //os2: some special drive check
@@ -1537,10 +1541,17 @@ public:
                     MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
 #endif
                 }
-                if (is_physfs)
-					newdrive  = new physfscdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error,options);
-                else
+                if (is_physfs) {
+#if !defined(OSFREE)
+                    newdrive  = new physfscdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error,options);
+#else
+                    WriteOut("Physfs cdromdrive not supported\n");
+                    return;
+#endif
+                }
+                else {
                     newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error,options);
+                }
                 // Check Mscdex, if it worked out...
                 if(!quiet)
                     switch(error) {
@@ -1569,13 +1580,18 @@ public:
 #endif
                 }
                 if (is_physfs) {
+#if !defined(OSFREE)
                     int error = 0;
-					newdrive=new physfsDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error,options);
+                    newdrive=new physfsDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error,options);
                     if (error) {
                         if (!quiet) {WriteOut(MSG_Get("PROGRAM_MOUNT_PHYSFS_ERROR"));WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"));}
                         delete newdrive;
                         return;
                     }
+#else
+                    WriteOut("Physfs not supported\n");
+                    return;
+#endif
                 } else if(type == "overlay") {
 #if !defined(OSFREE)
                   physfsDrive* pdp = dynamic_cast<physfsDrive*>(Drives[drive-'A']);

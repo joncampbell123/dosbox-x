@@ -125,6 +125,7 @@ protected:
     } srchInfo[MAX_OPENDIRS] = {};
 };
 
+#if !defined(OSFREE)
 class physfsDrive : public localDrive {
 private:
 	bool isdir(const char *dir);
@@ -167,6 +168,7 @@ public:
 protected:
 	std::string mountarc;
 };
+#endif
 
 #ifdef _MSC_VER
 #pragma pack (1)
@@ -555,6 +557,7 @@ private:
 	uint8_t subUnit = 0;	char driveLetter = '\0';
 };
 
+#if !defined(OSFREE)
 class physfscdromDrive : public physfsDrive
 {
 public:
@@ -576,6 +579,7 @@ private:
 	uint8_t subUnit;
 	char driveLetter;
 };
+#endif
 
 #ifdef _MSC_VER
 #pragma pack (1)
