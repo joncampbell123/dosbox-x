@@ -53,6 +53,7 @@ static bool islfnchar(const char *s) {
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 /*From Linux kernel source*/
 /** CRC table for the CRC ITU-T V.41 0x1021 (x^16 + x^12 + x^15 + 1) */
 const uint16_t UDF_crc_itu_t_table[256] = {
@@ -97,9 +98,11 @@ uint16_t UDF_crc_itu_t(uint16_t crc, const uint8_t *buffer, size_t len)
 
 	return crc;
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFTagId::parse(const unsigned int sz,const unsigned char *b) {
 	if (sz >= 16) {
 		TagIdentifier = le16toh( *((uint16_t*)(&b[0])) );
@@ -162,9 +165,11 @@ UDFTagId::UDFTagId(const unsigned int sz,const unsigned char *b) {
 
 UDFTagId::UDFTagId() {
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFextent_ad::get(const unsigned int sz,const unsigned char *b) {
 	if (sz >= 8u) {
 		ExtentLength = le32toh( *((uint32_t*)(&b[0])) );
@@ -178,9 +183,11 @@ UDFextent_ad::UDFextent_ad(const unsigned int sz,const unsigned char *b) {
 
 UDFextent_ad::UDFextent_ad() {
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFAnchorVolumeDescriptorPointer::get(UDFTagId &tag,const unsigned int sz,const unsigned char *b) {
 	if (sz >= 32u) {
 		DescriptorTag = tag;
@@ -195,9 +202,11 @@ UDFAnchorVolumeDescriptorPointer::UDFAnchorVolumeDescriptorPointer(UDFTagId &tag
 
 UDFAnchorVolumeDescriptorPointer::UDFAnchorVolumeDescriptorPointer() {
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 UDFextent_ad isoDrive::convertToUDFextent_ad(const UDFshort_ad &s,const uint32_t partition_ref_id) const {
 	UDFextent_ad r;
 
@@ -259,9 +268,11 @@ bool isoDrive::convertToUDFextent_ad(UDFextent_ad &d,const UDFext_ad &s) const {
 
 	return false;
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFPrimaryVolumeDescriptor::get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b) {
 	if (sz >= 490) {
 		DescriptorTag = tag;
@@ -297,9 +308,11 @@ UDFPrimaryVolumeDescriptor::UDFPrimaryVolumeDescriptor(UDFTagId &tag/*already pa
 
 UDFPrimaryVolumeDescriptor::UDFPrimaryVolumeDescriptor() {
 }
+#endif
 
 ////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFFileSetDescriptor::get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b) {
 	if (sz >= 480) {
 		DescriptorTag = tag;
@@ -329,9 +342,11 @@ UDFFileSetDescriptor::UDFFileSetDescriptor(UDFTagId &tag/*already parsed, why pa
 
 UDFFileSetDescriptor::UDFFileSetDescriptor() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFext_ad::get(const unsigned int sz,const unsigned char *b) {
 	if (sz >= 20) {
 		ExtentLength = le32toh( *((uint32_t*)(&b[0])) );
@@ -350,9 +365,11 @@ UDFext_ad::UDFext_ad(const unsigned int sz,const unsigned char *b) {
 
 UDFext_ad::UDFext_ad() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 uint8_t UDFicbtag::AllocationDescriptorType(void) const {
 	return (uint8_t)(Flags & 7u);
 }
@@ -379,9 +396,11 @@ UDFicbtag::UDFicbtag(const unsigned int sz,const unsigned char *b) {
 
 UDFicbtag::UDFicbtag() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFFileEntry::get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b) {
 	if (sz >= 176) {
 		DescriptorTag = tag;
@@ -461,9 +480,11 @@ UDFFileEntry::UDFFileEntry(UDFTagId &tag/*already parsed, why parse again?*/,con
 
 UDFFileEntry::UDFFileEntry() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFFileIdentifierDescriptor::get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b) {
 	if (sz >= 38) {
 		DescriptorTag = tag;
@@ -494,9 +515,11 @@ UDFFileIdentifierDescriptor::UDFFileIdentifierDescriptor(UDFTagId &tag/*already 
 
 UDFFileIdentifierDescriptor::UDFFileIdentifierDescriptor() {
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFPartitionDescriptor::get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b) {
 	if (sz >= 356) {
 		DescriptorTag = tag;
@@ -524,9 +547,11 @@ UDFPartitionDescriptor::UDFPartitionDescriptor(UDFTagId &tag/*already parsed, wh
 
 UDFPartitionDescriptor::UDFPartitionDescriptor() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFLogicalVolumeDescriptor::get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b) {
 	if (sz >= 440) {
 		DescriptorTag = tag;
@@ -560,9 +585,11 @@ UDFLogicalVolumeDescriptor::UDFLogicalVolumeDescriptor(UDFTagId &tag/*already pa
 
 UDFLogicalVolumeDescriptor::UDFLogicalVolumeDescriptor() {
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 // FIXME: Why do the "strings" start with a control code like \x08?
 void UDFdstring::get(const unsigned int sz,const unsigned char *b) {
 	/* the LAST byte is the string length (?) */
@@ -583,9 +610,11 @@ UDFdstring::UDFdstring(const unsigned int sz,const unsigned char *b) {
 
 UDFdstring::UDFdstring() {
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFtimestamp::get(const unsigned int sz,const unsigned char *b) {
 	if (sz >= 12u) {
 		TypeAndTimeZone = le16toh( *((uint16_t*)(&b[0])) );
@@ -607,9 +636,11 @@ UDFtimestamp::UDFtimestamp(const unsigned int sz,const unsigned char *b) {
 
 UDFtimestamp::UDFtimestamp() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFregid::get(const unsigned int sz,const unsigned char *b) {
 	if (sz >= 32u) {
 		Flags = b[0];
@@ -624,9 +655,11 @@ UDFregid::UDFregid(const unsigned int sz,const unsigned char *b) {
 
 UDFregid::UDFregid() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFcharspec::get(const unsigned int sz,const unsigned char *b) {
 	if (sz >= 64u) {
 		CharacterSetType = b[0];
@@ -640,9 +673,11 @@ UDFcharspec::UDFcharspec(const unsigned int sz,const unsigned char *b) {
 
 UDFcharspec::UDFcharspec() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFlb_addr::get(const unsigned int sz,const unsigned char *b) {
 	if (sz >= 6u) {
 		LogicalBlockNumber = le32toh( *((uint32_t*)(&b[0])) );
@@ -656,9 +691,11 @@ UDFlb_addr::UDFlb_addr(const unsigned int sz,const unsigned char *b) {
 
 UDFlb_addr::UDFlb_addr() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFshort_ad::get(const unsigned int sz,const unsigned char *b) {
 	if (sz >= 8u) {
 		ExtentLength = le32toh( *((uint32_t*)(&b[0])) );
@@ -672,9 +709,11 @@ UDFshort_ad::UDFshort_ad(const unsigned int sz,const unsigned char *b) {
 
 UDFshort_ad::UDFshort_ad() {
 }
+#endif
 
 ////////////////////////////////////////////////////////
 
+#if !defined(OSFREE)
 void UDFlong_ad::get(const unsigned int sz,const unsigned char *b) {
 	if (sz >= 16) {
 		ExtentLength = le32toh( *((uint32_t*)(&b[0])) );
@@ -694,26 +733,32 @@ UDFlong_ad::UDFlong_ad(const unsigned int sz,const unsigned char *b) {
 
 UDFlong_ad::UDFlong_ad() {
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 UDFextent::UDFextent() {
 }
 
 UDFextent::UDFextent(const struct UDFextent_ad &s) : ex(s) {
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 UDFextents::UDFextents() {
 }
 
 UDFextents::UDFextents(const struct UDFextent_ad &s) {
 	xl.push_back(s);
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 void isoDrive::UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe) const {
 	ex.xl.clear();
 	ex.indata.clear();
@@ -739,9 +784,11 @@ void isoDrive::UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe) const {
 
 	UDFextent_rewind(ex);
 }
+#endif
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 void isoDrive::UDFextent_rewind(struct UDFextents &ex) const {
 	ex.relofs = 0;
 	ex.extent = 0;
@@ -842,6 +889,7 @@ unsigned int isoDrive::UDFextent_read(struct UDFextents &ex,unsigned char *buf,s
 
 	return rd;
 }
+#endif
 
 ////////////////////////////////////
 
@@ -855,8 +903,10 @@ public:
 	uint16_t GetInformation(void) override;
 	uint32_t GetSeekPos(void) override;
 public:
+#if !defined(OSFREE)
 	UDFextents udffext;
 	bool udf = false;
+#endif
 private:
 	isoDrive *drive;
     uint8_t buffer[ISO_FRAMESIZE] = {};
@@ -879,11 +929,13 @@ isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, 
 }
 
 bool isoFile::Read(uint8_t *data, uint16_t *size) {
+#if !defined(OSFREE)
 	if (udf) {
 		*size = (uint16_t)(drive->UDFextent_read(udffext,data,*size));
 		filePos = *size;
 		return true;
 	}
+#endif
 
 	if (filePos + *size > fileEnd)
 		*size = (uint16_t)(fileEnd - filePos);
@@ -944,10 +996,12 @@ bool isoFile::Seek(uint32_t *pos, uint32_t type) {
 	
 	*pos = filePos - fileBegin;
 
+#if !defined(OSFREE)
 	if (udf) {
 		*pos = drive->UDFextent_seek(udffext,*pos);
 		filePos = *pos + fileBegin;
 	}
+#endif
 
 	return true;
 }
@@ -975,9 +1029,11 @@ uint8_t MSCDEX_GetSubUnit(char driveLetter);
 bool CDROM_Interface_Image::images_init = false;
 
 isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
+#if !defined(OSFREE)
     enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
     enable_rock_ridge = (dos.version.major >= 7 || uselfn);//default
     enable_joliet = (dos.version.major >= 7 || uselfn);//default
+#endif
     for (const auto &opt : options) {
         size_t equ = opt.find_first_of('=');
         std::string name,value;
@@ -991,6 +1047,7 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
             value.clear();
         }
 
+#if !defined(OSFREE)
         if (name == "rr") { // Enable/disable Rock Ridge extensions
             if (value == "1" || value == "") enable_rock_ridge = true; // "-o rr" or "-o rr=1"
             else if (value == "0") enable_rock_ridge = false;
@@ -998,11 +1055,12 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
         else if (name == "joliet") { // Enable/disable Joliet extensions
             if (value == "1" || value == "") enable_joliet = true; // "-o joliet" or "-o joliet=1"
             else if (value == "0") enable_joliet = false;
-	}
+        }
         else if (name == "udf") { // Enable/disable UDF
             if (value == "1" || value == "") enable_udf = true; // "-o udf" or "-o udf=1"
             else if (value == "0") enable_udf = false;
-	}
+        }
+#endif
     }
 
     if (!strcmp(fileName,"empty"))
@@ -1108,6 +1166,7 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 	}
 
 	if (is_udf) {
+#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		success = lookup(fid, fe, name) && !(fid.FileCharacteristics & 0x02/*Directory*/);
@@ -1126,6 +1185,7 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 			*file = ifile;
 			(*file)->flags = flags;
 		}
+#endif
 	}
 	else {
 		isoDirEntry de;
@@ -1165,9 +1225,11 @@ bool isoDrive::MakeDir(const char* /*dir*/) {
 
 bool isoDrive::TestDir(const char *dir) {
 	if (is_udf) {
+#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		return (lookup(fid, fe, dir) && (fid.FileCharacteristics & 0x02/*Directory*/));
+#endif
 	}
 	else {
 		isoDirEntry de;	
@@ -1177,6 +1239,7 @@ bool isoDrive::TestDir(const char *dir) {
 
 bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 	if (is_udf) {
+#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		if (!lookup(fid, fe, dir)) {
@@ -1210,6 +1273,7 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 
 		UDFFileEntryToExtents(dirIterators[dirIterator].udfdirext,fe);
 		return FindNext(dta);
+#endif
 	}
 	else {
 		isoDirEntry de;
@@ -1248,7 +1312,9 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 
 bool isoDrive::FindNext(DOS_DTA &dta) {
 	uint8_t attr;
+#if !defined(OSFREE)
 	char fname[LFN_NAMELENGTH];
+#endif
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
 	dta.GetSearchParams(attr, pattern, false);
 
@@ -1256,6 +1322,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	bool isRoot = dirIterators[dirIterator].root;
 
 	if (is_udf) {
+#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		while (GetNextDirEntry(dirIterator, fid, fe, dirIterators[dirIterator].udfdirext, fname, dirIterators[dirIterator].index)) {
@@ -1282,6 +1349,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 				return true;
 			}
 		}
+#endif
 	}
 	else {
 		isoDirEntry de = {};
@@ -1324,9 +1392,11 @@ bool isoDrive::SetFileAttr(const char * name,uint16_t attr) {
 	(void)attr;
 
 	if (is_udf) {
+#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		DOS_SetError(lookup(fid, fe, name) ? DOSERR_ACCESS_DENIED : DOSERR_FILE_NOT_FOUND);
+#endif
 		return false;
 	}
 	else {
@@ -1340,6 +1410,7 @@ bool isoDrive::GetFileAttr(const char *name, uint16_t *attr) {
 	*attr = 0;
 
 	if (is_udf) {
+#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		bool success = lookup(fid, fe, name);
@@ -1348,6 +1419,7 @@ bool isoDrive::GetFileAttr(const char *name, uint16_t *attr) {
 			if (fid.FileCharacteristics & 0x02/*Directory*/) *attr |= DOS_ATTR_DIRECTORY;
 		}
 		return success;
+#endif
 	}
 	else {
 		isoDirEntry de;
@@ -1390,9 +1462,11 @@ bool isoDrive::AllocationInfo(uint16_t *bytes_sector, uint8_t *sectors_cluster, 
 
 bool isoDrive::FileExists(const char *name) {
 	if (is_udf) {
+#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		return (lookup(fid, fe, name) && !(fid.FileCharacteristics & 0x02/*Directory*/));
+#endif
 	}
 	else {
 		isoDirEntry de;
@@ -1402,6 +1476,7 @@ bool isoDrive::FileExists(const char *name) {
 
 bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
 	if (is_udf) {
+#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		bool success = lookup(fid, fe, name);
@@ -1415,6 +1490,7 @@ bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
 		}
 
 		return success;
+#endif
 	}
 	else {
 		isoDirEntry de;
@@ -1452,8 +1528,9 @@ Bits isoDrive::UnMount(void) {
 	return 2;
 }
 
+#if !defined(OSFREE)
 int isoDrive::GetDirIterator(const UDFFileEntry &fe) {
-    (void)fe;
+	(void)fe;
 	if (!is_udf) return 0;
 
 	int dirIterator = nextFreeDirIterator;
@@ -1471,6 +1548,7 @@ int isoDrive::GetDirIterator(const UDFFileEntry &fe) {
 
 	return dirIterator;
 }
+#endif
 
 int isoDrive::GetDirIterator(const isoDirEntry* de) {
 	// Not for UDF filesystem use!
@@ -1496,6 +1574,7 @@ int isoDrive::GetDirIterator(const isoDirEntry* de) {
 	return dirIterator;
 }
 
+#if !defined(OSFREE)
 bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, UDFextents &dirext, char fname[LFN_NAMELENGTH],unsigned int dirIteratorIndex) {
 	if (!is_udf) return 0;
 
@@ -1668,6 +1747,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 
 	return true;
 }
+#endif
 
 bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de) {
 	// Not for UDF filesystem use!
@@ -1969,6 +2049,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 	return de->length;
 }
 
+#if !defined(OSFREE)
 static bool escape_is_joliet(const unsigned char *esc) {
 	if (    !memcmp(esc,"\x25\x2f\x40",3) ||
 		!memcmp(esc,"\x25\x2f\x43",3) ||
@@ -1978,7 +2059,9 @@ static bool escape_is_joliet(const unsigned char *esc) {
 
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 bool isoDrive :: loadImageUDFAnchorVolumePointer(UDFAnchorVolumeDescriptorPointer &avdp,uint8_t pvd[COOKED_SECTOR_SIZE],uint32_t sector) const {
 	UDFTagId aid;
 
@@ -1987,7 +2070,9 @@ bool isoDrive :: loadImageUDFAnchorVolumePointer(UDFAnchorVolumeDescriptorPointe
 	avdp.get(aid,COOKED_SECTOR_SIZE,pvd);
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 bool isoDrive :: loadImageUDF() {
 	uint8_t pvd[COOKED_SECTOR_SIZE];
 	UDFextent_ad avdex;
@@ -2089,6 +2174,7 @@ bool isoDrive :: loadImageUDF() {
 
 	return true;
 }
+#endif
 
 bool isoDrive :: loadImage() {
 	uint8_t pvd[COOKED_SECTOR_SIZE];
@@ -2096,10 +2182,13 @@ bool isoDrive :: loadImage() {
 	unsigned int choose_joliet = 0;
 	unsigned int sector = 16;
 
+#if !defined(OSFREE)
 	is_rock_ridge = false;
 	is_udf = false;
+#endif
 	dataCD = false;
 
+#if !defined(OSFREE)
 	if (loadImageUDF()) {
 		LOG(LOG_MISC,LOG_DEBUG)("ISO: UDF filesystem detected");
 		if (enable_udf) {
@@ -2112,6 +2201,7 @@ bool isoDrive :: loadImage() {
 			DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
 		}
 	}
+#endif
 
 	/* scan the volume descriptors */
 	while (sector < 256) {
@@ -2126,6 +2216,7 @@ bool isoDrive :: loadImage() {
 				}
 			}
 		}
+#if !defined(OSFREE)
 		else if (pvd[0] == 2) { // supplementary volume (usually Joliet, but not necessarily)
 			if (!strncmp((char*)(&pvd[1]), "CD001", 5) && pvd[6] == 1) {
 				bool joliet = escape_is_joliet(&pvd[88]);
@@ -2143,6 +2234,7 @@ bool isoDrive :: loadImage() {
 				}
 			}
 		}
+#endif
 		else if (pvd[0] == 0xFF) { // terminating descriptor
 			break;
 		}
@@ -2162,15 +2254,21 @@ bool isoDrive :: loadImage() {
 	}
 
 	if (choose_joliet && enable_joliet) {
+#if !defined(OSFREE)
 		sector = choose_joliet;
 		LOG(LOG_MISC,LOG_DEBUG)("ISO 9660: Choosing Joliet (unicode) volume at sector %u",sector);
 		is_joliet = true;
 		iso = true;
+#else
+		return false;
+#endif
 	}
 	else if (choose_iso9660) {
 		sector = choose_iso9660;
 		LOG(LOG_MISC,LOG_DEBUG)("ISO 9660: Choosing ISO 9660 volume at sector %u",sector);
+#if !defined(OSFREE)
 		is_joliet = false;
+#endif
 	}
 	else {
 		return false;
@@ -2181,6 +2279,7 @@ bool isoDrive :: loadImage() {
 	if (readDirEntry(&this->rootEntry, &pvd[offset], 0) <= 0)
 		return false;
 
+#if !defined(OSFREE)
 	/* read the first root directory entry, look for Rock Ridge and/or System Use Sharing Protocol extensions.
 	 * It is rare for Rock Ridge extensions to exist on the Joliet supplementary volume as far as I know.
 	 * Furthermore the way this code is currently written, Rock Ridge extensions would be ignored anyway for
@@ -2225,6 +2324,7 @@ bool isoDrive :: loadImage() {
 			}
 		}
 	}
+#endif
 
 	/* Sanity check: This code does NOT support Rock Ridge extensions when reading the Joliet supplementary volume! */
 	if (is_joliet) {
@@ -2235,6 +2335,7 @@ bool isoDrive :: loadImage() {
 	return true;
 }
 
+#if !defined(OSFREE)
 bool isoDrive :: lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, const char *path) {
 	uint8_t pvd[COOKED_SECTOR_SIZE];
 	char fname[LFN_NAMELENGTH];
@@ -2301,6 +2402,7 @@ bool isoDrive :: lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, cons
 
 	return true;
 }
+#endif
 
 bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 	// This code is not for UDF
@@ -2360,10 +2462,12 @@ void isoDrive :: EmptyCache(void) {
 		}
 	}
 	if (dos_kernel_disabled) return;
+#if !defined(OSFREE)
 	enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
 	enable_rock_ridge = dos.version.major >= 7 || uselfn;
 	enable_joliet = dos.version.major >= 7 || uselfn;
 	is_joliet = false;
+#endif
 	//this->fileName[0]  = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
 	//this->discLabel[0] = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
 	nextFreeDirIterator = 0;
