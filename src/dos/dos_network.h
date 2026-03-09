@@ -12,6 +12,8 @@ August 8 2005		cyberwalker
 
 */
 
+#if !defined(OSFREE)
+
 #if defined(WIN32) && !defined(HX_DOS)
 
 #include <windows.h>
@@ -130,4 +132,6 @@ inline uint16_t	Network_ToDosError(DWORD dwLastError)
 }//bool	Network_TranscateNamedPipe
 
 #endif	//WIN32
+
+#endif	//OSFREE
 

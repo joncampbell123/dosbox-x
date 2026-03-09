@@ -11,6 +11,7 @@ August 8 2005		cyberwalker
 		Make all functions  to avoid modifying makefile.
 
 */
+#if !defined(OSFREE)
 
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 
@@ -516,3 +517,6 @@ extern "C" int _nhandle;
 }//bool	Network_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 
 #endif // defined(WIN32) && !defined(__MINGW32__)
+
+#endif //OSFREE
+

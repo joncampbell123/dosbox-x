@@ -257,6 +257,7 @@ public:
 	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
 };
 
+#if !defined(OSFREE)
 class device_PRN : public DOS_Device {
 public:
 	device_PRN() {
@@ -293,6 +294,7 @@ public:
 		return false;
 	}
 };
+#endif
 
 uint16_t cpMap[512] = { // Codepage is standard 437
 	0x0020, 0x263a, 0x263b, 0x2665, 0x2666, 0x2663, 0x2660, 0x2219, 0x25d8, 0x25cb, 0x25d9, 0x2642, 0x2640, 0x266a, 0x266b, 0x263c,
@@ -366,6 +368,7 @@ uint16_t cpMap_PC98[256] = {
     0x0020, 0x0020, 0x0020, 0x0020, 0x005C, 0x0020, 0x0020, 0x0020                  // 0xF8-0xFF   0xFC = Backslash
 };
 
+#if !defined(OSFREE)
 bool getClipboard();
 bool lastwrite = false;
 uint32_t cPointer = 0, fPointer;
@@ -620,6 +623,7 @@ public:
 		return DeviceInfoFlags::Device | DeviceInfoFlags::EofOnInput | DeviceInfoFlags::Binary;
 	}
 };
+#endif
 
 bool DOS_Device::Read(uint8_t * data,uint16_t * size) {
 	return Devices[devnum]->Read(data,size);
@@ -911,14 +915,18 @@ void DOS_SetupDevices(void) {
 	DOS_Device * newdev2;
 	newdev2=new device_NUL();
 	DOS_AddDevice(newdev2);
+#if !defined(OSFREE)
 	DOS_Device * newdev3;
 	newdev3=new device_PRN();
 	DOS_AddDevice(newdev3);
+#endif
+#if !defined(OSFREE)
 	if (dos_clipboard_device_access) {
 		DOS_Device * newdev4;
 		newdev4=new device_CLIP();
 		DOS_AddDevice(newdev4);
 	}
+#endif
 }
 
 /* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */

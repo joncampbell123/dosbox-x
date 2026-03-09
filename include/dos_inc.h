@@ -82,6 +82,7 @@ struct CommandTail{
 
 extern bool dos_kernel_disabled;
 
+#if !defined(OSFREE)
 #define IS_DOS_JAPANESE (!dos_kernel_disabled && mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 && mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F)
 #define IS_DOS_CJK (!dos_kernel_disabled && ((mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 || mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0xA1) && (mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F || mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0xFE)))
 #define IS_DOSV (dos.set_jdosv_enabled || dos.set_kdosv_enabled || dos.set_pdosv_enabled || dos.set_tdosv_enabled)
@@ -90,6 +91,17 @@ extern bool dos_kernel_disabled;
 #define IS_PDOSV (dos.set_pdosv_enabled)
 #define IS_TDOSV (dos.set_tdosv_enabled)
 #define IS_J3100 (dos.set_j3100_enabled)
+#else
+/* OSFREE: You don't get any of this! */
+#define IS_DOS_JAPANESE (0)
+#define IS_DOS_CJK (0)
+#define IS_DOSV (0)
+#define IS_JDOSV (0)
+#define IS_KDOSV (0)
+#define IS_PDOSV (0)
+#define IS_TDOSV (0)
+#define IS_J3100 (0)
+#endif
 
 #define	EXT_DEVICE_BIT				0x0200
 
@@ -855,11 +867,19 @@ struct DOS_Block {
         uint16_t mediaid_offset = 0x17; // media ID offset in DPB (MS-DOS 4.x-6.x case)
     } tables;
     uint16_t loaded_codepage = 0;
+#if !defined(OSFREE)
     bool set_jdosv_enabled = false;
     bool set_kdosv_enabled = false;
     bool set_pdosv_enabled = false;
     bool set_tdosv_enabled = false;
     bool set_j3100_enabled = false;
+#else
+    static constexpr bool set_jdosv_enabled = false;
+    static constexpr bool set_kdosv_enabled = false;
+    static constexpr bool set_pdosv_enabled = false;
+    static constexpr bool set_tdosv_enabled = false;
+    static constexpr bool set_j3100_enabled = false;
+#endif
     bool im_enable_flag;
     uint16_t dcp;	// Device command packet
 };
