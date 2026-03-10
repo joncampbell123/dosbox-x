@@ -1566,6 +1566,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x2b:      /* Set System Date */
+#if !defined(OSFREE)
             {
                 // unfortunately, BIOS does not return whether succeeded
                 // or not, so do a sanity check first
@@ -1611,6 +1612,7 @@ static Bitu DOS_21Handler(void) {
             dos.date.day=reg_dl;
             reg_al=0;
             if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
+#endif
             break;
         case 0x2c: {    /* Get System Time */
             // use BIOS to get RTC time
@@ -1665,6 +1667,7 @@ static Bitu DOS_21Handler(void) {
             break;
         }
         case 0x2d:      /* Set System Time */
+#if !defined(OSFREE)
             {
                 // unfortunately, BIOS does not return whether succeeded
                 // or not, so do a sanity check first
@@ -1711,6 +1714,7 @@ static Bitu DOS_21Handler(void) {
                 }
             }
             if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
+#endif
             break;
         case 0x2e:      /* Set Verify flag */
             dos.verify=(reg_al==1);
@@ -2327,6 +2331,7 @@ static Bitu DOS_21Handler(void) {
                 result_errorcode = 0;
                 MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 
+#if !defined(OSFREE)
                 /* A20 hack for EXEPACK'd executables */
                 if (dos_a20_disable_on_exec) {
                     if (cpu.pmode && ((GETFLAG_IOPL<cpu.cpl) || GETFLAG(VM))) {
@@ -2343,6 +2348,7 @@ static Bitu DOS_21Handler(void) {
                     }
                     dos_a20_disable_on_exec=false;
                 }
+#endif
 
                 LOG(LOG_EXEC,LOG_NORMAL)("Execute %s %d",name1,reg_al);
                 DOS_ParamBlock block(SegPhys(es)+reg_bx);
@@ -2474,6 +2480,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x58:                  /* Get/Set Memory allocation strategy */
             switch (reg_al) {
+#if !defined(OSFREE)
                 case 0:                 /* Get Strategy */
                     reg_ax=DOS_GetMemAllocStrategy();
                     CALLBACK_SCF(false);
@@ -2496,6 +2503,7 @@ static Bitu DOS_21Handler(void) {
                         CALLBACK_SCF(true);
                     }
                     break;
+#endif
                 default:
                     LOG(LOG_DOSMISC,LOG_ERROR)("DOS:58:Not Supported Set//Get memory allocation call %X",reg_al);
                     reg_ax=1;
@@ -2515,6 +2523,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x5a:                  /* Create temporary file */
             {
+#if !defined(OSFREE)
                 uint16_t handle;
                 MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
                 if (DOS_CreateTempFile(name1,&handle)) {
@@ -2525,6 +2534,11 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
+#else
+                DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+                reg_ax = dos.errorcode;
+                CALLBACK_SCF(true);
+#endif
             }
             break;
         case 0x5b:                  /* Create new file */
@@ -2548,6 +2562,7 @@ static Bitu DOS_21Handler(void) {
                 break;
             }
         case 0x5c:  {       /* FLOCK File region locking */
+#if !defined(OSFREE)
             /* ert, 20100711: Locking extensions */
             uint32_t pos=((unsigned int)reg_cx << 16u) + reg_dx;
             uint32_t size=((unsigned int)reg_si << 16u) + reg_di;
@@ -2563,6 +2578,11 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
+#else
+            DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+            reg_ax = dos.errorcode;
+            CALLBACK_SCF(true);
+#endif
             break;
             }
 #if !defined(OSFREE)
