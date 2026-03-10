@@ -610,7 +610,9 @@ void DOS_Int21_71aa(char* name1, const char* name2);
 #endif
 Bitu DEBUG_EnableDebugger(void);
 void runMount(const char *str);
+#if !defined(OSFREE)
 bool Network_IsNetworkResource(const char * filename);
+#endif
 void CALLBACK_RunRealInt_retcsip(uint8_t intnum,Bitu &cs,Bitu &ip);
 
 #define DOSNAMEBUF 256
@@ -853,10 +855,12 @@ void HostAppRun() {
     if (!DOS_MakeName(fullname, winDirNew, &drive)) return;
     bool net = false;
 #if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+ #if !defined(OSFREE)
     if (Network_IsNetworkResource(fullname)) {
         net = true;
         strcpy(winName, fullname);
     }
+ #endif
 #endif
     if (GetCurrentDirectory(512, winDirCur)&&(net||!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
         bool useoverlay=false;
@@ -4195,8 +4199,9 @@ public:
 		}
 #endif
 		LOG(LOG_MISC,LOG_DEBUG)("files=%u fcbs=%u",(unsigned int)DOS_FILES,(unsigned int)maxfcb);
-		char *r;
-#if defined(WIN32)
+#if !defined(OSFREE)
+        char *r;
+# if defined(WIN32)
 		unsigned int cp = GetACP();
 		const char *cstr = (control->opt_noconfig || !config_section) ? "" : (char *)config_section->Get_string("country");
 		r = (char *)strchr(cstr, ',');
@@ -4205,6 +4210,7 @@ public:
 			if (cp == 951 && chinasea) makeseacp951table();
 			tryconvertcp = (r==NULL || !*(r+1)) ? 1 : 2;
 		}
+# endif
 #endif
 
 #if !defined(OSFREE)
