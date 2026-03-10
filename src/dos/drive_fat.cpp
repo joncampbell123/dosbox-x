@@ -56,6 +56,21 @@
 #define FAT32                   2
 #endif
 
+#if !defined(OSFREE)
+static uint16_t dpos[256];
+static uint32_t dnum[256];
+extern bool wpcolon, force_sfn;
+extern int lfn_filefind_handle, fat32setver;
+extern void dos_ver_menu(bool start);
+extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
+extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
+extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+extern bool dos_kernel_disabled;
+std::string formatString(const char* format, ...);
+#endif
+
 char* removeTrailingSpaces(char* str) {
 	char* end = str + strlen(str) - 1;
 	while (end >= str && *end == ' ') end--;
@@ -135,21 +150,6 @@ bool filename_not_strict_8x3(const char *n) {
 #endif
         return false; /* it is strict 8.3 upper case */
 }
-
-#if !defined(OSFREE)
-static uint16_t dpos[256];
-static uint32_t dnum[256];
-extern bool wpcolon, force_sfn;
-extern int lfn_filefind_handle, fat32setver;
-extern void dos_ver_menu(bool start);
-extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
-extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
-extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-extern bool dos_kernel_disabled;
-std::string formatString(const char* format, ...);
-#endif
 
 #if !defined(OSFREE)
 int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
