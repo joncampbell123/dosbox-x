@@ -1478,7 +1478,8 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 #endif
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
 #ifdef WIN32
-			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
+ #if !defined(OSFREE)
+            if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 			// automount: attempt direct letter to drive map.
 			int type=GetDriveType(name);
 			if(!mountwarning && type!=DRIVE_NO_ROOT_DIR) goto continue_1;
@@ -1546,6 +1547,7 @@ continue_1:
 			nowarn=false;
 			//failed:
 			if (!DOS_SetDrive(toupper(name[0])-'A'))
+ #endif
 #endif
 			WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0]));
 		}
