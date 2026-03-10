@@ -243,7 +243,8 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 				name_int[i+4]=0;
 				break;
 			} else if (i<10) name_int[i]=toupper(name_int[i]);
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+# if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	} else if (Network_IsNetworkResource(name)) {
 		unsigned int j=0, k=name[0]=='"'?1:0;
 		if (strlen(name)==2+k||name[2+k]=='*'||name[2+k]=='?'||name[2+k]=='\\'||(strlen(name)==3+k&&name[2+k]=='"')) {
@@ -259,6 +260,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 		fullname[j]=0;
 		*drive=DOS_GetDefaultDrive();
 		return true;
+# endif
 #endif
 	}
 
@@ -414,11 +416,13 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
     uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
     if (!DOS_MakeName(path,fulldir,&drive)) return false;
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+# if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if (Network_IsNetworkResource(fulldir)) {
 		strcpy(SFNPath,fulldir);
 		return true;
 	}
+# endif
 #endif
     sprintf(SFNPath,"%c:\\",drive+'A');
     strcpy(LFNPath,SFNPath);
@@ -546,8 +550,10 @@ bool DOS_MakeDir(char const * const dir) {
 	}
 	if (!DOS_MakeName(dir,fulldir,&drive)) return false;
 	while (strlen(fulldir)&&(*(fulldir+strlen(fulldir)-1)=='.'||*(fulldir+strlen(fulldir)-1)==' ')) *(fulldir+strlen(fulldir)-1)=0;
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+# if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if (Network_IsNetworkResource(dir)) return Network_MakeDir(dir);
+# endif
 #endif
 	if(Drives[drive]->MakeDir(fulldir)) return true;
 
@@ -567,8 +573,10 @@ bool DOS_RemoveDir(char const * const dir) {
 	uint8_t drive;char fulldir[DOS_PATHLENGTH];
 	if (!DOS_MakeName(dir,fulldir,&drive)) return false;
 	/* Check if exists */
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+# if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if (Network_IsNetworkResource(dir)) return Network_RemoveDir(dir);
+# endif
 #endif
 	if(!Drives[drive]->TestDir(fulldir)) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
@@ -612,7 +620,9 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	if (!DOS_MakeName(newname,fullnew,&drivenew)) return false;
 	while (strlen(fullnew)&&(*(fullnew+strlen(fullnew)-1)=='.'||*(fullnew+strlen(fullnew)-1)==' ')) *(fullnew+strlen(fullnew)-1)=0;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if (Network_IsNetworkResource(oldname)) return Network_Rename(oldname,newname);
+ #if !defined(OSFREE)
+    if (Network_IsNetworkResource(oldname)) return Network_Rename(oldname,newname);
+ #endif
 #endif
 
 	/* No tricks with devices */
@@ -715,10 +725,12 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
     forcelfn = false;
 	char *find_last = NULL;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	bool net = Network_IsNetworkResource(search);
+ #if !defined(OSFREE)
+    bool net = Network_IsNetworkResource(search);
 	if (net) forcelfn = true;
 	char *p = net ? strchr_dbcs(fullsearch+(fullsearch[0]=='"'?3:2), '\\') : NULL;
 	find_last = strrchr_dbcs(p != NULL ? p + 1 : fullsearch, '\\');
+ #endif
 #else
 	find_last = strrchr_dbcs(fullsearch,'\\');
 #endif
@@ -731,7 +743,9 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		strcpy(dir,fullsearch);
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+ #if !defined(OSFREE)
 	if (!strlen(dir)&&Network_IsNetworkResource(pattern)) {forcelfn=false;return false;}
+ #endif
 #endif
 
 	// Silence CHKDSK "Invalid sub-directory entry"
@@ -756,7 +770,9 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	}
    
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if (net) return Network_FindFirst(dir,dta);
+ #if !defined(OSFREE)
+    if (net) return Network_FindFirst(dir,dta);
+ #endif
 #endif
 	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
 	return false;
@@ -773,8 +789,10 @@ bool DOS_FindNext(void) {
 		return false;
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+ #if !defined(OSFREE)
     unsigned int pos = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():lfn_id[lfn_filefind_handle];
 	if (pos==65534) return Network_FindNext(dta);
+ #endif
 #endif
 	if (Drives[i]->FindNext(dta)) return true;
 	return false;
@@ -788,8 +806,10 @@ bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
 		return false;
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsActiveResource(entry))
+ #if !defined(OSFREE)
+    if(Network_IsActiveResource(entry))
 		return Network_ReadFile(entry,data,amount);
+ #endif
 #endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -818,8 +838,10 @@ bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fc
 		return false;
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsActiveResource(entry))
+ #if !defined(OSFREE)
+    if(Network_IsActiveResource(entry))
 		return Network_WriteFile(entry,data,amount);
+ #endif
 #endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -848,8 +870,10 @@ bool DOS_SeekFile(uint16_t entry,uint32_t * pos,uint32_t type,bool fcb) {
 		return false;
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsActiveResource(entry))
+# if !defined(OSFREE)
+    if(Network_IsActiveResource(entry))
 		return Network_SeekFile(entry,pos,type);
+# endif
 #endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -884,8 +908,10 @@ bool DOS_CloseFile(uint16_t entry, bool fcb, uint8_t * refcnt) {
 		return false;
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsActiveResource(entry))
+# if !defined(OSFREE)
+    if(Network_IsActiveResource(entry))
 		return Network_CloseFile(entry);
+# endif
 #endif
 	if (!Files[handle]) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -917,8 +943,10 @@ bool DOS_FlushFile(uint16_t entry) {
 		return false;
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsActiveResource(entry))
+ #if !defined(OSFREE)
+    if(Network_IsActiveResource(entry))
 		return Network_FlushFile(entry);
+ #endif
 #endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -957,8 +985,10 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 
 	while (strlen(fullname)&&(*(fullname+strlen(fullname)-1)=='.'||*(fullname+strlen(fullname)-1)==' ')) *(fullname+strlen(fullname)-1)=0;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsNetworkResource(name))
+# if !defined(OSFREE)
+    if(Network_IsNetworkResource(name))
 		return Network_CreateFile(name,attributes,entry);
+# endif
 #endif
 
 	/* Check for a free file handle */
@@ -1024,8 +1054,10 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
 
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsNetworkResource(name))
+# if !defined(OSFREE)
+    if(Network_IsNetworkResource(name))
 		return Network_OpenFile(name,flags,entry);
+# endif
 #endif
 	uint8_t handle=255;		
 	/* Check for a free file handle */
@@ -1159,7 +1191,9 @@ bool DOS_UnlinkFile(char const * const name) {
 #endif
 
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if (Network_IsNetworkResource(name)) return Network_UnlinkFile(name);
+# if !defined(OSFREE)
+    if (Network_IsNetworkResource(name)) return Network_UnlinkFile(name);
+# endif
 #endif
 	if(Drives[drive]->FileUnlink(fullname)){
 		return true;
@@ -1241,7 +1275,8 @@ bool DOS_GetFileAttr(char const * const name,uint16_t * attr) {
 			return true;
 	}
 #if !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if (Network_IsNetworkResource(name)) {
+# if !defined(OSFREE)
+    if (Network_IsNetworkResource(name)) {
 		if (Network_GetFileAttr(name, attr)) {
 			return true;
 		} else {
@@ -1249,6 +1284,7 @@ bool DOS_GetFileAttr(char const * const name,uint16_t * attr) {
 			return false;
 		}
 	}
+# endif
 #endif
 #endif
 
@@ -1313,7 +1349,9 @@ bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 	 * Also Windows 95 setup likes to create WINBOOT.INI as a file and then chattr it into a directory for some stupid reason. */
 	uint16_t old_attr;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if ((Network_IsNetworkResource(name)&&!Network_GetFileAttr(name,&old_attr))||(!Network_IsNetworkResource(name)&&!Drives[drive]->GetFileAttr(fullname,&old_attr)))
+# if !defined(OSFREE)
+    if ((Network_IsNetworkResource(name)&&!Network_GetFileAttr(name,&old_attr))||(!Network_IsNetworkResource(name)&&!Drives[drive]->GetFileAttr(fullname,&old_attr)))
+# endif
 #else
 	if (!Drives[drive]->GetFileAttr(fullname,&old_attr))
 #endif
@@ -1335,8 +1373,10 @@ bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 
 	attr = (attr & ~attr_mask) | (old_attr & attr_mask);
 
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+# if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
     if (Network_IsNetworkResource(name)) return Network_SetFileAttr(name,attr);
+# endif
 #endif
 	return Drives[drive]->SetFileAttr(fullname,attr);
 }
@@ -1346,11 +1386,13 @@ bool DOS_Canonicalize(char const * const name,char * const big) {
 	uint8_t drive;
 	char fullname[DOS_PATHLENGTH];
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+# if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if (Network_IsNetworkResource(name)) {
         strcpy(&big[0], name);
         return true;
     }
+# endif
 #endif
 	big[0]=drive+'A';
 	big[1]=':';
@@ -2170,8 +2212,10 @@ void DOS_FCBSetRandomRecord(uint16_t seg, uint16_t offset) {
 bool DOS_FileExists(char const * const name) {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+# if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if (Network_IsNetworkResource(name)) return Network_FileExists(fullname);
+# endif
 #endif
 	return Drives[drive]->FileExists(fullname);
 }
@@ -2205,11 +2249,13 @@ bool DOS_GetFileDate(uint16_t entry, uint16_t* otime, uint16_t* odate) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+# if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if(Network_IsActiveResource(entry))
 		return Network_GetFileDate(entry, otime, odate);
+# endif
 #endif
-	if (!Files[handle] || !Files[handle]->IsOpen()) {
+    if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
@@ -2229,9 +2275,11 @@ bool DOS_SetFileDate(uint16_t entry, uint16_t ntime, uint16_t ndate)
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+# if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if(Network_IsActiveResource(entry))
 		return Network_SetFileDate(entry, ntime, ndate);
+# endif
 #endif
 	if (!Files[handle]) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);

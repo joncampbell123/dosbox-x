@@ -46,7 +46,9 @@ extern int dos_clipboard_device_access;
 extern bool morelen, halfwidthkana, showdbcs;
 extern const char * dos_clipboard_device_name;
 bool isDBCSCP(), shiftjis_lead_byte(int c);
+#if !defined(OSFREE)
 bool Network_IsNetworkResource(const char * filename), TTF_using(void);
+#endif
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
 
@@ -735,9 +737,11 @@ uint8_t DOS_FindDevice(char const * name) {
 	}
 	char* name_part = strrchr_dbcs(fullname,'\\');
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsNetworkResource(name))
+ #if !defined(OSFREE)
+    if(Network_IsNetworkResource(name))
 		name_part = fullname;
 	else
+ #endif
 #endif
 	if(name_part) {
 		*name_part++ = 0;
