@@ -1054,6 +1054,9 @@ void DOS_Shell::Prepare(void) {
 				}
 			}
 		}
+#else
+		WriteOut("\x1B[2J"); /* erase screen */
+		WriteOut("\x1B[H"); /* home cursor */
 #endif
 		std::string line;
 		GetEnvStr("PATH",line);
@@ -1113,9 +1116,7 @@ bool DOS_Shell::OSFreeOperatingSystemNotFound(void) {
 	uint16_t n;
 	uint8_t c;
 
-	WriteOut("\x1B[2J"); /* erase screen */
-	WriteOut("\x1B[H"); /* home cursor */
-
+	WriteOut("\n");
 	WriteOut("Operating System Not Found.\n\n");
 	WriteOut("Press ENTER for more information, ESC to exit.\n");
 
