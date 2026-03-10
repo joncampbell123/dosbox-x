@@ -5387,6 +5387,7 @@ static void INTRO_ProgramStart(Program * * make) {
 }
 #endif
 
+#if !defined(OSFREE)
 imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj) {
     imageDiskMemory* dsk = NULL;
     //if chs not specified
@@ -5451,6 +5452,7 @@ imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, cons
     dsk->Set_Reserved_Cylinders((Bitu)reserved_cylinders);
     return dsk;
 }
+#endif
 
 bool AttachToBiosByIndex(imageDisk* image, const unsigned char bios_drive_index) {
     if (bios_drive_index >= MAX_DISK_IMAGES) return false;
@@ -5691,6 +5693,7 @@ class IMGMOUNT : public Program {
 					options.push_back(s);
 			}
 
+#if !defined(OSFREE)
 			//look for -el-torito parameter and remove it from the command line
 			cmd->FindString("-el-torito",el_torito,true);
 			if(el_torito == "") cmd->FindString("-bootcd", el_torito, true);
@@ -5701,6 +5704,7 @@ class IMGMOUNT : public Program {
 				//  find the el_torito_floppy_base and el_torito_floppy_type values
 				if (!PrepElTorito(type, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
 			}
+#endif
 
 			//the user can use -bd to mount partitions from an INT 13h BIOS disk mounted image,
 			//meaning a disk image attached to INT 13h using IMGMOUNT <number> -fs none. This way,
@@ -5873,6 +5877,7 @@ class IMGMOUNT : public Program {
 			bool exist = i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive];
 			//====== call the proper subroutine ======
 			if(fstype=="fat") {
+#if !defined(OSFREE)
 				//mount floppy or hard drive
 				if (bdisk != "") {
 					if (!MountPartitionFat(drive, bdisk_number)) return;
@@ -5888,6 +5893,10 @@ class IMGMOUNT : public Program {
 					if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave, reserved_cylinders, roflag)) return;
 				}
 				if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
+#else
+				WriteOut("Mounting FAT filesystem not supported\n");
+				return;
+#endif
 			} else if (fstype=="iso") {
 				if (bdisk != "") {
 					// TODO
@@ -5921,7 +5930,12 @@ class IMGMOUNT : public Program {
 					newImage = new imageDiskElToritoFloppy((unsigned char)el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 				}
 				else if (type == "ram") {
+#if !defined(OSFREE)
 					newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
+#else
+					WriteOut("RAM disk suport not available\n");
+					return;
+#endif
 				}
 				else {
 					newImage = MountImageNone(paths[0].c_str(), NULL, sizes, reserved_cylinders, roflag);
@@ -6281,6 +6295,7 @@ class IMGMOUNT : public Program {
 			}
 		}
 
+#if !defined(OSFREE)
 		bool PrepElTorito(const std::string& type, const char &el_torito_cd_drive, unsigned long &el_torito_floppy_base, unsigned char &el_torito_floppy_type) {
 			el_torito_floppy_base = ~0UL;
 			el_torito_floppy_type = 0xFF;
@@ -6442,7 +6457,9 @@ class IMGMOUNT : public Program {
 
 			return true;
 		}
+#endif
 
+#if !defined(OSFREE)
 		bool MountPartitionFat(const char drive, const int src_bios_disk) {
 			unsigned char driveIndex = drive - 'A';
 
@@ -6486,7 +6503,9 @@ class IMGMOUNT : public Program {
 			lastmount = drive;
 			return true;
 		}
+#endif
 
+#if !defined(OSFREE)
 		bool MountElToritoFat(const char drive, const Bitu sizes[], const char el_torito_cd_drive, const unsigned long el_torito_floppy_base, const unsigned char el_torito_floppy_type) {
 			unsigned char driveIndex = drive - 'A';
 
@@ -6521,10 +6540,13 @@ class IMGMOUNT : public Program {
 
 			return true;
 		}
+#endif
 
         bool unformatted = false;
         bool unsupported_ext = false;
         int  path_no;
+
+#if !defined(OSFREE)
 		bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave, const int reserved_cylinders, bool roflag) {
 			(void)reserved_cylinders;
 			if (Drives[drive - 'A']) {
@@ -6776,7 +6798,9 @@ class IMGMOUNT : public Program {
 			}
 			return true;
 		}
+#endif
 
+#if !defined(OSFREE)
 		imageDisk* MountImageNoneRam(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy) {
 			imageDiskMemory* dsk = CreateRamDrive(sizes, reserved_cylinders, forceFloppy, this);
 			if (dsk == NULL) return NULL;
@@ -6787,7 +6811,9 @@ class IMGMOUNT : public Program {
 			}
 			return dsk;
 		}
+#endif
 
+#if !defined(OSFREE)
 		bool MountRam(Bitu sizes[], const char drive, const signed char ide_index, const bool ide_slave, bool roflag) {
 			if (Drives[drive - 'A']) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
@@ -6822,6 +6848,7 @@ class IMGMOUNT : public Program {
 
 			return true;
 		}
+#endif
 
 		void AddToDriveManager(const char drive, DOS_Drive* imgDisk, const uint8_t mediaid) const {
 			std::vector<DOS_Drive*> imgDisks = { imgDisk };
