@@ -2590,7 +2590,9 @@ void DOS_EnableDriveMenu(char drv);
 void IDE_Auto(signed char &index,bool &slave);
 bool AttachToBiosByLetter(imageDisk* image, const char drive);
 bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsigned char ide_index, const bool ide_slave);
+#if !defined(OSFREE)
 imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj);
+#endif
 
 void unmount(int lcv) {
     if (!Drives[lcv] || lcv>=DOS_DRIVES-1) return;
@@ -2720,12 +2722,14 @@ void POD_Load_DOS_Files( std::istream& stream )
                             LOG_MSG("Error: Cannot restore drive from El Torito floppy image.\n");
 
                     } else if (opts.mounttype==2) {
+#if !defined(OSFREE)
                         imageDiskMemory* image = CreateRamDrive(sizes, 0, lcv < 2 && sizes[0] == 0, NULL);
                         if (image != NULL && image->Format() == 0x00) {
                             image->Addref();
                             newDrive = new fatDrive(image, options);
                             image->Release();
                         }
+#endif
                     } else if (opts.mounttype==3 && *(dinfo+9)) {
                         imageDisk* vhdImage = NULL;
                         if (imageDiskVHD::Open(dinfo+9, false, &vhdImage)==imageDiskVHD::OPEN_SUCCESS)
@@ -2890,8 +2894,10 @@ void POD_Load_DOS_Files( std::istream& stream )
             if (image) AttachToBiosByLetter(image, 'A'+d);
             else LOG_MSG("Warning: Cannot restore drive number from El Torito floppy image.\n");
         } else if (opts.mounttype==2) {
+#if !defined(OSFREE)
             imageDiskMemory* image = CreateRamDrive(sizes, 0, d < 2 && sizes[0] == 0, NULL);
             if (image != NULL && image->Format() == 0x00) AttachToBiosAndIdeByLetter(image, d, (unsigned char)ide_index, ide_slave);
+#endif
         } else if (opts.mounttype==3 && *diskname) {
             imageDisk* image = NULL;
             if (imageDiskVHD::Open(diskname, false, &image)==imageDiskVHD::OPEN_SUCCESS)
