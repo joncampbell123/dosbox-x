@@ -3062,6 +3062,7 @@ static Bitu DOS_21Handler(void) {
 #endif
 	    break;
 	case 0x73:
+#if !defined(OSFREE)
 	    if (dos.version.major < 7) { // MS-DOS 7+ only for AX=73xxh
 		    CALLBACK_SCF(true);
 		    reg_ax=0x7300;
@@ -3087,7 +3088,6 @@ static Bitu DOS_21Handler(void) {
 			    drive = DOS_GetDefaultDrive();
 
 		    if (drive < DOS_DRIVES && Drives[drive] && !Drives[drive]->isRemovable() && reg_cx >= 0x3F) {
-#if !defined(OSFREE)
 			    if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
 				    fatDrive *fdp;
 				    FAT_BootSector::bpb_union_t bpb;
@@ -3131,7 +3131,6 @@ static Bitu DOS_21Handler(void) {
 					    }
 				    }
 			    }
-#endif
 
 			    reg_ax=0x18;//FIXME
 			    CALLBACK_SCF(true);
@@ -3198,6 +3197,10 @@ static Bitu DOS_21Handler(void) {
 		    CALLBACK_SCF(true);
 		    reg_ax=0xffff;//FIXME
 	    }
+#else
+	    CALLBACK_SCF(true);
+	    reg_ax=0x7300;
+#endif
 	    break;
 	case 0xE0:
         case 0xEF:                  /* Used in Ancient Art Of War CGA */
