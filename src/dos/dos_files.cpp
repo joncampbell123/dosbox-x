@@ -2474,6 +2474,7 @@ void POD_Save_DOS_Files( std::ostream& stream )
 #endif
                 }
             } else if (!strncmp(dinfo,"fatDrive ",9)) {
+#if !defined(OSFREE)
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[lcv]);
                 if (fdp) {
                     opts.bytesector=fdp->loadedDisk?fdp->loadedDisk->sector_size:fdp->opts.bytesector;
@@ -2486,6 +2487,7 @@ void POD_Save_DOS_Files( std::ostream& stream )
                     opts.cdrom_sector_offset=fdp->el.cdrom_sector_offset;
                     opts.floppy_emu_type=fdp->el.floppy_emu_type;
                 }
+#endif
             }
 
             WRITE_POD( &overlaydir, overlaydir);
@@ -2710,6 +2712,7 @@ void POD_Load_DOS_Files( std::istream& stream )
                         clist.push_back(lcv);
                     }
                 } else if (!strncmp(dinfo,"fatDrive ",9)) {
+#if !defined(OSFREE)
                     fatDrive* newDrive = NULL;
                     Bitu sizes[4] = { 0,0,0,0 };
                     if (opts.mounttype==1) {
@@ -2722,14 +2725,12 @@ void POD_Load_DOS_Files( std::istream& stream )
                             LOG_MSG("Error: Cannot restore drive from El Torito floppy image.\n");
 
                     } else if (opts.mounttype==2) {
-#if !defined(OSFREE)
                         imageDiskMemory* image = CreateRamDrive(sizes, 0, lcv < 2 && sizes[0] == 0, NULL);
                         if (image != NULL && image->Format() == 0x00) {
                             image->Addref();
                             newDrive = new fatDrive(image, options);
                             image->Release();
                         }
-#endif
                     } else if (opts.mounttype==3 && *(dinfo+9)) {
                         imageDisk* vhdImage = NULL;
                         if (imageDiskVHD::Open(dinfo+9, false, &vhdImage)==imageDiskVHD::OPEN_SUCCESS)
@@ -2745,6 +2746,7 @@ void POD_Load_DOS_Files( std::istream& stream )
                         mem_writeb(Real2Phys(dos.tables.mediaid) + lcv*dos.tables.dpb_size, opts.mediaid);
                     } else if ((!opts.mounttype || opts.mounttype==3) && *(dinfo+9))
                         LOG_MSG("Error: Cannot restore drive from image file %s\n", dinfo+9);
+#endif
                 }
             }
 			if( Drives[lcv] ) Drives[lcv]->LoadState(stream);
@@ -2906,6 +2908,7 @@ void POD_Load_DOS_Files( std::istream& stream )
                 LOG_MSG("Warning: Cannot restore drive number from image file %s\n", diskname);
             image = NULL;
         } else if (!opts.mounttype && *diskname) {
+#if !defined(OSFREE)
             std::vector<std::string> options;
             fatDrive* newDrive = new fatDrive(diskname, opts.bytesector, opts.cylsector, opts.headscyl, opts.cylinders, options);
             if (newDrive->created_successfully) {
@@ -2914,6 +2917,7 @@ void POD_Load_DOS_Files( std::istream& stream )
             } else
                 LOG_MSG("Warning: Cannot restore drive number from image file %s\n", diskname);
             if (newDrive) delete newDrive;
+#endif
         }
         if (i==MAX_DISK_IMAGES-1)
             for (auto &it : clist) {

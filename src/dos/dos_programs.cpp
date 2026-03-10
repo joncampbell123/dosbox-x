@@ -298,6 +298,8 @@ static const char* UnmountHelper(char umount) {
         mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)i_drive*dos.tables.dpb_size,0);
         if (i_drive == DOS_GetDefaultDrive())
             DOS_SetDrive(ZDRIVE_NUM);
+
+#if !defined(OSFREE)
         if (cdrom)
             for (int drv=0; drv<2; drv++)
                 if (Drives[drv]) {
@@ -309,6 +311,7 @@ static const char* UnmountHelper(char umount) {
                             msgget.replace(found, 2, std::string(1, 'A'+drv));
                     }
                 }
+#endif
     }
 
     if (i_drive < MAX_DISK_IMAGES && imageDiskList[i_drive]) {
@@ -645,6 +648,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
     const char *lFilterDescription = "Floppy image files (*.ima, *.img, *.xdf, *.fdi, *.hdm, *.nfd, *.d88)";
     lTheOpenFileName = tinyfd_openFileDialog("Select a floppy image file","",sizeof(lFilterPatterns)/sizeof(lFilterPatterns[0]), lFilterPatterns, lFilterDescription, 0);
 
+#if !defined(OSFREE)
     if (lTheOpenFileName) {
         //uint8_t mediaid = 0xF0; UNUSED
         std::vector<std::string> options;
@@ -672,8 +676,9 @@ void MenuBrowseFDImage(char drive, int num, int type) {
                 }
             }
         }
-	}
-	chdir( Temp_CurrentDir );
+    }
+    chdir( Temp_CurrentDir );
+#endif
 #endif
 }
 
@@ -6226,6 +6231,7 @@ class IMGMOUNT : public Program {
 								if (i_drive == DOS_GetDefaultDrive())
 									DOS_SetDrive(toupper('Z') - 'A');
 								if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS"), letter);
+#if !defined(OSFREE)
 								if (cdrom)
 									for (int drv=0; drv<2; drv++)
 										if (Drives[drv]) {
@@ -6235,6 +6241,7 @@ class IMGMOUNT : public Program {
 												Unmount(drive);
 											}
 										}
+#endif
 								if (i_drive < MAX_DISK_IMAGES && imageDiskList[i_drive]) {
 									delete imageDiskList[i_drive];
 									imageDiskList[i_drive] = NULL;
