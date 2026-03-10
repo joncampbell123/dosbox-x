@@ -3087,9 +3087,11 @@ static Bitu DOS_21Handler(void) {
 			    drive = DOS_GetDefaultDrive();
 
 		    if (drive < DOS_DRIVES && Drives[drive] && !Drives[drive]->isRemovable() && reg_cx >= 0x3F) {
-			    fatDrive *fdp;
-			    FAT_BootSector::bpb_union_t bpb;
+#if !defined(OSFREE)
 			    if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+				    fatDrive *fdp;
+				    FAT_BootSector::bpb_union_t bpb;
+
 				    fdp = dynamic_cast<fatDrive*>(Drives[drive]);
 				    if (fdp != NULL) {
 					    bpb=fdp->GetBPB();
@@ -3129,6 +3131,7 @@ static Bitu DOS_21Handler(void) {
 					    }
 				    }
 			    }
+#endif
 
 			    reg_ax=0x18;//FIXME
 			    CALLBACK_SCF(true);
@@ -3270,6 +3273,7 @@ static Bitu DOS_27Handler(void) {
 }
 
 static uint16_t DOS_SectorAccess(bool read) {
+#if !defined(OSFREE)
 	fatDrive * drive = (fatDrive *)Drives[reg_al];
 	uint16_t bufferSeg = SegValue(ds);
 	uint16_t bufferOff = reg_bx;
@@ -3301,6 +3305,9 @@ static uint16_t DOS_SectorAccess(bool read) {
 		}
 	}
 	return 0;
+#else
+	return 0x0408; // sector not found
+#endif
 }
 
 static Bitu DOS_25Handler_Actual(bool fat32) {

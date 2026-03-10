@@ -2668,6 +2668,7 @@ public:
                         readonly=true;
                     else {
                         readonly=Drives[statusdrive]->readonly;
+#if !defined(OSFREE)
                         if (!path.size()) {
                             fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[statusdrive]);
                             if (fdp!=NULL&&fdp->opts.mounttype==1)
@@ -2675,6 +2676,7 @@ public:
                             else if (fdp!=NULL&&fdp->opts.mounttype==2)
                                 path="RAM drive";
                         }
+#endif
                     }
                     swappos=DriveManager::GetDrivePosition(statusdrive);
                 } else if (!strncmp(info, "PhysFS directory ", 17)) {

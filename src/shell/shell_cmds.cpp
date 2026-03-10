@@ -3932,8 +3932,10 @@ void DOS_Shell::CMD_VOL(char *args){
 	WriteOut(tree?MSG_Get("SHELL_CMD_VOL_SERIAL")+1:MSG_Get("SHELL_CMD_VOL_SERIAL"));
 	unsigned long serial_number=0x1234;
 	if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+#if !defined(OSFREE)
 		fatDrive* fdp = dynamic_cast<fatDrive*>(Drives[drive]);
 		if (fdp != NULL) serial_number=fdp->GetSerial();
+#endif
 	}
 #if defined (WIN32)
 	if (!strncmp(Drives[drive]->GetInfo(),"local ",6) || !strncmp(Drives[drive]->GetInfo(),"CDRom ",6)) {

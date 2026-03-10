@@ -698,6 +698,7 @@ bool change_currentcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * c
 }
 
 bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+#if !defined(OSFREE)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     int num=0;
@@ -712,11 +713,12 @@ bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * c
         } else if (imageDiskList[idrive])
             MenuBrowseFDImage('A'+idrive, ++num, -1);
     }
-#if !defined(HX_DOS)
+# if !defined(HX_DOS)
     if (!num) tinyfd_messageBox("Error","No floppy drive is currently available.","ok","error", 1);
-#endif
+# endif
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
+#endif
     return true;
 }
 
