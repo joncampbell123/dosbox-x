@@ -3314,6 +3314,7 @@ static uint16_t DOS_SectorAccess(bool read) {
 }
 
 static Bitu DOS_25Handler_Actual(bool fat32) {
+#if !defined(OSFREE)
 	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
@@ -3429,6 +3430,10 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 			SETFLAGBIT(CF,true);
 		}
 	}
+#else
+	reg_ax = 0x8002;
+	SETFLAGBIT(CF,true);
+#endif
 	return CBRET_NONE;
 }
 
@@ -3437,6 +3442,7 @@ static Bitu DOS_25Handler(void) {
 }
 
 static Bitu DOS_26Handler_Actual(bool fat32) {
+#if !defined(OSFREE)
 	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {	
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
@@ -3543,6 +3549,10 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
 	}
+#else
+	reg_ax = 0x8002;
+	SETFLAGBIT(CF,true);
+#endif
 	return CBRET_NONE;
 }
 
