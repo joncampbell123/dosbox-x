@@ -47,9 +47,11 @@ inline bool CodePageHostToGuestUTF16(uint8_t *d/*CROSS_LEN*/,const uint8_t *s/*C
 
 using namespace std;
 
+#if !defined(OSFREE)
 static bool islfnchar(const char *s) {
     return (unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || *s == '?' || *s == '*';
 }
+#endif
 
 ////////////////////////////////////
 
@@ -893,6 +895,7 @@ unsigned int isoDrive::UDFextent_read(struct UDFextents &ex,unsigned char *buf,s
 
 ////////////////////////////////////
 
+#if !defined(OSFREE)
 class isoFile : public DOS_File {
 public:
     isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, uint32_t offset);
@@ -903,10 +906,8 @@ public:
 	uint16_t GetInformation(void) override;
 	uint32_t GetSeekPos(void) override;
 public:
-#if !defined(OSFREE)
 	UDFextents udffext;
 	bool udf = false;
-#endif
 private:
 	isoDrive *drive;
     uint8_t buffer[ISO_FRAMESIZE] = {};
@@ -916,7 +917,9 @@ private:
 	uint32_t fileEnd;
 //	uint16_t info;
 };
+#endif
 
+#if !defined(OSFREE)
 isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, uint32_t offset) : drive(drive), fileBegin(offset) {
 	time = stat->time;
 	date = stat->date;
@@ -927,15 +930,15 @@ isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, 
 	this->name = NULL;
 	SetName(name);
 }
+#endif
 
-bool isoFile::Read(uint8_t *data, uint16_t *size) {
 #if !defined(OSFREE)
+bool isoFile::Read(uint8_t *data, uint16_t *size) {
 	if (udf) {
 		*size = (uint16_t)(drive->UDFextent_read(udffext,data,*size));
 		filePos = *size;
 		return true;
 	}
-#endif
 
 	if (filePos + *size > fileEnd)
 		*size = (uint16_t)(fileEnd - filePos);
@@ -972,11 +975,15 @@ bool isoFile::Read(uint8_t *data, uint16_t *size) {
 	filePos += *size;
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 bool isoFile::Write(const uint8_t* /*data*/, uint16_t* /*size*/) {
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 bool isoFile::Seek(uint32_t *pos, uint32_t type) {
 	switch (type) {
 		case DOS_SEEK_SET:
@@ -996,28 +1003,33 @@ bool isoFile::Seek(uint32_t *pos, uint32_t type) {
 	
 	*pos = filePos - fileBegin;
 
-#if !defined(OSFREE)
 	if (udf) {
 		*pos = drive->UDFextent_seek(udffext,*pos);
 		filePos = *pos + fileBegin;
 	}
-#endif
 
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 bool isoFile::Close() {
 	if (refCtr == 1) open = false;
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 uint16_t isoFile::GetInformation(void) {
 	return 0x40;		// read-only drive
 }
+#endif
 
+#if !defined(OSFREE)
 uint32_t isoFile::GetSeekPos() {
 	return filePos - fileBegin;
 }
+#endif
 
 int   MSCDEX_RemoveDrive(char driveLetter);
 int   MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit);
@@ -1157,6 +1169,7 @@ void isoDrive::Activate(void) {
 }
 
 bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
+#if !defined(OSFREE)
 	FileStat_Block file_stat;
 	bool success;
 
@@ -1166,7 +1179,6 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 	}
 
 	if (is_udf) {
-#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		success = lookup(fid, fe, name) && !(fid.FileCharacteristics & 0x02/*Directory*/);
@@ -1185,7 +1197,6 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 			*file = ifile;
 			(*file)->flags = flags;
 		}
-#endif
 	}
 	else {
 		isoDirEntry de;
@@ -1201,6 +1212,10 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 	}
 
 	return success;
+#else
+	DOS_SetError(DOSERR_ACCESS_DENIED);
+	return false;
+#endif
 }
 
 bool isoDrive::FileCreate(DOS_File** /*file*/, const char* /*name*/, uint16_t /*attributes*/) {
@@ -1679,6 +1694,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 			if (periods > 1 || el > 3) lfn = true;
 		}
 
+#if !defined(OSFREE)
 		/* Windows 95 adds a ~number to the 8.3 name if effectively an LFN.
 		 * I'm not 100% certain but the index appears to be related to the index of the ISO 9660 dirent.
 		 * This is a guess as to how it works. */
@@ -1692,23 +1708,23 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 			while (*s == '.'||*s == ' ') s++;
 			bool lead = false;
 			while (*s != 0) {
-                if(s == ext) break; // doesn't match if ext == NULL, so no harm in that case
-                if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
-                    if (c >= (7-tailsize)) break;
-                    lead = true;
-                    *d++ = *s;
-                    c++;
+				if(s == ext) break; // doesn't match if ext == NULL, so no harm in that case
+				if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
+					if (c >= (7-tailsize)) break;
+					lead = true;
+					*d++ = *s;
+					c++;
 				} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
-                    lead = false;
-                    if (*s != '.') {
-                        *d++ = '_';
-                        c++;
-                    }
-                } else if (c >= (8-tailsize)) {
-                    if (s < ext) s = ext;
-                    break;
-                } else {
-                    lead = false;
+					lead = false;
+					if (*s != '.') {
+						*d++ = '_';
+						c++;
+					}
+				} else if (c >= (8-tailsize)) {
+					if (s < ext) s = ext;
+					break;
+				} else {
+					lead = false;
 					*d++ = *s;
 					c++;
 				}
@@ -1724,16 +1740,16 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 					c = 0;
 					while (*s != 0) {
 						if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
-                            if (c >= 2) break;
-                            lead = true;
-                            *d++ = *s;
-                            c++;
+							if (c >= 2) break;
+							lead = true;
+							*d++ = *s;
+							c++;
 						} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
-                            lead = false;
-                            *d++ = '_';
-                            c++;
-                        } else if (c >= 3) break;
-                        else {
+							lead = false;
+							*d++ = '_';
+							c++;
+						} else if (c >= 3) break;
+						else {
 							*d++ = *s;
 							c++;
 						}
@@ -1743,6 +1759,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 			}
 			*d = 0;
 		}
+#endif
 	}
 
 	return true;
@@ -1842,6 +1859,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 		else {
 			if (de->fileIdentLength > 200) return -1;
 			de->ident[de->fileIdentLength] = 0;
+#if !defined(OSFREE)
 			if (is_joliet) {
 				de->ident[de->fileIdentLength+1] = 0; // for Joliet UCS-16
 				// The string is big Endian UCS-16, convert to host Endian UCS-16
@@ -1849,11 +1867,13 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 				// finally, convert from UCS-16 to local code page, using C++ string construction to make a copy first
 				CodePageHostToGuestUTF16(de->ident,de->ident);
 			}
+#endif
 		}
 	} else {
 		if (de->fileIdentLength > 200) return -1;
 		de->ident[de->fileIdentLength] = 0;	
 		if (is_joliet) {
+#if !defined(OSFREE)
 			de->ident[de->fileIdentLength+1] = 0; // for Joliet UCS-16
 			// remove any file version identifiers as there are some cdroms that don't have them
 			uint16_t *w = (uint16_t*)(de->ident); // remember two NULs were written to make a UCS-16 NUL
@@ -1870,6 +1890,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			for (size_t i=0;((const uint16_t*)de->ident)[i] != 0;i++) ((uint16_t*)de->ident)[i] = be16toh(((uint16_t*)de->ident)[i]);
 			// finally, convert from UCS-16 to local code page, using C++ string construction to make a copy first
 			CodePageHostToGuestUTF16(de->ident,de->ident);
+#endif
 		}
 		else {
 			// remove any file version identifiers as there are some cdroms that don't have them
@@ -1888,6 +1909,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 	}
 	else {
 		strcpy((char*)fullname,(char*)de->ident);
+#if !defined(OSFREE)
 		if (is_rock_ridge) {
 			/* LEN_SKP bytes into the System Use Field (bytes after the final NUL byte of the identifier) */
 			/* NTS: This code could never work with Joliet extensions because the code above (currently)
@@ -1936,8 +1958,10 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 				}
 			}
 		}
+#endif
 	}
 
+#if !defined(OSFREE)
 	bool jolietrr = is_joliet || (is_rock_ridge_name && filename_not_strict_8x3((char*)de->ident));
 	if (!jolietrr && !(dos.version.major >= 7 || uselfn)) {
 		char* dotpos = strchr((char*)de->ident, '.');
@@ -1994,23 +2018,23 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			while (*s == '.'||*s == ' ') s++;
 			bool lead = false;
 			while (*s != 0) {
-                if(s == ext) break; // doesn't match if ext == NULL, so no harm in that case
-                if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
-                    if (c >= (7-tailsize)) break;
-                    lead = true;
-                    *d++ = *s;
-                    c++;
+				if(s == ext) break; // doesn't match if ext == NULL, so no harm in that case
+				if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
+					if (c >= (7-tailsize)) break;
+					lead = true;
+					*d++ = *s;
+					c++;
 				} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
-                    lead = false;
-                    if (*s != '.') {
-                        *d++ = '_';
-                        c++;
-                    }
-                } else if (c >= (8-tailsize)) {
-                    if (s < ext) s = ext;
-                    break;
-                } else {
-                    lead = false;
+					lead = false;
+					if (*s != '.') {
+						*d++ = '_';
+						c++;
+					}
+				} else if (c >= (8-tailsize)) {
+					if (s < ext) s = ext;
+					break;
+				} else {
+					lead = false;
 					*d++ = *s;
 					c++;
 				}
@@ -2026,16 +2050,16 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 					c = 0;
 					while (*s != 0) {
 						if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
-                            if (c >= 2) break;
-                            lead = true;
-                            *d++ = *s;
-                            c++;
+							if (c >= 2) break;
+							lead = true;
+							*d++ = *s;
+							c++;
 						} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
-                            lead = false;
-                            *d++ = '_';
-                            c++;
-                        } else if (c >= 3) break;
-                        else {
+							lead = false;
+							*d++ = '_';
+							c++;
+						} else if (c >= 3) break;
+						else {
 							*d++ = *s;
 							c++;
 						}
@@ -2046,6 +2070,8 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			*d = 0;
 		}
 	}
+#endif
+
 	return de->length;
 }
 
@@ -2326,10 +2352,12 @@ bool isoDrive :: loadImage() {
 	}
 #endif
 
+#if !defined(OSFREE)
 	/* Sanity check: This code does NOT support Rock Ridge extensions when reading the Joliet supplementary volume! */
 	if (is_joliet) {
 		assert(!is_rock_ridge);
 	}
+#endif
 
 	dataCD = true;
 	return true;
