@@ -11587,6 +11587,10 @@ startfunction:
             BIOS_Int10RightJustifiedPrint(x,y,"ISA Plug & Play BIOS active\n");
         }
 
+#if defined(OSFREE)
+        BIOS_Int10RightJustifiedPrint(x,y,"OS-FREE BUILD\n");
+#endif
+
         if (*logo_text) {
             const size_t max_w = 76;
             const char *s = logo_text;
