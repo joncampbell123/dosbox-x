@@ -2447,8 +2447,8 @@ void POD_Save_DOS_Files( std::ostream& stream )
             *overlaydir=0;
             if (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6) || !strncmp(dinfo,"PhysFS directory ",17) || !strncmp(dinfo,"PhysFS CDRom ",13) ) {
                 localDrive *ldp = dynamic_cast<localDrive*>(Drives[lcv]);
-                if (!ldp) ldp = dynamic_cast<cdromDrive*>(Drives[lcv]);
 #if !defined(OSFREE)
+                if (!ldp) ldp = dynamic_cast<cdromDrive*>(Drives[lcv]);
                 if (!ldp) ldp = dynamic_cast<physfsDrive*>(Drives[lcv]);
 #endif
                 if (ldp) {
@@ -2674,8 +2674,11 @@ void POD_Load_DOS_Files( std::istream& stream )
 #else
                         LOG_MSG("Physfs CDROM not supported");
 #endif
-                    } else
+                    } else {
+#if !defined(OSFREE)
                         Drives[lcv] = new cdromDrive('A'+lcv,dinfo+6,lalloc.bytes_sector,lalloc.sectors_cluster,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
+#endif
+                    }
                     if (Drives[lcv]) {
                         DOS_EnableDriveMenu('A'+lcv);
                         mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
