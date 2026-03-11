@@ -97,16 +97,19 @@ public:
 	uint16_t		GetNumDrives		(void)	{ return numDrives;			};
 	uint16_t		GetFirstDrive		(void)	{ return dinfo[0].drive; };
 	uint8_t		GetSubUnit			(uint16_t _drive);
+#if !defined(OSFREE)
 	bool		GetUPC				(uint8_t subUnit, uint8_t& attr, char* upc);
+#endif
 
 	void		InitNewMedia		(uint8_t subUnit);
+#if !defined(OSFREE)
 	bool		PlayAudioSector		(uint8_t subUnit, uint32_t sector, uint32_t length);
 	bool		PlayAudioMSF		(uint8_t subUnit, uint32_t start, uint32_t length);
 	bool		StopAudio			(uint8_t subUnit);
 	bool		GetAudioStatus		(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
 
 	bool		GetQChannelData	(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs);
-
+#endif
 	int			RemoveDrive			(uint16_t _drive);
 	int			AddDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
 	bool 		HasDrive			(uint16_t drive);
@@ -116,17 +119,22 @@ public:
 	void		GetDriverInfo		(PhysPt data);
 #endif
 	bool		GetVolumeName		(uint8_t subUnit, char* data);
+#if !defined(OSFREE)
 	bool		GetFileName			(uint16_t drive, uint16_t pos, PhysPt data);
 	bool		GetDirectoryEntry	(uint16_t drive, bool copyFlag, PhysPt pathname, PhysPt buffer, uint16_t& error);
+#endif
 	bool		ReadVTOC			(uint16_t drive, uint16_t volume, PhysPt data, uint16_t& offset, uint16_t& error);
-	bool		ReadSectors			(uint16_t drive, uint32_t sector, uint16_t num, PhysPt data);
-	bool		ReadSectors			(uint8_t subUnit, bool raw, uint32_t sector, uint16_t num, PhysPt data);
-	bool		ReadSectorsMSF		(uint8_t subUnit, bool raw, uint32_t start, uint16_t num, PhysPt data);
 #if !defined(OSFREE)
+	bool		ReadSectors			(uint16_t drive, uint32_t sector, uint16_t num, PhysPt data);
+#endif
+	bool		ReadSectors			(uint8_t subUnit, bool raw, uint32_t sector, uint16_t num, PhysPt data);
+#if !defined(OSFREE)
+	bool		ReadSectorsMSF		(uint8_t subUnit, bool raw, uint32_t start, uint16_t num, PhysPt data);
 	bool		SendDriverRequest	(uint16_t drive, PhysPt data);
 #endif
 	bool		IsValidDrive		(uint16_t _drive);
 	bool		GetCDInfo			(uint8_t subUnit, uint8_t& tr1, uint8_t& tr2, TMSF& leadOut);
+#if !defined(OSFREE)
 	uint32_t		GetVolumeSize		(uint8_t subUnit);
 	bool		GetTrackInfo		(uint8_t subUnit, uint8_t track, uint8_t& attr, TMSF& start);
 	uint16_t		GetStatusWord		(uint8_t subUnit,uint16_t status);
@@ -137,6 +145,7 @@ public:
 	bool		ResumeAudio			(uint8_t subUnit);
 	bool		GetMediaStatus		(uint8_t subUnit, bool& media, bool& changed, bool& trayOpen);
     bool        Seek                (uint8_t subUnit, uint32_t sector);
+#endif
  
 	PhysPt		GetDefaultBuffer	(void);
 	PhysPt		GetTempBuffer		(void);
@@ -168,8 +177,10 @@ public:
 
 	char*			name = NULL;
 
+#if !defined(OSFREE)
 	bool		ChannelControl		(uint8_t subUnit, TCtrl ctrl);
 	bool		GetChannelControl	(uint8_t subUnit, TCtrl& ctrl);
+#endif
 };
 
 CMscdex::CMscdex(const char *_name) {
@@ -429,8 +440,10 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		dinfo[subUnit].audioCtrl.out[chan]=chan;
 		dinfo[subUnit].audioCtrl.vol[chan]=0xff;
 	}
+#if !defined(OSFREE)
 	// stop audio
 	StopAudio(subUnit);
+#endif
 	return result;
 }
 
@@ -440,7 +453,9 @@ bool CMscdex::HasDrive(uint16_t drive) {
 
 void CMscdex::ReplaceDrive(CDROM_Interface* newCdrom, uint8_t subUnit) {
 	if (cdrom[subUnit] != NULL) {
+#if !defined(OSFREE)
 		StopAudio(subUnit);
+#endif
 		delete cdrom[subUnit];
 	}
 	cdrom[subUnit] = newCdrom;
@@ -488,6 +503,7 @@ bool CMscdex::GetCDInfo(uint8_t subUnit, uint8_t& tr1, uint8_t& tr2, TMSF& leadO
 	return dinfo[subUnit].lastResult;
 }
 
+#if !defined(OSFREE)
 bool CMscdex::GetTrackInfo(uint8_t subUnit, uint8_t track, uint8_t& attr, TMSF& start) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioTrackInfo(track,start,attr);	
@@ -497,7 +513,9 @@ bool CMscdex::GetTrackInfo(uint8_t subUnit, uint8_t track, uint8_t& attr, TMSF& 
 	}
 	return dinfo[subUnit].lastResult;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::PlayAudioSector(uint8_t subUnit, uint32_t sector, uint32_t length) {
 	if (subUnit>=numDrives) return false;
 	// If value from last stop is used, this is meant as a resume
@@ -515,7 +533,9 @@ bool CMscdex::PlayAudioSector(uint8_t subUnit, uint32_t sector, uint32_t length)
 	}
 	return dinfo[subUnit].lastResult;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::PlayAudioMSF(uint8_t subUnit, uint32_t start, uint32_t length) {
 	if (subUnit>=numDrives) return false;
 	uint8_t min		= (uint8_t)(start>>16) & 0xFF;
@@ -524,7 +544,9 @@ bool CMscdex::PlayAudioMSF(uint8_t subUnit, uint32_t start, uint32_t length) {
 	uint32_t sector	= min*60u*75u+sec*75u+fr - 150u;
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,sector,length);
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::Seek(uint8_t subUnit, uint32_t sector)
 {
     if(subUnit >= numDrives) {
@@ -539,7 +561,9 @@ bool CMscdex::Seek(uint8_t subUnit, uint32_t sector)
     }
     return dinfo[subUnit].lastResult;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
@@ -550,7 +574,9 @@ bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, ui
 	}
 	return dinfo[subUnit].lastResult;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::GetAudioStatus(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioStatus(playing,pause);
@@ -579,7 +605,9 @@ bool CMscdex::GetAudioStatus(uint8_t subUnit, bool& playing, bool& pause, TMSF& 
 	
 	return dinfo[subUnit].lastResult;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::StopAudio(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	if (dinfo[subUnit].audioPlay) {
@@ -611,12 +639,16 @@ bool CMscdex::StopAudio(uint8_t subUnit) {
 	}
 	return dinfo[subUnit].lastResult;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::ResumeAudio(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,dinfo[subUnit].audioStart,dinfo[subUnit].audioEnd);
 }
+#endif
 
+#if !defined(OSFREE)
 uint32_t CMscdex::GetVolumeSize(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	uint8_t tr1,tr2;
@@ -625,6 +657,7 @@ uint32_t CMscdex::GetVolumeSize(uint8_t subUnit) {
 	if (dinfo[subUnit].lastResult) return (leadOut.min*60u*75u)+(leadOut.sec*75u)+leadOut.fr;
 	return 0;
 }
+#endif
 
 bool CMscdex::ReadVTOC(uint16_t drive, uint16_t volume, PhysPt data, uint16_t& offset, uint16_t& error) {
 	uint8_t subunit = GetSubUnit(drive);
@@ -669,6 +702,7 @@ bool CMscdex::GetVolumeName(uint8_t subUnit, char* data) {
 	return success; 
 }
 
+#if !defined(OSFREE)
 bool CMscdex::GetFileName(uint16_t drive, uint16_t pos, PhysPt data) {
 	uint16_t offset = 0, error;
 	bool success = false;
@@ -685,12 +719,15 @@ bool CMscdex::GetFileName(uint16_t drive, uint16_t pos, PhysPt data) {
 	}
 	return success; 
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::GetUPC(uint8_t subUnit, uint8_t& attr, char* upc)
 {
 	if (subUnit>=numDrives) return false;
 	return dinfo[subUnit].lastResult = cdrom[subUnit]->GetUPC(attr,&upc[0]);
 }
+#endif
 
 bool CMscdex::ReadSectors(uint8_t subUnit, bool raw, uint32_t sector, uint16_t num, PhysPt data) {
 	if (subUnit>=numDrives) return false;
@@ -700,6 +737,7 @@ bool CMscdex::ReadSectors(uint8_t subUnit, bool raw, uint32_t sector, uint16_t n
 	return dinfo[subUnit].lastResult;
 }
 
+#if !defined(OSFREE)
 bool CMscdex::ReadSectorsMSF(uint8_t subUnit, bool raw, uint32_t start, uint16_t num, PhysPt data) {
 	if (subUnit>=numDrives) return false;
 	uint8_t min		= (uint8_t)(start>>16) & 0xFF;
@@ -708,12 +746,16 @@ bool CMscdex::ReadSectorsMSF(uint8_t subUnit, bool raw, uint32_t start, uint16_t
 	uint32_t sector	= min*60u*75u+sec*75u+fr - 150u;
 	return ReadSectors(subUnit,raw,sector,num,data);
 }
+#endif
 
+#if !defined(OSFREE)
 // Called from INT 2F
 bool CMscdex::ReadSectors(uint16_t drive, uint32_t sector, uint16_t num, PhysPt data) {
 	return ReadSectors(GetSubUnit(drive),false,sector,num,data);
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, PhysPt buffer, uint16_t& error) {
 	char	volumeID[6] = {0};
 	char	searchName[256];
@@ -827,7 +869,9 @@ bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, 
     error = DOSERR_FILE_NOT_FOUND;
 	return false; // not found
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::GetCurrentPos(uint8_t subUnit, TMSF& pos) {
 	if (subUnit>=numDrives) return false;
     if(!dinfo[subUnit].audioPlay) {
@@ -840,13 +884,17 @@ bool CMscdex::GetCurrentPos(uint8_t subUnit, TMSF& pos) {
     if(!dinfo[subUnit].lastResult) pos.fr = pos.min = pos.sec = 0;
 	return dinfo[subUnit].lastResult;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::GetMediaStatus(uint8_t subUnit, bool& media, bool& changed, bool& trayOpen) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetMediaTrayStatus(media,changed,trayOpen);
 	return dinfo[subUnit].lastResult;
 }
+#endif
 
+#if !defined(OSFREE)
 uint32_t CMscdex::GetDeviceStatus(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	bool media,changed,trayOpen;
@@ -882,7 +930,9 @@ uint32_t CMscdex::GetDeviceStatus(uint8_t subUnit) {
                                                         // Bit 13-31:   Reserved (all 0)
     return status;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::GetMediaStatus(uint8_t subUnit, uint8_t& status) {
 	if (subUnit>=numDrives) return false;
 /*	bool media,changed,open,result;
@@ -892,12 +942,15 @@ bool CMscdex::GetMediaStatus(uint8_t subUnit, uint8_t& status) {
 	status = getSwapRequest() ? 0xFF : 0x01;
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::LoadUnloadMedia(uint8_t subUnit, bool unload) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->LoadUnloadMedia(unload);
 	return dinfo[subUnit].lastResult;
 }
+#endif
 
 #if !defined(OSFREE)
 bool CMscdex::SendDriverRequest(uint16_t drive, PhysPt data) {
@@ -912,6 +965,7 @@ bool CMscdex::SendDriverRequest(uint16_t drive, PhysPt data) {
 }
 #endif
 
+#if !defined(OSFREE)
 uint16_t CMscdex::GetStatusWord(uint8_t subUnit,uint16_t status) {
 	if (subUnit>=numDrives) return REQUEST_STATUS_ERROR | 0x02; // error : Drive not ready
 
@@ -932,6 +986,7 @@ uint16_t CMscdex::GetStatusWord(uint8_t subUnit,uint16_t status) {
 	dinfo[subUnit].lastResult	= true;
 	return status;
 }
+#endif
 
 void CMscdex::InitNewMedia(uint8_t subUnit) {
 	if (subUnit<numDrives) {
@@ -940,6 +995,7 @@ void CMscdex::InitNewMedia(uint8_t subUnit) {
 	}
 }
 
+#if !defined(OSFREE)
 bool CMscdex::ChannelControl(uint8_t subUnit, TCtrl ctrl) {
 	if (subUnit>=numDrives) return false;
 	// adjust strange channel mapping
@@ -949,12 +1005,15 @@ bool CMscdex::ChannelControl(uint8_t subUnit, TCtrl ctrl) {
 	cdrom[subUnit]->ChannelControl(ctrl);
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 bool CMscdex::GetChannelControl(uint8_t subUnit, TCtrl& ctrl) {
 	if (subUnit>=numDrives) return false;
 	ctrl=dinfo[subUnit].audioCtrl;
 	return true;
 }
+#endif
 
 static CMscdex* mscdex = nullptr;
 static PhysPt curReqheaderPtr = 0;
@@ -1656,8 +1715,10 @@ void POD_Save_DOS_Mscdex( std::ostream& stream )
 			TMSF pos, start, end;
 			bool playing, pause;
 
+#if !defined(OSFREE)
 			mscdex->GetAudioStatus(drive_unit, playing, pause, start, end);
 			mscdex->GetCurrentPos(drive_unit,pos);
+#endif
 
 
 			WRITE_POD( &playing, playing );
@@ -1705,11 +1766,15 @@ void POD_Load_DOS_Mscdex( std::istream& stream )
 			msf_time = ( pos.min << 16 ) + ( pos.sec << 8 ) + ( pos.fr );
 
 
+#if !defined(OSFREE)
 			// first play, then simulate pause
 			mscdex->StopAudio(drive_unit);
+#endif
 
+#if !defined(OSFREE)
 			if( playing ) mscdex->PlayAudioMSF(drive_unit, msf_time, play_len);
 			if( pause ) mscdex->PlayAudioMSF(drive_unit, msf_time, 0);
+#endif
 		}
 
 		mscdex->LoadState(stream);
