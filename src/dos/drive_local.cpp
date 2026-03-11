@@ -3185,7 +3185,7 @@ void LocalFile::Flush(void) {
 	}
 }
 
-
+#if !defined(OSFREE)
 // ********************************************
 // CDROM DRIVE
 // ********************************************
@@ -3304,3 +3304,4 @@ Bits cdromDrive::UnMount(void) {
 	}
 	return 2;
 }
+#endif

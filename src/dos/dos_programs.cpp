@@ -369,6 +369,7 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string cons
 	uint8_t bit8size=(uint8_t) sizes[1];
 
 	if(drive_type=="CDROM") {
+#if !defined(OSFREE)
 		int num = -1;
 		int error;
 
@@ -398,6 +399,9 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string cons
 				return;
 			}
 		}
+#else
+		return;
+#endif
 	} else {
         newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
         newdrive->readonly = mountfro[drive-'A'];
@@ -5698,7 +5702,6 @@ class IMGMOUNT : public Program {
 					options.push_back(s);
 			}
 
-#if !defined(OSFREE)
 			//look for -el-torito parameter and remove it from the command line
 			cmd->FindString("-el-torito",el_torito,true);
 			if(el_torito == "") cmd->FindString("-bootcd", el_torito, true);
@@ -5709,7 +5712,6 @@ class IMGMOUNT : public Program {
 				//  find the el_torito_floppy_base and el_torito_floppy_type values
 				if (!PrepElTorito(type, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
 			}
-#endif
 
 			//the user can use -bd to mount partitions from an INT 13h BIOS disk mounted image,
 			//meaning a disk image attached to INT 13h using IMGMOUNT <number> -fs none. This way,
@@ -5956,11 +5958,13 @@ class IMGMOUNT : public Program {
 				else {
 					if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
 						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? (wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].c_str()+1:paths[0].c_str()) : (el_torito != ""?"El Torito floppy drive":(type == "ram"?"RAM drive":"-")));
-                        const char *ext = strrchr(paths[0].c_str(), '.');
-						if (ext != NULL) {
-							if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2")) ||
-								(IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
-								WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+						if (!paths.empty()) {
+							const char *ext = strrchr(paths[0].c_str(), '.');
+							if (ext != NULL) {
+								if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2")) ||
+									(IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
+									WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+								}
 							}
 						}
 						if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
@@ -6302,7 +6306,6 @@ class IMGMOUNT : public Program {
 			}
 		}
 
-#if !defined(OSFREE)
 		bool PrepElTorito(const std::string& type, const char &el_torito_cd_drive, unsigned long &el_torito_floppy_base, unsigned char &el_torito_floppy_type) {
 			el_torito_floppy_base = ~0UL;
 			el_torito_floppy_type = 0xFF;
@@ -6464,7 +6467,6 @@ class IMGMOUNT : public Program {
 
 			return true;
 		}
-#endif
 
 #if !defined(OSFREE)
 		bool MountPartitionFat(const char drive, const int src_bios_disk) {
