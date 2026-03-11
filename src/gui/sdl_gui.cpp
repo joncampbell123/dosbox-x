@@ -163,9 +163,15 @@ void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(
 void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true), setAspectRatio(Section_prop * section), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans);
 bool CheckQuit(void), OpenGL_using(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
+#if !defined(OSFREE)
 const char *aboutmsg = "DOSBox-X ver." VERSION " (" OS_PLATFORM " " SDL_STRING " " OS_BIT "-bit)\n" \
                        "Build date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR \
                        " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
+#else
+const char *aboutmsg = "DOSBox-X ver." VERSION " (" OS_PLATFORM " " SDL_STRING " " OS_BIT "-bit) OS-FREE\n" \
+                       "Build date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR \
+                       " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
+#endif
 
 void RebootConfig(std::string filename, bool confirm=false) {
     std::string exepath=GetDOSBoxXPath(true), para="-conf \""+filename+"\"";
@@ -3155,7 +3161,7 @@ protected:
     GUI::Input *name;
 public:
     ShowHelpAbout(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 420, 230, title) {
+        ToplevelWindow(parent, x, y, 480, 230, title) {
             std::istringstream in(aboutmsg);
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
