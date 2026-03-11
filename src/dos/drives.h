@@ -539,6 +539,7 @@ public:
 
 PhysPt DOS_Get_DPB(unsigned int dos_drive);
 
+#if !defined(OSFREE)
 class cdromDrive : public localDrive
 {
 public:
@@ -564,6 +565,7 @@ public:
 private:
 	uint8_t subUnit = 0;	char driveLetter = '\0';
 };
+#endif
 
 #if !defined(OSFREE)
 class physfscdromDrive : public physfsDrive

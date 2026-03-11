@@ -369,6 +369,7 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string cons
 	uint8_t bit8size=(uint8_t) sizes[1];
 
 	if(drive_type=="CDROM") {
+#if !defined(OSFREE)
 		int num = -1;
 		int error;
 
@@ -398,6 +399,9 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string cons
 				return;
 			}
 		}
+#else
+		return;
+#endif
 	} else {
         newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
         newdrive->readonly = mountfro[drive-'A'];
