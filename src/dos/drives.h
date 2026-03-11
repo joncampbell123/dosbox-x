@@ -1140,27 +1140,31 @@ public:
 	char const* GetLabel(void) override {return discLabel;};
 	void Activate(void) override;
 private:
-    int  readDirEntry(isoDirEntry* de, const uint8_t* data, unsigned int direntindex) const;
-	bool lookup(isoDirEntry *de, const char *path);
 #if !defined(OSFREE)
+	int  readDirEntry(isoDirEntry* de, const uint8_t* data, unsigned int direntindex) const;
+	bool lookup(isoDirEntry *de, const char *path);
 	bool lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, const char *path);
 #endif
 	int  UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit);
-	int  GetDirIterator(const isoDirEntry* de);
 #if !defined(OSFREE)
+	int  GetDirIterator(const isoDirEntry* de);
 	int  GetDirIterator(const UDFFileEntry &fe);
-#endif
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(uint8_t** buffer, const uint32_t sector);
+#endif
 
+#if !defined(OSFREE)
 	int nextFreeDirIterator;
+#endif
 	
+#if !defined(OSFREE)
 	struct SectorHashEntry {
 		bool valid;
 		uint32_t sector;
 		uint8_t data[ISO_FRAMESIZE];
 	} sectorHashEntries[ISO_MAX_HASH_TABLE_SIZE];
+#endif
 
     bool iso = false;
     bool dataCD = false;
@@ -1183,10 +1187,14 @@ private:
     static constexpr bool enable_rock_ridge = false; // NTS: Windows 95/98 are unlikely to support Rock Ridge, therefore this is off by default. If they do support RR, let me know --J.C.
     static constexpr bool enable_udf = false; // NTS: Windows 98 is said to have added UDF support
 #endif
+#if !defined(OSFREE)
 	isoDirEntry rootEntry;
+#endif
     uint8_t mediaid = 0;
 	char fileName[CROSS_LEN];
+#if !defined(OSFREE)
 	uint8_t rr_susp_skip = 0;
+#endif
     uint8_t subUnit = 0;
     char driveLetter = '\0';
 	char discLabel[32];
