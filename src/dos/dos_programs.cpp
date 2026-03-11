@@ -5702,7 +5702,6 @@ class IMGMOUNT : public Program {
 					options.push_back(s);
 			}
 
-#if !defined(OSFREE)
 			//look for -el-torito parameter and remove it from the command line
 			cmd->FindString("-el-torito",el_torito,true);
 			if(el_torito == "") cmd->FindString("-bootcd", el_torito, true);
@@ -5713,7 +5712,6 @@ class IMGMOUNT : public Program {
 				//  find the el_torito_floppy_base and el_torito_floppy_type values
 				if (!PrepElTorito(type, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
 			}
-#endif
 
 			//the user can use -bd to mount partitions from an INT 13h BIOS disk mounted image,
 			//meaning a disk image attached to INT 13h using IMGMOUNT <number> -fs none. This way,
@@ -6306,7 +6304,6 @@ class IMGMOUNT : public Program {
 			}
 		}
 
-#if !defined(OSFREE)
 		bool PrepElTorito(const std::string& type, const char &el_torito_cd_drive, unsigned long &el_torito_floppy_base, unsigned char &el_torito_floppy_type) {
 			el_torito_floppy_base = ~0UL;
 			el_torito_floppy_type = 0xFF;
@@ -6468,7 +6465,6 @@ class IMGMOUNT : public Program {
 
 			return true;
 		}
-#endif
 
 #if !defined(OSFREE)
 		bool MountPartitionFat(const char drive, const int src_bios_disk) {
