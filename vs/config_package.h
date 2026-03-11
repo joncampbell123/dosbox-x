@@ -7,5 +7,3 @@
 #define PACKAGE_VERSION "2026.03.06"
 #define VERSION "2026.03.06"
 #define COPYRIGHT_YEAR "2025"
-#define C_OSFREE 1
-#define OSFREE 1
