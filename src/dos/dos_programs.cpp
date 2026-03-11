@@ -5958,11 +5958,13 @@ class IMGMOUNT : public Program {
 				else {
 					if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
 						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? (wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].c_str()+1:paths[0].c_str()) : (el_torito != ""?"El Torito floppy drive":(type == "ram"?"RAM drive":"-")));
-                        const char *ext = strrchr(paths[0].c_str(), '.');
-						if (ext != NULL) {
-							if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2")) ||
-								(IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
-								WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+						if (!paths.empty()) {
+							const char *ext = strrchr(paths[0].c_str(), '.');
+							if (ext != NULL) {
+								if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2")) ||
+									(IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
+									WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+								}
 							}
 						}
 						if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
