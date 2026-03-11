@@ -1956,7 +1956,9 @@ static Bitu INT13_DiskHandler(void) {
         for(i=0;i<reg_al;i++) {
             last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, (uint32_t)(reg_ch | ((reg_cl & 0xc0)<< 2)), (uint32_t)((reg_cl & 63)+i), sectbuf);
 
-            if (drivenum < 2)
+            if (imageDiskList[drivenum]->class_id == imageDisk::ID_EL_TORITO_FLOPPY)
+                diskio_delay(512);
+            else if (drivenum < 2)
                 diskio_delay(512, 0); // Floppy
             else
                 diskio_delay(512);
