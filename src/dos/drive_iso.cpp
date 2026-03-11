@@ -34,6 +34,7 @@
 #define FLAGS1	((iso) ? de.fileFlags : de.timeZone)
 #define FLAGS2	((iso) ? de->fileFlags : de->timeZone)
 
+#if !defined(OSFREE)
 char fullname[LFN_NAMELENGTH];
 static uint16_t sdid[256];
 extern int lfn_filefind_handle;
@@ -44,6 +45,7 @@ inline bool CodePageHostToGuestUTF16(uint8_t *d/*CROSS_LEN*/,const uint8_t *s/*C
     std::u16string u16s(reinterpret_cast<const char16_t *>(s));
     return CodePageHostToGuestUTF16(reinterpret_cast<char *>(d), reinterpret_cast<const uint16_t *>(u16s.c_str()));
 }
+#endif
 
 using namespace std;
 
@@ -1087,9 +1089,11 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 	this->fileName[0]  = '\0';
 	this->discLabel[0] = '\0';
 	subUnit = 0;
+#if !defined(OSFREE)
 	nextFreeDirIterator = 0;
 	memset(sectorHashEntries, 0, sizeof(sectorHashEntries));
 	memset(&rootEntry, 0, sizeof(isoDirEntry));
+#endif
 	
 	safe_strncpy(this->fileName, fileName, CROSS_LEN);
 	error = UpdateMscdex(driveLetter, fileName, subUnit);
@@ -1131,6 +1135,7 @@ void isoDrive::setFileName(const char* fileName) {
 	strcat(info, fileName);
 }
 
+/* because of the way this ties into IDE emulation through MSCDEX emulation, this must stay */
 int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit) {
 	if (MSCDEX_HasDrive(driveLetter)) {
 		subUnit = MSCDEX_GetSubUnit(driveLetter);
@@ -1239,22 +1244,25 @@ bool isoDrive::MakeDir(const char* /*dir*/) {
 }
 
 bool isoDrive::TestDir(const char *dir) {
-	if (is_udf) {
 #if !defined(OSFREE)
+	if (is_udf) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		return (lookup(fid, fe, dir) && (fid.FileCharacteristics & 0x02/*Directory*/));
-#endif
 	}
 	else {
 		isoDirEntry de;	
 		return (lookup(&de, dir) && IS_DIR(FLAGS1));
 	}
+#else
+	DOS_SetError(DOSERR_ACCESS_DENIED);
+	return false;
+#endif
 }
 
 bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
-	if (is_udf) {
 #if !defined(OSFREE)
+	if (is_udf) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		if (!lookup(fid, fe, dir)) {
@@ -1288,7 +1296,6 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 
 		UDFFileEntryToExtents(dirIterators[dirIterator].udfdirext,fe);
 		return FindNext(dta);
-#endif
 	}
 	else {
 		isoDirEntry de;
@@ -1323,13 +1330,15 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 
 		return FindNext(dta);
 	}
+#else
+	return FindNext(dta);
+#endif
 }
 
 bool isoDrive::FindNext(DOS_DTA &dta) {
-	uint8_t attr;
 #if !defined(OSFREE)
+	uint8_t attr;
 	char fname[LFN_NAMELENGTH];
-#endif
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
 	dta.GetSearchParams(attr, pattern, false);
 
@@ -1337,7 +1346,6 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	bool isRoot = dirIterators[dirIterator].root;
 
 	if (is_udf) {
-#if !defined(OSFREE)
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		while (GetNextDirEntry(dirIterator, fid, fe, dirIterators[dirIterator].udfdirext, fname, dirIterators[dirIterator].index)) {
@@ -1364,7 +1372,6 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 				return true;
 			}
 		}
-#endif
 	}
 	else {
 		isoDirEntry de = {};
@@ -1393,6 +1400,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 
 	// after searching the directory, free the iterator
 	FreeDirIterator(dirIterator);
+#endif
 
 	DOS_SetError(DOSERR_NO_MORE_FILES);
 	return false;
@@ -1406,12 +1414,11 @@ bool isoDrive::Rename(const char* /*oldname*/, const char* /*newname*/) {
 bool isoDrive::SetFileAttr(const char * name,uint16_t attr) {
 	(void)attr;
 
-	if (is_udf) {
 #if !defined(OSFREE)
+	if (is_udf) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		DOS_SetError(lookup(fid, fe, name) ? DOSERR_ACCESS_DENIED : DOSERR_FILE_NOT_FOUND);
-#endif
 		return false;
 	}
 	else {
@@ -1419,13 +1426,17 @@ bool isoDrive::SetFileAttr(const char * name,uint16_t attr) {
 		DOS_SetError(lookup(&de, name) ? DOSERR_ACCESS_DENIED : DOSERR_FILE_NOT_FOUND);
 		return false;
 	}
+#else
+	DOS_SetError(DOSERR_ACCESS_DENIED);
+	return false;
+#endif
 }
 
 bool isoDrive::GetFileAttr(const char *name, uint16_t *attr) {
 	*attr = 0;
 
-	if (is_udf) {
 #if !defined(OSFREE)
+	if (is_udf) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		bool success = lookup(fid, fe, name);
@@ -1434,7 +1445,6 @@ bool isoDrive::GetFileAttr(const char *name, uint16_t *attr) {
 			if (fid.FileCharacteristics & 0x02/*Directory*/) *attr |= DOS_ATTR_DIRECTORY;
 		}
 		return success;
-#endif
 	}
 	else {
 		isoDirEntry de;
@@ -1446,6 +1456,10 @@ bool isoDrive::GetFileAttr(const char *name, uint16_t *attr) {
 		}
 		return success;
 	}
+#else
+	DOS_SetError(DOSERR_ACCESS_DENIED);
+	return false;
+#endif
 }
 
 bool isoDrive::GetFileAttrEx(char* name, struct stat *status) {
@@ -1476,22 +1490,25 @@ bool isoDrive::AllocationInfo(uint16_t *bytes_sector, uint8_t *sectors_cluster, 
 }
 
 bool isoDrive::FileExists(const char *name) {
-	if (is_udf) {
 #if !defined(OSFREE)
+	if (is_udf) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		return (lookup(fid, fe, name) && !(fid.FileCharacteristics & 0x02/*Directory*/));
-#endif
 	}
 	else {
 		isoDirEntry de;
 		return (lookup(&de, name) && !IS_DIR(FLAGS1));
 	}
+#else
+	DOS_SetError(DOSERR_ACCESS_DENIED);
+	return false;
+#endif
 }
 
 bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
-	if (is_udf) {
 #if !defined(OSFREE)
+	if (is_udf) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		bool success = lookup(fid, fe, name);
@@ -1505,7 +1522,6 @@ bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
 		}
 
 		return success;
-#endif
 	}
 	else {
 		isoDirEntry de;
@@ -1521,6 +1537,10 @@ bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
 
 		return success;
 	}
+#else
+	DOS_SetError(DOSERR_ACCESS_DENIED);
+	return false;
+#endif
 }
 
 uint8_t isoDrive::GetMediaByte(void) {
@@ -1565,6 +1585,7 @@ int isoDrive::GetDirIterator(const UDFFileEntry &fe) {
 }
 #endif
 
+#if !defined(OSFREE)
 int isoDrive::GetDirIterator(const isoDirEntry* de) {
 	// Not for UDF filesystem use!
 	if (is_udf) return 0;
@@ -1588,6 +1609,7 @@ int isoDrive::GetDirIterator(const isoDirEntry* de) {
 
 	return dirIterator;
 }
+#endif
 
 #if !defined(OSFREE)
 bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, UDFextents &dirext, char fname[LFN_NAMELENGTH],unsigned int dirIteratorIndex) {
@@ -1694,7 +1716,6 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 			if (periods > 1 || el > 3) lfn = true;
 		}
 
-#if !defined(OSFREE)
 		/* Windows 95 adds a ~number to the 8.3 name if effectively an LFN.
 		 * I'm not 100% certain but the index appears to be related to the index of the ISO 9660 dirent.
 		 * This is a guess as to how it works. */
@@ -1759,13 +1780,13 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 			}
 			*d = 0;
 		}
-#endif
 	}
 
 	return true;
 }
 #endif
 
+#if !defined(OSFREE)
 bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de) {
 	// Not for UDF filesystem use!
 	if (is_udf) return 0;
@@ -1801,7 +1822,9 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de) {
 
 	return result;
 }
+#endif
 
+#if !defined(OSFREE)
 void isoDrive::FreeDirIterator(const int dirIterator) {
 	dirIterators[dirIterator].valid = false;
 	
@@ -1814,7 +1837,9 @@ void isoDrive::FreeDirIterator(const int dirIterator) {
 		}
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 bool isoDrive::ReadCachedSector(uint8_t** buffer, const uint32_t sector) {
 	// get hash table entry
 	unsigned int pos = sector % ISO_MAX_HASH_TABLE_SIZE;
@@ -1832,12 +1857,14 @@ bool isoDrive::ReadCachedSector(uint8_t** buffer, const uint32_t sector) {
 	*buffer = he.data;
 	return true;
 }
+#endif
 
 inline bool isoDrive :: readSector(uint8_t *buffer, uint32_t sector) const {
     if(CDROM_Interface_Image::images[subUnit] == nullptr) return false;
     return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
 }
 
+#if !defined(OSFREE)
 int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dirIteratorIndex) const {
 	// This code is NOT for UDF filesystem access!
 	if (is_udf) return -1;
@@ -1859,7 +1886,6 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 		else {
 			if (de->fileIdentLength > 200) return -1;
 			de->ident[de->fileIdentLength] = 0;
-#if !defined(OSFREE)
 			if (is_joliet) {
 				de->ident[de->fileIdentLength+1] = 0; // for Joliet UCS-16
 				// The string is big Endian UCS-16, convert to host Endian UCS-16
@@ -1867,13 +1893,11 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 				// finally, convert from UCS-16 to local code page, using C++ string construction to make a copy first
 				CodePageHostToGuestUTF16(de->ident,de->ident);
 			}
-#endif
 		}
 	} else {
 		if (de->fileIdentLength > 200) return -1;
 		de->ident[de->fileIdentLength] = 0;	
 		if (is_joliet) {
-#if !defined(OSFREE)
 			de->ident[de->fileIdentLength+1] = 0; // for Joliet UCS-16
 			// remove any file version identifiers as there are some cdroms that don't have them
 			uint16_t *w = (uint16_t*)(de->ident); // remember two NULs were written to make a UCS-16 NUL
@@ -1890,7 +1914,6 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			for (size_t i=0;((const uint16_t*)de->ident)[i] != 0;i++) ((uint16_t*)de->ident)[i] = be16toh(((uint16_t*)de->ident)[i]);
 			// finally, convert from UCS-16 to local code page, using C++ string construction to make a copy first
 			CodePageHostToGuestUTF16(de->ident,de->ident);
-#endif
 		}
 		else {
 			// remove any file version identifiers as there are some cdroms that don't have them
@@ -1909,7 +1932,6 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 	}
 	else {
 		strcpy((char*)fullname,(char*)de->ident);
-#if !defined(OSFREE)
 		if (is_rock_ridge) {
 			/* LEN_SKP bytes into the System Use Field (bytes after the final NUL byte of the identifier) */
 			/* NTS: This code could never work with Joliet extensions because the code above (currently)
@@ -1958,10 +1980,8 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 				}
 			}
 		}
-#endif
 	}
 
-#if !defined(OSFREE)
 	bool jolietrr = is_joliet || (is_rock_ridge_name && filename_not_strict_8x3((char*)de->ident));
 	if (!jolietrr && !(dos.version.major >= 7 || uselfn)) {
 		char* dotpos = strchr((char*)de->ident, '.');
@@ -2070,10 +2090,10 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			*d = 0;
 		}
 	}
-#endif
 
 	return de->length;
 }
+#endif
 
 #if !defined(OSFREE)
 static bool escape_is_joliet(const unsigned char *esc) {
@@ -2300,12 +2320,12 @@ bool isoDrive :: loadImage() {
 		return false;
 	}
 
+#if !defined(OSFREE)
 	readSector(pvd, sector);
 	uint16_t offset = iso ? 156 : 180;
 	if (readDirEntry(&this->rootEntry, &pvd[offset], 0) <= 0)
 		return false;
 
-#if !defined(OSFREE)
 	/* read the first root directory entry, look for Rock Ridge and/or System Use Sharing Protocol extensions.
 	 * It is rare for Rock Ridge extensions to exist on the Joliet supplementary volume as far as I know.
 	 * Furthermore the way this code is currently written, Rock Ridge extensions would be ignored anyway for
@@ -2432,6 +2452,7 @@ bool isoDrive :: lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, cons
 }
 #endif
 
+#if !defined(OSFREE)
 bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 	// This code is not for UDF
 	if (is_udf) return false;
@@ -2471,14 +2492,20 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index);
+#endif
 
 void isoDrive :: MediaChange() {
+#if !defined(OSFREE)
 	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
+#endif
 }
 
 void isoDrive :: EmptyCache(void) {
+#if !defined(OSFREE)
 	// Magical Girl Pretty Sammy installer
 	// Installer copies files found by FindFirst/FindNext with "command /c copy",
 	// this function is called at end of DOS_Shell::CMD_COPY and cache is cleared, so only one file is copied.
@@ -2490,12 +2517,10 @@ void isoDrive :: EmptyCache(void) {
 		}
 	}
 	if (dos_kernel_disabled) return;
-#if !defined(OSFREE)
 	enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
 	enable_rock_ridge = dos.version.major >= 7 || uselfn;
 	enable_joliet = dos.version.major >= 7 || uselfn;
 	is_joliet = false;
-#endif
 	//this->fileName[0]  = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
 	//this->discLabel[0] = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
 	nextFreeDirIterator = 0;
@@ -2507,4 +2532,5 @@ void isoDrive :: EmptyCache(void) {
 	memset(&rootEntry, 0, sizeof(isoDirEntry));
 	//safe_strncpy(this->fileName, fileName, CROSS_LEN); /* deleted to fix issue #3848. Revert this if there are any flaws */
 	loadImage();
+#endif
 }
