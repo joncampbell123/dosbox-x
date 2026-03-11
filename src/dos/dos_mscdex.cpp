@@ -49,9 +49,12 @@ int forceCD				= -1;
 extern int bootdrive;
 extern bool dos_kernel_disabled, bootguest, bootvm, use_quick_reboot, enable_network_redirector;
 
+#if !defined(OSFREE)
 static Bitu MSCDEX_Strategy_Handler(void); 
 static Bitu MSCDEX_Interrupt_Handler(void);
+#endif
 
+#if !defined(OSFREE)
 class DOS_DeviceHeader:public MemStruct {
 public:
 	DOS_DeviceHeader(PhysPt ptr)				{ pt = ptr; };
@@ -83,6 +86,7 @@ public:
 	#pragma pack()
 	#endif
 };
+#endif
 
 class CMscdex {
 public:
@@ -108,7 +112,9 @@ public:
 	bool 		HasDrive			(uint16_t drive);
 	void		ReplaceDrive		(CDROM_Interface* newCdrom, uint8_t subUnit);
 	void		GetDrives			(PhysPt data);
+#if !defined(OSFREE)
 	void		GetDriverInfo		(PhysPt data);
+#endif
 	bool		GetVolumeName		(uint8_t subUnit, char* data);
 	bool		GetFileName			(uint16_t drive, uint16_t pos, PhysPt data);
 	bool		GetDirectoryEntry	(uint16_t drive, bool copyFlag, PhysPt pathname, PhysPt buffer, uint16_t& error);
@@ -116,7 +122,9 @@ public:
 	bool		ReadSectors			(uint16_t drive, uint32_t sector, uint16_t num, PhysPt data);
 	bool		ReadSectors			(uint8_t subUnit, bool raw, uint32_t sector, uint16_t num, PhysPt data);
 	bool		ReadSectorsMSF		(uint8_t subUnit, bool raw, uint32_t start, uint16_t num, PhysPt data);
+#if !defined(OSFREE)
 	bool		SendDriverRequest	(uint16_t drive, PhysPt data);
+#endif
 	bool		IsValidDrive		(uint16_t _drive);
 	bool		GetCDInfo			(uint8_t subUnit, uint8_t& tr1, uint8_t& tr2, TMSF& leadOut);
 	uint32_t		GetVolumeSize		(uint8_t subUnit);
@@ -154,7 +162,9 @@ public:
 	uint16_t				defaultBufSeg = 0;
 	TDriveInfo			dinfo[MSCDEX_MAX_DRIVES];
 	CDROM_Interface*		cdrom[MSCDEX_MAX_DRIVES];
+#if !defined(OSFREE)
 	uint16_t		rootDriverHeaderSeg = 0;
+#endif
 
 	char*			name = NULL;
 
@@ -228,6 +238,7 @@ int CMscdex::RemoveDrive(uint16_t _drive)
 	}
 	numDrives--;
 
+#if !defined(OSFREE)
 	if (GetNumDrives() == 0) {
 		DOS_DeviceHeader devHeader(PhysMake(rootDriverHeaderSeg,0));
 		uint16_t off = sizeof(DOS_DeviceHeader::sDeviceHeader);
@@ -238,6 +249,8 @@ int CMscdex::RemoveDrive(uint16_t _drive)
 		DOS_DeviceHeader devHeader(PhysMake(rootDriverHeaderSeg,0));
 		devHeader.SetDriveLetter(GetFirstDrive()+1);
 	}
+#endif
+
 	return 1;
 }
 
@@ -325,6 +338,7 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 	}
 
 
+#if !defined(OSFREE)
 	if (rootDriverHeaderSeg==0) {
 		
 		uint16_t driverSize = sizeof(DOS_DeviceHeader::sDeviceHeader) + 10; // 10 = Bytes for 3 callbacks
@@ -383,10 +397,13 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		devHeader.SetStrategy(off);
 		devHeader.SetInterrupt(off+5);
 	}
+#endif
 
+#if !defined(OSFREE)
 	// Set drive
 	DOS_DeviceHeader devHeader(PhysMake(rootDriverHeaderSeg,0));
 	devHeader.SetNumSubUnits(devHeader.GetNumSubUnits()+1);
+#endif
 
 	if (dinfo[0].drive-1==_drive) {
 		CDROM_Interface *_cdrom = cdrom[numDrives];
@@ -445,6 +462,7 @@ PhysPt CMscdex::GetTempBuffer(void) {
 	return PhysMake(defaultBufSeg,0);
 }
 
+#if !defined(OSFREE)
 void CMscdex::GetDriverInfo	(PhysPt data) {
 	for (uint16_t i=0; i<GetNumDrives(); i++) {
 		mem_writeb(data  ,(uint8_t)i);	// subunit
@@ -452,6 +470,7 @@ void CMscdex::GetDriverInfo	(PhysPt data) {
 		data+=5;
 	}
 }
+#endif
 
 bool CMscdex::GetCDInfo(uint8_t subUnit, uint8_t& tr1, uint8_t& tr2, TMSF& leadOut) {
 	if (subUnit>=numDrives) return false;
@@ -880,6 +899,7 @@ bool CMscdex::LoadUnloadMedia(uint8_t subUnit, bool unload) {
 	return dinfo[subUnit].lastResult;
 }
 
+#if !defined(OSFREE)
 bool CMscdex::SendDriverRequest(uint16_t drive, PhysPt data) {
 	uint8_t subUnit = GetSubUnit(drive);
 	if (subUnit>=numDrives) return false;
@@ -890,6 +910,7 @@ bool CMscdex::SendDriverRequest(uint16_t drive, PhysPt data) {
 	MSCDEX_Interrupt_Handler();
 	return true;
 }
+#endif
 
 uint16_t CMscdex::GetStatusWord(uint8_t subUnit,uint16_t status) {
 	if (subUnit>=numDrives) return REQUEST_STATUS_ERROR | 0x02; // error : Drive not ready
@@ -957,6 +978,7 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 	return false;
 }
 
+#if !defined(OSFREE)
 // Reference: https://oldlinux.superglobalmegacorp.com/Linux.old/docs/interrupts/inter61/INTERRUP.G
 static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
     uint8_t ioctl_fct = mem_readb(buffer);
@@ -1109,7 +1131,9 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
     }
     return 0x00; // Success
 }
+#endif
 
+#if !defined(OSFREE)
 // Reference: https://oldlinux.superglobalmegacorp.com/Linux.old/docs/interrupts/inter61/INTERRUP.G
 static uint16_t MSCDEX_IOCTL_Output(PhysPt buffer, uint8_t drive_unit) {
     uint8_t ioctl_fct = mem_readb(buffer);
@@ -1145,13 +1169,17 @@ static uint16_t MSCDEX_IOCTL_Output(PhysPt buffer, uint8_t drive_unit) {
     }
     return 0x00; // Success
 }
+#endif
 
+#if !defined(OSFREE)
 static Bitu MSCDEX_Strategy_Handler(void) {
 	curReqheaderPtr = PhysMake(SegValue(es),reg_bx);
 //	MSCDEX_LOG("MSCDEX: Device Strategy Routine called, request header at %x",curReqheaderPtr);
 	return CBRET_NONE;
 }
+#endif
 
+#if !defined(OSFREE)
 static Bitu MSCDEX_Interrupt_Handler(void) {
 	if (curReqheaderPtr==0) {
 		MSCDEX_LOG_ERROR("MSCDEX: invalid call to interrupt handler");
@@ -1303,7 +1331,9 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
 	MSCDEX_LOG("MSCDEX: Status : %04X",mem_readw(curReqheaderPtr+3));						
 	return CBRET_NONE;
 }
+#endif
 
+#if !defined(OSFREE)
 static bool MSCDEX_Handler(void) {
 	if(reg_ah == 0x11) {
 		if(reg_al == 0x00) {
@@ -1422,7 +1452,9 @@ static bool MSCDEX_Handler(void) {
 	}
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 static bool MSCDEX_ValidDevName(const char *s) {
 	if (*s == 0) return false;
 	if (strlen(s) > 8) return false;
@@ -1438,7 +1470,9 @@ static bool MSCDEX_ValidDevName(const char *s) {
 
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 class device_MSCDEX : public DOS_Device {
 public:
 	device_MSCDEX(const char *devname) { SetName(MSCDEX_ValidDevName(devname) ? devname : "MSCD001"); }
@@ -1458,7 +1492,9 @@ public:
 // private:
 //  uint8_t cache;
 };
+#endif
 
+#if !defined(OSFREE)
 bool device_MSCDEX::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
 	if (MSCDEX_IOCTL_Input(bufptr,0)==0) {
 		*retcode=size;
@@ -1466,7 +1502,9 @@ bool device_MSCDEX::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t 
 	}
 	return false;
 }
+#endif
 
+#if !defined(OSFREE)
 bool device_MSCDEX::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
 	if (MSCDEX_IOCTL_Output(bufptr,0)==0) {
 		*retcode=size;
@@ -1474,6 +1512,7 @@ bool device_MSCDEX::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t *
 	}
 	return false;
 }
+#endif
 
 int MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit)
 {
@@ -1555,8 +1594,9 @@ void MSCDEX_DOS_ShutDown(Section* /*sec*/) {
 }
 
 void MSCDEX_Startup(Section* sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	if (mscdex == NULL) {
+#if !defined(OSFREE)
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating MSCDEX.EXE emulation");
 
 		const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
@@ -1572,6 +1612,10 @@ void MSCDEX_Startup(Section* sec) {
 		/* Create MSCDEX */
 		LOG(LOG_MISC,LOG_DEBUG)("MSCDEX.EXE device name is '%s'",newdev->name);
 		mscdex = new CMscdex(newdev->name);
+#else
+		/* OSFREE: You don't get to control this! */
+		mscdex = new CMscdex("CD001");
+#endif
 	}
 }
 
@@ -1589,14 +1633,18 @@ void CMscdex::SaveState( std::ostream& stream )
 {
 	// - pure data
 	WRITE_POD( &defaultBufSeg, defaultBufSeg );
+#if !defined(OSFREE)
 	WRITE_POD( &rootDriverHeaderSeg, rootDriverHeaderSeg );
+#endif
 }
 
 void CMscdex::LoadState( std::istream& stream )
 {
 	// - pure data
 	READ_POD( &defaultBufSeg, defaultBufSeg );
+#if !defined(OSFREE)
 	READ_POD( &rootDriverHeaderSeg, rootDriverHeaderSeg );
+#endif
 }
 
 void POD_Save_DOS_Mscdex( std::ostream& stream )
