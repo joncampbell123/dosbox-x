@@ -430,6 +430,7 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string cons
 }
 
 #if defined(WIN32)
+# if !defined(OSFREE)
 void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	std::vector<std::string> options;
 	std::string str(1, drive);
@@ -542,6 +543,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
         newdrive->SetLabel(label.c_str(),false,true);
     }
 }
+ #endif
 #endif
 
 std::string newstr="";

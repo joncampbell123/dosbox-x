@@ -3939,8 +3939,10 @@ void DOS_Shell::CMD_VOL(char *args){
 	}
 #if defined (WIN32)
 	if (!strncmp(Drives[drive]->GetInfo(),"local ",6) || !strncmp(Drives[drive]->GetInfo(),"CDRom ",6)) {
+# if !defined(OSFREE)
 		localDrive* ldp = !strncmp(Drives[drive]->GetInfo(),"local ",6)?dynamic_cast<localDrive*>(Drives[drive]):dynamic_cast<cdromDrive*>(Drives[drive]);
 		if (ldp != NULL) serial_number=ldp->GetSerial();
+# endif
 	}
 #endif
 	WriteOut("%04X-%04X\n", serial_number/0x10000, serial_number%0x10000);
