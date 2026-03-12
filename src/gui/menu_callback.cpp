@@ -232,6 +232,7 @@ bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 
+#if !defined(OSFREE)
     /* menu item has name "drive_A_" ... */
     int drive;
     const char *mname = menuitem->get_name().c_str();
@@ -248,6 +249,7 @@ bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
 	char root[4]="A:\\";
 	root[0]=drive+'A';
     MenuMountDrive(drive+'A', root);
+#endif
 
     return true;
 }
