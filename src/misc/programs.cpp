@@ -1321,8 +1321,8 @@ void CONFIG::Run(void) {
 	std::vector<std::string> pvars;
 	if (cmd->FindExist("-setup", true)) all = 2;
 	else if (cmd->FindExist("-all", true)) all = 1;
-    else if (cmd->FindExist("-mod", true)) all = 0;
-    if (cmd->FindExist("-norem", true)) norem = true;
+	else if (cmd->FindExist("-mod", true)) all = 0;
+	if (cmd->FindExist("-norem", true)) norem = true;
 	// Loop through the passed parameters
 	while(presult != P_NOPARAMS) {
 		presult = (enum prs)cmd->GetParameterFromList(params, pvars);
@@ -1366,7 +1366,7 @@ void CONFIG::Run(void) {
 			return;
 
 		case P_RESTART:
-            WriteOut("-restart is no longer supported\n");
+			WriteOut("-restart is no longer supported\n");
 			return;
 		
 		case P_LISTCONF: {
@@ -1442,7 +1442,7 @@ void CONFIG::Run(void) {
 				Bitu size = (Bitu)control->configfiles.size();
 				if (size==0) RebootConfig("dosbox-x.conf");
 				else RebootConfig(control->configfiles.front().c_str());
-            }
+			}
 			break;
 		case P_NOPARAMS:
 			if (!first) break;
@@ -1526,7 +1526,7 @@ void CONFIG::Run(void) {
 					// list the properties
 					Property* p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
-                    if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
+					if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
 					WriteOut("%s\n", p->propname.c_str());
 				}
 				if (!strcasecmp(pvars[0].c_str(), "config"))
@@ -1655,7 +1655,7 @@ void CONFIG::Run(void) {
 						// list the properties
 						Property* p = psec->Get_prop(i++);
 						if (p==NULL) break;
-                        if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
+						if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}
@@ -1697,162 +1697,162 @@ void CONFIG::Run(void) {
 						sec = control->GetSectionFromProperty(pvars[0].c_str());
 					}
 					if (!sec) {
-                        unsigned int maxWidth, maxHeight;
-                        void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), GetDrawWidthHeight(unsigned int *pdrawWidth, unsigned int *pdrawHeight);
-                        if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
-                            GetMaxWidthHeight(&maxWidth, &maxHeight);
-                            WriteOut("%d\n",maxWidth);
-                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "screenheight")) {
-                            GetMaxWidthHeight(&maxWidth, &maxHeight);
-                            WriteOut("%d\n",maxHeight);
-                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "drawwidth")) {
-                            GetDrawWidthHeight(&maxWidth, &maxHeight);
-                            WriteOut("%d\n",maxWidth);
-                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "drawheight")) {
-                            GetDrawWidthHeight(&maxWidth, &maxHeight);
-                            WriteOut("%d\n",maxHeight);
-                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
+						unsigned int maxWidth, maxHeight;
+						void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), GetDrawWidthHeight(unsigned int *pdrawWidth, unsigned int *pdrawHeight);
+						if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
+							GetMaxWidthHeight(&maxWidth, &maxHeight);
+							WriteOut("%d\n",maxWidth);
+							first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "screenheight")) {
+							GetMaxWidthHeight(&maxWidth, &maxHeight);
+							WriteOut("%d\n",maxHeight);
+							first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "drawwidth")) {
+							GetDrawWidthHeight(&maxWidth, &maxHeight);
+							WriteOut("%d\n",maxWidth);
+							first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "drawheight")) {
+							GetDrawWidthHeight(&maxWidth, &maxHeight);
+							WriteOut("%d\n",maxHeight);
+							first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
 #if defined(C_SDL2)
-                        } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
-                            int w = 640,h = 480;
-                            SDL_Window* GFX_GetSDLWindow(void);
-                            SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
-                            WriteOut("%d\n",w);
-                            first_shell->SetEnv("CONFIG",std::to_string(w).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
-                            int w = 640,h = 480;
-                            SDL_Window* GFX_GetSDLWindow(void);
-                            SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
-                            WriteOut("%d\n",h);
-                            first_shell->SetEnv("CONFIG",std::to_string(h).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
+							int w = 640,h = 480;
+							SDL_Window* GFX_GetSDLWindow(void);
+							SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+							WriteOut("%d\n",w);
+							first_shell->SetEnv("CONFIG",std::to_string(w).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
+							int w = 640,h = 480;
+							SDL_Window* GFX_GetSDLWindow(void);
+							SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+							WriteOut("%d\n",h);
+							first_shell->SetEnv("CONFIG",std::to_string(h).c_str());
 #elif defined(WIN32)
-                        } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
-                            RECT rect;
-                            GetClientRect(GetHWND(), &rect);
-                            WriteOut("%d\n",rect.right-rect.left);
-                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
-                            RECT rect;
-                            GetClientRect(GetHWND(), &rect);
-                            WriteOut("%d\n",rect.bottom-rect.top);
-                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
+							RECT rect;
+							GetClientRect(GetHWND(), &rect);
+							WriteOut("%d\n",rect.right-rect.left);
+							first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
+							RECT rect;
+							GetClientRect(GetHWND(), &rect);
+							WriteOut("%d\n",rect.bottom-rect.top);
+							first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
 #if defined(WIN32)
-                        } else if (!strcasecmp(pvars[0].c_str(), "windowwidth")) {
-                            RECT rect;
-                            GetWindowRect(GetHWND(), &rect);
-                            WriteOut("%d\n",rect.right-rect.left);
-                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "windowheight")) {
-                            RECT rect;
-                            GetWindowRect(GetHWND(), &rect);
-                            WriteOut("%d\n",rect.bottom-rect.top);
-                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "windowwidth")) {
+							RECT rect;
+							GetWindowRect(GetHWND(), &rect);
+							WriteOut("%d\n",rect.right-rect.left);
+							first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "windowheight")) {
+							RECT rect;
+							GetWindowRect(GetHWND(), &rect);
+							WriteOut("%d\n",rect.bottom-rect.top);
+							first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
-                        } else if (!strcasecmp(pvars[0].c_str(), "system")) {
-                            WriteOut("%s\n",PACKAGE);
-                            first_shell->SetEnv("CONFIG",PACKAGE);
-                        } else if (!strcasecmp(pvars[0].c_str(), "version")) {
-                            WriteOut("%s\n",VERSION);
-                            first_shell->SetEnv("CONFIG",VERSION);
-                        } else if (!strcasecmp(pvars[0].c_str(), "hostos")) {
-                            if (securemode_check()) return;
-                            const char *hostos =
+						} else if (!strcasecmp(pvars[0].c_str(), "system")) {
+							WriteOut("%s\n",PACKAGE);
+							first_shell->SetEnv("CONFIG",PACKAGE);
+						} else if (!strcasecmp(pvars[0].c_str(), "version")) {
+							WriteOut("%s\n",VERSION);
+							first_shell->SetEnv("CONFIG",VERSION);
+						} else if (!strcasecmp(pvars[0].c_str(), "hostos")) {
+							if (securemode_check()) return;
+							const char *hostos =
 #if defined(HX_DOS)
-                            "DOS"
+								"DOS"
 #elif defined(WIN32)
-                            "Windows"
+								"Windows"
 #elif defined(LINUX)
-                            "Linux"
+								"Linux"
 #elif defined(MACOSX)
-                            "macOS"
+								"macOS"
 #elif defined(OS2)
-                            "OS/2"
+								"OS/2"
 #else
-                            "Other"
+								"Other"
 #endif
-                            ;
-                            WriteOut("%s\n",hostos);
-                            first_shell->SetEnv("CONFIG",hostos);
-                        } else if (!strcasecmp(pvars[0].c_str(), "workdir")) {
-                            if (securemode_check()) return;
-                            char cwd[512] = {0};
-                            char *res = getcwd(cwd,sizeof(cwd)-1);
-                            WriteOut("%s\n",res==NULL?"":cwd);
-                            first_shell->SetEnv("CONFIG",res==NULL?"":cwd);
-                        } else if (!strcasecmp(pvars[0].c_str(), "programdir")) {
-                            if (securemode_check()) return;
-                            std::string GetDOSBoxXPath(bool withexe=false), exepath=GetDOSBoxXPath();
-                            WriteOut("%s\n",exepath.c_str());
-                            first_shell->SetEnv("CONFIG",exepath.c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "userconfigdir")) {
-                            if (securemode_check()) return;
-                            std::string config_path;
-                            config_path = Cross::GetPlatformConfigDir();
-                            WriteOut("%s\n",config_path.c_str());
-                            first_shell->SetEnv("CONFIG",config_path.c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "configdir")) {
-                            if (securemode_check()) return;
-                            std::string configdir=control->configfiles.size()?control->configfiles[control->configfiles.size()-1]:"";
-                            if (configdir.size()) {
-                                std::string::size_type pos = configdir.rfind(CROSS_FILESPLIT);
-                                if(pos == std::string::npos) pos = 0;
-                                configdir.erase(pos);
-                            }
-                            WriteOut("%s\n",configdir.c_str());
-                            first_shell->SetEnv("CONFIG",configdir.c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "cd")) {
-                            uint8_t drive = DOS_GetDefaultDrive()+'A';
-                            char dir[DOS_PATHLENGTH];
-                            DOS_GetCurrentDir(0,dir,true);
-                            WriteOut("%c:\\",drive);
-                            WriteOut_NoParsing(dir, true);
-                            WriteOut("\n");
-                            first_shell->SetEnv("CONFIG",(std::string(1, drive)+":\\"+std::string(dir)).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "date")) {
-                            uint32_t ticks=mem_readd(BIOS_TIMER);
-                            uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
-                            mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
-                            if (add) DOS_AddDays(add);
-                            const char *date = FormatDate(dos.date.year, dos.date.month, dos.date.day);
-                            WriteOut("%s\n",date);
-                            first_shell->SetEnv("CONFIG",date);
-                        } else if (!strcasecmp(pvars[0].c_str(), "errorlevel")) {
-                            WriteOut("%d\n",dos.return_code);
-                            first_shell->SetEnv("CONFIG",std::to_string(dos.return_code).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "random")) {
-                            initRand();
-                            int random = rand()%32768;
-                            WriteOut("%s\n",std::to_string(random).c_str());
-                            first_shell->SetEnv("CONFIG",std::to_string(random).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "time")) {
-                            uint32_t hour, min, sec;
-                            char c=dos.tables.country[13];
-                            uint32_t ticks=mem_readd(BIOS_TIMER);
-                            uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
-                            mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
-                            uint16_t cx=(uint16_t)(ticks >> 16u), dx=(uint16_t)(ticks & 0xffff);
-                            if (add) DOS_AddDays(add);
-                            ticks=((Bitu)cx<<16)|dx;
-                            Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * (double)ticks);
-                            time/=100;
-                            sec=(uint8_t)((Bitu)time % 60); // seconds
-                            time/=60;
-                            min=(uint8_t)((Bitu)time % 60); // minutes
-                            time/=60;
-                            hour=(uint8_t)((Bitu)time % 24); // hours
-                            char format[11];
-                            sprintf(format,"%u%c%02u%c%02u",hour,c,min,c,sec);
-                            WriteOut("%s\n",format);
-                            first_shell->SetEnv("CONFIG",format);
-                        } else if (!strcasecmp(pvars[0].c_str(), "lastmount")) {
-                            if (lastmount) WriteOut("%c:\n",lastmount);
-                            first_shell->SetEnv("CONFIG",lastmount?(std::string(1, lastmount) + ":").c_str():"");
-                        } else
-                            WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+								;
+							WriteOut("%s\n",hostos);
+							first_shell->SetEnv("CONFIG",hostos);
+						} else if (!strcasecmp(pvars[0].c_str(), "workdir")) {
+							if (securemode_check()) return;
+							char cwd[512] = {0};
+							char *res = getcwd(cwd,sizeof(cwd)-1);
+							WriteOut("%s\n",res==NULL?"":cwd);
+							first_shell->SetEnv("CONFIG",res==NULL?"":cwd);
+						} else if (!strcasecmp(pvars[0].c_str(), "programdir")) {
+							if (securemode_check()) return;
+							std::string GetDOSBoxXPath(bool withexe=false), exepath=GetDOSBoxXPath();
+							WriteOut("%s\n",exepath.c_str());
+							first_shell->SetEnv("CONFIG",exepath.c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "userconfigdir")) {
+							if (securemode_check()) return;
+							std::string config_path;
+							config_path = Cross::GetPlatformConfigDir();
+							WriteOut("%s\n",config_path.c_str());
+							first_shell->SetEnv("CONFIG",config_path.c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "configdir")) {
+							if (securemode_check()) return;
+							std::string configdir=control->configfiles.size()?control->configfiles[control->configfiles.size()-1]:"";
+							if (configdir.size()) {
+								std::string::size_type pos = configdir.rfind(CROSS_FILESPLIT);
+								if(pos == std::string::npos) pos = 0;
+								configdir.erase(pos);
+							}
+							WriteOut("%s\n",configdir.c_str());
+							first_shell->SetEnv("CONFIG",configdir.c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "cd")) {
+							uint8_t drive = DOS_GetDefaultDrive()+'A';
+							char dir[DOS_PATHLENGTH];
+							DOS_GetCurrentDir(0,dir,true);
+							WriteOut("%c:\\",drive);
+							WriteOut_NoParsing(dir, true);
+							WriteOut("\n");
+							first_shell->SetEnv("CONFIG",(std::string(1, drive)+":\\"+std::string(dir)).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "date")) {
+							uint32_t ticks=mem_readd(BIOS_TIMER);
+							uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+							mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+							if (add) DOS_AddDays(add);
+							const char *date = FormatDate(dos.date.year, dos.date.month, dos.date.day);
+							WriteOut("%s\n",date);
+							first_shell->SetEnv("CONFIG",date);
+						} else if (!strcasecmp(pvars[0].c_str(), "errorlevel")) {
+							WriteOut("%d\n",dos.return_code);
+							first_shell->SetEnv("CONFIG",std::to_string(dos.return_code).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "random")) {
+							initRand();
+							int random = rand()%32768;
+							WriteOut("%s\n",std::to_string(random).c_str());
+							first_shell->SetEnv("CONFIG",std::to_string(random).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "time")) {
+							uint32_t hour, min, sec;
+							char c=dos.tables.country[13];
+							uint32_t ticks=mem_readd(BIOS_TIMER);
+							uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+							mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+							uint16_t cx=(uint16_t)(ticks >> 16u), dx=(uint16_t)(ticks & 0xffff);
+							if (add) DOS_AddDays(add);
+							ticks=((Bitu)cx<<16)|dx;
+							Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * (double)ticks);
+							time/=100;
+							sec=(uint8_t)((Bitu)time % 60); // seconds
+							time/=60;
+							min=(uint8_t)((Bitu)time % 60); // minutes
+							time/=60;
+							hour=(uint8_t)((Bitu)time % 24); // hours
+							char format[11];
+							sprintf(format,"%u%c%02u%c%02u",hour,c,min,c,sec);
+							WriteOut("%s\n",format);
+							first_shell->SetEnv("CONFIG",format);
+						} else if (!strcasecmp(pvars[0].c_str(), "lastmount")) {
+							if (lastmount) WriteOut("%c:\n",lastmount);
+							first_shell->SetEnv("CONFIG",lastmount?(std::string(1, lastmount) + ":").c_str():"");
+						} else
+							WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 						return;
 					}
 					// it's a property name
@@ -1861,52 +1861,52 @@ void CONFIG::Run(void) {
 					first_shell->SetEnv("CONFIG",val.c_str());
 				}
 				break;
-			}
-			case 2: {
-				// section + property
-				sec = control->GetSection(pvars[0].c_str());
-				if (!sec) {
-					WriteOut(MSG_Get("PROGRAM_CONFIG_SECTION_ERROR"), pvars[0].c_str());
-					return;
 				}
-				std::string val = sec->GetPropValue(pvars[1].c_str());
-				if (val == NO_SUCH_PROPERTY) {
-					if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh"))) {
-						Section_prop* psec = dynamic_cast <Section_prop*>(sec);
-						const char * extra = psec->data.c_str();
-						if (extra&&strlen(extra)) {
-							std::istringstream in(extra);
-							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
-							char *cmd=cmdstr, *val=valstr, /**lin=linestr,*/ *p;
-							if (in)	for (std::string line; std::getline(in, line); ) {
-								if (line.length()>CROSS_LEN) {
-									strncpy(linestr, line.c_str(), CROSS_LEN);
-									linestr[CROSS_LEN]=0;
-								} else
-									strcpy(linestr, line.c_str());
-								p=strchr(linestr, '=');
-								if (p!=NULL) {
-									*p=0;
-									strcpy(cmd, linestr);
-									cmd=trim(cmd);
-									strcpy(val, p+1);
-									val=trim(val);
-									lowcase(cmd);
-									if (!strncasecmp(cmd, "set ", 4)&&!strcasecmp(pvars[1].c_str(), "set"))
-										WriteOut("%s=%s\n", trim(cmd+4), val);
-									else if(!strcasecmp(cmd, pvars[1].c_str()))
-										WriteOut("%s\n", val);
+			case 2: {
+					// section + property
+					sec = control->GetSection(pvars[0].c_str());
+					if (!sec) {
+						WriteOut(MSG_Get("PROGRAM_CONFIG_SECTION_ERROR"), pvars[0].c_str());
+						return;
+					}
+					std::string val = sec->GetPropValue(pvars[1].c_str());
+					if (val == NO_SUCH_PROPERTY) {
+						if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh"))) {
+							Section_prop* psec = dynamic_cast <Section_prop*>(sec);
+							const char * extra = psec->data.c_str();
+							if (extra&&strlen(extra)) {
+								std::istringstream in(extra);
+								char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
+								char *cmd=cmdstr, *val=valstr, /**lin=linestr,*/ *p;
+								if (in)	for (std::string line; std::getline(in, line); ) {
+									if (line.length()>CROSS_LEN) {
+										strncpy(linestr, line.c_str(), CROSS_LEN);
+										linestr[CROSS_LEN]=0;
+									} else
+										strcpy(linestr, line.c_str());
+									p=strchr(linestr, '=');
+									if (p!=NULL) {
+										*p=0;
+										strcpy(cmd, linestr);
+										cmd=trim(cmd);
+										strcpy(val, p+1);
+										val=trim(val);
+										lowcase(cmd);
+										if (!strncasecmp(cmd, "set ", 4)&&!strcasecmp(pvars[1].c_str(), "set"))
+											WriteOut("%s=%s\n", trim(cmd+4), val);
+										else if(!strcasecmp(cmd, pvars[1].c_str()))
+											WriteOut("%s\n", val);
+									}
 								}
 							}
-						}
-					} else
-						WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());   
-					return;
+						} else
+							WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());   
+						return;
+					}
+					WriteOut("%s\n",val.c_str());
+					first_shell->SetEnv("CONFIG",val.c_str());
+					break;
 				}
-				WriteOut("%s\n",val.c_str());
-                first_shell->SetEnv("CONFIG",val.c_str());
-                break;
-			}
 			default:
 				WriteOut(MSG_Get("PROGRAM_CONFIG_GET_SYNTAX"));
 				return;
@@ -1943,13 +1943,13 @@ void CONFIG::Run(void) {
 				spcpos=pvars[0].find_first_of(' ', spcpos+1);
 
 			std::string::size_type equpos = pvars[0].find_first_of('=');
-            if (equpos != std::string::npos) {
-                std::string p = pvars[0];
-                p.erase(equpos);
-                sec = control->GetSectionFromProperty(p.c_str());
-            }
+			if (equpos != std::string::npos) {
+				std::string p = pvars[0];
+				p.erase(equpos);
+				sec = control->GetSectionFromProperty(p.c_str());
+			}
 
-            uselangcp = false;
+			uselangcp = false;
 			if ((equpos != std::string::npos) && 
 				((spcpos == std::string::npos) || (equpos < spcpos) || sec)) {
 				// If we have a '=' possibly before a ' ' split on the =
@@ -2028,53 +2028,53 @@ void CONFIG::Run(void) {
 				uselangcp = false;
 				return;
 			}
-            bool applynew=false;
+			bool applynew=false;
 			Property *p = static_cast<Section_prop *>(sec2)->Get_prop(pvars[1]);
 			if ((p==NULL||p->getChange()==Property::Changeable::OnlyAtStart)&&presult!=P_SETFORCE) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_NOCHANGE"));
 first_1:
 				WriteOut(MSG_Get("PROGRAM_CONFIG_APPLY_RESTART"));
 first_2:
-                uint8_t c;uint16_t n=1;
-                DOS_ReadFile (STDIN,&c,&n);
-                do switch (c) {
-                    case 'n':			case 'N':
-                    {
-                        DOS_WriteFile (STDOUT,&c, &n);
-                        DOS_ReadFile (STDIN,&c,&n);
-                        do switch (c) {
-                            case 0xD: WriteOut("\n");goto next;
-                            case 0x03: goto next;
-                            case 0x08: WriteOut("\b \b"); goto first_2;
-                        } while (DOS_ReadFile (STDIN,&c,&n));
-                    }
-                    case 'y':			case 'Y':
-                    {
-                        DOS_WriteFile (STDOUT,&c, &n);
-                        DOS_ReadFile (STDIN,&c,&n);
-                        do switch (c) {
-                            case 0xD: WriteOut("\n"); applynew = true; goto next;
-                            case 0x03: goto next;
-                            case 0x08: WriteOut("\b \b"); goto first_2;
-                        } while (DOS_ReadFile (STDIN,&c,&n));
-                    }
-                    case 0xD: WriteOut("\n"); goto first_1;
-                    case 0x03: goto next;
-                    case '\t':
-                    case 0x08:
-                        goto first_2;
-                    default:
-                    {
-                        DOS_WriteFile (STDOUT,&c, &n);
-                        DOS_ReadFile (STDIN,&c,&n);
-                        do switch (c) {
-                            case 0xD: WriteOut("\n"); goto first_1;
-                            case 0x03: goto next;
-                            case 0x08: WriteOut("\b \b"); goto first_2;
-                        } while (DOS_ReadFile (STDIN,&c,&n));
-                        goto first_2;
-                    }
-                } while (DOS_ReadFile (STDIN,&c,&n));
+				uint8_t c;uint16_t n=1;
+				DOS_ReadFile (STDIN,&c,&n);
+				do switch (c) {
+					case 'n':			case 'N':
+						{
+							DOS_WriteFile (STDOUT,&c, &n);
+							DOS_ReadFile (STDIN,&c,&n);
+							do switch (c) {
+								case 0xD: WriteOut("\n");goto next;
+								case 0x03: goto next;
+								case 0x08: WriteOut("\b \b"); goto first_2;
+							} while (DOS_ReadFile (STDIN,&c,&n));
+						}
+					case 'y':			case 'Y':
+						{
+							DOS_WriteFile (STDOUT,&c, &n);
+							DOS_ReadFile (STDIN,&c,&n);
+							do switch (c) {
+								case 0xD: WriteOut("\n"); applynew = true; goto next;
+								case 0x03: goto next;
+								case 0x08: WriteOut("\b \b"); goto first_2;
+							} while (DOS_ReadFile (STDIN,&c,&n));
+						}
+					case 0xD: WriteOut("\n"); goto first_1;
+					case 0x03: goto next;
+					case '\t':
+					case 0x08:
+						   goto first_2;
+					default:
+						   {
+							   DOS_WriteFile (STDOUT,&c, &n);
+							   DOS_ReadFile (STDIN,&c,&n);
+							   do switch (c) {
+								   case 0xD: WriteOut("\n"); goto first_1;
+								   case 0x03: goto next;
+								   case 0x08: WriteOut("\b \b"); goto first_2;
+							   } while (DOS_ReadFile (STDIN,&c,&n));
+							   goto first_2;
+						   }
+				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
 next:
 			// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)
