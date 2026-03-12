@@ -376,7 +376,7 @@ bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks) {
 	}
 
 #ifdef DEBUG_ALLOC
-	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x failed",*blocks,*segment,*segment+*blocks-1);
 #endif
 	return false;
 }
@@ -476,6 +476,10 @@ bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks) {
 		mcb.SetPSPSeg(dos.psp());
 		return true;
 	}
+
+#ifdef DEBUG_ALLOC
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_ResizeMemory(seg=0x%04x) failed, maximum 0x%04x available",segment,(unsigned int)total);
+#endif
 
 	*blocks=total;	/* return maximum */
 	DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
