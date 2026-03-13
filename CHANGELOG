@@ -1,4 +1,24 @@
 NEXT VERSION
+  - Skip all keyboard code page and layout loading if running in PC-98
+    mode. PC-98 systems store the entire font in ROM with only very
+    limited room for custom fonts, therefore, it makes no sense to load
+    code pages in PC-98 mode. (joncampbell123).
+  - Keyboard code page layout: Fix bug where an out of range start_pos
+    can cause DOSBox-X to segfault. Range check and print an error
+    message instead. (joncampbell123).
+  - Keyboard code page layout: The UPX unpacker checks the stack pointer
+    (like a COM program would) to determine if there is enough memory
+    to decompress. If there is not, it executes INT 20h to exit to DOS.
+    Problem is, the code page execution never makes a proper PSP segment
+    for that to work, so, during execution, intercept INT 20h and safely
+    redirect execution to exit properly when called. Set an error flag
+    so the code can know if that happened and say so. (joncampbell123).
+  - Keyboard code page layout: If executing the CPI/CPX file because UPX
+    decompression is detected, allocate memory based on the size of the
+    file plus reasonable stack space rather than assume about 128KB of
+    RAM following a DOS allocation of less, which for lower memsizes,
+    only causes a crash on startup. (joncampbell123).
+  - Debug print to log what code page file is being loaded at startup (joncampbell123).
   - CPU Idle callback is now strictly limited to processing IRQs and one
     CPU instruction, instead of however many CPU instructions can run
     until the next scheduled emulator event. This fixes a bug where
