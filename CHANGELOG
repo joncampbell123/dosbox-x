@@ -1,4 +1,9 @@
 NEXT VERSION
+  - Add debug logging to not only indicate DOS kernel memory alloc,
+    free, and resize, but also log when the memory operation fails.
+    Perhaps someday I'll figure out what the memory management in
+    California Games II is doing wrong that makes the helicopter part
+    fail in DOSBox-X. (joncampbell123).
   - Code development now occurs across two primary branches: master
     for fully functional emulation, and main-osfree for versions of
     DOSBox-X where built-in MS-DOS OS emulation is disabled. The osfree
