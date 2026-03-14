@@ -470,7 +470,6 @@ bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks) {
 	}
 
 	mcb.SetSize(total);
-	mcb.SetPSPSeg(dos.psp());
 	if (*blocks==total) {
 		/* block fit exactly */
 		mcb.SetPSPSeg(dos.psp());
