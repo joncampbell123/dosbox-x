@@ -1,4 +1,11 @@
 NEXT VERSION
+  - Linux SDL1: Use XDG_SESSION_TYPE environment variable to detect
+    whether or not the user is running DOSBox-X under X11 or Wayland,
+    and if so, prevent the fbcon and svga drivers from initializing.
+    There seems to be a problem where, if run under Wayland and the
+    XWayland compatibility layer if not present, SDL1 uses the fbcon
+    driver to take over the screen using vtcon switching and the classic
+    fbdev driver interface. Don't do that! (joncampbell123).
   - INT 21h AH=4Ah resize memory: If memory resize fails because there
     is not enough room for the requested amount of memory, do not
     set ownership of the block to the program. This fixes memory

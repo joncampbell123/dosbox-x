@@ -144,6 +144,9 @@ static SDL_GrabMode SDL_WM_GrabInputOff(void);
 static int lock_count = 0;
 #endif
 
+#if defined(__LINUX__)
+unsigned char sdl1_force_x11 = 0; /* If we are running under a desktop like X11 or Wayland, do NOT use any other driver, especially fbcon! */
+#endif
 
 /*
  * Initialize the video and event subsystems -- determine native pixel format
@@ -155,6 +158,26 @@ int SDL_VideoInit (const char *driver_name, Uint32 flags)
 	int i;
 	SDL_PixelFormat vformat;
 	Uint32 video_flags;
+
+#if defined(__LINUX__)
+	/* If we're running under X11 or Wayland, do NOT use anything other than the X11 output.
+	 *
+	 * This is to solve a common complaint where, if DOSBox-X is run on a Wayland desktop that
+	 * does not have the XWayland compatibility layer, that DOSBox-X "takes over the desktop
+	 * and switches to another vt terminal" (using the fbcon driver), which is rude and jarring.
+	 * Don't do that!
+	 *
+	 * It seems one way to detect X11 and Wayland without depending on the libraries is to look at the
+	 * XDG_SESSION_TYPE environment variable. */
+	{
+		char *e = getenv("XDG_SESSION_TYPE");
+		if (e) {
+			if (!strcmp(e,"x11") || !strcmp(e,"wayland")) {
+				sdl1_force_x11 = 1;
+			}
+		}
+	}
+#endif
 
 	/* Toggle the event thread flags, based on OS requirements */
 #if defined(MUST_THREAD_EVENTS)
