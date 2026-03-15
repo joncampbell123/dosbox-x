@@ -30,6 +30,7 @@
 #include "cpu.h"
 #include "menu.h"
 #include "crc32.h"
+#include "exepackv1.h"
 
 extern bool xms_init;
 extern bool a20_off_if_loading_low;
@@ -288,7 +289,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	uint16_t pspseg,envseg,loadseg,memsize=0xffff,readsize;
 	uint16_t maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
-	uint32_t headersize = 0, imagesize = 0;
+	uint32_t headersize = 0, imagesize = 0,memimagesize = 0;
 	DOS_ParamBlock block(block_pt);
 	uint32_t checksum = 0;
 	uint32_t checksum_bytes = 0;
@@ -347,7 +348,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 				LOG(LOG_EXEC,LOG_NORMAL)("Weird header: head.pages > 1 MB");
 			head.pages&=0x07ffu;
 			headersize = head.headersize*16u;
-			imagesize = head.pages*512u-headersize; 
+			imagesize = memimagesize = head.pages*512u-headersize; 
 			if (imagesize+headersize<512u) imagesize = 512u-headersize;
 		}
 	}
@@ -467,6 +468,23 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			mem_writew(address,mem_readw(address)+relocate);
 		}
 	}
+
+	/* is this executable EXEPACK compressed (v1 check)? */
+	/* assume loadbuf is 64K large */
+	/* this code may run in virtual 8086 mode so we cannot just use MemBase+x to check */
+	if (!iscom && memimagesize >= sizeof(EXEPACKv1)) {
+		uint32_t exepkstart = ((uint32_t)head.initCS << 4u) + (uint32_t)head.initIP;
+		if (exepkstart >= 0x12 && (exepkstart+sizeof(EXEPACKv1)) <= memimagesize) {
+			/* look for "RB" just before the entry point */
+			if (mem_readw(RunningProgramLoadAddress+exepkstart-2) == 0x4252/*RB*/) {
+				MEM_BlockRead(RunningProgramLoadAddress+exepkstart,loadbuf,sizeof(EXEPACKv1));
+				if (memcmp(loadbuf,EXEPACKv1,sizeof(EXEPACKv1)) == 0) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected");
+				}
+			}
+		}
+	}
+
 	delete[] loadbuf;
 	DOS_CloseFile(fhandle);
 
