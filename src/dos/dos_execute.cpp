@@ -489,6 +489,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 
 					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
 					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
+					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
 
 					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected");
 					LOG(LOG_DOSMISC,LOG_DEBUG)("real_start=%04x:%04x exepack_size=%04x real_stack=%04x:%04x dest_len=%04x skip_len=%04x",
@@ -505,6 +506,22 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 					/* dstPosSegment = first byte of EXEPACK segment - skip_len. */
 					/* then sets DS:SI where SI |= 0xFFF0 and DS -= 0xFFF. This is why when loaded below < 0x1000 with A20
 					 * enabled the Packed File is Corrupt message appears. */
+					{
+						if (pkvars.exepack_size < (0x12+0x105+0x16+0x20/*16words*/) || pkvars.exepack_size > 0xF000u) {
+							LOG(LOG_DOSMISC,LOG_WARN)("EXEPACK exepack_size invalid");
+							delete[] loadbuf;
+							DOS_CloseFile(fhandle);
+							return false;
+						}
+
+						uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1);
+						uint32_t dstPos = (pkvars.dest_len + pkvars.mem_start) << 4u;
+						LOG(LOG_DOSMISC,LOG_DEBUG)("Copying EXEPACK code to new location in memory srcPos=%x dstPos=%x",srcPos,dstPos);
+						/* copy BACKWARDS, as EXEPACK does, because it always copies the code to a higher location */
+						for (unsigned int i=0;i < pkvars.exepack_size;i++)
+							mem_writeb(dstPos+pkvars.exepack_size-1-i,mem_readb(srcPos+pkvars.exepack_size-1-i));
+					}
+
 					uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1)-1u;
 					uint32_t dstPos = ((pkvars.dest_len + pkvars.mem_start) << 4u) - 1u;
 					LOG(LOG_DOSMISC,LOG_DEBUG)("srcPos=%05x dstPos=%05x",srcPos,dstPos);
@@ -582,6 +599,40 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 						};
 
 						if (commandByte & 1) break; /* LSB == last block */
+					}
+
+					/* Next, apply the packed relocation table.
+					 * The code just assumes an address of CS:12D, first byte past the "Packed File is Corrupt" string. */
+					uint32_t relocSrc = ((pkvars.dest_len + pkvars.mem_start) << 4u)+0x12D;
+					if ((relocSrc+0x20) < exelimit) {
+						for (unsigned int sec=0;sec < 0x10;sec++) {
+							const uint16_t count = mem_readw(relocSrc); relocSrc += 2;
+							const uint32_t segb = RunningProgramLoadAddress + (sec * 0x1000u);
+
+							if (count == 0) continue;
+
+							LOG(LOG_DOSMISC,LOG_DEBUG)("Apply packed reloations for section %x (%u relocations)",sec,count);
+
+							/* NTS: EXEPACK code does check for offset = 0xFFFF to handle it properly! */
+							for (unsigned int r=0;r < count;r++) {
+								if ((relocSrc+2) > exelimit) {
+									LOG(LOG_DOSMISC,LOG_WARN)("Relocation table unpacking read beyond exe limit in section %x entry %x relocSrc=%x",sec,r,relocSrc);
+									delete[] loadbuf;
+									DOS_CloseFile(fhandle);
+									return false;
+								}
+
+								const uint32_t of = segb+mem_readw(relocSrc); relocSrc += 2;
+								if ((of+2) > exelimit) {
+									LOG(LOG_DOSMISC,LOG_WARN)("Relocation table unpacking write beyond exe limit in section %x entry %x relocSrc=%x patchaddr=%xx",sec,r,relocSrc,of);
+									delete[] loadbuf;
+									DOS_CloseFile(fhandle);
+									return false;
+								}
+
+								mem_writew(of,mem_readw(of)+pkvars.mem_start);
+							}
+						}
 					}
 
 					/* update EXE header to reflect the real CS:IP and SS:SP */
