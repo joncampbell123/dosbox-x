@@ -68,6 +68,7 @@
 
 #include <output/output_ttf.h>
 
+unsigned char exepack_handling = EXEPACK_UNPACK;
 static bool first_run=true;
 bool sync_time = false, manualtime = false;
 extern std::string log_dev_con_str;
@@ -4188,6 +4189,18 @@ public:
 		std::string prefix = section->Get_string("special operation file prefix");
 #if !defined(OSFREE)
 		if (prefix.size()) prefix_local = prefix + prefix_local.substr(3), prefix_overlay = prefix + prefix_overlay.substr(3);
+#endif
+
+#if !defined(OSFREE)
+		std::string exepack = section->Get_string("exepack");
+		if (exepack == "none")
+			exepack_handling = EXEPACK_NONE;
+		else if (exepack == "a20off")
+			exepack_handling = EXEPACK_A20OFF;
+		else if (exepack == "unpack")
+			exepack_handling = EXEPACK_UNPACK;
+		else
+			exepack_handling = EXEPACK_UNPACK;
 #endif
 
 		maxfcb=100;

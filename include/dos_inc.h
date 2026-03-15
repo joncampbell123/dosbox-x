@@ -1100,4 +1100,13 @@ const std::map<std::string, int> country_code_map {
 
 void DOS_FlushSTDIN(void);
 
+
+extern unsigned char exepack_handling;
+
+enum {
+	EXEPACK_NONE,
+	EXEPACK_A20OFF,
+	EXEPACK_UNPACK
+};
+
 #endif

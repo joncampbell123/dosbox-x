@@ -1494,6 +1494,9 @@ void DOSBOX_SetupConfigSections(void) {
     const char* pseopts[] = {
         "auto", "none", "pse", "pse36", "pse40", "true", "false", nullptr };
 
+    const char* exepackopts[] = {
+        "none", "a20off", "unpack", nullptr };
+
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
         "mda",
@@ -4604,6 +4607,14 @@ void DOSBOX_SetupConfigSections(void) {
                     "It is recommended to get and set dosbox-x.conf settings using the CONFIG command instead.\n"
                     "Compatibility with DOSBox SVN can be improved by enabling this option.");
     Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("exepack",Property::Changeable::WhenIdle,"unpack");
+    Pstring->Set_values(exepackopts);
+    Pstring->Set_help("If loading an EXE file compressed using ExEPACK, what to do.\n"
+		      "This setting can help avoid Packed File is Corrupt errors when running such executables.\n"
+		      "none = don't do anything\n"
+		      "a20off = switch off the A20 gate before running the executable\n"
+		      "unpack = decompress the EXE and then run it, rather than run the EXEPACK code (default).");
 
     Pstring = secprop->Add_string("badcommandhandler",Property::Changeable::WhenIdle,"");
     Pstring->Set_help("Allow to specify a custom error handler command for the internal DOS shell before the \"Bad command or file name\" message shows up.");
