@@ -476,8 +476,18 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	 *      Surely they've made bug fixes to it over time, right? */
 	/* assume loadbuf is 64K large */
 	/* this code may run in virtual 8086 mode so we cannot just use MemBase+x to check */
-	if (!iscom && memimagesize >= 0x100) {
+	if (!iscom && memimagesize >= 0x100 && memsize > 0x10) {
+		/* make sure we're staying within the allocated memory for the EXE, even if Microsoft's
+		 * EXEPACK code never checks. The linker making these does set the min/max sizes in the
+		 * EXE header correctly. */
+		const uint32_t exelimit = RunningProgramLoadAddress + ((memsize - 0x10)/*exclude PSP segment*/ * 0x10u);
 		const uint32_t exepkstart = ((uint32_t)head.initCS << 4u) + (uint32_t)head.initIP;
+		uint32_t packed_len = 0;
+		uint16_t exepacksz = 0; // size of EXEPACK code including "Packed file is corrupt"
+		uint16_t exevarssz = 0;
+		uint16_t relocofs = 0; // offset in relocated segment of packed relocation table
+		EXEPACKVARSv1 pkvars;
+		bool exepack = false;
 
 		/* look for "RB" just before the entry point */
 		/* Usually, CS:IP is set so that CS=exepack decompression and IP=0x12 aka sizeof(EXEPACKv1).
@@ -487,7 +497,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		if (exepkstart >= 2 && mem_readw(RunningProgramLoadAddress+exepkstart-2) == 0x4252/*RB*/) {
 			MEM_BlockRead(RunningProgramLoadAddress+exepkstart,loadbuf,0x180/*more than enough*/);
 
-			if (head.initIP == sizeof(EXEPACKVARSv1) && memimagesize >= sizeof(EXEPACKv1) && memcmp(loadbuf,EXEPACKv1,sizeof(EXEPACKv1)) == 0 && memsize > 0x10) {
+			if (head.initIP == sizeof(EXEPACKVARSv1) && memimagesize >= sizeof(EXEPACKv1) && memcmp(loadbuf,EXEPACKv1,sizeof(EXEPACKv1)) == 0) {
 				if (exepack_handling == EXEPACK_NONE) {
 					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected, doing nothing");
 				}
@@ -496,173 +506,174 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 					XMS_EnableA20(false);
 				}
 				else {
-					/* make sure we're staying within the allocated memory for the EXE, even if Microsoft's
-					 * EXEPACK code never checks. The linker making these does set the min/max sizes in the
-					 * EXE header correctly. */
-					const uint32_t exelimit = RunningProgramLoadAddress + ((memsize - 0x10)/*exclude PSP segment*/ * 0x10u);
-					EXEPACKVARSv1 pkvars;
-
 					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
 					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
 					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
+					exepacksz = 0x105+0x16; /* EXEPACK code + "Packed File is Corrupt" */
+					packed_len = exepkstart-sizeof(EXEPACKVARSv1);
+					exevarssz = sizeof(EXEPACKVARSv1);
+					relocofs = 0x12D;
+					exepack = true;
 
 					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected");
-					LOG(LOG_DOSMISC,LOG_DEBUG)("real_start=%04x:%04x exepack_size=%04x real_stack=%04x:%04x dest_len=%04x skip_len=%04x",
-						pkvars.real_CS,pkvars.real_IP,pkvars.exepack_size,
-						pkvars.real_SS,pkvars.real_SP,pkvars.dest_len,pkvars.skip_len);
+				}
+			}
+		}
 
-					const uint32_t packed_len = exepkstart-sizeof(EXEPACKVARSv1);
-					LOG(LOG_DOSMISC,LOG_DEBUG)("packed_exe_length=%04x exe_limit=%05x loadaddr=%05x",packed_len,exelimit,RunningProgramLoadAddress);
+		if (exepack) {
+			LOG(LOG_DOSMISC,LOG_DEBUG)("real_start=%04x:%04x exepack_size=%04x real_stack=%04x:%04x dest_len=%04x skip_len=%04x",
+				pkvars.real_CS,pkvars.real_IP,pkvars.exepack_size,
+				pkvars.real_SS,pkvars.real_SP,pkvars.dest_len,pkvars.skip_len);
 
-					/* EXEPACK code writes the base EXE segment image (excluding the PSP) to pkvars + 4 aka pkvars.mem_start */
-					/* It then sets ES=dest_len+mem_start and copies exepack_size bytes to it BACKWARDS, then RETFs to it to
-					 * continue execution of decompression with DX = skip_len. */
-					/* srcPosSegment = end of packed EXE - skip_len. Scan and skip up to 0x10 bytes of 0xFF */
-					/* dstPosSegment = first byte of EXEPACK segment - skip_len. */
-					/* then sets DS:SI where SI |= 0xFFF0 and DS -= 0xFFF. This is why when loaded below < 0x1000 with A20
-					 * enabled the Packed File is Corrupt message appears. */
-					{
-						if (pkvars.exepack_size < (0x12+0x105+0x16+0x20/*16words*/) || pkvars.exepack_size > 0xF000u) {
-							LOG(LOG_DOSMISC,LOG_WARN)("EXEPACK exepack_size invalid");
-							delete[] loadbuf;
-							DOS_CloseFile(fhandle);
-							return false;
-						}
+			LOG(LOG_DOSMISC,LOG_DEBUG)("packed_exe_length=%04x exe_limit=%05x loadaddr=%05x",packed_len,exelimit,RunningProgramLoadAddress);
 
-						const uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1);
-						const uint32_t dstPos = (pkvars.dest_len + pkvars.mem_start) << 4u;
-						LOG(LOG_DOSMISC,LOG_DEBUG)("Copying EXEPACK code to new location in memory srcPos=%x dstPos=%x",srcPos,dstPos);
-						/* copy BACKWARDS, as EXEPACK does, because it always copies the code to a higher location */
-						for (unsigned int i=0;i < pkvars.exepack_size;i++)
-							mem_writeb(dstPos+pkvars.exepack_size-1-i,mem_readb(srcPos+pkvars.exepack_size-1-i));
+			/* EXEPACK code writes the base EXE segment image (excluding the PSP) to pkvars + 4 aka pkvars.mem_start */
+			/* It then sets ES=dest_len+mem_start and copies exepack_size bytes to it BACKWARDS, then RETFs to it to
+			 * continue execution of decompression with DX = skip_len. */
+			/* srcPosSegment = end of packed EXE - skip_len. Scan and skip up to 0x10 bytes of 0xFF */
+			/* dstPosSegment = first byte of EXEPACK segment - skip_len. */
+			/* then sets DS:SI where SI |= 0xFFF0 and DS -= 0xFFF. This is why when loaded below < 0x1000 with A20
+			 * enabled the Packed File is Corrupt message appears. */
+			{
+				if (pkvars.exepack_size < (exevarssz+exepacksz+0x20/*16words minsz relocation table*/) || pkvars.exepack_size > 0xF000u) {
+					LOG(LOG_DOSMISC,LOG_WARN)("EXEPACK exepack_size invalid");
+					delete[] loadbuf;
+					DOS_CloseFile(fhandle);
+					return false;
+				}
+
+				const uint32_t srcPos = RunningProgramLoadAddress+exepkstart-exevarssz;
+				const uint32_t dstPos = (pkvars.dest_len + pkvars.mem_start) << 4u;
+				LOG(LOG_DOSMISC,LOG_DEBUG)("Copying EXEPACK code to new location in memory srcPos=%x dstPos=%x",srcPos,dstPos);
+				/* copy BACKWARDS, as EXEPACK does, because it always copies the code to a higher location */
+				for (unsigned int i=0;i < pkvars.exepack_size;i++)
+					mem_writeb(dstPos+pkvars.exepack_size-1-i,mem_readb(srcPos+pkvars.exepack_size-1-i));
+			}
+
+			{
+				uint32_t srcPos = RunningProgramLoadAddress+exepkstart-exevarssz-1u;
+				uint32_t dstPos = ((pkvars.dest_len + pkvars.mem_start) << 4u) - 1u;
+				LOG(LOG_DOSMISC,LOG_DEBUG)("srcPos=%05x dstPos=%05x",srcPos,dstPos);
+
+				if (srcPos >= dstPos || srcPos >= exelimit || dstPos >= exelimit) {
+					LOG(LOG_DOSMISC,LOG_WARN)("EXEPACK invalid srcPos/dstPos");
+					delete[] loadbuf;
+					DOS_CloseFile(fhandle);
+					return false;
+				}
+
+				for (unsigned int c=0;c < 16 && mem_readb(srcPos) == 0xFF;c++) srcPos--;
+				LOG(LOG_DOSMISC,LOG_DEBUG)("srcPos=%05x after skipping padding",srcPos);
+
+				/* begin decompressing */
+				while (1) {
+					if (srcPos < RunningProgramLoadAddress) {
+						LOG(LOG_DOSMISC,LOG_WARN)("decompression read beyond start of EXE");
+						delete[] loadbuf;
+						DOS_CloseFile(fhandle);
+						return false;
+					}
+					if (dstPos < RunningProgramLoadAddress) {
+						LOG(LOG_DOSMISC,LOG_WARN)("decompression wrote beyond start of EXE");
+						delete[] loadbuf;
+						DOS_CloseFile(fhandle);
+						return false;
+					}
+					if (srcPos >= dstPos) {
+						LOG(LOG_DOSMISC,LOG_WARN)("decompression is beginning to overwrite the data to decompress");
+						delete[] loadbuf;
+						DOS_CloseFile(fhandle);
+						return false;
 					}
 
-					{
-						uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1)-1u;
-						uint32_t dstPos = ((pkvars.dest_len + pkvars.mem_start) << 4u) - 1u;
-						LOG(LOG_DOSMISC,LOG_DEBUG)("srcPos=%05x dstPos=%05x",srcPos,dstPos);
+					const uint8_t commandByte = mem_readb(srcPos--);
 
-						if (srcPos >= dstPos || srcPos >= exelimit || dstPos >= exelimit) {
-							LOG(LOG_DOSMISC,LOG_WARN)("EXEPACK invalid srcPos/dstPos");
+					/* FIXME: I'm seeing EXEPACKed executables where this decompression doesn't stop at the start of the
+					 *        EXE resident image, but instead, stops at writing address 0xFF (the last byte of the PSP
+					 *        segment). Why? Did someone at Microsoft make an off-by-one error? */
+
+					switch (commandByte & ~1u) {
+						case 0xB0: {
+							/* (reading backwards) BYTE:value WORD:length */
+							const uint16_t l = mem_readw(--srcPos); srcPos--;
+							const uint8_t v = mem_readb(srcPos--);
+							if ((dstPos-l) < (RunningProgramLoadAddress-1u)) {
+								LOG(LOG_DOSMISC,LOG_WARN)("run length would have written past the EXE start srcPos=%x dstPos=%x len=%x",srcPos,dstPos,l);
+								delete[] loadbuf;
+								DOS_CloseFile(fhandle);
+								return false;
+							}
+							for (unsigned int c=0;c < l;c++)
+								mem_writeb(dstPos--,v);
+							break;
+						}
+						case 0xB2: {
+							/* (reading backwards) WORD:length */
+							const uint16_t l = mem_readw(--srcPos); srcPos--;
+							if ((dstPos-l) < (RunningProgramLoadAddress-1u) || (srcPos-l) < (RunningProgramLoadAddress-1u)) {
+								LOG(LOG_DOSMISC,LOG_WARN)("copy length would have written past the EXE start srcPos=%x dstPos=%x len=%x",srcPos,dstPos,l);
+								delete[] loadbuf;
+								DOS_CloseFile(fhandle);
+								return false;
+							}
+							for (unsigned int c=0;c < l;c++)
+								mem_writeb(dstPos--,mem_readb(srcPos--));
+							break;
+						}
+						default:
+							LOG(LOG_DOSMISC,LOG_WARN)("decompression found unknown EXEPACK command %02x, therefore, packed EXE is corrupt. srcPos=%x dstPos=%x",commandByte,srcPos,dstPos);
 							delete[] loadbuf;
 							DOS_CloseFile(fhandle);
 							return false;
-						}
+					};
 
-						for (unsigned int c=0;c < 16 && mem_readb(srcPos) == 0xFF;c++) srcPos--;
-						LOG(LOG_DOSMISC,LOG_DEBUG)("srcPos=%05x after skipping padding",srcPos);
+					if (commandByte & 1) break; /* LSB == last block */
+				}
 
-						/* begin decompressing */
-						while (1) {
-							if (srcPos < RunningProgramLoadAddress) {
-								LOG(LOG_DOSMISC,LOG_WARN)("decompression read beyond start of EXE");
+				/* Next, apply the packed relocation table.
+				 * The code just assumes an address that is the first byte past the "Packed File is Corrupt" string. */
+				uint32_t relocSrc = ((pkvars.dest_len + pkvars.mem_start) << 4u)+relocofs;
+				if ((relocSrc+0x20) < exelimit) {
+					for (unsigned int sec=0;sec < 0x10;sec++) {
+						const uint16_t count = mem_readw(relocSrc); relocSrc += 2;
+						const uint32_t segb = RunningProgramLoadAddress + (sec * 0x10000u);
+
+						if (count == 0) continue;
+
+						LOG(LOG_DOSMISC,LOG_DEBUG)("Apply packed reloations for section %x (%u relocations)",sec,count);
+
+						/* NTS: EXEPACK code does check for offset = 0xFFFF to handle it properly! */
+						for (unsigned int r=0;r < count;r++) {
+							if ((relocSrc+2) > exelimit) {
+								LOG(LOG_DOSMISC,LOG_WARN)("Relocation table unpacking read beyond exe limit in section %x entry %x relocSrc=%x",sec,r,relocSrc);
 								delete[] loadbuf;
 								DOS_CloseFile(fhandle);
 								return false;
 							}
-							if (dstPos < RunningProgramLoadAddress) {
-								LOG(LOG_DOSMISC,LOG_WARN)("decompression wrote beyond start of EXE");
+
+							const uint32_t of = segb+mem_readw(relocSrc); relocSrc += 2;
+							if ((of+2) > exelimit) {
+								LOG(LOG_DOSMISC,LOG_WARN)("Relocation table unpacking write beyond exe limit in section %x entry %x relocSrc=%x patchaddr=%xx",sec,r,relocSrc,of);
 								delete[] loadbuf;
 								DOS_CloseFile(fhandle);
 								return false;
 							}
-							if (srcPos >= dstPos) {
-								LOG(LOG_DOSMISC,LOG_WARN)("decompression is beginning to overwrite the data to decompress");
-								delete[] loadbuf;
-								DOS_CloseFile(fhandle);
-								return false;
-							}
 
-							const uint8_t commandByte = mem_readb(srcPos--);
-
-							/* FIXME: I'm seeing EXEPACKed executables where this decompression doesn't stop at the start of the
-							 *        EXE resident image, but instead, stops at writing address 0xFF (the last byte of the PSP
-							 *        segment). Why? Did someone at Microsoft make an off-by-one error? */
-
-							switch (commandByte & ~1u) {
-								case 0xB0: {
-									/* (reading backwards) BYTE:value WORD:length */
-									const uint16_t l = mem_readw(--srcPos); srcPos--;
-									const uint8_t v = mem_readb(srcPos--);
-									if ((dstPos-l) < (RunningProgramLoadAddress-1u)) {
-										LOG(LOG_DOSMISC,LOG_WARN)("run length would have written past the EXE start srcPos=%x dstPos=%x len=%x",srcPos,dstPos,l);
-										delete[] loadbuf;
-										DOS_CloseFile(fhandle);
-										return false;
-									}
-									for (unsigned int c=0;c < l;c++)
-										mem_writeb(dstPos--,v);
-									break;
-								}
-								case 0xB2: {
-									/* (reading backwards) WORD:length */
-									const uint16_t l = mem_readw(--srcPos); srcPos--;
-									if ((dstPos-l) < (RunningProgramLoadAddress-1u) || (srcPos-l) < (RunningProgramLoadAddress-1u)) {
-										LOG(LOG_DOSMISC,LOG_WARN)("copy length would have written past the EXE start srcPos=%x dstPos=%x len=%x",srcPos,dstPos,l);
-										delete[] loadbuf;
-										DOS_CloseFile(fhandle);
-										return false;
-									}
-									for (unsigned int c=0;c < l;c++)
-										mem_writeb(dstPos--,mem_readb(srcPos--));
-									break;
-								}
-								default:
-									LOG(LOG_DOSMISC,LOG_WARN)("decompression found unknown EXEPACK command %02x, therefore, packed EXE is corrupt. srcPos=%x dstPos=%x",commandByte,srcPos,dstPos);
-									delete[] loadbuf;
-									DOS_CloseFile(fhandle);
-									return false;
-							};
-
-							if (commandByte & 1) break; /* LSB == last block */
+							mem_writew(of,mem_readw(of)+pkvars.mem_start);
 						}
-
-						/* Next, apply the packed relocation table.
-						 * The code just assumes an address of CS:12D, first byte past the "Packed File is Corrupt" string. */
-						uint32_t relocSrc = ((pkvars.dest_len + pkvars.mem_start) << 4u)+0x12D;
-						if ((relocSrc+0x20) < exelimit) {
-							for (unsigned int sec=0;sec < 0x10;sec++) {
-								const uint16_t count = mem_readw(relocSrc); relocSrc += 2;
-								const uint32_t segb = RunningProgramLoadAddress + (sec * 0x10000u);
-
-								if (count == 0) continue;
-
-								LOG(LOG_DOSMISC,LOG_DEBUG)("Apply packed reloations for section %x (%u relocations)",sec,count);
-
-								/* NTS: EXEPACK code does check for offset = 0xFFFF to handle it properly! */
-								for (unsigned int r=0;r < count;r++) {
-									if ((relocSrc+2) > exelimit) {
-										LOG(LOG_DOSMISC,LOG_WARN)("Relocation table unpacking read beyond exe limit in section %x entry %x relocSrc=%x",sec,r,relocSrc);
-										delete[] loadbuf;
-										DOS_CloseFile(fhandle);
-										return false;
-									}
-
-									const uint32_t of = segb+mem_readw(relocSrc); relocSrc += 2;
-									if ((of+2) > exelimit) {
-										LOG(LOG_DOSMISC,LOG_WARN)("Relocation table unpacking write beyond exe limit in section %x entry %x relocSrc=%x patchaddr=%xx",sec,r,relocSrc,of);
-										delete[] loadbuf;
-										DOS_CloseFile(fhandle);
-										return false;
-									}
-
-									mem_writew(of,mem_readw(of)+pkvars.mem_start);
-								}
-							}
-						}
-
-						/* update EXE header to reflect the real CS:IP and SS:SP */
-						head.initCS = pkvars.real_CS;
-						head.initIP = pkvars.real_IP;
-						head.initSS = pkvars.real_SS;
-						head.initSP = pkvars.real_SP;
-						LOG(LOG_DOSMISC,LOG_WARN)("Decompression done. Setting CS:IP=%04x:%04x SS:SP=%04x:%04x memsize=%04x(seg=%04x)",
-							head.initCS,head.initIP,
-							head.initSS,head.initSP,
-							memsize,
-							pkvars.mem_start+memsize);
 					}
 				}
+
+				/* update EXE header to reflect the real CS:IP and SS:SP */
+				head.initCS = pkvars.real_CS;
+				head.initIP = pkvars.real_IP;
+				head.initSS = pkvars.real_SS;
+				head.initSP = pkvars.real_SP;
+				LOG(LOG_DOSMISC,LOG_WARN)("Decompression done. Setting CS:IP=%04x:%04x SS:SP=%04x:%04x memsize=%04x(seg=%04x)",
+					head.initCS,head.initIP,
+					head.initSS,head.initSP,
+					memsize,
+					pkvars.mem_start+memsize);
 			}
 		}
 	}
