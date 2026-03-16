@@ -476,64 +476,68 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	 *      Surely they've made bug fixes to it over time, right? */
 	/* assume loadbuf is 64K large */
 	/* this code may run in virtual 8086 mode so we cannot just use MemBase+x to check */
-	if (!iscom && memimagesize >= sizeof(EXEPACKv1)) {
-		uint32_t exepkstart = ((uint32_t)head.initCS << 4u) + (uint32_t)head.initIP;
+	if (!iscom && memimagesize >= 0x100) {
+		const uint32_t exepkstart = ((uint32_t)head.initCS << 4u) + (uint32_t)head.initIP;
+
+		/* look for "RB" just before the entry point */
 		/* Usually, CS:IP is set so that CS=exepack decompression and IP=0x12 aka sizeof(EXEPACKv1).
-		 * Then the code just sets DS == CS and directly access the vars */
-		if (exepkstart >= sizeof(EXEPACKVARSv1) && (exepkstart+sizeof(EXEPACKv1)) <= memimagesize && memsize > 0x10) {
-			/* look for "RB" just before the entry point */
-			if (mem_readw(RunningProgramLoadAddress+exepkstart-2) == 0x4252/*RB*/) {
-				MEM_BlockRead(RunningProgramLoadAddress+exepkstart,loadbuf,sizeof(EXEPACKv1));
-				if (memcmp(loadbuf,EXEPACKv1,sizeof(EXEPACKv1)) == 0) {
-					if (exepack_handling == EXEPACK_NONE) {
-						LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected, doing nothing");
-					}
-					else if (exepack_handling == EXEPACK_A20OFF) {
-						LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected, switching off A20 gate");
-						XMS_EnableA20(false);
-					}
-					else {
-						/* make sure we're staying within the allocated memory for the EXE, even if Microsoft's
-						 * EXEPACK code never checks. The linker making these does set the min/max sizes in the
-						 * EXE header correctly. */
-						const uint32_t exelimit = RunningProgramLoadAddress + ((memsize - 0x10)/*exclude PSP segment*/ * 0x10u);
-						EXEPACKVARSv1 pkvars;
+		 * Then the code just sets DS == CS and directly access the vars. In every variant I am aware
+		 * of, the EXE starts with CS=EXEPACK code and IP=sizeof(EXEPACKVARS). For v1 variants that
+		 * means CS:IP = EXEPACK code:0x12 for example. */
+		if (exepkstart >= 2 && mem_readw(RunningProgramLoadAddress+exepkstart-2) == 0x4252/*RB*/) {
+			MEM_BlockRead(RunningProgramLoadAddress+exepkstart,loadbuf,0x180/*more than enough*/);
 
-						MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
-						pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
-						MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
+			if (head.initIP == sizeof(EXEPACKVARSv1) && memimagesize >= sizeof(EXEPACKv1) && memcmp(loadbuf,EXEPACKv1,sizeof(EXEPACKv1)) == 0 && memsize > 0x10) {
+				if (exepack_handling == EXEPACK_NONE) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected, doing nothing");
+				}
+				else if (exepack_handling == EXEPACK_A20OFF) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected, switching off A20 gate");
+					XMS_EnableA20(false);
+				}
+				else {
+					/* make sure we're staying within the allocated memory for the EXE, even if Microsoft's
+					 * EXEPACK code never checks. The linker making these does set the min/max sizes in the
+					 * EXE header correctly. */
+					const uint32_t exelimit = RunningProgramLoadAddress + ((memsize - 0x10)/*exclude PSP segment*/ * 0x10u);
+					EXEPACKVARSv1 pkvars;
 
-						LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected");
-						LOG(LOG_DOSMISC,LOG_DEBUG)("real_start=%04x:%04x exepack_size=%04x real_stack=%04x:%04x dest_len=%04x skip_len=%04x",
-							pkvars.real_CS,pkvars.real_IP,pkvars.exepack_size,
-							pkvars.real_SS,pkvars.real_SP,pkvars.dest_len,pkvars.skip_len);
+					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
+					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
+					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
 
-						uint32_t packed_len = exepkstart-sizeof(EXEPACKVARSv1);
-						LOG(LOG_DOSMISC,LOG_DEBUG)("packed_exe_length=%04x exe_limit=%05x loadaddr=%05x",packed_len,exelimit,RunningProgramLoadAddress);
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected");
+					LOG(LOG_DOSMISC,LOG_DEBUG)("real_start=%04x:%04x exepack_size=%04x real_stack=%04x:%04x dest_len=%04x skip_len=%04x",
+						pkvars.real_CS,pkvars.real_IP,pkvars.exepack_size,
+						pkvars.real_SS,pkvars.real_SP,pkvars.dest_len,pkvars.skip_len);
 
-						/* EXEPACK code writes the base EXE segment image (excluding the PSP) to pkvars + 4 aka pkvars.mem_start */
-						/* It then sets ES=dest_len+mem_start and copies exepack_size bytes to it BACKWARDS, then RETFs to it to
-						 * continue execution of decompression with DX = skip_len. */
-						/* srcPosSegment = end of packed EXE - skip_len. Scan and skip up to 0x10 bytes of 0xFF */
-						/* dstPosSegment = first byte of EXEPACK segment - skip_len. */
-						/* then sets DS:SI where SI |= 0xFFF0 and DS -= 0xFFF. This is why when loaded below < 0x1000 with A20
-						 * enabled the Packed File is Corrupt message appears. */
-						{
-							if (pkvars.exepack_size < (0x12+0x105+0x16+0x20/*16words*/) || pkvars.exepack_size > 0xF000u) {
-								LOG(LOG_DOSMISC,LOG_WARN)("EXEPACK exepack_size invalid");
-								delete[] loadbuf;
-								DOS_CloseFile(fhandle);
-								return false;
-							}
+					const uint32_t packed_len = exepkstart-sizeof(EXEPACKVARSv1);
+					LOG(LOG_DOSMISC,LOG_DEBUG)("packed_exe_length=%04x exe_limit=%05x loadaddr=%05x",packed_len,exelimit,RunningProgramLoadAddress);
 
-							uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1);
-							uint32_t dstPos = (pkvars.dest_len + pkvars.mem_start) << 4u;
-							LOG(LOG_DOSMISC,LOG_DEBUG)("Copying EXEPACK code to new location in memory srcPos=%x dstPos=%x",srcPos,dstPos);
-							/* copy BACKWARDS, as EXEPACK does, because it always copies the code to a higher location */
-							for (unsigned int i=0;i < pkvars.exepack_size;i++)
-								mem_writeb(dstPos+pkvars.exepack_size-1-i,mem_readb(srcPos+pkvars.exepack_size-1-i));
+					/* EXEPACK code writes the base EXE segment image (excluding the PSP) to pkvars + 4 aka pkvars.mem_start */
+					/* It then sets ES=dest_len+mem_start and copies exepack_size bytes to it BACKWARDS, then RETFs to it to
+					 * continue execution of decompression with DX = skip_len. */
+					/* srcPosSegment = end of packed EXE - skip_len. Scan and skip up to 0x10 bytes of 0xFF */
+					/* dstPosSegment = first byte of EXEPACK segment - skip_len. */
+					/* then sets DS:SI where SI |= 0xFFF0 and DS -= 0xFFF. This is why when loaded below < 0x1000 with A20
+					 * enabled the Packed File is Corrupt message appears. */
+					{
+						if (pkvars.exepack_size < (0x12+0x105+0x16+0x20/*16words*/) || pkvars.exepack_size > 0xF000u) {
+							LOG(LOG_DOSMISC,LOG_WARN)("EXEPACK exepack_size invalid");
+							delete[] loadbuf;
+							DOS_CloseFile(fhandle);
+							return false;
 						}
 
+						const uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1);
+						const uint32_t dstPos = (pkvars.dest_len + pkvars.mem_start) << 4u;
+						LOG(LOG_DOSMISC,LOG_DEBUG)("Copying EXEPACK code to new location in memory srcPos=%x dstPos=%x",srcPos,dstPos);
+						/* copy BACKWARDS, as EXEPACK does, because it always copies the code to a higher location */
+						for (unsigned int i=0;i < pkvars.exepack_size;i++)
+							mem_writeb(dstPos+pkvars.exepack_size-1-i,mem_readb(srcPos+pkvars.exepack_size-1-i));
+					}
+
+					{
 						uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1)-1u;
 						uint32_t dstPos = ((pkvars.dest_len + pkvars.mem_start) << 4u) - 1u;
 						LOG(LOG_DOSMISC,LOG_DEBUG)("srcPos=%05x dstPos=%05x",srcPos,dstPos);
