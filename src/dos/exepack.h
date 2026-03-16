@@ -31,5 +31,8 @@ static_assert( sizeof(EXEPACKVARSv2) == 0x10, "oops" );
 
 /* another variant seen in "PGA Golf" */
 typedef EXEPACKVARSv2 EXEPACKVARSv3;
+
+/* another variant seen in "Popcorn" */
+typedef EXEPACKVARSv2 EXEPACKVARSv4;
 #pragma pack(pop)
 

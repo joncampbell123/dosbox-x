@@ -34,6 +34,7 @@
 #include "exepackv1.h"
 #include "exepackv2.h"
 #include "exepackv3.h"
+#include "exepackv4.h"
 
 extern bool xms_init;
 extern bool a20_off_if_loading_low;
@@ -573,6 +574,34 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 					pkvars.signature = 0x4252;
 
 					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 3) detected");
+				}
+			}
+			else if (head.initIP == sizeof(EXEPACKVARSv4) && memimagesize >= sizeof(EXEPACKv4) && memcmp(loadbuf,EXEPACKv4,sizeof(EXEPACKv4)) == 0) {
+				/* Variant seen in "Popcorn" that removes the skip_len field, and fixes the segment wraparound A20 gate issue */
+				if (exepack_handling == EXEPACK_NONE) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 4) detected, doing nothing");
+				}
+				else if (exepack_handling == EXEPACK_A20OFF) {
+					/* this variant fixes the A20 gate wraparound issue, so, there's really no point to this unless of course
+					 * the code within has similar bugs. */
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 4) detected, switching off A20 gate");
+					XMS_EnableA20(false);
+				}
+				else {
+					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv4),&pkvars,sizeof(EXEPACKVARSv4));
+					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
+					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv4),&pkvars,sizeof(EXEPACKVARSv4));
+					packed_len = exepkstart-sizeof(EXEPACKVARSv4);
+					exevarssz = sizeof(EXEPACKVARSv4);
+					exepacksz = sizeof(EXEPACKv4); /* EXEPACK code + "Packed File is Corrupt" */
+					relocofs = 0x112;
+					exepack = true;
+
+					/* the code below expects the v1 struct so convert in place. skip_len is missing so put it in place and move aside "RB" */
+					pkvars.skip_len = 1;
+					pkvars.signature = 0x4252;
+
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 4) detected");
 				}
 			}
 		}
