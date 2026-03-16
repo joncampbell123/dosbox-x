@@ -32,6 +32,7 @@
 #include "crc32.h"
 #include "exepack.h"
 #include "exepackv1.h"
+#include "exepackv2.h"
 
 extern bool xms_init;
 extern bool a20_off_if_loading_low;
@@ -498,6 +499,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			MEM_BlockRead(RunningProgramLoadAddress+exepkstart,loadbuf,0x180/*more than enough*/);
 
 			if (head.initIP == sizeof(EXEPACKVARSv1) && memimagesize >= sizeof(EXEPACKv1) && memcmp(loadbuf,EXEPACKv1,sizeof(EXEPACKv1)) == 0) {
+				/* Very common variant */
 				if (exepack_handling == EXEPACK_NONE) {
 					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected, doing nothing");
 				}
@@ -509,13 +511,39 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
 					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
 					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
-					exepacksz = 0x105+0x16; /* EXEPACK code + "Packed File is Corrupt" */
 					packed_len = exepkstart-sizeof(EXEPACKVARSv1);
 					exevarssz = sizeof(EXEPACKVARSv1);
+					exepacksz = sizeof(EXEPACKv1); /* EXEPACK code + "Packed File is Corrupt" */
 					relocofs = 0x12D;
 					exepack = true;
 
 					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected");
+				}
+			}
+			else if (head.initIP == sizeof(EXEPACKVARSv2) && memimagesize >= sizeof(EXEPACKv2) && memcmp(loadbuf,EXEPACKv2,sizeof(EXEPACKv2)) == 0) {
+				/* Variant seen in Microsoft Flight Simulator 4 that removes the skip_len field */
+				if (exepack_handling == EXEPACK_NONE) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 2) detected, doing nothing");
+				}
+				else if (exepack_handling == EXEPACK_A20OFF) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 2) detected, switching off A20 gate");
+					XMS_EnableA20(false);
+				}
+				else {
+					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv2),&pkvars,sizeof(EXEPACKVARSv2));
+					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
+					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv2),&pkvars,sizeof(EXEPACKVARSv2));
+					packed_len = exepkstart-sizeof(EXEPACKVARSv2);
+					exevarssz = sizeof(EXEPACKVARSv2);
+					exepacksz = sizeof(EXEPACKv2); /* EXEPACK code + "Packed File is Corrupt" */
+					relocofs = 0x125;
+					exepack = true;
+
+					/* the code below expects the v1 struct so convert in place. skip_len is missing so put it in place and move aside "RB" */
+					pkvars.skip_len = 1;
+					pkvars.signature = 0x4252;
+
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 2) detected");
 				}
 			}
 		}
