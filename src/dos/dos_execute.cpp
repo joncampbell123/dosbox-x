@@ -619,7 +619,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 						if ((relocSrc+0x20) < exelimit) {
 							for (unsigned int sec=0;sec < 0x10;sec++) {
 								const uint16_t count = mem_readw(relocSrc); relocSrc += 2;
-								const uint32_t segb = RunningProgramLoadAddress + (sec * 0x1000u);
+								const uint32_t segb = RunningProgramLoadAddress + (sec * 0x10000u);
 
 								if (count == 0) continue;
 
