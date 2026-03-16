@@ -480,7 +480,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		uint32_t exepkstart = ((uint32_t)head.initCS << 4u) + (uint32_t)head.initIP;
 		/* Usually, CS:IP is set so that CS=exepack decompression and IP=0x12 aka sizeof(EXEPACKv1).
 		 * Then the code just sets DS == CS and directly access the vars */
-		if (exepkstart >= sizeof(EXEPACKVARS) && (exepkstart+sizeof(EXEPACKv1)) <= memimagesize && memsize > 0x10) {
+		if (exepkstart >= sizeof(EXEPACKVARSv1) && (exepkstart+sizeof(EXEPACKv1)) <= memimagesize && memsize > 0x10) {
 			/* look for "RB" just before the entry point */
 			if (mem_readw(RunningProgramLoadAddress+exepkstart-2) == 0x4252/*RB*/) {
 				MEM_BlockRead(RunningProgramLoadAddress+exepkstart,loadbuf,sizeof(EXEPACKv1));
@@ -497,18 +497,18 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 						 * EXEPACK code never checks. The linker making these does set the min/max sizes in the
 						 * EXE header correctly. */
 						const uint32_t exelimit = RunningProgramLoadAddress + ((memsize - 0x10)/*exclude PSP segment*/ * 0x10u);
-						EXEPACKVARS pkvars;
+						EXEPACKVARSv1 pkvars;
 
-						MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARS),&pkvars,sizeof(EXEPACKVARS));
+						MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
 						pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
-						MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARS),&pkvars,sizeof(EXEPACKVARS));
+						MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
 
 						LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected");
 						LOG(LOG_DOSMISC,LOG_DEBUG)("real_start=%04x:%04x exepack_size=%04x real_stack=%04x:%04x dest_len=%04x skip_len=%04x",
 							pkvars.real_CS,pkvars.real_IP,pkvars.exepack_size,
 							pkvars.real_SS,pkvars.real_SP,pkvars.dest_len,pkvars.skip_len);
 
-						uint32_t packed_len = exepkstart-sizeof(EXEPACKVARS);
+						uint32_t packed_len = exepkstart-sizeof(EXEPACKVARSv1);
 						LOG(LOG_DOSMISC,LOG_DEBUG)("packed_exe_length=%04x exe_limit=%05x loadaddr=%05x",packed_len,exelimit,RunningProgramLoadAddress);
 
 						/* EXEPACK code writes the base EXE segment image (excluding the PSP) to pkvars + 4 aka pkvars.mem_start */
@@ -526,7 +526,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 								return false;
 							}
 
-							uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARS);
+							uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1);
 							uint32_t dstPos = (pkvars.dest_len + pkvars.mem_start) << 4u;
 							LOG(LOG_DOSMISC,LOG_DEBUG)("Copying EXEPACK code to new location in memory srcPos=%x dstPos=%x",srcPos,dstPos);
 							/* copy BACKWARDS, as EXEPACK does, because it always copies the code to a higher location */
@@ -534,7 +534,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 								mem_writeb(dstPos+pkvars.exepack_size-1-i,mem_readb(srcPos+pkvars.exepack_size-1-i));
 						}
 
-						uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARS)-1u;
+						uint32_t srcPos = RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1)-1u;
 						uint32_t dstPos = ((pkvars.dest_len + pkvars.mem_start) << 4u) - 1u;
 						LOG(LOG_DOSMISC,LOG_DEBUG)("srcPos=%05x dstPos=%05x",srcPos,dstPos);
 
