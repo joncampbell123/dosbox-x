@@ -28,5 +28,8 @@ typedef struct EXEPACKVARSv2 {
 	uint16_t	signature; /* "RB" */
 };
 static_assert( sizeof(EXEPACKVARSv2) == 0x10, "oops" );
+
+/* another variant seen in "PGA Golf" */
+typedef EXEPACKVARSv2 EXEPACKVARSv3;
 #pragma pack(pop)
 
