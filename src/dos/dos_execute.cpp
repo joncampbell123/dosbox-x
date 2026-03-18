@@ -30,17 +30,23 @@
 #include "cpu.h"
 #include "menu.h"
 #include "crc32.h"
+#if defined(OSFREE)
 #include "exepack.h"
 #include "exepackv1.h"
 #include "exepackv2.h"
 #include "exepackv3.h"
 #include "exepackv4.h"
+#endif
 
+#if defined(OSFREE)
 extern bool xms_init;
 extern bool a20_off_if_loading_low;
+#endif
 
+#if defined(OSFREE)
 Bitu XMS_EnableA20(bool enable);
 Bitu XMS_GetEnabledA20(void);
+#endif
 
 uint32_t RunningProgramHash[4] = {0,0,0,0};
 uint32_t RunningProgramLoadAddress = 0;
@@ -473,6 +479,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		}
 	}
 
+#if defined(OSFREE)
 	/* is this executable EXEPACK compressed (v1 check)? */
 	/* NTS: The reason for the "versions" is that I anticipate finding variations of EXEPACK in the wild
 	 *      depending on when the EXE was made and which version of the Microsoft linker was used, etc.
@@ -763,6 +770,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			}
 		}
 	}
+#endif
 
 	delete[] loadbuf;
 	DOS_CloseFile(fhandle);
@@ -862,10 +870,12 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		RunningProgramHash[3] = 0;
 	}
 
+#if defined(OSFREE)
 	if (a20_off_if_loading_low && pspseg < 0x1000 && xms_init && XMS_GetEnabledA20() && !(cpu.cr0 & CR0_PROTECTION)/*not protected/vm86 mode*/) {
 		LOG(LOG_EXEC,LOG_DEBUG)("Program is being loaded below 64KB, disabling A20 gate to try to avoid some common crashes");
 		XMS_EnableA20(false);
 	}
+#endif
 
 	if (flags==LOAD) {
 		/* First word on the stack is the value ax should contain on startup */
