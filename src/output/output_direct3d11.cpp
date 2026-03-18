@@ -385,13 +385,13 @@ bool CDirect3D11::CreateSamplers(void) {
 }
 
 void CDirect3D11::SetSamplerMode() {
-    static int last_mode = -1;
-    if(last_mode == current_render_mode) return;
+    //static int last_mode = -1;
+    //if(last_mode == current_render_mode) return;
     ID3D11SamplerState* s = samplerLinear;
     if (current_render_mode == ASPECT_NEAREST) s = samplerNearest;
 
     context->PSSetSamplers(0, 1, &s);
-    last_mode = current_render_mode;
+    //last_mode = current_render_mode;
 }
 
 void CDirect3D11::GetRenderMode() {

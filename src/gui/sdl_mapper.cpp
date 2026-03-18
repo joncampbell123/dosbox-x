@@ -345,6 +345,11 @@ void change_output(int);
 #endif
 #endif
 
+#if C_DIRECT3D && C_SDL2
+void OUTPUT_DIRECT3D11_Shutdown();
+void change_output(int);
+#endif
+
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 //! \brief Base CEvent class for mapper events
@@ -5578,7 +5583,12 @@ void MAPPER_RunInternal() {
         change_output(14);
     }  
 #endif
-
+#if C_DIRECT3D && C_SDL2
+    if(sdl.desktop.want_type == SCREEN_DIRECT3D11) {
+        OUTPUT_DIRECT3D11_Shutdown();
+        change_output(13);
+    }
+#endif
 //  KEYBOARD_ClrBuffer();
     GFX_LosingFocus();
 
