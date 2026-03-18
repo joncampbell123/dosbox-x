@@ -33,6 +33,11 @@
 #include "clockdomain.h"
 #include "config.h"
 
+/* HACK: To make SDL3 porting easier, define SDL2 to prevent SDL1 code from compiling */
+#if defined(C_SDL3) && !defined(C_SDL2)
+# define C_SDL2 1
+#endif
+
 /* allow for OS-free builds where the MS-DOS emulation is disabled and
  * you have to provide your own boot disks to run MS-DOS or whatever you like. */
 #ifdef C_OSFREE

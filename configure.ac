@@ -540,6 +540,16 @@ AC_ARG_ENABLE([sdl2],
   [enable_sdl2=no]
 )
 
+AC_ARG_ENABLE([sdl3],
+  [AS_HELP_STRING([--enable-sdl3],[Build DOSBox-X using SDL3])],
+  [enable_sdl3=yes],
+  [enable_sdl3=no]
+)
+
+dnl LIBRARY TEST: SDL 3.x
+SDL3_VERSION=3.5.0
+AM_PATH_SDL3($SDL3_VERSION)
+
 dnl LIBRARY TEST: SDL 2.x
 SDL2_VERSION=2.0.5
 AM_PATH_SDL2($SDL2_VERSION)
@@ -550,7 +560,17 @@ AM_PATH_SDL($SDL_VERSION)
 
 dnl LIBRARY USE: SDL selection
 
-if test x"$enable_sdl2" = xyes; then
+if test x"$enable_sdl3" = xyes; then
+    AC_MSG_NOTICE([--enable-sdl3 specified, trying SDL3])
+    if test -n "$SDL3_LIBS"; then
+        SDL_STRING="SDL3"
+        LIBS="$LIBS $SDL3_LIBS"
+        CPPFLAGS="$CPPFLAGS $SDL3_CFLAGS"
+        AC_MSG_NOTICE([Building with SDL3])
+    else
+        AC_MSG_ERROR([--enable-sdl3 was specified, but SDL3 was not found])
+    fi
+elif test x"$enable_sdl2" = xyes; then
     AC_MSG_NOTICE([--enable-sdl2 specified, trying SDL2])
     if test -n "$SDL2_LIBS"; then
         SDL_STRING="SDL2"

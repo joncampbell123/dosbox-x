@@ -1,3 +1,35 @@
+dnl AM_PATH_SDL3([MINIMUM-VERSION])
+AC_DEFUN([AM_PATH_SDL3],
+[
+AC_ARG_ENABLE(sdl3,     [  --enable-sdl3           Enable SDL 2.x],
+		    enable_sdl3enable=$enableval, enable_sdl3enable=no)
+
+  AH_TEMPLATE(C_SDL3,[Set to 1 to enable SDL 2.x support])
+
+  SDL3_CONFIG=no
+  if test x$enable_sdl3enable = xyes ; then
+    # TODO: Same override logic as SDL2 when SDL3 is in-tree
+    manual_sdl3config=no
+
+    AC_PATH_PROG(SDL3_CONFIG, sdl3-config, no)
+    AC_MSG_CHECKING(for SDL3)
+
+    # SDL3 does not provide a sdl3-config, must use pkg-config to find it
+    if test x$manual_sdl3config = xno && \
+        pkg-config --exists sdl3 ; then
+      SDL3_CFLAGS=`pkg-config sdl3 --cflags`
+      SDL3_LIBS=`pkg-config sdl3 --libs`
+      AC_DEFINE(C_SDL3,1)
+      AC_MSG_RESULT(found using pkg-config)
+    else
+      AC_MSG_RESULT(not found)
+    fi
+  fi
+
+  AC_SUBST(SDL3_CFLAGS)
+  AC_SUBST(SDL3_LIBS)
+])
+
 dnl AM_PATH_SDL2([MINIMUM-VERSION])
 AC_DEFUN([AM_PATH_SDL2],
 [
