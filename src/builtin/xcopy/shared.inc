@@ -494,40 +494,67 @@ static char * get_option(const char **next_argptr, unsigned *count)
 /*-------------------------------------------------------------------------*/
 /* Splits the program arguments into file and switch arguments.            */
 /*-------------------------------------------------------------------------*/
+#define DESTBUF_SIZE 260
+static char dest_buffer[DESTBUF_SIZE];
+
 void classify_args(const int argc,
                    const char **argv,
                    int *fileargc,
                    char **fileargv,
                    int *switchargc,
-                   char **switchargv) {
-  int i;
-  char *argptr;
-  unsigned count = 0;
-  const char *next_argptr;
+                   char **switchargv)
+{
+    int i;
+    unsigned count = 0;
+    const char *next_argptr;
 
+    *fileargc = 0;
+    *switchargc = 0;
 
-  *fileargc = 0;
-  *switchargc = 0;
-  for (i = 1; i < argc; i++) {
-    argptr = (char *)argv[i];
-    if (argptr[0] == '/' || argptr[0] == '-') {
-      /* first character of parameter is '/' or '-' -> switch argument */
-      //switchargv[*switchargc] = argptr + 1;
- 	  next_argptr = argptr;
-	  do {
-        switchargv[*switchargc] = get_option(&next_argptr, &count);
-		/* printf("switcharg[%i]=|%s|\n", *switchargc, switchargv[*switchargc]); */
-        *switchargc = *switchargc + 1;
-	  } while (*next_argptr != '\0');  
+    for (i = 1; i < argc; i++) {
+        const char *argptr = argv[i];
+        const char *opt;
+
+        /* switch: starts with '/' */
+        if (argptr[0] == '/') {
+            next_argptr = argptr;
+            do {
+                switchargv[*switchargc] = get_option(&next_argptr, &count);
+                (*switchargc)++;
+            } while (*next_argptr != '\0');
+        }
+        else {
+            opt = strchr(argptr, '/');
+
+            if (opt != NULL) {
+                size_t len = (size_t)(opt - argptr);
+
+                if (len > 0) {
+                    if (len >= DESTBUF_SIZE)
+                        len = DESTBUF_SIZE - 1;
+
+                    memcpy(dest_buffer, argptr, len);
+                    dest_buffer[len] = '\0';
+
+                    fileargv[*fileargc] = dest_buffer;
+                    (*fileargc)++;
+                }
+
+                /* parse switches */
+                next_argptr = opt;
+                do {
+                    switchargv[*switchargc] = get_option(&next_argptr, &count);
+                    (*switchargc)++;
+                } while (*next_argptr != '\0');
+            }
+            else {
+                /* normal file */
+                fileargv[*fileargc] = (char *)argptr;
+                (*fileargc)++;
+            }
+        }
     }
-    else {
-      /* file argument */
-      fileargv[*fileargc] = argptr;
-      *fileargc = *fileargc + 1;
-    }
-  }
 }
-
 
 /*-------------------------------------------------------------------------*/
 /* Appends a trailing directory separator to the path, but only if it is   */
