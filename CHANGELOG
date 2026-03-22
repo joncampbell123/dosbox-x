@@ -1,4 +1,5 @@
 NEXT VERSION
+  - Fix Hercules palette selection related to herc blend. (joncampbell123).
   - DOS kernel: When executing an EXE file, the loader can now detect
     EXE files that were compressed using EXEPACK. Based on the new
     exepack dosbox.conf setting, it can decompress the EXE by itself,

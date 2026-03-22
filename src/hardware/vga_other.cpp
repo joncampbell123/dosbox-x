@@ -1113,6 +1113,8 @@ void Herc_Palette(void) {
 		VGA_DAC_SetEntry(0xf,0x00,0x3f,0x00);
 		break;
 	}
+
+	VGA_DAC_UpdateColorPalette();
 }
 
 void Mono_CGA_Palette(void) {	
