@@ -128,6 +128,8 @@ NEXT VERSION
     Studio nightly builds. (maron2000)
   - macOS: Fixed garbled message when opening image file(s) from dropdown menu.
     (maron2000)
+  - Fixed XCOPY argument parsing to correctly handle switches appended directly
+    to file paths without whitespace. (maron2000)
     
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory
