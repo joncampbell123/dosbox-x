@@ -169,7 +169,6 @@ struct SDL_Block {
     } texture;
 #endif
     int displayNumber = 0;
-    SDL_cond *cond = NULL;
     struct {
         bool autolock = false;
         AUTOLOCK_FEEDBACK autolock_feedback = (AUTOLOCK_FEEDBACK)0;
