@@ -22,7 +22,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v6
-      - uses: microsoft/setup-msbuild@v2
+      - uses: microsoft/setup-msbuild@v3
       - name: Install v141 build tools
         run: |
           Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
