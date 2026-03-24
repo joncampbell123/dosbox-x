@@ -45,10 +45,6 @@ Brought to you by: joncampbell123 (Jonathan Campbell)
 
 If you reside in a jurisdiction that enforces OS level age verification, you are only permitted to use the main-osfree branch of this project (including builds), and are prohibited from using the main (master) branch of this project.
 
-## SDL3 branch
-
-There is a main-sdl3 branch to experiment with making SDL3 builds of DOSBox-X
-
 ## Notable features in DOSBox-X
 
 Although based on the DOSBox project, DOSBox-X is now a separate project because both have their own separate schedules and development priorities. For example, the main focus of DOSBox is for running DOS games whereas DOSBox-X goes way beyond this. At this time DOSBox-X already has a great number of features that do not exist in DOSBox. Examples of such features include:
