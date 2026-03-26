@@ -256,9 +256,9 @@ bool                want_fm_towns = false;
 bool                dos_con_use_int16_to_detect_input = true;
 
 #if !defined(OSFREE)
-bool                dbg_zero_on_dos_allocmem = true;
-bool                dbg_zero_on_xms_allocmem = true;
-bool                dbg_zero_on_ems_allocmem = true;
+bool                dbg_zero_on_dos_allocmem = false;
+bool                dbg_zero_on_xms_allocmem = false;
+bool                dbg_zero_on_ems_allocmem = false;
 #endif
 
 /* the exact frequency of the NTSC color subcarrier ~3.579545454...MHz or 315/88 */
