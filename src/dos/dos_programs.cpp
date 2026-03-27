@@ -140,6 +140,7 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result);
 void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,bool useattr);
 std::string formatString(const char* format, ...);
 const char* MSG_GetUTF8(const char* msg);
+extern char char_yes, char_no;
 
 #define MAXU32 0xffffffff
 #include "zip.h"
@@ -7791,10 +7792,10 @@ class LABEL : public Program
 					WriteOut("\n");
 					if (s != 1 || c == 3) {inshell=false;return;}
 					ans = uint8_t(tolower(char(c)));
-				} while (!(ans == MSG_Get("INT21_6523_YESNO_CHARS")[0] || ans == MSG_Get("INT21_6523_YESNO_CHARS")[1]));
+				} while (!(ans == char_yes || ans == char_no));
 				inshell = false;
 
-				if (ans != MSG_Get("INT21_6523_YESNO_CHARS")[0]) return;
+				if (ans != char_yes) return;
 			}
 
 			/* delete then create the label */
