@@ -64,6 +64,8 @@ extern bool is_ttfswitched_on;
 bool outcon = true, usecon = true, pipetmpdev = true;
 bool shellrun = false, prepared = false, testerr = false;
 
+char char_yes = 'y', char_no = 'n'; // YES NO CHARS in lower case
+
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 Bitu call_int23 = 0;
@@ -78,6 +80,7 @@ void SetKEYBCP();
 void initRand();
 #if !defined(OSFREE)
 void initcodepagefont(void);
+void get_yesno_chars(void);
 #endif
 void runMount(const char *str);
 void ResolvePath(std::string& in);
@@ -102,6 +105,28 @@ DOS_Shell * first_shell = nullptr;
 
 static Bitu shellstop_handler(void) {
 	return CBRET_STOP;
+}
+
+void get_yesno_chars(void) {
+    const char* yesno = MSG_Get("INT21_6523_YESNO_CHARS");
+    char_yes = 'y', char_no = 'n';
+    if(yesno && yesno[0] && yesno[1]) {
+        unsigned char y = static_cast<unsigned char>(yesno[0]);
+        unsigned char n = static_cast<unsigned char>(yesno[1]);
+
+        if(y != n && isprint(static_cast<unsigned char>(y))
+            && isprint(static_cast<unsigned char>(n)) &&
+            y < 0x80 && n < 0x80) {
+            if(y >= 'A' && y <= 'Z') y = y - 'A' + 'a';
+            if(n >= 'A' && n <= 'Z') n = n - 'A' + 'a';
+            char_yes = static_cast<char>(y);
+            char_no = static_cast<char>(n);
+        }
+        else {
+            char_yes = 'y';
+            char_no = 'n';
+        }
+    }
 }
 
 void SHELL_ProgramStart(Program * * make) {
@@ -925,7 +950,9 @@ void DOS_Shell::Prepare(void) {
 		}
 #endif
 #if !defined(OSFREE)
-		const char* layoutname = DOS_GetLoadedLayout();
+        get_yesno_chars();
+
+        const char* layoutname = DOS_GetLoadedLayout();
 		if(layoutname == NULL && !IS_PC98_ARCH) {/*Keyboard layouts and CPI/CPX files have no meaning in PC-98 mode*/
 			int32_t cp = dos.loaded_codepage;
 			Bitu keyb_error = DOS_LoadKeyboardLayout("us", 437, "auto");

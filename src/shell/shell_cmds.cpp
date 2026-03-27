@@ -163,6 +163,7 @@ void makestdcp950table(), makeseacp951table();
 bool OpenGL_using(void);
 #endif
 void UpdateSDLDrawTexture();
+extern char char_yes, char_no;
 
 static int32_t lastsetcp = 0;
 bool CHCP_changed = false;
@@ -524,10 +525,8 @@ void DOS_Shell::CMD_DELETE(char* args) {
     bool optF = ScanCMDBool(args, "F");
     bool optQ = ScanCMDBool(args, "Q");
 
-    const char ch_y = MSG_Get("INT21_6523_YESNO_CHARS")[0];
-    const char ch_n = MSG_Get("INT21_6523_YESNO_CHARS")[1];
-    const char ch_Y = toupper(ch_y);
-    const char ch_N = toupper(ch_n);
+    const char char_yes_upper = toupper(char_yes);
+    const char char_no_upper = toupper(char_no);
 
     // ignore /f, /s, /ar, /as, /ah and /aa switches for compatibility
     ScanCMDBool(args, "S");
@@ -588,7 +587,7 @@ void DOS_Shell::CMD_DELETE(char* args) {
             uint8_t c; uint16_t n = 1;
             DOS_ReadFile(STDIN, &c, &n);
             do {
-                if(c == ch_n || c == ch_N) {
+                if(c == char_no || c == char_no_upper) {
                     DOS_WriteFile(STDOUT, &c, &n);
                     DOS_ReadFile(STDIN, &c, &n);
                     do switch(c) {
@@ -598,7 +597,7 @@ void DOS_Shell::CMD_DELETE(char* args) {
                     } while(DOS_ReadFile(STDIN, &c, &n));
                 }
 
-                if(c == ch_y || c == ch_Y) {
+                if(c == char_yes || c == char_yes_upper) {
                     DOS_WriteFile(STDOUT, &c, &n);
                     DOS_ReadFile(STDIN, &c, &n);
                     do switch(c) {
@@ -685,9 +684,9 @@ continue_1:
                 uint16_t n = 1;
                 DOS_ReadFile(STDIN, &c, &n);
                 if(c == 3) break;
-                c = c == ch_y || c == ch_Y ? ch_Y : ch_N;
+                c = c == char_yes || c == char_yes_upper ? char_yes_upper : char_no_upper;
                 WriteOut("%c\r\n", c);
-                if(c == ch_N) { lfn_filefind_handle = uselfn ? LFN_FILEFIND_INTERNAL : LFN_FILEFIND_NONE; res = DOS_FindNext(); continue; }
+                if(c == char_no_upper) { lfn_filefind_handle = uselfn ? LFN_FILEFIND_INTERNAL : LFN_FILEFIND_NONE; res = DOS_FindNext(); continue; }
             }
             if(strlen(full)) {
                 std::string pfull = (uselfn || strchr(full, ' ') ? (full[0] != '"' ? "\"" : "") : "") + std::string(full) + (uselfn || strchr(full, ' ') ? (full[strlen(full) - 1] != '"' ? "\"" : "") : "");
@@ -755,10 +754,8 @@ extern bool ctrlbrk;
 std::vector<std::string> tdirs;
 
 static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bool first) {
-    const char ch_y = MSG_Get("INT21_6523_YESNO_CHARS")[0];
-    const char ch_n = MSG_Get("INT21_6523_YESNO_CHARS")[1];
-    const char ch_Y = toupper(ch_y);
-    const char ch_N = toupper(ch_n);
+    const char char_yes_upper = toupper(char_yes);
+    const char char_no_upper = toupper(char_no);
     char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
 	if (!DOS_Canonicalize(args,full)||strrchr_dbcs(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return false; }
 	if (!DOS_GetSFNPath(args,spath,false)) {
@@ -809,9 +806,9 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
                             shell->WriteOut(MSG_Get("SHELL_CMD_RMDIR_FULLTREE_CONFIRM"), uselfn ? sfull : full);
                             DOS_ReadFile (STDIN,&c,&n);
                             if (c==3) {shell->WriteOut("^C\r\n");break;}
-                            c = c==ch_y||c==ch_Y ? ch_Y:ch_N;
+                            c = c==char_yes||c==char_yes_upper ? char_yes_upper:char_no_upper;
                             shell->WriteOut("%c\r\n", c);
-                            if (c==ch_N) {res = DOS_FindNext();continue;}
+                            if (c==char_no_upper) {res = DOS_FindNext();continue;}
                         }
                         fdir=true;
                         strcat(spath, name);
@@ -823,9 +820,9 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
                         shell->WriteOut(MSG_Get("SHELL_CMD_RMDIR_SINGLE_CONFIRM"), uselfn ? sfull : full);
                         DOS_ReadFile (STDIN,&c,&n);
                         if (c==3) {shell->WriteOut("^C\r\n");break;}
-                        c = c==ch_y||c==ch_Y ? ch_Y:ch_N;
+                        c = c==char_yes||c==char_yes_upper ? char_yes_upper:char_no_upper;
                         shell->WriteOut("%c\r\n", c);
-                        if (c==ch_N) {res = DOS_FindNext();continue;}
+                        if (c==char_no_upper) {res = DOS_FindNext();continue;}
                     }
                     pfull=(uselfn||strchr(uselfn?sfull:full, ' ')?((uselfn?sfull:full)[0]!='"'?"\"":""):"")+std::string(uselfn?sfull:full)+(uselfn||strchr(uselfn?sfull:full, ' ')?((uselfn?sfull:full)[strlen(uselfn?sfull:full)-1]!='"'?"\"":""):"");
                     cfiles.push_back(pfull);
@@ -2343,10 +2340,8 @@ struct copysource {
 void DOS_Shell::CMD_COPY(char * args) {
 	HELP("COPY");
 	static std::string defaulttarget = ".";
-    const char ch_y = MSG_Get("INT21_6523_YESNO_CHARS")[0];
-    const char ch_n = MSG_Get("INT21_6523_YESNO_CHARS")[1];
-    const char ch_Y = toupper(ch_y);
-    const char ch_N = toupper(ch_n);
+    const char char_yes_upper = toupper(char_yes);
+    const char char_no_upper = toupper(char_no);
     const char ch_a = MSG_Get("SHELL_ALLFILES_CHAR")[0];
     const char ch_A = toupper(ch_a);
 	StripSpaces(args);
@@ -2646,11 +2641,11 @@ void DOS_Shell::CMD_COPY(char * args) {
 								{
 								DOS_ReadFile (STDIN,&c,&n);
 								if (c==3) {dos.dta(save_dta);DOS_CloseFile(sourceHandle);dos.echo=echo;return;}
-								if (c==ch_y||c==ch_Y) {WriteOut("%c\r\n", ch_Y);break;}
-								if (c==ch_n||c==ch_N) {WriteOut("%c\r\n", ch_N);break;}
+								if (c==char_yes||c==char_yes_upper) {WriteOut("%c\r\n", char_yes_upper);break;}
+								if (c==char_no||c==char_no_upper) {WriteOut("%c\r\n", char_no_upper);break;}
 								if (c==ch_a||c==ch_A) {WriteOut("%c\r\n", ch_A);optY=true;break;}
 								}
-							if (c==ch_n||c==ch_N) {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
+							if (c==char_no||c==char_no_upper) {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
 						}
 						if (!exist&&size) {
 							int drive=strlen(nameTarget)>1&&(nameTarget[1]==':'||nameTarget[2]==':')?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;

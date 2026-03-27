@@ -103,6 +103,7 @@ std::string GetDOSBoxXPath(bool withexe=false);
 extern std::string prefix_local, prefix_overlay;
 #endif
 bool a20_off_if_loading_low = false;
+extern char char_yes, char_no;
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -2858,9 +2859,9 @@ static Bitu DOS_21Handler(void) {
                             else
                                 c = reg_dl; // SBCS
 
-                            if (tolower(c) == MSG_Get("INT21_6523_YESNO_CHARS")[0])
+                            if (tolower(c) == char_yes)
                                 reg_ax = 1;/*yes*/
-                            else if (tolower(c) == MSG_Get("INT21_6523_YESNO_CHARS")[1])
+                            else if (tolower(c) == char_no)
                                 reg_ax = 0;/*no*/
                             else
                                 reg_ax = 2;/*neither*/

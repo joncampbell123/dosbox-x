@@ -59,6 +59,8 @@ Bitu DOS_LoadKeyboardLayout(const char* layoutname, int32_t codepage, const char
 const char* DOS_GetLoadedLayout(void);
 bool CheckDBCSCP(int32_t codepage);
 void MSG_Init(void);
+void get_yesno_chars(void);
+extern char char_yes, char_no;
 
 #define LINE_IN_MAXLEN 2048
 
@@ -492,6 +494,7 @@ void LoadMessageFile(const char* fname) {
     }
 #endif
 
+    get_yesno_chars();
     refreshExtChar();
     LOG_MSG("LoadMessageFile: Loaded language file: %s", fname);
     loadlang = true;

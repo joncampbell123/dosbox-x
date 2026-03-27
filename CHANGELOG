@@ -139,6 +139,8 @@ NEXT VERSION
     (maron2000)
   - Fixed XCOPY argument parsing to correctly handle switches appended directly
     to file paths without whitespace. (maron2000)
+  - Fixed some Yes/No character was remained hardcoded as Y/N for some languages
+    specifiying other characters (e.g. German). (maron2000)
     
 2026.01.02
   - VESA BIOS will remove 8-bit bank switching limit if the video memory
