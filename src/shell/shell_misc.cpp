@@ -53,6 +53,8 @@ extern int lfn_filefind_handle;
 extern bool ctrlbrk, gbk, rtl, dbcs_sbcs;
 extern bool DOS_BreakFlag, DOS_BreakConioFlag;
 extern uint16_t cmd_line_seg;
+extern char char_yes, char_no; // YES NO CHARS in lower case
+
 uint8_t prompt_col; // Column position after prompt is displayed
 void WriteChar(uint16_t col, uint16_t row, uint8_t page, uint16_t chr, uint8_t attr, bool useattr);
 
@@ -1495,41 +1497,42 @@ first_1:
 first_2:
 			n=1;
 			DOS_ReadFile (STDIN,&c,&n);
-			do switch (c) {
-				case 'n':			case 'N':
-					{
-						DOS_WriteFile (STDOUT,&c, &n);
-						DOS_ReadFile (STDIN,&c,&n);
-						do switch (c) {
-							case 0xD: WriteOut("\n\n"); WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true;
-							case 0x3: return true;
-							case 0x8: WriteOut("\b \b"); goto first_2;
-						} while (DOS_ReadFile (STDIN,&c,&n));
-					}
-				case 'y':			case 'Y':
-					{
-						DOS_WriteFile (STDOUT,&c, &n);
-						DOS_ReadFile (STDIN,&c,&n);
-						do switch (c) {
-							case 0xD: WriteOut("\n"); goto continue_1;
-							case 0x3: return true;
-							case 0x8: WriteOut("\b \b"); goto first_2;
-						} while (DOS_ReadFile (STDIN,&c,&n));
-					}
-				case 0x3: return true;
-				case 0xD: WriteOut("\n"); goto first_1;
-				case '\t': case 0x08: goto first_2;
-				default:
-					{
-						DOS_WriteFile (STDOUT,&c, &n);
-						DOS_ReadFile (STDIN,&c,&n);
-						do switch (c) {
-							case 0xD: WriteOut("\n");goto first_1;
-							case 0x3: return true;
-							case 0x8: WriteOut("\b \b"); goto first_2;
-						} while (DOS_ReadFile (STDIN,&c,&n));
-						goto first_2;
-					}
+
+            char char_no_upper = (char_no - 'a' + 'A');
+            char char_yes_upper = (char_yes - 'a' + 'A');
+
+            do {
+                if(c == char_no || c == char_no_upper) {
+                    DOS_WriteFile(STDOUT, &c, &n);
+                    DOS_ReadFile(STDIN, &c, &n);
+                    do switch(c) {
+                        case 0xD: WriteOut("\n\n"); WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"), toupper(name[0])); return true;
+                        case 0x3: return true;
+                        case 0x8: WriteOut("\b \b"); goto first_2;
+                    } while(DOS_ReadFile(STDIN, &c, &n));
+                }
+				else if(c == char_yes || c == char_yes_upper) {
+					DOS_WriteFile (STDOUT,&c, &n);
+					DOS_ReadFile (STDIN,&c,&n);
+					do switch (c) {
+						case 0xD: WriteOut("\n"); goto continue_1;
+						case 0x3: return true;
+						case 0x8: WriteOut("\b \b"); goto first_2;
+					} while (DOS_ReadFile (STDIN,&c,&n));
+				}
+                else if (c == 0x3) return true;
+                else if (c == 0xD) { WriteOut("\n"); goto first_1; }
+				else if (c == '\t' || c == 0x08) goto first_2;
+				else {
+					DOS_WriteFile (STDOUT,&c, &n);
+					DOS_ReadFile (STDIN,&c,&n);
+					do switch (c) {
+						case 0xD: WriteOut("\n");goto first_1;
+						case 0x3: return true;
+						case 0x8: WriteOut("\b \b"); goto first_2;
+					} while (DOS_ReadFile (STDIN,&c,&n));
+					goto first_2;
+			    }
 			} while (DOS_ReadFile (STDIN,&c,&n));
 
 continue_1:
