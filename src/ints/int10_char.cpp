@@ -1812,6 +1812,7 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
 			cur_row++;
 			break;
 		case 7: /* Beep */
+			if (IS_PC98_ARCH) LOG(LOG_MISC,LOG_WARN)("BUG: INT 10h beep called in PC-98 mode");
 			// Prepare PIT counter 2 for ~900 Hz square wave
 			IO_Write(0x43, 0xb6);
 			IO_Write(0x42, 0x28);
