@@ -1,4 +1,13 @@
 NEXT VERSION
+  - Add dosbox.conf option to control the duration of the beep when
+    DOS CON and INT 10h are given the BEL character. (joncampbell123).
+  - DOS CON device BEL (beep) handling: For IBM PC modes, call on
+    INT 10h to make the beep, rather than duplicate code. Fix the
+    DOS CON device so that it can also properly beep in PC-98 mode.
+    (joncampbell123).
+  - Fix bug where the "zero memory on DOS allocation" option was
+    stuck on. Some games, like "Bad Cat" rely on memory contents
+    peristing across DOS EXEC and memory allocation. (joncampbell123).
   - Fix Hercules palette selection related to herc blend. (joncampbell123).
   - DOS kernel: When executing an EXE file, the loader can now detect
     EXE files that were compressed using EXEPACK. Based on the new

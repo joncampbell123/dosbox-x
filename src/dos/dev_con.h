@@ -641,9 +641,9 @@ private:
 				IO_Write(0x73,div>>8);
 				// enable speaker
 				IO_Write(0x35,IO_Read(0x35) & ~0x08);
-				double start;
+				double start,dur = BeepDuration();
 				start = PIC_FullIndex();
-				while ((PIC_FullIndex() - start) < 333.0) CALLBACK_Idle();
+				while ((PIC_FullIndex() - start) < dur) CALLBACK_Idle();
 				IO_Write(0x35,IO_Read(0x35) |  0x08);
 			}
 			else { /* Let INT 10h do it for us */
