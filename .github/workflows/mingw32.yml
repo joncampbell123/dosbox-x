@@ -52,6 +52,10 @@ jobs:
           echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
           echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
           cat include/build_timestamp.h
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/' || echo "unknown")
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          fi
       - name: Build MinGW32 SDL1
         run: |
           top=`pwd`
@@ -115,18 +119,26 @@ jobs:
           cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw-sdl2/languages/
           cp $top/COPYING $top/package/COPYING
           cd $top/package/
-          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-win32-${{ env.timestamp }}.zip *
+          TIMESTAMP="${{ env.timestamp }}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            ZIPNAME="dosbox-x-mingw32-${VERSION}-portable.zip"
+            $top/vs/tool/zip.exe -r -9 "$top/$ZIPNAME" *
+          else
+            ZIPNAME="dosbox-x-mingw32-${TIMESTAMP}-nightly"
+          fi
+          echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Upload preview package
         uses: actions/upload-artifact@v7.0.0
         with:
-          name: dosbox-x-mingw-win32-${{ env.timestamp }}
+          name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: dosbox-x-mingw-win32-${{ env.timestamp }}.zip
+          files: ${{ env.ZIPNAME }}
+  
   MinGW32_CI_lowend_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
@@ -166,6 +178,10 @@ jobs:
           cat include/build_timestamp.h
           sed -i -e "s/#define OS_PLATFORM \"MinGW\"/#define OS_PLATFORM \"MinGWLE\"/" include/version_string.h
           sed -i -e "s/#define OS_PLATFORM_LONG \"MinGW\"/#define OS_PLATFORM_LONG \"MinGW Low-end\"/" include/version_string.h
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/' || echo "unknown")
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          fi
       - name: setup lowend build environment
         run: |
           top=`pwd`
@@ -236,18 +252,26 @@ jobs:
           cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw-sdl2/languages/
           cp $top/COPYING $top/package/COPYING
           cd $top/package/
-          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-win32-lowend-${{ env.timestamp }}.zip *
+          TIMESTAMP="${{ env.timestamp }}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            ZIPNAME="dosbox-x-mingw32_lowend-${VERSION}-portable.zip"
+            $top/vs/tool/zip.exe -r -9 "$top/$ZIPNAME" *
+          else
+            ZIPNAME="dosbox-x-mingw32_lowend-${TIMESTAMP}-nightly"
+          fi
+          echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Upload preview package
         uses: actions/upload-artifact@v7.0.0
         with:
-          name: dosbox-x-mingw-win32-lowend-${{ env.timestamp }}
+          name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: dosbox-x-mingw-win32-lowend-${{ env.timestamp }}.zip
+          files: ${{ env.ZIPNAME }}
+          
   MinGW32_CI_lowend9x_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
@@ -287,6 +311,10 @@ jobs:
           cat include/build_timestamp.h
           sed -i -e "s/#define OS_PLATFORM \"MinGW\"/#define OS_PLATFORM \"MinGW9x\"/" include/version_string.h
           sed -i -e "s/#define OS_PLATFORM_LONG \"MinGW\"/#define OS_PLATFORM_LONG \"MinGW Low-end 9x\"/" include/version_string.h
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/' || echo "unknown")
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          fi
       - name: setup lowend9x build environment
         run: |
           top=`pwd`
@@ -329,15 +357,22 @@ jobs:
           cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw/languages/
           cp $top/COPYING $top/package/COPYING
           cd $top/package/
-          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-win32-lowend9x-${{ env.timestamp }}.zip *
+          TIMESTAMP="${{ env.timestamp }}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            ZIPNAME="dosbox-x-mingw32_lowend9x-${VERSION}-portable.zip"
+            $top/vs/tool/zip.exe -r -9 "$top/$ZIPNAME" *
+          else
+            ZIPNAME="dosbox-x-mingw32_lowend9x-${TIMESTAMP}-nightly"
+          fi
+          echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Upload preview package
         uses: actions/upload-artifact@v7.0.0
         with:
-          name: dosbox-x-mingw-win32-lowend9x-${{ env.timestamp }}
+          name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: dosbox-x-mingw-win32-lowend9x-${{ env.timestamp }}.zip
+          files: ${{ env.ZIPNAME }}
