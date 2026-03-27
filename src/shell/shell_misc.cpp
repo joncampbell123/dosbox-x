@@ -1478,7 +1478,9 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 #ifdef WIN32
 		uint8_t c;uint16_t n;
 #endif
-		if (!DOS_SetDrive(toupper(name[0])-'A')) {
+        if (!DOS_SetDrive(toupper(name[0])-'A')) {
+            char char_no_upper = (char_no - 'a' + 'A');
+            char char_yes_upper = (char_yes - 'a' + 'A');
 #ifdef WIN32
  #if !defined(OSFREE)
             if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
@@ -1497,9 +1499,6 @@ first_1:
 first_2:
 			n=1;
 			DOS_ReadFile (STDIN,&c,&n);
-
-            char char_no_upper = (char_no - 'a' + 'A');
-            char char_yes_upper = (char_yes - 'a' + 'A');
 
             do {
                 if(c == char_no || c == char_no_upper) {
