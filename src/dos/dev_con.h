@@ -24,6 +24,7 @@
 #include <string.h>
 #include "inout.h"
 #include "jfont.h"
+#include "timer.h"
 #include "shiftjis.h"
 #include "callback.h"
 
@@ -631,15 +632,33 @@ private:
 		switch (chr) 
 		{
 		case 7: {
-			// set timer (this should not be needed as the timer already is programmed 
-			// with those values, but the speaker stays silent without it)
-			IO_Write(0x43,0xb6);
-			IO_Write(0x42,1320&0xff);
-			IO_Write(0x42,1320>>8);
-			// enable speaker
-			IO_Write(0x61,IO_Read(0x61)|0x3);
-			for(Bitu i=0; i < 333; i++) CALLBACK_Idle();
-			IO_Write(0x61,IO_Read(0x61)&~0x3);
+			if (IS_PC98_ARCH) {
+				const unsigned int div = (unsigned int)PIT_TICK_RATE / (unsigned int)2000;
+				// set timer (this should not be needed as the timer already is programmed 
+				// with those values, but the speaker stays silent without it)
+				IO_Write(0x77,0xb6);
+				IO_Write(0x73,div&0xff);
+				IO_Write(0x73,div>>8);
+				// enable speaker
+				IO_Write(0x35,IO_Read(0x35) & ~0x08);
+				double start;
+				start = PIC_FullIndex();
+				while ((PIC_FullIndex() - start) < 333.0) CALLBACK_Idle();
+				IO_Write(0x35,IO_Read(0x35) |  0x08);
+			}
+			else { /* Let INT 10h do it for us */
+				uint16_t oldax,oldbx,oldcx;
+				oldax=reg_ax;
+				oldbx=reg_bx;
+				oldcx=reg_cx;
+				reg_al=7;
+				reg_bh=0;
+				reg_ah=0x0E;
+				CALLBACK_RunRealInt(0x10);
+				reg_ax=oldax;
+				reg_bx=oldbx;
+				reg_cx=oldcx;
+			}
 			break;
 		}
 		case 8:
