@@ -1795,6 +1795,8 @@ void INT10_WriteChar(uint16_t chr,uint8_t attr,uint8_t page,uint16_t count,bool 
     }
 }
 
+unsigned int BeepDuration();
+
 static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8_t page) {
 	BIOS_NCOLS;BIOS_NROWS;
 	uint8_t cur_row=CURSOR_POS_ROW(page);
@@ -1812,23 +1814,25 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
 			cur_row++;
 			break;
 		case 7: /* Beep */
-			if (IS_PC98_ARCH) LOG(LOG_MISC,LOG_WARN)("BUG: INT 10h beep called in PC-98 mode");
-			// Prepare PIT counter 2 for ~900 Hz square wave
-			IO_Write(0x43, 0xb6);
-			IO_Write(0x42, 0x28);
-			IO_Write(0x42, 0x05);
-			// Speaker on
-			IO_Write(0x61, IO_Read(0x61) | 0x3);
-			// Idle for 1/3rd of a second
-			double start;
-			start = PIC_FullIndex();
-			while ((PIC_FullIndex() - start) < 333.0) CALLBACK_Idle();
-			// Speaker off
-			IO_Write(0x61, IO_Read(0x61) & ~0x3);
-			if (CurMode->type==M_TEXT) {
-				uint16_t chat;
-				INT10_ReadCharAttr(&chat,page);
-				if ((uint8_t)(chat>>8)!=7) return;
+			{
+				if (IS_PC98_ARCH) LOG(LOG_MISC,LOG_WARN)("BUG: INT 10h beep called in PC-98 mode");
+				// Prepare PIT counter 2 for ~900 Hz square wave
+				IO_Write(0x43, 0xb6);
+				IO_Write(0x42, 0x28);
+				IO_Write(0x42, 0x05);
+				// Speaker on
+				IO_Write(0x61, IO_Read(0x61) | 0x3);
+				// Idle for 1/3rd of a second
+				double start,dur = BeepDuration();
+				start = PIC_FullIndex();
+				while ((PIC_FullIndex() - start) < dur) CALLBACK_Idle();
+				// Speaker off
+				IO_Write(0x61, IO_Read(0x61) & ~0x3);
+				if (CurMode->type==M_TEXT) {
+					uint16_t chat;
+					INT10_ReadCharAttr(&chat,page);
+					if ((uint8_t)(chat>>8)!=7) return;
+				}
 			}
 			return; /* don't do anything else, not even scrollup on last line (fix for Elder Scrolls Arena installer) */
 		default:

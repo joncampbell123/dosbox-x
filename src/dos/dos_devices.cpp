@@ -32,6 +32,8 @@
 #include "render.h"
 /* Include all the devices */
 
+unsigned int BeepDuration();
+
 #include "dev_con.h"
 #include <fstream>
 
