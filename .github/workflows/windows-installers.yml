@@ -398,12 +398,6 @@ jobs:
           ls -lg contrib/windows/installer/windows
           cd contrib/windows/installer/
           ISCC.exe ./DOSBox-X-installer.iss
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/' || echo "unknown")
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
-            OUTFILE=$(ls dosbox-x-windows-*.exe | head -n1)
-            mv "$OUTFILE" "dosbox-x-windows-${VERSION}-setup.exe"
-          fi
       - name: Upload preview installer
         uses: actions/upload-artifact@v7.0.0
         with:
