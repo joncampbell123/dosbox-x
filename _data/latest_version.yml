@@ -1,8 +1,8 @@
-version: 2026.01.02
-git_tag: dosbox-x-v2026.01.02
+version: 2026.03.29
+git_tag: dosbox-x-v2026.03.29
 windows_setup_file: dosbox-x-windows-2026.01.02-setup.exe
 winXP_setup_file: dosbox-x-winXP-2026.01.02-setup.exe
-win9x_file: dosbox-x-mingw-win32-lowend9x-20260102233440.zip
-macos_intel_file: dosbox-x-macosx-x86_64-20260102233440.zip
-macos_arm_file: dosbox-x-macosx-arm64-20260102233440.zip
-dos_hx_file: dosbox-x-mingw-hx-dos-20260102233440.zip
+win9x_file: dosbox-x-mingw32_lowend9x-2026.03.29-portable.zip
+macos_intel_file: dosbox-x-macosx-x86_64-2026.03.29.zip
+macos_arm_file: dosbox-x-macosx-arm64-2026.03.29.zip 
+dos_hx_file: dosbox-x-hx-dos-2026.03.29.zip 
