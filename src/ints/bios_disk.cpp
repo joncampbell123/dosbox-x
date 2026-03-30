@@ -3787,7 +3787,7 @@ uint8_t imageDiskINT13Drive::Read_Sector(uint32_t head,uint32_t cylinder,uint32_
 
 	if (req_sector_size == 0) req_sector_size = sector_size;
 
-//	LOG_MSG("INT13 read C/H/S %u/%u/%u busy=%u",cylinder,head,sector,busy);
+	//LOG_MSG("INT13 read C/H/S %u/%u/%u busy=%u",cylinder,head,sector,busy);
 
 	if (!busy && sector_size == req_sector_size && sector_size <= INT13XferSize) {
 		busy = true;
@@ -3826,6 +3826,7 @@ again:
 			}
 		}
 		else {
+			ret = 0;
 			MEM_BlockRead32(INT13Xfer<<4,data,sector_size);
 			data = (void*)((char*)data + sector_size);
 			if ((++sector) >= (sectors + 1)) {
