@@ -674,6 +674,8 @@ have_metal=no
 case "$host_os" in
   darwin*)
     AC_LANG_PUSH([Objective C++])
+    save_LIBS="$LIBS"
+    LIBS="$LIBS -framework Metal -framework QuartzCore"
 
     AC_LINK_IFELSE(
       [AC_LANG_PROGRAM([[
@@ -686,6 +688,7 @@ case "$host_os" in
       [have_metal=no]
     )
 
+    LIBS="$save_LIBS"
     AC_LANG_POP
     ;;
 esac
