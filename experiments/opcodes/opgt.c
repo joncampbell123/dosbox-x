@@ -293,6 +293,14 @@ const struct opcode_t op_25_and = { // AND a(w), imm(w)          0x25 mod/reg/rm
 	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_NATIVEWORD } }
 };
 
+const struct opcode_t op_27_daa = { // DAA                       0x27
+	.opcode_name = "daa",
+	.pattern_sz = 1,
+	.pattern = {0x27},
+	.p_dst = { .p = CPUP_GREG_AL, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_AL, .s = CPUPS_BYTE } }
+};
+
 const struct opcode_t op_28_sub = { // SUB r/m(b), reg(b)        0x28 mod/reg/rm
 	.opcode_name = "sub",
 	.pattern_sz = 1,
@@ -340,6 +348,14 @@ const struct opcode_t op_2d_sub = { // SUB a(w), imm(w)          0x2D mod/reg/rm
 	.patparam = { CPUPPM_IMMEDIATENW },
 	.p_dst = { .p = CPUP_GREG_A, .s = CPUPS_NATIVEWORD },
 	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_NATIVEWORD } }
+};
+
+const struct opcode_t op_2f_das = { // DAS                       0x2F
+	.opcode_name = "das",
+	.pattern_sz = 1,
+	.pattern = {0x2F},
+	.p_dst = { .p = CPUP_GREG_AL, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_AL, .s = CPUPS_BYTE } }
 };
 
 const struct opcode_t op_30_xor = { // XOR r/m(b), reg(b)        0x30 mod/reg/rm
@@ -391,6 +407,14 @@ const struct opcode_t op_35_xor = { // XOR a(w), imm(w)          0x35 mod/reg/rm
 	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_NATIVEWORD } }
 };
 
+const struct opcode_t op_37_aaa = { // AAA                       0x37
+	.opcode_name = "aaa",
+	.pattern_sz = 1,
+	.pattern = {0x37},
+	.p_dst = { .p = CPUP_GREG_AL, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_AL, .s = CPUPS_BYTE } }
+};
+
 const struct opcode_t op_38_cmp = { // CMP r/m(b), reg(b)        0x38 mod/reg/rm
 	.opcode_name = "cmp",
 	.pattern_sz = 1,
@@ -440,6 +464,14 @@ const struct opcode_t op_3d_cmp = { // CMP a(w), imm(w)          0x3D mod/reg/rm
 	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_NATIVEWORD } }
 };
 
+const struct opcode_t op_3f_aas = { // AAS                       0x3F
+	.opcode_name = "aas",
+	.pattern_sz = 1,
+	.pattern = {0x3F},
+	.p_dst = { .p = CPUP_GREG_AL, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_AL, .s = CPUPS_BYTE } }
+};
+
 // general instruction decoding (8086 level)
 const struct opcode_t* oplist_gen_8086[] = {
 	&op_00_add,
@@ -481,6 +513,7 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_24_and,
 	&op_25_and,
 
+	&op_27_daa,
 	&op_28_sub,
 	&op_29_sub,
 	&op_2a_sub,
@@ -488,6 +521,7 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_2c_sub,
 	&op_2d_sub,
 
+	&op_2f_das,
 	&op_30_xor,
 	&op_31_xor,
 	&op_32_xor,
@@ -495,12 +529,15 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_34_xor,
 	&op_35_xor,
 
+	&op_37_aaa,
 	&op_38_cmp,
 	&op_39_cmp,
 	&op_3a_cmp,
 	&op_3b_cmp,
 	&op_3c_cmp,
 	&op_3d_cmp,
+
+	&op_3f_aas,
 
 	NULL
 };
