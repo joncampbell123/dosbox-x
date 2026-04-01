@@ -7,7 +7,7 @@ opgen.o: opgen.cpp
 	g++ -Wall -Wextra -pedantic -std=c++11 -c -o $@ $<
 
 opgen: opgen.o opgt.o
-	g++ -o $@ $<
+	g++ -o $@ opgen.o opgt.o
 
 clean:
 	rm -f opgen *.o
