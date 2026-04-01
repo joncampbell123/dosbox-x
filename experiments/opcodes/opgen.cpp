@@ -225,14 +225,14 @@ int main(int argc,char **argv) {
 		if (o.mrm && o.mrm_chk_reg)
 			printf("(reg=%u) ",o.mrm_reg);
 
-		printf("'%s' ",o.op->opcode_name);
+		printf("-> '%s' ",o.op->opcode_name);
 
 		if (o.op->p_dst.p != CPUP_NONE)
-			printf("%s(%s) ",param2str(o.op->p_dst.p,o.op->p_dst.s),paramsz2str(o.op->p_dst.s));
+			printf("d:%s(%s) ",param2str(o.op->p_dst.p,o.op->p_dst.s),paramsz2str(o.op->p_dst.s));
 
 		for (size_t i=0;i < MAX_SPARAM;i++) {
 			if (o.op->p_src[i].p == CPUP_NONE) break;
-			printf("%s(%s) ",param2str(o.op->p_src[i].p,o.op->p_src[i].s),paramsz2str(o.op->p_src[i].s));
+			printf("s:%s(%s) ",param2str(o.op->p_src[i].p,o.op->p_src[i].s),paramsz2str(o.op->p_src[i].s));
 		}
 
 		printf("\n");
