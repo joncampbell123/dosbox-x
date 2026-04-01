@@ -21,16 +21,16 @@ const struct opcode_t op_01_add = { // ADD r/m(w), reg(w)        0x01 mod/reg/rm
 	.pattern_sz = 1,
 	.pattern = {0x01},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
-	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
 };
 const struct opcode_t op_02_add = { // ADD reg(b), r/m(b)        0x02 mod/reg/rm
 	.opcode_name = "add",
 	.pattern_sz = 1,
 	.pattern = {0x02},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
-	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
 };
 const struct opcode_t op_03_add = { // ADD reg(w), r/m(w)        0x03 mod/reg/rm
 	.opcode_name = "add",
@@ -81,16 +81,16 @@ const struct opcode_t op_09_or = { // OR r/m(w), reg(w)        0x09 mod/reg/rm
 	.pattern_sz = 1,
 	.pattern = {0x09},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
-	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
 };
 const struct opcode_t op_0a_or = { // OR reg(b), r/m(b)        0x0A mod/reg/rm
 	.opcode_name = "or",
 	.pattern_sz = 1,
 	.pattern = {0x0a},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
-	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
 };
 const struct opcode_t op_0b_or = { // OR reg(w), r/m(w)        0x0B mod/reg/rm
 	.opcode_name = "or",
@@ -141,16 +141,16 @@ const struct opcode_t op_11_adc = { // ADC r/m(w), reg(w)        0x11 mod/reg/rm
 	.pattern_sz = 1,
 	.pattern = {0x11},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
-	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
 };
 const struct opcode_t op_12_adc = { // ADC reg(b), r/m(b)        0x12 mod/reg/rm
 	.opcode_name = "adc",
 	.pattern_sz = 1,
 	.pattern = {0x12},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
-	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
 };
 const struct opcode_t op_13_adc = { // ADC reg(w), r/m(w)        0x13 mod/reg/rm
 	.opcode_name = "adc",
@@ -201,16 +201,16 @@ const struct opcode_t op_19_sbb = { // SBB r/m(w), reg(w)        0x19 mod/reg/rm
 	.pattern_sz = 1,
 	.pattern = {0x19},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
-	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
 };
 const struct opcode_t op_1a_sbb = { // SBB reg(b), r/m(b)        0x1A mod/reg/rm
 	.opcode_name = "sbb",
 	.pattern_sz = 1,
 	.pattern = {0x1a},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
-	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
 };
 const struct opcode_t op_1b_sbb = { // SBB reg(w), r/m(w)        0x1B mod/reg/rm
 	.opcode_name = "sbb",
@@ -261,16 +261,16 @@ const struct opcode_t op_21_and = { // AND r/m(w), reg(w)        0x21 mod/reg/rm
 	.pattern_sz = 1,
 	.pattern = {0x21},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
-	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
 };
 const struct opcode_t op_22_and = { // AND reg(b), r/m(b)        0x22 mod/reg/rm
 	.opcode_name = "and",
 	.pattern_sz = 1,
 	.pattern = {0x22},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
-	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
 };
 const struct opcode_t op_23_and = { // AND reg(w), r/m(w)        0x23 mod/reg/rm
 	.opcode_name = "and",
@@ -310,16 +310,16 @@ const struct opcode_t op_29_sub = { // SUB r/m(w), reg(w)        0x29 mod/reg/rm
 	.pattern_sz = 1,
 	.pattern = {0x29},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
-	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
 };
 const struct opcode_t op_2a_sub = { // SUB reg(b), r/m(b)        0x2A mod/reg/rm
 	.opcode_name = "sub",
 	.pattern_sz = 1,
 	.pattern = {0x2A},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
-	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
 };
 const struct opcode_t op_2b_sub = { // SUB reg(w), r/m(w)        0x2B mod/reg/rm
 	.opcode_name = "sub",
@@ -359,16 +359,16 @@ const struct opcode_t op_31_xor = { // XOR r/m(w), reg(w)        0x31 mod/reg/rm
 	.pattern_sz = 1,
 	.pattern = {0x31},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
-	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
 };
 const struct opcode_t op_32_xor = { // XOR reg(b), r/m(b)        0x32 mod/reg/rm
 	.opcode_name = "xor",
 	.pattern_sz = 1,
 	.pattern = {0x32},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
-	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
 };
 const struct opcode_t op_33_xor = { // XOR reg(w), r/m(w)        0x33 mod/reg/rm
 	.opcode_name = "xor",
@@ -408,16 +408,16 @@ const struct opcode_t op_39_cmp = { // CMP r/m(w), reg(w)        0x39 mod/reg/rm
 	.pattern_sz = 1,
 	.pattern = {0x39},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
-	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
 };
 const struct opcode_t op_3a_cmp = { // CMP reg(b), r/m(b)        0x3A mod/reg/rm
 	.opcode_name = "cmp",
 	.pattern_sz = 1,
 	.pattern = {0x3A},
 	.patparam = { CPUPPM_MODREGRM },
-	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
-	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+	.p_dst = { .p = CPUP_GREG_RM, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_BYTE } }
 };
 const struct opcode_t op_3b_cmp = { // CMP reg(w), r/m(w)        0x3B mod/reg/rm
 	.opcode_name = "cmp",
