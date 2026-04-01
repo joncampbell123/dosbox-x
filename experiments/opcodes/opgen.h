@@ -106,5 +106,5 @@ enum {
 	CPUP_SREG_MAX=0x2F
 };
 
-extern const struct opcode_t oplist_gen_8086[];
+extern const struct opcode_t* oplist_gen_8086[];
 
