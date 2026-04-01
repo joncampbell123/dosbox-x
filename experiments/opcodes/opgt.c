@@ -62,7 +62,7 @@ const struct opcode_t op_06_push = { // PUSH ES                   0x06
 	.pattern = {0x06},
 	.p_src = { { .p = CPUP_SREG_ES, .s = CPUPS_NATIVEWORD } }
 };
-const struct opcode_t op_07_push = { // POP ES                    0x07
+const struct opcode_t op_07_pop = { // POP ES                    0x07
 	.opcode_name = "pop",
 	.pattern_sz = 1,
 	.pattern = {0x07},
@@ -122,7 +122,7 @@ const struct opcode_t op_0e_push = { // PUSH CS                   0x0E
 	.pattern = {0x0e},
 	.p_src = { { .p = CPUP_SREG_CS, .s = CPUPS_NATIVEWORD } }
 };
-const struct opcode_t op_0f_push = { // POP CS                    0x0F
+const struct opcode_t op_0f_pop = { // POP CS                    0x0F
 	.opcode_name = "pop",
 	.pattern_sz = 1,
 	.pattern = {0x0f},
@@ -182,7 +182,7 @@ const struct opcode_t op_16_push = { // PUSH SS                   0x16
 	.pattern = {0x16},
 	.p_src = { { .p = CPUP_SREG_SS, .s = CPUPS_NATIVEWORD } }
 };
-const struct opcode_t op_17_push = { // POP SS                    0x17
+const struct opcode_t op_17_pop = { // POP SS                    0x17
 	.opcode_name = "pop",
 	.pattern_sz = 1,
 	.pattern = {0x17},
@@ -242,7 +242,7 @@ const struct opcode_t op_1e_push = { // PUSH DS                   0x1E
 	.pattern = {0x1e},
 	.p_src = { { .p = CPUP_SREG_DS, .s = CPUPS_NATIVEWORD } }
 };
-const struct opcode_t op_1f_push = { // POP DS                    0x1F
+const struct opcode_t op_1f_pop = { // POP DS                    0x1F
 	.opcode_name = "pop",
 	.pattern_sz = 1,
 	.pattern = {0x1f},
@@ -453,7 +453,7 @@ const struct opcode_t oplist_gen_8086[] = {
 	op_04_add,
 	op_05_add,
 	op_06_push,
-	op_07_push,
+	op_07_pop,
 	op_08_or,
 	op_09_or,
 	op_0a_or,
@@ -461,7 +461,7 @@ const struct opcode_t oplist_gen_8086[] = {
 	op_0c_or,
 	op_0d_or,
 	op_0e_push,
-	op_0f_push,
+	op_0f_pop,
 	op_10_adc,
 	op_11_adc,
 	op_12_adc,
@@ -469,7 +469,7 @@ const struct opcode_t oplist_gen_8086[] = {
 	op_14_adc,
 	op_15_adc,
 	op_16_push,
-	op_17_push,
+	op_17_pop,
 	op_18_sbb,
 	op_19_sbb,
 	op_1a_sbb,
@@ -477,7 +477,7 @@ const struct opcode_t oplist_gen_8086[] = {
 	op_1c_sbb,
 	op_1d_sbb,
 	op_1e_push,
-	op_1f_push,
+	op_1f_pop,
 	op_20_and,
 	op_21_and,
 	op_22_and,
