@@ -213,7 +213,7 @@ Bitu OUTPUT_TTF_SetSize() {
         GFX_SetResizeable(false);
         sdl.window = GFX_SetSDLSurfaceWindow(sdl.draw.width + sdl.clip.x, sdl.draw.height + sdl.clip.y);
         sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
-        if (firstsize && (posx < 0 || posy < 0) && !(posx == -2 && posy == -2) && text) {
+        if (/* firstsize && */ (posx < 0 || posy < 0) && !(posx == -2 && posy == -2) && text) {
             firstsize=false;
             if (sdl.displayNumber==0) SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
             else SDL_SetWindowPosition(sdl.window, bx, by);

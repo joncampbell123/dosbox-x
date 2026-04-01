@@ -1858,6 +1858,8 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
             if(saved_flags & SDL_WINDOW_MAXIMIZED) {
                 SDL_MaximizeWindow(sdl.window);
             }
+            else if(posx < 0 || posy < 0)
+                SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
             else if(saved_x != SDL_WINDOWPOS_UNDEFINED && saved_y != SDL_WINDOWPOS_UNDEFINED &&
                 !(saved_flags & SDL_WINDOW_MAXIMIZED)) {
                 SDL_SetWindowPosition(sdl.window, saved_x, saved_y); // restore position.
