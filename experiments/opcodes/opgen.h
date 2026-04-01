@@ -47,7 +47,10 @@ enum {
 
 	////////////////////////////
 	CPUP_MEM_RM=0x08,
-	CPUP_MEM_IMM=0x09, // ex: mov al,[immediate]
+
+	CPUP_MEM_IMM_MIN=0x0C,
+	CPUP_MEM_IMM=0x0C, // ex: mov al,[immediate]
+	CPUP_MEM_IMM_MAX=0x0F,
 
 	/////////////////////////////////////////////
 	CPUP_GREG_MIN=0x10,
