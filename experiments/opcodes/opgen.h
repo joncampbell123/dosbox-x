@@ -1,8 +1,9 @@
 
 #include <stdint.h>
 
-#define MAX_PATTERN			6
-#define MAX_SPARAM			3
+#define MAX_PATTERN			2
+#define MAX_PATPARAM			1
+#define MAX_SPARAM			1
 
 struct opcode_param_t {
 	const uint8_t			p;
@@ -13,14 +14,22 @@ struct opcode_t {
 	const char*			opcode_name;
 	const uint8_t			pattern_sz;
 	const uint8_t			pattern[MAX_PATTERN];
-	const uint8_t			fields;
+	const uint8_t			patparam[MAX_PATPARAM];
+	const uint8_t			flags;
 	const struct opcode_param_t	p_dst;
 	const struct opcode_param_t	p_src[MAX_SPARAM];
 };
 
-#define					FLD_MODREGRM			(1u << 0u)
-#define					FLD_IMMEDIATE			(1u << 1u) /* size is determined by param */
-#define					FLD_EAONLY			(1u << 2u) /* memory address, compute only (LEA) */
+#define					FLG_EAONLY			(1u << 0u) /* memory address, compute only (LEA) */
+
+enum {
+	CPUPPM_NONE=0,
+	CPUPPM_MODREGRM=1,
+	CPUPPM_IMMEDIATEB=2,
+	CPUPPM_IMMEDIATEW=3,
+	CPUPPM_IMMEDIATED=4,
+	CPUPPM_IMMEDIATENW=5 // depends on CPU mode, 16-bit = word, 32-bit = dword
+};
 
 enum {
 	CPUPS_BYTE=1, // 8-bit
@@ -41,6 +50,7 @@ enum {
 
 	////////////////////////////
 	CPUP_MEM_RM=0x08,
+	CPUP_MEM_IMM=0x09, // ex: mov al,[immediate]
 
 	/////////////////////////////////////////////
 	CPUP_GREG_MIN=0x10,
