@@ -71,7 +71,7 @@ body:
     id: log
     attributes:
       label: Output log
-      description: The log may include hints to solve your problem. Launch DOSBox-X from command line to get one. You may upload and put the link of your log in the "Additional information" box instead.
+      description: The log may include hints to solve your problem. Enable logging in the dosbox-x.conf file or launch DOSBox-X by `dosbox-x -console` to get one. You may upload and put the link of your log in the "Additional information" box instead.
       render: text # Syntax highlighting
     validations:
       required: false
