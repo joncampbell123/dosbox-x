@@ -235,6 +235,9 @@ int main(int argc,char **argv) {
 			printf("s:%s(%s) ",param2str(o.op->p_src[i].p,o.op->p_src[i].s),paramsz2str(o.op->p_src[i].s));
 		}
 
+		if (o.op->flags & CPUFL_PREFIX_SEGMENT)
+			printf("(prefix:segov) ");
+
 		printf("\n");
 	}
 

@@ -15,8 +15,13 @@ struct opcode_t {
 	const uint8_t			pattern_sz;
 	const uint8_t			pattern[MAX_PATTERN];
 	const uint8_t			patparam[MAX_PATPARAM];
+	const uint8_t			flags;
 	const struct opcode_param_t	p_dst;
 	const struct opcode_param_t	p_src[MAX_SPARAM];
+};
+
+enum {
+	CPUFL_PREFIX_SEGMENT=1 << 0
 };
 
 enum {

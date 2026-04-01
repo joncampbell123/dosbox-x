@@ -292,7 +292,12 @@ const struct opcode_t op_25_and = { // AND a(w), imm(w)          0x25 mod/reg/rm
 	.p_dst = { .p = CPUP_GREG_A, .s = CPUPS_NATIVEWORD },
 	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_NATIVEWORD } }
 };
-
+const struct opcode_t op_26_es_segov = { // ES:                       0x26
+	.opcode_name = "es:",
+	.pattern_sz = 1,
+	.pattern = {0x26},
+	.flags = CPUFL_PREFIX_SEGMENT
+};
 const struct opcode_t op_27_daa = { // DAA                       0x27
 	.opcode_name = "daa",
 	.pattern_sz = 1,
@@ -300,7 +305,6 @@ const struct opcode_t op_27_daa = { // DAA                       0x27
 	.p_dst = { .p = CPUP_GREG_AL, .s = CPUPS_BYTE },
 	.p_src = { { .p = CPUP_GREG_AL, .s = CPUPS_BYTE } }
 };
-
 const struct opcode_t op_28_sub = { // SUB r/m(b), reg(b)        0x28 mod/reg/rm
 	.opcode_name = "sub",
 	.pattern_sz = 1,
@@ -349,7 +353,12 @@ const struct opcode_t op_2d_sub = { // SUB a(w), imm(w)          0x2D mod/reg/rm
 	.p_dst = { .p = CPUP_GREG_A, .s = CPUPS_NATIVEWORD },
 	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_NATIVEWORD } }
 };
-
+const struct opcode_t op_2e_cs_segov = { // CS:                       0x2E
+	.opcode_name = "cs:",
+	.pattern_sz = 1,
+	.pattern = {0x2E},
+	.flags = CPUFL_PREFIX_SEGMENT
+};
 const struct opcode_t op_2f_das = { // DAS                       0x2F
 	.opcode_name = "das",
 	.pattern_sz = 1,
@@ -357,7 +366,6 @@ const struct opcode_t op_2f_das = { // DAS                       0x2F
 	.p_dst = { .p = CPUP_GREG_AL, .s = CPUPS_BYTE },
 	.p_src = { { .p = CPUP_GREG_AL, .s = CPUPS_BYTE } }
 };
-
 const struct opcode_t op_30_xor = { // XOR r/m(b), reg(b)        0x30 mod/reg/rm
 	.opcode_name = "xor",
 	.pattern_sz = 1,
@@ -406,7 +414,12 @@ const struct opcode_t op_35_xor = { // XOR a(w), imm(w)          0x35 mod/reg/rm
 	.p_dst = { .p = CPUP_GREG_A, .s = CPUPS_NATIVEWORD },
 	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_NATIVEWORD } }
 };
-
+const struct opcode_t op_36_ss_segov = { // SS:                       0x36
+	.opcode_name = "ss:",
+	.pattern_sz = 1,
+	.pattern = {0x36},
+	.flags = CPUFL_PREFIX_SEGMENT
+};
 const struct opcode_t op_37_aaa = { // AAA                       0x37
 	.opcode_name = "aaa",
 	.pattern_sz = 1,
@@ -463,7 +476,12 @@ const struct opcode_t op_3d_cmp = { // CMP a(w), imm(w)          0x3D mod/reg/rm
 	.p_dst = { .p = CPUP_GREG_A, .s = CPUPS_NATIVEWORD },
 	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_NATIVEWORD } }
 };
-
+const struct opcode_t op_3e_ds_segov = { // DS:                       0x3E
+	.opcode_name = "ds:",
+	.pattern_sz = 1,
+	.pattern = {0x3E},
+	.flags = CPUFL_PREFIX_SEGMENT
+};
 const struct opcode_t op_3f_aas = { // AAS                       0x3F
 	.opcode_name = "aas",
 	.pattern_sz = 1,
@@ -512,7 +530,7 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_23_and,
 	&op_24_and,
 	&op_25_and,
-
+	&op_26_es_segov,
 	&op_27_daa,
 	&op_28_sub,
 	&op_29_sub,
@@ -520,7 +538,7 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_2b_sub,
 	&op_2c_sub,
 	&op_2d_sub,
-
+	&op_2e_cs_segov,
 	&op_2f_das,
 	&op_30_xor,
 	&op_31_xor,
@@ -528,7 +546,7 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_33_xor,
 	&op_34_xor,
 	&op_35_xor,
-
+	&op_36_ss_segov,
 	&op_37_aaa,
 	&op_38_cmp,
 	&op_39_cmp,
@@ -536,7 +554,7 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_3b_cmp,
 	&op_3c_cmp,
 	&op_3d_cmp,
-
+	&op_3e_ds_segov,
 	&op_3f_aas,
 
 	NULL
