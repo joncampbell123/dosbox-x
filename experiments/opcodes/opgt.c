@@ -578,6 +578,34 @@ const struct opcode_t op_77_jcc = { // JA <d>                     0x77
 	.patparam = { CPUPPM_IMMEDIATEB },
 	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
 };
+const struct opcode_t op_78_jcc = { // JS <d>                    0x78
+	.opcode_name = "js",
+	.pattern_sz = 1,
+	.pattern = {0x78},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_79_jcc = { // JNS <d>                     0x79
+	.opcode_name = "jns",
+	.pattern_sz = 1,
+	.pattern = {0x79},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_7a_jcc = { // JPE <d>                    0x7A
+	.opcode_name = "jpe",
+	.pattern_sz = 1,
+	.pattern = {0x7A},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_7b_jcc = { // JPO <d>                     0x7B
+	.opcode_name = "jpo",
+	.pattern_sz = 1,
+	.pattern = {0x7B},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
 
 // general instruction decoding (8086 level)
 const struct opcode_t* oplist_gen_8086[] = {
@@ -657,6 +685,10 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_75_jcc,
 	&op_76_jcc,
 	&op_77_jcc,
+	&op_78_jcc,
+	&op_79_jcc,
+	&op_7a_jcc,
+	&op_7b_jcc,
 
 	NULL
 };
