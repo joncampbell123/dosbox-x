@@ -522,6 +522,63 @@ const struct opcode_t op_58_pop = { // POP <w>                    0x58-0x5F
 	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD }
 };
 
+const struct opcode_t op_70_jcc = { // JO <d>                    0x70
+	.opcode_name = "jo",
+	.pattern_sz = 1,
+	.pattern = {0x70},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_71_jcc = { // JNO <d>                    0x71
+	.opcode_name = "jno",
+	.pattern_sz = 1,
+	.pattern = {0x71},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_72_jcc = { // JB <d>                    0x72
+	.opcode_name = "jb",
+	.pattern_sz = 1,
+	.pattern = {0x72},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_73_jcc = { // JNB <d>                    0x73
+	.opcode_name = "jnb",
+	.pattern_sz = 1,
+	.pattern = {0x73},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_74_jcc = { // JZ <d>                    0x74
+	.opcode_name = "jz",
+	.pattern_sz = 1,
+	.pattern = {0x74},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_75_jcc = { // JNZ <d>                    0x75
+	.opcode_name = "jnz",
+	.pattern_sz = 1,
+	.pattern = {0x75},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_76_jcc = { // JBE <d>                    0x76
+	.opcode_name = "jbe",
+	.pattern_sz = 1,
+	.pattern = {0x76},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_77_jcc = { // JA <d>                     0x77
+	.opcode_name = "ja",
+	.pattern_sz = 1,
+	.pattern = {0x77},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
+};
+
 // general instruction decoding (8086 level)
 const struct opcode_t* oplist_gen_8086[] = {
 	&op_00_add,
@@ -592,6 +649,14 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_48_dec,
 	&op_50_push,
 	&op_58_pop,
+	&op_70_jcc,
+	&op_71_jcc,
+	&op_72_jcc,
+	&op_73_jcc,
+	&op_74_jcc,
+	&op_75_jcc,
+	&op_76_jcc,
+	&op_77_jcc,
 
 	NULL
 };
