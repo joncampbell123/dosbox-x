@@ -489,7 +489,6 @@ const struct opcode_t op_3f_aas = { // AAS                       0x3F
 	.p_dst = { .p = CPUP_GREG_AL, .s = CPUPS_BYTE },
 	.p_src = { { .p = CPUP_GREG_AL, .s = CPUPS_BYTE } }
 };
-
 const struct opcode_t op_40_inc = { // INC <w>                    0x40-0x47
 	.opcode_name = "inc",
 	.pattern_sz = 1,
@@ -498,12 +497,27 @@ const struct opcode_t op_40_inc = { // INC <w>                    0x40-0x47
 	.flags = CPUFL_REG_FROM_OPCODE,
 	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD }
 };
-
-const struct opcode_t op_48_inc = { // DEC <w>                    0x48-0x4F
+const struct opcode_t op_48_dec = { // DEC <w>                    0x48-0x4F
 	.opcode_name = "dec",
 	.pattern_sz = 1,
 	.pattern = {0x48},
 	.pattern_lb_mask = { .mask=0x07, .match=0xFF }, // match 0x48-0x4F
+	.flags = CPUFL_REG_FROM_OPCODE,
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD }
+};
+const struct opcode_t op_50_push = { // PUSH <w>                    0x50-0x57
+	.opcode_name = "push",
+	.pattern_sz = 1,
+	.pattern = {0x50},
+	.pattern_lb_mask = { .mask=0x07, .match=0xFF }, // match 0x50-0x57
+	.flags = CPUFL_REG_FROM_OPCODE,
+	.p_src = { { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_58_pop = { // POP <w>                    0x58-0x5F
+	.opcode_name = "pop",
+	.pattern_sz = 1,
+	.pattern = {0x58},
+	.pattern_lb_mask = { .mask=0x07, .match=0xFF }, // match 0x58-0x5F
 	.flags = CPUFL_REG_FROM_OPCODE,
 	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD }
 };
@@ -575,7 +589,9 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_3e_ds_segov,
 	&op_3f_aas,
 	&op_40_inc,
-	&op_48_inc,
+	&op_48_dec,
+	&op_50_push,
+	&op_58_pop,
 
 	NULL
 };
