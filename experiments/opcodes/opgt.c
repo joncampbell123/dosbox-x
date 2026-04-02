@@ -650,6 +650,27 @@ const struct opcode_t op_91_xchg = { // XCHG <w>,AX               0x91-0x97
 	.p_src = { { .p = CPUP_GREG_A, .s = CPUPS_NATIVEWORD } }
 };
 
+const struct opcode_t op_b0_mov = { // MOV <reg>,<imm>            0xB0-0xB7
+	.opcode_name = "mov",
+	.pattern_sz = 1,
+	.pattern = {0xB0},
+	.patparam = { CPUPPM_IMMEDIATEB },
+	.pattern_lb_mask = { .mask=0x07, .match=0xFF },
+	.flags = CPUFL_REG_FROM_OPCODE,
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_BYTE } }
+};
+const struct opcode_t op_b8_mov = { // MOV <reg>,<imm>            0xB8-0xBF
+	.opcode_name = "mov",
+	.pattern_sz = 1,
+	.pattern = {0xB8},
+	.patparam = { CPUPPM_IMMEDIATENW },
+	.pattern_lb_mask = { .mask=0x07, .match=0xFF },
+	.flags = CPUFL_REG_FROM_OPCODE,
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_IMMEDIATE, .s = CPUPS_NATIVEWORD } }
+};
+
 // general instruction decoding (8086 level)
 const struct opcode_t* oplist_gen_8086[] = {
 	&op_00_add,
@@ -739,6 +760,9 @@ const struct opcode_t* oplist_gen_8086[] = {
 
 	&op_90_nop,
 	&op_91_xchg,
+
+	&op_b0_mov,
+	&op_b8_mov,
 
 	NULL
 };
