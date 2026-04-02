@@ -490,6 +490,15 @@ const struct opcode_t op_3f_aas = { // AAS                       0x3F
 	.p_src = { { .p = CPUP_GREG_AL, .s = CPUPS_BYTE } }
 };
 
+const struct opcode_t op_40_inc = { // INC <w>                    0x40-0x47
+	.opcode_name = "inc",
+	.pattern_sz = 1,
+	.pattern = {0x40},
+	.pattern_lb_mask = { .mask=0x07, .match=0xFF }, // match 0x40-0x47
+	.flags = CPUFL_REG_FROM_OPCODE,
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD }
+};
+
 // general instruction decoding (8086 level)
 const struct opcode_t* oplist_gen_8086[] = {
 	&op_00_add,
@@ -556,6 +565,7 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_3d_cmp,
 	&op_3e_ds_segov,
 	&op_3f_aas,
+	&op_40_inc,
 
 	NULL
 };

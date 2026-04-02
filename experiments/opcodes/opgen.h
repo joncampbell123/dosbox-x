@@ -10,18 +10,25 @@ struct opcode_param_t {
 	const uint8_t			s;
 };
 
+struct opcode_patmask_t {
+	const uint8_t			mask;//can be 0, 1, 3, or 7
+	const uint8_t			match;//bitmask for which values are valid (bit 0==x&mask&1)
+};
+
 struct opcode_t {
 	const char*			opcode_name;
 	const uint8_t			pattern_sz;
 	const uint8_t			pattern[MAX_PATTERN];
 	const uint8_t			patparam[MAX_PATPARAM];
+	const struct opcode_patmask_t	pattern_lb_mask; // range matching of last byte in pattern if mask!=0
 	const uint8_t			flags;
 	const struct opcode_param_t	p_dst;
 	const struct opcode_param_t	p_src[MAX_SPARAM];
 };
 
 enum {
-	CPUFL_PREFIX_SEGMENT=1 << 0
+	CPUFL_PREFIX_SEGMENT=1 << 0, // segment prefix
+	CPUFL_REG_FROM_OPCODE=1 << 1 // reg field from opcode (last byte & 7) needed for INC/DEC/XCHG
 };
 
 enum {

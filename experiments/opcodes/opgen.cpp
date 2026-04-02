@@ -237,6 +237,8 @@ int main(int argc,char **argv) {
 
 		if (o.op->flags & CPUFL_PREFIX_SEGMENT)
 			printf("(prefix:segov) ");
+		if (o.op->flags & CPUFL_REG_FROM_OPCODE)
+			printf("(reg:opcode) ");
 
 		printf("\n");
 	}
