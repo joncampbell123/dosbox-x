@@ -499,6 +499,15 @@ const struct opcode_t op_40_inc = { // INC <w>                    0x40-0x47
 	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD }
 };
 
+const struct opcode_t op_48_inc = { // DEC <w>                    0x48-0x4F
+	.opcode_name = "dec",
+	.pattern_sz = 1,
+	.pattern = {0x48},
+	.pattern_lb_mask = { .mask=0x07, .match=0xFF }, // match 0x48-0x4F
+	.flags = CPUFL_REG_FROM_OPCODE,
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD }
+};
+
 // general instruction decoding (8086 level)
 const struct opcode_t* oplist_gen_8086[] = {
 	&op_00_add,
@@ -566,6 +575,7 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_3e_ds_segov,
 	&op_3f_aas,
 	&op_40_inc,
+	&op_48_inc,
 
 	NULL
 };

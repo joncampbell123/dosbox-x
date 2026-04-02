@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 
 #include "opgen.h"
 
@@ -21,6 +22,42 @@ struct opcode_pat_t {
 
 vector<struct opcode_pat_t> opflst;
 
+void addlist_pattmrm(opcode_pat_t &opt,size_t parmi) {
+	if (parmi < MAX_PATPARAM && opt.op->patparam[parmi] == CPUPPM_MODREGRM) {
+		opcode_pat_t c_opt = opt;
+		c_opt.mrm = 1;
+		parmi++;
+
+		for (unsigned int mod3=0;mod3<2;mod3++) {
+			for (unsigned int reg=0;reg<8;reg++) {
+				if (c_opt.mrm_chk_mod) c_opt.mrm_mod3=mod3;
+				if (c_opt.mrm_chk_reg) c_opt.mrm_reg=reg;
+				if ((c_opt.mrm_chk_mod || mod3 == 0) && (c_opt.mrm_chk_reg || reg == 0)) opflst.push_back(c_opt);
+			}
+		}
+	}
+	else {
+		opflst.push_back(opt);
+	}
+}
+
+void addlist_pattlb(opcode_pat_t &opt,size_t parmi) {
+	if (opt.op->pattern_lb_mask.mask != 0) {
+		assert(opt.op->pattern_sz != 0);
+		assert(opt.pat.size() == opt.op->pattern_sz);
+		assert((opt.pat[opt.pat.size()-1u] & opt.op->pattern_lb_mask.mask) == 0);
+
+		opcode_pat_t c_opt = opt;
+		for (unsigned int c=0;c <= c_opt.op->pattern_lb_mask.mask;c++) {
+			c_opt.pat[c_opt.pat.size()-1u] = (c_opt.pat[c_opt.pat.size()-1u] & ~c_opt.op->pattern_lb_mask.mask) + c;
+			if (c_opt.op->pattern_lb_mask.match & (1u << c)) addlist_pattmrm(c_opt,parmi);
+		}
+	}
+	else {
+		addlist_pattmrm(opt,parmi);
+	}
+}
+
 void addlist(const struct opcode_t** oplist) {
 	while (*oplist) {
 		const struct opcode_t* op = *oplist++;
@@ -31,22 +68,7 @@ void addlist(const struct opcode_t** oplist) {
 		memcpy(opt.pat.data(),op->pattern,op->pattern_sz);
 		opt.op = op;
 
-		size_t parmi = 0;
-		if (parmi < MAX_PATPARAM && op->patparam[parmi] == CPUPPM_MODREGRM) {
-			opt.mrm = 1;
-			parmi++;
-
-			for (unsigned int mod3=0;mod3<2;mod3++) {
-				for (unsigned int reg=0;reg<8;reg++) {
-					if (opt.mrm_chk_mod) opt.mrm_mod3=mod3;
-					if (opt.mrm_chk_reg) opt.mrm_reg=reg;
-					if ((opt.mrm_chk_mod || mod3 == 0) && (opt.mrm_chk_reg || reg == 0)) opflst.push_back(opt);
-				}
-			}
-		}
-		else {
-			opflst.push_back(opt);
-		}
+		addlist_pattlb(opt,0);
 	}
 }
 
