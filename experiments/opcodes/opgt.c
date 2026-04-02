@@ -635,6 +635,21 @@ const struct opcode_t op_7f_jcc = { // JG <d>                     0x7F
 	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
 };
 
+const struct opcode_t op_90_nop = { // NOP                        0x90 (NTS: This is technically XCHG AX,AX)
+	.opcode_name = "nop",
+	.pattern_sz = 1,
+	.pattern = {0x90}
+};
+const struct opcode_t op_91_xchg = { // XCHG <w>,AX               0x91-0x97
+	.opcode_name = "xchg",
+	.pattern_sz = 1,
+	.pattern = {0x90},
+	.pattern_lb_mask = { .mask=0x07, .match=0xFE }, // match 0x91-0x97 (11111110b) (0x97,0x96,0x95,0x94,0x93,0x92,0x91,x)
+	.flags = CPUFL_REG_FROM_OPCODE,
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_A, .s = CPUPS_NATIVEWORD } }
+};
+
 // general instruction decoding (8086 level)
 const struct opcode_t* oplist_gen_8086[] = {
 	&op_00_add,
@@ -721,6 +736,9 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_7d_jcc,
 	&op_7e_jcc,
 	&op_7f_jcc,
+
+	&op_90_nop,
+	&op_91_xchg,
 
 	NULL
 };
