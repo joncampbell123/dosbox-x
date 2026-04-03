@@ -635,6 +635,39 @@ const struct opcode_t op_7f_jcc = { // JG <d>                     0x7F
 	.p_src = { { .p = CPUP_IMMEDIATE_SX, .s = CPUPS_NATIVEWORD } }
 };
 
+const struct opcode_t op_84_test = { // TEST reg(b), r/m(b)        0x84 mod/reg/rm
+	.opcode_name = "test",
+	.pattern_sz = 1,
+	.pattern = {0x84},
+	.patparam = { CPUPPM_MODREGRM },
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_BYTE } }
+};
+const struct opcode_t op_85_test = { // TEST reg(w), r/m(w)        0x85 mod/reg/rm
+	.opcode_name = "test",
+	.pattern_sz = 1,
+	.pattern = {0x85},
+	.patparam = { CPUPPM_MODREGRM },
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+};
+const struct opcode_t op_86_xchg = { // XCHG reg(b), r/m(b)        0x86 mod/reg/rm
+	.opcode_name = "xchg",
+	.pattern_sz = 1,
+	.pattern = {0x86},
+	.patparam = { CPUPPM_MODREGRM },
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_BYTE },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_BYTE } }
+};
+const struct opcode_t op_87_xchg = { // XCHG reg(w), r/m(w)        0x87 mod/reg/rm
+	.opcode_name = "xchg",
+	.pattern_sz = 1,
+	.pattern = {0x87},
+	.patparam = { CPUPPM_MODREGRM },
+	.p_dst = { .p = CPUP_GREG_REG, .s = CPUPS_NATIVEWORD },
+	.p_src = { { .p = CPUP_GREG_RM, .s = CPUPS_NATIVEWORD } }
+};
+
 const struct opcode_t op_90_nop = { // NOP                        0x90 (NTS: This is technically XCHG AX,AX)
 	.opcode_name = "nop",
 	.pattern_sz = 1,
@@ -757,6 +790,11 @@ const struct opcode_t* oplist_gen_8086[] = {
 	&op_7d_jcc,
 	&op_7e_jcc,
 	&op_7f_jcc,
+
+	&op_84_test,
+	&op_85_test,
+	&op_86_xchg,
+	&op_87_xchg,
 
 	&op_90_nop,
 	&op_91_xchg,
