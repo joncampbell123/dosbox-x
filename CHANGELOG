@@ -3,6 +3,12 @@ NEXT VERSION
     directory in your home directory for DOSBox-X logo PNG files.
     It is now possible to configure one set of PNG files as a default
     for all uses of DOSBox-X from your user account. (joncampbell123).
+  - src/gui/render.cpp: Added missing ifdef conditional on C_METAL to enable
+    building on macOS platforms without Metal support. (herrnst)
+  - Fixed Metal support detection: add framework linker flags to configure
+    check (maron2000)
+  - Fixed window position not centered even when windowposition option is set
+    to do so. (maron2000)
 
 2026.03.29
   - Add dosbox.conf option to control the duration of the beep when
