@@ -1479,10 +1479,10 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 		uint8_t c;uint16_t n;
 #endif
         if (!DOS_SetDrive(toupper(name[0])-'A')) {
-            char char_no_upper = (char_no - 'a' + 'A');
-            char char_yes_upper = (char_yes - 'a' + 'A');
 #ifdef WIN32
  #if !defined(OSFREE)
+            char char_no_upper = toupper(char_no);
+            char char_yes_upper = toupper(char_yes);
             if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 			// automount: attempt direct letter to drive map.
 			int type=GetDriveType(name);
