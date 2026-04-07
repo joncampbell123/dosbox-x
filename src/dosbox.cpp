@@ -3887,6 +3887,11 @@ void DOSBOX_SetupConfigSections(void) {
 					"All OPL modes are AdLib-compatible.");
 			Pstring->SetBasic(true);
 
+			Pbool = secprop->Add_bool("adlib pcm boost",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("If set, and Adlib emulation detects that the guest application is playing digitized speech\n"
+					"or music through the FM chip, the FM audio will be amplified to make the audio more audible.\n"
+					"Audio levels will be reset for any other use including FM music synthesis.");
+
 			Pbool = secprop->Add_bool("adlib force timer overflow on detect",Property::Changeable::WhenIdle,false);
 			Pbool->Set_help("If set, Adlib/OPL emulation will signal 'overflow' on timers after 50 I/O reads.\n"
 					"This is a temporary hack to work around timing bugs noted in DOSBox-X. Certain\n"

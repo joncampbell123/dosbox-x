@@ -10,6 +10,14 @@ NEXT VERSION
   - Fixed window position not centered even when windowposition option is set
     to do so. (maron2000)
   - Fixed MSCDEX device name padding for short names (maron2000)
+  - When DOS games use the Adlib FM chip to do "digitized speech", DOSBox-X
+    does emulate that correctly, and it also correctly emulates how low
+    the volume is on the sound card output. However to make it more
+    audible, a new option "adlib pcm boost" has been added. If set,
+    and the Adlib emulation detects that the guest application is
+    playing PCM audio through it, the audio levels of the FM output
+    will be amplified to make the digitized speech much more audible.
+    (joncampbell123)
 
 2026.03.29
   - Add dosbox.conf option to control the duration of the beep when
