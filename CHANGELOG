@@ -9,6 +9,7 @@ NEXT VERSION
     check (maron2000)
   - Fixed window position not centered even when windowposition option is set
     to do so. (maron2000)
+  - Fixed MSCDEX device name padding for short names (maron2000)
 
 2026.03.29
   - Add dosbox.conf option to control the duration of the beep when
