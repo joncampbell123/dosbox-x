@@ -1119,7 +1119,9 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 }
 
 bool DOS_OpenFileExtended(char const * name, uint16_t flags, uint16_t createAttr, uint16_t action, uint16_t *entry, uint16_t* status) {
+// FIXME: Not yet supported : Bit 12 of flags (FAT32 allow files up to 4GB instead of 2GB)
 // FIXME: Not yet supported : Bit 13 of flags (int 0x24 on critical error)
+// FIXME: Not yet supported : Bit 14 of flags (auto commit on every write)
 	uint16_t result = 0;
 	if (action==0) {
 		// always fail setting
