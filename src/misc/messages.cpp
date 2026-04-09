@@ -208,6 +208,7 @@ void AddMessages() {
     MSG_Add("OK","OK");
     MSG_Add("CANCEL","Cancel");
     MSG_Add("CLOSE","Close");
+    MSG_Add("THEME","Theme");
     MSG_Add("DEBUGCMD","Enter Debugger Command");
     MSG_Add("ADD","Add");
     MSG_Add("DEL","Del");

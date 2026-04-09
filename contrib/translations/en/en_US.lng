@@ -50,6 +50,9 @@ Cancel
 :CLOSE
 Close
 .
+:THEME
+Theme
+.
 :DEBUGCMD
 Enter Debugger Command
 .

@@ -3271,7 +3271,7 @@ public:
         bar->addMenu(MSG_Get("SETTINGS"));
         
         // theme menu
-        bar->addMenu("Theme"); // TODO MSG_Get("THEME")
+        bar->addMenu(MSG_Get("THEME"));
         for (size_t ti=0;ti < (sizeof(theme_presets)/sizeof(theme_presets[0]));ti++) {
             if (theme_presets[ti].special & ThemePresetEntry::PREPEND_HLINE)
                 bar->addItem(2, "");
