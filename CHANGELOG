@@ -20,6 +20,11 @@ NEXT VERSION
     (joncampbell123)
   - Fixed mapping of TTF to match with guest codepage when launched with
     output=ttf. (maron2000)
+  - Limit window size of TTF output to 2/3rd of the screen in both
+    dimensions so that the window is not TOO large on the user's screen.
+    (joncampbell123)
+  - Fix segfault in TTF output code caused by codepage mapping when the
+    TTF output is not active. (joncampbell123)
 
 2026.03.29
   - Add dosbox.conf option to control the duration of the beep when

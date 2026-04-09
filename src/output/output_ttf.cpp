@@ -827,8 +827,16 @@ void OUTPUT_TTF_Select(int fsize) {
     } else
         ttf.fullScrn = false;
 
+    // FIXME: TTF output makes the window non-resizeable, which is a problem, because
+    //        this code picks a font point size designed to fill as much screen as possible!
+    //        Until resizing is an option, limit the window to 2/3 of each dimension. --J.C.
+
     unsigned int maxWidth, maxHeight;
     GetMaxWidthHeight(&maxWidth, &maxHeight);
+
+    // Limit dimenions
+    maxWidth = (maxWidth * 2) / 3;
+    maxHeight = (maxHeight * 2) / 3;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     maxHeight -= mainMenu.menuBarHeightBase * 2;
@@ -840,7 +848,7 @@ void OUTPUT_TTF_Select(int fsize) {
         maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
     }
 #endif
-    int	curSize = fontSize>=MIN_PTSIZE?fontSize:30;													// no clear idea what would be a good starting value
+    int	curSize = fontSize>=MIN_PTSIZE?fontSize:12;
     int lastGood = -1;
     int trapLoop = 0;
 
