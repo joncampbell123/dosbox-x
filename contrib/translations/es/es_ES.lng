@@ -50,6 +50,9 @@ Cancelar
 :CLOSE
 Cerrar
 .
+:THEME
+Tema
+.
 :DEBUGCMD
 Comando del depurador
 .
