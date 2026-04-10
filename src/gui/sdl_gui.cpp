@@ -165,31 +165,27 @@ bool CheckQuit(void), OpenGL_using(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 
 std::string GetAboutMsg(void) {
-    char tmp[4096];
+    std::string retv;
+    char tmp[1024];
 
-    snprintf(tmp,sizeof(tmp)-1,
-        "DOSBox-X ver.%s (%s %s %s-bit)%s\n" \
-        "Build date/time: %s\n" \
-        "Copyright %s-%s %s\n" \
-        "Project maintainer: %s\n" \
-        "DOSBox-X homepage: %s",
-        VERSION,
-        OS_PLATFORM,
-        SDL_STRING,
-        OS_BIT,
+    snprintf(tmp,sizeof(tmp),"DOSBox-X ver.%s (%s %s %s-bit)%s",
+        VERSION,OS_PLATFORM,SDL_STRING,OS_BIT,
 #if defined(OSFREE)
-        " OSFREE",
+        " OSFREE"
 #else
-        "",
+        ""
 #endif
-        UPDATED_STR,
-        "2011",
-        COPYRIGHT_END_YEAR,
-        "The DOSBox-X Team",
-        "joncampbell123",
-        "https://dosbox-x.com");
-
-    return tmp;
+    );
+    retv += tmp; retv += "\n";
+    snprintf(tmp,sizeof(tmp),"Build date/time: %s",UPDATED_STR);
+    retv += tmp; retv += "\n";
+    snprintf(tmp,sizeof(tmp),"Copyright %s-%s %s","2011",COPYRIGHT_END_YEAR,"The DOSBox-X Team");
+    retv += tmp; retv += "\n";
+    snprintf(tmp,sizeof(tmp),"Project maintainer: %s","joncampbell123");
+    retv += tmp; retv += "\n";
+    snprintf(tmp,sizeof(tmp),"DOSBox-X homepage: %s","https://dosbox-x.com");
+    retv += tmp; retv += "\n";
+    return retv;
 }
 
 void RebootConfig(std::string filename, bool confirm=false) {
