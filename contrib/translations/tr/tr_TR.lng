@@ -4549,3 +4549,17 @@ Ekran görüntüsü dosyaya kaydedildi:
 
 %s
 .
+:HELP_ABOUT_VERSION
+DOSBox-X sürüm %s (%s %s %s bit)%s
+.
+:HELP_ABOUT_UPDATED
+Yapım zamanı: %s
+.
+:HELP_ABOUT_COPYRIGHT
+Telif hakkı %s-%s %s
+.
+:HELP_ABOUT_MAINTAINER
+Proje bakımcısı: %s
+.
+:HELP_ABOUT_HOMEPAGE
+DOSBox-X ana sayfası: %s
