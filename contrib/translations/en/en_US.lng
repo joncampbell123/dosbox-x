@@ -4509,3 +4509,18 @@ Saved screenshot to the file:
 
 %s
 .
+:HELP_ABOUT_VERSION
+DOSBox-X ver.%s (%s %s %s-bit)%s
+.
+:HELP_ABOUT_UPDATED
+Build date/time: %s
+.
+:HELP_ABOUT_COPYRIGHT
+Copyright %s-%s %s
+.
+:HELP_ABOUT_MAINTAINER
+Project maintainer: %s
+.
+:HELP_ABOUT_HOMEPAGE
+DOSBox-X homepage: %s
+.
