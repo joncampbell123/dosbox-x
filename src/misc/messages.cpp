@@ -277,6 +277,11 @@ void AddMessages() {
     MSG_Add("LANG_DOSV_INCOMPATIBLE", "You have specified a language file which uses a code page incompatible with the current DOS/V system.\n\n"
         "Are you sure to use the language file for this system type?");
     MSG_Add("LANG_CHANGE_CP", "The specified language file uses code page %d. Do you want to change to this code page accordingly?");
+    MSG_Add("HELP_ABOUT_VERSION","DOSBox-X ver.%s (%s %s %s-bit)%s");
+    MSG_Add("HELP_ABOUT_UPDATED","Build date/time: %s");
+    MSG_Add("HELP_ABOUT_COPYRIGHT","Copyright %s-%s %s");
+    MSG_Add("HELP_ABOUT_MAINTAINER","Project maintainer: %s");
+    MSG_Add("HELP_ABOUT_HOMEPAGE","DOSBox-X homepage: %s");
 }
 
 // True if specified codepage is a DBCS codepage

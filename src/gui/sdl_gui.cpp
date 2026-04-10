@@ -168,7 +168,7 @@ std::string GetAboutMsg(void) {
     std::string retv;
     char tmp[1024];
 
-    snprintf(tmp,sizeof(tmp),"DOSBox-X ver.%s (%s %s %s-bit)%s",
+    snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_VERSION"),
         VERSION,OS_PLATFORM,SDL_STRING,OS_BIT,
 #if defined(OSFREE)
         " OSFREE"
@@ -177,13 +177,13 @@ std::string GetAboutMsg(void) {
 #endif
     );
     retv += tmp; retv += "\n";
-    snprintf(tmp,sizeof(tmp),"Build date/time: %s",UPDATED_STR);
+    snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_UPDATED"),UPDATED_STR);
     retv += tmp; retv += "\n";
-    snprintf(tmp,sizeof(tmp),"Copyright %s-%s %s","2011",COPYRIGHT_END_YEAR,"The DOSBox-X Team");
+    snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_COPYRIGHT"),"2011",COPYRIGHT_END_YEAR,"The DOSBox-X Team");
     retv += tmp; retv += "\n";
-    snprintf(tmp,sizeof(tmp),"Project maintainer: %s","joncampbell123");
+    snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_MAINTAINER"),"joncampbell123");
     retv += tmp; retv += "\n";
-    snprintf(tmp,sizeof(tmp),"DOSBox-X homepage: %s","https://dosbox-x.com");
+    snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_HOMEPAGE"),"https://dosbox-x.com");
     retv += tmp; retv += "\n";
     return retv;
 }
