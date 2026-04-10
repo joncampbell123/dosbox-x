@@ -4124,7 +4124,7 @@ Lance une entrée scriptée au clavier dans un programme DOS lancé.
 
 AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
 
-Where:
+Où :
   -list :   affiche tous les noms de boutons disponibles.
   -w WAIT : seconds avant que la saisie commence. Deux secondes par défaut; maximum 30.
   -p PACE : secondes entre chaque frappe. Une demi-seconde par défaut; maximum 10.
@@ -4547,4 +4547,19 @@ L'état de la sauvegarde est corrompu ! Le programme peut ne pas fonctionner.
 Enregistrement de la capture d'écran dans le fichier :
 
 %s
+.
+:HELP_ABOUT_VERSION
+DOSBox-X ver.%s (%s %s %s-bit)%s
+.
+:HELP_ABOUT_UPDATED
+Date/heure de compilation : %s
+.
+:HELP_ABOUT_COPYRIGHT
+Copyright %s-%s %s
+.
+:HELP_ABOUT_MAINTAINER
+Mainteneur du projet : %s
+.
+:HELP_ABOUT_HOMEPAGE
+Site de DOSBox-X : %s
 .
