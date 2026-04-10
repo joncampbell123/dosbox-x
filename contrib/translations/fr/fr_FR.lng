@@ -50,6 +50,9 @@ Annuler
 :CLOSE
 Fermer
 .
+:THEME
+Thème
+.
 :DEBUGCMD
 Commande de débogueur
 .
