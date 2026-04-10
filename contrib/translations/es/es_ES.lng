@@ -4542,3 +4542,18 @@ Saved screenshot to the file:
 
 %s
 .
+:HELP_ABOUT_VERSION
+DOSBox-X ver.%s (%s %s %s-bit)%s
+.
+:HELP_ABOUT_UPDATED
+Fecha/hora de construcción: %s
+.
+:HELP_ABOUT_COPYRIGHT
+Derechos de autor %s-%s %s
+.
+:HELP_ABOUT_MAINTAINER
+Mantenedor del proyecto: %s
+.
+:HELP_ABOUT_HOMEPAGE
+Página principal de DOSBox-X: %s
+.
