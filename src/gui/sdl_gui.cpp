@@ -163,15 +163,34 @@ void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(
 void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true), setAspectRatio(Section_prop * section), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans);
 bool CheckQuit(void), OpenGL_using(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
-#if !defined(OSFREE)
-const char *aboutmsg = "DOSBox-X ver." VERSION " (" OS_PLATFORM " " SDL_STRING " " OS_BIT "-bit)\n" \
-                       "Build date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR \
-                       " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
+
+std::string GetAboutMsg(void) {
+    char tmp[4096];
+
+    snprintf(tmp,sizeof(tmp)-1,
+        "DOSBox-X ver.%s (%s %s %s-bit)%s\n" \
+        "Build date/time: %s\n" \
+        "Copyright %s-%s %s\n" \
+        "Project maintainer: %s\n" \
+        "DOSBox-X homepage: %s",
+        VERSION,
+        OS_PLATFORM,
+        SDL_STRING,
+        OS_BIT,
+#if defined(OSFREE)
+        " OSFREE",
 #else
-const char *aboutmsg = "DOSBox-X ver." VERSION " (" OS_PLATFORM " " SDL_STRING " " OS_BIT "-bit) OS-FREE\n" \
-                       "Build date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR \
-                       " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
+        "",
 #endif
+        UPDATED_STR,
+        "2011",
+        COPYRIGHT_END_YEAR,
+        "The DOSBox-X Team",
+        "joncampbell123",
+        "https://dosbox-x.com");
+
+    return tmp;
+}
 
 void RebootConfig(std::string filename, bool confirm=false) {
     std::string exepath=GetDOSBoxXPath(true), para="-conf \""+filename+"\"";
@@ -3162,7 +3181,8 @@ protected:
 public:
     ShowHelpAbout(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 480, 230, title) {
-            std::istringstream in(aboutmsg);
+            std::string amsg = GetAboutMsg();
+            std::istringstream in(amsg);
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
                 r+=25;
@@ -3573,7 +3593,7 @@ public:
 #endif
         } else if (arg == tmp1) {
             //new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>350?(parent->getWidth()-350)/2:0, 150, 350, mainMenu.get_item("help_about").get_text().c_str(), aboutmsg);
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>350?(parent->getWidth()-350)/2:0, 150, 350, mainMenu.get_item("help_about").get_text().c_str(), GetAboutMsg().c_str());
         } else if (arg == MSG_Get("INTRODUCTION")) {
             //new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 150, 540, mainMenu.get_item("help_intro").get_text().c_str(), MSG_Get("INTRO_MESSAGE"));
