@@ -696,41 +696,42 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		return false;
 	}
 
-    if (attr == DOS_ATTR_VOLUME) {
-        const char* vol_pattern = search;
+	if (attr == DOS_ATTR_VOLUME) {
+		const char* vol_pattern = search;
 
-        /* Optional drive specification */
-        if (search[1] == ':') {
-            drive = (search[0] | 0x20) - 'a';
-            vol_pattern = search + 2;
-        }
-        else {
-            drive = DOS_GetDefaultDrive();
-        }
-        if (drive >= DOS_DRIVES || !Drives[drive]) {
-            DOS_SetError(DOSERR_PATH_NOT_FOUND);
-            return false;
-        }
-        sdrive = drive;
-        dta.SetupSearch(drive, (uint8_t)attr, vol_pattern);
+		/* Optional drive specification */
+		if (search[1] == ':') {
+			drive = (search[0] | 0x20) - 'a';
+			vol_pattern = search + 2;
+		}
+		else {
+			drive = DOS_GetDefaultDrive();
+		}
+		if (drive >= DOS_DRIVES || !Drives[drive]) {
+			DOS_SetError(DOSERR_PATH_NOT_FOUND);
+			return false;
+		}
+		sdrive = drive;
+		while (*vol_pattern == '\\') vol_pattern++; /* Creative Sound Blaster Pro 2.0 INSTALL uses "A:\*.*" to read volume label */
+		dta.SetupSearch(drive, (uint8_t)attr, vol_pattern);
 
-        return Drives[drive]->FindFirst("", dta, fcb_findfirst);
-    }
+		return Drives[drive]->FindFirst("", dta, fcb_findfirst);
+	}
 
 	if (!DOS_MakeName(search,fullsearch,&drive)) return false;
 	//Check for devices. FindDevice checks for leading subdir as well
 	bool device = (DOS_FindDevice(search) != DOS_DEVICES);
 
-    /* Split the search in dir and pattern */
-    forcelfn = false;
+	/* Split the search in dir and pattern */
+	forcelfn = false;
 	char *find_last = NULL;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
- #if !defined(OSFREE)
-    bool net = Network_IsNetworkResource(search);
+#if !defined(OSFREE)
+	bool net = Network_IsNetworkResource(search);
 	if (net) forcelfn = true;
 	char *p = net ? strchr_dbcs(fullsearch+(fullsearch[0]=='"'?3:2), '\\') : NULL;
 	find_last = strrchr_dbcs(p != NULL ? p + 1 : fullsearch, '\\');
- #endif
+#endif
 #else
 	find_last = strrchr_dbcs(fullsearch,'\\');
 #endif
@@ -743,9 +744,9 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		strcpy(dir,fullsearch);
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
- #if !defined(OSFREE)
+#if !defined(OSFREE)
 	if (!strlen(dir)&&Network_IsNetworkResource(pattern)) {forcelfn=false;return false;}
- #endif
+#endif
 #endif
 
 	// Silence CHKDSK "Invalid sub-directory entry"
@@ -758,21 +759,21 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 
 	sdrive=drive;
 	dta.SetupSearch(drive,(uint8_t)attr,pattern);
-    forcelfn = false;
+	forcelfn = false;
 
 	if(device) {
 		find_last = strrchr(pattern,'.');
 		if(find_last) *find_last = 0;
 		//TODO use current date and time
-        dta.SetResult(pattern,pattern,0,0,0,0,DOS_ATTR_DEVICE);
+		dta.SetResult(pattern,pattern,0,0,0,0,DOS_ATTR_DEVICE);
 		LOG(LOG_DOSMISC,LOG_WARN)("finding device %s",pattern);
 		return true;
 	}
-   
+
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
- #if !defined(OSFREE)
-    if (net) return Network_FindFirst(dir,dta);
- #endif
+#if !defined(OSFREE)
+	if (net) return Network_FindFirst(dir,dta);
+#endif
 #endif
 	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
 	return false;

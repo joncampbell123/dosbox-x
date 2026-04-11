@@ -493,6 +493,7 @@ private:
 	uint32_t firstRootDirSect = 0;
 	uint32_t physToLogAdj = 0; // Some PC-98 HDI images have larger logical than physical bytes/sector and the partition is not a multiple of it, so this is needed
 	uint32_t searchFreeCluster = 0;
+	bool findFirstFCB = false; /* FindFirst was called to scan by FCB */
 	int partition_index = -1;
 
 	uint32_t cwdDirCluster = 0;

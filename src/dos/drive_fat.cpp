@@ -2816,6 +2816,9 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool fcb_findfirst) {
 		}
 	}
 
+	/* need to remember whether doing an FCB or FindFirst (AH=4Eh) search */
+	findFirstFCB = fcb_findfirst;
+
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
 		dta.SetDirID(0);
 		dta.SetDirIDCluster(cwdDirCluster);
@@ -3023,7 +3026,32 @@ nextfile:
 	}
 
 	if (extension[0]!=0) {
-		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
+		// CONFLICT:
+		// I am seeing contradictory behavior on how volume label searches are done,
+		// which seems to differ by whether the program is using FCBs to search or
+		// using INT AH=4Eh to search.
+		//
+		// - MS-DOS LABEL.EXE: Uses FCBs to search and update the volume label.
+		//                     Expects us to return the volume label as an unbroken
+		//                     11 char string, or else it does not display it properly.
+		//                     Searches for ??????????? to read volume label.
+		//
+		// - Creative Sound Blaster Pro 2.0 INSTALL.EXE: Uses INT 21h AH=4Eh to search for the volume label.
+		//                                               If we return it as an unbroken 11 char string, the
+		//                                               program fails to match it. It only properly matches
+		//                                               the volume label if it is broken into an 8.3 filename
+		//                                               format i.e. SBPRO_DISK1 -> SBPRO_DI.SK1
+		//
+		//                                               Searches for A:\*.* to read volume label.
+		//
+		// This is the kind of thing DOSLIB has or should have test "play" code for to test our behavior
+		// vs MS-DOS behavior vs real hardware behavior.
+		if (findFirstFCB) {
+			if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
+				strcat(find_name, ".");
+			}
+		}
+		else {
 			strcat(find_name, ".");
 		}
 		strcat(find_name, extension);
