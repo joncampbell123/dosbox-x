@@ -50,6 +50,9 @@ OK
 :CLOSE
 閉じる
 .
+:THEME
+テーマ
+.
 :DEBUGCMD
 デバッガコマンドを入力します
 .
@@ -4524,4 +4527,19 @@ Raw OPL 出力をファイルに保存しました:
 スクリーンショットを以下のファイルに保存しました:
 
 %s
+.
+:HELP_ABOUT_VERSION
+DOSBox-X バージョン %s (%s %s %s-bit)%s
+.
+:HELP_ABOUT_UPDATED
+ビルド日時: %s
+.
+:HELP_ABOUT_COPYRIGHT
+Copyright %s-%s %s
+.
+:HELP_ABOUT_MAINTAINER
+プロジェクト管理者: %s
+.
+:HELP_ABOUT_HOMEPAGE
+DOSBox-X ホームページ: %s
 .
