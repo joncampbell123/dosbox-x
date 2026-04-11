@@ -164,11 +164,13 @@ void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true), setAspectRatio(S
 bool CheckQuit(void), OpenGL_using(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 
-std::string GetAboutMsg(void) {
+std::string GetAboutMsg(uint8_t* len) {
     std::string retv;
     char tmp[1024];
+    int written = 0;
+    size_t max_len = 0;
 
-    snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_VERSION"),
+    written = snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_VERSION"),
         VERSION,OS_PLATFORM,SDL_STRING,OS_BIT,
 #if defined(OSFREE)
         " OSFREE"
@@ -176,15 +178,39 @@ std::string GetAboutMsg(void) {
         ""
 #endif
     );
-    retv += tmp; retv += "\n";
-    snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_UPDATED"),UPDATED_STR);
-    retv += tmp; retv += "\n";
-    snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_COPYRIGHT"),"2011",COPYRIGHT_END_YEAR,"The DOSBox-X Team");
-    retv += tmp; retv += "\n";
+    if(written > 0) {
+        size_t actual_len = std::min<size_t>(written, sizeof(tmp) - 1);
+        max_len = std::max(max_len, actual_len);
+        retv += tmp; retv += "\n";
+    }
+    written = snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_UPDATED"),UPDATED_STR);
+    if(written > 0) {
+        size_t actual_len = std::min<size_t>(written, sizeof(tmp) - 1);
+        max_len = std::max(max_len, actual_len);
+        retv += tmp; retv += "\n";
+    }
+    written = snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_COPYRIGHT"),"2011",COPYRIGHT_END_YEAR,"The DOSBox-X Team");
+    if(written > 0) {
+        size_t actual_len = std::min<size_t>(written, sizeof(tmp) - 1);
+        max_len = std::max(max_len, actual_len);
+        retv += tmp; retv += "\n";
+    }
     snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_MAINTAINER"),"joncampbell123");
-    retv += tmp; retv += "\n";
-    snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_HOMEPAGE"),"https://dosbox-x.com");
-    retv += tmp; retv += "\n";
+    if(written > 0) {
+        size_t actual_len = std::min<size_t>(written, sizeof(tmp) - 1);
+        max_len = std::max(max_len, actual_len);
+        retv += tmp; retv += "\n";
+    }
+    written = snprintf(tmp,sizeof(tmp),MSG_Get("HELP_ABOUT_HOMEPAGE"),"https://dosbox-x.com");
+    //written = snprintf(tmp,sizeof(tmp),"TEST1234567890123456789012345678901234567890123456789012345678901234567890"); /* A string to test long messages */
+    if(written > 0) {
+        size_t actual_len = std::min<size_t>(written, sizeof(tmp) - 1);
+        max_len = std::max(max_len, actual_len);
+        retv += tmp; retv += "\n";
+    }
+    if(len) {
+        *len = static_cast<uint8_t>(std::min<size_t>(max_len, 0xFF));
+    }
     return retv;
 }
 
@@ -3176,15 +3202,30 @@ protected:
     GUI::Input *name;
 public:
     ShowHelpAbout(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 620, 230, title) {
-            std::string amsg = GetAboutMsg();
+        ToplevelWindow(parent, x, y,
+            [&]() {
+                uint8_t len = 0;
+                std::string msg = GetAboutMsg(&len);
+
+                const int char_w = 8;
+                const int padding = 100;
+
+                return padding + len * char_w;
+            }(),
+                230,
+                title) {
+            uint8_t amsg_len = 0;
+            std::string amsg = GetAboutMsg(&amsg_len);
             std::istringstream in(amsg);
+            const int char_w = 8;
+            const int padding = 100;
+
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, (620 - 70) / 2, 155, MSG_Get("CLOSE"), 70))->addActionHandler(this);
+            (new GUI::Button(this, (padding + amsg_len * char_w - 70) / 2, 155, MSG_Get("CLOSE"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -3589,7 +3630,15 @@ public:
 #endif
         } else if (arg == tmp1) {
             //new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 150, 540, mainMenu.get_item("help_about").get_text().c_str(), GetAboutMsg().c_str());
+            uint8_t amsg_len = 0;
+            std::string amsg = GetAboutMsg(&amsg_len);
+            const int char_w = 8;
+            const int padding = 30;
+            const int min_w = 360;
+            int msg_w = std::max(min_w, padding + amsg_len * char_w);
+            int screen_w = getScreen()->getWidth();
+            int x = screen_w > msg_w ? (screen_w - msg_w) / 2 : 0;
+            new GUI::MessageBox2(getScreen(), x, 150, msg_w, mainMenu.get_item("help_about").get_text().c_str(), amsg.c_str());
         } else if (arg == MSG_Get("INTRODUCTION")) {
             //new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 150, 540, mainMenu.get_item("help_intro").get_text().c_str(), MSG_Get("INTRO_MESSAGE"));
