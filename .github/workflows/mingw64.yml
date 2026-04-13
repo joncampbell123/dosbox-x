@@ -118,7 +118,7 @@ jobs:
           name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ env.ZIPNAME }}
@@ -223,7 +223,7 @@ jobs:
           name: dosbox-x-UCRT64-experimental-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: 0
         with:
           files: dosbox-x-UCRT64-experimental-${{ env.timestamp }}.zip

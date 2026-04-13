@@ -85,7 +85,7 @@ jobs:
           name: ${{ env.ZIPNAME }}
           path: "${{ github.workspace }}/${{ env.ZIPNAME }}"
       - name: Upload release package
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ env.ZIPNAME }}
@@ -168,7 +168,7 @@ jobs:
           name: ${{ env.ZIPNAME }}
           path: "${{ github.workspace }}/${{ env.ZIPNAME }}"
       - name: Upload release package
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ env.ZIPNAME }}
