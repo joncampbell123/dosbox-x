@@ -80,7 +80,7 @@ jobs:
           7zz a "$top/$ZIPNAME" *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ZIPNAME }}
           path: "${{ github.workspace }}/${{ env.ZIPNAME }}"
@@ -163,7 +163,7 @@ jobs:
           7zz a "$top/$ZIPNAME" *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ZIPNAME }}
           path: "${{ github.workspace }}/${{ env.ZIPNAME }}"

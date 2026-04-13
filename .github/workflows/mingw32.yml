@@ -129,7 +129,7 @@ jobs:
           echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
@@ -262,7 +262,7 @@ jobs:
           echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
@@ -367,7 +367,7 @@ jobs:
           echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/

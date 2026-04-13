@@ -115,7 +115,7 @@ jobs:
           cat $top/OUTPUT.TXT
           test -f $top/SUCCESS.TXT || (echo The HX-DOS build did not run successfully && exit 1)
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
