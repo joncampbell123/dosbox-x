@@ -3026,26 +3026,36 @@ nextfile:
 	}
 
 	if (extension[0]!=0) {
-		// CONFLICT:
-		// I am seeing contradictory behavior on how volume label searches are done,
-		// which seems to differ by whether the program is using FCBs to search or
-		// using INT AH=4Eh to search.
+		// NTS: There are actually two ways to search for/read a volume label on a drive.
 		//
-		// - MS-DOS LABEL.EXE: Uses FCBs to search and update the volume label.
-		//                     Expects us to return the volume label as an unbroken
-		//                     11 char string, or else it does not display it properly.
-		//                     Searches for ??????????? to read volume label.
+		// 1. Set up an FCB to search for a volume label attribute with name ???????????
+		//    which will scan the root directory for a volume label and return it if it
+		//    exists.
 		//
-		// - Creative Sound Blaster Pro 2.0 INSTALL.EXE: Uses INT 21h AH=4Eh to search for the volume label.
-		//                                               If we return it as an unbroken 11 char string, the
-		//                                               program fails to match it. It only properly matches
-		//                                               the volume label if it is broken into an 8.3 filename
-		//                                               format i.e. SBPRO_DISK1 -> SBPRO_DI.SK1
+		//    The volume label will be returned in the FCB exactly as it is, and it can
+		//    be treated as an 11 byte string.
 		//
-		//                                               Searches for A:\*.* to read volume label.
+		//    This is the standard documented way to do it. MS-DOS LABEL.EXE does this.
 		//
-		// This is the kind of thing DOSLIB has or should have test "play" code for to test our behavior
-		// vs MS-DOS behavior vs real hardware behavior.
+		// 2. Use INT 21h AH=4Eh (Find First File) to search for a volume label attribute
+		//    with name *.* (Creative INSTALL.EXE uses A:\*.*). It will scan the root
+		//    directory and return it if it exists.
+		//
+		//    The volume label will be processed like any other file or directory name and
+		//    converted to an 8.3 filename, including removal of trailing spaces and the
+		//    addition of the "." if the last 3 chars have text.
+		//
+		//    This is a nonstandard way to do it. Creative Sound Blaster INSTALL.EXE uses
+		//    this method to determine which setup disk is in the drive, and it explicitly
+		//    checks for and expects the munged 8.3 volume label file name to detect it.
+		//
+		//    Example: Checks for "SBPRO_DISK1", expects INT 21h AH=4Eh to return "SBPRO_DI.SK1",
+		//             will not accept "SBPRO_DISK1".
+		//
+		//    A cursory check of the released MS-DOS 4.0 source code (DOS/SEARCH.ASM) shows
+		//    that INT 21h AH=4Eh has absolutely no code to handle volume labels whatsoever,
+		//    and therefore, this is something Microsoft never intended DOS programs to do.
+		//    ref: [https://github.com/joncampbell123/MS-DOS/blob/master/v4.0/src/DOS/SEARCH.ASM#L262]
 		if (findFirstFCB) {
 			if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
 				strcat(find_name, ".");
