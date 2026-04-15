@@ -2083,7 +2083,7 @@ uint8_t GetKanjiAttr(Bitu x, Bitu y)
 {
 	Bitu cx, pos;
 	uint8_t flag;
-	uint16_t seg = (IS_JEGA_ARCH) ? 0xb800 : jtext_seg;
+	uint16_t seg = IS_DOSV ? jtext_seg : 0xb800;
 	pos = y * real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) * 2;
 	cx = 0;
 	flag = 0x00;

@@ -503,7 +503,15 @@ void RestoreCursorBackgroundText() {
     if (mouse.hidden || mouse.inhibit_draw) return;
 
     if (mouse.background) {
-        WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],true);
+        if(mouse.backData[4] == 1) {
+            WriteChar((uint16_t)mouse.backposx,mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],true);
+            WriteChar((uint16_t)(mouse.backposx + 1),(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[2],mouse.backData[3],true);
+        } else if(mouse.backData[4] == 2) {
+            WriteChar((uint16_t)(mouse.backposx - 1),(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[2], mouse.backData[3],true);
+            WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0], mouse.backData[1],true);
+        } else {
+            WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],true);
+        }
         mouse.background = false;
     }
 }
@@ -529,12 +537,29 @@ void DrawCursorText() {
     if (mouse.cursorType == 0 || mouse.cursorType == 2/*Microsoft Word 5.5 even in text mode*/) {
         uint16_t result;
         ReadCharAttr((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,&result);
+        mouse.backData[4]	= DOSV_CheckCJKVideoMode() ? GetKanjiAttr(mouse.backposx, mouse.backposy) : 0;
         mouse.backData[0]	= (uint8_t)(result & 0xFF);
         mouse.backData[1]	= (uint8_t)(result>>8);
         mouse.background	= true;
         // Write Cursor
         result = (result & mouse.textAndMask) ^ mouse.textXorMask;
-        WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
+        if(mouse.backData[4] == 1) {
+            uint16_t result2;
+            ReadCharAttr(mouse.backposx + 1, mouse.backposy, page, &result2);
+            mouse.backData[2] = (Bit8u)(result2 & 0xFF);
+            mouse.backData[3] = (Bit8u)(result2>>8);
+            WriteChar((uint16_t)mouse.backposx,mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
+            WriteChar((uint16_t)(mouse.backposx+1),mouse.backposy,page,(uint8_t)(result2&0xFF),(uint8_t)(result>>8),true);
+        } else if(mouse.backData[4] == 2) {
+            uint16_t result2;
+            ReadCharAttr(mouse.backposx - 1, mouse.backposy, page, &result2);
+            mouse.backData[2] = (Bit8u)(result2 & 0xFF);
+            mouse.backData[3] = (Bit8u)(result2>>8);
+            WriteChar((uint16_t)(mouse.backposx-1),(uint16_t)mouse.backposy,page,(uint8_t)(result2&0xFF),(uint8_t)(result>>8),true);
+            WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
+        } else {
+            WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
+        }
     } else {
         uint16_t address=page * real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
         address += (mouse.backposy * real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS) + mouse.backposx) * 2;
@@ -704,7 +729,7 @@ void DrawCursor() {
     }
     INT10_SetCurMode();
     // In Textmode ?
-    if (CurMode->type==M_TEXT) {
+    if (CurMode->type==M_TEXT || (IS_DOSV && DOSV_CheckCJKVideoMode())) {
         DrawCursorText();
         return;
     }
@@ -1473,6 +1498,14 @@ void Mouse_AfterNewVideoMode(bool setmode) {
         mouse.first_range_setx = true;
         mouse.first_range_sety = true;
         break;
+    case 0x70:
+        if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+            mouse.gran_x = (Bit16s)0xfff8;
+            mouse.gran_y = (Bit16s)0xfff8;
+            mouse.max_y = (real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS) + 1) * 8 - 1;
+            mouse.max_x = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) * 8 - 1;
+            break;
+        }
     default:
         LOG(LOG_MOUSE,LOG_ERROR)("Unhandled videomode %X on reset",mode);
         mouse.inhibit_draw = true;
