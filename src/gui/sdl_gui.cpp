@@ -1104,7 +1104,7 @@ public:
     bool prepare(std::string &buffer) override {
         int val;
         convert(input->getText(), val, false, std::hex);
-        if ((Hex)val ==  prop->GetValue()) return false;
+        if ((Hex)val == (Hex)prop->GetValue()) return false;
         buffer.append(stringify(val, std::hex));
         return true;
     }

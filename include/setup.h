@@ -37,7 +37,7 @@ private:
 public:
 	Hex(int in):_hex(in) { };
 	Hex():_hex(0) { };
-	bool operator==(Hex const& other) {return _hex == other._hex;}
+	bool operator==(Hex const& other) const {return _hex == other._hex;}
 	operator int () const { return _hex; }
 };
 
