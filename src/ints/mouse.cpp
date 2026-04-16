@@ -546,15 +546,15 @@ void DrawCursorText() {
         if(mouse.backData[4] == 1) {
             uint16_t result2;
             ReadCharAttr(mouse.backposx + 1, mouse.backposy, page, &result2);
-            mouse.backData[2] = (Bit8u)(result2 & 0xFF);
-            mouse.backData[3] = (Bit8u)(result2>>8);
+            mouse.backData[2] = (uint8_t)(result2 & 0xFF);
+            mouse.backData[3] = (uint8_t)(result2>>8);
             WriteChar((uint16_t)mouse.backposx,mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
             WriteChar((uint16_t)(mouse.backposx+1),mouse.backposy,page,(uint8_t)(result2&0xFF),(uint8_t)(result>>8),true);
         } else if(mouse.backData[4] == 2) {
             uint16_t result2;
             ReadCharAttr(mouse.backposx - 1, mouse.backposy, page, &result2);
-            mouse.backData[2] = (Bit8u)(result2 & 0xFF);
-            mouse.backData[3] = (Bit8u)(result2>>8);
+            mouse.backData[2] = (uint8_t)(result2 & 0xFF);
+            mouse.backData[3] = (uint8_t)(result2>>8);
             WriteChar((uint16_t)(mouse.backposx-1),(uint16_t)mouse.backposy,page,(uint8_t)(result2&0xFF),(uint8_t)(result>>8),true);
             WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
         } else {
@@ -1500,8 +1500,8 @@ void Mouse_AfterNewVideoMode(bool setmode) {
         break;
     case 0x70:
         if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
-            mouse.gran_x = (Bit16s)0xfff8;
-            mouse.gran_y = (Bit16s)0xfff8;
+            mouse.gran_x = (int16_t)0xfff8;
+            mouse.gran_y = (int16_t)0xfff8;
             mouse.max_y = (real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS) + 1) * 8 - 1;
             mouse.max_x = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) * 8 - 1;
             break;
