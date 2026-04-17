@@ -1552,10 +1552,10 @@ Chemin non valide, pas de répertoire, ou répertoire non vide - %s
 
 .
 :SHELL_CMD_RMDIR_FULLTREE_CONFIRM
-Delete directory "%s" and all its subdirectories? (Y/N)?
+Effacer le répertoire "%s" et tous ses sous-répertoires (O/N) ?
 .
 :SHELL_CMD_RMDIR_SINGLE_CONFIRM
-Delete file "%s" (Y/N)?
+Effacer le fichier "%s" (O/N) ?
 .
 :SHELL_CMD_RENAME_ERROR
 Impossible de renommer - %s
