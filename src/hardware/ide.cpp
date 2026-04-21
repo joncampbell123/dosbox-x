@@ -2605,10 +2605,10 @@ void IDEATADevice::generate_identify_device() {
     host_writew(sector+(80*2),0x007E);  /* major version number. Here we say we support ATA-1 through ATA-8 */
     host_writew(sector+(81*2),0x0022);  /* minor version */
     host_writew(sector+(82*2),0x4208);  /* command set: NOP, DEVICE RESET[XXXXX], POWER MANAGEMENT */
-    host_writew(sector+(83*2),0x4000);  /* command set: LBA48[XXXX] */
+    host_writew(sector+(83*2),0x8400);  /* command set: bit15: valid, bit 10: enable 48bit LBA */
     host_writew(sector+(84*2),0x4000);  /* FIXME: ??? */
     host_writew(sector+(85*2),0x4208);  /* commands in 82 enabled */
-    host_writew(sector+(86*2),0x4000);  /* commands in 83 enabled */
+    host_writew(sector+(86*2),0x0400);  /* commands in 83 enabled bit10: enable 48bit LBA*/
     host_writew(sector+(87*2),0x4000);  /* FIXME: ??? */
     host_writew(sector+(88*2),0x0000);  /* FIXME: ??? */
     host_writew(sector+(93*2),0x0000);  /* FIXME: ??? */
