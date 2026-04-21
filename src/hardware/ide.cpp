@@ -239,12 +239,14 @@ public:
     virtual void io_completion();
     virtual bool increment_current_address(Bitu count=1);
 public:
-    Bitu multiple_sector_max,multiple_sector_count;
-    Bitu heads,sects,cyls,progress_count;
-    Bitu phys_heads,phys_sects,phys_cyls;
+    uint64_t multiple_sector_max,multiple_sector_count;
+    uint64_t heads,sects,cyls,progress_count;
+    uint64_t phys_heads,phys_sects,phys_cyls; /* CHS value of IDE  */
+    uint64_t LBA;
     unsigned char sector[512 * 128] = {};
-    Bitu sector_i,sector_total;
+    uint64_t sector_i,sector_total;
     bool geo_translate;
+
 };
 
 enum {
@@ -2540,6 +2542,7 @@ void IDEATADevice::generate_identify_device() {
     /* total disk capacity in sectors */
     total = sects * cyls * heads;
     ptotal = phys_sects * phys_cyls * phys_heads;
+    uint32_t lba28 = LBA > 0x0FFFFFFF ? 0x0FFFFFFF : (uint32_t)LBA;
 
     host_writew(sector+(0*2),0x0040);   /* bit 6: 1=fixed disk */
     host_writew(sector+(1*2),phys_cyls);
@@ -2590,7 +2593,7 @@ void IDEATADevice::generate_identify_device() {
         host_writew(sector+(59*2),0x0100|multiple_sector_count); /* :8  multiple sector setting is valid */
                         /* 7:0 current setting for number of log. sectors per DRQ of READ/WRITE MULTIPLE */
 
-    host_writed(sector+(60*2),ptotal);  /* total user addressable sectors (LBA) */
+    host_writed(sector+(60*2),lba28);  /* total user addressable sectors (LBA) */
     host_writew(sector+(62*2),0x0000);  /* FIXME: ??? */
     host_writew(sector+(63*2),0x0000);  /* :10 0=Multiword DMA mode 2 not selected */
                         /* TODO: Basically, we don't do DMA. Fill out this comment */
@@ -2608,7 +2611,9 @@ void IDEATADevice::generate_identify_device() {
     host_writew(sector+(86*2),0x4000);  /* commands in 83 enabled */
     host_writew(sector+(87*2),0x4000);  /* FIXME: ??? */
     host_writew(sector+(88*2),0x0000);  /* FIXME: ??? */
-    host_writew(sector+(93*3),0x0000);  /* FIXME: ??? */
+    host_writew(sector+(93*2),0x0000);  /* FIXME: ??? */
+    host_writed(sector+(100*2), (uint32_t)(LBA & 0xFFFFFFFF)); // 48bit LBA lower 32 bits
+    host_writed(sector+(102*2), (uint32_t)(LBA >> 32));        // 48bit LBA upper 32 bits 
 
     /* ATA-8 integrity checksum */
     sector[510] = 0xA5;
@@ -2669,6 +2674,7 @@ void IDEATADevice::update_from_biosdisk() {
 	cyls = dsk->cylinders;
 	heads = dsk->heads;
 	sects = dsk->sectors;
+    LBA = dsk->getLBA();
 
 	if (heads > 16) {
 		geo_translate = true;
@@ -2690,8 +2696,7 @@ void IDEATADevice::update_from_biosdisk() {
 		}
 
 		{
-			uint64_t tmp = ((uint64_t)dsk->diskSizeK << (uint64_t)10) / (uint64_t)dsk->sector_size;
-			cyls = (tmp + (uint64_t)(sects * heads) - (uint64_t)1) / ((uint64_t)(sects * heads));
+			cyls = (uint32_t)(LBA / (sects * heads));
 		}
 
 		LOG_MSG("Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u\n",
@@ -2974,7 +2979,7 @@ static void IDE_SelfIO_Out(IDEController *ide,Bitu port,Bitu val,Bitu len) {
 }
 
 /* Get physical (not logical INT 13h) geometry */
-bool IDE_GetPhysGeometry(unsigned char disk,uint32_t &heads,uint32_t &cyl,uint32_t &sect,uint32_t &size) {
+bool IDE_GetPhysGeometry(unsigned char disk,uint32_t &heads,uint32_t &cyl,uint32_t &sect,uint32_t &size, uint64_t &LBA) {
     IDEController *ide;
     IDEDevice *dev;
     Bitu idx,ms;
@@ -2994,6 +2999,7 @@ bool IDE_GetPhysGeometry(unsigned char disk,uint32_t &heads,uint32_t &cyl,uint32
                     heads = ata->phys_heads;
                     sect = ata->phys_sects;
                     cyl = ata->phys_cyls;
+                    LBA = ata->LBA;
                     size = 512;
                     return true;
                 }

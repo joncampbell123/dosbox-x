@@ -1429,10 +1429,11 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, ui
     this->heads = heads;
     this->sectors = sectors;
     image_base = 0;
-    this->image_length = (uint64_t)cylinders * heads * sectors * sector_size;
+    if (image_length == 0) image_length = (uint64_t)cylinders * heads * sectors * sector_size;
     refcount = 0;
     this->sector_size = sector_size;
     this->diskSizeK = this->image_length / 1024;
+    LBA = image_length / sector_size;
     reserved_cylinders = 0;
     this->diskimg = diskimg;
     class_id = ID_BASE;
@@ -1821,7 +1822,7 @@ static void readDAP(uint16_t seg, uint16_t off) {
 
 void IDE_ResetDiskByBIOS(unsigned char disk);
 void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int head,unsigned sect);
-bool IDE_GetPhysGeometry(unsigned char disk,uint32_t &heads,uint32_t &cyl,uint32_t &sect,uint32_t &size);
+bool IDE_GetPhysGeometry(unsigned char disk,uint32_t &heads,uint32_t &cyl,uint32_t &sect,uint32_t &size, uint64_t &LBA);
 void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba);
 
 void diskio_delay(Bits value/*bytes*/, int type = -1);
@@ -1839,6 +1840,7 @@ static Bitu INT13_DiskHandler(void) {
     uint8_t sectbuf[2048/*CD-ROM support*/];
     uint8_t  drivenum;
     Bitu  i,t;
+    uint64_t LBA = 0;
     last_drive = reg_dl;
     drivenum = GetDosDriveNumber(reg_dl);
     bool any_images = false;
@@ -2390,15 +2392,17 @@ static Bitu INT13_DiskHandler(void) {
         else bufsz = 0x1A;
 
         tmpheads = tmpcyl = tmpsect = tmpsize = 0;
-        if (!IDE_GetPhysGeometry(drivenum,tmpheads,tmpcyl,tmpsect,tmpsize))
-                imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
-
+        if(!IDE_GetPhysGeometry(drivenum, tmpheads, tmpcyl, tmpsect, tmpsize, LBA)) {
+            imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
+            LBA = imageDiskList[drivenum]->getLBA();
+        }
         real_writew(segat,bufptr+0x00,bufsz);
         real_writew(segat,bufptr+0x02,0x0003);  /* C/H/S valid, DMA boundary errors handled */
         real_writed(segat,bufptr+0x04,tmpcyl);
         real_writed(segat,bufptr+0x08,tmpheads);
         real_writed(segat,bufptr+0x0C,tmpsect);
-        real_writed(segat,bufptr+0x10,tmpcyl*tmpheads*tmpsect);
+        real_writed(segat,bufptr+0x10, (uint32_t)(LBA & 0xFFFFFFFF)); /* LBA lower 32bit */
+        real_writed(segat,bufptr+0x14, (uint32_t)(LBA >> 32));        /* LBA upper 32bit */
         real_writed(segat,bufptr+0x14,0);
         real_writew(segat,bufptr+0x18,512);
         if (bufsz >= 0x1E)

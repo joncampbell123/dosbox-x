@@ -96,6 +96,7 @@ class imageDisk {
 		virtual void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize);
 		virtual uint8_t GetBiosType(void);
 		virtual uint32_t getSectSize(void);
+        virtual uint64_t getLBA(void) { LBA = image_length / sector_size; return LBA; }
 		imageDisk(class DOS_Drive *useDrive, unsigned int letter, uint32_t freeMB, int timeout);
 		imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
 		imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
@@ -115,6 +116,7 @@ class imageDisk {
 		uint64_t diskSizeK = 0;
 		FILE* diskimg = NULL;
 		bool diskChangeFlag = false;
+        uint64_t LBA = 0;
 
 		/* this is intended only for when the disk can change out from under us while mounted */
 		virtual bool detectDiskChange(void) { const bool r = diskChangeFlag; diskChangeFlag = false; return r; }
