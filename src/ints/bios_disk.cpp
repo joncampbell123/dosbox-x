@@ -1456,10 +1456,10 @@ void imageDisk::UpdateFloppyType(void) {
 	}
 }
 
-imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((uint64_t)imgSizeK * 1024) {
+imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint64_t imgSize, bool isHardDisk) : diskSizeK(imgSize/1024), diskimg(imgFile), image_length(imgSize) {
     if (imgName != NULL)
         diskname = imgName;
-
+    uint64_t imgSizeK = diskSizeK;
     active = false;
     hardDrive = isHardDisk;
     if(!isHardDisk) {

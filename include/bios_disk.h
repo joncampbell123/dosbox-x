@@ -98,7 +98,7 @@ class imageDisk {
 		virtual uint32_t getSectSize(void);
         virtual uint64_t getLBA(void) { LBA = image_length / sector_size; return LBA; }
 		imageDisk(class DOS_Drive *useDrive, unsigned int letter, uint32_t freeMB, int timeout);
-		imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
+		imageDisk(FILE *imgFile, const char *imgName, uint64_t imgSize, bool isHardDisk);
 		imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
 		virtual ~imageDisk();
 		void Set_GeometryForHardDisk();

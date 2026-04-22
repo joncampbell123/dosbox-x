@@ -1414,7 +1414,7 @@ fatDrive::~fatDrive() {
 FILE * fopen_lock(const char * fname, const char * mode, bool &readonly);
 fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string>& options) {
 	FILE *diskfile;
-	uint32_t filesize;
+	uint64_t filesize;
 	unsigned char bootcode[256];
 
 	if(!dos_kernel_disabled && imgDTASeg == 0) {
@@ -1468,27 +1468,27 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 		if (ext != NULL && !strcasecmp(ext, ".d88")) {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskD88(diskfile, fname, filesize, false);
+			loadedDisk = new imageDiskD88(diskfile, fname, (uint32_t)filesize, false);
 		}
 		else if (!memcmp(bootcode,"VFD1.",5)) { /* FDD files */
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskVFD(diskfile, fname, filesize, false);
+			loadedDisk = new imageDiskVFD(diskfile, fname, (uint32_t)filesize, false);
 		}
 		else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16)) {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, false, 0);
+			loadedDisk = new imageDiskNFD(diskfile, fname, (uint32_t)filesize, false, 0);
 		}
 		else if (!memcmp(bootcode,"T98FDDIMAGE.R1\0\0",16)) {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, false, 1);
+			loadedDisk = new imageDiskNFD(diskfile, fname, (uint32_t)filesize, false, 1);
 		}
 		else {
 			fseeko64(diskfile, 0L, SEEK_END);
-			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDisk(diskfile, fname, filesize, (is_hdd | (filesize > 2880)));
+			filesize = ftello64(diskfile);
+			loadedDisk = new imageDisk(diskfile, fname, filesize, (is_hdd | (filesize > 2880 * 1024)));
 		}
 	}
 
