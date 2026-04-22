@@ -34,6 +34,7 @@ NEXT VERSION
     teardown (catbalony)
   - Fixed mouse cursor display in DOS/V Japanese mode (nanshiki)
   - INT 13h AH=48h: Fixed LBA detection (maron2000)
+  - Fixed read/write errors on last sectors of disk image (maron2000)
 
 2026.03.29
   - Add dosbox.conf option to control the duration of the beep when
