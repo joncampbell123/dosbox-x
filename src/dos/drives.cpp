@@ -533,6 +533,7 @@ char * DriveManager::GetDrivePosition(int drive) {
 bool drivemanager_init = false;
 bool int13_extensions_enable = true;
 bool int13_disk_change_detect_enable = true;
+bool int13_enable_48bitLBA = false;
 
 void DriveManager::Init(Section* s) {
     const Section_prop* section = static_cast<Section_prop*>(s);
@@ -541,6 +542,7 @@ void DriveManager::Init(Section* s) {
 
 	int13_extensions_enable = section->Get_bool("int 13 extensions");
 	int13_disk_change_detect_enable = section->Get_bool("int 13 disk change detect");
+    int13_enable_48bitLBA = section->Get_bool("int 13 enable 48-bit LBA");
 
 	// setup driveInfos structure
 	currentDrive = 0;

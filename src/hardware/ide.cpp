@@ -86,6 +86,7 @@ private:
 extern int bootdrive;
 extern bool bootguest, bootvm, use_quick_reboot;
 static unsigned char init_ide = 0;
+extern bool int13_enable_48bitLBA;
 
 static const unsigned char IDE_default_IRQs[4] = {
     14, /* primary */
@@ -2605,15 +2606,15 @@ void IDEATADevice::generate_identify_device() {
     host_writew(sector+(80*2),0x007E);  /* major version number. Here we say we support ATA-1 through ATA-8 */
     host_writew(sector+(81*2),0x0022);  /* minor version */
     host_writew(sector+(82*2),0x4208);  /* command set: NOP, DEVICE RESET[XXXXX], POWER MANAGEMENT */
-    host_writew(sector+(83*2),0x8400);  /* command set: bit15: valid, bit 10: enable 48bit LBA */
+    host_writew(sector+(83*2),int13_enable_48bitLBA?0xC400:0x4000);  /* command set: bit15: valid, bit14: NOP, bit 10: enable 48bit LBA */
     host_writew(sector+(84*2),0x4000);  /* FIXME: ??? */
     host_writew(sector+(85*2),0x4208);  /* commands in 82 enabled */
-    host_writew(sector+(86*2),0x0400);  /* commands in 83 enabled bit10: enable 48bit LBA*/
+    host_writew(sector+(86*2),int13_enable_48bitLBA?0xC400:0x4000);  /* commands in 83 enabled bit15: valid, bit14: NOP, bit10: enable 48bit LBA*/
     host_writew(sector+(87*2),0x4000);  /* FIXME: ??? */
     host_writew(sector+(88*2),0x0000);  /* FIXME: ??? */
     host_writew(sector+(93*2),0x0000);  /* FIXME: ??? */
-    host_writed(sector+(100*2), (uint32_t)(LBA & 0xFFFFFFFF)); // 48bit LBA lower 32 bits
-    host_writed(sector+(102*2), (uint32_t)(LBA >> 32));        // 48bit LBA upper 32 bits 
+    host_writed(sector+(100*2), int13_enable_48bitLBA ? (uint32_t)(LBA & 0xFFFFFFFF):0); // 48bit LBA lower 32 bits
+    host_writed(sector+(102*2), int13_enable_48bitLBA ? (uint32_t)(LBA >> 32):0);        // 48bit LBA upper 32 bits 
 
     /* ATA-8 integrity checksum */
     sector[510] = 0xA5;

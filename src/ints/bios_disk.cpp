@@ -48,6 +48,7 @@ extern const uint8_t freedos_mbr[];
 extern int bootdrive, tryconvertcp;
 extern bool int13_disk_change_detect_enable, skipintprog, rsize;
 extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
+extern bool int13_enable_48bitLBA;
 bool isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c), CheckDBCSCP(int32_t codepage);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
@@ -1434,6 +1435,8 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, ui
     this->sector_size = sector_size;
     this->diskSizeK = this->image_length / 1024;
     LBA = image_length / sector_size;
+    if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
+        LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)image_length / (1024.0 * 1024 * 1024));
     reserved_cylinders = 0;
     this->diskimg = diskimg;
     class_id = ID_BASE;
@@ -1654,6 +1657,9 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint64_t imgSize, bool 
             }
         }
 
+        LBA = imgSize / sector_size;
+        if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
+            LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)image_length / (1024.0 * 1024 * 1024));
         if (sectors == 0 || heads == 0 || cylinders == 0)
             active = false;
     }
@@ -2401,8 +2407,8 @@ static Bitu INT13_DiskHandler(void) {
         real_writed(segat,bufptr+0x04,tmpcyl);
         real_writed(segat,bufptr+0x08,tmpheads);
         real_writed(segat,bufptr+0x0C,tmpsect);
-        real_writed(segat,bufptr+0x10, (uint32_t)(LBA & 0xFFFFFFFF)); /* LBA lower 32bit */
-        real_writed(segat,bufptr+0x14, (uint32_t)(LBA >> 32));        /* LBA upper 32bit */
+        real_writed(segat,bufptr+0x10, int13_enable_48bitLBA?(uint32_t)(LBA & 0xFFFFFFFF): (uint32_t)(LBA > 0x0FFFFFFF?0x0FFFFFFF:LBA)); /* LBA lower 32bit */
+        real_writed(segat,bufptr+0x14, int13_enable_48bitLBA?(uint32_t)(LBA >> 32):0); /* LBA upper 32bit */
         real_writed(segat,bufptr+0x14,0);
         real_writew(segat,bufptr+0x18,512);
         if (bufsz >= 0x1E)
