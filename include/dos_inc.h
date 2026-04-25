@@ -834,6 +834,73 @@ private:
 	#pragma pack()
 	#endif
 };
+
+static constexpr uint32_t NONEXTDEV = 0xFFFFFFFFul;
+
+static constexpr uint16_t DEVATTR_ISCHAR = 1u << 15u;/*which determines which of the following flags apply*/
+
+static constexpr uint16_t DEVATTRCHR_IOCTL_CTLSTRINGS = 1u << 14u;/*MS-DOS 4.0: 1 IF THE DEVICE UNDERSTANDS IOCTL CONTROL STRINGS*/
+static constexpr uint16_t DEVATTRCHR_IOCTL_OUTPUT_UNTIL_BUSY = 1u << 13u;/*MS-DOS 4.0: 1 IF THE DEVICE SUPPORTS OUTPUT-UNTIL-BUSY*/
+static constexpr uint16_t DEVATTRCHR_OPENCLOSE = 1u << 11u;/*MS-DOS 4.0: 1 IF THE DEVICE UNDERSTANDS OPEN/CLOSE*/
+static constexpr uint16_t DEVATTRCHR_INT29 = 1u << 4u;/*MS-DOS 4.0: 1 IF DEVICE IS RECIPIENT OF INT 29H*/
+static constexpr uint16_t DEVATTRCHR_CLOCK = 1u << 3u;/*MS-DOS 4.0: 1 IF DEVICE IS CLOCK DEVICE*/
+static constexpr uint16_t DEVATTRCHR_NULL = 1u << 2u;/*MS-DOS 4.0: 1 IF DEVICE IS NULL DEVICE*/
+static constexpr uint16_t DEVATTRCHR_CONOUT = 1u << 1u;/*MS-DOS 4.0: 1 IF DEVICE IS CONSOLE OUTPUT*/
+static constexpr uint16_t DEVATTRCHR_CONIN = 1u << 0u;/*MS-DOS 4.0: 1 IF DEVICE IS CONSOLE INPUT*/
+
+static constexpr uint16_t DEVATTRBLK_IOCTL_CTLSTRINGS = 1u << 14u;/*MS-DOS 4.0: 1 IF THE DEVICE UNDERSTANDS IOCTL CONTROL STRINGS*/
+static constexpr uint16_t DEVATTRBLK_IOCTL_MEDIA_FAT_BYTE = 1u << 13u;/*MS-DOS 4.0: 1 IF THE DEVICE DETERMINES MEDIA BY EXAMINING THE FAT ID BYTE*/
+static constexpr uint16_t DEVATTRBLK_OPENCLOSEREMOVABLE = 1u << 11u;/*MS-DOS 4.0: 1 IF THE DEVICE UNDERSTANDS OPEN/CLOSE/REMOVABLE MEDIA*/
+static constexpr uint16_t DEVATTRBLK_IOCTL_GEN = 1u << 6u;/*MS-DOS 4.0: IF DEVICE HAS SUPPORT FOR GETMAP/SETMAP OF LOGICAL DRIVES / UNDERSTANDS GENERIC IOCTL FUNCTION CALLS*/
+static constexpr uint16_t DEVATTRBLK_EXTENDED = 1u << 1u;/*MS-DOS 4.0: Extended block device (>=32MB) aka EXTDRVR*/
+
+enum DEVFUNC {
+	DEVFUNC_INIT=0,
+	DEVFUNC_MEDIACHECK=1,
+	DEVFUNC_GETPBP=2,
+	DEVFUNC_IOCTL_READ=3,
+	DEVFUNC_READ=4,
+	DEVFUNC_NDREAD=5,/*non destructive read*/
+	DEVFUNC_INPUT_STATUS=6,
+	DEVFUNC_INPUT_FLUSH=7,
+	DEVFUNC_WRITE=8,
+	DEVFUNC_WRITEVERIFY=9,
+	DEVFUNC_OUTPUT_STATUS=10,
+	DEVFUNC_OUTPUT_FLUSH=11,
+	DEVFUNC_IOCTL_WRITE=12,
+	DEVFUNC_OPEN=13,
+	DEVFUNC_CLOSE=14,
+	DEVFUNC_REMOVABLE_MEDIA=15,
+	DEVFUNC_OUTPUT_UNTIL_BUSY=16,/*MS-DOS 4.0*/
+	DEVFUNC_GENERAL_IOCTL=19,
+	DEVFUNC_GET_OWNER=23,/*MS-DOS 4.0*/
+	DEVFUNC_SET_OWNER=24/*MS-DOS 4.0*/
+};
+
+class DOS_DEVHDR : public MemStruct{/*device driver header*/
+public:
+	DOS_DEVHDR(uint16_t seg) { SetPt(seg); }
+	uint32_t GetNextDriver(void) { return (uint32_t)sGet(hdr,nextdev); }; /* NONEXTDEV if end of list */
+	void SetNextDriver(const uint32_t p) { sSave(hdr,nextdev,p); };
+	uint16_t GetAttributes(void) { return (uint16_t)sGet(hdr,attributes); };
+	uint16_t GetStrategyOffset(void) { return (uint16_t)sGet(hdr,strategy_entry); };
+	uint16_t GetInterruptOffset(void) { return (uint16_t)sGet(hdr,interrupt_entry); };
+	void GetName(char * const _name) { MEM_BlockRead(pt+offsetof(hdr,name),_name,8);_name[8]=0;}
+private:
+	#ifdef _MSC_VER
+	#pragma pack (1)
+	#endif
+	struct hdr {
+		uint32_t nextdev; /* pointer to next device or FFFF:FFFF */
+		uint16_t attributes;
+		uint16_t strategy_entry;
+		uint16_t interrupt_entry;
+		uint8_t name[8];
+	} GCC_ATTRIBUTE(packed);
+	#ifdef _MSC_VER
+	#pragma pack ()
+	#endif
+};
 extern DOS_InfoBlock dos_infoblock;
 
 struct DOS_Block {
