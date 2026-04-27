@@ -98,7 +98,7 @@ jobs:
         run: |
           sleep 40m
       - name: Download Windows build
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@v1.13
         with:
           repository: "joncampbell123/dosbox-x"
           latest: true
