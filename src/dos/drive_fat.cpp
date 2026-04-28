@@ -1489,6 +1489,7 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = ftello64(diskfile);
 			loadedDisk = new imageDisk(diskfile, fname, filesize, (is_hdd | (filesize > 2880 * 1024)));
+            filesize /= 1024L;
 		}
 	}
 

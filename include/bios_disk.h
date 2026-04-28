@@ -394,6 +394,7 @@ public:
     uint32_t CreateSnapshot();
     void DetectGeometry(Bitu sizes[]);
     static void DetectGeometry(uint8_t* buf, Bitu sizes[], uint64_t currentSize);
+    static void DetectGeometry(Bitu sizes[], uint64_t currentSize);
     static uint64_t scanMBR(uint8_t* mbr, Bitu sizes[], uint64_t disksize=0);
     bool MergeSnapshot(uint32_t* totalSectorsMerged, uint32_t* totalBlocksUpdated);
     static void SizeToCHS(uint64_t size, uint16_t* c, uint8_t* h, uint8_t* s);
@@ -452,7 +453,7 @@ private:
     bool currentBlockAllocated = false;
 	uint32_t currentBlockSectorOffset = 0;
 	uint8_t* currentBlockDirtyMap = nullptr;
-    uint64_t image_length = 0;
+    //uint64_t image_length = 0;
 };
 
 /* C++ class implementing El Torito floppy emulation */

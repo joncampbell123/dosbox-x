@@ -2543,7 +2543,9 @@ void IDEATADevice::generate_identify_device() {
     /* total disk capacity in sectors */
     total = sects * cyls * heads;
     ptotal = phys_sects * phys_cyls * phys_heads;
-    uint32_t lba28 = LBA > 0x0FFFFFFF ? 0x0FFFFFFF : (uint32_t)LBA;
+    //uint32_t lba28 = LBA > 0x0FFFFFFF ? 0x0FFFFFFF : (uint32_t)LBA;
+    uint32_t lba28 = (uint32_t)LBA;
+
 
     host_writew(sector+(0*2),0x0040);   /* bit 6: 1=fixed disk */
     host_writew(sector+(1*2),phys_cyls);
@@ -2708,6 +2710,10 @@ void IDEATADevice::update_from_biosdisk() {
 			(unsigned int)heads,
 			(unsigned int)sects);
 	}
+    else LOG_MSG("Mapping IDE DISK C/H/S %u/%u/%u\n",
+        (unsigned int)cyls,
+        (unsigned int)heads,
+        (unsigned int)sects);
 
 	phys_heads = heads;
 	phys_sects = sects;

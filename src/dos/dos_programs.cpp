@@ -7216,7 +7216,8 @@ class IMGMOUNT : public Program {
 							case imageDiskVHD::UNSUPPORTED_WRITE: roflag=true; break;
 							default: break;
 						}
-						return newImage;
+                        //LOG_MSG("LBA=%llu",newImage->LBA);
+                        return newImage;
 					}
 					else if (!strcasecmp(ext, ".hdi")) {
 						assumeHardDisk = true; /* bugfix for HDI images smaller than 2.88MB so that the .hdi file is not mistaken for a floppy disk image */

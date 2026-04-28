@@ -34,6 +34,8 @@
 #include "mapper.h"
 #include "SDL.h"
 
+extern bool int13_enable_48bitLBA;
+
 #if defined(__linux__) && !defined(__GLIBC__)
 // msul libc does not need 64 suffix to work with files > 2 GiB 
 #define fopen64 fopen
@@ -175,7 +177,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
     vhd->diskimg = file;
     vhd->diskname = fileName;
     vhd->hardDrive = true;
-    vhd->active = true;
+    vhd->active = true; 
     //use delete vhd from now on to release the disk image upon failure
 
     //if fixed image, store a plain imageDisk also
@@ -280,14 +282,19 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 		return INVALID_DATA;
 	}
 
-    //detect real DOS geometry (MBR, BPB or default X-255-63)
-    Bitu sizes[4];
-    vhd->DetectGeometry(sizes);
-    vhd->cylinders = sizes[3];
-    vhd->heads = sizes[2];
-    vhd->sectors = sizes[1];
+    if(vhd->cylinders == 0 || vhd->heads == 0 || vhd->sectors == 0) {
+        Bitu sizes[4];
+        vhd->DetectGeometry(sizes, vhd->image_length); /* Derive geometry from image_length if geometry in VHD footer is not valid */
+        vhd->cylinders = sizes[3];
+        vhd->heads = sizes[2];
+        vhd->sectors = sizes[1];
+        vhd->sector_size = sizes[0];
+    }
+    vhd->LBA = vhd->getLBA(); /* Initialize LBA value */
+    if(!int13_enable_48bitLBA && (vhd->LBA > 0x0FFFFFFF))
+        LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)vhd->image_length / (1024.0 * 1024 * 1024));
 
-	*disk = vhd;
+    *disk = vhd;
 	return !readOnly && roflag ? UNSUPPORTED_WRITE : OPEN_SUCCESS;
 }
 
@@ -1058,6 +1065,11 @@ void imageDiskVHD::DetectGeometry(Bitu sizes[]) {
         Read_AbsoluteSector(lba / 512, buf);
         DetectGeometry(buf, sizes, footer.currentSize);
     }
+    else {
+        LBA = image_length / (sector_size ? sector_size : 512);
+        DetectGeometry(sizes, footer.currentSize);
+    }
+
 }
 
 void imageDiskVHD::DetectGeometry(uint8_t* buf, Bitu sizes[], uint64_t currentSize) {
@@ -1073,6 +1085,47 @@ void imageDiskVHD::DetectGeometry(uint8_t* buf, Bitu sizes[], uint64_t currentSi
             sizes[2] = h2;
             sizes[3] = currentSize / 512 / s2 / h2;
         }
+}
+
+void imageDiskVHD::DetectGeometry(Bitu sizes[], uint64_t currentSize) {
+    if(!sizes) return;
+
+    const uint16_t sector_size = 512;
+    uint64_t totalSectors = currentSize / sector_size;
+
+    uint32_t sectorsPerTrack;
+    uint32_t heads;
+    uint32_t cylinders;
+
+    if(totalSectors > 65535ULL * 16ULL * 63ULL) {
+        sectorsPerTrack = 255;
+        heads = 16;
+        cylinders = (uint32_t)(totalSectors / (sectorsPerTrack * heads));
+    }
+    else {
+        sectorsPerTrack = 17;
+
+        cylinders = (uint32_t)(totalSectors / sectorsPerTrack);
+        heads = (cylinders + 1023) / 1024;
+
+        if(heads < 4) heads = 4;
+        if(heads > 16) heads = 16;
+
+        if(heads > 0) {
+            sectorsPerTrack = (uint32_t)(totalSectors / (heads * cylinders));
+        }
+
+        if(sectorsPerTrack < 17) sectorsPerTrack = 17;
+
+        cylinders = (uint32_t)(totalSectors / (heads * sectorsPerTrack));
+    }
+
+    if(cylinders > 65535) cylinders = 65535;
+
+    sizes[3] = cylinders;
+    sizes[2] = heads;
+    sizes[1] = sectorsPerTrack;
+    sizes[0] = sector_size; // sector_size
 }
 
 //scans a MBR and returns
