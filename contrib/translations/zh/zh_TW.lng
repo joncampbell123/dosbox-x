@@ -1,7 +1,7 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
 :DOSBOX-X:VERSION:2026.03.29
-:DOSBOX-X:REMARK:設定好中文語言與字型後，就可以直接支援中文顯示和列印。國家和字碼頁選項可以留空，或設為「886,950」、「886,951」。譯者註：932 字碼頁的中文語言檔（用於 PC-98、JEGA、DOS/V）可至 https://github.com/1abcd/dosbox-x/issues/2 下載。
+:DOSBOX-X:REMARK:設定好中文語言與字型後，就可以直接支援中文顯示和列印。國家和字碼頁選項可以留空，或設為「886,950」、「886,951」。
 :AUTOEXEC_CONFIGFILE_HELP
 區段中的指令行會在啟動時執行。
 您可以在這裡下達 MOUNT 指令。
@@ -49,6 +49,9 @@ DOSBox-X 組態工具
 .
 :CLOSE
 關閉
+.
+:THEME
+色彩主題
 .
 :DEBUGCMD
 輸入偵錯工具命令
@@ -831,34 +834,34 @@ c:\dosgames\[37m 為一個例子. 您可以將其替換為您自己的遊戲目
 [32m~/dosgames[37m 為一個例子. 您可以將其替換為您自己的遊戲目錄.               [37m 
 .
 :PROGRAM_INTRO_MOUNT_END
-當掛載成功後您可以輸入 [34;1mc:[0m 命令進入您剛掛載的磁碟機 C:.
+[0m當掛載成功後您可以輸入 [34;1mc:[0m 命令進入您剛掛載的磁碟機 C:.
 輸入 [34;1mdir[0m 命令將顯示其中的內容. [34;1mcd[0m 命令將允許您進入一個目錄 (列出的目錄內容
 中以 [33;1m[][0m 識別). 您可以執行以 [31m.exe[0m、[31m.bat[0m 及 [31m.com[0m 結尾的程式及檔案.
 
 .
 :PROGRAM_INTRO_CDROM
 [2J[32;1m如何在 DOSBox-X 中掛載真實/虛擬光碟機:[0m
-DOSBox-X 提供多程度的光碟機模擬.
+DOSBox-X 提供多層級的光碟機模擬.
 
-[33m基本的[0m程度能作用在所有光碟機及一般目錄.
+[33m基本的[0m層級能在所有光碟機及一般目錄運作.
 它將安裝 MSCDEX 並將檔案標記為唯讀.
-這對於大部分遊戲通常已經足夠:
+這指令對於大部分遊戲通常已經夠用:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   或   [34;1mmount d C:\example -t cdrom[0m
-如果不行的話您可能要讓 DOSBox-X 給予光碟機特定的標籤:
-[34;1mmount d C:\example -t cdrom -label CDLABEL[0m
+如果不管用的話您可能要指定光碟機的標籤給 DOSBox-X:
+[34;1mmount d C:\example -t cdrom -label 碟片標籤[0m
 
-[33m下一個[0m程度增加一些低階支援.
-因此只能作用在光碟機:
+[33m下一個[0m層級增加一些低階支援.
+因此只能在光碟機運作:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0[0m
 
-[33m最後一個[0m支援程度要依使用的作業系統決定:
+[33m最後一個[0m支援層級要依您使用的作業系統決定:
 對於 [1mWindows 2000[0m、[1mWindows XP[0m 及 [1mLinux[0m:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-ioctl[0m
 對於 [1mWindows 9x[0m 並安裝有 ASPI 層:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-aspi[0m
 
 替換 [0;31mD:\[0m 為您的光碟機所在位置.
-替換 [34;1m-usecd [33m0[0m 中的 [33;1m0[0m 為當您輸入以下命令時報告的光碟機編號:
+替換 [34;1m-usecd [33m0[0m 中的 [33;1m0[0m 為當您輸入以下指令時報告的光碟機編號:
 [34;1mmount -cd[0m
 
 .
@@ -875,27 +878,27 @@ DOSBox-X 提供多程度的光碟機模擬.
 
 .
 :PROGRAM_BOOT_PRINT_ERROR
-此命令將使 DOSBox-X 從軟碟或硬碟映像開機.
+使 DOSBox-X 從軟碟 / PCjr 卡匣或硬碟映像開機.
 
-您可以在此命令中使用多個軟碟映像檔, 並可透過選單指令進行切換.
-"磁碟機:" 將從指定的已掛載的磁碟機開機. 如果沒有指定磁碟機代號,
-將預設從磁碟機 A: 開機. 如果沒有指定參數將試著從目前磁碟機開機.
-只支援從以下磁碟機代號開機: A:、C:、以及 D:. 如果要從硬碟機
-(C: 或 D:) 開機, 請保證映像檔已用 [34;1mIMGMOUNT[0m 命令掛載.
+[34;1mBOOT [磁碟機代號:|磁碟機編號] [-convertfat|-convertfatro|-noconvertfat][0m
+[34;1mBOOT floppyimg1.img [floppyimg2.img ...] [-E <命令>][0m
+[34;1mBOOT harddrive.img[0m
 
-此命令的語法為如下之一:
+  磁碟機代號       代號 A: 代表軟碟機, 代號 C: 或 D: 代表硬碟機.
+  磁碟機編號       編號 0 代表軟碟機, 編號 2 或 3 代表硬碟機.
+  (必須先用 [34;1mIMGMOUNT[0m 命令掛載好磁碟機.)
+  floppyimg.img    指定一個或多個軟碟 / PCjr 映像來開機.
+                   多個映像檔為磁碟機 A: 建立一個切換清單.
+  harddrive.img    指定單個硬碟映像來從磁碟機 C: 開機.
+  加上前導字元冒號 (:) 視同將映像檔加上防寫保護.
 
-[34;1mBOOT [磁碟機代號:] [-convertfat|-convertfatro|-noconvertfat][0m
-
-[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L 磁碟機代號][0m
-
-附註: 如果啟用了 "leading colon write protect image" 組態選項,
-      前導字元冒號 (:) 帶頭的映像檔, 將會以防寫模式開機.
+  [-E <命令>]      為 PCjr 卡匣映像指定一個命令字串.
+  [-L 磁碟機代號]  可忽略的選項, 僅為了相容性而支援.
 
 舉例:
-
-[32;1mBOOT A:[0m       - 從磁碟機 A: 開機, 如果此磁碟機已掛載並能開機.
-[32;1mBOOT :DOS.IMG[0m - 以防寫模式從軟碟映像檔 DOS.IMG 開機.
+[32;1mBOOT A:[0m                  從磁碟機 A: 開機, 如果此磁碟機已掛載並能開機.
+[32;1mBOOT disk1.img disk2.img[0m 使用位在磁碟機 A: 的切換清單來從多個軟碟映像檔開機.
+[32;1mBOOT :DOS.IMG[0m            以防寫模式從軟碟映像檔 DOS.IMG 開機.
 
 .
 :PROGRAM_BOOT_UNABLE
@@ -2248,13 +2251,13 @@ CHCP nnn[:[語言]]
   檔案  指定字碼頁檔案.
   語言  指定對應的語言.
 
-用 TrueType 字型輸出方式, 支援變更的字碼頁包括:
+用 TrueType 字型輸出方式, 支援變更的字碼頁有:
 
 437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021
 
-以及雙位元組字碼頁, 包括: 932、936、949、950/951
+以及雙位元組字碼頁, 包括 932、936、949、950/951.
 
-通過提供字碼頁檔案來支援自訂的字碼頁.
+客製化的字碼頁可以透過提供字碼頁檔案來支援.
 
 .
 :SHELL_CMD_CHCP_ACTIVE
@@ -2313,10 +2316,12 @@ TRUENAME [/H] 檔案
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
-DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [O|/-O] [命令] [選項]
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [O|/-O] [/D|/-D] [命令] [選項]
 
 將開始進行影像或音訊擷取、執行程式, 然後在程式結束時自動停止擷取.
-/V 為影像、/A 為音訊、/M 為多軌音訊, 以及 /O 為 OPL FM (DROv2 格式)
+/V 為影像, /A 為音訊, /M 為多軌音訊, /O 為 OPL FM (DROv2 格式),
+以及 /-D 為停用結束後的延遲.
+
 .
 :SHELL_CMD_DEBUGBOX_HELP
 執行程式並在進入點切換到偵錯工具.
@@ -2386,7 +2391,7 @@ DEBUGBOX [命令] [選項]
 結束 DOSBox-X
 .
 :MENU:mapper_capkeyboard
-Capture keyboard
+擷取鍵盤
 .
 :MENU:mapper_capmouse
 擷取滑鼠
@@ -3175,7 +3180,7 @@ MPEG-TS + H.264
 說明
 .
 :MENU:help_intro
-DOSBox-X 介紹
+介紹
 .
 :MENU:help_homepage
 DOSBox-X 首頁
@@ -3253,7 +3258,7 @@ DOS 命令
 記錄檔案 I/O
 .
 :MENU:mapper_speedlock
-切換至快轉模式
+高速 (快轉模式): 點放模式
 .
 :MENU:mapper_speedlock2
 高速 (快轉模式)
@@ -3648,6 +3653,12 @@ CPU: 一般核心
 :MAPPER:simple
 CPU: 簡單核心
 .
+:MAPPER:speedlock
+高速 (快轉模式): 點放模式
+.
+:MAPPER:speedlock2
+高速 (快轉模式): 開啟或關閉
+.
 :MAPPER:togmenu
 切換選單列顯示
 .
@@ -3918,7 +3929,7 @@ D88 映像檔似乎是用於 PC-88, 不能用它來開機.
 START [+|-|_] 命令 [引數]
 
   [+|-|_]: 最大化/最小化/隱藏 程式.
-  也接受 /MAX, /MIN, /HID 選項.
+  也支援 /MAX, /MIN, /HID 選項.
   命令: 要啟動的命令、程式、或檔案.
   引數: 傳遞給應用程式的引數.
   
@@ -4228,8 +4239,8 @@ COLOR [屬性]
 
   屬性        指定主控台輸出的色彩屬性
   
-色彩屬性由十六進位的「兩位數」數字來指定 -- 第一位數對應到背景色;
-第二位數對應到前景色. 每一位數可以是下列的任一個值:
+色彩屬性由十六進位的「兩個」位數來指定 -- 第一個對應到背景色;
+第二個對應到前景色. 每一個位數可以是下列的任一個值:
 
     0 = 黑色        8 = 灰色
     1 = 藍色        9 = 淺藍色
@@ -4244,7 +4255,7 @@ COLOR [屬性]
 如果嘗試執行帶有相同前景和背景色彩的 COLOR 命令,
 ERRORLEVEL 會被 COLOR 命令設定為 1.
 
-舉例: "COLOR fc" 命令會產生亮白色為底的淺紅色.
+舉例: "COLOR fc" 命令將產生出亮白色為底的淺紅色.
 
 .
 :ERROR
@@ -4487,4 +4498,19 @@ Raw OPL 的輸出已存檔:
 螢幕抓圖已存檔:
 
 %s
+.
+:HELP_ABOUT_VERSION
+DOSBox-X 版本 %s (%s %s %s位元)%s
+.
+:HELP_ABOUT_UPDATED
+組建日期和時間: %s
+.
+:HELP_ABOUT_COPYRIGHT
+著作權 %s-%s %s
+.
+:HELP_ABOUT_MAINTAINER
+專案維護者: %s
+.
+:HELP_ABOUT_HOMEPAGE
+DOSBox-X 首頁: %s
 .
