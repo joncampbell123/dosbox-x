@@ -1436,7 +1436,7 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, ui
     this->diskSizeK = this->image_length / 1024;
     LBA = image_length / sector_size;
     if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
-        LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)image_length / (1024.0 * 1024 * 1024));
+        LOG_MSG("Warning: Disk size (%lf GiB) exceeds 128GiB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)image_length / (1024.0 * 1024 * 1024));
     reserved_cylinders = 0;
     this->diskimg = diskimg;
     class_id = ID_BASE;
@@ -1659,7 +1659,7 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint64_t imgSize, bool 
 
         LBA = imgSize / sector_size;
         if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
-            LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)image_length / (1024.0 * 1024 * 1024));
+            LOG_MSG("Warning: Disk size (%lf GiB) exceeds 128GiB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)image_length / (1024.0 * 1024 * 1024));
         if (sectors == 0 || heads == 0 || cylinders == 0)
             active = false;
     }

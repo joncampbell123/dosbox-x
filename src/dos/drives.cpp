@@ -533,7 +533,7 @@ char * DriveManager::GetDrivePosition(int drive) {
 bool drivemanager_init = false;
 bool int13_extensions_enable = true;
 bool int13_disk_change_detect_enable = true;
-bool int13_enable_48bitLBA = false;
+bool int13_enable_48bitLBA = true;
 
 void DriveManager::Init(Section* s) {
     const Section_prop* section = static_cast<Section_prop*>(s);
