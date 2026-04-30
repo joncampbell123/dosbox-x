@@ -1641,7 +1641,7 @@ void CPrinter::printChar(uint8_t ch, int box)
     {
 		curX = leftMargin;
 		curY += lineSpacing;
-		if (curY > bottomMargin) newPage(true, false);
+		if (curY > bottomMargin - 0.0001) newPage(true, false);
 	}
 }
 
