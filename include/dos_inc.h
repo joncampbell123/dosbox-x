@@ -878,6 +878,22 @@ enum DEVFUNC {
 	DEVFUNC_SET_OWNER=24/*MS-DOS 4.0*/
 };
 
+enum DOSDEVERR {
+	DOSDEVERR_WRITEPROTECT=0,
+	DOSDEVERR_UNKNOWNUNIT=1,
+	DOSDEVERR_DRIVENOTREADY=2,
+	DOSDEVERR_UNKNOWNCOMMAND=3,
+	DOSDEVERR_CRC=4,
+	DOSDEVERR_BADDRIVEREQUEST=5,
+	DOSDEVERR_SEEKERR=6,
+	DOSDEVERR_UNKNOWNMEDIA=7,
+	DOSDEVERR_SECTORNOTFOUND=8,
+	DOSDEVERR_PRINTEROUTOFPAPER=9,
+	DOSDEVERR_WRITEFAULT=10,
+	DOSDEVERR_READFAULT=11,
+	DOSDEVERR_GENERALFAILURE=12
+};
+
 class DOS_DEVHDR : public MemStruct{/*device driver header*/
 public:
 	DOS_DEVHDR(uint16_t seg) { SetPt(seg); }
@@ -887,7 +903,7 @@ public:
 	uint16_t GetStrategyOffset(void) { return (uint16_t)sGet(hdr,strategy_entry); };
 	uint16_t GetInterruptOffset(void) { return (uint16_t)sGet(hdr,interrupt_entry); };
 	void GetName(char * const _name) { MEM_BlockRead(pt+offsetof(hdr,name),_name,8);_name[8]=0;}
-private:
+
 	#ifdef _MSC_VER
 	#pragma pack (1)
 	#endif
@@ -897,11 +913,36 @@ private:
 		uint16_t strategy_entry;
 		uint16_t interrupt_entry;
 		uint8_t name[8];
-	} GCC_ATTRIBUTE(packed);
+	} GCC_ATTRIBUTE(packed);/*=18 bytes*/
+
+	/* structure used in passing requests to device driver, head structure: "Static Request Header" */
+	struct streqhdr {
+		uint8_t record_length; /* length of the driver request */
+		uint8_t unit_code;
+		uint8_t cmd_code;
+		uint16_t status; /* status word: 15=ERR 9=BUSY 8=DONE 7..0=ERR CODE */
+		uint32_t reserved[2]; /* reserved for internal DOS use, queue links */
+	};/*=13 bytes*/
+
+	/* read/write/ioctl request */
+	struct req_rwioctl {
+		struct hdr hdr; /* static request header (13 bytes) */
+		uint8_t media_dpb; /* from DPB */
+		uint32_t xfer_addr; /* transfer address (16:16) */
+		uint16_t count; /* byte or sector count */
+		uint16_t start_sector; /* starting sector (if block device) */
+		/* block device with 16-bit sector stops here (prior to MS-DOS 3.3) == 22 bytes */
+		/* the following applies if EXTDRVR */
+		uint32_t ptr_volid; /* pointer to volume ID (R/W according to MS-DOS 4.0 source code) */
+		uint32_t start_sector32; /* starting sector (if block device) */
+		/* EXTDRVR stops here == 30 bytes */
+	};/*=30 bytes*/
+
 	#ifdef _MSC_VER
 	#pragma pack ()
 	#endif
 };
+
 extern DOS_InfoBlock dos_infoblock;
 
 struct DOS_Block {
