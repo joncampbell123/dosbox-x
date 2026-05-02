@@ -1,3 +1,6 @@
+Next version
+  - 
+
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
     directory in your home directory for DOSBox-X logo PNG files.
