@@ -924,9 +924,20 @@ public:
 		uint32_t reserved[2]; /* reserved for internal DOS use, queue links */
 	};/*=13 bytes*/
 
-	/* read/write/ioctl request */
-	struct req_rwioctl {
-		struct hdr hdr; /* static request header (13 bytes) */
+	/* init request */
+	struct req_init {
+		struct hdr hdr; /* static request header (13 bytes) DEVFUNC_INIT */
+		uint8_t num_of_units; /* number of units */
+		uint32_t end_ptr; /* ending address of driver, filled in by INIT */
+		uint32_t bpb_ptr; /* in: init arguments  out: BPB array */
+		/* MS-DOS 2.0 ends here == 22 bytes */
+		uint8_t drive_num; /* driver number */
+		uint16_t config_err; /* config.sys error flag */
+	};/*=25 bytes*/
+
+	/* read/write request */
+	struct req_rwio {
+		struct hdr hdr; /* static request header (13 bytes) DEVFUNC_READ/DEVFUNC_WRITE/DEVFUNC_WRITEVERIFY */
 		uint8_t media_dpb; /* from DPB */
 		uint32_t xfer_addr; /* transfer address (16:16) */
 		uint16_t count; /* byte or sector count */
