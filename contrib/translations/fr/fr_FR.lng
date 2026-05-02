@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:French (France)
 :DOSBOX-X:CODEPAGE:859
-:DOSBOX-X:VERSION:2026.03.29
+:DOSBOX-X:VERSION:2026.05.02
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Les lignes de cette section seront exécutées au démarrage.
@@ -49,6 +49,9 @@ Annuler
 .
 :CLOSE
 Fermer
+.
+:THEME
+Thème
 .
 :DEBUGCMD
 Commande de débogueur
@@ -1549,10 +1552,10 @@ Chemin non valide, pas de répertoire, ou répertoire non vide - %s
 
 .
 :SHELL_CMD_RMDIR_FULLTREE_CONFIRM
-Delete directory "%s" and all its subdirectories? (Y/N)?
+Effacer le répertoire "%s" et tous ses sous-répertoires (O/N) ?
 .
 :SHELL_CMD_RMDIR_SINGLE_CONFIRM
-Delete file "%s" (Y/N)?
+Effacer le fichier "%s" (O/N) ?
 .
 :SHELL_CMD_RENAME_ERROR
 Impossible de renommer - %s
@@ -4121,7 +4124,7 @@ Lance une entrée scriptée au clavier dans un programme DOS lancé.
 
 AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
 
-Where:
+Où :
   -list :   affiche tous les noms de boutons disponibles.
   -w WAIT : seconds avant que la saisie commence. Deux secondes par défaut; maximum 30.
   -p PACE : secondes entre chaque frappe. Une demi-seconde par défaut; maximum 10.
@@ -4544,4 +4547,19 @@ L'état de la sauvegarde est corrompu ! Le programme peut ne pas fonctionner.
 Enregistrement de la capture d'écran dans le fichier :
 
 %s
+.
+:HELP_ABOUT_VERSION
+DOSBox-X ver.%s (%s %s %s-bit)%s
+.
+:HELP_ABOUT_UPDATED
+Date/heure de compilation : %s
+.
+:HELP_ABOUT_COPYRIGHT
+Copyright %s-%s %s
+.
+:HELP_ABOUT_MAINTAINER
+Mainteneur du projet : %s
+.
+:HELP_ABOUT_HOMEPAGE
+Site de DOSBox-X : %s
 .

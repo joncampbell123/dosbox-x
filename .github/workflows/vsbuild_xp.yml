@@ -126,12 +126,12 @@ jobs:
           echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ env.ZIPNAME }}
@@ -276,12 +276,12 @@ jobs:
           cd contrib/windows/installer/
           ./ISCC.exe ./DOSBox-X-setupXP.iss
       - name: Upload preview installer
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: dosbox-x-winXP-${{ env.timestamp }}-setup.exe
           path: contrib/windows/installer/dosbox-x-winXP-*.exe
       - name: Upload XP build installer release version
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |

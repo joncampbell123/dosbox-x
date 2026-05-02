@@ -4639,6 +4639,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 extern bool jfont_init, finish_prepare, isDBCSCP();
 extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
+int setTTFMap(bool changecp);
 int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     if((TTF_using() && isSupportedCP(newCP)) || !TTF_using()) {
         int32_t oldcp = dos.loaded_codepage, cpbak = newCP;
@@ -4703,6 +4704,9 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
         if(newCP != lastsetcp) {
             LOG_MSG("Codepage set to %d", newCP);
             lastsetcp = newCP;
+#if defined(USE_TTF)
+            setTTFMap(true/* force update mapping */);
+#endif
         }
         return missing;
     } else if (opt<1 && shell) {

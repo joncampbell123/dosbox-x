@@ -1414,7 +1414,7 @@ fatDrive::~fatDrive() {
 FILE * fopen_lock(const char * fname, const char * mode, bool &readonly);
 fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string>& options) {
 	FILE *diskfile;
-	uint32_t filesize;
+	uint64_t filesize;
 	unsigned char bootcode[256];
 
 	if(!dos_kernel_disabled && imgDTASeg == 0) {
@@ -1468,27 +1468,28 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 		if (ext != NULL && !strcasecmp(ext, ".d88")) {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskD88(diskfile, fname, filesize, false);
+			loadedDisk = new imageDiskD88(diskfile, fname, (uint32_t)filesize, false);
 		}
 		else if (!memcmp(bootcode,"VFD1.",5)) { /* FDD files */
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskVFD(diskfile, fname, filesize, false);
+			loadedDisk = new imageDiskVFD(diskfile, fname, (uint32_t)filesize, false);
 		}
 		else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16)) {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, false, 0);
+			loadedDisk = new imageDiskNFD(diskfile, fname, (uint32_t)filesize, false, 0);
 		}
 		else if (!memcmp(bootcode,"T98FDDIMAGE.R1\0\0",16)) {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, false, 1);
+			loadedDisk = new imageDiskNFD(diskfile, fname, (uint32_t)filesize, false, 1);
 		}
 		else {
 			fseeko64(diskfile, 0L, SEEK_END);
-			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDisk(diskfile, fname, filesize, (is_hdd | (filesize > 2880)));
+			filesize = ftello64(diskfile);
+			loadedDisk = new imageDisk(diskfile, fname, filesize, (is_hdd | (filesize > 2880 * 1024)));
+            filesize /= 1024L;
 		}
 	}
 
@@ -2816,6 +2817,9 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool fcb_findfirst) {
 		}
 	}
 
+	/* need to remember whether doing an FCB or FindFirst (AH=4Eh) search */
+	findFirstFCB = fcb_findfirst;
+
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
 		dta.SetDirID(0);
 		dta.SetDirIDCluster(cwdDirCluster);
@@ -3023,7 +3027,42 @@ nextfile:
 	}
 
 	if (extension[0]!=0) {
-		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
+		// NTS: There are actually two ways to search for/read a volume label on a drive.
+		//
+		// 1. Set up an FCB to search for a volume label attribute with name ???????????
+		//    which will scan the root directory for a volume label and return it if it
+		//    exists.
+		//
+		//    The volume label will be returned in the FCB exactly as it is, and it can
+		//    be treated as an 11 byte string.
+		//
+		//    This is the standard documented way to do it. MS-DOS LABEL.EXE does this.
+		//
+		// 2. Use INT 21h AH=4Eh (Find First File) to search for a volume label attribute
+		//    with name *.* (Creative INSTALL.EXE uses A:\*.*). It will scan the root
+		//    directory and return it if it exists.
+		//
+		//    The volume label will be processed like any other file or directory name and
+		//    converted to an 8.3 filename, including removal of trailing spaces and the
+		//    addition of the "." if the last 3 chars have text.
+		//
+		//    This is a nonstandard way to do it. Creative Sound Blaster INSTALL.EXE uses
+		//    this method to determine which setup disk is in the drive, and it explicitly
+		//    checks for and expects the munged 8.3 volume label file name to detect it.
+		//
+		//    Example: Checks for "SBPRO_DISK1", expects INT 21h AH=4Eh to return "SBPRO_DI.SK1",
+		//             will not accept "SBPRO_DISK1".
+		//
+		//    A cursory check of the released MS-DOS 4.0 source code (DOS/SEARCH.ASM) shows
+		//    that INT 21h AH=4Eh has absolutely no code to handle volume labels whatsoever,
+		//    and therefore, this is something Microsoft never intended DOS programs to do.
+		//    ref: [https://github.com/joncampbell123/MS-DOS/blob/master/v4.0/src/DOS/SEARCH.ASM#L262]
+		if (findFirstFCB) {
+			if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
+				strcat(find_name, ".");
+			}
+		}
+		else {
 			strcat(find_name, ".");
 		}
 		strcat(find_name, extension);

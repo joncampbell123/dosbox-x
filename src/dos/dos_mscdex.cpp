@@ -65,7 +65,14 @@ public:
 	void	SetDriveLetter		(uint8_t letter)	{ sSave(sDeviceHeader,driveLetter,letter);		};
 	void	SetNumSubUnits		(uint8_t num)		{ sSave(sDeviceHeader,numSubUnits,num);			};
 	uint8_t	GetNumSubUnits		(void)			{ return sGet(sDeviceHeader,numSubUnits);		};
-	void	SetName				(char const* _name)	{ MEM_BlockWrite(pt+offsetof(sDeviceHeader,name),_name,8); };
+	void	SetName				(char const* _name)	{
+        char buf[8];
+        size_t len = strlen(_name);
+        memset(buf, ' ', 8);
+        memcpy(buf, _name, (len < 8) ? len : 8);
+
+        MEM_BlockWrite(pt + offsetof(sDeviceHeader, name), buf, 8);
+    };
 	void	SetInterrupt		(uint16_t ofs)	{ sSave(sDeviceHeader,interrupt,ofs);			};
 	void	SetStrategy			(uint16_t ofs)	{ sSave(sDeviceHeader,strategy,ofs);			};
 

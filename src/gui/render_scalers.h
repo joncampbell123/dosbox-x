@@ -69,7 +69,7 @@ template <typename T> struct scct_t {
 };
 typedef scct_t<uint8_t> scalerChangeCache_t;
 
-typedef union {
+union scalerFrameCache_t {
 	// an unsigned int and a pointer, regardless of pointer type, is always the same size
 	template <typename T> struct ctd_t {
 		unsigned int pitch,width;
@@ -81,7 +81,7 @@ typedef union {
 	ctd_t<uint32_t> b32;
 	ctd_t<uint16_t> b16;
 	ctd_t<uint8_t> b8;
-} scalerFrameCache_t;
+};
 #endif
 #if RENDER_USE_ADVANCED_SCALERS>1
 extern scalerChangeCache_t scalerChangeCache;

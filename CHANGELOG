@@ -1,8 +1,44 @@
-NEXT VERSION
+2026.05.02
   - DOSBox-X will now check both the current directory and the .config
     directory in your home directory for DOSBox-X logo PNG files.
     It is now possible to configure one set of PNG files as a default
     for all uses of DOSBox-X from your user account. (joncampbell123).
+  - src/gui/render.cpp: Added missing ifdef conditional on C_METAL to enable
+    building on macOS platforms without Metal support. (herrnst)
+  - Fixed Metal support detection: add framework linker flags to configure
+    check (maron2000)
+  - Fixed window position not centered even when windowposition option is set
+    to do so. (maron2000)
+  - Fixed MSCDEX device name padding for short names (maron2000)
+  - When DOS games use the Adlib FM chip to do "digitized speech", DOSBox-X
+    does emulate that correctly, and it also correctly emulates how low
+    the volume is on the sound card output. However to make it more
+    audible, a new option "adlib pcm boost" has been added. If set,
+    and the Adlib emulation detects that the guest application is
+    playing PCM audio through it, the audio levels of the FM output
+    will be amplified to make the digitized speech much more audible.
+    (joncampbell123)
+  - Fixed mapping of TTF to match with guest codepage when launched with
+    output=ttf. (maron2000)
+  - Limit window size of TTF output to 2/3rd of the screen in both
+    dimensions so that the window is not TOO large on the user's screen.
+    (joncampbell123)
+  - Fix segfault in TTF output code caused by codepage mapping when the
+    TTF output is not active. (joncampbell123)
+  - Fixed clip_paste_bios option change was not reflected. Also, default is
+    changed to "true" for Windows due to some characters fails to paste when
+    set otherwise. (maron2000)
+  - Replaced some deprecated functions in dosbox.h. (maron2000)
+  - Fixed colors in the screenshot of macOS SDL1 build were wrong.(maron2000)
+  - Fix savestate restore crash in POD_Load_DOS_Files during live file slot 
+    teardown (catbalony)
+  - Fixed mouse cursor display in DOS/V Japanese mode (nanshiki)
+  - INT 13h AH=48h: Fixed LBA detection (maron2000)
+  - Fixed read/write errors on last sectors of disk image (maron2000)
+  - Int 13h: Added option to enable/disable 48-bit LBA support (maron2000)
+  - Fix VHD file geometry detection (maron2000)
+  - Fixed crash when printing out multipages to printer (Windows) (maron2000)
+  - printer.cpp: Fix occasional missing page break after line wrap (maron2000)
 
 2026.03.29
   - Add dosbox.conf option to control the duration of the beep when

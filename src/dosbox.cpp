@@ -3887,6 +3887,11 @@ void DOSBOX_SetupConfigSections(void) {
 					"All OPL modes are AdLib-compatible.");
 			Pstring->SetBasic(true);
 
+			Pbool = secprop->Add_bool("adlib pcm boost",Property::Changeable::WhenIdle,false);
+			Pbool->Set_help("If set, and Adlib emulation detects that the guest application is playing digitized speech\n"
+					"or music through the FM chip, the FM audio will be amplified to make the audio more audible.\n"
+					"Audio levels will be reset for any other use including FM music synthesis.");
+
 			Pbool = secprop->Add_bool("adlib force timer overflow on detect",Property::Changeable::WhenIdle,false);
 			Pbool->Set_help("If set, Adlib/OPL emulation will signal 'overflow' on timers after 50 I/O reads.\n"
 					"This is a temporary hack to work around timing bugs noted in DOSBox-X. Certain\n"
@@ -5035,6 +5040,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("int 13 extensions",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable INT 13h extensions (functions 0x40-0x48). You will need this enabled if the virtual hard drive image is 8.4GB or larger.");
+
+    Pbool = secprop->Add_bool("int 13 enable 48-bit LBA", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("Enable 48-bit LBA support for INT 13h extensions. Needed for drives larger than 28-bit LBA limit (128GiB).");
 
     Pbool = secprop->Add_bool("biosps2",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Emulate BIOS INT 15h PS/2 mouse services\n"

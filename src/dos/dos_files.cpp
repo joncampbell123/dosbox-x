@@ -696,41 +696,42 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		return false;
 	}
 
-    if (attr == DOS_ATTR_VOLUME) {
-        const char* vol_pattern = search;
+	if (attr == DOS_ATTR_VOLUME) {
+		const char* vol_pattern = search;
 
-        /* Optional drive specification */
-        if (search[1] == ':') {
-            drive = (search[0] | 0x20) - 'a';
-            vol_pattern = search + 2;
-        }
-        else {
-            drive = DOS_GetDefaultDrive();
-        }
-        if (drive >= DOS_DRIVES || !Drives[drive]) {
-            DOS_SetError(DOSERR_PATH_NOT_FOUND);
-            return false;
-        }
-        sdrive = drive;
-        dta.SetupSearch(drive, (uint8_t)attr, vol_pattern);
+		/* Optional drive specification */
+		if (search[1] == ':') {
+			drive = (search[0] | 0x20) - 'a';
+			vol_pattern = search + 2;
+		}
+		else {
+			drive = DOS_GetDefaultDrive();
+		}
+		if (drive >= DOS_DRIVES || !Drives[drive]) {
+			DOS_SetError(DOSERR_PATH_NOT_FOUND);
+			return false;
+		}
+		sdrive = drive;
+		while (*vol_pattern == '\\') vol_pattern++; /* Creative Sound Blaster Pro 2.0 INSTALL uses "A:\*.*" to read volume label */
+		dta.SetupSearch(drive, (uint8_t)attr, vol_pattern);
 
-        return Drives[drive]->FindFirst("", dta, fcb_findfirst);
-    }
+		return Drives[drive]->FindFirst("", dta, fcb_findfirst);
+	}
 
 	if (!DOS_MakeName(search,fullsearch,&drive)) return false;
 	//Check for devices. FindDevice checks for leading subdir as well
 	bool device = (DOS_FindDevice(search) != DOS_DEVICES);
 
-    /* Split the search in dir and pattern */
-    forcelfn = false;
+	/* Split the search in dir and pattern */
+	forcelfn = false;
 	char *find_last = NULL;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
- #if !defined(OSFREE)
-    bool net = Network_IsNetworkResource(search);
+#if !defined(OSFREE)
+	bool net = Network_IsNetworkResource(search);
 	if (net) forcelfn = true;
 	char *p = net ? strchr_dbcs(fullsearch+(fullsearch[0]=='"'?3:2), '\\') : NULL;
 	find_last = strrchr_dbcs(p != NULL ? p + 1 : fullsearch, '\\');
- #endif
+#endif
 #else
 	find_last = strrchr_dbcs(fullsearch,'\\');
 #endif
@@ -743,9 +744,9 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		strcpy(dir,fullsearch);
 	}
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
- #if !defined(OSFREE)
+#if !defined(OSFREE)
 	if (!strlen(dir)&&Network_IsNetworkResource(pattern)) {forcelfn=false;return false;}
- #endif
+#endif
 #endif
 
 	// Silence CHKDSK "Invalid sub-directory entry"
@@ -758,21 +759,21 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 
 	sdrive=drive;
 	dta.SetupSearch(drive,(uint8_t)attr,pattern);
-    forcelfn = false;
+	forcelfn = false;
 
 	if(device) {
 		find_last = strrchr(pattern,'.');
 		if(find_last) *find_last = 0;
 		//TODO use current date and time
-        dta.SetResult(pattern,pattern,0,0,0,0,DOS_ATTR_DEVICE);
+		dta.SetResult(pattern,pattern,0,0,0,0,DOS_ATTR_DEVICE);
 		LOG(LOG_DOSMISC,LOG_WARN)("finding device %s",pattern);
 		return true;
 	}
-   
+
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
- #if !defined(OSFREE)
-    if (net) return Network_FindFirst(dir,dta);
- #endif
+#if !defined(OSFREE)
+	if (net) return Network_FindFirst(dir,dta);
+#endif
 #endif
 	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
 	return false;
@@ -1119,7 +1120,9 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 }
 
 bool DOS_OpenFileExtended(char const * name, uint16_t flags, uint16_t createAttr, uint16_t action, uint16_t *entry, uint16_t* status) {
+// FIXME: Not yet supported : Bit 12 of flags (FAT32 allow files up to 4GB instead of 2GB)
 // FIXME: Not yet supported : Bit 13 of flags (int 0x24 on critical error)
+// FIXME: Not yet supported : Bit 14 of flags (auto commit on every write)
 	uint16_t result = 0;
 	if (action==0) {
 		// always fail setting
@@ -2768,14 +2771,15 @@ void POD_Load_DOS_Files( std::istream& stream )
 
 			// - reloc ptr
 			READ_POD( &file_valid, file_valid );
-
 			// ignore system files
 			if( file_valid == 0xfe ) {
 				READ_POD( &Files[lcv]->refCtr, Files[lcv]->refCtr );
 				continue;
 			}
 
-			// shutdown old file
+			// Detach any live pre-restore file object from this slot before loading
+			// the saved entry. Closing/deleting the current object here can crash
+			// during same-session restore for active protected-mode titles.
 			if( Files[lcv] && Files[lcv]->GetName() != NULL ) {
 				// invalid file state - abort
 				if( strcmp( Files[lcv]->GetName(), "NUL" ) == 0 ) break;
@@ -2784,12 +2788,6 @@ void POD_Load_DOS_Files( std::istream& stream )
 				if( strcmp( Files[lcv]->GetName(), "PRN" ) == 0 ) break;
 				if( strcmp( Files[lcv]->GetName(), "AUX" ) == 0 ) break;
 				if( strcmp( Files[lcv]->GetName(), "EMMXXXX0" ) == 0 ) break;//raiden needs this
-
-
-				if( Files[lcv]->IsOpen() ) Files[lcv]->Close();
-				if (Files[lcv]->RemoveRef()<=0) {
-					delete Files[lcv];
-				}
 				Files[lcv]=nullptr;
 			}
 
@@ -2811,7 +2809,16 @@ void POD_Load_DOS_Files( std::istream& stream )
 
 
 			// NOTE: Must open regardless to get 'new' DOS_File class
-			Drives[file_drive]->FileOpen( &Files[lcv], file_name, file_flags );
+			if (file_drive >= DOS_DRIVES || Drives[file_drive] == nullptr) {
+				LOG_MSG("WARNING: Save-state restore skipped file handle %u for drive %u ('%s'): drive entry missing during DOS file restore",
+					(unsigned int)lcv,
+					(unsigned int)file_drive,
+					file_name);
+				Files[lcv] = nullptr;
+			}
+			else {
+				Drives[file_drive]->FileOpen( &Files[lcv], file_name, file_flags );
+			}
 
 			if( Files[lcv] ) {
 				Files[lcv]->LoadState(stream, false);

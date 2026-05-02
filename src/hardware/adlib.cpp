@@ -49,6 +49,95 @@ bool systemmessagebox(char const * aTitle, char const * aMessage, char const * a
 extern bool show_recorded_filename;
 extern std::string pathopl;
 
+unsigned int single_opl_write_counter = 0;
+bool adlib_pcm_boost = false;
+bool adlib_pcm_boost_enable = false;
+const int32_t adlib_pcm_gain_base = 1u << 12u;
+int32_t adlib_pcm_gain = 0; /* 24.12 */
+int32_t adlib_pcm_gain_max = (unsigned int)((16.0 * 1.5 * (1 << 12)) - adlib_pcm_gain_base); /* see scale 1.5 below, to 24.12, amplify one of 16 channels */
+int32_t adlib_pcm_dc[2] = {0,0};
+
+void adlib_boost(int16_t *buf,unsigned int c,unsigned int ch) {
+	int32_t tmp[2],tmax,t;
+
+	if (ch == 0 || ch > 2)
+		return;
+
+	while (c > 0) {
+		tmax = 1;
+		for (unsigned int n=0;n < ch;n++) {
+			tmp[n] = (int32_t)buf[n] + (int32_t)adlib_pcm_dc[n];
+			if (tmp[n] < 0) adlib_pcm_dc[n]++;
+			else if (tmp[n] > 0) adlib_pcm_dc[n]--;
+			tmp[n] += (int32_t)(((int64_t)tmp[n] * (int64_t)adlib_pcm_gain) >> (int64_t)12);
+			t = tmp[n]; if (t < 0) t = -t;
+			if (tmax < t) tmax = t;
+		}
+
+		if (tmax > 32767) {
+			unsigned int sc = (4096 * 32767) / tmax;
+			adlib_pcm_gain += adlib_pcm_gain_base;
+			adlib_pcm_gain = (adlib_pcm_gain * sc) >> 12;
+			if (adlib_pcm_gain >= adlib_pcm_gain_base)
+				adlib_pcm_gain -= adlib_pcm_gain_base;
+			else
+				adlib_pcm_gain = 0;
+		}
+		else if (tmax < 32767) {
+			if (adlib_pcm_gain < adlib_pcm_gain_max)
+				adlib_pcm_gain++;
+		}
+
+		for (unsigned int n=0;n < ch;n++) {
+			if (tmp[n] > 32767) buf[n] = 32767;
+			else if (tmp[n] < -32767) buf[n] = -32767;
+			else buf[n] = tmp[n];
+		}
+
+		c--;
+		buf += ch;
+	}
+}
+
+void adlib_boost32(int32_t *buf,unsigned int c,unsigned int ch) {
+	int32_t tmp[2],tmax,t;
+
+	if (ch == 0 || ch > 2)
+		return;
+
+	while (c > 0) {
+		tmax = 1;
+		for (unsigned int n=0;n < ch;n++) {
+			tmp[n] = (int32_t)buf[n] + (int32_t)adlib_pcm_dc[n];
+			if (tmp[n] < 0) adlib_pcm_dc[n]++;
+			else if (tmp[n] > 0) adlib_pcm_dc[n]--;
+			tmp[n] += (int32_t)(((int64_t)tmp[n] * (int64_t)adlib_pcm_gain) >> (int64_t)12);
+			t = tmp[n]; if (t < 0) t = -t;
+			if (tmax < t) tmax = t;
+		}
+
+		if (tmax > 32767) {
+			unsigned int sc = (4096 * 32767) / tmax;
+			adlib_pcm_gain += adlib_pcm_gain_base;
+			adlib_pcm_gain = (adlib_pcm_gain * sc) >> 12;
+			if (adlib_pcm_gain >= adlib_pcm_gain_base)
+				adlib_pcm_gain -= adlib_pcm_gain_base;
+			else
+				adlib_pcm_gain = 0;
+		}
+		else if (tmax < 32767) {
+			if (adlib_pcm_gain < adlib_pcm_gain_max)
+				adlib_pcm_gain++;
+		}
+
+		for (unsigned int n=0;n < ch;n++)
+			buf[n] = tmp[n];
+
+		c--;
+		buf += ch;
+	}
+}
+
 namespace OPL2 {
 	#include "opl.cpp"
 
@@ -67,6 +156,7 @@ namespace OPL2 {
 				Bitu todo = samples > 1024 ? 1024 : samples;
 				samples -= todo;
 				adlib_getsample(buf, (Bits)todo);
+				if (adlib_pcm_boost) adlib_boost(buf,todo,1/*mono*/);
 				chan->AddSamples_m16( todo, buf );
 			}
 		}
@@ -133,6 +223,7 @@ namespace OPL3 {
 				Bitu todo = samples > 1024 ? 1024 : samples;
 				samples -= todo;
 				adlib_getsample(buf, (Bits)todo);
+				if (adlib_pcm_boost) adlib_boost(buf,todo,2/*stereo*/);
 				chan->AddSamples_s16( todo, buf );
 			}
 		}
@@ -1277,6 +1368,8 @@ static Bitu OPL_Read(Bitu port,Bitu iolen) {
 	return module->PortRead( port, iolen );
 }
 
+pic_tickindex_t last_opl_write = 0;
+
 void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
 	if (IS_PC98_ARCH) port >>= 8u; // C8D2h -> C8h, C9D2h -> C9h, OPL emulation looks only at bit 0.
 
@@ -1284,6 +1377,43 @@ void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
 	// this is a way to render "sample accurate" without needing "sample accurate" mode in the mixer.
 	// CHGOLF's Adlib digital audio hack works fine with this hack.
 	if (port&1) module->mixerChan->FillUp();
+
+	if (adlib_pcm_boost_enable) {
+		// keep track of writing to detect when games are using an OPL FM channel as PCM output for "digitized speech"
+		// so that, if enabled by the user, that channel can be amplified so you can actually hear it.
+		// most games setup the OPL, set the index to the one channel, and then never write port 388h again,
+		// directing all writes to 389h.
+		if ((port&3) == 1) {
+			pic_tickindex_t now = PIC_FullIndex();
+			const unsigned int drop = (unsigned int)(now - last_opl_write);
+			last_opl_write = now;
+
+			if (single_opl_write_counter >= drop)
+				single_opl_write_counter -= drop;
+			else
+				single_opl_write_counter = 0;
+
+			if (single_opl_write_counter < 1500)
+				single_opl_write_counter++;
+
+			if (!adlib_pcm_boost) {
+				adlib_pcm_boost = (single_opl_write_counter >= 1000);
+				if (adlib_pcm_boost) LOG(LOG_MISC,LOG_DEBUG)("Guest is apparently trying to play PCM audio through the Adlib OPL chip, enabling audio boost");
+			}
+			else {
+				adlib_pcm_boost = (single_opl_write_counter >= 800);
+			}
+		}
+		else if ((port&3) == 0) {
+			if (single_opl_write_counter >= 256)
+				single_opl_write_counter -= 256;
+			else
+				single_opl_write_counter = 0;
+
+			if (adlib_pcm_boost && single_opl_write_counter < 500)
+				adlib_pcm_boost = false;
+		}
+	}
 
 	module->PortWrite( port, val, iolen );
 }
@@ -1409,6 +1539,7 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	std::string retrowave_port(section->Get_string("retrowave_port"));
 	std::string retrowave_spi_cs(section->Get_string("retrowave_spi_cs"));
 	adlib_force_timer_overflow_on_polling = section->Get_bool("adlib force timer overflow on detect");
+	adlib_pcm_boost_enable = section->Get_bool("adlib pcm boost");
 
 	if (oplmode == OPL_esfm && oplemu != "esfmu") {
 		LOG_MSG("Adlib: WARN: an ESFM-capable sbtype (or the 'esfm' oplmode) was chosen, but the chosen oplemu is not ESFM-capable. ESFM native mode features will not work!");

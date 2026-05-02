@@ -163,7 +163,7 @@ inline MonochromeColor& operator++(MonochromeColor& color)
     return color;
 }
 
-typedef struct {
+struct VGA_Draw {
 	bool resizing;
 	Bitu width;
 	Bitu height;
@@ -228,15 +228,15 @@ typedef struct {
 	 *   ...
 	 *
 	 * memory write checking must be as simple as possible because mem write code is called VERY OFTEN */
-	unsigned int draw_base_planar=0;
-	unsigned int draw_base_size=0;
+    unsigned int draw_base_planar = 0;
+    unsigned int draw_base_size = 0;
 
 	uint8_t cga_snow[80];			// one bit per horizontal column where snow should occur
 
 	/*Color and brightness for monochrome display*/
 	MonochromeColor monochrome_pal;
 	uint8_t monochrome_bright;
-} VGA_Draw;
+};
 
 typedef struct {
 	uint8_t curmode;

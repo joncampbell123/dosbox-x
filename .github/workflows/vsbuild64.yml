@@ -117,12 +117,12 @@ jobs:
           echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ env.ZIPNAME }}
@@ -229,12 +229,12 @@ jobs:
           echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ZIPNAME }}
           path: ${{ github.workspace }}/package/
       - name: Upload release package
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ env.ZIPNAME }}
@@ -329,7 +329,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vs2022build-${{ env.timestamp }}-experimental.zip *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: dosbox-x-vs2022build-${{ env.timestamp }}-experimental
           path: ${{ github.workspace }}/package/
@@ -424,7 +424,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vs2026build-${{ env.timestamp }}-experimental.zip *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: dosbox-x-vs2026build-${{ env.timestamp }}-experimental
           path: ${{ github.workspace }}/package/

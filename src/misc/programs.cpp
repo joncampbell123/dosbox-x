@@ -61,7 +61,7 @@ extern unsigned int sendkeymap;
 extern std::string langname, configfile, dosbox_title;
 extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor, msgcodepage;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, convertimg, lockmount, enable_config_as_shell_commands, lesssize, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename, internal_program, pipetmpdev, notrysgf, uselangcp, incall;
-
+extern bool clipboard_biospaste;
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
 static uint8_t exe_block[]={
@@ -817,6 +817,10 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
             } else if (!strcasecmp(pvar.c_str(), "sdl")) {
                 modifier = section->Get_string("clip_key_modifier");
                 paste_speed = section->Get_int("clip_paste_speed");
+                const char* pastebios = section->Get_string("clip_paste_bios");
+                if(!strcasecmp(pastebios, "default") || !strcasecmp(pastebios, "true") || !strcmp(pastebios, "1")) clipboard_biospaste = true;
+                else if(!strcasecmp(pastebios, "false") || !strcmp(pastebios, "0")) clipboard_biospaste = false;
+                mainMenu.get_item("clipboard_biospaste").check(clipboard_biospaste).refresh_item(mainMenu);
                 if (!strcasecmp(inputline.substr(0, 16).c_str(), "mouse_wheel_key=")) {
                     wheel_key = section->Get_int("mouse_wheel_key");
                     wheel_guest=wheel_key>0;

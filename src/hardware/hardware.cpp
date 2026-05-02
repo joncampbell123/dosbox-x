@@ -944,7 +944,22 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 				rowPointer = doubleRow;
 				break;
 			case 32:
-				if (flags & CAPTURE_FLAG_DBLW) {
+#if defined(MACOSX) && !C_SDL2
+                if (flags & CAPTURE_FLAG_DBLW) {
+					for (Bitu x=0;x<countWidth;x++) {
+						doubleRow[x*6+2] = doubleRow[x*6+5] = ((uint8_t *)srcLine)[x*4+1];
+						doubleRow[x*6+1] = doubleRow[x*6+4] = ((uint8_t *)srcLine)[x*4+2];
+						doubleRow[x*6+0] = doubleRow[x*6+3] = ((uint8_t *)srcLine)[x*4+3];
+					}
+				} else {
+					for (Bitu x=0;x<countWidth;x++) {
+						doubleRow[x*3+2] = ((uint8_t *)srcLine)[x*4+1];
+						doubleRow[x*3+1] = ((uint8_t *)srcLine)[x*4+2];
+						doubleRow[x*3+0] = ((uint8_t *)srcLine)[x*4+3];
+					}
+				}
+#else
+                if (flags & CAPTURE_FLAG_DBLW) {
 					for (Bitu x=0;x<countWidth;x++) {
 						doubleRow[x*6+0] = doubleRow[x*6+3] = ((uint8_t *)srcLine)[x*4+0];
 						doubleRow[x*6+1] = doubleRow[x*6+4] = ((uint8_t *)srcLine)[x*4+1];
@@ -957,7 +972,8 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 						doubleRow[x*3+2] = ((uint8_t *)srcLine)[x*4+2];
 					}
 				}
-				rowPointer = doubleRow;
+#endif
+                rowPointer = doubleRow;
 				break;
 			}
 			png_write_row(png_ptr, (png_bytep)rowPointer);

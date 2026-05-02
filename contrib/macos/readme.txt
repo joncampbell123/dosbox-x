@@ -42,6 +42,22 @@ You should be able to solve the problem by running the following command once in
     Using the Terminal app, go to the unzipped folder of the macOS zip package. (You should find two folders dosbox-x and dosbox-x-sdl2)
     Run xattr -cr .
 
+- Mouse doesn't work
+    Try pressing CTRL+F10 or middle button of your mouse.
+    You can also try mouse drivers such as CuteMouse or VirtualBox Mouse Driver(vbmouse).
+
+- Incorrect calculation results
+    Floating point precision is an issue for certain compilers and non-Intel CPU platforms.
+    Possible measures: 
+      o Disable FPU support (fpu=false)
+      o Change CPU core to `dynamic` (core=dynamic / core=dynamic_x86 / core=dynamic_rec)
+
+- A game silently crashes or fails to launch, or a log shows "Detected 'Packed file is corrupt' message"
+    Possible measures: 
+      o Run your program by `loadfix -a your_program`
+      o Run `A20GATE OFF` before launching your program
+      o Change the `exepack` option in the dosbox-x.conf to 'a20off' or 'unpack'
+
 Further Information
 ===================
 Please visit the DOSBox-X homepage for the latest information about DOSBox-X:

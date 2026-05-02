@@ -45,6 +45,10 @@
 #define PI 3.14159265358979323846
 #endif
 
+extern bool adlib_pcm_boost;
+
+void adlib_boost32(int32_t *buf,unsigned int c,unsigned int ch);
+
 namespace DBOPL {
 
 #define OPLRATE		((double)(14318180.0 / 288.0))
@@ -1516,9 +1520,11 @@ void Handler::Generate( MixerChannel* chan, Bitu samples ) {
 		samples = 512;
 	if ( !chip.opl3Active ) {
 		chip.GenerateBlock2( samples, buffer );
+		if (adlib_pcm_boost) adlib_boost32(buffer,samples,1/*mono*/);
 		chan->AddSamples_m32( samples, buffer );
 	} else {
 		chip.GenerateBlock3( samples, buffer );
+		if (adlib_pcm_boost) adlib_boost32(buffer,samples,2/*stereo*/);
 		chan->AddSamples_s32( samples, buffer );
 	}
 }
