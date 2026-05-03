@@ -63,6 +63,7 @@ bool DOS_ExtDevice::CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off
 
 uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size) {
 	uint16_t oldbx = reg_bx;
+	uint16_t oldds = SegValue(ds);
 	uint16_t oldes = SegValue(es);
 
 	real_writeb(dos.dcp, 0, length);
@@ -77,11 +78,13 @@ uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, uint
 	real_writew(dos.dcp, 18, size);
 
 	reg_bx = 0;
+	SegSet16(ds, ext.segment);
 	SegSet16(es, dos.dcp);
 	CALLBACK_RunRealFar(ext.segment, ext.strategy);
 	CALLBACK_RunRealFar(ext.segment, ext.interrupt);
 	reg_bx = oldbx;
 	SegSet16(es, oldes);
+	SegSet16(ds, oldds);
 
 	return real_readw(dos.dcp, 3);
 }
@@ -177,7 +180,7 @@ uint8_t DOS_ExtDevice::GetStatus(bool input_flag) {
 }
 
 uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
-	uint32_t addr = dos_infoblock.GetDeviceChain();
+	uint32_t addr = dos_infoblock.GetStartOfDeviceChain();
 	uint16_t seg, off;
 	uint16_t next_seg, next_off;
 	uint16_t no;
@@ -189,9 +192,6 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 		no = real_readw(seg, off + 4);
 		next_seg = real_readw(seg, off + 2);
 		next_off = real_readw(seg, off);
-		if(next_seg == 0xffff && next_off == 0xffff) {
-			break;
-		}
 		if(no & 0x8000) {
 			for(no = 0 ; no < 8 ; no++) {
 				if((devname[no] = real_readb(seg, off + 10 + no)) <= 0x20) {
@@ -218,6 +218,9 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 				}
 				return (uint32_t)seg << 16 | (uint32_t)off;
 			}
+		}
+		if(next_seg == 0xffff && next_off == 0xffff) {
+			break;
 		}
 		seg = next_seg;
 		off = next_off;
