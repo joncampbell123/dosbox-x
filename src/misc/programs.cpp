@@ -45,6 +45,7 @@
 #include "render.h"
 #include "../ints/int10.h"
 #include "sdlmain.h"
+#include "cpu.h"
 #if defined(WIN32)
 #include "windows.h"
 RECT monrect;
@@ -1290,6 +1291,10 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
     }
 }
 
+// TODO: Move within DOS kernel code
+uint16_t DOS_DevCallSeg = 0;
+#define DOS_DevCallSize (64)
+
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
@@ -1298,7 +1303,9 @@ void CONFIG::Run(void) {
 		"-startmapper",
 		"-get", "-set", "-setf",
 		"-writelang", "-wl", "-langname", "-ln",
-		"-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
+		"-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui",
+		"-device","-devparm",
+		NULL };
 /* HACK: P_ALL is in linux/wait.h */
 #if defined(P_ALL)
 #define __P_ALL P_ALL
@@ -1316,9 +1323,11 @@ void CONFIG::Run(void) {
 		P_START_MAPPER,
 		P_GETPROP, P_SETPROP, P_SETFORCE,
 		P_WRITELANG, P_WRITELANG2, P_LANGNAME, P_LANGNAME2,
-		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
+		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI,
+		P_DEVICE, P_DEVPARM
 	} presult = P_NOMATCH;
 
+	std::string device,devparm;
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	int all = section->Get_bool("show advanced options")?1:-1;
 	bool first = true, norem = false;
@@ -1331,7 +1340,22 @@ void CONFIG::Run(void) {
 	while(presult != P_NOPARAMS) {
 		presult = (enum prs)cmd->GetParameterFromList(params, pvars);
 		switch(presult) {
-	
+
+		case P_DEVPARM:
+			for (const auto &p : pvars) {
+				if (!devparm.empty()) devparm += " ";
+				devparm += p;
+			}
+			break;
+
+		case P_DEVICE:
+			if (pvars.size() < 1) {
+				WriteOut("-device requires path\n");
+				return;
+			} else
+				device=pvars[0];
+			break;
+
 		case P_SETUP:
 			all = 2;
 			break;
@@ -2130,6 +2154,177 @@ next:
 		}
 		first = false;
 	}
+
+	if (!device.empty()) {
+		uint16_t devseg = 0,ofs,attr;
+
+		/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
+		uint16_t blocks = 0x08; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
+		if (!DOS_ResizeMemory(dos.psp(),&blocks)) {
+			WriteOut("Unable to shrink PSP to enable loading device driver\n");
+			return;
+		}
+
+		/* redirect instruction pointer to PSP:0 so that CONFIG exits immediately after this function returns */
+		reg_ip = 0;
+
+		/* allocate a new memory block to hold the device driver image. */
+		/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
+		blocks = 0xFFFFu;
+		if (DOS_AllocateMemory(&devseg,&blocks)) E_Exit("Allocate memory: memory availability check actually allocated memory unexpectedly");
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver load: %u bytes available",(unsigned int)blocks * 16u);
+
+		if (!DOS_AllocateMemory(&devseg,&blocks)) {
+			WriteOut("Unable to allocate memory for device driver load\n");
+			return;
+		}
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x",(unsigned int)devseg);
+
+		/* Use DOS_Execute() with special device driver flag value, which loads it like an overlay.
+		 * Contrary to what you've probably been told about device drivers, they do not have to be
+		 * flat COM type images. They can be EXE files too (MZ header with relocation table and
+		 * everything), in which case the device driver header is within the first 18 bytes of the
+		 * resident image.
+		 *
+		 * If you've ever wondered how MS-DOS allows EMM386.EXE to work as both an executable program
+		 * AND a device driver, and how DEVICE=C:\DOS\EMM386.EXE is even allowed, that is how. */
+		if (!DOS_Execute(device.c_str(),devseg,DOSEXEC_DEVICEDRIVER)) {
+			WriteOut("Unable to load device driver image\n");
+			return;
+		}
+		attr = real_readw(devseg,4);
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver attributes: %x",attr);
+		if (attr & DEVATTR_ISCHAR) {
+			std::string blah;
+
+			if (attr & DEVATTRCHR_IOCTL_CTLSTRINGS) blah += " ctlstrings";
+			if (attr & DEVATTRCHR_IOCTL_OUTPUT_UNTIL_BUSY) blah += " outubusy";
+			if (attr & DEVATTRCHR_OPENCLOSE) blah += " openclose";
+			if (attr & DEVATTRCHR_INT29) blah += " int29";
+			if (attr & DEVATTRCHR_CLOCK) blah += " CLOCK$";
+			if (attr & DEVATTRCHR_NULL) blah += " NULL";
+			if (attr & DEVATTRCHR_CONOUT) blah += " CONOUT";
+			if (attr & DEVATTRCHR_CONIN) blah += " CONIN";
+
+			LOG(LOG_MISC,LOG_DEBUG)("Supports:%s",blah.c_str());
+		}
+		else {
+			std::string blah;
+
+			if (attr & DEVATTRBLK_IOCTL_CTLSTRINGS) blah += " ctlstrings";
+			if (attr & DEVATTRBLK_IOCTL_MEDIA_FAT_BYTE) blah += " mediafatbyte";
+			if (attr & DEVATTRBLK_OPENCLOSEREMOVABLE) blah += " opencloseremove";
+			if (attr & DEVATTRBLK_IBM_DRIVE_SHARED) blah += " ibmdriveshared";
+			if (attr & DEVATTRBLK_IOCTL_GEN) blah += " ioctl-generic";
+			if (attr & DEVATTRBLK_EXTENDED) blah += " extended>32mb";
+
+			LOG(LOG_MISC,LOG_DEBUG)("Supports:%s",blah.c_str());
+		}
+
+		/* Allocate memory for device call structure */
+		if (DOS_DevCallSeg == 0) {
+			DOS_DevCallSeg = DOS_GetMemory((DOS_DevCallSize+15)/16,"Device driver call structure");
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver call structure");
+		}
+
+		/* Call strategy routine in driver so it knows where to look for structure, give it ES:BX = DOS_DevCallSeg:0 */
+		ofs = real_readw(devseg,0x6);
+		reg_bx = 0; CPU_SetSegGeneral(ds,devseg);
+		CPU_SetSegGeneral(es,DOS_DevCallSeg);
+		LOG(LOG_MISC,LOG_DEBUG)("Calling device driver strategy routine at %x:%x",devseg,ofs);
+		CALLBACK_RunRealFar(devseg,ofs); /* no return value */
+
+		/* INIT */
+		{
+			struct DOS_DEVHDR::req_init s;
+			memset(&s,0,sizeof(s));
+
+			if (dos.version.major >= 4)
+				s.hdr.record_length = 25;
+			else
+				s.hdr.record_length = 22;
+
+			s.end_ptr = RealMake(devseg+blocks,0);/*tell the driver where the current end is, perhaps as a memory size detect?*/
+			LOG(LOG_MISC,LOG_DEBUG)("Giving device driver in DEVINIT request initial endptr %x:%x",devseg+blocks,0);
+			s.hdr.cmd_code = DEVFUNC_INIT;
+			MEM_BlockWrite(PhysMake(DOS_DevCallSeg,0),&s,sizeof(s));
+
+			/* interrupt routine is not expected to accept or return register values but must preserve all registers.
+			 * if device drivers happen to assume things anyway, then, well'll deal with that later */
+			ofs = real_readw(devseg,0x8);
+			LOG(LOG_MISC,LOG_DEBUG)("Calling device driver interrupt routine (DEVINIT request) at %x:%x",devseg,ofs);
+			CALLBACK_RunRealFar(devseg,ofs); /* no return value */
+
+			/* so what did the driver do with the request? */
+			MEM_BlockRead(PhysMake(DOS_DevCallSeg,0),&s,sizeof(s));
+
+			/* programming experience suggests that DOS doesn't give a damn about the status word of INIT,
+			 * but if you want to fail loading, set end_ptr == 0. If DOS did give a crap, my old SBSYS device
+			 * driver experiment from 1995 would have failed to run at all--I just realized today there's a bug
+			 * in the code that sets the error bit in status word only because AL != 0 having come from playing
+			 * audio directly to the SB DSP chip (usually 0x80) */
+
+			/* did the driver zero the end ptr or set it too far back? */
+			uint32_t newend_seg = s.end_ptr >> 16;
+			uint32_t newend_ofs = s.end_ptr & 0xFFFFu;
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr %x:%x",newend_seg,newend_ofs);
+
+			/* normalize the pointer to determine how many blocks to keep */
+			newend_seg += newend_ofs >> 4u;
+			newend_ofs &= 0xFu;
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr (normalized) %x:%x",newend_seg,newend_ofs);
+
+			if (newend_ofs) {
+				newend_seg++;
+				newend_ofs = 0;
+			}
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr (as segment) %x",newend_seg);
+
+			if (	PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
+				PhysMake(newend_seg,newend_ofs) > PhysMake(devseg+blocks,0)/*you cannot make your driver bigger than the original size!*/) {
+				WriteOut("Device driver failed, end_ptr invalid\n");
+				return;
+			}
+
+			assert(newend_seg > devseg);
+			uint32_t drvszseg = newend_seg - devseg;
+
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver will occupy %x paragraphs (%u bytes)",drvszseg,drvszseg * 16u);
+
+			blocks = drvszseg;
+			if (!DOS_ResizeMemory(devseg,&blocks)) {
+				WriteOut("Unable to shrink device driver memory block to fit\n");
+				return;
+			}
+		}
+
+		/* Success. Change ownership of the device driver MCB so it remains in memory when CONFIG exits */
+		DOS_MCB dev_mcb((uint16_t)(devseg-1));
+		dev_mcb.SetPSPSeg(0x0008/*MS-DOS*/);
+		{
+			/* use the in-memory device name to name the MCB */
+			char tmp[9];
+			MEM_BlockRead(PhysMake(devseg,0xA),tmp,8);
+			tmp[8] = 0;
+			dev_mcb.SetFileName(tmp);
+		}
+
+		/* attach the driver to the device chain */
+		{
+			unsigned int patience = 1024;
+			uint32_t start = dos_infoblock.GetDeviceChain();
+			uint16_t segm  = (uint16_t)(start>>16ul);
+			uint16_t offm  = (uint16_t)(start&0xFFFFu);
+			while(start != 0xFFFFFFFFul) {
+				segm  = (uint16_t)(start>>16u);
+				offm  = (uint16_t)(start&0xFFFFu);
+				start = real_readd(segm,offm);
+				if (--patience == 0) E_Exit("Device driver chain corrupt");
+			}
+			real_writed(segm,offm,(unsigned int)devseg<<16u);
+		}
+	}
+
 	return;
 }
 

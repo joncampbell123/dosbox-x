@@ -293,7 +293,7 @@ static void SetupCMDLine(uint16_t pspseg, const DOS_ParamBlock& block) {
  *        shell without any error message. The least we could do is return
  *        an error code so that the INT 21h EXEC call can print an informative
  *        error message! --J.C. */
-bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
+bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 	EXE_Header head;Bitu i;
 	uint16_t fhandle;uint16_t len;uint32_t pos;
 	uint16_t pspseg,envseg,loadseg,memsize=0xffff,readsize;
@@ -304,7 +304,18 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	uint32_t checksum = 0;
 	uint32_t checksum_bytes = 0;
 
-	block.LoadData();
+	if (flags == DOSEXEC_DEVICEDRIVER) {/*Internal value. DOS programs cannot pass this through INT 21h*/
+		/* block_pt is the segment to load to, and then treat this as if OVERLAY */
+		/* TODO: PhysPt is a 32-bit value, so, why not use the upper 16 bits to indicate the highest valid
+		 *       segment value so that if there really isn't enough memory to load the driver, we can fail
+		 *       instead of trashing memory or adapter RAM beyond available memory. */
+		block.overlay.loadseg = block_pt;
+		block.overlay.relocation = block_pt;
+		flags = OVERLAY;
+	}
+	else {
+		block.LoadData();
+	}
 	//Remove the loadhigh flag for the moment!
 	if(flags&0x80) LOG(LOG_EXEC,LOG_ERROR)("using loadhigh flag!!!!!. dropping it");
 	flags &= 0x7f;
