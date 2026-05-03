@@ -2183,7 +2183,7 @@ next:
 			WriteOut("Unable to allocate memory for device driver load\n");
 			return;
 		}
-		LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x",(unsigned int)devseg);
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x for driver '%s'",(unsigned int)devseg,device.c_str());
 
 		/* Use DOS_Execute() with special device driver flag value, which loads it like an overlay.
 		 * Contrary to what you've probably been told about device drivers, they do not have to be
@@ -2288,7 +2288,10 @@ next:
 			 * but if you want to fail loading, set end_ptr == 0. If DOS did give a crap, my old SBSYS device
 			 * driver experiment from 1995 would have failed to run at all--I just realized today there's a bug
 			 * in the code that sets the error bit in status word only because AL != 0 having come from playing
-			 * audio directly to the SB DSP chip (usually 0x80) */
+			 * audio directly to the SB DSP chip (usually 0x80)
+			 *
+			 * Some device drivers indicate failure by setting end_ptr to the first byte of their device driver,
+			 * instead of NULL, because doing so effectively means leaving behind zero bytes of memory. */
 
 			/* did the driver zero the end ptr or set it too far back? */
 			uint32_t newend_seg = s.end_ptr >> 16;
@@ -2306,8 +2309,15 @@ next:
 			}
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr (as segment) %x",newend_seg);
 
-			if (	PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
+			if (newend_seg == 0 || PhysMake(newend_seg,newend_ofs) == PhysMake(devseg,0)) { /* normal error out */
+				/* don't need to say anything, the driver will normally say it failed and probably why */
+				LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates normal error out by setting the end_ptr to effectively remove itself from memory");
+				return;
+			}
+			else if (
+				PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
 				PhysMake(newend_seg,newend_ofs) > PhysMake(devseg+blocks,0)/*you cannot make your driver bigger than the original size!*/) {
+				LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates error with invalid end_ptr");
 				WriteOut("Device driver failed, end_ptr invalid\n");
 				return;
 			}
@@ -2333,6 +2343,7 @@ next:
 			MEM_BlockRead(PhysMake(devseg,0xA),tmp,8);
 			tmp[8] = 0;
 			dev_mcb.SetFileName(tmp);
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver added to device chain as '%s'",tmp);
 		}
 
 		/* attach the driver to the device chain */
