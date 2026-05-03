@@ -225,6 +225,9 @@ uint32_t DOS_InfoBlock::GetDeviceChain(void) {
 	return sGet(sDIB,nulNextDriver);
 }
 
+uint32_t DOS_InfoBlock::GetStartOfDeviceChain(void) {
+	return RealMake(seg,offsetof(sDIB,nulNextDriver));
+}
 
 /* program Segment prefix */
 

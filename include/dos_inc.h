@@ -601,6 +601,7 @@ public:
 	uint8_t	GetUMBChainState(void);
 	RealPt	GetPointer(void);
 	uint32_t GetDeviceChain(void);
+	uint32_t GetStartOfDeviceChain(void);/*this one includes the NUL driver at the very start*/
 
 	void SetBootDrive(uint8_t drv) { sSave(sDIB,bootDrive,drv); }
 	uint8_t GetBootDrive(void) { return sGet(sDIB,bootDrive); }
