@@ -1293,7 +1293,12 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 
 // TODO: Move within DOS kernel code
 uint16_t DOS_DevCallSeg = 0;
-#define DOS_DevCallSize (64)
+
+#define DOS_DevCallOffset (0)
+#define DOS_DevCallSize (63)
+
+#define DOS_DevCallArgsOffset (DOS_DevCallOffset+DOS_DevCallSize)
+#define DOS_DevCallArgsSize (129)
 
 void CONFIG::Run(void) {
 	static const char* const params[] = {
@@ -2223,7 +2228,7 @@ next:
 
 		/* Allocate memory for device call structure */
 		if (DOS_DevCallSeg == 0) {
-			DOS_DevCallSeg = DOS_GetMemory((DOS_DevCallSize+15)/16,"Device driver call structure");
+			DOS_DevCallSeg = DOS_GetMemory((DOS_DevCallSize+DOS_DevCallArgsSize+15)/16,"Device driver call structure");
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver call structure");
 		}
 
@@ -2244,8 +2249,29 @@ next:
 			else
 				s.hdr.record_length = 22;
 
+			if (devparm.length() > (DOS_DevCallArgsSize-3))
+				LOG(LOG_MISC,LOG_DEBUG)("Init str warning: Init str too long");
+
+			/* init arguments */
+			{
+				const char *s = devparm.c_str();
+				unsigned int i=0;
+
+				LOG(LOG_MISC,LOG_DEBUG)("Init str '%s'",s);
+				while (i < (DOS_DevCallArgsSize-3) && *s) real_writeb(DOS_DevCallSeg,DOS_DevCallArgsOffset+(i++),*s++);
+
+				/* \r\n terminated */
+				/* OAKCDROM.SYS requires \r\n, or else scans memory for eternity */
+				real_writeb(DOS_DevCallSeg,DOS_DevCallArgsOffset+(i++),0x0D);
+				real_writeb(DOS_DevCallSeg,DOS_DevCallArgsOffset+(i++),0x0A);
+
+				/* NULL terminator */
+				real_writeb(DOS_DevCallSeg,DOS_DevCallArgsOffset+i,0);
+			}
+
+			s.bpb_ptr = RealMake(DOS_DevCallSeg,DOS_DevCallArgsOffset);
 			s.end_ptr = RealMake(devseg+blocks,0);/*tell the driver where the current end is, perhaps as a memory size detect?*/
-			LOG(LOG_MISC,LOG_DEBUG)("Giving device driver in DEVINIT request initial endptr %x:%x",devseg+blocks,0);
+			LOG(LOG_MISC,LOG_DEBUG)("Giving device driver in DEVINIT request initial endptr %x:%x initstr %x:%x",devseg+blocks,0,DOS_DevCallSeg,DOS_DevCallArgsOffset);
 			s.hdr.cmd_code = DEVFUNC_INIT;
 			MEM_BlockWrite(PhysMake(DOS_DevCallSeg,0),&s,sizeof(s));
 
