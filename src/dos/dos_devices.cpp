@@ -232,6 +232,7 @@ static void DOS_CheckOpenExtDevice(const char *name) {
 	uint32_t addr;
 
 	if((addr = DOS_CheckExtDevice(name, true)) != 0) {
+		LOG(LOG_MISC,LOG_DEBUG)("Found external device driver '%s' (%x:%x), adding", name, addr >> 16, addr & 0xffff);
 		DOS_ExtDevice *device = new DOS_ExtDevice(name, addr >> 16, addr & 0xffff);
 		DOS_AddDevice(device);
 	}
