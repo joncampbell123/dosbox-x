@@ -168,7 +168,7 @@ public:
     bool	WriteToControlChannel(PhysPt bufptr, uint16_t size, uint16_t* retcode) override;
     uint8_t	GetStatus(bool input_flag) override;
     bool CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off);
-    uint16_t CallDeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size);
+    uint16_t CallRWIODeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size);
 private:
     struct ExtDeviceData ext;
 
