@@ -26,6 +26,10 @@ Next version
     for device driver I/O request and data). Until this change, the code
     used an extremely inefficient 1-byte read/write method to transfer
     to or from the device driver. (joncampbell123)
+  - DOS execute bugfix: While ownership was properly listed in the MCB for
+    the PSP segment, the environment block associated with the program was
+    always listed in the MCB as belonging to the parent process. This has
+    been addressed (joncampbell123)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
