@@ -2218,7 +2218,7 @@ next:
 			WriteOut("Unable to allocate memory for device driver load\n");
 			return;
 		}
-		LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x for driver '%s'",(unsigned int)devseg,device.c_str());
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x-%x for driver '%s'",(unsigned int)devseg,(unsigned int)(devseg+blocks-1u),device.c_str());
 
 		/* Use DOS_Execute() with special device driver flag value, which loads it like an overlay.
 		 * Contrary to what you've probably been told about device drivers, they do not have to be
@@ -2228,7 +2228,7 @@ next:
 		 *
 		 * If you've ever wondered how MS-DOS allows EMM386.EXE to work as both an executable program
 		 * AND a device driver, and how DEVICE=C:\DOS\EMM386.EXE is even allowed, that is how. */
-		if (!DOS_Execute(device.c_str(),devseg,DOSEXEC_DEVICEDRIVER)) {
+		if (!DOS_Execute(device.c_str(),devseg | ((devseg+blocks)<<16u),DOSEXEC_DEVICEDRIVER)) {
 			WriteOut("Unable to load device driver image\n");
 			return;
 		}
