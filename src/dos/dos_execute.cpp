@@ -879,6 +879,16 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 		RunningProgramHash[1] = checksum_bytes;
 		RunningProgramHash[2] = checksum;
 		RunningProgramHash[3] = 0;
+
+		/* ownership of the environment block also belongs to the program, not the parent program! (bugfix) */
+		{
+			uint16_t s = newpsp.GetEnvironment();
+			if (s != 0) {
+				DOS_MCB envmcb(s-1);
+				envmcb.SetPSPSeg(dos.psp());
+				envmcb.SetFileName(stripname);
+			}
+		}
 	}
 
 #if defined(OSFREE)
