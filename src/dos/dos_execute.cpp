@@ -305,12 +305,12 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 	uint32_t checksum_bytes = 0;
 
 	if (flags == DOSEXEC_DEVICEDRIVER) {/*Internal value. DOS programs cannot pass this through INT 21h*/
-		/* block_pt is the segment to load to, and then treat this as if OVERLAY */
-		/* TODO: PhysPt is a 32-bit value, so, why not use the upper 16 bits to indicate the highest valid
-		 *       segment value so that if there really isn't enough memory to load the driver, we can fail
-		 *       instead of trashing memory or adapter RAM beyond available memory. */
-		block.overlay.loadseg = block_pt;
-		block.overlay.relocation = block_pt;
+		/* block_pt is two 16-bit values:
+		 * low WORD is relocation segment value.
+		 * hi WORD is the highest segment of valid memory + 1 (boundary) so this function can identify if the image is too big
+		 * Take the values and then process loading as if OVERLAY */
+		block.overlay.loadseg = block_pt & 0xFFFFu;
+		block.overlay.relocation = block_pt & 0xFFFFu;
 		flags = OVERLAY;
 	}
 	else {
