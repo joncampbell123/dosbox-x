@@ -2162,13 +2162,6 @@ next:
 			return;
 		}
 
-		/* redirect instruction pointer to PSP:0 so that CONFIG exits immediately after this function returns */
-		reg_ip = 0;
-
-		/* redirect the stack pointer */
-		CPU_SetSegGeneral(ss,dos.psp());
-		reg_esp = 0x80 + devparm.length() + 3u + stacksz - 2u;
-
 		/* free the environment block associated with the PSP */
 		{
 			DOS_PSP p(dos.psp());
@@ -2178,6 +2171,13 @@ next:
 				p.SetEnvironment(0);
 			}
 		}
+
+		/* redirect instruction pointer to PSP:0 so that CONFIG exits immediately after this function returns */
+		reg_ip = 0;
+
+		/* redirect the stack pointer */
+		CPU_SetSegGeneral(ss,dos.psp());
+		reg_esp = 0x80 + devparm.length() + 3u + stacksz - 2u;
 
 		/* allocate a new memory block to hold the device driver image. */
 		/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
