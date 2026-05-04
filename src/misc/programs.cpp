@@ -1291,7 +1291,9 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
     }
 }
 
-// TODO: Move within DOS kernel code
+/* TODO: There is a dos.dcp segment value for issuing requests to a device driver.
+ *       Change this code to use THAT to issue INIT. Perhaps the last 128 bytes of the PSP segment
+ *       of CONFIG could be used to carry the initialization string from devparm. */
 uint16_t DOS_DevCallSeg = 0;
 
 #define DOS_DevCallOffset (0)
