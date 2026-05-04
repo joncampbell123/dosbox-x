@@ -2175,6 +2175,16 @@ next:
 		/* redirect instruction pointer to PSP:0 so that CONFIG exits immediately after this function returns */
 		reg_ip = 0;
 
+		/* free the environment block associated with the PSP */
+		{
+			DOS_PSP p(dos.psp());
+			const uint16_t s = p.GetEnvironment();
+			if (s != 0) {
+				DOS_FreeMemory(s);
+				p.SetEnvironment(0);
+			}
+		}
+
 		/* allocate a new memory block to hold the device driver image. */
 		/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
 		blocks = 0xFFFFu;
