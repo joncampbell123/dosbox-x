@@ -92,7 +92,7 @@ uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, uint
 bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	if(ext.attribute & DeviceAttributeFlags::SupportsIoctl) {
 		// IOCTL INPUT
-		if((CallDeviceFunction(3, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
+		if((CallDeviceFunction(DEVFUNC_IOCTL_READ, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
 			return true;
 		}
@@ -103,7 +103,7 @@ bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t 
 bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	if(ext.attribute & DeviceAttributeFlags::SupportsIoctl) {
 		// IOCTL OUTPUT
-		if((CallDeviceFunction(12, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
+		if((CallDeviceFunction(DEVFUNC_IOCTL_WRITE, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
 			return true;
 		}
