@@ -2156,7 +2156,8 @@ next:
 		uint16_t stacksz = 256u;
 
 		/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
-		uint16_t blocks = (0x80 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
+		uint16_t psp_blocks = (0x80 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
+		uint16_t blocks = psp_blocks;
 		if (!DOS_ResizeMemory(dos.psp(),&blocks)) {
 			WriteOut("Unable to shrink PSP to enable loading device driver\n");
 			return;
@@ -2169,6 +2170,34 @@ next:
 			if (s != 0) {
 				DOS_FreeMemory(s);
 				p.SetEnvironment(0);
+			}
+		}
+
+		/* relocate PSP segment to end of memory, if possible, to help load the driver image as low as possible
+		 * and try to avoid leaving behind small blocks of free memory behind */
+		{
+			uint16_t pmemstrat = DOS_GetMemAllocStrategy();
+			DOS_SetMemAllocStrategy(2/*lastfit*/);
+			uint16_t blocks = psp_blocks;
+			uint16_t newpsp = 0;
+			bool ok = DOS_AllocateMemory(&newpsp,&blocks);
+			DOS_SetMemAllocStrategy(pmemstrat);
+
+			if (ok && newpsp) {
+				LOG(LOG_MISC,LOG_DEBUG)("Relocating PSP segment from %x to %x",dos.psp(),newpsp);
+				mem_memcpy(PhysMake(newpsp,0),PhysMake(dos.psp(),0),psp_blocks << 4u);
+				DOS_FreeMemory(dos.psp());
+				dos.psp(newpsp);
+
+				/* update the pointer to the Job File Table to prevent breaking all file I/O past this point */
+				real_writew(dos.psp(),0x36,dos.psp());
+
+				DOS_MCB dev_mcb((uint16_t)(dos.psp()-1));
+				dev_mcb.SetPSPSeg(dos.psp());
+
+				CPU_SetSegGeneral(cs,dos.psp());
+				CPU_SetSegGeneral(ds,dos.psp());
+				CPU_SetSegGeneral(es,dos.psp());
 			}
 		}
 
