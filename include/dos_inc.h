@@ -1003,6 +1003,7 @@ struct DOS_Block {
 #endif
     bool im_enable_flag;
     uint16_t dcp;	// Device command packet
+    static constexpr uint16_t dcp_size_seg = 3;//allocated size of DCP buffer
 };
 
 extern DOS_Block dos;
