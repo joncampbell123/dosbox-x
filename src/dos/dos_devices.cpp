@@ -149,8 +149,8 @@ bool DOS_ExtDevice::Close() {
 }
 
 bool DOS_ExtDevice::Seek(uint32_t * pos,uint32_t type) {
-    (void)pos;//UNUSED
-    (void)type;//UNUSED
+	(void)pos;//UNUSED
+	(void)type;//UNUSED
 	return true;
 }
 
@@ -166,11 +166,11 @@ uint16_t DOS_ExtDevice::GetInformation(void) {
 uint8_t DOS_ExtDevice::GetStatus(bool input_flag) {
 	uint16_t status;
 	if(input_flag) {
-		// NON-DESTRUCTIVE INPUT NO WAIT
-		status = CallDeviceFunction(5, 14, 0, 0, 0);
+		// INPUT STATUS
+		status = CallDeviceFunction(DEVFUNC_INPUT_STATUS, 13, 0, 0, 0);
 	} else {
 		// OUTPUT STATUS
-		status = CallDeviceFunction(10, 13, 0, 0, 0);
+		status = CallDeviceFunction(DEVFUNC_OUTPUT_STATUS, 13, 0, 0, 0);
 	}
 	// check NO ERROR & BUSY
 	if((status & 0x8200) == 0) {
