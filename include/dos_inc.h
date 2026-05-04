@@ -103,8 +103,6 @@ extern bool dos_kernel_disabled;
 #define IS_J3100 (0)
 #endif
 
-#define	EXT_DEVICE_BIT				0x0200
-
 extern uint16_t first_umb_seg;
 extern uint16_t first_umb_size;
 
@@ -242,6 +240,7 @@ namespace DeviceInfoFlags
 	constexpr uint16_t Binary           = 1<<5;
 	constexpr uint16_t EofOnInput       = 1<<6;
 	constexpr uint16_t Device           = 1<<7;
+	constexpr uint16_t ExternalDevice   = 1<<9;
 	constexpr uint16_t OpenCloseSupport = 1<<11;
 	constexpr uint16_t OutputUntilBusy  = 1<<13;
 	constexpr uint16_t IoctlSupport     = 1<<14;

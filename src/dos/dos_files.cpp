@@ -1081,7 +1081,7 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	}
 	bool exists=false;
 	if (device) {
-		if (Devices[devnum]->GetInformation() & EXT_DEVICE_BIT)
+		if (Devices[devnum]->GetInformation() & DeviceInfoFlags::ExternalDevice)
 			Files[handle] = new DOS_ExtDevice(*(DOS_ExtDevice*)Devices[devnum]);
 		else
 			Files[handle] = new DOS_Device(*Devices[devnum]);

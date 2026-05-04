@@ -2072,7 +2072,7 @@ static Bitu DOS_21Handler(void) {
                 if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
                     DOS_SetError(DOSERR_INVALID_HANDLE);
                 }
-                else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
+                else if(Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
                     fRead = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(4, 26, SegValue(ds), reg_dx, toread) & 0x8000);
 #if defined(USE_TTF)
                     if(fRead && ttf.inUse && reg_bx == WPvga512CHMhandle)
@@ -2159,7 +2159,7 @@ static Bitu DOS_21Handler(void) {
                     if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
                         DOS_SetError(DOSERR_INVALID_HANDLE);
                     }
-                    else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
+                    else if(Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
                         fWritten = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(8, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
                     }
                     else {

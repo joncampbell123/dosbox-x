@@ -155,7 +155,7 @@ bool DOS_ExtDevice::Seek(uint32_t * pos,uint32_t type) {
 }
 
 uint16_t DOS_ExtDevice::GetInformation(void) {
-	uint16_t ret = EXT_DEVICE_BIT;
+	uint16_t ret = DeviceInfoFlags::ExternalDevice;
 	if (ext.attribute & DeviceAttributeFlags::CharacterDevice)   ret |= DeviceInfoFlags::Device;
 	if (ext.attribute & DeviceAttributeFlags::SupportsIoctl)     ret |= DeviceInfoFlags::IoctlSupport;
 	if (ext.attribute & DeviceAttributeFlags::SupportsRemovable) ret |= DeviceInfoFlags::OpenCloseSupport;
@@ -204,7 +204,7 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 				if(already_flag) {
 					for(no = 0 ; no < DOS_DEVICES ; no++) {
 						if(Devices[no]) {
-							if(Devices[no]->GetInformation() & EXT_DEVICE_BIT) {
+							if(Devices[no]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
 								if(((DOS_ExtDevice *)Devices[no])->CheckSameDevice(seg, real_readw(seg, off + 6), real_readw(seg, off + 8))) {
 									return 0;
 								}
@@ -664,7 +664,7 @@ uint16_t DOS_Device::GetInformation(void) {
 }
 
 void DOS_Device::SetInformation(uint16_t info) {
-	if(Devices[devnum]->IsName("CON") && !(Devices[devnum]->GetInformation() & EXT_DEVICE_BIT)) {
+	if(Devices[devnum]->IsName("CON") && !(Devices[devnum]->GetInformation() & DeviceInfoFlags::ExternalDevice)) {
 		Devices[devnum]->SetInformation(info);
 	}
 }
@@ -679,7 +679,7 @@ bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * re
 
 uint8_t DOS_Device::GetStatus(bool input_flag) {
 	uint16_t info = Devices[devnum]->GetInformation();
-	if(info & EXT_DEVICE_BIT) {
+	if(info & DeviceInfoFlags::ExternalDevice) {
 		return Devices[devnum]->GetStatus(input_flag);
 	}
 	return (info & DeviceInfoFlags::EofOnInput) ? 0x00 : 0xff;
@@ -761,7 +761,7 @@ uint8_t DOS_FindDevice(char const * name) {
 	DOS_CheckOpenExtDevice(name_part);
 	for(int index = DOS_DEVICES - 1 ; index >= 0 ; index--) {
 		if(Devices[index]) {
-			if(Devices[index]->GetInformation() & EXT_DEVICE_BIT) {
+			if(Devices[index]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
 				if(WildFileCmp(name_part, Devices[index]->name)) {
 					if(DOS_CheckExtDevice(name_part, false) != 0) {
 						return index;
