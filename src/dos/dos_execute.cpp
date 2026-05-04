@@ -304,6 +304,10 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 	uint32_t checksum = 0;
 	uint32_t checksum_bytes = 0;
 
+	// FIXME: This code works but there is no file I/O error checking!
+	//        If it reads a truncated EXE or file I/O somehow fails while loading,
+	//        this code will carry on and possibly execute erroneous code!
+
 	if (flags == DOSEXEC_DEVICEDRIVER) {/*Internal value. DOS programs cannot pass this through INT 21h*/
 		/* block_pt is two 16-bit values:
 		 * low WORD is relocation segment value.
