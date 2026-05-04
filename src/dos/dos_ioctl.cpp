@@ -651,10 +651,9 @@ bool DOS_IOCTL(void) {
 	switch(reg_al) {
 	case 0x00:		/* Get Device Information */
 		if (Files[handle]->GetInformation() & DeviceInfoFlags::Device) {	//Check for device
-			reg_dx=Files[handle]->GetInformation() & ~EXT_DEVICE_BIT;
-            // DOS copies the upper byte of device attributes in DH resulting in two bits being set
-            // for a device
-            reg_dx |= DeviceAttributeFlags::CharacterDevice;
+			reg_dx=Files[handle]->GetInformation() & ~DeviceInfoFlags::ExternalDevice;
+			// DOS copies the upper byte of device attributes in DH resulting in two bits being set for a device
+			reg_dx |= DeviceAttributeFlags::CharacterDevice;//FIXME: What about when block device support is added?
 		} else {
 			uint8_t hdrive=Files[handle]->GetDrive();
 			if (hdrive==0xff) {
@@ -722,7 +721,7 @@ bool DOS_IOCTL(void) {
 		}
 		return true;
 	case 0x07:		/* Get Output Status */
-		if (Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
+		if (Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
 			reg_al = ((DOS_Device*)(Files[handle]))->GetStatus(false);
 			return true;
 		}
