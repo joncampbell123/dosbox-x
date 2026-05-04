@@ -21,6 +21,11 @@ Next version
     environment, perhaps this would help enable that.
 
     At this time (in development), only INIT is called. (joncampbell123)
+  - External DOS device driver read/write: Optimize I/O by using larger
+    read/write transfers (currently 16 based on how much memory is allocated
+    for device driver I/O request and data). Until this change, the code
+    used an extremely inefficient 1-byte read/write method to transfer
+    to or from the device driver. (joncampbell123)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config

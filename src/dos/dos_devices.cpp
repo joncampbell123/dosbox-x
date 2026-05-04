@@ -112,36 +112,100 @@ bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t *
 }
 
 bool DOS_ExtDevice::Read(uint8_t * data,uint16_t * size) {
-	PhysPt bufptr = (dos.dcp << 4) | 32;
-	for(uint16_t no = 0 ; no < *size ; no++) {
-		// INPUT
-		if(CallDeviceFunction(4, 26, dos.dcp + 2, 0, 1) & 0x8000) {
+	PhysPt bufptr = (dos.dcp << 4) + 32;
+
+	if (dos.dcp_size_seg <= 2) return false;
+
+	unsigned int batch_size = (dos.dcp_size_seg - 2) << 4;
+	unsigned int todo = *size;
+	unsigned int done = 0;
+	unsigned int rd;
+
+	const auto inproc = [bufptr, &todo, &done, &rd, &data, this](const unsigned int batch_size) {
+		rd = 0;
+
+		if (CallDeviceFunction(DEVFUNC_READ, 26, dos.dcp + 2/*2 paras = 32 bytes*/, 0, batch_size) & 0x8000/*error*/)
+			return;
+
+		rd = real_readw(dos.dcp, 18);/*how much was read?*/
+		if (rd > batch_size) {
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver read too much data!");
+			rd = 0;
+			return;
+		}
+		for (unsigned int c=0;c < rd;c++) data[c] = mem_readb(bufptr+c);
+		todo -= rd;
+		data += rd;
+		done += rd;
+	};
+
+	while (todo >= batch_size) {
+		inproc(batch_size);
+		if (rd != batch_size) {
+			*size = done;
 			return false;
-		} else {
-			if(real_readw(dos.dcp, 18) != 1) {
-				return false;
-			}
-			*data++ = mem_readb(bufptr);
 		}
 	}
+
+	if (todo != 0) {
+		inproc(todo);
+		if (rd != todo) {
+			*size = done;
+			return false;
+		}
+	}
+
+	*size = done;
 	return true;
 }
 
 bool DOS_ExtDevice::Write(const uint8_t * data,uint16_t * size) {
-	PhysPt bufptr = (dos.dcp << 4) | 32;
-	for(uint16_t no = 0 ; no < *size ; no++) {
-		mem_writeb(bufptr, *data);
-		// OUTPUT
-		if(CallDeviceFunction(8, 26, dos.dcp + 2, 0, 1) & 0x8000) {
-			return false;
-		} else {
-			if(real_readw(dos.dcp, 18) != 1) {
-				return false;
-			}
+	PhysPt bufptr = (dos.dcp << 4) + 32;
+
+	if (dos.dcp_size_seg <= 2) return false;
+
+	unsigned int batch_size = (dos.dcp_size_seg - 2) << 4;
+	unsigned int todo = *size;
+	unsigned int done = 0;
+	unsigned int wd;
+
+	const auto inproc = [bufptr, &todo, &done, &wd, &data, this](const unsigned int batch_size) {
+		wd = 0;
+
+		for (unsigned int c=0;c < batch_size;c++) mem_writeb(bufptr+c,data[c]);
+		if (CallDeviceFunction(DEVFUNC_WRITE, 26, dos.dcp + 2/*2 paras = 32 bytes*/, 0, batch_size) & 0x8000/*error*/)
+			return;
+
+		wd = real_readw(dos.dcp, 18);/*how much was written?*/
+		if (wd > batch_size) {
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver wrote too much data!");
+			wd = 0;
+			return;
 		}
-		data++;
+		todo -= wd;
+		data += wd;
+		done += wd;
+	};
+
+	while (todo >= batch_size) {
+		inproc(batch_size);
+		if (wd != batch_size) {
+			*size = done;
+			return false;
+		}
 	}
+
+	if (todo != 0) {
+		inproc(todo);
+		if (wd != todo) {
+			*size = done;
+			return false;
+		}
+	}
+
+	*size = done;
 	return true;
+
 }
 
 bool DOS_ExtDevice::Close() {
