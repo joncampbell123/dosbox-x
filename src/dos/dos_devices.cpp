@@ -61,7 +61,8 @@ bool DOS_ExtDevice::CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off
 	return false;
 }
 
-uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size) {
+/* This function is optimized for use with read/write and ioctl read/write commands for character devices */
+uint16_t DOS_ExtDevice::CallRWIODeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size) {
 	uint16_t oldbx = reg_bx;
 	uint16_t oldds = SegValue(ds);
 	uint16_t oldes = SegValue(es);
@@ -72,10 +73,12 @@ uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, uint
 	real_writew(dos.dcp, 3, 0);
 	real_writed(dos.dcp, 5, 0);
 	real_writed(dos.dcp, 9, 0);
-	real_writeb(dos.dcp, 13, 0);
-	real_writew(dos.dcp, 14, offset);
-	real_writew(dos.dcp, 16, seg);
-	real_writew(dos.dcp, 18, size);
+	if (length >= 20) { // this code is used below for input/output status which does not use these fields
+		real_writeb(dos.dcp, 13, 0);
+		real_writew(dos.dcp, 14, offset);
+		real_writew(dos.dcp, 16, seg);
+		real_writew(dos.dcp, 18, size);
+	}
 
 	reg_bx = 0;
 	SegSet16(ds, ext.segment);
@@ -92,7 +95,7 @@ uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, uint
 bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	if(ext.attribute & DeviceAttributeFlags::SupportsIoctl) {
 		// IOCTL INPUT
-		if((CallDeviceFunction(DEVFUNC_IOCTL_READ, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
+		if((CallRWIODeviceFunction(DEVFUNC_IOCTL_READ, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
 			return true;
 		}
@@ -103,7 +106,7 @@ bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t 
 bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	if(ext.attribute & DeviceAttributeFlags::SupportsIoctl) {
 		// IOCTL OUTPUT
-		if((CallDeviceFunction(DEVFUNC_IOCTL_WRITE, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
+		if((CallRWIODeviceFunction(DEVFUNC_IOCTL_WRITE, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
 			return true;
 		}
@@ -124,7 +127,7 @@ bool DOS_ExtDevice::Read(uint8_t * data,uint16_t * size) {
 	const auto inproc = [bufptr, &todo, &done, &rd, &data, this](const unsigned int batch_size) {
 		rd = 0;
 
-		if (CallDeviceFunction(DEVFUNC_READ, 26, dos.dcp + 2/*2 paras = 32 bytes*/, 0, batch_size) & 0x8000/*error*/)
+		if (CallRWIODeviceFunction(DEVFUNC_READ, 26, dos.dcp + 2/*2 paras = 32 bytes*/, 0, batch_size) & 0x8000/*error*/)
 			return;
 
 		rd = real_readw(dos.dcp, 18);/*how much was read?*/
@@ -173,7 +176,7 @@ bool DOS_ExtDevice::Write(const uint8_t * data,uint16_t * size) {
 		wd = 0;
 
 		for (unsigned int c=0;c < batch_size;c++) mem_writeb(bufptr+c,data[c]);
-		if (CallDeviceFunction(DEVFUNC_WRITE, 26, dos.dcp + 2/*2 paras = 32 bytes*/, 0, batch_size) & 0x8000/*error*/)
+		if (CallRWIODeviceFunction(DEVFUNC_WRITE, 26, dos.dcp + 2/*2 paras = 32 bytes*/, 0, batch_size) & 0x8000/*error*/)
 			return;
 
 		wd = real_readw(dos.dcp, 18);/*how much was written?*/
@@ -231,10 +234,10 @@ uint8_t DOS_ExtDevice::GetStatus(bool input_flag) {
 	uint16_t status;
 	if(input_flag) {
 		// INPUT STATUS
-		status = CallDeviceFunction(DEVFUNC_INPUT_STATUS, 13, 0, 0, 0);
+		status = CallRWIODeviceFunction(DEVFUNC_INPUT_STATUS, 13, 0, 0, 0);
 	} else {
 		// OUTPUT STATUS
-		status = CallDeviceFunction(DEVFUNC_OUTPUT_STATUS, 13, 0, 0, 0);
+		status = CallRWIODeviceFunction(DEVFUNC_OUTPUT_STATUS, 13, 0, 0, 0);
 	}
 	// check NO ERROR & BUSY
 	if((status & 0x8200) == 0) {
