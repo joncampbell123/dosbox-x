@@ -97,23 +97,49 @@ jobs:
         shell: bash
         run: |
           sleep 40m
+      - name: Get releases
+        run: |
+          curl -s https://api.github.com/repos/joncampbell123/dosbox-x/releases?per_page=100 > releases.json
+      - name: Find valid tag (no osfree)
+        id: decide
+        shell: bash
+        run: |
+          TAG=$(jq -r '
+            .[]
+            | select(.draft == false and .prerelease == false)
+            | select([(.assets // [])[].name | contains("osfree")] | any | not)
+            | .tag_name
+          ' releases.json | head -n 1)
+          if [ -z "$TAG" ]; then
+            echo "No valid release found"
+            exit 1
+          fi
+          echo "Selected tag: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
       - name: Download Windows build
         uses: robinraju/release-downloader@v1.13
         with:
           repository: "joncampbell123/dosbox-x"
-          latest: true
+          tag: ${{ steps.decide.outputs.tag }}
           filename: "dosbox-x-vsbuild-win32-*.zip"
+          
       - name: Run in Windows build
         shell: bash
         run: |
           top=`pwd`
-          $top/vs/tool/unzip.exe -n "dosbox-x-vsbuild-win32-*.zip" "bin/Win32/Release/dosbox-x.*"
+          ZIP=$(ls dosbox-x-vsbuild-win32-*.zip | head -n 1) || exit 1
+          $top/vs/tool/unzip.exe -n "$ZIP" "bin/Win32/Release/dosbox-x.*"
+          test -f "$top/bin/Win32/Release/dosbox-x.exe" || (echo "exe not found" && exit 1)
           cp $top/package/dosbox-x.ref $top/hxdos.cfg
           echo mount b ..>>$top/hxdos.cfg
           echo "echo success>b:\SUCCESS.TXT">>$top/hxdos.cfg
-          $top/bin/Win32/Release/dosbox-x.exe -silent -exit -set memsize=128 -c "mount c ." -c "c:" -c "cd package" -c "dosbox-x -silent -exit -conf ..\hxdos.cfg>..\OUTPUT.TXT"
+          $top/bin/Win32/Release/dosbox-x.exe -silent -exit -set memsize=128 \
+            -c "mount c ." \
+            -c "c:" \
+            -c "cd package" \
+            -c "dosbox-x -silent -exit -conf ..\hxdos.cfg>..\OUTPUT.TXT"
           cat $top/OUTPUT.TXT
-          test -f $top/SUCCESS.TXT || (echo The HX-DOS build did not run successfully && exit 1)
+          test -f $top/SUCCESS.TXT || (echo "HX-DOS build failed" && exit 1)
       - name: Upload preview package
         uses: actions/upload-artifact@v7.0.1
         with:
