@@ -1291,17 +1291,6 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
     }
 }
 
-/* TODO: There is a dos.dcp segment value for issuing requests to a device driver.
- *       Change this code to use THAT to issue INIT. Perhaps the last 128 bytes of the PSP segment
- *       of CONFIG could be used to carry the initialization string from devparm. */
-uint16_t DOS_DevCallSeg = 0;
-
-#define DOS_DevCallOffset (0)
-#define DOS_DevCallSize (63)
-
-#define DOS_DevCallArgsOffset (DOS_DevCallOffset+DOS_DevCallSize)
-#define DOS_DevCallArgsSize (129)
-
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
@@ -2164,9 +2153,10 @@ next:
 
 	if (!device.empty()) {
 		uint16_t devseg = 0,ofs,attr;
+		uint16_t stacksz = 256u;
 
 		/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
-		uint16_t blocks = 0x08; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
+		uint16_t blocks = (0x80 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
 		if (!DOS_ResizeMemory(dos.psp(),&blocks)) {
 			WriteOut("Unable to shrink PSP to enable loading device driver\n");
 			return;
@@ -2174,6 +2164,10 @@ next:
 
 		/* redirect instruction pointer to PSP:0 so that CONFIG exits immediately after this function returns */
 		reg_ip = 0;
+
+		/* redirect the stack pointer */
+		CPU_SetSegGeneral(ss,dos.psp());
+		reg_esp = 0x80 + devparm.length() + 3u + stacksz - 2u;
 
 		/* free the environment block associated with the PSP */
 		{
@@ -2238,16 +2232,10 @@ next:
 			LOG(LOG_MISC,LOG_DEBUG)("Supports:%s",blah.c_str());
 		}
 
-		/* Allocate memory for device call structure */
-		if (DOS_DevCallSeg == 0) {
-			DOS_DevCallSeg = DOS_GetMemory((DOS_DevCallSize+DOS_DevCallArgsSize+15)/16,"Device driver call structure");
-			LOG(LOG_MISC,LOG_DEBUG)("Device driver call structure");
-		}
-
-		/* Call strategy routine in driver so it knows where to look for structure, give it ES:BX = DOS_DevCallSeg:0 */
+		/* Call strategy routine in driver so it knows where to look for structure, give it ES:BX = dos.dcp:0 */
 		ofs = real_readw(devseg,0x6);
 		reg_bx = 0; CPU_SetSegGeneral(ds,devseg);
-		CPU_SetSegGeneral(es,DOS_DevCallSeg);
+		CPU_SetSegGeneral(es,dos.dcp);
 		LOG(LOG_MISC,LOG_DEBUG)("Calling device driver strategy routine at %x:%x",devseg,ofs);
 		CALLBACK_RunRealFar(devseg,ofs); /* no return value */
 
@@ -2261,31 +2249,28 @@ next:
 			else
 				s.hdr.record_length = 22;
 
-			if (devparm.length() > (DOS_DevCallArgsSize-3))
-				LOG(LOG_MISC,LOG_DEBUG)("Init str warning: Init str too long");
-
 			/* init arguments */
 			{
 				const char *s = devparm.c_str();
 				unsigned int i=0;
 
 				LOG(LOG_MISC,LOG_DEBUG)("Init str '%s'",s);
-				while (i < (DOS_DevCallArgsSize-3) && *s) real_writeb(DOS_DevCallSeg,DOS_DevCallArgsOffset+(i++),*s++);
+				while (i < devparm.length() && *s) real_writeb(dos.psp(),0x80+(i++),*s++);
 
 				/* \r\n terminated */
 				/* OAKCDROM.SYS requires \r\n, or else scans memory for eternity */
-				real_writeb(DOS_DevCallSeg,DOS_DevCallArgsOffset+(i++),0x0D);
-				real_writeb(DOS_DevCallSeg,DOS_DevCallArgsOffset+(i++),0x0A);
+				real_writeb(dos.psp(),0x80+(i++),0x0D);
+				real_writeb(dos.psp(),0x80+(i++),0x0A);
 
 				/* NULL terminator */
-				real_writeb(DOS_DevCallSeg,DOS_DevCallArgsOffset+i,0);
+				real_writeb(dos.psp(),0x80+i,0);
 			}
 
-			s.bpb_ptr = RealMake(DOS_DevCallSeg,DOS_DevCallArgsOffset);
+			s.bpb_ptr = RealMake(dos.psp(),0x80);
 			s.end_ptr = RealMake(devseg+blocks,0);/*tell the driver where the current end is, perhaps as a memory size detect?*/
-			LOG(LOG_MISC,LOG_DEBUG)("Giving device driver in DEVINIT request initial endptr %x:%x initstr %x:%x",devseg+blocks,0,DOS_DevCallSeg,DOS_DevCallArgsOffset);
+			LOG(LOG_MISC,LOG_DEBUG)("Giving device driver in DEVINIT request initial endptr %x:%x initstr %x:%x",devseg+blocks,0,dos.psp(),0x80);
 			s.hdr.cmd_code = DEVFUNC_INIT;
-			MEM_BlockWrite(PhysMake(DOS_DevCallSeg,0),&s,sizeof(s));
+			MEM_BlockWrite(PhysMake(dos.dcp,0),&s,sizeof(s));
 
 			/* interrupt routine is not expected to accept or return register values but must preserve all registers.
 			 * if device drivers happen to assume things anyway, then, well'll deal with that later */
@@ -2294,7 +2279,7 @@ next:
 			CALLBACK_RunRealFar(devseg,ofs); /* no return value */
 
 			/* so what did the driver do with the request? */
-			MEM_BlockRead(PhysMake(DOS_DevCallSeg,0),&s,sizeof(s));
+			MEM_BlockRead(PhysMake(dos.dcp,0),&s,sizeof(s));
 
 			/* programming experience suggests that DOS doesn't give a damn about the status word of INIT,
 			 * but if you want to fail loading, set end_ptr == 0. If DOS did give a crap, my old SBSYS device
