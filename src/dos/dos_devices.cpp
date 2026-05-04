@@ -766,6 +766,7 @@ uint8_t DOS_FindDevice(char const * name) {
 					if(DOS_CheckExtDevice(name_part, false) != 0) {
 						return index;
 					} else {
+						LOG(LOG_MISC,LOG_DEBUG)("Remove external device driver '%s', no longer in the device chain",name);
 						delete Devices[index];
 						Devices[index] = nullptr;
 						break;
