@@ -477,7 +477,7 @@ void DOS_SetupTables(void) {
 	dos_infoblock.SetFirstDPB(RealMake(dos.tables.dpb,0));
 
 	/* Create Device command packet area */
-	dos.dcp = DOS_GetMemory(3, "External device command packet");
+	dos.dcp = DOS_GetMemory(dos.dcp_size_seg, "External device command packet");
 
 	/* Create a fake disk buffer head */
 	seg=DOS_GetMemory(6,"Fake disk buffer head");
