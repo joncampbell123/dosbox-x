@@ -2074,6 +2074,7 @@ static Bitu DOS_21Handler(void) {
                 }
                 else if(Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
                     fRead = !(((DOS_ExtDevice*)Files[handle])->CallRWIODeviceFunction(DEVFUNC_READ, 26, SegValue(ds), reg_dx, toread) & 0x8000);
+                    toread = real_readw(dos.dcp, 18);
 #if defined(USE_TTF)
                     if(fRead && ttf.inUse && reg_bx == WPvga512CHMhandle)
                         MEM_BlockRead(SegPhys(ds) + reg_dx, dos_copybuf, toread);
@@ -2161,6 +2162,7 @@ static Bitu DOS_21Handler(void) {
                     }
                     else if(Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
                         fWritten = !(((DOS_ExtDevice*)Files[handle])->CallRWIODeviceFunction(DEVFUNC_WRITE, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
+                        towrite = real_readw(dos.dcp, 18);
                     }
                     else {
                         if((fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite))) {
