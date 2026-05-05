@@ -103,8 +103,6 @@ extern bool dos_kernel_disabled;
 #define IS_J3100 (0)
 #endif
 
-#define	EXT_DEVICE_BIT				0x0200
-
 extern uint16_t first_umb_seg;
 extern uint16_t first_umb_size;
 
@@ -242,6 +240,7 @@ namespace DeviceInfoFlags
 	constexpr uint16_t Binary           = 1<<5;
 	constexpr uint16_t EofOnInput       = 1<<6;
 	constexpr uint16_t Device           = 1<<7;
+	constexpr uint16_t ExternalDevice   = 1<<9;
 	constexpr uint16_t OpenCloseSupport = 1<<11;
 	constexpr uint16_t OutputUntilBusy  = 1<<13;
 	constexpr uint16_t IoctlSupport     = 1<<14;
@@ -325,7 +324,8 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag);
 /* Execute and new process creation */
 bool DOS_NewPSP(uint16_t segment,uint16_t size);
 bool DOS_ChildPSP(uint16_t segment,uint16_t size);
-bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags);
+bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags);
+#define DOSEXEC_DEVICEDRIVER 0x0100 /* special flags param for DOS_Execute() that DOS programs cannot pass through INT 21h, block_pt becomes direct segment */
 void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode);
 
 /* Memory Handling Routines */
@@ -600,6 +600,7 @@ public:
 	uint8_t	GetUMBChainState(void);
 	RealPt	GetPointer(void);
 	uint32_t GetDeviceChain(void);
+	uint32_t GetStartOfDeviceChain(void);/*this one includes the NUL driver at the very start*/
 
 	void SetBootDrive(uint8_t drv) { sSave(sDIB,bootDrive,drv); }
 	uint8_t GetBootDrive(void) { return sGet(sDIB,bootDrive); }
@@ -922,22 +923,22 @@ public:
 		uint8_t cmd_code;
 		uint16_t status; /* status word: 15=ERR 9=BUSY 8=DONE 7..0=ERR CODE */
 		uint32_t reserved[2]; /* reserved for internal DOS use, queue links */
-	};/*=13 bytes*/
+	} GCC_ATTRIBUTE(packed);/*=13 bytes*/
 
 	/* init request */
 	struct req_init {
-		struct hdr hdr; /* static request header (13 bytes) DEVFUNC_INIT */
+		struct streqhdr hdr; /* static request header (13 bytes) DEVFUNC_INIT */
 		uint8_t num_of_units; /* number of units */
 		uint32_t end_ptr; /* ending address of driver, filled in by INIT */
 		uint32_t bpb_ptr; /* in: init arguments  out: BPB array */
 		/* MS-DOS 2.0 ends here == 22 bytes */
 		uint8_t drive_num; /* driver number */
 		uint16_t config_err; /* config.sys error flag */
-	};/*=25 bytes*/
+	} GCC_ATTRIBUTE(packed);/*=25 bytes*/
 
 	/* read/write request */
 	struct req_rwio {
-		struct hdr hdr; /* static request header (13 bytes) DEVFUNC_READ/DEVFUNC_WRITE/DEVFUNC_WRITEVERIFY */
+		struct streqhdr hdr; /* static request header (13 bytes) DEVFUNC_READ/DEVFUNC_WRITE/DEVFUNC_WRITEVERIFY */
 		uint8_t media_dpb; /* from DPB */
 		uint32_t xfer_addr; /* transfer address (16:16) */
 		uint16_t count; /* byte or sector count */
@@ -947,7 +948,7 @@ public:
 		uint32_t ptr_volid; /* pointer to volume ID (R/W according to MS-DOS 4.0 source code) */
 		uint32_t start_sector32; /* starting sector (if block device) */
 		/* EXTDRVR stops here == 30 bytes */
-	};/*=30 bytes*/
+	} GCC_ATTRIBUTE(packed);/*=30 bytes*/
 
 	#ifdef _MSC_VER
 	#pragma pack ()
@@ -1002,6 +1003,7 @@ struct DOS_Block {
 #endif
     bool im_enable_flag;
     uint16_t dcp;	// Device command packet
+    static constexpr uint16_t dcp_size_seg = 3;//allocated size of DCP buffer
 };
 
 extern DOS_Block dos;

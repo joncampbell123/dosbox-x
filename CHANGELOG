@@ -1,3 +1,40 @@
+Next version
+  - Added function to config to load MS-DOS device drivers. The command is
+    config -device <device driver path> -devparm <parameters>. For example,
+    to load OAKCDROM.SYS into memory, you could type:
+
+    config -device C:\DOS\OAKCDROM.SYS -devparm "/D:CD001"
+
+    which is equivalent to the DEVICE line in CONFIG.SYS:
+
+    DEVICE=C:\DOS\OAKCDROM.SYS /D:CD001
+
+    The goal is that DOSBox-X would fully support, through INT 21h and
+    other interfaces, real device drivers instead of hard coding specific
+    driver emulation. INT 21h would use the actual device chain instead
+    of a built-in list. Built-in device emulation could appear properly
+    in the device chain instead of fake entries.
+
+    There seems to be interest on the DOSBox-X discussion and issue trackers
+    of getting DOSBox-X to provide or emulate the MS-DOS/Windows 95 IFS
+    driver to get Windows 95 to boot from a disk image in the native DOSBox-X
+    environment, perhaps this would help enable that.
+
+    At this time (in development), only INIT is called. (joncampbell123)
+  - External DOS device driver read/write: Optimize I/O by using larger
+    read/write transfers (currently 16 based on how much memory is allocated
+    for device driver I/O request and data). Until this change, the code
+    used an extremely inefficient 1-byte read/write method to transfer
+    to or from the device driver. (joncampbell123)
+  - DOS execute bugfix: While ownership was properly listed in the MCB for
+    the PSP segment, the environment block associated with the program was
+    always listed in the MCB as belonging to the parent process. This has
+    been addressed (joncampbell123)
+  - Fix INT 21h AH=3Fh/40h READ/WRITE processing, when talking to an external
+    MS-DOS device driver, so that the bytes actually processed by the driver
+    are returned in AX to the DOS program, instead of giving the DOS program
+    the impression that all were processed when they may not have been. (joncampbell123)
+
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
     directory in your home directory for DOSBox-X logo PNG files.

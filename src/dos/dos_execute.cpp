@@ -293,7 +293,7 @@ static void SetupCMDLine(uint16_t pspseg, const DOS_ParamBlock& block) {
  *        shell without any error message. The least we could do is return
  *        an error code so that the INT 21h EXEC call can print an informative
  *        error message! --J.C. */
-bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
+bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 	EXE_Header head;Bitu i;
 	uint16_t fhandle;uint16_t len;uint32_t pos;
 	uint16_t pspseg,envseg,loadseg,memsize=0xffff,readsize;
@@ -304,7 +304,22 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	uint32_t checksum = 0;
 	uint32_t checksum_bytes = 0;
 
-	block.LoadData();
+	// FIXME: This code works but there is no file I/O error checking!
+	//        If it reads a truncated EXE or file I/O somehow fails while loading,
+	//        this code will carry on and possibly execute erroneous code!
+
+	if (flags == DOSEXEC_DEVICEDRIVER) {/*Internal value. DOS programs cannot pass this through INT 21h*/
+		/* block_pt is two 16-bit values:
+		 * low WORD is relocation segment value.
+		 * hi WORD is the highest segment of valid memory + 1 (boundary) so this function can identify if the image is too big
+		 * Take the values and then process loading as if OVERLAY */
+		block.overlay.loadseg = block_pt & 0xFFFFu;
+		block.overlay.relocation = block_pt & 0xFFFFu;
+		flags = OVERLAY;
+	}
+	else {
+		block.LoadData();
+	}
 	//Remove the loadhigh flag for the moment!
 	if(flags&0x80) LOG(LOG_EXEC,LOG_ERROR)("using loadhigh flag!!!!!. dropping it");
 	flags &= 0x7f;
@@ -868,6 +883,16 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		RunningProgramHash[1] = checksum_bytes;
 		RunningProgramHash[2] = checksum;
 		RunningProgramHash[3] = 0;
+
+		/* ownership of the environment block also belongs to the program, not the parent program! (bugfix) */
+		{
+			uint16_t s = newpsp.GetEnvironment();
+			if (s != 0) {
+				DOS_MCB envmcb(s-1);
+				envmcb.SetPSPSeg(dos.psp());
+				envmcb.SetFileName(stripname);
+			}
+		}
 	}
 
 #if defined(OSFREE)
