@@ -4126,6 +4126,7 @@ static Bitu DOS_29Handler(void)
 void AddBPINT3(void);
 void IPX_Setup(Section*);
 void DOS_SetupIHSEG(void);
+void DOS_CreateDummyDeviceMCB(void);
 
 class DOS:public Module_base{
 private:
@@ -4682,6 +4683,9 @@ public:
 
 		/* carry on setup */
 		DOS_SetupMemory();								/* Setup first MCB */
+
+		/* dummy device MCB */
+		if (enable_dummy_device_mcb) DOS_CreateDummyDeviceMCB();
 
 		/* NTS: The reason PC-98 has a higher minimum free is that the MS-DOS kernel
 		 *      has a larger footprint in memory, including fixed locations that
