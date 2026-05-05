@@ -696,15 +696,13 @@ void DOS_SetupMemory(void) {
 	if (seg_limit > max_conv) seg_limit = max_conv;
 	UMB_START_SEG = max_conv - 1;
 
-	uint16_t mcb_sizes=0;
-
-	DOS_MCB mcb(DOS_MEM_START+mcb_sizes);
+	DOS_MCB mcb(DOS_MEM_START);
 	mcb.SetPSPSeg(MCB_FREE);						//Free
 	mcb.SetType(0x5a);								//Last Block
 	if (machine==MCH_TANDY) {
 		/* map memory as normal, the BIOS initialization is the code responsible
 		 * for subtracting 32KB from top of system memory for video memory. */
-		mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);
+		mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START);
 		CONV_MAX_SEG = seg_limit;
 	} else if (machine==MCH_PCJR) {
 		/* If there is more than 128KB of RAM, then the MCB chain must be constructed
@@ -731,12 +729,12 @@ void DOS_SetupMemory(void) {
 			mcb_devicedummy.SetType(0x4d);
 
 			/* memory below 96k */
-			mcb.SetSize(0x1800 - DOS_MEM_START - (2+mcb_sizes));
+			mcb.SetSize(0x1800 - DOS_MEM_START - 2);
 			mcb.SetType(0x4d);
 		}
 		else {
 			/* Normal MCB chain, nothing special */
-			mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);
+			mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START);
 			CONV_MAX_SEG = seg_limit;
 		}
 	} else {
@@ -752,9 +750,9 @@ void DOS_SetupMemory(void) {
 		/* complete memory up to 640k available */
 		/* last paragraph used to add UMB chain to low-memory MCB chain */
 		if (dos_umb)
-			mcb.SetSize(/*0x9FFE*/(seg_limit-2) - DOS_MEM_START - mcb_sizes);
+			mcb.SetSize(/*0x9FFE*/(seg_limit-2) - DOS_MEM_START);
 		else
-			mcb.SetSize(/*0x9FFF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);
+			mcb.SetSize(/*0x9FFF*/(seg_limit-1) - DOS_MEM_START);
 
 		CONV_MAX_SEG = seg_limit-1;
 	}
