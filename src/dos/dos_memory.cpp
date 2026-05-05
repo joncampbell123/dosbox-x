@@ -628,6 +628,7 @@ extern uint16_t DOS_IHSEG;
 
 extern bool enable_dummy_device_mcb;
 extern bool dos_clear_tf_on_int01;
+extern bool dos_umb;
 
 void DOS_SetupMemory(void) {
 	unsigned int max_conv;
@@ -681,7 +682,7 @@ void DOS_SetupMemory(void) {
 
 	if (enable_dummy_device_mcb) {
 		// Create a dummy device MCB with PSPSeg=0x0008
-        LOG_MSG("Dummy device MCB at segment 0x%x",DOS_MEM_START+mcb_sizes);
+		LOG_MSG("Dummy device MCB at segment 0x%x",DOS_MEM_START+mcb_sizes);
 		DOS_MCB mcb_devicedummy(DOS_MEM_START+mcb_sizes);
 		mcb_devicedummy.SetPSPSeg(MCB_DOS);	// Devices
 		mcb_devicedummy.SetSize(16);
@@ -747,7 +748,11 @@ void DOS_SetupMemory(void) {
 
 		/* complete memory up to 640k available */
 		/* last paragraph used to add UMB chain to low-memory MCB chain */
-		mcb.SetSize(/*0x9FFE*/(seg_limit-2) - DOS_MEM_START - mcb_sizes);
+		if (dos_umb)
+			mcb.SetSize(/*0x9FFE*/(seg_limit-2) - DOS_MEM_START - mcb_sizes);
+		else
+			mcb.SetSize(/*0x9FFF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);
+
 		CONV_MAX_SEG = seg_limit-1;
 	}
 
