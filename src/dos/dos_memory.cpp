@@ -671,6 +671,22 @@ void DOS_SetupIHSEG(void) {
 	}
 }
 
+void DOS_CreateDummyDeviceMCB(void) {
+	uint16_t segv=0,blocks=16;
+	// Create a dummy device MCB with PSPSeg=0x0008
+	if (DOS_AllocateMemory(&segv,&blocks)) {
+		LOG_MSG("Dummy device MCB at segment 0x%x",segv);
+
+		DOS_MCB mcb_devicedummy(segv-1u);
+		mcb_devicedummy.SetPSPSeg(MCB_DOS);	// Devices
+
+// We DO need to mark this area as 'SD' but leaving it blank so far
+// confuses MEM.EXE (shows ???????) which suggests other software
+// might have a problem with it as well.
+//		mcb_devicedummy.SetFileName("SD      ");
+	}
+}
+
 void DOS_SetupMemory(void) {
 	unsigned int max_conv;
 	unsigned int seg_limit;
@@ -681,21 +697,6 @@ void DOS_SetupMemory(void) {
 	UMB_START_SEG = max_conv - 1;
 
 	uint16_t mcb_sizes=0;
-
-	if (enable_dummy_device_mcb) {
-		// Create a dummy device MCB with PSPSeg=0x0008
-		LOG_MSG("Dummy device MCB at segment 0x%x",DOS_MEM_START+mcb_sizes);
-		DOS_MCB mcb_devicedummy(DOS_MEM_START+mcb_sizes);
-		mcb_devicedummy.SetPSPSeg(MCB_DOS);	// Devices
-		mcb_devicedummy.SetSize(16);
-		mcb_devicedummy.SetType(0x4d);		// More blocks will follow
-		mcb_sizes+=1+16;
-
-// We DO need to mark this area as 'SD' but leaving it blank so far
-// confuses MEM.EXE (shows ???????) which suggests other software
-// might have a problem with it as well.
-//		mcb_devicedummy.SetFileName("SD      ");
-	}
 
 	DOS_MCB mcb(DOS_MEM_START+mcb_sizes);
 	mcb.SetPSPSeg(MCB_FREE);						//Free
