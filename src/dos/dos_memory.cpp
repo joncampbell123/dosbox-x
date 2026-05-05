@@ -630,15 +630,7 @@ extern bool enable_dummy_device_mcb;
 extern bool dos_clear_tf_on_int01;
 extern bool dos_umb;
 
-void DOS_SetupMemory(void) {
-	unsigned int max_conv;
-	unsigned int seg_limit;
-
-	max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << (10u - 4u);
-	seg_limit = (unsigned int)(MEM_ConventionalPages()*256);
-	if (seg_limit > max_conv) seg_limit = max_conv;
-	UMB_START_SEG = max_conv - 1;
-
+void DOS_SetupIHSEG(void) {
 	/* Let dos claim a few bios interrupts. Makes DOSBox more compatible with 
 	 * buggy games, which compare against the interrupt table. (probably a 
 	 * broken linked list implementation) */
@@ -677,6 +669,16 @@ void DOS_SetupMemory(void) {
 	else {
 		RealSetVec(0x01,RealMake(ihseg,ihofs));		//BioMenace (offset!=4)
 	}
+}
+
+void DOS_SetupMemory(void) {
+	unsigned int max_conv;
+	unsigned int seg_limit;
+
+	max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << (10u - 4u);
+	seg_limit = (unsigned int)(MEM_ConventionalPages()*256);
+	if (seg_limit > max_conv) seg_limit = max_conv;
+	UMB_START_SEG = max_conv - 1;
 
 	uint16_t mcb_sizes=0;
 

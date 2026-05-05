@@ -4125,6 +4125,7 @@ static Bitu DOS_29Handler(void)
 
 void AddBPINT3(void);
 void IPX_Setup(Section*);
+void DOS_SetupIHSEG(void);
 
 class DOS:public Module_base{
 private:
@@ -4637,6 +4638,7 @@ public:
 		}
 #endif
 
+		DOS_SetupIHSEG();
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
 		DOS_SetupTables();
