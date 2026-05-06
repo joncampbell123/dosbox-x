@@ -1033,6 +1033,17 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 	}
 }
 
+bool DOS_OpenExistingSFTEntry(uint16_t jft_handle,int sft_handle) {
+	DOS_PSP psp(dos.psp());
+
+	if (sft_handle >= 0 && sft_handle < 255 && Files[sft_handle] != NULL)
+		psp.SetFileHandle(jft_handle,sft_handle);
+	else
+		psp.SetFileHandle(jft_handle,0xFF);
+
+	return true;
+}
+
 bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	/* First check for devices */
 	if (flags>2) LOG(LOG_FILES,LOG_NORMAL)("Special file open command %X file %s",flags,name); // FIXME: Why? Is there something about special opens DOSBox doesn't handle properly?
@@ -2308,21 +2319,21 @@ void DOS_SetupFiles (void) {
 		if (Drives[i]) DriveManager::UnmountDrive(i);
 		Drives[i]=nullptr;
 	}
-    for (int i=0; i<MAX_DISK_IMAGES; i++) {
-        if (imageDiskList[i]) {
-            delete imageDiskList[i];
-            imageDiskList[i] = NULL;
-        }
-    }
-    if (swapInDisksSpecificDrive != -1) {
-        for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
-            if (diskSwap[si] != NULL) {
-                diskSwap[si]->Release();
-                diskSwap[si] = NULL;
-            }
-        }
-        swapInDisksSpecificDrive = -1;
-    }
+	for (int i=0; i<MAX_DISK_IMAGES; i++) {
+		if (imageDiskList[i]) {
+			delete imageDiskList[i];
+			imageDiskList[i] = NULL;
+		}
+	}
+	if (swapInDisksSpecificDrive != -1) {
+		for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+			if (diskSwap[si] != NULL) {
+				diskSwap[si]->Release();
+				diskSwap[si] = NULL;
+			}
+		}
+		swapInDisksSpecificDrive = -1;
+	}
 	Drives[25]=new Virtual_Drive();
 }
 
