@@ -1359,12 +1359,19 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	uint8_t devseg_mcb[16];
 	MEM_BlockRead(PhysMake(devseg-1,0),devseg_mcb,16);
 
-	/* if the allocated block is the first in the chain, and the CONFIG shell is active, we might be able to
-	 * load over the MCB block and write a new one at the end of the image and adjust the MCB start */
+	/* if the allocated block is the first in the chain, and the CONFIG shell is active, and the MCB block is
+	 * owned by this program, we might be able to load over the MCB block and write a new one at the end of
+	 * the image and adjust the MCB start in order to pack the drivers together into the DOS segment like
+	 * real MS-DOS does. */
 	if (first_shell && first_shell->config_shell && devseg == (dos_infoblock.GetFirstMCB()+1)) {
-		LOG(LOG_MISC,LOG_DEBUG)("Allocated memory for driver is the first in MCB chain, may adjust it forward");
-		adj_mcb_base = true;
-		devseg--; /* load overtop the MCB */
+		DOS_MCB mcb(devseg-1u);
+
+		/* this program must own the PSP segment (because we allocated it) */
+		if (mcb.GetPSPSeg() == 0 || mcb.GetPSPSeg() == dos.psp()) {
+			LOG(LOG_MISC,LOG_DEBUG)("Allocated memory for driver is the first in MCB chain, may adjust it forward");
+			adj_mcb_base = true;
+			devseg--; /* load overtop the MCB */
+		}
 	}
 
 	LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x-%x for driver '%s'",(unsigned int)devseg,(unsigned int)(devseg+blocks-1u),device.c_str());
