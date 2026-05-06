@@ -137,6 +137,9 @@ void SHELL_ProgramStart(Program * * make) {
 static void SHELL_ProgramStart_First_shell(DOS_Shell * * make) {
 	*make = new DOS_Shell;
 }
+static void SHELL_ProgramStart_Config_shell(DOS_Shell * * make) {
+	*make = new DOS_ConfigShell;
+}
 
 bool i4dos=false;
 char i4dos_data[CONFIG_SIZE] = { 0 };
@@ -309,6 +312,17 @@ AutoexecObject::~AutoexecObject(){
 
 DOS_Shell::~DOS_Shell() {
 	if (bf != NULL) delete bf; /* free batch file */
+
+	/* shell termination is not handled like a normal program and memory allocated by the shell is not automatically freed on termination,
+	 * nor are files automatically closed */
+	if (shell_psp) {
+		DOS_FreeProcessMemory(shell_psp);
+
+// FIXME: CloseFiles() also closes CON/AUX/PRN and the next shell has no CONIO!
+//		DOS_PSP psp(shell_psp);
+//		psp.CloseFiles();
+	}
+	shell_psp = 0;
 }
 
 DOS_Shell::DOS_Shell():Program(){
@@ -2223,3 +2237,233 @@ void SHELL_Run() {
 		throw;
 	}
 }
+
+void DOS_ConfigShell::Run(void) {
+	shellrun=true;
+	// TODO: Read DEVICE= lines from dosbox.conf section, process them like MS-DOS processing CONFIG.SYS.
+	//       Also RUN= which allows commands like IMGMOUNT to execute as part of device driver setup.
+	shellrun=false;
+}
+
+DOS_ConfigShell::~DOS_ConfigShell() {
+}
+
+DOS_ConfigShell::DOS_ConfigShell():DOS_Shell(){
+}
+
+void CONFIGSHELL_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing CONFIG shell");
+
+	/* Regular startup */
+	if (call_shellstop == 0) call_shellstop = CALLBACK_Allocate();
+
+	/* Setup the startup CS:IP to kill the last running machine when exited */
+	RealPt newcsip=CALLBACK_RealPointer(call_shellstop);
+	SegSet16(cs,RealSeg(newcsip));
+	reg_ip=RealOff(newcsip);
+
+	CALLBACK_Setup(call_shellstop,shellstop_handler,CB_IRET,"shell stop");
+
+	/* NTS: Some DOS programs behave badly if run from a command interpreter
+	 *      who's PSP segment is too low in memory and does not appear in
+	 *      the MCB chain (SimCity 2000). So allocate shell memory normally
+	 *      as any DOS application would do.
+	 *
+	 *      That includes allocating COMMAND.COM stack NORMALLY (not up in
+	 *      the UMB as DOSBox SVN would do) */
+
+	/* Now call up the shell for the first time */
+	uint16_t psp_seg;//=DOS_FIRST_SHELL;
+	uint16_t env_seg;//=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
+	uint16_t stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
+	uint16_t tmp,total_sz;
+	bool tiny_memory_mode = false;
+
+	// below a certain memory size, alter memory arrangement and allocation to minimize memory
+	if (MEM_ConventionalPages() < 0x8) tiny_memory_mode = true;
+
+	// decide shell env size---CONFIG size is more restricted than main shell
+	if (MEM_ConventionalPages() >= 0x10/*64KB or more*/)
+		dosbox_shell_env_size = (0x158u - (0x118u + 19u)) << 4u; /* equivalent to DOSBox SVN */
+	else if (MEM_ConventionalPages() >= 0x8/*32KB or more*/)
+		dosbox_shell_env_size = 384;
+	else if (MEM_ConventionalPages() >= 0x4/*16KB or more*/)
+		dosbox_shell_env_size = 256;
+	else
+		dosbox_shell_env_size = 144;
+
+	LOG_MSG("COMMAND.COM env size:             %u bytes",dosbox_shell_env_size);
+
+	// According to some sources, 0x0008 is a special PSP segment value used by DOS before the first
+	// program is used. We need the current PSP segment to be nonzero so that DOS_AllocateMemory()
+	// can properly allocate memory.
+	dos.psp(8);
+
+	auto savedMemAllocStrategy = DOS_GetMemAllocStrategy();
+	DOS_SetMemAllocStrategy(2/*last fit*/);
+
+	// COMMAND.COM environment block
+	tmp = dosbox_shell_env_size>>4;
+	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
+	LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
+
+	// COMMAND.COM main binary (including PSP and stack)
+	if (tiny_memory_mode)
+		tmp = 0x13 + (1536/16);
+	else
+		tmp = 0x1A + (2048/16);
+	total_sz = tmp;
+
+	// Use normal MCB allocation unless memsize is 4KB
+	if (MEM_ConventionalPages() > 1) {
+		if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
+	}
+	else {
+		psp_seg = DOS_GetMemory(tmp,"COMMAND.COM main body and PSP");
+	}
+
+	LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
+
+	DOS_SetMemAllocStrategy(savedMemAllocStrategy);
+
+	// now COMMAND.COM has a main body and PSP segment, reflect it
+	dos.psp(psp_seg);
+	shell_psp = psp_seg;
+
+	{
+		DOS_MCB mcb((uint16_t)(env_seg-1));
+		mcb.SetPSPSeg(psp_seg);
+		mcb.SetFileName("CONFIG");
+	}
+
+	{
+		DOS_MCB mcb((uint16_t)(psp_seg-1));
+		mcb.SetPSPSeg(psp_seg);
+		mcb.SetFileName("CONFIG");
+	}
+
+	// set the stack at 0x1A
+	if (tiny_memory_mode)
+		stack_seg = psp_seg + 0x13;
+	else
+		stack_seg = psp_seg + 0x1A;
+	LOG_MSG("COMMAND.COM stack:                0x%04x",stack_seg);
+
+	// set the stack pointer
+	SegSet16(ss,stack_seg);
+
+	if (tiny_memory_mode)
+		reg_sp=1534;
+	else
+		reg_sp=2046;
+
+	LOG(LOG_MISC,LOG_DEBUG)("Shell init SS:SP %04x:%04x",(unsigned int)stack_seg,(unsigned int)reg_sp);
+
+	/* Set up int 24 and psp (Telarium games) */
+	real_writeb(psp_seg+16+1,0,0xea);		/* far jmp */
+	real_writed(psp_seg+16+1,1,real_readd(0,0x24*4));
+	real_writed(0,0x24*4,((uint32_t)psp_seg<<16) | ((16+1)<<4));
+
+	/* Old comment: Set up int 23 to "int 20" in the psp. Fixes what.exe */
+	/* 2023/09/28: Point INT 23h at a vector that calls our callback and then calls INT 21h AH=4Ch. Real COMMAND.COM does this too. */
+	if (call_int23 == 0) call_int23 = CALLBACK_Allocate();
+
+	RealPt addr_int23=RealMake(psp_seg,8+((16+2)*16));
+
+	CALLBACK_Setup(call_int23,&INT23_Handler,CB_RETF,Real2Phys(addr_int23),"Shell Int 23 CTRL+C");
+	RealSetVec(0x23,addr_int23);
+
+	/* Set up int 2e handler */
+	if (call_int2e == 0) call_int2e = CALLBACK_Allocate();
+
+	//	RealPt addr_int2e=RealMake(psp_seg+16+1,8);
+	// NTS: It's apparently common practice to enumerate MCBs by reading the segment value of INT 2Eh and then
+	//      scanning forward from there. The assumption seems to be that COMMAND.COM writes INT 2Eh there using
+	//      it's PSP segment and an offset like that of a COM executable even though COMMAND.COM is often an EXE file.
+	RealPt addr_int2e=RealMake(psp_seg,8+((16+1)*16));
+
+	CALLBACK_Setup(call_int2e,&INT2E_Handler,CB_IRET_STI,Real2Phys(addr_int2e),"Shell Int 2e");
+	RealSetVec(0x2e,addr_int2e);
+
+	/* Setup environment */
+	PhysPt env_write=PhysMake(env_seg,0);
+	MEM_BlockWrite(env_write,path_string,(Bitu)(strlen(path_string)+1));
+	env_write += (PhysPt)(strlen(path_string)+1);
+	// Do not write COMSPEC or PROMPT, this is not a general purpose shell
+	mem_writeb(env_write++,0);
+	mem_writew(env_write,1);
+	env_write+=2;
+	mem_writeb(env_write++,0);// No, we're not writing the full name either
+
+	DOS_PSP psp(psp_seg);
+	psp.MakeNew(0);
+	dos.psp(psp_seg);
+
+	/* The start of the filetable in the psp must look like this:
+	 * 01 01 01 00 02
+	 * In order to achieve this: First open 2 files. Close the first and
+	 * duplicate the second (so the entries get 01) */
+	DOS_OpenExistingSFTEntry(0,1);
+	DOS_OpenExistingSFTEntry(1,1);
+	DOS_OpenExistingSFTEntry(2,1);
+	DOS_OpenExistingSFTEntry(3,0);
+	DOS_OpenExistingSFTEntry(4,2);
+
+	psp.SetSize(psp_seg + total_sz);
+	psp.SetStack(((unsigned int)stack_seg << 16u) + (unsigned int)reg_sp);
+
+	/* Create appearance of handle inheritance by first shell */
+	for (uint16_t i=0;i<5;i++) {
+		uint8_t handle=psp.GetFileHandle(i);
+		if (Files[handle]) Files[handle]->AddRef();
+	}
+
+	psp.SetParent(psp_seg);
+	/* Set the environment */
+	psp.SetEnvironment(env_seg);
+	/* Set the command line for the shell start up */
+	CommandTail tail;
+	tail.count=(uint8_t)strlen(init_line);
+	memset(&tail.buffer, 0, CTBUF);
+	strncpy(tail.buffer,init_line,CTBUF);
+	MEM_BlockWrite(PhysMake(psp_seg,CTBUF+1),&tail,CTBUF+1);
+
+	/* Setup internal DOS Variables */
+	dos.dta(RealMake(psp_seg,CTBUF+1));
+	dos.psp(psp_seg);
+}
+
+void CONFIGSHELL_Run() {
+	dos_shell_running_program = false;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+	Reflect_Menu();
+#endif
+
+	LOG(LOG_MISC,LOG_DEBUG)("Running CONFIG shell now");
+
+	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
+	SHELL_ProgramStart_Config_shell(&first_shell);
+	prepared = true;
+	i4dos=false;
+	try {
+		first_shell->Run();
+		delete first_shell;
+		first_shell = nullptr;//Make clear that it shouldn't be used anymore
+		prepared = false;
+		dos_shell_running_program = false;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+		Reflect_Menu();
+#endif
+	}
+	catch (...) {
+		delete first_shell;
+		first_shell = nullptr;//Make clear that it shouldn't be used anymore
+		prepared = false;
+		dos_shell_running_program = false;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+		Reflect_Menu();
+#endif
+		throw;
+	}
+}
+

@@ -370,6 +370,16 @@ public:
     bool input_eof;                     //! STDIN has hit EOF
 };
 
+class DOS_ConfigShell : public DOS_Shell {
+public:
+	DOS_ConfigShell();
+	virtual ~DOS_ConfigShell();
+
+    /*! \brief      Program entry point, when the command is run
+     */
+	void Run(void) override;
+};
+
 struct SHELL_Cmd {
 	const char * name;								/* Command name*/
 	uint32_t flags;									/* Flags about the command */
