@@ -313,14 +313,19 @@ AutoexecObject::~AutoexecObject(){
 DOS_Shell::~DOS_Shell() {
 	if (bf != NULL) delete bf; /* free batch file */
 
-	/* shell termination is not handled like a normal program and memory allocated by the shell is not automatically freed on termination,
-	 * nor are files automatically closed */
+	/* shell termination is not handled like a normal program.
+	 * memory allocated by the shell is not automatically freed on termination.
+	 * files are not automatically closed */
 	if (shell_psp) {
 		DOS_FreeProcessMemory(shell_psp);
 
-// FIXME: CloseFiles() also closes CON/AUX/PRN and the next shell has no CONIO!
-//		DOS_PSP psp(shell_psp);
-//		psp.CloseFiles();
+		/* NTS: DOS_PSP would ideally allow JFT handle operations regardless of whatever the
+		 *      current PSP segment is, but that's not how the code is written */
+		const uint16_t o_psp = dos.psp();
+		DOS_PSP psp(shell_psp);
+		dos.psp(shell_psp);
+		psp.CloseFiles();
+		dos.psp(o_psp);
 	}
 	shell_psp = 0;
 }
