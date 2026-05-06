@@ -168,6 +168,10 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	real_writew(tbl2_seg,0x04,DOS_FILES-5);
 }
 
+uint16_t DOS_InfoBlock::GetFirstMCB(void) {
+	return (uint16_t)sGet(sDIB,firstMCB);
+}
+
 void DOS_InfoBlock::SetFirstMCB(uint16_t _firstmcb) {
 	sSave(sDIB,firstMCB,_firstmcb); //c2woody
 }

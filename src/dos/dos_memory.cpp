@@ -687,6 +687,57 @@ void DOS_CreateDummyDeviceMCB(void) {
 	}
 }
 
+void DOS_MemStartChange(uint16_t adjto) {
+	unsigned char mcb_raw[16];
+	const unsigned char zeros[16] = {0};
+	uint32_t sg = dos_infoblock.GetFirstMCB();
+
+	assert(adjto < 0xF000);
+
+	while (sg < adjto) {
+		DOS_MCB mcb(sg);
+
+		if (!(mcb.GetType() == 0x5A || mcb.GetType() == 0x4D))
+			E_Exit("DOS_MemStartChange() MCB chain is corrupt");
+
+		uint32_t tdo = adjto - sg;
+		uint32_t avl = mcb.GetSize();
+		if (tdo > avl) tdo = avl;
+
+		LOG(LOG_MISC,LOG_DEBUG)("DOS_MemStartChange: mcb=%x type=%x size=%x avail=%x todo(to remove)=%x adjto=%x psp=%x",
+			sg,mcb.GetType(),mcb.GetSize(),avl,tdo,adjto,mcb.GetPSPSeg());
+
+		/* operate only on free memory, never on memory owned by any process */
+		if (mcb.GetPSPSeg() != 0) break;
+
+		/* change size */
+		avl -= tdo;
+		mcb.SetSize(avl);
+
+		/* copy off the block, make the old block invalid, write the new block */
+		MEM_BlockRead(PhysMake(sg,0),mcb_raw,16);
+		MEM_BlockWrite(PhysMake(sg,0),zeros,16);
+		sg += tdo; MEM_BlockWrite(PhysMake(sg,0),mcb_raw,16);
+		if (sg >= 0xF000) E_Exit("DOS_MemStartChange() MCB chain is corrupt");
+
+		/* block is now zero, need to keep moving? */
+		if (sg < adjto && tdo == 0) {
+			if (mcb.GetType() == 0x5A) break; /* do not remove the last block in the chain */
+
+			LOG(LOG_MISC,LOG_DEBUG)("DOS_MemStartChange: mcb=%x type=%x size is zero and still need to adjust, deleting MCB block",
+				sg,mcb.GetType());
+
+			/* remove the block entirely, advance to next */
+			MEM_BlockWrite(PhysMake(sg,0),zeros,16);
+			sg++;
+		}
+	}
+
+	dos.firstMCB=sg;
+	dos_infoblock.SetFirstMCB(sg);
+	LOG(LOG_MISC,LOG_DEBUG)("DOS_MemStartChange: DOS_MEM_START and first MCB is now mcb=%x adjto=%x",sg,adjto);
+}
+
 void DOS_SetupMemory(void) {
 	unsigned int max_conv;
 	unsigned int seg_limit;

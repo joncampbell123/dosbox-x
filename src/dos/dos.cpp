@@ -4127,6 +4127,7 @@ void AddBPINT3(void);
 void IPX_Setup(Section*);
 void DOS_SetupIHSEG(void);
 void DOS_CreateDummyDeviceMCB(void);
+void DOS_MemStartChange(uint16_t adjto);
 
 class DOS:public Module_base{
 private:
@@ -4674,15 +4675,12 @@ public:
 			}
 		}
 
-		if (minimum_mcb_segment != 0) {
-			if (DOS_MEM_START < minimum_mcb_segment)
-				DOS_MEM_START = minimum_mcb_segment;
-		}
-
-		LOG(LOG_DOSMISC,LOG_DEBUG)("   mem start:    seg 0x%04x",DOS_MEM_START);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("   mem start:    seg 0x%04x (initial)",DOS_MEM_START);
 
 		/* carry on setup */
-		DOS_SetupMemory();								/* Setup first MCB */
+		DOS_SetupMemory(); /* Setup first MCB */
+
+		if (minimum_mcb_segment != 0 && DOS_MEM_START < minimum_mcb_segment) DOS_MemStartChange(minimum_mcb_segment);
 
 		/* dummy device MCB */
 		if (enable_dummy_device_mcb) DOS_CreateDummyDeviceMCB();
