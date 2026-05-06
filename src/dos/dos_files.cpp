@@ -1067,7 +1067,7 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 # if !defined(OSFREE)
-    if(Network_IsNetworkResource(name))
+	if(Network_IsNetworkResource(name))
 		return Network_OpenFile(name,flags,entry);
 # endif
 #endif
