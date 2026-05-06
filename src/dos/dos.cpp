@@ -142,8 +142,8 @@ static Bitu DOS_26Handler_Actual(bool fat32);
 
 unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
 
-bool dos_in_hma = true;
-bool dos_umb = true;
+bool dos_in_hma = false;
+bool dos_umb = false;
 bool DOS_BreakFlag = false;
 bool DOS_BreakConioFlag = false;
 bool enable_dbcs_tables = false;
@@ -151,7 +151,7 @@ bool enable_share_exe = false;
 bool enable_filenamechar = false;
 bool shell_keyboard_flush = true;
 bool freed_mcb_allocate_on_resize = true;
-bool enable_network_redirector = true;
+bool enable_network_redirector = false;
 bool force_conversion = false;
 bool hidenonrep = true;
 bool rsize = false;
@@ -4681,6 +4681,7 @@ public:
 		/* carry on setup */
 		DOS_SetupMemory(); /* Setup first MCB */
 
+#if !defined(OSFREE)
 		/* NTS: The reason PC-98 has a higher minimum free is that the MS-DOS kernel
 		 *      has a larger footprint in memory, including fixed locations that
 		 *      some PC-98 games will read directly, and an ANSI driver.
@@ -4717,12 +4718,15 @@ public:
 		else if (minimum_mcb_free < minimum_mcb_segment) {
 			minimum_mcb_free = minimum_mcb_segment;
 		}
+#endif
 
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   min free:     seg 0x%04x",minimum_mcb_free);
 
+#if !defined(OSFREE)
 		if (minimum_mcb_segment != 0 && DOS_MEM_START < minimum_mcb_segment) DOS_MemStartChange(minimum_mcb_segment);
 		if (enable_dummy_device_mcb) DOS_CreateDummyDeviceMCB();
 		DOS_AllocMinFreePadding(minimum_mcb_free);
+#endif
 
 #if C_IPX
 		IPX_Setup(NULL);
