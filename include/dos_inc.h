@@ -514,6 +514,7 @@ public:
 	void    RestoreCommandTail  (void);
 	bool	SetNumFiles			(uint16_t fileNum);
 	uint16_t	FindEntryByHandle	(uint8_t handle);
+	uint16_t	GetSegment		(void) const			{ return seg; }
 			
 private:
 	#ifdef _MSC_VER

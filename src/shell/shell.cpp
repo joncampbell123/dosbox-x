@@ -322,18 +322,19 @@ DOS_Shell::~DOS_Shell() {
 	/* shell termination is not handled like a normal program.
 	 * memory allocated by the shell is not automatically freed on termination.
 	 * files are not automatically closed */
-	if (shell_psp) {
-		DOS_FreeProcessMemory(shell_psp);
+	if (psp->GetSegment()) {
+		DOS_FreeProcessMemory(psp->GetSegment());
 
 		/* NTS: DOS_PSP would ideally allow JFT handle operations regardless of whatever the
 		 *      current PSP segment is, but that's not how the code is written */
 		const uint16_t o_psp = dos.psp();
-		DOS_PSP psp(shell_psp);
-		dos.psp(shell_psp);
-		psp.CloseFiles();
+		dos.psp(psp->GetSegment());
+		psp->CloseFiles();
 		dos.psp(o_psp);
 	}
-	shell_psp = 0;
+
+	if (psp->GetSegment() == shell_psp)
+		shell_psp = 0;
 }
 
 DOS_Shell::DOS_Shell():Program(){
