@@ -1490,23 +1490,31 @@ public:
 static AUTOEXEC* test = NULL;
 
 static void AUTOEXEC_ShutDown(Section * sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	if (test != NULL) {
 		delete test;
 		test = NULL;
 	}
-    if (first_shell != NULL) {
+	if (first_shell != NULL) {
 		delete first_shell;
 		first_shell = nullptr;//Make clear that it shouldn't be used anymore
-    }
-    if (call_shellstop != 0) {
-        CALLBACK_DeAllocate(call_shellstop);
-        call_shellstop = 0;
-    }
+	}
+	if (call_shellstop != 0) {
+		CALLBACK_DeAllocate(call_shellstop);
+		call_shellstop = 0;
+	}
+	if (call_int2e != 0) {
+		CALLBACK_DeAllocate(call_int2e);
+		call_int2e = 0;
+	}
+	if (call_int23 != 0) {
+		CALLBACK_DeAllocate(call_int23);
+		call_int23 = 0;
+	}
 }
 
 void AUTOEXEC_Startup(Section *sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating AUTOEXEC.BAT emulation");
 		test = new AUTOEXEC(control->GetSection("autoexec"));
@@ -1947,7 +1955,8 @@ void SHELL_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS shell");
 
 	/* Regular startup */
-	call_shellstop=CALLBACK_Allocate();
+	if (call_shellstop == 0) call_shellstop = CALLBACK_Allocate();
+
 	/* Setup the startup CS:IP to kill the last running machine when exited */
 	RealPt newcsip=CALLBACK_RealPointer(call_shellstop);
 	SegSet16(cs,RealSeg(newcsip));
@@ -2067,8 +2076,7 @@ void SHELL_Init() {
 
 	/* Old comment: Set up int 23 to "int 20" in the psp. Fixes what.exe */
 	/* 2023/09/28: Point INT 23h at a vector that calls our callback and then calls INT 21h AH=4Ch. Real COMMAND.COM does this too. */
-	if (call_int23 == 0)
-		call_int23 = CALLBACK_Allocate();
+	if (call_int23 == 0) call_int23 = CALLBACK_Allocate();
 
 	RealPt addr_int23=RealMake(psp_seg,8+((16+2)*16));
 
@@ -2076,8 +2084,7 @@ void SHELL_Init() {
 	RealSetVec(0x23,addr_int23);
 
 	/* Set up int 2e handler */
-	if (call_int2e == 0)
-		call_int2e = CALLBACK_Allocate();
+	if (call_int2e == 0) call_int2e = CALLBACK_Allocate();
 
 	//	RealPt addr_int2e=RealMake(psp_seg+16+1,8);
 	// NTS: It's apparently common practice to enumerate MCBs by reading the segment value of INT 2Eh and then
