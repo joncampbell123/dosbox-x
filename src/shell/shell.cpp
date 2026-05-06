@@ -2245,7 +2245,7 @@ void SHELL_Run() {
 
 void DOS_ConfigShell::Run(void) {
 	shellrun=true;
-	// TODO: Read DEVICE= lines from dosbox.conf section, process them like MS-DOS processing CONFIG.SYS.
+	// TODO: Read DEVICE= lines from dosbox.conf section, process them the way MS-DOS processes CONFIG.SYS.
 	//       Also RUN= which allows commands like IMGMOUNT to execute as part of device driver setup.
 	shellrun=false;
 }
