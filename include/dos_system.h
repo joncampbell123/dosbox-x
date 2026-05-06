@@ -96,6 +96,7 @@ public:
 	char* name = NULL;
 	uint8_t drive = 0;
 	uint32_t flags = 0;
+	bool neverclose = false; /* set for CON/AUX/PRN so MS-DOS always has a console even if all JFT's closed the handles */
 	bool open = false;
 
 	uint16_t attr = 0;

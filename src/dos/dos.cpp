@@ -4156,9 +4156,9 @@ void DOS_OpenDefaultHandles(void) {
 	if (devnum_prn >= DOS_DEVICES) devnum_prn = devnum_con;
 
 	/* make them happen */
-	assert(Files[0] == NULL); Files[0] = new DOS_Device(*Devices[devnum_aux]);
-	assert(Files[1] == NULL); Files[1] = new DOS_Device(*Devices[devnum_con]);
-	assert(Files[2] == NULL); Files[2] = new DOS_Device(*Devices[devnum_prn]);
+	assert(Files[0] == NULL); Files[0] = new DOS_Device(*Devices[devnum_aux]); Files[0]->neverclose = true;
+	assert(Files[1] == NULL); Files[1] = new DOS_Device(*Devices[devnum_con]); Files[1]->neverclose = true;
+	assert(Files[2] == NULL); Files[2] = new DOS_Device(*Devices[devnum_prn]); Files[2]->neverclose = true;
 }
 
 class DOS:public Module_base{
