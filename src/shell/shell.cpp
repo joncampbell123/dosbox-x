@@ -2269,13 +2269,15 @@ void CONFIGSHELL_Init() {
 
 	CALLBACK_Setup(call_shellstop,shellstop_handler,CB_IRET,"shell stop");
 
-	/* NTS: Some DOS programs behave badly if run from a command interpreter
-	 *      who's PSP segment is too low in memory and does not appear in
-	 *      the MCB chain (SimCity 2000). So allocate shell memory normally
-	 *      as any DOS application would do.
+	/* This version is for loading device drivers, which by their nature,
+	 * are loaded low in memory alongside all the other parts of MS-DOS.
+	 * Device drivers that cannot load low without crashing are not worth supporting.
 	 *
-	 *      That includes allocating COMMAND.COM stack NORMALLY (not up in
-	 *      the UMB as DOSBox SVN would do) */
+	 * Any DOS application run in this phase is by default loaded into the
+	 * top of available memory (lastfit memory strategy), not from the bottom,
+	 * and therefore should never crash because it was loaded to low.
+	 *
+	 * Only device drivers are allocated from the bottom up in memory. */
 
 	/* Now call up the shell for the first time */
 	uint16_t psp_seg;//=DOS_FIRST_SHELL;
