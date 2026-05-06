@@ -2258,9 +2258,44 @@ void DOS_ConfigShell::Run(void) {
 	if (config_shell_prompt && config_shell_prompt_start)
 		DOS_Shell::Run();
 
-	shellrun=true;
+	const Section_line * section=static_cast<Section_line *>(control->GetSection("devices"));
+	const char *cfgstr = section->data.c_str();
+
+	while (*cfgstr) {
+		/* every line has the format NAME=VALUE */
+		/* DEVICE=C:\DOS\EMM386.EXE /X /Y /A /X */
+		std::string name,value;
+
+		{
+			const char *b = cfgstr;
+			while (*cfgstr && *cfgstr != '=' && *cfgstr != '\n' && *cfgstr != '\r') cfgstr++;
+			const char *e = cfgstr;
+			while (e > b && *(e-1) == ' ') e--;
+			name = std::string(b,size_t(e-b));
+		}
+
+		if (*cfgstr == '=') {
+			cfgstr++;
+			while (*cfgstr == ' ' || *cfgstr == '\t') cfgstr++;
+			const char *b = cfgstr;
+			while (*cfgstr && *cfgstr != '\n' && *cfgstr != '\r') cfgstr++;
+			const char *e = cfgstr;
+			while (e > b && *(e-1) == ' ') e--;
+			value = std::string(b,size_t(e-b));
+		}
+
+		while (*cfgstr && *cfgstr != '\n' && *cfgstr != '\r') cfgstr++;
+		if (*cfgstr == '\r') cfgstr++;
+		if (*cfgstr == '\n') cfgstr++;
+
+		LOG_MSG("'%s' = '%s'",name.c_str(),value.c_str());
+	}
+
 	// TODO: Read DEVICE= lines from dosbox.conf section, process them the way MS-DOS processes CONFIG.SYS.
 	//       Also RUN= which allows commands like IMGMOUNT to execute as part of device driver setup.
+
+	shellrun=true;
+
 	shellrun=false;
 
 	if (config_shell_prompt && config_shell_prompt_end)
@@ -2277,8 +2312,13 @@ DOS_ConfigShell::DOS_ConfigShell():DOS_Shell(){
 
 void CONFIGSHELL_Init() {
 #if !defined(OSFREE)
-	/* TODO: If there is nothing in the [devices] section, there is no point running this shell, skip it */
 	config_shell_run = true;
+
+	// if there is nothing there, don't even run this code
+	const Section_line * section=static_cast<Section_line *>(control->GetSection("devices"));
+	const char *cfgstr = section->data.c_str();
+	while (*cfgstr == ' ' || *cfgstr == '\t') cfgstr++;
+	if (*cfgstr == 0) config_shell_run = false;
 
 	if (!config_shell_run) return;
 
