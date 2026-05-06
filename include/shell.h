@@ -371,6 +371,7 @@ public:
     bool config_shell = false;
 };
 
+#if !defined(OSFREE)
 class DOS_ConfigShell : public DOS_Shell {
 public:
 	DOS_ConfigShell();
@@ -380,6 +381,7 @@ public:
      */
 	void Run(void) override;
 };
+#endif
 
 struct SHELL_Cmd {
 	const char * name;								/* Command name*/

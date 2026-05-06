@@ -143,9 +143,11 @@ void SHELL_ProgramStart(Program * * make) {
 static void SHELL_ProgramStart_First_shell(DOS_Shell * * make) {
 	*make = new DOS_Shell;
 }
+#if !defined(OSFREE)
 static void SHELL_ProgramStart_Config_shell(DOS_Shell * * make) {
 	*make = new DOS_ConfigShell;
 }
+#endif
 
 bool i4dos=false;
 char i4dos_data[CONFIG_SIZE] = { 0 };
@@ -2251,6 +2253,7 @@ void SHELL_Run() {
 	}
 }
 
+#if !defined(OSFREE)
 void DOS_ConfigShell::Run(void) {
 	if (config_shell_prompt && config_shell_prompt_start)
 		DOS_Shell::Run();
@@ -2270,8 +2273,10 @@ DOS_ConfigShell::~DOS_ConfigShell() {
 
 DOS_ConfigShell::DOS_ConfigShell():DOS_Shell(){
 }
+#endif
 
 void CONFIGSHELL_Init() {
+#if !defined(OSFREE)
 	/* TODO: If there is nothing in the [devices] section, there is no point running this shell, skip it */
 	config_shell_run = true;
 
@@ -2473,9 +2478,11 @@ void CONFIGSHELL_Init() {
 	/* Setup internal DOS Variables */
 	dos.dta(RealMake(psp_seg,CTBUF+1));
 	dos.psp(psp_seg);
+#endif
 }
 
 void CONFIGSHELL_Run() {
+#if !defined(OSFREE)
 	if (!config_shell_run) return;
 
 	dos_shell_running_program = false;
@@ -2509,5 +2516,6 @@ void CONFIGSHELL_Run() {
 #endif
 		throw;
 	}
+#endif
 }
 
