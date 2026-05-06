@@ -716,7 +716,7 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 			player.playbackTotal = lround(len * tracks[track].sectorSize * bytesPerMs / 176.4);
 			player.playbackRemaining = player.playbackTotal;
 
-            LOG_MSG("CDROM: Playing track # %d %.1f min.-mark", tracks[track].number, tracks[track].skip * (1 / 10584000.0));
+            LOG_MSG("CDROM: Playing track # %d %.1f min.-mark", tracks[track].number, offset * (1 / 10584000.0));
 
 			#ifdef DEBUG
             LOG_MSG(
@@ -995,7 +995,7 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 
                     if(player.playbackRemaining < twoSecBytes) {
 #else
-                    if(player.playbackRemaining < bytesPerSec * 0.001) { // less than 1 ms remaining
+                    if(player.playbackRemaining < bytesPerSec * 0.001) { // Stop playback if less than 1 ms remaining
 #endif
                         player.cd->StopAudio();
                     }
