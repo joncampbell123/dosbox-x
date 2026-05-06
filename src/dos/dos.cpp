@@ -4130,6 +4130,37 @@ void DOS_CreateDummyDeviceMCB(void);
 void DOS_MemStartChange(uint16_t adjto);
 void DOS_AllocMinFreePadding(uint16_t upto);
 
+void DOS_OpenDefaultHandles(void) {
+	/* open handles in SFT for CON, AUX, PRN */
+	uint8_t devnum_con,devnum_aux,devnum_prn;
+
+	/* SFT: 0 = AUX
+	 *      1 = CON
+	 *      2 = PRN
+	 *
+	 * JFT: 0 = CON (1)
+	 *      1 = CON (1)
+	 *      2 = CON (1)
+	 *      3 = AUX (0)
+	 *      4 = PRN (2) */
+
+	devnum_aux = DOS_FindDevice("AUX");
+	devnum_con = DOS_FindDevice("CON");
+	devnum_prn = DOS_FindDevice("PRN");
+
+	/* CON is REQUIRED */
+	if (devnum_con >= DOS_DEVICES) E_Exit("Unable to locate CON device");
+
+	/* AUX and PRN can be CON if they do not exist */
+	if (devnum_aux >= DOS_DEVICES) devnum_aux = devnum_con;
+	if (devnum_prn >= DOS_DEVICES) devnum_prn = devnum_con;
+
+	/* make them happen */
+	assert(Files[0] == NULL); Files[0] = new DOS_Device(*Devices[devnum_aux]); Files[0]->neverclose = true;
+	assert(Files[1] == NULL); Files[1] = new DOS_Device(*Devices[devnum_con]); Files[1]->neverclose = true;
+	assert(Files[2] == NULL); Files[2] = new DOS_Device(*Devices[devnum_prn]); Files[2]->neverclose = true;
+}
+
 class DOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[9];
@@ -4737,6 +4768,8 @@ public:
 		ZDRIVE_NUM = 25;
 		DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(25); /* Else the next call gives a warning. */
 		DOS_SetDefaultDrive(25);
+
+		DOS_OpenDefaultHandles();
 
 		if (IS_JEGA_ARCH) {
 			INT10_AX_SetCRTBIOSMode(0x51);

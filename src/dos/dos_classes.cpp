@@ -368,20 +368,20 @@ void DOS_PSP::CopyFileTable(DOS_PSP* srcpsp,bool createchildpsp) {
 }
 
 void DOS_PSP::CloseFile(const char *name) {
+	// FIXME: This code assumes dos.psp() == this PSP segment
 	for (uint16_t i=0;i<sGet(sPSP,max_files);i++) {
-        uint32_t handle = RealHandle(i);
-        if (handle<DOS_FILES && Files[handle] && !strcmp(Files[handle]->name, name)) {
-            if (Files[handle]->IsOpen()) Files[handle]->open = false;
-            Files[handle] = NULL;
-            return;
-        }
+		uint32_t handle = RealHandle(i);
+		if (handle<DOS_FILES && Files[handle] && !strcmp(Files[handle]->name, name)) {
+			DOS_CloseFile(i);
+			return;
+		}
 	}
 }
 
 void DOS_PSP::CloseFiles(void) {
-	for (uint16_t i=0;i<sGet(sPSP,max_files);i++) {
+	// FIXME: This code assumes dos.psp() == this PSP segment
+	for (uint16_t i=0;i<sGet(sPSP,max_files);i++)
 		DOS_CloseFile(i);
-	}
 }
 
 void DOS_PSP::SaveVectors(void) {

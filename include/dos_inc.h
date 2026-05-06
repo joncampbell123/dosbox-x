@@ -281,6 +281,7 @@ bool DOS_SetFileDate(uint16_t entry, uint16_t ntime, uint16_t ndate);
 
 /* Routines for Drive Class */
 bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb = false);
+bool DOS_OpenExistingSFTEntry(uint16_t jft_handle,int sft_handle);
 bool DOS_OpenFileExtended(char const * name, uint16_t flags, uint16_t createAttr, uint16_t action, uint16_t *entry, uint16_t* status);
 bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry, bool fcb = false);
 bool DOS_UnlinkFile(char const * const name);
@@ -513,6 +514,7 @@ public:
 	void    RestoreCommandTail  (void);
 	bool	SetNumFiles			(uint16_t fileNum);
 	uint16_t	FindEntryByHandle	(uint8_t handle);
+	uint16_t	GetSegment		(void) const			{ return seg; }
 			
 private:
 	#ifdef _MSC_VER

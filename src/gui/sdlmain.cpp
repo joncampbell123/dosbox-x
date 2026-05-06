@@ -768,6 +768,7 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
+void SHELL_MessagesInit(void);
 void CopyClipboard(int all);
 void CopyAllClipboard(bool bPressed);
 void PasteClipboard(bool bPressed);
@@ -776,6 +777,8 @@ void QuickEdit(bool bPressed);
 void ClipKeySelect(int sym);
 bool isModifierApplied(void);
 bool PasteClipboardNext(void);
+void CONFIGSHELL_Init(void);
+void CONFIGSHELL_Run(void);
 
 #if C_DYNAMIC_X86
 void CPU_Core_Dyn_X86_Shutdown(void);
@@ -7931,6 +7934,10 @@ bool VM_Boot_DOSBox_Kernel() {
         void EMS_Startup(Section* sec);
         EMS_Startup(NULL);
 #endif
+
+        SHELL_MessagesInit();
+        CONFIGSHELL_Init();
+        CONFIGSHELL_Run();
 
         DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
         SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
