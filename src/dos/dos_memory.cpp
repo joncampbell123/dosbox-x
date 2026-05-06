@@ -738,6 +738,36 @@ void DOS_MemStartChange(uint16_t adjto) {
 	LOG(LOG_MISC,LOG_DEBUG)("DOS_MemStartChange: DOS_MEM_START and first MCB is now mcb=%x adjto=%x",sg,adjto);
 }
 
+void DOS_AllocMinFreePadding(uint16_t upto) {
+	const uint16_t o_psp = dos.psp();
+	uint16_t sg=0,tmp;
+
+	dos.psp(8); // DOS ownership
+
+	tmp = 0;
+	if (DOS_AllocateMemory(&sg,&tmp)) {
+		if (sg < upto) {
+			LOG(LOG_DOSMISC,LOG_DEBUG)("   min free pad: seg 0x%04x",sg);
+		}
+		else {
+			DOS_FreeMemory(sg);
+			sg = 0;
+		}
+	}
+	else {
+		sg=0;
+	}
+
+	if (sg != 0 && sg < upto) {
+		tmp = upto - sg;
+		if (!DOS_ResizeMemory(sg,&tmp)) {
+			LOG(LOG_DOSMISC,LOG_DEBUG)("    WARNING: cannot resize min free pad");
+		}
+	}
+
+	dos.psp(o_psp);
+}
+
 void DOS_SetupMemory(void) {
 	unsigned int max_conv;
 	unsigned int seg_limit;
