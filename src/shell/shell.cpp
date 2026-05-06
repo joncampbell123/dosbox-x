@@ -2338,7 +2338,7 @@ void DOS_ConfigShell::Run(void) {
 		}
 	}
 
-	if (true/*DEBUG*/) {
+	if (false/*DEBUG*/) {
 		LOG_MSG("CONFIG.SYS devices parsing result");
 		for (const auto &e : entries) {
 			if (e.type == ConfigShell_Entry::RUN) {
@@ -2354,7 +2354,16 @@ void DOS_ConfigShell::Run(void) {
 	}
 
 	shellrun=true;
-
+	for (auto &ent : entries) {
+		if (ent.type == ConfigShell_Entry::RUN) {
+			char tmp[512];
+			size_t l = ent.cmd.length();
+			if (l > 511) l = 511;
+			strncpy(tmp,ent.cmd.c_str(),l);
+			tmp[l] = 0;
+			ParseLine(tmp);
+		}
+	}
 	shellrun=false;
 
 	if (config_shell_prompt && config_shell_prompt_end)
