@@ -1523,6 +1523,9 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	return true;
 }
 
+std::string config_run_var_device;
+std::string config_run_var_devparm;
+
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
@@ -1560,6 +1563,21 @@ void CONFIG::Run(void) {
 	int all = section->Get_bool("show advanced options")?1:-1;
 	bool first = true, norem = false;
 	std::vector<std::string> pvars;
+	const char *rawcmd = cmd->GetRawCmdline().c_str();
+
+	/* direct path for config shell to trigger device driver load */
+	if (first_shell && first_shell->config_shell) {
+		while (*rawcmd == ' ') rawcmd++;
+		if (!strcmp(rawcmd,"\xff\xaa\xff")/*User is unlikely to type this into their dosbox.conf*/) {
+			/* read from global vars */
+			device = config_run_var_device;
+			devparm = config_run_var_devparm;
+			if (device.empty()) return;
+			DeviceLoad(device,devparm);
+			return;
+		}
+	}
+
 	if (cmd->FindExist("-setup", true)) all = 2;
 	else if (cmd->FindExist("-all", true)) all = 1;
 	else if (cmd->FindExist("-mod", true)) all = 0;
