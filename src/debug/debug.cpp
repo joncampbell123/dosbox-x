@@ -156,6 +156,7 @@ static void DrawInput(void);
 static void DEBUG_RaiseTimerIrq(void);
 static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num);
 static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num);
+static void LogDEVS(void);
 static void LogMCBS(void);
 static void LogGDT(void);
 static void LogLDT(void);
@@ -2834,6 +2835,7 @@ bool ParseCommand(char* str) {
 	if (command == "DOS") {
 		stream >> command;
 		if (command == "MCBS") LogMCBS();
+		else if (command == "DEVS") LogDEVS();
 		else if (command == "KERN") LogDOSKernMem();
 		else if (command == "XMS") LogXMS();
 #if !defined(OSFREE)
@@ -4953,6 +4955,22 @@ static void DEBUG_RaiseTimerIrq(void) {
 	PIC_ActivateIRQ(0);
 }
 
+static void LogDEVChain(uint32_t devhdr) {
+	DOS_DEVHDR::hdr hdr;
+	char tmp[9];
+
+	while (1) {
+		MEM_BlockRead(PhysMake(devhdr >> 16,devhdr & 0xFFFFu),&hdr,sizeof(hdr));
+		memcpy(tmp,hdr.name,8); tmp[8] = 0;
+		DEBUG_ShowMsg("%04X:%04X %04X  %04X  %04X  %s",
+			devhdr >> 16,devhdr & 0xFFFFu,
+			hdr.attributes,hdr.strategy_entry,hdr.interrupt_entry,tmp);
+
+		devhdr = hdr.nextdev;
+		if (devhdr == NONEXTDEV) break;
+	}
+}
+
 // Display the content of the MCB chain starting with the MCB at the specified segment.
 static void LogMCBChain(uint16_t mcb_segment) {
 	DOS_MCB mcb(mcb_segment);
@@ -5176,6 +5194,22 @@ static void LogDOSKernMem(void) {
     }
 
     DEBUG_EndPagedContent();
+}
+
+// Display the content of all device drivers.
+static void LogDEVS(void) {
+	if (dos_kernel_disabled) {
+		// TODO: BOOTHAX
+		DEBUG_ShowMsg("Cannot enumerate device list while DOS kernel is inactive.");
+		return;
+	}
+
+	DEBUG_BeginPagedContent();
+
+	DEBUG_ShowMsg("Header    Attr  Strat Intr  Name");
+	LogDEVChain(dos_infoblock.GetStartOfDeviceChain());
+
+	DEBUG_EndPagedContent();
 }
 
 // Display the content of all Memory Control Blocks.
