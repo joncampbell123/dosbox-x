@@ -586,8 +586,9 @@ class DOS_InfoBlock:public MemStruct {
 public:
     DOS_InfoBlock() {};
 	void SetLocation(uint16_t  segment);
-    void SetFirstDPB(uint32_t _first_dpb);
+	void SetFirstDPB(uint32_t _first_dpb);
 	void SetFirstMCB(uint16_t _firstmcb);
+	uint16_t GetFirstMCB(void);
 	void SetBuffers(uint16_t x,uint16_t y);
 	void SetCurDirStruct(uint32_t _curdirstruct);
 	void SetFCBTable(uint32_t _fcbtable);
