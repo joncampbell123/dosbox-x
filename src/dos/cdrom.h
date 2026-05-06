@@ -355,6 +355,7 @@ public:
 	bool	PlayAudioSector         (unsigned long start, unsigned long len) override;
 	bool	PauseAudio              (bool resume) override;
 	bool	StopAudio               (void) override;
+    bool    PlayNextAudioTrack      (void);
 	void	ChannelControl          (TCtrl ctrl) override;
 	bool	ReadSectors             (PhysPt buffer, bool raw, unsigned long sector, unsigned long num) override;
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
@@ -400,6 +401,7 @@ private:
 		int      playbackRemaining;
 		uint16_t   bufferPos;
 		uint16_t   bufferConsumed;
+        int currentTrackIdx = -1;
 	} player;
 
 	// Private utility functions
