@@ -4125,6 +4125,10 @@ static Bitu DOS_29Handler(void)
 
 void AddBPINT3(void);
 void IPX_Setup(Section*);
+void DOS_SetupIHSEG(void);
+void DOS_CreateDummyDeviceMCB(void);
+void DOS_MemStartChange(uint16_t adjto);
+void DOS_AllocMinFreePadding(uint16_t upto);
 
 class DOS:public Module_base{
 private:
@@ -4637,6 +4641,7 @@ public:
 		}
 #endif
 
+		DOS_SetupIHSEG();
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
 		DOS_SetupTables();
@@ -4671,15 +4676,10 @@ public:
 			}
 		}
 
-		if (minimum_mcb_segment != 0) {
-			if (DOS_MEM_START < minimum_mcb_segment)
-				DOS_MEM_START = minimum_mcb_segment;
-		}
-
-		LOG(LOG_DOSMISC,LOG_DEBUG)("   mem start:    seg 0x%04x",DOS_MEM_START);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("   mem start:    seg 0x%04x (initial)",DOS_MEM_START);
 
 		/* carry on setup */
-		DOS_SetupMemory();								/* Setup first MCB */
+		DOS_SetupMemory(); /* Setup first MCB */
 
 		/* NTS: The reason PC-98 has a higher minimum free is that the MS-DOS kernel
 		 *      has a larger footprint in memory, including fixed locations that
@@ -4720,32 +4720,9 @@ public:
 
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   min free:     seg 0x%04x",minimum_mcb_free);
 
-		if (DOS_MEM_START < minimum_mcb_free) {
-			uint16_t sg=0,tmp;
-
-			dos.psp(8); // DOS ownership
-
-			tmp = 1; // start small
-			if (DOS_AllocateMemory(&sg,&tmp)) {
-				if (sg < minimum_mcb_free) {
-					LOG(LOG_DOSMISC,LOG_DEBUG)("   min free pad: seg 0x%04x",sg);
-				}
-				else {
-					DOS_FreeMemory(sg);
-					sg = 0;
-				}
-			}
-			else {
-				sg=0;
-			}
-
-			if (sg != 0 && sg < minimum_mcb_free) {
-				tmp = minimum_mcb_free - sg;
-				if (!DOS_ResizeMemory(sg,&tmp)) {
-					LOG(LOG_DOSMISC,LOG_DEBUG)("    WARNING: cannot resize min free pad");
-				}
-			}
-		}
+		if (minimum_mcb_segment != 0 && DOS_MEM_START < minimum_mcb_segment) DOS_MemStartChange(minimum_mcb_segment);
+		if (enable_dummy_device_mcb) DOS_CreateDummyDeviceMCB();
+		DOS_AllocMinFreePadding(minimum_mcb_free);
 
 #if C_IPX
 		IPX_Setup(NULL);

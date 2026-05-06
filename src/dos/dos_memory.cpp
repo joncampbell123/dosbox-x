@@ -628,16 +628,9 @@ extern uint16_t DOS_IHSEG;
 
 extern bool enable_dummy_device_mcb;
 extern bool dos_clear_tf_on_int01;
+extern bool dos_umb;
 
-void DOS_SetupMemory(void) {
-	unsigned int max_conv;
-	unsigned int seg_limit;
-
-	max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << (10u - 4u);
-	seg_limit = (unsigned int)(MEM_ConventionalPages()*256);
-	if (seg_limit > max_conv) seg_limit = max_conv;
-	UMB_START_SEG = max_conv - 1;
-
+void DOS_SetupIHSEG(void) {
 	/* Let dos claim a few bios interrupts. Makes DOSBox more compatible with 
 	 * buggy games, which compare against the interrupt table. (probably a 
 	 * broken linked list implementation) */
@@ -676,31 +669,121 @@ void DOS_SetupMemory(void) {
 	else {
 		RealSetVec(0x01,RealMake(ihseg,ihofs));		//BioMenace (offset!=4)
 	}
+}
 
-	uint16_t mcb_sizes=0;
+void DOS_CreateDummyDeviceMCB(void) {
+	uint16_t segv=0,blocks=16;
+	// Create a dummy device MCB with PSPSeg=0x0008
+	if (DOS_AllocateMemory(&segv,&blocks)) {
+		LOG_MSG("Dummy device MCB at segment 0x%x",segv);
 
-	if (enable_dummy_device_mcb) {
-		// Create a dummy device MCB with PSPSeg=0x0008
-        LOG_MSG("Dummy device MCB at segment 0x%x",DOS_MEM_START+mcb_sizes);
-		DOS_MCB mcb_devicedummy(DOS_MEM_START+mcb_sizes);
+		DOS_MCB mcb_devicedummy(segv-1u);
 		mcb_devicedummy.SetPSPSeg(MCB_DOS);	// Devices
-		mcb_devicedummy.SetSize(16);
-		mcb_devicedummy.SetType(0x4d);		// More blocks will follow
-		mcb_sizes+=1+16;
 
 // We DO need to mark this area as 'SD' but leaving it blank so far
 // confuses MEM.EXE (shows ???????) which suggests other software
 // might have a problem with it as well.
 //		mcb_devicedummy.SetFileName("SD      ");
 	}
+}
 
-	DOS_MCB mcb(DOS_MEM_START+mcb_sizes);
+void DOS_MemStartChange(uint16_t adjto) {
+	unsigned char mcb_raw[16];
+	const unsigned char zeros[16] = {0};
+	uint32_t sg = dos_infoblock.GetFirstMCB();
+
+	assert(adjto < 0xF000);
+
+	while (sg < adjto) {
+		DOS_MCB mcb(sg);
+
+		if (!(mcb.GetType() == 0x5A || mcb.GetType() == 0x4D))
+			E_Exit("DOS_MemStartChange() MCB chain is corrupt");
+
+		uint32_t tdo = adjto - sg;
+		uint32_t avl = mcb.GetSize();
+		if (tdo > avl) tdo = avl;
+
+		LOG(LOG_MISC,LOG_DEBUG)("DOS_MemStartChange: mcb=%x type=%x size=%x avail=%x todo(to remove)=%x adjto=%x psp=%x",
+			sg,mcb.GetType(),mcb.GetSize(),avl,tdo,adjto,mcb.GetPSPSeg());
+
+		/* operate only on free memory, never on memory owned by any process */
+		if (mcb.GetPSPSeg() != 0) break;
+
+		/* change size */
+		avl -= tdo;
+		mcb.SetSize(avl);
+
+		/* copy off the block, make the old block invalid, write the new block */
+		MEM_BlockRead(PhysMake(sg,0),mcb_raw,16);
+		MEM_BlockWrite(PhysMake(sg,0),zeros,16);
+		sg += tdo; MEM_BlockWrite(PhysMake(sg,0),mcb_raw,16);
+		if (sg >= 0xF000) E_Exit("DOS_MemStartChange() MCB chain is corrupt");
+
+		/* block is now zero, need to keep moving? */
+		if (sg < adjto && tdo == 0) {
+			if (mcb.GetType() == 0x5A) break; /* do not remove the last block in the chain */
+
+			LOG(LOG_MISC,LOG_DEBUG)("DOS_MemStartChange: mcb=%x type=%x size is zero and still need to adjust, deleting MCB block",
+				sg,mcb.GetType());
+
+			/* remove the block entirely, advance to next */
+			MEM_BlockWrite(PhysMake(sg,0),zeros,16);
+			sg++;
+		}
+	}
+
+	dos.firstMCB=sg;
+	dos_infoblock.SetFirstMCB(sg);
+	LOG(LOG_MISC,LOG_DEBUG)("DOS_MemStartChange: DOS_MEM_START and first MCB is now mcb=%x adjto=%x",sg,adjto);
+}
+
+void DOS_AllocMinFreePadding(uint16_t upto) {
+	const uint16_t o_psp = dos.psp();
+	uint16_t sg=0,tmp;
+
+	dos.psp(8); // DOS ownership
+
+	tmp = 0;
+	if (DOS_AllocateMemory(&sg,&tmp)) {
+		if (sg < upto) {
+			LOG(LOG_DOSMISC,LOG_DEBUG)("   min free pad: seg 0x%04x",sg);
+		}
+		else {
+			DOS_FreeMemory(sg);
+			sg = 0;
+		}
+	}
+	else {
+		sg=0;
+	}
+
+	if (sg != 0 && sg < upto) {
+		tmp = upto - sg;
+		if (!DOS_ResizeMemory(sg,&tmp)) {
+			LOG(LOG_DOSMISC,LOG_DEBUG)("    WARNING: cannot resize min free pad");
+		}
+	}
+
+	dos.psp(o_psp);
+}
+
+void DOS_SetupMemory(void) {
+	unsigned int max_conv;
+	unsigned int seg_limit;
+
+	max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << (10u - 4u);
+	seg_limit = (unsigned int)(MEM_ConventionalPages()*256);
+	if (seg_limit > max_conv) seg_limit = max_conv;
+	UMB_START_SEG = max_conv - 1;
+
+	DOS_MCB mcb(DOS_MEM_START);
 	mcb.SetPSPSeg(MCB_FREE);						//Free
 	mcb.SetType(0x5a);								//Last Block
 	if (machine==MCH_TANDY) {
 		/* map memory as normal, the BIOS initialization is the code responsible
 		 * for subtracting 32KB from top of system memory for video memory. */
-		mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);
+		mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START);
 		CONV_MAX_SEG = seg_limit;
 	} else if (machine==MCH_PCJR) {
 		/* If there is more than 128KB of RAM, then the MCB chain must be constructed
@@ -727,12 +810,12 @@ void DOS_SetupMemory(void) {
 			mcb_devicedummy.SetType(0x4d);
 
 			/* memory below 96k */
-			mcb.SetSize(0x1800 - DOS_MEM_START - (2+mcb_sizes));
+			mcb.SetSize(0x1800 - DOS_MEM_START - 2);
 			mcb.SetType(0x4d);
 		}
 		else {
 			/* Normal MCB chain, nothing special */
-			mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START - mcb_sizes);
+			mcb.SetSize(/*normally 0x97FF*/(seg_limit-1) - DOS_MEM_START);
 			CONV_MAX_SEG = seg_limit;
 		}
 	} else {
@@ -747,7 +830,11 @@ void DOS_SetupMemory(void) {
 
 		/* complete memory up to 640k available */
 		/* last paragraph used to add UMB chain to low-memory MCB chain */
-		mcb.SetSize(/*0x9FFE*/(seg_limit-2) - DOS_MEM_START - mcb_sizes);
+		if (dos_umb)
+			mcb.SetSize(/*0x9FFE*/(seg_limit-2) - DOS_MEM_START);
+		else
+			mcb.SetSize(/*0x9FFF*/(seg_limit-1) - DOS_MEM_START);
+
 		CONV_MAX_SEG = seg_limit-1;
 	}
 
