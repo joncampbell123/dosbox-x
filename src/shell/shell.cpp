@@ -2271,6 +2271,9 @@ struct ConfigShell_Entry {
 	std::string	cmd;
 };
 
+extern std::string config_run_var_device;
+extern std::string config_run_var_devparm;
+
 void DOS_ConfigShell::Run(void) {
 	if (config_shell_prompt && config_shell_prompt_start)
 		DOS_Shell::Run();
@@ -2369,6 +2372,14 @@ void DOS_ConfigShell::Run(void) {
 			tmp[l] = 0;
 			ParseLine(tmp);
 		}
+		else if (ent.type == ConfigShell_Entry::DEVICE) {
+			config_run_var_device = ent.path;
+			config_run_var_devparm = ent.args;
+			strcpy(tmp,"CONFIG \xff\xaa\xff");
+			ParseLine(tmp);
+			config_run_var_device.clear();
+			config_run_var_devparm.clear();
+		}
 		else if (ent.type == ConfigShell_Entry::PAUSE) {
 			/* FIXME: Our own internal pause function? */
 			strcpy(tmp,"PAUSE");
@@ -2382,10 +2393,10 @@ void DOS_ConfigShell::Run(void) {
 }
 
 DOS_ConfigShell::~DOS_ConfigShell() {
-	config_shell = true;
 }
 
 DOS_ConfigShell::DOS_ConfigShell():DOS_Shell(){
+	config_shell = true;
 }
 #endif
 
