@@ -1946,11 +1946,6 @@ void SHELL_MessagesInit() {
 
 }
 
-/* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
- *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
- *       We need to move the DOS kernel initialization into another function, and the VFILE
- *       registration to another function, and then message initialization to another function,
- *       and then those functions need to be called before SHELL_Init() -J.C. */
 void SHELL_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS shell");
 
@@ -2151,7 +2146,7 @@ void SHELL_Init() {
 }
 
 /* Pfff... starting and running the shell from a configuration section INIT
- * What the hell were you guys thinking? --J.C. */
+ * What the hell were you guys thinking over there at DOSBox SVN? --J.C. */
 void SHELL_Run() {
 	dos_shell_running_program = false;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
