@@ -2261,7 +2261,8 @@ struct ConfigShell_Entry {
 	enum {
 		NONE=0,
 		RUN,
-		DEVICE
+		DEVICE,
+		PAUSE
 	};
 
 	uint8_t		type = NONE;
@@ -2319,6 +2320,11 @@ void DOS_ConfigShell::Run(void) {
 			else if (value == "OFF" || value == "0")
 				entry_template.debugbreak = false;
 		}
+		else if (name == "PAUSE") {
+			entries.push_back(entry_template);
+			ConfigShell_Entry &ent = entries[entries.size()-1u];
+			ent.type = ConfigShell_Entry::PAUSE;
+		}
 		else if (name == "RUN") {
 			entries.push_back(entry_template);
 			ConfigShell_Entry &ent = entries[entries.size()-1u];
@@ -2354,13 +2360,18 @@ void DOS_ConfigShell::Run(void) {
 	}
 
 	shellrun=true;
+	char tmp[512];
 	for (auto &ent : entries) {
 		if (ent.type == ConfigShell_Entry::RUN) {
-			char tmp[512];
 			size_t l = ent.cmd.length();
 			if (l > 511) l = 511;
 			strncpy(tmp,ent.cmd.c_str(),l);
 			tmp[l] = 0;
+			ParseLine(tmp);
+		}
+		else if (ent.type == ConfigShell_Entry::PAUSE) {
+			/* FIXME: Our own internal pause function? */
+			strcpy(tmp,"PAUSE");
 			ParseLine(tmp);
 		}
 	}
