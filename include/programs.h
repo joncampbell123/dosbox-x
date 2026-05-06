@@ -110,7 +110,6 @@ public:
 	void ChangeToLongCmd();                             //! Get command line from shell instead of PSP
 	void DebugDumpEnv();                                //! Dump environment block to log
 	void WriteExitStatus();                             //! Write exit status to CPU register AL for return to MS-DOS
-	virtual void Invoke(const char * name, const std::vector<std::string> &what) { (void)name; (void)what; }
 };
 
 typedef void (PROGRAMS_Main)(Program * * make);
