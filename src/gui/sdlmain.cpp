@@ -768,6 +768,7 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
+void SHELL_MessagesInit(void);
 void CopyClipboard(int all);
 void CopyAllClipboard(bool bPressed);
 void PasteClipboard(bool bPressed);
@@ -7933,6 +7934,7 @@ bool VM_Boot_DOSBox_Kernel() {
 #endif
 
         DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
+        SHELL_MessagesInit();
         SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
         DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY); // <- we just finished loading the shell (COMMAND.COM)
 

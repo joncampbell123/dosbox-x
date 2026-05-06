@@ -955,7 +955,7 @@ void DOS_Shell::Prepare(void) {
         const char* layoutname = DOS_GetLoadedLayout();
 		if(layoutname == NULL && !IS_PC98_ARCH) {/*Keyboard layouts and CPI/CPX files have no meaning in PC-98 mode*/
 			int32_t cp = dos.loaded_codepage;
-			Bitu keyb_error = DOS_LoadKeyboardLayout("us", 437, "auto");
+			DOS_LoadKeyboardLayout("us", 437, "auto");
 			toSetCodePage(NULL, cp, -1);
 		}
 #endif
@@ -1009,7 +1009,7 @@ void DOS_Shell::Prepare(void) {
 				if (r!=NULL) *r=',';
 			}
 			if (newCP != dos.loaded_codepage && (!TTF_using() || (TTF_using() && isSupportedCP(newCP)))) {
-				int missing = toSetCodePage(this, newCP, -1);
+				toSetCodePage(this, newCP, -1);
 			}
 			if (country>0&&!control->opt_noconfig) {
 				countryNo = country;
@@ -1564,14 +1564,7 @@ static Bitu INT2E_Handler(void) {
 	return CBRET_NONE;
 }
 
-/* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
- *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
- *       We need to move the DOS kernel initialization into another function, and the VFILE
- *       registration to another function, and then message initialization to another function,
- *       and then those functions need to be called before SHELL_Init() -J.C. */
-void SHELL_Init() {
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS shell");
-
+void SHELL_MessagesInit() {
 	/* Add messages */
 	MSG_Add("SHELL_CMD_TREE_ERROR", "No subdirectories exist\n");
 	MSG_Add("SHELL_CMD_VOL_TREE", "Directory PATH listing for Volume %s\n");
@@ -1942,6 +1935,16 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n\nType DEBUGBOX without a parameter to start the debugger.\n");
 #endif
 	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C    Executes the specified command and returns.\n  /K    Executes the specified command and continues running.\n  /P    Loads a permanent copy of the command shell.\n  /INIT Initializes the command shell.\n");
+
+}
+
+/* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
+ *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
+ *       We need to move the DOS kernel initialization into another function, and the VFILE
+ *       registration to another function, and then message initialization to another function,
+ *       and then those functions need to be called before SHELL_Init() -J.C. */
+void SHELL_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS shell");
 
 	/* Regular startup */
 	call_shellstop=CALLBACK_Allocate();
