@@ -950,9 +950,9 @@ void DOS_Shell::Prepare(void) {
 		}
 #endif
 #if !defined(OSFREE)
-        get_yesno_chars();
+		get_yesno_chars();
 
-        const char* layoutname = DOS_GetLoadedLayout();
+		const char* layoutname = DOS_GetLoadedLayout();
 		if(layoutname == NULL && !IS_PC98_ARCH) {/*Keyboard layouts and CPI/CPX files have no meaning in PC-98 mode*/
 			int32_t cp = dos.loaded_codepage;
 			DOS_LoadKeyboardLayout("us", 437, "auto");
