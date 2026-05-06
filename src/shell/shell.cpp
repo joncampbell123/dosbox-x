@@ -2254,12 +2254,31 @@ void SHELL_Run() {
 }
 
 #if !defined(OSFREE)
+struct ConfigShell_Entry {
+	bool		debugbreak = false; // break into debugger before running program or loading device driver
+	bool		echo = false; // echo program or device driver path/command on console
+
+	enum {
+		NONE=0,
+		RUN,
+		DEVICE
+	};
+
+	uint8_t		type = NONE;
+	std::string	path;
+	std::string	args;
+	std::string	cmd;
+};
+
 void DOS_ConfigShell::Run(void) {
 	if (config_shell_prompt && config_shell_prompt_start)
 		DOS_Shell::Run();
 
 	const Section_line * section=static_cast<Section_line *>(control->GetSection("devices"));
 	const char *cfgstr = section->data.c_str();
+
+	std::vector<ConfigShell_Entry> entries;
+	ConfigShell_Entry entry_template;
 
 	while (*cfgstr) {
 		/* every line has the format NAME=VALUE */
@@ -2288,11 +2307,51 @@ void DOS_ConfigShell::Run(void) {
 		if (*cfgstr == '\r') cfgstr++;
 		if (*cfgstr == '\n') cfgstr++;
 
-		LOG_MSG("'%s' = '%s'",name.c_str(),value.c_str());
+		if (name == "ECHO") {
+			if (value == "ON" || value == "1")
+				entry_template.echo = true;
+			else if (value == "OFF" || value == "0")
+				entry_template.echo = false;
+		}
+		else if (name == "DEBUGBREAK") {
+			if (value == "ON" || value == "1")
+				entry_template.debugbreak = true;
+			else if (value == "OFF" || value == "0")
+				entry_template.debugbreak = false;
+		}
+		else if (name == "RUN") {
+			entries.push_back(entry_template);
+			ConfigShell_Entry &ent = entries[entries.size()-1u];
+			ent.type = ConfigShell_Entry::RUN;
+			ent.cmd = value;
+		}
+		else if (name == "DEVICE") {
+			entries.push_back(entry_template);
+			ConfigShell_Entry &ent = entries[entries.size()-1u];
+			ent.type = ConfigShell_Entry::DEVICE;
+
+			size_t i = value.find_first_of(' ');
+			if (i == std::string::npos) i = value.length();
+			ent.path = value.substr(0,i);
+			while (i < value.length() && value[i] == ' ') i++;
+			ent.args = value.substr(i);
+		}
 	}
 
-	// TODO: Read DEVICE= lines from dosbox.conf section, process them the way MS-DOS processes CONFIG.SYS.
-	//       Also RUN= which allows commands like IMGMOUNT to execute as part of device driver setup.
+	if (true/*DEBUG*/) {
+		LOG_MSG("CONFIG.SYS devices parsing result");
+		for (const auto &e : entries) {
+			if (e.type == ConfigShell_Entry::RUN) {
+				LOG_MSG(" - dbgbrk=%u echo=%u RUN '%s'",e.debugbreak,e.echo,e.cmd.c_str());
+			}
+			else if (e.type == ConfigShell_Entry::DEVICE) {
+				LOG_MSG(" - dbgbrk=%u echo=%u DEVICE '%s' '%s'",e.debugbreak,e.echo,e.path.c_str(),e.args.c_str());
+			}
+			else {
+				LOG_MSG(" - ????");
+			}
+		}
+	}
 
 	shellrun=true;
 
