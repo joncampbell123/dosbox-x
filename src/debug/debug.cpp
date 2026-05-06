@@ -2834,13 +2834,13 @@ bool ParseCommand(char* str) {
 	if (command == "DOS") {
 		stream >> command;
 		if (command == "MCBS") LogMCBS();
-        else if (command == "KERN") LogDOSKernMem();
-        else if (command == "XMS") LogXMS();
+		else if (command == "KERN") LogDOSKernMem();
+		else if (command == "XMS") LogXMS();
 #if !defined(OSFREE)
-        else if (command == "EMS") LogEMS();
+		else if (command == "EMS") LogEMS();
 #endif
-        else if (command == "FNKEY") LogFNKEY();
-        else return false;
+		else if (command == "FNKEY") LogFNKEY();
+		else return false;
 
 		return true;
 	}
