@@ -695,6 +695,7 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 
 			player.cd = this;
 			player.trackFile = trackFile;
+            player.currentTrackIdx = track;
 			player.startFrame = start;
 			player.currFrame = start;
 			player.numFrames = len;
@@ -715,7 +716,7 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 			player.playbackTotal = lround(len * tracks[track].sectorSize * bytesPerMs / 176.4);
 			player.playbackRemaining = player.playbackTotal;
 
-            LOG_MSG("CDROM: Playing track # %d %.1f min.-mark", tracks[track].number, tracks[track].skip * (1 / 10584000.0));
+            LOG_MSG("CDROM: Playing track # %d %.1f min.-mark", tracks[track].number, offset * (1 / 10584000.0));
 
 			#ifdef DEBUG
             LOG_MSG(
@@ -855,6 +856,20 @@ bool CDROM_Interface_Image::ReadSector(uint8_t *buffer, bool raw, unsigned long 
 	return tracks[track].file->read(buffer, seek, length);
 }
 
+bool CDROM_Interface_Image::PlayNextAudioTrack(void)
+{
+    const int totalTracks = (int)tracks.size() - 1; 
+    for(int i = player.currentTrackIdx + 1; i < totalTracks; i++) {
+        if(tracks[i].attr != 0x40 && tracks[i].file != nullptr) {
+            return player.cd->PlayAudioSector(tracks[i].start, tracks[i].length);
+        }
+    }
+
+    // No more playable tracks, so stop playback
+    player.cd->StopAudio();
+    return false;
+}
+
 void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 {
 	// Our member object "playbackRemaining" holds the
@@ -970,6 +985,24 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 
 					memset(player.buffer + player.bufferPos, 0, underDecode);
 					player.bufferPos += underDecode;
+
+                    const uint32_t rate = player.trackFile->getRate();
+                    const uint8_t channels = player.trackFile->getChannels();
+                    const int32_t bytesPerSec = rate * channels * 2;
+
+#if 0 // Dosbox-staging requires this for Alone in the Dark 2, but since it did work without it on DOSBox-X, we will disable this for now 
+                    const int32_t twoSecBytes = bytesPerSec * 2;
+
+                    if(player.playbackRemaining < twoSecBytes) {
+#else
+                    if(player.playbackRemaining < bytesPerSec * 0.001) { // Stop playback if less than 1 ms remaining
+#endif
+                        player.cd->StopAudio();
+                    }
+                    else 
+                        player.cd->PlayNextAudioTrack();
+                    
+                    return;
 				}
 				// printProgress( (player.bufferPos - player.bufferConsumed)/(float)AUDIO_DECODE_BUFFER_SIZE, "fill");
 			} // end of fill-while
