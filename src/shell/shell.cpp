@@ -51,6 +51,12 @@
 #include "build_timestamp.h"
 #include "version_string.h"
 
+/* if any step requires bringing up the command prompt for the CONFIG shell, set to true */
+bool config_shell_run = false;
+bool config_shell_prompt = false;
+bool config_shell_prompt_start = false; // at start before running device drivers
+bool config_shell_prompt_end = false; // at end after running device drivers
+
 extern bool shell_keyboard_flush;
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
@@ -846,6 +852,7 @@ const char *ParseMsg(const char *msg) {
 
 static char const * const path_string="PATH=Z:\\;Z:\\SYSTEM;Z:\\BIN;Z:\\DOS;Z:\\4DOS;Z:\\DEBUG;Z:\\TEXTUTIL;Z:\\PATCHING";
 static char const * const comspec_string="COMSPEC=Z:\\COMMAND.COM";
+static char const * const prompt_string_config="PROMPT=CONFIG:$P$G";
 static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
@@ -2244,19 +2251,31 @@ void SHELL_Run() {
 }
 
 void DOS_ConfigShell::Run(void) {
+	if (config_shell_prompt && config_shell_prompt_start)
+		DOS_Shell::Run();
+
 	shellrun=true;
 	// TODO: Read DEVICE= lines from dosbox.conf section, process them the way MS-DOS processes CONFIG.SYS.
 	//       Also RUN= which allows commands like IMGMOUNT to execute as part of device driver setup.
 	shellrun=false;
+
+	if (config_shell_prompt && config_shell_prompt_end)
+		DOS_Shell::Run();
 }
 
 DOS_ConfigShell::~DOS_ConfigShell() {
+	config_shell = true;
 }
 
 DOS_ConfigShell::DOS_ConfigShell():DOS_Shell(){
 }
 
 void CONFIGSHELL_Init() {
+	/* TODO: If there is nothing in the [devices] section, there is no point running this shell, skip it */
+	config_shell_run = true;
+
+	if (!config_shell_run) return;
+
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing CONFIG shell");
 
 	/* Regular startup */
@@ -2392,15 +2411,31 @@ void CONFIGSHELL_Init() {
 	CALLBACK_Setup(call_int2e,&INT2E_Handler,CB_IRET_STI,Real2Phys(addr_int2e),"Shell Int 2e");
 	RealSetVec(0x2e,addr_int2e);
 
-	/* Setup environment */
-	PhysPt env_write=PhysMake(env_seg,0);
-	MEM_BlockWrite(env_write,path_string,(Bitu)(strlen(path_string)+1));
-	env_write += (PhysPt)(strlen(path_string)+1);
-	// Do not write COMSPEC or PROMPT, this is not a general purpose shell
-	mem_writeb(env_write++,0);
-	mem_writew(env_write,1);
-	env_write+=2;
-	mem_writeb(env_write++,0);// No, we're not writing the full name either
+	if (config_shell_prompt) {
+		/* Setup environment */
+		PhysPt env_write=PhysMake(env_seg,0);
+		MEM_BlockWrite(env_write,path_string,(Bitu)(strlen(path_string)+1));
+		env_write += (PhysPt)(strlen(path_string)+1);
+		MEM_BlockWrite(env_write,comspec_string,(Bitu)(strlen(comspec_string)+1));
+		env_write += (PhysPt)(strlen(comspec_string)+1);
+		MEM_BlockWrite(env_write,prompt_string_config,(Bitu)(strlen(prompt_string_config)+1));
+		env_write +=(PhysPt)(strlen(prompt_string_config)+1);
+		mem_writeb(env_write++,0);
+		mem_writew(env_write,1);
+		env_write+=2;
+		MEM_BlockWrite(env_write,full_name,(Bitu)(strlen(full_name)+1));
+	}
+	else {
+		/* Setup environment */
+		PhysPt env_write=PhysMake(env_seg,0);
+		MEM_BlockWrite(env_write,path_string,(Bitu)(strlen(path_string)+1));
+		env_write += (PhysPt)(strlen(path_string)+1);
+		// Do not write COMSPEC or PROMPT, this is not a general purpose shell
+		mem_writeb(env_write++,0);
+		mem_writew(env_write,1);
+		env_write+=2;
+		mem_writeb(env_write++,0);// No, we're not writing the full name either
+	}
 
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);
@@ -2430,9 +2465,8 @@ void CONFIGSHELL_Init() {
 	psp.SetEnvironment(env_seg);
 	/* Set the command line for the shell start up */
 	CommandTail tail;
-	tail.count=(uint8_t)strlen(init_line);
+	tail.count=(uint8_t)0;
 	memset(&tail.buffer, 0, CTBUF);
-	strncpy(tail.buffer,init_line,CTBUF);
 	MEM_BlockWrite(PhysMake(psp_seg,CTBUF+1),&tail,CTBUF+1);
 
 	/* Setup internal DOS Variables */
@@ -2441,6 +2475,8 @@ void CONFIGSHELL_Init() {
 }
 
 void CONFIGSHELL_Run() {
+	if (!config_shell_run) return;
+
 	dos_shell_running_program = false;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	Reflect_Menu();
