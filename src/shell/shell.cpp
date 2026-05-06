@@ -1600,29 +1600,29 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DATE_NOW","Current date: ");
 	MSG_Add("SHELL_CMD_DATE_SETHLP","Type 'date %s' to change.\n");
 	MSG_Add("SHELL_CMD_DATE_HELP_LONG","DATE [[/T] [/H] [/S] | date]\n"\
-									"  date:       New date to set\n"\
-									"  /S:         Permanently use host time and date as DOS time\n"\
-                                    "  /F:         Switch back to DOSBox-X internal time (opposite of /S)\n"\
-									"  /T:         Only display date\n"\
-									"  /H:         Synchronize with host\n");
+			"  date:       New date to set\n"\
+			"  /S:         Permanently use host time and date as DOS time\n"\
+			"  /F:         Switch back to DOSBox-X internal time (opposite of /S)\n"\
+			"  /T:         Only display date\n"\
+			"  /H:         Synchronize with host\n");
 	MSG_Add("SHELL_CMD_TIME_HELP","Displays or changes the internal time.\n");
 	MSG_Add("SHELL_CMD_TIME_ERROR","The specified time is not correct.\n");
 	MSG_Add("SHELL_CMD_TIME_NOW","Current time: ");
 	MSG_Add("SHELL_CMD_TIME_SETHLP","Type 'time %s' to change.\n");
 	MSG_Add("SHELL_CMD_TIME_HELP_LONG","TIME [[/T] [/H] | time]\n"\
-									"  time:       New time to set\n"\
-									"  /T:         Display simple time\n"\
-									"  /H:         Synchronize with host\n");
+			"  time:       New time to set\n"\
+			"  /T:         Display simple time\n"\
+			"  /H:         Synchronize with host\n");
 	MSG_Add("SHELL_CMD_MKDIR_EXIST","Directory already exists - %s\n");
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to create directory - %s\n");
 	MSG_Add("SHELL_CMD_RMDIR_ERROR","Invalid path, not directory, or directory not empty - %s\n");
-    MSG_Add("SHELL_CMD_RMDIR_FULLTREE_CONFIRM", "Delete directory \"%s\" and all its subdirectories? (Y/N)?");
-    MSG_Add("SHELL_CMD_RMDIR_SINGLE_CONFIRM", "Delete file \"%s\" (Y/N)?");
-    MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename - %s\n");
+	MSG_Add("SHELL_CMD_RMDIR_FULLTREE_CONFIRM", "Delete directory \"%s\" and all its subdirectories? (Y/N)?");
+	MSG_Add("SHELL_CMD_RMDIR_SINGLE_CONFIRM", "Delete file \"%s\" (Y/N)?");
+	MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename - %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_GET_ERROR","Unable to get attributes: %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s\n");
 	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete - %s\n");
-    MSG_Add("SHELL_CMD_DEL_CONFIRM", "Delete %s (Y/N)?");
+	MSG_Add("SHELL_CMD_DEL_CONFIRM", "Delete %s (Y/N)?");
 	MSG_Add("SHELL_CMD_DEL_SURE","All files in directory will be deleted!\nAre you sure [Y/N]?");
 	MSG_Add("SHELL_SYNTAXERROR","Syntax error\n");
 	MSG_Add("SHELL_CMD_SET_NOT_SET","Environment variable %s not defined.\n");
@@ -1654,7 +1654,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_COPY_CONFIRM","Overwrite %s (Yes/No/All)?");
 	MSG_Add("SHELL_CMD_COPY_NOSPACE","Insufficient disk space - %s\n");
 	MSG_Add("SHELL_CMD_COPY_ERROR","Copy error - %s\n");
-    MSG_Add("SHELL_CMD_COPY_NOSELF", "File cannot be copied onto itself\r\n");
+	MSG_Add("SHELL_CMD_COPY_NOSELF", "File cannot be copied onto itself\r\n");
 	MSG_Add("SHELL_CMD_SUBST_DRIVE_LIST","The currently mounted local drives are:\n");
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_IN_USE","Target drive is already in use.\n");
@@ -1663,142 +1663,142 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST: There is an error in your command line.\n");
 	MSG_Add("SHELL_CMD_VTEXT_ON","DOS/V V-text is currently enabled.\n");
 	MSG_Add("SHELL_CMD_VTEXT_OFF","DOS/V V-text is currently disabled.\n");
-    MSG_Add("SHELL_ALLFILES_CHAR", "a");
+	MSG_Add("SHELL_ALLFILES_CHAR", "a");
 
-    std::string mapper_keybind = mapper_event_keybind_string("host");
-    if (mapper_keybind.empty()) mapper_keybind = "unbound";
+	std::string mapper_keybind = mapper_event_keybind_string("host");
+	if (mapper_keybind.empty()) mapper_keybind = "unbound";
 
-    /* Capitalize the binding */
-    if (mapper_keybind.size() > 0)
-        mapper_keybind[0] = toupper(mapper_keybind[0]);
+	/* Capitalize the binding */
+	if (mapper_keybind.size() > 0)
+		mapper_keybind[0] = toupper(mapper_keybind[0]);
 
-    std::string default_host =
+	std::string default_host =
 #if defined(WIN32) && !defined(HX_DOS)
-    "F11"
+		"F11"
 #else
-    "F12"
+		"F12"
 #endif
-    ;
+		;
 
-    /* Punctuation is important too. */
-    //mapper_keybind += ".";
+	/* Punctuation is important too. */
+	//mapper_keybind += ".";
 
-    /* NTS: MSG_Add() takes the string as const char * but it does make a copy of the string when entering into the message map,
-     *      so there is no problem here of causing use-after-free crashes when we exit. */
-    //std::string host_key_help; // SHELL_STARTUP_BEGIN2 <- UNUSED
+	/* NTS: MSG_Add() takes the string as const char * but it does make a copy of the string when entering into the message map,
+	 *      so there is no problem here of causing use-after-free crashes when we exit. */
+	//std::string host_key_help; // SHELL_STARTUP_BEGIN2 <- UNUSED
 
-    if (machine == MCH_PC98) {
-// "\x86\x46 To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \x86\x46\n"
-    }
-    else {
-// "\xBA To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \xBA\n"
-    }
+	if (machine == MCH_PC98) {
+		// "\x86\x46 To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \x86\x46\n"
+	}
+	else {
+		// "\xBA To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \xBA\n"
+	}
 
-    MSG_Add("SHELL_STARTUP_TITLE", "Welcome to DOSBox-X !");
-    MSG_Add("SHELL_STARTUP_HEAD1_PC98", "\033[36mGetting Started with DOSBox-X:\033[37m                                    ");
-    MSG_Add("SHELL_STARTUP_TEXT1_PC98", "Type \033[32mHELP\033[37m for shell commands, and \033[32mINTRO\033[37m for a short introduction. \nYou could also complete various tasks through the \033[33mdrop-down menus\033[37m.");
-    MSG_Add("SHELL_STARTUP_EXAMPLE_PC98", "\033[32mExample\033[37m: Try select \033[33mTrueType font\033[37m or \033[33mOpenGL perfect\033[37m output option.");
-    MSG_Add("SHELL_STARTUP_TEXT2_PC98", (std::string("To launch the \033[33mConfiguration Tool\033[37m, use \033[31mhost+C\033[37m. Host key is \033[32m") + (mapper_keybind + "\033[37m.                       ").substr(0,13) + std::string("\nTo activate the \033[33mMapper Editor\033[37m for key assignments, use \033[31mhost+M\033[37m.    \nTo switch between windowed and full-screen mode, use \033[31mhost+F\033[37m.      \nTo adjust the emulated CPU speed, use \033[31mhost+Plus\033[37m and \033[31mhost+Minus\033[37m.   ")).c_str());
-    MSG_Add("SHELL_STARTUP_INFO_PC98","\033[36mDOSBox-X is now running in \033[32mJapanese NEC PC-98\033[36m emulation mode.\033[37m     ");
-    MSG_Add("SHELL_STARTUP_TEXT3_PC98", "\033[32mDOSBox-X project \033[33mhttps://dosbox-x.com/     \033[36mComplete DOS emulations\033[37m\n\033[32mDOSBox-X guide   \033[33mhttps://dosbox-x.com/wiki\033[37m \033[36mDOS, Windows 3.x and 9x\033[37m\n\033[32mDOSBox-X support \033[33mhttps://github.com/joncampbell123/dosbox-x/issues\033[37m");
-    MSG_Add("SHELL_STARTUP_HEAD1", "\033[36mGetting started with DOSBox-X:                                              \033[37m");
-    MSG_Add("SHELL_STARTUP_TEXT1", "Type \033[32mHELP\033[37m to see the list of shell commands, \033[32mINTRO\033[37m for a brief introduction.\nYou can also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m.");
-    MSG_Add("SHELL_STARTUP_EXAMPLE", "\033[32mExample\033[37m: Try select the \033[33mTrueType font\033[37m or \033[33mOpenGL pixel-perfect\033[37m output option.");
-    MSG_Add("SHELL_STARTUP_HEAD2", "\033[36mUseful default shortcuts:                                                   \033[37m");
-    MSG_Add("SHELL_STARTUP_TEXT2", (std::string("- switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m\n") +
-            std::string("- launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m\n") +
-            std::string("- increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
-            (default_host+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m")).c_str());
-    MSG_Add("SHELL_STARTUP_DOSV","\033[32mDOS/V mode\033[37m is now active. Try also \033[32mTTF CJK mode\033[37m for a general DOS emulation.");
-    MSG_Add("SHELL_STARTUP_CGA", "Composite CGA mode is supported. Use \033[31mCtrl+F8\033[37m to set composite output ON/OFF.\nUse \033[31mCtrl+Shift+[F7/F8]\033[37m to change hue; \033[31mCtrl+F7\033[37m selects early/late CGA model. ");
-    MSG_Add("SHELL_STARTUP_CGA_MONO","Use \033[31mCtrl+F7\033[37m to cycle through green, amber, and white monochrome color,      \nand \033[31mCtrl+F8\033[37m to change contrast/brightness settings.                         ");
-    MSG_Add("SHELL_STARTUP_HERC","Use \033[31mCtrl+F7\033[37m to cycle through white, amber, and green monochrome color.      \nUse \033[31mCtrl+F8\033[37m to toggle horizontal blending (only in graphics mode).          ");
-    MSG_Add("SHELL_STARTUP_HEAD3", "\033[36mDOSBox-X project on the web:                                                \033[37m");
-    MSG_Add("SHELL_STARTUP_TEXT3", "\033[32mHomepage of project\033[37m: \033[33mhttps://dosbox-x.com/           \033[36mComplete DOS emulations\033[37m\n\033[32mUser guides on Wiki\033[37m: \033[33mhttps://dosbox-x.com/wiki\033[32m       \033[36mDOS, Windows 3.x and 9x\033[37m\n\033[32mIssue or suggestion\033[37m: \033[33mhttps://github.com/joncampbell123/dosbox-x/issues      \033[37m");
-    MSG_Add("SHELL_STARTUP_LAST", "HAVE FUN WITH DOSBox-X !");
+	MSG_Add("SHELL_STARTUP_TITLE", "Welcome to DOSBox-X !");
+	MSG_Add("SHELL_STARTUP_HEAD1_PC98", "\033[36mGetting Started with DOSBox-X:\033[37m                                    ");
+	MSG_Add("SHELL_STARTUP_TEXT1_PC98", "Type \033[32mHELP\033[37m for shell commands, and \033[32mINTRO\033[37m for a short introduction. \nYou could also complete various tasks through the \033[33mdrop-down menus\033[37m.");
+	MSG_Add("SHELL_STARTUP_EXAMPLE_PC98", "\033[32mExample\033[37m: Try select \033[33mTrueType font\033[37m or \033[33mOpenGL perfect\033[37m output option.");
+	MSG_Add("SHELL_STARTUP_TEXT2_PC98", (std::string("To launch the \033[33mConfiguration Tool\033[37m, use \033[31mhost+C\033[37m. Host key is \033[32m") + (mapper_keybind + "\033[37m.                       ").substr(0,13) + std::string("\nTo activate the \033[33mMapper Editor\033[37m for key assignments, use \033[31mhost+M\033[37m.    \nTo switch between windowed and full-screen mode, use \033[31mhost+F\033[37m.      \nTo adjust the emulated CPU speed, use \033[31mhost+Plus\033[37m and \033[31mhost+Minus\033[37m.   ")).c_str());
+	MSG_Add("SHELL_STARTUP_INFO_PC98","\033[36mDOSBox-X is now running in \033[32mJapanese NEC PC-98\033[36m emulation mode.\033[37m     ");
+	MSG_Add("SHELL_STARTUP_TEXT3_PC98", "\033[32mDOSBox-X project \033[33mhttps://dosbox-x.com/     \033[36mComplete DOS emulations\033[37m\n\033[32mDOSBox-X guide   \033[33mhttps://dosbox-x.com/wiki\033[37m \033[36mDOS, Windows 3.x and 9x\033[37m\n\033[32mDOSBox-X support \033[33mhttps://github.com/joncampbell123/dosbox-x/issues\033[37m");
+	MSG_Add("SHELL_STARTUP_HEAD1", "\033[36mGetting started with DOSBox-X:                                              \033[37m");
+	MSG_Add("SHELL_STARTUP_TEXT1", "Type \033[32mHELP\033[37m to see the list of shell commands, \033[32mINTRO\033[37m for a brief introduction.\nYou can also complete various tasks in DOSBox-X through the \033[33mdrop-down menus\033[37m.");
+	MSG_Add("SHELL_STARTUP_EXAMPLE", "\033[32mExample\033[37m: Try select the \033[33mTrueType font\033[37m or \033[33mOpenGL pixel-perfect\033[37m output option.");
+	MSG_Add("SHELL_STARTUP_HEAD2", "\033[36mUseful default shortcuts:                                                   \033[37m");
+	MSG_Add("SHELL_STARTUP_TEXT2", (std::string("- switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m\n") +
+				std::string("- launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m\n") +
+				std::string("- increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
+				(default_host+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m")).c_str());
+	MSG_Add("SHELL_STARTUP_DOSV","\033[32mDOS/V mode\033[37m is now active. Try also \033[32mTTF CJK mode\033[37m for a general DOS emulation.");
+	MSG_Add("SHELL_STARTUP_CGA", "Composite CGA mode is supported. Use \033[31mCtrl+F8\033[37m to set composite output ON/OFF.\nUse \033[31mCtrl+Shift+[F7/F8]\033[37m to change hue; \033[31mCtrl+F7\033[37m selects early/late CGA model. ");
+	MSG_Add("SHELL_STARTUP_CGA_MONO","Use \033[31mCtrl+F7\033[37m to cycle through green, amber, and white monochrome color,      \nand \033[31mCtrl+F8\033[37m to change contrast/brightness settings.                         ");
+	MSG_Add("SHELL_STARTUP_HERC","Use \033[31mCtrl+F7\033[37m to cycle through white, amber, and green monochrome color.      \nUse \033[31mCtrl+F8\033[37m to toggle horizontal blending (only in graphics mode).          ");
+	MSG_Add("SHELL_STARTUP_HEAD3", "\033[36mDOSBox-X project on the web:                                                \033[37m");
+	MSG_Add("SHELL_STARTUP_TEXT3", "\033[32mHomepage of project\033[37m: \033[33mhttps://dosbox-x.com/           \033[36mComplete DOS emulations\033[37m\n\033[32mUser guides on Wiki\033[37m: \033[33mhttps://dosbox-x.com/wiki\033[32m       \033[36mDOS, Windows 3.x and 9x\033[37m\n\033[32mIssue or suggestion\033[37m: \033[33mhttps://github.com/joncampbell123/dosbox-x/issues      \033[37m");
+	MSG_Add("SHELL_STARTUP_LAST", "HAVE FUN WITH DOSBox-X !");
 
 	MSG_Add("SHELL_CMD_BREAK_HELP","Sets or clears extended CTRL+C checking.\n");
 	MSG_Add("SHELL_CMD_BREAK_HELP_LONG","BREAK [ON | OFF]\n\nType BREAK without a parameter to display the current BREAK setting.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HELP","Displays or changes the current directory.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HELP_LONG","CHDIR [drive:][path]\n"
-	        "CHDIR [..]\n"
-	        "CD [drive:][path]\n"
-	        "CD [..]\n\n"
-	        "  ..   Specifies that you want to change to the parent directory.\n\n"
-	        "Type CD drive: to display the current directory in the specified drive.\n"
-	        "Type CD without parameters to display the current drive and directory.\n");
+			"CHDIR [..]\n"
+			"CD [drive:][path]\n"
+			"CD [..]\n\n"
+			"  ..   Specifies that you want to change to the parent directory.\n\n"
+			"Type CD drive: to display the current directory in the specified drive.\n"
+			"Type CD without parameters to display the current drive and directory.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP","Clears screen.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP_LONG","CLS\n");
 	MSG_Add("SHELL_CMD_DIR_HELP","Displays a list of files and subdirectories in a directory.\n");
 	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]\n\n"
-		   "  [drive:][path][filename]\n"
-		   "              Specifies drive, directory, and/or files to list.\n"
-		   "  /W          Uses wide list format.\n"
-		   "  /B          Uses bare format (no heading information or summary).\n"
-		   "  /S          Displays files in specified directory and all subdirectories.\n"
-		   "  /P          Pauses after each screenful of information.\n"
-		   "  /A          Displays files with specified attributes.\n"
-		   "  attributes   D  Directories                R  Read-only files\n"
-		   "               H  Hidden files               A  Files ready for archiving\n"
-		   "               S  System files               -  Prefix meaning not\n"
-		   "  /O          List by files in sorted order.\n"
-		   "  sortorder    N  By name (alphabetic)       S  By size (smallest first)\n"
-		   "               E  By extension (alphabetic)  D  By date & time (earliest first)\n"
-		   "               G  Group directories first    -  Prefix to reverse order\n\n"
-		   "Switches may be preset in the DIRCMD environment variable.  Override\n"
-		   "preset switches by prefixing any switch with - (hyphen)--for example, /-W.\n"
-		   );
+			"  [drive:][path][filename]\n"
+			"              Specifies drive, directory, and/or files to list.\n"
+			"  /W          Uses wide list format.\n"
+			"  /B          Uses bare format (no heading information or summary).\n"
+			"  /S          Displays files in specified directory and all subdirectories.\n"
+			"  /P          Pauses after each screenful of information.\n"
+			"  /A          Displays files with specified attributes.\n"
+			"  attributes   D  Directories                R  Read-only files\n"
+			"               H  Hidden files               A  Files ready for archiving\n"
+			"               S  System files               -  Prefix meaning not\n"
+			"  /O          List by files in sorted order.\n"
+			"  sortorder    N  By name (alphabetic)       S  By size (smallest first)\n"
+			"               E  By extension (alphabetic)  D  By date & time (earliest first)\n"
+			"               G  Group directories first    -  Prefix to reverse order\n\n"
+			"Switches may be preset in the DIRCMD environment variable.  Override\n"
+			"preset switches by prefixing any switch with - (hyphen)--for example, /-W.\n"
+	       );
 	MSG_Add("SHELL_CMD_ECHO_HELP","Displays messages, or turns command-echoing on or off.\n");
 	MSG_Add("SHELL_CMD_ECHO_HELP_LONG","  ECHO [ON | OFF]\n  ECHO [message]\n\nType ECHO without parameters to display the current echo setting.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exits from the command shell.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Shows DOSBox-X command help.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
-		    "   /A or /ALL   Lists all supported internal commands.\n"
-		    "   [command]    Shows help for the specified command.\n\n"
-            "\033[0mE.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help information for COPY command.\n\n"
+			"   /A or /ALL   Lists all supported internal commands.\n"
+			"   [command]    Shows help for the specified command.\n\n"
+			"\033[0mE.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help information for COPY command.\n\n"
 			"Note: External commands like \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m are not listed by HELP [/A].\n"
 			"      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).\n"
-            "      Type \033[33;1mcommand /?\033[0m or \033[33;1mHELP command\033[0m for help information for that command.\n");
-    MSG_Add("SHELL_CMD_LS_HELP","Lists directory contents.\n");
-    MSG_Add("SHELL_CMD_LS_HELP_LONG","LS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
-            "  /A     Lists hidden and system files also.\n"
-            "  /L     Lists names one per line.\n"
-            "  /P     Pauses after each screenful of information.\n"
-            "  /Z     Displays short names even if LFN support is available.\n");
+			"      Type \033[33;1mcommand /?\033[0m or \033[33;1mHELP command\033[0m for help information for that command.\n");
+	MSG_Add("SHELL_CMD_LS_HELP","Lists directory contents.\n");
+	MSG_Add("SHELL_CMD_LS_HELP_LONG","LS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
+			"  /A     Lists hidden and system files also.\n"
+			"  /L     Lists names one per line.\n"
+			"  /P     Pauses after each screenful of information.\n"
+			"  /Z     Displays short names even if LFN support is available.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
-	        "MD [drive:][path]\n");
+			"MD [drive:][path]\n");
 	MSG_Add("SHELL_CMD_RMDIR_HELP","Removes a directory.\n");
 	MSG_Add("SHELL_CMD_RMDIR_HELP_LONG","RMDIR [drive:][path]\n"
-	        "RD [drive:][path]\n");
+			"RD [drive:][path]\n");
 	MSG_Add("SHELL_CMD_SET_HELP","Displays or changes environment variables.\n");
 	MSG_Add("SHELL_CMD_SET_HELP_LONG","SET [variable=[string]]\n\n"
-		   "   variable     Specifies the environment-variable name.\n"
-		   "   string       Specifies a series of characters to assign to the variable.\n\n"
-		   "* If no string is specified, the variable is removed from the environment.\n\n"
-		   "Type SET without parameters to display the current environment variables.\n");
+			"   variable     Specifies the environment-variable name.\n"
+			"   string       Specifies a series of characters to assign to the variable.\n\n"
+			"* If no string is specified, the variable is removed from the environment.\n\n"
+			"Type SET without parameters to display the current environment variables.\n");
 	MSG_Add("SHELL_CMD_IF_HELP","Performs conditional processing in batch programs.\n");
 	MSG_Add("SHELL_CMD_IF_HELP_LONG","IF [NOT] ERRORLEVEL number command\n"
-		   "IF [NOT] string1==string2 command\n"
-		   "IF [NOT] EXIST filename command\n\n"
-		   "  NOT               Specifies that DOS should carry out\n"
-		   "                    the command only if the condition is false.\n\n"
-		   "  ERRORLEVEL number Specifies a true condition if the last program run\n"
-		   "                    returned an exit code equal to or greater than the number\n"
-		   "                    specified.\n\n"
-		   "  string1==string2  Specifies a true condition if the specified text strings\n"
-		   "                    match.\n\n"
-		   "  EXIST filename    Specifies a true condition if the specified filename\n"
-		   "                    exists.\n\n"
-		   "  command           Specifies the command to carry out if the condition is\n"
-		   "                    met.  Command can be followed by ELSE command which\n"
-		   "                    will execute the command after the ELSE keyword if the\n"
-		   "                    specified condition is FALSE\n");
+			"IF [NOT] string1==string2 command\n"
+			"IF [NOT] EXIST filename command\n\n"
+			"  NOT               Specifies that DOS should carry out\n"
+			"                    the command only if the condition is false.\n\n"
+			"  ERRORLEVEL number Specifies a true condition if the last program run\n"
+			"                    returned an exit code equal to or greater than the number\n"
+			"                    specified.\n\n"
+			"  string1==string2  Specifies a true condition if the specified text strings\n"
+			"                    match.\n\n"
+			"  EXIST filename    Specifies a true condition if the specified filename\n"
+			"                    exists.\n\n"
+			"  command           Specifies the command to carry out if the condition is\n"
+			"                    met.  Command can be followed by ELSE command which\n"
+			"                    will execute the command after the ELSE keyword if the\n"
+			"                    specified condition is FALSE\n");
 	MSG_Add("SHELL_CMD_GOTO_HELP","Jumps to a labeled line in a batch program.\n");
 	MSG_Add("SHELL_CMD_GOTO_HELP_LONG","GOTO label\n\n"
-		   "   label   Specifies a text string used in the batch program as a label.\n\n"
-		   "You type a label on a line by itself, beginning with a colon.\n");
+			"   label   Specifies a text string used in the batch program as a label.\n\n"
+			"You type a label on a line by itself, beginning with a colon.\n");
 	MSG_Add("SHELL_CMD_HISTORY_HELP","Displays or clears the command history list.\n");
 	MSG_Add("SHELL_CMD_HISTORY_HELP_LONG","HISTORY [/C]\n\n  /C  Clears the command history list.\n");
 	MSG_Add("SHELL_CMD_SHIFT_HELP","Changes the position of replaceable parameters in a batch file.\n");
@@ -1813,53 +1813,53 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_REM_HELP_LONG","REM [comment]\n");
 	MSG_Add("SHELL_CMD_RENAME_HELP","Renames a file/directory or files.\n");
 	MSG_Add("SHELL_CMD_RENAME_HELP_LONG","RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n"
-	        "REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n\n"
-	        "Note that you can not specify a new drive or path for your destination.\n\n"
-	        "Wildcards (* and ?) are supported for files. For example, the following command\n"
-	        "renames all text files: \033[37;1mREN *.TXT *.BAK\033[0m\n");
+			"REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n\n"
+			"Note that you can not specify a new drive or path for your destination.\n\n"
+			"Wildcards (* and ?) are supported for files. For example, the following command\n"
+			"renames all text files: \033[37;1mREN *.TXT *.BAK\033[0m\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/F] [/Q] names\n"
-		   "ERASE [/P] [/F] [/Q] names\n\n"
-		   "  names         Specifies a list of one or more files or directories.\n"
-		   "                Wildcards may be used to delete multiple files. If a\n"
-		   "                directory is specified, all files within the directory\n"
-		   "                will be deleted.\n"
-		   "  /P            Prompts for confirmation before deleting one or more files.\n"
-		   "  /F            Force deleting of read-only files.\n"
-		   "  /Q            Quiet mode, do not ask if ok to delete on global wildcard.\n");
+			"ERASE [/P] [/F] [/Q] names\n\n"
+			"  names         Specifies a list of one or more files or directories.\n"
+			"                Wildcards may be used to delete multiple files. If a\n"
+			"                directory is specified, all files within the directory\n"
+			"                will be deleted.\n"
+			"  /P            Prompts for confirmation before deleting one or more files.\n"
+			"  /F            Force deleting of read-only files.\n"
+			"  /Q            Quiet mode, do not ask if ok to delete on global wildcard.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP","Copies one or more files.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
-		   "  source        Specifies the file or files to be copied.\n"
-		   "  destination   Specifies the directory and/or filename for the new file(s).\n"
-		   "  /Y            Suppresses prompting to confirm you want to overwrite an\n"
-		   "                existing destination file.\n"
-		   "  /-Y           Causes prompting to confirm you want to overwrite an\n"
-           "                existing destination file.\n\n"
-		   "The switch /Y may be preset in the COPYCMD environment variable.\n"
-		   "This may be overridden with /-Y on the command line.\n\n"
-		   "To append files, specify a single file for destination, but multiple files\n"
-		   "for source (using wildcards or file1+file2+file3 format).\n");
+			"  source        Specifies the file or files to be copied.\n"
+			"  destination   Specifies the directory and/or filename for the new file(s).\n"
+			"  /Y            Suppresses prompting to confirm you want to overwrite an\n"
+			"                existing destination file.\n"
+			"  /-Y           Causes prompting to confirm you want to overwrite an\n"
+			"                existing destination file.\n\n"
+			"The switch /Y may be preset in the COPYCMD environment variable.\n"
+			"This may be overridden with /-Y on the command line.\n\n"
+			"To append files, specify a single file for destination, but multiple files\n"
+			"for source (using wildcards or file1+file2+file3 format).\n");
 	MSG_Add("SHELL_CMD_CALL_HELP","Starts a batch file from within another batch file.\n");
 	MSG_Add("SHELL_CMD_CALL_HELP_LONG","CALL [drive:][path]filename [batch-parameters]\n\n"
-		   "batch-parameters   Specifies any command-line information required by\n"
-		   "                   the batch program.\n");
+			"batch-parameters   Specifies any command-line information required by\n"
+			"                   the batch program.\n");
 	MSG_Add("SHELL_CMD_SUBST_HELP","Assigns an internal directory to a drive.\n");
 	MSG_Add("SHELL_CMD_SUBST_HELP_LONG","SUBST [drive1: [drive2:]path]\nSUBST drive1: /D\n\n"
-		   "  drive1:       Specifies a drive to which you want to assign a path.\n"
-		   "  [drive2:]path Specifies a mounted local drive and path you want to assign to.\n"
-		   "  /D            Deletes a mounted or substituted drive.\n\n"
-		   "Type SUBST with no parameters to display a list of mounted local drives.\n");
+			"  drive1:       Specifies a drive to which you want to assign a path.\n"
+			"  [drive2:]path Specifies a mounted local drive and path you want to assign to.\n"
+			"  /D            Deletes a mounted or substituted drive.\n\n"
+			"Type SUBST with no parameters to display a list of mounted local drives.\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive:][path]filename [parameters]\n"
-		   "LOADHIGH        [drive:][path]filename [parameters]\n");
+			"LOADHIGH        [drive:][path]filename [parameters]\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a user keypress to choose one of a set of choices.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text\n\n"
-	        "  /C[:]choices Specifies allowable keys.  Default is: yn.\n"
-	        "  /N           Do not display the choices at end of prompt.\n"
-	        "  /S           Enables case-sensitive choices to be selected.\n"
-	        "  /T[:]c,nn    Default choice to c after nn seconds.\n"
-	        "  text         The text to display as a prompt.\n\n"
-	        "ERRORLEVEL is set to offset of key user presses in choices.\n");
+			"  /C[:]choices Specifies allowable keys.  Default is: yn.\n"
+			"  /N           Do not display the choices at end of prompt.\n"
+			"  /S           Enables case-sensitive choices to be selected.\n"
+			"  /T[:]c,nn    Default choice to c after nn seconds.\n"
+			"  text         The text to display as a prompt.\n\n"
+			"ERRORLEVEL is set to offset of key user presses in choices.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP","Displays or changes file attributes.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP_LONG","ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]\n\n"
 			"  +   Sets an attribute.\n"
@@ -1873,55 +1873,55 @@ void SHELL_Init() {
 			"  /S  Processes files in all directories in the specified path.\n");
 	MSG_Add("SHELL_CMD_PATH_HELP","Displays or sets a search path for executable files.\n");
 	MSG_Add("SHELL_CMD_PATH_HELP_LONG","PATH [[drive:]path[;...][;%PATH%]\n"
-		   "PATH ;\n\n"
-		   "Type PATH ; to clear all search path settings.\n"
-		   "Type PATH without parameters to display the current path.\n");
+			"PATH ;\n\n"
+			"Type PATH ; to clear all search path settings.\n"
+			"Type PATH without parameters to display the current path.\n");
 	MSG_Add("SHELL_CMD_PUSHD_HELP","Stores the current directory for use by the POPD command, then\nchanges to the specified directory.\n");
 	MSG_Add("SHELL_CMD_PUSHD_HELP_LONG","PUSHD [path]\n\n"
-	        "path        Specifies the directory to make the current directory.\n\n"
-	        "Type PUSHD with no parameters to display currently stored directories.\n");
+			"path        Specifies the directory to make the current directory.\n\n"
+			"Type PUSHD with no parameters to display currently stored directories.\n");
 	MSG_Add("SHELL_CMD_POPD_HELP","Changes to the directory stored by the PUSHD command.\n");
 	MSG_Add("SHELL_CMD_POPD_HELP_LONG","POPD\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify files are written correctly to a disk.\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP_LONG","VERIFY [ON | OFF]\n\nType VERIFY without a parameter to display the current VERIFY setting.\n");
 	MSG_Add("SHELL_CMD_VER_HELP","Displays or sets DOSBox-X's reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER [/R]\n"
-		   "VER [SET] number or VER SET [major minor]\n\n"
-		   "  /R                 Display DOSBox-X's Git commit version and build date.\n"
-		   "  [SET] number       Set the specified number as the reported DOS version.\n"
-		   "  SET [major minor]  Set the reported DOS version in major and minor format.\n\n"
-		   "  \033[0mE.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"
-		   "  On the other hand, \033[37;1mVER SET 7 1\033[0m sets the DOS version to 7.01 instead of 7.1.\n\n"
-		   "Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
+			"VER [SET] number or VER SET [major minor]\n\n"
+			"  /R                 Display DOSBox-X's Git commit version and build date.\n"
+			"  [SET] number       Set the specified number as the reported DOS version.\n"
+			"  SET [major minor]  Set the reported DOS version in major and minor format.\n\n"
+			"  \033[0mE.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"
+			"  On the other hand, \033[37;1mVER SET 7 1\033[0m sets the DOS version to 7.01 instead of 7.1.\n\n"
+			"Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");
 	MSG_Add("SHELL_CMD_VER_INVALID","The specified DOS version is not correct.\n");
 	MSG_Add("SHELL_CMD_VOL_HELP","Displays the disk volume label and serial number, if they exist.\n");
 	MSG_Add("SHELL_CMD_VOL_HELP_LONG","VOL [drive]\n");
 	MSG_Add("SHELL_CMD_PROMPT_HELP","Changes the command prompt.\n");
 	MSG_Add("SHELL_CMD_PROMPT_HELP_LONG","PROMPT [text]\n"
-		   "  text    Specifies a new command prompt.\n\n"
-		   "Prompt can be made up of normal characters and the following special codes:\n"
-		   "  $A   & (Ampersand)\n"
-		   "  $B   | (pipe)\n"
-		   "  $C   ( (Left parenthesis)\n"
-		   "  $D   Current date\n"
-		   "  $E   Escape code (ASCII code 27)\n"
-		   "  $F   ) (Right parenthesis)\n"
-		   "  $G   > (greater-than sign)\n"
-		   "  $H   Backspace (erases previous character)\n"
-		   "  $L   < (less-than sign)\n"
-		   "  $N   Current drive\n"
-		   "  $P   Current drive and path\n"
-		   "  $Q   = (equal sign)\n"
-		   "  $S     (space)\n"
-		   "  $T   Current time\n"
-		   "  $V   DOS version number\n"
-		   "  $_   Carriage return and linefeed\n"
-		   "  $$   $ (dollar sign)\n");
-    MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
-    MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
-    MSG_Add("SHELL_CMD_ASSOC_HELP", "Displays or changes file extension associations.\n");
-    MSG_Add("SHELL_CMD_ASSOC_HELP_LONG", "ASSOC [.ext[=command] ... ]\n\nType ASSOC without parameters to display the current file associations.\nFile extensions must start with a dot (.); wildcards (* and ?) are allowed.\n");
+			"  text    Specifies a new command prompt.\n\n"
+			"Prompt can be made up of normal characters and the following special codes:\n"
+			"  $A   & (Ampersand)\n"
+			"  $B   | (pipe)\n"
+			"  $C   ( (Left parenthesis)\n"
+			"  $D   Current date\n"
+			"  $E   Escape code (ASCII code 27)\n"
+			"  $F   ) (Right parenthesis)\n"
+			"  $G   > (greater-than sign)\n"
+			"  $H   Backspace (erases previous character)\n"
+			"  $L   < (less-than sign)\n"
+			"  $N   Current drive\n"
+			"  $P   Current drive and path\n"
+			"  $Q   = (equal sign)\n"
+			"  $S     (space)\n"
+			"  $T   Current time\n"
+			"  $V   DOS version number\n"
+			"  $_   Carriage return and linefeed\n"
+			"  $$   $ (dollar sign)\n");
+	MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
+	MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
+	MSG_Add("SHELL_CMD_ASSOC_HELP", "Displays or changes file extension associations.\n");
+	MSG_Add("SHELL_CMD_ASSOC_HELP_LONG", "ASSOC [.ext[=command] ... ]\n\nType ASSOC without parameters to display the current file associations.\nFile extensions must start with a dot (.); wildcards (* and ?) are allowed.\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn [file]]\nCHCP nnn[:[language]]\n\n  nnn      Specifies a code page number.\n  file     Specifies a code page file.\n  language Specifies a corresponding language.\n\nSupported code pages for changing in the TrueType font output:\n\n437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021\n\nAlso double-byte code pages including 932, 936, 949, and 950/951.\n\nCustomized code pages are supported by providing code page files.\n");
 	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
@@ -1929,7 +1929,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nCountry-specific information such as date and time formats will be affected.\n");
-    MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
+	MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
 	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device        The terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [drive:][path][filename]\nMORE < [drive:][path]filename\ncommand-name | MORE [drive:][path][filename]\n");
@@ -1952,110 +1952,110 @@ void SHELL_Init() {
 
 	CALLBACK_Setup(call_shellstop,shellstop_handler,CB_IRET,"shell stop");
 
-    /* NTS: Some DOS programs behave badly if run from a command interpreter
-     *      who's PSP segment is too low in memory and does not appear in
-     *      the MCB chain (SimCity 2000). So allocate shell memory normally
-     *      as any DOS application would do.
-     *
-     *      That includes allocating COMMAND.COM stack NORMALLY (not up in
-     *      the UMB as DOSBox SVN would do) */
+	/* NTS: Some DOS programs behave badly if run from a command interpreter
+	 *      who's PSP segment is too low in memory and does not appear in
+	 *      the MCB chain (SimCity 2000). So allocate shell memory normally
+	 *      as any DOS application would do.
+	 *
+	 *      That includes allocating COMMAND.COM stack NORMALLY (not up in
+	 *      the UMB as DOSBox SVN would do) */
 
 	/* Now call up the shell for the first time */
 	uint16_t psp_seg;//=DOS_FIRST_SHELL;
 	uint16_t env_seg;//=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
 	uint16_t stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
-    uint16_t tmp,total_sz;
-    bool tiny_memory_mode = false;
+	uint16_t tmp,total_sz;
+	bool tiny_memory_mode = false;
 
-    // below a certain memory size, alter memory arrangement and allocation to minimize memory
-    if (MEM_ConventionalPages() < 0x8) tiny_memory_mode = true;
+	// below a certain memory size, alter memory arrangement and allocation to minimize memory
+	if (MEM_ConventionalPages() < 0x8) tiny_memory_mode = true;
 
-    // decide shell env size
-    if (dosbox_shell_env_size == 0) {
-        if (MEM_ConventionalPages() >= 0x10/*64KB or more*/)
-            dosbox_shell_env_size = (0x158u - (0x118u + 19u)) << 4u; /* equivalent to DOSBox SVN */
-        else if (MEM_ConventionalPages() >= 0x8/*32KB or more*/)
-            dosbox_shell_env_size = 384;
-        else if (MEM_ConventionalPages() >= 0x4/*16KB or more*/)
-            dosbox_shell_env_size = 256;
-        else
-            dosbox_shell_env_size = 144;
-    }
-    else {
-        dosbox_shell_env_size = (dosbox_shell_env_size+15u)&(~15u); /* round up to paragraph */
-    }
+	// decide shell env size
+	if (dosbox_shell_env_size == 0) {
+		if (MEM_ConventionalPages() >= 0x10/*64KB or more*/)
+			dosbox_shell_env_size = (0x158u - (0x118u + 19u)) << 4u; /* equivalent to DOSBox SVN */
+		else if (MEM_ConventionalPages() >= 0x8/*32KB or more*/)
+			dosbox_shell_env_size = 384;
+		else if (MEM_ConventionalPages() >= 0x4/*16KB or more*/)
+			dosbox_shell_env_size = 256;
+		else
+			dosbox_shell_env_size = 144;
+	}
+	else {
+		dosbox_shell_env_size = (dosbox_shell_env_size+15u)&(~15u); /* round up to paragraph */
+	}
 
-    LOG_MSG("COMMAND.COM env size:             %u bytes",dosbox_shell_env_size);
+	LOG_MSG("COMMAND.COM env size:             %u bytes",dosbox_shell_env_size);
 
-    // According to some sources, 0x0008 is a special PSP segment value used by DOS before the first
-    // program is used. We need the current PSP segment to be nonzero so that DOS_AllocateMemory()
-    // can properly allocate memory.
-    dos.psp(8);
+	// According to some sources, 0x0008 is a special PSP segment value used by DOS before the first
+	// program is used. We need the current PSP segment to be nonzero so that DOS_AllocateMemory()
+	// can properly allocate memory.
+	dos.psp(8);
 
-    auto savedMemAllocStrategy = DOS_GetMemAllocStrategy();
-    auto shellHigh = std::string(static_cast<Section_prop*>(control->GetSection("dos"))->Get_string("shellhigh"));
-    if (shellHigh=="true" || shellHigh=="1" ||
-        (shellHigh=="auto" && dos.version.major >= 7))
-    {
-	    DOS_SetMemAllocStrategy(savedMemAllocStrategy | 0x80);
-    }
+	auto savedMemAllocStrategy = DOS_GetMemAllocStrategy();
+	auto shellHigh = std::string(static_cast<Section_prop*>(control->GetSection("dos"))->Get_string("shellhigh"));
+	if (shellHigh=="true" || shellHigh=="1" ||
+			(shellHigh=="auto" && dos.version.major >= 7))
+	{
+		DOS_SetMemAllocStrategy(savedMemAllocStrategy | 0x80);
+	}
 
-    // COMMAND.COM environment block
-    tmp = dosbox_shell_env_size>>4;
+	// COMMAND.COM environment block
+	tmp = dosbox_shell_env_size>>4;
 	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
-    LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
+	LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
 
-    // COMMAND.COM main binary (including PSP and stack)
-    if (tiny_memory_mode)
-        tmp = 0x13 + (1536/16);
-    else
-        tmp = 0x1A + (2048/16);
-    total_sz = tmp;
+	// COMMAND.COM main binary (including PSP and stack)
+	if (tiny_memory_mode)
+		tmp = 0x13 + (1536/16);
+	else
+		tmp = 0x1A + (2048/16);
+	total_sz = tmp;
 
-    // Use normal MCB allocation unless memsize is 4KB
-    if (MEM_ConventionalPages() > 1) {
-        if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
-    }
-    else {
-        psp_seg = DOS_GetMemory(tmp,"COMMAND.COM main body and PSP");
-    }
+	// Use normal MCB allocation unless memsize is 4KB
+	if (MEM_ConventionalPages() > 1) {
+		if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
+	}
+	else {
+		psp_seg = DOS_GetMemory(tmp,"COMMAND.COM main body and PSP");
+	}
 
-    LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
+	LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
 
-    DOS_SetMemAllocStrategy(savedMemAllocStrategy);
+	DOS_SetMemAllocStrategy(savedMemAllocStrategy);
 
-    // now COMMAND.COM has a main body and PSP segment, reflect it
-    dos.psp(psp_seg);
-    shell_psp = psp_seg;
+	// now COMMAND.COM has a main body and PSP segment, reflect it
+	dos.psp(psp_seg);
+	shell_psp = psp_seg;
 
-    {
-        DOS_MCB mcb((uint16_t)(env_seg-1));
-        mcb.SetPSPSeg(psp_seg);
-        mcb.SetFileName("COMMAND");
-    }
+	{
+		DOS_MCB mcb((uint16_t)(env_seg-1));
+		mcb.SetPSPSeg(psp_seg);
+		mcb.SetFileName("COMMAND");
+	}
 
-    {
-        DOS_MCB mcb((uint16_t)(psp_seg-1));
-        mcb.SetPSPSeg(psp_seg);
-        mcb.SetFileName("COMMAND");
-    }
+	{
+		DOS_MCB mcb((uint16_t)(psp_seg-1));
+		mcb.SetPSPSeg(psp_seg);
+		mcb.SetFileName("COMMAND");
+	}
 
-    // set the stack at 0x1A
-    if (tiny_memory_mode)
-        stack_seg = psp_seg + 0x13;
-    else
-        stack_seg = psp_seg + 0x1A;
-    LOG_MSG("COMMAND.COM stack:                0x%04x",stack_seg);
+	// set the stack at 0x1A
+	if (tiny_memory_mode)
+		stack_seg = psp_seg + 0x13;
+	else
+		stack_seg = psp_seg + 0x1A;
+	LOG_MSG("COMMAND.COM stack:                0x%04x",stack_seg);
 
-    // set the stack pointer
+	// set the stack pointer
 	SegSet16(ss,stack_seg);
 
-    if (tiny_memory_mode)
-        reg_sp=1534;
-    else
-        reg_sp=2046;
+	if (tiny_memory_mode)
+		reg_sp=1534;
+	else
+		reg_sp=2046;
 
-    LOG(LOG_MISC,LOG_DEBUG)("Shell init SS:SP %04x:%04x",(unsigned int)stack_seg,(unsigned int)reg_sp);
+	LOG(LOG_MISC,LOG_DEBUG)("Shell init SS:SP %04x:%04x",(unsigned int)stack_seg,(unsigned int)reg_sp);
 
 	/* Set up int 24 and psp (Telarium games) */
 	real_writeb(psp_seg+16+1,0,0xea);		/* far jmp */
