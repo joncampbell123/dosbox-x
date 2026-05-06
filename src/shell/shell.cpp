@@ -1685,7 +1685,7 @@ void SHELL_Init() {
 
     /* NTS: MSG_Add() takes the string as const char * but it does make a copy of the string when entering into the message map,
      *      so there is no problem here of causing use-after-free crashes when we exit. */
-    std::string host_key_help; // SHELL_STARTUP_BEGIN2
+    //std::string host_key_help; // SHELL_STARTUP_BEGIN2 <- UNUSED
 
     if (machine == MCH_PC98) {
 // "\x86\x46 To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \x86\x46\n"
