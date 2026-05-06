@@ -4161,6 +4161,12 @@ void DOS_OpenDefaultHandles(void) {
 	assert(Files[2] == NULL); Files[2] = new DOS_Device(*Devices[devnum_prn]); Files[2]->neverclose = true;
 }
 
+void DOS_ApplyMinMCBAndDummyDCB(void) {
+	if (minimum_mcb_segment != 0 && DOS_MEM_START < minimum_mcb_segment) DOS_MemStartChange(minimum_mcb_segment);
+	if (enable_dummy_device_mcb) DOS_CreateDummyDeviceMCB();
+	DOS_AllocMinFreePadding(minimum_mcb_free);
+}
+
 class DOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[9];
@@ -4752,12 +4758,6 @@ public:
 #endif
 
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   min free:     seg 0x%04x",minimum_mcb_free);
-
-#if !defined(OSFREE)
-		if (minimum_mcb_segment != 0 && DOS_MEM_START < minimum_mcb_segment) DOS_MemStartChange(minimum_mcb_segment);
-		if (enable_dummy_device_mcb) DOS_CreateDummyDeviceMCB();
-		DOS_AllocMinFreePadding(minimum_mcb_free);
-#endif
 
 #if C_IPX
 		IPX_Setup(NULL);

@@ -1975,8 +1975,15 @@ void SHELL_MessagesInit() {
 
 }
 
+void DOS_ApplyMinMCBAndDummyDCB(void);
+
 void SHELL_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS shell");
+
+#if !defined(OSFREE)
+	/* now that CONFIG shell has had a chance to load drivers, apply minimum mcb segment / minimum free segment and dummy DCB */
+	DOS_ApplyMinMCBAndDummyDCB();
+#endif
 
 	/* Regular startup */
 	if (call_shellstop == 0) call_shellstop = CALLBACK_Allocate();
