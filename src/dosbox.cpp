@@ -5428,8 +5428,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(driveletters);
     Pstring->SetBasic(true);
 
-    //TODO ?
     control->AddSection_line("autoexec",&Null_Init);
+
+    control->AddSection_line("devices",&Null_Init);
+
     AddMessages();
 }
 
