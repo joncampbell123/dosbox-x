@@ -2110,17 +2110,14 @@ void SHELL_Init() {
 	 * 01 01 01 00 02
 	 * In order to achieve this: First open 2 files. Close the first and
 	 * duplicate the second (so the entries get 01) */
-	uint16_t dummy=0;
-	DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDIN  */
-	DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDOUT */
-	DOS_CloseFile(0);							/* Close STDIN */
-	DOS_ForceDuplicateEntry(1,0);				/* "new" STDIN */
-	DOS_ForceDuplicateEntry(1,2);				/* STDERR */
-	DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDAUX */
-	if (!DOS_OpenFile("PRN",OPEN_READWRITE,&dummy)) DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDPRN */
+	DOS_OpenExistingSFTEntry(0,1);
+	DOS_OpenExistingSFTEntry(1,1);
+	DOS_OpenExistingSFTEntry(2,1);
+	DOS_OpenExistingSFTEntry(3,0);
+	DOS_OpenExistingSFTEntry(4,2);
 
-    psp.SetSize(psp_seg + total_sz);
-    psp.SetStack(((unsigned int)stack_seg << 16u) + (unsigned int)reg_sp);
+	psp.SetSize(psp_seg + total_sz);
+	psp.SetStack(((unsigned int)stack_seg << 16u) + (unsigned int)reg_sp);
 
 	/* Create appearance of handle inheritance by first shell */
 	for (uint16_t i=0;i<5;i++) {
