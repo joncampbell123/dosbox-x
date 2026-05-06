@@ -1292,9 +1292,15 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 }
 
 bool DeviceLoad(const std::string &device,const std::string &devparm) {
+	bool user_wants_mcb_per_driver = false;
 	uint16_t devseg = 0,ofs,attr;
 	bool adj_mcb_base = false;
 	uint16_t stacksz = 256u;
+
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("config"));
+
+	if (section->Get_bool("device driver mcb"))
+		user_wants_mcb_per_driver = true;
 
 	/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
 	uint16_t psp_blocks = (0x80 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
@@ -1363,7 +1369,7 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	 * owned by this program, we might be able to load over the MCB block and write a new one at the end of
 	 * the image and adjust the MCB start in order to pack the drivers together into the DOS segment like
 	 * real MS-DOS does. */
-	if (first_shell && first_shell->config_shell && devseg == (dos_infoblock.GetFirstMCB()+1)) {
+	if (!user_wants_mcb_per_driver && first_shell && first_shell->config_shell && devseg == (dos_infoblock.GetFirstMCB()+1)) {
 		DOS_MCB mcb(devseg-1u);
 
 		/* this program must own the PSP segment (because we allocated it) */
