@@ -704,8 +704,6 @@ public:
     /*! \brief      Program entry point, when the command is run
      */
 	void Run(void) override;
-	void DeviceLoad(const std::string &device,const std::string &devparm);
-	void Invoke(const char * name, const std::vector<std::string> &what) override;
 private:
 	void restart(const char* useconfig);
 	
@@ -1293,23 +1291,15 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
     }
 }
 
-void CONFIG::Invoke(const char * name, const std::vector<std::string> &what) {
-	if (!strcmp(name,"deviceload")) {
-		if (what.size() >= 2) DeviceLoad(what[0],what[1]);
-	}
-}
-
-void CONFIG::DeviceLoad(const std::string &device,const std::string &devparm) {
+bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	uint16_t devseg = 0,ofs,attr;
 	uint16_t stacksz = 256u;
 
 	/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
 	uint16_t psp_blocks = (0x80 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
 	uint16_t blocks = psp_blocks;
-	if (!DOS_ResizeMemory(dos.psp(),&blocks)) {
-		WriteOut("Unable to shrink PSP to enable loading device driver\n");
-		return;
-	}
+	if (!DOS_ResizeMemory(dos.psp(),&blocks))
+		return false;
 
 	/* free the environment block associated with the PSP */
 	{
@@ -1362,10 +1352,9 @@ void CONFIG::DeviceLoad(const std::string &device,const std::string &devparm) {
 	if (DOS_AllocateMemory(&devseg,&blocks)) E_Exit("Allocate memory: memory availability check actually allocated memory unexpectedly");
 	LOG(LOG_MISC,LOG_DEBUG)("Device driver load: %u bytes available",(unsigned int)blocks * 16u);
 
-	if (!DOS_AllocateMemory(&devseg,&blocks)) {
-		WriteOut("Unable to allocate memory for device driver load\n");
-		return;
-	}
+	if (!DOS_AllocateMemory(&devseg,&blocks))
+		return false;
+
 	LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x-%x for driver '%s'",(unsigned int)devseg,(unsigned int)(devseg+blocks-1u),device.c_str());
 
 	/* Use DOS_Execute() with special device driver flag value, which loads it like an overlay.
@@ -1376,10 +1365,9 @@ void CONFIG::DeviceLoad(const std::string &device,const std::string &devparm) {
 	 *
 	 * If you've ever wondered how MS-DOS allows EMM386.EXE to work as both an executable program
 	 * AND a device driver, and how DEVICE=C:\DOS\EMM386.EXE is even allowed, that is how. */
-	if (!DOS_Execute(device.c_str(),devseg | ((devseg+blocks)<<16u),DOSEXEC_DEVICEDRIVER)) {
-		WriteOut("Unable to load device driver image\n");
-		return;
-	}
+	if (!DOS_Execute(device.c_str(),devseg | ((devseg+blocks)<<16u),DOSEXEC_DEVICEDRIVER))
+		return false;
+
 	attr = real_readw(devseg,4);
 	LOG(LOG_MISC,LOG_DEBUG)("Device driver attributes: %x",attr);
 	if (attr & DEVATTR_ISCHAR) {
@@ -1486,14 +1474,13 @@ void CONFIG::DeviceLoad(const std::string &device,const std::string &devparm) {
 		if (newend_seg == 0 || PhysMake(newend_seg,newend_ofs) == PhysMake(devseg,0)) { /* normal error out */
 			/* don't need to say anything, the driver will normally say it failed and probably why */
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates normal error out by setting the end_ptr to effectively remove itself from memory");
-			return;
+			return false;
 		}
 		else if (
 				PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
 				PhysMake(newend_seg,newend_ofs) > PhysMake(devseg+blocks,0)/*you cannot make your driver bigger than the original size!*/) {
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates error with invalid end_ptr");
-			WriteOut("Device driver failed, end_ptr invalid\n");
-			return;
+			return false;
 		}
 
 		assert(newend_seg > devseg);
@@ -1502,10 +1489,8 @@ void CONFIG::DeviceLoad(const std::string &device,const std::string &devparm) {
 		LOG(LOG_MISC,LOG_DEBUG)("Device driver will occupy %x paragraphs (%u bytes)",drvszseg,drvszseg * 16u);
 
 		blocks = drvszseg;
-		if (!DOS_ResizeMemory(devseg,&blocks)) {
-			WriteOut("Unable to shrink device driver memory block to fit\n");
-			return;
-		}
+		if (!DOS_ResizeMemory(devseg,&blocks))
+			return false;
 	}
 
 	/* Success. Change ownership of the device driver MCB so it remains in memory when CONFIG exits */
@@ -1534,6 +1519,8 @@ void CONFIG::DeviceLoad(const std::string &device,const std::string &devparm) {
 		}
 		real_writed(segm,offm,(unsigned int)devseg<<16u);
 	}
+
+	return true;
 }
 
 void CONFIG::Run(void) {
@@ -2398,7 +2385,6 @@ next:
 
 	if (!device.empty()) {
 		DeviceLoad(device,devparm);
-		return;
 	}
 
 	return;
