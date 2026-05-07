@@ -34,6 +34,8 @@ Next version
     MS-DOS device driver, so that the bytes actually processed by the driver
     are returned in AX to the DOS program, instead of giving the DOS program
     the impression that all were processed when they may not have been. (joncampbell123)
+  - CD Audio: Fix track not advancing at end of playback (maron2000)
+  - Fix geometry detection of qcow2 images (maron2000)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
