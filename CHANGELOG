@@ -36,6 +36,10 @@ Next version
     the impression that all were processed when they may not have been. (joncampbell123)
   - CD Audio: Fix track not advancing at end of playback (maron2000)
   - Fix geometry detection of qcow2 images (maron2000)
+  - Fixed advanced scaler rendering artifacts when machine type is MDA,
+    Hercules, CGA, EGA, Tandy, or PCjr, or when SVGA 15/16bpp SVGA modes
+    are active. CGA/EGA with Advanced MAME 2x/3x and HQ2X scalers should
+    render correctly now. (joncampbell123)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
