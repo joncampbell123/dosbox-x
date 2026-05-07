@@ -34,6 +34,41 @@ Next version
     MS-DOS device driver, so that the bytes actually processed by the driver
     are returned in AX to the DOS program, instead of giving the DOS program
     the impression that all were processed when they may not have been. (joncampbell123)
+  - CD Audio: Fix track not advancing at end of playback (maron2000)
+  - Fix geometry detection of qcow2 images (maron2000)
+  - Fixed advanced scaler rendering artifacts when machine type is MDA,
+    Hercules, CGA, EGA, Tandy, or PCjr, or when SVGA 15/16bpp SVGA modes
+    are active. CGA/EGA with Advanced MAME 2x/3x and HQ2X scalers should
+    render correctly now. (joncampbell123)
+  - Added dosbox.conf [devices] section, which functions much like the
+    DEVICE= lines in CONFIG.SYS to load MS-DOS device drivers at startup.
+    Added support for RUN= lines to run commands like IMGMOUNT to help
+    set up drive mounts and CD-ROM devices, or any other diagnostic
+    purpose. While RUN= works just like the command shell, it is not
+    intended to be a general command shell for running DOS games or
+    applications that are unrelated to system startup. Added debugging
+    options like ECHO which echo the command about to be run, and
+    DEBUGBREAK which breaks into the debugger when starting the program
+    or device driver. (joncampbell123)
+  - Added code to device driver loading which will, where possible,
+    attempt to load the device driver as low as possible and pack it into
+    the DOS kernel below the start of the MCB chain to resemble how
+    device drivers are loaded in MS-DOS. (joncampbell123)
+  - Added debugger command "DOS DEVS" to list and enumerate the device
+    drivers in the DOS kernel. Added code to BOOT --boothax msdos to
+    track the location of the device driver list in the guest MS-DOS
+    kernel so "DOS DEVS" can work there as well. (joncampbell123)
+  - DOSBox-X shell will now free any memory it allocated and close files
+    that were opened on shutdown. This is important so that the CONFIG
+    shell (used for loading device drivers) does not leave behind
+    any memory it allocated when transferring control to the main
+    command shell. However, do NOT release memory and do NOT close files
+    on shell shutdown if the reason for the shutdown is the BOOT command.
+    By the time normal shutdown occurs, the BOOT command has already
+    overwritten low memory (and the MCB chain) with the guest OS's boot
+    code, therefore freeing shell memory in that cause would only cause
+    a complaint about a corrupted MCB chain and emulator E_Exit() shutdown.
+    (joncampbell123)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
