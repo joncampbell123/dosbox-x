@@ -40,6 +40,24 @@ Next version
     Hercules, CGA, EGA, Tandy, or PCjr, or when SVGA 15/16bpp SVGA modes
     are active. CGA/EGA with Advanced MAME 2x/3x and HQ2X scalers should
     render correctly now. (joncampbell123)
+  - Added dosbox.conf [devices] section, which functions much like the
+    DEVICE= lines in CONFIG.SYS to load MS-DOS device drivers at startup.
+    Added support for RUN= lines to run commands like IMGMOUNT to help
+    set up drive mounts and CD-ROM devices, or any other diagnostic
+    purpose. While RUN= works just like the command shell, it is not
+    intended to be a general command shell for running DOS games or
+    applications that are unrelated to system startup. Added debugging
+    options like ECHO which echo the command about to be run, and
+    DEBUGBREAK which breaks into the debugger when starting the program
+    or device driver. (joncampbell123)
+  - Added code to device driver loading which will, where possible,
+    attempt to load the device driver as low as possible and pack it into
+    the DOS kernel below the start of the MCB chain to resemble how
+    device drivers are loaded in MS-DOS. (joncampbell123)
+  - Added debugger command "DOS DEVS" to list and enumerate the device
+    drivers in the DOS kernel. Added code to BOOT --boothax msdos to
+    track the location of the device driver list in the guest MS-DOS
+    kernel so "DOS DEVS" can work there as well. (joncampbell123)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
