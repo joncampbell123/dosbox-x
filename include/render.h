@@ -94,6 +94,7 @@ typedef struct Render_t {
 		uint8_t *outWrite;
 		Bitu cachePitch;
 		uint8_t *cacheRead;
+		Bitu frameCachePitch;
 		Bitu inHeight, inLine, outLine;
 	} scale;
 	struct {

@@ -1006,7 +1006,24 @@ forcenormal:
 	 * the way the advanced scalers are coded, the pitch MUST be sizeof(PTYPE)*SCALER_COMPLEXWIDTH or else the code will misrender!
 	 * Also allocate the change cache. */
 	if (render.scale.complexHandler) {
-		scalerFrameCacheAlloc(render.scale.cachePitch,render.src.width,render.src.height);
+		/* outPitch == 0 at this point. we don't get the value until GFX_StartUpdate().
+		 * use outMode to compute what the advanced scalers render to, not what the video buffer is doing. */
+		switch (render.scale.outMode) {
+			case scalerMode8:
+				render.scale.frameCachePitch = render.src.width * 1;
+				break;
+			case scalerMode15:
+			case scalerMode16:
+				render.scale.frameCachePitch = render.src.width * 2;
+				break;
+			case scalerMode32:
+				render.scale.frameCachePitch = render.src.width * 4;
+				break;
+			default:
+				abort();
+		};
+
+		scalerFrameCacheAlloc(render.scale.frameCachePitch,render.src.width,render.src.height);
 		scalerChangeCacheAlloc(render.src.width,render.src.height);
 	}
 
