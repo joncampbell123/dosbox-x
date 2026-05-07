@@ -2378,21 +2378,26 @@ void DOS_ConfigShell::Run(void) {
 	char tmp[512];
 	for (auto &ent : entries) {
 		if (ent.type == ConfigShell_Entry::RUN) {
-			size_t l = ent.cmd.length();
-			if (l > 511) l = 511;
-			strncpy(tmp,ent.cmd.c_str(),l);
-			tmp[l] = 0;
+			if (ent.echo) WriteOut("RUNNING: RUN=%s",ent.cmd.c_str());
+			if (ent.debugbreak) snprintf(tmp,sizeof(tmp),"DEBUGBOX %s",ent.cmd.c_str());
+			else snprintf(tmp,sizeof(tmp),"%s",ent.cmd.c_str());
 			ParseLine(tmp);
 		}
 		else if (ent.type == ConfigShell_Entry::DEVICE) {
+			if (ent.echo) WriteOut("RUNNING: DEVICE=%s %s",ent.path.c_str(),ent.args.c_str());
+
 			config_run_var_device = ent.path;
 			config_run_var_devparm = ent.args;
-			strcpy(tmp,"CONFIG \xff\xaa\xff");
+
+			if (ent.debugbreak) snprintf(tmp,sizeof(tmp),"DEBUGBOX CONFIG \xff\xaa\xff");
+			else snprintf(tmp,sizeof(tmp),"CONFIG \xff\xaa\xff");
 			ParseLine(tmp);
+
 			config_run_var_device.clear();
 			config_run_var_devparm.clear();
 		}
 		else if (ent.type == ConfigShell_Entry::PAUSE) {
+			if (ent.echo) WriteOut("RUNNING: PAUSE");
 			/* FIXME: Our own internal pause function? */
 			strcpy(tmp,"PAUSE");
 			ParseLine(tmp);
