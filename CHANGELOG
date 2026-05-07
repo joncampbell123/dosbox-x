@@ -58,6 +58,17 @@ Next version
     drivers in the DOS kernel. Added code to BOOT --boothax msdos to
     track the location of the device driver list in the guest MS-DOS
     kernel so "DOS DEVS" can work there as well. (joncampbell123)
+  - DOSBox-X shell will now free any memory it allocated and close files
+    that were opened on shutdown. This is important so that the CONFIG
+    shell (used for loading device drivers) does not leave behind
+    any memory it allocated when transferring control to the main
+    command shell. However, do NOT release memory and do NOT close files
+    on shell shutdown if the reason for the shutdown is the BOOT command.
+    By the time normal shutdown occurs, the BOOT command has already
+    overwritten low memory (and the MCB chain) with the guest OS's boot
+    code, therefore freeing shell memory in that cause would only cause
+    a complaint about a corrupted MCB chain and emulator E_Exit() shutdown.
+    (joncampbell123)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
