@@ -2378,6 +2378,7 @@ void DOS_ConfigShell::Run(void) {
 	char tmp[512];
 	for (auto &ent : entries) {
 		if (ent.type == ConfigShell_Entry::RUN) {
+			if (ent.echo) WriteOut("RUNNING: RUN=%s",ent.cmd.c_str());
 			size_t l = ent.cmd.length();
 			if (l > 511) l = 511;
 			strncpy(tmp,ent.cmd.c_str(),l);
@@ -2385,6 +2386,7 @@ void DOS_ConfigShell::Run(void) {
 			ParseLine(tmp);
 		}
 		else if (ent.type == ConfigShell_Entry::DEVICE) {
+			if (ent.echo) WriteOut("RUNNING: DEVICE=%s %s",ent.path.c_str(),ent.args.c_str());
 			config_run_var_device = ent.path;
 			config_run_var_devparm = ent.args;
 			strcpy(tmp,"CONFIG \xff\xaa\xff");
@@ -2393,6 +2395,7 @@ void DOS_ConfigShell::Run(void) {
 			config_run_var_devparm.clear();
 		}
 		else if (ent.type == ConfigShell_Entry::PAUSE) {
+			if (ent.echo) WriteOut("RUNNING: PAUSE");
 			/* FIXME: Our own internal pause function? */
 			strcpy(tmp,"PAUSE");
 			ParseLine(tmp);
