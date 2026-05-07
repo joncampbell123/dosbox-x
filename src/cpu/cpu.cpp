@@ -1255,9 +1255,11 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
                         guest_msdos_LoL = RealMake(SegValue(es),reg_bx);
                         /* Read off the MCB chain base (WARNING: Only works with MS-DOS 3.3 or later) */
                         guest_msdos_mcb_chain = real_readw(guest_msdos_LoL>>16,(guest_msdos_LoL&0xFFFF)-2);
+                        guest_msdos_dev_chain = RealMake(guest_msdos_LoL>>16,(guest_msdos_LoL&0xFFFF)+0x22);//point to NUL driver header
 #if 1
                         LOG_MSG("List of Lists: %04x:%04x",guest_msdos_LoL>>16,guest_msdos_LoL&0xFFFF);
                         LOG_MSG("MCB chain starts at: %04x",guest_msdos_mcb_chain);
+                        LOG_MSG("DEV chain starts at: %04x:%04x",guest_msdos_dev_chain>>16,guest_msdos_dev_chain&0xFFFFu);
 #endif
                         return;
                     }

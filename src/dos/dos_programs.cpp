@@ -256,7 +256,7 @@ bool SwitchLanguage(int oldcp, int newcp, bool confirm) {
 
 extern std::string hidefiles, dosbox_title;
 extern int swapInDisksSpecificDrive;
-extern bool dos_kernel_disabled, clearline;
+extern bool dos_kernel_disabled, dos_kernel_shutdown_mcb, clearline;
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
 bool FDC_UnassignINT13Disk(unsigned char drv);
 bool bootguest=false, use_quick_reboot=false;
@@ -3122,6 +3122,10 @@ public:
                     reg_ax = oldax;
                 }
             }
+
+            /* we're about to overwrite low memory and possibly corrupt the MCB, and the shell now frees memory.
+             * to avoid a MCB corruption crash in this emulation, reset the MCB chain now. */
+	    dos_kernel_shutdown_mcb = true;
 
             for(i=0;i<bootsize;i++) real_writeb((uint16_t)load_seg, (uint16_t)i, bootarea.rawdata[i]);
 
