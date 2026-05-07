@@ -757,16 +757,16 @@ ScalerComplexBlock_t ScaleAdvMame2x ={
 	"AdvMame2x",
 	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32,
 	2,2,
-{	AdvMame2x_8_L,AdvMame2x_16_L,AdvMame2x_16_L,AdvMame2x_32_L},
-{	AdvMame2x_8_R,AdvMame2x_16_R,AdvMame2x_16_R,AdvMame2x_32_R}
+{	AdvMame2x_8_L,AdvMame2x_15_L,AdvMame2x_16_L,AdvMame2x_32_L},
+{	AdvMame2x_8_R,AdvMame2x_15_R,AdvMame2x_16_R,AdvMame2x_32_R}
 };
 
 ScalerComplexBlock_t ScaleAdvMame3x = {
 	"AdvMame3x",
 	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32,
 	3,3,
-{	AdvMame3x_8_L,AdvMame3x_16_L,AdvMame3x_16_L,AdvMame3x_32_L},
-{	AdvMame3x_8_R,AdvMame3x_16_R,AdvMame3x_16_R,AdvMame3x_32_R}
+{	AdvMame3x_8_L,AdvMame3x_15_L,AdvMame3x_16_L,AdvMame3x_32_L},
+{	AdvMame3x_8_R,AdvMame3x_15_R,AdvMame3x_16_R,AdvMame3x_32_R}
 };
 
 /* These need specific 15bpp versions */
@@ -774,40 +774,40 @@ ScalerComplexBlock_t ScaleHQ2x ={
 	"HQ2x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	2,2,
-{	nullptr,HQ2x_16_L,HQ2x_16_L,HQ2x_32_L},
-{	nullptr,HQ2x_16_R,HQ2x_16_R,HQ2x_32_R}
+{	nullptr,HQ2x_15_L,HQ2x_16_L,HQ2x_32_L},
+{	nullptr,HQ2x_15_R,HQ2x_16_R,HQ2x_32_R}
 };
 
 ScalerComplexBlock_t ScaleHQ3x ={
 	"HQ3x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	3,3,
-{	nullptr,HQ3x_16_L,HQ3x_16_L,HQ3x_32_L},
-{	nullptr,HQ3x_16_R,HQ3x_16_R,HQ3x_32_R}
+{	nullptr,HQ3x_15_L,HQ3x_16_L,HQ3x_32_L},
+{	nullptr,HQ3x_15_R,HQ3x_16_R,HQ3x_32_R}
 };
 
 ScalerComplexBlock_t ScaleSuper2xSaI ={
 	"Super2xSaI",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	2,2,
-{	nullptr,Super2xSaI_16_L,Super2xSaI_16_L,Super2xSaI_32_L},
-{	nullptr,Super2xSaI_16_R,Super2xSaI_16_R,Super2xSaI_32_R}
+{	nullptr,Super2xSaI_15_L,Super2xSaI_16_L,Super2xSaI_32_L},
+{	nullptr,Super2xSaI_15_R,Super2xSaI_16_R,Super2xSaI_32_R}
 };
 
 ScalerComplexBlock_t Scale2xSaI ={
 	"2xSaI",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	2,2,
-{	nullptr,_2xSaI_16_L,_2xSaI_16_L,_2xSaI_32_L},
-{	nullptr,_2xSaI_16_R,_2xSaI_16_R,_2xSaI_32_R}
+{	nullptr,_2xSaI_15_L,_2xSaI_16_L,_2xSaI_32_L},
+{	nullptr,_2xSaI_15_R,_2xSaI_16_R,_2xSaI_32_R}
 };
 
 ScalerComplexBlock_t ScaleSuperEagle ={
 	"SuperEagle",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
 	2,2,
-{	nullptr,SuperEagle_16_L,SuperEagle_16_L,SuperEagle_32_L},
-{	nullptr,SuperEagle_16_R,SuperEagle_16_R,SuperEagle_32_R}
+{	nullptr,SuperEagle_15_L,SuperEagle_16_L,SuperEagle_32_L},
+{	nullptr,SuperEagle_15_R,SuperEagle_16_R,SuperEagle_32_R}
 };
 
 ScalerComplexBlock_t ScaleAdvInterp2x = {
