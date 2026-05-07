@@ -243,6 +243,7 @@ extern unsigned int page;
 
 uint32_t              guest_msdos_LoL = 0;
 uint16_t              guest_msdos_mcb_chain = 0;
+uint32_t              guest_msdos_dev_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 bool                gbk = false;
 bool                chinasea = false;

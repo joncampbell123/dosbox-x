@@ -58,6 +58,7 @@ bool config_shell_prompt_start = false; // at start before running device driver
 bool config_shell_prompt_end = false; // at end after running device drivers
 
 extern bool shell_keyboard_flush;
+extern bool dos_kernel_shutdown_mcb;
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
@@ -325,14 +326,18 @@ DOS_Shell::~DOS_Shell() {
 	 * memory allocated by the shell is not automatically freed on termination.
 	 * files are not automatically closed */
 	if (psp->GetSegment()) {
-		DOS_FreeProcessMemory(psp->GetSegment());
+		/* BOOT will set the first MCB chain to zero to signal that low memory has been overwritten
+		 * by the guest OS boot code */
+		if (!dos_kernel_shutdown_mcb) {
+			DOS_FreeProcessMemory(psp->GetSegment());
 
-		/* NTS: DOS_PSP would ideally allow JFT handle operations regardless of whatever the
-		 *      current PSP segment is, but that's not how the code is written */
-		const uint16_t o_psp = dos.psp();
-		dos.psp(psp->GetSegment());
-		psp->CloseFiles();
-		dos.psp(o_psp);
+			/* NTS: DOS_PSP would ideally allow JFT handle operations regardless of whatever the
+			 *      current PSP segment is, but that's not how the code is written */
+			const uint16_t o_psp = dos.psp();
+			dos.psp(psp->GetSegment());
+			psp->CloseFiles();
+			dos.psp(o_psp);
+		}
 	}
 
 	if (psp->GetSegment() == shell_psp)
