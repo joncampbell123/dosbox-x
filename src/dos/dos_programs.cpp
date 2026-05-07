@@ -141,6 +141,7 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
 std::string formatString(const char* format, ...);
 const char* MSG_GetUTF8(const char* msg);
 extern char char_yes, char_no;
+extern bool int13_enable_48bitLBA;
 
 #define MAXU32 0xffffffff
 #include "zip.h"
@@ -6670,27 +6671,28 @@ class IMGMOUNT : public Program {
 								}
 								QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
 								// uint64_t sectors; /* unused */
-								uint32_t imagesize;
 								sizes[0] = 512; // default sector size
-								if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
-									uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
-									if((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
-										WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SECTORSIZE"), cluster_size);
-										return false;
-									}
-									// sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; /* unused */
-									imagesize = (uint32_t)(qcow2_header.size / 1024L);
-									sizes[1] = 63; // sectors
-									sizes[2] = 16; // heads
-									sizes[3] = (uint64_t)qcow2_header.size / sizes[0] / sizes[1] / sizes[2]; // cylinders
-									setbuf(newDisk, NULL);
-									newImage = new QCow2Disk(qcow2_header, newDisk, fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
-									skipDetectGeometry = true;
-									newImage->sector_size = sizes[0]; // sector size
-									newImage->sectors = sizes[1];     // sectors
-									newImage->heads = sizes[2];       // heads
-									newImage->cylinders = sizes[3];   // cylinders
-								}
+                                if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
+                                    uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
+                                    if((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
+                                        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SECTORSIZE"), cluster_size);
+                                        return false;
+                                    }
+                                    skipDetectGeometry = true;
+                                    DetectGeometry(sizes, qcow2_header.size); // Derive geometry from image size, since qcow2 doesn't have CHS values in the header
+                                    setbuf(newDisk, NULL);
+                                    newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (qcow2_header.size > 2880 * 1024));
+                                    if(newImage) {
+                                        LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
+                                        newImage->sector_size = sizes[0]; // sector size
+                                        newImage->sectors = sizes[1];     // sectors
+                                        newImage->heads = sizes[2];       // heads
+                                        newImage->cylinders = sizes[3];   // cylinders
+                                        uint64_t LBA = newImage->getLBA();
+                                        if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
+                                            LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)newImage->LBA * 512.0 / (1024.0 * 1024 * 1024));
+                                    }
+                                }
 								else {
 									WriteOut(MSG_Get("PROGRAM_IMGMOUNT_QCOW2_INVALID"), fname);
 									fclose(newDisk);
@@ -7034,6 +7036,47 @@ class IMGMOUNT : public Program {
 			}
 		}
 
+        void DetectGeometry(Bitu sizes[], uint64_t currentSize) {
+            if(!sizes) return;
+
+            const uint16_t sector_size = 512;
+            uint64_t totalSectors = currentSize / sector_size;
+
+            uint32_t sectorsPerTrack;
+            uint32_t heads;
+            uint32_t cylinders;
+
+            if(totalSectors > 65535ULL * 16ULL * 63ULL) {
+                sectorsPerTrack = 255;
+                heads = 16;
+                cylinders = (uint32_t)(totalSectors / (sectorsPerTrack * heads));
+            }
+            else {
+                sectorsPerTrack = 17;
+
+                cylinders = (uint32_t)(totalSectors / sectorsPerTrack);
+                heads = (cylinders + 1023) / 1024;
+
+                if(heads < 4) heads = 4;
+                if(heads > 16) heads = 16;
+
+                if(heads > 0) {
+                    sectorsPerTrack = (uint32_t)(totalSectors / (heads * cylinders));
+                }
+
+                if(sectorsPerTrack < 17) sectorsPerTrack = 17;
+
+                cylinders = (uint32_t)(totalSectors / (heads * sectorsPerTrack));
+            }
+
+            if(cylinders > 65535) cylinders = 65535;
+
+            sizes[3] = cylinders;
+            sizes[2] = heads;
+            sizes[1] = sectorsPerTrack;
+            sizes[0] = sector_size; // sector_size
+        }
+
 		bool DetectMFMsectorPartition(uint8_t buf[], uint32_t fcsize, Bitu sizes[]) const {
 			// This is used for plain MFM sector format as created by IMGMAKE
 			// It tries to find the first partition. Addressing is in CHS format.
@@ -7250,10 +7293,17 @@ class IMGMOUNT : public Program {
 					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SECTORSIZE"), cluster_size);
 					return nullptr;
 				}
-				sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0];
 				imagesize = (uint32_t)(qcow2_header.size / 1024L);
 				setbuf(newDisk, NULL);
-				newImage = new QCow2Disk(qcow2_header, newDisk, fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
+                DetectGeometry(sizes, qcow2_header.size);
+                newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (imagesize > 2880));
+                newImage->sector_size = sizes[0]; // sector size
+                newImage->sectors = sizes[1];     // sectors
+                newImage->heads = sizes[2];       // heads
+                newImage->cylinders = sizes[3];   // cylinders
+                uint64_t LBA = newImage->getLBA();
+                if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
+                    LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)LBA * 512.0 / (1024.0 * 1024 * 1024));
 			}
 			else {
 				char tmp[256];

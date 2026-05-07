@@ -68,6 +68,7 @@ extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CRO
 extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 extern bool dos_kernel_disabled;
+extern bool int13_enable_48bitLBA;
 std::string formatString(const char* format, ...);
 #endif
 
@@ -1449,8 +1450,17 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 			created_successfully = false;
 			return;
 		}
-		filesize = (uint32_t)(qcow2_header.size / 1024L);
-		loadedDisk = new QCow2Disk(qcow2_header, diskfile, fname, filesize, bytesector, (filesize > 2880));
+        filesize = (uint32_t)(qcow2_header.size / 1024L);
+		loadedDisk = new QCow2Disk(qcow2_header, diskfile, fname, qcow2_header.size, bytesector, (filesize > 2880));
+        loadedDisk->sector_size = bytesector; // sector size
+        loadedDisk->sectors = cylsector;     // sectors
+        loadedDisk->heads =   headscyl;      // heads
+        loadedDisk->cylinders = cylinders;   // cylinders
+        uint64_t LBA = loadedDisk->getLBA();
+        if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
+            LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)LBA * 512.0 / (1024.0 * 1024 * 1024));
+
+
 	}
 	else{
 		fseeko64(diskfile, 0L, SEEK_SET);
