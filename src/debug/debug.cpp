@@ -4968,6 +4968,9 @@ static void LogDEVChain(uint32_t devhdr) {
 
 		devhdr = hdr.nextdev;
 		if (devhdr == NONEXTDEV) break;
+
+		/* Apparently in MS-DOS 5, a driver can set only the offset field to 0xFFFF and that is sufficient to end the linked list */
+		if ((devhdr&0xFFFFu) == 0xFFFFu) break;
 	}
 }
 
@@ -5199,9 +5202,30 @@ static void LogDOSKernMem(void) {
 // Display the content of all device drivers.
 static void LogDEVS(void) {
 	if (dos_kernel_disabled) {
-		// TODO: BOOTHAX
-		DEBUG_ShowMsg("Cannot enumerate device list while DOS kernel is inactive.");
-		return;
+		if (boothax == BOOTHAX_MSDOS) {
+			if (guest_msdos_LoL == 0 || guest_msdos_dev_chain == 0) {
+				DEBUG_ShowMsg("Cannot enumerate device list while DOS kernel is inactive, and DOSBox-X has not yet determined the DEV list of the guest MS-DOS operating system");
+				return;
+			}
+
+			DEBUG_BeginPagedContent();
+
+			try {
+				DEBUG_ShowMsg("Header    Attr  Strat Intr  Name");
+				LogDEVChain(guest_msdos_dev_chain);
+			}
+			catch (GuestPageFaultException &pf) {
+				(void)pf;//unused
+				DEBUG_ShowMsg("(Enumeration caused page fault within the guest)");
+			}
+
+			DEBUG_EndPagedContent();
+			return;
+		}
+		else {
+			DEBUG_ShowMsg("Cannot enumerate device list while DOS kernel is inactive.");
+			return;
+		}
 	}
 
 	DEBUG_BeginPagedContent();
