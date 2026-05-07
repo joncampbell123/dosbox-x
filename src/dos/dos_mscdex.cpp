@@ -25,6 +25,7 @@
 #include "dos_system.h"
 #include "dos_inc.h"
 #include "setup.h"
+#include "shell.h"
 #include "control.h"
 #include "support.h"
 #include "bios_disk.h"
@@ -1592,8 +1593,15 @@ int MSCDEX_RemoveDrive(char driveLetter)
 	return mscdex->RemoveDrive(driveLetter-'A');
 }
 
+void MSCDEX_Startup(Section* sec);
 bool MSCDEX_HasDrive(char driveLetter)
 {
+	// HACK: During CONFIG.SYS stage, mscdex == NULL.
+	//       If we want people to IMGMOUNT their CD-ROM drives during CONFIG.SYS
+	//       without causing a segfault, this is necessary!
+	if (mscdex == NULL && first_shell && first_shell->config_shell)
+		MSCDEX_Startup(NULL);
+
 	return mscdex->HasDrive(driveLetter-'A');
 }
 

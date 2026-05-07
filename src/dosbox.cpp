@@ -243,6 +243,7 @@ extern unsigned int page;
 
 uint32_t              guest_msdos_LoL = 0;
 uint16_t              guest_msdos_mcb_chain = 0;
+uint32_t              guest_msdos_dev_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 bool                gbk = false;
 bool                chinasea = false;
@@ -5424,9 +5425,14 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("The maximum drive letter (A-Z) that can be accessed by programs.");
     Pstring->Set_values(driveletters);
     Pstring->SetBasic(true);
+    Pbool = secprop->Add_bool("device driver mcb",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, allocate a memory block per device driver. If not set, then where possible, the device driver chain is packed together within the DOS kernel without any MCB blocks to cover them, which is normal MS-DOS behavior");
+    Pbool->SetBasic(false);
 
-    //TODO ?
     control->AddSection_line("autoexec",&Null_Init);
+
+    control->AddSection_line("devices",&Null_Init);
+
     AddMessages();
 }
 

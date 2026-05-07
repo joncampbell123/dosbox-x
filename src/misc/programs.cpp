@@ -1291,6 +1291,287 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
     }
 }
 
+bool DeviceLoad(const std::string &device,const std::string &devparm) {
+	bool user_wants_mcb_per_driver = false;
+	uint16_t devseg = 0,ofs,attr;
+	bool adj_mcb_base = false;
+	uint16_t stacksz = 256u;
+
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("config"));
+
+	if (section->Get_bool("device driver mcb"))
+		user_wants_mcb_per_driver = true;
+
+	/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
+	uint16_t psp_blocks = (0x80 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
+	uint16_t blocks = psp_blocks;
+	if (!DOS_ResizeMemory(dos.psp(),&blocks))
+		return false;
+
+	/* free the environment block associated with the PSP */
+	{
+		DOS_PSP p(dos.psp());
+		const uint16_t s = p.GetEnvironment();
+		if (s != 0) {
+			DOS_FreeMemory(s);
+			p.SetEnvironment(0);
+		}
+	}
+
+	/* relocate PSP segment to end of memory, if possible, to help load the driver image as low as possible
+	 * and try to avoid leaving behind small blocks of free memory behind */
+	{
+		uint16_t pmemstrat = DOS_GetMemAllocStrategy();
+		DOS_SetMemAllocStrategy(2/*lastfit*/);
+		uint16_t blocks = psp_blocks;
+		uint16_t newpsp = 0;
+		bool ok = DOS_AllocateMemory(&newpsp,&blocks);
+		DOS_SetMemAllocStrategy(pmemstrat);
+
+		if (ok && newpsp) {
+			LOG(LOG_MISC,LOG_DEBUG)("Relocating PSP segment from %x to %x",dos.psp(),newpsp);
+			mem_memcpy(PhysMake(newpsp,0),PhysMake(dos.psp(),0),psp_blocks << 4u);
+			DOS_FreeMemory(dos.psp());
+			dos.psp(newpsp);
+
+			/* update the pointer to the Job File Table to prevent breaking all file I/O past this point */
+			real_writew(dos.psp(),0x36,dos.psp());
+
+			DOS_MCB dev_mcb((uint16_t)(dos.psp()-1));
+			dev_mcb.SetPSPSeg(dos.psp());
+
+			CPU_SetSegGeneral(cs,dos.psp());
+			CPU_SetSegGeneral(ds,dos.psp());
+			CPU_SetSegGeneral(es,dos.psp());
+		}
+	}
+
+	/* redirect instruction pointer to PSP:0 so that CONFIG exits immediately after this function returns */
+	reg_ip = 0;
+
+	/* redirect the stack pointer */
+	CPU_SetSegGeneral(ss,dos.psp());
+	reg_esp = 0x80 + devparm.length() + 3u + stacksz - 2u;
+
+	/* allocate a new memory block to hold the device driver image. */
+	/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
+	blocks = 0xFFFFu;
+	if (DOS_AllocateMemory(&devseg,&blocks)) E_Exit("Allocate memory: memory availability check actually allocated memory unexpectedly");
+	LOG(LOG_MISC,LOG_DEBUG)("Device driver load: %u bytes available",(unsigned int)blocks * 16u);
+
+	if (!DOS_AllocateMemory(&devseg,&blocks))
+		return false;
+
+	uint8_t devseg_mcb[16];
+	MEM_BlockRead(PhysMake(devseg-1,0),devseg_mcb,16);
+
+	/* if the allocated block is the first in the chain, and the CONFIG shell is active, and the MCB block is
+	 * owned by this program, we might be able to load over the MCB block and write a new one at the end of
+	 * the image and adjust the MCB start in order to pack the drivers together into the DOS segment like
+	 * real MS-DOS does. */
+	if (!user_wants_mcb_per_driver && first_shell && first_shell->config_shell && devseg == (dos_infoblock.GetFirstMCB()+1)) {
+		DOS_MCB mcb(devseg-1u);
+
+		/* this program must own the PSP segment (because we allocated it) */
+		if (mcb.GetPSPSeg() == 0 || mcb.GetPSPSeg() == dos.psp()) {
+			LOG(LOG_MISC,LOG_DEBUG)("Allocated memory for driver is the first in MCB chain, may adjust it forward");
+			adj_mcb_base = true;
+			devseg--; /* load overtop the MCB */
+		}
+	}
+
+	LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x-%x for driver '%s'",(unsigned int)devseg,(unsigned int)(devseg+blocks-1u),device.c_str());
+
+	/* Use DOS_Execute() with special device driver flag value, which loads it like an overlay.
+	 * Contrary to what you've probably been told about device drivers, they do not have to be
+	 * flat COM type images. They can be EXE files too (MZ header with relocation table and
+	 * everything), in which case the device driver header is within the first 18 bytes of the
+	 * resident image.
+	 *
+	 * If you've ever wondered how MS-DOS allows EMM386.EXE to work as both an executable program
+	 * AND a device driver, and how DEVICE=C:\DOS\EMM386.EXE is even allowed, that is how. */
+	if (!DOS_Execute(device.c_str(),devseg | ((devseg+blocks)<<16u),DOSEXEC_DEVICEDRIVER)) {
+		if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+		return false;
+	}
+
+	attr = real_readw(devseg,4);
+	LOG(LOG_MISC,LOG_DEBUG)("Device driver attributes: %x",attr);
+	if (attr & DEVATTR_ISCHAR) {
+		std::string blah;
+
+		if (attr & DEVATTRCHR_IOCTL_CTLSTRINGS) blah += " ctlstrings";
+		if (attr & DEVATTRCHR_IOCTL_OUTPUT_UNTIL_BUSY) blah += " outubusy";
+		if (attr & DEVATTRCHR_OPENCLOSE) blah += " openclose";
+		if (attr & DEVATTRCHR_INT29) blah += " int29";
+		if (attr & DEVATTRCHR_CLOCK) blah += " CLOCK$";
+		if (attr & DEVATTRCHR_NULL) blah += " NULL";
+		if (attr & DEVATTRCHR_CONOUT) blah += " CONOUT";
+		if (attr & DEVATTRCHR_CONIN) blah += " CONIN";
+
+		LOG(LOG_MISC,LOG_DEBUG)("Supports:%s",blah.c_str());
+	}
+	else {
+		std::string blah;
+
+		if (attr & DEVATTRBLK_IOCTL_CTLSTRINGS) blah += " ctlstrings";
+		if (attr & DEVATTRBLK_IOCTL_MEDIA_FAT_BYTE) blah += " mediafatbyte";
+		if (attr & DEVATTRBLK_OPENCLOSEREMOVABLE) blah += " opencloseremove";
+		if (attr & DEVATTRBLK_IBM_DRIVE_SHARED) blah += " ibmdriveshared";
+		if (attr & DEVATTRBLK_IOCTL_GEN) blah += " ioctl-generic";
+		if (attr & DEVATTRBLK_EXTENDED) blah += " extended>32mb";
+
+		LOG(LOG_MISC,LOG_DEBUG)("Supports:%s",blah.c_str());
+	}
+
+	/* Call strategy routine in driver so it knows where to look for structure, give it ES:BX = dos.dcp:0 */
+	ofs = real_readw(devseg,0x6);
+	reg_bx = 0; CPU_SetSegGeneral(ds,devseg);
+	CPU_SetSegGeneral(es,dos.dcp);
+	LOG(LOG_MISC,LOG_DEBUG)("Calling device driver strategy routine at %x:%x",devseg,ofs);
+	CALLBACK_RunRealFar(devseg,ofs); /* no return value */
+
+	/* INIT */
+	{
+		struct DOS_DEVHDR::req_init s;
+		memset(&s,0,sizeof(s));
+
+		if (dos.version.major >= 4)
+			s.hdr.record_length = 25;
+		else
+			s.hdr.record_length = 22;
+
+		/* init arguments */
+		{
+			const char *s = devparm.c_str();
+			unsigned int i=0;
+
+			LOG(LOG_MISC,LOG_DEBUG)("Init str '%s'",s);
+			while (i < devparm.length() && *s) real_writeb(dos.psp(),0x80+(i++),*s++);
+
+			/* \r\n terminated */
+			/* OAKCDROM.SYS requires \r\n, or else scans memory for eternity */
+			real_writeb(dos.psp(),0x80+(i++),0x0D);
+			real_writeb(dos.psp(),0x80+(i++),0x0A);
+
+			/* NULL terminator */
+			real_writeb(dos.psp(),0x80+i,0);
+		}
+
+		s.bpb_ptr = RealMake(dos.psp(),0x80);
+		s.end_ptr = RealMake(devseg+blocks,0);/*tell the driver where the current end is, perhaps as a memory size detect?*/
+		LOG(LOG_MISC,LOG_DEBUG)("Giving device driver in DEVINIT request initial endptr %x:%x initstr %x:%x",devseg+blocks,0,dos.psp(),0x80);
+		s.hdr.cmd_code = DEVFUNC_INIT;
+		MEM_BlockWrite(PhysMake(dos.dcp,0),&s,sizeof(s));
+
+		/* interrupt routine is not expected to accept or return register values but must preserve all registers.
+		 * if device drivers happen to assume things anyway, then, well'll deal with that later */
+		ofs = real_readw(devseg,0x8);
+		LOG(LOG_MISC,LOG_DEBUG)("Calling device driver interrupt routine (DEVINIT request) at %x:%x",devseg,ofs);
+		CALLBACK_RunRealFar(devseg,ofs); /* no return value */
+
+		/* so what did the driver do with the request? */
+		MEM_BlockRead(PhysMake(dos.dcp,0),&s,sizeof(s));
+
+		/* programming experience suggests that DOS doesn't give a damn about the status word of INIT,
+		 * but if you want to fail loading, set end_ptr == 0. If DOS did give a crap, my old SBSYS device
+		 * driver experiment from 1995 would have failed to run at all--I just realized today there's a bug
+		 * in the code that sets the error bit in status word only because AL != 0 having come from playing
+		 * audio directly to the SB DSP chip (usually 0x80)
+		 *
+		 * Some device drivers indicate failure by setting end_ptr to the first byte of their device driver,
+		 * instead of NULL, because doing so effectively means leaving behind zero bytes of memory. */
+
+		/* did the driver zero the end ptr or set it too far back? */
+		uint32_t newend_seg = s.end_ptr >> 16;
+		uint32_t newend_ofs = s.end_ptr & 0xFFFFu;
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr %x:%x",newend_seg,newend_ofs);
+
+		/* normalize the pointer to determine how many blocks to keep */
+		newend_seg += newend_ofs >> 4u;
+		newend_ofs &= 0xFu;
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr (normalized) %x:%x",newend_seg,newend_ofs);
+
+		if (newend_ofs) {
+			newend_seg++;
+			newend_ofs = 0;
+		}
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr (as segment) %x",newend_seg);
+
+		if (newend_seg == 0 || PhysMake(newend_seg,newend_ofs) == PhysMake(devseg,0)) { /* normal error out */
+			/* don't need to say anything, the driver will normally say it failed and probably why */
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates normal error out by setting the end_ptr to effectively remove itself from memory");
+			if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+			return false;
+		}
+		else if (
+				PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
+				PhysMake(newend_seg,newend_ofs) > PhysMake(devseg+blocks,0)/*you cannot make your driver bigger than the original size!*/) {
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates error with invalid end_ptr");
+			if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+			return false;
+		}
+
+		assert(newend_seg > devseg);
+		uint32_t drvszseg = newend_seg - devseg;
+
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver will occupy %x paragraphs (%u bytes)",drvszseg,drvszseg * 16u);
+
+		if (adj_mcb_base) {
+			uint16_t nseg = devseg + drvszseg;
+			uint16_t xseg = devseg + blocks;
+
+			/* put the MCB in the new location and update the size */
+			MEM_BlockWrite(PhysMake(nseg,0),devseg_mcb,16);
+			LOG(LOG_MISC,LOG_DEBUG)("Moving MCB chain base from %x to %x",dos_infoblock.GetFirstMCB(),nseg);
+
+			DOS_MCB mcb(nseg);
+			assert(xseg >= nseg);
+			mcb.SetSize(xseg - nseg);
+			dos_infoblock.SetFirstMCB(dos.firstMCB=nseg);
+		}
+		else {
+			blocks = drvszseg;
+			if (!DOS_ResizeMemory(devseg,&blocks))
+				return false;
+		}
+	}
+
+	if (!adj_mcb_base) {
+		/* Success. Change ownership of the device driver MCB so it remains in memory when CONFIG exits */
+		DOS_MCB dev_mcb((uint16_t)(devseg-1));
+		dev_mcb.SetPSPSeg(0x0008/*MS-DOS*/);
+		{
+			/* use the in-memory device name to name the MCB */
+			char tmp[9];
+			MEM_BlockRead(PhysMake(devseg,0xA),tmp,8);
+			tmp[8] = 0;
+			dev_mcb.SetFileName(tmp);
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver added to device chain as '%s'",tmp);
+		}
+	}
+
+	/* attach the driver to the device chain */
+	{
+		unsigned int patience = 1024;
+		uint32_t start = dos_infoblock.GetDeviceChain();
+		uint16_t segm  = (uint16_t)(start>>16ul);
+		uint16_t offm  = (uint16_t)(start&0xFFFFu);
+		while(start != 0xFFFFFFFFul) {
+			segm  = (uint16_t)(start>>16u);
+			offm  = (uint16_t)(start&0xFFFFu);
+			start = real_readd(segm,offm);
+			if (--patience == 0) E_Exit("Device driver chain corrupt");
+		}
+		real_writed(segm,offm,(unsigned int)devseg<<16u);
+	}
+
+	return true;
+}
+
+std::string config_run_var_device;
+std::string config_run_var_devparm;
+
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
@@ -1328,6 +1609,21 @@ void CONFIG::Run(void) {
 	int all = section->Get_bool("show advanced options")?1:-1;
 	bool first = true, norem = false;
 	std::vector<std::string> pvars;
+	const char *rawcmd = cmd->GetRawCmdline().c_str();
+
+	/* direct path for config shell to trigger device driver load */
+	if (first_shell && first_shell->config_shell) {
+		while (*rawcmd == ' ') rawcmd++;
+		if (!strcmp(rawcmd,"\xff\xaa\xff")/*User is unlikely to type this into their dosbox.conf*/) {
+			/* read from global vars */
+			device = config_run_var_device;
+			devparm = config_run_var_devparm;
+			if (device.empty()) return;
+			DeviceLoad(device,devparm);
+			return;
+		}
+	}
+
 	if (cmd->FindExist("-setup", true)) all = 2;
 	else if (cmd->FindExist("-all", true)) all = 1;
 	else if (cmd->FindExist("-mod", true)) all = 0;
@@ -2152,240 +2448,7 @@ next:
 	}
 
 	if (!device.empty()) {
-		uint16_t devseg = 0,ofs,attr;
-		uint16_t stacksz = 256u;
-
-		/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
-		uint16_t psp_blocks = (0x80 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
-		uint16_t blocks = psp_blocks;
-		if (!DOS_ResizeMemory(dos.psp(),&blocks)) {
-			WriteOut("Unable to shrink PSP to enable loading device driver\n");
-			return;
-		}
-
-		/* free the environment block associated with the PSP */
-		{
-			DOS_PSP p(dos.psp());
-			const uint16_t s = p.GetEnvironment();
-			if (s != 0) {
-				DOS_FreeMemory(s);
-				p.SetEnvironment(0);
-			}
-		}
-
-		/* relocate PSP segment to end of memory, if possible, to help load the driver image as low as possible
-		 * and try to avoid leaving behind small blocks of free memory behind */
-		{
-			uint16_t pmemstrat = DOS_GetMemAllocStrategy();
-			DOS_SetMemAllocStrategy(2/*lastfit*/);
-			uint16_t blocks = psp_blocks;
-			uint16_t newpsp = 0;
-			bool ok = DOS_AllocateMemory(&newpsp,&blocks);
-			DOS_SetMemAllocStrategy(pmemstrat);
-
-			if (ok && newpsp) {
-				LOG(LOG_MISC,LOG_DEBUG)("Relocating PSP segment from %x to %x",dos.psp(),newpsp);
-				mem_memcpy(PhysMake(newpsp,0),PhysMake(dos.psp(),0),psp_blocks << 4u);
-				DOS_FreeMemory(dos.psp());
-				dos.psp(newpsp);
-
-				/* update the pointer to the Job File Table to prevent breaking all file I/O past this point */
-				real_writew(dos.psp(),0x36,dos.psp());
-
-				DOS_MCB dev_mcb((uint16_t)(dos.psp()-1));
-				dev_mcb.SetPSPSeg(dos.psp());
-
-				CPU_SetSegGeneral(cs,dos.psp());
-				CPU_SetSegGeneral(ds,dos.psp());
-				CPU_SetSegGeneral(es,dos.psp());
-			}
-		}
-
-		/* redirect instruction pointer to PSP:0 so that CONFIG exits immediately after this function returns */
-		reg_ip = 0;
-
-		/* redirect the stack pointer */
-		CPU_SetSegGeneral(ss,dos.psp());
-		reg_esp = 0x80 + devparm.length() + 3u + stacksz - 2u;
-
-		/* allocate a new memory block to hold the device driver image. */
-		/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
-		blocks = 0xFFFFu;
-		if (DOS_AllocateMemory(&devseg,&blocks)) E_Exit("Allocate memory: memory availability check actually allocated memory unexpectedly");
-		LOG(LOG_MISC,LOG_DEBUG)("Device driver load: %u bytes available",(unsigned int)blocks * 16u);
-
-		if (!DOS_AllocateMemory(&devseg,&blocks)) {
-			WriteOut("Unable to allocate memory for device driver load\n");
-			return;
-		}
-		LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x-%x for driver '%s'",(unsigned int)devseg,(unsigned int)(devseg+blocks-1u),device.c_str());
-
-		/* Use DOS_Execute() with special device driver flag value, which loads it like an overlay.
-		 * Contrary to what you've probably been told about device drivers, they do not have to be
-		 * flat COM type images. They can be EXE files too (MZ header with relocation table and
-		 * everything), in which case the device driver header is within the first 18 bytes of the
-		 * resident image.
-		 *
-		 * If you've ever wondered how MS-DOS allows EMM386.EXE to work as both an executable program
-		 * AND a device driver, and how DEVICE=C:\DOS\EMM386.EXE is even allowed, that is how. */
-		if (!DOS_Execute(device.c_str(),devseg | ((devseg+blocks)<<16u),DOSEXEC_DEVICEDRIVER)) {
-			WriteOut("Unable to load device driver image\n");
-			return;
-		}
-		attr = real_readw(devseg,4);
-		LOG(LOG_MISC,LOG_DEBUG)("Device driver attributes: %x",attr);
-		if (attr & DEVATTR_ISCHAR) {
-			std::string blah;
-
-			if (attr & DEVATTRCHR_IOCTL_CTLSTRINGS) blah += " ctlstrings";
-			if (attr & DEVATTRCHR_IOCTL_OUTPUT_UNTIL_BUSY) blah += " outubusy";
-			if (attr & DEVATTRCHR_OPENCLOSE) blah += " openclose";
-			if (attr & DEVATTRCHR_INT29) blah += " int29";
-			if (attr & DEVATTRCHR_CLOCK) blah += " CLOCK$";
-			if (attr & DEVATTRCHR_NULL) blah += " NULL";
-			if (attr & DEVATTRCHR_CONOUT) blah += " CONOUT";
-			if (attr & DEVATTRCHR_CONIN) blah += " CONIN";
-
-			LOG(LOG_MISC,LOG_DEBUG)("Supports:%s",blah.c_str());
-		}
-		else {
-			std::string blah;
-
-			if (attr & DEVATTRBLK_IOCTL_CTLSTRINGS) blah += " ctlstrings";
-			if (attr & DEVATTRBLK_IOCTL_MEDIA_FAT_BYTE) blah += " mediafatbyte";
-			if (attr & DEVATTRBLK_OPENCLOSEREMOVABLE) blah += " opencloseremove";
-			if (attr & DEVATTRBLK_IBM_DRIVE_SHARED) blah += " ibmdriveshared";
-			if (attr & DEVATTRBLK_IOCTL_GEN) blah += " ioctl-generic";
-			if (attr & DEVATTRBLK_EXTENDED) blah += " extended>32mb";
-
-			LOG(LOG_MISC,LOG_DEBUG)("Supports:%s",blah.c_str());
-		}
-
-		/* Call strategy routine in driver so it knows where to look for structure, give it ES:BX = dos.dcp:0 */
-		ofs = real_readw(devseg,0x6);
-		reg_bx = 0; CPU_SetSegGeneral(ds,devseg);
-		CPU_SetSegGeneral(es,dos.dcp);
-		LOG(LOG_MISC,LOG_DEBUG)("Calling device driver strategy routine at %x:%x",devseg,ofs);
-		CALLBACK_RunRealFar(devseg,ofs); /* no return value */
-
-		/* INIT */
-		{
-			struct DOS_DEVHDR::req_init s;
-			memset(&s,0,sizeof(s));
-
-			if (dos.version.major >= 4)
-				s.hdr.record_length = 25;
-			else
-				s.hdr.record_length = 22;
-
-			/* init arguments */
-			{
-				const char *s = devparm.c_str();
-				unsigned int i=0;
-
-				LOG(LOG_MISC,LOG_DEBUG)("Init str '%s'",s);
-				while (i < devparm.length() && *s) real_writeb(dos.psp(),0x80+(i++),*s++);
-
-				/* \r\n terminated */
-				/* OAKCDROM.SYS requires \r\n, or else scans memory for eternity */
-				real_writeb(dos.psp(),0x80+(i++),0x0D);
-				real_writeb(dos.psp(),0x80+(i++),0x0A);
-
-				/* NULL terminator */
-				real_writeb(dos.psp(),0x80+i,0);
-			}
-
-			s.bpb_ptr = RealMake(dos.psp(),0x80);
-			s.end_ptr = RealMake(devseg+blocks,0);/*tell the driver where the current end is, perhaps as a memory size detect?*/
-			LOG(LOG_MISC,LOG_DEBUG)("Giving device driver in DEVINIT request initial endptr %x:%x initstr %x:%x",devseg+blocks,0,dos.psp(),0x80);
-			s.hdr.cmd_code = DEVFUNC_INIT;
-			MEM_BlockWrite(PhysMake(dos.dcp,0),&s,sizeof(s));
-
-			/* interrupt routine is not expected to accept or return register values but must preserve all registers.
-			 * if device drivers happen to assume things anyway, then, well'll deal with that later */
-			ofs = real_readw(devseg,0x8);
-			LOG(LOG_MISC,LOG_DEBUG)("Calling device driver interrupt routine (DEVINIT request) at %x:%x",devseg,ofs);
-			CALLBACK_RunRealFar(devseg,ofs); /* no return value */
-
-			/* so what did the driver do with the request? */
-			MEM_BlockRead(PhysMake(dos.dcp,0),&s,sizeof(s));
-
-			/* programming experience suggests that DOS doesn't give a damn about the status word of INIT,
-			 * but if you want to fail loading, set end_ptr == 0. If DOS did give a crap, my old SBSYS device
-			 * driver experiment from 1995 would have failed to run at all--I just realized today there's a bug
-			 * in the code that sets the error bit in status word only because AL != 0 having come from playing
-			 * audio directly to the SB DSP chip (usually 0x80)
-			 *
-			 * Some device drivers indicate failure by setting end_ptr to the first byte of their device driver,
-			 * instead of NULL, because doing so effectively means leaving behind zero bytes of memory. */
-
-			/* did the driver zero the end ptr or set it too far back? */
-			uint32_t newend_seg = s.end_ptr >> 16;
-			uint32_t newend_ofs = s.end_ptr & 0xFFFFu;
-			LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr %x:%x",newend_seg,newend_ofs);
-
-			/* normalize the pointer to determine how many blocks to keep */
-			newend_seg += newend_ofs >> 4u;
-			newend_ofs &= 0xFu;
-			LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr (normalized) %x:%x",newend_seg,newend_ofs);
-
-			if (newend_ofs) {
-				newend_seg++;
-				newend_ofs = 0;
-			}
-			LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr (as segment) %x",newend_seg);
-
-			if (newend_seg == 0 || PhysMake(newend_seg,newend_ofs) == PhysMake(devseg,0)) { /* normal error out */
-				/* don't need to say anything, the driver will normally say it failed and probably why */
-				LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates normal error out by setting the end_ptr to effectively remove itself from memory");
-				return;
-			}
-			else if (
-				PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
-				PhysMake(newend_seg,newend_ofs) > PhysMake(devseg+blocks,0)/*you cannot make your driver bigger than the original size!*/) {
-				LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates error with invalid end_ptr");
-				WriteOut("Device driver failed, end_ptr invalid\n");
-				return;
-			}
-
-			assert(newend_seg > devseg);
-			uint32_t drvszseg = newend_seg - devseg;
-
-			LOG(LOG_MISC,LOG_DEBUG)("Device driver will occupy %x paragraphs (%u bytes)",drvszseg,drvszseg * 16u);
-
-			blocks = drvszseg;
-			if (!DOS_ResizeMemory(devseg,&blocks)) {
-				WriteOut("Unable to shrink device driver memory block to fit\n");
-				return;
-			}
-		}
-
-		/* Success. Change ownership of the device driver MCB so it remains in memory when CONFIG exits */
-		DOS_MCB dev_mcb((uint16_t)(devseg-1));
-		dev_mcb.SetPSPSeg(0x0008/*MS-DOS*/);
-		{
-			/* use the in-memory device name to name the MCB */
-			char tmp[9];
-			MEM_BlockRead(PhysMake(devseg,0xA),tmp,8);
-			tmp[8] = 0;
-			dev_mcb.SetFileName(tmp);
-			LOG(LOG_MISC,LOG_DEBUG)("Device driver added to device chain as '%s'",tmp);
-		}
-
-		/* attach the driver to the device chain */
-		{
-			unsigned int patience = 1024;
-			uint32_t start = dos_infoblock.GetDeviceChain();
-			uint16_t segm  = (uint16_t)(start>>16ul);
-			uint16_t offm  = (uint16_t)(start&0xFFFFu);
-			while(start != 0xFFFFFFFFul) {
-				segm  = (uint16_t)(start>>16u);
-				offm  = (uint16_t)(start&0xFFFFu);
-				start = real_readd(segm,offm);
-				if (--patience == 0) E_Exit("Device driver chain corrupt");
-			}
-			real_writed(segm,offm,(unsigned int)devseg<<16u);
-		}
+		DeviceLoad(device,devparm);
 	}
 
 	return;

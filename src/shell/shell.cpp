@@ -58,6 +58,7 @@ bool config_shell_prompt_start = false; // at start before running device driver
 bool config_shell_prompt_end = false; // at end after running device drivers
 
 extern bool shell_keyboard_flush;
+extern bool dos_kernel_shutdown_mcb;
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
@@ -325,14 +326,18 @@ DOS_Shell::~DOS_Shell() {
 	 * memory allocated by the shell is not automatically freed on termination.
 	 * files are not automatically closed */
 	if (psp->GetSegment()) {
-		DOS_FreeProcessMemory(psp->GetSegment());
+		/* BOOT will set the first MCB chain to zero to signal that low memory has been overwritten
+		 * by the guest OS boot code */
+		if (!dos_kernel_shutdown_mcb) {
+			DOS_FreeProcessMemory(psp->GetSegment());
 
-		/* NTS: DOS_PSP would ideally allow JFT handle operations regardless of whatever the
-		 *      current PSP segment is, but that's not how the code is written */
-		const uint16_t o_psp = dos.psp();
-		dos.psp(psp->GetSegment());
-		psp->CloseFiles();
-		dos.psp(o_psp);
+			/* NTS: DOS_PSP would ideally allow JFT handle operations regardless of whatever the
+			 *      current PSP segment is, but that's not how the code is written */
+			const uint16_t o_psp = dos.psp();
+			dos.psp(psp->GetSegment());
+			psp->CloseFiles();
+			dos.psp(o_psp);
+		}
 	}
 
 	if (psp->GetSegment() == shell_psp)
@@ -1975,8 +1980,15 @@ void SHELL_MessagesInit() {
 
 }
 
+void DOS_ApplyMinMCBAndDummyDCB(void);
+
 void SHELL_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS shell");
+
+#if !defined(OSFREE)
+	/* now that CONFIG shell has had a chance to load drivers, apply minimum mcb segment / minimum free segment and dummy DCB */
+	DOS_ApplyMinMCBAndDummyDCB();
+#endif
 
 	/* Regular startup */
 	if (call_shellstop == 0) call_shellstop = CALLBACK_Allocate();
@@ -2254,13 +2266,138 @@ void SHELL_Run() {
 }
 
 #if !defined(OSFREE)
+struct ConfigShell_Entry {
+	bool		debugbreak = false; // break into debugger before running program or loading device driver
+	bool		echo = false; // echo program or device driver path/command on console
+
+	enum {
+		NONE=0,
+		RUN,
+		DEVICE,
+		PAUSE
+	};
+
+	uint8_t		type = NONE;
+	std::string	path;
+	std::string	args;
+	std::string	cmd;
+};
+
+extern std::string config_run_var_device;
+extern std::string config_run_var_devparm;
+
 void DOS_ConfigShell::Run(void) {
 	if (config_shell_prompt && config_shell_prompt_start)
 		DOS_Shell::Run();
 
+	const Section_line * section=static_cast<Section_line *>(control->GetSection("devices"));
+	const char *cfgstr = section->data.c_str();
+
+	std::vector<ConfigShell_Entry> entries;
+	ConfigShell_Entry entry_template;
+
+	while (*cfgstr) {
+		/* every line has the format NAME=VALUE */
+		/* DEVICE=C:\DOS\EMM386.EXE /X /Y /A /X */
+		std::string name,value;
+
+		{
+			const char *b = cfgstr;
+			while (*cfgstr && *cfgstr != '=' && *cfgstr != '\n' && *cfgstr != '\r') cfgstr++;
+			const char *e = cfgstr;
+			while (e > b && *(e-1) == ' ') e--;
+			name = std::string(b,size_t(e-b));
+		}
+
+		if (*cfgstr == '=') {
+			cfgstr++;
+			while (*cfgstr == ' ' || *cfgstr == '\t') cfgstr++;
+			const char *b = cfgstr;
+			while (*cfgstr && *cfgstr != '\n' && *cfgstr != '\r') cfgstr++;
+			const char *e = cfgstr;
+			while (e > b && *(e-1) == ' ') e--;
+			value = std::string(b,size_t(e-b));
+		}
+
+		while (*cfgstr && *cfgstr != '\n' && *cfgstr != '\r') cfgstr++;
+		if (*cfgstr == '\r') cfgstr++;
+		if (*cfgstr == '\n') cfgstr++;
+
+		if (name == "ECHO") {
+			if (value == "ON" || value == "1")
+				entry_template.echo = true;
+			else if (value == "OFF" || value == "0")
+				entry_template.echo = false;
+		}
+		else if (name == "DEBUGBREAK") {
+			if (value == "ON" || value == "1")
+				entry_template.debugbreak = true;
+			else if (value == "OFF" || value == "0")
+				entry_template.debugbreak = false;
+		}
+		else if (name == "PAUSE") {
+			entries.push_back(entry_template);
+			ConfigShell_Entry &ent = entries[entries.size()-1u];
+			ent.type = ConfigShell_Entry::PAUSE;
+		}
+		else if (name == "RUN") {
+			entries.push_back(entry_template);
+			ConfigShell_Entry &ent = entries[entries.size()-1u];
+			ent.type = ConfigShell_Entry::RUN;
+			ent.cmd = value;
+		}
+		else if (name == "DEVICE") {
+			entries.push_back(entry_template);
+			ConfigShell_Entry &ent = entries[entries.size()-1u];
+			ent.type = ConfigShell_Entry::DEVICE;
+
+			size_t i = value.find_first_of(' ');
+			if (i == std::string::npos) i = value.length();
+			ent.path = value.substr(0,i);
+			while (i < value.length() && value[i] == ' ') i++;
+			ent.args = value.substr(i);
+		}
+	}
+
+	if (false/*DEBUG*/) {
+		LOG_MSG("CONFIG.SYS devices parsing result");
+		for (const auto &e : entries) {
+			if (e.type == ConfigShell_Entry::RUN) {
+				LOG_MSG(" - dbgbrk=%u echo=%u RUN '%s'",e.debugbreak,e.echo,e.cmd.c_str());
+			}
+			else if (e.type == ConfigShell_Entry::DEVICE) {
+				LOG_MSG(" - dbgbrk=%u echo=%u DEVICE '%s' '%s'",e.debugbreak,e.echo,e.path.c_str(),e.args.c_str());
+			}
+			else {
+				LOG_MSG(" - ????");
+			}
+		}
+	}
+
 	shellrun=true;
-	// TODO: Read DEVICE= lines from dosbox.conf section, process them the way MS-DOS processes CONFIG.SYS.
-	//       Also RUN= which allows commands like IMGMOUNT to execute as part of device driver setup.
+	char tmp[512];
+	for (auto &ent : entries) {
+		if (ent.type == ConfigShell_Entry::RUN) {
+			size_t l = ent.cmd.length();
+			if (l > 511) l = 511;
+			strncpy(tmp,ent.cmd.c_str(),l);
+			tmp[l] = 0;
+			ParseLine(tmp);
+		}
+		else if (ent.type == ConfigShell_Entry::DEVICE) {
+			config_run_var_device = ent.path;
+			config_run_var_devparm = ent.args;
+			strcpy(tmp,"CONFIG \xff\xaa\xff");
+			ParseLine(tmp);
+			config_run_var_device.clear();
+			config_run_var_devparm.clear();
+		}
+		else if (ent.type == ConfigShell_Entry::PAUSE) {
+			/* FIXME: Our own internal pause function? */
+			strcpy(tmp,"PAUSE");
+			ParseLine(tmp);
+		}
+	}
 	shellrun=false;
 
 	if (config_shell_prompt && config_shell_prompt_end)
@@ -2268,17 +2405,22 @@ void DOS_ConfigShell::Run(void) {
 }
 
 DOS_ConfigShell::~DOS_ConfigShell() {
-	config_shell = true;
 }
 
 DOS_ConfigShell::DOS_ConfigShell():DOS_Shell(){
+	config_shell = true;
 }
 #endif
 
 void CONFIGSHELL_Init() {
 #if !defined(OSFREE)
-	/* TODO: If there is nothing in the [devices] section, there is no point running this shell, skip it */
 	config_shell_run = true;
+
+	// if there is nothing there, don't even run this code
+	const Section_line * section=static_cast<Section_line *>(control->GetSection("devices"));
+	const char *cfgstr = section->data.c_str();
+	while (*cfgstr == ' ' || *cfgstr == '\t') cfgstr++;
+	if (*cfgstr == 0) config_shell_run = false;
 
 	if (!config_shell_run) return;
 
