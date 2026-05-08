@@ -7065,8 +7065,6 @@ class IMGMOUNT : public Program {
                 cylinderTimesHeads = totalSectors / sectorsPerTrack;
 
                 if(heads < 4) heads = 4;
-                if(heads > 16) heads = 16;
-
                 if(heads > 16 || (cylinderTimesHeads >= (heads * 1024))) {
                     heads = 16;
                 }
