@@ -290,6 +290,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
         vhd->sectors = sizes[1];
         vhd->sector_size = sizes[0];
     }
+    vhd->Set_Geometry(vhd->heads, vhd->cylinders, vhd->sectors, vhd->sector_size);
     vhd->LBA = vhd->getLBA(); /* Initialize LBA value */
     if(!int13_enable_48bitLBA && (vhd->LBA > 0x0FFFFFFF))
         LOG_MSG("Warning: Disk size (%lf GiB) exceeds 128GiB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)vhd->image_length / (1024.0 * 1024 * 1024));
@@ -1096,36 +1097,36 @@ void imageDiskVHD::DetectGeometry(Bitu sizes[], uint64_t currentSize) {
     uint32_t sectorsPerTrack;
     uint32_t heads;
     uint32_t cylinders;
+    uint32_t cylinderTimesHeads = 0;
+
+    if(totalSectors > 65535ULL * 16ULL * 255ULL)
+        totalSectors = 65535ULL * 16ULL * 255ULL; // cap total sectors to max supported by CHS
 
     if(totalSectors > 65535ULL * 16ULL * 63ULL) {
         sectorsPerTrack = 255;
         heads = 16;
-        cylinders = (uint32_t)(totalSectors / (sectorsPerTrack * heads));
-    }
-    else {
-        sectorsPerTrack = 17;
-
-        cylinders = (uint32_t)(totalSectors / sectorsPerTrack);
-        heads = (cylinders + 1023) / 1024;
-
-        if(heads < 4) heads = 4;
-        if(heads > 16) heads = 16;
-
-        if(heads > 0) {
-            sectorsPerTrack = (uint32_t)(totalSectors / (heads * cylinders));
-        }
-
-        if(sectorsPerTrack < 17) sectorsPerTrack = 17;
-
         cylinders = (uint32_t)(totalSectors / (heads * sectorsPerTrack));
     }
+    else {
+        sectorsPerTrack = 63;
+        cylinderTimesHeads = (uint32_t)(totalSectors / sectorsPerTrack);
+        cylinders = (uint32_t)(totalSectors / sectorsPerTrack);
+        heads = (cylinderTimesHeads + 1023) / 1024;
+    }
 
-    if(cylinders > 65535) cylinders = 65535;
+    cylinderTimesHeads = totalSectors / sectorsPerTrack;
 
-    sizes[3] = cylinders;
+    if(heads < 4) heads = 4;
+    if(heads > 16) heads = 16;
+
+    if(heads > 16 || (cylinderTimesHeads >= (heads * 1024))) {
+        heads = 16;
+    }
+
+    sizes[3] = (uint16_t)(cylinderTimesHeads / heads); // cylinders
     sizes[2] = heads;
     sizes[1] = sectorsPerTrack;
-    sizes[0] = sector_size; // sector_size
+    sizes[0] = sector_size;
 }
 
 //scans a MBR and returns

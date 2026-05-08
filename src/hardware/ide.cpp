@@ -2685,32 +2685,43 @@ void IDEATADevice::update_from_biosdisk() {
 		/* One additional correction: The disk image is probably using BIOS-style geometry
 		   translation (such as C/H/S 1024/64/63) which is impossible given that the IDE
 		   standard only allows up to 16 heads. So we have to translate the geometry. */
-		while (heads > 16 && (heads & 1) == 0)
-			heads >>= 1U;
 
 		/* If we can't divide the heads down, then pick a LBA-like mapping that is good enough.
 		 * Note that if what we pick does not evenly map to the INT 13h geometry, and the partition
 		 * contained within is not an LBA type FAT16/FAT32 partition, then Windows 95's IDE driver
 		 * will ignore this device and fall back to using INT 13h. For user convenience we will
 		 * print a warning to reminder the user of exactly that. */
-		if (heads > 16) {
-			sects = 63;
-			heads = 16;
-		}
+        if(LBA <= 17ULL * 1024ULL * 4ULL) {
+            sects = 17;
+            heads = 4;
+        }
+        else if(LBA <= 17ULL * 1024ULL * 8ULL) {
+            sects = 17;
+            heads = 8;
+        }
+        else if(LBA <= 32ULL * 1024ULL * 16ULL) {
+            sects = 32;
+            heads = 16;
+        }
+        else if(LBA > 63ULL * 1024ULL * 255ULL && LBA > 65535ULL * 16ULL * 63ULL) { // Over 8.4GB, use max CHS values
+            sects = 255;
+            heads = 16;
+        }
+        else {
+            sects = 63;  // Up to 8.4GB
+            heads = 16;
+        }
 
-		{
-			cyls = (uint32_t)(LBA / (sects * heads));
-		}
 
-		LOG_MSG("Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u\n",
-			(unsigned int)dsk->cylinders,
-			(unsigned int)dsk->heads,
-			(unsigned int)dsk->sectors,
-			(unsigned int)cyls,
-			(unsigned int)heads,
-			(unsigned int)sects);
+    	cyls = (uint32_t)(LBA / (sects * heads));
+        if(cyls >= 65535UL) cyls = 65535; // max cyls for IDE CHS is 65535
+
 	}
-    else LOG_MSG("Mapping IDE DISK C/H/S %u/%u/%u\n",
+    LOG_MSG("IDE: Disk size: %gMB, BIOS C/H/S: %u/%u/%u, IDE: %u/%u/%u\n",
+        (double)LBA * 512.0 / (1024.0 * 1024.0),
+        (unsigned int)dsk->cylinders,
+        (unsigned int)dsk->heads,
+        (unsigned int)dsk->sectors,
         (unsigned int)cyls,
         (unsigned int)heads,
         (unsigned int)sects);

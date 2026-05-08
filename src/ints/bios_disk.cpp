@@ -1722,22 +1722,48 @@ void imageDisk::Set_GeometryForHardDisk()
 }
 
 void imageDisk::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) {
-    Bitu bigdisk_shift = 0;
+
+    uint64_t total_sectors = (uint64_t)setHeads * (uint64_t)setCyl * (uint64_t)setSect;
+    sectors = 63; // Default to 63 sectors per track.
+    heads = 16;   // Default to 16 heads.
+
+    if(setHeads == 0 || setCyl == 0 || setSect == 0 || total_sectors > 0x0FFFFFFF) {
+        LOG_MSG("bios_disk: Invalid disk geometry C, H, S = %u, %u, %u", setCyl, setHeads, setSect);
+        active = false;
+        return;
+    }
+    else if (total_sectors > 1024ULL * 255ULL * 63ULL) {
+        LOG_MSG("bios_disk: Disk geometry C, H, S = %u, %u, %u is too large, setting to max limits", setCyl, setHeads, setSect);
+        cylinders = 1024;
+        heads = 255;
+        sectors = 63;
+        active = true;
+        return;
+    }
 
     if (IS_PC98_ARCH) {
-        /* TODO: PC-98 has its own 4096 cylinder limit */
-    }
-    else {
-        if(setCyl > 16384) LOG_MSG("Warning: This disk image is too big.");
-        else if(setCyl > 8192) bigdisk_shift = 4;
-        else if(setCyl > 4096) bigdisk_shift = 3;
-        else if(setCyl > 2048) bigdisk_shift = 2;
-        else if(setCyl > 1024) bigdisk_shift = 1;
+        /* TODO: Some early PC-98 SCSI BIOS has its own 4096 cylinder (12-bit) limit */
     }
 
-    heads = setHeads << bigdisk_shift;
-    cylinders = setCyl >> bigdisk_shift;
-    sectors = setSect;
+    if(total_sectors < 17ULL * 1024 * 16)
+        sectors = 17;
+    else if(total_sectors < 32ULL * 1024 * 16)
+        sectors = 32;
+    else
+        sectors = 63;
+
+    while(heads < 255) {
+        uint64_t test_cyl =
+            total_sectors / ((uint64_t)heads * sectors);
+        if(test_cyl <= 1024)
+            break;
+        heads <<= 1;
+        if(heads > 255) {
+            heads = 255;
+            break;
+        }
+    }
+    cylinders = (uint32_t)(total_sectors / ((uint32_t)heads * sectors));
     sector_size = setSectSize;
     active = true;
 }
