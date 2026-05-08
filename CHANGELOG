@@ -69,6 +69,7 @@ Next version
     code, therefore freeing shell memory in that cause would only cause
     a complaint about a corrupted MCB chain and emulator E_Exit() shutdown.
     (joncampbell123)
+  - Fixed VHD, qcow2 image geometry calculation (maron2000)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
