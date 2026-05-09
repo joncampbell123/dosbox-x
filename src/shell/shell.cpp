@@ -57,6 +57,8 @@ bool config_shell_prompt = false;
 bool config_shell_prompt_start = false; // at start before running device drivers
 bool config_shell_prompt_end = false; // at end after running device drivers
 
+bool shown_welcome = false;
+
 extern bool shell_keyboard_flush;
 extern bool dos_kernel_shutdown_mcb;
 extern bool dos_shell_running_program, mountwarning, winautorun;
@@ -1052,9 +1054,10 @@ void DOS_Shell::Prepare(void) {
 			if(!chinasea)makestdcp950table();
 			if(chinasea) makeseacp951table();
 			InitCodePage();
-			if(startbanner && !control->opt_fastlaunch) {
+			if(startbanner && !control->opt_fastlaunch && !shown_welcome) {
 				//showWelcome(this);
 				DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
+				shown_welcome = true;
 			}
 			else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed()) {
 				WriteOut("\033[2J");
@@ -1545,6 +1548,7 @@ static void AUTOEXEC_ShutDown(Section * sec) {
 		CALLBACK_DeAllocate(call_int23);
 		call_int23 = 0;
 	}
+	shown_welcome = false;
 }
 
 void AUTOEXEC_Startup(Section *sec) {
@@ -2289,6 +2293,20 @@ extern std::string config_run_var_devparm;
 void DOS_ConfigShell::Run(void) {
 	if (config_shell_prompt && config_shell_prompt_start)
 		DOS_Shell::Run();
+
+	{
+		Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+		bool startbanner = section->Get_bool("startbanner");
+
+		if(startbanner && !control->opt_fastlaunch && !shown_welcome) {
+			//showWelcome(this);
+			DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
+			shown_welcome = true;
+		}
+		else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed()) {
+			WriteOut("\033[2J");
+		}
+	}
 
 	const Section_line * section=static_cast<Section_line *>(control->GetSection("devices"));
 	const char *cfgstr = section->data.c_str();
