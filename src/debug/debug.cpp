@@ -442,10 +442,17 @@ uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
 
 uint64_t GetAddress(uint16_t seg, uint32_t offset)
 {
+	/* For the current CS, always use the cached hidden base (SegPhys(cs)).
+	 * Real x86 segment registers have a hidden descriptor cache that is only
+	 * updated when a new selector is loaded. After LMSW sets CR0.PE=1 but
+	 * before a far jump reloads CS, cpu.pmode is true yet SegValue(cs) still
+	 * holds the previous (real-mode) value, so resolving via the GDT would
+	 * read garbage. */
+	if (seg == SegValue(cs)) return SegPhys(cs)+(uint64_t)offset;
+
 	if (cpu.pmode && !(reg_flags & FLAG_VM))
 		return LinMakeProt(seg,offset);
 
-	if (seg==SegValue(cs)) return SegPhys(cs)+(uint64_t)offset;
 	return ((uint64_t)seg<<4u)+offset;
 }
 
