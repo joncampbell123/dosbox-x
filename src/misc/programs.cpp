@@ -1460,6 +1460,7 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 		s.bpb_ptr = RealMake(dos.psp(),0x80);
 		s.end_ptr = RealMake(devseg+blocks,0);/*tell the driver where the current end is, perhaps as a memory size detect?*/
+		const uint32_t bpb_ptr_initial = s.bpb_ptr;
 		LOG(LOG_MISC,LOG_DEBUG)("Giving device driver in DEVINIT request initial endptr %x:%x initstr %x:%x",devseg+blocks,0,dos.psp(),0x80);
 		s.hdr.cmd_code = DEVFUNC_INIT;
 		MEM_BlockWrite(PhysMake(dos.dcp,0),&s,sizeof(s));
@@ -1505,8 +1506,8 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			return false;
 		}
 		else if (
-				PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
-				PhysMake(newend_seg,newend_ofs) > PhysMake(devseg+blocks,0)/*you cannot make your driver bigger than the original size!*/) {
+			PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
+			PhysMake(newend_seg,newend_ofs) > PhysMake(devseg+blocks,0)/*you cannot make your driver bigger than the original size!*/) {
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates error with invalid end_ptr");
 			if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
 			return false;
@@ -1534,6 +1535,18 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			blocks = drvszseg;
 			if (!DOS_ResizeMemory(devseg,&blocks))
 				return false;
+		}
+
+		if (s.bpb_ptr && s.bpb_ptr != bpb_ptr_initial && !(attr & DEVATTR_ISCHAR)/*block device*/) {
+			/* the init str ptr is changed in block devices to a pointer to BPB structures. */
+			/* The MS-DOS source code provides documentation on the device driver interface,
+			 * but the unclear way it is written implies that this is a pointer to an array of BPB structures.
+			 * In reality, it's an array of BPB structure pointers (the offset field only) that point to BPB
+			 * structures. Old Microsoft shit documentation, as usual.
+			 *
+			 * But at least in the MS-DOS 4.0 source code, this is much clearer from the ASM files that make up RAMDRIVE.SYS */
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver set BPB array pointer to %04x:%04x and returned %u units",
+				s.bpb_ptr >> 16,s.bpb_ptr & 0xFFFFu,s.num_of_units);
 		}
 	}
 
