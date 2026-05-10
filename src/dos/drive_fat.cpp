@@ -1725,7 +1725,12 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			partSectOff = startSector;
 			partSectSize = countSector;
 		}
-		else if(is_hdd) {
+		/* NTS: MS-DOS block devices cannot represent a disk with a partition table.
+		 *      There is no consideration or support for it. The BIOS block devices
+		 *      built in do not either. Partition support only works because MSINIT
+		 *      takes the time to parse the partition table and create block devices
+		 *      for it. This is why you have to reboot after using FDISK. */
+		else if(is_hdd && loadedDisk->class_id != imageDisk::ID_MSDOSBLOCKDEV) {
 			/* Set user specified harddrive parameters */
 			if (headscyl > 0 && cylinders > 0 && cylsector > 0 && bytesector > 0)
 				loadedDisk->Set_Geometry(headscyl, cylinders,cylsector, bytesector);
@@ -2329,8 +2334,9 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 		return;
 	}
 
-	/* Filesystem must be contiguous to use absolute sectors, otherwise CHS will be used */
-	absolute = IS_PC98_ARCH || ((BPB.v.BPB_NumHeads == headscyl) && (BPB.v.BPB_SecPerTrk == cylsector));
+	/* Filesystem must be contiguous to use absolute sectors, otherwise CHS will be used. */
+	/* MS-DOS block devices can only do absolute sectors, there is no support for C/H/S */
+	absolute = IS_PC98_ARCH || loadedDisk->class_id == imageDisk::ID_MSDOSBLOCKDEV || ((BPB.v.BPB_NumHeads == headscyl) && (BPB.v.BPB_SecPerTrk == cylsector));
 	LOG(LOG_DOSMISC,LOG_DEBUG)("FAT driver: Using %s sector access",absolute ? "absolute" : "C/H/S");
 
 	/* Determine FAT format, 12, 16 or 32 */
