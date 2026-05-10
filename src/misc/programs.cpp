@@ -37,6 +37,7 @@
 #include "shell.h"
 #include "menudef.h"
 #include "hardware.h"
+#include "../dos/drives.h"
 #include "mapper.h"
 #include "menu.h"
 #include "bios.h"
@@ -1606,7 +1607,9 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			 * In reality, it's an array of BPB structure pointers (the offset field only) that point to BPB
 			 * structures. Old Microsoft shit documentation, as usual.
 			 *
-			 * But at least in the MS-DOS 4.0 source code, this is much clearer from the ASM files that make up RAMDRIVE.SYS */
+			 * But at least in the MS-DOS 4.0 source code, this is much clearer from the ASM files that make up RAMDRIVE.SYS.
+			 *
+			 * The BPB structures provided by the driver follow the exact same structure as the BPB on disk. */
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver set BPB array pointer to %04x:%04x and returned %u units",
 				s.bpb_ptr >> 16,s.bpb_ptr & 0xFFFFu,s.num_of_units);
 
@@ -1615,6 +1618,61 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 			/* FIXME: I need a block device driver to test that provides multiple units from one driver */
 			if (s.num_of_units > 1) LOG(LOG_MISC,LOG_DEBUG)("FIXME: Multiple units from one device driver not yet supported");
+
+			/* Make a drive letter for each unit */
+			for (unsigned int i=0;i < s.num_of_units && i < 1/*<--remove this when multiple units supported*/;i++) {
+				uint16_t offset = real_readw(s.bpb_ptr>>16,(s.bpb_ptr&0xFFFFu)+(i*2));
+				if (offset == 0xFFFF) break; /* RAMDRIVE.SYS seems to fill entries past num_of_units with 0xFFFF */
+
+				/* assume the largest possible structure.
+				 * I don't have yet a device driver that uses the full structure or
+				 * that provides a disk larger than 32MB (RAMDRIVE.SYS limits itself to 32MB or less).
+				 * doing this also allows possible FAT32 support if a block device can actually support that.
+				 *
+				 * Maybe when Microsoft first defined this interface they should have designed it so the
+				 * device driver can indicate how many bytes the BPB structure occupies. */
+				FAT_BootSector::bpb_union_t bpb;
+				unsigned int bpb_sz = 13;/*assume structure according to MS-DOS 2.0 documentation that ends afer "FAT sector count"*/
+
+				LOG(LOG_MISC,LOG_DEBUG)("Reading BPB from driver at %04x:%04x (assuming up to %u bytes)",devseg,offset,(unsigned int)sizeof(bpb));
+				MEM_BlockRead(PhysMake(devseg,offset),&bpb,sizeof(bpb));
+
+				/* FIXME: MS-DOS 2.0 driver specification only mentions fields up to "number of sectors occupied by FAT".
+				 *
+				 *        RAMDRIVE.SYS fills out the BPB only up to the first 16 bits of the 32-bit "hidden sectors" field.
+				 *        In any case, anything beyond the media descriptor byte is not necessarily valid data. The BPB
+				 *        pointer it returns points directly into the in-memory image of the boot sector of the RAM disk.
+				 *
+				 *        If Microsoft had only thought while writing MS-DOS 2.0 to put a 16-bit or even 8-bit "size of struct"
+				 *        field at the beginning of the BPB struct in memory, it would be much easier to know whether structure members
+				 *        are actually there.
+				 *
+				 *        What exactly does MS-DOS expect for a BPB struct if the device driver allows >= 32MB drives?
+				 *        How does Windows 95/98/ME extend this crappy interface so block devices can handle FAT32? */
+
+				if (bpb.is_fat32() && (attr & DEVATTRBLK_EXTENDED)/*supports >=32MB*/)
+					bpb_sz = 29;/*FIXME: Assume that a FAT32 BPB in memory probably ends after the "32-bit FAT sector count" field*/
+				else if (bpb.v.BPB_TotSec16 == 0 && bpb.v.BPB_TotSec32 != 0 && (attr & DEVATTRBLK_EXTENDED)/*supports >=32MB*/)
+					bpb_sz = 25;/*FIXME: Assume that TotSec32 is valid and therefore the BPB struct ends after that field*/
+
+				/* zero out anything in the BPB past the assumed size, because it's probably structures or data specific to the device driver anyway */
+				if (bpb_sz < sizeof(bpb)) {
+					unsigned int rem = sizeof(bpb) - bpb_sz;
+					assert((rem+bpb_sz) == sizeof(bpb));
+					memset(((char*)(&bpb))+bpb_sz,0,rem);
+				}
+
+				LOG(LOG_MISC,LOG_DEBUG)("BPB: assumed-size=%u bytes/sec=%u sec/clus=%u rsvdsec=%u numfat=%u rootent=%u totsec16=%u mtb=%02xh fatsz16=%u",
+					bpb_sz,
+					bpb.v.BPB_BytsPerSec,
+					bpb.v.BPB_SecPerClus,
+					bpb.v.BPB_RsvdSecCnt,
+					bpb.v.BPB_NumFATs,
+					bpb.v.BPB_RootEntCnt,
+					bpb.v.BPB_TotSec16,
+					bpb.v.BPB_Media,
+					bpb.v.BPB_FATSz16);
+			}
 		}
 	}
 
@@ -2223,7 +2281,7 @@ void CONFIG::Run(void) {
 							first_shell->SetEnv("CONFIG",date);
 						} else if (!strcasecmp(pvars[0].c_str(), "errorlevel")) {
 							WriteOut("%d\n",dos.return_code);
-							first_shell->SetEnv("CONFIG",std::to_string(dos.return_code).c_str());
+							first_shell->SetEnv("CONFIG",std::to_string((unsigned int)dos.return_code).c_str());
 						} else if (!strcasecmp(pvars[0].c_str(), "random")) {
 							initRand();
 							int random = rand()%32768;
