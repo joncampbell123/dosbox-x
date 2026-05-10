@@ -1657,7 +1657,7 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 				/* zero out anything in the BPB past the assumed size, because it's probably structures or data specific to the device driver anyway */
 				if (bpb_sz < sizeof(bpb)) {
-					unsigned int rem = sizeof(bpb) - bpb_sz;
+					const unsigned int rem = sizeof(bpb) - bpb_sz;
 					assert((rem+bpb_sz) == sizeof(bpb));
 					memset(((char*)(&bpb))+bpb_sz,0,rem);
 				}
