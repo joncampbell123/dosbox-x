@@ -1407,6 +1407,20 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 		return false;
 	}
 
+	/* FIXME: Apparently you are allowed to put multiple device drivers in one file.
+	 *        That would suggest that the header could have some valid next pointer
+	 *        instead of FFFF:FFFF.
+	 *
+	 *        I do not have any such driver to test with, therefore, that is not supported.
+	 *
+	 *        Guess: If it's a flat SYS file, maybe you can't do that. Maybe.
+	 *               If it's an EXE file, you could do that, because the relocation
+	 *               table could automatically set the segment value properly to
+	 *               point to the next driver. */
+	if (real_readd(devseg,0) != 0xFFFFFFFF) {
+		LOG(LOG_MISC,LOG_DEBUG)("FIXME: Device driver files with multiple drivers inside it not yet supported");
+	}
+
 	attr = real_readw(devseg,4);
 	LOG(LOG_MISC,LOG_DEBUG)("Device driver attributes: %x",attr);
 	if (attr & DEVATTR_ISCHAR) {
@@ -1458,7 +1472,7 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 		 *      the name of the device driver. It's not just the text following the device.
 		 *
 		 *      Apparently 'DEVICE=C:\DOS\BLAH.SYS /X /Y /Z'
-		 *      will produce an init string of BLAH.SYS /X /Y /Z' not '/X /Y /Z'
+		 *      will produce an init string of 'BLAH.SYS /X /Y /Z' not '/X /Y /Z'
 		 *
 		 *      RAMDRIVE.SYS is hardcoded to assume this. If we don't prepend the driver name into the init
 		 *      str the first command line switch will be silently ignored.
@@ -1598,6 +1612,9 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 			/* adjust nextdrive by the number of units reported */
 			device_nextdrive = s.drive_num + s.num_of_units;
+
+			/* FIXME: I need a block device driver to test that provides multiple units from one driver */
+			if (s.num_of_units > 1) LOG(LOG_MISC,LOG_DEBUG)("FIXME: Multiple units from one device driver not yet supported");
 		}
 	}
 
