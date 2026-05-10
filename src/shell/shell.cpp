@@ -1054,10 +1054,12 @@ void DOS_Shell::Prepare(void) {
 			if(!chinasea)makestdcp950table();
 			if(chinasea) makeseacp951table();
 			InitCodePage();
-			if(startbanner && !control->opt_fastlaunch && !shown_welcome) {
-				//showWelcome(this);
-				DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
-				shown_welcome = true;
+			if(startbanner && !control->opt_fastlaunch) {
+				if (!shown_welcome) {
+					//showWelcome(this);
+					DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
+					shown_welcome = true;
+				}
 			}
 			else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed()) {
 				WriteOut("\033[2J");
@@ -2278,10 +2280,12 @@ struct ConfigShell_Entry {
 		NONE=0,
 		RUN,
 		DEVICE,
-		PAUSE
+		PAUSE,
+		NEXTDRIVE,
 	};
 
 	uint8_t		type = NONE;
+	uint8_t		drive = 0;
 	std::string	path;
 	std::string	args;
 	std::string	cmd;
@@ -2289,6 +2293,7 @@ struct ConfigShell_Entry {
 
 extern std::string config_run_var_device;
 extern std::string config_run_var_devparm;
+extern uint8_t device_nextdrive;
 
 void DOS_ConfigShell::Run(void) {
 	if (config_shell_prompt && config_shell_prompt_start)
@@ -2298,10 +2303,12 @@ void DOS_ConfigShell::Run(void) {
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 		bool startbanner = section->Get_bool("startbanner");
 
-		if(startbanner && !control->opt_fastlaunch && !shown_welcome) {
-			//showWelcome(this);
-			DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
-			shown_welcome = true;
+		if(startbanner && !control->opt_fastlaunch) {
+			if (!shown_welcome) {
+				//showWelcome(this);
+				DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
+				shown_welcome = true;
+			}
 		}
 		else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed()) {
 			WriteOut("\033[2J");
@@ -2313,6 +2320,11 @@ void DOS_ConfigShell::Run(void) {
 
 	std::vector<ConfigShell_Entry> entries;
 	ConfigShell_Entry entry_template;
+
+	if (IS_PC98_ARCH)
+		device_nextdrive = 0;/*A:*/
+	else
+		device_nextdrive = 2;/*C:*/
 
 	while (*cfgstr) {
 		/* every line has the format NAME=VALUE */
@@ -2375,6 +2387,20 @@ void DOS_ConfigShell::Run(void) {
 			while (i < value.length() && value[i] == ' ') i++;
 			ent.args = value.substr(i);
 		}
+		else if (name == "NEXTDRIVE") {
+			entries.push_back(entry_template);
+			ConfigShell_Entry &ent = entries[entries.size()-1u];
+			ent.type = ConfigShell_Entry::NEXTDRIVE;
+
+			const char *c = value.c_str();
+			if (isalpha(*c)) {
+				ent.drive = toupper(*c) - 'A';
+			}
+			else if (isdigit(*c)) {
+				ent.drive = strtoul(c,NULL,10);
+				if (ent.drive > 25) ent.drive = 25;
+			}
+		}
 	}
 
 	if (false/*DEBUG*/) {
@@ -2420,6 +2446,11 @@ void DOS_ConfigShell::Run(void) {
 			strcpy(tmp,"PAUSE");
 			ParseLine(tmp);
 		}
+		else if (ent.type == ConfigShell_Entry::NEXTDRIVE) {
+			if (ent.echo) WriteOut("RUNNING: NEXTDRIVE=%c",ent.drive+'A');
+			device_nextdrive=ent.drive;
+		}
+
 	}
 	shellrun=false;
 

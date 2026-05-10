@@ -1291,11 +1291,22 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
     }
 }
 
+uint8_t device_nextdrive = 0;
+
 bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	bool user_wants_mcb_per_driver = false;
 	uint16_t devseg = 0,ofs,attr;
 	bool adj_mcb_base = false;
 	uint16_t stacksz = 256u;
+
+	std::string devname = device;
+	{
+		const char *s = strrchr(device.c_str(),'\\');
+		if (s && *s) {
+			s++;
+			if (*s) devname = s;
+		}
+	}
 
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("config"));
 
@@ -1303,7 +1314,8 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 		user_wants_mcb_per_driver = true;
 
 	/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
-	uint16_t psp_blocks = (0x80 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
+	unsigned int psp_sz = 0x80 + devname.length() + 1 + devparm.length() + 3u + stacksz;
+	uint16_t psp_blocks = (psp_sz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
 	uint16_t blocks = psp_blocks;
 	if (!DOS_ResizeMemory(dos.psp(),&blocks))
 		return false;
@@ -1351,7 +1363,7 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 	/* redirect the stack pointer */
 	CPU_SetSegGeneral(ss,dos.psp());
-	reg_esp = 0x80 + devparm.length() + 3u + stacksz - 2u;
+	reg_esp = psp_sz - 2u;
 
 	/* allocate a new memory block to hold the device driver image. */
 	/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
@@ -1442,12 +1454,31 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			s.hdr.record_length = 22;
 
 		/* init arguments */
+		/* NTS: This is also not documented by Microsoft apparently, but the init string apparently includes
+		 *      the name of the device driver. It's not just the text following the device.
+		 *
+		 *      Apparently 'DEVICE=C:\DOS\BLAH.SYS /X /Y /Z'
+		 *      will produce an init string of BLAH.SYS /X /Y /Z' not '/X /Y /Z'
+		 *
+		 *      RAMDRIVE.SYS is hardcoded to assume this. If we don't prepend the driver name into the init
+		 *      str the first command line switch will be silently ignored.
+		 *
+		 *      Sometimes I wonder if the MS-DOS environment was chaotic and buggy purely because so many
+		 *      programmers had to guess and hack around to figure things out like that from lack of good
+		 *      or any documentation. */
 		{
-			const char *s = devparm.c_str();
 			unsigned int i=0;
+			const char *s;
 
+			s = devname.c_str();
+			LOG(LOG_MISC,LOG_DEBUG)("Init device name '%s'",s);
+			while (*s) real_writeb(dos.psp(),0x80+(i++),*s++);
+
+			real_writeb(dos.psp(),0x80+(i++),' ');
+
+			s = devparm.c_str();
 			LOG(LOG_MISC,LOG_DEBUG)("Init str '%s'",s);
-			while (i < devparm.length() && *s) real_writeb(dos.psp(),0x80+(i++),*s++);
+			while (*s) real_writeb(dos.psp(),0x80+(i++),*s++);
 
 			/* \r\n terminated */
 			/* OAKCDROM.SYS requires \r\n, or else scans memory for eternity */
@@ -1455,7 +1486,24 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			real_writeb(dos.psp(),0x80+(i++),0x0A);
 
 			/* NULL terminator */
-			real_writeb(dos.psp(),0x80+i,0);
+			real_writeb(dos.psp(),0x80+(i++),0);
+
+			assert((0x80+i) <= (psp_sz - stacksz));
+		}
+
+		/* block device: fill in drive number so RAMDRIVE.SYS can properly claim anything but drive A: */
+		/* NTS: If a block device reports multiple units, that means it occupies consecutive drive letters.
+		 *      If we can't guarantee that, that might be a problem. Maybe. */
+		if (!(attr & DEVATTR_ISCHAR)) {
+			s.drive_num = device_nextdrive;
+
+			while (s.drive_num<DOS_DRIVES && Drives[s.drive_num]) s.drive_num++;
+
+			if (s.drive_num >= DOS_DRIVES) {
+				if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+				LOG(LOG_MISC,LOG_DEBUG)("No available drive letters for block device");
+				return false;
+			}
 		}
 
 		s.bpb_ptr = RealMake(dos.psp(),0x80);
@@ -1547,6 +1595,9 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			 * But at least in the MS-DOS 4.0 source code, this is much clearer from the ASM files that make up RAMDRIVE.SYS */
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver set BPB array pointer to %04x:%04x and returned %u units",
 				s.bpb_ptr >> 16,s.bpb_ptr & 0xFFFFu,s.num_of_units);
+
+			/* adjust nextdrive by the number of units reported */
+			device_nextdrive = s.drive_num + s.num_of_units;
 		}
 	}
 
