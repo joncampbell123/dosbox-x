@@ -1299,13 +1299,22 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	bool adj_mcb_base = false;
 	uint16_t stacksz = 256u;
 
+	std::string devname = device;
+	{
+		const char *s = strrchr(device.c_str(),'\\');
+		if (s && *s) {
+			s++;
+			if (*s) devname = s;
+		}
+	}
+
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("config"));
 
 	if (section->Get_bool("device driver mcb"))
 		user_wants_mcb_per_driver = true;
 
 	/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
-	uint16_t psp_blocks = (0x80 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
+	uint16_t psp_blocks = (0x80 + devname.length() + 1 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
 	uint16_t blocks = psp_blocks;
 	if (!DOS_ResizeMemory(dos.psp(),&blocks))
 		return false;
@@ -1353,7 +1362,7 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 	/* redirect the stack pointer */
 	CPU_SetSegGeneral(ss,dos.psp());
-	reg_esp = 0x80 + devparm.length() + 3u + stacksz - 2u;
+	reg_esp = 0x80 + devname.length() + 1 + devparm.length() + 3u + stacksz - 2u;
 
 	/* allocate a new memory block to hold the device driver image. */
 	/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
@@ -1444,12 +1453,31 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			s.hdr.record_length = 22;
 
 		/* init arguments */
+		/* NTS: This is also not documented by Microsoft apparently, but the init string apparently includes
+		 *      the name of the device driver. It's not just the text following the device.
+		 *
+		 *      Apparently 'DEVICE=C:\DOS\BLAH.SYS /X /Y /Z'
+		 *      will produce an init string of BLAH.SYS /X /Y /Z' not '/X /Y /Z'
+		 *
+		 *      RAMDRIVE.SYS is hardcoded to assume this. If we don't prepend the driver name into the init
+		 *      str the first command line switch will be silently ignored.
+		 *
+		 *      Sometimes I wonder if the MS-DOS environment was chaotic and buggy purely because so many
+		 *      programmers had to guess and hack around to figure things out like that from lack of good
+		 *      or any documentation. */
 		{
-			const char *s = devparm.c_str();
 			unsigned int i=0;
+			const char *s;
 
+			s = devname.c_str();
+			LOG(LOG_MISC,LOG_DEBUG)("Init device name '%s'",s);
+			while (*s) real_writeb(dos.psp(),0x80+(i++),*s++);
+
+			real_writeb(dos.psp(),0x80+(i++),' ');
+
+			s = devparm.c_str();
 			LOG(LOG_MISC,LOG_DEBUG)("Init str '%s'",s);
-			while (i < devparm.length() && *s) real_writeb(dos.psp(),0x80+(i++),*s++);
+			while (*s) real_writeb(dos.psp(),0x80+(i++),*s++);
 
 			/* \r\n terminated */
 			/* OAKCDROM.SYS requires \r\n, or else scans memory for eternity */
@@ -1458,6 +1486,8 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 			/* NULL terminator */
 			real_writeb(dos.psp(),0x80+i,0);
+
+			assert(i <= );
 		}
 
 		/* block device: fill in drive number so RAMDRIVE.SYS can properly claim anything but drive A: */
