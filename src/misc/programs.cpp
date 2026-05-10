@@ -1314,7 +1314,8 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 		user_wants_mcb_per_driver = true;
 
 	/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
-	uint16_t psp_blocks = (0x80 + devname.length() + 1 + devparm.length() + 3u + stacksz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
+	unsigned int psp_sz = 0x80 + devname.length() + 1 + devparm.length() + 3u + stacksz;
+	uint16_t psp_blocks = (psp_sz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
 	uint16_t blocks = psp_blocks;
 	if (!DOS_ResizeMemory(dos.psp(),&blocks))
 		return false;
@@ -1362,7 +1363,7 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 	/* redirect the stack pointer */
 	CPU_SetSegGeneral(ss,dos.psp());
-	reg_esp = 0x80 + devname.length() + 1 + devparm.length() + 3u + stacksz - 2u;
+	reg_esp = psp_sz - 2u;
 
 	/* allocate a new memory block to hold the device driver image. */
 	/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
@@ -1485,9 +1486,9 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			real_writeb(dos.psp(),0x80+(i++),0x0A);
 
 			/* NULL terminator */
-			real_writeb(dos.psp(),0x80+i,0);
+			real_writeb(dos.psp(),0x80+(i++),0);
 
-			assert(i <= );
+			assert((0x80+i) <= (psp_sz - stacksz));
 		}
 
 		/* block device: fill in drive number so RAMDRIVE.SYS can properly claim anything but drive A: */
