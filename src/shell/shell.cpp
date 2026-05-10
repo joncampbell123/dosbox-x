@@ -1054,10 +1054,12 @@ void DOS_Shell::Prepare(void) {
 			if(!chinasea)makestdcp950table();
 			if(chinasea) makeseacp951table();
 			InitCodePage();
-			if(startbanner && !control->opt_fastlaunch && !shown_welcome) {
-				//showWelcome(this);
-				DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
-				shown_welcome = true;
+			if(startbanner && !control->opt_fastlaunch) {
+				if (!shown_welcome) {
+					//showWelcome(this);
+					DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
+					shown_welcome = true;
+				}
 			}
 			else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed()) {
 				WriteOut("\033[2J");
@@ -2298,10 +2300,12 @@ void DOS_ConfigShell::Run(void) {
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 		bool startbanner = section->Get_bool("startbanner");
 
-		if(startbanner && !control->opt_fastlaunch && !shown_welcome) {
-			//showWelcome(this);
-			DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
-			shown_welcome = true;
+		if(startbanner && !control->opt_fastlaunch) {
+			if (!shown_welcome) {
+				//showWelcome(this);
+				DoCommand((char *)std::string("z:\\system\\intro welcome").c_str());
+				shown_welcome = true;
+			}
 		}
 		else if((CurMode->type == M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed()) {
 			WriteOut("\033[2J");
