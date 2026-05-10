@@ -1870,9 +1870,12 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			/* Floppy disks don't have partitions */
 			partSectOff = 0;
 
-			if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
-				/* Get_Geometry fails for some floppies with weird geometries, so try obtaining the geometry from BPB in such case */
-				LOG_MSG("drive_fat.cpp: No geometry, check your image. Try obtaining from BPB");
+			/* MS-DOS block device drivers do not have geometry, they just have sectors */
+			if (loadedDisk->class_id != imageDisk::ID_MSDOSBLOCKDEV) {
+				if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
+					/* Get_Geometry fails for some floppies with weird geometries, so try obtaining the geometry from BPB in such case */
+					LOG_MSG("drive_fat.cpp: No geometry, check your image. Try obtaining from BPB");
+				}
 			}
 		}
 
