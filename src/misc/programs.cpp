@@ -1291,6 +1291,8 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
     }
 }
 
+uint8_t device_nextdrive = 0;
+
 bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	bool user_wants_mcb_per_driver = false;
 	uint16_t devseg = 0,ofs,attr;
@@ -1459,13 +1461,10 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 		}
 
 		/* block device: fill in drive number so RAMDRIVE.SYS can properly claim anything but drive A: */
+		/* NTS: If a block device reports multiple units, that means it occupies consecutive drive letters.
+		 *      If we can't guarantee that, that might be a problem. Maybe. */
 		if (!(attr & DEVATTR_ISCHAR)) {
-			/* PC-98 mode start with drive A:
-			 * IBM PC mode start with drive C: */
-			if (IS_PC98_ARCH)
-				s.drive_num = 0;
-			else
-				s.drive_num = 2;
+			s.drive_num = device_nextdrive;
 
 			while (s.drive_num<DOS_DRIVES && Drives[s.drive_num]) s.drive_num++;
 
@@ -1565,6 +1564,9 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			 * But at least in the MS-DOS 4.0 source code, this is much clearer from the ASM files that make up RAMDRIVE.SYS */
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver set BPB array pointer to %04x:%04x and returned %u units",
 				s.bpb_ptr >> 16,s.bpb_ptr & 0xFFFFu,s.num_of_units);
+
+			/* adjust nextdrive by the number of units reported */
+			device_nextdrive = s.drive_num + s.num_of_units;
 		}
 	}
 
