@@ -1458,6 +1458,24 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			real_writeb(dos.psp(),0x80+i,0);
 		}
 
+		/* block device: fill in drive number so RAMDRIVE.SYS can properly claim anything but drive A: */
+		if (!(attr & DEVATTR_ISCHAR)) {
+			/* PC-98 mode start with drive A:
+			 * IBM PC mode start with drive C: */
+			if (IS_PC98_ARCH)
+				s.drive_num = 0;
+			else
+				s.drive_num = 2;
+
+			while (s.drive_num<DOS_DRIVES && Drives[s.drive_num]) s.drive_num++;
+
+			if (s.drive_num >= DOS_DRIVES) {
+				if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+				LOG(LOG_MISC,LOG_DEBUG)("No available drive letters for block device");
+				return false;
+			}
+		}
+
 		s.bpb_ptr = RealMake(dos.psp(),0x80);
 		s.end_ptr = RealMake(devseg+blocks,0);/*tell the driver where the current end is, perhaps as a memory size detect?*/
 		const uint32_t bpb_ptr_initial = s.bpb_ptr;
