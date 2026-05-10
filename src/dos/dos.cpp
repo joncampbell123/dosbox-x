@@ -4167,6 +4167,15 @@ void DOS_ApplyMinMCBAndDummyDCB(void) {
 	DOS_AllocMinFreePadding(minimum_mcb_free);
 }
 
+// buffer for block device I/O
+unsigned int bdevbuf_sz = SECTOR_SIZE_MAX * 2u;
+unsigned int bdevbuf_seg = 0;
+
+void InitBdevBuf(void) {
+	if (bdevbuf_seg == 0)
+		bdevbuf_seg = DOS_GetMemory(bdevbuf_sz >> 4u,"block device buffer");
+}
+
 class DOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[9];
@@ -5109,6 +5118,8 @@ void DOS_RescanAll(bool pressed) {
 }
 
 void DOS_Init() {
+	bdevbuf_seg = 0;
+
 	LOG(LOG_DOSMISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
 	LOG(LOG_DOSMISC,LOG_DEBUG)("sizeof(union bootSector) = %u",(unsigned int)sizeof(union bootSector));
 	LOG(LOG_DOSMISC,LOG_DEBUG)("sizeof(struct FAT_BootSector) = %u",(unsigned int)sizeof(struct FAT_BootSector));

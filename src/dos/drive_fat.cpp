@@ -1725,7 +1725,12 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			partSectOff = startSector;
 			partSectSize = countSector;
 		}
-		else if(is_hdd) {
+		/* NTS: MS-DOS block devices cannot represent a disk with a partition table.
+		 *      There is no consideration or support for it. The BIOS block devices
+		 *      built in do not either. Partition support only works because MSINIT
+		 *      takes the time to parse the partition table and create block devices
+		 *      for it. This is why you have to reboot after using FDISK. */
+		else if(is_hdd && loadedDisk->class_id != imageDisk::ID_MSDOSBLOCKDEV) {
 			/* Set user specified harddrive parameters */
 			if (headscyl > 0 && cylinders > 0 && cylsector > 0 && bytesector > 0)
 				loadedDisk->Set_Geometry(headscyl, cylinders,cylsector, bytesector);
@@ -1865,9 +1870,12 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			/* Floppy disks don't have partitions */
 			partSectOff = 0;
 
-			if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
-				/* Get_Geometry fails for some floppies with weird geometries, so try obtaining the geometry from BPB in such case */
-				LOG_MSG("drive_fat.cpp: No geometry, check your image. Try obtaining from BPB");
+			/* MS-DOS block device drivers do not have geometry, they just have sectors */
+			if (loadedDisk->class_id != imageDisk::ID_MSDOSBLOCKDEV) {
+				if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
+					/* Get_Geometry fails for some floppies with weird geometries, so try obtaining the geometry from BPB in such case */
+					LOG_MSG("drive_fat.cpp: No geometry, check your image. Try obtaining from BPB");
+				}
 			}
 		}
 
@@ -2045,6 +2053,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				bytesector = bootbuffer.bpb.v.BPB_BytsPerSec;
 				if(headscyl == 0 || cylsector == 0 || bytesector == 0 || loadedDisk->diskSizeK == 0 || ((bytesector & (bytesector - 1)) != 0)/*not a power of 2*/){
 					LOG_MSG("drive_fat.cpp: Illegal BPB value");
+					LOG(LOG_MISC,LOG_DEBUG)("heads=%u cyls=%u sect=%u sizeK=%u bytesect=%u",headscyl,cylsector,bytesector,(unsigned int)loadedDisk->diskSizeK,bytesector);
 					if(!IS_PC98_ARCH){
 						created_successfully = false;
 						return;
@@ -2328,8 +2337,9 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 		return;
 	}
 
-	/* Filesystem must be contiguous to use absolute sectors, otherwise CHS will be used */
-	absolute = IS_PC98_ARCH || ((BPB.v.BPB_NumHeads == headscyl) && (BPB.v.BPB_SecPerTrk == cylsector));
+	/* Filesystem must be contiguous to use absolute sectors, otherwise CHS will be used. */
+	/* MS-DOS block devices can only do absolute sectors, there is no support for C/H/S */
+	absolute = IS_PC98_ARCH || loadedDisk->class_id == imageDisk::ID_MSDOSBLOCKDEV || ((BPB.v.BPB_NumHeads == headscyl) && (BPB.v.BPB_SecPerTrk == cylsector));
 	LOG(LOG_DOSMISC,LOG_DEBUG)("FAT driver: Using %s sector access",absolute ? "absolute" : "C/H/S");
 
 	/* Determine FAT format, 12, 16 or 32 */
