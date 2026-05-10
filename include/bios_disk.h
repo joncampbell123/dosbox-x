@@ -81,7 +81,8 @@ class imageDisk {
 			ID_D88,
 			ID_NFD,
 			ID_EMPTY_DRIVE,
-			ID_INT13
+			ID_INT13,
+			ID_MSDOSBLOCKDEV
 		};
 
 		virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
@@ -125,6 +126,7 @@ class imageDisk {
 		imageDisk(IMAGE_TYPE class_id);
 		uint8_t floppytype = 0;
 
+	public:
 		uint32_t reserved_cylinders = 0;
 		uint64_t image_base = 0;
 		uint64_t image_length = 0;
@@ -629,6 +631,24 @@ public:
 	bool enable_int13 = false;
 	imageDisk* subdisk = NULL;
 	bool busy = false;
+};
+
+class imageDiskMSDOSBlockDevice : public imageDisk {
+public:
+	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
+	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
+
+	bool detectDiskChange(void) override;
+
+	imageDiskMSDOSBlockDevice();
+	virtual ~imageDiskMSDOSBlockDevice();
+
+	uint8_t media_dpb = 0;
+	uint8_t unit_code = 0;
+	uint16_t devseg = 0;
+	uint16_t attr = 0;
+	PhysPt devhdr = 0;
+	PhysPt bpbptr = 0;
 };
 
 #endif

@@ -1404,4 +1404,9 @@ typedef char host_cnv_char_t;
 #define	CROSS_DOSFILENAME(blah) strreplace(blah,'/','\\')
 #endif
 
+extern unsigned int bdevbuf_sz;
+extern unsigned int bdevbuf_seg;
+
+void InitBdevBuf(void);
+
 #endif

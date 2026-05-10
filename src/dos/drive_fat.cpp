@@ -2045,6 +2045,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				bytesector = bootbuffer.bpb.v.BPB_BytsPerSec;
 				if(headscyl == 0 || cylsector == 0 || bytesector == 0 || loadedDisk->diskSizeK == 0 || ((bytesector & (bytesector - 1)) != 0)/*not a power of 2*/){
 					LOG_MSG("drive_fat.cpp: Illegal BPB value");
+					LOG(LOG_MISC,LOG_DEBUG)("heads=%u cyls=%u sect=%u sizeK=%u bytesect=%u",headscyl,cylsector,bytesector,(unsigned int)loadedDisk->diskSizeK,bytesector);
 					if(!IS_PC98_ARCH){
 						created_successfully = false;
 						return;

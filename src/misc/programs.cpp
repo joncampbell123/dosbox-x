@@ -45,6 +45,7 @@
 #include "jfont.h"
 #include "render.h"
 #include "../ints/int10.h"
+#include "bios_disk.h"
 #include "sdlmain.h"
 #include "cpu.h"
 #if defined(WIN32)
@@ -1294,6 +1295,130 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 
 uint8_t device_nextdrive = 0;
 
+uint8_t imageDiskMSDOSBlockDevice::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+	const unsigned int max_sects = (bdevbuf_sz - 16) / sector_size;
+	if (max_sects == 0) return 0x05;
+
+	const uint16_t count = 1;
+	const uint32_t sector = sectnum;
+	const uint16_t strategy = mem_readw(devhdr+6);
+	const uint16_t intrupt = mem_readw(devhdr+8);
+	unsigned char *p_data = (unsigned char*)data;
+
+	uint16_t oldbx = reg_bx;
+	uint16_t oldds = SegValue(ds);
+	uint16_t oldes = SegValue(es);
+
+	DOS_DEVHDR::req_rwio req = {0};
+	req.hdr.record_length = sizeof(req);
+	req.hdr.unit_code = unit_code;
+	req.hdr.cmd_code = DEVFUNC_READ;
+	req.xfer_addr = RealMake(bdevbuf_seg+1,0);
+	req.count = count;
+	req.ptr_volid = RealMake(bdevbuf_seg,0);
+	if (attr & DEVATTRBLK_EXTENDED) {
+		req.start_sector = 0xFFFF;
+		req.start_sector32 = sector;
+	}
+	else {
+		req.start_sector = sector;
+		req.start_sector32 = 0;
+	}
+	req.media_dpb = media_dpb;
+	MEM_BlockWrite(PhysMake(dos.dcp,0),&req,sizeof(req));
+
+	LOG(LOG_MISC,LOG_DEBUG)("Block device read devseg=%x sectnum %x devseg %x strat %x intr %x xfer=%x:%x",
+		devseg,sectnum,devseg,strategy,intrupt,
+		req.xfer_addr>>16,req.xfer_addr&0xFFFFu);
+
+	reg_bx = 0;
+	SegSet16(ds, devseg);
+	SegSet16(es, dos.dcp);
+	CALLBACK_RunRealFar(devseg, strategy);
+	CALLBACK_RunRealFar(devseg, intrupt);
+	reg_bx = oldbx;
+	SegSet16(es, oldes);
+	SegSet16(ds, oldds);
+
+	MEM_BlockRead(PhysMake(dos.dcp,0),&req,sizeof(req));
+
+	LOG(LOG_MISC,LOG_DEBUG)("--result status=%x count=%u",
+		req.hdr.status,req.count);
+
+	if (req.hdr.status & 0x8000) return 0x05;/*error*/
+	if (req.count == 0) return 0x05;/*error*/
+
+	MEM_BlockRead(PhysMake(bdevbuf_seg+1,0),p_data,sector_size);
+        return 0;
+}
+
+uint8_t imageDiskMSDOSBlockDevice::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
+	const unsigned int max_sects = (bdevbuf_sz - 16) / sector_size;
+	if (max_sects == 0) return 0x05;
+
+	const uint16_t count = 1;
+	const uint32_t sector = sectnum;
+	const uint16_t strategy = mem_readw(devhdr+6);
+	const uint16_t intrupt = mem_readw(devhdr+8);
+	const unsigned char *p_data = (const unsigned char*)data;
+
+	uint16_t oldbx = reg_bx;
+	uint16_t oldds = SegValue(ds);
+	uint16_t oldes = SegValue(es);
+
+	DOS_DEVHDR::req_rwio req = {0};
+	req.hdr.record_length = sizeof(req);
+	req.hdr.unit_code = unit_code;
+	req.hdr.cmd_code = DEVFUNC_WRITE;
+	req.xfer_addr = RealMake(bdevbuf_seg+1,0);
+	req.count = count;
+	req.ptr_volid = RealMake(bdevbuf_seg,0);
+	if (attr & DEVATTRBLK_EXTENDED) {
+		req.start_sector = 0xFFFF;
+		req.start_sector32 = sector;
+	}
+	else {
+		req.start_sector = sector;
+		req.start_sector32 = 0;
+	}
+	req.media_dpb = media_dpb;
+	MEM_BlockWrite(PhysMake(dos.dcp,0),&req,sizeof(req));
+	MEM_BlockWrite(PhysMake(bdevbuf_seg+1,0),p_data,sector_size);
+
+	LOG(LOG_MISC,LOG_DEBUG)("Block device write devseg=%x sectnum %x devseg %x strat %x intr %x xfer=%x:%x",
+		devseg,sectnum,devseg,strategy,intrupt,
+		req.xfer_addr>>16,req.xfer_addr&0xFFFFu);
+
+	reg_bx = 0;
+	SegSet16(ds, devseg);
+	SegSet16(es, dos.dcp);
+	CALLBACK_RunRealFar(devseg, strategy);
+	CALLBACK_RunRealFar(devseg, intrupt);
+	reg_bx = oldbx;
+	SegSet16(es, oldes);
+	SegSet16(ds, oldds);
+
+	MEM_BlockRead(PhysMake(dos.dcp,0),&req,sizeof(req));
+
+	LOG(LOG_MISC,LOG_DEBUG)("--result status=%x count=%u",
+		req.hdr.status,req.count);
+
+	if (req.hdr.status & 0x8000) return 0x05;/*error*/
+	if (req.count == 0) return 0x05;/*error*/
+
+        return 0;
+}
+
+bool imageDiskMSDOSBlockDevice::detectDiskChange(void) {
+	return false;//TODO
+}
+
+imageDiskMSDOSBlockDevice::imageDiskMSDOSBlockDevice() : imageDisk(ID_MSDOSBLOCKDEV) {
+}
+
+imageDiskMSDOSBlockDevice::~imageDiskMSDOSBlockDevice() {
+}
+
 bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	bool user_wants_mcb_per_driver = false;
 	uint16_t devseg = 0,ofs,attr;
@@ -1624,6 +1749,20 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 				uint16_t offset = real_readw(s.bpb_ptr>>16,(s.bpb_ptr&0xFFFFu)+(i*2));
 				if (offset == 0xFFFF) break; /* RAMDRIVE.SYS seems to fill entries past num_of_units with 0xFFFF */
 
+				uint8_t newdrv = s.drive_num + i;
+				if (newdrv < DOS_DRIVES && Drives[newdrv]) {
+					LOG(LOG_MISC,LOG_DEBUG)("Drive %c is already taken",newdrv+'A');
+					while (newdrv < DOS_DRIVES && Drives[newdrv]) newdrv++;
+
+					if (newdrv < DOS_DRIVES) {
+						LOG(LOG_MISC,LOG_DEBUG)("Attaching block device to drive %c instead",newdrv+'A');
+					}
+					else {
+						LOG(LOG_MISC,LOG_DEBUG)("There is no available drive letter for the block device");
+						continue;
+					}
+				}
+
 				/* assume the largest possible structure.
 				 * I don't have yet a device driver that uses the full structure or
 				 * that provides a disk larger than 32MB (RAMDRIVE.SYS limits itself to 32MB or less).
@@ -1672,6 +1811,41 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 					bpb.v.BPB_TotSec16,
 					bpb.v.BPB_Media,
 					bpb.v.BPB_FATSz16);
+
+				if (bpb.v.BPB_BytsPerSec >= 128 && bpb.v.BPB_BytsPerSec <= SECTOR_SIZE_MAX) {
+					imageDiskMSDOSBlockDevice *bd = new imageDiskMSDOSBlockDevice();
+					bd->attr = attr;
+					bd->unit_code = i;
+					bd->devseg = devseg;
+					bd->devhdr = PhysMake(devseg,0);
+					bd->bpbptr = PhysMake(devseg,offset);
+					bd->media_dpb = bpb.v.BPB_Media;
+					bd->sector_size = bpb.v.BPB_BytsPerSec;
+					if (bpb.v.BPB_TotSec16 == 0)
+						bd->image_length = (uint64_t)bd->sector_size * (uint64_t)bpb.v.BPB_TotSec32;
+					else
+						bd->image_length = (uint64_t)bd->sector_size * (uint64_t)bpb.v.BPB_TotSec16;
+
+					bd->diskSizeK = (bd->image_length + 1023) / 1024;
+
+					InitBdevBuf();
+					if (bd->image_length != 0) {
+						std::vector<std::string> opt;
+						DOS_Drive* nd = new fatDrive(bd,opt);
+						if ((dynamic_cast<fatDrive*>(nd))->created_successfully) {
+							DriveManager::AppendDisk(newdrv, nd);
+							DriveManager::InitializeDrive(newdrv);
+						}
+						else {
+							LOG(LOG_MISC,LOG_DEBUG)("Drive creation failed");
+							delete nd; /* releases and deletes bd */
+						}
+					}
+					else {
+						LOG(LOG_MISC,LOG_DEBUG)("Block device image length == 0, removed");
+						delete bd;
+					}
+				}
 			}
 		}
 	}
