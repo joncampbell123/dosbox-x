@@ -7301,7 +7301,7 @@ class IMGMOUNT : public Program {
 
 			QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
 
-			uint64_t sectors;
+			uint64_t sectors = 0;
 			if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
 				uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
 				if ((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
