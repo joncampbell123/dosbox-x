@@ -204,8 +204,10 @@ CMscdex::~CMscdex(void) {
 	if ((bootguest||(use_quick_reboot&&!bootvm))&&bootdrive>=0) return;
 	defaultBufSeg = 0;
 	for (uint16_t i=0; i<GetNumDrives(); i++) {
-		delete cdrom[i];
-		cdrom[i] = nullptr;
+		if (cdrom[i]) {
+			cdrom[i]->Release();
+			cdrom[i] = nullptr;
+		}
 	}
 	delete[] name;
 }
@@ -240,7 +242,8 @@ int CMscdex::RemoveDrive(uint16_t _drive)
 	}
 
 	if (idx == MSCDEX_MAX_DRIVES || (idx!=0 && idx!=GetNumDrives()-1)) return 0;
-	delete cdrom[idx];
+	cdrom[idx]->Release();
+	cdrom[idx] = nullptr;
 	if (idx==0) {
 		for (uint16_t i=0; i<GetNumDrives(); i++) {
 			if (i == MSCDEX_MAX_DRIVES-1) {
@@ -296,46 +299,46 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		if ((osi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (osi.dwMajorVersion>4)) {
 			// only WIN NT/200/XP
 			if (useCdromInterface==CDROM_USE_IOCTL_DIO) {
-				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DIO);
+				(cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DIO))->Addref();
 				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
 				break;
 			}
 			if (useCdromInterface==CDROM_USE_IOCTL_DX) {
-				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DX);
+				(cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DX))->Addref();
 				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (digital audio extraction).");
 				break;
 			}
 			if (useCdromInterface==CDROM_USE_IOCTL_MCI) {
-				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_MCI);
+				(cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_MCI))->Addref();
 				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (media control interface).");
 				break;
 			}
 		}
 		if (useCdromInterface==CDROM_USE_ASPI) {
 			// all Wins - ASPI
-			cdrom[numDrives] = new CDROM_Interface_Aspi();
+			(cdrom[numDrives] = new CDROM_Interface_Aspi())->Addref();
 			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: ASPI Interface.");
 			break;
 		}
 #endif
 #if defined (LINUX) || defined(OS2)
 		// Always use IOCTL in Linux or OS/2
-		cdrom[numDrives] = new CDROM_Interface_Ioctl();
+		(cdrom[numDrives] = new CDROM_Interface_Ioctl())->Addref();
 		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
 #else
 		// Default case windows and other oses
-		cdrom[numDrives] = new CDROM_Interface_SDL();
+		(cdrom[numDrives] = new CDROM_Interface_SDL())->Addref();
 		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: SDL Interface.");
 #endif
 		} break;
 	case 0x01:	// iso cdrom interface	
 		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting iso file as cdrom: %s", physicalPath);
-		cdrom[numDrives] = new CDROM_Interface_Image((uint8_t)numDrives);
+		(cdrom[numDrives] = new CDROM_Interface_Image((uint8_t)numDrives))->Addref();
 		break;
 	case 0x02:	// fake cdrom interface (directories)
 		{
 			CDROM_Interface_Fake *fake = new CDROM_Interface_Fake;
-			cdrom[numDrives] = fake;
+			(cdrom[numDrives] = fake)->Addref();
 			assert(fake->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE);
 			if (!strcmp(physicalPath,"empty")) {
 				fake->isEmpty = true;
@@ -464,9 +467,9 @@ void CMscdex::ReplaceDrive(CDROM_Interface* newCdrom, uint8_t subUnit) {
 #if !defined(OSFREE)
 		StopAudio(subUnit);
 #endif
-		delete cdrom[subUnit];
+		cdrom[subUnit]->Release();
 	}
-	cdrom[subUnit] = newCdrom;
+	(cdrom[subUnit] = newCdrom)->Addref();
 }
 
 PhysPt CMscdex::GetDefaultBuffer(void) {
@@ -1753,13 +1756,15 @@ void POD_Load_DOS_Mscdex( std::istream& stream )
 	if (!dos_kernel_disabled) {
 		uint16_t dnum;
 		READ_POD( &dnum, dnum);
-        if (mscdex->GetNumDrives()>dnum) {
-            mscdex->numDrives=dnum;
-            for (uint16_t i=dnum; i<mscdex->GetNumDrives(); i++) {
-                delete mscdex->cdrom[i];
-                mscdex->cdrom[i] = nullptr;
-            }
-        }
+		if (mscdex->GetNumDrives()>dnum) {
+			mscdex->numDrives=dnum;
+			for (uint16_t i=dnum; i<mscdex->GetNumDrives(); i++) {
+				if (mscdex->cdrom[i]) {
+					mscdex->cdrom[i]->Release();
+					mscdex->cdrom[i] = nullptr;
+				}
+			}
+		}
 		for (uint8_t drive_unit=0; drive_unit<dnum; drive_unit++) {
 			TMSF pos, start, end;
 			uint32_t msf_time, play_len;

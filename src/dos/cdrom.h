@@ -108,7 +108,7 @@ public:
 	};
 
 //	CDROM_Interface						(void);
-	virtual ~CDROM_Interface			(void) {};
+	virtual ~CDROM_Interface			(void) { if (refcount) fprintf(stderr,"CDROM_Interface delete with refcount %u\n",refcount); };
 
     //! \brief Set the device associated with this interface, if supported by emulation
 	virtual bool	SetDevice			(char* path, int forceCD) = 0;
@@ -156,6 +156,23 @@ public:
 	virtual void	InitNewMedia		(void) {};
 
 	INTERFACE_TYPE class_id = ID_BASE;
+
+	private:
+		volatile int refcount = 0;
+
+	public:
+		int Addref() {
+			return ++refcount;
+		}
+		int Release() {
+			int ret = --refcount;
+			if (ret < 0) {
+				fprintf(stderr,"WARNING: CDROM_Interface Release() changed refcount to %d\n",ret);
+				abort();
+			}
+			if (ret == 0) delete this;
+			return ret;
+		}
 };	
 
 //! \brief CD-ROM interface to SDL 1.x CD-ROM support
