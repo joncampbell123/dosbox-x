@@ -86,6 +86,11 @@ Next version
     after booting a guest OS without reaching back through MSCDEX emulation,
     and MSCDEX emulation can now unload properly with the rest of the DOS
     kernel. (joncampbell123)
+  - Fix bug where El Torito no emulation boot failed to notify the DOS
+    kernel that the MCB chain is no longer valid, causing MCB chain corruption
+    crashes. (joncampbell123)
+  - Added checks to sector I/O code to fix potential buffer overrun issues.
+    (orbisai0security)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
