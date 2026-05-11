@@ -12759,6 +12759,11 @@ void BIOS_Destroy(Section* /*sec*/){
         delete test;
         test = NULL;
     }
+
+    if (INT13_ElTorito_cdrom) {
+        INT13_ElTorito_cdrom->Release();
+        INT13_ElTorito_cdrom = NULL;
+    }
 }
 
 void BIOS_OnPowerOn(Section* sec) {
@@ -12788,6 +12793,11 @@ void BIOS_OnResetComplete(Section *x) {
     if (biosConfigSeg != 0u) {
         ROMBIOS_FreeMemory((Bitu)(biosConfigSeg << 4u)); /* remember it was alloc'd paragraph aligned, then saved >> 4 */
         biosConfigSeg = 0u;
+    }
+
+    if (INT13_ElTorito_cdrom) {
+        INT13_ElTorito_cdrom->Release();
+        INT13_ElTorito_cdrom = NULL;
     }
 
     call_pnp_rp = 0;

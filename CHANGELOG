@@ -79,6 +79,18 @@ Next version
     FAT filesystem driver, and then a drive letter. At this time, this
     is enough for Microsoft RAMDRIVE.SYS to load and appear as a working
     drive letter in DOSBox-X (joncampbell123)
+  - CD-ROM device emulation is no longer strictly tied to MSCDEX emulation.
+    While devices are still initialized through MSCDEX emulation, it is now
+    possible for other parts of emulation to own a reference to it without
+    MSCDEX. This means it is now possible for CD-ROM emulation to work
+    after booting a guest OS without reaching back through MSCDEX emulation,
+    and MSCDEX emulation can now unload properly with the rest of the DOS
+    kernel. (joncampbell123)
+  - Fix bug where El Torito no emulation boot failed to notify the DOS
+    kernel that the MCB chain is no longer valid, causing MCB chain corruption
+    crashes. (joncampbell123)
+  - Added checks to sector I/O code to fix potential buffer overrun issues.
+    (orbisai0security)
   - Fixed logging of 'Packed file is corrupt' message detection (maron2000)
 
 2026.05.02

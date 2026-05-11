@@ -261,7 +261,7 @@ enum {
 
 class IDEATAPICDROMDevice:public IDEDevice {
 public:
-    IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave);
+    IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave,CDROM_Interface *cdrom);
     ~IDEATAPICDROMDevice();
     void writecommand(uint8_t cmd) override;
 public:
@@ -270,6 +270,7 @@ public:
     std::string id_model;
     unsigned char drive_index;
     Bitu sector_transfer_limit = 16;
+    CDROM_Interface *cdrom = NULL;
     CDROM_Interface *getMSCDEXDrive();
     void update_from_cdrom();
     Bitu data_read(Bitu iolen) override; /* read from 1F0h data port from IDE device */
@@ -1473,7 +1474,7 @@ void IDEATAPICDROMDevice::set_sense(unsigned char SK,unsigned char ASC,unsigned 
     sense[13] = ASCQ;
 }
 
-IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave) : IDEDevice(c,_slave) {
+IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave,CDROM_Interface *n_cdrom) : IDEDevice(c,_slave) {
     this->drive_index = drive_index;
     sector_i = sector_total = 0;
     atapi_to_host = false;
@@ -1486,6 +1487,8 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     atapi_cmd_i = 0;
     atapi_cmd_total = 0;
     memset(sector, 0, sizeof(sector));
+
+    if (n_cdrom) (cdrom = n_cdrom)->Addref();
 
     memset(sense,0,sizeof(sense));
     IDEATAPICDROMDevice::set_sense(/*SK=*/0);
@@ -1534,6 +1537,10 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 }
 
 IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
+    if (cdrom) {
+        cdrom->Release();
+        cdrom = NULL;
+    }
 }
 
 void IDEATAPICDROMDevice::on_mode_select_io_complete() {
@@ -2650,11 +2657,6 @@ imageDisk *IDEATADevice::getBIOSdisk() {
 }
 
 CDROM_Interface *IDEATAPICDROMDevice::getMSCDEXDrive() {
-    CDROM_Interface *cdrom=NULL;
-
-    if (!GetMSCDEXDrive(drive_index,&cdrom))
-        return NULL;
-
     return cdrom;
 }
 
@@ -2804,17 +2806,20 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
         LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
         return;
     }
+    
+    CDROM_Interface *cdrom = NULL;
 
-    if (!GetMSCDEXDrive(drive_index,NULL)) {
+    if (!GetMSCDEXDrive(drive_index,&cdrom)) {
         LOG_MSG("IDE: Asked to attach CD-ROM that does not exist\n");
         return;
     }
 
-    dev = new IDEATAPICDROMDevice(c,drive_index,slave);
+    dev = new IDEATAPICDROMDevice(c,drive_index,slave,cdrom);
     if(dev == NULL) {
         LOG_MSG("IMGMOUNT: Failed to allocate CD-ROM drive %c to IDE %s %s", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
         return;
     }
+    cdrom->Release();
     dev->update_from_cdrom();
     c->device[slave?1:0] = (IDEDevice*)dev;
     LOG_MSG("IMGMOUNT: CD-ROM image mounted to drive %c (IDE %s %s)", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
