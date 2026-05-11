@@ -162,7 +162,7 @@ public:
 
 	public:
 		int Addref() {
-			fprintf(stderr,"ptr %p addref from %u\n",(void*)this,refcount); 
+//			fprintf(stderr,"ptr %p addref from %u\n",(void*)this,refcount); 
 			return ++refcount;
 		}
 		int Release() {
@@ -172,7 +172,7 @@ public:
 				abort();
 			}
 			if (ret == 0) delete this;
-			fprintf(stderr,"ptr %p releaseref to %u\n",(void*)this,ret); 
+//			fprintf(stderr,"ptr %p releaseref to %u\n",(void*)this,ret); 
 			return ret;
 		}
 };	
