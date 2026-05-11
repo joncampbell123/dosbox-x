@@ -2299,6 +2299,7 @@ public:
              * For floppy emulation boot, use IMGMOUNT and then boot the emulated floppy drive. */
             if (el_torito_mode != "noemu") {
                 WriteOut(MSG_Get("PROGRAM_BOOT_UNSUPPORTED"));
+                src_drive->Release();
                 return;
             }
 
@@ -2312,6 +2313,7 @@ public:
 	    unsigned char el_torito_mediatype = 0;
             if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
                 WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOT_RECORD"));
+                src_drive->Release();
                 return;
             }
 
@@ -2322,6 +2324,7 @@ public:
             /* Step #2: Parse the records. Each one is 32 bytes long */
             if (!src_drive->ReadSectorsHost(entries, false, el_torito_base, 1)) {
                 WriteOut(MSG_Get("PROGRAM_ELTORITO_ENTRY_UNREADABLE"));
+                src_drive->Release();
                 return;
             }
 
@@ -2429,6 +2432,10 @@ public:
 
 	    load_seg = el_torito_load_segment;
 
+            /* we're about to overwrite low memory and possibly corrupt the MCB, and the shell now frees memory.
+             * to avoid a MCB corruption crash in this emulation, reset the MCB chain now. */
+	    dos_kernel_shutdown_mcb = true;
+
             /* round up to CD-ROM sectors and read */
             unsigned int bootcdsect = (el_torito_sectors + 3u) / 4u; /* 4 512-byte sectors per CD-ROM sector */
             if (bootcdsect == 0) bootcdsect = 1;
@@ -2436,6 +2443,7 @@ public:
             for (unsigned int s=0;s < bootcdsect;s++) {
                 if (!src_drive->ReadSectorsHost(entries, false, el_torito_rba+s, 1)) {
                     WriteOut(MSG_Get("PROGRAM_ELTORITO_BOOTSECTOR"));
+                    src_drive->Release();
                     return;
                 }
 
@@ -2443,9 +2451,12 @@ public:
             }
 
             /* signal INT 13h to emulate a CD-ROM drive El Torito "no emulation" style */
+            assert(INT13_ElTorito_cdrom == NULL);
             INT13_ElTorito_IDEInterface = -1;
             INT13_ElTorito_NoEmuDriveNumber = 0x90;
             INT13_ElTorito_NoEmuCDROMDrive = el_torito_cd_drive;
+            (INT13_ElTorito_cdrom = src_drive)->Addref();
+            src_drive->Release();
 
             /* this is required if INT 13h extensions are to correctly report what IDE controller the drive is connected to and master/slave */
             {
@@ -6349,6 +6360,7 @@ class IMGMOUNT : public Program {
 			 *        This mode will never support "no emulation" boot. */
 			if (type != "floppy") {
 				WriteOut(MSG_Get("PROGRAM_ELTORITO_REQUIRE_FLOPPY"));
+				src_drive->Release();
 				return false;
 			}
 
@@ -6356,15 +6368,17 @@ class IMGMOUNT : public Program {
 			unsigned long el_torito_base = 0, boot_record_sector = 0;
 			if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
 				WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOT_RECORD"));
+				src_drive->Release();
 				return false;
 			}
 
 			LOG_MSG("El Torito emulation: Found ISO 9660 Boot Record in sector %lu, pointing to sector %lu\n",
-					boot_record_sector, el_torito_base);
+				boot_record_sector, el_torito_base);
 
 			/* Step #2: Parse the records. Each one is 32 bytes long */
 			if (!src_drive->ReadSectorsHost(entries, false, el_torito_base, 1)) {
 				WriteOut(MSG_Get("PROGRAM_ELTORITO_ENTRY_UNREADABLE"));
+				src_drive->Release();
 				return false;
 			}
 
@@ -6470,9 +6484,11 @@ class IMGMOUNT : public Program {
 
 			if (el_torito_floppy_type == 0xFF || el_torito_floppy_base == ~0UL) {
 				WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY"));
+				src_drive->Release();
 				return false;
 			}
 
+			src_drive->Release();
 			return true;
 		}
 
@@ -6542,11 +6558,12 @@ class IMGMOUNT : public Program {
 			newImage->Addref();
 
 			DOS_Drive* newDrive = new fatDrive(newImage, options);
-			newImage->Release(); //fatDrive calls Addref, and this will release newImage if fatDrive doesn't use it
 			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+				newImage->Release(); //fatDrive calls Addref, and this will release newImage if fatDrive doesn't use it
 				return false;
 			}
+			newImage->Release(); //fatDrive calls Addref, and this will release newImage if fatDrive doesn't use it
 
 			AddToDriveManager(drive, newDrive, 0xF0);
 			AttachToBiosByLetter(newImage, drive);
@@ -7284,7 +7301,7 @@ class IMGMOUNT : public Program {
 
 			QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
 
-			uint64_t sectors;
+			uint64_t sectors = 0;
 			if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
 				uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
 				if ((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
