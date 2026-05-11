@@ -2432,6 +2432,10 @@ public:
 
 	    load_seg = el_torito_load_segment;
 
+            /* we're about to overwrite low memory and possibly corrupt the MCB, and the shell now frees memory.
+             * to avoid a MCB corruption crash in this emulation, reset the MCB chain now. */
+	    dos_kernel_shutdown_mcb = true;
+
             /* round up to CD-ROM sectors and read */
             unsigned int bootcdsect = (el_torito_sectors + 3u) / 4u; /* 4 512-byte sectors per CD-ROM sector */
             if (bootcdsect == 0) bootcdsect = 1;
