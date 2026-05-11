@@ -5241,8 +5241,7 @@ else :\n\tprint(1)\n\"" ) ;
 				if ( tfd_isDarwin( ) )
 				{
 						strcat( lDialogString ,
-"import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set \
-frontmost of process \\\"Python\\\" to true' ''');");
+"import subprocess;subprocess.call(['/usr/bin/osascript','-e','tell app \\\"Finder\\\" to set frontmost of process \\\"Python\\\" to true']);");
 				}
 
 				strcat( lDialogString ,"res=tkMessageBox." ) ;
@@ -6872,8 +6871,7 @@ char * tinyfd_saveFileDialog(
 		if ( tfd_isDarwin( ) )
 		{
                 strcat( lDialogString ,
-"import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set\
- frontmost of process \\\"Python\\\" to true' ''');");
+"import subprocess;subprocess.call(['/usr/bin/osascript','-e','tell app \\\"Finder\\\" to set frontmost of process \\\"Python\\\" to true']);");
 				}
 
 				strcat( lDialogString , "res=tkFileDialog.asksaveasfilename(");
@@ -8146,8 +8144,7 @@ to set mycolor to choose color default color {");
 				if ( tfd_isDarwin( ) )
 				{
 						strcat( lDialogString ,
-"import os;os.system('''osascript -e 'tell app \\\"Finder\\\" to set \
-frontmost of process \\\"Python\\\" to true' ''');");
+"import subprocess;subprocess.call(['osascript','-e','tell app \\\"Finder\\\" to set frontmost of process \\\"Python\\\" to true']);");
 				}
 
 				strcat( lDialogString , "res=tkColorChooser.askcolor(color='" ) ;
