@@ -92,6 +92,7 @@ Next version
   - Added checks to sector I/O code to fix potential buffer overrun issues.
     (orbisai0security)
   - Fixed logging of 'Packed file is corrupt' message detection (maron2000)
+  - Fixed upper 32-bit of LBA was always cleared (maron2000)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
