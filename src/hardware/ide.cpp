@@ -261,7 +261,7 @@ enum {
 
 class IDEATAPICDROMDevice:public IDEDevice {
 public:
-    IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave);
+    IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave,CDROM_Interface *cdrom);
     ~IDEATAPICDROMDevice();
     void writecommand(uint8_t cmd) override;
 public:
@@ -1474,7 +1474,7 @@ void IDEATAPICDROMDevice::set_sense(unsigned char SK,unsigned char ASC,unsigned 
     sense[13] = ASCQ;
 }
 
-IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave) : IDEDevice(c,_slave) {
+IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave,CDROM_Interface *n_cdrom) : IDEDevice(c,_slave) {
     this->drive_index = drive_index;
     sector_i = sector_total = 0;
     atapi_to_host = false;
@@ -1487,6 +1487,8 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     atapi_cmd_i = 0;
     atapi_cmd_total = 0;
     memset(sector, 0, sizeof(sector));
+
+    if (n_cdrom) (cdrom = n_cdrom)->Addref();
 
     memset(sense,0,sizeof(sense));
     IDEATAPICDROMDevice::set_sense(/*SK=*/0);
@@ -2655,11 +2657,6 @@ imageDisk *IDEATADevice::getBIOSdisk() {
 }
 
 CDROM_Interface *IDEATAPICDROMDevice::getMSCDEXDrive() {
-    if (cdrom == NULL) {
-        if (!GetMSCDEXDrive(drive_index,&cdrom))/*will addref*/
-            return NULL;
-    }
-
     return cdrom;
 }
 
@@ -2809,13 +2806,16 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
         LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
         return;
     }
+    
+    CDROM_Interface *cdrom = NULL;
 
-    if (!GetMSCDEXDrive(drive_index,NULL)) {
+    if (!GetMSCDEXDrive(drive_index,&cdrom)) {
         LOG_MSG("IDE: Asked to attach CD-ROM that does not exist\n");
         return;
     }
 
-    dev = new IDEATAPICDROMDevice(c,drive_index,slave);
+    dev = new IDEATAPICDROMDevice(c,drive_index,slave,cdrom);
+    cdrom->Release();
     if(dev == NULL) {
         LOG_MSG("IMGMOUNT: Failed to allocate CD-ROM drive %c to IDE %s %s", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
         return;
