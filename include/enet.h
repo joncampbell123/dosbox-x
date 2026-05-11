@@ -1550,6 +1550,9 @@ extern "C" {
             packet->data = (enet_uint8 *)data;
         }
         else {
+            if (dataLength > SIZE_MAX - sizeof(ENetPacket)) {
+                return NULL;
+            }
             packet = (ENetPacket *)enet_malloc(sizeof (ENetPacket) + dataLength);
             if (packet == NULL) {
                 return NULL;
