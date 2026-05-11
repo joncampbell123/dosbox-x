@@ -1324,6 +1324,7 @@ uint8_t imageDiskMSDOSBlockDevice::Read_AbsoluteSector(uint32_t sectnum, void * 
 		req.start_sector32 = sector;
 	}
 	else {
+		if (sector > 0xFFFFu) return 0x05;
 		req.start_sector = sector;
 		req.start_sector32 = 0;
 	}
@@ -1383,6 +1384,7 @@ uint8_t imageDiskMSDOSBlockDevice::Write_AbsoluteSector(uint32_t sectnum, const 
 		req.start_sector32 = sector;
 	}
 	else {
+		if (sector > 0xFFFFu) return 0x05;
 		req.start_sector = sector;
 		req.start_sector32 = 0;
 	}
