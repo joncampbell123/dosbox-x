@@ -466,11 +466,8 @@ public:
     uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override {
         unsigned char buffer[2048];
 
-        bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
-
-        CDROM_Interface *src_drive=NULL;
-        if (!GetMSCDEXDrive(CDROM_drive-'A',&src_drive)) return 0x05;
-
+	if (!src_drive)
+            return 0x05;
         if (!src_drive->ReadSectorsHost(buffer,false,cdrom_sector_offset+(sectnum>>2)/*512 byte/sector to 2048 byte/sector conversion*/,1))
             return 0x05;
 
@@ -487,6 +484,9 @@ public:
         diskimg = NULL;
         sector_size = 512;
         class_id = ID_EL_TORITO_FLOPPY;
+
+        bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
+        GetMSCDEXDrive(CDROM_drive-'A',&src_drive);/*addref src_drive*/
 
         if (floppy_emu_type == 1) { /* 1.2MB */
             heads = 2;
@@ -514,8 +514,13 @@ public:
         active = true;
     }
     virtual ~imageDiskElToritoFloppy() {
+        if (src_drive) {
+            src_drive->Release();
+            src_drive = NULL;
+        }
     }
 
+    CDROM_Interface *src_drive=NULL;
     unsigned char CDROM_drive;
     unsigned long cdrom_sector_offset;
     unsigned char floppy_type;
