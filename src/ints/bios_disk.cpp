@@ -2435,7 +2435,6 @@ static Bitu INT13_DiskHandler(void) {
         real_writed(segat,bufptr+0x0C,tmpsect);
         real_writed(segat,bufptr+0x10, int13_enable_48bitLBA?(uint32_t)(LBA & 0xFFFFFFFF): (uint32_t)(LBA > 0x0FFFFFFF?0x0FFFFFFF:LBA)); /* LBA lower 32bit */
         real_writed(segat,bufptr+0x14, int13_enable_48bitLBA?(uint32_t)(LBA >> 32):0); /* LBA upper 32bit */
-        real_writed(segat,bufptr+0x14,0);
         real_writew(segat,bufptr+0x18,512);
         if (bufsz >= 0x1E)
             real_writed(segat,bufptr+0x1A,0xFFFFFFFF); /* no EDD information available */
